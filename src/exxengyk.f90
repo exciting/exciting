@@ -14,7 +14,7 @@ real(8), intent(inout) :: ecv
 integer ngknr,ik,ist1,ist2
 integer is,ia,ias,nr,m,lmax
 integer iv(3),iq,ig,igq0
-real(8) occ,cfq,t1
+real(8) occ,cfq,v(3),t1
 complex(8) zrho0,zt1
 ! allocatable arrays
 integer, allocatable :: igkignr(:)
@@ -112,9 +112,10 @@ do ik=1,nkptnr
   iv(:)=ivk(:,ikp)-ivknr(:,ik)
   iv(:)=modulo(iv(:),ngridk(:))
   iq=iqmap(iv(1),iv(2),iv(3))
+  v(:)=vkc(:,ikp)-vkcnr(:,ik)
   do ig=1,ngvec
 ! determine G+q vectors
-    vgqc(:,ig)=vgc(:,ig)+vqc(:,iq)
+    vgqc(:,ig)=vgc(:,ig)+v(:)
 ! G+q-vector length and (theta, phi) coordinates
     call sphcrd(vgqc(1,ig),gqc(ig),tpgqc(1,ig))
 ! spherical harmonics for G+q-vectors
@@ -137,11 +138,11 @@ do ik=1,nkptnr
       do ist1=1,nstsv
         if (evalsvp(ist1).lt.efermi) then
 ! calculate the complex overlap density
-          call vnlrho(wfmt1(1,1,1,1,ist1),wfmt2(1,1,1,1,ist2),wfir1(1,1,ist1), &
-           wfir2(1,1,ist2),zrhomt,zrhoir)
+          call vnlrho(wfmt2(1,1,1,1,ist2),wfmt1(1,1,1,1,ist1),wfir2(1,1,ist2), &
+           wfir1(1,1,ist1),zrhomt,zrhoir)
 ! calculate the Coulomb potential
           call zpotcoul(nrcmt,nrcmtmax,nrcmtmax,rcmt,igq0,gqc,jlgqr,ylmgq, &
-           sfacgq,zpchg,zrhomt,zrhoir,zvclmt,zvclir,zrho0)
+           sfacgq,zpchg,zrhomt,zrhoir,zvclmt,zvclir,zrho0) 
           zt1=zfinp(zrhomt,zvclmt,zrhoir,zvclir)
           t1=cfq*wiq2(iq)*(dble(zrho0)**2+aimag(zrho0)**2)
 !$OMP CRITICAL
@@ -171,10 +172,10 @@ do is=1,nspecies
           do ist1=1,nstsv
             if (evalsvp(ist1).lt.efermi) then
 ! calculate the complex overlap density
-              call vnlrhomt(is,wfmt1(1,1,ias,1,ist1),wfcr(1,1,1), &
-               zrhomt(:,1:nr,ias))
+              call vnlrhomt(is,wfcr(1,1,1),wfmt1(1,1,ias,1,ist1), &
+               zrhomt(1,1,ias))
               if (spinpol) then
-                call vnlrhomt(is,wfmt1(1,1,ias,2,ist1),wfcr(1,1,2),zfmt)
+                call vnlrhomt(is,wfcr(1,1,2),wfmt1(1,1,ias,2,ist1),zfmt)
                 zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
               end if
 ! calculate the Coulomb potential

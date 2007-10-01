@@ -63,6 +63,16 @@ case(3)
   write(fnum,'("+-----------------------------------------------------+")')
   write(fnum,'("| Structural optimisation run resuming from STATE.OUT |")')
   write(fnum,'("+-----------------------------------------------------+")')
+case(5)
+  write(fnum,*)
+  write(fnum,'("+-------------------------------+")')
+  write(fnum,'("| Ground-state Hartree-Fock run |")')
+  write(fnum,'("+-------------------------------+")')
+case(300)
+  write(fnum,*)
+  write(fnum,'("+---------------------------------------+")')
+  write(fnum,'("| Reduced density matrix functional run |")')
+  write(fnum,'("+---------------------------------------+")')
 case default
   write(*,*)
   write(*,'("Error(writeinfo): task not defined : ",I8)') task
@@ -175,7 +185,20 @@ write(fnum,'("Total number of valence states : ",I4)') nstsv
 write(fnum,*)
 write(fnum,'("Total number of local-orbitals : ",I4)') nlotot
 write(fnum,*)
-if (hartfock) write(fnum,'("Hartree-Fock calculation")')
+if (task.eq.5) write(fnum,'("Hartree-Fock calculation using Kohn-Sham states")')
+if (task.eq.300) then
+  write(fnum,'("RDMFT calculation using Kohn-Sham states")')
+  if (rdmxctype.eq.1) then
+    write(fnum,'(" RDMFT exchange-correlation type : ",I4)') rdmxctype
+    write(fnum,'(" Hartree-Fock functional")')
+  else if (rdmxctype.eq.2) then
+    write(fnum,'(" RDMFT exchange-correlation type : ",I4)') rdmxctype
+    write(fnum,'(" Mueller functional")')
+  else if (rdmxctype.eq.3) then
+    write(fnum,'(" RDMFT exchange-correlation type : ",I4)') rdmxctype
+    write(fnum,'(" Mueller-type functional, exponent : ",G18.10)') rdmalpha
+  endif
+end if
 if (xctype.lt.0) then
   write(fnum,'("Optimised effective potential (OEP) and exact exchange (EXX)")')
   write(fnum,'(" Phys. Rev. B 53, 7024 (1996)")')

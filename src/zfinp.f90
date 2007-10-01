@@ -22,9 +22,9 @@ use modmain
 !   Calculates the inner product of two complex fuctions over the entire unit
 !   cell. The muffin-tin functions should be stored on the coarse radial grid
 !   and have angular momentum cut-off {\tt lmaxvr}. In the intersitial region,
-!   the integrand is multiplied with the smooth characteristic function,
-!   $\tilde{\Theta}({\bf r})$, to remove the contribution from the muffin-tin.
-!   See routines {\tt zfmtinp} and {\tt gencfun}.
+!   the integrand is multiplied with the characteristic function, to remove the
+!   contribution from the muffin-tin. See routines {\tt zfmtinp} and
+!   {\tt gencfun}.
 !
 ! !REVISION HISTORY:
 !   Created July 2004 (Sharma)

@@ -38,12 +38,11 @@ complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 complex(8), intent(in) :: v(nmatmax)
 complex(8), intent(inout) :: h(*)
 ! local variables
-integer ias,io1,io2,ir
+integer ias,io1,io2
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
 real(8) t1
 complex(8) zt1,zsum
 ! automatic arrays
-real(8) c(nprad),p0(apwordmax),p1(apwordmax)
 complex(8) zv(ngp)
 ! external functions
 real(8) polynom
@@ -89,16 +88,11 @@ end do
 ! kinetic surface contribution
 t1=0.25d0*rmt(is)**2
 do l1=0,lmaxmat
-  do io1=1,apword(l1,is)
-    p0(io1)=apwfr(nrmt(is),1,io1,l1,ias)
-    ir=nrmt(is)-nprad+1
-    p1(io1)=polynom(1,nprad,spr(ir,is),apwfr(ir,1,io1,l1,ias),c,rmt(is))
-  end do
   do m1=-l1,l1
     lm1=idxlm(l1,m1)
     do io1=1,apword(l1,is)
       do io2=1,apword(l1,is)
-        zt1=t1*p0(io1)*p1(io2)
+        zt1=t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)
         call zmatinp(tapp,ngp,zt1,apwalm(1,io1,lm1,ias),apwalm(1,io2,lm1,ias), &
          v,h)
       end do

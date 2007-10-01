@@ -26,7 +26,8 @@ use modmain
 implicit none
 ! local variables
 integer np,is,ia,ias,nr,ir
-integer ilo,io1,io2,j,l,nn,info
+integer ilo,io1,io2
+integer j,l,nn,info
 real(8) t1
 ! automatic arrays
 real(8) vr(nrmtmax),fr(nrmtmax),gr(nrmtmax),cf(3,nrmtmax)
@@ -55,7 +56,7 @@ do is=1,nspecies
       l=lorbl(ilo,is)
       do io2=1,lorbord(ilo,is)
 ! integrate the radial Schrodinger equation
-        call rschroddme(lorbdm(io2,ilo,is),l,lorbe(io2,ilo,ias),nprad,nr, &
+        call rschroddme(lorbdm(io2,ilo,is),l,0,lorbe(io2,ilo,ias),nprad,nr, &
          spr(1,is),vr,nn,p0(1,io2),p1,q0(1,io2),q1(1,io2))
 ! normalise radial functions
         do ir=1,nr

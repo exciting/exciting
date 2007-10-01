@@ -8,7 +8,7 @@
 ! !INTERFACE:
 subroutine mixer(init,beta0,betamax,n,nu,mu,beta,f,d)
 ! !INPUT/OUTPUT PARAMETERS:
-!   init    : .true. if the mixer should be intitialised (inout,logical)
+!   init    : .true. if the mixer should be intitialised (in,logical)
 !   beta0   : default mixing parameter (in,real)
 !   betamax : maximum mixing parameter (in,real)
 !   n       : vector length (in,integer)
@@ -40,7 +40,7 @@ subroutine mixer(init,beta0,betamax,n,nu,mu,beta,f,d)
 !BOC
 implicit none
 ! arguments
-logical, intent(inout) :: init
+logical, intent(in) :: init
 real(8), intent(in) :: beta0
 real(8), intent(in) :: betamax
 integer, intent(in) :: n
@@ -57,7 +57,6 @@ if (init) then
   f(:)=0.d0
   beta(:)=beta0
   d=1.d0
-  init=.false.
   return
 end if
 do i=1,n

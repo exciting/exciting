@@ -63,7 +63,7 @@ use modmain
 implicit none
 ! local variables
 integer ik,is,ia,ias,nr,i,ig
-real(8) jl(0:1),sum,t1,t2
+real(8) sum,t1,t2,t3,t4
 real(8) cpu0,cpu1
 ! allocatable arrays
 real(8), allocatable :: rfmt(:,:)
@@ -128,16 +128,22 @@ if (tfibs) then
       end do
     end do
   end do
-! step function form factor
+! step function form factors
+  t1=fourpi/omega
+  t2=cfdamp/gmaxvr
   do is=1,nspecies
-    t1=(fourpi/omega)*rmt(is)**3
     do ig=1,ngvec
       if (gc(ig).gt.epslat) then
-        t2=gc(ig)*rmt(is)
-        call sbessel(1,t2,jl)
-        ff(ig,is)=t1*jl(1)/t2
+        if (cfdamp.ne.0.d0) then
+! use damping if required
+          t3=exp(-(t2*gc(ig))**2)
+        else
+          t3=1.d0
+        end if
+        t4=gc(ig)*rmt(is)
+        ff(ig,is)=t1*t3*(sin(t4)-t4*cos(t4))/(gc(ig)**3)
       else
-        ff(ig,is)=t1/3.d0
+        ff(ig,is)=t1*(rmt(is)**3)/3.d0
       end if
     end do
   end do

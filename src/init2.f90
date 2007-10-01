@@ -19,7 +19,7 @@ call cpu_time(cpu0)
 ! check if the system is an isolated molecule
 if (molecule) ngridq(:)=1
 ! OEP, Hartree-Fock or RDMFT
-if ((xctype.lt.0).or.(hartfock).or.(task.eq.300)) then
+if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.300)) then
   ngridq(:)=ngridk(:)
   reduceq=.false.
 end if
@@ -42,12 +42,14 @@ call genppts(reduceq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
 !-----------------------------------------------!
 !     OEP, Hartree-Fock and RDMFT variables     !
 !-----------------------------------------------!
-if ((xctype.lt.0).or.(hartfock).or.(task.eq.300)) then
+if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.300)) then
 ! determine the 1/q^2 integral weights if required
   call genwiq2
 ! output the 1/q^2 integrals to WIQ2.OUT
   call writewiq2
-! initialise residue magnitude
+end if
+if (xctype.lt.0) then
+! initialise OEP residue magnitude
   resoep=1.d0
   ncrmax=0
   do is=1,nspecies
@@ -64,6 +66,21 @@ if ((xctype.lt.0).or.(hartfock).or.(task.eq.300)) then
       ncrmax=max(ncrmax,ic)
     end do
   end do
+end if
+if ((task.eq.5).or.(task.eq.300)) then
+! allocate the kinetic matrix elements for Hartree-Fock/RDMFT
+  if (allocated(kinmatc)) deallocate(kinmatc)
+  allocate(kinmatc(nstsv,nstsv,nkpt))
+end if
+if (task.eq.300) then
+  if (allocated(vclmat)) deallocate(vclmat)
+  allocate(vclmat(nstsv,nstsv,nkpt))
+  if (allocated(dkdc)) deallocate(dkdc)
+  allocate(dkdc(nstsv,nstsv,nkpt))
+  if (allocated(vnlmatr)) deallocate(vnlmatr)
+  allocate(vnlmatr(nstsv,nkpt,nstsv,nkptnr))
+  if (allocated(vnlmat)) deallocate(vnlmat)
+  allocate(vnlmat(nstsv,nstsv,nkpt,nstsv,nkptnr))
 end if
 
 call cpu_time(cpu1)

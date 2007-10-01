@@ -49,7 +49,6 @@ if (tapp) then
   do i=1,ngp
     do j=i,ngp
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      iv(:)=modulo(iv(:)-intgv(:,1),ngrid(:))+intgv(:,1)
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
         t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
@@ -66,7 +65,6 @@ else
     do i=1,j
       k=k+1
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      iv(:)=modulo(iv(:)-intgv(:,1),ngrid(:))+intgv(:,1)
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
         t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))

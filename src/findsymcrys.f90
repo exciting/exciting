@@ -17,10 +17,13 @@ use modmain
 !   global spin rotation. Note that the order of operations is important and
 !   defined to be from right to left, i.e. translation followed by spatial
 !   rotation followed by spin rotation. In the case of spin-orbit coupling
-!   $\alpha_S=\alpha_R$. The translation vectors are determined by checking
-!   all displacements of the form $(\frac{i}{12},\frac{j}{12},\frac{k}{12})$
-!   for $i,j,k=0\ldots 11$. See L. M. Sandratskii and P. G. Guletskii, {\it J.
-!   Phys. F: Met. Phys.} {\bf 16}, L43 (1986) and the routine {\tt findsym}.
+!   $\alpha_S=\alpha_R$. In order to determine the translation vectors, the
+!   entire atomic basis is shifted so that the first atom in the smallest set of
+!   atoms of the same species is at the origin. Then all displacement vectors
+!   between atoms in this set are checked as possible symmetry translations. If
+!   the global variable {\tt tshift} is set to {\tt .false.} then the shift is
+!   not performed. See L. M. Sandratskii and P. G. Guletskii, {\it J. Phys. F:
+!   Met. Phys.} {\bf 16}, L43 (1986) and the routine {\tt findsym}.
 !
 ! !REVISION HISTORY:
 !   Created April 2007 (JKD)
@@ -46,7 +49,7 @@ if (allocated(ieqatom)) deallocate(ieqatom)
 allocate(ieqatom(natmmax,nspecies,maxsymcrys))
 if (allocated(eqatoms)) deallocate(eqatoms)
 allocate(eqatoms(natmmax,natmmax,nspecies))
-! find the smallest atomic set
+! find the smallest set of atoms
 is=1
 do js=1,nspecies
   if (natoms(js).lt.natoms(is)) is=js
@@ -65,7 +68,7 @@ if (tshift) then
     end do
   end do
 end if
-! determine possible translation vectors from smallest atomic set
+! determine possible translation vectors from smallest set of atoms
 allocate(vtl(3,natoms(is)*natoms(is)))
 n=0
 do ia=1,natoms(is)
@@ -78,8 +81,8 @@ do ia=1,natoms(is)
     end do
     n=n+1
     vtl(:,n)=v(:)
-  end do
 10 continue
+  end do
 end do
 eqatoms(:,:,:)=.false.
 nsymcrys=0

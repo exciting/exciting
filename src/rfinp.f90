@@ -21,8 +21,8 @@ use modmain
 !   Calculates the inner product of two real fuctions over the entire unit cell.
 !   The input muffin-tin functions should have angular momentum cut-off
 !   {\tt lmaxvr}. In the intersitial region, the integrand is multiplied with
-!   the smooth characteristic function, $\tilde{\Theta}({\bf r})$, to remove
-!   the contribution from the muffin-tin. See routines {\tt rfmtinp} and
+!   the characteristic function, $\tilde{\Theta}({\bf r})$, to remove the
+!   contribution from the muffin-tin. See routines {\tt rfmtinp} and
 !   {\tt gencfun}.
 !
 ! !REVISION HISTORY:

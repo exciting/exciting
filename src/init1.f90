@@ -205,12 +205,14 @@ call genidxlo
 ! allocate radial function arrays
 if (allocated(apwfr)) deallocate(apwfr)
 allocate(apwfr(nrmtmax,2,apwordmax,0:lmaxapw,natmtot))
+if (allocated(apwdfr)) deallocate(apwdfr)
+allocate(apwdfr(apwordmax,0:lmaxapw,natmtot))
 if (allocated(lofr)) deallocate(lofr)
 allocate(lofr(nrmtmax,2,nlomax,natmtot))
 
-!---------------------------------------!
-!     eigenvalue equation variables     !
-!---------------------------------------!
+!------------------------------------!
+!     secular equation variables     !
+!------------------------------------!
 ! overlap and Hamiltonian matrix sizes
 if (allocated(nmat)) deallocate(nmat)
 allocate(nmat(nkpt,nspnfv))

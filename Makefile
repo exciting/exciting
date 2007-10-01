@@ -1,13 +1,16 @@
+
+MAKE = make
+
 all:
-	cd src; make all
-	cd src/eos; make
-	cd src/spacegroup; make
-	cd src/species; make
+	cd src; $(MAKE) all
+	cd src/eos; $(MAKE)
+	cd src/spacegroup; $(MAKE)
+	cd src/species; $(MAKE)
 
 clean:
-	cd src; make cleanall
-	cd src/eos; make clean
-	cd src/spacegroup; make clean
-	cd src/species; make clean
+	cd src; $(MAKE) cleanall
+	cd src/eos; $(MAKE) clean
+	cd src/spacegroup; $(MAKE) clean
+	cd src/species; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 

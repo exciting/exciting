@@ -45,7 +45,7 @@ primcell=.false.
 tshift=.true.
 ngridk(:)=1
 vkloff(:)=0.d0
-rlambda=20.d0
+rlambda=30.d0
 autokpt=.false.
 reducek=.true.
 ngridq(:)=1
@@ -68,7 +68,9 @@ beta0=0.1d0
 betamax=1.d0
 maxscl=200
 epspot=1.d-6
+epsengy=1.d-7
 epsforce=5.d-4
+cfdamp=0.d0
 molecule=.false.
 vacuum=10.d0
 nspecies=0
@@ -104,6 +106,7 @@ scissor=0.d0
 noptcomp=1
 optcomp(:,1)=1
 usegdft=.false.
+intraband=.false.
 evalmin=-4.5d0
 deband=0.0025d0
 bfieldc(:)=0.d0
@@ -122,7 +125,7 @@ vqlwrt(:,:)=0.d0
 notelns=0
 tforce=.false.
 tfibs=.true.
-maxitoep=300
+maxitoep=150
 tau0oep=0.5d0
 dtauoep=0.5d0
 nkstlist=1
@@ -133,8 +136,6 @@ ndspem=1
 nosource=.false.
 spinsprl=.false.
 vqlss(:)=0.d0
-hartfock=.false.
-cdft=.false.
 nwrite=0
 tevecsv=.false.
 
@@ -355,8 +356,18 @@ case('maxscl')
   end if
 case('epspot')
   read(50,*) epspot
+case('epsengy')
+  read(50,*) epsengy
 case('epsforce')
   read(50,*) epsforce
+case('cfdamp')
+  read(50,*) cfdamp
+  if (cfdamp.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): cfdamp < 0 : ",G18.10)') cfdamp
+    write(*,*)
+    stop
+  end if
 case('sppath')
   read(50,*) sppath
 case('scrpath')
@@ -549,6 +560,8 @@ case('optcomp')
   stop
 case('usegdft')
   read(50,*) usegdft
+case('intraband')
+  read(50,*) intraband
 case('evalmin')
   read(50,*) evalmin
 case('deband')
@@ -678,10 +691,6 @@ case('spinsprl')
   read(50,*) spinsprl
 case('vqlss')
   read(50,*) vqlss
-case('hartfock')
-  read(50,*) hartfock
-case('cdft')
-  read(50,*) cdft
 case('nwrite')
   read(50,*) nwrite
 case('tevecsv')

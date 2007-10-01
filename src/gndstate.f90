@@ -22,7 +22,7 @@ use modmain
 !BOC
 implicit none
 ! local variables
-logical init,exist
+logical exist
 integer ik,is,ia,idm,n
 real(8) dv,timetot
 ! allocatable arrays
@@ -38,8 +38,8 @@ if ((task.eq.2).or.(task.eq.3)) tforce=.true.
 ! initialise universal variables
 call init0
 call init1
-! initialise OEP/Hartree-Fock variables if required
-if ((xctype.lt.0).or.hartfock) call init2
+! initialise OEP variables if required
+if (xctype.lt.0) call init2
 ! write the real and reciprocal lattice vectors to file
 call writelat
 ! write inter-atomic distances to file
@@ -62,6 +62,8 @@ if (spinpol) open(63,file='MOMENT'//trim(filext),action='WRITE', &
 ! open FORCEMAX.OUT if required
 if (tforce) open(64,file='FORCEMAX'//trim(filext),action='WRITE', &
  form='FORMATTED')
+! open RMSDVEFF.OUT
+open(65,file='RMSDVEFF'//trim(filext),action='WRITE',form='FORMATTED')
 ! write out general information to INFO.OUT
 call writeinfo(60)
 ! initialise or read the charge density and potentials from file
@@ -91,9 +93,8 @@ tstop=.false.
 ! set last iteration flag
 tlast=.false.
 ! initialise the mixer
-init=.true.
 call packeff(.true.,n,nu)
-call mixer(init,beta0,betamax,n,nu,mu,beta,f,dv)
+call mixer(.true.,beta0,betamax,n,nu,mu,beta,f,dv)
 call packeff(.false.,n,nu)
 ! delete any existing eigenvector files
 call delevec
@@ -147,27 +148,6 @@ do iscl=1,maxscl
   end do
 !$OMP END DO
 !$OMP END PARALLEL
-! perform Hartree-Fock calculation if required
-  if (hartfock) then
-! initialise the occupancies
-    if (iscl.le.1) call occupy
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evecsv)
-!$OMP DO
-    do ik=1,nkpt
-      allocate(evecsv(nstsv,nstsv))
-! get the eigenvectors from file
-      call getevecsv(vkl(1,ik),evecsv)
-! solve the Hartree-Fock equations
-      call seceqnhf(ik,evecsv)
-! write the eigenvalues/vectors to file
-      call putevalsv(ik,evalsv(1,ik))
-      call putevecsv(ik,evecsv)
-      deallocate(evecsv)
-    end do
-!$OMP END DO
-!$OMP END PARALLEL
-  end if
 ! find the occupation numbers and Fermi energy
   call occupy
 ! write out the eigenvalues and occupation numbers
@@ -181,7 +161,6 @@ do iscl=1,maxscl
     magmt(:,:,:,:)=0.d0
     magir(:,:)=0.d0
   end if
-! begin parallel loop over k-points
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(evecfv,evecsv)
 !$OMP DO
@@ -193,7 +172,7 @@ do iscl=1,maxscl
 ! get the eigenvectors from file
     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
     call getevecsv(vkl(1,ik),evecsv)
-! add to the density
+! add to the density and magnetisation
     call rhovalk(ik,evecfv,evecsv)
     deallocate(evecfv,evecsv)
   end do
@@ -222,7 +201,7 @@ do iscl=1,maxscl
 ! pack interstitial and muffin-tin effective potential and field into one array
   call packeff(.true.,n,nu)
 ! mix in the old potential and field with the new
-  call mixer(init,beta0,betamax,n,nu,mu,beta,f,dv)
+  call mixer(.false.,beta0,betamax,n,nu,mu,beta,f,dv)
 ! unpack potential and field
   call packeff(.false.,n,nu)
 ! add the fixed spin moment effective field
@@ -283,6 +262,8 @@ do iscl=1,maxscl
       write(60,'("Potential convergence target achieved")')
       tlast=.true.
     end if
+    write(65,'(G18.10)') dv
+    call flushifc(65)
     if (xctype.lt.0) then
       write(60,'("Magnitude of OEP residue : ",G18.10)') resoep
     end if
@@ -391,6 +372,8 @@ close(62)
 if (spinpol) close(63)
 ! close the FORCEMAX.OUT file
 if (tforce) close(64)
+! close the RMSDVEFF.OUT file
+close(65)
 deallocate(nu,mu,beta,f)
 return
 end subroutine

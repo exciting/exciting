@@ -80,7 +80,10 @@ end do
 !     index to atoms and species     !
 !------------------------------------!
 ! check if the system is an isolated molecule
-if (molecule) primcell=.false.
+if (molecule) then
+  primcell=.false.
+  tshift=.false.
+end if
 ! find primitive cell if required
 if (primcell) call findprim
 natmmax=0
@@ -95,21 +98,6 @@ do is=1,nspecies
 end do
 ! total number of atoms
 natmtot=ias
-
-!--------------------------------!
-!     Hartree-Fock variables     !
-!--------------------------------!
-if (hartfock) then
-  select case(task)
-  case(20,21,25,41,42,43,91,92,93)
-    write(*,*)
-    write(*,'("Error(init0): Hartree-Fock does not work with task ",I4)') task
-    write(*,*)
-    stop
-  end select
-! Hartree-Fock always requires second-variational eigenvectors
-  tevecsv=.true.
-end if
 
 !------------------------!
 !     spin variables     !
@@ -145,6 +133,8 @@ else
 end if
 ! spin-polarised calculations require second-variational eigenvectors
 if (spinpol) tevecsv=.true.
+! Hartree-Fock/RDMFT requires second-variational eigenvectors
+if ((task.eq.5).or.(task.eq.300)) tevecsv=.true.
 ! get exchange-correlation functional data
 call getxcdata(xctype,xcdescr,xcspin,xcgrad)
 if ((spinpol).and.(xcspin.eq.0)) then
@@ -177,8 +167,6 @@ bfsmc(:)=0.d0
 !-------------------------------------!
 !     lattice and symmetry set up     !
 !-------------------------------------!
-! switch off symmetries for CDFT
-if (cdft) nosym=.true.
 ! generate the reciprocal lattice vectors and unit cell volume
 call reciplat
 ! compute the inverse of the lattice vector matrix
@@ -296,7 +284,7 @@ if (allocated(sfacg)) deallocate(sfacg)
 allocate(sfacg(ngvec,natmtot))
 ! generate structure factors for G-vectors
 call gensfacgp(ngvec,vgc,ngvec,sfacg)
-! generate the smooth characteristic function
+! generate the characteristic function
 call gencfun
 
 !-------------------------!
@@ -337,13 +325,6 @@ if (spinpol) then
   allocate(magmt(lmmaxvr,nrmtmax,natmtot,ndmag))
   allocate(magir(ngrtot,ndmag))
 end if
-! allocate current density arrays
-if (allocated(jpmt)) deallocate(jpmt)
-if (allocated(jpir)) deallocate(jpir)
-if (cdft) then
-  allocate(jpmt(lmmaxvr,nrmtmax,natmtot,3))
-  allocate(jpir(ngrtot,3))
-end if
 ! Coulomb potential
 if (allocated(vclmt)) deallocate(vclmt)
 allocate(vclmt(lmmaxvr,nrmtmax,natmtot))
@@ -360,13 +341,6 @@ if (allocated(bxcir)) deallocate(bxcir)
 if (spinpol) then
   allocate(bxcmt(lmmaxvr,nrmtmax,natmtot,ndmag))
   allocate(bxcir(ngrtot,ndmag))
-end if
-! exchange-correlation vector potential
-if (allocated(axcmt)) deallocate(axcmt)
-if (allocated(axcir)) deallocate(axcir)
-if (cdft) then
-  allocate(axcmt(lmmaxvr,nrmtmax,natmtot,3))
-  allocate(axcir(ngrtot,3))
 end if
 ! exchange energy density
 if (allocated(exmt)) deallocate(exmt)

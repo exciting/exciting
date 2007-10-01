@@ -18,7 +18,7 @@ SRC_main = main.f90
 
 SRC_routines = \
  autoradmt.f90 findprim.f90 findsym.f90 findsymcrys.f90 genppts.f90 rfinp.f90 \
- rvfcross.f90 seceqn.f90 symrf.f90 wavefmt.f90
+ rvfcross.f90 seceqn.f90 symrf.f90 symrfir.f90 wavefmt.f90
 
 SRC_routines_flux = \
  elfplot.f90 rhonorm.f90 energy.f90 spinchar.f90 \
@@ -36,7 +36,7 @@ SRC_routines_flux = \
  dos.f90 rhoinit.f90 potplot.f90 writestate.f90 \
  potxc.f90 zpotcoul.f90 gndstate.f90 rhovalk.f90 readstate.f90 bandstr.f90 \
  writeeval.f90 rhoplot.f90 gwf2val.f90 gwf2cr.f90 \
- rfarray.f90 fermisurf.f90 \
+ rfarray.f90 fermisurf.f90 symrvfir.f90 \
  symrvf.f90 symrfmt.f90 wfplot.f90 hmlrad.f90 olprad.f90 olpistl.f90 olpaa.f90 \
  olpalo.f90 olplolo.f90 hmlistl.f90 hmlaa.f90 hmlalo.f90 hmllolo.f90 init2.f90 \
  writelsj.f90 wavefcr.f90 gdft.f90 gradrf.f90 dbxcplot.f90 effmass.f90 \
@@ -44,8 +44,8 @@ SRC_routines_flux = \
  writeengy.f90 writechg.f90 writeforce.f90 genjlgpr.f90 findkpt.f90 \
  putevalfv.f90 getevalfv.f90 putevalsv.f90 getevalsv.f90 putoccsv.f90 \
  getoccsv.f90 putevecfv.f90 getevecfv.f90 putevecsv.f90 getevecsv.f90 \
- delevec.f90 genvmatk.f90 genwfsv.f90 \
- findsymsite.f90 geomplot.f90
+ delevec.f90 genvmatk.f90 genvmat.f90 genwfsv.f90 \
+ findsymsite.f90 geomplot.f90 hartfock.f90 genkinmat.f90 energykncr.f90
 
 SRC_phonon = \
  phonon.f90 dyntask.f90 phcell.f90 phdisp.f90 readdyn.f90 dynqtor.f90 \
@@ -60,12 +60,11 @@ SRC_advanced = \
  exxengy.f90 exxengyk.f90 oepmain.f90 oepresk.f90 oepvnl.f90 \
  oepvnlk.f90 oepmagmt.f90 oepmag.f90 zrhoqint.f90
 
-
-# rdmft.f90 rdminit.f90 genvmat.f90 genkinmat.f90 rdmvnl.f90 rdmvnlk.f90 \
-# rdmengy.f90 rdmengyx.f90 rdmvaryn.f90 rdmdedn.f90 rdmminn.f90 rdmknrot.f90 \
-# rdmminwf.f90 rdmvarywf.f90 rdmdedc.f90 rdmdexcdc.f90 rdmevecsv.f90 \
-# rdmvnlwf.f90 rdmdexcdn.f90
-
+SRC_rdmft =
+# rdmft.f90 rdmoccinit.f90 rdmdkdc.f90 rdmwriteengy.f90 rdmwritederiv.f90 \
+# rdmvnlwf.f90 rdmdedc.f90 rdmdexcdc.f90 rdmvarywf.f90 rdmengy.f90 \
+# rdmengyxc.f90 rdmminwf.f90 rdmdedn.f90 rdmdexcdn.f90 rdmvnl.f90 rdmvnlk.f90 \
+# rdmvaryn.f90 rdmminn.f90
 
 SRC_lib = \
  euler.f90 wigner3j.f90 gaunt.f90 gauntyry.f90 r3mm.f90 r3mtm.f90 r3mmt.f90 \
@@ -90,7 +89,7 @@ SRC_xc = \
 
 SRC = $(SRC_modules) $(SRC_main) $(SRC_routines) $(SRC_routines_flux) \
  $(SRC_lib) $(SRC_lib_flux) $(SRC_advanced) $(SRC_phonon) $(SRC_optics) \
- $(SRC_xc)
+ $(SRC_xc) $(SRC_rdmft)
 
 OBJ = $(SRC:.f90=.o)
 EXE = exciting
@@ -136,7 +135,7 @@ doctemp:
 backup:
 	tar -czf ex.tgz $(SRC) fftlib eos spacegroup species junk BLAS LAPACK \
          Makefile notes.txt docs docedit examples protex COPYING README \
-         exciting.bib ../release
+         exciting.bib depend ../release
 
 VERSION = $$(awk -F"/" '/data version/ {print $$2}' modmain.f90 | sed 's/ //g;s/,/./g')$
 RELEASE = ../release/exciting
