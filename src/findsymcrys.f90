@@ -28,87 +28,94 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer, parameter :: ndiv=12
-integer ia,ja,is,js
-integer i1,i2,i3
-integer isym,nsym
+integer ia,ja,is,js,i,n
+integer isym,nsym,iv(3)
 integer lspl(48),lspn(48)
-real(8) v(3),vtl(3),t1,t2
+real(8) v(3),t1
 real(8) apl(3,maxatoms,maxspecies)
 ! allocatable arrays
 integer, allocatable :: iea(:,:,:)
-! allocate local arrays
+real(8), allocatable :: vtl(:,:)
+! external functions
+real(8) r3taxi
+external r3taxi
+! allocate local array
 allocate(iea(natmmax,nspecies,48))
 ! allocate equivalent atom arrays
 if (allocated(ieqatom)) deallocate(ieqatom)
 allocate(ieqatom(natmmax,nspecies,maxsymcrys))
 if (allocated(eqatoms)) deallocate(eqatoms)
 allocate(eqatoms(natmmax,natmmax,nspecies))
+! find the smallest atomic set
+is=1
+do js=1,nspecies
+  if (natoms(js).lt.natoms(is)) is=js
+end do
 if (tshift) then
-! shift basis so that the atom closest to the origin is exactly at the origin
-  js=1
-  ja=1
-  t1=1.d8
-  do is=1,nspecies
-    do ia=1,natoms(is)
-      t2=sqrt(atposc(1,ia,is)**2+atposc(2,ia,is)**2+atposc(3,ia,is)**2)
-      if (t2.lt.t1+epslat) then
-        js=is
-        ja=ia
-        t1=t2
-      end if
-    end do
-  end do
-  v(:)=atposl(:,ja,js)
-  do is=1,nspecies
-    do ia=1,natoms(is)
-      atposl(:,ia,is)=atposl(:,ia,is)-v(:)
-      call r3mv(avec,atposl(1,ia,is),atposc(1,ia,is))
+! shift basis so that the first atom in the smallest atom set is at the origin
+  v(:)=atposl(:,1,is)
+  do js=1,nspecies
+    do ia=1,natoms(js)
+! shift atom
+      atposl(:,ia,js)=atposl(:,ia,js)-v(:)
+! map lattice coordinates back to [0,1)
+      call r3frac(epslat,atposl(1,ia,js),iv)
+! determine the new Cartesian coordinates
+      call r3mv(avec,atposl(1,ia,js),atposc(1,ia,js))
     end do
   end do
 end if
+! determine possible translation vectors from smallest atomic set
+allocate(vtl(3,natoms(is)*natoms(is)))
+n=0
+do ia=1,natoms(is)
+  do ja=1,natoms(is)
+    v(:)=atposl(:,ia,is)-atposl(:,ja,is)
+    call r3frac(epslat,v,iv)
+    do i=1,n
+      t1=r3taxi(vtl(1,i),v)
+      if (t1.lt.epslat) goto 10
+    end do
+    n=n+1
+    vtl(:,n)=v(:)
+  end do
+10 continue
+end do
 eqatoms(:,:,:)=.false.
 nsymcrys=0
 ! loop over all possible translations
-do i1=0,ndiv-1
-  vtl(1)=dble(i1)/dble(ndiv)
-  do i2=0,ndiv-1
-    vtl(2)=dble(i2)/dble(ndiv)
-    do i3=0,ndiv-1
-      vtl(3)=dble(i3)/dble(ndiv)
+do i=1,n
 ! construct new array with translated positions
-      do is=1,nspecies
-        do ia=1,natoms(is)
-          apl(:,ia,is)=atposl(:,ia,is)+vtl(:)
-        end do
-      end do
+  do is=1,nspecies
+    do ia=1,natoms(is)
+      apl(:,ia,is)=atposl(:,ia,is)+vtl(:,i)
+    end do
+  end do
 ! find the symmetries for current translation
-      call findsym(atposl,apl,nsym,lspl,lspn,iea)
-      do isym=1,nsym
-        nsymcrys=nsymcrys+1
-        if (nsymcrys.gt.maxsymcrys) then
-          write(*,*)
-          write(*,'("Error(findsymcrys): too many symmetries")')
-          write(*,'(" Adjust maxsymcrys in modmain and recompile code")')
-          write(*,*)
-          stop
-        end if
-        vtlsymc(:,nsymcrys)=vtl(:)
-        lsplsymc(nsymcrys)=lspl(isym)
-        lspnsymc(nsymcrys)=lspn(isym)
-        do is=1,nspecies
-          do ia=1,natoms(is)
-            ja=iea(ia,is,isym)
-            ieqatom(ia,is,nsymcrys)=ja
-            eqatoms(ia,ja,is)=.true.
-            eqatoms(ja,ia,is)=.true.
-          end do
-        end do
+  call findsym(atposl,apl,nsym,lspl,lspn,iea)
+  do isym=1,nsym
+    nsymcrys=nsymcrys+1
+    if (nsymcrys.gt.maxsymcrys) then
+      write(*,*)
+      write(*,'("Error(findsymcrys): too many symmetries")')
+      write(*,'(" Adjust maxsymcrys in modmain and recompile code")')
+      write(*,*)
+      stop
+    end if
+    vtlsymc(:,nsymcrys)=vtl(:,i)
+    lsplsymc(nsymcrys)=lspl(isym)
+    lspnsymc(nsymcrys)=lspn(isym)
+    do is=1,nspecies
+      do ia=1,natoms(is)
+        ja=iea(ia,is,isym)
+        ieqatom(ia,is,nsymcrys)=ja
+        eqatoms(ia,ja,is)=.true.
+        eqatoms(ja,ia,is)=.true.
       end do
     end do
   end do
 end do
-deallocate(iea)
+deallocate(iea,vtl)
 return
 end subroutine
 !EOC

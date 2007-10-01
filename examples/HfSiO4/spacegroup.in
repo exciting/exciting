@@ -1,0 +1,16 @@
+ 'I41/amd:2'                          : hrmg
+ 12.420224 12.420224 11.268814        : a, b, c
+ 90.0     90.0     90.0               : ab, ac, bc
+ 1  1  1                              : ncell
+ .true.                               : primcell
+ 3                                    : nspecies
+ 'Hf' 'Hf.in'                         : spsymb, spfname
+ 1                                    : nwpos
+ 0.0000    0.7500    0.1250           : wpos
+ 'Si' 'Si.in'
+ 1
+ 0.0000    0.7500    0.6250
+ 'O' 'O.in'
+ 1
+ 0.0000    0.0655    0.1948
+

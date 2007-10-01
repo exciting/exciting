@@ -1,5 +1,7 @@
 include ../make.inc
 
+MAKE = make
+
 #-------------------------------------------------------------------------------
 # Suffix rules
 #-------------------------------------------------------------------------------
@@ -97,16 +99,16 @@ exciting:	$(OBJ)
 	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ) $(LIB_LPK) $(LIB_FFT) $(LIB_SYS)
 
 blas:
-	cd BLAS; make; cp blas.a ..
+	cd BLAS; $(MAKE); cp blas.a ..
 
 lapack:
-	cd LAPACK; make; cp lapack.a ..
+	cd LAPACK; $(MAKE); cp lapack.a ..
 
 fft:
-	cd fftlib; make; cp fftlib.a ..
+	cd fftlib; $(MAKE); cp fftlib.a ..
 
 xc:
-	cd xclib; make; cp xclib.a ..
+	cd xclib; $(MAKE); cp xclib.a ..
 
 all:	blas lapack fft exciting
 
@@ -115,10 +117,10 @@ clean:
          *.tex *.toc $(EXE)
 
 cleanall:
-	cd BLAS; make clean
-	cd LAPACK; make clean
-	cd fftlib; make clean
-	make clean
+	cd BLAS; $(MAKE) clean
+	cd LAPACK; $(MAKE) clean
+	cd fftlib; $(MAKE) clean
+	$(MAKE) clean
 
 doc:
 	./protex -s $(SRC_main) $(SRC_modules) $(SRC_routines) \
@@ -142,12 +144,12 @@ RELEASE = ../release/exciting
 release:
 	rm -rf $(RELEASE)
 	mkdir $(RELEASE)
-	cd BLAS; make clean
-	cd LAPACK; make clean
-	cd fftlib; make clean
-	cd eos; make clean
-	cd spacegroup; make clean
-	cd species; make clean
+	cd BLAS; $(MAKE) clean
+	cd LAPACK; $(MAKE) clean
+	cd fftlib; $(MAKE) clean
+	cd eos; $(MAKE) clean
+	cd spacegroup; $(MAKE) clean
+	cd species; $(MAKE) clean
 	mkdir $(RELEASE)/src
 	cp -r BLAS $(RELEASE)/src
 	cp -r LAPACK $(RELEASE)/src
@@ -168,9 +170,9 @@ release:
 	cp ../setup $(RELEASE)
 	mkdir $(RELEASE)/utilities
 	cp -r NEdit $(RELEASE)/utilities
-	make doc
+	$(MAKE) doc
 	cp exciting.pdf docs/exciting
-	cd spacegroup;make doc;cp spacegroup.pdf ../docs/spacegroup;make clean
+	cd spacegroup;$(MAKE) doc;cp spacegroup.pdf ../docs/spacegroup;$(MAKE) clean
 	cp -r docs $(RELEASE)
 	tar -C ../release -czf ../release/exciting-$(VERSION).tgz exciting
 	cp docs/exciting/exciting.pdf ../release
