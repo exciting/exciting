@@ -1,0 +1,172 @@
+//
+// time: Sun Oct 15 18:48:57 2006
+//
+// version: 3.2.0 (format), 4.3.2 (DX)
+//
+//
+// MODULE main
+// workspace: width = 392, height = 525
+// layout: snap = 0, width = 50, height = 50, align = NN
+//
+macro main(
+) -> (
+) {
+    // 
+    // node Import[1]: x = 40, y = 40, inputs = 6, label = Import
+    // input[1]: defaulting = 0, visible = 1, type = 32, value = "stm2d.general"
+    //
+main_Import_1_out_1 = 
+    Import(
+    main_Import_1_in_1,
+    main_Import_1_in_2,
+    main_Import_1_in_3,
+    main_Import_1_in_4,
+    main_Import_1_in_5,
+    main_Import_1_in_6
+    ) [instance: 1, cache: 1];
+    // 
+    // node Colormap[1]: x = 245, y = 132, inputs = 19, label = Colormap
+    // input[1]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 0.0] [1.0 0.0] }
+    // input[2]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 0.0] [1.0 0.0] }
+    // input[3]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 0.0] [1.0 1.0] }
+    // input[4]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 1.0] [1.0 1.0] }
+    // input[5]: defaulting = 0, visible = 0, type = 32, value = "Colormap_1"
+    // input[7]: defaulting = 1, visible = 0, type = 5, value = 0.0043241107
+    // input[8]: defaulting = 1, visible = 0, type = 5, value = 0.045520809
+    // input[9]: defaulting = 1, visible = 0, type = 1, value = 20
+    // input[12]: defaulting = 0, visible = 0, type = 16777221, value = { 0.0043241107 0.045520809 }
+    // input[17]: defaulting = 0, visible = 0, type = 5, value = 0.0043241107
+    // input[18]: defaulting = 0, visible = 0, type = 5, value = 0.045520809
+    // window: position = (0.0000,0.0000), size = 0.6348x0.5859
+    //
+main_Colormap_1_out_1[cache: 2],
+main_Colormap_1_out_2[cache: 2] = 
+    Colormap(
+    main_Colormap_1_in_1,
+    main_Colormap_1_in_2,
+    main_Colormap_1_in_3,
+    main_Colormap_1_in_4,
+    main_Colormap_1_in_5,
+    main_Import_1_out_1,
+    main_Colormap_1_in_7,
+    main_Colormap_1_in_8,
+    main_Colormap_1_in_9,
+    main_Colormap_1_in_10,
+    main_Colormap_1_in_11,
+    main_Colormap_1_in_12,
+    main_Colormap_1_in_13,
+    main_Colormap_1_in_14,
+    main_Colormap_1_in_15,
+    main_Colormap_1_in_16,
+    main_Colormap_1_in_17,
+    main_Colormap_1_in_18,
+    main_Colormap_1_in_19
+    ) [instance: 1, cache: 1];
+    // 
+    // node Color[1]: x = 81, y = 206, inputs = 5, label = Color
+    //
+main_Color_1_out_1 = 
+    Color(
+    main_Import_1_out_1,
+    main_Colormap_1_out_1,
+    main_Color_1_in_3,
+    main_Color_1_in_4,
+    main_Color_1_in_5
+    ) [instance: 1, cache: 1];
+    // 
+    // node AutoCamera[1]: x = 300, y = 292, inputs = 9, label = AutoCamera
+    // input[3]: defaulting = 0, visible = 0, type = 5, value = 35.0
+    // input[4]: defaulting = 0, visible = 0, type = 1, value = 512
+    // input[5]: defaulting = 0, visible = 0, type = 5, value = 1.0
+    // input[9]: defaulting = 0, visible = 0, type = 32, value = "white"
+    //
+main_AutoCamera_1_out_1 = 
+    AutoCamera(
+    main_Color_1_out_1,
+    main_AutoCamera_1_in_2,
+    main_AutoCamera_1_in_3,
+    main_AutoCamera_1_in_4,
+    main_AutoCamera_1_in_5,
+    main_AutoCamera_1_in_6,
+    main_AutoCamera_1_in_7,
+    main_AutoCamera_1_in_8,
+    main_AutoCamera_1_in_9
+    ) [instance: 1, cache: 1];
+    // 
+    // node Render[1]: x = 174, y = 347, inputs = 3, label = Render
+    //
+main_Render_1_out_1 = 
+    Render(
+    main_Color_1_out_1,
+    main_AutoCamera_1_out_1,
+    main_Render_1_in_3
+    ) [instance: 1, cache: 1];
+    // 
+    // node Display[1]: x = 142, y = 463, inputs = 8, label = Display
+    // depth: value = 24
+    // window: position = (0.0000,0.0000), size = 0.5137x0.7214
+    //
+main_Display_1_out_1[cache: 2] = 
+    Display(
+    main_Render_1_out_1,
+    main_Display_1_in_2,
+    main_Display_1_in_3,
+    main_Display_1_in_4,
+    main_Display_1_in_5,
+    main_Display_1_in_6,
+    main_Display_1_in_7,
+    main_Display_1_in_8
+    ) [instance: 1, cache: 1];
+// network: end of macro body
+}
+main_Import_1_in_1 = "stm2d.general";
+main_Import_1_in_2 = NULL;
+main_Import_1_in_3 = NULL;
+main_Import_1_in_4 = NULL;
+main_Import_1_in_5 = NULL;
+main_Import_1_in_6 = NULL;
+main_Import_1_out_1 = NULL;
+main_Colormap_1_in_1 = { [0.0 0.0] [1.0 0.0] };
+main_Colormap_1_in_2 = { [0.0 0.0] [1.0 0.0] };
+main_Colormap_1_in_3 = { [0.0 0.0] [1.0 1.0] };
+main_Colormap_1_in_4 = { [0.0 1.0] [1.0 1.0] };
+main_Colormap_1_in_5 = "Colormap_1";
+main_Colormap_1_in_7 = NULL;
+main_Colormap_1_in_8 = NULL;
+main_Colormap_1_in_9 = NULL;
+main_Colormap_1_in_10 = NULL;
+main_Colormap_1_in_11 = NULL;
+main_Colormap_1_in_12 = { 0.0043241107 0.045520809 };
+main_Colormap_1_in_13 = NULL;
+main_Colormap_1_in_14 = NULL;
+main_Colormap_1_in_15 = NULL;
+main_Colormap_1_in_16 = NULL;
+main_Colormap_1_in_17 = 0.0043241107;
+main_Colormap_1_in_18 = 0.045520809;
+main_Colormap_1_in_19 = NULL;
+main_Colormap_1_out_1 = NULL;
+main_Color_1_in_3 = NULL;
+main_Color_1_in_4 = NULL;
+main_Color_1_in_5 = NULL;
+main_Color_1_out_1 = NULL;
+main_AutoCamera_1_in_2 = NULL;
+main_AutoCamera_1_in_3 = 35.0;
+main_AutoCamera_1_in_4 = 512;
+main_AutoCamera_1_in_5 = 1.0;
+main_AutoCamera_1_in_6 = NULL;
+main_AutoCamera_1_in_7 = NULL;
+main_AutoCamera_1_in_8 = NULL;
+main_AutoCamera_1_in_9 = "white";
+main_AutoCamera_1_out_1 = NULL;
+main_Render_1_in_3 = NULL;
+main_Render_1_out_1 = NULL;
+main_Display_1_in_2 = NULL;
+main_Display_1_in_3 = "X24,,";
+main_Display_1_in_4 = NULL;
+main_Display_1_in_5 = NULL;
+main_Display_1_in_6 = NULL;
+main_Display_1_in_7 = NULL;
+main_Display_1_in_8 = NULL;
+Executive("product version 4 3 2");
+$sync
+main();

@@ -1,0 +1,47 @@
+
+! Phonon spectrum of Aluminium. This can be run on as many machines as you like
+! so long as they all use the same working directory. Once complete, set
+! tasks=210 to generate the phonon density of states, and tasks=220 for the
+! phonon dispersion.
+
+tasks
+  200
+
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  3.75
+
+! phonon q-point mesh
+ngridq
+  4  4  4
+
+! k-point grid is determined by maximum de Broglie wavelength
+rlambda
+  30.0
+
+vkloff
+  0.5 0.5 0.5
+
+rgkmax
+  6.0
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Al.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+plot1d
+  4 200                               : nvp1d, npp1d
+  0.0   0.0   0.0                     : vlvp1d
+  0.5   0.5   0.0   
+  1.0   0.0   0.0
+  0.5   0.0   0.0
+

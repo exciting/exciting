@@ -1,0 +1,47 @@
+ 'Te'                                       : spsymb
+ 'tellurium'                                : spname
+  -52.0000                                  : spzn
+   232600.5707                              : spmass
+  0.277350E-06    2.0000   38.3770   540    : sprmin, rmt, sprmax, nrmt
+  17                                        : spnst
+   1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
+   2   0   1   2.00000    T
+   2   1   1   2.00000    T
+   2   1   2   4.00000    T
+   3   0   1   2.00000    T
+   3   1   1   2.00000    T
+   3   1   2   4.00000    T
+   3   2   2   4.00000    T
+   3   2   3   6.00000    T
+   4   0   1   2.00000    T
+   4   1   1   2.00000    T
+   4   1   2   4.00000    T
+   4   2   2   4.00000    F
+   4   2   3   6.00000    F
+   5   0   1   2.00000    F
+   5   1   1   2.00000    F
+   5   1   2   2.00000    F
+   1                                        : apword
+  0.1500   0  F                             : apwe0, apwdm, apwve
+   0                                        : nlx
+   6                                        : nlorb
+   0   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   1   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   2   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   3   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   2   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -1.4063   0  T
+   0   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -0.4095   0  T

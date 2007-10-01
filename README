@@ -1,0 +1,43 @@
+                     +-----------------------------------+
+                     |     The EXCITING FP-LAPW Code     |
+                     +-----------------------------------+
+
+Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+This code is distributed under the terms of the GNU General Public License.
+See the file COPYING for license details.
+
+    EXCITING is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    EXCITING is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with EXCITING; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+This is a beta release of the EXCITING FP-LAPW code. The code can be compiled by
+first running "./setup" in this directory followed by "make all". This will
+compile the main code as well as several auxiliary programs. For optimal
+performance we recommend that you tune the Fortran compiler options in the file
+"make.inc" and use machine-optimised BLAS/LAPACK libraries. Setting the OpenMP
+options of your compiler will enable EXCITING to run in parallel mode on
+multiprocessor systems.
+
+The auxiliary programs include "spacegroup" for producing crystal geometries
+from spacegroup data, "species" for generating species files, and "eos" for
+fitting equations of state to energy-volume data.
+
+EXCITING is updated regularly with new features and bug fixes. This release may
+be used for limited production but please check the consistency of the results
+carefully.
+
+--------------------------------------------------------------------------------
+J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
+Institut fur Physik, Karl-Franzens-Universitat, Graz, Austria
+April 2006
+

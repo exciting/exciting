@@ -1,0 +1,52 @@
+
+! Spin-spiral state for Gamma-Fe. Care should be taken to ensure that the
+! calculation is fully converged.
+
+tasks
+  0
+
+spinsprl
+ .true.
+
+! spin-spiral q-vector in lattice coordinates
+vqlss
+  0.1 0.1 0.0
+
+! fairly large large cut-off required
+rgkmax
+  8.5
+
+gmaxvr
+  14.0
+
+nempty
+  10
+
+! spiral magnetic field along q with perpendicular component only
+bfieldc
+  0.05 0.0 0.0
+
+! tight convergence required
+epspot
+  1.e-7
+
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  3.375
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+ngridk
+  4  4  4
+

@@ -1,0 +1,50 @@
+
+! An example of how EXCITING can automatically determine the primitive unit cell
+! from the conventional one. The input chalcopyrite unit cell contains 16 atoms
+! which is reduced to 8 by the code.
+
+tasks
+  0
+
+! automatic determination of the primitive unit cell
+primcell
+ .true.
+
+avec
+  9.99476  0.00000  0.00000
+  0.00000  9.99476  0.00000
+  0.00000  0.00000  19.6966
+
+autormt
+ .true.
+
+sppath
+  '../../species/'
+
+atoms
+   3                                    : nspecies
+  'Cu.in'                               : spfname
+   4                                    : natoms; atposl, bfcmt below
+  0.0000  0.0000  0.0000    0.0000  0.0000  0.0000
+  0.0000  0.5000  0.2500    0.0000  0.0000  0.0000
+  0.5000  0.0000  0.7500    0.0000  0.0000  0.0000
+  0.5000  0.5000  0.5000    0.0000  0.0000  0.0000
+  'Fe.in'                               : spfname
+   4                                    : natoms; atposl, bfcmt below
+  0.0000  0.0000  0.5000    0.0000  0.0000  0.0000
+  0.0000  0.5000  0.7500    0.0000  0.0000  0.0000
+  0.5000  0.0000  0.2500    0.0000  0.0000  0.0000
+  0.5000  0.5000  0.0000    0.0000  0.0000  0.0000
+  'S.in'                                : spfname
+   8                                    : natoms; atposl, bfcmt below
+  0.2574  0.2500  0.1250    0.0000  0.0000  0.0000
+  0.7426  0.7500  0.1250    0.0000  0.0000  0.0000
+  0.2500  0.7426  0.8750    0.0000  0.0000  0.0000
+  0.7500  0.2574  0.8750    0.0000  0.0000  0.0000
+  0.7574  0.7500  0.6250    0.0000  0.0000  0.0000
+  0.2426  0.2500  0.6250    0.0000  0.0000  0.0000
+  0.7500  0.2426  0.3750    0.0000  0.0000  0.0000
+  0.2500  0.7574  0.3750    0.0000  0.0000  0.0000
+
+ngridk
+  2  2  2

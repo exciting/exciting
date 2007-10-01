@@ -1,0 +1,9 @@
+program eos
+use modeos
+implicit none
+call constants
+call readdata
+call getedata(etype,nparam,ename,pname)
+call fitdata
+call output
+end program

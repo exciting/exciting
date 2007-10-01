@@ -1,0 +1,39 @@
+! Collection of Syntax Highlighting Patterns for NEdit
+! by Juergen.Spitaler@mu-leoben.at
+! July 13, 2006
+!
+! Comprises Highlighting for:
+! exciting.in and INFO.OUT
+! In NEdit Version 5.0.1 and beyond, load this pattern by starting nedit with:
+!
+!     nedit -import <name of this file>
+!
+! Then, check that the patterns were loaded correctly, and choose Save Defaults
+! from the Preferences menu.  The new patterns will now be incorporated into
+! your own .nedit file, so the next time you start NEdit, you will no longer
+! need to use -import.
+!
+! In version 5.0, without -import, you must edit your .nedit file by hand and
+! add the contents of each resource below to the corresponding list in your
+! .nedit file.  Be sure to separate new entries with \n, and continue resource
+! strings by escaping all newlines within a resource value with \ (backslash),
+! leaving only the last line of the resource value not ending in \.
+!
+nedit.highlightPatterns: \
+	Exciting_in:1:0{\n\
+		Block:"^ *(atoms|autokpt|autormt|avec|beta0|betamax|bfieldc|chgexs|deband|deltaem|deltaph|dos|dtauoep|epschg|epsforce|epslat|epsocc|epspot|evalmin|fixspin|fracinr|gmaxvr|kstlist|lmaxapw|lmaxinr|lmaxmat|lmaxvr|lradstp|maxitoep|maxscl|molecule|momfix|ndspem|nempty|ngridk|ngridq|nosource|nosym|notes|nprad|nstfsp|optcomp|phwrite|plot1d|plot2d|plot3d|primcell|reducek|reduceq|rgkmax|rlambda|rmtapm|scale|scale1/2/3|scissor|scrpath|spinorb|spinpol|spinsprl|sppath|stype|swidth|tasks|tau0atm|tau0oep|taufsm|tfibs|tforce|tsymctr|usegdft|vacuum|vklem|vqlss|vkloff|xctype)":::Storage Type::\n\
+		Comment:"!.*":::Comment::\n\
+		Species:"'.*\\.in'":::Text Arg1::\n\
+	}\n\
+	Exciting_INFO:1:0{\n\
+		KeyWord:"(^ *\\n[^:]*:|Maximum angular momentum for)":::Storage Type::\n\
+		InitialItem:"(Time \\(hh:mm:ss\\)   :| parameters loaded from :| nuclear charge *:| electronic charge :| atomic mass *:| muffin-tin radius :| number of radial points in muffin-tin :| atomic position \\(lattice\\), magnetic field \\(Cartesian\\) :|Number of crystal symmetries         :|k-point offset :|Total number of k-points :|Maximum \\|G\\+k\\| for APW functions       :|Maximum \\|G\\| for potential and density :|Total number of G-vectors :| APW functions *:| computing H and O matrix elements :| potential and density             :|Total.*charge *:|Total number of valence states :|Smearing width :)":::Identifier1::\n\
+		Header:"^\\+-*\\+\\n.*\\n^\\+-*\\+\\n":::Regex::\n\
+		species:"species .... atom ....":::Identifier1::\n\
+		InitialInfo:"(Inversion symmetry.*|k-point set is.*reduced.*|(?<=Spin treatment :\\n).*|(?<=Smearing scheme :\\n).*)":::ItalicGreen::\n\
+		Item:" *[a-zA-Z].*:":::Pointer::\n\
+		TotEne:"(?<=:).*\\n *\\n(?=Density of states at Fermi)":::Keyword::\n\
+	}
+nedit.languageModes:	Exciting_in:.in:"tasks"::::::\n\
+	Exciting_INFO:.OUT:::::::
+nedit.styles: 	ItalicGreen:#229900:Italic

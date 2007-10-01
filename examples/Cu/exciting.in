@@ -1,0 +1,50 @@
+
+! Try and find the equilibrium volume of fcc copper by adjusting the scale
+! parameter. The individual lattice vectors can also be scaled separately using
+! scale1, scale2 or scale3. Remember that a previously converged charge density
+! can be used to begin a new calculation, even at a different volume. This is
+! done by setting task=1.
+
+tasks
+  0
+
+avec
+  0.5  0.5  0.0
+  0.5  0.0  0.5
+  0.0  0.5  0.5
+
+scale1
+  6.83117
+
+scale2
+  6.83117
+
+scale3
+  6.83117
+
+scale
+  0.96
+
+! large cut-off is required for Cu
+rgkmax
+  8.5
+
+lmaxapw
+  10
+
+gmaxvr
+  14.0
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Cu.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+ngridk
+  8  8  8
+
+

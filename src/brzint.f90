@@ -1,0 +1,124 @@
+
+! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU Lesser General Public
+! License. See the file COPYING for license details.
+
+!BOP
+! !ROUTINE: brzint
+! !INTERFACE:
+subroutine brzint(nsm,ngridk,nsk,ikmap,nw,wint,n,ld,e,f,g)
+! !INPUT/OUTPUT PARAMETERS:
+!   nsm    : level of smoothing for output function (in,integer)
+!   ngridk : k-point grid size (in,integer(3))
+!   nsk    : k-point subdivision grid size (in,integer(3))
+!   ikmap  : map from grid to k-point set
+!            (in,integer(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
+!   nw     : number of energy divisions (in,integer)
+!   wint   : energy interval (in,real(2))
+!   n      : number of functions to integrate (in,integer)
+!   ld     : leading dimension (in,integer)
+!   e      : array of energies as a function of k-points (in,real(ld,*))
+!   f      : array of weights as a function of k-points (in,real(ld,*))
+!   g      : output function (out,real(nw))
+! !DESCRIPTION:
+!   Given energy and weight functions, $e$ and $f$, on the Brillouin zone and a
+!   set of equidistant energies $\omega_i$, the routine computes the integrals
+!   $$ g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ} f({\bf k})
+!    \delta(\omega_i-e({\bf k}))d{\bf k}, $$
+!   where $\Omega$ is the unit cell volume. This is done by first interpolating
+!   $e$ and $f$ on a finer $k$-point grid using the trilinear method. Then for
+!   each $e({\bf k})$ on the finer grid the nearest $\omega_i$ is found and
+!   $f({\bf k})$ is accumulated in $g(\omega_i)$. If the output function is
+!   noisy then either {\tt nsk} should be increased or {\tt nw} decreased.
+!   Alternatively, the output function can be artificially smoothed up to a
+!   level given by {\tt nsm}. See routine {\tt fsmooth}.
+!
+! !REVISION HISTORY:
+!   Created October 2003 (JKD)
+!EOP
+!BOC
+implicit none
+! arguments
+integer, intent(in) :: nsm
+integer, intent(in) :: ngridk(3)
+integer, intent(in) :: nsk(3)
+integer, intent(in) :: ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1)
+integer, intent(in) :: nw
+real(8), intent(in) :: wint(2)
+integer, intent(in) :: n
+integer, intent(in) :: ld
+real(8), intent(in) :: e(ld,*)
+real(8), intent(in) :: f(ld,*)
+real(8), intent(out) :: g(nw)
+! local variables
+integer i1,i2,i3,j1,j2,j3,k1,k2,k3,i,iw
+integer i000,i001,i010,i011,i100,i101,i110,i111
+real(8) r1,r2,r3,es,fs,wd,dw,t1
+real(8) t000,t001,t010,t011,t100,t101,t110,t111
+if ((ngridk(1).lt.2).or.(ngridk(2).lt.2).or.(ngridk(3).lt.2)) then
+  write(*,*)
+  write(*,'("Error(brzint): ngridk < 2 : ",3I8)') ngridk
+  write(*,*)
+  stop
+end if
+if ((nsk(1).lt.1).or.(nsk(2).lt.1).or.(nsk(3).lt.1)) then
+  write(*,*)
+  write(*,'("Error(brzint): nsk < 1 : ",3I8)') nsk
+  write(*,*)
+  stop
+end if
+! length of interval
+wd=wint(2)-wint(1)
+! energy step size
+dw=wd/dble(nw)
+g(:)=0.d0
+do j1=0,ngridk(1)-1
+  k1=mod(j1+1,ngridk(1))
+  do j2=0,ngridk(2)-1
+    k2=mod(j2+1,ngridk(2))
+    do j3=0,ngridk(3)-1
+      k3=mod(j3+1,ngridk(3))
+      i000=ikmap(j1,j2,j3); i001=ikmap(j1,j2,k3)
+      i010=ikmap(j1,k2,j3); i011=ikmap(j1,k2,k3)
+      i100=ikmap(k1,j2,j3); i101=ikmap(k1,j2,k3)
+      i110=ikmap(k1,k2,j3); i111=ikmap(k1,k2,k3)
+      do i1=0,nsk(1)-1
+        r1=dble(i1)/dble(nsk(1))
+        do i2=0,nsk(2)-1
+          r2=dble(i2)/dble(nsk(2))
+          do i3=0,nsk(3)-1
+            r3=dble(i3)/dble(nsk(3))
+            t000=(1.d0-r1)*(1.d0-r2)*(1.d0-r3)
+            t001=(1.d0-r1)*(1.d0-r2)*r3
+            t010=(1.d0-r1)*r2*(1.d0-r3)
+            t011=(1.d0-r1)*r2*r3
+            t100=r1*(1.d0-r2)*(1.d0-r3)
+            t101=r1*(1.d0-r2)*r3
+            t110=r1*r2*(1.d0-r3)
+            t111=r1*r2*r3
+            do i=1,n
+              fs=f(i,i000)*t000+f(i,i001)*t001+f(i,i010)*t010+f(i,i011)*t011 &
+                +f(i,i100)*t100+f(i,i101)*t101+f(i,i110)*t110+f(i,i111)*t111
+              if (abs(fs).gt.1.d-10) then
+                es=e(i,i000)*t000+e(i,i001)*t001+e(i,i010)*t010+e(i,i011)*t011 &
+                  +e(i,i100)*t100+e(i,i101)*t101+e(i,i110)*t110+e(i,i111)*t111
+                t1=(es-wint(1))/dw+1.d0
+                iw=nint(t1)
+                if ((iw.ge.1).and.(iw.le.nw)) g(iw)=g(iw)+fs
+              end if
+            end do
+          end do
+        end do
+      end do
+    end do
+  end do
+end do
+! normalise function
+t1=dw*dble(ngridk(1)*ngridk(2)*ngridk(3))*dble(nsk(1)*nsk(2)*nsk(3))
+t1=1.d0/t1
+g(:)=t1*g(:)
+! smooth output function if required
+if (nsm.gt.0) call fsmooth(nsm,nw,1,g)
+return
+end subroutine
+!EOC

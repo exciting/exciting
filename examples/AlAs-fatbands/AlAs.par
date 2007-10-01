@@ -1,0 +1,140 @@
+
+world 0.0, -0.25, 1.113445717, 0.5
+
+title "AlAs band structure"
+subtitle "(atomic character of As)"
+
+xaxis tick off
+xaxis ticklabel off
+yaxis tick major 0.1
+yaxis tick minor ticks 2
+yaxis label "Energy (Hartree)"
+
+s0.y1=0.05*s0.y1
+s1.y1=0.05*s1.y1
+s2.y1=0.05*s2.y1
+s3.y1=0.05*s3.y1
+s4.y1=0.05*s4.y1
+s5.y1=0.05*s5.y1
+s6.y1=0.05*s6.y1
+s7.y1=0.05*s7.y1
+s8.y1=0.05*s8.y1
+s9.y1=0.05*s9.y1
+s10.y1=0.05*s10.y1
+s11.y1=0.05*s11.y1
+s12.y1=0.05*s12.y1
+s13.y1=0.05*s13.y1
+s14.y1=0.05*s14.y1
+s15.y1=0.05*s15.y1
+s16.y1=0.05*s16.y1
+s17.y1=0.05*s17.y1
+s18.y1=0.05*s18.y1
+s19.y1=0.05*s19.y1
+s20.y1=0.05*s20.y1
+s21.y1=0.05*s21.y1
+s22.y1=0.05*s22.y1
+
+s0 line type 0
+s1 line type 0
+s2 line type 0
+s3 line type 0
+s4 line type 0
+s5 line type 0
+s6 line type 0
+s7 line type 0
+s8 line type 0
+s9 line type 0
+s10 line type 0
+s11 line type 0
+s12 line type 0
+s13 line type 0
+s14 line type 0
+s15 line type 0
+s16 line type 0
+s17 line type 0
+s18 line type 0
+s19 line type 0
+s20 line type 0
+s21 line type 0
+s22 line type 0
+
+s0 errorbar linestyle 0
+s1 errorbar linestyle 0
+s2 errorbar linestyle 0
+s3 errorbar linestyle 0
+s4 errorbar linestyle 0
+s5 errorbar linestyle 0
+s6 errorbar linestyle 0
+s7 errorbar linestyle 0
+s8 errorbar linestyle 0
+s9 errorbar linestyle 0
+s10 errorbar linestyle 0
+s11 errorbar linestyle 0
+s12 errorbar linestyle 0
+s13 errorbar linestyle 0
+s14 errorbar linestyle 0
+s15 errorbar linestyle 0
+s16 errorbar linestyle 0
+s17 errorbar linestyle 0
+s18 errorbar linestyle 0
+s19 errorbar linestyle 0
+s20 errorbar linestyle 0
+s21 errorbar linestyle 0
+s22 errorbar linestyle 0
+
+s0 errorbar riser linewidth 3.5
+s1 errorbar riser linewidth 3.5
+s2 errorbar riser linewidth 3.5
+s3 errorbar riser linewidth 3.5
+s4 errorbar riser linewidth 3.5
+s5 errorbar riser linewidth 3.5
+s6 errorbar riser linewidth 3.5
+s7 errorbar riser linewidth 3.5
+s8 errorbar riser linewidth 3.5
+s9 errorbar riser linewidth 3.5
+s10 errorbar riser linewidth 3.5
+s11 errorbar riser linewidth 3.5
+s12 errorbar riser linewidth 3.5
+s13 errorbar riser linewidth 3.5
+s14 errorbar riser linewidth 3.5
+s15 errorbar riser linewidth 3.5
+s16 errorbar riser linewidth 3.5
+s17 errorbar riser linewidth 3.5
+s18 errorbar riser linewidth 3.5
+s19 errorbar riser linewidth 3.5
+s20 errorbar riser linewidth 3.5
+s21 errorbar riser linewidth 3.5
+s22 errorbar riser linewidth 3.5
+
+s0 errorbar color 1
+s1 errorbar color 1
+s2 errorbar color 1
+s3 errorbar color 1
+s4 errorbar color 1
+s5 errorbar color 1
+s6 errorbar color 1
+s7 errorbar color 1
+s8 errorbar color 1
+s9 errorbar color 1
+s10 errorbar color 1
+s11 errorbar color 1
+s12 errorbar color 1
+s13 errorbar color 1
+s14 errorbar color 1
+s15 errorbar color 1
+s16 errorbar color 1
+s17 errorbar color 1
+s18 errorbar color 1
+s19 errorbar color 1
+s20 errorbar color 1
+s21 errorbar color 1
+s22 errorbar color 1
+
+s23 line color 1
+s24 line color 1
+s25 line color 1
+
+s23 linewidth 2.0
+s24 linewidth 2.0
+s25 linewidth 2.0
+

@@ -1,0 +1,66 @@
+
+! High quality density of states, band structure and linear optical tensor of
+! germanium with spin-orbit coupling (Andrew Chizmeshya)
+
+tasks
+   0
+  10
+  20
+ 120
+ 121
+
+spinpol
+ .true.
+
+spinorb
+ .true.
+
+xctype
+  3
+
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  5.3451
+
+nempty
+  50
+
+dos
+ 1000 150 0
+ -0.5  2.0
+
+lmaxapw
+  10
+
+lmaxvr
+  8
+
+gmaxvr
+  12.0
+
+sppath
+  '../../species/'
+
+atoms
+  1                                 : nspecies
+  'Ge.in'                           : spfname
+  2                                 : natoms
+  0.0 0.0 0.0      0.0 0.0 0.0      : atposl, bfieldc
+  0.25 0.25 0.25   0.0 0.0 0.0
+
+ngridk
+  10  10  10
+
+vkloff
+  0.25  0.25  0.75
+
+plot1d
+  3 200                                 : nvp1d, npp1d
+  0.5   0.0   1.0                       : vlvp1d
+  0.0   0.0   1.0
+  0.5   0.5   1.0
+

@@ -1,0 +1,58 @@
+
+! Unsupported monolayer of Cr with the symmetry and lattice constant of a
+! monolayer on the Ag(111) surface (see Phys. Rev. B 69, 24415 (2004)), which
+! exhibits a non-collinear Neel state. Small magnetic fields 120 degrees apart
+! are applied to each of the three atoms.
+
+! Try plotting the 2D magnetisation density in OpenDX (version 4.3.2) using the
+! files provided.
+
+tasks
+  0
+  72
+
+spinpol
+ .true.
+
+! note that the number of empty states should be large because non-collinear
+! effects are obtained in the second-variational step
+nempty
+  10
+
+avec
+  1.5  0.86602540378  0.0
+  1.5 -0.86602540378  0.0
+  0.0  0.0  1.0
+
+scale1
+  5.50836   : 7.79/sqrt(2)
+
+scale2
+  5.50836
+
+scale3
+  7.0
+
+sppath
+  '../../species/'
+
+! note that the magnetic fields are in Cartesian coordinates
+atoms
+  1                                     : nspecies
+  'Cr.in'                               : spfname
+  3                                     : natoms
+  0.0             0.0             0.0    0.0             0.1   0.0   : atposl, bfcmt
+  0.333333333333  0.333333333333  0.0   -0.086602540378 -0.05  0.0
+  0.666666666667  0.666666666667  0.0    0.086602540378 -0.05  0.0
+
+ngridk
+  2  2  1
+
+vkloff
+  0.5  0.5  0.0
+
+plot2d
+  0.0 0.0 0.0
+  1.0 0.0 0.0
+  0.0 1.0 0.0
+  200 200

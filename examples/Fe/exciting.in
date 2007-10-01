@@ -1,0 +1,41 @@
+
+! Ferromagnetic bcc iron example. Note the small global magnetic field, which
+! is needed to break spin symmetry. Check the total moment of the cell in the
+! file INFO.OUT.
+
+tasks
+  0
+
+spinpol
+ .true.
+
+! small magnetic field in the z-direction
+bfieldc
+  0.0  0.0  0.01
+
+! fairly large number of empty states required for magnetic cases
+nempty
+  10
+
+avec
+  1.0  1.0 -1.0
+  1.0 -1.0  1.0
+ -1.0  1.0  1.0
+
+scale
+  2.708
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+ngridk
+  4  4  4
+
+vkloff
+  0.5  0.5  0.5

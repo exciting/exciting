@@ -1,0 +1,63 @@
+
+! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
+!BOP
+! !ROUTINE: zfinp
+! !INTERFACE:
+complex(8) function zfinp(zfmt1,zfmt2,zfir1,zfir2)
+! !USES:
+use modmain
+! !INPUT/OUTPUT PARAMETERS:
+!   zfmt1 : first complex function in spherical harmonics for all muffin-tins
+!           (in,complex(lmmaxvr,nrcmtmax,natmtot))
+!   zfmt2 : second complex function in spherical harmonics for all muffin-tins
+!           (in,complex(lmmaxvr,nrcmtmax,natmtot))
+!   zfir1 : first complex interstitial function in real-space
+!           (in,complex(ngrtot))
+!   zfir2 : second complex interstitial function in real-space
+!           (in,complex(ngrtot))
+! !DESCRIPTION:
+!   Calculates the inner product of two complex fuctions over the entire unit
+!   cell. The muffin-tin functions should be stored on the coarse radial grid
+!   and have angular momentum cut-off {\tt lmaxvr}. In the intersitial region,
+!   the integrand is multiplied with the smooth characteristic function,
+!   $\tilde{\Theta}({\bf r})$, to remove the contribution from the muffin-tin.
+!   See routines {\tt zfmtinp} and {\tt gencfun}.
+!
+! !REVISION HISTORY:
+!   Created July 2004 (Sharma)
+!EOP
+!BOC
+implicit none
+! arguments
+complex(8), intent(in) :: zfmt1(lmmaxvr,nrcmtmax,natmtot)
+complex(8), intent(in) :: zfmt2(lmmaxvr,nrcmtmax,natmtot)
+complex(8), intent(in) :: zfir1(ngrtot)
+complex(8), intent(in) :: zfir2(ngrtot)
+! local variables
+integer is,ia,ias,ir
+complex(8) zsum
+! external functions
+complex(8) zfmtinp
+external zfmtinp
+! interstitial contribution
+zsum=0.d0
+do ir=1,ngrtot
+  zsum=zsum+cfunir(ir)*conjg(zfir1(ir))*zfir2(ir)
+end do
+zsum=zsum*omega/dble(ngrtot)
+! muffin-tin contribution
+do is=1,nspecies
+  do ia=1,natoms(is)
+    ias=idxas(ia,is)
+    zsum=zsum+zfmtinp(lmaxvr,nrcmt(is),rcmt(1,is),lmmaxvr,zfmt1(1,1,ias), &
+     zfmt2(1,1,ias))
+  end do
+end do
+zfinp=zsum
+return
+end function
+!EOC
+

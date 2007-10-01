@@ -1,0 +1,42 @@
+
+! Antiferromagnetic bcc iron example, with thanks to ABINIT
+
+tasks
+  0
+
+beta0
+  0.05
+
+spinpol
+ .true.
+
+! fairly large number of empty states required for magnetic cases
+nempty
+  10
+
+avec
+  0.5 -0.5  0.0
+  0.5  0.5  0.0
+  0.0  0.0  1.0
+
+scale
+  6.6
+
+sppath
+  '../../species/'
+
+! note the magnetic fields on each atom
+atoms
+  1                                   : nspecies
+  'Fe.in'                             : spfname
+  2                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.1     : atposl, bfcmt
+  0.5  0.0  0.5    0.0  0.0 -0.1
+
+! this k-point set is too small for calculation of accurate moments
+ngridk
+  3  3  2
+
+vkloff
+  0.5  0.5  0.5
+
