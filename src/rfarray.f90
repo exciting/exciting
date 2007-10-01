@@ -15,10 +15,10 @@ integer, intent(in) :: np
 real(8), intent(in) :: vpl(3,np)
 real(8), intent(out) :: fp(np)
 ! local variables
-integer ip,id(3),is,ia,ias
-integer i1,i2,i3,ir0,ir,nph
+integer ia,is,ias,ip,iv(3)
+integer i1,i2,i3,ir0,ir,np2
 integer l,m,lm,ig,ifg,i,j
-real(8) rmt2,r,tp(2),sum,t1
+real(8) rmt2,r,tp(2),sum,t1,t2
 real(8) v1(3),v2(3),v3(3),v4(3),v5(3)
 ! automatic arrays
 real(8) ya(nprad),c(nprad)
@@ -30,14 +30,14 @@ real(8) polynom
 external polynom
 allocate(rlm((lmax+1)**2))
 allocate(zfft(ngrtot))
-nph=nprad/2
+np2=nprad/2
 ! Fourier transform rfir to G-space
 zfft(:)=rfir(:)
 call zfftifc(3,ngrid,-1,zfft)
 ! begin loop over all points
 do ip=1,np
   v1(:)=vpl(:,ip)
-  call r3frac(epslat,v1,id)
+  call r3frac(epslat,v1,iv)
 ! convert point to Cartesian coordinates
   call r3mv(avec,v1,v1)
 ! check if point is in a muffin-tin
@@ -58,12 +58,12 @@ do ip=1,np
               call genrlm(lmax,tp,rlm)
               do ir=1,nrmt(is)
                 if (spr(ir,is).ge.r) then
-                  if (ir.le.nph) then
+                  if (ir.le.np2) then
                     ir0=1
-                  else if (ir.gt.nrmt(is)-nph) then
+                  else if (ir.gt.nrmt(is)-np2) then
                     ir0=nrmt(is)-nprad+1
                   else
-                    ir0=ir-nph
+                    ir0=ir-np2
                   end if
                   r=max(r,spr(1,is))
                   sum=0.d0
@@ -74,7 +74,8 @@ do ip=1,np
                         i=ir0+j-1
                         ya(j)=rfmt(lm,i,ias)
                       end do
-                      sum=sum+polynom(0,nprad,spr(ir0,is),ya,c,r)*rlm(lm)
+                      t2=polynom(0,nprad,spr(ir0,is),ya,c,r)
+                      sum=sum+t2*rlm(lm)
                     end do
                   end do
                   goto 10

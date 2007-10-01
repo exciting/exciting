@@ -22,7 +22,7 @@ subroutine brzint(nsm,ngridk,nsk,ikmap,nw,wint,n,ld,e,f,g)
 !   g      : output function (out,real(nw))
 ! !DESCRIPTION:
 !   Given energy and weight functions, $e$ and $f$, on the Brillouin zone and a
-!   set of equidistant energies $\omega_i$, the routine computes the integrals
+!   set of equidistant energies $\omega_i$, this routine computes the integrals
 !   $$ g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ} f({\bf k})
 !    \delta(\omega_i-e({\bf k}))d{\bf k}, $$
 !   where $\Omega$ is the unit cell volume. This is done by first interpolating
@@ -35,6 +35,7 @@ subroutine brzint(nsm,ngridk,nsk,ikmap,nw,wint,n,ld,e,f,g)
 !
 ! !REVISION HISTORY:
 !   Created October 2003 (JKD)
+!   Improved efficiency May 2007 (Sebastian Lebegue)
 !EOP
 !BOC
 implicit none
@@ -53,8 +54,13 @@ real(8), intent(out) :: g(nw)
 ! local variables
 integer i1,i2,i3,j1,j2,j3,k1,k2,k3,i,iw
 integer i000,i001,i010,i011,i100,i101,i110,i111
-real(8) r1,r2,r3,es,fs,wd,dw,t1
-real(8) t000,t001,t010,t011,t100,t101,t110,t111
+real(8) p1,p2,p3,q1,q2,q3
+real(8) es,fs,wd,dw,dwi,t1
+! allocatable arrays
+real(8), allocatable :: f0(:),f1(:)
+real(8), allocatable :: e0(:),e1(:)
+real(8), allocatable :: f00(:),f01(:),f10(:),f11(:)
+real(8), allocatable :: e00(:),e01(:),e10(:),e11(:)
 if ((ngridk(1).lt.2).or.(ngridk(2).lt.2).or.(ngridk(3).lt.2)) then
   write(*,*)
   write(*,'("Error(brzint): ngridk < 2 : ",3I8)') ngridk
@@ -67,10 +73,14 @@ if ((nsk(1).lt.1).or.(nsk(2).lt.1).or.(nsk(3).lt.1)) then
   write(*,*)
   stop
 end if
+allocate(f0(n),f1(n),e0(n),e1(n))
+allocate(f00(n),f01(n),f10(n),f11(n))
+allocate(e00(n),e01(n),e10(n),e11(n))
 ! length of interval
 wd=wint(2)-wint(1)
 ! energy step size
 dw=wd/dble(nw)
+dwi=1.d0/dw
 g(:)=0.d0
 do j1=0,ngridk(1)-1
   k1=mod(j1+1,ngridk(1))
@@ -83,27 +93,32 @@ do j1=0,ngridk(1)-1
       i100=ikmap(k1,j2,j3); i101=ikmap(k1,j2,k3)
       i110=ikmap(k1,k2,j3); i111=ikmap(k1,k2,k3)
       do i1=0,nsk(1)-1
-        r1=dble(i1)/dble(nsk(1))
+        p1=dble(i1)/dble(nsk(1))
+        q1=1.d0-p1
+        f00(:)=f(:,i000)*q1+f(:,i100)*p1
+        f01(:)=f(:,i001)*q1+f(:,i101)*p1
+        f10(:)=f(:,i010)*q1+f(:,i110)*p1
+        f11(:)=f(:,i011)*q1+f(:,i111)*p1
+        e00(:)=e(:,i000)*q1+e(:,i100)*p1
+        e01(:)=e(:,i001)*q1+e(:,i101)*p1
+        e10(:)=e(:,i010)*q1+e(:,i110)*p1
+        e11(:)=e(:,i011)*q1+e(:,i111)*p1
         do i2=0,nsk(2)-1
-          r2=dble(i2)/dble(nsk(2))
+          p2=dble(i2)/dble(nsk(2))
+          q2=1.d0-p2
+          f0(:)=f00(:)*q2+f10(:)*p2
+          f1(:)=f01(:)*q2+f11(:)*p2
+          e0(:)=e00(:)*q2+e10(:)*p2
+          e1(:)=e01(:)*q2+e11(:)*p2
           do i3=0,nsk(3)-1
-            r3=dble(i3)/dble(nsk(3))
-            t000=(1.d0-r1)*(1.d0-r2)*(1.d0-r3)
-            t001=(1.d0-r1)*(1.d0-r2)*r3
-            t010=(1.d0-r1)*r2*(1.d0-r3)
-            t011=(1.d0-r1)*r2*r3
-            t100=r1*(1.d0-r2)*(1.d0-r3)
-            t101=r1*(1.d0-r2)*r3
-            t110=r1*r2*(1.d0-r3)
-            t111=r1*r2*r3
+            p3=dble(i3)/dble(nsk(3))
+            q3=1.d0-p3
             do i=1,n
-              fs=f(i,i000)*t000+f(i,i001)*t001+f(i,i010)*t010+f(i,i011)*t011 &
-                +f(i,i100)*t100+f(i,i101)*t101+f(i,i110)*t110+f(i,i111)*t111
+              fs=f0(i)*q3+f1(i)*p3
               if (abs(fs).gt.1.d-10) then
-                es=e(i,i000)*t000+e(i,i001)*t001+e(i,i010)*t010+e(i,i011)*t011 &
-                  +e(i,i100)*t100+e(i,i101)*t101+e(i,i110)*t110+e(i,i111)*t111
-                t1=(es-wint(1))/dw+1.d0
-                iw=nint(t1)
+                es=e0(i)*q3+e1(i)*p3
+                t1=(es-wint(1))*dwi
+                iw=nint(t1)+1
                 if ((iw.ge.1).and.(iw.le.nw)) g(iw)=g(iw)+fs
               end if
             end do
@@ -119,6 +134,9 @@ t1=1.d0/t1
 g(:)=t1*g(:)
 ! smooth output function if required
 if (nsm.gt.0) call fsmooth(nsm,nw,1,g)
+deallocate(f0,f1,e0,e1)
+deallocate(f00,f01,f10,f11)
+deallocate(e00,e01,e10,e11)
 return
 end subroutine
 !EOC

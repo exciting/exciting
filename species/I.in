@@ -2,7 +2,7 @@
  'iodine'                                   : spname
   -53.0000                                  : spzn
    231332.6970                              : spmass
-  0.274721E-06    2.0000   35.2002   540    : sprmin, rmt, sprmax, nrmt
+  0.274721E-06    2.0000   31.1047   540    : sprmin, rmt, sprmax, nrmt
   17                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -40,8 +40,8 @@
    2   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.7316   0  T
+ -1.7317   0  T
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.4957   0  T
+ -0.4956   0  T

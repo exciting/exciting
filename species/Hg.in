@@ -2,7 +2,7 @@
  'mercury'                                  : spname
   -80.0000                                  : spzn
    365653.2012                              : spmass
-  0.223607E-06    2.0000   31.1804   630    : sprmin, rmt, sprmax, nrmt
+  0.223607E-06    2.0000   25.9837   630    : sprmin, rmt, sprmax, nrmt
   22                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

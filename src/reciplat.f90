@@ -6,11 +6,9 @@
 !BOP
 ! !ROUTINE: reciplat
 ! !INTERFACE:
-subroutine reciplat(avec,bvec,omega)
-! !INPUT/OUTPUT PARAMETERS:
-!   avec  : real-space lattice vectors stored column-wise (in,real(3,3))
-!   bvec  : reciprocal lattice vectors stored column-wise (out,real(3,3))
-!   omega : unit cell volume (out,real)
+subroutine reciplat
+! !USES:
+use modmain
 ! !DESCRIPTION:
 !   Generates the reciprocal lattice vectors from the real-space lattice vectors
 !   \begin{align*}
@@ -26,27 +24,22 @@ subroutine reciplat(avec,bvec,omega)
 !EOP
 !BOC
 implicit none
-! arguments
-real(8), intent(in) :: avec(3,3)
-real(8), intent(out) :: bvec(3,3)
-real(8), intent(out) :: omega
 ! local variables
-real(8), parameter :: twopi=6.2831853071795864769d0
-real(8) s
+real(8) t1
 call r3cross(avec(1,2),avec(1,3),bvec(1,1))
 call r3cross(avec(1,3),avec(1,1),bvec(1,2))
 call r3cross(avec(1,1),avec(1,2),bvec(1,3))
-s=avec(1,1)*bvec(1,1)+avec(2,1)*bvec(2,1)+avec(3,1)*bvec(3,1)
+t1=avec(1,1)*bvec(1,1)+avec(2,1)*bvec(2,1)+avec(3,1)*bvec(3,1)
 ! compute unit cell volume
-omega=abs(s)
+omega=abs(t1)
 if (omega.lt.1.d-6) then
   write(*,*)
   write(*,'("Error(reciplat) omega too small : ",G18.10)') omega
-  write(*,'("Lattice vectors may be degenerate")')
+  write(*,'(" Lattice vectors may be degenerate")')
   write(*,*)
   stop
 end if
-bvec(:,:)=(twopi/s)*bvec(:,:)
+bvec(:,:)=(twopi/t1)*bvec(:,:)
 return
 end subroutine
 !EOC

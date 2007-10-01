@@ -26,3 +26,4 @@ blas:	$(OBJ)
 
 clean:
 	rm -f *.o *.mod *~ *.a ifc* *.gcno gmon.out
+

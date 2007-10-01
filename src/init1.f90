@@ -19,8 +19,8 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer ik,is,ia,ias,io,ilo,nsym
-integer i1,i2,i3,ispn,id(3)
+integer ik,is,ia,ias,io,ilo
+integer i1,i2,i3,ispn,iv(3)
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
 real(8) vl(3),vc(3)
 real(8) cpu0,cpu1
@@ -61,7 +61,7 @@ else if (task.eq.25) then
   if (allocated(vkc)) deallocate(vkc)
   allocate(vkc(3,nkpt))
 ! map vector to [0,1)
-  call r3frac(epslat,vklem,id)
+  call r3frac(epslat,vklem,iv)
   ik=0
   do i3=-ndspem,ndspem
     do i2=-ndspem,ndspem
@@ -81,7 +81,7 @@ else
   if (autokpt) then
     ngridk(:)=int(rlambda/sqrt(avec(1,:)**2+avec(2,:)**2+avec(3,:)**2))+1
   end if
-! generate the reduced k-point set
+! allocate the reduced k-point set arrays
   if (allocated(ivk)) deallocate(ivk)
   allocate(ivk(3,ngridk(1)*ngridk(2)*ngridk(3)))
   if (allocated(vkl)) deallocate(vkl)
@@ -92,14 +92,9 @@ else
   allocate(wkpt(ngridk(1)*ngridk(2)*ngridk(3)))
   if (allocated(ikmap)) deallocate(ikmap)
   allocate(ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
-  if (reducek) then
-    nsym=nsymcrys
-  else
-    nsym=1
-  end if
-  call genkpts(epslat,nsym,symcrys,ngridk,bvec,vkloff,nkpt,ikmap,ivk,vkl,vkc, &
-   wkpt)
-! generate the non-reduced k-point set
+! generate the reduced k-point set
+  call genppts(reducek,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
+! allocate the non-reduced k-point set arrays
   nkptnr=ngridk(1)*ngridk(2)*ngridk(3)
   if (allocated(ivknr)) deallocate(ivknr)
   allocate(ivknr(3,nkptnr))
@@ -111,8 +106,8 @@ else
   allocate(wkptnr(nkptnr))
   if (allocated(ikmapnr)) deallocate(ikmapnr)
   allocate(ikmapnr(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
-  call genkpts(epslat,1,symcrys,ngridk,bvec,vkloff,nkptnr,ikmapnr,ivknr,vklnr, &
-   vkcnr,wkptnr)
+! generate the non-reduced k-point set
+  call genppts(.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr,wkptnr)
 end if
 
 !---------------------!

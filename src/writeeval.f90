@@ -40,8 +40,7 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     write(50,*)
-    write(50,'("Species ",I4," (",A,")",", atom ",I4," : ")') is, &
-     trim(spsymb(is)),ia
+    write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
     do ist=1,spnst(is)
       if (spcore(ist,is)) then
         write(50,'(" n =",I2,", l =",I2,", k =",I2," : ",G18.10)') &

@@ -2,7 +2,7 @@
  'germanium'                                : spname
   -32.0000                                  : spzn
    132359.9329                              : spmass
-  0.353553E-06    2.0000   47.8909   450    : sprmin, rmt, sprmax, nrmt
+  0.353553E-06    2.0000   42.7710   450    : sprmin, rmt, sprmax, nrmt
   12                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -35,4 +35,4 @@
    2   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.9472   0  T
+ -0.9474   0  T

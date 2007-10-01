@@ -13,14 +13,14 @@ subroutine fderiv(m,n,x,f,g,cf)
 !   x  : abscissa array (in,real(n))
 !   f  : function array (in,real(n))
 !   g  : (anti-)derivative of f (out,real(n))
-!   cf : spline coefficients, not referenced if m=-2 (out,real(3,n))
+!   cf : spline coefficients (out,real(3,n))
 ! !DESCRIPTION:
 !   Given function $f$ defined on a set of points $x_i$ then if $m\ge 0$ this
 !   routine computes the $m$th derivative of $f$ at each point. If $m<0$ the
 !   anti-derivative of $f$ given by
 !   $$ g(x_i)=\int_{x_1}^{x_i} f(x)\,dx $$
-!   is calculated. If $m=-1$ then an accurate integral is computed by fitting
-!   the function to a clamped cubic spline. See routine {\tt spline}.
+!   is calculated by fitting the function to a clamped cubic spline. See routine
+!   {\tt spline}.
 !
 ! !REVISION HISTORY:
 !   Created May 2002 (JKD)

@@ -2,10 +2,9 @@
      $                   VL, VU, IL, IU, ABSTOL, M, W, Z, LDZ, WORK,
      $                   LWORK, RWORK, IWORK, IFAIL, INFO )
 *
-*  -- LAPACK driver routine (version 3.0) --
-*     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
-*     Courant Institute, Argonne National Lab, and Rice University
-*     June 30, 1999
+*  -- LAPACK driver routine (version 3.1) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
 *
 *     .. Scalar Arguments ..
       CHARACTER          JOBZ, RANGE, UPLO
@@ -144,11 +143,11 @@
 *          The leading dimension of the array Z.  LDZ >= 1, and if
 *          JOBZ = 'V', LDZ >= max(1,N).
 *
-*  WORK    (workspace/output) COMPLEX*16 array, dimension (LWORK)
+*  WORK    (workspace/output) COMPLEX*16 array, dimension (MAX(1,LWORK))
 *          On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
 *
 *  LWORK   (input) INTEGER
-*          The length of the array WORK.  LWORK >= max(1,2*N-1).
+*          The length of the array WORK.  LWORK >= max(1,2*N).
 *          For optimal efficiency, LWORK >= (NB+1)*N,
 *          where NB is the blocksize for ZHETRD returned by ILAENV.
 *
@@ -194,7 +193,7 @@
 *     .. Local Scalars ..
       LOGICAL            ALLEIG, INDEIG, LQUERY, UPPER, VALEIG, WANTZ
       CHARACTER          TRANS
-      INTEGER            LOPT, LWKOPT, NB
+      INTEGER            LWKOPT, NB
 *     ..
 *     .. External Functions ..
       LOGICAL            LSAME
@@ -219,7 +218,7 @@
       LQUERY = ( LWORK.EQ.-1 )
 *
       INFO = 0
-      IF( ITYPE.LT.0 .OR. ITYPE.GT.3 ) THEN
+      IF( ITYPE.LT.1 .OR. ITYPE.GT.3 ) THEN
          INFO = -1
       ELSE IF( .NOT.( WANTZ .OR. LSAME( JOBZ, 'N' ) ) ) THEN
          INFO = -2
@@ -233,23 +232,32 @@
          INFO = -7
       ELSE IF( LDB.LT.MAX( 1, N ) ) THEN
          INFO = -9
-      ELSE IF( VALEIG .AND. N.GT.0 ) THEN
-         IF( VU.LE.VL )
-     $      INFO = -11
-      ELSE IF( INDEIG .AND. IL.LT.1 ) THEN
-         INFO = -12
-      ELSE IF( INDEIG .AND. ( IU.LT.MIN( N, IL ) .OR. IU.GT.N ) ) THEN
-         INFO = -13
-      ELSE IF( LDZ.LT.1 .OR. ( WANTZ .AND. LDZ.LT.N ) ) THEN
-         INFO = -18
-      ELSE IF( LWORK.LT.MAX( 1, 2*N-1 ) .AND. .NOT.LQUERY ) THEN
-         INFO = -20
+      ELSE
+         IF( VALEIG ) THEN
+            IF( N.GT.0 .AND. VU.LE.VL )
+     $         INFO = -11
+         ELSE IF( INDEIG ) THEN
+            IF( IL.LT.1 .OR. IL.GT.MAX( 1, N ) ) THEN
+               INFO = -12
+            ELSE IF( IU.LT.MIN( N, IL ) .OR. IU.GT.N ) THEN
+               INFO = -13
+            END IF
+         END IF
+      END IF
+      IF (INFO.EQ.0) THEN
+         IF (LDZ.LT.1 .OR. (WANTZ .AND. LDZ.LT.N)) THEN
+            INFO = -18
+         END IF
       END IF
 *
       IF( INFO.EQ.0 ) THEN
          NB = ILAENV( 1, 'ZHETRD', UPLO, N, -1, -1, -1 )
-         LWKOPT = ( NB+1 )*N
+         LWKOPT = MAX( 1, ( NB + 1 )*N )
          WORK( 1 ) = LWKOPT
+*
+         IF( LWORK.LT.MAX( 1, 2*N ) .AND. .NOT.LQUERY ) THEN
+            INFO = -20
+         END IF
       END IF
 *
       IF( INFO.NE.0 ) THEN
@@ -263,7 +271,6 @@
 *
       M = 0
       IF( N.EQ.0 ) THEN
-         WORK( 1 ) = 1
          RETURN
       END IF
 *
@@ -281,7 +288,6 @@
       CALL ZHEEVX( JOBZ, RANGE, UPLO, N, A, LDA, VL, VU, IL, IU, ABSTOL,
      $             M, W, Z, LDZ, WORK, LWORK, RWORK, IWORK, IFAIL,
      $             INFO )
-      LOPT = WORK( 1 )
 *
       IF( WANTZ ) THEN
 *

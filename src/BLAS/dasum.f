@@ -1,43 +1,57 @@
-      double precision function dasum(n,dx,incx)
-c
-c     takes the sum of the absolute values.
-c     jack dongarra, linpack, 3/11/78.
-c     modified 3/93 to return if incx .le. 0.
-c     modified 12/3/93, array(1) declarations changed to array(*)
-c
-      double precision dx(*),dtemp
-      integer i,incx,m,mp1,n,nincx
-c
-      dasum = 0.0d0
-      dtemp = 0.0d0
-      if( n.le.0 .or. incx.le.0 )return
-      if(incx.eq.1)go to 20
-c
-c        code for increment not equal to 1
-c
-      nincx = n*incx
-      do 10 i = 1,nincx,incx
-        dtemp = dtemp + dabs(dx(i))
-   10 continue
-      dasum = dtemp
-      return
-c
-c        code for increment equal to 1
-c
-c
-c        clean-up loop
-c
-   20 m = mod(n,6)
-      if( m .eq. 0 ) go to 40
-      do 30 i = 1,m
-        dtemp = dtemp + dabs(dx(i))
-   30 continue
-      if( n .lt. 6 ) go to 60
-   40 mp1 = m + 1
-      do 50 i = mp1,n,6
-        dtemp = dtemp + dabs(dx(i)) + dabs(dx(i + 1)) + dabs(dx(i + 2))
-     *  + dabs(dx(i + 3)) + dabs(dx(i + 4)) + dabs(dx(i + 5))
-   50 continue
-   60 dasum = dtemp
-      return
-      end
+      DOUBLE PRECISION FUNCTION DASUM(N,DX,INCX)
+*     .. Scalar Arguments ..
+      INTEGER INCX,N
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION DX(*)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*     takes the sum of the absolute values.
+*     jack dongarra, linpack, 3/11/78.
+*     modified 3/93 to return if incx .le. 0.
+*     modified 12/3/93, array(1) declarations changed to array(*)
+*
+*
+*     .. Local Scalars ..
+      DOUBLE PRECISION DTEMP
+      INTEGER I,M,MP1,NINCX
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC DABS,MOD
+*     ..
+      DASUM = 0.0d0
+      DTEMP = 0.0d0
+      IF (N.LE.0 .OR. INCX.LE.0) RETURN
+      IF (INCX.EQ.1) GO TO 20
+*
+*        code for increment not equal to 1
+*
+      NINCX = N*INCX
+      DO 10 I = 1,NINCX,INCX
+          DTEMP = DTEMP + DABS(DX(I))
+   10 CONTINUE
+      DASUM = DTEMP
+      RETURN
+*
+*        code for increment equal to 1
+*
+*
+*        clean-up loop
+*
+   20 M = MOD(N,6)
+      IF (M.EQ.0) GO TO 40
+      DO 30 I = 1,M
+          DTEMP = DTEMP + DABS(DX(I))
+   30 CONTINUE
+      IF (N.LT.6) GO TO 60
+   40 MP1 = M + 1
+      DO 50 I = MP1,N,6
+          DTEMP = DTEMP + DABS(DX(I)) + DABS(DX(I+1)) + DABS(DX(I+2)) +
+     +            DABS(DX(I+3)) + DABS(DX(I+4)) + DABS(DX(I+5))
+   50 CONTINUE
+   60 DASUM = DTEMP
+      RETURN
+      END

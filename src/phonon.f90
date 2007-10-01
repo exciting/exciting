@@ -8,7 +8,7 @@ use modmain
 implicit none
 ! local variables
 integer iq,is,ia,ip,js,ja,jas,jp,ka
-integer nph,iph,i1,i2,i3,id(3)
+integer nph,iph,i1,i2,i3,iv(3)
 integer natoms0(maxspecies)
 real(8) v1(3),v2(3),v3(3),t1,t2
 real(8) deltaph0,avec0(3,3)
@@ -32,8 +32,8 @@ call init0
 call init2
 ! switch off automatic determination of muffin-tin radii
 autormt=.false.
-! no shifting crystal to optimal symmetry center
-tsymctr=.false.
+! no shifting of atomic basis allowed
+tshift=.false.
 ! determine k-point grid size from maximum de Broglie wavelength
 autokpt=.true.
 ! store input values
@@ -146,11 +146,11 @@ do ip=1,3
                 v2(:)=v1(:)+atposc0(:,ja,js)
 ! convert atomic position to supercell lattice coordinates
                 call r3mv(ainv,v2,v2)
-                call r3frac(epslat,v2,id)
+                call r3frac(epslat,v2,iv)
 ! locate atom in current supercell
                 do ka=1,natoms(js)
                   v3(:)=atposl(:,ka,js)
-                  call r3frac(epslat,v3,id)
+                  call r3frac(epslat,v3,iv)
                   if (r3taxi(v2,v3).lt.epslat) then
                     zsum=zsum+zt1*df(jp,ka,js,iph)
                     goto 30

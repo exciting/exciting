@@ -1,13 +1,12 @@
-      SUBROUTINE ZHER2K( UPLO, TRANS, N, K, ALPHA, A, LDA, B, LDB, BETA,
-     $                   C, LDC )
+      SUBROUTINE ZHER2K(UPLO,TRANS,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
 *     .. Scalar Arguments ..
-      CHARACTER          TRANS, UPLO
-      INTEGER            K, LDA, LDB, LDC, N
-      DOUBLE PRECISION   BETA
-      COMPLEX*16         ALPHA
+      DOUBLE COMPLEX ALPHA
+      DOUBLE PRECISION BETA
+      INTEGER K,LDA,LDB,LDC,N
+      CHARACTER TRANS,UPLO
 *     ..
 *     .. Array Arguments ..
-      COMPLEX*16         A( LDA, * ), B( LDB, * ), C( LDC, * )
+      DOUBLE COMPLEX A(LDA,*),B(LDB,*),C(LDC,*)
 *     ..
 *
 *  Purpose
@@ -25,7 +24,7 @@
 *  hermitian matrix and  A and B  are  n by k matrices in the first case
 *  and  k by n  matrices in the second case.
 *
-*  Parameters
+*  Arguments
 *  ==========
 *
 *  UPLO   - CHARACTER*1.
@@ -142,227 +141,224 @@
 *
 *
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
+      LOGICAL LSAME
+      EXTERNAL LSAME
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+      EXTERNAL XERBLA
 *     ..
 *     .. Intrinsic Functions ..
-      INTRINSIC          DBLE, DCONJG, MAX
+      INTRINSIC DBLE,DCONJG,MAX
 *     ..
 *     .. Local Scalars ..
-      LOGICAL            UPPER
-      INTEGER            I, INFO, J, L, NROWA
-      COMPLEX*16         TEMP1, TEMP2
+      DOUBLE COMPLEX TEMP1,TEMP2
+      INTEGER I,INFO,J,L,NROWA
+      LOGICAL UPPER
 *     ..
 *     .. Parameters ..
-      DOUBLE PRECISION   ONE
-      PARAMETER          ( ONE = 1.0D+0 )
-      COMPLEX*16         ZERO
-      PARAMETER          ( ZERO = ( 0.0D+0, 0.0D+0 ) )
+      DOUBLE PRECISION ONE
+      PARAMETER (ONE=1.0D+0)
+      DOUBLE COMPLEX ZERO
+      PARAMETER (ZERO= (0.0D+0,0.0D+0))
 *     ..
-*     .. Executable Statements ..
 *
 *     Test the input parameters.
 *
-      IF( LSAME( TRANS, 'N' ) ) THEN
-         NROWA = N
+      IF (LSAME(TRANS,'N')) THEN
+          NROWA = N
       ELSE
-         NROWA = K
+          NROWA = K
       END IF
-      UPPER = LSAME( UPLO, 'U' )
+      UPPER = LSAME(UPLO,'U')
 *
       INFO = 0
-      IF( ( .NOT.UPPER ) .AND. ( .NOT.LSAME( UPLO, 'L' ) ) ) THEN
-         INFO = 1
-      ELSE IF( ( .NOT.LSAME( TRANS, 'N' ) ) .AND.
-     $         ( .NOT.LSAME( TRANS, 'C' ) ) ) THEN
-         INFO = 2
-      ELSE IF( N.LT.0 ) THEN
-         INFO = 3
-      ELSE IF( K.LT.0 ) THEN
-         INFO = 4
-      ELSE IF( LDA.LT.MAX( 1, NROWA ) ) THEN
-         INFO = 7
-      ELSE IF( LDB.LT.MAX( 1, NROWA ) ) THEN
-         INFO = 9
-      ELSE IF( LDC.LT.MAX( 1, N ) ) THEN
-         INFO = 12
+      IF ((.NOT.UPPER) .AND. (.NOT.LSAME(UPLO,'L'))) THEN
+          INFO = 1
+      ELSE IF ((.NOT.LSAME(TRANS,'N')) .AND.
+     +         (.NOT.LSAME(TRANS,'C'))) THEN
+          INFO = 2
+      ELSE IF (N.LT.0) THEN
+          INFO = 3
+      ELSE IF (K.LT.0) THEN
+          INFO = 4
+      ELSE IF (LDA.LT.MAX(1,NROWA)) THEN
+          INFO = 7
+      ELSE IF (LDB.LT.MAX(1,NROWA)) THEN
+          INFO = 9
+      ELSE IF (LDC.LT.MAX(1,N)) THEN
+          INFO = 12
       END IF
-      IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZHER2K', INFO )
-         RETURN
+      IF (INFO.NE.0) THEN
+          CALL XERBLA('ZHER2K',INFO)
+          RETURN
       END IF
 *
 *     Quick return if possible.
 *
-      IF( ( N.EQ.0 ) .OR. ( ( ( ALPHA.EQ.ZERO ) .OR. ( K.EQ.0 ) ) .AND.
-     $    ( BETA.EQ.ONE ) ) )RETURN
+      IF ((N.EQ.0) .OR. (((ALPHA.EQ.ZERO).OR.
+     +    (K.EQ.0)).AND. (BETA.EQ.ONE))) RETURN
 *
 *     And when  alpha.eq.zero.
 *
-      IF( ALPHA.EQ.ZERO ) THEN
-         IF( UPPER ) THEN
-            IF( BETA.EQ.DBLE( ZERO ) ) THEN
-               DO 20 J = 1, N
-                  DO 10 I = 1, J
-                     C( I, J ) = ZERO
-   10             CONTINUE
-   20          CONTINUE
-            ELSE
-               DO 40 J = 1, N
-                  DO 30 I = 1, J - 1
-                     C( I, J ) = BETA*C( I, J )
-   30             CONTINUE
-                  C( J, J ) = BETA*DBLE( C( J, J ) )
-   40          CONTINUE
-            END IF
-         ELSE
-            IF( BETA.EQ.DBLE( ZERO ) ) THEN
-               DO 60 J = 1, N
-                  DO 50 I = J, N
-                     C( I, J ) = ZERO
-   50             CONTINUE
-   60          CONTINUE
-            ELSE
-               DO 80 J = 1, N
-                  C( J, J ) = BETA*DBLE( C( J, J ) )
-                  DO 70 I = J + 1, N
-                     C( I, J ) = BETA*C( I, J )
-   70             CONTINUE
-   80          CONTINUE
-            END IF
-         END IF
-         RETURN
+      IF (ALPHA.EQ.ZERO) THEN
+          IF (UPPER) THEN
+              IF (BETA.EQ.DBLE(ZERO)) THEN
+                  DO 20 J = 1,N
+                      DO 10 I = 1,J
+                          C(I,J) = ZERO
+   10                 CONTINUE
+   20             CONTINUE
+              ELSE
+                  DO 40 J = 1,N
+                      DO 30 I = 1,J - 1
+                          C(I,J) = BETA*C(I,J)
+   30                 CONTINUE
+                      C(J,J) = BETA*DBLE(C(J,J))
+   40             CONTINUE
+              END IF
+          ELSE
+              IF (BETA.EQ.DBLE(ZERO)) THEN
+                  DO 60 J = 1,N
+                      DO 50 I = J,N
+                          C(I,J) = ZERO
+   50                 CONTINUE
+   60             CONTINUE
+              ELSE
+                  DO 80 J = 1,N
+                      C(J,J) = BETA*DBLE(C(J,J))
+                      DO 70 I = J + 1,N
+                          C(I,J) = BETA*C(I,J)
+   70                 CONTINUE
+   80             CONTINUE
+              END IF
+          END IF
+          RETURN
       END IF
 *
 *     Start the operations.
 *
-      IF( LSAME( TRANS, 'N' ) ) THEN
+      IF (LSAME(TRANS,'N')) THEN
 *
 *        Form  C := alpha*A*conjg( B' ) + conjg( alpha )*B*conjg( A' ) +
 *                   C.
 *
-         IF( UPPER ) THEN
-            DO 130 J = 1, N
-               IF( BETA.EQ.DBLE( ZERO ) ) THEN
-                  DO 90 I = 1, J
-                     C( I, J ) = ZERO
-   90             CONTINUE
-               ELSE IF( BETA.NE.ONE ) THEN
-                  DO 100 I = 1, J - 1
-                     C( I, J ) = BETA*C( I, J )
-  100             CONTINUE
-                  C( J, J ) = BETA*DBLE( C( J, J ) )
-               ELSE
-                  C( J, J ) = DBLE( C( J, J ) )
-               END IF
-               DO 120 L = 1, K
-                  IF( ( A( J, L ).NE.ZERO ) .OR. ( B( J, L ).NE.ZERO ) )
-     $                 THEN
-                     TEMP1 = ALPHA*DCONJG( B( J, L ) )
-                     TEMP2 = DCONJG( ALPHA*A( J, L ) )
-                     DO 110 I = 1, J - 1
-                        C( I, J ) = C( I, J ) + A( I, L )*TEMP1 +
-     $                              B( I, L )*TEMP2
-  110                CONTINUE
-                     C( J, J ) = DBLE( C( J, J ) ) +
-     $                           DBLE( A( J, L )*TEMP1+B( J, L )*TEMP2 )
+          IF (UPPER) THEN
+              DO 130 J = 1,N
+                  IF (BETA.EQ.DBLE(ZERO)) THEN
+                      DO 90 I = 1,J
+                          C(I,J) = ZERO
+   90                 CONTINUE
+                  ELSE IF (BETA.NE.ONE) THEN
+                      DO 100 I = 1,J - 1
+                          C(I,J) = BETA*C(I,J)
+  100                 CONTINUE
+                      C(J,J) = BETA*DBLE(C(J,J))
+                  ELSE
+                      C(J,J) = DBLE(C(J,J))
                   END IF
-  120          CONTINUE
-  130       CONTINUE
-         ELSE
-            DO 180 J = 1, N
-               IF( BETA.EQ.DBLE( ZERO ) ) THEN
-                  DO 140 I = J, N
-                     C( I, J ) = ZERO
-  140             CONTINUE
-               ELSE IF( BETA.NE.ONE ) THEN
-                  DO 150 I = J + 1, N
-                     C( I, J ) = BETA*C( I, J )
-  150             CONTINUE
-                  C( J, J ) = BETA*DBLE( C( J, J ) )
-               ELSE
-                  C( J, J ) = DBLE( C( J, J ) )
-               END IF
-               DO 170 L = 1, K
-                  IF( ( A( J, L ).NE.ZERO ) .OR. ( B( J, L ).NE.ZERO ) )
-     $                 THEN
-                     TEMP1 = ALPHA*DCONJG( B( J, L ) )
-                     TEMP2 = DCONJG( ALPHA*A( J, L ) )
-                     DO 160 I = J + 1, N
-                        C( I, J ) = C( I, J ) + A( I, L )*TEMP1 +
-     $                              B( I, L )*TEMP2
-  160                CONTINUE
-                     C( J, J ) = DBLE( C( J, J ) ) +
-     $                           DBLE( A( J, L )*TEMP1+B( J, L )*TEMP2 )
+                  DO 120 L = 1,K
+                      IF ((A(J,L).NE.ZERO) .OR. (B(J,L).NE.ZERO)) THEN
+                          TEMP1 = ALPHA*DCONJG(B(J,L))
+                          TEMP2 = DCONJG(ALPHA*A(J,L))
+                          DO 110 I = 1,J - 1
+                              C(I,J) = C(I,J) + A(I,L)*TEMP1 +
+     +                                 B(I,L)*TEMP2
+  110                     CONTINUE
+                          C(J,J) = DBLE(C(J,J)) +
+     +                             DBLE(A(J,L)*TEMP1+B(J,L)*TEMP2)
+                      END IF
+  120             CONTINUE
+  130         CONTINUE
+          ELSE
+              DO 180 J = 1,N
+                  IF (BETA.EQ.DBLE(ZERO)) THEN
+                      DO 140 I = J,N
+                          C(I,J) = ZERO
+  140                 CONTINUE
+                  ELSE IF (BETA.NE.ONE) THEN
+                      DO 150 I = J + 1,N
+                          C(I,J) = BETA*C(I,J)
+  150                 CONTINUE
+                      C(J,J) = BETA*DBLE(C(J,J))
+                  ELSE
+                      C(J,J) = DBLE(C(J,J))
                   END IF
-  170          CONTINUE
-  180       CONTINUE
-         END IF
+                  DO 170 L = 1,K
+                      IF ((A(J,L).NE.ZERO) .OR. (B(J,L).NE.ZERO)) THEN
+                          TEMP1 = ALPHA*DCONJG(B(J,L))
+                          TEMP2 = DCONJG(ALPHA*A(J,L))
+                          DO 160 I = J + 1,N
+                              C(I,J) = C(I,J) + A(I,L)*TEMP1 +
+     +                                 B(I,L)*TEMP2
+  160                     CONTINUE
+                          C(J,J) = DBLE(C(J,J)) +
+     +                             DBLE(A(J,L)*TEMP1+B(J,L)*TEMP2)
+                      END IF
+  170             CONTINUE
+  180         CONTINUE
+          END IF
       ELSE
 *
 *        Form  C := alpha*conjg( A' )*B + conjg( alpha )*conjg( B' )*A +
 *                   C.
 *
-         IF( UPPER ) THEN
-            DO 210 J = 1, N
-               DO 200 I = 1, J
-                  TEMP1 = ZERO
-                  TEMP2 = ZERO
-                  DO 190 L = 1, K
-                     TEMP1 = TEMP1 + DCONJG( A( L, I ) )*B( L, J )
-                     TEMP2 = TEMP2 + DCONJG( B( L, I ) )*A( L, J )
-  190             CONTINUE
-                  IF( I.EQ.J ) THEN
-                     IF( BETA.EQ.DBLE( ZERO ) ) THEN
-                        C( J, J ) = DBLE( ALPHA*TEMP1+DCONJG( ALPHA )*
-     $                              TEMP2 )
-                     ELSE
-                        C( J, J ) = BETA*DBLE( C( J, J ) ) +
-     $                              DBLE( ALPHA*TEMP1+DCONJG( ALPHA )*
-     $                              TEMP2 )
-                     END IF
-                  ELSE
-                     IF( BETA.EQ.DBLE( ZERO ) ) THEN
-                        C( I, J ) = ALPHA*TEMP1 + DCONJG( ALPHA )*TEMP2
-                     ELSE
-                        C( I, J ) = BETA*C( I, J ) + ALPHA*TEMP1 +
-     $                              DCONJG( ALPHA )*TEMP2
-                     END IF
-                  END IF
-  200          CONTINUE
-  210       CONTINUE
-         ELSE
-            DO 240 J = 1, N
-               DO 230 I = J, N
-                  TEMP1 = ZERO
-                  TEMP2 = ZERO
-                  DO 220 L = 1, K
-                     TEMP1 = TEMP1 + DCONJG( A( L, I ) )*B( L, J )
-                     TEMP2 = TEMP2 + DCONJG( B( L, I ) )*A( L, J )
-  220             CONTINUE
-                  IF( I.EQ.J ) THEN
-                     IF( BETA.EQ.DBLE( ZERO ) ) THEN
-                        C( J, J ) = DBLE( ALPHA*TEMP1+DCONJG( ALPHA )*
-     $                              TEMP2 )
-                     ELSE
-                        C( J, J ) = BETA*DBLE( C( J, J ) ) +
-     $                              DBLE( ALPHA*TEMP1+DCONJG( ALPHA )*
-     $                              TEMP2 )
-                     END IF
-                  ELSE
-                     IF( BETA.EQ.DBLE( ZERO ) ) THEN
-                        C( I, J ) = ALPHA*TEMP1 + DCONJG( ALPHA )*TEMP2
-                     ELSE
-                        C( I, J ) = BETA*C( I, J ) + ALPHA*TEMP1 +
-     $                              DCONJG( ALPHA )*TEMP2
-                     END IF
-                  END IF
-  230          CONTINUE
-  240       CONTINUE
-         END IF
+          IF (UPPER) THEN
+              DO 210 J = 1,N
+                  DO 200 I = 1,J
+                      TEMP1 = ZERO
+                      TEMP2 = ZERO
+                      DO 190 L = 1,K
+                          TEMP1 = TEMP1 + DCONJG(A(L,I))*B(L,J)
+                          TEMP2 = TEMP2 + DCONJG(B(L,I))*A(L,J)
+  190                 CONTINUE
+                      IF (I.EQ.J) THEN
+                          IF (BETA.EQ.DBLE(ZERO)) THEN
+                              C(J,J) = DBLE(ALPHA*TEMP1+
+     +                                 DCONJG(ALPHA)*TEMP2)
+                          ELSE
+                              C(J,J) = BETA*DBLE(C(J,J)) +
+     +                                 DBLE(ALPHA*TEMP1+
+     +                                 DCONJG(ALPHA)*TEMP2)
+                          END IF
+                      ELSE
+                          IF (BETA.EQ.DBLE(ZERO)) THEN
+                              C(I,J) = ALPHA*TEMP1 + DCONJG(ALPHA)*TEMP2
+                          ELSE
+                              C(I,J) = BETA*C(I,J) + ALPHA*TEMP1 +
+     +                                 DCONJG(ALPHA)*TEMP2
+                          END IF
+                      END IF
+  200             CONTINUE
+  210         CONTINUE
+          ELSE
+              DO 240 J = 1,N
+                  DO 230 I = J,N
+                      TEMP1 = ZERO
+                      TEMP2 = ZERO
+                      DO 220 L = 1,K
+                          TEMP1 = TEMP1 + DCONJG(A(L,I))*B(L,J)
+                          TEMP2 = TEMP2 + DCONJG(B(L,I))*A(L,J)
+  220                 CONTINUE
+                      IF (I.EQ.J) THEN
+                          IF (BETA.EQ.DBLE(ZERO)) THEN
+                              C(J,J) = DBLE(ALPHA*TEMP1+
+     +                                 DCONJG(ALPHA)*TEMP2)
+                          ELSE
+                              C(J,J) = BETA*DBLE(C(J,J)) +
+     +                                 DBLE(ALPHA*TEMP1+
+     +                                 DCONJG(ALPHA)*TEMP2)
+                          END IF
+                      ELSE
+                          IF (BETA.EQ.DBLE(ZERO)) THEN
+                              C(I,J) = ALPHA*TEMP1 + DCONJG(ALPHA)*TEMP2
+                          ELSE
+                              C(I,J) = BETA*C(I,J) + ALPHA*TEMP1 +
+     +                                 DCONJG(ALPHA)*TEMP2
+                          END IF
+                      END IF
+  230             CONTINUE
+  240         CONTINUE
+          END IF
       END IF
 *
       RETURN

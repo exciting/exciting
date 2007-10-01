@@ -2,7 +2,7 @@
  'gold'                                     : spname
   -79.0000                                  : spzn
    359048.0559                              : spmass
-  0.225018E-06    2.0000   33.6220   630    : sprmin, rmt, sprmax, nrmt
+  0.225018E-06    2.0000   32.6383   630    : sprmin, rmt, sprmax, nrmt
   22                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -45,8 +45,8 @@
    3   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -2.9181   0  T
+ -2.9177   0  T
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -2.5052   0  T
+ -2.5051   0  T

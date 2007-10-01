@@ -11,8 +11,8 @@ complex(8), intent(in) :: dynq(3*natmtot,3*natmtot,nqpt)
 complex(8), intent(out) :: dynr(3*natmtot,3*natmtot,ngridq(1)*ngridq(2) &
  *ngridq(3))
 ! local variables
-logical tapp
-integer ir,iq,i,j,n,isym,id(3)
+integer ir,iq,i,j,n
+integer isym,lspl,iv(3)
 integer i1,i2,i3,j1,j2,j3
 real(8) v1(3),v2(3),s(3,3),t1
 complex(8) zt1
@@ -34,13 +34,14 @@ do j1=0,ngridq(1)-1
 ! rotate and add the dynamical matrix of the reduced q-point with all symmetries
       n=0
       dyns(:,:)=0.d0
-      do isym=1,nsymlat
-        s(:,:)=dble(symlat(:,:,isym))
+      do isym=1,nsymcrys
+        lspl=lsplsymc(isym)
+        s(:,:)=dble(symlat(:,:,lspl))
         call r3mtv(s,vql(1,iq),v2)
-        call r3frac(epslat,v2,id)
+        call r3frac(epslat,v2,iv)
         if (r3taxi(v1,v2).lt.epslat) then
-          call dynsymapp(symlat(1,1,isym),vql(1,iq),dynq(1,1,iq),tapp,dyns)
-          if (tapp) n=n+1
+          call dynsymapp(isym,vql(1,iq),dynq(1,1,iq),dyns)
+          n=n+1
         end if
       end do
       if (n.eq.0) then

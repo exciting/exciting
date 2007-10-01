@@ -2,7 +2,7 @@
  'francium'                                 : spname
   -87.0000                                  : spzn
    406504.1321                              : spmass
-  0.214423E-06    2.2000   51.0701   720    : sprmin, rmt, sprmax, nrmt
+  0.214423E-06    2.2000   42.5584   720    : sprmin, rmt, sprmax, nrmt
   25                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -48,11 +48,11 @@
    2   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -2.0660   0  T
+ -2.0662   0  T
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.8970   0  T
+ -0.8971   0  T
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F

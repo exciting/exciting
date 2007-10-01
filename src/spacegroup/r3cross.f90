@@ -13,7 +13,7 @@ subroutine r3cross(x,y,z)
 !   z : output cross-product (out,real(3))
 ! !DESCRIPTION:
 !   Returns the cross product of two real 3-vectors. The output vector can also
-!   be the input vector.
+!   be an input vector.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)

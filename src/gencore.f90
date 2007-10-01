@@ -22,23 +22,23 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer is,ia1,ia2,ias1,ias2,ist,ir
+integer is,ia,ja,ias,jas,ist,ir
 real(8) t1
 ! automatic arrays
 logical done(natmmax)
 real(8) vr(spnrmax)
 do is=1,nspecies
   done(:)=.false.
-  do ia1=1,natoms(is)
-    if (.not.done(ia1)) then
-      ias1=idxas(ia1,is)
-      vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias1)*y00
+  do ia=1,natoms(is)
+    if (.not.done(ia)) then
+      ias=idxas(ia,is)
+      vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
 ! append the effective potential from the atomic calculation
       t1=vr(nrmt(is))-spvr(nrmt(is),is)
       do ir=nrmt(is)+1,spnr(is)
         vr(ir)=spvr(ir,is)+t1
       end do
-      rhocr(:,ias1)=0.d0
+      rhocr(:,ias)=0.d0
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(ir,t1)
 !$OMP DO
@@ -46,13 +46,13 @@ do is=1,nspecies
         if (spcore(ist,is)) then
 ! solve the Dirac equation
           call rdirac(spn(ist,is),spl(ist,is),spk(ist,is),nprad,spnr(is), &
-           spr(1,is),vr,evalcr(ist,ias1),rwfcr(1,1,ist,ias1), &
-           rwfcr(1,2,ist,ias1))
+           spr(1,is),vr,evalcr(ist,ias),rwfcr(1,1,ist,ias),rwfcr(1,2,ist,ias))
           t1=spocc(ist,is)
 !$OMP CRITICAL
           do ir=1,spnr(is)
-            rhocr(ir,ias1)=rhocr(ir,ias1) &
-             +t1*(rwfcr(ir,1,ist,ias1)**2+rwfcr(ir,2,ist,ias1)**2)
+! add to the core density
+            rhocr(ir,ias)=rhocr(ir,ias) &
+             +t1*(rwfcr(ir,1,ist,ias)**2+rwfcr(ir,2,ist,ias)**2)
           end do
 !$OMP END CRITICAL
         end if
@@ -60,21 +60,21 @@ do is=1,nspecies
 !$OMP END DO
 !$OMP END PARALLEL
       do ir=1,spnr(is)
-        rhocr(ir,ias1)=rhocr(ir,ias1)/(fourpi*spr(ir,is)**2)
+        rhocr(ir,ias)=rhocr(ir,ias)/(fourpi*spr(ir,is)**2)
       end do
-      done(ia1)=.true.
+      done(ia)=.true.
 ! copy to equivalent atoms
-      do ia2=1,natoms(is)
-        if ((.not.done(ia2)).and.(nsymeqat(ia2,ia1,is).gt.0)) then
-          ias2=idxas(ia2,is)
+      do ja=1,natoms(is)
+        if ((.not.done(ja)).and.(eqatoms(ia,ja,is))) then
+          jas=idxas(ja,is)
           do ist=1,spnst(is)
             if (spcore(ist,is)) then
-              evalcr(ist,ias2)=evalcr(ist,ias1)
-              rwfcr(1:spnr(is),:,ist,ias2)=rwfcr(1:spnr(is),:,ist,ias1)
+              evalcr(ist,jas)=evalcr(ist,ias)
+              rwfcr(1:spnr(is),:,ist,jas)=rwfcr(1:spnr(is),:,ist,ias)
             end if
           end do
-          rhocr(1:spnr(is),ias2)=rhocr(1:spnr(is),ias1)
-          done(ia2)=.true.
+          rhocr(1:spnr(is),jas)=rhocr(1:spnr(is),ias)
+          done(ja)=.true.
         end if
       end do
     end if

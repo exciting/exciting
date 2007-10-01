@@ -14,7 +14,7 @@ real(8), intent(inout) :: ecv
 integer ngknr,ik,ist1,ist2
 integer is,ia,ias,nr,m,lmax
 integer iv(3),iq,ig,igq0
-real(8) occ,t1,t2
+real(8) occ,cfq,t1
 complex(8) zrho0,zt1
 ! allocatable arrays
 integer, allocatable :: igkignr(:)
@@ -82,8 +82,8 @@ if (spinpol) then
 else
   occ=2.d0
 end if
-! factor for long-range term
-t1=0.5d0*(omega/pi)**2
+! coefficient for long-range term
+cfq=0.5d0*(omega/pi)**2
 ! set the point charges to zero
 zpchg(:)=0.d0
 ! get the eigenvalues/vectors from file for input k-point
@@ -93,7 +93,7 @@ call getevecsv(vkl(1,ikp),evecsv)
 ! find the matching coefficients
 call match(ngk(ikp,1),gkc(1,ikp,1),tpgkc(1,1,ikp,1),sfacgk(1,1,ikp,1),apwalm)
 ! calculate the wavefunctions for occupied states for the input k-point
-call vnlwfv(.true.,ngk(ikp,1),igkig(1,ikp,1),evalsvp,apwalm,evecfv,evecsv, &
+call genwfsv(.true.,ngk(ikp,1),igkig(1,ikp,1),evalsvp,apwalm,evecfv,evecsv, &
  wfmt1,wfir1)
 ! start loop over non-reduced k-point set
 do ik=1,nkptnr
@@ -128,7 +128,7 @@ do ik=1,nkptnr
   lmax=lmaxvr+npsden+1
   call genjlgpr(lmax,gqc,jlgqr)
 ! calculate the wavefunctions for occupied states
-  call vnlwfv(.true.,ngknr,igkignr,evalsvnr,apwalm,evecfv,evecsv,wfmt2,wfir2)
+  call genwfsv(.true.,ngknr,igkignr,evalsvnr,apwalm,evecfv,evecsv,wfmt2,wfir2)
 !--------------------------------------------!
 !    valence-valence-valence contribution    !
 !--------------------------------------------!
@@ -143,9 +143,9 @@ do ik=1,nkptnr
           call zpotcoul(nrcmt,nrcmtmax,nrcmtmax,rcmt,igq0,gqc,jlgqr,ylmgq, &
            sfacgq,zpchg,zrhomt,zrhoir,zvclmt,zvclir,zrho0)
           zt1=zfinp(zrhomt,zvclmt,zrhoir,zvclir)
-          t2=t1*wiq2(iq)*(dble(zrho0)**2+aimag(zrho0)**2)
+          t1=cfq*wiq2(iq)*(dble(zrho0)**2+aimag(zrho0)**2)
 !$OMP CRITICAL
-          evv=evv-0.5d0*occ*wkpt(ikp)*(wkptnr(ik)*dble(zt1)+t2)
+          evv=evv-0.5d0*occ*wkpt(ikp)*(wkptnr(ik)*dble(zt1)+t1)
 !$OMP END CRITICAL
 ! end loop over ist1
         end if

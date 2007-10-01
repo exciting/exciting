@@ -1,11 +1,11 @@
-      SUBROUTINE ZGEMV ( TRANS, M, N, ALPHA, A, LDA, X, INCX,
-     $                   BETA, Y, INCY )
+      SUBROUTINE ZGEMV(TRANS,M,N,ALPHA,A,LDA,X,INCX,BETA,Y,INCY)
 *     .. Scalar Arguments ..
-      COMPLEX*16         ALPHA, BETA
-      INTEGER            INCX, INCY, LDA, M, N
-      CHARACTER*1        TRANS
+      DOUBLE COMPLEX ALPHA,BETA
+      INTEGER INCX,INCY,LDA,M,N
+      CHARACTER TRANS
+*     ..
 *     .. Array Arguments ..
-      COMPLEX*16         A( LDA, * ), X( * ), Y( * )
+      DOUBLE COMPLEX A(LDA,*),X(*),Y(*)
 *     ..
 *
 *  Purpose
@@ -20,7 +20,7 @@
 *  where alpha and beta are scalars, x and y are vectors and A is an
 *  m by n matrix.
 *
-*  Parameters
+*  Arguments
 *  ==========
 *
 *  TRANS  - CHARACTER*1.
@@ -102,74 +102,75 @@
 *
 *
 *     .. Parameters ..
-      COMPLEX*16         ONE
-      PARAMETER        ( ONE  = ( 1.0D+0, 0.0D+0 ) )
-      COMPLEX*16         ZERO
-      PARAMETER        ( ZERO = ( 0.0D+0, 0.0D+0 ) )
-*     .. Local Scalars ..
-      COMPLEX*16         TEMP
-      INTEGER            I, INFO, IX, IY, J, JX, JY, KX, KY, LENX, LENY
-      LOGICAL            NOCONJ
-*     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-*     .. External Subroutines ..
-      EXTERNAL           XERBLA
-*     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX
+      DOUBLE COMPLEX ONE
+      PARAMETER (ONE= (1.0D+0,0.0D+0))
+      DOUBLE COMPLEX ZERO
+      PARAMETER (ZERO= (0.0D+0,0.0D+0))
 *     ..
-*     .. Executable Statements ..
+*     .. Local Scalars ..
+      DOUBLE COMPLEX TEMP
+      INTEGER I,INFO,IX,IY,J,JX,JY,KX,KY,LENX,LENY
+      LOGICAL NOCONJ
+*     ..
+*     .. External Functions ..
+      LOGICAL LSAME
+      EXTERNAL LSAME
+*     ..
+*     .. External Subroutines ..
+      EXTERNAL XERBLA
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC DCONJG,MAX
+*     ..
 *
 *     Test the input parameters.
 *
       INFO = 0
-      IF     ( .NOT.LSAME( TRANS, 'N' ).AND.
-     $         .NOT.LSAME( TRANS, 'T' ).AND.
-     $         .NOT.LSAME( TRANS, 'C' )      )THEN
-         INFO = 1
-      ELSE IF( M.LT.0 )THEN
-         INFO = 2
-      ELSE IF( N.LT.0 )THEN
-         INFO = 3
-      ELSE IF( LDA.LT.MAX( 1, M ) )THEN
-         INFO = 6
-      ELSE IF( INCX.EQ.0 )THEN
-         INFO = 8
-      ELSE IF( INCY.EQ.0 )THEN
-         INFO = 11
+      IF (.NOT.LSAME(TRANS,'N') .AND. .NOT.LSAME(TRANS,'T') .AND.
+     +    .NOT.LSAME(TRANS,'C')) THEN
+          INFO = 1
+      ELSE IF (M.LT.0) THEN
+          INFO = 2
+      ELSE IF (N.LT.0) THEN
+          INFO = 3
+      ELSE IF (LDA.LT.MAX(1,M)) THEN
+          INFO = 6
+      ELSE IF (INCX.EQ.0) THEN
+          INFO = 8
+      ELSE IF (INCY.EQ.0) THEN
+          INFO = 11
       END IF
-      IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZGEMV ', INFO )
-         RETURN
+      IF (INFO.NE.0) THEN
+          CALL XERBLA('ZGEMV ',INFO)
+          RETURN
       END IF
 *
 *     Quick return if possible.
 *
-      IF( ( M.EQ.0 ).OR.( N.EQ.0 ).OR.
-     $    ( ( ALPHA.EQ.ZERO ).AND.( BETA.EQ.ONE ) ) )
-     $   RETURN
+      IF ((M.EQ.0) .OR. (N.EQ.0) .OR.
+     +    ((ALPHA.EQ.ZERO).AND. (BETA.EQ.ONE))) RETURN
 *
-      NOCONJ = LSAME( TRANS, 'T' )
+      NOCONJ = LSAME(TRANS,'T')
 *
 *     Set  LENX  and  LENY, the lengths of the vectors x and y, and set
 *     up the start points in  X  and  Y.
 *
-      IF( LSAME( TRANS, 'N' ) )THEN
-         LENX = N
-         LENY = M
+      IF (LSAME(TRANS,'N')) THEN
+          LENX = N
+          LENY = M
       ELSE
-         LENX = M
-         LENY = N
+          LENX = M
+          LENY = N
       END IF
-      IF( INCX.GT.0 )THEN
-         KX = 1
+      IF (INCX.GT.0) THEN
+          KX = 1
       ELSE
-         KX = 1 - ( LENX - 1 )*INCX
+          KX = 1 - (LENX-1)*INCX
       END IF
-      IF( INCY.GT.0 )THEN
-         KY = 1
+      IF (INCY.GT.0) THEN
+          KY = 1
       ELSE
-         KY = 1 - ( LENY - 1 )*INCY
+          KY = 1 - (LENY-1)*INCY
       END IF
 *
 *     Start the operations. In this version the elements of A are
@@ -177,101 +178,100 @@
 *
 *     First form  y := beta*y.
 *
-      IF( BETA.NE.ONE )THEN
-         IF( INCY.EQ.1 )THEN
-            IF( BETA.EQ.ZERO )THEN
-               DO 10, I = 1, LENY
-                  Y( I ) = ZERO
-   10          CONTINUE
-            ELSE
-               DO 20, I = 1, LENY
-                  Y( I ) = BETA*Y( I )
-   20          CONTINUE
-            END IF
-         ELSE
-            IY = KY
-            IF( BETA.EQ.ZERO )THEN
-               DO 30, I = 1, LENY
-                  Y( IY ) = ZERO
-                  IY      = IY   + INCY
-   30          CONTINUE
-            ELSE
-               DO 40, I = 1, LENY
-                  Y( IY ) = BETA*Y( IY )
-                  IY      = IY           + INCY
-   40          CONTINUE
-            END IF
-         END IF
+      IF (BETA.NE.ONE) THEN
+          IF (INCY.EQ.1) THEN
+              IF (BETA.EQ.ZERO) THEN
+                  DO 10 I = 1,LENY
+                      Y(I) = ZERO
+   10             CONTINUE
+              ELSE
+                  DO 20 I = 1,LENY
+                      Y(I) = BETA*Y(I)
+   20             CONTINUE
+              END IF
+          ELSE
+              IY = KY
+              IF (BETA.EQ.ZERO) THEN
+                  DO 30 I = 1,LENY
+                      Y(IY) = ZERO
+                      IY = IY + INCY
+   30             CONTINUE
+              ELSE
+                  DO 40 I = 1,LENY
+                      Y(IY) = BETA*Y(IY)
+                      IY = IY + INCY
+   40             CONTINUE
+              END IF
+          END IF
       END IF
-      IF( ALPHA.EQ.ZERO )
-     $   RETURN
-      IF( LSAME( TRANS, 'N' ) )THEN
+      IF (ALPHA.EQ.ZERO) RETURN
+      IF (LSAME(TRANS,'N')) THEN
 *
 *        Form  y := alpha*A*x + y.
 *
-         JX = KX
-         IF( INCY.EQ.1 )THEN
-            DO 60, J = 1, N
-               IF( X( JX ).NE.ZERO )THEN
-                  TEMP = ALPHA*X( JX )
-                  DO 50, I = 1, M
-                     Y( I ) = Y( I ) + TEMP*A( I, J )
-   50             CONTINUE
-               END IF
-               JX = JX + INCX
-   60       CONTINUE
-         ELSE
-            DO 80, J = 1, N
-               IF( X( JX ).NE.ZERO )THEN
-                  TEMP = ALPHA*X( JX )
-                  IY   = KY
-                  DO 70, I = 1, M
-                     Y( IY ) = Y( IY ) + TEMP*A( I, J )
-                     IY      = IY      + INCY
-   70             CONTINUE
-               END IF
-               JX = JX + INCX
-   80       CONTINUE
-         END IF
+          JX = KX
+          IF (INCY.EQ.1) THEN
+              DO 60 J = 1,N
+                  IF (X(JX).NE.ZERO) THEN
+                      TEMP = ALPHA*X(JX)
+                      DO 50 I = 1,M
+                          Y(I) = Y(I) + TEMP*A(I,J)
+   50                 CONTINUE
+                  END IF
+                  JX = JX + INCX
+   60         CONTINUE
+          ELSE
+              DO 80 J = 1,N
+                  IF (X(JX).NE.ZERO) THEN
+                      TEMP = ALPHA*X(JX)
+                      IY = KY
+                      DO 70 I = 1,M
+                          Y(IY) = Y(IY) + TEMP*A(I,J)
+                          IY = IY + INCY
+   70                 CONTINUE
+                  END IF
+                  JX = JX + INCX
+   80         CONTINUE
+          END IF
       ELSE
 *
 *        Form  y := alpha*A'*x + y  or  y := alpha*conjg( A' )*x + y.
 *
-         JY = KY
-         IF( INCX.EQ.1 )THEN
-            DO 110, J = 1, N
-               TEMP = ZERO
-               IF( NOCONJ )THEN
-                  DO 90, I = 1, M
-                     TEMP = TEMP + A( I, J )*X( I )
-   90             CONTINUE
-               ELSE
-                  DO 100, I = 1, M
-                     TEMP = TEMP + DCONJG( A( I, J ) )*X( I )
-  100             CONTINUE
-               END IF
-               Y( JY ) = Y( JY ) + ALPHA*TEMP
-               JY      = JY      + INCY
-  110       CONTINUE
-         ELSE
-            DO 140, J = 1, N
-               TEMP = ZERO
-               IX   = KX
-               IF( NOCONJ )THEN
-                  DO 120, I = 1, M
-                     TEMP = TEMP + A( I, J )*X( IX )
-                     IX   = IX   + INCX
-  120             CONTINUE
-               ELSE
-                  DO 130, I = 1, M
-                     TEMP = TEMP + DCONJG( A( I, J ) )*X( IX )
-                     IX   = IX   + INCX
-  130             CONTINUE
-               END IF
-               Y( JY ) = Y( JY ) + ALPHA*TEMP
-               JY      = JY      + INCY
-  140       CONTINUE
-         END IF
+          JY = KY
+          IF (INCX.EQ.1) THEN
+              DO 110 J = 1,N
+                  TEMP = ZERO
+                  IF (NOCONJ) THEN
+                      DO 90 I = 1,M
+                          TEMP = TEMP + A(I,J)*X(I)
+   90                 CONTINUE
+                  ELSE
+                      DO 100 I = 1,M
+                          TEMP = TEMP + DCONJG(A(I,J))*X(I)
+  100                 CONTINUE
+                  END IF
+                  Y(JY) = Y(JY) + ALPHA*TEMP
+                  JY = JY + INCY
+  110         CONTINUE
+          ELSE
+              DO 140 J = 1,N
+                  TEMP = ZERO
+                  IX = KX
+                  IF (NOCONJ) THEN
+                      DO 120 I = 1,M
+                          TEMP = TEMP + A(I,J)*X(IX)
+                          IX = IX + INCX
+  120                 CONTINUE
+                  ELSE
+                      DO 130 I = 1,M
+                          TEMP = TEMP + DCONJG(A(I,J))*X(IX)
+                          IX = IX + INCX
+  130                 CONTINUE
+                  END IF
+                  Y(JY) = Y(JY) + ALPHA*TEMP
+                  JY = JY + INCY
+  140         CONTINUE
+          END IF
       END IF
 *
       RETURN

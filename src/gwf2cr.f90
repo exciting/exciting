@@ -12,13 +12,13 @@ real(8), intent(inout) :: gwf2mt(lmmaxvr,nrmtmax,natmtot)
 integer is,ia,ias,ist,i
 integer l,m,lm,ir,itp
 real(8) t1
+! automatic arrays
+complex(8) zftp(lmmaxvr)
 ! allocatable arrays
 complex(8), allocatable :: zfmt(:,:)
 complex(8), allocatable :: gzfmt(:,:,:)
-complex(8), allocatable :: zftp(:)
 allocate(zfmt(lmmaxvr,nrmtmax))
 allocate(gzfmt(lmmaxvr,nrmtmax,3))
-allocate(zftp(lmmaxvr))
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
@@ -49,7 +49,7 @@ do is=1,nspecies
 ! end loops over atoms and species
   end do
 end do
-deallocate(zfmt,gzfmt,zftp)
+deallocate(zfmt,gzfmt)
 return
 end subroutine
 

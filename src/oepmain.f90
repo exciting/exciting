@@ -104,7 +104,7 @@ do it=1,maxitoep
   end do
 ! symmetrise the residues
   call symrf(lradstp,rfmt,rfir)
-  if (spinpol) call symrvf(.false.,lradstp,ndmag,rvfmt,rvfir)
+  if (spinpol) call symrvf(lradstp,rvfmt,rvfir)
 ! magnitude of residues
   resoep=sqrt(abs(rfinp(lradstp,rfmt,rfmt,rfir,rfir)))
   do idm=1,ndmag

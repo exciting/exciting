@@ -14,7 +14,7 @@ complex(8), intent(out) :: vnlvv(nstsv,nstsv)
 integer ngknr,ik,ist1,ist2,ist3
 integer is,ia,ias,ic,m1,m2,lmax
 integer nr,iq,ig,iv(3),igq0
-real(8) v(3),t1
+real(8) v(3),cfq
 complex(8) zrho01,zrho02,zt1,zt2
 ! allocatable arrays
 integer, allocatable :: igkignr(:)
@@ -80,7 +80,7 @@ allocate(zvclmt(lmmaxvr,nrcmtmax,natmtot))
 allocate(zvclir(ngrtot))
 allocate(zfmt(lmmaxvr,nrcmtmax))
 ! factor for long-range term
-t1=0.5d0*(omega/pi)**2
+cfq=0.5d0*(omega/pi)**2
 ! set the point charges to zero
 zpchg(:)=0.d0
 vnlcv(:,:,:)=0.d0
@@ -92,7 +92,7 @@ call getevecsv(vkl(1,ikp),evecsv)
 ! find the matching coefficients
 call match(ngk(ikp,1),gkc(1,ikp,1),tpgkc(1,1,ikp,1),sfacgk(1,1,ikp,1),apwalm)
 ! calculate the wavefunctions for all states for the input k-point
-call vnlwfv(.false.,ngk(ikp,1),igkig(1,ikp,1),evalsvp,apwalm,evecfv,evecsv, &
+call genwfsv(.false.,ngk(ikp,1),igkig(1,ikp,1),evalsvp,apwalm,evecfv,evecsv, &
  wfmt1,wfir1)
 ! start loop over non-reduced k-point set
 do ik=1,nkptnr
@@ -128,7 +128,7 @@ do ik=1,nkptnr
   lmax=lmaxvr+npsden+1
   call genjlgpr(lmax,gqc,jlgqr)
 ! calculate the wavefunctions for occupied states
-  call vnlwfv(.true.,ngknr,igkignr,evalsvnr,apwalm,evecfv,evecsv,wfmt2,wfir2)
+  call genwfsv(.true.,ngknr,igkignr,evalsvnr,apwalm,evecfv,evecsv,wfmt2,wfir2)
   do ist3=1,nstsv
     if (evalsvnr(ist3).lt.efermi) then
       do ist2=1,nstsv
@@ -151,7 +151,7 @@ do ik=1,nkptnr
 ! compute the density coefficient of the smallest G+q-vector
               call zrhoqint(gqc(igq0),ylmgq(1,igq0),ngvec,sfacgq(igq0,1), &
                zrhomt,zrhoir,zrho01)
-              zt2=t1*wiq2(iq)*(conjg(zrho01)*zrho02)
+              zt2=cfq*wiq2(iq)*(conjg(zrho01)*zrho02)
               vnlvv(ist1,ist2)=vnlvv(ist1,ist2)-(wkptnr(ik)*zt1+zt2)
             end if
           end do

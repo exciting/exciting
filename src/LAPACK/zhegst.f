@@ -1,9 +1,8 @@
       SUBROUTINE ZHEGST( ITYPE, UPLO, N, A, LDA, B, LDB, INFO )
 *
-*  -- LAPACK routine (version 3.0) --
-*     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
-*     Courant Institute, Argonne National Lab, and Rice University
-*     September 30, 1994
+*  -- LAPACK routine (version 3.1) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
 *
 *     .. Scalar Arguments ..
       CHARACTER          UPLO
@@ -34,7 +33,7 @@
 *          = 1: compute inv(U**H)*A*inv(U) or inv(L)*A*inv(L**H);
 *          = 2 or 3: compute U*A*U**H or L**H*A*L.
 *
-*  UPLO    (input) CHARACTER
+*  UPLO    (input) CHARACTER*1
 *          = 'U':  Upper triangle of A is stored and B is factored as
 *                  U**H*U;
 *          = 'L':  Lower triangle of A is stored and B is factored as

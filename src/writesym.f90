@@ -21,7 +21,8 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer isym,i,is,ia1,ia2,ias
+integer is,ia,ja,ias,i
+integer isym,lspl,lspn
 ! output the Bravais lattice symmetries
 open(50,file='SYMLAT'//trim(filext),action='WRITE',form='FORMATTED')
 write(50,'(I4," : nsymlat")') nsymlat
@@ -38,25 +39,42 @@ open(50,file='SYMCRYS'//trim(filext),action='WRITE',form='FORMATTED')
 write(50,'(I4," : nsymcrys")') nsymcrys
 do isym=1,nsymcrys
   write(50,*)
-  write(50,'(I4)') isym
+  write(50,'("Crystal symmetry : ",I4)') isym
+  write(50,'(" spatial rotation (lattice coordinates) :")')
+  lspl=lsplsymc(isym)
   do i=1,3
-    write(50,'(3I4)') symcrys(i,:,isym)
+    write(50,'(3I4)') symlat(i,:,lspl)
+  end do
+  write(50,'(" spatial translation (lattice coordinates) :")')
+  write(50,'(3G18.10)') vtlsymc(:,isym)
+  write(50,'(" global spin rotation (lattice coordinates) :")')
+  lspn=lspnsymc(isym)
+  do i=1,3
+    write(50,'(3I4)') symlat(i,:,lspn)
   end do
 end do
 close(50)
 ! output the site symmetries
 open(50,file='SYMSITE'//trim(filext),action='WRITE',form='FORMATTED')
 do is=1,nspecies
-  do ia1=1,natoms(is)
-    ias=idxas(ia1,is)
+  do ia=1,natoms(is)
+    ias=idxas(ia,is)
     write(50,*)
-    write(50,'(2I4," : atom, species")') ia1,is
+    write(50,*)
+    write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
     write(50,'(I4," : nsymsite")') nsymsite(ias)
     do isym=1,nsymsite(ias)
       write(50,*)
-      write(50,'(I4)') isym
+      write(50,'(" Site symmetry : ",I4)') isym
+      write(50,'("  spatial rotation (lattice coordinates) :")')
+      lspl=lsplsyms(isym,ias)
       do i=1,3
-        write(50,'(3I4)') symsite(i,:,isym,ias)
+        write(50,'(3I4)') symlat(i,:,lspl)
+      end do
+      write(50,'("  global spin rotation (lattice coordinates) :")')
+      lspn=lspnsyms(isym,ias)
+      do i=1,3
+        write(50,'(3I4)') symlat(i,:,lspn)
       end do
     end do
   end do
@@ -64,26 +82,24 @@ end do
 close(50)
 ! output the equivalent atoms and related symmetries
 open(50,file='EQATOMS'//trim(filext),action='WRITE',form='FORMATTED')
-write(50,'("Operations are represented by a lattice point group symmetry &
- &applied about the")')
-write(50,'("origin, followed by a translation vector in lattice &
- &coordinates")')
 do is=1,nspecies
   write(50,*)
-  write(50,'("Species : ",I4,", ",A)') is,trim(spsymb(is))
-  write(50,*)
-  do ia1=1,natoms(is)
-    do ia2=1,natoms(is)
-      write(50,'(" atom ",I4," can be mapped to atom ",I4, " with ",I4,&
-       &" operations")') ia2,ia1,nsymeqat(ia2,ia1,is)
-      do i=1,nsymeqat(ia2,ia1,is)
-        write(50,'(I4,3F12.8)') symeqat(i,ia2,ia1,is),tvleqat(:,i,ia2,ia1,is)
-      end do
-      write(50,*)
+  write(50,'("Species : ",I4," (",A,")")') is,trim(spsymb(is))
+  do ia=1,natoms(is)
+    write(50,'(" atom ",I4," is equivalent to atom(s)")') ia
+    i=0
+    do ja=1,natoms(is)
+      if (eqatoms(ia,ja,is)) then
+        if ((i.gt.0).and.(mod(i,20).eq.0)) write(50,*)
+        write(50,'(I4)',advance='NO') ja
+        i=i+1
+      end if
     end do
+    write(50,*)
   end do
 end do
 close(50)
 return
 end subroutine
 !EOC
+

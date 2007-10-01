@@ -12,7 +12,7 @@ real(8) function sdelta_mp(n,x)
 !   x : real argument (in,real)
 ! !DESCRIPTION:
 !   Returns the smooth approximation to the Dirac delta function of order $N$
-!   given by Methfessel and Paxton [Phys. Rev. B 40, 3616 (1989)],
+!   given by Methfessel and Paxton, {\it Phys. Rev. B} {\bf 40}, 3616 (1989),
 !   $$ \tilde\delta(x)=\sum_{i=0}^N \frac{(-1)^i}{i!4^n\sqrt\pi} H_{2i}(x)
 !    e^{-x^2},$$
 !   where $H_j$ is the $j$th-order Hermite polynomial. This function has the

@@ -2,7 +2,7 @@
  'mendelevium'                              : spname
   -101.000                                  : spzn
    470305.2291                              : spmass
-  0.199007E-06    2.2000   37.7152   720    : sprmin, rmt, sprmax, nrmt
+  0.199007E-06    2.2000   40.2805   720    : sprmin, rmt, sprmax, nrmt
   27                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -50,8 +50,8 @@
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -2.1240   0  T
+ -2.1242   0  T
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.2372   0  T
+ -1.2374   0  T

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2006 Fredrik Bultmark, Lars Nordström and J. K. Dewhurst
+! Copyright (C) 2006 F. Bultmark, F. Cricchio, L. Nordström and J. K. Dewhurst
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -160,6 +160,7 @@ do ist2=1,nstfv
     else
       zfft2(:,k)=zfft1(:,2)*(bir(:,1)-zi*bir(:,2))
     end if
+    call zfftifc(3,ngrid,-1,zfft2(1,k))
   end do
   do ist1=1,nstfv
     do k=1,4

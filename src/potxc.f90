@@ -136,7 +136,7 @@ do is=1,nspecies
            g3up=g3upmt(1,ir),g3dn=g3dnmt(1,ir))
         end if
         if (ndmag.eq.3) then
-! non-collinear: spin-rotate the local exchange-correlation potential
+! non-collinear: spin rotate the local exchange-correlation potential
           do itp=1,lmmaxvr
             w1=vx(itp,1)+vc(itp,1)
             w2=vx(itp,2)+vc(itp,2)
@@ -226,7 +226,7 @@ if (spinpol) then
      g3dn=g3dnir)
   end if
   if (ndmag.eq.3) then
-! non-collinear: spin-rotate the local exchange potential
+! non-collinear: spin rotate the local exchange potential
     do ir=1,ngrtot
       w1=vx(ir,1)+vc(ir,1)
       w2=vx(ir,2)+vc(ir,2)
@@ -265,7 +265,7 @@ if (spinpol) then
 ! remove the source contribution if required
   if (nosource) call projsbf
 ! symmetrise the exchange-correlation effective field
-  call symrvf(.false.,1,ndmag,bxcmt,bxcir)
+  call symrvf(1,bxcmt,bxcir)
 end if
 deallocate(ex,ec,vx,vc,rftp)
 if (spinpol) deallocate(rflm,rfir,cs1,sn1)

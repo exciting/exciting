@@ -21,7 +21,7 @@ use modxcifc
 implicit none
 ! local variables
 integer is,ia,ias,ist
-integer isym,l,m,lm,id(3)
+integer l,m,lm,iv(3)
 real(8) cs,sn,r,t1
 real(8) cpu0,cpu1
 ! external functions
@@ -82,17 +82,10 @@ end do
 ! check if the system is an isolated molecule
 if (molecule) primcell=.false.
 ! find primitive cell if required
-if (primcell) call findprim(epslat,avec,nspecies,natoms,maxatoms,atposl,bfcmt)
+if (primcell) call findprim
 natmmax=0
 ias=0
 do is=1,nspecies
-  if (natoms(is).le.0) then
-    write(*,*)
-    write(*,'("Error(init0): natoms <= 0 : ",I8)') natoms(is)
-    write(*,'(" for species ",I4)') is
-    write(*,*)
-    stop
-  end if
   do ia=1,natoms(is)
     ias=ias+1
     idxas(ia,is)=ias
@@ -116,8 +109,6 @@ if (hartfock) then
   end select
 ! Hartree-Fock always requires second-variational eigenvectors
   tevecsv=.true.
-! no exchange-correlation for Hartree-Fock
-  xctype=1
 end if
 
 !------------------------!
@@ -137,8 +128,6 @@ if (spinsprl) then
     write(*,*)
     stop
   end if
-! use no symmetries for spirals (temporary fix)
-  nosym=.true.
 end if
 ! spin-orbit coupling or fixed spin moment implies spin-polarised calculation
 if ((spinorb).or.(fixspin).or.(spinsprl)) spinpol=.true.
@@ -154,8 +143,6 @@ if (spinsprl) then
 else
   nspnfv=1
 end if
-! no second-variational eigenvectors calculated by default
-tevecsv=.false.
 ! spin-polarised calculations require second-variational eigenvectors
 if (spinpol) tevecsv=.true.
 ! get exchange-correlation functional data
@@ -193,7 +180,7 @@ bfsmc(:)=0.d0
 ! switch off symmetries for CDFT
 if (cdft) nosym=.true.
 ! generate the reciprocal lattice vectors and unit cell volume
-call reciplat(avec,bvec,omega)
+call reciplat
 ! compute the inverse of the lattice vector matrix
 call r3minv(avec,ainv)
 ! compute the inverse of the reciprocal vector matrix
@@ -201,7 +188,9 @@ call r3minv(bvec,binv)
 do is=1,nspecies
   do ia=1,natoms(is)
 ! map atomic lattice coordinates to [0,1) if not in molecule mode
-    if (.not.molecule) call r3frac(epslat,atposl(1,ia,is),id)
+    if (.not.molecule) call r3frac(epslat,atposl(1,ia,is),iv)
+! determine atomic Cartesian coordinates
+    call r3mv(avec,atposl(1,ia,is),atposc(1,ia,is))
 ! lattice coordinates of the muffin-tin magnetic fields
     call r3mv(ainv,bfcmt(1,ia,is),bflmt(1,ia,is))
   end do
@@ -211,46 +200,13 @@ call r3mv(ainv,bfieldc,bfieldl)
 ! Cartesian coordinates of the spin-spiral vector
 call r3mv(bvec,vqlss,vqcss)
 ! find Bravais lattice symmetries
-call findsymlat(epslat,avec,.false.,bfieldl,nsymlat,symlat)
+call findsymlat
 ! use only the identity if required
 if (nosym) nsymlat=1
-! find crystal symmetries and shift atomic positions to optimal center
-call findsymcrys(tsymctr,epslat,nspecies,natoms,nsymlat,symlat,maxatoms, &
- atposl,.false.,bflmt,nsymcrys,symcrys)
-! check if the inversion symmetry exists
-tsyminv=.false.
-do isym=1,nsymcrys
-  if ((symcrys(1,1,isym).eq.-1).and.(symcrys(1,2,isym).eq.0).and. &
-      (symcrys(1,3,isym).eq.0 ).and.(symcrys(2,1,isym).eq.0).and. &
-      (symcrys(2,2,isym).eq.-1).and.(symcrys(2,3,isym).eq.0).and. &
-      (symcrys(3,1,isym).eq.0 ).and.(symcrys(3,2,isym).eq.0).and. &
-      (symcrys(3,3,isym).eq.-1)) tsyminv=.true.
-end do
-! allocate equivalent atom arrays
-if (allocated(nsymeqat)) deallocate(nsymeqat)
-allocate(nsymeqat(natmmax,natmmax,nspecies))
-if (allocated(symeqat)) deallocate(symeqat)
-allocate(symeqat(48,natmmax,natmmax,nspecies))
-if (allocated(tvleqat)) deallocate(tvleqat)
-allocate(tvleqat(3,48,natmmax,natmmax,nspecies))
-! find equivalent atoms
-call findeqatoms(epslat,nspecies,natoms,nsymlat,symlat,maxatoms,atposl, &
- .false.,bflmt,natmmax,nsymeqat,symeqat,tvleqat)
-! allocate site symmetry arrays
-if (allocated(nsymsite)) deallocate(nsymsite)
-allocate(nsymsite(natmtot))
-if (allocated(symsite)) deallocate(symsite)
-allocate(symsite(3,3,48,natmtot))
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-! Cartesian coordinates of the atomic positions
-    call r3mv(avec,atposl(1,ia,is),atposc(1,ia,is))
+! find the crystal symmetries and shift atomic positions if required
+call findsymcrys
 ! find the site symmetries
-    call findsymcrysctr(epslat,nspecies,natoms,nsymlat,symlat,maxatoms,atposl, &
-     .false.,bflmt,atposl(1,ia,is),nsymsite(ias),symsite(1,1,1,ias))
-  end do
-end do
+call findsymsite
 ! automatically determine the muffin-tin radii if required
 if (autormt) call autoradmt
 ! check for overlapping muffin-tins

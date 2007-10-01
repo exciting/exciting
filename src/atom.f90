@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: atom
 ! !INTERFACE:
-subroutine atom(zn,nst,n,l,k,occ,xctype,np,nr,r,eval,rho,vr,rwf)
+subroutine atom(zn,nst,n,l,k,occ,xctype,xcgrad,np,nr,r,eval,rho,vr,rwf)
 ! !USES:
 use modxcifc
 ! !INPUT/OUTPUT PARAMETERS:
@@ -17,6 +17,7 @@ use modxcifc
 !   k      : quantum number k (l or l+1) of each state (in,integer(nst))
 !   occ    : occupancy of each state (inout,real(nst))
 !   xctype : exchange-correlation type (in,integer)
+!   xcgrad : 1 for GGA functional, 0 otherwise (in,integer)
 !   np     : order of predictor-corrector polynomial (in,integer)
 !   nr     : number of radial mesh points (in,integer)
 !   r      : radial mesh (in,real(nr))
@@ -31,11 +32,12 @@ use modxcifc
 !   radial wavefunctions, eigenvalues, charge densities and potentials. The
 !   variable {\tt np} defines the order of polynomial used for performing
 !   numerical integration. Requires the exchange-correlation interface routine
-!   {\tt xcifc}. Note that only local spin-unpolarised functionals may be used.
+!   {\tt xcifc}.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
 !   Fixed s.c. convergence problem, October 2003 (JKD)
+!   Added support for GGA functionals, June 2006 (JKD)
 !
 !EOP
 !BOC
@@ -48,6 +50,7 @@ integer, intent(in) :: l(nst)
 integer, intent(in) :: k(nst)
 real(8), intent(inout) :: occ(nst)
 integer, intent(in) :: xctype
+integer, intent(in) :: xcgrad
 integer, intent(in) :: np
 integer, intent(in) :: nr
 real(8), intent(in) :: r(nr)
@@ -58,12 +61,15 @@ real(8), intent(out) :: rwf(nr,2,nst)
 integer, parameter :: maxscl=200
 integer ir,ist,iscl
 real(8), parameter :: fourpi=12.566370614359172954d0
+! fine-structure constant
+real(8), parameter :: alpha=1.d0/137.03599911d0
 ! potential convergence tolerance
 real(8), parameter :: eps=1.d-7
 real(8) sum,dv,dvp,ze,beta,t1
-! automatic arrays
-real(8) vh(nr),ex(nr),ec(nr),vx(nr),vc(nr),vrp(nr)
-real(8) ri(nr),fr1(nr),fr2(nr),gr1(nr),gr2(nr),cf(3,nr)
+! allocatable arrays
+real(8), allocatable :: vh(:),ex(:),ec(:),vx(:),vc(:),vrp(:)
+real(8), allocatable :: ri(:),fr1(:),fr2(:),gr1(:),gr2(:),cf(:,:)
+real(8), allocatable :: grho(:),g2rho(:),g3rho(:)
 if (nst.le.0) then
   write(*,*)
   write(*,'("Error(atom): invalid nst : ",I8)') nst
@@ -82,6 +88,12 @@ if (nr.lt.np) then
   write(*,*)
   stop
 end if
+! allocate local arrays
+allocate(vh(nr),ex(nr),ec(nr),vx(nr),vc(nr),vrp(nr))
+allocate(ri(nr),fr1(nr),fr2(nr),gr1(nr),gr2(nr),cf(3,nr))
+if (xcgrad.eq.1) then
+  allocate(grho(nr),g2rho(nr),g3rho(nr))
+end if
 ! find total electronic charge
 ze=0.d0
 do ist=1,nst
@@ -97,9 +109,12 @@ dvp=0.d0
 vrp(:)=0.d0
 ! initialise mixing parameter
 beta=0.5d0
-! initialise eigenvalues to non-relativistic values
+! initialise eigenvalues to relativistic values (minus the rest mass energy)
 do ist=1,nst
-  eval(ist)=-0.5d0*zn**2/dble(n(ist)**2)
+  t1=sqrt(dble(k(ist)**2)-(zn*alpha)**2)
+  t1=(dble(n(ist)-abs(k(ist)))+t1)**2
+  t1=1.d0+((zn*alpha)**2)/t1
+  eval(ist)=(1.d0/alpha**2)/sqrt(t1)-1.d0/alpha**2
 end do
 ! start of self-consistent loop
 do iscl=1,maxscl
@@ -133,8 +148,26 @@ do iscl=1,maxscl
   t1=ze/gr1(nr)
   rho(:)=t1*rho(:)
   vh(:)=t1*vh(:)
-! find the exchange-correlation potential
-  call xcifc(xctype,n=nr,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
+! compute the exchange-correlation energy and potential
+  if (xcgrad.eq.1) then
+! GGA functional
+! |grad rho|
+    call fderiv(1,nr,r,rho,grho,cf)
+! grad^2 rho
+    call fderiv(2,nr,r,rho,g2rho,cf)
+    do ir=1,nr
+      g2rho(ir)=g2rho(ir)+2.d0*ri(ir)*grho(ir)
+    end do
+! approximate (grad rho).(grad |grad rho|)
+    do ir=1,nr
+      g3rho(ir)=grho(ir)*g2rho(ir)
+    end do
+    call xcifc(xctype,n=nr,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
+     ec=ec,vx=vx,vc=vc)
+  else
+! LDA functional
+    call xcifc(xctype,n=nr,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
+  end if
 ! self-consistent potential
   vr(:)=vh(:)+vx(:)+vc(:)
 ! determine change in potential
@@ -157,12 +190,20 @@ do iscl=1,maxscl
     vr(ir)=vr(ir)+zn*ri(ir)
   end do
 ! check for convergence
-  if ((iscl.gt.2).and.(dv.lt.eps)) return
+  if ((iscl.gt.2).and.(dv.lt.eps)) goto 10
 ! end self-consistent loop
 end do
 write(*,*)
 write(*,'("Error(atom): maximum iterations exceeded")')
 write(*,*)
 stop
+10 continue
+deallocate(vh,ex,ec,vx,vc,vrp)
+deallocate(ri,fr1,fr2,gr1,gr2,cf)
+if (xctype.eq.1) then
+  deallocate(grho,g2rho,g3rho)
+end if
+return
 end subroutine
 !EOC
+

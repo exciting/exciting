@@ -2,7 +2,7 @@
  'neon'                                     : spname
   -10.0000                                  : spzn
    36785.34276                              : spmass
-  0.632456E-06    1.2000   23.7431   270    : sprmin, rmt, sprmax, nrmt
+  0.632456E-06    1.2000   20.8783   270    : sprmin, rmt, sprmax, nrmt
    4                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    F
@@ -27,4 +27,4 @@
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.1770   0  T
+ -1.1772   0  T

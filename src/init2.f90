@@ -7,7 +7,7 @@ subroutine init2
 use modmain
 implicit none
 ! local variables
-integer nsym,is,ia,ist,ic,m
+integer is,ia,ist,ic,m
 real(8) cpu0,cpu1
 real(8) vqloff(3)
 
@@ -23,6 +23,7 @@ if ((xctype.lt.0).or.(hartfock).or.(task.eq.300)) then
   ngridq(:)=ngridk(:)
   reduceq=.false.
 end if
+! allocate the q-point arrays
 if (allocated(ivq)) deallocate(ivq)
 allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
 if (allocated(vql)) deallocate(vql)
@@ -33,15 +34,10 @@ if (allocated(wqpt)) deallocate(wqpt)
 allocate(wqpt(ngridq(1)*ngridq(2)*ngridq(3)))
 if (allocated(iqmap)) deallocate(iqmap)
 allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
-! the q-point offset should be zero
+! the q-point offset should always be zero
 vqloff(:)=0.d0
-if (reduceq) then
-  nsym=nsymcrys
-else
-  nsym=1
-end if
-! generate reduced q-point set
-call genkpts(epslat,nsym,symcrys,ngridq,bvec,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+! generate the q-point set
+call genppts(reduceq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
 
 !-----------------------------------------------!
 !     OEP, Hartree-Fock and RDMFT variables     !

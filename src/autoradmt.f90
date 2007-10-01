@@ -25,32 +25,32 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer is1,is2,ia1,ia2
-integer i1,i2,i3
-real(8) s,v1(3),v2(3),t1,t2
+integer is,js,ia,ja,i1,i2,i3
+real(8) s,v1(3),v2(3),t1,t2,t3
 ! external functions
 real(8) r3dist
 external r3dist
 ! initial muffin-tin radii
-do is1=1,nspecies
-  rmt(is1)=1.d0+rmtapm(1)*abs(spzn(is1))**(1.d0/3.d0)
+do is=1,nspecies
+  rmt(is)=1.d0+rmtapm(1)*abs(spzn(is))**(1.d0/3.d0)
 end do
 ! determine scaling factor
-s=1.d6
+s=1.d8
 do i1=-1,1
   do i2=-1,1
     do i3=-1,1
       v1(:)=dble(i1)*avec(:,1)+dble(i2)*avec(:,2)+dble(i3)*avec(:,3)
-      do is1=1,nspecies
-        do ia1=1,natoms(is1)
-          v2(:)=v1(:)+atposc(:,ia1,is1)
-          do is2=1,nspecies
-            t1=rmt(is1)+rmt(is2)
-            do ia2=1,natoms(is2)
-              if ((i1.ne.0).or.(i2.ne.0).or.(i3.ne.0).or.(is1.ne.is2).or. &
-               (ia1.ne.ia2)) then
-                t2=r3dist(v2,atposc(1,ia2,is2))
-                s=min(s,t2/t1)
+      do is=1,nspecies
+        do ia=1,natoms(is)
+          v2(:)=v1(:)+atposc(:,ia,is)
+          do js=1,nspecies
+            t1=1.d0/(rmt(is)+rmt(js))
+            do ja=1,natoms(js)
+              if ((i1.ne.0).or.(i2.ne.0).or.(i3.ne.0).or.(is.ne.js).or. &
+               (ia.ne.ja)) then
+                t2=r3dist(v2,atposc(1,ja,js))
+                t3=t1*t2
+                if (t3.lt.s) s=t3
               end if
             end do
           end do
@@ -61,10 +61,11 @@ do i1=-1,1
 end do
 s=s*rmtapm(2)
 ! scale all radii
-do is1=1,nspecies
-  t1=s*rmt(is1)*10000.d0
+do is=1,nspecies
+! limit number of decimal digits
+  t1=s*rmt(is)*10000.d0
   t1=dble(int(t1))/10000.d0
-  rmt(is1)=t1
+  rmt(is)=t1
 end do
 return
 end subroutine

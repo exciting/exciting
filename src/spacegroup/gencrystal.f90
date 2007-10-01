@@ -95,11 +95,17 @@ end do
 ! set magnetic fields to zero
 bfcmt(:,:,:)=0.d0
 ! reduce conventional cell to primitive cell if required
-if (primcell) call findprim(epslat,avec,nspecies,natoms,maxatoms,atposl,bfcmt)
+if (primcell) call findprim
 ! find the total number of atoms
 natmtot=0
 do is=1,nspecies
   natmtot=natmtot+natoms(is)
+end do
+! determine the Cartesian atomic coordinates
+do is=1,nspecies
+  do ia=1,natoms(is)
+    call r3mv(avec,atposl(1,ia,is),atposc(1,ia,is))
+  end do
 end do
 return
 end subroutine

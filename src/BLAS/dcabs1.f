@@ -1,8 +1,16 @@
-      double precision function dcabs1(z)
-      double complex z,zz
-      double precision t(2)
-      equivalence (zz,t(1))
-      zz = z
-      dcabs1 = dabs(t(1)) + dabs(t(2))
-      return
-      end
+      DOUBLE PRECISION FUNCTION DCABS1(Z)
+*     .. Scalar Arguments ..
+      DOUBLE COMPLEX Z
+*     ..
+*     ..
+*  Purpose
+*  =======
+*
+*  DCABS1 computes absolute value of a double complex number 
+*
+*     .. Intrinsic Functions ..
+      INTRINSIC ABS,DBLE,DIMAG
+*
+      DCABS1 = ABS(DBLE(Z)) + ABS(DIMAG(Z))
+      RETURN
+      END

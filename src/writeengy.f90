@@ -28,11 +28,7 @@ write(fnum,'(" exchange                : ",G18.10)') engyx
 write(fnum,'(" correlation             : ",G18.10)') engyc
 write(fnum,'(" total energy            : ",G18.10)') engytot
 if (spinpol) then
-  if (bfinite) then
-    write(fnum,'(" (external B-field energy included in total)")')
-  else
-    write(fnum,'(" (external B-field energy excluded from total)")')
-  end if
+  write(fnum,'(" (external B-field energy excluded from total)")')
 end if
 call flushifc(fnum)
 return

@@ -22,7 +22,6 @@ complex(8) function zfmtinp(lmax,nr,r,ld,zfmt1,zfmt2)
 !   the function returns
 !   $$ I=\sum_{l=0}^{l_{\rm max}}\sum_{m=-l}^{l}\int f_{lm}^{1*}(r)
 !    f_{lm}^2(r)r^2\,dr\;. $$
-!   The radial integral is performed using low accuracy trapezoidal integration.
 !
 ! !REVISION HISTORY:
 !   Created November 2003 (Sharma)

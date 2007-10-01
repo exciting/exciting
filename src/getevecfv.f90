@@ -11,11 +11,11 @@ real(8), intent(in) :: vpl(3)
 real(8), intent(in) :: vgpl(3,ngkmax)
 complex(8), intent(out) :: evecfv(nmatmax,nstfv,nspnfv)
 ! local variables
-integer isym,id(3),ilo,l,m,lm
+integer isym,lspl,ilo,l,m,lm
 integer ik,igp,igk,ist,i
-integer is,ia1,ia2,ias1,ias2
+integer is,ia,ja,ias,jas
 integer recl,nmatmax_,nstfv_,nspnfv_
-real(8) vkl_(3),v1(3),v2(3),t1
+real(8) vkl_(3),v(3),t1
 real(8) s(3,3),si(3,3),sc(3,3)
 complex(8) zt1
 ! allocatable arrays
@@ -24,8 +24,10 @@ complex(8), allocatable :: zflm(:,:)
 ! external functions
 real(8) r3taxi,r3dot
 external r3taxi,r3dot
-! find the k-point number
+! find the equivalent k-point number and crystal symmetry element
 call findkpt(vpl,isym,ik)
+! index to spatial rotation in lattice point group
+lspl=lsplsymc(isym)
 ! find the record length
 inquire(iolength=recl) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
 !$OMP CRITICAL
@@ -67,7 +69,7 @@ if (nspnfv.ne.nspnfv_) then
   stop
 end if
 ! if symmetry element is the identity return
-if (isym.eq.1) return
+if (lspl.eq.1) return
 if (spinsprl) then
   write(*,*)
   write(*,'("Error(getevec): code limitation - cannot rotate spin-spiral &
@@ -76,8 +78,8 @@ if (spinsprl) then
   write(*,*)
   stop
 end if
-! real symmetry matrix
-s(:,:)=dble(symcrys(:,:,isym))
+! spatial rotation symmetry matrix
+s(:,:)=dble(symlat(:,:,lspl))
 ! the inverse of s rotates k into p
 call r3minv(s,si)
 ! translate and rotate APW coefficients
@@ -88,9 +90,9 @@ do ist=1,nstfv
   end do
 end do
 do igk=1,ngk(ik,1)
-  call r3mtv(si,vgkl(1,igk,ik,1),v1)
+  call r3mtv(si,vgkl(1,igk,ik,1),v)
   do igp=1,ngk(ik,1)
-    if (r3taxi(v1,vgpl(1,igp)).lt.epslat) then
+    if (r3taxi(v,vgpl(1,igp)).lt.epslat) then
       evecfv(igp,:,1)=evecfvt(igk,:)
       goto 10
     end if
@@ -106,30 +108,16 @@ allocate(zflm(lolmmax,nstfv))
 call r3mm(s,ainv,sc)
 call r3mm(avec,sc,sc)
 do is=1,nspecies
-  do ia1=1,natoms(is)
-    ias1=idxas(ia1,is)
-! find equivalent atom for this symmetry
-    call r3mv(si,atposl(1,ia1,is),v1)
-    call r3frac(epslat,v1,id)
-    do ia2=1,natoms(is)
-      v2(:)=atposl(:,ia2,is)
-      call r3frac(epslat,v2,id)
-      if (r3taxi(v1,v2).lt.epslat) goto 30
-    end do
-    write(*,*)
-    write(*,'("Error(getevecfv): cannot transform one atom into another")')
-    write(*,'(" with crystal symmetry : ",I4)') isym
-    write(*,'(" for species ",I4)') is
-    write(*,'(" and atom ",I4)') ia1
-    write(*,*)
-    stop
-30 continue
-    ias2=idxas(ia2,is)
+  do ia=1,natoms(is)
+    ias=idxas(ia,is)
+! equivalent atom for this symmetry
+    ja=ieqatom(ia,is,isym)
+    jas=idxas(ja,is)
 ! phase factor from translation
-    t1=-twopi*r3dot(vkl(1,ik),atposl(1,ia1,is))
+    t1=-twopi*r3dot(vkl(1,ik),atposl(1,ia,is))
     zt1=cmplx(cos(t1),sin(t1),8)
-    call r3mtv(si,vkl(1,ik),v1)
-    t1=twopi*r3dot(v1,atposl(1,ia2,is))
+    call r3mtv(si,vkl(1,ik),v)
+    t1=twopi*r3dot(v,atposl(1,ja,is))
     zt1=zt1*cmplx(cos(t1),sin(t1),8)
 ! rotate local orbitals
     do ilo=1,nlorb(is)
@@ -138,7 +126,7 @@ do is=1,nspecies
       do ist=1,nstfv
         do m=-l,l
           lm=idxlm(l,m)
-          i=ngk(ik,1)+idxlo(lm,ilo,ias1)
+          i=ngk(ik,1)+idxlo(lm,ilo,ias)
           zflm(lm,ist)=evecfv(i,ist,1)
         end do
       end do
@@ -146,7 +134,7 @@ do is=1,nspecies
       do ist=1,nstfv
         do m=-l,l
           lm=idxlm(l,m)
-          i=ngk(ik,1)+idxlo(lm,ilo,ias2)
+          i=ngk(ik,1)+idxlo(lm,ilo,jas)
           evecfv(i,ist,1)=zt1*zflm(lm,ist)
         end do
       end do

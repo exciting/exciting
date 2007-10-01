@@ -92,7 +92,11 @@ do it=1,maxit
   end if
   if (it.gt.1) then
     if ((nnd.ne.0).or.(nndp.ne.0)) then
-      if (nnd*nndp.le.0) de=de*0.5d0
+      if (nnd*nndp.le.0) then
+        de=de*0.5d0
+      else
+        de=de*1.1d0
+      end if
     end if
   end if
   nndp=nnd

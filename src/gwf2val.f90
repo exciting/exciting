@@ -17,21 +17,20 @@ integer ispn,ist,is,ia,ias
 integer ir,itp,igk,ifg,i,j,n
 real(8) t1,t2
 complex(8) zt1
+! automatic arrays
+logical done(nstfv)
+complex(8) zftp(lmmaxvr)
 ! allocatable arrays
-logical, allocatable :: done(:)
 complex(8), allocatable :: apwalm(:,:,:,:)
 complex(8), allocatable :: wfmt1(:,:,:)
 complex(8), allocatable :: wfmt2(:,:,:)
 complex(8), allocatable :: gzfmt(:,:,:)
-complex(8), allocatable :: zftp(:)
 complex(8), allocatable :: zfft1(:,:)
 complex(8), allocatable :: zfft2(:)
-allocate(done(nstfv))
 allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
 allocate(wfmt1(lmmaxvr,nrmtmax,nstfv))
 allocate(wfmt2(lmmaxvr,nrmtmax,nspinor))
 allocate(gzfmt(lmmaxvr,nrmtmax,3))
-allocate(zftp(lmmaxvr))
 allocate(zfft1(ngrtot,nspinor))
 allocate(zfft2(ngrtot))
 ! find the matching coefficients
@@ -138,6 +137,6 @@ do j=1,nstsv
     end do
   end if
 end do
-deallocate(apwalm,wfmt1,wfmt2,gzfmt,zftp,zfft1,zfft2)
+deallocate(apwalm,wfmt1,wfmt2,gzfmt,zfft1,zfft2)
 return
 end subroutine

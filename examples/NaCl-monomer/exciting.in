@@ -24,7 +24,7 @@ rgkmax
 
 ! this is the size of the vacuum region around the molecule
 vacuum
-  8.05
+  8.0
 
 sppath
   '../../species/'

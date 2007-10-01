@@ -13,7 +13,7 @@ integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ip
 ! local variables
-integer js,ja,i,j,n,id(3)
+integer js,ja,i,j,n,iv(3)
 integer i1,i2,i3,m(3,3)
 real(8) a(3,3),ai(3,3),apl(3,maxatoms)
 real(8) v(3),vb(3,maxatoms),dmin,t1
@@ -128,7 +128,7 @@ do i1=-ngridq(1),ngridq(1)
       if (n.eq.nphcell) goto 30
       v(:)=dble(i1)*avec(:,1)+dble(i2)*avec(:,2)+dble(i3)*avec(:,3)
       call r3mv(ai,v,v)
-      call r3frac(epslat,v,id)
+      call r3frac(epslat,v,iv)
       call r3mv(a,v,v)
       do i=1,n
         if (r3taxi(v,vb(1,i)).lt.epslat) goto 20
@@ -170,7 +170,7 @@ do js=1,nspecies
       end if
 ! convert to new lattice coordinates
       call r3mv(ai,v,apl(1,i))
-      call r3frac(epslat,apl(1,i),id)
+      call r3frac(epslat,apl(1,i),iv)
     end do
   end do
   atposl(:,1:i,js)=apl(:,1:i)

@@ -7,6 +7,8 @@
 ! !ROUTINE: symvect
 ! !INTERFACE:
 subroutine symvect(vc)
+! !USES:
+use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   vc : vectors in Cartesian coordinates for all atoms (in,real(3,natmtot))
 ! !DESCRIPTION:
@@ -17,48 +19,46 @@ subroutine symvect(vc)
 !   Created June 2004 (JKD)
 !EOP
 !BOC
-use modmain
 implicit none
 ! arguments
 real(8), intent(inout) :: vc(3,natmtot)
 ! local variables
-integer is,ia1,ia2,ias1,ias2,n,i,isym
-real(8) s(3,3),v2(3),t1
-! allocatable arrays
-real(8), allocatable :: v1(:,:)
-allocate(v1(3,natmtot))
+integer is,ia,ja,ias,jas
+integer isym,lspl
+real(8) s(3,3),v(3),t1
+! automatic arrays
+real(8) vl(3,natmtot),vs(3,natmtot)
+! convert vectors to lattice coordinates
 do is=1,nspecies
-  do ia1=1,natoms(is)
-    ias1=idxas(ia1,is)
-    v1(:,ias1)=0.d0
-    n=0
-    do ia2=1,natoms(is)
-      ias2=idxas(ia2,is)
-      do i=1,nsymeqat(ia2,ia1,is)
-        isym=symeqat(i,ia2,ia1,is)
-        s(:,:)=dble(symlat(:,:,isym))
-! convert symmetry to Cartesian coordinates
-        call r3mm(s,ainv,s)
-        call r3mm(avec,s,s)
-! apply to input vector
-        call r3mv(s,vc(1,ias2),v2)
-        v1(:,ias1)=v1(:,ias1)+v2(:)
-        n=n+1
-      end do
-    end do
-    t1=1.d0/dble(n)
-    v1(:,ias1)=t1*v1(:,ias1)
-  end do
-! copy symmetrised vectors to input array
-  do ia1=1,natoms(is)
-    ias1=idxas(ia1,is)
-    vc(:,ias1)=v1(:,ias1)
-! underflow check
-    t1=vc(1,ias1)**2+vc(2,ias1)**2+vc(3,ias1)**2
-    if (t1.lt.1.d-40) vc(:,ias1)=0.d0
+  do ia=1,natoms(is)
+    ias=idxas(ia,is)
+    call r3mv(ainv,vc(1,ias),vl(1,ias))
   end do
 end do
-deallocate(v1)
+! make symmetric average
+vs(:,:)=0.d0
+do isym=1,nsymcrys
+  lspl=lsplsymc(isym)
+  s(:,:)=dble(symlat(:,:,lspl))
+  do is=1,nspecies
+    do ia=1,natoms(is)
+      ias=idxas(ia,is)
+      ja=ieqatom(ia,is,isym)
+      jas=idxas(ja,is)
+      call r3mv(s,vl(1,jas),v)
+      vs(:,ias)=vs(:,ias)+v(:)
+    end do
+  end do
+end do
+! normalise and convert to Cartesian coordinates
+t1=1.d0/dble(nsymcrys)
+vs(:,:)=t1*vs(:,:)
+do is=1,nspecies
+  do ia=1,natoms(is)
+    ias=idxas(ia,is)
+    call r3mv(avec,vs(1,ias),vc(1,ias))
+  end do
+end do
 return
 end subroutine
 !EOC

@@ -45,15 +45,15 @@ use modmain
 !   $$ E=T_{\rm s}+E_{\rm C}+E_{\rm xc}, $$
 !   where $E_{\rm xc}$ is obtained either by integrating the
 !   exchange-correlation energy density, or in the case of exact exchange, the
-!   explicit calculation of the Fock exchange integral. If the global variable
-!   {\tt bfinite} is {\tt .false.} then the external magnetic fields are taken
-!   to be infinitesimal (i.e. their only purpose is to break the spin symmetry).
-!   In this case the external field contribution to the total energy is set to
-!   zero. When {\tt bfinite} is {\tt .true.} the integral over the unit cell
-!   $$ E_{{\bf B}\rm ext}=\int{\bf m}({\bf r})\cdot{\bf B}_{\rm ext}({\bf r})
-!    d{\bf r} $$
-!   is added to the total energy. See {\tt potxc}, {\tt exxengy} and related
-!   subroutines.
+!   explicit calculation of the Fock exchange integral. The energy from the
+!   external magnetic fields in the muffin-tins, {\tt bfcmt}, is always removed
+!   from the total since these fields are non-physical: their field lines do not
+!   close. The energy of the physical external field, {\tt bfieldc}, is also not
+!   included in the total because this field, like those in the muffin-tins,
+!   is used for breaking spin symmetry and taken to be infintesimal. If this
+!   field is intended to be finite, then the associated energy, {\tt engybext},
+!   should be added to the total by hand. See {\tt potxc}, {\tt exxengy} and
+!   related subroutines.
 !
 ! !REVISION HISTORY:
 !   Created May 2003 (JKD)
@@ -67,9 +67,11 @@ real(8), parameter :: alpha=1.d0/137.03599911d0
 ! electron g factor
 real(8), parameter :: ge=2.0023193043718d0
 real(8), parameter :: ga4=ge*alpha/4.d0
+! allocatable arrays
+real(8), allocatable :: rfmt(:,:)
 ! external functions
-real(8) rfinp
-external rfinp
+real(8) rfmtinp,rfinp
+external rfmtinp,rfinp
 !-----------------------------------------------!
 !     exchange-correlation potential energy     !
 !-----------------------------------------------!
@@ -82,21 +84,24 @@ do idm=1,ndmag
   engybxc=engybxc+rfinp(1,magmt(1,1,1,idm),bxcmt(1,1,1,idm),magir(1,idm), &
    bxcir(1,idm))
 end do
-!----------------------------------------!
-!     external magnetic field energy     !
-!----------------------------------------!
+!------------------------------------------!
+!     external magnetic field energies     !
+!------------------------------------------!
 engybext=0.d0
+engybmt=0.d0
 do idm=1,ndmag
   if (ndmag.eq.3) then
     jdm=idm
   else
     jdm=3
   end if
-  engybext=engybext+ga4*momir(idm)*bfieldc(jdm)
+! energy of physical global field
+  engybext=engybext+ga4*momtot(idm)*bfieldc(jdm)
+! energy of non-physical muffin-tin fields
   do is=1,nspecies
     do ia=1,natoms(is)
       ias=idxas(ia,is)
-      engybext=engybext+ga4*mommt(idm,ias)*bfcmt(jdm,ia,is)
+      engybmt=engybmt+ga4*mommt(idm,ias)*bfcmt(jdm,ia,is)
     end do
   end do
 end do
@@ -131,7 +136,11 @@ engycl=engynn+engyen+engyhar
 !-------------------------!
 if ((xctype.lt.0).or.(hartfock)) then
 ! exact exchange calculation using Kohn-Sham orbitals
-  if (tlast) call exxengy
+  if (tlast) then
+    call exxengy
+  else
+    engyx=0.d0
+  end if
 else
 ! exchange energy from the density
   engyx=rfinp(1,rhomt,exmt,rhoir,exir)
@@ -162,15 +171,28 @@ end do
 !------------------------!
 !     kinetic energy     !
 !------------------------!
-engyekn=evalsum-engyvcl-engyvxc-engybxc-engybext
+if (hartfock) then
+! Hartree-Fock case
+  engyekn=evalsum-engyvcl-2.d0*engyx-engybext-engybmt
+! subtract the core exchange-correlation potential energy
+  allocate(rfmt(lmmaxvr,nrmtmax))
+  do is=1,nspecies
+    do ia=1,natoms(is)
+      ias=idxas(ia,is)
+      rfmt(1,1:nrmt(is))=rhocr(1:nrmt(is),ias)/y00
+      engyekn=engyekn-rfmtinp(1,0,nrmt(is),spr(1,is),lmmaxvr,rfmt, &
+       vxcmt(1,1,ias))
+    end do
+  end do
+  deallocate(rfmt)
+else
+! Kohn-Sham case
+  engyekn=evalsum-engyvcl-engyvxc-engybxc-engybext-engybmt
+end if
 !----------------------!
 !     total energy     !
 !----------------------!
 engytot=engyekn+0.5d0*engyvcl+engymad+engyx+engyc
-! add external field energy if required
-if (bfinite) then
-  engytot=engytot+engybext
-end if
 return
 end subroutine
 !EOC

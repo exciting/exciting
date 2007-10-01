@@ -16,8 +16,9 @@ subroutine xc_pzca(n,rho,ex,ec,vx,vc)
 !   vc  : correlation potential (out,real(n))
 ! !DESCRIPTION:
 !   Spin-unpolarised exchange-correlation potential and energy of the
-!   Perdew-Zunger parameterisation of Ceperley-Alder electron gas [Phys. Rev.
-!   B 23, 5048 (1981), Phys. Rev. Lett. 45, 566 (1980)].
+!   Perdew-Zunger parameterisation of Ceperley-Alder electron gas: {\it Phys.
+!   Rev. B} {\bf 23}, 5048 (1981) and {\it Phys. Rev. Lett.} {\bf 45}, 566
+!   (1980).
 !
 ! !REVISION HISTORY:
 !   Created October 2002 (JKD)

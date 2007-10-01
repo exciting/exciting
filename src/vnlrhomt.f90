@@ -34,13 +34,13 @@ complex(8), intent(out) :: zrhomt(lmmaxvr,nrcmtmax)
 ! local variables
 integer irc
 ! automatic arrays
-complex(8) zftp(lmmaxvr,nrcmtmax)
+complex(8) zfmt(lmmaxvr,nrcmtmax)
 ! generate complex density
 do irc=1,nrcmt(is)
-  zftp(:,irc)=conjg(wfmt1(:,irc))*wfmt2(:,irc)
+  zfmt(:,irc)=conjg(wfmt1(:,irc))*wfmt2(:,irc)
 end do
 ! convert to spherical harmonics
-call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zfshtvr,lmmaxvr,zftp, &
+call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zfshtvr,lmmaxvr,zfmt, &
  lmmaxvr,zzero,zrhomt,lmmaxvr)
 return
 end subroutine

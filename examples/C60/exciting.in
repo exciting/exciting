@@ -8,10 +8,6 @@ tasks
 molecule
  .true.
 
-! finding symmetries for large systems can be prohibitive
-nosym
- .true.
-
 ! automatic determination of muffin-tin radii
 autormt
  .true.

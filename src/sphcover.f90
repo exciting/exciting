@@ -19,6 +19,7 @@ subroutine sphcover(ntp,tp)
 !
 ! !REVISION HISTORY:
 !   Created May 2003 (JKD)
+!   Testing and improvement, April 2007 (F. Cricchio)
 !EOP
 !BOC
 implicit none
@@ -50,7 +51,7 @@ allocate(va(3,ntp))
 n=0
 10 continue
 dmxmn=0.d0
-do ith=0,nth-1
+do ith=0,nth
   th=pi*dble(ith)/dble(nth)
   do iph=0,nph-1
     ph=twopi*dble(iph)/dble(nph)
@@ -58,7 +59,7 @@ do ith=0,nth-1
     v(2)=sin(th)*sin(ph)
     v(3)=cos(th)
 ! find the minimum distance
-    dmn=1.d10
+    dmn=1.d8
     do i=1,n
       d=(va(1,i)-v(1))**2+(va(2,i)-v(2))**2+(va(3,i)-v(3))**2
       if (d.lt.dmn) dmn=d

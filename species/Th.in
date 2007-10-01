@@ -2,7 +2,7 @@
  'thorium'                                  : spname
   -90.0000                                  : spzn
    422979.5806                              : spmass
-  0.210819E-06    2.2000   51.2172   720    : sprmin, rmt, sprmax, nrmt
+  0.210819E-06    2.2000   42.6810   720    : sprmin, rmt, sprmax, nrmt
   26                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -49,12 +49,12 @@
    2   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -3.3143   0  T
+ -3.3145   0  T
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.5269   0  T
+ -1.5272   0  T
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.9203   0  T
+ -0.9205   0  T

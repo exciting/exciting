@@ -33,7 +33,7 @@ call sumrule(dynq)
 ! Fourier transform the dynamical matrices to real-space
 call dynqtor(dynq,dynr)
 ! find the minimum and maximum frequencies
-wmin=1.d10
+wmin=1.d8
 wmax=0.d0
 do iq=1,nqpt
   call dyndiag(dynq(1,1,iq),w,ev)
@@ -66,6 +66,9 @@ do i1=0,ngrdos-1
 end do
 t1=1.d0/(dble(ngrdos)**3)
 g(:)=t1*g(:)
+! smooth phonon DOS if required
+if (nsmdos.gt.0) call fsmooth(nsmdos,nwdos,1,g)
+! write phonon DOS to file
 open(50,file='PHDOS.OUT',action='WRITE',form='FORMATTED')
 do iw=1,nwdos
   t1=dble(iw-1)*dw+wmin

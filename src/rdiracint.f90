@@ -88,12 +88,11 @@ if ((m.lt.0).or.(m.gt.6)) then
   stop
 end if
 rkpa=dble(kpa)
-! estimate r->0 boundary values
-ri=1.d0/r(1)
-g0(1)=1.d0
+! estimate r -> 0 boundary values
 f0(1)=0.d0
 g1(1)=1.d0
 f1(1)=0.d0
+ri=1.d0/r(1)
 g0(1)=(alpha*(e+2.d0*e0-vr(1))*f0(1)-g1(1))/(rkpa*ri)
 f0(1)=(alpha*(e-vr(1))*g0(1)+f1(1))/(rkpa*ri)
 if (m.ne.0) then
@@ -135,12 +134,11 @@ do ir=2,nr
     g1(ir:nr)=g1(ir)
     f0(ir:nr)=f0(ir)
     f1(ir:nr)=f1(ir)
-    goto 10
+    return
   end if
 ! check for node
   if (g0(ir-1)*g0(ir).lt.0.d0) nn=nn+1
 end do
-10 continue
 return
 end subroutine
 !EOC

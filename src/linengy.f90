@@ -19,7 +19,7 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer is,ia1,ia2,ias1,ias2
+integer is,ia,ja,ias,jas
 integer l,ilo,io1,io2
 ! automatic arrays
 logical done(natmmax)
@@ -27,10 +27,10 @@ real(8) vr(nrmtmax)
 ! begin loops over atoms and species
 do is=1,nspecies
   done(:)=.false.
-  do ia1=1,natoms(is)
-    if (.not.done(ia1)) then
-      ias1=idxas(ia1,is)
-      vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias1)*y00
+  do ia=1,natoms(is)
+    if (.not.done(ia)) then
+      ias=idxas(ia,is)
+      vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
 !-----------------------!
 !     APW functions     !
 !-----------------------!
@@ -41,14 +41,14 @@ do is=1,nspecies
             do io2=1,io1-1
               if (apwve(io2,l,is)) then
                 if (abs(apwe0(io1,l,is)-apwe0(io2,l,is)).lt.1.d-4) then
-                  apwe(io1,l,ias1)=apwe(io2,l,ias1)
+                  apwe(io1,l,ias)=apwe(io2,l,ias)
                   goto 10
                 end if
               end if
             end do
 ! find the band energy starting from default
-            apwe(io1,l,ias1)=apwe0(io1,l,is)
-            call findband(l,nprad,nrmt(is),spr(1,is),vr,deband,apwe(io1,l,ias1))
+            apwe(io1,l,ias)=apwe0(io1,l,is)
+            call findband(l,nprad,nrmt(is),spr(1,is),vr,deband,apwe(io1,l,ias))
           end if
 10 continue
         end do
@@ -63,36 +63,36 @@ do is=1,nspecies
             do io2=1,io1-1
               if (lorbve(io2,ilo,is)) then
                 if (abs(lorbe0(io1,ilo,is)-lorbe0(io2,ilo,is)).lt.1.d-4) then
-                  lorbe(io1,ilo,ias1)=lorbe(io2,ilo,ias1)
+                  lorbe(io1,ilo,ias)=lorbe(io2,ilo,ias)
                   goto 20
                 end if
               end if
             end do
             l=lorbl(ilo,is)
 ! find the band energy starting from default
-            lorbe(io1,ilo,ias1)=lorbe0(io1,ilo,is)
+            lorbe(io1,ilo,ias)=lorbe0(io1,ilo,is)
             call findband(l,nprad,nrmt(is),spr(1,is),vr,deband, &
-             lorbe(io1,ilo,ias1))
+             lorbe(io1,ilo,ias))
           end if
 20 continue
         end do
       end do
-      done(ia1)=.true.
+      done(ia)=.true.
 ! copy to equivalent atoms
-      do ia2=1,natoms(is)
-        if ((.not.done(ia2)).and.(nsymeqat(ia2,ia1,is).gt.0)) then
-          ias2=idxas(ia2,is)
+      do ja=1,natoms(is)
+        if ((.not.done(ja)).and.(eqatoms(ia,ja,is))) then
+          jas=idxas(ja,is)
           do l=0,lmaxapw
             do io1=1,apword(l,is)
-              apwe(io1,l,ias2)=apwe(io1,l,ias1)
+              apwe(io1,l,jas)=apwe(io1,l,ias)
             end do
           end do
           do ilo=1,nlorb(is)
             do io1=1,lorbord(ilo,is)
-              lorbe(io1,ilo,ias2)=lorbe(io1,ilo,ias1)
+              lorbe(io1,ilo,jas)=lorbe(io1,ilo,ias)
             end do
           end do
-          done(ia2)=.true.
+          done(ja)=.true.
         end if
       end do
     end if

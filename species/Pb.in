@@ -2,7 +2,7 @@
  'lead'                                     : spname
   -82.0000                                  : spzn
    377702.4941                              : spmass
-  0.220863E-06    2.0000   48.1604   630    : sprmin, rmt, sprmax, nrmt
+  0.220863E-06    2.0000   41.1689   630    : sprmin, rmt, sprmax, nrmt
   24                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -47,4 +47,4 @@
    2   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.6775   0  T
+ -0.6778   0  T

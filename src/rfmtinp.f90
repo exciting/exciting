@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2003-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
@@ -21,10 +21,10 @@ real(8) function rfmtinp(lrstp,lmax,nr,r,ld,rfmt1,rfmt2)
 !   $$ f({\bf r})=\sum_{l=0}^{l_{\rm max}}\sum_{m=-l}^{l}f_{lm}(r)R_{lm}
 !    (\hat{\bf r}) $$
 !   where $R_{lm}$ are the real spherical harmonics, the function returns
-!   $$ I=\sum_{l=0}^{l_{\rm max}}\sum_{m=-l}^{l}\int f_{lm}^1(r)f_{lm}^2(r)r^2
+!   $$ I=\int\sum_{l=0}^{l_{\rm max}}\sum_{m=-l}^{l}f_{lm}^1(r)f_{lm}^2(r)r^2
 !    dr\;. $$
 !   The radial integral is performed using a high accuracy cubic spline method.
-!   See routine {\tt genrlm}.
+!   See routines {\tt genrlm} and {\tt fderiv}.
 !
 ! !REVISION HISTORY:
 !   Created November 2003 (Sharma)

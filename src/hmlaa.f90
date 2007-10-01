@@ -82,7 +82,7 @@ do l1=0,lmaxmat
           end if
         end do
       end do
-      call zmatrix(tapp,ngp,zone,apwalm(1,io1,lm1,ias),zv,v,h)
+      call zmatinp(tapp,ngp,zone,apwalm(1,io1,lm1,ias),zv,v,h)
     end do
   end do
 end do
@@ -99,7 +99,7 @@ do l1=0,lmaxmat
     do io1=1,apword(l1,is)
       do io2=1,apword(l1,is)
         zt1=t1*p0(io1)*p1(io2)
-        call zmatrix(tapp,ngp,zt1,apwalm(1,io1,lm1,ias),apwalm(1,io2,lm1,ias), &
+        call zmatinp(tapp,ngp,zt1,apwalm(1,io1,lm1,ias),apwalm(1,io2,lm1,ias), &
          v,h)
       end do
     end do

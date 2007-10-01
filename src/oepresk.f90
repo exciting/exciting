@@ -66,8 +66,8 @@ call getevecsv(vkl(1,ik),evecsv)
 ! find the matching coefficients
 call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
 ! calculate the wavefunctions for all states
-call vnlwfv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv,evecsv, &
- wfmt,wfir)
+call genwfsv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv, &
+ evecsv,wfmt,wfir)
 !-----------------------------------------------------------!
 !     core-conduction overlap density and magnetisation     !
 !-----------------------------------------------------------!

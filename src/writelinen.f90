@@ -25,8 +25,7 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     write(50,*)
-    write(50,'("Species ",I4," (",A,")",", atom ",I4," : ")') is, &
-     trim(spsymb(is)),ia
+    write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
     write(50,'(" APW functions :")')
     do l=0,lmaxapw
       do io=1,apword(l,is)

@@ -2,7 +2,7 @@
  'neptunium'                                : spname
   -93.0000                                  : spzn
    432024.5709                              : spmass
-  0.207390E-06    2.2000   51.3599   720    : sprmin, rmt, sprmax, nrmt
+  0.207390E-06    2.2000   45.7886   720    : sprmin, rmt, sprmax, nrmt
   28                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -51,8 +51,8 @@
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.6737   0  T
+ -1.6740   0  T
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.9963   0  T
+ -0.9965   0  T

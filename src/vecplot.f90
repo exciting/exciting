@@ -82,9 +82,17 @@ case(142,143)
 ! use the negative of the gradient
   rvfmt(:,:,:,:)=-rvfmt(:,:,:,:)
   rvfir(:,:)=-rvfir(:,:)
+case(152,153)
+  if (ndmag.lt.3) then
+    write(*,*)
+    write(*,'("Error(vecplot): collinear m(r)xB(r) is zero")')
+    write(*,*)
+    stop
+  end if
+  call rvfcross(magmt,bxcmt,magir,bxcir,rvfmt,rvfir)
 end select
 select case(task)
-case(72,82,142)
+case(72,82,142,152)
 ! determine the projection of the magnetisation/field onto the plotting plane
   vl1(:)=vclp2d(:,2)-vclp2d(:,1)
   vl2(:)=vclp2d(:,3)-vclp2d(:,1)
@@ -123,8 +131,10 @@ case(72,82,142)
     open(50,file='MAG2D.OUT',action='WRITE',form='FORMATTED')
   else if (task.eq.82) then
     open(50,file='BXC2D.OUT',action='WRITE',form='FORMATTED')
-  else
+  else if (task.eq.142) then
     open(50,file='EF2D.OUT',action='WRITE',form='FORMATTED')
+  else
+    open(50,file='MCBXC2D.OUT',action='WRITE',form='FORMATTED')
   end if
   call plot2d(50,3,lmaxvr,lmmaxvr,rvfmt,rvfir)
   close(50)
@@ -134,17 +144,21 @@ case(72,82,142)
     write(*,'(" 2D magnetisation density written to MAG2D.OUT")')
   else if (task.eq.82) then
     write(*,'(" 2D exchange-correlation field written to BXC2D.OUT")')
-  else
+  else if (task.eq.142) then
     write(*,'(" 2D electric field written to EF2D.OUT")')
+  else
+    write(*,'(" 2D m(r) x B_xc(r) written to MCBXC2D.OUT")')
   end if
   write(*,*)
-case(73,83,143)
+case(73,83,143,153)
   if (task.eq.73) then
     open(50,file='MAG3D.OUT',action='WRITE',form='FORMATTED')
   else if (task.eq.83) then
     open(50,file='BXC3D.OUT',action='WRITE',form='FORMATTED')
-  else
+  else if (task.eq.143) then
     open(50,file='EF3D.OUT',action='WRITE',form='FORMATTED')
+  else
+    open(50,file='MCBXC3D.OUT',action='WRITE',form='FORMATTED')
   end if
   call plot3d(50,3,lmaxvr,lmmaxvr,rvfmt,rvfir)
   close(50)
@@ -154,8 +168,10 @@ case(73,83,143)
     write(*,'(" 3D magnetisation density written to MAG3D.OUT")')
   else if (task.eq.83) then
     write(*,'(" 3D exchange-correlation field written to BXC3D.OUT")')
-  else
+  else if (task.eq.143) then
     write(*,'(" 3D electric field written to EF3D.OUT")')
+  else
+    write(*,'(" 3D m(r) x B_xc(r) written to MCBXC3D.OUT")')
   end if
   write(*,*)
 end select

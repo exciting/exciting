@@ -24,9 +24,9 @@ use modmain
 !   \end{align}
 !   where the integral is over the small parallelepiped centered on ${\bf q}_i$,
 !   so that integrals over the first Brillouin zone of the form
-!   $$  I=\int_{\rm BZ}\frac{f({\bf q})}{q^2}\,d{\bf q}\;, $$
+!   $$ I=\int_{\rm BZ}\frac{f({\bf q})}{q^2}\,d{\bf q}\;, $$
 !   can be approximated by the sum
-!   $$  I\approx\sum_i w_{{\bf q}_i}f({\bf q}_i) $$
+!   $$ I\approx\sum_i w_{{\bf q}_i}f({\bf q}_i) $$
 !   which converges rapidly with respect to the number of $q$-points for smooth
 !   functions $f$. The integral in (\ref{genwiq2_1}) is determined by evaluating
 !   it numerically on increasingly finer grids and extrapolating to the
@@ -58,7 +58,7 @@ end if
 ! begin loop over q-points
 do iq=1,nqpt
 ! map the q-vector into the first Brillouin zone
-  t1=1.d6
+  t1=1.d8
   v0(:)=0.d0
   do i1=-1,1
     do i2=-1,1

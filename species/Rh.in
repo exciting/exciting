@@ -2,7 +2,7 @@
  'rhodium'                                  : spname
   -45.0000                                  : spzn
    187585.2510                              : spmass
-  0.298142E-06    2.0000   41.4000   540    : sprmin, rmt, sprmax, nrmt
+  0.298142E-06    2.0000   35.5209   540    : sprmin, rmt, sprmax, nrmt
   15                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

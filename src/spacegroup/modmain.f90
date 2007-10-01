@@ -37,6 +37,8 @@ real(8) a,b,c
 real(8) ab,ac,bc
 ! lattice vectors stored column-wise
 real(8) avec(3,3)
+! inverse of lattice vector matrix
+real(8) ainv(3,3)
 ! any vector with length less than epslat is considered zero
 real(8), parameter :: epslat=1.d-6
 
@@ -82,15 +84,13 @@ character(256) spsymb(maxspecies)
 !     numerical constants     !
 !-----------------------------!
 real(8), parameter :: pi=3.1415926535897932385d0
-! conversion from atomic units to Angstroms
-real(8), parameter :: au2ang=0.5291772108d0
 
 !---------------------------------!
 !     miscellaneous variables     !
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 1,1,0 /
+data version / 1,1,2 /
 
 end module
 !EOC

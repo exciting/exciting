@@ -2,10 +2,10 @@
      $                   M, NSPLIT, W, IBLOCK, ISPLIT, WORK, IWORK,
      $                   INFO )
 *
-*  -- LAPACK routine (version 3.0) --
-*     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
-*     Courant Institute, Argonne National Lab, and Rice University
-*     June 30, 1999
+*  -- LAPACK routine (version 3.1) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
+*     8-18-00:  Increase FUDGE factor for T3E (eca)
 *
 *     .. Scalar Arguments ..
       CHARACTER          ORDER, RANGE
@@ -37,14 +37,14 @@
 *  Arguments
 *  =========
 *
-*  RANGE   (input) CHARACTER
+*  RANGE   (input) CHARACTER*1
 *          = 'A': ("All")   all eigenvalues will be found.
 *          = 'V': ("Value") all eigenvalues in the half-open interval
 *                           (VL, VU] will be found.
 *          = 'I': ("Index") the IL-th through IU-th eigenvalues (of the
 *                           entire matrix) will be found.
 *
-*  ORDER   (input) CHARACTER
+*  ORDER   (input) CHARACTER*1
 *          = 'B': ("By Block") the eigenvalues will be grouped by
 *                              split-off block (see IBLOCK, ISPLIT) and
 *                              ordered from smallest to largest within
@@ -175,7 +175,7 @@
       PARAMETER          ( ZERO = 0.0D0, ONE = 1.0D0, TWO = 2.0D0,
      $                   HALF = 1.0D0 / TWO )
       DOUBLE PRECISION   FUDGE, RELFAC
-      PARAMETER          ( FUDGE = 2.0D0, RELFAC = 2.0D0 )
+      PARAMETER          ( FUDGE = 2.1D0, RELFAC = 2.0D0 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            NCNVRG, TOOFEW

@@ -42,7 +42,7 @@ sc2=1.d0
 sc3=1.d0
 epslat=1.d-6
 primcell=.false.
-tsymctr=.true.
+tshift=.true.
 ngridk(:)=1
 vkloff(:)=0.d0
 rlambda=20.d0
@@ -70,7 +70,7 @@ maxscl=200
 epspot=1.d-6
 epsforce=5.d-4
 molecule=.false.
-vacuum=8.05d0
+vacuum=10.d0
 nspecies=0
 natoms(:)=0
 sppath='./'
@@ -90,8 +90,8 @@ np3d(:)=20
 nwdos=500
 ngrdos=100
 nsmdos=0
-wintdos(1)=-0.5d0
-wintdos(2)=0.5d0
+wdos(1)=-0.5d0
+wdos(2)=0.5d0
 bcsym=.true.
 spinpol=.false.
 spinorb=.false.
@@ -101,7 +101,8 @@ lradstp=4
 chgexs=0.d0
 nprad=4
 scissor=0.d0
-optcomp(:)=1
+noptcomp=1
+optcomp(:,1)=1
 usegdft=.false.
 evalmin=-4.5d0
 deband=0.0025d0
@@ -121,23 +122,21 @@ vqlwrt(:,:)=0.d0
 notelns=0
 tforce=.false.
 tfibs=.true.
-maxitoep=120
+maxitoep=300
 tau0oep=0.5d0
 dtauoep=0.5d0
 nkstlist=1
 kstlist(:,1)=1
 vklem(:)=0.d0
-deltaem=0.01d0
+deltaem=0.025d0
 ndspem=1
 nosource=.false.
 spinsprl=.false.
 vqlss(:)=0.d0
 hartfock=.false.
 cdft=.false.
-tauocc=1.d2
-rdmxctype=0
 nwrite=0
-bfinite=.false.
+tevecsv=.false.
 
 !-------------------------------!
 !     read from exciting.in     !
@@ -196,8 +195,8 @@ case('epslat')
   end if
 case('primcell')
   read(50,*) primcell
-case('tsymctr')
-  read(50,*) tsymctr
+case('tshift')
+  read(50,*) tshift
 case('rlambda')
   read(50,*) rlambda
   if (rlambda.le.0.d0) then
@@ -356,20 +355,8 @@ case('maxscl')
   end if
 case('epspot')
   read(50,*) epspot
-  if (epspot.lt.0.d0) then
-    write(*,*)
-    write(*,'("Error(readinput): epspot < 0 : ",G18.10)') epspot
-    write(*,*)
-    stop
-  end if
 case('epsforce')
   read(50,*) epsforce
-  if (epsforce.lt.0.d0) then
-    write(*,*)
-    write(*,'("Error(readinput): epsforce < 0 : ",G18.10)') epsforce
-    write(*,*)
-    stop
-  end if
 case('sppath')
   read(50,*) sppath
 case('scrpath')
@@ -469,9 +456,9 @@ case('plot3d')
   end if
 case('dos')
   read(50,*) nwdos,ngrdos,nsmdos
-  if (nwdos.lt.1) then
+  if (nwdos.lt.2) then
     write(*,*)
-    write(*,'("Error(readinput): nwdos < 1 : ",I8)') nwdos
+    write(*,'("Error(readinput): nwdos < 2 : ",I8)') nwdos
     write(*,*)
     stop
   end if
@@ -487,10 +474,10 @@ case('dos')
     write(*,*)
     stop
   end if
-  read(50,*) wintdos(1),wintdos(2)
-  if (wintdos(1).ge.wintdos(2)) then
+  read(50,*) wdos(1),wdos(2)
+  if (wdos(1).ge.wdos(2)) then
     write(*,*)
-    write(*,'("Error(readinput): wintdos(1) >= wintdos(2) : ",2G18.10)') wintdos
+    write(*,'("Error(readinput): wdos(1) >= wdos(2) : ",2G18.10)') wdos
     write(*,*)
     stop
   end if
@@ -527,15 +514,39 @@ case('nprad')
 case('scissor')
   read(50,*) scissor
 case('optcomp')
-  read(50,*) optcomp
-  if ((optcomp(1).lt.1).or.(optcomp(1).gt.3).or. &
-      (optcomp(2).lt.1).or.(optcomp(2).gt.3).or. &
-      (optcomp(3).lt.1).or.(optcomp(3).gt.3)) then
-    write(*,*)
-    write(*,'("Error(readinput): invalid optcomp : ",3I8)') optcomp
-    write(*,*)
-    stop
-  end if
+  do i=1,27
+    read(50,'(A80)') str
+    if (trim(str).eq.'') then
+      if (i.eq.1) then
+        write(*,*)
+        write(*,'("Error(readinput): empty optical component list")')
+        write(*,*)
+        stop
+      end if
+      noptcomp=i-1
+      goto 10
+    end if
+    read(str,*,iostat=iostat) optcomp(:,i)
+    if (iostat.ne.0) then
+      write(*,*)
+      write(*,'("Error(readinput): error reading optical component list")')
+      write(*,'(" (blank line required after optcomp block)")')
+      write(*,*)
+      stop
+    end if
+    if ((optcomp(1,i).lt.1).or.(optcomp(1,i).gt.3).or. &
+        (optcomp(2,i).lt.1).or.(optcomp(2,i).gt.3).or. &
+        (optcomp(3,i).lt.1).or.(optcomp(3,i).gt.3)) then
+      write(*,*)
+      write(*,'("Error(readinput): invalid optcomp : ",3I8)') optcomp
+      write(*,*)
+      stop
+    end if
+  end do
+  write(*,*)
+  write(*,'("Error(readinput): optical component list too long")')
+  write(*,*)
+  stop
 case('usegdft')
   read(50,*) usegdft
 case('evalmin')
@@ -671,20 +682,10 @@ case('hartfock')
   read(50,*) hartfock
 case('cdft')
   read(50,*) cdft
-case('tauocc')
-  read(50,*) tauocc
-  if (tauocc.lt.0.d0) then
-    write(*,*)
-    write(*,'("Error(readinput): tauocc < 0 : ",G18.10)') tauocc
-    write(*,*)
-    stop
-  end if
-case('rdmxctype')
-  read(50,*) rdmxctype
 case('nwrite')
   read(50,*) nwrite
-case('bfinite')
-  read(50,*) bfinite
+case('tevecsv')
+  read(50,*) tevecsv
 case('')
   goto 10
 case default

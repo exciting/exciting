@@ -16,8 +16,9 @@ use modmain
 !   rfmt  : input muffin-tin function (in,real(lmmaxvr,nrmtmax))
 !   srfmt : output muffin-tin function (out,real(lmmaxvr,nrmtmax))
 ! !DESCRIPTION:
-!   Applies a symmetry to a real muffin-tin function. See the routine
-!   {\tt rotzfmt}.
+!   Applies a symmetry to a real muffin-tin function. The input function can
+!   also be the output function. See the routines {\tt rtozflm} and
+!   {\tt rotzflm}.
 !
 ! !REVISION HISTORY:
 !   Created May 2003 (JKD)
@@ -31,7 +32,7 @@ integer, intent(in) :: sym(3,3)
 real(8), intent(in) :: rfmt(lmmaxvr,nrmtmax)
 real(8), intent(out) :: srfmt(lmmaxvr,nrmtmax)
 ! local variables
-integer ir,irc,lm,nri,nro,iro
+integer ir,irc,nri,nro,iro
 real(8) s(3,3)
 ! allocatable arrays
 complex(8), allocatable :: zfmt(:,:)
@@ -47,9 +48,7 @@ do ir=1,nrmt(is),lrstp
   irc=irc+1
   if (ir.le.nrmtinr(is)) then
     call rtozflm(lmaxinr,rfmt(1,ir),zfmt(1,irc))
-    do lm=lmmaxinr+1,lmmaxvr
-      srfmt(lm,ir)=0.d0
-    end do
+    srfmt(lmmaxinr+1:,ir)=0.d0
     nri=irc
   else
     call rtozflm(lmaxvr,rfmt(1,ir),zfmt(1,irc))
@@ -61,7 +60,7 @@ iro=nri+1
 nro=irc-nri
 ! rotate the complex function
 call rotzflm(s,lmaxinr,nri,lmmaxvr,zfmt,zfmt)
-if (nro.gt.0) call rotzflm(s,lmaxvr,nro,lmmaxvr,zfmt(1,iro),zfmt(1,iro))
+call rotzflm(s,lmaxvr,nro,lmmaxvr,zfmt(1,iro),zfmt(1,iro))
 ! convert complex function to real spherical harmonic expansion
 irc=0
 do ir=1,nrmt(is),lrstp

@@ -28,9 +28,9 @@ allocate(rfmt(lmmaxvr,nrcmtmax,natmtot))
 allocate(rfir(ngrtot))
 allocate(wfmt(lmmaxvr,nrcmtmax,natmtot,nspinor,nstsv))
 allocate(wfir(ngrtot,nspinor,nstsv))
-! calculate the wavefunctions for all states
-call vnlwfv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv,evecsv, &
- wfmt,wfir)
+! calculate the wavefunctions for all second-variational states
+call genwfsv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv, &
+ evecsv,wfmt,wfir)
 do ist1=1,nstsv
   delta(ist1,ist1)=0.d0
   do ist2=ist1+1,nstsv

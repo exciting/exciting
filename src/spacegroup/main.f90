@@ -11,13 +11,13 @@ call readinput
 call gencrystal
 ! write the structural data to GEOMETRY.OUT
 call writegeom
-! write the XCrySDen file for plotting
-call writexsf
+! write the XCrySDen and V_Sim files for plotting
+call geomplot
 stop
 end program
 
 !BOI
-! !TITLE: The Spacegroup Code Guide\\ Version 1.1.0
+! !TITLE: The Spacegroup Manual\\ Version 1.1.2
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
@@ -26,7 +26,8 @@ end program
 ! symbol and lattice vector lengths and angles. {\sf Spacegroup} recognises all
 ! 230 space groups in various coordinate settings giving a total of 530 possible
 ! symbols, which are tabulated below. The code also provides output compatible
-! with the {\sf XCrysDen} package for visualisation of the crystal structure.
+! with the {\sf XCrysDen} or {\sf V\_Sim} packages for visualisation of the
+! crystal structure.
 ! \section{Usage}
 ! Only one input file, {\tt spacegroup.in}, is required. The structure of this
 ! file is illustrated by the following example for the high $T_c$ superconductor

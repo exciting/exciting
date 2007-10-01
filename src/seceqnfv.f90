@@ -14,13 +14,12 @@ use modmain
 !   ispn   : first-variational spin index (in,integer)
 !   apwalm : APW matching coefficients
 !            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
-!   evalfv : calculated eigenvalues for current k-point for each state
-!            (out,real(nstfv))
-!   evecfv : calculated eigenvectors (out,complex(nmatmax,nstfv))
+!   evalfv : first-variational eigenvalues (out,real(nstfv))
+!   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
 ! !DESCRIPTION:
 !   Solves the secular equation,
 !   $$ (H-\epsilon O)\Phi=0, $$
-!   for the first-variational states.
+!   for the all the first-variational states of the input $k$-point.
 !
 ! !REVISION HISTORY:
 !   Created March 2004 (JKD)

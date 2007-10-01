@@ -27,13 +27,13 @@ use modmain
 !   the $i$th state are given by
 !   $$ \Psi^{i{\bf p}\alpha}_{lm}(r)=\sum_{\bf G}\Phi^{i{\bf p}}_{\bf G}
 !    \sum_{j=1}^{M^{\alpha}_l}A^{\alpha}_{jlm}({\bf G+p})u^{\alpha}_{jl}(r)
-!    +\sum_{k=1}^{N^{\alpha}}\Phi^{i{\bf p}}_{(\alpha,k,m)}v^{\alpha}_k(r)
-!    \delta_{l,l_k}, $$
+!    +\sum_{j=1}^{N^{\alpha}}\Phi^{i{\bf p}}_{(\alpha,j,m)}v^{\alpha}_j(r)
+!    \delta_{l,l_j}, $$
 !   where $\Phi^{i{\bf p}}$ is the $i$th eigenvector returned from routine
 !   {\tt seceqn}; $A^{\alpha}_{jlm}({\bf G+p})$ is the matching coefficient;
 !   $M^{\alpha}_l$ is the order of the APW; $u^{\alpha}_{jl}$ is the APW radial
-!   function; $N^{\alpha}$ is the number of local-orbitals; $v^{\alpha}_k$ is
-!   the $k$th local-orbital radial function; and $(\alpha,k,m)$ is a compound
+!   function; $N^{\alpha}$ is the number of local-orbitals; $v^{\alpha}_j$ is
+!   the $j$th local-orbital radial function; and $(\alpha,j,m)$ is a compound
 !   index for the location of the local-orbital in the eigenvector. See routines
 !   {\tt genapwfr}, {\tt genlofr}, {\tt match} and {\tt seceqn}.
 !

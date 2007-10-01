@@ -2,10 +2,9 @@
      $                   IL, IU, ABSTOL, M, W, Z, LDZ, WORK, IWORK,
      $                   IFAIL, INFO )
 *
-*  -- LAPACK driver routine (version 3.0) --
-*     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
-*     Courant Institute, Argonne National Lab, and Rice University
-*     June 30, 1999
+*  -- LAPACK driver routine (version 3.1) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
 *
 *     .. Scalar Arguments ..
       CHARACTER          JOBZ, RANGE, UPLO
@@ -192,7 +191,7 @@
       INDEIG = LSAME( RANGE, 'I' )
 *
       INFO = 0
-      IF( ITYPE.LT.0 .OR. ITYPE.GT.3 ) THEN
+      IF( ITYPE.LT.1 .OR. ITYPE.GT.3 ) THEN
          INFO = -1
       ELSE IF( .NOT.( WANTZ .OR. LSAME( JOBZ, 'N' ) ) ) THEN
          INFO = -2
@@ -202,14 +201,23 @@
          INFO = -4
       ELSE IF( N.LT.0 ) THEN
          INFO = -5
-      ELSE IF( VALEIG .AND. N.GT.0 .AND. VU.LE.VL ) THEN
-         INFO = -9
-      ELSE IF( INDEIG .AND. IL.LT.1 ) THEN
-         INFO = -10
-      ELSE IF( INDEIG .AND. ( IU.LT.MIN( N, IL ) .OR. IU.GT.N ) ) THEN
-         INFO = -11
-      ELSE IF( LDZ.LT.1 .OR. ( WANTZ .AND. LDZ.LT.N ) ) THEN
-         INFO = -16
+      ELSE
+         IF( VALEIG ) THEN
+            IF( N.GT.0 .AND. VU.LE.VL ) THEN
+               INFO = -9
+            END IF
+         ELSE IF( INDEIG ) THEN
+            IF( IL.LT.1 ) THEN
+               INFO = -10
+            ELSE IF( IU.LT.MIN( N, IL ) .OR. IU.GT.N ) THEN
+               INFO = -11
+            END IF
+         END IF
+      END IF
+      IF( INFO.EQ.0 ) THEN
+         IF( LDZ.LT.1 .OR. ( WANTZ .AND. LDZ.LT.N ) ) THEN
+            INFO = -16
+         END IF
       END IF
 *
       IF( INFO.NE.0 ) THEN
@@ -220,10 +228,8 @@
 *     Quick return if possible
 *
       M = 0
-      IF( N.EQ.0 ) THEN
-         WORK( 1 ) = 1
-         RETURN
-      END IF
+      IF( N.EQ.0 )
+     $   RETURN
 *
 *     Form a Cholesky factorization of B.
 *

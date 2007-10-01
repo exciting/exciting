@@ -15,9 +15,9 @@ subroutine genylm(lmax,tp,ylm)
 !   Generates a sequence of spherical harmonics, including the Condon-Shortley
 !   phase, evaluated at angles $(\theta,\phi)$ for $0<l<l_{\rm max}$. The values
 !   are returned in a packed array {\tt ylm} indexed with $j=l(l+1)+m+1$. The
-!   algorithm of Masters and Richards-Dinger is used [Geophys. J. Int. 135, 307
-!   (1998)]. This routine is numerically stable and accurate to near machine
-!   precision for $l\le 50$.
+!   algorithm of Masters and Richards-Dinger is used, {\it Geophys. J. Int.}
+!   {\bf 135}, 307 (1998). This routine is numerically stable and accurate to
+!   near machine precision for $l\le 50$.
 !
 ! !REVISION HISTORY:
 !   Created March 2004 (JKD)

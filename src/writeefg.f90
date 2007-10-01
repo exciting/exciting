@@ -50,8 +50,7 @@ do is=1,nspecies
     ias=idxas(ia,is)
     write(50,*)
     write(50,*)
-    write(50,'("Species ",I4," (",A,")",", atom ",I4," : ")') is, &
-     trim(spsymb(is)),ia
+    write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
 ! remove the l=m=0 part of the potential
     do ir=1,nrmt(is)
       rfmt(1,ir)=0.d0
@@ -79,11 +78,11 @@ do is=1,nspecies
     do i=1,3
       write(50,'(3G18.10)') (efg(i,j),j=1,3)
     end do
+    write(50,'(" trace : ",G18.10)') efg(1,1)+efg(2,2)+efg(3,3)
 ! diagonalise the EFG
     a(:,:)=efg(:,:)
     call dsyev('N','U',3,a,3,w,work,lwork,info)
-    write(50,*)
-    write(50,'(" eigenvalues of EFG tensor :")')
+    write(50,'(" eigenvalues :")')
     write(50,'(3G18.10)') w
   end do
 end do

@@ -268,7 +268,7 @@ case(26)
   xcspin=0
   xcgrad=1
 case(30)
-  xcdescr='Armiento-Mattsson functional, Phys. Rev. B 72, 085108 (2005)'
+  xcdescr='Armiento-Mattsson functional, Phys. Rev. B 72, 85108 (2005)'
   xcspin=0
   xcgrad=1
 case default

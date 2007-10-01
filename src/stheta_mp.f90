@@ -12,7 +12,8 @@ real(8) function stheta_mp(n,x)
 !   x : real argument (in,real)
 ! !DESCRIPTION:
 !   Returns the smooth approximation to the Heaviside step function of order
-!   $N$ given by Methfessel and Paxton [Phys. Rev. B 40, 3616 (1989)]
+!   $N$ given by Methfessel and Paxton, {\it Phys. Rev. B} {\bf 40}, 3616
+!   (1989),
 !   $$ \tilde\Theta(x)=1-S_N(x) $$
 !   where
 !   \begin{align*}

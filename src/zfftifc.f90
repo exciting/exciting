@@ -10,7 +10,7 @@ subroutine zfftifc(nd,n,sgn,z)
 ! !INPUT/OUTPUT PARAMETERS:
 !   nd   : number of dimensions (in,integer)
 !   n    : grid sizes (in,integer(nd))
-!   sgn  : FFT direction, -1: forward, 1: backward (in,integer)
+!   sgn  : FFT direction, -1: forward; 1: backward (in,integer)
 !   z    : array to transform (inout,complex(n(1)*n(2)*...*n(nd)))
 ! !DESCRIPTION:
 !   Interface to the double-precision complex fast Fourier transform routine.
@@ -54,6 +54,29 @@ complex(8), intent(inout) :: z(*)
 !  t1=1.d0/dble(p)
 !  call zdscal(p,t1,z,1)
 !end if
+
+!----------------------------------!
+!     interface to MKL 8.1/9.1     !
+!----------------------------------!
+! (with thanks to Torbjörn Björkman)
+!use MKL_DFTI ! this module required by MKL
+!integer dftistatus,i,p
+!real(8) dftiscale
+!type(DFTI_DESCRIPTOR), POINTER :: handle
+!p=1
+!do i=1,nd
+!  p=p*n(i)
+!end do
+!dftiscale=1.d0/dble(p)
+!dftistatus=DftiCreateDescriptor(handle,DFTI_DOUBLE,DFTI_COMPLEX,nd,n)
+!dftistatus=DftiSetValue(handle, DFTI_FORWARD_SCALE,dftiscale)
+!dftistatus=DftiCommitDescriptor(handle)
+!if (sgn.eq.-1) then
+!  dftistatus=DftiComputeForward(handle,z)
+!else
+!  dftistatus=DftiComputeBackward(handle,z)
+!end if
+!dftistatus=DftiFreeDescriptor(handle)
 
 !----------------------------------------!
 !     interface to modified FFTPACK5     !

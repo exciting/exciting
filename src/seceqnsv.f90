@@ -145,7 +145,7 @@ do is=1,nspecies
           call zgemv('N',lmmaxvr,lmmaxvr,zone,zfshtvr,lmmaxvr,zftp2,1,zzero, &
            wfmt2(1,irc,4),1)
         end if
-! apply spin-orbit coupling
+! apply spin-orbit coupling if required
         if (spinorb) then
           call lopzflm(lmaxvr,wfmt1(1,irc,ist2),lmmaxvr,zlflm)
           t1=sor(irc)

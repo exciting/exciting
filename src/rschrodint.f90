@@ -32,9 +32,9 @@ subroutine rschrodint(m,l,e,np,nr,r,vr,nn,p0p,p0,p1,q0,q1)
 !    +(V-E)\right]P^{(m)}_l-mP^{(m-1)}_l,
 !   \end{align*}
 !   where $V$ is the external potential, $E$ is the eigenenergy and
-!   $M=1-V/2c^2$. Following the convention of Koelling and Harmon, J. Phys. C:
-!   Solid State Phys. 10, 3107 (1977), the functions $P_l$ and $Q_l$ are defined
-!   by
+!   $M=1-V/2c^2$. Following the convention of Koelling and Harmon, {\it J. Phys.
+!   C: Solid State Phys.} {\bf 10}, 3107 (1977), the functions $P_l$ and $Q_l$
+!   are defined by
 !   \begin{align*}
 !    P_l&=rg_l\\
 !    Q_l&=\frac{r}{2M}\frac{dg_l}{dr},
@@ -73,12 +73,11 @@ real(8) c(np)
 ! external functions
 real(8) polynom
 external polynom
-rm=1.d0-0.5d0*(alpha**2)*vr(1)
-! estimate r->0 boundary values
-p0(1)=1.d0
+! estimate r -> 0 boundary values
 q0(1)=0.d0
 p1(1)=1.d0
 q1(1)=0.d0
+rm=1.d0-0.5d0*(alpha**2)*vr(1)
 t1=dble(l*(l+1))/(2.d0*rm*r(1)**2)
 p0(1)=r(1)*(p1(1)-2.d0*rm*q0(1))
 q0(1)=r(1)*((t1+vr(1)-e)*p0(1)-q1(1))
@@ -120,12 +119,11 @@ do ir=2,nr
     p1(ir:nr)=p1(ir)
     q0(ir:nr)=q0(ir)
     q1(ir:nr)=q1(ir)
-    goto 10
+    return
   end if
 ! check for node
   if (p0(ir-1)*p0(ir).lt.0.d0) nn=nn+1
 end do
-10 continue
 return
 end subroutine
 !EOC

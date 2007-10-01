@@ -19,8 +19,8 @@ subroutine xc_pwca(n,rhoup,rhodn,ex,ec,vxup,vxdn,vcup,vcdn)
 !   vcdn  : spin-down correlation potential (out,real(n))
 ! !DESCRIPTION:
 !   Spin-polarised exchange-correlation potential and energy of the Perdew-Wang
-!   parameterisation of the Ceperley-Alder electron gas [Phys. Rev. B 45, 13244
-!   (1992), Phys. Rev. Lett. 45, 566 (1980)].
+!   parameterisation of the Ceperley-Alder electron gas: {\it Phys. Rev. B}
+!   {\bf 45}, 13244 (1992) and {\it Phys. Rev. Lett.} {\bf 45}, 566 (1980).
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)

@@ -2,7 +2,7 @@
  'tantalum'                                 : spname
   -73.0000                                  : spzn
    329847.8433                              : spmass
-  0.234082E-06    2.0000   43.0759   630    : sprmin, rmt, sprmax, nrmt
+  0.234082E-06    2.0000   38.7359   630    : sprmin, rmt, sprmax, nrmt
   21                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -48,8 +48,8 @@
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -2.5189   0  T
+ -2.5190   0  T
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.5236   0  T
+ -1.5238   0  T

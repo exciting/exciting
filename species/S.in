@@ -2,7 +2,7 @@
  'sulphur'                                  : spname
   -16.0000                                  : spzn
    58452.74216                              : spmass
-  0.500000E-06    1.4500   33.5376   360    : sprmin, rmt, sprmax, nrmt
+  0.500000E-06    1.4500   32.9880   360    : sprmin, rmt, sprmax, nrmt
    7                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -30,4 +30,4 @@
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.4847   0  T
+ -0.4846   0  T

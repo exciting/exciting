@@ -1,10 +1,9 @@
       SUBROUTINE ZSTEIN( N, D, E, M, W, IBLOCK, ISPLIT, Z, LDZ, WORK,
      $                   IWORK, IFAIL, INFO )
 *
-*  -- LAPACK routine (version 3.0) --
-*     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
-*     Courant Institute, Argonne National Lab, and Rice University
-*     September 30, 1994
+*  -- LAPACK routine (version 3.1) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
 *
 *     .. Scalar Arguments ..
       INTEGER            INFO, LDZ, M, N
@@ -41,9 +40,9 @@
 *  D       (input) DOUBLE PRECISION array, dimension (N)
 *          The n diagonal elements of the tridiagonal matrix T.
 *
-*  E       (input) DOUBLE PRECISION array, dimension (N)
+*  E       (input) DOUBLE PRECISION array, dimension (N-1)
 *          The (n-1) subdiagonal elements of the tridiagonal matrix
-*          T, stored in elements 1 to N-1; E(N) need not be set.
+*          T, stored in elements 1 to N-1.
 *
 *  M       (input) INTEGER
 *          The number of eigenvectors to be found.  0 <= M <= N.

@@ -1,17 +1,8 @@
 
-! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-!BOP
-! !MODULE: modmain
-! !DESCRIPTION:
-!   Contains all the global variables required by the EXCITING code.
-!
-! !REVISION HISTORY:
-!   Created September 2002 (JKD)
-!EOP
-!BOC
 module modmain
 
 !----------------------------!
@@ -183,8 +174,6 @@ real(8) bfcmt(3,maxatoms,maxspecies)
 real(8) bfieldl(3)
 ! global external magnetic field in Cartesian coordinates
 real(8) bfieldc(3)
-! bfinite is .true. if the external fields are not to be assumed infinitesimal
-logical bfinite
 ! spinsprl if .true. if a spin-spiral is to be calculated
 logical spinsprl
 ! number of spin-dependent first-variational functions per state
@@ -203,24 +192,28 @@ logical nosym
 integer nsymlat
 ! Bravais lattice point group symmetries
 integer symlat(3,3,48)
-! if tsymctr is .true. the crystal is shifted to the optimal symmetry center
-logical tsymctr
-! number of crystal point group symmetries (lattice + basis)
+! tshift is .true. if atomic basis is allowed to be shifted
+logical tshift
+! maximum of symmetries allowed
+integer, parameter :: maxsymcrys=192
+! number of crystal symmetries
 integer nsymcrys
-! crystal point group symmetries
-integer symcrys(3,3,48)
-! number of lattice symmetries which map atoms to atoms
-integer, allocatable :: nsymeqat(:,:,:)
-! lattice symmetries which map atoms to atoms
-integer, allocatable :: symeqat(:,:,:,:)
-! translation vectors in lattice coordinates for each symeqat
-real(8), allocatable :: tvleqat(:,:,:,:,:)
+! crystal symmetry translation vector in lattice coordinates
+real(8) vtlsymc(3,maxsymcrys)
+! spatial rotation element in lattice point group for each crystal symmetry
+integer lsplsymc(maxsymcrys)
+! global spin rotation element in lattice point group for each crystal symmetry
+integer lspnsymc(maxsymcrys)
+! equivalent atom index for each crystal symmetry
+integer, allocatable :: ieqatom(:,:,:)
+! eqatoms(ia,ja,is) is .true. if atoms ia and ja are equivalent
+logical, allocatable :: eqatoms(:,:,:)
 ! number of site symmetries
 integer, allocatable :: nsymsite(:)
-! site symmetries
-integer, allocatable :: symsite(:,:,:,:)
-! tsyminv is .true. if inversion symmetry exists
-logical tsyminv
+! site symmetry spatial rotation element in lattice point group
+integer, allocatable :: lsplsyms(:,:)
+! site symmetry global spin rotation element in lattice point group
+integer, allocatable :: lspnsyms(:,:)
 
 !--------------------------------!
 !     G-vector set variables     !
@@ -591,8 +584,10 @@ real(8) engymad
 real(8) engyvxc
 ! exchange-correlation effective field energy
 real(8) engybxc
-! energy of external magnetic field
+! energy of external global magnetic field
 real(8) engybext
+! energy of muffin-tin magnetic fields (non-physical)
+real(8) engybmt
 ! exchange energy
 real(8) engyx
 ! correlation energy
@@ -644,11 +639,13 @@ integer ngrdos
 ! smoothing level for DOS/optics function
 integer nsmdos
 ! energy interval for DOS/optics function
-real(8) wintdos(2)
+real(8) wdos(2)
 ! scissors correction
 real(8) scissor
-! required components of optical response matrices
-integer optcomp(3)
+! number of optical matrix components required
+integer noptcomp
+! required optical matrix components
+integer optcomp(3,27)
 ! usegdft is .true. if the generalised DFT correction is to be used
 logical usegdft
 ! bcsym is .true. if the band characters are to correspond to the the
@@ -681,9 +678,9 @@ integer np3d(3)
 ! number of states for plotting Fermi surface
 integer nstfsp
 
-!--------------------------------------------------------------------------!
-!     non-local matrix elements, OEP, RDMFT and Hartree-Fock variables     !
-!--------------------------------------------------------------------------!
+!-------------------------------------------------------------------!
+!     non-local matrix elements, OEP and Hartree-Fock variables     !
+!-------------------------------------------------------------------!
 ! maximum number of core states over all species
 integer ncrmax
 ! maximum number of OEP iterations
@@ -696,6 +693,12 @@ real(8) dtauoep
 real(8) resoep
 ! hartfock is .true. if a Hartree-Fock run is required
 logical hartfock
+
+!-------------------------------------------------------------!
+!     reduced density matrix functional (RDMFT) variables     !
+!-------------------------------------------------------------!
+! real non-local matrix elements
+real(8), allocatable :: vnlmatr(:,:,:,:)
 ! non-local matrix elements
 complex(8), allocatable :: vnlmat(:,:,:,:,:)
 ! effective potential matrix elements
@@ -703,11 +706,20 @@ complex(8), allocatable :: veffmat(:,:,:)
 ! Coulomb potential matrix elements
 complex(8), allocatable :: vclmat(:,:,:)
 ! kinetic matrix elements
+complex(8), allocatable :: kinmatc(:,:,:)
 complex(8), allocatable :: kinmat(:,:,:)
 ! occupancy step size
-real(8) tauocc
+real(8) tauocc,tauwf
 ! xc functionay
 integer rdmxctype
+! core kinetic energy
+real(8) engykncr
+! hotstart from old occupancies
+logical hotrdm
+! maximum number of iterations
+integer rdmmaxit,maxitn,maxitwf,maxitwfxc
+! write non-local matrix elements
+logical trdmmat
 
 !-----------------------------------------------------!
 !     current density functional (CDFT) variables     !
@@ -783,7 +795,7 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,74 /
+data version / 0,9,89 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=20
 ! number of tasks
@@ -814,4 +826,4 @@ integer notelns
 character(80) notes(maxnlns)
 
 end module
-!EOC
+

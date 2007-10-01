@@ -2,7 +2,7 @@
  'osmium'                                   : spname
   -76.0000                                  : spzn
    346768.0765                              : spmass
-  0.229416E-06    2.0000   35.2714   630    : sprmin, rmt, sprmax, nrmt
+  0.229416E-06    2.0000   32.5370   630    : sprmin, rmt, sprmax, nrmt
   22                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -45,7 +45,7 @@
    3   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.8093   0  T
+ -1.8091   0  T
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
@@ -53,4 +53,4 @@
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -2.0433   0  T
+ -2.0434   0  T

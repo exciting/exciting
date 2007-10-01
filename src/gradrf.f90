@@ -9,11 +9,9 @@ real(8), intent(out) :: grfir(ngrtot,3)
 integer is,ia,ias,i,ig,ifg
 ! allocatable arrays
 real(8), allocatable :: grfmt1(:,:,:)
-complex(8), allocatable :: zfft1(:)
-complex(8), allocatable :: zfft2(:)
+complex(8), allocatable :: zfft1(:),zfft2(:)
 allocate(grfmt1(lmmaxvr,nrmtmax,3))
-allocate(zfft1(ngrtot))
-allocate(zfft2(ngrtot))
+allocate(zfft1(ngrtot),zfft2(ngrtot))
 ! muffin-tin gradient
 do is=1,nspecies
   do ia=1,natoms(is)

@@ -17,14 +17,14 @@ GETSYS ()
   echo "Choose system type:"
   echo
   echo " 1. HP-UX, It2, HP Fortran            2. Linux, x86, Intel Fortran 7"
-  echo " 3. Linux, x86, Intel Fortran 8       4. Linux, x86, NAG Fortran"
+  echo " 3. Linux, x86, Intel Fortran 8/9     4. Linux, x86, NAG Fortran"
   echo " 5. Tru64, HP/Compaq Fortran          6. HP-UX, It2, HP Fortran, OpenMP"
   echo " 7. AIX, XL Fortran                   8. Linux, x86, g95"
   echo " 9. Linux, x86, PGI                  10. Fujitsu VPP"
   echo "11. Hitachi SR8000                   12. IBM AIX, RISC6000"
   echo "13. SGI Origin 2000/3000             14. SUN workstations"
   echo "15. Cray-T3E                         16. OSX, G4/5, Absoft Fortran"
-  echo "17. OSX, G4/5, NAG Fortran"
+  echo "17. OSX, G4/5, NAG Fortran           18. Linux, x86, GFortran"
   echo
   echo " o. Other                             x. Exit"
   echo
@@ -77,7 +77,7 @@ GETSYS ()
     F77_OPTS=$F90_OPTS
   elif [ "$SYS" = 8 ] ; then
     F90="g95"
-    F90_OPTS="-O3"
+    F90_OPTS="-O3 -funroll-loops -ffast-math"
     F77=$F90
     F77_OPTS=$F90_OPTS
   elif [ "$SYS" = 9 ] ; then
@@ -121,6 +121,11 @@ GETSYS ()
   elif [ "$SYS" = 17 ] ; then
     F90="f95"
     F90_OPTS="-O4 -kind=byte -dusty -dcfuns"
+    F77=$F90
+    F77_OPTS=$F90_OPTS
+  elif [ "$SYS" = 18 ] ; then
+    F90="gfortran"
+    F90_OPTS="-O3 -funroll-loops -ffast-math"
     F77=$F90
     F77_OPTS=$F90_OPTS
   else

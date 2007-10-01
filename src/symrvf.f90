@@ -3,128 +3,139 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine symrvf(tpolar,lrstp,nd,rvfmt,rvfir)
+subroutine symrvf(lrstp,rvfmt,rvfir)
 use modmain
 implicit none
 ! arguments
-logical, intent(in) :: tpolar
 integer, intent(in) :: lrstp
-integer, intent(in) :: nd
-real(8), intent(inout) :: rvfmt(lmmaxvr,nrmtmax,natmtot,nd)
-real(8), intent(inout) :: rvfir(ngrtot,nd)
+real(8), intent(inout) :: rvfmt(lmmaxvr,nrmtmax,natmtot,ndmag)
+real(8), intent(inout) :: rvfir(ngrtot,ndmag)
 ! local variables
-integer is,ia1,ia2,ias1,ias2
-integer ir,i,n,md,isym,sym(3,3)
-real(8) t1
+integer is,ia,ja,ias,jas
+integer isym,lspl,lspn,sym(3,3)
+integer ig,jg,ifg,jfg
+integer iv(3),ir,lm,i
+real(8) s(3,3),vtc(3),v(3),t1,t2
+complex(8) zv(3),zt1
+! automatic arrays
+logical done(natmmax)
 ! allocatable arrays
-logical, allocatable :: done(:)
-real(8), allocatable :: rvfmt1(:,:,:,:)
-real(8), allocatable :: rvfmt2(:,:,:)
-real(8), allocatable :: rvfmt3(:,:,:)
-real(8), allocatable :: rvfir1(:,:)
-real(8), allocatable :: rvfir2(:,:)
-! external functions
-integer i3mdet
-external i3mdet
-allocate(done(natmmax))
-allocate(rvfmt1(lmmaxvr,nrmtmax,3,natmmax))
-allocate(rvfmt2(lmmaxvr,nrmtmax,3))
-allocate(rvfmt3(lmmaxvr,nrmtmax,3))
-allocate(rvfir1(ngrtot,3))
-allocate(rvfir2(ngrtot,3))
-if ((nd.ne.1).and.(nd.ne.3)) then
-  write(*,*)
-  write(*,'("Error(symrvf): nd should be 1 or 3 : ",I8)') nd
-  write(*,*)
-  stop
-end if
+real(8), allocatable :: rvfmt1(:,:,:,:),rvfmt2(:,:,:)
+complex(8), allocatable :: zfft1(:,:),zfft2(:,:)
+allocate(rvfmt1(lmmaxvr,nrmtmax,natmmax,ndmag))
+allocate(rvfmt2(lmmaxvr,nrmtmax,ndmag))
+allocate(zfft1(ngrtot,ndmag),zfft2(ngrtot,ndmag))
+t1=1.d0/dble(nsymcrys)
 !-------------------------!
 !     muffin-tin part     !
 !-------------------------!
 do is=1,nspecies
-  do ia1=1,natoms(is)
-    ias1=idxas(ia1,is)
-    if (nd.eq.3) then
+! make copy of vector field for all atoms of current species
+  do i=1,ndmag
+    do ia=1,natoms(is)
+      ias=idxas(ia,is)
       do ir=1,nrmt(is),lrstp
-        rvfmt1(:,ir,:,ia1)=rvfmt(:,ir,ias1,:)
+        rvfmt1(:,ir,ia,i)=rvfmt(:,ir,ias,i)
       end do
-    else
-      do ir=1,nrmt(is),lrstp
-        rvfmt1(:,ir,1:2,ia1)=0.d0
-        rvfmt1(:,ir,3,ia1)=rvfmt(:,ir,ias1,1)
-      end do
-    end if
+    end do
   end do
   done(:)=.false.
-! rotate equivalent atoms and add
-  do ia1=1,natoms(is)
-    if (.not.done(ia1)) then
-      ias1=idxas(ia1,is)
+  do ia=1,natoms(is)
+    if (.not.done(ia)) then
+      ias=idxas(ia,is)
       do ir=1,nrmt(is),lrstp
-        rvfmt(:,ir,ias1,:)=0.d0
+        rvfmt(:,ir,ias,:)=0.d0
       end do
-      n=0
-      do ia2=1,natoms(is)
-        do i=1,nsymeqat(ia2,ia1,is)
-          isym=symeqat(i,ia2,ia1,is)
-          if (tpolar) then
-            md=1
-          else
-            md=i3mdet(symlat(1,1,isym))
-          end if
-          sym(:,:)=md*symlat(:,:,isym)
-          call symrvfmt(lrstp,is,sym,rvfmt1(1,1,1,ia2),rvfmt2)
-          if (nd.eq.3) then
-            do ir=1,nrmt(is),lrstp
-              rvfmt(:,ir,ias1,:)=rvfmt(:,ir,ias1,:)+rvfmt2(:,ir,:)
-            end do
-          else
-            do ir=1,nrmt(is),lrstp
-              rvfmt(:,ir,ias1,1)=rvfmt(:,ir,ias1,1)+rvfmt2(:,ir,3)
-            end do
-          end if
-          n=n+1
+! begin loop over crystal symmetries
+      do isym=1,nsymcrys
+! equivalent atom
+        ja=ieqatom(ia,is,isym)
+! parallel transport of vector field
+        lspl=lsplsymc(isym)
+        do i=1,ndmag
+          call symrfmt(lrstp,is,symlat(1,1,lspl),rvfmt1(1,1,ja,i),rvfmt2(1,1,i))
         end do
+! global spin rotation matrix in Cartesian coordinates
+        lspn=lspnsymc(isym)
+        s(:,:)=dble(symlat(:,:,lspn))
+        call r3mm(s,ainv,s)
+        call r3mm(avec,s,s)
+! global spin rotation of vector field
+        if (ndmag.eq.3) then
+! non-collinear case
+          do ir=1,nrmt(is),lrstp
+            do lm=1,lmmaxvr
+              v(1)=s(1,1)*rvfmt2(lm,ir,1) &
+                  +s(1,2)*rvfmt2(lm,ir,2) &
+                  +s(1,3)*rvfmt2(lm,ir,3)
+              v(2)=s(2,1)*rvfmt2(lm,ir,1) &
+                  +s(2,2)*rvfmt2(lm,ir,2) &
+                  +s(2,3)*rvfmt2(lm,ir,3)
+              v(3)=s(3,1)*rvfmt2(lm,ir,1) &
+                  +s(3,2)*rvfmt2(lm,ir,2) &
+                  +s(3,3)*rvfmt2(lm,ir,3)
+              rvfmt(lm,ir,ias,:)=rvfmt(lm,ir,ias,:)+v(:)
+            end do
+          end do
+        else
+! collinear case
+          do ir=1,nrmt(is),lrstp
+            do lm=1,lmmaxvr
+              rvfmt(lm,ir,ias,1)=rvfmt(lm,ir,ias,1)+s(3,3)*rvfmt2(lm,ir,1)
+            end do
+          end do
+        end if
+! end loop over crystal symmetries
       end do
-      t1=1.d0/dble(n)
+! normalise
       do ir=1,nrmt(is),lrstp
-        rvfmt(:,ir,ias1,:)=t1*rvfmt(:,ir,ias1,:)
+        rvfmt(:,ir,ias,:)=t1*rvfmt(:,ir,ias,:)
       end do
-      done(ia1)=.true.
-! rotate and copy to equivalent atoms
-      do ia2=1,natoms(is)
-        if (.not.done(ia2)) then
-          if (nsymeqat(ia1,ia2,is).gt.0) then
-            ias2=idxas(ia2,is)
-            isym=symeqat(1,ia1,ia2,is)
-            if (tpolar) then
-              md=1
-            else
-              md=i3mdet(symlat(1,1,isym))
-            end if
-            sym(:,:)=md*symlat(:,:,isym)
-            if (nd.eq.3) then
-              do ir=1,nrmt(is),lrstp
-                rvfmt2(:,ir,:)=rvfmt(:,ir,ias1,:)
+! mark atom as done
+      done(ia)=.true.
+! rotate into equivalent atoms
+      do isym=1,nsymcrys
+        ja=ieqatom(ia,is,isym)
+        if (.not.done(ja)) then
+          jas=idxas(ja,is)
+! parallel transport of vector field (using operation inverse)
+          lspl=lsplsymc(isym)
+          call i3minv(symlat(1,1,lspl),sym)
+          do i=1,ndmag
+            call symrfmt(lrstp,is,sym,rvfmt(1,1,ias,i),rvfmt(1,1,jas,i))
+          end do
+! inverse of global rotation matrix in Cartesian coordinates
+          lspn=lspnsymc(isym)
+          call i3minv(symlat(1,1,lspn),sym)
+          s(:,:)=dble(sym(:,:))
+          call r3mm(s,ainv,s)
+          call r3mm(avec,s,s)
+! global spin rotation of vector field
+          if (ndmag.eq.3) then
+! non-collinear case
+            do ir=1,nrmt(is),lrstp
+              do lm=1,lmmaxvr
+                rvfmt(lm,ir,jas,1)=s(1,1)*rvfmt(lm,ir,ias,1) &
+                                  +s(1,2)*rvfmt(lm,ir,ias,2) &
+                                  +s(1,3)*rvfmt(lm,ir,ias,3)
+                rvfmt(lm,ir,jas,2)=s(2,1)*rvfmt(lm,ir,ias,1) &
+                                  +s(2,2)*rvfmt(lm,ir,ias,2) &
+                                  +s(2,3)*rvfmt(lm,ir,ias,3)
+                rvfmt(lm,ir,jas,3)=s(3,1)*rvfmt(lm,ir,ias,1) &
+                                  +s(3,2)*rvfmt(lm,ir,ias,2) &
+                                  +s(3,3)*rvfmt(lm,ir,ias,3)
               end do
-            else
-              do ir=1,nrmt(is),lrstp
-                rvfmt2(:,ir,1:2)=0.d0
-                rvfmt2(:,ir,3)=rvfmt(:,ir,ias1,1)
+            end do
+          else
+! collinear case
+            do ir=1,nrmt(is),lrstp
+              do lm=1,lmmaxvr
+                rvfmt(lm,ir,jas,1)=s(3,3)*rvfmt(lm,ir,ias,1)
               end do
-            end if
-            call symrvfmt(lrstp,is,sym,rvfmt2,rvfmt3)
-            if (nd.eq.3) then
-              do ir=1,nrmt(is),lrstp
-                rvfmt(:,ir,ias2,:)=rvfmt3(:,ir,:)
-              end do
-            else
-              do ir=1,nrmt(is),lrstp
-                rvfmt(:,ir,ias2,1)=rvfmt3(:,ir,3)
-              end do
-            end if
-            done(ia2)=.true.
+            end do
           end if
+! mark atom as done
+          done(ja)=.true.
         end if
       end do
     end if
@@ -133,30 +144,63 @@ end do
 !---------------------------!
 !     interstitial part     !
 !---------------------------!
-if (nd.eq.3) then
-  rvfir1(:,:)=rvfir(:,:)
-else
-  rvfir1(:,1:2)=0.d0
-  rvfir1(:,3)=rvfir(:,1)
-end if
-rvfir(:,:)=0.d0
-do isym=1,nsymcrys
-  if (tpolar) then
-    md=1
-  else
-    md=i3mdet(symcrys(1,1,isym))
-  end if
-  sym(:,:)=md*symcrys(:,:,isym)
-  call symrvfir(sym,rvfir1,rvfir2)
-  if (nd.eq.3) then
-    rvfir(:,:)=rvfir(:,:)+rvfir2(:,:)
-  else
-    rvfir(:,1)=rvfir(:,1)+rvfir2(:,3)
-  end if
+! Fourier transform vector function to G-space
+do i=1,ndmag
+  zfft1(:,i)=rvfir(:,i)
+  call zfftifc(3,ngrid,-1,zfft1(1,i))
 end do
-t1=1.d0/dble(nsymcrys)
-rvfir(:,:)=t1*rvfir(:,:)
-deallocate(done,rvfmt1,rvfmt2,rvfmt3,rvfir1,rvfir2)
+do isym=1,nsymcrys
+! translation vector in Cartesian coordinates
+  call r3mv(avec,vtlsymc(1,isym),vtc)
+! index to spatial rotation lattice symmetry
+  lspl=lsplsymc(isym)
+! global spin rotation in Cartesian coordinates
+  lspn=lspnsymc(isym)
+  s(:,:)=dble(symlat(:,:,lspn))
+  call r3mm(s,ainv,s)
+  call r3mm(avec,s,s)
+  do ig=1,ngvec
+    ifg=igfft(ig)
+    t2=-dot_product(vgc(:,ig),vtc(:))
+! complex phase factor for translation
+    zt1=cmplx(cos(t2),sin(t2),8)
+! multiply the transpose of the symmetry matrix with the G-vector
+    iv(1)=symlat(1,1,lspl)*ivg(1,ig) &
+         +symlat(2,1,lspl)*ivg(2,ig) &
+         +symlat(3,1,lspl)*ivg(3,ig)
+    iv(2)=symlat(1,2,lspl)*ivg(1,ig) &
+         +symlat(2,2,lspl)*ivg(2,ig) &
+         +symlat(3,2,lspl)*ivg(3,ig)
+    iv(3)=symlat(1,3,lspl)*ivg(1,ig) &
+         +symlat(2,3,lspl)*ivg(2,ig) &
+         +symlat(3,3,lspl)*ivg(3,ig)
+    iv(:)=modulo(iv(:)-intgv(:,1),ngrid(:))+intgv(:,1)
+    jg=ivgig(iv(1),iv(2),iv(3))
+    jfg=igfft(jg)
+! translation, spatial rotation and global spin rotation
+    if (lspn.eq.1) then
+! global spin symmetry is the identity
+      zfft2(jfg,:)=zfft2(jfg,:)+zt1*zfft1(ifg,:)
+    else
+      if (ndmag.eq.3) then
+! non-collinear case
+        zv(1)=s(1,1)*zfft1(ifg,1)+s(1,2)*zfft1(ifg,2)+s(1,3)*zfft1(ifg,3)
+        zv(2)=s(2,1)*zfft1(ifg,1)+s(2,2)*zfft1(ifg,2)+s(2,3)*zfft1(ifg,3)
+        zv(3)=s(3,1)*zfft1(ifg,1)+s(3,2)*zfft1(ifg,2)+s(3,3)*zfft1(ifg,3)
+        zfft2(jfg,:)=zfft2(jfg,:)+zt1*zv(:)
+      else
+! collinear case
+        zfft2(jfg,1)=zfft2(jfg,1)+s(3,3)*zt1*zfft1(ifg,1)
+      end if
+    end if
+  end do
+end do
+! Fourier transform to real-space and normalise
+do i=1,ndmag
+  call zfftifc(3,ngrid,1,zfft2(1,i))
+  rvfir(:,i)=t1*dble(zfft2(:,i))
+end do
+deallocate(rvfmt1,rvfmt2,zfft1,zfft2)
 return
 end subroutine
-!EOC
+

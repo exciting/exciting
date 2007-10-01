@@ -32,7 +32,7 @@ call sumrule(dynq)
 call dynqtor(dynq,dynr)
 ! generate a set of q-point vectors along a line
 call connect(bvec,nvp1d,npp1d,vvlp1d,vplp1d,dvp1d,dpp1d)
-wmin=1.d10
+wmin=1.d8
 wmax=0.d0
 ! compute the phonon frequencies
 do iq=1,npp1d

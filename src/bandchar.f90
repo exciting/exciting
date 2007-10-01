@@ -57,8 +57,9 @@ real(8), intent(out) :: bndchr(ld,natmtot,nspinor,nstsv)
 real(8), intent(out) :: elmsym(ld,natmtot)
 ! local variables
 integer ispn,jspn,is,ia,ias,ist
-integer irc,lmmax,l,m,lm,lm0
-integer n,i,j,isym,lwork,info
+integer lmmax,l,m,lm,lm0
+integer irc,i,j,n,isym,lspl
+integer lwork,info
 real(8) t1,s(3,3)
 complex(8) zt1
 ! automatic arrays
@@ -127,7 +128,9 @@ do is=1,nspecies
 ! symmetrise h0 with site symmetries if required
       h(:,:)=0.d0
       do isym=1,nsymsite(ias)
-        s(:,:)=dble(symsite(:,:,isym,ias))
+! spatial rotation element in lattice point group
+        lspl=lsplsyms(isym,ias)
+        s(:,:)=dble(symlat(:,:,lspl))
 ! convert symmetry to Cartesian coordinates
         call r3mm(s,ainv,s)
         call r3mm(avec,s,s)

@@ -2,7 +2,7 @@
  'ytterbium'                                : spname
   -70.0000                                  : spzn
    315432.6234                              : spmass
-  0.239046E-06    2.2000   44.4428   630    : sprmin, rmt, sprmax, nrmt
+  0.239046E-06    2.2000   37.0357   630    : sprmin, rmt, sprmax, nrmt
   20                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -43,8 +43,8 @@
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.8709   0  T
+ -1.8712   0  T
    1   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -1.0258   0  T
+ -1.0261   0  T

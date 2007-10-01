@@ -26,7 +26,7 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer is,ia,ias
+integer ik,ispn,is,ia,ias
 real(8) t1
 ! external functions
 real(8) r3dot
@@ -58,6 +58,22 @@ do is=1,nspecies
     forcetp(:,ias)=forcetot(:,ias)
   end do
 end do
+! write lattice vectors and optimised atomic positions to file
+call writegeom(.true.)
+! check for overlapping muffin-tins
+call checkmt
+! generate structure factors for G-vectors
+call gensfacgp(ngvec,vgc,ngvec,sfacg)
+! generate the characteristic function
+call gencfun
+! generate structure factors for G+k-vectors
+do ispn=1,nspnfv
+  do ik=1,nkpt
+    call gensfacgp(ngk(ik,ispn),vgkc(1,1,ik,ispn),ngkmax,sfacgk(1,1,ik,ispn))
+  end do
+end do
+! determine the new nuclear-nuclear energy
+call energynn
 return
 end subroutine
 !EOC

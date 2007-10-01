@@ -82,7 +82,6 @@ end do
 wfir(:,:)=0.d0
 gwfir(:,:,:)=0.d0
 do ist1=1,nstfv
-! construct the wavefunction in real-space
   do igp=1,ngp
     ifg=igfft(igpig(igp))
     zt1=evecfv(igp,ist1)
@@ -92,6 +91,7 @@ do ist1=1,nstfv
       gwfir(ifg,i,ist1)=zi*vgpc(i,igp)*zt1
     end do
   end do
+! convert the wavefunction to real-space
   call zfftifc(3,ngrid,1,wfir(1,ist1))
   do i=1,3
     call zfftifc(3,ngrid,1,gwfir(1,i,ist1))
@@ -110,7 +110,7 @@ do ist1=1,nstfv
     end do
   end do
 end do
-! multiply by -i and set lower diagonal part
+! multiply by -i and set lower triangular part
 do ist1=1,nstfv
   do ist2=ist1,nstfv
     pm(:,ist1,ist2)=-zi*pm(:,ist1,ist2)

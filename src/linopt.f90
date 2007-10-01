@@ -7,13 +7,12 @@ subroutine linopt
 use modmain
 implicit none
 ! local variables
-integer ik,ist1,ist2
-integer isym,recl,d,i,m,n
-integer i1,i2,iw,jw,nsk(3)
+integer ik,nsk(3),iw,jw
+integer isym,lspl,iop
+integer i,i1,i2,n,recl
 real(8), parameter :: eps=1.d-8
-real(8) e12,t1,t2
-real(8) sum,wint(2)
-complex(8) zt1(3)
+real(8) wd(2),wplas,t1,t2
+character(256) fname
 ! allocatable arrays
 real(8), allocatable :: w(:)
 real(8), allocatable :: fw(:)
@@ -21,16 +20,20 @@ real(8), allocatable :: g(:)
 real(8), allocatable :: cf(:,:)
 real(8), allocatable :: e(:,:)
 real(8), allocatable :: f(:,:)
-real(8), allocatable :: a(:,:,:)
-real(8), allocatable :: s(:)
-real(8), allocatable :: eps1(:,:)
-real(8), allocatable :: eps2(:,:)
-real(8), allocatable :: sigma1(:,:)
-real(8), allocatable :: sigma2(:,:)
+real(8), allocatable :: sc(:,:,:)
+real(8), allocatable :: d(:)
+real(8), allocatable :: eps1(:)
+real(8), allocatable :: eps2(:)
+real(8), allocatable :: epsint1(:)
+real(8), allocatable :: epsint2(:)
+real(8), allocatable :: sigma1(:)
+real(8), allocatable :: sigma2(:)
+real(8), allocatable :: sigint1(:)
+real(8), allocatable :: sigint2(:)
 real(8), allocatable :: delta(:,:)
+real(8), allocatable :: pmatint(:,:)
 complex(8), allocatable :: evecfv(:,:)
 complex(8), allocatable :: evecsv(:,:)
-complex(8), allocatable :: kerr(:)
 complex(8), allocatable :: apwalm(:,:,:,:)
 complex(8), allocatable :: pmat(:,:,:)
 if ((usegdft).and.(xctype.lt.0)) then
@@ -53,22 +56,24 @@ allocate(cf(3,nwdos))
 n=nstsv*nstsv
 allocate(e(n,nkpt))
 allocate(f(n,nkpt))
-allocate(a(3,3,nsymcrys))
-allocate(s(nsymcrys))
-d=1
-if (spinorb) d=2
-allocate(eps1(nwdos,d),eps2(nwdos,d))
-allocate(sigma1(nwdos,d),sigma2(nwdos,d))
-allocate(kerr(nwdos))
+allocate(sc(3,3,nsymcrys))
+allocate(d(nsymcrys))
+allocate(eps1(nwdos),eps2(nwdos))
+allocate(epsint1(nwdos),epsint2(nwdos))
+allocate(sigma1(nwdos),sigma2(nwdos))
+allocate(sigint1(nwdos),sigint2(nwdos))
 ! allocate first-variational eigenvector array
 allocate(evecfv(nmatmax,nstfv))
 ! allocate second-variational eigenvector array
 allocate(evecsv(nstsv,nstsv))
 ! allocate the momentum matrix elements array
 allocate(pmat(3,nstsv,nstsv))
+! allocate for intraband contribution
+allocate(pmatint(nstsv,nkpt))
 ! set up for generalised DFT correction if required
+allocate(delta(nstsv,nstsv))
 if (usegdft) then
-  allocate(delta(nstsv,nstsv))
+! initialisation required for generalised DFT
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
   call readstate
   call poteff
@@ -76,213 +81,164 @@ if (usegdft) then
   call genapwfr
   call genlofr
 end if
-! precalculate for symmetrisation
+! pre-calculation for symmetrisation
 do isym=1,nsymcrys
-  a(:,:,isym)=dble(symcrys(:,:,isym))
-  call r3mtm(a(1,1,isym),binv,a(1,1,isym))
-  call r3mm(bvec,a(1,1,isym),a(1,1,isym))
-  s(isym)=a(1,1,isym)*a(2,2,isym)-a(1,2,isym)*a(2,1,isym)
+  lspl=lsplsymc(isym)
+  sc(:,:,isym)=dble(symlat(:,:,lspl))
+  call r3mtm(sc(1,1,isym),binv,sc(1,1,isym))
+  call r3mm(bvec,sc(1,1,isym),sc(1,1,isym))
+  d(isym)=sc(1,1,isym)*sc(2,2,isym)-sc(1,2,isym)*sc(2,1,isym)
 end do
-! dielectric tensor components
-i1=optcomp(1)
-i2=optcomp(2)
-if (spinorb) then
-  i1=1
-  i2=1
-end if
-d=1
-10 continue
-! find the record length
-inquire(iolength=recl) pmat
-open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED',access='DIRECT', &
- recl=recl)
-e(:,:)=0.d0
-f(:,:)=0.d0
-do ik=1,nkpt
-! get the eigenvalues/vectors and occupancies from file
-  call getevalsv(vkl(1,ik),evalsv(1,ik))
-  call getoccsv(vkl(1,ik),occsv(1,ik))
-  call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-  call getevecsv(vkl(1,ik),evecsv)
-! compute generalised DFT correction if required
-  if (usegdft) then
-    call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
-    call gdft(ik,apwalm,evecfv,evecsv,delta)
-  end if
-! read matrix elements from direct-access file
-  read(50,rec=ik) pmat
-  m=0
-  do ist1=1,nstsv
-    do ist2=1,nstsv
-      m=m+1
-! symmetrise the matrix elements
-      sum=0.d0
-      do isym=1,nsymcrys
-        zt1(:)=0.d0
-        if (i1.eq.i2) then
-          do i=1,3
-            zt1(i1)=zt1(i1)+a(i,i1,isym)*pmat(i,ist1,ist2)
-          end do
-        else
-          do i=1,3
-            zt1(i1)=zt1(i1)+a(i,i1,isym)*pmat(i,ist1,ist2)
-            zt1(i2)=zt1(i2)+a(i,i2,isym)*pmat(i,ist1,ist2)
-          end do
-        end if
-! calculate the desired dielectric tensor components
-        if (i1.eq.i2) then
-          sum=sum+dble(zt1(i1)*conjg(zt1(i1)))
-        else
-          if (s(isym).lt.0.d0) then
-            sum=sum+aimag(zt1(i2)*conjg(zt1(i1)))
-          else
-            sum=sum+aimag(zt1(i1)*conjg(zt1(i2)))
-          endif
-        end if
- ! end of symmetrisation
-      end do
-      sum=sum/dble(nsymcrys)
-      e12=evalsv(ist1,ik)-evalsv(ist2,ik)
-! scissors correction
-      if (evalsv(ist1,ik).gt.efermi) e12=e12+scissor
-      if (evalsv(ist2,ik).gt.efermi) e12=e12-scissor
-! generalised DFT correction
-      if (usegdft) e12=e12+delta(ist1,ist2)
-      e(m,ik)=e12
-      f(m,ik)=(occsv(ist1,ik)-occsv(ist2,ik))*sum
-    end do
-  end do
-end do
-close(50)
-t1=-4.d0*(pi**2)/omega
-f(:,:)=t1*f(:,:)
-! energy interval
-wint(1)=0.d0
-wint(2)=wintdos(2)
+! energy interval should start from zero
+wdos(1)=0.d0
 ! generate energy grid
-t1=(wint(2)-wint(1))/dble(nwdos)
+t1=(wdos(2)-wdos(1))/dble(nwdos)
 do iw=1,nwdos
-  w(iw)=t1*dble(iw-1)+wint(1)
+  w(iw)=t1*dble(iw-1)+wdos(1)
 end do
 ! number of subdivisions used for interpolation
 do i=1,3
   nsk(i)=max(ngrdos/ngridk(i),1)
 end do
-! integrate over the Brillouin zone
-call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wint,n,n,e,f,eps2(1,d))
-do iw=1,nwdos
-  t1=w(iw)-scissor
-  if (abs(t1).gt.eps) then
-    eps2(iw,d)=eps2(iw,d)/(t1**2)
+! find the record length for momentum matrix element file
+inquire(iolength=recl) pmat
+open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED',access='DIRECT', &
+ recl=recl)
+! loop over number of desired optical components
+do iop=1,noptcomp
+  i1=optcomp(1,iop)
+  i2=optcomp(2,iop)
+! open files for writting
+  write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
+  open(60,file=trim(fname),action='WRITE',form='FORMATTED')
+  write(fname,'("EPSINTRA_",2I1,".OUT")') i1,i2
+  open(61,file=trim(fname),action='WRITE',form='FORMATTED')
+  write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
+  open(62,file=trim(fname),action='WRITE',form='FORMATTED')
+  write(fname,'("SIGINTRA_",2I1,".OUT")') i1,i2
+  open(63,file=trim(fname),action='WRITE',form='FORMATTED')
+  write(fname,'("PLASMA_",2I1,".OUT")') i1,i2
+  open(64,file=trim(fname),action='WRITE',form='FORMATTED')
+  e(:,:)=0.d0
+  f(:,:)=0.d0
+  do ik=1,nkpt
+! compute generalised DFT correction if required
+    if (usegdft) then
+      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
+      call getevecsv(vkl(1,ik),evecsv)
+      call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
+      call gdft(ik,apwalm,evecfv,evecsv,delta)
+    end if
+! read matrix elements from direct-access file
+    read(50,rec=ik) pmat
+    call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
+  end do
+  t1=-4.d0*(pi**2)/omega
+  f(:,:)=t1*f(:,:)
+! calculate imaginary part of the interband dielectric function
+  call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,n,n,e,f,eps2)
+  do iw=1,nwdos
+    t1=w(iw)
+    if (abs(t1).gt.eps) then
+      eps2(iw)=eps2(iw)/(t1**2)
+    else
+      eps2(iw)=0.d0
+    end if
+  end do
+! calculate real part of the interband dielectric function
+  if (i1.eq.i2) then
+    t1=1.d0
+  else
+    t1=0.d0
   end if
-end do
-! calculate the real part of dielectric function
-if (i1.eq.i2) then
-  t1=1.d0
-else
-  t1=0.d0
-end if
-do iw=1,nwdos
-  do jw=1,nwdos
-    t2=w(jw)**2-w(iw)**2
-    if (abs(t2).gt.eps) then
-      fw(jw)=w(jw)*eps2(jw,d)/t2
+  do iw=1,nwdos
+    do jw=1,nwdos
+      t2=w(jw)**2-w(iw)**2
+      if (abs(t2).gt.eps) then
+        fw(jw)=w(jw)*eps2(jw)/t2
+      else
+        fw(jw)=0.d0
+      end if
+    end do
+    call fderiv(-1,nwdos,w,fw,g,cf)
+    eps1(iw)=t1+(2.d0/pi)*g(nwdos)
+  end do
+! write dielectric function to a file
+  do iw=1,nwdos
+    write(60,'(2G18.10)') w(iw),eps1(iw)
+  end do
+  write(60,'("     ")')
+  do iw=1,nwdos
+    write(60,'(2G18.10)') w(iw),eps2(iw)
+  end do
+! calculate the intraband Drude like contribution and plasma frequency
+  wd(1)=efermi-0.001d0
+  wd(2)=efermi+0.001d0
+  call brzint(nsmdos,ngridk,nsk,ikmap,3,wd,nstsv,nstsv,evalsv,pmatint,g)
+  wplas=sqrt(g(2)*8.d0*pi/omega)
+  do iw=1,nwdos
+    if (abs(w(iw)).gt.eps) then
+      epsint1(iw)=1.d0-(wplas**2)/(w(iw)**2+swidth**2)
+      epsint2(iw)=swidth*(wplas**2)/(w(iw)*(w(iw)**2+swidth**2))
     else
-      fw(jw)=0.d0
+      epsint1(iw)=0.d0
+      epsint2(iw)=0.d0
     end if
   end do
-  call fderiv(-1,nwdos,w,fw,g,cf)
-  eps1(iw,d)=t1+(2.d0/pi)*g(nwdos)
-end do
-sigma1(:,d)=eps2(:,d)*w(:)/(4.d0*pi)
-sigma2(:,d)=-(eps1(:,d)-t1)*w(:)/(4.d0*pi)
-! calculate the second component for MOKE
-if ((spinorb).and.(d.eq.1)) then
-  d=2
-  i1=1
-  i2=2
-  goto 10
-end if
-! calculate the MOKE
-if (spinorb) then
-  do iw=2,nwdos
-    zt1(1)=sigma1(iw,2)+zi*sigma2(iw,2)
-    zt1(2)=(sigma1(iw,1)+zi*sigma2(iw,1))*sqrt(eps1(iw,1)+zi*eps2(iw,1))
-    if (abs(zt1(2)).gt.0.d0) then
-      kerr(iw)=-zt1(1)/zt1(2)
-    else
-      kerr(iw)=0.d0
-    end if
-  end do
-end if
-! write the dielectric tensor to file
-open(50,file='EPSILON.OUT',action='WRITE',form='FORMATTED')
-do iw=1,nwdos
-  write(50,'(2G18.10)') w(iw),eps1(iw,1)
-end do
-write(50,'("     ")')
-do iw=1,nwdos
-  write(50,'(2G18.10)') w(iw),eps2(iw,1)
-end do
-! write the second component for MOKE
-if (spinorb) then
-  write(50,'("     ")')
+! write plasma frequency to file
+  write(64,'(G18.10," : plasma frequency")') wplas
+! write intraband contribution to a file
   do iw=1,nwdos
-    write(50,'(2G18.10)') w(iw),eps1(iw,2)
+    write(61,'(2G18.10)') w(iw),epsint1(iw)
   end do
-  write(50,'("     ")')
+  write(61,'("     ")')
   do iw=1,nwdos
-    write(50,'(2G18.10)') w(iw),eps2(iw,2)
+    write(61,'(2G18.10)') w(iw),epsint2(iw)
   end do
-end if
-! write the optical conductivity
-open(51,file='SIGMA.OUT',action='WRITE',form='FORMATTED')
-do iw=1,nwdos
-  write(51,'(2G18.10)') w(iw),sigma1(iw,1)
+! calculate optical conductivity
+  sigma1(:)=(eps2(:))*w(:)/(4.d0*pi)
+  sigma2(:)=-(eps1(:)-t1)*w(:)/(4.d0*pi)
+  sigint1(:)=epsint2(:)*w(:)/(4.d0*pi)
+  sigint2(:)=-epsint1(:)*w(:)/(4.d0*pi)
+! write the interband optical conductivity to a file
+  do iw=1,nwdos
+    write(62,'(2G18.10)') w(iw),sigma1(iw)
+  end do
+  write(62,'("     ")')
+  do iw=1,nwdos
+    write(62,'(2G18.10)') w(iw),sigma2(iw)
+  end do
+! write the intraband optical conductivity to a file
+  do iw=1,nwdos
+    write(63,'(2G18.10)') w(iw),sigint1(iw)
+  end do
+  write(63,'("     ")')
+  do iw=1,nwdos
+    write(63,'(2G18.10)') w(iw),sigint2(iw)
+  end do
+  close(60)
+  close(61)
+  close(62)
+  close(63)
+  close(64)
+! end loop over number of components
 end do
-write(51,'("     ")')
-do iw=1,nwdos
-  write(51,'(2G18.10)') w(iw),sigma2(iw,1)
-end do
-! write the second component for MOKE
-if (spinorb) then
-  write(51,'("     ")')
-  do iw=1,nwdos
-    write(51,'(2G18.10)') w(iw),sigma1(iw,2)
-  end do
-  write(51,'("     ")')
-  do iw=1,nwdos
-    write(51,'(2G18.10)') w(iw),sigma2(iw,2)
-  end do
-end if
 close(50)
-close(51)
-if (spinorb) then
-  open(50,file='KERR.OUT',action='WRITE',form='FORMATTED')
-  do iw=2,nwdos
-    write(50,'(2G18.10)') w(iw),dble(kerr(iw))
-  end do
-  write(50,'("     ")')
-  do iw=2,nwdos
-    write(50,'(2G18.10)') w(iw),aimag(kerr(iw))
-  end do
-  close(50)
-end if
 write(*,*)
 write(*,'("Info(linopt):")')
-write(*,'(" element (",I1,",",I1,") of the dielectric tensor")') i1,i2
-write(*,'(" written to EPSILON.OUT")')
+write(*,'(" dielectric tensor written to EPSILON_ij.OUT")')
+write(*,'(" intraband contribution written to EPSINTRA_ij.OUT")')
 write(*,*)
-write(*,'(" element (",I1,",",I1,") of the optical conductivity")') i1,i2
-write(*,'(" written to SIGMA.OUT")')
-if (spinorb) then
-  write(*,*)
-  write(*,'(" Kerr angle in radians written to KERR.OUT")')
-end if
+write(*,'(" optical conductivity written to SIGMA_ij.OUT")')
+write(*,'(" intraband contribution written to SIGINTRA_ij.OUT")')
 write(*,*)
-deallocate(w,fw,g,cf,e,f,a,s)
-deallocate(eps1,eps2,sigma1,sigma2)
-deallocate(evecfv,evecsv,kerr,pmat)
+write(*,'(" plasma frequency written to PLASMA_ij.OUT")')
+write(*,*)
+write(*,'(" for all components i,j")')
+deallocate(w,fw,g,cf,e,f,sc,d)
+deallocate(eps1,eps2,epsint1,epsint2)
+deallocate(sigma1,sigma2,sigint1,sigint2)
+deallocate(evecfv,evecsv,pmat,pmatint)
 if (usegdft) deallocate(delta,apwalm)
 return
 end subroutine

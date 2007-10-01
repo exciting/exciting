@@ -39,34 +39,28 @@ integer ik,is,ia,ias
 integer ir,i,itp,ig,ifg
 real(8) t1,t2
 ! allocatable arrays
-real(8), allocatable :: rftp1(:)
-real(8), allocatable :: rftp2(:)
-real(8), allocatable :: rftp3(:)
+real(8), allocatable :: rftp1(:),rftp2(:),rftp3(:)
 real(8), allocatable :: grfmt(:,:,:)
 real(8), allocatable :: grfir(:)
 real(8), allocatable :: gwf2mt(:,:,:)
 real(8), allocatable :: gwf2ir(:)
 real(8), allocatable :: elfmt(:,:,:)
 real(8), allocatable :: elfir(:)
-complex(8), allocatable :: zfft1(:)
-complex(8), allocatable :: zfft2(:)
+complex(8), allocatable :: zfft1(:),zfft2(:)
 complex(8), allocatable :: evecfv(:,:)
 complex(8), allocatable :: evecsv(:,:)
 ! initialise universal variables
 call init0
 call init1
 ! allocate local arrays
-allocate(rftp1(lmmaxvr))
-allocate(rftp2(lmmaxvr))
-allocate(rftp3(lmmaxvr))
+allocate(rftp1(lmmaxvr),rftp2(lmmaxvr),rftp3(lmmaxvr))
 allocate(grfmt(lmmaxvr,nrmtmax,3))
 allocate(grfir(ngrtot))
 allocate(gwf2mt(lmmaxvr,nrmtmax,natmtot))
 allocate(gwf2ir(ngrtot))
 allocate(elfmt(lmmaxvr,nrmtmax,natmtot))
 allocate(elfir(ngrtot))
-allocate(zfft1(ngrtot))
-allocate(zfft2(ngrtot))
+allocate(zfft1(ngrtot),zfft2(ngrtot))
 ! allocate first-variational eigenvector array
 allocate(evecfv(nmatmax,nstfv))
 ! allocate second-variational eigenvector array
@@ -189,8 +183,9 @@ case(53)
   write(*,'("Info(elfplot): 3D ELF plot written to ELF3D.OUT")')
 end select
 write(*,*)
-deallocate(rftp1,rftp2,rftp3,grfmt,grfir,gwf2mt,gwf2ir)
-deallocate(elfmt,elfir,zfft1,zfft2,evecfv,evecsv)
+deallocate(rftp1,rftp2,rftp3)
+deallocate(grfmt,grfir,gwf2mt,gwf2ir,elfmt,elfir)
+deallocate(zfft1,zfft2,evecfv,evecsv)
 return
 end subroutine
 !EOC

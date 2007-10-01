@@ -23,7 +23,7 @@ use modmain
 implicit none
 ! local variables
 logical init,exist
-integer ik,ispn,is,ia,idm,n
+integer ik,is,ia,idm,n
 real(8) dv,timetot
 ! allocatable arrays
 real(8), allocatable :: nu(:)
@@ -38,9 +38,8 @@ if ((task.eq.2).or.(task.eq.3)) tforce=.true.
 ! initialise universal variables
 call init0
 call init1
-if (hartfock) call init2
 ! initialise OEP/Hartree-Fock variables if required
-if (xctype.lt.0) call init2
+if ((xctype.lt.0).or.hartfock) call init2
 ! write the real and reciprocal lattice vectors to file
 call writelat
 ! write inter-atomic distances to file
@@ -150,6 +149,8 @@ do iscl=1,maxscl
 !$OMP END PARALLEL
 ! perform Hartree-Fock calculation if required
   if (hartfock) then
+! initialise the occupancies
+    if (iscl.le.1) call occupy
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(evecsv)
 !$OMP DO
@@ -201,7 +202,7 @@ do iscl=1,maxscl
 ! symmetrise the density
   call symrf(lradstp,rhomt,rhoir)
 ! symmetrise the magnetisation
-  if (spinpol) call symrvf(.false.,lradstp,ndmag,magmt,magir)
+  if (spinpol) call symrvf(lradstp,magmt,magir)
 ! convert the density from a coarse to a fine radial mesh
   call rfmtctof(rhomt)
 ! convert the magnetisation from a coarse to a fine radial mesh
@@ -308,7 +309,11 @@ write(60,'("+------------------------------+")')
 write(60,'("| Self-consistent loop stopped |")')
 write(60,'("+------------------------------+")')
 ! write density and potentials to file only if maxscl > 1
-if (maxscl.gt.1) call writestate
+if (maxscl.gt.1) then
+  call writestate
+  write(60,*)
+  write(60,'("Wrote STATE.OUT")')
+end if
 !-----------------------!
 !     compute forces    !
 !-----------------------!
@@ -342,28 +347,12 @@ if ((.not.tstop).and.((task.eq.2).or.(task.eq.3))) then
   write(60,'("+--------------------------+")')
   do is=1,nspecies
     write(60,*)
-    write(60,'("Species : ",I4,", ",A)') is,trim(spsymb(is))
+    write(60,'("Species : ",I4," (",A,")")') is,trim(spsymb(is))
     write(60,'(" atomic positions (lattice) :")')
     do ia=1,natoms(is)
       write(60,'(I4,3F14.8)') ia,atposl(:,ia,is)
     end do
   end do
-! write lattice vectors and optimised atomic positions to file
-  call writegeom(.true.)
-! check for overlapping muffin-tins
-  call checkmt
-! generate structure factors for G-vectors
-  call gensfacgp(ngvec,vgc,ngvec,sfacg)
-! generate the characteristic function
-  call gencfun
-! generate structure factors for G+k-vectors
-  do ispn=1,nspnfv
-    do ik=1,nkpt
-      call gensfacgp(ngk(ik,ispn),vgkc(1,1,ik,ispn),ngkmax,sfacgk(1,1,ik,ispn))
-    end do
-  end do
-! determine the new nuclear-nuclear energy
-  call energynn
 ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT and MOMENT.OUT
   write(61,*)
   write(62,*)

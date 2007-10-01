@@ -1,10 +1,11 @@
-      SUBROUTINE ZHER2 ( UPLO, N, ALPHA, X, INCX, Y, INCY, A, LDA )
+      SUBROUTINE ZHER2(UPLO,N,ALPHA,X,INCX,Y,INCY,A,LDA)
 *     .. Scalar Arguments ..
-      COMPLEX*16         ALPHA
-      INTEGER            INCX, INCY, LDA, N
-      CHARACTER*1        UPLO
+      DOUBLE COMPLEX ALPHA
+      INTEGER INCX,INCY,LDA,N
+      CHARACTER UPLO
+*     ..
 *     .. Array Arguments ..
-      COMPLEX*16         A( LDA, * ), X( * ), Y( * )
+      DOUBLE COMPLEX A(LDA,*),X(*),Y(*)
 *     ..
 *
 *  Purpose
@@ -17,7 +18,7 @@
 *  where alpha is a scalar, x and y are n element vectors and A is an n
 *  by n hermitian matrix.
 *
-*  Parameters
+*  Arguments
 *  ==========
 *
 *  UPLO   - CHARACTER*1.
@@ -98,148 +99,147 @@
 *
 *
 *     .. Parameters ..
-      COMPLEX*16         ZERO
-      PARAMETER        ( ZERO = ( 0.0D+0, 0.0D+0 ) )
-*     .. Local Scalars ..
-      COMPLEX*16         TEMP1, TEMP2
-      INTEGER            I, INFO, IX, IY, J, JX, JY, KX, KY
-*     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-*     .. External Subroutines ..
-      EXTERNAL           XERBLA
-*     .. Intrinsic Functions ..
-      INTRINSIC          DCONJG, MAX, DBLE
+      DOUBLE COMPLEX ZERO
+      PARAMETER (ZERO= (0.0D+0,0.0D+0))
 *     ..
-*     .. Executable Statements ..
+*     .. Local Scalars ..
+      DOUBLE COMPLEX TEMP1,TEMP2
+      INTEGER I,INFO,IX,IY,J,JX,JY,KX,KY
+*     ..
+*     .. External Functions ..
+      LOGICAL LSAME
+      EXTERNAL LSAME
+*     ..
+*     .. External Subroutines ..
+      EXTERNAL XERBLA
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC DBLE,DCONJG,MAX
+*     ..
 *
 *     Test the input parameters.
 *
       INFO = 0
-      IF     ( .NOT.LSAME( UPLO, 'U' ).AND.
-     $         .NOT.LSAME( UPLO, 'L' )      )THEN
-         INFO = 1
-      ELSE IF( N.LT.0 )THEN
-         INFO = 2
-      ELSE IF( INCX.EQ.0 )THEN
-         INFO = 5
-      ELSE IF( INCY.EQ.0 )THEN
-         INFO = 7
-      ELSE IF( LDA.LT.MAX( 1, N ) )THEN
-         INFO = 9
+      IF (.NOT.LSAME(UPLO,'U') .AND. .NOT.LSAME(UPLO,'L')) THEN
+          INFO = 1
+      ELSE IF (N.LT.0) THEN
+          INFO = 2
+      ELSE IF (INCX.EQ.0) THEN
+          INFO = 5
+      ELSE IF (INCY.EQ.0) THEN
+          INFO = 7
+      ELSE IF (LDA.LT.MAX(1,N)) THEN
+          INFO = 9
       END IF
-      IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZHER2 ', INFO )
-         RETURN
+      IF (INFO.NE.0) THEN
+          CALL XERBLA('ZHER2 ',INFO)
+          RETURN
       END IF
 *
 *     Quick return if possible.
 *
-      IF( ( N.EQ.0 ).OR.( ALPHA.EQ.ZERO ) )
-     $   RETURN
+      IF ((N.EQ.0) .OR. (ALPHA.EQ.ZERO)) RETURN
 *
 *     Set up the start points in X and Y if the increments are not both
 *     unity.
 *
-      IF( ( INCX.NE.1 ).OR.( INCY.NE.1 ) )THEN
-         IF( INCX.GT.0 )THEN
-            KX = 1
-         ELSE
-            KX = 1 - ( N - 1 )*INCX
-         END IF
-         IF( INCY.GT.0 )THEN
-            KY = 1
-         ELSE
-            KY = 1 - ( N - 1 )*INCY
-         END IF
-         JX = KX
-         JY = KY
+      IF ((INCX.NE.1) .OR. (INCY.NE.1)) THEN
+          IF (INCX.GT.0) THEN
+              KX = 1
+          ELSE
+              KX = 1 - (N-1)*INCX
+          END IF
+          IF (INCY.GT.0) THEN
+              KY = 1
+          ELSE
+              KY = 1 - (N-1)*INCY
+          END IF
+          JX = KX
+          JY = KY
       END IF
 *
 *     Start the operations. In this version the elements of A are
 *     accessed sequentially with one pass through the triangular part
 *     of A.
 *
-      IF( LSAME( UPLO, 'U' ) )THEN
+      IF (LSAME(UPLO,'U')) THEN
 *
 *        Form  A  when A is stored in the upper triangle.
 *
-         IF( ( INCX.EQ.1 ).AND.( INCY.EQ.1 ) )THEN
-            DO 20, J = 1, N
-               IF( ( X( J ).NE.ZERO ).OR.( Y( J ).NE.ZERO ) )THEN
-                  TEMP1 = ALPHA*DCONJG( Y( J ) )
-                  TEMP2 = DCONJG( ALPHA*X( J ) )
-                  DO 10, I = 1, J - 1
-                     A( I, J ) = A( I, J ) + X( I )*TEMP1 + Y( I )*TEMP2
-   10             CONTINUE
-                  A( J, J ) = DBLE( A( J, J ) ) +
-     $                        DBLE( X( J )*TEMP1 + Y( J )*TEMP2 )
-               ELSE
-                  A( J, J ) = DBLE( A( J, J ) )
-               END IF
-   20       CONTINUE
-         ELSE
-            DO 40, J = 1, N
-               IF( ( X( JX ).NE.ZERO ).OR.( Y( JY ).NE.ZERO ) )THEN
-                  TEMP1 = ALPHA*DCONJG( Y( JY ) )
-                  TEMP2 = DCONJG( ALPHA*X( JX ) )
-                  IX    = KX
-                  IY    = KY
-                  DO 30, I = 1, J - 1
-                     A( I, J ) = A( I, J ) + X( IX )*TEMP1
-     $                                     + Y( IY )*TEMP2
-                     IX        = IX        + INCX
-                     IY        = IY        + INCY
-   30             CONTINUE
-                  A( J, J ) = DBLE( A( J, J ) ) +
-     $                        DBLE( X( JX )*TEMP1 + Y( JY )*TEMP2 )
-               ELSE
-                  A( J, J ) = DBLE( A( J, J ) )
-               END IF
-               JX = JX + INCX
-               JY = JY + INCY
-   40       CONTINUE
-         END IF
+          IF ((INCX.EQ.1) .AND. (INCY.EQ.1)) THEN
+              DO 20 J = 1,N
+                  IF ((X(J).NE.ZERO) .OR. (Y(J).NE.ZERO)) THEN
+                      TEMP1 = ALPHA*DCONJG(Y(J))
+                      TEMP2 = DCONJG(ALPHA*X(J))
+                      DO 10 I = 1,J - 1
+                          A(I,J) = A(I,J) + X(I)*TEMP1 + Y(I)*TEMP2
+   10                 CONTINUE
+                      A(J,J) = DBLE(A(J,J)) +
+     +                         DBLE(X(J)*TEMP1+Y(J)*TEMP2)
+                  ELSE
+                      A(J,J) = DBLE(A(J,J))
+                  END IF
+   20         CONTINUE
+          ELSE
+              DO 40 J = 1,N
+                  IF ((X(JX).NE.ZERO) .OR. (Y(JY).NE.ZERO)) THEN
+                      TEMP1 = ALPHA*DCONJG(Y(JY))
+                      TEMP2 = DCONJG(ALPHA*X(JX))
+                      IX = KX
+                      IY = KY
+                      DO 30 I = 1,J - 1
+                          A(I,J) = A(I,J) + X(IX)*TEMP1 + Y(IY)*TEMP2
+                          IX = IX + INCX
+                          IY = IY + INCY
+   30                 CONTINUE
+                      A(J,J) = DBLE(A(J,J)) +
+     +                         DBLE(X(JX)*TEMP1+Y(JY)*TEMP2)
+                  ELSE
+                      A(J,J) = DBLE(A(J,J))
+                  END IF
+                  JX = JX + INCX
+                  JY = JY + INCY
+   40         CONTINUE
+          END IF
       ELSE
 *
 *        Form  A  when A is stored in the lower triangle.
 *
-         IF( ( INCX.EQ.1 ).AND.( INCY.EQ.1 ) )THEN
-            DO 60, J = 1, N
-               IF( ( X( J ).NE.ZERO ).OR.( Y( J ).NE.ZERO ) )THEN
-                  TEMP1     = ALPHA*DCONJG( Y( J ) )
-                  TEMP2     = DCONJG( ALPHA*X( J ) )
-                  A( J, J ) = DBLE( A( J, J ) ) +
-     $                        DBLE( X( J )*TEMP1 + Y( J )*TEMP2 )
-                  DO 50, I = J + 1, N
-                     A( I, J ) = A( I, J ) + X( I )*TEMP1 + Y( I )*TEMP2
-   50             CONTINUE
-               ELSE
-                  A( J, J ) = DBLE( A( J, J ) )
-               END IF
-   60       CONTINUE
-         ELSE
-            DO 80, J = 1, N
-               IF( ( X( JX ).NE.ZERO ).OR.( Y( JY ).NE.ZERO ) )THEN
-                  TEMP1     = ALPHA*DCONJG( Y( JY ) )
-                  TEMP2     = DCONJG( ALPHA*X( JX ) )
-                  A( J, J ) = DBLE( A( J, J ) ) +
-     $                        DBLE( X( JX )*TEMP1 + Y( JY )*TEMP2 )
-                  IX        = JX
-                  IY        = JY
-                  DO 70, I = J + 1, N
-                     IX        = IX        + INCX
-                     IY        = IY        + INCY
-                     A( I, J ) = A( I, J ) + X( IX )*TEMP1
-     $                                     + Y( IY )*TEMP2
-   70             CONTINUE
-               ELSE
-                  A( J, J ) = DBLE( A( J, J ) )
-               END IF
-               JX = JX + INCX
-               JY = JY + INCY
-   80       CONTINUE
-         END IF
+          IF ((INCX.EQ.1) .AND. (INCY.EQ.1)) THEN
+              DO 60 J = 1,N
+                  IF ((X(J).NE.ZERO) .OR. (Y(J).NE.ZERO)) THEN
+                      TEMP1 = ALPHA*DCONJG(Y(J))
+                      TEMP2 = DCONJG(ALPHA*X(J))
+                      A(J,J) = DBLE(A(J,J)) +
+     +                         DBLE(X(J)*TEMP1+Y(J)*TEMP2)
+                      DO 50 I = J + 1,N
+                          A(I,J) = A(I,J) + X(I)*TEMP1 + Y(I)*TEMP2
+   50                 CONTINUE
+                  ELSE
+                      A(J,J) = DBLE(A(J,J))
+                  END IF
+   60         CONTINUE
+          ELSE
+              DO 80 J = 1,N
+                  IF ((X(JX).NE.ZERO) .OR. (Y(JY).NE.ZERO)) THEN
+                      TEMP1 = ALPHA*DCONJG(Y(JY))
+                      TEMP2 = DCONJG(ALPHA*X(JX))
+                      A(J,J) = DBLE(A(J,J)) +
+     +                         DBLE(X(JX)*TEMP1+Y(JY)*TEMP2)
+                      IX = JX
+                      IY = JY
+                      DO 70 I = J + 1,N
+                          IX = IX + INCX
+                          IY = IY + INCY
+                          A(I,J) = A(I,J) + X(IX)*TEMP1 + Y(IY)*TEMP2
+   70                 CONTINUE
+                  ELSE
+                      A(J,J) = DBLE(A(J,J))
+                  END IF
+                  JX = JX + INCX
+                  JY = JY + INCY
+   80         CONTINUE
+          END IF
       END IF
 *
       RETURN

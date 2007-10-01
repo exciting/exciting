@@ -2,7 +2,7 @@
  'bromine'                                  : spname
   -35.0000                                  : spzn
    145656.0815                              : spmass
-  0.338062E-06    2.0000   34.1110   450    : sprmin, rmt, sprmax, nrmt
+  0.338062E-06    2.0000   29.4304   450    : sprmin, rmt, sprmax, nrmt
   12                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -35,8 +35,8 @@
    2   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -2.3330   0  T
+ -2.3329   0  T
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
- -0.5954   0  T
+ -0.5953   0  T

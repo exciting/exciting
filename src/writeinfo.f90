@@ -89,7 +89,7 @@ if (autormt) then
 end if
 do is=1,nspecies
   write(fnum,*)
-  write(fnum,'("Species : ",I4,", ",A)') is,trim(spsymb(is))
+  write(fnum,'("Species : ",I4," (",A,")")') is,trim(spsymb(is))
   write(fnum,'(" parameters loaded from : ",A)') trim(spfname(is))
   write(fnum,'(" name : ",A)') trim(spname(is))
   write(fnum,'(" nuclear charge    : ",G18.10)') spzn(is)
@@ -135,11 +135,6 @@ end if
 write(fnum,*)
 write(fnum,'("Number of Bravais lattice symmetries : ",I4)') nsymlat
 write(fnum,'("Number of crystal symmetries         : ",I4)') nsymcrys
-if (tsyminv) then
-  write(fnum,'("Inversion symmetry exists")')
-else
-  write(fnum,'("Inversion symmetry does not exist")')
-end if
 write(fnum,*)
 if (autokpt) then
   write(fnum,'("de Broglie wavelength used to determine k-point grid : ",&

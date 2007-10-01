@@ -80,9 +80,9 @@ do ik=1,nkpt
   call spinchar(ik,evecsv)
 end do
 ! generate energy grid
-t1=(wintdos(2)-wintdos(1))/dble(nwdos)
+t1=(wdos(2)-wdos(1))/dble(nwdos)
 do iw=1,nwdos
-  w(iw)=t1*dble(iw-1)+wintdos(1)
+  w(iw)=t1*dble(iw-1)+wdos(1)
 end do
 ! number of subdivisions used for interpolation
 do i=1,3
@@ -106,7 +106,7 @@ do ispn=1,nspinor
       f(ist,ik)=spnchr(ispn,ist,ik)
     end do
   end do
-  call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wintdos,nstsv,nstsv,e(1,1,ispn),f, &
+  call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,nstsv,nstsv,e(1,1,ispn),f, &
    g(1,ispn))
   do iw=1,nwdos
     write(50,'(2G18.10)') w(iw),t1*g(iw,ispn)
@@ -134,7 +134,7 @@ do is=1,nspecies
               f(ist,ik)=bndchr(lm,ias,ispn,ist,ik)
             end do
           end do
-          call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wintdos,nstsv,nstsv, &
+          call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,nstsv,nstsv, &
            e(1,1,ispn),f,gp)
           do iw=1,nwdos
             write(50,'(2G18.10)') w(iw),t1*gp(iw)
@@ -154,8 +154,7 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     write(50,*)
-    write(50,'("Species ",I4," (",A,")",", atom ",I4," : ")') is, &
-     trim(spsymb(is)),ia
+    write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
     do l=0,lmax
       do m=-l,l
         lm=idxlm(l,m)

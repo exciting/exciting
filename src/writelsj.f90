@@ -77,7 +77,7 @@ do kst=1,nkstlist
     nr=nrmt(is)
     n=lmmaxapw*nr
     do ia=1,natoms(is)
-      write(50,'("Species ",I4," (",A,")",", atom ",I4," : ")') is, &
+      write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is, &
        trim(spsymb(is)),ia
       done(:)=.false.
 ! generate spinor wavefunction from second-variational eigenvectors
