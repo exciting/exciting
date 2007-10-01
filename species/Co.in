@@ -2,7 +2,7 @@
  'cobalt'                                   : spname
   -27.0000                                  : spzn
    107428.6517                              : spmass
-  0.384900E-06    2.0000   35.4509   450    : sprmin, rmt, sprmax, nrmt
+  0.384900E-06    2.0000   44.4623   500    : sprmin, rmt, sprmax, nrmt
   10                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

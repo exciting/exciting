@@ -2,7 +2,7 @@
  'arsenic'                                  : spname
   -33.0000                                  : spzn
    136573.7219                              : spmass
-  0.348155E-06    2.0000   36.0662   450    : sprmin, rmt, sprmax, nrmt
+  0.348155E-06    2.0000   45.2469   500    : sprmin, rmt, sprmax, nrmt
   12                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

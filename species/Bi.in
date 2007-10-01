@@ -2,7 +2,7 @@
  'bismuth'                                  : spname
   -83.0000                                  : spzn
    380947.9283                              : spmass
-  0.219529E-06    2.0000   36.2833   630    : sprmin, rmt, sprmax, nrmt
+  0.219529E-06    2.0000   43.8554   700    : sprmin, rmt, sprmax, nrmt
   24                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

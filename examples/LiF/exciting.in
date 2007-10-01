@@ -9,15 +9,12 @@ tasks
 nempty
   10
 
+lmaxvr
+  8
+
 dos
   200 100 0 : nwdos, ngrdos, nsmdos
   0.0 1.5   : wintdos
-
-autormt
- .true.
-
-lmaxvr
-  8
 
 avec
   3.80402   3.80402   0.00000

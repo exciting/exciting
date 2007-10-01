@@ -2,7 +2,7 @@
  'rubidium'                                 : spname
   -37.0000                                  : spzn
    155798.2685                              : spmass
-  0.328798E-06    2.2000   50.7759   540    : sprmin, rmt, sprmax, nrmt
+  0.328798E-06    2.2000   63.9923   600    : sprmin, rmt, sprmax, nrmt
   13                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

@@ -149,6 +149,7 @@ do i=1,ndmag
   zfft1(:,i)=rvfir(:,i)
   call zfftifc(3,ngrid,-1,zfft1(1,i))
 end do
+zfft2(:,:)=0.d0
 do isym=1,nsymcrys
 ! translation vector in Cartesian coordinates
   call r3mv(avec,vtlsymc(1,isym),vtc)

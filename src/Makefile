@@ -156,7 +156,9 @@ release:
 	cp -r spacegroup $(RELEASE)/src
 	cp -r species $(RELEASE)/src
 	rm -f $(RELEASE)/src/species/*.in
-	cp $(SRC) Makefile protex $(RELEASE)/src
+	cp $(SRC) Makefile protex exciting.bib $(RELEASE)/src
+	cd examples; find . -type f -name *.OUT -exec rm -f {} \;
+	cd examples; find . -type f -name *~ -exec rm -f {} \;
 	cp -r examples $(RELEASE)
 	mkdir $(RELEASE)/species
 	cp species/*.in $(RELEASE)/species

@@ -2,7 +2,7 @@
  'zinc'                                     : spname
   -30.0000                                  : spzn
    119198.6780                              : spmass
-  0.365148E-06    2.0000   35.7726   450    : sprmin, rmt, sprmax, nrmt
+  0.365148E-06    2.0000   40.8760   500    : sprmin, rmt, sprmax, nrmt
   10                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

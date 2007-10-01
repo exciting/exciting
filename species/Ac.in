@@ -2,7 +2,7 @@
  'actinium'                                 : spname
   -89.0000                                  : spzn
    413795.6861                              : spmass
-  0.212000E-06    2.2000   48.7946   720    : sprmin, rmt, sprmax, nrmt
+  0.212000E-06    2.2000   64.4664   800    : sprmin, rmt, sprmax, nrmt
   26                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

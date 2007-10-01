@@ -2,7 +2,7 @@
  'oxygen'                                   : spname
   -8.00000                                  : spzn
    29165.12203                              : spmass
-  0.707107E-06    1.4500   27.0079   270    : sprmin, rmt, sprmax, nrmt
+  0.707107E-06    1.4500   30.0191   300    : sprmin, rmt, sprmax, nrmt
    4                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    F

@@ -2,7 +2,7 @@
  'tungsten'                                 : spname
   -74.0000                                  : spzn
    335119.8191                              : spmass
-  0.232495E-06    2.0000   35.0366   630    : sprmin, rmt, sprmax, nrmt
+  0.232495E-06    2.0000   42.4551   700    : sprmin, rmt, sprmax, nrmt
   22                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

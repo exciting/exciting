@@ -2,7 +2,7 @@
  'scandium'                                 : spname
   -21.0000                                  : spzn
    81949.61067                              : spmass
-  0.436436E-06    2.0000   39.7750   450    : sprmin, rmt, sprmax, nrmt
+  0.436436E-06    2.0000   47.7006   500    : sprmin, rmt, sprmax, nrmt
    9                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

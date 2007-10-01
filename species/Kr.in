@@ -2,7 +2,7 @@
  'krypton'                                  : spname
   -36.0000                                  : spzn
    152758.0550                              : spmass
-  0.333333E-06    2.0000   26.5751   450    : sprmin, rmt, sprmax, nrmt
+  0.333333E-06    2.0000   31.3243   500    : sprmin, rmt, sprmax, nrmt
   12                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

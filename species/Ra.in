@@ -2,7 +2,7 @@
  'radium'                                   : spname
   -88.0000                                  : spzn
    411972.7976                              : spmass
-  0.213201E-06    2.2000   35.5934   720    : sprmin, rmt, sprmax, nrmt
+  0.213201E-06    2.2000   42.9855   800    : sprmin, rmt, sprmax, nrmt
   25                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

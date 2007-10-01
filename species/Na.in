@@ -2,7 +2,7 @@
  'sodium'                                   : spname
   -11.0000                                  : spzn
    41907.78700                              : spmass
-  0.603023E-06    2.0000   46.7073   360    : sprmin, rmt, sprmax, nrmt
+  0.603023E-06    2.0000   56.4734   400    : sprmin, rmt, sprmax, nrmt
    5                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    F

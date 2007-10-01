@@ -69,7 +69,7 @@ spzn=-dble(nz)
 ! minimum radial mesh point proportional to 1/sqrt(Z)
 sprmin=2.d-6/sqrt(abs(dble(spzn)))
 ! set the number of radial mesh points proportional to number of nodes
-nrmt=90*(spn(spnst)+1)
+nrmt=100*(spn(spnst)+1)
 ! find the optimal effective infinity
 sprmax=80.d0
 do i=1,2
@@ -96,7 +96,7 @@ do i=1,2
    rwf)
   do ir=spnr,1,-1
     if (rho(ir).gt.1.d-20) then
-      sprmax=1.25d0*r(ir)
+      sprmax=1.5d0*r(ir)
       goto 20
     end if
   end do

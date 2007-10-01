@@ -2,7 +2,7 @@
  'chromium'                                 : spname
   -24.0000                                  : spzn
    94783.09195                              : spmass
-  0.408248E-06    2.0000   40.2570   450    : sprmin, rmt, sprmax, nrmt
+  0.408248E-06    2.0000   48.2785   500    : sprmin, rmt, sprmax, nrmt
   10                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

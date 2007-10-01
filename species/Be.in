@@ -2,7 +2,7 @@
  'beryllium'                                : spname
   -4.00000                                  : spzn
    16428.20279                              : spmass
-  0.100000E-05    1.4500   32.9638   270    : sprmin, rmt, sprmax, nrmt
+  0.100000E-05    1.4500   41.2161   300    : sprmin, rmt, sprmax, nrmt
    2                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    F

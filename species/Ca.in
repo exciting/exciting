@@ -2,7 +2,7 @@
  'calcium'                                  : spname
   -20.0000                                  : spzn
    73057.72470                              : spmass
-  0.447214E-06    2.2000   47.4643   450    : sprmin, rmt, sprmax, nrmt
+  0.447214E-06    2.2000   49.9632   500    : sprmin, rmt, sprmax, nrmt
    8                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

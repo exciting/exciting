@@ -2,7 +2,7 @@
  'carbon'                                   : spname
   -6.00000                                  : spzn
    21894.16673                              : spmass
-  0.816497E-06    1.4500   30.8727   270    : sprmin, rmt, sprmax, nrmt
+  0.816497E-06    1.4500   39.0411   300    : sprmin, rmt, sprmax, nrmt
    4                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    F

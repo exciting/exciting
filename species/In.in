@@ -2,7 +2,7 @@
  'indium'                                   : spname
   -49.0000                                  : spzn
    209300.4101                              : spmass
-  0.285714E-06    2.0000   42.6387   540    : sprmin, rmt, sprmax, nrmt
+  0.285714E-06    2.0000   54.2189   600    : sprmin, rmt, sprmax, nrmt
   16                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

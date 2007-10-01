@@ -2,7 +2,7 @@
  'fluorine'                                 : spname
   -9.00000                                  : spzn
    34631.97043                              : spmass
-  0.666667E-06    1.4500   23.2042   270    : sprmin, rmt, sprmax, nrmt
+  0.666667E-06    1.4500   26.2078   300    : sprmin, rmt, sprmax, nrmt
    4                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    F

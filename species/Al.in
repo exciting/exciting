@@ -2,7 +2,7 @@
  'aluminium'                                : spname
   -13.0000                                  : spzn
    49184.33493                              : spmass
-  0.554700E-06    2.0000   45.5191   360    : sprmin, rmt, sprmax, nrmt
+  0.554700E-06    2.0000   55.2716   400    : sprmin, rmt, sprmax, nrmt
    6                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

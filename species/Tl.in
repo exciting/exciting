@@ -2,7 +2,7 @@
  'thallium'                                 : spname
   -81.0000                                  : spzn
    372567.9641                              : spmass
-  0.222222E-06    2.0000   38.1009   630    : sprmin, rmt, sprmax, nrmt
+  0.222222E-06    2.0000   47.9658   700    : sprmin, rmt, sprmax, nrmt
   23                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

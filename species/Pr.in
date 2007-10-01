@@ -2,7 +2,7 @@
  'praseodymium'                             : spname
   -59.0000                                  : spzn
    256858.9326                              : spmass
-  0.260378E-06    2.2000   50.7881   630    : sprmin, rmt, sprmax, nrmt
+  0.260378E-06    2.2000   64.0860   700    : sprmin, rmt, sprmax, nrmt
   19                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
