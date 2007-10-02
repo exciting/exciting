@@ -37,9 +37,15 @@ complex(8), allocatable :: zmagmt(:,:,:,:)
 complex(8), allocatable :: zmagir(:,:)
 complex(8), allocatable :: zvfmt(:,:,:)
 complex(8), allocatable :: zfmt(:,:)
+
 ! external functions
 complex(8) zfinp,zfmtinp
 external zfinp,zfmtinp
+!addidional arrays to make truncationerrors more predictable in parallel 
+  complex(8) dvxir_k(ngrtot)
+  complex(8) dbxir_k(ngrtot,ndmag)
+  complex(8) dvxmt_k(lmmaxvr,nrcmtmax,natmtot)
+  complex(8) dbxmt_k(lmmaxvr,nrcmtmax,natmtot,ndmag)
 allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
 allocate(evecfv(nmatmax,nstfv))
 allocate(evecsv(nstsv,nstsv))
@@ -48,6 +54,10 @@ allocate(wfir(ngrtot,nspinor,nstsv))
 allocate(wfcr(lmmaxvr,nrcmtmax,2))
 allocate(zrhomt(lmmaxvr,nrcmtmax,natmtot))
 allocate(zrhoir(ngrtot))
+  dvxir_k(:)=0.d0
+  dbxir_k(:,:)=0.d0
+  dvxmt_k(:,:,:)=0.d0
+  dbxmt_k(:,:,:,:)=0.d0
 if (spinpol) then
   allocate(zmagmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
   allocate(zmagir(ngrtot,ndmag))
@@ -112,9 +122,9 @@ do is=1,nspecies
               zt2=zde*zt1
 ! residues for exchange potential and field
 !$OMP CRITICAL
-              dvxmt(:,1:nr,ias)=dvxmt(:,1:nr,ias)+zt2*zrhomt(:,1:nr,ias)
+              dvxmt_k(:,1:nr,ias)=dvxmt_k(:,1:nr,ias)+zt2*zrhomt(:,1:nr,ias)
               do idm=1,ndmag
-                dbxmt(:,1:nr,ias,idm)=dbxmt(:,1:nr,ias,idm) &
+                dbxmt_k(:,1:nr,ias,idm)=dbxmt_k(:,1:nr,ias,idm) &
                  +zt2*zvfmt(:,1:nr,idm)
               end do
 !$OMP END CRITICAL
@@ -161,16 +171,16 @@ do ist1=1,nstsv
           nr=nrcmt(is)
           do ia=1,natoms(is)
             ias=idxas(ia,is)
-            dvxmt(:,1:nr,ias)=dvxmt(:,1:nr,ias)+zt2*zrhomt(:,1:nr,ias)
+            dvxmt_k(:,1:nr,ias)=dvxmt_k(:,1:nr,ias)+zt2*zrhomt(:,1:nr,ias)
             do idm=1,ndmag
-              dbxmt(:,1:nr,ias,idm)=dbxmt(:,1:nr,ias,idm) &
+              dbxmt_k(:,1:nr,ias,idm)=dbxmt_k(:,1:nr,ias,idm) &
                +zt2*zmagmt(:,1:nr,ias,idm)
             end do
           end do
         end do
-        dvxir(:)=dvxir(:)+zt2*zrhoir(:)
+        dvxir_k(:)=dvxir_k(:)+zt2*zrhoir(:)
         do idm=1,ndmag
-          dbxir(:,idm)=dbxir(:,idm)+zt2*zmagir(:,idm)
+          dbxir_k(:,idm)=dbxir_k(:,idm)+zt2*zmagir(:,idm)
         end do
 !$OMP END CRITICAL
 ! end loop over ist2
@@ -184,6 +194,12 @@ deallocate(wfmt,wfir,wfcr,zrhomt,zrhoir)
 if (spinpol) then
   deallocate(zmagmt,zmagir,zvfmt,zfmt)
 end if
+!$OMP CRITICAL
+  dvxir(:)=dvxir(:)+dvxir_k(:)
+  dbxir(:,:)=dbxir(:,:)+dbxir_k(:,:)
+  dvxmt(:,:,:)=dvxmt(:,:,:)+dvxmt_k(:,:,:)
+  dbxmt(:,:,:,:)=dbxmt(:,:,:,:)+dbxmt_k(:,:,:,:)
+!$OMP END CRITICAL
 return
 end subroutine
 

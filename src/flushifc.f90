@@ -29,34 +29,36 @@ character(32) action_,blank_,delim_,form_
 character(1024) name_
 inquire(fnum,action=action_,blank=blank_,delim=delim_,form=form_,name=name_, &
  named=named_,opened=opened_)
+
 if ((adjustl(action_).ne.'WRITE').and.(adjustl(action_).ne.'READWRITE')) then
   write(*,*)
   write(*,'("Error(flushifc): unit ",I4," is read-only")') fnum
   write(*,*)
-  stop
+  !stop
 end if
 if (adjustl(form_).ne.'FORMATTED') then
   write(*,*)
   write(*,'("Error(flushifc): unit ",I4," is not a formatted file")') fnum
   write(*,*)
-  stop
+  !stop
 end if
 if (.not.named_) then
   write(*,*)
   write(*,'("Error(flushifc): unit ",I4," is not named")') fnum
   write(*,*)
-  stop
+  !stop
 end if
 if (.not.opened_) then
   write(*,*)
   write(*,'("Error(flushifc): unit ",I4," is not connected")') fnum
   write(*,*)
-  stop
+  !stop
 end if
 ! close and re-open file
 close(fnum)
 open(fnum,action=action_,blank=blank_,delim=delim_,form=form_, &
  file=trim(name_),position='APPEND')
+
 return
 end subroutine
 !EOC

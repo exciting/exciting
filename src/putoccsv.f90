@@ -5,19 +5,32 @@
 
 subroutine putoccsv(ik,occsvp)
 use modmain
+use modmpi
 implicit none
 ! arguments
 integer, intent(in) :: ik
 real(8), intent(in) :: occsvp(nstsv)
+  character(256) ::filetag
+character(256), external:: outfilenamestring
+
 ! local variables
-integer recl
+integer recl,koffset
 ! find the record length
 inquire(iolength=recl) vkl(:,ik),nstsv,occsvp
 !$OMP CRITICAL
-open(70,file=trim(scrpath)//'OCCSV'//trim(filext),action='WRITE', &
+filetag='OCCSV'
+if (splittfile.or.(rank.eq.0))then
+open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
  form='UNFORMATTED',access='DIRECT',recl=recl)
-write(70,rec=ik) vkl(:,ik),nstsv,occsvp
+if (splittfile) then
+ koffset=ik-firstk(procofk(ik))+1
+ else
+ koffset =ik
+ endif
+write(70,rec=koffset) vkl(:,ik),nstsv,occsvp
 close(70)
+
+endif
 !$OMP END CRITICAL
 return
 end subroutine

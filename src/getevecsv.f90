@@ -5,12 +5,14 @@
 
 subroutine getevecsv(vpl,evecsv)
 use modmain
+use modmpi
 implicit none
 ! arguments
 real(8), intent(in) :: vpl(3)
 complex(8), intent(out) :: evecsv(nstsv,nstsv)
 ! local variables
-integer isym,lspn,ik,ist,i,j,k
+logical exist
+integer isym,lspn,ik,ist,i,j,k,koffset
 integer recl,nstsv_
 real(8) vkl_(3),det,th,t1,t2
 real(8) s(3,3),sc(3,3),v(3)
@@ -18,16 +20,34 @@ complex(8) s2(2,2),zt1,zt2
 ! external functions
 real(8) r3taxi
 external r3taxi
+character(256) ::filetag
+character(256), external:: outfilenamestring
 ! find the k-point number
 call findkpt(vpl,isym,ik)
 ! index to global spin rotation in lattice point group
 lspn=lspnsymc(isym)
 ! find the record length
 inquire(iolength=recl) vkl_,nstsv_,evecsv
+filetag='EVECSV'
 !$OMP CRITICAL
-open(70,file=trim(scrpath)//'EVECSV'//trim(filext),action='READ', &
+do i=1,100
+inquire(file=outfilenamestring(filetag,ik),exist=exist)
+ if (exist) then
+open(70,file=outfilenamestring(filetag,ik),action='READ', &
  form='UNFORMATTED',access='DIRECT',recl=recl)
-read(70,rec=ik) vkl_,nstsv_,evecsv
+exit
+else 
+call system('sync')
+write(*,*) "Waiting for other process to write"
+call sleep(5)
+endif
+enddo
+ if (splittfile) then
+ koffset=ik-firstk(procofk(ik))+1
+ else
+ koffset =ik
+ endif
+read(70,rec=koffset) vkl_,nstsv_,evecsv
 close(70)
 !$OMP END CRITICAL
 if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then

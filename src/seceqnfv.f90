@@ -67,31 +67,14 @@ allocate(work(2*n))
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
-call cpu_time(cpu0)
-! set the matrices to zero
-h(:)=0.d0
-o(:)=0.d0
-! muffin-tin contributions
-do is=1,nspecies
-  do ia=1,natoms(is)
-    call hmlaa(.false.,is,ia,ngk(ik,ispn),apwalm,v,h)
-    call hmlalo(.false.,is,ia,ngk(ik,ispn),apwalm,v,h)
-    call hmllolo(.false.,is,ia,ngk(ik,ispn),v,h)
-    call olpaa(.false.,is,ia,ngk(ik,ispn),apwalm,v,o)
-    call olpalo(.false.,is,ia,ngk(ik,ispn),apwalm,v,o)
-    call olplolo(.false.,is,ia,ngk(ik,ispn),v,o)
-  end do
-end do
-! interstitial contributions
-call hmlistl(.false.,ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn),v,h)
-call olpistl(.false.,ngk(ik,ispn),igkig(1,ik,ispn),v,o)
-call cpu_time(cpu1)
+call hamiltonandoverlapsetup(np,ik,ispn,apwalm,h,o)
 !$OMP CRITICAL
 timemat=timemat+cpu1-cpu0
 !$OMP END CRITICAL
 !------------------------------------!
 !     solve the secular equation     !
 !------------------------------------!
+
 call cpu_time(cpu0)
 vl=0.d0
 vu=0.d0

@@ -5,27 +5,53 @@
 
 subroutine getevalfv(vpl,evalfv)
 use modmain
+use modmpi
 implicit none
 ! arguments
 real(8), intent(in) :: vpl(3)
 real(8), intent(out) :: evalfv(nstfv,nspnfv)
 ! local variables
-integer isym,ik
+integer isym,ik,koffset,i
+logical exist
 integer recl,nstfv_,nspnfv_
 real(8) vkl_(3)
 ! external functions
+
+character(256) ::filetag
 real(8) r3taxi
-external r3taxi
+external  r3taxi
+character(256), external:: outfilenamestring
 ! find the k-point number
 call findkpt(vpl,isym,ik)
 ! find the record length
+
 inquire(iolength=recl) vkl_,nstfv_,nspnfv_,evalfv
-!$OMP CRITICAL
-open(70,file=trim(scrpath)//'EVALFV'//trim(filext),action='READ', &
+
+filetag='EVALFV'
+do i=1,100
+inquire(file=outfilenamestring(filetag,ik),exist=exist)
+ if (exist) then
+open(70,file=outfilenamestring(filetag,ik),action='READ', &
  form='UNFORMATTED',access='DIRECT',recl=recl)
-read(70,rec=ik) vkl_,nstfv_,nspnfv_,evalfv
+exit
+else 
+call system('sync')
+write(*,*) "Waiting for other process to write"
+call sleep(5)
+endif
+enddo
+
+ if (splittfile) then
+ koffset=ik-firstk(procofk(ik))+1
+ else
+ koffset =ik
+ endif
+
+read(70,rec=koffset) vkl_,nstfv_,nspnfv_,evalfv
 close(70)
-!$OMP END CRITICAL
+
+
+
 if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
   write(*,*)
   write(*,'("Error(getevalfv): differing vectors for k-point ",I8)') ik

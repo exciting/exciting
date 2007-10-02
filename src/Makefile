@@ -5,110 +5,115 @@ MAKE = make
 #-------------------------------------------------------------------------------
 # Suffix rules
 #-------------------------------------------------------------------------------
-.SUFFIXES: .o .f90
-.f90.o:
+.SUFFIXES: .o .F90
+.F90.o:
 	$(F90) $(F90_OPTS) -c $<
 
 #-------------------------------------------------------------------------------
 # Source files
 #-------------------------------------------------------------------------------
-SRC_modules = modmain.f90 modxcifc.f90
+SRC_modules = modmain.F90 modmpi.F90  modxcifc.F90 
 
-SRC_main = main.f90
+SRC_main = main.F90
 
 SRC_routines = \
- autoradmt.f90 findprim.f90 findsym.f90 findsymcrys.f90 genppts.f90 rfinp.f90 \
- rvfcross.f90 seceqn.f90 symrf.f90 wavefmt.f90
+ autoradmt.F90 findprim.F90 findsym.F90 findsymcrys.F90 genppts.F90 rfinp.F90 \
+ rvfcross.F90 seceqn.F90 symrf.F90 wavefmt.F90
 
 SRC_routines_flux = \
- elfplot.f90 rhonorm.f90 energy.f90 spinchar.f90 \
- zpotclmt.f90 writegeom.f90 nfftifc.f90 zfftifc.f90 allatoms.f90 gridsize.f90 \
- poteff.f90 genrmesh.f90 readfermi.f90 potcoul.f90 gensfacgp.f90 checkmt.f90 \
- zfinp.f90 match.f90 force.f90 forcek.f90 writeefg.f90 packeff.f90 \
- bandchar.f90 findsymlat.f90 \
- genlofr.f90 atom.f90 writefermi.f90 writekpts.f90 fsmfield.f90 mossbauer.f90 \
- occupy.f90 writelinen.f90 writeinfo.f90 readinput.f90 charge.f90 moment.f90 \
- writesym.f90 genidxlo.f90 gencore.f90 addrhocr.f90 gengvec.f90 \
- genshtmat.f90 plot1d.f90 plot2d.f90 plot3d.f90 updatpos.f90 writeiad.f90 \
- symvect.f90 vecplot.f90 genylmg.f90 linengy.f90 init0.f90 init1.f90 \
- gengpvec.f90 genpmat.f90 ggamt.f90 ggair.f90 genveffig.f90 gencfun.f90 \
- genapwfr.f90 seceqnfv.f90 seceqnsv.f90 seceqnss.f90 getngkmax.f90 \
- dos.f90 rhoinit.f90 potplot.f90 writestate.f90 \
- potxc.f90 zpotcoul.f90 gndstate.f90 rhovalk.f90 readstate.f90 bandstr.f90 \
- writeeval.f90 rhoplot.f90 gwf2val.f90 gwf2cr.f90 \
- rfarray.f90 fermisurf.f90 \
- symrvf.f90 symrfmt.f90 wfplot.f90 hmlrad.f90 olprad.f90 olpistl.f90 olpaa.f90 \
- olpalo.f90 olplolo.f90 hmlistl.f90 hmlaa.f90 hmlalo.f90 hmllolo.f90 init2.f90 \
- writelsj.f90 wavefcr.f90 gdft.f90 gradrf.f90 dbxcplot.f90 effmass.f90 \
- projsbf.f90 seceqnhf.f90 writelat.f90 energynn.f90 findigp0.f90 \
- writeengy.f90 writechg.f90 writeforce.f90 genjlgpr.f90 findkpt.f90 \
- putevalfv.f90 getevalfv.f90 putevalsv.f90 getevalsv.f90 putoccsv.f90 \
- getoccsv.f90 putevecfv.f90 getevecfv.f90 putevecsv.f90 getevecsv.f90 \
- delevec.f90 genvmatk.f90 genwfsv.f90 \
- findsymsite.f90 geomplot.f90
+ elfplot.F90 rhonorm.F90 energy.F90 spinchar.F90 \
+ zpotclmt.F90 writegeom.F90 nfftifc.F90 zfftifc.F90 allatoms.F90 gridsize.F90 \
+ poteff.F90 genrmesh.F90 readfermi.F90 potcoul.F90 gensfacgp.F90 checkmt.F90 \
+ zfinp.F90 match.F90 force.F90 forcek.F90 writeefg.F90 packeff.F90 \
+ bandchar.F90 findsymlat.F90 \
+ genlofr.F90 atom.F90 writefermi.F90 writekpts.F90 fsmfield.F90 mossbauer.F90 \
+ occupy.F90 writelinen.F90 writeinfo.F90 readinput.F90 charge.F90 moment.F90 \
+ writesym.F90 genidxlo.F90 gencore.F90 addrhocr.F90 gengvec.F90 \
+ genshtmat.F90 plot1d.F90 plot2d.F90 plot3d.F90 updatpos.F90 writeiad.F90 \
+ symvect.F90 vecplot.F90 genylmg.F90 linengy.F90 init0.F90 init1.F90 \
+ gengpvec.F90 genpmat.F90 ggamt.F90 ggair.F90 genveffig.F90 gencfun.F90 \
+ genapwfr.F90 seceqnfv.F90 seceqnsv.F90 seceqnss.F90 getngkmax.F90 \
+ dos.F90 rhoinit.F90 potplot.F90 writestate.F90 \
+ potxc.F90 zpotcoul.F90 gndstate.F90 gndstate_check_for_convergence.F90\
+ gndstate_force_relax.F90 gndstate_gencore_wf_density.F90 \
+ gndstate_output_state.F90 \
+ gndstate_output_timing_information.F90 gndstate_solvepotential.F90 \
+ gndstate_write_latticevectors.F90 rhovalk.F90 readstate.F90 bandstr.F90 \
+ writeeval.F90 rhoplot.F90 gwf2val.F90 gwf2cr.F90 \
+ rfarray.F90 fermisurf.F90 \
+ symrvf.F90 symrfmt.F90 wfplot.F90 hmlrad.F90 olprad.F90 olpistl.F90 olpaa.F90 \
+ olpalo.F90 olplolo.F90 hmlistl.F90 hmlaa.F90 hmlalo.F90 hmllolo.F90 \
+ hamiltonandoverlapsetup.F90 init2.F90 \
+ writelsj.F90 wavefcr.F90 gdft.F90 gradrf.F90 dbxcplot.F90 effmass.F90 \
+ projsbf.F90 seceqnhf.F90 writelat.F90 energynn.F90 findigp0.F90 \
+ writeengy.F90 writechg.F90 writeforce.F90 genjlgpr.F90 findkpt.F90 \
+ putevalfv.F90 getevalfv.F90 putevalsv.F90 getevalsv.F90 putoccsv.F90 \
+ getoccsv.F90 putevecfv.F90 getevecfv.F90 putevecsv.F90 getevecsv.F90 \
+ delevec.F90 outfilenamestring.F90 genvmatk.F90 genwfsv.F90 \
+ findsymsite.F90 geomplot.F90
 
 SRC_phonon = \
- phonon.f90 dyntask.f90 phcell.f90 phdisp.f90 readdyn.f90 dynqtor.f90 \
- dynrtoq.f90 dynsymapp.f90 dynsym.f90 dyndiag.f90 phdos.f90 sumrule.f90 \
- writephn.f90
+ phonon.F90 dyntask.F90 phcell.F90 phdisp.F90 readdyn.F90 dynqtor.F90 \
+ dynrtoq.F90 dynsymapp.F90 dynsym.F90 dyndiag.F90 phdos.F90 sumrule.F90 \
+ writephn.F90
 
 SRC_optics = \
- writepmat.f90 linopt.f90 linoptk.f90 moke.f90
+ writepmat.F90 linopt.F90 linoptk.F90 moke.F90
 
 SRC_advanced = \
- vnlrho.f90 vnlrhomt.f90 genwiq2.f90 \
- exxengy.f90 exxengyk.f90 oepmain.f90 oepresk.f90 oepvnl.f90 \
- oepvnlk.f90 oepmagmt.f90 oepmag.f90 zrhoqint.f90
-
-
-# rdmft.f90 rdminit.f90 genvmat.f90 genkinmat.f90 rdmvnl.f90 rdmvnlk.f90 \
-# rdmengy.f90 rdmengyx.f90 rdmvaryn.f90 rdmdedn.f90 rdmminn.f90 rdmknrot.f90 \
-# rdmminwf.f90 rdmvarywf.f90 rdmdedc.f90 rdmdexcdc.f90 rdmevecsv.f90 \
-# rdmvnlwf.f90 rdmdexcdn.f90
+ vnlrho.F90 vnlrhomt.F90 genwiq2.F90 \
+ exxengy.F90 exxengyk.F90 oepmain.F90 oepresk.F90 oepvnl.F90 \
+ oepvnlk.F90 oepmagmt.F90 oepmag.F90 zrhoqint.F90
+SRC_MPI=\
+ mpiresumeevecfiles.F90 mpisumrhoandmag.F90 mpisync_evalsv_spnchr.F90
+# rdmft.F90 rdminit.F90 genvmat.F90 genkinmat.F90 rdmvnl.F90 rdmvnlk.F90 \
+# rdmengy.F90 rdmengyx.F90 rdmvaryn.F90 rdmdedn.F90 rdmminn.F90 rdmknrot.F90 \
+# rdmminwf.F90 rdmvarywf.F90 rdmdedc.F90 rdmdexcdc.F90 rdmevecsv.F90 \
+# rdmvnlwf.F90 rdmdexcdn.F90
 
 
 SRC_lib = \
- euler.f90 wigner3j.f90 gaunt.f90 gauntyry.f90 r3mm.f90 r3mtm.f90 r3mmt.f90 \
- r3mv.f90 r3mtv.f90 r3cross.f90 r3dist.f90 r3taxi.f90 r3dot.f90 r3minv.f90 \
- r3mdet.f90 r3frac.f90 i3mdet.f90 factnm.f90 factr.f90 hermite.f90 \
- brzint.f90 sphcrd.f90 sphcover.f90 erf.f90 clebgor.f90 \
- sbessel.f90 sbesseldm.f90 genylm.f90 genrlm.f90 radmesh.f90 zmatinp.f90 \
- lopzflm.f90 sortidx.f90 gcd.f90 zfmtinp.f90 rfmtinp.f90 findband.f90 \
- gradzfmt.f90 gradrfmt.f90 ztorflm.f90 rtozflm.f90 zflmconj.f90 rotzflm.f90 \
- polynom.f90 sdelta.f90 stheta.f90 sdelta_mp.f90 stheta_mp.f90 sdelta_fd.f90 \
- stheta_fd.f90 rdiracint.f90 rdiracdme.f90 rdirac.f90 rschrodint.f90 \
- rschroddme.f90 rschrodapp.f90 reciplat.f90 \
- connect.f90 \
- flushifc.f90 spline.f90 writewiq2.f90 rfinterp.f90 rfmtctof.f90 fderiv.f90 \
- mixer.f90 fsmooth.f90 rotaxang.f90 i3minv.f90
+ euler.F90 wigner3j.F90 gaunt.F90 gauntyry.F90 r3mm.F90 r3mtm.F90 r3mmt.F90 \
+ r3mv.F90 r3mtv.F90 r3cross.F90 r3dist.F90 r3taxi.F90 r3dot.F90 r3minv.F90 \
+ r3mdet.F90 r3frac.F90 i3mdet.F90 factnm.F90 factr.F90 hermite.F90 \
+ brzint.F90 sphcrd.F90 sphcover.F90 erf.F90 clebgor.F90 \
+ sbessel.F90 sbesseldm.F90 genylm.F90 genrlm.F90 radmesh.F90 zmatinp.F90 \
+ lopzflm.F90 sortidx.F90 gcd.F90 zfmtinp.F90 rfmtinp.F90 findband.F90 \
+ gradzfmt.F90 gradrfmt.F90 ztorflm.F90 rtozflm.F90 zflmconj.F90 rotzflm.F90 \
+ polynom.F90 sdelta.F90 stheta.F90 sdelta_mp.F90 stheta_mp.F90 sdelta_fd.F90 \
+ stheta_fd.F90 rdiracint.F90 rdiracdme.F90 rdirac.F90 rschrodint.F90 \
+ rschroddme.F90 rschrodapp.F90 reciplat.F90 \
+ connect.F90 \
+ flushifc.F90 spline.F90 writewiq2.F90 rfinterp.F90 rfmtctof.F90 fderiv.F90 \
+ mixer.F90 fsmooth.F90 rotaxang.F90 i3minv.F90
 
 SRC_lib_flux =
 
 SRC_xc = \
-  xc_pzca.f90 xc_pwca.f90 xc_pbe.f90 xc_am05.f90 xc_xalpha.f90 xc_wc06.f90 \
-  x_wc06.f90 x_pbe.f90 c_pbe.f90 c_pbe_gcor.f90
+  xc_pzca.F90 xc_pwca.F90 xc_pbe.F90 xc_am05.F90 xc_xalpha.F90 xc_wc06.F90 \
+  x_wc06.F90 x_pbe.F90 c_pbe.F90 c_pbe_gcor.F90
 
-SRC = $(SRC_modules) $(SRC_main) $(SRC_routines) $(SRC_routines_flux) \
+SRC = $(SRC_modules) $(SRC_main) $(SRC_routines) $(SRC_routines_flux) $(SRC_MPI)\
  $(SRC_lib) $(SRC_lib_flux) $(SRC_advanced) $(SRC_phonon) $(SRC_optics) \
  $(SRC_xc)
 
-OBJ = $(SRC:.f90=.o)
+OBJ = $(SRC:.F90=.o)
 EXE = exciting
-
-exciting:	$(OBJ)
-	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ) $(LIB_LPK) $(LIB_FFT) $(LIB_SYS)
+ITERLIB=-L./src_iterative_solver -literative_solver
+exciting:	$(OBJ) ./src_iterative_solver/libiterative_solver.a
+	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ) $(ITERLIB) $(LIB_LPK) $(LIB_FFT) $(LIB_SYS)
 
 blas:
-	cd BLAS; $(MAKE); cp blas.a ..
+	cd BLAS; $(MAKE) # ; cp blas.a ..
 
 lapack:
-	cd LAPACK; $(MAKE); cp lapack.a ..
+	cd LAPACK; $(MAKE) # ; cp lapack.a ..
 
 fft:
-	cd fftlib; $(MAKE); cp fftlib.a ..
+	cd fftlib; $(MAKE) # ; cp fftlib.a ..
 
 xc:
-	cd xclib; $(MAKE); cp xclib.a ..
+	cd xclib; $(MAKE) # ; cp xclib.a ..
 
 all:	blas lapack fft exciting
 
@@ -138,7 +143,7 @@ backup:
          Makefile notes.txt docs docedit examples protex COPYING README \
          exciting.bib ../release
 
-VERSION = $$(awk -F"/" '/data version/ {print $$2}' modmain.f90 | sed 's/ //g;s/,/./g')$
+VERSION = $$(awk -F"/" '/data version/ {print $$2}' main.F90 | sed 's/ //g;s/,/./g')$
 RELEASE = ../release/exciting
 
 release:

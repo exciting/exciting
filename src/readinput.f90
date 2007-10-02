@@ -76,6 +76,8 @@ natoms(:)=0
 sppath='./'
 scrpath='./'
 nvp1d=2
+iterativetype=0
+iterativeinterval=5
 if (allocated(vvlp1d)) deallocate(vvlp1d)
 allocate(vvlp1d(3,nvp1d))
 vvlp1d(:,1)=0.d0
@@ -296,6 +298,10 @@ case('xctype')
   read(50,*) xctype
 case('stype')
   read(50,*) stype
+case('iterativetype')
+  read(50,*) iterativetype
+case('iterativeinterval')
+  read(50,*) iterativeinterval
 case('swidth')
   read(50,*) swidth
   if (swidth.lt.1.d-9) then

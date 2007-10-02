@@ -4,21 +4,35 @@
 ! See the file COPYING for license details.
 
 subroutine putevalfv(ik,evalfv)
-use modmain
-implicit none
-! arguments
-integer, intent(in) :: ik
-real(8), intent(in) :: evalfv(nstfv,nspnfv)
-! local variables
-integer recl
-! find the record length
-inquire(iolength=recl) vkl(:,ik),nstfv,nspnfv,evalfv
-!$OMP CRITICAL
-open(70,file=trim(scrpath)//'EVALFV'//trim(filext),action='WRITE', &
- form='UNFORMATTED',access='DIRECT',recl=recl)
-write(70,rec=ik) vkl(:,ik),nstfv,nspnfv,evalfv
-close(70)
+  use modmain
+  use modmpi
+  implicit none
+  ! arguments
+  integer, intent(in) :: ik
+  real(8), intent(in) :: evalfv(nstfv,nspnfv)
+
+  ! local variables
+  integer recl,koffset   
+    character(256) ::filetag
+   character(256), external:: outfilenamestring
+  
+  ! find the record length
+  inquire(iolength=recl) vkl(:,ik),nstfv,nspnfv,evalfv
+  !$OMP CRITICAL
+filetag='EVALFV'
+if (splittfile.or.(rank.eq.0)) then
+  open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
+       form='UNFORMATTED',access='DIRECT',recl=recl)
+ if (splittfile) then
+ koffset=ik-firstk(procofk(ik))+1
+ else
+ koffset =ik
+ endif
+write(70,rec=koffset)vkl(:,ik),nstfv,nspnfv,evalfv
+  close(70)
+  
+endif
 !$OMP END CRITICAL
-return
-end subroutine
+  return
+end subroutine putevalfv
 
