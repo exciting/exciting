@@ -3,3 +3,9 @@
 exciting
 *.OUT
 *.mod
+src/eos/eos
+src/spacegroup/spacegroup
+src/species/species
+
+
+
