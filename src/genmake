@@ -1,1 +1,0 @@
-	perl ../utilities/mkmf -c -DSER -t template -f -m Makefile.serial -p excitings -x   &&\
