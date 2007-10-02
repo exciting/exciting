@@ -9,12 +9,18 @@
 subroutine readinput
 ! !USES:
 use modmain
+! <sag>
+use modtetra
+use modtddft
+use modpar
+! </sag>
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
 !   from the species files. Also sets default values for the input parameters.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
+!   Additional parmeters for TDDFT 2004-2007 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -138,7 +144,42 @@ spinsprl=.false.
 vqlss(:)=0.d0
 nwrite=0
 tevecsv=.false.
-
+!<sag>
+! tetrahedron method values
+tetra=.false.
+fflg=4
+! TDDFT values
+imbandstr=.false.
+pmatira=.false.
+qtype='grid'
+qlist=''
+vqloff(:)=0.d0
+tq0ev=.true.
+gqmax=2.d0
+lmaxapwtd=-1 ! same default value as for lmaxmat if not read in
+lmaxemat=3
+rsptype='reta'
+acont=.false.
+nwacont=0
+lorentz=.false.
+brdtd=0.01
+aresdf=.true.
+symwings=.false.
+lfediag=.false.
+fxctype=0
+nexcitmax=100
+alphalrc=0.d0
+alphalrcdyn=0.d0
+betalrcdyn=0.d0
+gather=.false.
+tevout=.false.
+verbscf=.false.
+tappinfo=.false.
+dbglev=0
+! parallel environment values
+baridl=0
+baridl2=0
+!</sag>
 !-------------------------------!
 !     read from exciting.in     !
 !-------------------------------!
@@ -695,6 +736,108 @@ case('nwrite')
   read(50,*) nwrite
 case('tevecsv')
   read(50,*) tevecsv
+! <sag>
+!  tetrahedron method variables
+case('tetra')
+  read(50,*) tetra
+case('tetcflg')
+  read(50,*) fflg
+! TDDFT variables
+case('imbandstr')
+  read(50,*) imbandstr
+case('pmatira')
+  read(50,*) pmatira
+case('qtype')
+   read(50,*) qtype
+case('qlist')
+   read(50,*) qlist
+case('vqloff')
+   read(50,*) vqloff(1),vqloff(2),vqloff(3)
+case('tq0ev')
+   read(50,*) tq0ev
+case('gqmax')
+  read(50,*) gqmax
+  if (gqmax.le.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): gqmax <= 0 : ",G18.10)') gqmax
+    write(*,*)
+    stop
+  end if
+case('lmaxapwtd')
+  read(50,*) lmaxapwtd
+  if (lmaxapwtd.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput)[td]: lmaxapwtd < 0 : ",I8)') lmaxapwtd
+    write(*,*)
+    stop
+  end if
+case('lmaxemat')
+  read(50,*) lmaxemat
+  if (lmaxemat.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): lmaxemat < 0 : ",I8)') lmaxemat
+    write(*,*)
+    stop
+  end if
+case('rsptype')
+  read(50,*) rsptype
+  if ((rsptype.ne.'tord').and.(rsptype.ne.'reta')) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): invalid rsptype : ",a)') rsptype
+    write(*,*)
+    stop
+  end if
+case('acont')
+  read(50,*) acont
+case('nwacont')
+  read(50,*) nwacont
+  if (brdtd.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): nwacont <= 0 : ",g18.10)') nwacont
+    write(*,*)
+    stop
+  end if
+case('lorentz')
+  read(50,*) lorentz
+case('brdtd')
+  read(50,*) brdtd
+  if (brdtd.le.0) then
+    write(*,*)
+    write(*,'("Warning(readinput[td]): brdtd <= 0 : ",g18.10)') brdtd
+    write(*,*)
+  end if
+case('aresdf')
+  read(50,*) aresdf
+case('symwings')
+  read(50,*) symwings
+case('lfediag')
+  read(50,*) lfediag
+case('fxctype')
+  read(50,*) fxctype
+case('nexcitmax')
+  read(50,*) nexcitmax
+case('alphalrc')
+  read(50,*) alphalrc
+case('alphalrcdyn')
+  read(50,*) alphalrcdyn
+case('betalrcdyn')
+  read(50,*) betalrcdyn
+case('gather')
+  read(50,*) gather
+case('tevout')
+  read(50,*) tevout
+case('verbscf')
+  read(50,*) verbscf
+case('appinfo')
+  read(50,*) tappinfo
+case('dbglev')
+  read(50,*) dbglev
+! parallel environment variables
+case('baridl')
+  read(50,*) baridl
+case('baridl2')
+  read(50,*) baridl2
+! </sag>
 case('')
   goto 10
 case default

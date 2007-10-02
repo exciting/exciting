@@ -9,6 +9,10 @@
 subroutine gndstate
 ! !USES:
 use modmain
+!<sag>
+use modpar
+use modtddft, only: verbscf
+!</sag>
 ! !DESCRIPTION:
 !   Computes the self-consistent Kohn-Sham ground-state. General information is
 !   written to the file {\tt INFO.OUT}. First- and second-variational
@@ -145,6 +149,9 @@ do iscl=1,maxscl
     call putevecfv(ik,evecfv)
     call putevecsv(ik,evecsv)
     deallocate(evalfv,evecfv,evecsv)
+    if (verbscf) then
+       write(*,'("secular equation solved for q-point/k-point: ",2i6)') rank,ik
+    end if
   end do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -174,6 +181,10 @@ do iscl=1,maxscl
     call getevecsv(vkl(1,ik),evecsv)
 ! add to the density and magnetisation
     call rhovalk(ik,evecfv,evecsv)
+    if (verbscf) then
+       write(*,'("partial density generated for q-point/k-point: ",2i6)') &
+            rank,ik
+    end if
     deallocate(evecfv,evecsv)
   end do
 !$OMP END DO

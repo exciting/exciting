@@ -1,0 +1,24 @@
+# ---------------------- intel fortran compiler -------------------------------
+F90 = ifort
+#F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90 -traceback -check all
+F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
+F77 = ifort
+F77_OPTS = -O4 -ip -unroll -prefetch -scalar_rep -w90
+LIB_SYS = 
+
+# included libraries
+#LIB_LPK = lapack.a blas.a
+
+# system libraries
+#LIB_LPK = -llapack -lblas
+
+# MKL libraries
+LIB_LPK = -L /software/intel/mkl721/lib/em64t/ -lmkl_lapack -lmkl_em64t -lguide -lpthread
+
+# ATLAS library with standard compiler options
+#LIB_LPK = /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2/liblapack.a lapack.a -L /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2 -lf77blas -lcblas -latlas -lg2c
+#LIB_LPK = /usr/people/phyk/sagmste/src/libraries/opt/ATLAS/lib/Linux_HAMMER64SSE2/liblapack.a lapack.a -L /usr/people/phyk/sagmste/src/libraries/opt/ATLAS/lib/Linux_HAMMER64SSE2 -lf77blas -lcblas -latlas -lg2c
+
+# FFT library
+LIB_FFT = fftlib.a libbzint.a
+# ---------------------- end intel fortran compiler ---------------------------

@@ -6,9 +6,19 @@
 ! main routine for the EXCITING code
 program main
 use modmain
+!<sag>
+! module for parallel environment
+use modpar
+! module for TDDFT part
+use modtddft
+!</sag>
 implicit none
 ! local variables
 integer itask
+!<sag>
+! initialize parallel environment
+call initpar
+!</sag>
 ! read input files
 call readinput
 ! perform the appropriate task
@@ -66,6 +76,20 @@ do itask=1,ntasks
     call writephn
   case(250)
     call geomplot
+!<sag>
+  ! tasks for TDDFT
+  case(23,300:399,1200,1300)
+    call tddftmain
+  case(900)
+  ! generate portable ASCII STATE.xml file from STATE.OUT file
+    call portstate(.true.)
+  case(901)
+  ! generate STATE.OUT file from portable ASCII STATE.xml file
+    call portstate(.false.)
+  case(902)
+  ! k-point in SCF
+    call atkp
+!</sag>
   case default
     write(*,*)
     write(*,'("Error(main): task not defined : ",I8)') task
@@ -73,7 +97,11 @@ do itask=1,ntasks
     stop
   end select
 end do
-stop
+!<sag>
+! finalize parallel environment
+call finitpar
+!!$stop
+!</sag>
 end program
 
 !BOI

@@ -9,6 +9,10 @@
 subroutine bandstr
 ! !USES:
 use modmain
+!<sag>
+! masquerade varialbes
+use modtddft, evalfv_=>evalfv, evecfv_=>evecfv, evecsv_=>evecsv
+!</sag>
 ! !DESCRIPTION:
 !   Produces a band structure along the path in reciprocal-space which connects
 !   the vertices in the array {\tt vvlp1d}. The band structure is obtained from
@@ -22,6 +26,7 @@ use modmain
 !
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
+!   Modifications June 2007 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -129,16 +134,43 @@ emin=emin-(emax-emin)*0.5d0
 ! output the band structure
 if (task.eq.20) then
   open(50,file='BAND.OUT',action='WRITE',form='FORMATTED')
+!<sag>
+  if (imbandstr) then
+     open(51,file='BAND_NF0.OUT',action='WRITE',form='FORMATTED')
+  end if
+!</sag>
   do ist=1,nstsv
     do ik=1,nkpt
       write(50,'(2G18.10)') dpp1d(ik),e(ist,ik)
+!<sag>
+      if (imbandstr) then
+         if (evalsv(ist,ik) > efermi) then
+            write(51,'(2G18.10)') dpp1d(ik),evalsv(ist,ik)+scissor
+         else
+            write(51,'(2G18.10)') dpp1d(ik),evalsv(ist,ik)
+         end if
+      end if
+!</sag>
     end do
     write(50,'("     ")')
+!<sag>
+    if (imbandstr) then
+       write(51,'("     ")')
+    end if
+!</sag>
   end do
   close(50)
   write(*,*)
   write(*,'("Info(bandstr):")')
   write(*,'(" band structure plot written to BAND.OUT")')
+!<sag>
+  if (imbandstr) then
+     close(51)
+     write(*,'(" band structure plot without shifting Fermi energy to")')
+     write(*,'(" zero written to BAND_NF0.OUT")')
+  end if
+  call writebandgap
+!</sag>
 else
   do is=1,nspecies
     do ia=1,natoms(is)
