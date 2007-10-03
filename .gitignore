@@ -6,6 +6,6 @@ exciting
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species
-
-
-
+.cdtproject
+.project
+.settings/*
