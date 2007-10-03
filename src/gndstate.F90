@@ -24,7 +24,7 @@ subroutine gndstate
   implicit none
   ! local variables
   logical init,exist,redoscl
-  integer ik,is,ia,idm,n,occsvfile
+  integer ik,is,ia,idm,n,occsvfile,ispn
   real(8) dv,timetot
   ! allocatable arrays
   real(8), allocatable :: nu(:)
@@ -42,7 +42,34 @@ subroutine gndstate
   ! initialise OEP/Hartree-Fock variables if required
   if ((xctype.lt.0).or.hartfock) call init2
   ! write the real and reciprocal lattice vectors to file
-  call gndstate_write_latticevectors
+if(rank.eq.0) then
+     call writelat
+     ! write inter-atomic distances to file
+     call writeiad
+     ! write symmetry matrices to file
+     call writesym
+     ! output the k-point set to file
+     call writekpts
+     ! write lattice vectors and atomic positions to file
+     call writegeom(.false.)
+     ! open INFO.OUT file
+     open(60,file='INFO'//trim(filext),action='WRITE',form='FORMATTED')
+     ! open TOTENERGY.OUT
+     open(61,file='TOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
+     ! open FERMIDOS.OUT
+     open(62,file='FERMIDOS'//trim(filext),action='WRITE',form='FORMATTED')
+     ! open MOMENT.OUT if required
+     if (spinpol) open(63,file='MOMENT'//trim(filext),action='WRITE', &
+          form='FORMATTED')
+     ! open FORCEMAX.OUT if required
+     if (tforce) open(64,file='FORCEMAX'//trim(filext),action='WRITE', &
+          form='FORMATTED')
+     ! write out general information to INFO.OUT
+     call writeinfo(60)
+     ! initialise or read the charge density and potentials from file
+     write(60,*)
+	 call flushifc(60)
+  endif
   if ((task.eq.1).or.(task.eq.3)) then
      call readstate
      if(rank.eq.0) write(60,'("Density and potential read in from STATE.OUT")')
@@ -100,7 +127,20 @@ subroutine gndstate
      end if
      if(rank.eq.0) call flushifc(60)
      ! generate the core wavefunctions and densities
-     call gndstate_gencore_wf_density
+    
+    call gencore
+     ! find the new linearisation energies
+     call linengy
+     ! write out the linearisation energies
+     call writelinen
+     ! generate the APW radial functions
+     call genapwfr
+     ! generate the local-orbital radial functions
+     call genlofr
+     ! compute the overlap radial integrals
+     call olprad
+     ! compute the Hamiltonian radial integrals
+     call hmlrad
      ! begin parallel loop over k-points
      allocate(evalfv(nstfv,nspnfv))
      allocate(evecfv(nmatmax,nstfv,nspnfv))
@@ -226,20 +266,259 @@ subroutine gndstate
 	 call mpisumrhoandmag
 #endif    
 call mpiresumeevecfiles()
-	 call gndstate_solvepotential(init,mu,nu,beta,f,n,dv)
+
+  ! symmetrise the density
+  call symrf(lradstp,rhomt,rhoir)
+! symmetrise the magnetisation
+  if (spinpol) call symrvf(.false.,lradstp,ndmag,magmt,magir)
+! convert the density from a coarse to a fine radial mesh
+  call rfmtctof(rhomt)
+  ! convert the magnetisation from a coarse to a fine radial mesh
+  do idm=1,ndmag
+     call rfmtctof(magmt(1,1,1,idm))
+  end do
+  ! add the core density to the total density
+  call addrhocr
+  ! calculate the charges
+  call charge
+  ! calculate the moments
+  if (spinpol) call moment
+  ! normalise the density
+  call rhonorm
+  ! compute the effective potential
+  call poteff
+  ! pack interstitial and muffin-tin effective potential and field into one array
+  call packeff(.true.,n,nu)
+  ! mix in the old potential and field with the new
+  if(rank.eq.0) 	call mixer(init,beta0,betamax,n,nu,mu,beta,f,dv)
+#ifdef MPI
+  call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+  call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+  call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+  call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+#endif
+  ! unpack potential and field
+  call packeff(.false.,n,nu)
+  ! add the fixed spin moment effective field
+  if (fixspin) call fsmfield
+  ! Fourier transform effective potential to G-space
+  call genveffig
+  
      ! compute the energy components
      call energy
-     call gndstate_output_state
+
+  if(rank.eq.0) then
+        call writeengy(60)
+        write(60,*)
+        write(60,'("Density of states at Fermi energy : ",G18.10)') fermidos
+        write(60,'(" (states/Hartree/spin/unit cell)")')
+        ! write total energy to TOTENERGY.OUT and flush
+        write(61,'(G18.10)') engytot
+        call flushifc(61)
+        ! write DOS at Fermi energy to FERMIDOS.OUT and flush
+        write(62,'(G18.10)') fermidos
+        call flushifc(62)
+        ! output charges and moments
+        call writechg(60)
+        ! write total moment to MOMENT.OUT and flush
+        if (spinpol) then
+           write(63,'(3G18.10)') momtot(1:ndmag)
+           call flushifc(63)
+        end if
+        ! output effective field for fixed spin moment calculations
+        if (fixspin) then
+           write(60,*)
+           write(60,'("FSM effective field      : ",3G18.10)') bfsmc(1:ndmag)
+        end if
+        ! check for WRITE file
+        inquire(file='WRITE',exist=exist)
+        if (exist) then
+           write(60,*)
+           write(60,'("WRITE file exists - writing STATE.OUT")')
+           call writestate
+           open(50,file='WRITE')
+           close(50,status='DELETE')
+        end if
+        ! write STATE.OUT file if required
+        if (nwrite.ge.1) then
+           if (mod(iscl,nwrite).eq.0) then
+              call writestate
+              write(60,*)
+              write(60,'("Wrote STATE.OUT")')
+           end if
+        end if
+        ! exit self-consistent loop if last iteration is complete
+     endif
+
 
      ! exit self-consistent loop if last iteration is complete
 	 	  if (tlast) goto 20
-     call gndstate_check_for_convergence(tlast,tstop,dv)
+
+  if(rank.eq.0)then
+     ! check for convergence
+     if (iscl.ge.2) then
+        write(60,*)
+        write(60,'("RMS change in effective potential (target) : ",G18.10,&
+             &" (",G18.10,")")') dv,epspot
+        if (dv.lt.epspot) then
+           write(60,*)
+           write(60,'("Potential convergence target achieved")')
+           tlast=.true.
+        end if
+        if (xctype.lt.0) then
+           write(60,'("Magnitude of OEP residue : ",G18.10)') resoep
+        end if
+     end if
+     ! check for STOP file
+     inquire(file='STOP',exist=exist)
+     if (exist) then
+        write(60,*)
+        write(60,'("STOP file exists - stopping self-consistent loop")')
+        tstop=.true.
+        tlast=.true.
+        open(50,file='STOP')
+        close(50,status='DELETE')
+     end if
+     ! output the current total CPU time
+     timetot=timeinit+timemat+timefv+timesv+timerho+timepot+timefor
+     write(60,*)
+     write(60,'("Time (CPU seconds) : ",F12.2)') timetot
+     ! end the self-consistent loop
+  endif
+#ifdef MPI
+  call MPI_bcast(tstop_,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+  call MPI_bcast(tlast_,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+#endif
+
   !end of SCL
   end do
 20 continue
-  call gndstate_force_relax(redoscl)
+if (rank.eq.0)then
+     redoscl=.false.
+     write(60,*)
+     write(60,'("+------------------------------+")')
+     write(60,'("| Self-consistent loop stopped |")')
+     write(60,'("+------------------------------+")')
+     ! write density and potentials to file only if maxscl > 1
+     if (maxscl.gt.1) call writestate
+  endif
+  !-----------------------!
+  !     compute forces    !
+  !-----------------------!
+  if ((.not.tstop).and.(tforce)) then
+     call force
+     if (rank.eq.0) then
+        ! output forces to INFO.OUT
+        call writeforce(60)
+        ! write maximum force magnitude to FORCEMAX.OUT
+        write(64,'(G18.10)') forcemax
+        call flushifc(64)
+     endif
+  end if
+  !---------------------------------------!
+  !     perform structural relaxation     !
+  !---------------------------------------!
+  if ((.not.tstop).and.((task.eq.2).or.(task.eq.3))) then
+     if (rank.eq.0) then
+        write(60,*)
+        write(60,'("Maximum force magnitude (target) : ",G18.10," (",G18.10,")")') &
+             forcemax,epsforce
+        call flushifc(60)
+     endif
+     ! check force convergence
+     if (forcemax.le.epsforce) then
+        if (rank.eq.0) then
+           write(60,*)
+           write(60,'("Force convergence target achieved")')
+        endif
+        goto 30
+     end if
+     ! update the atomic positions if forces are not converged
+     call updatpos
+     if (rank.eq.0) then
+        write(60,*)
+        write(60,'("+--------------------------+")')
+        write(60,'("| Updated atomic positions |")')
+        write(60,'("+--------------------------+")')
+        do is=1,nspecies
+           write(60,*)
+           write(60,'("Species : ",I4,", ",A)') is,trim(spsymb(is))
+           write(60,'(" atomic positions (lattice) :")')
+           do ia=1,natoms(is)
+              write(60,'(I4,3F14.8)') ia,atposl(:,ia,is)
+           end do
+        end do
+        ! write lattice vectors and optimised atomic positions to file
+        call writegeom(.true.)
+     endif
+     ! check for overlapping muffin-tins
+     call checkmt
+     ! generate structure factors for G-vectors
+     call gensfacgp(ngvec,vgc,ngvec,sfacg)
+     ! generate the characteristic function
+     call gencfun
+     ! generate structure factors for G+k-vectors
+     do ispn=1,nspnfv
+        do ik=1,nkpt
+           call gensfacgp(ngk(ik,ispn),vgkc(1,1,ik,ispn),ngkmax,sfacgk(1,1,ik,ispn))
+        end do
+     end do
+     ! determine the new nuclear-nuclear energy
+     call energynn
+     ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT and MOMENT.OUT
+     if (rank.eq.0) then
+        write(61,*)
+        write(62,*)
+        if (spinpol) write (63,*)
+     endif
+     ! begin new self-consistent loop with updated positions
+     redoscl=.true.
+
+  end if
+
+30 continue
+  !bcasts!!
+
+#ifdef MPI
+  call MPI_bcast(redoscl,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+
+  call MPI_Bcast(fsum,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(atposc,size(atposc),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(atposl,size(atposl),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(vkl,size(vkl),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(vkc,size(vkc),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ngvec,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(sfacg,size(sfacg),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ngk,size(ngk),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(vgkc,size(vgkc),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(sfacgk,size(sfacgk),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ngkmax,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(engynn,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+#endif
+
   if(redoscl)goto 10
-  call gndstate_output_timing_information
+ if(rank.eq.0) then
+	   write(60,*)
+     write(60,'("Timings (CPU seconds) :")')
+     write(60,'(" initialisation                        : ",F12.2)') timeinit
+     write(60,'(" Hamiltonian and overlap matrix set up : ",F12.2)') timemat
+     write(60,'(" first-variational secular equation    : ",F12.2)') timefv
+     if (spinpol) then
+        write(60,'(" second-variational calculation        : ",F12.2)') timesv
+     end if
+     write(60,'(" charge density calculation            : ",F12.2)') timerho
+     write(60,'(" potential calculation                 : ",F12.2)') timepot
+     if (tforce) then
+        write(60,'(" force calculation                     : ",F12.2)') timefor
+     end if
+     timetot=timeinit+timemat+timefv+timesv+timerho+timepot+timefor
+     write(60,'(" total                                 : ",F12.2)') timetot
+     write(60,*)
+     write(60,'("+----------------------------------+")')
+     write(60,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," stopped |")') version
+     write(60,'("+----------------------------------+")')
+ endif
   if (rank.eq.0) then
      ! close the INFO.OUT file
      close(60)
