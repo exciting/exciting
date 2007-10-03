@@ -67,11 +67,13 @@ real(8), parameter :: alpha=1.d0/137.03599911d0
 ! electron g factor
 real(8), parameter :: ge=2.0023193043718d0
 real(8), parameter :: ga4=ge*alpha/4.d0
+complex(8) zt1
 ! allocatable arrays
-real(8), allocatable :: rfmt(:,:)
+complex(8), allocatable :: evecsv(:,:),c(:,:)
 ! external functions
 real(8) rfmtinp,rfinp
-external rfmtinp,rfinp
+complex(8) zdotc
+external rfmtinp,rfinp,zdotc
 !-----------------------------------------------!
 !     exchange-correlation potential energy     !
 !-----------------------------------------------!
@@ -134,21 +136,18 @@ engycl=engynn+engyen+engyhar
 !-------------------------!
 !     exchange energy     !
 !-------------------------!
-if ((xctype.lt.0).or.(hartfock)) then
-! exact exchange calculation using Kohn-Sham orbitals
-  if (tlast) then
-    call exxengy
-  else
-    engyx=0.d0
-  end if
-else
 ! exchange energy from the density
-  engyx=rfinp(1,rhomt,exmt,rhoir,exir)
+engyx=rfinp(1,rhomt,exmt,rhoir,exir)
+! exact exchange for OEP-EXX or Hartree-Fock on last iteration
+if ((xctype.lt.0).or.(task.eq.5)) then
+  if (tlast) call exxengy
 end if
 !----------------------------!
 !     correlation energy     !
 !----------------------------!
 engyc=rfinp(1,rhomt,ecmt,rhoir,ecir)
+! zero correlation energy for Hartree-Fock
+if (task.eq.5) engyc=0.d0
 !----------------------------!
 !     sum of eigenvalues     !
 !----------------------------!
@@ -171,28 +170,33 @@ end do
 !------------------------!
 !     kinetic energy     !
 !------------------------!
-if (hartfock) then
+! core electron kinetic energy
+call energykncr
+! total electron kinetic energy
+if (task.eq.5) then
 ! Hartree-Fock case
-  engyekn=evalsum-engyvcl-2.d0*engyx-engybext-engybmt
-! subtract the core exchange-correlation potential energy
-  allocate(rfmt(lmmaxvr,nrmtmax))
-  do is=1,nspecies
-    do ia=1,natoms(is)
-      ias=idxas(ia,is)
-      rfmt(1,1:nrmt(is))=rhocr(1:nrmt(is),ias)/y00
-      engyekn=engyekn-rfmtinp(1,0,nrmt(is),spr(1,is),lmmaxvr,rfmt, &
-       vxcmt(1,1,ias))
+  engykn=engykncr
+! kinetic energy from valence states
+  allocate(evecsv(nstsv,nstsv))
+  allocate(c(nstsv,nstsv))
+  do ik=1,nkpt
+    call getevecsv(vkl(1,ik),evecsv)
+    call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(1,1,ik),nstsv,evecsv, &
+     nstsv,zzero,c,nstsv)
+    do ist=1,nstsv
+      zt1=zdotc(nstsv,evecsv(1,ist),1,c(1,ist),1)
+      engykn=engykn+wkpt(ik)*occsv(ist,ik)*dble(zt1)
     end do
   end do
-  deallocate(rfmt)
+  deallocate(evecsv,c)
 else
 ! Kohn-Sham case
-  engyekn=evalsum-engyvcl-engyvxc-engybxc-engybext-engybmt
+  engykn=evalsum-engyvcl-engyvxc-engybxc-engybext-engybmt
 end if
 !----------------------!
 !     total energy     !
 !----------------------!
-engytot=engyekn+0.5d0*engyvcl+engymad+engyx+engyc
+engytot=engykn+0.5d0*engyvcl+engymad+engyx+engyc
 return
 end subroutine
 !EOC

@@ -24,12 +24,8 @@ real(8), allocatable :: sc(:,:,:)
 real(8), allocatable :: d(:)
 real(8), allocatable :: eps1(:)
 real(8), allocatable :: eps2(:)
-real(8), allocatable :: epsint1(:)
-real(8), allocatable :: epsint2(:)
 real(8), allocatable :: sigma1(:)
 real(8), allocatable :: sigma2(:)
-real(8), allocatable :: sigint1(:)
-real(8), allocatable :: sigint2(:)
 real(8), allocatable :: delta(:,:)
 real(8), allocatable :: pmatint(:,:)
 complex(8), allocatable :: evecfv(:,:)
@@ -59,16 +55,14 @@ allocate(f(n,nkpt))
 allocate(sc(3,3,nsymcrys))
 allocate(d(nsymcrys))
 allocate(eps1(nwdos),eps2(nwdos))
-allocate(epsint1(nwdos),epsint2(nwdos))
 allocate(sigma1(nwdos),sigma2(nwdos))
-allocate(sigint1(nwdos),sigint2(nwdos))
 ! allocate first-variational eigenvector array
 allocate(evecfv(nmatmax,nstfv))
 ! allocate second-variational eigenvector array
 allocate(evecsv(nstsv,nstsv))
 ! allocate the momentum matrix elements array
 allocate(pmat(3,nstsv,nstsv))
-! allocate for intraband contribution
+! allocate intraband matrix elements
 allocate(pmatint(nstsv,nkpt))
 ! set up for generalised DFT correction if required
 allocate(delta(nstsv,nstsv))
@@ -111,14 +105,8 @@ do iop=1,noptcomp
 ! open files for writting
   write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
   open(60,file=trim(fname),action='WRITE',form='FORMATTED')
-  write(fname,'("EPSINTRA_",2I1,".OUT")') i1,i2
-  open(61,file=trim(fname),action='WRITE',form='FORMATTED')
   write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
-  open(62,file=trim(fname),action='WRITE',form='FORMATTED')
-  write(fname,'("SIGINTRA_",2I1,".OUT")') i1,i2
-  open(63,file=trim(fname),action='WRITE',form='FORMATTED')
-  write(fname,'("PLASMA_",2I1,".OUT")') i1,i2
-  open(64,file=trim(fname),action='WRITE',form='FORMATTED')
+  open(61,file=trim(fname),action='WRITE',form='FORMATTED')
   e(:,:)=0.d0
   f(:,:)=0.d0
   do ik=1,nkpt
@@ -145,12 +133,31 @@ do iop=1,noptcomp
       eps2(iw)=0.d0
     end if
   end do
-! calculate real part of the interband dielectric function
+! calculate the intraband Drude-like contribution and plasma frequency
+  if (intraband) then
+    write(fname,'("PLASMA_",2I1,".OUT")') i1,i2
+    open(62,file=trim(fname),action='WRITE',form='FORMATTED')
+    wd(1)=efermi-0.001d0
+    wd(2)=efermi+0.001d0
+    call brzint(nsmdos,ngridk,nsk,ikmap,3,wd,nstsv,nstsv,evalsv,pmatint,g)
+    wplas=sqrt(g(2)*8.d0*pi/omega)
+    do iw=1,nwdos
+      if (abs(w(iw)).gt.eps) then
+! add the intraband contribution to the imaginary part of the tensor
+        eps2(iw)=eps2(iw)+swidth*(wplas**2)/(w(iw)*(w(iw)**2+swidth**2))
+      end if
+    end do
+! write plasma frequency to file
+    write(62,'(G18.10," : plasma frequency")') wplas
+    close(62)
+  end if
+! calculate real part of the dielectric function
   if (i1.eq.i2) then
     t1=1.d0
   else
     t1=0.d0
   end if
+! Kramers-Kronig transform to find real part of dielectric tensor
   do iw=1,nwdos
     do jw=1,nwdos
       t2=w(jw)**2-w(iw)**2
@@ -171,73 +178,36 @@ do iop=1,noptcomp
   do iw=1,nwdos
     write(60,'(2G18.10)') w(iw),eps2(iw)
   end do
-! calculate the intraband Drude like contribution and plasma frequency
-  wd(1)=efermi-0.001d0
-  wd(2)=efermi+0.001d0
-  call brzint(nsmdos,ngridk,nsk,ikmap,3,wd,nstsv,nstsv,evalsv,pmatint,g)
-  wplas=sqrt(g(2)*8.d0*pi/omega)
-  do iw=1,nwdos
-    if (abs(w(iw)).gt.eps) then
-      epsint1(iw)=1.d0-(wplas**2)/(w(iw)**2+swidth**2)
-      epsint2(iw)=swidth*(wplas**2)/(w(iw)*(w(iw)**2+swidth**2))
-    else
-      epsint1(iw)=0.d0
-      epsint2(iw)=0.d0
-    end if
-  end do
-! write plasma frequency to file
-  write(64,'(G18.10," : plasma frequency")') wplas
-! write intraband contribution to a file
-  do iw=1,nwdos
-    write(61,'(2G18.10)') w(iw),epsint1(iw)
-  end do
-  write(61,'("     ")')
-  do iw=1,nwdos
-    write(61,'(2G18.10)') w(iw),epsint2(iw)
-  end do
 ! calculate optical conductivity
   sigma1(:)=(eps2(:))*w(:)/(4.d0*pi)
   sigma2(:)=-(eps1(:)-t1)*w(:)/(4.d0*pi)
-  sigint1(:)=epsint2(:)*w(:)/(4.d0*pi)
-  sigint2(:)=-epsint1(:)*w(:)/(4.d0*pi)
 ! write the interband optical conductivity to a file
   do iw=1,nwdos
-    write(62,'(2G18.10)') w(iw),sigma1(iw)
+    write(61,'(2G18.10)') w(iw),sigma1(iw)
   end do
-  write(62,'("     ")')
+  write(61,'("     ")')
   do iw=1,nwdos
-    write(62,'(2G18.10)') w(iw),sigma2(iw)
-  end do
-! write the intraband optical conductivity to a file
-  do iw=1,nwdos
-    write(63,'(2G18.10)') w(iw),sigint1(iw)
-  end do
-  write(63,'("     ")')
-  do iw=1,nwdos
-    write(63,'(2G18.10)') w(iw),sigint2(iw)
+    write(61,'(2G18.10)') w(iw),sigma2(iw)
   end do
   close(60)
   close(61)
-  close(62)
-  close(63)
-  close(64)
 ! end loop over number of components
 end do
 close(50)
 write(*,*)
 write(*,'("Info(linopt):")')
 write(*,'(" dielectric tensor written to EPSILON_ij.OUT")')
-write(*,'(" intraband contribution written to EPSINTRA_ij.OUT")')
 write(*,*)
 write(*,'(" optical conductivity written to SIGMA_ij.OUT")')
-write(*,'(" intraband contribution written to SIGINTRA_ij.OUT")')
+if (intraband) then
+  write(*,*)
+  write(*,'(" plasma frequency written to PLASMA_ij.OUT")')
+end if
 write(*,*)
-write(*,'(" plasma frequency written to PLASMA_ij.OUT")')
-write(*,*)
-write(*,'(" for all components i,j")')
+write(*,'(" for all requested components i,j")')
 deallocate(w,fw,g,cf,e,f,sc,d)
-deallocate(eps1,eps2,epsint1,epsint2)
-deallocate(sigma1,sigma2,sigint1,sigint2)
+deallocate(eps1,eps2)
+deallocate(sigma1,sigma2)
 deallocate(evecfv,evecsv,pmat,pmatint)
 if (usegdft) deallocate(delta,apwalm)
 return

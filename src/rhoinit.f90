@@ -24,8 +24,8 @@ implicit none
 ! polynomial order of smooth step function
 integer, parameter :: n=4
 integer lmax,lmmax,l,m,lm,ir,irc
-integer is,ia,ias,ngv,ig,ifg
-real(8) gmax,x,t1,t2
+integer is,ia,ias,ig,ifg
+real(8) x,t1,t2
 complex(8) zt1,zt2
 ! automatic arrays
 real(8) fr(spnrmax),gr(spnrmax),cf(3,spnrmax)
@@ -38,19 +38,10 @@ complex(8), allocatable :: zfft(:)
 ! maximum angular momentum for density initialisation
 lmax=min(lmaxvr,1)
 lmmax=(lmax+1)**2
-! G-vector cut-off for density initialisation
-gmax=6.d0
-! use smaller set of G-vectors
-ngv=0
-do ig=1,ngvec
-  ngv=ngv+1
-  if (gc(ig).gt.gmax) goto 10
-end do
-10 continue
 ! allocate local arrays
 allocate(jl(0:lmax,nrcmtmax))
 allocate(th(nrmtmax,nspecies))
-allocate(ff(ngv))
+allocate(ff(ngvec))
 allocate(zfmt(lmmax,nrcmtmax))
 allocate(zfft(ngrtot))
 ! zero the charge density and magnetisation arrays
@@ -67,7 +58,7 @@ do is=1,nspecies
   do ir=1,nrmt(is)
     th(ir,is)=(spr(ir,is)/rmt(is))**n
   end do
-  do ig=1,ngv
+  do ig=1,ngvec
     do ir=1,spnr(is)
       x=gc(ig)*spr(ir,is)
       call sbessel(0,x,jl(0,1))
@@ -83,7 +74,7 @@ do is=1,nspecies
   end do
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    do ig=1,ngv
+    do ig=1,ngvec
       ifg=igfft(ig)
       zfft(ifg)=zfft(ifg)+ff(ig)*conjg(sfacg(ig,ias))
     end do
@@ -94,7 +85,7 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     zfmt(:,:)=0.d0
-    do ig=1,ngv
+    do ig=1,ngvec
       ifg=igfft(ig)
       zt1=fourpi*zfft(ifg)*sfacg(ig,ias)
       do l=0,lmax

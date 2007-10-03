@@ -13,7 +13,7 @@ complex(8), intent(inout) :: evecsvp(nstsv,nstsv)
 integer ngknr,ik,jk,ist1,ist2,ist3
 integer iq,ig,iv(3),igq0
 integer lmax,lwork,info
-real(8) v(3),cfq,t1
+real(8) cfq,v(3),t1
 complex(8) zrho01,zrho02,zt1,zt2
 ! allocatable arrays
 integer, allocatable :: igkignr(:)
@@ -96,8 +96,16 @@ call match(ngk(ikp,1),gkc(1,ikp,1),tpgkc(1,1,ikp,1),sfacgk(1,1,ikp,1),apwalm)
 ! calculate the wavefunctions for all states for the input k-point
 call genwfsv(.false.,ngk(ikp,1),igkig(1,ikp,1),evalsvp,apwalm,evecfv,evecsvp, &
  wfmt1,wfir1)
-! zero the Hamiltonian matrix
-h(:,:)=0.d0
+! compute the new kinetic matrix elements
+call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(1,1,ikp),nstsv,evecsvp, &
+ nstsv,zzero,vmat,nstsv)
+call zgemm('C','N',nstsv,nstsv,nstsv,zone,evecsvp,nstsv,vmat,nstsv,zzero,h, &
+ nstsv)
+! compute the Coulomb matrix elements and add
+call genvmatk(vclmt,vclir,wfmt1,wfir1,vmat)
+h(:,:)=h(:,:)+vmat(:,:)
+! zero the non-local matrix elements for passed k-point
+vmat(:,:)=0.d0
 ! start loop over non-reduced k-point set
 do ik=1,nkptnr
 ! find the equivalent reduced k-point
@@ -106,7 +114,7 @@ do ik=1,nkptnr
 ! generate G+k vectors
   call gengpvec(vklnr(1,ik),vkcnr(1,ik),ngknr,igkignr,vgklnr,vgkcnr,gkcnr, &
    tpgkcnr)
-! get the eigenvalues/vectors from file for non-reduced k-points
+! get the eigenvalues/vectors from file for non-reduced k-point
   call getevalsv(vklnr(1,ik),evalsvnr)
   call getevecfv(vklnr(1,ik),vgklnr,evecfv)
   call getevecsv(vklnr(1,ik),evecsv)
@@ -159,20 +167,15 @@ do ik=1,nkptnr
           zt2=cfq*wiq2(iq)*(conjg(zrho01)*zrho02)
           t1=occsv(ist3,jk)
           if (.not.spinpol) t1=0.5d0*t1
-          h(ist1,ist2)=h(ist1,ist2)-t1*(wkptnr(ik)*zt1+zt2)
+          vmat(ist1,ist2)=vmat(ist1,ist2)-t1*(wkptnr(ik)*zt1+zt2)
         end do
       end do
     end if
   end do
 ! end loop over non-reduced k-point set
 end do
-! add the second-variational eigenvalues to the diagonal
-do ist1=1,nstsv
-  h(ist1,ist1)=h(ist1,ist1)+evalsv(ist1,ikp)
-end do
-! subtract the exchange-correlation potential matrix elements
-call genvmatk(vxcmt,vxcir,wfmt1,wfir1,vmat)
-h(:,:)=h(:,:)-vmat(:,:)
+! add the non-local matrix elements to Hamiltonian
+h(:,:)=h(:,:)+vmat(:,:)
 ! diagonalise the Hartree-Fock Hamiltonian (eigenvalues in global array)
 call zheev('V','U',nstsv,h,nstsv,evalsv(1,ikp),work,lwork,rwork,info)
 if (info.ne.0) then
@@ -184,14 +187,10 @@ if (info.ne.0) then
   write(*,*)
   stop
 end if
-if (spinpol) then
-! apply unitary transformation if required
-  evecsv(:,:)=evecsvp(:,:)
-  call zgemm('N','N',nstsv,nstsv,nstsv,zone,evecsv,nstsv,h,nstsv,zzero, &
-   evecsvp,nstsv)
-else
-  evecsvp(:,:)=h(:,:)
-end if
+! apply unitary transformation to second-variational states
+evecsv(:,:)=evecsvp(:,:)
+call zgemm('N','N',nstsv,nstsv,nstsv,zone,evecsv,nstsv,h,nstsv,zzero,evecsvp, &
+ nstsv)
 deallocate(igkignr,vgklnr,vgkcnr,gkcnr,tpgkcnr,vgqc,tpgqc,gqc,jlgqr)
 deallocate(evalsvp,evalsvnr,evecfv,evecsv,rwork)
 deallocate(h,vmat,apwalm,sfacgknr,ylmgq,sfacgq)

@@ -21,9 +21,6 @@ use modmain
 !EOP
 !BOC
 implicit none
-! local variables
-integer i1,i2,i3
-real(8) v1(3),v2(3),v3(3),t1,t2
 ! find optimal grid size for potential and density
 ngrid(:)=int(gmaxvr*sqrt(avec(1,:)**2+avec(2,:)**2+avec(3,:)**2)/pi)+1
 ! find next largest FFT-compatible grid size
@@ -41,20 +38,6 @@ ngrtot=ngrid(1)*ngrid(2)*ngrid(3)
 ! determine integer ranges for grid
 intgv(:,1)=ngrid(:)/2-ngrid(:)+1
 intgv(:,2)=ngrid(:)/2
-! find the total number of G-vectors with |G| < gmaxvr
-t1=gmaxvr**2
-ngvec=0
-do i1=intgv(1,1),intgv(1,2)
-  v1(:)=dble(i1)*bvec(:,1)
-  do i2=intgv(2,1),intgv(2,2)
-    v2(:)=v1(:)+dble(i2)*bvec(:,2)
-    do i3=intgv(3,1),intgv(3,2)
-      v3(:)=v2(:)+dble(i3)*bvec(:,3)
-      t2=v3(1)**2+v3(2)**2+v3(3)**2
-      if (t2.lt.t1) ngvec=ngvec+1
-    end do
-  end do
-end do
 return
 end subroutine
 !EOC

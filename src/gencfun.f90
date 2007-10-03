@@ -30,44 +30,52 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer is,ia,ias,ig,ifg
-real(8) t1,t2,jl(0:1)
+integer is,ia,ig,ifg
+real(8) t1,t2,t3,t4
+complex(8) zt1
 ! allocatable arrays
-real(8), allocatable :: ff(:,:)
+real(8), allocatable :: ff(:)
 complex(8), allocatable :: zfft(:)
-allocate(ff(ngvec,nspecies))
+allocate(ff(ngrtot))
 allocate(zfft(ngrtot))
 ! allocate global characteristic function arrays
 if (allocated(cfunig)) deallocate(cfunig)
-allocate(cfunig(ngvec))
+allocate(cfunig(ngrtot))
 if (allocated(cfunir)) deallocate(cfunir)
 allocate(cfunir(ngrtot))
-! step function form factors for each species
-do is=1,nspecies
-  t1=(fourpi/omega)*rmt(is)**3
-  do ig=1,ngvec
-    if (gc(ig).gt.epslat) then
-      t2=gc(ig)*rmt(is)
-      call sbessel(1,t2,jl)
-      ff(ig,is)=t1*jl(1)/t2
-    else
-      ff(ig,is)=t1/3.d0
-    end if
-  end do
-end do
-! set up the characteristic function in G-space with G < gmaxvr
 cfunig(:)=0.d0
 cfunig(1)=1.d0
+t1=fourpi/omega
+t2=cfdamp/gmaxvr
+! begin loop over species
 do is=1,nspecies
+! smooth step function form factors for each species
+  do ig=1,ngrtot
+    if (gc(ig).gt.epslat) then
+      if (cfdamp.ne.0.d0) then
+! use damping if required
+        t3=exp(-(t2*gc(ig))**2)
+      else
+        t3=1.d0
+      end if
+      t4=gc(ig)*rmt(is)
+      ff(ig)=t1*t3*(sin(t4)-t4*cos(t4))/(gc(ig)**3)
+    else
+      ff(ig)=t1*(rmt(is)**3)/3.d0
+    end if
+  end do
+! loop over atoms
   do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    do ig=1,ngvec
-      cfunig(ig)=cfunig(ig)-conjg(sfacg(ig,ias))*ff(ig,is)
+    do ig=1,ngrtot
+      t3=-dot_product(vgc(:,ig),atposc(:,ia,is))
+! structure factor
+      zt1=cmplx(cos(t3),sin(t3),8)
+! add to characteristic function in G-space
+      cfunig(ig)=cfunig(ig)-zt1*ff(ig)
     end do
   end do
 end do
-zfft(:)=0.d0
-do ig=1,ngvec
+do ig=1,ngrtot
   ifg=igfft(ig)
   zfft(ifg)=cfunig(ig)
 end do

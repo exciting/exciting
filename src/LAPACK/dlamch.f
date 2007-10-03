@@ -67,3 +67,56 @@
       END IF
 !
       END
+
+*
+************************************************************************
+*
+      DOUBLE PRECISION FUNCTION DLAMC3( A, B )
+*
+*  -- LAPACK auxiliary routine (version 3.1) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
+*
+*     .. Scalar Arguments ..
+      DOUBLE PRECISION   A, B
+*
+*     .. Local variables ..
+      INTEGER I
+      DOUBLE PRECISION X(10),Y(10)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*  DLAMC3  is intended to force  A  and  B  to be stored prior to doing
+*  the addition of  A  and  B ,  for use in situations where optimizers
+*  might hold one of these in a register.
+*
+*  Arguments
+*  =========
+*
+*  A       (input) DOUBLE PRECISION
+*  B       (input) DOUBLE PRECISION
+*          The values A and B.
+*
+* =====================================================================
+*
+*     .. Executable Statements ..
+*
+*      DLAMC3 = A + B
+
+*     Modification by JKD to ensure variables are flushed to memory
+      DO I=1,10
+        X(I)=A
+      END DO
+      DO I=1,10
+        Y(I)=X(I)+B
+      END DO
+      DLAMC3=Y(10)
+*
+      RETURN
+*
+*     End of DLAMC3
+*
+      END
+

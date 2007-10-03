@@ -25,61 +25,63 @@ program main
      end select
      if(paralleltask.or.rank.eq.0) then
         select case(task)
-        case(-1)
-           write(*,*)
-           write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
-           write(*,*)
-           stop
-        case(0,1,2,3)
-           call gndstate
-        case(10)
-           call dos
-        case(15)
-           call writelsj
-        case(20,21)
-           call bandstr
-        case(25)
-           call effmass
-        case(31,32,33)
-           call rhoplot
-        case(41,42,43)
-           call potplot
-        case(51,52,53)
-           call elfplot
-        case(61,62,63,162)
-           call wfplot
-        case(72,73,82,83,142,143,152,153)
-           call vecplot
-        case(91,92,93)
-           call dbxcplot
-        case(100,101)
-           call fermisurf
-        case(110)
-           call mossbauer
-        case(115)
-           call writeefg
-        case(120)
-           call writepmat
-        case(121)
-           call linopt
-        case(122)
-           call moke
-        case(200)
-           call phonon
-        case(210)
-           call phdos
-        case(220)
-           call phdisp
-        case(230)
-           call writephn
-        case(250)
-           call geomplot
-        case default
-           write(*,*)
-           write(*,'("Error(main): task not defined : ",I8)') task
-           write(*,*)
-           stop
-        end select
+     case(-1)
+        write(*,*)
+        write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
+        write(*,*)
+        stop
+     case(0,1,2,3)
+        call gndstate
+     case(5)
+        call hartfock
+     case(10)
+        call dos
+     case(15)
+        call writelsj
+     case(20,21)
+        call bandstr
+     case(25)
+        call effmass
+     case(31,32,33)
+        call rhoplot
+     case(41,42,43)
+        call potplot
+     case(51,52,53)
+        call elfplot
+     case(61,62,63,162)
+        call wfplot
+     case(72,73,82,83,142,143,152,153)
+        call vecplot
+     case(91,92,93)
+        call dbxcplot
+     case(100,101)
+        call fermisurf
+     case(110)
+        call mossbauer
+     case(115)
+        call writeefg
+     case(120)
+        call writepmat
+     case(121)
+        call linopt
+     case(122)
+        call moke
+     case(200)
+        call phonon
+     case(210)
+        call phdos
+     case(220)
+        call phdisp
+     case(230)
+        call writephn
+     case(250)
+        call geomplot
+     case default
+        write(*,*)
+        write(*,'("Error(main): task not defined : ",I8)') task
+        write(*,*)
+        stop
+     end select
      endif
   end do
   call finitMPI()
@@ -87,13 +89,13 @@ program main
 end program main
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.93
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.114
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
 !   Welcome to the {\sf EXCITING} Code Manual!
 !   The {\sf EXCITING} code is a state-of-the-art full-potential linearised
-!   augmented-planewave (FP-LAPW) code for determining the properties of
+!   augmented-plane-wave (FP-LAPW) code for determining the properties of
 !   crystalline solids. It was developed mainly at the
 !   Karl-Franzens-Universit\"{a}t Graz as part of the {\sf EXCITING} EU Research
 !   and Training Network project \cite{exciting}. The guiding philosophy during
@@ -466,14 +468,13 @@ end program main
 !   \end{tabularx}\newline\newline
 !   See also {\tt rgkmax}.
 !
-!   \subsection{{\tt hartfock}}
+!   \subsection{{\tt intraband}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt hartfock} & {\tt .true.} if a Hartree-Fock calculation is required &
-!    logical & {\tt .false.} \\
+!   {\tt intraband} & {\tt .true.} if the intraband (Drude-like) contribution is
+!    to be added to the dieletric tensor & logical & {\tt .false.} \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   Self-consistent Hartree-Fock is available as an experimental feature.
 !
 !   \subsection{{\tt kstlist}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -952,6 +953,7 @@ end program main
 !    atomic positions written to {\tt GEOMETRY.OUT}. \\
 !   3 & Resumption of structural optimisation run using density in
 !    {\tt STATE.OUT} but with positions from {\tt exciting.in}. \\
+!   5 & Ground state Hartree-Fock run (experimental feature). \\
 !   10 & Total, partial and interstitial density of states (DOS). \\
 !   15 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ expectation values. \\
 !   20 & Band structure plot. \\

@@ -68,9 +68,9 @@ if ((k.eq.n).and.(l.ne.k-1)) then
   write(*,*)
   stop
 end if
-if (l.eq.k) then
+if (k.eq.l) then
   kpa=k
-else if (l.eq.k-1) then
+else if (k.eq.l+1) then
   kpa=-k
 else
   write(*,*)

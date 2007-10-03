@@ -6,9 +6,10 @@
 !BOP
 ! !ROUTINE: findband
 ! !INTERFACE:
-subroutine findband(l,np,nr,r,vr,de0,e)
+subroutine findband(l,k,np,nr,r,vr,de0,e)
 ! !INPUT/OUTPUT PARAMETERS:
 !   l   : angular momentum quantum number (in,integer)
+!   k   : quantum number k, zero if Dirac eqn. is not to be used (in,integer)
 !   np  : order of predictor-corrector polynomial (in,integer)
 !   nr  : number of radial mesh points (in,integer)
 !   r   : radial mesh (in,real(nr))
@@ -32,6 +33,7 @@ subroutine findband(l,np,nr,r,vr,de0,e)
 implicit none
 ! arguments
 integer, intent(in) :: l
+integer, intent(in) :: k
 integer, intent(in) :: np
 integer, intent(in) :: nr
 real(8), intent(in) :: r(nr)
@@ -53,7 +55,7 @@ de=abs(de0)
 et=e
 do ie=1,maxstp
   et=et+de
-  call rschroddme(0,l,et,np,nr,r,vr,nn,p0,p1,q0,q1)
+  call rschroddme(0,l,k,et,np,nr,r,vr,nn,p0,p1,q0,q1)
   t=p0(nr)
   if (ie.gt.1) then
     if (t*tp.le.0.d0) then
@@ -70,7 +72,7 @@ de=-abs(de0)
 eb=et+5.d0*abs(de0)
 do ie=1,maxstp
   eb=eb+de
-  call rschroddme(0,l,eb,np,nr,r,vr,nn,p0,p1,q0,q1)
+  call rschroddme(0,l,k,eb,np,nr,r,vr,nn,p0,p1,q0,q1)
   t=p1(nr)
   if (ie.gt.1) then
     if (t*tp.le.0.d0) then

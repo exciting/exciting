@@ -246,6 +246,8 @@ complex(8), allocatable :: sfacg(:,:)
 complex(8), allocatable :: cfunig(:)
 ! real-space characteristic function: 0 inside the muffin-tins and 1 outside
 real(8), allocatable :: cfunir(:)
+! damping coefficient for characteristic function
+real(8) cfdamp
 
 !-------------------------------!
 !     k-point set variables     !
@@ -466,8 +468,10 @@ integer apwdm(maxapword,0:maxlapw,maxspecies)
 logical apwve(maxapword,0:maxlapw,maxspecies)
 ! APW radial functions
 real(8), allocatable :: apwfr(:,:,:,:,:)
+! derivate of radial functions at the muffin-tin surface
+real(8), allocatable :: apwdfr(:,:,:)
 ! maximum number of local-orbitals
-integer, parameter :: maxlorb=9
+integer, parameter :: maxlorb=20
 ! maximum allowable local-orbital order
 integer, parameter :: maxlorbord=4
 ! number of local-orbitals
@@ -575,7 +579,9 @@ real(8), allocatable :: rhocr(:,:)
 ! eigenvalue sum
 real(8) evalsum
 ! electron kinetic energy
-real(8) engyekn
+real(8) engykn
+! core electron kinetic energy
+real(8) engykncr
 ! nuclear-nuclear energy
 real(8) engynn
 ! electron-nuclear energy
@@ -632,8 +638,12 @@ real(8), allocatable :: tauatm(:)
 !-------------------------------!
 ! maximum number of self-consistent loops
 integer maxscl
+! current self-consistent loop number
+integer iscl
 ! effective potential convergence tolerance
 real(8) epspot
+! energy convergence tolerance
+real(8) epsengy
 ! force convergence tolerance
 real(8) epsforce
 
@@ -656,6 +666,8 @@ integer noptcomp
 integer optcomp(3,27)
 ! usegdft is .true. if the generalised DFT correction is to be used
 logical usegdft
+! intraband is .true. if the intraband term is to be added to the optical matrix
+logical intraband
 ! bcsym is .true. if the band characters are to correspond to the the
 ! irreducible representations of the site symmetries
 logical bcsym
@@ -699,51 +711,8 @@ real(8) tau0oep
 real(8) dtauoep
 ! magnitude of the OEP residue
 real(8) resoep
-! hartfock is .true. if a Hartree-Fock run is required
-logical hartfock
-
-!-------------------------------------------------------------!
-!     reduced density matrix functional (RDMFT) variables     !
-!-------------------------------------------------------------!
-! real non-local matrix elements
-real(8), allocatable :: vnlmatr(:,:,:,:)
-! non-local matrix elements
-complex(8), allocatable :: vnlmat(:,:,:,:,:)
-! effective potential matrix elements
-complex(8), allocatable :: veffmat(:,:,:)
-! Coulomb potential matrix elements
-complex(8), allocatable :: vclmat(:,:,:)
 ! kinetic matrix elements
 complex(8), allocatable :: kinmatc(:,:,:)
-complex(8), allocatable :: kinmat(:,:,:)
-! occupancy step size
-real(8) tauocc,tauwf
-! xc functionay
-integer rdmxctype
-! core kinetic energy
-real(8) engykncr
-! hotstart from old occupancies
-logical hotrdm
-! maximum number of iterations
-integer rdmmaxit,maxitn,maxitwf,maxitwfxc
-! write non-local matrix elements
-logical trdmmat
-
-!-----------------------------------------------------!
-!     current density functional (CDFT) variables     !
-!-----------------------------------------------------!
-! cdft is .true. if current density functional theory is to be used
-logical cdft
-! current density in the muffin-tins
-real(8), allocatable :: jpmt(:,:,:,:)
-! interstitial current density
-real(8), allocatable :: jpir(:,:)
-! vector potential in the muffin-tins
-real(8), allocatable :: axcmt(:,:,:,:)
-! interstitial vector potential
-real(8), allocatable :: axcir(:,:)
-! magnitude of infinitesimal symmetry breaking vector potential
-real(8) axceps
 
 !--------------------------!
 !     phonon variables     !
@@ -756,6 +725,28 @@ real(8) deltaph
 integer nphwrt
 ! vectors in lattice coordinates for writing out frequencies and eigenvectors
 real(8), allocatable :: vqlwrt(:,:)
+
+!-------------------------------------------------------------!
+!     reduced density matrix functional (RDMFT) variables     !
+!-------------------------------------------------------------!
+! real non-local matrix elements
+real(8), allocatable :: vnlmatr(:,:,:,:)
+! non-local matrix elements
+complex(8), allocatable :: vnlmat(:,:,:,:,:)
+! Coulomb potential matrix elements
+complex(8), allocatable :: vclmat(:,:,:)
+! derivative of kinetic energy wrt evecsv
+complex(8), allocatable :: dkdc(:,:,:)
+! occupancy step size
+real(8) tauocc,tauwf
+! xc functional
+integer rdmxctype
+! maximum number of iterations
+integer rdmmaxscl,maxitn,maxitwf
+! write non-local matrix elements
+logical trdmmat
+! exponent for the functional
+real(8) rdmalpha
 
 !--------------------------!
 !     timing variables     !
@@ -803,7 +794,7 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,93 /
+data version / 0,9,114 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=20
 ! number of tasks
@@ -812,8 +803,6 @@ integer ntasks
 integer tasks(maxtasks)
 ! current task
 integer task
-! current self-consistent loop number
-integer iscl
 ! tstop is .true. if STOP file exists
 logical tstop
 ! tlast is .true. if self-consistent loop is on the last iteration

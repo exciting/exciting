@@ -31,7 +31,7 @@ integer nn,l,io1,io2
 real(8) t1
 ! automatic arrays
 real(8) vr(nrmtmax),fr(nrmtmax),gr(nrmtmax),cf(3,nrmtmax)
-real(8) p0(nrmtmax,apwordmax),p1(nrmtmax)
+real(8) p0(nrmtmax,apwordmax),p1(nrmtmax),p1s(apwordmax)
 real(8) q0(nrmtmax,apwordmax),q1(nrmtmax,apwordmax)
 real(8) hp0(nrmtmax)
 do is=1,nspecies
@@ -42,8 +42,8 @@ do is=1,nspecies
     do l=0,lmaxapw
       do io1=1,apword(l,is)
 ! integrate the radial Schrodinger equation
-        call rschroddme(apwdm(io1,l,is),l,apwe(io1,l,ias),nprad,nr,spr(1,is), &
-         vr,nn,p0(1,io1),p1,q0(1,io1),q1(1,io1))
+        call rschroddme(apwdm(io1,l,is),l,0,apwe(io1,l,ias),nprad,nr, &
+         spr(1,is),vr,nn,p0(1,io1),p1,q0(1,io1),q1(1,io1))
 ! normalise radial functions
         do ir=1,nr
           fr(ir)=p0(ir,io1)**2
@@ -51,6 +51,7 @@ do is=1,nspecies
         call fderiv(-1,nr,spr(1,is),fr,gr,cf)
         t1=1.d0/sqrt(abs(gr(nr)))
         p0(1:nr,io1)=t1*p0(1:nr,io1)
+        p1s(io1)=t1*p1(nr)
         q0(1:nr,io1)=t1*q0(1:nr,io1)
         q1(1:nr,io1)=t1*q1(1:nr,io1)
 ! subtract linear combination of previous vectors
@@ -61,6 +62,7 @@ do is=1,nspecies
           call fderiv(-1,nr,spr(1,is),fr,gr,cf)
           t1=gr(nr)
           p0(1:nr,io1)=p0(1:nr,io1)-t1*p0(1:nr,io2)
+          p1s(io1)=p1s(io1)-t1*p1s(io2)
           q0(1:nr,io1)=q0(1:nr,io1)-t1*q0(1:nr,io2)
           q1(1:nr,io1)=q1(1:nr,io1)-t1*q1(1:nr,io2)
         end do
@@ -82,6 +84,7 @@ do is=1,nspecies
         end if
         t1=1.d0/sqrt(t1)
         p0(1:nr,io1)=t1*p0(1:nr,io1)
+        p1s(io1)=t1*p1s(io1)
         q0(1:nr,io1)=t1*q0(1:nr,io1)
         q1(1:nr,io1)=t1*q1(1:nr,io1)
 ! apply the Hamiltonian
@@ -92,6 +95,8 @@ do is=1,nspecies
           apwfr(ir,1,io1,l,ias)=t1*p0(ir,io1)
           apwfr(ir,2,io1,l,ias)=t1*hp0(ir)
         end do
+! derivative at the muffin-tin surface
+        apwdfr(io1,l,ias)=(p1s(io1)-p0(nr,io1)*t1)*t1
       end do
     end do
   end do

@@ -6,12 +6,14 @@
 !BOP
 ! !ROUTINE: seceqnfv
 ! !INTERFACE:
-subroutine seceqnfv(ik,ispn,apwalm,evalfv,evecfv)
+subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
-!   ik     : k-point number (in,integer)
-!   ispn   : first-variational spin index (in,integer)
+!   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
+!   ngp    : number of G+k-vectors for augmented plane waves (in,integer)
+!   igpig  : index from G+k-vectors to G-vectors (in,integer(ngkmax))
+!   vgpc   : G+k-vectors in Cartesian coordinates (in,real(3,ngkmax))
 !   apwalm : APW matching coefficients
 !            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
 !   evalfv : first-variational eigenvalues (out,real(nstfv))
@@ -27,13 +29,15 @@ use modmain
 !BOC
 implicit none
 ! arguments
-integer, intent(in) :: ik
-integer, intent(in) :: ispn
+integer, intent(in) :: nmatp
+integer, intent(in) :: ngp
+integer, intent(in) :: igpig(ngkmax)
+real(8), intent(in) :: vgpc(3,ngkmax)
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 real(8), intent(out) :: evalfv(nstfv)
 complex(8), intent(out) :: evecfv(nmatmax,nstfv)
 ! local variables
-integer is,ia,i,m,n,np,info
+integer is,ia,i,m,np,info
 real(8) vl,vu,abstol
 real(8) cpu0,cpu1
 ! external functions
@@ -48,22 +52,15 @@ complex(8), allocatable :: v(:)
 complex(8), allocatable :: h(:)
 complex(8), allocatable :: o(:)
 complex(8), allocatable :: work(:)
-if ((ik.lt.1).or.(ik.gt.nkpt)) then
-  write(*,*)
-  write(*,'("Error(seceqnfv): k-point out of range : ",I8)') ik
-  write(*,*)
-  stop
-end if
-n=nmat(ik,ispn)
-np=npmat(ik,ispn)
-allocate(iwork(5*n))
-allocate(ifail(n))
-allocate(w(n))
-allocate(rwork(7*n))
+np=(nmatp*(nmatp+1))/2
+allocate(iwork(5*nmatp))
+allocate(ifail(nmatp))
+allocate(w(nmatp))
+allocate(rwork(7*nmatp))
 allocate(v(1))
 allocate(h(np))
 allocate(o(np))
-allocate(work(2*n))
+allocate(work(2*nmatp))
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
@@ -80,18 +77,18 @@ vl=0.d0
 vu=0.d0
 abstol=2.d0*dlamch('S')
 ! LAPACK 3.0 call
-call zhpgvx(1,'V','I','U',n,h,o,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax,work, &
- rwork,iwork,ifail,info)
+call zhpgvx(1,'V','I','U',nmatp,h,o,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
+ work,rwork,iwork,ifail,info)
 evalfv(1:nstfv)=w(1:nstfv)
 if (info.ne.0) then
   write(*,*)
-  write(*,'("Error(seceqnfv): diagonalisation failed for k-point ",I8)') ik
+  write(*,'("Error(seceqnfv): diagonalisation failed")')
   write(*,'(" ZHPGVX returned INFO = ",I8)') info
-  if (info.gt.n) then
-    i=info-n
+  if (info.gt.nmatp) then
+    i=info-nmatp
     write(*,'(" The leading minor of the overlap matrix of order ",I8)') i
     write(*,'("  is not positive definite")')
-    write(*,'(" Order of overlap matrix : ",I8)') n
+    write(*,'(" Order of overlap matrix : ",I8)') nmatp
     write(*,*)
   end if
   stop

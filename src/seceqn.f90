@@ -46,16 +46,12 @@ endif
 
 	do ispn=1,nspnfv
 ! find the matching coefficients
-  		call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
-   		sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
+  call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
+   sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
 ! solve the first-variational secular equation
-        if( doititerative) then
-        call iterativeseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
-        else
-  		call seceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
- 		endif
-	end do
-
+  call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
+   apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
+end do
 !$OMP END DO
 !$OMP END PARALLEL
 if (spinsprl) then

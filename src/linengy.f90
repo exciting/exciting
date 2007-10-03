@@ -48,7 +48,8 @@ do is=1,nspecies
             end do
 ! find the band energy starting from default
             apwe(io1,l,ias)=apwe0(io1,l,is)
-            call findband(l,nprad,nrmt(is),spr(1,is),vr,deband,apwe(io1,l,ias))
+            call findband(l,0,nprad,nrmt(is),spr(1,is),vr,deband, &
+             apwe(io1,l,ias))
           end if
 10 continue
         end do
@@ -71,7 +72,7 @@ do is=1,nspecies
             l=lorbl(ilo,is)
 ! find the band energy starting from default
             lorbe(io1,ilo,ias)=lorbe0(io1,ilo,is)
-            call findband(l,nprad,nrmt(is),spr(1,is),vr,deband, &
+            call findband(l,0,nprad,nrmt(is),spr(1,is),vr,deband, &
              lorbe(io1,ilo,ias))
           end if
 20 continue

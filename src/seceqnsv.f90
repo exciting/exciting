@@ -21,7 +21,7 @@ real(8), parameter :: alpha=1.d0/137.03599911d0
 real(8), parameter :: ge=2.0023193043718d0
 real(8), parameter :: ga4=ge*alpha/4.d0
 real(8), parameter :: a24=alpha**2/4.d0
-real(8) t1
+real(8) rm,t1
 real(8) cpu0,cpu1
 ! automatic arrays
 complex(8) zftp1(lmmaxvr),zftp2(lmmaxvr)
@@ -116,10 +116,12 @@ do is=1,nspecies
 ! radial derivative of the spherical part of the potential
       vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
       call fderiv(1,nrmt(is),spr(1,is),vr,drv,cf)
+! spin-orbit coupling prefactor
       irc=0
       do ir=1,nrmt(is),lradstp
         irc=irc+1
-        sor(irc)=a24*drv(ir)/spr(ir,is)
+        rm=1.d0-0.5d0*(alpha**2)*vr(ir)
+        sor(irc)=a24*drv(ir)/(spr(ir,is)*rm**2)
       end do
     end if
 ! compute the first-variational wavefunctions

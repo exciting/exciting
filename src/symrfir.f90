@@ -1,61 +1,75 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
 !BOP
 ! !ROUTINE: symrfir
-! !INTERFACE:
-subroutine symrfir(sym,rfir,srfir)
+subroutine symrfir(ngv,rfir)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
-!   sym   : symmetry (in,integer(3,3))
-!   rfir  : input interstitial function (in,real(ngrid(1)*ngrid(2)*ngrid(3)))
-!   srfir : output interstitial function (out,real(ngrid(1)*ngrid(2)*ngrid(3)))
+!   ngv  : number of G-vectors to be used for the Fourier space rotation
+!          (in,integer)
+!   rfir : real intersitial function (inout,real(ngrtot))
 ! !DESCRIPTION:
-!   Applies a symmetry to a real intersitial function, $f$, defined on an
-!   integer grid. In other words, for each integer vector ${\bf v}$ the routine
-!   returns $$ Sf({\bf v})\equiv f(S^{-1}{\bf v}), $$
-!   where $S$ is a $3\times 3$ symmetry matrix. Note that the arrays {\tt rfir}
-!   and {\tt srfir} represent the functions $f$ and $Sf$ respectively, but
-!   stored in the usual way with indices begining at 1.
+!   Symmetrises a real scalar interstitial function. The function is first
+!   Fourier transformed to $G$-space, and then averaged over each symmetry by
+!   rotating the Fourier coefficients and multiplying them by a phase factor
+!   corresponding to the symmetry translation.
 !
 ! !REVISION HISTORY:
-!   Created May 2003 (JKD)
+!   Created July 2007 (JKD)
 !EOP
 !BOC
 implicit none
 ! arguments
-integer, intent(in) :: sym(3,3)
-real(8), intent(in) :: rfir(*)
-real(8), intent(out) :: srfir(*)
+integer, intent(in) :: ngv
+real(8), intent(inout) :: rfir(ngrtot)
 ! local variables
-integer i1,i2,i3,iv(3),ir,irs,i,n
-real(8) s(3,3),vn(3),t1
-real(8) v1(3),v2(3),v3(3)
-s(:,:)=dble(sym(:,:))
-vn(:)=1.d0/dble(ngrid(:))
-ir=0
-do i3=0,ngrid(3)-1
-  t1=dble(i3)*vn(3)
-  v3(:)=t1*s(:,3)
-  do i2=0,ngrid(2)-1
-    t1=dble(i2)*vn(2)
-    v2(:)=t1*s(:,2)+v3(:)
-    do i1=0,ngrid(1)-1
-      t1=dble(i1)*vn(1)
-      v1(:)=t1*s(:,1)+v2(:)
-      do i=1,3
-        n=ngrid(i)
-        iv(i)=modulo(nint(v1(i)*n),n)
-      end do
-      ir=ir+1
-      irs=(iv(3)*ngrid(2)+iv(2))*ngrid(1)+iv(1)+1
-      srfir(irs)=rfir(ir)
-    end do
+integer isym,lspl,iv(3)
+integer ig,jg,ifg,jfg
+real(8) vtc(3),t1
+complex(8) zt1
+! allocatable arrays
+complex(8), allocatable :: zfft1(:),zfft2(:)
+allocate(zfft1(ngrtot),zfft2(ngrtot))
+! Fourier transform function to G-space
+zfft1(:)=rfir(:)
+call zfftifc(3,ngrid,-1,zfft1)
+zfft2(:)=0.d0
+! loop over crystal symmetries
+do isym=1,nsymcrys
+! translation in Cartesian coordinates
+  call r3mv(avec,vtlsymc(1,isym),vtc)
+! index to lattice symmetry of spatial rotation
+  lspl=lsplsymc(isym)
+  do ig=1,ngv
+    ifg=igfft(ig)
+    t1=-dot_product(vgc(:,ig),vtc(:))
+! complex phase factor for translation
+    zt1=cmplx(cos(t1),sin(t1),8)
+! multiply the transpose of the symmetry matrix with the G-vector
+    iv(1)=symlat(1,1,lspl)*ivg(1,ig) &
+         +symlat(2,1,lspl)*ivg(2,ig) &
+         +symlat(3,1,lspl)*ivg(3,ig)
+    iv(2)=symlat(1,2,lspl)*ivg(1,ig) &
+         +symlat(2,2,lspl)*ivg(2,ig) &
+         +symlat(3,2,lspl)*ivg(3,ig)
+    iv(3)=symlat(1,3,lspl)*ivg(1,ig) &
+         +symlat(2,3,lspl)*ivg(2,ig) &
+         +symlat(3,3,lspl)*ivg(3,ig)
+    iv(:)=modulo(iv(:)-intgv(:,1),ngrid(:))+intgv(:,1)
+    jg=ivgig(iv(1),iv(2),iv(3))
+    jfg=igfft(jg)
+    zfft2(jfg)=zfft2(jfg)+zt1*zfft1(ifg)
   end do
 end do
+! Fourier transform to real-space and normalise
+call zfftifc(3,ngrid,1,zfft2)
+t1=1.d0/dble(nsymcrys)
+rfir(:)=t1*dble(zfft2(:))
+deallocate(zfft1,zfft2)
 return
 end subroutine
 !EOC
