@@ -1,8 +1,10 @@
-subroutine hamiltonandoverlapsetup(np,ngp,apwalm,h,o)
+subroutine hamiltonandoverlapsetup(np,ngp,apwalm,igpig,vgpc,h,o)
 use modmain
-complex(8),intent(inout)::h(np),o(np)
 integer, intent(in)::np,ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+integer, intent(in) :: igpig(ngkmax)
+real(8), intent(in) :: vgpc(3,ngkmax)
+complex(8),intent(inout)::h(np),o(np)
 !local variables
 integer::i,is,ia
 complex(8) v(1)

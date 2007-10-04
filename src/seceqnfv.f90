@@ -64,7 +64,7 @@ allocate(work(2*nmatp))
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
- call hamiltonandoverlapsetup(np,ngp,apwalm,h,o)
+ call hamiltonandoverlapsetup(np,ngp,apwalm,igpig,vgpc,h,o)
 
 
 !------------------------------------!
