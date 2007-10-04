@@ -1,0 +1,10 @@
+*.o
+*.a
+*.OUT
+*.mod
+*.serial
+*.parallel
+make.inc
+exciting
+excitings
+excitingp
