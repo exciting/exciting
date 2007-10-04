@@ -42,11 +42,7 @@ SRC_routines_flux = \
  gengpvec.f90 genpmat.f90 ggamt.f90 ggair.f90 genveffig.f90 gencfun.f90 \
  genapwfr.f90 seceqnfv.f90 seceqnsv.f90 seceqnss.f90 getngkmax.f90 \
  dos.f90 rhoinit.f90 potplot.f90 writestate.f90 \
- potxc.f90 zpotcoul.f90 gndstate.F90 gndstate_check_for_convergence.F90\
- gndstate_force_relax.F90 gndstate_gencore_wf_density.f90 \
- gndstate_output_state.f90 \
- gndstate_output_timing_information.f90 gndstate_solvepotential.F90 \
- gndstate_write_latticevectors.f90 rhovalk.f90 readstate.f90 bandstr.f90 \
+ potxc.f90 zpotcoul.f90 gndstate.F90  rhovalk.f90 readstate.f90 bandstr.f90 \
  writeeval.f90 rhoplot.f90 gwf2val.f90 gwf2cr.f90 \
  rfarray.f90 fermisurf.f90 symrvfir.f90 \
  symrvf.f90 symrfmt.f90 wfplot.f90 hmlrad.f90 olprad.f90 olpistl.f90 olpaa.f90 \
@@ -57,7 +53,7 @@ SRC_routines_flux = \
  writeengy.f90 writechg.f90 writeforce.f90 genjlgpr.f90 findkpt.f90 \
  putevalfv.f90 getevalfv.f90 putevalsv.f90 getevalsv.f90 putoccsv.f90 \
  getoccsv.f90 putevecfv.f90 getevecfv.f90 putevecsv.f90 getevecsv.f90 \
- delevec.f90 genvmatk.f90 genvmat.f90 genwfsv.f90 \
+ delevec.f90 outfilenamestring.F90 genvmatk.f90 genvmat.f90 genwfsv.f90 \
  findsymsite.f90 geomplot.f90 hartfock.f90 genkinmat.f90 energykncr.f90
 
 SRC_phonon = \

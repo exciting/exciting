@@ -64,10 +64,9 @@ allocate(work(2*nmatp))
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
-call hamiltonandoverlapsetup(np,ik,ispn,apwalm,h,o)
-!$OMP CRITICAL
-timemat=timemat+cpu1-cpu0
-!$OMP END CRITICAL
+ call hamiltonandoverlapsetup(np,ngp,apwalm,h,o)
+
+
 !------------------------------------!
 !     solve the secular equation     !
 !------------------------------------!

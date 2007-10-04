@@ -23,7 +23,7 @@ subroutine gndstate
   !BOC
   implicit none
   ! local variables
-  logical exist
+  logical:: exist,force_converged,redoscl
   integer ik,is,ia,idm,n
   real(8) dv,timetot
   ! allocatable arrays
@@ -412,14 +412,16 @@ subroutine gndstate
 	 endif
      ! check force convergence
      if(rank.eq.0)	then
-	     forceconverged=.false.	
+	     force_converged=.false.	
 	     if (forcemax.le.epsforce) then
 	        write(60,*)	
 	        write(60,'("Force convergence target achieved")')
 	        force_converged=.true.
 	     end if
      endif	
-     call mpi_bcast(forceconverged,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+#ifdef MPI     
+     call mpi_bcast(force_converged,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+#endif
      if(force_converged) goto 30
      ! update the atomic positions if forces are not converged
      call updatpos
