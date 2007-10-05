@@ -2,8 +2,6 @@
 *.a
 *.OUT
 *.mod
-*.serial
-*.parallel
 Makefile.*
 make.inc
 exciting

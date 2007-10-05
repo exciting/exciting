@@ -39,9 +39,6 @@ exciting:
 	mkmf -t $(TEMPLATEFILE) -f -m $(MKMF_MAKEFILE) -p $(EXE_name) \
         $(DIR_main) $(DIR_xs) && make -f $(MKMF_MAKEFILE) $(EXE_name) 
 
-#\
-#&& mv -f $(EXE_name) ..
-
 libs:	blas lapack fftlib libbzint
 
 blas:

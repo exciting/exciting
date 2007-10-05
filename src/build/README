@@ -1,0 +1,45 @@
+
+INFORMATION ON HOWTO BUILD SERIAL AND PARALLEL EXECUTABLES
+
+The directories "serial" and "parallel" are provided for building
+serial and parallel executables independently.
+
+Building serial or parallel executables:
+
+(1) Go to either of the directories "serial" or "parallel"
+
+	cd {serial|parallel}
+
+    Symlink to one of the templates "../make.inc_*"
+
+	ln -s ../make.inc_SOME_TEMPLATE make.inc
+
+    or create your own "make.inc" file.
+
+(2) First you have to build the libraries: This is done by
+
+	make libs
+
+    You should now have obtained the files "blas.a", "lapack.a", "fftlib.a"
+    and "libbzint.a"
+    Alternatively you can build any of the libraries separately
+    by invoking
+
+        make {blas|lapack|fftlib|libbzint}
+
+    Second you build the main part of the code by invoking
+
+	make
+
+    or
+
+	make exciting
+
+(3) If not specified otherwise, an executable with the name "exciting"
+    resides in the "serial" or "parallel" directory depending on where
+    you are building and is ready for execution.
+
+
+(4) (Optional) You can symlink from the "build" directory to the executable
+    in the "serial" and "parallel" directores and give distinct names.
+
