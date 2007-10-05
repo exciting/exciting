@@ -4,7 +4,9 @@
 *.mod
 *.serial
 *.parallel
+Makefile.*
 make.inc
 exciting
 excitings
 excitingp
+mpif.h
