@@ -366,8 +366,8 @@ subroutine gndstate
         ! end the self-consistent loop
      endif
 #ifdef MPI
-     call MPI_bcast(tstop_,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
-     call MPI_bcast(tlast_,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+     call MPI_bcast(tstop,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+     call MPI_bcast(tlast,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
 #endif
 
   end do
@@ -449,7 +449,7 @@ subroutine gndstate
 #ifdef MPI
   call MPI_bcast(redoscl,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
 
-  call MPI_Bcast(fsum,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(forcemax,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(atposc,size(atposc),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(atposl,size(atposl),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(vkl,size(vkl),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)

@@ -1,4 +1,4 @@
-F90 =gfortran
+F90 = mpif90.openmpi -DMPI
 F90_OPTS = -g 
 F77 = gfortran
 F77_OPTS = 

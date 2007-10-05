@@ -118,7 +118,7 @@ subroutine    mpiresumeevecfiles
  
   if(procs.gt.1)call MPI_barrier(MPI_COMM_WORLD,ierr)
 #endif
- splittfile=0
+ splittfile=.false.
   return
 end subroutine mpiresumeevecfiles
 
