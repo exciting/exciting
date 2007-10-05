@@ -105,7 +105,6 @@ deallocate(seg,idx,segpts)
 end subroutine
 !EOC
 
-
 subroutine linterplin(np,v1,v2,vintp)
   implicit none
   ! arguments
@@ -115,12 +114,10 @@ subroutine linterplin(np,v1,v2,vintp)
   ! local variables
   real(8) :: np2,lam
   integer :: j
-
   np2=np+2
   do j=1,np
      lam=dble(j)/(np2-1)
      vintp(:,j)=v1(:)*(1-lam)+v2(:)*lam
   end do
-
 end subroutine linterplin
 
