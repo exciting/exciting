@@ -3,12 +3,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_genfilext
+module m_genfilname
   implicit none
 contains
 
-  character(256) function genfilext(asc,bzsampl,acont,nar,nlf,fxctype,tq0,oc,&
-       iq,nproc,rank,dotext)
+  character(256) function genfilname(nodotpar,basename,asc,bzsampl,acont,&
+       nar,nlf,fxctype,tq0,oc,iq,nproc,rank,dotext,filext)
     ! Generate file extension accoring to purpose and optional
     ! input parameters.
     ! Interpret bzsampl variable as default (Lorentzian) for 0, as
@@ -18,12 +18,19 @@ contains
     implicit none
     ! arguments
     integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,nproc,rank
-    logical, optional, intent(in) :: asc,acont,nar,nlf,tq0
-    character(256), optional, intent(in) :: dotext
+    logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
+    character(*), optional, intent(in) :: basename,dotext
+    character(256), optional, intent(out) :: filext
     ! local variables
-    character(*), parameter :: thisnam = 'genloss'
+    logical :: nodot0
+    character(*), parameter :: thisnam = 'genfilname'
     character(256) :: s,s1
 
+    ! dot in front of filename in parallel output for rank eq. zero
+    nodot0=.false.
+    if (present(nodotpar)) then
+       nodot0=nodotpar
+    end if
     s=''
     ! sampling of Brillouine zone
     if (present(bzsampl)) then
@@ -87,7 +94,20 @@ contains
     else
        s=trim(s)//'.OUT'
     end if
-    genfilext=trim(s)
-  end function genfilext
+    ! assign file extension if required
+    if (present(filext)) filext=trim(s)
+    ! basename
+    if (present(basename)) then
+       s=trim(basename)//trim(s)
+    end if
+    ! dot in front of filename determined by nproc, rank and nodotpar
+    if (present(rank).and.present(nproc)) then
+       if (((nproc > 1).and.(rank > 0)).or. &
+            ((.not.nodot0).and.(nproc > 1).and.(rank == 0))) then
+          s='.'//trim(s)
+       end if
+    end if
+    genfilname=trim(s)
+  end function genfilname
 
-end module m_genfilext
+end module m_genfilname

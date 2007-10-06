@@ -13,9 +13,7 @@ contains
     use m_dyson
     use m_getx0
     use m_getunit
-    !@@@@@@@@
-    use m_genfilext
-    !@@@@@@@@
+    use m_genfilname
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -25,16 +23,17 @@ contains
     complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
     complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
     real(8) :: vkloff_(3)
-    integer :: n,m,recl,j,iw,wi,wf,nwdfp,ngridk_(3), nv_,nc_,nc,oct
+    integer :: n,m,recl,j,iw,wi,wf,nwdfp,ngridk_(3), nv_,nc_,nc,oct,bzsmpl
     logical :: tq0
+    logical, external :: l2int
+
+    ! sampling type for Brillouin zone sampling
+    bzsmpl=l2int(tetra)
 
     tq0 = tq1gamma.and.(iq.eq.1)
     ! number of components (3 for q=0)
     nc=1
     if (tq0) nc=3
-
-    ! file extension for q-point
-    write(filext,'("_Q",i5.5,".OUT")') iq
 
     ! limits for w-points
     wi=wpari
@@ -50,16 +49,10 @@ contains
     ! generate energy grid
     call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
 
-    if (nproc.gt.1) then
-       write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, rank
-    else
-       write(filextp,'("_Q",i5.5,".OUT")') iq
-    end if
+    ! filename for response function file
+    filnam=genfilname(basename='X0',asc=.false.,bzsampl=bzsmpl,&
+         acont=acont,nar=.not.aresdf,iq=iq)
 
-    filnam='X0'
-    if (acont) filnam=trim(filnam)//'_AC'
-    if (tetra) filnam=trim(filnam)//'_TET'
-    if (.not.aresdf) filnam=trim(filnam)//'_NAR'
     ! record length
     inquire(iolength=recl) mdf1(1)
     call getunit(unit1)
@@ -79,35 +72,15 @@ contains
 
        ! loop over longitudinal components for optics
        do oct=1,nc
-
-!!$          ! string for xc-kernel type
-!!$          write(str,'(i2.2)') fxctype
-!!$          if (tq0) write(str,'(i2.2,"_OC",i2.2)') fxctype,11*oct
-!!$          str='_FXC'//trim(str)
-!!$          if (m.eq.1) str='_NLF'//trim(str)
-!!$          if (.not.aresdf) str='_NAR'//trim(str)
-!!$          if (acont) str='_AC'//trim(str)
-!!$          if (tetra) str='_TET'//trim(str)
-          !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-          
-          str=genfilext(asc=.false.,bzsampl=0,acont=acont,nar=.not.aresdf,&
-               nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,iq=iq,nproc=nproc,&
-               rank=rank-1)
-          
-          !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-          filnam2='IDF'//trim(str)
-          if (nproc.gt.1) filnam2='.'//trim(filnam2)
-
-!!$          open(unit1,file=trim(filnam2)//trim(filextp),form='unformatted', &
-!!$               action='write',access='direct',recl=recl)
-          !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+          ! filename for output file
+          filnam2=genfilname(basename='IDF',asc=.false.,bzsampl=bzsmpl,&
+               acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+               tq0=tq0,oc=oct,iq=iq,nproc=nproc,rank=rank-1)
           open(unit1,file=trim(filnam2),form='unformatted', &
                action='write',access='direct',recl=recl)
-         !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
           do iw=wi,wf
              ! read Kohn-Sham response function
-             call getx0(tq0,iq,iw,trim(filnam),trim(filext),chi0,chi0wg,&
+             call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,&
                   chi0h)
              ! assign components to main matrix for q=0
              if (tq0) then
@@ -147,9 +120,6 @@ contains
 
     ! deallocate
     deallocate(chi0,chi0wg,chi0h,fxc,idf,mdf1,w,chi0hd)
-
-    ! restore file extension
-    write(filext,'(".OUT")')
 
   end subroutine idfq
 

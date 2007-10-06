@@ -6,7 +6,7 @@
 
 # Generic Makefile
 # To be used from within the serial/ and parallel/ directory.
-# It utilized the "mkmf" perl script to generate Makefile
+# It utilizes the "mkmf" perl script to generate Makefiles
 # taking into account dependencies due to Fortran modules.
 
 # default name of executable

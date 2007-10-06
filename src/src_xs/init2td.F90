@@ -61,6 +61,16 @@ subroutine init2td
   if (nproc.gt.1) fndevalsv='.'//trim(fndevalsv)
   if (nproc.gt.1) fnchi0p='.'//trim(fnchi0p)
 
+  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  
+!  fnpmat=genfilname(basename='IDF',asc=.false.,bzsampl=0,acont=acont,&
+!       nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
+!       iq=iq,nproc=nproc,rank=rank-1)
+
+
+
+  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  
+
   !------------------------------------!
   !     angular momentum variables     !
   !------------------------------------!
