@@ -35,7 +35,7 @@ LIB_lapack 	= lapack.a
 LIB_fftlib 	= fftlib.a
 LIB_libbzint 	= libbzint.a
 
-exciting:
+type:
 	mkmf -t $(TEMPLATEFILE) -f -m $(MKMF_MAKEFILE) -p $(EXE_name) \
         $(DIR_main) $(DIR_xs) && make -f $(MKMF_MAKEFILE) $(EXE_name) 
 

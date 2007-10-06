@@ -13,6 +13,9 @@ contains
     use m_dyson
     use m_getx0
     use m_getunit
+    !@@@@@@@@
+    use m_genfilext
+    !@@@@@@@@
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -77,19 +80,30 @@ contains
        ! loop over longitudinal components for optics
        do oct=1,nc
 
-          ! string for xc-kernel type
-          write(str,'(i2.2)') fxctype
-          if (tq0) write(str,'(i2.2,"_OC",i2.2)') fxctype,11*oct
-          str='_FXC'//trim(str)
-          if (m.eq.1) str='_NLF'//trim(str)
-          if (.not.aresdf) str='_NAR'//trim(str)
-          if (acont) str='_AC'//trim(str)
-          if (tetra) str='_TET'//trim(str)
+!!$          ! string for xc-kernel type
+!!$          write(str,'(i2.2)') fxctype
+!!$          if (tq0) write(str,'(i2.2,"_OC",i2.2)') fxctype,11*oct
+!!$          str='_FXC'//trim(str)
+!!$          if (m.eq.1) str='_NLF'//trim(str)
+!!$          if (.not.aresdf) str='_NAR'//trim(str)
+!!$          if (acont) str='_AC'//trim(str)
+!!$          if (tetra) str='_TET'//trim(str)
+          !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+          
+          str=genfilext(asc=.false.,bzsampl=0,acont=acont,nar=.not.aresdf,&
+               nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,iq=iq,nproc=nproc,&
+               rank=rank-1)
+          
+          !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
           filnam2='IDF'//trim(str)
           if (nproc.gt.1) filnam2='.'//trim(filnam2)
 
-          open(unit1,file=trim(filnam2)//trim(filextp),form='unformatted', &
+!!$          open(unit1,file=trim(filnam2)//trim(filextp),form='unformatted', &
+!!$               action='write',access='direct',recl=recl)
+          !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+          open(unit1,file=trim(filnam2),form='unformatted', &
                action='write',access='direct',recl=recl)
+         !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
           do iw=wi,wf
              ! read Kohn-Sham response function

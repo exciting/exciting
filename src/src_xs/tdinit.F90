@@ -31,7 +31,7 @@ subroutine tdinit
   ! generate resuem file
   if (nproc.gt.1) then
      write(fnresume,'(".resume",i3.3)') rank
-     write(spar,'("proc",i3.3)') rank
+     write(spar,'("par",i3.3)') rank
   else
      fnresume='.resume'
   end if
