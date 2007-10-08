@@ -44,21 +44,24 @@ contains
     real(8) :: brd,vkloff_save(3)
     real(8) :: cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
     integer :: oc1, oc2, n,igq,i,j,ik,iw,wi,wf,iv,ic,ml(3),nwdfp,ikt
-    integer :: oct,un
+    integer :: oct,un,bzsampl
     logical :: tq0, tetrat
+
+    tetrat=tetra
+    bzsampl=0
+    if (tetra) bzsampl=1
 
     ! filenames for input
     call genfilname(basename='TETW',iq=iq,filnam=fnwtet)
     call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
     call genfilname(basename='DEVALSV',iq=iq,filnam=fndevalsv)
     ! filenames for output
-    call genfilname(basename='X0',iq=iq,filnam=fnchi0)
-    call genfilname(basename='X0',iq=iq,nproc=nproc,rank=rank-1,&
-         filnam=fnchi0_t)
+    call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
+         iq=iq,filnam=fnchi0)
+    call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
+         iq=iq,nproc=nproc,rank=rank-1,filnam=fnchi0_t)
     call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
          nproc=nproc,rank=rank-1,filnam=fnxtim)
-
-    tetrat=tetra
 
     ! initial and final w-point
     wi=wpari
