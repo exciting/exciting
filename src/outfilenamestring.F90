@@ -10,10 +10,11 @@ implicit none
 !character(256):: outfilenamestring
 character(256), intent(in) :: filetag
 integer,intent(in)::ik
-character(256):: tmp,tmp2,krange
+character(256):: tmp,tmp2,krange,scrpathtmp
  krange=''
  tmp=''
  tmp2=''
+ scrpathtmp=''
  outfilenamestring=''
 #ifdef MPI
 
@@ -21,7 +22,8 @@ character(256):: tmp,tmp2,krange
      write(tmp,'(I5)')firstk(procofk(ik))
      write(tmp2,'(I5)')lastk(procofk(ik))
      krange=trim(adjustl(tmp))//'-'//trim(adjustl(tmp2))
+     scrpathtmp=scrpath
   endif
 #endif
-outfilenamestring=trim(scrpath)//trim(filetag)//trim(krange)//trim(filext)   
+outfilenamestring=trim(scrpathtmp)//trim(filetag)//trim(krange)//trim(filext)   
 end function outfilenamestring

@@ -246,8 +246,10 @@ subroutine gndstate
      !$OMP END PARALLEL
 #ifdef MPIRHO    
      call mpisumrhoandmag
-#endif    
-     call mpiresumeevecfiles()
+#endif  
+#ifdef MPI
+    if(xctype.lt.0) call mpiresumeevecfiles()	
+#endif
      ! symmetrise the density
      call symrf(lradstp,rhomt,rhoir)
      ! symmetrise the magnetisation
@@ -499,6 +501,7 @@ subroutine gndstate
   if (tforce) close(64)
   ! close the RMSDVEFF.OUT file
   close(65)
+  call mpiresumeevecfiles()	
   endif
   deallocate(nu,mu,beta,f)
   return
