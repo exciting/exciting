@@ -121,7 +121,7 @@ subroutine    mpiresumeevecfiles
   if(procs.gt.1) call MPI_barrier(MPI_COMM_WORLD,ierr)
   CALL SYSTEM("sync")
 #endif
-  splittfile=.false.
+  splittfile=1.eq.2
   return
 end subroutine mpiresumeevecfiles
 
