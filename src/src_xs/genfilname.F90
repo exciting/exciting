@@ -8,7 +8,10 @@ module m_genfilname
 contains
 
   subroutine genfilname(nodotpar,basename,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc,iq,nproc,rank,dotext,filnam,filext)
+       nar,nlf,fxctype,tq0,oc,iq,nproc,rank,dotext,setfilext,revertfilext,&
+       filnam,filext)
+    use modmain, only: filext_main => filext
+    use modtddft, only: filextrevert
     ! Generate file extension accoring to purpose and optional
     ! input parameters.
     ! Interpret bzsampl variable as default (Lorentzian) for 0, as
@@ -19,18 +22,29 @@ contains
     ! arguments
     integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,nproc,rank
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
+    logical, optional, intent(in) :: revertfilext,setfilext
     character(*), optional, intent(in) :: basename,dotext
     character(256), optional, intent(out) :: filnam,filext
     ! local variables
-    logical :: nodot0
+    logical :: nodot0,revert,setfxt
     character(*), parameter :: thisnam = 'genfilname'
     character(256) :: s,s1
 
+    ! if file extension in "modmain" is to be reset to last value: reset
+    ! else store current file extension
+    revert=.false.
+    setfxt=.false.
+    if (present(revertfilext)) revert=revertfilext
+    if (present(setfilext)) setfxt=setfilext
+    if (revert) then
+       filext_main=trim(filextrevert)
+    else if (setfxt) then
+       filextrevert=filext_main
+    end if
+    
     ! dot in front of filename in parallel output for rank eq. zero
     nodot0=.false.
-    if (present(nodotpar)) then
-       nodot0=nodotpar
-    end if
+    if (present(nodotpar)) nodot0=nodotpar
     s=''
     ! sampling of Brillouine zone
     if (present(bzsampl)) then
@@ -96,6 +110,8 @@ contains
     end if
     ! assign file extension if required
     if (present(filext)) filext=trim(s)
+    ! assign global file extension if required
+    if (setfxt) filext_main=trim(s)
     ! basename
     if (present(basename)) then
        s=trim(basename)//trim(s)

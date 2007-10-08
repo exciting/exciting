@@ -16,19 +16,16 @@ subroutine pmatgather()
 
   ! allocate matrix elements array
   allocate(pm(3,nstsv,nstsv))
-!@@@  filext_save=trim(filext)
 
   ! file extension for q-point
-!@@@  write(filext,'(".OUT")')
   do iproc=1,nproc
      call genfilname(basename='PMAT_TD',nproc=nproc,rank=iproc-1,&
           filnam=fnpmat_t)
-!@@@     write(filextp,'("_par",i3.3,".OUT")') iproc
      call getrange(iproc,nproc,nkpt,kpari,kparf)
      do ik=kpari,kparf
         ! momentum matrix elements
-        call getpmat(ik,vkl,.false.,trim(fnpmat_t),pm) !@@@
-        call putpmat(ik,.true.,trim(fnpmat),pm) !@@@
+        call getpmat(ik,vkl,.false.,trim(fnpmat_t),pm)
+        call putpmat(ik,.true.,trim(fnpmat),pm)
      end do
   end do
 
@@ -36,7 +33,6 @@ subroutine pmatgather()
   do iproc=1,nproc
      call genfilname(basename='PMAT_TD',nproc=nproc,rank=iproc-1,&
           filnam=fnpmat_t)
-!@@@     write(filextp,'("_par",i3.3,".OUT")') iproc
      call filedel(trim(fnpmat_t)) !@@@
   end do
 
@@ -45,6 +41,5 @@ subroutine pmatgather()
 
   ! deallocate
   deallocate(pm)
-!@@@  filext=trim(filext_save)
 
 end subroutine pmatgather

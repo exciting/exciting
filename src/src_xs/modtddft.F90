@@ -284,6 +284,8 @@ module modtddft
   !-----------------------!
   ! file extension (to be modified to characterize/enumerate outputs)
   character(256) :: tdfilext
+  ! last value of filext
+  character(256) :: filextrevert
   ! file unit for output
   integer :: unitout
   ! file units to be connected at the same time

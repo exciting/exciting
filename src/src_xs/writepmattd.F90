@@ -16,6 +16,7 @@ subroutine writepmattd(lgather)
   use m_putpmat
   use m_getunit
   use m_filedel
+  use m_genfilname
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT_TD.OUT}. Derived from
@@ -59,15 +60,14 @@ subroutine writepmattd(lgather)
   resumechkpts(1,2)=kpari
   resumechkpts(1,3)=kparf
 
-!@@@  write(filextp,'(".OUT")')
-!@@@  if (nproc.gt.1) write(filextp,'("_par",i3.3,".OUT")') rank
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(evecfv(nmatmax,nstfv))
   allocate(evecsv(nstsv,nstsv))
   ! allocate the momentum matrix elements array
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
-  write(filext,'("_Q",I5.5,".OUT")') 0
+  call genfilname(iq=0,setfilext=.true.)
+
   ! limits for k-point loop
   ki=kpari
   kf=kparf
@@ -83,7 +83,7 @@ subroutine writepmattd(lgather)
      ! calculate the momentum matrix elements
      call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalm,evecfv, &
           evecsv,pmat)
-     call putpmat(ik,.false.,trim(fnpmat_t),pmat) !@@@
+     call putpmat(ik,.false.,trim(fnpmat_t),pmat)
      resumechkpts(1,1)=ik
      call resupd(un,task,resumechkpts,' : k-point index')
 #ifdef MPI     
@@ -100,7 +100,8 @@ subroutine writepmattd(lgather)
   ! lgather from processes
   if ((nproc.gt.1).and.(rank.eq.1)) call pmatgather()
 
-  filext='.OUT'
+  ! reset global file extension to default
+  call genfilname(setfilext=.true.)
   deallocate(apwalm,evecfv,evecsv,pmat)
 
   call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')

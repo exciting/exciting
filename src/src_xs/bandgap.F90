@@ -134,10 +134,11 @@ end subroutine writebandgap
 subroutine writebandgapgrid
   use modmain
   use modtddft
+  use m_genfilname
   ! initialise universal variables
   if (calledtd.eq.1) call init0
   ! file extension for q-point
-  write(filext,'("_Q",i5.5,".OUT")') 0
+  call genfilname(iq=0,filext=filext) !@@@@@
   call init1
   ! read Fermi energy from file
   call readfermi
@@ -147,5 +148,6 @@ subroutine writebandgapgrid
      call getoccsv(vkl(1,ik),occsv(1,ik))
   end do
   call writebandgap
+  call genfilname(revertfilext=.true.) !@@@@@
 end subroutine writebandgapgrid
 
