@@ -26,7 +26,7 @@ contains
     integer, intent(in) :: iq
     ! local variables
     character(*), parameter :: thisnam = 'tdlinopt'
-    character(256) :: filnam,filnam2,str,fnexciton
+    character(256) :: filnam,filnam2,str,fnexciton2
     complex(8),allocatable :: mdf(:), mdf1(:),w(:),wr(:),sigma(:)
     real(8),allocatable :: wplot(:),loss(:)
     real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
@@ -142,14 +142,14 @@ contains
              str='_NLF'//trim(str)
              if (.not.aresdf) str='_NAR'//trim(str)
              str='_TET'//trim(str)
-             fnexciton='EXCITON'//trim(str)
+             fnexciton2='EXCITON'//trim(str)
 
              ! determination of excitons in combination with tetrahedron method
              ! and neglect local field effects for kernel but consider for
              ! the RPA solution
              if (m==max(n,1)) then
                 call findexciton(oct,nwdos,dble(w))
-                call writeexciton(iq,oct,wplot,mdf,trim(fnexciton)//&
+                call writeexciton(iq,oct,wplot,mdf,trim(fnexciton2)//&
                      trim(filext))
              end if             
           end if

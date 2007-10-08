@@ -32,7 +32,6 @@ subroutine devalsvgather
      do iproc=1,nproc
         call genfilname(basename='DEVALSV',iq=iq,nproc=nproc,rank=iproc-1,&
              filnam=fndevalsv_t)
-        write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
         call getrange(iproc,nproc,nkpt,kpari,kparf)
         do ik=kpari,kparf
            ! exponential factor matrix elements

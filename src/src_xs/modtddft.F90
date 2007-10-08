@@ -312,6 +312,8 @@ module modtddft
   character(256) :: fnchi0, fnchi0_t, fnchi0p
   ! Inverse dielectric function
   character(256) :: fnieps, fnieps_t
+  ! exciton file
+  character(256) :: fnexciton
   ! macroscopic dielectric function
   character(256) :: fneps
   ! loss function

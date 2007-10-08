@@ -27,6 +27,8 @@ contains
     logical :: tq0
     logical, external :: l2int
 
+!@@@ use "fnieps" below
+
     ! sampling type for Brillouin zone sampling
     bzsmpl=l2int(tetra)
 
