@@ -21,13 +21,13 @@ subroutine    mpiresumeevecfiles
   !EOP
   implicit none
   ! arguments
-  integer:: ik,proc,nmatmax_,nstfv_,nspnfv_,nstsv_,recl
+  integer:: ik,proc,nmatmax_,nstfv_,nspnfv_,nstsv_,recl,token
   character(256) filetag
   complex(8) :: evecfv(nmatmax,nstfv,nspnfv) 
   complex(8) :: evecsv (nstsv,nstsv)
   real(8):: evalfv(nstfv,nspnfv),vkl_(3),evalsvp(nstsv),occsvp(nstsv)
   character(256), external:: outfilenamestring
-  if(splitfile.and.(nproc.gt.1))
+  if(splitfile.and.(nproc.gt.1)) then
   if(procs.gt.1) call MPI_barrier(MPI_COMM_WORLD,ierr)
   if(rank.ne.0)call mpi_recv(token,1,MPI_INTEGER,MPI_COMM_WORLD,ierr)
 
