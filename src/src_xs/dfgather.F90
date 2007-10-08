@@ -6,6 +6,7 @@ subroutine dfgather
   use m_filedel
   use m_getx0
   use m_putx0
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'dfgather'
@@ -30,20 +31,21 @@ subroutine dfgather
      allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3))
 
      ! file extension for q-point
-     write(filext,'("_Q",i5.5,".OUT")') iq
      do iproc=1,nproc
-        write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
+        call genfilname(basename='X0',iq=iq,nproc=nproc,rank=iproc-1,&
+             filnam=fnchi0_t)
         call getrange(iproc,nproc,nwdf,wpari,wparf)
         do iw=wpari,wparf
            ! exponential factor matrix elements
-           call getx0(tq0,iq,iw-wpari+1,trim(fnchi0p),trim(filextp),chi0,&
+           call getx0(tq0,iq,iw-wpari+1,trim(fnchi0_t),'',chi0,&
                 chi0wg,chi0hd)
-           call putx0(tq0,iq,iw,trim(fnchi0),trim(filext),chi0,chi0wg,chi0hd)
+           call putx0(tq0,iq,iw,trim(fnchi0),'',chi0,chi0wg,chi0hd)
         end do
      end do
      do iproc=1,nproc
-        write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
-!!$        call filedel(trim(fnchi0p)//trim(filextp))
+        call genfilname(basename='X0',iq=iq,nproc=nproc,rank=iproc-1,&
+             filnam=fnchi0_t)
+!!$        call filedel(trim(fnchi0_t))
      end do
 
      deallocate(chi0,chi0wg,chi0hd)
@@ -53,6 +55,6 @@ subroutine dfgather
 
   ! restore offset
   vkloff = vkloff_save
-  write(filext,'(".OUT")')
+  call genfilname(setfilext=.true.)
 
 end subroutine dfgather

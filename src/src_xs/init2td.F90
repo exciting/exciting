@@ -22,16 +22,16 @@ subroutine init2td
   !--------------------!
   !     file names     !
   !--------------------!
-  ! eigenvectors contracted with matching coefficients
-  fnevapw='APWDLM'
-  ! momentum matrix elements
-  fnpmat='PMAT_TD'
-  ! matrix elements of plane wave
-  fnemat='EMAT'
-  ! timing of matrix elements of plane wave
-  fnetim=trim(fnemat)//'_TIMING'
-  ! Kohn Sham eigenvalue differences
-  fndevalsv='DEVALSV'
+!!$  ! eigenvectors contracted with matching coefficients
+!!$  fnevapw='APWDLM'
+!!$  ! momentum matrix elements
+!!$  fnpmat='PMAT_TD'
+!!$  ! matrix elements of plane wave
+!!$  fnemat='EMAT'
+!!$  ! timing of matrix elements of plane wave
+!!$  fnetim=trim(fnemat)//'_TIMING'
+!!$  ! Kohn Sham eigenvalue differences
+!!$  fndevalsv='DEVALSV'
   ! Kohn Sham response function
   fnchi0='X0'
   ! timing of Kohn Sham response function
@@ -41,27 +41,27 @@ subroutine init2td
   if (.not.aresdf) fnchi0=trim(fnchi0)//'_NAR'
   ! for parallel environment
   fnchi0p=trim(fnchi0)
-  fneps='EPSILON'
-  if (acont) fneps=trim(fneps)//'_AC'
-  if (tetra) fneps=trim(fneps)//'_TET'
-  if (.not.aresdf) fneps=trim(fneps)//'_NAR'
-  fnloss='LOSS'
-  if (acont) fnloss=trim(fnloss)//'_AC'
-  if (tetra) fnloss=trim(fnloss)//'_TET'
-  if (.not.aresdf) fnloss=trim(fnloss)//'_NAR'
-  fnsigma='SIGMA'
-  if (acont) fnsigma=trim(fnsigma)//'_AC'
-  if (tetra) fnsigma=trim(fnsigma)//'_TET'
-  if (.not.aresdf) fnsigma=trim(fnsigma)//'_NAR'
-  fnsumrules='SUMRULES'
-  if (acont) fnsumrules=trim(fnsumrules)//'_AC'
-  if (tetra) fnsumrules=trim(fnsumrules)//'_TET'
-  if (.not.aresdf) fnsumrules=trim(fnsumrules)//'_NAR'
-  if (nproc.gt.1) fnpmat='.'//trim(fnpmat)
-  if (nproc.gt.1) fnemat='.'//trim(fnemat)
-  if (rank.gt.1) fnetim='.'//trim(fnetim)
+!!$  fneps='EPSILON'
+!!$  if (acont) fneps=trim(fneps)//'_AC'
+!!$  if (tetra) fneps=trim(fneps)//'_TET'
+!!$  if (.not.aresdf) fneps=trim(fneps)//'_NAR'
+!!$  fnloss='LOSS'
+!!$  if (acont) fnloss=trim(fnloss)//'_AC'
+!!$  if (tetra) fnloss=trim(fnloss)//'_TET'
+!!$  if (.not.aresdf) fnloss=trim(fnloss)//'_NAR'
+!!$  fnsigma='SIGMA'
+!!$  if (acont) fnsigma=trim(fnsigma)//'_AC'
+!!$  if (tetra) fnsigma=trim(fnsigma)//'_TET'
+!!$  if (.not.aresdf) fnsigma=trim(fnsigma)//'_NAR'
+!!$  fnsumrules='SUMRULES'
+!!$  if (acont) fnsumrules=trim(fnsumrules)//'_AC'
+!!$  if (tetra) fnsumrules=trim(fnsumrules)//'_TET'
+!!$  if (.not.aresdf) fnsumrules=trim(fnsumrules)//'_NAR'
+!!$  if (nproc.gt.1) fnpmat='.'//trim(fnpmat)
+!!$  if (nproc.gt.1) fnemat='.'//trim(fnemat)
+!!$  if (rank.gt.1) fnetim='.'//trim(fnetim)
   if (rank.gt.1) fnxtim='.'//trim(fnxtim)
-  if (nproc.gt.1) fndevalsv='.'//trim(fndevalsv)
+!!$  if (nproc.gt.1) fndevalsv='.'//trim(fndevalsv)
   if (nproc.gt.1) fnchi0p='.'//trim(fnchi0p)
 
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

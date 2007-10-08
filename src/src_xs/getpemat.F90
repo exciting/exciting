@@ -3,7 +3,7 @@ module m_getpemat
   implicit none
 contains
 
-  subroutine getpemat(iq,ik,pfilnam,nstv,nstc,xou,xuo,pou,puo)
+  subroutine getpemat(iq,ik,pfilnam,efilnam,nstv,nstc,xou,xuo,pou,puo)
     use modmain
     use modtddft
     use modtetra
@@ -12,7 +12,7 @@ contains
     implicit none
     ! arguments
     integer, intent(in) :: iq,ik,nstv,nstc
-    character(*), intent(in) :: pfilnam
+    character(*), intent(in) :: pfilnam,efilnam
     complex(8), optional, intent(out) :: xou(:,:,:), xuo(:,:,:)
     complex(8), optional, intent(out) :: pou(:,:,:), puo(:,:,:)
     ! local variables
@@ -44,10 +44,8 @@ contains
        end forall
     end if
     if ((.not.tq0).or.(n.gt.1)) then
-       ! file extension for q-point
-       write(filext,'("_Q",i5.5,".OUT")') iq
        ! read matrix elemets of exponential expression
-       call getemat(iq,ik,.true.,'EMAT'//trim(filext),xou,xuo)
+       call getemat(iq,ik,.true.,trim(efilnam),xou,xuo)
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))
        if (.not.tq0) then
              xou(:,:,1)=xou(:,:,1)/gqc(1,iq)*fourpisqt

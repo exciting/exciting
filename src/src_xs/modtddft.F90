@@ -296,6 +296,8 @@ module modtddft
   character(256) :: tdfileout
   ! eigenvectors contracted with matchin coefficients
   character(256) :: fnevapw
+  ! weights for Brillouin zone integration
+  character(256) :: fnwtet, fnwtet_t
   ! momentum matrix elements
   character(256) :: fnpmat, fnpmat_t
   ! exponential factor matrix elements

@@ -26,6 +26,7 @@ contains
     use m_putx0
     use m_getunit
     use m_filedel
+    use m_genfilname
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -46,6 +47,17 @@ contains
     integer :: oct,un
     logical :: tq0, tetrat
 
+    ! filenames for input
+    call genfilname(basename='TETW',iq=iq,filnam=fnwtet)
+    call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
+    call genfilname(basename='DEVALSV',iq=iq,filnam=fndevalsv)
+    ! filenames for output
+    call genfilname(basename='X0',iq=iq,filnam=fnchi0)
+    call genfilname(basename='X0',iq=iq,nproc=nproc,rank=rank-1,&
+         filnam=fnchi0_t)
+    call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
+         nproc=nproc,rank=rank-1,filnam=fnxtim)
+
     tetrat=tetra
 
     ! initial and final w-point
@@ -54,7 +66,7 @@ contains
     nwdfp=wf-wi+1
 
     ! file extension for q-point
-    write(filext,'("_Q",i5.5,".OUT")') iq
+    call genfilname(iq=iq,setfilext=.true.)
     ! save k-point offset
     vkloff_save = vkloff
     ! shift k-mesh by q-point    
@@ -70,21 +82,12 @@ contains
             &momentum matrix elements for dielectric function'
     end if
 
-    ! parallelization
-    if (nproc.gt.1) then
-       write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, rank
-    else
-       write(filextp,'("_Q",i5.5,".OUT")') iq
-    end if
     ! write out matrix size of response function
     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors &
          &(local field effects):',ngq(iq)
 
-    write(filextt,'("_Q",i5.5,".OUT")') iq    
-    if ((nproc.gt.1).and.(rank.gt.1)) &
-         write(filextt,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, rank
     ! remove timing files from previous runs
-    call filedel(trim(fnxtim)//trim(filextt))
+    call filedel(trim(fnxtim))
 
     ! allocations
     allocate(w(nwdf))
@@ -153,10 +156,11 @@ contains
        call cpu_time(cpu0)
 
        ! read Kohn-Sham energy differences
-       call getdevalsv(iq,ik,.true.,'DEVALSV'//trim(filext),deou,deuo)
+       call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo)
        ! read Kohn-Sham energy differences (random k-point set)
        ! get matrix elements (exp. expr. or momentum)
-       call getpemat(iq,ik,'PMAT_TD.OUT',nstval,nstcon,xiou,xiuo,pmou,pmuo)
+       call getpemat(iq,ik,trim(fnpmat),trim(fnemat),nstval,nstcon,xiou,xiuo,&
+            pmou,pmuo)
 
        ! turn off antiresonant terms for Kohn-Sham response function
        if (.not.aresdf) then
@@ -176,7 +180,7 @@ contains
 
              ! read weights for tetrahedron method
              if (tetrat)  then
-                call gettetcw(iq,ik,iv,ic,nwdf,'TETW'//trim(filext),cw,cwa, &
+                call gettetcw(iq,ik,iv,ic,nwdf,trim(fnwtet),cw,cwa, &
                      cwsurf)
                 wou(wi:wf)=cmplx(cw(wi:wf),cwsurf(wi:wf),8)*2.d0/omega
                 wuo(wi:wf)=cmplx(cwa(wi:wf),0.d0,8)*2.d0/omega
@@ -261,7 +265,7 @@ contains
        cputot=cpuread+cpuosc+cpuupd
 
        ! timing information
-       call dftim(iq,ik,trim(fnxtim)//trim(filextt),cpuread,cpuosc,cpuupd, &
+       call dftim(iq,ik,trim(fnxtim),cpuread,cpuosc,cpuupd, &
             cputot)
 #ifdef MPI
        ! synchronize
@@ -272,7 +276,7 @@ contains
     do j=1,nproc
        if (rank==j) then
           do iw=wi,wf
-             call putx0(tq0,iq,iw-wi+1,trim(fnchi0p),trim(filextp),&
+             call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
           end do
        end if
@@ -290,7 +294,7 @@ contains
     ! restore offset
     vkloff(:) = vkloff_save(:)
     ! restore file extension
-    write(filext,'(".OUT")')
+    call genfilname(setfilext=.true.)
 
   end subroutine dfq
 
