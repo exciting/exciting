@@ -33,7 +33,7 @@ subroutine pmatgather()
   do iproc=1,nproc
      call genfilname(basename='PMAT_TD',nproc=nproc,rank=iproc-1,&
           filnam=fnpmat_t)
-     call filedel(trim(fnpmat_t)) !@@@
+     call filedel(trim(fnpmat_t))
   end do
 
   write(unitout,'(a,i8)') 'Info('//thisnam//'): Momentum matrix &

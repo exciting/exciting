@@ -6,6 +6,7 @@ subroutine ematgather
   use m_filedel
   use m_getemat
   use m_putemat
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'ematgather'
@@ -28,19 +29,20 @@ subroutine ematgather
      allocate(xiou(nstval,nstcon,ngq(iq)))
      allocate(xiuo(nstcon,nstval,ngq(iq)))
      ! file extension for q-point
-     write(filext,'("_Q",i5.5,".OUT")') iq
      do iproc=1,nproc
-        write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
+        call genfilname(basename='EMAT',iq=iq,nproc=nproc,rank=iproc-1,&
+             filnam=fnemat_t)
         call getrange(iproc,nproc,nkpt,kpari,kparf)
         do ik=kpari,kparf
            ! exponential factor matrix elements
-           call getemat(iq,ik,.false.,trim(fnemat)//trim(filextp),xiou,xiuo)
-           call putemat(iq,ik,.true.,'EMAT'//trim(filext),xiou,xiuo)
+           call getemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
+           call putemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
         end do
      end do
      do iproc=1,nproc
-        write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
-        call filedel(trim(fnemat)//trim(filextp))
+        call genfilname(basename='EMAT',iq=iq,nproc=nproc,rank=iproc-1,&
+             filnam=fnemat_t)
+        call filedel(trim(fnemat_t))
      end do
 
      deallocate(xiou,xiuo)
@@ -50,6 +52,6 @@ subroutine ematgather
 
   ! restore offset
   vkloff = vkloff_save
-  write(filext,'(".OUT")')
+  call genfilname(setfilext=.true.)
 
 end subroutine ematgather

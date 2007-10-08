@@ -16,7 +16,6 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'writeeps'
     integer :: n1(1),n,iw
-    !@@@@@@@
     real(8), allocatable :: imeps(:),kkeps(:)
 
     if (any(shape(w).ne.shape(eps))) then

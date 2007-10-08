@@ -22,6 +22,8 @@ subroutine init2td
   !--------------------!
   !     file names     !
   !--------------------!
+  ! eigenvectors contracted with matching coefficients
+  fnevapw='APWDLM'
   ! momentum matrix elements
   fnpmat='PMAT_TD'
   ! matrix elements of plane wave

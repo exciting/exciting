@@ -294,6 +294,8 @@ module modtddft
   character(256) :: statusnam
   ! filename for output
   character(256) :: tdfileout
+  ! eigenvectors contracted with matchin coefficients
+  character(256) :: fnevapw
   ! momentum matrix elements
   character(256) :: fnpmat, fnpmat_t
   ! exponential factor matrix elements
@@ -303,7 +305,7 @@ module modtddft
   ! Kohn-Sham response function timing
   character(256) :: fnxtim
   ! Kohn-Sham energy differences
-  character(256) :: fndevalsv
+  character(256) :: fndevalsv, fndevalsv_t
   ! Kohn-Sham response function
   character(256) :: fnchi0, fnchi0_t, fnchi0p
   ! Inverse dielectric function

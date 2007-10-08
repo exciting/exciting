@@ -6,6 +6,7 @@ subroutine devalsvgather
   use m_filedel
   use m_getdevalsv
   use m_putdevalsv
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'devalsvgather'
@@ -28,20 +29,22 @@ subroutine devalsvgather
      allocate(deou(nstval,nstcon))
      allocate(deuo(nstcon,nstval))
      ! file extension for q-point
-     write(filext,'("_Q",i5.5,".OUT")') iq
      do iproc=1,nproc
+        call genfilname(basename='DEVALSV',iq=iq,nproc=nproc,rank=iproc-1,&
+             filnam=fndevalsv_t)
         write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
         call getrange(iproc,nproc,nkpt,kpari,kparf)
         do ik=kpari,kparf
            ! exponential factor matrix elements
-           call getdevalsv(iq,ik,.false.,trim(fndevalsv)//trim(filextp), &
+           call getdevalsv(iq,ik,.false.,trim(fndevalsv_t), &
                 deou,deuo)
-           call putdevalsv(iq,ik,.true.,'DEVALSV'//trim(filext),deou,deuo)
+           call putdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo)
         end do
      end do
      do iproc=1,nproc
-        write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
-        call filedel(trim(fndevalsv)//trim(filextp))
+        call genfilname(basename='DEVALSV',iq=iq,nproc=nproc,rank=iproc-1,&
+             filnam=fndevalsv_t)
+        call filedel(trim(fndevalsv_t))
      end do
 
      deallocate(deou,deuo)
@@ -51,6 +54,6 @@ subroutine devalsvgather
 
   ! restore offset
   vkloff = vkloff_save
-  write(filext,'(".OUT")')
+  call genfilname(setfilext=.true.)
 
 end subroutine devalsvgather

@@ -18,6 +18,7 @@ contains
     use m_putdevalsv
     use m_emattim
     use m_getunit
+    use m_genfilname
     implicit none
     ! arguments
     integer, intent(in) :: iq,ik
@@ -82,10 +83,11 @@ contains
     evecfvu2(:,:) = evecfv(1:ngk(ikq,1),nstval+1:nstsv,1)
 
     ! read eigenvectors, eigenvalues and occupancies for G+k (q=0)
-    write(filext,'("_Q",i5.5,".OUT")') 0
+    call genfilname(iq=0,setfilext=.true.)
     call getevecfv0(vkl0(1,ik),vgkl0(1,1,ik,1),evecfv0)
     call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
-    write(filext,'("_Q",i5.5,".OUT")') iq
+    ! change back file extension
+    call genfilname(iq=iq,setfilext=.true.)
     evecfvo0(:,:) = evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,1:nstval,1)
     evecfvu0(:,:) = evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,nstval+1:nstsv,1)
     evecfvo20(:,:) = evecfv0(1:ngk0(ik,1),1:nstval,1)
@@ -105,18 +107,18 @@ contains
     cpuini=cpu1-cpu0
 
     ! get expansion coefficients (q=0)
-    write(filext,'("_Q",i5.5,".OUT")') 0
+    call genfilname(basename='APWDLM',iq=0,filnam=fnevapw)
     inquire(iolength=recl) vql_,vkl_,apwdlm0
     call getunit(unit1)
-    open(unit1,file='APWDLM'//trim(filext),action='read',&
+    open(unit1,file=trim(fnevapw),action='read',&
          form='unformatted',status='old',access='direct',recl=recl)
     read(unit1,rec=ik) vql_,vkl_,apwdlm0
     close(unit1)
     ! get expansion coefficients (q)
-    write(filext,'("_Q",i5.5,".OUT")') iq
+    call genfilname(basename='APWDLM',iq=iq,filnam=fnevapw)
     inquire(iolength=recl) vql_,vkl_,apwdlm
     call getunit(unit1)
-    open(unit1,file='APWDLM'//trim(filext),action='read',&
+    open(unit1,file=trim(fnevapw),action='read',&
          form='unformatted',status='old',access='direct',recl=recl)
     read(unit1,rec=ikq) vql_,vkl_,apwdlm
     close(unit1)
@@ -261,10 +263,10 @@ contains
 !************************************************************
 
     ! write to emat file
-    call putemat(iq,ik,.false.,trim(fnemat)//trim(filextp),xiou,xiuo)
+    call putemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
 
     ! write Kohn Sham energy differences
-    call putdevalsv(iq,ik,.false.,trim(fndevalsv)//trim(filextp),deou,deuo)
+    call putdevalsv(iq,ik,.false.,trim(fndevalsv_t),deou,deuo)
 
     ! deallocate
     deallocate(helpm,xihir,evecfvo,evecfvu,evecfvo0,evecfvu0)
@@ -274,10 +276,7 @@ contains
     cpuall=cpuini+cpuread+cpumain+cpuwrite
 
     ! write timing information
-    write(filextt,'("_Q",i5.5,".OUT")') iq    
-    if ((nproc.gt.1).and.(rank.gt.1)) &
-         write(filextt,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, rank
-    call emattim(iq,ik,trim(fnetim)//trim(filextt),&
+    call emattim(iq,ik,trim(fnetim),&
          cpuini,cpuread,cpumain,cpuwrite,cpuall, &
          cpugnt,cpumt,cpuir, &
          cpumalores,cpumaloares,cpumloares,cpumloaares, &

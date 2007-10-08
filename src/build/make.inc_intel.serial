@@ -2,6 +2,8 @@
 # ---------------------- Intel fortran compiler -------------------------------
 F90 		= ifort
 F90_OPTS 	= -O3 -ip -unroll -prefetch -scalar_rep -w90
+### check arrays ###
+F90_OPTS 	= -O0 -w90 -check all -traceback
 F77 		= ifort
 F77_OPTS 	= -O4 -ip -unroll -prefetch -scalar_rep -w90
 LIB_SYS 	= 

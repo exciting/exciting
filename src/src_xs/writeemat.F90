@@ -23,7 +23,7 @@ subroutine writeemat
   call init1
 
   ! initialize q-point set
-  call init2td
+  call init2td()
 
   ! k-point interval for process
   call getrange(rank,nproc,nkpt,kpari,kparf)
@@ -33,13 +33,13 @@ subroutine writeemat
   resumechkpts(2,3)=nqpt
 
   ! write q-point set
-  call writeqpts
+  if (rank == 1) call writeqpts()
 
   ! read Fermi energy from file
   call readfermi
 
   ! save variables for the Gamma q-point
-  call tdsave0
+  call tdsave0()
 
   ! generate Gaunt coefficients
   call tdgauntgen(lmaxmax,lmaxemat,lmaxmax)
@@ -74,8 +74,8 @@ subroutine writeemat
 10 continue
 
   ! gather from processes
-  if ((nproc.gt.1).and.(rank.eq.1)) call ematgather
-  if ((nproc.gt.1).and.(rank.eq.1)) call devalsvgather
+  if ((nproc.gt.1).and.(rank.eq.1)) call ematgather()
+  if ((nproc.gt.1).and.(rank.eq.1)) call devalsvgather()
 
   ! synchronize
   call getunit(un)

@@ -158,8 +158,7 @@ contains
        ! get matrix elements (exp. expr. or momentum)
        call getpemat(iq,ik,'PMAT_TD.OUT',nstval,nstcon,xiou,xiuo,pmou,pmuo)
 
-       ! turn off antiresonant terms (similar to Tamm-Dancoff approximation
-       ! in BSE)
+       ! turn off antiresonant terms for Kohn-Sham response function
        if (.not.aresdf) then
           xiuo(:,:,:)=zzero
           pmuo(:,:,:)=zzero

@@ -113,9 +113,7 @@ contains
     ! assign global file extension if required
     if (setfxt) filext_main=trim(s)
     ! basename
-    if (present(basename)) then
-       s=trim(basename)//trim(s)
-    end if
+    if (present(basename)) s=trim(basename)//trim(s)
     ! dot in front of filename determined by nproc, rank and nodotpar
     if (present(rank).and.present(nproc)) then
        if (((nproc > 1).and.(rank > 0)).or. &
@@ -123,7 +121,7 @@ contains
           s='.'//trim(s)
        end if
     end if
-    filnam=trim(s)
+    if (present(filnam)) filnam=trim(s)
   end subroutine genfilname
 
 end module m_genfilname

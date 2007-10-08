@@ -27,7 +27,7 @@ call getunit(unit1)
 open(unit1,file='QPOINTS'//trim(filext),action='WRITE',form='FORMATTED')
 write(unit1,'(I6," : nqpt; q-point, vql, vqc, wqpt, ngq below")') nqpt
 do iq=1,nqpt
-  write(unit1,'(I6,7G18.10,2I8)') iq,vql(:,iq),vqc(:,iq),wqpt(iq), ngq(iq)
+  write(unit1,'(I6,7G18.10,I8)') iq,vql(:,iq),vqc(:,iq),wqpt(iq), ngq(iq)
 end do
 close(unit1)
 end subroutine writeqpts

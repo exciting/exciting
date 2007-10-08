@@ -16,6 +16,7 @@ contains
     use m_writegqpts
     use m_getunit
     use m_filedel
+    use m_genfilname
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -24,6 +25,16 @@ contains
     character(256) :: fnematw,fnetimw
     integer :: ik,un,recl,ki,kf
     real(8) :: stim, vkloff_save(3)
+
+    ! filenames
+    call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
+    call genfilname(basename='EMAT',iq=iq,nproc=nproc,rank=rank-1,&
+       filnam=fnemat_t)
+    call genfilname(nodotpar=.true.,basename='EMAT_TIMING',iq=iq,&
+         nproc=nproc,rank=rank-1,filnam=fnetim)
+    call genfilname(basename='DEVALSV',iq=iq,filnam=fndevalsv)
+    call genfilname(basename='DEVALSV',iq=iq,nproc=nproc,rank=rank-1,&
+       filnam=fndevalsv_t)
 
     ! checkpointing starts
     call getunit(un)
@@ -40,22 +51,17 @@ contains
     vkloff_save = vkloff
 
     ! file extension for q-point
-    write(filext,'("_Q",I5.5,".OUT")') iq
+    call genfilname(iq=iq,setfilext=.true.)
     ! shift k-mesh by q-point
     vkloff(:)=qvkloff(:,iq)
-
     ! calculate k+q and G+k+q related variables
     call init1td
 
     ! write G+q-vectors
-    call writegqpts(iq)
+    if (rank == 1) call writegqpts(iq)
 
     ! generate radial integrals wrt. sph. Bessel functions
     call ematrad(iq)
-
-    ! file extension
-    write(filextp,'("_Q",i5.5,".OUT")') iq
-    if (nproc.gt.1) write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, rank
 
     ! allocate eigenvalue and eigenvector arrays
     if (allocated(evecfv)) deallocate(evecfv)
@@ -94,7 +100,7 @@ contains
     allocate(apwdlm0(nstsv,apwordmax,lmmaxapwtd,natmtot))
 
     ! delete timing information of previous runs
-    call filedel(trim(fnetim)//trim(filextp))
+    call filedel(trim(fnetim))
 
     ! write information
     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors:', &
@@ -125,7 +131,7 @@ contains
     ! restore offset
     vkloff = vkloff_save
     ! restore file extension
-    write(filext,'(".OUT")')
+    call genfilname(setfilext=.true.)
 
     if (tresume) tresume=.false.
 
