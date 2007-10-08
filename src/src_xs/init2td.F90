@@ -11,6 +11,7 @@ subroutine init2td
   use m_genqvkloff
   use m_findkmapkq
   use m_getunit
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'init2td'
@@ -63,10 +64,8 @@ subroutine init2td
 
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   
-!  fnpmat=genfilname(basename='IDF',asc=.false.,bzsampl=0,acont=acont,&
-!       nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
-!       iq=iq,nproc=nproc,rank=rank-1)
-
+  call genfilname(basename='PMAT_TD',filnam=fnpmat)
+  call genfilname(basename='PMAT_TD',nproc=nproc,rank=rank-1,filnam=fnpmat_t)
 
 
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  

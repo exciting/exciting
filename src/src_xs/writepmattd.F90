@@ -59,8 +59,8 @@ subroutine writepmattd(lgather)
   resumechkpts(1,2)=kpari
   resumechkpts(1,3)=kparf
 
-  write(filextp,'(".OUT")')
-  if (nproc.gt.1) write(filextp,'("_par",i3.3,".OUT")') rank
+!@@@  write(filextp,'(".OUT")')
+!@@@  if (nproc.gt.1) write(filextp,'("_par",i3.3,".OUT")') rank
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(evecfv(nmatmax,nstfv))
   allocate(evecsv(nstsv,nstsv))
@@ -83,7 +83,7 @@ subroutine writepmattd(lgather)
      ! calculate the momentum matrix elements
      call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalm,evecfv, &
           evecsv,pmat)
-     call putpmat(ik,.false.,trim(fnpmat)//trim(filextp),pmat)
+     call putpmat(ik,.false.,trim(fnpmat_t),pmat) !@@@
      resumechkpts(1,1)=ik
      call resupd(un,task,resumechkpts,' : k-point index')
 #ifdef MPI     

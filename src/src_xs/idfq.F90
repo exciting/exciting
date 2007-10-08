@@ -50,8 +50,8 @@ contains
     call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
 
     ! filename for response function file
-    filnam=genfilname(basename='X0',asc=.false.,bzsampl=bzsmpl,&
-         acont=acont,nar=.not.aresdf,iq=iq)
+    call genfilname(basename='X0',asc=.false.,bzsampl=bzsmpl,&
+         acont=acont,nar=.not.aresdf,iq=iq,filnam=filnam)
 
     ! record length
     inquire(iolength=recl) mdf1(1)
@@ -73,9 +73,9 @@ contains
        ! loop over longitudinal components for optics
        do oct=1,nc
           ! filename for output file
-          filnam2=genfilname(basename='IDF',asc=.false.,bzsampl=bzsmpl,&
+          call genfilname(basename='IDF',asc=.false.,bzsampl=bzsmpl,&
                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-               tq0=tq0,oc=oct,iq=iq,nproc=nproc,rank=rank-1)
+               tq0=tq0,oc=oct,iq=iq,nproc=nproc,rank=rank-1,filnam=filnam2)
           open(unit1,file=trim(filnam2),form='unformatted', &
                action='write',access='direct',recl=recl)
           do iw=wi,wf

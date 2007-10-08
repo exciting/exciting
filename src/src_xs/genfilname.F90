@@ -7,8 +7,8 @@ module m_genfilname
   implicit none
 contains
 
-  character(256) function genfilname(nodotpar,basename,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc,iq,nproc,rank,dotext,filext)
+  subroutine genfilname(nodotpar,basename,asc,bzsampl,acont,&
+       nar,nlf,fxctype,tq0,oc,iq,nproc,rank,dotext,filnam,filext)
     ! Generate file extension accoring to purpose and optional
     ! input parameters.
     ! Interpret bzsampl variable as default (Lorentzian) for 0, as
@@ -20,7 +20,7 @@ contains
     integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,nproc,rank
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
     character(*), optional, intent(in) :: basename,dotext
-    character(256), optional, intent(out) :: filext
+    character(256), optional, intent(out) :: filnam,filext
     ! local variables
     logical :: nodot0
     character(*), parameter :: thisnam = 'genfilname'
@@ -107,7 +107,7 @@ contains
           s='.'//trim(s)
        end if
     end if
-    genfilname=trim(s)
-  end function genfilname
+    filnam=trim(s)
+  end subroutine genfilname
 
 end module m_genfilname

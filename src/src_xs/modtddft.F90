@@ -293,9 +293,9 @@ module modtddft
   ! filename for output
   character(256) :: tdfileout
   ! momentum matrix elements
-  character(256) :: fnpmat
+  character(256) :: fnpmat, fnpmat_t
   ! exponential factor matrix elements
-  character(256) :: fnemat
+  character(256) :: fnemat, fnemat_t
   ! exponential factor matrix elements timing
   character(256) :: fnetim
   ! Kohn-Sham response function timing
@@ -303,7 +303,9 @@ module modtddft
   ! Kohn-Sham energy differences
   character(256) :: fndevalsv
   ! Kohn-Sham response function
-  character(256) :: fnchi0, fnchi0p
+  character(256) :: fnchi0, fnchi0_t, fnchi0p
+  ! Inverse dielectric function
+  character(256) :: fnieps, fnieps_t
   ! macroscopic dielectric function
   character(256) :: fneps
   ! loss function
