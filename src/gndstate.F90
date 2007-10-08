@@ -501,9 +501,9 @@ subroutine gndstate
   if (tforce) close(64)
   ! close the RMSDVEFF.OUT file
   close(65)
-  call mpiresumeevecfiles()	
   endif
   deallocate(nu,mu,beta,f)
+   call mpiresumeevecfiles()	
   return
 end subroutine gndstate
 !EOC
