@@ -6,10 +6,10 @@ excitings
 *.mod
 .cdtproject
 .project
-.settings/
+.settings
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species
 Makefile.serial
-
+make.inc
 
