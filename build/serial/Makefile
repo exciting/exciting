@@ -7,7 +7,7 @@ serial:
         && make -f Makefile.serial excitings \
         && cp -f excitings ..
 
-libs:	blas lapack fftlib libbzint
+libs:	blas lapack fftlib 
 
 blas:
 	cp -f make.inc ../..
@@ -27,11 +27,7 @@ fftlib:
 	cp ../../src/fftlib/fftlib.a .
 	cd ../../src/fftlib && make clean
 
-libbzint:
-	cp -f make.inc ../../..
-	cd ../../src/src_libbzint && make clean && make
-	cp ../../src/src_libbzint/libbzint.a .
-	cd ../../src/src_libbzint && make clean
+
 
 clean:
 	rm -f *.o *.mod

@@ -5,7 +5,7 @@ include template
 
 .DEFAULT:
 	-touch $@
-all: ../excitings
+all: excitings
 plot2d.o: ../../src/plot2d.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/plot2d.f90
 updatpos.o: ../../src/updatpos.f90 modmain.o
@@ -1241,7 +1241,7 @@ OFF = ../../src/occupy.f90 ../../src/zflmconj.f90 ../../src/olprad.f90         \
 ../../src/rfmtinp.f90 ../../src/putevalsv.f90 ../../src/i3mdet.f90             \
 ../../src/rfinp.f90 ../../src/atom.f90 ../../src/seceqnhf.f90 ../../src/wigner3j.f90 ../../src/sbesseldm.f90 ../../src/gencfun.f90 ../../src/bandstr.f90 ../../src/modmain.f90 ../../src/hartfock.f90
 clean: neat
-	-rm -f .cppdefs $(OBJ) ../excitings
+	-rm -f .cppdefs $(OBJ) excitings
 neat:
 	-rm -f $(TMPFILES)
 localize: $(OFF)
@@ -1250,5 +1250,5 @@ TAGS: $(SRC)
 	etags $(SRC)
 tags: $(SRC)
 	ctags $(SRC)
-../excitings: $(OBJ)
-	$(LD) $(OBJ) -o ../excitings $(LDFLAGS)
+excitings: $(OBJ)
+	$(LD) $(OBJ) -o excitings $(LDFLAGS)
