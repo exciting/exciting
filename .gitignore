@@ -1,8 +1,12 @@
 *.o
 *.a
 exciting
+excitings
 *.OUT
 *.mod
+.cdtproject
+.project
+.settings/
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species
