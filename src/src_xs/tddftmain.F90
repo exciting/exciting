@@ -177,6 +177,11 @@ subroutine tddftmain
      call fxc_alda_check
   case(399)
      call testmain
+  case(400)
+     ! RPA screening
+     call screen
+!  case(401)
+!     call mmpar_test
   case default
      write(*,*) 'Error('//thisnam//'): task not defined:', tasktd
   end select

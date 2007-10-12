@@ -12,7 +12,7 @@ contains
        filnam,filext)
     use modmain, only: filext_main => filext
     use modtddft, only: filextrevert
-    ! Generate file extension accoring to purpose and optional
+    ! Generate file name and extension accoring to purpose and optional
     ! input parameters.
     ! Interpret bzsampl variable as default (Lorentzian) for 0, as
     ! Tetrahedron method for 1. Trilinear method to be followed.

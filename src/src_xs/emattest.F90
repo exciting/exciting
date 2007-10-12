@@ -6,6 +6,7 @@ subroutine emattest
   use m_getpmat
   use m_getemat
   use m_getdevalsv
+  use m_genfilname
   implicit none
   complex(8), allocatable :: pmat(:,:,:,:), x(:,:,:,:)
   real(8), allocatable :: d(:,:,:)
@@ -13,6 +14,7 @@ subroutine emattest
   real(8) :: denom, d1,d2,d3,a,p
   integer :: iq,ik,istv,istc,n
   integer :: recl
+  character(256) :: filename
 
   call init0
   call init1
@@ -22,7 +24,7 @@ subroutine emattest
   ! SECOND Q-POINT not equal to zero
   iq=2
   ! file extension for q-point
-  write(filext,'("_Q",I5.5,".OUT")') iq
+  call genfilname(iq=iq,setfilext=.true.)
   ! shift k-mesh by q-point
   vkloff(:) = vkloff(:) + vql(:,iq)*ngridk(:)
 
@@ -48,21 +50,20 @@ subroutine emattest
 
 
   call getunit(unit1)
-  open(unit1,file='emat_pmat'//trim(filext),action='write', &
-       status='replace')
-  write(filext,'("_Q",I5.5,".OUT")') 1
-  ! file extension for q-point
-  write(filext,'("_Q",I5.5,".OUT")') iq
+  call genfilname(basename='emat_pmat',iq=iq,filnam=filename)
+  open(unit1,file=trim(filename),action='write',status='replace')
 
-write(*,*) 'gqc(1,iq)',gqc(1,iq)
+  ! annotate magnitude of q-vector
+  write(*,*) 'Info(emattest): length of q-vector:',gqc(1,iq)
+
   ! test matrix elements
   do ik=1,nkpt
      ! read matrix elemets of exponential expression
-     call getpmat(ik,vkl0,.true.,'PMAT_TD.OUT',pmat(:,:,:,ik))
+     call getpmat(ik,vkl0,.true.,trim(fnpmat),pmat(:,:,:,ik))
      ! read matrix elemets of exponential expression
-     call getemat(iq,ik,.true.,trim(fnemat)//trim(filext),xiou,xiuo)
+     call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
      ! read Kohn-Sham eigenvalue differences
-     call getdevalsv(iq,ik,.true.,trim(fndevalsv)//trim(filext),deou,deuo)
+     call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo)
      x(:,:,:,ik) = xiou(:,:,:)
      d(:,:,ik) = deou
      do istv=1,nstval

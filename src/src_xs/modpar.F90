@@ -1,5 +1,10 @@
 
 module modpar
+
+!#ifdef MPI
+!use mpi
+!#endif
+
   implicit none
 
 #ifdef MPI

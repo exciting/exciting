@@ -8,6 +8,7 @@ contains
     use modtddft
     use modpar
     use m_getunit
+    use m_genfilname
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -19,7 +20,7 @@ contains
     integer :: ik,ikt,un
     real(8) :: vofft(3),vqt(3),vkq(3),vkqt(3)
     logical, allocatable :: done(:)
-    character(256) :: filextt
+    character(256) :: filnam
 
     allocate(done(nkpt))
     done(:)=.false.
@@ -52,8 +53,8 @@ contains
 
     if (rank == 1) then
        call getunit(un)
-       write(filextt,'("_Q",I5.5,".OUT")') iq
-       open(un,file='KMAPKQ'//trim(filextt),form='formatted',action='write', &
+       call genfilname(basename='KMAPKQ',iq=iq,filnam=filnam)
+       open(un,file=trim(filnam),form='formatted',action='write', &
             status='replace')
        write(un,'(i9,a)') nkpt, ' : nkpt; k-point, ikmapikq below'
        do ik=1,nkpt

@@ -4,10 +4,11 @@ subroutine epsconv
   use modtddft
   use modtetra
   use m_getunit
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'epsconv'
-  character(256) :: filnam,str
+  character(256) :: filnam
   integer, parameter :: numlines_top=48
   integer :: iq,iw,iwp,j,m,n,oct,nc,un
   logical :: exis,tq0
@@ -36,25 +37,20 @@ subroutine epsconv
      do m=1,n,max(n-1,1)
         ! loop over longitudinal components for optics
         do oct=1,nc
-           ! file extension
-           write(filext,'("_Q",i5.5,".OUT")') iq
-           ! string for xc-kernel type
-           write(str,'(i2.2)') fxctype
-           if (tq0) write(str,'(i2.2,"_OC",i2.2)') fxctype,11*oct
-           str='_FXC'//trim(str)
-           if (m.eq.1) str='_NLF'//trim(str)
-           if (.not.aresdf) str='_NAR'//trim(str)
-           str='_TET'//trim(str)
 
-           filnam='EPSILON'//trim(str)
-           inquire(file=trim(filnam)//trim(filext),exist=exis)
+           ! generate filename for Tetrahedron method
+           call genfilname(basename='EPSILON',bzsampl=1,&
+                nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc=oct,iq=iq,filnam=filnam)
+
+           inquire(file=trim(filnam),exist=exis)
            if (.not.exis) then
               write(*,*) 'Error('//trim(thisnam)//'): file does not exist: '&
-                   //trim(filnam)//trim(filext)
+                   //trim(filnam)
               call terminate
            end if
            call getunit(un)
-           open(unit=un,file=trim(filnam)//trim(filext),form='formatted',&
+           open(unit=un,file=trim(filnam),form='formatted',&
                 action='read',status='old')
 
            ! read comments at the top of the file (check the number of lines
@@ -68,7 +64,11 @@ subroutine epsconv
               read(un,*) w(iw),epst(iw,1),epst(iw,2)
            end do
            close(un)
-           open(unit=un,file=trim(filnam)//'_sL'//trim(filext),&
+           ! generate filename for output (_s_ymmetric _l_orentzian)
+           call genfilname(basename='EPSILON_sl',bzsampl=1,&
+                nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc=oct,iq=iq,filnam=filnam)
+           open(unit=un,file=trim(filnam),&
                 form='formatted',action='write',status='replace')
 
            w(:)=w(:)/t0

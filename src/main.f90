@@ -78,7 +78,7 @@ do itask=1,ntasks
     call geomplot
 !<sag>
   ! tasks for TDDFT
-  case(23,300:399,1200,1300)
+  case(23,300:399,400:499,1200,1300)
     call tddftmain
   case(900)
   ! generate portable ASCII STATE.xml file from STATE.OUT file

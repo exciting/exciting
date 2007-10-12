@@ -10,7 +10,6 @@ subroutine pmatgather()
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'pmatgather'
-  character(256) :: filext_save
   complex(8), allocatable :: pm(:,:,:)
   integer :: ik,ikr,iproc,recl
 
