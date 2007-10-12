@@ -1,7 +1,7 @@
 F90 =gfortran
-F90_OPTS = -g  -DDEBUG
+F90_OPTS = -g  #-DDEBUG
 F77 = gfortran
-F77_OPTS = 
+F77_OPTS = -g
 LIB_SYS = 
-LIB_LPK = -llapack -lblas
-LIB_FFT = ../../src/fftlib/fftlib.a
+LIB_LPK = -L./ -llapack -lblas
+LIB_FFT = fftlib.a

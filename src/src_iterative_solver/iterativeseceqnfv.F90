@@ -52,7 +52,9 @@ np=npmat(ik,ispn)
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
+call cpu_time(cpu0)
 call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
+call cpu_time(cpu1)
 #ifdef DEBUG
 write(112,*)"h",h
 write(113,*)"o",o
@@ -65,6 +67,7 @@ call cpu_time(cpu0)
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
 call getevalfv(vkl(1,ik),evalfv)!! array size check
 write(114,*)"evecfv" ,evecfv
+
 do i=1,3
 	do ievec=1,nstfv	
 	!do ievec=1,1	
