@@ -16,6 +16,7 @@ subroutine writegqpts(iq)
 use modmain
 use modtddft
 use m_getunit
+use m_genfilname
 ! !DESCRIPTION:
 !   Writes the ${\bf G+q}$-points in lattice coordinates, Cartesian 
 !   coordinates, and lengths of ${\bf G+q}$-vectors to the file 
@@ -30,8 +31,10 @@ implicit none
 integer, intent(in) :: iq
 ! local variables
 integer :: igq
+character(256) :: filnam
 call getunit(unit1)
-open(unit1,file='GQPOINTS'//trim(filext),action='WRITE',form='FORMATTED')
+call genfilname(basename='GQPOINTS',iq=iq,filnam=filnam)
+open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
 write(unit1,'(I6," : ngq; G+q-point, vql, vqc, wqpt, ngq below")') ngq(iq)
 do igq=1,ngq(iq)
    write(unit1,'(I6,7G18.10)') igq, vgql(:,igq,iq), vgqc(:,igq,iq), &

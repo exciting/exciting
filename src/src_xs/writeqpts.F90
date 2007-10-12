@@ -11,6 +11,7 @@ subroutine writeqpts
 use modmain
 use modtddft
 use m_getunit
+use m_genfilname
 ! !DESCRIPTION:
 !   Writes the ${\bf q}$-points in lattice coordinates, weights and number of
 !   ${\bf G+q}$-vectors to the file {\tt QPOINTS.OUT}. Based on the routine 
@@ -23,8 +24,10 @@ use m_getunit
 implicit none
 ! local variables
 integer iq
+character(256) :: filnam
 call getunit(unit1)
-open(unit1,file='QPOINTS'//trim(filext),action='WRITE',form='FORMATTED')
+call genfilname(basename='QPOINTS',filnam=filnam)
+open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
 write(unit1,'(I6," : nqpt; q-point, vql, vqc, wqpt, ngq below")') nqpt
 do iq=1,nqpt
   write(unit1,'(I6,7G18.10,I8)') iq,vql(:,iq),vqc(:,iq),wqpt(iq), ngq(iq)

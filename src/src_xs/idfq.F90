@@ -19,18 +19,16 @@ contains
     integer, intent(in) :: iq
     ! local variables
     character(*), parameter :: thisnam = 'idfq'
-    character(256) :: filnam,filnam2,str
+    character(256) :: filnam,filnam2
     complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
     complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
     real(8) :: vkloff_(3)
-    integer :: n,m,recl,j,iw,wi,wf,nwdfp,ngridk_(3), nv_,nc_,nc,oct,bzsmpl
+    integer :: n,m,recl,j,iw,wi,wf,nwdfp,ngridk_(3), nv_,nc_,nc,oct
     logical :: tq0
     logical, external :: l2int
 
-!@@@ use "fnieps" below
-
     ! sampling type for Brillouin zone sampling
-    bzsmpl=l2int(tetra)
+    bzsampl=l2int(tetra)
 
     tq0 = tq1gamma.and.(iq.eq.1)
     ! number of components (3 for q=0)
@@ -52,7 +50,7 @@ contains
     call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
 
     ! filename for response function file
-    call genfilname(basename='X0',asc=.false.,bzsampl=bzsmpl,&
+    call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
          acont=acont,nar=.not.aresdf,iq=iq,filnam=filnam)
 
     ! record length
@@ -75,7 +73,7 @@ contains
        ! loop over longitudinal components for optics
        do oct=1,nc
           ! filename for output file
-          call genfilname(basename='IDF',asc=.false.,bzsampl=bzsmpl,&
+          call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
                tq0=tq0,oc=oct,iq=iq,nproc=nproc,rank=rank-1,filnam=filnam2)
           open(unit1,file=trim(filnam2),form='unformatted', &

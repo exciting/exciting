@@ -44,7 +44,7 @@ contains
     real(8) :: brd,vkloff_save(3)
     real(8) :: cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
     integer :: oc1, oc2, n,igq,i,j,ik,iw,wi,wf,iv,ic,ml(3),nwdfp,ikt
-    integer :: oct,un,bzsampl
+    integer :: oct,un
     logical :: tq0, tetrat
 
     tetrat=tetra

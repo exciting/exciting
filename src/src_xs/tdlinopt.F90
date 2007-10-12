@@ -21,12 +21,13 @@ contains
     use m_writesumrls
     use m_writeexciton
     use m_getunit
+    use m_genfilname
     implicit none
     ! arguments
     integer, intent(in) :: iq
     ! local variables
     character(*), parameter :: thisnam = 'tdlinopt'
-    character(256) :: filnam,filnam2,str,fnexciton2
+    character(256) :: filnam,filnam2
     complex(8),allocatable :: mdf(:), mdf1(:),w(:),wr(:),sigma(:)
     real(8),allocatable :: wplot(:),loss(:)
     real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
@@ -39,9 +40,6 @@ contains
     ! number of components (3 for q=0)
     nc=1
     if (tq0) nc=3
-
-    ! file extension for q-point
-    write(filext,'("_Q",i5.5,".OUT")') iq
 
     ! limits for w-points
     wi=wpari
@@ -61,12 +59,6 @@ contains
     call genwgrid(nwdos,wdos,.false.,brd,w_cmplx=wr)
     wplot=dble(wr)
 
-    if (nproc.gt.1) then
-       write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, rank
-    else
-       write(filextp,'("_Q",i5.5,".OUT")') iq
-    end if
-
     ! record length
     inquire(iolength=recl) mdf1(1)
     call getunit(unit1)
@@ -82,19 +74,12 @@ contains
           optcompt(:)=optcomp(:,1)
           ! symmetrization matrix for dielectric function
           call gensymdf(oct,oct)
-
-          ! string for xc-kernel type
-          write(str,'(i2.2)') fxctype
-          if (tq0) write(str,'(i2.2,"_OC",i2.2)') fxctype,11*oct
-          str='_FXC'//trim(str)
-          if (m.eq.1) str='_NLF'//trim(str)
-          if (.not.aresdf) str='_NAR'//trim(str)
-          if (acont) str='_AC'//trim(str)
-          if (tetra) str='_TET'//trim(str)
-          filnam2='IDF'//trim(str)
-
+          ! file name for inverse of dielectric function
+          call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
+               acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+               tq0=tq0,oc=oct,iq=iq,filnam=filnam2)
           ! read macroscopic dielectric function (original frequencies)
-          open(unit1,file=trim(filnam2)//trim(filext),form='unformatted', &
+          open(unit1,file=trim(filnam2),form='unformatted', &
                action='read',status='old',access='direct',recl=recl)
           do iw=1,nwdf
              read(unit1,rec=iw) mdf1(iw)
@@ -107,23 +92,28 @@ contains
           else
              mdf(:)=mdf1(:)
           end if
+          ! file names for spectra
+          call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
+               acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+               tq0=tq0,oc=oct,iq=iq,filnam=fneps)
+          call genfilname(basename='LOSS',asc=.false.,bzsampl=bzsampl,&
+               acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+               tq0=tq0,oc=oct,iq=iq,filnam=fnloss)
+          call genfilname(basename='SIGMA',asc=.false.,bzsampl=bzsampl,&
+               acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+               tq0=tq0,oc=oct,iq=iq,filnam=fnsigma)
+          call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
+               acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+               tq0=tq0,oc=oct,iq=iq,filnam=fnsumrules)
 
-          ! file names for optical functions
-          fneps='EPSILON'//trim(str)
-          fnloss='LOSS'//trim(str)
-          fnsigma='SIGMA'//trim(str)
-          fnsumrules='SUMRULES'//trim(str)
           if (tetra.and.(fxctype/=0)) then
-             write(str,'(i2.2)') 0
-             if (tq0) write(str,'(i2.2,"_OC",i2.2)') 0,11*oct
-             str='_FXC'//trim(str)
-             str='_NLF'//trim(str)
-             if (.not.aresdf) str='_NAR'//trim(str)
-             str='_TET'//trim(str)
-             filnam='IDF'//trim(str)
+
+             call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
+                  acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=0,&
+                  tq0=tq0,oc=oct,iq=iq,filnam=filnam)
 
              ! read macroscopic dielectric function (RPA)
-             open(unit1,file=trim(filnam)//trim(filext),form='unformatted', &
+             open(unit1,file=trim(filnam),form='unformatted', &
                   action='read',status='old',access='direct',recl=recl)
              do iw=1,nwdf
                 read(unit1,rec=iw) zt1
@@ -135,22 +125,17 @@ contains
              call fderiv(1,nwdos,wplot,mdfrpa(1,oct,1),mdfrpad(1,oct),cf)
              ! derivative of xc-kernel
              call fderiv(1,nwdos,wplot,fxc0(1,oct),fxc0d(1,oct),cf)
-
-             write(str,'(i2.2)') fxctype
-             if (tq0) write(str,'(i2.2,"_OC",i2.2)') fxctype,11*oct
-             str='_FXC'//trim(str)
-             str='_NLF'//trim(str)
-             if (.not.aresdf) str='_NAR'//trim(str)
-             str='_TET'//trim(str)
-             fnexciton2='EXCITON'//trim(str)
+             ! file name for exciton file
+             call genfilname(basename='EXCITON',asc=.false.,bzsampl=bzsampl,&
+                  acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                  tq0=tq0,oc=oct,iq=iq,filnam=fnexciton)
 
              ! determination of excitons in combination with tetrahedron method
              ! and neglect local field effects for kernel but consider for
              ! the RPA solution
              if (m==max(n,1)) then
                 call findexciton(oct,nwdos,dble(w))
-                call writeexciton(iq,oct,wplot,mdf,trim(fnexciton2)//&
-                     trim(filext))
+                call writeexciton(iq,oct,wplot,mdf,trim(fnexciton))
              end if             
           end if
 
@@ -159,10 +144,10 @@ contains
           call gensigma(dble(wr),mdf,optcompt,sigma)
           call gensumrls(dble(wr),mdf,sumrls)
           ! write optical functions to file
-          call writeeps(iq,wplot,mdf,trim(fneps)//trim(filext))
-          call writeloss(iq,wplot,loss,trim(fnloss)//trim(filext))
-          call writesigma(iq,wplot,sigma,trim(fnsigma)//trim(filext))
-          call writesumrls(iq,sumrls,trim(fnsumrules)//trim(filext))
+          call writeeps(iq,wplot,mdf,trim(fneps))
+          call writeloss(iq,wplot,loss,trim(fnloss))
+          call writesigma(iq,wplot,sigma,trim(fnsigma))
+          call writesumrls(iq,sumrls,trim(fnsumrules))
        end do ! oct
     end do ! m
     ! deallocate
@@ -171,7 +156,7 @@ contains
     deallocate(eps1,eps2,cf)
 
     ! restore file extension
-    write(filext,'(".OUT")')
+    call genfilname(setfilext=.true.)
 
   end subroutine tdlinopt
 

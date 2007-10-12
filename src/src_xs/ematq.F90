@@ -22,7 +22,6 @@ contains
     integer, intent(in) :: iq
     ! local variables
     character(*), parameter :: thisnam = 'ematq'
-    character(256) :: fnematw,fnetimw
     integer :: ik,un,recl,ki,kf
     real(8) :: stim, vkloff_save(3)
 
@@ -58,7 +57,7 @@ contains
     call init1td
 
     ! write G+q-vectors
-    if (rank == 1) call writegqpts(iq)
+    call writegqpts(iq)
 
     ! generate radial integrals wrt. sph. Bessel functions
     call ematrad(iq)

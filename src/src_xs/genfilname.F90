@@ -46,6 +46,12 @@ contains
     nodot0=.false.
     if (present(nodotpar)) nodot0=nodotpar
     s=''
+    ! ascii output identifier
+    if (present(asc)) then
+       if (asc) then
+          s=trim(s)//'_ASC'
+       end if
+    end if
     ! sampling of Brillouine zone
     if (present(bzsampl)) then
        select case(bzsampl)
@@ -97,7 +103,8 @@ contains
     end if
     ! parallelization
     if (present(rank).and.present(nproc)) then
-       if (nproc > 1) then ! *** rank is here in range {0,...,nproc-1}
+       if ((nproc > 1).and.((nodot0.and.(rank > 0)).or.(.not.nodot0))) then 
+          ! *** rank is here in range {0,...,nproc-1}
           write(s1,'("_par",i3.3)') rank+1
           s=trim(s)//trim(s1)
        end if

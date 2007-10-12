@@ -227,6 +227,9 @@ module modtddft
   real(8), allocatable :: mdfrpad(:,:)
   ! true if a Lorentzian broadening is to be used in the default linear optics
   logical :: lorentz
+  ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
+  ! method)
+  integer :: bzsampl
 
   !----------------------------------!
   !     angular momenta variables    !

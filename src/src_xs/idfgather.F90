@@ -6,10 +6,11 @@ subroutine idfgather
   use modpar
   use m_filedel
   use m_getunit
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'idfgather'
-  character(256) :: filnam2,filnam3,str
+  character(256) :: filnam,filnam2
   integer :: n,m,iq,iw,iproc,recl,nc,oct
   logical :: tq0
   real(8) :: vkloff_save(3)
@@ -36,30 +37,18 @@ subroutine idfgather
      ! calculate k+q and G+k+q related variables
      call init1td
 
-     ! file extension for q-point
-     write(filext,'("_Q",i5.5,".OUT")') iq
-
      do m=1,n,max(n-1,1)
 
         ! loop over longitudinal components for optics
         do oct=1,nc
-
-           ! string for xc-kernel type
-           write(str,'(i2.2)') fxctype
-           if (tq0) write(str,'(i2.2,"_OC",i2.2)') fxctype,11*oct
-           str='_FXC'//trim(str)
-           if (m.eq.1) str='_NLF'//trim(str)
-           if (.not.aresdf) str='_NAR'//trim(str)
-           if (acont) str='_AC'//trim(str)
-           if (tetra) str='_TET'//trim(str)
-           filnam2='IDF'//trim(str)
-           filnam3=trim(filnam2)
-           if (nproc.gt.1) filnam2='.'//trim(filnam2)
-
            do iproc=1,nproc
-              write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
               call getrange(iproc,nproc,nwdf,wpari,wparf)
-              open(unit1,file=trim(filnam2)//trim(filextp),form='unformatted',&
+              ! filename for proc
+              call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
+                   nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
+                   iq=iq,nproc=nproc,rank=iproc-1,filnam=filnam2)
+
+              open(unit1,file=trim(filnam2),form='unformatted',&
                    action='read',status='old',access='direct',recl=recl)
               do iw=wpari,wparf
                  read(unit1,rec=iw-wpari+1) mdf1(iw)
@@ -68,7 +57,10 @@ subroutine idfgather
            end do ! iproc
 
            ! write to file
-           open(unit1,file=trim(filnam3)//trim(filext),form='unformatted', &
+           call genfilname(basename='IDF',bzsampl=bzsampl,&
+                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc=oct,iq=iq,filnam=filnam)
+           open(unit1,file=trim(filnam),form='unformatted', &
                 action='write',status='replace',access='direct',recl=recl)
            do iw=1,nwdf
               write(unit1,rec=iw) mdf1(iw)
@@ -77,8 +69,10 @@ subroutine idfgather
 
            ! remove partial files
            do iproc=1,nproc
-              write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, iproc
-              call filedel(trim(filnam2)//trim(filextp))
+              call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
+                   nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
+                   iq=iq,nproc=nproc,rank=iproc-1,filnam=filnam2)
+              call filedel(trim(filnam2))
            end do
 
         end do ! oct
@@ -93,6 +87,6 @@ subroutine idfgather
 
   ! restore offset
   vkloff = vkloff_save
-  write(filext,'(".OUT")')
+  call genfilname(setfilext=.true.)
 
 end subroutine idfgather

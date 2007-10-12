@@ -7,8 +7,8 @@ subroutine tdgeneigvec
   use m_genapwcmt
   use m_getunit
   use m_writegqpts
-  use m_putdevalsv
   use m_filedel
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'tdgeneigvec'
@@ -55,8 +55,10 @@ subroutine tdgeneigvec
   ! calculate eigenvectors for each q-point (k+q point set)
   call getunit(unit1)
   do iq=qi,qf
+
      ! file extension for q-point
-     write(filext,'("_Q",I5.5,".OUT")') max(0,iq)
+     call genfilname(iq=max(0,iq),setfilext=.true.)
+
      ! one more iteration for q=0
      if (iq.eq.0) then
         call gndstateq(vkloff,filext)
@@ -108,7 +110,8 @@ subroutine tdgeneigvec
      call filedel('EVALFV'//trim(filext))
   end do
   isreadstate0=.false.
-  filext='.OUT'
+
+  call genfilname(setfilext=.true.)
 
   deallocate(apwdlm)
 
