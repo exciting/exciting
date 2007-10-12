@@ -45,7 +45,9 @@ contains
 #endif
   end subroutine finitmpi
 
-  
+! service functions to partition k points
+! still kept around but should be replaced by generig functions
+! firstofset nofset lastofset ....
 function nofk(process)
 use modmain, only:nkpt
  integer::nofk

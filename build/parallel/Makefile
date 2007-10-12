@@ -4,6 +4,7 @@ include make.inc
 parallel:
 	../../utilities/mkmf -t template -f -m Makefile.parallel -p excitingmpi\
         ../../src  \
+        ../../src/src_iterative_solver \
         && make -f Makefile.parallel excitingmpi \
         && cp -f excitingmpi ..
 

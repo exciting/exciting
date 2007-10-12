@@ -2,6 +2,7 @@
 *.a
 exciting
 excitings
+excitingmpi
 *.OUT
 *.mod
 .cdtproject
@@ -14,4 +15,6 @@ src/species/species
 .project
 .settings/*
 Makefile.serial
+Makefile.parallel
 make.inc
+fort.*

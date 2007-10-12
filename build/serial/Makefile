@@ -4,6 +4,7 @@ include make.inc
 serial:
 	../../utilities/mkmf -t template -f -m Makefile.serial -p excitings \
         ../../src  \
+         ../../src/src_iterative_solver \
         && make -f Makefile.serial excitings \
         && cp -f excitings ..
 

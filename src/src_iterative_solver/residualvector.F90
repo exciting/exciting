@@ -1,6 +1,7 @@
 !BOP
 ! !ROUTINE: seceqn
 subroutine residualvector(n,np,HeS,evecfv,r,rnorm)
+
 ! !INPUT/OUTPUT PARAMETERS:
 
 ! !DESCRIPTION:
@@ -23,8 +24,15 @@ complex(8),intent(out)::r(n)
 real(8),intent(out)::rnorm
 real(8) zdotc
 external zdotc
-r=0.0
-call zhpmv("U",n,1.0,HeS,evecfv, 1, 0.0, r, 1)
+
+r(:)=0.0
+call zhpmv("U",n,(1,1),HeS(:),evecfv(:), 1, (0,0), r(:), 1)
+#ifdef DEBUG
+write(441,*)"Hes in residualvector",HeS
+write(442,*)"evecfv in residualvector",evecfv
+write(443,*)"n,np,r in residualvector",n,np,r
+
+#endif
 rnorm=0
 do i=1,n
 rnorm=rnorm+conjg(r(i))*r(i)

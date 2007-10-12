@@ -1,4 +1,4 @@
-subroutine iterativeseceqnfv(ik,ispn,apwalm,evalfv,evecfv)
+subroutine iterativeseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
  !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -23,6 +23,7 @@ implicit none
 ! arguments
 integer, 	intent(in) 		:: ik
 integer, 	intent(in) 		:: ispn
+real(8),    intent(in)      :: vgpc(3,ngkmax)
 complex(8), intent(in) 		:: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 real(8), 	intent(out) 	:: evalfv(nstfv,nspnfv)
 complex(8), intent(out) 	:: evecfv(nmatmax,nstfv,nspnfv)
@@ -51,9 +52,11 @@ np=npmat(ik,ispn)
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
-call hamiltonandoverlapsetup(np,ik,ispn,apwalm,h,o)
+call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
+#ifdef DEBUG
 write(112,*)"h",h
 write(113,*)"o",o
+#endif
 !$OMP CRITICAL
 timemat=timemat+cpu1-cpu0
 !$OMP END CRITICAL
@@ -64,9 +67,14 @@ call getevalfv(vkl(1,ik),evalfv)!! array size check
 write(114,*)"evecfv" ,evecfv
 do i=1,3
 	do ievec=1,nstfv	
+	!do ievec=1,1	
+	
    	! blas call means : HminuseS(:)=h(:)-evalfv(ievec,ispn)*o(:)
    		call zcopy(np,h,1,hminuses,1)
    		call zaxpy(np,-evalfv(ievec,ispn),o,1,hminuses,1)
+#ifdef DEBUG
+write(115,*)"hminuses",hminuses
+#endif
       	call residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),r(:),rnorm)
       	if (rnorm.lt.residualeps)then
       		 blockdavidsonconverged=.true.
@@ -74,12 +82,12 @@ do i=1,3
 
       	call calcupdatevector(n,r(:),HminuseS(:),da(:,ievec) ) 
 	end do
-	
+#ifdef DEBUG
 	write(331,*)"r",r
 	write(332,*)"HminuseS",HminuseS
 	write(333,*)"da",da
+#endif
 	call setupprojectedhamilton(n,nstfv,h,nmatmax,evecfv(:,:,ispn),da(:,:),hprojected(:),oprojected(:))
-stop
 	call projectedsecequn(nstfv,hprojected(:),oprojected(:),evecp(:,:),evalp(:))
 	call updateevecfv(n,nstfv,da(:,:),nmatmax,evecfv(:,:,ispn),evalfv(:,ispn),evecp(:,:),evalp(:))
 end do

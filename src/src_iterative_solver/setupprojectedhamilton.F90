@@ -18,7 +18,7 @@ pi=1
 do j=1,2*m
 do i=1,j
 vec=0.0
-call zhpmv('U',n,1.0,h,basis(:,j), 1, 0, vec, 1)
+call zhpmv('U',n,(1,1),h,basis(:,j), 1, (0,0), vec, 1)
 hprojected(pi)=zdotc(n ,basis(:,i),1,vec,1)
 oprojected(pi)=zdotc(n ,basis(:,i),1,basis(:,j),1)
 pi=pi+1
