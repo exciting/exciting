@@ -82,4 +82,40 @@ function procofk(k)
    end do
 end function procofk
 
+!-------------generalized partition!
+function nofset(process,set)
+ integer::nofset
+ integer, intent(in)::process,set
+ nofset=set/procs
+ if ((mod(set,procs).gt.process)) nofset=nofset+1
+end function nofset
+
+function firstofset(process,set)
+integer::firstofset
+integer, intent(in)::process,set
+firstofset=1
+do i=0,process-1
+firstofset=firstofset+nofset(i,set)
+end do
+end function firstofset
+
+function lastofset(process,set)
+integer::lastofset
+integer, intent(in)::process,set
+lastofset=0
+do i=0,process
+lastofset=lastofset+nofset(i,set)
+end do
+end function lastofset
+
+function procofindex(k,set)
+   integer:: procofindex
+   integer, intent(in)::k,set
+   integer::iproc
+  procofindex=0
+   do iproc=0,procs-1
+      if (k.gt.lastofset(iproc,set)) procofindex=procofindex+1
+   end do
+end function procofindex
+
 end module modmpi
