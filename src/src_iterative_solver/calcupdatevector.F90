@@ -20,7 +20,7 @@ write(666,*)"r",residual
 	write(555,*)"da norm",norm
 	norm=sqrt(norm)
 	write(555,*)"da norm",norm
-	!call zscal(n,1.0/norm,da,1)
+	call zscal(n, DCMPLX(1.0/norm),da,1)
 end subroutine
 
 subroutine getinvdiagonalofpacked(n,PackedM,Diagonal)
