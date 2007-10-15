@@ -5,10 +5,11 @@ subroutine x0toasc
   use m_getx0
   use m_putx0
   use m_getunit
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'x0toasc'
-  character(256) :: filextw
+  character(256) :: filnam, filnama
   integer :: n,iq,iw,iproc,un
   real(8) :: vkloff_save(3)
   complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
@@ -40,18 +41,20 @@ subroutine x0toasc
      ! allocate
      allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3))
 
-     ! file extension for q-point
-     write(filext,'("_Q",i5.5,".OUT")') iq
-     write(filextw,'("_ASC_Q",i5.5,".OUT")') iq
+     ! filenames
+     call genfilname(asc=.true.,basename='X0',bzsampl=bzsampl,acont=acont,&
+          nar=.not.aresdf,iq=iq,filnam=filnama)
+     call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
+          nar=.not.aresdf,iq=iq,filnam=filnam)
 
      ! open file to write ASCI
      call getunit(un)
-     open(unit=un,file=trim(fnchi0)//trim(filextw),form='formatted', &
+     open(unit=un,file=trim(filnama),form='formatted', &
           action='write',status='replace')
 
      do iw=1,nwdf
         ! read from binary file
-        call getx0(tq0,iq,iw,trim(fnchi0),trim(filext),chi0,chi0wg,chi0hd)
+        call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,chi0hd)
         ! write to ASCII file
         if (tq0) then
            write(un,*) ngq(iq),vql(:,iq),chi0,chi0wg,chi0hd
@@ -70,6 +73,6 @@ subroutine x0toasc
 
   ! restore offset
   vkloff = vkloff_save
-  write(filext,'(".OUT")')
+  call genfilname(setfilext=.true.)
 
 end subroutine x0toasc

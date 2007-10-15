@@ -11,12 +11,13 @@ contains
     use m_genwgrid
     use m_getunit
     use m_filedel
+    use m_genfilname
     implicit none
     ! arguments
     integer, intent(in) :: iq
     ! local variables
     character(*), parameter :: thisnam = 'tetcalccwq'
-    character(256) :: fnamp,fnampt
+    character(256) :: filnam,filnamt
     complex(8), allocatable :: w(:)
     real(8), parameter :: epstetra=1.d-8
     real(8), allocatable :: eb(:,:)
@@ -48,19 +49,12 @@ contains
     wreal(:)=w(wi:wf)
     if (wreal(1).lt.epstetra) wreal(1)=epstetra
 
-    ! file extension for q-point
-    write(filext,'("_Q",i5.5,".OUT")') iq
-    ! parallelization
-    if (nproc.gt.1) then
-       fnamp='.TETW'
-       fnampt='.TETWT'
-       write(filextp,'("_Q",i5.5,"_par",i3.3,".OUT")') iq, rank
-    else
-       fnamp='TETW'
-       fnampt='TETWT'
-       write(filextp,'("_Q",i5.5,".OUT")') iq
-    end if
-
+    ! generate filenames
+    call genfilname(basename='TETW',iq=iq,rank=rank-1,nproc=nproc,&
+         filnam=filnam)
+    call genfilname(basename='TETWT',iq=iq,rank=rank-1,nproc=nproc,&
+         filnam=filnamt)
+    
     ! calculate k+q and G+k+q related variables
     call init1td
 
@@ -101,7 +95,7 @@ contains
     call getunit(unb)
     inquire(iolength=recl) cw(1,:nstval,nstval+1:),cwa(1,:nstval,nstval+1:),&
          cwsurf(1,:nstval,nstval+1:)
-    open(un,file=trim(fnampt)//trim(filextp),form='unformatted',&
+    open(un,file=trim(filnamt),form='unformatted',&
          action='write',status='replace',access='direct',recl=recl)
     ! calculate weights
     do iw=1,nwdfp
@@ -136,11 +130,11 @@ contains
     allocate(cwsurf(nwdfp,nstval,nstcon))
     allocate(cwsurft1(nwdfp),cwt1(nwdfp),cwat1(nwdfp))
 
-    open(un,file=trim(fnampt)//trim(filextp),form='unformatted',action='read',&
+    open(un,file=trim(filnamt),form='unformatted',action='read',&
          status='old',access='direct',recl=recl)
     call getunit(un2)
     inquire(iolength=recl2) cw(:,1,1),cwa(:,1,1),cwsurf(:,1,1)
-    open(un2,file=trim(fnamp)//trim(filextp),form='unformatted',&
+    open(un2,file=trim(filnam),form='unformatted',&
          action='write',status='replace',access='direct',recl=recl2)
     irec=0
     irec2=0
@@ -163,7 +157,7 @@ contains
        end do
     end do
     close(un)
-    call filedel(trim(fnampt)//trim(filextp))
+    call filedel(trim(filnamt))
     close(un2)
 
     deallocate(cwt2,cwat2,cwsurft2)
@@ -176,7 +170,7 @@ contains
     ! restore offset
     vkloff(:) = vkloff_save(:)
     ! restore file extension
-    write(filext,'(".OUT")')
+    call genfilname(setfilext=.true.)
 
   end subroutine tetcalccwq
 

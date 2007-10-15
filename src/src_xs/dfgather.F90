@@ -32,8 +32,8 @@ subroutine dfgather
 
      ! file extension for q-point
      do iproc=1,nproc
-        call genfilname(basename='X0',iq=iq,nproc=nproc,rank=iproc-1,&
-             filnam=fnchi0_t)
+        call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
+             nar=.not.aresdf,iq=iq,nproc=nproc,rank=iproc-1,filnam=fnchi0_t)
         call getrange(iproc,nproc,nwdf,wpari,wparf)
         do iw=wpari,wparf
            ! exponential factor matrix elements
