@@ -10,9 +10,9 @@ Building serial or parallel executables:
 
 	cd {serial|parallel}
 
-    Symlink to one of the templates "../make.inc_*"
+    Symlink to one of the template "make.inc*" files
 
-	ln -s ../make.inc_SOME_TEMPLATE make.inc
+	ln -s path/to/make.inc_SOME_TEMPLATE make.inc
 
     or create your own "make.inc" file.
 
@@ -35,9 +35,9 @@ Building serial or parallel executables:
 
 	make exciting
 
-(3) If not specified otherwise, an executable with the name "exciting"
-    resides in the "serial" or "parallel" directory depending on where
-    you are building and is ready for execution.
+(3) If not specified otherwise, an executable with the name "excitings" or 
+    "excitingp" resides in the "serial" or "parallel" directory depending on 
+    where you are building and is ready for execution.
 
 
 (4) (Optional) You can symlink from the "build" directory to the executable
