@@ -1,5 +1,5 @@
 subroutine iterativeseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
-	implicit none
+
  !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:

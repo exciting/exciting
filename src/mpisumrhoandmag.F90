@@ -18,7 +18,7 @@ subroutine mpisumrhoandmag
   !   Created October SEPT 2006 (MULEOBEN)
   !   by Cristian Meisenbichler
   !EOP
-  Implicit none
+  implicit none
   real(8), allocatable :: buffer(:)
   real(8), allocatable :: buffer2d(:,:)
   real(8), allocatable :: buffer3d(:,:,:)

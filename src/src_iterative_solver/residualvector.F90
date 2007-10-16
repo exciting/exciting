@@ -1,7 +1,7 @@
 !BOP
 ! !ROUTINE: seceqn
 subroutine residualvector(n,np,HeS,evecfv,r,rnorm)
-	implicit none
+	
 ! !INPUT/OUTPUT PARAMETERS:
 
 ! !DESCRIPTION:
@@ -17,6 +17,7 @@ subroutine residualvector(n,np,HeS,evecfv,r,rnorm)
 !EOP
 !BOC
 use modmain
+implicit none
 integer , intent (in)::n,np
 complex(8),intent(in)::HeS(np) !packed ut
 complex(8),intent(in)::evecfv(nmatmax) !vector
@@ -24,6 +25,7 @@ complex(8),intent(out)::r(n)
 real(8),intent(out)::rnorm
 real(8) zdotc
 external zdotc
+integer:: i
 
 r(:)=0.0
 call zhpmv("U",n,(1,1),HeS(:),evecfv(:), 1, (0,0), r(:), 1)

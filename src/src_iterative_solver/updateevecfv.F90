@@ -5,6 +5,7 @@ complex(8), intent(in)::da(n,m),evecp(2*m,m)
 complex(8),intent(inout)::evecfv(nmatmax,m)
 real(8),intent (in)::evalp(2*m)
 real(8),intent (out)::evalfv(m)
+integer::i,j
 
 !local vars
 complex(8)::basis(n,2*m)
