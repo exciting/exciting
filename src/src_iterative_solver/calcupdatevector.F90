@@ -7,7 +7,7 @@ subroutine calcupdatevector(n,residual,HminuseS,da)
 	complex(8)::invHmineS(n)
 	complex(8):: norm
 	real(8)::rnorm
-	integer:: i
+	integer:: i 
 	complex(8) ::zdotc
     external zdotc
 	call getinvdiagonalofpacked(n,HminuseS,invHmineS)
@@ -18,10 +18,8 @@ write(666,*)"r",residual
 	end do
 	write(777,*)"da" ,da
 	norm=(0,0)		
-	!norm=zdotc(n,da(:),1,dacoppy(:),1)
-	do i=1,n
-	norm=norm+conjg(da(i))*da(i)
-	enddo
+    norm=zdotc(n,da(1),1,da(1),1)
+
 	write(555,*)"da norm",norm
 	rnorm=sqrt(dble(norm))
 	call zscal(n, DCMPLX(1.0/rnorm),da,1)
