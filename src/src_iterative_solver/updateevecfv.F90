@@ -19,7 +19,7 @@ end do
 evecfv=0
 do i=1,m
 	do j=1,2*m
-		call zaxpy(n,evecp(j,i),basis(:,j),1,evecfv(:,i),1)
+		call zaxpy(n,evecp(j,i),basis(1,j),1,evecfv(1,i),1)
 		!evecfv(:,i)=evecfv(:,i)+basis(:,j)*evecp(j,i)
 	end do
 end do

@@ -7,6 +7,7 @@ use modmain
 !   ispn   : first-variational spin index (in,integer)
 !   apwalm : APW matching coefficients
 !            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
+!   vgpc   : G+k-vectors in Cartesian coordinates
 !   evalfv : first-variational eigenvalues (out,real(nstfv))
 !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
 ! !DESCRIPTION:
@@ -67,7 +68,10 @@ timemat=timemat+cpu1-cpu0
 call cpu_time(cpu0)
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
 call getevalfv(vkl(1,ik),evalfv)!! array size check
+
+#ifdef DEBUG
 write(114,*)"evecfv" ,evecfv
+#endif
 
 do i=1,1
 	do ievec=1,nstfv	
@@ -110,7 +114,7 @@ call cpu_time(cpu1)
 timefv=timefv+cpu1-cpu0
 !$OMP END CRITICAL 
 call putevecfv(ik,evecfv)
-call putevalfv(ik,evalfv)!! array size check
+call putevalfv(ik,evalfv)
 
 return
 end subroutine
