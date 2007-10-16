@@ -1,11 +1,15 @@
 subroutine calcupdatevector(n,residual,HminuseS,da)
+	implicit none
 	integer, intent(in)::n
     complex(8),intent(in)::residual(n)
 	complex(8),intent(in)::HminuseS(n*(n+1)/2) ! Hermitian Matrix upper triangle packed
 	complex(8),intent(out):: da(n) ! vectors size n
 	complex(8)::invHmineS(n)
-	real(8):: norm
+	complex(8):: norm
+	real(8)::rnorm
 	integer:: i
+	complex(8) ::zdotc
+    external zdotc
 	call getinvdiagonalofpacked(n,HminuseS,invHmineS)
 write(444,*)"invHmineS	",invHmineS	
 write(666,*)"r",residual
@@ -13,14 +17,14 @@ write(666,*)"r",residual
 		da(i)=-invHmineS(i)*residual(i)
 	end do
 	write(777,*)"da" ,da
-	norm=0
+	norm=(0,0)		
+	!norm=zdotc(n,da(:),1,dacoppy(:),1)
 	do i=1,n
-		norm=(norm+dble(conjg(da(i))*da(i)))
-	end do
+	norm=norm+conjg(da(i))*da(i)
+	enddo
 	write(555,*)"da norm",norm
-	norm=sqrt(norm)
-	write(555,*)"da norm",norm
-	call zscal(n, DCMPLX(1.0/norm),da,1)
+	rnorm=sqrt(dble(norm))
+	call zscal(n, DCMPLX(1.0/rnorm),da,1)
 end subroutine
 
 subroutine getinvdiagonalofpacked(n,PackedM,Diagonal)

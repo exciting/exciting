@@ -1,4 +1,5 @@
 subroutine iterativeseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
+	implicit none
  !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -68,7 +69,7 @@ call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
 call getevalfv(vkl(1,ik),evalfv)!! array size check
 write(114,*)"evecfv" ,evecfv
 
-do i=1,3
+do i=1,1
 	do ievec=1,nstfv	
 	!do ievec=1,1	
 	
@@ -91,8 +92,17 @@ write(115,*)"hminuses",hminuses
 	write(333,*)"da",da
 #endif
 	call setupprojectedhamilton(n,nstfv,h,nmatmax,evecfv(:,:,ispn),da(:,:),hprojected(:),oprojected(:))
+#ifdef DEBUG
+	write(334,*)"hprojected",hprojected
+	write(335,*)"oprojected",oprojected
+#endif
 	call projectedsecequn(nstfv,hprojected(:),oprojected(:),evecp(:,:),evalp(:))
+#ifdef DEBUG
+	write(336,*)"evalp",evalp
+	write(337,*)"evalfv",evalfv(:,ispn)
+#endif
 	call updateevecfv(n,nstfv,da(:,:),nmatmax,evecfv(:,:,ispn),evalfv(:,ispn),evecp(:,:),evalp(:))
+
 end do
 
 call cpu_time(cpu1)

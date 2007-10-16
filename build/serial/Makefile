@@ -13,13 +13,13 @@ libs:	blas lapack fftlib
 blas:
 	cp -f make.inc ../..
 	cd ../../src/BLAS && make clean && make
-	cp ../../src/BLAS/blas.a .
+	cp ../../src/BLAS/libblas.a .
 	cd ../../src/BLAS && make clean
 
 lapack:
 	cp -f make.inc ../..
 	cd ../../src/LAPACK && make clean && make
-	cp ../../src/LAPACK/lapack.a .
+	cp ../../src/LAPACK/liblapack.a .
 	cd ../../src/LAPACK && make clean
 
 fftlib:

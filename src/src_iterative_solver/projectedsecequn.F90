@@ -1,4 +1,5 @@
 subroutine projectedsecequn(m,hp,op,evecp,evalp)
+	implicit none
 use modmain
 !update evecfv,eval  acording to sv
 integer,intent(in)::m

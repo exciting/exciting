@@ -1,7 +1,7 @@
 !BOP
 ! !ROUTINE: seceqn
 subroutine residualvector(n,np,HeS,evecfv,r,rnorm)
-
+	implicit none
 ! !INPUT/OUTPUT PARAMETERS:
 
 ! !DESCRIPTION:
