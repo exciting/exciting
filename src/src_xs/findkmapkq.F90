@@ -6,7 +6,7 @@ contains
   subroutine findkmapkq(iq,vq,voff,map)
     use modmain
     use modtddft
-    use modpar
+    use modmpi
     use m_getunit
     use m_genfilname
     implicit none

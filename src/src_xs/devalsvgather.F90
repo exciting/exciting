@@ -2,7 +2,7 @@
 subroutine devalsvgather
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_filedel
   use m_getdevalsv
   use m_putdevalsv
@@ -29,10 +29,11 @@ subroutine devalsvgather
      allocate(deou(nstval,nstcon))
      allocate(deuo(nstcon,nstval))
      ! file extension for q-point
-     do iproc=1,nproc
-        call genfilname(basename='DEVALSV',iq=iq,nproc=nproc,rank=iproc-1,&
+     do iproc=0,procs-1
+        call genfilname(basename='DEVALSV',iq=iq,procs=procs,rank=iproc,&
              filnam=fndevalsv_t)
-        call getrange(iproc,nproc,nkpt,kpari,kparf)
+        kpari=firstofset(rank,nkpt)
+        kparf=lastofset(rank,nkpt)
         do ik=kpari,kparf
            ! exponential factor matrix elements
            call getdevalsv(iq,ik,.false.,trim(fndevalsv_t), &
@@ -40,8 +41,8 @@ subroutine devalsvgather
            call putdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo)
         end do
      end do
-     do iproc=1,nproc
-        call genfilname(basename='DEVALSV',iq=iq,nproc=nproc,rank=iproc-1,&
+     do iproc=0,procs-1
+        call genfilname(basename='DEVALSV',iq=iq,procs=procs,rank=iproc,&
              filnam=fndevalsv_t)
         call filedel(trim(fndevalsv_t))
      end do

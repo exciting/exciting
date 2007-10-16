@@ -8,7 +8,7 @@ contains
     use modtddft
     use modfxcifc
     use modtetra
-    use modpar
+    use modmpi
     use m_genwgrid
     use m_dyson
     use m_getx0
@@ -75,7 +75,7 @@ contains
           ! filename for output file
           call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-               tq0=tq0,oc=oct,iq=iq,nproc=nproc,rank=rank-1,filnam=filnam2)
+               tq0=tq0,oc=oct,iq=iq,procs=procs,rank=rank,filnam=filnam2)
           open(unit1,file=trim(filnam2),form='unformatted', &
                action='write',access='direct',recl=recl)
           do iw=wi,wf

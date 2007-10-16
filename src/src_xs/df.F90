@@ -2,7 +2,7 @@
 subroutine df
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_dfq
   use m_getunit
   implicit none
@@ -22,7 +22,8 @@ subroutine df
   call init2td
 
   ! w-point interval for process
-  call getrange(rank,nproc,nwdf,wpari,wparf)
+  wpari=firstofset(rank,nwdf)
+  wparf=lastofset(rank,nwdf)
 
   ! loop over q-points
   do iq = 1, nqpt
@@ -34,12 +35,12 @@ subroutine df
 
   ! synchronize
   call getunit(un)
-  if (.not.gather) call barrier(rank=rank,nproc=nproc,un=un,async=0, &
+  if (.not.gather) call barrier(rank=rank,procs=procs,un=un,async=0, &
        string='.barrier')
 
-  if ((nproc.gt.1).and.(rank.eq.1)) call dfgather
+  if ((procs.gt.1).and.(rank.eq.0)) call dfgather
 
-  if (.not.gather) call barrier(rank=rank,nproc=nproc,un=un,async=1, &
+  if (.not.gather) call barrier(rank=rank,procs=procs,un=un,async=1, &
        string='.barrier')
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Kohn-Sham response &

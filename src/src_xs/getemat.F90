@@ -6,7 +6,7 @@ contains
   subroutine getemat(iq,ik,tarec,filnam,xou,xuo)
     use modmain
     use modtddft
-    use modpar
+    use modmpi
     use m_getunit
     implicit none
     ! arguments
@@ -39,7 +39,7 @@ contains
 
     ! record position for k-point
     ikr=ik
-    if (.not.tarec) call getridx(nproc,nkpt,ik,ikr)
+    if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
     ! I/O record length
     inquire(iolength=recl) nstval_, nstcon_, nkpt_, ngq_, vql_, vkl_, &
          xou, xuo

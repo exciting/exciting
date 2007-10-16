@@ -1,7 +1,7 @@
 
 subroutine test
   use modtddft
-  use modpar
+  use modmpi
   implicit none
 
   integer, parameter :: n=5000

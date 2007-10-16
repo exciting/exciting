@@ -3,7 +3,7 @@ subroutine idfgather
   use modmain
   use modtddft
   use modtetra
-  use modpar
+  use modmpi
   use m_filedel
   use m_getunit
   use m_genfilname
@@ -41,12 +41,13 @@ subroutine idfgather
 
         ! loop over longitudinal components for optics
         do oct=1,nc
-           do iproc=1,nproc
-              call getrange(iproc,nproc,nwdf,wpari,wparf)
+           do iproc=0,procs-1
+              wpari=firstofset(iproc,nwdf)
+              wparf=lastofset(iproc,nwdf)
               ! filename for proc
               call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
                    nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
-                   iq=iq,nproc=nproc,rank=iproc-1,filnam=filnam2)
+                   iq=iq,procs=procs,rank=iproc,filnam=filnam2)
 
               open(unit1,file=trim(filnam2),form='unformatted',&
                    action='read',status='old',access='direct',recl=recl)
@@ -68,10 +69,10 @@ subroutine idfgather
            close(unit1)
 
            ! remove partial files
-           do iproc=1,nproc
+           do iproc=0,procs-1
               call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
                    nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
-                   iq=iq,nproc=nproc,rank=iproc-1,filnam=filnam2)
+                   iq=iq,procs=procs,rank=iproc,filnam=filnam2)
               call filedel(trim(filnam2))
            end do
 

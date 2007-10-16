@@ -2,7 +2,7 @@
 subroutine tdepilog
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_filedel
   implicit none
   ! local variables
@@ -37,31 +37,14 @@ subroutine tdepilog
        cputcum,cputcum/60,cputcum/3600,cputcum/(24*3600)
   write(unitout,'(a,4g18.6)') '  wall time (cumulative):', &
        walltcum,walltcum/60,walltcum/3600,walltcum/(24*3600)
-  if (nproc.gt.1) write(unitout,'(a)') '(parallel) Timings [seconds/&
-       &minutes/hours]'
-  if (nproc.gt.1) write(unitout,'(a,g18.6)')'  CPU load dedicated           &
-       &  :', (cput-bartim)/cput*100
-  if (nproc.gt.1) write(unitout,'(a,i6)') '  number of barriers             &
-       &:',barcnt
-  if (nproc.gt.1) write(unitout,'(a,3g18.10)') '  wall time                 &
-       &     :',bartim,bartim/60,bartim/3600
-  if (nproc.gt.1) write(unitout,'(a,g18.6)')'  CPU load dedicated (cumulativ&
-       &e):', (cputcum-bartimcum)/cputcum*100
-  if (nproc.gt.1) write(unitout,'(a,i6)') '  number of barriers (cumulative)&
-       &:', barcntcum
-  if (nproc.gt.1) write(unitout,'(a,3g18.10)') '  wall time (cumulative)    &
-       &     :',bartimcum,bartimcum/60,bartimcum/3600
   write(unitout,*)
   write(unitout,'(a)') '============ TDDFT@EXCITING stopped ==================&
        &======================'
   write(unitout,*)
   close(unitout)
 
-  ! reset wall timer for barriers
-  if (nproc.gt.1) bartim=0.d0
-  if (nproc.gt.1) barcnt=0
-
   ! remove tag
-  if (.not.tresume) call filedel(trim(fnresume))
+!!$  if (.not.tresume) call filedel(trim(fnresume))
+  call filedel(trim(fnresume))
 
 end subroutine tdepilog

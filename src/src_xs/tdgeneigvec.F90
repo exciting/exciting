@@ -2,7 +2,7 @@
 subroutine tdgeneigvec
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_gndstateq
   use m_genapwcmt
   use m_getunit
@@ -29,11 +29,13 @@ subroutine tdgeneigvec
   if (tq0ev) then
      nqptextra=1
      nqpteff=nqpt+nqptextra
-     call getrange(rank,nproc,nqpteff,qpari,qparf)
+     qpari=firstofset(rank,nqpteff)
+     qparf=lastofset(rank,nqpteff)
      qpari=qpari-nqptextra
      qparf=qparf-nqptextra
   else
-     call getrange(rank,nproc,nqpt,qpari,qparf)
+     qpari=firstofset(rank,nqpt)
+     qparf=lastofset(rank,nqpt)
   end if
   ! initial and final q-point
   qi=qpari
@@ -42,10 +44,10 @@ subroutine tdgeneigvec
   write(unitout,'("Info(",a,"): q-point range: ",2i9)') thisnam,qpari,qparf
 
   ! immediately go to barrier for rest of processes
-  if (rank.gt.nqpteff) goto 10
+  if (rank >= nqpteff) goto 10
 
   ! write q-points
-  if (rank.eq.1) call writeqpts
+  if (rank == 0) call writeqpts
 
   ! allocate arrays for APW expansion coefficients
   allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
@@ -117,10 +119,10 @@ subroutine tdgeneigvec
 
 10 continue
   call getunit(un)
-  call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
   call sleepifc(5)
 
-  if (tresume) tresume=.false.
+!!$  if (tresume) tresume=.false.
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"):generation of &
        &eigenvectors finished"

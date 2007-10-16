@@ -9,10 +9,10 @@
 subroutine writepmattd(lgather)
   ! !USES:
   use modmain
-  ! masquerade the followin variables
+  ! masquerade the following variables
   use modtddft, evalfv_=>evalfv, evecfv_=>evecfv, evecsv_=>evecsv
   use modtddft, apwalm_=>apwalm
-  use modpar
+  use modmpi
   use m_putpmat
   use m_getunit
   use m_filedel
@@ -54,11 +54,12 @@ subroutine writepmattd(lgather)
   call init1
   call init2td
   ! k-point interval for process
-  call getrange(rank,nproc,nkpt,kpari,kparf)
-  ! jump into next checkpoint
-  if (tresume) resumechkpts(1,1)=resumechkpts(1,1)+1
-  resumechkpts(1,2)=kpari
-  resumechkpts(1,3)=kparf
+  kpari=firstofset(rank,nkpt)
+  kparf=lastofset(rank,nkpt)
+!!$  ! jump into next checkpoint
+!!$  if (tresume) resumechkpts(1,1)=resumechkpts(1,1)+1
+!!$  resumechkpts(1,2)=kpari
+!!$  resumechkpts(1,3)=kparf
 
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(evecfv(nmatmax,nstfv))
@@ -73,7 +74,7 @@ subroutine writepmattd(lgather)
   kf=kparf
   ! resume task, first checkpoint is k-point index
   if (lgather) goto 10
-  if (tresume) ki=resumechkpts(1,1)
+!!$  if (tresume) ki=resumechkpts(1,1)
   do ik=ki,kf
      ! get the eigenvectors and values from file
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
@@ -84,29 +85,29 @@ subroutine writepmattd(lgather)
      call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalm,evecfv, &
           evecsv,pmat)
      call putpmat(ik,.false.,trim(fnpmat_t),pmat)
-     resumechkpts(1,1)=ik
-     call resupd(un,task,resumechkpts,' : k-point index')
+!!$     resumechkpts(1,1)=ik
+!!$     call resupd(un,task,resumechkpts,' : k-point index')
 #ifdef MPI     
-       if (ik-ki+1 <= nkpt/nproc) then
+       if (ik-ki+1 <= nkpt/procs) then
           ! synchronize for common number of k-points to all processes
-          call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+          call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
        end if
 #endif
   end do
-  call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
 10 continue
 
   ! lgather from processes
-  if ((nproc.gt.1).and.(rank.eq.1)) call pmatgather()
+  if ((procs.gt.1).and.(rank.eq.0)) call pmatgather()
 
   ! reset global file extension to default
   call genfilname(setfilext=.true.)
   deallocate(apwalm,evecfv,evecsv,pmat)
 
-  call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
-  if (tresume) tresume=.false.
+!!$  if (tresume) tresume=.false.
   write(unitout,'(a)') "Info("//trim(thisnam)//"): momentum matrix elements &
        &finished"
 

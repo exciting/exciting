@@ -8,7 +8,7 @@ module m_genfilname
 contains
 
   subroutine genfilname(nodotpar,basename,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc,iq,nproc,rank,dotext,setfilext,revertfilext,&
+       nar,nlf,fxctype,tq0,oc,iq,procs,rank,dotext,setfilext,revertfilext,&
        filnam,filext)
     use modmain, only: filext_main => filext
     use modtddft, only: filextrevert
@@ -20,7 +20,7 @@ contains
     ! Oktober 2007
     implicit none
     ! arguments
-    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,nproc,rank
+    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,procs,rank
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
     logical, optional, intent(in) :: revertfilext,setfilext
     character(*), optional, intent(in) :: basename,dotext
@@ -102,9 +102,9 @@ contains
        s=trim(s)//trim(s1)
     end if
     ! parallelization
-    if (present(rank).and.present(nproc)) then
-       if ((nproc > 1).and.((nodot0.and.(rank > 0)).or.(.not.nodot0))) then 
-          ! *** rank is here in range {0,...,nproc-1}
+    if (present(rank).and.present(procs)) then
+       if ((procs > 1).and.((nodot0.and.(rank > 0)).or.(.not.nodot0))) then 
+          !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           write(s1,'("_par",i3.3)') rank+1
           s=trim(s)//trim(s1)
        end if
@@ -121,10 +121,10 @@ contains
     if (setfxt) filext_main=trim(s)
     ! basename
     if (present(basename)) s=trim(basename)//trim(s)
-    ! dot in front of filename determined by nproc, rank and nodotpar
-    if (present(rank).and.present(nproc)) then
-       if (((nproc > 1).and.(rank > 0)).or. &
-            ((.not.nodot0).and.(nproc > 1).and.(rank == 0))) then
+    ! dot in front of filename determined by procs, rank and nodotpar
+    if (present(rank).and.present(procs)) then
+       if (((procs > 1).and.(rank > 0)).or. &
+            ((.not.nodot0).and.(procs > 1).and.(rank == 0))) then
           s='.'//trim(s)
        end if
     end if

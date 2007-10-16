@@ -3,8 +3,9 @@ subroutine tdinit
   use modmain
   use modtddft
   use modfxcifc
-  use modpar
+  use modmpi
   use m_getunit
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'tdinit'
@@ -15,42 +16,41 @@ subroutine tdinit
   ! rank of process
   call getunit(un)
 
-  ! check consistency of rank and nproc
-  if ((nproc.lt.1).or.(nproc.gt.maxproc)) then
+  ! check consistency of rank and procs
+  if ((procs.lt.1).or.(procs.gt.maxproc)) then
      write(*,*) 'Error('//trim(thisnam)//'): Error in parallel &
-          &initialization: number of processes out of range:',nproc
+          &initialization: number of processes out of range:',procs
      call terminate()
   end if
 
-  if ((rank.gt.nproc).or.(rank.lt.1)) then
+  if ((rank.gt.procs).or.(rank.lt.0)) then
      write(*,*) 'Error('//trim(thisnam)//'): Error in parallel &
           &initialization: rank out of range:',rank
      call terminate()
   end if
 
-  ! generate resuem file
-  if (nproc.gt.1) then
-     write(fnresume,'(".resume",i3.3)') rank
-     write(spar,'("par",i3.3)') rank
+  ! generate resume file
+  if (procs.gt.1) then
+     call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&
+          filnam=fnresume)
+
+!!!     write(fnresume,'(".resume",i3.3)') rank
+!!!     write(spar,'("par",i3.3)') rank
+
   else
-     fnresume='.resume'
+     call genfilname(basename='.resume',dotext='')
+!!!     fnresume='.resume'
   end if
 
-  ! initialize for first call to main routine
-  if (calledtd.eq.1) resumechkpts=0
-  ! read in checkpoint if present
-  call resread(un,resumetask,resumechkpts,tresume)
-  ! checkpointing starts
-  if (.not.tresume) then
-     resumechkpts(:,1)=0
-     call resupd(un,task,resumechkpts,' : prolog')
-  end if
-
-  ! separate file extentsion
-  tdfilext = '.OUT'
-  tdfileout = 'TDINFO'
-  if ((nproc.gt.1).and.(rank.gt.1)) tdfilext='_'//trim(spar)//'.OUT'
-  if ((nproc.gt.1).and.(rank.gt.1)) tdfileout = '.'//trim(tdfileout)
+!!$  ! initialize for first call to main routine
+!!$  if (calledtd.eq.1) resumechkpts=0
+!!$  ! read in checkpoint if present
+!!$  call resread(un,resumetask,resumechkpts,tresume)
+!!$  ! checkpointing starts
+!!$  if (.not.tresume) then
+!!$     resumechkpts(:,1)=0
+!!$     call resupd(un,task,resumechkpts,' : prolog')
+!!$  end if
 
   !initialize global counters
   call cpu_time(cputim0i)
@@ -58,13 +58,17 @@ subroutine tdinit
   call system_clock(COUNT=systim0i)
   call date_and_time(date=dat,time=tim)
   if (calledtd.eq.1) call system_clock(COUNT=systimcum)
+
+  ! name of output file
+  call genfilname(nodotpar=.true.,basename='TDINFO',&
+       procs=procs,rank=rank,filnam=tdfileout)
+
+  ! reset or append to output file
   call getunit(unitout)
   if ( tappinfo.or.(calledtd.gt.1)) then
-     open(unitout, file=trim(tdfileout)//trim(tdfilext), action='write', &
-          position='append')
+     open(unitout,file=trim(tdfileout),action='write',position='append')
   else
-     open(unitout, file=trim(tdfileout)//trim(tdfilext), action='write', &
-          status='replace')
+     open(unitout,file=trim(tdfileout),action='write',status='replace')
   end if
 
   ! scaling factor for output of energies
@@ -95,18 +99,12 @@ subroutine tdinit
   write(unitout,*)
   write(unitout,'(a,i6,a)') '*** Info('//trim(thisnam)//'): task Nr.', &
        task,' started'
-  if ((nproc.gt.1).and.(rank.eq.1)) write(unitout,'(a,2i6)') '*** Info('// &
+  if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'(a,2i6)') '*** Info('// &
        trim(thisnam)//'): (parallel) master, rank/number of processes:',rank, &
-       nproc
-  if ((nproc.gt.1).and.(rank.ne.1)) write(unitout,'(a,2i6)') '*** Info('// &
+       procs
+  if ((procs.gt.1).and.(rank.ne.0)) write(unitout,'(a,2i6)') '*** Info('// &
        trim(thisnam)//'): (parallel) slave, rank/number of processes:',rank, &
-       nproc
-  if ((nproc.gt.1).and.(rank.ne.1)) write(unitout,'(a,i6)') '*** Info('// &
-       trim(thisnam)//'): (parallel) baridl:',baridl
-  if ((nproc.gt.1).and.(rank.ne.1)) write(unitout,'(a,i6)') '*** Info('// &
-       trim(thisnam)//'): (parallel) baridl2:',baridl2
-  if (tresume) write(unitout,'(a,i6,a,10i9)') '*** Info('//trim(thisnam)// &
-       '): resuming task',resumetask,' from checkpoints',resumechkpts(:,1)
+       procs
   if (notelns.gt.0) then
      write(unitout,*)
      write(unitout,'("Notes :")')

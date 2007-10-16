@@ -10,7 +10,7 @@ contains
   subroutine ematq(iq)
     use modmain
     use modtddft
-    use modpar
+    use modmpi
     use m_ematrad
     use m_ematqk
     use m_writegqpts
@@ -27,24 +27,24 @@ contains
 
     ! filenames
     call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
-    call genfilname(basename='EMAT',iq=iq,nproc=nproc,rank=rank-1,&
+    call genfilname(basename='EMAT',iq=iq,procs=procs,rank=rank,&
        filnam=fnemat_t)
     call genfilname(nodotpar=.true.,basename='EMAT_TIMING',iq=iq,&
-         nproc=nproc,rank=rank-1,filnam=fnetim)
+         procs=procs,rank=rank,filnam=fnetim)
     call genfilname(basename='DEVALSV',iq=iq,filnam=fndevalsv)
-    call genfilname(basename='DEVALSV',iq=iq,nproc=nproc,rank=rank-1,&
+    call genfilname(basename='DEVALSV',iq=iq,procs=procs,rank=rank,&
        filnam=fndevalsv_t)
 
     ! checkpointing starts
     call getunit(un)
-    if (.not.tresume) then
-       ! k-point index
-       resumechkpts(1,1)=0
-       call resupd(un,task,resumechkpts,' : k-point index')
-    else
-       ! jump into next checkpoint (k-point)
-       resumechkpts(1,1)=resumechkpts(1,1)+1
-    end if
+!!$    if (.not.tresume) then
+!!$       ! k-point index
+!!$       resumechkpts(1,1)=0
+!!$       call resupd(un,task,resumechkpts,' : k-point index')
+!!$    else
+!!$       ! jump into next checkpoint (k-point)
+!!$       resumechkpts(1,1)=resumechkpts(1,1)+1
+!!$    end if
 
     ! save k-point offset
     vkloff_save = vkloff
@@ -109,17 +109,17 @@ contains
     ki=kpari
     kf=kparf
     ! resume task, first checkpoint is k-point index
-    if (tresume) ki=resumechkpts(1,1)
+!!$    if (tresume) ki=resumechkpts(1,1)
     call getunit(un)
     ! loop over k-points
     do ik = ki, kf
        call ematqk(iq,ik)
-       resumechkpts(1,1)=ik
-       call resupd(un,task,resumechkpts,' : k-point index')
+!-       resumechkpts(1,1)=ik
+!-       call resupd(un,task,resumechkpts,' : k-point index')
 #ifdef MPI
-       if (ik-ki+1 <= nkpt/nproc) then
+       if (ik-ki+1 <= nkpt/procs) then
           ! synchronize for common number of k-points to all processes
-          call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+          call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
        end if
 #endif
     end do
@@ -132,7 +132,7 @@ contains
     ! restore file extension
     call genfilname(setfilext=.true.)
 
-    if (tresume) tresume=.false.
+!!$    if (tresume) tresume=.false.
 
   end subroutine ematq
 

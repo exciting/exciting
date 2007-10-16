@@ -10,7 +10,7 @@ contains
   subroutine ematqk(iq,ik)
     use modmain
     use modtddft
-    use modpar
+    use modmpi
     use m_tdintrg
     use m_ematqkgmt
     use m_ematqkgir

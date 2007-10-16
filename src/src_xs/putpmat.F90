@@ -6,7 +6,7 @@ contains
   subroutine putpmat(ik,tarec,filnam,pm)
     use modmain
     use modtddft
-    use modpar
+    use modmpi
     use m_getunit
     implicit none
     ! arguments
@@ -21,7 +21,7 @@ contains
     ! record position for k-point
     ikr=ik
     ! record position is not absolute k-point index
-    if (.not.tarec) call getridx(nproc,nkpt,ik,ikr)
+    if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
 
     ! I/O record length
     inquire(iolength=recl) nstval, nstcon, nkpt, &

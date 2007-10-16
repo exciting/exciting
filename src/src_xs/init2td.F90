@@ -7,7 +7,7 @@ subroutine init2td
   use modmain
   use modtddft
   use modtetra
-  use modpar
+  use modmpi
   use m_genqvkloff
   use m_findkmapkq
   use m_getunit
@@ -23,7 +23,7 @@ subroutine init2td
   !     file names     !
   !--------------------!
   call genfilname(basename='PMAT_TD',filnam=fnpmat)
-  call genfilname(basename='PMAT_TD',nproc=nproc,rank=rank-1,filnam=fnpmat_t)
+  call genfilname(basename='PMAT_TD',procs=procs,rank=rank,filnam=fnpmat_t)
 
   !------------------------------------!
   !     angular momentum variables     !
@@ -241,12 +241,12 @@ subroutine init2td
   !---------------------------------!
   !     k-point parallelization     !
   !---------------------------------!
-  if (nproc.gt.nkpt) then
-     nproc=nkpt
-     write(*,*) 'Warning('//thisnam//'): nproc > nkpt: resetting to nkpt'
-     if (rank.gt.nkpt) then
+  if (procs > nkpt) then
+     procs=nkpt
+     write(*,*) 'Warning('//thisnam//'): procs > nkpt: resetting to nkpt'
+     if (rank >= nkpt) then
         write(*,*) 'Warning('//thisnam//'): rank > nkpt: skipping this &
-             &process'
+             &process - this should not happen within an MPI run'
         call tdepilog
         ! just stop current process
         stop

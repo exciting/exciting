@@ -7,7 +7,7 @@ contains
     use modmain
     use modtddft
     use modtetra
-    use modpar
+    use modmpi
     use m_genwgrid
     use m_getunit
     use m_filedel
@@ -50,9 +50,9 @@ contains
     if (wreal(1).lt.epstetra) wreal(1)=epstetra
 
     ! generate filenames
-    call genfilname(basename='TETW',iq=iq,rank=rank-1,nproc=nproc,&
+    call genfilname(basename='TETW',iq=iq,rank=rank,procs=procs,&
          filnam=filnam)
-    call genfilname(basename='TETWT',iq=iq,rank=rank-1,nproc=nproc,&
+    call genfilname(basename='TETWT',iq=iq,rank=rank,procs=procs,&
          filnam=filnamt)
     
     ! calculate k+q and G+k+q related variables
@@ -118,9 +118,9 @@ contains
           cwat2(:,:)=cwa(ik,:nstval,nstval+1:)
           write(un,rec=irec) cwt2,cwat2,cwsurft2
        end do
-       if (iw <= nwdf/nproc) then
+       if (iw <= nwdf/procs) then
           ! synchronize for common number of w-points to all processes
-          call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+          call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
        end if
     end do
     close(un)

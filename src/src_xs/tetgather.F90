@@ -2,7 +2,7 @@
 subroutine tetgather
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_gettetcw
   use m_puttetcw
   use m_filedel
@@ -36,13 +36,15 @@ subroutine tetgather
            do ic=1,nstcon
 
               ! collect weights from processes
-              do iproc=1,nproc
+              do iproc=0,procs-1
 
                  ! filename for input file
-                 call genfilname(basename='TETW',iq=iq,rank=iproc-1,&
-                      nproc=nproc,filnam=filnam_t)
+                 call genfilname(basename='TETW',iq=iq,rank=iproc,&
+                      procs=procs,filnam=filnam_t)
                  
-                 call getrange(iproc,nproc,nwdf,wpari,wparf)
+                 wpari=firstofset(iproc,nwdf)
+                 wparf=lastofset(iproc,nwdf)
+
                  nwdfp=wparf-wpari+1
                  allocate(cwp(nwdfp),cwap(nwdfp),cwsurfp(nwdfp))
 
@@ -62,8 +64,8 @@ subroutine tetgather
         end do ! iv
      end do ! ik
 
-     do iproc=1,nproc
-        call genfilname(basename='TETW',iq=iq,rank=rank-1,nproc=nproc,&
+     do iproc=0,procs-1
+        call genfilname(basename='TETW',iq=iq,rank=rank,procs=procs,&
              filnam=filnam_t)
         call filedel(trim(filnam_t))
      end do

@@ -2,7 +2,7 @@
 subroutine pmatgather()
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_filedel
   use m_getpmat
   use m_putpmat
@@ -17,10 +17,11 @@ subroutine pmatgather()
   allocate(pm(3,nstsv,nstsv))
 
   ! file extension for q-point
-  do iproc=1,nproc
-     call genfilname(basename='PMAT_TD',nproc=nproc,rank=iproc-1,&
+  do iproc=0,procs-1
+     call genfilname(basename='PMAT_TD',procs=procs,rank=iproc,&
           filnam=fnpmat_t)
-     call getrange(iproc,nproc,nkpt,kpari,kparf)
+     kpari=firstofset(iproc,nkpt)
+     kparf=lastofset(iproc,nkpt)
      do ik=kpari,kparf
         ! momentum matrix elements
         call getpmat(ik,vkl,.false.,trim(fnpmat_t),pm)
@@ -29,8 +30,8 @@ subroutine pmatgather()
   end do
 
   ! delete partial files
-  do iproc=1,nproc
-     call genfilname(basename='PMAT_TD',nproc=nproc,rank=iproc-1,&
+  do iproc=0,procs-1
+     call genfilname(basename='PMAT_TD',procs=procs,rank=iproc,&
           filnam=fnpmat_t)
      call filedel(trim(fnpmat_t))
   end do

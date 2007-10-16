@@ -11,7 +11,7 @@ contains
     use modmain
     use modtddft
     use modtetra
-    use modpar
+    use modmpi
     use m_genwgrid
     use m_gensymdf
     use m_getpemat
@@ -59,9 +59,9 @@ contains
     call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
          iq=iq,filnam=fnchi0)
     call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-         iq=iq,nproc=nproc,rank=rank-1,filnam=fnchi0_t)
+         iq=iq,procs=procs,rank=rank,filnam=fnchi0_t)
     call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
-         nproc=nproc,rank=rank-1,filnam=fnxtim)
+         procs=procs,rank=rank,filnam=fnxtim)
 
     ! initial and final w-point
     wi=wpari
@@ -272,18 +272,18 @@ contains
             cputot)
 #ifdef MPI
        ! synchronize
-       call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+       call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 #endif
     end do ! ik
 
-    do j=1,nproc
+    do j=0,procs-1
        if (rank==j) then
           do iw=wi,wf
              call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
           end do
        end if
-       call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+       call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
     end do
 
     deallocate(chi0h)

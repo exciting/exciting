@@ -7,7 +7,7 @@ contains
     use modmain
     use modtddft
     use modtetra
-    use modpar
+    use modmpi
     use m_findexciton
     use m_genwgrid
     use m_pade

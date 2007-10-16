@@ -6,7 +6,7 @@
 subroutine pmattd2orig
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_getpmat
   use m_getunit
   implicit none
@@ -15,7 +15,7 @@ subroutine pmattd2orig
   complex(8), allocatable :: pm(:,:,:)
   integer :: un,ik,recl
 
-  if (rank.eq.1) then
+  if (rank == 0) then
      call init0
      call init1
      call init2td
@@ -36,7 +36,7 @@ subroutine pmattd2orig
   end if
 
   call getunit(un)
-  call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): conversion of PMAT &
        &finished"

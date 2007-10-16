@@ -1,7 +1,7 @@
 
 subroutine argparse()
   use modmain
-  use modpar
+  use modmpi
   implicit none
   ! local variables
   character(256) :: str
@@ -10,19 +10,19 @@ subroutine argparse()
   ! read rank
   call getarg(1,str)
   if (trim(str).eq.'') then
-     rank=1
+     rank=0
   else
      str=adjustl(str)
      read(str,*) rank
   end if
 
-  ! read nproc
+  ! read procs
   call getarg(2,str)
   if (trim(str).eq.'') then
-     nproc=1
+     procs=1
   else
      str=adjustl(str)
-     read(str,*) nproc
+     read(str,*) procs
   end if
 #endif
 

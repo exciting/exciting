@@ -22,7 +22,7 @@ subroutine tddftmain
   use modmain
   use modtddft
   use modtetra
-  use modpar
+  use modmpi
   use m_getunit
   implicit none
   character(*), parameter :: thisnam = 'tddftmain'
@@ -32,12 +32,12 @@ subroutine tddftmain
   tasktd = task
   calledtd = calledtd + 1
 
-  if (calledtd.eq.1) call argparse()
+  if (calledtd == 1) call argparse()
 
   ! basic initialization
   call tdinit
 
-  if (calledtd .eq. 1) then
+  if (calledtd == 1) then
      ! check verify constraints
      call tdcheck
      write(unitout,'(a)') '*** Info('//thisnam//'): initialization done.'
@@ -45,13 +45,13 @@ subroutine tddftmain
      call writeinfotd
   end if
 
-  if (tresume) then
-     tskip=.true.
-  else
-     tskip=.false.
-  end if
-  if (tresume.and.(tasktd.eq.resumetask)) tskip=.false.
-  if (tskip) goto 10
+!!$  if (tresume) then
+!!$     tskip=.true.
+!!$  else
+!!$     tskip=.false.
+!!$  end if
+!!$  if (tresume.and.(tasktd.eq.resumetask)) tskip=.false.
+!!$  if (tskip) goto 10
 
   ! task selection
   select case(tasktd)
@@ -106,66 +106,6 @@ subroutine tddftmain
   case(351)
      ! linear optics of old version
      call linoptold
-  case(380)
-     ! METATASK
-     ! all kernels
-     fxctype=0
-     call idf
-     !fxctype=1
-     !call idf
-     fxctype=2
-     call idf
-     !fxctype=3
-     !call idf
-     !fxctype=4
-     !call idf
-     !fxctype=5
-     !call idf
-  case(381)
-     ! METATASK
-     ! with and without analytic continuation
-     ! several kernels
-     fxctype=0
-     call idf
-     fxctype=2
-     call idf
-     acont=.not.acont
-     fxctype=0
-     call idf
-     fxctype=2
-     call idf
-     acont=.not.acont
-  case(382)
-     ! METATASK
-     ! default
-     acont=.false.
-     tetra=.false.
-     call df
-     call idf
-     ! with analytic continuation
-     acont=.true.
-     tetra=.false.
-     call df
-     call idf
-     ! with linear tetrahedron method
-     acont=.false.
-     tetra=.true.
-     call init1
-     call df
-     call idf
-  case(383)
-     ! METATASK
-     ! default
-     acont=.false.
-     tetra=.false.
-     call df
-     call idf
-     ! with linear tetrahedron method
-     acont=.false.
-     tetra=.true.
-     call init1
-     call df
-     call idf
   case(396)
      ! convolute dielectric function from tetrahedron method with Lorentzian
      call epsconv
@@ -180,13 +120,11 @@ subroutine tddftmain
   case(400)
      ! RPA screening
      call screen
-!  case(401)
-!     call mmpar_test
   case default
      write(*,*) 'Error('//thisnam//'): task not defined:', tasktd
   end select
 
-10 continue
+!!$10 continue
 
   ! epilog
   call tdepilog

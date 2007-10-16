@@ -2,7 +2,7 @@
 subroutine tetcalccw
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use modtetra
   use m_tetcalccwq
   use m_getunit
@@ -26,7 +26,8 @@ subroutine tetcalccw
   call init2td
 
   ! w-point interval for process
-  call getrange(rank,nproc,nwdf,wpari,wparf)
+  wpari=firstofset(rank,nwdf)
+  wparf=lastofset(rank,nwdf)
 
   ! loop over q-points
   do iq = 1, nqpt
@@ -38,11 +39,11 @@ subroutine tetcalccw
 
   ! synchronize
   call getunit(un)
-  call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
-  if ((nproc.gt.1).and.(rank.eq.1)) call tetgather
+  if ((procs.gt.1).and.(rank.eq.0)) call tetgather
 
-  call barrier(rank=rank,nproc=nproc,un=un,async=1,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=1,string='.barrier')
 
   tetra=tet
 

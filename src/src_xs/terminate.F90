@@ -1,6 +1,6 @@
 
 subroutine terminate
-  use modpar
+  use modmpi
   implicit none
 
   ! abort MPI if necessary

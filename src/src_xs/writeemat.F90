@@ -6,7 +6,7 @@
 subroutine writeemat
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_ematq
   use m_tdgauntgen
   use m_findgntn0
@@ -26,14 +26,11 @@ subroutine writeemat
   call init2td()
 
   ! k-point interval for process
-  call getrange(rank,nproc,nkpt,kpari,kparf)
-  resumechkpts(1,2)=kpari
-  resumechkpts(1,3)=kparf
-  resumechkpts(2,2)=1
-  resumechkpts(2,3)=nqpt
+  kpari=firstofset(rank,nkpt)
+  kparf=lastofset(rank,nkpt)
 
   ! write q-point set
-  if (rank == 1) call writeqpts()
+  if (rank == 0) call writeqpts()
 
   ! read Fermi energy from file
   call readfermi
@@ -55,31 +52,30 @@ subroutine writeemat
 
   ! resume task, second checkpoint index is q-point index
   qi=1
-  if (tresume) qi=resumechkpts(2,1)
   call getunit(un)
   ! loop over q-points
   do iq = qi, nqpt
      ! call for q-point
      call ematq(iq)
-     resumechkpts(2,1)=iq
-     call resupd(un,task,resumechkpts,' : q-point index')
+!!$     resumechkpts(2,1)=iq
+!!$     call resupd(un,task,resumechkpts,' : q-point index')
      write(unitout,'(a,i8)') 'Info('//thisnam//'): matrix elements of the &
           &exponentials finished for q-point:',iq
   end do
 
   ! synchronize
   call getunit(un)
-  call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
 10 continue
 
   ! gather from processes
-  if ((nproc.gt.1).and.(rank.eq.1)) call ematgather()
-  if ((nproc.gt.1).and.(rank.eq.1)) call devalsvgather()
+  if ((procs.gt.1).and.(rank.eq.0)) call ematgather()
+  if ((procs.gt.1).and.(rank.eq.0)) call devalsvgather()
 
   ! synchronize
   call getunit(un)
-  call barrier(rank=rank,nproc=nproc,un=un,async=0,string='.barrier')
+  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): matrix elements of &
        &exponential expression finished"

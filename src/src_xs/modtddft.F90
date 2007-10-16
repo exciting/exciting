@@ -326,6 +326,30 @@ module modtddft
   ! sumrules for optics
   character(256) :: fnsumrules
 
+  !---------------------!
+  !     q-point set     !
+  !---------------------!
+  ! current initial q-point index
+  integer :: qpari
+  ! current final q-point index
+  integer :: qparf
+
+  !---------------------!
+  !     k-point set     !
+  !---------------------!
+  ! current initial k-point index
+  integer :: kpari
+  ! current final k-point index
+  integer :: kparf
+
+  !---------------------!
+  !     w-point set     !
+  !---------------------!
+  ! current initial w-point index
+  integer :: wpari
+  ! current final w-point index
+  integer :: wparf
+
   !--------------------------!
   !     Timing variables     !
   !--------------------------!

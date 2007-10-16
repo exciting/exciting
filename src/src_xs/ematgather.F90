@@ -2,7 +2,7 @@
 subroutine ematgather
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_filedel
   use m_getemat
   use m_putemat
@@ -29,18 +29,19 @@ subroutine ematgather
      allocate(xiou(nstval,nstcon,ngq(iq)))
      allocate(xiuo(nstcon,nstval,ngq(iq)))
      ! file extension for q-point
-     do iproc=1,nproc
-        call genfilname(basename='EMAT',iq=iq,nproc=nproc,rank=iproc-1,&
+     do iproc=0,procs-1
+        call genfilname(basename='EMAT',iq=iq,procs=procs,rank=iproc,&
              filnam=fnemat_t)
-        call getrange(iproc,nproc,nkpt,kpari,kparf)
+        kpari=firstofset(rank,nkpt)
+        kparf=lastofset(rank,nkpt)
         do ik=kpari,kparf
            ! exponential factor matrix elements
            call getemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
            call putemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
         end do
      end do
-     do iproc=1,nproc
-        call genfilname(basename='EMAT',iq=iq,nproc=nproc,rank=iproc-1,&
+     do iproc=0,procs-1
+        call genfilname(basename='EMAT',iq=iq,procs=procs,rank=iproc,&
              filnam=fnemat_t)
         call filedel(trim(fnemat_t))
      end do

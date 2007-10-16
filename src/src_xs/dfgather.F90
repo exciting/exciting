@@ -2,7 +2,7 @@
 subroutine dfgather
   use modmain
   use modtddft
-  use modpar
+  use modmpi
   use m_filedel
   use m_getx0
   use m_putx0
@@ -31,10 +31,11 @@ subroutine dfgather
      allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3))
 
      ! file extension for q-point
-     do iproc=1,nproc
+     do iproc=0,procs-1
         call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
-             nar=.not.aresdf,iq=iq,nproc=nproc,rank=iproc-1,filnam=fnchi0_t)
-        call getrange(iproc,nproc,nwdf,wpari,wparf)
+             nar=.not.aresdf,iq=iq,procs=procs,rank=iproc,filnam=fnchi0_t)
+        wpari=firstofset(rank,nwdf)
+        wparf=lastofset(rank,nwdf)
         do iw=wpari,wparf
            ! exponential factor matrix elements
            call getx0(tq0,iq,iw-wpari+1,trim(fnchi0_t),'',chi0,&
@@ -42,8 +43,8 @@ subroutine dfgather
            call putx0(tq0,iq,iw,trim(fnchi0),'',chi0,chi0wg,chi0hd)
         end do
      end do
-     do iproc=1,nproc
-        call genfilname(basename='X0',iq=iq,nproc=nproc,rank=iproc-1,&
+     do iproc=0,procs-1
+        call genfilname(basename='X0',iq=iq,procs=procs,rank=iproc,&
              filnam=fnchi0_t)
 !!$        call filedel(trim(fnchi0_t))
      end do

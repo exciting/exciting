@@ -6,7 +6,7 @@ contains
   subroutine getpmat(ik,vklt,tarec,filnam,pm)
     use modmain
     use modtddft
-    use modpar
+    use modmpi
     use m_getunit
     implicit none
     ! arguments
@@ -34,7 +34,7 @@ contains
 
     ! record position for k-point
     ikr=ik
-    if (.not.tarec) call getridx(nproc,nkpt,ik,ikr)
+    if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
 
     ! I/O record length
     inquire(iolength=recl) nstval_, nstcon_, nkpt_, vkl_, &
@@ -54,7 +54,7 @@ contains
        write(unitout,'(a)') 'Error('//thisnam//'): differring parameters for &
             &matrix elements (current/file): '
        write(unitout,'(a)') 'file: '//trim(filnam)
-       if (nproc.gt.1) write(unitout,'(a,i6)') '(parallel) rank', rank
+       if (procs > 1) write(unitout,'(a,i6)') '(parallel) rank', rank
        write(unitout,'(a,i6)') 'k-point index', ik
        write(unitout,'(a,i6)') 'record position', ik
        write(unitout,'(a,2i6)') 'nstval', nstval, nstval_
