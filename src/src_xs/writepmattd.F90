@@ -9,10 +9,8 @@
 subroutine writepmattd(lgather)
   ! !USES:
   use modmain
-  ! masquerade the following variables
-  use modtddft, evalfv_=>evalfv, evecfv_=>evecfv, evecsv_=>evecsv
-  use modtddft, apwalm_=>apwalm
   use modmpi
+  use modtddft
   use m_putpmat
   use m_getunit
   use m_filedel
@@ -37,9 +35,9 @@ subroutine writepmattd(lgather)
   integer :: ipar,fu,un
   real(8) :: gmaxvrt
   real(8), parameter :: gmaxvrmax=15.d0
-  complex(8), allocatable :: apwalm(:,:,:,:)
-  complex(8), allocatable :: evecfv(:,:)
-  complex(8), allocatable :: evecsv(:,:)
+  complex(8), allocatable :: apwalmt(:,:,:,:)
+  complex(8), allocatable :: evecfvt(:,:)
+  complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
   logical :: existent
 
@@ -61,9 +59,9 @@ subroutine writepmattd(lgather)
 !!$  resumechkpts(1,2)=kpari
 !!$  resumechkpts(1,3)=kparf
 
-  allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-  allocate(evecfv(nmatmax,nstfv))
-  allocate(evecsv(nstsv,nstsv))
+  allocate(apwalmt(ngkmax,apwordmax,lmmaxapw,natmtot))
+  allocate(evecfvt(nmatmax,nstfv))
+  allocate(evecsvt(nstsv,nstsv))
   ! allocate the momentum matrix elements array
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
@@ -77,13 +75,13 @@ subroutine writepmattd(lgather)
 !!$  if (tresume) ki=resumechkpts(1,1)
   do ik=ki,kf
      ! get the eigenvectors and values from file
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-     call getevecsv(vkl(1,ik),evecsv)
+     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
+     call getevecsv(vkl(1,ik),evecsvt)
      ! find the matching coefficients
-     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
+     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalmt)
      ! calculate the momentum matrix elements
-     call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalm,evecfv, &
-          evecsv,pmat)
+     call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
+          evecsvt,pmat)
      call putpmat(ik,.false.,trim(fnpmat_t),pmat)
 !!$     resumechkpts(1,1)=ik
 !!$     call resupd(un,task,resumechkpts,' : k-point index')
@@ -103,7 +101,7 @@ subroutine writepmattd(lgather)
 
   ! reset global file extension to default
   call genfilname(setfilext=.true.)
-  deallocate(apwalm,evecfv,evecsv,pmat)
+  deallocate(apwalmt,evecfvt,evecsvt,pmat)
 
   call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
