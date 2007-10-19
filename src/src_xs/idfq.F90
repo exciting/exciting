@@ -25,7 +25,7 @@ contains
     real(8) :: vkloff_(3)
     integer :: n,m,recl,j,iw,wi,wf,nwdfp,ngridk_(3), nv_,nc_,nc,oct
     logical :: tq0
-    logical, external :: l2int
+    integer, external :: l2int
 
     ! sampling type for Brillouin zone sampling
     bzsampl=l2int(tetra)
