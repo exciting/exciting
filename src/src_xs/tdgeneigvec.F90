@@ -41,10 +41,16 @@ subroutine tdgeneigvec
   qi=qpari
   qf=qparf
 
+  !@@@@@@@@@@@@@@@@@ since MPI allready parallelized k-point set @@@@@@@@@@
+  qi=1
+  if (tq0ev) qi=0
+  qf=nqpt
+  !@@@@@@@@@@@@@@@@@
+
   write(unitout,'("Info(",a,"): q-point range: ",2i9)') thisnam,qpari,qparf
 
-  ! immediately go to barrier for rest of processes
-  if (rank >= nqpteff) goto 10
+!@@@@@  ! immediately go to barrier for rest of processes
+!@@@@@  if (rank >= nqpteff) goto 10
 
   ! write q-points
   if (rank == 0) call writeqpts
@@ -96,28 +102,30 @@ subroutine tdgeneigvec
         end if
      end do
      close(unit1)
-
-     ! safely remove unnecessary files
-     call filedel('EQATOMS'//trim(filext))
-     call filedel('EVALCORE'//trim(filext))
-     call filedel('FERMIDOS'//trim(filext))
-     call filedel('GEOMETRY'//trim(filext))
-     call filedel('LATTICE'//trim(filext))
-     call filedel('IADIST'//trim(filext))
-     call filedel('LINENGY'//trim(filext))
-     call filedel('SYMCRYS'//trim(filext))
-     call filedel('SYMLAT'//trim(filext))
-     call filedel('SYMSITE'//trim(filext))
-     call filedel('TOTENERGY'//trim(filext))
-     call filedel('EVALFV'//trim(filext))
-  end do
+     
+     if (rank == 0) then
+        ! safely remove unnecessary files
+        call filedel('EQATOMS'//trim(filext))
+        call filedel('EVALCORE'//trim(filext))
+        call filedel('FERMIDOS'//trim(filext))
+        call filedel('GEOMETRY'//trim(filext))
+        call filedel('LATTICE'//trim(filext))
+        call filedel('IADIST'//trim(filext))
+        call filedel('LINENGY'//trim(filext))
+        call filedel('SYMCRYS'//trim(filext))
+        call filedel('SYMLAT'//trim(filext))
+        call filedel('SYMSITE'//trim(filext))
+        call filedel('TOTENERGY'//trim(filext))
+        call filedel('EVALFV'//trim(filext))
+     end if
+  end do ! do iq=qi,qf
   isreadstate0=.false.
 
   call genfilname(setfilext=.true.)
 
   deallocate(apwdlm)
 
-10 continue
+!@@@@@@@@@@@ 10 continue
   call getunit(un)
   call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
   call sleepifc(5)

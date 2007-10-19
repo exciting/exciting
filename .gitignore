@@ -2,6 +2,7 @@
 *.a
 exciting
 excitings
+excitingp
 excitingmpi
 *.OUT
 *.mod
@@ -11,10 +12,12 @@ excitingmpi
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species
+src/src_try
 .cdtproject
 .project
 .settings/*
 Makefile.serial
 Makefile.parallel
 make.inc
+mpif.h
 fort.*

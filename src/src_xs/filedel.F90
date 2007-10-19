@@ -26,7 +26,7 @@ contains
        close(fu)
     end if
     call getunit(fu)
-    open(fu,file=trim(fnam))
+    open(fu,file=trim(fnam),action='write')
     ! delete file
     close(fu,status='delete')
 
