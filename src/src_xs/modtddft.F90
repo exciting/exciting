@@ -285,8 +285,10 @@ module modtddft
   !-----------------------!
   !     I/O variables     !
   !-----------------------!
-  ! file extension (to be modified to characterize/enumerate outputs)
-  character(256) :: tdfilext
+!!$  ! file extension (to be modified to characterize/enumerate outputs)
+!!$  character(256) :: tdfilext
+  ! file name for resume file
+  character(256) :: fnresume
   ! last value of filext
   character(256) :: filextrevert
   ! file unit for output
@@ -326,25 +328,19 @@ module modtddft
   ! sumrules for optics
   character(256) :: fnsumrules
 
-  !---------------------!
-  !     q-point set     !
-  !---------------------!
+  !------------------------------!
+  !     parallel environment     !
+  !------------------------------!
+  ! maximum number of processors allowed to use
+  integer, parameter :: maxproc=1000
   ! current initial q-point index
   integer :: qpari
   ! current final q-point index
   integer :: qparf
-
-  !---------------------!
-  !     k-point set     !
-  !---------------------!
   ! current initial k-point index
   integer :: kpari
   ! current final k-point index
   integer :: kparf
-
-  !---------------------!
-  !     w-point set     !
-  !---------------------!
   ! current initial w-point index
   integer :: wpari
   ! current final w-point index

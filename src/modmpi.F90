@@ -15,14 +15,14 @@
 !EOP
 module  modmpi
 #ifdef MPI
-!!$  use mpi
 #include "mpif.h"
 #endif
+!!$  use mpi
   integer :: rank
   integer :: procs
   integer :: ierr
   logical :: splittfile
-  
+
 !!$  character(256)::filename
 contains
   subroutine initMPI
@@ -46,7 +46,7 @@ contains
 #endif
   end subroutine finitmpi
 
-  
+
 !!$  function nofk(process)
 !!$    use modmain, only:nkpt
 !!$    integer::nofk
@@ -119,4 +119,26 @@ contains
     end do
   end function procofindex
 
+  !------------------interface to already existing soubroutine "barrier"
+
+  subroutine barrier(rank,procs,un,async,string)
+    implicit none
+    ! arguments
+    integer, intent(in) :: rank,procs,un,async
+    character(*) :: string
+    ! local variables
+    character(*), parameter :: thisnam = 'barrier'
+
+    ! do nothing if only one process
+    if (procs.eq.1) return
+
+    ! call the MPI barrier
+#ifdef MPI
+    call MPI_barrier(mpi_comm_world,ierr)
+#endif
+
+  end subroutine barrier
+
+
 end module modmpi
+

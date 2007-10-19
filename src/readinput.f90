@@ -12,7 +12,6 @@ use modmain
 ! <sag>
 use modtetra
 use modtddft
-use modpar
 ! </sag>
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
@@ -176,9 +175,6 @@ tevout=.false.
 verbscf=.false.
 tappinfo=.false.
 dbglev=0
-! parallel environment values
-baridl=0
-baridl2=0
 !</sag>
 !-------------------------------!
 !     read from exciting.in     !
@@ -832,11 +828,6 @@ case('appinfo')
   read(50,*) tappinfo
 case('dbglev')
   read(50,*) dbglev
-! parallel environment variables
-case('baridl')
-  read(50,*) baridl
-case('baridl2')
-  read(50,*) baridl2
 ! </sag>
 case('')
   goto 10

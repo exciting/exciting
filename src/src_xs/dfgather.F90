@@ -34,8 +34,8 @@ subroutine dfgather
      do iproc=0,procs-1
         call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
              nar=.not.aresdf,iq=iq,procs=procs,rank=iproc,filnam=fnchi0_t)
-        wpari=firstofset(rank,nwdf)
-        wparf=lastofset(rank,nwdf)
+        wpari=firstofset(iproc,nwdf)
+        wparf=lastofset(iproc,nwdf)
         do iw=wpari,wparf
            ! exponential factor matrix elements
            call getx0(tq0,iq,iw-wpari+1,trim(fnchi0_t),'',chi0,&

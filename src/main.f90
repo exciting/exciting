@@ -5,104 +5,104 @@
 
 ! main routine for the EXCITING code
 program main
-use modmain
-!<sag>
-! module for parallel environment
-use modpar
-! module for TDDFT part
-use modtddft
-!</sag>
-implicit none
-! local variables
-integer itask
-!<sag>
-! initialize parallel environment
-call initpar
-!</sag>
-! read input files
-call readinput
-! perform the appropriate task
-do itask=1,ntasks
-  task=tasks(itask)
-  select case(task)
-  case(-1)
-    write(*,*)
-    write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
-    write(*,*)
-    stop
-  case(0,1,2,3)
-    call gndstate
-  case(5)
-    call hartfock
-  case(10)
-    call dos
-  case(15)
-    call writelsj
-  case(20,21)
-    call bandstr
-  case(25)
-    call effmass
-  case(31,32,33)
-    call rhoplot
-  case(41,42,43)
-    call potplot
-  case(51,52,53)
-    call elfplot
-  case(61,62,63,162)
-    call wfplot
-  case(72,73,82,83,142,143,152,153)
-    call vecplot
-  case(91,92,93)
-    call dbxcplot
-  case(100,101)
-    call fermisurf
-  case(110)
-    call mossbauer
-  case(115)
-    call writeefg
-  case(120)
-    call writepmat
-  case(121)
-    call linopt
-  case(122)
-    call moke
-  case(200)
-    call phonon
-  case(210)
-    call phdos
-  case(220)
-    call phdisp
-  case(230)
-    call writephn
-  case(250)
-    call geomplot
-!<sag>
-  ! tasks for TDDFT
-  case(23,300:399,400:499,1200,1300)
-    call tddftmain
-  case(900)
-  ! generate portable ASCII STATE.xml file from STATE.OUT file
-    call portstate(.true.)
-  case(901)
-  ! generate STATE.OUT file from portable ASCII STATE.xml file
-    call portstate(.false.)
-  case(902)
-  ! k-point in SCF
-    call atkp
-!</sag>
-  case default
-    write(*,*)
-    write(*,'("Error(main): task not defined : ",I8)') task
-    write(*,*)
-    stop
-  end select
-end do
-!<sag>
-! finalize parallel environment
-call finitpar
-!!$stop
-!</sag>
-end program
+  use modmain
+  use modmpi
+  implicit none
+  ! local variables
+  integer itask
+  logical  paralleltask
+  ! read input files
+  call initMPI
+  call readinput
+  ! perform the appropriate task
+  do itask=1,ntasks
+     task=tasks(itask)
+     select case(task)
+     case(0,1,2,3,200,23,300:399,400:499,1200,1300,900:902)
+        paralleltask=.true.
+     case default
+        paralleltask=.false.
+     end select
+     if(paralleltask.or.rank.eq.0) then
+        select case(task)
+     case(-1)
+        write(*,*)
+        write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
+        write(*,*)
+        stop
+     case(0,1,2,3)
+        call gndstate
+     case(5)
+        call hartfock
+     case(10)
+        call dos
+     case(15)
+        call writelsj
+     case(20,21)
+        call bandstr
+     case(25)
+        call effmass
+     case(31,32,33)
+        call rhoplot
+     case(41,42,43)
+        call potplot
+     case(51,52,53)
+        call elfplot
+     case(61,62,63,162)
+        call wfplot
+     case(72,73,82,83,142,143,152,153)
+        call vecplot
+     case(91,92,93)
+        call dbxcplot
+     case(100,101)
+        call fermisurf
+     case(110)
+        call mossbauer
+     case(115)
+        call writeefg
+     case(120)
+        call writepmat
+     case(121)
+        call linopt
+     case(122)
+        call moke
+     case(200)
+        call phonon
+     case(210)
+        call phdos
+     case(220)
+        call phdisp
+     case(230)
+        call writephn
+     case(250)
+        call geomplot
+        !<sag>
+        ! tasks for TDDFT
+     case(23,300:399,400:499,1200,1300)
+        call tddftmain
+     case(900)
+        ! generate portable ASCII STATE.xml file from STATE.OUT file
+        call portstate(.true.)
+     case(901)
+        ! generate STATE.OUT file from portable ASCII STATE.xml file
+        call portstate(.false.)
+     case(902)
+        ! k-point in SCF
+        call atkp
+        !</sag>
+     case default
+        write(*,*)
+        write(*,'("Error(main): task not defined : ",I8)') task
+        write(*,*)
+        stop
+     end select
+     endif
+  end do
+  call finitMPI()
+! Commenting out the "stop" statement in order to avoid a 'FORTRAN STOP'
+! error and to obtain a clean exit
+!$$  stop
+end program main
 
 !BOI
 ! !TITLE: The EXCITING Code Manual\\ Version 0.9.114

@@ -10,7 +10,7 @@ subroutine gndstate
 ! !USES:
 use modmain
 !<sag>
-use modpar
+use modmpi
 use modtddft, only: verbscf
 !</sag>
 ! !DESCRIPTION:

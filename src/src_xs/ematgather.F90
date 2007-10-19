@@ -32,8 +32,8 @@ subroutine ematgather
      do iproc=0,procs-1
         call genfilname(basename='EMAT',iq=iq,procs=procs,rank=iproc,&
              filnam=fnemat_t)
-        kpari=firstofset(rank,nkpt)
-        kparf=lastofset(rank,nkpt)
+        kpari=firstofset(iproc,nkpt)
+        kparf=lastofset(iproc,nkpt)
         do ik=kpari,kparf
            ! exponential factor matrix elements
            call getemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)

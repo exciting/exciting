@@ -32,8 +32,8 @@ subroutine devalsvgather
      do iproc=0,procs-1
         call genfilname(basename='DEVALSV',iq=iq,procs=procs,rank=iproc,&
              filnam=fndevalsv_t)
-        kpari=firstofset(rank,nkpt)
-        kparf=lastofset(rank,nkpt)
+        kpari=firstofset(iproc,nkpt)
+        kparf=lastofset(iproc,nkpt)
         do ik=kpari,kparf
            ! exponential factor matrix elements
            call getdevalsv(iq,ik,.false.,trim(fndevalsv_t), &

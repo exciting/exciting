@@ -25,7 +25,8 @@ subroutine idf
   call init2td
 
   ! w-point interval for process
-  call getrange(rank,procs,nwdf,wpari,wparf)
+  wpari=firstofset(rank,nwdf)
+  wparf=lastofset(rank,nwdf)
 
   write(unitout,'("Exchange-correlation kernel type :",i4)') fxctype
   write(unitout,'("  ",a)') trim(fxcdescr)
