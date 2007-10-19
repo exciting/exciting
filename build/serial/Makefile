@@ -1,13 +1,13 @@
 include make.inc
 
 
-parallel:
-	../../utilities/mkmf -t template -f -m Makefile.parallel -p excitingmpi \
+serial:
+	../../utilities/mkmf -t template -f -m Makefile.serial -p excitings \
         ../../src  \
 	../../src/src_xs \
         ../../src/src_iterative_solver \
-        && make -f Makefile.parallel excitingmpi \
-        && cp -f excitingmpi ..
+        && make -f Makefile.serial excitings \
+        && cp -f excitings ..
 
 libs:	blas lapack fftlib libbzint
 

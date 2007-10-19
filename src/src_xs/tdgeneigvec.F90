@@ -14,7 +14,7 @@ subroutine tdgeneigvec
   character(*), parameter :: thisnam = 'tdgeneigvec'
   integer :: iq,qi,qf,un
   real(8), parameter :: zero3(3)=0.d0
-  integer :: ik,recl,nqpteff,nqptextra
+  integer :: ik,recl
 
   ! initialize universal variables
   call init0
@@ -23,28 +23,11 @@ subroutine tdgeneigvec
   ! initialize q-point set
   call init2td
 
-  ! q-point interval for process
-  nqptextra=0
-  nqpteff=nqpt
-  if (tq0ev) then
-     nqptextra=1
-     nqpteff=nqpt+nqptextra
-     qpari=firstofset(rank,nqpteff)
-     qparf=lastofset(rank,nqpteff)
-     qpari=qpari-nqptextra
-     qparf=qparf-nqptextra
-  else
-     qpari=firstofset(rank,nqpt)
-     qparf=lastofset(rank,nqpt)
-  end if
-  ! initial and final q-point
-  qi=qpari
-  qf=qparf
-
-  write(unitout,'("Info(",a,"): q-point range: ",2i9)') thisnam,qpari,qparf
-
-  ! immediately go to barrier for rest of processes
-  if (rank >= nqpteff) goto 10
+  ! SCF allready parallelized for k-point set
+  qi=1
+  ! add extra q-point for if files for q=0 are to be calculated
+  if (tq0ev) qi=0
+  qf=nqpt
 
   ! write q-points
   if (rank == 0) call writeqpts
@@ -96,28 +79,29 @@ subroutine tdgeneigvec
         end if
      end do
      close(unit1)
-
-     ! safely remove unnecessary files
-     call filedel('EQATOMS'//trim(filext))
-     call filedel('EVALCORE'//trim(filext))
-     call filedel('FERMIDOS'//trim(filext))
-     call filedel('GEOMETRY'//trim(filext))
-     call filedel('LATTICE'//trim(filext))
-     call filedel('IADIST'//trim(filext))
-     call filedel('LINENGY'//trim(filext))
-     call filedel('SYMCRYS'//trim(filext))
-     call filedel('SYMLAT'//trim(filext))
-     call filedel('SYMSITE'//trim(filext))
-     call filedel('TOTENERGY'//trim(filext))
-     call filedel('EVALFV'//trim(filext))
-  end do
+     
+     if (rank == 0) then
+        ! safely remove unnecessary files
+        call filedel('EQATOMS'//trim(filext))
+        call filedel('EVALCORE'//trim(filext))
+        call filedel('FERMIDOS'//trim(filext))
+        call filedel('GEOMETRY'//trim(filext))
+        call filedel('LATTICE'//trim(filext))
+        call filedel('IADIST'//trim(filext))
+        call filedel('LINENGY'//trim(filext))
+        call filedel('SYMCRYS'//trim(filext))
+        call filedel('SYMLAT'//trim(filext))
+        call filedel('SYMSITE'//trim(filext))
+        call filedel('TOTENERGY'//trim(filext))
+        call filedel('EVALFV'//trim(filext))
+     end if
+  end do ! do iq=qi,qf
   isreadstate0=.false.
 
   call genfilname(setfilext=.true.)
 
   deallocate(apwdlm)
 
-10 continue
   call getunit(un)
   call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
   call sleepifc(5)
