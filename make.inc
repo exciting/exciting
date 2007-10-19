@@ -1,6 +1,6 @@
-F90 =gfortran
-F90_OPTS = -g  #-DDEBUG
-F77 = gfortran
+F90 =ifort
+F90_OPTS = -g  -DDEBUG
+F77 =ifort 
 F77_OPTS = -g
 LIB_SYS = 
 LIB_LPK = -L./ -llapack -lblas

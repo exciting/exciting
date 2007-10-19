@@ -22,3 +22,5 @@ LIB_LPK = -L /software/intel/mkl721/lib/em64t/ -lmkl_lapack -lmkl_em64t -lguide 
 # FFT library
 LIB_FFT = fftlib.a libbzint.a
 # ---------------------- end intel fortran compiler ---------------------------
+LIB_BZINT=libbzint.a
+LIB_BZINT=libbzint.a

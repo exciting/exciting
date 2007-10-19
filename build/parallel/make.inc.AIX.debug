@@ -6,3 +6,4 @@ F77_OPTS =
 LIB_SYS = 
 LIB_LPK = -llapack64 -lessl
 LIB_FFT = fftlib.a
+LIB_BZINT=libbzint.a
