@@ -12,13 +12,13 @@ program main
   integer itask
   logical  paralleltask
   ! read input files
-  call readinput
   call initMPI
+  call readinput
   ! perform the appropriate task
   do itask=1,ntasks
      task=tasks(itask)
      select case(task)
-     case(0,1,2,3,200)
+     case(0,1,2,3,200,23,300:399,400:499,1200,1300,900:902)
         paralleltask=.true.
      case default
         paralleltask=.false.
@@ -76,6 +76,20 @@ program main
         call writephn
      case(250)
         call geomplot
+        !<sag>
+        ! tasks for TDDFT
+     case(23,300:399,400:499,1200,1300)
+        call tddftmain
+     case(900)
+        ! generate portable ASCII STATE.xml file from STATE.OUT file
+        call portstate(.true.)
+     case(901)
+        ! generate STATE.OUT file from portable ASCII STATE.xml file
+        call portstate(.false.)
+     case(902)
+        ! k-point in SCF
+        call atkp
+        !</sag>
      case default
         write(*,*)
         write(*,'("Error(main): task not defined : ",I8)') task
@@ -85,7 +99,9 @@ program main
      endif
   end do
   call finitMPI()
-  stop
+! Commenting out the "stop" statement in order to avoid a 'FORTRAN STOP'
+! error and to obtain a clean exit
+!$$  stop
 end program main
 
 !BOI

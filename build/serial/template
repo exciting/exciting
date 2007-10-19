@@ -1,12 +1,10 @@
 include make.inc
 
+# translation for mkmf utility
 FC = $(F90)
-### default
 FFLAGS = $(F90_OPTS)
-### debug
-#FFLAGS = $(F90_OPTS) -check all -traceback
 LD = $(FC)
-LDFLAGS = $(LIB_LPK) $(LIB_FFT) $(LIB_SYS)
+LDFLAGS 	= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
 AR = ar
 ARFLAGS = -rc
 

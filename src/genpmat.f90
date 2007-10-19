@@ -9,6 +9,7 @@
 subroutine genpmat(ngp,igpig,vgpc,apwalm,evecfv,evecsv,pmat)
 ! !USES:
 use modmain
+use modtddft, only : pmatira
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
@@ -40,19 +41,37 @@ complex(8), intent(out) :: pmat(3,nstsv,nstsv)
 integer ispn,is,ia,ist1,ist2
 integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
+!<sag>
+integer :: igp1,igp2,ig1,ig2,ig,iv1(3),iv(3)
+!</sag>
 ! allocatable arrays
 complex(8), allocatable :: wfmt(:,:,:)
 complex(8), allocatable :: gwfmt(:,:,:,:)
 complex(8), allocatable :: wfir(:,:)
 complex(8), allocatable :: gwfir(:,:,:)
 complex(8), allocatable :: pm(:,:,:)
+!<sag>
+complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
+complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
+!</sag>
 ! external functions
 complex(8) zfmtinp
 external zfmtinp
 allocate(wfmt(lmmaxapw,nrcmtmax,nstfv))
 allocate(gwfmt(lmmaxapw,nrcmtmax,3,nstfv))
-allocate(wfir(ngrtot,nstfv))
-allocate(gwfir(ngrtot,3,nstfv))
+!<sag>
+if (pmatira) then
+   allocate(cfunt(ngp,ngp))
+   allocate(h(ngp,nstfv))
+   allocate(pmt(nstfv,nstfv))
+   allocate(evecfvt1(nstfv,ngp),evecfvt2(ngp,nstfv))
+else
+!</sag>
+   allocate(wfir(ngrtot,nstfv))
+   allocate(gwfir(ngrtot,3,nstfv))
+!<sag>
+end if
+!</sag>
 allocate(pm(3,nstfv,nstfv))
 ! set the momentum matrix elements to zero
 pm(:,:,:)=0.d0
@@ -78,6 +97,32 @@ do is=1,nspecies
     end do
   end do
 end do
+!<sag>
+if (pmatira) then
+   ! analytic evaluation
+   forall (ist1=1:nstfv)
+      evecfvt1(ist1,:)=conjg(evecfv(1:ngp,ist1))
+   end forall
+   evecfvt2(:,:)=evecfv(1:ngp,:)
+   do j=1,3
+      do igp1=1,ngp
+         ig1=igpig(igp1)
+         iv1(:)=ivg(:,ig1)
+         do igp2=1,ngp
+            ig2=igpig(igp2)
+            iv(:)=iv1(:)-ivg(:,ig2)
+            ig=ivgig(iv(1),iv(2),iv(3))
+            cfunt(igp1,igp2)=zi*vgpc(j,igp2)*cfunig(ig)
+         end do
+      end do
+      call zgemm('n','n', ngp, nstfv, ngp, zone, cfunt, &
+           ngp, evecfvt2, ngp, zzero, h, ngp)
+      call zgemm('n','n', nstfv, nstfv, ngp, zone, evecfvt1, &
+           nstfv, h, ngp, zzero, pmt, nstfv)
+      pm(j,:,:)=pm(j,:,:)+pmt(:,:)
+   end do
+else ! pmatira
+!</sag>
 ! calculate momemntum matrix elements in the interstitial region
 wfir(:,:)=0.d0
 gwfir(:,:,:)=0.d0
@@ -110,6 +155,9 @@ do ist1=1,nstfv
     end do
   end do
 end do
+!<sag>
+end if ! pmatira
+!</sag>
 ! multiply by -i and set lower triangular part
 do ist1=1,nstfv
   do ist2=ist1,nstfv
@@ -140,8 +188,15 @@ if (tevecsv) then
 else
   pmat(:,:,:)=pm(:,:,:)
 end if
-deallocate(wfmt,gwfmt,wfir,gwfir,pm)
+!<sag>
+if (pmatira) then
+   deallocate(wfmt,gwfmt,pm,cfunt,h,pmt,evecfvt1,evecfvt2)
+else
+!</sag>
+   deallocate(wfmt,gwfmt,wfir,gwfir,pm)
+!<sag>
+end if
+!</sag>
 return
 end subroutine
 !EOC
-

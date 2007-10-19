@@ -1,14 +1,15 @@
 include make.inc
 
 
-serial:
-	../../utilities/mkmf -t template -f -m Makefile.serial -p excitings \
+parallel:
+	../../utilities/mkmf -t template -f -m Makefile.parallel -p excitingmpi \
         ../../src  \
-         ../../src/src_iterative_solver \
-        && make -f Makefile.serial excitings \
-        && cp -f excitings ..
+	../../src/src_xs \
+        ../../src/src_iterative_solver \
+        && make -f Makefile.parallel excitingmpi \
+        && cp -f excitingmpi ..
 
-libs:	blas lapack fftlib 
+libs:	blas lapack fftlib libbzint
 
 blas:
 	cp -f make.inc ../..
@@ -23,12 +24,16 @@ lapack:
 	cd ../../src/LAPACK && make clean
 
 fftlib:
-	cp -f make.inc ../../..
+	cp -f make.inc ../..
 	cd ../../src/fftlib && make clean && make
 	cp ../../src/fftlib/fftlib.a .
 	cd ../../src/fftlib && make clean
 
-
+libbzint:
+	cp -f make.inc ../..
+	cd ../../src/src_libbzint && make clean && make
+	cp ../../src/src_libbzint/libbzint.a .
+	cd ../../src/src_libbzint && make clean
 
 clean:
 	rm -f *.o *.mod

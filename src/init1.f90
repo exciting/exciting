@@ -9,12 +9,17 @@
 subroutine init1
 ! !USES:
 use modmain
+!<sag>
+use modtddft, only: skipallocs1, imbandstr
+use modtetra
+!</sag>
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
 !   variables which depend on the $k$-point set.
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
+!   Modifications for TDDFT 2007 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -24,6 +29,16 @@ integer i1,i2,i3,ispn,iv(3)
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
 real(8) vl(3),vc(3)
 real(8) cpu0,cpu1
+!<sag>
+integer :: nkptt
+integer, allocatable :: ivkt(:,:)
+real(8), allocatable :: vklt(:,:)
+real(8), allocatable :: vkct(:,:)
+real(8), allocatable :: wkptt(:)
+integer, allocatable :: ikmapt(:,:,:)
+integer, allocatable :: iwkp(:),linkq(:,:), sy(:,:,:)
+integer :: nqptt,nsymcryst,isym,lspl,nerr
+!</sag>
 ! external functions
 complex(8) gauntyry
 external gauntyry
@@ -41,7 +56,16 @@ if (molecule) then
 end if
 if ((task.eq.20).or.(task.eq.21)) then
 ! for band structure plots generate k-points along a line
-  call connect(bvec,nvp1d,npp1d,vvlp1d,vplp1d,dvp1d,dpp1d)
+!<sag>
+  if (imbandstr) then
+     ! connect implementation that includes the specified vertices
+     call connecta(bvec,nvp1d,npp1d,vvlp1d,vplp1d,dvp1d,dpp1d)
+  else
+!</sag>
+     call connect(bvec,nvp1d,npp1d,vvlp1d,vplp1d,dvp1d,dpp1d)
+!<sag>
+  end if
+!</sag>
   nkpt=npp1d
   if (allocated(vkl)) deallocate(vkl)
   allocate(vkl(3,nkpt))
@@ -92,8 +116,127 @@ else
   allocate(wkpt(ngridk(1)*ngridk(2)*ngridk(3)))
   if (allocated(ikmap)) deallocate(ikmap)
   allocate(ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
-! generate the reduced k-point set
-  call genppts(reducek,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
+!<sag>
+  if (tetra) then
+     call factorize(3,vkloff,ikloff,dkloff)
+     ! check offset factorization
+     if (any(abs(dble(ikloff)/dble(dkloff)-vkloff) > epslat)) then
+        write(*,*)
+        write(*,'("Error(init1): tetrahedron method:")')
+        write(*,'(" factorization of k-point offest failed")')
+        write(*,'(" offset                   :",3g18.10)') vkloff
+        write(*,'(" offset from factorization:",3g18.10)') &
+             dble(ikloff)/dble(dkloff)
+        write(*,*)
+        call terminate
+     end if
+     if (allocated(iwkp)) deallocate(iwkp)
+     allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
+     if (allocated(wtet)) deallocate(wtet)
+     allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+     if (allocated(tnodes)) deallocate(tnodes)
+     allocate(tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+     if (nsymcrys > 48) then
+        write(*,*) 'Error(init1): number of crystal symmetries > 48'
+        write(*,*) ' does not work with k-point generation for'
+        write(*,*) ' linear tetrahedron method'
+        call terminate
+     end if
+     ! get rotational part of crystal symmetries
+     allocate(sy(3,3,nsymcrys))
+     do isym=1,nsymcrys
+        lspl=lsplsymc(isym)
+        sy(:,:,isym)=symlat(:,:,lspl)
+     end do
+     ! reduce k-point set if necessary
+     nsymcryst=1
+     if (reducek) nsymcryst=nsymcrys
+     call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,iwkp,&
+          ntet,tnodes,wtet,tvol,mnd) 
+     do ik=1,nkpt
+        vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
+        vkc(:,ik)=vkl(1,ik)*bvec(:,1)+vkl(2,ik)*bvec(:,2)+vkl(3,ik)* &
+             bvec(:,3)
+        wkpt(ik)=dble(iwkp(ik))/dble(ngridk(1)*ngridk(2)*ngridk(3))
+     end do ! ik
+     allocate(linkq(6*nkpt,nkpt))
+     if (allocated(link)) deallocate(link)
+     allocate(link(6*nkpt,1))
+     if (allocated(kqid)) deallocate(kqid)
+     allocate(kqid(nkpt,nkpt))
+     nqptt=nqpt
+     nqpt=nkpt
+     if (allocated(ivq)) deallocate(ivq)
+     allocate(ivq(3,ngridk(1)*ngridk(2)*ngridk(3)))
+     if (nkpt < ngridk(1)*ngridk(2)*ngridk(3)) then
+        write(*,*) 'Warning(init1): calculating q-dependent convolution'
+        write(*,*) ' weights from reduced k-point set, nkptnr,nkpt:',&
+             ngridk(1)*ngridk(2)*ngridk(3),nkpt
+     end if
+     ! generate "link" array for q-dependent tetrahedron method
+     call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
+          ntet,tnodes,wtet,linkq,tvol)
+     nqpt=nqptt
+     ! keep link-array only for q=0
+     link(:,1)=linkq(:,1)
+     deallocate(sy,iwkp,linkq,ivq)
+     ! cross check k-point set with exciting default routine
+     allocate(ivkt(3,ngridk(1)*ngridk(2)*ngridk(3)))
+     allocate(vklt(3,ngridk(1)*ngridk(2)*ngridk(3)))
+     allocate(vkct(3,ngridk(1)*ngridk(2)*ngridk(3)))
+     allocate(wkptt(ngridk(1)*ngridk(2)*ngridk(3)))
+     allocate(ikmapt(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
+     call genppts(reducek,ngridk,vkloff,nkptt,ikmapt,ivkt,vklt,vkct,wkptt)
+     nerr=0
+     if (nkptt /= nkpt) then
+        write(*,*) 'Error(init1): k-point set inconsistency for tetrahedron &
+                     &method'
+        write(*,*) ' differring number of k-points (current/default)',nkptt,&
+             nkpt
+        nerr=nerr+1
+     else
+        do ik=1,nkpt
+           if (any(vklt(:,ik)-vkl(:,ik) > epslat)) then
+              write(*,*) 'Error(init1): k-point set inconsistency for &
+                   &tetrahedron method'
+              write(*,*) ' differring k-point (current/default/diff)',ik
+              write(*,*) vkl(:,ik)
+              write(*,*) vklt(:,ik)
+              write(*,*) vkl(:,ik)-vklt(:,ik)
+              write(*,*)
+              nerr=nerr+1
+           end if
+           if (wkptt(ik)-wkpt(ik) > epslat) then
+              write(*,*) 'Error(init1): k-point set inconsistency for &
+                   &tetrahedron method'
+              write(*,*) ' differring k-point weight (current/default)',ik
+              write(*,*) wkpt(ik)
+              write(*,*) wkptt(ik)
+              write(*,*) wkpt(ik)-wkptt(ik)
+              write(*,*)
+              nerr=nerr+1
+           end if
+        end do
+     end if
+     if (nerr > 0) then
+        write(*,*) 'Errors occurred - stop', nerr
+        call terminate
+     end if
+     ! safely replace k-point set by default set since inside epslat tolerance
+     vkl(:,:)=vklt(:,:)
+     vkc(:,:)=vkct(:,:)
+     wkpt(:)=wkptt(:)
+     ! add k-point mapping and integers on grid for k-point
+     ikmap(:,:,:)=ikmapt(:,:,:)
+     ivk(:,:)=ivkt(:,:)
+     deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
+  else
+!</sag>
+     ! generate the reduced k-point set
+     call genppts(reducek,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
+!<sag>
+  end if
+!</sag>
 ! allocate the non-reduced k-point set arrays
   nkptnr=ngridk(1)*ngridk(2)*ngridk(3)
   if (allocated(ivknr)) deallocate(ivknr)
@@ -161,6 +304,9 @@ do ispn=1,nspnfv
   end do
 end do
 
+!<sag>
+if (.not.skipallocs1) then
+!</sag>
 !---------------------------------!
 !     APWs and local-orbitals     !
 !---------------------------------!
@@ -209,6 +355,9 @@ if (allocated(apwdfr)) deallocate(apwdfr)
 allocate(apwdfr(apwordmax,0:lmaxapw,natmtot))
 if (allocated(lofr)) deallocate(lofr)
 allocate(lofr(nrmtmax,2,nlomax,natmtot))
+!<sag>
+end if
+!</sag>
 
 !------------------------------------!
 !     secular equation variables     !
@@ -229,6 +378,9 @@ do ispn=1,nspnfv
     nstfv=min(nstfv,nmat(ik,ispn))
   end do
 end do
+!<sag>
+if (.not.skipallocs1) then
+!</sag>
 ! allocate second-variational arrays
 if (allocated(evalsv)) deallocate(evalsv)
 allocate(evalsv(nstsv,nkpt))
@@ -267,6 +419,9 @@ do l1=0,lmaxmat
     end do
   end do
 end do
+!<sag>
+end if
+!</sag>
 
 call cpu_time(cpu1)
 timeinit=timeinit+cpu1-cpu0
