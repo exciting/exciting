@@ -25,10 +25,16 @@ contains
     real(8) :: vkloff_(3)
     integer :: n,m,recl,j,iw,wi,wf,nwdfp,ngridk_(3), nv_,nc_,nc,oct
     logical :: tq0
-    logical, external :: l2int
+    logical :: l2int
+    external :: l2int
 
     ! sampling type for Brillouin zone sampling
-    bzsampl=l2int(tetra)
+
+    if(l2int(tetra)) then
+	 bzsampl =1
+    else 
+	bzsampl =0
+    endif
 
     tq0 = tq1gamma.and.(iq.eq.1)
     ! number of components (3 for q=0)
