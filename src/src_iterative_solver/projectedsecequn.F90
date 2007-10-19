@@ -18,9 +18,13 @@ abstol=20.d0*dlamch('S')
 !ZHPGVX(ITYPE, JOBZ, RANGE, UPLO, N, AP, BP, VL, VU, IL, IU, ABSTOL, M, W, Z, LDZ, WORK, RWORK, IWORK, IFAIL, INFO)
 call zhpgvx(1,'V','I','U',2*m,hp,op,vl,vu,1,m,abstol,nfound,evalp,evecp,2*m,work, &
  rwork,iwork,ifail,info)
+#ifndef DEBUG
 	if(info.gt.0)then
+#endif	
 		write(*,*) "ifail: ",ifail,"\ninfo: ",info,"\nnfound: ",nfound
- 		stop
+ 	
+#ifndef DEBUG	
+	stop	
 	end if
-
+#endif
 end  subroutine

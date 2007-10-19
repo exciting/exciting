@@ -68,7 +68,7 @@ timemat=timemat+cpu1-cpu0
 call cpu_time(cpu0)
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
 call getevalfv(vkl(1,ik),evalfv)!! array size check
-
+write(446,*)"vkl,vgkl 1",vkl(:,ik),vgkl(:,1,ik,1)
 #ifdef DEBUG
 write(114,*)"evecfv" ,evecfv
 #endif
@@ -115,7 +115,7 @@ timefv=timefv+cpu1-cpu0
 !$OMP END CRITICAL 
 call putevecfv(ik,evecfv)
 call putevalfv(ik,evalfv)
-
+write(447,*)"vkl,vgkl 2",vkl(:,ik),vgkl(:,1,ik,1)
 return
 end subroutine
 !EOC

@@ -1,7 +1,7 @@
-subroutine setupprojectedhamilton(n,m,h,nmatmax,evecfv,da,hprojected,oprojected)
+subroutine setupprojectedhamilton(n,m,h,nmatmax,evecfv_,da,hprojected,oprojected)
 	implicit none
 integer,intent(in)::n,m,nmatmax
-complex(8), intent(in)::evecfv(nmatmax,m),h(n*(n+1)/2),da(n,m)
+complex(8), intent(in)::evecfv_(nmatmax,m),h(n*(n+1)/2),da(n,m)
 complex(8), intent(out)::hprojected(2*m*(2*m+1)/2),oprojected(2*m*(2*m+1)/2)
 complex(8):: basis(n,2*m),vec(n)
 complex(8) ::zdotc
@@ -9,7 +9,7 @@ external zdotc
 integer::i,j,pi
 do i=1,2*m 
 	if(i.le.m) then
-		call zcopy(n,evecfv(:,i),1,basis(:,i),1)
+		call zcopy(n,evecfv_(:,i),1,basis(:,i),1)
 	else
 		call zcopy(n,da(:,i-m),1,basis(:,i),1)
 	endif

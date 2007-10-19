@@ -16,13 +16,14 @@ write(666,*)"r",residual
 	do i=1,n
 		da(i)=-invHmineS(i)*residual(i)
 	end do
-	write(777,*)"da" ,da
 	norm=(0,0)		
     norm=zdotc(n,da(1),1,da(1),1)
 
 	write(555,*)"da norm",norm
 	rnorm=sqrt(dble(norm))
 	call zscal(n, DCMPLX(1.0/rnorm),da,1)
+	
+
 end subroutine
 
 subroutine getinvdiagonalofpacked(n,PackedM,Diagonal)
