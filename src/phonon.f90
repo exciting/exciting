@@ -168,7 +168,7 @@ do ip=1,3
       end do
     end do
   end do
-  call flushifc(80)
+ ! call flushifc(80)
 ! end loop over polarisations
 end do
 close(80)

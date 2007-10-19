@@ -42,7 +42,7 @@ if (spinpol) then
   write(fnum,'(" total in muffin-tins    : ",3G18.10)') mommttot(1:ndmag)
   write(fnum,'(" total moment            : ",3G18.10)') momtot(1:ndmag)
 end if
-call flushifc(fnum)
+!call flushifc(fnum)
 return
 end subroutine
 

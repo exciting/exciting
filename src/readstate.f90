@@ -9,6 +9,9 @@
 subroutine readstate
 ! !USES:
 use modmain
+!<sag>
+use modtddft, only : isreadstate0
+!</sag>
 ! !DESCRIPTION:
 !   Reads in the charge density and other relevant variables from the file
 !   {\tt STATE.OUT}. Checks for version and parameter compatibility.
@@ -42,8 +45,17 @@ real(8), allocatable :: magir_(:,:)
 real(8), allocatable :: bxcmt_(:,:,:,:)
 real(8), allocatable :: bxcir_(:,:)
 complex(8), allocatable :: veffig_(:)
-open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
- status='OLD')
+!<sag>
+if (isreadstate0) then
+   open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
+        status='OLD')
+else
+!</sag>
+   open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
+        status='OLD')
+!<sag>
+end if
+!</sag>
 read(50) version_
 if ((version(1).ne.version_(1)).or.(version(2).ne.version_(2)) &
  .or.(version(3).ne.version_(3))) then
@@ -63,7 +75,23 @@ if (nspecies.ne.nspecies_) then
   stop
 end if
 read(50) lmmaxvr_
+!<sag>
+if (lmmaxvr.ne.lmmaxvr_) then
+   write(*,*)
+   write(*,'("Warning(readstate): differing lmmaxvr values ")')
+   write(*,'(" current   : ",I4)') lmmaxvr
+   write(*,'(" STATE.OUT : ",I4)') lmmaxvr_
+end if
+!</sag>
 read(50) nrmtmax_
+!<sag>
+if (nrmtmax.ne.nrmtmax_) then
+   write(*,*)
+   write(*,'("Warning(readstate): differing nrmtmax values ")')
+   write(*,'(" current   : ",I4)') nrmtmax
+   write(*,'(" STATE.OUT : ",I4)') nrmtmax_
+end if
+!</sag>
 allocate(spr_(nrmtmax_,nspecies))
 do is=1,nspecies
   read(50) natoms_
@@ -76,11 +104,53 @@ do is=1,nspecies
     stop
   end if
   read(50) nrmt_(is)
+!<sag>
+  if (nrmt(is).ne.nrmt_(is)) then
+    write(*,*)
+    write(*,'("Warning(readstate): differing nrmt for species ",I4)') is
+    write(*,'(" current   : ",I4)') nrmt(is)
+    write(*,'(" STATE.OUT : ",I4)') nrmt_(is)
+  end if
+!</sag>
   read(50) spr_(1:nrmt_(is),is)
+!<sag>
+  if (nrmt(is).eq.nrmt_(is)) then
+     if (any(abs(spr(1:nrmt(is),is)-spr_(1:nrmt(is),is)) > 1.d-10)) then
+        write(*,*)
+        write(*,'("Warning(readstate): differing spr for species ",I4)') is
+        write(*,'(" average RMS of difference   : ",G18.10)') &
+             sqrt(sum((spr(1:nrmt(is),is)-spr_(1:nrmt(is),is))**2)/nrmt(is))
+     end if
+  end if
+!</sag>
 end do
 read(50) ngrid_
+!<sag>
+if (any(ngrid.ne.ngrid_)) then
+   write(*,*)
+   write(*,'("Warning(readstate): differing ngrid values ")')
+   write(*,'(" current   : ",3I4)') ngrid
+   write(*,'(" STATE.OUT : ",3I4)') ngrid_
+end if
+!</sag>
 read(50) ngvec_
+!<sag>
+if (ngvec.ne.ngvec_) then
+   write(*,*)
+   write(*,'("Warning(readstate): differing ngvec values ")')
+   write(*,'(" current   : ",I9)') ngvec
+   write(*,'(" STATE.OUT : ",I9)') ngvec_
+end if
+!</sag>
 read(50) ndmag_
+!<sag>
+if (ndmag.ne.ndmag_) then
+   write(*,*)
+   write(*,'("Warning(readstate): differing ndmag values ")')
+   write(*,'(" current   : ",I4)') ndmag
+   write(*,'(" STATE.OUT : ",I4)') ndmag_
+end if
+!</sag>
 if ((spinpol_).and.(ndmag_.ne.1).and.(ndmag_.ne.3)) then
   write(*,*)
   write(*,'("Error(readstate): invalid ndmag in STATE.OUT : ",I8)') ndmag_

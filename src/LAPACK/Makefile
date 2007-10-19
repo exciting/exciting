@@ -28,7 +28,7 @@ SRC = \
 OBJ = $(SRC:.f=.o)
 
 lapack:	$(OBJ)
-	ar -rc lapack.a $(OBJ)
+	ar -rc liblapack.a $(OBJ)
 
 clean:
 	rm -f *.o *.mod *~ *.a ifc* *.gcno gmon.out

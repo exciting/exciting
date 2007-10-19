@@ -30,19 +30,31 @@ complex(8), intent(out) :: evecfv(nmatmax,nstfv,nspnfv)
 complex(8), intent(out) :: evecsv(nstsv,nstsv)
 ! local variables
 integer ispn
+logical solveiterative, doititerative
+
 ! allocatable arrays
 complex(8), allocatable :: apwalm(:,:,:,:,:)
 allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
 ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
-do ispn=1,nspnfv
+if((iterativetype.eq.1).and.(.not.((mod(iscl,iterativeinterval).eq.1))))then 
+ doititerative=.true.
+else
+ doititerative=.false.
+endif
+
+	do ispn=1,nspnfv
 ! find the matching coefficients
   call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
    sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
 ! solve the first-variational secular equation
-  call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
-   apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
+ 	if (doititerative) then
+  	    call iterativeseceqnfv(ik,ispn,apwalm,vgkc(1,1,ik,ispn),evalfv,evecfv)
+ 	else
+  		call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
+   		apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
+  	endif
 end do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -55,6 +67,7 @@ else
 end if
 ! compute the spin characters
 call spinchar(ik,evecsv)
+
 deallocate(apwalm)
 return
 end subroutine

@@ -1,0 +1,9 @@
+F90 =mpxlf90 -WF,-DMPI,-DMPISEC,-DMPIRHO,-DMPIEXXSUM
+
+F90_OPTS = -g 
+F77 =xlf
+F77_OPTS = 
+LIB_SYS = 
+LIB_LPK = -llapack64 -lessl
+LIB_FFT = fftlib.a
+LIB_BZINT=libbzint.a

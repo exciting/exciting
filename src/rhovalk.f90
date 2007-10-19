@@ -50,6 +50,15 @@ complex(8), allocatable :: wfmt1(:,:)
 complex(8), allocatable :: wfmt2(:,:,:,:)
 complex(8), allocatable :: wfmt3(:,:,:)
 complex(8), allocatable :: zfft(:,:)
+!addidional arrays to make truncationerrors predictable 
+  real(8):: rhoir_k(ngrtot)
+  real(8):: magir_k(ngrtot,ndmag)
+  real(8):: rhomt_k(lmmaxvr,nrmtmax,natmtot)
+  real(8):: magmt_k(lmmaxvr,nrmtmax,natmtot,ndmag)
+ rhoir_k(:)=0
+ magir_k(:,:)=0
+ rhomt_k(:,:,:)=0
+ magmt_k(:,:,:,:)=0 
 call cpu_time(cpu0)
 if (spinpol) then
   if (ndmag.eq.3) then
@@ -147,8 +156,8 @@ do is=1,nspecies
         end if
       end if
     end do
-! convert to spherical harmonics and add to rhomt and magmt
-!$OMP CRITICAL
+! convert to spherical harmonics and add to rhomt_k and magmt_k
+
     irc=0
     do ir=1,nrmt(is),lradstp
       irc=irc+1
@@ -159,23 +168,23 @@ do is=1,nspecies
       if (spinpol) then
 ! spin-polarised
         do lm=1,lmmaxvr
-          rhomt(lm,ir,ias)=rhomt(lm,ir,ias)+rflm(lm,1)+rflm(lm,2)
+          rhomt_k(lm,ir,ias)=rhomt_k(lm,ir,ias)+rflm(lm,1)+rflm(lm,2)
           if (ndmag.eq.3) then
-            magmt(lm,ir,ias,1)=magmt(lm,ir,ias,1)+2.d0*rflm(lm,3)
-            magmt(lm,ir,ias,2)=magmt(lm,ir,ias,2)-2.d0*rflm(lm,4)
-            magmt(lm,ir,ias,3)=magmt(lm,ir,ias,3)+rflm(lm,1)-rflm(lm,2)
+            magmt_k(lm,ir,ias,1)=magmt_k(lm,ir,ias,1)+2.d0*rflm(lm,3)
+            magmt_k(lm,ir,ias,2)=magmt_k(lm,ir,ias,2)-2.d0*rflm(lm,4)
+            magmt_k(lm,ir,ias,3)=magmt_k(lm,ir,ias,3)+rflm(lm,1)-rflm(lm,2)
           else
-            magmt(lm,ir,ias,1)=magmt(lm,ir,ias,1)+rflm(lm,1)-rflm(lm,2)
+            magmt_k(lm,ir,ias,1)=magmt_k(lm,ir,ias,1)+rflm(lm,1)-rflm(lm,2)
           end if
         end do
       else
 ! spin-unpolarised
         do lm=1,lmmaxvr
-          rhomt(lm,ir,ias)=rhomt(lm,ir,ias)+rflm(lm,1)
+          rhomt_k(lm,ir,ias)=rhomt_k(lm,ir,ias)+rflm(lm,1)
         end do
       end if
     end do
-!$OMP END CRITICAL
+
   end do
 end do
 !------------------------------!
@@ -217,7 +226,7 @@ do j=1,nstsv
     do ispn=1,nspinor
       call zfftifc(3,ngrid,1,zfft(1,ispn))
     end do
-!$OMP CRITICAL
+
     if (spinpol) then
 ! spin-polarised
       do ir=1,ngrtot
@@ -226,29 +235,36 @@ do j=1,nstsv
         zt3=zt1*conjg(zt2)
         t3=dble(zt1)**2+aimag(zt1)**2
         t4=dble(zt2)**2+aimag(zt2)**2
-        rhoir(ir)=rhoir(ir)+t2*(t3+t4)
+        rhoir_k(ir)=rhoir_k(ir)+t2*(t3+t4)
         if (ndmag.eq.3) then
-          magir(ir,1)=magir(ir,1)+2.d0*t2*dble(zt3)
-          magir(ir,2)=magir(ir,2)-2.d0*t2*aimag(zt3)
-          magir(ir,3)=magir(ir,3)+t2*(t3-t4)
+          magir_k(ir,1)=magir_k(ir,1)+2.d0*t2*dble(zt3)
+          magir_k(ir,2)=magir_k(ir,2)-2.d0*t2*aimag(zt3)
+          magir_k(ir,3)=magir_k(ir,3)+t2*(t3-t4)
         else
-          magir(ir,1)=magir(ir,1)+t2*(t3-t4)
+          magir_k(ir,1)=magir_k(ir,1)+t2*(t3-t4)
         end if
       end do
     else
 ! spin-unpolarised
       do ir=1,ngrtot
         zt1=zfft(ir,1)
-        rhoir(ir)=rhoir(ir)+t2*(dble(zt1)**2+aimag(zt1)**2)
+        rhoir_k(ir)=rhoir_k(ir)+t2*(dble(zt1)**2+aimag(zt1)**2)
       end do
     end if
-!$OMP END CRITICAL
+
   end if
 end do
 deallocate(done,rflm,rfmt,apwalm,wfmt1,wfmt3,zfft)
 if (tevecsv) deallocate(wfmt2)
 call cpu_time(cpu1)
 !$OMP CRITICAL
+ rhoir(:)=rhoir(:)+rhoir_k(:)
+ 
+ rhomt(:,:,:)=rhomt(:,:,:)+rhomt_k(:,:,:)
+ 	if(spinpol)then
+ 	magmt(:,:,:,:)=magmt(:,:,:,:)+magmt_k(:,:,:,:)
+	magir(:,:)=magir(:,:)+magir_k(:,:)
+	endif	
 timerho=timerho+cpu1-cpu0
 !$OMP END CRITICAL
 return

@@ -20,7 +20,7 @@ do is=1,nspecies
     write(fnum,'("  total magnitude  : ",F14.8)') t1
   end do
 end do
-call flushifc(fnum)
+!call flushifc(fnum)
 return
 end subroutine
 
