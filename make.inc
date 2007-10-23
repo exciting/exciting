@@ -1,7 +1,8 @@
-F90 =ifort
-F90_OPTS = -g  -DDEBUG
-F77 =ifort 
-F77_OPTS = -g
+F90 =gfortran
+F90_OPTS = -g -DDEBUG 
+F77 = gfortran
+F77_OPTS = 
 LIB_SYS = 
-LIB_LPK = -L./ -llapack -lblas
-LIB_FFT = fftlib.a
+LIB_LPK = -llapack -lblas
+LIB_FFT = ./fftlib/fftlib.a
+LIB_BZINT=libbzint.a

@@ -95,7 +95,7 @@ write(115,*)"hminuses",hminuses
 	write(332,*)"HminuseS",HminuseS
 	write(333,*)"da",da
 #endif
-	call setupprojectedhamilton(n,nstfv,h,nmatmax,evecfv(:,:,ispn),da(:,:),hprojected(:),oprojected(:))
+	call setupprojectedhamilton(n,nstfv,h,o,nmatmax,evecfv(:,:,ispn),da(:,:),hprojected(:),oprojected(:))
 #ifdef DEBUG
 	write(334,*)"hprojected",hprojected
 	write(335,*)"oprojected",oprojected
