@@ -79,11 +79,11 @@ do i=1,1
 	
    	! blas call means : HminuseS(:)=h(:)-evalfv(ievec,ispn)*o(:)
    		call zcopy(np,h,1,hminuses,1)
-   		call zaxpy(np,dcmplx(-evalfv(ievec,ispn),0),o,hminuses,1)
+   		call zaxpy(np,dcmplx(-evalfv(ievec,ispn),0),o,1,hminuses,1)
 #ifdef DEBUG
 write(115,*)"hminuses",hminuses
 #endif
-      	call residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),r(:),rnorm)
+      	call residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),nmatmax,r(:),rnorm)
       	if (rnorm.lt.residualeps)then
       		 blockdavidsonconverged=.true.
       	end if

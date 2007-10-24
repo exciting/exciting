@@ -1,6 +1,7 @@
 !BOP
 ! !ROUTINE: seceqn
-subroutine residualvector(n,np,HeS,evecfv,r,rnorm)
+subroutine residualvector(n,np,HeS,evecfv,nmatmax,r,rnorm)
+!residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),r(:),rnorm)
 	
 ! !INPUT/OUTPUT PARAMETERS:
 
@@ -16,9 +17,9 @@ subroutine residualvector(n,np,HeS,evecfv,r,rnorm)
 !   Created March 2004 (JKD)
 !EOP
 !BOC
-use modmain
+!use modmain
 implicit none
-integer , intent (in)::n,np
+integer , intent (in)::n,np,nmatmax
 complex(8),intent(in)::HeS(np) !packed ut
 complex(8),intent(in)::evecfv(nmatmax) !vector
 complex(8),intent(out)::r(n)
@@ -28,7 +29,7 @@ external zdotc
 integer:: i
 
 r(:)=0.0
-call zhpmv("U",n,(1.0,0.0),HeS,evecfv, 1, (0,0), r(1), 1)
+call zhpmv("U",n,dcmplx(1.0,0.0),HeS,evecfv, 1, dcmplx(0,0), r(1), 1)
 #ifdef DEBUG
 write(441,*)"Hes in residualvector",HeS
 write(442,*)"evecfv in residualvector",evecfv

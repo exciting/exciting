@@ -496,7 +496,7 @@ findigp0.o: ../../src/findigp0.f90
 	$(FC) $(FFLAGS) -c	../../src/findigp0.f90
 writelat.o: ../../src/writelat.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writelat.f90
-residualvector.o: ../../src/src_iterative_solver/residualvector.F90 modmain.o
+residualvector.o: ../../src/src_iterative_solver/residualvector.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_iterative_solver/residualvector.F90
 oepmagmt.o: ../../src/oepmagmt.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/oepmagmt.f90
