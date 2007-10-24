@@ -1,7 +1,8 @@
-subroutine setupprojectedhamilton(n,m,h,o,nmatmax,evecfv,da,hprojected,oprojected)
+subroutine setupprojectedhamilton(n,m,h,o,nmatmax,evecfv,evalfv,da,hprojected,oprojected)
   implicit none
   integer,intent(in)::n,m,nmatmax
   complex(8), intent(in)::evecfv(nmatmax,m),h(n*(n+1)/2),o(n*(n+1)/2),da(n,m)
+  real(8),intent(in)::evalfv(m)
   complex(8), intent(out)::hprojected(2*m*(2*m+1)/2),oprojected(2*m*(2*m+1)/2)
   complex(8):: basis(n,2*m),vec(n)
   complex(8) ::zdotc
@@ -17,13 +18,18 @@ subroutine setupprojectedhamilton(n,m,h,o,nmatmax,evecfv,da,hprojected,oprojecte
   pi=1
   do i=1,2*m
      do j=1,i
-        vec=0.0
-		if((i.le.m).and.(j.le.m))	then
-		endif					
-
-		oprojected(pi)=zdotc(n ,basis(1,i),1,basis(1,j),1)
-        call zhpmv('U',n,(1.d0,0.d0),h,basis(1,j), 1, (0.d0,0.d0), vec, 1)
-        hprojected(pi)=zdotc(n ,basis(1,i),1,vec,1)
+        vec=0.0				
+		if((i.le.m).and.(j.le.m)) then
+			if (i.ne.j) then 
+				hprojected(pi)=(0.0,0.0)
+			else
+				hprojected(pi)=dcmplx(evalfv(i),0)
+			endif
+		else
+	        call zhpmv('U',n,(1.d0,0.d0),h,basis(1,j), 1, (0.d0,0.d0), vec, 1)
+	        hprojected(pi)=zdotc(n ,basis(1,i),1,vec,1)
+        endif
+        oprojected(pi)=zdotc(n ,basis(1,i),1,basis(1,j),1)
         pi=pi+1
      end do
   end do

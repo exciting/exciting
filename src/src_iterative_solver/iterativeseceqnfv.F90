@@ -79,7 +79,7 @@ do i=1,1
 	
    	! blas call means : HminuseS(:)=h(:)-evalfv(ievec,ispn)*o(:)
    		call zcopy(np,h,1,hminuses,1)
-   		call zaxpy(np,-evalfv(ievec,ispn),o,1,hminuses,1)
+   		call zaxpy(np,dcmplx(-evalfv(ievec,ispn),0),o,hminuses,1)
 #ifdef DEBUG
 write(115,*)"hminuses",hminuses
 #endif
@@ -95,7 +95,7 @@ write(115,*)"hminuses",hminuses
 	write(332,*)"HminuseS",HminuseS
 	write(333,*)"da",da
 #endif
-	call setupprojectedhamilton(n,nstfv,h,o,nmatmax,evecfv(:,:,ispn),da(:,:),hprojected(:),oprojected(:))
+	call setupprojectedhamilton(n,nstfv,h,o,nmatmax,evecfv(:,:,ispn),evalfv(:,ispn),da(:,:),hprojected(:),oprojected(:))
 #ifdef DEBUG
 	write(334,*)"hprojected",hprojected
 	write(335,*)"oprojected",oprojected
