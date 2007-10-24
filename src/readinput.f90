@@ -146,10 +146,11 @@ vqlss(:)=0.d0
 nwrite=0
 tevecsv=.false.
 !<sag>
-! tetrahedron method values
+! excited states variables:
+! tetrahedron method variables
 tetra=.false.
 fflg=4
-! TDDFT values
+! TDDFT variables
 imbandstr=.false.
 pmatira=.false.
 qtype='grid'
@@ -177,6 +178,17 @@ tevout=.false.
 verbscf=.false.
 tappinfo=.false.
 dbglev=0
+! screening variables
+nosymscr=.false.
+reducekscr=.true.
+ngridkscr(:)=1
+vkloffscr(:)=0.d0
+fnevecfvscr='EVECFV_SCR.OUT'
+fnevalsvscr='EVALSV_SCR.OUT'
+fnoccsvscr='OCCSV_SCR.OUT'
+nstoccscr=-1
+nstuoccscr=-1
+rgkmaxscr=7.d0
 !</sag>
 !-------------------------------!
 !     read from exciting.in     !
@@ -834,6 +846,51 @@ case('appinfo')
   read(50,*) tappinfo
 case('dbglev')
   read(50,*) dbglev
+  ! screening variables
+case('nosymscr')
+  read(50,*) nosymscr
+case('reducekscr')
+  read(50,*) reducekscr
+case('ngridkscr')
+  read(50,*) ngridkscr(1),ngridkscr(2),ngridkscr(3)
+  if ((ngridkscr(1).le.0).or.(ngridkscr(2).le.0).or.(ngridkscr(3).le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput[screen]): invalid ngridkscr : ",3I8)') ngridkscr
+    write(*,*)
+    stop
+  end if
+case('vkloffscr')
+  read(50,*) vkloffscr(1),vkloffscr(2),vkloffscr(3)
+case('fnevecfvscr')
+  read(50,*) fnevecfvscr
+case('fnevalsvscr')
+  read(50,*) fnevalsvscr
+case('fnoccsvscr')
+  read(50,*) fnoccsvscr
+case('nstoccscr')
+  read(50,*) nstoccscr
+  if (nstoccscr.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput[screen]): nstoccscr <= 0 : ",I8)') nstoccscr
+    write(*,*)
+    stop
+  end if
+case('nstuoccscr')
+  read(50,*) nstuoccscr
+  if (nstuoccscr.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput[screen]): nstuoccscr <= 0 : ",I8)') nstuoccscr
+    write(*,*)
+    stop
+  end if
+case('rgkmaxscr')
+  read(50,*) rgkmaxscr
+  if (rgkmaxscr.le.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput[screen]): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
+    write(*,*)
+    stop
+  end if
 ! </sag>
 case('')
   goto 10

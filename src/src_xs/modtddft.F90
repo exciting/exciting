@@ -282,11 +282,29 @@ module modtddft
   ! exciton oscillator strengths
   real(8), allocatable :: excito(:,:)
 
+  !-----------------------------!
+  !     screening variables     !
+  !-----------------------------!
+  ! nosym is .true. if no symmetry information should be used
+  logical nosymscr
+  ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
+  logical reducekscr
+  ! k-point grid sizes
+  integer :: ngridkscr(3)
+  ! k-point offset
+  real(8) :: vkloffscr(3)
+  ! filenames for eigenvector file, eigenvalues and occupancies
+  character(256) :: fnevecfvscr, fnevalsvscr, fnoccsvscr
+  ! number of occupied states
+  integer :: nstoccscr
+  ! number of unoccupied states
+  integer :: nstuoccscr
+  ! smallest muffin-tin radius times gkmax
+  real(8) :: rgkmaxscr
+
   !-----------------------!
   !     I/O variables     !
   !-----------------------!
-!!$  ! file extension (to be modified to characterize/enumerate outputs)
-!!$  character(256) :: tdfilext
   ! file name for resume file
   character(256) :: fnresume
   ! last value of filext

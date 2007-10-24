@@ -109,7 +109,7 @@ contains
           s=trim(s)//trim(s1)
        end if
     end if
-    ! extension after the dot (including the dot)
+    ! extension (including the dot)
     if (present(dotext)) then
        s=trim(s)//trim(dotext)
     else

@@ -90,7 +90,7 @@ subroutine tdinit
   write(unitout,'(" compiled for MPI parallelization")') 
 #endif
 #ifndef MPI
-  write(unitout,'(" compiled for pseudo parallelization ")') 
+  write(unitout,'(" compiled for serial execution")') 
 #endif
   write(unitout,'(a)') 'Date (YYYY-MM-DD) : '//dat(1:4)//'-'//dat(5:6)//'-'// &
        dat(7:8)
