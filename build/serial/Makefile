@@ -1,7 +1,7 @@
 include make.inc
 
 
-serial:
+serial:make.inc
 	../../utilities/mkmf -t template -f -m Makefile.serial -p excitings \
         ../../src  \
 	../../src/src_xs \
@@ -9,27 +9,27 @@ serial:
         && make -f Makefile.serial excitings \
         && cp -f excitings ..
 
-libs:	blas lapack fftlib libbzint
+libs:	libblas.a liblapack.a fftlib.a libbzint.a
 
-blas:
+libblas.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/BLAS && make clean && make
 	cp ../../src/BLAS/libblas.a .
 	cd ../../src/BLAS && make clean
 
-lapack:
+liblapack.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/LAPACK && make clean && make
 	cp ../../src/LAPACK/liblapack.a .
 	cd ../../src/LAPACK && make clean
 
-fftlib:
+fftlib.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/fftlib && make clean && make
 	cp ../../src/fftlib/fftlib.a .
 	cd ../../src/fftlib && make clean
 
-libbzint:
+libbzint.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/src_libbzint && make clean && make
 	cp ../../src/src_libbzint/libbzint.a .

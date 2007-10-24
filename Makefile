@@ -1,14 +1,21 @@
 
 MAKE = make
+serial:
+	cd build/serial; $(MAKE) libs
+	cd build/serial; $(MAKE) 
+parallel:
+	cd build/parallel; $(MAKE) libs
+	cd build/parallel; $(MAKE) 
 
-all:
-	cd src; $(MAKE) all
+all:serial parallel
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)
 	cd src/species; $(MAKE)
 
 clean:
-	cd src; $(MAKE) cleanall
+
+	cd build/pserial; $(MAKE) clean
+	cd build/parallel; $(MAKE) clean
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean

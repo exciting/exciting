@@ -28,7 +28,7 @@ external zdotc
 integer:: i
 
 r(:)=0.0
-call zhpmv("U",n,(1,1),HeS(:),evecfv(:), 1, (0,0), r(:), 1)
+call zhpmv("U",n,(1.0,0.0),HeS,evecfv, 1, (0,0), r(1), 1)
 #ifdef DEBUG
 write(441,*)"Hes in residualvector",HeS
 write(442,*)"evecfv in residualvector",evecfv

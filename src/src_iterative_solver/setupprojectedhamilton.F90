@@ -18,16 +18,12 @@ subroutine setupprojectedhamilton(n,m,h,o,nmatmax,evecfv,da,hprojected,oprojecte
   do i=1,2*m
      do j=1,i
         vec=0.0
-    if((i.le.m).and.(j.le.m))	then
-endif				
+		if((i.le.m).and.(j.le.m))	then
+		endif					
 
-	oprojected(pi)=zdotc(n ,basis(1,i),1,basis(1,j),1)
-        call zhpmv('U',n,(1.d0,0.d0),h,basis(1,j), 1, (0.d0,0.d0), vec(1), 1)
-        hprojected(pi)=zdotc(n ,basis(1,i),1,vec(1),1)
-       
-        if(i.eq.j) then
-           hprojected(pi)=dble(hprojected(pi))
-        endif
+		oprojected(pi)=zdotc(n ,basis(1,i),1,basis(1,j),1)
+        call zhpmv('U',n,(1.d0,0.d0),h,basis(1,j), 1, (0.d0,0.d0), vec, 1)
+        hprojected(pi)=zdotc(n ,basis(1,i),1,vec,1)
         pi=pi+1
      end do
   end do

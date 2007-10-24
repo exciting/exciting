@@ -11,9 +11,9 @@ integer::i,j
 complex(8)::basis(n,2*m)
 do i=1,2*m 
 	if(i.le.m) then
-	call zcopy(n,evecfv(:,i),1,basis(:,i),1)
+	call zcopy(n,evecfv(1,i),1,basis(1,i),1)
 	else
-	call zcopy(n,da(:,i-m),1,basis(:,i),1)
+	call zcopy(n,da(1,i-m),1,basis(1,i),1)
 	endif
 end do
 evecfv=0
