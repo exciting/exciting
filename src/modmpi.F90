@@ -121,7 +121,7 @@ function procofindex(k,set)
    end do
 end function procofindex
 
-  !------------------interface to already existing soubroutine "barrier"
+  !------------------interface to MPI_barrier for xs-part
 
   subroutine barrier(rank,procs,un,async,string)
     implicit none

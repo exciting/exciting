@@ -9,8 +9,8 @@ contains
 
   subroutine genfilname(nodotpar,basename,asc,bzsampl,acont,&
        nar,nlf,fxctype,tq0,oc,iq,procs,rank,dotext,setfilext,revertfilext,&
-       filnam,filext)
-    use modmain, only: filext_main => filext
+       filnam,fileext)
+    use modmain, only: filext
     use modtddft, only: filextrevert
     ! Generate file name and extension accoring to purpose and optional
     ! input parameters.
@@ -24,7 +24,7 @@ contains
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
     logical, optional, intent(in) :: revertfilext,setfilext
     character(*), optional, intent(in) :: basename,dotext
-    character(256), optional, intent(out) :: filnam,filext
+    character(256), optional, intent(out) :: filnam,fileext
     ! local variables
     logical :: nodot0,revert,setfxt
     character(*), parameter :: thisnam = 'genfilname'
@@ -37,9 +37,9 @@ contains
     if (present(revertfilext)) revert=revertfilext
     if (present(setfilext)) setfxt=setfilext
     if (revert) then
-       filext_main=trim(filextrevert)
+       filext=trim(filextrevert)
     else if (setfxt) then
-       filextrevert=filext_main
+       filextrevert=filext
     end if
     
     ! dot in front of filename in parallel output for rank eq. zero
@@ -104,7 +104,7 @@ contains
     ! parallelization
     if (present(rank).and.present(procs)) then
        if ((procs > 1).and.((nodot0.and.(rank > 0)).or.(.not.nodot0))) then 
-          !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          ! tag for rank
           write(s1,'("_par",i3.3)') rank+1
           s=trim(s)//trim(s1)
        end if
@@ -116,9 +116,9 @@ contains
        s=trim(s)//'.OUT'
     end if
     ! assign file extension if required
-    if (present(filext)) filext=trim(s)
+    if (present(fileext)) fileext=trim(s)
     ! assign global file extension if required
-    if (setfxt) filext_main=trim(s)
+    if (setfxt) filext=trim(s)
     ! basename
     if (present(basename)) s=trim(basename)//trim(s)
     ! dot in front of filename determined by procs, rank and nodotpar

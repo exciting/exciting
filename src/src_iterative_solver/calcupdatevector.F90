@@ -21,9 +21,14 @@ write(666,*)"r",residual
 
 	write(555,*)"da norm",norm
 	rnorm=sqrt(dble(norm))
-	call zscal(n, DCMPLX(1.0/rnorm),da,1)
-	
+	call zscal(n, DCMPLX(1.0/rnorm,0),da,1)
+#ifdef DEBUG
 
+	write(771,*)"da" ,da
+	write(772,*)"invHmineS",invHmineS
+	write(773)"rnorm",rnorm
+	write(774,*)"da" ,da
+#endif
 end subroutine
 
 subroutine getinvdiagonalofpacked(n,PackedM,Diagonal)

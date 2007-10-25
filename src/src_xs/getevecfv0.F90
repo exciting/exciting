@@ -4,14 +4,13 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine getevecfv0(vpl,vgpl,evecfv)
+subroutine getevecfv0(vpl,vgpl,evecfvt)
   use modmain
-  ! masquerade
-  use modtddft, evecfv_=>evecfv
+  use modtddft
   ! arguments
   real(8), intent(in) :: vpl(3)
   real(8), intent(in) :: vgpl(3,ngkmax)
-  complex(8), intent(out) :: evecfv(nmatmax,nstfv,nspnfv)
+  complex(8), intent(out) :: evecfvt(nmatmax,nstfv,nspnfv)
   ! local variables
   integer :: nmatmaxt,ngkmaxt
   integer, allocatable :: ngkt(:,:)
@@ -28,7 +27,7 @@ subroutine getevecfv0(vpl,vgpl,evecfv)
   vgklt(:,:,:,:)=vgkl(:,:,:,:); vgkl(:,:,:,:)=vgkl0(:,:,:,:)
 
   ! call to getevecfv with changed (G+)k-point sets / matrix size
-  call getevecfv(vpl,vgpl,evecfv)
+  call getevecfv(vpl,vgpl,evecfvt)
 
   ! restore original variables
   nmatmax=nmatmaxt
