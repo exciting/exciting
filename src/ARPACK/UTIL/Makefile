@@ -15,7 +15,7 @@
 ############################################################################
 #\SCCS Information: @(#)
 # FILE: Makefile   SID: 2.1   DATE OF SID: 9/9/96   RELEASE: 2
- 
+include ../../../make.inc 
 include ../ARmake.inc
  
 ############################################################################
@@ -51,20 +51,20 @@ ZOBJ  = zvout.o  zmout.o
 all: single double complex complex16
  
 single: $(SOBJ) $(OBJS)
-	$(AR) $(ARFLAGS) $(ARPACKLIB) $(SOBJ) $(OBJS)
-	$(RANLIB) $(ARPACKLIB)
+	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(SOBJ) $(OBJS)
+	$(RANLIB) .$(ARPACKLIB)
  
 double: $(DOBJ) $(OBJS) $(ZOBJ)
-	$(AR) $(ARFLAGS) $(ARPACKLIB) $(DOBJ) $(OBJS)
-	$(RANLIB) $(ARPACKLIB)
+	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(DOBJ) $(OBJS)
+	$(RANLIB) .$(ARPACKLIB)
 
 complex: $(SOBJ) $(OBJS) $(COBJ)
-	$(AR) $(ARFLAGS) $(ARPACKLIB) $(SOBJ) $(COBJ) $(OBJS)
-	$(RANLIB) $(ARPACKLIB)
+	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(SOBJ) $(COBJ) $(OBJS)
+	$(RANLIB) .$(ARPACKLIB)
 
 complex16: $(DOBJ) $(OBJS) $(ZOBJ)
-	$(AR) $(ARFLAGS) $(ARPACKLIB) $(DOBJ) $(ZOBJ) $(OBJS)
-	$(RANLIB) $(ARPACKLIB)
+	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(DOBJ) $(ZOBJ) $(OBJS)
+	$(RANLIB) .$(ARPACKLIB)
 #
 sdrv:
 	

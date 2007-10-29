@@ -1,3 +1,4 @@
+
 ###########################################################################
 #
 #  Program:         ARPACK
@@ -25,7 +26,7 @@
 # | other than your home directory.      |
 # %--------------------------------------%
 #
-home = $(HOME)/ARPACK
+home =./
 #
 #  %--------------------------------------%
 #  | The platform identifier to suffix to |
@@ -38,12 +39,12 @@ PLAT =osx
 #  | The directories to find the various pieces of ARPACK |
 #  %------------------------------------------------------%
 #
-BLASdir      = $(home)/BLAS
-LAPACKdir    = $(home)/LAPACK
-UTILdir      = $(home)/UTIL
-SRCdir       = $(home)/SRC
+BLASdir      = $(home)BLAS
+LAPACKdir    = $(home)LAPACK
+UTILdir      = $(home)UTIL
+SRCdir       = $(home)SRC
 #
-DIRS        = $(BLASdir) $(LAPACKdir) $(UTILdir) $(SRCdir)
+DIRS        =  $(UTILdir) $(SRCdir)
 #
 # %-------------------------------------------------------------------%
 # | Comment out the previous line and uncomment the following         |
@@ -57,7 +58,7 @@ DIRS        = $(BLASdir) $(LAPACKdir) $(UTILdir) $(SRCdir)
 # | The name of the libraries to be created/linked to |
 # %---------------------------------------------------%
 #
-ARPACKLIB  = $(home)/libarpack_$(PLAT).a
+ARPACKLIB  = $(home)libarpack_$(PLAT).a
 LAPACKLIB = 
 BLASLIB = 
 #
@@ -101,7 +102,7 @@ ALIBS =  $(ARPACKLIB) $(LAPACKLIB) $(BLASLIB)
 # | for your system.                        |
 # %-----------------------------------------%
 #
-FC      =gfortran 
+FC      =$(F77) 
 FFLAGS	= -O 
 
 LDFLAGS = 

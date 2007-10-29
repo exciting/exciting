@@ -13,7 +13,7 @@
 #  Send bug reports, comments or suggestions to arpack@caam.rice.edu
 #
 ############################################################################
-
+include ../../make.inc
 include ARmake.inc
 
 PRECISIONS = single double complex complex16
@@ -47,30 +47,22 @@ PRECISIONS = single double complex complex16
 #
 ############################################################################
 
-all: lib 
+
 
 lib: arpacklib
 
 clean: cleanlib
 
 arpacklib:
-	@( \
-	for f in $(DIRS); \
-	do \
-		$(CD) $$f; \
-		$(ECHO) Making lib in $$f; \
-		$(MAKE) $(PRECISIONS); \
-		$(CD) ..; \
-	done );
+	cd SRC; $(MAKE) $(PRECISIONS)
+	cd UTIL; $(MAKE) $(PRECISIONS)
 	$(RANLIB) $(ARPACKLIB)
 
 cleantest:
 
 cleanlib:
-	( cd $(BLASdir); $(MAKE) clean )
-	( cd $(LAPACKdir); $(MAKE) clean )
-	( cd $(UTILdir); $(MAKE) clean )
-	( cd $(SRCdir); $(MAKE) clean )
+	cd UTIL; $(MAKE) clean 
+	cd SRC; $(MAKE) clean 
 
 help:
     @$(ECHO) "usage: make ?"
