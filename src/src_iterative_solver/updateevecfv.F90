@@ -16,7 +16,7 @@ do i=1,2*m
 	call zcopy(n,da(1,i-m),1,basis(1,i),1)
 	endif
 end do
-evecfv=0
+evecfv(:,:)=0.d0
 do i=1,m
 	do j=1,2*m
 		call zaxpy(n,evecp(j,i),basis(1,j),1,evecfv(1,i),1)

@@ -1,5 +1,5 @@
 F90 =gfortran
-F90_OPTS = -g  -DDEBUG
+F90_OPTS = -g # -DDEBUG
 F77 = gfortran
 F77_OPTS = 
 LIB_SYS = 

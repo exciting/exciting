@@ -38,7 +38,7 @@ allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
 ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
-if((iterativetype.eq.1).and.(.not.((mod(iscl,iterativeinterval).eq.1))))then 
+if((iterativetype.eq.1).and.(.not.((mod(iscl,iterativeinterval).eq.1))).and.(task.eq.0))then 
  doititerative=.true.
 else
  doititerative=.false.
@@ -50,7 +50,7 @@ endif
    sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
 ! solve the first-variational secular equation
  	if (doititerative) then
-  	    call iterativeseceqnfv(ik,ispn,apwalm,vgkc(1,1,ik,ispn),evalfv,evecfv)
+  	    call iterativeseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),vgkc(1,1,ik,ispn),evalfv,evecfv)
  	else
   		call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
    		apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
