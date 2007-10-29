@@ -27,13 +27,12 @@ integer, 	intent(in) 		:: ik
 integer, 	intent(in) 		:: ispn
 real(8),    intent(in)      :: vgpc(3,ngkmax)
 complex(8), intent(in) 		:: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-real(8), 	intent(out) 	:: evalfv(nstfv)
-complex(8), intent(out) 	:: evecfv(nmatmax,nstfv)
+real(8), 	intent(inout) 	:: evalfv(nstfv,nspnfv)
+complex(8), intent(inout) 	:: evecfv(nmatmax,nstfv,nspnfv)
 
 ! local variables
 
-real(8)	:: l_evalfv(nstfv,nspnfv)
-complex(8):: l_evecfv(nmatmax,nstfv,nspnfv)
+
 integer 	::is,ia,i,n,np,ievec,iv
 complex(8)	::evecp(2*nstfv,nstfv),r(nmat(ik,ispn))
 real(8)  	::vl,vu,abstol,evalp(nstfv)
@@ -70,25 +69,26 @@ timemat=timemat+cpu1-cpu0
 !$OMP END CRITICAL
 !update eigenvectors with iteration
 call cpu_time(cpu0)
-call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),l_evecfv)
-call getevalfv(vkl(1,ik),l_evalfv)!! array size check
+
+call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
+call getevalfv(vkl(1,ik),evalfv)
 
 
 #ifdef DEBUG
-write(114,*)"evecfv" ,l_evecfv
+write(114,*)"evecfv" ,evecfv
 #endif
 
-do i=1,1
+do i=1,3
 	do ievec=1,nstfv	
 	!do ievec=1,1	
 	
    	! blas call means : HminuseS(:)=h(:)-evalfv(ievec,ispn)*o(:)
    		call zcopy(np,h,1,hminuses,1)
-   		call zaxpy(np,dcmplx(-l_evalfv(ievec,ispn),0),o,1,hminuses,1)
+   		call zaxpy(np,dcmplx(-evalfv(ievec,ispn),0),o,1,hminuses,1)
 #ifdef DEBUG
 write(115,*)"hminuses",hminuses
 #endif
-      	call residualvector(n,np,hminuses(:),l_evecfv(:,ievec,ispn),nmatmax,r(:),rnorm)
+      	call residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),nmatmax,r(:),rnorm)
       	if (rnorm.lt.residualeps)then
       		 blockdavidsonconverged=.true.
       	end if
@@ -100,7 +100,7 @@ write(115,*)"hminuses",hminuses
 	write(332,*)"HminuseS",HminuseS
 	write(333,*)"da",da
 #endif
-	call setupprojectedhamilton(n,nstfv,h,o,nmatmax,l_evecfv(:,:,ispn),l_evalfv(:,ispn),da(:,:),hprojected(:),oprojected(:))
+	call setupprojectedhamilton(n,nstfv,h,o,nmatmax,evecfv(:,:,ispn),evalfv(:,ispn),da(:,:),hprojected(:),oprojected(:))
 #ifdef DEBUG
 	write(334,*)"hprojected",hprojected
 	write(335,*)"oprojected",oprojected
@@ -108,9 +108,10 @@ write(115,*)"hminuses",hminuses
 	call projectedsecequn(nstfv,hprojected(:),oprojected(:),evecp(:,:),evalp(:))
 #ifdef DEBUG
 	write(336,*)"evalp",evalp
-	write(337,*)"evalfv",l_evalfv(:,ispn)
+	write(337,*)"evalfv",evalfv(:,ispn)
 #endif
-	call updateevecfv(n,nstfv,da(:,:),nmatmax,l_evecfv(:,:,ispn),l_evalfv(:,ispn),evecp(:,:),evalp(:))
+write(338,*)"evecfv",evecfv(:,:,ispn)
+	call updateevecfv(n,nstfv,da(:,:),nmatmax,evecfv(:,:,ispn),evalfv(:,ispn),evecp(:,:),evalp(:))
 
 end do
 
@@ -118,10 +119,10 @@ call cpu_time(cpu1)
 !$OMP CRITICAL
 timefv=timefv+cpu1-cpu0
 !$OMP END CRITICAL 
-call putevecfv(ik,l_evecfv)
-call putevalfv(ik,l_evalfv)
-evalfv=l_evalfv(:,ispn)
-evecfv=l_evecfv(:,:,ispn)
+
+call putevecfv(ik,evecfv)
+call putevalfv(ik,evalfv)
+
 return
 end subroutine
 !EOC
