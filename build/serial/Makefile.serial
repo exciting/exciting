@@ -658,6 +658,8 @@ kramkron.o: ../../src/src_xs/kramkron.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/kramkron.F90
 tdgauntgen.o: ../../src/src_xs/tdgauntgen.F90 modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tdgauntgen.F90
+iterativearpacksequn.o: ../../src/src_iterative_solver/iterativearpacksequn.F90 modmain.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_iterative_solver/iterativearpacksequn.F90
 pmattd2orig.o: ../../src/src_xs/pmattd2orig.F90 modmain.o modtddft.o modmpi.o getpmat.o getunit.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/pmattd2orig.F90
 tdcheck.o: ../../src/src_xs/tdcheck.F90 modmain.o modtddft.o modtetra.o
@@ -1372,6 +1374,8 @@ hermite.o: ../../src/hermite.f90
 	cp ../../src/r3frac.f90 .
 ./phdisp.f90: ../../src/phdisp.f90
 	cp ../../src/phdisp.f90 .
+./iterativearpacksequn.F90: ../../src/src_iterative_solver/iterativearpacksequn.F90
+	cp ../../src/src_iterative_solver/iterativearpacksequn.F90 .
 ./testmain.F90: ../../src/src_xs/testmain.F90
 	cp ../../src/src_xs/testmain.F90 .
 ./seceqnfv.f90: ../../src/seceqnfv.f90
@@ -1662,12 +1666,14 @@ SRC = ../../src/plot2d.f90 ../../src/updatpos.f90                              \
 ../../src/src_xs/findexciton.F90 ../../src/oepvnlk.f90 ../../src/init0.f90     \
 ../../src/symrvfmt.f90 ../../src/xc_pzca.f90 ../../src/geomplot.f90            \
 ../../src/olpalo.f90 ../../src/rfarray.f90 ../../src/src_xs/kramkron.F90       \
-../../src/src_xs/tdgauntgen.F90 ../../src/src_xs/pmattd2orig.F90               \
-../../src/src_xs/tdcheck.F90 ../../src/src_xs/idfgather.F90                    \
-../../src/energykncr.f90 ../../src/src_xs/putpmat.F90                          \
-../../src/src_xs/argparse.F90 ../../src/src_xs/dfqoscwg.F90                    \
-../../src/src_xs/gensigma.F90 ../../src/gndstate.F90 ../../src/writelinen.f90  \
-../../src/rfinp.f90 ../../src/src_xs/getpemat.F90 ../../src/readfermi.f90      \
+../../src/src_xs/tdgauntgen.F90                                                \
+../../src/src_iterative_solver/iterativearpacksequn.F90                        \
+../../src/src_xs/pmattd2orig.F90 ../../src/src_xs/tdcheck.F90                  \
+../../src/src_xs/idfgather.F90 ../../src/energykncr.f90                        \
+../../src/src_xs/putpmat.F90 ../../src/src_xs/argparse.F90                     \
+../../src/src_xs/dfqoscwg.F90 ../../src/src_xs/gensigma.F90                    \
+../../src/gndstate.F90 ../../src/writelinen.f90 ../../src/rfinp.f90            \
+../../src/src_xs/getpemat.F90 ../../src/readfermi.f90                          \
 ../../src/src_xs/zaxpyc.F90 ../../src/src_xs/dyson.F90 ../../src/readinput.f90 \
 ../../src/src_iterative_solver/iterativeseceqnfv.F90                           \
 ../../src/src_xs/linoptold.F90 ../../src/stheta_fd.f90 ../../src/potplot.f90   \
@@ -1730,13 +1736,13 @@ poteff.o c_pbe_gcor.o writepmattd.o terminate.o i3mdet.o genkpts.o writechg.o  \
 modmpi.o tddftmain.o devalsvgather.o genylm.o r3mv.o r3mdet.o addrhocr.o       \
 wavefcr.o r3mtv.o fxc_alda_check.o main.o findexciton.o oepvnlk.o init0.o      \
 symrvfmt.o xc_pzca.o geomplot.o olpalo.o rfarray.o kramkron.o tdgauntgen.o     \
-pmattd2orig.o tdcheck.o idfgather.o energykncr.o putpmat.o argparse.o          \
-dfqoscwg.o gensigma.o gndstate.o writelinen.o rfinp.o getpemat.o readfermi.o   \
-zaxpyc.o dyson.o readinput.o iterativeseceqnfv.o linoptold.o stheta_fd.o       \
-potplot.o rhoplot.o stheta_mp.o getx0.o genwfsv.o dfgather.o dynsymapp.o       \
-hamiltonandoverlapsetup.o tetcalccw.o idfq.o gaunt.o phdisp.o brzint.o         \
-findeqatoms.o outfilenamestring.o setupprojectedhamilton.o sdelta_mp.o         \
-genrmesh.o seceqnfv.o writeqpts.o fsmooth.o tdzoutpr.o hmlistl.o i3minv.o gwf2val.o sleepifc.o epsconv.o bandstr.o findprim.o gradrf.o dfqoscbo.o rvfcross.o genwgrid.o filedel.o init2td.o zmatrix.o rdirac.o hmllolo.o hermite.o
+iterativearpacksequn.o pmattd2orig.o tdcheck.o idfgather.o energykncr.o        \
+putpmat.o argparse.o dfqoscwg.o gensigma.o gndstate.o writelinen.o rfinp.o     \
+getpemat.o readfermi.o zaxpyc.o dyson.o readinput.o iterativeseceqnfv.o        \
+linoptold.o stheta_fd.o potplot.o rhoplot.o stheta_mp.o getx0.o genwfsv.o      \
+dfgather.o dynsymapp.o hamiltonandoverlapsetup.o tetcalccw.o idfq.o gaunt.o    \
+phdisp.o brzint.o findeqatoms.o outfilenamestring.o setupprojectedhamilton.o   \
+sdelta_mp.o genrmesh.o seceqnfv.o writeqpts.o fsmooth.o tdzoutpr.o hmlistl.o i3minv.o gwf2val.o sleepifc.o epsconv.o bandstr.o findprim.o gradrf.o dfqoscbo.o rvfcross.o genwgrid.o filedel.o init2td.o zmatrix.o rdirac.o hmllolo.o hermite.o
 OFF = ../../src/occupy.f90 ../../src/src_xs/init1td.F90 ../../src/zflmconj.f90 \
 ../../src/olprad.f90 ../../src/src_xs/tdwriteh.F90 ../../src/euler.f90         \
 ../../src/src_xs/writepmattd.F90 ../../src/writepmat.f90                       \
@@ -1850,6 +1856,7 @@ OFF = ../../src/occupy.f90 ../../src/src_xs/init1td.F90 ../../src/zflmconj.f90 \
 ../../src/src_xs/devalsvgather.F90 ../../src/r3minv.f90 ../../src/zpotclmt.f90 \
 ../../src/src_xs/getridx.F90 ../../src/readinput.f90 ../../src/i3minv.f90      \
 ../../src/src_xs/bandgap.F90 ../../src/r3frac.f90 ../../src/phdisp.f90         \
+../../src/src_iterative_solver/iterativearpacksequn.F90                        \
 ../../src/src_xs/testmain.F90 ../../src/seceqnfv.f90 ../../src/r3mtv.f90       \
 ../../src/src_xs/ematqkgmt.F90 ../../src/src_xs/fxc_lrc.F90 ../../src/dos.f90  \
 ../../src/genidxlo.f90 ../../src/fderiv.f90 ../../src/plot2d.f90               \
