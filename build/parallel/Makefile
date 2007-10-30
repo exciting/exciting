@@ -9,7 +9,7 @@ parallel:make.inc
         && make -f Makefile.serial excitingmpi \
         && cp -f excitingmpi ..
 
-libs:	libblas.a liblapack.a fftlib.a libbzint.a
+libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a
 
 libblas.a: make.inc
 	cp -f make.inc ../..
@@ -34,6 +34,12 @@ libbzint.a: make.inc
 	cd ../../src/src_libbzint && make clean && make
 	cp ../../src/src_libbzint/libbzint.a .
 	cd ../../src/src_libbzint && make clean
+
+libarpack.a: make.inc
+	cp -f make.inc ../..
+	cd ../../src/ARPACK && make clean && make lib
+	cp ../../src/ARPACK/libarpack.a .
+	cd ../../src/ARPACK && make clean
 
 clean:
 	rm -f *.o *.mod

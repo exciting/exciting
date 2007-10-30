@@ -16,16 +16,16 @@ putx0.o: ../../src/src_xs/putx0.F90 modmain.o modtddft.o getunit.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/putx0.F90
 putevecfv.o: ../../src/putevecfv.f90 modmain.o modmpi.o
 	$(FC) $(FFLAGS) -c	../../src/putevecfv.f90
-writephn.o: ../../src/writephn.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/writephn.f90
 erf.o: ../../src/erf.f90
 	$(FC) $(FFLAGS) -c	../../src/erf.f90
+writephn.o: ../../src/writephn.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/writephn.f90
 ematqkgir.o: ../../src/src_xs/ematqkgir.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/ematqkgir.F90
-sumrule.o: ../../src/sumrule.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/sumrule.f90
 init2.o: ../../src/init2.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/init2.f90
+sumrule.o: ../../src/sumrule.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/sumrule.f90
 symrfir.o: ../../src/symrfir.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/symrfir.f90
 match.o: ../../src/match.f90 modmain.o
@@ -44,10 +44,10 @@ force.o: ../../src/force.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/force.f90
 projectedsecequn.o: ../../src/src_iterative_solver/projectedsecequn.F90 modmain.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_iterative_solver/projectedsecequn.F90
-seceqnhf.o: ../../src/seceqnhf.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/seceqnhf.f90
 rhoinit.o: ../../src/rhoinit.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/rhoinit.f90
+seceqnhf.o: ../../src/seceqnhf.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/seceqnhf.f90
 genvmat.o: ../../src/genvmat.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/genvmat.f90
 zrhoqint.o: ../../src/zrhoqint.f90 modmain.o
@@ -84,10 +84,10 @@ r3dist.o: ../../src/r3dist.f90
 	$(FC) $(FFLAGS) -c	../../src/r3dist.f90
 genshtmat.o: ../../src/genshtmat.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/genshtmat.f90
-tetcalccwq.o: ../../src/src_xs/tetcalccwq.F90 modmain.o modtddft.o modtetra.o modmpi.o genwgrid.o getunit.o filedel.o genfilname.o
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tetcalccwq.F90
 ematqk.o: ../../src/src_xs/ematqk.F90 modmain.o modtddft.o modmpi.o tdintrg.o ematqkgmt.o ematqkgir.o putemat.o putdevalsv.o emattim.o getunit.o genfilname.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/ematqk.F90
+tetcalccwq.o: ../../src/src_xs/tetcalccwq.F90 modmain.o modtddft.o modtetra.o modmpi.o genwgrid.o getunit.o filedel.o genfilname.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tetcalccwq.F90
 gensymdf.o: ../../src/src_xs/gensymdf.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/gensymdf.F90
 genapwfr.o: ../../src/genapwfr.f90 modmain.o
@@ -114,10 +114,10 @@ gengvec.o: ../../src/gengvec.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/gengvec.f90
 xc_pbe.o: ../../src/xc_pbe.f90
 	$(FC) $(FFLAGS) -c	../../src/xc_pbe.f90
-rfmtctof.o: ../../src/rfmtctof.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/rfmtctof.f90
 oepresk.o: ../../src/oepresk.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/oepresk.f90
+rfmtctof.o: ../../src/rfmtctof.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/rfmtctof.f90
 gauntyry.o: ../../src/gauntyry.f90
 	$(FC) $(FFLAGS) -c	../../src/gauntyry.f90
 olpaa.o: ../../src/olpaa.f90 modmain.o
@@ -128,12 +128,12 @@ updateevecfv.o: ../../src/src_iterative_solver/updateevecfv.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_iterative_solver/updateevecfv.F90
 symrf.o: ../../src/symrf.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/symrf.f90
+plot1d.o: ../../src/plot1d.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/plot1d.f90
 zmatinp.o: ../../src/zmatinp.f90
 	$(FC) $(FFLAGS) -c	../../src/zmatinp.f90
 rdiracint.o: ../../src/rdiracint.f90
 	$(FC) $(FFLAGS) -c	../../src/rdiracint.f90
-plot1d.o: ../../src/plot1d.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/plot1d.f90
 getevalfv.o: ../../src/getevalfv.f90 modmain.o modmpi.o
 	$(FC) $(FFLAGS) -c	../../src/getevalfv.f90
 puttetcw.o: ../../src/src_xs/puttetcw.F90 modmain.o modtddft.o modmpi.o getunit.o
@@ -144,12 +144,12 @@ rtozflm.o: ../../src/rtozflm.f90
 	$(FC) $(FFLAGS) -c	../../src/rtozflm.f90
 energynn.o: ../../src/energynn.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/energynn.f90
-potcoul.o: ../../src/potcoul.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/potcoul.f90
 modmain.o: ../../src/modmain.f90
 	$(FC) $(FFLAGS) -c	../../src/modmain.f90
 findsymcrysctr.o: ../../src/findsymcrysctr.f90
 	$(FC) $(FFLAGS) -c	../../src/findsymcrysctr.f90
+potcoul.o: ../../src/potcoul.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/potcoul.f90
 gengqvec.o: ../../src/src_xs/gengqvec.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/gengqvec.F90
 genveffig.o: ../../src/genveffig.f90 modmain.o
@@ -158,16 +158,16 @@ tdepilog.o: ../../src/src_xs/tdepilog.F90 modmain.o modtddft.o modmpi.o filedel.
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tdepilog.F90
 ftfun.o: ../../src/src_xs/ftfun.F90 modmain.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/ftfun.F90
-writesym.o: ../../src/writesym.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/writesym.f90
 vnlrho.o: ../../src/vnlrho.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/vnlrho.f90
+writesym.o: ../../src/writesym.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/writesym.f90
 findsymlat.o: ../../src/findsymlat.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/findsymlat.f90
-seceqnss.o: ../../src/seceqnss.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/seceqnss.f90
 gencore.o: ../../src/gencore.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/gencore.f90
+seceqnss.o: ../../src/seceqnss.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/seceqnss.f90
 fxc_pwca.o: ../../src/src_xs/fxc_pwca.F90 modmain.o modtddft.o ftfun.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/fxc_pwca.F90
 checkmt.o: ../../src/checkmt.f90 modmain.o
@@ -218,10 +218,10 @@ sdelta_fd.o: ../../src/sdelta_fd.f90
 	$(FC) $(FFLAGS) -c	../../src/sdelta_fd.f90
 oepmag.o: ../../src/oepmag.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/oepmag.f90
-fxc_lrcd.o: ../../src/src_xs/fxc_lrcd.F90 modmain.o modtddft.o
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/fxc_lrcd.F90
 dfq.o: ../../src/src_xs/dfq.F90 modmain.o modtddft.o modtetra.o modmpi.o genwgrid.o gensymdf.o getpemat.o getdevalsv.o dfqoschd.o dfqoscwg.o dfqoscbo.o dftim.o tetcalccwq.o gettetcw.o chi0upd.o putx0.o getunit.o filedel.o genfilname.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/dfq.F90
+fxc_lrcd.o: ../../src/src_xs/fxc_lrcd.F90 modmain.o modtddft.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/fxc_lrcd.F90
 radmesh.o: ../../src/radmesh.f90
 	$(FC) $(FFLAGS) -c	../../src/radmesh.f90
 oepmain.o: ../../src/oepmain.F90 modmain.o modmpi.o
@@ -276,12 +276,12 @@ r3taxi.o: ../../src/r3taxi.f90
 	$(FC) $(FFLAGS) -c	../../src/r3taxi.f90
 chi0upd.o: ../../src/src_xs/chi0upd.F90 modmain.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/chi0upd.F90
+getevecfv.o: ../../src/getevecfv.f90 modmain.o modmpi.o
+	$(FC) $(FFLAGS) -c	../../src/getevecfv.f90
 writepmat.o: ../../src/writepmat.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writepmat.f90
 getevalsv.o: ../../src/getevalsv.f90 modmain.o modmpi.o
 	$(FC) $(FFLAGS) -c	../../src/getevalsv.f90
-getevecfv.o: ../../src/getevecfv.f90 modmain.o modmpi.o
-	$(FC) $(FFLAGS) -c	../../src/getevecfv.f90
 pmatgather.o: ../../src/src_xs/pmatgather.F90 modmain.o modtddft.o modmpi.o filedel.o getpmat.o putpmat.o genfilname.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/pmatgather.F90
 gndstateq.o: ../../src/src_xs/gndstateq.F90 modmain.o
@@ -338,12 +338,12 @@ getunit.o: ../../src/src_xs/getunit.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/getunit.F90
 getridx.o: ../../src/src_xs/getridx.F90 modmpi.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/getridx.F90
-writeengy.o: ../../src/writeengy.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/writeengy.f90
 vnlwfv.o: ../../src/vnlwfv.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/vnlwfv.f90
 rotaxang.o: ../../src/rotaxang.f90
 	$(FC) $(FFLAGS) -c	../../src/rotaxang.f90
+writeengy.o: ../../src/writeengy.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/writeengy.f90
 getevecfv0.o: ../../src/src_xs/getevecfv0.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/getevecfv0.F90
 dynsym.o: ../../src/dynsym.f90 modmain.o
@@ -352,36 +352,36 @@ test.o: ../../src/src_xs/test.F90 modtddft.o modmpi.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/test.F90
 writegeom.o: ../../src/writegeom.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writegeom.f90
-findsymcrys.o: ../../src/findsymcrys.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/findsymcrys.f90
 genpmat.o: ../../src/genpmat.f90 modmain.o modtddft.o
 	$(FC) $(FFLAGS) -c	../../src/genpmat.f90
+findsymcrys.o: ../../src/findsymcrys.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/findsymcrys.f90
 modtddft.o: ../../src/src_xs/modtddft.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/modtddft.F90
 forcek.o: ../../src/forcek.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/forcek.f90
 writeinfotd.o: ../../src/src_xs/writeinfotd.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/writeinfotd.F90
-x_pbe.o: ../../src/x_pbe.f90
-	$(FC) $(FFLAGS) -c	../../src/x_pbe.f90
 rotzflm.o: ../../src/rotzflm.f90
 	$(FC) $(FFLAGS) -c	../../src/rotzflm.f90
+x_pbe.o: ../../src/x_pbe.f90
+	$(FC) $(FFLAGS) -c	../../src/x_pbe.f90
 ematqkgmt.o: ../../src/src_xs/ematqkgmt.F90 modmain.o modtddft.o zaxpyc.o tdzoutpr.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/ematqkgmt.F90
 effmass.o: ../../src/effmass.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/effmass.f90
 connect.o: ../../src/connect.f90
 	$(FC) $(FFLAGS) -c	../../src/connect.f90
-r3mm.o: ../../src/r3mm.f90
-	$(FC) $(FFLAGS) -c	../../src/r3mm.f90
 writeforce.o: ../../src/writeforce.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writeforce.f90
+r3mm.o: ../../src/r3mm.f90
+	$(FC) $(FFLAGS) -c	../../src/r3mm.f90
 dynrtoq.o: ../../src/dynrtoq.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/dynrtoq.f90
-tdchkstop.o: ../../src/src_xs/tdchkstop.F90 modtddft.o getunit.o
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tdchkstop.F90
 dfqoschd.o: ../../src/src_xs/dfqoschd.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/dfqoschd.F90
+tdchkstop.o: ../../src/src_xs/tdchkstop.F90 modtddft.o getunit.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tdchkstop.F90
 projsbf.o: ../../src/projsbf.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/projsbf.f90
 autoradmt.o: ../../src/autoradmt.f90 modmain.o
@@ -416,10 +416,10 @@ xc_wc06.o: ../../src/xc_wc06.f90
 	$(FC) $(FFLAGS) -c	../../src/xc_wc06.f90
 xc_xalpha.o: ../../src/xc_xalpha.f90
 	$(FC) $(FFLAGS) -c	../../src/xc_xalpha.f90
-exxengy.o: ../../src/exxengy.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/exxengy.f90
 writeefg.o: ../../src/writeefg.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writeefg.f90
+exxengy.o: ../../src/exxengy.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/exxengy.f90
 r3dot.o: ../../src/r3dot.f90
 	$(FC) $(FFLAGS) -c	../../src/r3dot.f90
 rfmtinp.o: ../../src/rfmtinp.f90
@@ -442,10 +442,10 @@ writekpts.o: ../../src/writekpts.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writekpts.f90
 genidxlo.o: ../../src/genidxlo.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/genidxlo.f90
-gensfacgp.o: ../../src/gensfacgp.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/gensfacgp.f90
 writewiq2.o: ../../src/writewiq2.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writewiq2.f90
+gensfacgp.o: ../../src/gensfacgp.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/gensfacgp.f90
 getemat.o: ../../src/src_xs/getemat.F90 modmain.o modtddft.o modmpi.o getunit.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/getemat.F90
 writeinfo.o: ../../src/writeinfo.f90 modmain.o
@@ -466,10 +466,10 @@ sdelta.o: ../../src/sdelta.f90
 	$(FC) $(FFLAGS) -c	../../src/sdelta.f90
 genlofr.o: ../../src/genlofr.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/genlofr.f90
-modtetra.o: ../../src/src_xs/modtetra.F90
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/modtetra.F90
 l2int.o: ../../src/src_xs/l2int.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/l2int.F90
+modtetra.o: ../../src/src_xs/modtetra.F90
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/modtetra.F90
 tdintrg.o: ../../src/src_xs/tdintrg.F90 modmain.o modtddft.o findgntn0.o getunit.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tdintrg.F90
 seceqn.o: ../../src/seceqn.f90 modmain.o
@@ -502,10 +502,10 @@ oepmagmt.o: ../../src/oepmagmt.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/oepmagmt.f90
 wavefmt.o: ../../src/wavefmt.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/wavefmt.f90
-bandchar.o: ../../src/bandchar.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/bandchar.f90
 writestate.o: ../../src/writestate.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/writestate.f90
+bandchar.o: ../../src/bandchar.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/bandchar.f90
 findkmapkq.o: ../../src/src_xs/findkmapkq.F90 modmain.o modtddft.o modmpi.o getunit.o genfilname.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/findkmapkq.F90
 findsym.o: ../../src/findsym.f90 modmain.o
@@ -548,10 +548,10 @@ gettetcw.o: ../../src/src_xs/gettetcw.F90 modmain.o modtddft.o getunit.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/gettetcw.F90
 rschrodint.o: ../../src/rschrodint.f90
 	$(FC) $(FFLAGS) -c	../../src/rschrodint.f90
-writeemat_ascii.o: ../../src/src_xs/writeemat_ascii.F90 modmain.o modtddft.o getunit.o getemat.o genfilname.o
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/writeemat_ascii.F90
 atkp.o: ../../src/src_xs/atkp.F90 modmain.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/atkp.F90
+writeemat_ascii.o: ../../src/src_xs/writeemat_ascii.F90 modmain.o modtddft.o getunit.o getemat.o genfilname.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/writeemat_ascii.F90
 mpisync_evalsv_spnchr.o: ../../src/mpisync_evalsv_spnchr.F90 modmpi.o modmain.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/mpisync_evalsv_spnchr.F90
 idf.o: ../../src/src_xs/idf.F90 modmain.o modtddft.o modfxcifc.o modmpi.o idfq.o tdlinopt.o getunit.o
@@ -562,16 +562,16 @@ kernxc.o: ../../src/src_xs/kernxc.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/kernxc.F90
 dynqtor.o: ../../src/dynqtor.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/dynqtor.f90
-elfplot.o: ../../src/elfplot.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/elfplot.f90
 exxengyk.o: ../../src/exxengyk.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/exxengyk.f90
+elfplot.o: ../../src/elfplot.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/elfplot.f90
 readdyn.o: ../../src/readdyn.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/readdyn.f90
-sphcover.o: ../../src/sphcover.f90
-	$(FC) $(FFLAGS) -c	../../src/sphcover.f90
 symrvfir.o: ../../src/symrvfir.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/symrvfir.f90
+sphcover.o: ../../src/sphcover.f90
+	$(FC) $(FFLAGS) -c	../../src/sphcover.f90
 mossbauer.o: ../../src/mossbauer.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/mossbauer.f90
 putdevalsv.o: ../../src/src_xs/putdevalsv.F90 modmain.o modtddft.o modmpi.o getunit.o
@@ -606,10 +606,10 @@ poteff.o: ../../src/poteff.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/poteff.f90
 c_pbe_gcor.o: ../../src/c_pbe_gcor.f90
 	$(FC) $(FFLAGS) -c	../../src/c_pbe_gcor.f90
-writepmattd.o: ../../src/src_xs/writepmattd.F90 modmain.o modmpi.o modtddft.o putpmat.o getunit.o filedel.o genfilname.o
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/writepmattd.F90
 terminate.o: ../../src/src_xs/terminate.F90 modmpi.o getunit.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/terminate.F90
+writepmattd.o: ../../src/src_xs/writepmattd.F90 modmain.o modmpi.o modtddft.o putpmat.o getunit.o filedel.o genfilname.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/writepmattd.F90
 i3mdet.o: ../../src/i3mdet.f90
 	$(FC) $(FFLAGS) -c	../../src/i3mdet.f90
 genkpts.o: ../../src/genkpts.f90
@@ -668,10 +668,10 @@ idfgather.o: ../../src/src_xs/idfgather.F90 modmain.o modtddft.o modtetra.o modm
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/idfgather.F90
 energykncr.o: ../../src/energykncr.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/energykncr.f90
-putpmat.o: ../../src/src_xs/putpmat.F90 modmain.o modtddft.o modmpi.o getunit.o
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/putpmat.F90
 argparse.o: ../../src/src_xs/argparse.F90 modmain.o modmpi.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/argparse.F90
+putpmat.o: ../../src/src_xs/putpmat.F90 modmain.o modtddft.o modmpi.o getunit.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/putpmat.F90
 dfqoscwg.o: ../../src/src_xs/dfqoscwg.F90 modmain.o modtddft.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/dfqoscwg.F90
 gensigma.o: ../../src/src_xs/gensigma.F90 modmain.o modtddft.o
@@ -700,10 +700,10 @@ stheta_fd.o: ../../src/stheta_fd.f90
 	$(FC) $(FFLAGS) -c	../../src/stheta_fd.f90
 potplot.o: ../../src/potplot.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/potplot.f90
-rhoplot.o: ../../src/rhoplot.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/rhoplot.f90
 stheta_mp.o: ../../src/stheta_mp.f90
 	$(FC) $(FFLAGS) -c	../../src/stheta_mp.f90
+rhoplot.o: ../../src/rhoplot.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/rhoplot.f90
 getx0.o: ../../src/src_xs/getx0.F90 modmain.o modtddft.o getunit.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/getx0.F90
 genwfsv.o: ../../src/genwfsv.f90 modmain.o
@@ -722,12 +722,12 @@ gaunt.o: ../../src/gaunt.f90
 	$(FC) $(FFLAGS) -c	../../src/gaunt.f90
 phdisp.o: ../../src/phdisp.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/phdisp.f90
+outfilenamestring.o: ../../src/outfilenamestring.F90 modmpi.o modmain.o
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/outfilenamestring.F90
 brzint.o: ../../src/brzint.f90
 	$(FC) $(FFLAGS) -c	../../src/brzint.f90
 findeqatoms.o: ../../src/findeqatoms.f90
 	$(FC) $(FFLAGS) -c	../../src/findeqatoms.f90
-outfilenamestring.o: ../../src/outfilenamestring.F90 modmpi.o modmain.o
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/outfilenamestring.F90
 setupprojectedhamilton.o: ../../src/src_iterative_solver/setupprojectedhamilton.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_iterative_solver/setupprojectedhamilton.F90
 sdelta_mp.o: ../../src/sdelta_mp.f90
@@ -744,18 +744,18 @@ tdzoutpr.o: ../../src/src_xs/tdzoutpr.F90
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/tdzoutpr.F90
 hmlistl.o: ../../src/hmlistl.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/hmlistl.f90
-i3minv.o: ../../src/i3minv.f90
-	$(FC) $(FFLAGS) -c	../../src/i3minv.f90
 gwf2val.o: ../../src/gwf2val.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/gwf2val.f90
-sleepifc.o: ../../src/src_xs/sleepifc.F90
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/sleepifc.F90
+i3minv.o: ../../src/i3minv.f90
+	$(FC) $(FFLAGS) -c	../../src/i3minv.f90
 epsconv.o: ../../src/src_xs/epsconv.F90 modmain.o modtddft.o modtetra.o getunit.o genfilname.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/epsconv.F90
-bandstr.o: ../../src/bandstr.f90 modmain.o modtddft.o
-	$(FC) $(FFLAGS) -c	../../src/bandstr.f90
+sleepifc.o: ../../src/src_xs/sleepifc.F90
+	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) -c	../../src/src_xs/sleepifc.F90
 findprim.o: ../../src/findprim.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/findprim.f90
+bandstr.o: ../../src/bandstr.f90 modmain.o modtddft.o
+	$(FC) $(FFLAGS) -c	../../src/bandstr.f90
 gradrf.o: ../../src/gradrf.f90 modmain.o
 	$(FC) $(FFLAGS) -c	../../src/gradrf.f90
 dfqoscbo.o: ../../src/src_xs/dfqoscbo.F90 tdzoutpr2.o
@@ -772,10 +772,10 @@ zmatrix.o: ../../src/zmatrix.f90
 	$(FC) $(FFLAGS) -c	../../src/zmatrix.f90
 rdirac.o: ../../src/rdirac.f90
 	$(FC) $(FFLAGS) -c	../../src/rdirac.f90
-hmllolo.o: ../../src/hmllolo.f90 modmain.o
-	$(FC) $(FFLAGS) -c	../../src/hmllolo.f90
 hermite.o: ../../src/hermite.f90
 	$(FC) $(FFLAGS) -c	../../src/hermite.f90
+hmllolo.o: ../../src/hmllolo.f90 modmain.o
+	$(FC) $(FFLAGS) -c	../../src/hmllolo.f90
 ./occupy.f90: ../../src/occupy.f90
 	cp ../../src/occupy.f90 .
 ./init1td.F90: ../../src/src_xs/init1td.F90
@@ -1548,13 +1548,13 @@ hermite.o: ../../src/hermite.f90
 	cp ../../src/hartfock.f90 .
 SRC = ../../src/plot2d.f90 ../../src/updatpos.f90                              \
 ../../src/src_xs/writeeps.F90 ../../src/src_xs/putx0.F90                       \
-../../src/putevecfv.f90 ../../src/writephn.f90 ../../src/erf.f90               \
-../../src/src_xs/ematqkgir.F90 ../../src/sumrule.f90 ../../src/init2.f90       \
+../../src/putevecfv.f90 ../../src/erf.f90 ../../src/writephn.f90               \
+../../src/src_xs/ematqkgir.F90 ../../src/init2.f90 ../../src/sumrule.f90       \
 ../../src/symrfir.f90 ../../src/match.f90 ../../src/lopzflm.f90                \
 ../../src/src_xs/x0tobin.F90 ../../src/plot3d.f90 ../../src/factnm.f90         \
 ../../src/src_xs/genloss.F90 ../../src/force.f90                               \
-../../src/src_iterative_solver/projectedsecequn.F90 ../../src/seceqnhf.f90     \
-../../src/rhoinit.f90 ../../src/genvmat.f90 ../../src/zrhoqint.f90             \
+../../src/src_iterative_solver/projectedsecequn.F90 ../../src/rhoinit.f90      \
+../../src/seceqnhf.f90 ../../src/genvmat.f90 ../../src/zrhoqint.f90            \
 ../../src/src_xs/connecta.F90 ../../src/dyntask.f90                            \
 ../../src/src_xs/bandgap.F90 ../../src/linoptk.f90                             \
 ../../src/src_xs/ematrad.F90 ../../src/zfinp.f90 ../../src/seceqnsv.f90        \
@@ -1562,83 +1562,83 @@ SRC = ../../src/plot2d.f90 ../../src/updatpos.f90                              \
 ../../src/src_iterative_solver/calcupdatevector.F90                            \
 ../../src/src_xs/tetgather.F90 ../../src/src_xs/init1td.F90                    \
 ../../src/src_xs/tdinit.F90 ../../src/energy.f90 ../../src/r3dist.f90          \
-../../src/genshtmat.f90 ../../src/src_xs/tetcalccwq.F90                        \
-../../src/src_xs/ematqk.F90 ../../src/src_xs/gensymdf.F90                      \
+../../src/genshtmat.f90 ../../src/src_xs/ematqk.F90                            \
+../../src/src_xs/tetcalccwq.F90 ../../src/src_xs/gensymdf.F90                  \
 ../../src/genapwfr.f90 ../../src/src_xs/dftim.F90                              \
 ../../src/src_xs/tdzoutpr2.F90 ../../src/symrvf.f90                            \
 ../../src/src_xs/getevalsv0.F90 ../../src/rhovalk.f90 ../../src/symvect.f90    \
 ../../src/dbxcplot.f90 ../../src/genwiq2.f90 ../../src/getngkmax.f90           \
-../../src/gengvec.f90 ../../src/xc_pbe.f90 ../../src/rfmtctof.f90              \
-../../src/oepresk.f90 ../../src/gauntyry.f90 ../../src/olpaa.f90               \
+../../src/gengvec.f90 ../../src/xc_pbe.f90 ../../src/oepresk.f90               \
+../../src/rfmtctof.f90 ../../src/gauntyry.f90 ../../src/olpaa.f90              \
 ../../src/rschrod.f90 ../../src/src_iterative_solver/updateevecfv.F90          \
-../../src/symrf.f90 ../../src/zmatinp.f90 ../../src/rdiracint.f90              \
-../../src/plot1d.f90 ../../src/getevalfv.f90 ../../src/src_xs/puttetcw.F90     \
+../../src/symrf.f90 ../../src/plot1d.f90 ../../src/zmatinp.f90                 \
+../../src/rdiracint.f90 ../../src/getevalfv.f90 ../../src/src_xs/puttetcw.F90  \
 ../../src/src_xs/writeemat.F90 ../../src/rtozflm.f90 ../../src/energynn.f90    \
-../../src/potcoul.f90 ../../src/modmain.f90 ../../src/findsymcrysctr.f90       \
+../../src/modmain.f90 ../../src/findsymcrysctr.f90 ../../src/potcoul.f90       \
 ../../src/src_xs/gengqvec.F90 ../../src/genveffig.f90                          \
-../../src/src_xs/tdepilog.F90 ../../src/src_xs/ftfun.F90                       \
-../../src/writesym.f90 ../../src/vnlrho.f90 ../../src/findsymlat.f90           \
-../../src/seceqnss.f90 ../../src/gencore.f90 ../../src/src_xs/fxc_pwca.F90     \
-../../src/checkmt.f90 ../../src/symrfmt.f90 ../../src/writeeval.f90            \
-../../src/src_xs/writesigma.F90 ../../src/src_xs/tdlinopt.F90                  \
-../../src/findsymsite.f90 ../../src/init1.f90 ../../src/wfplot.f90             \
-../../src/c_pbe.f90 ../../src/moment.f90 ../../src/linopt.f90                  \
-../../src/zpotclmt.f90 ../../src/zfftifc.f90 ../../src/src_xs/fxc_lrc.F90      \
-../../src/gradrfmt.f90 ../../src/fsmfield.f90 ../../src/euler.f90              \
-../../src/ztorflm.f90 ../../src/src_xs/zfinp2.F90 ../../src/writeiad.f90       \
-../../src/src_xs/genfilname.F90 ../../src/src_xs/screen.F90                    \
-../../src/sdelta_fd.f90 ../../src/oepmag.f90 ../../src/src_xs/fxc_lrcd.F90     \
-../../src/src_xs/dfq.F90 ../../src/radmesh.f90 ../../src/oepmain.F90           \
-../../src/findkpt.f90 ../../src/clebgor.f90 ../../src/atom.f90                 \
-../../src/packeff.f90 ../../src/src_xs/tdgeneigvec.F90 ../../src/r3frac.f90    \
-../../src/polynom.f90 ../../src/charge.f90 ../../src/findband.f90              \
-../../src/delevec.f90 ../../src/r3mmt.f90 ../../src/src_xs/findgntn0.F90       \
-../../src/modxcifc.f90 ../../src/src_xs/genqvkloff.F90 ../../src/phonon.f90    \
-../../src/writelsj.f90 ../../src/genjlgpr.f90 ../../src/rschrodapp.f90         \
-../../src/gradzfmt.f90 ../../src/src_xs/x0toasc.F90                            \
-../../src/src_xs/tdsave0.F90 ../../src/gengpvec.f90 ../../src/sphcrd.f90       \
-../../src/r3taxi.f90 ../../src/src_xs/chi0upd.F90 ../../src/writepmat.f90      \
-../../src/getevalsv.f90 ../../src/getevecfv.f90                                \
-../../src/src_xs/pmatgather.F90 ../../src/src_xs/gndstateq.F90                 \
-../../src/readstate.f90 ../../src/src_xs/getpmat.F90 ../../src/dyndiag.f90     \
-../../src/x_wc06.f90 ../../src/src_xs/df.F90 ../../src/gdft.f90                \
-../../src/phdos.f90 ../../src/fermisurf.f90 ../../src/src_xs/writeexciton.F90  \
+../../src/src_xs/tdepilog.F90 ../../src/src_xs/ftfun.F90 ../../src/vnlrho.f90  \
+../../src/writesym.f90 ../../src/findsymlat.f90 ../../src/gencore.f90          \
+../../src/seceqnss.f90 ../../src/src_xs/fxc_pwca.F90 ../../src/checkmt.f90     \
+../../src/symrfmt.f90 ../../src/writeeval.f90 ../../src/src_xs/writesigma.F90  \
+../../src/src_xs/tdlinopt.F90 ../../src/findsymsite.f90 ../../src/init1.f90    \
+../../src/wfplot.f90 ../../src/c_pbe.f90 ../../src/moment.f90                  \
+../../src/linopt.f90 ../../src/zpotclmt.f90 ../../src/zfftifc.f90              \
+../../src/src_xs/fxc_lrc.F90 ../../src/gradrfmt.f90 ../../src/fsmfield.f90     \
+../../src/euler.f90 ../../src/ztorflm.f90 ../../src/src_xs/zfinp2.F90          \
+../../src/writeiad.f90 ../../src/src_xs/genfilname.F90                         \
+../../src/src_xs/screen.F90 ../../src/sdelta_fd.f90 ../../src/oepmag.f90       \
+../../src/src_xs/dfq.F90 ../../src/src_xs/fxc_lrcd.F90 ../../src/radmesh.f90   \
+../../src/oepmain.F90 ../../src/findkpt.f90 ../../src/clebgor.f90              \
+../../src/atom.f90 ../../src/packeff.f90 ../../src/src_xs/tdgeneigvec.F90      \
+../../src/r3frac.f90 ../../src/polynom.f90 ../../src/charge.f90                \
+../../src/findband.f90 ../../src/delevec.f90 ../../src/r3mmt.f90               \
+../../src/src_xs/findgntn0.F90 ../../src/modxcifc.f90                          \
+../../src/src_xs/genqvkloff.F90 ../../src/phonon.f90 ../../src/writelsj.f90    \
+../../src/genjlgpr.f90 ../../src/rschrodapp.f90 ../../src/gradzfmt.f90         \
+../../src/src_xs/x0toasc.F90 ../../src/src_xs/tdsave0.F90                      \
+../../src/gengpvec.f90 ../../src/sphcrd.f90 ../../src/r3taxi.f90               \
+../../src/src_xs/chi0upd.F90 ../../src/getevecfv.f90 ../../src/writepmat.f90   \
+../../src/getevalsv.f90 ../../src/src_xs/pmatgather.F90                        \
+../../src/src_xs/gndstateq.F90 ../../src/readstate.f90                         \
+../../src/src_xs/getpmat.F90 ../../src/dyndiag.f90 ../../src/x_wc06.f90        \
+../../src/src_xs/df.F90 ../../src/gdft.f90 ../../src/phdos.f90                 \
+../../src/fermisurf.f90 ../../src/src_xs/writeexciton.F90                      \
 ../../src/src_xs/modfxcifc.F90 ../../src/src_xs/genapwcmt.F90                  \
 ../../src/stheta.f90 ../../src/src_xs/genylmgq.F90 ../../src/flushifc.f90      \
 ../../src/rfinterp.f90 ../../src/oepvnl.F90 ../../src/genrlm.f90               \
 ../../src/vecplot.f90 ../../src/src_xs/writegqpts.F90 ../../src/reciplat.f90   \
 ../../src/hmlrad.f90 ../../src/hmlalo.f90 ../../src/src_xs/emattest.F90        \
 ../../src/genylmg.f90 ../../src/src_xs/getunit.F90                             \
-../../src/src_xs/getridx.F90 ../../src/writeengy.f90 ../../src/vnlwfv.f90      \
-../../src/rotaxang.f90 ../../src/src_xs/getevecfv0.F90 ../../src/dynsym.f90    \
-../../src/src_xs/test.F90 ../../src/writegeom.f90 ../../src/findsymcrys.f90    \
-../../src/genpmat.f90 ../../src/src_xs/modtddft.F90 ../../src/forcek.f90       \
-../../src/src_xs/writeinfotd.F90 ../../src/x_pbe.f90 ../../src/rotzflm.f90     \
+../../src/src_xs/getridx.F90 ../../src/vnlwfv.f90 ../../src/rotaxang.f90       \
+../../src/writeengy.f90 ../../src/src_xs/getevecfv0.F90 ../../src/dynsym.f90   \
+../../src/src_xs/test.F90 ../../src/writegeom.f90 ../../src/genpmat.f90        \
+../../src/findsymcrys.f90 ../../src/src_xs/modtddft.F90 ../../src/forcek.f90   \
+../../src/src_xs/writeinfotd.F90 ../../src/rotzflm.f90 ../../src/x_pbe.f90     \
 ../../src/src_xs/ematqkgmt.F90 ../../src/effmass.f90 ../../src/connect.f90     \
-../../src/r3mm.f90 ../../src/writeforce.f90 ../../src/dynrtoq.f90              \
-../../src/src_xs/tdchkstop.F90 ../../src/src_xs/dfqoschd.F90                   \
+../../src/writeforce.f90 ../../src/r3mm.f90 ../../src/dynrtoq.f90              \
+../../src/src_xs/dfqoschd.F90 ../../src/src_xs/tdchkstop.F90                   \
 ../../src/projsbf.f90 ../../src/autoradmt.f90 ../../src/src_xs/tdwriteh.F90    \
 ../../src/src_xs/getdevalsv.F90 ../../src/potxc.f90 ../../src/sbessel.f90      \
 ../../src/mpiresumeevecfiles.F90 ../../src/ggamt.f90 ../../src/gridsize.f90    \
 ../../src/writefermi.f90 ../../src/dos.f90 ../../src/rhonorm.f90               \
 ../../src/olprad.f90 ../../src/factr.f90 ../../src/src_xs/writepmat_ascii.F90  \
-../../src/xc_wc06.f90 ../../src/xc_xalpha.f90 ../../src/exxengy.f90            \
-../../src/writeefg.f90 ../../src/r3dot.f90 ../../src/rfmtinp.f90               \
+../../src/xc_wc06.f90 ../../src/xc_xalpha.f90 ../../src/writeefg.f90           \
+../../src/exxengy.f90 ../../src/r3dot.f90 ../../src/rfmtinp.f90                \
 ../../src/src_xs/writeloss.F90 ../../src/linengy.f90 ../../src/rschroddme.f90  \
 ../../src/getoccsv.f90 ../../src/rdiracdme.f90 ../../src/getevecsv.f90         \
 ../../src/olplolo.f90 ../../src/writekpts.f90 ../../src/genidxlo.f90           \
-../../src/gensfacgp.f90 ../../src/writewiq2.f90 ../../src/src_xs/getemat.F90   \
+../../src/writewiq2.f90 ../../src/gensfacgp.f90 ../../src/src_xs/getemat.F90   \
 ../../src/writeinfo.f90 ../../src/src_xs/testmain.F90 ../../src/occupy.f90     \
 ../../src/r3mtm.f90 ../../src/spline.f90 ../../src/allatoms.f90                \
 ../../src/xc_pwca.f90 ../../src/sdelta.f90 ../../src/genlofr.f90               \
-../../src/src_xs/modtetra.F90 ../../src/src_xs/l2int.F90                       \
+../../src/src_xs/l2int.F90 ../../src/src_xs/modtetra.F90                       \
 ../../src/src_xs/tdintrg.F90 ../../src/seceqn.f90 ../../src/portstate.f90      \
 ../../src/src_xs/gensumrls.F90 ../../src/gencfun.f90 ../../src/xc_am05.f90     \
 ../../src/putevalsv.f90 ../../src/putoccsv.f90 ../../src/gwf2cr.f90            \
 ../../src/sbesseldm.f90 ../../src/src_xs/ematq.F90 ../../src/findigp0.f90      \
 ../../src/writelat.f90 ../../src/src_iterative_solver/residualvector.F90       \
-../../src/oepmagmt.f90 ../../src/wavefmt.f90 ../../src/bandchar.f90            \
-../../src/writestate.f90 ../../src/src_xs/findkmapkq.F90 ../../src/findsym.f90 \
+../../src/oepmagmt.f90 ../../src/wavefmt.f90 ../../src/writestate.f90          \
+../../src/bandchar.f90 ../../src/src_xs/findkmapkq.F90 ../../src/findsym.f90   \
 ../../src/hartfock.f90 ../../src/genppts.f90 ../../src/wigner3j.f90            \
 ../../src/src_xs/ctdfrac.F90 ../../src/putevalfv.f90                           \
 ../../src/src_xs/putemat.F90 ../../src/zpotcoul.f90 ../../src/sortidx.f90      \
@@ -1646,19 +1646,19 @@ SRC = ../../src/plot2d.f90 ../../src/updatpos.f90                              \
 ../../src/zfmtinp.f90 ../../src/src_xs/emattim.F90 ../../src/zflmconj.f90      \
 ../../src/r3minv.f90 ../../src/nfftifc.f90 ../../src/src_xs/writesumrls.F90    \
 ../../src/src_xs/gettetcw.F90 ../../src/rschrodint.f90                         \
-../../src/src_xs/writeemat_ascii.F90 ../../src/src_xs/atkp.F90                 \
+../../src/src_xs/atkp.F90 ../../src/src_xs/writeemat_ascii.F90                 \
 ../../src/mpisync_evalsv_spnchr.F90 ../../src/src_xs/idf.F90                   \
 ../../src/ggair.f90 ../../src/src_xs/kernxc.F90 ../../src/dynqtor.f90          \
-../../src/elfplot.f90 ../../src/exxengyk.f90 ../../src/readdyn.f90             \
-../../src/sphcover.f90 ../../src/symrvfir.f90 ../../src/mossbauer.f90          \
+../../src/exxengyk.f90 ../../src/elfplot.f90 ../../src/readdyn.f90             \
+../../src/symrvfir.f90 ../../src/sphcover.f90 ../../src/mossbauer.f90          \
 ../../src/src_xs/putdevalsv.F90 ../../src/putevecsv.f90                        \
 ../../src/mpisumrhoandmag.F90 ../../src/src_xs/tdestimate.F90                  \
 ../../src/src_xs/pade.F90 ../../src/vnlrhomt.f90                               \
 ../../src/src_xs/ematgather.F90 ../../src/hmlaa.f90 ../../src/olpistl.f90      \
 ../../src/moke.f90 ../../src/mixer.f90 ../../src/spinchar.f90                  \
 ../../src/src_xs/getngqmax.F90 ../../src/gcd.f90 ../../src/poteff.f90          \
-../../src/c_pbe_gcor.f90 ../../src/src_xs/writepmattd.F90                      \
-../../src/src_xs/terminate.F90 ../../src/i3mdet.f90 ../../src/genkpts.f90      \
+../../src/c_pbe_gcor.f90 ../../src/src_xs/terminate.F90                        \
+../../src/src_xs/writepmattd.F90 ../../src/i3mdet.f90 ../../src/genkpts.f90    \
 ../../src/writechg.f90 ../../src/modmpi.F90 ../../src/src_xs/tddftmain.F90     \
 ../../src/src_xs/devalsvgather.F90 ../../src/genylm.f90 ../../src/r3mv.f90     \
 ../../src/r3mdet.f90 ../../src/addrhocr.f90 ../../src/wavefcr.f90              \
@@ -1670,79 +1670,79 @@ SRC = ../../src/plot2d.f90 ../../src/updatpos.f90                              \
 ../../src/src_iterative_solver/iterativearpacksequn.F90                        \
 ../../src/src_xs/pmattd2orig.F90 ../../src/src_xs/tdcheck.F90                  \
 ../../src/src_xs/idfgather.F90 ../../src/energykncr.f90                        \
-../../src/src_xs/putpmat.F90 ../../src/src_xs/argparse.F90                     \
+../../src/src_xs/argparse.F90 ../../src/src_xs/putpmat.F90                     \
 ../../src/src_xs/dfqoscwg.F90 ../../src/src_xs/gensigma.F90                    \
 ../../src/gndstate.F90 ../../src/writelinen.f90 ../../src/rfinp.f90            \
 ../../src/src_xs/getpemat.F90 ../../src/readfermi.f90                          \
 ../../src/src_xs/zaxpyc.F90 ../../src/src_xs/dyson.F90 ../../src/readinput.f90 \
 ../../src/src_iterative_solver/iterativeseceqnfv.F90                           \
 ../../src/src_xs/linoptold.F90 ../../src/stheta_fd.f90 ../../src/potplot.f90   \
-../../src/rhoplot.f90 ../../src/stheta_mp.f90 ../../src/src_xs/getx0.F90       \
+../../src/stheta_mp.f90 ../../src/rhoplot.f90 ../../src/src_xs/getx0.F90       \
 ../../src/genwfsv.f90 ../../src/src_xs/dfgather.F90 ../../src/dynsymapp.f90    \
 ../../src/hamiltonandoverlapsetup.f90 ../../src/src_xs/tetcalccw.F90           \
 ../../src/src_xs/idfq.F90 ../../src/gaunt.f90 ../../src/phdisp.f90             \
-../../src/brzint.f90 ../../src/findeqatoms.f90 ../../src/outfilenamestring.F90 \
+../../src/outfilenamestring.F90 ../../src/brzint.f90 ../../src/findeqatoms.f90 \
 ../../src/src_iterative_solver/setupprojectedhamilton.F90                      \
 ../../src/sdelta_mp.f90 ../../src/genrmesh.f90 ../../src/seceqnfv.f90          \
 ../../src/src_xs/writeqpts.F90 ../../src/fsmooth.f90                           \
-../../src/src_xs/tdzoutpr.F90 ../../src/hmlistl.f90 ../../src/i3minv.f90       \
-../../src/gwf2val.f90 ../../src/src_xs/sleepifc.F90                            \
-../../src/src_xs/epsconv.F90 ../../src/bandstr.f90 ../../src/findprim.f90      \
-../../src/gradrf.f90 ../../src/src_xs/dfqoscbo.F90 ../../src/rvfcross.f90 ../../src/src_xs/genwgrid.F90 ../../src/src_xs/filedel.F90 ../../src/src_xs/init2td.F90 ../../src/zmatrix.f90 ../../src/rdirac.f90 ../../src/hmllolo.f90 ../../src/hermite.f90
-OBJ = plot2d.o updatpos.o writeeps.o putx0.o putevecfv.o writephn.o erf.o      \
-ematqkgir.o sumrule.o init2.o symrfir.o match.o lopzflm.o x0tobin.o plot3d.o   \
-factnm.o genloss.o force.o projectedsecequn.o seceqnhf.o rhoinit.o genvmat.o   \
+../../src/src_xs/tdzoutpr.F90 ../../src/hmlistl.f90 ../../src/gwf2val.f90      \
+../../src/i3minv.f90 ../../src/src_xs/epsconv.F90                              \
+../../src/src_xs/sleepifc.F90 ../../src/findprim.f90 ../../src/bandstr.f90     \
+../../src/gradrf.f90 ../../src/src_xs/dfqoscbo.F90 ../../src/rvfcross.f90 ../../src/src_xs/genwgrid.F90 ../../src/src_xs/filedel.F90 ../../src/src_xs/init2td.F90 ../../src/zmatrix.f90 ../../src/rdirac.f90 ../../src/hermite.f90 ../../src/hmllolo.f90
+OBJ = plot2d.o updatpos.o writeeps.o putx0.o putevecfv.o erf.o writephn.o      \
+ematqkgir.o init2.o sumrule.o symrfir.o match.o lopzflm.o x0tobin.o plot3d.o   \
+factnm.o genloss.o force.o projectedsecequn.o rhoinit.o seceqnhf.o genvmat.o   \
 zrhoqint.o connecta.o dyntask.o bandgap.o linoptk.o ematrad.o zfinp.o          \
 seceqnsv.o genvmatk.o fderiv.o calcupdatevector.o tetgather.o init1td.o        \
-tdinit.o energy.o r3dist.o genshtmat.o tetcalccwq.o ematqk.o gensymdf.o        \
+tdinit.o energy.o r3dist.o genshtmat.o ematqk.o tetcalccwq.o gensymdf.o        \
 genapwfr.o dftim.o tdzoutpr2.o symrvf.o getevalsv0.o rhovalk.o symvect.o       \
-dbxcplot.o genwiq2.o getngkmax.o gengvec.o xc_pbe.o rfmtctof.o oepresk.o       \
-gauntyry.o olpaa.o rschrod.o updateevecfv.o symrf.o zmatinp.o rdiracint.o      \
-plot1d.o getevalfv.o puttetcw.o writeemat.o rtozflm.o energynn.o potcoul.o     \
-modmain.o findsymcrysctr.o gengqvec.o genveffig.o tdepilog.o ftfun.o           \
-writesym.o vnlrho.o findsymlat.o seceqnss.o gencore.o fxc_pwca.o checkmt.o     \
-symrfmt.o writeeval.o writesigma.o tdlinopt.o findsymsite.o init1.o wfplot.o   \
-c_pbe.o moment.o linopt.o zpotclmt.o zfftifc.o fxc_lrc.o gradrfmt.o fsmfield.o \
-euler.o ztorflm.o zfinp2.o writeiad.o genfilname.o screen.o sdelta_fd.o        \
-oepmag.o fxc_lrcd.o dfq.o radmesh.o oepmain.o findkpt.o clebgor.o atom.o       \
-packeff.o tdgeneigvec.o r3frac.o polynom.o charge.o findband.o delevec.o       \
-r3mmt.o findgntn0.o modxcifc.o genqvkloff.o phonon.o writelsj.o genjlgpr.o     \
+dbxcplot.o genwiq2.o getngkmax.o gengvec.o xc_pbe.o oepresk.o rfmtctof.o       \
+gauntyry.o olpaa.o rschrod.o updateevecfv.o symrf.o plot1d.o zmatinp.o         \
+rdiracint.o getevalfv.o puttetcw.o writeemat.o rtozflm.o energynn.o modmain.o  \
+findsymcrysctr.o potcoul.o gengqvec.o genveffig.o tdepilog.o ftfun.o vnlrho.o  \
+writesym.o findsymlat.o gencore.o seceqnss.o fxc_pwca.o checkmt.o symrfmt.o    \
+writeeval.o writesigma.o tdlinopt.o findsymsite.o init1.o wfplot.o c_pbe.o     \
+moment.o linopt.o zpotclmt.o zfftifc.o fxc_lrc.o gradrfmt.o fsmfield.o euler.o \
+ztorflm.o zfinp2.o writeiad.o genfilname.o screen.o sdelta_fd.o oepmag.o dfq.o \
+fxc_lrcd.o radmesh.o oepmain.o findkpt.o clebgor.o atom.o packeff.o            \
+tdgeneigvec.o r3frac.o polynom.o charge.o findband.o delevec.o r3mmt.o         \
+findgntn0.o modxcifc.o genqvkloff.o phonon.o writelsj.o genjlgpr.o             \
 rschrodapp.o gradzfmt.o x0toasc.o tdsave0.o gengpvec.o sphcrd.o r3taxi.o       \
-chi0upd.o writepmat.o getevalsv.o getevecfv.o pmatgather.o gndstateq.o         \
+chi0upd.o getevecfv.o writepmat.o getevalsv.o pmatgather.o gndstateq.o         \
 readstate.o getpmat.o dyndiag.o x_wc06.o df.o gdft.o phdos.o fermisurf.o       \
 writeexciton.o modfxcifc.o genapwcmt.o stheta.o genylmgq.o flushifc.o          \
 rfinterp.o oepvnl.o genrlm.o vecplot.o writegqpts.o reciplat.o hmlrad.o        \
-hmlalo.o emattest.o genylmg.o getunit.o getridx.o writeengy.o vnlwfv.o         \
-rotaxang.o getevecfv0.o dynsym.o test.o writegeom.o findsymcrys.o genpmat.o    \
-modtddft.o forcek.o writeinfotd.o x_pbe.o rotzflm.o ematqkgmt.o effmass.o      \
-connect.o r3mm.o writeforce.o dynrtoq.o tdchkstop.o dfqoschd.o projsbf.o       \
+hmlalo.o emattest.o genylmg.o getunit.o getridx.o vnlwfv.o rotaxang.o          \
+writeengy.o getevecfv0.o dynsym.o test.o writegeom.o genpmat.o findsymcrys.o   \
+modtddft.o forcek.o writeinfotd.o rotzflm.o x_pbe.o ematqkgmt.o effmass.o      \
+connect.o writeforce.o r3mm.o dynrtoq.o dfqoschd.o tdchkstop.o projsbf.o       \
 autoradmt.o tdwriteh.o getdevalsv.o potxc.o sbessel.o mpiresumeevecfiles.o     \
 ggamt.o gridsize.o writefermi.o dos.o rhonorm.o olprad.o factr.o               \
-writepmat_ascii.o xc_wc06.o xc_xalpha.o exxengy.o writeefg.o r3dot.o rfmtinp.o \
+writepmat_ascii.o xc_wc06.o xc_xalpha.o writeefg.o exxengy.o r3dot.o rfmtinp.o \
 writeloss.o linengy.o rschroddme.o getoccsv.o rdiracdme.o getevecsv.o          \
-olplolo.o writekpts.o genidxlo.o gensfacgp.o writewiq2.o getemat.o writeinfo.o \
+olplolo.o writekpts.o genidxlo.o writewiq2.o gensfacgp.o getemat.o writeinfo.o \
 testmain.o occupy.o r3mtm.o spline.o allatoms.o xc_pwca.o sdelta.o genlofr.o   \
-modtetra.o l2int.o tdintrg.o seceqn.o portstate.o gensumrls.o gencfun.o        \
+l2int.o modtetra.o tdintrg.o seceqn.o portstate.o gensumrls.o gencfun.o        \
 xc_am05.o putevalsv.o putoccsv.o gwf2cr.o sbesseldm.o ematq.o findigp0.o       \
-writelat.o residualvector.o oepmagmt.o wavefmt.o bandchar.o writestate.o       \
+writelat.o residualvector.o oepmagmt.o wavefmt.o writestate.o bandchar.o       \
 findkmapkq.o findsym.o hartfock.o genppts.o wigner3j.o ctdfrac.o putevalfv.o   \
 putemat.o zpotcoul.o sortidx.o genkinmat.o r3cross.o phcell.o zfmtinp.o        \
 emattim.o zflmconj.o r3minv.o nfftifc.o writesumrls.o gettetcw.o rschrodint.o  \
-writeemat_ascii.o atkp.o mpisync_evalsv_spnchr.o idf.o ggair.o kernxc.o        \
-dynqtor.o elfplot.o exxengyk.o readdyn.o sphcover.o symrvfir.o mossbauer.o     \
+atkp.o writeemat_ascii.o mpisync_evalsv_spnchr.o idf.o ggair.o kernxc.o        \
+dynqtor.o exxengyk.o elfplot.o readdyn.o symrvfir.o sphcover.o mossbauer.o     \
 putdevalsv.o putevecsv.o mpisumrhoandmag.o tdestimate.o pade.o vnlrhomt.o      \
 ematgather.o hmlaa.o olpistl.o moke.o mixer.o spinchar.o getngqmax.o gcd.o     \
-poteff.o c_pbe_gcor.o writepmattd.o terminate.o i3mdet.o genkpts.o writechg.o  \
+poteff.o c_pbe_gcor.o terminate.o writepmattd.o i3mdet.o genkpts.o writechg.o  \
 modmpi.o tddftmain.o devalsvgather.o genylm.o r3mv.o r3mdet.o addrhocr.o       \
 wavefcr.o r3mtv.o fxc_alda_check.o main.o findexciton.o oepvnlk.o init0.o      \
 symrvfmt.o xc_pzca.o geomplot.o olpalo.o rfarray.o kramkron.o tdgauntgen.o     \
 iterativearpacksequn.o pmattd2orig.o tdcheck.o idfgather.o energykncr.o        \
-putpmat.o argparse.o dfqoscwg.o gensigma.o gndstate.o writelinen.o rfinp.o     \
+argparse.o putpmat.o dfqoscwg.o gensigma.o gndstate.o writelinen.o rfinp.o     \
 getpemat.o readfermi.o zaxpyc.o dyson.o readinput.o iterativeseceqnfv.o        \
-linoptold.o stheta_fd.o potplot.o rhoplot.o stheta_mp.o getx0.o genwfsv.o      \
+linoptold.o stheta_fd.o potplot.o stheta_mp.o rhoplot.o getx0.o genwfsv.o      \
 dfgather.o dynsymapp.o hamiltonandoverlapsetup.o tetcalccw.o idfq.o gaunt.o    \
-phdisp.o brzint.o findeqatoms.o outfilenamestring.o setupprojectedhamilton.o   \
-sdelta_mp.o genrmesh.o seceqnfv.o writeqpts.o fsmooth.o tdzoutpr.o hmlistl.o i3minv.o gwf2val.o sleepifc.o epsconv.o bandstr.o findprim.o gradrf.o dfqoscbo.o rvfcross.o genwgrid.o filedel.o init2td.o zmatrix.o rdirac.o hmllolo.o hermite.o
+phdisp.o outfilenamestring.o brzint.o findeqatoms.o setupprojectedhamilton.o   \
+sdelta_mp.o genrmesh.o seceqnfv.o writeqpts.o fsmooth.o tdzoutpr.o hmlistl.o gwf2val.o i3minv.o epsconv.o sleepifc.o findprim.o bandstr.o gradrf.o dfqoscbo.o rvfcross.o genwgrid.o filedel.o init2td.o zmatrix.o rdirac.o hermite.o hmllolo.o
 OFF = ../../src/occupy.f90 ../../src/src_xs/init1td.F90 ../../src/zflmconj.f90 \
 ../../src/olprad.f90 ../../src/src_xs/tdwriteh.F90 ../../src/euler.f90         \
 ../../src/src_xs/writepmattd.F90 ../../src/writepmat.f90                       \
