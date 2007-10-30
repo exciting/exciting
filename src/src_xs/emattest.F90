@@ -18,7 +18,7 @@ subroutine emattest
 
   call init0
   call init1
-  call init2td
+  call init2xs
   call tdsave0
 
   ! SECOND Q-POINT not equal to zero

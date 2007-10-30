@@ -8,21 +8,16 @@ subroutine initbse
   use modtddft
   implicit none
 
-!!$  ! irreversibly map varialbes specific for BSE (-kernel) to main variables
-!!$  nosym=nosymbse
-!!$  reducek=reducekbse
-!!$  ngridk(:)=ngridkbse(:)
-!!$  vkloff(:)=vkloffbse(:)
-!!$  rgkmax=rgkmaxbse
-!!$  nempty=nemptybse
-!!$
-!!$  ! only one SCF iteration
-!!$  maxscl=1
-!!$
-!!$  ! work with regular q-point grid
-!!$  qtype='grid'
+  ! irreversibly map varialbes specific for BSE (-kernel) to main variables
+  nosym=nosymbse
+  reducek=reducekbse
+  vkloff(:)=vkloffbse(:)
+  rgkmax=rgkmaxbse
 
-  ! initialize number of empty states
-  nempty=nstuoccbse-1
+  ! only one SCF iteration
+  maxscl=1
+
+  ! work with regular q-point grid
+  qtype='grid'
 
 end subroutine initbse

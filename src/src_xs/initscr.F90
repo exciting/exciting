@@ -11,7 +11,6 @@ subroutine initscr
   ! irreversibly map varialbes specific for screening to main variables
   nosym=nosymscr
   reducek=reducekscr
-  ngridk(:)=ngridkscr(:)
   vkloff(:)=vkloffscr(:)
   rgkmax=rgkmaxscr
 

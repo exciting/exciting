@@ -1,7 +1,7 @@
 
 subroutine tdsave0
   !
-  ! to be called after init0, init1 and init2td to save q=0 variables
+  ! to be called after init0, init1 and init2xs to save q=0 variables
   !
   use modmain
   use modtddft

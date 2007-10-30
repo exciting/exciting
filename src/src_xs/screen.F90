@@ -20,8 +20,9 @@ subroutine screen
   ! initialize universal variables
   call init0
   call init1
+
   ! initialize q-point set
-  call init2td
+  call init2xs
 
   ! calculate eigenvectors, -values and occupancies for basic k-mesh
   taskt=task; task=1
@@ -45,9 +46,6 @@ subroutine screen
      call filedel('EVALFV'//trim(filext))
      call filedel('RMSDVEFF'//trim(filext))
   end if
-
-  ! initialize occupied and unoccupied states
-  call initoccscr
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screening finished"
 

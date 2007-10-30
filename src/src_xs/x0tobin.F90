@@ -24,7 +24,7 @@ subroutine x0tobin
   call tdsave0
 
   ! initialize q-point set
-  call init2td
+  call init2xs
 
   ! save k-point offset
   vkloff_save = vkloff

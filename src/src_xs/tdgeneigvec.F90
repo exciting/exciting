@@ -21,7 +21,7 @@ subroutine tdgeneigvec
   call init1
 
   ! initialize q-point set
-  call init2td
+  call init2xs
 
   ! SCF allready parallelized for k-point set
   qi=1

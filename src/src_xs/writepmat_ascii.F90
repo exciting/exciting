@@ -10,7 +10,7 @@ subroutine writepmat_ascii
 
   call init0
   call init1
-  call init2td
+  call init2xs
 
   allocate(pmat(3,nstsv,nstsv))
   call getunit(un)

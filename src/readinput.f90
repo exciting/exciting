@@ -146,7 +146,6 @@ vqlss(:)=0.d0
 nwrite=0
 tevecsv=.false.
 !<sag>
-! excited states variables:
 ! tetrahedron method variables
 tetra=.false.
 fflg=4
@@ -179,16 +178,24 @@ verbscf=.false.
 tappinfo=.false.
 dbglev=0
 ! screening variables
+screentype='full'
 nosymscr=.false.
 reducekscr=.true.
-ngridkscr(:)=1
 vkloffscr(:)=0.d0
+rgkmaxscr=7.d0
 fnevecfvscr='EVECFV_SCR.OUT'
 fnevalsvscr='EVALSV_SCR.OUT'
 fnoccsvscr='OCCSV_SCR.OUT'
-nstoccscr=-1
-nstuoccscr=-1
-rgkmaxscr=7.d0
+! BSE (-kernel) variables
+nosymbse=.false.
+reducekbse=.true.
+vkloffbse(:)=0.d0
+rgkmaxbse=7.d0
+fnevecfvbse='EVECFV_BSE.OUT'
+fnevalsvbse='EVALSV_BSE.OUT'
+fnoccsvbse='OCCSV_BSE.OUT'
+nstbef=-1
+nstabf=-1
 !</sag>
 !-------------------------------!
 !     read from exciting.in     !
@@ -847,47 +854,62 @@ case('appinfo')
 case('dbglev')
   read(50,*) dbglev
   ! screening variables
+case('screentype')
+   read(50,*) screentype
 case('nosymscr')
   read(50,*) nosymscr
 case('reducekscr')
   read(50,*) reducekscr
-case('ngridkscr')
-  read(50,*) ngridkscr(1),ngridkscr(2),ngridkscr(3)
-  if ((ngridkscr(1).le.0).or.(ngridkscr(2).le.0).or.(ngridkscr(3).le.0)) then
+case('vkloffscr')
+  read(50,*) vkloffscr(1),vkloffscr(2),vkloffscr(3)
+case('rgkmaxscr')
+  read(50,*) rgkmaxscr
+  if (rgkmaxscr.le.0.d0) then
     write(*,*)
-    write(*,'("Error(readinput[screen]): invalid ngridkscr : ",3I8)') ngridkscr
+    write(*,'("Error(readinput[screen]): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
     write(*,*)
     stop
   end if
-case('vkloffscr')
-  read(50,*) vkloffscr(1),vkloffscr(2),vkloffscr(3)
 case('fnevecfvscr')
   read(50,*) fnevecfvscr
 case('fnevalsvscr')
   read(50,*) fnevalsvscr
 case('fnoccsvscr')
   read(50,*) fnoccsvscr
-case('nstoccscr')
-  read(50,*) nstoccscr
-  if (nstoccscr.le.0) then
+  ! BSE (-kernel) variables
+case('nosymbse')
+  read(50,*) nosymbse
+case('reducekbse')
+  read(50,*) reducekbse
+case('vkloffbse')
+  read(50,*) vkloffbse(1),vkloffbse(2),vkloffbse(3)
+case('rgkmaxbse')
+  read(50,*) rgkmaxbse
+  if (rgkmaxbse.le.0.d0) then
     write(*,*)
-    write(*,'("Error(readinput[screen]): nstoccscr <= 0 : ",I8)') nstoccscr
+    write(*,'("Error(readinput[BSE]): rgkmaxbse <= 0 : ",G18.10)') rgkmaxbse
     write(*,*)
     stop
   end if
-case('nstuoccscr')
-  read(50,*) nstuoccscr
-  if (nstuoccscr.le.0) then
+case('fnevecfvbse')
+  read(50,*) fnevecfvbse
+case('fnevalsvbse')
+  read(50,*) fnevalsvbse
+case('fnoccsvbse')
+  read(50,*) fnoccsvbse
+case('nstbef')
+  read(50,*) nstbef
+  if (nstbef.le.0) then
     write(*,*)
-    write(*,'("Error(readinput[screen]): nstuoccscr <= 0 : ",I8)') nstuoccscr
+    write(*,'("Error(readinput[BSE]): nstbef <= 0 : ",I8)') nstbef
     write(*,*)
     stop
   end if
-case('rgkmaxscr')
-  read(50,*) rgkmaxscr
-  if (rgkmaxscr.le.0.d0) then
+case('nstabf')
+  read(50,*) nstabf
+  if (nstabf.le.0) then
     write(*,*)
-    write(*,'("Error(readinput[screen]): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
+    write(*,'("Error(readinput[BSE]): nstabf <= 0 : ",I8)') nstabf
     write(*,*)
     stop
   end if

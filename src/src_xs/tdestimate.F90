@@ -10,7 +10,7 @@ subroutine tdestimate
   
   call init0
   call init1
-  call init2td
+  call init2xs
 
   ! estimate disk space usage
   sreal = 8

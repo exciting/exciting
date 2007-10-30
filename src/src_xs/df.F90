@@ -19,7 +19,7 @@ subroutine df
   call tdsave0
 
   ! initialize q-point set
-  call init2td
+  call init2xs
 
   ! w-point interval for process
   wpari=firstofset(rank,nwdf)

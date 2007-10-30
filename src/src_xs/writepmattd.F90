@@ -50,7 +50,7 @@ subroutine writepmattd(lgather)
   ! initialise universal variables
   call init0
   call init1
-  call init2td
+  call init2xs
   ! k-point interval for process
   kpari=firstofset(rank,nkpt)
   kparf=lastofset(rank,nkpt)

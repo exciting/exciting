@@ -140,6 +140,14 @@ module modtddft
   real(8), allocatable :: deou(:,:)
   ! eigenvalue differences (anti-resonant part)
   real(8), allocatable :: deuo(:,:)
+  ! lowest (at least partially) occupied state
+  integer, allocatable :: nsto(:)
+  ! highest (at least partially) unoccupied state
+  integer, allocatable :: nstu(:)
+  ! maximum nsto over k-points
+  integer :: nstocc
+  ! maximum nstu over k-points
+  integer :: nstunocc
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
@@ -285,23 +293,37 @@ module modtddft
   !-----------------------------!
   !     screening variables     !
   !-----------------------------!
+  ! screening type: can be either "full", "diag", "noinvdiag" or "constant"
+  character(32) :: screentype
   ! nosym is .true. if no symmetry information should be used
   logical nosymscr
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
   logical reducekscr
-  ! k-point grid sizes
-  integer :: ngridkscr(3)
   ! k-point offset
   real(8) :: vkloffscr(3)
-  ! filenames for eigenvector file, eigenvalues and occupancies
-  character(256) :: fnevecfvscr, fnevalsvscr, fnoccsvscr
-  ! number of occupied states
-  integer :: nstoccscr
-  ! number of unoccupied states
-  integer :: nstuoccscr
   ! smallest muffin-tin radius times gkmax
   real(8) :: rgkmaxscr
+  ! filenames for eigenvector file, eigenvalues and occupancies
+  character(256) :: fnevecfvscr, fnevalsvscr, fnoccsvscr
 
+  !------------------------------------------!
+  !     Bethe-Salpeter (kernel) variables    !
+  !------------------------------------------!
+  ! nosym is .true. if no symmetry information should be used
+  logical nosymbse
+  ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
+  logical reducekbse
+  ! k-point offset
+  real(8) :: vkloffbse(3)
+  ! smallest muffin-tin radius times gkmax
+  real(8) :: rgkmaxbse
+  ! number of states below Fermi energy
+  integer :: nstbef
+  ! number of states above Fermi energy
+  integer :: nstabf
+  ! filenames for eigenvector file, eigenvalues and occupancies
+  character(256) :: fnevecfvbse, fnevalsvbse, fnoccsvbse
+  
   !-----------------------!
   !     I/O variables     !
   !-----------------------!

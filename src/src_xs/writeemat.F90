@@ -23,7 +23,7 @@ subroutine writeemat
   call init1
 
   ! initialize q-point set
-  call init2td()
+  call init2xs()
 
   ! k-point interval for process
   kpari=firstofset(rank,nkpt)

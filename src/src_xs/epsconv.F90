@@ -19,7 +19,7 @@ subroutine epsconv
 
   call init0
   call init1
-  call init2td
+  call init2xs
 
   allocate(w(nwdf),epst(nwdf,2),eps(nwdf),lor(nwdf))
   allocate(f(nwdf),f1(nwdf),g(nwdf),g1(nwdf),cf(3,nwdf))

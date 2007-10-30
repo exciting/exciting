@@ -21,7 +21,7 @@ subroutine fxc_alda_check
   call init0
   call init1
   call readstate
-  call init2td
+  call init2xs
 
   m=max(lmmaxvr,ngrtot)
 

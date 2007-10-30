@@ -18,7 +18,7 @@ subroutine pmattd2orig
   if (rank == 0) then
      call init0
      call init1
-     call init2td
+     call init2xs
      allocate(pm(3,nstsv,nstsv))
 
      inquire(iolength=recl) pm
