@@ -41,10 +41,10 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer:: ido, nev, ncv, lworkl, info, ierr, j,i
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
-  complex(8)::workd(3*nmat(ik,ispn)),resid(nmat(ik,ispn)),v(nmat(ik,ispn),nstfv)
+  complex(8)::workd(3*nmat(ik,ispn)),resid(nmat(ik,ispn)),v(nmat(ik,ispn),nstfv+2)
   complex(8)::d(nmat(ik,ispn))
-  complex(8)::workl(3*9*nstfv*nstfv+5*3*nstfv)
-  complex(8):: sigma, workev(9*nstfv)
+  complex(8)::workl(3*(nstfv+2)*(nstfv+2)+5*(nstfv+2))
+  complex(8):: sigma, workev(2*(nstfv+2))
   character         bmat*1, which*2
   real(8):: rwork(nmat(ik,ispn)), tol
   logical::rvec
@@ -53,12 +53,12 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer ::IPIV(nmat(ik,ispn))
   !parameters
   nev=nstfv
-  ncv=3*nstfv
-  n=npmat(ik,ispn)
+  ncv=nstfv+2
+  n=nmat(ik,ispn)
   bmat  = 'G'
   which = 'LM'
   sigma = zero
-  lworkl =3*9*nstfv*nstfv+5*3*nstfv 
+  lworkl =3*ncv+5*ncv 
   tol    = 0.0 
   ido    = 0
   info   = 0
@@ -82,14 +82,13 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      iparam,ipntr,workd,workl,lworkl,rwork,info)
      if (ido .eq. -1 .or. ido .eq. 1) then
 
-	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1, dcmplx(0,0),workd(ipntr(2)), 1)
-
+	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
+             dcmplx(0,0),workd(ipntr(2)), 1)
         call zhptrs('U', N, 1, o, IPIV, workd(ipntr(2)), n, INFO )
-
-
         cycle
      else if (ido .eq. 2) then
- 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1, dcmplx(0,0),workd(ipntr(2)), 1)
+ 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
+             dcmplx(0,0),workd(ipntr(2)), 1)
         cycle
      else 
         exit
@@ -104,14 +103,14 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   else
      rvec = .true.
 
-     call zneupd  (rvec,'A',select,d,v,ldv,sigma,&
+     call zneupd  (rvec,'A',select,d,v,n,sigma,&
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
-          ldv, iparam, ipntr, workd, workl, lworkl, rwork,&
+          n, iparam, ipntr, workd, workl, lworkl, rwork,&
           ierr )
 
   endif
-  evecfv(:,:,ispn)=v(:,:)
-  evalfv(:,ispn)=d(:)
+  evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
+  evalfv(1:nstfv,ispn)=d(1:nstfv)
   call putevecfv(ik,evecfv)
   call putevalfv(ik,evalfv)
 
