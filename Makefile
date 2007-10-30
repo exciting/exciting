@@ -14,7 +14,7 @@ all:serial parallel
 
 clean:
 
-	cd build/pserial; $(MAKE) clean
+	cd build/serial; $(MAKE) clean
 	cd build/parallel; $(MAKE) clean
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
