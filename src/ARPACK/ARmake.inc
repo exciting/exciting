@@ -58,7 +58,7 @@ DIRS        =  $(UTILdir) $(SRCdir)
 # | The name of the libraries to be created/linked to |
 # %---------------------------------------------------%
 #
-ARPACKLIB  = $(home)libarpack_$(PLAT).a
+ARPACKLIB  = $(home)libarpack.a
 LAPACKLIB = 
 BLASLIB = 
 #

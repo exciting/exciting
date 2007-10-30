@@ -47,7 +47,7 @@ PRECISIONS = single double complex complex16
 #
 ############################################################################
 
-
+ ARPACKLIB=libarpack.a
 
 lib: arpacklib
 
