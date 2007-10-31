@@ -43,7 +43,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer::iparam(11), ipntr(14)
   complex(8)::workd(3*nmat(ik,ispn)),resid(nmat(ik,ispn)),v(nmat(ik,ispn),nstfv+2)
   complex(8)::d(nmat(ik,ispn))
-  complex(8)::workl(3*(nstfv+2)*(nstfv+2)+5*(nstfv+2))
+  complex(8)::workl(3*(2*nstfv)*(2*nstfv)+5*(2*nstfv))
   complex(8):: sigma, workev(2*(nstfv+2))
   character         bmat*1, which*2
   real(8):: rwork(nmat(ik,ispn)), tol
@@ -53,7 +53,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer ::IPIV(nmat(ik,ispn))
   !parameters
   nev=nstfv
-  ncv=nstfv+2
+  ncv=nstfv*2
   n=nmat(ik,ispn)
   bmat  = 'G'
   which = 'LM'
@@ -77,7 +77,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !################################################
   !# reverse comunication loop of arpack library: #
   !################################################
-  do 
+  do i=1,maxitr 
      call znaupd(ido,bmat,n,which,nstfv,tol,resid,ncv,v,nmat(ik,ispn),\
      iparam,ipntr,workd,workl,lworkl,rwork,info)
      if (ido .eq. -1 .or. ido .eq. 1) then
@@ -94,9 +94,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         exit
      endif
   end do
-  if ( ierr .ne. 0 ) then
+  if ( info .ne. 0 ) then
      print *, ' ' 
-     print *, ' Error with znaupd, info = ', ierr
+     print *, ' Error with znaupd, info = ', info
      print *, ' Check the documentation of znaupd'
      print *, ' '
 
@@ -107,6 +107,13 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
           ierr )
+     if ( ierr .ne. 0 ) then
+        print *, ' ' 
+        print *, ' Error with zneupd, info = ', ierr
+        print *, ' Check the documentation of zneupd'
+        print *, ' '
+
+     endif
 
   endif
   evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
