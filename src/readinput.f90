@@ -32,6 +32,9 @@ character(256) str
 character(256) bname
 character(256) sppath
 
+!<sag>
+dumpmain=.true.
+!</sag>
 !------------------------!
 !     default values     !
 !------------------------!
@@ -196,6 +199,8 @@ fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
 nstbef=-1
 nstabf=-1
+! dump default values
+if (dumpmain) call dumpvars('VARS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 !</sag>
 !-------------------------------!
 !     read from exciting.in     !
@@ -205,6 +210,7 @@ open(50,file='exciting.in',action='READ',status='OLD',form='FORMATTED')
 read(50,*,end=20) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
+write(*,*) 'reading block for: '//trim(bname) !!!!!!!!!!!!!!!!!!
 select case(trim(bname))
 case('tasks')
   do i=1,maxtasks
@@ -957,7 +963,9 @@ if (molecule) then
     end do
   end do
 end if
-
+write(*,*) 'reading in of exciting.in finished' !!!!!!!!!
+! dump default values
+if (dumpmain) call dumpvars('VARS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 !---------------------------------------------!
 !     read from atomic species data files     !
 !---------------------------------------------!

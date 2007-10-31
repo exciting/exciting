@@ -19,7 +19,7 @@ f_in="exciting.in Ac.in Ag.in Al.in Am.in Ar.in As.in At.in Au.in Ba.in Be.in Bi
 
 # SCF calculation
 f_scf_bin="EVALFV.OUT EVALSV.OUT EVECFV.OUT EVECSV.OUT OCCSV.OUT STATE.OUT"
-f_scf_ascii="EFERMI.OUT EIGVAL.OUT EQATOMS.OUT EVALCORE.OUT FERMIDOS.OUT GEOMETRY.OUT IADIST.OUT INFO.OUT KPOINTS.OUT LATTICE.OUT LINENGY.OUT SYMCRYS.OUT SYMLAT.OUT SYMSITE.OUT TOTENERGY.OUT MOMENT.OUT"
+f_scf_ascii="EFERMI.OUT EIGVAL.OUT EQATOMS.OUT EVALCORE.OUT FERMIDOS.OUT GEOMETRY.OUT IADIST.OUT INFO.OUT KPOINTS.OUT LATTICE.OUT LINENGY.OUT RMSDVEFF.OUT SYMCRYS.OUT SYMLAT.OUT SYMSITE.OUT TOTENERGY.OUT MOMENT.OUT"
 f_scf_save="$f_in $f_scf_ascii STATE.OUT"
 f_scf_all="$f_in $f_scf_ascii $f_scf_bin"
     
@@ -227,7 +227,17 @@ MONSCF ()
     ofile=INFO.OUT
     taillen=5
 
+    isfinished=`grep 'EXCITING version.*stopped' $ofile | wc -l`
+
     echo
+    if [ $isfinished == 1 ]; then
+	str='finished'
+    else
+	str='is'
+    fi
+    echo "Calculation $str at iteration Nr. `grep Iteration $ofile | tail -1 | awk '{print $5}'`"
+    echo
+
     echo "Analyzing output file $ofile:"
     echo "---------------------------------------------------------"
     grep 'target' $ofile | tail -$taillen
