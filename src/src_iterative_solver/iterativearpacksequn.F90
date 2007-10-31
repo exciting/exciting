@@ -52,15 +52,15 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer ::IPIV(nmat(ik,ispn))
   !parameters
   nev=nstfv
-  ncv=nstfv+2
+  ncv=2*nstfv+2
   n=nmat(ik,ispn)
 ldv=n
-  allocate(workd(3*n),resid(n),v(ldv,ncv),workev(2*ncv),workl(3*ncv*ncv+5*ncv),d(ncv))
-  allocate(rwork(n))
+  allocate(workd(3*n),resid(n),v(ldv,ncv),workev(2*ncv),workl(3*ncv*ncv+6*ncv),d(ncv))
+  allocate(rwork(ncv))
   bmat  = 'G'
   which = 'LM'
   sigma = zero
-  lworkl =3*ncv+5*ncv 
+  lworkl =3*ncv+6*ncv 
   tol    = 0.0 
   ido    = 0
   info   = 0
@@ -80,7 +80,7 @@ ldv=n
   !# reverse comunication loop of arpack library: #
   !################################################
   do i=1,maxitr 
-     call znaupd(ido,bmat,n,which,nstfv,tol,resid,ncv,v,nmat(ik,ispn),\
+     call znaupd(ido,bmat,n,which,nstfv,tol,resid,ncv,v,n,\
      iparam,ipntr,workd,workl,lworkl,rwork,info)
      if (ido .eq. -1 .or. ido .eq. 1) then
 
