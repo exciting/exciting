@@ -41,12 +41,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer:: ido, nev, ncv, lworkl, info, ierr, j,i
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
-  complex(8)::workd(3*nmat(ik,ispn)),resid(nmat(ik,ispn)),v(nmat(ik,ispn),nstfv+2)
-  complex(8)::d(nmat(ik,ispn))
-  complex(8)::workl(3*(nstfv+2)*(nstfv+2)+5*(nstfv+2))
-  complex(8):: sigma, workev(2*(nstfv+2))
-  character         bmat*1, which*2
-  real(8):: rwork(nmat(ik,ispn)), tol
+  complex(8),allocatable::workd(:),resid(:),v(:,:),workev(:),workl(:),d(:)
+  real(8),allocatable:: rwork(:)
+  complex(8)::sigma
+  character:: bmat*1, which*2
+  real(8):: tol
   logical::rvec
   logical::          select(nmat(ik,ispn))
   !ZHPTR interface vars
@@ -55,6 +54,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   nev=nstfv
   ncv=nstfv+2
   n=nmat(ik,ispn)
+ldv=n
+  allocate(workd(3*n),resid(n),v(ldv,ncv),workev(2*ncv),workl(3*ncv*ncv+5*ncv),d(ncv))
+  allocate(rwork(n))
   bmat  = 'G'
   which = 'LM'
   sigma = zero
@@ -113,7 +115,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   evalfv(1:nstfv,ispn)=d(1:nstfv)
   call putevecfv(ik,evecfv)
   call putevalfv(ik,evalfv)
-
+  deallocate(workd,resid,v,workev,workl,d)
+  deallocate(rwork)
   return
 end subroutine iterativearpacksecequn
 !EOC
