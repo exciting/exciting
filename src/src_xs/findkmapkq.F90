@@ -17,12 +17,12 @@ contains
     ! local variables
     real(8) r3taxi
     external r3taxi
-    integer :: ik,ikt,un
+    integer :: ik,ikt,iktr,un
     real(8) :: vofft(3),vqt(3),vkq(3),vkqt(3)
     logical, allocatable :: done(:)
     character(256) :: filnam
 
-    allocate(done(nkpt))
+    allocate(done(nkptnr))
     done(:)=.false.
     map(:)=0
 
@@ -33,12 +33,13 @@ contains
        ! k+q point from k-point
        vkq(:)=vkl(:,ik)+vqt(:)
        call mapkto01(vkq)
-       do ikt=1,nkpt
+       do ikt=1,nkptnr
           if (.not.done(ikt)) then
-             vkqt(:)=vkl(:,ikt)+vofft(:)/dble(ngridk)
+             vkqt(:)=vklnr(:,ikt)+vofft(:)/dble(ngridk)
              if (r3taxi(vkq,vkqt).lt.epslat) then
+                iktr=ikmap(ivknr(1,ikt),ivknr(2,ikt),ivknr(3,ikt))
                 done(ikt)=.true.
-                map(ik)=ikt
+                map(ik)=iktr
                 exit
              end if
           end if
@@ -51,7 +52,7 @@ contains
     end do
     deallocate(done)
 
-    if (rank == 1) then
+    if (rank == 0) then
        call getunit(un)
        call genfilname(basename='KMAPKQ',iq=iq,filnam=filnam)
        open(un,file=trim(filnam),form='formatted',action='write', &

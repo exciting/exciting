@@ -24,7 +24,7 @@ subroutine dumpvars(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   ! is trimmed
   open(unit=77,file=trim(string),action='write',status='replace')
   write(77,*)
-  write(77,'("EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
+  write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
   write(77,*)
   write(77,'("tasks")')
   do j=1,ntasks

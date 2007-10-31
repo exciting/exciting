@@ -11,7 +11,7 @@ subroutine initscr
   ! irreversibly map varialbes specific for screening to main variables
   nosym=nosymscr
   reducek=reducekscr
-  vkloff(:)=vkloffscr(:)
+!  vkloff(:)=vkloffscr(:)
   rgkmax=rgkmaxscr
 
   ! only one SCF iteration
@@ -19,5 +19,6 @@ subroutine initscr
 
   ! work with regular q-point grid
   qtype='grid'
+  ngridq(:)=ngridk(:)
 
 end subroutine initscr
