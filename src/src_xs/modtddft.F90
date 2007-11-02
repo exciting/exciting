@@ -4,15 +4,15 @@
 ! See the file COPYING for license details.
 
 module modtddft
-! !DESCRIPTION: 
-!   Global variables for the {\tt TDDFT} implementation
-!   in the {\tt EXCITING}-code.
-!
-!
-! !REVISION HISTORY: 
-!
-!  Created June 2006 (SAG)
-! !PUBLIC DATA MEMBERS:
+  ! !DESCRIPTION: 
+  !   Global variables for the {\tt TDDFT} implementation
+  !   in the {\tt EXCITING}-code.
+  !
+  !
+  ! !REVISION HISTORY: 
+  !
+  !  Created June 2006 (SAG)
+  ! !PUBLIC DATA MEMBERS:
   implicit none
 
   !---------------!
@@ -26,6 +26,16 @@ module modtddft
   !     muffin-tin radial mesh and angular momentum variables     !
   !---------------------------------------------------------------!
   integer, allocatable :: idxxlm(:,:)
+
+  !----------------------------!
+  !     symmetry variables     !
+  !----------------------------!
+  ! number of crystal symmetries for the little group of q
+  integer, allocatable :: nsymcrysq(:)
+  ! map from little group of q to spacegroup
+  integer, allocatable :: scqmap(:,:)
+  ! wrapping vectors for elements of the small group of q
+  integer, allocatable :: ivscwrapq(:,:,:)
 
   !------------------------------!
   !     q-point set variables    !
@@ -323,7 +333,7 @@ module modtddft
   integer :: nstabf
   ! filenames for eigenvector file, eigenvalues and occupancies
   character(256) :: fnevecfvbse, fnevalsvbse, fnoccsvbse
-  
+
   !-----------------------!
   !     I/O variables     !
   !-----------------------!

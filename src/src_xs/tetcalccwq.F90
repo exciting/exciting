@@ -49,6 +49,9 @@ contains
     wreal(:)=w(wi:wf)
     if (wreal(1).lt.epstetra) wreal(1)=epstetra
 
+    ! set q-dependent file extension
+    call genfilname(iq=iq,setfilext=.true.)
+
     ! generate filenames
     call genfilname(basename='TETW',iq=iq,rank=rank,procs=procs,&
          filnam=filnam)

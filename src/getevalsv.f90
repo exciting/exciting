@@ -51,7 +51,10 @@ close(70)
      write(*,*)
      write(*,'("Error(getevalsv): differing vectors for k-point ",I8)') ik
      write(*,'(" current    : ",3G18.10)') vkl(:,ik)
-     write(*,'(" EVALSV.OUT : ",3G18.10)') vkl_
+!<sag>
+!!$     write(*,'(" EVALSV.OUT : ",3G18.10)') vkl_
+     write(*,'(a,3G18.10)') " EVALSV.OUT : ", vkl_
+!</sag>
      write(*,*)
      stop
   end if
@@ -59,7 +62,10 @@ close(70)
      write(*,*)
      write(*,'("Error(getevalsv): differing nstsv for k-point ",I8)') ik
      write(*,'(" current    : ",I8)') nstsv
-     write(*,'(" EVALSV.OUT : ",I8)') nstsv_
+!<sag>
+!!$     write(*,'(" EVALSV.OUT : ",I8)') nstsv_
+     write(*,'(a,I8)') " EVALSV.OUT : ", nstsv_
+!</sag>
      write(*,*)
      stop
   end if

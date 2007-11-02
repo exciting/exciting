@@ -1,9 +1,11 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2007 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
+! C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
 subroutine init2xs
+  ! based upon routine init2.f90
   use modmain
   use modtddft
   use modtetra
@@ -134,10 +136,27 @@ subroutine init2xs
   if (all(vql(:,1).eq.0)) tq1gamma = .true.
 
   ! find (little) group of q
+  if (allocated(nsymcrysq)) deallocate(nsymcrysq)
+  if (allocated(scqmap)) deallocate(scqmap)
+  if (allocated(ivscwrapq)) deallocate(ivscwrapq)
+  allocate(nsymcrysq(nqpt))
+  allocate(scqmap(nsymcrys,nqpt))
+  allocate(ivscwrapq(3,nsymcrys,nqpt))
   do iq=1,nqpt
-!*******     call findlitgq(vql(:,iq),nsymcrysq,scqmap)
+     call findgroupq(vql(1,iq),epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
+          nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
+     ! debug output
+     if (dbglev > 0) then
+        write(*,'(a,i6,3g18.10)') 'q-point:',iq,vql(:,iq)
+        write(*,'(a,i6)') ' variable: nsymcrysq:',nsymcrysq(iq)
+        do l=1,nsymcrysq(iq)
+           write(*,'(a,2i6,3i9)') ' variable: scqmap,ivscwrapq:',l,&
+                scqmap(l,iq),ivscwrapq(:,l,iq)
+        end do
+        write(*,*)
+     end if
   end do
-
+  
   !-----------------------!
   !     k+q-point set     !
   !-----------------------!
