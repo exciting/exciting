@@ -15,19 +15,13 @@
 
       implicit none
       
-      integer(4), intent(in) :: nsym          ! Number of symmetry 
-!                                               operations
-      
-      integer(4), intent(in) :: symopc(3,3,*) ! The symetry operations in
-!                                              cartesian coordinates
-
-      real(8),    intent(in) :: rbas(3,3)     ! The basis vectors of the
-!                                              Bravais lattice
+      integer(4), intent(in) :: nsym          ! Number of symmetry  operations
+      integer(4), intent(in) :: symopc(3,3,*) ! The symetry operations in cartesian coordinates
+      real(8),    intent(in) :: rbas(3,3)     ! The basis vectors of the Bravais lattice
 
 ! !OUTPUT PARAMETERS:
 
-      integer(4), intent(out) :: symopi(3,3,*) ! The symetry operations
-!                                                in internal coordinates
+      integer(4), intent(out) :: symopi(3,3,*) ! The symetry operations in internal coordinates
 
 ! !LOCAL VARIABLES:
 

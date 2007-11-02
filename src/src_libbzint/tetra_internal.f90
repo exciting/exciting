@@ -34,12 +34,5 @@
       integer(4)  :: sgnfrq              ! a sign to tell which weight to 
 !                                          be calculated
 
-      ! <contribution>
-      integer :: restype                 ! if "1" the resonant frequency term is calculated
-                                         ! if "2" the anti-resonant frequency term is calculated
-                                         ! if "0" both parts are calculated together
-      data restype / 0 /                 ! initialize with "0" according to original version
-      ! </contribution>
-
       end module tetra_internal
 !EOC      

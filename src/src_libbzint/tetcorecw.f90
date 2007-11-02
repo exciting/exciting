@@ -29,7 +29,7 @@
        
        integer(4), intent(in) :: nc         ! Number of core states involved
 
-       real(8), target, intent(in) :: ebd(nik,*)   ! Band energies
+       real(8), target, intent(in) :: ebd(nb,nik)   ! Band energies
 
        real(8), target, intent(in) :: ec(*)     ! Core energies
        
@@ -78,7 +78,7 @@
       tetcorn => tetc(1:4,1:ntet)
       tetln => linkt(1:ntet)
       ecore => ec(1:ncore)
-      eband   => ebd(1:nik,1:nband)
+      eband   => ebd(1:nband,1:nik)
       call convcorew(efer,omeg,sigfreq,cw)
 
       end subroutine tetcorecw

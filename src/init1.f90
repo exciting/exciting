@@ -36,6 +36,7 @@ real(8), allocatable :: vklt(:,:)
 real(8), allocatable :: vkct(:,:)
 real(8), allocatable :: wkptt(:)
 integer, allocatable :: ikmapt(:,:,:)
+integer, allocatable :: indirkp(:)
 integer, allocatable :: iwkp(:),linkq(:,:), sy(:,:,:)
 integer :: nqptt,nsymcryst,isym,lspl,nerr
 !</sag>
@@ -130,6 +131,8 @@ else
         write(*,*)
         call terminate
      end if
+     if (allocated(indirkp)) deallocate(indirkp)
+     allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
      if (allocated(iwkp)) deallocate(iwkp)
      allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
      if (allocated(wtet)) deallocate(wtet)
@@ -142,16 +145,21 @@ else
         write(*,*) ' linear tetrahedron method'
         call terminate
      end if
-     ! get rotational part of crystal symmetries
+     ! get rotational part of crystal symmetries 
      allocate(sy(3,3,nsymcrys))
      do isym=1,nsymcrys
         lspl=lsplsymc(isym)
-        sy(:,:,isym)=symlat(:,:,lspl)
+!       Transpose for the bzint library
+        do i1=1,3
+          do i2=1,3
+            sy(i1,i2,isym)=symlat(i2,i1,lspl)
+          enddo
+        enddo    
      end do
      ! reduce k-point set if necessary
      nsymcryst=1
      if (reducek) nsymcryst=nsymcrys
-     call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,iwkp,&
+     call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,iwkp,&
           ntet,tnodes,wtet,tvol,mnd) 
      do ik=1,nkpt
         vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
@@ -159,77 +167,82 @@ else
              bvec(:,3)
         wkpt(ik)=dble(iwkp(ik))/dble(ngridk(1)*ngridk(2)*ngridk(3))
      end do ! ik
-     allocate(linkq(6*nkpt,nkpt))
-     if (allocated(link)) deallocate(link)
-     allocate(link(6*nkpt,1))
-     if (allocated(kqid)) deallocate(kqid)
-     allocate(kqid(nkpt,nkpt))
-     nqptt=nqpt
-     nqpt=nkpt
-     if (allocated(ivq)) deallocate(ivq)
-     allocate(ivq(3,ngridk(1)*ngridk(2)*ngridk(3)))
-     if (nkpt < ngridk(1)*ngridk(2)*ngridk(3)) then
-        write(*,*) 'Warning(init1): calculating q-dependent convolution'
-        write(*,*) ' weights from reduced k-point set, nkptnr,nkpt:',&
-             ngridk(1)*ngridk(2)*ngridk(3),nkpt
-     end if
-     ! generate "link" array for q-dependent tetrahedron method
-     call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
-          ntet,tnodes,wtet,linkq,tvol)
-     nqpt=nqptt
-     ! keep link-array only for q=0
-     link(:,1)=linkq(:,1)
-     deallocate(sy,iwkp,linkq,ivq)
-     ! cross check k-point set with exciting default routine
-     allocate(ivkt(3,ngridk(1)*ngridk(2)*ngridk(3)))
-     allocate(vklt(3,ngridk(1)*ngridk(2)*ngridk(3)))
-     allocate(vkct(3,ngridk(1)*ngridk(2)*ngridk(3)))
-     allocate(wkptt(ngridk(1)*ngridk(2)*ngridk(3)))
-     allocate(ikmapt(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
-     call genppts(reducek,ngridk,vkloff,nkptt,ikmapt,ivkt,vklt,vkct,wkptt)
-     nerr=0
-     if (nkptt /= nkpt) then
-        write(*,*) 'Error(init1): k-point set inconsistency for tetrahedron &
-                     &method'
-        write(*,*) ' differring number of k-points (current/default)',nkptt,&
-             nkpt
-        nerr=nerr+1
-     else
-        do ik=1,nkpt
-           if (any(vklt(:,ik)-vkl(:,ik) > epslat)) then
-              write(*,*) 'Error(init1): k-point set inconsistency for &
-                   &tetrahedron method'
-              write(*,*) ' differring k-point (current/default/diff)',ik
-              write(*,*) vkl(:,ik)
-              write(*,*) vklt(:,ik)
-              write(*,*) vkl(:,ik)-vklt(:,ik)
-              write(*,*)
-              nerr=nerr+1
-           end if
-           if (wkptt(ik)-wkpt(ik) > epslat) then
-              write(*,*) 'Error(init1): k-point set inconsistency for &
-                   &tetrahedron method'
-              write(*,*) ' differring k-point weight (current/default)',ik
-              write(*,*) wkpt(ik)
-              write(*,*) wkptt(ik)
-              write(*,*) wkpt(ik)-wkptt(ik)
-              write(*,*)
-              nerr=nerr+1
-           end if
-        end do
-     end if
-     if (nerr > 0) then
-        write(*,*) 'Errors occurred - stop', nerr
-        call terminate
-     end if
-     ! safely replace k-point set by default set since inside epslat tolerance
-     vkl(:,:)=vklt(:,:)
-     vkc(:,:)=vkct(:,:)
-     wkpt(:)=wkptt(:)
-     ! add k-point mapping and integers on grid for k-point
-     ikmap(:,:,:)=ikmapt(:,:,:)
-     ivk(:,:)=ivkt(:,:)
-     deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
+!<rga>
+     if((task.eq.121).or.(task.eq.122))then     
+       allocate(linkq(6*nkpt,nkpt))
+       if (allocated(link)) deallocate(link)
+       allocate(link(6*nkpt,1))
+       if (allocated(kqid)) deallocate(kqid)
+       allocate(kqid(nkpt,nkpt))
+       nqptt=nqpt
+       nqpt=nkpt
+       if (allocated(ivq)) deallocate(ivq)
+       allocate(ivq(3,ngridk(1)*ngridk(2)*ngridk(3)))
+       if (nkpt < ngridk(1)*ngridk(2)*ngridk(3)) then
+          write(*,*) 'Warning(init1): calculating q-dependent convolution'
+          write(*,*) ' weights from reduced k-point set, nkptnr,nkpt:',&
+               ngridk(1)*ngridk(2)*ngridk(3),nkpt
+       end if
+       ! generate "link" array for q-dependent tetrahedron method
+       call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
+            ntet,tnodes,wtet,linkq,tvol)
+       nqpt=nqptt
+       ! keep link-array only for q=0
+       link(:,1)=linkq(:,1)
+       deallocate(sy,iwkp,linkq,ivq)
+     endif !task
+      deallocate(indirkp)
+!</rga>       
+       ! cross check k-point set with exciting default routine
+       allocate(ivkt(3,ngridk(1)*ngridk(2)*ngridk(3)))
+       allocate(vklt(3,ngridk(1)*ngridk(2)*ngridk(3)))
+       allocate(vkct(3,ngridk(1)*ngridk(2)*ngridk(3)))
+       allocate(wkptt(ngridk(1)*ngridk(2)*ngridk(3)))
+       allocate(ikmapt(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
+       call genppts(reducek,ngridk,vkloff,nkptt,ikmapt,ivkt,vklt,vkct,wkptt)
+       nerr=0
+       if (nkptt /= nkpt) then
+          write(*,*) 'Error(init1): k-point set inconsistency for tetrahedron &
+                       &method'
+          write(*,*) ' differring number of k-points (current/default)',nkptt,&
+               nkpt
+          nerr=nerr+1
+       else
+          do ik=1,nkpt
+             if (any(vklt(:,ik)-vkl(:,ik) > epslat)) then
+                write(*,*) 'Error(init1): k-point set inconsistency for &
+                     &tetrahedron method'
+                write(*,*) ' differring k-point (current/default/diff)',ik
+                write(*,*) vkl(:,ik)
+                write(*,*) vklt(:,ik)
+                write(*,*) vkl(:,ik)-vklt(:,ik)
+                write(*,*)
+                nerr=nerr+1
+             end if
+             if (wkptt(ik)-wkpt(ik) > epslat) then
+                write(*,*) 'Error(init1): k-point set inconsistency for &
+                     &tetrahedron method'
+                write(*,*) ' differring k-point weight (current/default)',ik
+                write(*,*) wkpt(ik)
+                write(*,*) wkptt(ik)
+                write(*,*) wkpt(ik)-wkptt(ik)
+                write(*,*)  
+                nerr=nerr+1
+             end if
+          end do
+       end if
+       if (nerr > 0) then
+          write(*,*) 'Errors occurred - stop', nerr
+          call terminate
+       end if
+       ! safely replace k-point set by default set since inside epslat tolerance
+       vkl(:,:)=vklt(:,:)
+       vkc(:,:)=vkct(:,:)
+       wkpt(:)=wkptt(:)
+       ! add k-point mapping and integers on grid for k-point
+       ikmap(:,:,:)=ikmapt(:,:,:)
+       ivk(:,:)=ivkt(:,:)
+       deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
   else
 !</sag>
      ! generate the reduced k-point set

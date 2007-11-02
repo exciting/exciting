@@ -3,7 +3,7 @@
 ! !ROUTINE: cartezian
 !
 ! !INTERFACE:
-      subroutine cartezian(nkp,div,aaa,rbas,klist,idiv)
+      subroutine cartezian(nkp,aaa,gbas,klist,idiv)
 
 ! !DESCRIPTION:
 !
@@ -16,12 +16,9 @@
 
       integer(4), intent(in) :: nkp      ! Number of k-points
       
-      integer(4), intent(in) :: div(3)   ! number of divisions of the 
-!                                          submesh in each direction
-
       real(8),    intent(in) :: aaa(3)   ! lattice constants
       
-      real(8),    intent(in) :: rbas(3,3)  ! Basis vectors of the direct
+      real(8),    intent(in) :: gbas(3,3)  ! Basis vectors of the direct
 !                                          lattice
       
 ! !INPUT/OUTPUT PARAMETERS:
@@ -44,27 +41,23 @@
       
       real(8), dimension(3) :: ak
       
-      real(8), dimension(3,3) :: gbas ! Basis vectors of the reciprocal
-!                                       lattice
       
       
 ! !DEFINED PARAMETERS:
 
       real(8), parameter :: pi = 3.14159265358979323846      
       
-      external gbass
 
 !EOP      
 !
 !BOC
 
-      call gbass(rbas,gbas)
       
       do kpi=1,nkp
         do i=1,3
           ak(i)=0.0d0
           do j=1,3
-            ak(i)=ak(i)+gbas(j,i)*dble(klist(j,kpi))
+            ak(i)=ak(i)+gbas(i,j)*dble(klist(j,kpi))
           enddo
         enddo
         do i=1,3

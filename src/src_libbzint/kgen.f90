@@ -3,8 +3,8 @@
 ! !ROUTINE: kgen
 !
 ! !INTERFACE:
-      subroutine kgen(bvec,nsymt,symop,ndiv,nshift,divsh,nik,klist,idiv,wk, &
-     &                ntet,tetk,wtet,vtet,mnd)
+      subroutine kgen(bvec,nsymt,symop,ndiv,nshift,divsh,nik,klist,idiv,&
+     &                ikpredin,wk,ntet,tetk,wtet,vtet,mnd)
 !
 ! !DESCRIPTION:
 !
@@ -70,7 +70,7 @@
 
       integer(4), intent(out) :: wk(*)      ! The weight of 
 !                                                          each k-point
-      
+      integer(4), intent(out) :: ikpredin(*)
       integer(4), intent(out) :: klist(3,*) ! The list of 
 !                                                          irreducible 
 !                                                          k-points
@@ -107,6 +107,8 @@
 !                                             k-point coordinates
       integer(4), allocatable  :: ikp(:,:) ! Coordinates of the
 !                                            irreducible k-points
+      integer(4), allocatable  :: ikpint(:,:) ! Coordinates of the
+!                                            irreducible k-points
       integer(4), allocatable  :: ktet(:,:) ! Temporary storage of tetk
       integer(4), allocatable  :: tetw(:)   ! Temporary storage of wtet
       integer(4), allocatable  :: wt(:)     ! Temporary storage of wk
@@ -139,6 +141,8 @@
 !      
       if(allocated(ikp)) deallocate(ikp)
       allocate(ikp(3,nirkp))
+      if(allocated(ikpint)) deallocate(ikpint)
+      allocate(ikpint(3,nirkp))
       wk(1:nirkp)=wt(1:nirkp)
       wk(nirkp+1:nkpt)=0.0d0
       deallocate(wt)
@@ -148,9 +152,8 @@
 !      ikpid1(1:nkpt)=ikpid(1:nkpt)
 !      redk(1:nkpt)=redkp(1:nkpt)
       do i=1,nkpt
-! <sag>
-!!$        write(24,'(4i4)')i,ikpid(i),redkp(i),wk(i)
-! </sag>
+        ikpredin(i)=ikpid(redkp(i))
+!        write(24,'(4i4)')i,ikpid(i),redkp(i),wk(i)
       enddo
       do i=1,nkpt
         if(ikpid(i).ne.0)then
@@ -163,8 +166,9 @@
 !
 !     Transform the irreducible k-points to internal coordinates
 !     
-      call intern(nirkp,ikp,ndiv,nshift,divsh,klist,idiv)
-
+      call intern(nirkp,ikp,ndiv,nshift,divsh,ikpint,idiv)
+      klist(1:3,1:nirkp)=ikpint(1:3,1:nirkp)
+      deallocate(ikpint)
 !
 !     Generate the tetrahedra
 !       

@@ -29,10 +29,8 @@
 !EOP
 !
 !BOC
-!!$      idkp=k(1)*div(2)*div(3)+k(2)*div(3)+k(3)+1
-
-      idkp=k(3)*div(1)*div(2)+k(2)*div(1)+k(1)+1
-
+      idkp=k(3)*div(2)*div(1)+k(2)*div(1)+k(1)+1
+      
       return
       
       end function idkp

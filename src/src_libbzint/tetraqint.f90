@@ -33,7 +33,7 @@
        
       integer(4), intent(in) :: nb         ! Number of bands
        
-      real(8), target, intent(in) :: ebd(nik,*)  ! Band energies
+      real(8), target, intent(in) :: ebd(nb,nik)  ! Band energies
        
       integer(4), target, intent(in) :: tetc(4,*)  ! id. numbers of 
 !                                                    the corners
@@ -110,13 +110,13 @@
       enddo
           
       if(oc)then
-        eband   => ebd(1:nik,1:nband)
+        eband   => ebd(1:nband,1:nik)
         fermi = efer
       else
-        allocate(eband(nik,nband))
+        allocate(eband(nband,nik))
         do ik=1,nik
           do ib=1,nband
-            eband(ik,ib)=-1.0d0*ebd(ik,ib)
+            eband(ib,ik)=-1.0d0*ebd(ib,ik)
           enddo
         enddo
         fermi=-1.0d0*efer

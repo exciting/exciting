@@ -4,7 +4,7 @@
 !
 ! !INTERFACE:
 
-      subroutine generictetra(ndes,ww2)
+      subroutine generictetra(corners,ww2,ical,info)
 !
 ! !DESCRIPTION:
 !
@@ -71,7 +71,7 @@
 
 ! !USES:
 
-      use tetra_internal   , only : sgnfrq, omgga, restype ! <contribution person="stephan sagmeister" comment="added restype">
+      use tetra_internal   , only : sgnfrq, omgga
 
       use polyhedron
 
@@ -81,10 +81,12 @@
 
       implicit none
       
-      real(8), intent(in) :: ndes(4,3) ! Coordinates of the four nodes
+      real(8), intent(in) :: corners(3,4) ! Coordinates of the four nodes
+      integer(4), intent(in) :: ical
 
 ! !OUTPUT PARAMETERS:            
 
+      integer(4), intent(out) :: info
       real(8), intent(out) :: ww2(4)      ! The four weights corresponding
 !                                         to the original coordinates
 
@@ -101,6 +103,10 @@
       real(8), dimension(3,3) :: vec 
       
       real(8), dimension(4) :: energydif, v, ww1, ww0, w1
+!
+! !EXTERNAL ROUTINES: 
+!
+      external ksurf
  
 ! !REVISION HISTORY:
 !
@@ -108,25 +114,10 @@
 !
 ! Intrinsic functions
 
-! resonant/antiresonant parts separation, 2007/05/01 by S. Sagmeister
-
-      ! <contribution>
-      logical :: tres,tares
-      ! </contribution>
-
-      ! <contribution>
-      ! intrinsic function definition ?
       det(i,j)=vec(2,i)*vec(3,j)-vec(2,j)*vec(3,i)
-      ! </contribution>
 !EOP
 !BOC
-      ! <contribution>
-      tres=(restype.eq.0).or.(restype.eq.1)
-      tares=(restype.eq.0).or.(restype.eq.2)
-      weit1=0.d0
-      weit2=0.d0
-      ! </contribution>
-
+      info=0
       ww2(1:4)=0.0d0
 
       do i=1,4
@@ -140,7 +131,7 @@
       case(1)
         do i=1,3
           do j=1,3
-            vec(i,j)=ndes(i+1,j)-ndes(1,j)
+            vec(i,j)=corners(j,i+1)-corners(j,1)
           enddo
         enddo
         vol=0.0d0
@@ -154,7 +145,7 @@
         ww2(1)=vol
         do i=1,3
           do j=1,4
-            ww2(i+1)=ww2(i+1)+2.50d-1*vol*ndes(j,i)
+            ww2(i+1)=ww2(i+1)+2.50d-1*vol*corners(i,j)
           enddo
           ww2(1)=ww2(1)-ww2(i+1)
         enddo
@@ -162,9 +153,9 @@
       case(2)
 
         do i=1,4
-          v(i)=(energydif(2)-energydif(1))*ndes(i,1)
-          v(i)=v(i)+(energydif(3)-energydif(1))*ndes(i,2)
-          v(i)=v(i)+(energydif(4)-energydif(1))*ndes(i,3)
+          v(i)=(energydif(2)-energydif(1))*corners(1,i)
+          v(i)=v(i)+(energydif(3)-energydif(1))*corners(2,i)
+          v(i)=v(i)+(energydif(4)-energydif(1))*corners(3,i)
           v(i)=v(i)+energydif(1)
         enddo
 
@@ -174,7 +165,7 @@
 !------------------------------------------------------------
         do i=1,3
           do j=1,3
-            vec(i,j)=ndes(i+1,j)-ndes(1,j)
+            vec(i,j)=corners(j,i+1)-corners(j,1)
           enddo
         enddo
         vol=0.0d0
@@ -194,8 +185,8 @@
         enddo
 
         if (omgga.ge.1.0d+1*maxv)then
-          if (tres) call redifwtaylor(v,omgga,ww1)
-          if (tares) call redifwtaylor(v,-omgga,ww2)
+          call redifwtaylor(v,omgga,ww1)
+          call redifwtaylor(v,-omgga,ww2)
           do i=1,4
            ww1(i)=ww1(i)+ww2(i)
           enddo
@@ -210,27 +201,27 @@
 
           w1(1:4)=0.0d0
 
-          if (tres) call redifwt(v,omgga,sigeq,weit1)
+          call redifwt(v,omgga,sigeq,weit1)
 
-          if (tares) call redifwt(v,-omgga,sigeq,weit2)
+          call redifwt(v,-omgga,sigeq,weit2)
 
           ww1(ind(1))=weit1+weit2
  
-          if (tres) call redifwtz(v,omgga,sigeq,weit1)
+          call redifwtz(v,omgga,sigeq,weit1)
 
-          if (tares) call redifwtz(v,-omgga,sigeq,weit2) 
+          call redifwtz(v,-omgga,sigeq,weit2) 
 
           ww1(ind(4))=weit1+weit2
 
-          if (tres) call redifwtx(v,omgga,sigeq,weit1)
+          call redifwtx(v,omgga,sigeq,weit1)
 
-          if (tares) call redifwtx(v,-omgga,sigeq,weit2)
+          call redifwtx(v,-omgga,sigeq,weit2)
 
           ww1(ind(2))=weit1+weit2
 
-          if (tres) call redifwty(v,omgga,sigeq,weit1)
+          call redifwty(v,omgga,sigeq,weit1)
  
-          if (tares) call redifwty(v,-omgga,sigeq,weit2)
+          call redifwty(v,-omgga,sigeq,weit2)
 
           ww1(ind(3))=weit1+weit2 
         endif
@@ -238,9 +229,7 @@
         ww2(1)=ww1(1)+ww1(2)+ww1(3)+ww1(4)
         do i=1,3
           do j=1,4
-!rga             ind(j) is not necessary
-!            ww2(i+1)=ww2(i+1)+ww1(ind(j))*ndes(ind(j),i)
-            ww2(i+1)=ww2(i+1)+ww1(j)*ndes(j,i)
+            ww2(i+1)=ww2(i+1)+ww1(j)*corners(i,j)
           enddo
           ww2(1)=ww2(1)-ww2(i+1)
         enddo
@@ -253,9 +242,9 @@
       case(3)
         
         do i=1,4
-          v(i)=(energydif(2)-energydif(1))*ndes(i,1)
-          v(i)=v(i)+(energydif(3)-energydif(1))*ndes(i,2)
-          v(i)=v(i)+(energydif(4)-energydif(1))*ndes(i,3)
+          v(i)=(energydif(2)-energydif(1))*corners(1,i)
+          v(i)=v(i)+(energydif(3)-energydif(1))*corners(2,i)
+          v(i)=v(i)+(energydif(4)-energydif(1))*corners(3,i)
           v(i)=v(i)+energydif(1)
         enddo
 
@@ -265,7 +254,7 @@
 !------------------------------------------------------------
         do i=1,3
           do j=1,3
-            vec(i,j)=ndes(i+1,j)-ndes(1,j)
+            vec(i,j)=corners(j,i+1)-corners(j,1)
           enddo
         enddo
         vol=0.0d0
@@ -281,6 +270,7 @@
 !------------------------------------------------------------
         maxv=0.0d0
         do i=1,4
+          if(abs(v(i)).lt.1.0d-10)v(i)=0.0d0
           if(abs(v(i)).gt.maxv)maxv=abs(v(i))
         enddo
         
@@ -320,7 +310,7 @@
 
         do i=1,3
           do j=1,4
-            ww2(i+1)=ww2(i+1)+ww1(j)*ndes(j,i)
+            ww2(i+1)=ww2(i+1)+ww1(j)*corners(i,j)
           enddo
           ww2(1)=ww2(1)-ww2(i+1)
         enddo
@@ -340,16 +330,16 @@
       case(4)
 
         do i=1,4
-          v(i)=(energydif(2)-energydif(1))*ndes(i,1)
-          v(i)=v(i)+(energydif(3)-energydif(1))*ndes(i,2)
-          v(i)=v(i)+(energydif(4)-energydif(1))*ndes(i,3)
+          v(i)=(energydif(2)-energydif(1))*corners(1,i)
+          v(i)=v(i)+(energydif(3)-energydif(1))*corners(2,i)
+          v(i)=v(i)+(energydif(4)-energydif(1))*corners(3,i)
           v(i)=v(i)+energydif(1)
         enddo
     
         call sort(4,v,ind)
         do i=1,3
           do j=1,3
-            vec(i,j)=ndes(i+1,j)-ndes(1,j)
+            vec(i,j)=corners(j,i+1)-corners(j,1)
           enddo
         enddo
         vol=0.0d0
@@ -370,7 +360,7 @@
         ww2(2:4)=0.0d0
         do i=1,3
           do j=1,4
-            ww2(i+1)=ww2(i+1)+ww1(j)*ndes(j,i)
+            ww2(i+1)=ww2(i+1)+ww1(j)*corners(i,j)
           enddo
           ww2(1)=ww2(1)-ww2(i+1)
         enddo
@@ -390,7 +380,17 @@
       
       return
       
-999   write(*,*)'the four points are in the same plane'
+999   info = 1
+      write(*,*)'the four points are in the same plane'
+      write(*,*)'ical = ',ical
+      write(*,*)'nodes'
+      do i=1,4
+        write(*,*)corners(1:3,i)
+      enddo  
+      write(*,*)'vecs'
+      do i=1,3
+        write(*,*)vec(i,1:3)
+      enddo  
       do i=1,4
        ww2(i)=0.0d0
       enddo

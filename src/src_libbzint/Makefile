@@ -35,13 +35,13 @@ KGENSUBS =  coorskp.f90 divisi.f90 jget.f90 idkp.f90 \
 #
 
 INTFILES = tetcw.f90 tetcorecw.f90 tetiw.f90 tetiwsurf.f90 tetraint.f90 \
-           tetraqint.f90 calcdosve.f90 calcidosve.f90 dostet.f90 idos.f90 fermi.f90
+           tetraqint.f90 calcdosve.f90 calcidosve.f90 dostet.f90 idos.f90 fermitet.f90 
 
 #
 # Subroutine for use of intfiles only
 #
 
-INTSUBS = bloechlcor.f90 bpartoc.f90 bpartocsurf.f90 convw.f90 convcorew.f90 dos1t.f90 \
+INTSUBS = bloechlcor.f90 convw1t.f90 convw.f90 convcorew.f90 dos1t.f90 \
           generictetra.f90 genericfunf.f90 genericprism.f90 intdos1t.f90 intweight1t.f90 \
           intw.f90 intwsurf.f90 ksurf.f90 relnodes.f90 setnodes.f90 sortnodes.f90 \
           sortsurf.f90 surfnodes.f90 tlinap.f90 unrepnodes.f90 sorteq.f90 redifwt.f90 \
@@ -62,7 +62,7 @@ FILES = $(MODFILES) $(KGENFILES) $(INTFILES) $(FREEFILES) $(KGENSUBS) $(INTSUBS)
 OBJS = $(FILES:.f90=.o)
 
 #
-.SUFFIXES:	.f90
+.SUFFIXES:	.f90 .mod
 
 #..............................................................................
 #
@@ -87,8 +87,11 @@ $(OBJS): $(MODFILES)
 #  remove object files, preprocessed source files and files needed for
 #  static semantics checking
 #
-clean:
-	rm  -f $(OBJS) *.mod
+clean:  cleanmod
+	rm  -f $(OBJS) *.a  
+
+cleanmod:
+	rm  -f *.mod
 
 #..............................................................................
 #

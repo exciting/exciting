@@ -3,7 +3,7 @@
 ! !ROUTINE: tgenq
 !
 ! !INTERFACE:
-      subroutine tgenq(q,ntet,sib)
+      subroutine tgenq(q,maxtet,outet,sib)
 !
 ! !DESCRIPTION:
 ! Given a q vector in the submesh coordinates, this subroutine will give you the
@@ -27,8 +27,10 @@
      
 ! !OUTPUT PARAMETERS:
 
-      integer(4), intent(in) :: ntet    ! equals 6*ndiv(1)*ndiv(2)*ndiv(3). It tells
+      integer(4), intent(out) :: maxtet    ! equals 6*ndiv(1)*ndiv(2)*ndiv(3). It tells
 !                                        us how many tetrahedra we get without symmetry
+      integer(4), intent(out) :: outet(4,*)  ! The id number of the 4 vertices for one
+!                                              tetrahedron 
       
       integer(4), intent(out) :: sib(*)    ! just linkt(:) in the calling program, it 
 !                                       tells us how one tetrahedron is related to another
@@ -43,18 +45,12 @@
       integer(4) :: j 
       integer(4) :: t 
       integer(4) :: index
-      integer(4) :: itet0
-      integer(4) :: itet1
-      integer(4) :: maxtet
       integer(4) :: orig(3) 
       integer(4) :: cornid
       integer(4) :: corn(3) 
       integer(4) :: orig2(3)
       integer(4), dimension(3,4,6) :: tet
       integer(4), external :: idkp
-      integer(4), allocatable :: outet(:,:)  ! The id number of the 4 vertices for one
-!                                              tetrahedron 
-      
 
 ! !SYSTEM ROUTINES:
       intrinsic mod
@@ -66,31 +62,26 @@
       call tetinit(tet)
       maxtet=6*div(1)*div(2)*div(3)
       vt=1.d0/dble(maxtet)
-      sib(1:ntet)=0
       index=0
-      do i3=0,div(3)-1
-        orig(3)=i3
+      do i1=0,div(1)-1
+        orig(1)=i1
         do i2=0,div(2)-1
           orig(2)=i2
-          do i1=0,div(1)-1
-            orig(1)=i1
+          do i3=0,div(3)-1
+            orig(3)=i3
             index=index+1
             do t=1,6
-              itet0=redtet(6*(index-1)+t)
-              if(sib(itet0).eq.0)then
-!              do i=1,4
-!                do j=1,3
-!                  corn(j)=mod(orig(j)+tet(j,i,t),div(j))
-!                enddo
-!                cornid=idkp(corn)
-!                outet(i,6*(index-1)+t)=cornid
-!              enddo
+              do i=1,4
+                do j=1,3
+                  corn(j)=mod(orig(j)+tet(j,i,t),div(j))
+                enddo
+                cornid=idkp(corn)
+                outet(i,6*(index-1)+t)=cornid
+              enddo
                 do j=1,3
                   orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j))
                 enddo
-                itet1=redtet(6*(idkp(orig2)-1)+t)
-                sib(itet0)=itet1
-              endif  
+              sib(6*(index-1)+t)=6*(idkp(orig2)-1)+t
             enddo
           enddo
         enddo

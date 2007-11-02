@@ -32,16 +32,9 @@
 !EOP
 !
 !BOC
-
-      ! <contribution person="Stephan Sagmeister" date="2007/05/01", topic="arbitrary k-point offset">
-!!$      k(3)=mod(id-1,(div(3)))
-!!$      k(2)=mod(id-1,(div(3))*(div(2)))/(div(3))
-!!$      k(1)=(id-1)/((div(3))*(div(2)))
-
       k(1)=mod(id-1,(div(1)))
       k(2)=mod(id-1,(div(1))*(div(2)))/(div(1))
       k(3)=(id-1)/((div(1))*(div(2)))
-      ! </contribution>
 
       return
       

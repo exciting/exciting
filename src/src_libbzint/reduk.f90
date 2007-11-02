@@ -54,7 +54,7 @@
 !      write(6,*)'               reduk: begin'
 !      write(6,*)'------------------------------------------------------'
 
-      do i3=0,div(3)-1
+      do i3=0,div(1)-1
         kk(3)=divsh*i3+shift(3)
         onek(3)=i3
         do i2=0,div(2)-1
@@ -70,11 +70,9 @@
               do i=1,48
                 starr(i)=0
               enddo
-! <sag>
-!!$              write(24,*)
-!!$              write(24,'(i6,3i4)')divsh,div
-!!$              write(24,'(3i4,"  ",3i4)')onek,kk
-! </sag>
+!              write(24,*)
+!              write(24,'(i6,3i4)')divsh,div
+!              write(24,'(3i4,"  ",3i4)')onek,kk
               do i=1,nsymt
                 do j=1,3
                   nkp(j)=mod(iio(j,1,i)*kk(1)+iio(j,2,i)*kk(2)+&
@@ -83,13 +81,9 @@
                   nkp(j)=nkp(j)+(1-isign(1,nkp(j)))*divsh*div(j)/2
                   nkp(j)=(nkp(j)-shift(j))/divsh
                 enddo
-! <sag>
-!!$               write(24,'(i6,3i4,"  ",3i4)')i,ktp,nkp
-! </sag>
+!               write(24,'(i6,3i4,"  ",3i4)')i,ktp,nkp
                 nkpid=idkp(nkp)
-! <sag>
-!!$                write(24,'(4x,2i4)')nirkp,nkpid
-! </sag>
+!                write(24,'(4x,2i4)')nirkp,nkpid
                 call jset(kpav,nkpid,1)
                 redkp(nkpid)=kpid
                 starr(i)=nkpid
@@ -116,7 +110,6 @@
 !      write(6,*)'------------------------------------------------------'
 !      write(6,*)'               reduk: end'
 !      write(6,*)'------------------------------------------------------'
-
       return
       end subroutine reduk
 !EOC

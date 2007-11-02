@@ -32,7 +32,7 @@
 
 !EOP
 !BOC     
-!     calculate the intersections between three plance that belongs to 
+!     calculate the intersections between three planes that belongs to 
 !     the surface of the tetrahedron
         
       call surfnodes
@@ -45,7 +45,7 @@
 !     f>=ef)
 !
       call relnodes
-!     Sort the nodes in the way needed by bpartoc.      
+!     Sort the nodes in the way needed by convw1t.      
 !
       call sortnodes
   

@@ -31,7 +31,7 @@
       real(8), allocatable  :: nodes(:,:) ! the coordinates of the corners
 !                                           of the polyhedron
 
-      real(8), dimension(20,3) :: intnodes ! the coordinates of the 
+      real(8), dimension(3,20) :: intnodes ! the coordinates of the 
 !                                             intersections of the planes
 
       end module polyhedron

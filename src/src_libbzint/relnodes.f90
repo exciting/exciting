@@ -51,12 +51,12 @@
        inod=1
        maxnod=nnod
        do while (inod.le.maxnod)
-        ncor(1:3)=intnodes(inod,1:3)
+        ncor(1:3)=intnodes(1:3,inod)
         e1=tlinap(ncor,e)
         e2=tlinap(ncor,f)
         if(((e1.gt.ef).and.(dabs(e1-ef).gt.zerotol)).or.((e2.lt.ef).and.(dabs(e2-ef).gt.zerotol)))then
           do jnod=inod+1,maxnod
-            intnodes(jnod-1,1:3)=intnodes(jnod,1:3)
+            intnodes(1:3,jnod-1)=intnodes(1:3,jnod)
             ntype(jnod-1)=ntype(jnod)
           enddo
           maxnod=maxnod-1
@@ -65,7 +65,7 @@
         endif
        enddo
        do inod=maxnod+1,nnod
-        intnodes(inod,1:3)=0.0d0
+        intnodes(1:3,inod)=0.0d0
         ntype(inod)=0
        enddo
 
@@ -74,12 +74,12 @@
 ! in this case, we select the nodes to get the region when e1<efer
 !-----------------------------------------------------------------------------------------------
        do while (inod.le.maxnod)
-        ncor(1:3)=intnodes(inod,1:3)
+        ncor(1:3)=intnodes(1:3,inod)
         e1=tlinap(ncor,e)
         e2=tlinap(ncor,f)
         if((e1.gt.ef).and.(dabs(e1-ef).gt.zerotol))then
           do jnod=inod+1,maxnod
-            intnodes(jnod-1,1:3)=intnodes(jnod,1:3)
+            intnodes(1:3,jnod-1)=intnodes(1:3,jnod)
             ntype(jnod-1)=ntype(jnod)
           enddo
           maxnod=maxnod-1
@@ -88,7 +88,7 @@
         endif
        enddo     
        do inod=maxnod+1,nnod
-        intnodes(inod,1:3)=0.0d0
+        intnodes(1:3,inod)=0.0d0
         ntype(inod)=0
        enddo
 
@@ -99,12 +99,12 @@
        inod=1
        maxnod=nnod
        do while (inod.le.maxnod)
-        ncor(1:3)=intnodes(inod,1:3)
+        ncor(1:3)=intnodes(1:3,inod)
         e1=tlinap(ncor,e)
         e2=tlinap(ncor,f)
         if(((e1.gt.ef).and.(dabs(e1-ef).gt.zerotol)).or.((e2.gt.ef).and.(dabs(e2-ef).gt.zerotol)))then
           do jnod=inod+1,maxnod
-            intnodes(jnod-1,1:3)=intnodes(jnod,1:3)
+            intnodes(1:3,jnod-1)=intnodes(1:3,jnod)
             ntype(jnod-1)=ntype(jnod)
           enddo
           maxnod=maxnod-1
@@ -113,7 +113,7 @@
         endif
        enddo
        do inod=maxnod+1,nnod
-        intnodes(inod,1:3)=0.0d0
+        intnodes(1:3,inod)=0.0d0
         ntype(inod)=0
        enddo
 

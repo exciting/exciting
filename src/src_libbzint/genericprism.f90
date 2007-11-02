@@ -3,7 +3,7 @@
 ! !ROUTINE: genericprism
 ! 
 ! !INTERFACE:
-      subroutine genericprism(corners,w)
+      subroutine genericprism(corners,w,ical,inf)
 !     
 ! !DESCRIPTION:
 !
@@ -15,7 +15,8 @@
 
       implicit none
       
-      real(8), intent(in) :: corners(6,3) ! The coordinates of the 
+      integer(4), intent(in) :: ical
+      real(8), intent(in) :: corners(3,6) ! The coordinates of the 
 !                                           six corners of the prism,
 !                                           the first three form the 
 !                                           triangle at the basis and
@@ -25,16 +26,16 @@
 !                                           and (3,6)
  
 ! !OUTPUT PARAMETERS:
-
+      integer(4), intent(out) :: inf
       real(8), intent(out) :: w(4) ! the contribution of the prism to 
 !                                    the weight at each corner of the 
 !                                    containing tetrahedron.      
 
 ! !LOCAL VARIABLES:
 
-      integer(4) :: i,itet,inod
+      integer(4) :: i,itet,inod,info,infl
       
-      real(8), dimension(4,3) :: nodtet
+      real(8), dimension(3,4) :: nodtet
       
       real(8), dimension(4) :: internw
 
@@ -44,18 +45,26 @@
 
 !EOP
 !BOC
-
+      inf=0
+      infl=0
       w(1:4)=0.0d0
       do itet=0,2
         do inod=1,4
-          nodtet(inod,1:3)=corners(inod+itet,1:3)
+          nodtet(1:3,inod)=corners(1:3,inod+itet)
         enddo
-        call generictetra(nodtet,internw)
+        call generictetra(nodtet,internw,6,info)
+        infl=infl+info*(itet+1)
         do i=1,4
           w(i)=w(i)+internw(i)
         enddo
       enddo
-
+      if(infl.ne.0)then
+        inf=1
+        write(*,'(a7,i4,a8,i4)')'infl = ',infl,' icap = ',ical
+        do inod=1,6
+          write(*,'(3f13.8)')corners(inod,1:3)
+        enddo
+      endif    
       end subroutine genericprism
 
 !EOC

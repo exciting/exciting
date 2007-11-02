@@ -22,7 +22,7 @@
       
       integer(4), intent(in) :: nbd ! Maximum number of bands
       
-      real(8), intent(in) :: eband(nik,*) ! Band energies
+      real(8), intent(in) :: eband(nbd,nik) ! Band energies
       
       integer(4), intent(in) :: ntet        ! Number of tetrahedra
       
@@ -54,7 +54,7 @@
       do itet=1,ntet
         do ib=1,nbd 
           do i=1,4
-            ee(i)=eband(tetc(i,itet),ib)
+            ee(i)=eband(ib,tetc(i,itet))
           enddo
           call sort(4,ee)
           idt=intdos1t(ee,e,vt)
