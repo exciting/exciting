@@ -54,7 +54,7 @@
 !      write(6,*)'               reduk: begin'
 !      write(6,*)'------------------------------------------------------'
 
-      do i3=0,div(1)-1
+      do i3=0,div(3)-1
         kk(3)=divsh*i3+shift(3)
         onek(3)=i3
         do i2=0,div(2)-1

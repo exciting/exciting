@@ -69,12 +69,22 @@
       outet(1:4,1:ntet)=0
       index=0
       index2=0
+!<sag>
+!<commented>
       do i1=0,div(1)-1
         orig(1)=i1
         do i2=0,div(2)-1
           orig(2)=i2
           do i3=0,div(3)-1
             orig(3)=i3
+!</commented>
+!!$      do i3=0,div(3)-1
+!!$        orig(3)=i3
+!!$        do i2=0,div(2)-1
+!!$          orig(2)=i2
+!!$          do i1=0,div(1)-1
+!!$            orig(1)=i1
+!</sag>
             index2=index2+1
             do t=1,6
               do i=1,4

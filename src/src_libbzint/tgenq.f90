@@ -63,12 +63,22 @@
       maxtet=6*div(1)*div(2)*div(3)
       vt=1.d0/dble(maxtet)
       index=0
+!<sag>
+!<commented>
       do i1=0,div(1)-1
         orig(1)=i1
         do i2=0,div(2)-1
           orig(2)=i2
           do i3=0,div(3)-1
             orig(3)=i3
+!</commented>
+!!$      do i3=0,div(3)-1
+!!$        orig(3)=i3
+!!$        do i2=0,div(2)-1
+!!$          orig(2)=i2
+!!$          do i1=0,div(1)-1
+!!$            orig(1)=i1
+!</sag>
             index=index+1
             do t=1,6
               do i=1,4

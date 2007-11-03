@@ -34,16 +34,24 @@
       real(8)    :: rind
       
 !EOP
-!
 !BOC      
 
-      idiv=div(1)*div(2)*div(3)*2
+!<sag>
+!---sag      idiv=div(1)*div(2)*div(3)*2
+!---sag      do kpi=1,nkp
+!---sag        do i=1,3
+!---sag          rind=dble(divsh*kp(i,kpi)+shift(i))/dble(divsh*div(i))
+!---sag          klist(i,kpi)=nint(rind*idiv)
+!---sag        enddo
+!---sag      enddo
+      idiv=div(1)*div(2)*div(3)*divsh
       do kpi=1,nkp
-        do i=1,3
-          rind=dble(divsh*kp(i,kpi)+shift(i))/dble(divsh*div(i))
-          klist(i,kpi)=nint(rind*idiv)
-        enddo
-      enddo
+         do i=1,3
+            klist(i,kpi)=kp(i,kpi)*idiv/div(i) + &
+                 shift(i)*idiv/(div(i)*divsh)
+         end do
+      end do
+!</sag>
       call divisi(nkp,idiv,klist)
 
       end subroutine intern

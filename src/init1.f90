@@ -132,13 +132,17 @@ else
         call terminate
      end if
      if (allocated(indirkp)) deallocate(indirkp)
-     allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
      if (allocated(iwkp)) deallocate(iwkp)
-     allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
      if (allocated(wtet)) deallocate(wtet)
-     allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
      if (allocated(tnodes)) deallocate(tnodes)
+     allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
+     allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
+     allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
      allocate(tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+     indirkp(:)=0
+     iwkp(:)=0
+     wtet(:)=0
+     tnodes(:,:)=0
      if (nsymcrys > 48) then
         write(*,*) 'Error(init1): number of crystal symmetries > 48'
         write(*,*) ' does not work with k-point generation for'
@@ -159,8 +163,8 @@ else
      ! reduce k-point set if necessary
      nsymcryst=1
      if (reducek) nsymcryst=nsymcrys
-     call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,iwkp,&
-          ntet,tnodes,wtet,tvol,mnd) 
+     call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,&
+          iwkp,ntet,tnodes,wtet,tvol,mnd) 
      do ik=1,nkpt
         vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
         vkc(:,ik)=vkl(1,ik)*bvec(:,1)+vkl(2,ik)*bvec(:,2)+vkl(3,ik)* &
@@ -168,7 +172,7 @@ else
         wkpt(ik)=dble(iwkp(ik))/dble(ngridk(1)*ngridk(2)*ngridk(3))
      end do ! ik
 !<rga>
-     if((task.eq.121).or.(task.eq.122))then     
+!---sag     if((task.eq.121).or.(task.eq.122))then     
        allocate(linkq(6*nkpt,nkpt))
        if (allocated(link)) deallocate(link)
        allocate(link(6*nkpt,1))
@@ -190,7 +194,7 @@ else
        ! keep link-array only for q=0
        link(:,1)=linkq(:,1)
        deallocate(sy,iwkp,linkq,ivq)
-     endif !task
+!---sag     endif !task
       deallocate(indirkp)
 !</rga>       
        ! cross check k-point set with exciting default routine
