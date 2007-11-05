@@ -172,7 +172,7 @@ else
         wkpt(ik)=dble(iwkp(ik))/dble(ngridk(1)*ngridk(2)*ngridk(3))
      end do ! ik
 !<rga>
-!---sag     if((task.eq.121).or.(task.eq.122))then     
+     if ((task.eq.121).or.(task.eq.122).or.((task>=300).and.(task<=499))) then     
        allocate(linkq(6*nkpt,nkpt))
        if (allocated(link)) deallocate(link)
        allocate(link(6*nkpt,1))
@@ -194,7 +194,7 @@ else
        ! keep link-array only for q=0
        link(:,1)=linkq(:,1)
        deallocate(sy,iwkp,linkq,ivq)
-!---sag     endif !task
+    endif !task
       deallocate(indirkp)
 !</rga>       
        ! cross check k-point set with exciting default routine
