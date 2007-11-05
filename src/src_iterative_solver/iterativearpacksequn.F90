@@ -38,7 +38,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   parameter         (zero = (0.0D+0, 0.0D+0) ,one = (1.0D+0, 0.0D+0) )
   !ARPACK Interface vars
 
-  integer:: ido, nev, ncv, lworkl, info, ierr, j,i
+  integer:: ido, nev, ncv, lworkl, info,infoznaupd, ierr, j,i
+  integer :: nevmax, ncvmax,nmax
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
   complex(8),allocatable::workd(:),resid(:),v(:,:),workev(:),workl(:),d(:)
@@ -52,15 +53,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer ::IPIV(nmat(ik,ispn))
   !parameters
   nev=nstfv
-  ncv=2*nstfv+2
+  ncv=3*nstfv+2
+  nevmax=max(15,nstfv)
+  ncvmax= nevmax*3
+  nmax=nmatmax
   n=nmat(ik,ispn)
-ldv=n
-  allocate(workd(3*n),resid(n),v(ldv,ncv),workev(2*ncv),workl(3*ncv*ncv+6*ncv),d(ncv))
-  allocate(rwork(ncv))
+  ldv=n
+  allocate(workd(3*nmax),resid(nmax),v(ldv,ncvmax),workev(2*ncvmax),workl(3*ncvmax*ncvmax+6*ncvmax),d(ncvmax))
+  allocate(rwork(ncvmax))
   bmat  = 'G'
   which = 'LM'
   sigma = zero
-  lworkl =3*ncv+6*ncv 
+  lworkl =3*ncvmax*ncvmax+5*ncvmax 
   tol    = 0.0 
   ido    = 0
   info   = 0
@@ -80,8 +84,10 @@ ldv=n
   !# reverse comunication loop of arpack library: #
   !################################################
   do i=1,maxitr 
-     call znaupd(ido,bmat,n,which,nstfv,tol,resid,ncv,v,n,\
-     iparam,ipntr,workd,workl,lworkl,rwork,info)
+     call znaupd  &
+          ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam,  &
+          ipntr, workd, workl, lworkl, rwork, infoznaupd)
+
      if (ido .eq. -1 .or. ido .eq. 1) then
 
 	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
@@ -96,12 +102,12 @@ ldv=n
         exit
      endif
   end do
-  if ( info .ne. 0 ) then
+  if ( infoznaupd .ne. 0 ) then
      print *, ' ' 
-     print *, ' Error with znaupd, info = ', info
+     print *, ' Error with znaupd, info = ', infoznaupd
      print *, ' Check the documentation of znaupd'
      print *, ' '
-
+     stop
   else
      rvec = .true.
 
@@ -114,7 +120,7 @@ ldv=n
         print *, ' Error with zneupd, info = ', ierr
         print *, ' Check the documentation of zneupd'
         print *, ' '
-
+        stop
      endif
 
   endif
