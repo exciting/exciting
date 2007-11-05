@@ -20,7 +20,7 @@ contains
     write(unit1,'("## Time (hh:mm:ss)  : ",a2,":",a2,":",a2)') &
          tim(1:2),tim(3:4),tim(5:6)
     write(unit1,'("# version           : ",i1.1,".",i1.1,".",i3.3)') version
-    write(unit1,'("# build             : ",i5.5)') build_tddft
+    write(unit1,'("# version (xs)      : ",i1.1,".",i3.3)') versionxs
     write(unit1,'(a,3f12.6)') '# vql               :',vql(:,iq)
     write(unit1,'(a,3f12.6)') '# vqc               :',vqc(:,iq)
     write(unit1,'(a,2i8)') '# optcomp           :',optcomp(1,1),optcomp(2,1)

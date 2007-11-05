@@ -9,12 +9,12 @@ subroutine tdinit
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'tdinit'
-  character(10) dat, tim, s2
+  character(10) dat, tim
   integer :: un,i
   logical :: ex
 
-  ! rank of process
-  call getunit(un)
+  ! assign xs code version
+  versionxs=(/0,85/)
 
   ! check consistency of rank and procs
   if ((procs.lt.1).or.(procs.gt.maxproc)) then
@@ -33,15 +33,11 @@ subroutine tdinit
   if (procs.gt.1) then
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&
           filnam=fnresume)
-
-!!!     write(fnresume,'(".resume",i3.3)') rank
-!!!     write(spar,'("par",i3.3)') rank
-
   else
      call genfilname(basename='.resume',dotext='')
-!!!     fnresume='.resume'
   end if
 
+!!$  call getunit(un)
 !!$  ! initialize for first call to main routine
 !!$  if (calledtd.eq.1) resumechkpts=0
 !!$  ! read in checkpoint if present
@@ -80,30 +76,30 @@ subroutine tdinit
 
   ! write to info file
   write(unitout,'(a)')
-  write(unitout,'(a)') '============ TDDFT@EXCITING started ==================&
-       &======================'
-  write(unitout,*)
-  write(unitout,'("EXCITING version  : ",I1.1,".",I1.1,".",I3.3)') version
-  write(unitout,'("TDDFT build       : ",I4.4                  )') &
-       build_tddft
+  write(unitout,'("+----------------------------------------------------------&
+       &+")')
+  write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3,&
+       " (eXcited States "I1.1,".",I3.3," ) started |")') version,versionxs
+  write(unitout,'("+----------------------------------------------------------&
+       &+")')
 #ifdef MPI
-  write(unitout,'(" compiled for MPI parallelization")') 
+  write(unitout,'("compiled for MPI execution")') 
 #endif
 #ifndef MPI
-  write(unitout,'(" compiled for serial execution")') 
+  write(unitout,'("compiled for serial execution")') 
 #endif
   write(unitout,'(a)') 'Date (YYYY-MM-DD) : '//dat(1:4)//'-'//dat(5:6)//'-'// &
        dat(7:8)
   write(unitout,'(a)') 'Time (hh:mm:ss)   : '//tim(1:2)//':'//tim(3:4)//':'// &
        tim(5:6)
   write(unitout,*)
-  write(unitout,'(a,i6,a)') '*** Info('//trim(thisnam)//'): task Nr.', &
+  write(unitout,'(a,i6,a)') 'Info('//trim(thisnam)//'): task Nr.', &
        task,' started'
   if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'(a,2i6)') '*** Info('// &
-       trim(thisnam)//'): (parallel) master, rank/number of processes:',rank, &
+       trim(thisnam)//'):(parallel) master, rank/number of processes:',rank, &
        procs
   if ((procs.gt.1).and.(rank.ne.0)) write(unitout,'(a,2i6)') '*** Info('// &
-       trim(thisnam)//'): (parallel) slave, rank/number of processes:',rank, &
+       trim(thisnam)//'):(parallel) slave, rank/number of processes:',rank, &
        procs
   if (notelns.gt.0) then
      write(unitout,*)

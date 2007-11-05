@@ -418,8 +418,8 @@ module modtddft
   !---------------------------------!
   !     miscellaneous variables     !
   !---------------------------------!
-  ! build number
-  integer, parameter :: build_tddft = 130
+  ! xs code version
+  integer :: versionxs(2)
   ! true if energies output in eV
   logical :: tevout
   ! scaling factor for writing energies

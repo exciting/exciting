@@ -27,7 +27,7 @@ contains
     real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
     real(8) :: wt, vkloff_save(3)
     integer :: ik,ist,iv,ic
-    integer :: iw,wi,wf,nwdfp,un,unb,un2,recl,recl2,irec,irec2
+    integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
     logical :: exis,tq0,tetrat
 
     tq0 = tq1gamma.and.(iq.eq.1)
@@ -73,31 +73,28 @@ contains
     call readfermi
 
     ! allocate arrays
-    allocate(eb(nkpt,nstsv))
+    allocate(eb(nstsv,nkpt))
 
     ! get the eigenvalues from file
     do ik=1,nkpt
        call getevalsv(vkl(1,ik),evalsv(1,ik))
     end do
-    forall(ik=1:nkpt,ist=1:nstsv)
-       eb(ik,ist)=evalsv(ist,ik)
-    end forall
+    eb(:,:)=evalsv(:,:)
     ! scissors shift
     do ik=1,nkpt
        do ist=nstval+1,nstsv
-          eb(ik,ist)=eb(ik,ist)+scissor
+          eb(ist,ik)=eb(ist,ik)+scissor
        end do
     end do
     deallocate(evalsv)
-    allocate(cw(nkpt,nstsv,nstsv))
-    allocate(cwa(nkpt,nstsv,nstsv))
-    allocate(cwsurf(nkpt,nstsv,nstsv))
+    allocate(cw(nstsv,nstsv,nkpt))
+    allocate(cwa(nstsv,nstsv,nkpt))
+    allocate(cwsurf(nstsv,nstsv,nkpt))
     allocate(cwsurft2(nstval,nstcon),cwt2(nstval,nstcon),cwat2(nstval,nstcon))
 
     call getunit(un)
-    call getunit(unb)
-    inquire(iolength=recl) cw(1,:nstval,nstval+1:),cwa(1,:nstval,nstval+1:),&
-         cwsurf(1,:nstval,nstval+1:)
+    inquire(iolength=recl) cw(:nstval,nstval+1:,1),cwa(:nstval,nstval+1:,1),&
+         cwsurf(:nstval,nstval+1:,1)
     open(un,file=trim(filnamt),form='unformatted',&
          action='write',status='replace',access='direct',recl=recl)
     ! calculate weights
@@ -129,9 +126,9 @@ write(*,*) '++++++++++++ surface'
             wt,4,cwsurf)
        do ik=1,nkpt
           irec=(ik-1)*nwdfp+iw
-          cwsurft2(:,:)=cwsurf(ik,:nstval,nstval+1:)
-          cwt2(:,:)=cw(ik,:nstval,nstval+1:)
-          cwat2(:,:)=cwa(ik,:nstval,nstval+1:)
+          cwsurft2(:,:)=cwsurf(:nstval,nstval+1:,ik)
+          cwt2(:,:)=cw(:nstval,nstval+1:,ik)
+          cwat2(:,:)=cwa(:nstval,nstval+1:,ik)
           write(un,rec=irec) cwt2,cwat2,cwsurft2
        end do
        if (iw <= nwdf/procs) then

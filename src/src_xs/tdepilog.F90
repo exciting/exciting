@@ -19,7 +19,7 @@ subroutine tdepilog
   cputcum = cputim0f - cputimcum
   walltcum = dble(systim0f - systimcum)/dble(cntrate)
 
-  write(unitout,'(a,i8,a)') '*** Info('//thisnam//'): task Nr.', task, &
+  write(unitout,'(a,i8,a)') 'Info('//thisnam//'): task Nr.', task, &
        ' stopped gracefully'
   write(unitout,*)
   write(unitout,'(a)') 'Timings [seconds/minutes/hours/days]'
@@ -38,8 +38,12 @@ subroutine tdepilog
   write(unitout,'(a,4g18.6)') '  wall time (cumulative):', &
        walltcum,walltcum/60,walltcum/3600,walltcum/(24*3600)
   write(unitout,*)
-  write(unitout,'(a)') '============ TDDFT@EXCITING stopped ==================&
-       &======================'
+  write(unitout,'("+----------------------------------------------------------&
+       &+")')
+  write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3,&
+       " (eXcited States "I1.1,".",I3.3," ) stopped |")') version,versionxs
+  write(unitout,'("+----------------------------------------------------------&
+       &+")')
   write(unitout,*)
   close(unitout)
 

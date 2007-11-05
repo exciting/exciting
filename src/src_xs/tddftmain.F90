@@ -40,7 +40,7 @@ subroutine tddftmain
   if (calledtd == 1) then
      ! check verify constraints
      call tdcheck
-     write(unitout,'(a)') '*** Info('//thisnam//'): initialization done.'
+     write(unitout,'(a)') 'Info('//thisnam//'): initialization done.'
      ! write info
      call writeinfotd
   end if
