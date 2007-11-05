@@ -1,5 +1,5 @@
 F90 =ifort
-F90_OPTS = -g # -DDEBUG
+F90_OPTS = -g  -DDEBUG
 F77 =ifort 
 F77_OPTS =  -g
 LIB_SYS = 

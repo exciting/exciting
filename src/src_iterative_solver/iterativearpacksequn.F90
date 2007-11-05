@@ -65,11 +65,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   which = 'LM'
   sigma = zero
   lworkl =3*ncvmax*ncvmax+5*ncvmax 
-  tol    = 0.0 
+  tol    = 0.0
   ido    = 0
   info   = 0
   ishfts = 1
-  maxitr = 300
+  maxitr = 600
   mode   = 2
   iparam(1) = ishfts
   iparam(3) = maxitr  
@@ -87,17 +87,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call znaupd  &
           ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam,  &
           ipntr, workd, workl, lworkl, rwork, infoznaupd)
+#ifdef DEBUG
+    ! write(*,*) "ido",ido
+#endif
 
      if (ido .eq. -1 .or. ido .eq. 1) then
 
 	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
         call zhptrs('U', N, 1, o, IPIV, workd(ipntr(2)), n, INFO )
-        cycle
      else if (ido .eq. 2) then
  	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
-        cycle
      else 
         exit
      endif
@@ -119,11 +120,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         print *, ' ' 
         print *, ' Error with zneupd, info = ', ierr
         print *, ' Check the documentation of zneupd'
-        print *, ' '
+        print *, ' '	 
+	write(*,*)"eval",d(1:nstfv)
+        write(*,*)"iter",i	
         stop
      endif
 
   endif
+#ifdef DEBUG
+	write(*,*)"eval",d(1:nstfv)
+        write(*,*)"iter",i
+#endif
+
   evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
   evalfv(1:nstfv,ispn)=d(1:nstfv)
   call putevecfv(ik,evecfv)
