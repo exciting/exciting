@@ -10,6 +10,9 @@
 !
 ! !USES:
       
+!<sag>
+      use control
+!</sag>
       implicit none     
       
 ! !INPUT PARAMETERS:
@@ -157,7 +160,13 @@
         emax=minval(eband(1:nbd,1:nik),mask=eband(1:nbd,1:nik).gt. &
      &              eint)
         eint=0.5d0*(emin+emax)
-        write(6,*)emin,emax,eint
+!<sag>
+        if (tetradbglv > 0) then
+!</sag>
+           write(6,*)emin,emax,eint
+!<sag>
+        end if
+!</sag>
       else
 !
 ! For metals, Aply the secant method for highest precision in the Fermi energy             

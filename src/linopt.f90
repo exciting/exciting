@@ -110,10 +110,10 @@ subroutine linopt
      e12(:,:,:)=0.d0
   end if
   if (tetrat) then
-     allocate(e1(nkpt,nstsv))
-     allocate(cw(nkpt,nstsv,nstsv))
-     allocate(cwa(nkpt,nstsv,nstsv))
-     allocate(cwsurf(nkpt,nstsv,nstsv))
+     allocate(e1(nstsv,nkpt))
+     allocate(cw(nstsv,nstsv,nkpt))
+     allocate(cwa(nstsv,nstsv,nkpt))
+     allocate(cwsurf(nstsv,nstsv,nkpt))
   end if
   ! </sampling>
   if (usegdft) then
@@ -153,9 +153,21 @@ subroutine linopt
      i1=optcomp(1,iop)
      i2=optcomp(2,iop)
      ! open files for writting
-     write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
+     if (tetra) then
+        write(fname,'("EPSILON_TET_",2I1,".OUT")') i1,i2
+     else if (lorentz) then
+        write(fname,'("EPSILON_LTZ_",2I1,".OUT")') i1,i2
+     else
+        write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
+     end if
      open(60,file=trim(fname),action='WRITE',form='FORMATTED')
-     write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
+     if (tetra) then
+        write(fname,'("SIGMA_TET_",2I1,".OUT")') i1,i2
+     else if (lorentz) then
+        write(fname,'("SIGMA_LTZ_",2I1,".OUT")') i1,i2
+     else
+        write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
+     end if
      open(61,file=trim(fname),action='WRITE',form='FORMATTED')
      e(:,:)=0.d0
      f(:,:)=0.d0
@@ -171,15 +183,17 @@ subroutine linopt
         ! read matrix elements from direct-access file
         read(50,rec=ik) pmat
         call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
-        ! check for better numerical convergence at zero frequency
-        m=0
-        do ist1=1,nstsv
-           do ist2=1,nstsv
-              m=m+1
-              f12(ist1,ist2,ik)=f(m,ik)
-              e12(ist1,ist2,ik)=e(m,ik)
+        if (lorentz) then
+           ! check for better numerical convergence at zero frequency
+           m=0
+           do ist1=1,nstsv
+              do ist2=1,nstsv
+                 m=m+1
+                 f12(ist1,ist2,ik)=f(m,ik)
+                 e12(ist1,ist2,ik)=e(m,ik)
+              end do
            end do
-        end do
+        end if
      end do
      if (tetra) then
         ! prefactor
@@ -187,22 +201,22 @@ subroutine linopt
         f(:,:)=t1*f(:,:)
         ! tetrahedron method
         forall (ik=1:nkpt,ist1=1:nstsv)
-           e1(ik,ist1)=evalsv(ist1,ik)
+           e1(ist1,ik)=evalsv(ist1,ik)
         end forall
         ! scissors correction needed in input energies for tetrahedron method
         where(e1 > efermi) e1=e1+scissor
         do iw=1,nwdos
-           write(*,*) 'TETRA: iw=',iw
+           write(*,'("Info(linopt): ",I6," of ",I6," w-points")') iw,nwdos
            ! it seems that frequency should be non-zero for tetcw (?)
            ! see Ricardo's code
            if (abs(w(iw)).lt.epstetra) w(iw)=epstetra
            ! switch 2 below in tetcw defines bulk integration for real part
-           call tetcw(nkpt,ntet,nstfv,e1,tnodes,link,tvol,efermi, &
+           call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
                 w(iw),2,1,cw)
-           call tetcw(nkpt,ntet,nstfv,e1,tnodes,link,tvol,efermi, &
+           call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
                 -w(iw),2,1,cwa)
            ! switch 4 below in tetcw defines surface integration for imag. part
-           call tetcw(nkpt,ntet,nstfv,e1,tnodes,link,tvol,efermi, &
+           call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
                 w(iw),4,1,cwsurf)
            ! summation using weights from tetrahedron method
            sum=0.d0
@@ -213,14 +227,14 @@ subroutine linopt
                  do ist2=1,nstsv
                     m=m+1
                     ! real part, resonant contribution
-                    if (ist1.lt.ist2) sum=sum+cw(ik,ist1,ist2)* &
+                    if (ist1.lt.ist2) sum=sum+cw(ist1,ist2,ik)* &
                          f(m,ik)/e(m,ik)**2
                     ! real part, anti-resonant contribution
-                    if (ist1.gt.ist2) sum=sum+cwa(ik,ist2,ist1)* &
+                    if (ist1.gt.ist2) sum=sum-cwa(ist2,ist1,ik)* &
                          f(m,ik)/e(m,ik)**2
                     ! imaginary part (only resonant contribution by theory
                     ! for positive frequencies)
-                    if (ist1.lt.ist2) sum2=sum2+cwsurf(ik,ist1,ist2)* &
+                    if (ist1.lt.ist2) sum2=sum2+cwsurf(ist1,ist2,ik)* &
                          f(m,ik)
                  end do
               end do

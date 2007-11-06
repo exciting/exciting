@@ -72,6 +72,9 @@
 ! !USES:
 
       use tetra_internal   , only : sgnfrq, omgga
+!<sag>
+      use tetra_internal, only : restype
+!</sag>
 
       use polyhedron
 
@@ -103,6 +106,11 @@
       real(8), dimension(3,3) :: vec 
       
       real(8), dimension(4) :: energydif, v, ww1, ww0, w1
+
+      ! <sag>
+      ! resonant/antiresonant parts separation, 2007/05/01 by S. Sagmeister
+      logical :: tres,tares
+      ! </sag>
 !
 ! !EXTERNAL ROUTINES: 
 !
@@ -114,9 +122,21 @@
 !
 ! Intrinsic functions
 
+      !<sag>
+      ! the line below for "det" is an intrinsic function definition (?)
+      !</sag>
       det(i,j)=vec(2,i)*vec(3,j)-vec(2,j)*vec(3,i)
 !EOP
 !BOC
+      !<sag>
+      ! zero the variables "weit1" and "weit2"
+      weit1=0.d0
+      weit2=0.d0
+      ! assign resonance type
+      tres=(restype.eq.0).or.(restype.eq.1)
+      tares=(restype.eq.0).or.(restype.eq.2)
+      !</sag>
+
       info=0
       ww2(1:4)=0.0d0
 
@@ -185,8 +205,14 @@
         enddo
 
         if (omgga.ge.1.0d+1*maxv)then
-          call redifwtaylor(v,omgga,ww1)
-          call redifwtaylor(v,-omgga,ww2)
+          !<sag>
+          !<commented>
+!!$          call redifwtaylor(v,omgga,ww1)
+!!$          call redifwtaylor(v,-omgga,ww2)
+          !</commented>
+          if (tres) call redifwtaylor(v,omgga,ww1)
+          if (tares) call redifwtaylor(v,-omgga,ww2)
+          !</sag>
           do i=1,4
            ww1(i)=ww1(i)+ww2(i)
           enddo
@@ -201,27 +227,51 @@
 
           w1(1:4)=0.0d0
 
-          call redifwt(v,omgga,sigeq,weit1)
-
-          call redifwt(v,-omgga,sigeq,weit2)
+          !<sag>
+          !<commented>
+!!$          call redifwt(v,omgga,sigeq,weit1)
+!!$
+!!$          call redifwt(v,-omgga,sigeq,weit2)
+          !</commented>
+          if (tres) call redifwt(v,omgga,sigeq,weit1)
+          if (tares) call redifwt(v,-omgga,sigeq,weit2)
+          !</sag>
 
           ww1(ind(1))=weit1+weit2
  
-          call redifwtz(v,omgga,sigeq,weit1)
-
-          call redifwtz(v,-omgga,sigeq,weit2) 
+          !<sag>
+          !<commented>
+!!$          call redifwtz(v,omgga,sigeq,weit1)
+!!$
+!!$          call redifwtz(v,-omgga,sigeq,weit2) 
+          !</commented>
+          if (tres) call redifwtz(v,omgga,sigeq,weit1)
+          if (tares) call redifwtz(v,-omgga,sigeq,weit2) 
+          !</sag>
 
           ww1(ind(4))=weit1+weit2
 
-          call redifwtx(v,omgga,sigeq,weit1)
-
-          call redifwtx(v,-omgga,sigeq,weit2)
+          !<sag>
+          !<commented>
+!!$          call redifwtx(v,omgga,sigeq,weit1)
+!!$
+!!$          call redifwtx(v,-omgga,sigeq,weit2)
+          !</commented>
+          if (tres) call redifwtx(v,omgga,sigeq,weit1)
+          if (tares) call redifwtx(v,-omgga,sigeq,weit2)
+          !</sag>
 
           ww1(ind(2))=weit1+weit2
 
-          call redifwty(v,omgga,sigeq,weit1)
- 
-          call redifwty(v,-omgga,sigeq,weit2)
+          !<sag>
+          !<commented>
+!!$          call redifwty(v,omgga,sigeq,weit1)
+!!$ 
+!!$          call redifwty(v,-omgga,sigeq,weit2)
+          !</commented>
+          if (tres) call redifwty(v,omgga,sigeq,weit1)
+          if (tares) call redifwty(v,-omgga,sigeq,weit2)
+          !</sag>
 
           ww1(ind(3))=weit1+weit2 
         endif

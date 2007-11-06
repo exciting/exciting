@@ -3,7 +3,7 @@
 ! !ROUTINE: tetcw 
 !
 ! !INTERFACE:
-       subroutine tetcw(nik,nt,nb,wt,ebd,tetc,linkt,v,efer,omeg,sigfreq,cw)
+      subroutine tetcw(nik,nt,nb,wt,ebd,tetc,linkt,v,efer,omeg,sigfreq,rtyp,cw)
 !
 ! !DESCRIPTION: 
 ! 
@@ -15,6 +15,9 @@
 ! !USES:
  
        use tetra_internal
+       !<sag>
+       use control
+       !</sag>
        
        implicit none      
 
@@ -52,12 +55,23 @@
        integer(4), intent(in) :: sigfreq  ! Select the kind of bulk convolution
 !                                           weights when it equals 1,2,3. And
 !                                           surface integration for 4.
+  !<sag>
+  ! resonance type
+  integer, intent(in) :: rtyp
+  !</sag>
 
 ! !OUTPUT PARAMETERS:
        
        real(8), intent(out)    :: cw(nb,nb,nik) ! the values of
        
-   
+  !<sag>
+  ! local variables
+  real(8), target, allocatable :: target_ebd(:,:)
+  integer(4), target, allocatable:: target_tetc(:,:)
+  integer(4), target, allocatable :: target_linkt(:)
+  integer(4), target, allocatable :: target_wt(:)
+  !</sag>
+
 ! !SYSTEM SUBROUTINES:
        
       
@@ -76,14 +90,51 @@
       ntet  = nt
       nband=nb
       vt = v
-      tetcorn => tetc(1:4,1:ntet)
-      tetln => linkt(1:ntet)
-      eband   => ebd(1:nb,1:nik)
-      tetweig => wt(1:ntet)
+
+      !<sag>
+      ! assign resonance type
+      restype=rtyp
+      if (pointerhandling == 0) then
+         ! default treatment
+      !</sag>
+         tetcorn => tetc(1:4,1:ntet)
+         tetln => linkt(1:ntet)
+         eband   => ebd(1:nb,1:nik)
+         tetweig => wt(1:ntet)
+      !<sag>
+      else if (pointerhandling == 1) then
+         ! additional targets to get around with core dumps in combination with
+         ! the Portland compiler
+         allocate(target_tetc(1:4,1:ntet))
+         allocate(target_linkt(1:ntet))
+         allocate(target_ebd(1:nb,1:nik))
+         allocate(target_wt(1:ntet))
+         ! store copy input parameters locally for this routine
+         target_tetc(1:4,1:ntet)=tetc(1:4,1:ntet)
+         target_linkt(1:ntet)=linkt(1:ntet)
+         target_ebd(1:nb,1:nik)=ebd(1:nb,1:nik)
+         target_wt(1:ntet)=wt(1:ntet)
+         ! assign pointers
+         tetcorn => target_tetc(1:4,1:ntet)
+         tetln => target_linkt(1:ntet)
+         eband   => target_ebd(1:nb,1:nik)
+         tetweig => target_wt(1:ntet)
+      else
+         write(*,*) 'Error in tetcw: bad pointerhandling specified, value is:'&
+              ,pointerhandling
+         stop
+      end if
+      !</sag>
 !
 !     Calculate the weights.
 !
       call convw(efer,omeg,sigfreq,cw)
+
+      !<sag>
+      if (pointerhandling == 1) then
+         deallocate(target_tetc,target_linkt,target_ebd,target_wt)
+      end if
+      !</sag>
 
       end subroutine tetcw
       

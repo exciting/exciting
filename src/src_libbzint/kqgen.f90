@@ -144,8 +144,12 @@
 !      iio=>symop(1:3,1:3,1:nsymt)
      div=ndiv
       gbas=bvec
-      write(*,*)'div =',div
-      write(*,*)'nkpt =',nkpt
+!<sag>
+!<commented>
+!!$      write(*,*)'div =',div
+!!$      write(*,*)'nkpt =',nkpt
+!</commented>
+!</sag>
       linkt=0
 !
 !     Set the total number of k-points

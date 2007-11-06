@@ -30,6 +30,11 @@ contains
     integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
     logical :: exis,tq0,tetrat
 
+    ! debug output in tetrahedron integration library
+    call tetrasetdbglv(1)
+    ! safer pointer handling in tetrahedron integration library
+    call setpointerhandling(1)
+
     tq0 = tq1gamma.and.(iq.eq.1)
     ! save k-point offset
     vkloff_save = vkloff
@@ -66,11 +71,13 @@ contains
        write(unitout,'(a)') 'Error('//trim(thisnam)//'): non-Gamma q-point &
             &and tetrahedron method chosen'
        tetrat=.false.
-       call terminate()
+       call terminate
     end if
 
     ! read Fermi energy
+    call genfilname(iq=0,setfilext=.true.)
     call readfermi
+    call genfilname(iq=iq,setfilext=.true.)
 
     ! allocate arrays
     allocate(eb(nstsv,nkpt))
@@ -103,27 +110,14 @@ contains
        if (abs(wt).lt.epstetra) wt=epstetra
        ! switch 2 below in tetcw defines bulk integration for real part
        ! resonant contribution
-write(*,*) '++++++++++++ resonant bulk'
-write(*,*) 'nkpt',nkpt
-write(*,*) 'ntet',ntet
-write(*,*) 'nstsv',nstsv
-write(*,*) 'wtet',wtet
-write(*,*) 'eb',eb
-write(*,*) 'tnodes',tnodes
-write(*,*) 'link',link
-write(*,*) 'tvol',tvol
-write(*,*) 'efermi',efermi
-write(*,*) 'wt',wt
        call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-            wt,2,cw)
+            wt,2,1,cw)
        ! anti-resonant contribution
-write(*,*) '++++++++++++ anti-resonant bulk'
        call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-            -wt,2,cwa)
+            -wt,2,1,cwa)
        ! switch 4 below in tetcw defines surface integration for imag. part
-write(*,*) '++++++++++++ surface'
        call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-            wt,4,cwsurf)
+            wt,4,1,cwsurf)
        do ik=1,nkpt
           irec=(ik-1)*nwdfp+iw
           cwsurft2(:,:)=cwsurf(:nstval,nstval+1:,ik)
