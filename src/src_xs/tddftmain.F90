@@ -26,8 +26,7 @@ subroutine tddftmain
   use m_getunit
   implicit none
   character(*), parameter :: thisnam = 'tddftmain'
-  integer :: un,itask
-  logical :: tskip
+!!$  logical :: tskip
 
   tasktd = task
   calledtd = calledtd + 1

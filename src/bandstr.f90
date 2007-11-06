@@ -167,7 +167,7 @@ if (task.eq.20) then
   if (imbandstr) then
      close(51)
      write(*,'(" band structure plot without shifting Fermi energy to")')
-     write(*,'(" zero written to BAND_NF0.OUT")')
+     write(*,'("  zero written to BAND_NF0.OUT")')
   end if
   call writebandgap
 !</sag>
