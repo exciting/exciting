@@ -11,15 +11,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !   evalfv : first-variational eigenvalues (out,real(nstfv))
   !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
   ! !DESCRIPTION:
-  ! This routine will perform several Bock Davidson iterations following the sceme:
-  ! 1. for each of m bands:
-  !   a. calculate Residual
-  !$$
-  !\ket{\mathbf{R}\left(\ket{\mathbf{A}^{ap}},E^{ap}\right)}=(\mathbf{H}-E^{ap}\mathbf{S})\ket{ \mathbf{A}^{ap}}
-  !$$
-  !   b. calculate $\delta \mathbf{A}$
-  ! 2. solve Projected system in evecsv+$\delta \mathbf{A}$ subspace
-  !EOP
+  ! This routine will perform several ARPACK iterations 
+  
   !BOC
   implicit none
   ! arguments
@@ -62,26 +55,32 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(workd(3*nmax),resid(nmax),v(ldv,ncvmax),workev(2*ncvmax),workl(3*ncvmax*ncvmax+6*ncvmax),d(ncvmax))
   allocate(rwork(ncvmax))
   bmat  = 'G'
-  which = 'LM'
+  which = 'SM'
   sigma = zero
   lworkl =3*ncvmax*ncvmax+5*ncvmax 
   tol    = 0.0
   ido    = 0
   info   = 0
   ishfts = 1
-  maxitr = 600
+  maxitr = 2000
   mode   = 2
   iparam(1) = ishfts
   iparam(3) = maxitr  
   iparam(7) = mode 
   if(iscl.ne.1) then
-  call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-  call getevalfv(vkl(1,ik),evalfv)
+     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
+     call getevalfv(vkl(1,ik),evalfv)
   endif
   call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
   !calculate LU decomposition to be used in the reverse communication loop
+#ifdef DEBUG
+write (333,*)"h",h,"o",o
+#endif
   call zhptrf('U', n, o, IPIV, info )
-
+  if (info.ne.0)then
+     write(*,*)"error in iterativearpacksecequn zhptrf ",info
+     stop
+  endif
   !################################################
   !# reverse comunication loop of arpack library: #
   !################################################
@@ -90,16 +89,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
           ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam,  &
           ipntr, workd, workl, lworkl, rwork, infoznaupd)
 #ifdef DEBUG
-    ! write(*,*) "ido",ido
+     ! write(*,*) "ido",ido
 #endif
 
      if (ido .eq. -1 .or. ido .eq. 1) then
 
 	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
-	dcmplx(0,0),workd(ipntr(2)), 1)
-	
-*     .. Scalar Arguments ..
+             dcmplx(0,0),workd(ipntr(2)), 1)
         call zhptrs('U', N, 1, o, IPIV, workd(ipntr(2)), n, INFO )
+        if (info.ne.0)then
+           write(*,*)"error in iterativearpacksecequn zhptrs ",info
+           stop
+        endif
      else if (ido .eq. 2) then
  	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
@@ -120,12 +121,12 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
           ierr )
-          (rvec , howmny, select, d     ,
-     &                   z    , ldz   , sigma , workev,
-     &                   bmat , n     , which , nev   ,
-     &                   tol  , resid , ncv   , v     ,
-     &                   ldv  , iparam, ipntr , workd ,
-     &                   workl, lworkl, rwork , info  )
+     !         (rvec , howmny, select, d     ,
+     !    &                   z    , ldz   , sigma , workev,
+     !    &                   bmat , n     , which , nev   ,
+     !    &                   tol  , resid , ncv   , v     ,
+     !    &                   ldv  , iparam, ipntr , workd ,
+     !    &                   workl, lworkl, rwork , info  )
      if ( ierr .ne. 0 ) then
         print *, ' ' 
         print *, ' Error with zneupd, info = ', ierr
@@ -138,8 +139,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   endif
 #ifdef DEBUG
-	write(*,*)"eval",d(1:nstfv)	
-        write(*,*)"iterations",i
+  write(*,*)"eval",d(1:nstfv)	
+  write(*,*)"iterations",i
 #endif
 
   evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
