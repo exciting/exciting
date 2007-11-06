@@ -74,11 +74,13 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   iparam(1) = ishfts
   iparam(3) = maxitr  
   iparam(7) = mode 
+  if(iscl.ne.1) then
   call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
   call getevalfv(vkl(1,ik),evalfv)
+  endif
   call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
-  !calculate Lu decomposition to be used in the reverse communication loop
-  call zhptrf('U', N, o, IPIV, info )
+  !calculate LU decomposition to be used in the reverse communication loop
+  call zhptrf('U', n, o, IPIV, info )
 
   !################################################
   !# reverse comunication loop of arpack library: #
@@ -94,7 +96,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      if (ido .eq. -1 .or. ido .eq. 1) then
 
 	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
-             dcmplx(0,0),workd(ipntr(2)), 1)
+	dcmplx(0,0),workd(ipntr(2)), 1)
+	
+*     .. Scalar Arguments ..
         call zhptrs('U', N, 1, o, IPIV, workd(ipntr(2)), n, INFO )
      else if (ido .eq. 2) then
  	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
@@ -110,12 +114,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
-     rvec = .true.
+     rvec = .false.
 
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
           ierr )
+          (rvec , howmny, select, d     ,
+     &                   z    , ldz   , sigma , workev,
+     &                   bmat , n     , which , nev   ,
+     &                   tol  , resid , ncv   , v     ,
+     &                   ldv  , iparam, ipntr , workd ,
+     &                   workl, lworkl, rwork , info  )
      if ( ierr .ne. 0 ) then
         print *, ' ' 
         print *, ' Error with zneupd, info = ', ierr
@@ -128,8 +138,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   endif
 #ifdef DEBUG
-	write(*,*)"eval",d(1:nstfv)
-        write(*,*)"iter",i
+	write(*,*)"eval",d(1:nstfv)	
+        write(*,*)"iterations",i
 #endif
 
   evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
