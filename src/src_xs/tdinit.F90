@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine tdinit
   use modmain
   use modtddft
@@ -75,19 +79,35 @@ subroutine tdinit
   call getfxcdata(fxctype,fxcdescr,fxcspin)
 
   ! write to info file
-  write(unitout,'(a)')
-  write(unitout,'("+----------------------------------------------------------&
-       &+")')
-  write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3,&
-       " (eXcited States "I1.1,".",I3.3," ) started |")') version,versionxs
-  write(unitout,'("+----------------------------------------------------------&
-       &+")')
+  if (calledtd == 1) then
+     write(unitout,*)
+     write(unitout,'("+-------------------------------------------------------&
+          &---+")')
+     write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3,&
+          " (eXcited States "I1.1,".",I3.3," ) started |")') version,versionxs
+     write(unitout,'("+-------------------------------------------------------&
+          &---+")')
 #ifdef MPI
-  write(unitout,'("compiled for MPI execution")') 
+     write(unitout,'("compiled for MPI execution")') 
 #endif
 #ifndef MPI
-  write(unitout,'("compiled for serial execution")') 
+     write(unitout,'("compiled for serial execution")') 
 #endif
+     if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'(a,2i6)') 'Info('// &
+          trim(thisnam)//'):(parallel) master, rank/number of processes:',&
+          rank,procs
+     if ((procs.gt.1).and.(rank.ne.0)) write(unitout,'(a,2i6)') 'Info('// &
+          trim(thisnam)//'):(parallel) slave, rank/number of processes:',&
+          rank,procs
+     if (notelns.gt.0) then
+        write(unitout,*)
+        write(unitout,'("Notes :")')
+        do i=1,notelns
+           write(unitout,'(A)') notes(i)
+        end do
+     end if
+     write(unitout,*)
+  end if
   write(unitout,'(a)') 'Date (YYYY-MM-DD) : '//dat(1:4)//'-'//dat(5:6)//'-'// &
        dat(7:8)
   write(unitout,'(a)') 'Time (hh:mm:ss)   : '//tim(1:2)//':'//tim(3:4)//':'// &
@@ -95,20 +115,6 @@ subroutine tdinit
   write(unitout,*)
   write(unitout,'(a,i6,a)') 'Info('//trim(thisnam)//'): task Nr.', &
        task,' started'
-  if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'(a,2i6)') '*** Info('// &
-       trim(thisnam)//'):(parallel) master, rank/number of processes:',rank, &
-       procs
-  if ((procs.gt.1).and.(rank.ne.0)) write(unitout,'(a,2i6)') '*** Info('// &
-       trim(thisnam)//'):(parallel) slave, rank/number of processes:',rank, &
-       procs
-  if (notelns.gt.0) then
-     write(unitout,*)
-     write(unitout,'("Notes :")')
-     do i=1,notelns
-        write(unitout,'(A)') notes(i)
-     end do
-  write(unitout,*)
-  end if
   call flushifc(unitout)
 
 end subroutine tdinit

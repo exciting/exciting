@@ -119,10 +119,14 @@ subroutine init1
      allocate(ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
      !<sag>
      if (tetra) then
+        ! switch to exciting interface
+        call tetrasetifc('exciting')
         ! suppress debug output in tetrahedron integration library (0)
-        call tetrasetdbglv(1)
+        call tetrasetdbglv(0)
         ! safer pointer handling in tetrahedron integration library (1)
-        call setpointerhandling(1)
+        call tetrasetpointerhandling(1)
+        ! set resonance type (1...resonant weights)
+        call tetrasetresptype(1)
         ! generate fraction for k-point offset
         call factorize(3,vkloff,ikloff,dkloff)
         ! check offset factorization

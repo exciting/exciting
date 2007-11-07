@@ -17,7 +17,9 @@
       
       use order, only: sort
       use kgen_internals
-      
+!<sag>
+      use control, only: tetraifc
+!</sag>
       implicit none
       
 ! !OUTPUT PARAMETERS:
@@ -70,21 +72,15 @@
       index=0
       index2=0
 !<sag>
-!<commented>
-!!$      do i1=0,div(1)-1
-!!$        orig(1)=i1
-!!$        do i2=0,div(2)-1
-!!$          orig(2)=i2
-!!$          do i3=0,div(3)-1
-!!$            orig(3)=i3
-!</commented>
-      do i3=0,div(3)-1
-        orig(3)=i3
+      if (trim(tetraifc)=='wien2k') then
+      ! original code
+
+      do i1=0,div(1)-1
+        orig(1)=i1
         do i2=0,div(2)-1
           orig(2)=i2
-          do i1=0,div(1)-1
-            orig(1)=i1
-!</sag>
+          do i3=0,div(3)-1
+            orig(3)=i3
             index2=index2+1
             do t=1,6
               do i=1,4
@@ -122,6 +118,58 @@
           enddo
         enddo
       enddo
+
+      ! end original code
+      else if (trim(tetraifc)=='exciting') then
+      ! new code
+
+      do i3=0,div(3)-1
+        orig(3)=i3
+        do i2=0,div(2)-1
+          orig(2)=i2
+          do i1=0,div(1)-1
+            orig(1)=i1
+            index2=index2+1
+            do t=1,6
+              do i=1,4
+                do j=1,3
+                  corn(j)=mod(orig(j)+tet(j,i,t),div(j))
+                enddo
+                cornid=idkp(corn)
+                intet(i)=ikpid(redkp(cornid))
+!                intet(i)=cornid
+              enddo
+              call sort(4,intet,inx)
+              
+              itet=0
+              notfd=.true.
+              do while ((itet.lt.index).and.notfd) 
+                itet=itet+1
+                if((outet(1,itet).eq.intet(1)).and.   &
+     &             (outet(2,itet).eq.intet(2)).and.   &
+     &             (outet(3,itet).eq.intet(3)).and.   &
+     &             (outet(4,itet).eq.intet(4)))then
+                  wtet(itet)=wtet(itet)+1
+                  redtet(6*(index2-1)+t)=itet
+                  notfd=.false.
+                endif
+              enddo
+              if(notfd)then
+                index=index+1
+                do i=1,4
+                  outet(i,index)=intet(i)
+                enddo
+                wtet(index)=1
+                redtet(6*(index2-1)+t)=index
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+
+      ! end new code
+      end if ! if (tetraifc)
+!</sag>
       ntet=index
 
       end subroutine tgen

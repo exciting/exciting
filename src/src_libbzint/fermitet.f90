@@ -11,7 +11,7 @@
 ! !USES:
       
 !<sag>
-      use control
+      use control, only: tetradbglv
 !</sag>
       implicit none     
       

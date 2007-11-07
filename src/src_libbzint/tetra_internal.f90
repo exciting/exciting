@@ -34,16 +34,6 @@
       integer(4)  :: sgnfrq              ! a sign to tell which weight to 
 !                                          be calculated
 
-!<sag>
-      integer :: restype                 ! if "1" the resonant frequency term 
-                                         !   is calculated
-                                         ! if "2" the anti-resonant frequency
-                                         !   term is calculated
-                                         ! if "0" both parts are calculated
-                                         !   together
-      data restype / 0 /                 ! initialize with "0" according to
-                                         !   original version
-!</sag>
 
       end module tetra_internal
 !EOC      
@@ -55,6 +45,10 @@
 
 module control
   implicit none
+  ! interface parameter
+  character(32), save :: tetraifc
+  ! default to WIEN2k style (corresponding to original version)
+  data tetraifc /'wien2k'/
   ! level of debug output
   integer, save :: tetradbglv
   ! high default value to mimic original version that outputs a lot of
@@ -65,23 +59,96 @@ module control
   ! default is 0 (original version); 1...explicit target assignment in
   ! routine "tetcw"
   data pointerhandling / 0 /
-
+  ! resonance type: 1...resonant term; 2...anti-resonant term; 0...both terms
+  integer :: restype
+  ! initialize with "0" according to original version
+  data restype / 0 /                 
 end module control
 
-! set debug level
-subroutine tetrasetdbglv(lev)
+! set interface parameter
+subroutine tetrasetifc(val)
   use control
   implicit none
-  integer, intent(in) :: lev
-  tetradbglv=lev
+  ! arguments
+  character(*), intent(in) :: val
+  ! local variables
+  integer :: pass
+  tetraifc=trim(adjustl(val))
+  select case(trim(tetraifc))
+     case('wien2k')
+        pass=0
+     case('exciting')
+        pass=0
+     case default
+        pass=1
+        write(*,*)
+        write(*,'(a)') 'Error(libbzint): proper interface parameters are: &
+             &"wien2k" and "exciting"'
+        stop
+  end select
+!!$  write(*,*) 'tetraifc: ',val
+end subroutine tetrasetifc
+
+! set debug level
+subroutine tetrasetdbglv(val)
+  use control
+  implicit none
+  ! arguments
+  integer, intent(in) :: val
+  tetradbglv=val
+!!$  write(*,*) 'tetradbglv: ',val
 end subroutine tetrasetdbglv
 
 ! set pointer handling
-subroutine setpointerhandling(val)
+subroutine tetrasetpointerhandling(val)
   use control
   implicit none
+  ! arguments
   integer, intent(in) :: val
+  ! local variables
+  integer :: pass
+  select case(val)
+     case(0)
+        pass=0
+     case(1)
+        pass=0
+     case(2)
+        pass=0
+     case default
+        pass=1
+        write(*,*)
+        write(*,'(a)') 'Error(libbzint): proper pointer-handling parameters &
+             &are: "0" and "1"'
+        stop
+  end select
   pointerhandling=val
-end subroutine setpointerhandling
+!!$  write(*,*) 'pointerhandling: ',val
+end subroutine tetrasetpointerhandling
+
+! set type of response function
+subroutine tetrasetresptype(val)
+  use control
+  implicit none
+  ! arguments
+  integer, intent(in) :: val
+  ! local variables
+  integer :: pass
+  select case(val)
+     case(0)
+        pass=0
+     case(1)
+        pass=0
+     case(2)
+        pass=0
+     case default
+        pass=1
+        write(*,*)
+        write(*,'(a)') 'Error(libbzint): proper response-type parameters are: &
+             &"0", "1" and "2"'
+        stop
+  end select
+  restype=val
+!!$  write(*,*) 'restype: ',val
+end subroutine tetrasetresptype
 
 !</sag>

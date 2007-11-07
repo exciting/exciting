@@ -30,10 +30,13 @@ contains
     integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
     logical :: exis,tq0,tetrat
 
-    ! debug output in tetrahedron integration library
-    call tetrasetdbglv(1)
-    ! safer pointer handling in tetrahedron integration library
-    call setpointerhandling(1)
+!!$    ! debug output in tetrahedron integration library
+!!$    call tetrasetdbglv(1)
+!!$    ! safer pointer handling in tetrahedron integration library
+!!$    call tetrasetpointerhandling(1)
+
+    ! init1 should be called for settings in libbzint
+
 
     tq0 = tq1gamma.and.(iq.eq.1)
     ! save k-point offset
@@ -111,13 +114,13 @@ contains
        ! switch 2 below in tetcw defines bulk integration for real part
        ! resonant contribution
        call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-            wt,2,1,cw)
+            wt,2,cw)
        ! anti-resonant contribution
        call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-            -wt,2,1,cwa)
+            -wt,2,cwa)
        ! switch 4 below in tetcw defines surface integration for imag. part
        call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-            wt,4,1,cwsurf)
+            wt,4,cwsurf)
        do ik=1,nkpt
           irec=(ik-1)*nwdfp+iw
           cwsurft2(:,:)=cwsurf(:nstval,nstval+1:,ik)

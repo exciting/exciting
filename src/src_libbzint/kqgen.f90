@@ -48,6 +48,9 @@
 ! !USES:
      
       use kgen_internals
+!<sag>
+      use control, only: tetradbglv
+!</sag>
       
       implicit none
 
@@ -149,6 +152,10 @@
 !!$      write(*,*)'div =',div
 !!$      write(*,*)'nkpt =',nkpt
 !</commented>
+      if (tetradbglv > 0) then
+         write(*,*)'div =',div
+         write(*,*)'nkpt =',nkpt
+      end if
 !</sag>
       linkt=0
 !

@@ -73,7 +73,7 @@
 
       use tetra_internal   , only : sgnfrq, omgga
 !<sag>
-      use tetra_internal, only : restype
+      use control, only : restype
 !</sag>
 
       use polyhedron
@@ -129,7 +129,8 @@
 !EOP
 !BOC
       !<sag>
-      ! zero the variables "weit1" and "weit2"
+      ! zero the variables "weit1" and "weit2" because of separate treatment
+      ! of resonant and antiresonant weights
       weit1=0.d0
       weit2=0.d0
       ! assign resonance type

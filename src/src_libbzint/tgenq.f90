@@ -18,6 +18,9 @@
 ! !USES:
       
       use kgen_internals
+!<sag>
+      use control, only: tetraifc
+!</sag>
 
       implicit none      
       
@@ -64,21 +67,15 @@
       vt=1.d0/dble(maxtet)
       index=0
 !<sag>
-!<commented>
-!!$      do i1=0,div(1)-1
-!!$        orig(1)=i1
-!!$        do i2=0,div(2)-1
-!!$          orig(2)=i2
-!!$          do i3=0,div(3)-1
-!!$            orig(3)=i3
-!</commented>
-      do i3=0,div(3)-1
-        orig(3)=i3
+      if (trim(tetraifc)=='wien2k') then
+
+      ! original code
+      do i1=0,div(1)-1
+        orig(1)=i1
         do i2=0,div(2)-1
           orig(2)=i2
-          do i1=0,div(1)-1
-            orig(1)=i1
-!</sag>
+          do i3=0,div(3)-1
+            orig(3)=i3
             index=index+1
             do t=1,6
               do i=1,4
@@ -96,6 +93,37 @@
           enddo
         enddo
       enddo
+
+      ! end original code
+      else if (trim(tetraifc)=='exciting') then
+      ! new code
+
+      do i3=0,div(3)-1
+        orig(3)=i3
+        do i2=0,div(2)-1
+          orig(2)=i2
+          do i1=0,div(1)-1
+            orig(1)=i1
+            index=index+1
+            do t=1,6
+              do i=1,4
+                do j=1,3
+                  corn(j)=mod(orig(j)+tet(j,i,t),div(j))
+                enddo
+                cornid=idkp(corn)
+                outet(i,6*(index-1)+t)=cornid
+              enddo
+                do j=1,3
+                  orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j))
+                enddo
+              sib(6*(index-1)+t)=6*(idkp(orig2)-1)+t
+            enddo
+          enddo
+        enddo
+      enddo
+      ! end new code
+      end if ! if (tetraifc)
+!</sag>
 
       end subroutine tgenq
 !EOC

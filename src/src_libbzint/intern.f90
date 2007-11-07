@@ -4,6 +4,9 @@
 !
 ! !INTERFACE:
       subroutine intern(nkp,kp,div,shift,divsh,klist,idiv)
+!<sag>
+        use control, only: tetraifc
+!</sag>
 
 ! !DESCRIPTION:
 !
@@ -46,12 +49,29 @@
 !!$        enddo
 !!$      enddo
 !</commented>
-      idiv=div(1)*div(2)*div(3)*divsh
-      do kpi=1,nkp
-         do i=1,3
-            klist(i,kpi)=kp(i,kpi)*idiv/div(i) + shift(i)*idiv/(div(i)*divsh)
+      if (trim(tetraifc)=='wien2k') then
+
+         ! original part of code
+         idiv=div(1)*div(2)*div(3)*2
+         do kpi=1,nkp
+            do i=1,3
+               rind=dble(divsh*kp(i,kpi)+shift(i))/dble(divsh*div(i))
+               klist(i,kpi)=nint(rind*idiv)
+            enddo
+         enddo
+
+      else if (trim(tetraifc)=='exciting') then
+
+         ! new code
+         idiv=div(1)*div(2)*div(3)*divsh
+         do kpi=1,nkp
+            do i=1,3
+               klist(i,kpi)=kp(i,kpi)*idiv/div(i) + &
+                    shift(i)*idiv/(div(i)*divsh)
+            end do
          end do
-      end do
+
+      end if
 !</sag>
       call divisi(nkp,idiv,klist)
 

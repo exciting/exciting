@@ -108,7 +108,7 @@ subroutine tdgeneigvec
 
 !!$  if (tresume) tresume=.false.
 
-  write(unitout,'(a)') "Info("//trim(thisnam)//"):generation of &
+  write(unitout,'(a)') "Info("//trim(thisnam)//"): generation of &
        &eigenvectors finished"
 
 end subroutine tdgeneigvec

@@ -28,9 +28,11 @@ subroutine tddftmain
   character(*), parameter :: thisnam = 'tddftmain'
 !!$  logical :: tskip
 
+  ! save task
   tasktd = task
+  ! remember how often this routine is called
   calledtd = calledtd + 1
-
+  ! 
   if (calledtd == 1) call argparse()
 
   ! basic initialization
@@ -57,9 +59,6 @@ subroutine tddftmain
   case(300)
      ! say hello
      write(*,*)
-     write(*,'(a)') '+----------------+'
-     write(*,'(a)') '| TDDFT@EXCITING |'
-     write(*,'(a)') '+----------------+'
      write(*,'(a)') 'Copyright (C) 2004-2007 by S. Sagmeister and &
           &C. Ambrosch-Draxl'
      write(*,*)

@@ -212,12 +212,12 @@ subroutine linopt
            if (abs(w(iw)).lt.epstetra) w(iw)=epstetra
            ! switch 2 below in tetcw defines bulk integration for real part
            call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
-                w(iw),2,1,cw)
+                w(iw),2,cw)
            call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
-                -w(iw),2,1,cwa)
+                -w(iw),2,cwa)
            ! switch 4 below in tetcw defines surface integration for imag. part
            call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
-                w(iw),4,1,cwsurf)
+                w(iw),4,cwsurf)
            ! summation using weights from tetrahedron method
            sum=0.d0
            sum2=0.d0

@@ -3,7 +3,7 @@
 ! !ROUTINE: tetcw 
 !
 ! !INTERFACE:
-      subroutine tetcw(nik,nt,nb,wt,ebd,tetc,linkt,v,efer,omeg,sigfreq,rtyp,cw)
+      subroutine tetcw(nik,nt,nb,wt,ebd,tetc,linkt,v,efer,omeg,sigfreq,cw)
 !
 ! !DESCRIPTION: 
 ! 
@@ -16,7 +16,7 @@
  
        use tetra_internal
        !<sag>
-       use control
+       use control, only: pointerhandling, restype
        !</sag>
        
        implicit none      
@@ -57,7 +57,6 @@
 !                                           surface integration for 4.
   !<sag>
   ! resonance type
-  integer, intent(in) :: rtyp
   !</sag>
 
 ! !OUTPUT PARAMETERS:
@@ -92,8 +91,8 @@
       vt = v
 
       !<sag>
-      ! assign resonance type
-      restype=rtyp
+!!$      ! assign resonance type
+!!$      restype=rtyp
       if (pointerhandling == 0) then
          ! default treatment
       !</sag>

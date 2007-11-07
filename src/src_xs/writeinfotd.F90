@@ -24,24 +24,27 @@ subroutine writeinfotd
   ! local variables
   character(*), parameter :: thisnam='writeinfotd'
   
-  ! write angular momenta
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): maximum angular momentum &
-       &for Hamiltonian matrix elements     :', lmaxmat, lmmaxmat
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): maximum angular momentum &
-       &for the inner part of the muffin-tin:', lmaxinr, lmmaxinr
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): maximum angular momentum &
-       &for density and potential           :', lmaxvr, lmmaxvr
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): maximum angular momentum &
-       &for APW functions                   :', lmaxapw, lmmaxapw
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): maximum angular momentum &
-       &for APW functions (matr. el.)       :', lmaxapwtd, lmmaxapwtd
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): maximum angular momentum &
-       &for local orbitals                  :', lolmax, lolmmax
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): maximum angular momentum &
-       &for matrix elements of exponential  :', lmaxemat, lmmaxemat
-  write(unitout,'(a,2i8)') 'Info('//thisnam//'): overall maximum angular  &
-       &momentum                            :', lmaxmax, lmmaxmax
-  ! information about Gamma point
+  if (calledtd==1) then
+     ! write angular momenta
+     write(unitout,'(a)') 'Info('//thisnam//'): angular momenta:'
+     write(unitout,'(a,2i8)') ' density and potential        : ',&
+          lmaxvr, (lmaxvr+1)**2
+     write(unitout,'(a,2i8)') ' APW functions                : ',&
+          lmaxapw, (lmaxapw+1)**2
+     write(unitout,'(a,2i8)') ' local orbitals               : ',&
+          lolmax, (lolmax+1)**2
+     write(unitout,'(a,2i8)') ' inner part of muffin-tin     : ',&
+          lmaxinr, (lmaxinr+1)**2
+     write(unitout,'(a,2i8)') ' Hamiltonian. matr. el.       : ',&
+          lmaxmat, (lmaxmat+1)**2
+     write(unitout,'(a,2i8)') ' PW matr. el.                 : ',&
+          lmaxemat, (lmaxemat+1)**2
+     write(unitout,'(a,2i8)') ' APW functions (PW matr. el.) : ',&
+          lmaxapwtd, (lmaxapwtd+1)**2
+     write(unitout,'(a,2i8)') ' overall                      : ',&
+          lmaxmax, (lmaxmax+1)**2
+  end if
+  ! information about Gamma q-point
   if (tq1gamma) then
      write(unitout,'(a)') 'Info('//thisnam//'): first q-point is the &
           &Gamma point'

@@ -13,6 +13,9 @@
 !      
 ! !USES:
       use kgen_internals, only: div      
+!<sag>
+      use control, only: tetraifc
+!</sag>
       
 ! !INPUT PARAMETERS:
 
@@ -29,8 +32,16 @@
 !EOP
 !
 !BOC
-      idkp=k(3)*div(2)*div(1)+k(2)*div(1)+k(1)+1
-      
+
+!<sag>
+      if (trim(tetraifc)=='wien2k') then
+         ! original code
+         idkp=k(1)*div(2)*div(3)+k(2)*div(3)+k(3)+1
+      else if (trim(tetraifc)=='exciting') then
+         ! new code
+         idkp=k(3)*div(2)*div(1)+k(2)*div(1)+k(1)+1
+      end if
+!</sag>      
       return
       
       end function idkp

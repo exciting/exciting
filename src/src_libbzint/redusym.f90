@@ -14,7 +14,7 @@
 
       use kgen_internals
       !<sag>
-      use control
+      use control, only: tetradbglv
       !</sag>
 
 ! !INPUT PARAMETERS:
@@ -76,9 +76,9 @@
       !<sag>
       if (tetradbglv > 0) then
       !<sag>
-      if(nsymr.lt.nsym)write(*,*)'WARNING: The k-point offset ',       &
-     & 'selected reduces the symmetry group of the mesh, resulting in '&
-     & ,'a larger number of irreducible k-points'
+         if(nsymr.lt.nsym)write(*,*)'WARNING: The k-point offset ',       &
+            & 'selected reduces the symmetry group of the mesh, resulting in '&
+            & ,'a larger number of irreducible k-points'
       !<sag>
       end if
       !<sag>

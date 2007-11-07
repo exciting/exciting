@@ -1,14 +1,22 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine tdepilog
   use modmain
   use modtddft
   use modmpi
+  use a2str
   use m_filedel
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'tdepilog'
   character(10) dat, tim
   real(8) :: cput,wallt,cputcum,walltcum
+  real(8) :: hrs
+  integer :: days,hours,minutes,seconds
+  character(256), external :: stringtim
 
   ! finalize global counters
   call date_and_time(date=dat,time=tim)
@@ -18,25 +26,35 @@ subroutine tdepilog
   wallt = dble(systim0f - systim0i)/dble(cntrate)
   cputcum = cputim0f - cputimcum
   walltcum = dble(systim0f - systimcum)/dble(cntrate)
-
+  ! write out information
   write(unitout,'(a,i8,a)') 'Info('//thisnam//'): task Nr.', task, &
        ' stopped gracefully'
   write(unitout,*)
-  write(unitout,'(a)') 'Timings [seconds/minutes/hours/days]'
+  write(unitout,'(a)') 'Timings: '
   write(unitout,'(a)') '  Date (YYYY-MM-DD) : '//dat(1:4)//'-'//dat(5:6)//'-' &
        //dat(7:8)
   write(unitout,'(a)') '  Time (hh:mm:ss)   : '//tim(1:2)//':'//tim(3:4)//':' &
        //tim(5:6)
-  write(unitout,'(a,g18.6)') '  CPU load              :', cput/wallt*100
-  write(unitout,'(a,4g18.6)') '  CPU time              :', &
-       cput,cput/60,cput/3600,cput/(24*3600)
-  write(unitout,'(a,4g18.6)') '  wall time             :', &
-       wallt,wallt/60,wallt/3600,wallt/(24*3600)
-  write(unitout,'(a,g18.6)') '  CPU load (cumulative) :', cputcum/walltcum*100
-  write(unitout,'(a,4g18.6)') '  CPU time (cumulative) :', &
-       cputcum,cputcum/60,cputcum/3600,cputcum/(24*3600)
-  write(unitout,'(a,4g18.6)') '  wall time (cumulative):', &
-       walltcum,walltcum/60,walltcum/3600,walltcum/(24*3600)
+  call gentim(cput,hrs,days,hours,minutes,seconds)
+  write(unitout,'(a,4g18.6)') '  CPU time               : '// &
+       trim(stringtim(cput,hrs,days,hours,minutes,seconds))
+  if (procs==1) then
+     call gentim(dble(wallt),hrs,days,hours,minutes,seconds)
+     write(unitout,'(a,4g18.6)') '  wall time              : '// &
+          trim(stringtim(dble(wallt),hrs,days,hours,minutes,seconds))
+     write(unitout,'(a,g18.6)') '  CPU load               : '// &
+          trim(r2str(cput/wallt*100,'(f12.2)'))//' %'
+  end if
+  call gentim(cputcum,hrs,days,hours,minutes,seconds)
+  write(unitout,'(a,4g18.6)') '  CPU time  (cumulative) : '// &
+       trim(stringtim(cputcum,hrs,days,hours,minutes,seconds))
+  if (procs==1) then
+     call gentim(dble(walltcum),hrs,days,hours,minutes,seconds)
+     write(unitout,'(a,4g18.6)') '  wall time (cumulative) : '// &
+          trim(stringtim(dble(walltcum),hrs,days,hours,minutes,seconds))
+     write(unitout,'(a,g18.6)') '  CPU load  (cumulative) : '// &
+          trim(r2str(cput/wallt*100,'(f12.2)'))//' %'
+  end if
   write(unitout,*)
   write(unitout,'("+----------------------------------------------------------&
        &+")')
