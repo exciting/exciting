@@ -36,11 +36,5 @@ module modtetra
   integer(4), allocatable :: link(:,:), kqid(:,:)
   ! q-points common divisor
   integer(4) dvq
-  ! flag for the frequency dependence of the  q dependent integration.
-  !              = 1 No frequency dependence included
-  !              = 2 Real Frequencies
-  !              = 3 Imaginary frequencies
-  !              = 4 Surface integration
-  integer(4) :: fflg
 
 end module modtetra

@@ -5,10 +5,9 @@
 
 subroutine linopt
   use modmain
-  ! <sampling>
+  ! <sag>
   use modtetra
-  use modtddft, evecfv_ptr=>evecfv,evecsv_ptr=>evecsv,apwalm_ptr=>apwalm
-  ! </sampling>
+  ! </sag>
   implicit none
   ! local variables
   integer ik,nsk(3),iw,jw
@@ -36,33 +35,35 @@ subroutine linopt
   complex(8), allocatable :: evecsv(:,:)
   complex(8), allocatable :: apwalm(:,:,:,:)
   complex(8), allocatable :: pmat(:,:,:)
-  ! <sampling>
+  ! <sag>
   integer :: m,ist1,ist2
   character(256) :: epsnam
   real(8), parameter :: epstetra=1.d-8
-  real(8) :: sum,sum2
+  real(8) :: escal,sum,sum2
   real(8), allocatable :: eps1r(:)
   real(8), allocatable :: e1(:,:),f12(:,:,:),e12(:,:,:)
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
   complex(8) :: sumc
   complex(8), allocatable :: epsc(:)
-  logical :: tetrat
-  tetrat=tetra
-  if (tetrat.and.lorentz) then
+  logical :: lorentz,tev
+  ! output in electron volt
+  tev=.true.
+  lorentz=(optbrd > 0.d0)
+  if (tetra.and.lorentz) then
      write(*,*)
      write(*,'("Error(linopt): specified tetrahedron method and Lorentzian &
           & broadening")')
      write(*,*)
      stop
   end if
-  if (intraband.and.(tetrat.or.lorentz)) then
+  if (intraband.and.(tetra.or.lorentz)) then
      write(*,*)
      write(*,'("Error(linopt): intraband contribution not implemented for &
           tetrahedron method and Lorentzian broadening")')
      write(*,*)
      stop
   end if
-  ! </sampling>
+  ! </sag>
   if ((usegdft).and.(xctype.lt.0)) then
      write(*,*)
      write(*,'("Error(linopt): generalised DFT cannot be used with exact &
@@ -97,8 +98,8 @@ subroutine linopt
   allocate(pmatint(nstsv,nkpt))
   ! set up for generalised DFT correction if required
   allocate(delta(nstsv,nstsv))
-  ! <sampling>
-  if (tetrat.or.lorentz) then
+  ! <sag>
+  if (tetra.or.lorentz) then
      allocate(eps1r(nwdos))
      eps1r(:)=0.d0
   end if
@@ -109,13 +110,13 @@ subroutine linopt
      f12(:,:,:)=0.d0
      e12(:,:,:)=0.d0
   end if
-  if (tetrat) then
+  if (tetra) then
      allocate(e1(nstsv,nkpt))
      allocate(cw(nstsv,nstsv,nkpt))
      allocate(cwa(nstsv,nstsv,nkpt))
      allocate(cwsurf(nstsv,nstsv,nkpt))
   end if
-  ! </sampling>
+  ! </sag>
   if (usegdft) then
      ! initialisation required for generalised DFT
      allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
@@ -253,9 +254,7 @@ subroutine linopt
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
-        !-!!!!!!!
         f12(:,:,:)=t1*f12(:,:,:)
-        !-!!!!!!!
         ! Lorentzian broadening
         do iw=1,nwdos
            sum=0.d0
@@ -267,17 +266,17 @@ subroutine linopt
                  do ist2=1,nstsv
                     m=m+1
                     if (ist1.ne.ist2) sum2=sum2+wkpt(ik)*f(m,ik)* &
-                         aimag(1.d0/(e(m,ik)+w(iw)+zi*brdtd))/e(m,ik)**2
+                         aimag(1.d0/(e(m,ik)+w(iw)+zi*optbrd))/e(m,ik)**2
                     if (ist1.ne.ist2) sum=sum+wkpt(ik)*f(m,ik)* &
-                         dble(1.d0/(e(m,ik)+w(iw)+zi*brdtd))/e(m,ik)**2
+                         dble(1.d0/(e(m,ik)+w(iw)+zi*optbrd))/e(m,ik)**2
                     if ((ist1<=nstsv-nempty-1).and.(ist2>nstsv-nempty-1)) then
                        ! Lorentzian broadening
                        sumc=sumc+&
                             wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*brdtd))/&
+                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*optbrd))/&
                             e12(ist1,ist2,ik)**2  -  &
                             wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*brdtd))/&
+                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*optbrd))/&
                             e12(ist2,ist1,ik)**2                
                     end if
                  end do
@@ -341,36 +340,36 @@ subroutine linopt
         end do
         call fderiv(-1,nwdos,w,fw,g,cf)
         eps1(iw)=t1+(2.d0/pi)*g(nwdos)
-        ! <sampling>
+        ! <sag>
         if (tetra) eps1r(iw)=t1+eps1r(iw)
         if (lorentz) then 
            eps1r(iw)=t1+eps1r(iw)
            epsc(iw)=t1+epsc(iw)
         end if
-        ! </sampling>
+        ! </sag>
      end do
      ! write dielectric function to a file
      do iw=1,nwdos
-        !<sampling>
-        escale=1.d0
-        if (tevout) escale=h2ev
+        !<sag>
+        escal=1.d0
+        if (tev) escal=27.2114
         ! modified output variables and format
-        if (tetrat) then
-           write(60,'(4G18.10)') escale*w(iw),eps1(iw),eps2(iw),eps1r(iw)
+        if (tetra) then
+           write(60,'(4G18.10)') escal*w(iw),eps1(iw),eps2(iw),eps1r(iw)
         else if (lorentz) then
-           write(60,'(4G18.10)') escale*w(iw),eps1(iw),eps2(iw),eps1r(iw)
+           write(60,'(4G18.10)') escal*w(iw),eps1(iw),eps2(iw),eps1r(iw)
         else
-           write(60,'(3G18.10)') escale*w(iw),eps1(iw),eps2(iw)
+           write(60,'(3G18.10)') escal*w(iw),eps1(iw),eps2(iw)
         end if
-        !</sampling>
+        !</sag>
      end do
-     ! <sampling>
+     ! <sag>
      ! commented out for better output format
 !!$     write(60,'("     ")')
 !!$     do iw=1,nwdos
 !!$        write(60,'(2G18.10)') w(iw),eps2(iw)
 !!$     end do
-     ! </sampling>
+     ! </sag>
      ! calculate optical conductivity
      sigma1(:)=(eps2(:))*w(:)/(4.d0*pi)
      sigma2(:)=-(eps1(:)-t1)*w(:)/(4.d0*pi)
@@ -403,17 +402,17 @@ subroutine linopt
   deallocate(sigma1,sigma2)
   deallocate(evecfv,evecsv,pmat,pmatint)
   if (usegdft) deallocate(delta,apwalm)
-  ! <sampling>
-  if (tetrat) then
+  ! <sag>
+  if (tetra) then
      deallocate(e1,cw,cwa,cwsurf)
   end if
-  if (tetrat.or.lorentz) then
+  if (tetra.or.lorentz) then
      deallocate(eps1r)
   end if
   if (lorentz) then
      deallocate(epsc,f12,e12)
   end if
-  ! </sampling>
+  ! </sag>
   return
 end subroutine linopt
 

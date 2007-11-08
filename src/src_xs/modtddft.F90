@@ -453,16 +453,5 @@ module modtddft
   ! and from no other file extension
   logical :: isreadstate0
   data isreadstate0 /.false./
-  ! verbose output within SCF loop
-  logical :: verbscf
-  ! dump specifiable variables of main part
-  logical :: dumpmain
-  data dumpmain /.false./
-  ! dump MPI variables
-  logical :: dumpmpi
-  data dumpmpi /.false./
-  ! dump tddft variables
-  logical :: dumptddft
-  data dumptddft /.false./
 
 end module modtddft

@@ -664,6 +664,10 @@ real(8) scissor
 integer noptcomp
 ! required optical matrix components
 integer optcomp(3,27)
+!<sag>
+! broadening for Lorentzian lineshape
+real(8) :: optbrd
+!</sag>
 ! usegdft is .true. if the generalised DFT correction is to be used
 logical usegdft
 ! intraband is .true. if the intraband term is to be added to the optical matrix

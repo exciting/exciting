@@ -31,9 +31,10 @@ real(8) vacuum,t1
 character(256) str
 character(256) bname
 character(256) sppath
-
 !<sag>
-dumpmain=.true.
+logical, parameter :: dumpmain=.true.
+logical, parameter :: dumpmpi=.true.
+logical, parameter :: dumptddft=.true.
 !</sag>
 !------------------------!
 !     default values     !
@@ -151,7 +152,6 @@ tevecsv=.false.
 !<sag>
 ! tetrahedron method variables
 tetra=.false.
-fflg=4
 ! TDDFT variables
 imbandstr=.false.
 pmatira=.false.
@@ -177,7 +177,6 @@ alphalrcdyn=0.d0
 betalrcdyn=0.d0
 gather=.false.
 tevout=.false.
-verbscf=.false.
 tappinfo=.false.
 dbglev=0
 ! screening variables
@@ -767,8 +766,6 @@ case('tevecsv')
 !  tetrahedron method variables
 case('tetra')
   read(50,*) tetra
-case('tetcflg')
-  read(50,*) fflg
 ! TDDFT variables
 case('imbandstr')
   read(50,*) imbandstr
@@ -853,8 +850,6 @@ case('gather')
   read(50,*) gather
 case('tevout')
   read(50,*) tevout
-case('verbscf')
-  read(50,*) verbscf
 case('appinfo')
   read(50,*) tappinfo
 case('dbglev')
