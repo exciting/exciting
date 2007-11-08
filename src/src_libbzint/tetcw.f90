@@ -16,7 +16,7 @@
  
        use tetra_internal
        !<sag>
-       use control, only: pointerhandling, restype
+       use control, only: pointerhandling
        !</sag>
        
        implicit none      
@@ -55,9 +55,6 @@
        integer(4), intent(in) :: sigfreq  ! Select the kind of bulk convolution
 !                                           weights when it equals 1,2,3. And
 !                                           surface integration for 4.
-  !<sag>
-  ! resonance type
-  !</sag>
 
 ! !OUTPUT PARAMETERS:
        
@@ -91,8 +88,6 @@
       vt = v
 
       !<sag>
-!!$      ! assign resonance type
-!!$      restype=rtyp
       if (pointerhandling == 0) then
          ! default treatment
       !</sag>
@@ -108,20 +103,16 @@
          allocate(target_linkt(1:ntet))
          allocate(target_ebd(1:nb,1:nik))
          allocate(target_wt(1:ntet))
-         ! store copy input parameters locally for this routine
+         ! store copy of input parameters locally for this routine
          target_tetc(1:4,1:ntet)=tetc(1:4,1:ntet)
          target_linkt(1:ntet)=linkt(1:ntet)
          target_ebd(1:nb,1:nik)=ebd(1:nb,1:nik)
          target_wt(1:ntet)=wt(1:ntet)
-         ! assign pointers
+         ! assign pointers to local objects
          tetcorn => target_tetc(1:4,1:ntet)
          tetln => target_linkt(1:ntet)
          eband   => target_ebd(1:nb,1:nik)
          tetweig => target_wt(1:ntet)
-      else
-         write(*,*) 'Error in tetcw: bad pointerhandling specified, value is:'&
-              ,pointerhandling
-         stop
       end if
       !</sag>
 !

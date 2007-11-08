@@ -39,28 +39,23 @@
 !EOC      
 
 !<sag>
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-
 module control
   implicit none
   ! interface parameter
   character(32), save :: tetraifc
   ! default to WIEN2k style (corresponding to original version)
-  data tetraifc /'wien2k'/
+  data tetraifc / 'wien2k' /
   ! level of debug output
   integer, save :: tetradbglv
-  ! high default value to mimic original version that outputs a lot of
-  ! information
+  ! high default value to mimic original version
   data tetradbglv / 1000 /
-  ! handling of pointers
+  ! handling of pointers (problems with Portland compiler)
   integer, save :: pointerhandling
   ! default is 0 (original version); 1...explicit target assignment in
-  ! routine "tetcw"
+  ! routine "tetcw" (other routine to be followed)
   data pointerhandling / 0 /
   ! resonance type: 1...resonant term; 2...anti-resonant term; 0...both terms
-  integer :: restype
+  integer, save :: restype
   ! initialize with "0" according to original version
   data restype / 0 /                 
 end module control

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2007 S. SagmeisterS. Sharma, J. K. Dewhurst and 
+! Copyright (C) 2002-2007 S. Sagmeister, S. Sharma, J. K. Dewhurst and 
 ! C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -19,6 +19,7 @@ subroutine kramkron(i1,i2,eps,n,w,im,re)
   real(8) :: t1,t2,fw(n),g(n),cf(3,n)
   ! declaration part ends
   t1=0.d0
+  g(:)=0.d0
   if (i1.eq.i2) t1=1.d0
   do iw=1,n
      do jw=1,n

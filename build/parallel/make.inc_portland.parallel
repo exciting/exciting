@@ -1,8 +1,8 @@
 
 # ---------------------------- PGI compiler -----------------------------------
 F90		= pgf95
-#F90_OPTS	= -DMPI -DMPISEC -DMPIRHO -DMPIEXXSUM -fastsse -O3
-F90_OPTS	= -DMPI -DMPISEC -DMPIRHO
+F90_OPTS	= -DMPI -DMPISEC -DMPIRHO -DMPIEXXSUM -fastsse -O3
+#F90_OPTS	= -DMPI -DMPISEC -DMPIRHO
 ### check ###
 #F90_OPTS	= -DMPI -C -Mchkptr -Mchkstk
 F77 		= pgf95

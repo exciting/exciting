@@ -1,30 +1,26 @@
 
-# ---------------------- Intel fortran compiler -------------------------------
-F90 		= ifort
-F90_OPTS 	= -O3 -ip -unroll -prefetch -scalar_rep -w90
-### check arrays ###
-#F90_OPTS 	= -O0 -w90 -check all -traceback
-F77 		= ifort
-F77_OPTS 	= -O4 -ip -unroll -prefetch -scalar_rep -w90
-LIB_SYS 	= 
+# ---------------------------- PGI compiler -----------------------------------
+F90		= pgf95
+F90_OPTS	= -DMPI -DMPISEC -DMPIRHO -DMPIEXXSUM -fastsse -O3
+#F90_OPTS	= -DMPI -DMPISEC -DMPIRHO
+### check ###
+#F90_OPTS	= -DMPI -C -Mchkptr -Mchkstk
+F77 		= pgf95
+F77_OPTS 	= -fastsse -O4
+LIB_SYS 	= /installadmin/mpich/1.2.6/pgi/lib/libmpich.a
+### the path below might not be consistent with the 6.2 version of PGI
+##LIB_SYS 	= /software/pgi/linux86-64/6.0/lib/libmpich.a
 
 ### BLAS and LAPACK
 # included libraries
-##LIB_LPK = lapack.a blas.a
+LIB_LPK = lapack.a blas.a
 
 # system libraries
-##LIB_LPK = -llapack -lblas
-
-# MKL libraries
-LIB_LPK = -L /software/intel/mkl721/lib/em64t/ -lmkl_lapack -lmkl_em64t -lguide -lpthread
-
-# ATLAS library with standard compiler options (USE CAREFULLY!)
-##LIB_LPK = /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2/liblapack.a lapack.a -L /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2 -lf77blas -lcblas -latlas -lg2c
-##LIB_LPK = /usr/people/phyk/sagmste/src/libraries/opt/ATLAS/lib/Linux_HAMMER64SSE2/liblapack.a lapack.a -L /usr/people/phyk/sagmste/src/libraries/opt/ATLAS/lib/Linux_HAMMER64SSE2 -lf77blas -lcblas -latlas -lg2c
+#LIB_LPK = -llapack -lblas
 
 ### FFT library
 LIB_FFT = fftlib.a
 
 ### Library for Brillouin zone integration
 LIB_BZINT = libbzint.a
-# ---------------------- end Intel fortran compiler ---------------------------
+# ---------------------------- PGI compiler -----------------------------------

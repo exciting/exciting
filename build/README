@@ -35,3 +35,4 @@ Building serial or parallel executables:
     "excitingmpi" resides in the "serial" or "parallel" directory depending on 
     where you are building and is ready for execution. The executable is also
     distributed to the (parent) build-directory.
+
