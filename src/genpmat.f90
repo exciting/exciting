@@ -9,7 +9,6 @@
 subroutine genpmat(ngp,igpig,vgpc,apwalm,evecfv,evecsv,pmat)
 ! !USES:
 use modmain
-use modtddft, only : pmatira
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
@@ -53,6 +52,7 @@ complex(8), allocatable :: pm(:,:,:)
 !<sag>
 complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
 complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
+logical, parameter :: pmatira=.true.
 !</sag>
 ! external functions
 complex(8) zfmtinp
