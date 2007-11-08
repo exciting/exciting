@@ -151,4 +151,15 @@ subroutine tetrasetresptype(val)
 !!$  write(*,*) 'restype: ',val
 end subroutine tetrasetresptype
 
+! report values of control module
+subroutine tetrareportsettings
+  use control
+  implicit none
+  write(*,'(a)')    'Info(libbzint): settings are:'
+  write(*,'(a)')    '  interface        (default="wien2k") : '//trim(tetraifc)
+  write(*,'(a,i6)') '  debug level      (default=1000)     :', tetradbglv
+  write(*,'(a,i6)') '  pointer handling (default=0)        :', pointerhandling
+  write(*,'(a,i6)') '  resonance type   (default=0)        :', restype
+  write(*,*)
+end subroutine tetrareportsettings
 !</sag>

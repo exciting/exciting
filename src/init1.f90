@@ -127,6 +127,8 @@ subroutine init1
         call tetrasetpointerhandling(1)
         ! set resonance type (1...resonant weights)
         call tetrasetresptype(1)
+        ! report interface parameters
+        call tetrareportsettings
         ! generate fraction for k-point offset
         call factorize(3,vkloff,ikloff,dkloff)
         ! check offset factorization
