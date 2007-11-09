@@ -45,9 +45,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !ZHPTR interface vars
   integer ::IPIV(nmat(ik,ispn))
   !parameters
-  nev=nstfv
-  ncv=3*nstfv+2
-  nevmax=max(15,nstfv)
+  nev=nstfv +4
+  ncv=3*nev+2
+  nevmax=max(15,nev)
   ncvmax= nevmax*3
   nmax=nmatmax
   n=nmat(ik,ispn)
@@ -55,7 +55,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(workd(3*nmax),resid(nmax),v(ldv,ncvmax),workev(2*ncvmax),workl(3*ncvmax*ncvmax+6*ncvmax),d(ncvmax))
   allocate(rwork(ncvmax))
   bmat  = 'G'
-  which = 'SM'
+  which = 'LM'
   sigma = zero
   lworkl =3*ncvmax*ncvmax+5*ncvmax 
   tol    = 0.0
@@ -63,7 +63,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   info   = 0
   ishfts = 1
   maxitr = 2000
-  mode   = 2
+  mode   = 3
   iparam(1) = ishfts
   iparam(3) = maxitr  
   iparam(7) = mode 
@@ -76,7 +76,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #ifdef DEBUG
 write (333,*)"h",h,"o",o
 #endif
-op=o
+op=h
   call zhptrf('U', n, op, IPIV, info )
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
@@ -95,13 +95,16 @@ op=o
 
      if (ido .eq. -1 .or. ido .eq. 1) then
 
-	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
+	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
         call zhptrs('U', N, 1, op, IPIV, workd(ipntr(2)), n, INFO )
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zhptrs ",info
            stop
         endif
+     else if(ido .eq.1) then
+        call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
+        call zhptrs('U', N, 1, op, IPIV, workd(ipntr(2)), n, INFO )
      else if (ido .eq. 2) then
  	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
@@ -133,14 +136,14 @@ op=o
         print *, ' Error with zneupd, info = ', ierr
         print *, ' Check the documentation of zneupd'
         print *, ' '	 
-	write(*,*)"eval",d(1:nstfv)
+	write(*,*)"eval",d(1:nev)
         write(*,*)"iter",i	
         stop
      endif
 
   endif
 #ifdef DEBUG
-  write(*,*)"eval",d(1:nstfv)	
+  write(*,*)"eval",d(1:nev)	
   write(*,*)"iterations",i
 #endif
 
