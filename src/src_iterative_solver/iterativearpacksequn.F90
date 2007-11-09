@@ -25,7 +25,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   ! local variables
   complex(8) 	:: h(npmat(ik,ispn))
-  complex(8) 	:: o(npmat(ik,ispn))
+  complex(8) 	:: o(npmat(ik,ispn)), op(npmat(ik,ispn))
   integer ::n
   Complex(8)::                 zero, one
   parameter         (zero = (0.0D+0, 0.0D+0) ,one = (1.0D+0, 0.0D+0) )
@@ -76,7 +76,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #ifdef DEBUG
 write (333,*)"h",h,"o",o
 #endif
-  call zhptrf('U', n, o, IPIV, info )
+op=o
+  call zhptrf('U', n, op, IPIV, info )
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -96,7 +97,7 @@ write (333,*)"h",h,"o",o
 
 	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
-        call zhptrs('U', N, 1, o, IPIV, workd(ipntr(2)), n, INFO )
+        call zhptrs('U', N, 1, op, IPIV, workd(ipntr(2)), n, INFO )
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zhptrs ",info
            stop
