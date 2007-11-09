@@ -56,6 +56,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(rwork(ncvmax))
   bmat  = 'G'
   which = 'LM'
+
   sigma = zero
   lworkl =3*ncvmax*ncvmax+5*ncvmax 
   tol    = 0.0
@@ -119,7 +120,7 @@ op=h
      print *, ' '
      stop
   else
-     rvec = .false.
+     rvec = .true.
 
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
