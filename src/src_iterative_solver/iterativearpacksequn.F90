@@ -2,6 +2,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   !USES:
   use modmain
+  use modmpi
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -12,7 +13,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
   ! !DESCRIPTION:
   ! This routine will perform several ARPACK iterations 
-  
+
   !BOC
   implicit none
   ! arguments
@@ -25,13 +26,14 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   ! local variables
   complex(8) 	:: h(npmat(ik,ispn))
-  complex(8) 	:: o(npmat(ik,ispn)), op(npmat(ik,ispn))
+  complex(8) 	:: o(npmat(ik,ispn))
   integer ::n
+  real:: cpu0,cpu1
   Complex(8)::                 zero, one
   parameter         (zero = (0.0D+0, 0.0D+0) ,one = (1.0D+0, 0.0D+0) )
   !ARPACK Interface vars
 
-  integer:: ido, nev, ncv, lworkl, info,infoznaupd, ierr, j,i
+  integer:: ido, nev, ncv, lworkl, info,infoznaupd, info2, j,i
   integer :: nevmax, ncvmax,nmax
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
@@ -45,21 +47,27 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !ZHPTR interface vars
   integer ::IPIV(nmat(ik,ispn))
   !parameters
-  nev=nstfv +4
-  ncv=3*nev+2
-  nevmax=max(15,nev)
-  ncvmax= nevmax*3
+  nev=nstfv +2
+  ncv=2*nev+2
+  nevmax=nev
+  ncvmax= ncv
   nmax=nmatmax
   n=nmat(ik,ispn)
   ldv=n
-  allocate(workd(3*nmax),resid(nmax),v(ldv,ncvmax),workev(2*ncvmax),workl(3*ncvmax*ncvmax+6*ncvmax),d(ncvmax))
+  lworkl =3*ncvmax*ncvmax+5*ncvmax 
+  allocate(workd(3*nmax))
+  allocate(resid(nmax))
+  allocate(v(ldv,ncvmax))
+  allocate(workev(2*ncvmax))
+  allocate(workl(lworkl))
+  allocate(d(ncvmax))
   allocate(rwork(ncvmax))
   bmat  = 'G'
   which = 'LM'
 
   sigma = zero
-  lworkl =3*ncvmax*ncvmax+5*ncvmax 
-  tol    = 0.0
+
+  tol    = 1e-8
   ido    = 0
   info   = 0
   ishfts = 1
@@ -75,10 +83,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
   !calculate LU decomposition to be used in the reverse communication loop
 #ifdef DEBUG
-write (333,*)"h",h,"o",o
+  write (333,*)"h",h,"o",o
 #endif
-op=h
-  call zhptrf('U', n, op, IPIV, info )
+
+  call cpu_time(cpu0)
+  call zhptrf('U', n, h, IPIV, info )
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -98,14 +107,14 @@ op=h
 
 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
-        call zhptrs('U', N, 1, op, IPIV, workd(ipntr(2)), n, INFO )
+        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zhptrs ",info
            stop
         endif
      else if(ido .eq.1) then
         call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
-        call zhptrs('U', N, 1, op, IPIV, workd(ipntr(2)), n, INFO )
+        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
      else if (ido .eq. 2) then
  	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
@@ -125,16 +134,16 @@ op=h
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
-          ierr )
+          info2 )
      !         (rvec , howmny, select, d     ,
      !    &                   z    , ldz   , sigma , workev,
      !    &                   bmat , n     , which , nev   ,
      !    &                   tol  , resid , ncv   , v     ,
      !    &                   ldv  , iparam, ipntr , workd ,
      !    &                   workl, lworkl, rwork , info  )
-     if ( ierr .ne. 0 ) then
+     if ( info2 .ne. 0 ) then
         print *, ' ' 
-        print *, ' Error with zneupd, info = ', ierr
+        print *, ' Error with zneupd, info = ', info2
         print *, ' Check the documentation of zneupd'
         print *, ' '	 
 	write(*,*)"eval",d(1:nev)
@@ -143,16 +152,19 @@ op=h
      endif
 
   endif
+  call cpu_time(cpu1)
+  timefv=timefv+cpu1-cpu0
 #ifdef DEBUG
   write(*,*)"eval",d(1:nev)	
   write(*,*)"iterations",i
 #endif
-
+  if(rank.eq.0)write(60,*)"ARPACK iterations ", i
   evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
   evalfv(1:nstfv,ispn)=d(1:nstfv)
   call putevecfv(ik,evecfv)
   call putevalfv(ik,evalfv)
   deallocate(workd,resid,v,workev,workl,d)
+
   deallocate(rwork)
   return
 end subroutine iterativearpacksecequn

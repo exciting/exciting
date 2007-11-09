@@ -11,6 +11,9 @@ notes
  with respect to k-point set later.
  Run by H. Golightly
 
+iterativetype
+ 2
+
 avec
   1.0  1.0  0.0
   1.0  0.0  1.0

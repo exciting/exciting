@@ -37,5 +37,5 @@ end do
 call hmlistl(.false.,ngp,igpig,vgpc,v,h)
 call olpistl(.false.,ngp,igpig,v,o)
 call cpu_time(cpu1)
-
+ timemat= timemat+cpu1-cpu0
 end subroutine
