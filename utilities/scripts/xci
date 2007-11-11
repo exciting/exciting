@@ -18,7 +18,7 @@
 f_in="exciting.in Ac.in Ag.in Al.in Am.in Ar.in As.in At.in Au.in Ba.in Be.in Bi.in B.in Bk.in Br.in Ca.in Cd.in Ce.in Cf.in C.in Cl.in Cm.in Co.in Cr.in Cs.in Cu.in Dy.in Er.in Es.in Eu.in Fe.in F.in Fm.in Fr.in Ga.in Gd.in Ge.in He.in Hf.in Hg.in H.in Ho.in I.in In.in Ir.in K.in Kr.in La.in Li.in Lr.in Lu.in Md.in Mg.in Mn.in Mo.in Na.in Nb.in Nd.in Ne.in Ni.in N.in No.in Np.in O.in Os.in Pa.in Pb.in Pd.in P.in Pm.in Po.in Pr.in Pt.in Pu.in Ra.in Rb.in Re.in Rf.in Rh.in Rn.in Ru.in Sb.in Sc.in Se.in Si.in S.in Sm.in Sn.in Sr.in Ta.in Tb.in Tc.in Te.in Th.in Ti.in Tl.in Tm.in U.in V.in W.in Xe.in Yb.in Y.in Zn.in Zr.in"
 
 # all default parameters and all actual parameters
-f_params="VARS_DEFAULT.OUT VARS.OUT "
+f_params="PARAMS_DEFAULT.OUT PARAMS.OUT "
 
 # SCF calculation
 f_scf_bin="EVALFV.OUT EVALSV.OUT EVECFV.OUT EVECSV.OUT OCCSV.OUT STATE.OUT"

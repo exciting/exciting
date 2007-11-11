@@ -202,7 +202,7 @@ fnoccsvbse='OCCSV_BSE.OUT'
 nstbef=-1
 nstabf=-1
 ! dump default values
-if (dumpmain) call dumpvars('VARS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
+if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 !</sag>
 !-------------------------------!
 !     read from exciting.in     !
@@ -973,7 +973,7 @@ if (molecule) then
 end if
 write(*,*) 'reading in of exciting.in finished' !!!!!!!!!
 ! dump default values
-if (dumpmain) call dumpvars('VARS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
+if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 !---------------------------------------------!
 !     read from atomic species data files     !
 !---------------------------------------------!

@@ -1,1 +1,1 @@
-make.inc_intel.serial
+make.inc.gfortran.setup

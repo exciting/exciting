@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine dumpvars(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
+subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   use modmain
   use modmpi
   implicit none
@@ -309,4 +309,4 @@ subroutine dumpvars(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   ! close file
   close(77)
 
-end subroutine dumpvars
+end subroutine dumpparams
