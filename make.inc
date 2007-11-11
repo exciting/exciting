@@ -1,5 +1,5 @@
 
-# ---------------------- Intel fortran compiler -------------------------------
+# yyy---------------------- Intel fortran compiler -------------------------------
 F90 		= ifort
 F90_OPTS 	= -O3 -ip -unroll -prefetch -scalar_rep -w90
 ### check arrays ###
