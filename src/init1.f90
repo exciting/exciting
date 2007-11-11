@@ -176,9 +176,6 @@ subroutine init1
         if (reducek) nsymcryst=nsymcrys
         call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,&
              iwkp,ntet,tnodes,wtet,tvol,mnd)
-!!$        write(*,*) '>>> kgen:'
-!!$        write(*,*) 'wtet',wtet
-!!$        write(*,*) 'tvol',tvol
         do ik=1,nkpt
            vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
            vkc(:,ik)=vkl(1,ik)*bvec(:,1)+vkl(2,ik)*bvec(:,2)+vkl(3,ik)* &
@@ -186,7 +183,8 @@ subroutine init1
            wkpt(ik)=dble(iwkp(ik))/dble(ngridk(1)*ngridk(2)*ngridk(3))
         end do ! ik
         !<rga>
-        if ((task.eq.121).or.(task.eq.122).or.((task>=300).and.(task<=499)).and.(task/=301)) then     
+        if ((task.eq.121).or.(task.eq.122).or.((task>=300).and.(task<=499))&
+             .and.(task/=301)) then     
            allocate(linkq(6*nkpt,nkpt))
            if (allocated(link)) deallocate(link)
            allocate(link(6*nkpt,1))
@@ -204,9 +202,6 @@ subroutine init1
            ! generate "link" array for q-dependent tetrahedron method
            call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
                 ntet,tnodes,wtet,linkq,tvol)
-!!$           write(*,*) '>>> kqgen:'
-!!$           write(*,*) 'wtet',wtet
-!!$           write(*,*) 'tvol',tvol
            nqpt=nqptt
            ! keep link-array only for q=0
            link(:,1)=linkq(:,1)
@@ -256,7 +251,8 @@ subroutine init1
            write(*,*) 'Errors occurred - stop', nerr
            call terminate
         end if
-        ! safely replace k-point set by default set since inside epslat tolerance
+        ! safely replace k-point set by default set since it is inside
+        ! tolerance for lattice parameters
         vkl(:,:)=vklt(:,:)
         vkc(:,:)=vkct(:,:)
         wkpt(:)=wkptt(:)

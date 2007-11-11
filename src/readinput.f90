@@ -116,6 +116,9 @@ nprad=4
 scissor=0.d0
 noptcomp=1
 optcomp(:,1)=1
+!<sag>
+optbrd=0.0d0
+!</sag>
 usegdft=.false.
 intraband=.false.
 evalmin=-4.5d0
@@ -625,6 +628,16 @@ case('optcomp')
   write(*,'("Error(readinput): optical component list too long")')
   write(*,*)
   stop
+!<sag>
+case('optbrd')
+  read(50,*) optbrd
+  if (optbrd.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): optbrd < 0 : ",G18.10)') optbrd
+    write(*,*)
+    stop
+  end if
+!</sag>
 case('usegdft')
   read(50,*) usegdft
 case('intraband')
