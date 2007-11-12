@@ -12,14 +12,14 @@ subroutine screen
   implicit none
   ! local variables
   character(*), parameter :: thisnam='screen'
-  integer :: taskt
+  integer :: taskt,iq
 
   ! map variables for screening
   call initscr
 
   ! initialize universal variables
   call init0
-  call init1
+!!!  call init1 *** call later depending on q-point ???
 
   ! initialize q-point set
   call init2xs
@@ -46,6 +46,13 @@ subroutine screen
      call filedel('EVALFV'//trim(filext))
      call filedel('RMSDVEFF'//trim(filext))
   end if
+
+  ! *** TEST ***
+  do iq=1,nqpt
+     call updateq(vql(1,iq))
+     write(*,*) 'TEST: iq/vql/vqlcu',iq,vql(:,iq),vqlcu
+  end do
+
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screening finished"
 

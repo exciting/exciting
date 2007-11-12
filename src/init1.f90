@@ -455,7 +455,7 @@ subroutine init1
 
   call cpu_time(cpu1)
   timeinit=timeinit+cpu1-cpu0
-
+  
   return
 end subroutine init1
 !EOC
