@@ -4,14 +4,15 @@
 ! See the file COPYING for license details.
 
 !BOI
-! !TITLE: The Developers' Guide for the TDDFT implementation within the 
+! !TITLE: The Developers' Guide for the excited-states implementation within
+!   the 
 !   EXCITING Code \\ Version
 ! !AUTHORS: S. Sagmeister and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
-!   Welcome to the {\sf EXCITING.TDDFT} code developers' manual
+!   Welcome to the {\sf EXCITING.xs} code developers' manual
 !   This is supposed to collect the routines and modules belonging
-!   only to the TDDFT part into one document.
+!   only to the excited states (TDDFT and BSE) part into one document.
 !   \\\\
 !   S. Sagmeister\\
 !   Graz, 2006
