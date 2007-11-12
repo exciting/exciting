@@ -67,20 +67,24 @@ external r3taxi
 integer :: nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
 integer :: jsym
 ! use symmetries of small group of q
-call findgroupq(vqlcu,epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
-     nsymcrysq,scqmap,ivscwrapq)
-! save global variables
-nsymcrys_=nsymcrys; lsplsymc_(:)=lsplsymc(:)
-! set pointer to point group elements
-lsplsymct(:)=0
-jsym=0
-do isym=1,nsymcrysq
-   jsym=jsym+1
-   lsplsymct(jsym)=lsplsymc(scqmap(isym))
-end do
-! update global variables
-nsymcrys=nsymcrysq; lsplsymc(:)=lsplsymct(:)
-! now we are working with symmetries of small group of q
+if (iqcu.ne.1) then
+   call findgroupq(vql(1,iqcu),epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
+        nsymcrysq,scqmap,ivscwrapq)
+   ! save global variables
+   nsymcrys_=nsymcrys; lsplsymc_(:)=lsplsymc(:)
+   ! set pointer to point group elements
+   lsplsymct(:)=0
+   jsym=0
+   do isym=1,nsymcrysq(iqcu)
+      jsym=jsym+1
+      lsplsymct(jsym)=lsplsymc(scqmap(isym,iqcu))
+   end do
+   ! update global variables
+   nsymcrys=nsymcrysq(iqcu); lsplsymc(:)=lsplsymct(:)
+end if
+! initialize stars
+nsymcrysstr(:)=0
+! now we are working with point group symmetries of small group of q (G0(q))
 !</sag>
 if ((ngridp(1).le.0).or.(ngridp(2).le.0).or.(ngridp(3).le.0)) then
   write(*,*)
@@ -118,6 +122,10 @@ do i3=0,ngridp(3)-1
 ! equivalent k-point found so add to current weight
               ipmap(i1,i2,i3)=jp
               wppt(jp)=wppt(jp)+t1
+!<sag>
+              ! add symmetry operation to star
+              scmapstr(nint(wppt(jp)/t1),jp)=isym
+!</sag>
               goto 10
             end if
           end do
@@ -139,11 +147,24 @@ do ip=1,nppt
   call r3mv(bvec,vpl(1,ip),vpc(1,ip))
 end do
 !<sag>
-! determine the stars
-call genstars(vqlcu,epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
-     nsymcrysq,scqmap,ivscwrapq)
-! restore global varialbes
-nsymcrys=nsymcrys_; lsplsymc(:)=lsplsymc_(:)
+! number of elements in stars
+nsymcrysstr(:)=nint(wppt(:)*dble(ngridp(1)*ngridp(2)*ngridp(3)))
+nsymcrysstrmax=maxval(nsymcrysstr)
+if (iqcu.ne.1) then
+   ! restore global varialbes
+   nsymcrys=nsymcrys_; lsplsymc(:)=lsplsymc_(:)
+end if
+
+! *** TEST ***
+i1=0
+write(*,*) 'writing out: genppts'
+do ip=1,nppt
+   do jsym=1,nsymcrysstr(ip)
+      i1=i1+1
+      write(*,*) 'TEST: ip,jstar,counter',ip,jsym,i1
+   end do
+end do
+
 !</sag>
 return
 end subroutine

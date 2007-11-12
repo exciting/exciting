@@ -27,16 +27,6 @@ module modtddft
   !---------------------------------------------------------------!
   integer, allocatable :: idxxlm(:,:)
 
-  !----------------------------!
-  !     symmetry variables     !
-  !----------------------------!
-  ! number of crystal symmetries for the little group of q
-  integer, allocatable :: nsymcrysq(:)
-  ! map from little group of q to spacegroup
-  integer, allocatable :: scqmap(:,:)
-  ! wrapping vectors for elements of the small group of q
-  integer, allocatable :: ivscwrapq(:,:,:)
-
   !------------------------------!
   !     q-point set variables    !
   !------------------------------!
@@ -53,6 +43,15 @@ module modtddft
   ! current q-point
   real(8) :: vqlcu(3)
   data vqlcu / 0.d0,0.d0,0.d0 /
+  ! index of current q-point
+  integer :: iqcu
+  data iqcu / 1 /
+  ! number of crystal symmetries for the little group of q
+  integer, allocatable :: nsymcrysq(:)
+  ! map from little group of q to spacegroup
+  integer, allocatable :: scqmap(:,:)
+  ! wrapping vectors for elements of the small group of q
+  integer, allocatable :: ivscwrapq(:,:,:)
 
   !----------------------------------!
   !     G+q-vector set variables     !
@@ -83,6 +82,12 @@ module modtddft
   !--------------------------------------!
   ! k-points in lattice coordinates
   real(8), allocatable :: vkl0(:,:)
+  ! maximum number of space group operations over all k
+  integer :: nsymcrysstrmax
+  ! number of space group operations for stars
+  integer, allocatable :: nsymcrysstr(:)
+  ! star of space group operations for k-points
+  integer, allocatable :: scmapstr(:,:)
 
   !-------------------------!
   !     k+q-point set       !

@@ -57,9 +57,11 @@ subroutine findgroupq(vql,epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
            write(*,'(a,3i9)')     ' G :',iv
            call terminate
         end if
-        ! rotation is in small group
+        ! rotation is in small group of q (G0(q))
         nsymcrysq=nsymcrysq+1
+        ! map from little group of q (G(q)) to space group (G)
         scqmap(nsymcrysq)=isym
+        ! wrapping vector (reciprocal lattice vector)
         ivscwrapq(:,isym)=iv(:)
      end if
   end do

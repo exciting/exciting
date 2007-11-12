@@ -10,7 +10,7 @@ subroutine init1
   ! !USES:
   use modmain
   !<sag>
-  use modtddft, only: skipallocs1, imbandstr
+  use modtddft, only: skipallocs1, imbandstr, nsymcrysstr, scmapstr
   use modtetra
   !</sag>
   ! !DESCRIPTION:
@@ -262,6 +262,11 @@ subroutine init1
         deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
      else
         !</sag>
+        ! allocate arrays for stars
+        if (allocated(nsymcrysstr)) deallocate(nsymcrysstr)
+        if (allocated(scmapstr)) deallocate(scmapstr)
+        allocate(nsymcrysstr(ngridk(1)*ngridk(2)*ngridk(3)))
+        allocate(scmapstr(nsymcrys,ngridk(1)*ngridk(2)*ngridk(3)))
         ! generate the reduced k-point set
         call genppts(reducek,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
         !<sag>
