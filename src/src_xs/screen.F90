@@ -19,7 +19,9 @@ subroutine screen
 
   ! initialize universal variables
   call init0
-!!!  call init1 *** call later depending on q-point ???
+
+  ! initialize k-point set
+  call init1
 
   ! initialize q-point set
   call init2xs
@@ -49,8 +51,9 @@ subroutine screen
 
   ! *** TEST ***
   do iq=1,nqpt
-     call updateq(vql(1,iq))
-     write(*,*) 'TEST: iq/vql/vqlcu',iq,vql(:,iq),vqlcu
+     call init1
+     call updateq(iq)
+     write(*,'(a,i6,3f12.3,3x,3f12.3)') 'TEST: iq/vql/vqlcu',iq,vql(:,iq),vqlcu
   end do
 
 

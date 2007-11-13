@@ -30,6 +30,7 @@ subroutine tdsave0
   allocate(nmat0(nkpt,nspnfv))
 
   ! save variables for k-vectors
+  nkpt0=nkpt
   vkl0(:,:) = vkl(:,:)
   ! save variables for G+k-vectors
   ngkmax0 = ngkmax

@@ -4,7 +4,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine findgroupq(vql,epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
+subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,&
      nsymcrysq,scqmap,ivscwrapq)
   ! Find the (little) group of q (which includes finding the small group of q).
   ! All symmetries, where the rotational part transforms q into an equivalent
@@ -14,8 +14,6 @@ subroutine findgroupq(vql,epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
   ! arguments
   real(8), intent(in) :: vql(3)
   real(8), intent(in) :: epslat
-  real(8), intent(in) :: bvec(3,3)
-  real(8), intent(in) :: binv(3,3)
   integer, intent(in) :: symlat(3,3,48)
   integer, intent(in) :: nsymcrys
   integer, intent(in) :: lsplsymc(nsymcrys)

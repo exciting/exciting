@@ -45,7 +45,7 @@ module modtddft
   data vqlcu / 0.d0,0.d0,0.d0 /
   ! index of current q-point
   integer :: iqcu
-  data iqcu / 1 /
+  data iqcu / 0 /
   ! number of crystal symmetries for the little group of q
   integer, allocatable :: nsymcrysq(:)
   ! map from little group of q to spacegroup
@@ -77,12 +77,14 @@ module modtddft
   ! spherical harmonics of the G-vectors
   complex(8), allocatable :: ylmgq(:,:,:)
 
-  !--------------------------------------!
-  !     k-point set  variables (q=0)     !
-  !--------------------------------------!
-  ! k-points in lattice coordinates
+  !---------------------------------!
+  !     k-point set  variables      !
+  !---------------------------------!
+  ! number of k-points for q=0
+  integer :: nkpt0
+  ! k-points in lattice coordinates for q=0
   real(8), allocatable :: vkl0(:,:)
-  ! maximum number of space group operations over all k
+  ! maximum number of space group operations in stars over all k
   integer :: nsymcrysstrmax
   ! number of space group operations for stars
   integer, allocatable :: nsymcrysstr(:)

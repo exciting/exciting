@@ -15,42 +15,54 @@ contains
     real(8), intent(in) :: vq(3),voff(3)
     integer, intent(out) :: map(nkpt)
     ! local variables
-    real(8) r3taxi
-    external r3taxi
-    integer :: ik,ikt,iktr,un
+    integer :: ik,ikt,iktr,un,iv(3),ivt(3)
     real(8) :: vofft(3),vqt(3),vkq(3),vkqt(3)
+    real(8), external :: r3taxi
     logical, allocatable :: done(:)
     character(256) :: filnam
 
-    allocate(done(nkptnr))
-    done(:)=.false.
-    map(:)=0
+    if (task.ge.400) then
+      write(*,*) '...............task >= 400 in findkmapkq'
+       do ik=1,nkpt
+          vkq(:)=vkl(:,ik)+vq(:)
+          call r3frac(epslat,vkq,ivt)
+          iv(:)=nint(vkq(:)*ngridk(:)-vkloff(:))
+          map(ik)=ikmap(iv(1),iv(2),iv(3))
+       end do
 
-    vqt=vq
-    vofft=voff-vkloff
-    call mapkto01(vqt)
-    do ik=1,nkpt
-       ! k+q point from k-point
-       vkq(:)=vkl(:,ik)+vqt(:)
-       call mapkto01(vkq)
-       do ikt=1,nkptnr
-          if (.not.done(ikt)) then
-             vkqt(:)=vklnr(:,ikt)+vofft(:)/dble(ngridk)
-             if (r3taxi(vkq,vkqt).lt.epslat) then
-                iktr=ikmap(ivknr(1,ikt),ivknr(2,ikt),ivknr(3,ikt))
-                done(ikt)=.true.
-                map(ik)=iktr
-                exit
+    else
+
+       allocate(done(nkptnr))
+       done(:)=.false.
+       map(:)=0
+
+       vqt=vq
+       vofft=voff-vkloff
+       call mapkto01(vqt)
+       do ik=1,nkpt
+          ! k+q point from k-point
+          vkq(:)=vkl(:,ik)+vqt(:)
+          call mapkto01(vkq)
+          do ikt=1,nkptnr
+             if (.not.done(ikt)) then
+                vkqt(:)=vklnr(:,ikt)+vofft(:)/dble(ngridk)
+                if (r3taxi(vkq,vkqt).lt.epslat) then
+                   iktr=ikmap(ivknr(1,ikt),ivknr(2,ikt),ivknr(3,ikt))
+                   done(ikt)=.true.
+                   map(ik)=iktr
+                   exit
+                end if
              end if
+          end do
+          if (map(ik).eq.0) then
+             write(*,*) 'Error(findkmapkq): mapping between k and k+q point set &
+                  &failed for k-point:',ik
+             call terminate
           end if
        end do
-       if (map(ik).eq.0) then
-          write(*,*) 'Error(findkmapkq): mapping between k and k+q point set &
-               &failed for k-point:',ik
-          call terminate
-       end if
-    end do
-    deallocate(done)
+       deallocate(done)
+
+    end if
 
     if (rank == 0) then
        call getunit(un)

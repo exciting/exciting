@@ -5,6 +5,9 @@
 
 subroutine findkpt(vpl,isym,ik)
 use modmain
+!<sag>
+use modtddft
+!</sag>
 implicit none
 ! arguments
 real(8), intent(in) :: vpl(3)
@@ -23,6 +26,9 @@ do isym=1,nsymcrys
   call r3frac(epslat,v1,iv)
   do ik=1,nkpt
     v2(:)=vkl(:,ik)
+    !<sag>
+    if ((task.ge.400).or.(task.le.499)) v2(:)=vkl0(:,ik)
+    !</sag>
     call r3frac(epslat,v2,iv)
     if (r3taxi(v1,v2).lt.epslat) return
   end do

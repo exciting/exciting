@@ -135,7 +135,7 @@ subroutine init2xs
   tq1gamma = .false.
   if (all(vql(:,1).eq.0)) tq1gamma = .true.
 
-  ! find (little) group of q
+  ! find (little/small) group of q
   if (allocated(nsymcrysq)) deallocate(nsymcrysq)
   if (allocated(scqmap)) deallocate(scqmap)
   if (allocated(ivscwrapq)) deallocate(ivscwrapq)
@@ -143,7 +143,7 @@ subroutine init2xs
   allocate(scqmap(nsymcrys,nqpt))
   allocate(ivscwrapq(3,nsymcrys,nqpt))
   do iq=1,nqpt
-     call findgroupq(vql(1,iq),epslat,bvec,binv,symlat,nsymcrys,lsplsymc,&
+     call findgroupq(vql(1,iq),epslat,symlat,nsymcrys,lsplsymc,&
           nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
      ! debug output
      if (dbglev > 0) then
@@ -156,7 +156,6 @@ subroutine init2xs
         write(*,*)
      end if
   end do
-  
   !-----------------------!
   !     k+q-point set     !
   !-----------------------!
@@ -176,7 +175,7 @@ subroutine init2xs
   !---------------------!
   ! checking
   if (gqmax.ge.gkmax) then
-     write(*,*) 'Warning('//thisnam//'): gqmax >= gkmax: '
+     write(*,'(a,2g18.10)') 'Warning('//thisnam//'): gqmax >= gkmax: ',gqmax,gkmax
   end if
   ! maximum number of G+q vectors for all q
   call getngqmax

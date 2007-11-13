@@ -3,11 +3,13 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine updateq(vqlt)
+subroutine updateq(iq)
+  use modmain
   use modtddft
   implicit none
   ! arguments
-  real(8), intent(in) :: vqlt(3)
+  integer, intent(in) :: iq
   ! update the current q-point in the module
-  vqlcu(:)=vqlt(:)
+  iqcu=iq
+  vqlcu(:)=vql(:,iqcu)
 end subroutine updateq
