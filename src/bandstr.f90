@@ -11,7 +11,7 @@ subroutine bandstr
 use modmain
 !<sag>
 ! masquerade varialbes
-use modtddft, evalfv_=>evalfv, evecfv_=>evecfv, evecsv_=>evecsv
+use modtddft, only: imbandstr
 !</sag>
 ! !DESCRIPTION:
 !   Produces a band structure along the path in reciprocal-space which connects
