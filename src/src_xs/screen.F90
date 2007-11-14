@@ -24,7 +24,7 @@ subroutine screen
   call init1
 
   ! initialize q-point set
-  call init2xs
+  call init2
 
   ! calculate eigenvectors, -values and occupancies for basic k-mesh
   taskt=task; task=1
@@ -55,7 +55,6 @@ subroutine screen
      call updateq(iq)
      write(*,'(a,i6,3f12.3,3x,3f12.3)') 'TEST: iq/vql/vqlcu',iq,vql(:,iq),vqlcu
   end do
-
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screening finished"
 

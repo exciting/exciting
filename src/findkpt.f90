@@ -24,14 +24,23 @@ do isym=1,nsymcrys
   s(:,:)=dble(symlat(:,:,lspl))
   call r3mtv(s,vpl,v1)
   call r3frac(epslat,v1,iv)
-  do ik=1,nkpt
-    v2(:)=vkl(:,ik)
-    !<sag>
-    if ((task.ge.400).or.(task.le.499)) v2(:)=vkl0(:,ik)
-    !</sag>
-    call r3frac(epslat,v2,iv)
-    if (r3taxi(v1,v2).lt.epslat) return
-  end do
+  !<sag>
+  if ((task.ge.400).or.(task.le.499)) then
+     do ik=1,nkpt0
+        v2(:)=vkl0(:,ik)
+        call r3frac(epslat,v2,iv)
+        if (r3taxi(v1,v2).lt.epslat) return
+     end do
+  else
+  !</sag>
+     do ik=1,nkpt
+        v2(:)=vkl(:,ik)
+        call r3frac(epslat,v2,iv)
+        if (r3taxi(v1,v2).lt.epslat) return
+     end do
+  !<sag>
+  end if
+  !</sag>
 end do
 write(*,*)
 write(*,'("Error(findkpt): equivalent k-point not in set")')
