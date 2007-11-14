@@ -9,9 +9,9 @@
 subroutine writeinfo(fnum)
 ! !USES:
 use modmain
-!<sag>
+#ifdef TETRA
 use modtetra
-!</sag>
+#endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   fnum : unit specifier for INFO.OUT file (in,integer)
 ! !DESCRIPTION:
@@ -214,17 +214,17 @@ end if
 if (xcgrad.eq.1) write(fnum,'(" Generalised gradient approximation (GGA)")')
 write(fnum,*)
 write(fnum,'("Smearing scheme :")')
-!<sag>
+#ifdef XS
 if (.not.tetra) then
-!</sag>
+#endif
    write(fnum,'(" ",A)') trim(sdescr)
    write(fnum,'("Smearing width : ",G18.10)') swidth
-!<sag>
+#ifdef XS
 else
    write(fnum,'(" ",A)') 'No smearing - using the linear tetrahedron method'
    write(fnum,'(" ",A)') 'for occupation numbers and Fermi energy'
 end if
-!</sag>
+#endif
 write(fnum,*)
 write(fnum,'("Radial integration step length : ",I4)') lradstp
 return

@@ -5,9 +5,9 @@
 
 subroutine linopt
   use modmain
-  ! <sag>
+#ifdef TETRA
   use modtetra
-  ! </sag>
+#endif
   implicit none
   ! local variables
   integer ik,nsk(3),iw,jw
@@ -35,7 +35,7 @@ subroutine linopt
   complex(8), allocatable :: evecsv(:,:)
   complex(8), allocatable :: apwalm(:,:,:,:)
   complex(8), allocatable :: pmat(:,:,:)
-  ! <sag>
+#ifdef TETRA
   integer :: m,ist1,ist2
   character(256) :: epsnam
   real(8), parameter :: epstetra=1.d-8
@@ -59,11 +59,11 @@ subroutine linopt
   if (intraband.and.(tetra.or.lorentz)) then
      write(*,*)
      write(*,'("Error(linopt): intraband contribution not implemented for &
-          tetrahedron method and Lorentzian broadening")')
+          tetrahedron method or Lorentzian broadening")')
      write(*,*)
      stop
   end if
-  ! </sag>
+#endif
   if ((usegdft).and.(xctype.lt.0)) then
      write(*,*)
      write(*,'("Error(linopt): generalised DFT cannot be used with exact &
@@ -98,7 +98,7 @@ subroutine linopt
   allocate(pmatint(nstsv,nkpt))
   ! set up for generalised DFT correction if required
   allocate(delta(nstsv,nstsv))
-  ! <sag>
+#ifdef TETRA
   if (tetra.or.lorentz) then
      allocate(eps1r(nwdos))
      eps1r(:)=0.d0
@@ -116,7 +116,7 @@ subroutine linopt
      allocate(cwa(nstsv,nstsv,nkpt))
      allocate(cwsurf(nstsv,nstsv,nkpt))
   end if
-  ! </sag>
+#endif
   if (usegdft) then
      ! initialisation required for generalised DFT
      allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
@@ -340,17 +340,17 @@ subroutine linopt
         end do
         call fderiv(-1,nwdos,w,fw,g,cf)
         eps1(iw)=t1+(2.d0/pi)*g(nwdos)
-        ! <sag>
+#ifdef TETRA
         if (tetra) eps1r(iw)=t1+eps1r(iw)
         if (lorentz) then 
            eps1r(iw)=t1+eps1r(iw)
            epsc(iw)=t1+epsc(iw)
         end if
-        ! </sag>
+#endif
      end do
      ! write dielectric function to a file
+#ifdef TETRA
      do iw=1,nwdos
-        !<sag>
         escal=1.d0
         if (tev) escal=27.2114
         ! modified output variables and format
@@ -361,15 +361,16 @@ subroutine linopt
         else
            write(60,'(3G18.10)') escal*w(iw),eps1(iw),eps2(iw)
         end if
-        !</sag>
      end do
-     ! <sag>
-     ! commented out for better output format
-!!$     write(60,'("     ")')
-!!$     do iw=1,nwdos
-!!$        write(60,'(2G18.10)') w(iw),eps2(iw)
-!!$     end do
-     ! </sag>
+#else
+     do iw=1,nwdos
+        write(60,'(2G18.10)') w(iw),eps1(iw)
+     end do
+     write(60,'("     ")')
+     do iw=1,nwdos
+        write(60,'(2G18.10)') w(iw),eps2(iw)
+     end do
+#endif
      ! calculate optical conductivity
      sigma1(:)=(eps2(:))*w(:)/(4.d0*pi)
      sigma2(:)=-(eps1(:)-t1)*w(:)/(4.d0*pi)
@@ -402,7 +403,7 @@ subroutine linopt
   deallocate(sigma1,sigma2)
   deallocate(evecfv,evecsv,pmat,pmatint)
   if (usegdft) deallocate(delta,apwalm)
-  ! <sag>
+#ifdef TETRA
   if (tetra) then
      deallocate(e1,cw,cwa,cwsurf)
   end if
@@ -412,7 +413,7 @@ subroutine linopt
   if (lorentz) then
      deallocate(epsc,f12,e12)
   end if
-  ! </sag>
+#endif
   return
 end subroutine linopt
 

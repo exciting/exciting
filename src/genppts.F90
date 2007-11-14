@@ -9,9 +9,9 @@
 subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
 ! !USES:
 use modmain
-!<sag>
+#ifdef XS
 use modtddft
-!</sag>
+#endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   reducep : .true. if p-point set is to be reduced (in,logical)
 !   ngridp  : p-point grid size (in,integer(3))
@@ -64,11 +64,12 @@ real(8) s(3,3),t1,t2
 ! external functions
 real(8) r3taxi
 external r3taxi
-!<sag>
+#ifdef XS
 integer :: jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
 ! use symmetries of little group of q
 if (iqcu.ne.0) then
-   write(*,*) 'Info(genppts): using symmetries of the (little/small) group of q only'
+   write(*,*) 'Info(genppts): using symmetries of the (little/small) group of &
+        &q only'
    ! save global variables
    nsymcrys_=nsymcrys; lsplsymc_(:)=lsplsymc(:)
    ! map to point group elements
@@ -82,7 +83,7 @@ if (iqcu.ne.0) then
    nsymcrys=nsymcrysq(iqcu); lsplsymc(:)=lsplsymct(:)
 end if
 ! now we are working with the point group symmetries of the small group of q
-!</sag>
+#endif
 if ((ngridp(1).le.0).or.(ngridp(2).le.0).or.(ngridp(3).le.0)) then
   write(*,*)
   write(*,'("Error(genppts): invalid ngridp : ",3I8)') ngridp
@@ -139,12 +140,12 @@ nppt=ip
 do ip=1,nppt
   call r3mv(bvec,vpl(1,ip),vpc(1,ip))
 end do
-!<sag>
+#ifdef XS
 if (iqcu.ne.0) then
    ! restore global varialbes
    nsymcrys=nsymcrys_; lsplsymc(:)=lsplsymc_(:)
 end if
-!<sag>
+#endif
 return
 end subroutine
 !EOC

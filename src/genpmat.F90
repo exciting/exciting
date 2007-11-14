@@ -40,38 +40,38 @@ complex(8), intent(out) :: pmat(3,nstsv,nstsv)
 integer ispn,is,ia,ist1,ist2
 integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
-!<sag>
+#ifdef XS
 integer :: igp1,igp2,ig1,ig2,ig,iv1(3),iv(3)
-!</sag>
+#endif
 ! allocatable arrays
 complex(8), allocatable :: wfmt(:,:,:)
 complex(8), allocatable :: gwfmt(:,:,:,:)
 complex(8), allocatable :: wfir(:,:)
 complex(8), allocatable :: gwfir(:,:,:)
 complex(8), allocatable :: pm(:,:,:)
-!<sag>
+#ifdef XS
 complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
 complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
 logical, parameter :: pmatira=.true.
-!</sag>
+#endif
 ! external functions
 complex(8) zfmtinp
 external zfmtinp
 allocate(wfmt(lmmaxapw,nrcmtmax,nstfv))
 allocate(gwfmt(lmmaxapw,nrcmtmax,3,nstfv))
-!<sag>
+#ifdef XS
 if (pmatira) then
    allocate(cfunt(ngp,ngp))
    allocate(h(ngp,nstfv))
    allocate(pmt(nstfv,nstfv))
    allocate(evecfvt1(nstfv,ngp),evecfvt2(ngp,nstfv))
 else
-!</sag>
+#endif
    allocate(wfir(ngrtot,nstfv))
    allocate(gwfir(ngrtot,3,nstfv))
-!<sag>
+#ifdef XS
 end if
-!</sag>
+#endif
 allocate(pm(3,nstfv,nstfv))
 ! set the momentum matrix elements to zero
 pm(:,:,:)=0.d0
@@ -97,7 +97,7 @@ do is=1,nspecies
     end do
   end do
 end do
-!<sag>
+#ifdef XS
 if (pmatira) then
    ! analytic evaluation
    forall (ist1=1:nstfv)
@@ -122,7 +122,7 @@ if (pmatira) then
       pm(j,:,:)=pm(j,:,:)+pmt(:,:)
    end do
 else ! pmatira
-!</sag>
+#endif
 ! calculate momemntum matrix elements in the interstitial region
 wfir(:,:)=0.d0
 gwfir(:,:,:)=0.d0
@@ -155,9 +155,9 @@ do ist1=1,nstfv
     end do
   end do
 end do
-!<sag>
+#ifdef XS
 end if ! pmatira
-!</sag>
+#endif
 ! multiply by -i and set lower triangular part
 do ist1=1,nstfv
   do ist2=ist1,nstfv
@@ -188,15 +188,15 @@ if (tevecsv) then
 else
   pmat(:,:,:)=pm(:,:,:)
 end if
-!<sag>
+#ifdef XS
 if (pmatira) then
    deallocate(wfmt,gwfmt,pm,cfunt,h,pmt,evecfvt1,evecfvt2)
 else
-!</sag>
+#endif
    deallocate(wfmt,gwfmt,wfir,gwfir,pm)
-!<sag>
+#ifdef XS
 end if
-!</sag>
+#endif
 return
 end subroutine
 !EOC

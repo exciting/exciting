@@ -265,13 +265,13 @@ if (chgtot.lt.1.d-8) then
   write(*,*)
   stop
 end if
-!<sag>
+#ifdef XS
 ! occupations for BSE (-kernel)
 if ((task>=400).and.(task<=499)) then
    ! "nempty" variable might be affected here
    call initoccbse(nempty)
 end if
-!</sag>
+#endif
 ! number of first-variational states
 nstfv=int(chgval/2.d0)+nempty+1
 ! number of second-variational states

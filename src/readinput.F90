@@ -9,17 +9,19 @@
 subroutine readinput
 ! !USES:
 use modmain
-! <sag>
+#ifdef TETRA
 use modtetra
+#endif
+#ifdef XS
 use modtddft
-! </sag>
+#endif
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
 !   from the species files. Also sets default values for the input parameters.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
-!   Additional parmeters for TDDFT 2004-2007 (Sagmeister)
+!   Additional parmeters for TDDFT and tetrahedron method 2004-2007 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -31,11 +33,11 @@ real(8) vacuum,t1
 character(256) str
 character(256) bname
 character(256) sppath
-!<sag>
+#ifdef XS
 logical, parameter :: dumpmain=.true.
 logical, parameter :: dumpmpi=.true.
 logical, parameter :: dumptddft=.true.
-!</sag>
+#endif
 !------------------------!
 !     default values     !
 !------------------------!
@@ -116,9 +118,9 @@ nprad=4
 scissor=0.d0
 noptcomp=1
 optcomp(:,1)=1
-!<sag>
+#ifdef TETRA
 optbrd=0.0d0
-!</sag>
+#endif
 usegdft=.false.
 intraband=.false.
 evalmin=-4.5d0
@@ -152,9 +154,11 @@ spinsprl=.false.
 vqlss(:)=0.d0
 nwrite=0
 tevecsv=.false.
-!<sag>
+#ifdef TETRA
 ! tetrahedron method variables
 tetra=.false.
+#endif
+#ifdef XS
 ! TDDFT variables
 imbandstr=.false.
 pmatira=.false.
@@ -203,7 +207,7 @@ nstbef=-1
 nstabf=-1
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
-!</sag>
+#endif
 !-------------------------------!
 !     read from exciting.in     !
 !-------------------------------!
@@ -628,7 +632,7 @@ case('optcomp')
   write(*,'("Error(readinput): optical component list too long")')
   write(*,*)
   stop
-!<sag>
+#ifdef TETRA
 case('optbrd')
   read(50,*) optbrd
   if (optbrd.lt.0.d0) then
@@ -637,7 +641,7 @@ case('optbrd')
     write(*,*)
     stop
   end if
-!</sag>
+#endif
 case('usegdft')
   read(50,*) usegdft
 case('intraband')
@@ -775,10 +779,12 @@ case('nwrite')
   read(50,*) nwrite
 case('tevecsv')
   read(50,*) tevecsv
-! <sag>
+#ifdef TETRA
 !  tetrahedron method variables
 case('tetra')
   read(50,*) tetra
+#endif
+#ifdef XS
 ! TDDFT variables
 case('imbandstr')
   read(50,*) imbandstr
@@ -927,7 +933,7 @@ case('nstabf')
     write(*,*)
     stop
   end if
-! </sag>
+#endif
 case('')
   goto 10
 case default

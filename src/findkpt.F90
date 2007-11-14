@@ -5,9 +5,9 @@
 
 subroutine findkpt(vpl,isym,ik)
 use modmain
-!<sag>
+#ifdef XS
 use modtddft
-!</sag>
+#endif
 implicit none
 ! arguments
 real(8), intent(in) :: vpl(3)
@@ -24,7 +24,7 @@ do isym=1,nsymcrys
   s(:,:)=dble(symlat(:,:,lspl))
   call r3mtv(s,vpl,v1)
   call r3frac(epslat,v1,iv)
-  !<sag>
+#ifdef XS
   if ((task.ge.400).or.(task.le.499)) then
      do ik=1,nkpt0
         v2(:)=vkl0(:,ik)
@@ -32,15 +32,15 @@ do isym=1,nsymcrys
         if (r3taxi(v1,v2).lt.epslat) return
      end do
   else
-  !</sag>
+#endif
      do ik=1,nkpt
         v2(:)=vkl(:,ik)
         call r3frac(epslat,v2,iv)
         if (r3taxi(v1,v2).lt.epslat) return
      end do
-  !<sag>
+#ifdef XS
   end if
-  !</sag>
+#endif
 end do
 write(*,*)
 write(*,'("Error(findkpt): equivalent k-point not in set")')

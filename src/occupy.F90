@@ -9,9 +9,11 @@
 subroutine occupy
 ! !USES:
 use modmain
+#ifdef TETRA
 !<rga>
 use modtetra
 !</rga>
+#endif
 ! !DESCRIPTION:
 !   Finds the Fermi energy and sets the occupation numbers for the
 !   second-variational states using the routine {\tt fermi}.
@@ -50,9 +52,11 @@ else
 ! double occupancy for spin unpolarised systems
   occ=2.d0
 end if
+#ifdef TETRA
 !<rga>
-if(.not.(tetra))then
+if (.not.tetra) then
 !</rga>
+#endif
   t1=1.d0/swidth
   ! determine the Fermi energy using the bisection method
   do it=1,maxit
@@ -93,6 +97,7 @@ if(.not.(tetra))then
     end do
   end do
   fermidos=fermidos*occ/2.d0
+#ifdef TETRA
 !<rga>
 else
   !calculate the fermi energy and the density of states at the fermi energy
@@ -100,9 +105,9 @@ else
   efermi,fermidos,.false.)
   call tetiw(nkpt,ntet,nstsv,evalsv,tnodes,wtet,tvol,efermi,occsv)
   do ik=1,nkpt
-    !<sag> the "occsv" variable returned from "tetiw" already contains the
+    ! the "occsv" variable returned from "tetiw" already contains the
     ! weight "wkpt" and does not account for spin degeneracy - rescaling is
-    ! necessary </sag>
+    ! necessary (Stephan Sagmeister)
     fact=occ/wkpt(ik)
     do ist=1,nstsv
       occsv(ist,ik)=fact*occsv(ist,ik)
@@ -110,7 +115,8 @@ else
   enddo
   
 endif
-!</rga>  
+!</rga>
+#endif
 return
 end subroutine
 !EOC

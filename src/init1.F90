@@ -9,10 +9,12 @@
 subroutine init1
   ! !USES:
   use modmain
-  !<sag>
-  use modtddft, only: skipallocs1, imbandstr, nsymcrysstr, scmapstr
+#ifdef TETRA
   use modtetra
-  !</sag>
+#endif
+#ifdef XS
+  use modtddft, only: skipallocs1, imbandstr, nsymcrysstr, scmapstr
+#endif
   ! !DESCRIPTION:
   !   Generates the $k$-point set and then allocates and initialises global
   !   variables which depend on the $k$-point set.
@@ -29,7 +31,7 @@ subroutine init1
   integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
   real(8) vl(3),vc(3)
   real(8) cpu0,cpu1
-  !<sag>
+#ifdef TETRA
   integer :: nkptt
   integer, allocatable :: ivkt(:,:)
   real(8), allocatable :: vklt(:,:)
@@ -39,7 +41,7 @@ subroutine init1
   integer, allocatable :: indirkp(:)
   integer, allocatable :: iwkp(:),linkq(:,:), sy(:,:,:)
   integer :: nqptt,nsymcryst,isym,lspl,nerr
-  !</sag>
+#endif
   ! external functions
   complex(8) gauntyry
   external gauntyry
@@ -57,16 +59,16 @@ subroutine init1
   end if
   if ((task.eq.20).or.(task.eq.21)) then
      ! for band structure plots generate k-points along a line
-     !<sag>
+#ifdef XS
      if (imbandstr) then
         ! connect implementation that includes the specified vertices
         call connecta(bvec,nvp1d,npp1d,vvlp1d,vplp1d,dvp1d,dpp1d)
      else
-        !</sag>
+#endif
         call connect(bvec,nvp1d,npp1d,vvlp1d,vplp1d,dvp1d,dpp1d)
-        !<sag>
+#ifdef XS
      end if
-     !</sag>
+#endif
      nkpt=npp1d
      if (allocated(vkl)) deallocate(vkl)
      allocate(vkl(3,nkpt))
@@ -117,7 +119,7 @@ subroutine init1
      allocate(wkpt(ngridk(1)*ngridk(2)*ngridk(3)))
      if (allocated(ikmap)) deallocate(ikmap)
      allocate(ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
-     !<sag>
+#ifdef TETRA
      if (tetra) then
         ! switch to exciting interface
         call tetrasetifc('exciting')
@@ -164,7 +166,7 @@ subroutine init1
         allocate(sy(3,3,nsymcrys))
         do isym=1,nsymcrys
            lspl=lsplsymc(isym)
-           !       Transpose for the bzint library
+           ! transpose of rotation for the bzint library
            do i1=1,3
               do i2=1,3
                  sy(i1,i2,isym)=symlat(i2,i1,lspl)
@@ -261,17 +263,19 @@ subroutine init1
         ivk(:,:)=ivkt(:,:)
         deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
      else
-        !</sag>
+#endif
+#ifdef XS
         ! allocate arrays for stars
         if (allocated(nsymcrysstr)) deallocate(nsymcrysstr)
         if (allocated(scmapstr)) deallocate(scmapstr)
         allocate(nsymcrysstr(ngridk(1)*ngridk(2)*ngridk(3)))
         allocate(scmapstr(nsymcrys,ngridk(1)*ngridk(2)*ngridk(3)))
+#endif
         ! generate the reduced k-point set
         call genppts(reducek,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
-        !<sag>
+#ifdef TETRA
      end if
-     !</sag>
+#endif
      ! allocate the non-reduced k-point set arrays
      nkptnr=ngridk(1)*ngridk(2)*ngridk(3)
      if (allocated(ivknr)) deallocate(ivknr)
@@ -339,9 +343,9 @@ subroutine init1
      end do
   end do
 
-  !<sag>
+#ifdef XS
   if (.not.skipallocs1) then
-     !</sag>
+#endif
      !---------------------------------!
      !     APWs and local-orbitals     !
      !---------------------------------!
@@ -390,9 +394,9 @@ subroutine init1
      allocate(apwdfr(apwordmax,0:lmaxapw,natmtot))
      if (allocated(lofr)) deallocate(lofr)
      allocate(lofr(nrmtmax,2,nlomax,natmtot))
-     !<sag>
+#ifdef XS
   end if
-  !</sag>
+#endif
 
   !------------------------------------!
   !     secular equation variables     !
@@ -413,9 +417,9 @@ subroutine init1
         nstfv=min(nstfv,nmat(ik,ispn))
      end do
   end do
-  !<sag>
+#ifdef XS
   if (.not.skipallocs1) then
-     !</sag>
+#endif
      ! allocate second-variational arrays
      if (allocated(evalsv)) deallocate(evalsv)
      allocate(evalsv(nstsv,nkpt))
@@ -454,9 +458,9 @@ subroutine init1
            end do
         end do
      end do
-     !<sag>
+#ifdef XS
   end if
-  !</sag>
+#endif
 
   call cpu_time(cpu1)
   timeinit=timeinit+cpu1-cpu0

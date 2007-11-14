@@ -76,7 +76,7 @@ program main
         call writephn
      case(250)
         call geomplot
-        !<sag>
+#ifdef XS
         ! tasks for TDDFT
      !case(23,300:399,400:499,1200,1300)
      !   call tddftmain
@@ -89,7 +89,7 @@ program main
      case(902)
         ! k-point in SCF
         call atkp
-        !</sag>
+#endif
      case default
         write(*,*)
         write(*,'("Error(main): task not defined : ",I8)') task
@@ -99,9 +99,13 @@ program main
      endif
   end do
   call finitMPI()
+#ifndef XS
+#ifndef TETRA
 ! Commenting out the "stop" statement in order to avoid a 'FORTRAN STOP'
 ! error and to obtain a clean exit
-!$$  stop
+  stop
+#endif
+#endif
 end program main
 
 !BOI
