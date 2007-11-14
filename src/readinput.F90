@@ -977,9 +977,11 @@ if (molecule) then
     end do
   end do
 end if
-write(*,*) 'reading in of exciting.in finished' !!!!!!!!!
+#ifdef XS
+write(*,*) 'reading in of exciting.in finished'
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
+#endif
 !---------------------------------------------!
 !     read from atomic species data files     !
 !---------------------------------------------!

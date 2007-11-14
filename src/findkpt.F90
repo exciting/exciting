@@ -25,7 +25,7 @@ do isym=1,nsymcrys
   call r3mtv(s,vpl,v1)
   call r3frac(epslat,v1,iv)
 #ifdef XS
-  if ((task.ge.400).or.(task.le.499)) then
+  if ((task.ge.400).and.(task.le.499)) then
      do ik=1,nkpt0
         v2(:)=vkl0(:,ik)
         call r3frac(epslat,v2,iv)

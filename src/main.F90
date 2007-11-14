@@ -76,10 +76,11 @@ program main
         call writephn
      case(250)
         call geomplot
+#ifdef TETRA
 #ifdef XS
-        ! tasks for TDDFT
-     !case(23,300:399,400:499,1200,1300)
-     !   call tddftmain
+     ! tasks for TDDFT
+     case(23,300:399,400:499)
+        call tddftmain
      case(900)
         ! generate portable ASCII STATE.xml file from STATE.OUT file
         call portstate(.true.)
@@ -89,6 +90,7 @@ program main
      case(902)
         ! k-point in SCF
         call atkp
+#endif
 #endif
      case default
         write(*,*)
