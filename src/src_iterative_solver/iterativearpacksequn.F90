@@ -73,7 +73,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   which = 'LM'
 
   sigma=dcmplx(lowesteval,0)
-
+  resid(:)=0.0
   tol    = 0
   ido    = 0
   info   = 0
@@ -84,9 +84,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   iparam(3) = maxitr  
   iparam(7) = mode 
   inquire(iolength=recl)resid  
-  write(*,*) recl 
  ! koffset=ik-firstk(procofk(ik))+1      
   koffset=ik
+  infoznaupd=0
   dorestart=.false.
   filetag='restartvector'
   if(iscl.ne.1.and.dorestart)then
@@ -147,11 +147,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
-     open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
+   
+  open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
           form='UNFORMATTED',access='DIRECT',recl=recl)   
-     write(70,rec=koffset)v(:,1)
-     close(70)  
-
+     write(70,rec=koffset)v(:,3)
+     close(70) 
      rvec = .true.
 
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
@@ -173,7 +173,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         write(*,*)"iter",i	
         stop
      endif
-
+ 
   endif
   call cpu_time(cpu1)
   timefv=timefv+cpu1-cpu0
