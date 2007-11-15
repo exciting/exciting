@@ -31,6 +31,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real:: cpu0,cpu1
   Complex(8)::                 zero, one
   parameter         (zero = (0.0D+0, 0.0D+0) ,one = (1.0D+0, 0.0D+0) )
+  !IO vars
+  integer::koffset,recl
+  character(256):: outfilenamestring,filetag
+  external outfilenamestring
+  logical::  dorestart
   !ARPACK Interface vars
 
   integer:: ido, nev, ncv, lworkl, info,infoznaupd, info2, j,i
@@ -69,7 +74,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   sigma=dcmplx(lowesteval,0)
 
-  tol    = 1e-8
+  tol    = 0
   ido    = 0
   info   = 0
   ishfts = 1
@@ -78,9 +83,19 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   iparam(1) = ishfts
   iparam(3) = maxitr  
   iparam(7) = mode 
-  if(iscl.ne.1) then
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-     call getevalfv(vkl(1,ik),evalfv)
+  inquire(iolength=recl)resid  
+  write(*,*) recl 
+ ! koffset=ik-firstk(procofk(ik))+1      
+  koffset=ik
+  dorestart=.false.
+  filetag='restartvector'
+  if(iscl.ne.1.and.dorestart)then
+     !take old eigenvector as new starting vector to increase convergence               
+     open(70,file=outfilenamestring(filetag,ik),action='READ', &
+          form='UNFORMATTED',access='DIRECT',recl=recl)
+     read(70,rec=koffset)resid
+     close(70)  
+     infoznaupd=1
   endif
   call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
   !calculate LU decomposition to be used in the reverse communication loop
@@ -132,6 +147,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
+     open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
+          form='UNFORMATTED',access='DIRECT',recl=recl)   
+     write(70,rec=koffset)v(:,1)
+     close(70)  
+
      rvec = .true.
 
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
@@ -170,8 +190,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   end do
   evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
   evalfv(1:nstfv,ispn)=d(1:nstfv)
-  call putevecfv(ik,evecfv)
-  call putevalfv(ik,evalfv)
+
   deallocate(workd,resid,v,workev,workl,d)
 
   deallocate(rwork)
