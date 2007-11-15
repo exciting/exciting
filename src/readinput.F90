@@ -204,6 +204,7 @@ fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
 nstbef=-1
 nstabf=-1
+vgqlfmt(:)=0.d0
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 #endif
@@ -930,6 +931,8 @@ case('nstabf')
     write(*,*)
     stop
   end if
+case('vgqlfmt')
+  read(50,*) vgqlfmt
 #endif
 case('')
   goto 10

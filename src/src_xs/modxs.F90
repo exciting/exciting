@@ -256,6 +256,12 @@ module modxs
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
   ! method)
   integer :: bzsampl
+  ! finite momentum transfer G+q-vector
+  real(8) :: vgqlfmt(3)
+  ! finite momentum transfer q-vector
+  real(8) :: vqlfmt(3)
+  ! finite momentum transfer G-vector
+  integer(8) :: ivgfmt(3)
 
   !----------------------------------!
   !     angular momenta variables    !
