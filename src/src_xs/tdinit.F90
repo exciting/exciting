@@ -38,7 +38,7 @@ subroutine tdinit
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&
           filnam=fnresume)
   else
-     call genfilname(basename='.resume',dotext='')
+     call genfilname(basename='.resume',dotext='',filnam=fnresume)
   end if
 
 !!$  call getunit(un)
