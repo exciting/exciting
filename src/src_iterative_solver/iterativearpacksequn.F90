@@ -38,7 +38,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
   complex(8),allocatable::workd(:),resid(:),v(:,:),workev(:),workl(:),d(:)
-  real(8),allocatable:: rwork(:)
+  real(8),allocatable:: rwork(:),rd(:)
+  integer,allocatable::idx(:)
   complex(8)::sigma
   character:: bmat*1, which*2
   real(8):: tol
@@ -62,10 +63,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(workl(lworkl))
   allocate(d(ncvmax))
   allocate(rwork(ncvmax))
+  allocate(rd(ncvmax),idx(ncvmax))
   bmat  = 'G'
   which = 'LM'
 
-  sigma = zero
+  sigma=dcmplx(lowesteval,0)
 
   tol    = 1e-8
   ido    = 0
@@ -87,6 +89,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #endif
 
   call cpu_time(cpu0)
+  call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
   call zhptrf('U', n, h, IPIV, info )
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
@@ -159,6 +162,12 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   write(*,*)"iterations",i
 #endif
   if(rank.eq.0)write(60,*)"ARPACK iterations ", i
+  rd=real(d)
+  call sortidx (nevmax,rd(:),idx(:))
+  do j=1,nstfv
+     evecfv(:,j,ispn)=v(:,idx(j))
+     evalfv(j,ispn)=rd(idx(j))
+  end do
   evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
   evalfv(1:nstfv,ispn)=d(1:nstfv)
   call putevecfv(ik,evecfv)

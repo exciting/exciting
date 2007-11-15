@@ -370,7 +370,7 @@ integer xcgrad
 ! 2 ARPACK serial
 ! 3 ...
 integer iterativetype
-! in case of Block Davidson interval after which direct solver is aplied
+real lowesteval
 integer iterativeinterval
 ! muffin-tin charge density
 real(8), allocatable :: rhomt(:,:,:)

@@ -60,7 +60,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
  
 
  end do
-write(555,*)evecfv
+write(555,*)evalfv
   !$OMP END DO
   !$OMP END PARALLEL
   if (spinsprl) then
