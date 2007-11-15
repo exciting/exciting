@@ -5,7 +5,7 @@ contains
 
   subroutine getemat(iq,ik,tarec,filnam,xou,xuo)
     use modmain
-    use modtddft
+    use modxs
     use modmpi
     use m_getunit
     implicit none

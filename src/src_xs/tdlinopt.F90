@@ -5,7 +5,7 @@ contains
 
   subroutine tdlinopt(iq)
     use modmain
-    use modtddft
+    use modxs
     use modtetra
     use modmpi
     use m_findexciton

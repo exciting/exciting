@@ -5,7 +5,7 @@ contains
 
   subroutine gensymdf(oc1,oc2)
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     integer, intent(in) :: oc1,oc2

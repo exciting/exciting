@@ -10,7 +10,7 @@
 ! !AUTHORS: S. Sagmeister and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
-!   Welcome to the {\sf EXCITING.xs} code developers' manual
+!   Welcome to the {\sf XS/EXCITING} code developers' manual
 !   This is supposed to collect the routines and modules belonging
 !   only to the excited states (TDDFT and BSE) part into one document.
 !   \\\\
@@ -19,14 +19,14 @@
 !
 !EOI
 
-subroutine tddftmain
+subroutine xsmain
   use modmain
-  use modtddft
+  use modxs
   use modtetra
   use modmpi
   use m_getunit
   implicit none
-  character(*), parameter :: thisnam = 'tddftmain'
+  character(*), parameter :: thisnam = 'xsmain'
 !!$  logical :: tskip
 
   ! save task
@@ -128,4 +128,4 @@ subroutine tddftmain
   ! epilog
   call tdepilog
 
-end subroutine tddftmain
+end subroutine xsmain

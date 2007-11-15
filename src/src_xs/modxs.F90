@@ -3,9 +3,9 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module modtddft
+module modxs
   ! !DESCRIPTION: 
-  !   Global variables for the {\tt TDDFT} implementation
+  !   Global variables for the {\tt XS} (eXcited States) implementation
   !   in the {\tt EXCITING}-code.
   !
   !
@@ -253,8 +253,6 @@ module modtddft
   real(8), allocatable :: mdfrpa(:,:,:)
   ! derivative of real part of RPA macroscopic dielectric function
   real(8), allocatable :: mdfrpad(:,:)
-  ! true if a Lorentzian broadening is to be used in the default linear optics
-  logical :: lorentz
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
   ! method)
   integer :: bzsampl
@@ -464,4 +462,4 @@ module modtddft
   logical :: isreadstate0
   data isreadstate0 /.false./
 
-end module modtddft
+end module modxs

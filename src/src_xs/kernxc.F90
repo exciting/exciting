@@ -16,7 +16,7 @@ subroutine kernxc
 !EOP
 !BOC
   use modmain
-  use modtddft
+  use modxs
   implicit none
   ! local variables
   real(8), allocatable :: dvx(:,:),dvc(:,:),rftp(:,:)

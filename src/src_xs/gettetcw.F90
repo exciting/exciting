@@ -5,7 +5,7 @@ contains
   
   subroutine gettetcw(iq,ik,iv,ic,nw,fnam,cw,cwa,cwsurf)
     use modmain
-    use modtddft
+    use modxs
     use m_getunit
     implicit none
     ! arguments

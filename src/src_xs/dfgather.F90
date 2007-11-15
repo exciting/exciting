@@ -1,7 +1,7 @@
 
 subroutine dfgather
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use m_filedel
   use m_getx0

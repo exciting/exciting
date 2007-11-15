@@ -10,7 +10,7 @@ contains
 
   subroutine fxc_alda(iq,msiz,fxcg)
     use modmain
-    use modtddft
+    use modxs
     use m_ftfun
     implicit none
     ! arguments

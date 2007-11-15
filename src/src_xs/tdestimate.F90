@@ -1,7 +1,7 @@
 
 subroutine tdestimate
   use modmain
-  use modtddft
+  use modxs
   use m_getunit
   implicit none
   real(8) :: d_ev(2), d_apwdlm(2), d_pmat(2), d_emat(2), d_x0(2), d_tetw(2)

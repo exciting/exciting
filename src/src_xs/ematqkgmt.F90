@@ -5,7 +5,7 @@ contains
 
   subroutine ematqkgmt(iq,ik,igq)
     use modmain
-    use modtddft
+    use modxs
     use m_zaxpyc
     use m_tdzoutpr
     implicit none

@@ -1,7 +1,7 @@
 
 subroutine tetgather
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use m_gettetcw
   use m_puttetcw

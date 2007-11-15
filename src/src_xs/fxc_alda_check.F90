@@ -8,7 +8,7 @@ subroutine fxc_alda_check
   !
   use modmain
   use modxcifc
-  use modtddft
+  use modxs
   use modfxcifc
   implicit none
   real(8), allocatable :: vx(:),ex(:)

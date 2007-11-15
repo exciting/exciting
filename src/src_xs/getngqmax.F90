@@ -9,7 +9,7 @@
 subroutine getngqmax
 ! !USES:
 use modmain
-use modtddft
+use modxs
 ! !DESCRIPTION:
 !   Determines the largest number of ${\bf G+k}$-vectors with length less than
 !   {\tt gkmax} over all the ${\bf k}$-points and stores it in the global

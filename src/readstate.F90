@@ -10,7 +10,7 @@ subroutine readstate
 ! !USES:
 use modmain
 #ifdef XS
-use modtddft, only : isreadstate0
+use modxs, only : isreadstate0
 #endif
 ! !DESCRIPTION:
 !   Reads in the charge density and other relevant variables from the file

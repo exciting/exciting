@@ -5,7 +5,7 @@
 
 subroutine initbse
   use modmain
-  use modtddft
+  use modxs
   implicit none
 
   ! irreversibly map varialbes specific for BSE (-kernel) to main variables

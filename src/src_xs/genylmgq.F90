@@ -9,7 +9,7 @@
 subroutine genylmgq(iq)
 ! !USES:
 use modmain
-use modtddft
+use modxs
 ! !DESCRIPTION:
 !   Generates a set of spherical harmonics, $Y_{lm}(\hat{\bf G}+{\bf q})$,
 !   with angular

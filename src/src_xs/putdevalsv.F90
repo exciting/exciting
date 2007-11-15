@@ -5,7 +5,7 @@ contains
 
   subroutine putdevalsv(iq,ik,tarec,filnam,eou,euo)
     use modmain
-    use modtddft
+    use modxs
     use modmpi
     use m_getunit
     implicit none

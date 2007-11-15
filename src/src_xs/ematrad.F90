@@ -5,7 +5,7 @@ contains
 
   subroutine ematrad(iq)
     use modmain
-    use modtddft
+    use modxs
     use m_getunit
     implicit none
     ! arguments

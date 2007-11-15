@@ -1,6 +1,6 @@
 
 subroutine test
-  use modtddft
+  use modxs
   use modmpi
   implicit none
 

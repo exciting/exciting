@@ -9,4 +9,3 @@ AR = ar
 ARFLAGS = -rc
 
 TMPFILES = *.mod
-CPPDEFS = -DTETRA -DXS

@@ -9,11 +9,10 @@
 subroutine writeinfotd
 ! !USES:
   use modmain
-  use modtddft
+  use modxs
 ! !INPUT/OUTPUT PARAMETERS:
-!   fnum : unit specifier for INFOTD.OUT file (in,integer)
 ! !DESCRIPTION:
-!   Outputs basic information about the run to the file {\tt INFOTD.OUT}.
+!   Outputs basic information about the run to the file {\tt INFO_XS.OUT}.
 !   Does not close the file afterwards.
 !
 ! !REVISION HISTORY:

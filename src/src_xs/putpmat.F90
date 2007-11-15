@@ -5,7 +5,7 @@ contains
 
   subroutine putpmat(ik,tarec,filnam,pm)
     use modmain
-    use modtddft
+    use modxs
     use modmpi
     use m_getunit
     implicit none

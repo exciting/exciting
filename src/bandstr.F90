@@ -10,7 +10,7 @@ subroutine bandstr
 ! !USES:
 use modmain
 #ifdef XS
-use modtddft, only: imbandstr
+use modxs, only: imbandstr
 #endif
 ! !DESCRIPTION:
 !   Produces a band structure along the path in reciprocal-space which connects

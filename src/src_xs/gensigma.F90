@@ -5,7 +5,7 @@ contains
 
   subroutine gensigma(w,eps,oc,sigma)
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     real(8), intent(in) :: w(:)

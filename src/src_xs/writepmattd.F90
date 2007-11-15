@@ -10,7 +10,7 @@ subroutine writepmattd(lgather)
   ! !USES:
   use modmain
   use modmpi
-  use modtddft
+  use modxs
   use m_putpmat
   use m_getunit
   use m_filedel

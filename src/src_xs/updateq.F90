@@ -5,7 +5,7 @@
 
 subroutine updateq(iq)
   use modmain
-  use modtddft
+  use modxs
   implicit none
   ! arguments
   integer, intent(in) :: iq

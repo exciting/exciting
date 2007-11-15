@@ -13,7 +13,7 @@ subroutine init1
   use modtetra
 #endif
 #ifdef XS
-  use modtddft, only: skipallocs1, imbandstr, nsymcrysstr, scmapstr
+  use modxs, only: skipallocs1, imbandstr, nsymcrysstr, scmapstr
 #endif
   ! !DESCRIPTION:
   !   Generates the $k$-point set and then allocates and initialises global

@@ -5,7 +5,7 @@ contains
 
   subroutine idfq(iq)
     use modmain
-    use modtddft
+    use modxs
     use modfxcifc
     use modtetra
     use modmpi

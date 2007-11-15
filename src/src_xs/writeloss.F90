@@ -5,7 +5,7 @@ contains
 
   subroutine writeloss(iq,w,loss,fn)
     use modmain
-    use modtddft
+    use modxs
     use m_getunit
     use m_tdwriteh
     implicit none

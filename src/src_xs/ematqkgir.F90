@@ -5,7 +5,7 @@ contains
 
   subroutine ematqkgir(iq,ik,igq)
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     integer, intent(in) :: iq,ik,igq

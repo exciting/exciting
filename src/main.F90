@@ -80,7 +80,7 @@ program main
 #ifdef XS
      ! tasks for TDDFT
      case(23,300:399,400:499)
-        call tddftmain
+        call xsmain
      case(900)
         ! generate portable ASCII STATE.xml file from STATE.OUT file
         call portstate(.true.)

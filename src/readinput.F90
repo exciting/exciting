@@ -13,7 +13,7 @@ use modmain
 use modtetra
 #endif
 #ifdef XS
-use modtddft
+use modxs
 #endif
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
@@ -172,7 +172,6 @@ lmaxemat=3
 rsptype='reta'
 acont=.false.
 nwacont=0
-lorentz=.false.
 brdtd=0.01
 aresdf=.true.
 symwings=.false.
@@ -840,8 +839,6 @@ case('nwacont')
     write(*,*)
     stop
   end if
-case('lorentz')
-  read(50,*) lorentz
 case('brdtd')
   read(50,*) brdtd
   if (brdtd.le.0) then

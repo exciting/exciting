@@ -6,7 +6,7 @@
 subroutine screen
   use modmain
   use modmpi
-  use modtddft
+  use modxs
   use m_filedel
   use m_genfilname
   implicit none

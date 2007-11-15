@@ -1,7 +1,7 @@
 
 subroutine tetcalccw
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use modtetra
   use m_tetcalccwq

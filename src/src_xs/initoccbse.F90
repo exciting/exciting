@@ -1,7 +1,7 @@
 
 subroutine initoccbse(nempty_)
   use modmain
-  use modtddft
+  use modxs
 
   implicit none
   ! arguments

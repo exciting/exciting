@@ -9,7 +9,7 @@ contains
     ! [cad, CPC 175 (2006) 1-14, p5, eq. 26]
     !
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     real(8), intent(in) :: w(:)

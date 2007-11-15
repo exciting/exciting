@@ -5,7 +5,7 @@ contains
 
   subroutine getpmat(ik,vklt,tarec,filnam,pm)
     use modmain
-    use modtddft
+    use modxs
     use modmpi
     use m_getunit
     implicit none

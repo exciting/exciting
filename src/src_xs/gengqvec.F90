@@ -9,7 +9,7 @@
 subroutine gengqvec(vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
 ! !USES:
 use modmain
-use modtddft
+use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   vpl   : p-point vector in lattice coordinates (in,real(3))
 !   vpc   : p-point vector in Cartesian coordinates (in,real(3))

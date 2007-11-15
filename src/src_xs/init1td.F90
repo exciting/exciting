@@ -1,6 +1,6 @@
 
 subroutine init1td
-  use modtddft, only: skipallocs1
+  use modxs, only: skipallocs1
   implicit none
   skipallocs1=.true.
   ! call init1 without (re-)allocation of radial functions

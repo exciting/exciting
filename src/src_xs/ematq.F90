@@ -9,7 +9,7 @@ contains
 
   subroutine ematq(iq)
     use modmain
-    use modtddft
+    use modxs
     use modmpi
     use m_ematrad
     use m_ematqk

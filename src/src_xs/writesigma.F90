@@ -4,7 +4,7 @@ module m_writesigma
 contains
 
   subroutine writesigma(iq,w,sigma,fn)
-    use modtddft
+    use modxs
     use m_getunit
     use m_tdwriteh
     implicit none

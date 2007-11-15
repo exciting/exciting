@@ -6,7 +6,7 @@
 
 subroutine getevecfv0(vpl,vgpl,evecfvt)
   use modmain
-  use modtddft
+  use modxs
   ! arguments
   real(8), intent(in) :: vpl(3)
   real(8), intent(in) :: vgpl(3,ngkmax)

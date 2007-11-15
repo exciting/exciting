@@ -1,7 +1,7 @@
 
 subroutine writeemat_ascii
   use modmain
-  use modtddft
+  use modxs
   use m_getunit
   use m_getemat
   use m_genfilname

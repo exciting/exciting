@@ -4,7 +4,7 @@ module m_writeeps
 contains
 
   subroutine writeeps(iq,w,eps,fn)
-    use modtddft
+    use modxs
     use m_getunit
     use m_tdwriteh
     implicit none

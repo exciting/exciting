@@ -12,7 +12,7 @@ contains
     ! or fxc_(G,Gp) = -(alpha+beta*w**2)/4pi*delta_(G,Gp)*delta(G,0).
     !
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     integer, intent(in) :: msiz

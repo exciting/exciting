@@ -5,7 +5,7 @@ contains
 
   subroutine dfqoscwg(sw,pou,puo,xou,xuo,you,yuo)
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     integer, intent(in) :: sw

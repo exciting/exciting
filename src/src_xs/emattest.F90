@@ -1,7 +1,7 @@
 
 subroutine emattest
   use modmain
-  use modtddft
+  use modxs
   use m_getunit
   use m_getpmat
   use m_getemat

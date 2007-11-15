@@ -1,7 +1,7 @@
 
 subroutine x0toasc
   use modmain
-  use modtddft
+  use modxs
   use m_getx0
   use m_putx0
   use m_getunit

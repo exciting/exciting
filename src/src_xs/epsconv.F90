@@ -1,7 +1,7 @@
 
 subroutine epsconv
   use modmain
-  use modtddft
+  use modxs
   use modtetra
   use m_getunit
   use m_genfilname

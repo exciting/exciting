@@ -1,7 +1,7 @@
 
   subroutine tdcheck
     use modmain, only: reducek, spinsprl, spinpol, version
-    use modtddft
+    use modxs
     use modtetra
     implicit none
     character(*), parameter :: thisnam = 'tdcheck'

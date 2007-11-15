@@ -10,7 +10,7 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
 ! !USES:
 use modmain
 #ifdef XS
-use modtddft
+use modxs
 #endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   reducep : .true. if p-point set is to be reduced (in,logical)

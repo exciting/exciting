@@ -6,7 +6,7 @@
 
 subroutine getevalsv0(vpl,evalsvp)
   use modmain
-  use modtddft
+  use modxs
   ! arguments
   real(8), intent(in) :: vpl(3)
   real(8), intent(out) :: evalsvp(nstsv)

@@ -5,7 +5,7 @@ contains
 
   subroutine getx0(tp0,iq,iw,filnam,filxt,ch0,ch0wg,ch0hd)
     use modmain
-    use modtddft
+    use modxs
     use m_getunit
     implicit none
     ! arguments

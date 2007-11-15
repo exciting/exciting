@@ -5,7 +5,7 @@
 
 subroutine initscr
   use modmain
-  use modtddft
+  use modxs
   implicit none
 
   ! irreversibly map varialbes specific for screening to main variables

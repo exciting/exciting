@@ -5,7 +5,7 @@
 
 subroutine tdinit
   use modmain
-  use modtddft
+  use modxs
   use modfxcifc
   use modmpi
   use m_getunit
@@ -60,7 +60,7 @@ subroutine tdinit
   if (calledtd.eq.1) call system_clock(COUNT=systimcum)
 
   ! name of output file
-  call genfilname(nodotpar=.true.,basename='TDINFO',&
+  call genfilname(nodotpar=.true.,basename='XSINFO',&
        procs=procs,rank=rank,filnam=tdfileout)
 
   ! reset or append to output file

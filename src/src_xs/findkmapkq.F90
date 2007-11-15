@@ -5,7 +5,7 @@ contains
 
   subroutine findkmapkq(iq,vq,voff,map)
     use modmain
-    use modtddft
+    use modxs
     use modmpi
     use m_getunit
     use m_genfilname

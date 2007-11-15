@@ -4,7 +4,7 @@ module m_tdgauntgen
 contains
 
   subroutine tdgauntgen(lmax1,lmax2,lmax3)
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     integer, intent(in) :: lmax1,lmax2,lmax3

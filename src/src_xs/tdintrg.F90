@@ -5,7 +5,7 @@ contains
 
   subroutine tdintrg(iq,igq)
     use modmain
-    use modtddft
+    use modxs
     use m_findgntn0
     use m_getunit
     implicit none

@@ -6,7 +6,7 @@
 subroutine findkpt(vpl,isym,ik)
 use modmain
 #ifdef XS
-use modtddft
+use modxs
 #endif
 implicit none
 ! arguments

@@ -4,7 +4,7 @@ module m_findoscstr
 contains
   subroutine findoscstr(oct,nw,w,mdf1,ne,ei,o)
     use modmain
-    use modtddft
+    use modxs
     use modtetra
     implicit none
     ! arguments
@@ -77,7 +77,7 @@ module m_findexciton
 contains
   subroutine findexciton(oct,nw,w)
     use modmain
-    use modtddft
+    use modxs
     use modtetra
     use m_findroots
     use m_findoscstr

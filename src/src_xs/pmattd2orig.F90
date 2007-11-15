@@ -5,7 +5,7 @@
 
 subroutine pmattd2orig
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use m_getpmat
   use m_getunit

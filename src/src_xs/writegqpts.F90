@@ -14,7 +14,7 @@ contains
 subroutine writegqpts(iq)
 ! !USES:
 use modmain
-use modtddft
+use modxs
 use m_getunit
 use m_genfilname
 ! !DESCRIPTION:

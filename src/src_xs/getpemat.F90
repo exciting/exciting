@@ -5,7 +5,7 @@ contains
 
   subroutine getpemat(iq,ik,pfilnam,efilnam,nstv,nstc,xou,xuo,pou,puo)
     use modmain
-    use modtddft
+    use modxs
     use modtetra
     use m_getpmat
     use m_getemat

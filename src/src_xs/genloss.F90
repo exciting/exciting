@@ -4,7 +4,7 @@ module m_genloss
 contains
 
   subroutine genloss(eps,loss)
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     complex(8), intent(in) :: eps(:)

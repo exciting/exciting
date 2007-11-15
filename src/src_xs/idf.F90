@@ -1,7 +1,7 @@
 
 subroutine idf
   use modmain
-  use modtddft
+  use modxs
   use modfxcifc
   use modmpi
   use m_idfq

@@ -5,7 +5,7 @@
 
 subroutine genstark
   use modmain
-  use modtddft
+  use modxs
   implicit none
   ! arguments
   ! local variables

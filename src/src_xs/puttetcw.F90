@@ -5,7 +5,7 @@ contains
 
   subroutine puttetcw(iq,ik,iv,ic,filnam,cw,cwa,cwsurf)
     use modmain
-    use modtddft
+    use modxs
     use modmpi
     use m_getunit
     implicit none

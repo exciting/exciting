@@ -11,7 +11,7 @@ contains
        nar,nlf,fxctype,tq0,oc,iq,procs,rank,dotext,setfilext,revertfilext,&
        filnam,fileext)
     use modmain, only: filext
-    use modtddft, only: filextrevert
+    use modxs, only: filextrevert
     ! Generate file name and extension accoring to purpose and optional
     ! input parameters.
     ! Interpret bzsampl variable as default (Lorentzian) for 0, as

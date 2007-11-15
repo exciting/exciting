@@ -5,7 +5,7 @@ contains
 
   subroutine genqvkloff(vq,voff)
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     real(8), intent(in) :: vq(3)

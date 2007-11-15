@@ -5,7 +5,7 @@ contains
 
   subroutine dfqoschd(pou,puo,you,yuo)
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     complex(8), intent(in) :: pou(3),puo(3)

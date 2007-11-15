@@ -67,7 +67,7 @@ end module m_bandgap
 
 subroutine writebandgap
   use modmain
-  use modtddft
+  use modxs
   use m_bandgap
   implicit none
   ! local variables
@@ -133,7 +133,7 @@ end subroutine writebandgap
 
 subroutine writebandgapgrid
   use modmain
-  use modtddft
+  use modxs
   use m_genfilname
   ! initialise universal variables
   if (calledtd.eq.1) call init0

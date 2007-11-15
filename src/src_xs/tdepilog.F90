@@ -5,7 +5,7 @@
 
 subroutine tdepilog
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use a2str
   use m_filedel

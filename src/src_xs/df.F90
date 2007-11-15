@@ -1,7 +1,7 @@
 
 subroutine df
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use m_dfq
   use m_getunit

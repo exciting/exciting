@@ -5,7 +5,7 @@
 
 subroutine writeemat
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use m_ematq
   use m_tdgauntgen
