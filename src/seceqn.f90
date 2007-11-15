@@ -57,7 +57,10 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
         call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
              apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
      endif
-  end do
+ 
+
+ end do
+write(555,*)evecfv
   !$OMP END DO
   !$OMP END PARALLEL
   if (spinsprl) then
