@@ -181,13 +181,12 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #endif
   if(rank.eq.0)write(60,*)"ARPACK iterations ", i
   rd=real(d)
-  call sortidx (nevmax,rd(:),idx(:))
+  call sortidx (nstfv,rd(:),idx(:))
   do j=1,nstfv
      evecfv(:,j,ispn)=v(:,idx(j))
      evalfv(j,ispn)=rd(idx(j))
   end do
-  evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
-  evalfv(1:nstfv,ispn)=d(1:nstfv)
+
 
   deallocate(workd,resid,v,workev,workl,d)
 
