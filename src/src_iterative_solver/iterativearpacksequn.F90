@@ -148,7 +148,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
    
   open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
           form='UNFORMATTED',access='DIRECT',recl=recl)   
-     write(70,rec=koffset)v(:,3)
+     write(70,rec=koffset)v(:,1)
      close(70) 
      rvec = .true.
 
