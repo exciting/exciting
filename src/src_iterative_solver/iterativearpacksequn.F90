@@ -74,7 +74,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   sigma=dcmplx(lowesteval,0)
   resid(:)=0.0
-  tol    = 0
+  tol    = 1.e-3
   ido    = 0
   info   = 0
   ishfts = 1
@@ -99,9 +99,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   endif
   call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
   !calculate LU decomposition to be used in the reverse communication loop
-#ifdef DEBUG
-  write (333,*)"h",h,"o",o
-#endif
+
 
   call cpu_time(cpu0)
   call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
