@@ -153,9 +153,11 @@ subroutine gndstate
 #ifndef MPISEC
      splittfile=.false.
   ! begin parallel loop over k-points
+#ifdef KSMP
      !$OMP PARALLEL DEFAULT(SHARED) &
      !$OMP PRIVATE(evalfv,evecfv,evecsv)
      !$OMP DO
+#endif
      do ik=1,nkpt
 #endif
         ! every thread should allocate its own arrays
@@ -171,8 +173,10 @@ subroutine gndstate
         call putevecsv(ik,evecsv)
         deallocate(evalfv,evecfv,evecsv)
      end do
+#ifdef KSMP     
      !$OMP END DO
      !$OMP END PARALLEL
+#endif
 #ifdef MPISEC
      call mpisync_evalsv_spnchr
 #endif
@@ -213,10 +217,12 @@ subroutine gndstate
            call putoccsv(ik,occsv(1,ik))
         end do
      endif
+#ifdef KSMP     
      ! begin parallel loop over k-points
      !$OMP PARALLEL DEFAULT(SHARED) &
      !$OMP PRIVATE(evecfv,evecsv)
      !$OMP DO
+#endif     
      do ik=1,nkpt	
 #endif
         allocate(evecfv(nmatmax,nstfv,nspnfv))
@@ -230,8 +236,10 @@ subroutine gndstate
         deallocate(evecfv,evecsv)
      end do
 #ifndef MPIRHO	   
+#ifdef KSMP
      !$OMP END DO
      !$OMP END PARALLEL
+#endif
 #endif
 #ifdef MPIRHO    
      call mpisumrhoandmag
