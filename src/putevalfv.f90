@@ -13,10 +13,10 @@ subroutine putevalfv(ik,evalfv)
 
   ! local variables
   integer recl,koffset   
-    character(256) ::filetag
+   character(256) ::filetag
    character(256), external:: outfilenamestring
   
-  ! find the record length
+  !find the record length
   inquire(iolength=recl) vkl(:,ik),nstfv,nspnfv,evalfv
   !$OMP CRITICAL
 filetag='EVALFV'

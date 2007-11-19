@@ -366,12 +366,13 @@ integer xcspin
 integer xcgrad
 ! type of Iterative Solver 
 ! 0: direct solver
-! 1 Block Davidson serial
-! 2 ARPACK serial
-! 3 ...
+! -1 Block Davidson serial
+! ge 1 ARPACK
 integer iterativetype
 real lowesteval
+logical doarpackrestart
 integer iterativeinterval
+integer maxncv
 ! muffin-tin charge density
 real(8), allocatable :: rhomt(:,:,:)
 ! interstitial real-space charge density

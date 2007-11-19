@@ -18,9 +18,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !BOC
   implicit none
 #ifdef DEBUG
-  !include declarations for timing output of ARPACK
-
-
+!include declarations for timing output of ARPACK
 #include "./debugf90.h"
 #endif
   ! arguments
@@ -59,22 +57,24 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !ZHPTR interface vars
   integer ::IPIV(nmat(ik,ispn))
 #ifdef DEBUG
-  ndigit = -3
-  logfil = 6
-  mngets = 0
-  mnaitr = 0
-  mnapps = 0
-  mnaupd = 1
-  mnaup2 = 0
-  mneigh = 0
-  mneupd = 1
-  open (logfil,file="ARPACK.OUT")
+    ndigit = -3
+      logfil = 6
+      mngets = 0
+      mnaitr = 0
+      mnapps = 0
+      mnaupd = 1
+      mnaup2 = 0
+      mneigh = 0
+      mneupd = 1
+      open (logfil,file="ARPACK.OUT")
 #endif
   !##################	
   !ARPACK parameters
   !##################
   nev=nstfv
   ncv=2*nev
+  ncv=min(2*nev,maxncv)
+  ncv=max(ncv,nev+2)
   nevmax=nev
   ncvmax= ncv
   nmax=nmatmax
@@ -108,12 +108,13 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   inquire(iolength=recl)resid  
   koffset=ik-firstk(procofk(ik))+1      
   infoznaupd=0
-  dorestart=.false.
-  filetag='ARPACKVEC.OUT'
-  if(iscl.ne.1.and.dorestart)then
+  dorestart=.true.
+  filetag='ARPACKVEC'
+  if(iscl.ne.1.and.doarpackrestart)then
      !take old eigenvector as new starting vector to increase convergence               
      open(70,file=outfilenamestring(filetag,ik),action='READ', &
           form='UNFORMATTED',access='DIRECT',recl=recl)
+          resid=0
      read(70,rec=koffset)resid
      close(70)  
      infoznaupd=1
@@ -127,9 +128,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 
-  call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
-  call zhptrf('U', n, h, IPIV, info )
-
+     call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
+     call zhptrf('U', n, h, IPIV, info )
+ 
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -151,7 +152,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
 
-        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
+       call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zhptrs ",info
            stop
@@ -176,20 +177,20 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
-     !#################################################
-     !write data to scratch for restart with old vector
-     !#################################################
-     if(dorestart)then
+  !#################################################
+  !write data to scratch for restart with old vector
+  !#################################################
+     if(doarpackrestart)then
         open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
              form='UNFORMATTED',access='DIRECT',recl=recl)   
         write(70,rec=koffset)v(:,1)
         close(70)   
      endif
-     !########################
-     !post processing of evec
-     !########################
-     rvec = .true.
-     select=.true.
+  !########################
+  !post processing of evec
+  !########################
+        rvec = .true.
+        select=.true.
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
