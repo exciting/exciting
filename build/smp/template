@@ -1,0 +1,12 @@
+include make.inc
+
+# translation for mkmf utility
+FC = $(F90)
+FFLAGS = $(F90_OPTS)
+LD = $(FC)
+LDFLAGS 	= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
+AR = ar
+ARFLAGS = -rc
+
+TMPFILES = *.mod
+
