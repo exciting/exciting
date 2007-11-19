@@ -3,9 +3,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !USES:
   use modmain
   use modmpi
-#ifdef DEBUG
-  include ../../src/ARPACK/SRC/debug.h
-#endif
+
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -19,6 +17,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   !BOC
   implicit none
+#ifdef DEBUG
+#include "../../src/ARPACK/SRC/debug.h"
+#endif
   ! arguments
   integer,intent(in)       :: ik
   integer,intent(in)       :: ispn
@@ -53,6 +54,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8):: tol
   logical::rvec
   logical::          select(nmat(ik,ispn))
+    !ZHPTR interface vars
+  integer ::IPIV(nmat(ik,ispn))
+  !parameters
 #ifdef DEBUG
     ndigit = -3
       logfil = 6
@@ -63,12 +67,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
       msaup2 = 0
       mseigt = 0
       mseupd = 0
+      open (logfil,file="apack.log")
 #endif
-  !ZHPTR interface vars
-  integer ::IPIV(nmat(ik,ispn))
-  !parameters
-  nev=nstfv +2
-  ncv=2*nev+2
+
+  nev=nstfv
+  ncv=2*nev
   nevmax=nev
   ncvmax= ncv
   nmax=nmatmax
@@ -85,7 +88,6 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(rd(ncvmax),idx(ncvmax))
   bmat  = 'G'
   which = 'LM'
-
   sigma=dcmplx(lowesteval,0)
   resid(:)=0.0
   tol    = 1.e-8
@@ -113,10 +115,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      infoznaupd=1
   endif
   call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
-  !calculate LU decomposition to be used in the reverse communication loop
-
-
   call cpu_time(cpu0)
+    !calculate LU decomposition to be used in the reverse communication loop
   if(mode.eq.3) then
      call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
      call zhptrf('U', n, h, IPIV, info )
@@ -199,6 +199,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #ifdef DEBUG
   write(*,*)"eval",d(1:nev)	
   write(*,*)"iterations",i
+  close(logfil)
 #endif
   if(rank.eq.0)write(60,*)"ARPACK iterations ", i
   rd=real(d)
