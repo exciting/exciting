@@ -30,7 +30,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   complex(8), intent(out) :: evecsv(nstsv,nstsv)
   ! local variables
   integer ispn
-  logical solveiterative, doititerative
+ 
 
   ! allocatable arrays
   complex(8), allocatable :: apwalm(:,:,:,:,:)
@@ -46,10 +46,10 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
           sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
      ! solve the first-variational secular equation
  
-     if(iterativetype.eq.2) then
+     if(iterativetype.ge.1) then
         call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)
-     else if((iterativetype.eq.1).and.&
+     else if((iterativetype.eq.-1).and.&
           (.not.((mod(iscl,iterativeinterval).eq.1)))) then
         call iterativeseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)

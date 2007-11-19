@@ -3,6 +3,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !USES:
   use modmain
   use modmpi
+#ifdef DEBUG
+  include ../../src/ARPACK/SRC/debug.h
+#endif
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -50,6 +53,17 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8):: tol
   logical::rvec
   logical::          select(nmat(ik,ispn))
+#ifdef DEBUG
+    ndigit = -3
+      logfil = 6
+      msgets = 0
+      msaitr = 0
+      msapps = 0
+      msaupd = 1
+      msaup2 = 0
+      mseigt = 0
+      mseupd = 0
+#endif
   !ZHPTR interface vars
   integer ::IPIV(nmat(ik,ispn))
   !parameters
@@ -74,17 +88,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   sigma=dcmplx(lowesteval,0)
   resid(:)=0.0
-  tol    = 1.e-3
+  tol    = 1.e-8
   ido    = 0
   info   = 0
   ishfts = 1
   maxitr = 2000
-  mode   = 3
+  mode= 3
+  if(iterativetype.eq.2) mode =2 
   iparam(1) = ishfts
   iparam(3) = maxitr  
   iparam(7) = mode 
   inquire(iolength=recl)resid  
- ! koffset=ik-firstk(procofk(ik))+1      
+  ! koffset=ik-firstk(procofk(ik))+1      
   koffset=ik
   infoznaupd=0
   dorestart=.false.
@@ -102,8 +117,13 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
 
   call cpu_time(cpu0)
-  call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
-  call zhptrf('U', n, h, IPIV, info )
+  if(mode.eq.3) then
+     call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
+     call zhptrf('U', n, h, IPIV, info )
+  else if (mode.eq.2) then
+
+  endif
+
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -123,7 +143,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
-        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
+
+        if(mode.eq.3) call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zhptrs ",info
            stop
@@ -145,13 +166,13 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
-   
-  open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
-          form='UNFORMATTED',access='DIRECT',recl=recl)   
-     write(70,rec=koffset)v(:,1)
-     close(70) 
-     rvec = .true.
-
+     if(dorestart)then
+        open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
+             form='UNFORMATTED',access='DIRECT',recl=recl)   
+        write(70,rec=koffset)v(:,1)
+        close(70) 
+        rvec = .true.
+     endif
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
@@ -171,7 +192,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         write(*,*)"iter",i	
         stop
      endif
- 
+
   endif
   call cpu_time(cpu1)
   timefv=timefv+cpu1-cpu0
@@ -186,11 +207,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      evecfv(:,j,ispn)=v(:,idx(j))
      evalfv(j,ispn)=rd(idx(j))
   end do
-
-
   deallocate(workd,resid,v,workev,workl,d)
-
-  deallocate(rwork)
+  deallocate(rwork,rd,idx)
   return
 end subroutine iterativearpacksecequn
 !EOC
