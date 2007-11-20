@@ -84,6 +84,7 @@ sppath='./'
 scrpath='./'
 nvp1d=2
 iterativetype=0
+lowesteval=-1.
 iterativeinterval=5
 if (allocated(vvlp1d)) deallocate(vvlp1d)
 allocate(vvlp1d(3,nvp1d))
@@ -340,6 +341,8 @@ case('iterativetype')
   read(50,*) iterativetype
 case('iterativeinterval')
   read(50,*) iterativeinterval
+case('lowesteval')
+   read(50,*)lowesteval
 case('swidth')
   read(50,*) swidth
   if (swidth.lt.1.d-9) then

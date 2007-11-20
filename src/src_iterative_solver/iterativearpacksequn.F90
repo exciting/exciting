@@ -2,6 +2,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   !USES:
   use modmain
+  use modmpi
+
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -12,9 +14,13 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
   ! !DESCRIPTION:
   ! This routine will perform several ARPACK iterations 
-  
+
   !BOC
   implicit none
+#ifdef DEBUG
+  !include declarations for timing output of ARPACK
+#include "../../src/ARPACK/SRC/debug.h"
+#endif
   ! arguments
   integer,intent(in)       :: ik
   integer,intent(in)       :: ispn
@@ -27,56 +33,101 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8) 	:: h(npmat(ik,ispn))
   complex(8) 	:: o(npmat(ik,ispn))
   integer ::n
+  real:: cpu0,cpu1
   Complex(8)::                 zero, one
   parameter         (zero = (0.0D+0, 0.0D+0) ,one = (1.0D+0, 0.0D+0) )
+  !IO vars
+  integer::koffset,recl
+  character(256):: outfilenamestring,filetag
+  external outfilenamestring
+  logical::  dorestart
   !ARPACK Interface vars
-
-  integer:: ido, nev, ncv, lworkl, info,infoznaupd, ierr, j,i
+  integer:: ido, nev, ncv, lworkl, info,infoznaupd, info2, j,i
   integer :: nevmax, ncvmax,nmax
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
   complex(8),allocatable::workd(:),resid(:),v(:,:),workev(:),workl(:),d(:)
-  real(8),allocatable:: rwork(:)
+  real(8),allocatable:: rwork(:),rd(:)
+  integer,allocatable::idx(:)
   complex(8)::sigma
   character:: bmat*1, which*2
   real(8):: tol
   logical::rvec
-  logical::          select(nmat(ik,ispn))
+  logical:: select(nmat(ik,ispn))
   !ZHPTR interface vars
   integer ::IPIV(nmat(ik,ispn))
-  !parameters
+#ifdef DEBUG
+  ndigit = -3
+  logfil = 6
+  mngets = 0
+  mnaitr = 0
+  mnapps = 0
+  mnaupd = 1
+  mnaup2 = 0
+  mneigh = 0
+  mneupd = 1
+  open (logfil,file="ARPACK.OUT")
+#endif
+  !##################	
+  !ARPACK parameters
+  !##################
   nev=nstfv
-  ncv=3*nstfv+2
-  nevmax=max(15,nstfv)
-  ncvmax= nevmax*3
+  ncv=2*nev
+  nevmax=nev
+  ncvmax= ncv
   nmax=nmatmax
   n=nmat(ik,ispn)
   ldv=n
-  allocate(workd(3*nmax),resid(nmax),v(ldv,ncvmax),workev(2*ncvmax),workl(3*ncvmax*ncvmax+6*ncvmax),d(ncvmax))
-  allocate(rwork(ncvmax))
-  bmat  = 'G'
-  which = 'SM'
-  sigma = zero
   lworkl =3*ncvmax*ncvmax+5*ncvmax 
-  tol    = 0.0
+  allocate(workd(3*nmax))
+  allocate(resid(nmax))
+  allocate(v(ldv,ncvmax))
+  allocate(workev(2*ncvmax))
+  allocate(workl(lworkl))
+  allocate(d(ncvmax))
+  allocate(rwork(ncvmax))
+  allocate(rd(ncvmax),idx(ncvmax))
+  bmat  = 'G'
+  which = 'LM'
+  sigma=dcmplx(lowesteval,0)
+  resid(:)=0.0
+  tol    = 1.e-8
   ido    = 0
   info   = 0
   ishfts = 1
   maxitr = 2000
-  mode   = 2
+  mode= 3
   iparam(1) = ishfts
   iparam(3) = maxitr  
   iparam(7) = mode 
-  if(iscl.ne.1) then
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-     call getevalfv(vkl(1,ik),evalfv)
+  !################################
+  !open file with previous residual
+  !################################
+  inquire(iolength=recl)resid  
+  koffset=ik-firstk(procofk(ik))+1      
+  infoznaupd=0
+  dorestart=.false.
+  filetag='ARPACKVEC.OUT'
+  if(iscl.ne.1.and.dorestart)then
+     !take old eigenvector as new starting vector to increase convergence               
+     open(70,file=outfilenamestring(filetag,ik),action='READ', &
+          form='UNFORMATTED',access='DIRECT',recl=recl)
+     read(70,rec=koffset)resid
+     close(70)  
+     infoznaupd=1
   endif
+  !##################
+  !setup hamiltonian#
+  !##################
   call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
+  call cpu_time(cpu0)
+  !#######################################################################
   !calculate LU decomposition to be used in the reverse communication loop
-#ifdef DEBUG
-write (333,*)"h",h,"o",o
-#endif
-  call zhptrf('U', n, o, IPIV, info )
+  !#######################################################################
+
+  call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
+  call zhptrf('U', n, h, IPIV, info )
+
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -90,17 +141,22 @@ write (333,*)"h",h,"o",o
           ipntr, workd, workl, lworkl, rwork, infoznaupd)
 #ifdef DEBUG
      ! write(*,*) "ido",ido
+     write(555,*)"resid",resid
 #endif
 
      if (ido .eq. -1 .or. ido .eq. 1) then
 
-	call zhpmv("U",n,dcmplx(1.0,0.0),h,workd(ipntr(1)), 1,&
+	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
-        call zhptrs('U', N, 1, o, IPIV, workd(ipntr(2)), n, INFO )
+
+        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zhptrs ",info
            stop
         endif
+     else if(ido .eq.1) then
+        call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
+        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
      else if (ido .eq. 2) then
  	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
@@ -108,6 +164,9 @@ write (333,*)"h",h,"o",o
         exit
      endif
   end do
+  !###############
+  ! errorhandling
+  !###############
   if ( infoznaupd .ne. 0 ) then
      print *, ' ' 
      print *, ' Error with znaupd, info = ', infoznaupd
@@ -115,40 +174,58 @@ write (333,*)"h",h,"o",o
      print *, ' '
      stop
   else
-     rvec = .false.
-
+     !#################################################
+     !write data to scratch for restart with old vector
+     !#################################################
+     if(dorestart)then
+        open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
+             form='UNFORMATTED',access='DIRECT',recl=recl)   
+        write(70,rec=koffset)v(:,1)
+        close(70)   
+     endif
+     !########################
+     !post processing of evec
+     !########################
+     rvec = .true.
+     select=.true.
      call zneupd  (rvec,'A',select,d,v,n,sigma,&
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
-          ierr )
+          info2 )
      !         (rvec , howmny, select, d     ,
      !    &                   z    , ldz   , sigma , workev,
      !    &                   bmat , n     , which , nev   ,
      !    &                   tol  , resid , ncv   , v     ,
      !    &                   ldv  , iparam, ipntr , workd ,
      !    &                   workl, lworkl, rwork , info  )
-     if ( ierr .ne. 0 ) then
+     if ( info2 .ne. 0 ) then
         print *, ' ' 
-        print *, ' Error with zneupd, info = ', ierr
+        print *, ' Error with zneupd, info = ', info2
         print *, ' Check the documentation of zneupd'
         print *, ' '	 
-	write(*,*)"eval",d(1:nstfv)
+	write(*,*)"eval",d(1:nev)
         write(*,*)"iter",i	
         stop
      endif
 
   endif
+  call cpu_time(cpu1)
+  timefv=timefv+cpu1-cpu0
 #ifdef DEBUG
-  write(*,*)"eval",d(1:nstfv)	
-  write(*,*)"iterations",i
+  close(logfil)
 #endif
-
-  evecfv(:,1:nstfv,ispn)=v(:,1:nstfv)
-  evalfv(1:nstfv,ispn)=d(1:nstfv)
-  call putevecfv(ik,evecfv)
-  call putevalfv(ik,evalfv)
+  if(rank.eq.0)write(60,*)"ARPACK iterations ", i
+  !##########################
+  !sort and copy eigenvectors
+  !##########################
+  rd=real(d)
+  call sortidx (nstfv,rd(:),idx(:))
+  do j=1,nstfv
+     evecfv(:,j,ispn)=v(:,idx(j))
+     evalfv(j,ispn)=rd(idx(j))
+  end do
   deallocate(workd,resid,v,workev,workl,d)
-  deallocate(rwork)
+  deallocate(rwork,rd,idx)
   return
 end subroutine iterativearpacksecequn
 !EOC
