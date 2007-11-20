@@ -1,8 +1,8 @@
 
 # ---------------------------- PGI compiler -----------------------------------
 F90		= pgf95
-F90_OPTS	= -DMPI -DMPISEC -DMPIRHO -DMPIEXXSUM -fastsse -O3
-#F90_OPTS	= -DMPI -DMPISEC -DMPIRHO
+F90_OPTS	= -DTETRA -DXS -DMPI -DMPISEC -DMPIRHO -DMPIEXXSUM -fastsse -O3
+#F90_OPTS	= -DTETRA -DXS -DMPI -DMPISEC -DMPIRHO
 ### check ###
 #F90_OPTS	= -DMPI -C -Mchkptr -Mchkstk
 F77 		= pgf95
@@ -13,7 +13,7 @@ LIB_SYS 	= /installadmin/mpich/1.2.6/pgi/lib/libmpich.a
 
 ### BLAS and LAPACK
 # included libraries
-LIB_LPK = lapack.a blas.a
+LIB_LPK = liblapack.a libblas.a
 
 # system libraries
 #LIB_LPK = -llapack -lblas

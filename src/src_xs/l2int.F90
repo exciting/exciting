@@ -1,3 +1,8 @@
+
+! Copyright (C) 2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 integer function l2int(l)
   implicit none
   logical, intent(in) :: l

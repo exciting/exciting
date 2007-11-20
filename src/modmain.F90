@@ -665,8 +665,8 @@ integer noptcomp
 ! required optical matrix components
 integer optcomp(3,27)
 #ifdef TETRA
-! broadening for Lorentzian lineshape
-real(8) :: optbrd
+! Lorentzian lineshape in optics
+logical :: optltz
 #endif
 ! usegdft is .true. if the generalised DFT correction is to be used
 logical usegdft

@@ -45,18 +45,17 @@ subroutine linopt
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
   complex(8) :: sumc
   complex(8), allocatable :: epsc(:)
-  logical :: lorentz,tev
+  logical :: tev
   ! output in electron volt
   tev=.true.
-  lorentz=(optbrd > 0.d0)
-  if (tetra.and.lorentz) then
+  if (tetra.and.optltz) then
      write(*,*)
      write(*,'("Error(linopt): specified tetrahedron method and Lorentzian &
           & broadening")')
      write(*,*)
      stop
   end if
-  if (intraband.and.(tetra.or.lorentz)) then
+  if (intraband.and.(tetra.or.optltz)) then
      write(*,*)
      write(*,'("Error(linopt): intraband contribution not implemented for &
           tetrahedron method or Lorentzian broadening")')
@@ -99,11 +98,11 @@ subroutine linopt
   ! set up for generalised DFT correction if required
   allocate(delta(nstsv,nstsv))
 #ifdef TETRA
-  if (tetra.or.lorentz) then
+  if (tetra.or.optltz) then
      allocate(eps1r(nwdos))
      eps1r(:)=0.d0
   end if
-  if (lorentz) then
+  if (optltz) then
      allocate(epsc(nwdos))
      allocate(f12(nstsv,nstsv,nkpt),e12(nstsv,nstsv,nkpt))
      epsc(:)=zzero
@@ -156,7 +155,7 @@ subroutine linopt
      ! open files for writting
      if (tetra) then
         write(fname,'("EPSILON_TET_",2I1,".OUT")') i1,i2
-     else if (lorentz) then
+     else if (optltz) then
         write(fname,'("EPSILON_LTZ_",2I1,".OUT")') i1,i2
      else
         write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
@@ -164,7 +163,7 @@ subroutine linopt
      open(60,file=trim(fname),action='WRITE',form='FORMATTED')
      if (tetra) then
         write(fname,'("SIGMA_TET_",2I1,".OUT")') i1,i2
-     else if (lorentz) then
+     else if (optltz) then
         write(fname,'("SIGMA_LTZ_",2I1,".OUT")') i1,i2
      else
         write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
@@ -184,7 +183,7 @@ subroutine linopt
         ! read matrix elements from direct-access file
         read(50,rec=ik) pmat
         call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
-        if (lorentz) then
+        if (optltz) then
            ! check for better numerical convergence at zero frequency
            m=0
            do ist1=1,nstsv
@@ -250,7 +249,7 @@ subroutine linopt
               eps2(iw)=0.d0
            end if
         end do ! iw
-     else if (lorentz) then
+     else if (optltz) then
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
@@ -266,17 +265,17 @@ subroutine linopt
                  do ist2=1,nstsv
                     m=m+1
                     if (ist1.ne.ist2) sum2=sum2+wkpt(ik)*f(m,ik)* &
-                         aimag(1.d0/(e(m,ik)+w(iw)+zi*optbrd))/e(m,ik)**2
+                         aimag(1.d0/(e(m,ik)+w(iw)+zi*swidth))/e(m,ik)**2
                     if (ist1.ne.ist2) sum=sum+wkpt(ik)*f(m,ik)* &
-                         dble(1.d0/(e(m,ik)+w(iw)+zi*optbrd))/e(m,ik)**2
+                         dble(1.d0/(e(m,ik)+w(iw)+zi*swidth))/e(m,ik)**2
                     if ((ist1<=nstsv-nempty-1).and.(ist2>nstsv-nempty-1)) then
                        ! Lorentzian broadening
                        sumc=sumc+&
                             wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*optbrd))/&
+                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*swidth))/&
                             e12(ist1,ist2,ik)**2  -  &
                             wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*optbrd))/&
+                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*swidth))/&
                             e12(ist2,ist1,ik)**2                
                     end if
                  end do
@@ -306,6 +305,18 @@ subroutine linopt
            open(62,file=trim(fname),action='WRITE',form='FORMATTED')
            wd(1)=efermi-0.001d0
            wd(2)=efermi+0.001d0
+
+
+!!!!!!!!!!!!!!!!!
+!!$! index for Fermi energy
+!!$if ((efermi.le.wdos(1)).or.(efermi.ge.wdos(2))) then
+!!$   write(*,'("Error(linopt): Fermi energy not in interval (efermi/lower/upper&
+!!$        &: ",3g18.10)') efermi,wdos(1),wdos(2)
+!!$   stop
+!!$end if
+!!$iwef=nint(1.d0+nwdos*(efermi-wdos(1))/(wdos(2)-wdos(1)))
+
+
            call brzint(nsmdos,ngridk,nsk,ikmap,3,wd,nstsv,nstsv,evalsv,&
                 pmatint,g)
            wplas=sqrt(g(2)*8.d0*pi/omega)
@@ -342,7 +353,7 @@ subroutine linopt
         eps1(iw)=t1+(2.d0/pi)*g(nwdos)
 #ifdef TETRA
         if (tetra) eps1r(iw)=t1+eps1r(iw)
-        if (lorentz) then 
+        if (optltz) then 
            eps1r(iw)=t1+eps1r(iw)
            epsc(iw)=t1+epsc(iw)
         end if
@@ -356,7 +367,7 @@ subroutine linopt
         ! modified output variables and format
         if (tetra) then
            write(60,'(4G18.10)') escal*w(iw),eps1(iw),eps2(iw),eps1r(iw)
-        else if (lorentz) then
+        else if (optltz) then
            write(60,'(4G18.10)') escal*w(iw),eps1(iw),eps2(iw),eps1r(iw)
         else
            write(60,'(3G18.10)') escal*w(iw),eps1(iw),eps2(iw)
@@ -407,10 +418,10 @@ subroutine linopt
   if (tetra) then
      deallocate(e1,cw,cwa,cwsurf)
   end if
-  if (tetra.or.lorentz) then
+  if (tetra.or.optltz) then
      deallocate(eps1r)
   end if
-  if (lorentz) then
+  if (optltz) then
      deallocate(epsc,f12,e12)
   end if
 #endif

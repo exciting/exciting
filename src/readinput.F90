@@ -119,7 +119,7 @@ scissor=0.d0
 noptcomp=1
 optcomp(:,1)=1
 #ifdef TETRA
-optbrd=0.0d0
+optltz=.false.
 #endif
 usegdft=.false.
 intraband=.false.
@@ -633,14 +633,8 @@ case('optcomp')
   write(*,*)
   stop
 #ifdef TETRA
-case('optbrd')
-  read(50,*) optbrd
-  if (optbrd.lt.0.d0) then
-    write(*,*)
-    write(*,'("Error(readinput): optbrd < 0 : ",G18.10)') optbrd
-    write(*,*)
-    stop
-  end if
+case('optltz')
+  read(50,*) optltz
 #endif
 case('usegdft')
   read(50,*) usegdft
