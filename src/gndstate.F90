@@ -137,19 +137,13 @@ subroutine gndstate
      call olprad
      ! compute the Hamiltonian radial integrals
      call hmlrad
-     ! begin parallel loop over k-points
-     !$OMP PARALLEL DEFAULT(SHARED) &
-     !$OMP PRIVATE(evalfv,evecfv,evecsv)
-     !$OMP DO
+   
 #ifdef MPI
      call MPI_barrier(MPI_COMM_WORLD,ierr)
      if (rank.eq.0) call delevec()
 #endif
 #ifdef MPISEC
      splittfile=.true.
-     !$OMP PARALLEL DEFAULT(SHARED) &
-     !$OMP PRIVATE(evalfv,evecfv,evecsv)
-     !$OMP DO
      do ik=firstk(rank),lastk(rank)
 
 #endif
@@ -158,9 +152,12 @@ subroutine gndstate
 #endif
 #ifndef MPISEC
      splittfile=.false.
+  ! begin parallel loop over k-points
+#ifdef KSMP
      !$OMP PARALLEL DEFAULT(SHARED) &
      !$OMP PRIVATE(evalfv,evecfv,evecsv)
      !$OMP DO
+#endif
      do ik=1,nkpt
 #endif
         ! every thread should allocate its own arrays
@@ -176,8 +173,10 @@ subroutine gndstate
         call putevecsv(ik,evecsv)
         deallocate(evalfv,evecfv,evecsv)
      end do
+#ifdef KSMP     
      !$OMP END DO
      !$OMP END PARALLEL
+#endif
 #ifdef MPISEC
      call mpisync_evalsv_spnchr
 #endif
@@ -201,24 +200,16 @@ subroutine gndstate
         magmt(:,:,:,:)=0.d0
         magir(:,:)=0.d0
      end if
-     !$OMP PARALLEL DEFAULT(SHARED) &
-     !$OMP PRIVATE(evecfv,evecsv)
-     !$OMP DO
+   
 #ifdef MPIRHO	 
 
      do ik=firstk(rank),lastk(rank)
         !write the occupancies to file
         call putoccsv(ik,occsv(1,ik))
      end do
-     ! begin parallel loop over k-points
-     !$OMP PARALLEL DEFAULT(SHARED) &
-     !$OMP PRIVATE(evecfv,evecsv)
-     !$OMP DO
      do ik=firstk(rank),lastk(rank)
 #endif
-#ifdef NEVERDEFINED
-     end do
-#endif
+
 #ifndef MPIRHO	
      if (rank.eq.0)then
         do ik=1,nkpt
@@ -226,10 +217,12 @@ subroutine gndstate
            call putoccsv(ik,occsv(1,ik))
         end do
      endif
+#ifdef KSMP     
      ! begin parallel loop over k-points
      !$OMP PARALLEL DEFAULT(SHARED) &
      !$OMP PRIVATE(evecfv,evecsv)
      !$OMP DO
+#endif     
      do ik=1,nkpt	
 #endif
         allocate(evecfv(nmatmax,nstfv,nspnfv))
@@ -242,8 +235,12 @@ subroutine gndstate
         call rhovalk(ik,evecfv,evecsv)
         deallocate(evecfv,evecsv)
      end do
+#ifndef MPIRHO	   
+#ifdef KSMP
      !$OMP END DO
      !$OMP END PARALLEL
+#endif
+#endif
 #ifdef MPIRHO    
      call mpisumrhoandmag
 #endif  

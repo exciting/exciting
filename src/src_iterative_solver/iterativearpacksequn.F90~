@@ -218,8 +218,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #ifdef DEBUG
   close(logfil)
 #endif
-  if(rank.eq.0)write(60,*)"ARPACK iter", i,
-  if(rank.eq.0)write(60,*)"matrixsize",n&
+  if(rank.eq.0)write(60,*)"ARPACK iter", i,"matrixsize",n&
        ,"time LU/iter",cpu1-cpu0,"/",cpu2-cpu1
 
   !##########################

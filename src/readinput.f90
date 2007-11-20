@@ -85,7 +85,9 @@ scrpath='./'
 nvp1d=2
 iterativetype=0
 lowesteval=-1.
+doarpackrestart=.false.
 iterativeinterval=5
+maxncv=200
 if (allocated(vvlp1d)) deallocate(vvlp1d)
 allocate(vvlp1d(3,nvp1d))
 vvlp1d(:,1)=0.d0
@@ -339,6 +341,10 @@ case('stype')
   read(50,*) stype
 case('iterativetype')
   read(50,*) iterativetype
+case ('maxncv')
+  read(50,*)maxncv
+case('doarpackrestart')
+  read(50,*)doarpackrestart
 case('iterativeinterval')
   read(50,*) iterativeinterval
 case('lowesteval')
