@@ -119,6 +119,11 @@ subroutine xsmain
   case(400)
      ! RPA screening
      call screen
+  case(498,499)
+     ! * debug task
+     call init0
+     call init1
+     call writekpts
   case default
      write(*,*) 'Error('//thisnam//'): task not defined:', tasktd
   end select
