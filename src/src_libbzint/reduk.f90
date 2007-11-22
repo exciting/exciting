@@ -157,18 +157,24 @@ write(*,'(a,3i6,i9)') 'libbzint: knr,kpid',i1,i2,i3,kpid
                     ! map to reciprocal unit cell
                     call r3frac(1.d-6,kprt,iv)
                     ! from lattice coordinates to internal coordinates
-                    kprt(:)=kprt(:)*divsh*div(:)
+                    kprt(:)=(kprt(:)*div(:)*divsh-shift(:))/divsh
+!!!                    kprt(:)=kprt(:)*divsh*div(:)
                     nkp(:)=nint(kprt(:))
                     ! determine fractional part of rotated k-point
                     call r3frac(1.d-6,kprt,iv)
                     ! if fractional part is present discard k-point
-                    if (any(kprt>1.d-6)) nkp(:)=-1
+                    if (any(kprt>1.d-6)) then
+                       nkp(:)=-1
+                    else
+                       !nkp(:)=(/i1,i2,i3/)
+                    end if
 
                     !               write(24,'(i6,3i4,"  ",3i4)')i,ktp,nkp
                     nkpid=idkp(nkp)
                     !                write(24,'(4x,2i4)')nirkp,nkpid
                     !---                call jset(kpav,nkpid,1)
                     if (.not.all(nkp.eq.-1)) then
+write(*,*) 'kpid,i,nkp',kpid,i,nkp
                        done(nkpid)=.true. !+++
                        redkp(nkpid)=kpid
                        starr(i)=nkpid
@@ -188,11 +194,14 @@ write(1234,'(a,2i9,3i6,i9)') '  kpid,sym,nkp,nkpid',kpid,i,nkp,nkpid
               else
                  ikpid(kpid)=0
               endif
+write(*,*) 'on entry to coorskp',redkp(kpid)
               ! find coords of reduced onek
               call coorskp(redkp(kpid),nkp)
            enddo
         enddo
      enddo
+
+     deallocate(done)
 
      ! end new code
   end if ! if (tetraifc)
@@ -202,6 +211,9 @@ write(1234,'(a,2i9,3i6,i9)') '  kpid,sym,nkp,nkpid',kpid,i,nkp,nkpid
   !      write(6,*)'------------------------------------------------------'
   !      write(6,*)'               reduk: end'
   !      write(6,*)'------------------------------------------------------'
+
+write(*,*) 'on return from reduk'
+
   return
 contains
 subroutine r3frac(eps,v,iv)
