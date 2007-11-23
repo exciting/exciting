@@ -17,14 +17,15 @@ subroutine reduk(nsymt,divsh,weight)
 
   use kgen_internals
   !<sag>
-  use control, only: tetraifc
+  use control, only: tetraifc, tetradbglv
   !</sag>
 
   implicit none
   !<sag>
-  logical, allocatable :: done(:)
-  integer :: iv(3)
+  real(8), parameter :: epslat=1.d-6
   real(8) :: kpr(3),kprt(3)
+  integer :: iv(3)
+  logical, allocatable :: done(:)
   !</sag>
 
 
@@ -126,6 +127,17 @@ subroutine reduk(nsymt,divsh,weight)
      allocate(done(div(1)*div(2)*div(3)))
      done(:)=.false.
 
+     ! debug information
+     if (tetradbglv.gt.0) then
+        write(*,*) 'libbzint(reduk): number of symmetries: ',nsymt
+        do i=1,nsymt
+           write(*,*) i
+           write(*,*) iio(1,:,i)
+           write(*,*) iio(2,:,i)
+           write(*,*) iio(3,:,i)
+           write(*,*)
+        end do
+     end if
 
      do i3=0,div(3)-1
         kk(3)=divsh*i3+shift(3)
@@ -137,17 +149,12 @@ subroutine reduk(nsymt,divsh,weight)
               kk(1)=divsh*i1+shift(1)
               onek(1)=i1
               kpid=idkp(onek)
-write(*,'(a,3i6,i9)') 'libbzint: knr,kpid',i1,i2,i3,kpid
-              !---            if(jget(kpav,kpid).eq.0) then
-              if (.not.done(kpid)) then !+++
+              if (.not.done(kpid)) then
                  nirkp=nirkp+1
                  ikpid(kpid)=nirkp
                  do i=1,48
                     starr(i)=0
                  enddo
-                 !              write(24,*)
-                 !              write(24,'(i6,3i4)')divsh,div
-                 !              write(24,'(3i4,"  ",3i4)')onek,kk
                  do i=1,nsymt
                     ! from internal coordinates to lattice coordinates
                     kpr(:)=dble(kk(:))/dble(divsh*div(:))
@@ -155,31 +162,24 @@ write(*,'(a,3i6,i9)') 'libbzint: knr,kpid',i1,i2,i3,kpid
                     kprt(:)=iio(:,1,i)*kpr(1)+iio(:,2,i)*kpr(2)+&
                          iio(:,3,i)*kpr(3)
                     ! map to reciprocal unit cell
-                    call r3frac(1.d-6,kprt,iv)
+                    !***call mapto01(epslat,kprt)
+                    call r3frac(epslat,kprt,iv)
                     ! from lattice coordinates to internal coordinates
-                    kprt(:)=(kprt(:)*div(:)*divsh-shift(:))/divsh
-!!!                    kprt(:)=kprt(:)*divsh*div(:)
+                    ! for unshifted mesh
+                    kprt(:)=(kprt(:)*div(:)*divsh-shift(:))/dble(divsh)
+                    ! location of rotated k-point on integer grid
                     nkp(:)=nint(kprt(:))
                     ! determine fractional part of rotated k-point
-                    call r3frac(1.d-6,kprt,iv)
+                    !***call mapto01(epslat,kprt)
+                    call r3frac(epslat,kprt,iv)
                     ! if fractional part is present discard k-point
-                    if (any(kprt>1.d-6)) then
-                       nkp(:)=-1
-                    else
-                       !nkp(:)=(/i1,i2,i3/)
-                    end if
-
-                    !               write(24,'(i6,3i4,"  ",3i4)')i,ktp,nkp
+                    if (any(kprt.gt.epslat)) nkp(:)=-1
                     nkpid=idkp(nkp)
-                    !                write(24,'(4x,2i4)')nirkp,nkpid
-                    !---                call jset(kpav,nkpid,1)
                     if (.not.all(nkp.eq.-1)) then
-write(*,*) 'kpid,i,nkp',kpid,i,nkp
-                       done(nkpid)=.true. !+++
+                       done(nkpid)=.true.
                        redkp(nkpid)=kpid
                        starr(i)=nkpid
                     end if
-write(1234,'(a,2i9,3i6,i9)') '  kpid,sym,nkp,nkpid',kpid,i,nkp,nkpid
                  enddo
                  members=0
                  do i=1,nsymt
@@ -194,7 +194,6 @@ write(1234,'(a,2i9,3i6,i9)') '  kpid,sym,nkp,nkpid',kpid,i,nkp,nkpid
               else
                  ikpid(kpid)=0
               endif
-write(*,*) 'on entry to coorskp',redkp(kpid)
               ! find coords of reduced onek
               call coorskp(redkp(kpid),nkp)
            enddo
@@ -211,38 +210,53 @@ write(*,*) 'on entry to coorskp',redkp(kpid)
   !      write(6,*)'------------------------------------------------------'
   !      write(6,*)'               reduk: end'
   !      write(6,*)'------------------------------------------------------'
-
-write(*,*) 'on return from reduk'
-
   return
+
+!<sag>
 contains
-subroutine r3frac(eps,v,iv)
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU Lesser General Public
-! License.
-implicit none
-! arguments
-real(8), intent(in) :: eps
-real(8), intent(inout) :: v(3)
-integer, intent(out) :: iv(3)
-! local variables
-integer i
-do i=1,3
-  iv(i)=int(v(i))
-  v(i)=v(i)-dble(iv(i))
-  if (v(i).lt.0.d0) then
-    v(i)=v(i)+1.d0
-    iv(i)=iv(i)-1
-  end if
-  if (1.d0-v(i).lt.eps) then
-    v(i)=0.d0
-    iv(i)=iv(i)+1
-  end if
-  if (v(i).lt.eps) then
-    v(i)=0.d0
-  end if
-end do
-return
-end subroutine
+  subroutine mapto01(epsl,v)
+    implicit none
+    ! arguments
+    real(8), intent(in) :: epsl
+    real(8), intent(inout) :: v(3)
+    ! local variables
+    integer :: k
+    do k=1,3
+       v(k)=v(k)-dble(int(v(k)))
+       if (v(k).lt.0.d0) v(k)=v(k)+1.d0
+       if ((1.d0-v(k).lt.epsl).or.(v(k).lt.epsl)) v(k)=0.d0
+    end do
+  end subroutine mapto01
+!</sag>
+
+
+  subroutine r3frac(eps,v,iv)
+    ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+    ! This file is distributed under the terms of the GNU Lesser General Public
+    ! License.
+    implicit none
+    ! arguments
+    real(8), intent(in) :: eps
+    real(8), intent(inout) :: v(3)
+    integer, intent(out) :: iv(3)
+    ! local variables
+    integer i
+    do i=1,3
+       iv(i)=int(v(i))
+       v(i)=v(i)-dble(iv(i))
+       if (v(i).lt.0.d0) then
+          v(i)=v(i)+1.d0
+          iv(i)=iv(i)-1
+       end if
+       if (1.d0-v(i).lt.eps) then
+          v(i)=0.d0
+          iv(i)=iv(i)+1
+       end if
+       if (v(i).lt.eps) then
+          v(i)=0.d0
+       end if
+    end do
+    return
+  end subroutine r3frac
 end subroutine reduk
 !EOC

@@ -241,8 +241,6 @@ close(11)
         allocate(ikmapt(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
         call genppts(reducek,ngridk,vkloff,nkptt,ikmapt,ivkt,vklt,vkct,wkptt)
 
-
-
 if (task.eq.498) then!***************************
 write(*,*) 'writing out link...'
 open(10,file='link.out',action='write',status='replace')
@@ -274,40 +272,15 @@ open(14,file='ivk.out',action='write',status='replace')
 write(14,'(i8,3i6)') (i1,ivkt(1,i1),ivkt(2,i1),ivkt(3,i1),i1=1,nkpt)
 close(14)
 
-write(*,*) 'writing out k-points from genppts...'
-open(10,file='kpoints_genppts.out',action='write',status='replace')
-write(10,'(i8,4g18.10)') (ik,vklt(:,ik),wkptt(ik),ik=1,nkptt)
-close(10)
-
-write(*,*) 'writing out k-points from kgen...'
-open(10,file='kpoints_kgen.out',action='write',status='replace')
-write(10,'(i8,4g18.10)') (ik,vkl(:,ik),wkpt(ik),ik=1,nkpt)
-close(10)
-
-write(*,*) 'writing out k-points from kgen and symmetries applied to it...'
-open(10,file='kpoints_kgen_symappl.out',action='write',status='replace')
-do ik=1,nkpt
-   v1(:)=vkl(:,ik)
-   do isym=1,nsymcrys
-      lspl=lsplsymc(isym)
-      s(:,:)=dble(symlat(:,:,lspl))
-      call r3mtv(s,v1,v2)
-      call r3frac(epslat,v2,iv)
-      do i1=1,nkptt
-         t2=r3taxi(vklt(1,i1),v2)
-         if (t2.lt.epslat) then
-            ! equivalent k-point found
-            goto 10
-         end if
-      end do
-      i1=0
-10    continue
-      write(10,'(i6,3g18.10,2i6,3g18.10,i6)') ik,v1,isym,lspl,v2,i1
-   end do
-end do
-close(10)
-
-
+!!$write(*,*) 'writing out k-points from genppts...'
+!!$open(10,file='kpoints_genppts.out',action='write',status='replace')
+!!$write(10,'(i8,4g18.10)') (ik,vklt(:,ik),wkptt(ik),ik=1,nkptt)
+!!$close(10)
+!!$
+!!$write(*,*) 'writing out k-points from kgen...'
+!!$open(10,file='kpoints_kgen.out',action='write',status='replace')
+!!$write(10,'(i8,4g18.10)') (ik,vkl(:,ik),wkpt(ik),ik=1,nkpt)
+!!$close(10)
 
 
         nerr=0
@@ -315,11 +288,11 @@ close(10)
            write(*,*) 'Error(init1): k-point set inconsistency for tetrahedron&
                 & method'
            write(*,*) ' differring number of k-points (current/default)',&
-                nkptt,nkpt
+                nkpt,nkptt
            nerr=nerr+1
         else
            do ik=1,nkpt
-              if (any(vklt(:,ik)-vkl(:,ik) > epslat)) then
+              if (any(abs(vklt(:,ik)-vkl(:,ik)) > epslat)) then
                  write(*,*) 'Error(init1): k-point set inconsistency for &
                       &tetrahedron method'
                  write(*,*) ' differring k-point (current/default/diff)',ik
@@ -329,7 +302,7 @@ close(10)
                  write(*,*)
                  nerr=nerr+1
               end if
-              if (wkptt(ik)-wkpt(ik) > epslat) then
+              if (abs(wkptt(ik)-wkpt(ik)) > epslat) then
                  write(*,*) 'Error(init1): k-point set inconsistency for &
                       &tetrahedron method'
                  write(*,*) ' differring k-point weight (current/default)',ik
