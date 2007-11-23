@@ -259,8 +259,6 @@ else
 end if
 ! optimised effective potential
 if (xctype.lt.0) call oepmain
-! add the fixed spin moment effective field
-if (fixspin.ne.0) call fsmfield
 ! symmetrise the exchange-correlation potential
 call symrf(1,vxcmt,vxcir)
 if (spinpol) then

@@ -77,7 +77,7 @@ stop
 end program
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.138
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.139
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction

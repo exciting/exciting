@@ -214,6 +214,8 @@ do iscl=1,maxscl
   call mixer(.false.,beta0,betamax,n,nu,mu,beta,f,dv)
 ! unpack potential and field
   call packeff(.false.,n,nu)
+! add the fixed spin moment effect field
+  if (fixspin.ne.0) call fsmfield
 ! Fourier transform effective potential to G-space
   call genveffig
 ! compute the energy components
