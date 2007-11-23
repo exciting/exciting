@@ -19,10 +19,12 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer ia,is,ja,js,iv,i,iostat
+integer is,js,ia,ja,ias
+integer i,l,iv,iostat
 integer ist,io,nlx,ilx,lx,ilo
 real(8) sc,sc1,sc2,sc3
-real(8) vacuum,t1
+real(8) vacuum,t1,t2
+character(256) fname
 character(256) str
 character(256) bname
 character(256) sppath
@@ -110,8 +112,9 @@ intraband=.false.
 evalmin=-4.5d0
 deband=0.0025d0
 bfieldc(:)=0.d0
-fixspin=.false.
+fixspin=0
 momfix(:)=0.d0
+mommtfix(:,:,:)=0.d0
 taufsm=0.01d0
 autormt=.false.
 rmtapm(1)=0.25d0
@@ -125,9 +128,10 @@ vqlwrt(:,:)=0.d0
 notelns=0
 tforce=.false.
 tfibs=.true.
-maxitoep=150
-tau0oep=0.5d0
-dtauoep=0.5d0
+maxitoep=80
+tauoep(1)=1.d0
+tauoep(2)=0.2d0
+tauoep(3)=1.5d0
 nkstlist=1
 kstlist(:,1)=1
 vklem(:)=0.d0
@@ -138,13 +142,35 @@ spinsprl=.false.
 vqlss(:)=0.d0
 nwrite=0
 tevecsv=.false.
+ldapu=0
+llu(:)=-1
+ujlu(:,:)=0.d0
 
 !-------------------------------!
 !     read from exciting.in     !
 !-------------------------------!
-open(50,file='exciting.in',action='READ',status='OLD',form='FORMATTED')
+fname='exciting.in'
+!----- uncomment for command line input filename (M. Rajagopalan) --------------
+!if (iargc()>1) then
+!  write(*,*)
+!  write(*,'("Usage: exciting [INPUT FILE]")')
+!  write(*,*)
+!  stop
+!end if
+!if (iargc().eq.1) then
+!  call getarg(1,fname)
+!end if
+!-------------------------------------------------------------------------------
+open(50,file=trim(fname),action='READ',status='OLD',form='FORMATTED', &
+ iostat=iostat)
+if (iostat.ne.0) then
+  write(*,*)
+  write(*,'("Error(readinput): error opening ",A)') trim(fname)
+  write(*,*)
+  stop
+end if
 10 continue
-read(50,*,end=20) bname
+read(50,*,end=30) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
 select case(trim(bname))
@@ -165,7 +191,7 @@ case('tasks')
     if (iostat.ne.0) then
       write(*,*)
       write(*,'("Error(readinput): error reading tasks")')
-      write(*,'(" (blank line required after tasks block)")')
+      write(*,'("(blank line required after tasks block)")')
       write(*,*)
       stop
     end if
@@ -175,19 +201,19 @@ case('tasks')
   write(*,*)
   stop
 case('avec')
-  read(50,*) avec(1,1),avec(2,1),avec(3,1)
-  read(50,*) avec(1,2),avec(2,2),avec(3,2)
-  read(50,*) avec(1,3),avec(2,3),avec(3,3)
+  read(50,*,err=20) avec(1,1),avec(2,1),avec(3,1)
+  read(50,*,err=20) avec(1,2),avec(2,2),avec(3,2)
+  read(50,*,err=20) avec(1,3),avec(2,3),avec(3,3)
 case('scale')
-  read(50,*) sc
+  read(50,*,err=20) sc
 case('scale1')
-  read(50,*) sc1
+  read(50,*,err=20) sc1
 case('scale2')
-  read(50,*) sc2
+  read(50,*,err=20) sc2
 case('scale3')
-  read(50,*) sc3
+  read(50,*,err=20) sc3
 case('epslat')
-  read(50,*) epslat
+  read(50,*,err=20) epslat
   if (epslat.le.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): epslat <= 0 : ",G18.10)') epslat
@@ -195,11 +221,11 @@ case('epslat')
     stop
   end if
 case('primcell')
-  read(50,*) primcell
+  read(50,*,err=20) primcell
 case('tshift')
-  read(50,*) tshift
+  read(50,*,err=20) tshift
 case('rlambda')
-  read(50,*) rlambda
+  read(50,*,err=20) rlambda
   if (rlambda.le.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): rlambda <= 0 : ",G18.10)') rlambda
@@ -207,9 +233,9 @@ case('rlambda')
     stop
   end if
 case('autokpt')
-  read(50,*) autokpt
+  read(50,*,err=20) autokpt
 case('ngridk')
-  read(50,*) ngridk(1),ngridk(2),ngridk(3)
+  read(50,*,err=20) ngridk(1),ngridk(2),ngridk(3)
   if ((ngridk(1).le.0).or.(ngridk(2).le.0).or.(ngridk(3).le.0)) then
     write(*,*)
     write(*,'("Error(readinput): invalid ngridk : ",3I8)') ngridk
@@ -217,11 +243,11 @@ case('ngridk')
     stop
   end if
 case('vkloff')
-  read(50,*) vkloff(1),vkloff(2),vkloff(3)
+  read(50,*,err=20) vkloff(1),vkloff(2),vkloff(3)
 case('reducek')
-  read(50,*) reducek
+  read(50,*,err=20) reducek
 case('ngridq')
-  read(50,*) ngridq(1),ngridq(2),ngridq(3)
+  read(50,*,err=20) ngridq(1),ngridq(2),ngridq(3)
   if ((ngridq(1).le.0).or.(ngridq(2).le.0).or.(ngridq(3).le.0)) then
     write(*,*)
     write(*,'("Error(readinput): invalid ngridq : ",3I8)') ngridq
@@ -229,9 +255,9 @@ case('ngridq')
     stop
   end if
 case('reduceq')
-  read(50,*) reduceq
+  read(50,*,err=20) reduceq
 case('rgkmax')
-  read(50,*) rgkmax
+  read(50,*,err=20) rgkmax
   if (rgkmax.le.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): rgkmax <= 0 : ",G18.10)') rgkmax
@@ -239,9 +265,9 @@ case('rgkmax')
     stop
   end if
 case('gmaxvr')
-  read(50,*) gmaxvr
+  read(50,*,err=20) gmaxvr
 case('lmaxapw')
-  read(50,*) lmaxapw
+  read(50,*,err=20) lmaxapw
   if (lmaxapw.lt.0) then
     write(*,*)
     write(*,'("Error(readinput): lmaxapw < 0 : ",I8)') lmaxapw
@@ -256,7 +282,7 @@ case('lmaxapw')
     stop
   end if
 case('lmaxvr')
-  read(50,*) lmaxvr
+  read(50,*,err=20) lmaxvr
   if (lmaxvr.lt.3) then
     write(*,*)
     write(*,'("Error(readinput): lmaxvr < 3 : ",I8)') lmaxvr
@@ -264,7 +290,7 @@ case('lmaxvr')
     stop
   end if
 case('lmaxmat')
-  read(50,*) lmaxmat
+  read(50,*,err=20) lmaxmat
   if (lmaxmat.lt.0) then
     write(*,*)
     write(*,'("Error(readinput): lmaxmat < 0 : ",I8)') lmaxmat
@@ -272,7 +298,7 @@ case('lmaxmat')
     stop
   end if
 case('lmaxinr')
-  read(50,*) lmaxinr
+  read(50,*,err=20) lmaxinr
   if (lmaxinr.lt.0) then
     write(*,*)
     write(*,'("Error(readinput): lmaxinr < 0 : ",I8)') lmaxinr
@@ -280,9 +306,9 @@ case('lmaxinr')
     stop
   end if
 case('fracinr')
-  read(50,*) fracinr
+  read(50,*,err=20) fracinr
 case('npsden')
-  read(50,*) npsden
+  read(50,*,err=20) npsden
   if (npsden.lt.2) then
     write(*,*)
     write(*,'("Error(readinput): npsden < 2 : ",I8)') npsden
@@ -290,15 +316,15 @@ case('npsden')
     stop
   end if
 case('spinpol')
-  read(50,*) spinpol
+  read(50,*,err=20) spinpol
 case('spinorb')
-  read(50,*) spinorb
+  read(50,*,err=20) spinorb
 case('xctype')
-  read(50,*) xctype
+  read(50,*,err=20) xctype
 case('stype')
-  read(50,*) stype
+  read(50,*,err=20) stype
 case('swidth')
-  read(50,*) swidth
+  read(50,*,err=20) swidth
   if (swidth.lt.1.d-9) then
     write(*,*)
     write(*,'("Error(readinput): swidth too small or negative : ",G18.10)') &
@@ -307,7 +333,7 @@ case('swidth')
     stop
   end if
 case('epsocc')
-  read(50,*) epsocc
+  read(50,*,err=20) epsocc
   if (epsocc.le.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): epsocc <= 0 : ",G18.10)') epsocc
@@ -315,7 +341,7 @@ case('epsocc')
     stop
   end if
 case('epschg')
-  read(50,*) epschg
+  read(50,*,err=20) epschg
   if (epschg.le.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): epschg <= 0 : ",G18.10)') epschg
@@ -323,7 +349,7 @@ case('epschg')
     stop
   end if
 case('nempty')
-  read(50,*) nempty
+  read(50,*,err=20) nempty
   if (nempty.le.0) then
     write(*,*)
     write(*,'("Error(readinput): nempty <= 0 : ",I8)') nempty
@@ -331,7 +357,7 @@ case('nempty')
     stop
   end if
 case('beta0')
-  read(50,*) beta0
+  read(50,*,err=20) beta0
   if (beta0.lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): beta0 < 0 : ",G18.10)') beta0
@@ -339,7 +365,7 @@ case('beta0')
     stop
   end if
 case('betamax')
-  read(50,*) betamax
+  read(50,*,err=20) betamax
   if (betamax.lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): betamax < 0 : ",G18.10)') betamax
@@ -347,7 +373,7 @@ case('betamax')
     stop
   end if
 case('maxscl')
-  read(50,*) maxscl
+  read(50,*,err=20) maxscl
   if (maxscl.lt.0) then
     write(*,*)
     write(*,'("Error(readinput): maxscl < 0 : ",I8)') maxscl
@@ -355,13 +381,13 @@ case('maxscl')
     stop
   end if
 case('epspot')
-  read(50,*) epspot
+  read(50,*,err=20) epspot
 case('epsengy')
-  read(50,*) epsengy
+  read(50,*,err=20) epsengy
 case('epsforce')
-  read(50,*) epsforce
+  read(50,*,err=20) epsforce
 case('cfdamp')
-  read(50,*) cfdamp
+  read(50,*,err=20) cfdamp
   if (cfdamp.lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): cfdamp < 0 : ",G18.10)') cfdamp
@@ -369,13 +395,14 @@ case('cfdamp')
     stop
   end if
 case('sppath')
-  read(50,*) sppath
+  read(50,*,err=20) sppath
+  sppath=adjustl(sppath)
 case('scrpath')
-  read(50,*) scrpath
+  read(50,*,err=20) scrpath
 case('molecule')
-  read(50,*) molecule
+  read(50,*,err=20) molecule
 case('vacuum')
-  read(50,*) vacuum
+  read(50,*,err=20) vacuum
   if (vacuum.lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): vacuum < 0 : ",G18.10)') vacuum
@@ -383,7 +410,7 @@ case('vacuum')
     stop
   end if
 case('atoms')
-  read(50,*) nspecies
+  read(50,*,err=20) nspecies
   if (nspecies.le.0) then
     write(*,*)
     write(*,'("Error(readinput): nspecies <= 0 : ",I8)') nspecies
@@ -398,8 +425,9 @@ case('atoms')
     stop
   end if
   do is=1,nspecies
-    read(50,*) spfname(is)
-    read(50,*) natoms(is)
+    read(50,*,err=20) spfname(is)
+    spfname(is)=adjustl(spfname(is))
+    read(50,*,err=20) natoms(is)
     if (natoms(is).le.0) then
       write(*,*)
       write(*,'("Error(readinput): natoms <= 0 : ",I8)') natoms(is)
@@ -416,12 +444,12 @@ case('atoms')
       stop
     end if
     do ia=1,natoms(is)
-      read(50,*) atposl(1,ia,is),atposl(2,ia,is),atposl(3,ia,is), &
+      read(50,*,err=20) atposl(1,ia,is),atposl(2,ia,is),atposl(3,ia,is), &
        bfcmt(1,ia,is),bfcmt(2,ia,is),bfcmt(3,ia,is)
     end do
   end do
 case('plot1d')
-  read(50,*) nvp1d,npp1d
+  read(50,*,err=20) nvp1d,npp1d
   if (nvp1d.lt.1) then
     write(*,*)
     write(*,'("Error(readinput): nvp1d < 1 : ",I8)') nvp1d
@@ -437,13 +465,13 @@ case('plot1d')
   if (allocated(vvlp1d)) deallocate(vvlp1d)
   allocate(vvlp1d(3,nvp1d))
   do iv=1,nvp1d
-    read(50,*) vvlp1d(1,iv),vvlp1d(2,iv),vvlp1d(3,iv)
+    read(50,*,err=20) vvlp1d(1,iv),vvlp1d(2,iv),vvlp1d(3,iv)
   end do
 case('plot2d')
-  read(50,*) vclp2d(1,1),vclp2d(2,1),vclp2d(3,1)
-  read(50,*) vclp2d(1,2),vclp2d(2,2),vclp2d(3,2)
-  read(50,*) vclp2d(1,3),vclp2d(2,3),vclp2d(3,3)
-  read(50,*) np2d(1),np2d(2)
+  read(50,*,err=20) vclp2d(1,1),vclp2d(2,1),vclp2d(3,1)
+  read(50,*,err=20) vclp2d(1,2),vclp2d(2,2),vclp2d(3,2)
+  read(50,*,err=20) vclp2d(1,3),vclp2d(2,3),vclp2d(3,3)
+  read(50,*,err=20) np2d(1),np2d(2)
   if ((np2d(1).lt.1).or.(np2d(2).lt.1)) then
     write(*,*)
     write(*,'("Error(readinput): np2d < 1 : ",2I8)') np2d
@@ -451,14 +479,14 @@ case('plot2d')
     stop
   end if
 case('plot3d')
-  read(50,*) nup3d(1),nup3d(2),nup3d(3)
+  read(50,*,err=20) nup3d(1),nup3d(2),nup3d(3)
   if ((nup3d(1).lt.1).or.(nup3d(2).lt.1).or.(nup3d(3).lt.1)) then
     write(*,*)
     write(*,'("Error(readinput): nup3d < 1 : ",3I8)') nup3d
     write(*,*)
     stop
   end if
-  read(50,*) np3d(1),np3d(2),np3d(3)
+  read(50,*,err=20) np3d(1),np3d(2),np3d(3)
   if ((np3d(1).lt.1).or.(np3d(2).lt.1).or.(np3d(3).lt.1)) then
     write(*,*)
     write(*,'("Error(readinput): np3d < 1 : ",3I8)') np3d
@@ -466,7 +494,7 @@ case('plot3d')
     stop
   end if
 case('dos')
-  read(50,*) nwdos,ngrdos,nsmdos
+  read(50,*,err=20) nwdos,ngrdos,nsmdos
   if (nwdos.lt.2) then
     write(*,*)
     write(*,'("Error(readinput): nwdos < 2 : ",I8)') nwdos
@@ -485,7 +513,7 @@ case('dos')
     write(*,*)
     stop
   end if
-  read(50,*) wdos(1),wdos(2)
+  read(50,*,err=20) wdos(1),wdos(2)
   if (wdos(1).ge.wdos(2)) then
     write(*,*)
     write(*,'("Error(readinput): wdos(1) >= wdos(2) : ",2G18.10)') wdos
@@ -493,11 +521,11 @@ case('dos')
     stop
   end if
 case('bcsym')
-  read(50,*) bcsym
+  read(50,*,err=20) bcsym
 case('tau0atm')
-  read(50,*) tau0atm
+  read(50,*,err=20) tau0atm
 case('nstfsp')
-  read(50,*) nstfsp
+  read(50,*,err=20) nstfsp
   if (nstfsp.le.0) then
     write(*,*)
     write(*,'("Error(readinput): nstfsp <= 0 : ",I8)') nstfsp
@@ -505,7 +533,7 @@ case('nstfsp')
     stop
   end if
 case('lradstp')
-  read(50,*) lradstp
+  read(50,*,err=20) lradstp
   if (lradstp.le.0) then
     write(*,*)
     write(*,'("Error(readinput): lradstp <= 0 : ",I8)') lradstp
@@ -513,9 +541,9 @@ case('lradstp')
     stop
   end if
 case('chgexs')
-  read(50,*) chgexs
+  read(50,*,err=20) chgexs
 case('nprad')
-  read(50,*) nprad
+  read(50,*,err=20) nprad
   if (nprad.lt.2) then
     write(*,*)
     write(*,'("Error(readinput): nprad < 2 : ",I8)') nprad
@@ -523,7 +551,7 @@ case('nprad')
     stop
   end if
 case('scissor')
-  read(50,*) scissor
+  read(50,*,err=20) scissor
 case('optcomp')
   do i=1,27
     read(50,'(A80)') str
@@ -541,7 +569,7 @@ case('optcomp')
     if (iostat.ne.0) then
       write(*,*)
       write(*,'("Error(readinput): error reading optical component list")')
-      write(*,'(" (blank line required after optcomp block)")')
+      write(*,'("(blank line required after optcomp block)")')
       write(*,*)
       stop
     end if
@@ -559,13 +587,13 @@ case('optcomp')
   write(*,*)
   stop
 case('usegdft')
-  read(50,*) usegdft
+  read(50,*,err=20) usegdft
 case('intraband')
-  read(50,*) intraband
+  read(50,*,err=20) intraband
 case('evalmin')
-  read(50,*) evalmin
+  read(50,*,err=20) evalmin
 case('deband')
-  read(50,*) deband
+  read(50,*,err=20) deband
   if (deband.lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): deband < 0 : ",G18.10)') deband
@@ -573,13 +601,27 @@ case('deband')
     stop
   end if
 case('bfieldc')
-  read(50,*) bfieldc
+  read(50,*,err=20) bfieldc
 case('fixspin')
-  read(50,*) fixspin
+  read(50,*,err=20) fixspin
 case('momfix')
-  read(50,*) momfix
+  read(50,*,err=20) momfix
+case('mommtfix')
+  do ias=1,maxspecies*maxatoms
+    read(50,'(A80)') str
+    if (trim(str).eq.'') goto 10
+    read(str,*,iostat=iostat) is,ia,mommtfix(:,ia,is)
+    if (iostat.ne.0) then
+      write(*,*)
+      write(*,'("Error(readinput): error reading muffin-tin fixed spin &
+       &moments")')
+      write(*,'("(blank line required after mommtfix block")')
+      write(*,*)
+      stop
+    end if
+  end do
 case('taufsm')
-  read(50,*) taufsm
+  read(50,*,err=20) taufsm
   if (taufsm.lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): taufsm < 0 : ",G18.10)') taufsm
@@ -587,9 +629,9 @@ case('taufsm')
     stop
   end if
 case('autormt')
-  read(50,*) autormt
+  read(50,*,err=20) autormt
 case('rmtapm')
-  read(50,*) rmtapm
+  read(50,*,err=20) rmtapm
   if (rmtapm(1).lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): rmtapm(1) < 0 : ",G18.10)') rmtapm(1)
@@ -603,11 +645,11 @@ case('rmtapm')
     stop
   end if
 case('nosym')
-  read(50,*) nosym
+  read(50,*,err=20) nosym
 case('deltaph')
-  read(50,*) deltaph
+  read(50,*,err=20) deltaph
 case('phwrite')
-  read(50,*) nphwrt
+  read(50,*,err=20) nphwrt
   if (nphwrt.le.0) then
     write(*,*)
     write(*,'("Error(readinput): nphwrt <= 0 : ",I8)') nphwrt
@@ -617,7 +659,7 @@ case('phwrite')
   if (allocated(vqlwrt)) deallocate(vqlwrt)
   allocate(vqlwrt(3,nphwrt))
   do i=1,nphwrt
-    read(50,*) vqlwrt(:,i)
+    read(50,*,err=20) vqlwrt(:,i)
   end do
 case('notes')
   do i=1,maxnlns
@@ -632,21 +674,25 @@ case('notes')
   write(*,*)
   stop
 case('tforce')
-  read(50,*) tforce
+  read(50,*,err=20) tforce
 case('tfibs')
-  read(50,*) tfibs
+  read(50,*,err=20) tfibs
 case('maxitoep')
-  read(50,*) maxitoep
+  read(50,*,err=20) maxitoep
   if (maxitoep.lt.1) then
     write(*,*)
     write(*,'("Error(readinput): maxitoep < 1 : ",I8)') maxitoep
     write(*,*)
     stop
   end if
-case('tau0oep')
-  read(50,*) tau0oep
-case('dtauoep')
-  read(50,*) dtauoep
+case('tauoep')
+  read(50,*,err=20) tauoep(:)
+  if ((tauoep(1).lt.0.d0).or.(tauoep(2).lt.0.d0).or.(tauoep(3).lt.0.d0)) then
+    write(*,*)
+    write(*,'("Error(readinput): tauoep < 0 : ",3G18.10)') tauoep
+    write(*,*)
+    stop
+  end if
 case('kstlist')
   do i=1,maxkst
     read(50,'(A80)') str
@@ -664,7 +710,7 @@ case('kstlist')
     if (iostat.ne.0) then
       write(*,*)
       write(*,'("Error(readinput): error reading k-point and state list")')
-      write(*,'(" (blank line required after kstlist block)")')
+      write(*,'("(blank line required after kstlist block)")')
       write(*,*)
       stop
     end if
@@ -674,11 +720,11 @@ case('kstlist')
   write(*,*)
   stop
 case('vklem')
-  read(50,*) vklem
+  read(50,*,err=20) vklem
 case('deltaem')
-  read(50,*) deltaem
+  read(50,*,err=20) deltaem
 case('ndspem')
-  read(50,*) ndspem
+  read(50,*,err=20) ndspem
   if ((ndspem.lt.1).or.(ndspem.gt.3)) then
     write(*,*)
     write(*,'("Error(readinput): ndspem out of range : ",I8)') ndspem
@@ -686,15 +732,45 @@ case('ndspem')
     stop
   end if
 case('nosource')
-  read(50,*) nosource
+  read(50,*,err=20) nosource
 case('spinsprl')
-  read(50,*) spinsprl
+  read(50,*,err=20) spinsprl
 case('vqlss')
-  read(50,*) vqlss
+  read(50,*,err=20) vqlss
 case('nwrite')
-  read(50,*) nwrite
+  read(50,*,err=20) nwrite
 case('tevecsv')
-  read(50,*) tevecsv
+  read(50,*,err=20) tevecsv
+case('lda+u')
+  read(50,*) ldapu
+  do is=1,maxspecies
+    read(50,'(A80)') str
+    if (trim(str).eq.'') goto 10
+    read(str,*,iostat=iostat) js,l,t1,t2
+    if (iostat.ne.0) then
+      write(*,*)
+      write(*,'("Error(readinput): error reading LDA+U parameters")')
+      write(*,'("(blank line required after lda+u block)")')
+      write(*,*)
+      stop
+    end if
+    if ((js.le.0).or.(js.ge.maxspecies)) then
+      write(*,*)
+      write(*,'("Error(readinput): invalid species number in lda+u block : ",&
+       &I8)') js
+      write(*,*)
+      stop
+    end if
+    if (l.gt.lmaxlu) then
+      write(*,*)
+      write(*,'("Error(readinput): l > lmaxlu in lda+u block : ",2I8)') l,lmaxlu
+      write(*,*)
+      stop
+    end if
+    llu(js)=l
+    ujlu(1,js)=t1
+    ujlu(2,js)=t2
+  end do
 case('')
   goto 10
 case default
@@ -705,6 +781,12 @@ case default
 end select
 goto 10
 20 continue
+write(*,*)
+write(*,'("Error(readinput): error reading from exciting.in")')
+write(*,'("Problem occurred in ''",A,"'' block")') trim(bname)
+write(*,*)
+stop
+30 continue
 close(50)
 ! scale the lattice vectors (scaling not referenced again in code)
 avec(:,1)=sc1*avec(:,1)

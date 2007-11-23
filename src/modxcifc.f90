@@ -69,7 +69,7 @@ real(8), optional, intent(out) :: vxdn(*)
 real(8), optional, intent(out) :: vcup(*)
 real(8), optional, intent(out) :: vcdn(*)
 ! local variables
-real(8) kappa
+real(8) kappa,mu,beta
 ! automatic arrays
 real(8), allocatable :: ra(:,:)
 select case(abs(xctype))
@@ -130,13 +130,20 @@ case(4)
   else
     goto 10
   end if
-case(20,21)
-  if (xctype.eq.20) then
-! original
-    kappa=0.804d0
-  else
-! Zhang-Yang
+case(20,21,22)
+! original PBE kappa
+  kappa=0.804d0
+  if (xctype.eq.21) then
+! Zhang-Yang kappa
     kappa=1.245d0
+  end if
+! original PBE mu and beta
+  mu=0.2195149727645171d0
+  beta=0.06672455060314922d0
+  if (xctype.eq.22) then
+! PBEsol parameters
+    mu=10.d0/81.d0
+    beta=0.046d0
   end if
 ! Perdew-Burke-Ernzerhof generalised gradient approximation
 ! Phys. Rev. Lett. 77, 3865 (1996); 78, 1396(E) (1997)
@@ -146,8 +153,8 @@ case(20,21)
    .and.present(g3rho).and.present(g3up).and.present(g3dn).and.present(ex) &
    .and.present(ec).and.present(vxup).and.present(vxdn).and.present(vcup) &
    .and.present(vcdn)) then
-    call xc_pbe(n,kappa,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn,ex, &
-     ec,vxup,vxdn,vcup,vcdn)
+    call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
+     g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
   else if (present(n).and.present(rho).and.present(grho).and.present(g2rho) &
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
@@ -156,8 +163,8 @@ case(20,21)
     ra(1:n,2)=0.5d0*grho(1:n)
     ra(1:n,3)=0.5d0*g2rho(1:n)
     ra(1:n,4)=0.25d0*g3rho(1:n)
-    call xc_pbe(n,kappa,ra(1,1),ra(1,1),grho,ra(1,2),ra(1,2),ra(1,3),ra(1,3), &
-     g3rho,ra(1,4),ra(1,4),ex,ec,vx,vx,vc,vc)
+    call xc_pbe(n,kappa,mu,beta,ra(1,1),ra(1,1),grho,ra(1,2),ra(1,2),ra(1,3), &
+     ra(1,3),g3rho,ra(1,4),ra(1,4),ex,ec,vx,vx,vc,vc)
     deallocate(ra)
   else
     goto 10
@@ -261,6 +268,10 @@ case(20)
   xcgrad=1
 case(21)
   xcdescr='Revised PBE, Zhang-Yang, Phys. Rev. Lett. 80, 890 (1998)'
+  xcspin=1
+  xcgrad=1
+case(22)
+  xcdescr='PBEsol, arXiv:0711.0156 (2007)'
   xcspin=1
   xcgrad=1
 case(26)

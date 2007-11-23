@@ -77,7 +77,7 @@ stop
 end program
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.114
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.138
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
@@ -101,18 +101,18 @@ end program
 !   Armiento, Andrew Chizmeshya, Per Anderson, Igor Nekrasov, Fredrik Bultmark,
 !   Sushil Auluck, Frank Wagner, Fateh Kalarasse, J\"{u}rgen Spitaler, Stefano
 !   Pittalis, Nektarios Lathiotakis, Tobias Burnus, Stephan Sagmeister,
-!   Christian Meisenbichler, Francesco Cricchio, S\'{e}bastien Leb\`{e}gue and
-!   Yigang Zhang. Special mention of David Singh's very useful book
-!   {\it Planewaves, Pseudopotentials and the LAPW Method} \cite{singh} must
-!   also be made. Finally we would like to acknowledge the generous support of
-!   Karl-Franzens-Universit\"{a}t Graz, as well as the EU Marie-Curie Research
-!   Training Networks initiative.
+!   Christian Meisenbichler, Francesco Cricchio, S\'{e}bastien Leb\`{e}gue,
+!   Yigang Zhang and Fritz K\"{o}rmann. Special mention of David Singh's very
+!   useful book {\it Planewaves, Pseudopotentials and the LAPW Method}
+!   \cite{singh} must also be made. Finally we would like to acknowledge the
+!   generous support of Karl-Franzens-Universit\"{a}t Graz, as well as the EU
+!   Marie-Curie Research Training Networks initiative.
 !
 !   \vspace{24pt}
 !   Kay Dewhurst, Sangeeta Sharma and Claudia Ambrosch-Draxl
 !
 !   \vspace{12pt}
-!   Edinburgh, Berlin and Leoben, June 2007
+!   Edinburgh, Berlin and Leoben, October 2007
 !   \newpage
 !
 !   \section{Units}
@@ -431,12 +431,12 @@ end program
 !   \subsection{{\tt fixspin}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt fixspin} & {\tt .true.} if the spin moment should be fixed & logical &
-!    {\tt .false.} \\
+!   {\tt fixspin} & 0 for no fixed spin moment (FSM), 1 for total FSM, 2 for
+!    local muffin-tin FSM, and 3 for both total and local FSM & integer & 0 \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   Set to {\tt .true.} for fixed spin moment calculations. See also
-!   {\tt momfix}, {\tt taufsm} and {\tt spinpol}.
+!   Set to 1, 2 or 3 for fixed spin moment calculations. See also
+!   {\tt momfix}, {\tt mommtfix}, {\tt taufsm} and {\tt spinpol}.
 !
 !   \subsection{{\tt fracinr}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -475,6 +475,30 @@ end program
 !   are those used for plotting wavefunctions and writing ${\bf L}$, ${\bf S}$
 !   and ${\bf J}$ expectation values. Only the first pair is used by the
 !   aforementioned tasks. The list should be terminated by a blank line.
+!
+!   \subsection{{\tt lda+u}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt ldapu} & type of LDA+$U$ calculation & integer & 0 \\
+!   \hline
+!   {\tt is} & species number & integer & - \\
+!   {\tt l} & angular momentum value & integer & -1 \\
+!   {\tt u} & the desired $U$ value & real & $0.0$ \\
+!   {\tt j} & the desired $J$ value & real & $0.0$ \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   This block contains the parameters required for an LDA+$U$ calculation, with
+!   the list of parameters for each species terminated with a blank line. The
+!   type of calculation required is set with the parameter {\tt ldapu}.
+!   Currently implemented are:\newline\newline
+!   \begin{tabularx}{\textwidth}[h]{lX}
+!   0 & No LDA+$U$ calculation \\
+!   1 & Fully localised limit (FLL) \\
+!   2 & Around mean field (AFM) \\
+!   3 & An interpolation between FLL and AFM \\
+!   \end{tabularx}\newline\newline
+!   See (amongst others) Phys. Rev. B {\bf 67}, 153106 (2003), Phys. Rev. B
+!   {\bf 52}, R5467 (1995), and Phys. Rev. B {\bf 60}, 10673 (1999).
 !
 !   \subsection{{\tt lmaxapw}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -567,12 +591,26 @@ end program
 !   \subsection{{\tt momfix}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt momfix} & the desired moment in fixed spin moment calculations &
+!   {\tt momfix} & the desired total moment for a FSM calculation &
 !    real(3) & $(0.0,0.0,0.0)$ \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Note that all three components must be specified (even for collinear
 !   calculations). See {\tt fixspin}, {\tt taufsm} and {\tt spinpol}.
+!
+!   \subsection{{\tt mommtfix}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt is} & species number & integer & 0 \\
+!   {\tt ia} & atom number & integer & 0 \\
+!   {\tt mommtfix} & the desired muffin-tin moment for a FSM calculation &
+!    real(3) & $(0.0,0.0,0.0)$ \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   The local muffin-tin moments are specified for a subset of atoms, with the
+!   list terminated with a blank line. Note that all three components must be
+!   specified (even for collinear calculations). See {\tt fixspin}, {\tt taufsm}
+!   and {\tt spinpol}.
 !
 !   \subsection{{\tt ndspem}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1134,6 +1172,7 @@ end program
 !    (1996) \\
 !   21 & GGA, Revised PBE, Zhang-Yang, {\it Phys. Rev. Lett.} {\bf 80}, 890
 !    (1998) \\
+!   22 & GGA, PBEsol, arXiv:0707.2088v1 (2007) \\
 !   26 & GGA, Wu-Cohen exchange (WC06) with PBE correlation, {\it Phys. Rev. B}
 !    {\bf 73}, 235116 (2006) \\
 !   30 & GGA, Armiento-Mattsson (AM05) spin-unpolarised functional,

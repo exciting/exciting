@@ -38,7 +38,7 @@ complex(8), intent(in) :: evecsv(nstsv,nstsv)
 ! local variables
 integer nsd,ispn,jspn,is,ia,ias,ist
 integer ir,irc,itp,igk,ifg,lm,i,j,n
-real(8) t1,t2,t3,t4
+real(8) wo,t1,t2,t3
 real(8) cpu0,cpu1
 complex(8) zt1,zt2,zt3
 ! allocatable arrays
@@ -83,8 +83,8 @@ do is=1,nspecies
     done(:,:)=.false.
     rfmt(:,:,:)=0.d0
     do j=1,nstsv
-      t1=wkpt(ik)*occsv(j,ik)
-      if (abs(t1).gt.epsocc) then
+      wo=wkpt(ik)*occsv(j,ik)
+      if (abs(wo).gt.epsocc) then
         if (tevecsv) then
 ! generate spinor wavefunction from second-variational eigenvectors
           wfmt3(:,:,:)=0.d0
@@ -128,11 +128,11 @@ do is=1,nspecies
               zt1=wfmt3(itp,irc,1)
               zt2=wfmt3(itp,irc,2)
               zt3=zt1*conjg(zt2)
-              rfmt(itp,irc,1)=rfmt(itp,irc,1)+t1*(dble(zt1)**2+aimag(zt1)**2)
-              rfmt(itp,irc,2)=rfmt(itp,irc,2)+t1*(dble(zt2)**2+aimag(zt2)**2)
+              rfmt(itp,irc,1)=rfmt(itp,irc,1)+wo*(dble(zt1)**2+aimag(zt1)**2)
+              rfmt(itp,irc,2)=rfmt(itp,irc,2)+wo*(dble(zt2)**2+aimag(zt2)**2)
               if (ndmag.eq.3) then
-                rfmt(itp,irc,3)=rfmt(itp,irc,3)+t1*dble(zt3)
-                rfmt(itp,irc,4)=rfmt(itp,irc,4)+t1*aimag(zt3)
+                rfmt(itp,irc,3)=rfmt(itp,irc,3)+wo*dble(zt3)
+                rfmt(itp,irc,4)=rfmt(itp,irc,4)+wo*aimag(zt3)
               end if
             end do
           end do
@@ -141,7 +141,7 @@ do is=1,nspecies
           do irc=1,nrcmt(is)
             do itp=1,lmmaxvr
               zt1=wfmt3(itp,irc,1)
-              rfmt(itp,irc,1)=rfmt(itp,irc,1)+t1*(dble(zt1)**2+aimag(zt1)**2)
+              rfmt(itp,irc,1)=rfmt(itp,irc,1)+wo*(dble(zt1)**2+aimag(zt1)**2)
             end do
           end do
         end if
@@ -182,9 +182,9 @@ end do
 !     interstitial density     !
 !------------------------------!
 do j=1,nstsv
-  t1=wkpt(ik)*occsv(j,ik)
-  if (abs(t1).gt.epsocc) then
-    t2=t1/omega
+  wo=wkpt(ik)*occsv(j,ik)
+  if (abs(wo).gt.epsocc) then
+    t1=wo/omega
     zfft(:,:)=0.d0
     if (tevecsv) then
 ! generate spinor wavefunction from second-variational eigenvectors
@@ -224,22 +224,22 @@ do j=1,nstsv
         zt1=zfft(ir,1)
         zt2=zfft(ir,2)
         zt3=zt1*conjg(zt2)
-        t3=dble(zt1)**2+aimag(zt1)**2
-        t4=dble(zt2)**2+aimag(zt2)**2
-        rhoir(ir)=rhoir(ir)+t2*(t3+t4)
+        t2=dble(zt1)**2+aimag(zt1)**2
+        t3=dble(zt2)**2+aimag(zt2)**2
+        rhoir(ir)=rhoir(ir)+t1*(t2+t3)
         if (ndmag.eq.3) then
-          magir(ir,1)=magir(ir,1)+2.d0*t2*dble(zt3)
-          magir(ir,2)=magir(ir,2)-2.d0*t2*aimag(zt3)
-          magir(ir,3)=magir(ir,3)+t2*(t3-t4)
+          magir(ir,1)=magir(ir,1)+2.d0*t1*dble(zt3)
+          magir(ir,2)=magir(ir,2)-2.d0*t1*aimag(zt3)
+          magir(ir,3)=magir(ir,3)+t1*(t2-t3)
         else
-          magir(ir,1)=magir(ir,1)+t2*(t3-t4)
+          magir(ir,1)=magir(ir,1)+t1*(t2-t3)
         end if
       end do
     else
 ! spin-unpolarised
       do ir=1,ngrtot
         zt1=zfft(ir,1)
-        rhoir(ir)=rhoir(ir)+t2*(dble(zt1)**2+aimag(zt1)**2)
+        rhoir(ir)=rhoir(ir)+t1*(dble(zt1)**2+aimag(zt1)**2)
       end do
     end if
 !$OMP END CRITICAL

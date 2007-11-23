@@ -66,6 +66,21 @@ if (xctype.lt.0) then
       ncrmax=max(ncrmax,ic)
     end do
   end do
+! allocate and zero the complex exchange potential and field
+  if (allocated(zvxmt)) deallocate(zvxmt)
+  allocate(zvxmt(lmmaxvr,nrcmtmax,natmtot))
+  zvxmt(:,:,:)=0.d0
+  if (allocated(zvxir)) deallocate(zvxir)
+  allocate(zvxir(ngrtot))
+  zvxir(:)=0.d0
+  if (spinpol) then
+    if (allocated(zbxmt)) deallocate(zbxmt)
+    allocate(zbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
+    zbxmt(:,:,:,:)=0.d0
+    if (allocated(zbxir)) deallocate(zbxir)
+    allocate(zbxir(ngrtot,ndmag))
+    zbxir(:,:)=0.d0
+  end if
 end if
 if ((task.eq.5).or.(task.eq.300)) then
 ! allocate the kinetic matrix elements for Hartree-Fock/RDMFT

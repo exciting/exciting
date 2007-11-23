@@ -35,7 +35,7 @@ complex(8), allocatable :: evecfv(:,:,:)
 complex(8), allocatable :: evecsv(:,:)
 ! require forces for structural optimisation
 if ((task.eq.2).or.(task.eq.3)) tforce=.true.
-! initialise universal variables
+! initialise global variables
 call init0
 call init1
 ! initialise OEP variables if required
@@ -82,6 +82,7 @@ call flushifc(60)
 ! size of mixing vector
 n=lmmaxvr*nrmtmax*natmtot+ngrtot
 if (spinpol) n=n*(1+ndmag)
+if (ldapu.ne.0) n=n+2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
 ! allocate mixing arrays
 allocate(nu(n))
 allocate(mu(n))
@@ -196,6 +197,15 @@ do iscl=1,maxscl
   if (spinpol) call moment
 ! normalise the density
   call rhonorm
+! LDA+U
+  if (ldapu.ne.0) then
+! generate the LDA+U density matrix
+    call gendmatlu
+! generate the LDA+U potential matrix
+    call genvmatlu
+! write the LDA+U matrices to file
+    call writeldapu
+  end if
 ! compute the effective potential
   call poteff
 ! pack interstitial and muffin-tin effective potential and field into one array
@@ -204,8 +214,6 @@ do iscl=1,maxscl
   call mixer(.false.,beta0,betamax,n,nu,mu,beta,f,dv)
 ! unpack potential and field
   call packeff(.false.,n,nu)
-! add the fixed spin moment effective field
-  if (fixspin) call fsmfield
 ! Fourier transform effective potential to G-space
   call genveffig
 ! compute the energy components
@@ -228,11 +236,8 @@ do iscl=1,maxscl
     write(63,'(3G18.10)') momtot(1:ndmag)
     call flushifc(63)
   end if
-! output effective field for fixed spin moment calculations
-  if (fixspin) then
-    write(60,*)
-    write(60,'("FSM effective field      : ",3G18.10)') bfsmc(1:ndmag)
-  end if
+! output effective fields for fixed spin moment calculations
+  if (fixspin.ne.0) call writefsm(60)
 ! check for WRITE file
   inquire(file='WRITE',exist=exist)
   if (exist) then
@@ -264,9 +269,10 @@ do iscl=1,maxscl
     end if
     write(65,'(G18.10)') dv
     call flushifc(65)
-    if (xctype.lt.0) then
-      write(60,'("Magnitude of OEP residue : ",G18.10)') resoep
-    end if
+  end if
+  if (xctype.lt.0) then
+    write(60,*)
+    write(60,'("Magnitude of OEP residue : ",G18.10)') resoep
   end if
 ! check for STOP file
   inquire(file='STOP',exist=exist)

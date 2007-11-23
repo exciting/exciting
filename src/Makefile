@@ -45,7 +45,8 @@ SRC_routines_flux = \
  putevalfv.f90 getevalfv.f90 putevalsv.f90 getevalsv.f90 putoccsv.f90 \
  getoccsv.f90 putevecfv.f90 getevecfv.f90 putevecsv.f90 getevecsv.f90 \
  delevec.f90 genvmatk.f90 genvmat.f90 genwfsv.f90 \
- findsymsite.f90 geomplot.f90 hartfock.f90 genkinmat.f90 energykncr.f90
+ findsymsite.f90 geomplot.f90 hartfock.f90 genkinmat.f90 energykncr.f90 \
+ zfint.f90 rfpack.f90 rfint.f90 writefsm.f90
 
 SRC_phonon = \
  phonon.f90 dyntask.f90 phcell.f90 phdisp.f90 readdyn.f90 dynqtor.f90 \
@@ -60,6 +61,9 @@ SRC_advanced = \
  exxengy.f90 exxengyk.f90 oepmain.f90 oepresk.f90 oepvnl.f90 \
  oepvnlk.f90 oepmagmt.f90 oepmag.f90 zrhoqint.f90
 
+SRC_LDAU = \
+ gendmatlu.f90 symdmatlu.f90 genveelu.f90 genvmatlu.f90 writeldapu.f90
+
 SRC_rdmft =
 # rdmft.f90 rdmoccinit.f90 rdmdkdc.f90 rdmwriteengy.f90 rdmwritederiv.f90 \
 # rdmvnlwf.f90 rdmdedc.f90 rdmdexcdc.f90 rdmvarywf.f90 rdmengy.f90 \
@@ -71,7 +75,7 @@ SRC_lib = \
  r3mv.f90 r3mtv.f90 r3cross.f90 r3dist.f90 r3taxi.f90 r3dot.f90 r3minv.f90 \
  r3mdet.f90 r3frac.f90 i3mdet.f90 factnm.f90 factr.f90 hermite.f90 \
  brzint.f90 sphcrd.f90 sphcover.f90 erf.f90 clebgor.f90 \
- sbessel.f90 sbesseldm.f90 genylm.f90 genrlm.f90 radmesh.f90 zmatinp.f90 \
+ sbessel.f90 sbesseldm.f90 genylm.f90 genrlm.f90 zmatinp.f90 \
  lopzflm.f90 sortidx.f90 gcd.f90 zfmtinp.f90 rfmtinp.f90 findband.f90 \
  gradzfmt.f90 gradrfmt.f90 ztorflm.f90 rtozflm.f90 zflmconj.f90 rotzflm.f90 \
  polynom.f90 sdelta.f90 stheta.f90 sdelta_mp.f90 stheta_mp.f90 sdelta_fd.f90 \
@@ -79,7 +83,8 @@ SRC_lib = \
  rschroddme.f90 rschrodapp.f90 reciplat.f90 \
  connect.f90 \
  flushifc.f90 spline.f90 writewiq2.f90 rfinterp.f90 rfmtctof.f90 fderiv.f90 \
- mixer.f90 fsmooth.f90 rotaxang.f90 i3minv.f90
+ mixer.f90 fsmooth.f90 rotaxang.f90 i3minv.f90 rotsu2.f90 z2mm.f90 z2mctm.f90 \
+ z2mmct.f90
 
 SRC_lib_flux =
 
@@ -89,7 +94,7 @@ SRC_xc = \
 
 SRC = $(SRC_modules) $(SRC_main) $(SRC_routines) $(SRC_routines_flux) \
  $(SRC_lib) $(SRC_lib_flux) $(SRC_advanced) $(SRC_phonon) $(SRC_optics) \
- $(SRC_xc) $(SRC_rdmft)
+ $(SRC_xc) $(SRC_LDAU) $(SRC_rdmft)
 
 OBJ = $(SRC:.f90=.o)
 EXE = exciting

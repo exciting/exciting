@@ -37,7 +37,7 @@ complex(8), intent(in) :: evecfv(nmatmax,nstfv)
 complex(8), intent(in) :: evecsv(nstsv,nstsv)
 complex(8), intent(out) :: pmat(3,nstsv,nstsv)
 ! local variables
-integer ispn,is,ia,ist1,ist2
+integer ispn,is,ia,ist,jst
 integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
 ! allocatable arrays
@@ -59,20 +59,20 @@ pm(:,:,:)=0.d0
 ! calculate momentum matrix elements in the muffin-tin
 do is=1,nspecies
   do ia=1,natoms(is)
-    do ist1=1,nstfv
+    do ist=1,nstfv
 ! calculate the wavefunction
-      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist1),lmmaxapw, &
-       wfmt(1,1,ist1))
+      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
+       wfmt(1,1,ist))
 ! calculate the gradient
       call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
-       wfmt(1,1,ist1),gwfmt(1,1,1,ist1))
+       wfmt(1,1,ist),gwfmt(1,1,1,ist))
     end do
-    do ist1=1,nstfv
-      do ist2=ist1,nstfv
+    do ist=1,nstfv
+      do jst=ist,nstfv
         do i=1,3
-          zt1=zfmtinp(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,wfmt(1,1,ist1), &
-           gwfmt(1,1,i,ist2))
-          pm(i,ist1,ist2)=pm(i,ist1,ist2)+zt1
+          zt1=zfmtinp(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,wfmt(1,1,ist), &
+           gwfmt(1,1,i,jst))
+          pm(i,ist,jst)=pm(i,ist,jst)+zt1
         end do
       end do
     end do
@@ -81,40 +81,40 @@ end do
 ! calculate momemntum matrix elements in the interstitial region
 wfir(:,:)=0.d0
 gwfir(:,:,:)=0.d0
-do ist1=1,nstfv
+do ist=1,nstfv
   do igp=1,ngp
     ifg=igfft(igpig(igp))
-    zt1=evecfv(igp,ist1)
-    wfir(ifg,ist1)=zt1
+    zt1=evecfv(igp,ist)
+    wfir(ifg,ist)=zt1
 ! calculate the gradient
     do i=1,3
-      gwfir(ifg,i,ist1)=zi*vgpc(i,igp)*zt1
+      gwfir(ifg,i,ist)=zi*vgpc(i,igp)*zt1
     end do
   end do
 ! convert the wavefunction to real-space
-  call zfftifc(3,ngrid,1,wfir(1,ist1))
+  call zfftifc(3,ngrid,1,wfir(1,ist))
   do i=1,3
-    call zfftifc(3,ngrid,1,gwfir(1,i,ist1))
+    call zfftifc(3,ngrid,1,gwfir(1,i,ist))
   end do
 end do
 ! find the overlaps
-do ist1=1,nstfv
-  do ist2=ist1,nstfv
+do ist=1,nstfv
+  do jst=ist,nstfv
     do i=1,3
       zsum=0.d0
       do ir=1,ngrtot
-        zsum=zsum+cfunir(ir)*conjg(wfir(ir,ist1))*gwfir(ir,i,ist2)
+        zsum=zsum+cfunir(ir)*conjg(wfir(ir,ist))*gwfir(ir,i,jst)
       end do
       zt1=zsum/dble(ngrtot)
-      pm(i,ist1,ist2)=pm(i,ist1,ist2)+zt1
+      pm(i,ist,jst)=pm(i,ist,jst)+zt1
     end do
   end do
 end do
 ! multiply by -i and set lower triangular part
-do ist1=1,nstfv
-  do ist2=ist1,nstfv
-    pm(:,ist1,ist2)=-zi*pm(:,ist1,ist2)
-    pm(:,ist2,ist1)=conjg(pm(:,ist1,ist2))
+do ist=1,nstfv
+  do jst=ist,nstfv
+    pm(:,ist,jst)=-zi*pm(:,ist,jst)
+    pm(:,jst,ist)=conjg(pm(:,ist,jst))
   end do
 end do
 ! compute the second-variational momentum matrix elements
@@ -124,13 +124,13 @@ if (tevecsv) then
       zv(:)=0.d0
       k=0
       do ispn=1,nspinor
-        do ist1=1,nstfv
+        do ist=1,nstfv
           k=k+1
           l=(ispn-1)*nstfv
-          do ist2=1,nstfv
+          do jst=1,nstfv
             l=l+1
             zt1=conjg(evecsv(k,i))*evecsv(l,j)
-            zv(:)=zv(:)+zt1*pm(:,ist1,ist2)
+            zv(:)=zv(:)+zt1*pm(:,ist,jst)
           end do
         end do
       end do

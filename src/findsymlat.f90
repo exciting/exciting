@@ -56,7 +56,7 @@ do i31=-1,1; do i32=-1,1; do i33=-1,1
   end do
 ! check invariance of spin-spiral q-vector if required
   if (spinsprl) then
-    call r3mv(s,vqlss,v)
+    call r3mtv(s,vqlss,v)
     t1=r3taxi(vqlss,v)
     if (t1.gt.epslat) goto 10
   end if
@@ -92,6 +92,12 @@ do i=1,nsymlat
   end if
 end do
 20 continue
+! determine the lattice symmetries in Cartesian coordinates
+do i=1,nsymlat
+  s(:,:)=dble(symlat(:,:,i))
+  call r3mm(s,ainv,s)
+  call r3mm(avec,s,symlatc(1,1,i))
+end do
 return
 end subroutine
 !EOC

@@ -20,6 +20,8 @@ integer i
 real(8), parameter :: pi=3.1415926535897932385d0
 real(8), parameter :: thrd=1.d0/3.d0
 real(8), parameter :: thrd2=2.d0/3.d0
+! default PBE beta
+real(8), parameter :: beta=0.06672455060314922d0
 ! maximum allowed |grad rho|
 real(8), parameter :: gmax=1.d6
 ! maximum allowed grad^2 rho
@@ -55,7 +57,7 @@ do i=1,n
     uu=g3rho_/((r**2)*ksg**3)
     vv=g2rho_/(r*ksg**2)
     ww=0.d0
-    call c_pbe(rs,z,t,uu,vv,ww,ec(i),vc(i),vc(i))
+    call c_pbe(beta,rs,z,t,uu,vv,ww,ec(i),vc(i),vc(i))
   else
     ex(i)=0.d0
     ec(i)=0.d0

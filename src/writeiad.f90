@@ -28,7 +28,7 @@ open(50,file='IADIST'//trim(filext),action='WRITE',form='FORMATTED')
 do is=1,nspecies
   do ia=1,natoms(is)
     write(50,*)
-    write(50,'("Distance between is =",I4," (",A,"), ia =",I4," and")') is, &
+    write(50,'("Distance between is = ",I4," (",A,"), ia = ",I4," and")') is, &
      trim(spsymb(is)),ia
     do js=1,nspecies
       do ja=1,natoms(js)
@@ -43,7 +43,7 @@ do is=1,nspecies
             end do
           end do
         end do
-        write(50,'(" is =",I4," (",A,"), ia =",I4," : ",G18.10)') js, &
+        write(50,'(" is = ",I4," (",A,"), ia = ",I4," : ",G18.10)') js, &
          trim(spsymb(js)),ja,dmin
       end do
     end do

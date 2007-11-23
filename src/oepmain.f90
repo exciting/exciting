@@ -17,18 +17,15 @@ real(8), allocatable :: rvfmt(:,:,:,:)
 real(8), allocatable :: rvfir(:,:)
 complex(8), allocatable :: vnlcv(:,:,:,:)
 complex(8), allocatable :: vnlvv(:,:,:)
-complex(8), allocatable :: zvxmt(:,:,:)
-complex(8), allocatable :: zvxir(:)
 complex(8), allocatable :: dvxmt(:,:,:)
 complex(8), allocatable :: dvxir(:)
-complex(8), allocatable :: zbxmt(:,:,:,:)
-complex(8), allocatable :: zbxir(:,:)
 complex(8), allocatable :: dbxmt(:,:,:,:)
 complex(8), allocatable :: dbxir(:,:)
 complex(8), allocatable :: zflm(:)
 ! external functions
 real(8) rfinp
-external rfinp
+complex(8) zfint
+external rfinp,zfint
 if (iscl.lt.1) return
 ! calculate nonlocal matrix elements
 allocate(vnlcv(ncrmax,natmtot,nstsv,nkpt))
@@ -37,16 +34,12 @@ call oepvnl(vnlcv,vnlvv)
 ! allocate local arrays
 allocate(rfmt(lmmaxvr,nrmtmax,natmtot))
 allocate(rfir(ngrtot))
-allocate(zvxmt(lmmaxvr,nrcmtmax,natmtot))
-allocate(zvxir(ngrtot))
 allocate(dvxmt(lmmaxvr,nrcmtmax,natmtot))
 allocate(dvxir(ngrtot))
 allocate(zflm(lmmaxvr))
 if (spinpol) then
   allocate(rvfmt(lmmaxvr,nrmtmax,natmtot,ndmag))
   allocate(rvfir(ngrtot,ndmag))
-  allocate(zbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
-  allocate(zbxir(ngrtot,ndmag))
   allocate(dbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
   allocate(dbxir(ngrtot,ndmag))
 end if
@@ -59,7 +52,7 @@ if (spinpol) then
 end if
 resp=0.d0
 ! initial step size
-tau=tau0oep
+tau=tauoep(1)
 ! start iteration loop
 do it=1,maxitoep
   if (mod(it,10).eq.0) then
@@ -76,7 +69,7 @@ do it=1,maxitoep
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
   do ik=1,nkpt
-    call oepresk(ik,vnlcv,vnlvv,zvxmt,zvxir,zbxmt,zbxir,dvxmt,dvxir,dbxmt,dbxir)
+    call oepresk(ik,vnlcv,vnlvv,dvxmt,dvxir,dbxmt,dbxir)
   end do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -112,13 +105,13 @@ do it=1,maxitoep
      rvfir(1,idm),rvfir(1,idm))))
   end do
   resoep=resoep/omega
+! adjust step size
   if (it.gt.1) then
-    if (resoep.lt.resp) then
-      tau=tau+dtauoep
+    if (resoep.gt.resp) then
+      tau=tau*tauoep(2)
     else
-      tau=tau0oep
+      tau=tau*tauoep(3)
     end if
-    tau=min(tau,100.d0)
   end if
   resp=resoep
 !--------------------------------------------!
@@ -181,10 +174,11 @@ do idm=1,ndmag
   bxcir(:,idm)=bxcir(:,idm)+dble(zbxir(:,idm))
 end do
 deallocate(rfmt,rfir,vnlcv,vnlvv)
-deallocate(zvxmt,zvxir,dvxmt,dvxir,zflm)
+deallocate(dvxmt,dvxir,zflm)
 if (spinpol) then
   deallocate(rvfmt,rvfir)
-  deallocate(zbxmt,zbxir,dbxmt,dbxir)
+  deallocate(dbxmt,dbxir)
 end if
 return
 end subroutine
+

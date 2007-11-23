@@ -26,6 +26,7 @@ subroutine connect(cvec,nv,np,vvl,vpl,dv,dp)
 !
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
+!   Improved September 2007 (JKD)
 !EOP
 !BOC
 implicit none
@@ -38,8 +39,9 @@ real(8), intent(out) :: vpl(3,np)
 real(8), intent(out) :: dv(nv)
 real(8), intent(out) :: dp(np)
 ! local variables
-integer iv,ip
-real(8) st,sv,vl(3),vc(3),f
+integer iv,ip,ip0,ip1,n
+real(8) vl(3),vc(3)
+real(8) dt,f,t1
 ! alloctable arrays
 real(8), allocatable :: seg(:)
 if (nv.lt.1) then
@@ -62,34 +64,37 @@ if (np.eq.1) then
 end if
 allocate(seg(nv))
 ! find the total distance and the length of each segment
-st=0.d0
+dt=0.d0
 do iv=1,nv-1
-  dv(iv)=st
+  dv(iv)=dt
   vl(:)=vvl(:,iv+1)-vvl(:,iv)
-  vc(:)=vl(1)*cvec(:,1)+vl(2)*cvec(:,2)+vl(3)*cvec(:,3)
+  call r3mv(cvec,vl,vc)
   seg(iv)=sqrt(vc(1)**2+vc(2)**2+vc(3)**2)
-  st=st+seg(iv)
+  dt=dt+seg(iv)
 end do
-dv(nv)=st
-! compute the interpolating points
-do ip=1,np
-  dp(ip)=st*dble(ip-1)/dble(np-1)
-  sv=st
-! determine the segment of the current point
-  do iv=nv-1,1,-1
-    sv=sv-seg(iv)
-    if (dp(ip).gt.sv-1.d-7) then
-      if (seg(iv).gt.1.d-7) then
-        f=(dp(ip)-sv)/seg(iv)
-      else
-        f=0.d0
-      end if
-      vpl(:,ip)=vvl(:,iv)*(1.d0-f)+vvl(:,iv+1)*f
-      goto 10
-    end if
+dv(nv)=dt
+if (dt.lt.1.d-8) then
+  do ip=1,np
+    vpl(:,ip)=vvl(:,1)
+    dp(ip)=0.d0
   end do
-10 continue
-end do
+else
+  do iv=1,nv-1
+    t1=dble(np)*dv(iv)/dt
+    ip0=nint(t1)+1
+    if (ip0.lt.1) ip0=1
+    t1=dble(np)*dv(iv+1)/dt
+    ip1=nint(t1)
+    if (ip1.gt.np) ip1=np
+    n=ip1-ip0
+    if (n.le.0) n=1
+    do ip=ip0,ip1
+      f=dble(ip-ip0)/dble(n)
+      dp(ip)=f*seg(iv)+dv(iv)
+      vpl(:,ip)=vvl(:,iv)*(1.d0-f)+vvl(:,iv+1)*f
+    end do
+  end do
+end if
 deallocate(seg)
 return
 end subroutine

@@ -3,26 +3,21 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine oepresk(ik,vnlcv,vnlvv,zvxmt,zvxir,zbxmt,zbxir,dvxmt,dvxir,dbxmt, &
- dbxir)
+subroutine oepresk(ik,vnlcv,vnlvv,dvxmt,dvxir,dbxmt,dbxir)
 use modmain
 implicit none
 ! arguments
 integer, intent(in) :: ik
 complex(8), intent(in) :: vnlcv(ncrmax,natmtot,nstsv,nkpt)
 complex(8), intent(in) :: vnlvv(nstsv,nstsv,nkpt)
-complex(8), intent(in) :: zvxmt(lmmaxvr,nrcmtmax,natmtot)
-complex(8), intent(in) :: zvxir(ngrtot)
-complex(8), intent(in) :: zbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag)
-complex(8), intent(in) :: zbxir(ngrtot,ndmag)
 complex(8), intent(inout) :: dvxmt(lmmaxvr,nrcmtmax,natmtot)
 complex(8), intent(inout) :: dvxir(ngrtot)
 complex(8), intent(inout) :: dbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag)
 complex(8), intent(inout) :: dbxir(ngrtot,ndmag)
 ! local variables
-integer is,ia,ias,ist1,ist2
+integer is,ia,ias,ist,jst
 integer nr,ic,m,idm
-real(8) occ,de
+real(8) de
 complex(8) zde,zvnl,zrvx,zmbx,zt1,zt2
 ! allocatable arrays
 complex(8), allocatable :: apwalm(:,:,:,:)
@@ -54,11 +49,6 @@ if (spinpol) then
   allocate(zvfmt(lmmaxvr,nrcmtmax,ndmag))
   allocate(zfmt(lmmaxvr,nrcmtmax))
 end if
-if (spinpol) then
-  occ=1.d0
-else
-  occ=2.d0
-end if
 ! get the eigenvalues/vectors from file for input k-point
 call getevalsv(vkl(1,ik),evalsv(1,ik))
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
@@ -76,30 +66,30 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     ic=0
-    do ist1=1,spnst(is)
-      if (spcore(ist1,is)) then
-        do m=-spk(ist1,is),spk(ist1,is)-1
+    do ist=1,spnst(is)
+      if (spcore(ist,is)) then
+        do m=-spk(ist,is),spk(ist,is)-1
           ic=ic+1
 ! pass in m-1/2 to wavefcr
-          call wavefcr(lradstp,is,ia,ist1,m,nrcmtmax,wfcr)
-          do ist2=1,nstsv
-            if (evalsv(ist2,ik).gt.efermi) then
-              de=evalcr(ist1,ias)-evalsv(ist2,ik)
-              zde=occ*wkpt(ik)/(de+zi*swidth)
+          call wavefcr(lradstp,is,ia,ist,m,nrcmtmax,wfcr)
+          do jst=1,nstsv
+            if (evalsv(jst,ik).gt.efermi) then
+              de=evalcr(ist,ias)-evalsv(jst,ik)
+              zde=occmax*wkpt(ik)/(de+zi*swidth)
 ! calculate the complex overlap density in the muffin-tin
-              call vnlrhomt(is,wfcr(1,1,1),wfmt(1,1,ias,1,ist2),zrhomt(1,1,ias))
+              call vnlrhomt(is,wfcr(1,1,1),wfmt(1,1,ias,1,jst),zrhomt(1,1,ias))
               if (spinpol) then
-                call vnlrhomt(is,wfcr(1,1,2),wfmt(1,1,ias,2,ist2),zfmt)
+                call vnlrhomt(is,wfcr(1,1,2),wfmt(1,1,ias,2,jst),zfmt)
                 zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
               end if
-              zvnl=conjg(vnlcv(ic,ias,ist2,ik))
+              zvnl=conjg(vnlcv(ic,ias,jst,ik))
               zrvx=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt(1,1,ias), &
                zvxmt(1,1,ias))
               zt1=zvnl-zrvx
 ! spin-polarised case
               if (spinpol) then
-                call oepmagmt(is,wfcr(1,1,1),wfcr(1,1,2),wfmt(1,1,ias,1,ist2), &
-                 wfmt(1,1,ias,2,ist2),zvfmt)
+                call oepmagmt(is,wfcr(1,1,1),wfcr(1,1,2),wfmt(1,1,ias,1,jst), &
+                 wfmt(1,1,ias,2,jst),zvfmt)
 ! integral of magnetisation dot exchange field
                 zmbx=0.d0
                 do idm=1,ndmag
@@ -118,11 +108,11 @@ do is=1,nspecies
                  +zt2*zvfmt(:,1:nr,idm)
               end do
 !$OMP END CRITICAL
-! end loop over ist2
+! end loop over jst
             end if
           end do
         end do
-! end loop over ist1
+! end loop over ist
       end if
     end do
 ! end loops over atoms and species
@@ -131,21 +121,21 @@ end do
 !--------------------------------------------------------------!
 !     valence-conduction overlap density and magnetisation     !
 !--------------------------------------------------------------!
-do ist1=1,nstsv
-  if (evalsv(ist1,ik).lt.efermi) then
-    do ist2=1,nstsv
-      if (evalsv(ist2,ik).gt.efermi) then
+do ist=1,nstsv
+  if (evalsv(ist,ik).lt.efermi) then
+    do jst=1,nstsv
+      if (evalsv(jst,ik).gt.efermi) then
 ! calculate the overlap density
-        call vnlrho(wfmt(1,1,1,1,ist1),wfmt(1,1,1,1,ist2),wfir(1,1,ist1), &
-         wfir(1,1,ist2),zrhomt,zrhoir)
-        de=evalsv(ist1,ik)-evalsv(ist2,ik)
-        zde=occ*wkpt(ik)/(de+zi*swidth)
-        zvnl=conjg(vnlvv(ist1,ist2,ik))
+        call vnlrho(wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst),wfir(1,1,ist), &
+         wfir(1,1,jst),zrhomt,zrhoir)
+        de=evalsv(ist,ik)-evalsv(jst,ik)
+        zde=occmax*wkpt(ik)/(de+zi*swidth)
+        zvnl=conjg(vnlvv(ist,jst,ik))
         zrvx=zfinp(zrhomt,zvxmt,zrhoir,zvxir)
         zt1=zvnl-zrvx
         if (spinpol) then
-          call oepmag(wfmt(1,1,1,1,ist1),wfmt(1,1,1,1,ist2),wfir(1,1,ist1), &
-           wfir(1,1,ist2),zmagmt,zmagir)
+          call oepmag(wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst),wfir(1,1,ist), &
+           wfir(1,1,jst),zmagmt,zmagir)
 ! integral of magnetisation dot exchange field
           zmbx=0.d0
           do idm=1,ndmag
@@ -173,10 +163,10 @@ do ist1=1,nstsv
           dbxir(:,idm)=dbxir(:,idm)+zt2*zmagir(:,idm)
         end do
 !$OMP END CRITICAL
-! end loop over ist2
+! end loop over jst
       end if
     end do
-! end loop over ist1
+! end loop over ist
   end if
 end do
 deallocate(apwalm,evecfv,evecsv)

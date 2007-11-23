@@ -200,7 +200,7 @@ stop
 10 continue
 deallocate(vh,ex,ec,vx,vc,vrp)
 deallocate(ri,fr1,fr2,gr1,gr2,cf)
-if (xctype.eq.1) then
+if (xcgrad.eq.1) then
   deallocate(grho,g2rho,g3rho)
 end if
 return

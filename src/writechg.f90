@@ -25,6 +25,9 @@ do is=1,nspecies
   end do
 end do
 write(fnum,'(" total in muffin-tins    : ",G18.10)') chgmttot
+if (chgexs.ne.0.d0) then
+  write(fnum,'(" excess                  : ",G18.10)') chgexs
+end if
 write(fnum,'(" total charge            : ",G18.10)') chgcalc
 ! output moments
 if (spinpol) then

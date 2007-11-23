@@ -25,6 +25,7 @@ integer idm,ngm,i1,i2,i3,j1,j2,j3
 integer version_(3),nspecies_,lmmaxvr_,nrmtmax_
 integer natoms_,nrmt_(maxspecies),ngrid_(3)
 integer ngrtot_,ngvec_,ndmag_
+integer nspinor_,ldapu_,lmmaxlu_
 real(8) t1
 ! allocatable arrays
 integer, allocatable :: mapir(:)
@@ -42,6 +43,7 @@ real(8), allocatable :: magir_(:,:)
 real(8), allocatable :: bxcmt_(:,:,:,:)
 real(8), allocatable :: bxcir_(:,:)
 complex(8), allocatable :: veffig_(:)
+complex(8), allocatable :: vmatlu_(:,:,:,:,:)
 open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
  status='OLD')
 read(50) version_
@@ -87,6 +89,14 @@ if ((spinpol_).and.(ndmag_.ne.1).and.(ndmag_.ne.3)) then
   write(*,*)
   stop
 end if
+! versions > 0.9.131
+if ((version_(1).gt.0).or.(version_(2).gt.9).or.(version_(3).gt.131)) then
+  read(50) nspinor_
+  read(50) ldapu_
+  read(50) lmmaxlu_
+else
+  ldapu_=0
+end if
 ngrtot_=ngrid_(1)*ngrid_(2)*ngrid_(3)
 allocate(mapir(ngrtot))
 allocate(rhomt_(lmmaxvr_,nrmtmax_,natmtot))
@@ -114,6 +124,23 @@ if (spinpol_) then
   allocate(bxcir_(ngrtot_,ndmag_))
   read(50) magmt_,magir_
   read(50) bxcmt_,bxcir_
+end if
+! read LDA+U potential matrix elements
+if ((ldapu.ne.0).and.(ldapu_.ne.0)) then
+  allocate(vmatlu_(lmmaxlu_,lmmaxlu_,nspinor_,nspinor_,natmtot))
+  read(50) vmatlu_
+  lmmax=min(lmmaxlu,lmmaxlu_)
+  vmatlu(:,:,:,:,:)=0.d0
+  if (nspinor.eq.nspinor_) then
+    vmatlu(1:lmmax,1:lmmax,:,:,:)=vmatlu_(1:lmmax,1:lmmax,:,:,:)
+  else if ((nspinor.eq.1).and.(nspinor_.eq.2)) then
+    vmatlu(1:lmmax,1:lmmax,1,1,:)=0.5d0*(vmatlu_(1:lmmax,1:lmmax,1,1,:) &
+     +vmatlu_(1:lmmax,1:lmmax,2,2,:))
+  else
+    vmatlu(1:lmmax,1:lmmax,1,1,:)=vmatlu_(1:lmmax,1:lmmax,1,1,:)
+    vmatlu(1:lmmax,1:lmmax,2,2,:)=vmatlu_(1:lmmax,1:lmmax,1,1,:)
+  end if
+  deallocate(vmatlu_)
 end if
 close(50)
 !---------------------------!

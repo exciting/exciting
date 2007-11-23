@@ -1,9 +1,10 @@
 
 ! This routine is based on code written by K. Burke.
 
-subroutine c_pbe(rs,z,t,uu,vv,ww,ec,vcup,vcdn)
+subroutine c_pbe(beta,rs,z,t,uu,vv,ww,ec,vcup,vcdn)
 implicit none
 ! arguments
+real(8), intent(in) :: beta
 real(8), intent(in) :: rs
 real(8), intent(in) :: z
 real(8), intent(in) :: t
@@ -22,14 +23,14 @@ real(8), parameter :: sixthm=thrdm/2.d0
 real(8), parameter :: gam=0.5198420997897463295d0
 real(8), parameter :: fzz=8.d0/(9.d0*gam)
 real(8), parameter :: gamma=0.0310906908696548950d0
-real(8), parameter :: bet=0.06672455060314922d0
-real(8), parameter :: delt=bet/gamma
 real(8), parameter :: eta=1.d-12
 real(8) rtrs,eu,eurs,ep,eprs,alfm,alfrsm,z4,f
 real(8) ecrs,fz,ecz,comm,g,g3,pon,b,b2,t2,t4
 real(8) q4,q5,g4,t6,rsthrd,gz,fac,bg,bec,q8,q9
 real(8) hb,hrs,fact0,fact1,hbt,hrst,hz,ht,hzt
 real(8) fact2,fact3,htt,pref,fact5,h,dvcup,dvcdn
+real(8) delt
+delt=beta/gamma
 rtrs=sqrt(rs)
 call c_pbe_gcor(0.0310907d0,0.21370d0,7.5957d0,3.5876d0,1.6382d0,0.49294d0, &
  rtrs,eu,eurs)
@@ -58,28 +59,28 @@ t4=t2*t2
 q4=1.d0+b*t2
 q5=1.d0+b*t2+b2*t4
 ! gradient correction to energy density
-h=g3*(bet/delt)*log(1.d0+delt*q4*t2/q5)
+h=g3*(beta/delt)*log(1.d0+delt*q4*t2/q5)
 g4=g3*g
 t6=t4*t2
 rsthrd=rs/3.d0
 gz=(((1.d0+z)**2+eta)**sixthm-((1.d0-z)**2+eta)**sixthm)/3.d0
 fac=delt/b+1.d0
-bg=-3.d0*b2*ec*fac/(bet*g4)
-bec=b2*fac/(bet*g3)
+bg=-3.d0*b2*ec*fac/(beta*g4)
+bec=b2*fac/(beta*g3)
 q8=q5*q5+delt*q4*q5*t2
 q9=1.d0+2.d0*b*t2
-hb=-bet*g3*b*t6*(2.d0+b*t2)/q8
+hb=-beta*g3*b*t6*(2.d0+b*t2)/q8
 hrs=-rsthrd*hb*bec*ecrs
 fact0=2.d0*delt-6.d0*b
 fact1=q5*q9+q4*q9*q9
-hbt=2.d0*bet*g3*t4*((q4*q5*fact0-delt*fact1)/q8)/q8
+hbt=2.d0*beta*g3*t4*((q4*q5*fact0-delt*fact1)/q8)/q8
 hrst=rsthrd*t2*hbt*bec*ecrs
 hz=3.d0*gz*h/g+hb*(bg*gz+bec*ecz)
-ht=2.d0*bet*g3*q9/q8
+ht=2.d0*beta*g3*q9/q8
 hzt=3.d0*gz*ht/g+hbt*(bg*gz+bec*ecz)
 fact2=q4*q5+b*t2*(q4*q9+q5)
 fact3=2.d0*b*q5*q9+delt*fact2
-htt=4.d0*bet*g3*t*(2.d0*b/q8-(q9*fact3/q8)/q8)
+htt=4.d0*beta*g3*t*(2.d0*b/q8-(q9*fact3/q8)/q8)
 comm=h+hrs+hrst+t2*ht/6.d0+7.d0*t2*t*htt/6.d0
 pref=hz-gz*t2*ht/g
 fact5=gz*(2.d0*ht+t*htt)/g

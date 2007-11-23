@@ -12,7 +12,7 @@ use modmain
 ! !DESCRIPTION:
 !   Generates the coarse and fine radial meshes for each atomic species in the
 !   crystal. Also determines which points are in the inner part of the
-!   muffin-tin using the value of {\tt radfinr}. See routine {\tt radmesh}.
+!   muffin-tin using the value of {\tt radfinr}.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
@@ -21,7 +21,16 @@ use modmain
 implicit none
 ! local variables
 integer is,ir,irc
-real(8) t1
+real(8) t1,t2
+! estimate the number of radial mesh points to infinity
+spnrmax=1
+do is=1,nspecies
+! logarithmic mesh
+  t1=log(sprmax(is)/sprmin(is))/log(rmt(is)/sprmin(is))
+  t2=dble(nrmt(is)-1)*t1
+  spnr(is)=nint(t2)+1
+  spnrmax=max(spnrmax,spnr(is))
+end do
 ! allocate the global radial mesh arrays
 if (allocated(spr)) deallocate(spr)
 allocate(spr(spnrmax,nspecies))
@@ -29,7 +38,12 @@ if (allocated(rcmt)) deallocate(rcmt)
 allocate(rcmt(nrcmtmax,nspecies))
 ! generate the radial meshes
 do is=1,nspecies
-  call radmesh(spnr(is),nrmt(is),rmt(is),sprmin(is),spr(1,is))
+  t1=1.d0/dble(nrmt(is)-1)
+! logarithmic mesh
+  t2=log(rmt(is)/sprmin(is))
+  do ir=1,spnr(is)
+    spr(ir,is)=sprmin(is)*exp(dble(ir-1)*t1*t2)
+  end do
 end do
 ! find the inner part of the muffin-tin (where rho is calculated with lmaxinr)
 do is=1,nspecies

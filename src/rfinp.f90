@@ -42,8 +42,8 @@ real(8) sum
 ! external functions
 real(8) rfmtinp
 external rfmtinp
-! interstitial contribution
 sum=0.d0
+! interstitial contribution
 do ir=1,ngrtot
   sum=sum+rfir1(ir)*rfir2(ir)*cfunir(ir)
 end do

@@ -54,16 +54,16 @@ complex(8), intent(out) :: zflm2(ld,n)
 ! local variables
 integer lmmax,l,m1,m2,lm1,lm2
 integer i,j,nm,p
-real(8) roti(3,3),ang(3),cb,sb
-real(8) sum,t1,t2,t3
+real(8) det,roti(3,3),ang(3)
+real(8) cb,sb,sum,t1,t2,t3
 complex(8), parameter :: zzero=(0.d0,0.d0)
 complex(8), parameter :: zone=(1.d0,0.d0)
 ! allocatable arrays
 complex(8), allocatable :: d(:,:)
 complex(8), allocatable :: zflm3(:)
 ! external functions
-real(8) r3mdet,factnm
-external r3mdet,factnm
+real(8) factnm
+external factnm
 if (lmax.lt.0) then
   write(*,*)
   write(*,'("Error(rotzflm): lmax < 0 : ",I8)') lmax
@@ -80,12 +80,15 @@ end if
 lmmax=(lmax+1)**2
 allocate(d(lmmax,lmmax))
 allocate(zflm3(lmmax))
-! invert r because the function is to be rotated and not the coordinate system
+! find the determinant
+det=rot(1,2)*rot(2,3)*rot(3,1)-rot(1,3)*rot(2,2)*rot(3,1) &
+   +rot(1,3)*rot(2,1)*rot(3,2)-rot(1,1)*rot(2,3)*rot(3,2) &
+   +rot(1,1)*rot(2,2)*rot(3,3)-rot(1,2)*rot(2,1)*rot(3,3)
+! invert rot because the function is to be rotated and not the coordinate system
 call r3minv(rot,roti)
-! determine if the transformation is proper or improper
-if (r3mdet(rot).gt.0.d0) then
+! make inverse rotation proper
+if (det.gt.0.d0) then
   p=1
-  roti(:,:)=roti(:,:)
 else
   p=-1
   roti(:,:)=-roti(:,:)

@@ -150,7 +150,7 @@ end do
 do ir=1,ngrtot
 ! D for inhomogeneous density
   t1=(1.d0/2.d0)*(gwf2ir(ir)-(1.d0/4.d0)*grfir(ir)/rhoir(ir))
-! D for homogeneous electron gas
+! D0 for homogeneous electron gas
   t2=(3.d0/5.d0)*((6.d0*pi**2)**(2.d0/3.d0))*(abs(rhoir(ir))/2.d0)**(5.d0/3.d0)
 ! ELF function
   elfir(ir)=1.d0/(1.d0+(t1/t2)**2)
