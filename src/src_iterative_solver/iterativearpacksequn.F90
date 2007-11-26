@@ -59,14 +59,14 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #ifdef DEBUG
   ndigit = -3
   logfil = 6
-  mngets = 0
-  mnaitr = 0
-  mnapps = 0
+  mngets = 1
+  mnaitr = 1
+  mnapps = 1
   mnaupd = 1
-  mnaup2 = 0
-  mneigh = 0
+  mnaup2 = 1
+  mneigh = 1
   mneupd = 1
-  open (logfil,file="ARPACK.OUT")
+  open (logfil,file="ARPACK.OUT",action="WRITE") 
 #endif
   !##################	
   !ARPACK parameters
@@ -143,10 +143,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call znaupd  &
           ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam,  &
           ipntr, workd, workl, lworkl, rwork, infoznaupd)
-#ifdef DEBUG
-     ! write(*,*) "ido",ido
-     write(555,*)"resid",resid
-#endif
+
 
      if (ido .eq. -1 .or. ido .eq. 1) then
 
