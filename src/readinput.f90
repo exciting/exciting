@@ -396,7 +396,7 @@ case('spinorb')
 case('xctype')
   read(50,*,err=20) xctype
 case('stype')
-  read(50,*) stype
+  read(50,*,err=20) stype
 case('iterativetype')
   read(50,*) iterativetype
 case ('maxncv')
