@@ -42,8 +42,8 @@ complex(8) zsum
 ! external functions
 complex(8) zfmtinp
 external zfmtinp
-! interstitial contribution
 zsum=0.d0
+! interstitial contribution
 do ir=1,ngrtot
   zsum=zsum+cfunir(ir)*conjg(zfir1(ir))*zfir2(ir)
 end do

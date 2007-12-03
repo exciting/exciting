@@ -8,7 +8,7 @@ use modmain
 implicit none
 ! local variables
 integer ik,ist
-real(8) occ,x,t1
+real(8) x,t1
 ! allocatable arrays
 complex(8), allocatable :: evecfv(:,:)
 complex(8), allocatable :: evecsv(:,:)
@@ -52,18 +52,13 @@ if ((task.eq.61).or.(task.eq.62).or.(task.eq.63)) then
 else
 ! plotting an STM image by setting occupancies to be a delta function at the
 ! Fermi energy
-  if (spinpol) then
-    occ=1.d0
-  else
-    occ=2.d0
-  end if
   t1=1.d0/swidth
   do ik=1,nkpt
 ! get the eigenvalues from file
     call getevalsv(vkl(1,ik),evalsv(1,ik))
     do ist=1,nstsv
       x=(efermi-evalsv(ist,ik))*t1
-      occsv(ist,ik)=occ*wkpt(ik)*sdelta(stype,x)*t1
+      occsv(ist,ik)=occmax*wkpt(ik)*sdelta(stype,x)*t1
     end do
   end do
 end if

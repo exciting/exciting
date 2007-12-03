@@ -8,7 +8,7 @@ use modmain
 implicit none
 ! local variables
 integer is,ia,nr,m1,m2
-integer ik,ist1,ist2
+integer ik,ist,jst
 real(8) evv,ecv,ecc
 complex(8) zpchg,zt1
 ! allocatable arrays
@@ -46,14 +46,14 @@ end do
 do is=1,nspecies
   nr=nrcmt(is)
   do ia=1,natoms(is)
-    do ist2=1,spnst(is)
-      if (spcore(ist2,is)) then
-        do m2=-spk(ist2,is),spk(ist2,is)-1
-          call wavefcr(lradstp,is,ia,ist2,m2,nrcmtmax,wfcr2)
-          do ist1=1,spnst(is)
-            if (spcore(ist1,is)) then
-              do m1=-spk(ist1,is),spk(ist1,is)-1
-                call wavefcr(lradstp,is,ia,ist1,m1,nrcmtmax,wfcr1)
+    do jst=1,spnst(is)
+      if (spcore(jst,is)) then
+        do m2=-spk(jst,is),spk(jst,is)-1
+          call wavefcr(lradstp,is,ia,jst,m2,nrcmtmax,wfcr2)
+          do ist=1,spnst(is)
+            if (spcore(ist,is)) then
+              do m1=-spk(ist,is),spk(ist,is)-1
+                call wavefcr(lradstp,is,ia,ist,m1,nrcmtmax,wfcr1)
 ! calculate the complex overlap density
                 call vnlrhomt(is,wfcr1(1,1,1),wfcr2(1,1,1),zrhomt)
                 call vnlrhomt(is,wfcr1(1,1,2),wfcr2(1,1,2),zfmt)
@@ -64,11 +64,11 @@ do is=1,nspecies
                 zt1=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt,zvclmt)
                 ecc=ecc-0.5d0*dble(zt1)
               end do
-! end loop over ist1
+! end loop over ist
             end if
           end do
         end do
-! end loop over ist2
+! end loop over jst
       end if
     end do
 ! end loops over atoms and species

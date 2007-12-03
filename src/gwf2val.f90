@@ -15,7 +15,7 @@ real(8), intent(inout) :: gw2fir(ngrtot)
 ! local variables
 integer ispn,ist,is,ia,ias
 integer ir,itp,igk,ifg,i,j,n
-real(8) t1,t2
+real(8) wo,t1
 complex(8) zt1
 ! automatic arrays
 logical done(nstfv)
@@ -44,8 +44,8 @@ do is=1,nspecies
     ias=idxas(ia,is)
     done(:)=.false.
     do j=1,nstsv
-      t1=wkpt(ik)*occsv(j,ik)
-      if (abs(t1).gt.epsocc) then
+      wo=wkpt(ik)*occsv(j,ik)
+      if (abs(wo).gt.epsocc) then
         if (tevecsv) then
 ! generate spinor wavefunction from second-variational eigenvectors
           wfmt2(:,:,:)=0.d0
@@ -80,8 +80,8 @@ do is=1,nspecies
               call zgemv('N',lmmaxvr,lmmaxvr,zone,zbshtapw,lmmaxapw, &
                gzfmt(1,ir,i),1,zzero,zftp,1)
               do itp=1,lmmaxvr
-                t2=t1*(dble(zftp(itp))**2+aimag(zftp(itp))**2)
-                gw2fmt(itp,ir,ias)=gw2fmt(itp,ir,ias)+t2
+                t1=wo*(dble(zftp(itp))**2+aimag(zftp(itp))**2)
+                gw2fmt(itp,ir,ias)=gw2fmt(itp,ir,ias)+t1
               end do
             end do
           end do
@@ -94,9 +94,9 @@ end do
 !     interstitial part     !
 !---------------------------!
 do j=1,nstsv
-  t1=wkpt(ik)*occsv(j,ik)
-  if (abs(t1).gt.epsocc) then
-    t2=t1/omega
+  wo=wkpt(ik)*occsv(j,ik)
+  if (abs(wo).gt.epsocc) then
+    t1=wo/omega
     zfft1(:,:)=0.d0
     if (tevecsv) then
 ! generate spinor wavefunction from second-variational eigenvectors
@@ -131,7 +131,7 @@ do j=1,nstsv
 ! Fourier transform gradient to real-space
         call zfftifc(3,ngrid,1,zfft2)
         do ir=1,ngrtot
-          gw2fir(ir)=gw2fir(ir)+t2*(dble(zfft2(ir))**2+aimag(zfft2(ir))**2)
+          gw2fir(ir)=gw2fir(ir)+t1*(dble(zfft2(ir))**2+aimag(zfft2(ir))**2)
         end do
       end do
     end do

@@ -154,14 +154,18 @@ integer, allocatable :: idxlm(:,:)
 logical spinpol
 ! spinorb is .true. for spin-orbit coupling
 logical spinorb
-! fixspin is .true. if spin moment is to be fixed
-logical fixspin
+! fixspin type: 0 = none, 1 = global, 2 = local, 3 = global + local
+integer fixspin
 ! dimension of magnetisation and magnetic vector fields (1 or 3)
 integer ndmag
 ! fixed total spin magnetic moment
 real(8) momfix(3)
-! fixed spin moment effective field
+! fixed spin moment global effective field in Cartesian coordinates
 real(8) bfsmc(3)
+! muffin-tin fixed spin moments
+real(8) mommtfix(3,maxatoms,maxspecies)
+! muffin-tin fixed spin moment effective fields in Cartesian coordinates
+real(8) bfsmcmt(3,maxatoms,maxspecies)
 ! fixed spin moment field mixing parameter
 real(8) taufsm
 ! second-variational spinor dimension (1 or 2)
@@ -192,6 +196,8 @@ logical nosym
 integer nsymlat
 ! Bravais lattice point group symmetries
 integer symlat(3,3,48)
+! lattice point group symmetries in Cartesian coordinates
+real(8) symlatc(3,3,48)
 ! tshift is .true. if atomic basis is allowed to be shifted
 logical tshift
 ! maximum of symmetries allowed
@@ -541,6 +547,8 @@ integer stype
 character(256) sdescr
 ! smearing width
 real(8) swidth
+! maximum allowed occupancy (1 or 2)
+real(8) occmax
 ! convergence tolerance for occupancies
 real(8) epsocc
 ! second-variational occupation number array
@@ -607,6 +615,8 @@ real(8) engybmt
 real(8) engyx
 ! correlation energy
 real(8) engyc
+! compensating background charge energy
+real(8) engycbc
 ! total energy
 real(8) engytot
 
@@ -706,14 +716,40 @@ integer nstfsp
 integer ncrmax
 ! maximum number of OEP iterations
 integer maxitoep
-! default step size for iterative OEP method
-real(8) tau0oep
-! step size increment
-real(8) dtauoep
+! default and maximum step size and mixing parameter for OEP
+real(8) tauoep(3)
 ! magnitude of the OEP residue
 real(8) resoep
 ! kinetic matrix elements
 complex(8), allocatable :: kinmatc(:,:,:)
+! complex versions of the exchange potential and field
+complex(8), allocatable :: zvxmt(:,:,:)
+complex(8), allocatable :: zvxir(:)
+complex(8), allocatable :: zbxmt(:,:,:,:)
+complex(8), allocatable :: zbxir(:,:)
+
+!-------------------------!
+!     LDA+U variables     !
+!-------------------------!
+! type of LDA+U to use (0: none)
+integer ldapu
+! maximum angular momentum
+integer, parameter :: lmaxlu=3
+integer, parameter :: lmmaxlu=(lmaxlu+1)**2
+! angular momentum for each species
+integer llu(maxspecies)
+! U and J values for each species
+real(8) ujlu(2,maxspecies)
+! LDA+U density matrix
+complex(8), allocatable :: dmatlu(:,:,:,:,:)
+! LDA+U potential matrix in (l,m) basis
+complex(8), allocatable :: vmatlu(:,:,:,:,:)
+! LDA+U energy for each atom
+real(8), allocatable :: engyalu(:)
+! interpolation constant alpha for each atom (PRB 67, 153106 (2003))
+real(8), allocatable :: alphalu(:)
+! energy from the LDA+U correction
+real(8) engylu
 
 !--------------------------!
 !     phonon variables     !
@@ -784,7 +820,9 @@ complex(8), parameter :: zone=(1.d0,0.d0)
 complex(8), parameter :: zi=(0.d0,1.d0)
 ! array of i**l values
 complex(8), allocatable :: zil(:)
-! Pauli spin matrices
+! Pauli spin matrices:
+! sigma_x = ( 0  1 )   sigma_y = ( 0 -i )   sigma_z = ( 1  0 )
+!           ( 1  0 )             ( i  0 )             ( 0 -1 )
 complex(8) sigmat(2,2,3)
 data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
               (0.d0,0.d0), (0.d0,1.d0),(0.d0,-1.d0), (0.d0,0.d0), &
@@ -795,7 +833,7 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,114 /
+data version / 0,9,139 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=20
 ! number of tasks

@@ -22,7 +22,7 @@ implicit none
 ! local variables
 integer is,ia,ias,ist
 integer l,m,lm,iv(3)
-real(8) cs,sn,r,t1
+real(8) cs,sn,r
 real(8) cpu0,cpu1
 ! external functions
 real(8) dlamch
@@ -118,12 +118,14 @@ if (spinsprl) then
   end if
 end if
 ! spin-orbit coupling or fixed spin moment implies spin-polarised calculation
-if ((spinorb).or.(fixspin).or.(spinsprl)) spinpol=.true.
-! number of spinor components
+if ((spinorb).or.(fixspin.ne.0).or.(spinsprl)) spinpol=.true.
+! number of spinor components and maximum allowed occupancy
 if (spinpol) then
   nspinor=2
+  occmax=1.d0
 else
   nspinor=1
+  occmax=2.d0
 end if
 ! number of spin-dependent first-variational functions per state
 if (spinsprl) then
@@ -163,6 +165,8 @@ else
 end if
 ! set fixed spin moment effective field to zero
 bfsmc(:)=0.d0
+! set muffin-tin FSM fields to zero
+bfsmcmt(:,:,:)=0.d0
 
 !-------------------------------------!
 !     lattice and symmetry set up     !
@@ -205,7 +209,6 @@ call checkmt
 !-----------------------!
 nrmtmax=1
 nrcmtmax=1
-spnrmax=1
 if (nspecies.eq.0) then
   rmtmin=2.d0
   rmtmax=2.d0
@@ -220,10 +223,6 @@ do is=1,nspecies
 ! number of coarse radial mesh points
   nrcmt(is)=(nrmt(is)-1)/lradstp+1
   nrcmtmax=max(nrcmtmax,nrcmt(is))
-! estimate the number of radial mesh points to infinity
-  t1=dble(nrmt(is))*log(sprmax(is)/sprmin(is))/log(rmt(is)/sprmin(is))
-  spnr(is)=max(nint(t1),nrmt(is))
-  spnrmax=max(spnrmax,spnr(is))
 ! smallest and largest muffin-tin radii
   rmtmin=min(rmtmin,rmt(is))
   rmtmax=max(rmtmax,rmt(is))
@@ -385,6 +384,28 @@ forcetp(:,:)=0.d0
 ! initial step sizes
 tauatm(:)=tau0atm
 
+!-------------------------!
+!     LDA+U variables     !
+!-------------------------!
+if (ldapu.ne.0) then
+! LDA+U requires second-variational eigenvectors
+  tevecsv=.true.
+! density matrices
+  if (allocated(dmatlu)) deallocate(dmatlu)
+  allocate(dmatlu(lmmaxlu,lmmaxlu,nspinor,nspinor,natmtot))
+! potential matrix elements
+  if (allocated(vmatlu)) deallocate(vmatlu)
+  allocate(vmatlu(lmmaxlu,lmmaxlu,nspinor,nspinor,natmtot))
+! zero the potential
+  vmatlu(:,:,:,:,:)=0.d0
+! energy for each atom
+  if (allocated(engyalu)) deallocate(engyalu)
+  allocate(engyalu(natmtot))
+! interpolation constants (alpha)
+  if (allocated(alphalu)) deallocate(alphalu)
+  allocate(alphalu(natmtot))
+end if
+
 !-----------------------!
 !     miscellaneous     !
 !-----------------------!
@@ -392,7 +413,6 @@ tauatm(:)=tau0atm
 call energynn
 ! call LAPACK routines which contain the SAVE attribute
 call dlartg(1.d0,0.d0,cs,sn,r)
-t1=dlamch('E')
 ! get smearing function data
 call getsdata(stype,sdescr)
 ! generate the spherical harmonic transform (SHT) matrices

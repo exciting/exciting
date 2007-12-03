@@ -1,8 +1,8 @@
 F90 =mpif90
-F90_OPTS = -g -DMPI -DMPISEC -DMPIRHO
+F90_OPTS = -g -x f95-cpp-input -DMPI -DMPISEC -DMPIRHO
 F77 = gfortran
 F77_OPTS = 
 LIB_SYS = 
-LIB_LPK = -llapack -lblas
+LIB_LPK =libarpack.a  -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a

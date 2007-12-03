@@ -10,8 +10,8 @@ include ../../make.inc
 #-------------------------------------------------------------------------------
 # Source files
 #-------------------------------------------------------------------------------
-SRC = modeos.f90 eos.f90 amoeba.f90 amotry.f90 fopt.f90 eveos.f90 pveos.f90 \
-      readdata.f90 getedata.f90 fitdata.f90 output.f90 constants.f90
+SRC = modmain.f90 eos.f90 eveos.f90 pveos.f90 readinput.f90 getedata.f90 \
+      fitdata.f90 output.f90 minf_nm.f90 fmin_nm.f90
 
 OBJ = $(SRC:.f90=.o)
 EXE = eos

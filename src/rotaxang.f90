@@ -6,10 +6,10 @@
 !BOP
 ! !ROUTINE: rotaxang
 ! !INTERFACE:
-subroutine rotaxang(eps,r,det,v,th)
+subroutine rotaxang(eps,rot,det,v,th)
 ! !INPUT/OUTPUT PARAMETERS:
 !   eps : zero vector tolerance (in,real)
-!   r   : rotation matrix (in,real(3,3))
+!   rot : rotation matrix (in,real(3,3))
 !   det : matrix determinant (out,real)
 !   v   : normalised axis vector (out,real(3))
 !   th  : rotation angle (out,real)
@@ -38,7 +38,7 @@ subroutine rotaxang(eps,r,det,v,th)
 implicit none
 ! arguments
 real(8), intent(in) :: eps
-real(8), intent(inout) :: r(3,3)
+real(8), intent(inout) :: rot(3,3)
 real(8), intent(out) :: det
 real(8), intent(out) :: v(3)
 real(8), intent(out) :: th
@@ -48,8 +48,10 @@ real(8) p(3,3),t1,t2
 ! external functions
 real(8) r3mdet
 external r3mdet
-! derminant of matrix
-det=r3mdet(r)
+! find the determinant
+det=rot(1,2)*rot(2,3)*rot(3,1)-rot(1,3)*rot(2,2)*rot(3,1) &
+   +rot(1,3)*rot(2,1)*rot(3,2)-rot(1,1)*rot(2,3)*rot(3,2) &
+   +rot(1,1)*rot(2,2)*rot(3,3)-rot(1,2)*rot(2,1)*rot(3,3)
 if (abs(det-1.d0).lt.eps) then
   det=1.d0
 else if (abs(det+1.d0).lt.eps) then
@@ -58,7 +60,7 @@ else
   goto 10
 end if
 ! proper rotation matrix
-p(:,:)=det*r(:,:)
+p(:,:)=det*rot(:,:)
 v(1)=(p(2,3)-p(3,2))/2.d0
 v(2)=(p(3,1)-p(1,3))/2.d0
 v(3)=(p(1,2)-p(2,1))/2.d0
@@ -99,9 +101,9 @@ return
 10 continue
 write(*,*)
 write(*,'("Error(rotaxang): invalid rotation matrix:")')
-write(*,'(3G18.10)') r(1,:)
-write(*,'(3G18.10)') r(2,:)
-write(*,'(3G18.10)') r(3,:)
+write(*,'(3G18.10)') rot(1,:)
+write(*,'(3G18.10)') rot(2,:)
+write(*,'(3G18.10)') rot(3,:)
 write(*,*)
 stop
 end subroutine
