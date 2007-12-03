@@ -153,21 +153,29 @@ subroutine linopt
      i1=optcomp(1,iop)
      i2=optcomp(2,iop)
      ! open files for writting
+#ifdef TETRA
      if (tetra) then
         write(fname,'("EPSILON_TET_",2I1,".OUT")') i1,i2
      else if (optltz) then
         write(fname,'("EPSILON_LTZ_",2I1,".OUT")') i1,i2
      else
+#endif
         write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
+#ifdef TETRA
      end if
+#endif
      open(60,file=trim(fname),action='WRITE',form='FORMATTED')
+#ifdef TETRA
      if (tetra) then
         write(fname,'("SIGMA_TET_",2I1,".OUT")') i1,i2
      else if (optltz) then
         write(fname,'("SIGMA_LTZ_",2I1,".OUT")') i1,i2
      else
+#endif
         write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
+#ifdef TETRA
      end if
+#endif
      open(61,file=trim(fname),action='WRITE',form='FORMATTED')
      e(:,:)=0.d0
      f(:,:)=0.d0
@@ -183,6 +191,7 @@ subroutine linopt
         ! read matrix elements from direct-access file
         read(50,rec=ik) pmat
         call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
+#ifdef TETRA
         if (optltz) then
            ! check for better numerical convergence at zero frequency
            m=0
@@ -194,7 +203,9 @@ subroutine linopt
               end do
            end do
         end if
+#endif
      end do
+#if TETRA
      if (tetra) then
         ! prefactor
         t1=-4.d0*pi/omega
@@ -286,6 +297,7 @@ subroutine linopt
            epsc(iw)=sumc
         end do
      else ! if (tetra)
+#endif
         ! prefactor
         t1=-4.d0*(pi**2)/omega
         f(:,:)=t1*f(:,:)
@@ -332,7 +344,9 @@ subroutine linopt
            write(62,'(G18.10," : plasma frequency")') wplas
            close(62)
         end if
+#ifdef TETRA
      end if ! if (tetra)
+#endif
      ! calculate real part of the dielectric function
      if (i1.eq.i2) then
         t1=1.d0

@@ -153,7 +153,7 @@ real(8),external::r3taxi
            write(*,'(" offset from factorization:",3g18.10)') &
                 dble(ikloff)/dble(dkloff)
            write(*,*)
-           call terminate
+           stop
         end if
         if (allocated(indirkp)) deallocate(indirkp)
         if (allocated(iwkp)) deallocate(iwkp)
@@ -171,7 +171,7 @@ real(8),external::r3taxi
            write(*,*) 'Error(init1): number of crystal symmetries > 48'
            write(*,*) ' does not work with k-point generation for'
            write(*,*) ' linear tetrahedron method'
-           call terminate
+           stop
         end if
         ! get rotational part of crystal symmetries 
         allocate(sy(3,3,nsymcrys))
@@ -316,7 +316,7 @@ close(14)
         end if
         if (nerr > 0) then
            write(*,*) 'Errors occurred - stop', nerr
-           call terminate
+           stop
         end if
         ! safely replace k-point set by default set since it is inside
         ! tolerance for lattice parameters
