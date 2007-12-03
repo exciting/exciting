@@ -4,7 +4,6 @@
 
 tasks
   0
-  20
 
 avec
   5.13 5.13 0.00
@@ -28,11 +27,11 @@ ngridk
   2  2  2
 
 iterativetype
- 1
+2 
 
 
-maxscl
- 2
+lowesteval
+-0.27
 
 vkloff
   0.25  0.5  0.625

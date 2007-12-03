@@ -16,7 +16,7 @@ LIB_SYS 	=
 ##LIB_LPK = -llapack -lblas
 
 # MKL libraries
-LIB_LPK = -L /software/intel/mkl721/lib/em64t/ -lmkl_lapack -lmkl_em64t -lguide -lpthread
+LIB_LPK = libarpack.a -L /software/intel/mkl721/lib/em64t/ -lmkl_lapack -lmkl_em64t -lguide -lpthread
 
 # ATLAS library with standard compiler options (USE CAREFULLY!)
 ##LIB_LPK = /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2/liblapack.a lapack.a -L /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2 -lf77blas -lcblas -latlas -lg2c
@@ -25,6 +25,5 @@ LIB_LPK = -L /software/intel/mkl721/lib/em64t/ -lmkl_lapack -lmkl_em64t -lguide 
 ### FFT library
 LIB_FFT = fftlib.a
 
-### Library for Brillouin zone integration
-LIB_BZINT = libbzint.a
-# ---------------------- end Intel fortran compiler ---------------------------
+### Brillouin zone intergration library
+LIB_BZINT=libbzint.a

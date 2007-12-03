@@ -34,6 +34,9 @@ end do
 write(50) ngrid
 write(50) ngvec
 write(50) ndmag
+write(50) nspinor
+write(50) ldapu
+write(50) lmmaxlu
 ! write the density
 write(50) rhomt,rhoir
 ! write the Coulomb potential
@@ -46,6 +49,10 @@ write(50) veffmt,veffir,veffig
 if (spinpol) then
   write(50) magmt,magir
   write(50) bxcmt,bxcir
+end if
+! write the LDA+U potential matrix elements
+if (ldapu.ne.0) then
+  write(50) vmatlu
 end if
 close(50)
 return

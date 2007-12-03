@@ -57,10 +57,10 @@ real(8), intent(out) :: bndchr(ld,natmtot,nspinor,nstsv)
 real(8), intent(out) :: elmsym(ld,natmtot)
 ! local variables
 integer ispn,jspn,is,ia,ias,ist
-integer lmmax,l,m,lm,lm0
+integer lmmax,l,m,lm2,lm1
 integer irc,i,j,n,isym,lspl
 integer lwork,info
-real(8) t1,s(3,3)
+real(8) t1
 complex(8) zt1
 ! automatic arrays
 real(8) fr(nrcmtmax),gr(nrcmtmax),cf(3,nrcmtmax)
@@ -70,10 +70,8 @@ real(8), allocatable :: rwork(:)
 complex(8), allocatable :: apwalm(:,:,:,:,:)
 complex(8), allocatable :: wfmt1(:,:,:,:)
 complex(8), allocatable :: wfmt2(:,:,:)
-complex(8), allocatable :: zflm1(:,:)
-complex(8), allocatable :: zflm2(:,:)
-complex(8), allocatable :: zflm3(:,:)
-complex(8), allocatable :: zflm4(:,:)
+complex(8), allocatable :: zflm(:,:)
+complex(8), allocatable :: ulm(:,:,:)
 complex(8), allocatable :: h0(:,:)
 complex(8), allocatable :: h(:,:)
 complex(8), allocatable :: work(:)
@@ -86,10 +84,8 @@ allocate(rwork(3*lmmax))
 allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
 if (tevecsv) allocate(wfmt1(lmmax,nrcmtmax,nstfv,nspnfv))
 allocate(wfmt2(lmmax,nrcmtmax,nspinor))
-allocate(zflm1(lmmax,lmmax))
-allocate(zflm2(lmmax,lmmax))
-allocate(zflm3(lmmax,lmmax))
-allocate(zflm4(lmmax,lmmax))
+allocate(zflm(lmmax,lmmax))
+allocate(ulm(lmmax,lmmax,nsymlat))
 allocate(h0(lmmax,lmmax))
 allocate(h(lmmax,lmmax))
 lwork=2*lmmax
@@ -100,22 +96,28 @@ do ispn=1,nspnfv
    sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
 end do
 if (bcsym) then
-! set up quasi-random matrix h0 and complex identity matrix
-  zflm1(:,:)=0.d0
+! construct (l,m) rotation matrix for each lattice symmetry
+  zflm(:,:)=0.d0
+  do lm1=1,lmmax
+    zflm(lm1,lm1)=1.d0
+  end do
+  do isym=1,nsymlat
+    call rotzflm(symlatc(1,1,isym),lmax,lmmax,lmmax,zflm,ulm(1,1,isym))
+  end do
+! set up quasi-random symmetric matrix h0
   n=0
-  do i=1,lmmax
-    zflm1(i,i)=1.d0
-    do j=i,lmmax
+  do lm1=1,lmmax
+    do lm2=lm1,lmmax
       n=n+1
-      h0(i,j)=dble(n)
-      h0(j,i)=h0(i,j)
+      h0(lm1,lm2)=dble(n)
+      h0(lm2,lm1)=h0(lm1,lm2)
     end do
   end do
 else
 ! set h to the unit matrix if no symmetrisation is required
   h(:,:)=0.d0
-  do i=1,lmmax
-    h(i,i)=1.d0
+  do lm1=1,lmmax
+    h(lm1,lm1)=1.d0
   end do
   elmsym(1:lmmax,:)=0.d0
 end if
@@ -125,30 +127,22 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     if (bcsym) then
-! symmetrise h0 with site symmetries if required
+! symmetrise h0 with site symmetries
       h(:,:)=0.d0
       do isym=1,nsymsite(ias)
 ! spatial rotation element in lattice point group
         lspl=lsplsyms(isym,ias)
-        s(:,:)=dble(symlat(:,:,lspl))
-! convert symmetry to Cartesian coordinates
-        call r3mm(s,ainv,s)
-        call r3mm(avec,s,s)
-        call rotzflm(s,lmax,lmmax,lmmax,zflm1,zflm2)
-! compute the inverse
-        call r3minv(s,s)
-        call rotzflm(s,lmax,lmmax,lmmax,zflm1,zflm3)
-! form S*h0*S^(-1) and add to h
-        call zgemm('N','N',lmmax,lmmax,lmmax,zone,zflm2,lmmax,h0,lmmax,zzero, &
-         zflm4,lmmax)
-        call zgemm('N','N',lmmax,lmmax,lmmax,zone,zflm4,lmmax,zflm3,lmmax, &
-         zone,h,lmmax)
+! apply (l,m) symmetry matrix as H -> H + U*H0*conjg(U')
+        call zgemm('N','N',lmmax,lmmax,lmmax,zone,ulm(1,1,lspl),lmmax,h0, &
+         lmmax,zzero,zflm,lmmax)
+        call zgemm('N','C',lmmax,lmmax,lmmax,zone,zflm,lmmax,ulm(1,1,lspl), &
+         lmmax,zone,h,lmmax)
       end do
 ! block diagonalise h
       do l=0,lmax
         n=2*l+1
-        lm0=idxlm(l,-l)
-        call zheev('V','U',n,h(lm0,lm0),lmmax,elmsym(lm0,ias),work,lwork, &
+        lm1=idxlm(l,-l)
+        call zheev('V','U',n,h(lm1,lm1),lmmax,elmsym(lm1,ias),work,lwork, &
          rwork,info)
       end do
     end if
@@ -189,18 +183,18 @@ do is=1,nspecies
       do ispn=1,nspinor
         do l=0,lmax
           n=2*l+1
-          lm0=idxlm(l,-l)
+          lm1=idxlm(l,-l)
           do m=-l,l
-            lm=idxlm(l,m)
+            lm2=idxlm(l,m)
             do irc=1,nrcmt(is)
 ! project wavefunction onto eigenvectors of h
-              zt1=zdotc(n,h(lm0,lm),1,wfmt2(lm0,irc,ispn),1)
+              zt1=zdotc(n,h(lm1,lm2),1,wfmt2(lm1,irc,ispn),1)
               t1=dble(zt1)**2+aimag(zt1)**2
               fr(irc)=t1*rcmt(irc,is)**2
             end do
 ! perform radial integral
             call fderiv(-1,nrcmt(is),rcmt(1,is),fr,gr,cf)
-            bndchr(lm,ias,ispn,j)=gr(nrcmt(is))
+            bndchr(lm2,ias,ispn,j)=gr(nrcmt(is))
           end do
         end do
       end do
@@ -211,7 +205,7 @@ do is=1,nspecies
 end do
 deallocate(done,rwork,apwalm,wfmt2)
 if (tevecsv) deallocate(wfmt1)
-deallocate(zflm1,zflm2,zflm3,zflm4,h0,h,work)
+deallocate(zflm,ulm,h0,h,work)
 return
 end subroutine
 !EOC

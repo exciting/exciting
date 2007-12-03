@@ -18,15 +18,15 @@ real(8), intent(inout) :: e(nstsv*nstsv)
 real(8), intent(inout) :: f(nstsv*nstsv)
 real(8), intent(out) :: pmatint(nstsv)
 ! local variables
-integer ist1,ist2,isym,i,m
+integer ist,jst,isym,i,m
 real(8) sum
 complex(8) zt1(3)
 ! get the eigenvalues and occupancies from file
 call getevalsv(vkl(1,ik),evalsv(1,ik))
 call getoccsv(vkl(1,ik),occsv(1,ik))
 m=0
-do ist1=1,nstsv
-  do ist2=1,nstsv
+do ist=1,nstsv
+  do jst=1,nstsv
     m=m+1
 ! symmetrise the matrix elements
     sum=0.d0
@@ -34,12 +34,12 @@ do ist1=1,nstsv
       zt1(:)=0.d0
       if (i1.eq.i2) then
         do i=1,3
-          zt1(i1)=zt1(i1)+sc(i,i1,isym)*pmat(i,ist1,ist2)
+          zt1(i1)=zt1(i1)+sc(i,i1,isym)*pmat(i,ist,jst)
         end do
       else
         do i=1,3
-          zt1(i1)=zt1(i1)+sc(i,i1,isym)*pmat(i,ist1,ist2)
-          zt1(i2)=zt1(i2)+sc(i,i2,isym)*pmat(i,ist1,ist2)
+          zt1(i1)=zt1(i1)+sc(i,i1,isym)*pmat(i,ist,jst)
+          zt1(i2)=zt1(i2)+sc(i,i2,isym)*pmat(i,ist,jst)
         end do
       end if
 ! calculate the desired dielectric tensor components
@@ -55,15 +55,15 @@ do ist1=1,nstsv
 ! end of symmetrisation
     end do
     sum=sum/dble(nsymcrys)
-    e(m)=evalsv(ist1,ik)-evalsv(ist2,ik)
+    e(m)=evalsv(ist,ik)-evalsv(jst,ik)
 ! store the matrix elements for intraband transitions
-    if (ist1.eq.ist2) pmatint(ist1)=sum
+    if (ist.eq.jst) pmatint(ist)=sum
 ! scissors correction
-    if (evalsv(ist1,ik).gt.efermi) e(m)=e(m)+scissor
-    if (evalsv(ist2,ik).gt.efermi) e(m)=e(m)-scissor
+    if (evalsv(ist,ik).gt.efermi) e(m)=e(m)+scissor
+    if (evalsv(jst,ik).gt.efermi) e(m)=e(m)-scissor
 ! generalised DFT correction
-    if (usegdft) e(m)=e(m)+delta(ist1,ist2)
-    f(m)=(occsv(ist1,ik)-occsv(ist2,ik))*sum
+    if (usegdft) e(m)=e(m)+delta(ist,jst)
+    f(m)=(occsv(ist,ik)-occsv(jst,ik))*sum
   end do
 end do
 return

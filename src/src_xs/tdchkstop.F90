@@ -15,7 +15,7 @@ subroutine tdchkstop
           trim(msg)
      open(un,file='STOP')
      close(un,status='delete')
-     call terminate()
+     call terminate
   end if
 
 end subroutine tdchkstop

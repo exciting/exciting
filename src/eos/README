@@ -1,6 +1,6 @@
-                          +-------------------------+
-                          |     EOS Version 1.2     |
-                          +-------------------------+
+                         +---------------------------+
+                         |     EOS Version 1.4.0     |
+                         +---------------------------+
 
 Equation of state (EOS) program for fitting energy-volume data. The following
 variables are set in the file eos.in:

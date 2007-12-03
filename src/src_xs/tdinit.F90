@@ -24,13 +24,13 @@ subroutine tdinit
   if ((procs.lt.1).or.(procs.gt.maxproc)) then
      write(*,*) 'Error('//trim(thisnam)//'): Error in parallel &
           &initialization: number of processes out of range:',procs
-     call terminate()
+     call terminate
   end if
 
   if ((rank.gt.procs).or.(rank.lt.0)) then
      write(*,*) 'Error('//trim(thisnam)//'): Error in parallel &
           &initialization: rank out of range:',rank
-     call terminate()
+     call terminate
   end if
 
   ! generate resume file

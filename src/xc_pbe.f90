@@ -4,11 +4,13 @@
 !BOP
 ! !ROUTINE: xc_pbe
 ! !INTERFACE:
-subroutine xc_pbe(n,kappa,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up,g3dn, &
- ex,ec,vxup,vxdn,vcup,vcdn)
+subroutine xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho, &
+ g3up,g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : number of density points (in,integer)
 !   kappa : parameter for large-gradient limit (in,real)
+!   mu    : gradient expansion coefficient (in,real)
+!   beta  : gradient expansion coefficient (in,real)
 !   rhoup : spin-up charge density (in,real(n))
 !   rhodn : spin-down charge density (in,real(n))
 !   grho  : |grad rho| (in,real(n))
@@ -42,6 +44,8 @@ implicit none
 ! arguments
 integer, intent(in) :: n
 real(8), intent(in) :: kappa
+real(8), intent(in) :: mu
+real(8), intent(in) :: beta
 real(8), intent(in) :: rhoup(n)
 real(8), intent(in) :: rhodn(n)
 real(8), intent(in) :: grho(n)
@@ -102,7 +106,7 @@ do i=1,n
     s=gup_/(2.d0*kf*r)
     u=g3up_/((r**2)*(2.d0*kf)**3)
     v=g2up_/(r*(2.d0*kf)**2)
-    call x_pbe(kappa,r2,s,u,v,exup,vxup(i))
+    call x_pbe(kappa,mu,r2,s,u,v,exup,vxup(i))
 ! spin-down
     r=rhodn(i)
     r2=2.d0*r
@@ -110,7 +114,7 @@ do i=1,n
     s=gdn_/(2.d0*kf*r)
     u=g3dn_/((r**2)*(2.d0*kf)**3)
     v=g2dn_/(r*(2.d0*kf)**2)
-    call x_pbe(kappa,r2,s,u,v,exdn,vxdn(i))
+    call x_pbe(kappa,mu,r2,s,u,v,exdn,vxdn(i))
 ! total density
     r=rhoup(i)+rhodn(i)
 ! average exchange energy density
@@ -127,7 +131,7 @@ do i=1,n
     g2rho_=g2up_+g2dn_
     vv=g2rho_/(r*ksg**2)
     ww=(gup_**2-gdn_**2-z*grho_**2)/(r*r*ksg**2)
-    call c_pbe(rs,z,t,uu,vv,ww,ec(i),vcup(i),vcdn(i))
+    call c_pbe(beta,rs,z,t,uu,vv,ww,ec(i),vcup(i),vcdn(i))
   else
     ex(i)=0.d0
     ec(i)=0.d0

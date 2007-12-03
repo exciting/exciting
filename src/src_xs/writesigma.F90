@@ -20,7 +20,7 @@ contains
     if (any(shape(w).ne.shape(sigma))) then
        write(unitout,'(a)') 'Error('//thisnam//'): input arrays have &
             &diffenrent shape'
-       call terminate()
+       call terminate
     end if
 
     n1=shape(w)

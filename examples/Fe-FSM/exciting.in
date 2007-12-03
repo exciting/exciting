@@ -7,8 +7,9 @@ tasks
 spinpol
  .true.
 
+! total fixed spin moment required
 fixspin
- .true.
+  1
 
 ! fixed spin moment vector
 momfix

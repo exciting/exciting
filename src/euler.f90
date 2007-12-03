@@ -6,9 +6,9 @@
 !BOP
 ! !ROUTINE: euler
 ! !INTERFACE:
-subroutine euler(r,ang)
+subroutine euler(rot,ang)
 ! !INPUT/OUTPUT PARAMETERS:
-!   r   : rotation matrix (in,real(3,3))
+!   rot : rotation matrix (in,real(3,3))
 !   ang : euler angles (alpha, beta, gamma) (out,real(3))
 ! !DESCRIPTION:
 !   Given a rotation matrix
@@ -46,38 +46,38 @@ subroutine euler(r,ang)
 !BOC
 implicit none
 ! arguments
-real(8), intent(in) :: r(3,3)
+real(8), intent(in) :: rot(3,3)
 real(8), intent(out) :: ang(3)
 ! local variables
 real(8), parameter :: eps=1.d-10
 real(8), parameter :: pi=3.1415926535897932385d0
 real(8), parameter :: twopi=6.2831853071795864769d0
-real(8) d
+real(8) det
 ! find the determinant
-d=r(1,2)*r(2,3)*r(3,1)-r(1,3)*r(2,2)*r(3,1) &
- +r(1,3)*r(2,1)*r(3,2)-r(1,1)*r(2,3)*r(3,2) &
- +r(1,1)*r(2,2)*r(3,3)-r(1,2)*r(2,1)*r(3,3)
-if ((d.lt.1.d0-eps).or.(d.gt.1.d0+eps)) then
+det=rot(1,2)*rot(2,3)*rot(3,1)-rot(1,3)*rot(2,2)*rot(3,1) &
+   +rot(1,3)*rot(2,1)*rot(3,2)-rot(1,1)*rot(2,3)*rot(3,2) &
+   +rot(1,1)*rot(2,2)*rot(3,3)-rot(1,2)*rot(2,1)*rot(3,3)
+if ((det.lt.1.d0-eps).or.(det.gt.1.d0+eps)) then
   write(*,*)
   write(*,'("Error(euler): matrix improper or not unitary")')
-  write(*,'(" Determinant : ",G18.10)') d
+  write(*,'(" Determinant : ",G18.10)') det
   write(*,*)
   stop
 end if
-if ((abs(r(3,1)).gt.eps).or.(abs(r(3,2)).gt.eps)) then
-  ang(1)=atan2(r(3,2),r(3,1))
+if ((abs(rot(3,1)).gt.eps).or.(abs(rot(3,2)).gt.eps)) then
+  ang(1)=atan2(rot(3,2),rot(3,1))
   if (ang(1).lt.0.d0) ang(1)=ang(1)+twopi
-  if (abs(r(3,1)).gt.abs(r(3,2))) then
-    ang(2)=atan2(r(3,1)/cos(ang(1)),r(3,3))
+  if (abs(rot(3,1)).gt.abs(rot(3,2))) then
+    ang(2)=atan2(rot(3,1)/cos(ang(1)),rot(3,3))
   else
-    ang(2)=atan2(r(3,2)/sin(ang(1)),r(3,3))
+    ang(2)=atan2(rot(3,2)/sin(ang(1)),rot(3,3))
   end if
-  ang(3)=atan2(r(2,3),-r(1,3))
+  ang(3)=atan2(rot(2,3),-rot(1,3))
   if (ang(3).lt.0.d0) ang(3)=ang(3)+twopi
 else
-  ang(1)=atan2(r(1,2),r(1,1))
+  ang(1)=atan2(rot(1,2),rot(1,1))
   if (ang(1).lt.0.d0) ang(1)=ang(1)+twopi
-  if (r(3,3).gt.0.d0) then
+  if (rot(3,3).gt.0.d0) then
     ang(2)=0.d0
     ang(3)=0.d0
   else

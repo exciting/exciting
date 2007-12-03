@@ -29,7 +29,7 @@ contains
     if (.not.existent) then
        write(unitout,'(a)') 'Error('//thisnam//'): file does not exist: '// &
             trim(filnam)
-       call terminate()
+       call terminate
     end if
 
     ! record position for k-point
@@ -61,7 +61,7 @@ contains
        write(unitout,'(a,2i6)') 'nstcon', nstcon, nstcon_
        write(unitout,'(a,2i6)') 'nkpt', nkpt, nkpt_
        write(unitout,'(a,3f12.6,a,3f12.6)') 'vkl', vklt(:,ik), ',', vkl_
-       call terminate()
+       call terminate
     end if
 
   end subroutine getpmat

@@ -43,7 +43,7 @@ do is=1,nspecies
     write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
     do ist=1,spnst(is)
       if (spcore(ist,is)) then
-        write(50,'(" n =",I2,", l =",I2,", k =",I2," : ",G18.10)') &
+        write(50,'(" n = ",I2,", l = ",I2,", k = ",I2," : ",G18.10)') &
          spn(ist,is),spl(ist,is),spk(ist,is),evalcr(ist,ias)
       end if
     end do

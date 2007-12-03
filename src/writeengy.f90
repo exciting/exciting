@@ -20,6 +20,9 @@ write(fnum,'(" nuclear-nuclear         : ",G18.10)') engynn
 write(fnum,'(" electron-nuclear        : ",G18.10)') engyen
 write(fnum,'(" Hartree                 : ",G18.10)') engyhar
 write(fnum,'(" Madelung                : ",G18.10)') engymad
+if (chgexs.ne.0.d0) then
+  write(fnum,'(" comp. background charge : ",G18.10)') engycbc
+end if
 write(fnum,'(" xc potential            : ",G18.10)') engyvxc
 if (spinpol) then
   write(fnum,'(" xc effective B-field    : ",G18.10)') engybxc
@@ -27,6 +30,9 @@ if (spinpol) then
 end if
 write(fnum,'(" exchange                : ",G18.10)') engyx
 write(fnum,'(" correlation             : ",G18.10)') engyc
+if (ldapu.ne.0) then
+  write(fnum,'(" LDA+U                   : ",G18.10)') engylu
+end if
 write(fnum,'(" total energy            : ",G18.10)') engytot
 if (spinpol) then
   write(fnum,'(" (external B-field energy excluded from total)")')

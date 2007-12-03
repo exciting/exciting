@@ -127,9 +127,6 @@ end if
 if (spinorb) then
   write(fnum,'(" spin-orbit coupling")')
 end if
-if (fixspin) then
-  write(fnum,'(" fixed spin moment (Cartesian) : ",3G18.10)') momfix
-end if
 if (spinpol) then
   write(fnum,'(" global magnetic field (Cartesian) : ",3G18.10)') bfieldc
 end if
@@ -144,6 +141,22 @@ if (spinsprl) then
   write(fnum,'("  q-vector (Cartesian) : ",3G18.10)') vqcss
   write(fnum,'("  q-vector length      : ",G18.10)') sqrt(vqcss(1)**2 &
    +vqcss(2)**2+vqcss(3)**2)
+end if
+if (fixspin.ne.0) then
+  write(fnum,'(" fixed spin moment (FSM) calculation")')
+end if
+if ((fixspin.eq.1).or.(fixspin.eq.3)) then
+  write(fnum,'("  fixing total moment to (Cartesian) :")')
+  write(fnum,'("  ",3G18.10)') momfix
+end if
+if ((fixspin.eq.2).or.(fixspin.eq.3)) then
+  write(fnum,'("  fixing local muffin-tin moments to (Cartesian) :")')
+  do is=1,nspecies
+    write(fnum,'("  species : ",I4," (",A,")")') is,trim(spsymb(is))
+    do ia=1,natoms(is)
+      write(fnum,'("   ",I4,3G18.10)') ia,mommtfix(:,ia,is)
+    end do
+  end do
 end if
 write(fnum,*)
 write(fnum,'("Number of Bravais lattice symmetries : ",I4)') nsymlat
@@ -212,6 +225,29 @@ else
   write(fnum,'(" ",A)') trim(xcdescr)
 end if
 if (xcgrad.eq.1) write(fnum,'(" Generalised gradient approximation (GGA)")')
+if (ldapu.ne.0) then
+  write(fnum,*)
+  write(fnum,'("LDA+U calculation")')
+  if (ldapu.eq.1) then
+    write(fnum,'(" fully localised limit (FLL)")')
+  else if (ldapu.eq.2) then
+    write(fnum,'(" around mean field (AFM)")')
+  else if (ldapu.eq.3) then
+    write(fnum,'(" interpolation between FLL and AFM")')
+  else
+    write(*,*)
+    write(*,'("Error(writeinfo): ldapu not defined : ",I8)') ldapu
+    write(*,*)
+    stop
+  end if
+  write(fnum,'(" see PRB 67, 153106 (2003) and PRB 52, R5467 (1995)")')
+  do is=1,nspecies
+    if (llu(is).ge.0) then
+      write(fnum,'(" species : ",I4," (",A,")",", l = ",I2,", U = ",F12.8,&
+       &", J = ",F12.8)') is,trim(spsymb(is)),llu(is),ujlu(1,is),ujlu(2,is)
+    end if
+  end do
+end if
 write(fnum,*)
 write(fnum,'("Smearing scheme :")')
 #ifdef XS

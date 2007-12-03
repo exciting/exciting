@@ -46,8 +46,7 @@ integer, intent(out) :: iea(natmmax,nspecies,48)
 ! local variables
 integer isym,jsym,jsym0,jsym1
 integer is,ia,ja,iv(3),md
-real(8) v(3),t1
-real(8) sl(3,3,48),sc(3,3,48)
+real(8) sl(3,3),v(3),t1
 ! automatic arrays
 integer jea(natmmax,nspecies)
 real(8) apl3(3,natmmax)
@@ -55,16 +54,12 @@ real(8) apl3(3,natmmax)
 integer i3mdet
 real(8) r3taxi
 external i3mdet,r3taxi
-do isym=1,nsymlat
-! make real copy of lattice rotation symmetries
-  sl(:,:,isym)=dble(symlat(:,:,isym))
-! determine lattice symmetry matrix in Cartesian coordinates
-  call r3mm(sl(1,1,isym),ainv,sc(1,1,isym))
-  call r3mm(avec,sc(1,1,isym),sc(1,1,isym))
-end do
 nsym=0
 ! loop over lattice symmetries (spatial rotations)
 do isym=1,nsymlat
+! make real copy of lattice rotation symmetry
+  sl(:,:)=dble(symlat(:,:,isym))
+! loop over species
   do is=1,nspecies
 ! map apl1 coordinates to [0,1) and store in apl3
     do ia=1,natoms(is)
@@ -73,7 +68,7 @@ do isym=1,nsymlat
     end do
     do ja=1,natoms(is)
 ! apply lattice symmetry to atomic positions
-      call r3mv(sl(1,1,isym),apl2(1,ja,is),v)
+      call r3mv(sl,apl2(1,ja,is),v)
 ! map coordinates to [0,1)
       call r3frac(epslat,v,iv)
 ! check if atomic positions are invariant
@@ -109,7 +104,7 @@ do isym=1,nsymlat
       md=i3mdet(symlat(1,1,jsym))
       if (md.lt.0) goto 20
 ! rotate global field and check invariance
-      call r3mv(sc(1,1,jsym),bfieldc,v)
+      call r3mv(symlatc(1,1,jsym),bfieldc,v)
       t1=r3taxi(bfieldc,v)
 ! if not invariant try a different global spin rotation
       if (t1.gt.epslat) goto 20
@@ -118,7 +113,7 @@ do isym=1,nsymlat
         do ia=1,natoms(is)
 ! equivalent atom
           ja=jea(ia,is)
-          call r3mv(sc(1,1,jsym),bfcmt(1,ja,is),v)
+          call r3mv(symlatc(1,1,jsym),bfcmt(1,ja,is),v)
           t1=r3taxi(bfcmt(1,ia,is),v)
 ! if not invariant try a different global spin rotation
           if (t1.gt.epslat) goto 20

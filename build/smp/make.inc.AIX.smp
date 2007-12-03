@@ -1,0 +1,9 @@
+
+F90=xlf90_r 
+F90_OPTS=-O3 -qsmp  -q64 -qarch=pwr5 -qtune=pwr5 -qstrict -qnosave 
+F77 =xlf_r
+F77_OPTS = -O3 -qsmp -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave 
+LIB_SYS =
+LIB_LPK = libarpack.a liblapack.a -llapack64 -lesslsmp 
+LIB_FFT = fftlib.a
+LIB_BZINT=libbzint.a  -lxlsmp

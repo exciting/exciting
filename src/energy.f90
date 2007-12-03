@@ -71,9 +71,9 @@ complex(8) zt1
 ! allocatable arrays
 complex(8), allocatable :: evecsv(:,:),c(:,:)
 ! external functions
-real(8) rfmtinp,rfinp
+real(8) rfmtinp,rfinp,rfint
 complex(8) zdotc
-external rfmtinp,rfinp,zdotc
+external rfmtinp,rfinp,rfint,zdotc
 !-----------------------------------------------!
 !     exchange-correlation potential energy     !
 !-----------------------------------------------!
@@ -148,6 +148,23 @@ end if
 engyc=rfinp(1,rhomt,ecmt,rhoir,ecir)
 ! zero correlation energy for Hartree-Fock
 if (task.eq.5) engyc=0.d0
+!----------------------!
+!     LDA+U energy     !
+!----------------------!
+engylu=0.d0
+if (ldapu.ne.0) then
+  do ias=1,natmtot
+    engylu=engylu+engyalu(ias)
+  end do
+end if
+!-----------------------------------------------!
+!     compensating background charge energy     !
+!-----------------------------------------------!
+if (chgexs.ne.0.d0) then
+  engycbc=chgexs*rfint(vclmt,vclir)
+else
+  engycbc=0.d0
+end if
 !----------------------------!
 !     sum of eigenvalues     !
 !----------------------------!
@@ -196,7 +213,9 @@ end if
 !----------------------!
 !     total energy     !
 !----------------------!
-engytot=engykn+0.5d0*engyvcl+engymad+engyx+engyc
+engytot=engykn+0.5d0*engyvcl+engymad+engyx+engyc+engycbc
+! add the LDA+U correction if required
+if (ldapu.ne.0) engytot=engytot+engylu
 return
 end subroutine
 !EOC

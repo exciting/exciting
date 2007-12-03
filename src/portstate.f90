@@ -363,7 +363,7 @@ subroutine portstate(tb2a)
      write(*,*)
   end if
 contains
-  character(256)function i2str(i)
+  character(256) function i2str(i)
     ! arguments
     integer, intent(in) :: i
     ! local variables

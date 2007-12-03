@@ -1,39 +1,45 @@
 include make.inc
 
 
-parallel:
-	../../utilities/mkmf -t template -f -m Makefile.parallel -p excitingmpi \
+parallel:make.inc
+	../../utilities/mkmf -t template -f -m Makefile.serial -p excitingmpi \
         ../../src  \
 	../../src/src_xs \
         ../../src/src_iterative_solver \
-        && make -f Makefile.parallel excitingmpi \
+        && make -f Makefile.serial excitingmpi \
         && cp -f excitingmpi ..
 
-libs:	blas lapack fftlib libbzint
+libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a
 
-blas:
+libblas.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/BLAS && make clean && make
 	cp ../../src/BLAS/libblas.a .
 	cd ../../src/BLAS && make clean
 
-lapack:
+liblapack.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/LAPACK && make clean && make
 	cp ../../src/LAPACK/liblapack.a .
 	cd ../../src/LAPACK && make clean
 
-fftlib:
+fftlib.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/fftlib && make clean && make
 	cp ../../src/fftlib/fftlib.a .
 	cd ../../src/fftlib && make clean
 
-libbzint:
+libbzint.a: make.inc
 	cp -f make.inc ../..
 	cd ../../src/src_libbzint && make clean && make
 	cp ../../src/src_libbzint/libbzint.a .
 	cd ../../src/src_libbzint && make clean
+
+libarpack.a: make.inc
+	cp -f make.inc ../..
+	cd ../../src/ARPACK && make clean && make lib
+	cp ../../src/ARPACK/libarpack.a .
+	cd ../../src/ARPACK && make clean
 
 clean:
 	rm -f *.o *.mod
