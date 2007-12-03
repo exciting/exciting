@@ -21,7 +21,7 @@ implicit none
 ! local variables
 integer, parameter :: maxit=1000
 integer ik,ist,it
-real(8) e0,e1,occ,chg,x,t1
+real(8) e0,e1,chg,x,t1
 ! external functions
 real(8) sdelta,stheta
 external sdelta,stheta
@@ -39,12 +39,6 @@ if (e0.lt.evalmin) then
   write(*,'("Warning(occupy): valence eigenvalues below evalmin for s.c. &
    &loop ",I5)') iscl
 end if
-if (spinpol) then
-  occ=1.d0
-else
-! double occupancy for spin unpolarised systems
-  occ=2.d0
-end if
 t1=1.d0/swidth
 ! determine the Fermi energy using the bisection method
 do it=1,maxit
@@ -54,7 +48,7 @@ do it=1,maxit
     do ist=1,nstsv
       if (evalsv(ist,ik).gt.evalmin) then
         x=(efermi-evalsv(ist,ik))*t1
-        occsv(ist,ik)=occ*stheta(stype,x)
+        occsv(ist,ik)=occmax*stheta(stype,x)
         chg=chg+wkpt(ik)*occsv(ist,ik)
       else
         occsv(ist,ik)=0.d0
@@ -83,8 +77,13 @@ do ik=1,nkpt
       fermidos=fermidos+wkpt(ik)*sdelta(stype,x)*t1
     end if
   end do
+  if (occsv(nstsv,ik).gt.epsocc) then
+    write(*,*)
+    write(*,'("Warning(occupy): not enough empty states for k-point ",I6)') ik
+    write(*,'("Increase parameter nempty")')
+  end if
 end do
-fermidos=fermidos*occ/2.d0
+fermidos=fermidos*occmax/2.d0
 return
 end subroutine
 !EOC

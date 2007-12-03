@@ -11,10 +11,10 @@ integer, intent(in) :: ikp
 real(8), intent(inout) :: evv
 real(8), intent(inout) :: ecv
 ! local variables
-integer ngknr,ik,ist1,ist2
+integer ngknr,ik,ist,jst
 integer is,ia,ias,nr,m,lmax
 integer iv(3),iq,ig,igq0
-real(8) occ,cfq,v(3),t1
+real(8) cfq,v(3),t1
 complex(8) zrho0,zt1
 ! allocatable arrays
 integer, allocatable :: igkignr(:)
@@ -77,11 +77,6 @@ allocate(zvclmt(lmmaxvr,nrcmtmax,natmtot))
 allocate(zvclir(ngrtot))
 allocate(wfcr(lmmaxvr,nrcmtmax,2))
 allocate(zfmt(lmmaxvr,nrcmtmax))
-if (spinpol) then
-  occ=1.d0
-else
-  occ=2.d0
-end if
 ! coefficient for long-range term
 cfq=0.5d0*(omega/pi)**2
 ! set the point charges to zero
@@ -133,25 +128,25 @@ do ik=1,nkptnr
 !--------------------------------------------!
 !    valence-valence-valence contribution    !
 !--------------------------------------------!
-  do ist2=1,nstsv
-    if (evalsvnr(ist2).lt.efermi) then
-      do ist1=1,nstsv
-        if (evalsvp(ist1).lt.efermi) then
+  do jst=1,nstsv
+    if (evalsvnr(jst).lt.efermi) then
+      do ist=1,nstsv
+        if (evalsvp(ist).lt.efermi) then
 ! calculate the complex overlap density
-          call vnlrho(wfmt2(1,1,1,1,ist2),wfmt1(1,1,1,1,ist1),wfir2(1,1,ist2), &
-           wfir1(1,1,ist1),zrhomt,zrhoir)
+          call vnlrho(wfmt2(1,1,1,1,jst),wfmt1(1,1,1,1,ist),wfir2(1,1,jst), &
+           wfir1(1,1,ist),zrhomt,zrhoir)
 ! calculate the Coulomb potential
           call zpotcoul(nrcmt,nrcmtmax,nrcmtmax,rcmt,igq0,gqc,jlgqr,ylmgq, &
            sfacgq,zpchg,zrhomt,zrhoir,zvclmt,zvclir,zrho0) 
           zt1=zfinp(zrhomt,zvclmt,zrhoir,zvclir)
           t1=cfq*wiq2(iq)*(dble(zrho0)**2+aimag(zrho0)**2)
 !$OMP CRITICAL
-          evv=evv-0.5d0*occ*wkpt(ikp)*(wkptnr(ik)*dble(zt1)+t1)
+          evv=evv-0.5d0*occmax*wkpt(ikp)*(wkptnr(ik)*dble(zt1)+t1)
 !$OMP END CRITICAL
-! end loop over ist1
+! end loop over ist
         end if
       end do
-! end loop over ist2
+! end loop over jst
     end if
   end do
 ! end loop over non-reduced k-point set
@@ -164,18 +159,18 @@ do is=1,nspecies
   nr=nrcmt(is)
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    do ist2=1,spnst(is)
-      if (spcore(ist2,is)) then
-        do m=-spk(ist2,is),spk(ist2,is)-1
+    do jst=1,spnst(is)
+      if (spcore(jst,is)) then
+        do m=-spk(jst,is),spk(jst,is)-1
 ! pass m-1/2 to wavefcr
-          call wavefcr(lradstp,is,ia,ist2,m,nrcmtmax,wfcr)
-          do ist1=1,nstsv
-            if (evalsvp(ist1).lt.efermi) then
+          call wavefcr(lradstp,is,ia,jst,m,nrcmtmax,wfcr)
+          do ist=1,nstsv
+            if (evalsvp(ist).lt.efermi) then
 ! calculate the complex overlap density
-              call vnlrhomt(is,wfcr(1,1,1),wfmt1(1,1,ias,1,ist1), &
+              call vnlrhomt(is,wfcr(1,1,1),wfmt1(1,1,ias,1,ist), &
                zrhomt(1,1,ias))
               if (spinpol) then
-                call vnlrhomt(is,wfcr(1,1,2),wfmt1(1,1,ias,2,ist1),zfmt)
+                call vnlrhomt(is,wfcr(1,1,2),wfmt1(1,1,ias,2,ist),zfmt)
                 zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
               end if
 ! calculate the Coulomb potential
@@ -184,14 +179,14 @@ do is=1,nspecies
               zt1=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt(1,1,ias), &
                zvclmt(1,1,ias))
 !$OMP CRITICAL
-              ecv=ecv-occ*wkpt(ikp)*dble(zt1)
+              ecv=ecv-occmax*wkpt(ikp)*dble(zt1)
 !$OMP END CRITICAL
-! end loop over ist1
+! end loop over ist
             end if
           end do
 ! end loop over m
         end do
-! end loop over ist2
+! end loop over jst
       end if
     end do
 ! end loops over atoms and species

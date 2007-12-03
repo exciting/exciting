@@ -1,0 +1,42 @@
+
+! Band structure of silicon using the new PBEsol functional (xctype = 22)
+! (http://arxiv.org/pdf/0711.0156).
+
+tasks
+  0
+  20
+
+xctype
+  22
+
+avec
+  5.13 5.13 0.00
+  5.13 0.00 5.13
+  0.00 5.13 5.13
+
+sppath
+  '../../species/'
+
+atoms
+  1                                 : nspecies
+ 'Si.in'                            : spfname
+  2                                 : natoms
+  0.0 0.0 0.0      0.0 0.0 0.0      : atposl, bfcmt
+  0.25 0.25 0.25   0.0 0.0 0.0
+
+ngridk
+  2  2  2
+
+vkloff
+  0.25  0.5  0.625
+
+! These are the vertices to be joined for the band structure plot
+plot1d
+  7 200                                 : nvp1d, npp1d
+  0.0   0.0   1.0                       : vlvp1d
+  0.5   0.5   1.0
+  0.0   0.0   0.0
+  0.5   0.0   0.0
+  0.5   0.5   0.0
+  0.5   0.25 -0.25
+  0.5   0.0   0.0

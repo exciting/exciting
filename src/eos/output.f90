@@ -1,5 +1,10 @@
+
+! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine output
-use modeos
+use modmain
 implicit none
 ! local variables
 integer ip,ipt,iplt
@@ -9,6 +14,7 @@ real(8) eveos,pveos
 external eveos,pveos
 ! output parameters
 open(60,file='PARAM.OUT')
+write(60,*)
 write(60,'(A)') trim(cname)
 write(60,*)
 write(60,'(A)') trim(ename(1))
@@ -28,6 +34,8 @@ do ip=1,nparam
     write(60,'(A4," (/GPa)",T20,"=",T30,G18.10)') "B0''",popt(ip)/aupress_gpa
   end if
 end do
+write(60,*)
+close(60)
 ! output energy vs volume per atom at data points
 open(60,file='EVPAP.OUT')
 do ipt=1,nevpt

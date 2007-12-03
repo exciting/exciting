@@ -5,7 +5,7 @@
 
 subroutine oepmain
   use modmain
-    use modmpi
+  use modmpi
   implicit none
   ! local variables
   integer is,ia,ias,ik
@@ -18,12 +18,8 @@ subroutine oepmain
   real(8), allocatable :: rvfir(:,:)
   complex(8), allocatable :: vnlcv(:,:,:,:)
   complex(8), allocatable :: vnlvv(:,:,:)
-  complex(8), allocatable :: zvxmt(:,:,:)
-  complex(8), allocatable :: zvxir(:)
   complex(8), allocatable :: dvxmt(:,:,:)
   complex(8), allocatable :: dvxir(:)
-  complex(8), allocatable :: zbxmt(:,:,:,:)
-  complex(8), allocatable :: zbxir(:,:)
   complex(8), allocatable :: dbxmt(:,:,:,:)
   complex(8), allocatable :: dbxir(:,:)
   complex(8), allocatable :: zflm(:)
@@ -35,7 +31,8 @@ subroutine oepmain
 #endif
   ! external functions
   real(8) rfinp
-  external rfinp
+  complex(8) zfint
+  external rfinp,zfint
   if (iscl.lt.1) return
   ! calculate nonlocal matrix elements
   allocate(vnlcv(ncrmax,natmtot,nstsv,nkpt))
@@ -44,16 +41,12 @@ subroutine oepmain
   ! allocate local arrays
   allocate(rfmt(lmmaxvr,nrmtmax,natmtot))
   allocate(rfir(ngrtot))
-  allocate(zvxmt(lmmaxvr,nrcmtmax,natmtot))
-  allocate(zvxir(ngrtot))
   allocate(dvxmt(lmmaxvr,nrcmtmax,natmtot))
   allocate(dvxir(ngrtot))
   allocate(zflm(lmmaxvr))
   if (spinpol) then
      allocate(rvfmt(lmmaxvr,nrmtmax,natmtot,ndmag))
      allocate(rvfir(ngrtot,ndmag))
-     allocate(zbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
-     allocate(zbxir(ngrtot,ndmag))
      allocate(dbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
      allocate(dbxir(ngrtot,ndmag))
   end if
@@ -66,10 +59,10 @@ subroutine oepmain
   end if
   resp=0.d0
   ! initial step size
-  tau=tau0oep
+  tau=tauoep(1)
   ! start iteration loop
   do it=1,maxitoep
-     if (mod(it,10).eq.0.and.rank.eq.0) then
+     if (mod(it,10).eq.0) then
         write(*,'("Info(oepmain): done ",I6," iterations of ",I6)') it,maxitoep
      end if
      ! zero the residues
@@ -80,18 +73,21 @@ subroutine oepmain
         dbxir(:,:)=0.d0
      end if
      ! calculate the k-dependent residues
-     !$OMP PARALLEL DEFAULT(SHARED)
-     !$OMP DO
+  
 #ifdef MPIEXXSUM
     do ik=firstk(rank),lastk(rank)
 #endif
-#ifndef MPIEXXSUM    
-     do ik=1,nkpt
-#endif     
-        call oepresk(ik,vnlcv,vnlvv,zvxmt,zvxir,zbxmt,zbxir,dvxmt,dvxir,dbxmt,dbxir)
+#ifndef MPIEXXSUM 
+!$OMP PARALLEL DEFAULT(SHARED)
+!$OMP DO   
+     do ik=1,nkpt   
+#endif
+        call oepresk(ik,vnlcv,vnlvv,dvxmt,dvxir,dbxmt,dbxir)
      end do
+#ifndef MPIEXXSUM      
      !$OMP END DO
      !$OMP END PARALLEL
+#endif    
 #ifdef MPIEXXSUM
      allocate(buffer3d(lmmaxvr,nrcmtmax,natmtot)) 
      buffer3d=0
@@ -116,7 +112,7 @@ subroutine oepmain
      dbxir=buffer2d
      deallocate(buffer2d)
 	 endif
-#endif	
+#endif
      ! compute the real residues
      do is=1,nspecies
         do ia=1,natoms(is)
@@ -149,13 +145,13 @@ subroutine oepmain
              rvfir(1,idm),rvfir(1,idm))))
      end do
      resoep=resoep/omega
+     ! adjust step size
      if (it.gt.1) then
-        if (resoep.lt.resp) then
-           tau=tau+dtauoep
+        if (resoep.gt.resp) then
+           tau=tau*tauoep(2)
         else
-           tau=tau0oep
+           tau=tau*tauoep(3)
         end if
-        tau=min(tau,100.d0)
      end if
      resp=resoep
      !--------------------------------------------!
@@ -218,10 +214,11 @@ subroutine oepmain
      bxcir(:,idm)=bxcir(:,idm)+dble(zbxir(:,idm))
   end do
   deallocate(rfmt,rfir,vnlcv,vnlvv)
-  deallocate(zvxmt,zvxir,dvxmt,dvxir,zflm)
+  deallocate(dvxmt,dvxir,zflm)
   if (spinpol) then
      deallocate(rvfmt,rvfir)
-     deallocate(zbxmt,zbxir,dbxmt,dbxir)
+     deallocate(dbxmt,dbxir)
   end if
   return
 end subroutine oepmain
+

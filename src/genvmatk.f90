@@ -14,7 +14,7 @@ complex(8), intent(in) :: wfir(ngrtot,nspinor,nstsv)
 complex(8), intent(out) :: vmat(nstsv,nstsv)
 ! local variables
 integer is,ia,ias,nr,ir,irc
-integer ispn,ist1,ist2
+integer ispn,ist,jst
 real(8) t1
 complex(8) zt1
 ! allocatable arrays
@@ -47,7 +47,7 @@ do is=1,nspecies
     end do
   end do
 end do
-do ist2=1,nstsv
+do jst=1,nstsv
   do is=1,nspecies
     nr=nrcmt(is)
     do ia=1,natoms(is)
@@ -55,12 +55,12 @@ do ist2=1,nstsv
       do ispn=1,nspinor
 ! apply potential to wavefunction
         do irc=1,nr
-          zfmt(:,irc)=rfmt(:,irc,ias)*wfmt(:,irc,ias,ispn,ist2)
+          zfmt(:,irc)=rfmt(:,irc,ias)*wfmt(:,irc,ias,ispn,jst)
         end do
-        do ist1=1,ist2
+        do ist=1,jst
 ! compute inner product (functions are in spherical coordinates)
-          zt1=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,wfmt(1,1,ias,ispn,ist1),zfmt)
-          vmat(ist1,ist2)=vmat(ist1,ist2)+zt1*fourpi/dble(lmmaxvr)
+          zt1=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,wfmt(1,1,ias,ispn,ist),zfmt)
+          vmat(ist,jst)=vmat(ist,jst)+zt1*fourpi/dble(lmmaxvr)
         end do
       end do
     end do
@@ -71,20 +71,20 @@ end do
 !---------------------------!
 rfir(:)=vir(:)*cfunir(:)
 t1=omega/dble(ngrtot)
-do ist2=1,nstsv
+do jst=1,nstsv
   do ispn=1,nspinor
 ! apply potential to wavefunction
-    zfir(:)=rfir(:)*wfir(:,ispn,ist2)
-    do ist1=1,ist2
-      zt1=zdotc(ngrtot,wfir(1,ispn,ist1),1,zfir,1)
-      vmat(ist1,ist2)=vmat(ist1,ist2)+t1*zt1
+    zfir(:)=rfir(:)*wfir(:,ispn,jst)
+    do ist=1,jst
+      zt1=zdotc(ngrtot,wfir(1,ispn,ist),1,zfir,1)
+      vmat(ist,jst)=vmat(ist,jst)+t1*zt1
     end do
   end do
 end do
 ! lower triangular part
-do ist1=1,nstsv
-  do ist2=1,ist1-1
-    vmat(ist1,ist2)=conjg(vmat(ist2,ist1))
+do ist=1,nstsv
+  do jst=1,ist-1
+    vmat(ist,jst)=conjg(vmat(jst,ist))
   end do
 end do
 deallocate(rfmt,rfir,zfmt,zfir)

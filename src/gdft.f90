@@ -13,7 +13,7 @@ complex(8), intent(in) :: evecfv(nmatmax,nstfv)
 complex(8), intent(in) :: evecsv(nstsv,nstsv)
 real(8), intent(out) :: delta(nstsv,nstsv)
 ! local variables
-integer ist1,ist2,is,ia,ias
+integer ist,jst,is,ia,ias
 integer ir,irc,itp
 real(8) sum,t1,t2
 ! automatic arrays
@@ -31,9 +31,9 @@ allocate(wfir(ngrtot,nspinor,nstsv))
 ! calculate the wavefunctions for all second-variational states
 call genwfsv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv, &
  evecsv,wfmt,wfir)
-do ist1=1,nstsv
-  delta(ist1,ist1)=0.d0
-  do ist2=ist1+1,nstsv
+do ist=1,nstsv
+  delta(ist,ist)=0.d0
+  do jst=ist+1,nstsv
 ! muffin-tin part
     do is=1,nspecies
       do ia=1,natoms(is)
@@ -45,15 +45,15 @@ do ist1=1,nstsv
           call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,rflm,1,0.d0, &
            rftp,1)
           do itp=1,lmmaxvr
-            t1=dble(wfmt(itp,irc,ias,1,ist1))**2 &
-             +aimag(wfmt(itp,irc,ias,1,ist1))**2
-            t2=dble(wfmt(itp,irc,ias,1,ist2))**2 &
-             +aimag(wfmt(itp,irc,ias,1,ist2))**2
+            t1=dble(wfmt(itp,irc,ias,1,ist))**2 &
+             +aimag(wfmt(itp,irc,ias,1,ist))**2
+            t2=dble(wfmt(itp,irc,ias,1,jst))**2 &
+             +aimag(wfmt(itp,irc,ias,1,jst))**2
             if (spinpol) then
-              t1=t1+dble(wfmt(itp,irc,ias,2,ist1))**2 &
-               +aimag(wfmt(itp,irc,ias,2,ist1))**2
-              t2=t2+dble(wfmt(itp,irc,ias,2,ist2))**2 &
-               +aimag(wfmt(itp,irc,ias,2,ist2))**2
+              t1=t1+dble(wfmt(itp,irc,ias,2,ist))**2 &
+               +aimag(wfmt(itp,irc,ias,2,ist))**2
+              t2=t2+dble(wfmt(itp,irc,ias,2,jst))**2 &
+               +aimag(wfmt(itp,irc,ias,2,jst))**2
             end if
             rftp(itp)=rftp(itp)*(t1-t2)
           end do
@@ -64,11 +64,11 @@ do ist1=1,nstsv
     end do
 ! interstitial part
     do ir=1,ngrtot
-      t1=dble(wfir(ir,1,ist1))**2+aimag(wfir(ir,1,ist1))**2
-      t2=dble(wfir(ir,1,ist2))**2+aimag(wfir(ir,1,ist2))**2
+      t1=dble(wfir(ir,1,ist))**2+aimag(wfir(ir,1,ist))**2
+      t2=dble(wfir(ir,1,jst))**2+aimag(wfir(ir,1,jst))**2
       if (spinpol) then
-        t1=t1+dble(wfir(ir,2,ist1))**2+aimag(wfir(ir,2,ist1))**2
-        t2=t2+dble(wfir(ir,2,ist2))**2+aimag(wfir(ir,2,ist2))**2
+        t1=t1+dble(wfir(ir,2,ist))**2+aimag(wfir(ir,2,ist))**2
+        t2=t2+dble(wfir(ir,2,jst))**2+aimag(wfir(ir,2,jst))**2
       end if
       rfir(ir)=(2.d0*(exir(ir)+ecir(ir))-vxcir(ir))*(t1-t2)
     end do
@@ -88,8 +88,8 @@ do ist1=1,nstsv
         sum=sum+fourpi*y00*gr(nrcmt(is))
       end do
     end do
-    delta(ist1,ist2)=sum
-    delta(ist2,ist1)=-sum
+    delta(ist,jst)=sum
+    delta(jst,ist)=-sum
   end do
 end do
 deallocate(rfmt,rfir,wfmt,wfir)

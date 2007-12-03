@@ -25,40 +25,26 @@ real(8), intent(inout) :: vc(3,natmtot)
 ! local variables
 integer is,ia,ja,ias,jas
 integer isym,lspl
-real(8) s(3,3),v(3),t1
+real(8) v(3),t1
 ! automatic arrays
-real(8) vl(3,natmtot),vs(3,natmtot)
-! convert vectors to lattice coordinates
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    call r3mv(ainv,vc(1,ias),vl(1,ias))
-  end do
-end do
+real(8) vs(3,natmtot)
 ! make symmetric average
 vs(:,:)=0.d0
 do isym=1,nsymcrys
   lspl=lsplsymc(isym)
-  s(:,:)=dble(symlat(:,:,lspl))
   do is=1,nspecies
     do ia=1,natoms(is)
       ias=idxas(ia,is)
       ja=ieqatom(ia,is,isym)
       jas=idxas(ja,is)
-      call r3mv(s,vl(1,jas),v)
+      call r3mv(symlatc(1,1,lspl),vc(1,jas),v)
       vs(:,ias)=vs(:,ias)+v(:)
     end do
   end do
 end do
-! normalise and convert to Cartesian coordinates
+! normalise
 t1=1.d0/dble(nsymcrys)
-vs(:,:)=t1*vs(:,:)
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    call r3mv(avec,vs(1,ias),vc(1,ias))
-  end do
-end do
+vc(:,:)=t1*vs(:,:)
 return
 end subroutine
 !EOC

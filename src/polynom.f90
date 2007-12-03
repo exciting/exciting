@@ -154,7 +154,7 @@ x0=xa(1)
 do j=1,np-1
   do i=1,np-j
     k=np-i
-    c(k)=c(k)-(xa(k-j+1)-x0)*c(k+1)
+    c(k)=c(k)+(x0-xa(k-j+1))*c(k+1)
   end do
 end do
 if (m.gt.0) then

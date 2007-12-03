@@ -35,13 +35,10 @@ use modmain
 !   not referenced. The input densities are in terms of real spherical harmonic
 !   expansions but the returned functions are in spherical coordinates. See
 !   routines {\tt potxc}, {\tt modxcifc}, {\tt gradrfmt}, {\tt genrlm} and
-!   {\tt genshtmat}. Note that {\tt g3rhomt}, {\tt g3upmt} and {\tt g3dnmt} are
-!   approximated by $|\nabla\rho|\nabla^2\rho$ etc., because of numerical
-!   instability in computing the exact expression.
+!   {\tt genshtmat}.
 !
 ! !REVISION HISTORY:
 !   Created April 2004 (JKD)
-!   Approximated {\tt g3rhomt} etc., July 2006 (JKD)
 !EOP
 !BOC
 implicit none
@@ -102,10 +99,19 @@ do i=1,3
   end do
 end do
 ! (grad rhoup).(grad |grad rhoup|)
-! approximate with |grad rhoup|(grad^2 rhoup)
 do ir=1,nr
-  do itp=1,lmmaxvr
-    g3upmt(itp,ir)=gupmt(itp,ir)*g2upmt(itp,ir)
+  call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,gupmt(1,ir),1,0.d0, &
+   rfmt1(1,ir),1)
+end do
+call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+g3upmt(:,1:nr)=0.d0
+do i=1,3
+  do ir=1,nr
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
+     0.d0,rftp3,1)
+    do itp=1,lmmaxvr
+      g3upmt(itp,ir)=g3upmt(itp,ir)+rftp1(itp,ir,i)*rftp3(itp)
+    end do
   end do
 end do
 if (spinpol) then
@@ -134,10 +140,19 @@ if (spinpol) then
     end do
   end do
 ! (grad rhodn).(grad |grad rhodn|)
-! approximate with |grad rhodn|(grad^2 rhodn)
   do ir=1,nr
-    do itp=1,lmmaxvr
-      g3dnmt(itp,ir)=gdnmt(itp,ir)*g2dnmt(itp,ir)
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,gdnmt(1,ir),1,0.d0, &
+     rfmt1(1,ir),1)
+  end do
+  call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+  g3dnmt(:,1:nr)=0.d0
+  do i=1,3
+    do ir=1,nr
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
+       0.d0,rftp3,1)
+      do itp=1,lmmaxvr
+        g3dnmt(itp,ir)=g3dnmt(itp,ir)+rftp2(itp,ir,i)*rftp3(itp)
+      end do
     end do
   end do
 ! |grad rho|
@@ -149,10 +164,20 @@ if (spinpol) then
     end do
   end do
 ! (grad rho).(grad |grad rho|)
-! approximate with |grad rho|(grad^2 rho)
   do ir=1,nr
-    do itp=1,lmmaxvr
-      g3rhomt(itp,ir)=grhomt(itp,ir)*(g2upmt(itp,ir)+g2dnmt(itp,ir))
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,grhomt(1,ir),1,0.d0, &
+     rfmt1(1,ir),1)
+  end do
+  call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+  g3rhomt(:,1:nr)=0.d0
+  do i=1,3
+    do ir=1,nr
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
+       0.d0,rftp3,1)
+      do itp=1,lmmaxvr
+        g3rhomt(itp,ir)=g3rhomt(itp,ir) &
+         +(rftp1(itp,ir,i)+rftp2(itp,ir,i))*rftp3(itp)
+      end do
     end do
   end do
 end if

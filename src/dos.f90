@@ -158,7 +158,7 @@ do is=1,nspecies
     do l=0,lmax
       do m=-l,l
         lm=idxlm(l,m)
-        write(50,'(" l =",I2,", m =",I2,", lm=",I3," : ",G18.10)') l,m,lm, &
+        write(50,'(" l = ",I2,", m = ",I2,", lm= ",I3," : ",G18.10)') l,m,lm, &
          elmsym(lm,ias)
       end do
     end do

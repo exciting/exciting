@@ -11,17 +11,19 @@ implicit none
 real(8), intent(in) :: vpl(3)
 complex(8), intent(out) :: evecsv(nstsv,nstsv)
 ! local variables
-logical exist
-integer isym,lspn,ik,ist,i,j,k,koffset
+integer isym,lspn,ik,ist,i
 integer recl,nstsv_
-real(8) vkl_(3),det,th,t1,t2
-real(8) s(3,3),sc(3,3),v(3)
-complex(8) s2(2,2),zt1,zt2
+real(8) vkl_(3),det
+complex(8) su2(2,2),zt1,zt2
 ! external functions
 real(8) r3taxi
 external r3taxi
 character(256) ::filetag
 character(256), external:: outfilenamestring
+!<chm>
+logical exist
+integer koffset
+!</chm>
 ! find the k-point number
 call findkpt(vpl,isym,ik)
 ! index to global spin rotation in lattice point group
@@ -70,35 +72,15 @@ end if
 if (lspn.eq.1) return
 ! if eigenvectors are spin-unpolarised return
 if (.not.spinpol) return
-! spin rotation matrix
-s(:,:)=dble(symlat(:,:,lspn))
-! convert symmetry matrix to Cartesian coordinates
-call r3mm(s,ainv,sc)
-call r3mm(avec,sc,sc)
-! determine the axis and angle of rotation for the symmetry matrix
-call rotaxang(epslat,sc,det,v,th)
-! determine the SU(2) representation of the symmetry matrix
-t1=cos(th/2.d0)
-t2=sin(th/2.d0)
-s2(1,1)=t1
-s2(1,2)=0.d0
-s2(2,1)=0.d0
-s2(2,2)=t1
-do k=1,3
-  zt1=-zi*t2*v(k)
-  do i=1,2
-    do j=1,2
-      s2(i,j)=s2(i,j)+zt1*sigmat(i,j,k)
-    end do
-  end do
-end do
+! find the SU(2) representation of the spin rotation matrix
+call rotsu2(symlatc(1,1,lspn),det,su2)
 ! apply SU(2) symmetry matrix to second-variational states
 do i=1,nstsv
   do ist=1,nstfv
     zt1=evecsv(ist,i)
     zt2=evecsv(ist+nstfv,i)
-    evecsv(ist,i)=s2(1,1)*zt1+s2(1,2)*zt2
-    evecsv(ist+nstfv,i)=s2(2,1)*zt1+s2(2,2)*zt2
+    evecsv(ist,i)=su2(1,1)*zt1+su2(1,2)*zt2
+    evecsv(ist+nstfv,i)=su2(2,1)*zt1+su2(2,2)*zt2
   end do
 end do
 return

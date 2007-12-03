@@ -5,7 +5,7 @@ MAKE = make
 #-------------------------------------------------------------------------------
 # Suffix rules
 #-------------------------------------------------------------------------------
-.SUFFIXES: .o .F90
+.SUFFIXES: .o .f90
 #.F90.o:
 #	$(F90) $(F90_OPTS) -c $<
 .SUFFIXES: .o .f90
@@ -42,7 +42,7 @@ SRC_routines_flux = \
  gengpvec.f90 genpmat.f90 ggamt.f90 ggair.f90 genveffig.f90 gencfun.f90 \
  genapwfr.f90 seceqnfv.f90 seceqnsv.f90 seceqnss.f90 getngkmax.f90 \
  dos.f90 rhoinit.f90 potplot.f90 writestate.f90 \
- potxc.f90 zpotcoul.f90 gndstate.F90  rhovalk.f90 readstate.f90 bandstr.f90 \
+ potxc.f90 zpotcoul.f90 gndstate.f90 rhovalk.f90 readstate.f90 bandstr.f90 \
  writeeval.f90 rhoplot.f90 gwf2val.f90 gwf2cr.f90 \
  rfarray.f90 fermisurf.f90 symrvfir.f90 \
  symrvf.f90 symrfmt.f90 wfplot.f90 hmlrad.f90 olprad.f90 olpistl.f90 olpaa.f90 \
@@ -66,7 +66,7 @@ SRC_optics = \
 
 SRC_advanced = \
  vnlrho.f90 vnlrhomt.f90 genwiq2.f90 \
- exxengy.f90 exxengyk.f90 oepmain.F90 oepresk.f90 oepvnl.F90 \
+ exxengy.f90 exxengyk.f90 oepmain.f90 oepresk.f90 oepvnl.f90 \
  oepvnlk.f90 oepmagmt.f90 oepmag.f90 zrhoqint.f90
 SRC_MPI=\
  mpiresumeevecfiles.F90 mpisumrhoandmag.F90 mpisync_evalsv_spnchr.F90
