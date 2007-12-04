@@ -123,10 +123,6 @@ subroutine gndstate
            write(60,'("Reached self-consistent loops maximum")')
         endif
         tlast=.true.
-#ifdef MPI
-        call MPI_bcast(tlast,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
-#endif
-
      end if
      if(rank.eq.0) call flushifc(60)
      ! generate the core wavefunctions and densities

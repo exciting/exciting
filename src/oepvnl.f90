@@ -18,13 +18,12 @@ integer ik,i
 !$OMP DO
 #ifdef MPIEXX
 do ik=firstk(rank),lastk(rank)
+ write(*,'("Info(oepvnl): ",I6," of ",I6," k-points on proc:",I6)') ik,nkpt,rank
 #endif
 #ifndef MPIEXX
 do ik=1,nkpt
+ write(*,'("Info(oepvnl): ",I6," of ",I6," k-points")') ik,nkpt
 #endif
-!$OMP CRITICAL
-  write(*,'("Info(oepvnl): ",I6," of ",I6," k-points on proc:",I6)') ik,nkpt,rank
-!$OMP END CRITICAL
   call oepvnlk(ik,vnlcv(1,1,1,ik),vnlvv(1,1,ik))
 end do
 !$OMP END DO
