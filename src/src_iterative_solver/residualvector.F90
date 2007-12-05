@@ -24,7 +24,7 @@ complex(8),intent(in)::HeS(np) !packed ut
 complex(8),intent(in)::evecfv(nmatmax) !vector
 complex(8),intent(out)::r(n)
 real(8),intent(out)::rnorm
-real(8) zdotc
+complex(8) zdotc
 external zdotc
 integer:: i
 
