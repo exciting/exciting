@@ -124,8 +124,8 @@ call cpu_time(cpu1)
 timefv=timefv+cpu1-cpu0
 !$OMP END CRITICAL 
 
-!call putevecfv(ik,evecfv)
-!call putevalfv(ik,evalfv)
+call putevecfv(ik,evecfv)
+call putevalfv(ik,evalfv)
 
 return
 end subroutine
