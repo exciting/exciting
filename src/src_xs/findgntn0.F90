@@ -219,9 +219,17 @@ contains
   subroutine findgntn0_clear()
     implicit none
     l1shape = 0
-    deallocate(m1shape, l2shape, m2shape, l3shape, m3shape)
-    deallocate(l1map, m1map, l2map, m2map, l3map, m3map)
-
+    if (allocated(m1shape)) deallocate(m1shape)
+    if (allocated(l2shape)) deallocate(l2shape)
+    if (allocated(m2shape)) deallocate(m2shape)
+    if (allocated(l3shape)) deallocate(l3shape)
+    if (allocated(m3shape)) deallocate(m3shape)
+    if (allocated(l1map)) deallocate(l1map)
+    if (allocated(m1map)) deallocate(m1map)
+    if (allocated(l2map)) deallocate(l2map)
+    if (allocated(m2map)) deallocate(m2map)
+    if (allocated(l3map)) deallocate(l3map)
+    if (allocated(m3map)) deallocate(m3map)
   end subroutine findgntn0_clear
 
 

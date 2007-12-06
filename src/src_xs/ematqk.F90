@@ -41,7 +41,6 @@ contains
     real(8) :: vql_(3), vkl_(3)
     complex(8) :: dum
 
-write(10,*) 'stephan 2 1'; call flushifc(10)
     call cpu_time(cpu0)
 
     ikq=ikmapikq(iq,ik)
@@ -49,7 +48,6 @@ write(10,*) 'stephan 2 1'; call flushifc(10)
     ! check for stop statement
     write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
     call tdchkstop
-write(10,*) 'stephan 2 2'; call flushifc(10)
 
     cpumtaa=0.d0; cpumtalo=0.d0; cpumtloa=0.d0; cpumtlolo=0.d0
     cpugnt=0.d0; cpumt=0.d0; cpuir=0.d0
@@ -73,7 +71,6 @@ write(10,*) 'stephan 2 2'; call flushifc(10)
     allocate(xihir(n0,n))
     allocate(helpm(nlotot,max(nstval,nstcon)))
     allocate(helpm2(n0,max(nstval,nstcon))) ! for ir
-write(10,*) 'stephan 2 3'; call flushifc(10)
 
     ! read eigenvectors, eigenvalues and occupancies for G+k+q
     call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
@@ -129,10 +126,8 @@ write(10,*) 'stephan 2 3'; call flushifc(10)
     call cpu_time(cpu0)
     cpuread=cpu0-cpu1
 
- write(10,*) 'stephan 2 4'; call flushifc(10)
-   ! loop over G+q vectors
+    ! loop over G+q vectors
     do igq=1,ngq(iq)
-       
        call terminate_inqr('ematqk')
 
        call cpu_time(cpu00)
@@ -141,14 +136,11 @@ write(10,*) 'stephan 2 3'; call flushifc(10)
        call cpu_time(cpu01)
        cpugnt=cpugnt+cpu01-cpu00
        ! muffin-tin contribution
- write(10,*) 'on entry to ematqkgmt'; call flushifc(10)
        call ematqkgmt(iq,ik,igq)
        call cpu_time(cpu00)
        cpumt=cpumt+cpu00-cpu01
        ! interstitial contribution
- write(10,*) 'on entry to ematqkgir'; call flushifc(10)
        call ematqkgir(iq,ik,igq)
- write(10,*) 'passed'; call flushifc(10)
        call cpu_time(cpu01)
        cpuir=cpuir+cpu01-cpu00
 
@@ -255,10 +247,9 @@ write(10,*) 'stephan 2 3'; call flushifc(10)
        call cpu_time(cpu00)
        cpudbg=cpudbg+cpu00-cpu01
     end do ! igq
+
     call cpu_time(cpu1)
     cpumain=cpu1-cpu0
-
-write(10,*) 'stephan 2 5'; call flushifc(10)
 
 
 !************************************************************
@@ -273,11 +264,9 @@ write(10,*) 'stephan 2 5'; call flushifc(10)
 
     ! write to emat file
     call putemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
-write(10,*) 'stephan 2 6'; call flushifc(10)
 
     ! write Kohn Sham energy differences
     call putdevalsv(iq,ik,.false.,trim(fndevalsv_t),deou,deuo)
-write(10,*) 'stephan 2 7'; call flushifc(10)
 
     ! deallocate
     deallocate(helpm,xihir,evecfvo,evecfvu,evecfvo0,evecfvu0)
@@ -285,7 +274,6 @@ write(10,*) 'stephan 2 7'; call flushifc(10)
     call cpu_time(cpu0)
     cpuwrite=cpu0-cpu1
     cpuall=cpuini+cpuread+cpumain+cpuwrite
-write(10,*) 'stephan 2 8'; call flushifc(10)
 
     ! write timing information
     call emattim(iq,ik,trim(fnetim),&
@@ -294,7 +282,6 @@ write(10,*) 'stephan 2 8'; call flushifc(10)
          cpumalores,cpumaloares,cpumloares,cpumloaares, &
          cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg, &
          cpumtaa,cpumtalo,cpumtloa,cpumtlolo)
-write(10,*) 'stephan 2 9'; call flushifc(10)
 
   end subroutine ematqk
   

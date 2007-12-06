@@ -14,11 +14,10 @@ contains
     external :: gaunt
 
     ! allocate and generate complex Gaunt coefficient array
-    if (allocated(tdgnt)) deallocate(tdgnt)
     lmmax1 = (lmax1+1)**2
     lmmax2 = (lmax2+1)**2
     lmmax3 = (lmax3+1)**2
-
+    if (allocated(tdgnt)) deallocate(tdgnt)
     allocate(tdgnt(lmmax1,lmmax2,lmmax3))
 
     do l1=0,lmax1

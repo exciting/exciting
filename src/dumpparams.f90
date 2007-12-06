@@ -17,7 +17,7 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   integer :: j,ia,is
 
   ! execute only for master process
-  if (rank > 0) return
+  if (rank.gt. 0) return
 
   ! write out specifyable parameters
   ! only show assigned array elements and strings where trailling whitespace

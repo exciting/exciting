@@ -36,9 +36,9 @@ character(256) str
 character(256) bname
 character(256) sppath
 #ifdef XS
-logical, parameter :: dumpmain=.true.
-logical, parameter :: dumpmpi=.true.
-logical, parameter :: dumptddft=.true.
+logical, parameter :: dumpmain=.false.
+logical, parameter :: dumpmpi=.false.
+logical, parameter :: dumptddft=.false.
 #endif
 !------------------------!
 !     default values     !
