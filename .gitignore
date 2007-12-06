@@ -22,3 +22,4 @@ make.inc
 mpif.h
 fort.*
 Makefile.serial
+*.orig
