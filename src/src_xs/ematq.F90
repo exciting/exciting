@@ -112,9 +112,11 @@ contains
 !!$    if (tresume) ki=resumechkpts(1,1)
     call getunit(un)
     ! loop over k-points
+write(10,*) 'stephan 1'; call flushifc(10)
     do ik = ki, kf
+write(10,*) 'stephan 1',ik; call flushifc(10)
        call ematqk(iq,ik)
-!-       resumechkpts(1,1)=ik
+!!$       resumechkpts(1,1)=ik
 !-       call resupd(un,task,resumechkpts,' : k-point index')
 #ifdef MPI
        if (ik-ki+1 <= nkpt/procs) then

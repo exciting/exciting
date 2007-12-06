@@ -236,17 +236,17 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   write(77,*)
   write(77,'("momfix")')
   write(77,*) momfix
-  if (any(mommtfix.ne.0.d0)) then
+!  if (any(mommtfix.ne.0.d0)) then
      write(77,*)
      write(77,'("mommtfix")')
      do is=1,nspecies
         do ia=1,natoms(is)
-           if (any(mommtfix(:,ia,is).ne.0.d0)) then
+!           if (any(mommtfix(:,ia,is).ne.0.d0)) then
               write(77,*) is,ia,mommtfix(:,ia,is)
-           end if
+!           end if
         end do
      end do
-  end if
+!  end if
   write(77,*)
   write(77,'("taufsm")')
   write(77,*) taufsm
@@ -311,6 +311,14 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   write(77,*)
   write(77,'("tevecsv")')
   write(77,*) tevecsv
+!  if (ldapu.ne.0) then
+     write(77,*)
+     write(77,'("lda+u")')
+     write(77,*) ldapu
+     do is=1,nspecies
+        write(77,*) is,llu(is),ujlu(1,is),ujlu(2,is)
+     end do
+!  end if
   ! close file
   close(77)
 

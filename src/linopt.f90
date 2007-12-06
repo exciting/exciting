@@ -58,7 +58,7 @@ subroutine linopt
   if (intraband.and.(tetra.or.optltz)) then
      write(*,*)
      write(*,'("Error(linopt): intraband contribution not implemented for &
-          tetrahedron method or Lorentzian broadening")')
+          &tetrahedron method or Lorentzian broadening")')
      write(*,*)
      stop
   end if

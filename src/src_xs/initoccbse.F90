@@ -17,7 +17,7 @@ subroutine initoccbse(nempty_)
   if (nstbef == -1) nstbef=nvalel
   if (nstbef > nvalel) then
      write(unitout,'(a,2i6)') 'Error('//trim(thisnam)//'): number of &
-          states below Fermi energy for BSE too large (proposed/max):',&
+          &states below Fermi energy for BSE too large (proposed/max):',&
           nstbef,nvalel
      call terminate
   end if

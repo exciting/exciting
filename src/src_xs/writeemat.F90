@@ -23,20 +23,20 @@ subroutine writeemat
   call init1
 
   ! initialize q-point set
-  call init2xs()
+  call init2xs
 
   ! k-point interval for process
   kpari=firstofset(rank,nkpt)
   kparf=lastofset(rank,nkpt)
 
   ! write q-point set
-  if (rank == 0) call writeqpts()
+  if (rank == 0) call writeqpts
 
   ! read Fermi energy from file
   call readfermi
 
   ! save variables for the Gamma q-point
-  call tdsave0()
+  call tdsave0
 
   ! generate Gaunt coefficients
   call tdgauntgen(lmaxmax,lmaxemat,lmaxmax)
@@ -47,6 +47,7 @@ subroutine writeemat
   write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
        &within lmax values:', lmaxmax,lmaxemat,lmaxmax
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
+  call flushifc(unitout)
 
   if (gather) goto 10
 
@@ -61,6 +62,7 @@ subroutine writeemat
 !!$     call resupd(un,task,resumechkpts,' : q-point index')
      write(unitout,'(a,i8)') 'Info('//thisnam//'): matrix elements of the &
           &exponentials finished for q-point:',iq
+     call flushifc(unitout)
   end do
 
   ! synchronize
@@ -70,8 +72,8 @@ subroutine writeemat
 10 continue
 
   ! gather from processes
-  if ((procs.gt.1).and.(rank.eq.0)) call ematgather()
-  if ((procs.gt.1).and.(rank.eq.0)) call devalsvgather()
+  if ((procs.gt.1).and.(rank.eq.0)) call ematgather
+  if ((procs.gt.1).and.(rank.eq.0)) call devalsvgather
 
   ! synchronize
   call getunit(un)
@@ -80,6 +82,6 @@ subroutine writeemat
   write(unitout,'(a)') "Info("//trim(thisnam)//"): matrix elements of &
        &exponential expression finished"
 
-  call findgntn0_clear()
+  call findgntn0_clear
 
 end subroutine writeemat

@@ -79,7 +79,6 @@ subroutine tdgeneigvec
         end if
      end do
      close(unit1)
-     
      if (rank == 0) then
         ! safely remove unnecessary files
         call filedel('EQATOMS'//trim(filext))
@@ -104,7 +103,7 @@ subroutine tdgeneigvec
 
   call getunit(un)
   call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-  call sleepifc(5)
+!!!  call sleepifc(1)
 
 !!$  if (tresume) tresume=.false.
 

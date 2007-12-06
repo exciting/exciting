@@ -16,8 +16,10 @@ contains
     integer :: ivwrap(3)
     integer, allocatable :: aigk0(:),aigk(:)
 
+write(10,*) 'stephan 3/ iq,ik,ikq,ngk(ikq,1)',iq,ik,ikq,ngk(ikq,1); call flushifc(10)
     ikq=ikmapikq(iq,ik)
     allocate(aigk0(ngk0(ik,1)),aigk(ngk(ikq,1)))
+write(10,*) 'stephan 4'; call flushifc(10)
 
     ! positive wrapping G-vector
     ivwrap(:)=nint(vkl0(:,ik)+vql(:,iq)-vkl(:,ikq))
@@ -37,8 +39,10 @@ contains
           xihir(igk0,igk) = cfunig(ig)
        end do
     end do
+write(10,*) 'stephan 5'; call flushifc(10)
 
     deallocate(aigk0,aigk)
+write(10,*) 'stephan 6'; call flushifc(10)
 
   end subroutine ematqkgir
   

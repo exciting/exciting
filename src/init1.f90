@@ -284,7 +284,7 @@ close(14)
 
 
         nerr=0
-        if (nkptt /= nkpt) then
+        if (nkptt.ne.nkpt) then
            write(*,*) 'Error(init1): k-point set inconsistency for tetrahedron&
                 & method'
            write(*,*) ' differring number of k-points (current/default)',&
