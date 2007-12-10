@@ -41,10 +41,6 @@ subroutine init1
   integer, allocatable :: indirkp(:)
   integer, allocatable :: iwkp(:),linkq(:,:), sy(:,:,:)
   integer :: nqptt,nsymcryst,isym,lspl,nerr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  real(8):: v1(3),v2(3),s(3,3),t2
-  real(8),external::r3taxi
 #endif
   ! external functions
   complex(8) gauntyry
@@ -163,10 +159,6 @@ subroutine init1
         allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
         allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
         allocate(tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6))
-        indirkp(:)=0
-        iwkp(:)=0
-        wtet(:)=0
-        tnodes(:,:)=0
         if (nsymcrys.gt.48) then
            write(*,*) 'Error(init1): number of crystal symmetries > 48'
            write(*,*) ' does not work with k-point generation for'
@@ -190,56 +182,62 @@ subroutine init1
         call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,&
              iwkp,ntet,tnodes,wtet,tvol,mnd)
 
-        write(*,*) 'writing out wtet_kgen...'
-        open(11,file='wtet_kgen.out',action='write',status='replace')
-        write(11,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
-        close(11)
+! *** DEBUG ********************************************************************
+write(*,*) 'writing out wtet_kgen...'
+open(1234,file='wtet_kgen.out',action='write',status='replace')
+write(1234,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
+close(1234)
+! *** DEBUG ********************************************************************
 
         do ik=1,nkpt
+           ! k-point in lattice coordinates
            vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
+           ! k-point in Cartesian coordinates
            vkc(:,ik)=vkl(1,ik)*bvec(:,1)+vkl(2,ik)*bvec(:,2)+vkl(3,ik)* &
                 bvec(:,3)
+           ! weight of k-point
            wkpt(ik)=dble(iwkp(ik))/dble(ngridk(1)*ngridk(2)*ngridk(3))
         end do ! ik
+        deallocate(indirkp,iwkp)
         !<rga>
-        if ((task.eq.121).or.(task.eq.122).or.((task>=300).and.(task<=498))&
-             .and.(task/=301)) then     
-           allocate(linkq(6*nkpt,nkpt))
+        if ((task.eq.121).or.(task.eq.122).or.((task.ge.300).and.(task.le.498))&
+             .and.(task.ne.301)) then
            if (allocated(link)) deallocate(link)
            allocate(link(6*nkpt,1))
+        end if
+        if (task.eq.-400) then
+           ! q-dependent dielectric function
+           allocate(linkq(6*nkpt,nkpt))
            if (allocated(kqid)) deallocate(kqid)
            allocate(kqid(nkpt,nkpt))
            nqptt=nqpt
            nqpt=nkpt
            if (allocated(ivq)) deallocate(ivq)
            allocate(ivq(3,ngridk(1)*ngridk(2)*ngridk(3)))
-           if (nkpt < ngridk(1)*ngridk(2)*ngridk(3)) then
-              write(*,*) 'Warning(init1): calculating q-dependent convolution'
+           if (nkpt.lt.ngridk(1)*ngridk(2)*ngridk(3)) then
+              write(*,*) 'Warning(init1): q-dependent convolution'
               write(*,*) ' weights from reduced k-point set, nkptnr,nkpt:',&
                    ngridk(1)*ngridk(2)*ngridk(3),nkpt
            end if
            ! generate "link" array for q-dependent tetrahedron method
-!!$           call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
-!!$                ntet,tnodes,wtet,linkq,tvol)
+           write(*,*) 'Info(init1): call to kqgen (libbzint)'
+           call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
+                ntet,tnodes,wtet,linkq,tvol)
            nqpt=nqptt
            ! keep link-array only for q=0
            link(:,1)=linkq(:,1)
-
-           ! *** for q=0 ***
+           deallocate(linkq,ivq,kqid)
+        else if ((task.eq.121).or.(task.eq.122)) then
+           ! linear optics (q=0): each tetrahedron is linked to itself
            forall (i1=1:6*nkpt) link(i1,1)=i1
-
-!!$           deallocate(linkq,ivq)
-        end if !task
-        deallocate(indirkp,iwkp)
+        end if
         !</rga>       
         ! cross check k-point set with exciting default routine
         allocate(ivkt(3,ngridk(1)*ngridk(2)*ngridk(3)))
-        ivkt(:,:)=0
         allocate(vklt(3,ngridk(1)*ngridk(2)*ngridk(3)))
         allocate(vkct(3,ngridk(1)*ngridk(2)*ngridk(3)))
         allocate(wkptt(ngridk(1)*ngridk(2)*ngridk(3)))
         allocate(ikmapt(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
-        ikmapt(:,:,:)=0
         call genppts(reducek,ngridk,vkloff,nkptt,ikmapt,ivkt,vklt,vkct,wkptt)
         nerr=0
         if (nkptt.ne.nkpt) then
@@ -284,7 +282,7 @@ subroutine init1
         ! add k-point mapping and integers on grid for k-point
         ikmap(:,:,:)=ikmapt(:,:,:)
         ivk(:,:)=ivkt(:,:)
-!!$        deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
+        deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
      else ! if (tetra) ... else
 #endif
         ! generate the reduced k-point set
@@ -306,60 +304,6 @@ subroutine init1
      allocate(ikmapnr(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
      ! generate the non-reduced k-point set
      call genppts(.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr,wkptnr)
-#ifdef TETRA
-     if (tetra) then
-        if ((task.eq.121).or.(task.eq.122).or.((task>=300).and.(task<=498))&
-             .and.(task/=301)) then     
-        ! ***
-!!$        call genkqtet(nsymcryst,sy,omega,bvec,(/0.0,0.0,0.0/),ngridk,nkptnr,&
-!!$             nkpt,vkloff,ivk,ivknr,ikmap,ikmapnr,wkpt,tvol,tnodes,link)
-!!$           call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
-!!$                ntet,tnodes,wtet,linkq,tvol)
-           deallocate(sy)
-        end if
-     end if
-
-     if (task.eq.498) then!***************************
-        write(*,*) 'writing out link...'
-        open(1234,file='link.out',action='write',status='replace')
-        write(1234,'(2i8)') (i1,link(i1,1),i1=1,6*nkpt)
-        close(1234)
-
-        write(*,*) 'writing out wtet_kqgen...'
-        open(1234,file='wtet_kqgen.out',action='write',status='replace')
-        write(1234,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
-        close(1234)
-
-        write(*,*) 'writing out tnodes...'
-        open(1234,file='tnodes.out',action='write',status='replace')
-        write(1234,'(3i8,3i6)') ((i1,i2,tnodes(i1,i2),i2=1,6*nkpt),i1=1,4)
-        close(1234)
-        write(*,*) 'writing out tnodes2...'
-        open(1234,file='tnodes2.out',action='write',status='replace')
-        write(1234,'(3i8,3i6)') ((i1,i2,tnodes(i1,i2),i1=1,4),i2=1,6*nkpt)
-!!$        write(1234,'(3i8,3i6)') ((i1,i2,tnodes(i1,i2),&
-!!$             ivkt(1,tnodes(i1,i2)),ivkt(2,tnodes(i1,i2)),ivkt(3,tnodes(i1,i2)),&
-!!$             i1=1,4),i2=1,6*nkpt)
-        close(1234)
-     endif!********************************************
-
-!!$     write(*,*) 'writing out ivk...'
-!!$     open(1234,file='ivk.out',action='write',status='replace')
-!!$     write(1234,'(i8,3i6)') (i1,ivkt(1,i1),ivkt(2,i1),ivkt(3,i1),i1=1,nkpt)
-!!$     close(1234)
-
-!!$write(*,*) 'writing out k-points from genppts...'
-!!$open(1234,file='kpoints_genppts.out',action='write',status='replace')
-!!$write(1234,'(i8,4g18.10)') (ik,vklt(:,ik),wkptt(ik),ik=1,nkptt)
-!!$close(1234)
-!!$
-!!$write(*,*) 'writing out k-points from kgen...'
-!!$open(1234,file='kpoints_kgen.out',action='write',status='replace')
-!!$write(1234,'(i8,4g18.10)') (ik,vkl(:,ik),wkpt(ik),ik=1,nkpt)
-!!$close(1234)
-
-
-#endif
   end if ! if ((task.eq.20).or.(task.eq.21))
 
   !---------------------!
