@@ -1,13 +1,14 @@
-subroutine       readprecond(ik,n,X)
+subroutine       readprecond(ik,n,X,w)
   use modmain
 use modmpi	
   integer, intent(in)::n,ik
   complex(8), intent(out)::X(nmatmax,nmatmax)
+   real(8),intent(out)::w(nmatmax)
   !local variables
   character(256) ::filetag
   character(256), external:: outfilenamestring
   integer recl,koffset
-  inquire(iolength=recl)X
+  inquire(iolength=recl)X,w
   filetag="PRECONDMATRIX"
   if (splittfile.or.(rank.eq.0)) then
      open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
@@ -17,7 +18,7 @@ use modmpi
      else
         koffset =ik
      endif
-     read(70,rec=koffset)X
+     read(70,rec=koffset)X,w
   else
      write(*,*)"Error"
      stop

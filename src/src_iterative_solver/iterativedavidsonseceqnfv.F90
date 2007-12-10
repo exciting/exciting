@@ -2,6 +2,7 @@ subroutine  iterativedavidsonseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   !USES:
   use modmain
+  use sclcontroll
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -37,13 +38,12 @@ subroutine  iterativedavidsonseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8)	::evecp(2*nstfv,nstfv),r(nmat(ik,ispn))
   real(8)  	::vl,vu,abstol,evalp(nstfv)
   real(8) 	::cpu0,cpu1
-  real(8) 	::residualeps=1e-6
-  logical 	::blockdavidsonconverged,calculateprecondidioner
   real(8) 	::eps,rnorm
   complex(8) 	:: h(npmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
   complex(8) 	:: o(npmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
   complex(8) 	:: hminuses(npmat(ik,ispn)),da(nmat(ik,ispn),nstfv)
-
+  complex(8)X(nmatmax,nmatmax)
+  real(8)::w(nmatmax)
 
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
      write(*,*)
@@ -69,72 +69,31 @@ subroutine  iterativedavidsonseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !$OMP END CRITICAL
   !update eigenvectors with iteration
   call cpu_time(cpu0)
-  calculateprecondidioner=.true.
-  if(calculateprecondidioner) then
-     call seceqfvprecond(ik,n,h,o,evalfv,evecfv)
+  if(calculate_preconditioner()) then
+     call seceqfvprecond(ik,n,h,o,X,evalfv,evecfv)
   else
-     call readprecond(ik,n,X)
+     call readprecond(ik,n,X,w)
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
 
-
-#ifdef DEBUG
-     write(114,*)"evecfv" ,evecfv
-#endif
-
      do i=1,3
-        do ievec=1,nstfv	
-           !do ievec=1,1	
-
-           ! blas call means : HminuseS(:)=h(:)-evalfv(ievec,ispn)*o(:)
-           call zcopy(np,h,1,hminuses,1)
-           call zaxpy(np,dcmplx(-evalfv(ievec,ispn),&
-                0),o,1,hminuses,1)
-#ifdef DEBUG
-           write(115,*)"hminuses",hminuses
-#endif
-           call residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),&
-                nmatmax,r(:),rnorm)
-           if (rnorm.lt.residualeps)then
-              blockdavidsonconverged=.true.
-           end if
-
+        do ievec=1,nstfv
+           call residualvector(n,np,h,o,evecfv(:,ievec,ispn),r(:),rnorm)
+           if  (rnorm.lt.reps) exit
            call calcupdatevector(n,X,r(:),HminuseS(:),da(:,ievec) ) 
+           call diisupdate(n,da,o,evecfv)
         end do
-#ifdef DEBUG
-        write(331,*)"r",r
-        write(332,*)"HminuseS",HminuseS
-        write(333,*)"da",da
-#endif
-        call setupprojectedhamilton(n,nstfv,h,o,nmatmax,&
-             evecfv(:,:,ispn),evalfv(:,ispn),da(:,:),&
-             hprojected(:),oprojected(:))
-#ifdef DEBUG
-        write(334,*)"hprojected",hprojected
-        write(335,*)"oprojected",oprojected
-#endif
-        call projectedsecequn(nstfv,hprojected(:),&
-             oprojected(:),evecp(:,:),evalp(:))
-#ifdef DEBUG
-        write(336,*)"evalp",evalp
-        write(337,*)"evalfv",evalfv(:,ispn)
-#endif
-        write(338,*)"evecfv",evecfv(:,:,ispn)
-        call updateevecfv(n,nstfv,da(:,:),nmatmax,&
-             evecfv(:,:,ispn),evalfv(:,ispn),evecp(:,:),evalp(:))
+
         do ievec=1,nstfv
            !calculate new eigenvalues from rayreigh quotient
            call rayleighqotient(n,evecfv(:,ievec,ispn)&
                 ,h,o,evalfv(ievec,ispn))
         end do
-
      end do
-
+	 call prerotate_preconditioner(n,h,o,evecfv,X)
      call cpu_time(cpu1)
   endif
   timefv=timefv+cpu1-cpu0
-
-
   return
 end subroutine iterativedavidsonseceqnfv
 !EOC

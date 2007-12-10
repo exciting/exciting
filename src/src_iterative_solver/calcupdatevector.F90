@@ -1,9 +1,10 @@
-subroutine calcupdatevector(n,X,residual,HMINUSES,evalfv,o,da)
+subroutine calcupdatevector(n,X,residual,HMINUSES,o,da)
+use modmain	
   implicit none
   integer, intent(in)::n
   complex(8),intent(in)::residual(n),X(nmatmax,nmatmax)
   ! Hermitian Matrix upper triangle packed
-  complex(8),intent(in)::HminuseS(n*(n+1)/2)
+  complex(8),intent(in)::HminuseS(n*(n+1)/2),o(n*(n+1)/2)
   complex(8),intent(out):: da(n) ! vectors size n
   complex(8)::invHmineS(n)
   complex(8):: norm

@@ -1,7 +1,7 @@
 !BOP
 ! !ROUTINE: seceqn
-subroutine residualvector(n,np,HeS,evecfv,nmatmax,r,rnorm)
-!residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),r(:),rnorm)
+subroutine residualvector(n,h,o,evecfv,evalfv,r,rnorm)
+use modmain, only: nmatmax
 	
 ! !INPUT/OUTPUT PARAMETERS:
 
@@ -19,15 +19,20 @@ subroutine residualvector(n,np,HeS,evecfv,nmatmax,r,rnorm)
 !BOC
 !use modmain
 implicit none
-integer , intent (in)::n,np,nmatmax
-complex(8),intent(in)::HeS(np) !packed ut
-complex(8),intent(in)::evecfv(nmatmax) !vector
+integer , intent (in)::n
+!packed ut
+complex(8),intent(in)::evecfv(nmatmax),h(n*(n+1)/2),o(n*(n+1)/2) !vector
 complex(8),intent(out)::r(n)
+real(8),intent(in)::evalfv
 real(8),intent(out)::rnorm
 complex(8) zdotc
 external zdotc
-integer:: i
-
+integer:: i ,np
+complex(8)::HeS(n*(n+1)/2) 
+np=n*(n+1)/2
+  ! blas call means : HminuseS(:)=h(:)-evalfv(ievec,ispn)*o(:)
+           call zcopy(np,h,1,hes,1)
+           call zaxpy(np,dcmplx(-evalfv, 0),o,1,hes,1)
 r(:)=0.0
 call zhpmv("U",n,dcmplx(1.0,0.0),HeS,evecfv, 1, dcmplx(0,0), r(1), 1)
 #ifdef DEBUG

@@ -1,11 +1,12 @@
-subroutine seceqfvprecond  (ik,n,h,o,evalfv,evecfv)
+subroutine seceqfvprecond  (ik,n,h,o,X,evalfv,evecfv)
   use modmain
   integer, intent(in)::n,ik
   complex(8),intent(in)::h(n*(n+1)/2),o(n*(n+1)/2)
   complex(8),intent(out)::evecfv(nmatmax,nstfv)
   real(8),intent(out)::evalfv(nstfv)
+  complex(8),intent (OUT)::X(nmatmax,nmatmax)	
 !local var
-  complex(8)X(nmatmax,nmatmax)
+ 
 !workarrays for lapaack
 integer::info
 integer  :: iwork(5*n)
@@ -32,5 +33,5 @@ end if
 
 evalfv(1:nstfv)=w(1:nstfv)
 evecfv(:,1:nstfv)=X(:,1:nstfv)
-  call writeprecond(ik,n,X)
+  call writeprecond(ik,n,X,w)
 end subroutine seceqfvprecond
