@@ -73,7 +73,7 @@
 
       use tetra_internal   , only : sgnfrq, omgga
 !<sag>
-      use control, only : restype
+      use control, only : restype, tetradbglv
 !</sag>
 
       use polyhedron
@@ -432,6 +432,9 @@
       return
       
 999   info = 1
+!<sag>
+      if (tetradbglv.gt.0) then
+!</sag>
       write(*,*)'the four points are in the same plane'
       write(*,*)'ical = ',ical
       write(*,*)'nodes'
@@ -442,6 +445,9 @@
       do i=1,3
         write(*,*)vec(i,1:3)
       enddo  
+!<sag>
+      end if
+!</sag>
       do i=1,4
        ww2(i)=0.0d0
       enddo
