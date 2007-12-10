@@ -39,8 +39,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
-  complex(8) 	:: hamilton(npmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8) 	:: overlap(npmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
+  complex(8) 	:: hamilton(nmat(ik,ispn),nmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
+  complex(8) 	:: overlap(nmat(ik,ispn),nmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
   complex(8)::P(nmatmax,nmatmax), h(nmat(ik,ispn),nstfv,diismax) ,&
        s(nmat(ik,ispn),nstfv,diismax),&
        r(nmat(ik,ispn),nstfv),subspacevectors(nmat(ik,ispn),nstfv,diismax)
@@ -59,7 +59,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
   call cpu_time(cpu0)
-  call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
+  call hamiltonandoverlapsetupnotpacked(n,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
+  
   call cpu_time(cpu1)
 #ifdef DEBUG
   write(112,*)"h",h
