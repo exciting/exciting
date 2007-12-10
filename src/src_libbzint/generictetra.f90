@@ -433,7 +433,7 @@
       
 999   info = 1
 !<sag>
-      if (tetradbglv.gt.0) then
+      if (tetradbglv.gt.10) then
 !</sag>
       write(*,*)'the four points are in the same plane'
       write(*,*)'ical = ',ical
