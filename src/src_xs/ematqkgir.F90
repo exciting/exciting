@@ -17,11 +17,12 @@ contains
     integer, allocatable :: aigk0(:),aigk(:)
 
     ikq=ikmapikq(iq,ik)
-    allocate(aigk0(ngk0(ik,1)),aigk(ngk(ikq,1)))
+    allocate(aigk0(ngkmax0),aigk(ngkmax))
 
     ! positive wrapping G-vector
     ivwrap(:)=nint(vkl0(:,ik)+vql(:,iq)-vkl(:,ikq))
 
+    ! precalculate for speedup
     aigk0(:)=igkig0(:,ik,1)
     aigk(:)=igkig(:,ikq,1)
     ig3=igqig(igq,iq)

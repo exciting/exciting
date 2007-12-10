@@ -20,7 +20,8 @@ MODFILES = order.f90 kgen_internals.f90 tetra_internal.f90 polyhedron.f90
 #
 #  Files for generation of k-point grids
 #
-KGENFILES = kgen.f90 kgenq.f90 kqgen.f90
+KGENFILES = kgen.f90 kgenq.f90 kqgen.f90 \
+	genkqtet.f90
 
 #
 # Subroutines for use of kgenfiles only
@@ -29,7 +30,7 @@ KGENFILES = kgen.f90 kgenq.f90 kqgen.f90
 KGENSUBS =  coorskp.f90 divisi.f90 jget.f90 idkp.f90 \
             jset.f90  sym2int.f90 tetinit.f90 tgen.f90 \
             tgenq.f90
-            
+
 #
 #  Files for BZ integrations and convolutions
 #
@@ -47,7 +48,7 @@ INTSUBS = bloechlcor.f90 convw1t.f90 convw.f90 convcorew.f90 dos1t.f90 \
           sortsurf.f90 surfnodes.f90 tlinap.f90 unrepnodes.f90 sorteq.f90 redifwt.f90 \
           redifwtx.f90 redifwty.f90 redifwtz.f90 edifwt.f90 edifwtaylor.f90 edifwtx.f90 edifwty.f90 \
           edifwtz.f90 redifwtaylor.f90 reduk.f90 redusym.f90
-      
+
 #           
 #  Files that can be called independently (and are also used by the others programs)
 #
@@ -126,6 +127,6 @@ doc:
 #
 dist:   
 	tar -cPzvf $(DIST_FILE) Makefile $(FILES) tetra.tex tests.tex 
-        
+
 .f90.o: Makefile
 	$(F90) $(F90_OPTS) -c $<

@@ -1,7 +1,8 @@
 
 subroutine tdsave0
   !
-  ! to be called after init0, init1 and init2xs to save q=0 variables
+  ! This routine is be called after init0, init1 and init2xs in order to save
+  ! variables realted to the k-point set for q=0.
   !
   use modmain
   use modxs

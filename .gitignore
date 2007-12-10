@@ -21,4 +21,5 @@ Makefile.parallel
 make.inc
 mpif.h
 fort.*
+*.diff
 Makefile.serial

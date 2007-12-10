@@ -200,7 +200,7 @@
 !
 !     Calculate the k-dependent geometrical weights of the (q,k') pairs
 !
-!       call asockkp(wkkq)  
+!       call asockkp(wkkq)
       wtet(1:ntet)=1
  
       do i=1,nkpt
