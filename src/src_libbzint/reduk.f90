@@ -162,16 +162,16 @@ subroutine reduk(nsymt,divsh,weight)
                     kprt(:)=iio(:,1,i)*kpr(1)+iio(:,2,i)*kpr(2)+&
                          iio(:,3,i)*kpr(3)
                     ! map to reciprocal unit cell
-                    !***call mapto01(epslat,kprt)
-                    call r3frac(epslat,kprt,iv)
+                    call mapto01(epslat,kprt)
+                    !***call r3frac(epslat,kprt,iv)
                     ! from lattice coordinates to internal coordinates
                     ! for unshifted mesh
                     kprt(:)=(kprt(:)*div(:)*divsh-shift(:))/dble(divsh)
                     ! location of rotated k-point on integer grid
                     nkp(:)=nint(kprt(:))
                     ! determine fractional part of rotated k-point
-                    !***call mapto01(epslat,kprt)
-                    call r3frac(epslat,kprt,iv)
+                    call mapto01(epslat,kprt)
+                    !***call r3frac(epslat,kprt,iv)
                     ! if fractional part is present discard k-point
                     if (any(kprt.gt.epslat)) nkp(:)=-1
                     nkpid=idkp(nkp)
@@ -205,6 +205,15 @@ subroutine reduk(nsymt,divsh,weight)
      ! end new code
   end if ! if (tetraifc)
   !</sag>
+
+!!!!!!!!!!!!!!!!!!! DEBUG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+write(*,*) 'REDUK REPORTS: kpid,ikpid(kpid),redkp(kpid)'
+write(*,*) 'div',div
+do kpid=1,div(1)*div(2)*div(3)
+   write(*,*) kpid,ikpid(kpid),redkp(kpid)
+end do
+write(*,*)
+
 
   deallocate(iio)
   !      write(6,*)'------------------------------------------------------'

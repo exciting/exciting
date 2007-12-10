@@ -1,5 +1,6 @@
 include make.inc
 
+MAKE=make
 
 serial: make.inc
 	../../utilities/mkmf -t template -f -m Makefile.serial -p exciting \
@@ -46,3 +47,11 @@ clean:
 
 cleanlibs:
 	rm -f *.a
+
+### build libbzint, do not clean source tree of library and build exciting
+bzex:
+	cp -f make.inc ../..
+	cd ../../src/src_libbzint && make
+	cp ../../src/src_libbzint/libbzint.a .
+	rm -f exciting
+	make serial

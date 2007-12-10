@@ -22,7 +22,7 @@ contains
     ! positive wrapping G-vector
     ivwrap(:)=nint(vkl0(:,ik)+vql(:,iq)-vkl(:,ikq))
 
-    ! precalculate for speed up
+    ! precalculate for speedup
     aigk0(:)=igkig0(:,ik,1)
     aigk(:)=igkig(:,ikq,1)
     ig3=igqig(igq,iq)
