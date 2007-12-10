@@ -215,9 +215,10 @@ subroutine linopt
            e1(ist1,ik)=evalsv(ist1,ik)
         end forall
         ! scissors correction needed in input energies for tetrahedron method
-        where(e1 > efermi) e1=e1+scissor
+        where (e1.gt.efermi) e1=e1+scissor
         do iw=1,nwdos
-           write(*,'("Info(linopt): ",I6," of ",I6," w-points")') iw,nwdos
+           if ((modulo(iw,nwdos/10).eq.0).or.(iw.eq.nwdos)) &
+                write(*,'("Info(linopt): ",I6," of ",I6," w-points")') iw,nwdos
            ! it seems that frequency should be non-zero for tetcw (?)
            ! see Ricardo's code
            if (abs(w(iw)).lt.epstetra) w(iw)=epstetra

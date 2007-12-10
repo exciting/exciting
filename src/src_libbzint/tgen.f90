@@ -18,7 +18,7 @@
       use order, only: sort
       use kgen_internals
 !<sag>
-      use control, only: tetraifc
+      use control, only: tetraifc, tetradbglv
 !</sag>
       implicit none
       
@@ -177,19 +177,20 @@ nkptnr=div(1)*div(2)*div(3)
       ntet=index
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-write(*,*) 'tgen reports:'
-write(*,*) 'nkptnr:',nkptnr
-write(*,*) 'maxtet:',6*nkptnr
-write(*,*) 'ntet  :',ntet
-do j=1,nkptnr
-   do itet=1,6
-      i=(j-1)*6+itet
-      write(*,'(3i5,3x,i9,3x,4i5)') j,itet,i,redtet(i),outet(:,redtet(i))
-   end do
-end do
-
+      ! *** DEBUG ***
+      if (tetradbglv.gt.1) then
+         write(*,*) 'TGEN REPORTS:'
+         write(*,*) 'nkptnr:',nkptnr
+         write(*,*) 'maxtet:',6*nkptnr
+         write(*,*) 'ntet  :',ntet
+         do j=1,nkptnr
+            do itet=1,6
+               i=(j-1)*6+itet
+               write(*,'(3i5,3x,i9,3x,4i5)') j,itet,i,redtet(i),&
+                    outet(:,redtet(i))
+            end do
+         end do
+      end if      
 
       end subroutine tgen
 !EOC

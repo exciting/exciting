@@ -204,14 +204,15 @@ subroutine reduk(nsymt,divsh,weight)
   end if ! if (tetraifc)
   !</sag>
 
-!!!!!!!!!!!!!!!!!!! DEBUG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-write(*,*) 'REDUK REPORTS: kpid,ikpid(kpid),redkp(kpid)'
-write(*,*) 'div',div
-do kpid=1,div(1)*div(2)*div(3)
-   write(*,*) kpid,ikpid(kpid),redkp(kpid)
-end do
-write(*,*)
-
+  ! *** DEBUG ***
+  if (tetradbglv.gt.1) then
+     write(*,*) 'REDUK REPORTS: kpid,ikpid(kpid),redkp(kpid)'
+     write(*,*) 'div',div
+     do kpid=1,div(1)*div(2)*div(3)
+        write(*,*) kpid,ikpid(kpid),redkp(kpid)
+     end do
+     write(*,*)
+  end if
 
   deallocate(iio)
   !      write(6,*)'------------------------------------------------------'
