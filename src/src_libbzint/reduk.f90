@@ -163,7 +163,6 @@ subroutine reduk(nsymt,divsh,weight)
                          iio(:,3,i)*kpr(3)
                     ! map to reciprocal unit cell
                     call mapto01(epslat,kprt)
-                    !***call r3frac(epslat,kprt,iv)
                     ! from lattice coordinates to internal coordinates
                     ! for unshifted mesh
                     kprt(:)=(kprt(:)*div(:)*divsh-shift(:))/dble(divsh)
@@ -171,7 +170,6 @@ subroutine reduk(nsymt,divsh,weight)
                     nkp(:)=nint(kprt(:))
                     ! determine fractional part of rotated k-point
                     call mapto01(epslat,kprt)
-                    !***call r3frac(epslat,kprt,iv)
                     ! if fractional part is present discard k-point
                     if (any(kprt.gt.epslat)) nkp(:)=-1
                     nkpid=idkp(nkp)
@@ -237,35 +235,5 @@ contains
     end do
   end subroutine mapto01
 !</sag>
-
-
-  subroutine r3frac(eps,v,iv)
-    ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-    ! This file is distributed under the terms of the GNU Lesser General Public
-    ! License.
-    implicit none
-    ! arguments
-    real(8), intent(in) :: eps
-    real(8), intent(inout) :: v(3)
-    integer, intent(out) :: iv(3)
-    ! local variables
-    integer i
-    do i=1,3
-       iv(i)=int(v(i))
-       v(i)=v(i)-dble(iv(i))
-       if (v(i).lt.0.d0) then
-          v(i)=v(i)+1.d0
-          iv(i)=iv(i)-1
-       end if
-       if (1.d0-v(i).lt.eps) then
-          v(i)=0.d0
-          iv(i)=iv(i)+1
-       end if
-       if (v(i).lt.eps) then
-          v(i)=0.d0
-       end if
-    end do
-    return
-  end subroutine r3frac
 end subroutine reduk
 !EOC
