@@ -32,14 +32,14 @@ subroutine xsmain
   ! save task
   tasktd = task
   ! remember how often this routine is called
-  calledtd = calledtd + 1
+  calledxs = calledxs + 1
   ! 
-  if (calledtd == 1) call argparse()
+  if (calledxs == 1) call argparse()
 
   ! basic initialization
-  call tdinit
+  call xsinit
 
-  if (calledtd == 1) then
+  if (calledxs == 1) then
      ! check verify constraints
      call tdcheck
      write(unitout,'(a)') 'Info('//thisnam//'): initialization done.'

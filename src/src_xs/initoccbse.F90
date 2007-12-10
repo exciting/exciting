@@ -1,8 +1,8 @@
 
 subroutine initoccbse(nempty_)
+  ! 
   use modmain
   use modxs
-
   implicit none
   ! arguments
   integer, intent(inout) :: nempty_
@@ -14,8 +14,8 @@ subroutine initoccbse(nempty_)
   nvalel=nint(chgval/2.d0)
 
   ! number of states below Fermi energy
-  if (nstbef == -1) nstbef=nvalel
-  if (nstbef > nvalel) then
+  if (nstbef.eq.-1) nstbef=nvalel
+  if (nstbef.gt.nvalel) then
      write(unitout,'(a,2i6)') 'Error('//trim(thisnam)//'): number of &
           &states below Fermi energy for BSE too large (proposed/max):',&
           nstbef,nvalel
@@ -23,7 +23,7 @@ subroutine initoccbse(nempty_)
   end if
 
   ! number of states above Fermi energy
-  if (nstabf==-1) then
+  if (nstabf.eq.-1) then
      ! if "nstabf" is not specified define it using "nempty"
      nstabf=nempty_+1
   else

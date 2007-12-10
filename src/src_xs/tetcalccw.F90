@@ -12,7 +12,7 @@ subroutine tetcalccw
   integer :: iq,un,j
   logical :: tlfe, tet
 
-  if (calledtd.eq.1) call init0
+  if (calledxs.eq.1) call init0
 
   ! initialise universal variables
   tet=tetra

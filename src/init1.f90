@@ -13,7 +13,7 @@ subroutine init1
   use modtetra
 #endif
 #ifdef XS
-  use modxs, only: skipallocs1, imbandstr, nsymcrysstr, scmapstr
+  use modxs, only: dbglev, skipallocs1, imbandstr, nsymcrysstr, scmapstr
 #endif
   ! !DESCRIPTION:
   !   Generates the $k$-point set and then allocates and initialises global
@@ -141,7 +141,7 @@ subroutine init1
         ! generate fraction for k-point offset
         call factorize(3,vkloff,ikloff,dkloff)
         ! check offset factorization
-        if (any(abs(dble(ikloff)/dble(dkloff)-vkloff) > epslat)) then
+        if (any(abs(dble(ikloff)/dble(dkloff)-vkloff).gt.epslat)) then
            write(*,*)
            write(*,'("Error(init1): tetrahedron method:")')
            write(*,'(" factorization of k-point offest failed")')
@@ -182,12 +182,13 @@ subroutine init1
         call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,&
              iwkp,ntet,tnodes,wtet,tvol,mnd)
 
-! *** DEBUG ********************************************************************
-write(*,*) 'writing out wtet_kgen...'
-open(1234,file='wtet_kgen.out',action='write',status='replace')
-write(1234,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
-close(1234)
-! *** DEBUG ********************************************************************
+        ! debug output
+        if (dbglev.gt.1) then
+           write(*,*) 'writing out wtet to file ("wtet_kgen.out") ...'
+           open(1234,file='wtet_kgen.out',action='write',status='replace')
+           write(1234,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
+           close(1234)
+        end if
 
         ! check tetrahedron weights
         i1=sum(wtet)
@@ -255,7 +256,7 @@ close(1234)
            nerr=nerr+1
         else
            do ik=1,nkpt
-              if (any(abs(vklt(:,ik)-vkl(:,ik)) > epslat)) then
+              if (any(abs(vklt(:,ik)-vkl(:,ik)).gt.epslat)) then
                  write(*,*) 'Error(init1): k-point set inconsistency for &
                       &tetrahedron method'
                  write(*,*) ' differring k-point (current/default/diff)',ik
@@ -265,7 +266,7 @@ close(1234)
                  write(*,*)
                  nerr=nerr+1
               end if
-              if (abs(wkptt(ik)-wkpt(ik)) > epslat) then
+              if (abs(wkptt(ik)-wkpt(ik)).gt.epslat) then
                  write(*,*) 'Error(init1): k-point set inconsistency for &
                       &tetrahedron method'
                  write(*,*) ' differring k-point weight (current/default)',ik
@@ -277,7 +278,7 @@ close(1234)
               end if
            end do
         end if
-        if (nerr > 0) then
+        if (nerr.gt.0) then
            write(*,*) 'Errors occurred - stop', nerr
            stop
         end if

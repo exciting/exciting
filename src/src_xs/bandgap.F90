@@ -136,7 +136,7 @@ subroutine writebandgapgrid
   use modxs
   use m_genfilname
   ! initialise universal variables
-  if (calledtd.eq.1) call init0
+  if (calledxs.eq.1) call init0
   ! file extension for q-point
   call genfilname(iq=0,setfilext=.true.)
   call init1

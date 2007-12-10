@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine tdinit
+subroutine xsinit
   use modmain
   use modxs
   use modfxcifc
@@ -12,7 +12,7 @@ subroutine tdinit
   use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'tdinit'
+  character(*), parameter :: thisnam = 'xsinit'
   character(10) dat, tim
   integer :: un,i
   logical :: ex
@@ -43,7 +43,7 @@ subroutine tdinit
 
 !!$  call getunit(un)
 !!$  ! initialize for first call to main routine
-!!$  if (calledtd.eq.1) resumechkpts=0
+!!$  if (calledxs.eq.1) resumechkpts=0
 !!$  ! read in checkpoint if present
 !!$  call resread(un,resumetask,resumechkpts,tresume)
 !!$  ! checkpointing starts
@@ -57,7 +57,7 @@ subroutine tdinit
   call system_clock(COUNT_RATE=cntrate)
   call system_clock(COUNT=systim0i)
   call date_and_time(date=dat,time=tim)
-  if (calledtd.eq.1) call system_clock(COUNT=systimcum)
+  if (calledxs.eq.1) call system_clock(COUNT=systimcum)
 
   ! name of output file
   call genfilname(nodotpar=.true.,basename='XSINFO',&
@@ -65,7 +65,7 @@ subroutine tdinit
 
   ! reset or append to output file
   call getunit(unitout)
-  if ( tappinfo.or.(calledtd.gt.1)) then
+  if ( tappinfo.or.(calledxs.gt.1)) then
      open(unitout,file=trim(tdfileout),action='write',position='append')
   else
      open(unitout,file=trim(tdfileout),action='write',status='replace')
@@ -79,7 +79,7 @@ subroutine tdinit
   call getfxcdata(fxctype,fxcdescr,fxcspin)
 
   ! write to info file
-  if (calledtd == 1) then
+  if (calledxs == 1) then
      write(unitout,*)
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
@@ -117,4 +117,4 @@ subroutine tdinit
        task,' started'
   call flushifc(unitout)
 
-end subroutine tdinit
+end subroutine xsinit

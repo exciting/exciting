@@ -1,9 +1,9 @@
 
-module m_tdintrg
+module m_ematgntsum
   implicit none
 contains
 
-  subroutine tdintrg(iq,igq)
+  subroutine ematgntsum(iq,igq)
     use modmain
     use modxs
     use m_findgntn0
@@ -232,6 +232,6 @@ contains
        close(u4)
     end if
 
-  end subroutine tdintrg
+  end subroutine ematgntsum
 
-end module m_tdintrg
+end module m_ematgntsum

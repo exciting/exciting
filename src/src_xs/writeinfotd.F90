@@ -23,7 +23,7 @@ subroutine writeinfotd
   ! local variables
   character(*), parameter :: thisnam='writeinfotd'
   
-  if (calledtd==1) then
+  if (calledxs==1) then
      ! write angular momenta
      write(unitout,'(a)') 'Info('//thisnam//'): angular momenta:'
      write(unitout,'(a,2i8)') ' density and potential        : ',&

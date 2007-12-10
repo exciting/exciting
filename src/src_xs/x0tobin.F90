@@ -15,7 +15,7 @@ subroutine x0tobin
   complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
   logical :: tq0
 
-  if (calledtd.eq.1) call init0
+  if (calledxs.eq.1) call init0
 
   ! initialise universal variables
   call init1

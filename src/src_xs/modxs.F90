@@ -160,14 +160,14 @@ module modxs
   real(8), allocatable :: deou(:,:)
   ! eigenvalue differences (anti-resonant part)
   real(8), allocatable :: deuo(:,:)
-  ! lowest (at least partially) occupied state
-  integer, allocatable :: nsto(:)
-  ! highest (at least partially) unoccupied state
-  integer, allocatable :: nstu(:)
+  ! highest (at least partially) occupied state
+  integer, allocatable :: isto(:)
+  ! lowest (at least partially) unoccupied state
+  integer, allocatable :: istu(:)
   ! maximum nsto over k-points
-  integer :: nstocc
-  ! maximum nstu over k-points
-  integer :: nstunocc
+  integer :: istocc
+  ! minimum nstu over k-points
+  integer :: istunocc
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
@@ -452,8 +452,8 @@ module modxs
   ! default file extension
   data msg / 'no message' /  
   ! number of times the main tddft routine was called
-  integer :: calledtd
-  data calledtd / 0 /
+  integer :: calledxs
+  data calledxs / 0 /
   ! true if to skip allocations of radial functions in "init1"
   logical :: skipallocs1
   data skipallocs1 /.false./

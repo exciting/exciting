@@ -221,10 +221,10 @@ subroutine init2xs
   !--------------------------!
   !     occupation numbers   !
   !--------------------------!
-  ! number of occupied valence states (valence band states)
-  nstval = nstsv - nempty - 1
-  ! number of unoccupied valence states (conduction band states)
-  nstcon = nempty + 1
+!!$  ! number of occupied valence states (valence band states)
+!!$  nstval = nstsv - nempty - 1
+!!$  ! number of unoccupied valence states (conduction band states)
+!!$  nstcon = nempty + 1
 
   !-------------------------------!
   !     analytic continuation     !

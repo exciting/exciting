@@ -11,7 +11,7 @@ contains
     use modmain
     use modxs
     use modmpi
-    use m_tdintrg
+    use m_ematgntsum
     use m_ematqkgmt
     use m_ematqkgir
     use m_putemat
@@ -132,7 +132,7 @@ contains
 
        call cpu_time(cpu00)
        ! summation of Gaunt coefficients wrt radial integrals
-       call tdintrg(iq,igq)
+       call ematgntsum(iq,igq)
        call cpu_time(cpu01)
        cpugnt=cpugnt+cpu01-cpu00
        ! muffin-tin contribution

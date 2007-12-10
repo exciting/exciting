@@ -10,7 +10,7 @@ subroutine df
   character(*), parameter :: thisnam = 'df'
   integer :: iq,un,j
 
-  if (calledtd.eq.1) call init0
+  if (calledxs.eq.1) call init0
 
   ! initialise universal variables
   call init1
