@@ -189,6 +189,13 @@ write(1234,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
 close(1234)
 ! *** DEBUG ********************************************************************
 
+        ! check tetrahedron weights
+        i1=sum(wtet)
+        if (i1.ne.6*ngridk(1)*ngridk(2)*ngridk(3)) then
+           write(*,*) 'Error(init1): tetrahedron weights do not sum up properly&
+                & (current/required): ',i1,6*ngridk(1)*ngridk(2)*ngridk(3)
+        end if
+
         do ik=1,nkpt
            ! k-point in lattice coordinates
            vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
