@@ -1,7 +1,8 @@
-subroutine  iterativedavidsonseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
+subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   !USES:
-  use modmain
+  use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
+       ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax
   use sclcontroll
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -26,25 +27,25 @@ subroutine  iterativedavidsonseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   ! arguments
   integer, 	intent(in) 		:: ik
   integer, 	intent(in) 		:: ispn
-  real(8),    intent(in)      :: vgpc(3,ngkmax)
-  complex(8), intent(in) 		:: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+  real(8),    intent(in)    :: vgpc(3,ngkmax)
+  complex(8), intent(in) 	:: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
   real(8), 	intent(inout) 	:: evalfv(nstfv,nspnfv)
-  complex(8), intent(inout) 	:: evecfv(nmatmax,nstfv,nspnfv)
+  complex(8), intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
 
   ! local variables
 
 
-  integer 	::is,ia,i,n,np,ievec,iv
-  complex(8)	::evecp(2*nstfv,nstfv),r(nmat(ik,ispn))
-  real(8)  	::vl,vu,abstol,evalp(nstfv)
+  integer 	::is,ia,idiis,n,np,ievec,iv
+  real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
-  complex(8) 	:: h(npmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8) 	:: o(npmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8) 	:: hminuses(npmat(ik,ispn)),da(nmat(ik,ispn),nstfv)
-  complex(8)X(nmatmax,nmatmax)
-  real(8)::w(nmatmax)
-
+  complex(8) 	:: hamilton(npmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
+  complex(8) 	:: overlap(npmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
+  complex(8)::P(nmatmax,nmatmax), h(nmat(ik,ispn),nstfv,diismax) ,&
+       s(nmat(ik,ispn),nstfv,diismax),&
+       r(nmat(ik,ispn),nstfv),subspacevectors(nmat(ik,ispn),nstfv,diismax)
+  real(8)::w(nmatmax),rnorms(nstfv)
+  integer evecmap(nstfv),  iunconverged
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
      write(*,*)
      write(*,'("Error(seceqnfv): k-point out of range : ",I8)') ik
@@ -58,7 +59,7 @@ subroutine  iterativedavidsonseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
   call cpu_time(cpu0)
-  call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
+  call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
   call cpu_time(cpu1)
 #ifdef DEBUG
   write(112,*)"h",h
@@ -70,30 +71,33 @@ subroutine  iterativedavidsonseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !update eigenvectors with iteration
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
-     call seceqfvprecond(ik,n,h,o,X,evalfv,evecfv)
+     call seceqfvprecond(ik,n,hamilton,overlap,P,evalfv,evecfv)
   else
-     call readprecond(ik,n,X,w)
+     iunconverged=nstfv	
+     call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
+     call prerotate_preconditioner(n,hamilton,overlap,P,w)
+     do idiis=1,diismax
+        call setuphsvect(n,hamilton,overlap,evecfv,h,s)
+        call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
+             ,hamilton,overlap,evalfv(:,ispn))
+        call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn),r,rnorms)
+        if  (allconverged(nstfv,rnorms)) exit	
+        call remove_converged(evecmap(nstfv),iunconverged,r,h,s,subspacevectors)
 
-     do i=1,3
-        do ievec=1,nstfv
-           call residualvector(n,np,h,o,evecfv(:,ievec,ispn),r(:),rnorm)
-           if  (rnorm.lt.reps) exit
-           call calcupdatevector(n,X,r(:),HminuseS(:),da(:,ievec) ) 
-           call diisupdate(n,da,o,evecfv)
-        end do
-
+        call calcupdatevectors(n,idiis,iunconverged,P,h,s,subspacevectors) 
+        call diisupdate(idiis,iunconverged,n,h(:,:,idiis),s(:,:,idiis), subspacevectors(:,:,idiis),evecfv)
         do ievec=1,nstfv
            !calculate new eigenvalues from rayreigh quotient
-           call rayleighqotient(n,evecfv(:,ievec,ispn)&
-                ,h,o,evalfv(ievec,ispn))
+           call rayleighqotient(n,iunconverged,evecfv(:,ievec,ispn)&
+                ,hamilton,overlap,evalfv(ievec,ispn))
         end do
      end do
-	 call prerotate_preconditioner(n,h,o,evecfv,X)
+
      call cpu_time(cpu1)
   endif
   timefv=timefv+cpu1-cpu0
   return
-end subroutine iterativedavidsonseceqnfv
+end subroutine DIISseceqnfv
 !EOC

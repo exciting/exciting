@@ -5,6 +5,7 @@ module sclcontroll
 integer iscl !scl index
 integer diiscounter !! counter for DIIS iterations
 integer iterativetype
+integer,parameter:: diismax=5
 real lowesteval
 real diisthreshould,reps
 
@@ -50,4 +51,16 @@ doLAPACKsolver=.false.
 if (iterativetype.eq.0)  doLAPACKsolver=.true.
 end function
 
+function allconverged(n,rnorms)
+logical allconverged
+integer,intent(in)::n
+real(8),intent(in):: rnorms(n)
+
+if (idamax(n,rnorm,1).lt.reps) then 
+allconverged=.true.
+else
+allconverged=.false.
+endif
+
+end function
 end module

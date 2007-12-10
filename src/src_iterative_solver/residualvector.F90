@@ -1,6 +1,6 @@
 !BOP
 ! !ROUTINE: seceqn
-subroutine residualvector(n,h,o,evecfv,evalfv,r,rnorm)
+subroutine residualvectors(n,h,o,evecfv,evalfv,r,rnorm)
 use modmain, only: nmatmax
 	
 ! !INPUT/OUTPUT PARAMETERS:
