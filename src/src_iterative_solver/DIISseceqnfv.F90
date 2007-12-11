@@ -82,9 +82,10 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,hamilton,overlap,evecfv,h(:,:,idiis),s(:,:,idiis))
-        call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
-             ,hamilton,overlap,evalfv(:,ispn))
+        call setuphsvect(n,hamilton,overlap,evecfv(:,:,ispn),&
+             h(:,:,idiis),s(:,:,idiis))
+        call rayleighqotient(n,evecfv(:,:,ispn)&
+             , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn),r,rnorms)
         if  (allconverged(nstfv,rnorms)) exit	
         call remove_converged(evecmap(nstfv),iunconverged,r,h,s,subspacevectors)

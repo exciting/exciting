@@ -1,14 +1,17 @@
-subroutine rayleighqotient(n,v,h,o,e)
+subroutine rayleighqotient(n,evecfv, h,s,evalfv)
+use modmain, only: nstfv
+implicit none
 integer, intent(in)::n
-complex(8) ,intent(in)::h(n*(n+1)/2), o(n*(n+1)/2),v(n)
-real ,intent(out)::e
+complex(8) ,intent(in)::h(n),s(n),evecfv(n,nstfv)
+real ,intent(out)::evalfv(nstfv)
 complex(8) zdotc
 external zdotc
 complex(8) :: vwork(n)
-complex(8)::vhv,vov
-call zhpmv("U",n,dcmplx(1.0,0.0),h,v,1, dcmplx(0,0),vwork,1)
-vhv= zdotc(n,v,1,vwork,1)
-call zhpmv("U",n,dcmplx(1.0,0.0),o,v,1, dcmplx(0,0),vwork,1)
-vhv= zdotc(n,v,1,vwork,1)
-e=vhv/vov
+complex(8)::vhv,vsv
+integer i
+do i=1,nstfv
+vhv= zdotc(n,evecfv,1,h,1)
+vsv= zdotc(n,evecfv,1,s,1)
+evalfv(i)=vhv/vsv
+end do
 end subroutine
