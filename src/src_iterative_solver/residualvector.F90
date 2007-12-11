@@ -1,6 +1,6 @@
 !BOP
 ! !ROUTINE: seceqn
-subroutine residualvectors(n,h,o,evecfv,evalfv,r,rnorm)
+subroutine residualvectors(n,iunconverged,h,s,evalfv,r,rnorms)
 use modmain, only: nmatmax
 	
 ! !INPUT/OUTPUT PARAMETERS:
@@ -17,33 +17,22 @@ use modmain, only: nmatmax
 !   Created March 2004 (JKD)
 !EOP
 !BOC
-!use modmain
+use modmain, only:nstfv
 implicit none
-integer , intent (in)::n
+integer , intent (in)::n,iunconverged
 !packed ut
-complex(8),intent(in)::evecfv(nmatmax),h(n*(n+1)/2),o(n*(n+1)/2) !vector
-complex(8),intent(out)::r(n)
-real(8),intent(in)::evalfv
-real(8),intent(out)::rnorm
-complex(8) zdotc
+complex(8),intent(in)::h(n,nstfv),s(n,nstfv) 
+complex(8),intent(out)::r(n,nstfv)
+real(8),intent(in)::evalfv(nstfv)
+real(8),intent(out)::rnorms(nstfv)
+integer i
+complex(8) zdotc,znrm2
 external zdotc
-integer:: i ,np
-complex(8)::HeS(n*(n+1)/2) 
-np=n*(n+1)/2
-  ! blas call means : HminuseS(:)=h(:)-evalfv(ievec,ispn)*o(:)
-           call zcopy(np,h,1,hes,1)
-           call zaxpy(np,dcmplx(-evalfv, 0),o,1,hes,1)
-r(:)=0.0
-call zhpmv("U",n,dcmplx(1.0,0.0),HeS,evecfv, 1, dcmplx(0,0), r(1), 1)
-#ifdef DEBUG
-write(441,*)"Hes in residualvector",HeS
-write(442,*)"evecfv in residualvector",evecfv
-write(443,*)"n,np,r in residualvector",n,np,r
 
-#endif
-rnorm=0
-do i=1,n
-rnorm=rnorm+conjg(r(i))*r(i)
+do i=1,nstfv
+call zcopy(n,h(1,i),1,r(1,i),1)
+call zaxpy(n,complex(-evalfv(i),0),s(1,i),1,r(1,i),1)
+rnorms(i)= sqrt( zdotc(n,r(1,i),1,r(1,i),1))
 end do
-rnorm=sqrt(rnorm)
+
 end subroutine
