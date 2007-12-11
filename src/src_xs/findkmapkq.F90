@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_findkmapkq
   implicit none
 contains
@@ -64,7 +68,7 @@ contains
 !!$
 !!$    end if
 
-    if (rank == 0) then
+    if (rank.eq.0) then
        call getunit(un)
        call genfilname(basename='KMAPKQ',iq=iq,filnam=filnam)
        open(un,file=trim(filnam),form='formatted',action='write', &

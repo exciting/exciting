@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine tdsave0
   !
   ! This routine is be called after init0, init1 and init2xs in order to save

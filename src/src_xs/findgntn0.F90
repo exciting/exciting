@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_findgntn0
   implicit none
   save
@@ -16,7 +20,6 @@ module m_findgntn0
   integer :: ngauntnz
   ! number of Gaunt coefficients
   integer :: ngaunt
-
 
 contains
 
@@ -208,7 +211,6 @@ contains
           end do ! cl2
        end do ! cm1
     end do ! cl1
-
 
     deallocate(l1mask,m1mask,l2mask,m2mask,l3mask,m3mask)
     deallocate(idxlm)

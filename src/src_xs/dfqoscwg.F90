@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_dfqoscwg
   implicit none
 contains
@@ -15,9 +19,7 @@ contains
     complex(8) :: pout,puot
     real(8) :: s(3,3)
     integer :: oc,i
-
-    !//////// TO BE DONE /////////////////
-
+    ! *** check if these symmetry considerations are correct ***
     if (symwings) then
        s(:,:)=0.5d0*(symdfq0(:,:)+transpose(symdfq0))
        pout=zzero
@@ -41,7 +43,6 @@ contains
        you(:)=xou(:)*conjg(pout)
        yuo(:)=xuo(:)*conjg(puot)
     end if
-
   end subroutine dfqoscwg
 
 end module m_dfqoscwg
