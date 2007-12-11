@@ -15,7 +15,7 @@ real(8)  :: w(n)
 real(8)  :: rwork(7*n)
 complex(8):: work(2*n)
 
-  call zhpgvx(1,'V','A','U',n,h,o,vl,vu,1,nstfv,abstol,m,w,X,nmatmax, &
+  call zhegvx(1,'V','A','U',n,h,o,vl,vu,1,nstfv,abstol,m,w,X,nmatmax, &
        work,rwork,iwork,ifail,info)
 if (info.ne.0) then
   write(*,*)

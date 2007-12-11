@@ -62,10 +62,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   call hamiltonandoverlapsetupnotpacked(n,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
   
   call cpu_time(cpu1)
-#ifdef DEBUG
-  write(112,*)"h",h
-  write(113,*)"o",o
-#endif
+
   !$OMP CRITICAL
   timemat=timemat+cpu1-cpu0
   !$OMP END CRITICAL
