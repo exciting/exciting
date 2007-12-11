@@ -21,43 +21,50 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      ! change back file extension
      call genfilname(iq=iq,setfilext=.true.)
      do i0=1,nstsv
-        if (occsv0(i0,ik).lt.(1.d0-epsocc)) exit
+        if (occsv0(i0,ik).lt.epsocc) exit
      end do
      io0(ik)=i0-1
      do i0=nstsv,1,-1
-        if (occsv0(i0,ik).gt.epsocc) exit
+        if (occsv0(i0,ik).gt.(occmax-epsocc)) exit
      end do
-     iu0(ik)=i0
+     iu0(ik)=i0+1
      ! k+q-point set
      ikq=ikmapikq(iq,ik)     
      call getoccsv(vkl(1,ikq),occsv(1,ikq))
      do i=1,nstsv
-        if (occsv(i,ik).lt.(1.d0-epsocc)) exit
+        if (occsv(i,ik).lt.epsocc) exit
      end do
      io(ik)=i-1
      do i=nstsv,1,-1
-        if (occsv(i,ik).gt.epsocc) exit
+        if (occsv(i,ik).gt.(occmax-epsocc)) exit
      end do
-     iu(ik)=i
+     iu(ik)=i+1
   end do
   ! overall highest (partially) occupied state
   iocc0=maxval(io0)
   iocc=maxval(io)
   ! overall lowest (partially) unoccupied state
-  iunocc0=maxval(iu0)
-  iunocc=maxval(iu)
+  iunocc0=minval(iu0)
+  iunocc=minval(iu)
+
+  ! *** assign nstval and nstcon ***
+  nstval=iocc0
+  nstcon=nstsv-nstval
+
+  if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
+     write(*,*) 'Info(findocclims): partially occupied states present'
+  end if
 
   ! debug output
   if (dbglev.gt.0) then
      write(*,*) 'Debug(findocclims):'
-     write(*,*) ' iocc0',iocc0
-     write(*,*) ' iocc',iocc
-     write(*,*) ' iunocc0',iunocc0
-     write(*,*) ' iunocc',iunocc
-     write(*,*) ' io0',io0
-     write(*,*) ' io',io
-     write(*,*) ' iu0',iu0
-     write(*,*) ' iu',iu
+     write(*,*) ' iocc0,iocc,iunocc0,iunocc below:'
+     write(*,*) iocc0,iocc,iunocc0,iunocc
+     write(*,*) ' ik,io0,iu,diff,io,iu0,diff below:'
+     do ik=1,nkpt
+        write(*,*) ik,io0(ik),iu(ik),iu(ik)-io0(ik), &
+             io(ik),iu0(ik),iu0(ik)-io(ik)
+     end do
      write(*,*)
   end if
 

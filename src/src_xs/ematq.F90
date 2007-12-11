@@ -60,6 +60,9 @@ contains
     ! write G+q-vectors
     call writegqpts(iq)
 
+    ! find highest (partially) occupied and lowest (partially) unoccupied states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+
     ! generate radial integrals wrt. sph. Bessel functions
     call ematrad(iq)
 
@@ -70,9 +73,6 @@ contains
     allocate(evecfv(nmatmax,nstfv,nspnfv))
     allocate(evecfv0(nmatmax0,nstfv,nspnfv))
     allocate(evalsv0(nstsv,nkpt))
-
-    ! find highest (partially) occupied and lowest (partially) unoccupied states
-    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
 
     ! allocate arrays for eigenvalue differences
     if(allocated(deou)) deallocate(deou)
