@@ -378,7 +378,7 @@ subroutine linopt
 #ifdef TETRA
      do iw=1,nwdos
         escal=1.d0
-        if (tev) escal=27.2114
+        if (tev) escal=27.2114d0
         ! modified output variables and format
         if (tetra) then
            write(60,'(4G18.10)') escal*w(iw),eps1(iw),eps2(iw),eps1r(iw)

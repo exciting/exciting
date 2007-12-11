@@ -73,7 +73,7 @@ subroutine xsinit
 
   ! scaling factor for output of energies
   escale=1.d0
-  if (tevout) escale=27.2117
+  if (tevout) escale=27.2114d0
 
   ! get exchange-correlation functional data
   call getfxcdata(fxctype,fxcdescr,fxcspin)

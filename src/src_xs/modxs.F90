@@ -429,7 +429,7 @@ module modxs
   ! array of (-i)**l values
   complex(8), allocatable :: zmil(:)
   ! conversion from hartree to electron volt
-  real(8), parameter :: h2ev = 27.2114
+  real(8), parameter :: h2ev = 27.2114d0
 
   !---------------------------------!
   !     miscellaneous variables     !
