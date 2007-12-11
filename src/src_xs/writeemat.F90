@@ -30,7 +30,7 @@ subroutine writeemat
   kparf=lastofset(rank,nkpt)
 
   ! write q-point set
-  if (rank == 0) call writeqpts
+  if (rank.eq.0) call writeqpts
 
   ! read Fermi energy from file
   call readfermi

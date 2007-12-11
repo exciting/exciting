@@ -14,22 +14,9 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   ! local variables
   integer :: ik,ikq,i0,i
   do ik=1,nkpt
-     ! k-point set (q=0)
-     ! read eigenvectors, eigenvalues and occupancies for G+k (q=0)
-     call genfilname(iq=0,setfilext=.true.)
-     call getoccsv0(vkl0(1,ik),occsv0(1,ik))
-     ! change back file extension
-     call genfilname(iq=iq,setfilext=.true.)
-     do i0=1,nstsv
-        if (occsv0(i0,ik).lt.epsocc) exit
-     end do
-     io0(ik)=i0-1
-     do i0=nstsv,1,-1
-        if (occsv0(i0,ik).gt.(occmax-epsocc)) exit
-     end do
-     iu0(ik)=i0+1
      ! k+q-point set
-     ikq=ikmapikq(iq,ik)     
+     ikq=ik
+     if (iq.ne.0) ikq=ikmapikq(iq,ik)
      call getoccsv(vkl(1,ikq),occsv(1,ikq))
      do i=1,nstsv
         if (occsv(i,ik).lt.epsocc) exit
@@ -39,6 +26,23 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
         if (occsv(i,ik).gt.(occmax-epsocc)) exit
      end do
      iu(ik)=i+1
+     if (iq.ne.0) then
+        ! k-point set (q=0)
+        call genfilname(iq=0,setfilext=.true.)
+        call getoccsv0(vkl0(1,ik),occsv0(1,ik))
+        call genfilname(iq=iq,setfilext=.true.)
+        do i0=1,nstsv
+           if (occsv0(i0,ik).lt.epsocc) exit
+        end do
+        io0(ik)=i0-1
+        do i0=nstsv,1,-1
+           if (occsv0(i0,ik).gt.(occmax-epsocc)) exit
+        end do
+        iu0(ik)=i0+1
+     else
+        io0(ik)=io(ik)
+        iu0(ik)=iu(ik)
+     end if
   end do
   ! overall highest (partially) occupied state
   iocc0=maxval(io0)

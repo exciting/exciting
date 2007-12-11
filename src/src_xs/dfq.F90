@@ -78,6 +78,9 @@ contains
     ! calculate k+q and G+k+q related variables
     call init1td
 
+    ! find highest (partially) occupied and lowest (partially) unoccupied states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+
     ! check if q=0
     tq0 = tq1gamma.and.(iq.eq.1)
     if (tq0) then

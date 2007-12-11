@@ -67,6 +67,9 @@ subroutine writepmattd(lgather)
   ! get eigenvectors for q=0
   call genfilname(iq=0,setfilext=.true.)
 
+  ! find highest (partially) occupied and lowest (partially) unoccupied states
+  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+
   ! limits for k-point loop
   ki=kpari
   kf=kparf
