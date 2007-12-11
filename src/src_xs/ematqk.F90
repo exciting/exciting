@@ -251,17 +251,6 @@ contains
     call cpu_time(cpu1)
     cpumain=cpu1-cpu0
 
-
-!************************************************************
-! set anti-resonant term to zero for testing -> as switch in INPUT //////
-
-!xiuo(:,:,:)=zzero
-
-! simulate Lindhard function (set resonant term to one)
-!xiou(:,:,:)=1.d0  
-
-!************************************************************
-
     ! write to emat file
     call putemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
 

@@ -225,6 +225,16 @@ subroutine init2xs
 !!$  nstval = nstsv - nempty - 1
 !!$  ! number of unoccupied valence states (conduction band states)
 !!$  nstcon = nempty + 1
+  if (allocated(occsv0)) deallocate(occsv0)
+  allocate(occsv0(nstsv,nkpt))
+  if (allocated(isto0)) deallocate(isto0)
+  allocate(isto0(nkpt))
+  if (allocated(isto)) deallocate(isto)
+  allocate(isto(nkpt))
+  if (allocated(istu0)) deallocate(istu0)
+  allocate(istu0(nkpt))
+  if (allocated(istu)) deallocate(istu)
+  allocate(istu(nkpt))
 
   !-------------------------------!
   !     analytic continuation     !

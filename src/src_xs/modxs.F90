@@ -161,13 +161,15 @@ module modxs
   ! eigenvalue differences (anti-resonant part)
   real(8), allocatable :: deuo(:,:)
   ! highest (at least partially) occupied state
-  integer, allocatable :: isto(:)
+  integer, allocatable :: isto0(:), isto(:)
   ! lowest (at least partially) unoccupied state
-  integer, allocatable :: istu(:)
+  integer, allocatable :: istu0(:), istu(:)
   ! maximum nsto over k-points
-  integer :: istocc
+  integer :: istocc0, istocc
   ! minimum nstu over k-points
-  integer :: istunocc
+  integer :: istunocc0, istunocc
+  ! occupation numbers (q=0)
+  real(8), allocatable :: occsv0(:,:)
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !

@@ -20,7 +20,7 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   nmatmaxt=nmatmax; nmatmax=nmatmax0
   ngkmaxt=ngkmax; ngkmax=ngkmax0
   allocate(ngkt(nkpt,nspnfv))
-  allocate(vklt(3,nkpt))
+  allocate(vklt(3,nkptnr))
   allocate(vgklt(3,ngkmax,nkpt,nspnfv))
   ngkt(:,:)=ngk(:,:); ngk(:,:)=ngk0(:,:)
   vklt(:,:)=vkl(:,:); vkl(:,:)=vkl0(:,:)

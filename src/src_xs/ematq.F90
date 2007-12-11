@@ -53,6 +53,7 @@ contains
     call genfilname(iq=iq,setfilext=.true.)
     ! shift k-mesh by q-point
     vkloff(:)=qvkloff(:,iq)
+
     ! calculate k+q and G+k+q related variables
     call init1td
 
@@ -62,10 +63,6 @@ contains
     ! generate radial integrals wrt. sph. Bessel functions
     call ematrad(iq)
 
-    ! find highest (partially) occupied and lowest (partially) unoccupied states
-    !!!call findocclims()
-    
-
     ! allocate eigenvalue and eigenvector arrays
     if (allocated(evecfv)) deallocate(evecfv)
     if (allocated(evecfv0)) deallocate(evecfv0)
@@ -73,6 +70,10 @@ contains
     allocate(evecfv(nmatmax,nstfv,nspnfv))
     allocate(evecfv0(nmatmax0,nstfv,nspnfv))
     allocate(evalsv0(nstsv,nkpt))
+
+    ! find highest (partially) occupied and lowest (partially) unoccupied states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+
     ! allocate arrays for eigenvalue differences
     if(allocated(deou)) deallocate(deou)
     if(allocated(deuo)) deallocate(deuo)

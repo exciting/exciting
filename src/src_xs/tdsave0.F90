@@ -10,7 +10,7 @@ subroutine tdsave0
 
   ! allocate the k-point arrays
   if (allocated(vkl0)) deallocate(vkl0)
-  allocate(vkl0(3,nkpt))
+  allocate(vkl0(3,nkptnr))
   ! allocate the G+k-point arrays
   if (allocated(ngk0)) deallocate(ngk0)
   if (allocated(igkig0)) deallocate(igkig0)

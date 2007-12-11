@@ -124,6 +124,12 @@ subroutine xsmain
      call init0
      call init1
      call writekpts
+  case(497)
+     ! * debug task
+     call init0
+     call init1
+     call init2xs
+     call writekpts
   case default
      write(*,*) 'Error('//thisnam//'): task not defined:', tasktd
   end select

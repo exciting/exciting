@@ -4,12 +4,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine getevalsv0(vpl,evalsvp)
+subroutine getoccsv0(vpl,occsvp)
   use modmain
   use modxs
   ! arguments
   real(8), intent(in) :: vpl(3)
-  real(8), intent(out) :: evalsvp(nstsv)
+  real(8), intent(out) :: occsvp(nstsv)
   ! local variables
   real(8), allocatable :: vklt(:,:)
 
@@ -18,10 +18,10 @@ subroutine getevalsv0(vpl,evalsvp)
   vklt(:,:)=vkl(:,:); vkl(:,:)=vkl0(:,:)
 
   ! call to getevalsv with changed (G+)k-point sets / matrix size
-  call getevalsv(vpl,evalsvp)
+  call getoccsv(vpl,occsvp)
 
   ! restore original variables
   vkl(:,:)=vklt(:,:)
   deallocate(vklt)
 
-end subroutine getevalsv0
+end subroutine getoccsv0

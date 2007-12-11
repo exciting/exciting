@@ -28,7 +28,7 @@ subroutine portstate(tb2a)
   integer natmtot,is
   integer version_(3),nspecies_,lmmaxvr_,nrmtmax_
   integer natoms_,ngrid_(3)
-  integer ngrtot_,ngvec_,ndmag_
+  integer ngrtot_,ngvec_,ndmag_,nspinor_,ldapu_,lmmaxlu_
   ! allocatable arrays
   integer, allocatable :: nrmt_(:)
   real(8), allocatable :: spr_(:,:)
@@ -45,6 +45,7 @@ subroutine portstate(tb2a)
   real(8), allocatable :: bxcmt_(:,:,:,:)
   real(8), allocatable :: bxcir_(:,:)
   complex(8), allocatable :: veffig_(:)
+  complex(8), allocatable :: vmatlu_(:,:,:,:,:)
   if (tb2a) then
      open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
           status='OLD')
@@ -129,6 +130,9 @@ subroutine portstate(tb2a)
      read(50) ngrid_
      read(50) ngvec_
      read(50) ndmag_
+     read(50) nspinor_
+     read(50) ldapu_
+     read(50) lmmaxlu_
      write(51,'(a)') '<data name="ngrid" type="integer" dimension="1" &
           &shape="3">'
      write(51,*) ngrid_
@@ -140,6 +144,22 @@ subroutine portstate(tb2a)
      write(51,'(a)') '<data name="ndmag" type="integer" dimension="1" &
           &shape="1">'
      write(51,*) ndmag_
+     write(51,'(a)') '</data>'
+     write(51,'(a)') '<data name="ndmag" type="integer" dimension="1" &
+          &shape="1">'
+     write(51,*) ndmag_
+     write(51,'(a)') '</data>'
+     write(51,'(a)') '<data name="nspinor" type="integer" dimension="1" &
+          &shape="1">'
+     write(51,*) nspinor_
+     write(51,'(a)') '</data>'
+     write(51,'(a)') '<data name="ldapu" type="integer" dimension="1" &
+          &shape="1">'
+     write(51,*) ldapu_
+     write(51,'(a)') '</data>'
+          write(51,'(a)') '<data name="lmmaxlu" type="integer" dimension="1" &
+          &shape="1">'
+     write(51,*) lmmaxlu_
      write(51,'(a)') '</data>'
   else
      natmtot=0
@@ -167,9 +187,21 @@ subroutine portstate(tb2a)
      read(50,*)
      read(50,*) ndmag_
      read(50,*)
+     read(50,*)
+     read(50,*) nspinor_
+     read(50,*)
+     read(50,*)
+     read(50,*) ldapu_
+     read(50,*)
+     read(50,*)
+     read(50,*) lmmaxlu_
+     read(50,*)
      write(51) ngrid_
      write(51) ngvec_
      write(51) ndmag_
+     write(51) nspinor_
+     write(51) ldapu_
+     write(51) lmmaxlu_
   end if
   ngrtot_=ngrid_(1)*ngrid_(2)*ngrid_(3)
   allocate(rhomt_(lmmaxvr_,nrmtmax_,natmtot))
@@ -186,6 +218,9 @@ subroutine portstate(tb2a)
      allocate(magir_(ngrtot_,ndmag_))
      allocate(bxcmt_(lmmaxvr_,nrmtmax_,natmtot,ndmag_))
      allocate(bxcir_(ngrtot_,ndmag_))
+  end if
+  if (ldapu_.ne.0) then
+     allocate(vmatlu_(lmmaxlu_,lmmaxlu_,nspinor_,nspinor_,natmtot))
   end if
   if (tb2a) then
      ! read muffin-tin density
@@ -287,6 +322,20 @@ subroutine portstate(tb2a)
         write(51,*) bxcir_
         write(51,'(a)') '</data>'
      end if
+     if (ldapu_.ne.0) then
+        ! read the LDA+U potential matrix elements
+        read(50) vmatlu_
+        ! write the LDA+U potential matrix elements
+        write(51,'(a)') '<data name="vmatlu" type="complex(8)" &
+             &dimension="5" shape="'//&
+             trim(i2str(lmmaxlu_))//','//&
+             trim(i2str(lmmaxlu_))//','//&
+             trim(i2str(nspinor_))//','//&
+             trim(i2str(nspinor_))//','//&
+             trim(i2str(natmtot))//'">'
+        write(51,*) vmatlu_
+        write(51,'(a)') '</data>'        
+     end if
   else
      ! read muffin-tin density
      read(50,*)
@@ -344,7 +393,15 @@ subroutine portstate(tb2a)
         ! write the magnetisation and effective magnetic fields
         write(51) magmt_,magir_
         write(51) bxcmt_,bxcir_
-     end if     
+     end if
+     if (ldapu_.ne.0) then
+        ! read the LDA+U potential matrix elements
+        read(50,*)
+        read(50,*) vmatlu_
+        read(50,*)        
+        ! write the LDA+U potential matrix elements
+        write(51) vmatlu_
+     end if
   end if
   close(50)
   close(51)
