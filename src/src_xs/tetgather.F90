@@ -32,7 +32,7 @@ subroutine tetgather
      ! shift k-mesh by q-point
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1td
+     call init1xs
      ! file name for output file
      call genfilname(basename='TETW',iq=iq,filnam=filnam)
      do ik=1,nkpt

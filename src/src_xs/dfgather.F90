@@ -28,7 +28,7 @@ subroutine dfgather
      ! shift k-mesh by q-point
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1td
+     call init1xs
      ! size of local field effects
      n = ngq(iq)
      ! allocate

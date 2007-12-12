@@ -4,8 +4,8 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,&
-     nsymcrysq,scqmap,ivscwrapq)
+subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
+     ivscwrapq)
   ! Find the (little) group of q (which includes finding the small group of q).
   ! All symmetries, where the rotational part transforms q into an equivalent
   ! vector are collected for the small group of q. Inclusion of fractional
@@ -25,7 +25,6 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,&
   integer :: isym, lspl, iv(3)
   real(8) :: s(3,3), v1(3), v1t(3), v2(3), t1
   real(8), external :: r3taxi
-
   nsymcrysq=0
   ivscwrapq(:,:)=0
   ! loop over space group elements
@@ -63,10 +62,9 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,&
         ivscwrapq(:,isym)=iv(:)
      end if
   end do
-  if (nsymcrysq < 1) then
+  if (nsymcrysq.lt.1) then
      write(*,'(a,3g18.10)') 'Error('//thisnam//'): empty little group of q &
           &for q:', vql
      call terminate
   end if
-
 end subroutine findgroupq

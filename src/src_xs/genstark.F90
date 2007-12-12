@@ -7,20 +7,33 @@ subroutine genstark
   use modmain
   use modxs
   implicit none
-  ! arguments
   ! local variables
-
-
-  ! initialize stars
-  nsymcrysstr(:)=0
-  scmapstr(:,:)=1
-
-!!$  ! INSIDE LOOP: add symmetry operation to star
-!!$  scmapstr(nint(wppt(jp)/t1),jp)=scimap(isym)
+  integer :: isym,ik,iknr,iv(3)
+  real(8) :: v1(3),v2(3)
 
   ! number of elements in stars
-  nsymcrysstr(:)=nint(wkpt(:)*dble(ngridk(1)*ngridk(2)*ngridk(3)))
+  nsymcrysstr(:)=nint(wkpt(:)*dble(nkptnr))
   nsymcrysstrmax=maxval(nsymcrysstr)
+
+!!$  do ik=1,nkpt
+  ! INSIDE LOOP: add symmetry operation to star
+!!$  scmapstr(nint(wppt(ik)/t1),ik)=scimap(isym)
+!!$  end do
+
+  do iknr=1,nkptnr
+     iv(:)=ivknr(:,iknr)
+     ik=ikmap(iv(1),iv(2),iv(3))
+     v1(:)=vkl(:,ik)
+     do isym=1,nsymcrysq(iqcu)
+        lspl=lsplsymc(isym)
+        s(:,:)=dble(symlat(:,:,lspl))
+        call r3mtv(s,v1,v2)
+        call r3frac(epslat,v2,iv)
+        t2=r3taxi(vpl(1,jp),v2)
+        if (t2.lt.epslat) then
+              
+     end do
+  end do
 
 !!$! *** TEST ***
 !!$i1=0

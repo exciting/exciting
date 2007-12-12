@@ -29,7 +29,7 @@ subroutine devalsvgather
      ! shift k-mesh by q-point
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1td
+     call init1xs
      allocate(deou(nstval,nstcon))
      allocate(deuo(nstcon,nstval))
      ! file extension for q-point

@@ -65,7 +65,7 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
   real(8) r3taxi
   external r3taxi
 #ifdef XS
-  integer :: jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
+  integer :: j,jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
   ! use symmetries of little group of q
   if (iqcu.ne.0) then
      write(*,*) 'Info(genppts): using symmetries of the (little/small) group of &
@@ -142,7 +142,7 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
   end do
 #ifdef XS
   if (iqcu.ne.0) then
-     ! restore global varialbes
+     ! restore global variables
      nsymcrys=nsymcrys_; lsplsymc(:)=lsplsymc_(:)
   end if
 #endif

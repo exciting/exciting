@@ -146,7 +146,7 @@ subroutine init2xs
      call findgroupq(vql(1,iq),epslat,symlat,nsymcrys,lsplsymc,&
           nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
      ! debug output
-     if (dbglev > 0) then
+     if (dbglev.gt.0) then
         write(*,'(a,i6,3g18.10)') 'q-point:',iq,vql(:,iq)
         write(*,'(a,i6)') ' variable: nsymcrysq:',nsymcrysq(iq)
         do l=1,nsymcrysq(iq)
@@ -156,6 +156,11 @@ subroutine init2xs
         write(*,*)
      end if
   end do
+  ! determine inverse symmery elements
+  call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
+  ! generate stars for k-point set
+  call genstark
+
   !-----------------------!
   !     k+q-point set     !
   !-----------------------!

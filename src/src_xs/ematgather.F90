@@ -29,7 +29,7 @@ subroutine ematgather
      ! shift k-mesh by q-point
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1td
+     call init1xs
      allocate(xiou(nstval,nstcon,ngq(iq)))
      allocate(xiuo(nstcon,nstval,ngq(iq)))
      ! file extension for q-point

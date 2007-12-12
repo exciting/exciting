@@ -27,6 +27,12 @@ module modxs
   !---------------------------------------------------------------!
   integer, allocatable :: idxxlm(:,:)
 
+  !----------------------------!
+  !     symmetry variables     !
+  !----------------------------!
+  integer, private, parameter :: maxsymcrs=192
+  integer :: scimap(maxsymcrs)
+
   !------------------------------!
   !     q-point set variables    !
   !------------------------------!

@@ -55,7 +55,7 @@ contains
     vkloff(:)=qvkloff(:,iq)
 
     ! calculate k+q and G+k+q related variables
-    call init1td
+    call init1xs
 
     ! write G+q-vectors
     call writegqpts(iq)

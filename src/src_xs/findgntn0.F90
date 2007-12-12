@@ -27,7 +27,7 @@ contains
 
     implicit none
 
-    character(*), parameter :: thisis = 'findgntn0'
+    character(*), parameter :: thisnam = 'findgntn0'
 
     ! maximum l values for checking Gaunts
     integer, intent(in) :: lmax1, lmax2, lmax3
@@ -218,7 +218,7 @@ contains
   end subroutine findgntn0
 
 
-  subroutine findgntn0_clear()
+  subroutine findgntn0_clear
     implicit none
     l1shape = 0
     if (allocated(m1shape)) deallocate(m1shape)

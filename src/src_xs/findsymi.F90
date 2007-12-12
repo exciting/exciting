@@ -36,9 +36,9 @@ subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
         if ((sum(vtl).lt.epslat).and.(sum(abs(c)).lt.epslat)) then
            ! isym is inverse of jsym
            scimap(isym)=jsym
-           goto 40
+           goto 10
         end if
      end do
-40   continue
+10   continue
   end do
 end subroutine findsymi

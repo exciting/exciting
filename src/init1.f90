@@ -13,7 +13,7 @@ subroutine init1
   use modtetra
 #endif
 #ifdef XS
-  use modxs, only: dbglev, skipallocs1, imbandstr, nsymcrysstr, scmapstr
+  use modxs, only: dbglev,skipallocs1,imbandstr,scimap,nsymcrysstr,scmapstr
 #endif
   ! !DESCRIPTION:
   !   Generates the $k$-point set and then allocates and initialises global
@@ -103,7 +103,7 @@ subroutine init1
            end do
         end do
      end do
-  else
+  else ! all tasks other than 20,21,25
      ! determine the k-point grid from the maximum de Broglie wavelength if required
      if (autokpt) then
         ngridk(:)=int(rlambda/sqrt(avec(1,:)**2+avec(2,:)**2+avec(3,:)**2))+1

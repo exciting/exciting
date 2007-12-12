@@ -33,7 +33,7 @@ subroutine emattest
   vkloff(:) = vkloff(:) + vql(:,iq)*ngridk(:)
 
   ! calculate k+q and G+k+q related variables
-  call init1td
+  call init1xs
 
   n = ngq(iq)
 

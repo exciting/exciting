@@ -29,7 +29,7 @@ subroutine writeemat_ascii
   do iq = 1, nqpt
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1td
+     call init1xs
      if (allocated(xiou)) deallocate(xiou)
      if (allocated(xiuo)) deallocate(xiuo)
      allocate(xiou(nstval,nstcon,ngq(iq)))

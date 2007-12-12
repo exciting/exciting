@@ -71,7 +71,7 @@ contains
          filnam=filnamt)
     
     ! calculate k+q and G+k+q related variables
-    call init1td
+    call init1xs
 
     ! tetrahedron method
     if (.not.tq0) then
