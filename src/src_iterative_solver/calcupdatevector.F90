@@ -10,8 +10,8 @@ m=nstfv
 call zgemm('C','N',n,n,n,m,complex(1,0),P,nmatmax,r,n,complex(0,0),v,m)
 
 do i=1,m
-if(abs(w(i)-evalfw(i)).lt.1e-6)then
-call zscal(n,complex(1.0/(w(i)-evalfw(i)),0),v,1)
+if(abs(w(i)-evalfv(i)).lt.1e-6)then
+call zscal(n,complex(1.0/(w(i)-evalfv(i)),0),v,1)
 else
 v(:,i)=0
 endif

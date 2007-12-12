@@ -39,13 +39,13 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
-  complex(8) 	:: hamilton(nmat(ik,ispn),nmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8) 	:: overlap(nmat(ik,ispn),nmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8)::P(nmatmax,nmatmax)
+  complex(8):: hamilton(nmat(ik,ispn),nmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
+  complex(8):: overlap(nmat(ik,ispn),nmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
+  complex(8):: P(nmatmax,nmatmax)
   complex(8):: h(nmat(ik,ispn),nstfv,diismax) 
-  complex(8)::    s(nmat(ik,ispn),nstfv,diismax)
-  complex(8)::    r(nmat(ik,ispn),nstfv)
-  complex(8)::    subspacevectors(nmat(ik,ispn),nstfv,diismax)
+  complex(8):: s(nmat(ik,ispn),nstfv,diismax)
+  complex(8):: r(nmat(ik,ispn),nstfv)
+  complex(8):: subspacevectors(nmat(ik,ispn),nstfv,diismax)
   real(8)::w(nmatmax),rnorms(nstfv)
   integer evecmap(nstfv),  iunconverged
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
@@ -94,11 +94,6 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         call calcupdatevectors(n,iunconverged,P,w,r,evalfv,subspacevectors(:,:,idiis)) 
         call diisupdate(idiis,iunconverged,n,h,s, subspacevectors,evalfv(:,ispn)&
         ,evecfv(:,:,ispn))
-        do ievec=1,nstfv
-           !calculate new eigenvalues from rayreigh quotient
-           call rayleighqotient(n,iunconverged,evecfv(:,ievec,ispn)&
-                ,hamilton,overlap,evalfv(ievec,ispn))
-        end do
      end do
 
      call cpu_time(cpu1)
