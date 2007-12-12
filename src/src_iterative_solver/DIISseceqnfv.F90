@@ -77,21 +77,23 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
-     call prerotate_preconditioner(n,hamilton,overlap,P,w)
+     call prerotate_preconditioner(n,2*nstfv,hamilton,evecfv,P)
+     call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
      do idiis=1,diismax
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,hamilton,overlap,evecfv(:,:,ispn),&
+        call setuphsvect(n,nstfv,hamilton,overlap,evecfv(:,:,ispn),&
              h(:,:,idiis),s(:,:,idiis))
-        call rayleighqotient(n,evecfv(:,:,ispn)&
+        call rayleighqotient(n,nstfv,evecfv(:,:,ispn)&
              , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
-        call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn),r,rnorms)
+        call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
+        ,evalfv(:,ispn),r,rnorms)
         if  (allconverged(nstfv,rnorms)) exit	
         call remove_converged(evecmap(nstfv),iunconverged,r,h,s,subspacevectors)
-
-        call calcupdatevectors(n,idiis,iunconverged,P,h,s,subspacevectors) 
-        call diisupdate(idiis,iunconverged,n,h(:,:,idiis),s(:,:,idiis), subspacevectors(:,:,idiis),evecfv)
+        call calcupdatevectors(n,iunconverged,P,w,r,evalfv,subspacevectors(:,:,idiis)) 
+        call diisupdate(idiis,iunconverged,n,h,s, subspacevectors,evalfv(:,ispn)&
+        ,evecfv(:,:,ispn))
         do ievec=1,nstfv
            !calculate new eigenvalues from rayreigh quotient
            call rayleighqotient(n,iunconverged,evecfv(:,ievec,ispn)&
