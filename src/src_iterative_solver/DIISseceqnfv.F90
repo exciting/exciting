@@ -39,8 +39,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
-  complex(8):: hamilton(nmat(ik,ispn),nmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8):: overlap(nmat(ik,ispn),nmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
+  complex(8):: hamilton(nmat(ik,ispn),nmat(ik,ispn))
+  complex(8):: overlap(nmat(ik,ispn),nmat(ik,ispn))
   complex(8):: P(nmatmax,nmatmax)
   complex(8):: h(nmat(ik,ispn),nstfv,diismax) 
   complex(8):: s(nmat(ik,ispn),nstfv,diismax)
