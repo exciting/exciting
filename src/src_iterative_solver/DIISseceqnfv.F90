@@ -4,6 +4,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
        ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax
   use sclcontroll
+  use diisinterfaces
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -71,20 +72,21 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !update eigenvectors with iteration
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
-     call seceqfvprecond(ik,n,hamilton,overlap,P,evalfv,evecfv)
+     call seceqfvprecond(ik,n, hamilton,overlap,P,evalfv,evecfv)
   else
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
-     call prerotate_preconditioner(n,hamilton,overlap,P,w)
+     call prerotate_preconditioner(n,hamilton,overlap,evecfv,P,w)
      do idiis=1,diismax
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,hamilton,overlap,evecfv(:,:,ispn),&
+
+        call setuphsvect(n ,hamilton,overlap,evecfv(:,:,ispn),&
              h(:,:,idiis),s(:,:,idiis))
-        call rayleighqotient(n,evecfv(:,:,ispn)&
+        call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
              , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn),r,rnorms)
         if  (allconverged(nstfv,rnorms)) exit	
