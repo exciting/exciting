@@ -3,7 +3,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !USES:
   use modmain
   use modmpi
-
+  use sclcontroll
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -40,7 +40,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer::koffset,recl
   character(256):: outfilenamestring,filetag
   external outfilenamestring
-  logical::  dorestart
+
   !ARPACK Interface vars
   integer:: ido, nev, ncv, lworkl, info,infoznaupd, info2, j,i
   integer :: nevmax, ncvmax,nmax
@@ -108,17 +108,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   inquire(iolength=recl)resid  
   koffset=ik-firstk(procofk(ik))+1      
   infoznaupd=0
-  dorestart=.true.
-  filetag='ARPACKVEC'
-  if(iscl.ne.1.and.doarpackrestart)then
-     !take old eigenvector as new starting vector to increase convergence               
-     open(70,file=outfilenamestring(filetag,ik),action='READ', &
-          form='UNFORMATTED',access='DIRECT',recl=recl)
-     resid=0
-     read(70,rec=koffset)resid
-     close(70)  
-     infoznaupd=1
-  endif
+  
   !##################
   !setup hamiltonian#
   !##################
@@ -175,15 +165,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
-     !#################################################
-     !write data to scratch for restart with old vector
-     !#################################################
-     if(doarpackrestart)then
-        open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
-             form='UNFORMATTED',access='DIRECT',recl=recl)   
-        write(70,rec=koffset)v(:,1)
-        close(70)   
-     endif
+    
+ 
      !########################
      !post processing of evec
      !########################

@@ -1,8 +1,11 @@
 subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,phi) 
   use modmain, only:nstfv,nmatmax
+  use diisinterfaces
+  implicit none
   integer ,intent (in)::n , iunconverged
   complex(8),intent(in)::P(nmatmax,nmatmax),r(n,nstfv)
   complex(8),intent(out)::phi(n,nstfv)
+  real(8), intent(in)::w(nmatmax),evalfv(nstfv)
   complex(8):: v(n,nstfv)
 
   integer m,i

@@ -13,6 +13,9 @@ use modmain
 use modtetra
 use modtddft
 ! </sag>
+!<chm>
+use sclcontroll
+!</chm>
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
 !   from the species files. Also sets default values for the input parameters.
@@ -87,8 +90,7 @@ scrpath='./'
 nvp1d=2
 iterativetype=0
 lowesteval=-1.
-doarpackrestart=.false.
-iterativeinterval=5
+
 maxncv=200
 if (allocated(vvlp1d)) deallocate(vvlp1d)
 allocate(vvlp1d(3,nvp1d))
@@ -370,10 +372,6 @@ case('iterativetype')
   read(50,*) iterativetype
 case ('maxncv')
   read(50,*)maxncv
-case('doarpackrestart')
-  read(50,*)doarpackrestart
-case('iterativeinterval')
-  read(50,*) iterativeinterval
 case('lowesteval')
    read(50,*)lowesteval
 case('swidth')

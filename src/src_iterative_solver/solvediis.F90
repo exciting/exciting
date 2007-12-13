@@ -1,5 +1,7 @@
 subroutine solvediis(m,Pmatrix,Qmatrix,c)
+  use diisinterfaces
 implicit none
+
 integer, intent(in)::m
 
 complex(8), intent(in)::Pmatrix(m,m),Qmatrix(m,m)

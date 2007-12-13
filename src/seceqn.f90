@@ -8,6 +8,7 @@
 subroutine seceqn(ik,evalfv,evecfv,evecsv)
   ! !USES:
   use modmain
+  use modmpi
   use sclcontroll
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
@@ -31,7 +32,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   complex(8), intent(out) :: evecsv(nstsv,nstsv)
   ! local variables
   integer ispn
- 
+
 
   ! allocatable arrays
   complex(8), allocatable :: apwalm(:,:,:,:,:)
@@ -39,7 +40,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
   !$OMP PARALLEL DEFAULT(SHARED)
   !$OMP DO
- 
+
 
   do ispn=1,nspnfv
      ! find the matching coefficients
@@ -52,15 +53,17 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
      else if(doARPACKiteration()) then 
       	call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)
- 	else if(doDIIScycle()) then 
- 		call DIISseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
+     else if(doDIIScycle()) then 
+        call DIISseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)
-	endif
-  
-   
- 
+        if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
+       
+     endif
 
- end do
+
+
+
+  end do
 
   !$OMP END DO
   !$OMP END PARALLEL

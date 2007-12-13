@@ -15,13 +15,12 @@ subroutine hamiltonandoverlapsetupnotpacked(n,ngp,apwalm,igpig,vgpc,hamilton,ove
   overlap=0
   call hamiltonandoverlapsetup((n*n+1)/2,ngp,apwalm,igpig,vgpc,hp,op)
   packedi=1
-  Do icolumn=2,n
+  Do icolumn=1,n
+     call zcopy(icolumn,hp(packedi),1,hamilton(1,icolumn),1)
+     call zcopy(icolumn,op(packedi),1,overlap(1,icolumn),1)
      packedi=packedi+icolumn
-     call zcopy(icolumn-1,hp(packedi),1,hamilton(1,icolumn),1)
   end do
-  packedi=1
-  Do icolumn=2,n
-     packedi=packedi+icolumn
-     call zcopy(icolumn-1,op(packedi),1,overlap(1,icolumn),1)
-  end do
+
+
+ 
 end subroutine hamiltonandoverlapsetupnotpacked

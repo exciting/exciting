@@ -11,7 +11,7 @@ use modmpi
   inquire(iolength=recl)X,w
   filetag="PRECONDMATRIX"
   if (splittfile.or.(rank.eq.0)) then
-     open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
+     open(70,file=outfilenamestring(filetag,ik),action='READ', &
           form='UNFORMATTED',access='DIRECT',recl=recl)
      if (splittfile) then
         koffset=ik-firstk(procofk(ik))+1

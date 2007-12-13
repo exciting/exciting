@@ -18,6 +18,7 @@ use modmain, only: nmatmax
 !EOP
 !BOC
 use modmain, only:nstfv
+  use diisinterfaces
 implicit none
 integer , intent (in)::n,iunconverged
 !packed ut

@@ -1,6 +1,7 @@
 subroutine  writeprecond(ik,n,X,w)
   use modmain
   use modmpi
+implicit none
   integer, intent(in)::n,ik
   complex(8), intent(in)::X(nmatmax,nmatmax)
   real(8),intent(in)::w(nmatmax)
