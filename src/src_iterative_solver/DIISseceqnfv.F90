@@ -40,13 +40,13 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
-  complex(8) 	:: hamilton(nmat(ik,ispn),nmat(ik,ispn)),hprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8) 	:: overlap(nmat(ik,ispn),nmat(ik,ispn)),oprojected(nstfv*2*(nstfv*2+1)/2)
-  complex(8)::P(nmatmax,nmatmax)
+  complex(8):: hamilton(nmat(ik,ispn),nmat(ik,ispn))
+  complex(8):: overlap(nmat(ik,ispn),nmat(ik,ispn))
+  complex(8):: P(nmatmax,nmatmax)
   complex(8):: h(nmat(ik,ispn),nstfv,diismax) 
-  complex(8)::    s(nmat(ik,ispn),nstfv,diismax)
-  complex(8)::    r(nmat(ik,ispn),nstfv)
-  complex(8)::    subspacevectors(nmat(ik,ispn),nstfv,diismax)
+  complex(8):: s(nmat(ik,ispn),nstfv,diismax)
+  complex(8):: r(nmat(ik,ispn),nstfv)
+  complex(8):: subspacevectors(nmat(ik,ispn),nstfv,diismax)
   real(8)::w(nmatmax),rnorms(nstfv)
   integer evecmap(nstfv),  iunconverged
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
@@ -72,33 +72,29 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !update eigenvectors with iteration
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
-     call seceqfvprecond(ik,n, hamilton,overlap,P,evalfv,evecfv)
+     call seceqfvprecond(ik,n,hamilton,overlap,P,evalfv,evecfv)
   else
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
-     call prerotate_preconditioner(n,hamilton,overlap,evecfv,P,w)
+     call prerotate_preconditioner(n,2*nstfv,hamilton,evecfv,P)
+     call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
      do idiis=1,diismax
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-
-        call setuphsvect(n ,hamilton,overlap,evecfv(:,:,ispn),&
+        call setuphsvect(n,nstfv,hamilton,overlap,evecfv(:,:,ispn),&
              h(:,:,idiis),s(:,:,idiis))
-        call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
+        call rayleighqotient(n,nstfv,evecfv(:,:,ispn)&
              , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
-        call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn),r,rnorms)
+        call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
+        ,evalfv(:,ispn),r,rnorms)
         if  (allconverged(nstfv,rnorms)) exit	
         call remove_converged(evecmap(nstfv),iunconverged,r,h,s,subspacevectors)
-
-        call calcupdatevectors(n,idiis,iunconverged,P,h,s,subspacevectors) 
-        call diisupdate(idiis,iunconverged,n,h(:,:,idiis),s(:,:,idiis), subspacevectors(:,:,idiis),evecfv)
-        do ievec=1,nstfv
-           !calculate new eigenvalues from rayreigh quotient
-           call rayleighqotient(n,iunconverged,evecfv(:,ievec,ispn)&
-                ,hamilton,overlap,evalfv(ievec,ispn))
-        end do
+        call calcupdatevectors(n,iunconverged,P,w,r,evalfv,subspacevectors(:,:,idiis)) 
+        call diisupdate(idiis,iunconverged,n,h,s, subspacevectors,evalfv(:,ispn)&
+        ,evecfv(:,:,ispn))
      end do
 
      call cpu_time(cpu1)
