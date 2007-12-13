@@ -43,7 +43,7 @@ contains
     real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
     real(8) :: brd,vkloff_save(3)
     real(8) :: cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
-    integer :: oc1, oc2, n,igq,i,j,ik,iw,wi,wf,iv,ic,ml(3),nwdfp,ikt
+    integer :: oc1, oc2, n,igq,i,j,ik,iw,wi,wf,iv,ic,ml(3),nwdfp
     integer :: oct,un
     logical :: tq0, tetrat
 
@@ -151,7 +151,6 @@ contains
 
     ! loop over k-points
     call getunit(un)
-    ikt=0
     do ik=1,nkpt
 
        ! if checkpoint true -> read X0
@@ -201,12 +200,12 @@ contains
              ! calculate oscillators
              if (.not.tq0) then
                 ! whole
-                call dfqoscbo(n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
+                call dfqoscbo(iq,ik,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
              end if
 
              if (tq0.and.(n.gt.1)) then
                 ! body
-                call dfqoscbo(n-1,xiou(iv,ic,2:),xiuo(ic,iv,2:), &
+                call dfqoscbo(iq,ik,n-1,xiou(iv,ic,2:),xiuo(ic,iv,2:), &
                      hou(2:,2:),huo(2:,2:))
              end if
 

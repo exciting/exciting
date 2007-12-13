@@ -7,7 +7,7 @@
 ! !ROUTINE: init1
 ! !INTERFACE:
 subroutine init1
-  ! !USES:
+! !USES:
   use modmain
 #ifdef TETRA
   use modtetra
@@ -15,15 +15,15 @@ subroutine init1
 #ifdef XS
   use modxs, only: dbglev,skipallocs1,imbandstr,scimap,nsymcrysstr,scmapstr
 #endif
-  ! !DESCRIPTION:
-  !   Generates the $k$-point set and then allocates and initialises global
-  !   variables which depend on the $k$-point set.
-  !
-  ! !REVISION HISTORY:
-  !   Created January 2004 (JKD)
-  !   Modifications for TDDFT 2007 (Sagmeister)
-  !EOP
-  !BOC
+! !DESCRIPTION:
+!   Generates the $k$-point set and then allocates and initialises global
+!   variables which depend on the $k$-point set.
+!
+! !REVISION HISTORY:
+!   Created January 2004 (JKD)
+!   Modifications for TDDFT 2007 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! local variables
   integer ik,is,ia,ias,io,ilo
@@ -312,6 +312,10 @@ subroutine init1
      allocate(ikmapnr(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
      ! generate the non-reduced k-point set
      call genppts(.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr,wkptnr)
+     ! determine inverse symmery elements
+     call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
+     ! generate stars for k-point set
+     call genstark
   end if ! if ((task.eq.20).or.(task.eq.21))
 
   !---------------------!

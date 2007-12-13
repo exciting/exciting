@@ -30,7 +30,8 @@ contains
        do ik=1,nkpt
           vkq(:)=vkl(:,ik)+vq(:)
           call r3frac(epslat,vkq,ivt)
-          iv(:)=nint(vkq(:)*ngridk(:)-vkloff(:))
+!!$          iv(:)=nint(vkq(:)*ngridk(:)-vkloff(:))
+          iv(:)=int(vkq(:)*ngridk(:))
           map(ik)=ikmap(iv(1),iv(2),iv(3))
        end do
 !!$

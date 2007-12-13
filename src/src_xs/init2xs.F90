@@ -156,10 +156,6 @@ subroutine init2xs
         write(*,*)
      end if
   end do
-  ! determine inverse symmery elements
-  call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
-  ! generate stars for k-point set
-  call genstark
 
   !-----------------------!
   !     k+q-point set     !
@@ -282,10 +278,10 @@ subroutine init2xs
   !---------------------------------!
   !     k-point parallelization     !
   !---------------------------------!
-  if (procs > nkpt) then
+  if (procs.gt.nkpt) then
      procs=nkpt
      write(*,*) 'Warning('//thisnam//'): procs > nkpt: resetting to nkpt'
-     if (rank >= nkpt) then
+     if (rank.ge.nkpt) then
         write(*,*) 'Warning('//thisnam//'): rank > nkpt: skipping this &
              &process - this should not happen within an MPI run'
         call tdepilog

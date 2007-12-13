@@ -16,7 +16,6 @@ contains
     real(8), intent(out) :: voff(3)
     ! local variables
     real(8) :: v2(3)
-
     if (any(vkloff/dble(ngridk)+vq.ge.1.d0)) then
        ! vector is outside Brillouine zone
        v2=vkloff/dble(ngridk)+vq
@@ -36,7 +35,6 @@ contains
        ! vector is inside k-point spacing
        voff=vkloff+vq*ngridk
     end if
-
   end subroutine genqvkloff
 
 end module m_genqvkloff

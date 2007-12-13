@@ -3,55 +3,82 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: genstark
+! !INTERFACE:
 subroutine genstark
+! !USES:
   use modmain
   use modxs
+! !DESCRIPTION:
+!   Generates the stars for the $k$-point set as reference to crystal
+!   symmetries. For a non-zero q-point the little group of q is taken
+!   instead of the full symmetry group.
+!
+! !REVISION HISTORY:
+!   Created December 2007 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! local variables
-  integer :: isym,ik,iknr,iv(3)
-  real(8) :: v1(3),v2(3)
-
-  ! number of elements in stars
-  nsymcrysstr(:)=nint(wkpt(:)*dble(nkptnr))
-  nsymcrysstrmax=maxval(nsymcrysstr)
-
-!!$  do ik=1,nkpt
-  ! INSIDE LOOP: add symmetry operation to star
-!!$  scmapstr(nint(wppt(ik)/t1),ik)=scimap(isym)
-!!$  end do
-
+  integer :: i,isym,lspl,ik,iknr,iv(3),nsymcr
+  real(8) :: t1,v1(3),v2(3),s(3,3)
+  real(8), external :: r3taxi
+  ! start with all crystal symmetries
+  nsymcr=nsymcrys
+  ! consider small/little group of q
+  if (iqcu.ne.0) nsymcr=nsymcrysq(iqcu)
+  nsymcrysstr(:)=0
   do iknr=1,nkptnr
      iv(:)=ivknr(:,iknr)
      ik=ikmap(iv(1),iv(2),iv(3))
      v1(:)=vkl(:,ik)
-     do isym=1,nsymcrysq(iqcu)
+     do i=1,nsymcr
+        isym=i
+        ! consider small/little group of q
+        if (iqcu.ne.0) isym=scqmap(i,iqcu)
         lspl=lsplsymc(isym)
         s(:,:)=dble(symlat(:,:,lspl))
         call r3mtv(s,v1,v2)
         call r3frac(epslat,v2,iv)
-        t2=r3taxi(vpl(1,jp),v2)
-        if (t2.lt.epslat) then
-              
+        t1=r3taxi(vklnr(1,iknr),v2)
+        if (t1.lt.epslat) then
+           ! symmetry element is in star
+           nsymcrysstr(ik)=nsymcrysstr(ik)+1
+           scmapstr(nsymcrysstr(ik),ik)=isym
+           goto 10
+        end if   
      end do
+10   continue
   end do
-
-!!$! *** TEST ***
-!!$i1=0
-!!$write(*,*) 'writing out: genppts'
-!!$write(*,*)
-!!$do ip=1,nppt
-!!$   do jsym=1,nsymcrysstr(ip)
-!!$      i1=i1+1
-!!$!      write(*,*) 'TEST: ip,jstar,counter',ip,jsym,i1
-!!$      lspl=lsplsymc(scmapstr(jsym,ip))
-!!$      v1(:)=vpl(:,ip)
-!!$      s(:,:)=dble(symlat(:,:,lspl))
-!!$      call r3mtv(s,v1,v2)
-!!$      call r3frac(epslat,v2,iv)
-!!$      write(*,'(a,4i6,6f12.2)') 'c,ip,jsym,lspl,vpl,s.vpl',&
-!!$           i1,ip,jsym,lspl,v1,v2
-!!$      write(10,*) v2
-!!$   end do
-!!$end do
-
+  ! debug output
+  if (dbglev.gt.1) then
+     write(*,*) 'Debug(genstark):'
+     write(*,*) 'ik,i,vkl,isym,lspl,vklnr,iknr'
+     do ik=1,nkpt
+        v1(:)=vkl(:,ik)
+        do i=1,nsymcrysstr(ik)
+           isym=scmapstr(i,ik)
+           lspl=lsplsymc(isym)
+           s(:,:)=dble(symlat(:,:,lspl))
+           call r3mtv(s,v1,v2)
+           call r3frac(epslat,v2,iv)
+           iv(:)=int(v2(:)*dble(ngridk(:)))
+           iknr=ikmapnr(iv(1),iv(2),iv(3))
+           write(*,'(2i6,3f12.4,2i6,3f12.4,i6)') ik,i,v1,isym,lspl,v2,iknr
+        end do
+     end do
+     write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,scmapstr:'
+     do ik=1,nkpt
+        write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
+             scmapstr(1:nsymcrysstr(ik),ik)
+     end do
+     write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,lsplmapstr:'
+     do ik=1,nkpt
+        write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
+             lsplsymc(scmapstr(1:nsymcrysstr(ik),ik))
+     end do
+     write(*,*)
+  end if
 end subroutine genstark
+!EOC
