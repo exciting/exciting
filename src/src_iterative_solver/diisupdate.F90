@@ -19,16 +19,19 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
         call zaxpy(n,complex(-evalfv(i),0),s(1,i,j),1,p(1,j),1)
      end do
 
-     call zgemm('C','N',n,idiis,n,idiis,complex(1,0),p,n,p,n,complex(0,0),Pmatrix,idiis)
+     call zgemm('C','N',idiis,idiis,n,complex(1,0),p,n,p,n,&
+          complex(0,0),Pmatrix,idiis)
      do ir=1,idiis
 	do is=1,idiis
            Qmatrix(ir,is)=zdotc(n,trialvec(1,i,ir),1,s(1,i,is),1)
 	enddo
      enddo
+
      call solvediis(idiis,Pmatrix,Qmatrix,c)
      evecfv(1,i)=0
      do ir=1,idiis 
         call zaxpy(n,c(ir),trialvec(1,i,ir),1,evecfv(1,i),1)
      end do
+
   end do
 end subroutine diisupdate

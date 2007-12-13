@@ -15,6 +15,9 @@ subroutine prerotate_preconditioner(n,m,h,evecfv,P)
   real(8) dlamch,eval(n)
   external dlamch
   abstol=2.d0*dlamch('S')
+#ifdef DEBUG
+write(*,*) "prerotate zgemm"
+#endif
   call zhemm('L','U',n,m,complex(1,0),h,P,nmatmax,complex(0,0),tmp,nmatmax)
   call zgemm('C','N',n,m,n,m,complex(1,0),P,nmatmax,tmp,nmatmax,&
        complex(0,0),hs,m)

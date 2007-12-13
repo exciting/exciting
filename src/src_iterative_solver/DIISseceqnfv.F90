@@ -36,7 +36,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   ! local variables
 
 
-  integer 	::is,ia,idiis,n,np,ievec,iv
+  integer 	::is,ia,idiis,n,np,ievec,i
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
@@ -95,9 +95,16 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
              ,evalfv(:,ispn),r,rnorms)
         if  (allconverged(nstfv,rnorms)) exit	
         ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,subspacevectors)
-        call calcupdatevectors(n,iunconverged,P,w,r,evalfv,subspacevectors(:,:,idiis)) 
-        call diisupdate(idiis,iunconverged,n,h,s, subspacevectors,evalfv(:,ispn)&
-             ,evecfv(:,:,ispn))
+        call calcupdatevectors(n,iunconverged,P,w,r,evalfv,&
+             subspacevectors(:,:,idiis)) 
+        if(idiis.gt.1)then
+           call diisupdate(idiis,iunconverged,n,h,s, subspacevectors&
+                ,evalfv(:,ispn),evecfv(:,:,ispn))
+        else
+           do i=1,nstfv
+           call zcopy(n,subspacevectors(1,i,1),1,evecfv(1,i,ispn),1)
+        end do
+        endif
      end do
 
      call cpu_time(cpu1)
