@@ -35,7 +35,5 @@ call zcopy(n,h(1,i),1,r(1,i),1)
 call zaxpy(n,complex(-evalfv(i),0),s(1,i),1,r(1,i),1)
 rnorms(i)= sqrt( zdotc(n,r(1,i),1,r(1,i),1))
 end do
-#ifdef DEBUG
-write(*,*)"residual calculated"
-#endif
+
 end subroutine

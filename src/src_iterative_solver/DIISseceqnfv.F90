@@ -25,7 +25,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !EOP
   !BOC
   implicit none
-  ! arguments
+  ! argumentstrialvec
   integer, 	intent(in) 		:: ik
   integer, 	intent(in) 		:: ispn
   real(8),    intent(in)    :: vgpc(3,ngkmax)
@@ -46,7 +46,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8):: h(nmat(ik,ispn),nstfv,diismax) 
   complex(8):: s(nmat(ik,ispn),nstfv,diismax)
   complex(8):: r(nmat(ik,ispn),nstfv)
-  complex(8):: subspacevectors(nmat(ik,ispn),nstfv,diismax)
+  complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
   real(8)::w(nmatmax),rnorms(nstfv)
   integer evecmap(nstfv),  iunconverged
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
@@ -84,6 +84,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
      endif
      do idiis=1,diismax
+        write(*,*)"diisiter", idiis
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
@@ -94,15 +95,15 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,evalfv(:,ispn),r,rnorms)
         if  (allconverged(nstfv,rnorms)) exit	
-        ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,subspacevectors)
+        ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,trialvecs)
         call calcupdatevectors(n,iunconverged,P,w,r,evalfv,&
-             subspacevectors(:,:,idiis)) 
+             trialvecs(:,:,idiis)) 
         if(idiis.gt.1)then
-           call diisupdate(idiis,iunconverged,n,h,s, subspacevectors&
+           call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,evalfv(:,ispn),evecfv(:,:,ispn))
         else
            do i=1,nstfv
-           call zcopy(n,subspacevectors(1,i,1),1,evecfv(1,i,ispn),1)
+           call zcopy(n,trialvecs(1,i,1),1,evecfv(1,i,ispn),1)
         end do
         endif
      end do

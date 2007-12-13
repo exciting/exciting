@@ -8,11 +8,12 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
   complex(8), intent(out)::c(m)
   complex(8):: work(2*m)
   real(8):: rwork(7*m),abstol,v
-  integer:: iwork(5*m),ifail(m),info,mfound
-  real(8) dlamch ,eval(m)
+  integer:: iwork(5*m),ifail(m),info,mfound,lwork
+  real(8) dlamch 
   external dlamch
   abstol=2.d0*dlamch('S')
-write(*,*) "solvediis"
-  call zhpgvx(1,'V','I','U',2*m,Pmatrix,Qmatrix,v,v,1,1,abstol,mfound,eval,c,m,work, &
+  lwork =2*m
+  call zhegvx(1,'V','I','U',m,Pmatrix,m,Qmatrix,m,&
+       v,v,1,1,abstol,mfound,v,c,m,work,lwork, &
        rwork,iwork,ifail,info)
 end subroutine solvediis
