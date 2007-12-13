@@ -33,8 +33,8 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
      lspl=lsplsymc(isym)
      ! rotation as real matrix in lattice coordinates
      s(:,:)=dble(symlat(:,:,lspl))
-     ! transpose rotation applied to vql
-     call r3mtv(s,vql,v1)
+     ! Note: here we apply the rotation from the left side
+     call r3mv(s,vql,v1)
      ! save transformed vector
      v1t(:)=v1(:)
      ! convert v2 to equivalent point and wrapping vector

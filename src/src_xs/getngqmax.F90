@@ -22,9 +22,10 @@ use modxs
 !BOC
 implicit none
 ! local variables
-integer ispn,iq,i,ig
+integer ispn,iq,i,j,ig,iv1(3),iv2(3)
 real(8) v1(3),v2(3),t1,t2
 t1=gqmax**2
+intgqv(:)=0
 ngqmax=0
 do iq=1,nqpt
    v1(:)=vqc(:,iq)
@@ -32,10 +33,17 @@ do iq=1,nqpt
    do ig=1,ngvec
       v2(:)=vgc(:,ig)+v1(:)
       t2=v2(1)**2+v2(2)**2+v2(3)**2
-      if (t2.lt.t1) i=i+1
+      if (t2.lt.t1) then
+         i=i+1
+         do j=1,3
+            intgqv(j,1)=min(intgqv(j,1),ivg(j,igfft(ig)))
+            intgqv(j,2)=max(intgqv(j,1),ivg(j,igfft(ig)))
+         end do
+      end if
    end do
    ngqmax=max(ngqmax,i)
 end do
+ngridgq(:)=intgqv(:,2)-intgqv(:,1)+1
 return
 end subroutine getngqmax
 !EOC

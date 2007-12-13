@@ -62,6 +62,10 @@ module modxs
   !----------------------------------!
   !     G+q-vector set variables     !
   !----------------------------------!
+  ! G-vector grid sizes of (G+q)-vectors
+  integer ngridgq(3)
+  ! integer grid intervals for each direction for G-vectors
+  integer intgqv(3,2)
   ! maximum |G+q| cut-off for APW functions
   real(8) gqmax
   ! number of G+q-vectors
@@ -70,6 +74,8 @@ module modxs
   integer ngqmax
   ! index from G+q-vectors to G-vectors
   integer, allocatable :: igqig(:,:)
+  ! inde
+  integer, allocatable :: ivgigq(:,:,:)
   ! G+q-vectors in lattice coordinates
   real(8), allocatable :: vgql(:,:,:)
   ! G+q-vectors in Cartesian coordinates

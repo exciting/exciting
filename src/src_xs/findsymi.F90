@@ -15,6 +15,9 @@ subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
   ! local variables
   real(8) :: c(3,3),si(3,3),sj(3,3),vtl(3)
   integer :: i,isym,jsym,lspli,lsplj,iv(3)
+
+!!$  real(8) :: s1(3,3)
+
   scimap(:)=0
   do isym=1,nsymcrys
      lspli=lsplsymc(isym)
@@ -41,4 +44,19 @@ subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
      end do
 10   continue
   end do
+
+!!$  ! Test to see if ((alpha^-1)_latt == (alpha_latt)^-1
+!!$  do isym=1,nsymcrys
+!!$     jsym=scimap(isym)
+!!$     lspli=lsplsymc(isym)
+!!$     lsplj=lsplsymc(jsym)
+!!$     si(:,:)=dble(symlat(:,:,lspli))
+!!$     sj(:,:)=dble(symlat(:,:,lsplj))
+!!$     call r3minv(si,s1)
+!!$     write(*,*) 'isym,jsym,lspli,lsplj,diff',isym,jsym,lspli,lsplj,&
+!!$          sum(abs(s1-sj))
+!!$  end do
+
+
+
 end subroutine findsymi
