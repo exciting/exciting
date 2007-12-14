@@ -91,8 +91,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !o: same for overlap*evecfv
         call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),&
              h(:,:,idiis),s(:,:,idiis))
-      !  call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
-       !      , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
+       call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
+           , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,evalfv(:,ispn),r,rnorms)
              write(*,*)"rnorms",rnorms

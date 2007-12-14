@@ -57,8 +57,9 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
      else if(doDIIScycle()) then 
         call DIISseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)
+        if (diiscounter.eq.2)   stop
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
-       
+    
      endif
 
 

@@ -11,9 +11,7 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,phi)
   integer m,i
   m=nstfv
   call zgemm('C','N',n,m,n,zone,P,nmatmax,r,n,zzero,v,n)
-#ifdef DEBUG
 
-#endif
   do i=1,m
      if(abs(w(i)-evalfv(i)).lt.1e-6)then
    		z= cmplx(1.0/(w(i)-evalfv(i)),0)
