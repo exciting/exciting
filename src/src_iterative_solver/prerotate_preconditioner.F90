@@ -18,13 +18,13 @@ subroutine prerotate_preconditioner(n,m,h,evecfv,P)
 #ifdef DEBUG
 write(*,*) "prerotate zgemm"
 #endif
-  call zhemm('L','U',n,m,complex(1,0),h,P,nmatmax,complex(0,0),tmp,nmatmax)
-  call zgemm('C','N',n,m,n,m,complex(1,0),P,nmatmax,tmp,nmatmax,&
-       complex(0,0),hs,m)
+  call zhemm('L','U',n,m,cmplx(1,0),h,P,nmatmax,cmplx(0,0),tmp,nmatmax)
+  call zgemm('C','N',n,m,n,m,cmplx(1,0),P,nmatmax,tmp,nmatmax,&
+       cmplx(0,0),hs,m)
   call ZHEEVX( 'V', 'A', 'U',m , hs, m, v,v, i, i,&
        ABSTOL, mfound, eval, c, m, WORK, 2*m, RWORK,&
        IWORK, IFAIL, INFO )
   tmp=0.0
-  call zgemm('N','N',n,m,m,m,complex(1,0),P,nmatmax,c,m,complex(0,0),tmp,nmatmax)
+  call zgemm('N','N',n,m,m,m,cmplx(1,0),P,nmatmax,c,m,cmplx(0,0),tmp,nmatmax)
   P(:,1:m)=tmp(:,1:m)
 end subroutine prerotate_preconditioner

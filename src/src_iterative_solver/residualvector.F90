@@ -32,7 +32,7 @@ external zdotc
 
 do i=1,nstfv
 call zcopy(n,h(1,i),1,r(1,i),1)
-call zaxpy(n,complex(-evalfv(i),0),s(1,i),1,r(1,i),1)
+call zaxpy(n,cmplx(-evalfv(i),0),s(1,i),1,r(1,i),1)
 rnorms(i)= sqrt( zdotc(n,r(1,i),1,r(1,i),1))
 end do
 

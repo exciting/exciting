@@ -8,6 +8,7 @@ parallel:
 	cd build/parallel; $(MAKE) 
 
 all:serial parallel
+	cp build/serial/make.inc ./
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)
 	cd src/species; $(MAKE)

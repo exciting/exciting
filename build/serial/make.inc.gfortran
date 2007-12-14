@@ -1,8 +1,9 @@
 F90 =gfortran 
-F90_OPTS = -g -x f95-cpp-input
+F90_OPTS = -g 
+F90CPP_OPTS=-x f95-cpp-input -DDEBUG
 F77 = gfortran
 F77_OPTS = 
 LIB_SYS = 
-LIB_LPK = libarpack.a liblapack.a libblas.a -llapack -lblas
+LIB_LPK = libarpack.a  -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a

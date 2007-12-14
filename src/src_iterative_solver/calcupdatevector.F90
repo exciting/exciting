@@ -10,18 +10,18 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,phi)
 
   integer m,i
   m=nstfv
-  call zgemm('C','N',n,m,n,complex(1,0),P,nmatmax,r,n,complex(0,0),v,n)
+  call zgemm('C','N',n,m,n,cmplx(1,0),P,nmatmax,r,n,cmplx(0,0),v,n)
 #ifdef DEBUG
 
 #endif
   do i=1,m
      if(abs(w(i)-evalfv(i)).lt.1e-6)then
-        call zscal(n,complex(1.0/(w(i)-evalfv(i)),0),v,1)
+        call zscal(n,cmplx(1.0/(w(i)-evalfv(i)),0),v,1)
      else
         v(:,i)=0
      endif
   end do
 
-  call zgemm('N','N',n,m,n,complex(1,0),P,nmatmax,r,n,complex(0,0),phi,n)
+  call zgemm('N','N',n,m,n,cmplx(1,0),P,nmatmax,r,n,cmplx(0,0),phi,n)
 
 end subroutine calcupdatevectors

@@ -103,7 +103,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
                 ,evalfv(:,ispn),evecfv(:,:,ispn))
         else
            do i=1,nstfv
-           call zcopy(n,trialvecs(1,i,1),1,evecfv(1,i,ispn),1)
+           call zaxpy(n,cmplx(1,0),trialvecs(1,i,1),1,evecfv(1,i,ispn),1)
         end do
         endif
      end do
