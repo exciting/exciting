@@ -4,7 +4,20 @@ module diisinterfaces
   complex(8) zdotc
   real(8) dlamch
   external zdotc,dlamch
-  
+    
+  interface
+  subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv) 
+   use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
+       ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax
+  integer, 	intent(in) 		:: ik
+  integer, 	intent(in) 		:: ispn
+  real(8),    intent(in)    :: vgpc(3,ngkmax)
+  complex(8), intent(in) 	:: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+  real(8), 	intent(inout) 	:: evalfv(nstfv,nspnfv)
+  complex(8), intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
+       end subroutine 
+  end interface
+
   interface
      subroutine  hamiltonandoverlapsetupnotpacked(n,ngp,apwalm,igpig,vgpc,hamilton,overlap)
        use modmain, only:ngkmax,apwordmax,lmmaxapw,natmtot
@@ -23,7 +36,7 @@ module diisinterfaces
        integer, intent(in)::n
        complex(8),intent(in)::h(n,n),o(n,n)
        complex(8),intent(out)::evecfv(nmatmax,nstfv)
-       real(8),intent(out)::evalfv(nstfv), w(n)
+       real(8),intent(out)::evalfv(nstfv), w(nmatmax)
        complex(8),intent (OUT)::X(nmatmax,nmatmax)
 
      end subroutine seceqfvprecond

@@ -5,7 +5,7 @@ subroutine seceqfvprecond  (n,h,o,X,w,evalfv,evecfv)
   integer, intent(in)::n
   complex(8),intent(in)::h(n,n),o(n,n)
   complex(8),intent(out)::evecfv(nmatmax,nstfv)
-  real(8),intent(out)::evalfv(nstfv), w(n)
+  real(8),intent(out)::evalfv(nstfv), w(nmatmax)
   complex(8),intent (OUT)::X(nmatmax,nmatmax)	
 
   !local var
@@ -18,6 +18,7 @@ subroutine seceqfvprecond  (n,h,o,X,w,evalfv,evecfv)
   real(8)  :: rwork(7*n)
   complex(8):: work(2*n)
   lwork=2*n
+   abstol=2.d0*dlamch('S')
   call zhegvx(1,'V','A','U',n,h,n,o,n,v,v,1,nstfv,abstol,mfound,w,X,nmatmax, &
        work,lwork,rwork,iwork,ifail,info)
   if (info.ne.0) then
@@ -33,8 +34,8 @@ subroutine seceqfvprecond  (n,h,o,X,w,evalfv,evecfv)
      end if
      stop
   end if
-  call dcopy(nstfv,w,1,evalfv,1)
-  call zcopy(nstfv*nmatmax,X,1,evecfv,1)
+  call dcopy(nstfv,w(1),1,evalfv(1),1)
+  call zcopy(nstfv*nmatmax,X,1,evecfv(1,1),1)
 
 
 end subroutine seceqfvprecond

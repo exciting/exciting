@@ -19,6 +19,7 @@ use modmpi
         koffset =ik
      endif
      read(70,rec=koffset)X,w
+     close(70)
   else
      write(*,*)"Error"
      stop

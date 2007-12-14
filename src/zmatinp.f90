@@ -81,6 +81,7 @@ else
     end if
   end do
 #endif
+
 #ifdef ZMAT 
 call ZHPR2 ( 'U', n, alpha, x, 1, y, 1, a )
 #endif

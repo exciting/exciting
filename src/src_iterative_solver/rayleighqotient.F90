@@ -10,8 +10,8 @@ subroutine rayleighqotient(n,m,evecfv, h,s,evalfv)
   complex(8)::vhv,vsv
   integer i
   do i=1,nstfv
-     vhv= zdotc(n,evecfv,1,h,1)
-     vsv= zdotc(n,evecfv,1,s,1)
+     vhv= zdotc(n,evecfv(1,i),1,h,1)
+     vsv= zdotc(n,evecfv(1,i),1,s,1)
      evalfv(i)=vhv/vsv
   end do
 end subroutine rayleighqotient

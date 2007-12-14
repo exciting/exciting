@@ -2,7 +2,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   !USES:
   use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
-       ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax
+       ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax,zzero,zone
   use sclcontroll
   use diisinterfaces
   ! !INPUT/OUTPUT PARAMETERS:
@@ -48,6 +48,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8):: r(nmat(ik,ispn),nstfv)
   complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
   real(8)::w(nmatmax),rnorms(nstfv)
+   complex(8)::z
   integer evecmap(nstfv),  iunconverged
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
      write(*,*)
@@ -90,10 +91,11 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !o: same for overlap*evecfv
         call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),&
              h(:,:,idiis),s(:,:,idiis))
-        call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
-             , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
+      !  call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
+       !      , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,evalfv(:,ispn),r,rnorms)
+             write(*,*)"rnorms",rnorms
         if  (allconverged(nstfv,rnorms)) exit	
         ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,trialvecs)
         call calcupdatevectors(n,iunconverged,P,w,r,evalfv,&
@@ -103,9 +105,10 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
                 ,evalfv(:,ispn),evecfv(:,:,ispn))
         else
            do i=1,nstfv
-           call zaxpy(n,cmplx(1,0),trialvecs(1,i,1),1,evecfv(1,i,ispn),1)
+           call zaxpy(n,zone,trialvecs(1,i,1),1,evecfv(1,i,ispn),1)
            rnorm=sqrt( dble( zdotc( n,evecfv(1,i,ispn),1,evecfv(1,i,ispn),1 ) ) )
-           call zscal(n,cmplx(1.0/rnorm,0),evecfv(1,i,ispn),1)
+           z=cmplx(1.0/rnorm,0)
+           call zscal(n,z,evecfv(1,i,ispn),1)
         end do
         endif
      end do
