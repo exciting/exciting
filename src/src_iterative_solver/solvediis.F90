@@ -9,8 +9,7 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
   complex(8):: work(2*m)
   real(8):: rwork(7*m),abstol,v
   integer:: iwork(5*m),ifail(m),info,mfound,lwork
-  real(8) dlamch 
-  external dlamch
+  
   abstol=2.d0*dlamch('S')
   lwork =2*m
   call zhegvx(1,'V','I','U',m,Pmatrix,m,Qmatrix,m,&

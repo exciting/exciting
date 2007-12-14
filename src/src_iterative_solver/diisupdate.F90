@@ -6,9 +6,8 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
   complex(8),intent(in)::h(n,nstfv,idiis),s(n,nstfv,idiis),trialvec(n,nstfv,idiis)
   real(8), intent(in):: evalfv(nstfv)
   complex(8),intent(out)::evecfv(nmatmax,nstfv)
-  complex(8) zdotc
-  real(8) dlamch
-  external zdotc,dlamch
+
+
   complex(8) p(n,idiis)
   real(8)::nrm
   integer::i,j,ir,is

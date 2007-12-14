@@ -104,6 +104,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         else
            do i=1,nstfv
            call zaxpy(n,cmplx(1,0),trialvecs(1,i,1),1,evecfv(1,i,ispn),1)
+           rnorm=sqrt( dble( zdotc( n,evecfv(1,i,ispn),1,evecfv(1,i,ispn),1 ) ) )
+           call zscal(n,cmplx(1.0/rnorm,0),evecfv(1,i,ispn),1)
         end do
         endif
      end do

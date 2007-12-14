@@ -64,7 +64,7 @@ if (tapp) then
 else
 ! calculate the matrix elements
   k=0
-#ifdef ZMAT  
+#ifndef ZMAT  
   do j=1,n
     if ((abs(dble(x(j))).gt.eps).or.(abs(aimag(x(j))).gt.eps).or. &
      (abs(dble(y(j))).gt.eps).or.(abs(aimag(y(j))).gt.eps)) then
@@ -81,7 +81,7 @@ else
     end if
   end do
 #endif
-#ifndef ZMAT 
+#ifdef ZMAT 
 call ZHPR2 ( 'U', n, alpha, x, 1, y, 1, a )
 #endif
 end if

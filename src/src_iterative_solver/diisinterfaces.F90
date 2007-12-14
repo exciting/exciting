@@ -1,6 +1,10 @@
 module diisinterfaces
-  implicit none
 
+  implicit none
+  complex(8) zdotc
+  real(8) dlamch
+  external zdotc,dlamch
+  
   interface
      subroutine  hamiltonandoverlapsetupnotpacked(n,ngp,apwalm,igpig,vgpc,hamilton,overlap)
        use modmain, only:ngkmax,apwordmax,lmmaxapw,natmtot

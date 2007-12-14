@@ -27,8 +27,7 @@ complex(8),intent(out)::r(n,nstfv)
 real(8),intent(in)::evalfv(nstfv)
 real(8),intent(out)::rnorms(nstfv)
 integer i
-complex(8) zdotc
-external zdotc
+
 
 do i=1,nstfv
 call zcopy(n,h(1,i),1,r(1,i),1)
