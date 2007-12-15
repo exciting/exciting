@@ -6,10 +6,10 @@
 !BOP
 ! !ROUTINE: gengqvec
 ! !INTERFACE:
-subroutine gengqvec(vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
+subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
 ! !USES:
-use modmain
-use modxs
+  use modmain
+  use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   vpl   : p-point vector in lattice coordinates (in,real(3))
 !   vpc   : p-point vector in Cartesian coordinates (in,real(3))
@@ -29,43 +29,47 @@ use modxs
 !   Created October 2006 (Sagmeister)
 !EOP
 !BOC
-implicit none
-! arguments
-real(8), intent(in) :: vpl(3)
-real(8), intent(in) :: vpc(3)
-integer, intent(out) :: ngp
-integer, intent(out) :: igpig(ngqmax)
-real(8), intent(out) :: vgpl(3,ngqmax)
-real(8), intent(out) :: vgpc(3,ngqmax)
-real(8), intent(out) :: gpc(ngqmax)
-real(8), intent(out) :: tpgpc(2,ngqmax)
-! local variables
-integer ig,igp
-real(8) v(3),t1,t2
-t1=gqmax**2
-igp=0
-do ig=1,ngvec
-  v(:)=vgc(:,ig)+vpc(:)
-  t2=v(1)**2+v(2)**2+v(3)**2
-  if (t2.lt.t1) then
-    igp=igp+1
-    if (igp.gt.ngqmax) then
-      write(*,*)
-      write(*,'("Error(gengpvec): number of G+p-vectors exceeds ngqmax")')
-      write(*,*)
-      stop
-    end if
-! index to G-vector
-    igpig(igp)=ig
-! G+p-vector in lattice coordinates
-    vgpl(:,igp)=dble(ivg(:,ig))+vpl(:)
-! G+p-vector in Cartesian coordinates
-    vgpc(:,igp)=v(:)
-! G+p-vector length and (theta, phi) coordinates
-    call sphcrd(vgpc(1,igp),gpc(igp),tpgpc(1,igp))
-  end if
-end do
-ngp=igp
-return
+  implicit none
+  ! arguments
+  integer, intent(in) :: iq
+  real(8), intent(in) :: vpl(3)
+  real(8), intent(in) :: vpc(3)
+  integer, intent(out) :: ngp
+  integer, intent(out) :: igpig(ngqmax)
+  real(8), intent(out) :: vgpl(3,ngqmax)
+  real(8), intent(out) :: vgpc(3,ngqmax)
+  real(8), intent(out) :: gpc(ngqmax)
+  real(8), intent(out) :: tpgpc(2,ngqmax)
+  ! local variables
+  integer ig,igp
+  real(8) v(3),t1,t2
+  t1=gqmax**2
+  ivgigq(:,:,:,iq)=0
+  igp=0
+  do ig=1,ngvec
+     v(:)=vgc(:,ig)+vpc(:)
+     t2=v(1)**2+v(2)**2+v(3)**2
+     if (t2.lt.t1) then
+        igp=igp+1
+        if (igp.gt.ngqmax) then
+           write(*,*)
+           write(*,'("Error(gengpvec): number of G+p-vectors exceeds ngqmax")')
+           write(*,*)
+           stop
+        end if
+        ! index to G-vector
+        igpig(igp)=ig
+        ! G+p-vector in lattice coordinates
+        vgpl(:,igp)=dble(ivg(:,ig))+vpl(:)
+        ! G+p-vector in Cartesian coordinates
+        vgpc(:,igp)=v(:)
+        ! G+p-vector length and (theta, phi) coordinates
+        call sphcrd(vgpc(1,igp),gpc(igp),tpgpc(1,igp))
+        ! map from grid to G+p-vector
+        ivgigq(ivg(1,ig),ivg(2,ig),ivg(3,ig),iq)=igp
+     end if
+  end do
+  ngp=igp
+  return
 end subroutine gengqvec
 !EOC

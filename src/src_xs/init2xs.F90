@@ -197,9 +197,12 @@ subroutine init2xs
   allocate(sfacgq(ngqmax,natmtot,nqpt))
   if (allocated(ylmgq)) deallocate(ylmgq)
   allocate(ylmgq(lmmaxvr,ngqmax,nqpt))
+  if (allocated(ivgigq)) deallocate(ivgigq)
+  allocate(ivgigq(intgqv(1,1):intgqv(1,2),intgqv(2,1):intgqv(2,2), &
+       intgqv(3,1):intgqv(3,2),nqpt))
   do iq=1,nqpt
      ! generate G+q vectors
-     call gengqvec(vql(1,iq),vqc(1,iq),ngq(iq),igqig(1,iq), &
+     call gengqvec(iq,vql(1,iq),vqc(1,iq),ngq(iq),igqig(1,iq), &
           vgql(1,1,iq),vgqc(1,1,iq),gqc(1,iq),tpgqc(1,1,iq))
      ! generate structure factors for G-vectors
      call gensfacgp(ngq(iq),vgqc(1,1,iq),ngq(iq),sfacgq(1,1,iq))

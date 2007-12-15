@@ -25,7 +25,7 @@ implicit none
 integer ispn,iq,i,j,ig,iv1(3),iv2(3)
 real(8) v1(3),v2(3),t1,t2
 t1=gqmax**2
-intgqv(:)=0
+intgqv(:,:)=0
 ngqmax=0
 do iq=1,nqpt
    v1(:)=vqc(:,iq)
@@ -36,14 +36,14 @@ do iq=1,nqpt
       if (t2.lt.t1) then
          i=i+1
          do j=1,3
-            intgqv(j,1)=min(intgqv(j,1),ivg(j,igfft(ig)))
-            intgqv(j,2)=max(intgqv(j,1),ivg(j,igfft(ig)))
+            intgqv(j,1)=min(intgqv(j,1),ivg(j,ig))
+            intgqv(j,2)=max(intgqv(j,2),ivg(j,ig))
          end do
       end if
    end do
    ngqmax=max(ngqmax,i)
 end do
 ngridgq(:)=intgqv(:,2)-intgqv(:,1)+1
-return
+write(*,*) 'intgqv',intgqv
 end subroutine getngqmax
 !EOC

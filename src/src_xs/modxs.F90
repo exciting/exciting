@@ -74,8 +74,8 @@ module modxs
   integer ngqmax
   ! index from G+q-vectors to G-vectors
   integer, allocatable :: igqig(:,:)
-  ! inde
-  integer, allocatable :: ivgigq(:,:,:)
+  ! map from integer grid to G+q-vector array
+  integer, allocatable :: ivgigq(:,:,:,:)
   ! G+q-vectors in lattice coordinates
   real(8), allocatable :: vgql(:,:,:)
   ! G+q-vectors in Cartesian coordinates

@@ -47,6 +47,10 @@ contains
     integer :: oct,un
     logical :: tq0, tetrat
 
+    ! update q-point index
+    call updateq(iq)
+
+    ! sampling of Brillouin zone
     tetrat=tetra
     bzsampl=0
     if (tetra) bzsampl=1
@@ -233,10 +237,10 @@ contains
 
                 if (tq0.and.(n.gt.1)) then
                    ! wings
-                   call dfqoscwg(1,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
-                        xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
-                   call dfqoscwg(2,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
-                        xiuo(ic,iv,2:),hou(2:,1),huo(2:,1))
+                   call dfqoscwg(iq,ik,1,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
+                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
+                   call dfqoscwg(iq,ik,2,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
+                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(2:,1),huo(2:,1))
                    do iw=wi,wf
                       wout=wou(iw)
                       ! be careful with gauge in the w-variable
@@ -279,7 +283,7 @@ contains
     end do ! ik
 
     do j=0,procs-1
-       if (rank==j) then
+       if (rank.eq.j) then
           do iw=wi,wf
              call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
