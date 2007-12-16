@@ -33,8 +33,8 @@ contains
     end do
     symdfq0(:,:)=s(:,:)/dble(nsymcrys)
     tsymdfq0dn=.false.
-    ! occurrance of negative minor determinant
-    if (any(d < 0.d0)) tsymdfq0dn=.true.
+    ! occurrance of negative 3,3-minor
+    if (any(d.lt.0.d0)) tsymdfq0dn=.true.
 
 ! /// old stuff  <= version 0.9.74
 !!$    ! dielectric tensor components

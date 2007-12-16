@@ -204,13 +204,13 @@ contains
              ! calculate oscillators
              if (.not.tq0) then
                 ! whole
-                call dfqoscbo(iq,ik,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
+                call dfqoscbo(iq,ik,1,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
              end if
 
              if (tq0.and.(n.gt.1)) then
                 ! body
-                call dfqoscbo(iq,ik,n-1,xiou(iv,ic,2:),xiuo(ic,iv,2:), &
-                     hou(2:,2:),huo(2:,2:))
+                call dfqoscbo(iq,ik,2,n,xiou(iv,ic,:),xiuo(ic,iv,:), &
+                     hou(:,:),huo(:,:))
              end if
 
              ! loop over longitudinal Cartesian (diagonal) components of
