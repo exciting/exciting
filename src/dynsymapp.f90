@@ -1,3 +1,8 @@
+
+! Copyright (C) 2005-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine dynsymapp(isym,vpl,dyn,dyns)
 use modmain
 implicit none
@@ -9,8 +14,8 @@ complex(8), intent(inout) :: dyns(3*natmtot,3*natmtot)
 ! local variables
 integer is,ia,ja,ias,jas
 integer lspl,i,j,k,l,m,n
-real(8) s(3,3),v(3),t1
-real(8) d1(3,3),d2(3,3)
+real(8) s(3,3),c(3,3),v(3)
+real(8) d1(3,3),d2(3,3),t1
 complex(8) zt1
 ! automatic arrays
 integer map(natmtot)
@@ -22,6 +27,7 @@ if (lspl.eq.1) then
   dyns(:,:)=dyns(:,:)+dyn(:,:)
   return
 end if
+! symmetry in lattice coordinates
 s(:,:)=dble(symlat(:,:,lspl))
 do is=1,nspecies
   do ia=1,natoms(is)
@@ -37,9 +43,8 @@ do is=1,nspecies
     zph(ias)=cmplx(cos(t1),sin(t1),8)
   end do
 end do
-! convert symmetry to Cartesian coordinates
-call r3mm(s,ainv,s)
-call r3mm(avec,s,s)
+! symmetry in Cartesian coordinates
+s(:,:)=symlatc(:,:,lspl)
 ! rotate and phase-shift dynamical matrix with symmetry
 do ias=1,natmtot
   i=3*(ias-1)
@@ -53,10 +58,10 @@ do ias=1,natmtot
         d2(m,n)=aimag(dyn(i+m,j+n))
       end do
     end do
-    call r3mm(d1,s,d1)
-    call r3mtm(s,d1,d1)
-    call r3mm(d2,s,d2)
-    call r3mtm(s,d2,d2)
+    call r3mm(d1,s,c)
+    call r3mtm(s,c,d1)
+    call r3mm(d2,s,c)
+    call r3mtm(s,c,d2)
     zt1=zph(ias)*conjg(zph(jas))
     do m=1,3
       do n=1,3

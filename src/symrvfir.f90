@@ -27,7 +27,7 @@ real(8), intent(inout) :: rvfir(ngrtot,ndmag)
 ! local variables
 integer i,isym,lspl,lspn
 integer ig,ifg,jg,jfg,iv(3)
-real(8) s(3,3),vtc(3),t1
+real(8) sc(3,3),vtc(3),t1
 complex(8) zv(3),zt1
 ! allocatable arrays
 complex(8), allocatable :: zfft1(:,:),zfft2(:,:)
@@ -45,9 +45,7 @@ do isym=1,nsymcrys
   lspl=lsplsymc(isym)
 ! global spin rotation in Cartesian coordinates
   lspn=lspnsymc(isym)
-  s(:,:)=dble(symlat(:,:,lspn))
-  call r3mm(s,ainv,s)
-  call r3mm(avec,s,s)
+  sc(:,:)=symlatc(:,:,lspn)
   do ig=1,ngv
     ifg=igfft(ig)
     t1=-dot_product(vgc(:,ig),vtc(:))
@@ -73,13 +71,13 @@ do isym=1,nsymcrys
     else
       if (ndmag.eq.3) then
 ! non-collinear case
-        zv(1)=s(1,1)*zfft1(ifg,1)+s(1,2)*zfft1(ifg,2)+s(1,3)*zfft1(ifg,3)
-        zv(2)=s(2,1)*zfft1(ifg,1)+s(2,2)*zfft1(ifg,2)+s(2,3)*zfft1(ifg,3)
-        zv(3)=s(3,1)*zfft1(ifg,1)+s(3,2)*zfft1(ifg,2)+s(3,3)*zfft1(ifg,3)
+        zv(1)=sc(1,1)*zfft1(ifg,1)+sc(1,2)*zfft1(ifg,2)+sc(1,3)*zfft1(ifg,3)
+        zv(2)=sc(2,1)*zfft1(ifg,1)+sc(2,2)*zfft1(ifg,2)+sc(2,3)*zfft1(ifg,3)
+        zv(3)=sc(3,1)*zfft1(ifg,1)+sc(3,2)*zfft1(ifg,2)+sc(3,3)*zfft1(ifg,3)
         zfft2(jfg,:)=zfft2(jfg,:)+zt1*zv(:)
       else
 ! collinear case
-        zfft2(jfg,1)=zfft2(jfg,1)+s(3,3)*zt1*zfft1(ifg,1)
+        zfft2(jfg,1)=zfft2(jfg,1)+sc(3,3)*zt1*zfft1(ifg,1)
       end if
     end if
   end do

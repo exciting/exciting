@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -26,7 +26,7 @@ do itask=1,ntasks
     call hartfock
   case(10)
     call dos
-  case(15)
+  case(15,16)
     call writelsj
   case(20,21)
     call bandstr
@@ -77,7 +77,7 @@ stop
 end program
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.139
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.142
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction

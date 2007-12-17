@@ -11,12 +11,13 @@ real(8), intent(in) :: vpl(3)
 real(8), intent(in) :: vgpl(3,ngkmax)
 complex(8), intent(out) :: evecfv(nmatmax,nstfv,nspnfv)
 ! local variables
-integer isym,lspl,ilo,l,m,lm
-integer ik,igp,igk,ist,i
+integer isym,lspl,ilspl
+integer ilo,l,m,lm,i
+integer ik,igp,igk,ist
 integer is,ia,ja,ias,jas
 integer recl,nmatmax_,nstfv_,nspnfv_
 real(8) vkl_(3),v(3),t1
-real(8) s(3,3),si(3,3),sc(3,3)
+real(8) si(3,3),sc(3,3)
 complex(8) zt1
 ! allocatable arrays
 complex(8), allocatable :: evecfvt(:,:)
@@ -78,11 +79,12 @@ if (spinsprl) then
   write(*,*)
   stop
 end if
-! spatial rotation symmetry matrix
-s(:,:)=dble(symlat(:,:,lspl))
-! the inverse of s rotates k into p
-call r3minv(s,si)
-! translate and rotate APW coefficients
+! the inverse of the spatial symmetry rotates k into p
+ilspl=isymlat(lspl)
+si(:,:)=symlat(:,:,ilspl)
+!-----------------------------------------------!
+!     translate and rotate APW coefficients     !
+!-----------------------------------------------!
 allocate(evecfvt(nmatmax,nstfv))
 do ist=1,nstfv
   do igk=1,ngk(ik,1)
@@ -102,11 +104,12 @@ end do
 deallocate(evecfvt)
 ! return if there are no local-orbitals
 if (nlotot.le.0) return
-! translate and rotate local-orbital coefficients
+!---------------------------------------------------------!
+!     translate and rotate local-orbital coefficients     !
+!---------------------------------------------------------!
 allocate(zflm(lolmmax,nstfv))
-! convert symmetry matrix to Cartesian coordinates
-call r3mm(s,ainv,sc)
-call r3mm(avec,sc,sc)
+! spatial rotation symmetry matrix in Cartesian coordinates
+sc(:,:)=symlatc(:,:,lspl)
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)

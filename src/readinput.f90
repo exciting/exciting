@@ -23,7 +23,7 @@ integer is,js,ia,ja,ias
 integer i,l,iv,iostat
 integer ist,io,nlx,ilx,lx,ilo
 real(8) sc,sc1,sc2,sc3
-real(8) vacuum,t1,t2
+real(8) vacuum,v(3),t1,t2
 character(256) fname
 character(256) str
 character(256) bname
@@ -816,7 +816,8 @@ if (molecule) then
   call r3minv(avec,ainv)
   do is=1,nspecies
     do ia=1,natoms(is)
-      call r3mv(ainv,atposl(1,ia,is),atposl(1,ia,is))
+      call r3mv(ainv,atposl(1,ia,is),v)
+      atposl(:,ia,is)=v(:)
     end do
   end do
 end if

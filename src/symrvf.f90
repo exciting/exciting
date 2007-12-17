@@ -12,9 +12,9 @@ real(8), intent(inout) :: rvfmt(lmmaxvr,nrmtmax,natmtot,ndmag)
 real(8), intent(inout) :: rvfir(ngrtot,ndmag)
 ! local variables
 integer is,ia,ja,ias,jas
-integer isym,lspl,lspn
-integer ir,lm,i,sym(3,3)
-real(8) s(3,3),v(3),t1
+integer isym,ir,lm,i
+integer lspl,ilspl,lspn,ilspn
+real(8) sc(3,3),v(3),t1
 ! automatic arrays
 logical done(natmmax)
 ! allocatable arrays
@@ -49,27 +49,26 @@ do is=1,nspecies
 ! parallel transport of vector field
         lspl=lsplsymc(isym)
         do i=1,ndmag
-          call symrfmt(lrstp,is,symlat(1,1,lspl),rvfmt1(1,1,ja,i),rvfmt2(1,1,i))
+          call symrfmt(lrstp,is,symlatc(1,1,lspl),rvfmt1(1,1,ja,i), &
+           rvfmt2(1,1,i))
         end do
 ! global spin rotation matrix in Cartesian coordinates
         lspn=lspnsymc(isym)
-        s(:,:)=dble(symlat(:,:,lspn))
-        call r3mm(s,ainv,s)
-        call r3mm(avec,s,s)
+        sc(:,:)=symlatc(:,:,lspn)
 ! global spin rotation of vector field
         if (ndmag.eq.3) then
 ! non-collinear case
           do ir=1,nrmt(is),lrstp
             do lm=1,lmmaxvr
-              v(1)=s(1,1)*rvfmt2(lm,ir,1) &
-                  +s(1,2)*rvfmt2(lm,ir,2) &
-                  +s(1,3)*rvfmt2(lm,ir,3)
-              v(2)=s(2,1)*rvfmt2(lm,ir,1) &
-                  +s(2,2)*rvfmt2(lm,ir,2) &
-                  +s(2,3)*rvfmt2(lm,ir,3)
-              v(3)=s(3,1)*rvfmt2(lm,ir,1) &
-                  +s(3,2)*rvfmt2(lm,ir,2) &
-                  +s(3,3)*rvfmt2(lm,ir,3)
+              v(1)=sc(1,1)*rvfmt2(lm,ir,1) &
+                  +sc(1,2)*rvfmt2(lm,ir,2) &
+                  +sc(1,3)*rvfmt2(lm,ir,3)
+              v(2)=sc(2,1)*rvfmt2(lm,ir,1) &
+                  +sc(2,2)*rvfmt2(lm,ir,2) &
+                  +sc(2,3)*rvfmt2(lm,ir,3)
+              v(3)=sc(3,1)*rvfmt2(lm,ir,1) &
+                  +sc(3,2)*rvfmt2(lm,ir,2) &
+                  +sc(3,3)*rvfmt2(lm,ir,3)
               rvfmt(lm,ir,ias,:)=rvfmt(lm,ir,ias,:)+v(:)
             end do
           end do
@@ -77,7 +76,7 @@ do is=1,nspecies
 ! collinear case
           do ir=1,nrmt(is),lrstp
             do lm=1,lmmaxvr
-              rvfmt(lm,ir,ias,1)=rvfmt(lm,ir,ias,1)+s(3,3)*rvfmt2(lm,ir,1)
+              rvfmt(lm,ir,ias,1)=rvfmt(lm,ir,ias,1)+sc(3,3)*rvfmt2(lm,ir,1)
             end do
           end do
         end if
@@ -96,37 +95,36 @@ do is=1,nspecies
           jas=idxas(ja,is)
 ! parallel transport of vector field (using operation inverse)
           lspl=lsplsymc(isym)
-          call i3minv(symlat(1,1,lspl),sym)
+          ilspl=isymlat(lspl)
           do i=1,ndmag
-            call symrfmt(lrstp,is,sym,rvfmt(1,1,ias,i),rvfmt(1,1,jas,i))
+            call symrfmt(lrstp,is,symlatc(1,1,ilspl),rvfmt(1,1,ias,i), &
+             rvfmt(1,1,jas,i))
           end do
 ! inverse of global rotation matrix in Cartesian coordinates
           lspn=lspnsymc(isym)
-          call i3minv(symlat(1,1,lspn),sym)
-          s(:,:)=dble(sym(:,:))
-          call r3mm(s,ainv,s)
-          call r3mm(avec,s,s)
+          ilspn=isymlat(lspn)
+          sc(:,:)=symlatc(:,:,ilspn)
 ! global spin rotation of vector field
           if (ndmag.eq.3) then
 ! non-collinear case
             do ir=1,nrmt(is),lrstp
               do lm=1,lmmaxvr
-                rvfmt(lm,ir,jas,1)=s(1,1)*rvfmt(lm,ir,ias,1) &
-                                  +s(1,2)*rvfmt(lm,ir,ias,2) &
-                                  +s(1,3)*rvfmt(lm,ir,ias,3)
-                rvfmt(lm,ir,jas,2)=s(2,1)*rvfmt(lm,ir,ias,1) &
-                                  +s(2,2)*rvfmt(lm,ir,ias,2) &
-                                  +s(2,3)*rvfmt(lm,ir,ias,3)
-                rvfmt(lm,ir,jas,3)=s(3,1)*rvfmt(lm,ir,ias,1) &
-                                  +s(3,2)*rvfmt(lm,ir,ias,2) &
-                                  +s(3,3)*rvfmt(lm,ir,ias,3)
+                rvfmt(lm,ir,jas,1)=sc(1,1)*rvfmt(lm,ir,ias,1) &
+                                  +sc(1,2)*rvfmt(lm,ir,ias,2) &
+                                  +sc(1,3)*rvfmt(lm,ir,ias,3)
+                rvfmt(lm,ir,jas,2)=sc(2,1)*rvfmt(lm,ir,ias,1) &
+                                  +sc(2,2)*rvfmt(lm,ir,ias,2) &
+                                  +sc(2,3)*rvfmt(lm,ir,ias,3)
+                rvfmt(lm,ir,jas,3)=sc(3,1)*rvfmt(lm,ir,ias,1) &
+                                  +sc(3,2)*rvfmt(lm,ir,ias,2) &
+                                  +sc(3,3)*rvfmt(lm,ir,ias,3)
               end do
             end do
           else
 ! collinear case
             do ir=1,nrmt(is),lrstp
               do lm=1,lmmaxvr
-                rvfmt(lm,ir,jas,1)=s(3,3)*rvfmt(lm,ir,ias,1)
+                rvfmt(lm,ir,jas,1)=sc(3,3)*rvfmt(lm,ir,ias,1)
               end do
             end do
           end if

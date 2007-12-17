@@ -26,7 +26,8 @@ implicit none
 ! local variables
 integer i,j,md,sym(3,3)
 integer i11,i12,i13,i21,i22,i23,i31,i32,i33
-real(8) s(3,3),g(3,3),sgs(3,3),v(3),t1
+real(8) s(3,3),g(3,3),sgs(3,3)
+real(8) c(3,3),v(3),t1
 ! external functions
 integer i3mdet
 real(8) r3taxi
@@ -47,8 +48,8 @@ do i31=-1,1; do i32=-1,1; do i33=-1,1
   if (abs(md).ne.1) goto 10
 ! check invariance of metric tensor
   s(:,:)=dble(sym(:,:))
-  call r3mtm(s,g,sgs)
-  call r3mm(sgs,s,sgs)
+  call r3mtm(s,g,c)
+  call r3mm(c,s,sgs)
   do i=1,3
     do j=1,3
       if (abs(sgs(i,j)-g(i,j)).gt.epslat) goto 10
@@ -92,11 +93,31 @@ do i=1,nsymlat
   end if
 end do
 20 continue
+! index to the inverse of each operation
+do i=1,nsymlat
+  call i3minv(symlat(1,1,i),sym)
+  do j=1,nsymlat
+    if ((symlat(1,1,j).eq.sym(1,1)).and.(symlat(1,2,j).eq.sym(1,2)).and. &
+        (symlat(1,3,j).eq.sym(1,3)).and.(symlat(2,1,j).eq.sym(2,1)).and. &
+        (symlat(2,2,j).eq.sym(2,2)).and.(symlat(2,3,j).eq.sym(2,3)).and. &
+        (symlat(3,1,j).eq.sym(3,1)).and.(symlat(3,2,j).eq.sym(3,2)).and. &
+        (symlat(3,3,j).eq.sym(3,3))) then
+      isymlat(i)=j
+      goto 30
+    end if
+  end do
+  write(*,*)
+  write(*,'("Error(findsymlat): inverse operation not found")')
+  write(*,'(" for lattice symmetry ",I2)') i
+  write(*,*)
+  stop
+30 continue
+end do
 ! determine the lattice symmetries in Cartesian coordinates
 do i=1,nsymlat
   s(:,:)=dble(symlat(:,:,i))
-  call r3mm(s,ainv,s)
-  call r3mm(avec,s,symlatc(1,1,i))
+  call r3mm(s,ainv,c)
+  call r3mm(avec,c,symlatc(1,1,i))
 end do
 return
 end subroutine

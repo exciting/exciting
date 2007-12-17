@@ -78,9 +78,8 @@ end if
 ! pre-calculation for symmetrisation
 do isym=1,nsymcrys
   lspl=lsplsymc(isym)
-  sc(:,:,isym)=dble(symlat(:,:,lspl))
-  call r3mtm(sc(1,1,isym),binv,sc(1,1,isym))
-  call r3mm(bvec,sc(1,1,isym),sc(1,1,isym))
+! symmetry matrix in Cartesian coordinates
+  sc(:,:,isym)=symlatc(:,:,lspl)
   d(isym)=sc(1,1,isym)*sc(2,2,isym)-sc(1,2,isym)*sc(2,1,isym)
 end do
 ! energy interval should start from zero
