@@ -160,6 +160,8 @@ if (spinpol) then
   end do
 ! source-free fields and spin-spirals are non-collinear in general
   if ((nosource).or.(spinsprl)) ndmag=3
+! spin-orbit coupling is non-collinear in general
+  if (spinorb) ndmag=3
 else
   ndmag=0
 end if

@@ -11,8 +11,7 @@ subroutine i3minv(a,b)
 !   a : input matrix (in,integer(3,3))
 !   b : output matrix (in,integer(3,3))
 ! !DESCRIPTION:
-!   Computes the inverse of a integer $3\times 3$ matrix: $B=A^{-1}$. Can be
-!   used in-place.
+!   Computes the inverse of a integer $3\times 3$ matrix: $B=A^{-1}$.
 !
 ! !REVISION HISTORY:
 !   Created November 2003 (JKD)
@@ -23,7 +22,7 @@ implicit none
 integer, intent(in) :: a(3,3)
 integer, intent(out) :: b(3,3)
 ! local variables
-integer c(3,3),m
+integer m
 m=a(1,2)*a(2,3)*a(3,1)-a(1,3)*a(2,2)*a(3,1)+a(1,3)*a(2,1)*a(3,2) &
  -a(1,1)*a(2,3)*a(3,2)+a(1,1)*a(2,2)*a(3,3)-a(1,2)*a(2,1)*a(3,3)
 if ((m.ne.1).and.(m.ne.-1)) then
@@ -33,16 +32,15 @@ if ((m.ne.1).and.(m.ne.-1)) then
   write(*,*)
   stop
 end if
-c(1,1)=(a(2,2)*a(3,3)-a(2,3)*a(3,2))*m
-c(1,2)=(a(1,3)*a(3,2)-a(1,2)*a(3,3))*m
-c(1,3)=(a(1,2)*a(2,3)-a(1,3)*a(2,2))*m
-c(2,1)=(a(2,3)*a(3,1)-a(2,1)*a(3,3))*m
-c(2,2)=(a(1,1)*a(3,3)-a(1,3)*a(3,1))*m
-c(2,3)=(a(1,3)*a(2,1)-a(1,1)*a(2,3))*m
-c(3,1)=(a(2,1)*a(3,2)-a(2,2)*a(3,1))*m
-c(3,2)=(a(1,2)*a(3,1)-a(1,1)*a(3,2))*m
-c(3,3)=(a(1,1)*a(2,2)-a(1,2)*a(2,1))*m
-b(:,:)=c(:,:)
+b(1,1)=(a(2,2)*a(3,3)-a(2,3)*a(3,2))*m
+b(1,2)=(a(1,3)*a(3,2)-a(1,2)*a(3,3))*m
+b(1,3)=(a(1,2)*a(2,3)-a(1,3)*a(2,2))*m
+b(2,1)=(a(2,3)*a(3,1)-a(2,1)*a(3,3))*m
+b(2,2)=(a(1,1)*a(3,3)-a(1,3)*a(3,1))*m
+b(2,3)=(a(1,3)*a(2,1)-a(1,1)*a(2,3))*m
+b(3,1)=(a(2,1)*a(3,2)-a(2,2)*a(3,1))*m
+b(3,2)=(a(1,2)*a(3,1)-a(1,1)*a(3,2))*m
+b(3,3)=(a(1,1)*a(2,2)-a(1,2)*a(2,1))*m
 return
 end subroutine
 !EOC

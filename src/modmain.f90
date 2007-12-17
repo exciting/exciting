@@ -196,6 +196,8 @@ logical nosym
 integer nsymlat
 ! Bravais lattice point group symmetries
 integer symlat(3,3,48)
+! index to inverses of the lattice symmetries
+integer isymlat(48)
 ! lattice point group symmetries in Cartesian coordinates
 real(8) symlatc(3,3,48)
 ! tshift is .true. if atomic basis is allowed to be shifted
@@ -833,7 +835,7 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,139 /
+data version / 0,9,145 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=20
 ! number of tasks

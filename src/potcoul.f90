@@ -71,8 +71,6 @@ do is=1,nspecies
 end do
 ! store complex interstitial potential in real array
 vclir(:)=dble(zvclir(:))
-! symmetrise the potential
-call symrf(1,vclmt,vclir)
 deallocate(jlgr,zpchg,zrhomt,zrhoir,zvclmt,zvclir)
 return
 end subroutine

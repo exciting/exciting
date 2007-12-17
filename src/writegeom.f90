@@ -61,9 +61,13 @@ do is=1,nspecies
   write(50,'(" ''",A,"''",T40," : spfname")') trim(spfname(is))
   write(50,'(I4,T40," : natoms; atpos, bfcmt below")') natoms(is)
   do ia=1,natoms(is)
-    v(:)=atposl(:,ia,is)
-! use Cartesian coordinates for the molecular case
-    if (molecule) call r3mv(avec,v,v)
+    if (molecule) then
+! write Cartesian coordinates for the molecular case
+      call r3mv(avec,atposl(1,ia,is),v)
+    else
+! otherwise write lattice coordinates
+      v(:)=atposl(:,ia,is)
+    end if
     write(50,'(3F14.8,"  ",3F12.8)') v(:),bfcmt(:,ia,is)
   end do
 end do
