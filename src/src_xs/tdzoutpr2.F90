@@ -25,7 +25,7 @@ contains
     h(:)=x(ni:n1)
     do i2 = ni, n2
        yc=conjg(y(i2))
-       call zaxpy(n1,alpha*yc,h,1,a(ni,i2),1)
+       call zaxpy(n1-ni,alpha*yc,h,1,a(ni,i2),1)
     end do
 
   end subroutine tdzoutpr2

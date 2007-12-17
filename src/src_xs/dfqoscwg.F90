@@ -21,7 +21,8 @@ contains
     integer :: oc,i,k,nsym
     complex(8) :: zt1
     real(8) :: t1,t2,vgi(3),v1(3),v(3)
-    integer :: igqi,ivi(3),isym,lspl
+    integer :: igqi,ivi(3),isym,jsym,lspl
+    integer, parameter :: in=2
     ! *** check if these symmetry considerations are correct ***
     if (symwings) then
        s(:,:)=0.5d0*(symdfq0(:,:)+transpose(symdfq0))
@@ -52,12 +53,14 @@ contains
     ! consider symmetries
     if (nkpt.eq.nkptnr) then
        ! first wing (G=0,G/=0)
-       you(:)=pout*conjg(xou(:))
-       yuo(:)=puot*conjg(xuo(:))
+       you(in:)=pout*conjg(xou(in:))
+       yuo(in:)=puot*conjg(xuo(in:))
     else
        nsym=nsymcrysstr(ik)
        ! *** simple loops for the moment ***
-       do i=1,n
+       you(in:)=zzero
+       yuo(in:)=zzero
+       do i=in,n
           ! first G-vector
           vgi(:)=vgql(:,i,iq)
           ! difference of G-vectors
@@ -65,30 +68,34 @@ contains
           do k=1,nsym
              ! symmetry element
              isym=scmapstr(k,ik)
+             ! inverse of symmetry element
+             jsym=scimap(isym)
              ! point group element
-             lspl=lsplsymc(isym)
+             lspl=lsplsymc(jsym)
              ! rotation matrix in lattice coordinates
              s(:,:)=dble(symlat(:,:,lspl))
-             ! Note: apply symmetry to difference from left side
-             call r3mv(s,v1,v)
-             t1=dot_product(v,vtlsymc(:,isym))
+             ! apply symmetry to G-vector
+             call r3mtv(s,v1,v)
+             t1=twopi*dot_product(v,vtlsymc(:,jsym))
              ! phase factor
-             t2=cmplx(cos(t1),sin(t1),8)
+             zt1=cmplx(cos(t1),sin(t1),8)
              ! index for first G-vector
              ivi(:)=ivg(:,igqig(i,iq))
-             ivi=matmul(symlat(:,:,lspl),ivi)
-             ivi(:)=ivi(:)+ivscwrapq(:,isym,iq)
+             ivi=matmul(ivi,symlat(:,:,lspl))
+             ivi(:)=ivi(:)    !!!+ivscwrapq(:,jsym,iq)
              igqi=ivgigq(ivi(1),ivi(2),ivi(3),iq)
+write(*,'(a,7i8,3x,3i4)') 'ik,i,k,isym,jsym,lspl,igqi',&
+     ik,i,k,isym,jsym,lspl,igqi,ivi
              ! update oscillators
-             you(i)=you(i)+t2*pout*conjg(xou(igqi))
-             yuo(i)=yuo(i)+t2*puot*conjg(xuo(igqi))                
+             you(i)=you(i)+zt1*pout*conjg(xou(igqi))
+             yuo(i)=yuo(i)+zt1*puot*conjg(xuo(igqi))                
           end do
        end do
     end if
     ! second wing (G/=0,G=0)
     if (sw.ne.1) then
-       you(:)=conjg(you(:))
-       yuo(:)=conjg(yuo(:))
+       you(in:)=conjg(you(in:))
+       yuo(in:)=conjg(yuo(in:))
     end if
 
 

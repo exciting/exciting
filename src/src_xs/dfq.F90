@@ -203,14 +203,13 @@ contains
              huo(:,:)=zzero
              ! calculate oscillators
              if (.not.tq0) then
-                ! whole
+                ! body, wings and head
                 call dfqoscbo(iq,ik,1,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
              end if
 
              if (tq0.and.(n.gt.1)) then
                 ! body
-                call dfqoscbo(iq,ik,2,n,xiou(iv,ic,:),xiuo(ic,iv,:), &
-                     hou(:,:),huo(:,:))
+                call dfqoscbo(iq,ik,2,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
              end if
 
              ! loop over longitudinal Cartesian (diagonal) components of
@@ -237,10 +236,15 @@ contains
 
                 if (tq0.and.(n.gt.1)) then
                    ! wings
-                   call dfqoscwg(iq,ik,1,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
-                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
-                   call dfqoscwg(iq,ik,2,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
-                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(2:,1),huo(2:,1))
+                   call dfqoscwg(iq,ik,1,n,pmou(:,iv,ic),pmuo(:,ic,iv),&
+                        xiou(iv,ic,:),xiuo(ic,iv,:),hou(1,:),huo(1,:))
+                   call dfqoscwg(iq,ik,2,n,pmou(:,iv,ic),pmuo(:,ic,iv),&
+                        xiou(iv,ic,:),xiuo(ic,iv,:),hou(:,1),huo(:,1))
+! <= 0.9.114
+!!$                   call dfqoscwg(iq,ik,1,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
+!!$                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
+!!$                   call dfqoscwg(iq,ik,2,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
+!!$                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(2:,1),huo(2:,1))
                    do iw=wi,wf
                       wout=wou(iw)
                       ! be careful with gauge in the w-variable

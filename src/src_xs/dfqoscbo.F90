@@ -63,54 +63,54 @@ contains
                 ! point group element
                 lspl=lsplsymc(jsym)
                 lsplj=lsplsymc(isym)
-write(*,*) 'iq,ik,i,j,k',iq,ik,i,j,k
-write(*,*) 'jsym,lspl,symlat/symlatc',jsym,lspl
-write(*,*) symlat(1,:,lspl)
-write(*,*) symlat(2,:,lspl)
-write(*,*) symlat(3,:,lspl)
-write(*,*) symlatc(1,:,lspl)
-write(*,*) symlatc(2,:,lspl)
-write(*,*) symlatc(3,:,lspl)
+!!$write(*,*) 'iq,ik,i,j,k',iq,ik,i,j,k
+!!$write(*,*) 'jsym,lspl,symlat/symlatc',jsym,lspl
+!!$write(*,*) symlat(1,:,lspl)
+!!$write(*,*) symlat(2,:,lspl)
+!!$write(*,*) symlat(3,:,lspl)
+!!$write(*,*) symlatc(1,:,lspl)
+!!$write(*,*) symlatc(2,:,lspl)
+!!$write(*,*) symlatc(3,:,lspl)
                 ! rotation matrix in lattice coordinates
                 s(:,:)=dble(symlat(:,:,lspl))
                 ! apply symmetry to difference
                 call r3mtv(s,v1,v)
-                t1=dot_product(v,vtlsymc(:,jsym))
+                t1=twopi*dot_product(v,vtlsymc(:,jsym))
                 ! phase factor
-                t2=cmplx(cos(t1),sin(t1),8)
+                zt1=cmplx(cos(t1),sin(t1),8)
                 ! index for first G-vector
                 ivi(:)=ivg(:,igqig(i,iq))
-write(*,*) 'ivi             ',ivi
-vr(:)=ivi(1)*bvec(:,1)+ivi(2)*bvec(:,2)+ivi(3)*bvec(:,3)
-write(*,'(a,3f12.4)') 'vi              ',vr
+!!$write(*,*) 'ivi             ',ivi
+!!$vr(:)=ivi(1)*bvec(:,1)+ivi(2)*bvec(:,2)+ivi(3)*bvec(:,3)
+!!$write(*,'(a,3f12.4)') 'vi              ',vr
                 ivi=matmul(ivi,symlat(:,:,lspl))
-write(*,*) 'symlat(ivi)     ',ivi
-vr(:)=ivi(1)*bvec(:,1)+ivi(2)*bvec(:,2)+ivi(3)*bvec(:,3)
-write(*,'(a,3f12.4)') 'symlat(vi)      ',vr
+!!$write(*,*) 'symlat(ivi)     ',ivi
+!!$vr(:)=ivi(1)*bvec(:,1)+ivi(2)*bvec(:,2)+ivi(3)*bvec(:,3)
+!!$write(*,'(a,3f12.4)') 'symlat(vi)      ',vr
                 ivi(:)=ivi(:)+ivscwrapq(:,jsym,iq)
-write(*,*) 'symlat(ivi)+wrap',ivi
-vr(:)=ivi(1)*bvec(:,1)+ivi(2)*bvec(:,2)+ivi(3)*bvec(:,3)
-write(*,'(a,3f12.4)') 'symlat(vi)+wrap ',vr
+!!$write(*,*) 'symlat(ivi)+wrap',ivi
+!!$vr(:)=ivi(1)*bvec(:,1)+ivi(2)*bvec(:,2)+ivi(3)*bvec(:,3)
+!!$write(*,'(a,3f12.4)') 'symlat(vi)+wrap ',vr
                 igqi=ivgigq(ivi(1),ivi(2),ivi(3),iq)
                 ! index for second G-vector
                 ivj(:)=ivg(:,igqig(j,iq))
-write(*,*) 'ivj             ',ivj
-vr(:)=ivj(1)*bvec(:,1)+ivj(2)*bvec(:,2)+ivj(3)*bvec(:,3)
-vrs=matmul(symlatc(:,:,lsplj),vr)
-write(*,'(a,3f12.4)') 'vj              ',vr
+!!$write(*,*) 'ivj             ',ivj
+!!$vr(:)=ivj(1)*bvec(:,1)+ivj(2)*bvec(:,2)+ivj(3)*bvec(:,3)
+!!$vrs=matmul(symlatc(:,:,lsplj),vr)
+!!$write(*,'(a,3f12.4)') 'vj              ',vr
                 ivj=matmul(ivj,symlat(:,:,lspl))
-write(*,*) 'symlat(ivj)     ',ivj
-vr(:)=ivj(1)*bvec(:,1)+ivj(2)*bvec(:,2)+ivj(3)*bvec(:,3)
-write(*,'(a,3f12.4,3x,3f12.4)') 'symlat(vj)/Cart. ',vr,vrs
+!!$write(*,*) 'symlat(ivj)     ',ivj
+!!$vr(:)=ivj(1)*bvec(:,1)+ivj(2)*bvec(:,2)+ivj(3)*bvec(:,3)
+!!$write(*,'(a,3f12.4,3x,3f12.4)') 'symlat(vj)/Cart. ',vr,vrs
                 ivj(:)=ivj(:)+ivscwrapq(:,jsym,iq)
-write(*,*) 'symlat(ivj)+wrap',ivj
-vr(:)=ivj(1)*bvec(:,1)+ivj(2)*bvec(:,2)+ivj(3)*bvec(:,3)
-write(*,'(a,3f12.4)') 'symlat(vj)+wrap ',vr
+!!$write(*,*) 'symlat(ivj)+wrap',ivj
+!!$vr(:)=ivj(1)*bvec(:,1)+ivj(2)*bvec(:,2)+ivj(3)*bvec(:,3)
+!!$write(*,'(a,3f12.4)') 'symlat(vj)+wrap ',vr
                 igqj=ivgigq(ivj(1),ivj(2),ivj(3),iq)
                 ! update oscillators
-                you(i,j)=you(i,j)+t2*xou(igqi)*conjg(xou(igqj))
-                yuo(i,j)=yuo(i,j)+t2*xuo(igqi)*conjg(xuo(igqj))
-write(*,*) '==================================================================='
+                you(i,j)=you(i,j)+zt1*xou(igqi)*conjg(xou(igqj))
+                yuo(i,j)=yuo(i,j)+zt1*xuo(igqi)*conjg(xuo(igqj))
+!!$write(*,*) '==================================================================='
              end do
           end do
        end do
