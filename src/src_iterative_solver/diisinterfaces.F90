@@ -82,22 +82,22 @@ module diisinterfaces
      end subroutine writeprecond
   end interface
   interface
-     subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
-       use modmain, only : nmatmax,nstfv
-       implicit none
-       integer ,intent(in):: n,m
-       complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(nmatmax,m)
-       complex(8), intent(out)::h(n,m),s(n,m)
+subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
 
+  use modmain, only : nmatmax,nstfv,zone,zzero
+  implicit none
+  integer ,intent(in):: n,m
+  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(nmatmax,m)
+  complex(8), intent(out)::h(n,m),s(n,m)
      end subroutine setuphsvect
   end interface
   interface
      subroutine rayleighqotient(n,m,evecfv, h,s,evalfv)
-       use modmain, only: nstfv
-       implicit none
-       integer, intent(in)::n,m
-       complex(8) ,intent(in)::h(n),s(n),evecfv(n,nstfv)
-       real(8) ,intent(out)::evalfv(nstfv)
+  use modmain, only: nmatmax
+  implicit none
+  integer, intent(in)::n,m
+  complex(8) ,intent(in)::h(n,m),s(n,m),evecfv(nmatmax,m)
+  real(8) ,intent(out)::evalfv(m)
      end subroutine rayleighqotient
   end interface
   interface

@@ -11,7 +11,6 @@ subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
   call zhemm('L','U',n,m,zone,overlap(1,1),n,evecfv(1,1),nmatmax,&
       zzero,s(1,1),n)
        
-write(*,*)"norm of h	", sqrt(dble( zdotc(n,h(1,1),1,h(1,1),1)))
 
 
 end subroutine setuphsvect

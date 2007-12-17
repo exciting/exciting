@@ -100,6 +100,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,trialvecs)
         call calcupdatevectors(n,iunconverged,P,w,r,evalfv,&
              trialvecs(:,:,idiis)) 
+             
         if(idiis.gt.1)then
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,evalfv(:,ispn),evecfv(:,:,ispn))

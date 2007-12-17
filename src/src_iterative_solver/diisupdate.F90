@@ -29,7 +29,9 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
      enddo
      call solvediis(idiis,Pmatrix,Qmatrix,c)
      do ir=1,idiis 
+     
         call zaxpy(n,c(ir),trialvec(1,i,ir),1,evecfv(1,i),1)
+        
         nrm=sqrt( dble( zdotc( n,evecfv(1,i),1,evecfv(1,i),1 ) ) )
         z=cmplx(1.0/nrm,0)
         call zscal(n,z,evecfv(1,i),1)
