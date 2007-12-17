@@ -5,16 +5,19 @@
 
 subroutine writepmat_ascii
   use modmain
+  use modxs
   use m_getunit
   use m_getpmat
   implicit none
   complex(8), allocatable :: pmat(:,:,:)
   character(16) :: f1,f2,f
   integer :: un,ik,ist1,ist2
-
+  ! initialize global variables
   call init0
   call init1
   call init2xs
+  ! find highest (partially) occupied and lowest (partially) unoccupied states
+  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
 
   allocate(pmat(3,nstsv,nstsv))
   call getunit(un)

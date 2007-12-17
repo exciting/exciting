@@ -159,12 +159,11 @@ contains
 
        ! ***
        if (nkpt.eq.nkptnr) then
-          ! ik=2
 !!$          if ((ik.ne.2).and.(ik.ne.3).and.(ik.ne.4).and.(ik.ne.7).and.(ik.ne.10).and.(ik.ne.14).and.(ik.ne.19).and.(ik.ne.27)) goto 10
-           if ((ik.ne.5).and.(ik.ne.9).and.(ik.ne.11).and.(ik.ne.13).and.(ik.ne.21).and.(ik.ne.25)) goto 10
+!!$           if ((ik.ne.5).and.(ik.ne.9).and.(ik.ne.11).and.(ik.ne.13).and.(ik.ne.21).and.(ik.ne.25)) goto 10
        else
 !!$          if (ik.ne.2) goto 10
-          if (ik.ne.3) goto 10
+!!$          if (ik.ne.3) goto 10
        endif
 write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
 
