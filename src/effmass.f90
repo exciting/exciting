@@ -11,7 +11,8 @@ integer, parameter :: lwork=10
 integer ik,ik0,ist,info
 integer i,j,k,l,m,n
 integer i1,i2,i3,j1,j2,j3
-real(8) em(3,3),v1(3),v2(3)
+real(8) d(3,3),em(3,3)
+real(8) v1(3),v2(3)
 real(8) w(3),work(lwork)
 ! allocatable arrays
 integer, allocatable :: ipiv(:)
@@ -139,7 +140,7 @@ do ist=1,nstsv
         end if
       end do
 ! derivative evaluated at zero
-      em(k,l)=c(0,0,0)
+      d(k,l)=c(0,0,0)
     end do
   end do
   write(50,*)
@@ -148,11 +149,11 @@ do ist=1,nstsv
   write(50,*)
   write(50,'(" matrix of eigenvalue derivatives with respect to k :")')
   do i=1,3
-    write(50,'(3G18.10)') (em(i,j),j=1,3)
+    write(50,'(3G18.10)') (d(i,j),j=1,3)
   end do
-  write(50,'(" trace : ",G18.10)') em(1,1)+em(2,2)+em(3,3)
+  write(50,'(" trace : ",G18.10)') d(1,1)+d(2,2)+d(3,3)
 ! invert derivative matrix
-  call r3minv(em,em)
+  call r3minv(d,em)
   write(50,*)
   write(50,'(" effective mass tensor (inverse of derivative matrix) :")')
   do i=1,3

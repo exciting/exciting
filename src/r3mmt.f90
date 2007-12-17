@@ -12,8 +12,7 @@ subroutine r3mmt(a,b,c)
 !   b : input matrix 2 (in,real(3,3))
 !   c : output matrix (out,real(3,3))
 ! !DESCRIPTION:
-!   Multiplies a real matrix with the transpose of another. The output matrix
-!   can also be an input matrix.
+!   Multiplies a real matrix with the transpose of another.
 !
 ! !REVISION HISTORY:
 !   Created January 2003 (JKD)
@@ -24,18 +23,15 @@ implicit none
 real(8), intent(in) :: a(3,3)
 real(8), intent(in) :: b(3,3)
 real(8), intent(out) :: c(3,3)
-! local variables
-real(8) d(3,3)
-d(1,1)=a(1,1)*b(1,1)+a(1,2)*b(1,2)+a(1,3)*b(1,3)
-d(2,1)=a(2,1)*b(1,1)+a(2,2)*b(1,2)+a(2,3)*b(1,3)
-d(3,1)=a(3,1)*b(1,1)+a(3,2)*b(1,2)+a(3,3)*b(1,3)
-d(1,2)=a(1,1)*b(2,1)+a(1,2)*b(2,2)+a(1,3)*b(2,3)
-d(2,2)=a(2,1)*b(2,1)+a(2,2)*b(2,2)+a(2,3)*b(2,3)
-d(3,2)=a(3,1)*b(2,1)+a(3,2)*b(2,2)+a(3,3)*b(2,3)
-d(1,3)=a(1,1)*b(3,1)+a(1,2)*b(3,2)+a(1,3)*b(3,3)
-d(2,3)=a(2,1)*b(3,1)+a(2,2)*b(3,2)+a(2,3)*b(3,3)
-d(3,3)=a(3,1)*b(3,1)+a(3,2)*b(3,2)+a(3,3)*b(3,3)
-c(:,:)=d(:,:)
+c(1,1)=a(1,1)*b(1,1)+a(1,2)*b(1,2)+a(1,3)*b(1,3)
+c(2,1)=a(2,1)*b(1,1)+a(2,2)*b(1,2)+a(2,3)*b(1,3)
+c(3,1)=a(3,1)*b(1,1)+a(3,2)*b(1,2)+a(3,3)*b(1,3)
+c(1,2)=a(1,1)*b(2,1)+a(1,2)*b(2,2)+a(1,3)*b(2,3)
+c(2,2)=a(2,1)*b(2,1)+a(2,2)*b(2,2)+a(2,3)*b(2,3)
+c(3,2)=a(3,1)*b(2,1)+a(3,2)*b(2,2)+a(3,3)*b(2,3)
+c(1,3)=a(1,1)*b(3,1)+a(1,2)*b(3,2)+a(1,3)*b(3,3)
+c(2,3)=a(2,1)*b(3,1)+a(2,2)*b(3,2)+a(2,3)*b(3,3)
+c(3,3)=a(3,1)*b(3,1)+a(3,2)*b(3,2)+a(3,3)*b(3,3)
 return
 end subroutine
 !EOC

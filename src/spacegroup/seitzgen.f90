@@ -15,7 +15,7 @@ integer i,m,n,no,nop
 integer axis,id(3)
 ! zero vector tolerance
 real(8), parameter :: eps=1.d-6
-real(8) av(3),r(3,3),v1(3),v2(3)
+real(8) av(3),r(3,3),v1(3),v2(3),v3(3)
 character(20) str1,str2,str3
 ! external functions
 real(8) r3taxi
@@ -41,8 +41,8 @@ if (scan(str1,'(').eq.1) then
   v1(:)=v1(:)/12.d0
 ! apply vector shift to all Seitz matrices
   do i=1,ngen
-    v2(:)=-v1(:)
-    call r3mv(srgen(1,1,i),v2,v2)
+    v3(:)=-v1(:)
+    call r3mv(srgen(1,1,i),v3,v2)
     v2(:)=v2(:)+stgen(:,i)
     stgen(:,i)=v2(:)+v1(:)
   end do

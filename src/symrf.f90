@@ -33,7 +33,7 @@ real(8), intent(inout) :: rfmt(lmmaxvr,nrmtmax,natmtot)
 real(8), intent(inout) :: rfir(ngrtot)
 ! local variables
 integer is,ia,ja,ias,jas,ir
-integer isym,lspl,sym(3,3)
+integer isym,lspl,ilspl
 real(8) t1
 ! automatic arrays
 logical done(natmmax)
@@ -68,7 +68,7 @@ do is=1,nspecies
 ! equivalent atom index (symmetry rotates atom ja into atom ia)
         ja=ieqatom(ia,is,isym)
 ! apply the rotation to the muffin-tin function
-        call symrfmt(lrstp,is,symlat(1,1,lspl),rfmt1(1,1,ja),rfmt2)
+        call symrfmt(lrstp,is,symlatc(1,1,lspl),rfmt1(1,1,ja),rfmt2)
 ! accumulate in original function array
         do ir=1,nrmt(is),lrstp
           rfmt(:,ir,ias)=rfmt(:,ir,ias)+rfmt2(:,ir)
@@ -85,10 +85,10 @@ do is=1,nspecies
         if (.not.done(ja)) then
           jas=idxas(ja,is)
           lspl=lsplsymc(isym)
-! find inverse symmetry (which rotates atom ia into atom ja)
-          call i3minv(symlat(1,1,lspl),sym)
+! inverse symmetry (which rotates atom ia into atom ja)
+          ilspl=isymlat(lspl)
 ! rotate symmetrised function into equivalent muffin-tin
-          call symrfmt(lrstp,is,sym,rfmt(1,1,ias),rfmt(1,1,jas))
+          call symrfmt(lrstp,is,symlatc(1,1,ilspl),rfmt(1,1,ias),rfmt(1,1,jas))
           done(ja)=.true.
         end if
       end do

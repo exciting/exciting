@@ -35,7 +35,7 @@ omega=abs(t1)
 if (omega.lt.1.d-6) then
   write(*,*)
   write(*,'("Error(reciplat) omega too small : ",G18.10)') omega
-  write(*,'(" Lattice vectors may be degenerate")')
+  write(*,'(" Lattice vectors may be collinear")')
   write(*,*)
   stop
 end if

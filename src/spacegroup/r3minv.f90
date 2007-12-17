@@ -11,8 +11,7 @@ subroutine r3minv(a,b)
 !   a : input matrix (in,real(3,3))
 !   b : output matrix (in,real(3,3))
 ! !DESCRIPTION:
-!   Computes the inverse of a real $3\times 3$ matrix. The output matrix can
-!   also be the input matrix.
+!   Computes the inverse of a real $3\times 3$ matrix.
 !
 ! !REVISION HISTORY:
 !   Created April 2003 (JKD)
@@ -23,7 +22,7 @@ implicit none
 real(8), intent(in) :: a(3,3)
 real(8), intent(out) :: b(3,3)
 ! local variables
-real(8) c(3,3),t1
+real(8) t1
 t1=a(1,2)*a(2,3)*a(3,1)-a(1,3)*a(2,2)*a(3,1)+a(1,3)*a(2,1)*a(3,2) &
   -a(1,1)*a(2,3)*a(3,2)+a(1,1)*a(2,2)*a(3,3)-a(1,2)*a(2,1)*a(3,3)
 if (abs(t1).lt.1.d-40) then
@@ -33,17 +32,15 @@ if (abs(t1).lt.1.d-40) then
   stop
 end if
 t1=1.d0/t1
-c(1,1)=(a(2,2)*a(3,3)-a(2,3)*a(3,2))*t1
-c(1,2)=(a(1,3)*a(3,2)-a(1,2)*a(3,3))*t1
-c(1,3)=(a(1,2)*a(2,3)-a(1,3)*a(2,2))*t1
-c(2,1)=(a(2,3)*a(3,1)-a(2,1)*a(3,3))*t1
-c(2,2)=(a(1,1)*a(3,3)-a(1,3)*a(3,1))*t1
-c(2,3)=(a(1,3)*a(2,1)-a(1,1)*a(2,3))*t1
-c(3,1)=(a(2,1)*a(3,2)-a(2,2)*a(3,1))*t1
-c(3,2)=(a(1,2)*a(3,1)-a(1,1)*a(3,2))*t1
-c(3,3)=(a(1,1)*a(2,2)-a(1,2)*a(2,1))*t1
-! copy to output matrix
-b(:,:)=c(:,:)
+b(1,1)=(a(2,2)*a(3,3)-a(2,3)*a(3,2))*t1
+b(1,2)=(a(1,3)*a(3,2)-a(1,2)*a(3,3))*t1
+b(1,3)=(a(1,2)*a(2,3)-a(1,3)*a(2,2))*t1
+b(2,1)=(a(2,3)*a(3,1)-a(2,1)*a(3,3))*t1
+b(2,2)=(a(1,1)*a(3,3)-a(1,3)*a(3,1))*t1
+b(2,3)=(a(1,3)*a(2,1)-a(1,1)*a(2,3))*t1
+b(3,1)=(a(2,1)*a(3,2)-a(2,2)*a(3,1))*t1
+b(3,2)=(a(1,2)*a(3,1)-a(1,1)*a(3,2))*t1
+b(3,3)=(a(1,1)*a(2,2)-a(1,2)*a(2,1))*t1
 return
 end subroutine
 !EOC

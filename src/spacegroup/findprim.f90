@@ -42,7 +42,7 @@ do is=1,nspecies
     call r3mv(avec,atposl(1,ia,is),atposc(1,ia,is))
   end do
 end do
-! find the smallest atom set
+! find the smallest set of atoms
 is=1
 do js=1,nspecies
 ! if a species has only one atom the cell must be primitive

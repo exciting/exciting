@@ -36,10 +36,10 @@ zfft(:)=rfir(:)
 call zfftifc(3,ngrid,-1,zfft)
 ! begin loop over all points
 do ip=1,np
-  v1(:)=vpl(:,ip)
-  call r3frac(epslat,v1,iv)
+  v2(:)=vpl(:,ip)
+  call r3frac(epslat,v2,iv)
 ! convert point to Cartesian coordinates
-  call r3mv(avec,v1,v1)
+  call r3mv(avec,v2,v1)
 ! check if point is in a muffin-tin
   do is=1,nspecies
     rmt2=rmt(is)**2
