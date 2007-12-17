@@ -4,12 +4,12 @@ include make.inc
 parallel:make.inc
 	../../utilities/mkmf -t template -f -m Makefile.serial -p excitingmpi \
         ../../src  \
-	../../src/src_xs \
+        ../../src/src_xs \
         ../../src/src_iterative_solver \
         && make -f Makefile.serial excitingmpi \
         && cp -f excitingmpi ..
 
-libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a
+libs:	libblas.a liblapack.a fftlib.a  libarpack.a
 
 libblas.a: make.inc
 	cp -f make.inc ../..
