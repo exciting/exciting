@@ -69,7 +69,7 @@ contains
              ! symmetry element
              isym=scmapstr(k,ik)
              ! inverse of symmetry element
-             jsym=scimap(isym)
+            jsym=scimap(isym)
              ! point group element
              lspl=lsplsymc(jsym)
              ! rotation matrix in lattice coordinates
@@ -84,8 +84,8 @@ contains
              ivi=matmul(ivi,symlat(:,:,lspl))
              ivi(:)=ivi(:)    !!!+ivscwrapq(:,jsym,iq)
              igqi=ivgigq(ivi(1),ivi(2),ivi(3),iq)
-write(*,'(a,7i8,3x,3i4)') 'ik,i,k,isym,jsym,lspl,igqi',&
-     ik,i,k,isym,jsym,lspl,igqi,ivi
+write(*,'(a,7i8,3x,3i4,f12.4,3x,2f12.4)') 'ik,i,k,isym,jsym,lspl,igqi',&
+     ik,i,k,isym,jsym,lspl,igqi,ivi,t1,zt1
              ! update oscillators
              you(i)=you(i)+zt1*pout*conjg(xou(igqi))
              yuo(i)=yuo(i)+zt1*puot*conjg(xuo(igqi))                
