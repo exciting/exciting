@@ -158,7 +158,7 @@ contains
     do ik=1,nkpt
 
        ! k-point analysis
-       if (.not.doikdfq(ik,dftrans)) goto 10
+       if (.not.doikdfq(ik,ndftrans,dftrans)) goto 10
 
 write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
 
@@ -189,7 +189,9 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
           do ic=1,nstcon
 
              ! band analysis
-             if (.not.doijstdfq(ik,iv,ic+nstval,dftrans)) goto 20
+             if (.not.doijstdfq(ik,iv,ic+nstval,ndftrans,dftrans)) goto 20
+
+write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
 
              call cpu_time(cpu0)
 
@@ -327,12 +329,10 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
 
   end subroutine dfq
 
-  logical function doikdfq(ik,trans)
-    use modmain
-    use modxs
+  logical function doikdfq(ik,ntrans,trans)
     implicit none
     ! arguments
-    integer, intent(in) :: ik,trans(3,ndftrans)
+    integer, intent(in) :: ik,ntrans,trans(3,ntrans)
     doikdfq=.false.
     ! quick return ???
     if (trans(1,1).eq.0) then
@@ -343,19 +343,17 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
     if (any(trans(1,:).eq.ik)) doikdfq=.true.
   end function doikdfq
 
-  logical function doijstdfq(ik,ist,jst,trans)
-    use modmain
-    use modxs
+  logical function doijstdfq(ik,ist,jst,ntrans,trans)
     implicit none
     ! arguments
-    integer, intent(in) :: ik,ist,jst,trans(3,ndftrans)
+    integer, intent(in) :: ik,ist,jst,ntrans,trans(3,ntrans)
     ! local variables
     integer :: l,ikt,it,jt
     doijstdfq=.false.
-    do l=1,ndftrans
-       ikt=dftrans(1,l)
-       it=dftrans(2,l)
-       jt=dftrans(3,l)
+    do l=1,ntrans
+       ikt=trans(1,l)
+       it=trans(2,l)
+       jt=trans(3,l)
        if ((ikt.eq.0).or.(ikt.eq.ik)) then
           if (((it.eq.0).or.(it.eq.ist)).and.((jt.eq.0).or.(jt.eq.jst))) then
              doijstdfq=.true.

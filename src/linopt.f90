@@ -48,6 +48,7 @@ subroutine linopt
   logical :: tev
   ! output in electron volt
   tev=.true.
+  optltz=(optswidth.ne.0.d0)
   if (tetra.and.optltz) then
      write(*,*)
      write(*,'("Error(linopt): specified tetrahedron method and Lorentzian &
@@ -278,17 +279,17 @@ subroutine linopt
                  do ist2=1,nstsv
                     m=m+1
                     if (ist1.ne.ist2) sum2=sum2+wkpt(ik)*f(m,ik)* &
-                         aimag(1.d0/(e(m,ik)+w(iw)+zi*swidth))/e(m,ik)**2
+                         aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
                     if (ist1.ne.ist2) sum=sum+wkpt(ik)*f(m,ik)* &
-                         dble(1.d0/(e(m,ik)+w(iw)+zi*swidth))/e(m,ik)**2
+                         dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
                     if ((ist1<=nstsv-nempty-1).and.(ist2>nstsv-nempty-1)) then
                        ! Lorentzian broadening
                        sumc=sumc+&
                             wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*swidth))/&
+                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*optswidth))/&
                             e12(ist1,ist2,ik)**2  -  &
                             wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*swidth))/&
+                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*optswidth))/&
                             e12(ist2,ist1,ik)**2                
                     end if
                  end do
@@ -319,18 +320,6 @@ subroutine linopt
            open(62,file=trim(fname),action='WRITE',form='FORMATTED')
            wd(1)=efermi-0.001d0
            wd(2)=efermi+0.001d0
-
-
-!!!!!!!!!!!!!!!!!
-!!$! index for Fermi energy
-!!$if ((efermi.le.wdos(1)).or.(efermi.ge.wdos(2))) then
-!!$   write(*,'("Error(linopt): Fermi energy not in interval (efermi/lower/upper&
-!!$        &: ",3g18.10)') efermi,wdos(1),wdos(2)
-!!$   stop
-!!$end if
-!!$iwef=nint(1.d0+nwdos*(efermi-wdos(1))/(wdos(2)-wdos(1)))
-
-
            call brzint(nsmdos,ngridk,nsk,ikmap,3,wd,nstsv,nstsv,evalsv,&
                 pmatint,g)
            wplas=sqrt(g(2)*8.d0*pi/omega)
