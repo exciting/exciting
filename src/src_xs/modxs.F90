@@ -278,8 +278,10 @@ module modxs
   real(8) :: vqlfmt(3)
   ! finite momentum transfer G-vector
   integer(8) :: ivgfmt(3)
+  ! number of band transitions for analysis
+  integer :: ndftrans
   ! k-point and band combination analysis
-  integer :: dftrans(3)
+  integer, allocatable :: dftrans(:,:)
 
   !----------------------------------!
   !     angular momenta variables    !

@@ -191,7 +191,10 @@ nexcitmax=100
 alphalrc=0.d0
 alphalrcdyn=0.d0
 betalrcdyn=0.d0
-dftrans(:)=0
+ndftrans=1
+if (allocated(dftrans)) deallocate(dftrans)
+allocate(dftrans(3,ndftrans))
+dftrans(:,:)=0
 gather=.false.
 tevout=.false.
 tappinfo=.false.
@@ -247,7 +250,9 @@ end if
 read(50,*,end=30) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
-write(*,*) 'reading block for: '//trim(bname) !!!!!!!!!!!!!!!!!!
+#ifdef XS
+write(*,*) 'reading block for: '//trim(bname)
+#endif
 select case(trim(bname))
 case('tasks')
   do i=1,maxtasks
@@ -945,7 +950,26 @@ case('alphalrcdyn')
 case('betalrcdyn')
   read(50,*,err=20) betalrcdyn
 case('dftrans')
-  read(50,*,err=20) dftrans
+  read(50,*,err=20) ndftrans
+  do i=1,ndftrans
+    read(50,'(A80)') str
+    if (trim(str).eq.'') then
+      write(*,*)
+      write(*,'("Error(readinput): missing k-point and state in list for &
+           &transition analysis")')
+      write(*,*)
+      stop
+    end if
+    read(str,*,iostat=iostat) dftrans(:,i)
+    if (iostat.ne.0) then
+      write(*,*)
+      write(*,'("Error(readinput): error reading k-point and state list for&
+           &transition analysis")')
+      write(*,'("(blank line required after dftrans block)")')
+      write(*,*)
+      stop
+    end if
+  end do
 case('gather')
   read(50,*,err=20) gather
 case('tevout')
