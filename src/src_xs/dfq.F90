@@ -157,14 +157,9 @@ contains
     call getunit(un)
     do ik=1,nkpt
 
-       ! ***
-       if (nkpt.eq.nkptnr) then
-!!$          if ((ik.ne.2).and.(ik.ne.3).and.(ik.ne.4).and.(ik.ne.7).and.(ik.ne.10).and.(ik.ne.14).and.(ik.ne.19).and.(ik.ne.27)) goto 10
-!!$           if ((ik.ne.5).and.(ik.ne.9).and.(ik.ne.11).and.(ik.ne.13).and.(ik.ne.21).and.(ik.ne.25)) goto 10
-       else
-!!$          if (ik.ne.2) goto 10
-!!$          if (ik.ne.3) goto 10
-       endif
+       ! k-point analysis
+       if (doikdfq(ik,dftrans)) goto 10
+
 write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
 
        ! if checkpoint true -> read X0
@@ -192,6 +187,10 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
 
        do iv=1,nstval
           do ic=1,nstcon
+
+             ! band analysis
+             if (doijstdfq(iv,ic+nstval,dftrans)) goto 20
+
              call cpu_time(cpu0)
 
              ! user request termination
@@ -283,6 +282,9 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
              call cpu_time(cpu0)
              cpuupd=cpuupd+cpu0-cpu1
 
+             ! band analysis
+20           continue
+
           end do ! ic
        end do ! iv
        cputot=cpuread+cpuosc+cpuupd
@@ -295,7 +297,8 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
        call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 #endif
 
-10     continue  !****
+       ! k-point analysis
+10     continue
 
     end do ! ik
 
@@ -323,5 +326,44 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
     call genfilname(setfilext=.true.)
 
   end subroutine dfq
+
+  logical function doikdfq(ik,trans)
+    use modmain
+    use modxs
+    implicit none
+    ! arguments
+    integer, intent(in) :: ik,trans(3)
+    if (trans(1).eq.0) then
+       doikdfq=.true.
+       return
+    end if
+    doikdfq=.false.
+    if (nkpt.eq.nkptnr) then
+       if (all(ikstrmapiknr(1:nsymcrysstr(ik),ik).ne.dftrans(1))) doikdfq=.true.
+    else
+       if (ik.eq.dftrans(1)) doikdfq=.true.
+    end if
+    
+  end function doikdfq
+
+  logical function doijstdfq(ist,jst,trans)
+    use modmain
+    use modxs
+    implicit none
+    ! arguments
+    integer, intent(in) :: ist,jst,trans(3)
+    ! local variables
+    logical :: doist,dojst
+    if ((trans(2).eq.0).and.(trans(3).eq.0)) then
+       doijstdfq=.true.
+       return
+    end if
+    doijstdfq=.false.
+    doist=.false.
+    dojst=.false.
+    if ((trans(2).eq.0).or.(trans(2).eq.ist)) doist=.true.
+    if ((trans(3).eq.0).or.(trans(3).eq.jst)) dojst=.true.
+    if (doist.and.dojst) doijstdfq=.true.
+  end function doijstdfq
 
 end module m_dfq

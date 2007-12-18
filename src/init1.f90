@@ -13,7 +13,9 @@ subroutine init1
   use modtetra
 #endif
 #ifdef XS
-  use modxs, only: dbglev,skipallocs1,imbandstr,scimap,nsymcrysstr,scmapstr
+  use modxs, only: dbglev,skipallocs1
+  use modxs, only: imbandstr
+  use modxs, only: scimap,nsymcrysstr,scmapstr,ikstrmapiknr
 #endif
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
@@ -119,13 +121,6 @@ subroutine init1
      allocate(wkpt(ngridk(1)*ngridk(2)*ngridk(3)))
      if (allocated(ikmap)) deallocate(ikmap)
      allocate(ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
-#ifdef XS
-     ! allocate arrays for stars
-     if (allocated(nsymcrysstr)) deallocate(nsymcrysstr)
-     if (allocated(scmapstr)) deallocate(scmapstr)
-     allocate(nsymcrysstr(ngridk(1)*ngridk(2)*ngridk(3)))
-     allocate(scmapstr(nsymcrys,ngridk(1)*ngridk(2)*ngridk(3)))
-#endif
 #ifdef TETRA
      if (tetra) then
         ! switch to exciting interface
@@ -152,12 +147,12 @@ subroutine init1
            stop
         end if
         if (allocated(indirkp)) deallocate(indirkp)
-        if (allocated(iwkp)) deallocate(iwkp)
-        if (allocated(wtet)) deallocate(wtet)
-        if (allocated(tnodes)) deallocate(tnodes)
         allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
+        if (allocated(iwkp)) deallocate(iwkp)
         allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
+        if (allocated(wtet)) deallocate(wtet)
         allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+        if (allocated(tnodes)) deallocate(tnodes)
         allocate(tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6))
         if (nsymcrys.gt.48) then
            write(*,*) 'Error(init1): number of crystal symmetries > 48'
@@ -312,10 +307,19 @@ subroutine init1
      allocate(ikmapnr(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
      ! generate the non-reduced k-point set
      call genppts(.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr,wkptnr)
+#ifdef XS
+     ! allocate arrays for stars
+     if (allocated(nsymcrysstr)) deallocate(nsymcrysstr)
+     allocate(nsymcrysstr(nkpt))
+     if (allocated(scmapstr)) deallocate(scmapstr)
+     allocate(scmapstr(nsymcrys,nkpt))
+     if (allocated(ikstrmapiknr)) deallocate(ikstrmapiknr)
+     allocate(ikstrmapiknr(maxsymcrys,nkpt))
      ! determine inverse symmery elements
      call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
      ! generate stars for k-point set
      call genstark
+#endif
   end if ! if ((task.eq.20).or.(task.eq.21))
 
   !---------------------!

@@ -102,6 +102,8 @@ module modxs
   integer, allocatable :: nsymcrysstr(:)
   ! star of space group operations for k-points
   integer, allocatable :: scmapstr(:,:)
+  ! star of k-point indices of non-reduced set
+  integer, allocatable :: ikstrmapiknr(:,:)
 
   !-------------------------!
   !     k+q-point set       !
@@ -276,6 +278,8 @@ module modxs
   real(8) :: vqlfmt(3)
   ! finite momentum transfer G-vector
   integer(8) :: ivgfmt(3)
+  ! k-point and band combination analysis
+  integer :: dftrans(3)
 
   !----------------------------------!
   !     angular momenta variables    !

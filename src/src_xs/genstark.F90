@@ -46,6 +46,7 @@ subroutine genstark
            ! symmetry element is in star
            nsymcrysstr(ik)=nsymcrysstr(ik)+1
            scmapstr(nsymcrysstr(ik),ik)=isym
+           ikstrmapiknr(nsymcrysstr(ik),ik)=iknr
            goto 10
         end if   
      end do
@@ -68,15 +69,23 @@ subroutine genstark
            write(*,'(2i6,3f12.4,2i6,3f12.4,i6)') ik,i,v1,isym,lspl,v2,iknr
         end do
      end do
+     write(*,*)
      write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,scmapstr:'
      do ik=1,nkpt
         write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
              scmapstr(1:nsymcrysstr(ik),ik)
      end do
+     write(*,*)
      write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,lsplmapstr:'
      do ik=1,nkpt
         write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
              lsplsymc(scmapstr(1:nsymcrysstr(ik),ik))
+     end do
+     write(*,*)
+     write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,ikstrmapiknr:'
+     do ik=1,nkpt
+        write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
+             ikstrmapiknr(1:nsymcrysstr(ik),ik)
      end do
      write(*,*)
   end if

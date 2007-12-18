@@ -191,6 +191,7 @@ nexcitmax=100
 alphalrc=0.d0
 alphalrcdyn=0.d0
 betalrcdyn=0.d0
+dftrans(:)=0
 gather=.false.
 tevout=.false.
 tappinfo=.false.
@@ -943,6 +944,8 @@ case('alphalrcdyn')
   read(50,*,err=20) alphalrcdyn
 case('betalrcdyn')
   read(50,*,err=20) betalrcdyn
+case('dftrans')
+  read(50,*,err=20) dftrans
 case('gather')
   read(50,*,err=20) gather
 case('tevout')
