@@ -69,7 +69,7 @@ contains
              ! symmetry element
              isym=scmapstr(k,ik)
              ! inverse of symmetry element
-            jsym=scimap(isym)
+             jsym=scimap(isym)
              ! point group element
              lspl=lsplsymc(jsym)
              ! rotation matrix in lattice coordinates

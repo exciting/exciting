@@ -56,17 +56,17 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   nstcon=nstsv-nstval
 
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
-     write(*,*) 'Info(findocclims): partially occupied states present'
+     write(*,'(a)') 'Info(findocclims): partially occupied states present'
   end if
 
   ! debug output
   if (dbglev.gt.0) then
-     write(*,*) 'Debug(findocclims):'
-     write(*,*) ' iocc0,iocc,iunocc0,iunocc below:'
-     write(*,*) iocc0,iocc,iunocc0,iunocc
-     write(*,*) ' ik,io0,iu,diff,io,iu0,diff below:'
+     write(*,'(a)') 'Debug(findocclims):'
+     write(*,'(a)') ' iocc0,iocc,iunocc0,iunocc below:'
+     write(*,'(4i8)') iocc0,iocc,iunocc0,iunocc
+     write(*,'(a)') ' ik,io0,iu,diff,io,iu0,diff below:'
      do ik=1,nkpt
-        write(*,*) ik,io0(ik),iu(ik),iu(ik)-io0(ik), &
+        write(*,'(7i8)') ik,io0(ik),iu(ik),iu(ik)-io0(ik), &
              io(ik),iu0(ik),iu0(ik)-io(ik)
      end do
      write(*,*)

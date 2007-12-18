@@ -218,7 +218,9 @@ nstbef=-1
 nstabf=-1
 vgqlfmt(:)=0.d0
 ! dump default values
-if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
+if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,&
+     vacuum)
+write(*,'(a)') 'Info(readinput): processing blocks:'
 #endif
 
 !-------------------------------!
@@ -249,7 +251,7 @@ read(50,*,end=30) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
 #ifdef XS
-write(*,*) 'reading block for: '//trim(bname)
+write(*,'(a)') 'reading block for: '//trim(bname)
 #endif
 select case(trim(bname))
 case('tasks')
@@ -1095,7 +1097,8 @@ if (molecule) then
   end do
 end if
 #ifdef XS
-write(*,*) 'reading in of exciting.in finished'
+write(*,'(a)') 'reading in of '//trim(fname)//' finished'
+write(*,*)
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 #endif

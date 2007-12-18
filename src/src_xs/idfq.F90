@@ -108,7 +108,6 @@ contains
                 if (m==1) fxc0(iw,oct)=fxc(1,1)-1.d0
              end if
              ! solve Dyson's equation for the interacting response function
-write(*,*) 'on entry to dyson for m,oct,iw',m,oct,iw
              call dyson(n,chi0,fxc,idf)
              ! symmetrized inverse dielectric function (add one)
              forall(j=1:m) 

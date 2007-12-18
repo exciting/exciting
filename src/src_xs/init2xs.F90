@@ -32,16 +32,16 @@ subroutine init2xs
   !------------------------------------!
   
   ! if not specified in input file set lmaxapwtd to lmaxmat
-  if (lmaxapwtd == -1) lmaxapwtd=lmaxmat
+  if (lmaxapwtd.eq.-1) lmaxapwtd=lmaxmat
   ! check lmaxapwtd
-  if (lmaxapwtd > lmaxapw) then
+  if (lmaxapwtd.gt.lmaxapw) then
      write(*,*) 'Error('//thisnam//'): lmaxapwtd > lmaxapw:', lmaxapwtd
      call terminate
   end if
-  lmmaxapwtd = (lmaxapwtd+1)**2
-  lmmaxemat = (lmaxemat+1)**2
-  lmaxmax = maxval((/lmaxemat,lolmax, lmaxvr,lmaxapw,lmaxmat,lmaxinr/))
-  lmmaxmax = maxval((/lmmaxemat,lolmmax, lmmaxvr,lmmaxapw,lmmaxmat,lmmaxinr/))
+  lmmaxapwtd=(lmaxapwtd+1)**2
+  lmmaxemat=(lmaxemat+1)**2
+  lmaxmax=maxval((/lmaxemat,lolmax, lmaxvr,lmaxapw,lmaxmat,lmaxinr/))
+  lmmaxmax=maxval((/lmmaxemat,lolmmax, lmmaxvr,lmmaxapw,lmmaxmat,lmmaxinr/))
 
   ! index to (l,m) pairs (overall)
   if (allocated(idxxlm)) deallocate(idxxlm)
@@ -142,16 +142,20 @@ subroutine init2xs
   allocate(nsymcrysq(nqpt))
   allocate(scqmap(nsymcrys,nqpt))
   allocate(ivscwrapq(3,nsymcrys,nqpt))
+  ! debug output
+  if (dbglev.gt.1) then
+     write(*,'(a)') 'Debug(init2xs):'
+  end if
   do iq=1,nqpt
      call findgroupq(vql(1,iq),epslat,symlat,nsymcrys,lsplsymc,&
           nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
      ! debug output
      if (dbglev.gt.0) then
-        write(*,'(a,i6,3g18.10)') 'q-point:',iq,vql(:,iq)
-        write(*,'(a,i6)') ' variable: nsymcrysq:',nsymcrysq(iq)
+        write(*,'(a,i6,3g18.10,i6)') ' iq,vql,nsymcrysq:',iq,vql(:,iq),&
+             nsymcrysq(iq)
+        write(*,'(a)') ' scqmap,ivscwrapq below:'
         do l=1,nsymcrysq(iq)
-           write(*,'(a,2i6,3i9)') ' variable: scqmap,ivscwrapq:',l,&
-                scqmap(l,iq),ivscwrapq(:,l,iq)
+           write(*,'(2i6,3x,3i6)') l,scqmap(l,iq),ivscwrapq(:,l,iq)
         end do
         write(*,*)
      end if

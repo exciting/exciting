@@ -54,8 +54,8 @@ subroutine genstark
   end do
   ! debug output
   if (dbglev.gt.1) then
-     write(*,*) 'Debug(genstark):'
-     write(*,*) 'ik,i,vkl,isym,lspl,vklnr,iknr'
+     write(*,'(a)') 'Debug(genstark):'
+     write(*,'(a)') 'ik,i,vkl,isym,lspl,vklnr,iknr'
      do ik=1,nkpt
         v1(:)=vkl(:,ik)
         do i=1,nsymcrysstr(ik)
@@ -70,19 +70,19 @@ subroutine genstark
         end do
      end do
      write(*,*)
-     write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,scmapstr:'
+     write(*,'(a)') ' ik,wkpt*nkptnr,nsymcrysstr,scmapstr:'
      do ik=1,nkpt
         write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
              scmapstr(1:nsymcrysstr(ik),ik)
      end do
      write(*,*)
-     write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,lsplmapstr:'
+     write(*,'(a)') ' ik,wkpt*nkptnr,nsymcrysstr,lsplmapstr:'
      do ik=1,nkpt
         write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
              lsplsymc(scmapstr(1:nsymcrysstr(ik),ik))
      end do
      write(*,*)
-     write(*,*) ' ik,wkpt*nkptnr,nsymcrysstr,ikstrmapiknr:'
+     write(*,'(a)') ' ik,wkpt*nkptnr,nsymcrysstr,ikstrmapiknr:'
      do ik=1,nkpt
         write(*,'(i9,f12.4,i9,3x,192i4)') ik,wkpt(ik)*nkptnr,nsymcrysstr(ik),&
              ikstrmapiknr(1:nsymcrysstr(ik),ik)

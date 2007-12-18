@@ -44,6 +44,13 @@ do iq=1,nqpt
    ngqmax=max(ngqmax,i)
 end do
 ngridgq(:)=intgqv(:,2)-intgqv(:,1)+1
-write(*,*) 'intgqv',intgqv
+! debug output
+if (dbglev.gt.1) then
+   write(*,'(a)') 'Debug(getngqmax): intgqv:'
+   write(*,'(2i6)') intgqv(1,1),intgqv(1,2)
+   write(*,'(2i6)') intgqv(2,1),intgqv(2,2)
+   write(*,'(2i6)') intgqv(3,1),intgqv(3,2)
+   write(*,*)
+end if
 end subroutine getngqmax
 !EOC
