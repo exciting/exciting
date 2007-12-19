@@ -43,6 +43,10 @@ subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
   ! local variables
   integer ig,igp
   real(8) v(3),t1,t2
+
+  integer :: isym,lspl,igpt,ivlt(3)
+  real(8) :: vl(3),vc(3),vlt(3),vct(3),vctl(3),s(3,3),c(3,3)
+
   t1=gqmax**2
   ivgigq(:,:,:,iq)=0
   igp=0
@@ -70,6 +74,27 @@ subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
      end if
   end do
   ngp=igp
+  if (dbglev.gt.1) then
+     write(*,'(a)') 'Debug(gengqvec):'
+     do igp=1,ngp
+        vl(:)=dble(ivg(:,igpig(igp)))
+!!!     vc(:)=iv(1)*bvec(:,1)+iv(2)*bvec(:,2)+iv(3)*bvec(:,3)
+        vc=matmul(bvec,vl)
+        do isym=1,nsymcrys
+           lspl=lsplsymc(isym)
+           c(:,:)=symlatc(:,:,lspl)
+           s(:,:)=dble(symlat(:,:,lspl))
+           vlt=matmul(vl,s)
+           ivlt=nint(vlt)
+           vct=matmul(vc,c)
+           vctl=matmul(binv,vct)
+           igpt=ivgigq(ivlt(1),ivlt(2),ivlt(3),iq)
+           write(*,'(3i6,15f8.4,2x,f8.4)') igp,isym,lspl,vl,vc,vlt,vct,vctl,&
+                sum(abs(vlt-vgpl(:,igpt)))
+        end do
+     end do
+     write(*,*)
+  end if
   return
 end subroutine gengqvec
 !EOC

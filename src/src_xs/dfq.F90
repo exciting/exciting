@@ -251,6 +251,7 @@ write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
                         xiou(iv,ic,:),xiuo(ic,iv,:),hou(1,:),huo(1,:))
                    call dfqoscwg(iq,ik,2,n,pmou(:,iv,ic),pmuo(:,ic,iv),&
                         xiou(iv,ic,:),xiuo(ic,iv,:),hou(:,1),huo(:,1))
+
 ! <= 0.9.114
 !!$                   call dfqoscwg(iq,ik,1,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
 !!$                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
@@ -303,6 +304,32 @@ write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
 10     continue
 
     end do ! ik
+
+if (procs.eq.1) then
+! head
+do oct=1,3
+   do iw=1,nwdf
+      write(1300+oct,'(2i6,3g18.10)') oct,iw,wreal(iw),chi0h(oct,iw)
+   end do
+end do
+! wings
+do oct=1,3
+   do j=2,n
+      do iw=1,nwdf
+         write(1400+oct,'(3i6,3g18.10)') oct,iw,j,wreal(iw),chi0w(j,1,oct,iw)
+      end do
+   end do
+end do
+! body
+do iw=1,nwdf
+   do j=2,n
+      do i=2,n
+         write(1500,'(3i6,3g18.10)') iw,i,j,wreal(iw),chi0(i,j,iw)
+      end do
+   end do
+end do
+end if
+
 
     do j=0,procs-1
        if (rank.eq.j) then

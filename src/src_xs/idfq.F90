@@ -78,7 +78,7 @@ contains
        do oct=1,nc
           ! filename for output file
           call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
-               acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+               acont=acont,nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,&
                tq0=tq0,oc=oct,iq=iq,procs=procs,rank=rank,filnam=filnam2)
           open(unit1,file=trim(filnam2),form='unformatted', &
                action='write',access='direct',recl=recl)
@@ -105,7 +105,7 @@ contains
                    fxc(j,j)=fxc(j,j)+1.d0
                 end forall
                 ! head of pure f_xc kernel
-                if (m==1) fxc0(iw,oct)=fxc(1,1)-1.d0
+                if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
              end if
              ! solve Dyson's equation for the interacting response function
              call dyson(n,chi0,fxc,idf)

@@ -68,8 +68,12 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
   integer :: j,jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
   ! use symmetries of little group of q
   if (iqcu.ne.0) then
-     write(*,*) 'Info(genppts): using symmetries of the (little/small) group of &
-          &q only'
+     if (nsymcrys.ne.nsymcrysq(iqcu)) then
+        write(*,'(a)') 'Info(genppts): using symmetries of the (little/small) &
+             &group of q only'
+        write(*,'(a,i6,3g18.10,2i6)') ' iq,vql,nsymcrys,nsymcrysq',iqcu,&
+             vql(:,iqcu),nsymcrys,nsymcrysq(iqcu)
+     end if
      ! save global variables
      nsymcrys_=nsymcrys; lsplsymc_(:)=lsplsymc(:)
      ! map to point group elements
