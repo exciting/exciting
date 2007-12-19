@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -18,86 +18,86 @@ program main
   do itask=1,ntasks
      task=tasks(itask)
      select case(task)
-     case(0,1,2,3,200,23,300:399,400:499,1200,1300,900:902)
+     case(0,1,2,3,200,23,300:399,400:499)
         paralleltask=.true.
      case default
         paralleltask=.false.
      end select
      if(paralleltask.or.rank.eq.0) then
         select case(task)
-     case(-1)
-        write(*,*)
-        write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
-        write(*,*)
-        stop
-     case(0,1,2,3)
-        call gndstate
-     case(5)
-        call hartfock
-     case(10)
-        call dos
-     case(15)
-        call writelsj
-     case(20,21)
-        call bandstr
-     case(25)
-        call effmass
-     case(31,32,33)
-        call rhoplot
-     case(41,42,43)
-        call potplot
-     case(51,52,53)
-        call elfplot
-     case(61,62,63,162)
-        call wfplot
-     case(72,73,82,83,142,143,152,153)
-        call vecplot
-     case(91,92,93)
-        call dbxcplot
-     case(100,101)
-        call fermisurf
-     case(110)
-        call mossbauer
-     case(115)
-        call writeefg
-     case(120)
-        call writepmat
-     case(121)
-        call linopt
-     case(122)
-        call moke
-     case(200)
-        call phonon
-     case(210)
-        call phdos
-     case(220)
-        call phdisp
-     case(230)
-        call writephn
-     case(250)
-        call geomplot
+        case(-1)
+           write(*,*)
+           write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
+           write(*,*)
+           stop
+        case(0,1,2,3)
+           call gndstate
+        case(5)
+           call hartfock
+        case(10)
+           call dos
+        case(15,16)
+           call writelsj
+        case(20,21)
+           call bandstr
+        case(25)
+           call effmass
+        case(31,32,33)
+           call rhoplot
+        case(41,42,43)
+           call potplot
+        case(51,52,53)
+           call elfplot
+        case(61,62,63,162)
+           call wfplot
+        case(72,73,82,83,142,143,152,153)
+           call vecplot
+        case(91,92,93)
+           call dbxcplot
+        case(100,101)
+           call fermisurf
+        case(110)
+           call mossbauer
+        case(115)
+           call writeefg
+        case(120)
+           call writepmat
+        case(121)
+           call linopt
+        case(122)
+           call moke
+        case(200)
+           call phonon
+        case(210)
+           call phdos
+        case(220)
+           call phdisp
+        case(230)
+           call writephn
+        case(250)
+           call geomplot
 #ifdef TETRA
 #ifdef XS
-     ! tasks for TDDFT
-     case(23,300:399,400:499)
-        call xsmain
-     case(900)
-        ! generate portable ASCII STATE.xml file from STATE.OUT file
-        call portstate(.true.)
-     case(901)
-        ! generate STATE.OUT file from portable ASCII STATE.xml file
-        call portstate(.false.)
-     case(902)
-        ! k-point in SCF
-        call atkp
+           ! tasks for excited states
+        case(23,300:399,400:499)
+           call xsmain
+        case(900)
+           ! generate portable ASCII STATE.xml file from STATE.OUT file
+           call portstate(.true.)
+        case(901)
+           ! generate STATE.OUT file from portable ASCII STATE.xml file
+           call portstate(.false.)
+        case(902)
+           ! k-point in SCF
+           call atkp
 #endif
 #endif
-     case default
-        write(*,*)
-        write(*,'("Error(main): task not defined : ",I8)') task
-        write(*,*)
-        stop
-     end select
+        case default
+           write(*,*)
+           write(*,'("Error(main): task not defined : ",I8)') task
+           write(*,*)
+           stop
+        end select
      endif
   end do
   call finitMPI()
@@ -111,7 +111,7 @@ program main
 end program main
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.139
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.142
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction

@@ -1,8 +1,10 @@
 F90 = gfortran
-F90_OPTS = -DTETRA -DXS -O3 -funroll-loops -ffast-math
+F90_OPTS = -DTETRA -DXS -O3 -funroll-loops -ffast-math -x f95-cpp-input
+##F90_OPTS = -g -x f95-cpp-input
 F77 = gfortran
 F77_OPTS = -O3 -funroll-loops -ffast-math
 LIB_SYS = 
-LIB_LPK = liblapack.a libblas.a
+##LIB_LPK = liblapack.a libblas.a
+LIB_LPK = libarpack.a liblapack.a libblas.a -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT = libbzint.a

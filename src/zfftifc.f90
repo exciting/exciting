@@ -43,9 +43,13 @@ complex(8), intent(inout) :: z(*)
 !integer i,p
 !integer(8) plan
 !real(8) t1
+!!$OMP CRITICAL
 !call dfftw_plan_dft(plan,nd,n,z,z,sgn,FFTW_ESTIMATE)
+!!$OMP END CRITICAL
 !call dfftw_execute(plan)
+!!$OMP CRITICAL
 !call dfftw_destroy_plan(plan)
+!!$OMP END CRITICAL
 !if (sgn.eq.-1) then
 !  p=1
 !  do i=1,nd
@@ -58,7 +62,7 @@ complex(8), intent(inout) :: z(*)
 !----------------------------------!
 !     interface to MKL 8.1/9.1     !
 !----------------------------------!
-! (with thanks to Torbjörn Björkman)
+! (with thanks to Torbjorn Bjorkman)
 !use MKL_DFTI ! this module required by MKL
 !integer dftistatus,i,p
 !real(8) dftiscale

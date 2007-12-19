@@ -48,11 +48,12 @@ use modmain
 implicit none
 ! local variables
 integer is,ia,ias,ispn,jspn
-integer l,m,m1,m2,m3,nm
-integer lm,lm1,lm2,lm3
+integer l,m1,m2,m3,m4,nm
+integer lm1,lm2,lm3,lm4
 real(8) u,j,n,n0
 real(8) mg(3),mg0(3),mg2
 real(8) edc,sum1,sum2
+complex(8) zt1,zt2
 ! automatic arrays
 real(8) vee(-lmaxlu:lmaxlu,-lmaxlu:lmaxlu,-lmaxlu:lmaxlu,-lmaxlu:lmaxlu)
 complex(8) dm(lmmaxlu,lmmaxlu,nspinor,nspinor)
@@ -83,9 +84,9 @@ do is=1,nspecies
     dmt(:,:)=0.d0
     do ispn=1,nspinor
       do jspn=1,nspinor
-        do m=-l,l
-          lm=idxlm(l,m)
-          dmt(ispn,jspn)=dmt(ispn,jspn)+dm(lm,lm,ispn,jspn)
+        do m1=-l,l
+          lm1=idxlm(l,m1)
+          dmt(ispn,jspn)=dmt(ispn,jspn)+dm(lm1,lm1,ispn,jspn)
         end do
       end do
     end do
@@ -107,30 +108,30 @@ do is=1,nspecies
 ! around mean field (AFM) approach
     if (ldapu.eq.2) then
 ! modify density matrices
-      do m=-l,l
-        lm=idxlm(l,m)
+      do m1=-l,l
+        lm1=idxlm(l,m1)
         if (spinpol) then
-          dm(lm,lm,1,1)=dm(lm,lm,1,1)-(n0+mg0(3))
-          dm(lm,lm,2,2)=dm(lm,lm,2,2)-(n0-mg0(3))
+          dm(lm1,lm1,1,1)=dm(lm1,lm1,1,1)-(n0+mg0(3))
+          dm(lm1,lm1,2,2)=dm(lm1,lm1,2,2)-(n0-mg0(3))
 ! non-collinear terms
           if (ndmag.eq.3) then
-            dm(lm,lm,1,2)=dm(lm,lm,1,2)-(mg0(1)-zi*mg0(2))
-            dm(lm,lm,2,1)=dm(lm,lm,2,1)-(mg0(1)+zi*mg0(2))
+            dm(lm1,lm1,1,2)=dm(lm1,lm1,1,2)-(mg0(1)-zi*mg0(2))
+            dm(lm1,lm1,2,1)=dm(lm1,lm1,2,1)-(mg0(1)+zi*mg0(2))
           end if
         else
 ! spin-unpolarised case
-          dm(lm,lm,1,1)=dm(lm,lm,1,1)-n0
+          dm(lm1,lm1,1,1)=dm(lm1,lm1,1,1)-n0
         end if
       end do
 ! determine alpha (PRB 67,153106 (2003))
       sum1=0.d0
       do ispn=1,nspinor
-        do m=-l,l
-          lm=idxlm(l,m)
+        do m1=-l,l
+          lm1=idxlm(l,m1)
           do jspn=1,nspinor
-            do m1=-l,l
-              lm1=idxlm(l,m1)
-              sum1=sum1+dble(dm(lm,lm1,ispn,jspn)*dm(lm1,lm,jspn,ispn))
+            do m2=-l,l
+              lm2=idxlm(l,m2)
+              sum1=sum1+dble(dm(lm1,lm2,ispn,jspn)*dm(lm2,lm1,jspn,ispn))
             end do
           end do
         end do
@@ -149,67 +150,31 @@ do is=1,nspecies
       end if
     end if
 ! calculation of LDA+U potential and energy
-! begin loops over m and m'
-    do m=-l,l
-      lm=idxlm(l,m)
-      do m1=-l,l
-        lm1=idxlm(l,m1)
-! begin loops over m'' and m'''
-        do m2=-l,l
-          lm2=idxlm(l,m2)
-          do m3=-l,l
-            lm3=idxlm(l,m3)
-            if (spinpol) then
-! spin up-up energy
-              engyalu(ias)=engyalu(ias) &
-               +dble(vee(m,m2,m1,m3)*dm(lm,lm1,1,1)*dm(lm2,lm3,2,2) &
-               +(vee(m,m2,m1,m3)-vee(m,m2,m3,m1))*dm(lm,lm1,1,1) &
-               *dm(lm2,lm3,1,1))
-! spin up-up potential
-              vmatlu(lm,lm1,1,1,ias)=vmatlu(lm,lm1,1,1,ias) &
-               +vee(m,m2,m1,m3)*dm(lm2,lm3,2,2) &
-               +(vee(m,m2,m1,m3)-vee(m,m2,m3,m1))*dm(lm2,lm3,1,1)
-! spin down-down energy
-              engyalu(ias)=engyalu(ias) &
-               +dble(vee(m,m2,m1,m3)*dm(lm,lm1,2,2)*dm(lm2,lm3,1,1) &
-               +(vee(m,m2,m1,m3)-vee(m,m2,m3,m1))*dm(lm,lm1,2,2) &
-               *dm(lm2,lm3,2,2))
-! spin down-down potential
-              vmatlu(lm,lm1,2,2,ias)=vmatlu(lm,lm1,2,2,ias) &
-               +vee(m,m2,m1,m3)*dm(lm2,lm3,1,1) &
-               +(vee(m,m2,m1,m3)-vee(m,m2,m3,m1))*dm(lm2,lm3,2,2)
-! non collinear part
-              if (ndmag.eq.3) then
-! spin up-down energy
-                engyalu(ias)=engyalu(ias) &
-                 -dble(vee(m,m2,m3,m1)*dm(lm,lm1,1,2)*dm(lm2,lm3,2,1))
-! spin up-down potential
-                vmatlu(lm,lm1,1,2,ias)=vmatlu(lm,lm1,1,2,ias) &
-                 -vee(m,m2,m3,m1)*dm(lm2,lm3,2,1)
-! spin down-up energy
-                engyalu(ias)=engyalu(ias) &
-                 -dble(vee(m,m2,m3,m1)*dm(lm,lm1,2,1)*dm(lm2,lm3,1,2))
-! spin down-up potential
-                vmatlu(lm,lm1,2,1,ias)=vmatlu(lm,lm1,2,1,ias) &
-                 -vee(m,m2,m3,m1)*dm(lm2,lm3,1,2)
-              end if
-            else
-! spin unpolarised energy
-! there is a factor 0.5 since dm is summed over both spins
-              engyalu(ias)=engyalu(ias) &
-               +0.5d0*dble(vee(m,m2,m1,m3)*dm(lm,lm1,1,1) &
-               *dm(lm2,lm3,1,1)+(vee(m,m2,m1,m3)-vee(m,m2,m3,m1)) &
-               *dm(lm,lm1,1,1)*dm(lm2,lm3,1,1))
-! spin-unpolarised potential
-! there is a factor 0.5 since dm is summed over both spins
-              vmatlu(lm,lm1,1,1,ias)=vmatlu(lm,lm1,1,1,ias) &
-               +0.5d0*(vee(m,m2,m1,m3)*dm(lm2,lm3,1,1) &
-               +(vee(m,m2,m1,m3)-vee(m,m2,m3,m1))*dm(lm2,lm3,1,1))
-            end if
-! end loops over m'' and m'''
+! begin loops over m1 and m2
+    do m1=-l,l
+      lm1=idxlm(l,m1)
+      do m2=-l,l
+        lm2=idxlm(l,m2)
+! begin loops over m3 and m4
+        do m3=-l,l
+          lm3=idxlm(l,m3)
+          do m4=-l,l
+            lm4=idxlm(l,m4)
+            do ispn=1,nspinor
+              do jspn=1,nspinor
+                zt1=dm(lm2,lm1,ispn,ispn)*dm(lm4,lm3,jspn,jspn)
+                zt2=dm(lm4,lm1,jspn,ispn)*dm(lm2,lm3,ispn,jspn)
+                engyalu(ias)=engyalu(ias)+dble(zt1-zt2)*vee(m1,m3,m2,m4)
+                vmatlu(lm1,lm2,ispn,ispn,ias)=vmatlu(lm1,lm2,ispn,ispn,ias) &
+                 +dm(lm4,lm3,jspn,jspn)*vee(m1,m3,m2,m4)
+                vmatlu(lm1,lm4,ispn,jspn,ias)=vmatlu(lm1,lm4,ispn,jspn,ias) &
+                 -dm(lm2,lm3,ispn,jspn)*vee(m1,m3,m2,m4)
+              end do
+            end do
+! end loops over m3 and m4
           end do
         end do
-! end loops over m and m'
+! end loops over m1 and m2
       end do
     end do
 ! multiply energy by factor 1/2
@@ -227,14 +192,14 @@ do is=1,nspecies
           edc=edc-0.5d0*j*dble(dmt(1,2)*dmt(1,2))
           edc=edc-0.5d0*j*dble(dmt(2,1)*dmt(2,1))
 ! correction to the potential
-          do m=-l,l
-            lm=idxlm(l,m)
-            vmatlu(lm,lm,1,1,ias)=vmatlu(lm,lm,1,1,ias) &
+          do m1=-l,l
+            lm1=idxlm(l,m1)
+            vmatlu(lm1,lm1,1,1,ias)=vmatlu(lm1,lm1,1,1,ias) &
              -u*(n-0.5d0)+j*(dmt(1,1)-0.5d0)
-            vmatlu(lm,lm,2,2,ias)=vmatlu(lm,lm,2,2,ias) &
+            vmatlu(lm1,lm1,2,2,ias)=vmatlu(lm1,lm1,2,2,ias) &
              -u*(n-0.5d0)+j*(dmt(2,2)-0.5d0)
-            vmatlu(lm,lm,1,2,ias)=vmatlu(lm,lm,1,2,ias)+j*dmt(2,1)
-            vmatlu(lm,lm,2,1,ias)=vmatlu(lm,lm,2,1,ias)+j*dmt(1,2)
+            vmatlu(lm1,lm1,1,2,ias)=vmatlu(lm1,lm1,1,2,ias)+j*dmt(1,2)
+            vmatlu(lm1,lm1,2,1,ias)=vmatlu(lm1,lm1,2,1,ias)+j*dmt(2,1)
           end do
         else
 ! collinear case
@@ -243,11 +208,11 @@ do is=1,nspecies
           edc=edc-0.5d0*j*dble(dmt(1,1)*(dmt(1,1)-1.d0))
           edc=edc-0.5d0*j*dble(dmt(2,2)*(dmt(2,2)-1.d0))
 ! correction to the potential
-          do m=-l,l
-            lm=idxlm(l,m)
-            vmatlu(lm,lm,1,1,ias)=vmatlu(lm,lm,1,1,ias) &
+          do m1=-l,l
+            lm1=idxlm(l,m1)
+            vmatlu(lm1,lm1,1,1,ias)=vmatlu(lm1,lm1,1,1,ias) &
              -u*(n-0.5d0)+j*(dmt(1,1)-0.5d0)
-            vmatlu(lm,lm,2,2,ias)=vmatlu(lm,lm,2,2,ias) &
+            vmatlu(lm1,lm1,2,2,ias)=vmatlu(lm1,lm1,2,2,ias) &
              -u*(n-0.5d0)+j*(dmt(2,2)-0.5d0)
           end do
         end if
@@ -257,9 +222,10 @@ do is=1,nspecies
         edc=0.5d0*u*n*(n-1.d0)
         edc=edc-0.5d0*j*n*(n-1.d0)
 ! correction to the potential
-        do m=-l,l
-          lm=idxlm(l,m)
-          vmatlu(lm,lm,1,1,ias)=vmatlu(lm,lm,1,1,ias)-u*(n-0.5d0)+j*(n-0.5d0)
+        do m1=-l,l
+          lm1=idxlm(l,m1)
+          vmatlu(lm1,lm1,1,1,ias)=vmatlu(lm1,lm1,1,1,ias)-u*(n-0.5d0) &
+           +j*(n-0.5d0)
         end do
       end if
       engyalu(ias)=engyalu(ias)-edc
@@ -267,12 +233,12 @@ do is=1,nspecies
 ! trace of dmatlu times vmatlu
     sum1=0.d0
     do ispn=1,nspinor
-      do m=-l,l
-        lm=idxlm(l,m)
+      do m1=-l,l
+        lm1=idxlm(l,m1)
         do jspn=1,nspinor
-          do m1=-l,l
-            lm1=idxlm(l,m1)
-            sum1=sum1+dble(dm(lm,lm1,ispn,jspn)*vmatlu(lm1,lm,jspn,ispn,ias))
+          do m2=-l,l
+            lm2=idxlm(l,m2)
+            sum1=sum1+dble(dm(lm1,lm2,ispn,jspn)*vmatlu(lm2,lm1,jspn,ispn,ias))
           end do
         end do
       end do

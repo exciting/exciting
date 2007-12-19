@@ -11,7 +11,7 @@ tasks
   10
 
 ! lda+u block
-! here an interpolation between AMF and FLL double counting is used.
+! here FLL double counting is used. 
 ! llu(is) represents the l-shell we would like to apply LDA+U
 ! ujlu(1,is) is U in htr
 ! ujlu(2,is) is J in htr 

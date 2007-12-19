@@ -9,7 +9,7 @@ LIB_SYS 	=
 
 ### BLAS and LAPACK
 # included libraries
-##LIB_LPK = lapack.a blas.a
+##LIB_LPK = libarpack.a lapack.a blas.a
 
 # system libraries
 ##LIB_LPK = -llapack -lblas

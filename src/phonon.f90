@@ -143,9 +143,9 @@ do ip=1,3
                 t2=-(vqc(1,iq)*v1(1)+vqc(2,iq)*v1(2)+vqc(3,iq)*v1(3))
                 zt1=cmplx(cos(t2),sin(t2),8)
                 if (iph.eq.1) zt1=zt1*zi
-                v2(:)=v1(:)+atposc0(:,ja,js)
+                v3(:)=v1(:)+atposc0(:,ja,js)
 ! convert atomic position to supercell lattice coordinates
-                call r3mv(ainv,v2,v2)
+                call r3mv(ainv,v3,v2)
                 call r3frac(epslat,v2,iv)
 ! locate atom in current supercell
                 do ka=1,natoms(js)
