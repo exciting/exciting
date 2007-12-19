@@ -24,13 +24,14 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
 
   end do
 
-  do i=1,m
-     call zcopy(n,evecfv(1,i),1,phi(1,i),1)
-  end do
+ 
+ do i=1,m
+ call zcopy(n,evecfv(1,i),1,phi(1,i),1)
+end do
 
-  write(771,*),phi(:,2)
+  call zgemm('N','N',n,m,n,zone,P,nmatmax,v,n,zzero,phi,n)
+ do i=1,m
+     call zaxpy(n,zone,phi(1,i),1,evecfv(1,i),1)
+ end do
 
-  call zgemm('N','N',n,m,n,zone,P,nmatmax,v,n,zone,phi,n)
-
-  write(772,*),phi(:,2) 
 end subroutine calcupdatevectors
