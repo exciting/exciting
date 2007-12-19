@@ -6,9 +6,9 @@ implicit none
  !scl index
   integer diiscounter !! counter for DIIS iterations
   integer iterativetype
-  integer,parameter:: diismax=5
+  integer,parameter:: diismax=5,diisfirstscl=9
   real lowesteval
-  real diisthreshould,reps
+  real ,parameter::diisthreshould=1,reps=1e-6
   real idamax
   external idamax
 contains
@@ -29,15 +29,15 @@ contains
     doDIIScycle=.false.
     if(iterativetype.eq.1) then
        !this may get more advanced:
-       if(iscl.ge.2) doDIIScycle=.true.
+       if(iscl.ge.diisfirstscl) doDIIScycle=.true.
        write(*,*)"DIIS"
     endif
   end function doDIIScycle
 
-  function prediis()
+  function prediis() !!try to get rid of
     logical prediis
     prediis=.false.
-    if (iterativetype.eq.1.and.(iscl.lt.2))  prediis=.true.
+    if (iterativetype.eq.1.and.(iscl.lt.diisfirstscl))  prediis=.true.
   end function prediis
 
   function doprerotate_preconditioner()

@@ -82,13 +82,14 @@ module diisinterfaces
      end subroutine writeprecond
   end interface
   interface
-subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
+subroutine setuphsvect(n,m,hamilton,overlap,evecfv,ldv,h,s)
 
-  use modmain, only : nmatmax,nstfv,zone,zzero
+  use modmain, only : nstfv,zone,zzero
   implicit none
-  integer ,intent(in):: n,m
-  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(nmatmax,m)
+  integer ,intent(in):: n,m,ldv
+  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(ldv,m)
   complex(8), intent(out)::h(n,m),s(n,m)
+
      end subroutine setuphsvect
   end interface
   interface
@@ -113,13 +114,16 @@ subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
      end subroutine residualvectors
   end interface
   interface
-     subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,phi) 
-       use modmain, only:nstfv,nmatmax
-       integer ,intent (in)::n , iunconverged
-       complex(8),intent(in)::P(nmatmax,nmatmax),r(n,nstfv)
-       complex(8),intent(out)::phi(n,nstfv)
-       real(8), intent(in)::w(nmatmax),evalfv(nstfv)
-     end subroutine calcupdatevectors
+   subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi) 
+  use modmain, only:nstfv,nmatmax,zzero,zone
+
+  implicit none
+  integer ,intent (in)::n , iunconverged
+  complex(8),intent(in)::P(nmatmax,nmatmax)
+  complex(8),intent(in)::r(n,nstfv),evecfv(nmatmax,nstfv)
+  complex(8),intent(out)::phi(n,nstfv)
+  real(8), intent(in)::w(nmatmax),evalfv(nstfv)
+  end subroutine calcupdatevectors
   end interface
   interface
      subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
