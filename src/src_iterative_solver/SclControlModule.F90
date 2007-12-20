@@ -6,7 +6,7 @@ implicit none
  !scl index
   integer diiscounter !! counter for DIIS iterations
   integer iterativetype
-  integer,parameter:: diismax=5,diisfirstscl=9
+  integer,parameter:: diismax=10,diisfirstscl=6
   real lowesteval
   real ,parameter::diisthreshould=1,reps=1e-6
   real idamax

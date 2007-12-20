@@ -107,12 +107,12 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),nmatmax,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
-     	 call  system('rm fort.77*')
+     	! call  system('rm fort.77*')
            write(771,*) evecfv(:,3,ispn)
-           call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
-                ,evalfv(:,ispn),evecfv(:,:,ispn))
+          ! call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
+           !     ,evalfv(:,ispn),evecfv(:,:,ispn))
            write(772,*) evecfv(:,3,ispn)
-       
+   
         endif
   		
 end do
