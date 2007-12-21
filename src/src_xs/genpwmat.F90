@@ -106,11 +106,16 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   allocate(wfirkp(ngrtot,nstfv))
   allocate(pm(ngp,nstfv,nstfv))
   allocate(gpct(ngvec))
-  allocate(jlgpr(0:lmaxvr,ngvec,nspecies))
+  allocate(jlgpr(0:lmaxapw,ngvec,nspecies))
+  ! zero arrays
+  wfmt1(:,:)=zzero
+  wfmt2(:,:)=zzero
   ! compute the required spherical Bessel functions
   gpct(:)=0.d0
   gpct(1:ngpmax)=gpc(:)
   call genjlgpr(lmaxapw,gpct,jlgpr)
+  ! set coefficients for plane wave factor to zero
+  pwfmt(:,:)=zzero
   ! set the matrix elements of the plane wave to zero
   pm(:,:,:)=zzero
   ! loop over G+p vectors
@@ -119,7 +124,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
      ! calculate matrix elements of the plane wave in the muffin-tin
      do is=1,nspecies
         ! set up plane wave factor from Rayleigh formula
-        do l=1,lmaxvr !*** extend ylmgp to "lmmaxapw"
+        do l=0,lmaxvr !*** extend ylmgp to "lmmaxapw"
            do m=-l,l
               lm=idxlm(l,m)
               pwfmt(lm,:)=fourpi*conjg(zil(l))*jlgpr(l,igp,is)* &
@@ -140,7 +145,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
                    lmmaxapw,wfmtkp(1,1,ist),lmmaxapw,zzero,wfmt1,lmmaxapw)
               call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zbshtapw, &
                    lmmaxapw,pwfmt,lmmaxapw,zzero,wfmt2,lmmaxapw)
-              ! calculate product in muffin-tin
+              ! calculate product in muffin-tin in real space
               do irc=1,nrcmt(is)
                  zfmt(:,irc)=wfmt1(:,irc)*wfmt2(:,irc)
               end do
@@ -157,9 +162,17 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
                  pm(igp,ist,jst)=pm(igp,ist,jst)+zt1*zt2
               end do
            end do
+
+if (igp.eq.1) then
+write(171,*) igp,ias,wfmtk
+write(172,*) igp,ias,wfmtkp
+end if
+
            ! end loops over atoms and species
         end do
      end do
+
+
      ! calculate matrix elements of the plane wave in the interstitial region
      wfirk(:,:)=zzero
      wfirkp(:,:)=zzero
@@ -199,6 +212,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
            pm(igp,ist,jst)=pm(igp,ist,jst)+zt1
         end do
      end do
+
      ! compute the second-variational matrix elements of the plane wave
      if (tevecsv) then
         do i=1,nstsv

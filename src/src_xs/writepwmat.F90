@@ -79,16 +79,16 @@ subroutine writepwmat
 write(*,*) '*** after genpwmat ***'
      ! write the matrix elements to direct-access file
 !!$     write(50,rec=ik) pwmat
-     write(50,'(i8,3g18.10)') ik,vkl(:,ik)
-     do igq=1,ngq(iq)
-        do ist=1,nstsv
-           do jst=1,nstsv
-              write(50,'(4i8,3g18.10)') ik,igq,ist,jst,pwmat(igq,ist,jst), &
-                   abs(pwmat(igq,ist,jst))**2
-           end do
-        end do
-     end do
-     write(50,*)
+!!$     write(50,'(i8,3g18.10)') ik,vkl(:,ik)
+!!$     do igq=1,ngq(iq)
+!!$        do ist=1,nstsv
+!!$           do jst=1,nstsv
+!!$              write(50,'(4i8,3g18.10)') ik,igq,ist,jst,pwmat(igq,ist,jst), &
+!!$                   abs(pwmat(igq,ist,jst))**2
+!!$           end do
+!!$        end do
+!!$     end do
+!!$     write(50,*)
   end do
   close(50)
   write(*,*)
