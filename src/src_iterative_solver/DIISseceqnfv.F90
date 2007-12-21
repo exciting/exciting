@@ -108,10 +108,12 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
      	! call  system('rm fort.77*')
-           write(771,*) evecfv(:,3,ispn)
-          ! call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
-           !     ,evalfv(:,ispn),evecfv(:,:,ispn))
-           write(772,*) evecfv(:,3,ispn)
+        	write(771,*) trialvecs(:,3,idiis)
+           	write(772,*) evecfv(:,3,ispn)
+           call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
+              ,evalfv(:,ispn),evecfv(:,:,ispn))
+           	write(773,*) trialvecs(:,3,idiis)
+           	write(774,*) evecfv(:,3,ispn)
    
         endif
   		
