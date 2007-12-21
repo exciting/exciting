@@ -99,11 +99,11 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,evalfv(:,ispn),r,rnorms)
         write(*,*)"rnorms",rnorms
-        if  (allconverged(nstfv,rnorms)) exit	
+        if  (allconverged(nstfv,rnorms).or. idiis.eq.(diismax-1)) exit	
         ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,trialvecs)
       
         call calcupdatevectors(n,iunconverged,P,w,r,evalfv,&
-             evecfv(:,:,ispn),trialvecs(:,:,idiis)) 
+             evecfv(:,:,ispn),trialvecs(:,:,idiis))      
         call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),nmatmax,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
@@ -114,7 +114,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
               ,evalfv(:,ispn),evecfv(:,:,ispn))
            	write(773,*) trialvecs(:,3,idiis)
            	write(774,*) evecfv(:,3,ispn)
-   
+  			call normalize(n,s,evecfv)	
         endif
   		
 end do

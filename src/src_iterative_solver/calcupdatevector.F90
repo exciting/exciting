@@ -34,10 +34,7 @@ end do
  do i=1,m
     ! call zaxpy(n,zone,phi(1,i),1,evecfv(1,i),1)
     call zcopy(n,phi(1,i),1,evecfv(1,i),1)
-         nrm=sqrt( dble( zdotc( n,evecfv(1,i),1,evecfv(1,i),1 ) ) )
-        z=cmplx(1.0/nrm,0)
-        call zscal(n,z,evecfv(1,i),1)
-        call zscal(n,z,phi(1,i),1)
+
  end do
 
 end subroutine calcupdatevectors
