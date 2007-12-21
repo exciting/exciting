@@ -7,6 +7,6 @@ subroutine precondspectrumupdate(n,m,hamilton,overlap,P,w)
   complex(8),intent(in)::P(nmatmax,nmatmax)
   real(8),intent(inout)::w(nmatmax) 
   complex(8)::h(n,m),s(n,m)
-  call setuphsvect(n,m,hamilton,overlap,P,h(:,:),s(:,:))
+  call setuphsvect(n,m,hamilton,overlap,P,nmatmax,h(:,:),s(:,:))
   call rayleighqotient(n,m,P, h(:,:),s(:,:),w)
 end subroutine precondspectrumupdate

@@ -48,7 +48,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8):: r(nmat(ik,ispn),nstfv)
   complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
   real(8)::w(nmatmax),rnorms(nstfv)
-   complex(8)::z
+  complex(8)::z
   integer evecmap(nstfv),  iunconverged
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
      write(*,*)
@@ -80,43 +80,46 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
+
      if( doprerotate_preconditioner()) then
-        call prerotate_preconditioner(n,2*nstfv,hamilton,evecfv,P)
-        call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
+        !      call prerotate_preconditioner(n,2*nstfv,hamilton,evecfv,P)
+        !     call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
      endif
      do idiis=1,diismax
         write(*,*)"diisiter", idiis
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),&
+        call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),nmatmax,&
              h(:,:,idiis),s(:,:,idiis))
-       call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
-           , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
+        call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
+             , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
+        write (777,*)w(:)
+        write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,evalfv(:,ispn),r,rnorms)
-             write(*,*)"rnorms",rnorms
+        write(*,*)"rnorms",rnorms
         if  (allconverged(nstfv,rnorms)) exit	
         ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,trialvecs)
+      
         call calcupdatevectors(n,iunconverged,P,w,r,evalfv,&
-             trialvecs(:,:,idiis)) 
-             
+             evecfv(:,:,ispn),trialvecs(:,:,idiis)) 
+        call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),nmatmax,&
+             h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
-           call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
-                ,evalfv(:,ispn),evecfv(:,:,ispn))
-        else
-           do i=1,nstfv
-           call zaxpy(n,zone,trialvecs(1,i,1),1,evecfv(1,i,ispn),1)
-           rnorm=sqrt( dble( zdotc( n,evecfv(1,i,ispn),1,evecfv(1,i,ispn),1 ) ) )
-           z=cmplx(1.0/rnorm,0)
-           call zscal(n,z,evecfv(1,i,ispn),1)
-        end do
+     	! call  system('rm fort.77*')
+           write(771,*) evecfv(:,3,ispn)
+          ! call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
+           !     ,evalfv(:,ispn),evecfv(:,:,ispn))
+           write(772,*) evecfv(:,3,ispn)
+   
         endif
-     end do
+  		
+end do
 
-     call cpu_time(cpu1)
-  endif
-  timefv=timefv+cpu1-cpu0
-  return
+call cpu_time(cpu1)
+endif
+timefv=timefv+cpu1-cpu0
+return
 end subroutine DIISseceqnfv
 !EOC

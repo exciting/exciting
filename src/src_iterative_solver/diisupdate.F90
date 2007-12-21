@@ -13,6 +13,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
   integer::i,j,ir,is
   complex(8):: Pmatrix(idiis,idiis), Qmatrix(idiis,idiis),c(idiis)
    complex(8)::z
+    evecfv(:,:)=0.0
   do i=1,iunconverged 
 
      do j=1,idiis
@@ -24,14 +25,13 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
          zzero,Pmatrix,idiis)
      do ir=1,idiis
 	do is=1,idiis
-           Qmatrix(ir,is)=zdotc(n,trialvec(1,i,ir),1,s(1,i,is),1)
+           Qmatrix(is,ir)=zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1)
 	enddo
      enddo
      call solvediis(idiis,Pmatrix,Qmatrix,c)
+    
      do ir=1,idiis 
-     
-        call zaxpy(n,c(ir),trialvec(1,i,ir),1,evecfv(1,i),1)
-        
+        call zaxpy(n,-c(ir),trialvec(1,i,ir),1,evecfv(1,i),1)
         nrm=sqrt( dble( zdotc( n,evecfv(1,i),1,evecfv(1,i),1 ) ) )
         z=cmplx(1.0/nrm,0)
         call zscal(n,z,evecfv(1,i),1)
