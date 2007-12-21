@@ -13,7 +13,7 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,phi)
   call zgemm('C','N',n,m,n,zone,P,nmatmax,r,n,zzero,v,n)
 
   do i=1,m
-     if(abs(w(i)-evalfv(i)).lt.1e-3)then
+     if(abs(w(i)-evalfv(i)).lt.1e-1)then
    		z= cmplx(1.0/(w(i)-evalfv(i)),0)
         call zscal(n,z,v,1)
         write(*,*)"hier"
