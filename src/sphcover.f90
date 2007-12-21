@@ -75,6 +75,27 @@ va(:,n)=vm(:)
 ! compute the spherical coordinates of the vector
 call sphcrd(vm,r,tp(1,n))
 if (n.lt.ntp) goto 10
+
+
+
+do n=1,ntp
+write(700,*) n,va(:,n)
+write(701,*) n,tp(:,n)
+end do
+
+do ith=0,nth
+  th=pi*dble(ith)/dble(nth)
+  do iph=0,nph-1
+    ph=twopi*dble(iph)/dble(nph)
+    v(1)=sin(th)*cos(ph)
+    v(2)=sin(th)*sin(ph)
+    v(3)=cos(th)
+    write(800,*) v
+  end do
+end do
+
+
+
 deallocate(va)
 return
 end subroutine
