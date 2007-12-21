@@ -22,7 +22,7 @@ subroutine writepwmat
   implicit none
   ! local variables
   integer, parameter :: iq=1
-  integer ik,ikp,recl,isymkp,igq,ist,jst
+  integer ik,ikp,recl,isymkp,igq,ist,jst,un
   real(8) :: vpl(3),vkpl(3)
   complex(8), allocatable :: apwalmk(:,:,:,:),apwalmkp(:,:,:,:)
   complex(8), allocatable :: evecfvk(:,:),evecfvkp(:,:)
@@ -33,6 +33,7 @@ subroutine writepwmat
   call init0
   call init1
   call init2xs
+  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   allocate(apwalmk(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(apwalmkp(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(evecfvk(nmatmax,nstfv))
@@ -41,6 +42,15 @@ subroutine writepwmat
   allocate(evecsvkp(nstsv,nstsv))
   ! allocate the momentum matrix elements array
   allocate(pwmat(ngq(iq),nstsv,nstsv))
+
+
+  ! allocate matrix elements array
+  if (allocated(xiou)) deallocate(xiou)
+  if (allocated(xiuo)) deallocate(xiuo)
+  allocate(xiou(nstval,nstcon,ngq(iq)))
+  allocate(xiuo(nstcon,nstval,ngq(iq)))
+
+
   ! read in the density and potentials from file
   call readstate
   ! find the new linearisation energies
@@ -76,7 +86,25 @@ subroutine writepwmat
           ylmgq(1,1,iq),sfacgq(1,1,iq),vkl(1,ik),ngk(ik,1),igkig(1,ik,1), &
           apwalmk,evecfvk,evecsvk,vkl(1,ikp),ngk(ikp,1),igkig(1,ikp,1), &
           apwalmkp,evecfvkp,evecsvkp,pwmat)
-write(*,*) '*** after genpwmat ***'
+     write(*,*) '*** after genpwmat ***'
+
+
+     do igq=1,ngq(iq)
+        xiou(:,:,igq)=pwmat(igq,1:nstval,nstval+1:nstsv)
+        xiuo(:,:,igq)=pwmat(igq,nstval+1:nstsv,1:nstval)
+     end do
+
+     inquire(iolength=recl) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), &
+          vkl(:,ik), xiou,xiuo
+     un=51
+     open(unit=un,file='EMAT_Q00001.OUT',form='unformatted', &
+          action='write',access='direct',recl=recl)
+     write(un,rec=ik) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
+          xiou, xiuo
+     close(un)
+
+
+
      ! write the matrix elements to direct-access file
 !!$     write(50,rec=ik) pwmat
 !!$     write(50,'(i8,3g18.10)') ik,vkl(:,ik)
