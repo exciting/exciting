@@ -114,7 +114,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
               ,evalfv(:,ispn),evecfv(:,:,ispn))
            	write(773,*) trialvecs(:,3,idiis)
            	write(774,*) evecfv(:,3,ispn)
-  			call normalize(n,s,evecfv)	
+  		call normalize(n,nstfv,overlap,evecfv(:,:,ispn))	
         endif
   		
 end do
