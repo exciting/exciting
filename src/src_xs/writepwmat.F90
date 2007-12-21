@@ -53,9 +53,9 @@ subroutine writepwmat
   inquire(iolength=recl) pwmat
 !!$  open(50,file='PWMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
 !!$       status='REPLACE',recl=recl)
-  open(50,file='PWMAT_ASC.OUT',action='WRITE',form='UNFORMATTED', &
-       status='REPLACE')
+  open(50,file='PWMAT_ASC.OUT',action='WRITE',form='FORMATTED',status='REPLACE')
   do ik=1,nkpt
+     write(*,*) 'Info(writepwmat): ik',ik
      ! get the eigenvectors from file for k-point
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvk)
      call getevecsv(vkl(1,ik),evecsvk)
@@ -76,11 +76,18 @@ subroutine writepwmat
           ylmgq(1,1,iq),sfacgq(1,1,iq),vkl(1,ik),ngk(ik,1),igkig(1,ik,1), &
           apwalmk,evecfvk,evecsvk,vkl(1,ikp),ngk(ikp,1),igkig(1,ikp,1), &
           apwalmkp,evecfvkp,evecsvkp,pwmat)
+write(*,*) '*** after genpwmat ***'
      ! write the matrix elements to direct-access file
 !!$     write(50,rec=ik) pwmat
      write(50,'(i8,3g18.10)') ik,vkl(:,ik)
-     write(50,'(4i8,3g18.10)') (((ik,igq,ist,jst,pwmat(igq,ist,jst), &
-          abs(pwmat(igq,ist,jst))**2,jst=1,nstsv),ist=1,nstsv),igq=1,ngq(iq))
+     do igq=1,ngq(iq)
+        do ist=1,nstsv
+           do jst=1,nstsv
+              write(50,'(4i8,3g18.10)') ik,igq,ist,jst,pwmat(igq,ist,jst), &
+                   abs(pwmat(igq,ist,jst))**2
+           end do
+        end do
+     end do
      write(50,*)
   end do
   close(50)

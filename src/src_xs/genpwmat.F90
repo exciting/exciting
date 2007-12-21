@@ -110,21 +110,22 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   ! compute the required spherical Bessel functions
   gpct(:)=0.d0
   gpct(1:ngpmax)=gpc(:)
-  call genjlgpr(lmaxapw,gpc,jlgpr)
+  call genjlgpr(lmaxapw,gpct,jlgpr)
   ! set the matrix elements of the plane wave to zero
   pm(:,:,:)=zzero
   ! loop over G+p vectors
   do igp=1,ngp
-     ! set up plane wave factor from Rayleigh formula
-     do l=1,lmaxvr !*** extend ylmgp to "lmmaxapw"
-        do m=-l,l
-           lm=idxlm(l,m)
-           pwfmt(lm,:)=fourpi*conjg(zil(l))*jlgpr(l,igp,is)* &
-                conjg(ylmgp(lm,igp))
-        end do
-     end do
+     write(*,*) 'Info(genpwmat): igp: ',igp
      ! calculate matrix elements of the plane wave in the muffin-tin
      do is=1,nspecies
+        ! set up plane wave factor from Rayleigh formula
+        do l=1,lmaxvr !*** extend ylmgp to "lmmaxapw"
+           do m=-l,l
+              lm=idxlm(l,m)
+              pwfmt(lm,:)=fourpi*conjg(zil(l))*jlgpr(l,igp,is)* &
+                   conjg(ylmgp(lm,igp))
+           end do
+        end do
         do ia=1,natoms(is)
            ias=idxas(ia,is)
            do ist=1,nstfv
@@ -144,7 +145,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
                  zfmt(:,irc)=wfmt1(:,irc)*wfmt2(:,irc)
               end do
               ! convert to spherical harmonics
-              call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zfshtvr, &
+              call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zfshtapw, &
                    lmmaxapw,zfmt,lmmaxapw,zzero,wfmtkp(1,1,ist),lmmaxapw)
            end do
            ! structure factor for G+p vector
@@ -221,6 +222,18 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
      else
         pwmat(:,:,:)=pm(:,:,:)
      end if
+
+
+
+     do ist=1,nstsv
+        do jst=1,nstsv
+           write(50,'(3i8,3g18.10)') igp,ist,jst,pwmat(igp,ist,jst), &
+                abs(pwmat(igp,ist,jst))**2
+        end do
+     end do
+     
+
+
      ! end loop over G+p vectors
   end do
   deallocate(wfmtk,wfmtkp,wfmt1,wfmt2,zfmt,pwfmt,wfirk,wfirkp,pm,gpct,jlgpr)

@@ -82,8 +82,11 @@ subroutine xsmain
      ! convert momentum matrix elements file to old format
      call pmattd2orig
   case(330)
-     ! calculate matrix element of exponential expression
+     ! calculate matrix elements of exponential expression
      call writeemat
+  case(335)
+     ! calculate matrix elements of the plane wave (new version)
+     call writepwmat
   case(331)
      ! ASCII output of matrix elements of exponential expression
      call writeemat_ascii
