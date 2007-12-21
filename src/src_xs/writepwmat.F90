@@ -21,15 +21,14 @@ subroutine writepwmat
 !BOC
   implicit none
   ! local variables
-  integer ik,recl,isymkp
+  integer, parameter :: iq=1
+  integer ik,ikp,recl,isymkp,igq,ist,jst
   real(8) :: vpl(3),vkpl(3)
   complex(8), allocatable :: apwalmk(:,:,:,:),apwalmkp(:,:,:,:)
   complex(8), allocatable :: evecfvk(:,:),evecfvkp(:,:)
   complex(8), allocatable :: evecsvk(:,:),evecsvkp(:,:)
   complex(8), allocatable :: pwmat(:,:,:)
   complex(8) :: zt1
-  integer, parameter :: iq=1
-  integer :: igq,ist,jst
   ! initialise universal variables
   call init0
   call init1
@@ -80,8 +79,8 @@ subroutine writepwmat
      ! write the matrix elements to direct-access file
 !!$     write(50,rec=ik) pwmat
      write(50,'(i8,3g18.10)') ik,vkl(:,ik)
-     write(50,'(4i8,3g18.10)') (((ik,igq,ist,jst,pwmat(igp,ist,jst), &
-          abs(pwmat(igp,ist,jst))**2,jst=1,nstsv),ist=1,nstsv),igq=1,ngq(iq))
+     write(50,'(4i8,3g18.10)') (((ik,igq,ist,jst,pwmat(igq,ist,jst), &
+          abs(pwmat(igq,ist,jst))**2,jst=1,nstsv),ist=1,nstsv),igq=1,ngq(iq))
      write(50,*)
   end do
   close(50)

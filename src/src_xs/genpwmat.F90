@@ -52,18 +52,19 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   complex(8), intent(in) :: apwalmkp(ngkmax,apwordmax,lmmaxapw,natmtot)
   complex(8), intent(in) :: evecfvkp(nmatmax,nstfv)
   complex(8), intent(in) :: evecsvkp(nstsv,nstsv)
-  complex(8), intent(out) :: pwmat(ngq(iqcu),nstsv,nstsv)
+  complex(8), intent(out) :: pwmat(ngp,nstsv,nstsv)
   ! local variables
-  integer ispn,is,ia,ist,jst
-  integer ist1
-  integer i,j,k,l,m,igp,ig,ifg,ir,iv(3),ivu(3)
+  integer ispn,is,ia,ias,ist,jst
+  integer i,j,k,l,m,lm,irc,igp,ig,ifg,igkk,igkkp,ir,iv(3),ivu(3)
   real(8) :: v1(3)
   complex(8) zsum,zt,zt1,zt2
   ! allocatable arrays
   complex(8), allocatable :: wfmtk(:,:,:)
   complex(8), allocatable :: wfmtkp(:,:,:)
+  complex(8), allocatable :: wfmt1(:,:)
+  complex(8), allocatable :: wfmt2(:,:)
   complex(8), allocatable :: zfmt(:,:)
-  complex(8), allocatable :: pwfmt(:,:,:)
+  complex(8), allocatable :: pwfmt(:,:)
   complex(8), allocatable :: wfirk(:,:)
   complex(8), allocatable :: wfirkp(:,:)
   complex(8), allocatable :: pm(:,:,:)
@@ -109,7 +110,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   ! compute the required spherical Bessel functions
   gpct(:)=0.d0
   gpct(1:ngpmax)=gpc(:)
-  call genjlgpr(lmaxapw,gqc,jlgpr)
+  call genjlgpr(lmaxapw,gpc,jlgpr)
   ! set the matrix elements of the plane wave to zero
   pm(:,:,:)=zzero
   ! loop over G+p vectors
@@ -209,7 +210,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
                     l=(ispn-1)*nstfv
                     do jst=1,nstfv
                        l=l+1
-                       zt1=conjg(evecsv(k,i))*evecsv(l,j)
+                       zt1=conjg(evecsvk(k,i))*evecsvkp(l,j)
                        zt1=zt1+zt1*pm(igp,ist,jst)
                     end do
                  end do
