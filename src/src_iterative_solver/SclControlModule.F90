@@ -9,7 +9,7 @@ implicit none
   integer,parameter:: diismax=10,diisfirstscl=6
   real lowesteval
   real ,parameter::diisthreshould=1,reps=1e-6
-  real idamax
+integer idamax
   external idamax
 contains
 
@@ -82,10 +82,12 @@ contains
     integer,intent(in)::n
     real(8),intent(in):: rnorms(n)
 
-    if (idamax(n,rnorms,1).lt.reps) then 
+    if (rnorms(idamax(n,rnorms,1)).lt.reps) then 
        allconverged=.true.
+         write(*,*)" converged",rnorms(idamax(n,rnorms,1))
     else
        allconverged=.false.
+       write(*,*)"not converged",rnorms(idamax(n,rnorms,1))
     endif
 
   end function allconverged
