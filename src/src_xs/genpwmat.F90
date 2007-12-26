@@ -38,7 +38,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   integer, intent(in) :: ngp
   real(8), intent(in) :: gpc(ngpmax)
   integer, intent(in) :: igpig(ngpmax)
-  complex(8), intent(in) :: ylmgp(lmmaxvr,ngpmax)
+  complex(8), intent(in) :: ylmgp(lmmaxapw,ngpmax)
   complex(8), intent(in) :: sfacgp(ngpmax,natmtot)
   real(8), intent(in) :: vklk(3)
   integer, intent(in) :: ngkk
@@ -68,8 +68,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   complex(8), allocatable :: wfirk(:,:)
   complex(8), allocatable :: wfirkp(:,:)
   complex(8), allocatable :: pm(:,:,:)
-  real(8), allocatable :: gpct(:)
-  real(8), allocatable :: jlgpr(:,:,:)
+  real(8), allocatable :: jlgpr(:,:)
   ! external functions
   real(8), external :: r3taxi
   complex(8), external :: zfmtinp
@@ -105,20 +104,10 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   allocate(wfirk(ngrtot,nstfv))
   allocate(wfirkp(ngrtot,nstfv))
   allocate(pm(ngp,nstfv,nstfv))
-  allocate(gpct(ngvec))
-  allocate(jlgpr(0:lmaxapw,ngvec,nspecies))
+  allocate(jlgpr(0:lmaxapw,nrcmtmax))
   ! zero arrays
   wfmt1(:,:)=zzero
   wfmt2(:,:)=zzero
-  ! compute the required spherical Bessel functions
-  gpct(:)=0.d0
-  gpct(1:ngpmax)=gpc(:)
-  call genjlgpr(lmaxapw,gpct,jlgpr)
-
-
-!!!!!!!!!!!!!!!!! DO NOT use genjlgpr *** only j(|G|r_mt) at MT radius!!!
-
-
   ! set coefficients for plane wave factor to zero
   pwfmt(:,:)=zzero
   ! set the matrix elements of the plane wave to zero
@@ -128,18 +117,27 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
      write(*,*) 'Info(genpwmat): igp: ',igp
      ! calculate matrix elements of the plane wave in the muffin-tin
      do is=1,nspecies
-        ! set up plane wave factor from Rayleigh formula
-        do l=0,lmaxvr !*** extend ylmgp to "lmmaxapw"
-           do m=-l,l
-              lm=idxlm(l,m)
-              pwfmt(lm,:)=fourpi*conjg(zil(l))*jlgpr(l,igp,is)* &
-                   ylmgp(lm,igp)
+        ! calculate bessel functions j_l(|G||r|)
+        irc=0
+        do ir=1,nrmt(is),lradstp
+           irc=irc+1
+           call sbessel(lmaxapw,gpc(igp)*spr(ir,is),jlgpr(0,irc))
+           ! set up plane wave factor from Rayleigh formula
+           do l=0,lmaxapw
+              do m=-l,l
+                 lm=idxlm(l,m)
+                 pwfmt(lm,irc)=fourpi*conjg(zil(l))*jlgpr(l,irc)* &
+                      ylmgp(lm,igp)
+              end do
            end do
         end do
-if (igp.eq.7) then
-   write(77,*) pwfmt
-   
-end if
+        ! ***************************************************
+        if (igp.eq.7) then
+           write(76,*) ylmgp
+           write(77,*) pwfmt
+           write(79,*) jlgpr
+        end if
+        !***************************************************************
         do ia=1,natoms(is)
            ias=idxas(ia,is)
            do ist=1,nstfv
@@ -171,12 +169,12 @@ end if
                  pm(igp,ist,jst)=pm(igp,ist,jst)+zt1*zt2
               end do
            end do
-
-if (igp.eq.1) then
-write(171,*) igp,ias,wfmtk
-write(172,*) igp,ias,wfmtkp
-end if
-
+           !***************************************************************
+           if (igp.eq.1) then
+              write(171,*) igp,ias,wfmtk
+              write(172,*) igp,ias,wfmtkp
+           end if
+           !***************************************************************
            ! end loops over atoms and species
         end do
      end do
@@ -221,7 +219,6 @@ end if
            pm(igp,ist,jst)=pm(igp,ist,jst)+zt1
         end do
      end do
-
      ! compute the second-variational matrix elements of the plane wave
      if (tevecsv) then
         do i=1,nstsv
@@ -245,20 +242,15 @@ end if
      else
         pwmat(:,:,:)=pm(:,:,:)
      end if
-
-
-
+     ! write to ASCII file
      do ist=1,nstsv
         do jst=1,nstsv
            write(50,'(3i8,3g18.10)') igp,ist,jst,pwmat(igp,ist,jst), &
                 abs(pwmat(igp,ist,jst))**2
         end do
      end do
-     
-
-
      ! end loop over G+p vectors
   end do
-  deallocate(wfmtk,wfmtkp,wfmt1,wfmt2,zfmt,pwfmt,wfirk,wfirkp,pm,gpct,jlgpr)
+  deallocate(wfmtk,wfmtkp,wfmt1,wfmt2,zfmt,pwfmt,wfirk,wfirkp,pm,jlgpr)
 end subroutine genpwmat
 !EOC

@@ -38,6 +38,11 @@ subroutine init2xs
      write(*,*) 'Error('//thisnam//'): lmaxapwtd > lmaxapw:', lmaxapwtd
      call terminate
   end if
+  ! check lmaxemat
+  if (lmaxemat.gt.lmaxapw) then
+     write(*,*) 'Error('//thisnam//'): lmaxemat > lmaxapw:', lmaxemat
+     call terminate
+  end if
   lmmaxapwtd=(lmaxapwtd+1)**2
   lmmaxemat=(lmaxemat+1)**2
   lmaxmax=maxval((/lmaxemat,lolmax, lmaxvr,lmaxapw,lmaxmat,lmaxinr/))
@@ -180,7 +185,8 @@ subroutine init2xs
   !---------------------!
   ! checking
   if (gqmax.ge.gkmax) then
-     write(*,'(a,2g18.10)') 'Warning('//thisnam//'): gqmax >= gkmax: ',gqmax,gkmax
+     write(*,'(a,2g18.10)') 'Warning('//thisnam//'): gqmax >= gkmax: ',gqmax, &
+          gkmax
   end if
   ! maximum number of G+q vectors for all q
   call getngqmax
@@ -200,7 +206,7 @@ subroutine init2xs
   if (allocated(sfacgq)) deallocate(sfacgq)
   allocate(sfacgq(ngqmax,natmtot,nqpt))
   if (allocated(ylmgq)) deallocate(ylmgq)
-  allocate(ylmgq(lmmaxvr,ngqmax,nqpt))
+  allocate(ylmgq(lmmaxapw,ngqmax,nqpt))
   if (allocated(ivgigq)) deallocate(ivgigq)
   allocate(ivgigq(intgqv(1,1):intgqv(1,2),intgqv(2,1):intgqv(2,2), &
        intgqv(3,1):intgqv(3,2),nqpt))
@@ -211,7 +217,7 @@ subroutine init2xs
      ! generate structure factors for G-vectors
      call gensfacgp(ngq(iq),vgqc(1,1,iq),ngq(iq),sfacgq(1,1,iq))
      ! spherical harmonics for G+q-vectors
-     call genylmgq(iq)
+     call genylmgq(iq,lmaxvr)
   end do
 
   !------------------------!

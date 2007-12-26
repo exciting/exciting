@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: genylmgq
 ! !INTERFACE:
-subroutine genylmgq(iq)
+subroutine genylmgq(iq,lmax)
 ! !USES:
 use modmain
 use modxs
@@ -22,13 +22,13 @@ use modxs
 !BOC
 implicit none
 ! arguments
-integer, intent(in) :: iq
+integer, intent(in) :: iq,lmax
 ! local variables
 integer igq
 real(8) r,tp(2)
 do igq=1,ngq(iq)
   call sphcrd(vgqc(1,igq,iq),r,tp)
-  call genylm(lmaxemat,tp,ylmgq(1,igq,iq))
+  call genylm(lmax,tp,ylmgq(1,igq,iq))
 end do
 return
 end subroutine genylmgq
