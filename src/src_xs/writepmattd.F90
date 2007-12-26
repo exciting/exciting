@@ -41,10 +41,6 @@ subroutine writepmattd(lgather)
   complex(8), allocatable :: pmat(:,:,:)
   logical :: existent
 
-integer :: ist1,ist2
-  character(16) :: f1,f2,f
-
-
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
           &calculation of momentum'
@@ -90,24 +86,6 @@ integer :: ist1,ist2
      call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
           evecsvt,pmat)
      call putpmat(ik,.false.,trim(fnpmat_t),pmat)
-
-
-
-
-     do ist1=1,nstsv
-        f1='v'
-        if (ist1.gt.(nstsv-nempty-1)) f1='c'
-        do ist2=1,nstsv
-           f2='v'
-           if (ist2.gt.(nstsv-nempty-1)) f2='c'
-           f='  '//trim(f1)//'-'//trim(f2)//'  '
-           write(1234,'(3i8,a,3g18.10)') ik,ist1,ist2,f,abs(pmat(:,ist1,ist2))
-        end do
-     end do
-
-
-
-
 !!$     resumechkpts(1,1)=ik
 !!$     call resupd(un,task,resumechkpts,' : k-point index')
 #ifdef MPI     

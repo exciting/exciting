@@ -11,7 +11,6 @@ subroutine init2xs
   use modtetra
   use modmpi
   use m_genqvkloff
-  use m_findkmapkq
   use m_getunit
   use m_genfilname
   implicit none
@@ -41,6 +40,10 @@ subroutine init2xs
   ! check lmaxemat
   if (lmaxemat.gt.lmaxapw) then
      write(*,*) 'Error('//thisnam//'): lmaxemat > lmaxapw:', lmaxemat
+     call terminate
+  end if
+  if (lmaxemat.gt.lmaxapwtd) then
+     write(*,*) 'Warning('//thisnam//'): lmaxemat > lmaxapwtd:', lmaxemat
      call terminate
   end if
   lmmaxapwtd=(lmaxapwtd+1)**2

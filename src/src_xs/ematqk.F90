@@ -72,6 +72,10 @@ contains
     allocate(helpm(nlotot,max(nstval,nstcon)))
     allocate(helpm2(n0,max(nstval,nstcon))) ! for ir
 
+
+!SAG
+xihir(:,:)=zzero
+
     ! read eigenvectors, eigenvalues and occupancies for G+k+q
     call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
     call getevalsv(vkl(1,ikq),evalsv(1,ikq))
@@ -140,7 +144,7 @@ contains
        call cpu_time(cpu00)
        cpumt=cpumt+cpu00-cpu01
        ! interstitial contribution
-       call ematqkgir(iq,ik,igq)
+!SAG!       call ematqkgir(iq,ik,igq)
        call cpu_time(cpu01)
        cpuir=cpuir+cpu01-cpu00
 

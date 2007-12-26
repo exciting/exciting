@@ -12,6 +12,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
      pwmat)
 ! !USES:
   use modmain
+  use modxs
 !  use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
@@ -106,11 +107,12 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   allocate(pm(ngp,nstfv,nstfv))
   allocate(jlgpr(0:lmaxapw,nrcmtmax))
   ! zero arrays
+  wfmtk(:,:,:)=zzero
+  wfmtkp(:,:,:)=zzero
   wfmt1(:,:)=zzero
   wfmt2(:,:)=zzero
-  ! set coefficients for plane wave factor to zero
+  zfmt(:,:)=zzero
   pwfmt(:,:)=zzero
-  ! set the matrix elements of the plane wave to zero
   pm(:,:,:)=zzero
   ! loop over G+p vectors
   do igp=1,ngp
@@ -123,7 +125,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
            irc=irc+1
            call sbessel(lmaxapw,gpc(igp)*spr(ir,is),jlgpr(0,irc))
            ! set up plane wave factor from Rayleigh formula
-           do l=0,lmaxapw
+           do l=0,lmaxemat
               do m=-l,l
                  lm=idxlm(l,m)
                  pwfmt(lm,irc)=fourpi*conjg(zil(l))*jlgpr(l,irc)* &
@@ -131,22 +133,22 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
               end do
            end do
         end do
-        ! ***************************************************
-        if (igp.eq.7) then
-           write(76,*) ylmgp
-           write(77,*) pwfmt
-           write(79,*) jlgpr
-        end if
-        !***************************************************************
         do ia=1,natoms(is)
            ias=idxas(ia,is)
            do ist=1,nstfv
               ! calculate the wavefunction for k-point
-              call wavefmt(lradstp,lmaxapw,is,ia,ngkk,apwalmk,evecfvk(1,ist), &
-                   lmmaxapw,wfmtk(1,1,ist))
+              call wavefmt(lradstp,lmaxapwtd,is,ia,ngkk,apwalmk, &
+                   evecfvk(1,ist),lmmaxapw,wfmtk(1,1,ist))
               ! calculate the wavefunction for kp-point
-              call wavefmt(lradstp,lmaxapw,is,ia,ngkkp,apwalmkp, &
+              call wavefmt(lradstp,lmaxapwtd,is,ia,ngkkp,apwalmkp, &
                    evecfvkp(1,ist),lmmaxapw,wfmtkp(1,1,ist))
+!**************************
+              ! set WF to one for testing :
+!              wfmtk(:,:,ist)=zzero
+!              wfmtk(1,:,ist)=1.d0/y00
+!              wfmtkp(:,:,ist)=zzero
+!              wfmtkp(1,:,ist)=1.d0/y00
+!**************************
               ! convert wavefunction and plane wave to spherical coordinates
               call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zbshtapw, &
                    lmmaxapw,wfmtkp(1,1,ist),lmmaxapw,zzero,wfmt1,lmmaxapw)
@@ -169,17 +171,9 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
                  pm(igp,ist,jst)=pm(igp,ist,jst)+zt1*zt2
               end do
            end do
-           !***************************************************************
-           if (igp.eq.1) then
-              write(171,*) igp,ias,wfmtk
-              write(172,*) igp,ias,wfmtkp
-           end if
-           !***************************************************************
            ! end loops over atoms and species
         end do
      end do
-
-
      ! calculate matrix elements of the plane wave in the interstitial region
      wfirk(:,:)=zzero
      wfirkp(:,:)=zzero
@@ -207,6 +201,17 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
         ! convert the product to real-space
         call zfftifc(3,ngrid,1,wfirkp(1,ist))
         ! end loop over states
+
+
+!**************************
+              ! set WF to one for testing :
+!***        wfirk(:,:)=zone*sqrt(omega)
+!***       wfirkp(:,:)=zone*sqrt(omega)
+        wfirk(:,:)=zzero
+        wfirkp(:,:)=zzero
+!**************************
+
+
      end do
      ! find the overlaps
      do ist=1,nstfv

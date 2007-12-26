@@ -3,37 +3,33 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_findkmapkq
+subroutine findkmapkq(iq,vq,voff,map)
+  use modmain
+  use modxs
+  use modmpi
+  use m_getunit
+  use m_genfilname
   implicit none
-contains
-
-  subroutine findkmapkq(iq,vq,voff,map)
-    use modmain
-    use modxs
-    use modmpi
-    use m_getunit
-    use m_genfilname
-    implicit none
-    ! arguments
-    integer, intent(in) :: iq
-    real(8), intent(in) :: vq(3),voff(3)
-    integer, intent(out) :: map(nkpt)
-    ! local variables
-    integer :: ik,ikt,iktr,un,iv(3),ivt(3)
-    real(8) :: vofft(3),vqt(3),vkq(3),vkqt(3)
-    real(8), external :: r3taxi
-    logical, allocatable :: done(:)
-    character(256) :: filnam
+  ! arguments
+  integer, intent(in) :: iq
+  real(8), intent(in) :: vq(3),voff(3)
+  integer, intent(out) :: map(nkpt)
+  ! local variables
+  integer :: ik,ikt,iktr,un,iv(3),ivt(3)
+  real(8) :: vofft(3),vqt(3),vkq(3),vkqt(3)
+  real(8), external :: r3taxi
+  logical, allocatable :: done(:)
+  character(256) :: filnam
 
 !!$    if (task.ge.400) then
-      write(*,*) '............... new method in findkmapkq'
-       do ik=1,nkpt
-          vkq(:)=vkl(:,ik)+vq(:)
-          call r3frac(epslat,vkq,ivt)
+  write(*,*) '............... new method in findkmapkq'
+  do ik=1,nkpt
+     vkq(:)=vkl(:,ik)+vq(:)
+     call r3frac(epslat,vkq,ivt)
 !!$          iv(:)=nint(vkq(:)*ngridk(:)-vkloff(:))
-          iv(:)=int(vkq(:)*ngridk(:))
-          map(ik)=ikmap(iv(1),iv(2),iv(3))
-       end do
+     iv(:)=int(vkq(:)*ngridk(:))
+     map(ik)=ikmap(iv(1),iv(2),iv(3))
+  end do
 !!$
 !!$    else
 !!$
@@ -69,21 +65,19 @@ contains
 !!$
 !!$    end if
 
-    if (rank.eq.0) then
-       call getunit(un)
-       call genfilname(basename='KMAPKQ',iq=iq,filnam=filnam)
-       open(un,file=trim(filnam),form='formatted',action='write', &
-            status='replace')
-       write(un,'(i9,a)') nkpt, ' : nkpt; k-point, ikmapikq below'
-       do ik=1,nkpt
-          write(un,'(2i9)') ik,map(ik)
-       end do
-       close(un)
-    end if
+  if (rank.eq.0) then
+     call getunit(un)
+     call genfilname(basename='KMAPKQ',iq=iq,filnam=filnam)
+     open(un,file=trim(filnam),form='formatted',action='write', &
+          status='replace')
+     write(un,'(i9,a)') nkpt, ' : nkpt; k-point, ikmapikq below'
+     do ik=1,nkpt
+        write(un,'(2i9)') ik,map(ik)
+     end do
+     close(un)
+  end if
 
-  end subroutine findkmapkq
-
-end module m_findkmapkq
+end subroutine findkmapkq
 
 subroutine mapkto01(v)
   implicit none
