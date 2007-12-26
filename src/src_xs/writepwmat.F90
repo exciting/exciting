@@ -74,6 +74,7 @@ subroutine writepwmat
      ! find k-point equivalent to k+q
      vpl(:)=vql(:,iq)+vkl(:,ik)
      call findkpt(vpl,isymkp,ikp)
+write(*,*) 'ik,ikp',ik,ikp
      vkpl(:)=vkl(:,ikp)
      ! get the eigenvectors from file for kp-point
      call getevecfv(vkl(1,ikp),vgkl(1,1,ikp,1),evecfvkp)

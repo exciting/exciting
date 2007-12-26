@@ -30,8 +30,22 @@ module modxs
   !----------------------------!
   !     symmetry variables     !
   !----------------------------!
+  ! maximum allowed number of symmetry operations (private to this module)
   integer, private, parameter :: maxsymcrs=192
+  ! map to inverse crystal symmetry
   integer :: scimap(maxsymcrs)
+  ! crystal symmetry multiplication table
+  integer :: symcmut(maxsymcrs,maxsymcrs)
+  ! number of subgroups of space group
+  integer :: nsubsymc
+  ! space group subgroups
+  integer :: subsymc(maxsymcrs,maxsymcrs)
+  ! number of classes of conjugated elements of spacegroup
+  integer :: nsymccocl
+  ! classes of conjugated elements of spacegroup
+  integer :: symccocl(maxsymcrs,maxsymcrs)
+  ! conjugacy relation between crystal symmetries
+  logical :: tsymcocl(maxsymcrs,maxsymcrs)
 
   !------------------------------!
   !     q-point set variables    !

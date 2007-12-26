@@ -75,10 +75,9 @@ subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
   end do
   ngp=igp
   if (dbglev.gt.1) then
-     write(*,'(a)') 'Debug(gengqvec):'
+     write(*,'(a)') 'Debug(gengqvec): igp,isym,lspl,vl,vlt'
      do igp=1,ngp
         vl(:)=dble(ivg(:,igpig(igp)))
-!!!     vc(:)=iv(1)*bvec(:,1)+iv(2)*bvec(:,2)+iv(3)*bvec(:,3)
         vc=matmul(bvec,vl)
         do isym=1,nsymcrys
            lspl=lsplsymc(isym)
@@ -89,8 +88,9 @@ subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
            vct=matmul(vc,c)
            vctl=matmul(binv,vct)
            igpt=ivgigq(ivlt(1),ivlt(2),ivlt(3),iq)
-           write(*,'(3i6,15f8.4,2x,f8.4)') igp,isym,lspl,vl,vc,vlt,vct,vctl,&
-                sum(abs(vlt-vgpl(:,igpt)))
+!!$           write(*,'(3i6,15f8.4,2x,f8.4)') igp,isym,lspl,vl,vc,vlt,vct,vctl,&
+!!$                sum(abs(vlt-vgpl(:,igpt)))
+           write(*,'(3i6,5x,3i5,3x,3i5)') igp,isym,lspl,nint(vl),nint(vlt)
         end do
      end do
      write(*,*)

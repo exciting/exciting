@@ -235,12 +235,10 @@ contains
           ! check non-diagonal parts of <phi_nk|exp(-i(G+q)r|phi_nk+q>
           do i1=1,nstval
              do i2=1,nstcon
-                write(1000 + iq,'(4i6,3g18.10)') ik,igq,i1,i2, &
-                     xiou(i1,i2,igq), &
-                     abs(xiou(i1,i2,igq))**2
-                write(2000 + iq,'(4i6,3g18.10)') ik,igq,i1,i2, &
-                     xiuo(i2,i1,igq), &
-                     abs(xiuo(i2,i1,igq))**2
+                write(1000 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
+                     ik,igq,i1,i2,xiou(i1,i2,igq),abs(xiou(i1,i2,igq))**2
+                write(2000 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
+                     ik,igq,i1,i2,xiuo(i2,i1,igq),abs(xiuo(i2,i1,igq))**2
              end do
           end do
        end if

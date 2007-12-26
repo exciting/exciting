@@ -22,11 +22,16 @@ subroutine writeemat_ascii
 
   call init0
   call init1
+  call tdsave0
   call init2xs
   call getunit(un)
-
+  
   ! loop over q-points
   do iq = 1, nqpt
+     ! find highest (partially) occupied and lowest (partially) unoccupied
+     ! states
+     call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
+          istu)
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
      call init1xs

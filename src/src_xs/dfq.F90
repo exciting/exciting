@@ -43,14 +43,10 @@ contains
     real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
     real(8) :: brd,vkloff_save(3)
     real(8) :: cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
-    integer :: oc1, oc2, n,igq,i,j,ik,iw,wi,wf,iv,ic,ml(3),nwdfp
+    integer :: oc1, oc2, n,igq,i,j,ik,iw,wi,wf,iv,ic,ml(3),nwdfp,ikt
     integer :: oct,un
     logical :: tq0, tetrat
 
-    ! update q-point index
-    call updateq(iq)
-
-    ! sampling of Brillouin zone
     tetrat=tetra
     bzsampl=0
     if (tetra) bzsampl=1
@@ -155,12 +151,8 @@ contains
 
     ! loop over k-points
     call getunit(un)
+    ikt=0
     do ik=1,nkpt
-
-       ! k-point analysis
-       if (.not.doikdfq(ik,ndftrans,dftrans)) goto 10
-
-write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
 
        ! if checkpoint true -> read X0
        ! set chkpt=false
@@ -187,12 +179,6 @@ write(*,*) 'dfq: nkpt.eq.nkptnr',nkpt.eq.nkptnr,ik,vkl(:,ik)
 
        do iv=1,nstval
           do ic=1,nstcon
-
-             ! band analysis
-             if (.not.doijstdfq(ik,iv,ic+nstval,ndftrans,dftrans)) goto 20
-
-write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
-
              call cpu_time(cpu0)
 
              ! user request termination
@@ -214,13 +200,14 @@ write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
              huo(:,:)=zzero
              ! calculate oscillators
              if (.not.tq0) then
-                ! body, wings and head
-                call dfqoscbo(iq,ik,1,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
+                ! whole
+                call dfqoscbo(n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
              end if
 
              if (tq0.and.(n.gt.1)) then
                 ! body
-                call dfqoscbo(iq,ik,2,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
+                call dfqoscbo(n-1,xiou(iv,ic,2:),xiuo(ic,iv,2:), &
+                     hou(2:,2:),huo(2:,2:))
              end if
 
              ! loop over longitudinal Cartesian (diagonal) components of
@@ -247,16 +234,10 @@ write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
 
                 if (tq0.and.(n.gt.1)) then
                    ! wings
-                   call dfqoscwg(iq,ik,1,n,pmou(:,iv,ic),pmuo(:,ic,iv),&
-                        xiou(iv,ic,:),xiuo(ic,iv,:),hou(1,:),huo(1,:))
-                   call dfqoscwg(iq,ik,2,n,pmou(:,iv,ic),pmuo(:,ic,iv),&
-                        xiou(iv,ic,:),xiuo(ic,iv,:),hou(:,1),huo(:,1))
-
-! <= 0.9.114
-!!$                   call dfqoscwg(iq,ik,1,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
-!!$                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
-!!$                   call dfqoscwg(iq,ik,2,n-1,pmou(:,iv,ic),pmuo(:,ic,iv),&
-!!$                        xiou(iv,ic,2:),xiuo(ic,iv,2:),hou(2:,1),huo(2:,1))
+                   call dfqoscwg(1,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
+                        xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
+                   call dfqoscwg(2,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
+                        xiuo(ic,iv,2:),hou(2:,1),huo(2:,1))
                    do iw=wi,wf
                       wout=wou(iw)
                       ! be careful with gauge in the w-variable
@@ -285,9 +266,6 @@ write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
              call cpu_time(cpu0)
              cpuupd=cpuupd+cpu0-cpu1
 
-             ! band analysis
-20           continue
-
           end do ! ic
        end do ! iv
        cputot=cpuread+cpuosc+cpuupd
@@ -299,40 +277,10 @@ write(*,*) 'dfq: ik,iv,ic',ik,iv,ic+nstval
        ! synchronize
        call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 #endif
-
-       ! k-point analysis
-10     continue
-
     end do ! ik
 
-if (procs.eq.1) then
-! head
-do oct=1,3
-   do iw=1,nwdf
-      write(1300+oct,'(2i6,3g18.10)') oct,iw,wreal(iw),chi0h(oct,iw)
-   end do
-end do
-! wings
-do oct=1,3
-   do j=2,n
-      do iw=1,nwdf
-         write(1400+oct,'(3i6,3g18.10)') oct,iw,j,wreal(iw),chi0w(j,1,oct,iw)
-      end do
-   end do
-end do
-! body
-do iw=1,nwdf
-   do j=2,n
-      do i=2,n
-         write(1500,'(3i6,3g18.10)') iw,i,j,wreal(iw),chi0(i,j,iw)
-      end do
-   end do
-end do
-end if
-
-
     do j=0,procs-1
-       if (rank.eq.j) then
+       if (rank==j) then
           do iw=wi,wf
              call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
@@ -355,39 +303,5 @@ end if
     call genfilname(setfilext=.true.)
 
   end subroutine dfq
-
-  logical function doikdfq(ik,ntrans,trans)
-    implicit none
-    ! arguments
-    integer, intent(in) :: ik,ntrans,trans(3,ntrans)
-    doikdfq=.false.
-    ! quick return ???
-    if (trans(1,1).eq.0) then
-       doikdfq=.true.
-       return
-    end if
-    doikdfq=.false.
-    if (any(trans(1,:).eq.ik)) doikdfq=.true.
-  end function doikdfq
-
-  logical function doijstdfq(ik,ist,jst,ntrans,trans)
-    implicit none
-    ! arguments
-    integer, intent(in) :: ik,ist,jst,ntrans,trans(3,ntrans)
-    ! local variables
-    integer :: l,ikt,it,jt
-    doijstdfq=.false.
-    do l=1,ntrans
-       ikt=trans(1,l)
-       it=trans(2,l)
-       jt=trans(3,l)
-       if ((ikt.eq.0).or.(ikt.eq.ik)) then
-          if (((it.eq.0).or.(it.eq.ist)).and.((jt.eq.0).or.(jt.eq.jst))) then
-             doijstdfq=.true.
-             return
-          end if
-       end if
-    end do
-  end function doijstdfq
 
 end module m_dfq

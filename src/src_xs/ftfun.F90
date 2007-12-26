@@ -19,7 +19,7 @@ contains
     complex(8), intent(out) :: ftg(:)
     ! local variales
     complex(8), allocatable :: zfft(:)
-    complex(8) :: zt1,zt2,zt3
+    complex(8) :: zt1,zt2
     real(8), allocatable :: jbesslh(:),jbessl(:,:)
     real(8), allocatable :: r1(:),r2(:),fr(:),fr2(:),gr(:),cf(:,:)
     real(8) :: t1
@@ -98,3 +98,19 @@ contains
   end subroutine ftfun
 
 end module m_ftfun
+
+
+!*** make routine more general ***
+
+! pass the following arguments to routine:
+
+! * p-vector
+! * |G+p| values
+! * structure factors for -(G+q) !!!!! (G+p) is calculated in routine
+! * spherical harmonics Y_lm(^G+q^)
+
+
+
+
+! INTERFACE: genjlgpr(lmax,gpc,jlgpr)
+

@@ -130,47 +130,44 @@ complex(8) :: zt1,zt2
 
 
 
-nsym=nsymcrysstr(ik)
-do iv=1,nstval
-   do ic=1,nstcon
-      do igq=1,ngq(iq)
-         vl(:)=vgql(:,igq,iq)
-         vc=matmul(bvec,vl)
-         do isym=1,nsymcrys
-            lspl=lsplsymc(isym)
-            c(:,:)=symlatc(:,:,lspl)
-            vct=matmul(c,vc)
-            frtc(:)=matmul(avec,vtlsymc(:,isym))
-            t1=dot_product(vct,frtc)
-            zt1=cmplx(cos(t1),sin(t1),8)
-
-            kct=matmul(c,vkc(:,ik))
-            klt=matmul(binv,kct)
-            call r3frac(epslat,klt,ivl)
-            rklt=(klt-vkloff/ngridk)*ngridk
-            iklt=nint(rklt)
-            ikt=ikmapnr(iklt(1),iklt(2),iklt(3))
-            pklt=sum(abs(rklt-iklt)*ngridk)*100.d0
-
-            vg(:)=dble(ivg(:,igqig(igq,iq)))
-            vgcc=matmul(bvec,vg)
-            vgct=matmul(c,vgcc)
-            vglt=matmul(binv,vgct)
-            ivl=nint(vglt)
-
-            igqt=ivgigq(ivl(1),ivl(2),ivl(3),iq)
-            zt2=xiou(iv,ic,igqt)
-
-            write(1600,'(5i4,2f8.2,3x,2f8.2,2i4)') &
-                 ik,iv,ic,igq,isym,&
-                 xiou(iv,ic,igq),zt1*zt2,igqt,ikt
-!!$            write(1600,'(5i6,2f8.4,2x,2f8.4,i6,3f8.4,3x,f8.4)') &
+!!$nsym=nsymcrysstr(ik)
+!!$do iv=1,nstval
+!!$   do ic=1,nstcon
+!!$      do igq=1,ngq(iq)
+!!$         vl(:)=vgql(:,igq,iq)
+!!$         vc=matmul(bvec,vl)
+!!$         do isym=1,nsymcrys
+!!$            lspl=lsplsymc(isym)
+!!$            c(:,:)=symlatc(:,:,lspl)
+!!$            vct=matmul(c,vc)
+!!$            frtc(:)=matmul(avec,vtlsymc(:,isym))
+!!$            t1=dot_product(vct,frtc)
+!!$            zt1=cmplx(cos(t1),sin(t1),8)
+!!$
+!!$            kct=matmul(c,vkc(:,ik))
+!!$            klt=matmul(binv,kct)
+!!$            call r3frac(epslat,klt,ivl)
+!!$            rklt=(klt-vkloff/ngridk)*ngridk
+!!$            iklt=nint(rklt)
+!!$            ikt=ikmapnr(iklt(1),iklt(2),iklt(3))
+!!$            pklt=sum(abs(rklt-iklt)*ngridk)*100.d0
+!!$
+!!$            vg(:)=dble(ivg(:,igqig(igq,iq)))
+!!$            vgcc=matmul(bvec,vg)
+!!$            vgct=matmul(c,vgcc)
+!!$            vglt=matmul(binv,vgct)
+!!$            ivl=nint(vglt)
+!!$
+!!$            igqt=ivgigq(ivl(1),ivl(2),ivl(3),iq)
+!!$            zt2=xiou(iv,ic,igqt)
+!!$
+!!$            write(1600,'(5i4,2f8.2,3x,2f8.2,2i4)') &
 !!$                 ik,iv,ic,igq,isym,&
-!!$                 zt2,zt1*zt2,ikt,klt,pklt
-         end do
-      end do
-   end do
-end do
+!!$                 xiou(iv,ic,igq),zt1*zt2,igqt,ikt
+!!$         end do
+!!$      end do
+!!$   end do
+!!$end do
 
 
 

@@ -114,6 +114,11 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   gpct(:)=0.d0
   gpct(1:ngpmax)=gpc(:)
   call genjlgpr(lmaxapw,gpct,jlgpr)
+
+
+!!!!!!!!!!!!!!!!! DO NOT use genjlgpr *** only j(|G|r_mt) at MT radius!!!
+
+
   ! set coefficients for plane wave factor to zero
   pwfmt(:,:)=zzero
   ! set the matrix elements of the plane wave to zero
@@ -128,9 +133,13 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
            do m=-l,l
               lm=idxlm(l,m)
               pwfmt(lm,:)=fourpi*conjg(zil(l))*jlgpr(l,igp,is)* &
-                   conjg(ylmgp(lm,igp))
+                   ylmgp(lm,igp)
            end do
         end do
+if (igp.eq.7) then
+   write(77,*) pwfmt
+   
+end if
         do ia=1,natoms(is)
            ias=idxas(ia,is)
            do ist=1,nstfv
@@ -154,7 +163,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
                    lmmaxapw,zfmt,lmmaxapw,zzero,wfmtkp(1,1,ist),lmmaxapw)
            end do
            ! structure factor for G+p vector
-           zt2=sfacgp(igp,ias)
+           zt2=conjg(sfacgp(igp,ias))
            do ist=1,nstfv
               do jst=1,nstfv
                  zt1=zfmtinp(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &

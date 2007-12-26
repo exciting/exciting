@@ -1,8 +1,4 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
-! This file is distributed under the terms of the GNU General Public License.
-! See the file COPYING for license details.
-
 module m_dfqoschd
   implicit none
 contains
@@ -18,7 +14,12 @@ contains
     integer :: oc,i,j
     real(8) :: s(3,3)
     complex(8) :: zt
+
     ! symmetrization matrix
+
+    ! old stuff <= version 0.9.74
+!!$    s(:,:)=0.5d0*(symdfq0(:,:)+transpose(symdfq0))
+
     s(:,:)=symdfq0(:,:)
     you=(0.d0,0.d0)
     yuo=(0.d0,0.d0)
@@ -28,6 +29,7 @@ contains
           yuo=yuo+s(i,j)*puo(i)*conjg(puo(j))
        end do
     end do
+
   end subroutine dfqoschd
 
 end module m_dfqoschd
