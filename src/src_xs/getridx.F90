@@ -11,6 +11,9 @@ subroutine getridx(procs,set,i,ir)
   integer :: procs
   integer, intent(in) :: set,i
   integer, intent(out) :: ir
+  ! local variables
+  integer :: procst
   ! executable statements begin
+  procst=procs
   ir=i-firstofset(procofindex(i,set),set)+1
 end subroutine getridx

@@ -22,14 +22,14 @@ contains
     integer, intent(in) :: iq
     ! local variables
     character(*), parameter :: thisnam = 'ematq'
-    integer :: ik,un,recl,ki,kf
-    real(8) :: stim, vkloff_save(3)
+    integer :: ik,un,ki,kf
+    real(8) :: vkloff_save(3)
 
 
-integer :: iv,ic,isym,lspl,igq,iklt(3),ikt,igqt,ivl(3),nsym
-real(8) :: frtc(3),c(3,3),vl(3),vc(3),vct(3),kct(3),klt(3),rklt(3),pklt,t1
-real(8) :: vg(3),vgcc(3),vgct(3),vglt(3)
-complex(8) :: zt1,zt2
+!!$integer :: iv,ic,isym,lspl,igq,iklt(3),ikt,igqt,ivl(3),nsym
+!!$real(8) :: frtc(3),c(3,3),vl(3),vc(3),vct(3),kct(3),klt(3),rklt(3),pklt,t1
+!!$real(8) :: vg(3),vgcc(3),vgct(3),vglt(3)
+!!$complex(8) :: zt1,zt2
 
 
     ! filenames

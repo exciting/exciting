@@ -15,7 +15,7 @@ contains
     integer, intent(in) :: oc1,oc2
     ! local variables
     integer :: isym,i,j,lspl
-    real(8) :: sc(3,3),a(3,3),s(3,3),d(nsymcrys)
+    real(8) :: sc(3,3),s(3,3),d(nsymcrys)
 
     ! pre-calculation for symmetrisation
     s(:,:)=0.d0

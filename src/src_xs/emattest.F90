@@ -15,9 +15,8 @@ subroutine emattest
   complex(8), allocatable :: pmat(:,:,:,:), x(:,:,:,:)
   real(8), allocatable :: d(:,:,:)
   complex(8) :: x_sc, p_sc
-  real(8) :: denom, d1,d2,d3,a,p
+  real(8) :: d1,d2,d3,a,p
   integer :: iq,ik,istv,istc,n
-  integer :: recl
   character(256) :: filename
 
   call init0

@@ -19,7 +19,6 @@ contains
     character(*), intent(in) :: fn
     ! local variables
     character(*), parameter :: thisnam = 'writesumrls'
-    integer :: n1(1),n,iw
 
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')

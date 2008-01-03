@@ -14,7 +14,7 @@ subroutine dfgather
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'dfgather'
-  integer :: n,iq,iw,iproc,recl
+  integer :: n,iq,iw,iproc
   real(8) :: vkloff_save(3)
   complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
   logical :: tq0

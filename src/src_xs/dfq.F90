@@ -33,17 +33,15 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'dfq'
     real(8), parameter :: epstetra=1.d-8
-    character(256) :: filextt,string
     complex(8), allocatable :: w(:)
     complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:)
     complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:)
     complex(8), allocatable :: xou(:),xouc(:),xuo(:),xuoc(:),wou(:),wuo(:)
     complex(8) :: wout
-    real(8), allocatable :: derndou(:,:,:),dernduo(:,:,:)
     real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
     real(8) :: brd,vkloff_save(3)
     real(8) :: cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
-    integer :: oc1, oc2, n,igq,i,j,ik,iw,wi,wf,iv,ic,ml(3),nwdfp,ikt
+    integer :: n,j,ik,iw,wi,wf,iv,ic,nwdfp,ikt
     integer :: oct,un
     logical :: tq0, tetrat
 

@@ -15,8 +15,7 @@ subroutine writeemat
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'writeemat'
-  integer :: iq,ipar,un,qi
-  logical :: existent
+  integer :: iq,un,qi
 
   ! initialise universal variables
   call init0

@@ -25,7 +25,10 @@ module modxs
   !---------------------------------------------------------------!
   !     muffin-tin radial mesh and angular momentum variables     !
   !---------------------------------------------------------------!
+  ! index to lm-pairs
   integer, allocatable :: idxxlm(:,:)
+  ! spherical covering set
+  real(8), allocatable :: sphcov(:,:)
 
   !----------------------------!
   !     symmetry variables     !

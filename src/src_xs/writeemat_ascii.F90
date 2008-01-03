@@ -10,7 +10,6 @@ subroutine writeemat_ascii
   use m_getemat
   use m_genfilname
   implicit none
-  complex(8), allocatable :: emat(:,:,:)
   complex(8) :: xou,xuo
   character(16) :: f1,f2,f
   character(256) :: filnam

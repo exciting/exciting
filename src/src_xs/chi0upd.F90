@@ -15,9 +15,9 @@ contains
     complex(8), intent(in) :: wou,wuo,hou(n,n),huo(n,n)
     complex(8), intent(inout) :: chi0(n,n)
     ! local variables
-    integer :: i,m
-    real(8), allocatable :: bhou(:,:), chou(:,:), bhuo(:,:), chuo(:,:)
-    real(8), allocatable :: bchi0(:,:),cchi0(:,:)
+    integer :: m
+!    real(8), allocatable :: bhou(:,:), chou(:,:), bhuo(:,:), chuo(:,:)
+!    real(8), allocatable :: bchi0(:,:),cchi0(:,:)
 
     do m=1,n
        call zaxpy(n,wou,hou(1,m),1,chi0(1,m),1)

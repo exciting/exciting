@@ -166,6 +166,13 @@ integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
                    lmmaxapw,wfmtkp(1,1,ist),lmmaxapw,zzero,wfmt1,lmmaxapw)
               call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zbshtapw, &
                    lmmaxapw,pwfmt,lmmaxapw,zzero,wfmt2,lmmaxapw)
+
+
+!****************! try direct evaluation of exp(-i(G+q)r) on spherical grid
+
+
+
+
               ! calculate product in muffin-tin in real space
               do irc=1,nrcmt(is)
                  zfmt(:,irc)=wfmt1(:,irc)*wfmt2(:,irc)
@@ -262,7 +269,7 @@ integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
           ngkk, evecfvt2, ngkkp, zzero, h, ngkkp)
      call zgemm('n','n', nstfv, nstfv, ngkk, zone, evecfvt1, &
           nstfv, h, ngkk, zzero, pmt, nstfv)
-     pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)
+!SAG ***     pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)
 
 
 

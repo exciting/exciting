@@ -12,7 +12,7 @@ subroutine df
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'df'
-  integer :: iq,un,j
+  integer :: iq,un
 
   if (calledxs.eq.1) call init0
 

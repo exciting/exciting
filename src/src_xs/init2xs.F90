@@ -15,7 +15,7 @@ subroutine init2xs
   ! local variables
   character(*), parameter :: thisnam = 'init2xs'
   character(256) :: bname
-  integer :: nsym,iq,l,m,lm
+  integer :: iq,l,m,lm
   logical :: existent
 
   !--------------------!

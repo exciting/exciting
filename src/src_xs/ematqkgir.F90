@@ -15,12 +15,12 @@ contains
     integer, intent(in) :: iq,ik,igq
     ! local variables
     character(*), parameter :: thisnam = 'ematqkgir'
-    integer :: ikq,ig,ig1,ig2,ig3,igk0,igk,iv(3),iv1(3),iv2(3),iv3(3)
+    integer :: ikq,ig,ig1,ig2,ig3,igk0,igk,iv(3),iv1(3),iv3(3)
     ! wrapping of BZ
     integer :: ivwrap(3)
     integer, allocatable :: aigk0(:),aigk(:)
 
-! xihir(:,:)=zzero; return !SAG *** return zero ***!
+ xihir(:,:)=zzero; return !SAG *** return zero ***!
 
     ikq=ikmapikq(ik,iq)
     allocate(aigk0(ngkmax0),aigk(ngkmax))

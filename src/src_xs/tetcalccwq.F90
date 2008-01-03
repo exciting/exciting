@@ -32,7 +32,7 @@ contains
     real(8) :: wt, vkloff_save(3)
     integer :: ik,ist,iv,ic
     integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
-    logical :: exis,tq0,tetrat
+    logical :: tq0,tetrat
 
 !!$    ! debug output in tetrahedron integration library
 !!$    call tetrasetdbglv(1)

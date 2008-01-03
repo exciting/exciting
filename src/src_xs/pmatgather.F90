@@ -15,7 +15,7 @@ subroutine pmatgather
   ! local variables
   character(*), parameter :: thisnam = 'pmatgather'
   complex(8), allocatable :: pm(:,:,:)
-  integer :: ik,ikr,iproc,recl
+  integer :: ik,iproc
 
   ! allocate matrix elements array
   allocate(pm(3,nstsv,nstsv))

@@ -21,8 +21,7 @@ contains
     real(8), intent(out) :: sumrls(3)
     ! local variables
     character(*), parameter :: thisnam = 'gensumrls'
-    real(8), allocatable :: f(:), cf(:,:),g(:), om(:)
-    real(8) :: delt
+    real(8), allocatable :: f(:), cf(:,:),g(:)
     integer :: n1(1),n
 
     if (any(shape(w).ne.shape(eps))) then

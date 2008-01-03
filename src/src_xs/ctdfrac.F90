@@ -16,7 +16,7 @@ contains
     complex(8), intent(in) :: a(n), b(0:n)
     complex(8), intent(out) :: f  
     ! local variables
-    integer :: i,j
+    integer :: j
     f=b(n)
     do j=n,1,-1
       f=b(j-1)+a(j)/f

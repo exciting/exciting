@@ -24,7 +24,6 @@ contains
     integer, intent(in) :: iq,ik
     ! local variables
     character(*), parameter :: thisnam = 'ematqk'
-    character(256) :: filextt
     ! allocatable arrays
     complex(8), allocatable :: evecfvo(:,:),evecfvo0(:,:)
     complex(8), allocatable :: evecfvu(:,:),evecfvu0(:,:)
@@ -32,14 +31,13 @@ contains
     complex(8), allocatable :: evecfvu2(:,:),evecfvu20(:,:)
     complex(8), allocatable :: helpm(:,:),helpm2(:,:)
     integer :: ikq,igq, istc, istv
-    integer :: i1,i2,i,j,recl,n,n0
+    integer :: i1,i2,recl,n,n0
     real(8) :: cpuini,cpuread,cpumain,cpuwrite,cpuall
     real(8) :: cpugnt,cpumt,cpuir
     real(8) :: cpumalores,cpumaloares,cpumloares,cpumloaares
     real(8) :: cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg
     real(8) :: cpu0,cpu1,cpu00,cpu01
     real(8) :: vql_(3), vkl_(3)
-    complex(8) :: dum
 
     call cpu_time(cpu0)
 

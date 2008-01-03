@@ -17,7 +17,7 @@ subroutine fxc_alda_check
   real(8), allocatable :: vx(:),ex(:)
   real(8), allocatable :: vc(:),ec(:)
   real(8), allocatable :: dvx(:),dvc(:),vxc(:),dvxc2(:),dvxc(:),cf(:,:)
-  integer :: m,igr,nrho,irh
+  integer :: m,nrho,irh
   real(8), allocatable :: rhogr(:)
   real(8) :: rhoint(2)
 

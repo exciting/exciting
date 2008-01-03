@@ -22,7 +22,6 @@ contains
     complex(8) :: zt1,zt2
     real(8), allocatable :: jbesslh(:),jbessl(:,:)
     real(8), allocatable :: r1(:),r2(:),fr(:),fr2(:),gr(:),cf(:,:)
-    real(8) :: t1
     integer :: ig,ifg,is,ia,ias,ir,nr,l,m,lm
 
     ftg(:)=zzero

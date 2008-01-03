@@ -24,11 +24,6 @@ complex(8), allocatable :: apwalm(:,:,:,:)
 complex(8), allocatable :: evecfv(:,:)
 complex(8), allocatable :: evecsv(:,:)
 complex(8), allocatable :: pmat(:,:,:)
-
-integer :: ist1,ist2
-  character(16) :: f1,f2,f
-
-
 ! initialise universal variables
 call init0
 call init1

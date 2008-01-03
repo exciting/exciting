@@ -13,7 +13,6 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   real(8), intent(in) :: sc_,sc1_,sc2_,sc3_
   real(8), intent(in) :: vacuum_
   ! local variables
-  character(256) :: fmt
   integer :: j,ia,is
 
   ! execute only for master process

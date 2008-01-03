@@ -10,7 +10,6 @@
     implicit none
     character(*), parameter :: thisnam = 'tdcheck'
     integer errc, warnc
-    character(10) dat, tim
 
     errc = 0
     warnc = 0

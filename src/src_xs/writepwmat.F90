@@ -22,13 +22,12 @@ subroutine writepwmat
   implicit none
   ! local variables
   integer, parameter :: iq=1
-  integer ik,ikp,recl,isymkp,igq,ist,jst,un
+  integer ik,ikp,recl,isymkp,igq,un
   real(8) :: vpl(3),vkpl(3)
   complex(8), allocatable :: apwalmk(:,:,:,:),apwalmkp(:,:,:,:)
   complex(8), allocatable :: evecfvk(:,:),evecfvkp(:,:)
   complex(8), allocatable :: evecsvk(:,:),evecsvkp(:,:)
   complex(8), allocatable :: pwmat(:,:,:)
-  complex(8) :: zt1
   ! initialise universal variables
   call init0
   call init1

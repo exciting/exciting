@@ -20,11 +20,10 @@ contains
     character(*), intent(in) :: fn
     ! local variables
     character(*), parameter :: thisnam = 'writeexcit'
-    character(256) ::str,filnam
     real(8), allocatable :: eps(:)
     complex(8), allocatable :: epstet(:)
     real(8) :: wp,we,ep, f,fp,g,gp
-    integer :: j,iw,ne,recl
+    integer :: j,iw,ne
 
     allocate(eps(nwdos),epstet(nwdos))
     call getunit(unit1)

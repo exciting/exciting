@@ -65,7 +65,7 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
   real(8) r3taxi
   external r3taxi
 #ifdef XS
-  integer :: j,jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
+  integer :: jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
   ! use symmetries of little group of q
   if (iqcu.ne.0) then
      if (nsymcrys.ne.nsymcrysq(iqcu)) then

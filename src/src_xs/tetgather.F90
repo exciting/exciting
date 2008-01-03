@@ -15,7 +15,7 @@ subroutine tetgather
   ! local variables
   character(*), parameter :: thisnam = 'tetgather'
   character(256) :: filnam,filnam_t
-  integer :: n,iq,iw,iproc,ik,iv,ic,nwdfp
+  integer :: iq,iproc,ik,iv,ic,nwdfp
   real(8) :: vkloff_save(3)
   real(8), allocatable :: cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: cwp(:),cwap(:),cwsurfp(:)

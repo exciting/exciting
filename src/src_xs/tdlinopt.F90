@@ -35,9 +35,9 @@ contains
     complex(8),allocatable :: mdf(:), mdf1(:),w(:),wr(:),sigma(:)
     real(8),allocatable :: wplot(:),loss(:)
     real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
-    real(8) :: t1,wint(2),sumrls(3),brd
+    real(8) :: sumrls(3),brd
     complex(8) :: zt1
-    integer :: n,m,recl,i,j,iw,wi,wf,nwdfp,iwt,nc,oct,optcompt(3)
+    integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,optcompt(3)
     logical :: tq0
 
     tq0 = tq1gamma.and.(iq.eq.1)

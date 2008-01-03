@@ -22,7 +22,7 @@ use modxs
 !BOC
 implicit none
 ! local variables
-integer ispn,iq,i,j,ig,iv1(3),iv2(3)
+integer iq,i,j,ig
 real(8) v1(3),v2(3),t1,t2
 t1=gqmax**2
 intgqv(:,:)=0

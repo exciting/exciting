@@ -16,19 +16,13 @@ contains
     ! arguments
     integer, intent(in) :: iq,igq
     ! local variables
-    integer is,ia,ias,nr,ir,c1
+    integer is,ia,ias,c1
     integer l1,l2,l3,m2,lm2
     integer ilo,ilo1,ilo2,io,io1,io2
-    real(8) t1
     integer :: lmax1, lmax2, lmax3, lmmax1, lmmax2, lmmax3
     integer :: m1, m3, lm1, lm3
     integer :: u1,u2,u3,u4
     integer :: cl1,cm1,cl2,cm2,cl3,cm3
-    complex(8) :: zsum
-    ! automatic arrays
-    real(8) r2(nrmtmax),fr(nrmtmax),gr(nrmtmax),cf(3,nrmtmax)
-    ! allocatable arrays
-    real(8), allocatable :: jl(:,:), jhelp(:), irad(:,:,:,:)
 
     lmax1 = lmaxapwtd
     lmax2 = lmaxemat
@@ -49,11 +43,6 @@ contains
     allocate(intrglolo(lolmmax,nlomax,lolmmax,nlomax,natmtot))
     ! allocate temporary arrays
     c1=max(apwordmax,nlomax)
-    allocate(irad(c1,0:lmax2,0:lmax3,c1))
-    allocate(jl(0:lmax2,nrmtmax))
-    allocate(jhelp(0:lmax2))
-    jl(:,:) = 0.d0
-    jhelp(:) = 0.d0
     intrgaa(:,:,:,:,:) = 0.d0
     intrgloa(:,:,:,:,:) = 0.d0
     intrgalo(:,:,:,:,:) = 0.d0
@@ -88,14 +77,6 @@ contains
 
     ! begin loop over species
     do is=1,nspecies
-       nr=nrmt(is)
-       do ir=1,nr
-          ! calculate r^2
-          r2(ir)=spr(ir,is)**2
-          ! calculate spherical Bessel functions of first kind j_l(|G+q|r_a)
-          call sbessel(lmax2,gqc(igq,iq)*spr(ir,is),jhelp)
-          jl(:,ir) = jhelp(:)
-       end do
        ! begin loop over atoms
        do ia=1,natoms(is)
           ias=idxas(ia,is)
@@ -227,7 +208,6 @@ contains
     end do
 
     ! deallocate
-    deallocate(jl,jhelp,irad)
     if (dbglev.gt.1) then
        ! close files
        close(u1)

@@ -19,7 +19,7 @@ contains
     real(8) :: o(:)
     ! local variables
     real(8), allocatable :: f(:),fp(:),g(:),gp(:),cf(:,:),w2(:)
-    integer :: iw,j,k,n
+    integer :: j,k
     
     allocate(f(nw),fp(nw),cf(3,nw),g(nw),gp(nw),w2(nw))
     f(:)=fxc0(1:nw,oct)
@@ -95,7 +95,7 @@ contains
     real(8), allocatable :: f(:)
     real(8) :: t1,wgap
     integer, allocatable :: exciti(:)
-    integer :: iw,j,n,nwg
+    integer :: iw,j,nwg
 
     ! find optical gap
     t1=maxval(mdfrpa(:,oct,2))*dogap

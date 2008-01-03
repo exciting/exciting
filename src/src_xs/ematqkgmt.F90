@@ -18,9 +18,10 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'ematqkgmt'
     integer :: is,ia,ias,l1,m1,lm1,l3,m3,lm3,io,io1,io2,ilo,ilo1,ilo2
-    integer :: lmax1,lmax3, igk0,igk, i,j
+    integer :: lmax1,lmax3, i,j,ikt
     complex(8), allocatable :: zv(:),zv2(:)
 
+    ikt=ik
     allocate(zv(nstsv),zv2(nstsv))
 
     lmax1=lmaxapwtd

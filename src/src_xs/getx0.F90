@@ -20,7 +20,7 @@ contains
     complex(8), intent(out), optional :: ch0wg(:,:,:),ch0hd(:)
     ! local variables
     character(*), parameter :: thisnam = 'getx0'
-    integer :: recl, un, ikr, ngq_
+    integer :: recl, un, ngq_
     real(8) :: vql_(3)
     logical :: existent
 

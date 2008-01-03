@@ -11,9 +11,8 @@ contains
     complex(8), intent(in) :: pou(3),puo(3)
     complex(8), intent(out) :: you,yuo
     ! local variables
-    integer :: oc,i,j
+    integer :: i,j
     real(8) :: s(3,3)
-    complex(8) :: zt
 
     ! symmetrization matrix
 

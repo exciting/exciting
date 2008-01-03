@@ -37,7 +37,6 @@ subroutine linopt
   complex(8), allocatable :: pmat(:,:,:)
 #ifdef TETRA
   integer :: m,ist1,ist2
-  character(256) :: epsnam
   real(8), parameter :: epstetra=1.d-8
   real(8) :: escal,sum,sum2
   real(8), allocatable :: eps1r(:)

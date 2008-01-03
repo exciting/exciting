@@ -29,7 +29,6 @@ contains
     integer, intent(out) :: ikgf(2), ikgo, istho
     ! local variables
     integer ik
-    integer :: klu,kho,kluho,iv
     integer :: klu1(1),kho1(1),kluho1(1)
     ! allocatable arrays
     real(8), allocatable :: de(:),eho(:),elu(:)

@@ -18,7 +18,10 @@ contains
     character(*), intent(in) :: filnam
     real(8), intent(in) :: cw(:),cwa(:),cwsurf(:)
     ! local variables
-    integer :: un, recl, irec
+    integer :: un, recl, irec, iqt
+
+    ! q-point
+    iqt=iq
 
     ! record position
     irec=(ik-1)*nstval*nstcon + (iv-1)*nstcon + ic

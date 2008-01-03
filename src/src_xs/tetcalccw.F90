@@ -13,8 +13,8 @@ subroutine tetcalccw
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'tetcalccw'
-  integer :: iq,un,j
-  logical :: tlfe, tet
+  integer :: iq,un
+  logical :: tet
 
   if (calledxs.eq.1) call init0
 

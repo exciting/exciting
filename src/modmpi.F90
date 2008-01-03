@@ -130,6 +130,9 @@ end function procofindex
     character(*) :: string
     ! local variables
     character(*), parameter :: thisnam = 'barrier'
+    ! variables for compatibility reasons
+    integer :: rankt,unt,asynct
+    character(1024) :: stringt
 
     ! do nothing if only one process
     if (procs.eq.1) return
@@ -138,6 +141,8 @@ end function procofindex
 #ifdef MPI
     call MPI_barrier(mpi_comm_world,ierr)
 #endif
+
+    rankt=rank; unt=un; asynct=async; stringt=trim(string)
 
   end subroutine barrier
 

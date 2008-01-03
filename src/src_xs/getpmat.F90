@@ -23,7 +23,7 @@ contains
     character(*), parameter :: thisnam = 'getpmat'
     integer :: recl, un, ikr, nstval_, nstcon_, nkpt_
     real(8) :: vkl_(3)
-    logical :: existent, opened
+    logical :: existent
     ! functions
     real(8) :: r3dist
     external :: r3dist

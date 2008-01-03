@@ -14,7 +14,7 @@ subroutine devalsvgather
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'devalsvgather'
-  integer :: iq,ik,ikr,iproc,recl
+  integer :: iq,ik,iproc
   real(8) :: vkloff_save(3)
 
   ! save k-point offset

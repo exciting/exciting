@@ -41,7 +41,7 @@ real(8), intent(out) :: dv(nv)
 real(8), intent(out) :: dp(np)
 ! local variables
 integer iv,ip,j,c,spts,npi
-real(8) st,sv,vl(3),vc(3),v1(3),v2(3)
+real(8) st,vl(3),vc(3),v1(3),v2(3)
 ! alloctable arrays
 real(8), allocatable :: seg(:)
 integer, allocatable :: idx(:), segpts(:)

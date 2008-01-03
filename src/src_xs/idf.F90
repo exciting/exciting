@@ -16,7 +16,7 @@ subroutine idf
   character(*), parameter :: thisnam = 'idf'
   integer, save :: called
   data called /0/
-  integer :: iq, un, wi,wf
+  integer :: iq, un
 
   called=called+1
   call getunit(un)

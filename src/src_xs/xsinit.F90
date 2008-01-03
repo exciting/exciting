@@ -14,8 +14,7 @@ subroutine xsinit
   ! local variables
   character(*), parameter :: thisnam = 'xsinit'
   character(10) dat, tim
-  integer :: un,i
-  logical :: ex
+  integer :: i
 
   ! assign xs code version
   versionxs=(/0,85/)

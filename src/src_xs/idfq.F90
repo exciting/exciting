@@ -26,8 +26,7 @@ contains
     character(256) :: filnam,filnam2
     complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
     complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-    real(8) :: vkloff_(3)
-    integer :: n,m,recl,j,iw,wi,wf,nwdfp,ngridk_(3), nv_,nc_,nc,oct
+    integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct
     logical :: tq0
     integer, external :: l2int
 

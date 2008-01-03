@@ -534,222 +534,222 @@ contains
              end do
           end do
        end select
-    case(6)
-       !----------------------!
-       !     6 dimensions     !
-       !----------------------!
-       select case(iot)
-       case('l')
-          sh(1:6)=shape(arr6dl)
-          lb(1:6)=lbound(arr6dl); ub(1:6)=ubound(arr6dl)
-          str='(6'//fmtdi//','//trim(frmt)//')'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            if (twrite) then
-                               lt=arr6dl(i1,i2,i3,i4,i5,i6)
-                               write(unit=unt,fmt=trim(str)) &
-                                    i1,i2,i3,i4,i5,i6,lt
-                            else
-                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,lt
-                               arr6dl(j1,j2,j3,j4,j5,j6)=lt
-                            end if
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       case('i')
-          sh(1:6)=shape(arr6di)
-          lb(1:6)=lbound(arr6di); ub(1:6)=ubound(arr6di)
-          str='(6'//fmtdi//','//trim(frmt)//')'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            if (twrite) then
-                               it=arr6di(i1,i2,i3,i4,i5,i6)
-                               write(unit=unt,fmt=trim(str)) &
-                                    i1,i2,i3,i4,i5,i6,it
-                            else
-                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,it
-                               arr6di(j1,j2,j3,j4,j5,j6)=it
-                            end if
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       case('r')
-          sh(1:6)=shape(arr6dr)
-          lb(1:6)=lbound(arr6dr); ub(1:6)=ubound(arr6dr)
-          str='(6'//fmtdi//'," ",'//trim(frmt)//')'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            if (twrite) then
-                               rt=arr6dr(i1,i2,i3,i4,i5,i6)
-                               write(unit=unt,fmt=trim(str)) &
-                                    i1,i2,i3,i4,i5,i6,rt
-                            else
-                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,rt
-                               arr6dr(j1,j2,j3,j4,j5,j6)=rt
-                            end if
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       case('c')
-          sh(1:6)=shape(arr6dc)
-          lb(1:6)=lbound(arr6dc); ub(1:6)=ubound(arr6dc)
-          str='(6'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(6'//fmtdi//'," ("'//trim(frmt)//',","'// &
-               trim(frmt)//',")")'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            if (twrite) then
-                               zt=arr6dc(i1,i2,i3,i4,i5,i6)
-                               write(unit=unt,fmt=trim(str)) &
-                                    i1,i2,i3,i4,i5,i6,zt
-                            else
-                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,zt
-                               arr6dc(j1,j2,j3,j4,j5,j6)=zt
-                            end if
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       end select
-    case(7)
-       !----------------------!
-       !     7 dimensions     !
-       !----------------------!
-       select case(iot)
-       case('l')
-          sh(1:7)=shape(arr7dl)
-          lb(1:7)=lbound(arr7dl); ub(1:7)=ubound(arr7dl)
-          str='(7'//fmtdi//','//trim(frmt)//')'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            do i7=lb(7),ub(7)
-                               if (twrite) then
-                                  lt=arr7dl(i1,i2,i3,i4,i5,i6,i7)
-                                  write(unit=unt,fmt=trim(str)) &
-                                       i1,i2,i3,i4,i5,i6,i7,lt
-                               else
-                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,lt
-                                  arr7dl(j1,j2,j3,j4,j5,j6,j7)=lt
-                               end if
-                            end do
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       case('i')
-          sh(1:7)=shape(arr7di)
-          lb(1:7)=lbound(arr7di); ub(1:7)=ubound(arr7di)
-          str='(7'//fmtdi//','//trim(frmt)//')'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            do i7=lb(7),ub(7)
-                               if (twrite) then
-                                  it=arr7di(i1,i2,i3,i4,i5,i6,i7)
-                                  write(unit=unt,fmt=trim(str)) &
-                                       i1,i2,i3,i4,i5,i6,i7,it
-                               else
-                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,it
-                                  arr7di(j1,j2,j3,j4,j5,j6,j7)=it
-                               end if
-                            end do
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       case('r')
-          sh(1:7)=shape(arr7dr)
-          lb(1:7)=lbound(arr7dr); ub(1:7)=ubound(arr7dr)
-          str='(7'//fmtdi//'," ",'//trim(frmt)//')'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            do i7=lb(7),ub(7)
-                               if (twrite) then
-                                  rt=arr7dr(i1,i2,i3,i4,i5,i6,i7)
-                                  write(unit=unt,fmt=trim(str)) &
-                                       i1,i2,i3,i4,i5,i6,i7,rt
-                               else
-                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,rt
-                                  arr7dr(j1,j2,j3,j4,j5,j6,j7)=rt
-                               end if
-                            end do
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       case('c')
-          sh(1:7)=shape(arr7dc)
-          lb(1:7)=lbound(arr7dc); ub(1:7)=ubound(arr7dc)
-          str='(7'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(7'//fmtdi//'," ("'//trim(frmt)//',","'// &
-               trim(frmt)//',")")'
-          do i1=lb(1),ub(1)
-             do i2=lb(2),ub(2)
-                do i3=lb(3),ub(3)
-                   do i4=lb(4),ub(4)
-                      do i5=lb(5),ub(5)
-                         do i6=lb(6),ub(6)
-                            do i7=lb(7),ub(7)
-                               if (twrite) then
-                                  zt=arr7dc(i1,i2,i3,i4,i5,i6,i7)
-                                  write(unit=unt,fmt=trim(str)) &
-                                       i1,i2,i3,i4,i5,i6,i7,zt
-                               else
-                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,zt
-                                  arr7dc(j1,j2,j3,j4,j5,j6,j7)=zt
-                               end if
-                            end do
-                         end do
-                      end do
-                   end do
-                end do
-             end do
-          end do
-       end select
+!!$    case(6)
+!!$       !----------------------!
+!!$       !     6 dimensions     !
+!!$       !----------------------!
+!!$       select case(iot)
+!!$       case('l')
+!!$          sh(1:6)=shape(arr6dl)
+!!$          lb(1:6)=lbound(arr6dl); ub(1:6)=ubound(arr6dl)
+!!$          str='(6'//fmtdi//','//trim(frmt)//')'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            if (twrite) then
+!!$                               lt=arr6dl(i1,i2,i3,i4,i5,i6)
+!!$                               write(unit=unt,fmt=trim(str)) &
+!!$                                    i1,i2,i3,i4,i5,i6,lt
+!!$                            else
+!!$                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,lt
+!!$                               arr6dl(j1,j2,j3,j4,j5,j6)=lt
+!!$                            end if
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       case('i')
+!!$          sh(1:6)=shape(arr6di)
+!!$          lb(1:6)=lbound(arr6di); ub(1:6)=ubound(arr6di)
+!!$          str='(6'//fmtdi//','//trim(frmt)//')'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            if (twrite) then
+!!$                               it=arr6di(i1,i2,i3,i4,i5,i6)
+!!$                               write(unit=unt,fmt=trim(str)) &
+!!$                                    i1,i2,i3,i4,i5,i6,it
+!!$                            else
+!!$                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,it
+!!$                               arr6di(j1,j2,j3,j4,j5,j6)=it
+!!$                            end if
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       case('r')
+!!$          sh(1:6)=shape(arr6dr)
+!!$          lb(1:6)=lbound(arr6dr); ub(1:6)=ubound(arr6dr)
+!!$          str='(6'//fmtdi//'," ",'//trim(frmt)//')'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            if (twrite) then
+!!$                               rt=arr6dr(i1,i2,i3,i4,i5,i6)
+!!$                               write(unit=unt,fmt=trim(str)) &
+!!$                                    i1,i2,i3,i4,i5,i6,rt
+!!$                            else
+!!$                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,rt
+!!$                               arr6dr(j1,j2,j3,j4,j5,j6)=rt
+!!$                            end if
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       case('c')
+!!$          sh(1:6)=shape(arr6dc)
+!!$          lb(1:6)=lbound(arr6dc); ub(1:6)=ubound(arr6dc)
+!!$          str='(6'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
+!!$          if (tparent) str='(6'//fmtdi//'," ("'//trim(frmt)//',","'// &
+!!$               trim(frmt)//',")")'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            if (twrite) then
+!!$                               zt=arr6dc(i1,i2,i3,i4,i5,i6)
+!!$                               write(unit=unt,fmt=trim(str)) &
+!!$                                    i1,i2,i3,i4,i5,i6,zt
+!!$                            else
+!!$                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,zt
+!!$                               arr6dc(j1,j2,j3,j4,j5,j6)=zt
+!!$                            end if
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       end select
+!!$    case(7)
+!!$       !----------------------!
+!!$       !     7 dimensions     !
+!!$       !----------------------!
+!!$       select case(iot)
+!!$       case('l')
+!!$          sh(1:7)=shape(arr7dl)
+!!$          lb(1:7)=lbound(arr7dl); ub(1:7)=ubound(arr7dl)
+!!$          str='(7'//fmtdi//','//trim(frmt)//')'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            do i7=lb(7),ub(7)
+!!$                               if (twrite) then
+!!$                                  lt=arr7dl(i1,i2,i3,i4,i5,i6,i7)
+!!$                                  write(unit=unt,fmt=trim(str)) &
+!!$                                       i1,i2,i3,i4,i5,i6,i7,lt
+!!$                               else
+!!$                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,lt
+!!$                                  arr7dl(j1,j2,j3,j4,j5,j6,j7)=lt
+!!$                               end if
+!!$                            end do
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       case('i')
+!!$          sh(1:7)=shape(arr7di)
+!!$          lb(1:7)=lbound(arr7di); ub(1:7)=ubound(arr7di)
+!!$          str='(7'//fmtdi//','//trim(frmt)//')'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            do i7=lb(7),ub(7)
+!!$                               if (twrite) then
+!!$                                  it=arr7di(i1,i2,i3,i4,i5,i6,i7)
+!!$                                  write(unit=unt,fmt=trim(str)) &
+!!$                                       i1,i2,i3,i4,i5,i6,i7,it
+!!$                               else
+!!$                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,it
+!!$                                  arr7di(j1,j2,j3,j4,j5,j6,j7)=it
+!!$                               end if
+!!$                            end do
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       case('r')
+!!$          sh(1:7)=shape(arr7dr)
+!!$          lb(1:7)=lbound(arr7dr); ub(1:7)=ubound(arr7dr)
+!!$          str='(7'//fmtdi//'," ",'//trim(frmt)//')'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            do i7=lb(7),ub(7)
+!!$                               if (twrite) then
+!!$                                  rt=arr7dr(i1,i2,i3,i4,i5,i6,i7)
+!!$                                  write(unit=unt,fmt=trim(str)) &
+!!$                                       i1,i2,i3,i4,i5,i6,i7,rt
+!!$                               else
+!!$                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,rt
+!!$                                  arr7dr(j1,j2,j3,j4,j5,j6,j7)=rt
+!!$                               end if
+!!$                            end do
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       case('c')
+!!$          sh(1:7)=shape(arr7dc)
+!!$          lb(1:7)=lbound(arr7dc); ub(1:7)=ubound(arr7dc)
+!!$          str='(7'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
+!!$          if (tparent) str='(7'//fmtdi//'," ("'//trim(frmt)//',","'// &
+!!$               trim(frmt)//',")")'
+!!$          do i1=lb(1),ub(1)
+!!$             do i2=lb(2),ub(2)
+!!$                do i3=lb(3),ub(3)
+!!$                   do i4=lb(4),ub(4)
+!!$                      do i5=lb(5),ub(5)
+!!$                         do i6=lb(6),ub(6)
+!!$                            do i7=lb(7),ub(7)
+!!$                               if (twrite) then
+!!$                                  zt=arr7dc(i1,i2,i3,i4,i5,i6,i7)
+!!$                                  write(unit=unt,fmt=trim(str)) &
+!!$                                       i1,i2,i3,i4,i5,i6,i7,zt
+!!$                               else
+!!$                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,zt
+!!$                                  arr7dc(j1,j2,j3,j4,j5,j6,j7)=zt
+!!$                               end if
+!!$                            end do
+!!$                         end do
+!!$                      end do
+!!$                   end do
+!!$                end do
+!!$             end do
+!!$          end do
+!!$       end select
     end select
   end subroutine ioarr
 
@@ -767,5 +767,4 @@ contains
        stop
     end select
   end function ioaction
-
 end module ioarray

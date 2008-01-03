@@ -29,17 +29,11 @@ subroutine writepmattd(lgather)
   logical :: lgather
   ! local variables
   character(*), parameter :: thisnam = 'writepmattd'
-  integer recl,ik,iproc,ki,kf,ngridk_save(3)
-  integer :: nempty_save
-  integer :: j,ist
-  integer :: ipar,fu,un
-  real(8) :: gmaxvrt
-  real(8), parameter :: gmaxvrmax=15.d0
+  integer ik,ki,kf,un
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-  logical :: existent
 
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &

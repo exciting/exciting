@@ -26,7 +26,7 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'fxc_lrc'
     real(8) :: t1
-    integer :: sh(2),n,ig
+    integer :: sh(2),ig
 
     sh=shape(fxc)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then

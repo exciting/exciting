@@ -10,6 +10,9 @@ subroutine init0
 ! !USES:
 use modmain
 use modxcifc
+#ifdef XS
+use modxs
+#endif
 ! !DESCRIPTION:
 !   Performs basic consistency checks as well as allocating and initialising
 !   global variables not dependent on the $k$-point set.
@@ -75,6 +78,10 @@ allocate(zil(0:lmaxapw))
 do l=0,lmaxapw
   zil(l)=zi**l
 end do
+#ifdef XS
+if (allocated(sphcov)) deallocate(sphcov)
+allocate(sphcov(3,lmmaxapw))
+#endif
 
 !------------------------------------!
 !     index to atoms and species     !
