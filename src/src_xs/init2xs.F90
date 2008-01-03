@@ -5,12 +5,10 @@
 ! See the file COPYING for license details.
 
 subroutine init2xs
-  ! based upon routine init2.f90
   use modmain
+  use modmpi
   use modxs
   use modtetra
-  use modmpi
-  use m_genqvkloff
   use m_getunit
   use m_genfilname
   implicit none
@@ -173,14 +171,14 @@ subroutine init2xs
   !     k+q-point set     !
   !-----------------------!
   if (allocated(qvkloff)) deallocate(qvkloff)
-  if (allocated(ikmapikq)) deallocate(ikmapikq)
   allocate(qvkloff(3,nqpt))
-  allocate(ikmapikq(nqpt,nkpt))
+  if (allocated(ikmapikq)) deallocate(ikmapikq)
+  allocate(ikmapikq(nkpt,nqpt))
   do iq=1,nqpt
      ! offset for k+q-point set derived from q-point
-     call genqvkloff(vql(:,iq),qvkloff(:,iq))
+     call genqvkloff(vql(1,iq),qvkloff(1,iq))
      ! map from k-point index to k+q point index for same k
-     call findkmapkq(iq,vql(:,iq),qvkloff(:,iq),ikmapikq(iq,:))
+     call findkmapkq(iq,vql(1,iq),qvkloff(1,iq),ikmapikq(1,iq))
   end do
 
   !---------------------!

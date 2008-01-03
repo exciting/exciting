@@ -43,7 +43,7 @@ contains
 
     call cpu_time(cpu0)
 
-    ikq=ikmapikq(iq,ik)
+    ikq=ikmapikq(ik,iq)
 
     ! check for stop statement
     write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
@@ -71,10 +71,6 @@ contains
     allocate(xihir(n0,n))
     allocate(helpm(nlotot,max(nstval,nstcon)))
     allocate(helpm2(n0,max(nstval,nstcon))) ! for ir
-
-
-!SAG
-xihir(:,:)=zzero
 
     ! read eigenvectors, eigenvalues and occupancies for G+k+q
     call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
@@ -144,7 +140,7 @@ xihir(:,:)=zzero
        call cpu_time(cpu00)
        cpumt=cpumt+cpu00-cpu01
        ! interstitial contribution
-!SAG!       call ematqkgir(iq,ik,igq)
+       call ematqkgir(iq,ik,igq)
        call cpu_time(cpu01)
        cpuir=cpuir+cpu01-cpu00
 

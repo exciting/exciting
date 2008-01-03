@@ -86,16 +86,16 @@ do is=1,nspecies
 ! calculate the gradient
       call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
        wfmt(1,1,ist),gwfmt(1,1,1,ist))
-
-
-
-wfmt(:,:,ist)=zzero
-wfmt(1,:,ist)=1.d0/y00
-gwfmt(:,:,:,ist)=zzero
-gwfmt(1,:,:,ist)=1.d0/y00
-
-
-
+!!$
+!!$
+!!$
+!!$wfmt(:,:,ist)=zzero
+!!$wfmt(1,:,ist)=1.d0/y00
+!!$gwfmt(:,:,:,ist)=zzero
+!!$gwfmt(1,:,:,ist)=1.d0/y00
+!!$
+!!$
+!!$
     end do
     do ist=1,nstfv
       do jst=ist,nstfv
@@ -153,16 +153,16 @@ do ist=1,nstfv
     call zfftifc(3,ngrid,1,gwfir(1,i,ist))
   end do
 end do
-
-
-
-wfir(:,:)=zone*sqrt(omega)
-do i=1,3
-   gwfir(:,:,:)=zone*sqrt(omega)
-end do
-
-
-
+!!$
+!!$
+!!$
+!!$wfir(:,:)=zone*sqrt(omega)
+!!$do i=1,3
+!!$   gwfir(:,:,:)=zone*sqrt(omega)
+!!$end do
+!!$
+!!$
+!!$
 ! find the overlaps
 do ist=1,nstfv
   do jst=ist,nstfv

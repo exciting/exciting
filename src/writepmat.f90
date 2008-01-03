@@ -59,32 +59,9 @@ do ik=1,nkpt
   call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalm,evecfv,evecsv,pmat)
 ! write the matrix elements to direct-access file
   write(50,rec=ik) pmat
-
-
-
-
-
-
-
-
-     do ist1=1,nstsv
-        f1='v'
-        if (ist1.gt.(nstsv-nempty-1)) f1='c'
-        do ist2=1,nstsv
-           f2='v'
-           if (ist2.gt.(nstsv-nempty-1)) f2='c'
-           f='  '//trim(f1)//'-'//trim(f2)//'  '
-           write(1235,'(3i8,a,3g18.10)') ik,ist1,ist2,f,abs(pmat(:,ist1,ist2))
-        end do
-     end do
-
-
-
-
-
-
-
-
+#ifdef XS
+  write(*,'(a,i9,a,i9)') 'Done k-point ',ik,' of ',nkpt
+#endif
 end do
 close(50)
 write(*,*)

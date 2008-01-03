@@ -73,6 +73,17 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   ! external functions
   real(8), external :: r3taxi
   complex(8), external :: zfmtinp
+
+complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
+complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
+integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
+
+   allocate(cfunt(ngkk,ngkkp))
+   allocate(h(ngkk,nstfv))
+   allocate(pmt(nstfv,nstfv))
+   allocate(evecfvt1(nstfv,ngkk),evecfvt2(ngkkp,nstfv))
+
+
   ! check if q-point is commensurate with k-mesh
   if (any(abs(vpl*ngridk-nint(vpl*ngridk)).gt.epslat)) then
      write(*,*)
@@ -116,6 +127,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   pm(:,:,:)=zzero
   ! loop over G+p vectors
   do igp=1,ngp
+!!$  do igp=2,2
      write(*,*) 'Info(genpwmat): igp: ',igp
      ! calculate matrix elements of the plane wave in the muffin-tin
      do is=1,nspecies
@@ -129,7 +141,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
               do m=-l,l
                  lm=idxlm(l,m)
                  pwfmt(lm,irc)=fourpi*conjg(zil(l))*jlgpr(l,irc)* &
-                      ylmgp(lm,igp)
+                      conjg(ylmgp(lm,igp))
               end do
            end do
         end do
@@ -174,56 +186,86 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
            ! end loops over atoms and species
         end do
      end do
+
+
+
+
      ! calculate matrix elements of the plane wave in the interstitial region
      wfirk(:,:)=zzero
      wfirkp(:,:)=zzero
-     do ist=1,nstfv
-        ! wavefunction for k-point
-        do igkk=1,ngkk
-           ! FFT index
-           ifg=igfft(igkigk(igkk))
-           zt1=evecfvk(igkk,ist)
-           wfirk(ifg,ist)=zt1
-        end do
-        ! product of plane wave factor and wave function for kp-point
-        do igkkp=1,ngkkp
-           ! subtract umklapp G-vector and G-vector
-           iv(:)=ivg(:,igkigkp(igkkp))-ivg(:,igpig(igp))-ivu(:)
-           ! index to difference of G-vectors
-           ig=ivgig(iv(1),iv(2),iv(3))
-           ! FFT index
-           ifg=igfft(ig)
-           zt1=evecfvkp(igkkp,ist)
-           wfirkp(ifg,ist)=zt1
-        end do
-        ! convert the wavefunction to real-space for k-point
-        call zfftifc(3,ngrid,1,wfirk(1,ist))
-        ! convert the product to real-space
-        call zfftifc(3,ngrid,1,wfirkp(1,ist))
-        ! end loop over states
-
-
+!!$     do ist=1,nstfv
+!!$        ! wavefunction for k-point
+!!$        do igkk=1,ngkk
+!!$           ! FFT index
+!!$           ifg=igfft(igkigk(igkk))
+!!$           zt1=evecfvk(igkk,ist)
+!!$           wfirk(ifg,ist)=zt1
+!!$        end do
+!!$        ! product of plane wave factor and wave function for kp-point
+!!$        do igkkp=1,ngkkp
+!!$           ! subtract umklapp G-vector and G-vector
+!!$           iv(:)=ivg(:,igkigkp(igkkp))-ivg(:,igpig(igp))-ivu(:)
+!!$           ! index to difference of G-vectors
+!!$           ig=ivgig(iv(1),iv(2),iv(3))
+!!$           ! FFT index
+!!$           ifg=igfft(ig)
+!!$           zt1=evecfvkp(igkkp,ist)
+!!$           wfirkp(ifg,ist)=zt1
+!!$        end do
+!!$        ! convert the wavefunction to real-space for k-point
+!!$        call zfftifc(3,ngrid,1,wfirk(1,ist))
+!!$        ! convert the product to real-space
+!!$        call zfftifc(3,ngrid,1,wfirkp(1,ist))
+!!$        ! end loop over states
 !**************************
               ! set WF to one for testing :
 !***        wfirk(:,:)=zone*sqrt(omega)
 !***       wfirkp(:,:)=zone*sqrt(omega)
-        wfirk(:,:)=zzero
-        wfirkp(:,:)=zzero
+!        wfirk(:,ist)=zzero
+!        wfirkp(:,ist)=zzero
 !**************************
+!!$    end do
 
 
-     end do
-     ! find the overlaps
-     do ist=1,nstfv
-        do jst=1,nstfv
-           zsum=0.d0
-           do ir=1,ngrtot
-              zsum=zsum+cfunir(ir)*conjg(wfirk(ir,ist))*wfirkp(ir,jst)
-           end do
-           zt1=zsum/dble(ngrtot)
-           pm(igp,ist,jst)=pm(igp,ist,jst)+zt1
+
+!!$     ! find the overlaps
+!!$     do ist=1,nstfv
+!!$        do jst=1,nstfv
+!!$           zsum=0.d0
+!!$           do ir=1,ngrtot
+!!$              zsum=zsum+cfunir(ir)*conjg(wfirk(ir,ist))*wfirkp(ir,jst)
+!!$           end do
+!!$           zt1=zsum/dble(ngrtot)
+!!$           pm(igp,ist,jst)=pm(igp,ist,jst)+zt1
+!!$        end do
+!!$     end do
+
+
+
+
+     ! analytic evaluation
+     forall (ist1=1:nstfv)
+        evecfvt1(ist1,:)=conjg(evecfvk(1:ngkk,ist1))
+     end forall
+     evecfvt2(:,:)=evecfvkp(1:ngkkp,:)
+     do igp1=1,ngkk
+        ig1=igkigk(igp1)
+        iv1(:)=ivg(:,ig1)
+        do igp2=1,ngkkp
+           ig2=igkigkp(igp2)
+           iv(:)=iv1(:)-ivg(:,ig2)+ivg(:,igpig(igp))+ivu(:)
+           ig=ivgig(iv(1),iv(2),iv(3))
+           cfunt(igp1,igp2)=cfunig(ig)
         end do
      end do
+     call zgemm('n','n', ngkk, nstfv, ngkkp, zone, cfunt, &
+          ngkk, evecfvt2, ngkkp, zzero, h, ngkkp)
+     call zgemm('n','n', nstfv, nstfv, ngkk, zone, evecfvt1, &
+          nstfv, h, ngkk, zzero, pmt, nstfv)
+     pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)
+
+
+
      ! compute the second-variational matrix elements of the plane wave
      if (tevecsv) then
         do i=1,nstsv

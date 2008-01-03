@@ -20,7 +20,9 @@ contains
     integer :: ivwrap(3)
     integer, allocatable :: aigk0(:),aigk(:)
 
-    ikq=ikmapikq(iq,ik)
+! xihir(:,:)=zzero; return !SAG *** return zero ***!
+
+    ikq=ikmapikq(ik,iq)
     allocate(aigk0(ngkmax0),aigk(ngkmax))
 
     ! positive wrapping G-vector
@@ -33,7 +35,7 @@ contains
     iv3(:)=ivg(:,ig3)
     do igk0 = 1, ngk0(ik,1)
        ig1=aigk0(igk0)
-       iv1(:)=ivg(:,ig1)-iv3(:)
+       iv1(:)=ivg(:,ig1)+iv3(:)
        do igk = 1, ngk(ikq,1)
           ig2=aigk(igk)
           ! wrapping of k+q vector included

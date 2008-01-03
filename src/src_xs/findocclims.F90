@@ -16,7 +16,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   do ik=1,nkpt
      ! k+q-point set
      ikq=ik
-     if (iq.ne.0) ikq=ikmapikq(iq,ik)
+     if (iq.ne.0) ikq=ikmapikq(ik,iq)
      call getoccsv(vkl(1,ikq),occsv(1,ikq))
      do i=1,nstsv
         if (occsv(i,ik).lt.epsocc) exit
