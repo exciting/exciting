@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 S. Sagmeister J. K. Dewhurst, S. Sharma and
+! Copyright (C) 2002-2007 S. Sagmeister J. K. Dewhurst, S. Sharma and
 ! C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -8,18 +8,19 @@
 ! !ROUTINE: portstate
 ! !INTERFACE:
 subroutine portstate(tb2a)
-  ! !USES:
-  ! !DESCRIPTION:
-  !   Toggle file format of {\tt STATE.OUT}. If tb2a is true an ASCII
-  !   file with the name {\tt STATE_ASC.OUT} is generated and the data
-  !   from {\tt STATE.OUT} is transferred. If tb2a is false the conversion
-  !   goes in the other direction. based upon the routines {\tt readstate}
-  !   and {\tt writestate}.
-  !   
-  ! !REVISION HISTORY:
-  !   Created 2007 (Sagmeister)
-  !EOP
-  !BOC
+! !USES:
+  use ioarray
+! !DESCRIPTION:
+!   Toggle file format of {\tt STATE.OUT}. If tb2a is true an ASCII
+!   file with the name {\tt STATE_ASC.OUT} is generated and the data
+!   from {\tt STATE.OUT} is transferred. If tb2a is false the conversion
+!   goes in the other direction. based upon the routines {\tt readstate}
+!   and {\tt writestate}.
+!   
+! !REVISION HISTORY:
+!   Created 2007 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   logical, intent(in) :: tb2a
@@ -237,12 +238,14 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-     write(51,*) rhomt_
+!!     write(51,*) rhomt_
+     call ioarr(un=51,ioa='write',arr3dr=rhomt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="rhoir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-     write(51,*) rhoir_
+!!     write(51,*) rhoir_
+     call ioarr(un=51,ioa='write',arr1dr=rhoir_)
      write(51,'(a)') '</data>'
      ! write the Coulomb potential
      write(51,'(a)') '<data name="vclmt" type="real(8)" &
@@ -250,12 +253,14 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-     write(51,*) vclmt_
+!!     write(51,*) vclmt_
+     call ioarr(un=51,ioa='write',arr3dr=vclmt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="vclir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-     write(51,*) vclir_
+!!     write(51,*) vclir_
+     call ioarr(un=51,ioa='write',arr1dr=vclir_)
      write(51,'(a)') '</data>'
      ! write the exchange-correlation potential
      write(51,'(a)') '<data name="vxcmt" type="real(8)" &
@@ -263,12 +268,14 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-     write(51,*) vxcmt_
+!!     write(51,*) vxcmt_
+     call ioarr(un=51,ioa='write',arr3dr=vxcmt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="vxcir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-     write(51,*) vxcir_
+!!     write(51,*) vxcir_
+     call ioarr(un=51,ioa='write',arr1dr=vxcir_)
      write(51,'(a)') '</data>'
      ! write the effective potential
      write(51,'(a)') '<data name="veffmt" type="real(8)" &
@@ -276,17 +283,20 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-     write(51,*) veffmt_
+!!     write(51,*) veffmt_
+     call ioarr(un=51,ioa='write',arr3dr=veffmt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="veffir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-     write(51,*) veffir_
+!!     write(51,*) veffir_
+     call ioarr(un=51,ioa='write',arr1dr=veffir_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="veffig" type="complex(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngvec_))//'">'
-     write(51,*) veffig_
+!!     write(51,*) veffig_
+     call ioarr(un=51,ioa='write',arr1dc=veffig_)
      write(51,'(a)') '</data>'
      if (spinpol_) then
         ! read magnetisation and effective field
@@ -366,7 +376,7 @@ subroutine portstate(tb2a)
      read(50,*) veffir_
      read(50,*)
      read(50,*)
-     read(50,*) veffig_
+     call ioarr(un=50,ioa='read',arr1dc=veffig_)
      read(50,*)
      ! write the density
      write(51) rhomt_,rhoir_
