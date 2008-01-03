@@ -76,13 +76,11 @@ contains
     integer :: sh(7),lb(7),ub(7)
     character(1) :: iot
     character(fmtlen) :: frmt,str
-    logical :: tpr(28),twrite,tun,tfmt,tparent
+    logical :: tpr(28),twrite,tparent
     logical :: lt
-    integer :: it
+    integer(kndi) :: it
     real(kndr) :: rt
     complex(kndc) :: zt
-    logical, external :: ioaction
-    character(1), external :: iotype
     ! check if only one array is present
     tpr=(/ &
          present(arr1dl),present(arr1di),present(arr1dr),present(arr1dc), &
@@ -134,9 +132,6 @@ contains
        frmt=trim(fmtdc)
     end select
     if (present(fmt)) frmt=trim(adjustl(fmt))
-    !*********************************************************************
-    write(*,*) 'npr,iot,ndim',npr,iot,ndim
-    !*********************************************************************
     ! select by dimension
     select case(ndim)
     case(1)
@@ -374,95 +369,388 @@ contains
                               i1,i2,i3,i4,lt
                       else
                          read(unit=unt,fmt=*) j1,j2,j3,j4,lt
-                         arr4dl(j1,j2,j3,4)=lt
+                         arr4dl(j1,j2,j3,j4)=lt
                       end if
                    end do
                 end do
              end do
           end do
-
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
        case('i')
-          sh(1:3)=shape(arr3di)
-          lb(1:3)=lbound(arr3di); ub(1:3)=ubound(arr3di)
-          str='(3'//fmtdi//','//trim(frmt)//')'
+          sh(1:4)=shape(arr4di)
+          lb(1:4)=lbound(arr4di); ub(1:4)=ubound(arr4di)
+          str='(4'//fmtdi//','//trim(frmt)//')'
           do i1=lb(1),ub(1)
              do i2=lb(2),ub(2)
                 do i3=lb(3),ub(3)
-                   if (twrite) then
-                      it=arr3di(i1,i2,i3)
-                      write(unit=unt,fmt=trim(str)) &
-                        i1,i2,i3,it
-                   else
-                      read(unit=unt,fmt=*) j1,j2,j3,it
-                      arr3di(j1,j2,j3)=it
-                   end if
+                   do i4=lb(4),ub(4)
+                      if (twrite) then
+                         it=arr4di(i1,i2,i3,i4)
+                         write(unit=unt,fmt=trim(str)) &
+                              i1,i2,i3,i4,it
+                      else
+                         read(unit=unt,fmt=*) j1,j2,j3,j4,it
+                         arr4di(j1,j2,j3,j4)=it
+                      end if
+                   end do
                 end do
              end do
           end do
        case('r')
-          sh(1:3)=shape(arr3dr)
-          lb(1:3)=lbound(arr3dr); ub(1:3)=ubound(arr3dr)
-          str='(3'//fmtdi//'," ",'//trim(frmt)//')'
+          sh(1:4)=shape(arr4dr)
+          lb(1:4)=lbound(arr4dr); ub(1:4)=ubound(arr4dr)
+          str='(4'//fmtdi//'," ",'//trim(frmt)//')'
           do i1=lb(1),ub(1)
              do i2=lb(2),ub(2)
                 do i3=lb(3),ub(3)
-                   if (twrite) then
-                      rt=arr3dr(i1,i2,i3)
-                      write(unit=unt,fmt=trim(str)) &
-                        i1,i2,i3,rt
-                   else
-                      read(unit=unt,fmt=*) j1,j2,j3,rt
-                      arr3dr(j1,j2,j3)=rt
-                   end if
+                   do i4=lb(4),ub(4)
+                      if (twrite) then
+                         rt=arr4dr(i1,i2,i3,i4)
+                         write(unit=unt,fmt=trim(str)) &
+                              i1,i2,i3,i4,rt
+                      else
+                         read(unit=unt,fmt=*) j1,j2,j3,j4,rt
+                         arr4dr(j1,j2,j3,j4)=rt
+                      end if
+                   end do
                 end do
              end do
           end do
        case('c')
-          sh(1:3)=shape(arr3dc)
-          lb(1:3)=lbound(arr3dc); ub(1:3)=ubound(arr3dc)
-          str='(3'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(3'//fmtdi//'," ("'//trim(frmt)//',","'// &
+          sh(1:4)=shape(arr4dc)
+          lb(1:4)=lbound(arr4dc); ub(1:4)=ubound(arr4dc)
+          str='(4'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
+          if (tparent) str='(4'//fmtdi//'," ("'//trim(frmt)//',","'// &
                trim(frmt)//',")")'
           do i1=lb(1),ub(1)
              do i2=lb(2),ub(2)
                 do i3=lb(3),ub(3)
-                   if (twrite) then
-                      zt=arr3dc(i1,i2,i3)
-                      write(unit=unt,fmt=trim(str)) &
-                        i1,i2,i3,zt
-                   else
-                      read(unit=unt,fmt=*) j1,j2,j3,zt
-                      arr3dc(j1,j2,j3)=zt
-                   end if
+                   do i4=lb(4),ub(4)
+                      if (twrite) then
+                         zt=arr4dc(i1,i2,i3,i4)
+                         write(unit=unt,fmt=trim(str)) &
+                              i1,i2,i3,i4,zt
+                      else
+                         read(unit=unt,fmt=*) j1,j2,j3,j4,zt
+                         arr4dc(j1,j2,j3,j4)=zt
+                      end if
+                   end do
                 end do
              end do
           end do
        end select
-
-
-
-
-
-
-
-
-
-       goto 10
     case(5)
-       goto 10
+       !----------------------!
+       !     5 dimensions     !
+       !----------------------!
+       select case(iot)
+       case('l')
+          sh(1:5)=shape(arr5dl)
+          lb(1:5)=lbound(arr5dl); ub(1:5)=ubound(arr5dl)
+          str='(5'//fmtdi//','//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         if (twrite) then
+                            lt=arr5dl(i1,i2,i3,i4,i5)
+                            write(unit=unt,fmt=trim(str)) &
+                                 i1,i2,i3,i4,i5,lt
+                         else
+                            read(unit=unt,fmt=*) j1,j2,j3,j4,j5,lt
+                            arr5dl(j1,j2,j3,j4,j5)=lt
+                         end if
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('i')
+          sh(1:5)=shape(arr5di)
+          lb(1:5)=lbound(arr5di); ub(1:5)=ubound(arr5di)
+          str='(5'//fmtdi//','//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         if (twrite) then
+                            it=arr5di(i1,i2,i3,i4,i5)
+                            write(unit=unt,fmt=trim(str)) &
+                                 i1,i2,i3,i4,i5,it
+                         else
+                            read(unit=unt,fmt=*) j1,j2,j3,j4,j5,it
+                            arr5di(j1,j2,j3,j4,j5)=it
+                         end if
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('r')
+          sh(1:5)=shape(arr5dr)
+          lb(1:5)=lbound(arr5dr); ub(1:5)=ubound(arr5dr)
+          str='(5'//fmtdi//'," ",'//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         if (twrite) then
+                            rt=arr5dr(i1,i2,i3,i4,i5)
+                            write(unit=unt,fmt=trim(str)) &
+                                 i1,i2,i3,i4,i5,rt
+                         else
+                            read(unit=unt,fmt=*) j1,j2,j3,j4,j5,rt
+                            arr5dr(j1,j2,j3,j4,j5)=rt
+                         end if
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('c')
+          sh(1:5)=shape(arr5dc)
+          lb(1:5)=lbound(arr5dc); ub(1:5)=ubound(arr5dc)
+          str='(5'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
+          if (tparent) str='(5'//fmtdi//'," ("'//trim(frmt)//',","'// &
+               trim(frmt)//',")")'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         if (twrite) then
+                            zt=arr5dc(i1,i2,i3,i4,i5)
+                            write(unit=unt,fmt=trim(str)) &
+                                 i1,i2,i3,i4,i5,zt
+                         else
+                            read(unit=unt,fmt=*) j1,j2,j3,j4,j5,zt
+                            arr5dc(j1,j2,j3,j4,j5)=zt
+                         end if
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       end select
     case(6)
-       goto 10
+       !----------------------!
+       !     6 dimensions     !
+       !----------------------!
+       select case(iot)
+       case('l')
+          sh(1:6)=shape(arr6dl)
+          lb(1:6)=lbound(arr6dl); ub(1:6)=ubound(arr6dl)
+          str='(6'//fmtdi//','//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            if (twrite) then
+                               lt=arr6dl(i1,i2,i3,i4,i5,i6)
+                               write(unit=unt,fmt=trim(str)) &
+                                    i1,i2,i3,i4,i5,i6,lt
+                            else
+                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,lt
+                               arr6dl(j1,j2,j3,j4,j5,j6)=lt
+                            end if
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('i')
+          sh(1:6)=shape(arr6di)
+          lb(1:6)=lbound(arr6di); ub(1:6)=ubound(arr6di)
+          str='(6'//fmtdi//','//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            if (twrite) then
+                               it=arr6di(i1,i2,i3,i4,i5,i6)
+                               write(unit=unt,fmt=trim(str)) &
+                                    i1,i2,i3,i4,i5,i6,it
+                            else
+                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,it
+                               arr6di(j1,j2,j3,j4,j5,j6)=it
+                            end if
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('r')
+          sh(1:6)=shape(arr6dr)
+          lb(1:6)=lbound(arr6dr); ub(1:6)=ubound(arr6dr)
+          str='(6'//fmtdi//'," ",'//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            if (twrite) then
+                               rt=arr6dr(i1,i2,i3,i4,i5,i6)
+                               write(unit=unt,fmt=trim(str)) &
+                                    i1,i2,i3,i4,i5,i6,rt
+                            else
+                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,rt
+                               arr6dr(j1,j2,j3,j4,j5,j6)=rt
+                            end if
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('c')
+          sh(1:6)=shape(arr6dc)
+          lb(1:6)=lbound(arr6dc); ub(1:6)=ubound(arr6dc)
+          str='(6'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
+          if (tparent) str='(6'//fmtdi//'," ("'//trim(frmt)//',","'// &
+               trim(frmt)//',")")'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            if (twrite) then
+                               zt=arr6dc(i1,i2,i3,i4,i5,i6)
+                               write(unit=unt,fmt=trim(str)) &
+                                    i1,i2,i3,i4,i5,i6,zt
+                            else
+                               read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,zt
+                               arr6dc(j1,j2,j3,j4,j5,j6)=zt
+                            end if
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       end select
     case(7)
-       goto 10
+       !----------------------!
+       !     7 dimensions     !
+       !----------------------!
+       select case(iot)
+       case('l')
+          sh(1:7)=shape(arr7dl)
+          lb(1:7)=lbound(arr7dl); ub(1:7)=ubound(arr7dl)
+          str='(7'//fmtdi//','//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            do i7=lb(7),ub(7)
+                               if (twrite) then
+                                  lt=arr7dl(i1,i2,i3,i4,i5,i6,i7)
+                                  write(unit=unt,fmt=trim(str)) &
+                                       i1,i2,i3,i4,i5,i6,i7,lt
+                               else
+                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,lt
+                                  arr7dl(j1,j2,j3,j4,j5,j6,j7)=lt
+                               end if
+                            end do
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('i')
+          sh(1:7)=shape(arr7di)
+          lb(1:7)=lbound(arr7di); ub(1:7)=ubound(arr7di)
+          str='(7'//fmtdi//','//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            do i7=lb(7),ub(7)
+                               if (twrite) then
+                                  it=arr7di(i1,i2,i3,i4,i5,i6,i7)
+                                  write(unit=unt,fmt=trim(str)) &
+                                       i1,i2,i3,i4,i5,i6,i7,it
+                               else
+                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,it
+                                  arr7di(j1,j2,j3,j4,j5,j6,j7)=it
+                               end if
+                            end do
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('r')
+          sh(1:7)=shape(arr7dr)
+          lb(1:7)=lbound(arr7dr); ub(1:7)=ubound(arr7dr)
+          str='(7'//fmtdi//'," ",'//trim(frmt)//')'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            do i7=lb(7),ub(7)
+                               if (twrite) then
+                                  rt=arr7dr(i1,i2,i3,i4,i5,i6,i7)
+                                  write(unit=unt,fmt=trim(str)) &
+                                       i1,i2,i3,i4,i5,i6,i7,rt
+                               else
+                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,rt
+                                  arr7dr(j1,j2,j3,j4,j5,j6,j7)=rt
+                               end if
+                            end do
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       case('c')
+          sh(1:7)=shape(arr7dc)
+          lb(1:7)=lbound(arr7dc); ub(1:7)=ubound(arr7dc)
+          str='(7'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
+          if (tparent) str='(7'//fmtdi//'," ("'//trim(frmt)//',","'// &
+               trim(frmt)//',")")'
+          do i1=lb(1),ub(1)
+             do i2=lb(2),ub(2)
+                do i3=lb(3),ub(3)
+                   do i4=lb(4),ub(4)
+                      do i5=lb(5),ub(5)
+                         do i6=lb(6),ub(6)
+                            do i7=lb(7),ub(7)
+                               if (twrite) then
+                                  zt=arr7dc(i1,i2,i3,i4,i5,i6,i7)
+                                  write(unit=unt,fmt=trim(str)) &
+                                       i1,i2,i3,i4,i5,i6,i7,zt
+                               else
+                                  read(unit=unt,fmt=*) j1,j2,j3,j4,j5,j6,j7,zt
+                                  arr7dc(j1,j2,j3,j4,j5,j6,j7)=zt
+                               end if
+                            end do
+                         end do
+                      end do
+                   end do
+                end do
+             end do
+          end do
+       end select
     end select
-    goto 20
-10  continue
-    write(*,*)
-    write(*,*) 'Error(ioarray::ioarr): currently arrays limited to 3 dimensions'
-    write(*,*)
-    stop
-20 continue
   end subroutine ioarr
 
   ! determine IO (read/write) action
@@ -479,23 +767,5 @@ contains
        stop
     end select
   end function ioaction
-
-!!$  character(1) function iotype(iot)
-!!$    character(*), intent(in) :: iot
-!!$    select case(trim(adjustl(iot)))
-!!$    case ('l','L','logical','Logical','LOGICAL')
-!!$       iotype='l'
-!!$    case ('i','I','integer','Integer','INTEGER')
-!!$       iotype='i'
-!!$    case ('r','R','real','Real','REAL')
-!!$       iotype='r'
-!!$    case ('c','C','complex','Complex','COMPLEX')
-!!$       iotype='c'
-!!$    case default
-!!$       write(*,*) 'Error(ioarray::iotype): unknown IO type: '// &
-!!$            trim(adjustl(iot))
-!!$       stop
-!!$    end select
-!!$  end function iotype
 
 end module ioarray

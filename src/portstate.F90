@@ -60,7 +60,7 @@ subroutine portstate(tb2a)
      write(51,'(a)') '<?xml version="1.0"?>'
      write(51,'(a)') '<data name="version" type="integer" dimension="1" &
           &shape="3">'
-     write(51,*) version_
+     call ioarr(un=51,ioa='write',arr1di=version_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="spinpol" type="logical" dimension="1" &
           &shape="1">'
@@ -85,7 +85,7 @@ subroutine portstate(tb2a)
           status='replace')
      read(50,*)
      read(50,*)
-     read(50,*) version_
+     call ioarr(un=50,ioa='read',arr1di=version_)
      read(50,*)
      read(50,*)
      read(50,*) spinpol_
@@ -124,7 +124,7 @@ subroutine portstate(tb2a)
         write(51,'(a)') '<data name="spr" type="real(8)" dimension="1" &
              &shape="'//trim(i2str(nrmt_(is)))//'" index="species" indexval="'&
              //trim(i2str(is))//'">'
-        write(51,*) spr_(1:nrmt_(is),is)
+     call ioarr(un=51,ioa='write',arr1dr=spr_(1:nrmt_(is),is))
         write(51,'(a)') '</data>'
         natmtot=natmtot+natoms_
      end do
@@ -136,15 +136,11 @@ subroutine portstate(tb2a)
      read(50) lmmaxlu_
      write(51,'(a)') '<data name="ngrid" type="integer" dimension="1" &
           &shape="3">'
-     write(51,*) ngrid_
+     call ioarr(un=51,ioa='write',arr1di=ngrid_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="ngvec" type="integer" dimension="1" &
           &shape="1">'
      write(51,*) ngvec_
-     write(51,'(a)') '</data>'
-     write(51,'(a)') '<data name="ndmag" type="integer" dimension="1" &
-          &shape="1">'
-     write(51,*) ndmag_
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="ndmag" type="integer" dimension="1" &
           &shape="1">'
@@ -172,7 +168,7 @@ subroutine portstate(tb2a)
         read(50,*) nrmt_(is)
         read(50,*)
         read(50,*)
-        read(50,*) spr_(1:nrmt_(is),is)
+        call ioarr(un=50,ioa='read',arr1dr=spr_(1:nrmt_(is),is))
         read(50,*)
         write(51) natoms_
         write(51) nrmt_(is)
@@ -180,7 +176,7 @@ subroutine portstate(tb2a)
         natmtot=natmtot+natoms_
      end do
      read(50,*)
-     read(50,*) ngrid_
+     call ioarr(un=50,ioa='read',arr1di=ngrid_)
      read(50,*)
      read(50,*)
      read(50,*) ngvec_
@@ -238,13 +234,11 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-!!     write(51,*) rhomt_
      call ioarr(un=51,ioa='write',arr3dr=rhomt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="rhoir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-!!     write(51,*) rhoir_
      call ioarr(un=51,ioa='write',arr1dr=rhoir_)
      write(51,'(a)') '</data>'
      ! write the Coulomb potential
@@ -253,13 +247,11 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-!!     write(51,*) vclmt_
      call ioarr(un=51,ioa='write',arr3dr=vclmt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="vclir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-!!     write(51,*) vclir_
      call ioarr(un=51,ioa='write',arr1dr=vclir_)
      write(51,'(a)') '</data>'
      ! write the exchange-correlation potential
@@ -268,13 +260,11 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-!!     write(51,*) vxcmt_
      call ioarr(un=51,ioa='write',arr3dr=vxcmt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="vxcir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-!!     write(51,*) vxcir_
      call ioarr(un=51,ioa='write',arr1dr=vxcir_)
      write(51,'(a)') '</data>'
      ! write the effective potential
@@ -283,19 +273,16 @@ subroutine portstate(tb2a)
           trim(i2str(lmmaxvr_))//','//&
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//'">'
-!!     write(51,*) veffmt_
      call ioarr(un=51,ioa='write',arr3dr=veffmt_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="veffir" type="real(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngrtot_))//'">'
-!!     write(51,*) veffir_
      call ioarr(un=51,ioa='write',arr1dr=veffir_)
      write(51,'(a)') '</data>'
      write(51,'(a)') '<data name="veffig" type="complex(8)" &
           &dimension="1" shape="'//&
           trim(i2str(ngvec_))//'">'
-!!     write(51,*) veffig_
      call ioarr(un=51,ioa='write',arr1dc=veffig_)
      write(51,'(a)') '</data>'
      if (spinpol_) then
@@ -309,13 +296,13 @@ subroutine portstate(tb2a)
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//','//&
           trim(i2str(ndmag_))//'">'
-        write(51,*) magmt_
+        call ioarr(un=51,ioa='write',arr4dr=magmt_)
         write(51,'(a)') '</data>'
         write(51,'(a)') '<data name="magir" type="real(8)" &
              &dimension="2" shape="'//&
              trim(i2str(ngrtot_))//','//&
              trim(i2str(ndmag_))//'">'
-        write(51,*) magir_
+        call ioarr(un=51,ioa='write',arr2dr=magir_)
         write(51,'(a)') '</data>'
         write(51,'(a)') '<data name="bxcmt" type="real(8)" &
              &dimension="4" shape="'//&
@@ -323,13 +310,13 @@ subroutine portstate(tb2a)
           trim(i2str(nrmtmax_))//','//&
           trim(i2str(natmtot))//','//&
           trim(i2str(ndmag_))//'">'
-        write(51,*) bxcmt_
+        call ioarr(un=51,ioa='write',arr4dr=bxcmt_)
         write(51,'(a)') '</data>'
         write(51,'(a)') '<data name="bxcir" type="real(8)" &
              &dimension="2" shape="'//&
              trim(i2str(ngrtot_))//','//&
              trim(i2str(ndmag_))//'">'
-        write(51,*) bxcir_
+        call ioarr(un=51,ioa='write',arr2dr=bxcir_)
         write(51,'(a)') '</data>'
      end if
      if (ldapu_.ne.0) then
@@ -343,37 +330,37 @@ subroutine portstate(tb2a)
              trim(i2str(nspinor_))//','//&
              trim(i2str(nspinor_))//','//&
              trim(i2str(natmtot))//'">'
-        write(51,*) vmatlu_
+        call ioarr(un=51,ioa='write',arr5dc=vmatlu_)
         write(51,'(a)') '</data>'        
      end if
   else
      ! read muffin-tin density
      read(50,*)
-     read(50,*) rhomt_
+     call ioarr(un=50,ioa='read',arr3dr=rhomt_)
      read(50,*)
      read(50,*)
-     read(50,*) rhoir_
+     call ioarr(un=50,ioa='read',arr1dr=rhoir_)
      read(50,*)
      ! read Coulomb potential (spin independent)
      read(50,*)
-     read(50,*) vclmt_
+     call ioarr(un=50,ioa='read',arr3dr=vclmt_)
      read(50,*)
      read(50,*)
-     read(50,*) vclir_
+     call ioarr(un=50,ioa='read',arr1dr=vclir_)
      read(50,*)
      ! read exchange-correlation potential
      read(50,*)
-     read(50,*) vxcmt_
+     call ioarr(un=50,ioa='read',arr3dr=vxcmt_)
      read(50,*)
      read(50,*)
-     read(50,*) vxcir_
+     call ioarr(un=50,ioa='read',arr1dr=vxcir_)
      read(50,*)
      ! read effective potential
      read(50,*)
-     read(50,*) veffmt_
+     call ioarr(un=50,ioa='read',arr3dr=veffmt_)
      read(50,*)
      read(50,*)
-     read(50,*) veffir_
+     call ioarr(un=50,ioa='read',arr1dr=veffir_)
      read(50,*)
      read(50,*)
      call ioarr(un=50,ioa='read',arr1dc=veffig_)
@@ -389,16 +376,16 @@ subroutine portstate(tb2a)
      if (spinpol_) then
         ! read magnetisation and effective field
         read(50,*)
-        read(50,*) magmt_
+        call ioarr(un=50,ioa='read',arr4dr=magmt_)
         read(50,*)
         read(50,*)
-        read(50,*) magir_
+        call ioarr(un=50,ioa='read',arr2dr=magir_)
         read(50,*)
         read(50,*)
-        read(50,*) bxcmt_
+        call ioarr(un=50,ioa='read',arr4dr=bxcmt_)
         read(50,*)
         read(50,*)
-        read(50,*) bxcir_
+        call ioarr(un=50,ioa='read',arr2dr=bxcir_)
         read(50,*)
         ! write the magnetisation and effective magnetic fields
         write(51) magmt_,magir_
@@ -407,7 +394,7 @@ subroutine portstate(tb2a)
      if (ldapu_.ne.0) then
         ! read the LDA+U potential matrix elements
         read(50,*)
-        read(50,*) vmatlu_
+        call ioarr(un=50,ioa='read',arr5dc=vmatlu_)
         read(50,*)        
         ! write the LDA+U potential matrix elements
         write(51) vmatlu_
