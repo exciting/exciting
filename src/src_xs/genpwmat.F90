@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2007 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
+! Copyright (C) 2002-2008 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
 ! C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -127,7 +127,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
      write(*,*) 'Info(genpwmat): igp: ',igp
      ! calculate matrix elements of the plane wave in the muffin-tin
      do is=1,nspecies
-        ! calculate bessel functions j_l(|G||r|)
+        ! calculate bessel functions j_l(|G+q||r|)
         irc=0
         do ir=1,nrmt(is),lradstp
            irc=irc+1
