@@ -17,7 +17,7 @@ subroutine xsinit
   integer :: i
 
   ! assign xs code version
-  versionxs=(/0,85/)
+  versionxs=(/0,87/)
 
   ! check consistency of rank and procs
   if ((procs.lt.1).or.(procs.gt.maxproc)) then
@@ -78,7 +78,7 @@ subroutine xsinit
   call getfxcdata(fxctype,fxcdescr,fxcspin)
 
   ! write to info file
-  if (calledxs == 1) then
+  if (calledxs.eq.1) then
      write(unitout,*)
      write(unitout,'("+-------------------------------------------------------&
           &---+")')

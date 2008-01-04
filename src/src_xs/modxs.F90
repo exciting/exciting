@@ -18,9 +18,10 @@ module modxs
   !---------------!
   !     NOTES     !
   !---------------!
-  ! use the following units for standar output and standard error:
-  ! -1: standard output
-  !  0: standard error
+  ! the following units are used for standard output and standard error
+  ! but depend on environment
+  ! -1,5: standard output (stdout)
+  !  0  : standard error (stderr)
 
   !---------------------------------------------------------------!
   !     muffin-tin radial mesh and angular momentum variables     !

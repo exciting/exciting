@@ -77,7 +77,7 @@ subroutine init2xs
         ngridq(:) = 1
         vqloff(:) = 0.d0
      end if
-     if (task==400) then
+     if (task.eq.400) then
         ngridq(:)=ngridk(:)
      end if
      if (allocated(ivq)) deallocate(ivq)

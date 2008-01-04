@@ -34,12 +34,12 @@ subroutine xsmain
   ! remember how often this routine is called
   calledxs = calledxs + 1
   ! 
-  if (calledxs == 1) call argparse()
+  if (calledxs.eq.1) call argparse()
 
   ! basic initialization
   call xsinit
 
-  if (calledxs == 1) then
+  if (calledxs.eq.1) then
      ! check verify constraints
      call tdcheck
      write(unitout,'(a)') 'Info('//thisnam//'): initialization done.'

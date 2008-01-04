@@ -29,7 +29,15 @@ contains
     vkloff=voff
     task=1
     maxscl=1
-    
+
+    !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    write(*,*) 'units before gndstate'
+    call showunits
+    write(*,*) trim(filext)
+    write(*,*) vkloff
+    write(*,*) task
+    write(*,*) maxscl
+
     ! call with the above parameters changed
     call gndstate
     
@@ -39,6 +47,14 @@ contains
     task=task_save
     maxscl=maxscl_save
     
+    !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    write(*,*) 'units after gndstate'
+    call showunits
+    write(*,*) trim(filext)
+    write(*,*) vkloff
+    write(*,*) task
+    write(*,*) maxscl
+
   end subroutine gndstateq
 
 end module m_gndstateq

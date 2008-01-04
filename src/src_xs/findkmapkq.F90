@@ -15,10 +15,9 @@ subroutine findkmapkq(iq,vq,voff,map)
   real(8), intent(in) :: vq(3),voff(3)
   integer, intent(out) :: map(nkpt)
   ! local variables
-  integer :: ik,ikt,iktr,un,iv(3),ivt(3)
-  real(8) :: vofft(3),vqt(3),vkq(3),vkqt(3)
+  integer :: ik,un,iv(3),ivt(3)
+  real(8) :: vkq(3)
   real(8), external :: r3taxi
-  logical, allocatable :: done(:)
   character(256) :: filnam
 
 !!$    if (task.ge.400) then
@@ -26,8 +25,7 @@ subroutine findkmapkq(iq,vq,voff,map)
   do ik=1,nkpt
      vkq(:)=vkl(:,ik)+vq(:)
      call r3frac(epslat,vkq,ivt)
-!!$          iv(:)=nint(vkq(:)*ngridk(:)-vkloff(:))
-     iv(:)=int(vkq(:)*ngridk(:))
+     iv(:)=nint(vkq(:)*ngridk(:)-voff(:))
      map(ik)=ikmap(iv(1),iv(2),iv(3))
   end do
 !!$
@@ -84,11 +82,11 @@ subroutine mapkto01(v)
   ! arguments
   real(8), intent(inout) :: v(3)
   ! local variables
-  integer :: id(3)
+  !integer :: id(3)
   integer(8) :: v2(3),v3(3)
   real(8),parameter :: fac=1.d15
 
-  !  call r3frac(epslat,v,id)
+  !call r3frac(epslat,v,id)
 
   v2=dint(v)
   v3=dint(fac*v)

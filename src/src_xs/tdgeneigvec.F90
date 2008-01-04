@@ -16,28 +16,34 @@ subroutine tdgeneigvec
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'tdgeneigvec'
-  integer :: iq,qi,qf,un
   real(8), parameter :: zero3(3)=0.d0
+  integer :: iq,qi,qf,un
   integer :: ik,recl
 
-  ! initialize universal variables
-  call init0
-  call init1
 
-  ! initialize q-point set
-  call init2xs
+!@@@@@@@@@@@@@
+qi=0; qf=1
 
-  ! SCF allready parallelized for k-point set
-  qi=1
-  ! add extra q-point for if files for q=0 are to be calculated
-  if (tq0ev) qi=0
-  qf=nqpt
+call init0
 
-  ! write q-points
-  if (rank == 0) call writeqpts
-
-  ! allocate arrays for APW expansion coefficients
-  allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
+!!$  ! initialize universal variables
+!!$  call init0
+!!$  call init1
+!!$
+!!$  ! initialize q-point set
+!!$  call init2xs
+!!$
+!!$  ! SCF allready parallelized for k-point set
+!!$  qi=1
+!!$  ! add extra q-point for if files for q=0 are to be calculated
+!!$  if (tq0ev) qi=0
+!!$  qf=nqpt
+!!$
+!!$  ! write q-points
+!!$  if (rank.eq.0) call writeqpts
+!!$
+!!$  ! allocate arrays for APW expansion coefficients
+!!$  allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
 
   ! read from STATE.OUT exclusively
   isreadstate0=.true.
@@ -46,7 +52,8 @@ subroutine tdgeneigvec
   do iq=qi,qf
 
      ! file extension for q-point
-     call genfilname(iq=max(0,iq),setfilext=.true.)
+!@@     call genfilname(iq=max(0,iq),setfilext=.true.)
+write(filext,'("_Q",i5.5,".OUT")') iq
 
      ! one more iteration for q=0
      if (iq.eq.0) then
@@ -61,7 +68,7 @@ subroutine tdgeneigvec
         write(unitout,'(a,i8)') 'Info('//thisnam//'): eigenvectors generated &
              &for q-point:', iq
      end if
-
+stop 'stopped'
      ! store product of eigenvectors with matching coefficients
      if (allocated(evecfv)) deallocate(evecfv)
      if (allocated(apwalm)) deallocate(apwalm)
@@ -83,7 +90,7 @@ subroutine tdgeneigvec
         end if
      end do
      close(unit1)
-     if (rank == 0) then
+     if (rank.eq.0) then
         ! safely remove unnecessary files
         call filedel('EQATOMS'//trim(filext))
         call filedel('EVALCORE'//trim(filext))
@@ -97,8 +104,10 @@ subroutine tdgeneigvec
         call filedel('SYMSITE'//trim(filext))
         call filedel('TOTENERGY'//trim(filext))
         call filedel('EVALFV'//trim(filext))
+        call filedel('RMSDVEFF'//trim(filext))
      end if
-  end do ! do iq=qi,qf
+     ! end loop over q-points
+  end do
   isreadstate0=.false.
 
   call genfilname(setfilext=.true.)

@@ -38,7 +38,7 @@ subroutine tdepilog
   call gentim(cput,hrs,days,hours,minutes,seconds)
   write(unitout,'(a,4g18.6)') '  CPU time               : '// &
        trim(stringtim(cput,hrs,days,hours,minutes,seconds))
-  if (procs==1) then
+  if (procs.eq.1) then
      call gentim(dble(wallt),hrs,days,hours,minutes,seconds)
      write(unitout,'(a,4g18.6)') '  wall time              : '// &
           trim(stringtim(dble(wallt),hrs,days,hours,minutes,seconds))
@@ -48,7 +48,7 @@ subroutine tdepilog
   call gentim(cputcum,hrs,days,hours,minutes,seconds)
   write(unitout,'(a,4g18.6)') '  CPU time  (cumulative) : '// &
        trim(stringtim(cputcum,hrs,days,hours,minutes,seconds))
-  if (procs==1) then
+  if (procs.eq.1) then
      call gentim(dble(walltcum),hrs,days,hours,minutes,seconds)
      write(unitout,'(a,4g18.6)') '  wall time (cumulative) : '// &
           trim(stringtim(dble(walltcum),hrs,days,hours,minutes,seconds))

@@ -22,7 +22,6 @@ contains
     external zdotu
     ! local variables
     integer :: ist,istc,is,ia,ias
-
     if (lmax.gt.lmaxapw) then
        write(*,*)
        write(*,'("Error(wavefmt): lmax > lmaxapw : ",I8)') lmax
@@ -41,7 +40,6 @@ contains
     end do ! ist
   end subroutine genapwcmt
 
-
   subroutine genapwcmt_part(lmax,ngp,ia,is,apwalm,evecfv,fcmt)
     use modmain
     implicit none
@@ -56,7 +54,6 @@ contains
     external zdotu
     ! local variables
     integer :: ias,l,m,lm,io
-
     ias=idxas(ia,is)
     ! APW functions
     do l=0,lmax
