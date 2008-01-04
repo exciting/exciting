@@ -121,6 +121,11 @@ module modxs
   integer, allocatable :: scmapstr(:,:)
   ! star of k-point indices of non-reduced set
   integer, allocatable :: ikstrmapiknr(:,:)
+  ! map from non-reduced k-point set to reduced one
+  integer, allocatable :: strmap(:)
+  ! map from non-reduced k-point set to associated symmetry in star
+  integer, allocatable :: strmapsymc(:)
+  
 
   !-------------------------!
   !     k+q-point set       !

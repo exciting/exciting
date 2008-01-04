@@ -47,6 +47,8 @@ subroutine genstark
            nsymcrysstr(ik)=nsymcrysstr(ik)+1
            scmapstr(nsymcrysstr(ik),ik)=isym
            ikstrmapiknr(nsymcrysstr(ik),ik)=iknr
+           strmap(iknr)=ik
+           strmapsymc(iknr)=isym
            goto 10
         end if   
      end do

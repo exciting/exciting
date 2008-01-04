@@ -15,7 +15,7 @@ subroutine init1
 #ifdef XS
   use modxs, only: dbglev,skipallocs1
   use modxs, only: imbandstr
-  use modxs, only: scimap,nsymcrysstr,scmapstr,ikstrmapiknr
+  use modxs, only: scimap,nsymcrysstr,scmapstr,ikstrmapiknr,strmap,strmapsymc
 #endif
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
@@ -315,6 +315,10 @@ subroutine init1
      allocate(scmapstr(nsymcrys,nkpt))
      if (allocated(ikstrmapiknr)) deallocate(ikstrmapiknr)
      allocate(ikstrmapiknr(maxsymcrys,nkpt))
+     if (allocated(strmap)) deallocate(strmap)
+     allocate(strmap(nkptnr))
+     if (allocated(strmapsymc)) deallocate(strmapsymc)
+     allocate(strmapsymc(nkptnr))
      ! determine inverse symmery elements
      call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
      ! generate stars for k-point set
