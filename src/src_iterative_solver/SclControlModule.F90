@@ -8,7 +8,7 @@ implicit none
   integer iterativetype
   integer,parameter:: diismax=10,diisfirstscl=4
   real lowesteval
-  real ,parameter::diisthreshould=1,reps=1e-6
+  real ,parameter::diisthreshould=1,reps=1e-7
 integer idamax
   external idamax
 contains

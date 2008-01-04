@@ -46,10 +46,12 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8):: h(nmat(ik,ispn),nstfv,diismax) 
   complex(8):: s(nmat(ik,ispn),nstfv,diismax)
   complex(8):: r(nmat(ik,ispn),nstfv)
+  complex(8):: eigenvector(nmat(ik,ispn),nstfv)
+ real(8):: eigenvalue(nstfv)
   complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
-  integer evecmap(nstfv),  iunconverged
+  integer iunconverged,evecmap(nstfv)
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
      write(*,*)
      write(*,'("Error(seceqnfv): k-point out of range : ",I8)') ik
@@ -80,6 +82,11 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
+     do i=1,nstfv
+       call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        eigenvalue(i)=evalfv(i,ispn)
+        evecmap(i)=i
+     end do
 
      if( doprerotate_preconditioner()) then
         !      call prerotate_preconditioner(n,2*nstfv,hamilton,evecfv,P)
@@ -90,38 +97,43 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),nmatmax,&
+        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,&
              h(:,:,idiis),s(:,:,idiis))
-        call rayleighqotient(n,iunconverged,evecfv(:,:,ispn)&
-             , h(:,:,idiis),s(:,:,idiis),evalfv(:,ispn))
+        call rayleighqotient(n,iunconverged,eigenvector&
+             , h(:,:,idiis),s(:,:,idiis),eigenvalue)
         write (777,*)w(:)
         write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
-             ,evalfv(:,ispn),r,rnorms)
+             ,eigenvalue,r,rnorms)
         write(*,*)"rnorms",rnorms
         if  (allconverged(nstfv,rnorms).or. idiis.eq.(diismax-1)) exit	
-        ! call remove_converged(evecmap(nstfv),iunconverged,r,h,s,trialvecs)
-      
-        call calcupdatevectors(n,iunconverged,P,w,r,evalfv,&
-             evecfv(:,:,ispn),trialvecs(:,:,idiis))      
-        call setuphsvect(n,iunconverged,hamilton,overlap,evecfv(:,:,ispn),nmatmax,&
+       call remove_converged(evecmap,iunconverged,&
+       	rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
+        call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
+             eigenvector,trialvecs(:,:,idiis))      
+        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
-     	! call  system('rm fort.77*')
-        	write(771,*) trialvecs(:,3,idiis)
-           	write(772,*) evecfv(:,3,ispn)
+           ! call  system('rm fort.77*')
+           !        	write(771,*) trialvecs(:,3,idiis)
+           !          	write(772,*) evecfv(:,3,ispn)
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
-              ,evalfv(:,ispn),evecfv(:,:,ispn))
-           	write(773,*) trialvecs(:,3,idiis)
-           	write(774,*) evecfv(:,3,ispn)
-  		call normalize(n,nstfv,overlap,evecfv(:,:,ispn))	
+                ,eigenvalue,eigenvector)
+           !write(773,*) trialvecs(:,3,idiis)
+           !write(774,*) evecfv(:,3,ispn)
+           call normalize(n,nstfv,overlap,eigenvector)	
         endif
-  		
-end do
+  		do i=1,nstfv
+           if(evecmap(i).ne.0) then
+             call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
+              evalfv(i,ispn)=eigenvalue(evecmap(i))
+           endif
+        end do
+     end do
 
-call cpu_time(cpu1)
-endif
-timefv=timefv+cpu1-cpu0
-return
+     call cpu_time(cpu1)
+  endif
+  timefv=timefv+cpu1-cpu0
+  return
 end subroutine DIISseceqnfv
 !EOC

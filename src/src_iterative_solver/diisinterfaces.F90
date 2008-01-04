@@ -4,7 +4,6 @@ module diisinterfaces
   complex(8) zdotc
   real(8) dlamch
   external zdotc,dlamch
-    
   interface
   subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv) 
    use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
@@ -82,22 +81,22 @@ module diisinterfaces
      end subroutine writeprecond
   end interface
   interface
-subroutine setuphsvect(n,m,hamilton,overlap,evecfv,ldv,h,s)
+subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
 
   use modmain, only : nstfv,zone,zzero
   implicit none
-  integer ,intent(in):: n,m,ldv
-  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(ldv,m)
+  integer ,intent(in):: n,m
+  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(n,m)
   complex(8), intent(out)::h(n,m),s(n,m)
 
      end subroutine setuphsvect
   end interface
   interface
      subroutine rayleighqotient(n,m,evecfv, h,s,evalfv)
-  use modmain, only: nmatmax
+ 
   implicit none
   integer, intent(in)::n,m
-  complex(8) ,intent(in)::h(n,m),s(n,m),evecfv(nmatmax,m)
+  complex(8) ,intent(in)::h(n,m),s(n,m),evecfv(n,m)
   real(8) ,intent(out)::evalfv(m)
      end subroutine rayleighqotient
   end interface
@@ -115,24 +114,25 @@ subroutine setuphsvect(n,m,hamilton,overlap,evecfv,ldv,h,s)
   end interface
   interface
    subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi) 
-  use modmain, only:nstfv,nmatmax,zzero,zone
+  use modmain, only:nstfv,zzero,zone,nmatmax
 
   implicit none
   integer ,intent (in)::n , iunconverged
   complex(8),intent(in)::P(nmatmax,nmatmax)
-  complex(8),intent(in)::r(n,nstfv),evecfv(nmatmax,nstfv)
+  complex(8),intent(in)::r(n,nstfv),evecfv(n,nstfv)
   complex(8),intent(out)::phi(n,nstfv)
   real(8), intent(in)::w(nmatmax),evalfv(nstfv)
   end subroutine calcupdatevectors
+  
   end interface
   interface
      subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
-       use modmain,only: nstfv,nmatmax
+       use modmain,only: nstfv
        implicit none
        integer ,intent(in)::idiis,iunconverged,n
        complex(8),intent(in)::h(n,nstfv,idiis),s(n,nstfv,idiis),trialvec(n,nstfv,idiis)
        real(8), intent(in):: evalfv(nstfv)
-       complex(8),intent(out)::evecfv(nmatmax,nstfv)
+       complex(8),intent(out)::evecfv(n,nstfv)
      end subroutine diisupdate
   end interface
 

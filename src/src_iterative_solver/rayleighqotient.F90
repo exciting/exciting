@@ -1,8 +1,8 @@
 subroutine rayleighqotient(n,m,evecfv, h,s,evalfv)
-  use modmain, only: nmatmax
+ 
   implicit none
   integer, intent(in)::n,m
-  complex(8) ,intent(in)::h(n,m),s(n,m),evecfv(nmatmax,m)
+  complex(8) ,intent(in)::h(n,m),s(n,m),evecfv(n,m)
   real(8) ,intent(out)::evalfv(m)
   complex(8) zdotc
   external zdotc

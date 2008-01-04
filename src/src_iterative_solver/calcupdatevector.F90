@@ -4,7 +4,7 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
   implicit none
   integer ,intent (in)::n , iunconverged
   complex(8),intent(in)::P(nmatmax,nmatmax)
-  complex(8),intent(in)::r(n,nstfv),evecfv(nmatmax,nstfv)
+  complex(8),intent(in)::r(n,nstfv),evecfv(n,nstfv)
   complex(8),intent(out)::phi(n,nstfv)
   real(8), intent(in)::w(nmatmax),evalfv(nstfv)
   complex(8)::z,v(n,nstfv)

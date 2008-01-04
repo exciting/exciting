@@ -1,11 +1,11 @@
 subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
-  use modmain,only: nstfv,nmatmax,zone,zzero
+  use modmain,only: nstfv,zone,zzero
   use diisinterfaces
   implicit none
   integer ,intent(in)::idiis,iunconverged,n
   complex(8),intent(in)::h(n,nstfv,idiis),s(n,nstfv,idiis),trialvec(n,nstfv,idiis)
   real(8), intent(in):: evalfv(nstfv)
-  complex(8),intent(out)::evecfv(nmatmax,nstfv)
+  complex(8),intent(out)::evecfv(n,nstfv)
 
 
   complex(8) p(n,idiis)
