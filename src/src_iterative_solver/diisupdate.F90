@@ -10,7 +10,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
 
   complex(8) p(n,idiis)
   real(8)::nrm
-  integer::i,j,ir,is
+  integer::i,j,ir,is,skipp
   complex(8):: Pmatrix(idiis,idiis), Qmatrix(idiis,idiis),c(idiis),residnorm2
    complex(8)::z
    
@@ -25,23 +25,27 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
   !get matrix of residual scalar products   
 !     call zgemm('C','N',idiis,idiis,n,zone,p,n,p,n,&
  !        zzero,Pmatrix,idiis)
-  if(abs(residnorm2).gt.1e-16) then
-     do ir=1,idiis
-		do is=1,idiis
-			Pmatrix(is,ir)=zdotc(n,p(1,is),1,p(1,ir),1)/residnorm2
+skipp=0
+    do ir=1,idiis
+    if((dble(zdotc(n,p(1,ir),1,p(1,ir),1))/dble(residnorm2)).gt.100.0) skipp=ir
+    end do
+    skipp=0
+     do ir=1+skipp,idiis
+		do is=1+skipp,idiis
+			Pmatrix(is-skipp,ir-skipp)=zdotc(n,p(1,is),1,p(1,ir),1)/residnorm2
 	 	enddo
      enddo
-     do ir=1,idiis
-		do is=1,idiis
-			Qmatrix(is,ir)=zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1)
+     do ir=1+skipp,idiis
+		do is=1+skipp,idiis
+			Qmatrix(is-skipp,ir-skipp)=zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1)
 		enddo
      enddo
-     call solvediis(idiis,Pmatrix,Qmatrix,c)
+     call solvediis(idiis-skipp,Pmatrix,Qmatrix,c)
     write(*,*) "c",c
     evecfv(:,i)=0.0
-     do ir=1,idiis  
-        call zaxpy(n,c(ir),trialvec(1,i,ir),1,evecfv(1,i),1)
+     do ir=1+skipp,idiis
+        call zaxpy(n,c(ir-skipp),trialvec(1,i,ir-skipp),1,evecfv(1,i),1)
      end do
-endif
+
   end do
 end subroutine diisupdate

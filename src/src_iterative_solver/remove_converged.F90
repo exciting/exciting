@@ -32,6 +32,7 @@ do i=1,nstfv
 		endif
 	endif
 end do
-iunconverged=newindex
+if (skipp.gt.0) iunconverged=newindex
+write(*,*)iunconverged,"map",evecmap
 end subroutine
 

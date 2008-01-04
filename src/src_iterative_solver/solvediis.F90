@@ -18,7 +18,7 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
        rwork,iwork,ifail,info)
     if (info.ne.0) then
      write(*,*)
-     write(*,'("Error(seceqnfv): diagonalisation failed")')
+     write(*,'("Error(solvediis): diagonalisation failed")')
      write(*,'(" ZHEGVX returned INFO = ",I8)') info
      if (info.gt.m) then
         i=info-m
@@ -30,8 +30,10 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
         write(775,*)Pmatrix
         write(776,*)Qmatrix
 #endif
+c=0.0
+c(m)=1.0
      end if
-     stop
+     
   end if    
        
 end subroutine solvediis
