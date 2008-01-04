@@ -29,9 +29,11 @@ subroutine writepwmat
   complex(8), allocatable :: evecsvk(:,:),evecsvkp(:,:)
   complex(8), allocatable :: pwmat(:,:,:)
 
-  integer :: j,iknr,lspl,isym,s(3,3),vg(3),ig,ist,jst, si(3,3)
-  real(8) :: c(3,3),vt(3),v1(3),t1
+  integer :: j,iknr,lspl,isym,jsym,s(3,3),vg(3),ig,ist,jst, si(3,3)
+  real(8) :: c(3,3),vt(3),v1(3),t1,t2,t3
   complex(8) :: zt1,zt2
+  complex(8), allocatable :: yiou(:,:,:),yiuo(:,:,:)
+  real(8), parameter :: epsrot=1.d-12
 
   ! initialise universal variables
   call init0
@@ -49,9 +51,14 @@ subroutine writepwmat
 
   ! allocate matrix elements array
   if (allocated(xiou)) deallocate(xiou)
-  if (allocated(xiuo)) deallocate(xiuo)
   allocate(xiou(nstval,nstcon,ngq(iq)))
+  if (allocated(xiuo)) deallocate(xiuo)
   allocate(xiuo(nstcon,nstval,ngq(iq)))
+
+  if (allocated(yiou)) deallocate(yiou)
+  allocate(yiou(nstval,nstcon,ngq(iq)))
+  if (allocated(yiuo)) deallocate(yiuo)
+  allocate(yiuo(nstcon,nstval,ngq(iq)))
 
   ! read in the density and potentials from file
   call readstate
@@ -127,49 +134,81 @@ subroutine writepwmat
 
      ! rotate matrix element if k-point set is reduced
      !
-     ! M(G)(a^-1 ,q) = exp(ia(G+q)ta) M(aG+G_a)(k,q) !
+     ! M(G)(ka,q) = exp(-i(G+q)a^-1Ta) M(Ga^-1+G_a)(k,q) !
 
      if (nkpt.ne.nkptnr) then
         do j=1,nsymcrysstr(ik)
            iknr=ikstrmapiknr(j,ik)
            isym=scmapstr(j,ik)
-           lspl=lsplsymc(isym)       
+           jsym=scimap(isym)
+           lspl=lsplsymc(jsym)       
            ! rotation in Cartesian coordinates
            c(:,:)=symlatc(:,:,lspl)
            ! rotation in lattice coordinates
            s(:,:)=symlat(:,:,lspl)
-           si(:,:)=symlat(:,:,lsplsymc(scimap(isym)))
            do igq=1,ngq(iq)
-              ! ta
-              vt=matmul(avec,vtlsymc(:,isym))
-              ! a(G+q)
-!              v1=matmul(c,vgqc(:,igq,iq))
-v1(:)=vgqc(:,igq,iq)
-              ! %.ta
-              t1=dot_product(v1,vt)
-              ! exp(%)
-              zt1=cmplx(cos(t1),-sin(t1),8)
-              ! G
+              t1=twopi*dot_product(vgql(:,igq,iq),matmul(s,vtlsymc(:,jsym)))
+              t2=cos(t1); t3=-sin(t1)
+              if (abs(t2).lt.epsrot) t2=0.d0
+              if (abs(t3).lt.epsrot) t3=0.d0
+              zt1=cmplx(t2,t3,8)
               ig=igqig(igq,iq)
               vg(:)=ivg(:,ig)
-              ! aG
-              vg=matmul(vg,si) !+wrapping for q<>0
-              ! index to aG
+              vg=matmul(vg,s)
               ig=ivgigq(vg(1),vg(2),vg(3),iq)
+
+              
+!!$              vt=matmul(avec,vtlsymc(:,isym))
+!!$              ! a(G+q)
+!!$              v1(:)=vgqc(:,igq,iq)
+!!$              ! %.ta
+!!$              t1=dot_product(v1,vt)
+!!$              ! exp(%)
+!!$              zt1=cmplx(cos(t1),-sin(t1),8)
+!!$              ! G
+!!$              ig=igqig(igq,iq)
+!!$              vg(:)=ivg(:,ig)
+!!$              ! aG
+!!$              vg=matmul(vg,si) !+wrapping for q<>0
+!!$              ! index to aG
+!!$              ig=ivgigq(vg(1),vg(2),vg(3),iq)
+
+
+
               write(80,'(4i6,3x,3i5,3x,i6)') iknr,ik,isym,igq,vg,ig
               ! write to ASCII file
               do ist=1,nstsv
                  do jst=1,nstsv
                     zt2=zt1*pwmat(ig,ist,jst)
-                    write(90,'(6i5,5g18.10)') iknr,ik,isym,igq,ist,jst,zt2, &
+                    write(90,'(7i5,5g18.10)') iknr,ik,isym,igq,ist,jst,ig,zt2, &
                          abs(zt2)**2, zt1
+
+                    if ((ist.le.nstval).and.(jst.gt.nstval)) then
+                       yiou(ist,jst-nstval,ig)=zt2
+                    end if
+                    if ((ist.gt.nstval).and.(jst.le.nstval)) then
+                       yiuo(ist-nstval,jst,ig)=zt2
+                    end if
+
                  end do
               end do
               ! end loop over G+q vectors
            end do
+
+           ! write full matrix elements
+           open(unit=un,file='EMAT_NR_Q00001.OUT',form='unformatted', &
+                action='write',access='direct',recl=recl)
+           write(un,rec=iknr) nstval, nstcon, nkptnr, ngq(iq), vql(:,iq), &
+                vklnr(:,iknr), yiou, yiuo
+           close(un)
+
+
+
            ! end loop over elements of star
         end do
      end if
+
+
 
 
      ! end loop over k
