@@ -7,9 +7,9 @@
 !BOP
 ! !ROUTINE: genpwmat
 ! !INTERFACE:
-subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
-     apwalmk,evecfvk,evecsvk,vklkp,ngkkp,igkigkp,apwalmkp,evecfvkp,evecsvkp, &
-     pwmat)
+subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
+     igkigk,apwalmk,evecfvk,evecsvk,vklkp,ngkkp,igkigkp,apwalmkp,evecfvkp, &
+     evecsvkp,pwmat)
 ! !USES:
   use modmain
   use modxs
@@ -37,6 +37,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   real(8), intent(in) :: vpl(3)
   integer, intent(in) :: ngpmax
   integer, intent(in) :: ngp
+  real(8), intent(in) :: vgpc(3,ngpmax)
   real(8), intent(in) :: gpc(ngpmax)
   integer, intent(in) :: igpig(ngpmax)
   complex(8), intent(in) :: ylmgp(lmmaxapw,ngpmax)
@@ -55,11 +56,12 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   complex(8), intent(in) :: evecsvkp(nstsv,nstsv)
   complex(8), intent(out) :: pwmat(ngp,nstsv,nstsv)
   ! local variables
-  integer ispn,is,ia,ias,ist,jst
-  integer i,j,k,l,m,lm,irc,igp,ig,ifg,igkk,igkkp,ir,iv(3),ivu(3)
+  integer i,j,k,l,m,lm,irc,igp,ig,ir,iv(3),ivu(3),ispn,is,ia,ias,ist,jst
+  integer :: igp1,igp2,ig1,ig2,iv1(3)
   real(8) :: v1(3)
-  complex(8) zsum,zt,zt1,zt2
+  complex(8) zt1,zt2
   ! allocatable arrays
+  real(8), allocatable :: jlgpr(:,:)
   complex(8), allocatable :: wfmtk(:,:,:)
   complex(8), allocatable :: wfmtkp(:,:,:)
   complex(8), allocatable :: wfmt1(:,:)
@@ -69,21 +71,16 @@ subroutine genpwmat(vpl,ngpmax,ngp,gpc,igpig,ylmgp,sfacgp,vklk,ngkk,igkigk, &
   complex(8), allocatable :: wfirk(:,:)
   complex(8), allocatable :: wfirkp(:,:)
   complex(8), allocatable :: pm(:,:,:)
-  real(8), allocatable :: jlgpr(:,:)
+  complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
+  complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
   ! external functions
   real(8), external :: r3taxi
   complex(8), external :: zfmtinp
-
-complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
-complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
-integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
-
-   allocate(cfunt(ngkk,ngkkp))
-   allocate(h(ngkk,nstfv))
-   allocate(pmt(nstfv,nstfv))
-   allocate(evecfvt1(nstfv,ngkk),evecfvt2(ngkkp,nstfv))
-
-
+  ! allocate arrays
+  allocate(cfunt(ngkk,ngkkp))
+  allocate(h(ngkk,nstfv))
+  allocate(pmt(nstfv,nstfv))
+  allocate(evecfvt1(nstfv,ngkk),evecfvt2(ngkkp,nstfv))
   ! check if q-point is commensurate with k-mesh
   if (any(abs(vpl*ngridk-nint(vpl*ngridk)).gt.epslat)) then
      write(*,*)
@@ -127,7 +124,6 @@ integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
   pm(:,:,:)=zzero
   ! loop over G+p vectors
   do igp=1,ngp
-!!$  do igp=2,2
      write(*,*) 'Info(genpwmat): igp: ',igp
      ! calculate matrix elements of the plane wave in the muffin-tin
      do is=1,nspecies
@@ -149,30 +145,30 @@ integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
            ias=idxas(ia,is)
            do ist=1,nstfv
               ! calculate the wavefunction for k-point
-              call wavefmt(lradstp,lmaxapwtd,is,ia,ngkk,apwalmk, &
+              call wavefmt(lradstp,lmaxapw,is,ia,ngkk,apwalmk, &
                    evecfvk(1,ist),lmmaxapw,wfmtk(1,1,ist))
               ! calculate the wavefunction for kp-point
-              call wavefmt(lradstp,lmaxapwtd,is,ia,ngkkp,apwalmkp, &
+              call wavefmt(lradstp,lmaxapw,is,ia,ngkkp,apwalmkp, &
                    evecfvkp(1,ist),lmmaxapw,wfmtkp(1,1,ist))
-!**************************
-              ! set WF to one for testing :
-!              wfmtk(:,:,ist)=zzero
-!              wfmtk(1,:,ist)=1.d0/y00
-!              wfmtkp(:,:,ist)=zzero
-!              wfmtkp(1,:,ist)=1.d0/y00
-!**************************
               ! convert wavefunction and plane wave to spherical coordinates
               call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zbshtapw, &
                    lmmaxapw,wfmtkp(1,1,ist),lmmaxapw,zzero,wfmt1,lmmaxapw)
               call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zbshtapw, &
                    lmmaxapw,pwfmt,lmmaxapw,zzero,wfmt2,lmmaxapw)
-
-
-!****************! try direct evaluation of exp(-i(G+q)r) on spherical grid
-
-
-
-
+              ! direct evaluation of exp(-i(G+q)r) on spherical grid
+              ! note that the Rayleigh expansion seems to be more precise
+              !do l=0,lmaxapw
+              !   do m=-l,l
+              !      lm=idxlm(l,m)
+              !      irc=0
+              !      do ir=1,nrmt(is),lradstp
+              !         irc=irc+1
+              !         vr(:)=spr(ir,is)*sphcov(:,lm)
+              !         t1=dot_product(vgpc(:,igp),vr)
+              !         wfmt2(lm,irc)=cmplx(cos(t1),-sin(t1),8)
+              !      end do
+              !   end do
+              !end do
               ! calculate product in muffin-tin in real space
               do irc=1,nrcmt(is)
                  zfmt(:,irc)=wfmt1(:,irc)*wfmt2(:,irc)
@@ -193,66 +189,9 @@ integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
            ! end loops over atoms and species
         end do
      end do
-
-
-
-
      ! calculate matrix elements of the plane wave in the interstitial region
-     wfirk(:,:)=zzero
-     wfirkp(:,:)=zzero
-!!$     do ist=1,nstfv
-!!$        ! wavefunction for k-point
-!!$        do igkk=1,ngkk
-!!$           ! FFT index
-!!$           ifg=igfft(igkigk(igkk))
-!!$           zt1=evecfvk(igkk,ist)
-!!$           wfirk(ifg,ist)=zt1
-!!$        end do
-!!$        ! product of plane wave factor and wave function for kp-point
-!!$        do igkkp=1,ngkkp
-!!$           ! subtract umklapp G-vector and G-vector
-!!$           iv(:)=ivg(:,igkigkp(igkkp))-ivg(:,igpig(igp))-ivu(:)
-!!$           ! index to difference of G-vectors
-!!$           ig=ivgig(iv(1),iv(2),iv(3))
-!!$           ! FFT index
-!!$           ifg=igfft(ig)
-!!$           zt1=evecfvkp(igkkp,ist)
-!!$           wfirkp(ifg,ist)=zt1
-!!$        end do
-!!$        ! convert the wavefunction to real-space for k-point
-!!$        call zfftifc(3,ngrid,1,wfirk(1,ist))
-!!$        ! convert the product to real-space
-!!$        call zfftifc(3,ngrid,1,wfirkp(1,ist))
-!!$        ! end loop over states
-!**************************
-              ! set WF to one for testing :
-!***        wfirk(:,:)=zone*sqrt(omega)
-!***       wfirkp(:,:)=zone*sqrt(omega)
-!        wfirk(:,ist)=zzero
-!        wfirkp(:,ist)=zzero
-!**************************
-!!$    end do
-
-
-
-!!$     ! find the overlaps
-!!$     do ist=1,nstfv
-!!$        do jst=1,nstfv
-!!$           zsum=0.d0
-!!$           do ir=1,ngrtot
-!!$              zsum=zsum+cfunir(ir)*conjg(wfirk(ir,ist))*wfirkp(ir,jst)
-!!$           end do
-!!$           zt1=zsum/dble(ngrtot)
-!!$           pm(igp,ist,jst)=pm(igp,ist,jst)+zt1
-!!$        end do
-!!$     end do
-
-
-
-
-     ! analytic evaluation
-     forall (ist1=1:nstfv)
-        evecfvt1(ist1,:)=conjg(evecfvk(1:ngkk,ist1))
+     forall (ist=1:nstfv)
+        evecfvt1(ist,:)=conjg(evecfvk(1:ngkk,ist))
      end forall
      evecfvt2(:,:)=evecfvkp(1:ngkkp,:)
      do igp1=1,ngkk
@@ -269,10 +208,7 @@ integer :: ist1,ist2,igp1,igp2,ig1,ig2,iv1(3)
           ngkk, evecfvt2, ngkkp, zzero, h, ngkkp)
      call zgemm('n','n', nstfv, nstfv, ngkk, zone, evecfvt1, &
           nstfv, h, ngkk, zzero, pmt, nstfv)
-!SAG ***     pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)
-
-
-
+     pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)
      ! compute the second-variational matrix elements of the plane wave
      if (tevecsv) then
         do i=1,nstsv

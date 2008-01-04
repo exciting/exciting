@@ -42,13 +42,11 @@ subroutine writepwmat
   ! allocate the momentum matrix elements array
   allocate(pwmat(ngq(iq),nstsv,nstsv))
 
-
   ! allocate matrix elements array
   if (allocated(xiou)) deallocate(xiou)
   if (allocated(xiuo)) deallocate(xiuo)
   allocate(xiou(nstval,nstcon,ngq(iq)))
   allocate(xiuo(nstcon,nstval,ngq(iq)))
-
 
   ! read in the density and potentials from file
   call readstate
@@ -73,7 +71,7 @@ subroutine writepwmat
      ! find k-point equivalent to k+q
      vpl(:)=vql(:,iq)+vkl(:,ik)
      call findkpt(vpl,isymkp,ikp)
-write(*,*) 'ik,ikp',ik,ikp
+     write(*,*) 'ik,ikp',ik,ikp
      vkpl(:)=vkl(:,ikp)
      ! get the eigenvectors from file for kp-point
      call getevecfv(vkl(1,ikp),vgkl(1,1,ikp,1),evecfvkp)
@@ -82,18 +80,15 @@ write(*,*) 'ik,ikp',ik,ikp
      call match(ngk(ikp,1),gkc(1,ikp,1),tpgkc(1,1,ikp,1),sfacgk(1,1,ikp,1), &
           apwalmkp)
      ! calculate the matrix elements of the plane wave
-     call genpwmat(vql(1,iq),ngqmax,ngq(iq),gqc(1,iq),igqig(1,iq), &
+     call genpwmat(vql(1,iq),ngqmax,ngq(iq),vgqc(1,1,iq),gqc(1,iq),igqig(1,iq),&
           ylmgq(1,1,iq),sfacgq(1,1,iq),vkl(1,ik),ngk(ik,1),igkig(1,ik,1), &
           apwalmk,evecfvk,evecsvk,vkl(1,ikp),ngk(ikp,1),igkig(1,ikp,1), &
           apwalmkp,evecfvkp,evecsvkp,pwmat)
-     write(*,*) '*** after genpwmat ***'
-
-
      do igq=1,ngq(iq)
         xiou(:,:,igq)=pwmat(igq,1:nstval,nstval+1:nstsv)
         xiuo(:,:,igq)=pwmat(igq,nstval+1:nstsv,1:nstval)
      end do
-
+     ! write to direct access file
      inquire(iolength=recl) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), &
           vkl(:,ik), xiou,xiuo
      un=51
@@ -102,9 +97,6 @@ write(*,*) 'ik,ikp',ik,ikp
      write(un,rec=ik) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
           xiou, xiuo
      close(un)
-
-
-
      ! write the matrix elements to direct-access file
 !!$     write(50,rec=ik) pwmat
 !!$     write(50,'(i8,3g18.10)') ik,vkl(:,ik)

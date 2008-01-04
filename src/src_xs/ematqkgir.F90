@@ -20,8 +20,6 @@ contains
     integer :: ivwrap(3)
     integer, allocatable :: aigk0(:),aigk(:)
 
- xihir(:,:)=zzero; return !SAG *** return zero ***!
-
     ikq=ikmapikq(ik,iq)
     allocate(aigk0(ngkmax0),aigk(ngkmax))
 

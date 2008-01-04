@@ -19,6 +19,7 @@ src/src_try
 Makefile.serial
 Makefile.parallel
 make.inc
+make.out
 mpif.h
 fort.*
 *.diff
