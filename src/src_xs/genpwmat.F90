@@ -232,13 +232,6 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
      else
         pwmat(:,:,:)=pm(:,:,:)
      end if
-     ! write to ASCII file
-     do ist=1,nstsv
-        do jst=1,nstsv
-           write(50,'(3i8,3g18.10)') igp,ist,jst,pwmat(igp,ist,jst), &
-                abs(pwmat(igp,ist,jst))**2
-        end do
-     end do
      ! end loop over G+p vectors
   end do
   deallocate(wfmtk,wfmtkp,wfmt1,wfmt2,zfmt,pwfmt,wfirk,wfirkp,pm,jlgpr)

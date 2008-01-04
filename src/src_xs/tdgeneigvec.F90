@@ -22,28 +22,28 @@ subroutine tdgeneigvec
 
 
 !@@@@@@@@@@@@@
-qi=0; qf=1
+!qi=0; qf=1
 
-call init0
+!call init0
 
-!!$  ! initialize universal variables
-!!$  call init0
-!!$  call init1
-!!$
-!!$  ! initialize q-point set
-!!$  call init2xs
-!!$
-!!$  ! SCF allready parallelized for k-point set
-!!$  qi=1
-!!$  ! add extra q-point for if files for q=0 are to be calculated
-!!$  if (tq0ev) qi=0
-!!$  qf=nqpt
-!!$
-!!$  ! write q-points
-!!$  if (rank.eq.0) call writeqpts
-!!$
-!!$  ! allocate arrays for APW expansion coefficients
-!!$  allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
+  ! initialize universal variables
+  call init0
+  call init1
+
+  ! initialize q-point set
+  call init2xs
+
+  ! SCF allready parallelized for k-point set
+  qi=1
+  ! add extra q-point for if files for q=0 are to be calculated
+  if (tq0ev) qi=0
+  qf=nqpt
+
+  ! write q-points
+  if (rank.eq.0) call writeqpts
+
+  ! allocate arrays for APW expansion coefficients
+  allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
 
   ! read from STATE.OUT exclusively
   isreadstate0=.true.
@@ -52,8 +52,8 @@ call init0
   do iq=qi,qf
 
      ! file extension for q-point
-!@@     call genfilname(iq=max(0,iq),setfilext=.true.)
-write(filext,'("_Q",i5.5,".OUT")') iq
+     call genfilname(iq=max(0,iq),setfilext=.true.)
+!!!write(filext,'("_Q",i5.5,".OUT")') iq
 
      ! one more iteration for q=0
      if (iq.eq.0) then
@@ -68,7 +68,7 @@ write(filext,'("_Q",i5.5,".OUT")') iq
         write(unitout,'(a,i8)') 'Info('//thisnam//'): eigenvectors generated &
              &for q-point:', iq
      end if
-stop 'stopped'
+!!!stop 'stopped'
      ! store product of eigenvectors with matching coefficients
      if (allocated(evecfv)) deallocate(evecfv)
      if (allocated(apwalm)) deallocate(apwalm)

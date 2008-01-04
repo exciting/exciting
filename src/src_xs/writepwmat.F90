@@ -7,18 +7,18 @@
 ! !ROUTINE: writepwmat
 ! !INTERFACE:
 subroutine writepwmat
-! !USES:
+  ! !USES:
   use modmain
   use modxs
-! !DESCRIPTION:
-!   Calculates the matrix elements of the plane wave $exp(-i(\mathbf{G}+
-!   mathbf{q})\mathbf{r})$ using routine {\tt genpwmat} and writes them to
-!   direct access file {\tt PWMAT.OUT}.
-!
-! !REVISION HISTORY:
-!   Created November 2007 (Sagmeister)
-!EOP
-!BOC
+  ! !DESCRIPTION:
+  !   Calculates the matrix elements of the plane wave $exp(-i(\mathbf{G}+
+  !   mathbf{q})\mathbf{r})$ using routine {\tt genpwmat} and writes them to
+  !   direct access file {\tt PWMAT.OUT}.
+  !
+  ! !REVISION HISTORY:
+  !   Created November 2007 (Sagmeister)
+  !EOP
+  !BOC
   implicit none
   ! local variables
   integer, parameter :: iq=1
@@ -29,7 +29,7 @@ subroutine writepwmat
   complex(8), allocatable :: evecsvk(:,:),evecsvkp(:,:)
   complex(8), allocatable :: pwmat(:,:,:)
 
-  integer :: iknr,lspl,isym,s(3,3),vg(3),ig,ist,jst
+  integer :: j,iknr,lspl,isym,s(3,3),vg(3),ig,ist,jst, si(3,3)
   real(8) :: c(3,3),vt(3),v1(3),t1
   complex(8) :: zt1,zt2
 
@@ -89,6 +89,15 @@ subroutine writepwmat
           ylmgq(1,1,iq),sfacgq(1,1,iq),vkl(1,ik),ngk(ik,1),igkig(1,ik,1), &
           apwalmk,evecfvk,evecsvk,vkl(1,ikp),ngk(ikp,1),igkig(1,ikp,1), &
           apwalmkp,evecfvkp,evecsvkp,pwmat)
+     ! write to ASCII file
+     do igq=1,ngq(iq)
+        do ist=1,nstsv
+           do jst=1,nstsv
+              write(50,'(4i5,3g18.10)') ik,igq,ist,jst,pwmat(igq,ist,jst), &
+                   abs(pwmat(igq,ist,jst))**2
+           end do
+        end do
+     end do
      do igq=1,ngq(iq)
         xiou(:,:,igq)=pwmat(igq,1:nstval,nstval+1:nstsv)
         xiuo(:,:,igq)=pwmat(igq,nstval+1:nstsv,1:nstval)
@@ -114,57 +123,58 @@ subroutine writepwmat
 !!$        end do
 !!$     end do
 !!$     write(50,*)
+
+
+     ! rotate matrix element if k-point set is reduced
+     !
+     ! M(G)(a^-1 ,q) = exp(ia(G+q)ta) M(aG+G_a)(k,q) !
+
+     if (nkpt.ne.nkptnr) then
+        do j=1,nsymcrysstr(ik)
+           iknr=ikstrmapiknr(j,ik)
+           isym=scmapstr(j,ik)
+           lspl=lsplsymc(isym)       
+           ! rotation in Cartesian coordinates
+           c(:,:)=symlatc(:,:,lspl)
+           ! rotation in lattice coordinates
+           s(:,:)=symlat(:,:,lspl)
+           si(:,:)=symlat(:,:,lsplsymc(scimap(isym)))
+           do igq=1,ngq(iq)
+              ! ta
+              vt=matmul(avec,vtlsymc(:,isym))
+              ! a(G+q)
+!              v1=matmul(c,vgqc(:,igq,iq))
+v1(:)=vgqc(:,igq,iq)
+              ! %.ta
+              t1=dot_product(v1,vt)
+              ! exp(%)
+              zt1=cmplx(cos(t1),-sin(t1),8)
+              ! G
+              ig=igqig(igq,iq)
+              vg(:)=ivg(:,ig)
+              ! aG
+              vg=matmul(vg,si) !+wrapping for q<>0
+              ! index to aG
+              ig=ivgigq(vg(1),vg(2),vg(3),iq)
+              write(80,'(4i6,3x,3i5,3x,i6)') iknr,ik,isym,igq,vg,ig
+              ! write to ASCII file
+              do ist=1,nstsv
+                 do jst=1,nstsv
+                    zt2=zt1*pwmat(ig,ist,jst)
+                    write(90,'(6i5,5g18.10)') iknr,ik,isym,igq,ist,jst,zt2, &
+                         abs(zt2)**2, zt1
+                 end do
+              end do
+              ! end loop over G+q vectors
+           end do
+           ! end loop over elements of star
+        end do
+     end if
+
+
      ! end loop over k
   end do
   close(50)
-
-
-
-  !****************************************************************
-  ! rotate matrix element if k-point set is reduced
-
-  ! M(G)(a^-1 ,q) = exp(ia(G+q)ta) M(aG+G_a)(k,q) !
-
-  if (nkpt.ne.nkptnr) then
-     do iknr=1,nkptnr
-        ik=strmap(iknr)
-        isym=strmapsymc(iknr)
-        lspl=lsplsymc(isym)
-        ! rotation in Cartesian coordinates
-        c(:,:)=symlatc(:,:,lspl)
-        ! rotation in lattice coordinates
-        s(:,:)=symlat(:,:,lspl)
-        do igq=1,ngq(iq)
-           ! ta
-           vt=matmul(avec,vtlsymc(:,isym))
-           ! a(G+q)
-           v1=matmul(c,vgqc(:,igq,iq))
-           ! %.ta
-           t1=dot_product(v1,vt)
-           ! exp(%)
-           zt1=cmplx(cos(t1),sin(t1),8)
-           ! G
-           ig=igqig(igq,iq)
-           vg(:)=ivg(:,ig)
-           ! aG
-           vg=matmul(s,vg) !+wrapping for q<>0
-           ! index to aG
-           ig=ivgigq(vg(1),vg(2),vg(3),iq)
-           ! write to ASCII file
-           do ist=1,nstsv
-              do jst=1,nstsv
-                 zt2=zt1*pwmat(ig,ist,jst)
-                 write(50,'(6i5,3g18.10)') iknr,ik,isym,igq,ist,jst,zt2, &
-                      abs(zt2)**2
-              end do
-           end do
-           ! end loop over G+q vectors
-        end do
-        ! end loop over k-points
-     end do
-  end if
-
-
   write(*,*)
   write(*,'("Info(writepwmat):")')
   write(*,'(" matrix elements of the plane wave written to file PWMAT.OUT")')

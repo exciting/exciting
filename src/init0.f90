@@ -440,11 +440,11 @@ call dlartg(1.d0,0.d0,cs,sn,r)
 ! get smearing function data
 call getsdata(stype,sdescr)
 !SAG
-if (called.ne.1) then
+!!!if (called.ne.1) then
 ! generate the spherical harmonic transform (SHT) matrices
 call genshtmat
 !SAG
-end if
+!!!end if
 ! allocate 1D plotting arrays
 if (allocated(dvp1d)) deallocate(dvp1d)
 allocate(dvp1d(nvp1d))
