@@ -14,8 +14,9 @@ subroutine x0toasc
   ! local variables
   character(*), parameter :: thisnam = 'x0toasc'
   character(256) :: filnam, filnama
-  integer :: n,iq,iw,un
+  integer :: n,iq,igq,igqp,iw,oct,noct,un
   real(8) :: vkloff_save(3)
+  complex(8) :: zt
   complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
   logical :: tq0
 
@@ -56,15 +57,30 @@ subroutine x0toasc
      open(unit=un,file=trim(filnama),form='formatted', &
           action='write',status='replace')
 
-     do iw=1,nwdf
-        ! read from binary file
-        call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,chi0hd)
-        ! write to ASCII file
-        if (tq0) then
-           write(un,*) ngq(iq),vql(:,iq),chi0,chi0wg,chi0hd
-        else
-           write(un,*) ngq(iq),vql(:,iq),chi0
-        end if
+     noct=1
+     if (tq0) noct=3
+     do oct=1,noct
+        do iw=1,nwdf
+           ! read from binary file
+           call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,chi0hd)
+           ! write to ASCII file
+           if (tq0) then
+              ! head
+              chi0(1,1)=chi0hd(oct)
+              ! wings
+              if (n.gt.1) then
+                 chi0(1,2:)=chi0wg(2:,1,oct)
+                 chi0(2:,1)=chi0wg(2:,2,oct)
+              end if
+           end if
+           do igq=1,ngq(iq)
+              do igqp=1,ngq(iq)
+                 zt=chi0(igq,igqp)
+                 write(un,'(5i6,3g18.10)') iq,oct,iw,igq,igqp,zt,abs(zt)
+              end do
+              write(un+1,'(100g12.4)') abs(chi0(igq,:))
+           end do
+        end do
      end do
 
      ! close file

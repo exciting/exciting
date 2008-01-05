@@ -278,7 +278,7 @@ contains
     end do ! ik
 
     do j=0,procs-1
-       if (rank==j) then
+       if (rank.eq.j) then
           do iw=wi,wf
              call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
