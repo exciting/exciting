@@ -22,12 +22,15 @@ subroutine writepwmat
   implicit none
   ! local variables
   integer, parameter :: iq=1
-  integer ik,ikp,recl,isymkp,igq,un
+  integer ik,ikp,recl,isymkp,igq,un,un2
   real(8) :: vpl(3),vkpl(3)
   complex(8), allocatable :: apwalmk(:,:,:,:),apwalmkp(:,:,:,:)
   complex(8), allocatable :: evecfvk(:,:),evecfvkp(:,:)
   complex(8), allocatable :: evecsvk(:,:),evecsvkp(:,:)
-  complex(8), allocatable :: pwmat(:,:,:)
+  complex(8), allocatable :: pwmat(:,:,:),pwmatf(:,:,:)
+
+    integer :: nstval_, nstcon_, nkpt_, ngq_,reclfull
+    real(8) :: vql_(3), vkl_(3)
 
   integer :: j,iknr,lspl,isym,jsym,s(3,3),vg(3),ig,ist,jst, si(3,3)
   real(8) :: c(3,3),vt(3),v1(3),t1,t2,t3
@@ -48,6 +51,7 @@ subroutine writepwmat
   allocate(evecsvkp(nstsv,nstsv))
   ! allocate the momentum matrix elements array
   allocate(pwmat(ngq(iq),nstsv,nstsv))
+  allocate(pwmatf(ngq(iq),nstsv,nstsv))
 
   ! allocate matrix elements array
   if (allocated(xiou)) deallocate(xiou)
@@ -112,7 +116,9 @@ subroutine writepwmat
      ! write to direct access file
      inquire(iolength=recl) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), &
           vkl(:,ik), xiou,xiuo
+     inquire(iolength=reclfull) pwmat
      un=51
+     un2=52
      open(unit=un,file='EMAT_Q00001.OUT',form='unformatted', &
           action='write',access='direct',recl=recl)
      write(un,rec=ik) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
@@ -157,63 +163,74 @@ subroutine writepwmat
               vg=matmul(vg,s)
               ig=ivgigq(vg(1),vg(2),vg(3),iq)
 
-              
-!!$              vt=matmul(avec,vtlsymc(:,isym))
-!!$              ! a(G+q)
-!!$              v1(:)=vgqc(:,igq,iq)
-!!$              ! %.ta
-!!$              t1=dot_product(v1,vt)
-!!$              ! exp(%)
-!!$              zt1=cmplx(cos(t1),-sin(t1),8)
-!!$              ! G
-!!$              ig=igqig(igq,iq)
-!!$              vg(:)=ivg(:,ig)
-!!$              ! aG
-!!$              vg=matmul(vg,si) !+wrapping for q<>0
-!!$              ! index to aG
-!!$              ig=ivgigq(vg(1),vg(2),vg(3),iq)
-
-
-
               write(80,'(4i6,3x,3i5,3x,i6)') iknr,ik,isym,igq,vg,ig
+
               ! write to ASCII file
               do ist=1,nstsv
                  do jst=1,nstsv
                     zt2=zt1*pwmat(ig,ist,jst)
+                    ! matrix elements for full k-point set
+                    pwmatf(igq,ist,jst)=zt2
                     write(90,'(7i5,5g18.10)') iknr,ik,isym,igq,ist,jst,ig,zt2, &
                          abs(zt2)**2, zt1
-
+                    
                     if ((ist.le.nstval).and.(jst.gt.nstval)) then
-                       yiou(ist,jst-nstval,ig)=zt2
+                       yiou(ist,jst-nstval,igq)=zt2
+                       write(300 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
+                            iknr,igq,ist,jst-nstval,zt2,abs(zt2)**2
                     end if
                     if ((ist.gt.nstval).and.(jst.le.nstval)) then
-                       yiuo(ist-nstval,jst,ig)=zt2
+                       yiuo(ist-nstval,jst,igq)=zt2
+                       write(400 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
+                            iknr,igq,ist-nstval,jst,zt2,abs(zt2)**2
                     end if
-
                  end do
               end do
               ! end loop over G+q vectors
            end do
 
-           ! write full matrix elements
+           ! write v-c and c-v matrix elements
            open(unit=un,file='EMAT_NR_Q00001.OUT',form='unformatted', &
                 action='write',access='direct',recl=recl)
            write(un,rec=iknr) nstval, nstcon, nkptnr, ngq(iq), vql(:,iq), &
                 vklnr(:,iknr), yiou, yiuo
            close(un)
 
-
+           ! write full matrix elements
+           open(unit=un,file='EMAT_FULL_NR_Q00001.OUT',form='unformatted', &
+                action='write',access='direct',recl=reclfull)
+           write(un,rec=iknr) pwmatf
+           close(un)
 
            ! end loop over elements of star
         end do
      end if
 
-
-
-
      ! end loop over k
   end do
   close(50)
+
+  ! read and write matrix elements of non-reduced k-points to ASCII file
+  if (nkpt.ne.nkptnr) then
+     open(unit=un,file='EMAT_FULL_NR_Q00001.OUT',form='unformatted', &
+          action='read',access='direct',recl=reclfull)
+     open(unit=un2,file='PWMAT_NR_ASC.OUT',form='formatted', &
+          action='write',status='replace')
+     do iknr=1,nkptnr
+        read(un,rec=iknr) pwmat
+        do igq=1,ngq(iq)
+           do ist=1,nstsv
+              do jst=1,nstsv
+                 write(un2,'(4i5,3g18.10)') iknr,igq,ist,jst, &
+                      pwmat(igq,ist,jst),abs(pwmat(igq,ist,jst))**2
+              end do
+           end do
+        end do
+     end do
+     close(un2)
+     close(un)
+  end if
+
   write(*,*)
   write(*,'("Info(writepwmat):")')
   write(*,'(" matrix elements of the plane wave written to file PWMAT.OUT")')
