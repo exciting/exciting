@@ -153,14 +153,21 @@ subroutine writepwmat
            ! rotation in lattice coordinates
            s(:,:)=symlat(:,:,lspl)
            do igq=1,ngq(iq)
+              ! let c=a^(-1) and note that in exciting the symmetry operations
+              ! are defined as y = as a (x + T_a)
+              ! (G+q).T_c
               t1=twopi*dot_product(vgql(:,igq,iq),matmul(s,vtlsymc(:,jsym)))
+              ! exp(-i(G+q)T_c)
               t2=cos(t1); t3=-sin(t1)
               if (abs(t2).lt.epsrot) t2=0.d0
               if (abs(t3).lt.epsrot) t3=0.d0
               zt1=cmplx(t2,t3,8)
+              ! G-vector of G+q
               ig=igqig(igq,iq)
               vg(:)=ivg(:,ig)
+              ! G*c
               vg=matmul(vg,s)
+              ! index of G+q-vector of new G-vector
               ig=ivgigq(vg(1),vg(2),vg(3),iq)
 
               write(80,'(4i6,3x,3i5,3x,i6)') iknr,ik,isym,igq,vg,ig
