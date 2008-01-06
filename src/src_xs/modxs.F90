@@ -34,6 +34,8 @@ module modxs
   !----------------------------!
   !     symmetry variables     !
   !----------------------------!
+  ! if .true. exclude symmetry operations including fractional translations
+  logical :: nofract
   ! maximum allowed number of symmetry operations (private to this module)
   integer, private, parameter :: maxsymcrs=192
   ! map to inverse crystal symmetry

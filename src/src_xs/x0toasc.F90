@@ -79,6 +79,8 @@ subroutine x0toasc
                  write(un,'(5i6,3g18.10)') iq,oct,iw,igq,igqp,zt,abs(zt)
               end do
               write(un+1,'(100g12.4)') abs(chi0(igq,:))
+              write(un+2,'(100g12.4)') dble(chi0(igq,:))
+              write(un+3,'(100g12.4)') aimag(chi0(igq,:))
            end do
         end do
      end do

@@ -26,7 +26,7 @@ subroutine writepmattd(lgather)
 !BOC
   implicit none
   ! arguments
-  logical, intent(in) :: lgather
+  logical :: lgather
   ! local variables
   character(*), parameter :: thisnam = 'writepmattd'
   integer ik,ki,kf,un
@@ -34,8 +34,6 @@ subroutine writepmattd(lgather)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-
-integer :: j,iknr,recl
 
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
@@ -90,27 +88,12 @@ integer :: j,iknr,recl
           call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
        end if
 #endif
-
-       ! write out matrix elements for non-reduced k-point set
-       if (nkpt.ne.nkptnr) then
-          do j=1,nsymcrysstr(ik)
-             iknr=ikstrmapiknr(j,ik)
-             inquire(iolength=recl) nstval, nstcon, nkptnr, &
-                  vklnr(:,iknr), pmat
-             un=187
-             open(unit=un,file='PMAT_TD_NR.OUT',form='unformatted', &
-                  action='write',access='direct',recl=recl)
-             write(un,rec=iknr) nstval, nstcon, nkptnr, vklnr(:,iknr),pmat
-             close(un)
-          end do
-       end if
-
   end do
   call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
 
 10 continue
 
-  ! gather from processes
+  ! lgather from processes
   if ((procs.gt.1).and.(rank.eq.0)) call pmatgather()
 
   ! reset global file extension to default

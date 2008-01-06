@@ -194,6 +194,7 @@ if (allocated(dftrans)) deallocate(dftrans)
 allocate(dftrans(3,ndftrans))
 dftrans(:,:)=0
 gather=.false.
+nofract=.false.
 tevout=.false.
 tappinfo=.false.
 dbglev=0
@@ -978,6 +979,8 @@ case('dftrans')
   end do
 case('gather')
   read(50,*,err=20) gather
+case('nofract')
+  read(50,*,err=20) nofract
 case('tevout')
   read(50,*,err=20) tevout
 case('appinfo')

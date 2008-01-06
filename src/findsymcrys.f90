@@ -9,6 +9,9 @@
 subroutine findsymcrys
 ! !USES:
 use modmain
+#ifdef XS
+use modxs
+#endif
 ! !DESCRIPTION:
 !   Finds the complete set of symmetries which leave the crystal structure
 !   (including the magnetic fields) invariant. A crystal symmetry is of the
@@ -97,6 +100,10 @@ do i=1,n
 ! find the symmetries for current translation
   call findsym(atposl,apl,nsym,lspl,lspn,iea)
   do isym=1,nsym
+#ifdef XS
+     ! exclude non-zero translations
+     if (nofract.and.(sum(abs(vtl(:,i))).gt.epslat)) goto 20
+#endif
     nsymcrys=nsymcrys+1
     if (nsymcrys.gt.maxsymcrys) then
       write(*,*)
@@ -116,6 +123,9 @@ do i=1,n
         eqatoms(ja,ia,is)=.true.
       end do
     end do
+#ifdef XS
+20  continue
+#endif
   end do
 end do
 deallocate(iea,vtl)
