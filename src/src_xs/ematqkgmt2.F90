@@ -27,11 +27,8 @@ contains
     lmax1=lmaxapwtd
     lmax3=lmax1
     xih(:,:) = zzero
-    xiohloa(:,:) = zzero
     xiuhloa(:,:) = zzero
     xiohalo(:,:) = zzero
-    xiuhalo(:,:) = zzero
-    xihlolo(:,:) = zzero
     xiou(:,:,igq)=zzero
     xiuo(:,:,igq)=zzero
 
@@ -60,15 +57,10 @@ contains
                          end do
                       end do ! m3
                    end do ! l3
-                   call tdzoutpr(nstval,nstcon, &
+                   call tdzoutpr(nst1,nst2, &
                         fourpi*conjg(sfacgq(igq,ias,iq)), &
-                        apwdlm0(1:nstval,io1,lm1,ias),zv(nstval+1:nstsv), &
+                        apwdlm0(istlo1:isthi1,io1,lm1,ias),zv(istlo2:isthi2), &
                         xiou(:,:,igq))
-                   call tdzoutpr(nstcon,nstval, &
-                        fourpi*conjg(sfacgq(igq,ias,iq)), &
-                        apwdlm0(nstval+1:nstsv,io1,lm1,ias),zv(1:nstval), &
-                        xiuo(:,:,igq))
-
                    ! end loop over (l',m',p')
                 end do! io1
              end do ! m1
@@ -96,10 +88,8 @@ contains
                       end do ! io
                    end do ! m3
                 end do ! l3
-                xiohloa(i,:)=xiohloa(i,:)+fourpi*conjg(sfacgq(igq,ias,iq))* &
-                     zv(1:nstval)
                 xiuhloa(i,:)=xiuhloa(i,:)+fourpi*conjg(sfacgq(igq,ias,iq))* &
-                     zv(nstval+1:)
+                     zv(istlo2:)
              end do ! m1
           end do ! ilo
 
@@ -126,9 +116,7 @@ contains
                    end do ! m3
                 end do ! l3
                 xiohalo(:,j)=xiohalo(:,j)+fourpi*conjg(sfacgq(igq,ias,iq))* &
-                     zv(1:nstval)
-                xiuhalo(:,j)=xiuhalo(:,j)+fourpi*conjg(sfacgq(igq,ias,iq))* &
-                     zv(nstval+1:)
+                     zv(istlo1:isthi1)
              end do ! m1
           end do ! ilo
 

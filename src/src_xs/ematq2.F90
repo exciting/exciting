@@ -31,9 +31,6 @@ contains
     call genfilname(nodotpar=.true.,basename='EMAT_TIMING',iq=iq,&
          procs=procs,rank=rank,filnam=fnetim)
 
-    ! set limits for band combinations
-    call ematbdlims(1)
-
     ! write G+q-vectors
     call writegqpts(iq)
 
@@ -49,19 +46,10 @@ contains
     ! allocate helper matrix
     if (allocated(xih)) deallocate(xih)
     allocate(xih(nlotot,nlotot))
-    ! allocate matrix elements array
-    if (allocated(xiou)) deallocate(xiou)
-    allocate(xiou(nst1,nst2,ngq(iq)))
-
-    if (allocated(xiohalo)) deallocate(xiohalo)
-    if (allocated(xiuhloa)) deallocate(xiuhloa)
-    if (allocated(xihlolo)) deallocate(xihlolo)
-    allocate(xiohalo(nst1,nlotot))
-    allocate(xiuhloa(nlotot,nst2))
-    allocate(xihlolo(nlotot,nlotot))
+    ! allocate contracted coefficients array
     if (allocated(apwdlm)) deallocate(apwdlm)
-    if (allocated(apwdlm0)) deallocate(apwdlm0)
     allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
+    if (allocated(apwdlm0)) deallocate(apwdlm0)
     allocate(apwdlm0(nstsv,apwordmax,lmmaxapwtd,natmtot))
 
     ! delete timing information of previous runs
@@ -71,20 +59,18 @@ contains
     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors:', &
          ngq(iq)
 
-    ! limits for k-point loop
-    ki=kpari
-    kf=kparf
-
-!!$    call getunit(un)
     ! loop over k-points
-    do ik = ki, kf
-       call ematqk2(iq,ik)
-!!$#ifdef MPI
-!!$       if (ik-ki+1 <= nkpt/procs) then
-!!$          ! synchronize for common number of k-points to all processes
-!!$          call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-!!$       end if
-!!$#endif
+    do ik=1,nkpt
+       
+       if (emattype.eq.0) then
+          ! v-c and c-v band combinations
+          call ematbdlims(1)
+          call ematqk2(iq,ik)
+       end if
+
+       ! writing of matrix elements to file
+       !+++++++++++++++++++++++++++++++++++
+
        ! end loop over k-points
     end do
 

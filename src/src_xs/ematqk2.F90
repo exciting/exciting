@@ -41,8 +41,7 @@ contains
 
     call cpu_time(cpu0)
 
-!SAG    ikq=ikmapikq(ik,iq)
-    ! k-point index for equivalent point to k+q
+    ! +++ k-point index for equivalent point to k+q
     vkql(:)=vkl(:,ik)+vql(:,iq)
     call findkpt(vkql,isym,ikq)
 
@@ -56,15 +55,20 @@ contains
     cpumlolores=0.d0; cpumloloares=0.d0; cpumirres=0.d0; cpumirares=0.d0
     cpudbg=0.d0
 
-    ! allocate temporary arrays
     n0=ngk(ik,1)
     n=ngk(ikq,1)
+    ! allocate matrix elements array
+    if (allocated(xiou)) deallocate(xiou)
+    allocate(xiou(nst1,nst2,ngq(iq)))
+    if (allocated(xiohalo)) deallocate(xiohalo)
+    allocate(xiohalo(nst1,nlotot))
+    if (allocated(xiuhloa)) deallocate(xiuhloa)
+    allocate(xiuhloa(nlotot,nst2))
+    ! allocate temporary arrays
     allocate(evecfvo0(nlotot,nst1))
     allocate(evecfvu(nlotot,nst2))
-    !
     allocate(evecfvo20(n0,nst1))
     allocate(evecfvu2(n,nst2))
-    !
     allocate(xihir(n0,n))
     allocate(helpm(nlotot,max(nst1,nst2)))
     allocate(helpm2(n0,max(nst1,nst2))) ! for ir

@@ -121,30 +121,19 @@ function procofindex(k,set)
    end do
 end function procofindex
 
-  !------------------interface to MPI_barrier for xs-part
-
-  subroutine barrier(rank,procs,un,async,string)
-    implicit none
-    ! arguments
-    integer, intent(in) :: rank,procs,un,async
-    character(*) :: string
-    ! local variables
-    character(*), parameter :: thisnam = 'barrier'
-    ! variables for compatibility reasons
-    integer :: rankt,unt,asynct
-    character(1024) :: stringt
-
-    ! do nothing if only one process
-    if (procs.eq.1) return
-
-    ! call the MPI barrier
+!------------------interface to MPI_barrier for xs-part
+subroutine barrier(rank,procs,un,async,string)
+  implicit none
+  ! arguments
+  integer, optional, intent(in) :: rank,procs,un,async
+  character(*), optional :: string
+  ! do nothing if only one process
+  if (procs.eq.1) return
+  ! call the MPI barrier
 #ifdef MPI
-    call MPI_barrier(mpi_comm_world,ierr)
+  call MPI_barrier(mpi_comm_world,ierr)
 #endif
-
-    rankt=rank; unt=un; asynct=async; stringt=trim(string)
-
-  end subroutine barrier
+end subroutine barrier
 
 
 end module modmpi
