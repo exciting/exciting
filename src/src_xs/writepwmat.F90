@@ -28,12 +28,8 @@ subroutine writepwmat
   complex(8), allocatable :: evecfvk(:,:),evecfvkp(:,:)
   complex(8), allocatable :: evecsvk(:,:),evecsvkp(:,:)
   complex(8), allocatable :: pwmat(:,:,:),pwmatf(:,:,:)
-
-    integer :: nstval_, nstcon_, nkpt_, ngq_,reclfull
-    real(8) :: vql_(3), vkl_(3)
-
-  integer :: j,iknr,lspl,isym,jsym,s(3,3),vg(3),ig,ist,jst, si(3,3)
-  real(8) :: c(3,3),vt(3),v1(3),t1,t2,t3
+  integer :: j,iknr,lspl,isym,jsym,s(3,3),vg(3),ig,ist,jst,reclfull
+  real(8) :: c(3,3),t1,t2,t3
   complex(8) :: zt1,zt2
   complex(8), allocatable :: yiou(:,:,:),yiuo(:,:,:)
   real(8), parameter :: epsrot=1.d-12
@@ -74,8 +70,6 @@ subroutine writepwmat
   call genlofr
   ! find the record length
   inquire(iolength=recl) pwmat
-!!$  open(50,file='PWMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
-!!$       status='REPLACE',recl=recl)
   open(50,file='PWMAT_ASC.OUT',action='WRITE',form='FORMATTED',status='REPLACE')
   do ik=1,nkpt
      write(*,*) 'Info(writepwmat): ik',ik
@@ -124,24 +118,8 @@ subroutine writepwmat
      write(un,rec=ik) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
           xiou, xiuo
      close(un)
-     ! write the matrix elements to direct-access file
-!!$     write(50,rec=ik) pwmat
-!!$     write(50,'(i8,3g18.10)') ik,vkl(:,ik)
-!!$     do igq=1,ngq(iq)
-!!$        do ist=1,nstsv
-!!$           do jst=1,nstsv
-!!$              write(50,'(4i8,3g18.10)') ik,igq,ist,jst,pwmat(igq,ist,jst), &
-!!$                   abs(pwmat(igq,ist,jst))**2
-!!$           end do
-!!$        end do
-!!$     end do
-!!$     write(50,*)
-
 
      ! rotate matrix element if k-point set is reduced
-     !
-     ! M(G)(ka,q) = exp(-i(G+q)a^-1Ta) M(Ga^-1+G_a)(k,q) !
-
      if (nkpt.ne.nkptnr) then
         do j=1,nsymcrysstr(ik)
            iknr=ikstrmapiknr(j,ik)

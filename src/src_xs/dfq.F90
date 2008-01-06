@@ -199,12 +199,12 @@ contains
              ! calculate oscillators
              if (.not.tq0) then
                 ! whole
-                call dfqoscbo(iq,ik,n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
+                call dfqoscbo(n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
              end if
 
              if (tq0.and.(n.gt.1)) then
                 ! body
-                call dfqoscbo(iq,ik,n-1,xiou(iv,ic,2:),xiuo(ic,iv,2:), &
+                call dfqoscbo(n-1,xiou(iv,ic,2:),xiuo(ic,iv,2:), &
                      hou(2:,2:),huo(2:,2:))
              end if
 
@@ -232,9 +232,9 @@ contains
 
                 if (tq0.and.(n.gt.1)) then
                    ! wings
-                   call dfqoscwg(1,iq,ik,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
+                   call dfqoscwg(1,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
                         xiuo(ic,iv,2:),hou(1,2:),huo(1,2:))
-                   call dfqoscwg(2,iq,ik,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
+                   call dfqoscwg(2,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
                         xiuo(ic,iv,2:),hou(2:,1),huo(2:,1))
                    do iw=wi,wf
                       wout=wou(iw)
