@@ -24,7 +24,7 @@ contains
     integer :: ist,istc,is,ia,ias
     if (lmax.gt.lmaxapw) then
        write(*,*)
-       write(*,'("Error(wavefmt): lmax > lmaxapw : ",I8)') lmax
+       write(*,'("Error(genapwcmt): lmax > lmaxapw : ",I8)') lmax
        write(*,*)
        stop
     end if

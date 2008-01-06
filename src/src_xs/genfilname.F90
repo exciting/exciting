@@ -7,9 +7,9 @@ module m_genfilname
   implicit none
 contains
 
-  subroutine genfilname(nodotpar,basename,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc,iq,procs,rank,dotext,setfilext,revertfilext,&
-       filnam,fileext)
+  subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
+       nar,nlf,fxctype,tq0,oc,iq,procs,rank,dotext,setfilext,&
+       revertfilext,filnam,fileext)
     use modmain, only: filext
     use modxs, only: filextrevert
     ! Generate file name and extension accoring to purpose and optional
@@ -20,7 +20,7 @@ contains
     ! Oktober 2007
     implicit none
     ! arguments
-    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,procs,rank
+    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,procs,rank,etype
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
     logical, optional, intent(in) :: revertfilext,setfilext
     character(*), optional, intent(in) :: basename,dotext
@@ -46,6 +46,23 @@ contains
     nodot0=.false.
     if (present(nodotpar)) nodot0=nodotpar
     s=''
+    ! type of band combinations for plane wave matrix elements
+    if (present(etype)) then
+       select case(etype)
+       case(0)
+          ! do nothing (v-c anc c-v combinations)
+       case(1)
+          ! v-v and c-c combinations for screened interaction
+          s=trim(s)//'_SCRI'
+       case(2)
+          ! all band combinations
+          s=trim(s)//'_FULL'
+       case default
+          write(*,'(a)') 'Error('//trim(thisnam)//'): unknown etype: ', &
+               etype
+          call terminate
+       end select
+    end if
     ! ascii output identifier
     if (present(asc)) then
        if (asc) then

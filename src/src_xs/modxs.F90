@@ -209,10 +209,14 @@ module modxs
   integer :: istunocc0, istunocc
   ! occupation numbers (q=0)
   real(8), allocatable :: occsv0(:,:)
+  ! lower and upper limits and numbers for band indices combinations
+  integer :: nst1,nst2,istlo1,isthi1,istlo2,isthi2
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
+  ! type of matrix element generation (band-combinations)
+  integer :: emattype
   ! maximum angular momentum for Rayleigh expansion of exponential
   integer :: lmaxemat
   ! (lmaxemat+1)^2
@@ -415,13 +419,13 @@ module modxs
   ! momentum matrix elements
   character(256) :: fnpmat, fnpmat_t
   ! exponential factor matrix elements
-  character(256) :: fnemat, fnemat_t
+  character(256) :: fnemat, fnemat_t, fnemat2, fnemat2_t
   ! exponential factor matrix elements timing
   character(256) :: fnetim
   ! Kohn-Sham response function timing
   character(256) :: fnxtim
   ! Kohn-Sham energy differences
-  character(256) :: fndevalsv, fndevalsv_t
+  character(256) :: fndevalsv, fndevalsv_t, fndevalsv2, fndevalsv2_t
   ! Kohn-Sham response function
   character(256) :: fnchi0, fnchi0_t, fnchi0p
   ! Inverse dielectric function
