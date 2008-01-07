@@ -149,7 +149,7 @@ subroutine xsmain
 
 !!$10 continue
 
-  ! epilog
-  call tdepilog
+  ! summarize information on run
+  call xsfinit
 
 end subroutine xsmain

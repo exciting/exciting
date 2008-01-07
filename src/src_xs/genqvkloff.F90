@@ -32,3 +32,20 @@ subroutine genqvkloff(vq,voff)
      voff=vkloff+vq*ngridk
   end if
 end subroutine genqvkloff
+
+subroutine mapkto01(v)
+  implicit none
+  ! arguments
+  real(8), intent(inout) :: v(3)
+  ! local variables
+  !integer :: id(3)
+  integer(8) :: v2(3),v3(3)
+  real(8),parameter :: fac=1.d15
+  !call r3frac(epslat,v,id)
+  v2=dint(v)
+  v3=dint(fac*v)
+  v3=v3-v2*dint(fac)
+  v=dble(v3/dint(fac))
+  where(v.lt.0.d0) v=v+1.d0
+
+end subroutine mapkto01

@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine tdepilog
+subroutine xsfinit
   use modmain
   use modxs
   use modmpi
@@ -11,7 +11,7 @@ subroutine tdepilog
   use m_filedel
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'tdepilog'
+  character(*), parameter :: thisnam = 'xsfinit'
   character(10) dat, tim
   real(8) :: cput,wallt,cputcum,walltcum
   real(8) :: hrs
@@ -69,4 +69,4 @@ subroutine tdepilog
 !!$  if (.not.tresume) call filedel(trim(fnresume))
   call filedel(trim(fnresume))
 
-end subroutine tdepilog
+end subroutine xsfinit

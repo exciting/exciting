@@ -53,7 +53,7 @@ subroutine df
   if (gather) then
      write(unitout,'(a)') "Info("//trim(thisnam)//"): gather option: &
           &exiting program"
-     call tdepilog
+     call xsfinit
      call terminate
   end if
 

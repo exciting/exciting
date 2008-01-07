@@ -27,17 +27,9 @@ integer is,ia,ias,ist
 integer l,m,lm,iv(3)
 real(8) cs,sn,r
 real(8) cpu0,cpu1
-!SAG
-integer, save :: called
-data called / 0 /
-!SAG
 ! external functions
 real(8) dlamch
 external dlamch
-
-!SAG
-called=called+1
-!SAG
 
 !-------------------------------!
 !     zero timing variables     !
@@ -439,12 +431,8 @@ call energynn
 call dlartg(1.d0,0.d0,cs,sn,r)
 ! get smearing function data
 call getsdata(stype,sdescr)
-!SAG
-!!!if (called.ne.1) then
 ! generate the spherical harmonic transform (SHT) matrices
 call genshtmat
-!SAG
-!!!end if
 ! allocate 1D plotting arrays
 if (allocated(dvp1d)) deallocate(dvp1d)
 allocate(dvp1d(nvp1d))

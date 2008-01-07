@@ -298,7 +298,7 @@ subroutine init2xs
      if (rank.ge.nkpt) then
         write(*,*) 'Warning('//thisnam//'): rank > nkpt: skipping this &
              &process - this should not happen within an MPI run'
-        call tdepilog
+        call xsfinit
         ! just stop current process
         stop
      end if
