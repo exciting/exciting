@@ -107,7 +107,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
              ,eigenvalue,r,rnorms)
         write(*,*)"rnorms",rnorms
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
-       call remove_converged(evecmap,iunconverged,&
+      call remove_converged(evecmap,iunconverged,&
        	rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      

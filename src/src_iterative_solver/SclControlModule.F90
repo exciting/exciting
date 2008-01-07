@@ -8,11 +8,11 @@ implicit none
   integer iterativetype
   integer,parameter:: diismax=10,diisfirstscl=4
   real lowesteval
-  real ,parameter::diisthreshould=1,reps=1e-8
+  real ,parameter::diisthreshould=1,reps=5e-7
 integer idamax
   external idamax
 contains
-
+ 
   function calculate_preconditioner()
     logical calculate_preconditioner
     calculate_preconditioner=.false.

@@ -29,6 +29,7 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
 #ifdef DEBUG               
         write(775,*)Pmatrix
         write(776,*)Qmatrix
+        stop
 #endif
 c=0.0
 c(m)=1.0
