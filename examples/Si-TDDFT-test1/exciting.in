@@ -32,6 +32,9 @@ vkloff
 ngridk
   2  2  2
 
+swidth
+  0.001
+
 ! TDDFT parameter
 qtype
   'zero'
