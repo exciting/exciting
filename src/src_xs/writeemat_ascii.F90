@@ -10,10 +10,10 @@ subroutine writeemat_ascii
   use m_getemat
   use m_genfilname
   implicit none
-  complex(8) :: xou,xuo
-  character(16) :: f1,f2,f
   character(256) :: filnam
-  integer :: un,iq,ik,iv,ic,igq
+  integer :: un,iq,ik,i,j,ib,jb,igq
+  integer :: nst3,nst4,istlo3,isthi3,istlo4,isthi4
+  complex(8) :: zt
   real(8) :: vkloff_save(3)
 
   ! save k-point offset
@@ -26,18 +26,24 @@ subroutine writeemat_ascii
   call getunit(un)
   
   ! loop over q-points
-  do iq = 1, nqpt
+  do iq=1,nqpt
      ! find highest (partially) occupied and lowest (partially) unoccupied
      ! states
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
           istu)
+     if (emattype.eq.1) then
+        ! v-c
+        call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
+        ! c-v
+        call ematbdlims(2,nst3,istlo3,isthi3,nst4,istlo4,isthi4)
+     end if
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
      call init1xs
      if (allocated(xiou)) deallocate(xiou)
      if (allocated(xiuo)) deallocate(xiuo)
-     allocate(xiou(nstval,nstcon,ngq(iq)))
-     allocate(xiuo(nstcon,nstval,ngq(iq)))
+     allocate(xiou(nst1,nst2,ngq(iq)))
+     allocate(xiuo(nst3,nst4,ngq(iq)))
      ! filename for matrix elements file
      call genfilname(basename='EMAT',asc=.true.,iq=iq,filnam=filnam)
      open(un,file=trim(filnam),action='write')
@@ -47,18 +53,23 @@ subroutine writeemat_ascii
         ! read matrix elements of exponential expression
         call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
         call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
-        do iv=1,nstval
-           f1='v'
-           !!!if (ist1.gt.(nstsv-nempty-1)) f1='c'
-           do ic=1,nstcon
-              f2='c'
-              !!!if (ist2.gt.(nstsv-nempty-1)) f2='c'
-              f='  '//trim(f1)//'-'//trim(f2)//'  '
+        do i=1,nst1
+           ib=i+istlo1-1
+           do j=1,nst2
+              jb=j+istlo2-1
               do igq=1,ngq(iq)
-                 xou=xiou(iv,ic,igq)
-                 xuo=xiuo(ic,iv,igq)
-                 write(un,'(5i8,6g18.10)') iq,ik,iv,ic,igq,xou,xuo,&
-                      abs(xou)**2,abs(xuo)**2
+                 zt=xiou(i,j,igq)
+                 write(un,'(5i8,3g18.10)') iq,ik,ib,jb,igq,zt,abs(zt)**2
+              end do
+           end do
+        end do
+        do i=1,nst3
+           ib=i+istlo3-1
+           do j=1,nst4
+              jb=j+istlo4-1
+              do igq=1,ngq(iq)
+                 zt=xiuo(i,j,igq)
+                 write(un,'(5i8,3g18.10)') iq,ik,ib,jb,igq,zt,abs(zt)**2
               end do
            end do
         end do

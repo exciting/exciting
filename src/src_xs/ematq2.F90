@@ -52,7 +52,7 @@ contains
     do ik=1,nkpt
        if (emattype.eq.1) then
           ! c-v
-          call ematbdlims(2)
+          call ematbdlims(2,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
           allocate(xiou(nst1,nst2,ngq(iq)))
           call ematqk2(iq,ik)
           ! save to array xuo
@@ -60,7 +60,7 @@ contains
           xiuo(:,:,:)=xiou(:,:,:)
           deallocate(xiou)
           ! v-c
-          call ematbdlims(1)
+          call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
           allocate(xiou(nst1,nst2,ngq(iq)))
           call ematqk2(iq,ik)
           ! write to file
