@@ -30,7 +30,6 @@ contains
     xiuhloa(:,:) = zzero
     xiohalo(:,:) = zzero
     xiou(:,:,igq)=zzero
-    xiuo(:,:,igq)=zzero
 
     ! loop over species and atoms
     do is = 1, nspecies
@@ -89,7 +88,7 @@ contains
                    end do ! m3
                 end do ! l3
                 xiuhloa(i,:)=xiuhloa(i,:)+fourpi*conjg(sfacgq(igq,ias,iq))* &
-                     zv(istlo2:)
+                     zv(istlo2:isthi2)
              end do ! m1
           end do ! ilo
 

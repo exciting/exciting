@@ -13,9 +13,7 @@ contains
     use modmpi
     use m_ematgntsum
     use m_ematqkgmt2
-    use m_ematqkgir
-    use m_putemat
-    use m_putdevalsv
+    use m_ematqkgir2
     use m_emattim
     use m_getunit
     use m_genfilname
@@ -41,9 +39,11 @@ contains
 
     call cpu_time(cpu0)
 
-    ! +++ k-point index for equivalent point to k+q
+    ! k-point index for equivalent point to k+q
     vkql(:)=vkl(:,ik)+vql(:,iq)
     call findkpt(vkql,isym,ikq)
+
+write(*,*) 'ematqk2: ik/ikq',ik,ikq
 
     ! check for stop statement
     write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
@@ -58,8 +58,6 @@ contains
     n0=ngk(ik,1)
     n=ngk(ikq,1)
     ! allocate matrix elements array
-    if (allocated(xiou)) deallocate(xiou)
-    allocate(xiou(nst1,nst2,ngq(iq)))
     if (allocated(xiohalo)) deallocate(xiohalo)
     allocate(xiohalo(nst1,nlotot))
     if (allocated(xiuhloa)) deallocate(xiuhloa)
@@ -71,23 +69,26 @@ contains
     allocate(evecfvu2(n,nst2))
     allocate(xihir(n0,n))
     allocate(helpm(nlotot,max(nst1,nst2)))
-    allocate(helpm2(n0,max(nst1,nst2))) ! for ir
+    allocate(helpm2(n0,max(nst1,nst2)))
+    ! zero arrays
+    xiohalo(:,:)=zzero
+    xiuhloa(:,:)=zzero
 
     ! read eigenvectors for G+k (q=0)
-    call getevecfv0(vkl(1,ik),vgkl(1,1,ik,1),evecfv0)
-    evecfvo0(:,:) = evecfv0(ngk(ik,1)+1:ngk(ik,1)+nlotot,istlo1:isthi1,1)
-    evecfvo20(:,:) = evecfv0(1:ngk(ik,1),istlo1:isthi1,1)
+    call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv0)
+    evecfvo0(:,:)=evecfv0(ngk(ik,1)+1:ngk(ik,1)+nlotot,istlo1:isthi1,1)
+    evecfvo20(:,:)=evecfv0(1:ngk(ik,1),istlo1:isthi1,1)
 
     ! read eigenvectors for G+k+q
     call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
-    evecfvu(:,:) = evecfv(ngk(ikq,1)+1:ngk(ikq,1)+nlotot,istlo2:isthi2,1)
-    evecfvu2(:,:) = evecfv(1:ngk(ikq,1),istlo2:isthi2,1)
+    evecfvu(:,:)=evecfv(ngk(ikq,1)+1:ngk(ikq,1)+nlotot,istlo2:isthi2,1)
+    evecfvu2(:,:)=evecfv(1:ngk(ikq,1),istlo2:isthi2,1)
 
     call cpu_time(cpu1)
     cpuini=cpu1-cpu0
 
     ! get expansion coefficients
-    call genfilname(basename='APWDLM',filnam=fnevapw)
+    call genfilname(basename='APWDLM',filnam=fnevapw,iq=0)
     inquire(iolength=recl) vql_,vkl_,apwdlm0
     call getunit(unit1)
     open(unit1,file=trim(fnevapw),action='read',&
@@ -98,6 +99,9 @@ contains
 
     call cpu_time(cpu0)
     cpuread=cpu0-cpu1
+
+    ! zero matrix elements array
+    xiou(:,:,:)=zzero
 
     ! loop over G+q vectors
     do igq=1,ngq(iq)
@@ -113,7 +117,7 @@ contains
        call cpu_time(cpu00)
        cpumt=cpumt+cpu00-cpu01
        ! interstitial contribution
-       call ematqkgir(iq,ik,igq)
+       call ematqkgir2(iq,ik,igq)
        call cpu_time(cpu01)
        cpuir=cpuir+cpu01-cpu00
 
@@ -170,11 +174,8 @@ contains
     call cpu_time(cpu1)
     cpumain=cpu1-cpu0
 
-    ! write to emat file
-! MODIFY    call putemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
-
     ! deallocate
-    deallocate(helpm,xihir)
+    deallocate(helpm,helpm2,xihir)
     deallocate(evecfvu,evecfvo0)
     deallocate(evecfvu2,evecfvo20)
     call cpu_time(cpu0)

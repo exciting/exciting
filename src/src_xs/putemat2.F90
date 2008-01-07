@@ -7,7 +7,7 @@ module m_putemat2
   implicit none
 contains
 
-  subroutine putemat2(iq,ik,tarec,filnam,xou,xuo)
+  subroutine putemat2(iq,ik,filnam,x1,x2)
     use modmain
     use modxs
     use modmpi
@@ -15,24 +15,21 @@ contains
     implicit none
     ! arguments
     integer, intent(in) :: iq,ik
-    logical :: tarec
     character(*), intent(in) :: filnam
-    complex(8), intent(in) :: xou(:,:,:), xuo(:,:,:)
+    complex(8), intent(in) :: x1(:,:,:),x2(:,:,:)
     ! local variables
-    integer :: un, recl, ikr
-
-    ! record position for k-point
-    ikr=ik
-    if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
+    integer :: un,recl
     ! I/O record length
-    inquire(iolength=recl) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), &
-         vkl(:,ik), xou, xuo
+    inquire(iolength=recl) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik),x1,x2
     call getunit(un)
     open(unit=un,file=trim(filnam),form='unformatted', &
          action='write',access='direct',recl=recl)
-    write(un,rec=ikr) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
-         xou, xuo
+    write(un,rec=ik) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik),x1,x2
     close(un)
+
+write(*,*) 'putemat2:abs(x1),abs(x2)',sum(abs(x1)),sum(abs(x2))
+write(*,*) 'putemat2:shape(x1),shape(x2)',shape(x1),shape(x2)
+
 
   end subroutine putemat2
 

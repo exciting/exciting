@@ -84,12 +84,15 @@ subroutine xsmain
   case(330)
      ! calculate matrix elements of exponential expression
      call writeemat
-  case(335)
-     ! calculate matrix elements of the plane wave (new version)
-     call writepwmat
   case(331)
      ! ASCII output of matrix elements of exponential expression
      call writeemat_ascii
+  case(333)
+     ! calculate matrix elements of exponential expression (band combs)
+     call writeemat2
+  case(335)
+     ! calculate matrix elements of the plane wave (new version)
+     call writepwmat
   case(339)
      ! check relation between matr. el. of exp. and mom. matr. el.
      call emattest
