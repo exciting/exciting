@@ -24,7 +24,9 @@ write(*,*) "prerotate zgemm"
   call ZHEEVX( 'V', 'A', 'U',m , hs, m, v,v, i, i,&
        ABSTOL, mfound, eval, c, m, WORK, 2*m, RWORK,&
        IWORK, IFAIL, INFO )
-  tmp=0.0
-  call zgemm('N','N',n,m,m,m,zone,P,nmatmax,c,m,zzero,tmp,nmatmax)
-  P(:,1:m)=tmp(:,1:m)
+ 
+ ! call zgemm('N','N',n,m,m,m,zone,P,nmatmax,c,m,zzero,tmp,nmatmax)
+  
+  !P(:,1:m)=tmp(:,1:m)
+  !zcopy!
 end subroutine prerotate_preconditioner

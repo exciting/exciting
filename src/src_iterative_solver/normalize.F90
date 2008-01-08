@@ -1,10 +1,10 @@
-subroutine  normalize(n,m,overlap,evecfv)	
+subroutine  normalize(n,m,overlap,evecfv,ldv)	
 use modmain,only:zone,zzero
 use diisinterfaces
 implicit none
-integer, intent (in)::n,m
+integer, intent (in)::n,m,ldv
 complex(8),intent(in)::overlap(n,n)
-complex(8),intent(out)::evecfv(n,m)
+complex(8),intent(out)::evecfv(ldv,m)
 complex(8)::tmp(n),z
 integer i
 do i=1,m

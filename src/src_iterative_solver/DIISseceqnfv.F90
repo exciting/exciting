@@ -90,6 +90,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
      if( doprerotate_preconditioner()) then
         !      call prerotate_preconditioner(n,2*nstfv,hamilton,evecfv,P)
+        call normalize(n,2*nstfv,overlap,P,nmatmax)	
         !     call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
      endif
      do idiis=1,diismax
@@ -97,7 +98,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,&
+        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
@@ -111,7 +112,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
        	rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
-        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,&
+        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
            ! call  system('rm fort.77*')
@@ -121,7 +122,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
                 ,eigenvalue,eigenvector)
            !write(773,*) trialvecs(:,3,idiis)
            !write(774,*) evecfv(:,3,ispn)
-           call normalize(n,nstfv,overlap,eigenvector)	
+           call normalize(n,nstfv,overlap,eigenvector,n)	
         endif
   		do i=1,nstfv
            if(evecmap(i).ne.0) then

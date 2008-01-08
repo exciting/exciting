@@ -81,12 +81,12 @@ module diisinterfaces
      end subroutine writeprecond
   end interface
   interface
-subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
+subroutine setuphsvect(n,m,hamilton,overlap,evecfv,ldv,h,s)
 
   use modmain, only : nstfv,zone,zzero
   implicit none
-  integer ,intent(in):: n,m
-  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(n,m)
+  integer ,intent(in):: n,m,ldv
+  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(ldv,m)
   complex(8), intent(out)::h(n,m),s(n,m)
 
      end subroutine setuphsvect
@@ -135,7 +135,16 @@ subroutine setuphsvect(n,m,hamilton,overlap,evecfv,h,s)
        complex(8),intent(out)::evecfv(n,nstfv)
      end subroutine diisupdate
   end interface
+    interface
+  subroutine  normalize(n,m,overlap,evecfv,ldv)	
+use modmain,only:zone,zzero
 
+implicit none
+integer, intent (in)::n,m,ldv
+complex(8),intent(in)::overlap(n,n)
+complex(8),intent(out)::evecfv(ldv,m)
+end subroutine
+ end interface
   interface
      subroutine solvediis(m,Pmatrix,Qmatrix,c)
        implicit none
