@@ -7,43 +7,37 @@ subroutine writeemat_ascii
   use modmain
   use modxs
   use m_getunit
-  use m_getemat
+  use m_getemat2
   use m_genfilname
   implicit none
   character(256) :: filnam
   integer :: un,iq,ik,i,j,ib,jb,igq
-  integer :: nst3,nst4,istlo3,isthi3,istlo4,isthi4
   complex(8) :: zt
   real(8) :: vkloff_save(3)
-
   ! save k-point offset
   vkloff_save = vkloff
-
   call init0
   call init1
   call tdsave0
   call init2xs
   call getunit(un)
-  
   ! loop over q-points
   do iq=1,nqpt
      ! find highest (partially) occupied and lowest (partially) unoccupied
      ! states
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
           istu)
-     if (emattype.eq.1) then
-        ! v-c
-        call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-        ! c-v
-        call ematbdlims(2,nst3,istlo3,isthi3,nst4,istlo4,isthi4)
-     end if
+     ! set limits for band combinations
+     call ematbdcmbs(emattype)
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
      call init1xs
      if (allocated(xiou)) deallocate(xiou)
-     if (allocated(xiuo)) deallocate(xiuo)
      allocate(xiou(nst1,nst2,ngq(iq)))
-     allocate(xiuo(nst3,nst4,ngq(iq)))
+     if (emattype.ne.0) then
+        if (allocated(xiuo)) deallocate(xiuo)
+        allocate(xiuo(nst3,nst4,ngq(iq)))
+     end if
      ! filename for matrix elements file
      call genfilname(basename='EMAT',asc=.true.,iq=iq,filnam=filnam)
      open(un,file=trim(filnam),action='write')
@@ -52,34 +46,37 @@ subroutine writeemat_ascii
      do ik=1,nkpt
         ! read matrix elements of exponential expression
         call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
-        call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
-        do i=1,nst1
-           ib=i+istlo1-1
-           do j=1,nst2
-              jb=j+istlo2-1
-              do igq=1,ngq(iq)
+        if (emattype.eq.0) then
+           call getemat2(iq,ik,trim(fnemat),xiou)
+        else
+           call getemat2(iq,ik,trim(fnemat),xiou,xiuo)
+        end if
+        do igq=1,ngq(iq)
+           do i=1,nst1
+              ib=i+istlo1-1
+              do j=1,nst2
+                 jb=j+istlo2-1
                  zt=xiou(i,j,igq)
-                 write(un,'(5i8,3g18.10)') iq,ik,ib,jb,igq,zt,abs(zt)**2
+                 write(un,'(5i8,3g18.10)') iq,ik,igq,ib,jb,zt,abs(zt)**2
               end do
            end do
         end do
-        do i=1,nst3
-           ib=i+istlo3-1
-           do j=1,nst4
-              jb=j+istlo4-1
-              do igq=1,ngq(iq)
+        do igq=1,ngq(iq)
+           do i=1,nst3
+              ib=i+istlo3-1
+              do j=1,nst4
+                 jb=j+istlo4-1
                  zt=xiuo(i,j,igq)
-                 write(un,'(5i8,3g18.10)') iq,ik,ib,jb,igq,zt,abs(zt)**2
+                 write(un,'(5i8,3g18.10)') iq,ik,igq,ib,jb,zt,abs(zt)**2
               end do
            end do
         end do
      end do ! ik
      close(un)
-     deallocate(xiou,xiuo)
+     deallocate(xiou)
+     if (emattype.ne.0) deallocate(xiuo)
   end do ! iq
-
   ! restore offset
   vkloff = vkloff_save
   call genfilname(setfilext=.true.)
-
 end subroutine writeemat_ascii

@@ -16,21 +16,27 @@ contains
     ! arguments
     integer, intent(in) :: iq,ik
     character(*), intent(in) :: filnam
-    complex(8), intent(in) :: x1(:,:,:),x2(:,:,:)
+    complex(8), intent(in) :: x1(:,:,:)
+    complex(8), optional, intent(in) :: x2(:,:,:)
     ! local variables
     integer :: un,recl
-    ! I/O record length
-    inquire(iolength=recl) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik),x1,x2
     call getunit(un)
-    open(unit=un,file=trim(filnam),form='unformatted', &
-         action='write',access='direct',recl=recl)
-    write(un,rec=ik) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik),x1,x2
+    if (present(x2)) then
+       ! I/O record length
+       inquire(iolength=recl) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik), &
+            x1,x2
+       open(unit=un,file=trim(filnam),form='unformatted', &
+            action='write',access='direct',recl=recl)
+       write(un,rec=ik) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik),x1,x2
+    else
+       ! I/O record length
+       inquire(iolength=recl) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik), &
+            x1
+       open(unit=un,file=trim(filnam),form='unformatted', &
+            action='write',access='direct',recl=recl)
+       write(un,rec=ik) nstval,nstcon,nkpt,ngq(iq),vql(:,iq),vkl(:,ik),x1
+    end if
     close(un)
-
-write(*,*) 'putemat2:abs(x1),abs(x2)',sum(abs(x1)),sum(abs(x2))
-write(*,*) 'putemat2:shape(x1),shape(x2)',shape(x1),shape(x2)
-
-
   end subroutine putemat2
 
 end module m_putemat2

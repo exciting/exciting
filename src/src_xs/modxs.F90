@@ -210,7 +210,10 @@ module modxs
   ! occupation numbers (q=0)
   real(8), allocatable :: occsv0(:,:)
   ! lower and upper limits and numbers for band indices combinations
-  integer :: nst1,nst2,istlo1,isthi1,istlo2,isthi2
+  integer :: nst1,istlo1,isthi1,nst2,istlo2,isthi2
+  ! lower and upper limits and numbers for band indices combinations second
+  ! block
+  integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
