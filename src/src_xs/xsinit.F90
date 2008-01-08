@@ -40,17 +40,6 @@ subroutine xsinit
      call genfilname(basename='.resume',dotext='',filnam=fnresume)
   end if
 
-!!$  call getunit(un)
-!!$  ! initialize for first call to main routine
-!!$  if (calledxs.eq.1) resumechkpts=0
-!!$  ! read in checkpoint if present
-!!$  call resread(un,resumetask,resumechkpts,tresume)
-!!$  ! checkpointing starts
-!!$  if (.not.tresume) then
-!!$     resumechkpts(:,1)=0
-!!$     call resupd(un,task,resumechkpts,' : prolog')
-!!$  end if
-
   !initialize global counters
   call cpu_time(cputim0i)
   call system_clock(COUNT_RATE=cntrate)
@@ -64,7 +53,7 @@ subroutine xsinit
 
   ! reset or append to output file
   call getunit(unitout)
-  if ( tappinfo.or.(calledxs.gt.1)) then
+  if (tappinfo.or.(calledxs.gt.1)) then
      open(unitout,file=trim(tdfileout),action='write',position='append')
   else
      open(unitout,file=trim(tdfileout),action='write',status='replace')

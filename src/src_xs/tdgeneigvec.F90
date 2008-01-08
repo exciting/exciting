@@ -20,17 +20,9 @@ subroutine tdgeneigvec
   integer :: iq,qi,qf,un
   integer :: ik,recl
 
-
-!@@@@@@@@@@@@@
-!qi=0; qf=1
-
-!call init0
-
   ! initialize universal variables
   call init0
   call init1
-
-  ! initialize q-point set
   call init2xs
 
   ! SCF allready parallelized for k-point set
@@ -116,7 +108,6 @@ subroutine tdgeneigvec
 
   call getunit(un)
   call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-!!!  call sleepifc(1)
 
 !!$  if (tresume) tresume=.false.
 

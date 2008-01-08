@@ -27,14 +27,13 @@ subroutine xsmain
   use m_getunit
   implicit none
   character(*), parameter :: thisnam = 'xsmain'
-!!$  logical :: tskip
 
   ! save task
   tasktd = task
   ! remember how often this routine is called
   calledxs = calledxs + 1
   ! 
-  if (calledxs.eq.1) call argparse()
+!!$  if (calledxs.eq.1) call argparse()
 
   ! basic initialization
   call xsinit
@@ -43,17 +42,7 @@ subroutine xsmain
      ! check verify constraints
      call tdcheck
      write(unitout,'(a)') 'Info('//thisnam//'): initialization done.'
-     ! write info
-     call writeinfotd
   end if
-
-!!$  if (tresume) then
-!!$     tskip=.true.
-!!$  else
-!!$     tskip=.false.
-!!$  end if
-!!$  if (tresume.and.(tasktd.eq.resumetask)) tskip=.false.
-!!$  if (tskip) goto 10
 
   ! task selection
   select case(tasktd)
@@ -146,8 +135,6 @@ subroutine xsmain
   case default
      write(*,*) 'Error('//thisnam//'): task not defined:', tasktd
   end select
-
-!!$10 continue
 
   ! summarize information on run
   call xsfinit

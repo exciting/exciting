@@ -12,6 +12,8 @@ use modmain
 use modxcifc
 #ifdef XS
 use modxs
+!SAG
+use controlx
 #endif
 ! !DESCRIPTION:
 !   Performs basic consistency checks as well as allocating and initialising
@@ -30,6 +32,9 @@ real(8) cpu0,cpu1
 ! external functions
 real(8) dlamch
 external dlamch
+
+!SAG
+init0_c=init0_c+1
 
 !-------------------------------!
 !     zero timing variables     !
@@ -431,8 +436,13 @@ call energynn
 call dlartg(1.d0,0.d0,cs,sn,r)
 ! get smearing function data
 call getsdata(stype,sdescr)
+
+!SAG
+if (init0_c.ne.1) then
 ! generate the spherical harmonic transform (SHT) matrices
 call genshtmat
+end if
+
 ! allocate 1D plotting arrays
 if (allocated(dvp1d)) deallocate(dvp1d)
 allocate(dvp1d(nvp1d))
