@@ -25,8 +25,8 @@ write(*,*) "prerotate zgemm"
        ABSTOL, mfound, eval, c, m, WORK, 2*m, RWORK,&
        IWORK, IFAIL, INFO )
  
- ! call zgemm('N','N',n,m,m,m,zone,P,nmatmax,c,m,zzero,tmp,nmatmax)
-  
-  !P(:,1:m)=tmp(:,1:m)
-  !zcopy!
+  call zgemm('N','N',n,m,m,m,zone,P,nmatmax,c,m,zzero,tmp,nmatmax)
+  call zcopy(n*m,tmp,1,P,1)
+ 
+
 end subroutine prerotate_preconditioner
