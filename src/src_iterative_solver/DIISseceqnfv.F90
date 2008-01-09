@@ -89,9 +89,16 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      end do
 
      if( doprerotate_preconditioner()) then
-        !      call prerotate_preconditioner(n,2*nstfv,hamilton,evecfv,P)
-        call normalize(n,2*nstfv,overlap,P,nmatmax)	
-        !     call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
+#ifdef DEBUG
+     write(777,*)P
+#endif
+             call prerotate_preconditioner(n,2*nstfv,hamilton,P)
+        	call normalize(n,2*nstfv,overlap,P,nmatmax)	
+             call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
+#ifdef DEBUG
+              write(778,*)P
+              stop   
+#endif
      endif
      do idiis=1,diismax
         write(*,*)"diisiter", idiis
@@ -115,13 +122,10 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
-           ! call  system('rm fort.77*')
-           !        	write(771,*) trialvecs(:,3,idiis)
-           !          	write(772,*) evecfv(:,3,ispn)
+    
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector)
-           !write(773,*) trialvecs(:,3,idiis)
-           !write(774,*) evecfv(:,3,ispn)
+          
            call normalize(n,nstfv,overlap,eigenvector,n)	
         endif
   		do i=1,nstfv

@@ -42,11 +42,11 @@ module diisinterfaces
   end interface
 
   interface
-     subroutine prerotate_preconditioner(n,m,h,evecfv,P)
+     subroutine prerotate_preconditioner(n,m,h,P)
        use modmain ,only:nstfv,nmatmax
        implicit none
        integer, intent(in) :: n,m
-       complex(8), intent(in)::h(n,n),evecfv(nstfv)
+       complex(8), intent(in)::h(n,n)
        complex(8),intent(inout)::P(nmatmax,nmatmax)
 
      end subroutine prerotate_preconditioner
