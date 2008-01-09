@@ -89,16 +89,13 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      end do
 
      if( doprerotate_preconditioner()) then
-#ifdef DEBUG
-     write(777,*)P
-#endif
-             call prerotate_preconditioner(n,2*nstfv,hamilton,P)
-        	call normalize(n,2*nstfv,overlap,P,nmatmax)	
-             call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
-#ifdef DEBUG
-              write(778,*)P
-              stop   
-#endif
+
+     		 !write(777,*)P
+             !call prerotate_preconditioner(n,2*nstfv,hamilton,P)
+             !call normalize(n,2*nstfv,overlap,P,nmatmax)	
+             !call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
+             !write(778,*)P     
+             !stop 
      endif
      do idiis=1,diismax
         write(*,*)"diisiter", idiis
@@ -109,8 +106,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
              h(:,:,idiis),s(:,:,idiis))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
-        write (777,*)w(:)
-        write (778,*)evalfv(:,ispn)
+       ! write (777,*)w(:)
+        !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
         write(*,*)"rnorms",rnorms

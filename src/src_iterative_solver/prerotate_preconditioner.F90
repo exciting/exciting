@@ -16,13 +16,14 @@ subroutine prerotate_preconditioner(n,m,h,P)
   external dlamch
   abstol=2.d0*dlamch('S')
 
-write(*,*) "prerotate zgemm n,m,nmatmax" ,n,m,nmatmax
+
 
   call zhemm('L','U',n,m,zone,h,nmatmax,P,nmatmax,zzero,tmp,nmatmax)
   call zgemm('C','N',m,m,n,zone,P,nmatmax,tmp,nmatmax,zzero,hs,m)
   call ZHEEVX( 'V', 'A', 'U',m , hs, m, v,v, i, i,&
        ABSTOL, mfound, eval, c, m, WORK, 2*m, RWORK,&
        IWORK, IFAIL, INFO )
+       write(*,*) "prerotate zgemm n,m,nmatmax,mfound" ,n,m,nmatmax,mfound
            if (info.ne.0) then
      write(*,*)
      write(*,'("Error(prerotate): diagonalisation failed")')
