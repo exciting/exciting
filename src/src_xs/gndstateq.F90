@@ -17,44 +17,23 @@ contains
     character(256) :: filext_save
     real(8) :: vkloff_save(3)
     integer :: task_save, maxscl_save
-
     ! save original values
     filext_save=trim(filext)
     vkloff_save=vkloff
     task_save=task
     maxscl_save=maxscl
-
     ! one iteration, new offset, special file extension
     filext=trim(filxt)
     vkloff=voff
     task=1
     maxscl=1
-
-    !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    write(*,*) 'units before gndstate'
-    call showunits
-    write(*,*) trim(filext)
-    write(*,*) vkloff
-    write(*,*) task
-    write(*,*) maxscl
-
     ! call with the above parameters changed
     call gndstate
-    
     ! restore original parameters
     filext=trim(filext_save)
     vkloff=vkloff_save
     task=task_save
     maxscl=maxscl_save
-    
-    !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    write(*,*) 'units after gndstate'
-    call showunits
-    write(*,*) trim(filext)
-    write(*,*) vkloff
-    write(*,*) task
-    write(*,*) maxscl
-
   end subroutine gndstateq
 
 end module m_gndstateq

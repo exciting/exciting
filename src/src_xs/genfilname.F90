@@ -12,12 +12,11 @@ contains
        revertfilext,filnam,fileext)
     use modmain, only: filext
     use modxs, only: filextrevert
-    ! Generate file name and extension accoring to purpose and optional
-    ! input parameters.
+    ! Generates file name and extension according to optional input parameters.
     ! Interpret bzsampl variable as default (Lorentzian) for 0, as
-    ! Tetrahedron method for 1. Trilinear method to be followed.
+    ! tetrahedron method for 1. Trilinear method to be followed.
     !
-    ! Oktober 2007
+    ! October 2007
     implicit none
     ! arguments
     integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,procs,rank,etype
@@ -29,7 +28,6 @@ contains
     logical :: nodot0,revert,setfxt
     character(*), parameter :: thisnam = 'genfilname'
     character(256) :: s,s1
-
     ! if file extension in "modmain" is to be reset to last value: reset
     ! else store current file extension
     revert=.false.
@@ -41,7 +39,6 @@ contains
     else if (setfxt) then
        filextrevert=filext
     end if
-    
     ! dot in front of filename in parallel output for rank eq. zero
     nodot0=.false.
     if (present(nodotpar)) nodot0=nodotpar
@@ -50,13 +47,13 @@ contains
     if (present(etype)) then
        select case(etype)
        case(0)
-          ! do nothing (v-c anc c-v combinations)
-       case(1)
-          ! v-v and c-c combinations for screened interaction
-          s=trim(s)//'_SCRI'
-       case(2)
           ! all band combinations
           s=trim(s)//'_FULL'
+       case(1)
+          ! v-c anc c-v combinations for response function
+       case(2)
+          ! v-v and c-c combinations for screened interaction
+          s=trim(s)//'_SCRI'
        case default
           write(*,'(a)') 'Error('//trim(thisnam)//'): unknown etype: ', &
                etype

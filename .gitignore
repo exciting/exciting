@@ -24,3 +24,6 @@ mpif.h
 fort.*
 *.diff
 Makefile.serial
+output.*
+outerr.*
+testcase*

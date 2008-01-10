@@ -433,6 +433,7 @@ call dlartg(1.d0,0.d0,cs,sn,r)
 call getsdata(stype,sdescr)
 ! generate the spherical harmonic transform (SHT) matrices
 call genshtmat
+
 ! allocate 1D plotting arrays
 if (allocated(dvp1d)) deallocate(dvp1d)
 allocate(dvp1d(nvp1d))

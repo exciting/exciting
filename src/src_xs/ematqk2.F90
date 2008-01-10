@@ -43,7 +43,7 @@ contains
     vkql(:)=vkl(:,ik)+vql(:,iq)
     call findkpt(vkql,isym,ikq)
 
-write(*,*) 'ematqk2: ik/ikq',ik,ikq
+    write(*,'("Info(ematqk2): ",I6,I6," of ",I6," k-points")') ik,ikq,nkpt
 
     ! check for stop statement
     write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'

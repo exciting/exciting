@@ -54,11 +54,12 @@ contains
          (r3dist(vkl_,vkl(1,ik)).gt.epslat) ) then
        write(unitout,'(a)') 'Error('//thisnam//'): differring parameters for &
             &matrix elements (current/file): '
-       write(unitout,'(a,2i6)') 'nstval', nstval, nstval_
-       write(unitout,'(a,2i6)') 'nstcon', nstcon, nstcon_
-       write(unitout,'(a,2i6)') 'nkpt', nkpt, nkpt_
-       write(unitout,'(a,3f12.6,a,3f12.6)') 'vql', vql(:,iq), ',', vql_
-       write(unitout,'(a,3f12.6,a,3f12.6)') 'vkl', vkl(:,ik), ',', vkl_
+       write(unitout,'(a,2i6)') ' nstval', nstval, nstval_
+       write(unitout,'(a,2i6)') ' nstcon', nstcon, nstcon_
+       write(unitout,'(a,2i6)') ' nkpt', nkpt, nkpt_
+       write(unitout,'(a,3f12.6,a,3f12.6)') ' vql', vql(:,iq), ',', vql_
+       write(unitout,'(a,3f12.6,a,3f12.6)') ' vkl', vkl(:,ik), ',', vkl_
+       write(unitout,'(a)') ' file: ',trim(filnam)
        call terminate
     end if
   end subroutine getemat2

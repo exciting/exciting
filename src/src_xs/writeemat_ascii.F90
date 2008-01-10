@@ -39,17 +39,18 @@ subroutine writeemat_ascii
         allocate(xiuo(nst3,nst4,ngq(iq)))
      end if
      ! filename for matrix elements file
-     call genfilname(basename='EMAT',asc=.true.,iq=iq,filnam=filnam)
+     call genfilname(basename='EMAT',asc=.true.,iq=iq,etype=emattype, &
+          filnam=filnam)
      open(un,file=trim(filnam),action='write')
-     write(un,'(a)') 'iq,ik,iv,ic,igq,xou,xuo,|xou|^2,|xuo|^2 below'
+     ! read matrix elements of exponential expression
+     call genfilname(basename='EMAT',iq=iq,etype=emattype,filnam=fnemat)
+     write(un,'(a)') 'iq,ik,igq,i1,i2,emat,|emat|^2, below'
      ! loop over k-points
      do ik=1,nkpt
-        ! read matrix elements of exponential expression
-        call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
         if (emattype.eq.0) then
-           call getemat2(iq,ik,trim(fnemat),xiou)
+           call getemat2(iq,ik,trim(fnemat),x1=xiou)
         else
-           call getemat2(iq,ik,trim(fnemat),xiou,xiuo)
+           call getemat2(iq,ik,trim(fnemat),x1=xiou,x2=xiuo)
         end if
         do igq=1,ngq(iq)
            do i=1,nst1
