@@ -45,7 +45,6 @@ subroutine tdgeneigvec
 
      ! file extension for q-point
      call genfilname(iq=max(0,iq),setfilext=.true.)
-!!!write(filext,'("_Q",i5.5,".OUT")') iq
 
      ! one more iteration for q=0
      if (iq.eq.0) then
@@ -60,7 +59,6 @@ subroutine tdgeneigvec
         write(unitout,'(a,i8)') 'Info('//thisnam//'): eigenvectors generated &
              &for q-point:', iq
      end if
-!!!stop 'stopped'
      ! store product of eigenvectors with matching coefficients
      if (allocated(evecfv)) deallocate(evecfv)
      if (allocated(apwalm)) deallocate(apwalm)
