@@ -19,9 +19,9 @@ subroutine writeemat2
   call init1
   ! initialize q-point set
   call init2xs
-  ! q-point interval for process
-  qpari=firstofset(rank,nqpt)
-  qparf=lastofset(rank,nqpt)
+  ! generate index ranges for parallel execution
+  if ((task.ge.300).or.(task.le.399)) call genparidxran('k')
+  if ((task.ge.400).or.(task.le.499)) call genparidxran('q')
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! write q-point set

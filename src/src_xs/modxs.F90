@@ -449,6 +449,8 @@ module modxs
   !------------------------------!
   ! maximum number of processors allowed to use
   integer, parameter :: maxproc=1000
+  ! parallelization type (values are 'q', 'k', 'w')
+  character(1) :: partype
   ! current initial q-point index
   integer :: qpari
   ! current final q-point index

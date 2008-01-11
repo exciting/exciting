@@ -28,24 +28,17 @@ subroutine xsmain
   implicit none
   character(*), parameter :: thisnam = 'xsmain'
 
-  ! save task
-  tasktd = task
-  ! remember how often this routine is called
-  calledxs = calledxs + 1
-  ! 
-!!$  if (calledxs.eq.1) call argparse()
-
   ! basic initialization
-  call xsinit
+  call xsinit(calledxs)
 
   if (calledxs.eq.1) then
      ! check verify constraints
-     call tdcheck
+     call xscheck
      write(unitout,'(a)') 'Info('//thisnam//'): initialization done.'
   end if
 
   ! task selection
-  select case(tasktd)
+  select case(task)
   case(300)
      ! say hello
      write(*,*)
@@ -133,7 +126,10 @@ subroutine xsmain
      call init1
      call writesymi
   case default
-     write(*,*) 'Error('//thisnam//'): task not defined:', tasktd
+     write(*,*)
+     write(*,*) 'Error('//thisnam//'): task not defined:', task
+     write(*,*)
+     call terminate
   end select
 
   ! summarize information on run

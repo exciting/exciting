@@ -49,7 +49,7 @@ contains
     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors:', &
          ngq(iq)
     ! loop over k-points
-    do ik=1,nkpt
+    do ik=kpari,kparf
        ! set band combinations
        call ematbdlims(2*emattype,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
        allocate(xiou(nst1,nst2,ngq(iq)))
@@ -67,49 +67,6 @@ contains
           call ematqk2(iq,ik)
           call putemat2(iq,ik,trim(fnemat),xiou,xiuo)          
        end if
-       
-
-!!$       select case(emattype)
-!!$       case(0)
-!!$          ! all band combinations
-!!$          call ematbdlims(0,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-!!$          allocate(xiou(nst1,nst2,ngq(iq)))
-!!$          call ematqk2(iq,ik)
-!!$          ! write to file
-!!$          call putemat2(iq,ik,trim(fnemat),xiou)
-!!$       case(1)
-!!$          ! c-v band combinations
-!!$          call ematbdlims(2,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-!!$          allocate(xiou(nst1,nst2,ngq(iq)))
-!!$          call ematqk2(iq,ik)
-!!$          ! save to array xiuo
-!!$          allocate(xiuo(nst1,nst2,ngq(iq)))
-!!$          xiuo(:,:,:)=xiou(:,:,:)
-!!$          deallocate(xiou)
-!!$          ! v-c band combinations
-!!$          call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-!!$          allocate(xiou(nst1,nst2,ngq(iq)))
-!!$          call ematqk2(iq,ik)
-!!$          ! write to file
-!!$          call putemat2(iq,ik,trim(fnemat),xiou,xiuo)
-!!$       case(2)
-!!$          ! v-v band combinations
-!!$          call ematbdlims(4,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-!!$          allocate(xiou(nst1,nst2,ngq(iq)))
-!!$          call ematqk2(iq,ik)
-!!$          ! save to array xiuo
-!!$          allocate(xiuo(nst1,nst2,ngq(iq)))
-!!$          xiuo(:,:,:)=xiou(:,:,:)
-!!$          deallocate(xiou)
-!!$          ! c-c band combinations
-!!$          call ematbdlims(3,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-!!$          allocate(xiou(nst1,nst2,ngq(iq)))
-!!$          call ematqk2(iq,ik)
-!!$          ! write to file
-!!$          call putemat2(iq,ik,trim(fnemat),xiou,xiuo)
-!!$       end select
-
-
        deallocate(xiou)
        if (allocated(xiuo)) deallocate(xiuo)
        ! end loop over k-points
