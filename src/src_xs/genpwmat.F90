@@ -59,7 +59,6 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
   integer i,j,k,l,m,lm,irc,igp,ig,ir,iv(3),ivu(3),ispn,is,ia,ias,ist,jst
   integer :: igp1,igp2,ig1,ig2,iv1(3)
   real(8) :: v1(3)
-  real(8) :: vr(3),t1
   complex(8) zt1,zt2
   ! allocatable arrays
   real(8), allocatable :: jlgpr(:,:)
@@ -158,18 +157,18 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
                    lmmaxapw,pwfmt,lmmaxapw,zzero,wfmt2,lmmaxapw)
               ! direct evaluation of exp(-i(G+q)r) on spherical grid
               ! note that the Rayleigh expansion seems to be more precise
-              do l=0,lmaxapw
-                 do m=-l,l
-                    lm=idxlm(l,m)
-                    irc=0
-                    do ir=1,nrmt(is),lradstp
-                       irc=irc+1
-                       vr(:)=spr(ir,is)*sphcov(:,lm)
-                       t1=dot_product(vgpc(:,igp),vr)
-                       wfmt2(lm,irc)=cmplx(cos(t1),-sin(t1),8)
-                    end do
-                 end do
-              end do
+              !do l=0,lmaxapw
+              !   do m=-l,l
+              !      lm=idxlm(l,m)
+              !      irc=0
+              !      do ir=1,nrmt(is),lradstp
+              !         irc=irc+1
+              !         vr(:)=spr(ir,is)*sphcov(:,lm)
+              !         t1=dot_product(vgpc(:,igp),vr)
+              !         wfmt2(lm,irc)=cmplx(cos(t1),-sin(t1),8)
+              !      end do
+              !   end do
+              !end do
               ! calculate product in muffin-tin in real space
               do irc=1,nrcmt(is)
                  zfmt(:,irc)=wfmt1(:,irc)*wfmt2(:,irc)
