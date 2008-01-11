@@ -63,7 +63,7 @@ contains
        diiscounter=1
     endif
  
-  end function doARPACKiteration
+  end function doARPACKiteration 
 
   function doLAPACKsolver()
     logical doLAPACKsolver
