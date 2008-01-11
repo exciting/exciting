@@ -41,8 +41,6 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
   !$OMP PARALLEL DEFAULT(SHARED)
   !$OMP DO
-
-
   do ispn=1,nspnfv
      ! find the matching coefficients
      call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
@@ -62,14 +60,8 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
       !    	stop
        ! endif
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
-    
      endif
-
-
-
-
   end do
-
   !$OMP END DO
   !$OMP END PARALLEL
   if (spinsprl) then

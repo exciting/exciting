@@ -149,8 +149,8 @@ end subroutine
      subroutine solvediis(m,Pmatrix,Qmatrix,c)
        implicit none
        integer, intent(in)::m
-       complex(8), intent(in)::Pmatrix(m,m),Qmatrix(m,m)
-       complex(8), intent(out)::c(m)
+     real(8), intent(in)::Pmatrix(m,m),Qmatrix(m,m)
+       real(8), intent(out)::c(m)
      end subroutine solvediis
   end interface
 end module diisinterfaces

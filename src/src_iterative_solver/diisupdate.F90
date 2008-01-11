@@ -1,9 +1,10 @@
 subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
   use modmain,only: nstfv,zone,zzero
   use diisinterfaces
+  use sclcontroll,only:diismax
   implicit none
   integer ,intent(in)::idiis,iunconverged,n
-  complex(8),intent(in)::h(n,nstfv,idiis),s(n,nstfv,idiis),trialvec(n,nstfv,idiis)
+  complex(8),intent(in)::h(n,nstfv, diismax),s(n,nstfv, diismax),trialvec(n,nstfv, diismax)
   real(8), intent(in):: evalfv(nstfv)
   complex(8),intent(out)::evecfv(n,nstfv)
 
@@ -11,7 +12,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
   complex(8) p(n,idiis)
   real(8)::nrm
   integer::i,j,ir,is
-  complex(8):: Pmatrix(idiis,idiis), Qmatrix(idiis,idiis),c(idiis),residnorm2
+real(8):: Pmatrix(idiis,idiis), Qmatrix(idiis,idiis),c(idiis),residnorm2
    complex(8)::z
    
   do i=1,iunconverged 
@@ -21,22 +22,30 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
         z=cmplx(-evalfv(i),0)
         call zaxpy(n,z,s(1,i,j),1,p(1,j),1)
      end do
-    residnorm2=zdotc(n,p(1,idiis),1,p(1,idiis),1)
+    residnorm2=dble(zdotc(n,p(1,idiis),1,p(1,idiis),1))
      do ir=1,idiis
 		do is=1,idiis
-			Pmatrix(is,ir)=zdotc(n,p(1,is),1,p(1,ir),1)/residnorm2
+			Pmatrix(is,ir)=dble(zdotc(n,p(1,is),1,p(1,ir),1))/residnorm2
+			!if (dble(Pmatrix(is,ir)).lt.1.e-4) then
+			!write(889,*)"ir,is,p(1,i,ir)",ir,is,p(1,is)
+			!endif
 	 	enddo
      enddo
      do ir=1,idiis
 		do is=1,idiis
-			Qmatrix(is,ir)=zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1)
+			Qmatrix(is,ir)=dble(zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1))
+			if (dble(Qmatrix(is,ir)).lt.1.e-4) then
+			write(888,*)"ir,is,trialvec(1,i,is),s(1,i,ir)",ir,is,trialvec(:,i,is),"s\n\n",s(:,i,ir)
+			endif
+			
 		enddo
      enddo
      call solvediis(idiis,Pmatrix,Qmatrix,c)
     write(*,*) "c",c
     evecfv(:,i)=0.0
      do ir=1,idiis
-        call zaxpy(n,c(ir),trialvec(1,i,ir),1,evecfv(1,i),1)
+     z=cmplx(c(ir),0.0)
+        call zaxpy(n, z,trialvec(1,i,ir),1,evecfv(1,i),1)
      end do
 
   end do

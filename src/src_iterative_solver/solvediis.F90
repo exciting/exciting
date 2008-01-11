@@ -4,18 +4,19 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
 
   integer, intent(in)::m
 
-  complex(8), intent(in)::Pmatrix(m,m),Qmatrix(m,m)
-  complex(8), intent(out)::c(m)
-  complex(8):: work(2*m)
+  real(8), intent(inout)::Pmatrix(m,m),Qmatrix(m,m)
+  real(8), intent(out)::c(m)
+  real(8):: work(8*m)
   real(8):: rwork(7*m),abstol,v
   integer:: iwork(5*m),ifail(m),info,mfound,lwork,i
   
   abstol=2.d0*dlamch('S')
-  lwork =2*m
-  i=1
-  call zhegvx(1,'V','I','U',m,Pmatrix,m,Qmatrix,m,&
+  lwork =8*m
+  i=1   
+  call dsygvx(1,'V','I','U',m,Pmatrix,m,Qmatrix,m,&
        v,v,i,i,abstol,mfound,v,c,m,work,lwork, &
-       rwork,iwork,ifail,info)
+      iwork,ifail,info)
+       
     if (info.ne.0) then
      write(*,*)
      write(*,'("Error(solvediis): diagonalisation failed")')
@@ -27,8 +28,8 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
         write(*,'(" Order of overlap matrix : ",I8)') m
         write(*,*) 
 #ifdef DEBUG               
-        write(775,*)Pmatrix
-        write(776,*)Qmatrix
+        write(775,*)(Pmatrix)
+        write(776,*)(Qmatrix)
         stop
 #endif
 c=0.0

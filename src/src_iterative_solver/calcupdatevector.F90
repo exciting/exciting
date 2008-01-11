@@ -16,10 +16,10 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
   do j=1,m
      do i=1,n
         z=cmplx (w(i)-evalfv(j),0.0)
-        if(abs(z).gt.1e-6)then  
+        if(abs(z).gt.1e-5)then  
            v(i,j)=-v(i,j)/z
         else
-           v(i,j)=0
+           v(i,j)=zzero
         endif
      end do
 

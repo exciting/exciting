@@ -43,12 +43,13 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8):: hamilton(nmat(ik,ispn),nmat(ik,ispn))
   complex(8):: overlap(nmat(ik,ispn),nmat(ik,ispn))
   complex(8):: P(nmatmax,nmatmax)
-  complex(8):: h(nmat(ik,ispn),nstfv,diismax) 
-  complex(8):: s(nmat(ik,ispn),nstfv,diismax)
-  complex(8):: r(nmat(ik,ispn),nstfv)
+  complex(8)::         h(nmat(ik,ispn),nstfv,diismax) 
+  complex(8)::         s(nmat(ik,ispn),nstfv,diismax)
+  complex(8)::         r(nmat(ik,ispn),nstfv)
+  complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
   complex(8):: eigenvector(nmat(ik,ispn),nstfv)
  real(8):: eigenvalue(nstfv)
-  complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
+
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
   integer iunconverged,evecmap(nstfv)
@@ -111,9 +112,16 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
         write(*,*)"rnorms",rnorms
+        	do i=1,nstfv
+           if(evecmap(i).ne.0) then
+             call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
+              evalfv(i,ispn)=eigenvalue(evecmap(i))
+           endif
+        end do
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
       call remove_converged(evecmap,iunconverged,&
        	rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
+       	
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
@@ -125,12 +133,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
           
            call normalize(n,nstfv,overlap,eigenvector,n)	
         endif
-  		do i=1,nstfv
-           if(evecmap(i).ne.0) then
-             call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
-              evalfv(i,ispn)=eigenvalue(evecmap(i))
-           endif
-        end do
+  	
      end do
 
      call cpu_time(cpu1)
