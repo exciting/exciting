@@ -24,7 +24,7 @@ plot1d
 
 dos
   500  100  0
-  0.0  0.3
+  0.0  1.0
 
 vkloff
   0.1  0.3  0.5
@@ -35,13 +35,19 @@ ngridk
 swidth
   0.001
 
+nempty
+  20
+
 ! TDDFT parameter
 qtype
-  'zero'
+  'grid'
+
+ngridq
+  2  2  2
 
 ! TDDFT parameter
 gqmax
-  0.001
+  0.0
 
 ! TDDFT parameter
 optswidth
@@ -56,9 +62,11 @@ tevout
   .true.
 
 tasks
-  301
+  310
   320
   330
   340
   350
 
+tetra
+  .true.

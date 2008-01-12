@@ -30,17 +30,15 @@ contains
     real(8), allocatable :: cwsurft1(:),cwt1(:),cwat1(:)
     real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
     real(8) :: wt, vkloff_save(3)
-    integer :: ik,ist,iv,ic
+    integer :: iqnr,ik,ist1,ist2,iv(3)
     integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
-    logical :: tq0,tetrat
+    logical :: tq0
 
-!!$    ! debug output in tetrahedron integration library
-!!$    call tetrasetdbglv(1)
-!!$    ! safer pointer handling in tetrahedron integration library
-!!$    call tetrasetpointerhandling(1)
-
-    ! init1 should be called for settings in libbzint
-
+    ! get index to reducible q-point
+    iv(:)=ivq(:,iq)
+    iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
+    ! generate link array for tetrahedra
+    call gentetlink(iqnr)
 
     tq0 = tq1gamma.and.(iq.eq.1)
     ! save k-point offset
@@ -58,7 +56,7 @@ contains
     allocate(wreal(nwdfp))
     ! generate complex energy grid
     call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
-    wreal(:)=w(wi:wf)
+    wreal(:)=dble(w(wi:wf))
     if (wreal(1).lt.epstetra) wreal(1)=epstetra
 
     ! set q-dependent file extension
@@ -70,16 +68,18 @@ contains
     call genfilname(basename='TETWT',iq=iq,rank=rank,procs=procs,&
          filnam=filnamt)
     
+    ! find highest (partially) occupied and lowest (partially) unoccupied states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+
     ! calculate k+q and G+k+q related variables
     call init1xs
 
-    ! tetrahedron method
-    if (.not.tq0) then
-       write(unitout,'(a)') 'Error('//trim(thisnam)//'): non-Gamma q-point &
-            &and tetrahedron method chosen'
-       tetrat=.false.
-       call terminate
-    end if
+!!$    ! tetrahedron method
+!!$    if (.not.tq0) then
+!!$       write(unitout,'(a)') 'Error('//trim(thisnam)//'): non-Gamma q-point &
+!!$            &and tetrahedron method chosen'
+!!$       call terminate
+!!$    end if
 
     ! read Fermi energy
     call genfilname(iq=0,setfilext=.true.)
@@ -95,12 +95,7 @@ contains
     end do
     eb(:,:)=evalsv(:,:)
     ! scissors shift
-    do ik=1,nkpt
-       do ist=nstval+1,nstsv
-          eb(ist,ik)=eb(ist,ik)+scissor
-       end do
-    end do
-    deallocate(evalsv)
+    where (eb.gt.efermi) eb=eb+scissor
     allocate(cw(nstsv,nstsv,nkpt))
     allocate(cwa(nstsv,nstsv,nkpt))
     allocate(cwsurf(nstsv,nstsv,nkpt))
@@ -160,12 +155,12 @@ contains
           cwa(iw,:,:)=cwat2(:,:)
           cwsurf(iw,:,:)=cwsurft2(:,:)
        end do
-       do iv=1,nstval
-          do ic=1,nstcon
+       do ist1=1,nstval
+          do ist2=1,nstcon
              irec2=irec2+1
-             cwsurft1(:)=cwsurf(:,iv,ic)
-             cwt1(:)=cw(:,iv,ic)
-             cwat1(:)=cwa(:,iv,ic)
+             cwsurft1(:)=cwsurf(:,ist1,ist2)
+             cwt1(:)=cw(:,ist1,ist2)
+             cwat1(:)=cwa(:,ist1,ist2)
              write(un2,rec=irec2) cwt1,cwat1,cwsurft1
           end do
        end do

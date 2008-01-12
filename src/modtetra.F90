@@ -42,8 +42,30 @@ module modtetra
   !     q-dependent convolution     !
   !---------------------------------!
   ! number of the tetrahedra linked to by the corresponding q vector
-  integer(4), allocatable :: link(:,:), kqid(:,:)
+  integer(4), allocatable :: link(:), kqid(:,:)
   ! q-points common divisor
   integer(4) dvq
+
+contains
+
+  subroutine r3fraction(r,n,d)
+    implicit none
+    ! arguments
+    real(8), intent(in) :: r(3)
+    integer, intent(out) :: n(3),d
+    ! parameters
+    real(8), parameter :: epst=1.d-6
+    ! call to libbzint-routine
+    call factorize(3,r,n,d)
+    ! check factorization
+    if (any(abs(dble(n)/dble(d)-r).gt.epst)) then
+       write(*,*)
+       write(*,'("Error(modtetra:r3fraction): factorization failed:")')
+       write(*,'(" vector                   :",3g18.10)') r
+       write(*,'(" vector from factorization:",3g18.10)') dble(n)/dble(d)
+       write(*,*)
+       stop
+    end if
+  end subroutine r3fraction
 
 end module modtetra

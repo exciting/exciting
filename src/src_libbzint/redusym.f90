@@ -78,13 +78,13 @@ subroutine redusym(nsym,symmat,dvof,nsymr)
      nsymr=isymr
      !<sag>
      if (tetradbglv > 0) then
-        !<sag>
+        !</sag>
         if(nsymr.lt.nsym)write(*,*)'WARNING: The k-point offset ',       &
              & 'selected reduces the symmetry group of the mesh, resulting in '&
              & ,'a larger number of irreducible k-points'
         !<sag>
      end if
-     !<sag>
+     !</sag>
      allocate(iio(3,3,nsymr))
      iio(1:3,1:3,1:nsymr)=tmpsym(1:3,1:3,1:nsymr)
 

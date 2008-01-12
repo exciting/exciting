@@ -61,7 +61,7 @@ subroutine init2xs
      end do
   end do
 
-  ! array of i**l values
+  ! array of (-i)**l values
   if (allocated(zmil)) deallocate(zmil)
   allocate(zmil(0:lmaxmax))
   do l=0,lmaxmax
@@ -73,9 +73,9 @@ subroutine init2xs
   !---------------------!
   ! check input type of q-point
   if ((trim(qtype).eq.'grid').or.(trim(qtype).eq.'zero')) then
+     vqloff(:)=0.d0
      if (trim(qtype).eq.'zero') then
-        ngridq(:) = 1
-        vqloff(:) = 0.d0
+        ngridq(:)=1
      end if
      if (task.eq.400) then
         ngridq(:)=ngridk(:)
@@ -191,6 +191,10 @@ subroutine init2xs
   end if
   ! maximum number of G+q vectors for all q
   call getngqmax
+
+write(*,*) 'gqmax',gqmax
+write(*,*) 'ngqmax',ngqmax
+
   ! allocate the G+q-vector arrays
   if (allocated(ngq)) deallocate(ngq)
   allocate(ngq(nqpt))

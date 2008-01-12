@@ -1,10 +1,10 @@
 !BOP
 ! 
-! !ROUTINE: kqgen
+! !ROUTINE: kqgen_exciting
 !
 ! !INTERFACE:
-      subroutine kqgen(bvec,ndiv,nshift,divsh,nkpt,klist,qlist,idivk,idivq,   &
-     &                 kqid,ntet,tetk,wtet,linkt,vtet)
+      subroutine kqgen_exciting(bvec,ndiv,nshift,divsh,nkpt,iqnr,klist,qlist, &
+           idivk,idivq,ntet,tetk,wtet,linkt,vtet)
 !-----------------------------------------------------------------------------
 ! this interface is changed. Compared with the original version
 ! 
@@ -49,7 +49,7 @@
      
       use kgen_internals
 !<sag>
-      use control, only: tetradbglv
+      use control, only: tetradbglv,kplusq
 !</sag>
       
       implicit none
@@ -63,7 +63,8 @@
 !                                                      the k-points mesh
       integer(4), intent(in) :: divsh
       integer(4), intent(in) :: nkpt
-
+      ! q-point index in the non-reduced set
+      integer, intent(in) :: iqnr
       real(8), intent(in) :: bvec(3,3)
 
 ! !OUTPUT PARAMETERS:
@@ -75,12 +76,6 @@
       integer(4), intent(out) :: qlist(3,nkpt) ! The list of
 !                                                          irreducible
 !                                                          q-points
-!----------------------------------------------------------------------
-! kqid is added here:
-      integer(4), intent(out) :: kqid(nkpt,nkpt) ! ID number of k-q
-!                                               point for k(ID) to a 
-!                                               specific q(ID)
-!----------------------------------------------------------------------
 
       integer(4), intent(out) :: idivk  ! Minimum common divisor or
 !                                        the integer sublattice 
@@ -102,7 +97,7 @@
 !                                                          tetrahedron.
       integer(4), intent(out) :: wtet(*)    ! index of the
 
-      integer(4), intent(out) :: linkt(6*nkpt,nkpt) ! index of the
+      integer(4), intent(out) :: linkt(6*nkpt) ! index of the
 !                                                          tetrahedron 
 !                                                          linked to the 
 !                                                          one in the
@@ -115,10 +110,10 @@
 !
 ! !LOCAL VARIABLES:
 
-      integer(4) :: i,j,itet,ik              ! Just some counters
+      integer(4) :: i,j,itet                 ! Just some counters
       integer(4), dimension(3) :: onek       ! Temporary storage of one
 !                                             k-point coordinates
-      integer(4), dimension(3) :: q,k,kq     ! Vector q for which the set
+      integer(4), dimension(3) :: q          ! Vector q for which the set
 !                                             of(k,k') points are 
 !                                             calculated
       integer(4) :: kpt(3,nkpt) ! Coordinates of the k-points
@@ -197,31 +192,31 @@
 !       call asockkp(wkkq)
       wtet(1:ntet)=1
  
-      do i=1,nkpt
-        q(1:3)=kpt(1:3,i)
+!!$      do i=1,nkpt
+        q(1:3)=kpt(1:3,iqnr) !+-+-
         call tgenq(q,ntet,tetk,link1)
         do itet=1,ntet
-          linkt(itet,i)=link1(itet)       
+          linkt(itet)=link1(itet)       !+-+-
         enddo
-      enddo
-!----------------------------------------------------------------------
-! to calculate kqid(k,q)=ID(k-q)  added by XZL on July 21th
-!----------------------------------------------------------------------    
-      do i=1,nkpt
-       call coorskp(i,q)
-       do j=1,nkpt
-         call coorskp(j,k)
-         do ik=1,3
-            kq(ik)=modulo(k(ik)-q(ik),ndiv(ik))
-         enddo
-         kqid(j,i)=idkp(kq)
-       enddo
-      enddo  
-!      write(*,*)allocated(link1),sizeof(link1)
-!      write(*,*)allocated(kpt),sizeof(kpt)
-!----------------------------------------------------------------------
-! ended
-!----------------------------------------------------------------------
+!!$      enddo
+!!$!----------------------------------------------------------------------
+!!$! to calculate kqid(k,q)=ID(k-q)  added by XZL on July 21th
+!!$!----------------------------------------------------------------------    
+!!$      do i=1,nkpt
+!!$       call coorskp(i,q)
+!!$       do j=1,nkpt
+!!$         call coorskp(j,k)
+!!$         do ik=1,3
+!!$            kq(ik)=modulo(k(ik)-q(ik),ndiv(ik))
+!!$         enddo
+!!$         kqid(j,i)=idkp(kq)
+!!$       enddo
+!!$      enddo  
+!!$!      write(*,*)allocated(link1),sizeof(link1)
+!!$!      write(*,*)allocated(kpt),sizeof(kpt)
+!!$!----------------------------------------------------------------------
+!!$! ended
+!!$!----------------------------------------------------------------------
       vtet=vt
       
 !     deallocate(link1)
@@ -231,5 +226,5 @@
   999 write(*,*)'nkpt too small, should be',ndiv(1)*ndiv(2)*ndiv(3)
       stop 'error in kqgen'     
 
-      end subroutine kqgen
+    end subroutine kqgen_exciting
 !EOC

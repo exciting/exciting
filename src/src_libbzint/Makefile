@@ -20,8 +20,7 @@ MODFILES = order.f90 kgen_internals.f90 tetra_internal.f90 polyhedron.f90
 #
 #  Files for generation of k-point grids
 #
-KGENFILES = kgen.f90 kgenq.f90 kqgen.f90 \
-	genkqtet.f90
+KGENFILES = kgen.f90 kgenq.f90 kqgen.f90 kqgen_exciting.f90
 
 #
 # Subroutines for use of kgenfiles only
