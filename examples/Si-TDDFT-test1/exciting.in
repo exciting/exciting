@@ -47,7 +47,7 @@ ngridq
 
 ! TDDFT parameter
 gqmax
-  0.0
+  2.0
 
 ! TDDFT parameter
 optswidth
@@ -62,11 +62,12 @@ tevout
   .true.
 
 tasks
-  310
-  320
   330
   340
   350
+
+maxscl
+  1
 
 tetra
   .true.

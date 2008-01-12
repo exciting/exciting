@@ -192,9 +192,6 @@ subroutine init2xs
   ! maximum number of G+q vectors for all q
   call getngqmax
 
-write(*,*) 'gqmax',gqmax
-write(*,*) 'ngqmax',ngqmax
-
   ! allocate the G+q-vector arrays
   if (allocated(ngq)) deallocate(ngq)
   allocate(ngq(nqpt))
