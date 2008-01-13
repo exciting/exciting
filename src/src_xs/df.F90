@@ -9,10 +9,13 @@ subroutine df
   use modmpi
   use m_dfq
   use m_getunit
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'df'
   integer :: iq,un
+
+  call genfilname(setfilext=.true.)
 
   if (calledxs.eq.1) call init0
 

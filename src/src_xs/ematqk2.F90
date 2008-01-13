@@ -88,7 +88,7 @@ contains
     cpuini=cpu1-cpu0
 
     ! get expansion coefficients
-    call genfilname(basename='APWDLM',filnam=fnevapw,iq=0)
+    call genfilname(basename='APWDLM',iq=0,filnam=fnevapw)
     inquire(iolength=recl) vql_,vkl_,apwdlm0
     call getunit(unit1)
     open(unit1,file=trim(fnevapw),action='read',&

@@ -23,7 +23,8 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'ematq2'
     integer :: ik
-    ! filenames
+    ! filenames and extensions
+    call genfilname(iq=iq,setfilext=.true.)
     call genfilname(basename='EMAT',etype=emattype,iq=iq,filnam=fnemat)
     call genfilname(basename='EMAT_TIMING',etype=emattype,iq=iq,filnam=fnetim)
     ! write G+q-vectors
@@ -69,6 +70,7 @@ contains
        end if
        deallocate(xiou)
        if (allocated(xiuo)) deallocate(xiuo)
+       if ((partype.eq.'k').and.(ik-kpari+1 <= nkpt/procs)) call barrier
        ! end loop over k-points
     end do
   end subroutine ematq2
