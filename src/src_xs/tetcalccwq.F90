@@ -74,13 +74,6 @@ contains
     ! calculate k+q and G+k+q related variables
     call init1xs
 
-!!$    ! tetrahedron method
-!!$    if (.not.tq0) then
-!!$       write(unitout,'(a)') 'Error('//trim(thisnam)//'): non-Gamma q-point &
-!!$            &and tetrahedron method chosen'
-!!$       call terminate
-!!$    end if
-
     ! read Fermi energy
     call genfilname(iq=0,setfilext=.true.)
     call readfermi
@@ -127,10 +120,8 @@ contains
           cwat2(:,:)=cwa(:nstval,nstval+1:,ik)
           write(un,rec=irec) cwt2,cwat2,cwsurft2
        end do
-       if (iw <= nwdf/procs) then
-          ! synchronize for common number of w-points to all processes
-          call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-       end if
+       ! synchronize for common number of w-points to all processes
+       if (iw <= nwdf/procs) call barrier
     end do
     close(un)
     deallocate(cw,cwa,cwsurf)

@@ -9,11 +9,10 @@ subroutine tetcalccw
   use modmpi
   use modtetra
   use m_tetcalccwq
-  use m_getunit
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'tetcalccw'
-  integer :: iq,un
+  integer :: iq
   logical :: tet
 
   if (calledxs.eq.1) call init0
@@ -34,7 +33,7 @@ subroutine tetcalccw
   wparf=lastofset(rank,nwdf)
 
   ! loop over q-points
-  do iq = 1, nqpt
+  do iq=1,nqpt
      ! call for q-point
      call tetcalccwq(iq)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): weights for tetrahedron &
@@ -42,15 +41,10 @@ subroutine tetcalccw
   end do
 
   ! synchronize
-  call getunit(un)
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-
+  call barrier
   if ((procs.gt.1).and.(rank.eq.0)) call tetgather
-
-  call barrier(rank=rank,procs=procs,un=un,async=1,string='.barrier')
-
+  call barrier
   tetra=tet
-
   write(unitout,'(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &
        &method finished"
 

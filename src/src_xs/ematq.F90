@@ -14,7 +14,6 @@ contains
     use m_ematrad
     use m_ematqk
     use m_writegqpts
-    use m_getunit
     use m_filedel
     use m_genfilname
     implicit none
@@ -22,7 +21,7 @@ contains
     integer, intent(in) :: iq
     ! local variables
     character(*), parameter :: thisnam = 'ematq'
-    integer :: ik,un,ki,kf
+    integer :: ik
     real(8) :: vkloff_save(3)
 
     ! filenames
@@ -35,19 +34,8 @@ contains
     call genfilname(basename='DEVALSV',iq=iq,procs=procs,rank=rank,&
        filnam=fndevalsv_t)
 
-    ! checkpointing starts
-    call getunit(un)
-!!$    if (.not.tresume) then
-!!$       ! k-point index
-!!$       resumechkpts(1,1)=0
-!!$       call resupd(un,task,resumechkpts,' : k-point index')
-!!$    else
-!!$       ! jump into next checkpoint (k-point)
-!!$       resumechkpts(1,1)=resumechkpts(1,1)+1
-!!$    end if
-
     ! save k-point offset
-    vkloff_save = vkloff
+    vkloff_save(:)=vkloff(:)
 
     ! file extension for q-point
     call genfilname(iq=iq,setfilext=.true.)
@@ -116,35 +104,18 @@ contains
     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors:', &
          ngq(iq)
 
-    ! limits for k-point loop
-    ki=kpari
-    kf=kparf
-    ! resume task, first checkpoint is k-point index
-!!$    if (tresume) ki=resumechkpts(1,1)
-    call getunit(un)
     ! loop over k-points
-    do ik = ki, kf
+    do ik=kpari,kparf
        call ematqk(iq,ik)
-!!$       resumechkpts(1,1)=ik
-!!$       call resupd(un,task,resumechkpts,' : k-point index')
-#ifdef MPI
-       if (ik-ki+1 <= nkpt/procs) then
-          ! synchronize for common number of k-points to all processes
-          call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-       end if
-#endif
+       ! synchronize for common number of k-points to all processes
+       if (ik-kpari+1 <= nkpt/procs) call barrier
        ! end loop over k-points
     end do
 
-!!$    ! close files   SAG ***
-!!$    close(unit1)
-
     ! restore offset
-    vkloff = vkloff_save
+    vkloff(:)=vkloff_save(:)
     ! restore file extension
     call genfilname(setfilext=.true.)
-
-!!$    if (tresume) tresume=.false.
 
   end subroutine ematq
 

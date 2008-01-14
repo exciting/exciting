@@ -10,12 +10,11 @@ subroutine writeemat
   use m_ematq
   use m_tdgauntgen
   use m_findgntn0
-  use m_getunit
   use m_filedel
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'writeemat'
-  integer :: iq,un,qi
+  integer :: iq
 
   ! initialise universal variables
   call init0
@@ -50,23 +49,17 @@ subroutine writeemat
 
   if (gather) goto 10
 
-  ! resume task, second checkpoint index is q-point index
-  qi=1
-  call getunit(un)
   ! loop over q-points
-  do iq = qi, nqpt
+  do iq=1,nqpt
      ! call for q-point
      call ematq(iq)
-!!$     resumechkpts(2,1)=iq
-!!$     call resupd(un,task,resumechkpts,' : q-point index')
      write(unitout,'(a,i8)') 'Info('//thisnam//'): matrix elements of the &
           &exponentials finished for q-point:',iq
      call flushifc(unitout)
   end do
 
   ! synchronize
-  call getunit(un)
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
+  call barrier
 
 10 continue
 
@@ -75,8 +68,7 @@ subroutine writeemat
   if ((procs.gt.1).and.(rank.eq.0)) call devalsvgather
 
   ! synchronize
-  call getunit(un)
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
+  call barrier
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): matrix elements of &
        &exponential expression finished"

@@ -17,7 +17,7 @@ subroutine tdgeneigvec
   ! local variables
   character(*), parameter :: thisnam = 'tdgeneigvec'
   real(8), parameter :: zero3(3)=0.d0
-  integer :: iq,qi,qf,un
+  integer :: iq,qi,qf
   integer :: ik,recl
 
   ! initialize universal variables
@@ -40,7 +40,6 @@ subroutine tdgeneigvec
   ! read from STATE.OUT exclusively
   isreadstate0=.true.
   ! calculate eigenvectors for each q-point (k+q point set)
-  call getunit(unit1)
   do iq=qi,qf
 
      ! file extension for q-point
@@ -99,17 +98,10 @@ subroutine tdgeneigvec
      ! end loop over q-points
   end do
   isreadstate0=.false.
-
-  call genfilname(setfilext=.true.)
-
   deallocate(apwdlm)
-
-  call getunit(un)
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-
-!!$  if (tresume) tresume=.false.
-
+  call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): generation of &
        &eigenvectors finished"
+  call genfilname(setfilext=.true.)
 
 end subroutine tdgeneigvec

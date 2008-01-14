@@ -8,12 +8,11 @@ subroutine df
   use modxs
   use modmpi
   use m_dfq
-  use m_getunit
   use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'df'
-  integer :: iq,un
+  integer :: iq
 
   call genfilname(setfilext=.true.)
 
@@ -33,7 +32,7 @@ subroutine df
   wparf=lastofset(rank,nwdf)
 
   ! loop over q-points
-  do iq = 1, nqpt
+  do iq=1,nqpt
      ! call for q-point
      if (.not.gather) call dfq(iq)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sahm response &
@@ -41,14 +40,9 @@ subroutine df
   end do
 
   ! synchronize
-  call getunit(un)
-  if (.not.gather) call barrier(rank=rank,procs=procs,un=un,async=0, &
-       string='.barrier')
-
+  if (.not.gather) call barrier
   if ((procs.gt.1).and.(rank.eq.0)) call dfgather
-
-  if (.not.gather) call barrier(rank=rank,procs=procs,un=un,async=1, &
-       string='.barrier')
+  if (.not.gather) call barrier
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Kohn-Sham response &
        &function finished"

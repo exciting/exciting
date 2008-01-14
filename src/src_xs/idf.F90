@@ -5,24 +5,18 @@
 
 subroutine idf
   use modmain
+  use modmpi
   use modxs
   use modfxcifc
-  use modmpi
   use m_idfq
   use m_tdlinopt
-  use m_getunit
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'idf'
-  integer, save :: called
-  data called /0/
-  integer :: iq, un
-
-  called=called+1
-  call getunit(un)
+  integer :: iq
 
   ! initialise universal variables
-  if (called.eq.1) call init0
+  if (calledxs.eq.1) call init0
   call init1
 
   ! initialize q-point set
@@ -43,7 +37,7 @@ subroutine idf
           &function finished for q-point:',iq
   end do
 
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
+  call barrier
 
   if ((procs > 1).and.(rank == 0)) then
      call idfgather
@@ -51,7 +45,7 @@ subroutine idf
              &function gathered for q-point:'
   end if
 
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
+  call barrier
 
   if (rank == 0) then
      do iq=1,nqpt
@@ -62,7 +56,7 @@ subroutine idf
      end do
   end if
 
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
+  call barrier
 
   write(unitout,'(a)') "Info("//trim(thisnam)//"): TDDFT linear optics &
        &finished"

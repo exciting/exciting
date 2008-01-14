@@ -122,11 +122,8 @@ function procofindex(k,set)
 end function procofindex
 
 !------------------interface to MPI_barrier for xs-part
-subroutine barrier(rank,procs,un,async,string)
+subroutine barrier
   implicit none
-  ! arguments
-  integer, optional, intent(in) :: rank,procs,un,async
-  character(*), optional :: string
   ! do nothing if only one process
   if (procs.eq.1) return
   ! call the MPI barrier
