@@ -1,0 +1,55 @@
+
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
+!BOP
+! !ROUTINE: gentetlink
+! !INTERFACE:
+subroutine gentetlink(iqnr)
+! !USES:
+  use modmain
+  use modtetra
+  use modxs
+! !DESCRIPTION:
+!   Generates an array connecting the tetrahedra of the $\mathbf{k}$-point with
+!   the ones of the  $\mathbf{k}+\mathbf{q}$-point. Interface routine
+!   referencing the {\tt libbzint} library of Ricardo Gomez-Abal.
+!
+! !REVISION HISTORY:
+!   Created January 2008 (SAG)
+!EOP
+!BOC
+  implicit none
+  ! arguments
+  integer, intent(in) :: iqnr
+  ! local variables
+  integer :: j
+  integer, allocatable :: ivkt(:,:),ivqt(:,:)
+  ! check if k-point set is not reduced for q-point different from Gamma point
+  if ((nkpt.ne.nkptnr).and.(iqnr.ne.1)) then
+     write(*,*)
+     write(*,'("Error(gentetlink): k-point set is reduced by symmetries and &
+          &q-point is not Gamma point")')
+     write(*,*)
+     call terminate
+  end if
+  ! allocate link array
+  if (allocated(link)) deallocate(link)
+  allocate(link(6*nkpt))
+  ! quick return for Gamma q-point
+  if (iqnr.eq.0) then
+     forall (j=1:6*nkpt) link(j)=j
+     return
+  end if
+  ! allocate local arrays
+  allocate(ivkt(3,nkptnr),ivqt(3,nkptnr))
+  ! generate fraction for k-point offset
+  call r3fraction(vkloff,ikloff,dkloff)
+  ! call to libbzint-routine
+  call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
+       ntet,tnodes,wtet,link,tvol)
+  ! deallocate local arrays
+  deallocate(ivkt,ivqt)
+end subroutine gentetlink
+!EOC

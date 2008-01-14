@@ -5,8 +5,8 @@
 
 subroutine writeemat2
   use modmain
-  use modxs
   use modmpi
+  use modxs
   use m_ematq2
   use m_tdgauntgen
   use m_findgntn0
@@ -20,8 +20,11 @@ subroutine writeemat2
   ! initialize q-point set
   call init2xs
   ! generate index ranges for parallel execution
-  if ((task.ge.300).or.(task.le.399)) call genparidxran('k')
-  if ((task.ge.400).or.(task.le.499)) call genparidxran('q')
+  if ((task.ge.300).or.(task.le.399)) partype='k'
+  if ((task.ge.400).or.(task.le.499)) partype='q'
+  call genparidxran(partype)
+  ! find highest (partially) occupied and lowest (partially) unoccupied states
+  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! write q-point set
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file

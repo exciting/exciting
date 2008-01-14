@@ -114,8 +114,8 @@ contains
     allocate(chi0(n,n,nwdfp))
     ! allocate arrays for eigenvalue differences
     if (allocated(deou)) deallocate(deou)
-    if (allocated(deuo)) deallocate(deuo)
     allocate(deou(nstval,nstcon))
+    if(allocated(deuo)) deallocate(deuo)
     allocate(deuo(nstcon,nstval))
     if (allocated(docc12)) deallocate(docc12)
     if (allocated(docc21)) deallocate(docc21)

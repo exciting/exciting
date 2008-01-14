@@ -19,7 +19,7 @@
       
       use kgen_internals
 !<sag>
-      use control, only: tetraifc
+      use control, only: tetraifc,kplusq
 !</sag>
 
       implicit none      
@@ -86,7 +86,7 @@
                 outet(i,6*(index-1)+t)=cornid
               enddo
                 do j=1,3
-                  orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j))
+                  orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j)) !SAG
                 enddo
               sib(6*(index-1)+t)=6*(idkp(orig2)-1)+t
             enddo
@@ -114,7 +114,11 @@
                 outet(i,6*(index-1)+t)=cornid
               enddo
                 do j=1,3
-                  orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j))
+                  if (kplusq) then
+                     orig2(j)=mod(orig(j)+q(j)+(1-isign(1,orig(j)+q(j)))/2*div(j),div(j)) !SAG
+                  else
+                     orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j))
+                  end if
                 enddo
               sib(6*(index-1)+t)=6*(idkp(orig2)-1)+t
             enddo

@@ -174,7 +174,7 @@ qtype='grid'
 qlist=''
 vqloff(:)=0.d0
 tq0ev=.true.
-gqmax=2.d0
+gqmax=0.d0
 lmaxapwtd=-1
 emattype=1
 lmaxemat=3
@@ -892,12 +892,6 @@ case('tq0ev')
    read(50,*,err=20) tq0ev
 case('gqmax')
   read(50,*,err=20) gqmax
-  if (gqmax.le.0.d0) then
-    write(*,*)
-    write(*,'("Error(readinput[td]): gqmax <= 0 : ",G18.10)') gqmax
-    write(*,*)
-    stop
-  end if
 case('lmaxapwtd')
   read(50,*,err=20) lmaxapwtd
   if (lmaxapwtd.lt.0) then

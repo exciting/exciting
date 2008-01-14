@@ -47,6 +47,16 @@ subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
   integer :: isym,lspl,igpt,ivlt(3)
   real(8) :: vl(3),vc(3),vlt(3),vct(3),vctl(3),s(3,3),c(3,3)
 
+  if (gqmax.lt.epslat) then
+     igp=1
+     igpig(igp)=igp
+     vgpl(:,igp)=vpl(:)
+     vgpc(:,igp)=vpc(:)
+     call sphcrd(vgpc(1,igp),gpc(igp),tpgpc(1,igp))
+     ivgigq(0,0,0,iq)=igp
+     ngp=1
+     return
+  end if
   t1=gqmax**2
   ivgigq(:,:,:,iq)=0
   igp=0

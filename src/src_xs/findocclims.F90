@@ -16,8 +16,10 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   do ik=1,nkpt
      ! k+q-point set
      ikq=ik
-     if (iq.ne.0) ikq=ikmapikq(ik,iq)
-     call getoccsv(vkl(1,ikq),occsv(1,ikq))
+!     if (iq.ne.0) ikq=ikmapikq(ik,iq)
+!     call getoccsv(vkl(1,ikq),occsv(1,ikq))
+     call genfilname(iq=iq,setfilext=.true.)
+     call getoccsv(vkl(1,ik),occsv(1,ik))
      do i=1,nstsv
         if (occsv(i,ik).lt.epsocc) exit
      end do
@@ -52,7 +54,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   iunocc=minval(iu)
 
   ! *** assign nstval and nstcon ***
-  nstval=iocc0
+  nstval=max(iocc0,iocc)
   nstcon=nstsv-nstval
 
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then

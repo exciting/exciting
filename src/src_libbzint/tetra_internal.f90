@@ -57,7 +57,11 @@ module control
   ! resonance type: 1...resonant term; 2...anti-resonant term; 0...both terms
   integer, save :: restype
   ! initialize with "0" according to original version
-  data restype / 0 /                 
+  data restype / 0 /
+  ! switch wether k+q or k-q should be calculated
+  logical, save :: kplusq
+  ! initialize with ".false." according to original version
+  data kplusq / .false. /
 end module control
 
 ! set interface parameter
@@ -79,9 +83,9 @@ subroutine tetrasetifc(val)
         write(*,*)
         write(*,'(a)') 'Error(libbzint): proper interface parameters are: &
              &"wien2k" and "exciting"'
+        write(*,*)
         stop
   end select
-!!$  write(*,*) 'tetraifc: ',val
 end subroutine tetrasetifc
 
 ! set debug level
@@ -91,7 +95,6 @@ subroutine tetrasetdbglv(val)
   ! arguments
   integer, intent(in) :: val
   tetradbglv=val
-!!$  write(*,*) 'tetradbglv: ',val
 end subroutine tetrasetdbglv
 
 ! set pointer handling
@@ -114,10 +117,10 @@ subroutine tetrasetpointerhandling(val)
         write(*,*)
         write(*,'(a)') 'Error(libbzint): proper pointer-handling parameters &
              &are: "0" and "1"'
+        write(*,*)
         stop
   end select
   pointerhandling=val
-!!$  write(*,*) 'pointerhandling: ',val
 end subroutine tetrasetpointerhandling
 
 ! set type of response function
@@ -140,11 +143,20 @@ subroutine tetrasetresptype(val)
         write(*,*)
         write(*,'(a)') 'Error(libbzint): proper response-type parameters are: &
              &"0", "1" and "2"'
+        write(*,*)
         stop
   end select
   restype=val
-!!$  write(*,*) 'restype: ',val
 end subroutine tetrasetresptype
+
+! set treatment of q-shifted k-mesh
+subroutine tetrasetkplusq(val)
+  use control
+  implicit none
+  ! arguments
+  logical, intent(in) :: val
+  kplusq=val
+end subroutine tetrasetkplusq
 
 ! report values of control module
 subroutine tetrareportsettings
@@ -155,6 +167,7 @@ subroutine tetrareportsettings
   write(*,'(a,i6)') '  debug level      (default=1000)     :', tetradbglv
   write(*,'(a,i6)') '  pointer handling (default=0)        :', pointerhandling
   write(*,'(a,i6)') '  resonance type   (default=0)        :', restype
+  write(*,'(a,l)')  '  kplusq           (default=F)        :', kplusq
   write(*,*)
 end subroutine tetrareportsettings
 !</sag>

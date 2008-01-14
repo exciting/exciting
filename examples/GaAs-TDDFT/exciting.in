@@ -1,10 +1,17 @@
 
 tasks
-  120
-  121
+  310
+  340
+  350
+
+tetra
+  .true.
 
 maxscl
   1
+
+swidth
+  0.001
 
 avec
   5.3435 5.3435 0.0000
@@ -31,14 +38,18 @@ vkloff
 
 ! These are the vertices to be joined for the band structure plot
 plot1d
-  7 200                                 : nvp1d, npp1d
-  0.0   0.0   1.0                       : vlvp1d
-  0.5   0.5   1.0
-  0.0   0.0   0.0
-  0.5   0.0   0.0
-  0.5   0.5   0.0
-  0.5   0.25 -0.25
-  0.5   0.0   0.0
+  7 50		                               : nvp1d, npp1d
+  0.0   0.0   1.0 	l_Z	orig 0.0   0.0   1.0   : vlvp1d
+  0.5   0.5   1.0	l_1	orig 0.5   0.5   1.0
+  0.0   0.0   0.0	Ga	orig 0.0   0.0   0.0
+  0.5   0.0   0.0	l_X	orig 0.5   0.0   0.0
+  0.5   0.5   0.0	l_2	orig 0.5   0.5   0.0
+  0.5   0.25 -0.25	l_3	orig 0.5   0.25 -0.25
+  0.5   0.0   0.0	l_X	orig 0.5   0.0   0.0
+
+dos
+  500  100  0
+  0.0  0.5
 
 ! TDDFT parameter
 qtype
@@ -49,8 +60,8 @@ gqmax
   0.001
 
 ! TDDFT parameter
-optswidth
-  0.007
+#optswidth
+#  0.007
 
 ! TDDFT parameter
 brdtd

@@ -41,8 +41,8 @@ subroutine init1
   real(8), allocatable :: wkptt(:)
   integer, allocatable :: ikmapt(:,:,:)
   integer, allocatable :: indirkp(:)
-  integer, allocatable :: iwkp(:),linkq(:,:), sy(:,:,:)
-  integer :: nqptt,nsymcryst,isym,lspl,nerr
+  integer, allocatable :: iwkp(:),sy(:,:,:)
+  integer :: nsymcryst,isym,lspl,nerr
 #endif
   ! external functions
   complex(8) gauntyry
@@ -131,29 +131,22 @@ subroutine init1
         call tetrasetpointerhandling(1)
         ! set resonance type (1...resonant weights)
         call tetrasetresptype(1)
+        ! set treatment of q-shifted k-mesh
+        call tetrasetkplusq(.true.)
         ! report interface parameters
         call tetrareportsettings
         ! generate fraction for k-point offset
-        call factorize(3,vkloff,ikloff,dkloff)
-        ! check offset factorization
-        if (any(abs(dble(ikloff)/dble(dkloff)-vkloff).gt.epslat)) then
-           write(*,*)
-           write(*,'("Error(init1): tetrahedron method:")')
-           write(*,'(" factorization of k-point offest failed")')
-           write(*,'(" offset                   :",3g18.10)') vkloff
-           write(*,'(" offset from factorization:",3g18.10)') &
-                dble(ikloff)/dble(dkloff)
-           write(*,*)
-           stop
-        end if
+        call r3fraction(vkloff,ikloff,dkloff)
         if (allocated(indirkp)) deallocate(indirkp)
         allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
         if (allocated(iwkp)) deallocate(iwkp)
         allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
         if (allocated(wtet)) deallocate(wtet)
         allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+        wtet(:)=0
         if (allocated(tnodes)) deallocate(tnodes)
         allocate(tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+        tnodes(:,:)=0
         if (nsymcrys.gt.48) then
            write(*,*) 'Error(init1): number of crystal symmetries > 48'
            write(*,*) ' does not work with k-point generation for'
@@ -168,15 +161,14 @@ subroutine init1
            do i1=1,3
               do i2=1,3
                  sy(i1,i2,isym)=symlat(i2,i1,lspl)
-              enddo
-           enddo
+              end do
+           end do
         end do
         ! reduce k-point set if necessary
         nsymcryst=1
         if (reducek) nsymcryst=nsymcrys
         call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,&
              iwkp,ntet,tnodes,wtet,tvol,mnd)
-
         ! debug output
         if (dbglev.gt.1) then
            write(*,*) 'writing out wtet to file ("wtet_kgen.out") ...'
@@ -184,14 +176,13 @@ subroutine init1
            write(1234,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
            close(1234)
         end if
-
         ! check tetrahedron weights
         i1=sum(wtet)
         if (i1.ne.6*ngridk(1)*ngridk(2)*ngridk(3)) then
            write(*,*) 'Error(init1): tetrahedron weights do not sum up properly&
                 & (current/required): ',i1,6*ngridk(1)*ngridk(2)*ngridk(3)
+           stop
         end if
-
         do ik=1,nkpt
            ! k-point in lattice coordinates
            vkl(:,ik)=dble(ivk(:,ik))/dble(dvk)
@@ -203,36 +194,11 @@ subroutine init1
         end do ! ik
         deallocate(indirkp,iwkp)
         !<rga>
-        if ((task.eq.121).or.(task.eq.122).or.((task.ge.300).and.(task.le.498))&
-             .and.(task.ne.301)) then
-           if (allocated(link)) deallocate(link)
-           allocate(link(6*nkpt,1))
-        end if
-        if (task.eq.-400) then
-           ! q-dependent dielectric function
-           allocate(linkq(6*nkpt,nkpt))
-           if (allocated(kqid)) deallocate(kqid)
-           allocate(kqid(nkpt,nkpt))
-           nqptt=nqpt
-           nqpt=nkpt
-           if (allocated(ivq)) deallocate(ivq)
-           allocate(ivq(3,ngridk(1)*ngridk(2)*ngridk(3)))
-           if (nkpt.lt.ngridk(1)*ngridk(2)*ngridk(3)) then
-              write(*,*) 'Warning(init1): q-dependent convolution'
-              write(*,*) ' weights from reduced k-point set, nkptnr,nkpt:',&
-                   ngridk(1)*ngridk(2)*ngridk(3),nkpt
-           end if
-           ! generate "link" array for q-dependent tetrahedron method
-           write(*,*) 'Info(init1): call to kqgen (libbzint)'
-           call kqgen(bvec,ngridk,ikloff,dkloff,nkpt,ivk,ivq,dvk,dvq,kqid, &
-                ntet,tnodes,wtet,linkq,tvol)
-           nqpt=nqptt
-           ! keep link-array only for q=0
-           link(:,1)=linkq(:,1)
-           deallocate(linkq,ivq,kqid)
-        else if ((task.eq.121).or.(task.eq.122)) then
+        if ((task.eq.121).or.(task.eq.122)) then
            ! linear optics (q=0): each tetrahedron is linked to itself
-           forall (i1=1:6*nkpt) link(i1,1)=i1
+           if (allocated(link)) deallocate(link)
+           allocate(link(6*nkpt))
+           forall (i1=1:6*nkpt) link(i1)=i1
         end if
         !</rga>       
         ! cross check k-point set with exciting default routine
@@ -285,12 +251,13 @@ subroutine init1
         ! add k-point mapping and integers on grid for k-point
         ikmap(:,:,:)=ikmapt(:,:,:)
         ivk(:,:)=ivkt(:,:)
-        deallocate(ikmapt,ivkt,vklt,vkct,wkptt)
+        deallocate(ivkt,vklt,vkct,wkptt,ikmapt)
      else ! if (tetra) ... else
 #endif
         ! generate the reduced k-point set
         call genppts(reducek,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
 #ifdef TETRA
+        ! end if (tetra)
      end if
 #endif
      ! allocate the non-reduced k-point set arrays

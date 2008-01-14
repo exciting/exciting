@@ -76,6 +76,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
   ! external functions
   real(8), external :: r3taxi
   complex(8), external :: zfmtinp
+
   ! allocate arrays
   allocate(cfunt(ngkk,ngkkp))
   allocate(h(ngkk,nstfv))
@@ -204,8 +205,10 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
            cfunt(igp1,igp2)=cfunig(ig)
         end do
      end do
+!!$h=matmul(cfunt,evecfvt2)
+!!$pmt=matmul(evecfvt1,h)
      call zgemm('n','n', ngkk, nstfv, ngkkp, zone, cfunt, &
-          ngkk, evecfvt2, ngkkp, zzero, h, ngkkp)
+          ngkk, evecfvt2, ngkkp, zzero, h, ngkk)
      call zgemm('n','n', nstfv, nstfv, ngkk, zone, evecfvt1, &
           nstfv, h, ngkk, zzero, pmt, nstfv)
      pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)
@@ -235,5 +238,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
      ! end loop over G+p vectors
   end do
   deallocate(wfmtk,wfmtkp,wfmt1,wfmt2,zfmt,pwfmt,wfirk,wfirkp,pm,jlgpr)
+
+  deallocate(cfunt,h,pmt,evecfvt1,evecfvt2)
 end subroutine genpwmat
 !EOC

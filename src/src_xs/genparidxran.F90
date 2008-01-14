@@ -34,7 +34,8 @@ subroutine genparidxran(typ)
         kparf=lastofset(rank,nkpt)
      case default
         write(*,*)
-        write(*,'("Error(genparidxran): unknown parallelization type: ",a)') typ
+        write(*,'("Error(genparidxran): unknown parallelization type: ",a)') &
+             typ
         write(*,*)
         call terminate
   end select
