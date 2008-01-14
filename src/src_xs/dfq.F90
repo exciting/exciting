@@ -78,6 +78,7 @@ contains
 
     ! find highest (partially) occupied and lowest (partially) unoccupied states
     call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+    call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
 
     ! check if q=0
     tq0 = tq1gamma.and.(iq.eq.1)

@@ -40,7 +40,7 @@ subroutine writepmattd(lgather)
   end if
 
   ! initialise universal variables
-  call init0
+  if (calledxs.eq.1) call init0
   call init1
   call init2xs
   ! k-point interval for process

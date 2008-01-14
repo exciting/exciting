@@ -17,7 +17,7 @@ subroutine writeemat
   integer :: iq
 
   ! initialise universal variables
-  call init0
+  if (calledxs.eq.1) call init0
   call init1
 
   ! initialize q-point set

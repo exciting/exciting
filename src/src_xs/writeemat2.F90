@@ -15,7 +15,7 @@ subroutine writeemat2
   character(*), parameter :: thisnam = 'writeemat2'
   integer :: iq
   ! initialise universal variables
-  call init0
+  if (calledxs.eq.1) call init0
   call init1
   ! initialize q-point set
   call init2xs

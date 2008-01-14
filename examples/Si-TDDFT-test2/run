@@ -1,0 +1,76 @@
+#!/bin/sh
+# Copyright (C) 2007 S. Sagmeister and C. Ambrosch-Draxl
+
+execfile=../../build/serial/exciting
+cp="/bin/cp -f"
+rm="/bin/rm -f"
+mkdir="/bin/mkdir -p"
+
+echo
+echo "testcase started"
+echo
+
+### SCF and bandstructure (also works with SF version)
+$cp exciting.in.1 exciting.in
+(time $execfile) > output.1 2> outerr.1 &
+wait
+$mkdir testcase_scf
+$cp output.1 outerr.1 EFERMI.OUT EIGVAL.OUT EQATOMS.OUT EVALCORE.OUT exciting.in FERMIDOS.OUT GEOMETRY.OUT IADIST.OUT INFO.OUT KPOINTS.OUT LATTICE.OUT LINENGY.OUT RMSDVEFF.OUT Si.in STATE.OUT SYMCRYS.OUT SYMLAT.OUT SYMSITE.OUT TOTENERGY.OUT testcase_scf
+echo "SCF calculation and bandstructure finished"
+
+### generation of xml file STATE.xml from STATE.OUT
+$cp exciting.in.1.1 exciting.in
+(time $execfile) > output.1.1 2> outerr.1.1 &
+wait
+$mkdir testcase_state-xml
+$cp output.1.1 outerr.1.1 exciting.in Si.in STATE.xml testcase_state-xml
+echo "generation of xml file STATE.xml from STATE.OUT finished"
+
+### one more iteration for eigenvectors (also works with SF version)
+$cp exciting.in.2 exciting.in
+(time $execfile) > output.2 2> outerr.2 &
+wait
+$mkdir testcase_eigval
+$cp output.2 outerr.2 EIGVAL.OUT exciting.in Si.in testcase_eigval
+echo "one more iteration for eigenvectors finished"
+
+### linear optic (trilinear method) (also works with SF version)
+$cp exciting.in.3 exciting.in
+(time $execfile) > output.3 2> outerr.3 &
+wait
+$mkdir testcase_optic_trilinear
+$cp output.3 outerr.3 EPSILON_11.OUT exciting.in SIGMA_11.OUT Si.in testcase_optic_trilinear
+echo "linear optic (trilinear method) finished"
+
+### linear optic (Lorentzian broadening)
+$cp exciting.in.td.1 exciting.in
+(time $execfile) > output.td.1 2> outerr.td.1 &
+wait
+$mkdir testcase_optic_Lorentzian
+$cp output.td.1 outerr.td.1 EPSILON_LTZ_11.OUT exciting.in SIGMA_LTZ_11.OUT Si.in testcase_optic_Lorentzian
+echo "linear optic (Lorentzian broadening) finished"
+
+### TDDFT linear optic
+cp exciting.in.td.2 exciting.in
+(time $execfile) > output.td.2 2> outerr.td.2 &
+wait
+$mkdir testcase_tddft
+$cp output.td.2 outerr.td.2 EFERMI_Q00000.OUT EFERMI_Q00001.OUT EIGVAL_Q00000.OUT EIGVAL_Q00001.OUT EMAT_TIMING_Q00001.OUT EPSILON_NLF_FXC00_OC11_Q00001.OUT EPSILON_NLF_FXC00_OC22_Q00001.OUT EPSILON_NLF_FXC00_OC33_Q00001.OUT exciting.in GQPOINTS_Q00001.OUT INFO_Q00000.OUT INFO_Q00001.OUT KMAPKQ_Q00001.OUT KPOINTS_Q00000.OUT KPOINTS_Q00001.OUT LOSS_NLF_FXC00_OC11_Q00001.OUT LOSS_NLF_FXC00_OC22_Q00001.OUT LOSS_NLF_FXC00_OC33_Q00001.OUT QPOINTS.OUT SIGMA_NLF_FXC00_OC11_Q00001.OUT SIGMA_NLF_FXC00_OC22_Q00001.OUT SIGMA_NLF_FXC00_OC33_Q00001.OUT Si.in SUMRULES_NLF_FXC00_OC11_Q00001.OUT SUMRULES_NLF_FXC00_OC22_Q00001.OUT SUMRULES_NLF_FXC00_OC33_Q00001.OUT X0_TIMING_Q00001.OUT testcase_tddft
+echo "TDDFT linear optic finished"
+
+### TDDFT linear optic (tetrahedron method)
+cp exciting.in.td.3 exciting.in
+(time $execfile) > output.td.3 2> outerr.td.3 &
+wait
+$mkdir testcase_tddft_tetra
+$cp output.td.3 outerr.td.3 EFERMI_Q00000.OUT EFERMI_Q00001.OUT EIGVAL_Q00000.OUT EIGVAL_Q00001.OUT EMAT_TIMING_Q00001.OUT EPSILON_TET_NLF_FXC00_OC11_Q00001.OUT EPSILON_TET_NLF_FXC00_OC22_Q00001.OUT EPSILON_TET_NLF_FXC00_OC33_Q00001.OUT exciting.in GQPOINTS_Q00001.OUT INFO_Q00000.OUT INFO_Q00001.OUT KMAPKQ_Q00001.OUT KPOINTS_Q00000.OUT KPOINTS_Q00001.OUT LOSS_TET_NLF_FXC00_OC11_Q00001.OUT LOSS_TET_NLF_FXC00_OC22_Q00001.OUT LOSS_TET_NLF_FXC00_OC33_Q00001.OUT QPOINTS.OUT SIGMA_TET_NLF_FXC00_OC11_Q00001.OUT SIGMA_TET_NLF_FXC00_OC22_Q00001.OUT SIGMA_TET_NLF_FXC00_OC33_Q00001.OUT Si.in SUMRULES_TET_NLF_FXC00_OC11_Q00001.OUT SUMRULES_TET_NLF_FXC00_OC22_Q00001.OUT SUMRULES_TET_NLF_FXC00_OC33_Q00001.OUT X0_TIMING_Q00001.OUT testcase_tddft_tetra
+echo "TDDFT linear optic finished"
+
+sleep 3
+### removing output files in working directory
+$rm STATE.xml *.OUT output.[1-9]* outerr.[1-9]* output.td.* outerr.td.*
+echo "removing output files in working directory"
+
+echo
+echo "testcase stopped"
+echo
