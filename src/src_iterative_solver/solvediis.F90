@@ -1,7 +1,6 @@
 subroutine solvediis(m,Pmatrix,Qmatrix,c)
   use diisinterfaces
   implicit none
-
   integer, intent(in)::m
 
   real(8), intent(inout)::Pmatrix(m+1,m+1),Qmatrix(m+1,m+1)
@@ -9,15 +8,15 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
   real(8):: work(8*m)
   real(8):: rwork(7*m),abstol,v
   integer:: iwork(5*m),ifail(m),info,mfound,lwork,i
-  
+
   abstol=2.d0*dlamch('S')
   lwork =8*m
   i=1   
   call dsygvx(1,'V','I','U',m,Pmatrix,m+1,Qmatrix,m+1,&
        v,v,i,i,abstol,mfound,v,c,m+1,work,lwork, &
-      iwork,ifail,info)
-       
-    if (info.ne.0) then
+       iwork,ifail,info)
+
+  if (info.ne.0) then
      write(*,*)
      write(*,'("Error(solvediis): diagonalisation failed")')
      write(*,'(" ZHEGVX returned INFO = ",I8)') info
@@ -32,10 +31,10 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
         write(776,*)(Qmatrix)
         stop
 #endif
-c=0.0
-c(m)=1.0
+        c=0.0
+        c(m)=1.0
      end if
-     
-  end if    
-       
+
+  end if
+
 end subroutine solvediis

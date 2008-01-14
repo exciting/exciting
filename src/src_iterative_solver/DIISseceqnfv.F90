@@ -48,7 +48,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8)::         r(nmat(ik,ispn),nstfv)
   complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
   complex(8):: eigenvector(nmat(ik,ispn),nstfv)
- real(8):: eigenvalue(nstfv)
+  real(8):: eigenvalue(nstfv)
 
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
@@ -74,31 +74,31 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   timemat=timemat+cpu1-cpu0
   !$OMP END CRITICAL
   !update eigenvectors with iteration
-  
+
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
      call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
-  recalculate_preconditioner=.false.
+     recalculate_preconditioner=.false.
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
      do i=1,nstfv
-       call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
 
      if( doprerotate_preconditioner()) then
 
-     		 !write(777,*)P
-             !call prerotate_preconditioner(n,2*nstfv,hamilton,P)
-             !call normalize(n,2*nstfv,overlap,P,nmatmax)	
-             !call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
-             !write(778,*)P     
-             !stop 
+        !write(777,*)P
+        !call prerotate_preconditioner(n,2*nstfv,hamilton,P)
+        !call normalize(n,2*nstfv,overlap,P,nmatmax)	
+        !call precondspectrumupdate(n,2*nstfv,hamilton,overlap,P,w)
+        !write(778,*)P     
+        !stop 
      endif
      do idiis=1,diismax
         write(*,*)"diisiter", idiis
@@ -109,45 +109,43 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
              h(:,:,idiis),s(:,:,idiis))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
-       ! write (777,*)w(:)
+        ! write (777,*)w(:)
         !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
-             if (rnorms(idamax(n,rnorms,1)).gt.1e-1) then
-             recalculate_preconditioner=.true.
-             exit
-             endif
-           
+        if (rnorms(idamax(n,rnorms,1)).gt.1e-1) then
+           recalculate_preconditioner=.true.
+           exit
+        endif
+
         write(*,*)"rnorms",rnorms
-        	do i=1,nstfv
+        do i=1,nstfv
            if(evecmap(i).ne.0) then
-             call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
+              call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
               evalfv(i,ispn)=eigenvalue(evecmap(i))
            endif
         end do
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
-      call remove_converged(evecmap,iunconverged,&
-       	rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
-       	
+        call remove_converged(evecmap,iunconverged,&
+             rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
+
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
-    
+
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
-  
+
            call normalize(n,nstfv,overlap,eigenvector,n)	
         endif
-  	
-     end do
-  if ( recalculate_preconditioner .or. (idiis .gt. 15)) then 
-   			call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
-  			call writeprecond(ik,n,P,w)
-   		
-   endif
 
+     end do
+     if ( recalculate_preconditioner .or. (idiis .gt. 15)) then 
+        call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+        call writeprecond(ik,n,P,w)
+     endif
      call cpu_time(cpu1)
   endif
   timefv=timefv+cpu1-cpu0
