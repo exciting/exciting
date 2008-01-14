@@ -40,7 +40,7 @@ contains
     real(8) :: vql_(3), vkl_(3)
 
     call cpu_time(cpu0)
-
+    ! find equivalent k-point
     ikq=ikmapikq(ik,iq)
 
     ! check for stop statement
@@ -73,7 +73,7 @@ contains
     ! read eigenvectors, eigenvalues and occupancies for G+k+q
     call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
     call getevalsv(vkl(1,ikq),evalsv(1,ikq))
-    ! assume non-metals here - occupation numbers equal for k and k+q
+    ! read occupation numbers for G+k+q
     call getoccsv(vkl(1,ikq),occsv(1,ikq))
     evecfvo(:,:) = evecfv(ngk(ikq,1)+1:ngk(ikq,1)+nlotot,1:nstval,1)
     evecfvu(:,:) = evecfv(ngk(ikq,1)+1:ngk(ikq,1)+nlotot,nstval+1:nstsv,1)
@@ -84,20 +84,25 @@ contains
     call genfilname(iq=0,setfilext=.true.)
     call getevecfv0(vkl0(1,ik),vgkl0(1,1,ik,1),evecfv0)
     call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
-    ! change back file extension
-    call genfilname(iq=iq,setfilext=.true.)
+    ! read occupation numbers for G+k+q
+    call getoccsv0(vkl0(1,ikq),occsv0(1,ikq))
     evecfvo0(:,:) = evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,1:nstval,1)
     evecfvu0(:,:) = evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,nstval+1:nstsv,1)
     evecfvo20(:,:) = evecfv0(1:ngk0(ik,1),1:nstval,1)
     evecfvu20(:,:) = evecfv0(1:ngk0(ik,1),nstval+1:nstsv,1)
+    ! change back file extension
+    call genfilname(iq=iq,setfilext=.true.)
 
-    ! eigenvalue differences
+    ! eigenvalue and occupation number differences
     do istv=1,nstval
        do istc=1,nstcon
           ! resonant part
           deou(istv,istc) = evalsv0(istv,ik) - evalsv(nstval+istc,ikq)
           ! antiresonant part
           deuo(istc,istv) = evalsv0(nstval+istc,ik) - evalsv(istv,ikq)
+
+          docc12(istv,istc)=occsv0(istv,ik)-occsv(nstval+istc,ikq)
+          docc21(istc,istv)=occsv0(nstval+istc,ik)-occsv(istv,ikq)
        end do
     end do
 
@@ -251,7 +256,7 @@ contains
     call putemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
 
     ! write Kohn Sham energy differences
-    call putdevalsv(iq,ik,.false.,trim(fndevalsv_t),deou,deuo)
+    call putdevalsv(iq,ik,.false.,trim(fndevalsv_t),deou,deuo,docc12,docc21)
 
     ! deallocate
     deallocate(helpm,xihir,evecfvo,evecfvu,evecfvo0,evecfvu0)

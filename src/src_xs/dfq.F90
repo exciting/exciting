@@ -113,10 +113,15 @@ contains
     allocate(wuo(nwdf))
     allocate(chi0(n,n,nwdfp))
     ! allocate arrays for eigenvalue differences
-    if(allocated(deou)) deallocate(deou)
-    if(allocated(deuo)) deallocate(deuo)
+    if (allocated(deou)) deallocate(deou)
+    if (allocated(deuo)) deallocate(deuo)
     allocate(deou(nstval,nstcon))
     allocate(deuo(nstcon,nstval))
+    if (allocated(docc12)) deallocate(docc12)
+    if (allocated(docc21)) deallocate(docc21)
+    allocate(docc12(nst1,nst2))
+    allocate(docc21(nst2,nst1))
+
     ! allocate matrix elements arrays
     if (allocated(xiou)) deallocate(xiou)
     if (allocated(xiuo)) deallocate(xiuo)
@@ -151,10 +156,6 @@ contains
     call getunit(un)
     ikt=0
     do ik=1,nkpt
-
-       ! if checkpoint true -> read X0
-       ! set chkpt=false
-
        cpuosc=0.d0
        cpuupd=0.d0
        call cpu_time(cpu0)
@@ -186,10 +187,14 @@ contains
              if (tetrat)  then
                 call gettetcw(iq,ik,iv,ic,nwdf,trim(fnwtet),cw,cwa, &
                      cwsurf)
+!!$                wou(wi:wf)=cmplx(cw(wi:wf),cwsurf(wi:wf),8)*2.d0/omega
+!!$                wuo(wi:wf)=cmplx(cwa(wi:wf),0.d0,8)*2.d0/omega
                 wou(wi:wf)=cmplx(cw(wi:wf),cwsurf(wi:wf),8)*2.d0/omega
                 wuo(wi:wf)=cmplx(cwa(wi:wf),0.d0,8)*2.d0/omega
              else
                 ! denominator
+!!$                wou(:)=2*wkpt(ik)/omega/(w(:)+deou(iv,ic)-scissor+zi*brd)
+!!$                wuo(:)=-2*wkpt(ik)/omega/(w(:)+deuo(ic,iv)+scissor+zi*brd)
                 wou(:)=2*wkpt(ik)/omega/(w(:)+deou(iv,ic)-scissor+zi*brd)
                 wuo(:)=-2*wkpt(ik)/omega/(w(:)+deuo(ic,iv)+scissor+zi*brd)
              end if
@@ -271,12 +276,10 @@ contains
        ! timing information
        call dftim(iq,ik,trim(fnxtim),cpuread,cpuosc,cpuupd, &
             cputot)
-#ifdef MPI
        ! synchronize
-       call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-#endif
+       call barrier
     end do ! ik
-
+    ! write response function to file
     do j=0,procs-1
        if (rank.eq.j) then
           do iw=wi,wf
@@ -284,7 +287,7 @@ contains
                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
           end do
        end if
-       call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
+       call barrier
     end do
 
     deallocate(chi0h)

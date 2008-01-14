@@ -30,6 +30,8 @@ contains
     call writegqpts(iq)
     ! generate radial integrals wrt. sph. Bessel functions
     call ematrad(iq)
+    ! find highest (partially) occupied and lowest (partially) unoccupied states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
     ! allocate eigenvalue and eigenvector arrays
     if (allocated(evecfv)) deallocate(evecfv)
     if (allocated(evecfv0)) deallocate(evecfv0)

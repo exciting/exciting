@@ -7,7 +7,7 @@ module m_getdevalsv
   implicit none
 contains
 
-  subroutine getdevalsv(iq,ik,tarec,filnam,eou,euo)
+  subroutine getdevalsv(iq,ik,tarec,filnam,eou,euo,occ12,occ21)
     use modmain
     use modxs
     use modmpi
@@ -17,7 +17,7 @@ contains
     integer, intent(in) :: iq,ik
     logical :: tarec
     character(*) :: filnam
-    real(8), intent(out) :: eou(:,:), euo(:,:)
+    real(8), intent(out) :: eou(:,:),euo(:,:),occ12(:,:),occ21(:,:)
     ! local variables
     character(*), parameter :: thisnam = 'getdevalsv'
     integer :: recl, un, ikr, nstval_, nstcon_, nkpt_, ngq_
@@ -39,15 +39,15 @@ contains
     ikr=ik
     if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
     ! I/O record length
-    inquire(iolength=recl) nstval_, nstcon_, nkpt_, ngq_, vql_, vkl_, &
-         eou, euo
+    inquire(iolength=recl) nstval_,nstcon_,nkpt_,ngq_,vql_,vkl_, &
+         eou,euo,occ12,occ21
     call getunit(un)
     open(unit=un,file=trim(filnam),form='unformatted', &
          action='read', access='direct',recl=recl)
 
     ! read
-    read(un,rec=ikr) nstval_, nstcon_, nkpt_, ngq_, vql_, vkl_, &
-         eou, euo
+    read(un,rec=ikr) nstval_,nstcon_,nkpt_,ngq_,vql_,vkl_, &
+         eou,euo,occ12,occ21
     close(un)
 
     ! check consistency

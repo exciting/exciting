@@ -25,7 +25,8 @@ subroutine emattest
   call tdsave0
 
   ! SECOND Q-POINT not equal to zero
-  iq=2
+  iq=1
+
   ! file extension for q-point
   call genfilname(iq=iq,setfilext=.true.)
   ! shift k-mesh by q-point
@@ -33,14 +34,19 @@ subroutine emattest
 
   ! calculate k+q and G+k+q related variables
   call init1xs
+  call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
 
   n = ngq(iq)
 
   ! allocate arrays for eigenvalue differences
-  if(allocated(deou)) deallocate(deou)
-  if(allocated(deuo)) deallocate(deuo)
+  if (allocated(deou)) deallocate(deou)
+  if (allocated(deuo)) deallocate(deuo)
   allocate(deou(nstval,nstcon))
   allocate(deuo(nstcon,nstval))
+  if (allocated(docc12)) deallocate(docc12)
+  if (allocated(docc21)) deallocate(docc21)
+  allocate(docc12(nst1,nst2))
+  allocate(docc21(nst2,nst1))
   allocate(d(nstval,nstcon,nkpt))
 
   ! allocate matrix elements array
@@ -66,7 +72,7 @@ subroutine emattest
      ! read matrix elemets of exponential expression
      call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
      ! read Kohn-Sham eigenvalue differences
-     call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo)
+     call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo,docc12,docc21)
      x(:,:,:,ik) = xiou(:,:,:)
      d(:,:,ik) = deou
      do istv=1,nstval

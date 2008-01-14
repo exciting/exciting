@@ -32,7 +32,7 @@ subroutine screen
   call genfilname(setfilext=.true.,dotext='_SCR.OUT')
   call gndstate
   task=taskt
-  if (rank == 0) then
+  if (rank.eq.0) then
      ! safely remove unnecessary files
      call filedel('EQATOMS'//trim(filext))
      call filedel('EVALCORE'//trim(filext))

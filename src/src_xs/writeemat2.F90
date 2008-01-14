@@ -22,8 +22,6 @@ subroutine writeemat2
   ! generate index ranges for parallel execution
   if ((task.ge.300).or.(task.le.399)) call genparidxran('k')
   if ((task.ge.400).or.(task.le.499)) call genparidxran('q')
-  ! find highest (partially) occupied and lowest (partially) unoccupied states
-  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! write q-point set
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file

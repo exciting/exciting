@@ -75,10 +75,16 @@ contains
     allocate(evalsv0(nstsv,nkpt))
 
     ! allocate arrays for eigenvalue differences
-    if(allocated(deou)) deallocate(deou)
-    if(allocated(deuo)) deallocate(deuo)
+    if (allocated(deou)) deallocate(deou)
+    if (allocated(deuo)) deallocate(deuo)
     allocate(deou(nstval,nstcon))
     allocate(deuo(nstcon,nstval))
+    if (allocated(docc12)) deallocate(docc12)
+    allocate(docc12(nst1,nst2))
+    if (allocated(docc21)) deallocate(docc21)
+    allocate(docc21(nst2,nst1))
+    if (allocated(occsv0)) deallocate(occsv0)
+    allocate(occsv0(nstsv,nkpt))
     ! allocate helper matrix
     if (allocated(xih)) deallocate(xih)
     allocate(xih(nlotot,nlotot))

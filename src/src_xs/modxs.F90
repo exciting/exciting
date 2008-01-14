@@ -199,6 +199,11 @@ module modxs
   real(8), allocatable :: deou(:,:)
   ! eigenvalue differences (anti-resonant part)
   real(8), allocatable :: deuo(:,:)
+
+  ! occupation number differences (first band combination)
+  real(8), allocatable :: docc12(:,:)
+  ! occupation number differences (second band combination)
+  real(8), allocatable :: docc21(:,:)
   ! highest (at least partially) occupied state
   integer, allocatable :: isto0(:), isto(:)
   ! lowest (at least partially) unoccupied state
