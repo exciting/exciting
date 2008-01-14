@@ -6,11 +6,12 @@ implicit none
  !scl index
   integer diiscounter !! counter for DIIS iterations
   integer iterativetype
-  integer,parameter:: diismax=20,diisfirstscl=4
+  integer,parameter:: diismax=20,diisfirstscl=3
   real lowesteval
   real ,parameter::diisthreshould=1,reps=1e-7
 integer idamax
   external idamax
+ logical  recalculate_preconditioner
 contains
  
   function calculate_preconditioner()
@@ -19,8 +20,7 @@ contains
     if(diiscounter.eq.1) then
        calculate_preconditioner =.true.
   write(*,*)"precond"
-    else
-      
+    else 
     endif
   end function calculate_preconditioner
 

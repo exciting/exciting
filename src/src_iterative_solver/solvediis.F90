@@ -4,8 +4,8 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
 
   integer, intent(in)::m
 
-  real(8), intent(inout)::Pmatrix(m,m),Qmatrix(m,m)
-  real(8), intent(out)::c(m)
+  real(8), intent(inout)::Pmatrix(m+1,m+1),Qmatrix(m+1,m+1)
+  real(8), intent(out)::c(m+1)
   real(8):: work(8*m)
   real(8):: rwork(7*m),abstol,v
   integer:: iwork(5*m),ifail(m),info,mfound,lwork,i
@@ -13,8 +13,8 @@ subroutine solvediis(m,Pmatrix,Qmatrix,c)
   abstol=2.d0*dlamch('S')
   lwork =8*m
   i=1   
-  call dsygvx(1,'V','I','U',m,Pmatrix,m,Qmatrix,m,&
-       v,v,i,i,abstol,mfound,v,c,m,work,lwork, &
+  call dsygvx(1,'V','I','U',m,Pmatrix,m+1,Qmatrix,m+1,&
+       v,v,i,i,abstol,mfound,v,c,m+1,work,lwork, &
       iwork,ifail,info)
        
     if (info.ne.0) then

@@ -36,7 +36,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   ! local variables
 
 
-  integer 	::is,ia,idiis,n,np,ievec,i
+  integer 	::is,ia,idiis,n,np,ievec,i,info
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
@@ -74,11 +74,13 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   timemat=timemat+cpu1-cpu0
   !$OMP END CRITICAL
   !update eigenvectors with iteration
+  
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
      call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
+  recalculate_preconditioner=.false.
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
@@ -111,6 +113,11 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
+             if (rnorms(idamax(n,rnorms,1)).gt.1e-1) then
+             recalculate_preconditioner=.true.
+             exit
+             endif
+           
         write(*,*)"rnorms",rnorms
         	do i=1,nstfv
            if(evecmap(i).ne.0) then
@@ -129,12 +136,17 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         if(idiis.gt.1)then
     
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
-                ,eigenvalue,eigenvector)
-          
+                ,eigenvalue,eigenvector,info)
+  
            call normalize(n,nstfv,overlap,eigenvector,n)	
         endif
   	
      end do
+  if ( recalculate_preconditioner .or. (idiis .gt. 15)) then 
+   			call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+  			call writeprecond(ik,n,P,w)
+   		
+   endif
 
      call cpu_time(cpu1)
   endif

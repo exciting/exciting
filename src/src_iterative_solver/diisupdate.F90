@@ -1,18 +1,21 @@
-subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv)
+subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv,infodiisupdate)
   use modmain,only: nstfv,zone,zzero
   use diisinterfaces
+  use sclcontroll,only:recalculate_preconditioner
   use sclcontroll,only:diismax
   implicit none
   integer ,intent(in)::idiis,iunconverged,n
   complex(8),intent(in)::h(n,nstfv, diismax),s(n,nstfv, diismax),trialvec(n,nstfv, diismax)
   real(8), intent(in):: evalfv(nstfv)
   complex(8),intent(out)::evecfv(n,nstfv)
+  integer, intent(out)::infodiisupdate
+  
 
 
   complex(8) p(n,idiis)
   real(8)::nrm
   integer::i,j,ir,is
-real(8):: Pmatrix(idiis,idiis), Qmatrix(idiis,idiis),c(idiis),residnorm2
+real(8):: Pmatrix(idiis+1,idiis+1), Qmatrix(idiis+1,idiis+1),c(idiis+1),residnorm2
    complex(8)::z
    
   do i=1,iunconverged 
@@ -40,13 +43,17 @@ real(8):: Pmatrix(idiis,idiis), Qmatrix(idiis,idiis),c(idiis),residnorm2
 			
 		enddo
      enddo
-     call solvediis(idiis,Pmatrix,Qmatrix,c)
+     call solvediislin(idiis,Pmatrix,Qmatrix,c)
+     if  (recalculate_preconditioner .eqv. .true.) then
+     infodiisupdate=1
+     exit
+     endif
     write(*,*) "c",c
     evecfv(:,i)=0.0
      do ir=1,idiis
      z=cmplx(c(ir),0.0)
         call zaxpy(n, z,trialvec(1,i,ir),1,evecfv(1,i),1)
      end do
-
   end do
+   infodiisupdate=0
 end subroutine diisupdate
