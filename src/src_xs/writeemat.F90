@@ -23,9 +23,11 @@ subroutine writeemat
   ! initialize q-point set
   call init2xs
 
-  ! k-point interval for process
-  kpari=firstofset(rank,nkpt)
-  kparf=lastofset(rank,nkpt)
+  ! k-point parallelization for TDDFT
+  if ((task.ge.300).or.(task.le.399)) partype='k'
+  ! q-point parallelization for screening
+  if ((task.ge.400).or.(task.le.499)) partype='q'
+  call genparidxran(partype)
 
   ! write q-point set
   if (rank.eq.0) call writeqpts
@@ -64,8 +66,10 @@ subroutine writeemat
 10 continue
 
   ! gather from processes
-  if ((procs.gt.1).and.(rank.eq.0)) call ematgather
-  if ((procs.gt.1).and.(rank.eq.0)) call devalsvgather
+  if ((procs.gt.1).and.(rank.eq.0).and.(partype.eq.'k')) then
+     call ematgather
+     call devalsvgather
+  end if
 
   ! synchronize
   call barrier

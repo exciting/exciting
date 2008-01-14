@@ -27,9 +27,9 @@ subroutine df
   ! initialize q-point set
   call init2xs
 
-  ! w-point interval for process
-  wpari=firstofset(rank,nwdf)
-  wparf=lastofset(rank,nwdf)
+  ! w-point parallelization for dielectric function
+  partype='w'
+  call genparidxran(partype)
 
   ! loop over q-points
   do iq=1,nqpt

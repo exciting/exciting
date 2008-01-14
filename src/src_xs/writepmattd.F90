@@ -43,6 +43,10 @@ subroutine writepmattd(lgather)
   if (calledxs.eq.1) call init0
   call init1
   call init2xs
+  ! generate index ranges for parallel execution
+  partype='k'
+  call genparidxran(partype)
+
   ! k-point interval for process
   kpari=firstofset(rank,nkpt)
   kparf=lastofset(rank,nkpt)

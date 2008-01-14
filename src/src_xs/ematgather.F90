@@ -18,14 +18,14 @@ subroutine ematgather
   real(8) :: vkloff_save(3)
 
   ! save k-point offset
-  vkloff_save = vkloff
+  vkloff_save(:)=vkloff(:)
 
   ! allocate matrix elements array
   if (allocated(xiou)) deallocate(xiou)
   if (allocated(xiuo)) deallocate(xiuo)
 
   ! loop over q-points
-  do iq = 1, nqpt
+  do iq=1,nqpt
      ! shift k-mesh by q-point
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
@@ -56,7 +56,7 @@ subroutine ematgather
   end do
 
   ! restore offset
-  vkloff = vkloff_save
+  vkloff(:)=vkloff_save(:)
   call genfilname(setfilext=.true.)
 
 end subroutine ematgather

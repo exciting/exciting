@@ -19,8 +19,9 @@ subroutine writeemat2
   call init1
   ! initialize q-point set
   call init2xs
-  ! generate index ranges for parallel execution
+  ! k-point parallelization for TDDFT
   if ((task.ge.300).or.(task.le.399)) partype='k'
+  ! q-point parallelization for screening
   if ((task.ge.400).or.(task.le.499)) partype='q'
   call genparidxran(partype)
   ! find highest (partially) occupied and lowest (partially) unoccupied states

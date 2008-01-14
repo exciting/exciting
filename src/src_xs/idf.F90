@@ -22,15 +22,15 @@ subroutine idf
   ! initialize q-point set
   call init2xs
 
-  ! w-point interval for process
-  wpari=firstofset(rank,nwdf)
-  wparf=lastofset(rank,nwdf)
+  ! w-point parallelization for dielectric function
+  partype='w'
+  call genparidxran(partype)
 
   write(unitout,'("Exchange-correlation kernel type :",i4)') fxctype
   write(unitout,'("  ",a)') trim(fxcdescr)
 
   ! loop over q-points
-  do iq = 1, nqpt
+  do iq=1,nqpt
      ! call for q-point
      call idfq(iq)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): inverse dielectric &
