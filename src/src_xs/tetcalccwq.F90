@@ -43,9 +43,11 @@ real(8) :: vr(3)
     if (sum(abs(vr)).gt.(1.d-5)) then
        write(*,*)
        write(*,'("Error(m_tetcalccwq): q-point not commensurate with k-point &
-            &set - but required for tetrahedron method")')
-       write(*,'(" q-point: ",3g18.10)') vql(:,iq)
-       write(*,'(" minimum nonzero q-point",3g18.10)') 1.d0/ngridk(:)
+            &set")')
+       write(*,'(" which is required for tetrahedron method")')
+       write(*,'(" q-point (latt. coords.): ",3g18.10)') vql(:,iq)
+       write(*,'(" deviation              : ",3g18.10)') vr
+       write(*,'(" minimum nonzero coords.: ",3g18.10)') 1.d0/ngridk(:)
        write(*,*)
        call terminate
     end if
@@ -82,12 +84,13 @@ real(8) :: vr(3)
     call genfilname(basename='TETWT',iq=iq,rank=rank,procs=procs,&
          filnam=filnamt)
     
-    ! find highest (partially) occupied and lowest (partially) unoccupied states
-    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-
     ! calculate k+q and G+k+q related variables
     call init1xs
 
+    ! find highest (partially) occupied and lowest (partially) unoccupied
+    !states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
+         istu)
     ! read Fermi energy
     call genfilname(iq=0,setfilext=.true.)
     call readfermi
