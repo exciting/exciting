@@ -34,8 +34,20 @@ contains
     integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
     logical :: tq0
 
-    ! get index to reducible q-point
-    iv(:)=ivq(:,iq)
+real(8) :: vr(3)
+
+    ! get index to reducible q-point which is commensurate to k-point set
+!!!    iv(:)=ivq(:,iq)
+    vr(:)=vql(:,iq)*ngridk(:)-vkloff(:)
+    call r3frac(epslat,vr,iv)
+    if (sum(abs(vr)).gt.(100.d0*epslat)) then
+       write(*,*)
+       write(*,'("Error(): q-point not commensurate with k-point set - &
+            but required for tetrahedron method")')
+       write(*,*)
+       call terminate
+    end if
+
     iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
     ! generate link array for tetrahedra
     call gentetlink(iqnr)
