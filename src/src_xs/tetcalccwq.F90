@@ -38,12 +38,14 @@ real(8) :: vr(3)
 
     ! get index to reducible q-point which is commensurate to k-point set
 !!!    iv(:)=ivq(:,iq)
-    vr(:)=vql(:,iq)*ngridk(:)-vkloff(:)
+    vr(:)=vql(:,iq)*ngridk(:)
     call r3frac(epslat,vr,iv)
-    if (sum(abs(vr)).gt.(100.d0*epslat)) then
+    if (sum(abs(vr)).gt.(1.d-5)) then
        write(*,*)
-       write(*,'("Error(): q-point not commensurate with k-point set - &
-            but required for tetrahedron method")')
+       write(*,'("Error(m_tetcalccwq): q-point not commensurate with k-point &
+            &set - but required for tetrahedron method")')
+       write(*,'(" q-point: ",3g18.10)') vql(:,iq)
+       write(*,'(" minimum nonzero q-point",3g18.10)') 1.d0/ngridk(:)
        write(*,*)
        call terminate
     end if
