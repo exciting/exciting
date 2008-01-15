@@ -162,7 +162,7 @@ contains
        call cpu_time(cpu0)
 
        ! read Kohn-Sham energy differences
-       call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo,docc12,docc21)
+       call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,docc12,deuo,docc21)
        ! read Kohn-Sham energy differences (random k-point set)
        ! get matrix elements (exp. expr. or momentum)
        call getpemat(iq,ik,trim(fnpmat),trim(fnemat),nstval,nstcon,xiou,xiuo,&

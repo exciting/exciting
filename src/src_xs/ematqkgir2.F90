@@ -14,27 +14,25 @@ contains
     ! arguments
     integer, intent(in) :: iq,ik,igq
     ! local variables
-    character(*), parameter :: thisnam = 'ematqkgir2'
-    real(8) :: vkql(3)
-    integer :: isym,ikq,ig,ig1,ig2,ig3,igk0,igk,iv(3),iv1(3),iv3(3),ivu(3)
+    character(*), parameter :: thisnam='ematqkgir2'
+    integer :: ikq,ig,ig1,ig2,ig3,igk0,igk,iv(3),iv1(3),iv3(3),ivu(3)
     integer, allocatable :: aigk0(:),aigk(:)
-    ! k-point index for equivalent point to k+q
-    vkql(:)=vkl(:,ik)+vql(:,iq)
-    call findkpt(vkql,isym,ikq)
-    allocate(aigk0(ngkmax),aigk(ngkmax))
-    ! positive wrapping G-vector
-    ivu(:)=nint(vkl(:,ik)+vql(:,iq)-vkl(:,ikq))
+    ! grid index for k+q point
+    ikq=ikmapikq(ik,iq)
+    allocate(aigk0(ngkmax0),aigk(ngkmax))
+    ! positive umklapp G-vector
+    ivu(:)=nint(vkl0(:,ik)+vql(:,iq)-vkl(:,ikq))
     ! precalculate for speedup
-    aigk0(:)=igkig(:,ik,1)
+    aigk0(:)=igkig0(:,ik,1)
     aigk(:)=igkig(:,ikq,1)
     ig3=igqig(igq,iq)
     iv3(:)=ivg(:,ig3)
-    do igk0=1,ngk(ik,1)
+    do igk0=1,ngk0(ik,1)
        ig1=aigk0(igk0)
        iv1(:)=ivg(:,ig1)+iv3(:)
        do igk=1,ngk(ikq,1)
           ig2=aigk(igk)
-          ! wrapping of k+q vector included
+          ! umklapp of k+q vector included
           iv(:)=iv1(:)-(ivg(:,ig2)-ivu(:))
           ig = ivgig(iv(1),iv(2),iv(3))
           xihir(igk0,igk)=cfunig(ig)

@@ -14,6 +14,8 @@ contains
     use m_ematgntsum
     use m_ematqkgmt2
     use m_ematqkgir2
+    use m_putemat2
+    use m_putdevalsv2
     use m_emattim
     use m_getunit
     use m_genfilname
@@ -28,23 +30,19 @@ contains
     complex(8), allocatable :: evecfvo20(:,:)
     complex(8), allocatable :: evecfvu2(:,:)
     complex(8), allocatable :: helpm(:,:),helpm2(:,:)
-    integer :: ikq,igq
-    integer :: i1,i2,recl,n,n0,isym
+    integer :: ikq,igq,ist1,ist2
+    integer :: i1,i2,recl,n,n0
     real(8) :: cpuini,cpuread,cpumain,cpuwrite,cpuall
     real(8) :: cpugnt,cpumt,cpuir
     real(8) :: cpumalores,cpumaloares,cpumloares,cpumloaares
     real(8) :: cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg
     real(8) :: cpu0,cpu1,cpu00,cpu01
-    real(8) :: vql_(3), vkl_(3),vkql(3)
+    real(8) :: vql_(3), vkl_(3)
 
     call cpu_time(cpu0)
-
-    ! k-point index for equivalent point to k+q
-    vkql(:)=vkl(:,ik)+vql(:,iq)
-    call findkpt(vkql,isym,ikq)
-
+    ! find equivalent k-point
+    ikq=ikmapikq(ik,iq)
     write(*,'("Info(ematqk2): ",I6,I6," of ",I6," k-points")') ik,ikq,nkpt
-
     ! check for stop statement
     write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
     call tdchkstop
@@ -55,7 +53,8 @@ contains
     cpumlolores=0.d0; cpumloloares=0.d0; cpumirres=0.d0; cpumirares=0.d0
     cpudbg=0.d0
 
-    n0=ngk(ik,1)
+    ! allocate temporary arrays
+    n0=ngk0(ik,1)
     n=ngk(ikq,1)
     ! allocate matrix elements array
     if (allocated(xiohalo)) deallocate(xiohalo)
@@ -74,26 +73,63 @@ contains
     xiohalo(:,:)=zzero
     xiuhloa(:,:)=zzero
 
-    ! read eigenvectors for G+k (q=0)
-    call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv0)
-    evecfvo0(:,:)=evecfv0(ngk(ik,1)+1:ngk(ik,1)+nlotot,istlo1:isthi1,1)
-    evecfvo20(:,:)=evecfv0(1:ngk(ik,1),istlo1:isthi1,1)
-
-    ! read eigenvectors for G+k+q
+    ! read eigenvectors, eigenvalues and occupancies for G+k+q
     call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
+    call getevalsv(vkl(1,ikq),evalsv(1,ikq))
+    ! read occupation numbers for G+k+q
+    call getoccsv(vkl(1,ikq),occsv(1,ikq))
     evecfvu(:,:)=evecfv(ngk(ikq,1)+1:ngk(ikq,1)+nlotot,istlo2:isthi2,1)
     evecfvu2(:,:)=evecfv(1:ngk(ikq,1),istlo2:isthi2,1)
+
+    ! read eigenvectors, eigenvalues and occupancies for G+k (q=0)
+    call genfilname(iq=0,setfilext=.true.)
+    call getevecfv0(vkl0(1,ik),vgkl0(1,1,ik,1),evecfv0)
+    call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
+    ! read occupation numbers for G+k+q
+    call getoccsv0(vkl0(1,ikq),occsv0(1,ikq))
+    evecfvo0(:,:)=evecfv0(ngk(ik,1)+1:ngk(ik,1)+nlotot,istlo1:isthi1,1)
+    evecfvo20(:,:)=evecfv0(1:ngk(ik,1),istlo1:isthi1,1)
+    ! change back file extension
+    call genfilname(iq=iq,setfilext=.true.)
+
+!!$    ! eigenvalue and occupation number differences
+!!$    do istv=1,nstval
+!!$       do istc=1,nstcon
+!!$          ! resonant part
+!!$          deou(istv,istc) = evalsv0(istv,ik) - evalsv(nstval+istc,ikq)
+!!$          ! antiresonant part
+!!$          deuo(istc,istv) = evalsv0(nstval+istc,ik) - evalsv(istv,ikq)
+!!$
+!!$          docc12(istv,istc)=occsv0(istv,ik)-occsv(nstval+istc,ikq)
+!!$          docc21(istc,istv)=occsv0(nstval+istc,ik)-occsv(istv,ikq)
+!!$       end do
+!!$    end do
+
+    ! eigenvalue and occupation number differences
+    do ist1=istlo1,isthi1
+       do ist2=istlo2,isthi2
+          deou(ist1-istlo1+1,ist2-istlo2+1)=evalsv0(ist1,ik)-evalsv(ist2,ikq)
+          docc12(ist1-istlo1+1,ist2-istlo2+1)=occsv0(ist1,ik)-occsv(ist2,ikq)
+       end do
+    end do
 
     call cpu_time(cpu1)
     cpuini=cpu1-cpu0
 
-    ! get expansion coefficients
+    ! get expansion coefficients (q=0)
     call genfilname(basename='APWDLM',iq=0,filnam=fnevapw)
     inquire(iolength=recl) vql_,vkl_,apwdlm0
     call getunit(unit1)
     open(unit1,file=trim(fnevapw),action='read',&
          form='unformatted',status='old',access='direct',recl=recl)
     read(unit1,rec=ik) vql_,vkl_,apwdlm0
+    close(unit1)
+    ! get expansion coefficients (q)
+    call genfilname(basename='APWDLM',iq=iq,filnam=fnevapw)
+    inquire(iolength=recl) vql_,vkl_,apwdlm
+    call getunit(unit1)
+    open(unit1,file=trim(fnevapw),action='read',&
+         form='unformatted',status='old',access='direct',recl=recl)
     read(unit1,rec=ikq) vql_,vkl_,apwdlm
     close(unit1)
 
@@ -105,7 +141,7 @@ contains
 
     ! loop over G+q vectors
     do igq=1,ngq(iq)
-       call terminate_inqr('ematqk2')
+       call terminate_inqr('ematqk')
 
        call cpu_time(cpu00)
        ! summation of Gaunt coefficients wrt radial integrals

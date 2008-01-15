@@ -72,7 +72,7 @@ subroutine emattest
      ! read matrix elemets of exponential expression
      call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
      ! read Kohn-Sham eigenvalue differences
-     call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,deuo,docc12,docc21)
+     call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,docc12,deuo,docc21)
      x(:,:,:,ik) = xiou(:,:,:)
      d(:,:,ik) = deou
      do istv=1,nstval

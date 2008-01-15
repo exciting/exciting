@@ -65,6 +65,7 @@ contains
        write(unitout,'(a,2i6)') 'nstcon', nstcon, nstcon_
        write(unitout,'(a,2i6)') 'nkpt', nkpt, nkpt_
        write(unitout,'(a,3f12.6,a,3f12.6)') 'vkl', vklt(:,ik), ',', vkl_
+       write(unitout,'(a)') ' file: ',trim(filnam)
        call terminate
     end if
 

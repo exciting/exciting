@@ -60,6 +60,7 @@ contains
        write(unitout,'(a,3f12.6,a,3f12.6)') 'vql', vql(:,iq), ',', vql_
        write(unitout,'(a,i6)') 'for q-point :',iq
        write(unitout,'(a,i6)') 'for w-point :',iw
+       write(unitout,'(a)') ' file: ',trim(filnam)//trim(filxt)
        call terminate
     end if
     

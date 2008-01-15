@@ -28,7 +28,9 @@ subroutine writeemat
   ! q-point parallelization for screening
   if ((task.ge.400).or.(task.le.499)) partype='q'
   call genparidxran(partype)
-
+  ! find highest (partially) occupied and lowest (partially) unoccupied states
+  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+ 
   ! write q-point set
   if (rank.eq.0) call writeqpts
 

@@ -256,7 +256,7 @@ contains
     call putemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
 
     ! write Kohn Sham energy differences
-    call putdevalsv(iq,ik,.false.,trim(fndevalsv_t),deou,deuo,docc12,docc21)
+    call putdevalsv(iq,ik,.false.,trim(fndevalsv_t),deou,docc12,deuo,docc21)
 
     ! deallocate
     deallocate(helpm,xihir,evecfvo,evecfvu,evecfvo0,evecfvu0)

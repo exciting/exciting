@@ -7,7 +7,7 @@ module m_putdevalsv
   implicit none
 contains
 
-  subroutine putdevalsv(iq,ik,tarec,filnam,eou,euo,occ12,occ21)
+  subroutine putdevalsv(iq,ik,tarec,filnam,eou,occ12,euo,occ21)
     use modmain
     use modxs
     use modmpi
