@@ -4,6 +4,11 @@
 ! See the file COPYING for license details.
 
 subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
+  ! Reconsidered definition (a|ta)x = a(x + ta) used throughout the code which
+  ! is different from the commonly used definition (A|TA)X = AX + TA.
+  ! This difference affects the inverse of the fractional translation
+  ! but has no effect on the inverse of the rotational part, so the inverse
+  ! spacegroup symmetry operations are the same for both definitions
   implicit none
   ! arguments
   real(8), intent(in) :: epslat
@@ -15,9 +20,6 @@ subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
   ! local variables
   real(8) :: c(3,3),si(3,3),sj(3,3),vtl(3)
   integer :: i,isym,jsym,lspli,lsplj,iv(3)
-
-!!$  real(8) :: s1(3,3)
-
   scimap(:)=0
   do isym=1,nsymcrys
      lspli=lsplsymc(isym)
@@ -27,7 +29,7 @@ subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
         sj(:,:)=dble(symlat(:,:,lsplj))
         ! translation
         vtl(:)=vtlsymc(:,jsym)
-        call r3mv(si,vtl,vtl)
+        vtl=matmul(sj,vtl)
         vtl(:)=vtl(:)+vtlsymc(:,isym)
         call r3frac(epslat,vtl,iv)
         ! rotation
@@ -44,19 +46,4 @@ subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
      end do
 10   continue
   end do
-
-!!$  ! Test to see if ((alpha^-1)_latt == (alpha_latt)^-1
-!!$  do isym=1,nsymcrys
-!!$     jsym=scimap(isym)
-!!$     lspli=lsplsymc(isym)
-!!$     lsplj=lsplsymc(jsym)
-!!$     si(:,:)=dble(symlat(:,:,lspli))
-!!$     sj(:,:)=dble(symlat(:,:,lsplj))
-!!$     call r3minv(si,s1)
-!!$     write(*,*) 'isym,jsym,lspli,lsplj,diff',isym,jsym,lspli,lsplj,&
-!!$          sum(abs(s1-sj))
-!!$  end do
-
-
-
 end subroutine findsymi
