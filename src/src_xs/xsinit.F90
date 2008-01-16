@@ -5,9 +5,9 @@
 
 subroutine xsinit(cnt)
   use modmain
+  use modmpi
   use modxs
   use modfxcifc
-  use modmpi
   use m_getunit
   use m_genfilname
   implicit none
@@ -38,6 +38,8 @@ subroutine xsinit(cnt)
           &initialization: rank out of range:',rank
      call terminate
   end if
+  ! set splittfile parameter
+  if (task.ne.301) splittfile=.false.
   ! generate resume file
   if (procs.gt.1) then
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&

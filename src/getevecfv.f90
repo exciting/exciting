@@ -45,7 +45,8 @@ exit
 else 
 call system('sync')
 call sleep(5)
-write(*,*) "Waiting for other process to write"
+write(*,*) "Waiting for other process to write"//":getevecfv:"// &
+     trim(outfilenamestring(filetag,ik))
 endif
 enddo
  if (splittfile) then

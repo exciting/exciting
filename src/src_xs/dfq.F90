@@ -58,8 +58,8 @@ contains
          iq=iq,filnam=fnchi0)
     call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
          iq=iq,procs=procs,rank=rank,filnam=fnchi0_t)
-    call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
-         procs=procs,rank=rank,filnam=fnxtim)
+    call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
+         acont=acont,nar=.not.aresdf,iq=iq,procs=procs,rank=rank,filnam=fnxtim)
 
     ! initial and final w-point
     wi=wpari
@@ -76,8 +76,10 @@ contains
     ! calculate k+q and G+k+q related variables
     call init1xs
 
-    ! find highest (partially) occupied and lowest (partially) unoccupied states
-    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+    ! find highest (partially) occupied and lowest (partially) unoccupied
+    !states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
+         istu)
     call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
 
     ! check if q=0

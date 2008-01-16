@@ -36,7 +36,8 @@ open(70,file=outfilenamestring(filetag,ik),action='READ', &
 exit
 else 
 call system('sync')
-write(*,*) "Waiting for other process to write"
+write(*,*) "Waiting for other process to write"//":getevalfv:"// &
+     trim(outfilenamestring(filetag,ik))
 call sleep(5)
 endif
 enddo
