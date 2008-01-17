@@ -43,12 +43,20 @@ contains
     real(8) :: cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
     integer :: n,j,ik,iw,wi,wf,iv,ic,nwdfp,ikt
     integer :: oct,un
-    logical :: tq0, tetrat
-
-    tetrat=tetra
+    logical :: tq0
+    logical, external :: tqgamma
+    ! sampling of Brillouin zone
     bzsampl=0
     if (tetra) bzsampl=1
-
+    ! initial and final w-point
+    wi=wpari
+    wf=wparf
+    nwdfp=wf-wi+1
+    ! matrix size for response function
+    n=ngq(iq)
+    ! zero broadening for analytic contiunation
+    brd=brdtd
+    if (acont) brd=zzero
     ! filenames for input
     call genfilname(basename='TETW',iq=iq,filnam=fnwtet)
     call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
@@ -58,103 +66,74 @@ contains
          iq=iq,filnam=fnchi0)
     call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
          iq=iq,procs=procs,rank=rank,filnam=fnchi0_t)
-    call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
-         acont=acont,nar=.not.aresdf,iq=iq,procs=procs,rank=rank,filnam=fnxtim)
-
-    ! initial and final w-point
-    wi=wpari
-    wf=wparf
-    nwdfp=wf-wi+1
-
+    call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
+         procs=procs,rank=rank,filnam=fnxtim)
+    ! remove timing files from previous runs
+    call filedel(trim(fnxtim))
     ! file extension for q-point
     call genfilname(iq=iq,setfilext=.true.)
     ! save k-point offset
     vkloff_save = vkloff
     ! shift k-mesh by q-point    
     vkloff(:)=qvkloff(:,iq)
-
     ! calculate k+q and G+k+q related variables
     call init1xs
-
-    ! find highest (partially) occupied and lowest (partially) unoccupied
-    !states
-    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
-         istu)
+    ! find highest (partially) occupied and lowest (partially) unoccupied states
+    call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+    ! find limits for band combinations
     call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-
     ! check if q=0
-    tq0 = tq1gamma.and.(iq.eq.1)
+!    tq0=tq1gamma.and.(iq.eq.1)
+    tq0=tqgamma(iq)
     if (tq0) then
        write(unitout,'(a)') 'Info('//trim(thisnam)//'): Gamma q-point: using &
             &momentum matrix elements for dielectric function'
     end if
-
     ! write out matrix size of response function
     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors &
          &(local field effects):',ngq(iq)
 
-    ! remove timing files from previous runs
-    call filedel(trim(fnxtim))
-
-    ! allocations
-    allocate(w(nwdf))
-    allocate(wreal(nwdfp))
-    ! generate complex energy grid
-    call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
-    wreal(:)=w(wi:wf)
-    if (wreal(1).lt.epstetra) wreal(1)=epstetra
-
-    ! matrix size for response function
-    n=ngq(iq)
-
-    ! allocate arrays for head and wings
-    allocate(chi0h(3,nwdfp))
-    allocate(chi0w(n,2,3,nwdfp))
-
-    ! allocations
-    allocate(wou(nwdf))
-    allocate(wuo(nwdf))
-    allocate(chi0(n,n,nwdfp))
-    ! allocate arrays for eigenvalue differences
+    ! allocate arrays for eigenvalue and occupation number differences
     if (allocated(deou)) deallocate(deou)
     allocate(deou(nstval,nstcon))
     if(allocated(deuo)) deallocate(deuo)
     allocate(deuo(nstcon,nstval))
     if (allocated(docc12)) deallocate(docc12)
-    if (allocated(docc21)) deallocate(docc21)
     allocate(docc12(nst1,nst2))
+    if (allocated(docc21)) deallocate(docc21)
     allocate(docc21(nst2,nst1))
-
     ! allocate matrix elements arrays
     if (allocated(xiou)) deallocate(xiou)
-    if (allocated(xiuo)) deallocate(xiuo)
-    if (allocated(pmou)) deallocate(pmou)
-    if (allocated(pmuo)) deallocate(pmuo)
     allocate(xiou(nstval,nstcon,n))
+    if (allocated(xiuo)) deallocate(xiuo)
     allocate(xiuo(nstcon,nstval,n))
+    if (allocated(pmou)) deallocate(pmou)
     allocate(pmou(3,nstval,nstcon))
+    if (allocated(pmuo)) deallocate(pmuo)
     allocate(pmuo(3,nstcon,nstval))
-    ! allocate temporary arrays
+    ! allocate arrays
+    allocate(w(nwdf))
+    allocate(wreal(nwdfp))
+    allocate(chi0h(3,nwdfp))
+    allocate(chi0w(n,2,3,nwdfp))
+    allocate(chi0(n,n,nwdfp))
+    allocate(wou(nwdf))
+    allocate(wuo(nwdf))
     allocate(xou(n))
     allocate(xouc(n))
     allocate(xuo(n))
     allocate(xuoc(n))
     allocate(hou(n,n))
     allocate(huo(n,n))
-
-    if (tetrat) then
-       allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
-    end if
-
-    ! zero broadening for analytic contiunation
-    brd = brdtd
-    if (acont) brd = zzero
-
+    if (tetra) allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
+    ! generate complex energy grid
+    call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
+    wreal(:)=w(wi:wf)
+    if (wreal(1).lt.epstetra) wreal(1)=epstetra
     ! initializations
     chi0(:,:,:)=zzero
     chi0w(:,:,:,:)=zzero
     chi0h(:,:)=zzero
-
     ! loop over k-points
     call getunit(un)
     ikt=0
@@ -162,60 +141,57 @@ contains
        cpuosc=0.d0
        cpuupd=0.d0
        call cpu_time(cpu0)
-
        ! read Kohn-Sham energy differences
        call getdevalsv(iq,ik,.true.,trim(fndevalsv),deou,docc12,deuo,docc21)
        ! read Kohn-Sham energy differences (random k-point set)
        ! get matrix elements (exp. expr. or momentum)
        call getpemat(iq,ik,trim(fnpmat),trim(fnemat),nstval,nstcon,xiou,xiuo,&
             pmou,pmuo)
-
-       ! turn off antiresonant terms for Kohn-Sham response function
+       ! turn off antiresonant terms (type 21 band combiantions) for Kohn-Sham
+       ! response function
        if (.not.aresdf) then
           xiuo(:,:,:)=zzero
           pmuo(:,:,:)=zzero
        end if
-
        call cpu_time(cpu1)
        cpuread=cpu1-cpu0
-
        do iv=1,nstval
           do ic=1,nstcon
+             !---------------------!
+             !     denominator     !
+             !---------------------!
              call cpu_time(cpu0)
-
              ! user request termination
              call terminate_inqr('dfq')
-
-             ! read weights for tetrahedron method
-             if (tetrat)  then
+             if (tetra)  then
+                ! read weights for tetrahedron method
                 call gettetcw(iq,ik,iv,ic,nwdf,trim(fnwtet),cw,cwa, &
                      cwsurf)
-!!$                wou(wi:wf)=cmplx(cw(wi:wf),cwsurf(wi:wf),8)*2.d0/omega
-!!$                wuo(wi:wf)=cmplx(cwa(wi:wf),0.d0,8)*2.d0/omega
-                wou(wi:wf)=cmplx(cw(wi:wf),cwsurf(wi:wf),8)*2.d0/omega
-                wuo(wi:wf)=cmplx(cwa(wi:wf),0.d0,8)*2.d0/omega
+                ! include occupation number differences
+                wou(wi:wf)=docc12(iv,ic)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/omega
+                wuo(wi:wf)=-docc21(ic,iv)*cmplx(cwa(wi:wf),0.d0,8)/omega
              else
-                ! denominator
-!!$                wou(:)=2*wkpt(ik)/omega/(w(:)+deou(iv,ic)-scissor+zi*brd)
-!!$                wuo(:)=-2*wkpt(ik)/omega/(w(:)+deuo(ic,iv)+scissor+zi*brd)
-                wou(:)=2*wkpt(ik)/omega/(w(:)+deou(iv,ic)-scissor+zi*brd)
-                wuo(:)=-2*wkpt(ik)/omega/(w(:)+deuo(ic,iv)+scissor+zi*brd)
+                ! include occupation number differences
+                wou(:)=docc12(iv,ic)*wkpt(ik)/omega/(w(:)+deou(iv,ic)-scissor+ &
+                     zi*brd)
+                wuo(:)=docc21(ic,iv)*wkpt(ik)/omega/(w(:)+deuo(ic,iv)+scissor+ &
+                     zi*brd)
              end if
-
              hou(:,:)=zzero
              huo(:,:)=zzero
+             !---------------------!
+             !     oscillators     !
+             !---------------------!
              ! calculate oscillators
              if (.not.tq0) then
-                ! whole
+                ! set up body, head and wings in one
                 call dfqoscbo(n,xiou(iv,ic,:),xiuo(ic,iv,:),hou,huo)
              end if
-
              if (tq0.and.(n.gt.1)) then
-                ! body
+                ! set up body
                 call dfqoscbo(n-1,xiou(iv,ic,2:),xiuo(ic,iv,2:), &
                      hou(2:,2:),huo(2:,2:))
              end if
-
              ! loop over longitudinal Cartesian (diagonal) components of
              ! response function
              do oct=1,3
@@ -223,7 +199,7 @@ contains
                 call gensymdf(oct,oct)
                 optcomp(1,1)=oct
                 optcomp(2,1)=oct
-
+                ! Gamma q-point
                 if (tq0) then
                    ! head
                    call dfqoschd(pmou(:,iv,ic),pmuo(:,ic,iv),hou(1,1),huo(1,1))
@@ -231,13 +207,13 @@ contains
                       wout=wou(iw)
                       ! be careful with gauge in the w-variable
                       ! one has to subtract the scissor's shift
-                      if (tetrat) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
+                      if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
                            deou(iv,ic)**2/(wreal(iw-wi+1)-scissor)**2)
                       chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                            wout*hou(1,1)+wuo(iw)*huo(1,1)
                    end do
                 end if
-
+                ! Gamma q-point
                 if (tq0.and.(n.gt.1)) then
                    ! wings
                    call dfqoscwg(1,pmou(:,iv,ic),pmuo(:,ic,iv),xiou(iv,ic,2:),&
@@ -248,7 +224,7 @@ contains
                       wout=wou(iw)
                       ! be careful with gauge in the w-variable
                       ! one has to subtract the scissor's shift
-                      if (tetrat) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
+                      if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
                            deou(iv,ic)/(-wreal(iw-wi+1)+scissor))
                       chi0w(2:,1,oct,iw-wi+1)=chi0w(2:,1,oct,iw-wi+1)+&
                            wout*hou(1,2:)+wuo(iw)*huo(1,2:)
@@ -256,32 +232,29 @@ contains
                            wout*hou(2:,1)+wuo(iw)*huo(2:,1)
                    end do
                 end if
-
                 call cpu_time(cpu1)
                 cpuosc=cpuosc+cpu1-cpu0
-
              end do !oct
-
-             ! updating of response function
+             !----------------------------------!
+             !     update response function     !
+             !----------------------------------!
              do iw=wi,wf
                 ! * most time-consuming part of routine *
                 call chi0upd(n,wou(iw),wuo(iw),hou,huo,&
                      chi0(:,:,iw-wi+1))
              end do
-
              call cpu_time(cpu0)
              cpuupd=cpuupd+cpu0-cpu1
-
           end do ! ic
        end do ! iv
        cputot=cpuread+cpuosc+cpuupd
-
        ! timing information
        call dftim(iq,ik,trim(fnxtim),cpuread,cpuosc,cpuupd, &
             cputot)
        ! synchronize
        call barrier
-    end do ! ik
+       ! end loop over k-points
+    end do
     ! write response function to file
     do j=0,procs-1
        if (rank.eq.j) then
@@ -292,20 +265,17 @@ contains
        end if
        call barrier
     end do
-
     deallocate(chi0h)
     deallocate(chi0w)
     deallocate(deou,deuo,wou,wuo)
     deallocate(xiou,xiuo,pmou,pmuo)
     deallocate(w,wreal,chi0)
     deallocate(xou,xouc,xuo,xuoc,hou,huo)
-    if (tetrat) deallocate(cw,cwa,cwsurf)
-
+    if (tetra) deallocate(cw,cwa,cwsurf)
     ! restore offset
     vkloff(:) = vkloff_save(:)
     ! restore file extension
     call genfilname(setfilext=.true.)
-
   end subroutine dfq
 
 end module m_dfq
