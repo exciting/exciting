@@ -91,6 +91,14 @@ contains
     ! write out matrix size of response function
     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors &
          &(local field effects):',ngq(iq)
+    write(unitout,'(a,4i6)') 'Info('//thisnam//'): limits for band combinations&
+         & nst1,nst2,nst3,nst4:',nst1,nst2,nst3,nst4
+
+write(*,*) 'istlo1,isthi1',istlo1,isthi1
+write(*,*) 'istlo2,isthi2',istlo2,isthi2
+write(*,*) 'istlo3,isthi3',istlo3,isthi3
+write(*,*) 'istlo4,isthi4',istlo4,isthi4
+
 
     ! allocate arrays for eigenvalue and occupation number differences
     if (allocated(deou)) deallocate(deou)
@@ -100,7 +108,7 @@ contains
     if (allocated(docc12)) deallocate(docc12)
     allocate(docc12(nst1,nst2))
     if (allocated(docc21)) deallocate(docc21)
-    allocate(docc21(nst2,nst1))
+    allocate(docc21(nst3,nst4))
     ! allocate matrix elements arrays
     if (allocated(xiou)) deallocate(xiou)
     allocate(xiou(nst1,nst2,n))
@@ -144,12 +152,33 @@ contains
        call getdevalsv2(iq,ik,.true.,trim(fndevalsv),deou,docc12,deuo,docc21)
        ! read Kohn-Sham energy differences (random k-point set)
        ! get matrix elements (exp. expr. or momentum)
-       call getpemat2(iq,ik,trim(fnpmat),trim(fnemat),xiou,xiuo,pmou,pmuo)
+       call getpemat2(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
+            p12=pmou,p34=pmuo)
        ! turn off antiresonant terms (type 21 band combiantions) for Kohn-Sham
+!!$write(1000+ik,*) 'xiou',xiou
+!!$write(1000+ik,*) 'xiuo',xiuo
+!!$write(1000+ik,*) 'pmou',pmou
+!!$write(1000+ik,*) 'pmuo',pmuo
+!!$write(1000+ik,*) 'deou',deou
+!!$write(1000+ik,*) 'deuo',deuo
+!!$write(1000+ik,*) 'docc12',docc12
+!!$write(1000+ik,*) 'docc21',docc21
+
+
+
+
        ! response function
        if (.not.aresdf) then
           xiuo(:,:,:)=zzero
           pmuo(:,:,:)=zzero
+       end if
+       ! avoid double counting *** zero lower/upper triangle
+       ! of xiou,xiou because of scissors shift *** scissors: sign relevant:
+       ! calculate explicitly the scissors shift, depending on sign of band
+       ! energy difference
+       if (istunocc0.lt.istocc0) then
+          xiuo(istunocc0:istocc0,istunocc0:istocc0,:)=zzero
+          pmuo(:,istunocc0:istocc0,istunocc0:istocc0)=zzero
        end if
        call cpu_time(cpu1)
        cpuread=cpu1-cpu0
@@ -161,7 +190,7 @@ contains
              call cpu_time(cpu0)
              ! user request termination
              call terminate_inqr('dfq')
-             if (tetra)  then
+             if (tetra) then
                 ! read weights for tetrahedron method
                 call gettetcw(iq,ik,ist1,ist2,nwdf,trim(fnwtet),cw,cwa, &
                      cwsurf)
@@ -211,6 +240,7 @@ contains
                            deou(ist1,ist2)**2/(wreal(iw-wi+1)-scissor)**2)
                       chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                            wout*hou(1,1)+wuo(iw)*huo(1,1)
+!!! ??? wuot ??? missing
                    end do
                 end if
                 ! Gamma q-point

@@ -54,10 +54,18 @@ contains
        ! consider symmetric gauge wrt. Coulomb potential
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)
-       forall (j=1:3)
-          p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
-          p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
-       end forall
+       do j=1,3
+          where(abs(docc12).gt.epsocc)
+             p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
+          elsewhere
+             p12(j,:,:)=zzero
+          end where
+          where(abs(docc21).gt.epsocc)
+             p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
+          elsewhere
+             p34(j,:,:)=zzero
+          end where
+       end do
     end if
     if ((.not.tq0).or.(n.gt.1)) then
        ! read matrix elemets of exponential expression

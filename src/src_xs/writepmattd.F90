@@ -26,7 +26,7 @@ subroutine writepmattd(lgather)
   ! arguments
   logical :: lgather
   ! local variables
-  character(*), parameter :: thisnam = 'writepmattd'
+  character(*), parameter :: thisnam='writepmattd'
   integer ik
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)

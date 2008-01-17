@@ -16,13 +16,9 @@ subroutine writepmat_ascii
   call init0
   call init1
   call init2xs
-  ! find highest (partially) occupied and lowest (partially) unoccupied states
-  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-
   allocate(pmat(3,nstsv,nstsv))
   call getunit(un)
   open(un,file='PMAT_TD_ASC.OUT',action='write')
-
   do ik=1,nkpt
      ! read momentum matrix elements if required
      call getpmat(ik,vkl,.true.,'PMAT_TD.OUT',pmat)
@@ -37,8 +33,6 @@ subroutine writepmat_ascii
         end do
      end do
   end do
-  
-  close(un)
+    close(un)
   deallocate(pmat)
-
 end subroutine writepmat_ascii

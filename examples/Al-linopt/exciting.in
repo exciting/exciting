@@ -2,13 +2,16 @@
 ! Linear optical response of aluminium including intra-band contributions.
 
 tasks
-   0
- 120
- 121
+  333
+  340
+  350
+
+dbglev
+  100
 
 ! include intra-band excitations
-intraband
- .true.
+#intraband
+# .true.
 
 avec
   1.0  1.0  0.0
@@ -32,3 +35,29 @@ atoms
 ngridk
   12  12  12
 
+dos
+  500  100  0
+  0.0  0.5
+
+! TDDFT parameter
+qtype
+  'zero'
+
+! TDDFT parameter
+gqmax
+  0.001
+
+! TDDFT parameter
+#optswidth
+#  0.007
+
+! TDDFT parameter
+brdtd
+  0.007
+
+! TDDFT parameter
+tevout
+  .true.
+
+#aresdf
+#  .false.
