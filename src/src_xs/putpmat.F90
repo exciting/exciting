@@ -21,21 +21,17 @@ contains
     complex(8), intent(in) :: pm(:,:,:)
     ! local variables
     integer :: un, recl, ikr
-    
     ! record position for k-point
     ikr=ik
     ! record position is not absolute k-point index
     if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
-
     ! I/O record length
-    inquire(iolength=recl) nstval, nstcon, nkpt, &
-         vkl(:,ik), pm
+    inquire(iolength=recl) nstsv,nkpt,vkl(:,ik),pm
     call getunit(un)
     open(unit=un,file=trim(filnam),form='unformatted',action='write', &
          access='direct',recl=recl)
-    write(un,rec=ikr) nstval, nstcon, nkpt, vkl(:,ik),pm
+    write(un,rec=ikr) nstsv,nkpt,vkl(:,ik),pm
     close(un)
-
   end subroutine putpmat
 
 end module m_putpmat

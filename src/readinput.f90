@@ -869,9 +869,9 @@ case('tetra')
   read(50,*,err=20) tetra
 case('optswidth')
   read(50,*,err=20) optswidth
-  if (optswidth.le.0.d0) then
+  if (optswidth.lt.0.d0) then
     write(*,*)
-    write(*,'("Error(readinput): optswidth <= 0 : ",G18.10)') rgkmax
+    write(*,'("Error(readinput): optswidth < 0 : ",G18.10)') optswidth
     write(*,*)
     stop
   end if

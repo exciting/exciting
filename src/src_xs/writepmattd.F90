@@ -32,13 +32,12 @@ subroutine writepmattd(lgather)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-
+  ! analytic evaluation of interstitial contribution
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
           &calculation of momentum'
      write(unitout,'(a)') ' matrix elements in the interstitial'
   end if
-
   ! initialise universal variables
   if (calledxs.eq.1) call init0
   call init1
@@ -46,11 +45,9 @@ subroutine writepmattd(lgather)
   ! generate index ranges for parallel execution
   partype='k'
   call genparidxran(partype)
-
   ! k-point interval for process
   kpari=firstofset(rank,nkpt)
   kparf=lastofset(rank,nkpt)
-
   allocate(apwalmt(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(evecfvt(nmatmax,nstfv))
   allocate(evecsvt(nstsv,nstsv))
@@ -58,10 +55,8 @@ subroutine writepmattd(lgather)
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
   call genfilname(iq=0,setfilext=.true.)
-
-  ! find highest (partially) occupied and lowest (partially) unoccupied states
-  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-
+  ! generate band combinations
+  call ematbdcmbs(1)
   if (lgather) goto 10
   do ik=kpari,kparf
      ! get the eigenvectors and values from file
@@ -77,9 +72,7 @@ subroutine writepmattd(lgather)
      if (ik-kpari+1 <= nkpt/procs) call barrier
   end do
   call barrier
-
 10 continue
-
   ! lgather from processes
   if ((procs.gt.1).and.(rank.eq.0)) call pmatgather
   deallocate(apwalmt,evecfvt,evecsvt,pmat)
@@ -88,6 +81,5 @@ subroutine writepmattd(lgather)
        &finished"
   ! reset global file extension to default
   call genfilname(setfilext=.true.)
-
 end subroutine writepmattd
 !EOC
