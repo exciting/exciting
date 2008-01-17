@@ -18,24 +18,17 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      ikq=ik
      if (iq.ne.0) ikq=ikmapikq(ik,iq)
      call genfilname(iq=iq,setfilext=.true.)
-
-write(*,*) 'ik,ikq',ik,ikq
-write(*,*) 'vkl(1,ikq)',vkl(:,ikq)
-write(*,*) 'vkl0(1,ik)',vkl0(:,ik)
      call getoccsv(vkl(1,ikq),occsv(1,ikq))
      do i=1,nstsv
-        if (occsv(i,ik).lt.epsocc) exit
+        if (occsv(i,ikq).lt.epsocc) exit
      end do
      io(ik)=i-1
      do i=nstsv,1,-1
-        if (occsv(i,ik).gt.(occmax-epsocc)) exit
+        if (occsv(i,ikq).gt.(occmax-epsocc)) exit
      end do
      iu(ik)=i+1
      if (iq.ne.0) then
         ! k-point set (q=0)
-write(*,*) 'ik,ikq',ik,ikq
-write(*,*) 'vkl(1,ikq)',vkl(:,ikq)
-write(*,*) 'vkl0(1,ik)',vkl0(:,ik)
         call genfilname(iq=0,setfilext=.true.)
         call getoccsv0(vkl0(1,ik),occsv0(1,ik))
         call genfilname(iq=iq,setfilext=.true.)
