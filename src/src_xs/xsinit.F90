@@ -20,7 +20,7 @@ subroutine xsinit(cnt)
   ! assign xs code version
   versionxs=(/0,87/)
   ! remember how often this routine is called
-  cnt = cnt + 1
+  cnt=cnt+1
   ! initialize global counters
   call cpu_time(cputim0i)
   call system_clock(COUNT_RATE=cntrate)
@@ -48,8 +48,8 @@ subroutine xsinit(cnt)
      call genfilname(basename='.resume',dotext='',filnam=fnresume)
   end if
   ! name of output file
-  call genfilname(nodotpar=.true.,basename='XSINFO',&
-       procs=procs,rank=rank,filnam=tdfileout)
+  call genfilname(nodotpar=.true.,basename='XSINFO',procs=procs,rank=rank, &
+       filnam=tdfileout)
   ! reset or append to output file
   call getunit(unitout)
   if (tappinfo.or.(calledxs.gt.1)) then

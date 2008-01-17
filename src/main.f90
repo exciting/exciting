@@ -90,6 +90,9 @@ program main
         case(902)
            ! k-point in SCF
            call atkp
+        case(999)
+           !***
+           call init0
 #endif
 #endif
         case default

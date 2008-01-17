@@ -27,20 +27,20 @@ contains
     call getunit(un)
      if (present(x2)) then
         ! I/O record length
-        inquire(iolength=recl) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), &
-             vkl(:,ik), x1, x2
+        inquire(iolength=recl) nst1,nst2,nst3,nst4,nkpt,ngq(iq),vql(:,iq), &
+             vkl(:,ik),x1,x2
         open(unit=un,file=trim(filnam),form='unformatted', &
              action='write',access='direct',recl=recl)
-        write(un,rec=ikr) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
-             x1, x2
+        write(un,rec=ikr) nst1,nst2,nst3,nst4,nkpt,ngq(iq),vql(:,iq), &
+             vkl(:,ik),x1,x2
      else
         ! I/O record length
-        inquire(iolength=recl) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), &
-             vkl(:,ik), x1
+        inquire(iolength=recl) nst1,nst2,nst3,nst4,ngq(iq),vql(:,iq), &
+             vkl(:,ik),x1
         open(unit=un,file=trim(filnam),form='unformatted', &
              action='write',access='direct',recl=recl)
-        write(un,rec=ikr) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
-             x1
+        write(un,rec=ikr) nst1,nst2,nst3,nst4,nkpt,ngq(iq),vql(:,iq), &
+             vkl(:,ik),x1
      end if
     close(un)
   end subroutine putemat2

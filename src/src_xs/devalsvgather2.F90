@@ -33,15 +33,17 @@ subroutine devalsvgather2
      ! states
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
           istu)
+     ! set limits for band combinations
+     call ematbdcmbs(emattype)
      ! shift k-mesh by q-point
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
      call init1xs
-     allocate(deou(nstval,nstcon))
+     allocate(deou(nst1,nst2))
      allocate(docc12(nst1,nst2))
      if (emattype.ne.0) then
-        allocate(deuo(nstcon,nstval))
-        allocate(docc21(nst2,nst1))
+        allocate(deuo(nst3,nst4))
+        allocate(docc21(nst3,nst4))
      end if
      ! file extension for q-point
      do iproc=0,procs-1
@@ -50,7 +52,6 @@ subroutine devalsvgather2
         kpari=firstofset(iproc,nkpt)
         kparf=lastofset(iproc,nkpt)
         do ik=kpari,kparf
-           ! exponential factor matrix elements
            if (emattype.ne.0) then
               call getdevalsv2(iq,ik,.false.,trim(fndevalsv_t), &
                    deou,docc12,deuo,docc21)

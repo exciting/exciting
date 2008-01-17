@@ -62,9 +62,9 @@ subroutine xsmain
   case(322)
      ! convert momentum matrix elements file to old format
      call pmattd2orig
-  case(330)
-     ! calculate matrix elements of exponential expression
-     call writeemat
+!!$  case(330)
+!!$     ! calculate matrix elements of exponential expression
+!!$     call writeemat
   case(331)
      ! ASCII output of matrix elements of exponential expression
      call writeemat_ascii
@@ -74,9 +74,9 @@ subroutine xsmain
   case(335)
      ! calculate matrix elements of the plane wave (new version)
      call writepwmat
-  case(339)
-     ! check relation between matr. el. of exp. and mom. matr. el.
-     call emattest
+!!$  case(339)
+!!$     ! check relation between matr. el. of exp. and mom. matr. el.
+!!$     call emattest
   case(340)
      ! Kohn Sham response function
      call df

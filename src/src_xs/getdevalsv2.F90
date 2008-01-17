@@ -21,8 +21,8 @@ contains
     real(8), optional, intent(out) :: e2(:,:),o2(:,:)
     ! local variables
     character(*), parameter :: thisnam = 'getdevalsv2'
-    integer :: recl, un, ikr, nstval_, nstcon_, nkpt_, ngq_
-    real(8) :: vql_(3), vkl_(3)
+    integer :: recl,un,ikr,nst1_,nst2_,nst3_,nst4_,nkpt_,ngq_
+    real(8) :: vql_(3),vkl_(3)
     logical :: existent
     ! functions
     real(8) :: r3dist
@@ -47,33 +47,36 @@ contains
     end if
     if (present(e2)) then
        ! I/O record length
-       inquire(iolength=recl) nstval_,nstcon_,nkpt_,ngq_,vql_,vkl_, &
+       inquire(iolength=recl) nst1_,nst2_,nst3_,nst4_,nkpt_,ngq_,vql_,vkl_, &
             e1,o1,e2,o2
        open(unit=un,file=trim(filnam),form='unformatted', &
             action='read', access='direct',recl=recl)
-       read(un,rec=ikr) nstval_,nstcon_,nkpt_,ngq_,vql_,vkl_, &
+       read(un,rec=ikr) nst1_,nst2_,nst3_,nst4_,nkpt_,ngq_,vql_,vkl_, &
             e1,o1,e2,o2
     else
        ! I/O record length
-       inquire(iolength=recl) nstval_,nstcon_,nkpt_,ngq_,vql_,vkl_, &
+       inquire(iolength=recl) nst1_,nst2_,nst3_,nst4_,nkpt_,ngq_,vql_,vkl_, &
             e1,o1
        open(unit=un,file=trim(filnam),form='unformatted', &
             action='read', access='direct',recl=recl)
-       read(un,rec=ikr) nstval_,nstcon_,nkpt_,ngq_,vql_,vkl_, &
+       read(un,rec=ikr) nst1_,nst2_,nst3_,nst4_,nkpt_,ngq_,vql_,vkl_, &
             e1,o1
     end if
     close(un)
     ! check consistency
-    if ((nstval_.ne.nstval).or.(nstcon_.ne.nstcon).or.(nkpt_.ne.nkpt).or. &
-         ( r3dist(vql_,vql(1,iq)) > epslat ).or. &
-         ( r3dist(vkl_,vkl(1,ik)) > epslat )) then
+    if ((nst1_.ne.nst1).or.(nst2_.ne.nst2).or.(nst3_.ne.nst3).or. &
+         (nst4_.ne.nst4).or.(nkpt_.ne.nkpt).or. &
+         (r3dist(vql_,vql(1,iq)).gt.epslat).or. &
+         (r3dist(vkl_,vkl(1,ik)).gt.epslat)) then
        write(unitout,'(a)') 'Error('//thisnam//'): differring parameters for &
             &matrix elements (current/file): '
-       write(unitout,'(a,2i6)') 'nstval', nstval, nstval_
-       write(unitout,'(a,2i6)') 'nstcon', nstcon, nstcon_
-       write(unitout,'(a,2i6)') 'nkpt', nkpt, nkpt_
-       write(unitout,'(a,3f12.6,a,3f12.6)') 'vql', vql(:,iq), ',', vql_
-       write(unitout,'(a,3f12.6,a,3f12.6)') 'vkl', vkl(:,ik), ',', vkl_
+       write(unitout,'(a,2i6)') ' nst1:', nst1, nst1_
+       write(unitout,'(a,2i6)') ' nst2:', nst2, nst2_
+       write(unitout,'(a,2i6)') ' nst3:', nst3, nst3_
+       write(unitout,'(a,2i6)') ' nst4:', nst4, nst4_
+       write(unitout,'(a,2i6)') ' nkpt', nkpt, nkpt_
+       write(unitout,'(a,3f12.6,a,3f12.6)') ' vql :', vql(:,iq), ',', vql_
+       write(unitout,'(a,3f12.6,a,3f12.6)') ' vkl :', vkl(:,ik), ',', vkl_
        write(unitout,'(a)') ' file: ',trim(filnam)
        call terminate
     end if

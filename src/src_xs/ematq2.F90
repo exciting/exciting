@@ -95,6 +95,7 @@ contains
           deallocate(deou)
           deallocate(docc12)
           call ematbdlims(2*emattype-1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
+          nst3=nst2; nst4=nst1
           allocate(xiou(nst1,nst2,ngq(iq)))
           allocate(deou(nst1,nst2))
           allocate(docc12(nst1,nst2))

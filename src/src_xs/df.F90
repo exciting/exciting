@@ -7,7 +7,8 @@ subroutine df
   use modmain
   use modxs
   use modmpi
-  use m_dfq
+!!$  use m_dfq
+  use m_dfq2
   use m_genfilname
   implicit none
   ! local variables
@@ -34,8 +35,9 @@ subroutine df
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point
-     if (.not.gather) call dfq(iq)
-     write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sahm response &
+!!$     if (.not.gather) call dfq(iq)
+     if (.not.gather) call dfq2(iq)
+    write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sahm response &
           &function finished for q-point:',iq
   end do
 

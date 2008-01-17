@@ -32,12 +32,14 @@ subroutine ematgather2
      ! states
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
           istu)
+     ! set limits for band combinations
+     call ematbdcmbs(emattype)
      ! shift k-mesh by q-point
      vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
      call init1xs
-     allocate(xiou(nstval,nstcon,ngq(iq)))
-     if (emattype.ne.0) allocate(xiuo(nstcon,nstval,ngq(iq)))
+     allocate(xiou(nst1,nst2,ngq(iq)))
+     if (emattype.ne.0) allocate(xiuo(nst3,nst4,ngq(iq)))
      ! file extension for q-point
      do iproc=0,procs-1
         call genfilname(basename='EMAT',iq=iq,procs=procs,rank=iproc,&
@@ -45,7 +47,6 @@ subroutine ematgather2
         kpari=firstofset(iproc,nkpt)
         kparf=lastofset(iproc,nkpt)
         do ik=kpari,kparf
-           ! exponential factor matrix elements
            if (emattype.ne.0) then
               call getemat2(iq,ik,.false.,trim(fnemat_t),x1=xiou,x2=xiuo)
               call putemat2(iq,ik,.true.,trim(fnemat),x1=xiou,x2=xiuo)

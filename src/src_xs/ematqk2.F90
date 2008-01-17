@@ -92,19 +92,6 @@ contains
     ! change back file extension
     call genfilname(iq=iq,setfilext=.true.)
 
-!!$    ! eigenvalue and occupation number differences
-!!$    do istv=1,nstval
-!!$       do istc=1,nstcon
-!!$          ! resonant part
-!!$          deou(istv,istc) = evalsv0(istv,ik) - evalsv(nstval+istc,ikq)
-!!$          ! antiresonant part
-!!$          deuo(istc,istv) = evalsv0(nstval+istc,ik) - evalsv(istv,ikq)
-!!$
-!!$          docc12(istv,istc)=occsv0(istv,ik)-occsv(nstval+istc,ikq)
-!!$          docc21(istc,istv)=occsv0(nstval+istc,ik)-occsv(istv,ikq)
-!!$       end do
-!!$    end do
-
     ! eigenvalue and occupation number differences
     do ist1=istlo1,isthi1
        do ist2=istlo2,isthi2
