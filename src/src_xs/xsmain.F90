@@ -27,7 +27,6 @@ subroutine xsmain
   use m_getunit
   implicit none
   character(*), parameter :: thisnam = 'xsmain'
-
   ! basic initialization
   call xsinit(calledxs)
 
@@ -107,24 +106,21 @@ subroutine xsmain
   case(400)
      ! RPA screening
      call screen
-  case(498,499)
-     ! * debug task
+  case(495)
      call init0
      call init1
-     call writekpts
+     call writesymi
+  case(496)
+     ! * debug task
+     call init0
   case(497)
      ! * debug task
      call init0
      call init1
      call init2xs
      call writekpts
-  case(496)
-     ! * debug task
-     call init0
-  case(495)
-     call init0
-     call init1
-     call writesymi
+  case(499)
+     ! do nothing
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task

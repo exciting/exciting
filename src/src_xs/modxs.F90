@@ -314,7 +314,7 @@ module modxs
   ! finite momentum transfer q-vector
   real(8) :: vqlfmt(3)
   ! finite momentum transfer G-vector
-  integer(8) :: ivgfmt(3)
+  integer :: ivgfmt(3)
   ! number of band transitions for analysis
   integer :: ndftrans
   ! k-point and band combination analysis
