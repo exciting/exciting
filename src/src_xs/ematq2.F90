@@ -81,6 +81,7 @@ contains
        call ematqk2(iq,ik)
        if (emattype.eq.0) then
           ! all band combinations
+          nst3=nstsv; nst4=nstsv
           call putemat2(iq,ik,.false.,trim(fnemat_t),x1=xiou)
           call putdevalsv2(iq,ik,.false.,trim(fndevalsv_t),e1=deou,o1=docc12)
        else

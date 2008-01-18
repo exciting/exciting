@@ -32,17 +32,17 @@ contains
     if (tq0.and.(.not.present(p12))) then
        write(*,*)
        write(*,'("Error(",a,"): Gamma q-point but momentum matrix elements not &
-            &requested.")')
+            &requested.")') thisnam
        write(*,*)
        call terminate
     end if
-    if ((.not.tq0).and.present(p12)) then
-       write(*,*)
-       write(*,'("Error(",a,"): Not Gamma q-point and momentum matrix elements &
-            &requested.")')
-       write(*,*)
-       call terminate
-    end if
+!!$    if ((.not.tq0).and.present(p12)) then
+!!$       write(*,*)
+!!$       write(*,'("Error(",a,"): Not Gamma q-point and momentum matrix elements &
+!!$            &requested.")') thisnam
+!!$       write(*,*)
+!!$       call terminate
+!!$    end if
     if (tq0) then
        ! Gamma q-point
        allocate(pm(3,nstsv,nstsv))

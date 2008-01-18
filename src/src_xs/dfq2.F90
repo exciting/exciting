@@ -170,6 +170,18 @@ write(*,*) 'istocc0,istocc,istunocc0,istunocc',istocc0,istocc,istunocc0,istunocc
           xiou(istunocc0:,:istocc0-istunocc0+1,:)=zzero
           pmou(:,istunocc0:,:istocc0-istunocc0+1)=zzero
        end if
+
+
+if (ik.eq.3) then
+write(222,*) 'xiou',xiou
+write(222,*) 'xiuo',xiuo
+write(222,*) 'deou',deou
+write(222,*) 'deuo',deuo
+write(222,*) 'docc12',docc12
+write(222,*) 'docc21',docc21
+end if
+
+
        call cpu_time(cpu1)
        cpuread=cpu1-cpu0
        do ist1=1,nst1

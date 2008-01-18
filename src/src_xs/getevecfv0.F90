@@ -17,14 +17,19 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   real(8), allocatable :: vklt(:,:), vgklt(:,:,:,:)
 
   ! copy varialbes of k+(q=0) to default variables
-  nmatmaxt=nmatmax; nmatmax=nmatmax0
-  ngkmaxt=ngkmax; ngkmax=ngkmax0
   allocate(ngkt(nkpt,nspnfv))
   allocate(vklt(3,nkptnr))
   allocate(vgklt(3,ngkmax,nkpt,nspnfv))
-  ngkt(:,:)=ngk(:,:); ngk(:,:)=ngk0(:,:)
-  vklt(:,:)=vkl(:,:); vkl(:,:)=vkl0(:,:)
-  vgklt(:,:,:,:)=vgkl(:,:,:,:); vgkl(:,:,:,:)=vgkl0(:,:,:,:)
+  nmatmaxt=nmatmax
+  nmatmax=nmatmax0
+  ngkmaxt=ngkmax
+  ngkmax=ngkmax0
+  ngkt(:,:)=ngk(:,:)
+  ngk(:,:)=ngk0(:,:)
+  vklt(:,:)=vkl(:,:)
+  vkl(:,:)=vkl0(:,:)
+  vgklt(:,:,:,:)=vgkl(:,:,:,:)
+  vgkl(:,:,:,:)=vgkl0(:,:,:,:)
 
   ! call to getevecfv with changed (G+)k-point sets / matrix size
   call getevecfv(vpl,vgpl,evecfvt)

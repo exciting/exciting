@@ -52,6 +52,11 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   iunocc0=minval(iu0)
   iunocc=minval(iu)
 
+  ! *** be safe for q=0 *** re-think this strategy ***
+  iocc0=max(iocc0,iocc)
+  iunocc0=min(iunocc0,iunocc)
+
+
   ! *** assign nstval and nstcon ***
   nstval=max(iocc0,iocc)
   nstcon=nstsv-nstval

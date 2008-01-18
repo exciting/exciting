@@ -87,8 +87,8 @@ contains
     call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
     ! read occupation numbers for G+k+q
     call getoccsv0(vkl0(1,ikq),occsv0(1,ikq))
-    evecfvo0(:,:)=evecfv0(ngk(ik,1)+1:ngk(ik,1)+nlotot,istlo1:isthi1,1)
-    evecfvo20(:,:)=evecfv0(1:ngk(ik,1),istlo1:isthi1,1)
+    evecfvo0(:,:)=evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,istlo1:isthi1,1)
+    evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
     ! change back file extension
     call genfilname(iq=iq,setfilext=.true.)
 

@@ -2,12 +2,12 @@ include make.inc
 
 
 serial:make.inc
-	../../utilities/mkmf -t template -f -m Makefile.serial -p exciting \
+	../../utilities/mkmf -t template -f -m Makefile.serial -p exciting_debug \
         ../../src  \
 	../../src/src_xs \
         ../../src/src_iterative_solver \
-        && make -f Makefile.serial exciting \
-        && cp -f exciting ..
+        && make -f Makefile.serial exciting_debug \
+        && cp -f exciting_debug ..
 
 libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a
 

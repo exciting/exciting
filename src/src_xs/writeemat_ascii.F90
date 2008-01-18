@@ -23,15 +23,16 @@ subroutine writeemat_ascii
   call getunit(un)
   ! loop over q-points
   do iq=1,nqpt
+     call genfilname(iq=iq,setfilext=.true.)
+     vkloff(:)=qvkloff(:,iq)
+     ! calculate k+q and G+k+q related variables
+     call init1xs
      ! find highest (partially) occupied and lowest (partially) unoccupied
      ! states
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
           istu)
      ! set limits for band combinations
      call ematbdcmbs(emattype)
-     vkloff(:)=qvkloff(:,iq)
-     ! calculate k+q and G+k+q related variables
-     call init1xs
      if (allocated(xiou)) deallocate(xiou)
      allocate(xiou(nst1,nst2,ngq(iq)))
      if (emattype.ne.0) then

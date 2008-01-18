@@ -53,6 +53,7 @@ close(70)
      write(*,'("Error(getevalsv): differing vectors for k-point ",I8)') ik
      write(*,'(" current    : ",3G18.10)') vkl(:,ik)
      write(*,'(" EVALSV.OUT : ",3G18.10)') vkl_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if

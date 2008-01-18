@@ -5,6 +5,9 @@
 
 subroutine linopt
   use modmain
+  use modxs
+use m_getemat2
+use m_genfilname
 #ifdef TETRA
   use modtetra
 #endif
@@ -31,9 +34,9 @@ subroutine linopt
   real(8), allocatable :: sigma2(:)
   real(8), allocatable :: delta(:,:)
   real(8), allocatable :: pmatint(:,:)
-  complex(8), allocatable :: evecfv(:,:)
-  complex(8), allocatable :: evecsv(:,:)
-  complex(8), allocatable :: apwalm(:,:,:,:)
+!!$  complex(8), allocatable :: evecfv(:,:)
+!!$  complex(8), allocatable :: evecsv(:,:)
+!!$  complex(8), allocatable :: apwalm(:,:,:,:)
   complex(8), allocatable :: pmat(:,:,:)
 #ifdef TETRA
   integer :: m,ist1,ist2
@@ -44,10 +47,44 @@ subroutine linopt
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
   complex(8) :: sumc
   complex(8), allocatable :: epsc(:)
-  logical :: tev
+  logical :: tev,tqfmt
+real(8) :: vkloff_save(3)
   ! output in electron volt
   tev=.true.
   optltz=(optswidth.ne.0.d0)
+
+tqfmt=.false.
+if (optswidth.lt.0.d0) then
+   tqfmt=.true.   
+   optswidth=-optswidth
+end if
+  ! initialise universal variables
+  call init0
+  call init1
+call init2xs
+if (tqfmt) then
+   emattype=0
+   call tdsave0
+! save k-point offset
+vkloff_save(:)=vkloff(:)
+!k+q-point
+call genfilname(iq=1,setfilext=.true.)
+vkloff(:)=qvkloff(:,1)
+call init1xs
+   call findocclims(1,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+   call ematbdcmbs(emattype)
+!!$!k-point
+!!$call genfilname(setfilext=.true.)
+!!$vkloff(:)=vkloff_save(:)
+!!$call init1xs
+
+   if (allocated(evalsv0)) deallocate(evalsv0)
+   allocate(evalsv0(nstsv,nkpt))
+   if (allocated(occsv0)) deallocate(occsv0)
+   allocate(occsv0(nstsv,nkpt))
+   if (allocated(xiou)) deallocate(xiou)
+   allocate(xiou(nstsv,nstsv,1))
+end if
   if (tetra.and.optltz) then
      write(*,*)
      write(*,'("Error(linopt): specified tetrahedron method and Lorentzian &
@@ -70,9 +107,6 @@ subroutine linopt
      write(*,*)
      stop
   end if
-  ! initialise universal variables
-  call init0
-  call init1
   ! read Fermi energy from file
   call readfermi
   ! allocate local arrays
@@ -87,10 +121,10 @@ subroutine linopt
   allocate(d(nsymcrys))
   allocate(eps1(nwdos),eps2(nwdos))
   allocate(sigma1(nwdos),sigma2(nwdos))
-  ! allocate first-variational eigenvector array
-  allocate(evecfv(nmatmax,nstfv))
-  ! allocate second-variational eigenvector array
-  allocate(evecsv(nstsv,nstsv))
+!!$  ! allocate first-variational eigenvector array
+!!$  allocate(evecfv(nmatmax,nstfv))
+!!$  ! allocate second-variational eigenvector array
+!!$  allocate(evecsv(nstsv,nstsv))
   ! allocate the momentum matrix elements array
   allocate(pmat(3,nstsv,nstsv))
   ! allocate intraband matrix elements
@@ -146,7 +180,7 @@ subroutine linopt
   end do
   ! find the record length for momentum matrix element file
   inquire(iolength=recl) pmat
-  open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED',access='DIRECT', &
+if (.not.tqfmt)  open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED',access='DIRECT', &
        recl=recl)
   ! loop over number of desired optical components
   do iop=1,noptcomp
@@ -180,17 +214,29 @@ subroutine linopt
      e(:,:)=0.d0
      f(:,:)=0.d0
      do ik=1,nkpt
-        ! compute generalised DFT correction if required
-        if (usegdft) then
-           call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-           call getevecsv(vkl(1,ik),evecsv)
-           call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),&
-                apwalm)
-           call gdft(ik,apwalm,evecfv,evecsv,delta)
-        end if
+!!$        ! compute generalised DFT correction if required
+!!$        if (usegdft) then
+!!$           call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
+!!$           call getevecsv(vkl(1,ik),evecsv)
+!!$           call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),&
+!!$                apwalm)
+!!$           call gdft(ik,apwalm,evecfv,evecsv,delta)
+!!$        end if
         ! read matrix elements from direct-access file
-        read(50,rec=ik) pmat
-        call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
+if (.not.tqfmt) read(50,rec=ik) pmat
+if (.not.tqfmt) call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
+call getemat2(1,ik,.true.,'EMAT_Q00001.OUT',xiou)
+
+
+if (tqfmt) call linoptkpq(ik,i1,i2,xiou,e(1,ik),f(1,ik))
+
+if (ik.eq.1) then
+
+   write(200,*) e
+   write(300,*) f
+end if
+
+
 #ifdef TETRA
         if (optltz) then
            ! check for better numerical convergence at zero frequency
@@ -276,19 +322,26 @@ subroutine linopt
               do ist1=1,nstsv
                  do ist2=1,nstsv
                     m=m+1
-                    if (ist1.ne.ist2) sum2=sum2+wkpt(ik)*f(m,ik)* &
-                         aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
-                    if (ist1.ne.ist2) sum=sum+wkpt(ik)*f(m,ik)* &
-                         dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
-                    if ((ist1<=nstsv-nempty-1).and.(ist2>nstsv-nempty-1)) then
-                       ! Lorentzian broadening
-                       sumc=sumc+&
-                            wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*optswidth))/&
-                            e12(ist1,ist2,ik)**2  -  &
-                            wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*optswidth))/&
-                            e12(ist2,ist1,ik)**2                
+                    if (.not.tqfmt) then
+                       if (ist1.ne.ist2) sum2=sum2+wkpt(ik)*f(m,ik)* &
+                            aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
+                       if (ist1.ne.ist2) sum=sum+wkpt(ik)*f(m,ik)* &
+                            dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
+                       if ((ist1<=nstsv-nempty-1).and.(ist2>nstsv-nempty-1)) then
+                          ! Lorentzian broadening
+                          sumc=sumc+&
+                               wkpt(ik)*f12(ist1,ist2,ik)* &
+                               (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*optswidth))/&
+                               e12(ist1,ist2,ik)**2  -  &
+                               wkpt(ik)*f12(ist1,ist2,ik)* &
+                               (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*optswidth))/&
+                               e12(ist2,ist1,ik)**2
+                       end if
+                    else
+                       if (ist1.ne.ist2) sum2=sum2+wkpt(ik)* f(m,ik)* &
+                            aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))
+                       if (ist1.ne.ist2) sum=sum+wkpt(ik)* f(m,ik)* &
+                            dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))
                     end if
                  end do
               end do
@@ -400,7 +453,7 @@ subroutine linopt
      close(61)
      ! end loop over number of components
   end do
-  close(50)
+if (.not.tqfmt)  close(50)
   write(*,*)
   write(*,'("Info(linopt):")')
   write(*,'(" dielectric tensor written to EPSILON_ij.OUT")')
@@ -415,8 +468,9 @@ subroutine linopt
   deallocate(w,fw,g,cf,e,f,sc,d)
   deallocate(eps1,eps2)
   deallocate(sigma1,sigma2)
-  deallocate(evecfv,evecsv,pmat,pmatint)
-  if (usegdft) deallocate(delta,apwalm)
+!!$  deallocate(evecfv,evecsv,pmat,pmatint)
+deallocate(pmat,pmatint)
+!!$  if (usegdft) deallocate(delta,apwalm)
 #ifdef TETRA
   if (tetra) then
      deallocate(e1,cw,cwa,cwsurf)
