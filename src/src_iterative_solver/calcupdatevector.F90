@@ -16,7 +16,7 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
   do j=1,m
      do i=1,n
         z=cmplx (w(i)-evalfv(j),0.0)
-        if(abs(z).gt.1e-6)then  
+        if(abs(z).gt.1e-7)then  
            v(i,j)=-v(i,j)/z
 
         else
@@ -36,7 +36,6 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
   ! call zscal(n,alpha,phi,1)
   ! call zaxpy(n,1-alpha,evecfv,1,phi,1)
   do i=1,m
-     ! call zaxpy(n,zone,phi(1,i),1,evecfv(1,i),1)
      call zcopy(n,phi(1,i),1,evecfv(1,i),1)
   end do
 
