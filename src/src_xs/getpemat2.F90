@@ -55,12 +55,22 @@ contains
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)
        do j=1,3
-          where(abs(docc12).gt.epsocc)
+!!$          where(abs(docc12).gt.epsocc)
+!!$             p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
+!!$          elsewhere
+!!$             p12(j,:,:)=zzero
+!!$          end where
+!!$          where(abs(docc21).gt.epsocc)
+!!$             p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
+!!$          elsewhere
+!!$             p34(j,:,:)=zzero
+!!$          end where
+          where(abs(deou).gt.epsocc)
              p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
           elsewhere
              p12(j,:,:)=zzero
           end where
-          where(abs(docc21).gt.epsocc)
+          where(abs(deuo).gt.epsocc)
              p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
           elsewhere
              p34(j,:,:)=zzero

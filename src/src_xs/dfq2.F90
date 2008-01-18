@@ -98,7 +98,7 @@ write(*,*) 'istlo1,isthi1',istlo1,isthi1
 write(*,*) 'istlo2,isthi2',istlo2,isthi2
 write(*,*) 'istlo3,isthi3',istlo3,isthi3
 write(*,*) 'istlo4,isthi4',istlo4,isthi4
-
+write(*,*) 'istocc0,istocc,istunocc0,istunocc',istocc0,istocc,istunocc0,istunocc
 
     ! allocate arrays for eigenvalue and occupation number differences
     if (allocated(deou)) deallocate(deou)
@@ -155,18 +155,6 @@ write(*,*) 'istlo4,isthi4',istlo4,isthi4
        call getpemat2(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
             p12=pmou,p34=pmuo)
        ! turn off antiresonant terms (type 21 band combiantions) for Kohn-Sham
-!!$write(1000+ik,*) 'xiou',xiou
-!!$write(1000+ik,*) 'xiuo',xiuo
-!!$write(1000+ik,*) 'pmou',pmou
-!!$write(1000+ik,*) 'pmuo',pmuo
-!!$write(1000+ik,*) 'deou',deou
-!!$write(1000+ik,*) 'deuo',deuo
-!!$write(1000+ik,*) 'docc12',docc12
-!!$write(1000+ik,*) 'docc21',docc21
-
-
-
-
        ! response function
        if (.not.aresdf) then
           xiuo(:,:,:)=zzero
@@ -176,9 +164,11 @@ write(*,*) 'istlo4,isthi4',istlo4,isthi4
        ! of xiou,xiou because of scissors shift *** scissors: sign relevant:
        ! calculate explicitly the scissors shift, depending on sign of band
        ! energy difference
-       if (istunocc0.lt.istocc0) then
-          xiuo(istunocc0:istocc0,istunocc0:istocc0,:)=zzero
-          pmuo(:,istunocc0:istocc0,istunocc0:istocc0)=zzero
+       if (istunocc0.le.istocc0) then
+!!$          xiuo(:istocc0-istunocc0+1,istunocc0:,:)=zzero
+!!$          pmuo(:,istocc0-istunocc0+1,istunocc0:)=zzero
+          xiou(istunocc0:,:istocc0-istunocc0+1,:)=zzero
+          pmou(:,istunocc0:,:istocc0-istunocc0+1)=zzero
        end if
        call cpu_time(cpu1)
        cpuread=cpu1-cpu0
@@ -240,7 +230,6 @@ write(*,*) 'istlo4,isthi4',istlo4,isthi4
                            deou(ist1,ist2)**2/(wreal(iw-wi+1)-scissor)**2)
                       chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                            wout*hou(1,1)+wuo(iw)*huo(1,1)
-!!! ??? wuot ??? missing
                    end do
                 end if
                 ! Gamma q-point

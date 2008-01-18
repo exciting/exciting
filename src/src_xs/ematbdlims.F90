@@ -48,6 +48,48 @@ subroutine ematbdlims(typ,n1,lo1,hi1,n2,lo2,hi2)
 !!$     n1=nstcon
 !!$     n2=nstcon
 !!$  end select
+!!$  select case(typ)     
+!!$  case(0)
+!!$     ! all combinations
+!!$     lo1=1
+!!$     hi1=nstsv
+!!$     lo2=1
+!!$     hi2=nstsv
+!!$     n1=nstsv
+!!$     n2=nstsv
+!!$  case(1)
+!!$     ! 1-2 combinations
+!!$     lo1=1
+!!$     hi1=istocc0
+!!$     lo2=istunocc
+!!$     hi2=nstsv
+!!$     n1=istocc0-1+1
+!!$     n2=nstsv-istunocc+1
+!!$  case(2)
+!!$     ! 2-1 combinations
+!!$     lo1=istunocc0
+!!$     hi1=nstsv
+!!$     lo2=1
+!!$     hi2=istocc
+!!$     n1=nstsv-istunocc0+1
+!!$     n2=istocc-1+1
+!!$  case(3)
+!!$     ! 1-1 combinations
+!!$     lo1=1
+!!$     hi1=istocc0
+!!$     lo2=1
+!!$     hi2=istocc
+!!$     n1=istocc0-1+1
+!!$     n2=istocc-1+1
+!!$  case(4)
+!!$     ! 2-2 combinations
+!!$     lo1=istunocc0
+!!$     hi1=nstsv
+!!$     lo2=istunocc
+!!$     hi2=nstsv
+!!$     n1=nstsv-istunocc0+1
+!!$     n2=nstsv-istunocc+1
+!!$  end select
   select case(typ)     
   case(0)
      ! all combinations
@@ -61,33 +103,33 @@ subroutine ematbdlims(typ,n1,lo1,hi1,n2,lo2,hi2)
      ! 1-2 combinations
      lo1=1
      hi1=istocc0
-     lo2=istunocc
+     lo2=istunocc0
      hi2=nstsv
      n1=istocc0-1+1
-     n2=nstsv-istunocc+1
+     n2=nstsv-istunocc0+1
   case(2)
      ! 2-1 combinations
      lo1=istunocc0
      hi1=nstsv
      lo2=1
-     hi2=istocc
+     hi2=istocc0
      n1=nstsv-istunocc0+1
-     n2=istocc-1+1
+     n2=istocc0-1+1
   case(3)
      ! 1-1 combinations
      lo1=1
      hi1=istocc0
      lo2=1
-     hi2=istocc
+     hi2=istocc0
      n1=istocc0-1+1
-     n2=istocc-1+1
+     n2=istocc0-1+1
   case(4)
      ! 2-2 combinations
      lo1=istunocc0
      hi1=nstsv
-     lo2=istunocc
+     lo2=istunocc0
      hi2=nstsv
      n1=nstsv-istunocc0+1
-     n2=nstsv-istunocc+1
+     n2=nstsv-istunocc0+1
   end select
 end subroutine ematbdlims

@@ -74,10 +74,10 @@ contains
        write(unitout,'(a,2i6)') ' nst2:', nst2, nst2_
        write(unitout,'(a,2i6)') ' nst3:', nst3, nst3_
        write(unitout,'(a,2i6)') ' nst4:', nst4, nst4_
-       write(unitout,'(a,2i6)') ' nkpt', nkpt, nkpt_
+       write(unitout,'(a,2i6)') ' nkpt:', nkpt, nkpt_
        write(unitout,'(a,3f12.6,a,3f12.6)') ' vql :', vql(:,iq), ',', vql_
        write(unitout,'(a,3f12.6,a,3f12.6)') ' vkl :', vkl(:,ik), ',', vkl_
-       write(unitout,'(a)') ' file: ',trim(filnam)
+       write(unitout,'(a)') ' file: ',trim(adjustl(filnam))
        call terminate
     end if
 
