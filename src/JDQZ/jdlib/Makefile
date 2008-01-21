@@ -8,6 +8,7 @@ include ../../../../../make.inc
 export SHELL=/bin/sh
 export FFLAGS = -u -O
 FC = $(F77)
+FFLAGS=$(F77_OPTS)
 LIB = libjdqz.a
 
 OBJS = $(patsubst %.f,%.o,$(wildcard *.f))

@@ -57,7 +57,7 @@ contains
   function doARPACKiteration()
     logical doARPACKiteration
     doARPACKiteration=.false.
-    if (iterativetype.eq.2.or.prediis()) then
+    if (iterativetype.gt.2.or.prediis()) then
        doARPACKiteration=.true.
        write(*,*)"ARPACK"
        diiscounter=1
@@ -95,8 +95,9 @@ contains
   function dojacobdavidson()
   logical dojacobdavidson
   dojacobdavidson=.false.
-if(iterativetype.eq.3) then
+if(iterativetype.eq.3.and.iscl.ge.1) then
 dojacobdavidson=.true.
+write(*,*)"JDQZ"
 endif  
   end function 
 end module sclcontroll
