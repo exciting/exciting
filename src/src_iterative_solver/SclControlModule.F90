@@ -91,4 +91,12 @@ contains
     endif
 
   end function allconverged
+  
+  function dojacobdavidson()
+  logical dojacobdavidson
+  dojacobdavidson=.false.
+if(iterativetype.eq.3) then
+dojacobdavidson=.true.
+endif  
+  end function 
 end module sclcontroll
