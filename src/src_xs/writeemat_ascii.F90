@@ -13,9 +13,6 @@ subroutine writeemat_ascii
   character(256) :: filnam
   integer :: un,iq,ik,i,j,ib,jb,igq
   complex(8) :: zt
-  real(8) :: vkloff_save(3)
-  ! save k-point offset
-  vkloff_save = vkloff
   call init0
   call init1
   call tdsave0
@@ -24,9 +21,8 @@ subroutine writeemat_ascii
   ! loop over q-points
   do iq=1,nqpt
      call genfilname(iq=iq,setfilext=.true.)
-     vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1xs
+     call init1xs(qvkloff(1,iq))
      ! find highest (partially) occupied and lowest (partially) unoccupied
      ! states
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
@@ -77,8 +73,7 @@ subroutine writeemat_ascii
      close(un)
      deallocate(xiou)
      if (emattype.ne.0) deallocate(xiuo)
-  end do ! iq
-  ! restore offset
-  vkloff = vkloff_save
+     ! end loop over q-points
+  end do
   call genfilname(setfilext=.true.)
 end subroutine writeemat_ascii

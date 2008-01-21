@@ -20,16 +20,15 @@ contains
     complex(8), optional, intent(out) :: xou(:,:,:), xuo(:,:,:)
     complex(8), optional, intent(out) :: pou(:,:,:), puo(:,:,:)
     ! local variables
-    character(*), parameter :: thisnam = 'getpemat'
+    character(*), parameter :: thisnam='getpemat'
     complex(8), allocatable :: pm(:,:,:)
     real(8) :: fourpisqt
     integer :: n,igq,j
     logical :: tq0
-
-    tq0=tq1gamma.and.(iq.eq.1)
+    logical, external :: tqgamma
+    tq0=tqgamma(iq)
     n=ngq(iq)
     fourpisqt=sqrt(fourpi)
-    
     if (tq0) then
        ! Gamma q-point
        nstsv=nstv+nstc
@@ -62,7 +61,5 @@ contains
           end forall
        end if
     end if
-
   end subroutine getpemat
-
 end module m_getpemat

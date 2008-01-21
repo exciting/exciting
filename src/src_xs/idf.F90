@@ -10,25 +10,21 @@ subroutine idf
   use modfxcifc
   use m_idfq
   use m_tdlinopt
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'idf'
   integer :: iq
-
   ! initialise universal variables
   if (calledxs.eq.1) call init0
   call init1
-
   ! initialize q-point set
   call init2xs
-
   ! w-point parallelization for dielectric function
   partype='w'
   call genparidxran(partype)
-
   write(unitout,'("Exchange-correlation kernel type :",i4)') fxctype
   write(unitout,'("  ",a)') trim(fxcdescr)
-
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point
@@ -36,18 +32,14 @@ subroutine idf
      write(unitout,'(a,i8)') 'Info('//thisnam//'): inverse dielectric &
           &function finished for q-point:',iq
   end do
-
   call barrier
-
-  if ((procs > 1).and.(rank == 0)) then
+  if ((procs.gt.1).and.(rank.eq.0)) then
      call idfgather
         write(unitout,'(a)') 'Info('//thisnam//'): inverse dielectric &
              &function gathered for q-point:'
   end if
-
   call barrier
-
-  if (rank == 0) then
+  if (rank.eq.0) then
      do iq=1,nqpt
         ! call for q-point
         call tdlinopt(iq)
@@ -55,10 +47,8 @@ subroutine idf
              &finished for q-point:',iq
      end do
   end if
-
   call barrier
-
   write(unitout,'(a)') "Info("//trim(thisnam)//"): TDDFT linear optics &
        &finished"
-
+  call genfilname(setfilext=.true.)
 end subroutine idf

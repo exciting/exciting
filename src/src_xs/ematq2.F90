@@ -24,7 +24,6 @@ contains
     ! local variables
     character(*), parameter :: thisnam='ematq2'
     integer :: ik
-    real(8) :: vkloff_save(3)
     ! filenames
     call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
     call genfilname(basename='EMAT',iq=iq,procs=procs,rank=rank,&
@@ -34,14 +33,10 @@ contains
     call genfilname(basename='DEVALSV',iq=iq,filnam=fndevalsv)
     call genfilname(basename='DEVALSV',iq=iq,procs=procs,rank=rank,&
        filnam=fndevalsv_t)
-    ! save k-point offset
-    vkloff_save(:)=vkloff(:)
     ! file extension for q-point
     call genfilname(iq=iq,setfilext=.true.)
-    ! shift k-mesh by q-point
-    vkloff(:)=qvkloff(:,iq)
     ! calculate k+q and G+k+q related variables
-    call init1xs
+    call init1xs(qvkloff(1,iq))
     ! write G+q-vectors
     call writegqpts(iq)
     ! find highest (partially) occupied and lowest (partially) unoccupied states
@@ -115,10 +110,6 @@ contains
        if ((partype.eq.'k').and.(ik-kpari+1 <= nkpt/procs)) call barrier
        ! end loop over k-points
     end do
-    ! restore offset
-    vkloff(:)=vkloff_save(:)
-    ! restore file extension
-    call genfilname(setfilext=.true.)
   end subroutine ematq2
 
 end module m_ematq2

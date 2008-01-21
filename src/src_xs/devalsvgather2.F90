@@ -8,18 +8,13 @@ subroutine devalsvgather2
   use modxs
   use modmpi
   use m_filedel
+  use m_genfilname
   use m_getdevalsv2
   use m_putdevalsv2
-  use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'devalsvgather2'
+  character(*), parameter :: thisnam='devalsvgather2'
   integer :: iq,ik,iproc
-  real(8) :: vkloff_save(3)
-
-  ! save k-point offset
-  vkloff_save = vkloff
-
   ! allocate matrix elements array
   if (allocated(deou)) deallocate(deou)
   if (allocated(docc12)) deallocate(docc12)
@@ -35,10 +30,8 @@ subroutine devalsvgather2
           istu)
      ! set limits for band combinations
      call ematbdcmbs(emattype)
-     ! shift k-mesh by q-point
-     vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1xs
+     call init1xs(qvkloff(1,iq))
      allocate(deou(nst1,nst2))
      allocate(docc12(nst1,nst2))
      if (emattype.ne.0) then
@@ -75,9 +68,4 @@ subroutine devalsvgather2
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn-Sham eigenvalue &
           &differences gathered for q-point:',iq
   end do
-
-  ! restore offset
-  vkloff = vkloff_save
-  call genfilname(setfilext=.true.)
-
 end subroutine devalsvgather2

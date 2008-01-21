@@ -123,6 +123,9 @@ nprad=4
 scissor=0.d0
 noptcomp=1
 optcomp(:,1)=1
+!<sag>
+optswidth=0.d0
+!</sag>
 usegdft=.false.
 intraband=.false.
 evalmin=-4.5d0
@@ -164,7 +167,6 @@ ujlu(:,:)=0.d0
 #ifdef TETRA
 ! tetrahedron method variables
 tetra=.false.
-optswidth=0.d0
 #endif
 #ifdef XS
 ! TDDFT variables
@@ -678,6 +680,16 @@ case('optcomp')
   write(*,'("Error(readinput): optical component list too long")')
   write(*,*)
   stop
+!</sag>
+case('optswidth')
+  read(50,*,err=20) optswidth
+  if (optswidth.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): optswidth < 0 : ",G18.10)') optswidth
+    write(*,*)
+    stop
+  end if
+!</sag>
 case('usegdft')
   read(50,*,err=20) usegdft
 case('intraband')
@@ -867,14 +879,6 @@ case('lda+u')
 !  tetrahedron method variables
 case('tetra')
   read(50,*,err=20) tetra
-case('optswidth')
-  read(50,*,err=20) optswidth
-!!$  if (optswidth.lt.0.d0) then
-!!$    write(*,*)
-!!$    write(*,'("Error(readinput): optswidth < 0 : ",G18.10)') optswidth
-!!$    write(*,*)
-!!$    stop
-!!$  end if
 #endif
 #ifdef XS
 ! TDDFT variables

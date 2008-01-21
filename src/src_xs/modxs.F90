@@ -64,8 +64,6 @@ module modxs
   real(8) :: vqloff(3)
   ! true if the eigenvectors for the Gamma point are to be calculated
   logical :: tq0ev
-  ! true if the first q-point is the Gamma point
-  logical :: tq1gamma
   ! current q-point
   real(8) :: vqlcu(3)
   data vqlcu / 0.d0,0.d0,0.d0 /

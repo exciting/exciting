@@ -30,14 +30,6 @@ module modtetra
   ! parameter specifying smalles diagonal in generic tetrahedron
   integer(4) :: mnd
 
-  !------------------------------!
-  !     broadening variables     !
-  !------------------------------!
-  ! Lorentzian lineshape in optics
-  logical :: optltz
-  ! broadening for Lorentzian lineshape
-  real(8) :: optswidth
-
   !---------------------------------!
   !     q-dependent convolution     !
   !---------------------------------!

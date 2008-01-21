@@ -8,30 +8,26 @@ subroutine tetcalccw
   use modxs
   use modmpi
   use modtetra
-  use m_tetcalccwq
+  use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'tetcalccw'
+  character(*), parameter :: thisnam='tetcalccw'
   integer :: iq
   logical :: tet
-
   if (calledxs.eq.1) call init0
-
   ! initialise universal variables
   tet=tetra
   tetra=.true.
   call init1
-
   ! save Gamma-point variables
   call tdsave0
-
   ! initialize q-point set
   call init2xs
-
+  ! read Fermi energy
+  call readfermi
   ! w-point interval for process
-  wpari=firstofset(rank,nwdf)
-  wparf=lastofset(rank,nwdf)
-
+  partype='w'
+  call genparidxran(partype)
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point
@@ -39,7 +35,6 @@ subroutine tetcalccw
      write(unitout,'(a,i8)') 'Info('//thisnam//'): weights for tetrahedron &
           &method finished for q-point:',iq
   end do
-
   ! synchronize
   call barrier
   if ((procs.gt.1).and.(rank.eq.0)) call tetgather
@@ -47,5 +42,5 @@ subroutine tetcalccw
   tetra=tet
   write(unitout,'(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &
        &method finished"
-
+  call genfilname(setfilext=.true.)
 end subroutine tetcalccw

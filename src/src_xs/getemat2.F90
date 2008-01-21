@@ -48,7 +48,6 @@ contains
     else
        ! I/O record length
        inquire(iolength=recl) nst1_,nst2_,nkpt_,ngq_,vql_,vkl_,x1
-write(*,*) 'getemat2: record length=',recl
        open(unit=un,file=trim(filnam),form='unformatted', &
             action='read', access='direct',recl=recl)
        read(un,rec=ikr) nst1_,nst2_,nkpt_,ngq_,vql_,vkl_,x1

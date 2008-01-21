@@ -38,7 +38,9 @@ subroutine rotaxang(eps,rot,det,v,th)
 implicit none
 ! arguments
 real(8), intent(in) :: eps
-real(8), intent(inout) :: rot(3,3)
+!<sag comment="removed out-attribute">
+real(8), intent(in) :: rot(3,3)
+!</sag>
 real(8), intent(out) :: det
 real(8), intent(out) :: v(3)
 real(8), intent(out) :: th

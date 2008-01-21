@@ -137,10 +137,6 @@ subroutine init2xs
      call terminate
   end if
 
-  ! check for Gamma point
-  tq1gamma = .false.
-  if (all(vql(:,1).eq.0)) tq1gamma = .true.
-
   ! find (little/small) group of q
   if (allocated(nsymcrysq)) deallocate(nsymcrysq)
   if (allocated(scqmap)) deallocate(scqmap)
@@ -171,9 +167,10 @@ subroutine init2xs
   !     k+q-point set     !
   !-----------------------!
   if (allocated(qvkloff)) deallocate(qvkloff)
-  allocate(qvkloff(3,nqpt))
+  allocate(qvkloff(3,0:nqpt))
   if (allocated(ikmapikq)) deallocate(ikmapikq)
   allocate(ikmapikq(nkpt,nqpt))
+  qvkloff(:,0)=vkloff(:)
   do iq=1,nqpt
      ! offset for k+q-point set derived from q-point
      call genqvkloff(vql(1,iq),qvkloff(1,iq))

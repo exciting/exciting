@@ -11,7 +11,7 @@ subroutine epsconv
   use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'epsconv'
+  character(*), parameter :: thisnam='epsconv'
   character(256) :: filnam
   integer, parameter :: numlines_top=48
   integer :: iq,iw,iwp,j,m,n,oct,nc,un
@@ -20,29 +20,26 @@ subroutine epsconv
   real(8), allocatable :: w(:), epst(:,:),lor(:),f(:),f1(:),g(:),g1(:),cf(:,:)
   complex(8), allocatable :: eps(:)
   integer, external :: l2int
-
+  logical, external :: tqgamma
   ! initialize universal variables
   call init0
   call init1
   call init2xs
-
   ! original sampling method fo Brillouine zone
   bzsampl=l2int(tetra)
   allocate(w(nwdf),epst(nwdf,2),eps(nwdf),lor(nwdf))
   allocate(f(nwdf),f1(nwdf),g(nwdf),g1(nwdf),cf(3,nwdf))
-
   ! loop over q-points
   do iq=1,nqpt
      ! matrix size for local field effects
      n=ngq(iq)
-     tq0 = tq1gamma.and.(iq.eq.1)
+     tq0=tqgamma(iq)
      nc=1
      if (tq0) nc=3
      ! neglect/include local field effects
      do m=1,n,max(n-1,1)
         ! loop over longitudinal components for optics
         do oct=1,nc
-
            ! generate filename for Tetrahedron method
            call genfilname(basename='EPSILON',bzsampl=bzsampl,&
                 nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
@@ -98,15 +95,11 @@ subroutine epsconv
               write(un,'(4g18.10)') w(iw)*escale,g1(nwdf),g(nwdf),&
                    (pi/brdtd)*brdtd**2/((w(iw)-w(iwp))**2+brdtd**2)
            end do ! iw
-
 !!$           call fsmooth(nsmdos,nwdf,1,g)
 !!$           call fsmooth(nsmdos,nwdf,1,g1)
-
            close(un)
         end do ! oct
      end do
   end do
-
   deallocate(w,epst,eps,lor,f,f1,g,g1,cf)
-
 end subroutine epsconv

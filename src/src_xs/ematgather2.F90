@@ -13,19 +13,13 @@ subroutine ematgather2
   use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'ematgather2'
+  character(*), parameter :: thisnam='ematgather2'
   integer :: iq,ik,iproc
-  real(8) :: vkloff_save(3)
-
-  ! save k-point offset
-  vkloff_save(:)=vkloff(:)
-
   ! allocate matrix elements array
   if (allocated(xiou)) deallocate(xiou)
   if (emattype.ne.0) then
      if (allocated(xiuo)) deallocate(xiuo)
   end if
-
   ! loop over q-points
   do iq=1,nqpt
      ! find highest (partially) occupied and lowest (partially) unoccupied
@@ -34,10 +28,8 @@ subroutine ematgather2
           istu)
      ! set limits for band combinations
      call ematbdcmbs(emattype)
-     ! shift k-mesh by q-point
-     vkloff(:)=qvkloff(:,iq)
      ! calculate k+q and G+k+q related variables
-     call init1xs
+     call init1xs(qvkloff(1,iq))
      allocate(xiou(nst1,nst2,ngq(iq)))
      if (emattype.ne.0) allocate(xiuo(nst3,nst4,ngq(iq)))
      ! file extension for q-point
@@ -66,9 +58,4 @@ subroutine ematgather2
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Matrix elements of &
           &exponential factor gathered for q-point:',iq
   end do
-
-  ! restore offset
-  vkloff(:)=vkloff_save(:)
-  call genfilname(setfilext=.true.)
-
 end subroutine ematgather2

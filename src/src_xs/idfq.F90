@@ -22,45 +22,38 @@ contains
     ! arguments
     integer, intent(in) :: iq
     ! local variables
-    character(*), parameter :: thisnam = 'idfq'
+    character(*), parameter :: thisnam='idfq'
     character(256) :: filnam,filnam2
     complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
     complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
     integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct
     logical :: tq0
     integer, external :: l2int
-
+    logical, external :: tqgamma
     ! sampling type for Brillouin zone sampling
     bzsampl=l2int(tetra)
-
-    tq0 = tq1gamma.and.(iq.eq.1)
+    tq0=tqgamma(iq)
     ! number of components (3 for q=0)
     nc=1
     if (tq0) nc=3
-
     ! limits for w-points
     wi=wpari
     wf=wparf
     nwdfp=wparf-wpari+1
-
     ! matrix size for local field effects
     n=ngq(iq)
     allocate(chi0(n,n),fxc(n,n),idf(n,n),w(nwdf),mdf1(nwdf),chi0hd(nwdf))
     allocate(chi0wg(n,2,3),chi0h(3))
     fxc=zzero
-
     ! generate energy grid
     call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
-
     ! filename for response function file
     call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
          acont=acont,nar=.not.aresdf,iq=iq,filnam=filnam)
-
     ! record length
     inquire(iolength=recl) mdf1(1)
     call getunit(unit1)
     call getunit(unit2)
-
     ! neglect/include local field effects
     do m=1,n,max(n-1,1)
        ! The ALDA kernel does not depend on q in principle, but the G-mesh
@@ -72,7 +65,6 @@ contains
              fxc(j,j)=fxc(j,j)+1.d0
           end forall
        end if
-
        ! loop over longitudinal components for optics
        do oct=1,nc
           ! filename for output file
@@ -120,10 +112,7 @@ contains
           close(unit1)
        end do ! oct
     end do ! m
-
     ! deallocate
     deallocate(chi0,chi0wg,chi0h,fxc,idf,mdf1,w,chi0hd)
-
   end subroutine idfq
-
 end module m_idfq

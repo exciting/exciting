@@ -684,6 +684,12 @@ logical intraband
 ! bcsym is .true. if the band characters are to correspond to the the
 ! irreducible representations of the site symmetries
 logical bcsym
+!<sag>
+! Lorentzian lineshape in optics
+logical :: optltz
+! broadening for Lorentzian lineshape
+real(8) :: optswidth  
+!</sag>
 
 !-------------------------------------!
 !     1D/2D/3D plotting variables     !

@@ -11,6 +11,7 @@ subroutine writeemat2
   use m_tdgauntgen
   use m_findgntn0
   use m_filedel
+  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'writeemat2'
@@ -24,8 +25,6 @@ subroutine writeemat2
   ! q-point parallelization for screening
   if ((task.ge.400).or.(task.le.499)) partype='q'
   call genparidxran(partype)
-!!$  ! find highest (partially) occupied and lowest(partially) unoccupied states
-!!$  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
    ! write q-point set
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file
@@ -62,4 +61,5 @@ subroutine writeemat2
   write(unitout,'(a)') "Info("//trim(thisnam)//"): matrix elements of &
        &exponential expression finished"
   call findgntn0_clear
+  call genfilname(setfilext=.true.)
 end subroutine writeemat2
