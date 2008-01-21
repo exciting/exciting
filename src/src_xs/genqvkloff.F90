@@ -11,26 +11,29 @@ subroutine genqvkloff(vq,voff)
   real(8), intent(in) :: vq(3)
   real(8), intent(out) :: voff(3)
   ! local variables
-  real(8) :: v2(3)
+  real(8) :: v1(3)
+  integer :: iv(3)
   if (any(vkloff/dble(ngridk)+vq.ge.1.d0)) then
      ! vector is outside Brillouine zone
-     v2=vkloff/dble(ngridk)+vq
-     call mapkto01(v2)
-     voff=v2*dble(ngridk)
-     if (any(v2*dble(ngridk).ge.1.d0)) then
-        v2=v2*dble(ngridk)
-        call mapkto01(v2)
-        voff=v2
+     v1=vkloff/dble(ngridk)+vq
+     call mapkto01(v1)
+     voff=v1*dble(ngridk)
+     if (any(v1*dble(ngridk).ge.1.d0)) then
+        v1=v1*dble(ngridk)
+        call mapkto01(v1)
+        voff=v1
      end if
   else if (any(vkloff+vq*dble(ngridk).ge.1.d0)) then
      ! vector is inside Brillouine zone but outside k-point spacing
-     v2=vkloff+vq*dble(ngridk)
-     call mapkto01(v2)
-     voff=v2
+     v1=vkloff+vq*dble(ngridk)
+     call mapkto01(v1)
+     voff=v1
   else
      ! vector is inside k-point spacing
      voff=vkloff+vq*ngridk
   end if
+  ! treatment of values close to zero or one
+  call r3frac(epslat,voff,iv)
 end subroutine genqvkloff
 
 subroutine mapkto01(v)
@@ -47,5 +50,4 @@ subroutine mapkto01(v)
   v3=v3-v2*dint(fac)
   v=dble(v3/dint(fac))
   where(v.lt.0.d0) v=v+1.d0
-
 end subroutine mapkto01

@@ -26,7 +26,7 @@ subroutine dfq2(iq)
   ! arguments
   integer, intent(in) :: iq
   ! local variables
-  character(*), parameter :: thisnam = 'dfq2'
+  character(*), parameter :: thisnam='dfq2'
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:)
@@ -151,10 +151,10 @@ subroutine dfq2(iq)
      ! calculate explicitly the scissors shift, depending on sign of band
      ! energy difference
      if (istunocc0.le.istocc0) then
-!!$          xiuo(:istocc0-istunocc0+1,istunocc0:,:)=zzero
-!!$          pmuo(:,istocc0-istunocc0+1,istunocc0:)=zzero
-        xiou(istunocc0:,:istocc0-istunocc0+1,:)=zzero
-        pmou(:,istunocc0:,:istocc0-istunocc0+1)=zzero
+        xiuo(:istocc0-istunocc0+1,istunocc0:,:)=zzero
+        pmuo(:,istocc0-istunocc0+1,istunocc0:)=zzero
+!!$        xiou(istunocc0:,:istocc0-istunocc0+1,:)=zzero
+!!$        pmou(:,istunocc0:,:istocc0-istunocc0+1)=zzero
      end if
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0
@@ -191,6 +191,13 @@ subroutine dfq2(iq)
               ! set up body, head and wings in one
               call dfqoscbo(n,xiou(ist1,ist2,:),xiuo(ist2,ist1,:),hou,huo)
            end if
+
+if (ik.eq.7) then
+   write(3000,*) ik,ist1,ist2,hou(ist1,ist2)/fourpi 
+   write(4000,*) ik,ist1,ist2,deou(ist1,ist2)
+   write(5000,*) ik,ist1,ist2,docc12(ist1,ist2)
+end if
+
            if (tq0.and.(n.gt.1)) then
               ! set up body
               call dfqoscbo(n-1,xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:), &

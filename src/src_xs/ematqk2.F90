@@ -23,7 +23,7 @@ contains
     ! arguments
     integer, intent(in) :: iq,ik
     ! local variables
-    character(*), parameter :: thisnam = 'ematqk2'
+    character(*), parameter :: thisnam='ematqk2'
     ! allocatable arrays
     complex(8), allocatable :: evecfvo0(:,:)
     complex(8), allocatable :: evecfvu(:,:)
@@ -42,7 +42,8 @@ contains
     call cpu_time(cpu0)
     ! find equivalent k-point
     ikq=ikmapikq(ik,iq)
-    write(*,'("Info(ematqk2): ",I6,I6," of ",I6," k-points")') ik,ikq,nkpt
+    if ((modulo(ik,nkpt/10).eq.0).or.(ik.eq.nkpt)) &
+         write(*,'("Info(ematqk2): ",I6,I6," of ",I6," k-points")') ik,ikq,nkpt
     ! check for stop statement
     write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
     call tdchkstop
@@ -85,8 +86,8 @@ contains
     call genfilname(iq=0,setfilext=.true.)
     call getevecfv0(vkl0(1,ik),vgkl0(1,1,ik,1),evecfv0)
     call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
-    ! read occupation numbers for G+k+q
-    call getoccsv0(vkl0(1,ikq),occsv0(1,ikq))
+    ! read occupation numbers for G+k
+    call getoccsv0(vkl0(1,ik),occsv0(1,ik))
     evecfvo0(:,:)=evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,istlo1:isthi1,1)
     evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
     ! change back file extension

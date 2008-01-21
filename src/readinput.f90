@@ -36,7 +36,7 @@ character(256) str
 character(256) bname
 character(256) sppath
 #ifdef XS
-logical, parameter :: dumpmain=.false.
+logical, parameter :: dumpmain=.true.
 logical, parameter :: dumpmpi=.false.
 logical, parameter :: dumptddft=.false.
 #endif
@@ -1103,7 +1103,6 @@ if (molecule) then
 end if
 #ifdef XS
 write(*,'(a)') 'reading in of '//trim(fname)//' finished'
-write(*,*)
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 #endif

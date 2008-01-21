@@ -39,7 +39,7 @@ subroutine tetcalccwq(iq)
      write(*,'(" which is required for tetrahedron method")')
      write(*,'(" commensurability tolerance: ",g18.10)') epscomm
      write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vql(:,iq)
-     write(*,'(" deviation                 : ",3g18.10)') vr
+     write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
      write(*,'(" minimum nonzero coords.   : ",3g18.10)') 1.d0/ngridk(:)
      write(*,*)
      call terminate

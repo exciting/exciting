@@ -53,6 +53,7 @@ subroutine linopt
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
 #endif
   !<sag>
+  real(8) :: t3
   real(8), allocatable :: eps1r(:)
   logical :: tev
   integer :: bzsmpl
@@ -280,11 +281,13 @@ subroutine linopt
            eps1r(iw)=sum
            eps2(iw)=sum2
            ! divide by omega^2
-           t1=w(iw)
-           if (abs(t1).gt.eps) then
-              eps2(iw)=eps2(iw)/(t1**2)
-           else
-              eps2(iw)=0.d0
+           if (.not.tqfmt) then
+              t1=w(iw)
+              if (abs(t1).gt.eps) then
+                 eps2(iw)=eps2(iw)/(t1**2)
+              else
+                 eps2(iw)=0.d0
+              end if
            end if
         end do ! iw
 #endif
@@ -301,16 +304,13 @@ subroutine linopt
               do ist1=1,nstsv
                  do ist2=1,nstsv
                     m=m+1
-                    if (.not.tqfmt) then
-                       if (ist1.ne.ist2) sum2=sum2+wkpt(ik)*f(m,ik)* &
-                            aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
-                       if (ist1.ne.ist2) sum=sum+wkpt(ik)*f(m,ik)* &
-                            dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))/e(m,ik)**2
-                    else
-                       if (ist1.ne.ist2) sum2=sum2+wkpt(ik)* f(m,ik)* &
-                            aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))
-                       if (ist1.ne.ist2) sum=sum+wkpt(ik)* f(m,ik)* &
-                            dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))
+                    t3=1.d0
+                    if (.not.tqfmt) t3=1.d0/e(m,ik)**2
+                    if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
+                       sum=sum+wkpt(ik)* f(m,ik)* &
+                            dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
+                       sum2=sum2+wkpt(ik)* f(m,ik)* &
+                            aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
                     end if
                  end do
               end do
@@ -324,14 +324,16 @@ subroutine linopt
         f(:,:)=t1*f(:,:)
         ! calculate imaginary part of the interband dielectric function
         call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,n,n,e,f,eps2)
-        do iw=1,nwdos
-           t1=w(iw)
-           if (abs(t1).gt.eps) then
-              eps2(iw)=eps2(iw)/(t1**2)
-           else
-              eps2(iw)=0.d0
-           end if
-        end do
+        if (.not.tqfmt) then
+           do iw=1,nwdos
+              t1=w(iw)
+              if (abs(t1).gt.eps) then
+                 eps2(iw)=eps2(iw)/(t1**2)
+              else
+                 eps2(iw)=0.d0
+              end if
+           end do
+        end if
         ! calculate the intraband Drude-like contribution and plasma frequency
         if (intraband) then
            write(fname,'("PLASMA_",2I1,".OUT")') i1,i2

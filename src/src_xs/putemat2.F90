@@ -37,8 +37,6 @@ contains
         ! I/O record length
         inquire(iolength=recl) nst1,nst2,nkpt,ngq(iq),vql(:,iq), &
              vkl(:,ik),x1
-write(*,*) 'putemat2: record length=',recl
-
         open(unit=un,file=trim(filnam),form='unformatted', &
              action='write',access='direct',recl=recl)
         write(un,rec=ikr) nst1,nst2,nkpt,ngq(iq),vql(:,iq), &
