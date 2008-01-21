@@ -1,6 +1,6 @@
 
 FFLAGS = -u -O
-include ../../../../make.inc
+include ../../make.inc
 FC = $(F77)
 LIBPATH = -L../jdlib
 LIBS = -ljdqr -llapack -lblas

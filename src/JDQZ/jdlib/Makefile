@@ -4,7 +4,7 @@
 #     $Id$
 # 
 #
-include ../../../../../make.inc
+include ../../../make.inc
 export SHELL=/bin/sh
 export FFLAGS = -u -O
 FC = $(F77)
