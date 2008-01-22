@@ -155,7 +155,23 @@ subroutine dfq2(iq)
         pmuo(:,istocc0-istunocc0+1,istunocc0:)=zzero
 !!$        xiou(istunocc0:,:istocc0-istunocc0+1,:)=zzero
 !!$        pmou(:,istunocc0:,:istocc0-istunocc0+1)=zzero
+        ! take into account intraband contributions
+        if (tq0.or.(.not.intraband)) then
+           do ist1=1,nst1
+              do ist2=1,nst2
+                 if (ist1.eq.istunocc0+ist2-1) then
+                    xiou(ist1,ist2,:)=zzero
+                    pmou(:,ist1,ist2)=zzero
+                 end if
+                 if (istunocc0+ist1-1.eq.ist2) then
+                    xiuo(ist2,ist1,:)=zzero
+                    pmuo(:,ist2,ist1)=zzero
+                 end if
+              end do
+           end do
+        end if
      end if
+     
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0
      do ist1=1,nst1
@@ -193,7 +209,7 @@ subroutine dfq2(iq)
            end if
 
 if (ik.eq.7) then
-   write(3000,*) ik,ist1,ist2,hou(ist1,ist2)/fourpi 
+   write(3000,*) ik,ist1,ist2,hou(1,1)/fourpi 
    write(4000,*) ik,ist1,ist2,deou(ist1,ist2)
    write(5000,*) ik,ist1,ist2,docc12(ist1,ist2)
 end if

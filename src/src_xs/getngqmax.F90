@@ -58,5 +58,11 @@ if (dbglev.gt.1) then
    write(*,'(2i6)') intgqv(3,1),intgqv(3,2)
    write(*,*)
 end if
+if (ngqmax.lt.1) then
+   write(*,*)
+   write(*,'("Error(getngqmax): no G-vectors found - increase gqmax")')
+   write(*,*)
+   call terminate
+end if
 end subroutine getngqmax
 !EOC
