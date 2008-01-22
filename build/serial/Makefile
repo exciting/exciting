@@ -36,16 +36,18 @@ libbzint.a: make.inc
 	cp ../../src/src_libbzint/libbzint.a .
 	cd ../../src/src_libbzint && make clean
 
+makecmd=gmake
+
 libarpack.a: make.inc
 	cp -f make.inc ../..
-	cd ../../src/ARPACK && make clean && make lib
+	cd ../../src/ARPACK && $(makecmd) clean && make lib
 	cp ../../src/ARPACK/libarpack.a .
-	cd ../../src/ARPACK && make clean
+	cd ../../src/ARPACK && $(makecmd) clean
 	
-libjdqz.a:make.inc
-	cd ../../src/JDQZ && make clean && make 
-	cp ../../src/JDQZ/jdlib/libjdqz.a .
-	cd ../../src/JDQZ && make clean
+libjdqz.a: make.inc
+	cd ../../src/JDQZ && $(makecmd) clean && make 
+	cp ../../src/JDQZ/jdlib/libjdqz.a ./
+	cd ../../src/JDQZ && $(makecmd)  clean
 
 clean:
 	rm -f *.o *.mod

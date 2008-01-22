@@ -13,13 +13,14 @@ use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
   real(8), 	intent(inout) 	:: evalfv(nstfv,nspnfv)
   complex(8), intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
   integer n,np
+  real:: cpu0,cpu1
   !interface vars for JDQZ
   complex(8)::alpha(4*nstfv),beta(4*nstfv),eivec(nmat(ik,ispn),nstfv)
-  real(8),parameter:: eps=1e-9,lock=1e-9
+  real(8),parameter:: eps=1e-8,lock=1e-8
    integer::jmax,jmin,ldeg,lwork,i,mparam
   complex(8),allocatable::zwork(:,:)
-   jmax=4*nstfv 
-   jmin=2*nstfv
+   jmax=2*nstfv 
+   jmin=1.5*nstfv
    mparam=30
    ldeg=2
   ! lwork=10 + 6*ldeg + 5*jmax + 3*nstfv
@@ -30,7 +31,7 @@ use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
 allocate(zwork(n,lwork),hamilton(np),overlap(np))
 
  call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
-
+ call cpu_time(cpu0)
  
 if (iscl.gt.1) then
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
@@ -55,4 +56,7 @@ evalfv(i,ispn)=dble (alpha(i)/beta(i))
 end do
 call deallocprecon()
 deallocate(zwork,hamilton,overlap)
+  call cpu_time(cpu1)
+  
+  timefv=timefv+cpu1-cpu0
 end subroutine

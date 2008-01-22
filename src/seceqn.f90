@@ -59,8 +59,6 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
      else if(doARPACKiteration()) then 
       	call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)
-     
-   
      endif
   end do
   !$OMP END DO

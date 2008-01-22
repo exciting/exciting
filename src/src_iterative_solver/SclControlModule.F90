@@ -9,6 +9,7 @@ implicit none
   integer,parameter:: diismax=20,diisfirstscl=3
   real lowesteval
   real ,parameter::diisthreshould=1,reps=1e-7
+  integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
   external idamax
  logical  recalculate_preconditioner
@@ -95,7 +96,7 @@ contains
   function dojacobdavidson()
   logical dojacobdavidson
   dojacobdavidson=.false.
-if(iterativetype.eq.3.and.iscl.ge.1) then
+if(iterativetype.eq.3.and.iscl.ge.jacofidavidsonfirstscl) then
 dojacobdavidson=.true.
 write(*,*)"JDQZ"
 endif  
