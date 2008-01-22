@@ -137,6 +137,11 @@ subroutine init1
         call tetrareportsettings
         ! generate fraction for k-point offset
         call r3fraction(vkloff,ikloff,dkloff)
+
+write(*,*) 'vkloff',vkloff
+write(*,*) 'ikloff',ikloff
+write(*,*) 'dkloff',dkloff
+
         if (allocated(indirkp)) deallocate(indirkp)
         allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
         if (allocated(iwkp)) deallocate(iwkp)

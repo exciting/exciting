@@ -10,7 +10,6 @@ subroutine gentetlink(iqnr)
 ! !USES:
   use modmain
   use modtetra
-  use modxs
 ! !DESCRIPTION:
 !   Generates an array connecting the tetrahedra of the $\mathbf{k}$-point with
 !   the ones of the  $\mathbf{k}+\mathbf{q}$-point. Interface routine

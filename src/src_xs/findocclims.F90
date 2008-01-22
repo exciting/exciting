@@ -51,20 +51,16 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   ! overall lowest (partially) unoccupied state
   iunocc0=minval(iu0)
   iunocc=minval(iu)
-
-  ! *** be safe for q=0 *** re-think this strategy ***
+  ! the maximum/minimum value is used since for a shifted (k+q)-mesh
+  ! can cause partially occupied states that are absent for the k-mesh
   iocc0=max(iocc0,iocc)
   iunocc0=min(iunocc0,iunocc)
-
-
   ! *** assign nstval and nstcon ***
   nstval=max(iocc0,iocc)
   nstcon=nstsv-nstval
-
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
      write(*,'(a)') 'Info(findocclims): partially occupied states present'
   end if
-
   ! debug output
   if (dbglev.gt.0) then
      write(*,'(a)') 'Debug(findocclims):'
@@ -77,9 +73,4 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      end do
      write(*,*)
   end if
-
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ SAG
-!!iocc0=10; iocc=iocc0
-!!iunocc0=1; iunocc=iunocc0
-
 end subroutine findocclims

@@ -46,9 +46,10 @@ subroutine linopt
 #endif
   complex(8), allocatable :: pmat(:,:,:)
 #ifdef TETRA
-  integer :: m,ist1,ist2
+  real(8), parameter :: epscomm=1.d-5
+  integer :: m,ist1,ist2,iqnr,iv(3)
   real(8), parameter :: epstetra=1.d-8
-  real(8) :: escal,sum,sum2
+  real(8) :: escal,sum1,sum2,vr(3)
   real(8), allocatable :: e1(:,:)
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
 #endif
@@ -69,7 +70,7 @@ subroutine linopt
   if (tetra.and.optltz) then
      write(*,*)
      write(*,'("Error(linopt): specified tetrahedron method and Lorentzian &
-          & broadening")')
+          &broadening")')
      write(*,*)
      stop
   end if
@@ -89,13 +90,6 @@ subroutine linopt
   call init2xs
 #ifdef XS
   tqfmt=.not.tqgamma(iq)
-  if (intraband.and.tqfmt) then
-     write(*,*)
-     write(*,'("Error(linopt): intraband contribution contained in dielectric &
-          &function for finite moment transfer")')
-     write(*,*)
-     stop
-  end if
   if (tqfmt) then
      call tdsave0
      call genfilname(iq=iq,setfilext=.true.)
@@ -234,6 +228,24 @@ subroutine linopt
      end do
 #if TETRA
      if (tetra) then
+        ! get index to reducible q-point which is commensurate to k-point set
+        vr(:)=vql(:,iq)*ngridk(:)
+        call r3frac(epslat,vr,iv)
+        if (sum(abs(vr)).gt.epscomm) then
+           write(*,*)
+           write(*,'("Error(linopt): q-point not commensurate with k-point &
+                &set")')
+           write(*,'(" which is required for tetrahedron method")')
+           write(*,'(" commensurability tolerance: ",g18.10)') epscomm
+           write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vql(:,iq)
+           write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
+           write(*,'(" minimum nonzero coords.   : ",3g18.10)') 1.d0/ngridk(:)
+           write(*,*)
+           call terminate
+        end if
+        iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
+        ! generate link array for tetrahedra
+        call gentetlink(iqnr)
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
@@ -258,27 +270,31 @@ subroutine linopt
            call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
                 w(iw),4,cwsurf)
            ! summation using weights from tetrahedron method
-           sum=0.d0
+           sum1=0.d0
            sum2=0.d0
            do ik=1,nkpt
               m=0
               do ist1=1,nstsv
                  do ist2=1,nstsv
                     m=m+1
-                    ! real part, resonant contribution
-                    if (ist1.lt.ist2) sum=sum+cw(ist1,ist2,ik)* &
-                         f(m,ik)/e(m,ik)**2
-                    ! real part, anti-resonant contribution
-                    if (ist1.gt.ist2) sum=sum-cwa(ist2,ist1,ik)* &
-                         f(m,ik)/e(m,ik)**2
-                    ! imaginary part (only resonant contribution by theory
-                    ! for positive frequencies)
-                    if (ist1.lt.ist2) sum2=sum2+cwsurf(ist1,ist2,ik)* &
-                         f(m,ik)
+                    t3=1.d0
+                    if (.not.tqfmt) t3=1.d0/e(m,ik)**2
+                    if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
+                       ! real part, resonant contribution
+                       if (ist1.le.ist2) sum1=sum1+cw(ist1,ist2,ik)* &
+                            f(m,ik)/e(m,ik)**2
+                       ! real part, anti-resonant contribution
+                       if (ist1.gt.ist2) sum1=sum1-cwa(ist2,ist1,ik)* &
+                            f(m,ik)/e(m,ik)**2
+                       ! imaginary part (only resonant contribution by theory
+                       ! for positive frequencies)
+                       if (ist1.le.ist2) sum2=sum2+cwsurf(ist1,ist2,ik)* &
+                            f(m,ik)
+                    end if
                  end do
               end do
            end do ! ik
-           eps1r(iw)=sum
+           eps1r(iw)=sum1
            eps2(iw)=sum2
            ! divide by omega^2
            if (.not.tqfmt) then
@@ -297,7 +313,7 @@ subroutine linopt
         f(:,:)=t1*f(:,:)
         ! Lorentzian broadening
         do iw=1,nwdos
-           sum=0.d0
+           sum1=0.d0
            sum2=0.d0
            do ik=1,nkpt
               m=0
@@ -307,7 +323,7 @@ subroutine linopt
                     t3=1.d0
                     if (.not.tqfmt) t3=1.d0/e(m,ik)**2
                     if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
-                       sum=sum+wkpt(ik)* f(m,ik)* &
+                       sum1=sum1+wkpt(ik)* f(m,ik)* &
                             dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
                        sum2=sum2+wkpt(ik)* f(m,ik)* &
                             aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
@@ -315,7 +331,7 @@ subroutine linopt
                  end do
               end do
            end do ! ik
-           eps1r(iw)=sum
+           eps1r(iw)=sum1
            eps2(iw)=sum2
         end do
      else ! if (tetra)
@@ -335,7 +351,7 @@ subroutine linopt
            end do
         end if
         ! calculate the intraband Drude-like contribution and plasma frequency
-        if (intraband) then
+        if (intraband.and.(.not.tqfmt)) then
            write(fname,'("PLASMA_",2I1,".OUT")') i1,i2
            open(62,file=trim(fname),action='WRITE',form='FORMATTED')
            wd(1)=efermi-0.001d0

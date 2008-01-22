@@ -58,6 +58,25 @@ contains
        write(*,*)
        stop
     end if
+    if (d.lt.0) then
+       d=-d
+       n=-n
+    end if
+    if (any(n.lt.0.d0)) then
+       write(*,*)
+       write(*,'("Error(modtetra:r3fraction): factorization failed:")')
+       write(*,'(" negative vector components present; vector :",3g18.10)') r
+       write(*,'(" vector from factorization                  :",3g18.10)') &
+            dble(n)/dble(d)
+       write(*,*)
+       stop
+    end if
+    if (sum(abs(r)).lt.1.d-3) then
+       write(*,*)
+       write(*,'("Warning(modtetra:r3fraction): very small offset:")')
+       write(*,'(" kgen and related routines might fail")')
+       write(*,*)
+    end if
   end subroutine r3fraction
 
 end module modtetra
