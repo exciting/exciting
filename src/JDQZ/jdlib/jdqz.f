@@ -28,7 +28,7 @@ c     .. Local Parameters ..
 c
       logical loop, try, found, ok
       integer ldvs, ldzwork, iseed(4)
-      parameter (ldvs=50, ldzwork=4*ldvs)
+      parameter (ldvs=200, ldzwork=4*ldvs)
       double complex ma(ldvs,ldvs), mb(ldvs,ldvs),
      $     zma(ldvs,ldvs), zmb(ldvs,ldvs),
      $     vsl(ldvs,ldvs), vsr(ldvs,ldvs),
@@ -63,8 +63,8 @@ c
 c...     Are there errors in the parameters?
       if ( kmax .gt. jmax )
      $   call error('jdqz: kmax greater than jmax')
-      if ( jmax .gt. 50 )
-     $   call error('jdqz: jmax greater than 50')
+      if ( jmax .gt. 200 )
+     $   call error('jdqz: jmax greater than 200')
       if ( method .ne. 1 .and. method .ne. 2 )
      $   call error('jdqz: illegal choice for solution method')
       if ( order .lt. -2 .or. order .gt. 2 )

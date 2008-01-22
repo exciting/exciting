@@ -45,6 +45,7 @@ libarpack.a: make.inc
 	cd ../../src/ARPACK && $(makecmd) clean
 	
 libjdqz.a: make.inc
+	cp -f make.inc ../..
 	cd ../../src/JDQZ && $(makecmd) clean && make 
 	cp ../../src/JDQZ/jdlib/libjdqz.a ./
 	cd ../../src/JDQZ && $(makecmd)  clean
