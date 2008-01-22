@@ -3,7 +3,7 @@ use modmain,only:zzero,zone
 use jacobidavidsoncommon
 implicit none
 integer,intent(in)::n
-real(8),intent(in)::sigma
+complex(8),intent(in)::sigma
 complex(8),intent(in):: h(n*(n+1)/2),o(n*(n+1)/2)
 
 integer np,info

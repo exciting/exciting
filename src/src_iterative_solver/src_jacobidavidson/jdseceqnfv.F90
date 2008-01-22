@@ -15,8 +15,8 @@ use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
   integer n,np
   real:: cpu0,cpu1
   !interface vars for JDQZ
-  complex(8)::alpha(4*nstfv),beta(4*nstfv),eivec(nmat(ik,ispn),nstfv)
-  real(8),parameter:: eps=1e-8,lock=1e-8
+  complex(8)::alpha(4*nstfv),beta(4*nstfv),eivec(nmat(ik,ispn),nstfv),target
+  real(8),parameter:: eps=1e-9,lock=1e-9
    integer::jmax,jmin,ldeg,lwork,i,mparam
   complex(8),allocatable::zwork(:,:)
    jmax=2*nstfv 
@@ -42,10 +42,10 @@ end do
 !else
 !init evalfv
 endif
+target=dcmplx(lowesteval,0)
+call initprecon(n,target,hamilton,overlap)
 
-call initprecon(n,lowesteval,hamilton,overlap)
-
-call JDQZ( alpha, beta, eivec, .true., n, lowesteval, eps,& 
+call JDQZ( alpha, beta, eivec, .true., n, target, eps,& 
 	nstfv,jmax , jmin, 1,mparam, ldeg, 100, 1000,&
 	lock, -1, 1, zwork, lwork )
 
