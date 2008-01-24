@@ -142,35 +142,33 @@ subroutine dfq2(iq)
           p12=pmou,p34=pmuo)
      ! turn off antiresonant terms (type 21 band combiantions) for Kohn-Sham
      ! response function
-     if (.not.aresdf) then
+!!$     if (.not.aresdf) then
         xiuo(:,:,:)=zzero
         pmuo(:,:,:)=zzero
-     end if
-     ! avoid double counting *** zero lower/upper triangle
-     ! of xiou,xiou because of scissors shift *** scissors: sign relevant:
-     ! calculate explicitly the scissors shift, depending on sign of band
-     ! energy difference
-     if (istunocc0.le.istocc0) then
-        xiuo(:istocc0-istunocc0+1,istunocc0:,:)=zzero
-        pmuo(:,istocc0-istunocc0+1,istunocc0:)=zzero
-!!$        xiou(istunocc0:,:istocc0-istunocc0+1,:)=zzero
-!!$        pmou(:,istunocc0:,:istocc0-istunocc0+1)=zzero
-        ! take into account intraband contributions
-        if (tq0.or.(.not.intraband)) then
-           do ist1=1,nst1
-              do ist2=1,nst2
-                 if (ist1.eq.istunocc0+ist2-1) then
-                    xiou(ist1,ist2,:)=zzero
-                    pmou(:,ist1,ist2)=zzero
-                 end if
-                 if (istunocc0+ist1-1.eq.ist2) then
-                    xiuo(ist2,ist1,:)=zzero
-                    pmuo(:,ist2,ist1)=zzero
-                 end if
-              end do
-           end do
-        end if
-     end if
+!!$     end if
+!!$     ! avoid double counting *** zero lower/upper triangle
+!!$     ! of xiou,xiou because of scissors shift *** scissors: sign relevant:
+!!$     ! calculate explicitly the scissors shift, depending on sign of band
+!!$     ! energy difference
+!!$     if (istunocc0.le.istocc0) then
+!!$        xiuo(:istocc0-istunocc0+1,istunocc0:,:)=zzero
+!!$        pmuo(:,istocc0-istunocc0+1,istunocc0:)=zzero
+!!$        ! take into account intraband contributions
+!!$        if (tq0.or.(.not.intraband)) then
+!!$           do ist1=1,nst1
+!!$              do ist2=1,nst2
+!!$                 if (ist1.eq.istunocc0+ist2-1) then
+!!$                    xiou(ist1,ist2,:)=zzero
+!!$                    pmou(:,ist1,ist2)=zzero
+!!$                 end if
+!!$                 if (istunocc0+ist1-1.eq.ist2) then
+!!$                    xiuo(ist2,ist1,:)=zzero
+!!$                    pmuo(:,ist2,ist1)=zzero
+!!$                 end if
+!!$              end do
+!!$           end do
+!!$        end if
+!!$     end if
      
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0

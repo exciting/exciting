@@ -36,15 +36,7 @@ subroutine linoptkpq(ik,qmat,e,f)
         if (evalsv(jst,ikq).gt.efermi) e(m)=e(m)-scissor
         f(m)=(occsv0(ist,ik)-occsv(jst,ikq))* &
              abs(qmat(ist,jst))**2/gqc(1,1)**2
-
-
-if (ik.eq.7) then
-   write(3001,*) ik,ist,jst,abs(qmat(ist,jst))**2/gqc(1,1)**2
-   write(4001,*) ik,ist,jst,e(m)
-   write(5001,*) ik,ist,jst,occsv0(ist,ik)-occsv(jst,ikq)
-end if
-
-
+        if ((.not.intraband).and.(ist.eq.jst)) f(m)=0.d0
      end do
   end do
 end subroutine linoptkpq

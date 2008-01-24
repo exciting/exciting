@@ -1,12 +1,16 @@
 
 ! Linear optical response of aluminium including intra-band contributions.
 
-emattype
-  0
+#emattype
+#  0
 
 tasks
   333
-  121
+  340
+  350
+
+maxscl
+  1
 
 #dbglev
 #  100
