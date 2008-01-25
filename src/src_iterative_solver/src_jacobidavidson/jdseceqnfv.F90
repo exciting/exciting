@@ -16,15 +16,15 @@ use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
   real:: cpu0,cpu1
   !interface vars for JDQZ
   complex(8)::alpha(4*nstfv),beta(4*nstfv),eivec(nmat(ik,ispn),nstfv),target
-  real(8),parameter:: eps=1e-9,lock=1e-9
+  real(8),parameter:: eps=1e-8,lock=1e-8
    integer::jmax,jmin,ldeg,lwork,i,mparam
   complex(8),allocatable::zwork(:,:)
-   jmax=2*nstfv 
-   jmin=1.5*nstfv
+   jmax=3*nstfv 
+   jmin=2*nstfv
    mparam=30
-   ldeg=2
+   ldeg=2 
   ! lwork=10 + 6*ldeg + 5*jmax + 3*nstfv
-  lwork=4+mparam+ 5*jmax + 3*nstfv
+  lwork=4+mparam+ 5*jmax + 3*nstfv 
   np=npmat(ik,ispn)
   n=nmat(ik,ispn)
   
@@ -36,7 +36,7 @@ allocate(zwork(n,lwork),hamilton(np),overlap(np))
 if (iscl.gt.1) then
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
 do i=1,nstfv
-call zcopy(n,evecfv(1,i,ispn),1,eivec(1,i),1)
+call zcopy(n,evecfv(1,i,ispn),1,eivec(1,i),1) 
 end do
  !call getevalfv(vkl(1,ik),evalfv)
 !else
@@ -46,8 +46,8 @@ target=dcmplx(lowesteval,0)
 call initprecon(n,target,hamilton,overlap)
 
 call JDQZ( alpha, beta, eivec, .true., n, target, eps,& 
-	nstfv,jmax , jmin, 1,mparam, ldeg, 100, 1000,&
-	lock, -1, 1, zwork, lwork )
+	nstfv,jmax , jmin, 1,mparam, ldeg, 7, 1000,&
+	lock, -1, 3, zwork, lwork )
 
  call normalizep(n,nstfv,overlap,eivec,n)	
 do i=1,nstfv
