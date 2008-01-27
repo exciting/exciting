@@ -34,8 +34,10 @@ subroutine getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
      do jst=l2,u2
         devalsv(ist-l1+1,jst-l2+1)=e0(ist)-e(jst)
         doccsv(ist-l1+1,jst-l2+1)=o0(ist)-o(jst)
-        if ((e0(ist).le.efermi).and.(e(jst).gt.efermi)) scissv(ist,jst)=-scissor
-        if ((e0(ist).gt.efermi).and.(e(jst).le.efermi)) scissv(ist,jst)=scissor
+        if ((e0(ist).le.efermi).and.(e(jst).gt.efermi)) &
+             scissv(ist-l1+1,jst-l2+1)=-scissor
+        if ((e0(ist).gt.efermi).and.(e(jst).le.efermi)) &
+             scissv(ist-l1+1,jst-l2+1)=scissor
      end do
   end do
   deallocate(e0,e,o0,o)

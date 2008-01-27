@@ -54,7 +54,6 @@ subroutine writeemat2
   ! gather from processes
   if ((procs.gt.1).and.(rank.eq.0).and.(partype.eq.'k')) then
      call ematgather2
-     call devalsvgather2
   end if
   ! synchronize
   call barrier

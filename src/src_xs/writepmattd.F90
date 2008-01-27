@@ -59,9 +59,9 @@ subroutine writepmattd(lgather)
   call ematbdcmbs(1)
   if (lgather) goto 10
   do ik=kpari,kparf
-     if ((modulo(ik-kpari+1,(kparf-kpari+1)/10).eq.0).or.(ik.eq.kparf)) &
-          write(*,'("Info(linopt): ",I6," of ",I6,I6," w-points")') ik,kpari, &
-          kparf
+!     if ((modulo(ik-kpari+1,(kparf-kpari+1)/10).eq.0).or.(ik.eq.kparf)) &
+!          write(*,'("Info(linopt): ",I6," of ",I6,I6," w-points")') ik,kpari, &
+!          kparf
      ! get the eigenvectors and values from file
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
      call getevecsv(vkl(1,ik),evecsvt)

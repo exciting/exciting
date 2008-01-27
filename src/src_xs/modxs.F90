@@ -197,7 +197,6 @@ module modxs
   real(8), allocatable :: deou(:,:)
   ! eigenvalue differences (anti-resonant part)
   real(8), allocatable :: deuo(:,:)
-
   ! occupation number differences (first band combination)
   real(8), allocatable :: docc12(:,:)
   ! occupation number differences (second band combination)
@@ -432,8 +431,6 @@ module modxs
   character(256) :: fnetim
   ! Kohn-Sham response function timing
   character(256) :: fnxtim
-  ! Kohn-Sham energy differences
-  character(256) :: fndevalsv, fndevalsv_t, fndevalsv2, fndevalsv2_t
   ! Kohn-Sham response function
   character(256) :: fnchi0, fnchi0_t, fnchi0p
   ! Inverse dielectric function

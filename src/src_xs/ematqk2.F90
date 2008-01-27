@@ -42,8 +42,8 @@ contains
     call cpu_time(cpu0)
     ! find equivalent k-point
     ikq=ikmapikq(ik,iq)
-    if ((modulo(ik,nkpt/10).eq.0).or.(ik.eq.nkpt)) &
-         write(*,'("Info(ematqk2): ",I6,I6," of ",I6," k-points")') ik,ikq,nkpt
+!    if ((modulo(ik,nkpt/10).eq.0).or.(ik.eq.nkpt)) &
+!         write(*,'("Info(ematqk2): ",I6,I6," of ",I6," k-points")') ik,ikq,nkpt
     ! check for stop statement
     write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
     call tdchkstop
@@ -92,14 +92,6 @@ contains
     evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
     ! change back file extension
     call genfilname(iq=iq,setfilext=.true.)
-
-    ! eigenvalue and occupation number differences
-    do ist1=istlo1,isthi1
-       do ist2=istlo2,isthi2
-          deou(ist1-istlo1+1,ist2-istlo2+1)=evalsv0(ist1,ik)-evalsv(ist2,ikq)
-          docc12(ist1-istlo1+1,ist2-istlo2+1)=occsv0(ist1,ik)-occsv(ist2,ikq)
-       end do
-    end do
 
     call cpu_time(cpu1)
     cpuini=cpu1-cpu0

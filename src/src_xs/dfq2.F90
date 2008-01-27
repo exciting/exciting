@@ -11,7 +11,6 @@ subroutine dfq2(iq)
   use m_genwgrid
   use m_gensymdf
   use m_getpemat2
-  use m_getdevalsv2
   use m_dfqoschd
   use m_dfqoscwg
   use m_dfqoscbo
@@ -54,7 +53,6 @@ subroutine dfq2(iq)
   ! filenames for input
   call genfilname(basename='TETW',iq=iq,filnam=fnwtet)
   call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
-  call genfilname(basename='DEVALSV',iq=iq,filnam=fndevalsv)
   ! filenames for output
   call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
        iq=iq,filnam=fnchi0)
@@ -125,6 +123,8 @@ subroutine dfq2(iq)
   allocate(xuoc(n))
   allocate(hou(n,n))
   allocate(huo(n,n))
+  scis12(:,:)=0.d0
+  scis21(:,:)=0.d0
   if (tetra) allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
   ! generate complex energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
@@ -141,16 +141,12 @@ subroutine dfq2(iq)
      cpuosc=0.d0
      cpuupd=0.d0
      call cpu_time(cpu0)
-     ! read Kohn-Sham energy differences
-!!$     call getdevalsv2(iq,ik,.true.,trim(fndevalsv),deou,docc12,deuo,docc21)
-     ! read Kohn-Sham energy differences (random k-point set)
-     ! get matrix elements (exp. expr. or momentum)
-
-!getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
-ikq=ikmapikq(ik,iq)
-call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12,scis12)
-call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21,scis21)
-
+     ikq=ikmapikq(ik,iq)
+     call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12, &
+          scis12)
+     call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
+          scis21)
+     ! get matrix elements (exp. expr. or momentum op.)
      call getpemat2(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
