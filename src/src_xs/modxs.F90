@@ -317,6 +317,8 @@ module modxs
   integer :: ndftrans
   ! k-point and band combination analysis
   integer, allocatable :: dftrans(:,:)
+  ! smallest energy difference for which the inverse square will be considered
+  real(8) :: epsdfde
 
   !----------------------------------!
   !     angular momenta variables    !

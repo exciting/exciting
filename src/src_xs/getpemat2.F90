@@ -24,7 +24,7 @@ contains
     real(8), parameter :: eps=1.d-8
     complex(8), allocatable :: pm(:,:,:)
     real(8) :: fourpisqt
-    integer :: n,igq,j
+    integer :: n,igq,j,i1,i2
     logical :: tq0
     logical, external :: tqgamma
     tq0=tqgamma(iq)
@@ -49,26 +49,40 @@ contains
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)
        do j=1,3
-!!$          where(abs(docc12).gt.eps)
+!!$          where (abs(deou).gt.eps)
 !!$             p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
 !!$          elsewhere
 !!$             p12(j,:,:)=zzero
 !!$          end where
-!!$          where(abs(docc21).gt.eps)
+!!$          where (abs(deuo).gt.eps)
 !!$             p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
 !!$          elsewhere
 !!$             p34(j,:,:)=zzero
 !!$          end where
-          where (abs(deou).gt.eps)
-             p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
-          elsewhere
-             p12(j,:,:)=zzero
-          end where
-          where (abs(deuo).gt.eps)
-             p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
-          elsewhere
-             p34(j,:,:)=zzero
-          end where
+          do i1=1,nst1
+             do i2=1,nst2
+                if (abs(deou(i1,i2)).ge.epsdfde) then
+                   p12(j,i1,i2)=-p12(j,i1,i2)/deou(i1,i2)*fourpisqt
+                else
+                   p12(j,i1,i2)=zzero
+                   if (abs(docc12(i1,i2)).gt.epsocc) then
+                      write(*,'("Warning(",a,"): divergent energy denominator: &
+                           &q-point, k-point, band indices 1-2:",4i6,g18.10)')&
+                           thisnam,iq,ik,i1+istlo1-1,i2+istlo2-1,deou(i1,i2)
+                   end if
+                end if
+                if (abs(deuo(i2,i1)).ge.epsdfde) then
+                   p34(j,i2,i1)=-p34(j,i2,i1)/deuo(i2,i1)*fourpisqt
+                else
+                   p34(j,i2,i1)=zzero
+                   if (abs(docc21(i2,i1)).gt.epsocc) then
+                      write(*,'("Warning(",a,"): divergent energy denominator: &
+                           &q-point, k-point, band indices 3-4:",4i6,g18.10)')&
+                           thisnam,iq,ik,i1+istlo1-1,i2+istlo2-1,deuo(i2,i1)
+                   end if
+                end if
+             end do
+          end do
        end do
     end if
     if ((.not.tq0).or.(n.gt.1)) then

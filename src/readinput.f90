@@ -185,6 +185,7 @@ acont=.false.
 nwacont=0
 brdtd=0.01
 aresdf=.true.
+epsdfde=1.d-8
 symwings=.false.
 lfediag=.false.
 fxctype=0
@@ -941,6 +942,13 @@ case('brdtd')
   end if
 case('aresdf')
   read(50,*,err=20) aresdf
+case('epsdfde')
+  read(50,*,err=20) epsdfde
+  if (brdtd.le.0) then
+    write(*,*)
+    write(*,'("Warning(readinput[td]): epsdfde <= 0 : ",g18.10)') epsdfde
+    write(*,*)
+  end if
 case('symwings')
   read(50,*,err=20) symwings
 case('lfediag')
