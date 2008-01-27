@@ -3,11 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_putemat2
+module m_putemat
   implicit none
 contains
 
-  subroutine putemat2(iq,ik,tarec,filnam,x1,x2)
+  subroutine putemat(iq,ik,tarec,filnam,x1,x2)
     use modmain
     use modxs
     use modmpi
@@ -43,6 +43,6 @@ contains
              vkl(:,ik),x1
      end if
     close(un)
-  end subroutine putemat2
+  end subroutine putemat
 
-end module m_putemat2
+end module m_putemat

@@ -3,16 +3,16 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_getpemat2
+module m_getpemat
   implicit none
 contains
 
-  subroutine getpemat2(iq,ik,pfilnam,efilnam,m12,m34,p12,p34)
+  subroutine getpemat(iq,ik,pfilnam,efilnam,m12,m34,p12,p34)
     use modmain
     use modxs
     use modtetra
     use m_getpmat
-    use m_getemat2
+    use m_getemat
     implicit none
     ! arguments
     integer, intent(in) :: iq,ik
@@ -20,7 +20,7 @@ contains
     complex(8), optional, intent(out) :: m12(:,:,:),p34(:,:,:)
     complex(8), optional, intent(out) :: p12(:,:,:),m34(:,:,:)
     ! local variables
-    character(*), parameter :: thisnam='getpemat2'
+    character(*), parameter :: thisnam='getpemat'
     real(8), parameter :: eps=1.d-8
     complex(8), allocatable :: pm(:,:,:)
     real(8) :: fourpisqt
@@ -49,16 +49,6 @@ contains
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)
        do j=1,3
-!!$          where (abs(deou).gt.eps)
-!!$             p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
-!!$          elsewhere
-!!$             p12(j,:,:)=zzero
-!!$          end where
-!!$          where (abs(deuo).gt.eps)
-!!$             p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
-!!$          elsewhere
-!!$             p34(j,:,:)=zzero
-!!$          end where
           do i1=1,nst1
              do i2=1,nst2
                 if (abs(deou(i1,i2)).ge.epsdfde) then
@@ -87,7 +77,7 @@ contains
     end if
     if ((.not.tq0).or.(n.gt.1)) then
        ! read matrix elemets of exponential expression
-       call getemat2(iq,ik,.true.,trim(efilnam),m12,m34)
+       call getemat(iq,ik,.true.,trim(efilnam),m12,m34)
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))
        if (.not.tq0) then
              m12(:,:,1)=m12(:,:,1)/gqc(1,iq)*fourpisqt
@@ -100,6 +90,6 @@ contains
           end forall
        end if
     end if
-  end subroutine getpemat2
+  end subroutine getpemat
 
-end module m_getpemat2
+end module m_getpemat

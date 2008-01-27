@@ -3,14 +3,14 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine dfq2(iq)
+subroutine dfq(iq)
   use modmain
   use modxs
   use modtetra
   use modmpi
   use m_genwgrid
   use m_gensymdf
-  use m_getpemat2
+  use m_getpemat
   use m_dfqoschd
   use m_dfqoscwg
   use m_dfqoscbo
@@ -25,7 +25,7 @@ subroutine dfq2(iq)
   ! arguments
   integer, intent(in) :: iq
   ! local variables
-  character(*), parameter :: thisnam='dfq2'
+  character(*), parameter :: thisnam='dfq'
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:)
@@ -147,7 +147,7 @@ subroutine dfq2(iq)
      call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
           scis21)
      ! get matrix elements (exp. expr. or momentum op.)
-     call getpemat2(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
+     call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
      ! response function
@@ -304,4 +304,4 @@ subroutine dfq2(iq)
   deallocate(w,wreal,chi0)
   deallocate(xou,xouc,xuo,xuoc,hou,huo)
   if (tetra) deallocate(cw,cwa,cwsurf)
-end subroutine dfq2
+end subroutine dfq

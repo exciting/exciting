@@ -11,7 +11,7 @@ subroutine linopt
 #ifdef XS
   use modxs, only: emattype,xiou,qvkloff,istocc0,istocc,istunocc0,istunocc
   use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0
-  use m_getemat2
+  use m_getemat
   use m_genfilname
 #endif
   implicit none
@@ -86,7 +86,6 @@ subroutine linopt
   ! initialise universal variables
   call init0
   call init1
-!  emattype=1 !@@@@@@@@@@@@@@@@@@@@@@@@@@@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 emattype=0
   call init2xs
 #ifdef XS
@@ -218,7 +217,7 @@ emattype=0
         ! read matrix elements from direct-access file
 #ifdef XS
         if (tqfmt) then
-           call getemat2(1,ik,.true.,'EMAT_Q00001.OUT',xiou)
+           call getemat(1,ik,.true.,'EMAT_Q00001.OUT',xiou)
            call linoptkpq(ik,xiou,e(1,ik),f(1,ik))
         else
 #endif

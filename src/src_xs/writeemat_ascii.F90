@@ -7,7 +7,7 @@ subroutine writeemat_ascii
   use modmain
   use modxs
   use m_getunit
-  use m_getemat2
+  use m_getemat
   use m_genfilname
   implicit none
   character(256) :: filnam
@@ -45,9 +45,9 @@ subroutine writeemat_ascii
      ! loop over k-points
      do ik=1,nkpt
         if (emattype.eq.0) then
-           call getemat2(iq,ik,.true.,trim(fnemat),x1=xiou)
+           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou)
         else
-           call getemat2(iq,ik,.true.,trim(fnemat),x1=xiou,x2=xiuo)
+           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou,x2=xiuo)
         end if
         do igq=1,ngq(iq)
            do i=1,nst1

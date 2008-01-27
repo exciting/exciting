@@ -3,11 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_getemat2
+module m_getemat
   implicit none
 contains
 
-  subroutine getemat2(iq,ik,tarec,filnam,x1,x2)
+  subroutine getemat(iq,ik,tarec,filnam,x1,x2)
     use modmain
     use modxs
     use modmpi
@@ -20,7 +20,7 @@ contains
     complex(8), intent(out) :: x1(:,:,:)
     complex(8), optional, intent(out) :: x2(:,:,:)
     ! local variables
-    character(*), parameter :: thisnam = 'getemat2'
+    character(*), parameter :: thisnam = 'getemat'
     integer :: recl,un,ikr,nst1_,nst2_,nst3_,nst4_,nkpt_,ngq_
     real(8) :: vql_(3),vkl_(3)
     logical :: existent
@@ -72,6 +72,6 @@ contains
        write(unitout,'(a)') ' file: ',trim(filnam)
        call terminate
     end if
-  end subroutine getemat2
+  end subroutine getemat
 
-end module m_getemat2
+end module m_getemat
