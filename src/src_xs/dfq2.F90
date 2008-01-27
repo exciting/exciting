@@ -34,8 +34,9 @@ subroutine dfq2(iq)
   complex(8), allocatable :: xou(:),xouc(:),xuo(:),xuoc(:),wou(:),wuo(:)
   complex(8) :: wout
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
+  real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
-  integer :: n,j,ik,iw,wi,wf,ist1,ist2,nwdfp,ikt,oct,un
+  integer :: n,j,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp,ikt,oct,un
   logical :: tq0
   logical, external :: tqgamma
   ! sampling of Brillouin zone
@@ -109,6 +110,8 @@ subroutine dfq2(iq)
   if (allocated(pmuo)) deallocate(pmuo)
   allocate(pmuo(3,nst3,nst4))
   ! allocate arrays
+  allocate(scis12(nst1,nst2))
+  allocate(scis21(nst2,nst1))
   allocate(w(nwdf))
   allocate(wreal(nwdfp))
   allocate(chi0h(3,nwdfp))
@@ -139,9 +142,15 @@ subroutine dfq2(iq)
      cpuupd=0.d0
      call cpu_time(cpu0)
      ! read Kohn-Sham energy differences
-     call getdevalsv2(iq,ik,.true.,trim(fndevalsv),deou,docc12,deuo,docc21)
+!!$     call getdevalsv2(iq,ik,.true.,trim(fndevalsv),deou,docc12,deuo,docc21)
      ! read Kohn-Sham energy differences (random k-point set)
      ! get matrix elements (exp. expr. or momentum)
+
+!getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
+ikq=ikmapikq(ik,iq)
+call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12,scis12)
+call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21,scis21)
+
      call getpemat2(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
@@ -194,10 +203,10 @@ subroutine dfq2(iq)
               wuo(wi:wf)=-docc21(ist2,ist1)*cmplx(cwa(wi:wf),0.d0,8)/omega
            else
               ! include occupation number differences
-              wou(:)=docc12(ist1,ist2)*wkpt(ik)/omega/(w(:)+deou(ist1,ist2)- &
-                   scissor+zi*brd)
-              wuo(:)=docc21(ist2,ist1)*wkpt(ik)/omega/(w(:)+deuo(ist2,ist1)+ &
-                   scissor+zi*brd)
+              wou(:)=docc12(ist1,ist2)*wkpt(ik)/omega/(w(:)+deou(ist1,ist2) &
+                   +scis12(ist1,ist2)+zi*brd) !!-scissor+zi*brd)
+              wuo(:)=docc21(ist2,ist1)*wkpt(ik)/omega/(w(:)+deuo(ist2,ist1) &
+                   +scis21(ist2,ist1)+zi*brd) !!+scissor+zi*brd)
            end if
            hou(:,:)=zzero
            huo(:,:)=zzero
@@ -231,7 +240,7 @@ subroutine dfq2(iq)
                     ! be careful with gauge in the w-variable
                     ! one has to subtract the scissor's shift
                     if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                         deou(ist1,ist2)**2/(wreal(iw-wi+1)-scissor)**2)
+                         deou(ist1,ist2)**2/(wreal(iw-wi+1)+scis12(ist1,ist2))**2)
                     chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                          wout*hou(1,1)+wuo(iw)*huo(1,1)
                  end do
@@ -250,7 +259,7 @@ subroutine dfq2(iq)
                     ! be careful with gauge in the w-variable
                     ! one has to subtract the scissor's shift
                     if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                         deou(ist1,ist2)/(-wreal(iw-wi+1)+scissor))
+                         deou(ist1,ist2)/(-wreal(iw-wi+1)-scis12(ist1,ist2)))
                     chi0w(2:,1,oct,iw-wi+1)=chi0w(2:,1,oct,iw-wi+1)+&
                          wout*hou(1,2:)+wuo(iw)*huo(1,2:)
                     chi0w(2:,2,oct,iw-wi+1)=chi0w(2:,2,oct,iw-wi+1)+&
@@ -291,6 +300,7 @@ subroutine dfq2(iq)
      end if
      call barrier
   end do
+  deallocate(docc12,docc21,scis12,scis21)
   deallocate(chi0h)
   deallocate(chi0w)
   deallocate(deou,deuo,wou,wuo)
