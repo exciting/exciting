@@ -10,7 +10,7 @@ subroutine linopt
 #endif
 #ifdef XS
   use modxs, only: emattype,xiou,qvkloff,istocc0,istocc,istunocc0,istunocc
-  use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0
+  use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0, istlo1,isthi1,istlo2,isthi2,nst1,nst2,nst3,nst4,unitout
   use m_getemat2
   use m_genfilname
 #endif
@@ -86,7 +86,7 @@ subroutine linopt
   ! initialise universal variables
   call init0
   call init1
-  emattype=0
+  emattype=1 !@@@@@@@@@@@@@@@@@@@@@@@@@@@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   call init2xs
 #ifdef XS
   tqfmt=.not.tqgamma(iq)
@@ -95,16 +95,33 @@ subroutine linopt
      call genfilname(iq=iq,setfilext=.true.)
      ! take first q-point
      call init1xs(qvkloff(1,iq))
-     call findocclims(1,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-     call ematbdcmbs(emattype)
      if (allocated(evalsv0)) deallocate(evalsv0)
      allocate(evalsv0(nstsv,nkpt))
      if (allocated(occsv0)) deallocate(occsv0)
      allocate(occsv0(nstsv,nkpt))
      if (allocated(xiou)) deallocate(xiou)
      allocate(xiou(nstsv,nstsv,1))
+     call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+     call ematbdcmbs(emattype)
+  else
+     call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+     call ematbdcmbs(emattype)
   end if
 #endif
+
+
+
+  write(*,'(a,4i6)') 'Info(): lowest (partially) &
+       & unoccupied state: ',istunocc0
+  write(*,'(a,4i6)') 'Info(): highest (partially)&
+       & occupied state  : ',istocc0
+  write(*,'(a,4i6)') 'Info(): limits for band combinations&
+       & nst1,nst2,nst3,nst4:',nst1,nst2,nst3,nst4
+  write(*,'(a,4i6)') 'Info(): limits for band combinations&
+       & istlo1,isthi1,istlo2,isthi2:',istlo1,isthi1,istlo2,isthi2
+
+
+
   ! read Fermi energy from file
   call readfermi
   ! allocate local arrays
@@ -321,12 +338,28 @@ subroutine linopt
                  do ist2=1,nstsv
                     m=m+1
                     t3=1.d0
-                    if (.not.tqfmt) t3=1.d0/e(m,ik)**2
+                    if (.not.tqfmt) then
+                       if (abs(e(m,ik)).gt.eps) then
+                          t3=1.d0/e(m,ik)**2
+                       else
+                          t3=0.d0
+                          if ((ist1.ne.ist2).and.(iw.eq.1)) then
+                             write(*,'(a,3i8,g18.10)') 'divergent energy &
+                                  &denominator for ik,ist1,ist2:',ik,ist1, &
+                                  ist2,e(m,ik)
+                          end if
+                       end if
+                    end if
                     if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
+
+
+                       if (ist1.ge.ist2) then
                        sum1=sum1+wkpt(ik)* f(m,ik)* &
                             dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
                        sum2=sum2+wkpt(ik)* f(m,ik)* &
                             aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
+                       end if
+
                     end if
                  end do
               end do

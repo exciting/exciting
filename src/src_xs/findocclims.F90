@@ -74,6 +74,6 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      write(*,*)
   end if
 !SAG @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-iocc0=nstsv; iocc=iocc0
-iunocc0=1; iunocc=iunocc0
+!!$iocc0=nstsv; iocc=iocc0
+!!$iunocc0=1; iunocc=iunocc0
 end subroutine findocclims

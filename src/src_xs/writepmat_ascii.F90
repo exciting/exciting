@@ -24,9 +24,10 @@ subroutine writepmat_ascii
      do ist1=1,nstsv
         do ist2=1,nstsv
            do oct=1,3
-              write(un,'(3i8,4g18.10)') ik,ist1,ist2,pmat(oct,ist1,ist2), &
-                   abs(pmat(oct,ist1,ist2)),abs(pmat(oct,ist2,ist1)- &
-                   conjg(pmat(oct,ist1,ist2)))
+              write(un,'(3i8,i4,4g18.10)') ik,ist1,ist2,oct, &
+                   pmat(oct,ist1,ist2), &
+                   abs(pmat(oct,ist1,ist2)), &
+                   abs(pmat(oct,ist2,ist1)-conjg(pmat(oct,ist1,ist2)))
            end do
         end do
      end do

@@ -4,20 +4,26 @@
 #emattype
 #  0
 
+
 tasks
-  333
-  340
-  350
+340
+350
+
+nosym
+.true
+
+! include intra-band excitations
+#intraband
+# .true.
+
+#aresdf
+#  .false.
 
 maxscl
   1
 
 #dbglev
 #  100
-
-! include intra-band excitations
-#intraband
-# .true.
 
 avec
   1.0  1.0  0.0
@@ -71,5 +77,3 @@ brdtd
 tevout
   .true.
 
-#aresdf
-#  .false.

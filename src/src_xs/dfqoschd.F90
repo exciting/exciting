@@ -13,12 +13,6 @@ contains
     ! local variables
     integer :: i,j
     real(8) :: s(3,3)
-
-    ! symmetrization matrix
-
-    ! old stuff <= version 0.9.74
-!!$    s(:,:)=0.5d0*(symdfq0(:,:)+transpose(symdfq0))
-
     s(:,:)=symdfq0(:,:)
     you=(0.d0,0.d0)
     yuo=(0.d0,0.d0)
@@ -28,7 +22,6 @@ contains
           yuo=yuo+s(i,j)*puo(i)*conjg(puo(j))
        end do
     end do
-
   end subroutine dfqoschd
 
 end module m_dfqoschd

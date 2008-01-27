@@ -86,6 +86,11 @@ subroutine dfq2(iq)
        & occupied state  : ',istocc0
   write(unitout,'(a,4i6)') 'Info('//thisnam//'): limits for band combinations&
        & nst1,nst2,nst3,nst4:',nst1,nst2,nst3,nst4
+  write(*,'(a,4i6)') 'Info(): limits for band combinations&
+       & istlo1,isthi1,istlo2,isthi2:',istlo1,isthi1,istlo2,isthi2
+  write(*,'(a,4i6)') 'Info(): limits for band combinations&
+       & istlo3,isthi3,istlo4,isthi4:',istlo3,isthi3,istlo4,isthi4
+
   ! allocate arrays for eigenvalue and occupation number differences
   if (allocated(deou)) deallocate(deou)
   allocate(deou(nst1,nst2))
@@ -140,35 +145,96 @@ subroutine dfq2(iq)
      ! get matrix elements (exp. expr. or momentum)
      call getpemat2(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
+
+if (ik.eq.21) then
+     do ist1=1,nst1
+        do ist2=1,nst2
+           oct=1
+              write(400,'(3i8,i4,4g18.10)') ik,ist1,ist2,oct,-pmou(oct,ist1,ist2)*deou(ist1,ist2)/sqrt(fourpi)
+           
+        end do
+     end do
+     do ist1=1,nst1
+        do ist2=1,nst2
+           oct=1
+              write(410,'(3i8,i4,4g18.10)') ik,ist1,ist2,oct,-pmuo(oct,ist2,ist1)*deuo(ist2,ist1)/sqrt(fourpi)
+        end do
+     end do
+end if
+
+
      ! turn off antiresonant terms (type 21 band combiantions) for Kohn-Sham
      ! response function
-!!$     if (.not.aresdf) then
+     if (.not.aresdf) then
         xiuo(:,:,:)=zzero
         pmuo(:,:,:)=zzero
-!!$     end if
-!!$     ! avoid double counting *** zero lower/upper triangle
-!!$     ! of xiou,xiou because of scissors shift *** scissors: sign relevant:
-!!$     ! calculate explicitly the scissors shift, depending on sign of band
-!!$     ! energy difference
-!!$     if (istunocc0.le.istocc0) then
-!!$        xiuo(:istocc0-istunocc0+1,istunocc0:,:)=zzero
-!!$        pmuo(:,istocc0-istunocc0+1,istunocc0:)=zzero
-!!$        ! take into account intraband contributions
-!!$        if (tq0.or.(.not.intraband)) then
-!!$           do ist1=1,nst1
-!!$              do ist2=1,nst2
-!!$                 if (ist1.eq.istunocc0+ist2-1) then
-!!$                    xiou(ist1,ist2,:)=zzero
-!!$                    pmou(:,ist1,ist2)=zzero
-!!$                 end if
-!!$                 if (istunocc0+ist1-1.eq.ist2) then
-!!$                    xiuo(ist2,ist1,:)=zzero
-!!$                    pmuo(:,ist2,ist1)=zzero
-!!$                 end if
-!!$              end do
-!!$           end do
-!!$        end if
-!!$     end if
+     end if
+
+
+
+!!!! ********* project out resonant contribution
+!xiou(:,:,:)=zzero
+!pmou(:,:,:)=zzero
+
+
+
+
+
+     ! avoid double counting *** zero lower/upper triangle
+     ! of xiou,xiou because of scissors shift *** scissors: sign relevant:
+     ! calculate explicitly the scissors shift, depending on sign of band
+     ! energy difference
+     do ist1=1,istocc0-istunocc0+1
+        do ist2=1,istocc0-istunocc0+1
+           j=ist1+istunocc0-1
+
+
+if (ik.eq.21) then
+write(90,*) ist1,ist2,j
+end if
+
+           ! set lower triangle of first block to zero
+           if (ist1.gt.ist2) then
+
+if (ik.eq.21) then
+write(*,*) '+++ lower triangle xiou',j,ist2
+end if
+
+              xiou(j,ist2,:)=zzero
+              pmou(:,j,ist2)=zzero
+           end if
+           ! set diagonal to zero (project out intraband contributions)
+           if ((.not.intraband).and.(ist1.eq.ist2)) then
+
+
+if (ik.eq.21) then
+write(*,*) 'diagonal xiou',j,ist2
+end if
+
+
+
+              xiou(j,ist2,:)=zzero
+              pmou(:,j,ist2)=zzero
+           end if
+
+
+!!$           j=ist2+istunocc0-1
+           ! set upper triangle of second block to zero
+           ! also set diagonal to zero to avoid double counting
+           if (ist1.ge.ist2) then
+
+if (ik.eq.21) then
+write(*,*) 'upper triangle xiuo',j,ist1
+end if
+
+!!$              xiuo(j,ist1,:)=zzero
+!!$              pmuo(:,j,ist1)=zzero
+              xiuo(ist2,j,:)=zzero
+              pmuo(:,ist2,j)=zzero
+
+           end if
+        end do
+     end do
      
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0
@@ -206,11 +272,11 @@ subroutine dfq2(iq)
               call dfqoscbo(n,xiou(ist1,ist2,:),xiuo(ist2,ist1,:),hou,huo)
            end if
 
-if (ik.eq.7) then
-   write(3000,*) ik,ist1,ist2,hou(1,1)/fourpi 
-   write(4000,*) ik,ist1,ist2,deou(ist1,ist2)
-   write(5000,*) ik,ist1,ist2,docc12(ist1,ist2)
-end if
+!!$if (ik.eq.7) then
+!!$   write(3000,*) ik,ist1,ist2,hou(1,1)/fourpi 
+!!$   write(4000,*) ik,ist1,ist2,deou(ist1,ist2)
+!!$   write(5000,*) ik,ist1,ist2,docc12(ist1,ist2)
+!!$end if
 
            if (tq0.and.(n.gt.1)) then
               ! set up body
@@ -229,6 +295,13 @@ end if
                  ! head
                  call dfqoschd(pmou(:,ist1,ist2),pmuo(:,ist2,ist1),hou(1,1), &
                       huo(1,1))
+
+if ((oct.eq.1).and.(ik.eq.21)) then
+write(3000,'(5i5,6g18.10)') ik,istlo1+ist1-1,istlo2+ist2-1,ist1,ist2,deou(ist1,ist2),docc12(ist1,ist2),hou(1,1)*(deou(ist1,ist2)/sqrt(fourpi))**2,-pmou(1,ist1,ist2)*deou(ist1,ist2)/sqrt(fourpi)
+end if
+
+
+
                  do iw=wi,wf
                     wout=wou(iw)
                     ! be careful with gauge in the w-variable
@@ -276,6 +349,33 @@ end if
            ! end loop over states combinations
         end do
      end do
+
+
+
+!**************************
+do ist2=1,nst2
+do ist1=1,nst1
+   oct=1
+   call gensymdf(oct,oct)
+   optcomp(1,1)=oct
+   optcomp(2,1)=oct
+   call dfqoschd(pmou(:,ist1,ist2),pmuo(:,ist2,ist1),hou(1,1), &
+        huo(1,1))
+
+if ((oct.eq.1).and.(ik.eq.21)) then
+write(3010,'(5i5,6g18.10)') ik,istlo1+ist1-1,istlo2+ist2-1,ist1,ist2,deuo(ist2,ist1),docc21(ist2,ist1),huo(1,1)*(deuo(ist2,ist1)/sqrt(fourpi))**2,-pmuo(1,ist2,ist1)*deuo(ist2,ist1)/sqrt(fourpi)
+end if
+
+end do
+end do
+
+
+
+
+
+
+
+
      cputot=cpuread+cpuosc+cpuupd
      ! timing information
      call dftim(iq,ik,trim(fnxtim),cpuread,cpuosc,cpuupd, &

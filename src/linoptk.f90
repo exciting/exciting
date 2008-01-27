@@ -5,6 +5,11 @@
 
 subroutine linoptk(ik,i1,i2,sc,d,delta,pmat,e,f,pmatint)
 use modmain
+
+
+use modxs
+
+
 implicit none
 ! arguments
 integer, intent(in) :: ik
@@ -21,6 +26,10 @@ real(8), intent(out) :: pmatint(nstsv)
 integer ist,jst,isym,i,m
 real(8) sum
 complex(8) zt1(3)
+
+integer :: j
+
+
 ! get the eigenvalues and occupancies from file
 call getevalsv(vkl(1,ik),evalsv(1,ik))
 call getoccsv(vkl(1,ik),occsv(1,ik))
@@ -64,6 +73,26 @@ do ist=1,nstsv
 ! generalised DFT correction
     if (usegdft) e(m)=e(m)+delta(ist,jst)
     f(m)=(occsv(ist,ik)-occsv(jst,ik))*sum
+
+
+if (ik.eq.21) then
+    if (((ist.ge.istlo1).and.(ist.le.isthi1)).and.&
+         ((jst.ge.istlo2).and.(jst.le.isthi2))) then
+       i=ist-istlo1+1
+       j=jst-istlo2+1
+       write(3001,'(5i5,6g18.10)') ik,ist,jst,i,j,e(m),occsv(ist,ik)-occsv(jst,ik),sum,0.d0,pmat(1,ist,jst)
+    end if
+    if (((ist.ge.istlo2).and.(ist.le.isthi2)).and.&
+         ((jst.ge.istlo1).and.(jst.le.isthi1))) then
+       i=ist-istlo2+1
+       j=jst-istlo1+1
+       write(3011,'(5i5,6g18.10)') ik,jst,ist,j,i,e(m),occsv(ist,ik)-occsv(jst,ik),sum,0.d0,pmat(1,ist,jst)
+    end if
+end if
+
+!SAG===============================================================!!!!!!!!!!!
+
+
   end do
 end do
 return

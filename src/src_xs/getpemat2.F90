@@ -20,7 +20,8 @@ contains
     complex(8), optional, intent(out) :: m12(:,:,:),p34(:,:,:)
     complex(8), optional, intent(out) :: p12(:,:,:),m34(:,:,:)
     ! local variables
-    character(*), parameter :: thisnam = 'getpemat2'
+    character(*), parameter :: thisnam='getpemat2'
+    real(8), parameter :: eps=1.d-8
     complex(8), allocatable :: pm(:,:,:)
     real(8) :: fourpisqt
     integer :: n,igq,j
@@ -48,22 +49,22 @@ contains
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)
        do j=1,3
-!!$          where(abs(docc12).gt.epsocc)
+!!$          where(abs(docc12).gt.eps)
 !!$             p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
 !!$          elsewhere
 !!$             p12(j,:,:)=zzero
 !!$          end where
-!!$          where(abs(docc21).gt.epsocc)
+!!$          where(abs(docc21).gt.eps)
 !!$             p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
 !!$          elsewhere
 !!$             p34(j,:,:)=zzero
 !!$          end where
-          where(abs(deou).gt.epsocc)
+          where (abs(deou).gt.eps)
              p12(j,:,:)=-p12(j,:,:)/deou(:,:)*fourpisqt
           elsewhere
              p12(j,:,:)=zzero
           end where
-          where(abs(deuo).gt.epsocc)
+          where (abs(deuo).gt.eps)
              p34(j,:,:)=-p34(j,:,:)/deuo(:,:)*fourpisqt
           elsewhere
              p34(j,:,:)=zzero
