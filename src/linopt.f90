@@ -10,7 +10,7 @@ subroutine linopt
 #endif
 #ifdef XS
   use modxs, only: emattype,xiou,qvkloff,istocc0,istocc,istunocc0,istunocc
-  use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0, istlo1,isthi1,istlo2,isthi2,nst1,nst2,nst3,nst4,unitout
+  use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0
   use m_getemat2
   use m_genfilname
 #endif
@@ -86,7 +86,8 @@ subroutine linopt
   ! initialise universal variables
   call init0
   call init1
-  emattype=1 !@@@@@@@@@@@@@@@@@@@@@@@@@@@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!  emattype=1 !@@@@@@@@@@@@@@@@@@@@@@@@@@@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+emattype=0
   call init2xs
 #ifdef XS
   tqfmt=.not.tqgamma(iq)
@@ -101,27 +102,11 @@ subroutine linopt
      allocate(occsv0(nstsv,nkpt))
      if (allocated(xiou)) deallocate(xiou)
      allocate(xiou(nstsv,nstsv,1))
-     call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-     call ematbdcmbs(emattype)
-  else
-     call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+     call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
+          istu)
      call ematbdcmbs(emattype)
   end if
 #endif
-
-
-
-  write(*,'(a,4i6)') 'Info(): lowest (partially) &
-       & unoccupied state: ',istunocc0
-  write(*,'(a,4i6)') 'Info(): highest (partially)&
-       & occupied state  : ',istocc0
-  write(*,'(a,4i6)') 'Info(): limits for band combinations&
-       & nst1,nst2,nst3,nst4:',nst1,nst2,nst3,nst4
-  write(*,'(a,4i6)') 'Info(): limits for band combinations&
-       & istlo1,isthi1,istlo2,isthi2:',istlo1,isthi1,istlo2,isthi2
-
-
-
   ! read Fermi energy from file
   call readfermi
   ! allocate local arrays
@@ -351,15 +336,10 @@ subroutine linopt
                        end if
                     end if
                     if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
-
-
-                       if (ist1.ge.ist2) then
                        sum1=sum1+wkpt(ik)* f(m,ik)* &
                             dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
                        sum2=sum2+wkpt(ik)* f(m,ik)* &
                             aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
-                       end if
-
                     end if
                  end do
               end do

@@ -23,6 +23,8 @@ subroutine df
   ! w-point parallelization for dielectric function
   partype='w'
   call genparidxran(partype)
+  ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
+  emattype=1
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point
