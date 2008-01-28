@@ -78,9 +78,9 @@ c...     u   = pointer to Krylov space GMRES(m) or Bi-CSTAB(l)
       u   = tp+1
 c...     v   = pointer to search space JDQZ with max dimension jmax
       if ( method .eq. gmres ) then
-	 v   = u+m+1
+	  v   = u+m+1
       else if ( method .eq. cgstab ) then
-	 v   = u+2*l+6
+	  v   = u+2*l+6
       end if
 c...     w   = pointer to test subspace JDQZ with max dimension jmax
       w   = v+jmax
