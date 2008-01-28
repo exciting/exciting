@@ -19,6 +19,15 @@
 !
 !EOI
 
+!******************************************************************************!
+!
+! things to do:
+!  * test tetrahedron method for Al with and w/o symmetries
+!
+!
+!
+!******************************************************************************!
+
 subroutine xsmain
   use modmain
   use modxs
