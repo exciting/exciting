@@ -6,10 +6,11 @@
 
 
 tasks
-121
+340
+350
 
-#scissor
-#0.05
+scissor
+0.05
 
 #nosym
 #.true
@@ -18,8 +19,8 @@ tasks
 #intraband
 # .true.
 
-aresdf
-  .false.
+#aresdf
+#  .false.
 
 maxscl
   1
@@ -54,7 +55,7 @@ reducek
 
 dos
   500  100  0
-  -0.5  0.5
+  0.0  0.5
 
 ! TDDFT parameter
 qtype

@@ -339,7 +339,7 @@ emattype=0
                           end if
                        end if
                     end if
-                    if ((tqfmt.and.intraband).or.(ist1    .ne.ist2)) then !SAG
+                    if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
                        sum1=sum1+wkpt(ik)* f(m,ik)* &
                             dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
                        sum2=sum2+wkpt(ik)* f(m,ik)* &

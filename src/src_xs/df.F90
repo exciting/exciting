@@ -20,6 +20,8 @@ subroutine df
   call tdsave0
   ! initialize q-point set
   call init2xs
+  ! read Fermi energy
+  call readfermi
   ! w-point parallelization for dielectric function
   partype='w'
   call genparidxran(partype)
