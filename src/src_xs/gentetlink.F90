@@ -24,7 +24,7 @@ subroutine gentetlink(iqnr)
   integer, intent(in) :: iqnr
   ! local variables
   integer :: j
-  integer, allocatable :: ivkt(:,:),ivqt(:,:)
+  integer, allocatable :: ivkt(:,:),ivqt(:,:),tnodest(:,:),wtett(:)
   ! check if k-point set is not reduced for q-point different from Gamma point
   if ((nkpt.ne.nkptnr).and.(iqnr.ne.1)) then
      write(*,*)
@@ -43,12 +43,15 @@ subroutine gentetlink(iqnr)
   end if
   ! allocate local arrays
   allocate(ivkt(3,nkptnr),ivqt(3,nkptnr))
+  allocate(wtett(6*nkptnr),tnodest(4,6*nkptnr))
   ! generate fraction for k-point offset
   call r3fraction(vkloff,ikloff,dkloff)
   ! call to libbzint-routine
   call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
-       ntet,tnodes,wtet,link,tvol)
+       ntet,tnodest,wtett,link,tvol)
+  ! Note: we are using the weights and nodes from "kgen" called in "init1"
   ! deallocate local arrays
   deallocate(ivkt,ivqt)
+  deallocate(wtett,tnodest)
 end subroutine gentetlink
 !EOC

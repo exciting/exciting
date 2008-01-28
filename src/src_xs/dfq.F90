@@ -146,19 +146,6 @@ subroutine dfq(iq)
           scis12)
      call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
           scis21)
-
-
-if (ik.eq.21) then
-do ist1=1,nst1
-do ist2=1,nst2
-
-write(400,'(3i6,g18.10)') ik,ist1,ist2,scis12(ist1,ist2)
-write(410,'(3i6,g18.10)') ik,ist1,ist2,scis21(ist2,ist1)
-
-end do
-end do
-end if
-
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
