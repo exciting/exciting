@@ -122,7 +122,6 @@ c
       j = 0
       k = 0
 
-c
 c     --- loop
 c
  100  continue
@@ -133,12 +132,15 @@ c
 	 if (j.eq.0) then
 	    call zlarnv(2, iseed, n, work(1,v+j))
 	    call zlarnv(2, iseed, n, work(1,w+j))
-	    do i=1,n
-	       dtmp = dble(work(i,v+j))
-	       work(i,v+j) = dcmplx(dtmp,0d0)
-	       dtmp = dble(work(i,w+j))
-	       work(i,w+j) = dcmplx(dtmp,0d0)
-	    enddo
+	   
+	    
+	   		do i=1,n
+	       		dtmp = dble(work(i,v+j))
+	       		work(i,v+j) = dcmplx(dtmp,0d0)
+	       		dtmp = dble(work(i,w+j))
+	       		work(i,w+j) = dcmplx(dtmp,0d0)
+	    	enddo
+	   
 	 else
 	    mxmv = maxnmv
 	    deps = 2d0**(-solvestep)
