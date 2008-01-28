@@ -1,7 +1,7 @@
 !BOP
 ! !ROUTINE: seceqn
-subroutine residualvector(n,np,HeS,evecfv,nmatmax,r,rnorm)
-!residualvector(n,np,hminuses(:),evecfv(:,ievec,ispn),r(:),rnorm)
+subroutine residualvectors(n,iunconverged,h,s,evalfv,r,rnorms)
+use modmain, only: nmatmax,zone,zzero
 	
 ! !INPUT/OUTPUT PARAMETERS:
 
@@ -17,28 +17,23 @@ subroutine residualvector(n,np,HeS,evecfv,nmatmax,r,rnorm)
 !   Created March 2004 (JKD)
 !EOP
 !BOC
-!use modmain
+use modmain, only:nstfv
+  use diisinterfaces
 implicit none
-integer , intent (in)::n,np,nmatmax
-complex(8),intent(in)::HeS(np) !packed ut
-complex(8),intent(in)::evecfv(nmatmax) !vector
-complex(8),intent(out)::r(n)
-real(8),intent(out)::rnorm
-real(8) zdotc
-external zdotc
-integer:: i
+integer , intent (in)::n,iunconverged
+!packed ut
+complex(8),intent(in)::h(n,nstfv),s(n,nstfv) 
+complex(8),intent(out)::r(n,nstfv)
+real(8),intent(in)::evalfv(nstfv)
+real(8),intent(out)::rnorms(nstfv)
+integer i
+complex(8)::z
 
-r(:)=0.0
-call zhpmv("U",n,dcmplx(1.0,0.0),HeS,evecfv, 1, dcmplx(0,0), r(1), 1)
-#ifdef DEBUG
-write(441,*)"Hes in residualvector",HeS
-write(442,*)"evecfv in residualvector",evecfv
-write(443,*)"n,np,r in residualvector",n,np,r
-
-#endif
-rnorm=0
-do i=1,n
-rnorm=rnorm+conjg(r(i))*r(i)
+do i=1,iunconverged
+call zcopy(n,h(1,i),1,r(1,i),1)
+z=cmplx(-evalfv(i),0)
+call zaxpy(n,z,s(1,i),1,r(1,i),1)
+rnorms(i)= sqrt(dble( zdotc(n,r(1,i),1,r(1,i),1)))
 end do
-rnorm=sqrt(rnorm)
+
 end subroutine

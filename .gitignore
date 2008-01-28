@@ -1,5 +1,6 @@
 *.o
 *.a
+*~
 exciting
 excitings
 excitingp
@@ -22,3 +23,4 @@ make.inc
 mpif.h
 fort.*
 Makefile.serial
+*.orig

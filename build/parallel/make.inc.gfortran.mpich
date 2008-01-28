@@ -1,5 +1,6 @@
 F90 =mpif90
-F90_OPTS = -g -x f95-cpp-input -DMPI -DMPISEC -DMPIRHO
+F90_OPTS = -g  -DMPI -DMPISEC -DMPIRHO
+F90CPPOPTS=-x f95-cpp-input
 F77 = gfortran
 F77_OPTS = 
 LIB_SYS = 
