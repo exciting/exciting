@@ -146,6 +146,19 @@ subroutine dfq(iq)
           scis12)
      call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
           scis21)
+
+
+if (ik.eq.21) then
+do ist1=1,nst1
+do ist2=1,nst2
+
+write(400,'(3i6,g18.10)') ik,ist1,ist2,scis12(ist1,ist2)
+write(410,'(3i6,g18.10)') ik,ist1,ist2,scis21(ist2,ist1)
+
+end do
+end do
+end if
+
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
@@ -200,7 +213,7 @@ subroutine dfq(iq)
            else
               ! include occupation number differences
               wou(:)=docc12(ist1,ist2)*wkpt(ik)/omega/(w(:)+deou(ist1,ist2) &
-                   +scis12(ist1,ist2)+zi*brd) !!-scissor+zi*brd)
+                   +scis12(ist1,ist2)+zi*brd) !!-scissor+zi*brd) !SAG
               wuo(:)=docc21(ist2,ist1)*wkpt(ik)/omega/(w(:)+deuo(ist2,ist1) &
                    +scis21(ist2,ist1)+zi*brd) !!+scissor+zi*brd)
            end if
@@ -236,7 +249,7 @@ subroutine dfq(iq)
                     ! be careful with gauge in the w-variable
                     ! one has to subtract the scissor's shift
                     if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                         deou(ist1,ist2)**2/(wreal(iw-wi+1)+scis12(ist1,ist2))**2)
+                         deou(ist1,ist2)**2/(wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
                     chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                          wout*hou(1,1)+wuo(iw)*huo(1,1)
                  end do

@@ -54,7 +54,7 @@ subroutine linopt
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
 #endif
   !<sag>
-  real(8) :: t3
+  real(8) :: t3,scis
   real(8), allocatable :: eps1r(:)
   logical :: tev
   integer :: bzsmpl
@@ -299,7 +299,7 @@ emattype=0
            eps2(iw)=sum2
            ! divide by omega^2
            if (.not.tqfmt) then
-              t1=w(iw)
+              t1=w(iw)-scissor !SAG
               if (abs(t1).gt.eps) then
                  eps2(iw)=eps2(iw)/(t1**2)
               else
@@ -321,10 +321,15 @@ emattype=0
               do ist1=1,nstsv
                  do ist2=1,nstsv
                     m=m+1
+                    scis=0.d0
+                    if ((evalsv(ist1,ik).le.efermi).and. &
+                         (evalsv(ist2,ik).gt.efermi)) scis=-scissor
+                    if ((evalsv(ist1,ik).gt.efermi).and. &
+                         (evalsv(ist2,ik).le.efermi)) scis=scissor
                     t3=1.d0
                     if (.not.tqfmt) then
-                       if (abs(e(m,ik)).gt.eps) then
-                          t3=1.d0/e(m,ik)**2
+                       if (abs(e(m,ik)-scis).gt.eps) then
+                          t3=1.d0/(e(m,ik)-scis)**2
                        else
                           t3=0.d0
                           if ((ist1.ne.ist2).and.(iw.eq.1)) then
@@ -334,7 +339,7 @@ emattype=0
                           end if
                        end if
                     end if
-                    if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
+                    if ((tqfmt.and.intraband).or.(ist1    .ne.ist2)) then !SAG
                        sum1=sum1+wkpt(ik)* f(m,ik)* &
                             dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
                        sum2=sum2+wkpt(ik)* f(m,ik)* &
@@ -354,7 +359,7 @@ emattype=0
         call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,n,n,e,f,eps2)
         if (.not.tqfmt) then
            do iw=1,nwdos
-              t1=w(iw)
+              t1=w(iw)-scissor !SAG
               if (abs(t1).gt.eps) then
                  eps2(iw)=eps2(iw)/(t1**2)
               else
