@@ -49,7 +49,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
   complex(8):: eigenvector(nmat(ik,ispn),nstfv)
   real(8):: eigenvalue(nstfv)
-
+  integer :: iseed
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
   integer iunconverged,evecmap(nstfv)
@@ -139,15 +139,14 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
-
            call normalize(n,nstfv,overlap,eigenvector,n)	
         endif
-
      end do
-     if ( recalculate_preconditioner .or. (idiis .gt. 19)) then 
+     if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
-     endif
+        write(*,*)"recalculate preconditioner"
+      endif
      call cpu_time(cpu1)
   endif
   timefv=timefv+cpu1-cpu0

@@ -20,7 +20,7 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !interface vars for JDQZ
   complex(8)::alpha(4*nstfv),beta(4*nstfv),eivec(nmat(ik,ispn),nstfv),target
   real(8),parameter:: eps=1e-8,lock=1e-8
-  integer::jmax,jmin,ldeg,lwork,i,mparam
+  integer::jmax,jmin,ldeg,lwork,i,mparam,v,w,iseed
   complex(8),allocatable::zwork(:,:)
   jmax=3*nstfv 
   jmin=2*nstfv
@@ -30,7 +30,8 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   lwork=4+mparam+ 5*jmax + 3*nstfv 
   np=npmat(ik,ispn)
   n=nmat(ik,ispn)
-
+v=4+mparam	
+w=v+jmax
   allocate(zwork(n,lwork),hamilton(np),overlap(np))
 
   call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
@@ -46,8 +47,12 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
           form='UNFORMATTED',access='DIRECT',recl=recl)
      read(80,rec=1)zwork
      close(80)
-
-     !add random
+     do i=1, nstfv
+     	call zlarnv(2, iseed,2* n, eivec)
+    	call zaxpy(n ,dcmplx(1e-4,0),eivec(1,1),1,zwork(1,v+i),1)
+      	call zaxpy(n ,dcmplx(1e-4,0),eivec(1,2),1,zwork(1,w+i),1)
+     end do
+     
      else
      info=0
   endif

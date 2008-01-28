@@ -120,9 +120,10 @@ c
       solvestep = 0
       if (info.eq.-1) then
 	  !change for restart
-      j = 0
+      j = jmin
       !add random
-      k = 0
+      k = kmax
+      solvestep=jmin
 	  else
 	  j=0
 	  k=0
@@ -136,7 +137,7 @@ c
 	 solvestep = solvestep+1
 	 if (j.eq.0) then
 	    if(info.ne.-1) call zlarnv(2, iseed, n, work(1,v+j))
-	    call zlarnv(2, iseed, n, work(1,w+j))
+	    if(info.ne.-1) call zlarnv(2, iseed, n, work(1,w+j))
 	   		do i=1,n
 	       		dtmp = dble(work(i,v+j))
 	       		work(i,v+j) = dcmplx(dtmp,0d0)
