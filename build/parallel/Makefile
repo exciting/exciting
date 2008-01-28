@@ -6,10 +6,11 @@ parallel:make.inc
         ../../src  \
         ../../src/src_xs \
         ../../src/src_iterative_solver \
+        ../../src/src_iterative_solver/src_jacobidavidson \
         && make -f Makefile.serial excitingmpi \
         && cp -f excitingmpi ..
 
-libs:	libblas.a liblapack.a fftlib.a  libarpack.a
+libs:	libblas.a liblapack.a fftlib.a  libarpack.a libjdqz.a
 
 libblas.a: make.inc
 	cp -f make.inc ../..
@@ -40,6 +41,12 @@ libarpack.a: make.inc
 	cd ../../src/ARPACK && make clean && make lib
 	cp ../../src/ARPACK/libarpack.a .
 	cd ../../src/ARPACK && make clean
+
+	
+libjdqz.a:make.inc
+	cd ../../src/JDQZ && make clean && make 
+	cp ../../src/JDQZ/jdlib/libjdqz.a .
+	cd ../../src/JDQZ && make clean
 
 clean:
 	rm -f *.o *.mod

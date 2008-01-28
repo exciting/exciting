@@ -9,6 +9,7 @@ implicit none
   integer,parameter:: diismax=20,diisfirstscl=3
   real lowesteval
   real ,parameter::diisthreshould=1,reps=1e-7
+  integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
   external idamax
  logical  recalculate_preconditioner
@@ -57,7 +58,7 @@ contains
   function doARPACKiteration()
     logical doARPACKiteration
     doARPACKiteration=.false.
-    if (iterativetype.eq.2.or.prediis()) then
+    if (iterativetype.gt.2.or.prediis()) then
        doARPACKiteration=.true.
        write(*,*)"ARPACK"
        diiscounter=1
@@ -91,4 +92,13 @@ contains
     endif
 
   end function allconverged
+  
+  function dojacobdavidson()
+  logical dojacobdavidson
+  dojacobdavidson=.false.
+if(iterativetype.eq.3.and.iscl.ge.jacofidavidsonfirstscl) then
+dojacobdavidson=.true.
+write(*,*)"JDQZ"
+endif  
+  end function 
 end module sclcontroll

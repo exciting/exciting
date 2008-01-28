@@ -74,19 +74,22 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   timemat=timemat+cpu1-cpu0
   !$OMP END CRITICAL
   !update eigenvectors with iteration
-
+    recalculate_preconditioner=.false.
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
      call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
-     recalculate_preconditioner=.false.
+ 
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
+     call zlarnv(2, iseed, n*nstfv, eigenvector)
+     call zscal(n*nstfv,dcmplx(1e-4,0),eigenvector,1)
      do i=1,nstfv
-        call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        !call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
@@ -113,11 +116,6 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
-        if (rnorms(idamax(n,rnorms,1)).gt.1e-1) then
-           recalculate_preconditioner=.true.
-           exit
-        endif
-
         write(*,*)"rnorms",rnorms
         do i=1,nstfv
            if(evecmap(i).ne.0) then
@@ -128,7 +126,11 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
         call remove_converged(evecmap,iunconverged,&
              rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
-
+   if (rnorms(idamax(iunconverged,rnorms,1)).gt.1e-1.and.(idiis.gt.1)) then
+           recalculate_preconditioner=.true.
+           write(*,*)"recalculate preconditioner"
+           exit
+        endif
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
@@ -142,7 +144,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         endif
 
      end do
-     if ( recalculate_preconditioner .or. (idiis .gt. 15)) then 
+     if ( recalculate_preconditioner .or. (idiis .gt. 19)) then 
         call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
      endif
