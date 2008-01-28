@@ -9,7 +9,7 @@ implicit none
   integer,parameter:: diismax=20,diisfirstscl=3
   real lowesteval
   real ,parameter::diisthreshould=1,reps=1e-7
-  integer ,parameter::jacofidavidsonfirstscl=2
+  integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
   external idamax
  logical  recalculate_preconditioner

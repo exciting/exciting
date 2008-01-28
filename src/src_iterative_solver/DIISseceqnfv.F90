@@ -85,8 +85,11 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call readprecond(ik,n,P,w)    	
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
+     call zlarnv(2, iseed, n*nstfv, eigenvector)
+     call zscal(n*nstfv,dcmplx(1e-4,0),eigenvector,1)
      do i=1,nstfv
-        call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        !call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do

@@ -1,7 +1,7 @@
       subroutine jdqz (alpha, beta, eivec, wanted,
      $     n, shift, eps, kmax, jmax, jmin,
      $     method, m, l,
-     $     maxnmv, maxstep, lock, order, testspace, work, lwork)
+     $     maxnmv, maxstep, lock, order, testspace, work, lwork,info)
 c
 c     Programmer: Diederik R. Fokkema
 c     Modified         : M. van Gijzen
@@ -118,10 +118,15 @@ c
       mxmv = 0
 
       solvestep = 0
-
+      if (info.eq.-1) then
+	  !change for restart
       j = 0
+      !add random
       k = 0
-
+	  else
+	  j=0
+	  k=0
+	  endif
 c     --- loop
 c
  100  continue
@@ -130,21 +135,18 @@ c
 	 step = step+1
 	 solvestep = solvestep+1
 	 if (j.eq.0) then
-	    call zlarnv(2, iseed, n, work(1,v+j))
+	    if(info.ne.-1) call zlarnv(2, iseed, n, work(1,v+j))
 	    call zlarnv(2, iseed, n, work(1,w+j))
-	   
-	    
 	   		do i=1,n
 	       		dtmp = dble(work(i,v+j))
 	       		work(i,v+j) = dcmplx(dtmp,0d0)
 	       		dtmp = dble(work(i,w+j))
 	       		work(i,w+j) = dcmplx(dtmp,0d0)
 	    	enddo
-	   
 	 else
 	    mxmv = maxnmv
 	    deps = 2d0**(-solvestep)
-	    if (j.lt.jmin) then
+	    if (j.lt.jmin.and.info.ne.-1) then
 	       mxmv = 1
 	       call zgmres (n, work(1,v+j), work(1,d), m, deps,
      $              mxmv, zalpha, zbeta, k+1,
