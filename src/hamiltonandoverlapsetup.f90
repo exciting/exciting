@@ -24,7 +24,7 @@ end do
 ! muffin-tin contributions
 do is=1,nspecies
   do ia=1,natoms(is)
-      call hmlaa(.false.,is,ia,ngp,apwalm,v,h)
+    call hmlaa(.false.,is,ia,ngp,apwalm,v,h)
     call hmlalo(.false.,is,ia,ngp,apwalm,v,h)
     call hmllolo(.false.,is,ia,ngp,v,h)
     call olpaa(.false.,is,ia,ngp,apwalm,v,o)

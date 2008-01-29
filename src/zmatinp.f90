@@ -31,6 +31,7 @@ subroutine zmatinp(tapp,n,alpha,x,y,v,a)
 !   Created June 2003 (JKD)
 !EOP
 !BOC
+use modmain ,only:zone
 implicit none
 ! arguments
 logical, intent(in) :: tapp
@@ -41,10 +42,11 @@ complex(8), intent(in) :: y(n)
 complex(8), intent(in) :: v(n)
 complex(8), intent(inout) :: a(*)
 ! local variables
-integer i,j,k
+integer i,j,k,k1
 ! numbers less than eps are considered to be zero
 real(8), parameter :: eps=1.d-12
 complex(8) zt1,zt2
+complex(8) tmp(n)
 if (tapp) then
 ! apply the matrix
   zt1=y(1)*v(1)
@@ -70,12 +72,20 @@ else
      (abs(dble(y(j))).gt.eps).or.(abs(aimag(y(j))).gt.eps)) then
       zt1=conjg(alpha*y(j))
       zt2=alpha*conjg(x(j))
-      do i=1,j-1
-        k=k+1
-        a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
-      end do
-      k=k+1
-      a(k)=dble(a(k))+2.d0*dble(zt1*x(j))
+      k1=(j-1)*(j)/2+1
+     ! do i=1,j-1
+     !   k=k1 +i
+     !   a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
+     ! end do
+     if(j .ge.1) then
+     tmp=0	
+      call zaxpy(j,zt1,x(1),1,tmp(1),1)
+      call zaxpy(j,zt2,y(1),1,tmp(1),1)
+      tmp=conjg(tmp)
+      call zaxpy(j,zone,tmp,1,a(k1),1)
+      endif
+      !  k1=(j)*(j+1)/2
+      !a(k1)=dble(a(k1))+2.d0*dble(zt1*x(j))
     else
       k=k+j
     end if

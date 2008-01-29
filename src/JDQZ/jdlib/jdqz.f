@@ -120,10 +120,10 @@ c
       solvestep = 0
       if (info.eq.-1) then
 	  !change for restart
-      j = jmin
+      j = 0
       !add random
-      k = kmax
-      solvestep=jmin
+      k = 0
+      solvestep=0
 	  else
 	  j=0
 	  k=0
@@ -360,5 +360,5 @@ c...        Store the Schurvectors in eivec:
          call zcopy( k, aconv, 1, alpha, 1 )
          call zcopy( k, bconv, 1, beta, 1 )
       end if
-
+		WRITE(*,*)"J,K,STEP,SOLVESTEP",J,K,STEP,SOLVESTEP
       end
