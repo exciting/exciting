@@ -58,7 +58,7 @@ contains
   function doARPACKiteration()
     logical doARPACKiteration
     doARPACKiteration=.false.
-    if (iterativetype.gt.2.or.prediis()) then
+    if (iterativetype.ge.2.or.prediis()) then
        doARPACKiteration=.true.
        write(*,*)"ARPACK"
        diiscounter=1
