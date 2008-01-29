@@ -16,8 +16,9 @@ subroutine kramkron(i1,i2,eps,n,w,im,re)
   ! local variables
   real(8), parameter :: pi=3.1415926535897932385d0
   integer :: iw,jw
-  real(8) :: t1,t2,fw(n),g(n),cf(3,n)
-  ! declaration part ends
+  real(8) :: t1,t2
+  real(8), allocatable :: fw(:),g(:),cf(:,:)
+  allocate(fw(n),g(n),cf(3,n))
   t1=0.d0
   g(:)=0.d0
   if (i1.eq.i2) t1=1.d0
@@ -34,4 +35,5 @@ subroutine kramkron(i1,i2,eps,n,w,im,re)
      call fderiv(-1,n,w,fw,g,cf)
      re(iw)=t1+(2.d0/pi)*g(n)
   end do
+  deallocate(fw,g,cf)
 end subroutine kramkron

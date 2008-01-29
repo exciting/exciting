@@ -25,6 +25,9 @@ subroutine gentetlink(iqnr)
   ! local variables
   integer :: j
   integer, allocatable :: ivkt(:,:),ivqt(:,:),tnodest(:,:),wtett(:)
+
+integer,allocatable::linkt(:,:)
+
   ! check if k-point set is not reduced for q-point different from Gamma point
   if ((nkpt.ne.nkptnr).and.(iqnr.ne.1)) then
      write(*,*)
@@ -46,9 +49,25 @@ subroutine gentetlink(iqnr)
   allocate(wtett(6*nkptnr),tnodest(4,6*nkptnr))
   ! generate fraction for k-point offset
   call r3fraction(vkloff,ikloff,dkloff)
-  ! call to libbzint-routine
-  call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
-       ntet,tnodest,wtett,link,tvol)
+
+
+
+!SAG **************************************************************************
+!!$  ! call to libbzint-routine
+!!$  call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
+!!$       ntet,tnodest      ,wtett     ,link,tvol)
+
+
+allocate(linkt(6*nkptnr,nkptnr),kqid(nkpt,nkpt))
+  call kqgen(bvec,ngridk,ikloff,dkloff,nkpt, ivkt,ivqt,dvk,dvq,   &
+     &                 kqid,  ntet,tnodes,wtet,linkt,tvol)
+
+! assign link array
+link(:)=linkt(:,iqnr)
+deallocate(linkt,kqid)
+
+
+
   ! Note: we are using the weights and nodes from "kgen" called in "init1"
   ! deallocate local arrays
   deallocate(ivkt,ivqt)

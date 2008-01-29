@@ -10,7 +10,7 @@ subroutine linoptkpq(ik,qmat,e,f)
   implicit none
   ! arguments
   integer, intent(in) :: ik
-  complex(8), intent(in) :: qmat(nstsv,nstsv)
+  complex(8), intent(in) :: qmat(nstsv,nstsv,ngq(iq))
   real(8), intent(inout) :: e(nstsv*nstsv)
   real(8), intent(inout) :: f(nstsv*nstsv)
   ! local variables
@@ -35,7 +35,7 @@ subroutine linoptkpq(ik,qmat,e,f)
         if (evalsv0(ist,ik).gt.efermi) e(m)=e(m)+scissor
         if (evalsv(jst,ikq).gt.efermi) e(m)=e(m)-scissor
         f(m)=(occsv0(ist,ik)-occsv(jst,ikq))* &
-             abs(qmat(ist,jst))**2/gqc(1,1)**2
+             abs(qmat(ist,jst,1))**2/gqc(1,1)**2
         if ((.not.intraband).and.(ist.eq.jst)) f(m)=0.d0
      end do
   end do

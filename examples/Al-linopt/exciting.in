@@ -6,11 +6,13 @@
 
 
 tasks
-340
-350
+121
 
-scissor
-0.05
+tetra
+.true.
+
+#scissor
+#0.05
 
 #nosym
 #.true
@@ -69,8 +71,8 @@ qlist
 #  0.001
 
 ! TDDFT parameter
-optswidth
-  0.007
+#optswidth
+#  0.007
 
 ! TDDFT parameter
 brdtd

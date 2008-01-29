@@ -8,8 +8,6 @@ subroutine idf
   use modmpi
   use modxs
   use modfxcifc
-  use m_idfq
-  use m_tdlinopt
   use m_genfilname
   implicit none
   ! local variables

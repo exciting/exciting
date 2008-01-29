@@ -25,6 +25,7 @@ contains
          tim(1:2),tim(3:4),tim(5:6)
     write(un,'("# version           : ",i1.1,".",i1.1,".",i3.3)') version
     write(un,'("# version (xs)      : ",i1.1,".",i3.3)') versionxs
+    write(un,'(a,f12.6)')  '# efermi            :',efermi
     write(un,'(a,3f12.6)') '# vql               :',vql(:,iq)
     write(un,'(a,3f12.6)') '# vqc               :',vqc(:,iq)
     write(un,'(a,2i8)') '# optcomp           :',optcomp(1,1),optcomp(2,1)
@@ -32,6 +33,7 @@ contains
     write(un,'(a,f12.6)') '# alphalrc          :',alphalrc
     write(un,'(a,f12.6)') '# alphalrcdyn       :',alphalrcdyn
     write(un,'(a,f12.6)') '# betalrcdyn        :',betalrcdyn
+    write(un,'(a,l8)') '# intraband         :',intraband
     write(un,'(a,l8)') '# aresdf            :',aresdf
     write(un,'(a,l8)') '# acont             :',acont
     write(un,'(a,i8)') '# nwacont           :',nwacont

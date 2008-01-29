@@ -100,7 +100,7 @@ emattype=0
      if (allocated(occsv0)) deallocate(occsv0)
      allocate(occsv0(nstsv,nkpt))
      if (allocated(xiou)) deallocate(xiou)
-     allocate(xiou(nstsv,nstsv,1))
+     allocate(xiou(nstsv,nstsv,ngq(iq)))
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
           istu)
      call ematbdcmbs(emattype)
@@ -229,24 +229,26 @@ emattype=0
      end do
 #if TETRA
      if (tetra) then
-        ! get index to reducible q-point which is commensurate to k-point set
-        vr(:)=vql(:,iq)*ngridk(:)
-        call r3frac(epslat,vr,iv)
-        if (sum(abs(vr)).gt.epscomm) then
-           write(*,*)
-           write(*,'("Error(linopt): q-point not commensurate with k-point &
-                &set")')
-           write(*,'(" which is required for tetrahedron method")')
-           write(*,'(" commensurability tolerance: ",g18.10)') epscomm
-           write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vql(:,iq)
-           write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
-           write(*,'(" minimum nonzero coords.   : ",3g18.10)') 1.d0/ngridk(:)
-           write(*,*)
-           call terminate
+        if (tqfmt) then
+           ! get index to reducible q-point which is commensurate to k-point set
+           vr(:)=vql(:,iq)*ngridk(:)
+           call r3frac(epslat,vr,iv)
+           if (sum(abs(vr)).gt.epscomm) then
+              write(*,*)
+              write(*,'("Error(linopt): q-point not commensurate with k-point &
+                   &set")')
+              write(*,'(" which is required for tetrahedron method")')
+              write(*,'(" commensurability tolerance: ",g18.10)') epscomm
+              write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vql(:,iq)
+              write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
+              write(*,'(" minimum nonzero coords.   : ",3g18.10)')1.d0/ngridk(:)
+              write(*,*)
+              call terminate
+           end if
+           iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
+           ! generate link array for tetrahedra
+           call gentetlink(iqnr)
         end if
-        iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
-        ! generate link array for tetrahedra
-        call gentetlink(iqnr)
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
@@ -258,7 +260,8 @@ emattype=0
         where (e1.gt.efermi) e1=e1+scissor
         do iw=1,nwdos
            if ((modulo(iw,nwdos/10).eq.0).or.(iw.eq.nwdos)) &
-                write(*,'("Info(linopt): ",I6," of ",I6," w-points")') iw,nwdos
+                write(*,'("Info(linopt): tetrahedron weights for ",I6," of ",&
+                &I6," w-points")') iw,nwdos
            ! it seems that frequency should be non-zero for tetcw (?)
            ! see Ricardo's code
            if (abs(w(iw)).lt.epstetra) w(iw)=epstetra
@@ -283,10 +286,10 @@ emattype=0
                     if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
                        ! real part, resonant contribution
                        if (ist1.le.ist2) sum1=sum1+cw(ist1,ist2,ik)* &
-                            f(m,ik)/e(m,ik)**2
+                            f(m,ik)*t3
                        ! real part, anti-resonant contribution
                        if (ist1.gt.ist2) sum1=sum1-cwa(ist2,ist1,ik)* &
-                            f(m,ik)/e(m,ik)**2
+                            f(m,ik)*t3
                        ! imaginary part (only resonant contribution by theory
                        ! for positive frequencies)
                        if (ist1.le.ist2) sum2=sum2+cwsurf(ist1,ist2,ik)* &

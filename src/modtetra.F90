@@ -71,7 +71,7 @@ contains
        write(*,*)
        stop
     end if
-    if (sum(abs(r)).lt.1.d-3) then
+    if ((sum(abs(r)).lt.1.d-3).and.(sum(abs(r)).gt.0.d0)) then
        write(*,*)
        write(*,'("Warning(modtetra:r3fraction): very small offset:")')
        write(*,'(" kgen and related routines might fail")')
