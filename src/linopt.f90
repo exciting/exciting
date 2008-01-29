@@ -218,7 +218,7 @@ emattype=0
 #ifdef XS
         if (tqfmt) then
            call getemat(1,ik,.true.,'EMAT_Q00001.OUT',xiou)
-           call linoptkpq(ik,xiou,e(1,ik),f(1,ik))
+           call linoptkpq(iq,ik,xiou,e(1,ik),f(1,ik))
         else
 #endif
            read(50,rec=ik) pmat

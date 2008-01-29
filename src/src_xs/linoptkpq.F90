@@ -3,18 +3,17 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine linoptkpq(ik,qmat,e,f)
+subroutine linoptkpq(iq,ik,qmat,e,f)
   use modmain
   use modxs
   use m_genfilname
   implicit none
   ! arguments
-  integer, intent(in) :: ik
+  integer, intent(in) :: iq,ik
   complex(8), intent(in) :: qmat(nstsv,nstsv,ngq(iq))
   real(8), intent(inout) :: e(nstsv*nstsv)
   real(8), intent(inout) :: f(nstsv*nstsv)
   ! local variables
-  integer, parameter :: iq=1
   integer ist,jst,m
   integer :: ikq
   ! eigenvalues and occupancies for k+q-point
