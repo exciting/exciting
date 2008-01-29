@@ -60,7 +60,7 @@ integer,allocatable::linkt(:,:)
 
 allocate(linkt(6*nkptnr,nkptnr),kqid(nkpt,nkpt))
   call kqgen(bvec,ngridk,ikloff,dkloff,nkpt, ivkt,ivqt,dvk,dvq,   &
-     &                 kqid,  ntet,tnodes,wtet,linkt,tvol)
+     &                 kqid,  ntet,tnodes     ,wtet       ,linkt,tvol)
 
 ! assign link array
 link(:)=linkt(:,iqnr)

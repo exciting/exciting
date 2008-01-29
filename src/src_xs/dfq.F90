@@ -15,7 +15,7 @@ subroutine dfq(iq)
   use m_dfqoscwg
   use m_dfqoscbo
   use m_dftim
-  use m_gettetcw
+  use m_gettetcw2
   use m_chi0upd
   use m_putx0
   use m_getunit
@@ -35,7 +35,7 @@ subroutine dfq(iq)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
-  integer :: n,j,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp,ikt,oct,un
+  integer :: n,j,i1,i2,j1,j2,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp,ikt,oct,un
   logical :: tq0
   logical, external :: tqgamma
   ! sampling of Brillouin zone
@@ -190,8 +190,15 @@ subroutine dfq(iq)
            ! user request termination
            call terminate_inqr('dfq')
            if (tetra) then
+              i1=ist1; i2=istunocc0+ist2-1
+              j1=i1; j2=i2
+              if (i1.gt.i2) then
+                 j1=i2
+                 j2=i1
+              end if
+!write(*,'(a,7i6)') 'ik,ist1,ist2,i1,i2,j1,j2',ik,ist1,ist2,i1,i2,j1,j2
               ! read weights for tetrahedron method
-              call gettetcw(iq,ik,ist1,ist2,nwdf,trim(fnwtet),cw,cwa, &
+              call gettetcw2(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, & !SAG*******
                    cwsurf)
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &

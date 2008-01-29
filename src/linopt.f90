@@ -10,7 +10,7 @@ subroutine linopt
 #endif
 #ifdef XS
   use modxs, only: emattype,xiou,qvkloff,istocc0,istocc,istunocc0,istunocc
-  use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0
+  use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0,ngq
   use m_getemat
   use m_genfilname
 #endif
