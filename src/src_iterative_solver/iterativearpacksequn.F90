@@ -30,8 +30,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8),intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
 
   ! local variables
-  complex(8) 	:: h(npmat(ik,ispn))
-  complex(8) 	:: o(npmat(ik,ispn))
+  complex(8) 	:: hamilton(nmat(ik,ispn),nmat(ik,ispn))
+  complex(8) 	:: overlap(nmat(ik,ispn),nmat(ik,ispn))
   integer ::n
   real:: cpu0,cpu1,cpu2
   Complex(8)::                 zero, one
@@ -112,15 +112,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !##################
   !setup hamiltonian#
   !##################
-  call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
+  call hamiltonandoverlapsetupnotpacked(n,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
+  
+  !call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
   call cpu_time(cpu0)
   !#######################################################################
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 
-  call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
+  call zaxpy(n*n,-sigma,overlap,1,hamilton,1)
   !call zhptrf('U', n, h, IPIV, info )
- call ZPPTRF( 'U', n, h, INFO )
+
+  call ZGETRF( n, n, hamilton, n, IPIV, INFO )
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -137,21 +140,20 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
      if (ido .eq. -1 .or. ido .eq. 1) then
 
-	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
-             dcmplx(0,0),workd(ipntr(2)), 1)
-
-        !call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
-        call ZPPTRS( 'U', N, 1, h,workd(ipntr(2)) , n, INFO )
+	!call zhemv("U",n,zone,overlap,n,workd(ipntr(1)), 1, zzero,workd(ipntr(2)), 1)      
+     call  ZGEMV("N",n,n,one,overlap,n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
+ 	call  ZGETRS( 'N', n, 1, hamilton, n, IPIV, workd(ipntr(2)) , n, INFO)
         if (info.ne.0)then
-           write(*,*)"error in iterativearpacksecequn zhptrs ",info
+           write(*,*)"error in iterativearpacksecequn zgetrs ",info
            stop
         endif
      else if(ido .eq.1) then
         call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
-        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
+        call  ZGETRS( 'N', n, 1, hamilton, n, IPIV, workd(ipntr(2)) , n, INFO)
      else if (ido .eq. 2) then
- 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
-             dcmplx(0,0),workd(ipntr(2)), 1)
+      call  ZGEMV("N",n,n,one,overlap,n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
+          !  call zhemv("U",n,zone,overlap,n,workd(ipntr(1)), 1,&
+           !  zzero,workd(ipntr(2)), 1)
      else 
         exit
      endif
