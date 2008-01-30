@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: gentetlink
 ! !INTERFACE:
-subroutine gentetlink(iqnr)
+subroutine gentetlink(vpl)
 ! !USES:
   use modmain
   use modtetra
@@ -21,13 +21,31 @@ subroutine gentetlink(iqnr)
 !BOC
   implicit none
   ! arguments
-  integer, intent(in) :: iqnr
+  real(8), intent(in) :: vpl(3)
   ! local variables
-  integer :: j
+  real(8), parameter :: epscomm=1.d-5
+  real(8) :: vr(3)
+  integer :: j,iv(3),iqnr
   integer, allocatable :: ivkt(:,:),ivqt(:,:),tnodest(:,:),wtett(:)
 
-integer,allocatable::linkt(:,:)
+!!$integer,allocatable::linkt(:,:)
 
+  ! get index to reducible q-point which is commensurate to k-point set
+  vr(:)=vpl(:)*ngridk(:)
+  call r3frac(epslat,vr,iv)
+  if (sum(abs(vr)).gt.epscomm) then
+     write(*,*)
+     write(*,'("Error(m_tetcalccwq): q-point not commensurate with k-point &
+          &set")')
+     write(*,'(" which is required for tetrahedron method")')
+     write(*,'(" commensurability tolerance: ",g18.10)') epscomm
+     write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vpl
+     write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
+     write(*,'(" minimum nonzero coords.   : ",3g18.10)') 1.d0/ngridk(:)
+     write(*,*)
+     call terminate
+  end if
+  iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
   ! check if k-point set is not reduced for q-point different from Gamma point
   if ((nkpt.ne.nkptnr).and.(iqnr.ne.1)) then
      write(*,*)
@@ -53,18 +71,17 @@ integer,allocatable::linkt(:,:)
 
 
 !SAG **************************************************************************
-!!$  ! call to libbzint-routine
-!!$  call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
-!!$       ntet,tnodest      ,wtett     ,link,tvol)
+  ! call to libbzint-routine
+  call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
+       ntet,tnodes      ,wtet     ,link,tvol)
 
 
-allocate(linkt(6*nkptnr,nkptnr),kqid(nkpt,nkpt))
-  call kqgen(bvec,ngridk,ikloff,dkloff,nkpt, ivkt,ivqt,dvk,dvq,   &
-     &                 kqid,  ntet,tnodes     ,wtet       ,linkt,tvol)
-
-! assign link array
-link(:)=linkt(:,iqnr)
-deallocate(linkt,kqid)
+!!$allocate(linkt(6*nkptnr,nkptnr),kqid(nkpt,nkpt))
+!!$  call kqgen(bvec,ngridk,ikloff,dkloff,nkpt, ivkt,ivqt,dvk,dvq,   &
+!!$     &                 kqid,  ntet,tnodes     ,wtet       ,linkt,tvol)
+!!$! assign link array
+!!$link(:)=linkt(:,iqnr)
+!!$deallocate(linkt,kqid)
 
 
 

@@ -196,9 +196,8 @@ subroutine dfq(iq)
                  j1=i2
                  j2=i1
               end if
-!write(*,'(a,7i6)') 'ik,ist1,ist2,i1,i2,j1,j2',ik,ist1,ist2,i1,i2,j1,j2
               ! read weights for tetrahedron method
-              call gettetcw2(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, & !SAG*******
+              call gettetcw2(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
                    cwsurf)
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &

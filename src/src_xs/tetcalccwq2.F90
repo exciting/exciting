@@ -17,7 +17,6 @@ subroutine tetcalccwq2(iq)
   integer, intent(in) :: iq
   ! local variables
   character(*), parameter :: thisnam='tetcalccwq2'
-  real(8), parameter :: epscomm=1.d-5
   character(256) :: filnam,filnamt
   complex(8), allocatable :: w(:)
   real(8), parameter :: epstetra=1.d-8
@@ -29,26 +28,26 @@ subroutine tetcalccwq2(iq)
   real(8) :: wt,vr(3)
   integer :: iqnr,ik,ist1,ist2,iv(3)
   integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
-  ! get index to reducible q-point which is commensurate to k-point set
-  vr(:)=vql(:,iq)*ngridk(:)
-  call r3frac(epslat,vr,iv)
-  if (sum(abs(vr)).gt.epscomm) then
-     write(*,*)
-     write(*,'("Error(m_tetcalccwq): q-point not commensurate with k-point &
-          &set")')
-     write(*,'(" which is required for tetrahedron method")')
-     write(*,'(" commensurability tolerance: ",g18.10)') epscomm
-     write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vql(:,iq)
-     write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
-     write(*,'(" minimum nonzero coords.   : ",3g18.10)') 1.d0/ngridk(:)
-     write(*,*)
-     call terminate
-  end if
-  iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
+!!$  ! get index to reducible q-point which is commensurate to k-point set
+!!$  vr(:)=vql(:,iq)*ngridk(:)
+!!$  call r3frac(epslat,vr,iv)
+!!$  if (sum(abs(vr)).gt.epscomm) then
+!!$     write(*,*)
+!!$     write(*,'("Error(m_tetcalccwq): q-point not commensurate with k-point &
+!!$          &set")')
+!!$     write(*,'(" which is required for tetrahedron method")')
+!!$     write(*,'(" commensurability tolerance: ",g18.10)') epscomm
+!!$     write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vql(:,iq)
+!!$     write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
+!!$     write(*,'(" minimum nonzero coords.   : ",3g18.10)') 1.d0/ngridk(:)
+!!$     write(*,*)
+!!$     call terminate
+!!$  end if
+!!$  iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
   ! generate link array for tetrahedra
-  call gentetlink(iqnr)
+  call gentetlink(vql(1,iq))
   ! initial and final w-point
   wi=wpari
   wf=wparf
