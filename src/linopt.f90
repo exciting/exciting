@@ -46,9 +46,9 @@ subroutine linopt
 #endif
   complex(8), allocatable :: pmat(:,:,:)
 #ifdef TETRA
-  integer :: m,ist1,ist2,iqnr,iv(3)
+  integer :: m,ist1,ist2
   real(8), parameter :: epstetra=1.d-8
-  real(8) :: escal,sum1,sum2,vr(3)
+  real(8) :: escal,sum1,sum2
   real(8), allocatable :: e1(:,:)
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
 #endif
@@ -229,22 +229,6 @@ emattype=0
 #if TETRA
      if (tetra) then
         if (tqfmt) then
-!!$           ! get index to reducible q-point which is commensurate to k-point set
-!!$           vr(:)=vql(:,iq)*ngridk(:)
-!!$           call r3frac(epslat,vr,iv)
-!!$           if (sum(abs(vr)).gt.epscomm) then
-!!$              write(*,*)
-!!$              write(*,'("Error(linopt): q-point not commensurate with k-point &
-!!$                   &set")')
-!!$              write(*,'(" which is required for tetrahedron method")')
-!!$              write(*,'(" commensurability tolerance: ",g18.10)') epscomm
-!!$              write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vql(:,iq)
-!!$              write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
-!!$              write(*,'(" minimum nonzero coords.   : ",3g18.10)')1.d0/ngridk(:)
-!!$              write(*,*)
-!!$              call terminate
-!!$           end if
-!!$           iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
            ! generate link array for tetrahedra
            call gentetlink(vql(1,iq))
         end if

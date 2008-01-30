@@ -134,6 +134,9 @@ subroutine writebandgapgrid
   use modmain
   use modxs
   use m_genfilname
+  implicit none
+  ! local variables
+  integer :: ik
   ! initialise universal variables
   if (calledxs.eq.1) call init0
   ! file extension for q-point
