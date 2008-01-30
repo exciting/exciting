@@ -27,15 +27,16 @@ subroutine gentetlink(vpl)
   real(8) :: vr(3)
   integer :: j,iv(3),iqnr
   integer, allocatable :: ivkt(:,:),ivqt(:,:),tnodest(:,:),wtett(:)
+  real(8), external :: r3taxi
 
 !!$integer,allocatable::linkt(:,:)
 
   ! get index to reducible q-point which is commensurate to k-point set
   vr(:)=vpl(:)*ngridk(:)
   call r3frac(epslat,vr,iv)
-  if (sum(abs(vr)).gt.epscomm) then
+  if (sum(abs(vr/ngridk)).gt.epscomm) then
      write(*,*)
-     write(*,'("Error(m_tetcalccwq): q-point not commensurate with k-point &
+     write(*,'("Error(gentetlink): q-point not commensurate with k-point &
           &set")')
      write(*,'(" which is required for tetrahedron method")')
      write(*,'(" commensurability tolerance: ",g18.10)') epscomm
@@ -45,7 +46,17 @@ subroutine gentetlink(vpl)
      write(*,*)
      call terminate
   end if
-  iqnr=1+iv(1)+ngridq(1)*iv(2)+ngridq(1)*ngridq(2)*iv(3)
+  iqnr=1+iv(1)+ngridk(1)*iv(2)+ngridk(1)*ngridk(2)*iv(3)
+  ! cross check q-point again
+  if (abs(r3taxi(vpl,vklnr(1,iqnr))).gt.epscomm) then
+     write(*,*)
+     write(*,'("Error(gentetlink): q-point on grid does not match q-point - &
+          &check routine gentetlink.F90")')
+     write(*,*)
+     call terminate
+  end if
+  write(*,'(a,i6,3g18.10)') 'Info(gentetlink): irreducible q-point in grid:', &
+       iqnr,vklnr(:,iqnr)
   ! check if k-point set is not reduced for q-point different from Gamma point
   if ((nkpt.ne.nkptnr).and.(iqnr.ne.1)) then
      write(*,*)
@@ -58,7 +69,7 @@ subroutine gentetlink(vpl)
   if (allocated(link)) deallocate(link)
   allocate(link(6*nkpt))
   ! quick return for Gamma q-point
-  if (iqnr.eq.0) then
+  if (iqnr.eq.1) then
      forall (j=1:6*nkpt) link(j)=j
      return
   end if
@@ -85,7 +96,6 @@ subroutine gentetlink(vpl)
 
 
 
-  ! Note: we are using the weights and nodes from "kgen" called in "init1"
   ! deallocate local arrays
   deallocate(ivkt,ivqt)
   deallocate(wtett,tnodest)
