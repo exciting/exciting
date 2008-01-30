@@ -119,8 +119,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !#######################################################################
 
   call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
-  call zhptrf('U', n, h, IPIV, info )
-
+  !call zhptrf('U', n, h, IPIV, info )
+ call ZPPTRF( 'U', n, h, INFO )
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -140,7 +140,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
              dcmplx(0,0),workd(ipntr(2)), 1)
 
-        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
+        !call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
+        call ZPPTRS( 'U', N, 1, h,workd(ipntr(2)) , n, INFO )
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zhptrs ",info
            stop
