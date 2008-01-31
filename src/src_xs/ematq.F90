@@ -18,11 +18,11 @@ subroutine ematq(iq)
   character(*), parameter :: thisnam='ematq'
   integer :: ik
   ! filenames
-  call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
-  call genfilname(basename='EMAT',iq=iq,procs=procs,rank=rank,&
+  call genfilname(basename='EMAT',iq=iq,etype=emattype,filnam=fnemat)
+  call genfilname(basename='EMAT',iq=iq,etype=emattype,procs=procs,rank=rank,&
        filnam=fnemat_t)
   call genfilname(nodotpar=.true.,basename='EMAT_TIMING',iq=iq,&
-       procs=procs,rank=rank,filnam=fnetim)
+       etype=emattype,procs=procs,rank=rank,filnam=fnetim)
   ! file extension for q-point
   call genfilname(iq=iq,setfilext=.true.)
   ! calculate k+q and G+k+q related variables

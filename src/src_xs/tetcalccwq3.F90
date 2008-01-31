@@ -28,6 +28,8 @@ subroutine tetcalccwq3(iq)
   real(8) :: wt
   integer :: ik,ist1,ist2
   integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
+  ! calculate k+q and G+k+q related variables
+  call init1xs(qvkloff(1,iq))
   ! generate link array for tetrahedra
   call gentetlink(vql(1,iq))
   ! initial and final w-point
@@ -41,19 +43,16 @@ subroutine tetcalccwq3(iq)
        filnam=filnam)
   call genfilname(basename='TETWT',iq=iq,rank=rank,procs=procs,&
        filnam=filnamt)
-  ! calculate k+q and G+k+q related variables
-  call init1xs(qvkloff(1,iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+  ! find band combinations
+  call ematbdcmbs(emattype)
   ! allocate arrays
   allocate(eb(nstsv,nkpt))
   allocate(cw(nstsv,nstsv,nkpt))
   allocate(cwa(nstsv,nstsv,nkpt))
   allocate(cwsurf(nstsv,nstsv,nkpt))
-
-!!!!!!!! nstval nstcon -> replace by nst1,nst2
-
-  allocate(cwsurft2(nstval,nstcon),cwt2(nstval,nstcon),cwat2(nstval,nstcon))
+  allocate(cwt2(nst1,nst2),cwat2(nst1,nst2),cwsurft2(nst1,nst2))
   allocate(w(nwdf))
   allocate(wreal(nwdfp))
   ! get the eigenvalues from file
@@ -69,11 +68,17 @@ subroutine tetcalccwq3(iq)
   ! *** replace zero frequency by very small number *** check if needed
   if (wreal(1).lt.epstetra) wreal(1)=epstetra
   call getunit(un)
-  inquire(iolength=recl) cw(:nstval,nstval+1:,1),cwa(:nstval,nstval+1:,1),&
-       cwsurf(:nstval,nstval+1:,1)
+  inquire(iolength=recl) cwt2,cwat2,cwsurft2
   ! open temporary file for writing
   open(un,file=trim(filnamt),form='unformatted',&
        action='write',status='replace',access='direct',recl=recl)
+
+write(300,*) 'eb',eb
+write(301,*) 'wtet',wtet
+write(302,*) 'tnodes',tnodes
+write(303,*) 'link',link
+write(*,*) 'tvol,efermi',tvol,efermi
+
   ! calculate weights
   do iw=1,nwdfp
      wt=wreal(iw)
@@ -90,19 +95,26 @@ subroutine tetcalccwq3(iq)
           wt,4,cwsurf)
      do ik=1,nkpt
         irec=(ik-1)*nwdfp+iw
-        cwsurft2(:,:)=cwsurf(:nstval,nstval+1:,ik)
-        cwt2(:,:)=cw(:nstval,nstval+1:,ik)
-        cwat2(:,:)=cwa(:nstval,nstval+1:,ik)
+        cwsurft2(:,:)=cwsurf(istlo1:isthi1,istlo2:isthi2,ik)
+        cwt2(:,:)=cw(istlo1:isthi1,istlo2:isthi2,ik)
+        cwat2(:,:)=cwa(istlo1:isthi1,istlo2:isthi2,ik)
         write(un,rec=irec) cwt2,cwat2,cwsurft2
+
+if (ik.eq.21) then
+if (iw.eq.nwdfp) then
+write(*,*) '1st loop:21/1/5',cwsurf(1,5,ik),cwsurf(5,1,ik)
+end if
+end if
+
      end do
      ! synchronize for common number of w-points to all processes
      if (iw <= nwdf/procs) call barrier
   end do
   close(un)
   deallocate(cw,cwa,cwsurf)
-  allocate(cw(nwdfp,nstval,nstcon))
-  allocate(cwa(nwdfp,nstval,nstcon))
-  allocate(cwsurf(nwdfp,nstval,nstcon))
+  allocate(cw(nwdfp,nst1,nst2))
+  allocate(cwa(nwdfp,nst1,nst2))
+  allocate(cwsurf(nwdfp,nst1,nst2))
   allocate(cwsurft1(nwdfp),cwt1(nwdfp),cwat1(nwdfp))
   ! open temporary file for reading
   open(un,file=trim(filnamt),form='unformatted',action='read',&
@@ -122,8 +134,8 @@ subroutine tetcalccwq3(iq)
         cwa(iw,:,:)=cwat2(:,:)
         cwsurf(iw,:,:)=cwsurft2(:,:)
      end do
-     do ist1=1,nstval
-        do ist2=1,nstcon
+     do ist1=1,nst1
+        do ist2=1,nst2
            irec2=irec2+1
            cwsurft1(:)=cwsurf(:,ist1,ist2)
            cwt1(:)=cw(:,ist1,ist2)

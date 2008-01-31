@@ -216,7 +216,7 @@ emattype=0
         ! read matrix elements from direct-access file
 #ifdef XS
         if (tqfmt) then
-           call getemat(1,ik,.true.,'EMAT_Q00001.OUT',xiou)
+           call getemat(1,ik,.true.,'EMAT_FULL_Q00001.OUT',xiou)
            call linoptkpq(iq,ik,xiou,e(1,ik),f(1,ik))
         else
 #endif
@@ -430,6 +430,7 @@ emattype=0
   end do
   !<sag action="modifications">
   if (.not.tqfmt) close(50)
+  call genfilname(setfilext=.true.)
   !</sag>
   write(*,*)
   write(*,'("Info(linopt):")')

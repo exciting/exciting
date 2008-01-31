@@ -31,13 +31,13 @@ subroutine tetcalccw
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point
-     call tetcalccwq2(iq) !SAG *************
+     call tetcalccwq3(iq) !SAG *************
      write(unitout,'(a,i8)') 'Info('//thisnam//'): weights for tetrahedron &
           &method finished for q-point:',iq
   end do
   ! synchronize
   call barrier
-  if ((procs.gt.1).and.(rank.eq.0)) call tetgather2 !SAG***************
+  if ((procs.gt.1).and.(rank.eq.0)) call tetgather3 !SAG***************
   call barrier
   tetra=tet
   write(unitout,'(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &

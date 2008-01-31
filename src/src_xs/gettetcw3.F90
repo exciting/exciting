@@ -7,24 +7,21 @@ module m_gettetcw3
   implicit none
 contains
   
-  subroutine gettetcw3(iq,ik,iv,ic,nw,fnam,cw,cwa,cwsurf)
+  subroutine gettetcw3(iq,ik,i1,i2,nw,fnam,cw,cwa,cwsurf)
     use modmain
     use modxs
     use m_getunit
     implicit none
     ! arguments
-    integer, intent(in) :: iq,ik,iv,ic,nw
+    integer, intent(in) :: iq,ik,i1,i2,nw
     character(*), intent(in) :: fnam
     real(8), intent(out) :: cw(nw),cwa(nw),cwsurf(nw)
     ! local variables
     integer :: un,irec,recl,iqt
-    
     ! q-point
     iqt=iq
-
     ! record position
-    irec=(ik-1)*nstval*nstcon + (iv-1)*nstcon + ic
-
+    irec=(ik-1)*nst1*nst2 + (i1-1)*nst2 + i2
     ! read from file
     call getunit(un)
     inquire(iolength=recl) cw,cwa,cwsurf
@@ -32,7 +29,6 @@ contains
          status='old',access='direct',recl=recl)
     read(un,rec=irec) cw,cwa,cwsurf
     close(un)
-
   end subroutine gettetcw3
 
 end module m_gettetcw3

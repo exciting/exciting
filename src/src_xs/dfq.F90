@@ -15,7 +15,8 @@ subroutine dfq(iq)
   use m_dfqoscwg
   use m_dfqoscbo
   use m_dftim
-  use m_gettetcw2
+  use m_gettetcw3 !SAG
+  use m_gettetcw2 !SAG
   use m_chi0upd
   use m_putx0
   use m_getunit
@@ -190,15 +191,35 @@ subroutine dfq(iq)
            ! user request termination
            call terminate_inqr('dfq')
            if (tetra) then
+
+!!$              i1=ist1; i2=istunocc0+ist2-1
+!!$              j1=i1; j2=i2
+!!$              if (i1.gt.i2) then
+!!$                 j1=i2
+!!$                 j2=i1
+!!$              end if
+!!$              ! read weights for tetrahedron method
+!!$              call gettetcw2(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
+!!$                   cwsurf)
+
               i1=ist1; i2=istunocc0+ist2-1
-              j1=i1; j2=i2
               if (i1.gt.i2) then
-                 j1=i2
-                 j2=i1
+                 j1=ist2
+                 j2=ist1-istunocc0+1
+              else
+                 j1=ist1
+                 j2=ist2
               end if
               ! read weights for tetrahedron method
-              call gettetcw2(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
+              call gettetcw3(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
                    cwsurf)
+!***************************************************************************
+
+
+if (ik.eq.21) then
+   write(400,*) 'ist1,ist2,cwsurf',ist1,ist2,cwsurf
+end if
+
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &
                    omega
@@ -206,9 +227,9 @@ subroutine dfq(iq)
            else
               ! include occupation number differences
               wou(:)=docc12(ist1,ist2)*wkpt(ik)/omega/(w(:)+deou(ist1,ist2) &
-                   +scis12(ist1,ist2)+zi*brd) !!-scissor+zi*brd) !SAG
+                   +scis12(ist1,ist2)+zi*brd)
               wuo(:)=docc21(ist2,ist1)*wkpt(ik)/omega/(w(:)+deuo(ist2,ist1) &
-                   +scis21(ist2,ist1)+zi*brd) !!+scissor+zi*brd)
+                   +scis21(ist2,ist1)+zi*brd)
            end if
            hou(:,:)=zzero
            huo(:,:)=zzero

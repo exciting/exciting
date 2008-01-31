@@ -15,7 +15,7 @@ subroutine tetgather3
   ! local variables
   character(*), parameter :: thisnam='tetgather3'
   character(256) :: filnam,filnam_t
-  integer :: iq,iproc,ik,iv,ic,nwdfp
+  integer :: iq,iproc,ik,i1,i2,nwdfp
   real(8), allocatable :: cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: cwp(:),cwap(:),cwsurfp(:)
   allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
@@ -26,8 +26,8 @@ subroutine tetgather3
      ! file name for output file
      call genfilname(basename='TETW',iq=iq,filnam=filnam)
      do ik=1,nkpt
-        do iv=1,nstval
-           do ic=1,nstcon
+        do i1=1,nst1
+           do i2=1,nst2
               ! collect weights from processes
               do iproc=0,procs-1
                  ! filename for input file
@@ -37,7 +37,7 @@ subroutine tetgather3
                  wparf=lastofset(iproc,nwdf)
                  nwdfp=wparf-wpari+1
                  allocate(cwp(nwdfp),cwap(nwdfp),cwsurfp(nwdfp))
-                 call gettetcw(iq,ik,iv,ic,nwdfp,trim(filnam_t),&
+                 call gettetcw3(iq,ik,i1,i2,nwdfp,trim(filnam_t),&
                       cwp,cwap,cwsurfp)
                  cw(wpari:wparf)=cwp(:)
                  cwa(wpari:wparf)=cwap(:)
@@ -45,10 +45,11 @@ subroutine tetgather3
                  deallocate(cwp,cwap,cwsurfp)
               end do ! iproc
               ! write weights
-              call puttetcw(iq,ik,iv,ic,trim(filnam),cw,cwa,cwsurf)
-           end do ! ic
-        end do ! iv
-     end do ! ik
+              call puttetcw3(iq,ik,i1,i2,trim(filnam),cw,cwa,cwsurf)
+           end do
+        end do
+        ! end loop over k-points
+     end do
      do iproc=0,procs-1
         call genfilname(basename='TETW',iq=iq,rank=rank,procs=procs,&
              filnam=filnam_t)
