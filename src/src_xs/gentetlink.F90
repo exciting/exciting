@@ -48,15 +48,16 @@ subroutine gentetlink(vpl)
   end if
   iqnr=1+iv(1)+ngridk(1)*iv(2)+ngridk(1)*ngridk(2)*iv(3)
   ! cross check q-point again
-  if (abs(r3taxi(vpl,vklnr(1,iqnr))).gt.epscomm) then
+  vr(:)=vklnr(:,iqnr)-vkloff(:)/ngridk(:)
+  if (abs(r3taxi(vpl,vr)).gt.epscomm) then
      write(*,*)
      write(*,'("Error(gentetlink): q-point on grid does not match q-point - &
           &check routine gentetlink.F90")')
      write(*,*)
      call terminate
   end if
-  write(*,'(a,i6,3g18.10)') 'Info(gentetlink): irreducible q-point in grid:', &
-       iqnr,vklnr(:,iqnr)
+  write(*,'(a,i6,3g18.10)') 'Info(gentetlink): reducible q-point in grid:', &
+       iqnr,vr
   ! check if k-point set is not reduced for q-point different from Gamma point
   if ((nkpt.ne.nkptnr).and.(iqnr.ne.1)) then
      write(*,*)
