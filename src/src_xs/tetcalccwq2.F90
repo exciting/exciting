@@ -70,14 +70,6 @@ subroutine tetcalccwq2(iq)
   ! open temporary file for writing
   open(un,file=trim(filnamt),form='unformatted',&
        action='write',status='replace',access='direct',recl=recl)
-
-write(300,*) 'eb',eb
-write(301,*) 'wtet',wtet
-write(302,*) 'tnodes',tnodes
-write(303,*) 'link',link
-write(*,*) 'tvol,efermi',tvol,efermi
-
-
   ! calculate weights
   do iw=1,nwdfp
      wt=wreal(iw)
@@ -98,14 +90,6 @@ write(*,*) 'tvol,efermi',tvol,efermi
         cwt2(:,:)=cw(:,:,ik)
         cwat2(:,:)=cwa(:,:,ik)
         write(un,rec=irec) cwt2,cwat2,cwsurft2
-
-if (ik.eq.21) then
-if (iw.eq.nwdfp) then
-write(*,*) 'tetcalccwq2: 1st loop:21/1/5',cwsurf(1,5,ik),cwsurf(5,1,ik)
-end if
-end if
-
-
      end do
      ! synchronize for common number of w-points to all processes
      if (iw <= nwdf/procs) call barrier

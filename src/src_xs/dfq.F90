@@ -16,7 +16,6 @@ subroutine dfq(iq)
   use m_dfqoscbo
   use m_dftim
   use m_gettetcw3 !SAG
-  use m_gettetcw2 !SAG
   use m_chi0upd
   use m_putx0
   use m_getunit
@@ -59,8 +58,8 @@ subroutine dfq(iq)
        iq=iq,filnam=fnchi0)
   call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
        iq=iq,procs=procs,rank=rank,filnam=fnchi0_t)
-  call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
-       procs=procs,rank=rank,filnam=fnxtim)
+  call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
+       acont=acont,nar=.not.aresdf,iq=iq,procs=procs,rank=rank,filnam=fnxtim)
   ! file extension for q-point
   call genfilname(iq=iq,setfilext=.true.)
   ! remove timing files from previous runs
@@ -191,7 +190,6 @@ subroutine dfq(iq)
            ! user request termination
            call terminate_inqr('dfq')
            if (tetra) then
-
 !!$              i1=ist1; i2=istunocc0+ist2-1
 !!$              j1=i1; j2=i2
 !!$              if (i1.gt.i2) then
@@ -201,8 +199,9 @@ subroutine dfq(iq)
 !!$              ! read weights for tetrahedron method
 !!$              call gettetcw2(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
 !!$                   cwsurf)
-
+              ! absolute band indices
               i1=ist1; i2=istunocc0+ist2-1
+              ! mirror index pair on diagonal if necessary
               if (i1.gt.i2) then
                  j1=ist2
                  j2=ist1-istunocc0+1
@@ -213,13 +212,6 @@ subroutine dfq(iq)
               ! read weights for tetrahedron method
               call gettetcw3(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
                    cwsurf)
-!***************************************************************************
-
-
-if (ik.eq.21) then
-   write(400,*) 'ist1,ist2,cwsurf',ist1,ist2,cwsurf
-end if
-
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &
                    omega
