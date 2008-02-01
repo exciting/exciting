@@ -14,30 +14,30 @@ subroutine emattest
   implicit none
   complex(8), allocatable :: pmat(:,:,:,:), x(:,:,:,:)
   real(8), allocatable :: d(:,:,:),scis12(:,:),scis21(:,:)
+  ! compare first Q-point
+  integer, parameter :: iq=1
   complex(8) :: x_sc, p_sc
   real(8) :: d1,d2,d3,a,p
-  integer :: n,iq,ik,ikq,ist1,ist2
+  integer :: n,ik,ikq,ist1,ist2
   character(256) :: filename
-
+  logical, external :: tqgamma
   call init0
   call init1
   call init2xs
   call tdsave0
-
-  ! SECOND Q-POINT not equal to zero
-  iq=1
-
-  ! file extension for q-point
-  call genfilname(iq=iq,setfilext=.true.)
-  ! shift k-mesh by q-point
-  vkloff(:) = vkloff(:) + vql(:,iq)*ngridk(:)
-
-  ! calculate k+q and G+k+q related variables
-  call init1xs
-  call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-
   n = ngq(iq)
-
+  if (tqgamma(iq)) then
+     write(*,*)
+     write(*,'("Info(emattest): Q-point is Gamma point - no comparison &
+          &possible")')
+     write(*,*)
+     call terminate
+  end if
+  ! file extension for q-point
+  call genfilname(iqfmt=iq,setfilext=.true.)
+  ! calculate k+q and G+k+q related variables
+  call init1xs(vql(1,iq))
+  call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! allocate arrays
   if (allocated(deou)) deallocate(deou)
   if (allocated(deuo)) deallocate(deuo)
@@ -51,21 +51,17 @@ subroutine emattest
   if (allocated(xiuo)) deallocate(xiuo)
   allocate(xiou(nst1,nst2,n))
   allocate(xiuo(nst2,nst1,n))
-
   ! allocate local arrays
   allocate(x(nst1,nst2,n,nkpt))
   allocate(d(nst1,nst2,nkpt))
   allocate(pmat(3,nstsv,nstsv,nkpt))
   allocate(scis12(nst1,nst2))
   allocate(scis21(nst2,nst1))
-
   call getunit(unit1)
   call genfilname(basename='emat_pmat',iqfmt=iq,filnam=filename)
   open(unit1,file=trim(filename),action='write',status='replace')
-
   ! annotate magnitude of q-vector
   write(*,*) 'Info(emattest): length of q-vector:',gqc(1,iq)
-
   ! test matrix elements
   do ik=1,nkpt
      ! read matrix elemets of exponential expression
@@ -94,10 +90,8 @@ subroutine emattest
         end do
      end do
   end do
-
   deallocate(deou,deuo,docc12,docc21,scis12,scis21,xiou,xiuo,pmat,x,d)
   close(unit1)
   close(unit3)
   close(unit4)
-
 end subroutine emattest
