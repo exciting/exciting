@@ -4,6 +4,9 @@ exciting
 excitings
 excitingp
 excitingmpi
+exciting_debug
+exciting_interfaces
+*.dat
 *.OUT
 *.mod
 .cdtproject

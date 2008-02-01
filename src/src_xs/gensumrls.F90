@@ -45,8 +45,8 @@ contains
     sumrls(2)=g(n)
 
     ! one over frequency sumrule (pi half sumrule)
-!!!/// add analytic stuff ///
-    f(:)=aimag(-1/eps(:))/(w(:)+1.d-7)
+    f(1)=0.d0
+    if (n.gt.1) f(2:)=aimag(-1/eps(2:))/w(2:)
     call fderiv(-1,n,w,f,g,cf)
     sumrls(3)=g(n)
 

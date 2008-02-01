@@ -74,6 +74,9 @@ subroutine tetcalccwq(iq)
        action='write',status='replace',access='direct',recl=recl)
   ! calculate weights
   do iw=1,nwdfp
+     if ((modulo(iw,max(nwdfp/10,1)).eq.0).or.(iw.eq.nwdfp)) &
+          write(*,'("Info(linopt): tetrahedron weights for ",I6," of ",&
+          &I6," w-points")') iw,nwdfp
      wt=wreal(iw)
      if (abs(wt).lt.epstetra) wt=epstetra
      ! switch 2 below in tetcw defines bulk integration for real part
