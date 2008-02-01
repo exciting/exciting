@@ -65,37 +65,15 @@ if (tapp) then
   end if
 else
 ! calculate the matrix elements
-  k=0
-#ifndef ZMAT  
-  do j=1,n
-    if ((abs(dble(x(j))).gt.eps).or.(abs(aimag(x(j))).gt.eps).or. &
-     (abs(dble(y(j))).gt.eps).or.(abs(aimag(y(j))).gt.eps)) then
-      zt1=conjg(alpha*y(j))
-      zt2=alpha*conjg(x(j))
-      k1=(j-1)*(j)/2+1
-     ! do i=1,j-1
-     !   k=k1 +i
-     !   a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
-     ! end do
-     if(j .ge.1) then
-     tmp=0	
-      call zaxpy(j,zt1,x(1),1,tmp(1),1)
-      call zaxpy(j,zt2,y(1),1,tmp(1),1)
-      tmp=conjg(tmp)
-      call zaxpy(j,zone,tmp,1,a(k1),1)
-      endif
-      !  k1=(j)*(j+1)/2
-      !a(k1)=dble(a(k1))+2.d0*dble(zt1*x(j))
-    else
-      k=k+j
-    end if
-  end do
-#endif
 
-#ifdef ZMAT 
-call ZHPR2 ( 'U', n, alpha, x, 1, y, 1, a )
-#endif
+
+
+call ZHPR2 ( 'U', n, alpha, conjg(x), 1, conjg(y), 1, a )
+
+
 end if
+
+
 return
 end subroutine
 !EOC

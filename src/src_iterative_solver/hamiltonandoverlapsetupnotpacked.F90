@@ -11,7 +11,7 @@ complex(8),intent(inout)::hamilton(n,n),overlap(n,n)
 complex(8)::hp(n*(n+1)/2),op(n*(n+1)/2)
 
 integer ::ip, icolumn,irow
-hamilton=0
+hamilton=0 
 overlap=0
 call hamiltonandoverlapsetup((n*(n+1))/2,ngp,apwalm,igpig,vgpc,hp,op)
 
