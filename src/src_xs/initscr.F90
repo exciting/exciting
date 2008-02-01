@@ -18,7 +18,6 @@ subroutine initscr
   maxscl=1
 
   ! work with regular q-point grid
-  qtype='grid'
   ngridq(:)=ngridk(:)
 
 end subroutine initscr

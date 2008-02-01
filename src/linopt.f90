@@ -91,7 +91,7 @@ emattype=0
   tqfmt=.not.tqgamma(iq)
   if (tqfmt) then
      call tdsave0
-     call genfilname(iqfmt=iq,setfilext=.true.)
+     call genfilname(iqmt=iq,setfilext=.true.)
      ! take first q-point
      call init1xs(qvkloff(1,iq))
      if (allocated(evalsv0)) deallocate(evalsv0)

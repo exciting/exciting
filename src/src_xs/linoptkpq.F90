@@ -21,10 +21,10 @@ subroutine linoptkpq(iq,ik,qmat,e,f)
   call getevalsv(vkl(1,ikq),evalsv(1,ikq))
   call getoccsv(vkl(1,ikq),occsv(1,ikq))
   ! eigenvalues and occupancies for k-point
-  call genfilname(iqfmt=0,setfilext=.true.)
+  call genfilname(iqmt=0,setfilext=.true.)
   call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
   call getoccsv0(vkl0(1,ik),occsv0(1,ik))
-  call genfilname(iqfmt=iq,setfilext=.true.)
+  call genfilname(iqmt=iq,setfilext=.true.)
   m=0
   do ist=1,nstsv
      do jst=1,nstsv

@@ -9,7 +9,6 @@ subroutine emattest
   use m_getunit
   use m_getpmat
   use m_getemat
-  use m_getdevalsv
   use m_genfilname
   implicit none
   complex(8), allocatable :: pmat(:,:,:,:), x(:,:,:,:)
@@ -34,7 +33,7 @@ subroutine emattest
      call terminate
   end if
   ! file extension for q-point
-  call genfilname(iqfmt=iq,setfilext=.true.)
+  call genfilname(iqmt=iq,setfilext=.true.)
   ! calculate k+q and G+k+q related variables
   call init1xs(vql(1,iq))
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
@@ -58,7 +57,7 @@ subroutine emattest
   allocate(scis12(nst1,nst2))
   allocate(scis21(nst2,nst1))
   call getunit(unit1)
-  call genfilname(basename='emat_pmat',iqfmt=iq,filnam=filename)
+  call genfilname(basename='emat_pmat',iqmt=iq,filnam=filename)
   open(unit1,file=trim(filename),action='write',status='replace')
   ! annotate magnitude of q-vector
   write(*,*) 'Info(emattest): length of q-vector:',gqc(1,iq)

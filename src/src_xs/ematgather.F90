@@ -34,7 +34,7 @@ subroutine ematgather
      if (emattype.ne.0) allocate(xiuo(nst3,nst4,ngq(iq)))
      ! file extension for q-point
      do iproc=0,procs-1
-        call genfilname(basename='EMAT',iqfmt=iq,procs=procs,rank=iproc,&
+        call genfilname(basename='EMAT',iqmt=iq,procs=procs,rank=iproc,&
              filnam=fnemat_t)
         kpari=firstofset(iproc,nkpt)
         kparf=lastofset(iproc,nkpt)
@@ -49,7 +49,7 @@ subroutine ematgather
         end do
      end do
      do iproc=0,procs-1
-        call genfilname(basename='EMAT',iqfmt=iq,procs=procs,rank=iproc,&
+        call genfilname(basename='EMAT',iqmt=iq,procs=procs,rank=iproc,&
              filnam=fnemat_t)
         call filedel(trim(fnemat_t))
      end do

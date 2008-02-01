@@ -70,7 +70,7 @@ subroutine tdlinopt(iq)
         ! file name for inverse of dielectric function
         call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqfmt=iq,filnam=filnam2)
+             tq0=tq0,oc=oct,iqmt=iq,filnam=filnam2)
         ! read macroscopic dielectric function (original frequencies)
         open(unit1,file=trim(filnam2),form='unformatted', &
              action='read',status='old',access='direct',recl=recl)
@@ -87,20 +87,20 @@ subroutine tdlinopt(iq)
         ! file names for spectra
         call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqfmt=iq,filnam=fneps)
+             tq0=tq0,oc=oct,iqmt=iq,filnam=fneps)
         call genfilname(basename='LOSS',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqfmt=iq,filnam=fnloss)
+             tq0=tq0,oc=oct,iqmt=iq,filnam=fnloss)
         call genfilname(basename='SIGMA',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqfmt=iq,filnam=fnsigma)
+             tq0=tq0,oc=oct,iqmt=iq,filnam=fnsigma)
         call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqfmt=iq,filnam=fnsumrules)
+             tq0=tq0,oc=oct,iqmt=iq,filnam=fnsumrules)
         if (tetra.and.(fxctype/=0)) then
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=0,&
-                tq0=tq0,oc=oct,iqfmt=iq,filnam=filnam)
+                tq0=tq0,oc=oct,iqmt=iq,filnam=filnam)
            ! read macroscopic dielectric function (RPA)
            open(unit1,file=trim(filnam),form='unformatted', &
                 action='read',status='old',access='direct',recl=recl)
@@ -117,7 +117,7 @@ subroutine tdlinopt(iq)
            ! file name for exciton file
            call genfilname(basename='EXCITON',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iqfmt=iq,filnam=fnexciton)
+                tq0=tq0,oc=oct,iqmt=iq,filnam=fnexciton)
            ! determination of excitons in combination with tetrahedron method
            ! and neglect local field effects for kernel but consider for
            ! the RPA solution

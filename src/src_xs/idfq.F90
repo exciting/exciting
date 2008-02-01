@@ -22,7 +22,7 @@ subroutine idfq(iq)
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,igmt
   logical :: tq0
   integer, external :: l2int
   logical, external :: tqgamma
@@ -45,7 +45,7 @@ subroutine idfq(iq)
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqfmt=iq,filnam=filnam)
+       acont=acont,nar=.not.aresdf,iqmt=iq,filnam=filnam)
   ! record length
   inquire(iolength=recl) mdf1(1)
   call getunit(unit1)
@@ -66,7 +66,7 @@ subroutine idfq(iq)
         ! filename for output file
         call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqfmt=iq,procs=procs,rank=rank,filnam=filnam2)
+             tq0=tq0,oc=oct,iqmt=iq,procs=procs,rank=rank,filnam=filnam2)
         open(unit1,file=trim(filnam2),form='unformatted', &
              action='write',access='direct',recl=recl)
         do iw=wi,wf
@@ -101,7 +101,16 @@ subroutine idfq(iq)
               idf(j,j)=idf(j,j)+1.d0
            end forall
            ! Adler-Wiser treatment of macroscopic dielectric function
-           mdf1(iw)=1.d0/idf(1,1)
+           igmt=ivgigq(ivgmt(1,iq),ivgmt(2,iq),ivgmt(3,iq),iq)
+           if (igmt.gt.n) then
+              write(*,*)
+              write(*,'("Error(",a,"): G-vector index for momentum transfer out&
+                   & of range: ",i8)') trim(thisnam),igmt
+              write(*,*)
+              call terminate
+           end if
+write(*,*) 'CONTROL:IDFQ: igmt (1 for q in BZ):',igmt
+           mdf1(iw)=1.d0/idf(igmt,igmt)
            ! write macroscopic dielectric function to file
            write(unit1,rec=iw-wi+1) mdf1(iw)
         end do ! iw

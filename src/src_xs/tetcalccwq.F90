@@ -37,11 +37,11 @@ subroutine tetcalccwq(iq)
   wf=wparf
   nwdfp=wf-wi+1
   ! set q-dependent file extension
-  call genfilname(iqfmt=iq,setfilext=.true.)
+  call genfilname(iqmt=iq,setfilext=.true.)
   ! generate filenames
-  call genfilname(basename='TETW',iqfmt=iq,rank=rank,procs=procs,&
+  call genfilname(basename='TETW',iqmt=iq,rank=rank,procs=procs,&
        filnam=filnam)
-  call genfilname(basename='TETWT',iqfmt=iq,rank=rank,procs=procs,&
+  call genfilname(basename='TETWT',iqmt=iq,rank=rank,procs=procs,&
        filnam=filnamt)
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)

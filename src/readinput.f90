@@ -172,8 +172,11 @@ tetra=.false.
 ! TDDFT variables
 imbandstr=.false.
 pmatira=.false.
-qtype='grid'
-qlist=''
+nqptmt=1
+if (allocated(vgqlmt)) deallocate(vgqlmt)
+allocate(vgqlmt(3,nqptmt))
+vgqlmt(:,:)=0.d0
+mdfqtype=0
 vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
@@ -221,7 +224,6 @@ fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
 nstbef=-1
 nstabf=-1
-vgqlfmt(:)=0.d0
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,&
      vacuum)
@@ -887,10 +889,6 @@ case('imbandstr')
   read(50,*,err=20) imbandstr
 case('pmatira')
   read(50,*,err=20) pmatira
-case('qtype')
-   read(50,*,err=20) qtype
-case('qlist')
-   read(50,*,err=20) qlist
 case('vqloff')
    read(50,*,err=20) vqloff(1),vqloff(2),vqloff(3)
 case('tq0ev')
@@ -1056,8 +1054,27 @@ case('nstabf')
     write(*,*)
     stop
   end if
-case('vgqlfmt')
-  read(50,*,err=20) vgqlfmt
+case('vgqlmt')
+  read(50,*,err=20) nqptmt
+  if (nqptmt.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput): nqptmt <= 0 : ",I8)') nqptmt
+    write(*,*)
+    stop
+  end if
+  if (allocated(vgqlmt)) deallocate(vgqlmt)
+  allocate(vgqlmt(3,nqptmt))
+  do i=1,nqptmt
+    read(50,*,err=20) vgqlmt(:,i)
+  end do
+case('mdfqtype')
+  read(50,*,err=20) mdfqtype
+  if ((mdfqtype.lt.0).or.(mdfqtype.gt.1)) then
+    write(*,*)
+    write(*,'("Error(readinput): mdfqtype not in {0,1} : ",I8)') mdfqtype
+    write(*,*)
+    stop
+  end if
 #endif
 case('')
   goto 10

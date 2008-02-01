@@ -27,7 +27,7 @@ subroutine findkmapkq(iq,vq,voff,map)
   end do
   if (rank.eq.0) then
      call getunit(un)
-     call genfilname(basename='KMAPKQ',iqfmt=iq,filnam=filnam)
+     call genfilname(basename='KMAPKQ',iqmt=iq,filnam=filnam)
      open(un,file=trim(filnam),form='formatted',action='write', &
           status='replace')
      write(un,'(i9,a)') nkpt, ' : nkpt; k-point, ikmapikq below'

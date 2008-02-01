@@ -51,17 +51,18 @@ subroutine dfq(iq)
   brd=brdtd
   if (acont) brd=zzero
   ! filenames for input
-  call genfilname(basename='TETW',iqfmt=iq,filnam=fnwtet)
-  call genfilname(basename='EMAT',iqfmt=iq,filnam=fnemat)
+  call genfilname(basename='TETW',iqmt=iq,filnam=fnwtet)
+  call genfilname(basename='PMAT_TD',filnam=fnpmat)
+  call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
   ! filenames for output
   call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-       iqfmt=iq,filnam=fnchi0)
+       iqmt=iq,filnam=fnchi0)
   call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-       iqfmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
+       iqmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
   call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqfmt=iq,procs=procs,rank=rank,filnam=fnxtim)
+       acont=acont,nar=.not.aresdf,iqmt=iq,procs=procs,rank=rank,filnam=fnxtim)
   ! file extension for q-point
-  call genfilname(iqfmt=iq,setfilext=.true.)
+  call genfilname(iqmt=iq,setfilext=.true.)
   ! remove timing files from previous runs
   call filedel(trim(fnxtim))
   ! calculate k+q and G+k+q related variables

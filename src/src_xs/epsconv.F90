@@ -43,7 +43,7 @@ subroutine epsconv
            ! generate filename for Tetrahedron method
            call genfilname(basename='EPSILON',bzsampl=bzsampl,&
                 nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iqfmt=iq,filnam=filnam)
+                tq0=tq0,oc=oct,iqmt=iq,filnam=filnam)
            ! check for file to read
            inquire(file=trim(filnam),exist=exis)
            if (.not.exis) then
@@ -67,7 +67,7 @@ subroutine epsconv
            ! generate filename for output (_s_ymmetric _l_orentzian)
            call genfilname(basename='EPSILON_sl',bzsampl=bzsampl,&
                 nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iqfmt=iq,filnam=filnam)
+                tq0=tq0,oc=oct,iqmt=iq,filnam=filnam)
            open(unit=un,file=trim(filnam),&
                 form='formatted',action='write',status='replace')
            ! rescale energies read from file to atomic units

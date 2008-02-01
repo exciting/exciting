@@ -8,7 +8,7 @@ module m_genfilname
 contains
 
   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc,iq,iqfmt,procs,rank,dotext,setfilext,&
+       nar,nlf,fxctype,tq0,oc,iq,iqmt,procs,rank,dotext,setfilext,&
        revertfilext,filnam,fileext)
     use modmain, only: filext
     use modxs, only: filextrevert
@@ -19,7 +19,7 @@ contains
     ! October 2007
     implicit none
     ! arguments
-    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,iqfmt,procs,rank
+    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,iqmt,procs,rank
     integer, optional, intent(in) :: etype
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
     logical, optional, intent(in) :: revertfilext,setfilext
@@ -112,8 +112,8 @@ contains
        end if
     end if
     ! Q-point (finite momentum transfer)
-    if (present(iqfmt)) then
-       write(s1,'("_QFMT",i3.3)') iqfmt
+    if (present(iqmt)) then
+       write(s1,'("_QMT",i3.3)') iqmt
        s=trim(s)//trim(s1)
     end if
     ! q-point

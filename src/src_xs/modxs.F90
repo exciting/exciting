@@ -56,10 +56,17 @@ module modxs
   !------------------------------!
   !     q-point set variables    !
   !------------------------------!
-  ! input type for q-point set
-  character(256) :: qtype
-  ! file of q-points for input
-  character(256) :: qlist
+  ! number of Q-points for momentum transfer
+  integer :: nqptmt
+  ! finite momentum transfer G+q-vector
+  real(8), allocatable :: vgqlmt(:,:)
+  ! finite momentum transfer q-vector
+  real(8), allocatable :: vqlmt(:,:)
+  ! finite momentum transfer G-vector
+  integer, allocatable :: ivgmt(:,:)
+  ! treatment of macroscopic dielectric function for Q-point outside of
+  ! Brillouin zone
+  integer :: mdfqtype
   ! q-point offset
   real(8) :: vqloff(3)
   ! true if the eigenvectors for the Gamma point are to be calculated
@@ -306,12 +313,6 @@ module modxs
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
   ! method)
   integer :: bzsampl
-  ! finite momentum transfer G+q-vector
-  real(8) :: vgqlfmt(3)
-  ! finite momentum transfer q-vector
-  real(8) :: vqlfmt(3)
-  ! finite momentum transfer G-vector
-  integer :: ivgfmt(3)
   ! number of band transitions for analysis
   integer :: ndftrans
   ! k-point and band combination analysis

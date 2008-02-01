@@ -30,7 +30,7 @@ call genfilname(basename='QPOINTS',filnam=filnam)
 open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
 write(unit1,'(I6," : nqpt; q-point, vql, vqc, wqpt, ngq below")') nqpt
 do iq=1,nqpt
-  write(unit1,'(I6,7G18.10,I8)') iq,vql(:,iq),vqc(:,iq),wqpt(iq), ngq(iq)
+  write(unit1,'(I6,6G18.10,I8)') iq,vql(:,iq),vqc(:,iq),ngq(iq)
 end do
 close(unit1)
 end subroutine writeqpts

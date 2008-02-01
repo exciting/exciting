@@ -14,20 +14,12 @@ subroutine init2xs
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'init2xs'
-  character(256) :: bname
-  integer :: iq,l,m,lm
-  logical :: existent
-
-  !--------------------!
-  !     file names     !
-  !--------------------!
-  call genfilname(basename='PMAT_TD',filnam=fnpmat)
-  call genfilname(basename='PMAT_TD',procs=procs,rank=rank,filnam=fnpmat_t)
+  real(8) :: v(3)
+  integer :: iq,l,m,lm,iv(3)
 
   !------------------------------------!
   !     angular momentum variables     !
   !------------------------------------!
-  
   ! if not specified in input file set lmaxapwtd to lmaxmat
   if (lmaxapwtd.eq.-1) lmaxapwtd=lmaxmat
   ! check lmaxapwtd
@@ -46,6 +38,7 @@ subroutine init2xs
   end if
   lmmaxapwtd=(lmaxapwtd+1)**2
   lmmaxemat=(lmaxemat+1)**2
+
   lmaxmax=maxval((/lmaxemat,lolmax, lmaxvr,lmaxapw,lmaxmat,lmaxinr/))
   lmmaxmax=maxval((/lmmaxemat,lolmmax, lmmaxvr,lmmaxapw,lmmaxmat,lmmaxinr/))
 
@@ -71,15 +64,33 @@ subroutine init2xs
   !---------------------!
   !     q-point set     !
   !---------------------!
-  ! check input type of q-point
-  if ((trim(qtype).eq.'grid').or.(trim(qtype).eq.'zero')) then
-     vqloff(:)=0.d0
-     if (trim(qtype).eq.'zero') then
-        ngridq(:)=1
-     end if
-     if (task.eq.400) then
-        ngridq(:)=ngridk(:)
-     end if
+  ! Q-/q-point set should have no offset
+  vqloff(:)=0.d0
+  ! assign momentum transfer Q-point set to q-point set
+  if ((task.ge.300).and.(task.le.399)) then
+     nqpt=nqptmt
+     if (allocated(vqlmt)) deallocate(vqlmt)
+     allocate(vqlmt(3,nqpt))
+     if (allocated(ivgmt)) deallocate(ivgmt)
+     allocate(ivgmt(3,nqpt))
+     if (allocated(vql)) deallocate(vql)
+     allocate(vql(3,nqpt))
+     if (allocated(vqc)) deallocate(vqc)
+     allocate(vqc(3,nqpt))
+     do iq=1,nqpt
+        v(:)=vgqlmt(:,iq)
+        iv(:)=0
+        ! map Q-point to Brillouin zone
+        if (mdfqtype.eq.1) call r3frac(epslat,v,iv)
+        vqlmt(:,iq)=v(:)
+        ivgmt(:,iq)=iv(:)
+        vql(:,iq)=vqlmt(:,iq)
+        vqc(:,iq)=vql(1,iq)*bvec(:,1)+vql(2,iq)*bvec(:,2)+ &
+             vql(3,iq)*bvec(:,3)
+     end do
+  end if
+  ! generate q-point set from grid
+  if ((task.ge.400).and.(task.le.499)) then
      if (allocated(ivq)) deallocate(ivq)
      allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
      if (allocated(vql)) deallocate(vql)
@@ -92,49 +103,6 @@ subroutine init2xs
      allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
      ! generate reduced q-point set
      call genppts(reduceq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
-  else if (trim(qtype).eq.'list') then
-     ! read q-points from list (file)
-     inquire(file=trim(qlist),exist=existent)
-     if (.not.existent) then
-        write(*,*) 'Error('//thisnam//'): no qlist file: '//trim(qlist)
-        call terminate
-     end if
-     call getunit(unit1)
-     open(unit=unit1,file=trim(qlist),form='formatted',action='read', &
-          status='old')
-     ! read in the list with blockname "qlist"
-10   continue
-     read(unit1,*,end=20) bname
-     ! check for a comment
-     if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
-     select case(trim(bname))
-     case('qlist')
-        read(unit1,*) nqpt
-        if (allocated(vql)) deallocate(vql)
-        allocate(vql(3,nqpt))
-        if (allocated(vqc)) deallocate(vqc)
-        allocate(vqc(3,nqpt))
-        if (allocated(wqpt)) deallocate(wqpt)
-        allocate(wqpt(nqpt))
-        wqpt(:) = 1.d0
-        do iq=1,nqpt
-           read(unit1,*) vql(:,iq)
-           ! generate q-points in Cartesian coordinates
-           vqc(:,iq)=vql(1,iq)*bvec(:,1)+vql(2,iq)*bvec(:,2)+ &
-                vql(3,iq)*bvec(:,3)
-        end do
-     case('')
-        goto 10
-     case default
-        write(*,*) 'Error('//thisnam//'): qlist-block not found: '//trim(bname)
-        call terminate
-     end select
-     goto 10
-20   continue
-     close(unit1)
-  else
-     write(*,*) 'Error('//thisnam//'): unknown qtype: '//trim(qtype)
-     call terminate
   end if
 
   ! find (little/small) group of q

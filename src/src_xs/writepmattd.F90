@@ -32,6 +32,8 @@ subroutine writepmattd(lgather)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
+  call genfilname(basename='PMAT_TD',filnam=fnpmat)
+  call genfilname(basename='PMAT_TD',procs=procs,rank=rank,filnam=fnpmat_t)
   ! analytic evaluation of interstitial contribution
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
@@ -54,14 +56,14 @@ subroutine writepmattd(lgather)
   ! allocate the momentum matrix elements array
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
-  call genfilname(iqfmt=0,setfilext=.true.)
+  call genfilname(iqmt=0,setfilext=.true.)
   ! generate band combinations
   call ematbdcmbs(1)
   if (lgather) goto 10
   do ik=kpari,kparf
      if ((modulo(ik-kpari+1,max((kparf-kpari+1)/10,1)).eq.0).or.(ik.eq.kparf)) &
-          write(*,'("Info(",a,"): ",I6," of ",I6,I6," w-points")') ik,kpari, &
-          kparf,trim(thisnam)
+          write(*,'("Info(",a,"): ",I6," of ",I6,I6," w-points")') thisnam,ik, &
+          kpari,kparf
      ! get the eigenvectors and values from file
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
      call getevecsv(vkl(1,ik),evecsvt)

@@ -17,7 +17,4 @@ subroutine initbse
   ! only one SCF iteration
   maxscl=1
 
-  ! work with regular q-point grid
-  qtype='grid'
-
 end subroutine initbse
