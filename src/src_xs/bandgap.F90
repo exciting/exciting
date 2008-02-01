@@ -140,7 +140,7 @@ subroutine writebandgapgrid
   ! initialise universal variables
   if (calledxs.eq.1) call init0
   ! file extension for q-point
-  call genfilname(iq=0,setfilext=.true.)
+  call genfilname(iqfmt=0,setfilext=.true.)
   call init1
   ! read Fermi energy from file
   call readfermi

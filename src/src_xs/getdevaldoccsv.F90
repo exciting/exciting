@@ -20,14 +20,14 @@ subroutine getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
   ! check output array sizes
   allocate(e0(nstsv),e(nstsv),o0(nstsv),o(nstsv))
   ! eigenvalues and occupancies for k+q-point
-  call genfilname(iq=iq,setfilext=.true.)
+  call genfilname(iqfmt=iq,setfilext=.true.)
   call getevalsv(vkl(1,ikq),e)
   call getoccsv(vkl(1,ikq),o)
   ! eigenvalues and occupancies for k-point
-  call genfilname(iq=0,setfilext=.true.)
+  call genfilname(iqfmt=0,setfilext=.true.)
   call getevalsv0(vkl0(1,ik),e0)
   call getoccsv0(vkl0(1,ik),o0)
-  call genfilname(iq=iq,setfilext=.true.)
+  call genfilname(iqfmt=iq,setfilext=.true.)
   ! scissors correction
   scissv(:,:)=0.d0
   do ist=l1,u1

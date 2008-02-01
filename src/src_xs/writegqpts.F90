@@ -33,7 +33,7 @@ integer, intent(in) :: iq
 integer :: igq
 character(256) :: filnam
 call getunit(unit1)
-call genfilname(basename='GQPOINTS',iq=iq,filnam=filnam)
+call genfilname(basename='GQPOINTS',iqfmt=iq,filnam=filnam)
 open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
 write(unit1,'(I6," : ngq; G+q-point, vql, vqc, wqpt, ngq below")') ngq(iq)
 do igq=1,ngq(iq)

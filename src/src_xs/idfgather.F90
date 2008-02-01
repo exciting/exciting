@@ -41,7 +41,7 @@ subroutine idfgather
               ! filename for proc
               call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
                    nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
-                   iq=iq,procs=procs,rank=iproc,filnam=filnam2)
+                   iqfmt=iq,procs=procs,rank=iproc,filnam=filnam2)
               open(unit1,file=trim(filnam2),form='unformatted',&
                    action='read',status='old',access='direct',recl=recl)
               do iw=wpari,wparf
@@ -52,7 +52,7 @@ subroutine idfgather
            ! write to file
            call genfilname(basename='IDF',bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iq=iq,filnam=filnam)
+                tq0=tq0,oc=oct,iqfmt=iq,filnam=filnam)
            open(unit1,file=trim(filnam),form='unformatted', &
                 action='write',status='replace',access='direct',recl=recl)
            do iw=1,nwdf
@@ -63,7 +63,7 @@ subroutine idfgather
            do iproc=0,procs-1
               call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
                    nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,tq0=tq0,oc=oct,&
-                   iq=iq,procs=procs,rank=iproc,filnam=filnam2)
+                   iqfmt=iq,procs=procs,rank=iproc,filnam=filnam2)
               call filedel(trim(filnam2))
            end do
         end do ! oct

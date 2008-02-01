@@ -54,7 +54,7 @@ subroutine writepmattd(lgather)
   ! allocate the momentum matrix elements array
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
-  call genfilname(iq=0,setfilext=.true.)
+  call genfilname(iqfmt=0,setfilext=.true.)
   ! generate band combinations
   call ematbdcmbs(1)
   if (lgather) goto 10

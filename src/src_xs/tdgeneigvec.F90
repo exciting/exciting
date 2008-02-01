@@ -43,7 +43,7 @@ subroutine tdgeneigvec
   do iq=qi,qf
 
      ! file extension for q-point
-     call genfilname(iq=max(0,iq),setfilext=.true.)
+     call genfilname(iqfmt=max(0,iq),setfilext=.true.)
 
      ! one more iteration for q=0
      if (iq.eq.0) then

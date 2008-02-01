@@ -75,7 +75,7 @@ subroutine ematqk(iq,ik)
   evecfvu2(:,:)=evecfv(1:ngk(ikq,1),istlo2:isthi2,1)
 
   ! read eigenvectors, eigenvalues and occupancies for G+k (q=0)
-  call genfilname(iq=0,setfilext=.true.)
+  call genfilname(iqfmt=0,setfilext=.true.)
   call getevecfv0(vkl0(1,ik),vgkl0(1,1,ik,1),evecfv0)
   call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
   ! read occupation numbers for G+k
@@ -83,13 +83,13 @@ subroutine ematqk(iq,ik)
   evecfvo0(:,:)=evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,istlo1:isthi1,1)
   evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
   ! change back file extension
-  call genfilname(iq=iq,setfilext=.true.)
+  call genfilname(iqfmt=iq,setfilext=.true.)
 
   call cpu_time(cpu1)
   cpuini=cpu1-cpu0
 
   ! get expansion coefficients (q=0)
-  call genfilname(basename='APWDLM',iq=0,filnam=fnevapw)
+  call genfilname(basename='APWDLM',iqfmt=0,filnam=fnevapw)
   inquire(iolength=recl) vql_,vkl_,apwdlm0
   call getunit(unit1)
   open(unit1,file=trim(fnevapw),action='read',&
@@ -97,7 +97,7 @@ subroutine ematqk(iq,ik)
   read(unit1,rec=ik) vql_,vkl_,apwdlm0
   close(unit1)
   ! get expansion coefficients (q)
-  call genfilname(basename='APWDLM',iq=iq,filnam=fnevapw)
+  call genfilname(basename='APWDLM',iqfmt=iq,filnam=fnevapw)
   inquire(iolength=recl) vql_,vkl_,apwdlm
   call getunit(unit1)
   open(unit1,file=trim(fnevapw),action='read',&

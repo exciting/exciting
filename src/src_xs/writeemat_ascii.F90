@@ -20,7 +20,7 @@ subroutine writeemat_ascii
   call getunit(un)
   ! loop over q-points
   do iq=1,nqpt
-     call genfilname(iq=iq,setfilext=.true.)
+     call genfilname(iqfmt=iq,setfilext=.true.)
      ! calculate k+q and G+k+q related variables
      call init1xs(qvkloff(1,iq))
      ! find highest (partially) occupied and lowest (partially) unoccupied
@@ -36,11 +36,11 @@ subroutine writeemat_ascii
         allocate(xiuo(nst3,nst4,ngq(iq)))
      end if
      ! filename for matrix elements file
-     call genfilname(basename='EMAT',asc=.true.,iq=iq,etype=emattype, &
+     call genfilname(basename='EMAT',asc=.true.,iqfmt=iq,etype=emattype, &
           filnam=filnam)
      open(un,file=trim(filnam),action='write')
      ! read matrix elements of exponential expression
-     call genfilname(basename='EMAT',iq=iq,etype=emattype,filnam=fnemat)
+     call genfilname(basename='EMAT',iqfmt=iq,etype=emattype,filnam=fnemat)
      write(un,'(a)') 'iq,ik,igq,i1,i2,emat,|emat|^2, below'
      ! loop over k-points
      do ik=1,nkpt

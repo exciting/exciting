@@ -74,7 +74,7 @@ subroutine writepwmat
      call genlofr
      ! find the record length
      inquire(iolength=recl) pwmat
-     call genfilname(basename='PWMAT',iq=iq,asc=.true.,filnam=fname)
+     call genfilname(basename='PWMAT',iqfmt=iq,asc=.true.,filnam=fname)
      open(50,file=trim(fname),action='WRITE',form='FORMATTED', &
           status='REPLACE')
      do ik=1,nkpt
@@ -122,7 +122,7 @@ subroutine writepwmat
         un=51
         un2=52
 
-        call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
+        call genfilname(basename='EMAT',iqfmt=iq,filnam=fnemat)
         open(unit=un,file=trim(fnemat),form='unformatted', &
              action='write',access='direct',recl=recl)
         write(un,rec=ik) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
