@@ -3,11 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_puttetcw3
+module m_puttetcw
   implicit none
 contains
 
-  subroutine puttetcw3(iq,ik,i1,i2,filnam,cw,cwa,cwsurf)
+  subroutine puttetcw(iq,ik,i1,i2,filnam,cw,cwa,cwsurf)
     use modmain
     use modxs
     use modmpi
@@ -30,6 +30,6 @@ contains
          action='write',access='direct',recl=recl)
     write(un,rec=irec) cw,cwa,cwsurf
     close(un)
-  end subroutine puttetcw3
+  end subroutine puttetcw
 
-end module m_puttetcw3
+end module m_puttetcw

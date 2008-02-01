@@ -3,11 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_gettetcw3
+module m_gettetcw
   implicit none
 contains
   
-  subroutine gettetcw3(iq,ik,i1,i2,nw,fnam,cw,cwa,cwsurf)
+  subroutine gettetcw(iq,ik,i1,i2,nw,fnam,cw,cwa,cwsurf)
     use modmain
     use modxs
     use m_getunit
@@ -29,6 +29,6 @@ contains
          status='old',access='direct',recl=recl)
     read(un,rec=irec) cw,cwa,cwsurf
     close(un)
-  end subroutine gettetcw3
+  end subroutine gettetcw
 
-end module m_gettetcw3
+end module m_gettetcw

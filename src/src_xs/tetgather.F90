@@ -3,17 +3,17 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine tetgather3
+subroutine tetgather
   use modmain
   use modxs
   use modmpi
-  use m_gettetcw3
-  use m_puttetcw3
+  use m_gettetcw
+  use m_puttetcw
   use m_filedel
   use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam='tetgather3'
+  character(*), parameter :: thisnam='tetgather'
   character(256) :: filnam,filnam_t
   integer :: iq,iproc,ik,i1,i2,nwdfp
   real(8), allocatable :: cw(:),cwa(:),cwsurf(:)
@@ -37,7 +37,7 @@ subroutine tetgather3
                  wparf=lastofset(iproc,nwdf)
                  nwdfp=wparf-wpari+1
                  allocate(cwp(nwdfp),cwap(nwdfp),cwsurfp(nwdfp))
-                 call gettetcw3(iq,ik,i1,i2,nwdfp,trim(filnam_t),&
+                 call gettetcw(iq,ik,i1,i2,nwdfp,trim(filnam_t),&
                       cwp,cwap,cwsurfp)
                  cw(wpari:wparf)=cwp(:)
                  cwa(wpari:wparf)=cwap(:)
@@ -45,7 +45,7 @@ subroutine tetgather3
                  deallocate(cwp,cwap,cwsurfp)
               end do ! iproc
               ! write weights
-              call puttetcw3(iq,ik,i1,i2,trim(filnam),cw,cwa,cwsurf)
+              call puttetcw(iq,ik,i1,i2,trim(filnam),cw,cwa,cwsurf)
            end do
         end do
         ! end loop over k-points
@@ -60,4 +60,4 @@ subroutine tetgather3
      ! end loop over q-points
   end do
   deallocate(cw,cwa,cwsurf)
-end subroutine tetgather3
+end subroutine tetgather

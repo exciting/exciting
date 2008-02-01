@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine tetcalccwq3(iq)
+subroutine tetcalccwq(iq)
   use modmain
   use modxs
   use modtetra
@@ -16,7 +16,7 @@ subroutine tetcalccwq3(iq)
   ! arguments
   integer, intent(in) :: iq
   ! local variables
-  character(*), parameter :: thisnam='tetcalccwq3'
+  character(*), parameter :: thisnam='tetcalccwq'
   character(256) :: filnam,filnamt
   complex(8), allocatable :: w(:)
   real(8), parameter :: epstetra=1.d-8
@@ -139,4 +139,4 @@ subroutine tetcalccwq3(iq)
   deallocate(w,wreal)
   write(unitout,'(a)') 'Info('//trim(thisnam)//'): weights for tetrahedron &
        &method finished.'
-end subroutine tetcalccwq3
+end subroutine tetcalccwq
