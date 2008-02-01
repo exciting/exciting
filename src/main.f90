@@ -91,8 +91,8 @@ program main
            ! k-point in SCF
            call atkp
         case(999)
-           !***
-           call init0
+           ! * debug task *
+           call testmain
 #endif
 #endif
         case default

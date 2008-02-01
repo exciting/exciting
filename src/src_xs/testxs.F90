@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine test
+subroutine testxs
   use modxs
   use modmpi
   implicit none
@@ -54,4 +54,4 @@ subroutine test
 
   write(*,*)
 
-end subroutine test
+end subroutine testxs

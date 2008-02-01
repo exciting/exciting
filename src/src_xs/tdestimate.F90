@@ -19,7 +19,7 @@ subroutine tdestimate
   call init2xs
 
   nst2=nempty+1
-  nst1=nstfv-nst2
+  nst1=nstsv-nst2
 
   ! estimate disk space usage
   sreal = 8

@@ -29,24 +29,16 @@ subroutine xsmain
   character(*), parameter :: thisnam='xsmain'
   ! basic initialization
   call xsinit(calledxs)
-
-  if (calledxs.eq.1) then
-     ! check verify constraints
-     call xscheck
-     write(unitout,'(a)') 'Info('//thisnam//'): initialization done.'
-  end if
-
+  ! check verify constraints
+  call xscheck
   ! task selection
   select case(task)
-  case(300)
-     ! say hello
-     write(*,*)
-     write(*,'(a)') 'Copyright (C) 2004-2007 by S. Sagmeister and &
-          &C. Ambrosch-Draxl'
-     write(*,*)
   case(23)
      ! estimate bandgap from regular grid
      call writebandgapgrid
+  case(300)
+     ! estimate disk-space, cpu-time and memory
+     call tdestimate
   case(301)
      ! calculate eigenvectors for q-point set
      call tdgeneigvec
@@ -71,9 +63,9 @@ subroutine xsmain
   case(335)
      ! calculate matrix elements of the plane wave (new version)
      call writepwmat
-!!$  case(339)
-!!$     ! check relation between matr. el. of exp. and mom. matr. el.
-!!$     call emattest
+  case(339)
+     ! check relation between matr. el. of exp. and mom. matr. el.
+     call emattest
   case(340)
      ! Kohn Sham response function
      call df
@@ -92,32 +84,15 @@ subroutine xsmain
   case(396)
      ! convolute dielectric function from tetrahedron method with Lorentzian
      call epsconv
-  case(397)
-     ! estimate disk-space, cpu-time and memory
-     call tdestimate
   case(398)
      ! check ALDA kernel
      call fxc_alda_check
-  case(399)
-     call testmain
   case(400)
      ! RPA screening
      call screen
-  case(495)
-     call init0
-     call init1
-     call writesymi
-  case(496)
-     ! * debug task
-     call init0
-  case(497)
-     ! * debug task
-     call init0
-     call init1
-     call init2xs
-     call writekpts
   case(499)
-     ! do nothing
+     ! * debug task
+     call testxs
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task
