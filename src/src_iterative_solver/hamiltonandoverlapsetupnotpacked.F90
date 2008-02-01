@@ -25,6 +25,7 @@ if(icolumn.gt.1)then
    end do
   endif
      hamilton(icolumn,icolumn)= dcmplx(dble(hp(ip)))
+     write(*,*)"h",icolumn,ip,hp(ip)
      ip=ip+1
 end do
 ip=1
@@ -37,6 +38,7 @@ if(icolumn.gt.1)then
    end do
    endif
       overlap(icolumn,icolumn)=dcmplx(dble(op(ip)))
+       write(*,*)"o",icolumn,ip,op(ip)
    ip=ip+1
 end do
 
