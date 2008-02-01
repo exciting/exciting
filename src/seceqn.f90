@@ -39,8 +39,10 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   complex(8), allocatable :: apwalm(:,:,:,:,:)
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
+#ifdef KSMP  
   !$OMP PARALLEL DEFAULT(SHARED)
   !$OMP DO
+#endif
   do ispn=1,nspnfv
      ! find the matching coefficients
      call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
@@ -61,11 +63,13 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
              vgkc(1,1,ik,ispn),evalfv,evecfv)
      else if(.true.) then
      write(*,*)"error in solverselect secequn.F90"
-     stop
+
      endif
   end do
+#ifdef KSMP
   !$OMP END DO
   !$OMP END PARALLEL
+#endif
   if (spinsprl) then
      ! solve the spin-spiral second-variational secular equation
      call seceqnss(ik,apwalm,evalfv,evecfv,evecsv)

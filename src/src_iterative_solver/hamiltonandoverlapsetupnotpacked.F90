@@ -13,7 +13,7 @@ complex(8)::hp(n*(n+1)/2),op(n*(n+1)/2)
 integer ::ip, icolumn,irow
 hamilton=0
 overlap=0
-call hamiltonandoverlapsetup((n*n+1)/2,ngp,apwalm,igpig,vgpc,hp,op)
+call hamiltonandoverlapsetup((n*(n+1))/2,ngp,apwalm,igpig,vgpc,hp,op)
 
 ip=1
 do icolumn=1,n
@@ -25,7 +25,6 @@ if(icolumn.gt.1)then
    end do
   endif
      hamilton(icolumn,icolumn)= dcmplx(dble(hp(ip)))
-     write(*,*)"h",icolumn,ip,hp(ip)
      ip=ip+1
 end do
 ip=1
@@ -38,7 +37,6 @@ if(icolumn.gt.1)then
    end do
    endif
       overlap(icolumn,icolumn)=dcmplx(dble(op(ip)))
-       write(*,*)"o",icolumn,ip,op(ip)
    ip=ip+1
 end do
 
