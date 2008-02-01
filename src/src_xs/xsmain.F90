@@ -19,15 +19,6 @@
 !
 !EOI
 
-!******************************************************************************!
-!
-! things to do:
-!  * test tetrahedron method for Al with and w/o symmetries
-!
-!
-!
-!******************************************************************************!
-
 subroutine xsmain
   use modmain
   use modxs
@@ -35,7 +26,7 @@ subroutine xsmain
   use modmpi
   use m_getunit
   implicit none
-  character(*), parameter :: thisnam = 'xsmain'
+  character(*), parameter :: thisnam='xsmain'
   ! basic initialization
   call xsinit(calledxs)
 

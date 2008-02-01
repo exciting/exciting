@@ -234,10 +234,6 @@ subroutine init2xs
   !--------------------------!
   !     occupation numbers   !
   !--------------------------!
-!!$  ! number of occupied valence states (valence band states)
-!!$  nstval = nstsv - nempty - 1
-!!$  ! number of unoccupied valence states (conduction band states)
-!!$  nstcon = nempty + 1
   if (allocated(occsv0)) deallocate(occsv0)
   allocate(occsv0(nstsv,nkpt))
   if (allocated(isto0)) deallocate(isto0)
