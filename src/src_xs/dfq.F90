@@ -52,7 +52,7 @@ subroutine dfq(iq)
   if (acont) brd=zzero
   ! filenames for input
   call genfilname(basename='TETW',iqmt=iq,filnam=fnwtet)
-  call genfilname(basename='PMAT_TD',filnam=fnpmat)
+  call genfilname(basename='PMAT_XS',filnam=fnpmat)
   call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
   ! filenames for output
   call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&

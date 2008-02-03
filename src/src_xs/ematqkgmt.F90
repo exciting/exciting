@@ -35,13 +35,13 @@ subroutine ematqkgmt(iq,ik,igq)
         ! loop over (l',m',p')
         do l1=0,lmax1
            do m1=-l1,l1
-              lm1=idxxlm(l1,m1)
+              lm1=idxlm(l1,m1)
               do io1=1,apword(l1,is)
                  zv(:)=zzero
                  ! loop over (l'',m'',p'')
                  do l3=0,lmax3
                     do m3=-l3,l3
-                       lm3=idxxlm(l3,m3)
+                       lm3=idxlm(l3,m3)
                        do io2=1,apword(l3,is)
                           call zaxpy(nstsv, &
                                intrgaa(lm1,io1,lm3,io2,ias), &
@@ -65,13 +65,13 @@ subroutine ematqkgmt(iq,ik,igq)
         do ilo=1,nlorb(is)
            l1=lorbl(ilo,is)
            do m1=-l1,l1
-              lm1=idxxlm(l1,m1)
+              lm1=idxlm(l1,m1)
               i=idxlo(lm1,ilo,ias)
               zv(:)=zzero
               ! loop over (l'',m'',p'')
               do l3=0,lmax3
                  do m3=-l3,l3
-                    lm3=idxxlm(l3,m3)
+                    lm3=idxlm(l3,m3)
                     do io=1,apword(l3,is)
                        call zaxpy(nstsv, &
                             intrgloa(lm1,ilo,lm3,io,ias), &
@@ -91,13 +91,13 @@ subroutine ematqkgmt(iq,ik,igq)
         do ilo=1,nlorb(is)
            l1=lorbl(ilo,is)
            do m1=-l1,l1
-              lm1=idxxlm(l1,m1)
+              lm1=idxlm(l1,m1)
               j=idxlo(lm1,ilo,ias)
               zv(:)=zzero
               ! loop over (l'',m'',p'')
               do l3=0,lmax3
                  do m3=-l3,l3
-                    lm3=idxxlm(l3,m3)
+                    lm3=idxlm(l3,m3)
                     do io=1,apword(l3,is)
                        call zaxpyc(nstsv, &
                             intrgalo(lm1,ilo,lm3,io,ias), &
@@ -116,12 +116,12 @@ subroutine ematqkgmt(iq,ik,igq)
         do ilo1=1,nlorb(is)
            l1=lorbl(ilo1,is)
            do m1=-l1,l1
-              lm1=idxxlm(l1,m1)
+              lm1=idxlm(l1,m1)
               i=idxlo(lm1,ilo1,ias)
               do ilo2=1,nlorb(is)
                  l3=lorbl(ilo2,is)
                  do m3=-l3,l3
-                    lm3=idxxlm(l3,m3)
+                    lm3=idxlm(l3,m3)
                     j=idxlo(lm3,ilo2,ias)
                     xih(i,j) = xih(i,j) + &
                          fourpi*conjg(sfacgq(igq,ias,iq))* &

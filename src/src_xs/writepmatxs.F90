@@ -4,9 +4,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: writepmattd
+! !ROUTINE: writepmatxs
 ! !INTERFACE:
-subroutine writepmattd(lgather)
+subroutine writepmatxs(lgather)
   ! !USES:
   use modmain
   use modmpi
@@ -15,7 +15,7 @@ subroutine writepmattd(lgather)
   use m_genfilname
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
-!   writes them to direct access file {\tt PMAT_TD.OUT}. Derived from
+!   writes them to direct access file {\tt PMAT_XS.OUT}. Derived from
 !   the routine {\tt writepmat}.
 !
 ! !REVISION HISTORY:
@@ -26,14 +26,14 @@ subroutine writepmattd(lgather)
   ! arguments
   logical :: lgather
   ! local variables
-  character(*), parameter :: thisnam='writepmattd'
+  character(*), parameter :: thisnam='writepmatxs'
   integer ik
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-  call genfilname(basename='PMAT_TD',filnam=fnpmat)
-  call genfilname(basename='PMAT_TD',procs=procs,rank=rank,filnam=fnpmat_t)
+  call genfilname(basename='PMAT_XS',filnam=fnpmat)
+  call genfilname(basename='PMAT_XS',procs=procs,rank=rank,filnam=fnpmat_t)
   ! analytic evaluation of interstitial contribution
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
@@ -86,5 +86,5 @@ subroutine writepmattd(lgather)
        &finished"
   ! reset global file extension to default
   call genfilname(setfilext=.true.)
-end subroutine writepmattd
+end subroutine writepmatxs
 !EOC

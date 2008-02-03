@@ -41,8 +41,6 @@ subroutine writeangmom(un)
           lmaxemat, (lmaxemat+1)**2
      write(un,'(a,2i8)') ' APW functions (PW matr. el.) : ',&
           lmaxapwtd, (lmaxapwtd+1)**2
-     write(un,'(a,2i8)') ' overall                      : ',&
-          lmaxmax, (lmaxmax+1)**2
   end if
 end subroutine writeangmom
 !EOC

@@ -17,10 +17,10 @@ subroutine writepmat_ascii
   call init2xs
   allocate(pmat(3,nstsv,nstsv))
   call getunit(un)
-  open(un,file='PMAT_TD_ASC.OUT',action='write')
+  open(un,file='PMAT_XS_ASC.OUT',action='write')
   do ik=1,nkpt
      ! read momentum matrix elements if required
-     call getpmat(ik,vkl,.true.,'PMAT_TD.OUT',pmat)
+     call getpmat(ik,vkl,.true.,'PMAT_XS.OUT',pmat)
      do ist1=1,nstsv
         do ist2=1,nstsv
            do oct=1,3

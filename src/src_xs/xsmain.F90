@@ -38,16 +38,16 @@ subroutine xsmain
      call writebandgapgrid
   case(300)
      ! estimate disk-space, cpu-time and memory
-     call tdestimate
+     call xsestimate
   case(301)
      ! calculate eigenvectors for q-point set
-     call tdgeneigvec
+     call xsgeneigvec
   case(310)
      ! calculate weights for tetrahedron method
      call tetcalccw
   case(320)
      ! parallel version of momentum matrix elements
-     call writepmattd(.false.)
+     call writepmatxs(.false.)
   case(321)
      ! ASCII output of momentum matrix elements
      call writepmat_ascii

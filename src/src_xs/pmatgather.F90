@@ -22,7 +22,7 @@ subroutine pmatgather
 
   ! file extension for q-point
   do iproc=0,procs-1
-     call genfilname(basename='PMAT_TD',procs=procs,rank=iproc,&
+     call genfilname(basename='PMAT_XS',procs=procs,rank=iproc,&
           filnam=fnpmat_t)
      kpari=firstofset(iproc,nkpt)
      kparf=lastofset(iproc,nkpt)
@@ -35,7 +35,7 @@ subroutine pmatgather
 
   ! delete partial files
   do iproc=0,procs-1
-     call genfilname(basename='PMAT_TD',procs=procs,rank=iproc,&
+     call genfilname(basename='PMAT_XS',procs=procs,rank=iproc,&
           filnam=fnpmat_t)
      call filedel(trim(fnpmat_t))
   end do

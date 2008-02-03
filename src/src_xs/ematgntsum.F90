@@ -83,23 +83,23 @@ subroutine ematgntsum(iq,igq)
            l1 = l1map(cl1)
            do cm1 = 1, m1shape(l1)
               m1 = m1map(l1,cm1)
-              lm1 = idxxlm(l1,m1)
+              lm1 = idxlm(l1,m1)
               do io1=1,apword(l1,is)
                  do cl2 = 1, l2shape(l1,m1)
                     l3 = l2map(l1,m1,cl2)
                     do cm2 = 1, m2shape(l1,m1,l3)
                        m3 = m2map(l1,m1,l3,cm2)
-                       lm3 = idxxlm(l3,m3)
+                       lm3 = idxlm(l3,m3)
                        do io2=1,apword(l3,is)
                           do cl3 = 1, l3shape(l1,m1,l3,m3)
                              l2 = l3map(l1,m1,l3,m3,cl3)
                              ! summation wrt. Gaunt coefficients
                              do cm3 = 1, m3shape(l1,m1,l3,m3,l2)
                                 m2 = m3map(l1,m1,l3,m3,l2,cm3)
-                                lm2=idxxlm(l2,m2)
+                                lm2=idxlm(l2,m2)
                                 intrgaa(lm1,io1,lm3,io2,ias)= &
                                      intrgaa(lm1,io1,lm3,io2,ias) &
-                                     + zmil(l2)* &
+                                     + conjg(zil(l2))* &
                                      riaa(l1,io1,l3,io2,l2,ias,igq)* &
                                      conjg(ylmgq(lm2,igq,iq))* &
                                      tdgnt(lm1,lm2,lm3)
@@ -123,23 +123,23 @@ subroutine ematgntsum(iq,igq)
            l1=lorbl(ilo,is)
            do cm1 = 1, m1shape(l1)
               m1 = m1map(l1,cm1)
-              lm1=idxxlm(l1,m1)
+              lm1=idxlm(l1,m1)
               do cl2 = 1, l2shape(l1,m1)
                  l3 = l2map(l1,m1,cl2)
                  do cm2 = 1, m2shape(l1,m1,l3)
                     m3 = m2map(l1,m1,l3,cm2)
-                    lm3=idxxlm(l3,m3)
+                    lm3=idxlm(l3,m3)
                     do io=1,apword(l3,is)
                        do cl3 = 1, l3shape(l1,m1,l3,m3)
                           l2 = l3map(l1,m1,l3,m3,cl3)
                           do cm3 = 1, m3shape(l1,m1,l3,m3,l2)
                              m2 = m3map(l1,m1,l3,m3,l2,cm3)
-                             lm2=idxxlm(l2,m2)
+                             lm2=idxlm(l2,m2)
                              ! summation wrt. Gaunt coefficients
                              ! for lo-A part
                              intrgloa(lm1,ilo,lm3,io,ias)= &
                                   intrgloa(lm1,ilo,lm3,io,ias) &
-                                  + zmil(l2)*riloa(ilo,l3,io,l2,ias,igq)* &
+                                  + conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
                                   tdgnt(lm1,lm2,lm3)
                              ! summation wrt. Gaunt coefficients
@@ -147,7 +147,7 @@ subroutine ematgntsum(iq,igq)
                              ! Gaunt coefficient!)
                              intrgalo(lm1,ilo,lm3,io,ias)= &
                                   intrgalo(lm1,ilo,lm3,io,ias) &
-                                  + zmil(l2)*riloa(ilo,l3,io,l2,ias,igq)* &
+                                  + conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
                                   tdgnt(lm3,lm2,lm1)
                           end do ! m2
@@ -172,20 +172,20 @@ subroutine ematgntsum(iq,igq)
            l1=lorbl(ilo1,is)
            do cm1 = 1, m1shape(l1)
               m1 = m1map(l1,cm1)
-              lm1=idxxlm(l1,m1)
+              lm1=idxlm(l1,m1)
               do ilo2=1,nlorb(is)
                  l3=lorbl(ilo2,is)
                  do cm2 = 1, m2shape(l1,m1,l3)
                     m3 = m2map(l1,m1,l3,cm2)
-                    lm3=idxxlm(l3,m3)
+                    lm3=idxlm(l3,m3)
                     do cl3 = 1, l3shape(l1,m1,l3,m3)
                        l2 = l3map(l1,m1,l3,m3,cl3)
                        do cm3 = 1, m3shape(l1,m1,l3,m3,l2)
                           m2 = m3map(l1,m1,l3,m3,l2,cm3)
-                          lm2=idxxlm(l2,m2)
+                          lm2=idxlm(l2,m2)
                           intrglolo(lm1,ilo1,lm3,ilo2,ias)= &
                                intrglolo(lm1,ilo1,lm3,ilo2,ias) &
-                               + zmil(l2)*rilolo(ilo1,ilo2,l2,ias,igq)* &
+                               + conjg(zil(l2))*rilolo(ilo1,ilo2,l2,ias,igq)* &
                                conjg(ylmgq(lm2,igq,iq))* &
                                tdgnt(lm1,lm2,lm3)
                        end do ! m2

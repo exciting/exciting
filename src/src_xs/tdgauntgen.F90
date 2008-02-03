@@ -8,6 +8,7 @@ module m_tdgauntgen
 contains
 
   subroutine tdgauntgen(lmax1,lmax2,lmax3)
+    use modmain
     use modxs
     implicit none
     ! arguments
@@ -26,13 +27,13 @@ contains
 
     do l1=0,lmax1
        do m1=-l1,l1
-          lm1=idxxlm(l1,m1)
+          lm1=idxlm(l1,m1)
           do l2=0,lmax2
              do m2=-l2,l2
-                lm2=idxxlm(l2,m2)
+                lm2=idxlm(l2,m2)
                 do l3=0,lmax3
                    do m3=-l3,l3
-                      lm3=idxxlm(l3,m3)
+                      lm3=idxlm(l3,m3)
                       tdgnt(lm1,lm2,lm3)=gaunt(l1,l2,l3,m1,m2,m3)
                    end do
                 end do

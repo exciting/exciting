@@ -109,7 +109,7 @@ subroutine idfq(iq)
               write(*,*)
               call terminate
            end if
-write(*,*) 'CONTROL:IDFQ: igmt (1 for q in BZ):',igmt
+!!!write(*,*) 'CONTROL:IDFQ: igmt (1 for q in BZ):',igmt
            mdf1(iw)=1.d0/idf(igmt,igmt)
            ! write macroscopic dielectric function to file
            write(unit1,rec=iw-wi+1) mdf1(iw)

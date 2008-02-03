@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine tdestimate
+subroutine xsestimate
   use modmain
   use modxs
   use m_genfilname
@@ -81,4 +81,4 @@ subroutine tdestimate
   write(un,*)
   close(un)
 
-end subroutine tdestimate
+end subroutine xsestimate
