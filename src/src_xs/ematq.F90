@@ -84,3 +84,19 @@ subroutine ematq(iq)
      ! end loop over k-points
   end do
 end subroutine ematq
+
+subroutine ematqalloc
+  use modmain
+  use modmpi
+  use modxs
+  implicit none
+
+end subroutine ematqalloc
+
+subroutine ematqdealloc
+  use modmain
+  use modmpi
+  use modxs
+  implicit none
+
+end subroutine ematqdealloc

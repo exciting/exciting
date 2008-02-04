@@ -67,12 +67,12 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
 #ifdef XS
   integer :: jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
   ! use symmetries of little group of q
-  if (iqcu.ne.0) then
+  if ((iqcu.ne.0).and.reducep) then
      if (nsymcrys.ne.nsymcrysq(iqcu)) then
         write(*,'(a)') 'Info(genppts): using symmetries of the (little/small) &
              &group of q only'
-        write(*,'(a,i6,3g18.10,2i6)') ' iq,vql,nsymcrys,nsymcrysq',iqcu,&
-             vql(:,iqcu),nsymcrys,nsymcrysq(iqcu)
+!!$        write(*,'(a,i6,3g18.10,2i6)') ' iq,vql,nsymcrys,nsymcrysq',iqcu,&
+!!$             vql(:,iqcu),nsymcrys,nsymcrysq(iqcu)
      end if
      ! save global variables
      nsymcrys_=nsymcrys; lsplsymc_(:)=lsplsymc(:)
@@ -145,7 +145,7 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
      call r3mv(bvec,vpl(1,ip),vpc(1,ip))
   end do
 #ifdef XS
-  if (iqcu.ne.0) then
+  if ((iqcu.ne.0).and.reducep) then
      ! restore global variables
      nsymcrys=nsymcrys_; lsplsymc(:)=lsplsymc_(:)
   end if

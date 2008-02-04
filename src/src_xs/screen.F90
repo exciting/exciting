@@ -29,7 +29,8 @@ subroutine screen
   ! map variables for screening
   call initscr
   nosym=nosymscr
-  reducek=reducekscr
+  ! no symmetries implemented for screening
+  reducek=.false.
   ngridk(:)=ngridkscr(:)
   vkloff(:)=vkloffscr(:)
   rgkmax=rgkmaxscr
@@ -78,6 +79,7 @@ subroutine screen
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
 
   do iq=qpari,qparf
+write(*,*) 'q-loop:iq',iq
      call updateq(iq)
      ! calculate k+q and G+k+q related variables
      call init1xs(qvkloff(1,iq))
@@ -101,12 +103,13 @@ subroutine screen
 
   end do
 
+write(*,*) '------------------------------------------------------'
 
   ! *** TEST ***
   do iq=1,nqpt
-     call init1
      call updateq(iq)
      write(*,'(a,i6,3f12.3,3x,3f12.3)') 'TEST: iq/vql/vqlcu',iq,vql(:,iq),vqlcu
+     call init1
   end do
 
   ! restore global variables
