@@ -26,8 +26,7 @@ subroutine tetcalccw
   ! read Fermi energy
   call readfermi
   ! w-point interval for process
-  partype='w'
-  call genparidxran(partype)
+  call genparidxran('w')
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point

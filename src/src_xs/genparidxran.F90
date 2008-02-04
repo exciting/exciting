@@ -39,4 +39,5 @@ subroutine genparidxran(typ)
         write(*,*)
         call terminate
   end select
+  partype=typ
 end subroutine genparidxran

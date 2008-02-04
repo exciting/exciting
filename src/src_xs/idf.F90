@@ -19,8 +19,7 @@ subroutine idf
   ! initialize q-point set
   call init2xs
   ! w-point parallelization for dielectric function
-  partype='w'
-  call genparidxran(partype)
+  call genparidxran('w')
   write(unitout,'("Exchange-correlation kernel type :",i4)') fxctype
   write(unitout,'("  ",a)') trim(fxcdescr)
   ! loop over q-points

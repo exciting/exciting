@@ -23,8 +23,7 @@ subroutine df
   ! read Fermi energy
   call readfermi
   ! w-point parallelization for dielectric function
-  partype='w'
-  call genparidxran(partype)
+  call genparidxran('w')
   ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   emattype=1
   ! loop over q-points

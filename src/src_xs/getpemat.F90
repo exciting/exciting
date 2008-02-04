@@ -76,8 +76,14 @@ contains
        end do
     end if
     if ((.not.tq0).or.(n.gt.1)) then
-       ! read matrix elemets of exponential expression
-       call getemat(iq,ik,.true.,trim(efilnam),m12,m34)
+       ! for BSE(-kernel) matrix elements are calculated on the fly
+       if ((task.ge.400).and.(task.le.499)) then
+          m12(:,:,:)=xiou(:,:,:)
+          m34(:,:,:)=xiuo(:,:,:)
+       else
+          ! read matrix elemets of exponential expression
+          call getemat(iq,ik,.true.,trim(efilnam),m12,m34)
+       end if
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))
        if (.not.tq0) then
              m12(:,:,1)=m12(:,:,1)/gqc(1,iq)*fourpisqt

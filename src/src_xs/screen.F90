@@ -12,13 +12,14 @@ subroutine screen
   use m_tdgauntgen
   use m_findgntn0
   use m_writegqpts
+  use m_getpemat
   implicit none
   ! local variables
   character(*), parameter :: thisnam='screen'
   integer :: taskt,iq,ik
   real(8) :: vklofft(3),rgkmaxt
   integer :: ngridkt(3),nemptyt
-  logical :: nosymt,reducekt
+  logical :: nosymt,reducekt,exist
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -64,8 +65,6 @@ subroutine screen
      call filedel('RMSDVEFF'//trim(filext))
   end if
 
-  partype='q'
-  call genparidxran(partype)
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file
   call readfermi
@@ -78,8 +77,22 @@ subroutine screen
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
 
+  ! calculate momentum matrix elements
+  inquire(file='PMAT_SCR.OUT',exist=exist)
+  ! k-point parallelization
+  call genparidxran('k')
+  if (.not.exist) call writepmatxs
+
+  ! allocate arrays
+  if (allocated(pmou)) deallocate(pmou)
+  allocate(pmou(3,nst1,nst2))
+  if (allocated(pmuo)) deallocate(pmuo)
+  allocate(pmuo(3,nst3,nst4))
+
+  ! q-point parallelization
+  call genparidxran('q')
   do iq=qpari,qparf
-write(*,*) 'q-loop:iq',iq
+     write(*,*) 'q-loop:iq',iq
      call updateq(iq)
      ! calculate k+q and G+k+q related variables
      call init1xs(qvkloff(1,iq))
@@ -90,26 +103,20 @@ write(*,*) 'q-loop:iq',iq
      call ematrad(iq)
 
      do ik=1,nkpt
-     ! generate matrix elements of plane wave and momentum operator
+        call ematqk1(iq,ik)
+        call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
+             p12=pmou,p34=pmuo)
 
+        ! accumulate matrix elements for dielectric matrix
 
-     ! accumulate matrix elements for dielectric matrix
+        ! end loop over k-points
      end do
 
 
 
      ! store dielectric matrix for q-point
 
-
-  end do
-
-write(*,*) '------------------------------------------------------'
-
-  ! *** TEST ***
-  do iq=1,nqpt
-     call updateq(iq)
-     write(*,'(a,i6,3f12.3,3x,3f12.3)') 'TEST: iq/vql/vqlcu',iq,vql(:,iq),vqlcu
-     call init1
+     ! end loop over q-points
   end do
 
   ! restore global variables

@@ -27,13 +27,16 @@ subroutine writepmatxs(lgather)
   logical :: lgather
   ! local variables
   character(*), parameter :: thisnam='writepmatxs'
-  integer ik
+  integer :: ik
+  character(32) :: fnam
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-  call genfilname(basename='PMAT_XS',filnam=fnpmat)
-  call genfilname(basename='PMAT_XS',procs=procs,rank=rank,filnam=fnpmat_t)
+  fnam='PMAT_XS'
+  if ((task.ge.400).and.(task.le.499)) fnam='PMAT_SCR'
+  call genfilname(basename=trim(fnam),filnam=fnpmat)
+  call genfilname(basename=trim(fnam),procs=procs,rank=rank,filnam=fnpmat_t)
   ! analytic evaluation of interstitial contribution
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
@@ -45,8 +48,7 @@ subroutine writepmatxs(lgather)
   call init1
   call init2xs
   ! generate index ranges for parallel execution
-  partype='k'
-  call genparidxran(partype)
+  call genparidxran('k')
   ! k-point interval for process
   kpari=firstofset(rank,nkpt)
   kparf=lastofset(rank,nkpt)

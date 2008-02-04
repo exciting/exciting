@@ -20,10 +20,9 @@ subroutine writeemat
   call init1
   call init2xs
   ! k-point parallelization for TDDFT
-  if ((task.ge.300).or.(task.le.399)) partype='k'
+  if ((task.ge.300).or.(task.le.399)) call genparidxran('k')
   ! q-point parallelization for screening
-  if ((task.ge.400).or.(task.le.499)) partype='q'
-  call genparidxran(partype)
+  if ((task.ge.400).or.(task.le.499)) call genparidxran('q')
    ! write q-point set
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file
