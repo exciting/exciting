@@ -26,8 +26,6 @@ module modxs
   !---------------------------------------------------------------!
   !     muffin-tin radial mesh and angular momentum variables     !
   !---------------------------------------------------------------!
-  ! index to lm-pairs
-  integer, allocatable :: idxxlm(:,:)
   ! spherical covering set
   real(8), allocatable :: sphcov(:,:)
 
@@ -320,14 +318,6 @@ module modxs
   ! smallest energy difference for which the inverse square will be considered
   real(8) :: epsdfde
 
-  !----------------------------------!
-  !     angular momenta variables    !
-  !----------------------------------!
-  ! maximum of maximum angular momenta
-  integer :: lmaxmax
-  ! (lmaxmax+1)^2
-  integer :: lmmaxmax
-
   !----------------------------!
   !     xc-kernel variables    !
   !----------------------------!
@@ -380,10 +370,14 @@ module modxs
   logical nosymscr
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
   logical reducekscr
+  ! k-point grid sizes
+  integer :: ngridkscr(3)
   ! k-point offset
   real(8) :: vkloffscr(3)
   ! smallest muffin-tin radius times gkmax
   real(8) :: rgkmaxscr
+  ! number of empty states
+  integer :: nemptyscr
   ! filenames for eigenvector file, eigenvalues and occupancies
   character(256) :: fnevecfvscr, fnevalsvscr, fnoccsvscr
 
@@ -481,8 +475,6 @@ module modxs
   !-----------------------------!
   !     numerical constants     !
   !-----------------------------!
-  ! array of (-i)**l values
-  complex(8), allocatable :: zmil(:)
   ! conversion from hartree to electron volt
   real(8), parameter :: h2ev = 27.2114d0
 

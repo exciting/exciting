@@ -39,28 +39,6 @@ subroutine init2xs
   lmmaxapwtd=(lmaxapwtd+1)**2
   lmmaxemat=(lmaxemat+1)**2
 
-!!$  lmaxmax=maxval((/lmaxemat,lolmax, lmaxvr,lmaxapw,lmaxmat,lmaxinr/))
-!!$  lmmaxmax=maxval((/lmmaxemat,lolmmax, lmmaxvr,lmmaxapw,lmmaxmat,lmmaxinr/))
-
-!!$  ! index to (l,m) pairs (overall)
-!!$  if (allocated(idxxlm)) deallocate(idxxlm)
-!!$  allocate(idxxlm(0:lmaxmax,-lmaxmax:lmaxmax))
-!!$  idxxlm(:,:) = 0
-!!$  lm=0
-!!$  do l=0,lmaxmax
-!!$     do m=-l,l
-!!$        lm=lm+1
-!!$        idxxlm(l,m)=lm
-!!$     end do
-!!$  end do
-!!$
-!!$  ! array of (-i)**l values
-!!$  if (allocated(zmil)) deallocate(zmil)
-!!$  allocate(zmil(0:lmaxapw))
-!!$  do l=0,lmaxapw
-!!$     zmil(l)=(-zi)**l
-!!$  end do
-
   !---------------------!
   !     q-point set     !
   !---------------------!

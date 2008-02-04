@@ -7,17 +7,8 @@ subroutine initscr
   use modmain
   use modxs
   implicit none
-
-  ! irreversibly map varialbes specific for screening to main variables
-  nosym=nosymscr
-  reducek=reducekscr
-!  vkloff(:)=vkloffscr(:)
-  rgkmax=rgkmaxscr
-
-  ! only one SCF iteration
-  maxscl=1
-
-  ! work with regular q-point grid
-  ngridq(:)=ngridk(:)
-
+  if (any(ngridkscr.eq.-1)) ngridkscr(:)=ngridk(:)
+  if (any(vkloffscr.eq.-1.d0)) vkloffscr(:)=vkloff(:)
+  if (nemptyscr.eq.-1) nemptyscr=nempty
+  if (rgkmaxscr.eq.-1.d0) rgkmaxscr=rgkmax
 end subroutine initscr

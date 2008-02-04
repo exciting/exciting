@@ -209,8 +209,10 @@ dbglev=0
 screentype='full'
 nosymscr=.false.
 reducekscr=.true.
-vkloffscr(:)=0.d0
-rgkmaxscr=7.d0
+ngridkscr(:)=-1
+vkloffscr(:)=-1.d0
+rgkmaxscr=-1.d0
+nemptyscr=-1
 fnevecfvscr='EVECFV_SCR.OUT'
 fnevalsvscr='EVALSV_SCR.OUT'
 fnoccsvscr='OCCSV_SCR.OUT'
@@ -1001,6 +1003,14 @@ case('nosymscr')
   read(50,*,err=20) nosymscr
 case('reducekscr')
   read(50,*,err=20) reducekscr
+case('ngridkscr')
+  read(50,*,err=20) ngridkscr(1),ngridkscr(2),ngridkscr(3)
+  if ((ngridkscr(1).le.0).or.(ngridkscr(2).le.0).or.(ngridkscr(3).le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput): invalid ngridkscr : ",3I8)') ngridkscr
+    write(*,*)
+    stop
+  end if
 case('vkloffscr')
   read(50,*,err=20) vkloffscr(1),vkloffscr(2),vkloffscr(3)
 case('rgkmaxscr')
@@ -1008,6 +1018,14 @@ case('rgkmaxscr')
   if (rgkmaxscr.le.0.d0) then
     write(*,*)
     write(*,'("Error(readinput[screen]): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
+    write(*,*)
+    stop
+  end if
+case('nemptyscr')
+  read(50,*,err=20) nemptyscr
+  if (nemptyscr.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput): nemptyscr <= 0 : ",I8)') nemptyscr
     write(*,*)
     stop
   end if
