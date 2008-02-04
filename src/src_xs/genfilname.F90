@@ -9,7 +9,7 @@ contains
 
   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
        nar,nlf,fxctype,tq0,oc,iq,iqmt,procs,rank,dotext,setfilext,&
-       revertfilext,filnam,fileext)
+       revertfilext,appfilext,filnam,fileext)
     use modmain, only: filext
     use modxs, only: filextrevert
     ! Generates file name and extension according to optional input parameters.
@@ -22,11 +22,11 @@ contains
     integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,iqmt,procs,rank
     integer, optional, intent(in) :: etype
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
-    logical, optional, intent(in) :: revertfilext,setfilext
+    logical, optional, intent(in) :: revertfilext,setfilext,appfilext
     character(*), optional, intent(in) :: basename,dotext
     character(256), optional, intent(out) :: filnam,fileext
     ! local variables
-    logical :: nodot0,revert,setfxt
+    logical :: nodot0,revert,setfxt,appfxt,dotxt
     character(*), parameter :: thisnam = 'genfilname'
     character(256) :: s,s1
     ! if file extension in "modmain" is to be reset to last value: reset
@@ -39,6 +39,15 @@ contains
        filext=trim(filextrevert)
     else if (setfxt) then
        filextrevert=filext
+    end if
+    appfxt=.false.
+    if (present(appfilext)) appfxt=appfilext
+    dotxt=.false.
+    if (present(dotext)) dotxt=.true.
+    if ((appfxt.and.setfilext).or.(appfxt.and.dotxt)) then
+       write(*,'(a)') 'Error('//trim(thisnam)//'): specified appfxt together &
+            &with setfilext or dotext'
+       call terminate
     end if
     ! dot in front of filename in parallel output for rank eq. zero
     nodot0=.false.
@@ -132,6 +141,8 @@ contains
     ! extension (including the dot)
     if (present(dotext)) then
        s=trim(s)//trim(dotext)
+    else if (appfxt) then
+       s=trim(s)//trim(filext)
     else
        s=trim(s)//'.OUT'
     end if

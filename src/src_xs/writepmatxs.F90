@@ -29,12 +29,14 @@ subroutine writepmatxs(lgather)
   character(*), parameter :: thisnam='writepmatxs'
   integer :: ik
   character(32) :: fnam
+  logical :: tscr
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
+  tscr=(task.ge.400).and.(task.le.499)
   fnam='PMAT_XS'
-  if ((task.ge.400).and.(task.le.499)) fnam='PMAT_SCR'
+  if (tscr) fnam='PMAT_SCR'
   call genfilname(basename=trim(fnam),filnam=fnpmat)
   call genfilname(basename=trim(fnam),procs=procs,rank=rank,filnam=fnpmat_t)
   ! analytic evaluation of interstitial contribution
@@ -59,6 +61,7 @@ subroutine writepmatxs(lgather)
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
   call genfilname(iqmt=0,setfilext=.true.)
+  if (tscr) call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   ! generate band combinations
   call ematbdcmbs(1)
   if (lgather) goto 10

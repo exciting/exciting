@@ -1,5 +1,5 @@
 
-! Copyright (C) 2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -16,10 +16,10 @@ subroutine screen
   implicit none
   ! local variables
   character(*), parameter :: thisnam='screen'
-  integer :: taskt,iq,ik
+  integer :: iq,ik
   real(8) :: vklofft(3),rgkmaxt
   integer :: ngridkt(3),nemptyt
-  logical :: nosymt,reducekt,exist
+  logical :: nosymt,reducekt
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -36,38 +36,12 @@ subroutine screen
   vkloff(:)=vkloffscr(:)
   rgkmax=rgkmaxscr
   nempty=nemptyscr
-  ! only one SCF iteration
-  maxscl=1
   call init0
   call init1
   call init2xs
-  taskt=task
-  task=1
-  isreadstate0=.true.
-  call genfilname(setfilext=.true.,dotext='_SCR.OUT')
-  ! calculate eigenvectors, -values and occupancies for basic k-mesh
-  call gndstate
-  task=taskt
-  if (rank.eq.0) then
-     ! safely remove unnecessary files
-     call filedel('EQATOMS'//trim(filext))
-     call filedel('EVALCORE'//trim(filext))
-     call filedel('FERMIDOS'//trim(filext))
-     call filedel('GEOMETRY'//trim(filext))
-     call filedel('LATTICE'//trim(filext))
-     call filedel('IADIST'//trim(filext))
-     call filedel('LINENGY'//trim(filext))
-     call filedel('SYMCRYS'//trim(filext))
-     call filedel('SYMLAT'//trim(filext))
-     call filedel('SYMSITE'//trim(filext))
-     call filedel('TOTENERGY'//trim(filext))
-     call filedel('EVALFV'//trim(filext))
-     call filedel('RMSDVEFF'//trim(filext))
-  end if
-
-  if (rank.eq.0) call writeqpts
-  ! read Fermi energy from file
   call readfermi
+  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+
   ! save variables for the Gamma q-point
   call tdsave0
   ! generate Gaunt coefficients
@@ -76,12 +50,6 @@ subroutine screen
   call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-
-  ! calculate momentum matrix elements
-  inquire(file='PMAT_SCR.OUT',exist=exist)
-  ! k-point parallelization
-  call genparidxran('k')
-  if (.not.exist) call writepmatxs
 
   ! allocate arrays
   if (allocated(pmou)) deallocate(pmou)
@@ -101,13 +69,16 @@ subroutine screen
      call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
      ! generate radial integrals wrt. sph. Bessel functions
      call ematrad(iq)
-
      do ik=1,nkpt
         call ematqk1(iq,ik)
         call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
              p12=pmou,p34=pmuo)
 
+write(*,*) 'iq:',sum(abs(xiou)),sum(abs(xiuo)),sum(abs(pmou)),sum(abs(pmuo))
+
         ! accumulate matrix elements for dielectric matrix
+        
+
 
         ! end loop over k-points
      end do
@@ -115,6 +86,7 @@ subroutine screen
 
 
      ! store dielectric matrix for q-point
+
 
      ! end loop over q-points
   end do

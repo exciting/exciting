@@ -12,16 +12,20 @@ subroutine getevalsv0(vpl,evalsvp)
   real(8), intent(out) :: evalsvp(nstsv)
   ! local variables
   real(8), allocatable :: vklt(:,:)
+  character(256) :: filextt
 
   ! copy varialbes of k+(q=0) to default variables
   allocate(vklt(3,nkptnr))
   vklt(:,:)=vkl(:,:); vkl(:,:)=vkl0(:,:)
+  filextt=filext
 
   ! call to getevalsv with changed (G+)k-point sets / matrix size
+  call genfilextread(task)
   call getevalsv(vpl,evalsvp)
 
   ! restore original variables
   vkl(:,:)=vklt(:,:)
+  filext=filextt
   deallocate(vklt)
 
 end subroutine getevalsv0

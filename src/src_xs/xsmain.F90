@@ -40,7 +40,8 @@ subroutine xsmain
      ! estimate disk-space, cpu-time and memory
      call xsestimate
   case(301)
-     ! calculate eigenvectors for q-point set
+     ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
+     ! for TDDFT Q-point set
      call xsgeneigvec
   case(310)
      ! calculate weights for tetrahedron method
@@ -61,7 +62,7 @@ subroutine xsmain
      ! ASCII output of matrix elements of exponential expression
      call writeemat_ascii
   case(335)
-     ! calculate matrix elements of the plane wave (new version)
+     ! calculate matrix elements of the plane wave (simple version for checking)
      call writepwmat
   case(339)
      ! check relation between matr. el. of exp. and mom. matr. el.
@@ -87,7 +88,11 @@ subroutine xsmain
   case(398)
      ! check ALDA kernel
      call fxc_alda_check
-  case(400)
+  case(401)
+     ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
+     ! for BSE(-kernel)
+     call scrgeneigvec 
+  case(430)
      ! RPA screening
      call screen
   case(499)

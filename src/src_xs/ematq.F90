@@ -28,7 +28,10 @@ subroutine ematq(iq)
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
   ! write G+q-vectors
-  call writegqpts(iq)
+  if (rank.eq.0) then
+     call writegqpts(iq)
+     call writekmapkq(iq)
+  end if
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)

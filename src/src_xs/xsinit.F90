@@ -38,8 +38,9 @@ subroutine xsinit(cnt)
           &initialization: rank out of range:',rank
      call terminate
   end if
-  ! set splittfile parameter
-  if (task.ne.301) splittfile=.false.
+  ! set splittfile parameter for splitting of eigenvector files in
+  ! parallelization of SCF cycle
+  if ((task.ne.301).or.(task.ne.401)) splittfile=.false.
   ! generate resume file
   if (procs.gt.1) then
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&

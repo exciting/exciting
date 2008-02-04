@@ -15,6 +15,7 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   integer :: nmatmaxt,ngkmaxt
   integer, allocatable :: ngkt(:,:)
   real(8), allocatable :: vklt(:,:), vgklt(:,:,:,:)
+  character(256) :: filextt
 
   ! copy varialbes of k+(q=0) to default variables
   allocate(ngkt(nkpt,nspnfv))
@@ -30,8 +31,10 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   vkl(:,:)=vkl0(:,:)
   vgklt(:,:,:,:)=vgkl(:,:,:,:)
   vgkl(:,:,:,:)=vgkl0(:,:,:,:)
+  filextt=filext
 
   ! call to getevecfv with changed (G+)k-point sets / matrix size
+  call genfilextread(task)
   call getevecfv(vpl,vgpl,evecfvt)
 
   ! restore original variables
@@ -40,6 +43,7 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   ngk(:,:)=ngkt(:,:)
   vkl(:,:)=vklt(:,:)
   vgkl(:,:,:,:)=vgklt(:,:,:,:)
+  filext=filextt
   deallocate(ngkt,vklt,vgklt)
 
 end subroutine getevecfv0
