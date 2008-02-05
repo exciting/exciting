@@ -90,7 +90,7 @@ subroutine ematqk(iq,ik)
   cpuini=cpu1-cpu0
 
   call getapwdlm(0,ik,apwdlm0)
-  call getapwdlm(iq,ik,apwdlm)
+  call getapwdlm(iq,ikq,apwdlm)
 
 !!$  ! get expansion coefficients (q=0)
 !!$  call genfilname(basename='APWDLM',iqmt=0,filnam=fnevapw)
