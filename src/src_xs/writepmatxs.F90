@@ -35,10 +35,16 @@ subroutine writepmatxs(lgather)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
   tscr=(task.ge.400).and.(task.le.499)
-  fnam='PMAT_XS'
-  if (tscr) fnam='PMAT_SCR'
-  call genfilname(basename=trim(fnam),filnam=fnpmat)
-  call genfilname(basename=trim(fnam),procs=procs,rank=rank,filnam=fnpmat_t)
+  if (tscr) then
+     fnam='PMAT'
+     call genfilname(basename=trim(fnam),appfilext=.true.,filnam=fnpmat)
+     call genfilname(basename=trim(fnam),procs=procs,rank=rank, &
+          appfilext=.true.,filnam=fnpmat_t)
+  else
+     fnam='PMAT_XS'
+     call genfilname(basename=trim(fnam),filnam=fnpmat)
+     call genfilname(basename=trim(fnam),procs=procs,rank=rank,filnam=fnpmat_t)
+  end if
   ! analytic evaluation of interstitial contribution
   if (pmatira) then
      write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
@@ -60,8 +66,7 @@ subroutine writepmatxs(lgather)
   ! allocate the momentum matrix elements array
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
-  call genfilname(iqmt=0,setfilext=.true.)
-  if (tscr) call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+  if (.not.tscr) call genfilname(iqmt=0,setfilext=.true.)
   ! generate band combinations
   call ematbdcmbs(1)
   if (lgather) goto 10

@@ -44,7 +44,7 @@ contains
     if (present(appfilext)) appfxt=appfilext
     dotxt=.false.
     if (present(dotext)) dotxt=.true.
-    if ((appfxt.and.setfilext).or.(appfxt.and.dotxt)) then
+    if ((appfxt.and.setfxt).or.(appfxt.and.dotxt)) then
        write(*,'(a)') 'Error('//trim(thisnam)//'): specified appfxt together &
             &with setfilext or dotext'
        call terminate

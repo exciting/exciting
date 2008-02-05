@@ -33,7 +33,9 @@ subroutine scrgeneigvec
   rgkmax=rgkmaxscr
   nempty=nemptyscr
   ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
+  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call xsgeneigvec
+  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   write(unitout,'(a)') "Info("//trim(thisnam)//"): eigenvectors for screening &
        &finished"
   ! calculate momentum matrix elements

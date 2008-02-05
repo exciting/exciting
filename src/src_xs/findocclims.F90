@@ -17,8 +17,6 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      ! k+q-point set
      ikq=ik
      if (iq.ne.0) ikq=ikmapikq(ik,iq)
-     if ((task.ge.300).and.(task.le.399)) &
-          call genfilname(iqmt=iq,setfilext=.true.)
      call getoccsv(vkl(1,ikq),occsv(1,ikq))
      do i=1,nstsv
         if (occsv(i,ikq).lt.epsocc) exit
@@ -30,9 +28,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      iu(ik)=i+1
      if (iq.ne.0) then
         ! k-point set (q=0)
-        call genfilname(iqmt=0,setfilext=.true.)
         call getoccsv0(vkl0(1,ik),occsv0(1,ik))
-        call genfilname(iqmt=iq,setfilext=.true.)
         do i0=1,nstsv
            if (occsv0(i0,ik).lt.epsocc) exit
         end do

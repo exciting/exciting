@@ -15,7 +15,7 @@ subroutine init2xs
   ! local variables
   character(*), parameter :: thisnam = 'init2xs'
   real(8) :: v(3)
-  integer :: iq,l,m,lm,iv(3)
+  integer :: iq,i,iv(3)
 
   !------------------------------------!
   !     angular momentum variables     !
@@ -102,8 +102,8 @@ subroutine init2xs
         write(*,'(a,i6,3g18.10,i6)') ' iq,vql,nsymcrysq:',iq,vql(:,iq),&
              nsymcrysq(iq)
         write(*,'(a)') ' scqmap,ivscwrapq below:'
-        do l=1,nsymcrysq(iq)
-           write(*,'(2i6,3x,3i6)') l,scqmap(l,iq),ivscwrapq(:,l,iq)
+        do i=1,nsymcrysq(iq)
+           write(*,'(2i6,3x,3i6)') i,scqmap(i,iq),ivscwrapq(:,i,iq)
         end do
         write(*,*)
      end if
@@ -121,7 +121,7 @@ subroutine init2xs
      ! offset for k+q-point set derived from q-point
      call genqvkloff(vql(1,iq),qvkloff(1,iq))
      ! map from k-point index to k+q point index for same k
-     call findkmapkq(iq,vql(1,iq),qvkloff(1,iq),ikmapikq(1,iq))
+     call findkmapkq(vql(1,iq),qvkloff(1,iq),ikmapikq(1,iq))
   end do
 
   !---------------------!
@@ -168,8 +168,10 @@ subroutine init2xs
   !------------------------!
   !     radial functions   !
   !------------------------!
-  ! read density and potentials from file
+  ! read density and potentials from file (STATE.OUT) exclusively
+  isreadstate0=.true.
   call readstate
+  isreadstate0=.false.
   ! find the new linearisation energies
   call linengy
   ! generate the APW radial functions

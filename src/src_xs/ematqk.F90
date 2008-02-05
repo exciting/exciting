@@ -24,13 +24,12 @@ subroutine ematqk(iq,ik)
   complex(8), allocatable :: evecfvu2(:,:)
   complex(8), allocatable :: helpm(:,:),helpm2(:,:)
   integer :: ikq,igq
-  integer :: i1,i2,recl,n,n0
+  integer :: i1,i2,n,n0
   real(8) :: cpuini,cpuread,cpumain,cpuwrite,cpuall
   real(8) :: cpugnt,cpumt,cpuir
   real(8) :: cpumalores,cpumaloares,cpumloares,cpumloaares
   real(8) :: cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg
   real(8) :: cpu0,cpu1,cpu00,cpu01
-  real(8) :: vql_(3), vkl_(3)
 
   call cpu_time(cpu0)
   ! find equivalent k-point
@@ -67,6 +66,9 @@ subroutine ematqk(iq,ik)
   xiohalo(:,:)=zzero
   xiuhloa(:,:)=zzero
 
+  call cpu_time(cpu1)
+  cpuini=cpu1-cpu0
+
   ! read eigenvectors, eigenvalues and occupancies for G+k+q
   call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
   call getevalsv(vkl(1,ikq),evalsv(1,ikq))
@@ -76,7 +78,6 @@ subroutine ematqk(iq,ik)
   evecfvu2(:,:)=evecfv(1:ngk(ikq,1),istlo2:isthi2,1)
 
   ! read eigenvectors, eigenvalues and occupancies for G+k (q=0)
-!!!!!!!!!!!!  call genfilname(iqmt=0,setfilext=.true.)
   call getevecfv0(vkl0(1,ik),vgkl0(1,1,ik,1),evecfv0)
   call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
   ! read occupation numbers for G+k
@@ -84,30 +85,9 @@ subroutine ematqk(iq,ik)
   evecfvo0(:,:)=evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,istlo1:isthi1,1)
   evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
   ! change back file extension
-!!!!!!!!!!!  call genfilname(iqmt=iq,setfilext=.true.)
-
-  call cpu_time(cpu1)
-  cpuini=cpu1-cpu0
 
   call getapwdlm(0,ik,apwdlm0)
   call getapwdlm(iq,ikq,apwdlm)
-
-!!$  ! get expansion coefficients (q=0)
-!!$  call genfilname(basename='APWDLM',iqmt=0,filnam=fnevapw)
-!!$  inquire(iolength=recl) vql_,vkl_,apwdlm0
-!!$  call getunit(unit1)
-!!$  open(unit1,file=trim(fnevapw),action='read',&
-!!$       form='unformatted',status='old',access='direct',recl=recl)
-!!$  read(unit1,rec=ik) vql_,vkl_,apwdlm0
-!!$  close(unit1)
-!!$  ! get expansion coefficients (q)
-!!$  call genfilname(basename='APWDLM',iqmt=iq,filnam=fnevapw)
-!!$  inquire(iolength=recl) vql_,vkl_,apwdlm
-!!$  call getunit(unit1)
-!!$  open(unit1,file=trim(fnevapw),action='read',&
-!!$       form='unformatted',status='old',access='direct',recl=recl)
-!!$  read(unit1,rec=ikq) vql_,vkl_,apwdlm
-!!$  close(unit1)
 
   call cpu_time(cpu0)
   cpuread=cpu0-cpu1

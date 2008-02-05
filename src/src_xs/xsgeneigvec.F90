@@ -27,7 +27,6 @@ subroutine xsgeneigvec
   ! add extra q-point for if files for q=0 are to be calculated
   if (tq0ev) qi=0
   if (tscr) then
-     call genfilname(dotext='_SCR.OUT',setfilext=.true.)
      qi=0
      qf=0
   end if
