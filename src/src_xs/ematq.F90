@@ -78,7 +78,8 @@ subroutine ematqk1(iq,ik)
      nst3=nst2; nst4=nst1
      allocate(xiou(nst1,nst2,ngq(iq)))
      call ematqk(iq,ik)
-     call putemat(iq,ik,.false.,trim(fnemat_t),x1=xiou,x2=xiuo)
+     if (.not.((task.ge.400).and.(task.le.499))) &
+          call putemat(iq,ik,.false.,trim(fnemat_t),x1=xiou,x2=xiuo)
   end if
   deallocate(xiou)
   if (allocated(xiuo)) deallocate(xiuo)

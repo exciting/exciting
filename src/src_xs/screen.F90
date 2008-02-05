@@ -36,11 +36,16 @@ subroutine screen
   vkloff(:)=vkloffscr(:)
   rgkmax=rgkmaxscr
   nempty=nemptyscr
+  ! typ of matrix elements
+  emattype=1
   call init0
   call init1
   call init2xs
   call readfermi
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+  call genfilname(basename='PMAT',appfilext=.true.,filnam=fnpmat)
+  call genfilname(nodotpar=.true.,basename='EMAT',iq=iq,&
+       etype=emattype,procs=procs,rank=rank,appfilext=.true.,filnam=fnetim)
 
   ! save variables for the Gamma q-point
   call tdsave0
@@ -69,6 +74,7 @@ subroutine screen
      call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
      ! generate radial integrals wrt. sph. Bessel functions
      call ematrad(iq)
+     call ematqalloc
      do ik=1,nkpt
         call ematqk1(iq,ik)
         call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
@@ -82,6 +88,7 @@ write(*,*) 'iq:',sum(abs(xiou)),sum(abs(xiuo)),sum(abs(pmou)),sum(abs(pmuo))
 
         ! end loop over k-points
      end do
+     call ematqdealloc
 
 
 
