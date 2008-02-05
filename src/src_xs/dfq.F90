@@ -38,6 +38,7 @@ subroutine dfq(iq)
   integer :: n,j,i1,i2,j1,j2,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp,ikt
   integer :: oct,oct12,oct1,oct2,un
   logical :: tq0
+  integer, external :: octmap
   logical, external :: tqgamma
   ! sampling of Brillouin zone
   bzsampl=0
@@ -233,52 +234,54 @@ subroutine dfq(iq)
            end if
            ! loop over longitudinal Cartesian (diagonal) components of
            ! response function
-           do oct1=1,3
-           do oct2=1,3
-              oct12=octmap(oct1,oct2)
-              ! symmetrization matrix for dielectric function
-              call gensymdf(oct,oct2)
-              optcomp(1,1)=oct
-              optcomp(2,1)=oct2
-              ! Gamma q-point
-              if (tq0) then
-                 ! head
-                 call dfqoschd(pmou(:,ist1,ist2),pmuo(:,ist2,ist1),hou(1,1), &
-                      huo(1,1))
-                 do iw=wi,wf
-                    wout=wou(iw)
-                    ! be careful with gauge in the w-variable
-                    ! one has to subtract the scissor's shift
-                    if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                         deou(ist1,ist2)**2/(wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
-                    chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
-                         wout*hou(1,1)+wuo(iw)*huo(1,1)
-                 end do
-              end if
-              ! Gamma q-point
-              if (tq0.and.(n.gt.1)) then
-                 ! wings
-                 call dfqoscwg(1,pmou(:,ist1,ist2),pmuo(:,ist2,ist1), &
-                      xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:),hou(1,2:), &
-                      huo(1,2:))
-                 call dfqoscwg(2,pmou(:,ist1,ist2),pmuo(:,ist2,ist1), &
-                      xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:),hou(2:,1), &
-                      huo(2:,1))
-                 do iw=wi,wf
-                    wout=wou(iw)
-                    ! be careful with gauge in the w-variable
-                    ! one has to subtract the scissor's shift
-                    if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                         deou(ist1,ist2)/(-wreal(iw-wi+1)-scis12(ist1,ist2)))
-                    chi0w(2:,1,oct,iw-wi+1)=chi0w(2:,1,oct,iw-wi+1)+&
-                         wout*hou(1,2:)+wuo(iw)*huo(1,2:)
-                    chi0w(2:,2,oct,iw-wi+1)=chi0w(2:,2,oct,iw-wi+1)+&
-                         wout*hou(2:,1)+wuo(iw)*huo(2:,1)
-                 end do
-              end if
-              call cpu_time(cpu1)
-              cpuosc=cpuosc+cpu1-cpu0
-           end do !oct
+           if (tq0) then
+              do oct1=1,3
+                 if (n.gt.1) then
+                    ! wings
+                    call dfqoscwg(1,pmou(:,ist1,ist2),pmuo(:,ist2,ist1), &
+                         xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:),hou(1,2:), &
+                         huo(1,2:))
+                    call dfqoscwg(2,pmou(:,ist1,ist2),pmuo(:,ist2,ist1), &
+                         xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:),hou(2:,1), &
+                         huo(2:,1))
+                    do iw=wi,wf
+                       wout=wou(iw)
+                       ! be careful with gauge in the w-variable
+                       ! one has to subtract the scissor's shift
+                       if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
+                            deou(ist1,ist2)/(-wreal(iw-wi+1)-scis12(ist1,ist2)))
+                       chi0w(2:,1,oct1,iw-wi+1)=chi0w(2:,1,oct1,iw-wi+1)+&
+                            wout*hou(1,2:)+wuo(iw)*huo(1,2:)
+                       chi0w(2:,2,oct1,iw-wi+1)=chi0w(2:,2,oct1,iw-wi+1)+&
+                            wout*hou(2:,1)+wuo(iw)*huo(2:,1)
+                    end do
+                 end if
+                 do oct2=1,3
+                    oct12=octmap(oct1,oct2)
+                    ! symmetrization matrix for dielectric function
+                    call gensymdf(oct1,oct2)
+                    optcomp(1,1)=oct1
+                    optcomp(2,1)=oct2
+                    ! Gamma q-point
+                    ! head
+                    call dfqoschd(pmou(:,ist1,ist2),pmuo(:,ist2,ist1),hou(1,1),&
+                         huo(1,1))
+                    do iw=wi,wf
+                       wout=wou(iw)
+                       ! be careful with gauge in the w-variable
+                       ! one has to subtract the scissor's shift
+                       if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
+                            deou(ist1,ist2)**2 &
+                            /(wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
+                       chi0h(oct12,iw-wi+1)=chi0h(oct12,iw-wi+1)+ &
+                            wout*hou(1,1)+wuo(iw)*huo(1,1)
+                    end do
+                    ! Gamma q-point
+                    call cpu_time(cpu1)
+                    cpuosc=cpuosc+cpu1-cpu0
+                 end do !oct2
+              end do !oct1
+           end if
            !----------------------------------!
            !     update response function     !
            !----------------------------------!
@@ -334,3 +337,35 @@ integer function octmap(i1,i2)
   if ((i1.eq.3).and.(i2.eq.2)) octmap=9
 end function octmap
 
+subroutine oct12map(oct,i1,i2)
+  implicit none
+  integer, intent(in) :: oct
+  integer, intent(out) :: i1,i2
+  if (oct.eq.1) then
+     i1=1; i2=1
+  end if
+  if (oct.eq.2) then
+     i1=2; i2=2
+  end if
+  if (oct.eq.3) then
+     i1=3; i2=3
+  end if
+  if (oct.eq.4) then
+     i1=1; i2=2
+  end if
+  if (oct.eq.5) then
+     i1=1; i2=3
+  end if
+  if (oct.eq.6) then
+     i1=2; i2=3
+  end if
+  if (oct.eq.7) then
+     i1=2; i2=1
+  end if
+  if (oct.eq.8) then
+     i1=3; i2=1
+  end if
+  if (oct.eq.9) then
+     i1=3; i2=2
+  end if
+end subroutine oct12map

@@ -39,7 +39,7 @@ subroutine idfq(iq)
   ! matrix size for local field effects
   n=ngq(iq)
   allocate(chi0(n,n),fxc(n,n),idf(n,n),w(nwdf),mdf1(nwdf),chi0hd(nwdf))
-  allocate(chi0wg(n,2,3),chi0h(3))
+  allocate(chi0wg(n,2,3),chi0h(9))
   fxc=zzero
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)

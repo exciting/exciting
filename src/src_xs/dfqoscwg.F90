@@ -14,12 +14,11 @@ contains
     ! local variables
     complex(8) :: pout,puot
     real(8) :: s(3,3)
-    integer :: oc,i
-
-    !//////// TO BE DONE /////////////////
+    integer :: i
 
     if (symwings) then
-       s(:,:)=0.5d0*(symdfq0(:,:)+transpose(symdfq0))
+!!$       s(:,:)=0.5d0*(symdfq0(:,:)+transpose(symdfq0))
+       s(:,:)=symdfq0(:,:)
        pout=zzero
        puot=zzero
        do i=1,3
@@ -27,9 +26,11 @@ contains
           puot=pout+s(i,i)*puo(i)
        end do
     else
-       oc=optcomp(1,1)
-       pout=pou(oc)
-       puot=puo(oc)
+!!$       oc=optcomp(1,1)
+!!$       pout=pou(oc)
+!!$       puot=puo(oc)
+       pout=pou(optcomp(1,1))
+       puot=puo(optcomp(2,1))
     end if
 
     if (sw.eq.1) then
