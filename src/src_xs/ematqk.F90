@@ -5,8 +5,9 @@
 
 subroutine ematqk(iq,ik)
   use modmain
-  use modxs
   use modmpi
+  use modxs
+  use m_getapwdlm
   use m_putemat
   use m_emattim
   use m_getunit
@@ -87,6 +88,9 @@ subroutine ematqk(iq,ik)
 
   call cpu_time(cpu1)
   cpuini=cpu1-cpu0
+
+  call getapwdlm(0,ik,apwdlm0)
+  call getapwdlm(iq,ik,apwdlm)
 
 !!$  ! get expansion coefficients (q=0)
 !!$  call genfilname(basename='APWDLM',iqmt=0,filnam=fnevapw)

@@ -20,7 +20,7 @@ contains
     character(*) :: filnam
     complex(8), intent(out) :: pm(:,:,:)
     ! local variables
-    character(*), parameter :: thisnam = 'getpmat'
+    character(*), parameter :: thisnam='getpmat'
     integer :: recl,un,ikr,nstsv_,nkpt_
     real(8) :: vkl_(3)
     logical :: existent

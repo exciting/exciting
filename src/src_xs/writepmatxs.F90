@@ -67,7 +67,7 @@ subroutine writepmatxs(lgather)
   if (lgather) goto 10
   do ik=kpari,kparf
      if ((modulo(ik-kpari+1,max((kparf-kpari+1)/10,1)).eq.0).or.(ik.eq.kparf)) &
-          write(*,'("Info(",a,"): ",I6," of ",I6,I6," w-points")') thisnam,ik, &
+          write(*,'("Info(",a,"): ",I6," of ",I6,I6," k-points")') thisnam,ik, &
           kpari,kparf
      ! get the eigenvectors and values from file
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
