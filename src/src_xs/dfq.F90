@@ -35,7 +35,8 @@ subroutine dfq(iq)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
-  integer :: n,j,i1,i2,j1,j2,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp,ikt,oct,un
+  integer :: n,j,i1,i2,j1,j2,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp,ikt
+  integer :: oct,oct12,oct1,oct2,un
   logical :: tq0
   logical, external :: tqgamma
   ! sampling of Brillouin zone
@@ -113,7 +114,7 @@ subroutine dfq(iq)
   allocate(scis21(nst2,nst1))
   allocate(w(nwdf))
   allocate(wreal(nwdfp))
-  allocate(chi0h(3,nwdfp))
+  allocate(chi0h(9,nwdfp))
   allocate(chi0w(n,2,3,nwdfp))
   allocate(chi0(n,n,nwdfp))
   allocate(wou(nwdf))
@@ -232,11 +233,13 @@ subroutine dfq(iq)
            end if
            ! loop over longitudinal Cartesian (diagonal) components of
            ! response function
-           do oct=1,3
+           do oct1=1,3
+           do oct2=1,3
+              oct12=octmap(oct1,oct2)
               ! symmetrization matrix for dielectric function
-              call gensymdf(oct,oct)
+              call gensymdf(oct,oct2)
               optcomp(1,1)=oct
-              optcomp(2,1)=oct
+              optcomp(2,1)=oct2
               ! Gamma q-point
               if (tq0) then
                  ! head
@@ -316,3 +319,18 @@ subroutine dfq(iq)
   deallocate(xou,xouc,xuo,xuoc,hou,huo)
   if (tetra) deallocate(cw,cwa,cwsurf)
 end subroutine dfq
+
+integer function octmap(i1,i2)
+  implicit none
+  integer, intent(in) :: i1,i2
+  if ((i1.eq.1).and.(i2.eq.1)) octmap=1
+  if ((i1.eq.2).and.(i2.eq.2)) octmap=2
+  if ((i1.eq.3).and.(i2.eq.3)) octmap=3
+  if ((i1.eq.1).and.(i2.eq.2)) octmap=4
+  if ((i1.eq.1).and.(i2.eq.3)) octmap=5
+  if ((i1.eq.2).and.(i2.eq.3)) octmap=6
+  if ((i1.eq.2).and.(i2.eq.1)) octmap=7
+  if ((i1.eq.3).and.(i2.eq.1)) octmap=8
+  if ((i1.eq.3).and.(i2.eq.2)) octmap=9
+end function octmap
+

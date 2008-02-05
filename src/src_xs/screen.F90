@@ -16,9 +16,9 @@ subroutine screen
   implicit none
   ! local variables
   character(*), parameter :: thisnam='screen'
-  integer :: iq,ik
+  real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: vklofft(3),rgkmaxt
-  integer :: ngridkt(3),nemptyt
+  integer :: iq,ik,ikq,ngridkt(3),nemptyt
   logical :: nosymt,reducekt
   ! save global variables
   nosymt=nosym
@@ -44,8 +44,6 @@ subroutine screen
   call readfermi
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call genfilname(basename='PMAT',appfilext=.true.,filnam=fnpmat)
-  call genfilname(nodotpar=.true.,basename='EMAT',iq=iq,&
-       etype=emattype,procs=procs,rank=rank,appfilext=.true.,filnam=fnetim)
 
   ! save variables for the Gamma q-point
   call tdsave0
@@ -55,17 +53,29 @@ subroutine screen
   call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-
+  call ematbdcmbs(emattype)
   ! allocate arrays
+  if (allocated(deou)) deallocate(deou)
+  allocate(deou(nst1,nst2))
+  if(allocated(deuo)) deallocate(deuo)
+  allocate(deuo(nst3,nst4))
+  if (allocated(docc12)) deallocate(docc12)
+  allocate(docc12(nst1,nst2))
+  if (allocated(docc21)) deallocate(docc21)
+  allocate(docc21(nst3,nst4))
   if (allocated(pmou)) deallocate(pmou)
   allocate(pmou(3,nst1,nst2))
   if (allocated(pmuo)) deallocate(pmuo)
   allocate(pmuo(3,nst3,nst4))
+  allocate(scis12(nst1,nst2))
+  allocate(scis21(nst2,nst1))
 
   ! q-point parallelization
   call genparidxran('q')
   do iq=qpari,qparf
      write(*,*) 'q-loop:iq',iq
+     call genfilname(nodotpar=.true.,basename='EMAT',iq=iq,&
+          etype=emattype,procs=procs,rank=rank,appfilext=.true.,filnam=fnetim)
      call updateq(iq)
      ! calculate k+q and G+k+q related variables
      call init1xs(qvkloff(1,iq))
@@ -76,11 +86,16 @@ subroutine screen
      call ematrad(iq)
      call ematqalloc
      do ik=1,nkpt
+        ikq=ikmapikq(ik,iq)
+        call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12, &
+             scis12)
+        call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
+             scis21)
         call ematqk1(iq,ik)
         call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
              p12=pmou,p34=pmuo)
 
-write(*,*) 'iq:',sum(abs(xiou)),sum(abs(xiuo)),sum(abs(pmou)),sum(abs(pmuo))
+write(*,'(a,i6,4f12.4)') 'ik:',ik,sum(abs(xiou)),sum(abs(xiuo)),sum(abs(pmou)),sum(abs(pmuo))
 
         ! accumulate matrix elements for dielectric matrix
         
@@ -97,6 +112,8 @@ write(*,*) 'iq:',sum(abs(xiou)),sum(abs(xiuo)),sum(abs(pmou)),sum(abs(pmuo))
 
      ! end loop over q-points
   end do
+
+  deallocate(xiou,xiuo,pmou,pmuo,deou,deuo,docc12,docc21,scis12,scis21)
 
   ! restore global variables
   nosym=nosymt

@@ -38,7 +38,8 @@ contains
        vqlt(:)=vql(:,iq)
     end if
     ! check consistency
-    if ((r3dist(vkl_,vklt).gt.epslat).or.(r3dist(vql_,vqlt).gt.epslat)) then
+!!$    if ((r3dist(vkl_,vklt).gt.epslat).or.(r3dist(vql_,vqlt).gt.epslat)) then
+    if (r3dist(vkl_,vklt).gt.epslat) then
        write(unitout,'(a)') 'Error('//thisnam//'): differring parameters for &
             &APW MT coefficients (current/file): '
        if (procs > 1) write(unitout,'(a,i6)') '(parallel) rank', rank
