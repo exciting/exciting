@@ -54,9 +54,9 @@ do l1=0,lmaxmat
     lm1=idxlm(l1,m1)
     do io1=1,apword(l1,is)
      zv(:)=0.d0
-!$omp parallel default(shared) & 
-!$omp private(l3,m3,io2,l2,m2,zt1,zsum,lm3) 
-!$omp do reduction (+:zv) 
+!#$omp parallel default(shared) & 
+!#$omp private(l3,m3,io2,l2,m2,zt1,zsum,lm3) 
+!#$omp do reduction (+:zv) 
       do l3=0,lmaxapw
         do m3=-l3,l3
           lm3=idxlm(l3,m3)
@@ -84,8 +84,8 @@ do l1=0,lmaxmat
           end if
         end do
       end do
-!$omp end do 
-!$omp end parallel
+!#$omp end do 
+!#$omp end parallel
       call zmatinp(tapp,ngp,zone,apwalm(1,io1,lm1,ias),zv,v,h)
     end do
   end do

@@ -62,9 +62,9 @@ if (tapp) then
   end do
 else
 ! calculate the matrix elements
-!$omp parallel default(shared) & 
-!$omp shared(h) private(iv,ig,t1,i,j)
-!$omp do
+!#$omp parallel default(shared) & 
+!#$omp shared(h) private(iv,ig,t1,i,j)
+!#$omp do
   do j=1,ngp
     !k=((j-1)*j)/2
     do i=1,j
@@ -80,8 +80,8 @@ else
       end if
     end do
   end do
-!$omp end do 
-!$omp end parallel
+!#$omp end do 
+!#$omp end parallel
 end if
 return
 end subroutine
