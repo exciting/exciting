@@ -14,6 +14,7 @@ integer, intent(in) :: ngp
 complex(8), intent(in) :: v(nmatmax)
 complex(8), intent(inout) :: o(np)
 ! local variables
+complex(8)::zt
 integer ias,ilo1,ilo2,l,m,lm,i,j,k
 ias=idxas(ia,is)
 do ilo1=1,nlorb(is)
@@ -33,7 +34,8 @@ do ilo1=1,nlorb(is)
 ! calculate the matrix elements
             k=i+((j-1)*j)/2
           !  o(k)=o(k)+ololo(ilo1,ilo2,ias)
-            call zmpalpha(o,np,ololo(ilo1,ilo2,ias),j,i) 
+        zt=  dcmplx(ololo(ilo1,ilo2,ias),0)
+            call zmpalpha(o,np,zt,j,i) 
           end if
         end if
       end do
