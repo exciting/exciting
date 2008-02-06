@@ -364,6 +364,8 @@ module modxs
   !-----------------------------!
   !     screening variables     !
   !-----------------------------!
+  ! true if one of the screening tasks is executed
+  logical :: tscreen
   ! screening type: can be either "full", "diag", "noinvdiag" or "constant"
   character(32) :: screentype
   ! nosym is .true. if no symmetry information should be used

@@ -8,7 +8,7 @@ module m_genfilname
 contains
 
   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc,iq,iqmt,procs,rank,dotext,setfilext,&
+       nar,nlf,fxctype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext,setfilext,&
        revertfilext,appfilext,filnam,fileext)
     use modmain, only: filext
     use modxs, only: filextrevert
@@ -19,14 +19,14 @@ contains
     ! October 2007
     implicit none
     ! arguments
-    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,iqmt,procs,rank
+    integer, optional, intent(in) :: bzsampl,fxctype,oc1,oc2,iq,iqmt,procs,rank
     integer, optional, intent(in) :: etype
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
     logical, optional, intent(in) :: revertfilext,setfilext,appfilext
     character(*), optional, intent(in) :: basename,dotext
     character(256), optional, intent(out) :: filnam,fileext
     ! local variables
-    logical :: nodot0,revert,setfxt,appfxt,dotxt
+    logical :: nodot0,revert,setfxt,appfxt,dotxt,oct
     character(*), parameter :: thisnam = 'genfilname'
     character(256) :: s,s1
     ! if file extension in "modmain" is to be reset to last value: reset
@@ -49,6 +49,7 @@ contains
             &with setfilext or dotext'
        call terminate
     end if
+    oct=present(oc1).and.present(oc2)
     ! dot in front of filename in parallel output for rank eq. zero
     nodot0=.false.
     if (present(nodotpar)) nodot0=nodotpar
@@ -114,9 +115,9 @@ contains
        s=trim(s)//trim(s1)
     end if
     ! optical components
-    if (present(tq0).and.present(oc)) then
+    if (present(tq0).and.oct) then
        if (tq0) then
-          write(s1,'("_OC",i2.2)') oc*11
+          write(s1,'("_OC",2i1.1)') oc1,oc2
           s=trim(s)//trim(s1)
        end if
     end if

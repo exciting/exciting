@@ -15,18 +15,16 @@ subroutine xsgeneigvec
   character(*), parameter :: thisnam='xsgeneigvec'
   real(8) :: vqlt(3)
   integer :: iq,qi,qf
-  logical :: tscr
   ! initialize universal variables
   call init0
   call init1
   call init2xs
-  tscr=(task.ge.400).and.(task.le.499)
   ! SCF allready parallelized for k-point set
   qi=1
   qf=nqpt
   ! add extra q-point for if files for q=0 are to be calculated
   if (tq0ev) qi=0
-  if (tscr) then
+  if (tscreen) then
      qi=0
      qf=0
   end if
@@ -34,7 +32,7 @@ subroutine xsgeneigvec
   if (rank.eq.0) call writeqpts
   ! calculate eigenvectors for each q-point (k+q point set)
   do iq=qi,qf
-     if (.not.tscr) &
+     if (.not.tscreen) &
           call genfilname(iqmt=max(0,iq),setfilext=.true.)
      vqlt(:)=0.d0
      if ((iq.ne.0).and.(rank.eq.0)) then
@@ -43,7 +41,7 @@ subroutine xsgeneigvec
      end if
      ! write eigenvectors, -values, occupancies and contracted MT coefficients
      call writeevec(vqlt,qvkloff(1,iq),filext)
-     if (.not.tscr) then
+     if (.not.tscreen) then
         write(unitout,'(a,i8,3g18.10)') 'Info('//thisnam//'): eigenvectors &
              &generated for Q-point:', iq, vqlt(:)
      else

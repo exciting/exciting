@@ -4,12 +4,12 @@
 ! See the file COPYING for license details.
 
 subroutine xscheck
-  use modmain, only: reducek, spinsprl, spinpol, version
+  use modmain, only: task,reducek,spinsprl,spinpol,version
   use modxs
   use modtetra
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'xscheck'
+  character(*), parameter :: thisnam='xscheck'
   integer errc, warnc
   errc = 0
   warnc = 0
@@ -44,4 +44,6 @@ subroutine xscheck
   if ( warnc .gt. 0 ) then
      write(*,*) '  Warnings occurred:', warnc
   end if
+  tscreen=.false.
+  if ((task.ge.400).and.(task.le.499)) tscreen=.true.
 end subroutine xscheck

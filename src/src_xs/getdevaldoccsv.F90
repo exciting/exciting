@@ -15,9 +15,9 @@ subroutine getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
   real(8), intent(out) :: doccsv(u1-l1+1,u2-l2+1)
   real(8), intent(out) :: scissv(u1-l1+1,u2-l2+1)
   ! local variables
-  integer :: ist,jst
+  integer :: ist,jst,iqt
   real(8), allocatable :: e0(:),e(:),o0(:),o(:)
-  ! check output array sizes
+  iqt=iq
   allocate(e0(nstsv),e(nstsv),o0(nstsv),o(nstsv))
   ! eigenvalues and occupancies for k+q-point
   call getevalsv(vkl(1,ikq),e)

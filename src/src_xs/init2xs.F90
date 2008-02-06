@@ -197,7 +197,7 @@ subroutine init2xs
   !     analytic continuation     !
   !-------------------------------!
   ! if imaginary frequencies intervals are not specified
-  if (nwacont.eq.0) nwacont = nwdos
+  if (nwacont.eq.0) nwacont=nwdos
   nwdf=nwdos
   if (acont) nwdf=nwacont
 
@@ -215,10 +215,10 @@ subroutine init2xs
   !     xc-kernel variables    !
   !----------------------------!
   if (allocated(fxc0)) deallocate(fxc0)
-  allocate(fxc0(nwdos,3))
+  allocate(fxc0(nwdos,9))
   fxc0(:,:)=0.d0
   if (allocated(fxc0d)) deallocate(fxc0d)
-  allocate(fxc0d(nwdos,3))
+  allocate(fxc0d(nwdos,9))
   fxc0d(:,:)=0.d0
 
   !---------------------------!

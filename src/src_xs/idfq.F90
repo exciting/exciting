@@ -22,9 +22,9 @@ subroutine idfq(iq)
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,igmt
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt
   logical :: tq0
-  integer, external :: l2int
+  integer, external :: l2int,octmap
   logical, external :: tqgamma
   ! sampling type for Brillouin zone sampling
   bzsampl=l2int(tetra)
@@ -62,60 +62,71 @@ subroutine idfq(iq)
         end forall
      end if
      ! loop over longitudinal components for optics
-     do oct=1,nc
-        ! filename for output file
-        call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
-             acont=acont,nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqmt=iq,procs=procs,rank=rank,filnam=filnam2)
-        open(unit1,file=trim(filnam2),form='unformatted', &
-             action='write',access='direct',recl=recl)
-        do iw=wi,wf
-           ! read Kohn-Sham response function
-           call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,&
-                chi0h)
-           ! assign components to main matrix for q=0
-           if (tq0) then
-              ! head
-              chi0(1,1)=chi0h(oct)
-              ! wings
-              if (m.gt.1) then
-                 chi0(1,2:)=chi0wg(2:,1,oct)
-                 chi0(2:,1)=chi0wg(2:,2,oct)
+     do oct1=1,nc
+        do oct2=1,nc
+           oct=octmap(oct1,oct2)
+           ! filename for output file
+           call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
+                acont=acont,nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,&
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,procs=procs,rank=rank,&
+                filnam=filnam2)
+           open(unit1,file=trim(filnam2),form='unformatted', &
+                action='write',access='direct',recl=recl)
+           do iw=wi,wf
+              ! read Kohn-Sham response function
+              call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,&
+                   chi0h)
+              ! assign components to main matrix for q=0
+              if (tq0) then
+                 ! head
+                 chi0(1,1)=chi0h(oct)
+                 ! wings
+                 if (m.gt.1) then
+                    chi0(1,2:)=chi0wg(2:,1,oct1)
+                    chi0(2:,1)=chi0wg(2:,2,oct2)
+                 end if
               end if
-           end if
-           ! generate xc-kernel
-           if (fxctype.ne.5) then
-              call fxcifc(fxctype,ng=m,w=w(iw),alrc=alphalrc,&
-                   alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
-              ! add symmetrized Coulomb potential (is equal to unity matrix)
+              ! generate xc-kernel
+              if (fxctype.ne.5) then
+                 call fxcifc(fxctype,ng=m,w=w(iw),alrc=alphalrc,&
+                      alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
+                 ! add symmetrized Coulomb potential (is equal to unity matrix)
+                 forall(j=1:m) 
+                    fxc(j,j)=fxc(j,j)+1.d0
+                 end forall
+                 ! head of pure f_xc kernel
+                 if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
+              end if
+              ! solve Dyson's equation for the interacting response function
+              call dyson(n,chi0,fxc,idf)
+              ! symmetrized inverse dielectric function (add one)
               forall(j=1:m) 
-                 fxc(j,j)=fxc(j,j)+1.d0
+                 idf(j,j)=idf(j,j)+1.d0
               end forall
-              ! head of pure f_xc kernel
-              if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
-           end if
-           ! solve Dyson's equation for the interacting response function
-           call dyson(n,chi0,fxc,idf)
-           ! symmetrized inverse dielectric function (add one)
-           forall(j=1:m) 
-              idf(j,j)=idf(j,j)+1.d0
-           end forall
-           ! Adler-Wiser treatment of macroscopic dielectric function
-           igmt=ivgigq(ivgmt(1,iq),ivgmt(2,iq),ivgmt(3,iq),iq)
-           if (igmt.gt.n) then
-              write(*,*)
-              write(*,'("Error(",a,"): G-vector index for momentum transfer out&
-                   & of range: ",i8)') trim(thisnam),igmt
-              write(*,*)
-              call terminate
-           end if
-!!!write(*,*) 'CONTROL:IDFQ: igmt (1 for q in BZ):',igmt
-           mdf1(iw)=1.d0/idf(igmt,igmt)
-           ! write macroscopic dielectric function to file
-           write(unit1,rec=iw-wi+1) mdf1(iw)
-        end do ! iw
-        close(unit1)
-     end do ! oct
+              ! Adler-Wiser treatment of macroscopic dielectric function
+              igmt=ivgigq(ivgmt(1,iq),ivgmt(2,iq),ivgmt(3,iq),iq)
+              if (igmt.gt.n) then
+                 write(*,*)
+                 write(*,'("Error(",a,"): G-vector index for momentum transfer &
+                      out of range: ",i8)') trim(thisnam),igmt
+                 write(*,*)
+                 call terminate
+              end if
+              if (igmt.ne.1) then
+                 write(*,*)
+                 write(*,'("Info(",a,"): non-zero G-vector Fourier component &
+                      for momentum transfer:")') trim(thisnam)
+                 write(*,'(" index and G-vector:",i8,3g18.10)') igmt,ivgmt(:,iq)
+                 write(*,*)
+              end if
+              mdf1(iw)=1.d0/idf(igmt,igmt)
+              ! write macroscopic dielectric function to file
+              write(unit1,rec=iw-wi+1) mdf1(iw)
+           end do ! iw
+           close(unit1)
+           ! end loop over optical components
+        end do
+     end do
   end do ! m
   ! deallocate
   deallocate(chi0,chi0wg,chi0h,fxc,idf,mdf1,w,chi0hd)

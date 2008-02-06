@@ -77,7 +77,7 @@ contains
     end if
     if ((.not.tq0).or.(n.gt.1)) then
        ! for BSE(-kernel) matrix elements are calculated on the fly
-       if ((task.ge.400).and.(task.le.499)) then
+       if (tscreen) then
           m12(:,:,:)=xiou(:,:,:)
           m34(:,:,:)=xiuo(:,:,:)
        else

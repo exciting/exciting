@@ -29,13 +29,11 @@ subroutine writepmatxs(lgather)
   character(*), parameter :: thisnam='writepmatxs'
   integer :: ik
   character(32) :: fnam
-  logical :: tscr
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-  tscr=(task.ge.400).and.(task.le.499)
-  if (tscr) then
+  if (tscreen) then
      fnam='PMAT'
      call genfilname(basename=trim(fnam),appfilext=.true.,filnam=fnpmat)
      call genfilname(basename=trim(fnam),procs=procs,rank=rank, &
@@ -66,7 +64,7 @@ subroutine writepmatxs(lgather)
   ! allocate the momentum matrix elements array
   allocate(pmat(3,nstsv,nstsv))
   ! get eigenvectors for q=0
-  if (.not.tscr) call genfilname(iqmt=0,setfilext=.true.)
+  if (.not.tscreen) call genfilname(iqmt=0,setfilext=.true.)
   ! generate band combinations
   call ematbdcmbs(1)
   if (lgather) goto 10

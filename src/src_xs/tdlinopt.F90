@@ -33,9 +33,10 @@ subroutine tdlinopt(iq)
   real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
   real(8) :: sumrls(3),brd
   complex(8) :: zt1
-  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,optcompt(3)
+  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,optcompt(3)
   logical :: tq0
   logical, external :: tqgamma
+  integer, external :: octmap
   tq0=tqgamma(iq)
   ! number of components (3 for q=0)
   nc=1
@@ -61,16 +62,18 @@ subroutine tdlinopt(iq)
   ! neglect/include local field effects
   do m=1,n,max(n-1,1)
      ! loop over longitudinal components for optics
-     do oct=1,nc
-        optcomp(1,1)=oct
-        optcomp(2,1)=oct
+     do oct1=1,nc
+     do oct2=1,nc
+        oct=octmap(oct1,oct2)
+        optcomp(1,1)=oct1
+        optcomp(2,1)=oct2
         optcompt(:)=optcomp(:,1)
         ! symmetrization matrix for dielectric function
-        call gensymdf(oct,oct)
+        call gensymdf(oct1,oct2)
         ! file name for inverse of dielectric function
         call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqmt=iq,filnam=filnam2)
+             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam2)
         ! read macroscopic dielectric function (original frequencies)
         open(unit1,file=trim(filnam2),form='unformatted', &
              action='read',status='old',access='direct',recl=recl)
@@ -87,43 +90,43 @@ subroutine tdlinopt(iq)
         ! file names for spectra
         call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqmt=iq,filnam=fneps)
+             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fneps)
         call genfilname(basename='LOSS',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqmt=iq,filnam=fnloss)
+             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnloss)
         call genfilname(basename='SIGMA',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqmt=iq,filnam=fnsigma)
+             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsigma)
         call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc=oct,iqmt=iq,filnam=fnsumrules)
-        if (tetra.and.(fxctype/=0)) then
+             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsumrules)
+        if (tetra.and.(fxctype/=0).and.(oct1.eq.oct2)) then
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=0,&
-                tq0=tq0,oc=oct,iqmt=iq,filnam=filnam)
+                tq0=tq0,oc1=oct1,oc2=oct1,iqmt=iq,filnam=filnam)
            ! read macroscopic dielectric function (RPA)
            open(unit1,file=trim(filnam),form='unformatted', &
                 action='read',status='old',access='direct',recl=recl)
            do iw=1,nwdf
               read(unit1,rec=iw) zt1
-              mdfrpa(iw,oct,1)=dble(zt1)
-              mdfrpa(iw,oct,2)=aimag(zt1)
+              mdfrpa(iw,oct1,1)=dble(zt1)
+              mdfrpa(iw,oct1,2)=aimag(zt1)
            end do
            close(unit1)
            ! derivative of RPA dielectric function
-           call fderiv(1,nwdos,wplot,mdfrpa(1,oct,1),mdfrpad(1,oct),cf)
+           call fderiv(1,nwdos,wplot,mdfrpa(1,oct1,1),mdfrpad(1,oct1),cf)
            ! derivative of xc-kernel
-           call fderiv(1,nwdos,wplot,fxc0(1,oct),fxc0d(1,oct),cf)
+           call fderiv(1,nwdos,wplot,fxc0(1,oct1),fxc0d(1,oct1),cf)
            ! file name for exciton file
            call genfilname(basename='EXCITON',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iqmt=iq,filnam=fnexciton)
+                tq0=tq0,oc1=oct1,oc2=oct1,iqmt=iq,filnam=fnexciton)
            ! determination of excitons in combination with tetrahedron method
            ! and neglect local field effects for kernel but consider for
            ! the RPA solution
-           if (m==max(n,1)) then
-              call findexciton(oct,nwdos,dble(w))
-              call writeexciton(iq,oct,wplot,mdf,trim(fnexciton))
+           if (m.eq.max(n,1)) then
+              call findexciton(oct1,nwdos,dble(w))
+              call writeexciton(iq,oct1,wplot,mdf,trim(fnexciton))
            end if
         end if
         ! generate optical functions
@@ -136,6 +139,7 @@ subroutine tdlinopt(iq)
         call writesigma(iq,wplot,sigma,trim(fnsigma))
         call writesumrls(iq,sumrls,trim(fnsumrules))
      end do ! oct
+     end do
   end do ! m
   ! deallocate
   if (allocated(mdfrpa)) deallocate(mdfrpa)

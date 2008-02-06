@@ -15,10 +15,11 @@ subroutine idfgather
   ! local variables
   character(*), parameter :: thisnam='idfgather'
   character(256) :: filnam,filnam2
-  integer :: n,m,iq,iw,iproc,recl,nc,oct
+  integer :: n,m,iq,iw,iproc,recl,nc,oct,oct1,oct2
   logical :: tq0
   complex(8), allocatable :: mdf1(:)
   logical, external :: tqgamma
+  integer, external :: octmap
   allocate(mdf1(nwdf))
   inquire(iolength=recl) mdf1(1)
   call getunit(unit1)
@@ -34,14 +35,16 @@ subroutine idfgather
      call init1xs(qvkloff(1,iq))
      do m=1,n,max(n-1,1)
         ! loop over longitudinal components for optics
-        do oct=1,nc
+        do oct1=1,nc
+        do oct2=1,nc
+           oct=octmap(oct1,oct2)
            do iproc=0,procs-1
               wpari=firstofset(iproc,nwdf)
               wparf=lastofset(iproc,nwdf)
               ! filename for proc
               call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
-                   nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc=oct,&
-                   iqmt=iq,procs=procs,rank=iproc,filnam=filnam2)
+                   nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc1=oct1,&
+                   oc2=oct2,iqmt=iq,procs=procs,rank=iproc,filnam=filnam2)
               open(unit1,file=trim(filnam2),form='unformatted',&
                    action='read',status='old',access='direct',recl=recl)
               do iw=wpari,wparf
@@ -52,7 +55,7 @@ subroutine idfgather
            ! write to file
            call genfilname(basename='IDF',bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iqmt=iq,filnam=filnam)
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
            open(unit1,file=trim(filnam),form='unformatted', &
                 action='write',status='replace',access='direct',recl=recl)
            do iw=1,nwdf
@@ -62,11 +65,13 @@ subroutine idfgather
            ! remove partial files
            do iproc=0,procs-1
               call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
-                   nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,tq0=tq0,oc=oct,&
-                   iqmt=iq,procs=procs,rank=iproc,filnam=filnam2)
+                   nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,tq0=tq0, &
+                   oc1=oct1,oc2=oct2,iqmt=iq,procs=procs,rank=iproc, &
+                   filnam=filnam2)
               call filedel(trim(filnam2))
            end do
         end do ! oct
+        end do
      end do ! m
      write(unitout,'(a,i8)') 'Info('//thisnam//'): inverse dielectric &
           &function gathered for q-point:',iq

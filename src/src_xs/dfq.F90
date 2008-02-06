@@ -18,6 +18,8 @@ subroutine dfq(iq)
   use m_gettetcw
   use m_chi0upd
   use m_putx0
+  use m_tdgauntgen
+  use m_findgntn0
   use m_getunit
   use m_filedel
   use m_genfilname
@@ -26,6 +28,7 @@ subroutine dfq(iq)
   integer, intent(in) :: iq
   ! local variables
   character(*), parameter :: thisnam='dfq'
+  character(256) :: fnscreen
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:)
@@ -34,12 +37,19 @@ subroutine dfq(iq)
   complex(8) :: wout
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
-  real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
-  integer :: n,j,i1,i2,j1,j2,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp,ikt
-  integer :: oct,oct12,oct1,oct2,un
+  real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
+  integer :: n,j,i1,i2,j1,j2,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp
+  integer :: oct,oct1,oct2,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
   logical, external :: tqgamma
+  if (acont.and.tscreen) then
+     write(*,*)
+     write(*,'("Error(",a,"): analytic continuation does not work with &
+          &screening")')
+     write(*,*)
+     call terminate
+  end if
   ! sampling of Brillouin zone
   bzsampl=0
   if (tetra) bzsampl=1
@@ -52,19 +62,32 @@ subroutine dfq(iq)
   ! zero broadening for analytic contiunation
   brd=brdtd
   if (acont) brd=zzero
-  ! filenames for input
-  call genfilname(basename='TETW',iqmt=iq,filnam=fnwtet)
-  call genfilname(basename='PMAT_XS',filnam=fnpmat)
-  call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
-  ! filenames for output
-  call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-       iqmt=iq,filnam=fnchi0)
-  call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-       iqmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
-  call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iq,procs=procs,rank=rank,filnam=fnxtim)
   ! file extension for q-point
-  call genfilname(iqmt=iq,setfilext=.true.)
+  if (.not.tscreen) call genfilname(iqmt=iq,setfilext=.true.)
+  ! filenames for input
+  ! filenames for output
+  if (tscreen) then
+     call genfilname(basename='TETW',iqmt=iq,appfilext=.true.,filnam=fnwtet)
+     call genfilname(basename='PMAT',appfilext=.true.,filnam=fnpmat)
+     call genfilname(basename='SCREEN',bzsampl=bzsampl,nar=.not.aresdf,&
+          iq=iq,filnam=fnscreen)
+     call genfilname(nodotpar=.true.,basename='EMAT_TIMING',iq=iq,&
+          etype=emattype,procs=procs,rank=rank,appfilext=.true.,filnam=fnetim)
+     call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
+          bzsampl=bzsampl,acont=acont,nar=.not.aresdf,procs=procs,rank=rank, &
+          appfilext=.true.,filnam=fnxtim)
+  else
+     call genfilname(basename='TETW',iqmt=iq,filnam=fnwtet)
+     call genfilname(basename='PMAT_XS',filnam=fnpmat)
+     call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
+     call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
+          acont=acont,nar=.not.aresdf,iqmt=iq,procs=procs,rank=rank, &
+          appfilext=.true.,filnam=fnxtim)
+     call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
+          iqmt=iq,filnam=fnchi0)
+     call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
+          iqmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
+  end if
   ! remove timing files from previous runs
   call filedel(trim(fnxtim))
   ! calculate k+q and G+k+q related variables
@@ -137,9 +160,21 @@ subroutine dfq(iq)
   chi0(:,:,:)=zzero
   chi0w(:,:,:,:)=zzero
   chi0h(:,:)=zzero
+  if (tscreen) then
+     ! generate Gaunt coefficients
+     call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
+     ! find indices for non-zero Gaunt coefficients
+     call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+     ! generate radial integrals wrt. sph. Bessel functions
+     call ematrad(iq)
+     ! delete timing information of previous runs
+     call filedel(trim(fnetim))
+     ! write information
+     write(unitout,'(a,i6)') 'Info('//thisnam//'): number of G+q vectors:', &
+          ngq(iq)
+     call ematqalloc
+  end if
   ! loop over k-points
-  call getunit(un)
-  ikt=0
   do ik=1,nkpt
      cpuosc=0.d0
      cpuupd=0.d0
@@ -149,6 +184,10 @@ subroutine dfq(iq)
           scis12)
      call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
           scis21)
+     if (tscreen) then
+        ! for screening calculate matrix elements of plane wave on the fly
+        call ematqk1(iq,ik)
+     end if
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
@@ -158,9 +197,6 @@ subroutine dfq(iq)
         xiuo(:,:,:)=zzero
         pmuo(:,:,:)=zzero
      end if
-     !scissors: sign relevant:
-     ! calculate explicitly the scissors shift, depending on sign of band
-     ! energy difference
      do ist1=1,istocc0-istunocc0+1
         do ist2=1,istocc0-istunocc0+1
            j=ist1+istunocc0-1
@@ -257,12 +293,11 @@ subroutine dfq(iq)
                     end do
                  end if
                  do oct2=1,3
-                    oct12=octmap(oct1,oct2)
+                    oct=octmap(oct1,oct2)
                     ! symmetrization matrix for dielectric function
                     call gensymdf(oct1,oct2)
                     optcomp(1,1)=oct1
                     optcomp(2,1)=oct2
-                    ! Gamma q-point
                     ! head
                     call dfqoschd(pmou(:,ist1,ist2),pmuo(:,ist2,ist1),hou(1,1),&
                          huo(1,1))
@@ -273,10 +308,9 @@ subroutine dfq(iq)
                        if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
                             deou(ist1,ist2)**2 &
                             /(wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
-                       chi0h(oct12,iw-wi+1)=chi0h(oct12,iw-wi+1)+ &
+                       chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                             wout*hou(1,1)+wuo(iw)*huo(1,1)
                     end do
-                    ! Gamma q-point
                     call cpu_time(cpu1)
                     cpuosc=cpuosc+cpu1-cpu0
                  end do !oct2
@@ -300,19 +334,48 @@ subroutine dfq(iq)
      call dftim(iq,ik,trim(fnxtim),cpuread,cpuosc,cpuupd, &
           cputot)
      ! synchronize
-     call barrier
+     if (.not.tscreen) call barrier
      ! end loop over k-points
   end do
+  if (tscreen) call ematqdealloc
   ! write response function to file
-  do j=0,procs-1
-     if (rank.eq.j) then
-        do iw=wi,wf
-           call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
-                chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
+  if (tscreen) then
+     ! write out screening
+     call getunit(un)
+     open(un,file=trim(fnscreen),form='formatted',action='write', &
+          status='replace')
+     rv1(:)=0.d0
+     rv1(1:3)=1.d0
+     r1=0.d0
+     do ig1=1,n
+        do ig2=1,n
+           if (ig1.eq.ig2) r1=1.d0
+           if (tq0) then
+              if ((ig1.eq.1).and.(ig2.eq.1)) write(un,'(2i8,9g18.10)') ig1,ig2,&
+                   rv1-dble(chi0h(:,1))
+              if ((ig1.eq.1).and.(ig2.ne.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
+                   -dble(chi0w(ig2,1,:,1))
+              if ((ig1.ne.1).and.(ig2.eq.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
+                   -dble(chi0w(ig1,2,:,1))
+              if ((ig1.ne.1).and.(ig2.ne.1)) write(un,'(2i8,g18.10)') ig1,ig2,&
+                   r1-dble(chi0(ig1,ig2,1))
+           else
+              write(un,'(2i8,g18.10)') ig1,ig2,r1-dble(chi0(ig1,ig2,1))
+           end if
         end do
-     end if
-     call barrier
-  end do
+     end do
+     close(un)
+  else
+     do j=0,procs-1
+        if (rank.eq.j) then
+           do iw=wi,wf
+              call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
+                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
+           end do
+        end if
+        call barrier
+     end do
+  end if
   deallocate(docc12,docc21,scis12,scis21)
   deallocate(chi0h)
   deallocate(chi0w)

@@ -14,12 +14,12 @@ subroutine epsconv
   character(*), parameter :: thisnam='epsconv'
   character(256) :: filnam
   integer, parameter :: numlines_top=50
-  integer :: iq,iw,iwp,j,m,n,oct,nc,un
+  integer :: iq,iw,iwp,j,m,n,oct,oct1,oct2,nc,un
   logical :: exis,tq0
   real(8), parameter :: epsc=1.d-8
   real(8), allocatable :: w(:), epst(:,:),lor(:),f(:),f1(:),g(:),g1(:),cf(:,:)
   complex(8), allocatable :: eps(:)
-  integer, external :: l2int
+  integer, external :: l2int,octmap
   logical, external :: tqgamma
   ! initialize universal variables
   call init0
@@ -39,11 +39,13 @@ subroutine epsconv
      ! neglect/include local field effects
      do m=1,n,max(n-1,1)
         ! loop over longitudinal components for optics
-        do oct=1,nc
+        do oct1=1,nc
+        do oct2=1,nc
+           oct=octmap(oct1,oct2)
            ! generate filename for Tetrahedron method
            call genfilname(basename='EPSILON',bzsampl=bzsampl,&
                 nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iqmt=iq,filnam=filnam)
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
            ! check for file to read
            inquire(file=trim(filnam),exist=exis)
            if (.not.exis) then
@@ -67,7 +69,7 @@ subroutine epsconv
            ! generate filename for output (_s_ymmetric _l_orentzian)
            call genfilname(basename='EPSILON_sl',bzsampl=bzsampl,&
                 nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc=oct,iqmt=iq,filnam=filnam)
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
            open(unit=un,file=trim(filnam),&
                 form='formatted',action='write',status='replace')
            ! rescale energies read from file to atomic units
@@ -99,6 +101,7 @@ subroutine epsconv
 !!$           call fsmooth(nsmdos,nwdf,1,g1)
            close(un)
         end do ! oct
+        end do
      end do
   end do
   deallocate(w,epst,eps,lor,f,f1,g,g1,cf)

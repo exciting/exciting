@@ -12,7 +12,7 @@ subroutine df
   ! local variables
   character(*), parameter :: thisnam='df'
   integer :: iq
-  call genfilname(setfilext=.true.)
+  if (.not.tscreen) call genfilname(setfilext=.true.)
   if (calledxs.eq.1) call init0
   ! initialise universal variables
   call init1
@@ -24,10 +24,11 @@ subroutine df
   call readfermi
   ! w-point parallelization for dielectric function
   call genparidxran('w')
+  if (tscreen) call genparidxran('q')
   ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   emattype=1
   ! loop over q-points
-  do iq=1,nqpt
+  do iq=qpari,qparf
      ! call for q-point
      if (.not.gather) call dfq(iq)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sahm response &
@@ -35,7 +36,7 @@ subroutine df
   end do
   ! synchronize
   if (.not.gather) call barrier
-  if ((procs.gt.1).and.(rank.eq.0)) call dfgather
+  if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call dfgather
   if (.not.gather) call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Kohn-Sham response &
        &function finished"
@@ -45,5 +46,5 @@ subroutine df
      call xsfinit
      call terminate
   end if
-  call genfilname(setfilext=.true.)
+  if (.not.tscreen) call genfilname(setfilext=.true.)
 end subroutine df
