@@ -19,6 +19,6 @@ real(8),parameter::one=1
  enddo
  enddo
 call dscal(en,-one,lorbearray,1)
-sigma=dcmplx(-abs(lorbearray(idamax(en,lorbearray,1))))
+sigma=dcmplx( min( -abs(lorbearray(idamax(en,lorbearray,1)))  ,-0.2))
 write(*,*)sigma
 end subroutine

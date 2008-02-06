@@ -93,8 +93,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(rd(ncvmax),idx(ncvmax))
   bmat  = 'G'
   which = 'LM'
-
+ if(lowesteval.eq.0) then
   call minenergy(sigma)
+ else
+ sigma=dcmplx(lowesteval)
+ endif
   resid(:)=0.0
   tol    = 1.e-8
   ido    = 0
