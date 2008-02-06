@@ -15,7 +15,7 @@ subroutine scrgeneigvec
   character(*), parameter :: thisnam='scrgeneigvec'
   real(8) :: vklofft(3),rgkmaxt
   integer :: ngridkt(3),nemptyt
-  logical :: nosymt,reducekt,exist
+  logical :: nosymt,reducekt
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -39,15 +39,9 @@ subroutine scrgeneigvec
   write(unitout,'(a)') "Info("//trim(thisnam)//"): eigenvectors for screening &
        &finished"
   ! calculate momentum matrix elements
-  inquire(file='PMAT_SCR.OUT',exist=exist)
-  if (exist) then
-     write(unitout,'(a)') "Info("//trim(thisnam)//"): momentum matrix elements &
-          &for screening found"     
-  else
-     call writepmatxs(.false.)
-     write(unitout,'(a)') "Info("//trim(thisnam)//"): momentum matrix elements &
-          &for screening finished"
-  end if
+  call writepmatxs(.false.)
+  write(unitout,'(a)') "Info("//trim(thisnam)//"): momentum matrix elements &
+       &for screening finished"
   ! restore global variables
   nosym=nosymt
   reducek=reducekt

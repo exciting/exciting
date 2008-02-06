@@ -29,7 +29,7 @@ subroutine xsfinit
   ! write out information
   write(unitout,'(a,i8,a)') 'Info('//thisnam//'): task Nr.', task, &
        ' stopped gracefully'
-  call showunits(unitout)
+  !call showunits(unitout)
   write(unitout,'(a)') 'Timings: '
   write(unitout,'(a)') '  Date (YYYY-MM-DD) : '//dat(1:4)//'-'//dat(5:6)//'-' &
        //dat(7:8)
