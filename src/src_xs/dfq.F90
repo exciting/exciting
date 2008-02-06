@@ -82,7 +82,7 @@ subroutine dfq(iq)
      call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
      call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
           acont=acont,nar=.not.aresdf,iqmt=iq,procs=procs,rank=rank, &
-          appfilext=.true.,filnam=fnxtim)
+          filnam=fnxtim)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
           iqmt=iq,filnam=fnchi0)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&

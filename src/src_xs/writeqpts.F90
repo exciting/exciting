@@ -26,7 +26,7 @@ implicit none
 integer iq
 character(256) :: filnam
 call getunit(unit1)
-call genfilname(basename='QPOINTS',filnam=filnam)
+call genfilname(basename='QPOINTS',appfilext=.true.,filnam=filnam)
 open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
 write(unit1,'(I6," : nqpt; q-point, vql, vqc, wqpt, ngq below")') nqpt
 do iq=1,nqpt
