@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: hmlaa
 ! !INTERFACE:
-subroutine hmlaa(tapp,is,ia,ngp,apwalm,v,h)
+subroutine hmlaa(tapp,is,ia,ngp,apwalm,v,h,np)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -31,12 +31,12 @@ use modmain
 implicit none
 ! arguments
 logical, intent(in) :: tapp
-integer, intent(in) :: is
+integer, intent(in) :: is,np
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+complex(8), intent(inout) :: h(np)
 ! local variables
 integer ias,io1,io2
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3

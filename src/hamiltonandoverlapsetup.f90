@@ -24,18 +24,18 @@ end do
 ! muffin-tin contributions
 do is=1,nspecies
   do ia=1,natoms(is)
-    call hmlaa(.false.,is,ia,ngp,apwalm,v,h)
-    call hmlalo(.false.,is,ia,ngp,apwalm,v,h)
-    call hmllolo(.false.,is,ia,ngp,v,h)
-    call olpaa(.false.,is,ia,ngp,apwalm,v,o)
-    call olpalo(.false.,is,ia,ngp,apwalm,v,o)
-    call olplolo(.false.,is,ia,ngp,v,o)
+    call hmlaa(.false.,is,ia,ngp,apwalm,v,h,np)
+    call hmlalo(.false.,is,ia,ngp,apwalm,v,h,np)
+    call hmllolo(.false.,is,ia,ngp,v,h,np)
+    call olpaa(.false.,is,ia,ngp,apwalm,v,o,np)
+    call olpalo(.false.,is,ia,ngp,apwalm,v,o,np)
+    call olplolo(.false.,is,ia,ngp,v,o,np)
 
   end do
 end do
 ! interstitial contributions
-call hmlistl(.false.,ngp,igpig,vgpc,v,h)
-call olpistl(.false.,ngp,igpig,v,o)
+call hmlistl(.false.,ngp,igpig,vgpc,v,h,np)
+call olpistl(.false.,ngp,igpig,v,o,np)
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
  !do is=1,np

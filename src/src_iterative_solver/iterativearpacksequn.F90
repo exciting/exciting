@@ -96,7 +96,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
  if(lowesteval.eq.0) then
   call minenergy(sigma)
  else
- sigma=dcmplx(lowesteval)
+ sigma=dcmplx(lowesteval,0)
  endif
   resid(:)=0.0
   tol    = 1.e-8

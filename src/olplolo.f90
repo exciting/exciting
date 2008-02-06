@@ -3,16 +3,16 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine olplolo(tapp,is,ia,ngp,v,o)
+subroutine olplolo(tapp,is,ia,ngp,v,o,np)
 use modmain
 implicit none
 ! arguments
 logical, intent(in) :: tapp
-integer, intent(in) :: is
+integer, intent(in) :: is,np
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: o(*)
+complex(8), intent(inout) :: o(np)
 ! local variables
 integer ias,ilo1,ilo2,l,m,lm,i,j,k
 ias=idxas(ia,is)
@@ -33,7 +33,7 @@ do ilo1=1,nlorb(is)
 ! calculate the matrix elements
             k=i+((j-1)*j)/2
           !  o(k)=o(k)+ololo(ilo1,ilo2,ias)
-            call zmpalpha(o(1),ololo(ilo1,ilo2,ias),j,i) 
+            call zmpalpha(o,np,ololo(ilo1,ilo2,ias),j,i) 
           end if
         end if
       end do

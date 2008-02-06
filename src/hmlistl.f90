@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: hmlistl
 ! !INTERFACE:
-subroutine hmlistl(tapp,ngp,igpig,vgpc,v,h)
+subroutine hmlistl(tapp,ngp,igpig,vgpc,v,h,np)
 ! !USES:
 use modmain
 
@@ -36,11 +36,11 @@ use modmain
 implicit none
 ! arguments
 logical, intent(in) :: tapp
-integer, intent(in) :: ngp
+integer, intent(in) :: ngp,np
 integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+complex(8), intent(inout) :: h(np)
 complex(8)::zt
 ! local variables
 integer i,j,k,ig,iv(3)
@@ -76,7 +76,7 @@ else
        !h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
           zt=veffig(ig)+t1*cfunig(ig)
          !  h(k)=h(k)+zt
-          call zmpalpha(h,zt,j,i) 
+          call zmpalpha(h,np,zt,j,i) 
       end if
     end do
   end do

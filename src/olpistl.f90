@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: olpistl
 ! !INTERFACE:
-subroutine olpistl(tapp,ngp,igpig,v,o)
+subroutine olpistl(tapp,ngp,igpig,v,o,np)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -30,10 +30,10 @@ use modmain
 implicit none
 ! arguments
 logical, intent(in) :: tapp
-integer, intent(in) :: ngp
+integer, intent(in) :: ngp,np
 integer, intent(in) :: igpig(ngkmax)
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: o(*)
+complex(8), intent(inout) :: o(np)
 ! local variables
 integer i,j,k,iv(3),ig
 complex(8) zt1
@@ -63,7 +63,7 @@ else
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
         !o(k)=o(k)+cfunig(ig)
-          call zmpalpha(o(1),cfunig(ig),j,i) 
+          call zmpalpha(o,np,cfunig(ig),j,i) 
       end if
     end do
   end do

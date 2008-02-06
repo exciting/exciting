@@ -3,17 +3,17 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine olpalo(tapp,is,ia,ngp,apwalm,v,o)
+subroutine olpalo(tapp,is,ia,ngp,apwalm,v,o,np)
 use modmain
 implicit none
 ! arguments
 logical, intent(in) :: tapp
-integer, intent(in) :: is
+integer, intent(in) :: is,np
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: o(*)
+complex(8), intent(inout) :: o(np)
 ! local variables
 integer ias,ilo,io,l,m,lm,i,j,k
 complex(8) zsum
@@ -43,7 +43,7 @@ do ilo=1,nlorb(is)
           zsum=zsum+conjg(apwalm(i,io,lm,ias))*oalo(io,ilo,ias)
         end do
         !o(k)=o(k)+zsum
-        call zmpalpha(o(1),zsum,j,i) 
+        call zmpalpha(o,np,zsum,j,i) 
       end do
     end if
   end do

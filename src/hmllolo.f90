@@ -3,17 +3,17 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine hmllolo(tapp,is,ia,ngp,v,h)
+subroutine hmllolo(tapp,is,ia,ngp,v,h,np)
 use modmain
 
 implicit none
 ! arguments
 logical, intent(in) :: tapp
 integer, intent(in) :: is
-integer, intent(in) :: ia
+integer, intent(in) :: ia,np
 integer, intent(in) :: ngp
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+complex(8), intent(inout) :: h(np)
 ! local variables
 integer ias,ilo1,ilo2,i,j,k
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
@@ -46,7 +46,7 @@ do ilo1=1,nlorb(is)
           else
 ! calculate the matrix elements
           
-            call zmpalpha(h,zsum,j,i) 
+            call zmpalpha(h,np,zsum,j,i) 
         
           end if
         end if
