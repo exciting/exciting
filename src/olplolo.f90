@@ -32,7 +32,8 @@ do ilo1=1,nlorb(is)
           else
 ! calculate the matrix elements
             k=i+((j-1)*j)/2
-            o(k)=o(k)+ololo(ilo1,ilo2,ias)
+          !  o(k)=o(k)+ololo(ilo1,ilo2,ias)
+            call zmpalpha(o(1),ololo(ilo1,ilo2,ias),j,i) 
           end if
         end if
       end do

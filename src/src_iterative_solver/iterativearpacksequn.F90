@@ -68,6 +68,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   mneupd = 1
   open (logfil,file="ARPACK.OUT",action="WRITE") 
 #endif
+
+
   !##################	
   !ARPACK parameters
   !##################
@@ -91,7 +93,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(rd(ncvmax),idx(ncvmax))
   bmat  = 'G'
   which = 'LM'
-  sigma=dcmplx(lowesteval,0)
+
+  call minenergy(sigma)
   resid(:)=0.0
   tol    = 1.e-8
   ido    = 0

@@ -66,13 +66,36 @@ if (tapp) then
 else
 ! calculate the matrix elements
 
-
-
 call ZHPR2 ( 'U', n, alpha, conjg(x), 1, conjg(y), 1, a )
-
 
 end if
 
+return
+end subroutine
+!EOC
+
+
+
+
+
+
+
+subroutine zmatinnotpacked(tapp,n,alpha,x,y,v,a)
+!
+use modmain ,only:zone
+implicit none
+! arguments
+logical, intent(in) :: tapp
+integer, intent(in) :: n
+complex(8), intent(in) :: alpha
+complex(8), intent(in) :: x(n)
+complex(8), intent(in) :: y(n)
+complex(8), intent(in) :: v(n)
+complex(8), intent(inout) :: a(:,:)
+
+! calculate the matrix elements
+
+call ZHER2 ( 'U', n, alpha, n,conjg(x), 1, conjg(y), 1, a )
 
 return
 end subroutine

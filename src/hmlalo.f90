@@ -40,6 +40,7 @@ do ilo=1,nlorb(is)
           if (abs(dble(zsum))+abs(aimag(zsum)).gt.1.d-20) then
             if (tapp) then
 ! apply the Hamiltonian operator to v
+write(*,*)"tapp hmlalo"
               do j=1,ngp
                 zt1=zsum*apwalm(j,io,lm3,ias)
                 h(i)=h(i)+zt1*v(j)
@@ -51,7 +52,7 @@ do ilo=1,nlorb(is)
               do j=1,ngp
                 k=k+1
                 zt1=zsum*apwalm(j,io,lm3,ias)
-                h(k)=h(k)+conjg(zt1)
+               call zmpalpha(h,conjg(zt1),i,j)
               end do
             end if
           end if

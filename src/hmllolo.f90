@@ -5,6 +5,7 @@
 
 subroutine hmllolo(tapp,is,ia,ngp,v,h)
 use modmain
+
 implicit none
 ! arguments
 logical, intent(in) :: tapp
@@ -44,8 +45,9 @@ do ilo1=1,nlorb(is)
             if (i.ne.j) h(j)=h(j)+conjg(zsum)*v(i)
           else
 ! calculate the matrix elements
-            k=i+((j-1)*j)/2
-            h(k)=h(k)+zsum
+          
+            call zmpalpha(h,zsum,j,i) 
+        
           end if
         end if
       end do

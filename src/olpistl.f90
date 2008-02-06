@@ -52,17 +52,23 @@ if (tapp) then
   end do
 else
 ! calculate the matrix elements
+!$omp parallel default(shared) & 
+!$omp shared(o) private(iv,ig,i,j)
+!$omp do
   do j=1,ngp
-    k=((j-1)*j)/2
+    !k=((j-1)*j)/2
     do i=1,j
-      k=k+1
+      !k=k+1
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
-        o(k)=o(k)+cfunig(ig)
+        !o(k)=o(k)+cfunig(ig)
+          call zmpalpha(o(1),cfunig(ig),j,i) 
       end if
     end do
   end do
+!$omp end do 
+!$omp end parallel
 end if
 return
 end subroutine

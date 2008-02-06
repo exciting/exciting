@@ -35,14 +35,15 @@ do ilo=1,nlorb(is)
       end do
     else
 ! calculate the matrix elements
-      k=((j-1)*j)/2
+      !k=((j-1)*j)/2
       do i=1,ngp
-        k=k+1
+       ! k=k+1
         zsum=0.d0
         do io=1,apword(l,is)
           zsum=zsum+conjg(apwalm(i,io,lm,ias))*oalo(io,ilo,ias)
         end do
-        o(k)=o(k)+zsum
+        !o(k)=o(k)+zsum
+        call zmpalpha(o(1),zsum,j,i) 
       end do
     end if
   end do

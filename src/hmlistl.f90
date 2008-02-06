@@ -9,6 +9,7 @@
 subroutine hmlistl(tapp,ngp,igpig,vgpc,v,h)
 ! !USES:
 use modmain
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   tapp  : .true. if the Hamiltonian is to be applied to the input vector,
 !           .false. if the full matrix is to be calculated (in,logical)
@@ -40,6 +41,7 @@ integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
 complex(8), intent(in) :: v(nmatmax)
 complex(8), intent(inout) :: h(*)
+complex(8)::zt
 ! local variables
 integer i,j,k,ig,iv(3)
 real(8) t1
@@ -60,18 +62,26 @@ if (tapp) then
   end do
 else
 ! calculate the matrix elements
+!$omp parallel default(shared) & 
+!$omp shared(h) private(iv,ig,t1,i,j)
+!$omp do
   do j=1,ngp
-    k=((j-1)*j)/2
+    !k=((j-1)*j)/2
     do i=1,j
-      k=k+1
+      !k=k+1
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
         t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
-        h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
+       !h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
+          zt=veffig(ig)+t1*cfunig(ig)
+         !  h(k)=h(k)+zt
+          call zmpalpha(h,zt,j,i) 
       end if
     end do
   end do
+!$omp end do 
+!$omp end parallel
 end if
 return
 end subroutine

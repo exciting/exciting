@@ -38,4 +38,8 @@ call hmlistl(.false.,ngp,igpig,vgpc,v,h)
 call olpistl(.false.,ngp,igpig,v,o)
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
+ !do is=1,np
+ !write(888,*)h(is),o(is)
+ !end do 
+ !stop
 end subroutine
