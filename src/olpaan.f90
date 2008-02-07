@@ -27,9 +27,11 @@ do l=0,lmaxmat
     do io=1,apword(l,is)
     if(packed) then
     
-      call ZHPR2 ( 'U', ngp, zhalf, conjg(apwalm(1,io,lm,ias)), 1, conjg(apwalm(1,io,lm,ias)), 1, op )
+      call ZHPR2 ( 'U', ngp, zhalf, conjg(apwalm(1,io,lm,ias)), &
+      1, conjg(apwalm(1,io,lm,ias)), 1, overlapp )
     else
-      call ZHER2 ( 'U', ngp, zhalf, conjg(apwalm(1,io,lm,ias)), 1, conjg(apwalm(1,io,lm,ias)), 1, o,ohrank)
+      call ZHER2 ( 'U', ngp, zhalf, conjg(apwalm(1,io,lm,ias)), &
+      1, conjg(apwalm(1,io,lm,ias)), 1, overlap,ohrank)
     endif
     end do
   end do

@@ -1,27 +1,27 @@
 
 subroutine hupdate(z,i,j)
-use modfvsystem
+use modfvsystem,only:hamilton,hamiltonp,packed
 integer ,intent(in)::i,j
 complex(8),intent(in)::z
 integer::ipx
 if(packed)then
 ipx=((i-1)*i)/2 + j
-hp(ipx)=hp(ipx)+z
+hamiltonp(ipx)=hamiltonp(ipx)+z
 else
-h(i,j)=h(i,j)+z
+hamilton(i,j)=hamilton(i,j)+z
 endif
 return
 end subroutine
 
 subroutine oupdate(z,i,j)
-use modfvsystem
+use modfvsystem,only:overlapp,overlap,packed
 integer ,intent(in)::i,j
 complex(8),intent(in)::z
 if(packed)then
 ipx=((i-1)*i)/2 + j
-op(ipx)=op(ipx)+z
+overlapp(ipx)=overlapp(ipx)+z
 else
-o(i,j)=h(i,j)+z
+overlap(i,j)=overlap(i,j)+z
 endif
 
 return

@@ -8,7 +8,9 @@
 ! !INTERFACE:
 subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
 ! !USES:
-use modmain
+use modmain 
+use modfvsystem
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   nmatp  : order of overlap and Hamiltonian matrices (in,integer)
 !   ngp    : number of G+k-vectors for augmented plane waves (in,integer)
@@ -49,8 +51,6 @@ integer, allocatable :: ifail(:)
 real(8), allocatable :: w(:)
 real(8), allocatable :: rwork(:)
 complex(8), allocatable :: v(:)
-complex(8), allocatable :: h(:)
-complex(8), allocatable :: o(:)
 complex(8), allocatable :: work(:)
 np=(nmatp*(nmatp+1))/2
 allocate(iwork(5*nmatp))
@@ -58,13 +58,15 @@ allocate(ifail(nmatp))
 allocate(w(nmatp))
 allocate(rwork(7*nmatp))
 allocate(v(1))
-allocate(h(np))
-allocate(o(np))
 allocate(work(2*nmatp))
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
- call hamiltonandoverlapsetup(np,ngp,apwalm,igpig,vgpc,h,o)
+allocate(hamiltonp(np),overlapp(np))
+packed=.true.
+hamiltonp=0
+overlapp=0
+ call hamiltonandoverlapsetup(ngp,apwalm,igpig,vgpc)
 
 
 !------------------------------------!
@@ -76,7 +78,7 @@ vl=0.d0
 vu=0.d0
 abstol=2.d0*dlamch('S')
 ! LAPACK 3.0 call
-call zhpgvx(1,'V','I','U',nmatp,h,o,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
+call zhpgvx(1,'V','I','U',nmatp,hamiltonp,overlapp,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
  work,rwork,iwork,ifail,info)
 evalfv(1:nstfv)=w(1:nstfv)
 if (info.ne.0) then
@@ -96,7 +98,7 @@ call cpu_time(cpu1)
 !$OMP CRITICAL
 timefv=timefv+cpu1-cpu0
 !$OMP END CRITICAL
-deallocate(iwork,ifail,w,rwork,v,h,o,work)
+deallocate(iwork,ifail,w,rwork,v,hamiltonp,overlapp,work)
 return
 end subroutine
 !EOC

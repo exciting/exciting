@@ -18,16 +18,6 @@ module diisinterfaces
   end interface
 
   interface
-     subroutine  hamiltonandoverlapsetupnotpacked(n,ngp,apwalm,igpig,vgpc,hamilton,overlap)
-       use modmain, only:ngkmax,apwordmax,lmmaxapw,natmtot
-       integer, intent(in)::n,ngp
-       complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-       integer, intent(in) :: igpig(ngkmax)
-       real(8), intent(in) :: vgpc(3,ngkmax)
-       complex(8),intent(inout)::hamilton(n,n),overlap(n,n)
-     end subroutine hamiltonandoverlapsetupnotpacked
-  end interface
-  interface
      subroutine seceqfvprecond  (n,h,o,X,w,evalfv,evecfv)
        use modmain, only: nmatmax,nstfv
     

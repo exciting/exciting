@@ -93,9 +93,9 @@ do l1=0,lmaxmat
      
     
        if(packed) then
-      call ZHPR2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, hp )
+      call ZHPR2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, hamiltonp )
     else
-      call ZHER2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, h,ohrank)
+      call ZHER2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, hamilton,ohrank)
     endif
     end do
   end do
@@ -111,9 +111,11 @@ do l1=0,lmaxmat
         
        
             if(packed) then
-      call ZHPR2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(apwalm(1,io2,lm1,ias)), 1, hp )
+      call ZHPR2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1,&
+       conjg(apwalm(1,io2,lm1,ias)), 1, hamiltonp )
     else
-      call ZHER2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(apwalm(1,io2,lm1,ias)), 1, h,ohrank)
+      call ZHER2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1,&
+       conjg(apwalm(1,io2,lm1,ias)), 1, hamilton,ohrank)
     endif
       end do
     end do

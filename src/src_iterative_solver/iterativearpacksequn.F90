@@ -4,6 +4,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   use modmain
   use modmpi
   use sclcontroll
+  use modfvsystem ,only: packed, hamilton,overlap,ohrank
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -30,8 +31,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8),intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
 
   ! local variables
-  complex(8) 	:: hamilton(nmat(ik,ispn),nmat(ik,ispn))
-  complex(8) 	:: overlap(nmat(ik,ispn),nmat(ik,ispn))
+
   integer ::n
   real:: cpu0,cpu1,cpu2
   Complex(8)::                 zero, one
@@ -118,9 +118,15 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !##################
   !setup hamiltonian#
   !##################
-  call hamiltonandoverlapsetupnotpacked(n,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
   
-  !call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
+  allocate(hamilton(n,n),overlap(n,n))
+  hamilton=0
+  overlap=0
+  packed=.false.
+ ohrank=n
+ call hamiltonandoverlapsetup(ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
+
+
   call cpu_time(cpu0)
   !#######################################################################
   !calculate LU decomposition to be used in the reverse communication loop

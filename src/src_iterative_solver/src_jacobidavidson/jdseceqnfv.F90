@@ -5,6 +5,7 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
        ,scrpath,filext
   use sclcontroll
   use jacobidavidsoncommon
+  use modfvsystem
   implicit none
   ! argumentstrialvec
   integer, 	intent(in) 		:: ik
@@ -32,9 +33,12 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   n=nmat(ik,ispn)
 v=4+mparam	
 w=v+jmax
-  allocate(zwork(n,lwork),hamilton(np),overlap(np))
-
-  call hamiltonandoverlapsetup(np,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
+  allocate(zwork(n,lwork))
+allocate(hamiltonp(np),overlapp(np))
+packed=.true.
+hamiltonp=0
+overlapp=0
+  call hamiltonandoverlapsetup(ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
   call cpu_time(cpu0)
   write(krange,*)ik
   write(krange,*)trim(krange),ispn
@@ -57,7 +61,7 @@ w=v+jmax
      info=0
   endif
   target=dcmplx(lowesteval,0)
-  call initprecon(n,target,hamilton,overlap)
+  call initprecon(n,target,hamiltonp,overlapp)
 
   call JDQZ( alpha, beta, eivec, .true., n, target, eps,& 
        nstfv,jmax , jmin, 1,mparam, ldeg, 7, 1000,&
@@ -76,7 +80,7 @@ w=v+jmax
   end do
   
   call deallocprecon()
-  deallocate(zwork,hamilton,overlap)
+  deallocate(zwork,hamiltonp,overlapp)
   call cpu_time(cpu1)
 
   timefv=timefv+cpu1-cpu0

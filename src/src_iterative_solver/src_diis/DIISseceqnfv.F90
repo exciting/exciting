@@ -5,6 +5,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
        ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax,zzero,zone
   use sclcontroll
   use diisinterfaces
+   use modfvsystem ,only: packed, hamilton,overlap,ohrank
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -40,8 +41,6 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
-  complex(8):: hamilton(nmat(ik,ispn),nmat(ik,ispn))
-  complex(8):: overlap(nmat(ik,ispn),nmat(ik,ispn))
   complex(8):: P(nmatmax,nmatmax)
   complex(8)::         h(nmat(ik,ispn),nstfv,diismax) 
   complex(8)::         s(nmat(ik,ispn),nstfv,diismax)
@@ -66,7 +65,12 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
   call cpu_time(cpu0)
-  call hamiltonandoverlapsetupnotpacked(n,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,hamilton,overlap)
+   allocate(hamilton(n,n),overlap(n,n))
+  hamilton=0
+  overlap=0
+  packed=.false.
+ ohrank=n
+  call hamiltonandoverlapsetup(ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
 
   call cpu_time(cpu1)
 

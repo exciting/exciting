@@ -10,7 +10,6 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   use modmain
   use modmpi
   use sclcontroll
-  use diisinterfaces
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   evalfv : first-variational eigenvalues (out,real(nstfv))

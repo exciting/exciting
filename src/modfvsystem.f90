@@ -1,6 +1,6 @@
 module modfvsystem
 implicit none
-complex(8),allocatable::hp(:),op(:),h(:,:),o(:,:)
+complex(8),allocatable::hamiltonp(:),overlapp(:),hamilton(:,:),overlap(:,:)
 logical::packed
 integer ::ohrank
 interface
@@ -79,6 +79,16 @@ use modmain
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
+end subroutine
+end interface
+interface
+subroutine hamiltonandoverlapsetup(ngp,apwalm,igpig,vgpc)
+use modmain
+implicit none
+integer, intent(in)::ngp
+complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+integer, intent(in) :: igpig(ngkmax)
+real(8), intent(in) :: vgpc(3,ngkmax)
 end subroutine
 end interface
 end module
