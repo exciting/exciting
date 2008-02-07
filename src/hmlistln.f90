@@ -6,9 +6,10 @@
 !BOP
 ! !ROUTINE: hmlistl
 ! !INTERFACE:
-subroutine hmlistl(tapp,ngp,igpig,vgpc,v,h)
+subroutine hmlistln(ngp,igpig,vgpc,v)
 ! !USES:
 use modmain
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   tapp  : .true. if the Hamiltonian is to be applied to the input vector,
 !           .false. if the full matrix is to be calculated (in,logical)
@@ -34,45 +35,39 @@ use modmain
 !BOC
 implicit none
 ! arguments
-logical, intent(in) :: tapp
 integer, intent(in) :: ngp
 integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+
+complex(8)::zt
 ! local variables
 integer i,j,k,ig,iv(3)
 real(8) t1
 complex(8) zt1
-if (tapp) then
-! apply the Hamiltonian operator to v
-  do i=1,ngp
-    do j=i,ngp
-      iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      ig=ivgig(iv(1),iv(2),iv(3))
-      if ((ig.gt.0).and.(ig.le.ngvec)) then
-        t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
-        zt1=veffig(ig)+t1*cfunig(ig)
-        h(i)=h(i)+zt1*v(j)
-        if (i.ne.j) h(j)=h(j)+conjg(zt1)*v(i)
-      end if
-    end do
-  end do
-else
+
 ! calculate the matrix elements
+!#$omp parallel default(shared) & 
+!#$omp shared(h) private(iv,ig,t1,i,j)
+!#$omp do
   do j=1,ngp
-    k=((j-1)*j)/2
+    !k=((j-1)*j)/2
     do i=1,j
-      k=k+1
+      !k=k+1
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
         t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
-        h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
+       !h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
+          zt=veffig(ig)+t1*cfunig(ig)
+         !  h(k)=h(k)+zt
+          call hupdate(zt,j,i) 
       end if
     end do
   end do
-end if
+!#$omp end do 
+!#$omp end parallel
+
 return
 end subroutine
 !EOC

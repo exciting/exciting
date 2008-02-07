@@ -1,18 +1,28 @@
 
-subroutine zmpalpha(a,np,z,i,j)
+subroutine hupdate(z,i,j)
+use modfvsystem
 integer ,intent(in)::i,j
 complex(8),intent(in)::z
-complex(8),intent(inout)::a(np)
 integer::ipx
+if(packed)then
 ipx=((i-1)*i)/2 + j
-a(ipx)=a(ipx)+z
+hp(ipx)=hp(ipx)+z
+else
+h(i,j)=h(i,j)+z
+endif
 return
 end subroutine
 
-subroutine zmpalphanp(a,n,z,i,j)
+subroutine oupdate(z,i,j)
+use modfvsystem
 integer ,intent(in)::i,j
 complex(8),intent(in)::z
-complex(8),intent(inout)::a(n,n)
-a(i,j)=a(i,j)+z
+if(packed)then
+ipx=((i-1)*i)/2 + j
+op(ipx)=op(ipx)+z
+else
+o(i,j)=h(i,j)+z
+endif
+
 return
 end subroutine

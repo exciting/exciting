@@ -1,11 +1,12 @@
-subroutine hamiltonandoverlapsetup(np,ngp,apwalm,igpig,vgpc,h,o)
+subroutine hamiltonandoverlapsetup(np,ngp,apwalm,igpig,vgpc)
+use modfvsystem
 use modmain
 implicit none
 integer, intent(in)::np,ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
-complex(8),intent(inout)::h(np),o(np)
+
 
 !local variables
 integer::i,is,ia
@@ -14,28 +15,30 @@ real:: cpu0,cpu1
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
+allocate(hp(np),op(np))
 
+packed=.true.
 call cpu_time(cpu0)
 ! set the matrices to zero
 do i=1,np
- h(i)=0.0
- o(i)=0.0
+ hp(i)=0.0
+ op(i)=0.0
 end do
 ! muffin-tin contributions
 do is=1,nspecies
   do ia=1,natoms(is)
-    call hmlaa(.false.,is,ia,ngp,apwalm,v,h,np)
-    call hmlalo(.false.,is,ia,ngp,apwalm,v,h,np)
-    call hmllolo(.false.,is,ia,ngp,v,h,np)
-    call olpaa(.false.,is,ia,ngp,apwalm,v,o,np)
-    call olpalo(.false.,is,ia,ngp,apwalm,v,o,np)
-    call olplolo(.false.,is,ia,ngp,v,o,np)
+    call hmlaan(is,ia,ngp,apwalm)
+    call hmlalon(is,ia,ngp,apwalm)
+    call hmllolon(is,ia,ngp)
+    call olpaan(is,ia,ngp,apwalm)
+    call olpalon(is,ia,ngp,apwalm)
+    call olplolon(is,ia,ngp)
 
   end do
 end do
 ! interstitial contributions
-call hmlistl(.false.,ngp,igpig,vgpc,v,h,np)
-call olpistl(.false.,ngp,igpig,v,o,np)
+call hmlistln(ngp,igpig,vgpc)
+call olpistln(ngp,igpig)
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
  !do is=1,np

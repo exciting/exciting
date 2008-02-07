@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: olpistl
 ! !INTERFACE:
-subroutine olpistl(tapp,ngp,igpig,v,o)
+subroutine olpistln(ngp,igpig)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -29,41 +29,35 @@ use modmain
 !BOC
 implicit none
 ! arguments
-logical, intent(in) :: tapp
+
 integer, intent(in) :: ngp
 integer, intent(in) :: igpig(ngkmax)
-complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: o(*)
+
+
 ! local variables
 integer i,j,k,iv(3),ig
 complex(8) zt1
-if (tapp) then
-! apply the overlap operator to v
-  do i=1,ngp
-    do j=i,ngp
-      iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      ig=ivgig(iv(1),iv(2),iv(3))
-      if ((ig.gt.0).and.(ig.le.ngvec)) then
-        zt1=cfunig(ig)
-        o(i)=o(i)+zt1*v(j)
-        if (i.ne.j) o(j)=o(j)+conjg(zt1)*v(i)
-      end if
-    end do
-  end do
-else
+
 ! calculate the matrix elements
+!$omp parallel default(shared) & 
+!$omp shared(o) private(iv,ig,i,j)
+!$omp do
   do j=1,ngp
-    k=((j-1)*j)/2
+    !k=((j-1)*j)/2
     do i=1,j
-      k=k+1
+      !k=k+1
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
-        o(k)=o(k)+cfunig(ig)
+        !o(k)=o(k)+cfunig(ig)
+          !call zmpalpha(o,np,cfunig(ig),j,i) 
+          call oupdate(cfunig(ig),j,i)
       end if
     end do
   end do
-end if
+!$omp end do 
+!$omp end parallel
+
 return
 end subroutine
 !EOC

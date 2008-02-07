@@ -6,9 +6,10 @@
 !BOP
 ! !ROUTINE: hmlaa
 ! !INTERFACE:
-subroutine hmlaa(tapp,is,ia,ngp,apwalm,v,h)
+subroutine hmlaan(is,ia,ngp,apwalm,v)
 ! !USES:
 use modmain
+use modfvsystem
 ! !INPUT/OUTPUT PARAMETERS:
 !   tapp   : .true. if the Hamiltonian is to be applied to the input vector,
 !            .false. if the full matrix is to be calculated (in,logical)
@@ -29,14 +30,15 @@ use modmain
 !EOP
 !BOC
 implicit none
+
 ! arguments
-logical, intent(in) :: tapp
+
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+
 ! local variables
 integer ias,io1,io2
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
@@ -53,7 +55,12 @@ do l1=0,lmaxmat
   do m1=-l1,l1
     lm1=idxlm(l1,m1)
     do io1=1,apword(l1,is)
-      zv(:)=0.d0
+    zv(:)=0.d0
+!$#OMP parallel default(none) &
+!$#OMP private(l3,m3,io2,l2,m2,zt1,zsum,lm3,lm2) &
+!$#OMP shared(gntyry,apwalm,apword,haa,ias,idxlm,is,lm1,lmaxvr,ngp,zv,lmaxapw,io1,l1)
+!$#OMP do  reduction(+:zv)
+
       do l3=0,lmaxapw
         do m3=-l3,l3
           lm3=idxlm(l3,m3)
@@ -81,7 +88,15 @@ do l1=0,lmaxmat
           end if
         end do
       end do
-      call zmatinp(tapp,ngp,zone,apwalm(1,io1,lm1,ias),zv,v,h)
+!#$omp end do 
+!#$omp end parallel
+     
+    
+       if(packed) then
+      call ZHPR2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, hp )
+    else
+      call ZHER2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, h,ohrank)
+    endif
     end do
   end do
 end do
@@ -93,8 +108,13 @@ do l1=0,lmaxmat
     do io1=1,apword(l1,is)
       do io2=1,apword(l1,is)
         zt1=t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)
-        call zmatinp(tapp,ngp,zt1,apwalm(1,io1,lm1,ias),apwalm(1,io2,lm1,ias), &
-         v,h)
+        
+       
+            if(packed) then
+      call ZHPR2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(apwalm(1,io2,lm1,ias)), 1, hp )
+    else
+      call ZHER2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(apwalm(1,io2,lm1,ias)), 1, h,ohrank)
+    endif
       end do
     end do
   end do

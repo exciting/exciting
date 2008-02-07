@@ -31,7 +31,6 @@ subroutine zmatinp(tapp,n,alpha,x,y,v,a)
 !   Created June 2003 (JKD)
 !EOP
 !BOC
-use modmain ,only:zone
 implicit none
 ! arguments
 logical, intent(in) :: tapp
@@ -42,11 +41,10 @@ complex(8), intent(in) :: y(n)
 complex(8), intent(in) :: v(n)
 complex(8), intent(inout) :: a(*)
 ! local variables
-integer i,j,k,k1
+integer i,j,k
 ! numbers less than eps are considered to be zero
 real(8), parameter :: eps=1.d-12
 complex(8) zt1,zt2
-complex(8) tmp(n)
 if (tapp) then
 ! apply the matrix
   zt1=y(1)*v(1)
@@ -65,38 +63,23 @@ if (tapp) then
   end if
 else
 ! calculate the matrix elements
-
-call ZHPR2 ( 'U', n, alpha, conjg(x), 1, conjg(y), 1, a )
-
+  k=0
+  do j=1,n
+    if ((abs(dble(x(j))).gt.eps).or.(abs(aimag(x(j))).gt.eps).or. &
+     (abs(dble(y(j))).gt.eps).or.(abs(aimag(y(j))).gt.eps)) then
+      zt1=conjg(alpha*y(j))
+      zt2=alpha*conjg(x(j))
+      do i=1,j-1
+        k=k+1
+        a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
+      end do
+      k=k+1
+      a(k)=dble(a(k))+2.d0*dble(zt1*x(j))
+    else
+      k=k+j
+    end if
+  end do
 end if
-
-return
-end subroutine
-!EOC
-
-
-
-
-
-
-
-subroutine zmatinnotpacked(tapp,n,alpha,x,y,v,a)
-!
-use modmain ,only:zone
-implicit none
-! arguments
-logical, intent(in) :: tapp
-integer, intent(in) :: n
-complex(8), intent(in) :: alpha
-complex(8), intent(in) :: x(n)
-complex(8), intent(in) :: y(n)
-complex(8), intent(in) :: v(n)
-complex(8), intent(inout) :: a(:,:)
-
-! calculate the matrix elements
-
-call ZHER2 ( 'U', n, alpha, n,conjg(x), 1, conjg(y), 1, a )
-
 return
 end subroutine
 !EOC

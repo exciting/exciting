@@ -3,16 +3,17 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine hmllolo(tapp,is,ia,ngp,v,h)
+subroutine hmllolon(is,ia,ngp,v)
 use modmain
+
 implicit none
 ! arguments
-logical, intent(in) :: tapp
+
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+
 ! local variables
 integer ias,ilo1,ilo2,i,j,k
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
@@ -38,15 +39,12 @@ do ilo1=1,nlorb(is)
               end do
             end if
           end do
-          if (tapp) then
-! apply the Hamiltonian operator to v
-            h(i)=h(i)+zsum*v(j)
-            if (i.ne.j) h(j)=h(j)+conjg(zsum)*v(i)
-          else
+         
 ! calculate the matrix elements
-            k=i+((j-1)*j)/2
-            h(k)=h(k)+zsum
-          end if
+          
+            call hupdate(zsum,j,i) 
+        
+      
         end if
       end do
     end do

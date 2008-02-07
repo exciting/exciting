@@ -3,17 +3,17 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine hmlalo(tapp,is,ia,ngp,apwalm,v,h)
+subroutine hmlalon(is,ia,ngp,apwalm,v)
 use modmain
 implicit none
 ! arguments
-logical, intent(in) :: tapp
+
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+
 ! local variables
 integer ias,io,ilo,i,j,k
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
@@ -38,22 +38,15 @@ do ilo=1,nlorb(is)
             end if
           end do
           if (abs(dble(zsum))+abs(aimag(zsum)).gt.1.d-20) then
-            if (tapp) then
-! apply the Hamiltonian operator to v
-              do j=1,ngp
-                zt1=zsum*apwalm(j,io,lm3,ias)
-                h(i)=h(i)+zt1*v(j)
-                h(j)=h(j)+conjg(zt1)*v(i)
-              end do
-            else
+         
 ! calculate the matrix elements
-              k=((i-1)*i)/2
+              !k=((i-1)*i)/2
               do j=1,ngp
-                k=k+1
+                !k=k+1
                 zt1=zsum*apwalm(j,io,lm3,ias)
-                h(k)=h(k)+conjg(zt1)
+               call hupdate(zt1,i,j)
               end do
-            end if
+   
           end if
         end do
       end do
