@@ -100,8 +100,9 @@ do is=1,nspecies
     end do
   end do
  !$OMP parallel default(none) &
- !$OMP PRIVATE(ia,ias,l,zt1,ir) &
- !$OMP SHARED(idxas,zd)
+ !$OMP PRIVATE(ia,ias,l,zt1,ir,c,djl,i,info,ipiv,lm,ngp,zb,zt2) &
+ !$OMP SHARED(idxas,zd,apwalm,apwfr,apword,apwordmax,idxlm,natoms)&
+ !$OMP SHARED(lmaxapw,np,nrmt,omega,rmt,sfacgp,spr,ylmgp,zil)
  !$OMP do  
   do ia=1,natoms(is)
     ias=idxas(ia,is)
