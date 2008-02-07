@@ -26,9 +26,14 @@ subroutine tetcalccw
   ! read Fermi energy
   call readfermi
   ! w-point interval for process
-  call genparidxran('w')
+  if (tscreen) then
+     nwdf=1
+     call genparidxran('q')
+  else
+     call genparidxran('w')
+  end if
   ! loop over q-points
-  do iq=1,nqpt
+  do iq=qpari,qparf
      ! call for q-point
      call tetcalccwq(iq)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): weights for tetrahedron &
@@ -36,7 +41,7 @@ subroutine tetcalccw
   end do
   ! synchronize
   call barrier
-  if ((procs.gt.1).and.(rank.eq.0)) call tetgather
+  if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call tetgather
   call barrier
   tetra=tet
   write(unitout,'(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &

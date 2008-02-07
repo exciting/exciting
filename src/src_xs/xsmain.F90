@@ -92,6 +92,9 @@ subroutine xsmain
      ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
      ! for BSE(-kernel)
      call scrgeneigvec 
+  case(410)
+     ! calculate weights for tetrahedron method (screening)
+     call scrtetcalccw
   case(430)
      ! RPA screening
      call screen

@@ -67,7 +67,7 @@ subroutine dfq(iq)
   ! filenames for input
   ! filenames for output
   if (tscreen) then
-     call genfilname(basename='TETW',iqmt=iq,appfilext=.true.,filnam=fnwtet)
+     call genfilname(basename='TETW',iq=iq,appfilext=.true.,filnam=fnwtet)
      call genfilname(basename='PMAT',appfilext=.true.,filnam=fnpmat)
      call genfilname(basename='SCREEN',bzsampl=bzsampl,nar=.not.aresdf,&
           iq=iq,filnam=fnscreen)

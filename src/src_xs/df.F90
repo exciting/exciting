@@ -24,7 +24,10 @@ subroutine df
   call readfermi
   ! w-point parallelization for dielectric function
   call genparidxran('w')
-  if (tscreen) call genparidxran('q')
+  if (tscreen) then
+     nwdf=1
+     call genparidxran('q')
+  end if
   ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   emattype=1
   ! loop over q-points

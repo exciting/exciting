@@ -36,13 +36,21 @@ subroutine tetcalccwq(iq)
   wi=wpari
   wf=wparf
   nwdfp=wf-wi+1
-  ! set q-dependent file extension
-  call genfilname(iqmt=iq,setfilext=.true.)
-  ! generate filenames
-  call genfilname(basename='TETW',iqmt=iq,rank=rank,procs=procs,&
-       filnam=filnam)
-  call genfilname(basename='TETWT',iqmt=iq,rank=rank,procs=procs,&
-       filnam=filnamt)
+  if (tscreen) then
+     ! generate filenames
+     call genfilname(basename='TETW',iq=iq,rank=rank,procs=procs,&
+          appfilext=.true.,filnam=filnam)
+     call genfilname(basename='TETWT',iq=iq,rank=rank,procs=procs,&
+          appfilext=.true.,filnam=filnamt)
+  else
+     ! set q-dependent file extension
+     call genfilname(iqmt=iq,setfilext=.true.)
+     ! generate filenames
+     call genfilname(basename='TETW',iqmt=iq,rank=rank,procs=procs,&
+          filnam=filnam)
+     call genfilname(basename='TETWT',iqmt=iq,rank=rank,procs=procs,&
+          filnam=filnamt)
+  end if
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find band combinations
@@ -75,7 +83,7 @@ subroutine tetcalccwq(iq)
   ! calculate weights
   do iw=1,nwdfp
      if ((modulo(iw,max(nwdfp/10,1)).eq.0).or.(iw.eq.nwdfp)) &
-          write(*,'("Info(linopt): tetrahedron weights for ",I6," of ",&
+          write(*,'("Info(tetcalccwq): tetrahedron weights for ",I6," of ",&
           &I6," w-points")') iw,nwdfp
      wt=wreal(iw)
      if (abs(wt).lt.epstetra) wt=epstetra

@@ -45,7 +45,7 @@ subroutine init2xs
   ! Q-/q-point set should have no offset
   vqloff(:)=0.d0
   ! assign momentum transfer Q-point set to q-point set
-  if ((task.ge.300).and.(task.le.399)) then
+  if (((task.ge.300).and.(task.le.399)).or.(task.eq.121)) then
      nqpt=nqptmt
      if (allocated(vqlmt)) deallocate(vqlmt)
      allocate(vqlmt(3,nqpt))
