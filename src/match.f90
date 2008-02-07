@@ -87,6 +87,7 @@ do is=1,nspecies
   do l=0,lmaxapw
     omax=max(omax,apword(l,is))
   end do
+  
   do igp=1,ngp
     t1=gpc(igp)*rmt(is)
     do io1=1,omax
@@ -98,6 +99,10 @@ do is=1,nspecies
       djl(:,io1,igp)=t1*djl(:,io1,igp)
     end do
   end do
+ !$OMP parallel default(none) &
+ !$OMP PRIVATE(ia,ias,l,zt1,ir) &
+ !$OMP SHARED(idxas,zd)
+ !$OMP do  
   do ia=1,natoms(is)
     ias=idxas(ia,is)
 ! begin loop over l
@@ -148,6 +153,8 @@ do is=1,nspecies
     end do
 ! end loops over atoms and species
   end do
+!$OMP end do
+!$OMP end parallel
 end do
 deallocate(ipiv,c,djl,ylmgp,zd,zb)
 return
