@@ -11,7 +11,7 @@ subroutine initoccbse(nempty_)
   ! arguments
   integer, intent(inout) :: nempty_
   ! local variables
-  character(*), parameter :: thisnam = 'initoccbse'
+  character(*), parameter :: thisnam='initoccbse'
   integer :: nemptyt, nvalel
 
   ! number of valence electrons
