@@ -53,10 +53,10 @@ do l1=0,lmaxmat
   do m1=-l1,l1
     lm1=idxlm(l1,m1)
     do io1=1,apword(l1,is)
-     zv(:)=0.d0
 !#$omp parallel default(shared) & 
 !#$omp private(l3,m3,io2,l2,m2,zt1,zsum,lm3) 
 !#$omp do reduction (+:zv) 
+  zv(:)=0.d0
       do l3=0,lmaxapw
         do m3=-l3,l3
           lm3=idxlm(l3,m3)

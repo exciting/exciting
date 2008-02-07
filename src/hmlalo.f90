@@ -48,9 +48,9 @@ write(*,*)"tapp hmlalo"
               end do
             else
 ! calculate the matrix elements
-              k=((i-1)*i)/2
+              !k=((i-1)*i)/2
               do j=1,ngp
-                k=k+1
+                !k=k+1
                 zt1=zsum*apwalm(j,io,lm3,ias)
                call zmpalpha(h,np,conjg(zt1),i,j)
               end do
