@@ -31,11 +31,6 @@ do is=1,nspecies
     call olplolon(is,ia,ngp)
   end do
 end do
-	do is=1,ohrank
-   		write(888,*)hamiltonp(is),overlapp(is)
- 	end do
- 	write(*,*)"wrote",ohrank
-	stop
 ! interstitial contributions
 call hmlistln(ngp,igpig,vgpc)
 call olpistln(ngp,igpig)
@@ -43,16 +38,15 @@ call olpistln(ngp,igpig)
 if(.not. packed)then
  	call hamiltonoverlapocopy_UL
 else
+#ifdef DEBUGHO
  	do is=1,ohrank
    		write(888,*)hamiltonp(is),overlapp(is)
  	end do
  	write(*,*)"wrote",ohrank
 	stop
+#endif
 endif
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
- !do is=1,np
- !write(888,*)h(is),o(is)
- !end do 
- !stop
+
 end subroutine

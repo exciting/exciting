@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: hmlistl
 ! !INTERFACE:
-subroutine hmlistln(ngp,igpig,vgpc,v)
+subroutine hmlistln(ngp,igpig,vgpc)
 ! !USES:
 use modmain
 
@@ -38,7 +38,7 @@ implicit none
 integer, intent(in) :: ngp
 integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
-complex(8), intent(in) :: v(nmatmax)
+
 
 complex(8)::zt
 ! local variables

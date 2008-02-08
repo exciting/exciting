@@ -8,7 +8,11 @@ if(packed)then
 ipx=((i-1)*i)/2 + j
 hamiltonp(ipx)=hamiltonp(ipx)+z
 else
-hamilton(i,j)=hamilton(i,j)+z
+if(j.le.i)then
+hamilton(j,i)=hamilton(j,i)+z
+else
+write(*,*)"warning lower part of hamilton updated"
+endif
 endif
 return
 end subroutine
@@ -21,7 +25,11 @@ if(packed)then
 ipx=((i-1)*i)/2 + j
 overlapp(ipx)=overlapp(ipx)+z
 else
-overlap(i,j)=overlap(i,j)+z
+if(j.le.i)then
+overlap(j,i)=overlap(j,i)+z
+else
+write(*,*)"warning lower part of overlap updated"
+endif
 endif
 
 return

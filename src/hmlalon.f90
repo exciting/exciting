@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine hmlalon(is,ia,ngp,apwalm,v)
+subroutine hmlalon(is,ia,ngp,apwalm)
 use modmain
 implicit none
 ! arguments
@@ -12,7 +12,7 @@ integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-complex(8), intent(in) :: v(nmatmax)
+
 
 ! local variables
 integer ias,io,ilo,i,j,k
@@ -44,7 +44,7 @@ do ilo=1,nlorb(is)
               do j=1,ngp
                 !k=k+1
                 zt1=zsum*apwalm(j,io,lm3,ias)
-               call hupdate(zt1,i,j)
+               call hupdate(conjg(zt1),i,j)
               end do
    
           end if

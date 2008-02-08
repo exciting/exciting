@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: hmlaa
 ! !INTERFACE:
-subroutine hmlaan(is,ia,ngp,apwalm,v)
+subroutine hmlaan(is,ia,ngp,apwalm)
 ! !USES:
 use modmain
 use modfvsystem
@@ -37,7 +37,7 @@ integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-complex(8), intent(in) :: v(nmatmax)
+complex(8)::x(ngp),y(ngp)
 
 ! local variables
 integer ias,io1,io2
@@ -90,12 +90,12 @@ do l1=0,lmaxmat
       end do
 !#$omp end do 
 !#$omp end parallel
-     
-    
+     x=conjg(apwalm(1:ngp,io1,lm1,ias))
+     y=conjg(zv)
        if(packed) then
-      call ZHPR2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, hamiltonp )
+      call ZHPR2 ( 'U', ngp, zone, x, 1, y, 1, hamiltonp )
     else
-      call ZHER2 ( 'U', ngp, zone, conjg(apwalm(1,io1,lm1,ias)), 1, conjg(zv), 1, hamilton,ohrank)
+      call ZHER2 ( 'U', ngp, zone, x, 1, y, 1, hamilton,ohrank)
     endif
     end do
   end do
@@ -108,14 +108,13 @@ do l1=0,lmaxmat
     do io1=1,apword(l1,is)
       do io2=1,apword(l1,is)
         zt1=t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)
-        
+        x=conjg(apwalm(1:ngp,io1,lm1,ias))
+        y=conjg(apwalm(1:ngp,io2,lm1,ias))
        
             if(packed) then
-      call ZHPR2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1,&
-       conjg(apwalm(1,io2,lm1,ias)), 1, hamiltonp )
+      call ZHPR2 ( 'U', ngp, zt1, x, 1,y, 1, hamiltonp )
     else
-      call ZHER2 ( 'U', ngp, zt1, conjg(apwalm(1,io1,lm1,ias)), 1,&
-       conjg(apwalm(1,io2,lm1,ias)), 1, hamilton,ohrank)
+      call ZHER2 ( 'U', ngp, zt1, x, 1,y, 1, hamilton,ohrank)
     endif
       end do
     end do

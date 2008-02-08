@@ -64,10 +64,8 @@ allocate(work(2*nmatp))
 !----------------------------------------!
 allocate(hamiltonp(np),overlapp(np))
 packed=.true.
-do i=1,np
-hamiltonp(i)=0
-overlapp(i)=0
-end do
+hamiltonp(:)=0
+overlapp(:)=0
 ohrank=np
  call hamiltonandoverlapsetup(ngp,apwalm,igpig,vgpc)
 

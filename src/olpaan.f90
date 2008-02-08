@@ -13,7 +13,7 @@ integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-
+complex(8)::x(ngp),y(ngp)
 
 ! local variables
 integer ias,l,m,lm,io
@@ -25,13 +25,13 @@ do l=0,lmaxmat
   do m=-l,l
     lm=idxlm(l,m)
     do io=1,apword(l,is)
+    x=conjg(apwalm(1:ngp,io,lm,ias))
+    y=conjg(apwalm(1:ngp,io,lm,ias))
     if(packed) then
     
-      call ZHPR2 ( 'U', ngp, zhalf, conjg(apwalm(1,io,lm,ias)), &
-      1, conjg(apwalm(1,io,lm,ias)), 1, overlapp )
+      call ZHPR2 ( 'U', ngp, zhalf, x, 1, y, 1, overlapp )
     else
-      call ZHER2 ( 'U', ngp, zhalf, conjg(apwalm(1,io,lm,ias)), &
-      1, conjg(apwalm(1,io,lm,ias)), 1, overlap,ohrank)
+      call ZHER2 ( 'U', ngp, zhalf, x,  1, y, 1, overlap,ohrank)
     endif
     end do
   end do

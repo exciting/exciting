@@ -3,16 +3,15 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine hmllolon(is,ia,ngp,v)
+subroutine hmllolon(is,ia,ngp)
 use modmain
-
 implicit none
 ! arguments
 
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
-complex(8), intent(in) :: v(nmatmax)
+
 
 ! local variables
 integer ias,ilo1,ilo2,i,j,k

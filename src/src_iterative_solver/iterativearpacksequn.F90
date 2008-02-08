@@ -98,6 +98,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
  else
  sigma=dcmplx(lowesteval,0)
  endif
+
   resid(:)=0.0
   tol    = 1.e-8
   ido    = 0
@@ -226,6 +227,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      evecfv(:,j,ispn)=v(:,idx(j))
      evalfv(j,ispn)=rd(idx(j))
   end do
+  deallocate(hamilton,overlap)
   deallocate(workd,resid,v,workev,workl,d)
   deallocate(rwork,rd,idx)
   return
