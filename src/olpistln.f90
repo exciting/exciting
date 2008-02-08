@@ -40,7 +40,7 @@ complex(8) zt1
 
 ! calculate the matrix elements
 !$omp parallel default(shared) & 
-!$omp shared(o) private(iv,ig,i,j)
+!$omp  private(iv,ig,i,j)
 !$omp do
   do j=1,ngp
     !k=((j-1)*j)/2
