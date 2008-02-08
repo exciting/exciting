@@ -68,10 +68,10 @@ subroutine gentetlink(vpl)
   end if
   ! allocate link array
   if (allocated(link)) deallocate(link)
-  allocate(link(6*nkpt))
+  allocate(link(6*nkptnr))
   ! quick return for Gamma q-point
   if (iqnr.eq.1) then
-     forall (j=1:6*nkpt) link(j)=j
+     forall (j=1:6*nkptnr) link(j)=j
      return
   end if
   ! allocate local arrays
