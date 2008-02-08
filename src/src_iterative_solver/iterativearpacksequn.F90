@@ -93,7 +93,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(rd(ncvmax),idx(ncvmax))
   bmat  = 'G'
   which = 'LM'
- if(lowesteval.eq.0) then
+ if(lowesteval.eq.-1.d0) then
   call minenergy(sigma)
  else
  sigma=dcmplx(lowesteval,0)
@@ -214,9 +214,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #ifdef DEBUG
   close(logfil)
 #endif
-  if(rank.eq.0)write(60,*)"ARPACK iter", i
+  if(rank.eq.0)write(60,*)"k=",ik,"ARPACK iterations", i
   if(rank.eq.0)write(60,*)"matrixsize",n&
-       ,"time LU/iter",cpu1-cpu0,"/",cpu2-cpu1
+       ,"time LU",cpu1-cpu0,"iterations",cpu2-cpu1
 
   !##########################
   !sort and copy eigenvectors

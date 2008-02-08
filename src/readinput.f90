@@ -89,7 +89,7 @@ sppath='./'
 scrpath='./'
 nvp1d=2
 iterativetype=0
-lowesteval=-1.
+lowesteval=-1.d0
 
 maxncv=200
 if (allocated(vvlp1d)) deallocate(vvlp1d)
