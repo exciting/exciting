@@ -7,14 +7,5 @@ subroutine initbse
   use modmain
   use modxs
   implicit none
-
-  ! irreversibly map varialbes specific for BSE (-kernel) to main variables
-  nosym=nosymbse
-  reducek=reducekbse
-  vkloff(:)=vkloffbse(:)
-  rgkmax=rgkmaxbse
-
-  ! only one SCF iteration
-  maxscl=1
-
+  if (any(vkloffbse.eq.-1.d0)) vkloffbse(:)=vkloff(:)
 end subroutine initbse

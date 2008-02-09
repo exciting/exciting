@@ -246,4 +246,9 @@ subroutine init2xs
      end if
   end if
 
+
+!call genwiq2xs
+!stop 'stopped here'
+
+
 end subroutine init2xs

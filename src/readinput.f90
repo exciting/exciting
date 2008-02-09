@@ -220,7 +220,6 @@ fnoccsvscr='OCCSV_SCR.OUT'
 nosymbse=.false.
 reducekbse=.true.
 vkloffbse(:)=0.d0
-rgkmaxbse=7.d0
 fnevecfvbse='EVECFV_BSE.OUT'
 fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
@@ -1042,14 +1041,6 @@ case('reducekbse')
   read(50,*,err=20) reducekbse
 case('vkloffbse')
   read(50,*,err=20) vkloffbse(1),vkloffbse(2),vkloffbse(3)
-case('rgkmaxbse')
-  read(50,*,err=20) rgkmaxbse
-  if (rgkmaxbse.le.0.d0) then
-    write(*,*)
-    write(*,'("Error(readinput[BSE]): rgkmaxbse <= 0 : ",G18.10)') rgkmaxbse
-    write(*,*)
-    stop
-  end if
 case('fnevecfvbse')
   read(50,*,err=20) fnevecfvbse
 case('fnevalsvbse')

@@ -1,0 +1,6 @@
+#! /bin/sh
+gunzip /usr/bin/eos.gz		&& chmod 755 /usr/bin/eos
+gunzip /usr/bin/exciting.gz	&& chmod 755 /usr/bin/exciting
+gunzip /usr/bin/spacegroup.gz	&& chmod 755 /usr/bin/spacegroup
+gunzip /usr/bin/species.gz	&& chmod 755 /usr/bin/species
+
