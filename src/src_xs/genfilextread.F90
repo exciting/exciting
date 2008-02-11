@@ -13,7 +13,7 @@ subroutine genfilextread(task)
      call genfilname(iqmt=0,setfilext=.true.)
   case(430,440)
      call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-  case(440)
-     call genfilname(dotext='_SCI.OUT',setfilext=.true.)
+!!$  case(440)
+!!$     call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   end select
 end subroutine genfilextread

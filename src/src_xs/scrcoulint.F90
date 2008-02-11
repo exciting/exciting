@@ -8,14 +8,22 @@ subroutine scrcoulint
   use modmpi
   use modxs
   use m_genfilname
+  use m_tdgauntgen
+  use m_findgntn0
+  use m_writegqpts
   implicit none
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
-  integer :: iknr,jknr,iq,j
-  real(8) :: vklofft(3),vq(3),v1(3),v2(3),s(3,3),t1
-  integer :: ngridkt(3),iv(3),lspl
-  logical :: nosymt,reducekt
+  real(8), parameter :: epsortho=1.d-12
+  integer :: iknr,jknr,iqr,iq,isym,jsym,igq1,igq2,n,iflg,flg
+  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl
+  logical :: nosymt,reducekt,tq0
+  real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
+  real(8), allocatable :: potcl(:,:,:)
+  complex(8), allocatable :: phf(:,:,:)
+  logical, allocatable :: done(:)
   real(8), external :: r3taxi
+  logical, external :: tqgamma
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -29,10 +37,27 @@ subroutine scrcoulint
   ! q-point set of screening corresponds to (k,kp)-pairs
   ngridk(:)=ngridq(:)
   vkloff(:)=vkloffbse(:)
+  if (nemptyscr.eq.-1) nemptyscr=nempty
+  emattype=2
   call init0
   call init1
   call init2xs
-  emattype=2
+  ! read Fermi energy from file
+  call readfermi
+  ! save variables for the Gamma q-point
+  call tdsave0
+  ! generate Gaunt coefficients
+  call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
+  ! find indices for non-zero Gaunt coefficients
+  call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+  write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
+       &within lmax values:', lmaxapw,lmaxemat,lmaxapw
+  write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
+  call flushifc(unitout)
+  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+  call ematbdcmbs(emattype)
+  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   ! check number of empty states
   if (nemptyscr.lt.nempty) then
      write(*,*)
@@ -42,36 +67,116 @@ subroutine scrcoulint
      write(*,*)
      call terminate
   end if
-  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
-  if (rank.eq.0) call writekpts
+  if (rank.eq.0) then
+     call writekpts
+     call writeqpts
+  end if
 
 
+  flg=2
+  allocate(done(nqpt))
+  done(:)=.false.
   ! loop over non-reduced number of k-points
   do iknr=1,nkptnr     
      do jknr=iknr,nkptnr
         iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
         iv(:)=modulo(iv(:),ngridk(:))
         ! q-point (non-reduced)
-        iq=ikmap(iv(1),iv(2),iv(3))
-        vq(:)=vql(:,iq)
+        iqr=iqmapr(iv(1),iv(2),iv(3))
+        vqr(:)=vqlr(:,iqr)
         ! q-point (reduced)
-        iqnr=ikmapnr(iv(1),iv(2),iv(3))
-        vqnr(:)=vklnr(:,iqnr)-vkloff(:)
+        iq=iqmap(iv(1),iv(2),iv(3))
+        tq0=tqgamma(iq)
+        vq(:)=vql(:,iq)
+
         ! symmetry that transforms non-reduced q-point to reduced one
         do isym=1,nsymcrys
            lspl=lsplsymc(isym)
            s(:,:)=dble(symlat(:,:,lspl))
-           call r3mtv(s,v1,v2)
-           call r3frac(epslat,v2,iv)
-           t1=r3taxi(vklnr(1,iknr),v2)
-           if (t1.lt.epslat) then ??????????
-
+           call r3mtv(s,vqr,v2)
+           call r3frac(epslat,v2,ivgsym)
+           t1=r3taxi(vq,v2)
+           if (t1.lt.epslat) exit
         end do
+        ivgsym(:)=-ivgsym(:)
+        jsym=scimap(isym)
+        si(:,:)=dble(symlat(:,:,lsplsymc(jsym)))
 
+        ! cross check symmetry relation (vqnr = a_isym vq + G_isym)
+        v2=matmul(transpose(s),vqr)+dble(ivgsym)
+        v2=vq-v2
+        if (any(abs(v2).gt.epslat)) then
+           write(*,'(2i6,3x,2i6,3f12.3)') iknr,jknr,iqr,iq,v2
+        end if
+
+        call genfilname(iq=iq,dotext='_SCI.OUT',setfilext=.true.)
+!!$        if (.not.done(iq)) call writegqpts(iq)
+        call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+        ! calculate matrix elements
+        call init1xs(qvkloff(1,iq))
+!!$        call ematrad(iq)
+!!$        call ematqalloc
+!!$        call ematqk1(iq,iknr)
+!!$        call ematqdealloc
+        call genfilname(dotext='_SCI.OUT',setfilext=.true.)
+
+        write(*,'(5i8,2g18.10)') iknr,jknr, &
+             iq,iqr,isym!!,sum(abs(xiou)),sum(abs(xiuo))
+
+        ! local field effect size
+        n=ngq(iq)
+        allocate(phf(nqpt,n,n),potcl(nqpt,n,n))
+
+        if (.not.done(iq)) then
+           ! calculate phase factor for dielectric matrix
+           do igq1=1,n
+              ivg1(:)=ivg(:,igqig(igq1,iq))
+              do igq2=igq1,n
+                 ! G-vector difference
+                 ivg2(:)=ivg(:,igqig(igq2,iq))-ivg1(:)
+                 ! translation vector s^-1*vtl(s^-1)
+                 vtl=matmul(transpose(s),vtlsymc(:,jsym))
+                 call r3frac(epslat,vtl,iv)
+                 t1=twopi*dot_product(dble(ivg2),vtl)
+                 t2=cos(t1)
+                 t3=sin(t1)
+                 if (abs(t2).lt.epsortho) t2=0.d0
+                 if (abs(t3).lt.epsortho) t3=0.d0
+                 ! phase factor
+                 phf(iq,igq1,igq2)=cmplx(t2,t3,8)
+                 phf(iq,igq2,igq1)=conjg(phf(iq,igq1,igq2))
+!write(*,*) 'q,g,gp,phf',iq,igq1,igq2,phf(iq,igq1,igq2)
+                 ! calculate weights for Coulomb potential
+                 iflg=0
+                 ! integrate weights for q=0 head and wings
+                 ! and for q/=0 head
+                 if (tq0) then
+                    if (.not.((igq1.ne.1).and.(igq2.ne.1))) iflg=flg
+                 end if
+                 call genwiq2xs(iflg,iq,igq1,igq2,potcl(iq,igq1,igq2))
+                 potcl(iq,igq2,igq1)=potcl(iq,igq1,igq2)
+                 if (iflg.ne.0) write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(iq,igq1,igq2),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+              end do
+           end do
+        end if
+
+
+
+        ! find index transformation for G-vectors
+        
+
+        ! *** read dielectric matrix and invert for >>iqr<<
+
+
+        ! deallocate
+        deallocate(phf,potcl)
+        done(iq)=.true.
+        ! end loops over non-reduced k-point combinations
      end do
   end do
 
 
+  call findgntn0_clear
 
 
 

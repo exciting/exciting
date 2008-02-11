@@ -68,7 +68,7 @@ subroutine init2xs
      end do
   end if
   ! generate q-point set from grid
-  if ((task.ge.400).and.(task.le.499)) then
+  if ((task.ge.400).and.(task.le.439)) then
      if (allocated(ivq)) deallocate(ivq)
      allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
      if (allocated(vql)) deallocate(vql)
@@ -81,6 +81,32 @@ subroutine init2xs
      allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
      ! generate reduced q-point set
      call genppts(reduceq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+  end if
+  if (task.eq.440) then
+     if (allocated(ivqr)) deallocate(ivqr)
+     allocate(ivqr(3,ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(vqlr)) deallocate(vqlr)
+     allocate(vqlr(3,ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(vqcr)) deallocate(vqcr)
+     allocate(vqcr(3,ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(wqptr)) deallocate(wqptr)
+     allocate(wqptr(ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(iqmapr)) deallocate(iqmapr)
+     allocate(iqmapr(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
+     ! generate reduced q-point set
+     call genppts(reduceq,ngridq,vqloff,nqptr,iqmapr,ivqr,vqlr,vqcr,wqptr)
+     if (allocated(ivq)) deallocate(ivq)
+     allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(vql)) deallocate(vql)
+     allocate(vql(3,ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(vqc)) deallocate(vqc)
+     allocate(vqc(3,ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(wqpt)) deallocate(wqpt)
+     allocate(wqpt(ngridq(1)*ngridq(2)*ngridq(3)))
+     if (allocated(iqmap)) deallocate(iqmap)
+     allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
+     ! generate non-reduced q-point set
+     call genppts(.false.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
   end if
 
   ! find (little/small) group of q
@@ -245,10 +271,5 @@ subroutine init2xs
         stop
      end if
   end if
-
-
-!call genwiq2xs
-!stop 'stopped here'
-
 
 end subroutine init2xs

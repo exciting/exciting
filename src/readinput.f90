@@ -219,7 +219,7 @@ fnoccsvscr='OCCSV_SCR.OUT'
 ! BSE (-kernel) variables
 nosymbse=.false.
 reducekbse=.true.
-vkloffbse(:)=0.d0
+vkloffbse(:)=-1.d0
 fnevecfvbse='EVECFV_BSE.OUT'
 fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
@@ -998,6 +998,18 @@ case('dbglev')
   ! screening variables
 case('screentype')
    read(50,*,err=20) screentype
+   select case(trim(screentype))
+   case('full')
+   case('diag')
+   case('noinvdiag')
+   case('constant')
+   case default
+      write(*,*)
+      write(*,'("Error(readinput): unknown screening type: ",a)') &
+           trim(screentype)
+      write(*,*)
+      stop
+   end select
 case('nosymscr')
   read(50,*,err=20) nosymscr
 case('reducekscr')

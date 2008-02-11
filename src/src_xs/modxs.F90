@@ -54,6 +54,18 @@ module modxs
   !------------------------------!
   !     q-point set variables    !
   !------------------------------!
+  ! total number of q-points (reduced set)
+  integer nqptr
+  ! locations of q-points on integer grid (reduced set)
+  integer, allocatable :: ivqr(:,:)
+  ! map from non-reduced grid to reduced set (reduced set)
+  integer, allocatable :: iqmapr(:,:,:)
+  ! q-points in lattice coordinates (reduced set)
+  real(8), allocatable :: vqlr(:,:)
+  ! q-points in Cartesian coordinates (reduced set)
+  real(8), allocatable :: vqcr(:,:)
+  ! q-point weights (reduced set)
+  real(8), allocatable :: wqptr(:)
   ! number of Q-points for momentum transfer
   integer :: nqptmt
   ! finite momentum transfer G+q-vector

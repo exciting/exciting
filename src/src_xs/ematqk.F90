@@ -175,11 +175,13 @@ subroutine ematqk(iq,ik)
   cpuall=cpuini+cpuread+cpumain+cpuwrite
 
   ! write timing information
-  call emattim(iq,ik,trim(fnetim),&
-       cpuini,cpuread,cpumain,cpuwrite,cpuall, &
-       cpugnt,cpumt,cpuir, &
-       cpumalores,cpumaloares,cpumloares,cpumloaares, &
-       cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg, &
-       cpumtaa,cpumtalo,cpumtloa,cpumtlolo)
+  if (task.ne.440) then
+     call emattim(iq,ik,trim(fnetim),&
+          cpuini,cpuread,cpumain,cpuwrite,cpuall, &
+          cpugnt,cpumt,cpuir, &
+          cpumalores,cpumaloares,cpumloares,cpumloaares, &
+          cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg, &
+          cpumtaa,cpumtalo,cpumtloa,cpumtlolo)
+  end if
 
 end subroutine ematqk
