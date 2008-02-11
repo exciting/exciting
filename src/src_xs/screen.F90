@@ -7,12 +7,8 @@ subroutine screen
   use modmain
   use modmpi
   use modxs
-  use m_filedel
   use m_genfilname
-  use m_tdgauntgen
-  use m_findgntn0
   use m_writegqpts
-  use m_getpemat
   implicit none
   ! local variables
   character(*), parameter :: thisnam='screen'
@@ -38,6 +34,7 @@ subroutine screen
   nempty=nemptyscr
   ! only one frequency w=0
   nwdf=1
+  emattype=1
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   ! call dielectric function with only one frequency point
   call df

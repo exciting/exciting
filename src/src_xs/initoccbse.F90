@@ -4,7 +4,6 @@
 ! See the file COPYING for license details.
 
 subroutine initoccbse(nempty_)
-  ! 
   use modmain
   use modxs
   implicit none
@@ -13,10 +12,8 @@ subroutine initoccbse(nempty_)
   ! local variables
   character(*), parameter :: thisnam='initoccbse'
   integer :: nemptyt, nvalel
-
   ! number of valence electrons
   nvalel=nint(chgval/2.d0)
-
   ! number of states below Fermi energy
   if (nstbef.eq.-1) nstbef=nvalel
   if (nstbef.gt.nvalel) then
@@ -25,7 +22,6 @@ subroutine initoccbse(nempty_)
           nstbef,nvalel
      call terminate
   end if
-
   ! number of states above Fermi energy
   if (nstabf.eq.-1) then
      ! if "nstabf" is not specified define it using "nempty"
@@ -37,5 +33,4 @@ subroutine initoccbse(nempty_)
      write(unitout,'("Info(init0): nempty has been adjusted from ",I6," to ",&
           &I6)') nemptyt,nempty_
   end if
-
 end subroutine initoccbse

@@ -98,6 +98,9 @@ subroutine xsmain
   case(430)
      ! RPA screening
      call screen
+  case(440)
+     ! screened Coulomb interaction
+     call scrcoulint
   case(499)
      ! * debug task
      call testxs
