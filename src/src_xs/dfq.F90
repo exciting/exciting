@@ -345,7 +345,7 @@ subroutine dfq(iq)
      open(un,file=trim(fnscreen),form='formatted',action='write', &
           status='replace')
      rv1(:)=0.d0
-     rv1(1:3)=1.d0
+     rv1(1::4)=1.d0
      r1=0.d0
      do ig1=1,n
         do ig2=1,n
@@ -389,15 +389,17 @@ end subroutine dfq
 integer function octmap(i1,i2)
   implicit none
   integer, intent(in) :: i1,i2
-  if ((i1.eq.1).and.(i2.eq.1)) octmap=1
-  if ((i1.eq.2).and.(i2.eq.2)) octmap=2
-  if ((i1.eq.3).and.(i2.eq.3)) octmap=3
-  if ((i1.eq.1).and.(i2.eq.2)) octmap=4
-  if ((i1.eq.1).and.(i2.eq.3)) octmap=5
-  if ((i1.eq.2).and.(i2.eq.3)) octmap=6
-  if ((i1.eq.2).and.(i2.eq.1)) octmap=7
-  if ((i1.eq.3).and.(i2.eq.1)) octmap=8
-  if ((i1.eq.3).and.(i2.eq.2)) octmap=9
+!!$  if ((i1.eq.1).and.(i2.eq.1)) octmap=1
+!!$  if ((i1.eq.2).and.(i2.eq.2)) octmap=2
+!!$  if ((i1.eq.3).and.(i2.eq.3)) octmap=3
+!!$  if ((i1.eq.1).and.(i2.eq.2)) octmap=4
+!!$  if ((i1.eq.1).and.(i2.eq.3)) octmap=5
+!!$  if ((i1.eq.2).and.(i2.eq.3)) octmap=6
+!!$  if ((i1.eq.2).and.(i2.eq.1)) octmap=7
+!!$  if ((i1.eq.3).and.(i2.eq.1)) octmap=8
+!!$  if ((i1.eq.3).and.(i2.eq.2)) octmap=9
+  ! second index runs fastest
+  octmap=3*(i1-1)+i2
 end function octmap
 
 subroutine oct12map(oct,i1,i2)

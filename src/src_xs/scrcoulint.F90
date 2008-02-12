@@ -7,10 +7,11 @@ subroutine scrcoulint
   use modmain
   use modmpi
   use modxs
-  use m_genfilname
   use m_tdgauntgen
   use m_findgntn0
   use m_writegqpts
+  use m_genfilname
+  use m_getunit
   implicit none
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
@@ -21,7 +22,7 @@ subroutine scrcoulint
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
   character(256) :: fname
-  real(8), allocatable :: potcl(:,:,:)
+  real(8), allocatable :: potcl(:,:,:),scrn(:,:,:),scrnw(:,:,:,:),scrnh(:,:)
   integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   complex(8), allocatable :: phf(:,:,:)
   logical, allocatable :: done(:)
@@ -78,31 +79,49 @@ subroutine scrcoulint
   ! *** read dielectric matrix and invert for >>iqr<<
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call getunit(un)
+  allocate(scrn(ngqmax,ngqmax,nqptr),scrnw(ngqmax,2,3,nqptr),scrnh(9,nqptr))
   do iqr=1,nqptr
-     n=ngq(iqr)
+     ! locate reduced q-point in non-reduced set
+     iv(:)=nint(vqlr(:,iqr)*ngridq(:))
+     iqrnr=iqmap(iv(1),iv(2),iv(3))
+     n=ngq(iqrnr)
+     tq0=tqgamma(iqrnr)
+write(*,*) 'iqr,ngq',iqr,n
      call genfilname(basename='SCREEN',iq=iqr,filnam=fname)
      open(un,file=trim(fname),form='formatted',action='read',status='old')
      do igq1=1,n
         do igq2=1,n
-           if (igq1.eq.igq2) r1=1.d0
            if (tq0) then
-              if ((igq1.eq.1).and.(igq2.eq.1)) read(un,'(2i8,9g18.10)') &
-                   idum1,idum2,chi0h(:,1)
-              if ((igq1.eq.1).and.(igq2.ne.1)) read(un,'(2i8,3g18.10)') &
-                   idum1,idum2,chi0w(igq2,1,:,1)
-              if ((igq1.ne.1).and.(igq2.eq.1)) read(un,'(2i8,3g18.10)') &
-                   idum1,idum2,chi0w(igq1,2,:,1)
-              if ((igq1.ne.1).and.(igq2.ne.1)) read(un,'(2i8,g18.10)') &
-                   idum1,idum2,chi0(igq1,igq2,1)
+              if ((igq1.eq.1).and.(igq2.eq.1)) then
+read(un,'(2i8,9g18.10)') &
+     idum1,idum2,scrnh(:,iqr)
+write(*,*) igq1,igq2,idum1,idum2,scrnh(:,iqr)
+end if
+
+!                   idum1,idum2,chi0h(:,1)
+              if ((igq1.eq.1).and.(igq2.ne.1)) read(un,*) &
+                   idum1,idum2,scrnw(igq2,1,:,iqr)
+!                   idum1,idum2,chi0w(igq2,1,:,1)
+              if ((igq1.ne.1).and.(igq2.eq.1)) read(un,*) &
+                   idum1,idum2,scrnw(igq1,2,:,iqr)
+!                   idum1,idum2,chi0w(igq1,2,:,1)
+              if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) &
+                   idum1,idum2,scrn(igq1,igq2,iqr)
+!                   idum1,idum2,chi0(igq1,igq2,1)
            else
-              read(un,'(2i8,g18.10)') idum1,idum2,chi0(igq1,igq2,1)
+              read(un,*) idum1,idum2,scrn(igq1,igq2,iqr)
+!              read(un,'(2i8,g18.10)') idum1,idum2,chi0(igq1,igq2,1)
            end if
         end do
-     end do     
+     end do
      close(un)
-  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
-???????????????????????????????????? work on block above
 
+write(1000+iqr,*) scrnh(:,iqr),scrnw(:,:,:,iqr),scrn(:,:,iqr)
+
+
+     ! loop over reduced q-points
+  end do
+  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
 
   ! flag for integrating the singular terms in the screened Coulomb interaction
   flg=1
@@ -281,7 +300,7 @@ if (iflg.ne.0) &
   write(*,*) 'maximum number of symmetry operation for q-point',maxval(nsyma)
 
   call findgntn0_clear
-  deallocate(done,isyma,nsyma,ivgsyma,igqmap)
+  deallocate(done,isyma,nsyma,ivgsyma,igqmap,scrn)
 
   ! restore global variables
   nosym=nosymt
