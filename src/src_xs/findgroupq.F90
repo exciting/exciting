@@ -22,7 +22,7 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
   integer, intent(out) :: ivscwrapq(3,nsymcrys)
   ! local variables
   character(*), parameter :: thisnam = 'findgroupq'
-  integer :: isym, lspl, iv(3)
+  integer :: isym, lspl, iv(3),iv2(3)
   real(8) :: s(3,3), v1(3), v1t(3), v2(3), t1
   real(8), external :: r3taxi
   nsymcrysq=0
@@ -34,11 +34,14 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
      ! rotation as real matrix in lattice coordinates
      s(:,:)=dble(symlat(:,:,lspl))
      ! Note: here we apply the rotation from the left side
-     call r3mv(s,vql,v1)
+     call r3mtv(s,vql,v1)
      ! save transformed vector
      v1t(:)=v1(:)
-     ! convert v2 to equivalent point and wrapping vector
+     ! convert v1 to equivalent point and wrapping vector
      call r3frac(epslat,v1,iv)
+     ! map to first Brillouin zone
+     call mapto1bz(v1,v1,iv2)
+     iv(:)=iv(:)+iv2(:)
      ! check if new vector is equal to orinial vql vector
      t1=r3taxi(vql,v1)
      if (t1.lt.epslat) then
@@ -49,6 +52,7 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
         if (t1.gt.epslat) then
            write(*,'(a)') 'Error('//thisnam//'): inconsistency in &
                 &wrapping vector G from q1=q+G: q/q1/G:'
+           write(*,'(a,3g18.10)') ' v2:',v2
            write(*,'(a,3g18.10)') ' q1:',v1t
            write(*,'(a,3g18.10)') ' q :',vql
            write(*,'(a,3i9)')     ' G :',iv

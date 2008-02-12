@@ -91,8 +91,6 @@ subroutine scrcoulint
         tq0=tqgamma(iq)
         vq(:)=vql(:,iq)
 
-! first Brillouin zone q-point
-call mapto1bz(vq,v2)
 write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
      sqrt(sum(matmul(bvec,vq)**2)),sqrt(sum(matmul(bvec,v2)**2))
 
@@ -107,6 +105,8 @@ write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
            s(:,:)=dble(symlat(:,:,lspl))
            call r3mtv(s,vqr,v2)
            call r3frac(epslat,v2,ivgsym)
+           call mapto1bz(v2,v2,iv)
+           ivgsym(:)=ivgsym(:)+iv(:)
            t1=r3taxi(vq,v2)
            if (t1.lt.epslat) then
               nsyma(iq)=nsyma(iq)+1
@@ -115,31 +115,31 @@ write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
            end if
         end do
         
-!!$        do j=1,nsyma(iq)
-!!$           isym=isyma(j,iq)
-!!$           lspl=lsplsymc(isym)
-!!$           do igq1=1,n
-!!$              ivg1(:)=ivg(:,igqig(igq1,iq))
-!!$              ! iv = sLT * ( G + G_s ); L...lattice; T...transpose
-!!$              iv=matmul(transpose(symlat(:,:,lspl)),ivg1+ivgsyma(:,j,iq))
-!!$              v2(:)=dble(iv(1))*bvec(:,1)+dble(iv(2))*bvec(:,2) &
-!!$                   +dble(iv(3))*bvec(:,3)
-!!$              t1=v2(1)**2+v2(2)**2+v2(3)**2
-!!$write(*,'(a,4i6,g18.10)') 'reduce:',iq,j,isym,igq1,sqrt(t1)
-!!$              if (t1.gt.gqmax**2) goto 10
-!!$           end do
-!!$           jsym=isym
-!!$           ivgsym(:)=ivgsyma(:,j,iq)
-!!$           s(:,:)=dble(symlat(:,:,lspl))
-!!$           goto 20
-!!$10         continue
-!!$        end do
-!!$        write(*,*)
-!!$        write(*,'("Error(",a,"): failed to reduce q-point: ",i8)') &
-!!$             trim(thisnam),iq
-!!$        write(*,*)
-!!$        call terminate
-!!$20      continue
+        do j=1,nsyma(iq)
+           isym=isyma(j,iq)
+           lspl=lsplsymc(isym)
+           do igq1=1,n
+              ivg1(:)=ivg(:,igqig(igq1,iq))
+              ! iv = sLT * ( G + G_s ); L...lattice; T...transpose
+              iv=matmul(transpose(symlat(:,:,lspl)),ivg1+ivgsyma(:,j,iq))
+              v2(:)=dble(iv(1))*bvec(:,1)+dble(iv(2))*bvec(:,2) &
+                   +dble(iv(3))*bvec(:,3)
+              t1=v2(1)**2+v2(2)**2+v2(3)**2
+write(*,'(a,4i6,g18.10)') 'reduce:',iq,j,isym,igq1,sqrt(t1)
+              if (t1.gt.gqmax**2) goto 10
+           end do
+           jsym=isym
+           ivgsym(:)=ivgsyma(:,j,iq)
+           s(:,:)=dble(symlat(:,:,lspl))
+           goto 20
+10         continue
+        end do
+        write(*,*)
+        write(*,'("Error(",a,"): failed to reduce q-point: ",i8)') &
+             trim(thisnam),iq
+        write(*,*)
+        call terminate
+20      continue
 
 
 !!           igqmap(igq1,iq)=ivgigq(iv(1),iv(2),iv(3),iq)
@@ -152,7 +152,8 @@ write(*,'(a,3i6,3x,192i4)') 'ik1,ik2,iq,symops(iq)',iknr,jknr,iq, &
         v2=matmul(transpose(symlat(:,:,lsplsymc(isyma(1,iq)))),vqr)+dble(ivgsyma(:,1,iq))
         v2=vq-v2
         if (any(abs(v2).gt.epslat)) then
-write(*,'(a,2i6,3x,2i6,3f12.3)') 'deviation:',iknr,jknr,iqr,iq,v2
+!write(*,'(a,2i6,3x,2i6,3f12.3)') 'deviation:',iknr,jknr,iqr,iq,v2
+write(*,*) 'deviation:',iknr,jknr,iqr,iq,v2
         end if
 
         call genfilname(iq=iq,dotext='_SCI.OUT',setfilext=.true.)
@@ -245,10 +246,11 @@ end subroutine scrcoulint
 
 
 
-subroutine mapto1bz(vl,vl1bz)
+subroutine mapto1bz(vl,vl1bz,iv)
   use modmain
   real(8), intent(in) :: vl(3)
   real(8), intent(out) :: vl1bz(3)
+  integer, intent(out) :: iv(3)
   ! local variables
   real(8) :: v0(3),v1(3)
   ! map the q-vector into the first Brillouin zone
@@ -263,6 +265,7 @@ subroutine mapto1bz(vl,vl1bz)
            if (t2.lt.(t1+1.d-8)) then
               t1=t2
               vl1bz(:)=v0(:)
+              iv=-(/i1,i2,i3/)
            end if
         end do
      end do
