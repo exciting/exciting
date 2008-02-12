@@ -16,9 +16,11 @@ subroutine scrcoulint
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
-  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli
+  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
+  integer :: idum1,idum2
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
+  character(256) :: fname
   real(8), allocatable :: potcl(:,:,:)
   integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   complex(8), allocatable :: phf(:,:,:)
@@ -72,6 +74,35 @@ subroutine scrcoulint
      call writekpts
      call writeqpts
   end if
+
+  ! *** read dielectric matrix and invert for >>iqr<<
+  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+  call getunit(un)
+  do iqr=1,nqptr
+     n=ngq(iqr)
+     call genfilname(basename='SCREEN',iq=iqr,filnam=fname)
+     open(un,file=trim(fname),form='formatted',action='read',status='old')
+     do igq1=1,n
+        do igq2=1,n
+           if (igq1.eq.igq2) r1=1.d0
+           if (tq0) then
+              if ((igq1.eq.1).and.(igq2.eq.1)) read(un,'(2i8,9g18.10)') &
+                   idum1,idum2,chi0h(:,1)
+              if ((igq1.eq.1).and.(igq2.ne.1)) read(un,'(2i8,3g18.10)') &
+                   idum1,idum2,chi0w(igq2,1,:,1)
+              if ((igq1.ne.1).and.(igq2.eq.1)) read(un,'(2i8,3g18.10)') &
+                   idum1,idum2,chi0w(igq1,2,:,1)
+              if ((igq1.ne.1).and.(igq2.ne.1)) read(un,'(2i8,g18.10)') &
+                   idum1,idum2,chi0(igq1,igq2,1)
+           else
+              read(un,'(2i8,g18.10)') idum1,idum2,chi0(igq1,igq2,1)
+           end if
+        end do
+     end do     
+     close(un)
+  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
+???????????????????????????????????? work on block above
+
 
   ! flag for integrating the singular terms in the screened Coulomb interaction
   flg=1
@@ -187,12 +218,10 @@ subroutine scrcoulint
         !**********************************************************************
 
         if (.not.done(iq)) then
-           ! calculate phase factor for dielectric matrix
            do igq1=1,n
               ivg1(:)=ivg(:,igqig(igq1,iq))
-
-!write(*,'(a,5i6)') 'iknr,jknr,iq,igq1,igq1map',iknr,jknr,iq,igq1,igqmap(igq1,iq)
-
+!!$write(*,'(a,5i6)') 'iknr,jknr,iq,igq1,igq1map',iknr,jknr,iq,igq1,&
+!!$     igqmap(igq1,iq)
               do igq2=igq1,n
                  ! G-vector difference
                  ivg2(:)=ivg(:,igqig(igq2,iq))-ivg1(:)
@@ -204,14 +233,15 @@ subroutine scrcoulint
                  t3=sin(t1)
                  if (abs(t2).lt.epsortho) t2=0.d0
                  if (abs(t3).lt.epsortho) t3=0.d0
-                 ! phase factor
+                 ! phase factor for dielectric matrix
                  phf(iq,igq1,igq2)=cmplx(t2,t3,8)
                  phf(iq,igq2,igq1)=conjg(phf(iq,igq1,igq2))
-!!!write(*,'(a,3i5,2g18.10)') 'q,g,gp,phf',iq,igq1,igq2,phf(iq,igq1,igq2)
+write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi, &
+     phf(iq,igq1,igq2)
                  ! calculate weights for Coulomb potential
                  iflg=0
-                 ! integrate weights for q=0 head and wings
-                 ! and for q/=0 head
+                 ! integrate weights for q=0 for the head and wings
+                 ! and for q/=0 for the head
                  if (tq0) then
                     if (.not.((igq1.ne.1).and.(igq2.ne.1))) iflg=flg
                  end if
@@ -223,16 +253,10 @@ if (iflg.ne.0) &
            end do
         end if
 
-
-
-        ! *** read dielectric matrix and invert for >>iqr<<
-
-
-
-
         call genfilname(iq=iq,dotext='_SCI.OUT',setfilext=.true.)
         if (.not.done(iq)) call writegqpts(iq)
         call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+
         ! calculate matrix elements
 !!$        call init1xs(qvkloff(1,iq))
 !!$        call ematrad(iq)
