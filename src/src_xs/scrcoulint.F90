@@ -73,13 +73,14 @@ subroutine scrcoulint
      call writeqpts
   end if
 
-  flg=2
+  ! flag for integrating the singular terms in the screened Coulomb interaction
+  flg=1
   allocate(done(nqpt))
   allocate(nsyma(nqpt),isyma(maxsymcrys,nqpt),ivgsyma(3,maxsymcrys,nqpt))
   allocate(igqmap(ngqmax,nqpt))
   done(:)=.false.
   ! loop over non-reduced number of k-points
-  do iknr=1,nkptnr     
+  do iknr=1,nkptnr
      do jknr=iknr,nkptnr
         iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
         iv(:)=modulo(iv(:),ngridk(:))
@@ -93,9 +94,6 @@ subroutine scrcoulint
         ! locate reduced q-point in non-reduced set
         iv(:)=nint(vqr(:)*ngridq(:))
         iqrnr=iqmap(iv(1),iv(2),iv(3))
-
-write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
-     sqrt(sum(matmul(bvec,vq)**2)),sqrt(sum(matmul(bvec,v2)**2))
 
         ! local field effects size
         n=ngq(iq)
@@ -116,7 +114,7 @@ write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
            end if
         end do
         
-        ! find map for rotated G-vectors
+        ! find map from G-vectors to rotated G-vectors
         do j=1,nsyma(iq)
            isym=isyma(j,iq)
            lspl=lsplsymc(isym)
@@ -126,12 +124,12 @@ write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
               ivg1(:)=ivg(:,igqig(igq1,iq))
               ! G1 = s^-1 * ( G + G_s )
               iv=matmul(transpose(symlat(:,:,lspli)),ivg1+ivgsyma(:,j,iq))
-              v2(:)=dble(iv(1)+vqr(1))*bvec(:,1)+dble(iv(2)+vqr(2))*bvec(:,2) &
-                   +dble(iv(3)+vqr(3))*bvec(:,3)
-              t1=sqrt(v2(1)**2+v2(2)**2+v2(3)**2)
-!write(*,'(a,4i6,5g18.10)') 'reduce:',iq,j,isym,igq1,t1,gqc(igq1,iq)
-write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,igq1,ivgigq(iv(1),iv(2),iv(3),iqrnr),vgql(:,igq1,iq)-matmul(transpose(symlat(:,:,lspl)),vqr+iv)
-              if (t1.gt.gqmax**2) then
+              v2=matmul(bvec,iv+vqr)
+              t1=sqrt(sum(v2**2))
+!!$write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,&
+!!$     igq1,ivgigq(iv(1),iv(2),iv(3),iqrnr),vgql(:,igq1,iq)- &
+!!$     matmul(transpose(symlat(:,:,lspl)),vqr+iv)
+              if (t1.gt.gqmax) then
                  write(*,*) '*** need one more symmetry operation'
                  goto 10
               end if
@@ -167,17 +165,7 @@ write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,igq1,ivgigq(iv(1),iv(2
         call terminate
 20      continue
 
-
-        do igq1=1,n
-           write(30,'(a,5i5,3x,2i5)') 'igqmap:',iknr,jknr,iq,iqr,iqrnr,igq1,igqmap(igq1,iq)
-        end do
-
-
-!write(*,'(a,3i6,3x,192i4)') 'ik1,ik2,iq,symops(iq)',iknr,jknr,iq, &
-!     isyma(1:nsyma(iq),iq)
-
         ! cross check symmetry relation (q1 = s^-1 * vqr + G_s)
-!        v2=matmul(transpose(s),vqr)+dble(ivgsym)
         if (sum(abs(vq-(matmul(transpose(s),vqr)+dble(ivgsym)))).gt.epslat) then
            write(*,*) 'deviation:',iknr,jknr,iqr,iq,v2
            write(*,*)
@@ -193,6 +181,55 @@ write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,igq1,ivgigq(iv(1),iv(2
            call terminate
         end if
 
+        !**********************************************************************
+        write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
+             iknr,jknr,iq,iqr,iqrnr,isym,ivgsym
+        !**********************************************************************
+
+        if (.not.done(iq)) then
+           ! calculate phase factor for dielectric matrix
+           do igq1=1,n
+              ivg1(:)=ivg(:,igqig(igq1,iq))
+
+!write(*,'(a,5i6)') 'iknr,jknr,iq,igq1,igq1map',iknr,jknr,iq,igq1,igqmap(igq1,iq)
+
+              do igq2=igq1,n
+                 ! G-vector difference
+                 ivg2(:)=ivg(:,igqig(igq2,iq))-ivg1(:)
+                 ! translation vector s^-1*vtl(s^-1)
+                 vtl=matmul(transpose(s),vtlsymc(:,isymi))
+                 call r3frac(epslat,vtl,iv)
+                 t1=twopi*dot_product(dble(ivg2),vtl)
+                 t2=cos(t1)
+                 t3=sin(t1)
+                 if (abs(t2).lt.epsortho) t2=0.d0
+                 if (abs(t3).lt.epsortho) t3=0.d0
+                 ! phase factor
+                 phf(iq,igq1,igq2)=cmplx(t2,t3,8)
+                 phf(iq,igq2,igq1)=conjg(phf(iq,igq1,igq2))
+!!!write(*,'(a,3i5,2g18.10)') 'q,g,gp,phf',iq,igq1,igq2,phf(iq,igq1,igq2)
+                 ! calculate weights for Coulomb potential
+                 iflg=0
+                 ! integrate weights for q=0 head and wings
+                 ! and for q/=0 head
+                 if (tq0) then
+                    if (.not.((igq1.ne.1).and.(igq2.ne.1))) iflg=flg
+                 end if
+                 call genwiq2xs(iflg,iq,igq1,igq2,potcl(iq,igq1,igq2))
+                 potcl(iq,igq2,igq1)=potcl(iq,igq1,igq2)
+if (iflg.ne.0) &
+     write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(iq,igq1,igq2),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+              end do
+           end do
+        end if
+
+
+
+        ! *** read dielectric matrix and invert for >>iqr<<
+
+
+
+
         call genfilname(iq=iq,dotext='_SCI.OUT',setfilext=.true.)
         if (.not.done(iq)) call writegqpts(iq)
         call genfilname(dotext='_SCR.OUT',setfilext=.true.)
@@ -204,53 +241,8 @@ write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,igq1,ivgigq(iv(1),iv(2
 !!$        call ematqdealloc
         call genfilname(dotext='_SCI.OUT',setfilext=.true.)
 
-       
-
-        if (.not.done(iq)) then
-           ! calculate phase factor for dielectric matrix
-           do igq1=1,n
-              ivg1(:)=ivg(:,igqig(igq1,iq))
-
-write(*,'(a,5i6)') 'iknr,jknr,iq,igq1,igq1map',iknr,jknr,iq,igq1,igqmap(igq1,iq)
-
-              do igq2=igq1,n
-                 ! G-vector difference
-                 ivg2(:)=ivg(:,igqig(igq2,iq))-ivg1(:)
-                 ! translation vector s^-1*vtl(s^-1)
-                 vtl=matmul(transpose(s),vtlsymc(:,scimap(isyma(1,iq))))
-                 call r3frac(epslat,vtl,iv)
-                 t1=twopi*dot_product(dble(ivg2),vtl)
-                 t2=cos(t1)
-                 t3=sin(t1)
-                 if (abs(t2).lt.epsortho) t2=0.d0
-                 if (abs(t3).lt.epsortho) t3=0.d0
-                 ! phase factor
-                 phf(iq,igq1,igq2)=cmplx(t2,t3,8)
-                 phf(iq,igq2,igq1)=conjg(phf(iq,igq1,igq2))
-!write(*,*) 'q,g,gp,phf',iq,igq1,igq2,phf(iq,igq1,igq2)
-                 ! calculate weights for Coulomb potential
-                 iflg=0
-                 ! integrate weights for q=0 head and wings
-                 ! and for q/=0 head
-                 if (tq0) then
-                    if (.not.((igq1.ne.1).and.(igq2.ne.1))) iflg=flg
-                 end if
-!!$                 call genwiq2xs(iflg,iq,igq1,igq2,potcl(iq,igq1,igq2))
-                 potcl(iq,igq2,igq1)=potcl(iq,igq1,igq2)
-if (iflg.ne.0) write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(iq,igq1,igq2),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
-              end do
-           end do
-           ! ** end if (.not.done(iq))
-        end if
 
 
-
-        
-
-
-
-
-        ! *** read dielectric matrix and invert for >>iqr<<
 
 
         ! deallocate
@@ -261,14 +253,11 @@ if (iflg.ne.0) write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,
   end do
 
 
-write(*,*) 'minimum number of symmetry operation for q-point',minval(nsyma)
-write(*,*) 'maximum number of symmetry operation for q-point',maxval(nsyma)
-
-
+  write(*,*) 'minimum number of symmetry operation for q-point',minval(nsyma)
+  write(*,*) 'maximum number of symmetry operation for q-point',maxval(nsyma)
 
   call findgntn0_clear
   deallocate(done,isyma,nsyma,ivgsyma,igqmap)
-
 
   ! restore global variables
   nosym=nosymt
@@ -295,7 +284,7 @@ subroutine mapto1bz(vl,vl1bz,iv)
            v0=vl+dble((/i1,i2,i3/))
            v1=matmul(bvec,v0)
            t2=v1(1)**2+v1(2)**2+v1(3)**2
-           ! favour positive values
+           ! favour positive coordinates
            if (t2.lt.(t1+1.d-8)) then
               t1=t2
               vl1bz(:)=v0(:)

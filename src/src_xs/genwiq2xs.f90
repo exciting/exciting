@@ -33,7 +33,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   integer :: un,n,j1,j2
   real(8) :: v0l(3),v1l(3),v01(3),v02(3),v11(3)
   real(8) :: v12(3),v21(3),v22(3),v31(3),v32(3)
-  real(8) :: sum3,t3,cpu0,cpu1
+  real(8) :: sum3,t3,qsz,cpu0,cpu1
   character(256) :: fname
   ! external functions
   real(8) polynom
@@ -68,7 +68,15 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
      ! modified Coulomb potential in reciprocal space
      clwt=fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
   else if (flag.eq.1) then
-     ! integrate out spherical subcell volume [citation]
+     ! radius of sphere with same volume than subcell
+     qsz=(6*pi**2/(omega*nqpt))**(1.d0/3.d0)
+     if ((igq1.ne.1).or.(igq2.ne.1)) then
+        ! integrate out 1/q singularity by spherical Volume
+        clwt=(qsz**2*omega/pi )/gqc(igq2,iq)
+     else
+        ! integrate out 1/q^2 singularity by spherical Volume
+        clwt=2*qsz*omega/pi
+     end if
   else if (flag.eq.2) then
      j1=igqig(igq1,iq)
      j2=igqig(igq2,iq)
@@ -116,7 +124,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   end if
   call cpu_time(cpu1)
   t1=cpu1-cpu0
-  if (flag.ne.0) write(*,'("Time in genwiq2xs (seconds):",f12.2)') t1
+!!$  if (flag.ne.0) write(*,'("Time in genwiq2xs (seconds):",f12.2)') t1
 end subroutine genwiq2xs
 !EOC
 
