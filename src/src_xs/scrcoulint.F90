@@ -15,8 +15,8 @@ subroutine scrcoulint
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,isym,jsym,igq1,igq2,n,iflg,flg,j
-  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl
+  integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
+  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
   real(8), allocatable :: potcl(:,:,:)
@@ -90,6 +90,9 @@ subroutine scrcoulint
         iq=iqmap(iv(1),iv(2),iv(3))
         tq0=tqgamma(iq)
         vq(:)=vql(:,iq)
+        ! locate reduced q-point in non-reduced set
+        iv(:)=nint(vqr(:)*ngridq(:))
+        iqrnr=iqmap(iv(1),iv(2),iv(3))
 
 write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
      sqrt(sum(matmul(bvec,vq)**2)),sqrt(sum(matmul(bvec,v2)**2))
@@ -98,15 +101,13 @@ write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
         n=ngq(iq)
         allocate(phf(nqpt,n,n),potcl(nqpt,n,n))
 
-        ! symmetry that transforms non-reduced q-point to reduced one
+        ! symmetries that transform non-reduced q-point to reduced one
         nsyma(iq)=0
         do isym=1,nsymcrys
            lspl=lsplsymc(isym)
            s(:,:)=dble(symlat(:,:,lspl))
            call r3mtv(s,vqr,v2)
            call r3frac(epslat,v2,ivgsym)
-           call mapto1bz(v2,v2,iv)
-           ivgsym(:)=ivgsym(:)+iv(:)
            t1=r3taxi(vq,v2)
            if (t1.lt.epslat) then
               nsyma(iq)=nsyma(iq)+1
@@ -115,22 +116,47 @@ write(20,'(a,i6,3f12.3,3x,3f12.3,3x,2f12.3)') 'q,BZ,1BZ',iq,vq,v2, &
            end if
         end do
         
+        ! find map for rotated G-vectors
         do j=1,nsyma(iq)
            isym=isyma(j,iq)
            lspl=lsplsymc(isym)
+           isymi=scimap(isym)
+           lspli=lsplsymc(isymi)
            do igq1=1,n
               ivg1(:)=ivg(:,igqig(igq1,iq))
-              ! iv = sLT * ( G + G_s ); L...lattice; T...transpose
-              iv=matmul(transpose(symlat(:,:,lspl)),ivg1+ivgsyma(:,j,iq))
-              v2(:)=dble(iv(1))*bvec(:,1)+dble(iv(2))*bvec(:,2) &
-                   +dble(iv(3))*bvec(:,3)
-              t1=v2(1)**2+v2(2)**2+v2(3)**2
-write(*,'(a,4i6,g18.10)') 'reduce:',iq,j,isym,igq1,sqrt(t1)
-              if (t1.gt.gqmax**2) goto 10
+              ! G1 = s^-1 * ( G + G_s )
+              iv=matmul(transpose(symlat(:,:,lspli)),ivg1+ivgsyma(:,j,iq))
+              v2(:)=dble(iv(1)+vqr(1))*bvec(:,1)+dble(iv(2)+vqr(2))*bvec(:,2) &
+                   +dble(iv(3)+vqr(3))*bvec(:,3)
+              t1=sqrt(v2(1)**2+v2(2)**2+v2(3)**2)
+!write(*,'(a,4i6,5g18.10)') 'reduce:',iq,j,isym,igq1,t1,gqc(igq1,iq)
+write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,igq1,ivgigq(iv(1),iv(2),iv(3),iqrnr),vgql(:,igq1,iq)-matmul(transpose(symlat(:,:,lspl)),vqr+iv)
+              if (t1.gt.gqmax**2) then
+                 write(*,*) '*** need one more symmetry operation'
+                 goto 10
+              end if
+              ! map G1+q
+              igqmap(igq1,iq)=ivgigq(iv(1),iv(2),iv(3),iqrnr)
+              if (igqmap(igq1,iq).le.0) then
+                 write(*,*)
+                 write(*,'("Error(",a,"): failed to map rotated G-vector")') &
+                      trim(thisnam)
+                 write(*,'(" non-reduced q-point                    :",i8)') iq
+                 write(*,'(" reduced q-point                        :",i8)') iqr
+                 write(*,'(" reduced q-point in non-reduced set     :",i8)') &
+                      iqrnr
+                 write(*,'(" G+q-vector index (non-reduced q-point) :",i8)') &
+                      igq1
+                 write(*,'(" rotated G-vector                       :",3i8)') iv
+                 write(*,*)
+                 call terminate
+              end if
+              ! end loop over G+
            end do
-           jsym=isym
            ivgsym(:)=ivgsyma(:,j,iq)
+           jsym=isym
            s(:,:)=dble(symlat(:,:,lspl))
+           si(:,:)=dble(symlat(:,:,lspli))
            goto 20
 10         continue
         end do
@@ -142,22 +168,33 @@ write(*,'(a,4i6,g18.10)') 'reduce:',iq,j,isym,igq1,sqrt(t1)
 20      continue
 
 
-!!           igqmap(igq1,iq)=ivgigq(iv(1),iv(2),iv(3),iq)
+        do igq1=1,n
+           write(30,'(a,5i5,3x,2i5)') 'igqmap:',iknr,jknr,iq,iqr,iqrnr,igq1,igqmap(igq1,iq)
+        end do
 
 
-write(*,'(a,3i6,3x,192i4)') 'ik1,ik2,iq,symops(iq)',iknr,jknr,iq, &
-     isyma(1:nsyma(iq),iq)
+!write(*,'(a,3i6,3x,192i4)') 'ik1,ik2,iq,symops(iq)',iknr,jknr,iq, &
+!     isyma(1:nsyma(iq),iq)
 
-        ! cross check symmetry relation (vq = a_isym vqr + G_isym)
-        v2=matmul(transpose(symlat(:,:,lsplsymc(isyma(1,iq)))),vqr)+dble(ivgsyma(:,1,iq))
-        v2=vq-v2
-        if (any(abs(v2).gt.epslat)) then
-!write(*,'(a,2i6,3x,2i6,3f12.3)') 'deviation:',iknr,jknr,iqr,iq,v2
-write(*,*) 'deviation:',iknr,jknr,iqr,iq,v2
+        ! cross check symmetry relation (q1 = s^-1 * vqr + G_s)
+!        v2=matmul(transpose(s),vqr)+dble(ivgsym)
+        if (sum(abs(vq-(matmul(transpose(s),vqr)+dble(ivgsym)))).gt.epslat) then
+           write(*,*) 'deviation:',iknr,jknr,iqr,iq,v2
+           write(*,*)
+           write(*,'("Error(",a,"): cross checking of symmetry reduction for &
+                &q-vector failed:")') trim(thisnam)
+           write(*,'(" non-reduced q-point                    :",i8)') iq
+           write(*,'(" reduced q-point                        :",i8)') iqr
+           write(*,'(" reduced q-point in non-reduced set     :",i8)') &
+                iqrnr
+           write(*,'(" crystal symmetry operation             :",i8)') isym
+           write(*,'(" umklapp G-vector                       :",3i8)') ivgsym
+           write(*,*)
+           call terminate
         end if
 
         call genfilname(iq=iq,dotext='_SCI.OUT',setfilext=.true.)
-!!$        if (.not.done(iq)) call writegqpts(iq)
+        if (.not.done(iq)) call writegqpts(iq)
         call genfilname(dotext='_SCR.OUT',setfilext=.true.)
         ! calculate matrix elements
 !!$        call init1xs(qvkloff(1,iq))
@@ -173,9 +210,6 @@ write(*,*) 'deviation:',iknr,jknr,iqr,iq,v2
            ! calculate phase factor for dielectric matrix
            do igq1=1,n
               ivg1(:)=ivg(:,igqig(igq1,iq))
-              ! find index transformation for G-vectors
-              iv(:)=matmul(transpose(symlat(:,:,lsplsymc(scimap(isyma(1,iq))))),ivg1+ivgsym)
-              igqmap(igq1,iq)=ivgigq(iv(1),iv(2),iv(3),iq)
 
 write(*,'(a,5i6)') 'iknr,jknr,iq,igq1,igq1map',iknr,jknr,iq,igq1,igqmap(igq1,iq)
 

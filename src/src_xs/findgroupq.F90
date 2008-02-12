@@ -39,8 +39,8 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
      v1t(:)=v1(:)
      ! convert v1 to equivalent point and wrapping vector
      call r3frac(epslat,v1,iv)
-     ! map to first Brillouin zone
-     call mapto1bz(v1,v1,iv2)
+!!$     ! map to first Brillouin zone
+!!$     call mapto1bz(v1,v1,iv2)
      iv(:)=iv(:)+iv2(:)
      ! check if new vector is equal to orinial vql vector
      t1=r3taxi(vql,v1)
