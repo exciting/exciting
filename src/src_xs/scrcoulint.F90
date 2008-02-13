@@ -18,16 +18,18 @@ subroutine scrcoulint
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
-  integer :: idum1,idum2,oct
+  integer :: idum1,idum2,oct,info
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
+  real(8) :: scrnh0(3),scrnih0(3)
   character(256) :: fname
-  real(8), allocatable :: potcl(:,:),scrn(:,:),scrnw(:,:,:),scrnh(:)
-  real(8), allocatable :: scrni(:,:,:)
+  real(8), allocatable :: potcl(:,:,:),scrn(:,:),scrnw(:,:,:),scrnh(:)
+  real(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
   integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   complex(8), allocatable :: phf(:,:,:)
   logical, allocatable :: done(:)
   real(8), external :: r3taxi
+  integer, external :: octmap
   logical, external :: tqgamma
   ! save global variables
   nosymt=nosym
@@ -81,13 +83,12 @@ subroutine scrcoulint
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call getunit(un)
   allocate(scrni(ngqmax,ngqmax,nqptr))
-  scrn(:,:,:)=0.d0; scrnw(:,:,:,:)=0.d0; scrnh(:,:)=0.d0
   do iqr=1,nqptr
      ! locate reduced q-point in non-reduced set
      iv(:)=nint(vqlr(:,iqr)*ngridq(:))
      iqrnr=iqmap(iv(1),iv(2),iv(3))
      n=ngq(iqrnr)
-     allocate(scrn(n,n),scrnw(n,2,3),scrnh(9))
+     allocate(scrn(n,n),scrnw(n,2,3),scrnh(9),tm(n,n),tmi(n,n))
      tq0=tqgamma(iqrnr)
 write(*,*) 'iqr,ngq',iqr,n
      call genfilname(basename='SCREEN',iq=iqr,filnam=fname)
@@ -114,27 +115,80 @@ write(*,*) 'iqr,ngq',iqr,n
      ! z-direction for q=0
      if (tq0) then
         do oct=1,3
-           ! diagonal tensor component index
+           ! index for diagonal tensor component
            j=octmap(oct,oct)
            scrn(1,1)=scrnh(j)
+           ! keep head of dielectric matrix for q=0
+           scrnh0(oct)=scrn(1,1)
            if (n.gt.1) then
               scrn(1,2:n)=scrnw(2:n,1,oct)
               scrn(2:n,1)=scrnw(2:n,2,oct)
            end if
-           scrni(:,:,iqr)=0.d0
-           ! set right hand side to unity matrix
-           forall(j=1:n) scrni(j,j,iqr)=1.d0
-           x=0
+           tm(:,:)=scrn(:,:)
+
+
+!!$do igq1=1,n
+!!$do igq2=igq1,n
+!!$scrn(igq2,igq1)=scrn(igq1,igq2)
+!!$tm(igq1,igq2)=scrn(igq1,igq2)
+!!$tm(igq2,igq1)=scrn(igq1,igq2)
+!!$end do
+!!$end do
+
+! set to unity matrix for input to zposv
+tmi(:,:)=0.d0
+forall(j=1:n) tmi(j,j)=1.d0
+
+
+
+
+           
+
            ! call zposv('u',numgdm(i)+2,numgdm(i)+2,aa,maxgv+2,bb,maxgv+2,info)
            ! solve linear equation system for positive definite symmetric
            ! matrix
-           call zposv('u',numgdm(i)+2,numgdm(i)+2,aa,maxgv+2,bb,maxgv+2,info)
 
+write(200,*) scrn
+!!!!!!******** screening should be complex!!!! change dfq.F90 and screen.F90 !!
+           call dposv('u',n,n,tm,n,tmi,n,info)
+           if (info.ne.0) then
+              write(*,*)
+              write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
+                   trim(thisnam),info
+              write(*,*)
+              call terminate
+           end if
+           scrni(:,:,iqr)=tmi(:,:)
+           ! keep head of inverse dielectric matrix for q=0
+           scrnih0(oct)=scrni(1,1,iqr)
+write(*,*) 'Scr. Coul. Int.: head of inv. diel. matrix, oct:',oct,scrnih0(oct)
         end do
-     end if
-     
+        ! symmetrize inverse dielectric matrix wrt. directions in which q goes
+        ! to zero
+        call symsci0(1,scrnh0,scrnih0,scrni(1,1,iqr))
+write(*,*) 'Scr. Coul. Int.: symm. head of inv. diel. matrix:',scrni(1,1,iqr)
+     else
 
-     deallocate(scrn,scrnw,scrnh)
+do igq1=1,n
+do igq2=igq1,n
+scrn(igq2,igq1)=scrn(igq1,igq2)
+end do
+end do
+
+! set to unity matrix for input to zposv
+scrni(:,:,iqr)=0.d0
+forall(j=1:ngqmax) scrni(j,j,iqr)=1.d0
+
+        call dposv('u',n,n,scrn,n,scrni(1,1,iqr),ngqmax,info)
+        if (info.ne.0) then
+           write(*,*)
+           write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
+                trim(thisnam),info
+           write(*,*)
+           call terminate
+        end if
+     end if
+     deallocate(scrn,scrnw,scrnh,tm,tmi)
      ! end loop over reduced q-points
   end do
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
@@ -163,7 +217,7 @@ write(*,*) 'iqr,ngq',iqr,n
 
         ! local field effects size
         n=ngq(iq)
-        allocate(phf(nqpt,n,n),potcl(nqpt,n,n))
+        allocate(phf(nqpt,n,n),potcl(n,n,nqpt))
 
         ! symmetries that transform non-reduced q-point to reduced one
         nsyma(iq)=0
@@ -280,10 +334,10 @@ write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,is
                  if (tq0) then
                     if (.not.((igq1.ne.1).and.(igq2.ne.1))) iflg=flg
                  end if
-                 call genwiq2xs(iflg,iq,igq1,igq2,potcl(iq,igq1,igq2))
-                 potcl(iq,igq2,igq1)=potcl(iq,igq1,igq2)
+                 call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2,iq))
+                 potcl(igq2,igq1,iq)=potcl(igq1,igq2,iq)
 if (iflg.ne.0) &
-     write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(iq,igq1,igq2),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+     write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
               end do
            end do
         end if

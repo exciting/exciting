@@ -18,7 +18,7 @@ contains
     complex(8), intent(in) :: s0(:,:), k(:,:)
     complex(8), intent(out) :: s(:,:)
     ! local variables
-    character(*), parameter :: thisnam = 'dyson'
+    character(*), parameter :: thisnam='dyson'
     complex(8),parameter :: zone=(1.d0,0.d0),zzero=(0.d0,0.d0)
     complex(8), allocatable :: mt(:,:),zwork(:)
     integer, allocatable :: ipiv(:)
@@ -36,7 +36,7 @@ contains
        write(*,'("  S0:",2i9)') shs0
        write(*,'("  K :",2i9)') shk
        write(*,'("  S :",2i9)') shs
-       stop
+       call terminate
     end if
 
     ! allocate
@@ -58,7 +58,7 @@ contains
        write(*,'("Error(",a,"): zgetrf returned non-zero info : ",I8)') &
             thisnam,info
        write(*,*)
-       stop
+       call terminate
     end if
     call zgetri(n,mt,n,ipiv,zwork,lwork,info)
     if (info.ne.0) then
@@ -66,7 +66,7 @@ contains
        write(*,'("Error(",a,"): zgetri returned non-zero info : ",I8)') &
             thisnam,info
        write(*,*)
-       stop
+       call terminate
     end if
     
     ! calculate matrix S=T^-1*S0
