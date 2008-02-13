@@ -18,11 +18,12 @@ subroutine scrcoulint
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
-  integer :: idum1,idum2
+  integer :: idum1,idum2,oct
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
   character(256) :: fname
-  real(8), allocatable :: potcl(:,:,:),scrn(:,:,:),scrnw(:,:,:,:),scrnh(:,:)
+  real(8), allocatable :: potcl(:,:),scrn(:,:),scrnw(:,:,:),scrnh(:)
+  real(8), allocatable :: scrni(:,:,:)
   integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   complex(8), allocatable :: phf(:,:,:)
   logical, allocatable :: done(:)
@@ -79,12 +80,14 @@ subroutine scrcoulint
   ! *** read dielectric matrix and invert for >>iqr<<
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call getunit(un)
-  allocate(scrn(ngqmax,ngqmax,nqptr),scrnw(ngqmax,2,3,nqptr),scrnh(9,nqptr))
+  allocate(scrni(ngqmax,ngqmax,nqptr))
+  scrn(:,:,:)=0.d0; scrnw(:,:,:,:)=0.d0; scrnh(:,:)=0.d0
   do iqr=1,nqptr
      ! locate reduced q-point in non-reduced set
      iv(:)=nint(vqlr(:,iqr)*ngridq(:))
      iqrnr=iqmap(iv(1),iv(2),iv(3))
      n=ngq(iqrnr)
+     allocate(scrn(n,n),scrnw(n,2,3),scrnh(9))
      tq0=tqgamma(iqrnr)
 write(*,*) 'iqr,ngq',iqr,n
      call genfilname(basename='SCREEN',iq=iqr,filnam=fname)
@@ -92,34 +95,47 @@ write(*,*) 'iqr,ngq',iqr,n
      do igq1=1,n
         do igq2=1,n
            if (tq0) then
-              if ((igq1.eq.1).and.(igq2.eq.1)) then
-read(un,'(2i8,9g18.10)') &
-     idum1,idum2,scrnh(:,iqr)
-write(*,*) igq1,igq2,idum1,idum2,scrnh(:,iqr)
-end if
-
-!                   idum1,idum2,chi0h(:,1)
+              if ((igq1.eq.1).and.(igq2.eq.1)) read(un,*) &
+                      idum1,idum2,scrnh(:)
               if ((igq1.eq.1).and.(igq2.ne.1)) read(un,*) &
-                   idum1,idum2,scrnw(igq2,1,:,iqr)
-!                   idum1,idum2,chi0w(igq2,1,:,1)
+                   idum1,idum2,scrnw(igq2,1,:)
               if ((igq1.ne.1).and.(igq2.eq.1)) read(un,*) &
-                   idum1,idum2,scrnw(igq1,2,:,iqr)
-!                   idum1,idum2,chi0w(igq1,2,:,1)
+                   idum1,idum2,scrnw(igq1,2,:)
               if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) &
-                   idum1,idum2,scrn(igq1,igq2,iqr)
-!                   idum1,idum2,chi0(igq1,igq2,1)
+                   idum1,idum2,scrn(igq1,igq2)
            else
-              read(un,*) idum1,idum2,scrn(igq1,igq2,iqr)
-!              read(un,'(2i8,g18.10)') idum1,idum2,chi0(igq1,igq2,1)
+              read(un,*) idum1,idum2,scrn(igq1,igq2)
            end if
         end do
      end do
      close(un)
 
-write(1000+iqr,*) scrnh(:,iqr),scrnw(:,:,:,iqr),scrn(:,:,iqr)
+     ! invert dielectric matrix for q-point going to zero in x-, y-, and
+     ! z-direction for q=0
+     if (tq0) then
+        do oct=1,3
+           ! diagonal tensor component index
+           j=octmap(oct,oct)
+           scrn(1,1)=scrnh(j)
+           if (n.gt.1) then
+              scrn(1,2:n)=scrnw(2:n,1,oct)
+              scrn(2:n,1)=scrnw(2:n,2,oct)
+           end if
+           scrni(:,:,iqr)=0.d0
+           ! set right hand side to unity matrix
+           forall(j=1:n) scrni(j,j,iqr)=1.d0
+           x=0
+           ! call zposv('u',numgdm(i)+2,numgdm(i)+2,aa,maxgv+2,bb,maxgv+2,info)
+           ! solve linear equation system for positive definite symmetric
+           ! matrix
+           call zposv('u',numgdm(i)+2,numgdm(i)+2,aa,maxgv+2,bb,maxgv+2,info)
 
+        end do
+     end if
+     
 
-     ! loop over reduced q-points
+     deallocate(scrn,scrnw,scrnh)
+     ! end loop over reduced q-points
   end do
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
 
@@ -300,7 +316,7 @@ if (iflg.ne.0) &
   write(*,*) 'maximum number of symmetry operation for q-point',maxval(nsyma)
 
   call findgntn0_clear
-  deallocate(done,isyma,nsyma,ivgsyma,igqmap,scrn)
+  deallocate(done,isyma,nsyma,ivgsyma,igqmap,scrni)
 
   ! restore global variables
   nosym=nosymt
