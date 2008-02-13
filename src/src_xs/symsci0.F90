@@ -2,9 +2,9 @@ subroutine symsci0(flag,scrnh0,scrnih0,scrnisym)
   implicit none
   ! arguments
   integer, intent(in) :: flag
-  real(8), intent(in) :: scrnh0(3)
-  real(8), intent(in) :: scrnih0(3)
-  real(8), intent(out) :: scrnisym
+  complex(8), intent(in) :: scrnh0(3)
+  complex(8), intent(in) :: scrnih0(3)
+  complex(8), intent(out) :: scrnisym
   select case(flag)
   case(0)
      ! Peter's original choice in his BSE implementation:

@@ -18,13 +18,15 @@ subroutine scrcoulint
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
-  integer :: idum1,idum2,oct,info
+  integer :: idum1,idum2,idum3,oct,info
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
-  real(8) :: scrnh0(3),scrnih0(3)
+  real(8) :: rm(2,9)
+  complex(8) :: scrnh0(3),scrnih0(3)
   character(256) :: fname
-  real(8), allocatable :: potcl(:,:,:),scrn(:,:),scrnw(:,:,:),scrnh(:)
-  real(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
+  real(8), allocatable :: potcl(:,:,:)
+  complex(8), allocatable :: scrn(:,:),scrnw(:,:,:),scrnh(:)
+  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
   integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   complex(8), allocatable :: phf(:,:,:)
   logical, allocatable :: done(:)
@@ -96,16 +98,38 @@ write(*,*) 'iqr,ngq',iqr,n
      do igq1=1,n
         do igq2=1,n
            if (tq0) then
-              if ((igq1.eq.1).and.(igq2.eq.1)) read(un,*) &
-                      idum1,idum2,scrnh(:)
-              if ((igq1.eq.1).and.(igq2.ne.1)) read(un,*) &
-                   idum1,idum2,scrnw(igq2,1,:)
-              if ((igq1.ne.1).and.(igq2.eq.1)) read(un,*) &
-                   idum1,idum2,scrnw(igq1,2,:)
-              if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) &
-                   idum1,idum2,scrn(igq1,igq2)
+              if ((igq1.eq.1).and.(igq2.eq.1)) then
+!                 read(un,*) (idum1,idum1,idum3,scrnh(j),j=1,9)
+                 read(un,*) (idum1,idum1,idum3,rm(1,j),rm(2,j),j=1,9)
+                 scrnh(:)=cmplx(rm(1,:),rm(2,:),8)
+write(*,*) 'head*** read:',scrnh
+              end if
+              if ((igq1.eq.1).and.(igq2.ne.1)) then
+!                 read(un,*) (idum1,idum2,idum3,scrnw(igq2,1,j),j=1,3)
+                 read(un,*) (idum1,idum2,idum3,rm(1,j),rm(2,j),j=1,3)
+                 scrnw(igq2,1,:)=cmplx(rm(1,:3),rm(2,:3),8)
+              end if
+              if ((igq1.ne.1).and.(igq2.eq.1)) then
+!                 read(un,*) (idum1,idum2,idum3,scrnw(igq1,2,j),j=1,3)
+                 read(un,*) (idum1,idum2,idum3,rm(1,j),rm(2,j),j=1,3)
+                 scrnw(igq1,2,:)=cmplx(rm(1,:3),rm(2,:3),8)
+              end if
+              if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) idum1,idum2,idum3,&
+!                   scrn(igq1,igq2)
+                   rm(1,1),rm(2,1)
+              scrn(igq1,igq2)=cmplx(rm(1,1),rm(2,1),8)
+!!$              if ((igq1.eq.1).and.(igq2.eq.1)) read(un,*) &
+!!$                      idum1,idum2,scrnh(:)
+!!$              if ((igq1.eq.1).and.(igq2.ne.1)) read(un,*) &
+!!$                   idum1,idum2,scrnw(igq2,1,:)
+!!$              if ((igq1.ne.1).and.(igq2.eq.1)) read(un,*) &
+!!$                   idum1,idum2,scrnw(igq1,2,:)
+!!$              if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) &
+!!$                   idum1,idum2,scrn(igq1,igq2)
            else
-              read(un,*) idum1,idum2,scrn(igq1,igq2)
+!              read(un,*) idum1,idum2,idum3,scrn(igq1,igq2)
+              read(un,*) idum1,idum2,idum3,rm(1,1),rm(2,1)
+              scrn(igq1,igq2)=cmplx(rm(1,1),rm(2,1),8)
            end if
         end do
      end do
@@ -126,6 +150,7 @@ write(*,*) 'iqr,ngq',iqr,n
            end if
            tm(:,:)=scrn(:,:)
 
+write(*,*) 'Scr. Coul. Int.: head of diel. matrix, oct:',oct,scrnh0(oct)
 
 !!$do igq1=1,n
 !!$do igq2=igq1,n
@@ -150,7 +175,7 @@ forall(j=1:n) tmi(j,j)=1.d0
 
 write(200,*) scrn
 !!!!!!******** screening should be complex!!!! change dfq.F90 and screen.F90 !!
-           call dposv('u',n,n,tm,n,tmi,n,info)
+           call zposv('u',n,n,tm,n,tmi,n,info)
            if (info.ne.0) then
               write(*,*)
               write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
@@ -165,7 +190,7 @@ write(*,*) 'Scr. Coul. Int.: head of inv. diel. matrix, oct:',oct,scrnih0(oct)
         end do
         ! symmetrize inverse dielectric matrix wrt. directions in which q goes
         ! to zero
-        call symsci0(1,scrnh0,scrnih0,scrni(1,1,iqr))
+        call symsci0(0,scrnh0,scrnih0,scrni(1,1,iqr))
 write(*,*) 'Scr. Coul. Int.: symm. head of inv. diel. matrix:',scrni(1,1,iqr)
      else
 
@@ -176,10 +201,10 @@ end do
 end do
 
 ! set to unity matrix for input to zposv
-scrni(:,:,iqr)=0.d0
-forall(j=1:ngqmax) scrni(j,j,iqr)=1.d0
+tmi(:,:)=0.d0
+forall(j=1:n) tmi(j,j)=1.d0
 
-        call dposv('u',n,n,scrn,n,scrni(1,1,iqr),ngqmax,info)
+        call zposv('u',n,n,tm,n,tmi,n,info)
         if (info.ne.0) then
            write(*,*)
            write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
@@ -188,6 +213,7 @@ forall(j=1:ngqmax) scrni(j,j,iqr)=1.d0
            call terminate
         end if
      end if
+     scrni(:,:,iqr)=tmi(:,:)
      deallocate(scrn,scrnw,scrnh,tm,tmi)
      ! end loop over reduced q-points
   end do

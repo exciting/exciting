@@ -351,19 +351,39 @@ subroutine dfq(iq)
         do ig2=1,n
            if (ig1.eq.ig2) r1=1.d0
            if (tq0) then
-              if ((ig1.eq.1).and.(ig2.eq.1)) write(un,'(2i8,9g18.10)') ig1,ig2,&
-                   rv1-dble(chi0h(:,1))
-              if ((ig1.eq.1).and.(ig2.ne.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
-                   -dble(chi0w(ig2,1,:,1))
-              if ((ig1.ne.1).and.(ig2.eq.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
-                   -dble(chi0w(ig1,2,:,1))
-              if ((ig1.ne.1).and.(ig2.ne.1)) write(un,'(2i8,g18.10)') ig1,ig2,&
-                   r1-dble(chi0(ig1,ig2,1))
+              if ((ig1.eq.1).and.(ig2.eq.1)) then
+                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,rv1(j)-chi0h(j,1),j=1,9)
+              end if
+              if ((ig1.eq.1).and.(ig2.ne.1)) then
+                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,chi0w(ig2,1,j,1),j=1,3)
+              end if
+              if ((ig1.ne.1).and.(ig2.eq.1)) then
+                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,chi0w(ig1,2,j,1),j=1,3)
+              end if
+              if ((ig1.ne.1).and.(ig2.ne.1)) write(un,'(3i8,2g18.10)') ig1,ig2,&
+                   0,r1-chi0(ig1,ig2,1)
            else
-              write(un,'(2i8,g18.10)') ig1,ig2,r1-dble(chi0(ig1,ig2,1))
+              write(un,'(3i8,2g18.10)') ig1,ig2,0,r1-chi0(ig1,ig2,1)
            end if
         end do
      end do
+!!$     do ig1=1,n
+!!$        do ig2=1,n
+!!$           if (ig1.eq.ig2) r1=1.d0
+!!$           if (tq0) then
+!!$              if ((ig1.eq.1).and.(ig2.eq.1)) write(un,'(2i8,9g18.10)') ig1,ig2,&
+!!$                   rv1-dble(chi0h(:,1))
+!!$              if ((ig1.eq.1).and.(ig2.ne.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
+!!$                   -dble(chi0w(ig2,1,:,1))
+!!$              if ((ig1.ne.1).and.(ig2.eq.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
+!!$                   -dble(chi0w(ig1,2,:,1))
+!!$              if ((ig1.ne.1).and.(ig2.ne.1)) write(un,'(2i8,g18.10)') ig1,ig2,&
+!!$                   r1-dble(chi0(ig1,ig2,1))
+!!$           else
+!!$              write(un,'(2i8,g18.10)') ig1,ig2,r1-dble(chi0(ig1,ig2,1))
+!!$           end if
+!!$        end do
+!!$     end do
      close(un)
   else
      do j=0,procs-1
