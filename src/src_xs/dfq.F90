@@ -45,7 +45,7 @@ subroutine dfq(iq)
   logical, external :: tqgamma
   if (acont.and.tscreen) then
      write(*,*)
-     write(*,'("Error(",a,"): analytic continuation does not work with &
+     write(*,'("Error(",a,"): analytic continuation does not work for &
           &screening")')
      write(*,*)
      call terminate
@@ -272,6 +272,8 @@ subroutine dfq(iq)
            ! response function
            if (tq0) then
               do oct1=1,3
+                 optcomp(1,1)=oct1
+                 optcomp(2,1)=oct1
                  if (n.gt.1) then
                     ! wings
                     call dfqoscwg(1,pmou(:,ist1,ist2),pmuo(:,ist2,ist1), &

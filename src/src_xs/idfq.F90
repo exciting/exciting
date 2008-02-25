@@ -76,6 +76,10 @@ subroutine idfq(iq)
               ! read Kohn-Sham response function
               call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,&
                    chi0h)
+
+!*****************************************************************************
+              write(2000+modulo(m,n)*100+oct1*10+oct2,'(9f12.4)') dble(w(iw)),chi0h(oct),chi0wg(2,1,:)
+
               ! assign components to main matrix for q=0
               if (tq0) then
                  ! head
@@ -126,6 +130,9 @@ subroutine idfq(iq)
               if ((m.eq.1).and.(oct1.ne.oct2)) mdf1(iw)=mdf1(iw)-1.d0
               ! write macroscopic dielectric function to file
               write(unit1,rec=iw-wi+1) mdf1(iw)
+!*****************************************************************************
+              write(1000+modulo(m,n)*100+oct1*10+oct2,'(3g18.10)') dble(w(iw)),mdf1(iw)
+
            end do ! iw
            close(unit1)
            ! end loop over optical components
