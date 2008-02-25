@@ -8,6 +8,7 @@ module m_dyson
 contains
   
   subroutine dyson(iq,oct,iw,n,s0,k,s)
+    use invert
     !
     ! solve Dyson's equation S = S0 + S0*K*S
     ! for S by inversion.
@@ -21,9 +22,8 @@ contains
     ! local variables
     character(*), parameter :: thisnam='dyson'
     complex(8),parameter :: zone=(1.d0,0.d0),zzero=(0.d0,0.d0)
-    complex(8), allocatable :: mt(:,:),zwork(:)
-    integer, allocatable :: ipiv(:)
-    integer :: shs0(2),shk(2),shs(2),nmin,nmax,j,lwork,info
+    complex(8), allocatable :: mt(:,:)
+    integer :: shs0(2),shk(2),shs(2),nmin,nmax,j
 
 
     integer :: a,b
@@ -46,9 +46,6 @@ contains
 
     ! allocate
     allocate(mt(n,n))
-    allocate(ipiv(n))
-    lwork=2*n
-    allocate(zwork(lwork))
 
     ! calculate matrix -S0*K
     call zgemm('n','n', n, n, n, -zone, s0, n, k, n, zzero, mt, n )
@@ -57,22 +54,8 @@ contains
     forall(j=1:n) mt(j,j)=mt(j,j)+1.d0
 
     ! invert matrix T
-    call zgetrf(n,n,mt,n,ipiv,info)
-    if (info.ne.0) then
-       write(*,*)
-       write(*,'("Error(",a,"): zgetrf returned non-zero info : ",I8)') &
-            thisnam,info
-       write(*,*)
-       call terminate
-    end if
-    call zgetri(n,mt,n,ipiv,zwork,lwork,info)
-    if (info.ne.0) then
-       write(*,*)
-       write(*,'("Error(",a,"): zgetri returned non-zero info : ",I8)') &
-            thisnam,info
-       write(*,*)
-       call terminate
-    end if
+    call zinvert_lapack(mt,mt)
+
 
     if ((iq.eq.1).and.(iw.eq.1).and.(n.ne.1)) then
        do a=1,n
@@ -88,42 +71,11 @@ contains
     ! calculate matrix S=T^-1*S0
     call zgemm('n','n', n, n, n, zone, mt, n, s0, n, zzero, s, n )
 
-    deallocate(mt,ipiv,zwork)
+    deallocate(mt)
 
   end subroutine dyson
   
-  subroutine zinvert_lapack(m,mi)
-    complex(8), intent(in) :: m(:,:)
-    complex(8), intent(out) :: mi(:,:)
-    character(*), parameter :: thisnam='zinvert_lapack'
-    complex(8),parameter :: zone=(1.d0,0.d0),zzero=(0.d0,0.d0)
-    complex(8), allocatable :: mt(:,:),zwork(:)
-    integer, allocatable :: ipiv(:)
-    integer :: nmin,nmax,j,lwork,info,sh(2),n
-    sh=shape(m)
-    n=sh(1)
-    allocate(mt(n,n))
-    allocate(ipiv(n))
-    lwork=2*n
-    allocate(zwork(lwork))
-    mi(:,:)=m(:,:)
-    call zgetrf(n,n,mi,n,ipiv,info)
-    if (info.ne.0) then
-       write(*,*)
-       write(*,'("Error(",a,"): zgetrf returned non-zero info : ",I8)') &
-            thisnam,info
-       write(*,*)
-       call terminate
-    end if
-    call zgetri(n,mi,n,ipiv,zwork,lwork,info)
-    if (info.ne.0) then
-       write(*,*)
-       write(*,'("Error(",a,"): zgetri returned non-zero info : ",I8)') &
-            thisnam,info
-       write(*,*)
-       call terminate
-    end if
-  end subroutine zinvert_lapack
+
 
 end module m_dyson
 

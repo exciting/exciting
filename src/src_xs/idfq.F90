@@ -22,7 +22,7 @@ subroutine idfq(iq)
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt,             a,b
   logical :: tq0
   integer, external :: l2int,octmap
   logical, external :: tqgamma
@@ -41,6 +41,10 @@ subroutine idfq(iq)
   allocate(chi0(n,n),fxc(n,n),idf(n,n),w(nwdf),mdf1(nwdf),chi0hd(nwdf))
   allocate(chi0wg(n,2,3),chi0h(9))
   fxc=zzero
+  ! find highest (partially) occupied and lowest (partially) unoccupied states
+  call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+  ! find limits for band combinations
+  call ematbdcmbs(emattype)
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
   ! filename for response function file
@@ -76,10 +80,6 @@ subroutine idfq(iq)
               ! read Kohn-Sham response function
               call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,&
                    chi0h)
-
-!*****************************************************************************
-              write(2000+modulo(m,n)*100+oct1*10+oct2,'(9f12.4)') dble(w(iw)),chi0h(oct),chi0wg(2,1,:)
-
               ! assign components to main matrix for q=0
               if (tq0) then
                  ! head
@@ -101,6 +101,19 @@ subroutine idfq(iq)
                  ! head of pure f_xc kernel
                  if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
               end if
+
+
+!*****************************************************************************
+    if ((iq.eq.1).and.(iw.eq.1).and.(n.ne.1)) then
+       do a=1,n
+          do b=1,n
+             write(400+oct,'(2i8,2g18.10)') a,b,chi0(a,b)
+          end do
+       end do
+    end if
+
+
+
               ! solve Dyson's equation for the interacting response function
               call dyson(iq,oct,iw,n,chi0,fxc,idf)
               ! symmetrized inverse dielectric function (add one)

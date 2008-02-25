@@ -16,8 +16,11 @@ subroutine idf
   ! initialise universal variables
   if (calledxs.eq.1) call init0
   call init1
+  ! save Gamma-point variables
+  call tdsave0
   ! initialize q-point set
   call init2xs
+  call readfermi
   ! w-point parallelization for dielectric function
   call genparidxran('w')
   write(unitout,'("Exchange-correlation kernel type :",i4)') fxctype

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -7,13 +7,12 @@ subroutine scrcoulint
   use modmain
   use modmpi
   use modxs
+  use invert
   use m_tdgauntgen
   use m_findgntn0
   use m_writegqpts
   use m_genfilname
   use m_getunit
-
-use m_dyson
 
   implicit none
   ! local variables
@@ -140,6 +139,17 @@ write(*,*) 'head*** read:',scrnh
         end do
      end do
      close(un)
+
+
+    if ((iqr.eq.1).and.(n.ne.1)) then
+       do igq1=1,n
+          do igq2=1,n
+             write(300+oct,'(2i8,2g18.10)') igq1,igq2,scrn(igq1,igq2)
+          end do
+       end do
+    end if
+
+
 
      ! invert dielectric matrix for q-point going to zero in x-, y-, and
      ! z-direction for q=0

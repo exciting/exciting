@@ -1,3 +1,8 @@
+
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine symsci0(flag,scrnh0,scrnih0,scrnisym)
   implicit none
   ! arguments
@@ -13,7 +18,8 @@ subroutine symsci0(flag,scrnh0,scrnih0,scrnisym)
      scrnisym=1.d0/((sum(scrnh0))/3.d0)
   case(1)
      ! Treatment found in the BSE implementation of R. Laskowski, also
-     ! mentioned in [M. Hybertsen, PRB 34, 5390 (1986), p5411]
+     ! mentioned in [M. Hybertsen, PRB 34, 5390 (1986), p5411]: average
+     ! the diagonal tensor components of the inverse of the screening matrix
      scrnisym=sum(scrnih0)/3.d0
   case default
      write(*,*)
