@@ -355,10 +355,10 @@ subroutine dfq(iq)
                  write(un,'(3i8,2g18.10)') (ig1,ig2,j,rv1(j)-chi0h(j,1),j=1,9)
               end if
               if ((ig1.eq.1).and.(ig2.ne.1)) then
-                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,chi0w(ig2,1,j,1),j=1,3)
+                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,-chi0w(ig2,1,j,1),j=1,3)
               end if
               if ((ig1.ne.1).and.(ig2.eq.1)) then
-                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,chi0w(ig1,2,j,1),j=1,3)
+                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,-chi0w(ig1,2,j,1),j=1,3)
               end if
               if ((ig1.ne.1).and.(ig2.ne.1)) write(un,'(3i8,2g18.10)') ig1,ig2,&
                    0,r1-chi0(ig1,ig2,1)

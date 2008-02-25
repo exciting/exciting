@@ -7,13 +7,14 @@ module m_dyson
   implicit none
 contains
   
-  subroutine dyson(n,s0,k,s)
+  subroutine dyson(iq,oct,iw,n,s0,k,s)
     !
     ! solve Dyson's equation S = S0 + S0*K*S
     ! for S by inversion.
     !
     implicit none
     ! arguments
+    integer, intent(in) :: iq,oct,iw
     integer, intent(in) :: n
     complex(8), intent(in) :: s0(:,:), k(:,:)
     complex(8), intent(out) :: s(:,:)
@@ -23,6 +24,10 @@ contains
     complex(8), allocatable :: mt(:,:),zwork(:)
     integer, allocatable :: ipiv(:)
     integer :: shs0(2),shk(2),shs(2),nmin,nmax,j,lwork,info
+
+
+    integer :: a,b
+
 
     ! check matrix sizes
     shs0=shape(s0)
@@ -50,7 +55,7 @@ contains
 
     ! calculate matrix T=[1 - S0*K]
     forall(j=1:n) mt(j,j)=mt(j,j)+1.d0
-    
+
     ! invert matrix T
     call zgetrf(n,n,mt,n,ipiv,info)
     if (info.ne.0) then
@@ -68,7 +73,18 @@ contains
        write(*,*)
        call terminate
     end if
-    
+
+    if ((iq.eq.1).and.(iw.eq.1).and.(n.ne.1)) then
+       do a=1,n
+          do b=1,n
+             write(200+oct,'(2i8,2g18.10)') a,b,mt(a,b)
+          end do
+       end do
+
+
+    end if
+
+
     ! calculate matrix S=T^-1*S0
     call zgemm('n','n', n, n, n, zone, mt, n, s0, n, zzero, s, n )
 
@@ -76,4 +92,40 @@ contains
 
   end subroutine dyson
   
+  subroutine zinvert_lapack(m,mi)
+    complex(8), intent(in) :: m(:,:)
+    complex(8), intent(out) :: mi(:,:)
+    character(*), parameter :: thisnam='zinvert_lapack'
+    complex(8),parameter :: zone=(1.d0,0.d0),zzero=(0.d0,0.d0)
+    complex(8), allocatable :: mt(:,:),zwork(:)
+    integer, allocatable :: ipiv(:)
+    integer :: nmin,nmax,j,lwork,info,sh(2),n
+    sh=shape(m)
+    n=sh(1)
+    allocate(mt(n,n))
+    allocate(ipiv(n))
+    lwork=2*n
+    allocate(zwork(lwork))
+    mi(:,:)=m(:,:)
+    call zgetrf(n,n,mi,n,ipiv,info)
+    if (info.ne.0) then
+       write(*,*)
+       write(*,'("Error(",a,"): zgetrf returned non-zero info : ",I8)') &
+            thisnam,info
+       write(*,*)
+       call terminate
+    end if
+    call zgetri(n,mi,n,ipiv,zwork,lwork,info)
+    if (info.ne.0) then
+       write(*,*)
+       write(*,'("Error(",a,"): zgetri returned non-zero info : ",I8)') &
+            thisnam,info
+       write(*,*)
+       call terminate
+    end if
+  end subroutine zinvert_lapack
+
 end module m_dyson
+
+
+

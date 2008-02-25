@@ -12,6 +12,9 @@ subroutine scrcoulint
   use m_writegqpts
   use m_genfilname
   use m_getunit
+
+use m_dyson
+
   implicit none
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
@@ -33,6 +36,9 @@ subroutine scrcoulint
   real(8), external :: r3taxi
   integer, external :: octmap
   logical, external :: tqgamma
+
+info=0
+
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -148,7 +154,7 @@ write(*,*) 'head*** read:',scrnh
               scrn(1,2:n)=scrnw(2:n,1,oct)
               scrn(2:n,1)=scrnw(2:n,2,oct)
            end if
-           tm(:,:)=scrn(:,:)
+           tm=scrn
 
 write(*,*) 'Scr. Coul. Int.: head of diel. matrix, oct:',oct,scrnh0(oct)
 
@@ -174,8 +180,12 @@ forall(j=1:n) tmi(j,j)=1.d0
            ! matrix
 
 write(200,*) scrn
-!!!!!!******** screening should be complex!!!! change dfq.F90 and screen.F90 !!
-           call zposv('u',n,n,tm,n,tmi,n,info)
+
+!!!           call zposv('u',n,n,tm,n,tmi,n,info)
+
+call zinvert_lapack(tm,tmi)
+
+
            if (info.ne.0) then
               write(*,*)
               write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
@@ -190,7 +200,7 @@ write(*,*) 'Scr. Coul. Int.: head of inv. diel. matrix, oct:',oct,scrnih0(oct)
         end do
         ! symmetrize inverse dielectric matrix wrt. directions in which q goes
         ! to zero
-        call symsci0(0,scrnh0,scrnih0,scrni(1,1,iqr))
+        call symsci0(1,scrnh0,scrnih0,scrni(1,1,iqr))
 write(*,*) 'Scr. Coul. Int.: symm. head of inv. diel. matrix:',scrni(1,1,iqr)
      else
 
@@ -199,6 +209,8 @@ do igq2=igq1,n
 scrn(igq2,igq1)=scrn(igq1,igq2)
 end do
 end do
+
+tm(:,:)=scrn(:,:)
 
 ! set to unity matrix for input to zposv
 tmi(:,:)=0.d0

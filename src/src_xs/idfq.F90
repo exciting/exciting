@@ -98,7 +98,7 @@ subroutine idfq(iq)
                  if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
               end if
               ! solve Dyson's equation for the interacting response function
-              call dyson(n,chi0,fxc,idf)
+              call dyson(iq,oct,iw,n,chi0,fxc,idf)
               ! symmetrized inverse dielectric function (add one)
               forall(j=1:m) 
                  idf(j,j)=idf(j,j)+1.d0
