@@ -376,11 +376,6 @@ subroutine dfq(iq)
      end do
   end if
 
-! debug for w=0
-write(4000,*) chi0(:,:,1)
-write(4001,*) chi0w(:,:,:,1)
-write(4002,*) chi0h(:,1)
-
   deallocate(docc12,docc21,scis12,scis21)
   deallocate(chi0h)
   deallocate(chi0w)
@@ -390,52 +385,3 @@ write(4002,*) chi0h(:,1)
   deallocate(xou,xouc,xuo,xuoc,hou,huo)
   if (tetra) deallocate(cw,cwa,cwsurf)
 end subroutine dfq
-
-integer function octmap(i1,i2)
-  implicit none
-  integer, intent(in) :: i1,i2
-!!$  if ((i1.eq.1).and.(i2.eq.1)) octmap=1
-!!$  if ((i1.eq.2).and.(i2.eq.2)) octmap=2
-!!$  if ((i1.eq.3).and.(i2.eq.3)) octmap=3
-!!$  if ((i1.eq.1).and.(i2.eq.2)) octmap=4
-!!$  if ((i1.eq.1).and.(i2.eq.3)) octmap=5
-!!$  if ((i1.eq.2).and.(i2.eq.3)) octmap=6
-!!$  if ((i1.eq.2).and.(i2.eq.1)) octmap=7
-!!$  if ((i1.eq.3).and.(i2.eq.1)) octmap=8
-!!$  if ((i1.eq.3).and.(i2.eq.2)) octmap=9
-  ! second index runs fastest
-  octmap=3*(i1-1)+i2
-end function octmap
-
-subroutine oct12map(oct,i1,i2)
-  implicit none
-  integer, intent(in) :: oct
-  integer, intent(out) :: i1,i2
-  if (oct.eq.1) then
-     i1=1; i2=1
-  end if
-  if (oct.eq.2) then
-     i1=2; i2=2
-  end if
-  if (oct.eq.3) then
-     i1=3; i2=3
-  end if
-  if (oct.eq.4) then
-     i1=1; i2=2
-  end if
-  if (oct.eq.5) then
-     i1=1; i2=3
-  end if
-  if (oct.eq.6) then
-     i1=2; i2=3
-  end if
-  if (oct.eq.7) then
-     i1=2; i2=1
-  end if
-  if (oct.eq.8) then
-     i1=3; i2=1
-  end if
-  if (oct.eq.9) then
-     i1=3; i2=2
-  end if
-end subroutine oct12map

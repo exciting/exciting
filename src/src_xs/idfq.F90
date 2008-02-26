@@ -22,7 +22,7 @@ subroutine idfq(iq)
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt,             a,b
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt
   logical :: tq0
   integer, external :: l2int,octmap
   logical, external :: tqgamma
@@ -41,15 +41,16 @@ subroutine idfq(iq)
   allocate(chi0(n,n),fxc(n,n),idf(n,n),w(nwdf),mdf1(nwdf),chi0hd(nwdf))
   allocate(chi0wg(n,2,3),chi0h(9))
   fxc=zzero
+  ! filename for response function file
+  call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
+       acont=acont,nar=.not.aresdf,iqmt=iq,filnam=filnam)
+  call genfilname(iqmt=iq,setfilext=.true.)
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find limits for band combinations
   call ematbdcmbs(emattype)
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
-  ! filename for response function file
-  call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iq,filnam=filnam)
   ! record length
   inquire(iolength=recl) mdf1(1)
   call getunit(unit1)

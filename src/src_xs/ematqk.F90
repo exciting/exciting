@@ -23,8 +23,7 @@ subroutine ematqk(iq,ik)
   complex(8), allocatable :: evecfvo20(:,:)
   complex(8), allocatable :: evecfvu2(:,:)
   complex(8), allocatable :: helpm(:,:),helpm2(:,:)
-  integer :: ikq,igq
-  integer :: i1,i2,n,n0
+  integer :: ikq,igq,n,n0
   real(8) :: cpuini,cpuread,cpumain,cpuwrite,cpuall
   real(8) :: cpugnt,cpumt,cpuir
   real(8) :: cpumalores,cpumaloares,cpumloares,cpumloaares

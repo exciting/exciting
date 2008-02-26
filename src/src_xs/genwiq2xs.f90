@@ -26,38 +26,15 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   ! local variables
   integer, parameter :: np=4
   integer, parameter :: ns0=10,nss=20
-  integer ns,i1,i2,i3,i,ip
-  real(8) d(3),dv,sum2,t1,t2
-  real(8) v0(3),v1(3),v2(3),v3(3)
-  real(8) xa(np),ya(np),c(np)
-  integer :: un,n,j1,j2
-  real(8) :: v0l(3),v1l(3),v01(3),v02(3),v11(3)
-  real(8) :: v12(3),v21(3),v22(3),v31(3),v32(3)
+  integer :: ns,i1,i2,i3,i,ip,j1,j2
+  real(8) :: d(3),dv,sum2,t1
   real(8) :: sum3,t3,qsz,cpu0,cpu1
-  character(256) :: fname
+  real(8) :: xa(np),ya(np),c(np),v0(3),v0l(3)
+  real(8) :: v01(3),v02(3),v11(3),v12(3),v21(3),v22(3),v31(3),v32(3)
   ! external functions
   real(8) polynom
   external polynom
   call cpu_time(cpu0)
-
-!!$  ! map the q-vector into the first Brillouin zone
-!!$  t1=1.d8
-!!$  v0(:)=0.d0
-!!$  do i1=-1,1
-!!$     do i2=-1,1
-!!$        do i3=-1,1
-!!$           v1(:)=vqc(:,iq)+dble(i1)*bvec(:,1)+dble(i2)*bvec(:,2) &
-!!$                +dble(i3)*bvec(:,3)
-!!$           v1l(:)=vql(:,iq)+(/dble(i1),dble(i2),dble(i3)/)
-!!$           t2=v1(1)**2+v1(2)**2+v1(3)**2
-!!$           if (t2.lt.t1) then
-!!$              t1=t2
-!!$              v0(:)=v1(:)
-!!$              v0l(:)=v1l(:)
-!!$           end if
-!!$        end do
-!!$     end do
-!!$  end do
 
   ! do not map to the first Brillouin zone
   v0(:)=vqc(:,iq)

@@ -14,7 +14,7 @@ subroutine x0toasc
   ! local variables
   character(*), parameter :: thisnam='x0toasc'
   character(256) :: filnam, filnama
-  integer :: n,iq,igq,igqp,iw,oct,oct1,oct2,j,noct,un
+  integer :: n,iq,igq,igqp,iw,oct,oct1,oct2,noct,un
   complex(8) :: zt
   complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
   logical :: tq0
