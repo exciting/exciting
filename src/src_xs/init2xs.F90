@@ -192,7 +192,7 @@ subroutine init2xs
      call gengqvec(iq,vql(1,iq),vqc(1,iq),ngq(iq),igqig(1,iq), &
           vgql(1,1,iq),vgqc(1,1,iq),gqc(1,iq),tpgqc(1,1,iq))
      ! generate structure factors for G-vectors
-     call gensfacgp(ngq(iq),vgqc(1,1,iq),ngq(iq),sfacgq(1,1,iq))
+     call gensfacgp(ngq(iq),vgqc(1,1,iq),ngqmax,sfacgq(1,1,iq))
      ! spherical harmonics for G+q-vectors
      call genylmgq(iq,lmaxvr)
   end do

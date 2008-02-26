@@ -18,8 +18,6 @@ subroutine dfq(iq)
   use m_gettetcw
   use m_chi0upd
   use m_putx0
-  use m_tdgauntgen
-  use m_findgntn0
   use m_getunit
   use m_filedel
   use m_genfilname
@@ -161,10 +159,6 @@ subroutine dfq(iq)
   chi0w(:,:,:,:)=zzero
   chi0h(:,:)=zzero
   if (tscreen) then
-     ! generate Gaunt coefficients
-     call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
-     ! find indices for non-zero Gaunt coefficients
-     call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
      ! generate radial integrals wrt. sph. Bessel functions
      call ematrad(iq)
      ! delete timing information of previous runs
@@ -348,9 +342,9 @@ subroutine dfq(iq)
           status='replace')
      rv1(:)=0.d0
      rv1(1::4)=1.d0
-     r1=0.d0
      do ig1=1,n
         do ig2=1,n
+           r1=0.d0
            if (ig1.eq.ig2) r1=1.d0
            if (tq0) then
               if ((ig1.eq.1).and.(ig2.eq.1)) then
@@ -369,23 +363,6 @@ subroutine dfq(iq)
            end if
         end do
      end do
-!!$     do ig1=1,n
-!!$        do ig2=1,n
-!!$           if (ig1.eq.ig2) r1=1.d0
-!!$           if (tq0) then
-!!$              if ((ig1.eq.1).and.(ig2.eq.1)) write(un,'(2i8,9g18.10)') ig1,ig2,&
-!!$                   rv1-dble(chi0h(:,1))
-!!$              if ((ig1.eq.1).and.(ig2.ne.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
-!!$                   -dble(chi0w(ig2,1,:,1))
-!!$              if ((ig1.ne.1).and.(ig2.eq.1)) write(un,'(2i8,3g18.10)') ig1,ig2,&
-!!$                   -dble(chi0w(ig1,2,:,1))
-!!$              if ((ig1.ne.1).and.(ig2.ne.1)) write(un,'(2i8,g18.10)') ig1,ig2,&
-!!$                   r1-dble(chi0(ig1,ig2,1))
-!!$           else
-!!$              write(un,'(2i8,g18.10)') ig1,ig2,r1-dble(chi0(ig1,ig2,1))
-!!$           end if
-!!$        end do
-!!$     end do
      close(un)
   else
      do j=0,procs-1
@@ -398,6 +375,12 @@ subroutine dfq(iq)
         call barrier
      end do
   end if
+
+! debug for w=0
+write(4000,*) chi0(:,:,1)
+write(4001,*) chi0w(:,:,:,1)
+write(4002,*) chi0h(:,1)
+
   deallocate(docc12,docc21,scis12,scis21)
   deallocate(chi0h)
   deallocate(chi0w)

@@ -14,11 +14,12 @@ subroutine x0toasc
   ! local variables
   character(*), parameter :: thisnam='x0toasc'
   character(256) :: filnam, filnama
-  integer :: n,iq,igq,igqp,iw,oct,noct,un
+  integer :: n,iq,igq,igqp,iw,oct,oct1,oct2,j,noct,un
   complex(8) :: zt
   complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
   logical :: tq0
   logical, external :: tqgamma
+  integer, external :: octmap
   if (calledxs.eq.1) call init0
   ! initialise universal variables
   call init1
@@ -34,7 +35,7 @@ subroutine x0toasc
      ! size of local field effects
      n=ngq(iq)
      ! allocate
-     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3))
+     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(9))
      ! filenames
      call genfilname(asc=.true.,basename='X0',bzsampl=bzsampl,acont=acont,&
           nar=.not.aresdf,iqmt=iq,filnam=filnama)
@@ -46,28 +47,32 @@ subroutine x0toasc
           action='write',status='replace')
      noct=1
      if (tq0) noct=3
-     do oct=1,noct
-        do iw=1,nwdf
-           ! read from binary file
-           call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,chi0hd)
-           ! write to ASCII file
-           if (tq0) then
-              ! head
-              chi0(1,1)=chi0hd(oct)
-              ! wings
-              if (n.gt.1) then
-                 chi0(1,2:)=chi0wg(2:,1,oct)
-                 chi0(2:,1)=chi0wg(2:,2,oct)
-              end if
-           end if
-           do igq=1,ngq(iq)
-              do igqp=1,ngq(iq)
+     do iw=1,nwdf
+        ! read from binary file
+        call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,chi0hd)
+        ! write to ASCII file
+        do igq=1,ngq(iq)
+           do igqp=1,ngq(iq)
+              if (tq0) then
+                 do oct1=1,noct
+                    do oct2=1,noct
+                       oct=octmap(oct1,oct2)
+                       ! head
+                       if ((igq.eq.1).and.(igqp.eq.1)) &
+                            chi0(igq,igqp)=chi0hd(oct)
+                       ! wings
+                       if ((n.gt.1).and.(igq.eq.1).and.(igqp.gt.1)) &
+                            chi0(igq,igqp)=chi0wg(igqp,1,oct1)
+                       if ((n.gt.1).and.(igq.gt.1).and.(igqp.eq.1)) &
+                            chi0(igq,igqp)=chi0wg(igq,2,oct2)              
+                       zt=chi0(igq,igqp)
+                       write(un,'(5i6,3g18.10)') iq,iw,igq,igqp,oct,zt,abs(zt)
+                    end do
+                 end do
+              else
                  zt=chi0(igq,igqp)
-                 write(un,'(5i6,3g18.10)') iq,oct,iw,igq,igqp,zt,abs(zt)
-              end do
-              write(un+1,'(100g12.4)') abs(chi0(igq,:))
-              write(un+2,'(100g12.4)') dble(chi0(igq,:))
-              write(un+3,'(100g12.4)') aimag(chi0(igq,:))
+                 write(un,'(5i6,3g18.10)') iq,iw,igq,igqp,0,zt,abs(zt)
+              end if
            end do
         end do
      end do

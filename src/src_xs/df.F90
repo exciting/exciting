@@ -7,6 +7,8 @@ subroutine df
   use modmain
   use modxs
   use modmpi
+  use m_tdgauntgen
+  use m_findgntn0
   use m_genfilname
   implicit none
   ! local variables
@@ -20,6 +22,12 @@ subroutine df
   call tdsave0
   ! initialize q-point set
   call init2xs
+  if (tscreen) then
+     ! generate Gaunt coefficients
+     call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
+     ! find indices for non-zero Gaunt coefficients
+     call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+  end if
   ! read Fermi energy
   call readfermi
   ! w-point parallelization for dielectric function
@@ -50,4 +58,5 @@ subroutine df
      call terminate
   end if
   if (.not.tscreen) call genfilname(setfilext=.true.)
+  if (tscreen) call findgntn0_clear
 end subroutine df

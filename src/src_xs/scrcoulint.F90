@@ -20,7 +20,7 @@ subroutine scrcoulint
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
-  integer :: idum1,idum2,idum3,oct,info
+  integer :: idum1,idum2,idum3,oct1,oct,info
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
   real(8) :: rm(2,9)
@@ -104,8 +104,8 @@ write(*,*) 'iqr,ngq',iqr,n
         do igq2=1,n
            if (tq0) then
               if ((igq1.eq.1).and.(igq2.eq.1)) then
-!                 read(un,*) (idum1,idum1,idum3,scrnh(j),j=1,9)
-                 read(un,*) (idum1,idum1,idum3,rm(1,j),rm(2,j),j=1,9)
+!                 read(un,*) (idum1,idum2,idum3,scrnh(j),j=1,9)
+                 read(un,*) (idum1,idum2,idum3,rm(1,j),rm(2,j),j=1,9)
                  scrnh(:)=cmplx(rm(1,:),rm(2,:),8)
 write(*,*) 'head*** read:',scrnh
               end if
@@ -141,14 +141,6 @@ write(*,*) 'head*** read:',scrnh
      close(un)
 
 
-    if ((iqr.eq.1).and.(n.ne.1)) then
-       do igq1=1,n
-          do igq2=1,n
-             write(300+oct,'(2i8,2g18.10)') igq1,igq2,scrn(igq1,igq2)
-          end do
-       end do
-    end if
-
 
 
      ! invert dielectric matrix for q-point going to zero in x-, y-, and
@@ -165,6 +157,17 @@ write(*,*) 'head*** read:',scrnh
               scrn(2:n,1)=scrnw(2:n,2,oct)
            end if
            tm=scrn
+
+    if ((iqr.eq.1).and.(n.ne.1)) then
+       do igq1=1,n
+          do igq2=1,n
+             write(300+oct,'(2i8,2g18.10)') igq1,igq2,scrn(igq1,igq2)
+          end do
+       end do
+    end if
+
+
+
 
 write(*,*) 'Scr. Coul. Int.: head of diel. matrix, oct:',oct,scrnh0(oct)
 

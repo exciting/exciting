@@ -44,32 +44,32 @@ subroutine ematgntsum(iq,igq)
   intrgalo(:,:,:,:,:) = 0.d0
   intrglolo(:,:,:,:,:) = 0.d0
 
-  if (dbglev.gt.1) then
-     ! APW-APW
-     call getunit(u1)
-     open(unit=u1,file='IRADGAUNTaa'//filext,form='formatted', &
-          action='write',status='replace')
-     write(u1,'(a)') 'igq,ias,lm1,io1,lm3,io2,   intrgaa'
-     write(u1,'(a)') '------------------------------------------------------'
-     ! APW-lo
-     call getunit(u2)
-     open(unit=u2,file='IRADGAUNTalo'//filext,form='formatted', &
-          action='write',status='replace')
-     write(u2,'(a)') 'igq,ias,lm1,ilo,lm3,io,   intrgalo'
-     write(u2,'(a)') '------------------------------------------------------'
-     ! lo-APW
-     call getunit(u3)
-     open(unit=u3,file='IRADGAUNTloa'//filext,form='formatted', &
-          action='write',status='replace')
-     write(u3,'(a)') 'igq,ias,lm1,ilo,lm3,io,   intrgloa'
-     write(u3,'(a)') '------------------------------------------------------'
-     ! lo-lo
-     call getunit(u4)
-     open(unit=u4,file='IRADGAUNTlolo'//filext,form='formatted', &
-          action='write', status='replace')
-     write(u4,'(a)') 'igq,ias,lm1,ilo1,lm3,ilo2,   intrglolo'
-     write(u4,'(a)') '------------------------------------------------------'
-  end if
+!!$  if (dbglev.gt.1) then
+!!$     ! APW-APW
+!!$     call getunit(u1)
+!!$     open(unit=u1,file='IRADGAUNTaa'//filext,form='formatted', &
+!!$          action='write',status='replace')
+!!$     write(u1,'(a)') 'igq,ias,lm1,io1,lm3,io2,   intrgaa'
+!!$     write(u1,'(a)') '------------------------------------------------------'
+!!$     ! APW-lo
+!!$     call getunit(u2)
+!!$     open(unit=u2,file='IRADGAUNTalo'//filext,form='formatted', &
+!!$          action='write',status='replace')
+!!$     write(u2,'(a)') 'igq,ias,lm1,ilo,lm3,io,   intrgalo'
+!!$     write(u2,'(a)') '------------------------------------------------------'
+!!$     ! lo-APW
+!!$     call getunit(u3)
+!!$     open(unit=u3,file='IRADGAUNTloa'//filext,form='formatted', &
+!!$          action='write',status='replace')
+!!$     write(u3,'(a)') 'igq,ias,lm1,ilo,lm3,io,   intrgloa'
+!!$     write(u3,'(a)') '------------------------------------------------------'
+!!$     ! lo-lo
+!!$     call getunit(u4)
+!!$     open(unit=u4,file='IRADGAUNTlolo'//filext,form='formatted', &
+!!$          action='write', status='replace')
+!!$     write(u4,'(a)') 'igq,ias,lm1,ilo1,lm3,ilo2,   intrglolo'
+!!$     write(u4,'(a)') '------------------------------------------------------'
+!!$  end if
 
   ! begin loop over species
   do is=1,nspecies
@@ -105,11 +105,11 @@ subroutine ematgntsum(iq,igq)
                                      tdgnt(lm1,lm2,lm3)
                              end do ! m2
                           end do ! l2
-                          if (dbglev.gt.1) then
-                             write(u1,'(6i5,2g18.10)') &
-                                  igq,ias,lm1,io1,lm3,io2, &
-                                  intrgaa(lm1,io1,lm3,io2,ias)
-                          end if
+!!$                          if (dbglev.gt.1) then
+!!$                             write(u1,'(6i5,2g18.10)') &
+!!$                                  igq,ias,lm1,io1,lm3,io2, &
+!!$                                  intrgaa(lm1,io1,lm3,io2,ias)
+!!$                          end if
                        end do ! io2
                     end do ! m3
                  end do ! l3
@@ -152,14 +152,14 @@ subroutine ematgntsum(iq,igq)
                                   tdgnt(lm3,lm2,lm1)
                           end do ! m2
                        end do ! l2
-                       if (dbglev.gt.1) then
-                          write(u2,'(6i5,2g18.10)') &
-                               igq,ias,lm1,ilo,lm3,io, &
-                               intrgalo(lm1,ilo,lm3,io,ias)
-                          write(u3,'(6i5,2g18.10)') &
-                               igq,ias,lm1,ilo,lm3,io, &
-                               intrgloa(lm1,ilo,lm3,io,ias)
-                       end if
+!!$                       if (dbglev.gt.1) then
+!!$                          write(u2,'(6i5,2g18.10)') &
+!!$                               igq,ias,lm1,ilo,lm3,io, &
+!!$                               intrgalo(lm1,ilo,lm3,io,ias)
+!!$                          write(u3,'(6i5,2g18.10)') &
+!!$                               igq,ias,lm1,ilo,lm3,io, &
+!!$                               intrgloa(lm1,ilo,lm3,io,ias)
+!!$                       end if
                     end do ! io
                  end do ! m3
               end do ! l3
@@ -190,11 +190,11 @@ subroutine ematgntsum(iq,igq)
                                tdgnt(lm1,lm2,lm3)
                        end do ! m2
                     end do ! l2
-                    if (dbglev.gt.1) then
-                       write(u4,'(6i5,2g18.10)') &
-                            igq,ias,lm1,ilo1,lm3,ilo2, &
-                            intrglolo(lm1,ilo1,lm3,ilo2,ias)
-                    end if
+!!$                    if (dbglev.gt.1) then
+!!$                       write(u4,'(6i5,2g18.10)') &
+!!$                            igq,ias,lm1,ilo1,lm3,ilo2, &
+!!$                            intrglolo(lm1,ilo1,lm3,ilo2,ias)
+!!$                    end if
                  end do ! m3
               end do ! ilo2
            end do ! m1
@@ -203,13 +203,13 @@ subroutine ematgntsum(iq,igq)
      end do
   end do
 
-  ! deallocate
-  if (dbglev.gt.1) then
-     ! close files
-     close(u1)
-     close(u2)
-     close(u3)
-     close(u4)
-  end if
+!!$  ! deallocate
+!!$  if (dbglev.gt.1) then
+!!$     ! close files
+!!$     close(u1)
+!!$     close(u2)
+!!$     close(u3)
+!!$     close(u4)
+!!$  end if
 
 end subroutine ematgntsum

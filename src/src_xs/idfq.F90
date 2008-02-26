@@ -101,19 +101,6 @@ subroutine idfq(iq)
                  ! head of pure f_xc kernel
                  if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
               end if
-
-
-!*****************************************************************************
-    if ((iq.eq.1).and.(iw.eq.1).and.(n.ne.1)) then
-       do a=1,n
-          do b=1,n
-             write(400+oct,'(2i8,2g18.10)') a,b,chi0(a,b)
-          end do
-       end do
-    end if
-
-
-
               ! solve Dyson's equation for the interacting response function
               call dyson(iq,oct,iw,n,chi0,fxc,idf)
               ! symmetrized inverse dielectric function (add one)
@@ -126,14 +113,14 @@ subroutine idfq(iq)
               if (igmt.gt.n) then
                  write(*,*)
                  write(*,'("Error(",a,"): G-vector index for momentum transfer &
-                      out of range: ",i8)') trim(thisnam),igmt
+                      &out of range: ",i8)') trim(thisnam),igmt
                  write(*,*)
                  call terminate
               end if
               if (igmt.ne.1) then
                  write(*,*)
                  write(*,'("Info(",a,"): non-zero G-vector Fourier component &
-                      for momentum transfer:")') trim(thisnam)
+                      &for momentum transfer:")') trim(thisnam)
                  write(*,'(" index and G-vector:",i8,3g18.10)') igmt,ivgmt(:,iq)
                  write(*,*)
               end if
@@ -143,9 +130,6 @@ subroutine idfq(iq)
               if ((m.eq.1).and.(oct1.ne.oct2)) mdf1(iw)=mdf1(iw)-1.d0
               ! write macroscopic dielectric function to file
               write(unit1,rec=iw-wi+1) mdf1(iw)
-!*****************************************************************************
-              write(1000+modulo(m,n)*100+oct1*10+oct2,'(3g18.10)') dble(w(iw)),mdf1(iw)
-
            end do ! iw
            close(unit1)
            ! end loop over optical components

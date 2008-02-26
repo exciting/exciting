@@ -98,7 +98,6 @@ subroutine ematqk(iq,ik)
   ! loop over G+q vectors
   do igq=1,ngq(iq)
      call terminate_inqr('ematqk')
-
      call cpu_time(cpu00)
      ! summation of Gaunt coefficients wrt radial integrals
      call ematgntsum(iq,igq)
@@ -150,15 +149,15 @@ subroutine ematqk(iq,ik)
      call cpu_time(cpu00)
      cpumirres=cpumirres+cpu00-cpu01
 
-     if (dbglev.gt.0) then
-        ! check non-diagonal parts of <phi_nk|exp(-i(G+q)r|phi_nk+q>
-        do i1=1,nst1
-           do i2=1,nst2
-              write(1100 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
-                   ik,igq,i1,i2,xiou(i1,i2,igq),abs(xiou(i1,i2,igq))**2
-           end do
-        end do
-     end if
+!!$     if (dbglev.gt.0) then
+!!$        ! check non-diagonal parts of <phi_nk|exp(-i(G+q)r|phi_nk+q>
+!!$        do i1=1,nst1
+!!$           do i2=1,nst2
+!!$              write(1100 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
+!!$                   ik,igq,i1,i2,xiou(i1,i2,igq),abs(xiou(i1,i2,igq))**2
+!!$           end do
+!!$        end do
+!!$     end if
      call cpu_time(cpu00)
      cpudbg=cpudbg+cpu00-cpu01
   end do ! igq
