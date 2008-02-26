@@ -13,11 +13,11 @@ subroutine scrcoulint
   use m_writegqpts
   use m_genfilname
   use m_getunit
-
   implicit none
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
+  integer, parameter :: dfherm=0
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
   integer :: idum1,idum2,idum3,oct1,oct,info
@@ -29,15 +29,12 @@ subroutine scrcoulint
   real(8), allocatable :: potcl(:,:,:)
   complex(8), allocatable :: scrn(:,:),scrnw(:,:,:),scrnh(:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
-  integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   complex(8), allocatable :: phf(:,:,:)
+  integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   logical, allocatable :: done(:)
   real(8), external :: r3taxi
   integer, external :: octmap
   logical, external :: tqgamma
-
-info=0
-
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -97,52 +94,34 @@ info=0
      n=ngq(iqrnr)
      allocate(scrn(n,n),scrnw(n,2,3),scrnh(9),tm(n,n),tmi(n,n))
      tq0=tqgamma(iqrnr)
-write(*,*) 'iqr,ngq',iqr,n
+     ! read in screening
      call genfilname(basename='SCREEN',iq=iqr,filnam=fname)
      open(un,file=trim(fname),form='formatted',action='read',status='old')
      do igq1=1,n
         do igq2=1,n
            if (tq0) then
               if ((igq1.eq.1).and.(igq2.eq.1)) then
-!                 read(un,*) (idum1,idum2,idum3,scrnh(j),j=1,9)
                  read(un,*) (idum1,idum2,idum3,rm(1,j),rm(2,j),j=1,9)
                  scrnh(:)=cmplx(rm(1,:),rm(2,:),8)
-write(*,*) 'head*** read:',scrnh
               end if
               if ((igq1.eq.1).and.(igq2.ne.1)) then
-!                 read(un,*) (idum1,idum2,idum3,scrnw(igq2,1,j),j=1,3)
                  read(un,*) (idum1,idum2,idum3,rm(1,j),rm(2,j),j=1,3)
                  scrnw(igq2,1,:)=cmplx(rm(1,:3),rm(2,:3),8)
               end if
               if ((igq1.ne.1).and.(igq2.eq.1)) then
-!                 read(un,*) (idum1,idum2,idum3,scrnw(igq1,2,j),j=1,3)
                  read(un,*) (idum1,idum2,idum3,rm(1,j),rm(2,j),j=1,3)
                  scrnw(igq1,2,:)=cmplx(rm(1,:3),rm(2,:3),8)
               end if
               if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) idum1,idum2,idum3,&
-!                   scrn(igq1,igq2)
                    rm(1,1),rm(2,1)
               scrn(igq1,igq2)=cmplx(rm(1,1),rm(2,1),8)
-!!$              if ((igq1.eq.1).and.(igq2.eq.1)) read(un,*) &
-!!$                      idum1,idum2,scrnh(:)
-!!$              if ((igq1.eq.1).and.(igq2.ne.1)) read(un,*) &
-!!$                   idum1,idum2,scrnw(igq2,1,:)
-!!$              if ((igq1.ne.1).and.(igq2.eq.1)) read(un,*) &
-!!$                   idum1,idum2,scrnw(igq1,2,:)
-!!$              if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) &
-!!$                   idum1,idum2,scrn(igq1,igq2)
            else
-!              read(un,*) idum1,idum2,idum3,scrn(igq1,igq2)
               read(un,*) idum1,idum2,idum3,rm(1,1),rm(2,1)
               scrn(igq1,igq2)=cmplx(rm(1,1),rm(2,1),8)
            end if
         end do
      end do
      close(un)
-
-
-
-
      ! invert dielectric matrix for q-point going to zero in x-, y-, and
      ! z-direction for q=0
      if (tq0) then
@@ -156,49 +135,39 @@ write(*,*) 'head*** read:',scrnh
               scrn(1,2:n)=scrnw(2:n,1,oct)
               scrn(2:n,1)=scrnw(2:n,2,oct)
            end if
+           ! use temporary screening array
            tm=scrn
 
-    if ((iqr.eq.1).and.(n.ne.1)) then
-       do igq1=1,n
-          do igq2=1,n
-             write(300+oct,'(2i8,2g18.10)') igq1,igq2,scrn(igq1,igq2)
-          end do
-       end do
-    end if
+           if ((iqr.eq.1).and.(n.ne.1)) then
+              do igq1=1,n
+                 do igq2=1,n
+                    write(300+oct,'(2i8,2g18.10)') igq1,igq2,scrn(igq1,igq2)
+                 end do
+              end do
+           end if
 
+           write(*,*) 'Scr. Coul. Int.: head of diel. matrix, oct:',oct, &
+                scrnh0(oct)
 
-
-
-write(*,*) 'Scr. Coul. Int.: head of diel. matrix, oct:',oct,scrnh0(oct)
-
-!!$do igq1=1,n
-!!$do igq2=igq1,n
-!!$scrn(igq2,igq1)=scrn(igq1,igq2)
-!!$tm(igq1,igq2)=scrn(igq1,igq2)
-!!$tm(igq2,igq1)=scrn(igq1,igq2)
-!!$end do
-!!$end do
-
-! set to unity matrix for input to zposv
-tmi(:,:)=0.d0
-forall(j=1:n) tmi(j,j)=1.d0
-
-
-
-
-           
-
-           ! call zposv('u',numgdm(i)+2,numgdm(i)+2,aa,maxgv+2,bb,maxgv+2,info)
-           ! solve linear equation system for positive definite symmetric
-           ! matrix
-
-write(200,*) scrn
-
-!!!           call zposv('u',n,n,tm,n,tmi,n,info)
-
-call zinvert_lapack(tm,tmi)
-
-
+           ! set up unity matrix for zposv
+           tmi(:,:)=0.d0
+           forall(j=1:n) tmi(j,j)=1.d0
+           info=0
+           select case(dfherm)
+           case(0)
+              ! invert full dielectric matrix (may be not strictly Hermitian)
+              call zinvert_lapack(tm,tmi)
+           case(1)
+              ! Hermitian average dielectric matrix and invert
+              tm=0.5d0*(tm+conjg(transpose(tm)))
+              call zposv('u',n,n,tm,n,tmi,n,info)
+           case(2)
+              ! assume Hermitian and use upper triangle for inversion
+              call zposv('u',n,n,tm,n,tmi,n,info)
+           case(3)
+              ! assume Hermitian and use lower triangle for inversion
+              call zposv('l',n,n,tm,n,tmi,n,info)
+           end select
            if (info.ne.0) then
               write(*,*)
               write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
@@ -209,25 +178,21 @@ call zinvert_lapack(tm,tmi)
            scrni(:,:,iqr)=tmi(:,:)
            ! keep head of inverse dielectric matrix for q=0
            scrnih0(oct)=scrni(1,1,iqr)
-write(*,*) 'Scr. Coul. Int.: head of inv. diel. matrix, oct:',oct,scrnih0(oct)
+           write(*,*) 'Scr. Coul. Int.: head of inv. diel. matrix, oct:', &
+                oct,scrnih0(oct),1.d0/scrnih0(oct)
         end do
-        ! symmetrize inverse dielectric matrix wrt. directions in which q goes
-        ! to zero
+        ! symmetrize head of inverse dielectric matrix wrt. the directions
+        ! in which q goes to zero
         call symsci0(1,scrnh0,scrnih0,scrni(1,1,iqr))
-write(*,*) 'Scr. Coul. Int.: symm. head of inv. diel. matrix:',scrni(1,1,iqr)
+        write(*,*) 'Scr. Coul. Int.: symm. head of inv. diel. matrix:', &
+             scrni(1,1,iqr),1.d0/scrni(1,1,iqr)
      else
 
-do igq1=1,n
-do igq2=igq1,n
-scrn(igq2,igq1)=scrn(igq1,igq2)
-end do
-end do
+        tm(:,:)=scrn(:,:)
 
-tm(:,:)=scrn(:,:)
-
-! set to unity matrix for input to zposv
-tmi(:,:)=0.d0
-forall(j=1:n) tmi(j,j)=1.d0
+        ! set to unity matrix for input to zposv
+        tmi(:,:)=0.d0
+        forall(j=1:n) tmi(j,j)=1.d0
 
         call zposv('u',n,n,tm,n,tmi,n,info)
         if (info.ne.0) then
@@ -284,7 +249,7 @@ forall(j=1:n) tmi(j,j)=1.d0
               ivgsyma(:,nsyma(iq),iq)=-ivgsym(:)
            end if
         end do
-        
+
         ! find map from G-vectors to rotated G-vectors
         do j=1,nsyma(iq)
            isym=isyma(j,iq)
@@ -376,8 +341,8 @@ forall(j=1:n) tmi(j,j)=1.d0
                  ! phase factor for dielectric matrix
                  phf(iq,igq1,igq2)=cmplx(t2,t3,8)
                  phf(iq,igq2,igq1)=conjg(phf(iq,igq1,igq2))
-write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi, &
-     phf(iq,igq1,igq2)
+                 write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi, &
+                      phf(iq,igq1,igq2)
                  ! calculate weights for Coulomb potential
                  iflg=0
                  ! integrate weights for q=0 for the head and wings
@@ -387,8 +352,8 @@ write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,is
                  end if
                  call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2,iq))
                  potcl(igq2,igq1,iq)=potcl(igq1,igq2,iq)
-if (iflg.ne.0) &
-     write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+                 if (iflg.ne.0) &
+                      write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
               end do
            end do
         end if
