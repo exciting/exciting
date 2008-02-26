@@ -178,7 +178,7 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
      deallocate(scrn,scrnw,scrnh,tm,tmi)
 
 ! calculate radial integrals
-        call ematrad(iqr)
+        call ematrad(iqrnr)
         call genfilname(basename='EMATRAD',iq=iqr,filnam=fname)
         call getunit(un)
         open(un,file=trim(fname),form='unformatted',action='write', &
@@ -368,17 +368,20 @@ write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,
 
         call cpu_time(cpu0)
 !!!        call ematrad(iq)
+
+write(*,*) 'iq,iqr,iqrnr,ngq(iq),ngq(iqrnr)',iq,iqr,iqrnr,ngq(iq),ngq(iqrnr)
+
         lmax1 = lmaxapwtd
         lmax2 = lmaxemat
         ! lmax1 and lmax3 should be the same!
         lmax3 = lmax1
         if (allocated(riaa)) deallocate(riaa)
         allocate(riaa(0:lmax1,apwordmax,0:lmax3,apwordmax,0:lmax2,natmtot, &
-             ngq(iq)))
+             ngq(iqrnr)))
         if (allocated(riloa)) deallocate(riloa)
-        allocate(riloa(nlomax,0:lmax3,apwordmax,0:lmax2,natmtot,ngq(iq)))
+        allocate(riloa(nlomax,0:lmax3,apwordmax,0:lmax2,natmtot,ngq(iqrnr)))
         if (allocated(rilolo)) deallocate(rilolo)
-        allocate(rilolo(nlomax,nlomax,0:lmax2,natmtot,ngq(iq)))
+        allocate(rilolo(nlomax,nlomax,0:lmax2,natmtot,ngq(iqrnr)))
         call genfilname(basename='EMATRAD',iq=iqr,filnam=fname)
         call getunit(un)
         open(un,file=trim(fname),form='unformatted',action='read', &
