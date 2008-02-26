@@ -17,7 +17,6 @@ subroutine scrcoulint
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
-  integer, parameter :: dfherm=0
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
   integer :: idum1,idum2,idum3,oct1,oct,info
@@ -35,6 +34,11 @@ subroutine scrcoulint
   real(8), external :: r3taxi
   integer, external :: octmap
   logical, external :: tqgamma
+
+integer :: lmax1,lmax2,lmax3
+real(8) :: cpu0,cpu1,cpu2,cpu3
+real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
+
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -83,7 +87,7 @@ subroutine scrcoulint
      call writeqpts
   end if
 
-  ! *** read dielectric matrix and invert for >>iqr<<
+  ! read dielectric matrix and invert for reduced q-point set
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call getunit(un)
   allocate(scrni(ngqmax,ngqmax,nqptr))
@@ -135,82 +139,60 @@ subroutine scrcoulint
               scrn(1,2:n)=scrnw(2:n,1,oct)
               scrn(2:n,1)=scrnw(2:n,2,oct)
            end if
-           ! use temporary screening array
+           ! store screening in temporary array
            tm=scrn
-
-           if ((iqr.eq.1).and.(n.ne.1)) then
-              do igq1=1,n
-                 do igq2=1,n
-                    write(300+oct,'(2i8,2g18.10)') igq1,igq2,scrn(igq1,igq2)
-                 end do
-              end do
-           end if
-
-           write(*,*) 'Scr. Coul. Int.: head of diel. matrix, oct:',oct, &
-                scrnh0(oct)
-
-           ! set up unity matrix for zposv
-           tmi(:,:)=0.d0
-           forall(j=1:n) tmi(j,j)=1.d0
-           info=0
-           select case(dfherm)
-           case(0)
-              ! invert full dielectric matrix (may be not strictly Hermitian)
-              call zinvert_lapack(tm,tmi)
-           case(1)
-              ! Hermitian average dielectric matrix and invert
-              tm=0.5d0*(tm+conjg(transpose(tm)))
-              call zposv('u',n,n,tm,n,tmi,n,info)
-           case(2)
-              ! assume Hermitian and use upper triangle for inversion
-              call zposv('u',n,n,tm,n,tmi,n,info)
-           case(3)
-              ! assume Hermitian and use lower triangle for inversion
-              call zposv('l',n,n,tm,n,tmi,n,info)
-           end select
-           if (info.ne.0) then
-              write(*,*)
-              write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
-                   trim(thisnam),info
-              write(*,*)
-              call terminate
-           end if
+           write(*,'(a,i5,2g18.10)') 'optcomp,    1/eps_00(q=0)      :', &
+                oct,1.d0/scrnh0(oct)
+           write(*,'(a,i5,2g18.10)') 'optcomp,      eps_00(q=0)      :', &
+                oct,scrnh0(oct)
+           call zinvert_hermitian(scrherm,tm,tmi)
            scrni(:,:,iqr)=tmi(:,:)
            ! keep head of inverse dielectric matrix for q=0
            scrnih0(oct)=scrni(1,1,iqr)
-           write(*,*) 'Scr. Coul. Int.: head of inv. diel. matrix, oct:', &
-                oct,scrnih0(oct),1.d0/scrnih0(oct)
+           write(*,'(a,i5,2g18.10)') 'optcomp,   eps^-1_00(q=0)      :', &
+                oct,scrnih0(oct)
+           write(*,'(a,i5,2g18.10)') 'optcomp, 1/eps^-1_00(q=0)      :', &
+                oct,1.d0/scrnih0(oct)
         end do
         ! symmetrize head of inverse dielectric matrix wrt. the directions
         ! in which q goes to zero
-        call symsci0(1,scrnh0,scrnih0,scrni(1,1,iqr))
-        write(*,*) 'Scr. Coul. Int.: symm. head of inv. diel. matrix:', &
-             scrni(1,1,iqr),1.d0/scrni(1,1,iqr)
+        call symsci0(bsediagsym,scrnh0,scrnih0,scrni(1,1,iqr))
+        write(*,'(a,i5,2g18.10)') 'optcomp, symm.   eps^-1_00(q=0):', &
+             iqr,scrni(1,1,iqr)
+        write(*,'(a,i5,2g18.10)') 'optcomp, symm. 1/eps^-1_00(q=0):', &
+             iqr,1.d0/scrni(1,1,iqr)
      else
-
         tm(:,:)=scrn(:,:)
-
-        ! set to unity matrix for input to zposv
-        tmi(:,:)=0.d0
-        forall(j=1:n) tmi(j,j)=1.d0
-
-        call zposv('u',n,n,tm,n,tmi,n,info)
-        if (info.ne.0) then
-           write(*,*)
-           write(*,'("Error(",a,"): zposv returned non-zero info : ",I8)') &
-                trim(thisnam),info
-           write(*,*)
-           call terminate
-        end if
+        write(*,'(a,i5,2g18.10)') 'iq,    1/eps_00(q)             :', &
+             iqr,1.d0/scrn(1,1)
+        write(*,'(a,i5,2g18.10)') 'iq,      eps_00(q)             :', &
+             iqr,scrn(1,1)
+        call zinvert_hermitian(scrherm,tm,tmi)
+        scrni(:,:,iqr)=tmi(:,:)
      end if
-     scrni(:,:,iqr)=tmi(:,:)
+     write(*,'(a,i5,2g18.10)') 'diel. matr.: iq,   eps^-1_00(q):', &
+          iqr,scrni(1,1,iqr)
+     write(*,'(a,i5,2g18.10)') 'diel. matr.: iq, 1/eps^-1_00(q):', &
+          iqr,1.d0/scrni(1,1,iqr)
+     write(*,*)
      deallocate(scrn,scrnw,scrnh,tm,tmi)
+
+! calculate radial integrals
+        call ematrad(iqr)
+        call genfilname(basename='EMATRAD',iq=iqr,filnam=fname)
+        call getunit(un)
+        open(un,file=trim(fname),form='unformatted',action='write', &
+             status='replace')
+        write(un) riaa,riloa,rilolo
+        close(un)
+
+
      ! end loop over reduced q-points
   end do
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
 
   ! flag for integrating the singular terms in the screened Coulomb interaction
-  flg=1
+  flg=bsediagweight
   allocate(done(nqpt))
   allocate(nsyma(nqpt),isyma(maxsymcrys,nqpt),ivgsyma(3,maxsymcrys,nqpt))
   allocate(igqmap(ngqmax,nqpt))
@@ -218,6 +200,17 @@ subroutine scrcoulint
   ! loop over non-reduced number of k-points
   do iknr=1,nkptnr
      do jknr=iknr,nkptnr
+
+
+call cpu_time(cpu2)
+cpu_init1xs=0.d0
+cpu_ematrad=0.d0
+cpu_ematqalloc=0.d0
+cpu_ematqk1=0.d0
+cpu_ematqdealloc=0.d0
+
+
+
         iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
         iv(:)=modulo(iv(:),ngridk(:))
         ! q-point (reduced)
@@ -235,7 +228,8 @@ subroutine scrcoulint
         n=ngq(iq)
         allocate(phf(nqpt,n,n),potcl(n,n,nqpt))
 
-        ! symmetries that transform non-reduced q-point to reduced one
+        ! symmetries that transform non-reduced q-point to reduced one, namely
+        ! q1 = s^-1 * q + G_s. Here, q1 is vq, q is vqr.
         nsyma(iq)=0
         do isym=1,nsymcrys
            lspl=lsplsymc(isym)
@@ -260,6 +254,7 @@ subroutine scrcoulint
               ivg1(:)=ivg(:,igqig(igq1,iq))
               ! G1 = s^-1 * ( G + G_s )
               iv=matmul(transpose(symlat(:,:,lspli)),ivg1+ivgsyma(:,j,iq))
+              ! |G1 + q|
               v2=matmul(bvec,iv+vqr)
               t1=sqrt(sum(v2**2))
 !!$write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,&
@@ -269,7 +264,7 @@ subroutine scrcoulint
                  write(*,*) '*** need one more symmetry operation'
                  goto 10
               end if
-              ! map G1+q
+              ! locate G1 + q in G+q-vector set
               igqmap(igq1,iq)=ivgigq(iv(1),iv(2),iv(3),iqrnr)
               if (igqmap(igq1,iq).le.0) then
                  write(*,*)
@@ -287,9 +282,12 @@ subroutine scrcoulint
               end if
               ! end loop over G+
            end do
+           ! store G1 vector
            ivgsym(:)=ivgsyma(:,j,iq)
            jsym=isym
+           ! store symmetry
            s(:,:)=dble(symlat(:,:,lspl))
+           ! store inverse of symmetry
            si(:,:)=dble(symlat(:,:,lspli))
            goto 20
 10         continue
@@ -300,8 +298,7 @@ subroutine scrcoulint
         write(*,*)
         call terminate
 20      continue
-
-        ! cross check symmetry relation (q1 = s^-1 * vqr + G_s)
+        ! cross check symmetry relation (q1 = s^-1 * q + G_s)
         if (sum(abs(vq-(matmul(transpose(s),vqr)+dble(ivgsym)))).gt.epslat) then
            write(*,*) 'deviation:',iknr,jknr,iqr,iq,v2
            write(*,*)
@@ -322,6 +319,7 @@ subroutine scrcoulint
              iknr,jknr,iq,iqr,iqrnr,isym,ivgsym
         !**********************************************************************
 
+        ! set up Coulomb potential and phase factor
         if (.not.done(iq)) then
            do igq1=1,n
               ivg1(:)=ivg(:,igqig(igq1,iq))
@@ -338,22 +336,22 @@ subroutine scrcoulint
                  t3=sin(t1)
                  if (abs(t2).lt.epsortho) t2=0.d0
                  if (abs(t3).lt.epsortho) t3=0.d0
-                 ! phase factor for dielectric matrix
+                 ! phase factor for dielectric matrix (due to translations)
                  phf(iq,igq1,igq2)=cmplx(t2,t3,8)
                  phf(iq,igq2,igq1)=conjg(phf(iq,igq1,igq2))
-                 write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi, &
-                      phf(iq,igq1,igq2)
+write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi,phf(iq,igq1,igq2)
                  ! calculate weights for Coulomb potential
                  iflg=0
                  ! integrate weights for q=0 for the head and wings
-                 ! and for q/=0 for the head
+                 ! (and for q/=0 for the head ?? good idea??)
                  if (tq0) then
                     if (.not.((igq1.ne.1).and.(igq2.ne.1))) iflg=flg
                  end if
                  call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2,iq))
                  potcl(igq2,igq1,iq)=potcl(igq1,igq2,iq)
-                 if (iflg.ne.0) &
-                      write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+if (iflg.ne.0) &
+write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+                 ! end loop over (G,Gp)-vectors
               end do
            end do
         end if
@@ -362,25 +360,76 @@ subroutine scrcoulint
         if (.not.done(iq)) call writegqpts(iq)
         call genfilname(dotext='_SCR.OUT',setfilext=.true.)
 
-        ! calculate matrix elements
-!!$        call init1xs(qvkloff(1,iq))
-!!$        call ematrad(iq)
-!!$        call ematqalloc
-!!$        call ematqk1(iq,iknr)
-!!$        call ematqdealloc
+        ! calculate matrix elements of the plane wave
+        call cpu_time(cpu0)
+        call init1xs(qvkloff(1,iq))
+        call cpu_time(cpu1)
+        cpu_init1xs=cpu_init1xs+cpu1-cpu0
+
+        call cpu_time(cpu0)
+!!!        call ematrad(iq)
+        lmax1 = lmaxapwtd
+        lmax2 = lmaxemat
+        ! lmax1 and lmax3 should be the same!
+        lmax3 = lmax1
+        if (allocated(riaa)) deallocate(riaa)
+        allocate(riaa(0:lmax1,apwordmax,0:lmax3,apwordmax,0:lmax2,natmtot, &
+             ngq(iq)))
+        if (allocated(riloa)) deallocate(riloa)
+        allocate(riloa(nlomax,0:lmax3,apwordmax,0:lmax2,natmtot,ngq(iq)))
+        if (allocated(rilolo)) deallocate(rilolo)
+        allocate(rilolo(nlomax,nlomax,0:lmax2,natmtot,ngq(iq)))
+        call genfilname(basename='EMATRAD',iq=iqr,filnam=fname)
+        call getunit(un)
+        open(un,file=trim(fname),form='unformatted',action='read', &
+             status='old')
+        read(un) riaa,riloa,rilolo
+        close(un)
+
+
+        call cpu_time(cpu1)
+        cpu_ematrad=cpu_ematrad+cpu1-cpu0
+
+        call cpu_time(cpu0)
+        call ematqalloc
+        call cpu_time(cpu1)
+        cpu_ematqalloc=cpu_ematqalloc+cpu1-cpu0
+
+        call cpu_time(cpu0)
+        call ematqk1(iq,iknr)
+        call cpu_time(cpu1)
+        cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+
+        call cpu_time(cpu0)
+        call ematqdealloc
+        call cpu_time(cpu1)
+        cpu_ematqdealloc=cpu_ematqdealloc+cpu1-cpu0
+
         call genfilname(dotext='_SCI.OUT',setfilext=.true.)
-
-
-
-
 
         ! deallocate
         deallocate(phf,potcl)
         done(iq)=.true.
         ! end loops over non-reduced k-point combinations
+
+
+
+
+call cpu_time(cpu3)
+t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqk1+cpu_ematrad+cpu_init1xs
+write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
+write(*,'(a,f12.3)') 'ematrad     :',cpu_ematrad
+write(*,'(a,f12.3)') 'ematqalloc  :',cpu_ematqalloc
+write(*,'(a,f12.3)') 'ematqk1     :',cpu_ematqk1
+write(*,'(a,f12.3)') 'ematqdealloc:',cpu_ematqdealloc
+write(*,'(a,f12.3)') '*** sum     :',t3
+write(*,'(a,f12.3)') '*** rest    :',cpu3-cpu2-t3
+write(*,'(a,f12.3)') '*** overall :',cpu3-cpu2
+write(*,*)
+
+
      end do
   end do
-
 
   write(*,*) 'minimum number of symmetry operation for q-point',minval(nsyma)
   write(*,*) 'maximum number of symmetry operation for q-point',maxval(nsyma)

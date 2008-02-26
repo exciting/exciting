@@ -95,7 +95,6 @@ subroutine ematrad(iq)
                           end do
                           call fderiv(-1,nr,spr(1,is),fr,gr,cf)
                           riaa(l1,io1,l3,io2,l2,ias,igq)=gr(nr)
-                          !irad(io1,l2,l3,io2)=gr(nr)
                           if (dbglev.gt.1) then
                              write(u11,'(7i5,g18.10)') &
                                   igq,ias,l1,io1,l3,io2,l2, &
@@ -121,7 +120,6 @@ subroutine ematrad(iq)
                        end do
                        call fderiv(-1,nr,spr(1,is),fr,gr,cf)
                        riloa(ilo,l3,io,l2,ias,igq)=gr(nr)
-                       !irad(1,l2,l3,io)=gr(nr)
                        if (dbglev.gt.1) then
                           write(u22,'(7i5,g18.10)') &
                                igq,ias,ilo,l1,l3,io,l2, &
@@ -146,7 +144,6 @@ subroutine ematrad(iq)
                     end do
                     call fderiv(-1,nr,spr(1,is),fr,gr,cf)
                     rilolo(ilo1,ilo2,l2,ias,igq)=gr(nr)
-                    !irad(1,l2,l3,ilo2)=gr(nr)
                     if (dbglev.gt.1) then
                        write(u33,'(7i5,g18.10)') &
                             igq,ias,ilo1,l1,ilo2,l3,l2, &

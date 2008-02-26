@@ -213,6 +213,7 @@ ngridkscr(:)=-1
 vkloffscr(:)=-1.d0
 rgkmaxscr=-1.d0
 nemptyscr=-1
+scrherm=0
 fnevecfvscr='EVECFV_SCR.OUT'
 fnevalsvscr='EVALSV_SCR.OUT'
 fnoccsvscr='OCCSV_SCR.OUT'
@@ -220,6 +221,8 @@ fnoccsvscr='OCCSV_SCR.OUT'
 nosymbse=.false.
 reducekbse=.true.
 vkloffbse(:)=-1.d0
+bsediagweight=1
+bsediagsym=0
 fnevecfvbse='EVECFV_BSE.OUT'
 fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
@@ -890,6 +893,27 @@ case('imbandstr')
   read(50,*,err=20) imbandstr
 case('pmatira')
   read(50,*,err=20) pmatira
+case('vgqlmt')
+  read(50,*,err=20) nqptmt
+  if (nqptmt.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput): nqptmt <= 0 : ",I8)') nqptmt
+    write(*,*)
+    stop
+  end if
+  if (allocated(vgqlmt)) deallocate(vgqlmt)
+  allocate(vgqlmt(3,nqptmt))
+  do i=1,nqptmt
+    read(50,*,err=20) vgqlmt(:,i)
+  end do
+case('mdfqtype')
+  read(50,*,err=20) mdfqtype
+  if ((mdfqtype.lt.0).or.(mdfqtype.gt.1)) then
+    write(*,*)
+    write(*,'("Error(readinput): mdfqtype not in {0,1} : ",I8)') mdfqtype
+    write(*,*)
+    stop
+  end if
 case('vqloff')
    read(50,*,err=20) vqloff(1),vqloff(2),vqloff(3)
 case('tq0ev')
@@ -1040,6 +1064,8 @@ case('nemptyscr')
     write(*,*)
     stop
   end if
+case('scrherm')
+  read(50,*,err=20) scrherm
 case('fnevecfvscr')
   read(50,*,err=20) fnevecfvscr
 case('fnevalsvscr')
@@ -1053,6 +1079,10 @@ case('reducekbse')
   read(50,*,err=20) reducekbse
 case('vkloffbse')
   read(50,*,err=20) vkloffbse(1),vkloffbse(2),vkloffbse(3)
+case('bsediagweight')
+  read(50,*,err=20) bsediagweight
+case('bsediagsym')
+  read(50,*,err=20) bsediagsym
 case('fnevecfvbse')
   read(50,*,err=20) fnevecfvbse
 case('fnevalsvbse')
@@ -1072,27 +1102,6 @@ case('nstabf')
   if (nstabf.le.0) then
     write(*,*)
     write(*,'("Error(readinput[BSE]): nstabf <= 0 : ",I8)') nstabf
-    write(*,*)
-    stop
-  end if
-case('vgqlmt')
-  read(50,*,err=20) nqptmt
-  if (nqptmt.le.0) then
-    write(*,*)
-    write(*,'("Error(readinput): nqptmt <= 0 : ",I8)') nqptmt
-    write(*,*)
-    stop
-  end if
-  if (allocated(vgqlmt)) deallocate(vgqlmt)
-  allocate(vgqlmt(3,nqptmt))
-  do i=1,nqptmt
-    read(50,*,err=20) vgqlmt(:,i)
-  end do
-case('mdfqtype')
-  read(50,*,err=20) mdfqtype
-  if ((mdfqtype.lt.0).or.(mdfqtype.gt.1)) then
-    write(*,*)
-    write(*,'("Error(readinput): mdfqtype not in {0,1} : ",I8)') mdfqtype
     write(*,*)
     stop
   end if

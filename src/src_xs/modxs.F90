@@ -394,6 +394,8 @@ module modxs
   integer :: nemptyscr
   ! filenames for eigenvector file, eigenvalues and occupancies
   character(256) :: fnevecfvscr, fnevalsvscr, fnoccsvscr
+  ! Hermitian treatment
+  integer :: scrherm
 
   !------------------------------------------!
   !     Bethe-Salpeter (kernel) variables    !
@@ -412,7 +414,11 @@ module modxs
   integer :: nstabf
   ! filenames for eigenvector file, eigenvalues and occupancies
   character(256) :: fnevecfvbse, fnevalsvbse, fnoccsvbse
-
+  ! treatment of weights for BSE diagonal (integrating out singularity)
+  integer :: bsediagweight
+  ! symmetrisation method for BSE diagonal
+  integer :: bsediagsym
+  
   !-----------------------!
   !     I/O variables     !
   !-----------------------!
