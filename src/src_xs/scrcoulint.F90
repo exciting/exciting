@@ -176,21 +176,22 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
           iqr,1.d0/scrni(1,1,iqr)
      write(*,*)
      deallocate(scrn,scrnw,scrnh,tm,tmi)
-
-! calculate radial integrals
-        call ematrad(iqrnr)
-        call genfilname(basename='EMATRAD',iq=iqr,filnam=fname)
-        call getunit(un)
-        open(un,file=trim(fname),form='unformatted',action='write', &
-             status='replace')
-        write(un) riaa,riloa,rilolo
-        close(un)
-
-
      ! end loop over reduced q-points
   end do
-  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
 
+!!$  do iq=1,nqpt
+!!$write(*,*) 'radial integrals for q-point:',iq
+!!$     ! calculate radial integrals
+!!$     call ematrad(iq )
+!!$     call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
+!!$     call getunit(un)
+!!$     open(un,file=trim(fname),form='unformatted',action='write', &
+!!$          status='replace')
+!!$     write(un) riaa,riloa,rilolo
+!!$     close(un)
+!!$  end do
+
+  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   ! flag for integrating the singular terms in the screened Coulomb interaction
   flg=bsediagweight
   allocate(done(nqpt))
@@ -366,28 +367,12 @@ write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,
         call cpu_time(cpu1)
         cpu_init1xs=cpu_init1xs+cpu1-cpu0
 
+write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
+
         call cpu_time(cpu0)
-!!!        call ematrad(iq)
-
-write(*,*) 'iq,iqr,iqrnr,ngq(iq),ngq(iqrnr)',iq,iqr,iqrnr,ngq(iq),ngq(iqrnr)
-
-        lmax1 = lmaxapwtd
-        lmax2 = lmaxemat
-        ! lmax1 and lmax3 should be the same!
-        lmax3 = lmax1
-        if (allocated(riaa)) deallocate(riaa)
-        allocate(riaa(0:lmax1,apwordmax,0:lmax3,apwordmax,0:lmax2,natmtot, &
-             ngq(iqrnr)))
-        if (allocated(riloa)) deallocate(riloa)
-        allocate(riloa(nlomax,0:lmax3,apwordmax,0:lmax2,natmtot,ngq(iqrnr)))
-        if (allocated(rilolo)) deallocate(rilolo)
-        allocate(rilolo(nlomax,nlomax,0:lmax2,natmtot,ngq(iqrnr)))
-        call genfilname(basename='EMATRAD',iq=iqr,filnam=fname)
-        call getunit(un)
-        open(un,file=trim(fname),form='unformatted',action='read', &
-             status='old')
-        read(un) riaa,riloa,rilolo
-        close(un)
+        ! get radial integrals
+        call ematrad(iq)
+!!!        call getematrad(iq)
 
 
         call cpu_time(cpu1)
@@ -416,6 +401,15 @@ write(*,*) 'iq,iqr,iqrnr,ngq(iq),ngq(iqrnr)',iq,iqr,iqrnr,ngq(iq),ngq(iqrnr)
         ! end loops over non-reduced k-point combinations
 
 
+! check matrix elements
+if ((iknr.eq.2).and.(jknr.eq.7)) then
+
+write(6000,*) xiou
+write(6001,*) xiuo
+stop 'stopped here'
+
+end if
+
 
 
 call cpu_time(cpu3)
@@ -430,7 +424,7 @@ write(*,'(a,f12.3)') '*** rest    :',cpu3-cpu2-t3
 write(*,'(a,f12.3)') '*** overall :',cpu3-cpu2
 write(*,*)
 
-
+     ! end loop over (k,kp) pairs
      end do
   end do
 
@@ -447,3 +441,34 @@ write(*,*)
   vkloff(:)=vklofft(:)
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screening finished"
 end subroutine scrcoulint
+
+
+subroutine getematrad(iq)
+  use modmain
+  use modxs
+  use m_genfilname
+  use m_getunit
+  implicit none
+  ! arguments
+  integer, intent(in) :: iq
+  ! local variables
+  integer :: lmax1,lmax2,lmax3,un
+  character(256) :: fname
+  lmax1=lmaxapwtd
+  lmax2=lmaxemat
+  ! lmax1 and lmax3 should be the same!
+  lmax3=lmax1
+  if (allocated(riaa)) deallocate(riaa)
+  allocate(riaa(0:lmax1,apwordmax,0:lmax3,apwordmax,0:lmax2,natmtot, &
+       ngq(iq)))
+  if (allocated(riloa)) deallocate(riloa)
+  allocate(riloa(nlomax,0:lmax3,apwordmax,0:lmax2,natmtot,ngq(iq)))
+  if (allocated(rilolo)) deallocate(rilolo)
+  allocate(rilolo(nlomax,nlomax,0:lmax2,natmtot,ngq(iq)))
+  call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
+  call getunit(un)
+  open(un,file=trim(fname),form='unformatted',action='read', &
+       status='old')
+  read(un) riaa,riloa,rilolo
+  close(un)
+end subroutine getematrad
