@@ -233,6 +233,8 @@ module modxs
   ! lower and upper limits and numbers for band indices combinations second
   ! block
   integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
+  ! minimum and maximum energies over k-points
+  real(8) :: evlmin,evlmax,ecrmin,ecrmax
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !

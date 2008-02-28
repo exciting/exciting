@@ -18,7 +18,7 @@ subroutine scrcoulint
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
-  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un
+  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un,j1,j2
   integer :: idum1,idum2,idum3,oct1,oct,info
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
@@ -91,6 +91,10 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call getunit(un)
   allocate(scrni(ngqmax,ngqmax,nqptr))
+
+  !-----------------------------------!
+  !     loop over reduced q-points    !
+  !-----------------------------------!
   do iqr=1,nqptr
      ! locate reduced q-point in non-reduced set
      iv(:)=nint(vqlr(:,iqr)*ngridq(:))
@@ -179,17 +183,20 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
      ! end loop over reduced q-points
   end do
 
-!!$  do iq=1,nqpt
-!!$write(*,*) 'radial integrals for q-point:',iq
-!!$     ! calculate radial integrals
-!!$     call ematrad(iq )
-!!$     call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
-!!$     call getunit(un)
-!!$     open(un,file=trim(fname),form='unformatted',action='write', &
-!!$          status='replace')
-!!$     write(un) riaa,riloa,rilolo
-!!$     close(un)
-!!$  end do
+  !---------------------------------------!
+  !     loop over non-reduced q-points    !
+  !---------------------------------------!
+  do iq=1,nqpt
+write(*,*) 'radial integrals for q-point:',iq
+     ! calculate radial integrals
+     call ematrad(iq )
+     call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
+     call getunit(un)
+     open(un,file=trim(fname),form='unformatted',action='write', &
+          status='replace')
+     write(un) riaa,riloa,rilolo
+     close(un)
+  end do
 
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   ! flag for integrating the singular terms in the screened Coulomb interaction
@@ -197,8 +204,14 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   allocate(done(nqpt))
   allocate(nsyma(nqpt),isyma(maxsymcrys,nqpt),ivgsyma(3,maxsymcrys,nqpt))
   allocate(igqmap(ngqmax,nqpt))
+  allocate(phf(ngqmax,ngqmax,nqpt),potcl(ngqmax,ngqmax,nqpt))
+  phf(:,:,:)=zzero
+  potcl(:,:,:)=0.d0
   done(:)=.false.
-  ! loop over non-reduced number of k-points
+
+  !-------------------------------!
+  !     loop over (k,kp) pairs    !
+  !-------------------------------!
   do iknr=1,nkptnr
      do jknr=iknr,nkptnr
 
@@ -227,7 +240,6 @@ cpu_ematqdealloc=0.d0
 
         ! local field effects size
         n=ngq(iq)
-        allocate(phf(nqpt,n,n),potcl(n,n,nqpt))
 
         ! symmetries that transform non-reduced q-point to reduced one, namely
         ! q1 = s^-1 * q + G_s. Here, q1 is vq, q is vqr.
@@ -258,9 +270,11 @@ cpu_ematqdealloc=0.d0
               ! |G1 + q|
               v2=matmul(bvec,iv+vqr)
               t1=sqrt(sum(v2**2))
+
 !!$write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,&
 !!$     igq1,ivgigq(iv(1),iv(2),iv(3),iqrnr),vgql(:,igq1,iq)- &
 !!$     matmul(transpose(symlat(:,:,lspl)),vqr+iv)
+
               if (t1.gt.gqmax) then
                  write(*,*) '*** need one more symmetry operation'
                  goto 10
@@ -316,16 +330,29 @@ cpu_ematqdealloc=0.d0
         end if
 
         !**********************************************************************
-        write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
+write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
              iknr,jknr,iq,iqr,iqrnr,isym,ivgsym
         !**********************************************************************
+
+        ! rotate inverse of screening
+        allocate(tm(n,n),tmi(n,n))
+        do igq1=1,n
+           j1=igqmap(igq1,iq)
+           do igq2=1,n
+              j2=igqmap(igq2,iq)
+              tmi(igq1,igq2)=scrni(j1,j2,iqr)
+           end do
+        end do
+
 
         ! set up Coulomb potential and phase factor
         if (.not.done(iq)) then
            do igq1=1,n
               ivg1(:)=ivg(:,igqig(igq1,iq))
+
 !!$write(*,'(a,5i6)') 'iknr,jknr,iq,igq1,igq1map',iknr,jknr,iq,igq1,&
 !!$     igqmap(igq1,iq)
+
               do igq2=igq1,n
                  ! G-vector difference
                  ivg2(:)=ivg(:,igqig(igq2,iq))-ivg1(:)
@@ -338,9 +365,11 @@ cpu_ematqdealloc=0.d0
                  if (abs(t2).lt.epsortho) t2=0.d0
                  if (abs(t3).lt.epsortho) t3=0.d0
                  ! phase factor for dielectric matrix (due to translations)
-                 phf(iq,igq1,igq2)=cmplx(t2,t3,8)
-                 phf(iq,igq2,igq1)=conjg(phf(iq,igq1,igq2))
-write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi,phf(iq,igq1,igq2)
+                 phf(igq1,igq2,iq)=cmplx(t2,t3,8)
+                 phf(igq2,igq1,iq)=conjg(phf(igq1,igq2,iq))
+
+write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi,phf(igq1,igq2,iq)
+
                  ! calculate weights for Coulomb potential
                  iflg=0
                  ! integrate weights for q=0 for the head and wings
@@ -350,8 +379,11 @@ write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,is
                  end if
                  call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2,iq))
                  potcl(igq2,igq1,iq)=potcl(igq1,igq2,iq)
+
 if (iflg.ne.0) &
 write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+
+
                  ! end loop over (G,Gp)-vectors
               end do
            end do
@@ -370,11 +402,7 @@ write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,
 write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
 
         call cpu_time(cpu0)
-        ! get radial integrals
-        call ematrad(iq)
-!!!        call getematrad(iq)
-
-
+        call getematrad(iq)
         call cpu_time(cpu1)
         cpu_ematrad=cpu_ematrad+cpu1-cpu0
 
@@ -393,27 +421,31 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         call cpu_time(cpu1)
         cpu_ematqdealloc=cpu_ematqdealloc+cpu1-cpu0
 
+
+        ! * calculate 4*pi*phasefact(G,Gp;q)*potcoul(G,Gp;q)*eps^-1(G1,Gp1,qr)
+        tm(:,:)=fourpi*phf(:,:,iq)*potcl(:,:,iq)*tmi(:,:)
+
+        ! *** help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
+        ! *** twice zgemm or matmul *** write zgemm wrapper:)
+        
+
         call genfilname(dotext='_SCI.OUT',setfilext=.true.)
 
-        ! deallocate
-        deallocate(phf,potcl)
+
+!!$! check matrix elements
+!!$if ((iknr.eq.2).and.(jknr.eq.7)) then
+!!$
+!!$write(6000,*) xiou
+!!$write(6001,*) xiuo
+!!$stop 'stopped here'
+!!$
+!!$end if
+
         done(iq)=.true.
-        ! end loops over non-reduced k-point combinations
-
-
-! check matrix elements
-if ((iknr.eq.2).and.(jknr.eq.7)) then
-
-write(6000,*) xiou
-write(6001,*) xiuo
-stop 'stopped here'
-
-end if
-
-
+        deallocate(tm,tmi)
 
 call cpu_time(cpu3)
-t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqk1+cpu_ematrad+cpu_init1xs
+t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs
 write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
 write(*,'(a,f12.3)') 'ematrad     :',cpu_ematrad
 write(*,'(a,f12.3)') 'ematqalloc  :',cpu_ematqalloc
@@ -432,7 +464,7 @@ write(*,*)
   write(*,*) 'maximum number of symmetry operation for q-point',maxval(nsyma)
 
   call findgntn0_clear
-  deallocate(done,isyma,nsyma,ivgsyma,igqmap,scrni)
+  deallocate(done,isyma,nsyma,ivgsyma,igqmap,scrni,phf,potcl)
 
   ! restore global variables
   nosym=nosymt
@@ -441,6 +473,11 @@ write(*,*)
   vkloff(:)=vklofft(:)
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screening finished"
 end subroutine scrcoulint
+
+
+!///////////////////////////////////////////////////////////////////////////////
+!///////////////////////////////////////////////////////////////////////////////
+!///////////////////////////////////////////////////////////////////////////////
 
 
 subroutine getematrad(iq)

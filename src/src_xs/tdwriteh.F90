@@ -54,6 +54,8 @@ contains
     write(un,'(a,i8)') '# nst1              :',nst1
     write(un,'(a,i8)') '# nst2              :',nst2
     write(un,'(a,i8)') '# nstsv             :',nstsv
+    write(un,'(a,f12.6)') '# min. val. energy  :',evlmin
+    write(un,'(a,f12.6)') '# max. val. energy  :',evlmax
     write(un,'(a,i8)') '# lmaxapw           :',lmaxapw
     write(un,'(a,i8)') '# lmaxapwtd         :',lmaxapwtd
     write(un,'(a,i8)') '# lmaxmat           :',lmaxmat

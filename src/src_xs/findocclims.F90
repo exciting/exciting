@@ -13,11 +13,15 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   integer, intent(out) :: io0(nkpt),io(nkpt),iu0(nkpt),iu(nkpt)
   ! local variables
   integer :: ik,ikq,i0,i
+  logical :: t
+  t=allocated(evalsv0)
+  if (.not.t) allocate(evalsv0(nmatmax0,nkpt))
   do ik=1,nkpt
      ! k+q-point set
      ikq=ik
      if (iq.ne.0) ikq=ikmapikq(ik,iq)
      call getoccsv(vkl(1,ikq),occsv(1,ikq))
+     call getevalsv(vkl(1,ikq),evalsv(1,ikq))
      do i=1,nstsv
         if (occsv(i,ikq).lt.epsocc) exit
      end do
@@ -29,6 +33,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      if (iq.ne.0) then
         ! k-point set (q=0)
         call getoccsv0(vkl0(1,ik),occsv0(1,ik))
+        call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
         do i0=1,nstsv
            if (occsv0(i0,ik).lt.epsocc) exit
         end do
@@ -42,14 +47,18 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
         iu0(ik)=iu(ik)
      end if
   end do
+  ! lowest and highest valence energy
+  evlmin=min(minval(evalsv),minval(evalsv0))
+  evlmax=max(maxval(evalsv),maxval(evalsv0))
   ! overall highest (partially) occupied state
   iocc0=maxval(io0)
   iocc=maxval(io)
   ! overall lowest (partially) unoccupied state
   iunocc0=minval(iu0)
   iunocc=minval(iu)
-  ! the maximum/minimum value is used since for a shifted (k+q)-mesh
-  ! can cause partially occupied states that are absent for the k-mesh
+  ! the maximum/minimum value is used since a shifted (k+q)-mesh which is not
+  ! commensurate can cause partially occupied states that are absent for the
+  ! k-mesh
   iocc0=max(iocc0,iocc)
   iunocc0=min(iunocc0,iunocc)
   ! *** assign nstval and nstcon ***
@@ -70,4 +79,5 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      end do
      write(*,*)
   end if
+  if (.not.t) deallocate(evalsv0)
 end subroutine findocclims
