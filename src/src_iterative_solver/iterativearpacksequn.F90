@@ -104,7 +104,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   ido    = 0
   info   = 0
   ishfts = 1
-  maxitr = 2000
+  maxitr = 20*nstfv
   mode= 3
   iparam(1) = ishfts
   iparam(3) = maxitr  
@@ -181,8 +181,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
-    
- 
+  
+     if (i.gt.maxitr) then
+     write(*,*)"Error reached maximum iteration count in arpack."
+     stop
+ 	endif
      !########################
      !post processing of evec
      !########################
