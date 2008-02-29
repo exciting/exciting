@@ -37,6 +37,7 @@ contains
     if(iterativetype.eq.1) then
        !this may get more advanced:
        if(iscl.ge.diisfirstscl) doDIIScycle=.true.
+       if(dv.gt.10.0)doDIIScycle=.false.
        write(*,*)"DIIS"
     endif
   end function doDIIScycle
