@@ -13,37 +13,38 @@ integer is,ia,ias
 ! output charges
 write(fnum,*)
 write(fnum,'("Charges :")')
-write(fnum,'(" core                    : ",G18.10)') chgcr
-write(fnum,'(" core leakage            : ",G18.10)') chgcrlk
-write(fnum,'(" valence                 : ",G18.10)') chgval
-write(fnum,'(" interstitial            : ",G18.10)') chgir
+write(fnum,'(" core",T30,": ",G18.10)') chgcr
+write(fnum,'(" core leakage",T30,": ",G18.10)') chgcrlk
+write(fnum,'(" valence",T30,": ",G18.10)') chgval
+write(fnum,'(" interstitial",T30,": ",G18.10)') chgir
 write(fnum,'(" muffin-tins")')
 do is=1,nspecies
+  write(fnum,'("  species : ",I4," (",A,")")') is,trim(spsymb(is))
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    write(fnum,'("  species ",I4," atom ",I4," : ",G18.10)') is,ia,chgmt(ias)
+    write(fnum,'("   atom ",I4,T30,": ",G18.10)') ia,chgmt(ias)
   end do
 end do
-write(fnum,'(" total in muffin-tins    : ",G18.10)') chgmttot
+write(fnum,'(" total in muffin-tins",T30,": ",G18.10)') chgmttot
 if (chgexs.ne.0.d0) then
-  write(fnum,'(" excess                  : ",G18.10)') chgexs
+  write(fnum,'(" excess",T30,": ",G18.10)') chgexs
 end if
-write(fnum,'(" total charge            : ",G18.10)') chgcalc
+write(fnum,'(" total charge",T30,": ",G18.10)') chgcalc
 ! output moments
 if (spinpol) then
   write(fnum,*)
   write(fnum,'("Moments :")')
-  write(fnum,'(" interstitial            : ",3G18.10)') momir(1:ndmag)
+  write(fnum,'(" interstitial",T30,": ",3G18.10)') momir(1:ndmag)
   write(fnum,'(" muffin-tins")')
   do is=1,nspecies
+    write(fnum,'("  species : ",I4," (",A,")")') is,trim(spsymb(is))
     do ia=1,natoms(is)
       ias=idxas(ia,is)
-      write(fnum,'("  species ",I4," atom ",I4," : ",3G18.10)') is,ia, &
-       mommt(1:ndmag,ias)
+      write(fnum,'("   atom ",I4,T30,": ",3G18.10)') ia,mommt(1:ndmag,ias)
     end do
   end do
-  write(fnum,'(" total in muffin-tins    : ",3G18.10)') mommttot(1:ndmag)
-  write(fnum,'(" total moment            : ",3G18.10)') momtot(1:ndmag)
+  write(fnum,'(" total in muffin-tins",T30,": ",3G18.10)') mommttot(1:ndmag)
+  write(fnum,'(" total moment",T30,": ",3G18.10)') momtot(1:ndmag)
 end if
 call flushifc(fnum)
 return

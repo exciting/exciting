@@ -146,7 +146,7 @@ do ik=1,nkpt
           xl(:)=0.d0
           do i=1,3
             do ispn=1,nspinor
-              zt1=zfmtinp(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
+              zt1=zfmtinp(.true.,lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
                wfmt2(1,1,ispn),wfmt3(1,1,ispn,i))
               xl(i)=xl(i)+dble(zt1)
             end do
@@ -168,7 +168,7 @@ do ik=1,nkpt
             xs(:)=0.d0
             do i=1,3
               do ispn=1,nspinor
-                zt1=zfmtinp(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
+                zt1=zfmtinp(.true.,lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
                  wfmt2(1,1,ispn),wfmt4(1,1,ispn,i))
                 xs(i)=xs(i)+dble(zt1)
               end do

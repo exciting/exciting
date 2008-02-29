@@ -15,7 +15,7 @@ use modmain
 !   v     : input vector to which O is applied if tapp is .true., otherwise
 !           not referenced (in,complex(nmatmax))
 !   o     : O applied to v if tapp is .true., otherwise it is the overlap
-!         : matrix in packed form (inout,complex(npmatmax))
+!           matrix in packed form (inout,complex(npmatmax))
 ! !DESCRIPTION:
 !   Computes the interstitial contribution to the overlap matrix for the APW
 !   basis functions. The overlap is given by

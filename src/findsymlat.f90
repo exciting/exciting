@@ -69,7 +69,9 @@ do i31=-1,1; do i32=-1,1; do i33=-1,1
     write(*,*)
     stop
   end if
+! store the symmetry and determinant in global arrays
   symlat(:,:,nsymlat)=sym(:,:)
+  symlatd(nsymlat)=md
 10 continue
 end do; end do; end do
 end do; end do; end do
@@ -89,6 +91,9 @@ do i=1,nsymlat
     sym(:,:)=symlat(:,:,1)
     symlat(:,:,1)=symlat(:,:,i)
     symlat(:,:,i)=sym(:,:)
+    md=symlatd(1)
+    symlatd(1)=symlatd(i)
+    symlatd(i)=md
     goto 20
   end if
 end do

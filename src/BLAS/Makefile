@@ -1,3 +1,6 @@
+
+AR = ar
+
 include ../../make.inc
 
 #-------------------------------------------------------------------------------
@@ -21,7 +24,7 @@ SRC = \
 OBJ = $(SRC:.f=.o)
 
 blas:	$(OBJ)
-	ar -rc blas.a $(OBJ)
+	$(AR) -rc blas.a $(OBJ)
 
 clean:
 	rm -f *.o *.mod *~ *.a ifc* *.gcno gmon.out

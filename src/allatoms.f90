@@ -31,18 +31,23 @@ integer, parameter :: xcgrad_=0
 integer is
 ! allocatable arrays
 real(8), allocatable :: rwf(:,:,:)
-allocate(rwf(spnrmax,2,spnstmax))
 ! allocate global species charge density and potential arrays
 if (allocated(sprho)) deallocate(sprho)
 allocate(sprho(spnrmax,nspecies))
 if (allocated(spvr)) deallocate(spvr)
 allocate(spvr(spnrmax,nspecies))
+!$OMP PARALLEL DEFAULT(SHARED) &
+!$OMP PRIVATE(rwf)
+!$OMP DO
 do is=1,nspecies
+  allocate(rwf(spnrmax,2,spnstmax))
   call atom(spzn(is),spnst(is),spn(1,is),spl(1,is),spk(1,is),spocc(1,is), &
    xctype_,xcgrad_,nprad,spnr(is),spr(1,is),speval(1,is),sprho(1,is), &
    spvr(1,is),rwf)
+  deallocate(rwf)
 end do
-deallocate(rwf)
+!$OMP END DO
+!$OMP END PARALLEL
 return
 end subroutine
 !EOC

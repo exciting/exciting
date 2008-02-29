@@ -266,10 +266,6 @@ if (chgtot.lt.1.d-8) then
   write(*,*)
   stop
 end if
-! number of first-variational states
-nstfv=int(chgval/2.d0)+nempty+1
-! number of second-variational states
-nstsv=nstfv*nspinor
 
 !-------------------------!
 !     G-vector arrays     !

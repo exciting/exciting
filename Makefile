@@ -1,6 +1,8 @@
 
 MAKE = make
 
+include make.inc
+
 all:
 	cd src; $(MAKE) all
 	cd src/eos; $(MAKE)

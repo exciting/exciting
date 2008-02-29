@@ -11,7 +11,6 @@ logical exist
 integer ik,idm
 real(8) etp,de
 ! allocatable arrays
-real(8), allocatable :: evalfv(:,:)
 complex(8), allocatable :: evecfv(:,:,:)
 complex(8), allocatable :: evecsv(:,:)
 ! initialise universal variables
@@ -49,26 +48,8 @@ call genlofr
 call olprad
 ! compute the Hamiltonian radial integrals
 call hmlrad
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(evalfv,evecfv,evecsv)
-!$OMP DO
-do ik=1,nkpt
-  allocate(evalfv(nstfv,nspnfv))
-  allocate(evecfv(nmatmax,nstfv,nspnfv))
-  allocate(evecsv(nstsv,nstsv))
-! solve the first- and second-variational secular equations
-  call seceqn(ik,evalfv,evecfv,evecsv)
-! write the eigenvalues/vectors to file
-  call putevalfv(ik,evalfv)
-  call putevalsv(ik,evalsv(1,ik))
-  call putevecfv(ik,evecfv)
-  call putevecsv(ik,evecsv)
 ! generate the kinetic matrix elements
-  call genkinmat(ik,evecfv,evecsv)
-  deallocate(evalfv,evecfv,evecsv)
-end do
-!$OMP END DO
-!$OMP END PARALLEL
+call genkinmat
 ! find the occupation numbers and Fermi energy
 call occupy
 ! set last iteration flag
@@ -81,9 +62,10 @@ write(60,'("| Self-consistent loop started |")')
 write(60,'("+------------------------------+")')
 do iscl=1,maxscl
   write(60,*)
-  write(60,'("+--------------------------+")')
-  write(60,'("| Iteration number : ",I5," |")') iscl
-  write(60,'("+--------------------------+")')
+  write(60,'("+-------------------------+")')
+  write(60,'("| Iteration number : ",I4," |")') iscl
+  write(60,'("+-------------------------+")')
+  call flushifc(60)
   if (iscl.ge.maxscl) then
     write(60,*)
     write(60,'("Reached self-consistent loops maximum")')
@@ -97,6 +79,8 @@ do iscl=1,maxscl
     call getevecsv(vkl(1,ik),evecsv)
 ! solve the Hartree-Fock secular equation
     call seceqnhf(ik,evecsv)
+! compute the spin characters
+    call spinchar(ik,evecsv)
 ! write the eigenvalues/vectors to file
     call putevalsv(ik,evalsv(1,ik))
     call putevecsv(ik,evecsv)

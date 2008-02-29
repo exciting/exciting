@@ -9,18 +9,19 @@ implicit none
 ! local variables
 integer is,ia,ias,ik
 integer ir,irc,it,idm
-real(8) tau,resp
+real(8) tau,resp,t1
 ! allocatable arrays
+real(8), allocatable :: rflm(:)
 real(8), allocatable :: rfmt(:,:,:)
 real(8), allocatable :: rfir(:)
 real(8), allocatable :: rvfmt(:,:,:,:)
 real(8), allocatable :: rvfir(:,:)
+real(8), allocatable :: dvxmt(:,:,:)
+real(8), allocatable :: dvxir(:)
+real(8), allocatable :: dbxmt(:,:,:,:)
+real(8), allocatable :: dbxir(:,:)
 complex(8), allocatable :: vnlcv(:,:,:,:)
 complex(8), allocatable :: vnlvv(:,:,:)
-complex(8), allocatable :: dvxmt(:,:,:)
-complex(8), allocatable :: dvxir(:)
-complex(8), allocatable :: dbxmt(:,:,:,:)
-complex(8), allocatable :: dbxir(:,:)
 complex(8), allocatable :: zflm(:)
 ! external functions
 real(8) rfinp
@@ -32,6 +33,7 @@ allocate(vnlcv(ncrmax,natmtot,nstsv,nkpt))
 allocate(vnlvv(nstsv,nstsv,nkpt))
 call oepvnl(vnlcv,vnlvv)
 ! allocate local arrays
+allocate(rflm(lmmaxvr))
 allocate(rfmt(lmmaxvr,nrmtmax,natmtot))
 allocate(rfir(ngrtot))
 allocate(dvxmt(lmmaxvr,nrcmtmax,natmtot))
@@ -43,7 +45,7 @@ if (spinpol) then
   allocate(dbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
   allocate(dbxir(ngrtot,ndmag))
 end if
-! zero the potential
+! zero the complex potential
 zvxmt(:,:,:)=0.d0
 zvxir(:)=0.d0
 if (spinpol) then
@@ -56,7 +58,7 @@ tau=tauoep(1)
 ! start iteration loop
 do it=1,maxitoep
   if (mod(it,10).eq.0) then
-    write(*,'("Info(oepmain): done ",I6," iterations of ",I6)') it,maxitoep
+    write(*,'("Info(oepmain): done ",I4," iterations of ",I4)') it,maxitoep
   end if
 ! zero the residues
   dvxmt(:,:,:)=0.d0
@@ -73,36 +75,31 @@ do it=1,maxitoep
   end do
 !$OMP END DO
 !$OMP END PARALLEL
-! compute the real residues
+! convert muffin-tin residues to spherical harmonics
   do is=1,nspecies
     do ia=1,natoms(is)
       ias=idxas(ia,is)
       irc=0
       do ir=1,nrmt(is),lradstp
         irc=irc+1
-        call zflmconj(lmaxvr,dvxmt(1,irc,ias),zflm)
-        zflm(:)=zflm(:)+dvxmt(:,irc,ias)
-        call ztorflm(lmaxvr,zflm,rfmt(1,ir,ias))
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,dvxmt(1,irc,ias), &
+         1,0.d0,rfmt(1,ir,ias),1)
         do idm=1,ndmag
-          call zflmconj(lmaxvr,dbxmt(1,irc,ias,idm),zflm)
-          zflm(:)=zflm(:)+dbxmt(:,irc,ias,idm)
-          call ztorflm(lmaxvr,zflm,rvfmt(1,ir,ias,idm))
+          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr, &
+           dbxmt(1,irc,ias,idm),1,0.d0,rvfmt(1,ir,ias,idm),1)
         end do
       end do
     end do
   end do
-  rfir(:)=2.d0*dble(dvxir(:))
-  do idm=1,ndmag
-    rvfir(:,idm)=2.d0*dble(dbxir(:,idm))
-  end do
 ! symmetrise the residues
-  call symrf(lradstp,rfmt,rfir)
-  if (spinpol) call symrvf(lradstp,rvfmt,rvfir)
+  call symrf(lradstp,rfmt,dvxir)
+  if (spinpol) call symrvf(lradstp,rvfmt,dbxir)
 ! magnitude of residues
-  resoep=sqrt(abs(rfinp(lradstp,rfmt,rfmt,rfir,rfir)))
+  resoep=sqrt(abs(rfinp(lradstp,rfmt,rfmt,dvxir,dvxir)))
   do idm=1,ndmag
-    resoep=resoep+sqrt(abs(rfinp(lradstp,rvfmt(1,1,1,idm),rvfmt(1,1,1,idm), &
-     rvfir(1,idm),rvfir(1,idm))))
+    t1=rfinp(lradstp,rvfmt(1,1,1,idm),rvfmt(1,1,1,idm),dbxir(1,idm), &
+     dbxir(1,idm))
+    resoep=resoep+sqrt(abs(t1))
   end do
   resoep=resoep/omega
 ! adjust step size
@@ -123,18 +120,21 @@ do it=1,maxitoep
       irc=0
       do ir=1,nrmt(is),lradstp
         irc=irc+1
-        call rtozflm(lmaxvr,rfmt(1,ir,ias),zflm)
-        zvxmt(:,irc,ias)=zvxmt(:,irc,ias)-tau*zflm(:)
+! convert residue to spherical coordinates and subtract from complex potential
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,rfmt(1,ir,ias), &
+         1,0.d0,rflm,1)
+        zvxmt(:,irc,ias)=zvxmt(:,irc,ias)-tau*rflm(:)
         do idm=1,ndmag
-          call rtozflm(lmaxvr,rvfmt(1,ir,ias,idm),zflm)
-          zbxmt(:,irc,ias,idm)=zbxmt(:,irc,ias,idm)-tau*zflm(:)
+          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
+           rvfmt(1,ir,ias,idm),1,0.d0,rflm,1)
+          zbxmt(:,irc,ias,idm)=zbxmt(:,irc,ias,idm)-tau*rflm(:)
         end do
       end do
     end do
   end do
-  zvxir(:)=zvxir(:)-tau*rfir(:)
+  zvxir(:)=zvxir(:)-tau*dvxir(:)
   do idm=1,ndmag
-    zbxir(:,idm)=zbxir(:,idm)-tau*rvfir(:,idm)
+    zbxir(:,idm)=zbxir(:,idm)-tau*dbxir(:,idm)
   end do
 ! end iteration loop
 end do
@@ -145,9 +145,14 @@ do is=1,nspecies
     irc=0
     do ir=1,nrmt(is),lradstp
       irc=irc+1
-      call ztorflm(lmaxvr,zvxmt(1,irc,ias),rfmt(1,ir,ias))
+! convert to real spherical harmonics
+      rflm(:)=dble(zvxmt(:,irc,ias))
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rflm,1,0.d0, &
+       rfmt(1,ir,ias),1)
       do idm=1,ndmag
-        call ztorflm(lmaxvr,zbxmt(1,irc,ias,idm),rvfmt(1,ir,ias,idm))
+        rflm(:)=dble(zbxmt(:,irc,ias,idm))
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rflm,1,0.d0, &
+         rvfmt(1,ir,ias,idm),1)
       end do
     end do
   end do
@@ -173,7 +178,12 @@ vxcir(:)=vxcir(:)+dble(zvxir(:))
 do idm=1,ndmag
   bxcir(:,idm)=bxcir(:,idm)+dble(zbxir(:,idm))
 end do
-deallocate(rfmt,rfir,vnlcv,vnlvv)
+! symmetrise the exchange potential and field
+call symrf(1,vxcmt,vxcir)
+if (spinpol) then
+  call symrvf(1,bxcmt,bxcir)
+end if
+deallocate(rflm,rfmt,rfir,vnlcv,vnlvv)
 deallocate(dvxmt,dvxir,zflm)
 if (spinpol) then
   deallocate(rvfmt,rvfir)

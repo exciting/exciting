@@ -34,7 +34,7 @@ clean:
          *.aux *.dvi *.log *.pdf *.tex *.toc $(EXE)
 
 copy:
-	cd ..;cp $(SRC_lib) spacegroup; cp geomplot.f90 spacegroup
+	cd ..;cp $(SRC_lib) spacegroup
 
 doc:
 	../protex -s $(SRC_main) $(SRC_modules) $(SRC_routines) $(SRC_lib) \

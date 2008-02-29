@@ -1,3 +1,6 @@
+
+AR = ar
+
 include ../../make.inc
 
 #-------------------------------------------------------------------------------
@@ -28,7 +31,7 @@ SRC = \
 OBJ = $(SRC:.f=.o)
 
 lapack:	$(OBJ)
-	ar -rc lapack.a $(OBJ)
+	$(AR) -rc lapack.a $(OBJ)
 
 clean:
 	rm -f *.o *.mod *~ *.a ifc* *.gcno gmon.out

@@ -133,12 +133,12 @@ do ik=1,nkptnr
       do ist=1,nstsv
         if (evalsvp(ist).lt.efermi) then
 ! calculate the complex overlap density
-          call vnlrho(wfmt2(1,1,1,1,jst),wfmt1(1,1,1,1,ist),wfir2(1,1,jst), &
-           wfir1(1,1,ist),zrhomt,zrhoir)
+          call vnlrho(.true.,wfmt2(1,1,1,1,jst),wfmt1(1,1,1,1,ist), &
+           wfir2(1,1,jst),wfir1(1,1,ist),zrhomt,zrhoir)
 ! calculate the Coulomb potential
           call zpotcoul(nrcmt,nrcmtmax,nrcmtmax,rcmt,igq0,gqc,jlgqr,ylmgq, &
            sfacgq,zpchg,zrhomt,zrhoir,zvclmt,zvclir,zrho0) 
-          zt1=zfinp(zrhomt,zvclmt,zrhoir,zvclir)
+          zt1=zfinp(.true.,zrhomt,zvclmt,zrhoir,zvclir)
           t1=cfq*wiq2(iq)*(dble(zrho0)**2+aimag(zrho0)**2)
 !$OMP CRITICAL
           evv=evv-0.5d0*occmax*wkpt(ikp)*(wkptnr(ik)*dble(zt1)+t1)
@@ -167,16 +167,16 @@ do is=1,nspecies
           do ist=1,nstsv
             if (evalsvp(ist).lt.efermi) then
 ! calculate the complex overlap density
-              call vnlrhomt(is,wfcr(1,1,1),wfmt1(1,1,ias,1,ist), &
+              call vnlrhomt(.true.,is,wfcr(1,1,1),wfmt1(1,1,ias,1,ist), &
                zrhomt(1,1,ias))
               if (spinpol) then
-                call vnlrhomt(is,wfcr(1,1,2),wfmt1(1,1,ias,2,ist),zfmt)
+                call vnlrhomt(.true.,is,wfcr(1,1,2),wfmt1(1,1,ias,2,ist),zfmt)
                 zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
               end if
 ! calculate the Coulomb potential
               call zpotclmt(lmaxvr,nr,rcmt(1,is),zpchg(ias),lmmaxvr, &
                zrhomt(1,1,ias),zvclmt(1,1,ias))
-              zt1=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt(1,1,ias), &
+              zt1=zfmtinp(.true.,lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt(1,1,ias), &
                zvclmt(1,1,ias))
 !$OMP CRITICAL
               ecv=ecv-occmax*wkpt(ikp)*dble(zt1)

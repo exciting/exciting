@@ -2,10 +2,12 @@
 # Setup script for the EXCITING Code
 
 # generic values
+MAKE="make"
 F90="f90"
 F90_OPTS=""
 F77=$F90
 F77_OPTS=$F90_OPTS
+AR="ar"
 LIB_SYS=""
 LIB_LPK="lapack.a blas.a"
 LIB_FFT="fftlib.a"
@@ -17,7 +19,7 @@ GETSYS ()
   echo "Choose system type:"
   echo
   echo " 1. HP-UX, It2, HP Fortran            2. Linux, x86, Intel Fortran 7"
-  echo " 3. Linux, x86, Intel Fortran 8/9     4. Linux, x86, NAG Fortran"
+  echo " 3. Linux, x86, Intel Fortran 8-10    4. Linux, x86, NAG Fortran"
   echo " 5. Tru64, HP/Compaq Fortran          6. HP-UX, It2, HP Fortran, OpenMP"
   echo " 7. AIX, XL Fortran                   8. Linux, x86, g95"
   echo " 9. Linux, x86, PGI                  10. Fujitsu VPP"
@@ -136,15 +138,20 @@ GETSYS ()
 GETSYS
 
 # produce the make.inc file
-echo "F90 = $F90" > make.inc
+echo "MAKE = $MAKE" > make.inc
+echo "F90 = $F90" >> make.inc
 echo "F90_OPTS = $F90_OPTS" >> make.inc
 echo "F77 = $F77" >> make.inc
 echo "F77_OPTS = $F77_OPTS" >> make.inc
+echo "AR = $AR" >> make.inc
 echo "LIB_SYS = $LIB_SYS" >> make.inc
 echo "LIB_LPK = $LIB_LPK" >> make.inc
 echo "LIB_FFT = $LIB_FFT" >> make.inc
 
 echo
-echo "Setup complete. Run \"make\" to compile code."
+echo "You can now edit the compiler options in \"make.inc\" for optimal"
+echo "performance on your system as well as enabling OpenMP parallelisation."
+echo
+echo "Then run \"make\" to compile code."
 echo
 

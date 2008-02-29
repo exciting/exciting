@@ -213,6 +213,8 @@ allocate(lofr(nrmtmax,2,nlomax,natmtot))
 !------------------------------------!
 !     secular equation variables     !
 !------------------------------------!
+! number of first-variational states
+nstfv=int(chgval/2.d0)+nempty+1
 ! overlap and Hamiltonian matrix sizes
 if (allocated(nmat)) deallocate(nmat)
 allocate(nmat(nkpt,nspnfv))
@@ -229,6 +231,8 @@ do ispn=1,nspnfv
     nstfv=min(nstfv,nmat(ik,ispn))
   end do
 end do
+! number of second-variational states
+nstsv=nstfv*nspinor
 ! allocate second-variational arrays
 if (allocated(evalsv)) deallocate(evalsv)
 allocate(evalsv(nstsv,nkpt))

@@ -70,8 +70,8 @@ do is=1,nspecies
     do ist=1,nstfv
       do jst=ist,nstfv
         do i=1,3
-          zt1=zfmtinp(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,wfmt(1,1,ist), &
-           gwfmt(1,1,i,jst))
+          zt1=zfmtinp(.true.,lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
+           wfmt(1,1,ist),gwfmt(1,1,i,jst))
           pm(i,ist,jst)=pm(i,ist,jst)+zt1
         end do
       end do

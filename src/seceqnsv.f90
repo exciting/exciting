@@ -50,7 +50,6 @@ external zdotc,zfmtinp
 if ((.not.spinpol).and.(ldapu.eq.0)) then
   do i=1,nstsv
     evalsv(i,ik)=evalfv(i)
-    spnchr(1,i,ik)=1.d0
   end do
   evecsv(:,:)=0.d0
   do i=1,nstsv
@@ -201,8 +200,8 @@ do is=1,nspecies
             j=jst+nstfv
           end if
           if (i.le.j) then
-            evecsv(i,j)=evecsv(i,j)+zfmtinp(lmaxmat,nrcmt(is),rcmt(1,is), &
-             lmmaxvr,wfmt1(1,1,ist),wfmt2(1,1,k))
+            evecsv(i,j)=evecsv(i,j)+zfmtinp(.true.,lmaxmat,nrcmt(is), &
+             rcmt(1,is),lmmaxvr,wfmt1(1,1,ist),wfmt2(1,1,k))
           end if
         end do
       end do

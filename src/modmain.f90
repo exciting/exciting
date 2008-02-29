@@ -178,6 +178,8 @@ real(8) bfcmt(3,maxatoms,maxspecies)
 real(8) bfieldl(3)
 ! global external magnetic field in Cartesian coordinates
 real(8) bfieldc(3)
+! external magnetic fields are multiplied by reducebf after each iteration
+real(8) reducebf
 ! spinsprl if .true. if a spin-spiral is to be calculated
 logical spinsprl
 ! number of spin-dependent first-variational functions per state
@@ -196,6 +198,8 @@ logical nosym
 integer nsymlat
 ! Bravais lattice point group symmetries
 integer symlat(3,3,48)
+! determinants of lattice symmetry matrices (1 or -1)
+integer symlatd(48)
 ! index to inverses of the lattice symmetries
 integer isymlat(48)
 ! lattice point group symmetries in Cartesian coordinates
@@ -759,22 +763,24 @@ real(8), allocatable :: vqlwrt(:,:)
 !-------------------------------------------------------------!
 !     reduced density matrix functional (RDMFT) variables     !
 !-------------------------------------------------------------!
-! real non-local matrix elements
-real(8), allocatable :: vnlmatr(:,:,:,:)
-! non-local matrix elements
-complex(8), allocatable :: vnlmat(:,:,:,:,:)
+! non-local matrix elements for varying occupation numbers
+real(8), allocatable :: vnlrdm(:,:,:,:)
 ! Coulomb potential matrix elements
 complex(8), allocatable :: vclmat(:,:,:)
-! derivative of kinetic energy wrt evecsv
+! derivative of kinetic energy w.r.t. natural orbital coefficients
 complex(8), allocatable :: dkdc(:,:,:)
-! occupancy step size
-real(8) tauocc,tauwf
+! step size for occupation numbers
+real(8) taurdmn
+! step size for natural orbital coefficients
+real(8) taurdmc
 ! xc functional
 integer rdmxctype
-! maximum number of iterations
-integer rdmmaxscl,maxitn,maxitwf
-! write non-local matrix elements
-logical trdmmat
+! maximum number of self-consistent loops
+integer rdmmaxscl
+! maximum number of iterations for occupation number optimisation
+integer maxitn
+! maximum number of iteration for natural orbital optimisation
+integer maxitc
 ! exponent for the functional
 real(8) rdmalpha
 
@@ -826,7 +832,7 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,145 /
+data version / 0,9,150 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=20
 ! number of tasks

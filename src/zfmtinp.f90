@@ -6,14 +6,17 @@
 !BOP
 ! !ROUTINE: zfmtinp
 ! !INTERFACE:
-complex(8) function zfmtinp(lmax,nr,r,ld,zfmt1,zfmt2)
+complex(8) function zfmtinp(tsh,lmax,nr,r,ld,zfmt1,zfmt2)
 ! !INPUT/OUTPUT PARAMETERS:
+!   tsh   : .true. if the functions are in spherical harmonics (in,logical)
 !   lmax  : maximum angular momentum
 !   nr    : number of radial mesh points (in,integer)
 !   r     : radial mesh (in,real(nr))
 !   ld    : leading dimension (in,integer)
-!   zfmt1 : first complex function inside muffin-tin (in,complex(ld,nr))
-!   zfmt2 : second complex function inside muffin-tin (in,complex(ld,nr))
+!   zfmt1 : first complex muffin-tin function in spherical harmonics/
+!           coordinates (in,complex(ld,nr))
+!   zfmt2 : second complex muffin-tin function in spherical harmonics/
+!           coordinates (in,complex(ld,nr))
 ! !DESCRIPTION:
 !   Calculates the inner product of two complex fuctions in the muffin-tin. In
 !   other words, given two complex functions of the form
@@ -22,6 +25,9 @@ complex(8) function zfmtinp(lmax,nr,r,ld,zfmt1,zfmt2)
 !   the function returns
 !   $$ I=\sum_{l=0}^{l_{\rm max}}\sum_{m=-l}^{l}\int f_{lm}^{1*}(r)
 !    f_{lm}^2(r)r^2\,dr\;. $$
+!   Note that if {\tt tsh} is {\tt .false.} the functions are in spherical
+!   coordinates rather than spherical harmonics. In this case $I$ is multiplied
+!   by $4\pi/(l_{\rm max}+1)^2$.
 !
 ! !REVISION HISTORY:
 !   Created November 2003 (Sharma)
@@ -29,6 +35,7 @@ complex(8) function zfmtinp(lmax,nr,r,ld,zfmt1,zfmt2)
 !BOC
 implicit none
 ! arguments
+logical, intent(in) :: tsh
 integer, intent(in) :: lmax
 integer, intent(in) :: nr
 real(8), intent(in) :: r(nr)
@@ -37,6 +44,7 @@ complex(8), intent(in) :: zfmt1(ld,nr)
 complex(8), intent(in) :: zfmt2(ld,nr)
 ! local variables
 integer lmmax,ir
+real(8), parameter :: fourpi=12.566370614359172954d0
 real(8) t1,t2
 complex(8) zt1
 ! automatic arrays
@@ -62,6 +70,7 @@ t1=gr(nr)
 call fderiv(-1,nr,r,fr2,gr,cf)
 t2=gr(nr)
 zfmtinp=cmplx(t1,t2,8)
+if (.not.tsh) zfmtinp=zfmtinp*fourpi/dble(lmmax)
 return
 end function
 !EOC
