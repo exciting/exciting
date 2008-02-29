@@ -9,7 +9,7 @@ implicit none
   integer,parameter:: diismax=25,diisfirstscl=3
   real(8) lowesteval
   real(8) epsarpack
-  real ,parameter::diisthreshould=1,reps=1e-7
+  real ,parameter::diisthreshould=1,reps=0.1e-7
   integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
   external idamax
@@ -37,16 +37,12 @@ contains
     if(iterativetype.eq.1) then
        !this may get more advanced:
        if(iscl.ge.diisfirstscl) doDIIScycle=.true.
-       if(dv.gt.10.0)doDIIScycle=.false.
-       write(*,*)"DIIS"
+       if(dv.gt.5.0)doDIIScycle=.false.
+      if(doDIIScycle) write(*,*)"DIIS"
     endif
   end function doDIIScycle
 
-  function prediis() !!try to get rid of
-    logical prediis
-    prediis=.false.
-    if (iterativetype.eq.1.and.(iscl.lt.diisfirstscl))  prediis=.true.
-  end function prediis
+
 
   function doprerotate_preconditioner()
     logical doprerotate_preconditioner
@@ -65,7 +61,7 @@ contains
   function doARPACKiteration()
     logical doARPACKiteration
     doARPACKiteration=.false.
-    if (iterativetype.ge.2.or.prediis()) then
+    if (iterativetype.ge.2) then
        doARPACKiteration=.true.
        write(*,*)"ARPACK"
        diiscounter=1
@@ -76,7 +72,7 @@ contains
   function doLAPACKsolver()
     logical doLAPACKsolver
     doLAPACKsolver=.false.
-    if ((iterativetype.eq.0).or.prediis()) then
+    if ((iterativetype.eq.0.or.iterativetype.eq.1)) then
        doLAPACKsolver=.true.
        write(*,*)"LAPACK hevx"
        diiscounter=1
