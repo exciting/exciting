@@ -20,8 +20,8 @@ subroutine scrcoulint
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un,j1,j2
   integer :: idum1,idum2,idum3,oct1,oct,info
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
-  logical :: nosymt,reducekt,tq0
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
+  logical :: nosymt,reducekt,tq0,exist
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
   real(8) :: rm(2,9)
   complex(8) :: scrnh0(3),scrnih0(3)
@@ -103,6 +103,7 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call getunit(un)
   allocate(scrni(ngqmax,ngqmax,nqptr))
+  scrni(:,:,:)=zzero
 
   !-----------------------------------!
   !     loop over reduced q-points    !
@@ -162,7 +163,7 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
            write(*,'(a,i5,2g18.10)') 'optcomp,      eps_00(q=0)      :', &
                 oct,scrnh0(oct)
            call zinvert_hermitian(scrherm,tm,tmi)
-           scrni(:,:,iqr)=tmi(:,:)
+           scrni(1:n,1:n,iqr)=tmi(:,:)
            ! keep head of inverse dielectric matrix for q=0
            scrnih0(oct)=scrni(1,1,iqr)
            write(*,'(a,i5,2g18.10)') 'optcomp,   eps^-1_00(q=0)      :', &
@@ -184,7 +185,7 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
         write(*,'(a,i5,2g18.10)') 'iq,      eps_00(q)             :', &
              iqr,scrn(1,1)
         call zinvert_hermitian(scrherm,tm,tmi)
-        scrni(:,:,iqr)=tmi(:,:)
+        scrni(1:n,1:n,iqr)=tmi(:,:)
      end if
      write(*,'(a,i5,2g18.10)') 'diel. matr.: iq,   eps^-1_00(q):', &
           iqr,scrni(1,1,iqr)
@@ -201,13 +202,16 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   do iq=1,nqpt
 write(*,*) 'radial integrals for q-point:',iq
      ! calculate radial integrals
-     call ematrad(iq )
      call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
-     call getunit(un)
-     open(un,file=trim(fname),form='unformatted',action='write', &
-          status='replace')
-     write(un) riaa,riloa,rilolo
-     close(un)
+     inquire(file=trim(fname),exist=exist)
+     if (.not.exist) then
+        call ematrad(iq )
+        call getunit(un)
+        open(un,file=trim(fname),form='unformatted',action='write', &
+             status='replace')
+        write(un) riaa,riloa,rilolo
+        close(un)
+     end if
   end do
 
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
@@ -224,13 +228,13 @@ write(*,*) 'radial integrals for q-point:',iq
   potcl(:,:,:)=0.d0
   sccli(:,:,:,:,:)=zzero
   done(:)=.false.
-
+  ikkp=0
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
   do iknr=1,nkptnr
      do jknr=iknr,nkptnr
-
+        ikkp=ikkp+1
 
 call cpu_time(cpu2)
 cpu_init1xs=0.d0
@@ -458,7 +462,37 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
               emat34(j2,:)=xiuo(ist3,ist4,:)
            end do
         end do
+        ! * calculate 
+        scclit=matmul(emat34,matmul(tm,emat12))/omega
+        j2=0
+        do ist4=1,nst4
+           do ist3=1,nst3
+              j2=j2+1
+              j1=0
+              do ist2=1,nst2
+                 do ist1=1,nst1
+                    j1=j1+1
+                    sccli(ist1,ist2,ist3,ist4,jknr)=scclit(j2,j1)
+                 end do
+              end do
+           end do
+        end do
 
+        ! * write out screened Coulomb interaction
+        do ist1=1,nst1
+           do ist3=1,nst3
+              do ist2=1,nst2
+                 do ist4=1,nst4
+                    write(*,'(i5,3x,3i4,2x,3i4,2x,2e18.10)') ikkp,iknr, &
+                         ist1,ist3,jknr,ist2,ist4,sccli(ist1,ist2,ist3,ist4,jknr)
+                 end do
+              end do
+           end do
+        end do
+
+           
+
+        
 
         ! *** twice zgemm or matmul *** write zgemm wrapper:)
         
@@ -498,7 +532,7 @@ write(*,*)
   write(*,*) 'maximum number of symmetry operation for q-point',maxval(nsyma)
 
   call findgntn0_clear
-  deallocate(done,isyma,nsyma,ivgsyma,igqmap,scrni,phf,potcl)
+  deallocate(done,isyma,nsyma,ivgsyma,igqmap,scrni,phf,potcl,sccli)
 
   ! restore global variables
   nosym=nosymt

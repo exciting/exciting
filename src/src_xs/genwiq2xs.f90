@@ -28,7 +28,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   integer, parameter :: ns0=10,nss=20
   integer :: ns,i1,i2,i3,i,ip,j1,j2
   real(8) :: d(3),dv,sum2,t1
-  real(8) :: sum3,t3,qsz,cpu0,cpu1
+  real(8) :: t2,qsz,cpu0,cpu1
   real(8) :: xa(np),ya(np),c(np),v0(3),v0l(3)
   real(8) :: v01(3),v02(3),v11(3),v12(3),v21(3),v22(3),v31(3),v32(3)
   ! external functions
@@ -82,17 +82,16 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
                  t1=dble(i3)*d(3)
                  v31(:)=v21(:)+t1*bvec(:,3)
                  v32(:)=v22(:)+t1*bvec(:,3)
-                 t3=sqrt(sum(v31**2)*sum(v32**2))
-                 if (t3.gt.1.d-14) then
-                    sum3=sum3+1.d0/t3
+                 t2=sqrt(sum(v31**2)*sum(v32**2))
+                 if (t2.gt.1.d-14) then
+                    sum2=sum2+1.d0/t2
                  end if
               end do
            end do
         end do
         sum2=sum2*dv
-        sum3=sum3*dv
         xa(ip)=dv**(1.d0/3.d0)
-        ya(ip)=sum3 !+-
+        ya(ip)=sum2
         ! increment number of subdivisions
         ns=ns+nss
      end do

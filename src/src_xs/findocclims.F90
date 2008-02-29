@@ -7,6 +7,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   use modmain
   use modxs
   use m_genfilname
+  implicit none
   ! arguments
   integer, intent(in) :: iq
   integer, intent(out) :: iocc0,iocc,iunocc0,iunocc
@@ -47,12 +48,21 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
         iu0(ik)=iu(ik)
      end if
   end do
-  ! lowest and highest valence energy
-  evlmin=min(minval(evalsv(1,:)),minval(evalsv0(1,:)))
-  evlmax=max(maxval(evalsv(nstsv,:)),maxval(evalsv0(nstsv,:)))
-  ! lower and higher cutoff valence energy
-  evlmincut=max(maxval(evalsv(1,:)),maxval(evalsv0(1,:)))
-  evlmaxcut=min(minval(evalsv(nstsv,:)),minval(evalsv0(nstsv,:)))
+  if (iq.ne.0) then
+     ! lowest and highest valence energy
+     evlmin=min(minval(evalsv(1,:)),minval(evalsv0(1,:)))
+     evlmax=max(maxval(evalsv(nstsv,:)),maxval(evalsv0(nstsv,:)))
+     ! lower and higher cutoff valence energy
+     evlmincut=max(maxval(evalsv(1,:)),maxval(evalsv0(1,:)))
+     evlmaxcut=min(minval(evalsv(nstsv,:)),minval(evalsv0(nstsv,:)))
+  else
+     ! lowest and highest valence energy
+     evlmin=minval(evalsv(1,:))
+     evlmax=maxval(evalsv(nstsv,:))
+     ! lower and higher cutoff valence energy
+     evlmincut=maxval(evalsv(1,:))
+     evlmaxcut=minval(evalsv(nstsv,:))
+  end if
   ! overall highest (partially) occupied state
   iocc0=maxval(io0)
   iocc=maxval(io)
@@ -66,10 +76,29 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   iunocc0=min(iunocc0,iunocc)
   ! determine if system has a gap in energy
   ksgap=iocc0.lt.iunocc0
-  ! highest (partially) occupied state energy
-  evlhpo=max(maxval(evalsv(iocc0,:)),maxval(evalsv0(iocc0,:)))
-  ! lowest (partially) unoccupied state energy
-  evllpu=min(minval(evalsv(iunocc0,:)),minval(evalsv0(iunocc0,:)))
+  if (iq.ne.0) then
+     ! highest (partially) occupied state energy
+     evlhpo=max(maxval(evalsv(iocc0,:)),maxval(evalsv0(iocc0,:)))
+     ! lowest (partially) unoccupied state energy
+     evllpu=min(minval(evalsv(iunocc0,:)),minval(evalsv0(iunocc0,:)))
+  else
+     ! highest (partially) occupied state energy
+     evlhpo=maxval(evalsv(iocc0,:))
+     ! lowest (partially) unoccupied state energy
+     evllpu=minval(evalsv(iunocc0,:))
+  end if
+  ! check consistency with Fermi energy
+  if (ksgap.and.((evlhpo.gt.efermi).or.(evllpu.lt.efermi))) then
+     write(*,*)
+     write(*,'("Error(findocclims): inconsistent Fermi energy for system&
+          & with gap in energy:")')
+     write(*,'(" Fermi energy            :",f12.6)') efermi
+     write(*,'(" highest part. occ state :",f12.6)') evlhpo
+     write(*,'(" lowest part. unocc state:",f12.6)') evllpu
+     write(*,'(" recalculate Fermi energy or eigenvalues with reduced swidth")')
+     write(*,*)
+     call terminate
+  end if
   ! *** assign nstval and nstcon ***
   nstval=max(iocc0,iocc)
   nstcon=nstsv-nstval
