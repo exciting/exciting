@@ -51,7 +51,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
         infodiisupdate=1
         exit
      endif
-     write(*,*) "c",c
+    ! write(*,*) "c",c
      evecfv(:,i)=0.0
      do ir=1,idiis
         z=cmplx(c(ir),0.0)
