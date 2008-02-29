@@ -21,8 +21,11 @@ contains
     calculate_preconditioner=.false.
     if(diiscounter.eq.1) then
        calculate_preconditioner =.true.
+    
   write(*,*)"precond"
-    else 
+    else if (mod(diiscounter,5).eq.0)then
+       calculate_preconditioner =.true.
+  write(*,*)"precon"
     endif
   end function calculate_preconditioner
 
