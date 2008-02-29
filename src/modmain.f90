@@ -652,6 +652,8 @@ real(8) epspot
 real(8) epsengy
 ! force convergence tolerance
 real(8) epsforce
+!curent convergence
+real(8) dv
 
 !------------------------------------------------!
 !     density of states and optics variables     !

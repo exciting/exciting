@@ -25,7 +25,7 @@ subroutine gndstate
   ! local variables
   logical exist
   integer ik,is,ia,idm,n
-  real(8) dv,timetot
+  real(8) timetot
   ! allocatable arrays
   real(8), allocatable :: nu(:)
   real(8), allocatable :: mu(:)

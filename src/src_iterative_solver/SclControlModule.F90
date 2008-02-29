@@ -1,7 +1,7 @@
 ! module to switch the different scl solver modes
 
 module sclcontroll
-use modmain,only:iscl
+use modmain,only:iscl,dv
 implicit none
  !scl index
   integer diiscounter !! counter for DIIS iterations
@@ -24,7 +24,9 @@ contains
     
   write(*,*)"precond"
     else if (mod(diiscounter,5).eq.0)then
+    if(dv.gt.1e-2) then
        calculate_preconditioner =.true.
+    endif
   write(*,*)"precon"
     endif
   end function calculate_preconditioner
