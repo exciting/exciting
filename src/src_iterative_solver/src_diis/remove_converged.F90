@@ -38,6 +38,6 @@ subroutine remove_converged(evecmap,iunconverged,rnorms,n,r,h,s,eigenvector,eige
         iunconverged=iunconverged+1
      endif
   end do
-  write(*,*)iunconverged,"map",evecmap
+ ! write(*,*)iunconverged,"map",evecmap
 end subroutine remove_converged
 

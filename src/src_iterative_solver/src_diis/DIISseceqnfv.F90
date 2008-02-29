@@ -153,6 +153,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
       endif
      call cpu_time(cpu1)
   endif
+    deallocate(hamilton,overlap)
   timefv=timefv+cpu1-cpu0
   return
 end subroutine DIISseceqnfv
