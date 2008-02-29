@@ -25,7 +25,7 @@ contains
          tim(1:2),tim(3:4),tim(5:6)
     write(un,'("# version           : ",i1.1,".",i1.1,".",i3.3)') version
     write(un,'("# version (xs)      : ",i1.1,".",i3.3)') versionxs
-    write(un,'(a,f12.6)')  '# efermi            :',efermi
+    write(un,'(a,2f12.6)') '# efermi (H,eV)     :',efermi,h2ev*efermi
     write(un,'(a,3f12.6)') '# vql               :',vql(:,iq)
     write(un,'(a,3f12.6)') '# vqc               :',vqc(:,iq)
     write(un,'(a,2i8)') '# optcomp           :',optcomp(1,1),optcomp(2,1)
@@ -37,8 +37,8 @@ contains
     write(un,'(a,l8)') '# aresdf            :',aresdf
     write(un,'(a,l8)') '# acont             :',acont
     write(un,'(a,i8)') '# nwacont           :',nwacont
-    write(un,'(a,2f12.6)') '# brdtd (H,eV)      :',brdtd, h2ev*brdtd
-    write(un,'(a,2f12.6)') '# scissor (H,eV)    :',scissor, h2ev*scissor
+    write(un,'(a,2f12.6)') '# brdtd (H,eV)      :',brdtd,h2ev*brdtd
+    write(un,'(a,2f12.6)') '# scissor (H,eV)    :',scissor,h2ev*scissor
     write(un,'(a,i8)') '# nwdos             :',nwdos
     write(un,'(a,i8)') '# ngq               :',ngq(iq)
     write(un,'(a,f12.6)') '# gqmax             :',gqmax
@@ -54,8 +54,14 @@ contains
     write(un,'(a,i8)') '# nst1              :',nst1
     write(un,'(a,i8)') '# nst2              :',nst2
     write(un,'(a,i8)') '# nstsv             :',nstsv
-    write(un,'(a,f12.6)') '# min. val. energy  :',evlmin
-    write(un,'(a,f12.6)') '# max. val. energy  :',evlmax
+    write(un,'(a,2f12.6)') '# evlmincut (H,eV)  :',evlmincut,h2ev*evlmincut
+    write(un,'(a,2f12.6)') '# evlmaxcut (H,eV)  :',evlmaxcut,h2ev*evlmaxcut
+    write(un,'(a,2f12.6)') '# evlmin (H,eV)     :',evlmin,h2ev*evlmin
+    write(un,'(a,2f12.6)') '# evlmax (H,eV)     :',evlmax,h2ev*evlmax
+    write(un,'(a,i5,2f12.6)') '# evlhpo (H,eV)     :',istocc0,evlhpo,h2ev*evlhpo
+    write(un,'(a,i5,2f12.6)') '# evllpu (H,eV)     :',istunocc0,evllpu, &
+         h2ev*evllpu
+    write(un,'(a,l8)') '# ksgap             :',ksgap
     write(un,'(a,i8)') '# lmaxapw           :',lmaxapw
     write(un,'(a,i8)') '# lmaxapwtd         :',lmaxapwtd
     write(un,'(a,i8)') '# lmaxmat           :',lmaxmat

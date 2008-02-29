@@ -20,6 +20,7 @@ subroutine scrcoulint
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un,j1,j2
   integer :: idum1,idum2,idum3,oct1,oct,info
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
   logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
   real(8) :: rm(2,9)
@@ -27,8 +28,9 @@ subroutine scrcoulint
   character(256) :: fname
   real(8), allocatable :: potcl(:,:,:)
   complex(8), allocatable :: scrn(:,:),scrnw(:,:,:),scrnh(:)
+  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
-  complex(8), allocatable :: phf(:,:,:)
+  complex(8), allocatable :: phf(:,:,:),emat12(:,:),emat34(:,:)
   integer, allocatable :: igqmap(:,:),isyma(:,:),ivgsyma(:,:,:),nsyma(:)
   logical, allocatable :: done(:)
   real(8), external :: r3taxi
@@ -38,7 +40,6 @@ subroutine scrcoulint
 integer :: lmax1,lmax2,lmax3
 real(8) :: cpu0,cpu1,cpu2,cpu3
 real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
-
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -71,7 +72,18 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   call flushifc(unitout)
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
+  ! only for systems with a gap in energy
+  if (.not.ksgap) then
+     write(*,*)
+     write(*,'("Error(",a,"): system does not have a KS gap.")') trim(thisnam)
+     write(*,*)
+     call terminate
+  end if
   call ematbdcmbs(emattype)
+  nst12=nst1*nst2
+  nst34=nst3*nst4
+  nst13=nst1*nst3
+  nst24=nst2*nst4
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   ! check number of empty states
   if (nemptyscr.lt.nempty) then
@@ -205,8 +217,12 @@ write(*,*) 'radial integrals for q-point:',iq
   allocate(nsyma(nqpt),isyma(maxsymcrys,nqpt),ivgsyma(3,maxsymcrys,nqpt))
   allocate(igqmap(ngqmax,nqpt))
   allocate(phf(ngqmax,ngqmax,nqpt),potcl(ngqmax,ngqmax,nqpt))
+  ! allocate array to keep values for all k-points in next loop
+  allocate(sccli(nst1,nst2,nst3,nst4,nkptnr))
+
   phf(:,:,:)=zzero
   potcl(:,:,:)=0.d0
+  sccli(:,:,:,:,:)=zzero
   done(:)=.false.
 
   !-------------------------------!
@@ -334,8 +350,10 @@ write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
              iknr,jknr,iq,iqr,iqrnr,isym,ivgsym
         !**********************************************************************
 
+        ! temporary arrays
+        allocate(tm(n,n),tmi(n,n),emat12(n,nst12),emat34(nst34,n))
+        allocate(scclit(nst34,nst12))
         ! rotate inverse of screening
-        allocate(tm(n,n),tmi(n,n))
         do igq1=1,n
            j1=igqmap(igq1,iq)
            do igq2=1,n
@@ -426,6 +444,22 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         tm(:,:)=fourpi*phf(:,:,iq)*potcl(:,:,iq)*tmi(:,:)
 
         ! *** help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
+        j1=0
+        do ist2=1,nst2
+           do ist1=1,nst1
+              j1=j1+1
+              emat12(:,j1)=conjg(xiou(ist1,ist2,:))
+           end do
+        end do
+        j2=0
+        do ist4=1,nst4
+           do ist3=1,nst3
+              j2=j2+1
+              emat34(j2,:)=xiuo(ist3,ist4,:)
+           end do
+        end do
+
+
         ! *** twice zgemm or matmul *** write zgemm wrapper:)
         
 
@@ -442,7 +476,7 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
 !!$end if
 
         done(iq)=.true.
-        deallocate(tm,tmi)
+        deallocate(tm,tmi,emat12,emat34,scclit)
 
 call cpu_time(cpu3)
 t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs

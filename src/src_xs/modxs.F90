@@ -234,7 +234,13 @@ module modxs
   ! block
   integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
   ! minimum and maximum energies over k-points
-  real(8) :: evlmin,evlmax,ecrmin,ecrmax
+  real(8) :: evlmin,evlmax,evlmincut,evlmaxcut,ecrmin,ecrmax
+  ! highest (at least partially) occupied state energy
+  real(8) :: evlhpo
+  ! lowest (at least partially) unoccupied state energy
+  real(8) :: evllpu
+  ! true if system has a Kohn-Sham gap
+  logical :: ksgap
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !

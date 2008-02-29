@@ -59,7 +59,10 @@ subroutine dfq(iq)
   n=ngq(iq)
   ! zero broadening for analytic contiunation
   brd=brdtd
-  if (acont) brd=zzero
+  if (acont) brd=0.d0
+  ! *** experimental *** zero broadening for dielectric matrix (w=0)
+  ! for band-gap systems
+  if (task.eq.430) brd=0.d0
   ! file extension for q-point
   if (.not.tscreen) call genfilname(iqmt=iq,setfilext=.true.)
   ! filenames for input

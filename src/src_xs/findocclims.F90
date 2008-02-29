@@ -15,7 +15,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   integer :: ik,ikq,i0,i
   logical :: t
   t=allocated(evalsv0)
-  if (.not.t) allocate(evalsv0(nmatmax0,nkpt))
+  if (.not.t) allocate(evalsv0(nstsv,nkpt))
   do ik=1,nkpt
      ! k+q-point set
      ikq=ik
@@ -48,8 +48,11 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      end if
   end do
   ! lowest and highest valence energy
-  evlmin=min(minval(evalsv),minval(evalsv0))
-  evlmax=max(maxval(evalsv),maxval(evalsv0))
+  evlmin=min(minval(evalsv(1,:)),minval(evalsv0(1,:)))
+  evlmax=max(maxval(evalsv(nstsv,:)),maxval(evalsv0(nstsv,:)))
+  ! lower and higher cutoff valence energy
+  evlmincut=max(maxval(evalsv(1,:)),maxval(evalsv0(1,:)))
+  evlmaxcut=min(minval(evalsv(nstsv,:)),minval(evalsv0(nstsv,:)))
   ! overall highest (partially) occupied state
   iocc0=maxval(io0)
   iocc=maxval(io)
@@ -61,11 +64,22 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   ! k-mesh
   iocc0=max(iocc0,iocc)
   iunocc0=min(iunocc0,iunocc)
+  ! determine if system has a gap in energy
+  ksgap=iocc0.lt.iunocc0
+  ! highest (partially) occupied state energy
+  evlhpo=max(maxval(evalsv(iocc0,:)),maxval(evalsv0(iocc0,:)))
+  ! lowest (partially) unoccupied state energy
+  evllpu=min(minval(evalsv(iunocc0,:)),minval(evalsv0(iunocc0,:)))
   ! *** assign nstval and nstcon ***
   nstval=max(iocc0,iocc)
   nstcon=nstsv-nstval
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
      write(*,'(a)') 'Info(findocclims): partially occupied states present'
+  end if
+  if (ksgap) then
+     write(*,'(a)') 'Info(findocclims): system has KS-gap'
+  else
+     write(*,'(a)') 'Info(findocclims): no KS-gap found'
   end if
   ! debug output
   if (dbglev.gt.0) then
