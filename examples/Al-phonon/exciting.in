@@ -17,7 +17,7 @@ scale
 
 ! phonon q-point mesh
 ngridq
-  4  4  4
+  2  2  2
 
 ! k-point grid is determined by maximum de Broglie wavelength
 rlambda

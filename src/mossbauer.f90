@@ -69,9 +69,9 @@ do is=1,nspecies
     rho0=gr(nr)/vn
     write(50,*)
     write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
-    write(50,'(" approximate nuclear radius              : ",G18.10)') rn
+    write(50,'(" approximate nuclear radius : ",G18.10)') rn
     write(50,'(" number of mesh points to nuclear radius : ",I6)') nr
-    write(50,'(" contact charge density                  : ",G18.10)') rho0
+    write(50,'(" contact charge density : ",G18.10)') rho0
 !------------------------------------------!
 !     contact magnetic hyperfine field     !
 !------------------------------------------!

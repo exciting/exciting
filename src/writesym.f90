@@ -36,18 +36,22 @@ end do
 close(50)
 ! output the crystal symmetries
 open(50,file='SYMCRYS'//trim(filext),action='WRITE',form='FORMATTED')
+write(50,*)
+write(50,'("(translation vectors and rotation matrices are in lattice &
+ &coordinates)")')
+write(50,*)
 write(50,'(I4," : nsymcrys")') nsymcrys
 do isym=1,nsymcrys
   write(50,*)
   write(50,'("Crystal symmetry : ",I4)') isym
-  write(50,'(" spatial rotation (lattice coordinates) :")')
+  write(50,'(" spatial translation :")')
+  write(50,'(3G18.10)') vtlsymc(:,isym)
+  write(50,'(" spatial rotation :")')
   lspl=lsplsymc(isym)
   do i=1,3
     write(50,'(3I4)') symlat(i,:,lspl)
   end do
-  write(50,'(" spatial translation (lattice coordinates) :")')
-  write(50,'(3G18.10)') vtlsymc(:,isym)
-  write(50,'(" global spin rotation (lattice coordinates) :")')
+  write(50,'(" global spin rotation :")')
   lspn=lspnsymc(isym)
   do i=1,3
     write(50,'(3I4)') symlat(i,:,lspn)
@@ -56,6 +60,8 @@ end do
 close(50)
 ! output the site symmetries
 open(50,file='SYMSITE'//trim(filext),action='WRITE',form='FORMATTED')
+write(50,*)
+write(50,'("(rotation matrices are in lattice coordinates)")')
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
@@ -66,12 +72,12 @@ do is=1,nspecies
     do isym=1,nsymsite(ias)
       write(50,*)
       write(50,'(" Site symmetry : ",I4)') isym
-      write(50,'("  spatial rotation (lattice coordinates) :")')
+      write(50,'("  spatial rotation :")')
       lspl=lsplsyms(isym,ias)
       do i=1,3
         write(50,'(3I4)') symlat(i,:,lspl)
       end do
-      write(50,'("  global spin rotation (lattice coordinates) :")')
+      write(50,'("  global spin rotation :")')
       lspn=lspnsyms(isym,ias)
       do i=1,3
         write(50,'(3I4)') symlat(i,:,lspn)

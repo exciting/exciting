@@ -280,10 +280,6 @@ if (task.eq.440) then
    call initoccbse(nempty)
 end if
 #endif
-! number of first-variational states
-nstfv=int(chgval/2.d0)+nempty+1
-! number of second-variational states
-nstsv=nstfv*nspinor
 
 !-------------------------!
 !     G-vector arrays     !

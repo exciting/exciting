@@ -147,7 +147,7 @@ vqlwrt(:,:)=0.d0
 notelns=0
 tforce=.false.
 tfibs=.true.
-maxitoep=80
+maxitoep=120
 tauoep(1)=1.d0
 tauoep(2)=0.2d0
 tauoep(3)=1.5d0
@@ -164,6 +164,14 @@ tevecsv=.false.
 ldapu=0
 llu(:)=-1
 ujlu(:,:)=0.d0
+rdmxctype=2
+rdmmaxscl=1
+maxitn=250
+maxitc=10
+taurdmn=1.d0
+taurdmc=0.5d0
+rdmalpha=0.7d0
+reducebf=1.d0
 #ifdef TETRA
 ! tetrahedron method variables
 tetra=.false.
@@ -882,6 +890,51 @@ case('lda+u')
     ujlu(1,js)=t1
     ujlu(2,js)=t2
   end do
+case('rdmxctype')
+  read(50,*,err=20) rdmxctype
+case('rdmmaxscl')
+  read(50,*,err=20) rdmmaxscl
+  if (rdmmaxscl.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput): rdmmaxscl < 0 : ",I8)') rdmmaxscl
+    write(*,*)
+  end if
+case('maxitn')
+  read(50,*,err=20) maxitn
+case('maxitc')
+  read(50,*,err=20) maxitc
+case('taurdmn')
+  read(50,*,err=20) taurdmn
+  if (taurdmn.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): taurdmn < 0 : ",G18.10)') taurdmn
+    write(*,*)
+    stop
+  end if
+case('taurdmc')
+  read(50,*,err=20) taurdmc
+  if (taurdmc.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): taurdmc < 0 : ",G18.10)') taurdmc
+    write(*,*)
+    stop
+  end if
+case('rdmalpha')
+  read(50,*,err=20) rdmalpha
+  if ((rdmalpha.le.0.d0).or.(rdmalpha.ge.1.d0)) then
+    write(*,*)
+    write(*,'("Error(readinput): rdmalpha not in (0,1) : ",G18.10)') rdmalpha
+    write(*,*)
+    stop
+  end if
+case('reducebf')
+  read(50,*,err=20) reducebf
+  if ((reducebf.lt.0.d0).or.(reducebf.gt.1.d0)) then
+    write(*,*)
+    write(*,'("Error(readinput): reducebf not in [0,1] : ",G18.10)') reducebf
+    write(*,*)
+    stop
+  end if
 #ifdef TETRA
 !  tetrahedron method variables
 case('tetra')

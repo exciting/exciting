@@ -3,8 +3,35 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: symrvf
+! !INTERFACE:
 subroutine symrvf(lrstp,rvfmt,rvfir)
+! !USES:
 use modmain
+! !INPUT/OUTPUT PARAMETERS:
+!   lrstp : radial step length (in,integer)
+!   rvfmt : real muffin-tin vector field
+!           (in,real(lmmaxvr,nrmtmax,natmtot,ndmag))
+!   rvfir : real interstitial vector field
+!           (in,real(ngrtot,ndmag))
+! !DESCRIPTION:
+!   Symmetrises a vector field defined over the entire unit cell using the full
+!   set of crystal symmetries. If a particular symmetry involves rotating atom
+!   1 into atom 2, then the spatial and spin rotations of that symmetry are
+!   applied to the vector field in atom 2 (expressed in spherical harmonic
+!   coefficients), which is then added to the field in atom 1. This is repeated
+!   for all symmetry operations. The fully symmetrised field in atom 1 is then
+!   rotated and copied to atom 2. Symmetrisation of the interstitial part of the
+!   field is performed by {\tt symrvfir}. See also {\tt symrfmt} and
+!   {\tt findsym}.
+!
+! !REVISION HISTORY:
+!   Created May 2007 (JKD)
+!   Fixed problem with improper rotations, February 2008 (L. Nordstrom,
+!    F. Bultmark and F. Cricchio)
+!EOP
+!BOC
 implicit none
 ! arguments
 integer, intent(in) :: lrstp
@@ -12,7 +39,7 @@ real(8), intent(inout) :: rvfmt(lmmaxvr,nrmtmax,natmtot,ndmag)
 real(8), intent(inout) :: rvfir(ngrtot,ndmag)
 ! local variables
 integer is,ia,ja,ias,jas
-integer isym,ir,lm,i
+integer isym,ir,lm,i,md
 integer lspl,ilspl,lspn,ilspn
 real(8) sc(3,3),v(3),t1
 ! automatic arrays
@@ -52,9 +79,10 @@ do is=1,nspecies
           call symrfmt(lrstp,is,symlatc(1,1,lspl),rvfmt1(1,1,ja,i), &
            rvfmt2(1,1,i))
         end do
-! global spin rotation matrix in Cartesian coordinates
+! global spin proper rotation matrix in Cartesian coordinates
         lspn=lspnsymc(isym)
-        sc(:,:)=symlatc(:,:,lspn)
+        md=symlatd(lspn)
+        sc(:,:)=dble(md)*symlatc(:,:,lspn)
 ! global spin rotation of vector field
         if (ndmag.eq.3) then
 ! non-collinear case
@@ -100,31 +128,27 @@ do is=1,nspecies
             call symrfmt(lrstp,is,symlatc(1,1,ilspl),rvfmt(1,1,ias,i), &
              rvfmt(1,1,jas,i))
           end do
-! inverse of global rotation matrix in Cartesian coordinates
+! inverse of global proper rotation matrix in Cartesian coordinates
           lspn=lspnsymc(isym)
           ilspn=isymlat(lspn)
-          sc(:,:)=symlatc(:,:,ilspn)
+          md=symlatd(ilspn)
+          sc(:,:)=dble(md)*symlatc(:,:,ilspn)
 ! global spin rotation of vector field
           if (ndmag.eq.3) then
 ! non-collinear case
             do ir=1,nrmt(is),lrstp
               do lm=1,lmmaxvr
-                rvfmt(lm,ir,jas,1)=sc(1,1)*rvfmt(lm,ir,ias,1) &
-                                  +sc(1,2)*rvfmt(lm,ir,ias,2) &
-                                  +sc(1,3)*rvfmt(lm,ir,ias,3)
-                rvfmt(lm,ir,jas,2)=sc(2,1)*rvfmt(lm,ir,ias,1) &
-                                  +sc(2,2)*rvfmt(lm,ir,ias,2) &
-                                  +sc(2,3)*rvfmt(lm,ir,ias,3)
-                rvfmt(lm,ir,jas,3)=sc(3,1)*rvfmt(lm,ir,ias,1) &
-                                  +sc(3,2)*rvfmt(lm,ir,ias,2) &
-                                  +sc(3,3)*rvfmt(lm,ir,ias,3)
+                v(:)=rvfmt(lm,ir,jas,:)
+                rvfmt(lm,ir,jas,1)=sc(1,1)*v(1)+sc(1,2)*v(2)+sc(1,3)*v(3)
+                rvfmt(lm,ir,jas,2)=sc(2,1)*v(1)+sc(2,2)*v(2)+sc(2,3)*v(3)
+                rvfmt(lm,ir,jas,3)=sc(3,1)*v(1)+sc(3,2)*v(2)+sc(3,3)*v(3)
               end do
             end do
           else
 ! collinear case
             do ir=1,nrmt(is),lrstp
               do lm=1,lmmaxvr
-                rvfmt(lm,ir,jas,1)=sc(3,3)*rvfmt(lm,ir,ias,1)
+                rvfmt(lm,ir,jas,1)=sc(3,3)*rvfmt(lm,ir,jas,1)
               end do
             end do
           end if
@@ -142,4 +166,5 @@ call symrvfir(ngvec,rvfir)
 deallocate(rvfmt1,rvfmt2)
 return
 end subroutine
+!EOC
 

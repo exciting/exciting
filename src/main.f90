@@ -18,7 +18,7 @@ program main
   do itask=1,ntasks
      task=tasks(itask)
      select case(task)
-     case(0,1,2,3,200,23,300:399,400:499)
+     case(0,1,2,3,200,23,301:399,400:499)
         paralleltask=.true.
      case default
         paralleltask=.false.
@@ -76,10 +76,12 @@ program main
            call writephn
         case(250)
            call geomplot
+        case(300)
+           call rdmft
 #ifdef TETRA
 #ifdef XS
            ! tasks for excited states
-        case(23,300:399,400:499)
+        case(23,301:399,400:499)
            call xsmain
         case(900)
            ! generate portable ASCII STATE.xml file from STATE.OUT file
@@ -114,7 +116,7 @@ program main
 end program main
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.142
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.150
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
@@ -139,17 +141,17 @@ end program main
 !   Sushil Auluck, Frank Wagner, Fateh Kalarasse, J\"{u}rgen Spitaler, Stefano
 !   Pittalis, Nektarios Lathiotakis, Tobias Burnus, Stephan Sagmeister,
 !   Christian Meisenbichler, Francesco Cricchio, S\'{e}bastien Leb\`{e}gue,
-!   Yigang Zhang and Fritz K\"{o}rmann. Special mention of David Singh's very
-!   useful book {\it Planewaves, Pseudopotentials and the LAPW Method}
-!   \cite{singh} must also be made. Finally we would like to acknowledge the
-!   generous support of Karl-Franzens-Universit\"{a}t Graz, as well as the EU
-!   Marie-Curie Research Training Networks initiative.
+!   Yigang Zhang, Fritz K\"{o}rmann and Alexey Baranov. Special mention of David
+!   Singh's very useful book {\it Planewaves, Pseudopotentials and the LAPW
+!   Method} \cite{singh} must also be made. Finally we would like to acknowledge
+!   the generous support of Karl-Franzens-Universit\"{a}t Graz, as well as the
+!   EU Marie-Curie Research Training Networks initiative.
 !
 !   \vspace{24pt}
 !   Kay Dewhurst, Sangeeta Sharma and Claudia Ambrosch-Draxl
 !
 !   \vspace{12pt}
-!   Edinburgh, Berlin and Leoben, October 2007
+!   Edinburgh, Berlin and Leoben, February 2008
 !   \newpage
 !
 !   \section{Units}
@@ -549,7 +551,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lmaxinr} & angular momentum cut-off for themuffin-tin density and
-!    potential on the inner part of the muffin-tin & integer & $2$ \\
+!    potential on the inner part of the muffin-tin & integer & 2 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Close to the nucleus, the density and potential is almost spherical and
@@ -560,7 +562,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lmaxmat} & angular momentum cut-off for the outer-most loop in the
-!    hamiltonian and overlap matrix setup & integer & $5$ \\
+!    hamiltonian and overlap matrix setup & integer & 5 \\
 !   \hline
 !   \end{tabularx}
 !
@@ -568,7 +570,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lmaxvr} & angular momentum cut-off for the muffin-tin density and
-!    potential & integer & $7$ \\
+!    potential & integer & 7 \\
 !   \hline
 !   \end{tabularx}
 !
@@ -576,7 +578,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lradstp} & radial step length for determining coarse radial mesh &
-!    integer & $4$ \\
+!    integer & 4 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Some muffin-tin functions (such as the density) are calculated on a coarse
@@ -589,7 +591,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt maxitoep} & maximum number of iterations when solving the exact
-!   exchange integral equations & integer & $300$ \\
+!   exchange integral equations & integer & 120 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt tau0oep} and {\tt dtauoep}.
@@ -598,7 +600,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt maxscl } & maximum number of self-consistent loops allowed & integer &
-!    $200$ \\
+!    200 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This determines after how many loops the self-consistent cycle will
@@ -654,7 +656,7 @@ end program main
 !   \hline
 !   {\tt ndspem} & the number of {\bf k}-vector displacements in each direction
 !    around {\tt vklem} when computing the numerical derivatives for the
-!    effective mass tensor & integer & $1$ \\
+!    effective mass tensor & integer & 1 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt deltaem} and {\tt vklem}.
@@ -662,7 +664,7 @@ end program main
 !   \subsection{{\tt nempty}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt nempty} & the number of empty states & integer & $5$ \\
+!   {\tt nempty} & the number of empty states & integer & 5 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Defines the number of eigenstates beyond that required for charge
@@ -728,7 +730,7 @@ end program main
 !   \subsection{{\tt nprad}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt nprad} & radial polynomial order & integer & $4$ \\
+!   {\tt nprad} & radial polynomial order & integer & 4 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This sets the polynomial order for the predictor-corrector method when
@@ -739,7 +741,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nstfsp} & number of states to be included in the Fermi surface plot
-!    file & integer & $6$ \\
+!    file & integer & 6 \\
 !   \hline
 !   \end{tabularx}
 !
@@ -747,7 +749,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nwrite} & number of iterations after which {\tt STATE.OUT} is to be
-!    written & integer & $0$ \\
+!    written & integer & 0 \\
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Normally, the density and potentials are written to the file {\tt STATE.OUT}
@@ -769,7 +771,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nphwrt} & number of {\bf q}-points for which phonon modes are to be
-!    found & integer & $1$ \\
+!    found & integer & 1 \\
 !   \hline
 !   {\tt vqlwrt(i)} & the $i$th {\bf q}-point in lattice coordinates & real(3) &
 !    $(0.0,0.0,0.0)$ \\
@@ -837,6 +839,19 @@ end program main
 !   conventional cell. This is done by searching for lattice vectors among all
 !   those which connect atomic sites, and using the three shortest which produce
 !   a unit cell with non-zero volume.
+!
+!   \subsection{{\tt reducebf}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt reducebf} & reduction factor for the external magnetic fields & real &
+!    $1.0$ \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   After each iteration the external magnetic fields are multiplied with
+!   {\tt reducebf}. This allows for a large external magnetic field at the start
+!   of the self-consistent loop to break spin symmetry, while at the end of the
+!   loop the field will be effectively zero, i.e. infinitesimal. See
+!   {\tt bfieldc} and {\tt atoms}.
 !
 !   \subsection{{\tt reducek}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1018,7 +1033,9 @@ end program main
 !    {\tt STATE.OUT} but with positions from {\tt exciting.in}. \\
 !   5 & Ground state Hartree-Fock run (experimental feature). \\
 !   10 & Total, partial and interstitial density of states (DOS). \\
-!   15 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ expectation values. \\
+!   15 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ total expectation values. \\
+!   16 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ expectation values for each
+!        {\bf k}-point and state in {\tt kstlist}. \\
 !   20 & Band structure plot. \\
 !   21 & Band structure plot which includes angular momentum characters for
 !    every atom. \\

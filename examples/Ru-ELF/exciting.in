@@ -1,0 +1,57 @@
+
+! Example due to A. Baranov on how to obtain a very smooth electron localisation
+! function (ELF). Since the ELF depends on derivatives of the density it can
+! sometimes be mismatched at the muffin-tin boundaries. This can be corrected
+! by using high cut-offs for angular momenta and APW functions. Note also that a
+! modified species file Ru.in is used.
+
+tasks
+ 0
+ 31
+ 51
+
+avec
+ 4.42816109463  -2.5566    0.0
+ 0.0             5.1132    0.0
+ 0.0             0.0       8.0901
+
+scale
+ 1.0
+
+atoms
+ 1
+ 'Ru.in'
+ 2
+ 0.3333333333  0.6666666667  0.25  0.0  0.0  0.0
+ 0.6666666667  0.3333333333  0.75  0.0  0.0  0.0
+
+! this ensures that no radial points will be skipped when computing the density
+lradstp
+ 1
+
+rgkmax
+ 11
+
+gmaxvr
+ 22
+
+lmaxapw
+ 12
+
+lmaxvr
+ 12
+
+lmaxmat
+ 10
+
+ngridk
+ 2  2  1
+
+vkloff
+ 0.5 0.5 0.5
+
+plot1d
+ 2 1000
+ 0.0  0.0  0.0
+ 0.0  1.0  0.0
+

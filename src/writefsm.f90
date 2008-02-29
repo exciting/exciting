@@ -13,14 +13,14 @@ integer is,ia
 if (fixspin.eq.0) return
 write(fnum,*)
 if ((fixspin.eq.1).or.(fixspin.eq.3)) then
-  write(fnum,'("FSM global effective field : ",3G18.10)') bfsmc(1:ndmag)
+  write(fnum,'("FSM global effective field",T30,": ",3G18.10)') bfsmc(1:ndmag)
 end if
 if ((fixspin.eq.2).or.(fixspin.eq.3)) then
   write(fnum,'("FSM local muffin-tin effective fields :")')
   do is=1,nspecies
     write(fnum,'(" species : ",I4," (",A,")")') is,trim(spsymb(is))
     do ia=1,natoms(is)
-      write(fnum,'("  ",I4,3G18.10)') ia,bfsmcmt(1:ndmag,ia,is)
+      write(fnum,'("  atom ",I4,T30,": ",3G18.10)') ia,bfsmcmt(1:ndmag,ia,is)
     end do
   end do
 end if

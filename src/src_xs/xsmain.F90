@@ -36,7 +36,7 @@ subroutine xsmain
   case(23)
      ! estimate bandgap from regular grid
      call writebandgapgrid
-  case(300)
+  case(309)
      ! estimate disk-space, cpu-time and memory
      call xsestimate
   case(301)

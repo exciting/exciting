@@ -1,3 +1,6 @@
+
+AR = ar
+
 include ../../make.inc
 
 #-------------------------------------------------------------------------------
@@ -14,7 +17,7 @@ SRC = cfftnd.f90
 OBJ = $(SRC:.f90=.o)
 
 fftlib:	$(OBJ)
-	ar -rc fftlib.a $(OBJ)
+	$(AR) -rc fftlib.a $(OBJ)
 
 clean:
 	rm -f *.o *.mod *~ *.a ifc* *.gcno

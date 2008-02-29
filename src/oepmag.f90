@@ -3,10 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine oepmag(wfmt1,wfmt2,wfir1,wfir2,zmagmt,zmagir)
+subroutine oepmag(tsh,wfmt1,wfmt2,wfir1,wfir2,zmagmt,zmagir)
 use modmain
 implicit none
 ! arguments
+logical, intent(in) :: tsh
 complex(8), intent(in) ::  wfmt1(lmmaxvr,nrcmtmax,natmtot,nspinor)
 complex(8), intent(in) ::  wfmt2(lmmaxvr,nrcmtmax,natmtot,nspinor)
 complex(8), intent(in) ::  wfir1(ngrtot,nspinor)
@@ -24,7 +25,7 @@ do is=1,nspecies
   nr=nrcmt(is)
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    call oepmagmt(is,wfmt1(1,1,ias,1),wfmt1(1,1,ias,2),wfmt2(1,1,ias,1), &
+    call oepmagmt(tsh,is,wfmt1(1,1,ias,1),wfmt1(1,1,ias,2),wfmt2(1,1,ias,1), &
      wfmt2(1,1,ias,2),zvfmt)
     do idm=1,ndmag
       zmagmt(:,1:nr,ias,idm)=zvfmt(:,1:nr,idm)

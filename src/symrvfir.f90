@@ -25,7 +25,7 @@ implicit none
 integer, intent(in) :: ngv
 real(8), intent(inout) :: rvfir(ngrtot,ndmag)
 ! local variables
-integer i,isym,lspl,lspn
+integer i,isym,lspl,lspn,md
 integer ig,ifg,jg,jfg,iv(3)
 real(8) sc(3,3),vtc(3),t1
 complex(8) zv(3),zt1
@@ -43,9 +43,10 @@ do isym=1,nsymcrys
   call r3mv(avec,vtlsymc(1,isym),vtc)
 ! index to spatial rotation lattice symmetry
   lspl=lsplsymc(isym)
-! global spin rotation in Cartesian coordinates
+! global spin proper rotation in Cartesian coordinates
   lspn=lspnsymc(isym)
-  sc(:,:)=symlatc(:,:,lspn)
+  md=symlatd(lspn)
+  sc(:,:)=dble(md)*symlatc(:,:,lspn)
   do ig=1,ngv
     ifg=igfft(ig)
     t1=-dot_product(vgc(:,ig),vtc(:))

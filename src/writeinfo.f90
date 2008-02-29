@@ -45,6 +45,8 @@ write(fnum,'("Date (YYYY-MM-DD) : ",A4,"-",A2,"-",A2)') dat(1:4),dat(5:6), &
  dat(7:8)
 write(fnum,'("Time (hh:mm:ss)   : ",A2,":",A2,":",A2)') tim(1:2),tim(3:4), &
  tim(5:6)
+write(fnum,*)
+write(fnum,'("All units are atomic (Hartree, Bohr, etc.)")')
 select case(task)
 case(0)
   write(fnum,*)
@@ -73,9 +75,9 @@ case(5)
   write(fnum,'("+-------------------------------+")')
 case(300)
   write(fnum,*)
-  write(fnum,'("+---------------------------------------+")')
-  write(fnum,'("| Reduced density matrix functional run |")')
-  write(fnum,'("+---------------------------------------+")')
+  write(fnum,'("+----------------------------------------------+")')
+  write(fnum,'("| Reduced density matrix functional theory run |")')
+  write(fnum,'("+----------------------------------------------+")')
 case default
   write(*,*)
   write(*,'("Error(writeinfo): task not defined : ",I8)') task
@@ -110,9 +112,10 @@ do is=1,nspecies
   write(fnum,'(" atomic mass : ",G18.10)') spmass(is)
   write(fnum,'(" muffin-tin radius : ",G18.10)') rmt(is)
   write(fnum,'(" number of radial points in muffin-tin : ",I6)') nrmt(is)
-  write(fnum,'(" atomic position (lattice), magnetic field (Cartesian) :")')
+  write(fnum,'(" atomic positions (lattice), magnetic fields (Cartesian) :")')
   do ia=1,natoms(is)
-    write(fnum,'(I4,3F12.8,"  ",3F12.8)') ia,atposl(:,ia,is),bfcmt(:,ia,is)
+    write(fnum,'("  atom ",I4," : ",3F12.8,"  ",3F12.8)') ia,atposl(:,ia,is), &
+     bfcmt(:,ia,is)
   end do
 end do
 write(fnum,*)
@@ -202,19 +205,6 @@ write(fnum,*)
 write(fnum,'("Total number of local-orbitals : ",I4)') nlotot
 write(fnum,*)
 if (task.eq.5) write(fnum,'("Hartree-Fock calculation using Kohn-Sham states")')
-if (task.eq.300) then
-  write(fnum,'("RDMFT calculation using Kohn-Sham states")')
-  if (rdmxctype.eq.1) then
-    write(fnum,'(" RDMFT exchange-correlation type : ",I4)') rdmxctype
-    write(fnum,'(" Hartree-Fock functional")')
-  else if (rdmxctype.eq.2) then
-    write(fnum,'(" RDMFT exchange-correlation type : ",I4)') rdmxctype
-    write(fnum,'(" Mueller functional")')
-  else if (rdmxctype.eq.3) then
-    write(fnum,'(" RDMFT exchange-correlation type : ",I4)') rdmxctype
-    write(fnum,'(" Mueller-type functional, exponent : ",G18.10)') rdmalpha
-  endif
-end if
 if (xctype.lt.0) then
   write(fnum,'("Optimised effective potential (OEP) and exact exchange (EXX)")')
   write(fnum,'(" Phys. Rev. B 53, 7024 (1996)")')
@@ -248,6 +238,17 @@ if (ldapu.ne.0) then
     end if
   end do
 end if
+if (task.eq.300) then
+  write(fnum,*)
+  write(fnum,'("RDMFT calculation")')
+  write(fnum,'(" see arXiv:0801.3787v1 [cond-mat.mtrl-sci]")')
+  write(fnum,'(" RDMFT exchange-correlation type : ",I4)') rdmxctype
+  if (rdmxctype.eq.1) then
+    write(fnum,'("  Hartree-Fock functional")')
+  else if (rdmxctype.eq.2) then
+    write(fnum,'("  SDLG functional, exponent : ",G18.10)') rdmalpha
+  endif
+end if
 write(fnum,*)
 write(fnum,'("Smearing scheme :")')
 #ifdef XS
@@ -263,6 +264,7 @@ end if
 #endif
 write(fnum,*)
 write(fnum,'("Radial integration step length : ",I4)') lradstp
+call flushifc(fnum)
 return
 end subroutine
 !EOC

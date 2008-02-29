@@ -55,13 +55,13 @@ do is=1,nspecies
               do m1=-spk(ist,is),spk(ist,is)-1
                 call wavefcr(lradstp,is,ia,ist,m1,nrcmtmax,wfcr1)
 ! calculate the complex overlap density
-                call vnlrhomt(is,wfcr1(1,1,1),wfcr2(1,1,1),zrhomt)
-                call vnlrhomt(is,wfcr1(1,1,2),wfcr2(1,1,2),zfmt)
+                call vnlrhomt(.true.,is,wfcr1(1,1,1),wfcr2(1,1,1),zrhomt)
+                call vnlrhomt(.true.,is,wfcr1(1,1,2),wfcr2(1,1,2),zfmt)
                 zrhomt(:,1:nr)=zrhomt(:,1:nr)+zfmt(:,1:nr)
 ! calculate the Coulomb potential
                 call zpotclmt(lmaxvr,nr,rcmt(1,is),zpchg,lmmaxvr,zrhomt, &
                  zvclmt)
-                zt1=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt,zvclmt)
+                zt1=zfmtinp(.true.,lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt,zvclmt)
                 ecc=ecc-0.5d0*dble(zt1)
               end do
 ! end loop over ist

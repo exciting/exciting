@@ -141,8 +141,8 @@ do is=1,nspecies
             j=jst+nstfv
           end if
           if (i.le.j) then
-            evecsv(i,j)=evecsv(i,j)+zfmtinp(lmaxmat,nrcmt(is),rcmt(1,is), &
-             lmmaxvr,wfmt1(1,1,ist,ispn),wfmt2(1,1,k))
+            evecsv(i,j)=evecsv(i,j)+zfmtinp(.true.,lmaxmat,nrcmt(is), &
+             rcmt(1,is),lmmaxvr,wfmt1(1,1,ist,ispn),wfmt2(1,1,k))
           end if
         end do
       end do

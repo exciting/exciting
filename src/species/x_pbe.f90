@@ -1,10 +1,11 @@
 
 ! This routine is based on code written by K. Burke.
 
-subroutine x_pbe(kappa,rho,s,u,v,ex,vx)
+subroutine x_pbe(kappa,mu,rho,s,u,v,ex,vx)
 implicit none
 ! arguments
 real(8), intent(in) :: kappa
+real(8), intent(in) :: mu
 real(8), intent(in) :: rho
 real(8), intent(in) :: s
 real(8), intent(in) :: u
@@ -14,7 +15,6 @@ real(8), intent(out) :: vx
 ! local variables
 real(8), parameter :: pi=3.1415926535897932385d0
 real(8), parameter :: ax=-0.7385587663820224058d0
-real(8), parameter :: mu=0.2195149727645171d0
 real(8), parameter :: thrd=1.d0/3.d0
 real(8), parameter :: thrd4=4.d0/3.d0
 real(8) ul,exu,s2,p0
