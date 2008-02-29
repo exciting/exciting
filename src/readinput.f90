@@ -90,7 +90,7 @@ scrpath='./'
 nvp1d=2
 iterativetype=0
 lowesteval=-1.d0
-
+epsarpack=1e-8
 maxncv=200
 if (allocated(vvlp1d)) deallocate(vvlp1d)
 allocate(vvlp1d(3,nvp1d))
@@ -370,6 +370,9 @@ case('stype')
   read(50,*) stype
 case('iterativetype')
   read(50,*) iterativetype
+case('epsarpack')
+  read(50,*) epsarpack
+
 case ('maxncv')
   read(50,*)maxncv
 case('lowesteval')

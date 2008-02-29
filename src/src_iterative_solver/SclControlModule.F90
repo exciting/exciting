@@ -7,7 +7,8 @@ implicit none
   integer diiscounter !! counter for DIIS iterations
   integer iterativetype
   integer,parameter:: diismax=25,diisfirstscl=3
-  real lowesteval
+  real(8) lowesteval
+  real(8) epsarpack
   real ,parameter::diisthreshould=1,reps=1e-7
   integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax

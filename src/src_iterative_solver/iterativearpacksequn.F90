@@ -100,11 +100,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
  endif
 
   resid(:)=0.0
-  tol    = 1.e-8
+  tol    = epsarpack
   ido    = 0
   info   = 0
   ishfts = 1
-  maxitr = 20*nstfv
+  maxitr = 40*nstfv
   mode= 3
   iparam(1) = ishfts
   iparam(3) = maxitr  
