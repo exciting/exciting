@@ -21,7 +21,7 @@ use modxs
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
-!   Additional parmeters for TDDFT and tetrahedron method 2004-2007 (Sagmeister)
+!   Additional parmeters for TDDFT and tetrahedron method 2004-2008 (Sagmeister)
 !EOP
 !BOC
 implicit none

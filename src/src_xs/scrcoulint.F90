@@ -355,7 +355,7 @@ write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
         !**********************************************************************
 
         ! temporary arrays
-        allocate(tm(n,n),tmi(n,n),emat12(n,nst12),emat34(nst34,n))
+        allocate(tm(n,n),tmi(n,n),emat12(nst12,n),emat34(nst34,n))
         allocate(scclit(nst34,nst12))
         ! rotate inverse of screening
         do igq1=1,n
@@ -378,6 +378,10 @@ write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
               do igq2=igq1,n
                  ! G-vector difference
                  ivg2(:)=ivg(:,igqig(igq2,iq))-ivg1(:)
+
+!*** try change in sign of G-vector difference
+ivg2=-ivg2
+
                  ! translation vector s^-1*vtl(s^-1)
                  vtl=matmul(transpose(s),vtlsymc(:,isymi))
                  call r3frac(epslat,vtl,iv)
@@ -452,7 +456,7 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         do ist2=1,nst2
            do ist1=1,nst1
               j1=j1+1
-              emat12(:,j1)=conjg(xiou(ist1,ist2,:))
+              emat12(j1,:)=xiou(ist1,ist2,:)
            end do
         end do
         j2=0
@@ -464,9 +468,9 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         end do
         ! * calculate 
 ! * version 1
-!        scclit=matmul(emat34,matmul(tm,emat12))/omega/nkptnr
+        scclit=matmul(emat34,matmul(tm,conjg(transpose(emat12))))/omega/nkptnr
 ! * version 2
-!        scclit=matmul(emat34,matmul(conjg(transpose(tm)),emat12))/omega/nkptnr
+!        scclit=matmul(emat12,matmul(tm,conjg(transpose(emat34))))/omega/nkptnr
         j2=0
         do ist4=1,nst4
            do ist3=1,nst3
