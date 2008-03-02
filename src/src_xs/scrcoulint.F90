@@ -463,7 +463,10 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
            end do
         end do
         ! * calculate 
-        scclit=matmul(emat34,matmul(tm,emat12))/omega
+! * version 1
+!        scclit=matmul(emat34,matmul(tm,emat12))/omega/nkptnr
+! * version 2
+!        scclit=matmul(emat34,matmul(conjg(transpose(tm)),emat12))/omega/nkptnr
         j2=0
         do ist4=1,nst4
            do ist3=1,nst3
@@ -483,7 +486,7 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
            do ist3=1,nst3
               do ist2=1,nst2
                  do ist4=1,nst4
-                    write(*,'(i5,3x,3i4,2x,3i4,2x,2e18.10)') ikkp,iknr, &
+                    write(1100,'(i5,3x,3i4,2x,3i4,2x,2e18.10)') ikkp,iknr, &
                          ist1,ist3,jknr,ist2,ist4,sccli(ist1,ist2,ist3,ist4,jknr)
                  end do
               end do
