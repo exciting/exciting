@@ -23,7 +23,7 @@
        
 ! !OUTPUT PARAMETERS:
 
-       real(8), intent(out) :: iweight(nirkp,nband) ! the weight of each
+       real(8), intent(out) :: iweight(nband,nirkp) ! the weight of each
 !                                                     k-point for each 
 !                                                     band
 
@@ -48,14 +48,14 @@
 !BOC
       do i=1,nirkp
         do ib=1,nband
-          iweight(i,ib)=0.0d0
+          iweight(ib,i)=0.0d0
         enddo
       enddo
    
       do itet=1,ntet
         do ib=1,nband 
           do i=1,4
-            ee(i)=eband(tetcorn(i,itet),ib)
+            ee(i)=eband(ib,tetcorn(i,itet))
           enddo
           call sort(4,ee,ik)
           w1t(1:4)=0.0d0
@@ -64,7 +64,7 @@
             do i=1,4
              term=w1t(i)*tetweig(itet)
              kin=tetcorn(ik(i),itet)
-             iweight(kin,ib)=iweight(kin,ib)+term*6.0d0*vt
+             iweight(ib,kin)=iweight(ib,kin)+term*6.0d0*vt
             enddo
           else
             continue

@@ -10,6 +10,9 @@ subroutine init0
 ! !USES:
 use modmain
 use modxcifc
+#ifdef XS
+use modxs
+#endif
 ! !DESCRIPTION:
 !   Performs basic consistency checks as well as allocating and initialising
 !   global variables not dependent on the $k$-point set.
@@ -75,6 +78,10 @@ allocate(zil(0:lmaxapw))
 do l=0,lmaxapw
   zil(l)=zi**l
 end do
+#ifdef XS
+if (allocated(sphcov)) deallocate(sphcov)
+allocate(sphcov(3,lmmaxapw))
+#endif
 
 !------------------------------------!
 !     index to atoms and species     !
@@ -266,10 +273,13 @@ if (chgtot.lt.1.d-8) then
   write(*,*)
   stop
 end if
-! number of first-variational states
-nstfv=int(chgval/2.d0)+nempty+1
-! number of second-variational states
-nstsv=nstfv*nspinor
+#ifdef XS
+! occupations for BSE (-kernel)
+if (task.eq.440) then
+   ! "nempty" variable might be affected here
+   call initoccbse(nempty)
+end if
+#endif
 
 !-------------------------!
 !     G-vector arrays     !
@@ -419,6 +429,7 @@ call dlartg(1.d0,0.d0,cs,sn,r)
 call getsdata(stype,sdescr)
 ! generate the spherical harmonic transform (SHT) matrices
 call genshtmat
+
 ! allocate 1D plotting arrays
 if (allocated(dvp1d)) deallocate(dvp1d)
 allocate(dvp1d(nvp1d))

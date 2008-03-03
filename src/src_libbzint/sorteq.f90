@@ -53,7 +53,11 @@
 
       do i=1,4
         do j=1,4
+          if(abs(v(i))+abs(v(j)).gt.1.0d-05)then
           if(2.0d0*abs(v(i)-v(j)).le.(ztol*abs(v(i)+v(j))))sig(i)=sig(i)+1
+          else
+            sig(i)=sig(i)+1
+          endif    
         enddo
       enddo
       

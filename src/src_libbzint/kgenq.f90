@@ -3,7 +3,7 @@
 ! !ROUTINE: kgenq
 !
 ! !INTERFACE:
-      subroutine kgenq(rbas,ndiv,nshift,qv,nkpt,&
+      subroutine kgenq(rbas,ndiv,nshift,divsh,qv,nkpt,&
      &                klist,idiv,wk,ntet,tetk,linkt,vtet)
 !
 ! !DESCRIPTION:
@@ -45,16 +45,17 @@
 
       integer(4), dimension(3), intent(in) :: nshift ! Shift vector for 
 !                                                      the k-points mesh
+      integer(4),intent(in) :: divsh
 
       integer(4), dimension(3), intent(in) :: qv  ! Shift vector for the
 !                                                    k-points mesh
+      integer(4), intent(in) :: nkpt        ! Number of irreducible
+!                                             k-points
 
 ! !OUTPUT PARAMETERS:
 
-      integer(4), intent(out) :: nkpt        ! Number of irreducible
-!                                             k-points
 
-      integer(4), intent(out) :: klist(3,*) ! The list of 
+      integer(4), intent(out) :: klist(3,nkpt) ! The list of 
 !                                                           irreducible 
 !                                                           k-points
 
@@ -63,12 +64,12 @@
 !                                             coordinates of the
 !                                             irreducible k-points
 
-      integer(4), intent(out) :: wk(*)   ! The weight of 
+      integer(4), intent(out) :: wk(nkpt)   ! The weight of 
 !                                                       each k-point
       
       integer(4), intent(out) :: ntet       ! Number of tetrahedra
 
-      integer(4), intent(out) :: tetk(4,*)  ! id. number
+      integer(4), intent(out) :: tetk(4,nkpt*6)  ! id. number
 !                                                          of the 
 !                                                          k-points 
 !                                                          corresponding 
@@ -76,7 +77,7 @@
 !                                                          of each 
 !                                                          tetrahedron.
 
-      integer(4), intent(out) :: linkt(*)   ! index of the 
+      integer(4), intent(out) :: linkt(nkpt*6)   ! index of the 
 !                                                          tetrahedron 
 !                                                          linked to the
 !                                                          one in the
@@ -104,13 +105,12 @@
 !EOP
 !
 !BOC
- 
       div=ndiv
       shift=nshift
 !
 !     Set the total number of k-points
 !
-      nkpt=ndiv(1)*ndiv(2)*ndiv(3)
+!      nkpt=ndiv(1)*ndiv(2)*ndiv(3)
 !
 !     Ensure that q is inside the BZ
 ! 
@@ -138,7 +138,10 @@
 !
 !     Transform the irreducible k-points to internal coordinates
 !     
-      call intern(nkpt,kpt,ndiv,nshift,klist,idiv)
+      print *,'nkpt=',nkpt
+      call intern(nkpt,kpt,ndiv,nshift,divsh, klist,idiv)
+           
+      print *,'nkpt=',nkpt
 
      
       call gbass(rbas,gbas)
@@ -149,6 +152,7 @@
       vtet=vt
       deallocate(kpt)
 
+      print *,'nkpt=',nkpt
       return
 
       end subroutine kgenq

@@ -20,7 +20,7 @@ MODFILES = order.f90 kgen_internals.f90 tetra_internal.f90 polyhedron.f90
 #
 #  Files for generation of k-point grids
 #
-KGENFILES = kgen.f90 kgenq.f90 kqgen.f90
+KGENFILES = kgen.f90 kgenq.f90 kqgen.f90 kqgen_exciting.f90
 
 #
 # Subroutines for use of kgenfiles only
@@ -29,25 +29,25 @@ KGENFILES = kgen.f90 kgenq.f90 kqgen.f90
 KGENSUBS =  coorskp.f90 divisi.f90 jget.f90 idkp.f90 \
             jset.f90  sym2int.f90 tetinit.f90 tgen.f90 \
             tgenq.f90
-            
+
 #
 #  Files for BZ integrations and convolutions
 #
 
 INTFILES = tetcw.f90 tetcorecw.f90 tetiw.f90 tetiwsurf.f90 tetraint.f90 \
-           tetraqint.f90 calcdosve.f90 calcidosve.f90 dostet.f90 idos.f90 fermi.f90
+           tetraqint.f90 calcdosve.f90 calcidosve.f90 dostet.f90 idos.f90 fermitet.f90 
 
 #
 # Subroutine for use of intfiles only
 #
 
-INTSUBS = bloechlcor.f90 bpartoc.f90 bpartocsurf.f90 convw.f90 convcorew.f90 dos1t.f90 \
+INTSUBS = bloechlcor.f90 convw1t.f90 convw.f90 convcorew.f90 dos1t.f90 \
           generictetra.f90 genericfunf.f90 genericprism.f90 intdos1t.f90 intweight1t.f90 \
           intw.f90 intwsurf.f90 ksurf.f90 relnodes.f90 setnodes.f90 sortnodes.f90 \
           sortsurf.f90 surfnodes.f90 tlinap.f90 unrepnodes.f90 sorteq.f90 redifwt.f90 \
           redifwtx.f90 redifwty.f90 redifwtz.f90 edifwt.f90 edifwtaylor.f90 edifwtx.f90 edifwty.f90 \
           edifwtz.f90 redifwtaylor.f90 reduk.f90 redusym.f90
-      
+
 #           
 #  Files that can be called independently (and are also used by the others programs)
 #
@@ -62,7 +62,7 @@ FILES = $(MODFILES) $(KGENFILES) $(INTFILES) $(FREEFILES) $(KGENSUBS) $(INTSUBS)
 OBJS = $(FILES:.f90=.o)
 
 #
-.SUFFIXES:	.f90
+.SUFFIXES:	.f90 .mod
 
 #..............................................................................
 #
@@ -87,8 +87,11 @@ $(OBJS): $(MODFILES)
 #  remove object files, preprocessed source files and files needed for
 #  static semantics checking
 #
-clean:
-	rm  -f $(OBJS) *.mod
+clean:  cleanmod
+	rm  -f $(OBJS) *.a  
+
+cleanmod:
+	rm  -f *.mod
 
 #..............................................................................
 #
@@ -123,6 +126,6 @@ doc:
 #
 dist:   
 	tar -cPzvf $(DIST_FILE) Makefile $(FILES) tetra.tex tests.tex 
-        
+
 .f90.o: Makefile
 	$(F90) $(F90_OPTS) -c $<

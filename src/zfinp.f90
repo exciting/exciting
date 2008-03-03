@@ -6,14 +6,16 @@
 !BOP
 ! !ROUTINE: zfinp
 ! !INTERFACE:
-complex(8) function zfinp(zfmt1,zfmt2,zfir1,zfir2)
+complex(8) function zfinp(tsh,zfmt1,zfmt2,zfir1,zfir2)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
-!   zfmt1 : first complex function in spherical harmonics for all muffin-tins
-!           (in,complex(lmmaxvr,nrcmtmax,natmtot))
-!   zfmt2 : second complex function in spherical harmonics for all muffin-tins
-!           (in,complex(lmmaxvr,nrcmtmax,natmtot))
+!   tsh   : .true. if the muffin-tin functions are in spherical harmonics
+!           (in,logical)
+!   zfmt1 : first complex function in spherical harmonics/coordinates for all
+!           muffin-tins (in,complex(lmmaxvr,nrcmtmax,natmtot))
+!   zfmt2 : second complex function in spherical harmonics/coordinates for all
+!           muffin-tins (in,complex(lmmaxvr,nrcmtmax,natmtot))
 !   zfir1 : first complex interstitial function in real-space
 !           (in,complex(ngrtot))
 !   zfir2 : second complex interstitial function in real-space
@@ -32,6 +34,7 @@ use modmain
 !BOC
 implicit none
 ! arguments
+logical, intent(in) :: tsh
 complex(8), intent(in) :: zfmt1(lmmaxvr,nrcmtmax,natmtot)
 complex(8), intent(in) :: zfmt2(lmmaxvr,nrcmtmax,natmtot)
 complex(8), intent(in) :: zfir1(ngrtot)
@@ -52,7 +55,7 @@ zsum=zsum*omega/dble(ngrtot)
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    zsum=zsum+zfmtinp(lmaxvr,nrcmt(is),rcmt(1,is),lmmaxvr,zfmt1(1,1,ias), &
+    zsum=zsum+zfmtinp(tsh,lmaxvr,nrcmt(is),rcmt(1,is),lmmaxvr,zfmt1(1,1,ias), &
      zfmt2(1,1,ias))
   end do
 end do

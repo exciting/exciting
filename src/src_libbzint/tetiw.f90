@@ -27,7 +27,7 @@
        
        integer(4), intent(in) :: nb         ! Number of bands
        
-       real(8), target, intent(in) :: ebd(nik,*)  ! Band energies
+       real(8), target, intent(in) :: ebd(nb,nik)  ! Band energies
        
        integer(4), target, intent(in) :: tetc(4,*)  ! id. numbers of 
 !                                                     the corners
@@ -43,7 +43,7 @@
        
 ! !OUTPUT PARAMETERS:
        
-       real(8), intent(out)   :: iw(nik,nb)    ! the value of the integral
+       real(8), intent(out)   :: iw(nb,nik)    ! the value of the integral
        
        
 ! !INTRINSIC ROUTINES:
@@ -67,7 +67,7 @@
       vt = v
       tetcorn => tetc(1:4,1:ntet)
       tetweig => wtet(1:ntet)
-      eband   => ebd(1:nik,1:nband)
+      eband   => ebd(1:nband,1:nik)
 !
 !     intw is called to calculate the weigths
 !      

@@ -46,7 +46,7 @@ subroutine    mpiresumeevecfiles
         write(71,rec=ik) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
      end do
      close(77,status='DELETE')
-	 write(*,*)outfilenamestring(filetag,firstk(proc))," deleted"
+	 write(*,*)trim(outfilenamestring(filetag,firstk(proc)))," deleted"
      close(71) 
 
      filetag='EVECSV'
@@ -61,7 +61,7 @@ subroutine    mpiresumeevecfiles
         write(71,rec=ik)  vkl_,nstsv_,evecsv
      end do
      close(77,status='DELETE')
- 	 write(*,*)outfilenamestring(filetag,firstk(proc))," deleted"
+ 	 write(*,*)trim(outfilenamestring(filetag,firstk(proc)))," deleted"
      close(71) 
 
 
@@ -78,7 +78,7 @@ subroutine    mpiresumeevecfiles
         write(71,rec=ik)   vkl_,nstfv_,nspnfv_,evalfv
      end do
      close(77,status='DELETE')
- 	 write(*,*)outfilenamestring(filetag,firstk(proc))," deleted"
+ 	 write(*,*)trim(outfilenamestring(filetag,firstk(proc)))," deleted"
      close(71)
 
 
@@ -94,7 +94,7 @@ subroutine    mpiresumeevecfiles
         write(71,rec=ik)   vkl_,nstsv_,evalsvp
      end do
      close(77,status='DELETE')
- 	 write(*,*)outfilenamestring(filetag,firstk(proc))," deleted"
+ 	 write(*,*)trim(outfilenamestring(filetag,firstk(proc)))," deleted"
      close(71)
 
 

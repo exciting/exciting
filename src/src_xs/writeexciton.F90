@@ -1,11 +1,15 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_writeexciton
   implicit none
 contains
 
   subroutine writeexciton(iq,oct,w,mdf,fn)
     use modmain
-    use modtddft
+    use modxs
     use m_getunit
     use m_tdwriteh
     implicit none
@@ -16,11 +20,10 @@ contains
     character(*), intent(in) :: fn
     ! local variables
     character(*), parameter :: thisnam = 'writeexcit'
-    character(256) ::str,filnam
     real(8), allocatable :: eps(:)
     complex(8), allocatable :: epstet(:)
     real(8) :: wp,we,ep, f,fp,g,gp
-    integer :: j,iw,ne,recl
+    integer :: j,iw,ne
 
     allocate(eps(nwdos),epstet(nwdos))
     call getunit(unit1)

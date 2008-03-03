@@ -34,7 +34,8 @@ open(70,file=outfilenamestring(filetag,ik),action='READ', &
 exit
 else 
 call system('sync')
-write(*,*) "Waiting for other process to write"
+write(*,*) "Waiting for other process to write"//":getoccsv:"// &
+     trim(outfilenamestring(filetag,ik))
 call sleep(5)
 endif
 enddo
@@ -51,6 +52,7 @@ read(70,rec=koffset) vkl_,nstsv_,occsvp
      write(*,'("Error(getoccsv): differing vectors for k-point ",I8)') ik
      write(*,'(" current    : ",3G18.10)') vkl(:,ik)
      write(*,'(" OCCSV.OUT  : ",3G18.10)') vkl_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if

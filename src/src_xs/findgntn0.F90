@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_findgntn0
   implicit none
   save
@@ -17,14 +21,13 @@ module m_findgntn0
   ! number of Gaunt coefficients
   integer :: ngaunt
 
-
 contains
 
   subroutine findgntn0 ( lmax1, lmax2, lmax3, gntc )
 
     implicit none
 
-    character(*), parameter :: thisis = 'findgntn0'
+    character(*), parameter :: thisnam = 'findgntn0'
 
     ! maximum l values for checking Gaunts
     integer, intent(in) :: lmax1, lmax2, lmax3
@@ -209,19 +212,26 @@ contains
        end do ! cm1
     end do ! cl1
 
-
     deallocate(l1mask,m1mask,l2mask,m2mask,l3mask,m3mask)
     deallocate(idxlm)
 
   end subroutine findgntn0
 
 
-  subroutine findgntn0_clear()
+  subroutine findgntn0_clear
     implicit none
     l1shape = 0
-    deallocate(m1shape, l2shape, m2shape, l3shape, m3shape)
-    deallocate(l1map, m1map, l2map, m2map, l3map, m3map)
-
+    if (allocated(m1shape)) deallocate(m1shape)
+    if (allocated(l2shape)) deallocate(l2shape)
+    if (allocated(m2shape)) deallocate(m2shape)
+    if (allocated(l3shape)) deallocate(l3shape)
+    if (allocated(m3shape)) deallocate(m3shape)
+    if (allocated(l1map)) deallocate(l1map)
+    if (allocated(m1map)) deallocate(m1map)
+    if (allocated(l2map)) deallocate(l2map)
+    if (allocated(m2map)) deallocate(m2map)
+    if (allocated(l3map)) deallocate(l3map)
+    if (allocated(m3map)) deallocate(m3map)
   end subroutine findgntn0_clear
 
 

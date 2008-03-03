@@ -1,10 +1,14 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_findoscstr
   implicit none
 contains
   subroutine findoscstr(oct,nw,w,mdf1,ne,ei,o)
     use modmain
-    use modtddft
+    use modxs
     use modtetra
     implicit none
     ! arguments
@@ -15,7 +19,7 @@ contains
     real(8) :: o(:)
     ! local variables
     real(8), allocatable :: f(:),fp(:),g(:),gp(:),cf(:,:),w2(:)
-    integer :: iw,j,k,n
+    integer :: j,k
     
     allocate(f(nw),fp(nw),cf(3,nw),g(nw),gp(nw),w2(nw))
     f(:)=fxc0(1:nw,oct)
@@ -77,7 +81,7 @@ module m_findexciton
 contains
   subroutine findexciton(oct,nw,w)
     use modmain
-    use modtddft
+    use modxs
     use modtetra
     use m_findroots
     use m_findoscstr
@@ -91,7 +95,7 @@ contains
     real(8), allocatable :: f(:)
     real(8) :: t1,wgap
     integer, allocatable :: exciti(:)
-    integer :: iw,j,n,nwg
+    integer :: iw,j,nwg
 
     ! find optical gap
     t1=maxval(mdfrpa(:,oct,2))*dogap

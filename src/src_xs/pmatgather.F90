@@ -1,7 +1,11 @@
 
-subroutine pmatgather()
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
+subroutine pmatgather
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use m_filedel
   use m_getpmat
@@ -11,14 +15,14 @@ subroutine pmatgather()
   ! local variables
   character(*), parameter :: thisnam = 'pmatgather'
   complex(8), allocatable :: pm(:,:,:)
-  integer :: ik,ikr,iproc,recl
+  integer :: ik,iproc
 
   ! allocate matrix elements array
   allocate(pm(3,nstsv,nstsv))
 
   ! file extension for q-point
   do iproc=0,procs-1
-     call genfilname(basename='PMAT_TD',procs=procs,rank=iproc,&
+     call genfilname(basename='PMAT_XS',procs=procs,rank=iproc,&
           filnam=fnpmat_t)
      kpari=firstofset(iproc,nkpt)
      kparf=lastofset(iproc,nkpt)
@@ -31,7 +35,7 @@ subroutine pmatgather()
 
   ! delete partial files
   do iproc=0,procs-1
-     call genfilname(basename='PMAT_TD',procs=procs,rank=iproc,&
+     call genfilname(basename='PMAT_XS',procs=procs,rank=iproc,&
           filnam=fnpmat_t)
      call filedel(trim(fnpmat_t))
   end do

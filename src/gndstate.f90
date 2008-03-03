@@ -7,20 +7,20 @@
 ! !ROUTINE: gndstate
 ! !INTERFACE:
 subroutine gndstate
-  ! !USES:
+! !USES:
   use modmain
   use modmpi
-  ! !DESCRIPTION:
-  !   Computes the self-consistent Kohn-Sham ground-state. General information is
-  !   written to the file {\tt INFO.OUT}. First- and second-variational
-  !   eigenvalues, eigenvectors and occupancies are written to the unformatted
-  !   files {\tt EVALFV.OUT}, {\tt EVALSV.OUT}, {\tt EVECFV.OUT}, {\tt EVECSV.OUT}
-  !   and {\tt OCCSV.OUT}.
-  !
-  ! !REVISION HISTORY:
-  !   Created October 2002 (JKD)
-  !EOP
-  !BOC
+! !DESCRIPTION:
+!   Computes the self-consistent Kohn-Sham ground-state. General information is
+!   written to the file {\tt INFO.OUT}. First- and second-variational
+!   eigenvalues, eigenvectors and occupancies are written to the unformatted
+!   files {\tt EVALFV.OUT}, {\tt EVALSV.OUT}, {\tt EVECFV.OUT}, {\tt EVECSV.OUT}
+!   and {\tt OCCSV.OUT}.
+!
+! !REVISION HISTORY:
+!   Created October 2002 (JKD)
+!EOP
+!BOC
   implicit none
   ! local variables
   logical exist
@@ -113,9 +113,9 @@ subroutine gndstate
   do iscl=1,maxscl
      if(rank.eq.0) then
         write(60,*)
-        write(60,'("+--------------------------+")')
-        write(60,'("| Iteration number : ",I5," |")') iscl
-        write(60,'("+--------------------------+")')
+        write(60,'("+-------------------------+")')
+        write(60,'("| Iteration number : ",I4," |")') iscl
+        write(60,'("+-------------------------+")')
      endif
      if (iscl.ge.maxscl) then
         if(rank.eq.0) then
@@ -299,6 +299,11 @@ subroutine gndstate
         if (fixspin.ne.0) call fsmfield
         ! Fourier transform effective potential to G-space
         call genveffig
+        ! reduce the external magnetic fields if required
+        if (reducebf.lt.1.d0) then
+           bfieldc(:)=bfieldc(:)*reducebf
+           bfcmt(:,:,:)=bfcmt(:,:,:)*reducebf
+        end if
         ! compute the energy components
         call energy
         ! output energy components
@@ -447,7 +452,7 @@ subroutine gndstate
               write(60,'("Species : ",I4," (",A,")")') is,trim(spsymb(is))
               write(60,'(" atomic positions (lattice) :")')
               do ia=1,natoms(is)
-                 write(60,'(I4,3F14.8)') ia,atposl(:,ia,is)
+                 write(60,'(I4," : ",3F14.8)') ia,atposl(:,ia,is)
               end do
            end do
            ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT and MOMENT.OUT
@@ -482,19 +487,19 @@ subroutine gndstate
      if(rank.eq.0)then
         write(60,*)
         write(60,'("Timings (CPU seconds) :")')
-        write(60,'(" initialisation                        : ",F12.2)') timeinit
-        write(60,'(" Hamiltonian and overlap matrix set up : ",F12.2)') timemat
-        write(60,'(" first-variational secular equation    : ",F12.2)') timefv
+        write(60,'(" initialisation",T40,": ",F12.2)') timeinit
+        write(60,'(" Hamiltonian and overlap matrix set up",T40,": ",F12.2)') timemat
+        write(60,'(" first-variational secular equation",T40,": ",F12.2)') timefv
         if (spinpol) then
-           write(60,'(" second-variational calculation        : ",F12.2)') timesv
+           write(60,'(" second-variational calculation",T40,": ",F12.2)') timesv
         end if
-        write(60,'(" charge density calculation            : ",F12.2)') timerho
-        write(60,'(" potential calculation                 : ",F12.2)') timepot
+        write(60,'(" charge density calculation",T40,": ",F12.2)') timerho
+        write(60,'(" potential calculation",T40,": ",F12.2)') timepot
         if (tforce) then
-           write(60,'(" force calculation                     : ",F12.2)') timefor
+           write(60,'(" force calculation",T40,": ",F12.2)') timefor
         end if
         timetot=timeinit+timemat+timefv+timesv+timerho+timepot+timefor
-        write(60,'(" total                                 : ",F12.2)') timetot
+        write(60,'(" total",T40,": ",F12.2)') timetot
         write(60,*)
         write(60,'("+----------------------------------+")')
         write(60,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," stopped |")') version

@@ -29,7 +29,6 @@ contains
     integer, intent(out) :: ikgf(2), ikgo, istho
     ! local variables
     integer ik
-    integer :: klu,kho,kluho,iv
     integer :: klu1(1),kho1(1),kluho1(1)
     ! allocatable arrays
     real(8), allocatable :: de(:),eho(:),elu(:)
@@ -67,7 +66,7 @@ end module m_bandgap
 
 subroutine writebandgap
   use modmain
-  use modtddft
+  use modxs
   use m_bandgap
   implicit none
   ! local variables
@@ -133,12 +132,15 @@ end subroutine writebandgap
 
 subroutine writebandgapgrid
   use modmain
-  use modtddft
+  use modxs
   use m_genfilname
+  implicit none
+  ! local variables
+  integer :: ik
   ! initialise universal variables
-  if (calledtd.eq.1) call init0
+  if (calledxs.eq.1) call init0
   ! file extension for q-point
-  call genfilname(iq=0,setfilext=.true.)
+  call genfilname(iqmt=0,setfilext=.true.)
   call init1
   ! read Fermi energy from file
   call readfermi

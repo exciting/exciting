@@ -68,7 +68,7 @@
         do itet=1,ntet
             do jb=1,nband
               do i=1,4
-                ee2(i)=eband(tetcorn(i,tetln(itet)),jb)
+                ee2(i)=eband(jb,tetcorn(i,tetln(itet)))
               enddo
 
               if(minval(ee2,dim=1).gt.efer)then
@@ -102,7 +102,7 @@
             enddo
             do jb=1,nband
                do i=1,4
-                 ee2(i)=eband(tetcorn(i,tetln(itet)),2)
+                 ee2(i)=eband(2,tetcorn(i,tetln(itet)))
                enddo
                if(maxval(ee2,dim=1).gt.efer)then
 !                 write(25,*)'rga: convw: calling bothpart1t with pars:'

@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_ftfun
   implicit none
 contains
@@ -15,10 +19,9 @@ contains
     complex(8), intent(out) :: ftg(:)
     ! local variales
     complex(8), allocatable :: zfft(:)
-    complex(8) :: zt1,zt2,zt3
+    complex(8) :: zt1,zt2
     real(8), allocatable :: jbesslh(:),jbessl(:,:)
     real(8), allocatable :: r1(:),r2(:),fr(:),fr2(:),gr(:),cf(:,:)
-    real(8) :: t1
     integer :: ig,ifg,is,ia,ias,ir,nr,l,m,lm
 
     ftg(:)=zzero
@@ -94,3 +97,19 @@ contains
   end subroutine ftfun
 
 end module m_ftfun
+
+
+!*** make routine more general ***
+
+! pass the following arguments to routine:
+
+! * p-vector
+! * |G+p| values
+! * structure factors for -(G+q) !!!!! (G+p) is calculated in routine
+! * spherical harmonics Y_lm(^G+q^)
+
+
+
+
+! INTERFACE: genjlgpr(lmax,gpc,jlgpr)
+

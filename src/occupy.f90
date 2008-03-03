@@ -9,12 +9,19 @@
 subroutine occupy
 ! !USES:
 use modmain
+#ifdef TETRA
+!<rga>
+use modtetra
+!</rga>
+#endif
 ! !DESCRIPTION:
 !   Finds the Fermi energy and sets the occupation numbers for the
 !   second-variational states using the routine {\tt fermi}.
 !
 ! !REVISION HISTORY:
 !   Created February 2004 (JKD)
+!   Modifiactions for tetrahedron method, November 2007 (RGA alias
+!     Ricardo Gomez-Abal)
 !EOP
 !BOC
 implicit none
@@ -39,6 +46,11 @@ if (e0.lt.evalmin) then
   write(*,'("Warning(occupy): valence eigenvalues below evalmin for s.c. &
    &loop ",I5)') iscl
 end if
+#ifdef TETRA
+!<rga>
+if (.not.tetra) then
+!</rga>
+#endif
 t1=1.d0/swidth
 ! determine the Fermi energy using the bisection method
 do it=1,maxit
@@ -84,6 +96,24 @@ do ik=1,nkpt
   end if
 end do
 fermidos=fermidos*occmax/2.d0
+#ifdef TETRA
+!<rga>
+else
+  ! calculate the Fermi energy and the density of states at the Fermi energy
+  call fermitet(nkpt,nstsv,evalsv,ntet,tnodes,wtet,tvol,chgval,spinpol, &
+  efermi,fermidos,.false.)
+  call tetiw(nkpt,ntet,nstsv,evalsv,tnodes,wtet,tvol,efermi,occsv)
+  do ik=1,nkpt
+    ! The "occsv" variable returned from "tetiw" already contains the
+    ! weight "wkpt" and does not account for spin degeneracy - rescaling is
+    ! necessary (Stephan Sagmeister).
+    do ist=1,nstsv
+      occsv(ist,ik)=(occmax/wkpt(ik))* occsv(ist,ik)
+    end do  
+  end do
+endif
+!</rga>
+#endif
 return
 end subroutine
 !EOC

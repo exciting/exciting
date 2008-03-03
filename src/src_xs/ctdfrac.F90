@@ -1,5 +1,5 @@
 
-! Copyright (C) 2006 S. Sagmeister.
+! Copyright (C) 2006 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -16,7 +16,7 @@ contains
     complex(8), intent(in) :: a(n), b(0:n)
     complex(8), intent(out) :: f  
     ! local variables
-    integer :: i,j
+    integer :: j
     f=b(n)
     do j=n,1,-1
       f=b(j-1)+a(j)/f

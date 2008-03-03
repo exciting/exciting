@@ -1,8 +1,28 @@
-F90 =ifort
-F90_OPTS =-cpp -g -DDEBUG 
-F77 =ifort 
-F77_OPTS = 
-LIB_SYS = 
-LIB_LPK = libarpack.a -llapack -lblas
+# ---------------------- Intel fortran compiler -------------------------------
+F90 		= ifort
+F90_OPTS 	= -O3 -ip -unroll -prefetch -scalar_rep -w90 -cpp
+### check arrays ###
+#F90_OPTS 	= -DTETRA -DXS -O0 -w90 -check all -traceback -cpp
+F77 		= ifort
+F77_OPTS 	= -O3 -ip -unroll -prefetch -scalar_rep -w90
+LIB_SYS 	= 
+
+### BLAS and LAPACK
+# included libraries
+##LIB_LPK = libarpack.a lapack.a blas.a
+
+# system libraries
+##LIB_LPK = -llapack -lblas
+
+# MKL libraries
+LIB_LPK = libarpack.a -L /software/intel/mkl721/lib/em64t/ -lmkl_lapack -lmkl_em64t -lguide -lpthread
+
+# ATLAS library with standard compiler options (USE CAREFULLY!)
+##LIB_LPK = /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2/liblapack.a lapack.a -L /usr/people/phyk/sagmste/src/libraries/ATLAS/lib/Linux_HAMMER64SSE2 -lf77blas -lcblas -latlas -lg2c
+##LIB_LPK = /usr/people/phyk/sagmste/src/libraries/opt/ATLAS/lib/Linux_HAMMER64SSE2/liblapack.a lapack.a -L /usr/people/phyk/sagmste/src/libraries/opt/ATLAS/lib/Linux_HAMMER64SSE2 -lf77blas -lcblas -latlas -lg2c
+
+### FFT library
 LIB_FFT = fftlib.a
+
+### Brillouin zone intergration library
 LIB_BZINT=libbzint.a

@@ -9,20 +9,19 @@
 subroutine readinput
 ! !USES:
 use modmain
-! <sag>
+#ifdef TETRA
 use modtetra
-use modtddft
-! </sag>
-!<chm>
-use sclcontroll
-!</chm>
+#endif
+#ifdef XS
+use modxs
+#endif
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
 !   from the species files. Also sets default values for the input parameters.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
-!   Additional parmeters for TDDFT 2004-2007 (Sagmeister)
+!   Additional parmeters for TDDFT and tetrahedron method 2004-2008 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -36,7 +35,11 @@ character(256) fname
 character(256) str
 character(256) bname
 character(256) sppath
-
+#ifdef XS
+logical, parameter :: dumpmain=.true.
+logical, parameter :: dumpmpi=.false.
+logical, parameter :: dumptddft=.false.
+#endif
 !------------------------!
 !     default values     !
 !------------------------!
@@ -119,6 +122,9 @@ nprad=4
 scissor=0.d0
 noptcomp=1
 optcomp(:,1)=1
+!<sag>
+optswidth=0.d0
+!</sag>
 usegdft=.false.
 intraband=.false.
 evalmin=-4.5d0
@@ -140,7 +146,7 @@ vqlwrt(:,:)=0.d0
 notelns=0
 tforce=.false.
 tfibs=.true.
-maxitoep=80
+maxitoep=120
 tauoep(1)=1.d0
 tauoep(2)=0.2d0
 tauoep(3)=1.5d0
@@ -154,26 +160,42 @@ spinsprl=.false.
 vqlss(:)=0.d0
 nwrite=0
 tevecsv=.false.
-!<sag>
-! tetrahedron method values
+ldapu=0
+llu(:)=-1
+ujlu(:,:)=0.d0
+rdmxctype=2
+rdmmaxscl=1
+maxitn=250
+maxitc=10
+taurdmn=1.d0
+taurdmc=0.5d0
+rdmalpha=0.7d0
+reducebf=1.d0
+#ifdef TETRA
+! tetrahedron method variables
 tetra=.false.
-fflg=4
-! TDDFT values
+#endif
+#ifdef XS
+! TDDFT variables
 imbandstr=.false.
 pmatira=.false.
-qtype='grid'
-qlist=''
+nqptmt=1
+if (allocated(vgqlmt)) deallocate(vgqlmt)
+allocate(vgqlmt(3,nqptmt))
+vgqlmt(:,:)=0.d0
+mdfqtype=0
 vqloff(:)=0.d0
 tq0ev=.true.
-gqmax=2.d0
-lmaxapwtd=-1 ! same default value as for lmaxmat if not read in
+gqmax=0.d0
+lmaxapwtd=-1
+emattype=1
 lmaxemat=3
 rsptype='reta'
 acont=.false.
 nwacont=0
-lorentz=.false.
 brdtd=0.01
 aresdf=.true.
+epsdfde=1.d-8
 symwings=.false.
 lfediag=.false.
 fxctype=0
@@ -181,15 +203,43 @@ nexcitmax=100
 alphalrc=0.d0
 alphalrcdyn=0.d0
 betalrcdyn=0.d0
+ndftrans=1
+if (allocated(dftrans)) deallocate(dftrans)
+allocate(dftrans(3,ndftrans))
+dftrans(:,:)=0
 gather=.false.
+nofract=.false.
 tevout=.false.
-verbscf=.false.
 tappinfo=.false.
 dbglev=0
-!</sag>
-ldapu=0
-llu(:)=-1
-ujlu(:,:)=0.d0
+! screening variables
+screentype='full'
+nosymscr=.false.
+reducekscr=.true.
+ngridkscr(:)=-1
+vkloffscr(:)=-1.d0
+rgkmaxscr=-1.d0
+nemptyscr=-1
+scrherm=0
+fnevecfvscr='EVECFV_SCR.OUT'
+fnevalsvscr='EVALSV_SCR.OUT'
+fnoccsvscr='OCCSV_SCR.OUT'
+! BSE (-kernel) variables
+nosymbse=.false.
+reducekbse=.true.
+vkloffbse(:)=-1.d0
+bsediagweight=1
+bsediagsym=0
+fnevecfvbse='EVECFV_BSE.OUT'
+fnevalsvbse='EVALSV_BSE.OUT'
+fnoccsvbse='OCCSV_BSE.OUT'
+nstbef=-1
+nstabf=-1
+! dump default values
+if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,&
+     vacuum)
+write(*,'(a)') 'Info(readinput): processing blocks:'
+#endif
 
 !-------------------------------!
 !     read from exciting.in     !
@@ -218,6 +268,9 @@ end if
 read(50,*,end=30) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
+#ifdef XS
+write(*,'(a)') 'reading block for: '//trim(bname)
+#endif
 select case(trim(bname))
 case('tasks')
   do i=1,maxtasks
@@ -367,7 +420,7 @@ case('spinorb')
 case('xctype')
   read(50,*,err=20) xctype
 case('stype')
-  read(50,*) stype
+  read(50,*,err=20) stype
 case('iterativetype')
   read(50,*) iterativetype
 case('epsarpack')
@@ -640,6 +693,16 @@ case('optcomp')
   write(*,'("Error(readinput): optical component list too long")')
   write(*,*)
   stop
+!</sag>
+case('optswidth')
+  read(50,*,err=20) optswidth
+  if (optswidth.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): optswidth < 0 : ",G18.10)') optswidth
+    write(*,*)
+    stop
+  end if
+!</sag>
 case('usegdft')
   read(50,*,err=20) usegdft
 case('intraband')
@@ -794,104 +857,6 @@ case('vqlss')
 case('nwrite')
   read(50,*,err=20) nwrite
 case('tevecsv')
-  read(50,*) tevecsv
-! <sag>
-!  tetrahedron method variables
-case('tetra')
-  read(50,*) tetra
-case('tetcflg')
-  read(50,*) fflg
-! TDDFT variables
-case('imbandstr')
-  read(50,*) imbandstr
-case('pmatira')
-  read(50,*) pmatira
-case('qtype')
-   read(50,*) qtype
-case('qlist')
-   read(50,*) qlist
-case('vqloff')
-   read(50,*) vqloff(1),vqloff(2),vqloff(3)
-case('tq0ev')
-   read(50,*) tq0ev
-case('gqmax')
-  read(50,*) gqmax
-  if (gqmax.le.0.d0) then
-    write(*,*)
-    write(*,'("Error(readinput[td]): gqmax <= 0 : ",G18.10)') gqmax
-    write(*,*)
-    stop
-  end if
-case('lmaxapwtd')
-  read(50,*) lmaxapwtd
-  if (lmaxapwtd.lt.0) then
-    write(*,*)
-    write(*,'("Error(readinput)[td]: lmaxapwtd < 0 : ",I8)') lmaxapwtd
-    write(*,*)
-    stop
-  end if
-case('lmaxemat')
-  read(50,*) lmaxemat
-  if (lmaxemat.lt.0) then
-    write(*,*)
-    write(*,'("Error(readinput[td]): lmaxemat < 0 : ",I8)') lmaxemat
-    write(*,*)
-    stop
-  end if
-case('rsptype')
-  read(50,*) rsptype
-  if ((rsptype.ne.'tord').and.(rsptype.ne.'reta')) then
-    write(*,*)
-    write(*,'("Error(readinput[td]): invalid rsptype : ",a)') rsptype
-    write(*,*)
-    stop
-  end if
-case('acont')
-  read(50,*) acont
-case('nwacont')
-  read(50,*) nwacont
-  if (brdtd.le.0) then
-    write(*,*)
-    write(*,'("Error(readinput[td]): nwacont <= 0 : ",g18.10)') nwacont
-    write(*,*)
-    stop
-  end if
-case('lorentz')
-  read(50,*) lorentz
-case('brdtd')
-  read(50,*) brdtd
-  if (brdtd.le.0) then
-    write(*,*)
-    write(*,'("Warning(readinput[td]): brdtd <= 0 : ",g18.10)') brdtd
-    write(*,*)
-  end if
-case('aresdf')
-  read(50,*) aresdf
-case('symwings')
-  read(50,*) symwings
-case('lfediag')
-  read(50,*) lfediag
-case('fxctype')
-  read(50,*) fxctype
-case('nexcitmax')
-  read(50,*) nexcitmax
-case('alphalrc')
-  read(50,*) alphalrc
-case('alphalrcdyn')
-  read(50,*) alphalrcdyn
-case('betalrcdyn')
-  read(50,*) betalrcdyn
-case('gather')
-  read(50,*) gather
-case('tevout')
-  read(50,*) tevout
-case('verbscf')
-  read(50,*) verbscf
-case('appinfo')
-  read(50,*) tappinfo
-case('dbglev')
-  read(50,*) dbglev
-! </sag>
   read(50,*,err=20) tevecsv
 case('lda+u')
   read(50,*) ldapu
@@ -923,6 +888,275 @@ case('lda+u')
     ujlu(1,js)=t1
     ujlu(2,js)=t2
   end do
+case('rdmxctype')
+  read(50,*,err=20) rdmxctype
+case('rdmmaxscl')
+  read(50,*,err=20) rdmmaxscl
+  if (rdmmaxscl.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput): rdmmaxscl < 0 : ",I8)') rdmmaxscl
+    write(*,*)
+  end if
+case('maxitn')
+  read(50,*,err=20) maxitn
+case('maxitc')
+  read(50,*,err=20) maxitc
+case('taurdmn')
+  read(50,*,err=20) taurdmn
+  if (taurdmn.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): taurdmn < 0 : ",G18.10)') taurdmn
+    write(*,*)
+    stop
+  end if
+case('taurdmc')
+  read(50,*,err=20) taurdmc
+  if (taurdmc.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): taurdmc < 0 : ",G18.10)') taurdmc
+    write(*,*)
+    stop
+  end if
+case('rdmalpha')
+  read(50,*,err=20) rdmalpha
+  if ((rdmalpha.le.0.d0).or.(rdmalpha.ge.1.d0)) then
+    write(*,*)
+    write(*,'("Error(readinput): rdmalpha not in (0,1) : ",G18.10)') rdmalpha
+    write(*,*)
+    stop
+  end if
+case('reducebf')
+  read(50,*,err=20) reducebf
+  if ((reducebf.lt.0.d0).or.(reducebf.gt.1.d0)) then
+    write(*,*)
+    write(*,'("Error(readinput): reducebf not in [0,1] : ",G18.10)') reducebf
+    write(*,*)
+    stop
+  end if
+#ifdef TETRA
+!  tetrahedron method variables
+case('tetra')
+  read(50,*,err=20) tetra
+#endif
+#ifdef XS
+! TDDFT variables
+case('imbandstr')
+  read(50,*,err=20) imbandstr
+case('pmatira')
+  read(50,*,err=20) pmatira
+case('vgqlmt')
+  read(50,*,err=20) nqptmt
+  if (nqptmt.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput): nqptmt <= 0 : ",I8)') nqptmt
+    write(*,*)
+    stop
+  end if
+  if (allocated(vgqlmt)) deallocate(vgqlmt)
+  allocate(vgqlmt(3,nqptmt))
+  do i=1,nqptmt
+    read(50,*,err=20) vgqlmt(:,i)
+  end do
+case('mdfqtype')
+  read(50,*,err=20) mdfqtype
+  if ((mdfqtype.lt.0).or.(mdfqtype.gt.1)) then
+    write(*,*)
+    write(*,'("Error(readinput): mdfqtype not in {0,1} : ",I8)') mdfqtype
+    write(*,*)
+    stop
+  end if
+case('vqloff')
+   read(50,*,err=20) vqloff(1),vqloff(2),vqloff(3)
+case('tq0ev')
+   read(50,*,err=20) tq0ev
+case('gqmax')
+  read(50,*,err=20) gqmax
+case('lmaxapwtd')
+  read(50,*,err=20) lmaxapwtd
+  if (lmaxapwtd.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput)[td]: lmaxapwtd < 0 : ",I8)') lmaxapwtd
+    write(*,*)
+    stop
+  end if
+case('emattype')
+  read(50,*,err=20) emattype
+case('lmaxemat')
+  read(50,*,err=20) lmaxemat
+  if (lmaxemat.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): lmaxemat < 0 : ",I8)') lmaxemat
+    write(*,*)
+    stop
+  end if
+case('rsptype')
+  read(50,*,err=20) rsptype
+  if ((rsptype.ne.'tord').and.(rsptype.ne.'reta')) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): invalid rsptype : ",a)') rsptype
+    write(*,*)
+    stop
+  end if
+case('acont')
+  read(50,*,err=20) acont
+case('nwacont')
+  read(50,*,err=20) nwacont
+  if (brdtd.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): nwacont <= 0 : ",g18.10)') nwacont
+    write(*,*)
+    stop
+  end if
+case('brdtd')
+  read(50,*,err=20) brdtd
+  if (brdtd.le.0) then
+    write(*,*)
+    write(*,'("Warning(readinput[td]): brdtd <= 0 : ",g18.10)') brdtd
+    write(*,*)
+  end if
+case('aresdf')
+  read(50,*,err=20) aresdf
+case('epsdfde')
+  read(50,*,err=20) epsdfde
+  if (brdtd.le.0) then
+    write(*,*)
+    write(*,'("Warning(readinput[td]): epsdfde <= 0 : ",g18.10)') epsdfde
+    write(*,*)
+  end if
+case('symwings')
+  read(50,*,err=20) symwings
+case('lfediag')
+  read(50,*,err=20) lfediag
+case('fxctype')
+  read(50,*,err=20) fxctype
+case('nexcitmax')
+  read(50,*,err=20) nexcitmax
+case('alphalrc')
+  read(50,*,err=20) alphalrc
+case('alphalrcdyn')
+  read(50,*,err=20) alphalrcdyn
+case('betalrcdyn')
+  read(50,*,err=20) betalrcdyn
+case('dftrans')
+  read(50,*,err=20) ndftrans
+  if (allocated(dftrans)) deallocate(dftrans)
+  allocate(dftrans(3,ndftrans))
+  do i=1,ndftrans
+    read(50,'(A80)') str
+    if (trim(str).eq.'') then
+      write(*,*)
+      write(*,'("Error(readinput): missing k-point and state in list for &
+           &transition analysis")')
+      write(*,*)
+      stop
+    end if
+    read(str,*,iostat=iostat) dftrans(:,i)
+    if (iostat.ne.0) then
+      write(*,*)
+      write(*,'("Error(readinput): error reading k-point and state list for&
+           &transition analysis")')
+      write(*,'("(blank line required after dftrans block)")')
+      write(*,*)
+      stop
+    end if
+  end do
+case('gather')
+  read(50,*,err=20) gather
+case('nofract')
+  read(50,*,err=20) nofract
+case('tevout')
+  read(50,*,err=20) tevout
+case('appinfo')
+  read(50,*,err=20) tappinfo
+case('dbglev')
+  read(50,*,err=20) dbglev
+  ! screening variables
+case('screentype')
+   read(50,*,err=20) screentype
+   select case(trim(screentype))
+   case('full')
+   case('diag')
+   case('noinvdiag')
+   case('constant')
+   case default
+      write(*,*)
+      write(*,'("Error(readinput): unknown screening type: ",a)') &
+           trim(screentype)
+      write(*,*)
+      stop
+   end select
+case('nosymscr')
+  read(50,*,err=20) nosymscr
+case('reducekscr')
+  read(50,*,err=20) reducekscr
+case('ngridkscr')
+  read(50,*,err=20) ngridkscr(1),ngridkscr(2),ngridkscr(3)
+  if ((ngridkscr(1).le.0).or.(ngridkscr(2).le.0).or.(ngridkscr(3).le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput): invalid ngridkscr : ",3I8)') ngridkscr
+    write(*,*)
+    stop
+  end if
+case('vkloffscr')
+  read(50,*,err=20) vkloffscr(1),vkloffscr(2),vkloffscr(3)
+case('rgkmaxscr')
+  read(50,*,err=20) rgkmaxscr
+  if (rgkmaxscr.le.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput[screen]): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
+    write(*,*)
+    stop
+  end if
+case('nemptyscr')
+  read(50,*,err=20) nemptyscr
+  if (nemptyscr.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput): nemptyscr <= 0 : ",I8)') nemptyscr
+    write(*,*)
+    stop
+  end if
+case('scrherm')
+  read(50,*,err=20) scrherm
+case('fnevecfvscr')
+  read(50,*,err=20) fnevecfvscr
+case('fnevalsvscr')
+  read(50,*,err=20) fnevalsvscr
+case('fnoccsvscr')
+  read(50,*,err=20) fnoccsvscr
+  ! BSE (-kernel) variables
+case('nosymbse')
+  read(50,*,err=20) nosymbse
+case('reducekbse')
+  read(50,*,err=20) reducekbse
+case('vkloffbse')
+  read(50,*,err=20) vkloffbse(1),vkloffbse(2),vkloffbse(3)
+case('bsediagweight')
+  read(50,*,err=20) bsediagweight
+case('bsediagsym')
+  read(50,*,err=20) bsediagsym
+case('fnevecfvbse')
+  read(50,*,err=20) fnevecfvbse
+case('fnevalsvbse')
+  read(50,*,err=20) fnevalsvbse
+case('fnoccsvbse')
+  read(50,*,err=20) fnoccsvbse
+case('nstbef')
+  read(50,*,err=20) nstbef
+  if (nstbef.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput[BSE]): nstbef <= 0 : ",I8)') nstbef
+    write(*,*)
+    stop
+  end if
+case('nstabf')
+  read(50,*,err=20) nstabf
+  if (nstabf.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput[BSE]): nstabf <= 0 : ",I8)') nstabf
+    write(*,*)
+    stop
+  end if
+#endif
 case('')
   goto 10
 case default
@@ -973,7 +1207,11 @@ if (molecule) then
     end do
   end do
 end if
-
+#ifdef XS
+write(*,'(a)') 'reading in of '//trim(fname)//' finished'
+! dump default values
+if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
+#endif
 !---------------------------------------------!
 !     read from atomic species data files     !
 !---------------------------------------------!

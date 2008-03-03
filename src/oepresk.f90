@@ -10,10 +10,10 @@ implicit none
 integer, intent(in) :: ik
 complex(8), intent(in) :: vnlcv(ncrmax,natmtot,nstsv,nkpt)
 complex(8), intent(in) :: vnlvv(nstsv,nstsv,nkpt)
-complex(8), intent(inout) :: dvxmt(lmmaxvr,nrcmtmax,natmtot)
-complex(8), intent(inout) :: dvxir(ngrtot)
-complex(8), intent(inout) :: dbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag)
-complex(8), intent(inout) :: dbxir(ngrtot,ndmag)
+real(8), intent(inout) :: dvxmt(lmmaxvr,nrcmtmax,natmtot)
+real(8), intent(inout) :: dvxir(ngrtot)
+real(8), intent(inout) :: dbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag)
+real(8), intent(inout) :: dbxir(ngrtot,ndmag)
 ! local variables
 integer is,ia,ias,ist,jst
 integer nr,ic,m,idm
@@ -32,15 +32,9 @@ complex(8), allocatable :: zmagmt(:,:,:,:)
 complex(8), allocatable :: zmagir(:,:)
 complex(8), allocatable :: zvfmt(:,:,:)
 complex(8), allocatable :: zfmt(:,:)
-
 ! external functions
 complex(8) zfinp,zfmtinp
 external zfinp,zfmtinp
-!addidional arrays to make truncationerrors more predictable in parallel 
-  complex(8) dvxir_k(ngrtot)
-  complex(8) dbxir_k(ngrtot,ndmag)
-  complex(8) dvxmt_k(lmmaxvr,nrcmtmax,natmtot)
-  complex(8) dbxmt_k(lmmaxvr,nrcmtmax,natmtot,ndmag)
 allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
 allocate(evecfv(nmatmax,nstfv))
 allocate(evecsv(nstsv,nstsv))
@@ -49,10 +43,6 @@ allocate(wfir(ngrtot,nspinor,nstsv))
 allocate(wfcr(lmmaxvr,nrcmtmax,2))
 allocate(zrhomt(lmmaxvr,nrcmtmax,natmtot))
 allocate(zrhoir(ngrtot))
-  dvxir_k(:)=0.d0
-  dbxir_k(:,:)=0.d0
-  dvxmt_k(:,:,:)=0.d0
-  dbxmt_k(:,:,:,:)=0.d0
 if (spinpol) then
   allocate(zmagmt(lmmaxvr,nrcmtmax,natmtot,ndmag))
   allocate(zmagir(ngrtot,ndmag))
@@ -87,23 +77,24 @@ do is=1,nspecies
               de=evalcr(ist,ias)-evalsv(jst,ik)
               zde=occmax*wkpt(ik)/(de+zi*swidth)
 ! calculate the complex overlap density in the muffin-tin
-              call vnlrhomt(is,wfcr(1,1,1),wfmt(1,1,ias,1,jst),zrhomt(1,1,ias))
+              call vnlrhomt(.false.,is,wfcr(1,1,1),wfmt(1,1,ias,1,jst), &
+               zrhomt(1,1,ias))
               if (spinpol) then
-                call vnlrhomt(is,wfcr(1,1,2),wfmt(1,1,ias,2,jst),zfmt)
+                call vnlrhomt(.false.,is,wfcr(1,1,2),wfmt(1,1,ias,2,jst),zfmt)
                 zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
               end if
               zvnl=conjg(vnlcv(ic,ias,jst,ik))
-              zrvx=zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt(1,1,ias), &
-               zvxmt(1,1,ias))
+              zrvx=zfmtinp(.false.,lmaxvr,nr,rcmt(1,is),lmmaxvr, &
+               zrhomt(1,1,ias),zvxmt(1,1,ias))
               zt1=zvnl-zrvx
 ! spin-polarised case
               if (spinpol) then
-                call oepmagmt(is,wfcr(1,1,1),wfcr(1,1,2),wfmt(1,1,ias,1,jst), &
-                 wfmt(1,1,ias,2,jst),zvfmt)
+                call oepmagmt(.false.,is,wfcr(1,1,1),wfcr(1,1,2), &
+                 wfmt(1,1,ias,1,jst),wfmt(1,1,ias,2,jst),zvfmt)
 ! integral of magnetisation dot exchange field
                 zmbx=0.d0
                 do idm=1,ndmag
-                  zmbx=zmbx+zfmtinp(lmaxvr,nr,rcmt(1,is),lmmaxvr, &
+                  zmbx=zmbx+zfmtinp(.false.,lmaxvr,nr,rcmt(1,is),lmmaxvr, &
                    zvfmt(1,1,idm),zbxmt(1,1,ias,idm))
                 end do
                 zt1=zt1-zmbx
@@ -112,10 +103,10 @@ do is=1,nspecies
               zt2=zde*zt1
 ! residues for exchange potential and field
 !$OMP CRITICAL
-              dvxmt_k(:,1:nr,ias)=dvxmt_k(:,1:nr,ias)+zt2*zrhomt(:,1:nr,ias)
+              dvxmt(:,1:nr,ias)=dvxmt(:,1:nr,ias)+dble(zt2*zrhomt(:,1:nr,ias))
               do idm=1,ndmag
-                dbxmt_k(:,1:nr,ias,idm)=dbxmt_k(:,1:nr,ias,idm) &
-                 +zt2*zvfmt(:,1:nr,idm)
+                dbxmt(:,1:nr,ias,idm)=dbxmt(:,1:nr,ias,idm) &
+                 +dble(zt2*zvfmt(:,1:nr,idm))
               end do
 !$OMP END CRITICAL
 ! end loop over jst
@@ -136,21 +127,21 @@ do ist=1,nstsv
     do jst=1,nstsv
       if (evalsv(jst,ik).gt.efermi) then
 ! calculate the overlap density
-        call vnlrho(wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst),wfir(1,1,ist), &
+        call vnlrho(.false.,wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst),wfir(1,1,ist), &
          wfir(1,1,jst),zrhomt,zrhoir)
         de=evalsv(ist,ik)-evalsv(jst,ik)
         zde=occmax*wkpt(ik)/(de+zi*swidth)
         zvnl=conjg(vnlvv(ist,jst,ik))
-        zrvx=zfinp(zrhomt,zvxmt,zrhoir,zvxir)
+        zrvx=zfinp(.false.,zrhomt,zvxmt,zrhoir,zvxir)
         zt1=zvnl-zrvx
         if (spinpol) then
-          call oepmag(wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst),wfir(1,1,ist), &
-           wfir(1,1,jst),zmagmt,zmagir)
+          call oepmag(.false.,wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst), &
+           wfir(1,1,ist),wfir(1,1,jst),zmagmt,zmagir)
 ! integral of magnetisation dot exchange field
           zmbx=0.d0
           do idm=1,ndmag
-            zmbx=zmbx+zfinp(zmagmt(1,1,1,idm),zbxmt(1,1,1,idm),zmagir(1,idm), &
-             zbxir(1,idm))
+            zmbx=zmbx+zfinp(.false.,zmagmt(1,1,1,idm),zbxmt(1,1,1,idm), &
+             zmagir(1,idm),zbxir(1,idm))
           end do
           zt1=zt1-zmbx
         end if
@@ -161,16 +152,16 @@ do ist=1,nstsv
           nr=nrcmt(is)
           do ia=1,natoms(is)
             ias=idxas(ia,is)
-            dvxmt_k(:,1:nr,ias)=dvxmt_k(:,1:nr,ias)+zt2*zrhomt(:,1:nr,ias)
+            dvxmt(:,1:nr,ias)=dvxmt(:,1:nr,ias)+dble(zt2*zrhomt(:,1:nr,ias))
             do idm=1,ndmag
-              dbxmt_k(:,1:nr,ias,idm)=dbxmt_k(:,1:nr,ias,idm) &
-               +zt2*zmagmt(:,1:nr,ias,idm)
+              dbxmt(:,1:nr,ias,idm)=dbxmt(:,1:nr,ias,idm) &
+               +dble(zt2*zmagmt(:,1:nr,ias,idm))
             end do
           end do
         end do
-        dvxir_k(:)=dvxir_k(:)+zt2*zrhoir(:)
+        dvxir(:)=dvxir(:)+dble(zt2*zrhoir(:))
         do idm=1,ndmag
-          dbxir_k(:,idm)=dbxir_k(:,idm)+zt2*zmagir(:,idm)
+          dbxir(:,idm)=dbxir(:,idm)+dble(zt2*zmagir(:,idm))
         end do
 !$OMP END CRITICAL
 ! end loop over jst
@@ -184,12 +175,6 @@ deallocate(wfmt,wfir,wfcr,zrhomt,zrhoir)
 if (spinpol) then
   deallocate(zmagmt,zmagir,zvfmt,zfmt)
 end if
-!$OMP CRITICAL
-  dvxir(:)=dvxir(:)+dvxir_k(:)
-  dbxir(:,:)=dbxir(:,:)+dbxir_k(:,:)
-  dvxmt(:,:,:)=dvxmt(:,:,:)+dvxmt_k(:,:,:)
-  dbxmt(:,:,:,:)=dbxmt(:,:,:,:)+dbxmt_k(:,:,:,:)
-!$OMP END CRITICAL
 return
 end subroutine
 

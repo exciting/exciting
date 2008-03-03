@@ -94,8 +94,7 @@ do i=1,3
   call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,grfmt1(1,1,i),grfmt2)
   do ir=1,nr
     call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt2(1,ir,i),1, &
-     0.d0,rftp3,1)
-    g2upmt(:,ir)=g2upmt(:,ir)+rftp3(:)
+     1.d0,g2upmt(1,ir),1)
   end do
 end do
 ! (grad rhoup).(grad |grad rhoup|)
@@ -135,8 +134,7 @@ if (spinpol) then
     call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,grfmt1(1,1,i),grfmt2)
     do ir=1,nr
       call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt2(1,ir,i),1, &
-       0.d0,rftp3,1)
-      g2dnmt(:,ir)=g2dnmt(:,ir)+rftp3(:)
+       1.d0,g2dnmt(1,ir),1)
     end do
   end do
 ! (grad rhodn).(grad |grad rhodn|)

@@ -1,6 +1,5 @@
 
-! Copyright (C) 2002-2007 S. Sagmeister, J. K. Dewhurst, S. Sharma and
-! C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -22,10 +21,9 @@ contains
     external zdotu
     ! local variables
     integer :: ist,istc,is,ia,ias
-
     if (lmax.gt.lmaxapw) then
        write(*,*)
-       write(*,'("Error(wavefmt): lmax > lmaxapw : ",I8)') lmax
+       write(*,'("Error(genapwcmt): lmax > lmaxapw : ",I8)') lmax
        write(*,*)
        stop
     end if
@@ -41,7 +39,6 @@ contains
     end do ! ist
   end subroutine genapwcmt
 
-
   subroutine genapwcmt_part(lmax,ngp,ia,is,apwalm,evecfv,fcmt)
     use modmain
     implicit none
@@ -56,7 +53,6 @@ contains
     external zdotu
     ! local variables
     integer :: ias,l,m,lm,io
-
     ias=idxas(ia,is)
     ! APW functions
     do l=0,lmax

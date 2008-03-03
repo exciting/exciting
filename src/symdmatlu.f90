@@ -42,7 +42,8 @@ end do
 do isym=1,nsymlat
 ! construct (l,m) rotation matrix for each lattice symmetry
   call rotzflm(symlatc(1,1,isym),lmaxlu,lmmaxlu,lmmaxlu,zflm,ulm(1,1,isym))
-! construct SU(2) matrix for rotation of spinor components
+! construct SU(2) matrix for proper rotation of spinor components
+! (note that rotsu2 uses only the proper part of the rotation matrix)
   if (spinpol) then
     call rotsu2(symlatc(1,1,isym),det,su2(1,1,isym))
   end if

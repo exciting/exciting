@@ -1,11 +1,15 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_putx0
   implicit none
 contains
 
   subroutine putx0(tp0,iq,iw,filnam,filxt,ch0,ch0wg,ch0hd)
     use modmain
-    use modtddft
+    use modxs
     use m_getunit
     implicit none
     ! arguments

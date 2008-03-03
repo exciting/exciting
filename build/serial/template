@@ -11,4 +11,3 @@ AR = ar
 ARFLAGS = -rc
 
 TMPFILES = *.mod
-

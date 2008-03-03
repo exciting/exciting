@@ -10,6 +10,7 @@ implicit none
 integer, intent(in) :: ikp
 complex(8), intent(inout) :: evecsvp(nstsv,nstsv)
 ! local variables
+integer is,ia,ias,ir,irc
 integer ngknr,ik,jk,ist1,ist2,ist3
 integer iq,ig,iv(3),igq0
 integer lmax,lwork,info
@@ -28,6 +29,7 @@ real(8), allocatable :: jlgqr(:,:,:)
 real(8), allocatable :: evalsvp(:)
 real(8), allocatable :: evalsvnr(:)
 real(8), allocatable :: rwork(:)
+real(8), allocatable :: rfmt(:,:,:)
 complex(8), allocatable :: h(:,:)
 complex(8), allocatable :: vmat(:,:)
 complex(8), allocatable :: apwalm(:,:,:,:)
@@ -45,6 +47,7 @@ complex(8), allocatable :: zrhoir(:)
 complex(8), allocatable :: zpchg(:)
 complex(8), allocatable :: zvclmt(:,:,:)
 complex(8), allocatable :: zvclir(:)
+complex(8), allocatable :: zfmt(:,:)
 complex(8), allocatable :: work(:)
 ! external functions
 complex(8) zfinp,zfmtinp
@@ -82,8 +85,10 @@ allocate(zrhoir(ngrtot))
 allocate(zpchg(natmtot))
 allocate(zvclmt(lmmaxvr,nrcmtmax,natmtot))
 allocate(zvclir(ngrtot))
+allocate(zfmt(lmmaxvr,nrcmtmax))
 lwork=2*nstsv
 allocate(work(lwork))
+allocate(rfmt(lmmaxvr,nrcmtmax,natmtot))
 ! coefficient of long-range term
 cfq=0.5d0*(omega/pi)**2
 ! set the point charges to zero
@@ -101,8 +106,20 @@ call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(1,1,ikp),nstsv,evecsvp, &
  nstsv,zzero,vmat,nstsv)
 call zgemm('C','N',nstsv,nstsv,nstsv,zone,evecsvp,nstsv,vmat,nstsv,zzero,h, &
  nstsv)
+! convert muffin-tin Coulomb potential to spherical coordinates
+do is=1,nspecies
+  do ia=1,natoms(is)
+    ias=idxas(ia,is)
+    irc=0
+    do ir=1,nrmt(is),lradstp
+      irc=irc+1
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,vclmt(1,ir,ias), &
+       1,0.d0,rfmt(1,irc,ias),1)
+    end do
+  end do
+end do
 ! compute the Coulomb matrix elements and add
-call genvmatk(vclmt,vclir,wfmt1,wfir1,vmat)
+call genvmatk(rfmt,vclir,wfmt1,wfir1,vmat)
 h(:,:)=h(:,:)+vmat(:,:)
 ! zero the non-local matrix elements for passed k-point
 vmat(:,:)=0.d0
@@ -148,8 +165,8 @@ do ik=1,nkptnr
     if (occsv(ist3,jk).gt.epsocc) then
       do ist2=1,nstsv
 ! calculate the complex overlap density
-        call vnlrho(wfmt2(1,1,1,1,ist3),wfmt1(1,1,1,1,ist2),wfir2(1,1,ist3), &
-         wfir1(1,1,ist2),zrhomt,zrhoir)
+        call vnlrho(.true.,wfmt2(1,1,1,1,ist3),wfmt1(1,1,1,1,ist2), &
+         wfir2(1,1,ist3),wfir1(1,1,ist2),zrhomt,zrhoir)
 ! calculate the Coulomb potential
         call zpotcoul(nrcmt,nrcmtmax,nrcmtmax,rcmt,igq0,gqc,jlgqr,ylmgq, &
          sfacgq,zpchg,zrhomt,zrhoir,zvclmt,zvclir,zrho02)
@@ -158,15 +175,14 @@ do ik=1,nkptnr
 !----------------------------------------------!
         do ist1=1,ist2
 ! calculate the complex overlap density
-          call vnlrho(wfmt2(1,1,1,1,ist3),wfmt1(1,1,1,1,ist1),wfir2(1,1,ist3), &
-           wfir1(1,1,ist1),zrhomt,zrhoir)
-          zt1=zfinp(zrhomt,zvclmt,zrhoir,zvclir)
+          call vnlrho(.true.,wfmt2(1,1,1,1,ist3),wfmt1(1,1,1,1,ist1), &
+           wfir2(1,1,ist3),wfir1(1,1,ist1),zrhomt,zrhoir)
+          zt1=zfinp(.true.,zrhomt,zvclmt,zrhoir,zvclir)
 ! compute the density coefficient of the smallest G+q-vector
           call zrhoqint(gqc(igq0),ylmgq(1,igq0),ngvec,sfacgq(igq0,1),zrhomt, &
            zrhoir,zrho01)
           zt2=cfq*wiq2(iq)*(conjg(zrho01)*zrho02)
-          t1=occsv(ist3,jk)
-          if (.not.spinpol) t1=0.5d0*t1
+          t1=occsv(ist3,jk)/occmax
           vmat(ist1,ist2)=vmat(ist1,ist2)-t1*(wkptnr(ik)*zt1+zt2)
         end do
       end do
@@ -195,7 +211,7 @@ deallocate(igkignr,vgklnr,vgkcnr,gkcnr,tpgkcnr,vgqc,tpgqc,gqc,jlgqr)
 deallocate(evalsvp,evalsvnr,evecfv,evecsv,rwork)
 deallocate(h,vmat,apwalm,sfacgknr,ylmgq,sfacgq)
 deallocate(wfmt1,wfmt2,wfir1,wfir2)
-deallocate(zrhomt,zrhoir,zpchg,zvclmt,zvclir,work)
+deallocate(zrhomt,zrhoir,zpchg,zvclmt,zvclir,zfmt,work,rfmt)
 return
 end subroutine
 

@@ -150,7 +150,7 @@
       fdif(i,j)=f(i)-f(j)
       efdif(i,j,k)=edif(i,j)*fdif(k,j)-edif(k,j)*fdif(i,j)
       efef(i,j)=(ef-e(i))*(f(j)-f(i))-(ef-f(i))*(e(j)-e(i))
-      intnodes(1:20,1:3) = 0.0d0
+      intnodes(1:3,1:20) = 0.0d0
       ntype(1)=7
       ntype(2)=11
       ntype(3)=13
@@ -182,7 +182,7 @@
       iint=0
       if(ndabc.ne.4) then     
        do i=2,4
-         intnodes(i,5-i) = 1.0d0
+         intnodes(5-i,i) = 1.0d0
        enddo
        inod=4 
        iint=4
@@ -210,7 +210,7 @@
           nt(i-1) = (ef-e(1))/denom
           if((nt(i-1).gt.0.0d0).and.(nt(i-1).le.1.0d0))then
             inod=inod+1
-            intnodes(inod,1:3)=nt(1:3)
+            intnodes(1:3,inod)=nt(1:3)
             ntype(inod)=ntype(iint)
           endif
         endif
@@ -231,7 +231,7 @@
           nt(j) = (e(i+1)-ef)/denom
           if((nt(i).ge.0.0d0).and.(nt(j).ge.0.0d0))then
             inod=inod+1
-            intnodes(inod,1:3)=nt(1:3)
+            intnodes(1:3,inod)=nt(1:3)
             ntype(inod)=ntype(iint)
           endif
         endif
@@ -258,7 +258,7 @@
           nt(i-1) = (ef-f(1))/denom
           if((nt(i-1).ge.0.0d0).and.(nt(i-1).le.1.0d0))then
             inod=inod+1
-            intnodes(inod,1:3)=nt(1:3)
+            intnodes(1:3,inod)=nt(1:3)
             ntype(inod)=ntype(iint)
           endif
         endif
@@ -281,7 +281,7 @@
           nt(j) = (f(i+1)-ef)/denom
           if((nt(i).ge.0.0d0).and.(nt(j).ge.0.0d0))then
             inod=inod+1
-            intnodes(inod,1:3)=nt(1:3)
+            intnodes(1:3,inod)=nt(1:3)
             ntype(inod)=ntype(iint)
           endif
         endif
@@ -315,7 +315,7 @@
           if((nt(i).gt.0.0d0).and.(nt(j).gt.0.0d0)                    &
      &       .and.(sumnt.le.1.0d0))then
             inod=inod+1
-            intnodes(inod,1:3)=nt(1:3)
+            intnodes(1:3,inod)=nt(1:3)
             ntype(inod)=ntype(iint)
           endif
         endif
@@ -334,7 +334,7 @@
          if((nt(1).gt.0.0d0).and.(nt(2).gt.0.0d0)                      &
      &       .and.(nt(3).gt.0.0d0))then
           inod=inod+1
-          intnodes(inod,1:3)=nt(1:3)
+          intnodes(1:3,inod)=nt(1:3)
           ntype(inod)=ntype(iint)
         endif
        endif

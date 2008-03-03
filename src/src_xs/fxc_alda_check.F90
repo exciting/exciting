@@ -1,4 +1,7 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
 
 subroutine fxc_alda_check
   !
@@ -8,20 +11,20 @@ subroutine fxc_alda_check
   !
   use modmain
   use modxcifc
-  use modtddft
+  use modxs
   use modfxcifc
   implicit none
   real(8), allocatable :: vx(:),ex(:)
   real(8), allocatable :: vc(:),ec(:)
   real(8), allocatable :: dvx(:),dvc(:),vxc(:),dvxc2(:),dvxc(:),cf(:,:)
-  integer :: m,igr,nrho,irh
+  integer :: m,nrho,irh
   real(8), allocatable :: rhogr(:)
   real(8) :: rhoint(2)
 
   call init0
   call init1
   call readstate
-  call init2td
+  call init2xs
 
   m=max(lmmaxvr,ngrtot)
 

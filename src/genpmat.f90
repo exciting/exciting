@@ -9,7 +9,6 @@
 subroutine genpmat(ngp,igpig,vgpc,apwalm,evecfv,evecsv,pmat)
 ! !USES:
 use modmain
-use modtddft, only : pmatira
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
@@ -42,37 +41,38 @@ integer ispn,is,ia,ist,jst
 integer ist1
 integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
-!<sag>
+#ifdef XS
 integer :: igp1,igp2,ig1,ig2,ig,iv1(3),iv(3)
-!</sag>
+#endif
 ! allocatable arrays
 complex(8), allocatable :: wfmt(:,:,:)
 complex(8), allocatable :: gwfmt(:,:,:,:)
 complex(8), allocatable :: wfir(:,:)
 complex(8), allocatable :: gwfir(:,:,:)
 complex(8), allocatable :: pm(:,:,:)
-!<sag>
+#ifdef XS
 complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
 complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
-!</sag>
+logical, parameter :: pmatira=.false.
+#endif
 ! external functions
 complex(8) zfmtinp
 external zfmtinp
 allocate(wfmt(lmmaxapw,nrcmtmax,nstfv))
 allocate(gwfmt(lmmaxapw,nrcmtmax,3,nstfv))
-!<sag>
+#ifdef XS
 if (pmatira) then
    allocate(cfunt(ngp,ngp))
    allocate(h(ngp,nstfv))
    allocate(pmt(nstfv,nstfv))
    allocate(evecfvt1(nstfv,ngp),evecfvt2(ngp,nstfv))
 else
-!</sag>
+#endif
    allocate(wfir(ngrtot,nstfv))
    allocate(gwfir(ngrtot,3,nstfv))
-!<sag>
+#ifdef XS
 end if
-!</sag>
+#endif
 allocate(pm(3,nstfv,nstfv))
 ! set the momentum matrix elements to zero
 pm(:,:,:)=0.d0
@@ -86,19 +86,29 @@ do is=1,nspecies
 ! calculate the gradient
       call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
        wfmt(1,1,ist),gwfmt(1,1,1,ist))
+!!$
+!!$
+!!$
+!!$wfmt(:,:,ist)=zzero
+!!$wfmt(1,:,ist)=1.d0/y00
+!!$gwfmt(:,:,:,ist)=zzero
+!!$gwfmt(1,:,:,ist)=1.d0/y00
+!!$
+!!$
+!!$
     end do
     do ist=1,nstfv
       do jst=ist,nstfv
         do i=1,3
-          zt1=zfmtinp(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,wfmt(1,1,ist), &
-           gwfmt(1,1,i,jst))
+          zt1=zfmtinp(.true.,lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
+           wfmt(1,1,ist),gwfmt(1,1,i,jst))
           pm(i,ist,jst)=pm(i,ist,jst)+zt1
         end do
       end do
     end do
   end do
 end do
-!<sag>
+#ifdef XS
 if (pmatira) then
    ! analytic evaluation
    forall (ist1=1:nstfv)
@@ -123,7 +133,7 @@ if (pmatira) then
       pm(j,:,:)=pm(j,:,:)+pmt(:,:)
    end do
 else ! pmatira
-!</sag>
+#endif
 ! calculate momemntum matrix elements in the interstitial region
 wfir(:,:)=0.d0
 gwfir(:,:,:)=0.d0
@@ -143,6 +153,16 @@ do ist=1,nstfv
     call zfftifc(3,ngrid,1,gwfir(1,i,ist))
   end do
 end do
+!!$
+!!$
+!!$
+!!$wfir(:,:)=zone*sqrt(omega)
+!!$do i=1,3
+!!$   gwfir(:,:,:)=zone*sqrt(omega)
+!!$end do
+!!$
+!!$
+!!$
 ! find the overlaps
 do ist=1,nstfv
   do jst=ist,nstfv
@@ -156,9 +176,9 @@ do ist=1,nstfv
     end do
   end do
 end do
-!<sag>
+#ifdef XS
 end if ! pmatira
-!</sag>
+#endif
 ! multiply by -i and set lower triangular part
 do ist=1,nstfv
   do jst=ist,nstfv
@@ -189,15 +209,15 @@ if (tevecsv) then
 else
   pmat(:,:,:)=pm(:,:,:)
 end if
-!<sag>
+#ifdef XS
 if (pmatira) then
    deallocate(wfmt,gwfmt,pm,cfunt,h,pmt,evecfvt1,evecfvt2)
 else
-!</sag>
+#endif
    deallocate(wfmt,gwfmt,wfir,gwfir,pm)
-!<sag>
+#ifdef XS
 end if
-!</sag>
+#endif
 return
 end subroutine
 !EOC

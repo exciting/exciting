@@ -48,6 +48,9 @@
 ! !USES:
      
       use kgen_internals
+!<sag>
+      use control, only: tetradbglv
+!</sag>
       
       implicit none
 
@@ -123,8 +126,6 @@
 !                                             index of the linked 
 !                                             tetrahedra corresponding to
 !                                             one q.
-      integer(4), allocatable  :: ktet(:,:) ! Temporary storage of tetk
-      integer(4), allocatable  :: tetw(:)   ! Temporary storage of wtet
 
 
       integer(4), external :: idkp     
@@ -144,16 +145,12 @@
    
 !BOC
 !      iio=>symop(1:3,1:3,1:nsymt)
-      if(allocated(ikpid)) deallocate(ikpid)
-      allocate(ikpid(nkpt))
-      if(allocated(redkp)) deallocate(redkp)
-      allocate(redkp(nkpt))
-      div=ndiv
+     div=ndiv
       gbas=bvec
-!<sag action="comment">
-!      write(*,*)'div =',div
-!      write(*,*)'nkpt =',nkpt
-!</sag>
+      if (tetradbglv > 0) then     ! sag
+         write(*,*)'div =',div
+         write(*,*)'nkpt =',nkpt
+      end if                       ! sag
       linkt=0
 !
 !     Set the total number of k-points
@@ -176,8 +173,6 @@
         do j=1,3
           kpt(j,i)=onek(j)
         enddo
-        ikpid(i)=i
-        redkp(i)=i
       enddo
 !
 !     Change  the coordinates of the k-points to internal reciprocal
@@ -199,18 +194,12 @@
 !
 !     Calculate the k-dependent geometrical weights of the (q,k') pairs
 !
-!       call asockkp(wkkq)  
-      allocate(tetw(6*nkpt))
-      allocate(ktet(4,6*nkpt))
-      call tgen(ntet,ktet,tetw)
-      wtet(1:ntet)=tetw(1:ntet)
-      tetk(1:4,1:ntet)=ktet(1:4,1:ntet)
-      deallocate(tetw)
-      deallocate(ktet)
+!       call asockkp(wkkq)
+      wtet(1:ntet)=1
  
       do i=1,nkpt
         q(1:3)=kpt(1:3,i)
-        call tgenq(q,ntet,link1)
+        call tgenq(q,ntet,tetk,link1)
         do itet=1,ntet
           linkt(itet,i)=link1(itet)       
         enddo
@@ -223,7 +212,7 @@
        do j=1,nkpt
          call coorskp(j,k)
          do ik=1,3
-          kq(ik)=modulo(k(ik)-q(ik),ndiv(ik))
+            kq(ik)=modulo(k(ik)-q(ik),ndiv(ik))
          enddo
          kqid(j,i)=idkp(kq)
        enddo
@@ -234,9 +223,6 @@
 ! ended
 !----------------------------------------------------------------------
       vtet=vt
-      deallocate(redtet)
-      deallocate(ikpid)
-      deallocate(redkp)
       
 !     deallocate(link1)
 !      deallocate(kpt)

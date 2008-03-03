@@ -92,10 +92,8 @@ if (task.eq.300) then
   allocate(vclmat(nstsv,nstsv,nkpt))
   if (allocated(dkdc)) deallocate(dkdc)
   allocate(dkdc(nstsv,nstsv,nkpt))
-  if (allocated(vnlmatr)) deallocate(vnlmatr)
-  allocate(vnlmatr(nstsv,nkpt,nstsv,nkptnr))
-  if (allocated(vnlmat)) deallocate(vnlmat)
-  allocate(vnlmat(nstsv,nstsv,nkpt,nstsv,nkptnr))
+  if (allocated(vnlrdm)) deallocate(vnlrdm)
+  allocate(vnlrdm(nstsv,nkpt,nstsv,nkptnr))
 end if
 
 call cpu_time(cpu1)

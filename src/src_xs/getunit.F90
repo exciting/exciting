@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_getunit
   implicit none
 contains
@@ -11,7 +15,6 @@ contains
     character(*), parameter :: thisnam = 'getunit'
     integer :: u, u_lo, u_hi
     logical :: connected
-    character(256) :: errmsg
     u_lo=100
     u_hi=5000
     do u=u_lo,u_hi

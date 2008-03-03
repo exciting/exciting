@@ -1,5 +1,5 @@
 
-! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -33,6 +33,7 @@ use modmain
 !
 ! !REVISION HISTORY:
 !   Created April 2007 (JKD)
+!   Fixed use of proper rotations for spin, February 2008 (L. Nordstrom)
 !EOP
 !BOC
 implicit none
@@ -51,9 +52,8 @@ real(8) sl(3,3),v(3),t1
 integer jea(natmmax,nspecies)
 real(8) apl3(3,natmmax)
 ! external functions
-integer i3mdet
 real(8) r3taxi
-external i3mdet,r3taxi
+external r3taxi
 nsym=0
 ! loop over lattice symmetries (spatial rotations)
 do isym=1,nsymlat
@@ -100,11 +100,11 @@ do isym=1,nsymlat
       jsym1=nsymlat
     end if
     do jsym=jsym0,jsym1
-! only use proper rotations for spin
-      md=i3mdet(symlat(1,1,jsym))
-      if (md.lt.0) goto 20
-! rotate global field and check invariance
+! determinant of the symmetry matrix
+      md=symlatd(jsym)
+! rotate global field and check invariance using proper part of symmetry matrix
       call r3mv(symlatc(1,1,jsym),bfieldc,v)
+      v(:)=v(:)*dble(md)
       t1=r3taxi(bfieldc,v)
 ! if not invariant try a different global spin rotation
       if (t1.gt.epslat) goto 20
@@ -114,6 +114,7 @@ do isym=1,nsymlat
 ! equivalent atom
           ja=jea(ia,is)
           call r3mv(symlatc(1,1,jsym),bfcmt(1,ja,is),v)
+          v(:)=v(:)*dble(md)
           t1=r3taxi(bfcmt(1,ia,is),v)
 ! if not invariant try a different global spin rotation
           if (t1.gt.epslat) goto 20

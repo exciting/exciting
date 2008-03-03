@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_fxc_lrcd
   implicit none
 
@@ -12,7 +16,7 @@ contains
     ! or fxc_(G,Gp) = -(alpha+beta*w**2)/4pi*delta_(G,Gp)*delta(G,0).
     !
     use modmain
-    use modtddft
+    use modxs
     implicit none
     ! arguments
     integer, intent(in) :: msiz
@@ -24,7 +28,7 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'fxc_lrcd'
     complex(8) :: zt1
-    integer :: sh(2),n,ig
+    integer :: sh(2),ig
 
     sh=shape(fxc)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then

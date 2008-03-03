@@ -1,4 +1,8 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_filedel
   implicit none
 contains
@@ -10,7 +14,7 @@ contains
     character(*), intent(in) :: fnam
     ! local variables
     character(*), parameter :: thisnam = 'filedel'
-    integer :: fu
+    integer :: un
     logical :: existent, opened
 
     ! check if file exists
@@ -21,14 +25,14 @@ contains
        return
     end if
     ! check if file is opened
-    inquire(file=trim(fnam),opened=opened,number=fu)
+    inquire(file=trim(fnam),opened=opened,number=un)
     if (opened) then
-       close(fu)
+       close(un)
     end if
-    call getunit(fu)
-    open(fu,file=trim(fnam),action='write')
+    call getunit(un)
+    open(un,file=trim(fnam),action='write')
     ! delete file
-    close(fu,status='delete')
+    close(un,status='delete')
 
   end subroutine filedel
 

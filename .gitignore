@@ -5,6 +5,9 @@ exciting
 excitings
 excitingp
 excitingmpi
+exciting_debug
+exciting_interfaces
+*.dat
 *.OUT
 *.mod
 .cdtproject
@@ -20,7 +23,12 @@ src/src_try
 Makefile.serial
 Makefile.parallel
 make.inc
+make.out
 mpif.h
 fort.*
+*.diff
 Makefile.serial
 *.orig
+output.*
+outerr.*
+testcase*

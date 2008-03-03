@@ -5,10 +5,15 @@
 
 subroutine linopt
   use modmain
-  ! <sampling>
+#ifdef TETRA
   use modtetra
-  use modtddft, evecfv_ptr=>evecfv,evecsv_ptr=>evecsv,apwalm_ptr=>apwalm
-  ! </sampling>
+#endif
+#ifdef XS
+  use modxs, only: emattype,xiou,qvkloff,istocc0,istocc,istunocc0,istunocc
+  use modxs, only: isto0,isto,istu0,istu,evalsv0,occsv0,ngq
+  use m_getemat
+  use m_genfilname
+#endif
   implicit none
   ! local variables
   integer ik,nsk(3),iw,jw
@@ -35,44 +40,69 @@ subroutine linopt
   complex(8), allocatable :: evecfv(:,:)
   complex(8), allocatable :: evecsv(:,:)
   complex(8), allocatable :: apwalm(:,:,:,:)
+#ifdef XS
+  integer, parameter :: iq=1
+#endif
   complex(8), allocatable :: pmat(:,:,:)
-  ! <sampling>
-  integer :: m,ist1,ist2
-  character(256) :: epsnam
+#ifdef TETRA
   real(8), parameter :: epstetra=1.d-8
-  real(8) :: sum,sum2
-  real(8), allocatable :: eps1r(:)
-  real(8), allocatable :: e1(:,:),f12(:,:,:),e12(:,:,:)
+  real(8), allocatable :: e1(:,:)
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
-  complex(8) :: sumc
-  complex(8), allocatable :: epsc(:)
-  logical :: tetrat
-  tetrat=tetra
-  if (tetrat.and.lorentz) then
+#endif
+  !<sag>
+  real(8) :: t3,scis,sum1,sum2,escal
+  real(8), allocatable :: eps1r(:)
+  logical :: tev,tqfmt
+  integer :: bzsmpl,m,ist1,ist2
+  logical, external :: tqgamma
+  ! default sampling of Brillouin zone (trilinear method)
+  bzsmpl=0
+  ! output in electron volt
+  tev=.true.
+  optltz=(optswidth.ne.0.d0)
+  if (optltz) bzsmpl=2
+  tqfmt=.false.
+  !</sag>
+#ifdef TETRA
+  if (tetra.and.optltz) then
      write(*,*)
      write(*,'("Error(linopt): specified tetrahedron method and Lorentzian &
-          & broadening")')
+          &broadening")')
      write(*,*)
      stop
   end if
-  if (intraband.and.(tetrat.or.lorentz)) then
-     write(*,*)
-     write(*,'("Error(linopt): intraband contribution not implemented for &
-          tetrahedron method and Lorentzian broadening")')
-     write(*,*)
-     stop
-  end if
-  ! </sampling>
+  if (tetra) bzsmpl=1
+#endif
   if ((usegdft).and.(xctype.lt.0)) then
-  write(*,*)
-  write(*,'("Error(linopt): generalised DFT cannot be used with exact &
-   &exchange")')
-  write(*,*)
-  stop
+     write(*,*)
+     write(*,'("Error(linopt): generalised DFT cannot be used with exact &
+          &exchange")')
+     write(*,*)
+     stop
   end if
   ! initialise universal variables
   call init0
   call init1
+#ifdef XS
+  emattype=0
+  call init2xs
+  tqfmt=.not.tqgamma(iq)
+  if (tqfmt) then
+     call tdsave0
+     call genfilname(iqmt=iq,setfilext=.true.)
+     ! take first q-point
+     call init1xs(qvkloff(1,iq))
+     if (allocated(evalsv0)) deallocate(evalsv0)
+     allocate(evalsv0(nstsv,nkpt))
+     if (allocated(occsv0)) deallocate(occsv0)
+     allocate(occsv0(nstsv,nkpt))
+     if (allocated(xiou)) deallocate(xiou)
+     allocate(xiou(nstsv,nstsv,ngq(iq)))
+     call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
+          istu)
+     call ematbdcmbs(emattype)
+  end if
+#endif
   ! read Fermi energy from file
   call readfermi
   ! allocate local arrays
@@ -97,289 +127,320 @@ subroutine linopt
   allocate(pmatint(nstsv,nkpt))
   ! set up for generalised DFT correction if required
   allocate(delta(nstsv,nstsv))
-  ! <sampling>
-  if (tetrat.or.lorentz) then
+  if (bzsmpl.ge.1) then
      allocate(eps1r(nwdos))
      eps1r(:)=0.d0
   end if
-  if (lorentz) then
-     allocate(epsc(nwdos))
-     allocate(f12(nstsv,nstsv,nkpt),e12(nstsv,nstsv,nkpt))
-     epsc(:)=zzero
-     f12(:,:,:)=0.d0
-     e12(:,:,:)=0.d0
+#ifdef TETRA
+  if (tetra) then
+     allocate(e1(nstsv,nkpt))
+     allocate(cw(nstsv,nstsv,nkpt))
+     allocate(cwa(nstsv,nstsv,nkpt))
+     allocate(cwsurf(nstsv,nstsv,nkpt))
   end if
-  if (tetrat) then
-     allocate(e1(nkpt,nstsv))
-     allocate(cw(nkpt,nstsv,nstsv))
-     allocate(cwa(nkpt,nstsv,nstsv))
-     allocate(cwsurf(nkpt,nstsv,nstsv))
-  end if
-  ! </sampling>
+#endif
   if (usegdft) then
      ! initialisation required for generalised DFT
-  allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-  call readstate
-  call poteff
-  call linengy
-  call genapwfr
-  call genlofr
+     allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
+     call readstate
+     call poteff
+     call linengy
+     call genapwfr
+     call genlofr
   end if
   ! pre-calculation for symmetrisation
   do isym=1,nsymcrys
-  lspl=lsplsymc(isym)
-! symmetry matrix in Cartesian coordinates
-  sc(:,:,isym)=symlatc(:,:,lspl)
-  d(isym)=sc(1,1,isym)*sc(2,2,isym)-sc(1,2,isym)*sc(2,1,isym)
+     lspl=lsplsymc(isym)
+     ! symmetry matrix in Cartesian coordinates
+     sc(:,:,isym)=symlatc(:,:,lspl)
+     !<sag> calculate 3,3 minor of symmetry element </sag>
+     d(isym)=sc(1,1,isym)*sc(2,2,isym)-sc(1,2,isym)*sc(2,1,isym)
   end do
   ! energy interval should start from zero
   wdos(1)=0.d0
   ! generate energy grid
   t1=(wdos(2)-wdos(1))/dble(nwdos)
   do iw=1,nwdos
-  w(iw)=t1*dble(iw-1)+wdos(1)
+     w(iw)=t1*dble(iw-1)+wdos(1)
   end do
   ! number of subdivisions used for interpolation
   do i=1,3
-  nsk(i)=max(ngrdos/ngridk(i),1)
+     nsk(i)=max(ngrdos/ngridk(i),1)
   end do
   ! find the record length for momentum matrix element file
   inquire(iolength=recl) pmat
-  open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED',access='DIRECT', &
- recl=recl)
+#ifdef XS
+  if (.not.tqfmt)  then
+#endif
+     open(50,file='PMAT.OUT',action='READ',form='UNFORMATTED',access='DIRECT', &
+          recl=recl)
+#ifdef XS
+  end if
+#endif
   ! loop over number of desired optical components
   do iop=1,noptcomp
-  i1=optcomp(1,iop)
-  i2=optcomp(2,iop)
+     i1=optcomp(1,iop)
+     i2=optcomp(2,iop)
      ! open files for writting
-  write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
-  open(60,file=trim(fname),action='WRITE',form='FORMATTED')
-  write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
-  open(61,file=trim(fname),action='WRITE',form='FORMATTED')
-  e(:,:)=0.d0
-  f(:,:)=0.d0
-  do ik=1,nkpt
+     select case(bzsmpl)
+     case(0)
+        write(fname,'("EPSILON_",2I1,".OUT")') i1,i2
+     case(1)
+        write(fname,'("EPSILON_TET_",2I1,".OUT")') i1,i2
+     case(2)
+        write(fname,'("EPSILON_LTZ_",2I1,".OUT")') i1,i2
+     end select
+     open(60,file=trim(fname),action='WRITE',form='FORMATTED')
+     select case(bzsmpl)
+     case(0)
+        write(fname,'("SIGMA_",2I1,".OUT")') i1,i2
+     case(1)
+        write(fname,'("SIGMA_TET_",2I1,".OUT")') i1,i2
+     case(2)
+        write(fname,'("SIGMA_LTZ_",2I1,".OUT")') i1,i2
+     end select
+     open(61,file=trim(fname),action='WRITE',form='FORMATTED')
+     e(:,:)=0.d0
+     f(:,:)=0.d0
+     do ik=1,nkpt
         ! compute generalised DFT correction if required
-    if (usegdft) then
-      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-      call getevecsv(vkl(1,ik),evecsv)
+        if (usegdft) then
+           call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
+           call getevecsv(vkl(1,ik),evecsv)
            call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),&
                 apwalm)
-      call gdft(ik,apwalm,evecfv,evecsv,delta)
-    end if
+           call gdft(ik,apwalm,evecfv,evecsv,delta)
+        end if
         ! read matrix elements from direct-access file
-    read(50,rec=ik) pmat
-    call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
-        ! check for better numerical convergence at zero frequency
-        m=0
-        do ist1=1,nstsv
-           do ist2=1,nstsv
-              m=m+1
-              f12(ist1,ist2,ik)=f(m,ik)
-              e12(ist1,ist2,ik)=e(m,ik)
-           end do
-        end do
+#ifdef XS
+        if (tqfmt) then
+           call getemat(1,ik,.true.,'EMAT_FULL_QMT001.OUT',xiou)
+           call linoptkpq(iq,ik,xiou,e(1,ik),f(1,ik))
+        else
+#endif
+           read(50,rec=ik) pmat
+           call linoptk(ik,i1,i2,sc,d,delta,pmat,e(1,ik),f(1,ik),pmatint(1,ik))
+#ifdef XS
+        end if
+#endif
      end do
+#if TETRA
      if (tetra) then
+#ifdef XS
+        if (tqfmt) then
+           ! generate link array for tetrahedra
+           call gentetlink(vql(1,iq))
+        end if
+#endif
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
         ! tetrahedron method
         forall (ik=1:nkpt,ist1=1:nstsv)
-           e1(ik,ist1)=evalsv(ist1,ik)
+           e1(ist1,ik)=evalsv(ist1,ik)
         end forall
         ! scissors correction needed in input energies for tetrahedron method
-        where(e1 > efermi) e1=e1+scissor
+        where (e1.gt.efermi) e1=e1+scissor
         do iw=1,nwdos
-           write(*,*) 'TETRA: iw=',iw
+           if ((modulo(iw,nwdos/10).eq.0).or.(iw.eq.nwdos)) &
+                write(*,'("Info(linopt): tetrahedron weights for ",I6," of ",&
+                &I6," w-points")') iw,nwdos
            ! it seems that frequency should be non-zero for tetcw (?)
            ! see Ricardo's code
            if (abs(w(iw)).lt.epstetra) w(iw)=epstetra
            ! switch 2 below in tetcw defines bulk integration for real part
-           call tetcw(nkpt,ntet,nstfv,e1,tnodes,link,tvol,efermi, &
-                w(iw),2,1,cw)
-           call tetcw(nkpt,ntet,nstfv,e1,tnodes,link,tvol,efermi, &
-                -w(iw),2,1,cwa)
+           call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
+                w(iw),2,cw)
+           call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
+                -w(iw),2,cwa)
            ! switch 4 below in tetcw defines surface integration for imag. part
-           call tetcw(nkpt,ntet,nstfv,e1,tnodes,link,tvol,efermi, &
-                w(iw),4,1,cwsurf)
+           call tetcw(nkpt,ntet,nstfv,wtet,e1,tnodes,link,tvol,efermi, &
+                w(iw),4,cwsurf)
            ! summation using weights from tetrahedron method
-           sum=0.d0
+           sum1=0.d0
            sum2=0.d0
            do ik=1,nkpt
               m=0
               do ist1=1,nstsv
                  do ist2=1,nstsv
                     m=m+1
-                    ! real part, resonant contribution
-                    if (ist1.lt.ist2) sum=sum+cw(ik,ist1,ist2)* &
-                         f(m,ik)/e(m,ik)**2
-                    ! real part, anti-resonant contribution
-                    if (ist1.gt.ist2) sum=sum+cwa(ik,ist2,ist1)* &
-                         f(m,ik)/e(m,ik)**2
-                    ! imaginary part (only resonant contribution by theory
-                    ! for positive frequencies)
-                    if (ist1.lt.ist2) sum2=sum2+cwsurf(ik,ist1,ist2)* &
-                         f(m,ik)
+                    t3=1.d0
+                    if (.not.tqfmt) t3=1.d0/e(m,ik)**2
+                    if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
+                       ! real part, resonant contribution
+                       if (ist1.le.ist2) sum1=sum1+cw(ist1,ist2,ik)* &
+                            f(m,ik)*t3
+                       ! real part, anti-resonant contribution
+                       if (ist1.gt.ist2) sum1=sum1-cwa(ist2,ist1,ik)* &
+                            f(m,ik)*t3
+                       ! imaginary part (only resonant contribution by theory
+                       ! for positive frequencies)
+                       if (ist1.le.ist2) sum2=sum2+cwsurf(ist1,ist2,ik)* &
+                            f(m,ik)
+                    end if
                  end do
               end do
            end do ! ik
-           eps1r(iw)=sum
+           eps1r(iw)=sum1
            eps2(iw)=sum2
            ! divide by omega^2
-           t1=w(iw)
-           if (abs(t1).gt.eps) then
-              eps2(iw)=eps2(iw)/(t1**2)
-           else
-              eps2(iw)=0.d0
+           if (.not.tqfmt) then
+              t1=w(iw)-scissor !SAG
+              if (abs(t1).gt.eps) then
+                 eps2(iw)=eps2(iw)/(t1**2)
+              else
+                 eps2(iw)=0.d0
+              end if
            end if
         end do ! iw
-     else if (lorentz) then
+     end if ! *** if (tetra)
+#endif
+     if (optltz) then
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
-        !-!!!!!!!
-        f12(:,:,:)=t1*f12(:,:,:)
-        !-!!!!!!!
         ! Lorentzian broadening
         do iw=1,nwdos
-           sum=0.d0
+           sum1=0.d0
            sum2=0.d0
-           sumc=zzero
            do ik=1,nkpt
               m=0
               do ist1=1,nstsv
                  do ist2=1,nstsv
                     m=m+1
-                    if (ist1.ne.ist2) sum2=sum2+wkpt(ik)*f(m,ik)* &
-                         aimag(1.d0/(e(m,ik)+w(iw)+zi*brdtd))/e(m,ik)**2
-                    if (ist1.ne.ist2) sum=sum+wkpt(ik)*f(m,ik)* &
-                         dble(1.d0/(e(m,ik)+w(iw)+zi*brdtd))/e(m,ik)**2
-                    if ((ist1<=nstsv-nempty-1).and.(ist2>nstsv-nempty-1)) then
-                       ! Lorentzian broadening
-                       sumc=sumc+&
-                            wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist1,ist2,ik)+w(iw)+zi*brdtd))/&
-                            e12(ist1,ist2,ik)**2  -  &
-                            wkpt(ik)*f12(ist1,ist2,ik)* &
-                            (1.d0/(e12(ist2,ist1,ik)+w(iw)+zi*brdtd))/&
-                            e12(ist2,ist1,ik)**2                
+                    scis=0.d0
+                    if ((evalsv(ist1,ik).le.efermi).and. &
+                         (evalsv(ist2,ik).gt.efermi)) scis=-scissor
+                    if ((evalsv(ist1,ik).gt.efermi).and. &
+                         (evalsv(ist2,ik).le.efermi)) scis=scissor
+                    t3=1.d0
+                    if (.not.tqfmt) then
+                       if (abs(e(m,ik)-scis).gt.eps) then
+                          t3=1.d0/(e(m,ik)-scis)**2
+                       else
+                          t3=0.d0
+                          if ((ist1.ne.ist2).and.(iw.eq.1)) then
+                             write(*,'(a,3i8,g18.10)') 'divergent energy &
+                                  &denominator for ik,ist1,ist2:',ik,ist1, &
+                                  ist2,e(m,ik)
+                          end if
+                       end if
                     end if
-  end do
+                    if ((tqfmt.and.intraband).or.(ist1.ne.ist2)) then
+                       sum1=sum1+wkpt(ik)* f(m,ik)* &
+                            dble(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
+                       sum2=sum2+wkpt(ik)* f(m,ik)* &
+                            aimag(1.d0/(e(m,ik)+w(iw)+zi*optswidth))*t3
+                    end if
+                 end do
               end do
            end do ! ik
-           eps1r(iw)=sum
+           eps1r(iw)=sum1
            eps2(iw)=sum2
-           epsc(iw)=sumc
         end do
-     else ! if (tetra)
+     else ! *** if (optltz)
         ! prefactor
-  t1=-4.d0*(pi**2)/omega
-  f(:,:)=t1*f(:,:)
+        t1=-4.d0*(pi**2)/omega
+        f(:,:)=t1*f(:,:)
         ! calculate imaginary part of the interband dielectric function
-  call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,n,n,e,f,eps2)
-  do iw=1,nwdos
-    t1=w(iw)
-    if (abs(t1).gt.eps) then
-      eps2(iw)=eps2(iw)/(t1**2)
-    else
-      eps2(iw)=0.d0
-    end if
-  end do
+        call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,n,n,e,f,eps2)
+        if (.not.tqfmt) then
+           do iw=1,nwdos
+              t1=w(iw)-scissor !SAG
+              if (abs(t1).gt.eps) then
+                 eps2(iw)=eps2(iw)/(t1**2)
+              else
+                 eps2(iw)=0.d0
+              end if
+           end do
+        end if
         ! calculate the intraband Drude-like contribution and plasma frequency
-  if (intraband) then
-    write(fname,'("PLASMA_",2I1,".OUT")') i1,i2
-    open(62,file=trim(fname),action='WRITE',form='FORMATTED')
-    wd(1)=efermi-0.001d0
-    wd(2)=efermi+0.001d0
+        if (intraband.and.(.not.tqfmt)) then
+           write(fname,'("PLASMA_",2I1,".OUT")') i1,i2
+           open(62,file=trim(fname),action='WRITE',form='FORMATTED')
+           wd(1)=efermi-0.001d0
+           wd(2)=efermi+0.001d0
            call brzint(nsmdos,ngridk,nsk,ikmap,3,wd,nstsv,nstsv,evalsv,&
                 pmatint,g)
-    wplas=sqrt(g(2)*8.d0*pi/omega)
-    do iw=1,nwdos
-      if (abs(w(iw)).gt.eps) then
+           wplas=sqrt(g(2)*8.d0*pi/omega)
+           do iw=1,nwdos
+              if (abs(w(iw)).gt.eps) then
                  ! add the intraband contribution to the imaginary part of the
                  ! tensor
                  eps2(iw)=eps2(iw)+swidth*(wplas**2)/(w(iw)*(w(iw)**2+&
                       swidth**2))
-      end if
-    end do
+              end if
+           end do
            ! write plasma frequency to file
-    write(62,'(G18.10," : plasma frequency")') wplas
-    close(62)
-  end if
-     end if ! if (tetra)
+           write(62,'(G18.10," : plasma frequency")') wplas
+           close(62)
+        end if
+     end if ! *** if (optltz)
      ! calculate real part of the dielectric function
-  if (i1.eq.i2) then
-    t1=1.d0
-  else
-    t1=0.d0
-  end if
+     if (i1.eq.i2) then
+        t1=1.d0
+     else
+        t1=0.d0
+     end if
      ! Kramers-Kronig transform to find real part of dielectric tensor
-  do iw=1,nwdos
-    do jw=1,nwdos
-      t2=w(jw)**2-w(iw)**2
-      if (abs(t2).gt.eps) then
-        fw(jw)=w(jw)*eps2(jw)/t2
-      else
-        fw(jw)=0.d0
-      end if
-    end do
-    call fderiv(-1,nwdos,w,fw,g,cf)
-    eps1(iw)=t1+(2.d0/pi)*g(nwdos)
-        ! <sampling>
-        if (tetra) eps1r(iw)=t1+eps1r(iw)
-        if (lorentz) then 
-           eps1r(iw)=t1+eps1r(iw)
-           epsc(iw)=t1+epsc(iw)
-        end if
-        ! </sampling>
-  end do
+     do iw=1,nwdos
+        do jw=1,nwdos
+           t2=w(jw)**2-w(iw)**2
+           if (abs(t2).gt.eps) then
+              fw(jw)=w(jw)*eps2(jw)/t2
+           else
+              fw(jw)=0.d0
+           end if
+        end do
+        call fderiv(-1,nwdos,w,fw,g,cf)
+        eps1(iw)=t1+(2.d0/pi)*g(nwdos)
+        !<sag>
+        if (bzsmpl.ge.1) eps1r(iw)=t1+eps1r(iw)
+        !</sag>
+     end do
      ! write dielectric function to a file
-  do iw=1,nwdos
-        !<sampling>
-        escale=1.d0
-        if (tevout) escale=h2ev
-        ! modified output variables and format
-        if (tetrat) then
-           write(60,'(4G18.10)') escale*w(iw),eps1(iw),eps2(iw),eps1r(iw)
-        else if (lorentz) then
-           write(60,'(4G18.10)') escale*w(iw),eps1(iw),eps2(iw),eps1r(iw)
-        else
-           write(60,'(3G18.10)') escale*w(iw),eps1(iw),eps2(iw)
-        end if
-        !</sampling>
-  end do
-     ! <sampling>
-     ! commented out for better output format
-!!$     write(60,'("     ")')
-!!$     do iw=1,nwdos
-!!$        write(60,'(2G18.10)') w(iw),eps2(iw)
-!!$     end do
-     ! </sampling>
+     !<sag action="modifications">
+     escal=1.d0
+     if (tev) escal=27.2114d0
+     ! modified output variables and format
+     do iw=1,nwdos
+        select case(bzsmpl)
+        case(0)
+           write(60,'(3G18.10)') escal*w(iw),eps1(iw),eps2(iw)
+        case(1,2)
+           write(60,'(4G18.10)') escal*w(iw),eps1(iw),eps2(iw),eps1r(iw)
+        end select
+     end do
+     !</sag>
      ! calculate optical conductivity
-  sigma1(:)=(eps2(:))*w(:)/(4.d0*pi)
-  sigma2(:)=-(eps1(:)-t1)*w(:)/(4.d0*pi)
+     sigma1(:)=(eps2(:))*w(:)/(4.d0*pi)
+     sigma2(:)=-(eps1(:)-t1)*w(:)/(4.d0*pi)
      ! write the interband optical conductivity to a file
-  do iw=1,nwdos
-    write(61,'(2G18.10)') w(iw),sigma1(iw)
-  end do
-  write(61,'("     ")')
-  do iw=1,nwdos
-    write(61,'(2G18.10)') w(iw),sigma2(iw)
-  end do
-  close(60)
-  close(61)
+     do iw=1,nwdos
+        write(61,'(2G18.10)') w(iw),sigma1(iw)
+     end do
+     write(61,'("     ")')
+     do iw=1,nwdos
+        write(61,'(2G18.10)') w(iw),sigma2(iw)
+     end do
+     close(60)
+     close(61)
      ! end loop over number of components
   end do
-  close(50)
+  !<sag action="modifications">
+  if (.not.tqfmt) close(50)
+#ifdef XS
+  call genfilname(setfilext=.true.)
+#endif
+  !</sag>
   write(*,*)
   write(*,'("Info(linopt):")')
   write(*,'(" dielectric tensor written to EPSILON_ij.OUT")')
   write(*,*)
   write(*,'(" optical conductivity written to SIGMA_ij.OUT")')
   if (intraband) then
-  write(*,*)
-  write(*,'(" plasma frequency written to PLASMA_ij.OUT")')
+     write(*,*)
+     write(*,'(" plasma frequency written to PLASMA_ij.OUT")')
   end if
   write(*,*)
   write(*,'(" for all requested components i,j")')
@@ -388,17 +449,13 @@ subroutine linopt
   deallocate(sigma1,sigma2)
   deallocate(evecfv,evecsv,pmat,pmatint)
   if (usegdft) deallocate(delta,apwalm)
-  ! <sampling>
-  if (tetrat) then
+#ifdef TETRA
+  if (tetra) then
      deallocate(e1,cw,cwa,cwsurf)
   end if
-  if (tetrat.or.lorentz) then
+#endif
+  if (bzsmpl.ge.1) then
      deallocate(eps1r)
   end if
-  if (lorentz) then
-     deallocate(epsc,f12,e12)
-  end if
-  ! </sampling>
   return
 end subroutine linopt
-

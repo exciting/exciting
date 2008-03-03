@@ -1,53 +1,50 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine tetcalccw
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use modtetra
-  use m_tetcalccwq
-  use m_getunit
+  use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'tetcalccw'
-  integer :: iq,un,j
-  logical :: tlfe, tet
-
-  if (calledtd.eq.1) call init0
-
+  character(*), parameter :: thisnam='tetcalccw'
+  integer :: iq
+  logical :: tet
+  if (calledxs.eq.1) call init0
   ! initialise universal variables
   tet=tetra
   tetra=.true.
   call init1
-
   ! save Gamma-point variables
   call tdsave0
-
   ! initialize q-point set
-  call init2td
-
+  call init2xs
+  ! read Fermi energy
+  call readfermi
   ! w-point interval for process
-  wpari=firstofset(rank,nwdf)
-  wparf=lastofset(rank,nwdf)
-
+  if (tscreen) then
+     nwdf=1
+     call genparidxran('q')
+  else
+     call genparidxran('w')
+  end if
   ! loop over q-points
-  do iq = 1, nqpt
+  do iq=qpari,qparf
      ! call for q-point
      call tetcalccwq(iq)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): weights for tetrahedron &
           &method finished for q-point:',iq
   end do
-
   ! synchronize
-  call getunit(un)
-  call barrier(rank=rank,procs=procs,un=un,async=0,string='.barrier')
-
-  if ((procs.gt.1).and.(rank.eq.0)) call tetgather
-
-  call barrier(rank=rank,procs=procs,un=un,async=1,string='.barrier')
-
+  call barrier
+  if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call tetgather
+  call barrier
   tetra=tet
-
   write(unitout,'(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &
        &method finished"
-
+  call genfilname(setfilext=.true.)
 end subroutine tetcalccw

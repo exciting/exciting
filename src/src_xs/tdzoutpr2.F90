@@ -16,8 +16,6 @@ contains
     integer :: i2
     complex(8) :: yc,h(size(x))
 
-    integer :: i,j
-
     h=x
     do i2 = 1, n2
        yc=conjg(y(i2))

@@ -1,11 +1,15 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_getx0
   implicit none
 contains
 
   subroutine getx0(tp0,iq,iw,filnam,filxt,ch0,ch0wg,ch0hd)
     use modmain
-    use modtddft
+    use modxs
     use m_getunit
     implicit none
     ! arguments
@@ -16,7 +20,7 @@ contains
     complex(8), intent(out), optional :: ch0wg(:,:,:),ch0hd(:)
     ! local variables
     character(*), parameter :: thisnam = 'getx0'
-    integer :: recl, un, ikr, ngq_
+    integer :: recl, un, ngq_
     real(8) :: vql_(3)
     logical :: existent
 
@@ -56,6 +60,7 @@ contains
        write(unitout,'(a,3f12.6,a,3f12.6)') 'vql', vql(:,iq), ',', vql_
        write(unitout,'(a,i6)') 'for q-point :',iq
        write(unitout,'(a,i6)') 'for w-point :',iw
+       write(unitout,'(a)') ' file: ',trim(filnam)//trim(filxt)
        call terminate
     end if
     

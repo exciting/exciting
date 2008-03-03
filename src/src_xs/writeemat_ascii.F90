@@ -1,66 +1,79 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine writeemat_ascii
   use modmain
-  use modtddft
+  use modxs
   use m_getunit
   use m_getemat
   use m_genfilname
   implicit none
-  complex(8), allocatable :: emat(:,:,:)
-  complex(8) :: xou,xuo
-  character(16) :: f1,f2,f
   character(256) :: filnam
-  integer :: un,iq,ik,iv,ic,igq
-  real(8) :: vkloff_save(3)
-
-  ! save k-point offset
-  vkloff_save = vkloff
-
+  integer :: un,iq,ik,i,j,ib,jb,igq
+  complex(8) :: zt
   call init0
   call init1
-  call init2td
+  call tdsave0
+  call init2xs
   call getunit(un)
-
   ! loop over q-points
-  do iq = 1, nqpt
-     vkloff(:)=qvkloff(:,iq)
+  do iq=1,nqpt
+     call genfilname(iqmt=iq,setfilext=.true.)
      ! calculate k+q and G+k+q related variables
-     call init1td
+     call init1xs(qvkloff(1,iq))
+     ! find highest (partially) occupied and lowest (partially) unoccupied
+     ! states
+     call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
+          istu)
+     ! set limits for band combinations
+     call ematbdcmbs(emattype)
      if (allocated(xiou)) deallocate(xiou)
-     if (allocated(xiuo)) deallocate(xiuo)
-     allocate(xiou(nstval,nstcon,ngq(iq)))
-     allocate(xiuo(nstcon,nstval,ngq(iq)))
+     allocate(xiou(nst1,nst2,ngq(iq)))
+     if (emattype.ne.0) then
+        if (allocated(xiuo)) deallocate(xiuo)
+        allocate(xiuo(nst3,nst4,ngq(iq)))
+     end if
      ! filename for matrix elements file
-     call genfilname(basename='EMAT',asc=.true.,iq=iq,filnam=filnam)
+     call genfilname(basename='EMAT',asc=.true.,iqmt=iq,etype=emattype, &
+          filnam=filnam)
      open(un,file=trim(filnam),action='write')
-     write(un,'(a)') 'iq,ik,iv,ic,igq,xou,xuo,|xou|^2,|xuo|^2 below'
+     ! read matrix elements of exponential expression
+     call genfilname(basename='EMAT',iqmt=iq,etype=emattype,filnam=fnemat)
+     write(un,'(a)') 'iq,ik,igq,i1,i2,emat,|emat|^2, below'
      ! loop over k-points
      do ik=1,nkpt
-        ! read matrix elements of exponential expression
-        call genfilname(basename='EMAT',iq=iq,filnam=fnemat)
-        call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
-        do iv=1,nstval
-           f1='v'
-           !!!if (ist1.gt.(nstsv-nempty-1)) f1='c'
-           do ic=1,nstcon
-              f2='c'
-              !!!if (ist2.gt.(nstsv-nempty-1)) f2='c'
-              f='  '//trim(f1)//'-'//trim(f2)//'  '
-              do igq=1,ngq(iq)
-                 xou=xiou(iv,ic,igq)
-                 xuo=xiuo(ic,iv,igq)
-                 write(un,'(5i8,6g18.10)') iq,ik,iv,ic,igq,xou,xuo,&
-                      abs(xou)**2,abs(xuo)**2
+        if (emattype.eq.0) then
+           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou)
+        else
+           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou,x2=xiuo)
+        end if
+        do igq=1,ngq(iq)
+           do i=1,nst1
+              ib=i+istlo1-1
+              do j=1,nst2
+                 jb=j+istlo2-1
+                 zt=xiou(i,j,igq)
+                 write(un,'(5i8,3g18.10)') iq,ik,igq,ib,jb,zt,abs(zt)**2
+              end do
+           end do
+        end do
+        do igq=1,ngq(iq)
+           do i=1,nst3
+              ib=i+istlo3-1
+              do j=1,nst4
+                 jb=j+istlo4-1
+                 zt=xiuo(i,j,igq)
+                 write(un,'(5i8,3g18.10)') iq,ik,igq,ib,jb,zt,abs(zt)**2
               end do
            end do
         end do
      end do ! ik
      close(un)
-     deallocate(xiou,xiuo)
-  end do ! iq
-
-  ! restore offset
-  vkloff = vkloff_save
+     deallocate(xiou)
+     if (emattype.ne.0) deallocate(xiuo)
+     ! end loop over q-points
+  end do
   call genfilname(setfilext=.true.)
-
 end subroutine writeemat_ascii

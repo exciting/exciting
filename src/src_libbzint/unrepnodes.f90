@@ -22,6 +22,7 @@
       
       integer(1) :: i,j,k,ib
       integer(1) :: bti,btj
+      real(8), dimension(3) :: intnodi
       real(8) :: sumnt
       integer(1), parameter :: one=1
       real(8), parameter :: zerotol = 1.0d-8
@@ -37,11 +38,12 @@
 !BOC
       i = 1
       do while (i.lt.nnod)
+        intnodi(1:3)=intnodes(1:3,i)
         j=i+1
         do while (j.le.nnod)
           sumnt=0.0d0
           do k=1,3
-            sumnt=sumnt+dabs(intnodes(i,k)-intnodes(j,k))   ! this is mainly to 
+            sumnt=sumnt+dabs(intnodi(k)-intnodes(k,j))   ! this is mainly to 
 !                                    see whether these two points are too close
           enddo
           if(sumnt.lt.zerotol)then                    ! if they are close enough
@@ -53,10 +55,10 @@
               if((btj.eq.1).and.(bti.eq.0))ntype(i)=ibset(ntype(i),ib)
             enddo 
             do k=j+1,nnod
-              intnodes(k-1,1:3)=intnodes(k,1:3)
+              intnodes(1:3,k-1)=intnodes(1:3,k)
               ntype(k-1)=ntype(k)
             enddo
-            intnodes(nnod,1:3)=0.0d0
+            intnodes(1:3,nnod)=0.0d0
             ntype(nnod)=0
             nnod=nnod-1
         else

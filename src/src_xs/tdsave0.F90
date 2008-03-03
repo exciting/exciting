@@ -1,15 +1,20 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine tdsave0
   !
-  ! to be called after init0, init1 and init2td to save q=0 variables
+  ! This routine is be called after init0, init1 and init2xs in order to save
+  ! variables realted to the k-point set for q=0.
   !
   use modmain
-  use modtddft
+  use modxs
   implicit none
 
   ! allocate the k-point arrays
   if (allocated(vkl0)) deallocate(vkl0)
-  allocate(vkl0(3,nkpt))
+  allocate(vkl0(3,nkptnr))
   ! allocate the G+k-point arrays
   if (allocated(ngk0)) deallocate(ngk0)
   if (allocated(igkig0)) deallocate(igkig0)
@@ -30,6 +35,7 @@ subroutine tdsave0
   allocate(nmat0(nkpt,nspnfv))
 
   ! save variables for k-vectors
+  nkpt0=nkpt
   vkl0(:,:) = vkl(:,:)
   ! save variables for G+k-vectors
   ngkmax0 = ngkmax

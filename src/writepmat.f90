@@ -54,6 +54,9 @@ do ik=1,nkpt
   call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalm,evecfv,evecsv,pmat)
 ! write the matrix elements to direct-access file
   write(50,rec=ik) pmat
+#ifdef XS
+  write(*,'(a,i9,a,i9)') 'Done k-point ',ik,' of ',nkpt
+#endif
 end do
 close(50)
 write(*,*)

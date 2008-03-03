@@ -1,7 +1,11 @@
 
+! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine ematgather
   use modmain
-  use modtddft
+  use modxs
   use modmpi
   use m_filedel
   use m_getemat
@@ -9,50 +13,49 @@ subroutine ematgather
   use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'ematgather'
-  integer :: iq,ik,ikr,iproc,recl
-  real(8) :: vkloff_save(3)
-
-  ! save k-point offset
-  vkloff_save = vkloff
-
+  character(*), parameter :: thisnam='ematgather'
+  integer :: iq,ik,iproc
   ! allocate matrix elements array
   if (allocated(xiou)) deallocate(xiou)
-  if (allocated(xiuo)) deallocate(xiuo)
-
+  if (emattype.ne.0) then
+     if (allocated(xiuo)) deallocate(xiuo)
+  end if
   ! loop over q-points
-  do iq = 1, nqpt
-     ! shift k-mesh by q-point
-     vkloff(:)=qvkloff(:,iq)
+  do iq=1,nqpt
+     ! find highest (partially) occupied and lowest (partially) unoccupied
+     ! states
+     call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
+          istu)
+     ! set limits for band combinations
+     call ematbdcmbs(emattype)
      ! calculate k+q and G+k+q related variables
-     call init1td
-     allocate(xiou(nstval,nstcon,ngq(iq)))
-     allocate(xiuo(nstcon,nstval,ngq(iq)))
+     call init1xs(qvkloff(1,iq))
+     allocate(xiou(nst1,nst2,ngq(iq)))
+     if (emattype.ne.0) allocate(xiuo(nst3,nst4,ngq(iq)))
      ! file extension for q-point
      do iproc=0,procs-1
-        call genfilname(basename='EMAT',iq=iq,procs=procs,rank=iproc,&
+        call genfilname(basename='EMAT',iqmt=iq,procs=procs,rank=iproc,&
              filnam=fnemat_t)
         kpari=firstofset(iproc,nkpt)
         kparf=lastofset(iproc,nkpt)
         do ik=kpari,kparf
-           ! exponential factor matrix elements
-           call getemat(iq,ik,.false.,trim(fnemat_t),xiou,xiuo)
-           call putemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
+           if (emattype.ne.0) then
+              call getemat(iq,ik,.false.,trim(fnemat_t),x1=xiou,x2=xiuo)
+              call putemat(iq,ik,.true.,trim(fnemat),x1=xiou,x2=xiuo)
+           else
+              call getemat(iq,ik,.false.,trim(fnemat_t),x1=xiou)
+              call putemat(iq,ik,.true.,trim(fnemat),x1=xiou)
+           end if
         end do
      end do
      do iproc=0,procs-1
-        call genfilname(basename='EMAT',iq=iq,procs=procs,rank=iproc,&
+        call genfilname(basename='EMAT',iqmt=iq,procs=procs,rank=iproc,&
              filnam=fnemat_t)
         call filedel(trim(fnemat_t))
      end do
-
-     deallocate(xiou,xiuo)
+     deallocate(xiou)
+     if (emattype.ne.0) deallocate(xiuo)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Matrix elements of &
           &exponential factor gathered for q-point:',iq
   end do
-
-  ! restore offset
-  vkloff = vkloff_save
-  call genfilname(setfilext=.true.)
-
 end subroutine ematgather

@@ -29,7 +29,7 @@
 
       integer(1) :: ibit, inod,  ip, iind
       integer(4) :: is, it, i, iq1
-      integer(1) :: ibta, ibtb, ibtc 
+      integer(1) :: ibt(3) 
       integer(1) :: it1, it2, is1
       integer(1), dimension(6) :: triangle
       integer(1), dimension(6) :: square
@@ -86,7 +86,7 @@
 !--------------------------------------------------------------------
 
         index(1:5,1)=0
-        if(square(1).ne.0) then     ! the case when there is one node
+        if(is.ne.0) then     ! the case when there is one node
 !                                     out of one surface while the other
 !                                     four in.  
 !--------------------------------------------------------------------
@@ -183,7 +183,6 @@
 !       finding how many triangles and squares to form the region
 !                               end
 !--------------------------------------------------------------------
-
         select case(is)
 
         case(2)
@@ -271,9 +270,9 @@
           case(5)
             ip=ip+1
             penta(ip)=ibit
-            signbit=ibit
           end select
         enddo
+        write(90,'(a7,3i4)')'istp = ',it,is,ip
 !-----------------------------------------------------------------------
 !    Finding how the region is formed, end
 !-----------------------------------------------------------------------
@@ -349,7 +348,7 @@
             do it1=1,3
               if(btest(ntype(inod),triangle(it1)))ibit=ibit+1
             enddo
-            if(btest(ntype(inod),signbit)) then
+            if(btest(ntype(inod),penta(1))) then
               if(ibit.eq.2)index(inod,1)=1
             else
               if(ibit.eq.2) then
@@ -365,7 +364,7 @@
             if(btest(ntype(iind),triangle(it2)))signbita=triangle(it2)
           enddo
           do inod=1,7
-            if((index(inod,1).ne.0).and.(index(inod,2).ne.0)) then
+            if((index(inod,1).eq.0).and.(index(inod,2).eq.0)) then
               if(btest(ntype(inod),signbita).and.  &
      &           btest(ntype(inod),square(1))) then
                  index(inod,2)=5
@@ -419,6 +418,7 @@
 ! Finding how the region is formed, end
 !--------------------------------------------------------------------------    
         index(1:8,1:2)=0
+!        write(90,*)'itsp =',it, is,ip
         select case(is)
         case(2)         ! then it is made up of 2 squares, 2 triangles and 2 penta
 !--------------------------------------------------------------------------
@@ -447,11 +447,9 @@
                if(btest(ntype(inod),square(1)).and.  &
      &            btest(ntype(inod),square(2))) then
                   index(inod,2)=1+(iq1-1)*3
-               else if(btest(ntype(inod),square(1)).and. &
-     &                 btest(ntype(inod),penta(1))) then
+               else if(btest(ntype(inod),square(1))) then
                   index(inod,2)=2+(iq1-1)*3
-               else if(btest(ntype(inod),square(2)).and. &
-     &                 btest(ntype(inod),penta(1))) then
+               else if(btest(ntype(inod),square(2))) then
                   index(inod,2)=3+(iq1-1)*3
                else
                   continue
@@ -472,46 +470,48 @@
 ! When the region is formed by 4 squares, begin
 !--------------------------------------------------------------------------
          is1=0
-         inod=1
-         do ibit=0,5
-            if(btest(ntype(inod),ibit).and.(is1.eq.0)) then
-              ibta=ibit
-              is1=is+1
-            else if(btest(ntype(inod),ibit).and.(is1.eq.1)) then
-              ibtb=ibit
-              is1=is1+1
-            else if(btest(ntype(inod),ibit).and.(is1.eq.2)) then
-              ibtc=ibit
-            endif
-         enddo
-         index(inod,1)=1
-         do inod=1,8
-            if(btest(ntype(inod),ibta).or.btest(ntype(inod),ibtb).or. &
-     &         btest(ntype(inod),ibtc)) then
-              if((index(inod,1).ne.0).and.(index(inod,2).ne.0)) then
-                if(btest(ntype(inod),ibta).and.btest(ntype(inod),ibtb)) then
-                  index(inod,1:2)=2
-                else if(btest(ntype(inod),ibta).and.btest(ntype(inod),ibtc)) then
-                  index(inod,1:2)=3
-                else if(btest(ntype(inod),ibtb).and.btest(ntype(inod),ibtc)) then
-                  index(inod,1)=4
-                else if(btest(ntype(inod),ibta)) then
-                  index(inod,2)=1
-                else if(btest(ntype(inod),ibtb)) then
-                  index(inod,1:2)=5
-                else if(btest(ntype(inod),ibtc)) then
-                  index(inod,1:2)=6
-                else
-                  stop 'error in sortnode.f90 nnod=8 is=6'
-                endif
-              else
-                continue
-              endif
-            else
-              index(inod,2)=4
-            endif
-         enddo
 
+! choose the node 1 to be 1 in the first prism and it is not in the 
+! second (node 1:0)
+         index(1,1)=1
+         index(1,2)=0
+
+! set the three planes to which node 1 belongs as 1,2,3 in order of
+! appearence         
+         do ibit=0,5
+           if(btest(ntype(1),ibit)) then
+             is1=is1+1
+             ibt(is1)=ibit
+           endif
+         enddo
+! the rest of the nodes         
+         do inod=2,8
+         
+           if(btest(ntype(inod),ibt(1)))then
+             if(btest(ntype(inod),ibt(2)))then
+               index(inod,1:2)=2 ! node 2:2= intersection of plane 1 and 2
+             else if(btest(ntype(inod),ibt(3)))then
+               index(inod,1:2)=3 ! node 3:3= intersection of plane 1 and 4
+             else
+               index(inod,1)=0  ! node 0:1= the remaining node of plane 1
+               index(inod,2)=1
+             endif
+           else if(btest(ntype(inod),ibt(2)))then
+             if(btest(ntype(inod),ibt(3)))then
+               index(inod,1)=4  ! node 4:0= intersection of plane 2 and 3
+               index(inod,2)=0
+             else
+               index(inod,1:2)=5 ! node 5:5= the remaining node of plane 2
+             endif
+           else
+             if(btest(ntype(inod),ibt(3)))then
+               index(inod,1:2)=6 ! node 6:6= the remaining node of plane 3
+             else
+               index(inod,1)=0   ! node 0:4= the node that doesn´t belong
+               index(inod,2)=4   ! to any of the planes 1,2 or 3
+             endif
+           endif
+         enddo              
 !--------------------------------------------------------------------------
 ! When the region is formed by 4 squares, end
 !--------------------------------------------------------------------------

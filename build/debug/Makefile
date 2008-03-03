@@ -4,7 +4,7 @@ include make.inc
 serial:make.inc
 	../../utilities/mkmf -t template -f -m Makefile.serial -p excitings \
         ../../src  \
-	    ../../src/src_xs \
+	../../src/src_xs \
         ../../src/src_iterative_solver \
         ../../src/src_iterative_solver/src_jacobidavidson \
 	    ../../src/src_iterative_solver/src_diis \

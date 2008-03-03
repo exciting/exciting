@@ -7,29 +7,28 @@ module m_genfilname
   implicit none
 contains
 
-  subroutine genfilname(nodotpar,basename,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc,iq,procs,rank,dotext,setfilext,revertfilext,&
-       filnam,fileext)
+  subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
+       nar,nlf,fxctype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext,setfilext,&
+       revertfilext,appfilext,filnam,fileext)
     use modmain, only: filext
-    use modtddft, only: filextrevert
-    ! Generate file name and extension accoring to purpose and optional
-    ! input parameters.
+    use modxs, only: filextrevert
+    ! Generates file name and extension according to optional input parameters.
     ! Interpret bzsampl variable as default (Lorentzian) for 0, as
-    ! Tetrahedron method for 1. Trilinear method to be followed.
+    ! tetrahedron method for 1. Trilinear method to be followed.
     !
-    ! Oktober 2007
+    ! October 2007
     implicit none
     ! arguments
-    integer, optional, intent(in) :: bzsampl,fxctype,oc,iq,procs,rank
+    integer, optional, intent(in) :: bzsampl,fxctype,oc1,oc2,iq,iqmt,procs,rank
+    integer, optional, intent(in) :: etype
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
-    logical, optional, intent(in) :: revertfilext,setfilext
+    logical, optional, intent(in) :: revertfilext,setfilext,appfilext
     character(*), optional, intent(in) :: basename,dotext
     character(256), optional, intent(out) :: filnam,fileext
     ! local variables
-    logical :: nodot0,revert,setfxt
+    logical :: nodot0,revert,setfxt,appfxt,dotxt,oct
     character(*), parameter :: thisnam = 'genfilname'
     character(256) :: s,s1
-
     ! if file extension in "modmain" is to be reset to last value: reset
     ! else store current file extension
     revert=.false.
@@ -41,11 +40,37 @@ contains
     else if (setfxt) then
        filextrevert=filext
     end if
-    
+    appfxt=.false.
+    if (present(appfilext)) appfxt=appfilext
+    dotxt=.false.
+    if (present(dotext)) dotxt=.true.
+    if ((appfxt.and.setfxt).or.(appfxt.and.dotxt)) then
+       write(*,'(a)') 'Error('//trim(thisnam)//'): specified appfxt together &
+            &with setfilext or dotext'
+       call terminate
+    end if
+    oct=present(oc1).and.present(oc2)
     ! dot in front of filename in parallel output for rank eq. zero
     nodot0=.false.
     if (present(nodotpar)) nodot0=nodotpar
     s=''
+    ! type of band combinations for plane wave matrix elements
+    if (present(etype)) then
+       select case(etype)
+       case(0)
+          ! all band combinations
+          s=trim(s)//'_FULL'
+       case(1)
+          ! v-c anc c-v combinations for response function
+       case(2)
+          ! v-v and c-c combinations for screened interaction
+          s=trim(s)//'_SCRI'
+       case default
+          write(*,'(a)') 'Error('//trim(thisnam)//'): unknown etype: ', &
+               etype
+          call terminate
+       end select
+    end if
     ! ascii output identifier
     if (present(asc)) then
        if (asc) then
@@ -90,11 +115,16 @@ contains
        s=trim(s)//trim(s1)
     end if
     ! optical components
-    if (present(tq0).and.present(oc)) then
+    if (present(tq0).and.oct) then
        if (tq0) then
-          write(s1,'("_OC",i2.2)') oc*11
+          write(s1,'("_OC",2i1.1)') oc1,oc2
           s=trim(s)//trim(s1)
        end if
+    end if
+    ! Q-point (finite momentum transfer)
+    if (present(iqmt)) then
+       write(s1,'("_QMT",i3.3)') iqmt
+       s=trim(s)//trim(s1)
     end if
     ! q-point
     if (present(iq)) then
@@ -109,9 +139,11 @@ contains
           s=trim(s)//trim(s1)
        end if
     end if
-    ! extension after the dot (including the dot)
+    ! extension (including the dot)
     if (present(dotext)) then
        s=trim(s)//trim(dotext)
+    else if (appfxt) then
+       s=trim(s)//trim(filext)
     else
        s=trim(s)//'.OUT'
     end if

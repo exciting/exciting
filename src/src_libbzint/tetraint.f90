@@ -28,7 +28,7 @@
        
        integer(4), intent(in) :: nb         ! Number of bands
        
-       real(8), target, intent(in) :: ebd(nik,*)  ! Band energies
+       real(8), target, intent(in) :: ebd(nb,nik)  ! Band energies
        
        integer(4), target, intent(in) :: tetc(4,*)  ! id. numbers of 
 !                                                     the corners
@@ -74,9 +74,9 @@
       vt = v
       tetcorn => tetc(1:4,1:ntet)
       tetweig => wtet(1:ntet)
-      eband   => ebd(1:nik,1:nband)
+      eband   => ebd(1:nband,1:nik)
       
-      allocate(kw(nirkp,nband))
+      allocate(kw(nband,nirkp))
 !
 !     use intw to calculate the weights
 !
@@ -91,7 +91,7 @@
 !
       do ik=1,nik
         do ib=1,nband
-          intopm=intopm+kw(ik,ib)*opm(ik,ib)
+          intopm=intopm+kw(ib,ik)*opm(ik,ib)
         enddo
       enddo
       
