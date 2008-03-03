@@ -1,7 +1,7 @@
 ! module to switch the different scl solver modes
 
 module sclcontroll
-use modmain,only:iscl,dv
+use modmain,only:iscl,currentconvergence
 implicit none
  !scl index
   integer diiscounter !! counter for DIIS iterations
@@ -24,7 +24,7 @@ contains
     
   write(*,*)"precond"
     else if (mod(diiscounter,5).eq.0)then
-    if(dv.gt.1e-2) then
+    if(currentconvergence.gt.1e-2) then
        calculate_preconditioner =.true.
     endif
   write(*,*)"precon"
@@ -37,7 +37,7 @@ contains
     if(iterativetype.eq.1) then
        !this may get more advanced:
        if(iscl.ge.diisfirstscl) doDIIScycle=.true.
-       if(dv.gt.1.0)doDIIScycle=.false.
+       if(currentconvergence.gt.1.0)doDIIScycle=.false.
       if(doDIIScycle) write(*,*)"DIIS"
     endif
   end function doDIIScycle

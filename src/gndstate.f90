@@ -99,7 +99,7 @@ subroutine gndstate
   tlast=.false.
   ! initialise the mixer
   call packeff(.true.,n,nu)
-  call mixer(.true.,beta0,betamax,n,nu,mu,beta,f,dv)
+  call mixer(.true.,beta0,betamax,n,nu,mu,beta,f,currentconvergence)
   call packeff(.false.,n,nu)
   ! delete any existing eigenvector files
   call delevec
@@ -286,7 +286,8 @@ subroutine gndstate
         call packeff(.true.,n,nu)
         ! mix in the old potential and field with the new
 
-        if(rank.eq.0)call mixer(.false.,beta0,betamax,n,nu,mu,beta,f,dv)
+        if(rank.eq.0)call mixer(.false.,beta0,betamax,n,nu,mu,beta,f,&
+        currentconvergence)
 #ifdef MPI
         call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
         call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
@@ -352,13 +353,13 @@ subroutine gndstate
            if (iscl.ge.2) then
               write(60,*)
               write(60,'("RMS change in effective potential (target) : ",G18.10,&
-                   &" (",G18.10,")")') dv,epspot
-              if (dv.lt.epspot) then
+                   &" (",G18.10,")")') currentconvergence,epspot
+              if (currentconvergence.lt.epspot) then
                  write(60,*)
                  write(60,'("Potential convergence target achieved")')
                  tlast=.true.
               end if
-              write(65,'(G18.10)') dv
+              write(65,'(G18.10)') currentconvergence
               call flushifc(65)
            end if
            if (xctype.lt.0) then

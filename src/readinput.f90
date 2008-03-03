@@ -15,6 +15,8 @@ use modtetra
 #ifdef XS
 use modxs
 #endif
+
+use sclcontroll
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
 !   from the species files. Also sets default values for the input parameters.
