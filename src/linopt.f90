@@ -42,21 +42,18 @@ subroutine linopt
   complex(8), allocatable :: apwalm(:,:,:,:)
 #ifdef XS
   integer, parameter :: iq=1
-  logical :: tqfmt
 #endif
   complex(8), allocatable :: pmat(:,:,:)
 #ifdef TETRA
-  integer :: m,ist1,ist2
   real(8), parameter :: epstetra=1.d-8
-  real(8) :: escal,sum1,sum2
   real(8), allocatable :: e1(:,:)
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
 #endif
   !<sag>
-  real(8) :: t3,scis
+  real(8) :: t3,scis,sum1,sum2,escal
   real(8), allocatable :: eps1r(:)
-  logical :: tev
-  integer :: bzsmpl
+  logical :: tev,tqfmt
+  integer :: bzsmpl,m,ist1,ist2
   logical, external :: tqgamma
   ! default sampling of Brillouin zone (trilinear method)
   bzsmpl=0
@@ -64,6 +61,7 @@ subroutine linopt
   tev=.true.
   optltz=(optswidth.ne.0.d0)
   if (optltz) bzsmpl=2
+  tqfmt=.false.
   !</sag>
 #ifdef TETRA
   if (tetra.and.optltz) then
@@ -85,9 +83,9 @@ subroutine linopt
   ! initialise universal variables
   call init0
   call init1
-emattype=0
-  call init2xs
 #ifdef XS
+  emattype=0
+  call init2xs
   tqfmt=.not.tqgamma(iq)
   if (tqfmt) then
      call tdsave0
@@ -228,10 +226,12 @@ emattype=0
      end do
 #if TETRA
      if (tetra) then
+#ifdef XS
         if (tqfmt) then
            ! generate link array for tetrahedra
            call gentetlink(vql(1,iq))
         end if
+#endif
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
@@ -293,8 +293,9 @@ emattype=0
               end if
            end if
         end do ! iw
+     end if ! *** if (tetra)
 #endif
-     else if (optltz) then
+     if (optltz) then
         ! prefactor
         t1=-4.d0*pi/omega
         f(:,:)=t1*f(:,:)
@@ -337,7 +338,7 @@ emattype=0
            eps1r(iw)=sum1
            eps2(iw)=sum2
         end do
-     else ! if (tetra)
+     else ! *** if (optltz)
         ! prefactor
         t1=-4.d0*(pi**2)/omega
         f(:,:)=t1*f(:,:)
@@ -374,9 +375,7 @@ emattype=0
            write(62,'(G18.10," : plasma frequency")') wplas
            close(62)
         end if
-#ifdef TETRA
-     end if ! if (tetra)
-#endif
+     end if ! *** if (optltz)
      ! calculate real part of the dielectric function
      if (i1.eq.i2) then
         t1=1.d0
@@ -430,7 +429,9 @@ emattype=0
   end do
   !<sag action="modifications">
   if (.not.tqfmt) close(50)
+#ifdef XS
   call genfilname(setfilext=.true.)
+#endif
   !</sag>
   write(*,*)
   write(*,'("Info(linopt):")')

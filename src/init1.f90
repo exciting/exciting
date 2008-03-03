@@ -170,12 +170,14 @@ subroutine init1
         call kgen(bvec,nsymcryst,sy,ngridk,ikloff,dkloff,nkpt,ivk,dvk,indirkp,&
              iwkp,ntet,tnodes,wtet,tvol,mnd)
         ! debug output
+#ifdef XS        
         if (dbglev.gt.1) then
            write(*,*) 'writing out wtet to file ("wtet_kgen.out") ...'
            open(1234,file='wtet_kgen.out',action='write',status='replace')
            write(1234,'(2i8)') (i1,wtet(i1),i1=1,6*nkpt)
            close(1234)
         end if
+#endif
         ! check tetrahedron weights
         i1=sum(wtet)
         if (i1.ne.6*ngridk(1)*ngridk(2)*ngridk(3)) then

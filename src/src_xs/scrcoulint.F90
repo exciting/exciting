@@ -84,6 +84,10 @@ real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   nst34=nst3*nst4
   nst13=nst1*nst3
   nst24=nst2*nst4
+  
+  write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
+  write(*,*) 'nst12,34,13,24',nst12,nst34,nst13,nst24
+  
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   ! check number of empty states
   if (nemptyscr.lt.nempty) then
@@ -276,7 +280,6 @@ cpu_ematqdealloc=0.d0
               ivgsyma(:,nsyma(iq),iq)=-ivgsym(:)
            end if
         end do
-
         ! find map from G-vectors to rotated G-vectors
         do j=1,nsyma(iq)
            isym=isyma(j,iq)
@@ -295,7 +298,7 @@ cpu_ematqdealloc=0.d0
 !!$     igq1,ivgigq(iv(1),iv(2),iv(3),iqrnr),vgql(:,igq1,iq)- &
 !!$     matmul(transpose(symlat(:,:,lspl)),vqr+iv)
 
-              if (t1.gt.gqmax) then
+              if ((n.gt.1).and.(t1.gt.gqmax)) then
                  write(*,*) '*** need one more symmetry operation'
                  goto 10
               end if
@@ -326,6 +329,7 @@ cpu_ematqdealloc=0.d0
            si(:,:)=dble(symlat(:,:,lspli))
            goto 20
 10         continue
+           ! end loop over symmetry operations
         end do
         write(*,*)
         write(*,'("Error(",a,"): failed to reduce q-point: ",i8)') &
@@ -439,6 +443,7 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
 
         call cpu_time(cpu0)
         call ematqk1(iq,iknr)
+	call ematbdcmbs(emattype) !!! ***
         call cpu_time(cpu1)
         cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
 
