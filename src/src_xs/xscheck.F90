@@ -23,12 +23,12 @@ subroutine xscheck
      write(*,*) 'Warning('//thisnam//'): calculation is spin-polarized'
      warnc = warnc + 1
   end if
-  ! type of response functions
-  if (rsptype.eq.'tord') then
-     write(*,'(a,2i8)') 'Error('//thisnam//'): code limitation - only &
-          &retarded response functions implemented'
-     errc = errc + 1
-  end if
+ !!$ ! type of response functions
+ !!$ if (rsptype.eq.'tord') then
+ !!$    write(*,'(a,2i8)') 'Error('//thisnam//'): code limitation - only &
+ !!$         &retarded response functions implemented'
+ !!$    errc = errc + 1
+ !!$ end if
   ! tetrahedron method not implemented for analytic continuation
   if (tetra.and.acont) then
      write(*,*) 'Error('//thisnam//'): tetrahedron method does not work &

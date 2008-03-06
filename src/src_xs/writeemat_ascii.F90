@@ -17,6 +17,7 @@ subroutine writeemat_ascii
   call init1
   call tdsave0
   call init2xs
+  call readfermi
   call getunit(un)
   ! loop over q-points
   do iq=1,nqpt

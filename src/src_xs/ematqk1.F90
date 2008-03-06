@@ -20,7 +20,8 @@ subroutine ematqk1(iq,ik)
   if (emattype.eq.0) then
      ! all band combinations
      nst3=nstsv; nst4=nstsv
-     call putemat(iq,ik,.false.,trim(fnemat_t),x1=xiou)
+     if (.not.((task.ge.400).and.(task.le.499))) &
+          call putemat(iq,ik,.false.,trim(fnemat_t),x1=xiou)
   else
      ! v-c/c-v or v-v/c-c band combinations
      allocate(xiuo(nst1,nst2,ngq(iq)))

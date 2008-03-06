@@ -173,6 +173,7 @@ subroutine dfq(iq)
   end if
   ! loop over k-points
   do ik=1,nkpt
+     write(*,*) 'dfq: k-point:',ik,ikmapikq(ik,iq)
      cpuosc=0.d0
      cpuupd=0.d0
      call cpu_time(cpu0)

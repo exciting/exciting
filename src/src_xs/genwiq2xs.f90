@@ -49,10 +49,10 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
      qsz=(6*pi**2/(omega*nqpt))**(1.d0/3.d0)
      if ((igq1.ne.1).or.(igq2.ne.1)) then
         ! integrate out 1/q singularity by spherical Volume
-        clwt=(qsz**2*omega/pi )/gqc(igq2,iq)
+        clwt=(qsz**2*omega*nqpt/pi)/gqc(igq2,iq)
      else
         ! integrate out 1/q^2 singularity by spherical Volume
-        clwt=2*qsz*omega/pi
+        clwt=2*qsz*omega*nqpt/pi
      end if
   else if (flag.eq.2) then
      j1=igqig(igq1,iq)
@@ -96,7 +96,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
         ns=ns+nss
      end do
      ! extrapolate the volume element to zero with a polynomial
-     clwt=polynom(0,np,xa,ya,c,0.d0)*fourpi
+     clwt=polynom(0,np,xa,ya,c,0.d0)*fourpi * nqpt !************** nqpt mult.
   end if
   call cpu_time(cpu1)
   t1=cpu1-cpu0

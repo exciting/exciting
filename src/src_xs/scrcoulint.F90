@@ -226,7 +226,7 @@ write(*,*) 'radial integrals for q-point:',iq
   allocate(igqmap(ngqmax,nqpt))
   allocate(phf(ngqmax,ngqmax,nqpt),potcl(ngqmax,ngqmax,nqpt))
   ! allocate array to keep values for all k-points in next loop
-  allocate(sccli(nst1,nst2,nst3,nst4,nkptnr))
+  allocate(sccli(nst1,nst3,nst2,nst4,nkptnr))
 
   phf(:,:,:)=zzero
   potcl(:,:,:)=0.d0
@@ -383,7 +383,7 @@ write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
                  ! G-vector difference
                  ivg2(:)=ivg(:,igqig(igq2,iq))-ivg1(:)
 
-!*** try change in sign of G-vector difference
+!*** try change in sign of G-vector difference !!!!!!!!!!!!!!!!!!!!!!!
 ivg2=-ivg2
 
                  ! translation vector s^-1*vtl(s^-1)
@@ -444,6 +444,23 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         call cpu_time(cpu0)
         call ematqk1(iq,iknr)
 	call ematbdcmbs(emattype) !!! ***
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        do ist1=1,nst1
+           do ist2=1,nst2
+              write(4000,'(3i5,3g18.10)') ikkp,ist1,ist2,xiou(ist1,ist2,1),&
+                   abs(xiou(ist1,ist2,1))**2
+           end do
+        end do
+        do ist3=1,nst3
+           do ist4=1,nst4
+              write(4001,'(3i5,3g18.10)') ikkp,ist3,ist4,xiuo(ist3,ist4,1),&
+                   abs(xiuo(ist3,ist4,1))**2
+           end do
+        end do
+
+
         call cpu_time(cpu1)
         cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
 
@@ -453,50 +470,81 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         cpu_ematqdealloc=cpu_ematqdealloc+cpu1-cpu0
 
 
-        ! * calculate 4*pi*phasefact(G,Gp;q)*potcoul(G,Gp;q)*eps^-1(G1,Gp1,qr)
-        tm(:,:)=fourpi*phf(:,:,iq)*potcl(:,:,iq)*tmi(:,:)
+        ! * calculate phasefact(G,Gp;q)*potcoul(G,Gp;q)*eps^-1(G1,Gp1,qr)
+        tm(:,:)=phf(:,:,iq)*potcl(:,:,iq)*tmi(:,:)
 
-        ! *** help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
-        j1=0
-        do ist2=1,nst2
-           do ist1=1,nst1
-              j1=j1+1
-              emat12(j1,:)=xiou(ist1,ist2,:)
-           end do
-        end do
-        j2=0
-        do ist4=1,nst4
-           do ist3=1,nst3
-              j2=j2+1
-              emat34(j2,:)=xiuo(ist3,ist4,:)
-           end do
-        end do
+!!$        ! *** help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
+!!$        j1=0
+!!$        do ist2=1,nst2
+!!$           do ist1=1,nst1
+!!$              j1=j1+1
+!!$              emat12(j1,:)=xiou(ist1,ist2,:)
+!!$           end do
+!!$        end do
+!!$        j2=0
+!!$        do ist4=1,nst4
+!!$           do ist3=1,nst3
+!!$              j2=j2+1
+!!$              emat34(j2,:)=xiuo(ist3,ist4,:)
+!!$           end do
+!!$        end do
         ! * calculate 
 ! * version 1
-        scclit=matmul(emat34,matmul(tm,conjg(transpose(emat12))))/omega/nkptnr
+!        scclit=matmul(emat34,matmul(tm,conjg(transpose(emat12))))/omega/nkptnr
 ! * version 2
 !        scclit=matmul(emat12,matmul(tm,conjg(transpose(emat34))))/omega/nkptnr
-        j2=0
-        do ist4=1,nst4
-           do ist3=1,nst3
-              j2=j2+1
-              j1=0
-              do ist2=1,nst2
-                 do ist1=1,nst1
-                    j1=j1+1
-                    sccli(ist1,ist2,ist3,ist4,jknr)=scclit(j2,j1)
+
+
+        sccli(:,:,:,:,jknr)=zzero
+        do igq1=1,n
+           do igq2=1,n
+
+
+              do ist1=1,nst1
+                 do ist3=1,nst3
+                    do ist2=1,nst2
+                       do ist4=1,nst4
+
+                          sccli(ist1,ist3,ist2,ist4,jknr)= &
+                               sccli(ist1,ist3,ist2,ist4,jknr)+ &
+                               tm(igq2,igq1)* &
+                               conjg(xiou(ist1,ist2,igq2))* &
+                               xiuo(ist3,ist4,igq1) /omega/nkptnr
+
+                       end do
+                    end do
                  end do
               end do
+              
+
+              ! end loop over (G,Gp) pairs
            end do
         end do
+
+
+
+!!$        j2=0
+!!$        do ist4=1,nst4
+!!$           do ist3=1,nst3
+!!$              j2=j2+1
+!!$              j1=0
+!!$              do ist2=1,nst2
+!!$                 do ist1=1,nst1
+!!$                    j1=j1+1
+!!$                    sccli(ist1,ist3,ist2,ist4,jknr)=scclit(j2,j1)
+!!$                 end do
+!!$              end do
+!!$           end do
+!!$        end do
 
         ! * write out screened Coulomb interaction
         do ist1=1,nst1
            do ist3=1,nst3
               do ist2=1,nst2
                  do ist4=1,nst4
-                    write(1100,'(i5,3x,3i4,2x,3i4,2x,2e18.10)') ikkp,iknr, &
-                         ist1,ist3,jknr,ist2,ist4,sccli(ist1,ist2,ist3,ist4,jknr)
+                    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+                         ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4,jknr),&
+                         abs(sccli(ist1,ist3,ist2,ist4,jknr))
                  end do
               end do
            end do
@@ -506,7 +554,6 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
 
         
 
-        ! *** twice zgemm or matmul *** write zgemm wrapper:)
         
 
         call genfilname(dotext='_SCI.OUT',setfilext=.true.)

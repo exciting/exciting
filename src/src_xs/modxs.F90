@@ -337,6 +337,8 @@ module modxs
   integer, allocatable :: dftrans(:,:)
   ! smallest energy difference for which the inverse square will be considered
   real(8) :: epsdfde
+  ! cutoff energy for dielectric function
+  real(8) :: emaxdf
 
   !----------------------------!
   !     xc-kernel variables    !
