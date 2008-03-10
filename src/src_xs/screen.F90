@@ -37,9 +37,9 @@ subroutine screen
   emattype=1
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   ! call dielectric function with only one frequency point
-  call df
+  !!call df
   ! alternative for checking only:
-  !!call screendm
+  call screendm
   ! restore global variables
   nosym=nosymt
   reducek=reducekt
@@ -57,6 +57,9 @@ subroutine screendm
   ! March 2008
   ! poor man's implementation for checking * do not use for production use
   ! *
+
+use modifcs
+
   use modmain
   use modxs
   use m_genfilname
@@ -69,6 +72,12 @@ subroutine screendm
   real(8), allocatable :: scis12(:,:)
   complex(8) :: zt1
   real(8) :: t1
+
+character(256) :: fname
+integer :: nstmin,nstmax
+integer, allocatable :: nstk(:)
+real(8),allocatable :: wvkl(:,:),we(:,:)
+
   if (calledxs.eq.1) call init0
   ! initialise universal variables
   call init1
@@ -84,6 +93,27 @@ subroutine screendm
   if (allocated(pmou)) deallocate(pmou)
   allocate(pmou(3,nstsv,nstsv))
   allocate(deou(nstsv,nstsv),docc12(nstsv,nstsv),scis12(nstsv,nstsv))
+
+!*************************************************************************
+call wien2k_energy_init(112233,fname='energy_DM',nlheader=2)
+call wien2k_energy_inquire(fname=fname,nstmin=nstmin,nstmax=nstmax)
+call wien2k_energy_printinfo
+
+allocate(wvkl(3,nkpt),we(nstmax,nkpt),nstk(nkpt))
+
+write(444,*) vkc/abs(bvec(1,1))
+call wien2k_energy_fetch(112233,wvkl,we,nstk,vkc/abs(bvec(1,1)),epslat)
+
+do ik=1,nkpt
+write(300,'(i6,3g18.10)') ik,wvkl(:,ik)
+write(301,'(2i6)') ik,nstk(ik)
+do n=1,nstmax
+write(302,'(2i6,g18.10)') ik,n,we(n,ik)
+end do
+end do
+
+deallocate(wvkl,we,nstk)
+stop 'stephan stopped here'
 
   ! loop over q-points
   do iq=1,nqpt
@@ -109,15 +139,24 @@ subroutine screendm
         ! summation for dielectric matrix
         do ist=1,nstsv
           do jst=1,nstsv
+
+
+!********
+if (ist.lt.jst) then
+
             if (abs(docc12(ist,jst)).gt.epsocc) then
               do ig=1,n
                 do igp=1,n
     scrn(ig,igp)=scrn(ig,igp)-docc12(ist,jst)/deou(ist,jst)*xiou(ist,jst,ig)* &
-                           conjg(xiou(ist,jst,igp))*wkpt(ik)/omega
+                           conjg(xiou(ist,jst,igp))*wkpt(ik)/omega * 2.d0 !****
 
                     end do
                  end do
               end if
+
+end if
+!********
+              ! end loop over band-combinations
            end do
         end do
         ! end loop over k-points

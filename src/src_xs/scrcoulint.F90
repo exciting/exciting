@@ -40,6 +40,7 @@ subroutine scrcoulint
 integer :: lmax1,lmax2,lmax3
 real(8) :: cpu0,cpu1,cpu2,cpu3
 real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
+real(8) :: cpu_clph
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -246,6 +247,7 @@ cpu_ematrad=0.d0
 cpu_ematqalloc=0.d0
 cpu_ematqk1=0.d0
 cpu_ematqdealloc=0.d0
+cpu_clph=0.d0
 
 
 
@@ -370,7 +372,7 @@ write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
            end do
         end do
 
-
+        call cpu_time(cpu0)
         ! set up Coulomb potential and phase factor
         if (.not.done(iq)) then
            do igq1=1,n
@@ -398,26 +400,30 @@ ivg2=-ivg2
                  phf(igq1,igq2,iq)=cmplx(t2,t3,8)
                  phf(igq2,igq1,iq)=conjg(phf(igq1,igq2,iq))
 
-write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi,phf(igq1,igq2,iq)
+!write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,isym,isymi,phf',iq,igq1,igq2,isym,isymi,phf(igq1,igq2,iq)
 
                  ! calculate weights for Coulomb potential
                  iflg=0
-                 ! integrate weights for q=0 for the head and wings
-                 ! (and for q/=0 for the head ?? good idea??)
-                 if (tq0) then
-                    if (.not.((igq1.ne.1).and.(igq2.ne.1))) iflg=flg
-                 end if
+                 if (tq0.and.(igq1.eq.1).or.(igq2.eq.1)) then
+                    ! consider only 1/q and 1/q^2 cases for q goint to zero
+		    iflg=flg
+		 else if ((igq1.eq.1).and.(igq2.eq.1)) then
+                    ! consider only 1/q^2 cases for non-zero q-point
+		    iflg=flg
+		 end if
                  call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2,iq))
                  potcl(igq2,igq1,iq)=potcl(igq1,igq2,iq)
 
-if (iflg.ne.0) &
-write(*,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+!if (iflg.ne.0) &
+!write(50,'(a,6i8,2g18.10)') 'ik,jk,q,flg,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
 
 
                  ! end loop over (G,Gp)-vectors
               end do
            end do
         end if
+	call cpu_time(cpu1)
+	cpu_clph=cpu_clph+cpu1-cpu0
 
         call genfilname(iq=iq,dotext='_SCI.OUT',setfilext=.true.)
         if (.not.done(iq)) call writegqpts(iq)
@@ -572,12 +578,13 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         deallocate(tm,tmi,emat12,emat34,scclit)
 
 call cpu_time(cpu3)
-t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs
+t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph
 write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
 write(*,'(a,f12.3)') 'ematrad     :',cpu_ematrad
 write(*,'(a,f12.3)') 'ematqalloc  :',cpu_ematqalloc
 write(*,'(a,f12.3)') 'ematqk1     :',cpu_ematqk1
 write(*,'(a,f12.3)') 'ematqdealloc:',cpu_ematqdealloc
+write(*,'(a,f12.3)') 'ph+cl       :',cpu_clph
 write(*,'(a,f12.3)') '*** sum     :',t3
 write(*,'(a,f12.3)') '*** rest    :',cpu3-cpu2-t3
 write(*,'(a,f12.3)') '*** overall :',cpu3-cpu2

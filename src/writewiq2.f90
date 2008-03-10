@@ -22,7 +22,7 @@ use modmain
 implicit none
 ! local variables
 integer iq,i1,i2,i3
-real(8) v0(3),v1(3),t1,t2
+real(8) v0(3),v1(3),v2(3),t1,t2
 open(50,file='WIQ2'//trim(filext),action='WRITE',form='FORMATTED')
 write(50,'(I6," : nqpt; q-point, vql, wiq2 below")') nqpt
 do iq=1,nqpt
@@ -40,11 +40,16 @@ do iq=1,nqpt
           v0(1)=vql(1,iq)+dble(i1)
           v0(2)=vql(2,iq)+dble(i2)
           v0(3)=vql(3,iq)+dble(i3)
+	  v2(:)=v1(:)
         end if
       end do
     end do
   end do
-  write(50,'(I6,4G18.10)') iq,v0,wiq2(iq)
+  !<sag action="modification">
+  write(50,'(I6,4G18.10,3x,2g18.10)') iq,v0,wiq2(iq), &
+     wiq2(iq)*omega/(twopi**3),1.d0/sum(v2**2)/dble(product(ngridq))
+!  write(50,'(I6,4G18.10)') iq,v0,wiq2(iq)
+  !</sag>
 end do
 close(50)
 return

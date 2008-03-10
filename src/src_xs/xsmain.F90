@@ -103,7 +103,12 @@ subroutine xsmain
      call scrcoulint
   case(499)
      ! * debug task
-     call testxs
+     !!!call testxs
+     call init0
+     call init1
+     call init2
+     call genwiq2
+     call writewiq2
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task
