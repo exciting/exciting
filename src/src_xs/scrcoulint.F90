@@ -21,7 +21,7 @@ subroutine scrcoulint
   integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un,j1,j2
   integer :: idum1,idum2,idum3,oct1,oct,info
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
-  logical :: nosymt,reducekt,tq0,exist
+  logical :: nosymt,reducekt,tq0
   real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
   real(8) :: rm(2,9)
   complex(8) :: scrnh0(3),scrnih0(3)
@@ -41,6 +41,8 @@ integer :: lmax1,lmax2,lmax3
 real(8) :: cpu0,cpu1,cpu2,cpu3
 real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
 real(8) :: cpu_clph
+complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
+
   ! save global variables
   nosymt=nosym
   reducekt=reducek
@@ -76,20 +78,11 @@ real(8) :: cpu_clph
   ! only for systems with a gap in energy
   if (.not.ksgap) then
      write(*,*)
-     write(*,'("Error(",a,"): system does not have a KS gap.")') trim(thisnam)
+     write(*,'("Error(",a,"): screened Coulomb interaction works only for &
+          &systems with KS-gap.")') trim(thisnam)
      write(*,*)
      call terminate
   end if
-  call ematbdcmbs(emattype)
-  nst12=nst1*nst2
-  nst34=nst3*nst4
-  nst13=nst1*nst3
-  nst24=nst2*nst4
-  
-  write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
-  write(*,*) 'nst12,34,13,24',nst12,nst34,nst13,nst24
-  
-  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   ! check number of empty states
   if (nemptyscr.lt.nempty) then
      write(*,*)
@@ -99,6 +92,12 @@ real(8) :: cpu_clph
      write(*,*)
      call terminate
   end if
+  call ematbdcmbs(emattype)
+  nst12=nst1*nst2
+  nst34=nst3*nst4
+  nst13=nst1*nst3
+  nst24=nst2*nst4
+  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   if (rank.eq.0) then
      call writekpts
      call writeqpts
@@ -205,21 +204,11 @@ real(8) :: cpu_clph
   !     loop over non-reduced q-points    !
   !---------------------------------------!
   do iq=1,nqpt
-write(*,*) 'radial integrals for q-point:',iq
-     ! calculate radial integrals
-     call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
-     inquire(file=trim(fname),exist=exist)
-     if (.not.exist) then
-        call ematrad(iq )
-        call getunit(un)
-        open(un,file=trim(fname),form='unformatted',action='write', &
-             status='replace')
-        write(un) riaa,riloa,rilolo
-        close(un)
-     end if
+     write(*,*) 'radial integrals for q-point:',iq
+     call putematrad(iq)
   end do
 
-  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
+!!!!  call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   ! flag for integrating the singular terms in the screened Coulomb interaction
   flg=bsediagweight
   allocate(done(nqpt))
@@ -228,6 +217,9 @@ write(*,*) 'radial integrals for q-point:',iq
   allocate(phf(ngqmax,ngqmax,nqpt),potcl(ngqmax,ngqmax,nqpt))
   ! allocate array to keep values for all k-points in next loop
   allocate(sccli(nst1,nst3,nst2,nst4,nkptnr))
+allocate(emat12k(nst1,nst3,ngq(1)),emat12kp(nst1,nst3,ngq(1)))
+
+
 
   phf(:,:,:)=zzero
   potcl(:,:,:)=0.d0
@@ -238,8 +230,23 @@ write(*,*) 'radial integrals for q-point:',iq
   !     loop over (k,kp) pairs    !
   !-------------------------------!
   do iknr=1,nkptnr
+
+! matrix elements for k and q=0
+emattype=1
+call init1xs(qvkloff(1,1))
+call getematrad(1)
+call ematqalloc
+call ematqk1(1,iknr)
+emat12k(:,:,:)=xiou(:,:,:)
+deallocate(xiou,xiuo)
+emattype=2
+call ematbdcmbs(emattype)
+
+
      do jknr=iknr,nkptnr
         ikkp=ikkp+1
+
+
 
 call cpu_time(cpu2)
 cpu_init1xs=0.d0
@@ -290,7 +297,7 @@ cpu_clph=0.d0
            lspli=lsplsymc(isymi)
            do igq1=1,n
               ivg1(:)=ivg(:,igqig(igq1,iq))
-              ! G1 = s^-1 * ( G + G_s )
+              ! G1 = si^-1 * ( G + G_s ) , where si is the inverse of s
               iv=matmul(transpose(symlat(:,:,lspli)),ivg1+ivgsyma(:,j,iq))
               ! |G1 + q|
               v2=matmul(bvec,iv+vqr)
@@ -389,7 +396,9 @@ write(123,'(a,5i6,3x,i6,3x,3i5)') 'iknr,jknr,iq,iqr,iqrnr,isym,ivgsym',&
 ivg2=-ivg2
 
                  ! translation vector s^-1*vtl(s^-1)
-                 vtl=matmul(transpose(s),vtlsymc(:,isymi))
+!                 vtl=matmul(transpose(s),vtlsymc(:,isymi))
+                 ! we multiply in real space:
+                 vtl=matmul(si,vtlsymc(:,isymi))
                  call r3frac(epslat,vtl,iv)
                  t1=twopi*dot_product(dble(ivg2),vtl)
                  t2=cos(t1)
@@ -429,6 +438,19 @@ ivg2=-ivg2
         if (.not.done(iq)) call writegqpts(iq)
         call genfilname(dotext='_SCR.OUT',setfilext=.true.)
 
+
+! matrix elements for kp and q=0
+emattype=1
+call init1xs(qvkloff(1,1))
+call getematrad(1)
+call ematqalloc
+call ematqk1(1,jknr)
+emat12kp(:,:,:)=xiou(:,:,:)
+deallocate(xiou,xiuo)
+emattype=2
+call ematbdcmbs(emattype)
+
+
         ! calculate matrix elements of the plane wave
         call cpu_time(cpu0)
         call init1xs(qvkloff(1,iq))
@@ -448,6 +470,7 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
         cpu_ematqalloc=cpu_ematqalloc+cpu1-cpu0
 
         call cpu_time(cpu0)
+        emattype=2
         call ematqk1(iq,iknr)
 	call ematbdcmbs(emattype) !!! ***
 
@@ -556,14 +579,7 @@ write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
            end do
         end do
 
-           
-
-        
-
-        
-
         call genfilname(dotext='_SCI.OUT',setfilext=.true.)
-
 
 !!$! check matrix elements
 !!$if ((iknr.eq.2).and.(jknr.eq.7)) then
@@ -592,6 +608,9 @@ write(*,*)
 
      ! end loop over (k,kp) pairs
      end do
+
+deallocate(emat12k,emat12kp)
+
   end do
 
   write(*,*) 'minimum number of symmetry operation for q-point',minval(nsyma)
@@ -613,6 +632,33 @@ end subroutine scrcoulint
 !///////////////////////////////////////////////////////////////////////////////
 !///////////////////////////////////////////////////////////////////////////////
 
+
+subroutine putematrad(iq)
+  use modmain
+  use modxs
+  use m_genfilname
+  use m_getunit
+  implicit none
+  ! arguments
+  integer, intent(in) :: iq
+  ! local variables
+  character(256) :: fname
+  logical :: exist
+  integer :: un
+  ! calculate radial integrals
+  call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
+  inquire(file=trim(fname),exist=exist)
+  if (.not.exist) then
+     call ematrad(iq )
+     call getunit(un)
+     open(un,file=trim(fname),form='unformatted',action='write', &
+          status='replace')
+     write(un) riaa,riloa,rilolo
+     close(un)
+  end if
+end subroutine putematrad
+
+!///////////////////////////////////////////////////////////////////////////////
 
 subroutine getematrad(iq)
   use modmain
@@ -643,3 +689,4 @@ subroutine getematrad(iq)
   read(un) riaa,riloa,rilolo
   close(un)
 end subroutine getematrad
+

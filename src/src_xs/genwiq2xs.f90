@@ -7,18 +7,18 @@
 ! !ROUTINE: genwiq2xs
 ! !INTERFACE:
 subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
-  ! !USES:
+! !USES:
   use modmain
   use modxs
   use m_genfilname
   use m_getunit
-  ! !DESCRIPTION:
-  !   Effective integrals of Coulomb interaction.
-  !
-  ! !REVISION HISTORY:
-  !   Created February 2008 (SAG)
-  !EOP
-  !BOC
+! !DESCRIPTION:
+!   Effective integrals of Coulomb interaction.
+!
+! !REVISION HISTORY:
+!   Created February 2008 (SAG)
+!EOP
+!BOC
   implicit none
   ! arguments
   integer, intent(in) :: flag,iq,igq1,igq2
@@ -29,27 +29,14 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   real(8) :: d(3),dv,sum2,t1,blim(2),blen,vllim(3),ran(3),ranl(3),omegabox
   real(8) :: t2,qsz,cpu0,cpu1
   real(8), allocatable :: xa(:),ya(:),c(:)
-  real(8) :: v0(3),v0l(3)
   real(8) :: v01(3),v02(3),v11(3),v12(3),v21(3),v22(3),v31(3),v32(3)
   ! external functions
   real(8) polynom
   external polynom
   call cpu_time(cpu0)
-
-  ! do not map to the first Brillouin zone
-  v0(:)=vqc(:,iq)
-  v0l(:)=vql(:,iq)
-
-v01(:)=vgqc(:,igq1,iq)
-v02(:)=vgqc(:,igq2,iq)
-
-
-!     j1=igqig(igq1,iq)
-!     j2=igqig(igq2,iq)
-!     v01(:)=v0(:)+dble(ivg(1,j1))*bvec(:,1)+dble(ivg(2,j1))*bvec(:,2)+ &
-!        dble(ivg(3,j1))*bvec(:,3)
-!     v02(:)=v0(:)+dble(ivg(:,j2))
-
+  ! determine G+q-vectors
+  v01(:)=vgqc(:,igq1,iq)
+  v02(:)=vgqc(:,igq2,iq)
   ! integrate out singularites and/or improve accuracy in summations
   select case(flag)
   case(0)
@@ -148,7 +135,7 @@ v02(:)=vgqc(:,igq2,iq)
 	! check if random vector is in sBZ
 	ranl=matmul(binv,ran)
 	if (all(ranl.gt.-vllim).and.(all(ranl.lt.vllim)).and.&
-	    (sum(abs(ran)).gt.1.d-14)) then
+             (sum(abs(ran)).gt.1.d-14)) then
 	   t2=sum((v01+ran)**2)*sum((v02+ran)**2)
 	   t1=t1+1.d0/sqrt(t2)	   
 	end if
@@ -157,8 +144,8 @@ v02(:)=vgqc(:,igq2,iq)
   end select
   call cpu_time(cpu1)
   t1=cpu1-cpu0
-!  if (flag.ne.0) write(*,'("Time in genwiq2xs (seconds):",3i6,f12.2)') iq, &
-!     igq1,igq2,t1
+!!$  if (flag.ne.0) write(*,'("Time in genwiq2xs (seconds):",3i6,f12.2)') iq, &
+!!$       igq1,igq2,t1
 end subroutine genwiq2xs
 !EOC
 

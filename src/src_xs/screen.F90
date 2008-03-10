@@ -37,9 +37,9 @@ subroutine screen
   emattype=1
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   ! call dielectric function with only one frequency point
-  !!call df
+  call df
   ! alternative for checking only:
-  call screendm
+!!$  call screendm
   ! restore global variables
   nosym=nosymt
   reducek=reducekt
@@ -73,10 +73,10 @@ use modifcs
   complex(8) :: zt1
   real(8) :: t1
 
-character(256) :: fname
-integer :: nstmin,nstmax
-integer, allocatable :: nstk(:)
-real(8),allocatable :: wvkl(:,:),we(:,:)
+!!$character(256) :: fname
+!!$integer :: nstmin,nstmax
+!!$integer, allocatable :: nstk(:)
+!!$real(8),allocatable :: wvkl(:,:),we(:,:)
 
   if (calledxs.eq.1) call init0
   ! initialise universal variables
@@ -94,26 +94,27 @@ real(8),allocatable :: wvkl(:,:),we(:,:)
   allocate(pmou(3,nstsv,nstsv))
   allocate(deou(nstsv,nstsv),docc12(nstsv,nstsv),scis12(nstsv,nstsv))
 
-!*************************************************************************
-call wien2k_energy_init(112233,fname='energy_DM',nlheader=2)
-call wien2k_energy_inquire(fname=fname,nstmin=nstmin,nstmax=nstmax)
-call wien2k_energy_printinfo
-
-allocate(wvkl(3,nkpt),we(nstmax,nkpt),nstk(nkpt))
-
-write(444,*) vkc/abs(bvec(1,1))
-call wien2k_energy_fetch(112233,wvkl,we,nstk,vkc/abs(bvec(1,1)),epslat)
-
-do ik=1,nkpt
-write(300,'(i6,3g18.10)') ik,wvkl(:,ik)
-write(301,'(2i6)') ik,nstk(ik)
-do n=1,nstmax
-write(302,'(2i6,g18.10)') ik,n,we(n,ik)
-end do
-end do
-
-deallocate(wvkl,we,nstk)
-stop 'stephan stopped here'
+!!$!*************************************************************************
+!!$call wien2k_energy_init(112233,fname='energy_DM',nlheader=2)
+!!$call wien2k_energy_inquire(fname=fname,nstmin=nstmin,nstmax=nstmax)
+!!$call wien2k_energy_printinfo
+!!$
+!!$allocate(wvkl(3,nkpt),we(nstmax,nkpt),nstk(nkpt))
+!!$
+!!$write(444,*) vkc/abs(bvec(1,1))
+!!$call wien2k_energy_fetch(112233,wvkl,we,nstk,vkc/abs(bvec(1,1)),epslat)
+!!$
+!!$do ik=1,nkpt
+!!$write(300,'(i6,3g18.10)') ik,wvkl(:,ik)
+!!$write(301,'(2i6)') ik,nstk(ik)
+!!$do n=1,nstmax
+!!$write(302,'(2i6,g18.10)') ik,n,we(n,ik)
+!!$end do
+!!$end do
+!!$
+!!$deallocate(wvkl,we,nstk)
+!!$stop 'stephan stopped here'
+!!$!*************************************************************************
 
   ! loop over q-points
   do iq=1,nqpt
@@ -139,8 +140,6 @@ stop 'stephan stopped here'
         ! summation for dielectric matrix
         do ist=1,nstsv
           do jst=1,nstsv
-
-
 !********
 if (ist.lt.jst) then
 
@@ -153,7 +152,6 @@ if (ist.lt.jst) then
                     end do
                  end do
               end if
-
 end if
 !********
               ! end loop over band-combinations
@@ -161,26 +159,20 @@ end if
         end do
         ! end loop over k-points
      end do
-   
      ! diagonal
      forall (ig=1:n) scrn(ig,ig)=scrn(ig,ig)+1.d0
-
      do ig=1,n
         do igp=1,n
            write(1000+iq,'(2i6,2g18.10)') ig,igp,scrn(ig,igp)
         end do
      end do    
      call ematqdealloc
-
      write(unitout,'(a,i8)') 'Info(screendm): dielectric matrix finished &
           &for q-point:',iq
-
      deallocate(xiou,scrn)
-
      ! end loop over q-points
   end do
   call findgntn0_clear
-
   deallocate(deou,docc12,scis12,pmou)
 
 end subroutine screendm
