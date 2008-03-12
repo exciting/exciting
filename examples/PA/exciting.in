@@ -73,3 +73,6 @@ plot1d
    0.0   0.0   0.5      Z(B)
    0.0   0.0   0.0      G
 
+iterativetype
+ 2
+
