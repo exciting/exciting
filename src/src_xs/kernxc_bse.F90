@@ -41,7 +41,7 @@ subroutine kernxc_bse
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
-  real(8), allocatable :: potcl(:,:)
+  real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
@@ -132,6 +132,29 @@ subroutine kernxc_bse
   allocate(fxc(n,n))
   fxc(:,:)=zzero
 
+  allocate(dek(nst1,nst3),dekp(nst1,nst3))
+
+
+  if (allocated(deou)) deallocate(deou)
+  allocate(deou(nst1,nst3))
+  if(allocated(deuo)) deallocate(deuo)
+  allocate(deuo(nst3,nst1))
+  if (allocated(docc12)) deallocate(docc12)
+  allocate(docc12(nst1,nst2))
+  if (allocated(docc21)) deallocate(docc21)
+  allocate(docc21(nst3,nst4))
+  ! allocate matrix elements arrays
+  if (allocated(xiou)) deallocate(xiou)
+  allocate(xiou(nst1,nst2,n))
+  if (allocated(xiuo)) deallocate(xiuo)
+  allocate(xiuo(nst3,nst4,n))
+  if (allocated(pmou)) deallocate(pmou)
+  allocate(pmou(3,nst1,nst2))
+  if (allocated(pmuo)) deallocate(pmuo)
+  allocate(pmuo(3,nst3,nst4))
+  ! allocate arrays
+!  allocate(scis12(nst1,nst2))
+!  allocate(scis21(nst2,nst1))
 
   allocate(sccli(nst1,nst3,nst2,nst4))
   allocate(emat12k(nst1,nst3,ngq(1)),emat12kp(nst1,nst3,ngq(1)))
@@ -151,7 +174,7 @@ subroutine kernxc_bse
   ! first k-point
   do iknr=1,nkptnr
 
-     ! matrix elements for k and q=0
+    ! matrix elements for k and q=0
      emattype=1
      call init1xs(qvkloff(1,1))
      call getematrad(1)
@@ -167,7 +190,8 @@ subroutine kernxc_bse
 
      ! get eigenvalue differences for k-point
      ! ******
-
+!     call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou, &
+!          docc12,docc21)
 
      ! second k-point
      do jknr=1,nkptnr

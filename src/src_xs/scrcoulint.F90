@@ -364,9 +364,7 @@ subroutine scrcoulint
 
 
         ! * version 1
-        scclit=matmul(emat34,matmul(tm,conjg(transpose(emat12))))/omega/nkptnr
-        ! * version 2
-        ! scclit=matmul(emat12,matmul(tm,conjg(transpose(emat34))))/omega/nkptnr
+	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
 
         sccli(:,:,:,:,jknr)=zzero
 !!$        do igq1=1,n
@@ -407,18 +405,18 @@ subroutine scrcoulint
         cpu_suma=cpu_suma+cpu1-cpu0
         call cpu_time(cpu0)
 
-!!$        ! * write out screened Coulomb interaction
-!!$        do ist1=1,nst1
-!!$           do ist3=1,nst3
-!!$              do ist2=1,nst2
-!!$                 do ist4=1,nst4
-!!$                    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-!!$                         ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4,jknr),&
-!!$                         abs(sccli(ist1,ist3,ist2,ist4,jknr))
-!!$                 end do
-!!$              end do
-!!$           end do
-!!$        end do
+	! * write out screened Coulomb interaction
+	do ist1=1,nst1
+	   do ist3=1,nst3
+	      do ist2=1,nst2
+		 do ist4=1,nst4
+		    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+			 ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4,jknr),&
+			 abs(sccli(ist1,ist3,ist2,ist4,jknr))
+		 end do
+	      end do
+	   end do
+	end do
 
         ! write screened Coulomb interaction to direct-access file
         write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
