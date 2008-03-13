@@ -72,7 +72,7 @@ call newsystem(system,.true.,n)
   write(80,rec=1)zwork
   close(80)
   
-  if(system%overlap%packed) call normalizep(n,nstfv,system%overlap%zap,eivec,n)	
+  if(ispacked(system%overlap)) call normalizep(n,nstfv,getpackedpointer(system%overlap),eivec,n)	
   
   do i=1,nstfv
      call zcopy(n,eivec(1,i),1,evecfv(1,i,ispn),1)

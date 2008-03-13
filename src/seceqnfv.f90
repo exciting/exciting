@@ -81,7 +81,8 @@ vu=0.d0
 abstol=2.d0*dlamch('S')
 ! LAPACK 3.0 call
 if(packed) then
-call zhpgvx(1,'V','I','U',nmatp,system%hamilton%zap,system%overlap%zap,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
+call zhpgvx(1,'V','I','U',nmatp,getpackedpointer(system%hamilton),&
+getpackedpointer(system%overlap),vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
  work,rwork,iwork,ifail,info)
  else
  

@@ -36,7 +36,7 @@ end do
 call hmlistln(system%hamilton,ngp,igpig,vgpc)
 call olpistln(system%overlap,ngp,igpig)
 
-if(.not.system%hamilton%packed)then
+if(.not.ispacked(system%hamilton))then
  	call hamiltonoverlapocopy_UL(system)
 endif
 #ifdef DEBUGHO

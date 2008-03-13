@@ -80,7 +80,7 @@ call newsystem(system,packed,n)
     recalculate_preconditioner=.false.
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
-     call seceqfvprecond(n,system%hamilton%za,system%overlap%za,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+     call seceqfvprecond(n,get2dpointer(system%hamilton),get2dpointer(system%overlap),P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
  
@@ -111,7 +111,7 @@ call newsystem(system,packed,n)
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,iunconverged,system%hamilton%za,system%overlap%za,eigenvector,n,&
+        call setuphsvect(n,iunconverged,get2dpointer(system%hamilton),get2dpointer(system%overlap),eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
@@ -137,17 +137,17 @@ call newsystem(system,packed,n)
         endif
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
-        call setuphsvect(n,iunconverged,system%hamilton%za,system%overlap%za,eigenvector,n,&
+        call setuphsvect(n,iunconverged,get2dpointer(system%hamilton),get2dpointer(system%overlap),eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
 
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
-           call normalize(n,nstfv,system%overlap%za,eigenvector,n)	
+           call normalize(n,nstfv,get2dpointer(system%overlap),eigenvector,n)	
         endif
      end do
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
-        call seceqfvprecond(n,system%hamilton%za,system%overlap%za,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+        call seceqfvprecond(n,get2dpointer(system%hamilton),get2dpointer(system%overlap),P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
         write(*,*)"recalculate preconditioner"
       endif
