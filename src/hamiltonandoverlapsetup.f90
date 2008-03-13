@@ -37,15 +37,18 @@ call olpistln(ngp,igpig)
 
 if(.not. packed)then
  	call hamiltonoverlapocopy_UL
-else
+endif
 #ifdef DEBUGHO
- 	do is=1,ohrank
-   		write(888,*)hamiltonp(is),overlapp(is)
- 	end do
- 	write(*,*)"wrote",ohrank
+ if(.not. packed)	 then
+   		write(888,*)dble(hamilton)
+   		write(889,*)aimag(hamilton)
+   		write(890,*)dble(overlap)
+   		write(891,*)aimag(overlap)
+ endif
+ 	write(*,*)"wrote" 
 	stop
 #endif
-endif
+
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
 
