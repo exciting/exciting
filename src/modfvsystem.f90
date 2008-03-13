@@ -3,7 +3,8 @@ module modfvsystem
   type HermiteanMatrix
      private
      integer:: rank
-     logical:: packed
+     logical:: packed,ludecomposed
+     integer,pointer::ipiv(:)
      complex(8), pointer:: za(:,:),zap(:)
   end type HermiteanMatrix
 
@@ -18,6 +19,7 @@ contains
     integer,intent(in)::rank
     self%rank=rank
     self%packed=packed
+    self%ludecomposed=.false.
     if(packed.eqv..true.) then
        allocate(self%zap(rank*(rank+1)/2))
        self%zap=0.0
@@ -33,6 +35,7 @@ contains
     else
        deallocate(self%za)
     endif
+    if(self%ludecomposed) deallocate(self%ipiv)
   end subroutine deletematrix
 
 
@@ -85,12 +88,14 @@ contains
   subroutine Hermiteanmatrixvector(self,alpha,vin,beta,vout)
     implicit none
     type (HermiteanMatrix),intent(inout)::self
-    complex(8),intent(in)::alpha,vin(:),beta
-    complex(8),intent(inout)::vout(:)
+    complex(8),intent(in)::alpha,beta
+    complex(8),intent(inout)::vin(*)
+    complex(8),intent(inout)::vout(*)
+    
     if(self%packed.eqv..true.)then
-       call zhpmv("U",self%rank,alpha,self%zap(1),vin(1), 1,beta,vout(1), 1)
+       call zhpmv("U",self%rank,alpha,getpackedpointer(self),vin, 1,beta,vout, 1)
     else
-       call zhemv("U",self%rank,alpha,self%zap(1),self%rank,vin(1), 1,beta,vout(1), 1)
+       call zhemv("U",self%rank,alpha,get2dpointer(self),self%rank,vin, 1,beta,vout, 1)
     endif
   end subroutine Hermiteanmatrixvector
   function ispacked(self)
@@ -103,6 +108,40 @@ contains
     type(HermiteanMatrix)::self
     getrank=self%rank
   end function getrank
+  subroutine HermiteanmatrixLU(self)
+    type(HermiteanMatrix)::self
+    integer info
+    allocate(self%ipiv(self%rank))
+    if(.not.self%ludecomposed)then
+       if(.not.ispacked(self))then
+          call ZGETRF( self%rank,self%rank, get2dpointer(self), self%rank, self%IPIV, INFO )
+       else
+          call ZHPTRF('U',self%rank, getpackedpointer(self), self%IPIV, INFO )
+       endif
+       if (info.ne.0)then
+          write(*,*)"error in iterativearpacksecequn  HermiteanmatrixLU ",info
+          stop
+       endif
+       self%ludecomposed=.true.
+    endif
+  end subroutine HermiteanmatrixLU
+  subroutine Hermiteanmatrixlinsolve(self,b)
+    type(HermiteanMatrix)::self
+    complex(8),intent(inout)::b(*)
+    integer info
+    if(self%ludecomposed) then
+       if(.not.ispacked(self))then
+          call ZGETRS( 'N', self%rank, 1, get2dpointer(self), self%rank, self%IPIV, &
+               b , self%rank, INFO)
+       else
+          call ZHPTRS( 'U', self%rank, 1, getpackedpointer(self), self%IPIV, b, self%rank, INFO )
+       endif
+       if (info.ne.0)then
+          write(*,*)"error in iterativearpacksecequn Hermiteanmatrixlinsolve ",info
+          stop
+       endif
+    endif
+  end subroutine Hermiteanmatrixlinsolve
 
   function getpackedpointer(self)
     complex(8),pointer::getpackedpointer(:)
@@ -111,6 +150,7 @@ contains
        getpackedpointer=>self%zap
     else
        write(*,*)"error in etpackedpointer"
+       stop
     endif
   end function getpackedpointer
 
@@ -121,7 +161,21 @@ contains
        get2dpointer=>self%za
     else
        write(*,*)"error in get2dpointer"
+       stop
     endif
   end function get2dpointer
 
+  subroutine HermiteanMatrixAXPY(alpha,x,y)
+    complex(8)::alpha
+    type(HermiteanMatrix)::x,y
+    integer:: mysize
+    if (ispacked(x)) then 
+       mysize=(x%rank*(x%rank+1))/2
+        call zaxpy(mysize,alpha,getpackedpointer(x),1,getpackedpointer(y),1)
+    else
+       mysize=x%rank*(x%rank)
+        call zaxpy(mysize,alpha,get2dpointer(x),1,get2dpointer(y),1)
+    endif
+   
+  end subroutine HermiteanMatrixAXPY
 end module modfvsystem

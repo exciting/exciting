@@ -55,8 +55,8 @@ logical::packed
   real(8):: tol
   logical::rvec
   logical:: select(nmat(ik,ispn))
-  !ZHPTR interface vars
-  integer ::IPIV(nmat(ik,ispn))
+  complex(8),pointer::vin(:),vout(:)
+ 
 #ifdef DEBUG
   ndigit = -3
   logfil = 6
@@ -133,14 +133,18 @@ logical::packed
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 
- if(packed.eqv..false.) call zaxpy(n*n,-sigma,get2dpointer(system%overlap),1,get2dpointer(system%hamilton),1)
+
+ 
+ !call zaxpy(getsize(system%overlap),-sigma,get2dpointer(system%overlap),1,get2dpointer(system%hamilton),1)
+ call HermiteanMatrixAXPY(-sigma,system%overlap,system%hamilton)
   !call zhptrf('U', n, h, IPIV, info )
 
-  call ZGETRF( n, n, get2dpointer(system%hamilton), n, IPIV, INFO )
-  if (info.ne.0)then
-     write(*,*)"error in iterativearpacksecequn zhptrf ",info
-     stop
-  endif
+  !call ZGETRF( n, n, get2dpointer(system%hamilton), n, IPIV, INFO )
+  !1if (info.ne.0)then
+   !  write(*,*)"error in iterativearpacksecequn zhptrf ",info
+    ! stop
+  !endif
+  call HermiteanmatrixLU(system%hamilton)
   call cpu_time(cpu1)
   !################################################
   !# reverse comunication loop of arpack library: #
@@ -152,21 +156,23 @@ logical::packed
 
 
      if (ido .eq. -1 .or. ido .eq. 1) then
-
-	!call zhemv("U",n,zone,overlap,n,workd(ipntr(1)), 1, zzero,workd(ipntr(2)), 1)      
-     call  ZGEMV("N",n,n,one,get2dpointer(system%overlap),n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
- 	call  ZGETRS( 'N', n, 1, get2dpointer(system%hamilton), n, IPIV, workd(ipntr(2)) , n, INFO)
-        if (info.ne.0)then
-           write(*,*)"error in iterativearpacksecequn zgetrs ",info
-           stop
-        endif
+	call Hermiteanmatrixvector(system%overlap,one,workd(ipntr(1)),&
+	zero,workd(ipntr(2)))  
+	call  Hermiteanmatrixlinsolve(system%hamilton,workd(ipntr(2)))    
+ 	!call  ZGETRS( 'N', n, 1, get2dpointer(system%hamilton), n, IPIV, &
+ 	!workd(ipntr(2)) , n, INFO)
+     !   if (info.ne.0)then
+      !     write(*,*)"error in iterativearpacksecequn zgetrs ",info
+       !    stop
+      !  endif
      else if(ido .eq.1) then
         call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
-        call  ZGETRS( 'N', n, 1, get2dpointer(system%hamilton), n, IPIV, workd(ipntr(2)) , n, INFO)
+        call  Hermiteanmatrixlinsolve(system%hamilton,workd(ipntr(2)))  
+       
      else if (ido .eq. 2) then
-      call  ZGEMV("N",n,n,one,get2dpointer(system%overlap),n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
-          !  call zhemv("U",n,zone,overlap,n,workd(ipntr(1)), 1,&
-           !  zzero,workd(ipntr(2)), 1)
+     call Hermiteanmatrixvector(system%overlap,one,workd(ipntr(1)),&
+     	zero,workd(ipntr(2)) ) 
+   
      else 
         exit
      endif
