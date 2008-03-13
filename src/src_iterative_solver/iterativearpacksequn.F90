@@ -133,18 +133,8 @@ logical::packed
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 
-
- 
- !call zaxpy(getsize(system%overlap),-sigma,get2dpointer(system%overlap),1,get2dpointer(system%hamilton),1)
- call HermiteanMatrixAXPY(-sigma,system%overlap,system%hamilton)
-  !call zhptrf('U', n, h, IPIV, info )
-
-  !call ZGETRF( n, n, get2dpointer(system%hamilton), n, IPIV, INFO )
-  !1if (info.ne.0)then
-   !  write(*,*)"error in iterativearpacksecequn zhptrf ",info
-    ! stop
-  !endif
-  call HermiteanmatrixLU(system%hamilton)
+  call HermiteanMatrixAXPY(-sigma,system%overlap,system%hamilton)
+  call HermiteanMatrixLU(system%hamilton)
   call cpu_time(cpu1)
   !################################################
   !# reverse comunication loop of arpack library: #
@@ -159,16 +149,9 @@ logical::packed
 	call Hermiteanmatrixvector(system%overlap,one,workd(ipntr(1)),&
 	zero,workd(ipntr(2)))  
 	call  Hermiteanmatrixlinsolve(system%hamilton,workd(ipntr(2)))    
- 	!call  ZGETRS( 'N', n, 1, get2dpointer(system%hamilton), n, IPIV, &
- 	!workd(ipntr(2)) , n, INFO)
-     !   if (info.ne.0)then
-      !     write(*,*)"error in iterativearpacksecequn zgetrs ",info
-       !    stop
-      !  endif
      else if(ido .eq.1) then
         call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
-        call  Hermiteanmatrixlinsolve(system%hamilton,workd(ipntr(2)))  
-       
+        call  Hermiteanmatrixlinsolve(system%hamilton,workd(ipntr(2)))      
      else if (ido .eq. 2) then
      call Hermiteanmatrixvector(system%overlap,one,workd(ipntr(1)),&
      	zero,workd(ipntr(2)) ) 
@@ -201,12 +184,6 @@ logical::packed
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
           info2 )
-     !         (rvec , howmny, select, d     ,
-     !    &                   z    , ldz   , sigma , workev,
-     !    &                   bmat , n     , which , nev   ,
-     !    &                   tol  , resid , ncv   , v     ,
-     !    &                   ldv  , iparam, ipntr , workd ,
-     !    &                   workl, lworkl, rwork , info  )
      if ( info2 .ne. 0 ) then
         print *, ' ' 
         print *, ' Error with zneupd, info = ', info2
