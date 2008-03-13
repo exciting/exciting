@@ -30,9 +30,9 @@ subroutine writeemat
   ! save variables for the Gamma q-point
   call tdsave0
   ! generate Gaunt coefficients
-  call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
+  call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
   ! find indices for non-zero Gaunt coefficients
-  call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+  call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
   write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
        &within lmax values:', lmaxapw,lmaxemat,lmaxapw
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt

@@ -57,15 +57,23 @@ subroutine idfq(iq)
   call getunit(unit2)
   ! neglect/include local field effects
   do m=1,n,max(n-1,1)
-     ! The ALDA kernel does not depend on q in principle, but the G-mesh
-     ! depends through its cutoff for G+q on q. It is independent of w.
-     if (fxctype.eq.5) then
+     select case(fxctype)
+     case(5)
+        ! The ALDA kernel does not depend on q in principle, but the G-mesh
+        ! depends through its cutoff for G+q on q. It is independent of w.
         call fxcifc(fxctype,iq=iq,ng=m,fxcg=fxc)
         ! add symmetrized Coulomb potential (is equal to unity matrix)
         forall(j=1:m) 
            fxc(j,j)=fxc(j,j)+1.d0
         end forall
-     end if
+     case(7,8)
+        ! BSE-kernel
+        call fxcifc(fxctype,ng=m,fxcg=fxc,wgrid=w)
+        ! add symmetrized Coulomb potential (is equal to unity matrix)
+        forall(j=1:m) 
+           fxc(j,j)=fxc(j,j)+1.d0
+        end forall
+     end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
         do oct2=1,nc
@@ -92,7 +100,8 @@ subroutine idfq(iq)
                  end if
               end if
               ! generate xc-kernel
-              if (fxctype.ne.5) then
+              select case(fxctype)
+              case(1,2,3,4)
                  call fxcifc(fxctype,ng=m,w=w(iw),alrc=alphalrc,&
                       alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
@@ -101,7 +110,7 @@ subroutine idfq(iq)
                  end forall
                  ! head of pure f_xc kernel
                  if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
-              end if
+              end select
               ! solve Dyson's equation for the interacting response function
               call dyson(iq,oct,iw,n,chi0,fxc,idf)
               ! symmetrized inverse dielectric function (add one)

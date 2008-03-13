@@ -16,29 +16,23 @@ subroutine scrcoulint
   implicit none
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
-  real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,isym,isymi,jsym,jsymi,igq1,igq2,n,iflg,flg,j
-  integer :: ngridkt(3),iv(3),ivgsym(3),ivg1(3),ivg2(3),lspl,lspli,un,j1,j2
-  integer :: idum1,idum2,idum3,oct1,oct,info
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
-  logical :: nosymt,reducekt,tq0,nsc
-  real(8) :: vklofft(3),vqr(3),vq(3),vtl(3),v2(3),s(3,3),si(3,3),t1,t2,t3
-  real(8) :: rm(2,9)
-  complex(8) :: scrnh0(3),scrnih0(3)
   character(256) :: fname
-  real(8), allocatable :: potcl(:,:,:)
+  real(8), parameter :: epsortho=1.d-12
+  integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,n,iflg,recl
+  integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
+  logical :: nosymt,reducekt,tq0,nsc,tphf
+  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
+  real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
-  complex(8), allocatable :: scrn(:,:),scrnw(:,:,:),scrnh(:)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
   logical, allocatable :: done(:)
   ! external functions
-  real(8), external :: r3taxi
-  integer, external :: octmap,iplocnr
+  integer, external :: iplocnr
   logical, external :: tqgamma
 
-  integer :: lmax1,lmax2,lmax3
   real(8) :: cpu0,cpu1,cpu2,cpu3
   real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   real(8) :: cpu_clph,cpu_suma,cpu_write
@@ -74,9 +68,9 @@ subroutine scrcoulint
   ! save variables for the Gamma q-point
   call tdsave0
   ! generate Gaunt coefficients
-  call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
+  call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
   ! find indices for non-zero Gaunt coefficients
-  call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+  call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
   write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
        &within lmax values:', lmaxapw,lmaxemat,lmaxapw
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
@@ -135,38 +129,45 @@ subroutine scrcoulint
      call putematrad(iq)
   end do
 
-  ! flag for integrating the singular terms in the screened Coulomb interaction
   allocate(done(nqpt))
-  allocate(phf(ngqmax,ngqmax),potcl(ngqmax,ngqmax,nqpt))
+  allocate(phf(ngqmax,ngqmax),potcl(ngqmax,ngqmax))
   ! allocate array to keep values for all k-points in next loop
   allocate(sccli(nst1,nst3,nst2,nst4,nkptnr))
   allocate(emat12k(nst1,nst3,ngq(1)),emat12kp(nst1,nst3,ngq(1)))
   phf(:,:)=zzero
-  potcl(:,:,:)=0.d0
+  potcl(:,:)=0.d0
   sccli(:,:,:,:,:)=zzero
   done(:)=.false.
   ikkp=0
 
+  call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
+  call getunit(un)
+  inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
+       sccli(:,:,:,:,1)
+  open(un,file=trim(fname),form='unformatted',action='write', &
+       status='replace',access='direct',recl=recl)
+
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
+  ! first k-point
   do iknr=1,nkptnr
 
      ! matrix elements for k and q=0
-     emattype=1
-     call init1xs(qvkloff(1,1))
-     call getematrad(1)
-     call ematqalloc
-     call cpu_time(cpu0)
-     call ematqk1(1,iknr)
-     call cpu_time(cpu1)
-     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
-     emat12k(:,:,:)=xiou(:,:,:)
-     deallocate(xiou,xiuo)
+!!$     emattype=1
+!!$     call init1xs(qvkloff(1,1))
+!!$     call getematrad(1)
+!!$     call ematqalloc
+!!$     call cpu_time(cpu0)
+!!$     call ematqk1(1,iknr)
+!!$     call cpu_time(cpu1)
+!!$     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+!!$     emat12k(:,:,:)=xiou(:,:,:)
+!!$     deallocate(xiou,xiuo)
      emattype=2
      call ematbdcmbs(emattype)
 
-
+     ! second k-point
      do jknr=iknr,nkptnr
 
         call cpu_time(cpu2)
@@ -221,45 +222,49 @@ subroutine scrcoulint
         ! temporary arrays
         allocate(tm(n,n),tmi(n,n),emat12(nst12,n),emat34(nst34,n))
         allocate(scclit(nst34,nst12))
+
+        ! generate phase factor for dielectric matrix due to non-primitive
+        ! translations
+        call genphasedm(iq,jsym,ngqmax,n,phf,tphf)
+
         ! rotate inverse of screening
         do igq1=1,n
            j1=igqmap(igq1)
            do igq2=1,n
               j2=igqmap(igq2)
-              tmi(igq1,igq2)=scrni(j1,j2,iqr)
+              if (tphf) then
+                 tmi(igq1,igq2)=scrni(j2,j1,iqr)
+              else
+                 tmi(igq1,igq2)=scrni(j1,j2,iqr)
+              end if
+!!$write(9000+iq,'(4i6,3g18.10)') iqr,igq1,igq2,j2,tmi(igq1,igq2),abs(tmi(igq1,igq2))
            end do
         end do
 
         call cpu_time(cpu0)
 
-        ! generate phase factor for dielectric matrix due to non-primitive
-        ! translations
-        call genphasedm(iq,jsym,ngqmax,n,phf)
-
-        ! set up Coulomb potential and phase factor
-        if (.not.done(iq)) then
-           do igq1=1,n
-              do igq2=igq1,n
-                 ! calculate weights for Coulomb potential
-                 iflg=0
-                 if (tq0.and.(igq1.eq.1).or.(igq2.eq.1)) then
-                    ! consider only 1/q and 1/q^2 cases for q goint to zero
-		    iflg=bsediagweight
-		 else if ((igq1.eq.1).and.(igq2.eq.1)) then
-                    ! consider only 1/q^2 cases for non-zero q-point
-		    iflg=bsediagweight
-		 end if
-                 call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2,iq))
-                 potcl(igq2,igq1,iq)=potcl(igq1,igq2,iq)
-
-                 !if (iflg.ne.0) &
-                 !write(50,'(a,6i8,2g18.10)') 'ik,jk,q,bsediagweight,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2,iq),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+        ! set up Coulomb potential
+        do igq1=1,n
+           do igq2=igq1,n
+              ! calculate weights for Coulomb potential
+              iflg=0
+              if (tq0.and.(igq1.eq.1).or.(igq2.eq.1)) then
+                 ! consider only 1/q and 1/q^2 cases for q goint to zero
+                 iflg=bsediagweight
+              else if ((igq1.eq.1).and.(igq2.eq.1)) then
+                 ! consider only 1/q^2 cases for non-zero q-point
+                 iflg=bsediagweight
+              end if
+              call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2))
+              potcl(igq2,igq1)=potcl(igq1,igq2)
+              
+              !if (iflg.ne.0) &
+              !write(50,'(a,6i8,2g18.10)') 'ik,jk,q,bsediagweight,g,gp,potcl',iknr,jknr,iq,iflg,igq1,igq2,potcl(igq1,igq2),fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
 
 
-                 ! end loop over (G,Gp)-vectors
-              end do
+              ! end loop over (G,Gp)-vectors
            end do
-        end if
+        end do
 	call cpu_time(cpu1)
 	cpu_clph=cpu_clph+cpu1-cpu0
 
@@ -268,17 +273,17 @@ subroutine scrcoulint
         call genfilname(dotext='_SCR.OUT',setfilext=.true.)
 
 
-        ! matrix elements for kp and q=0
-        emattype=1
-        call init1xs(qvkloff(1,1))
-        call getematrad(1)
-        call ematqalloc
-        call cpu_time(cpu0)
-        call ematqk1(1,jknr)
-        call cpu_time(cpu1)
-        cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
-        emat12kp(:,:,:)=xiou(:,:,:)
-        deallocate(xiou,xiuo)
+!!$        ! matrix elements for kp and q=0
+!!$        emattype=1
+!!$        call init1xs(qvkloff(1,1))
+!!$        call getematrad(1)
+!!$        call ematqalloc
+!!$        call cpu_time(cpu0)
+!!$        call ematqk1(1,jknr)
+!!$        call cpu_time(cpu1)
+!!$        cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+!!$        emat12kp(:,:,:)=xiou(:,:,:)
+!!$        deallocate(xiou,xiuo)
         emattype=2
         call ematbdcmbs(emattype)
 
@@ -289,7 +294,8 @@ subroutine scrcoulint
         call cpu_time(cpu1)
         cpu_init1xs=cpu_init1xs+cpu1-cpu0
 
-        write(*,*) 'iknr,jknr,iq,ngq(iq)',iknr,jknr,iq,ngq(iq)
+        write(*,'(a,i6,2x,2i5,2x,2i5,2x,i6)') 'ikkp,iknr,jknr,iq,iqr,ngq(iq)',&
+             ikkp,iknr,jknr,iq,iqr,ngq(iq)
 
         call cpu_time(cpu0)
         call getematrad(iq)
@@ -331,11 +337,8 @@ subroutine scrcoulint
 
 
         ! * calculate phasefact(G,Gp;q)*potcoul(G,Gp;q)*eps^-1(G1,Gp1,qr)
-        tm(:,:)=phf(:,:)*potcl(:,:,iq)*tmi(:,:)
-
-        !***** transpose tm here *** check why *********
-        tm=transpose(tm)
-        !***********************************************
+        !tm(:,:)=phf(:,:)*potcl(:,:)*tmi(:,:)
+        tm(:,:)=potcl(:,:)*tmi(:,:)
 
         call cpu_time(cpu0)
 
@@ -354,6 +357,12 @@ subroutine scrcoulint
               emat34(j2,:)=xiuo(ist3,ist4,:)
            end do
         end do
+
+
+!!$write(*,*) 'shape(emat34)',shape(emat34)
+!!$write(*,*) 'shape(emat12)',shape(emat12)
+
+
         ! * version 1
         scclit=matmul(emat34,matmul(tm,conjg(transpose(emat12))))/omega/nkptnr
         ! * version 2
@@ -398,18 +407,22 @@ subroutine scrcoulint
         cpu_suma=cpu_suma+cpu1-cpu0
         call cpu_time(cpu0)
 
-        ! * write out screened Coulomb interaction
-        do ist1=1,nst1
-           do ist3=1,nst3
-              do ist2=1,nst2
-                 do ist4=1,nst4
-                    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-                         ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4,jknr),&
-                         abs(sccli(ist1,ist3,ist2,ist4,jknr))
-                 end do
-              end do
-           end do
-        end do
+!!$        ! * write out screened Coulomb interaction
+!!$        do ist1=1,nst1
+!!$           do ist3=1,nst3
+!!$              do ist2=1,nst2
+!!$                 do ist4=1,nst4
+!!$                    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+!!$                         ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4,jknr),&
+!!$                         abs(sccli(ist1,ist3,ist2,ist4,jknr))
+!!$                 end do
+!!$              end do
+!!$           end do
+!!$        end do
+
+        ! write screened Coulomb interaction to direct-access file
+        write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
+             sccli(:,:,:,:,iknr)
 
         call cpu_time(cpu1)
         cpu_write=cpu_write+cpu1-cpu0
@@ -437,12 +450,12 @@ subroutine scrcoulint
 
         ! end loop over (k,kp) pairs
      end do
-
-     deallocate(emat12k,emat12kp)
-
   end do
+  close(un)
+
 
   call findgntn0_clear
+  deallocate(emat12k,emat12kp)
   deallocate(done,scrni,phf,potcl,sccli)
 
   !--------------!
@@ -500,7 +513,7 @@ subroutine getematrad(iq)
   ! local variables
   integer :: lmax1,lmax2,lmax3,un
   character(256) :: fname
-  lmax1=lmaxapwtd
+  lmax1=max(lmaxapwtd,lolmax)
   lmax2=lmaxemat
   ! lmax1 and lmax3 should be the same!
   lmax3=lmax1

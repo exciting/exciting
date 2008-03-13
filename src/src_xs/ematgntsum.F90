@@ -20,7 +20,7 @@ subroutine ematgntsum(iq,igq)
   integer :: u1,u2,u3,u4
   integer :: cl1,cm1,cl2,cm2,cl3,cm3
 
-  lmax1 = lmaxapwtd
+  lmax1 = max(lmaxapwtd,lolmax)
   lmax2 = lmaxemat
   ! lmax1 and lmax3 should be the same!
   lmax3 = lmax1

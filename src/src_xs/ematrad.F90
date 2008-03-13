@@ -22,7 +22,7 @@ subroutine ematrad(iq)
   ! allocatable arrays
   real(8), allocatable :: jl(:,:), jhelp(:)
 
-  lmax1 = lmaxapwtd
+  lmax1 = max(lmaxapwtd,lolmax)
   lmax2 = lmaxemat
   ! lmax1 and lmax3 should be the same!
   lmax3 = lmax1

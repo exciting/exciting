@@ -70,8 +70,6 @@ use modifcs
   integer :: iq,ik,ikq,n,ist,jst,ig,igp
   complex(8), allocatable :: scrn(:,:)
   real(8), allocatable :: scis12(:,:)
-  complex(8) :: zt1
-  real(8) :: t1
 
 !!$character(256) :: fname
 !!$integer :: nstmin,nstmax
@@ -83,8 +81,8 @@ use modifcs
   call init1
   call tdsave0
   call init2xs
-  call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
-  call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+  call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
+  call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
   call readfermi
   ! all band combinations
   emattype=0

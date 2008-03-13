@@ -11,28 +11,30 @@ contains
 !BOP
 ! !ROUTINE: fxcifc
 ! !INTERFACE:
-  subroutine fxcifc(fxctype,w,iq,ng,alrc,alrcd,blrcd,lrccoef,fxcg)
+  subroutine fxcifc(fxctype,w,wgrid,iq,ng,alrc,alrcd,blrcd,lrccoef,fxcg)
     use m_fxc_lrc
     use m_fxc_lrcd
 !    use m_fxc_lrcmodel
     use m_fxc_alda
-    ! !INPUT/OUTPUT PARAMETERS:
-    !   fxctype : type of exchange-correlation functional (in,integer)
-    ! !DESCRIPTION:
-    !   Interface to the exchange-correlation kernel routines. This makes it 
-    !   relatively
-    !   simple to add new functionals which do not necessarily depend only on
-    !   all input parameters. Based upon the routine {\tt modxcifc}.
-    !
-    ! !REVISION HISTORY:
-    !   Created October 2007 (Sagmeister)
-    !EOP
-    !BOC
+    use m_fxc_bse_ma03
+! !INPUT/OUTPUT PARAMETERS:
+!   fxctype : type of exchange-correlation functional (in,integer)
+! !DESCRIPTION:
+!   Interface to the exchange-correlation kernel routines. This makes it 
+!   relatively
+!   simple to add new functionals which do not necessarily depend only on
+!   all input parameters. Based upon the routine {\tt modxcifc}.
+!
+! !REVISION HISTORY:
+!   Created October 2007 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! mandatory arguments
     integer, intent(in) :: fxctype
     ! optional arguments
     complex(8), optional, intent(in) :: w
+    complex(8), optional, intent(in) :: wgrid(:)
     integer, optional, intent(in) :: iq
     integer, optional, intent(in) :: ng
     real(8), optional, intent(in) :: alrc
@@ -99,6 +101,24 @@ contains
        else
           goto 10
        end if
+    case(7)
+       ! xc-kernel derived from the Bethe-Salpeter equation
+       ! no local field effects
+       ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
+       if (present(fxcg).and.(present(ng)).and.(present(wgrid))) then
+          call fxc_bse_ma03(ng,.false.,wgrid,fxcg)
+       else
+          goto 10
+       end if
+    case(8)
+       ! xc-kernel derived from the Bethe-Salpeter equation
+       ! inclusion of local field effects
+       ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
+       if (present(fxcg).and.(present(ng)).and.(present(wgrid))) then
+          call fxc_bse_ma03(ng,.true.,wgrid,fxcg)
+       else
+          goto 10
+       end if
     case default
        write(*,*)
        write(*,'("Error(fxcifc): fxctype not defined : ",I8)') fxctype
@@ -120,67 +140,72 @@ contains
 ! !ROUTINE: getfxcdata
 ! !INTERFACE:
   subroutine getfxcdata(fxctype,fxcdescr,fxcspin)
-    ! !INPUT/OUTPUT PARAMETERS:
-    !   fxctype  : type of exchange-correlation functional (in,integer)
-    !   fxcdescr : description of functional (out,character(256))
-    !   fxcspin  : spin treatment (out,integer)
-    !   fxcgrad  : gradient treatment (out,integer)
-    ! !DESCRIPTION:
-    !   Returns data on the exchange-correlation functional labelled by
-    !   {\tt fxctype}. The character array {\tt fxctype} contains a short
-    !   description
-    !   of the functional including journal references. The variable 
-    !   {\tt fxcspin} is
-    !   set to 1 or 0 for spin-polarised or -unpolarised functionals,
-    !   respectively.
-    !
-    ! !REVISION HISTORY:
-    !   Created October 2007 (Sagmeister)
-    !EOP
-    !BOC
+! !INPUT/OUTPUT PARAMETERS:
+!   fxctype  : type of exchange-correlation functional (in,integer)
+!   fxcdescr : description of functional (out,character(256))
+!   fxcspin  : spin treatment (out,integer)
+!   fxcgrad  : gradient treatment (out,integer)
+! !DESCRIPTION:
+!   Returns data on the exchange-correlation functional labelled by
+!   {\tt fxctype}. The character array {\tt fxctype} contains a short
+!   description
+!   of the functional including journal references. The variable 
+!   {\tt fxcspin} is
+!   set to 1 or 0 for spin-polarised or -unpolarised functionals,
+!   respectively.
+!
+! !REVISION HISTORY:
+!   Created October 2007 (Sagmeister)
+!EOP
+!BOC
     implicit none
     integer, intent(in) :: fxctype
     character(256), intent(out) :: fxcdescr
     integer, intent(out) :: fxcspin
-  select case(abs(fxctype))
-  case(0)
-     fxcdescr='xc-kernel set to zero (RPA case)'
-     ! spin-polarisation not required
-     fxcspin=-1
-     return     
-  case(1)
-     fxcdescr='long-range xc-kernel, no local field effects'
-     ! spin-polarisation not required
-     fxcspin=-1
-     return
-  case(2)
-     fxcdescr='long-range xc-kernel, including local field effects'
-     ! spin-polarisation not required
-     fxcspin=0
-     return
-  case(3)
-     fxcdescr='dynamical long-range xc-kernel, no local field effects'
-     ! spin-polarisation not required
-     fxcspin=-1
-    return
-  case(4)
-     fxcdescr='dynamical long-range xc-kernel, including local field effects'
-     ! spin-polarisation not required
-     fxcspin=0
-     return
-  case(5)
-     fxcdescr='ALDA kernel, including local field effects'
-     ! spin-polarisation not required
-     fxcspin=0
-     return
-  case default
-     write(*,*)
-     write(*,'("Error(getfxcdata): fxctype not defined : ",I8)') fxctype
-     write(*,*)
-     stop
-  end select
+    select case(abs(fxctype))
+    case(0)
+       fxcdescr='xc-kernel set to zero (RPA case)'
+       ! spin-polarisation not required
+       fxcspin=-1
+       return     
+    case(1)
+       fxcdescr='long-range xc-kernel, no local field effects'
+       ! spin-polarisation not required
+       fxcspin=-1
+       return
+    case(2)
+       fxcdescr='long-range xc-kernel, including local field effects'
+       ! spin-polarisation not required
+       fxcspin=0
+       return
+    case(3)
+       fxcdescr='dynamical long-range xc-kernel, no local field effects'
+       ! spin-polarisation not required
+       fxcspin=-1
+       return
+    case(4)
+       fxcdescr='dynamical long-range xc-kernel, including local field effects'
+       ! spin-polarisation not required
+       fxcspin=0
+       return
+    case(5)
+       fxcdescr='ALDA kernel, including local field effects'
+       ! spin-polarisation not required
+       fxcspin=0
+       return
+    case(7)
+       fxcdescr='BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003)'
+       ! spin-polarisation not required
+       fxcspin=0
+       return
+    case default
+       write(*,*)
+       write(*,'("Error(getfxcdata): fxctype not defined : ",I8)') fxctype
+       write(*,*)
+       stop
+    end select
   end subroutine getfxcdata
-  !EOC
+!EOC
 
 end module modfxcifc
 

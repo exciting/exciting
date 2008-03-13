@@ -1,11 +1,15 @@
 
 tasks
-  310
-  340
-  350
+401
+430
+440
 
-tetra
-  .true.
+! for screening
+nempty
+30
+
+#tetra
+#  .true.
 
 maxscl
   1
@@ -33,6 +37,15 @@ atoms
 ngridk
   4  4  4
 
+reducek
+.false.
+
+ngridq
+  4  4  4
+
+reduceq
+.false.
+
 vkloff
   0.1  0.3  0.5
 
@@ -51,13 +64,14 @@ dos
   500  100  0
   0.0  0.5
 
-! TDDFT parameter
-qtype
-  'zero'
+vgqlmt
+1
+0.0  0.0  0.0
+
 
 ! TDDFT parameter
 gqmax
-  0.001
+  1.5
 
 ! TDDFT parameter
 #optswidth
