@@ -4,7 +4,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   use modmain
   use modmpi
   use sclcontroll
-  use modfvsystem ,only: packed, hamilton,overlap,ohrank
+  use modfvsystem 
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -31,7 +31,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8),intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
 
   ! local variables
-
+type (evsystem)::system
+logical::packed
   integer ::n
   real:: cpu0,cpu1,cpu2
   Complex(8)::                 zero, one
@@ -120,12 +121,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !setup hamiltonian#
   !##################
   
-  allocate(hamilton(n,n),overlap(n,n))
-  hamilton=0
-  overlap=0
+
   packed=.false.
- ohrank=n
- call hamiltonandoverlapsetup(ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
+
+ call newsystem(system,packed,n)
+ call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
 
 
   call cpu_time(cpu0)
@@ -133,10 +133,10 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 
-  call zaxpy(n*n,-sigma,overlap,1,hamilton,1)
+ if(packed.eqv..false.) call zaxpy(n*n,-sigma,system%overlap%za,1,system%hamilton%za,1)
   !call zhptrf('U', n, h, IPIV, info )
 
-  call ZGETRF( n, n, hamilton, n, IPIV, INFO )
+  call ZGETRF( n, n, system%hamilton%za, n, IPIV, INFO )
   if (info.ne.0)then
      write(*,*)"error in iterativearpacksecequn zhptrf ",info
      stop
@@ -154,17 +154,17 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      if (ido .eq. -1 .or. ido .eq. 1) then
 
 	!call zhemv("U",n,zone,overlap,n,workd(ipntr(1)), 1, zzero,workd(ipntr(2)), 1)      
-     call  ZGEMV("N",n,n,one,overlap,n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
- 	call  ZGETRS( 'N', n, 1, hamilton, n, IPIV, workd(ipntr(2)) , n, INFO)
+     call  ZGEMV("N",n,n,one,system%overlap%za,n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
+ 	call  ZGETRS( 'N', n, 1, system%hamilton%za, n, IPIV, workd(ipntr(2)) , n, INFO)
         if (info.ne.0)then
            write(*,*)"error in iterativearpacksecequn zgetrs ",info
            stop
         endif
      else if(ido .eq.1) then
         call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
-        call  ZGETRS( 'N', n, 1, hamilton, n, IPIV, workd(ipntr(2)) , n, INFO)
+        call  ZGETRS( 'N', n, 1, system%hamilton%za, n, IPIV, workd(ipntr(2)) , n, INFO)
      else if (ido .eq. 2) then
-      call  ZGEMV("N",n,n,one,overlap,n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
+      call  ZGEMV("N",n,n,one,system%overlap%za,n,workd(ipntr(1)),1,zero,workd(ipntr(2)),1)
           !  call zhemv("U",n,zone,overlap,n,workd(ipntr(1)), 1,&
            !  zzero,workd(ipntr(2)), 1)
      else 
@@ -230,7 +230,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      evecfv(:,j,ispn)=v(:,idx(j))
      evalfv(j,ispn)=rd(idx(j))
   end do
-  deallocate(hamilton,overlap)
+    call deleteystem(system)
   deallocate(workd,resid,v,workev,workl,d)
   deallocate(rwork,rd,idx)
   return

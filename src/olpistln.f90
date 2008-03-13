@@ -6,9 +6,10 @@
 !BOP
 ! !ROUTINE: olpistl
 ! !INTERFACE:
-subroutine olpistln(ngp,igpig)
+subroutine olpistln(overlap,ngp,igpig)
 ! !USES:
 use modmain
+use modfvsystem
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp   : number of G+p-vectors (in,integer)
 !   igpig : index from G+p-vectors to G-vectors (in,integer(ngkmax))
@@ -29,7 +30,7 @@ use modmain
 !BOC
 implicit none
 ! arguments
-
+type(HermiteanMatrix),intent(inout)::overlap
 integer, intent(in) :: ngp
 integer, intent(in) :: igpig(ngkmax)
 
@@ -49,9 +50,7 @@ complex(8) zt1
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
       ig=ivgig(iv(1),iv(2),iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
-        !o(k)=o(k)+cfunig(ig)
-          !call zmpalpha(o,np,cfunig(ig),j,i) 
-          call oupdate(cfunig(ig),j,i)
+          call Hermiteanmatrix_indexedupdate(overlap,j,i,cfunig(ig))
       end if
     end do
   end do

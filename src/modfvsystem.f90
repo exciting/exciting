@@ -1,94 +1,97 @@
 module modfvsystem
   implicit none
-  complex(8),allocatable::hamiltonp(:),overlapp(:),hamilton(:,:),overlap(:,:)
-  logical::packed
-  integer ::ohrank
-  interface
-     subroutine hmlaan(is,ia,ngp,apwalm)
-       use modmain
-       integer, intent(in) :: is
-       integer, intent(in) :: ia
-       integer, intent(in) :: ngp
-       complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+type HermiteanMatrix
 
-     end subroutine hmlaan
-  end interface
+integer:: rank
+logical:: packed
+complex(8), pointer:: za(:,:),zap(:)
+end type
 
-  interface
-     subroutine hmlalon(is,ia,ngp,apwalm)
-       use modmain
+type evsystem
 
-       integer, intent(in) :: is
-       integer, intent(in) :: ia
-       integer, intent(in) :: ngp
-       complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+type (HermiteanMatrix) ::hamilton, overlap
+end type 
 
-     end subroutine hmlalon
-  end interface
-
-  interface
-     subroutine hmlistln(ngp,igpig,vgpc)
-       use modmain
-
-       integer, intent(in) :: ngp
-       integer, intent(in) :: igpig(ngkmax)
-       real(8), intent(in) :: vgpc(3,ngkmax)
-
-     end subroutine hmlistln
-  end interface
-  interface
-     subroutine hmllolon(is,ia,ngp)
-       use modmain
-       integer, intent(in) :: is
-       integer, intent(in) :: ia
-       integer, intent(in) :: ngp
+contains
+subroutine newmatrix(self,packed,rank)
+type (HermiteanMatrix),intent(inout)::self
+logical,intent(in)::packed
+integer,intent(in)::rank
+self%rank=rank
+self%packed=packed
+if(packed.eqv..true.) then
+allocate(self%zap(rank*(rank+1)/2))
+self%zap=0.0
+else
+allocate(self%za(rank,rank))
+self%za=0.0
+endif
+end subroutine
+subroutine deletematrix(self)
+type (HermiteanMatrix),intent(inout)::self
+if(self%packed.eqv..true.) then
+deallocate(self%zap)
+else
+deallocate(self%za)
+endif
+end subroutine
 
 
-     end subroutine hmllolon
-  end interface
 
-  interface
-     subroutine olpaan(is,ia,ngp,apwalm)
-       use modmain
-       integer, intent(in) :: is
-       integer, intent(in) :: ia
-       integer, intent(in) :: ngp
-       complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-     end subroutine olpaan
-  end interface
-  interface
-     subroutine olpalon(is,ia,ngp,apwalm)
-       use modmain
-       integer, intent(in) :: is
-       integer, intent(in) :: ia
-       integer, intent(in) :: ngp
-       complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-     end subroutine olpalon
-  end interface
 
-  interface
-     subroutine olpistln(ngp,igpig)
-       use modmain
-       integer, intent(in) :: ngp
-       integer, intent(in) :: igpig(ngkmax)
-     end subroutine olpistln
-  end interface
-  interface
-     subroutine olplolon(is,ia,ngp)
-       use modmain
-       integer, intent(in) :: is
-       integer, intent(in) :: ia
-       integer, intent(in) :: ngp
-     end subroutine olplolon
-  end interface
-  interface
-     subroutine hamiltonandoverlapsetup(ngp,apwalm,igpig,vgpc)
-       use modmain
-       implicit none
-       integer, intent(in)::ngp
-       complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-       integer, intent(in) :: igpig(ngkmax)
-       real(8), intent(in) :: vgpc(3,ngkmax)
-     end subroutine hamiltonandoverlapsetup
-  end interface
+subroutine newsystem(self,packed,rank)
+type (evsystem),intent(out)::self
+logical,intent(in)::packed
+integer,intent(in)::rank
+call newmatrix(self%hamilton,packed,rank)
+call newmatrix(self%overlap,packed,rank)
+end subroutine
+
+subroutine deleteystem(self)
+type(evsystem),intent(inout)::self
+call deletematrix(self%hamilton)
+call deletematrix(self%overlap)
+end subroutine
+
+subroutine Hermiteanmatrix_rank2update(self,n,alpha,x,y)
+type (HermiteanMatrix),intent(inout)::self
+integer,intent(in)::n
+complex(8),intent(in)::alpha,x(:),y(:)
+
+if(self%packed) then
+ call ZHPR2 ( 'U', n, alpha, x, 1, y, 1, self%zap )
+    else
+ call ZHER2 ( 'U', n, alpha, x, 1, y, 1, self%za,self%rank)
+endif
+end subroutine
+
+
+subroutine Hermiteanmatrix_indexedupdate(self,i,j,z)
+type (HermiteanMatrix),intent(inout)::self
+integer::i,j
+complex(8)::z
+integer ipx
+if(self%packed.eqv..true.)then
+ipx=((i-1)*i)/2 + j
+self%zap(ipx)=self%zap(ipx)+z
+else
+if(j.le.i)then
+self%za(j,i)=self%za(j,i)+z
+else
+write(*,*)"warning lower part of hamilton updated"
+endif
+endif
+return
+end subroutine
+subroutine Hermiteanmatrixvector(self,alpha,vin,beta,vout)
+implicit none
+type (HermiteanMatrix),intent(inout)::self
+complex(8),intent(in)::alpha,vin(:),beta
+complex(8),intent(inout)::vout(:)
+if(self%packed.eqv..true.)then
+call zhpmv("U",self%rank,alpha,self%zap(1),vin(1), 1,beta,vout(1), 1)
+else
+call zhemv("U",self%rank,alpha,self%zap(1),self%rank,vin(1), 1,beta,vout(1), 1)
+endif
+end subroutine
 end module modfvsystem

@@ -3,11 +3,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine hmlalon(is,ia,ngp,apwalm)
+subroutine hmlalon(hamilton,is,ia,ngp,apwalm)
 use modmain
+use modfvsystem
 implicit none
 ! arguments
-
+type (hermiteanMatrix),intent(inout)::hamilton
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
@@ -44,7 +45,8 @@ do ilo=1,nlorb(is)
               do j=1,ngp
                 !k=k+1
                 zt1=zsum*apwalm(j,io,lm3,ias)
-               call hupdate(conjg(zt1),i,j)
+              
+               call Hermiteanmatrix_indexedupdate(hamilton,i,j,conjg(zt1))
               end do
    
           end if

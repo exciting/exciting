@@ -6,10 +6,10 @@
 !BOP
 ! !ROUTINE: hmlistl
 ! !INTERFACE:
-subroutine hmlistln(ngp,igpig,vgpc)
+subroutine hmlistln(hamilton,ngp,igpig,vgpc)
 ! !USES:
 use modmain
-
+use modfvsystem
 ! !INPUT/OUTPUT PARAMETERS:
 !   tapp  : .true. if the Hamiltonian is to be applied to the input vector,
 !           .false. if the full matrix is to be calculated (in,logical)
@@ -35,6 +35,7 @@ use modmain
 !BOC
 implicit none
 ! arguments
+type(HermiteanMatrix),intent(inout)::hamilton
 integer, intent(in) :: ngp
 integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
@@ -61,7 +62,8 @@ complex(8) zt1
        !h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
           zt=veffig(ig)+t1*cfunig(ig)
          !  h(k)=h(k)+zt
-          call hupdate(zt,j,i) 
+         
+         call Hermiteanmatrix_indexedupdate(hamilton,j,i,zt)
       end if
     end do
   end do

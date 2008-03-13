@@ -3,11 +3,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine olpalon(is,ia,ngp,apwalm)
+subroutine olpalon(overlap,is,ia,ngp,apwalm)
 use modmain
+use modfvsystem
 implicit none
 ! arguments
-
+type(HermiteanMatrix)::overlap
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
@@ -33,8 +34,8 @@ do ilo=1,nlorb(is)
           zsum=zsum+conjg(apwalm(i,io,lm,ias))*oalo(io,ilo,ias)
         end do
         !o(k)=o(k)+zsum
-        call oupdate(zsum,j,i) 
         
+       call Hermiteanmatrix_indexedupdate(overlap,j,i,zsum)
       end do
    
   end do

@@ -3,12 +3,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine olpaan(is,ia,ngp,apwalm)
+subroutine olpaan(overlap,is,ia,ngp,apwalm)
 use modmain
 use modfvsystem
 implicit none
 ! arguments
-
+type (hermiteanmatrix),intent(inout)::overlap
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
@@ -27,12 +27,7 @@ do l=0,lmaxmat
     do io=1,apword(l,is)
     x=conjg(apwalm(1:ngp,io,lm,ias))
     y=conjg(apwalm(1:ngp,io,lm,ias))
-    if(packed) then
-    
-      call ZHPR2 ( 'U', ngp, zhalf, x, 1, y, 1, overlapp )
-    else
-      call ZHER2 ( 'U', ngp, zhalf, x,  1, y, 1, overlap,ohrank)
-    endif
+    call  Hermiteanmatrix_rank2update(overlap,ngp,zhalf,x,y)
     end do
   end do
 end do

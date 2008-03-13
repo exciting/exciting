@@ -39,6 +39,8 @@ complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 real(8), intent(out) :: evalfv(nstfv)
 complex(8), intent(out) :: evecfv(nmatmax,nstfv)
 ! local variables
+type(evsystem)::system
+logical::packed
 integer is,ia,i,m,np,info
 real(8) vl,vu,abstol
 real(8) cpu0,cpu1
@@ -62,12 +64,11 @@ allocate(work(2*nmatp))
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
-allocate(hamiltonp(np),overlapp(np))
+
 packed=.true.
-hamiltonp(:)=0
-overlapp(:)=0
-ohrank=np
- call hamiltonandoverlapsetup(ngp,apwalm,igpig,vgpc)
+call newsystem(system,packed,nmatp)
+ call hamiltonandoverlapsetup(system,ngp,apwalm,igpig,vgpc)
+
 
 
 !------------------------------------!
@@ -79,8 +80,13 @@ vl=0.d0
 vu=0.d0
 abstol=2.d0*dlamch('S')
 ! LAPACK 3.0 call
-call zhpgvx(1,'V','I','U',nmatp,hamiltonp,overlapp,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
+if(packed) then
+call zhpgvx(1,'V','I','U',nmatp,system%hamilton%zap,system%overlap%zap,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
  work,rwork,iwork,ifail,info)
+ else
+ 
+ endif
+ 
 evalfv(1:nstfv)=w(1:nstfv)
 if (info.ne.0) then
   write(*,*)
@@ -99,7 +105,8 @@ call cpu_time(cpu1)
 !$OMP CRITICAL
 timefv=timefv+cpu1-cpu0
 !$OMP END CRITICAL
-deallocate(iwork,ifail,w,rwork,v,hamiltonp,overlapp,work)
+  call deleteystem(system)
+deallocate(iwork,ifail,w,rwork,v,work)
 return
 end subroutine
 !EOC

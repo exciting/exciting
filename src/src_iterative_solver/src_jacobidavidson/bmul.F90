@@ -4,8 +4,9 @@ use jacobidavidsoncommon
 use modmain,only:zzero,zone
 implicit none
 integer ,intent(in)::n
-complex(8),intent(in)::r(n)
-complex(8),intent(out)::q(n)
-	call zhpmv("U",n,zone,overlapp,q(1), 1,zzero,r(1), 1)
+complex(8),intent(out)::r(n)
+complex(8),intent(in)::q(n)
+
+	call	Hermiteanmatrixvector(system%overlap,zone,q,zzero,r)
 	
 end subroutine bmul

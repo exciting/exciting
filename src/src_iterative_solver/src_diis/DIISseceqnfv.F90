@@ -5,7 +5,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
        ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax,zzero,zone
   use sclcontroll
   use diisinterfaces
-   use modfvsystem ,only: packed, hamilton,overlap,ohrank
+   use modfvsystem 
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -36,7 +36,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   ! local variables
 
-
+type(evsystem)::system
+logical::packed
   integer 	::is,ia,idiis,n,np,ievec,i,info
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
@@ -65,12 +66,10 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
   call cpu_time(cpu0)
-   allocate(hamilton(n,n),overlap(n,n))
-  hamilton=0
-  overlap=0
   packed=.false.
- ohrank=n
-  call hamiltonandoverlapsetup(ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
+
+call newsystem(system,packed,n)
+  call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
 
   call cpu_time(cpu1)
 
@@ -81,7 +80,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
     recalculate_preconditioner=.false.
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
-     call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+     call seceqfvprecond(n,system%hamilton%za,system%overlap%za,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
  
@@ -112,7 +111,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
+        call setuphsvect(n,iunconverged,system%hamilton%za,system%overlap%za,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
@@ -138,23 +137,23 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         endif
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
-        call setuphsvect(n,iunconverged,hamilton,overlap,eigenvector,n,&
+        call setuphsvect(n,iunconverged,system%hamilton%za,system%overlap%za,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
 
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
-           call normalize(n,nstfv,overlap,eigenvector,n)	
+           call normalize(n,nstfv,system%overlap%za,eigenvector,n)	
         endif
      end do
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
-        call seceqfvprecond(n,hamilton,overlap,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+        call seceqfvprecond(n,system%hamilton%za,system%overlap%za,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
         write(*,*)"recalculate preconditioner"
       endif
      call cpu_time(cpu1)
   endif
-    deallocate(hamilton,overlap)
+    call deleteystem(system)
   timefv=timefv+cpu1-cpu0
   return
 end subroutine DIISseceqnfv

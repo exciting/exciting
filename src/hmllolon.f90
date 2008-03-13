@@ -3,11 +3,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine hmllolon(is,ia,ngp)
+subroutine hmllolon(hamilton,is,ia,ngp)
 use modmain
+use modfvsystem
 implicit none
 ! arguments
-
+type(HermiteanMatrix)::hamilton
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
@@ -41,8 +42,8 @@ do ilo1=1,nlorb(is)
          
 ! calculate the matrix elements
           
-            call hupdate(zsum,j,i) 
-        
+           
+       call Hermiteanmatrix_indexedupdate(hamilton,j,i,zsum)
       
         end if
       end do

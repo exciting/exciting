@@ -3,11 +3,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine olplolon(is,ia,ngp)
+subroutine olplolon(overlap,is,ia,ngp)
 use modmain
+use modfvsystem
 implicit none
 ! arguments
-
+type (hermiteanmatrix),intent(inout)::overlap
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
@@ -26,13 +27,8 @@ do ilo1=1,nlorb(is)
         i=ngp+idxlo(lm,ilo1,ias)
         j=ngp+idxlo(lm,ilo2,ias)
         if (i.le.j) then
-    
-! calculate the matrix elements
-          !  k=i+((j-1)*j)/2
-          !  o(k)=o(k)+ololo(ilo1,ilo2,ias)
             zt= dcmplx(ololo(ilo1,ilo2,ias),0.0)
-            call oupdate(zt,j,i) 
-      
+           call Hermiteanmatrix_indexedupdate(overlap,j,i,zt)
         end if
       end do
     end if

@@ -14,6 +14,7 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8), intent(in) 	:: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
   real(8), 	intent(inout) 	:: evalfv(nstfv,nspnfv)
   complex(8), intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
+
   integer n,np,info
   real:: cpu0,cpu1
   integer::recl
@@ -34,11 +35,10 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 v=4+mparam	
 w=v+jmax
   allocate(zwork(n,lwork))
-allocate(hamiltonp(np),overlapp(np))
-packed=.true.
-hamiltonp=0
-overlapp=0
-  call hamiltonandoverlapsetup(ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
+
+call newsystem(system,.true.,n)
+
+  call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
   call cpu_time(cpu0)
   write(krange,*)ik
   write(krange,*)trim(krange),ispn
@@ -61,7 +61,7 @@ overlapp=0
      info=0
   endif
   target=dcmplx(lowesteval,0)
-  call initprecon(n,target,hamiltonp,overlapp)
+  call initprecon(n,target,system%hamilton,system%overlap)
 
   call JDQZ( alpha, beta, eivec, .true., n, target, eps,& 
        nstfv,jmax , jmin, 1,mparam, ldeg, 7, 1000,&
@@ -72,7 +72,7 @@ overlapp=0
   write(80,rec=1)zwork
   close(80)
   
-  call normalizep(n,nstfv,overlap,eivec,n)	
+  if(system%overlap%packed) call normalizep(n,nstfv,system%overlap%zap,eivec,n)	
   
   do i=1,nstfv
      call zcopy(n,eivec(1,i),1,evecfv(1,i,ispn),1)
@@ -80,7 +80,7 @@ overlapp=0
   end do
   
   call deallocprecon()
-  deallocate(zwork,hamiltonp,overlapp)
+  call deleteystem(system)
   call cpu_time(cpu1)
 
   timefv=timefv+cpu1-cpu0

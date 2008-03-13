@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: hmlaa
 ! !INTERFACE:
-subroutine hmlaan(is,ia,ngp,apwalm)
+subroutine hmlaan(hamilton,is,ia,ngp,apwalm)
 ! !USES:
 use modmain
 use modfvsystem
@@ -32,7 +32,7 @@ use modfvsystem
 implicit none
 
 ! arguments
-
+type(HermiteanMatrix),intent(inout)::hamilton
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
@@ -92,11 +92,8 @@ do l1=0,lmaxmat
 !#$omp end parallel
      x=conjg(apwalm(1:ngp,io1,lm1,ias))
      y=conjg(zv)
-       if(packed) then
-      call ZHPR2 ( 'U', ngp, zone, x, 1, y, 1, hamiltonp )
-    else
-      call ZHER2 ( 'U', ngp, zone, x, 1, y, 1, hamilton,ohrank)
-    endif
+   call  Hermiteanmatrix_rank2update(hamilton,ngp,zone,x,y)
+       
     end do
   end do
 end do
@@ -110,12 +107,7 @@ do l1=0,lmaxmat
         zt1=t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)
         x=conjg(apwalm(1:ngp,io1,lm1,ias))
         y=conjg(apwalm(1:ngp,io2,lm1,ias))
-       
-            if(packed) then
-      call ZHPR2 ( 'U', ngp, zt1, x, 1,y, 1, hamiltonp )
-    else
-      call ZHER2 ( 'U', ngp, zt1, x, 1,y, 1, hamilton,ohrank)
-    endif
+       call Hermiteanmatrix_rank2update(hamilton,ngp,zt1,x,y)
       end do
     end do
   end do

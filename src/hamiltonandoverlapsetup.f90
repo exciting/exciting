@@ -1,7 +1,8 @@
-subroutine hamiltonandoverlapsetup(ngp,apwalm,igpig,vgpc)
+subroutine hamiltonandoverlapsetup(system,ngp,apwalm,igpig,vgpc)
 use modfvsystem
 use modmain
 implicit none
+type(evsystem)::system
 integer, intent(in)::ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 integer, intent(in) :: igpig(ngkmax)
@@ -23,20 +24,20 @@ call cpu_time(cpu0)
 ! muffin-tin contributions
 do is=1,nspecies
   do ia=1,natoms(is)
-    call hmlaan(is,ia,ngp,apwalm)
-    call hmlalon(is,ia,ngp,apwalm)
-    call hmllolon(is,ia,ngp)
-    call olpaan(is,ia,ngp,apwalm)
-    call olpalon(is,ia,ngp,apwalm)
-    call olplolon(is,ia,ngp)
+    call hmlaan(system%hamilton,is,ia,ngp,apwalm)
+    call hmlalon(system%hamilton,is,ia,ngp,apwalm)
+    call hmllolon(system%hamilton,is,ia,ngp)
+    call olpaan(system%overlap,is,ia,ngp,apwalm)
+    call olpalon(system%overlap,is,ia,ngp,apwalm)
+    call olplolon(system%overlap,is,ia,ngp)
   end do
 end do
 ! interstitial contributions
-call hmlistln(ngp,igpig,vgpc)
-call olpistln(ngp,igpig)
+call hmlistln(system%hamilton,ngp,igpig,vgpc)
+call olpistln(system%overlap,ngp,igpig)
 
-if(.not. packed)then
- 	call hamiltonoverlapocopy_UL
+if(.not.system%hamilton%packed)then
+ 	call hamiltonoverlapocopy_UL(system)
 endif
 #ifdef DEBUGHO
  if(.not. packed)	 then
