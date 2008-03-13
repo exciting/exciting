@@ -66,13 +66,6 @@ subroutine idfq(iq)
         forall(j=1:m) 
            fxc(j,j)=fxc(j,j)+1.d0
         end forall
-     case(7,8)
-        ! BSE-kernel
-        call fxcifc(fxctype,ng=m,fxcg=fxc,wgrid=w)
-        ! add symmetrized Coulomb potential (is equal to unity matrix)
-        forall(j=1:m) 
-           fxc(j,j)=fxc(j,j)+1.d0
-        end forall
      end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
@@ -101,7 +94,7 @@ subroutine idfq(iq)
               end if
               ! generate xc-kernel
               select case(fxctype)
-              case(1,2,3,4)
+              case(1,2,3,4,7,8)
                  call fxcifc(fxctype,ng=m,w=w(iw),alrc=alphalrc,&
                       alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)

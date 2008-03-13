@@ -101,6 +101,9 @@ subroutine xsmain
   case(440)
      ! screened Coulomb interaction
      call scrcoulint
+  case(450)
+     ! BSE-kernel
+     call kernxc_bse
   case(499)
      ! * debug task
      !!!call testxs

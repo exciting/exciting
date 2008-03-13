@@ -22,7 +22,7 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
   integer, intent(out) :: ivscwrapq(3,nsymcrys)
   ! local variables
   character(*), parameter :: thisnam = 'findgroupq'
-  integer :: isym, lspl, iv(3),iv2(3)
+  integer :: isym, lspl, iv(3)
   real(8) :: s(3,3), v1(3), v1t(3), v2(3), t1
   real(8), external :: r3taxi
   nsymcrysq=0

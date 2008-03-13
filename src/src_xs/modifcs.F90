@@ -40,7 +40,6 @@ contains
     integer, intent(in) :: un,nlheader
     character(*), intent(in) :: fname
     ! local variables
-    character(3) :: tc3
     character(10) :: tc10
     real(8) :: k(3),en
     integer :: j,ist,nv,ne
@@ -96,8 +95,8 @@ write(*,'(i4,1x,g25.18)') ist,en
     real(8), optional, intent(in) :: epslat
     ! local variables
     character(10) :: tc10
-    integer :: s(1),s1(2),s2(2),iv(3),ik,jk,ist,j,nv,ne
-    real(8) :: epsl,vl(3),vlt(3),en
+    integer :: s(1),s1(2),s2(2),ik,jk,ist,j,nv,ne
+    real(8) :: epsl,vl(3),vlt(3)
     epsl=1.d-6
     if (present(epslat)) epsl=epslat
     call wien2k_energy_chkinit

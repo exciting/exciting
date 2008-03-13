@@ -71,8 +71,9 @@ contains
     character(*), optional, intent(in) :: fmt
     logical, optional, intent(in) :: tparen
     ! local variables
-    integer :: i1,i2,i3,i4,i5,i6,i7,npr,unt,ndim
-    integer :: j1,j2,j3,j4,j5,j6,j7
+    integer :: npr,unt,ndim
+    integer :: i1,i2,i3,i4,i5 !!$,i6,i7
+    integer :: j1,j2,j3,j4,j5 !!$,j6,j7
     integer :: sh(7),lb(7),ub(7)
     character(1) :: iot
     character(fmtlen) :: frmt,str

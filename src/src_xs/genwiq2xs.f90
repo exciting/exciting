@@ -25,7 +25,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   real(8), intent(out) :: clwt
   ! local variables
   integer, parameter :: ns0=10,nss=20
-  integer :: np,ns,i1,i2,i3,i,ip,j1,j2,nrbox
+  integer :: np,ns,i1,i2,i3,i,ip,nrbox
   real(8) :: d(3),dv,sum2,t1,blim(2),blen,vllim(3),ran(3),ranl(3),omegabox
   real(8) :: t2,qsz,cpu0,cpu1
   real(8), allocatable :: xa(:),ya(:),c(:)

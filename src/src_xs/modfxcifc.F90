@@ -11,7 +11,7 @@ contains
 !BOP
 ! !ROUTINE: fxcifc
 ! !INTERFACE:
-  subroutine fxcifc(fxctype,w,wgrid,iq,ng,alrc,alrcd,blrcd,lrccoef,fxcg)
+  subroutine fxcifc(fxctype,w,iq,ng,alrc,alrcd,blrcd,lrccoef,fxcg)
     use m_fxc_lrc
     use m_fxc_lrcd
 !    use m_fxc_lrcmodel
@@ -34,7 +34,6 @@ contains
     integer, intent(in) :: fxctype
     ! optional arguments
     complex(8), optional, intent(in) :: w
-    complex(8), optional, intent(in) :: wgrid(:)
     integer, optional, intent(in) :: iq
     integer, optional, intent(in) :: ng
     real(8), optional, intent(in) :: alrc
@@ -105,8 +104,8 @@ contains
        ! xc-kernel derived from the Bethe-Salpeter equation
        ! no local field effects
        ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-       if (present(fxcg).and.(present(ng)).and.(present(wgrid))) then
-          call fxc_bse_ma03(ng,.false.,wgrid,fxcg)
+       if (present(fxcg).and.(present(ng)).and.(present(w))) then
+          call fxc_bse_ma03(ng,.false.,w,fxcg)
        else
           goto 10
        end if
@@ -114,8 +113,8 @@ contains
        ! xc-kernel derived from the Bethe-Salpeter equation
        ! inclusion of local field effects
        ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-       if (present(fxcg).and.(present(ng)).and.(present(wgrid))) then
-          call fxc_bse_ma03(ng,.true.,wgrid,fxcg)
+       if (present(fxcg).and.(present(ng)).and.(present(w))) then
+          call fxc_bse_ma03(ng,.true.,w,fxcg)
        else
           goto 10
        end if
@@ -194,7 +193,14 @@ contains
        fxcspin=0
        return
     case(7)
-       fxcdescr='BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003)'
+       fxcdescr='BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
+            &no local field effects'
+       ! spin-polarisation not required
+       fxcspin=0
+       return
+    case(8)
+       fxcdescr='BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
+            &including local field effects'
        ! spin-polarisation not required
        fxcspin=0
        return
