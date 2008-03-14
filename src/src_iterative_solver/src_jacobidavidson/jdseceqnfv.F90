@@ -36,7 +36,7 @@ v=4+mparam
 w=v+jmax
   allocate(zwork(n,lwork))
 
-call newsystem(system,.true.,n)
+call newsystem(system,packedmatrixstorage,n)
 
   call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
   call cpu_time(cpu0)
