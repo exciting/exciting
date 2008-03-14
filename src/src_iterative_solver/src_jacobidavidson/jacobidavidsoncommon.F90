@@ -1,7 +1,5 @@
 module jacobidavidsoncommon
-use modfvsystem
-type(evsystem)::system
-type(HermiteanMatrix)::p
-
-
+	use modfvsystem
+	type(evsystem)::system
+	type(HermiteanMatrix)::p
 end module

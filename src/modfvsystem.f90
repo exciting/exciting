@@ -1,3 +1,8 @@
+! Module for setting up the eigensystem
+! it is designed in a way that all other subroutines
+! dealing with setting up and solving the system can acsess the
+! data transparently allowing to choose from different datatypes
+! more easily
 module modfvsystem
   implicit none
   
