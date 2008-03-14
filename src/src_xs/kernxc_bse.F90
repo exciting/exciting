@@ -19,6 +19,7 @@ subroutine kernxc_bse(oct)
   use m_writegqpts
   use m_genwgrid
   use m_dyson
+  use m_tdzoutpr3
   use m_getpemat
   use m_getx0
   use m_getunit
@@ -29,8 +30,9 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
+  real(8), parameter :: delt=1.d-5
   character(256) :: filnam,filnam2
-  complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
+  complex(8),allocatable :: chi0(:,:), fxc(:,:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
   integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct1,oct2,igmt
   integer, external :: l2int
@@ -46,7 +48,7 @@ subroutine kernxc_bse(oct)
   logical :: nosymt,reducekt,tq0,nsc,tphf
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,t1
   real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
-  real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:),de12(:,:),de12p(:,:)
+  real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:)
   real(8), allocatable :: zmr(:,:),zmq(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
@@ -151,17 +153,16 @@ subroutine kernxc_bse(oct)
   ! allocate local arrays
   allocate(emat12(nst13,n),emat12p(nst13,n),zmr(nst13,nst13),zmq(nst13,nst13))
   allocate(dek(nst1,nst3),dekp(nst1,nst3),dde(nst1,nst3))
-  allocate(de12(nst13),de12p(nst13))
   allocate(dok(nst1,nst3),dokp(nst1,nst3))
   allocate(scisk(nst1,nst3),sciskp(nst1,nst3))
-  allocate(fxc(n,n))
+  allocate(fxc(n,n,nwdf))
   allocate(sccli(nst1,nst3,nst2,nst4))
   allocate(scclih(nst1,nst3,nst2,nst4))
   allocate(scclit(nst13,nst13))
-  allocate(emat12k(n,nst1,nst3,),emat12kp(nst1,nst3,n))
+  allocate(emat12k(n,nst1,nst3),emat12kp(nst1,nst3,n))
   allocate(residr(nst13,n),residq(nst13,n))
   allocate(w(n),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
-  fxc(:,:)=zzero
+  fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
 
   ! open file for screened Coulomb interaction
@@ -197,7 +198,9 @@ subroutine kernxc_bse(oct)
      call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
      ! assign optical component
      xiou(:,:,1)=pmou(oct,:,:)
-     emat12k(:,:,:)=xiou(:,:,:)
+     do igq1=1,n
+        emat12k(igq1,:,:)=xiou(:,:,igq1)
+     end do
      deallocate(xiou)
      emattype=2
      call ematbdcmbs(emattype)
@@ -270,7 +273,7 @@ subroutine kernxc_bse(oct)
 !!$           do ist1=1,nst1
 !!$              do ist2=1,nst3
 !!$                 write(4000,'(4i5,3g18.10)') iknr,igq1,ist1,ist2, &
-!!$                      emat12k(ist1,ist2,igq1),abs(emat12k(ist1,ist2,igq1))**2
+!!$                      emat12k(igq1,ist1,ist2),abs(emat12k(igq1,ist1,ist2))**2
 !!$              end do
 !!$           end do
 !!$        end do
@@ -336,10 +339,8 @@ subroutine kernxc_bse(oct)
         do ist2=1,nst3
            do ist1=1,nst1
               j1=j1+1
-!!$              emat12(j1,:)=emat12k(ist1,ist2,:)              
+!!$              emat12(j1,:)=emat12k(:,ist1,ist2)              
               emat12p(j1,:)=emat12kp(ist1,ist2,:)
-!!$              de12(j1)=dek(ist1,ist2)
-!!$              de12p(j1)=dekp(ist1,ist2)
            end do
         end do
         ! map 
@@ -388,7 +389,8 @@ subroutine kernxc_bse(oct)
         write(*,'(a,f12.3)') '*** rest    :',cpu3-cpu2-t3
         write(*,'(a,f12.3)') '*** overall :',cpu3-cpu2
         write(*,*)
-        ! end loop over (k,kp) pairs
+
+        ! end inner loop over k-points
      end do
 
 !!!!!!!!     if (iknr.eq.2) stop 'stop in kernxc_bse'
@@ -397,22 +399,41 @@ subroutine kernxc_bse(oct)
      !     set up BSE-kernel    !
      !--------------------------!
 
-     do ist1=1,nst1
-        do ist3=1,nst3
-
+     osca(:,:)=zzero
+     oscb(:,:)=zzero
+     do ist3=1,nst3
+        do ist1=1,nst1
+           j1=ist1+(ist3-1)*nst1
            ! set up inner part of kernel
            
            ! generate oscillators
-           call tdzoutpr3(n,n,zone,x,y,osca)
+           call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
+           ! add Hermitian transpose
+           osca=osca+conjg(transpose(osca))
+           call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
-
+           ! set up energy denominators
+           den1(:)=1.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)
+           den2(:)=1.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2
         end do
+     end do
 
-        ! multiply with inverse KS-response function from both sides
-        ! with energies shifted by BSE-diagonal
+     ! update kernel
+     do iw=1,nwdf
+        fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+     end do
 
-
+     ! end outer loop over k-points
   end do
+
+  do iw=1,nwdf
+     do igq1=1,n
+        do igq2=1,n
+           write(777,'(3i5,2g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw)
+        end do
+     end do
+  end do
+
 
   ! multiply inner part of kernel with inverse QP-response function from
   ! both sides
@@ -422,7 +443,7 @@ subroutine kernxc_bse(oct)
 
   ! deallocate
   deallocate(fxc,sccli,scclih,scclit,dek,dekp,dde,dok,dokp,scisk,sciskp)
-  deallocate(zmr,zmq,de12,de12p,emat12k,emat12kp,emat12,emat12p)
+  deallocate(zmr,zmq,emat12k,emat12kp,emat12,emat12p)
   deallocate(residr,residq,w,osca,oscb,den1,den2)
 end subroutine kernxc_bse
 
