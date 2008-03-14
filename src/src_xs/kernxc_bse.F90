@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine kernxc_bse
+subroutine kernxc_bse(oct)
   !
   ! BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
   !
@@ -19,36 +19,43 @@ subroutine kernxc_bse
   use m_writegqpts
   use m_genwgrid
   use m_dyson
+  use m_getpemat
   use m_getx0
   use m_getunit
   use m_genfilname
   implicit none
+  ! arguments
+  integer, intent(in) :: oct
   ! local variables
+  character(*), parameter :: thisnam = 'kernxs_bse'
+  integer, parameter :: iqmt=1
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct1,oct2,igmt
   integer, external :: l2int
-  ! local variables
-  character(*), parameter :: thisnam = 'kernxs_bse'
-  complex(8) :: zt1
+  complex(8) :: zt1,bsediagshift
   integer :: sh(2),ig
   ! ***    
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,iflg
+  integer :: iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,iflg
   integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,ikkph
+  integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
   logical :: nosymt,reducekt,tq0,nsc,tphf
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
-  real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:)
+  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,t1
+  real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
+  real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:),de12(:,:),de12p(:,:)
+  real(8), allocatable :: zmr(:,:),zmq(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
-  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
-  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
-  complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
+  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
+  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:),den1(:),den2(:)
+  complex(8), allocatable :: phf(:,:),emat12(:,:),emat12p(:,:)
+  complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
   logical, allocatable :: done(:)
   ! external functions
-  integer, external :: iplocnr
+  integer, external :: iplocnr,idxkkp
   logical, external :: tqgamma
 
   real(8) :: cpu0,cpu1,cpu2,cpu3
@@ -128,38 +135,36 @@ subroutine kernxc_bse
   wf=wparf
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects (first q-point is Gamma-point)
-  n=ngq(1)
-  allocate(fxc(n,n))
-  fxc(:,:)=zzero
+  n=ngq(iqmt)
+  ! generate energy grid
+  call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
 
-  allocate(dek(nst1,nst3),dekp(nst1,nst3))
-
-
+  ! allocate global arrays
+  if (allocated(xiou)) deallocate(xiou)
+  allocate(xiou(nst1,nst3,n))
+  if (allocated(pmou)) deallocate(pmou)
+  allocate(pmou(3,nst1,nst3))
   if (allocated(deou)) deallocate(deou)
   allocate(deou(nst1,nst3))
-  if(allocated(deuo)) deallocate(deuo)
-  allocate(deuo(nst3,nst1))
   if (allocated(docc12)) deallocate(docc12)
-  allocate(docc12(nst1,nst2))
-  if (allocated(docc21)) deallocate(docc21)
-  allocate(docc21(nst3,nst4))
-  ! allocate matrix elements arrays
-  if (allocated(xiou)) deallocate(xiou)
-  allocate(xiou(nst1,nst2,n))
-  if (allocated(xiuo)) deallocate(xiuo)
-  allocate(xiuo(nst3,nst4,n))
-  if (allocated(pmou)) deallocate(pmou)
-  allocate(pmou(3,nst1,nst2))
-  if (allocated(pmuo)) deallocate(pmuo)
-  allocate(pmuo(3,nst3,nst4))
-  ! allocate arrays
-!  allocate(scis12(nst1,nst2))
-!  allocate(scis21(nst2,nst1))
-
+  allocate(docc12(nst1,nst3))
+  ! allocate local arrays
+  allocate(emat12(nst13,n),emat12p(nst13,n),zmr(nst13,nst13),zmq(nst13,nst13))
+  allocate(dek(nst1,nst3),dekp(nst1,nst3),dde(nst1,nst3))
+  allocate(de12(nst13),de12p(nst13))
+  allocate(dok(nst1,nst3),dokp(nst1,nst3))
+  allocate(scisk(nst1,nst3),sciskp(nst1,nst3))
+  allocate(fxc(n,n))
   allocate(sccli(nst1,nst3,nst2,nst4))
-  allocate(emat12k(nst1,nst3,ngq(1)),emat12kp(nst1,nst3,ngq(1)))
+  allocate(scclih(nst1,nst3,nst2,nst4))
+  allocate(scclit(nst13,nst13))
+  allocate(emat12k(n,nst1,nst3,),emat12kp(nst1,nst3,n))
+  allocate(residr(nst13,n),residq(nst13,n))
+  allocate(w(n),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
+  fxc(:,:)=zzero
   sccli(:,:,:,:)=zzero
 
+  ! open file for screened Coulomb interaction
   call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
   call getunit(un)
   inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
@@ -173,28 +178,35 @@ subroutine kernxc_bse
   ikkp=0
   ! first k-point
   do iknr=1,nkptnr
-
-    ! matrix elements for k and q=0
+     iknrq=ikmapikq(iknr,iqmt)
+     ! matrix elements for k and q=0
      emattype=1
-     call init1xs(qvkloff(1,1))
-     call getematrad(1)
+     call ematbdcmbs(emattype)
+     call init1xs(qvkloff(1,iqmt))
+     call getdevaldoccsv(iqmt,iknr,iknrq,istlo1,isthi1,istlo2,isthi2,deou, &
+          docc12,scisk)
+     dek(:,:)=deou(:,:)
+     dok(:,:)=docc12(:,:)
+     call getematrad(iqmt)
      call ematqalloc
-     call cpu_time(cpu0)
-     call ematqk1(1,iknr)
-     call cpu_time(cpu1)
-     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+!     call cpu_time(cpu0)
+     call ematqk1(iqmt,iknr)
+!     call cpu_time(cpu1)
+!     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+     ! apply gauge wrt. symmetrized Coulomb potential
+     call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+     ! assign optical component
+     xiou(:,:,1)=pmou(oct,:,:)
      emat12k(:,:,:)=xiou(:,:,:)
-     deallocate(xiou,xiuo)
+     deallocate(xiou)
      emattype=2
      call ematbdcmbs(emattype)
 
-     ! get eigenvalue differences for k-point
-     ! ******
-!     call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou, &
-!          docc12,docc21)
-
+     residr(:,:)=zzero
+     residq(:,:)=zzero
      ! second k-point
      do jknr=1,nkptnr
+        jknrq=ikmapikq(jknr,iqmt)
 
         call cpu_time(cpu2)
         cpu_init1xs=0.d0
@@ -206,7 +218,14 @@ subroutine kernxc_bse
         cpu_suma=0.d0
         cpu_write=0.d0
 
-        ikkp=ikkp+1
+        if (iknr.le.jknr) then
+           ! index for upper triangle
+           ikkp=idxkkp(iknr,jknr,nkptnr)
+        else
+           ! swapped index for lower triangle
+           ikkp=idxkkp(jknr,iknr,nkptnr)
+        end if
+
         iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
         iv(:)=modulo(iv(:),ngridk(:))
         ! q-point (reduced)
@@ -219,20 +238,29 @@ subroutine kernxc_bse
         ! locate reduced q-point in non-reduced set
         iqrnr=iplocnr(ivqr(1,iqr),ngridq)
 
-        write(*,'(a,i6,2x,2i5,2x,2i5)') 'ikkp,iknr,jknr,iq,iqr',&
+   write(*,'(a,i6,2x,2i5,2x,2i5)') 'ikkp,iknr,jknr,iq,iqr',&
              ikkp,iknr,jknr,iq,iqr
 
         ! matrix elements for kp and q=0
         emattype=1
-        call init1xs(qvkloff(1,1))
-        call getematrad(1)
+        call ematbdcmbs(emattype)
+        call init1xs(qvkloff(1,iqmt))
+        call getdevaldoccsv(iqmt,jknr,jknrq,istlo1,isthi1,istlo2,isthi2,deou, &
+             docc12,sciskp)
+        dekp(:,:)=deou(:,:)
+        dokp(:,:)=docc12(:,:)
+        call getematrad(iqmt)
         call ematqalloc
         call cpu_time(cpu0)
-        call ematqk1(1,jknr)
+        call ematqk1(iqmt,jknr)
         call cpu_time(cpu1)
         cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+        ! apply gauge wrt. symmetrized Coulomb potential
+        call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+        ! assign optical component
+        xiou(:,:,1)=pmou(oct,:,:)
         emat12kp(:,:,:)=xiou(:,:,:)
-        deallocate(xiou,xiuo)
+        deallocate(xiou)
         emattype=2
         call ematbdcmbs(emattype)
 
@@ -255,33 +283,97 @@ subroutine kernxc_bse
 !!$           end do
 !!$        end do
 
-        ! get eigenvalue differences for kp-point
-        ! ******
-
         ! get screened Coulomb interaction
-
-        ! assign lower triangular part
-        if (jknr.gt.iknr) then
+        if (iknr.le.jknr) then
            ! read from file
-
+           read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
+                nst4_,sccli
+           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
+                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
+                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
+              write(*,*)
+              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
+                   & interaction")')
+              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
+                   &nst4)")')
+              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
+                   iq,iqr,nst1,nst2,nst3,nst4
+              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
+                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
+              write(*,*)
+              call terminate
+           end if
         else
-           ! use Hermitian property
-
+           write(*,*) 'using Hermitian transposed scr. Coul. int.'
+           ! use Hermitian property for lower triangle
+           read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
+                nst4_,scclih
+           do ist1=1,nst1
+              do ist2=1,nst2
+                 sccli(ist1,ist2,:,:)=conjg(scclih(:,:,ist1,ist2))
+              end do
+           end do
         end if
+        ! diagonal of BSE-kernel (approximate by first value in matrix)
+        ! *** improve later
+        if (ikkp.eq.1) bsediagshift=sccli(1,1,1,1)
 
+!!$if (iknr.le.jknr) then
+!!$        	! * write out screened Coulomb interaction
+!!$	do ist1=1,nst1
+!!$	   do ist3=1,nst3
+!!$	      do ist2=1,nst2
+!!$		 do ist4=1,nst4
+!!$		    write(1101,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+!!$			 ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4),&
+!!$			 abs(sccli(ist1,ist3,ist2,ist4))
+!!$		 end do
+!!$	      end do
+!!$	   end do
+!!$	end do
+!!$end if
+        j1=0
+        do ist2=1,nst3
+           do ist1=1,nst1
+              j1=j1+1
+!!$              emat12(j1,:)=emat12k(ist1,ist2,:)              
+              emat12p(j1,:)=emat12kp(ist1,ist2,:)
+!!$              de12(j1)=dek(ist1,ist2)
+!!$              de12p(j1)=dekp(ist1,ist2)
+           end do
+        end do
+        ! map 
+        j2=0
+        do ist3=1,nst3
+           do ist1=1,nst1
+              j2=j2+1
+              j1=0
+              do ist4=1,nst3
+                 do ist2=1,nst1
+                    j1=j1+1
+                    zt1=sccli(ist1,ist3,ist2,ist4)
+                    ! four point energy difference
+                    t1=dekp(ist2,ist4)-dek(ist1,ist3)
+                    ! arrays for R- and Q-residuals
+                    if (abs(t1).ge.delt) then
+                       zmr(j2,j1)=zt1/t1
+                       zmq(j2,j1)=0.d0
+                    else
+                       zmr(j2,j1)=0.d0
+                       zmq(j2,j1)=zt1
+                    end if
+                 end do
+              end do
+           end do
+        end do
 
         ! calculate residual "R" 
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
+        residr=residr+matmul(zmr,emat12p)
 
         ! calculate residual "Q" 
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
-
-
-        ! set up inner part of kernel
-
-        ! multiply with inverse KS-response function from both sides
-        ! with energies shifted by BSE-diagonal
-
+        residq=residq+matmul(zmq,emat12p)
 
         call cpu_time(cpu3)
         t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph+cpu_suma+cpu_write
@@ -299,12 +391,63 @@ subroutine kernxc_bse
         ! end loop over (k,kp) pairs
      end do
 
-     if (iknr.eq.1) stop 'stop in kernxc_bse'
+!!!!!!!!     if (iknr.eq.2) stop 'stop in kernxc_bse'
+
+     !--------------------------!
+     !     set up BSE-kernel    !
+     !--------------------------!
+
+     do ist1=1,nst1
+        do ist3=1,nst3
+
+           ! set up inner part of kernel
+           
+           ! generate oscillators
+           call tdzoutpr3(n,n,zone,x,y,osca)
+
+
+        end do
+
+        ! multiply with inverse KS-response function from both sides
+        ! with energies shifted by BSE-diagonal
+
 
   end do
 
+  ! multiply inner part of kernel with inverse QP-response function from
+  ! both sides
+
+  ! write kernel to file for each w-point
 
 
   ! deallocate
-  deallocate(fxc)
+  deallocate(fxc,sccli,scclih,scclit,dek,dekp,dde,dok,dokp,scisk,sciskp)
+  deallocate(zmr,zmq,de12,de12p,emat12k,emat12kp,emat12,emat12p)
+  deallocate(residr,residq,w,osca,oscb,den1,den2)
 end subroutine kernxc_bse
+
+
+integer function idxkkp(ik,ikp,n)
+  implicit none
+  ! arguments
+  integer, intent(in) :: ik,ikp,n
+  ! local variables
+  integer :: a,s
+  if ((ik.le.0).or.(ikp.le.0).or.(n.le.0)) then
+     write(*,*)
+     write(*,'("Error(idxkkp): negative indices or number of points")')
+     write(*,*)
+     call terminate
+  end if
+  if (ik.gt.ikp) then
+     write(*,*)
+     write(*,'("Error(idxkkp): ik > ikp")')
+     write(*,*)
+     call terminate
+  end if
+  s=0
+  do a=1,ik-1
+     s=s+n-a+1
+  end do
+  idxkkp=s+ikp-ik+1
+end function idxkkp

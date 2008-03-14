@@ -103,7 +103,7 @@ subroutine xsmain
      call scrcoulint
   case(450)
      ! BSE-kernel
-     call kernxc_bse
+     call kernxc_bse(1)
   case(499)
      ! * debug task
      !!!call testxs

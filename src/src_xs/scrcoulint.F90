@@ -420,7 +420,7 @@ subroutine scrcoulint
 
         ! write screened Coulomb interaction to direct-access file
         write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
-             sccli(:,:,:,:,iknr)
+             sccli(:,:,:,:,jknr)
 
         call cpu_time(cpu1)
         cpu_write=cpu_write+cpu1-cpu0
@@ -464,7 +464,8 @@ subroutine scrcoulint
   reducek=reducekt
   ngridk(:)=ngridkt(:)
   vkloff(:)=vklofft(:)
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): Screening finished"
+  write(unitout,'(a)') "Info("//trim(thisnam)//"): Screened Coulomb interaction&
+       & finished"
 end subroutine scrcoulint
 
 
