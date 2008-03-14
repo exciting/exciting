@@ -61,7 +61,7 @@ call newsystem(system,.true.,n)
      info=0
   endif
   target=dcmplx(lowesteval,0)
-  call initprecon(n,target,system%hamilton,system%overlap)
+  call initprecon(n,target)
 
   call JDQZ( alpha, beta, eivec, .true., n, target, eps,& 
        nstfv,jmax , jmin, 1,mparam, ldeg, 7, 1000,&

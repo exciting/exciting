@@ -8,7 +8,7 @@ complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
 integer ::n
-
+character(256)::prefix
 !local variables
 integer::i,is,ia
 complex(8) v(1)
@@ -40,15 +40,13 @@ if(.not.ispacked(system%hamilton))then
  	call hamiltonoverlapocopy_UL(system)
 endif
 #ifdef DEBUGHO
- if(.not. packed)	 then
-   		write(888,*)dble(hamilton)
-   		write(889,*)aimag(hamilton)
-   		write(890,*)dble(overlap)
-   		write(891,*)aimag(overlap)
- endif
+prefix="H"
+ call HermiteanMatrixToFiles(system%hamilton,prefix)
+prefix="O"
+ call HermiteanMatrixToFiles(system%overlap,prefix)		
  	write(*,*)"wrote" 
 	stop
-#endif
+#endif s
 
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0

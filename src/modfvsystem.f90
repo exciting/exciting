@@ -1,5 +1,6 @@
 module modfvsystem
   implicit none
+  
   type HermiteanMatrix
      private
      integer:: rank
@@ -28,6 +29,7 @@ contains
        self%za=0.0
     endif
   end subroutine newmatrix
+  
   subroutine deletematrix(self)
     type (HermiteanMatrix),intent(inout)::self
     if(self%packed.eqv..true.) then
@@ -85,6 +87,7 @@ contains
     endif
     return
   end subroutine Hermiteanmatrix_indexedupdate
+  
   subroutine Hermiteanmatrixvector(self,alpha,vin,beta,vout)
     implicit none
     type (HermiteanMatrix),intent(inout)::self
@@ -98,6 +101,7 @@ contains
        call zhemv("U",self%rank,alpha,get2dpointer(self),self%rank,vin, 1,beta,vout, 1)
     endif
   end subroutine Hermiteanmatrixvector
+  
   function ispacked(self)
     logical::ispacked
     type(HermiteanMatrix)::self
@@ -108,6 +112,7 @@ contains
     type(HermiteanMatrix)::self
     getrank=self%rank
   end function getrank
+  
   subroutine HermiteanmatrixLU(self)
     type(HermiteanMatrix)::self
     integer info
@@ -125,6 +130,7 @@ contains
        self%ludecomposed=.true.
     endif
   end subroutine HermiteanmatrixLU
+  
   subroutine Hermiteanmatrixlinsolve(self,b)
     type(HermiteanMatrix)::self
     complex(8),intent(inout)::b(*)
@@ -149,7 +155,7 @@ contains
     if(ispacked(self))then
        getpackedpointer=>self%zap
     else
-       write(*,*)"error in etpackedpointer"
+       write(*,*)"error in getpackedpointer"
        stop
     endif
   end function getpackedpointer
@@ -176,6 +182,45 @@ contains
        mysize=x%rank*(x%rank)
         call zaxpy(mysize,alpha,get2dpointer(x),1,get2dpointer(y),1)
     endif
-   
   end subroutine HermiteanMatrixAXPY
+  
+  subroutine HermiteanMatrixcopy(x,y)
+    complex(8)::alpha
+    type(HermiteanMatrix)::x,y
+    integer:: mysize
+    if (ispacked(x)) then 
+       mysize=(x%rank*(x%rank+1))/2
+        call zcopy(mysize,getpackedpointer(x),1,getpackedpointer(y),1)
+    else
+       mysize=x%rank*(x%rank)
+        call zcopy(mysize,get2dpointer(x),1,get2dpointer(y),1)
+    endif
+  end subroutine 
+  
+    subroutine HermiteanMatrixToFiles(self,prefix)
+        type(HermiteanMatrix),intent(in)::self
+        character(256),intent(in)::prefix
+  		character(256)::filename
+    if(ispacked(self)) then
+    filename=trim(prefix)//".packed.real.OUT"
+      	open(888,file=filename)
+    	write(888,*)dble(self%zap)
+    else
+    filename=trim(prefix)//".real.OUT"
+      	open(888,file=filename)
+    	write(888,*)dble(self%za)
+    endif
+    close (888)
+    
+       if(ispacked(self)) then
+       filename=trim(prefix)//".packed.imag.OUT"
+      	open(888,file=filename)
+    	write(888,*)aimag(self%zap)
+    else
+    filename=trim(prefix)//".imag.OUT"
+      	open(888,file=filename)
+    	write(888,*)aimag(self%za)
+    endif
+    close (888)
+    end subroutine
 end module modfvsystem
