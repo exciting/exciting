@@ -6,6 +6,7 @@ implicit none
  !scl index
   integer diiscounter !! counter for DIIS iterations
   integer iterativetype
+  logical packedmatrixstorage
   integer,parameter:: diismax=25,diisfirstscl=3
   real(8) lowesteval
   real(8) epsarpack

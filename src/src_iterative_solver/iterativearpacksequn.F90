@@ -32,7 +32,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   ! local variables
 type (evsystem)::system
-logical::packed
+
   integer ::n
   real:: cpu0,cpu1,cpu2
   Complex(8)::                 zero, one
@@ -122,9 +122,9 @@ logical::packed
   !##################
   
 
-  packed=.false.
 
- call newsystem(system,packed,n)
+
+ call newsystem(system,packedmatrixstorage,n)
  call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
 
 
