@@ -138,8 +138,6 @@ subroutine kernxc_bse(oct)
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects (first q-point is Gamma-point)
   n=ngq(iqmt)
-  ! generate energy grid
-  call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
 
   ! allocate global arrays
   if (allocated(xiou)) deallocate(xiou)
@@ -164,6 +162,9 @@ subroutine kernxc_bse(oct)
   allocate(w(n),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
+
+  ! generate energy grid
+  call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
 
   ! open file for screened Coulomb interaction
   call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
