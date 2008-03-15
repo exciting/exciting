@@ -57,15 +57,15 @@ contains
     call zinvert_lapack(mt,mt)
 
 
-    if ((iq.eq.1).and.(iw.eq.1).and.(n.ne.1)) then
-       do a=1,n
-          do b=1,n
-             write(200+oct,'(2i8,2g18.10)') a,b,mt(a,b)
-          end do
-       end do
-
-
-    end if
+!!$    if ((iq.eq.1).and.(iw.eq.1).and.(n.ne.1)) then
+!!$       do a=1,n
+!!$          do b=1,n
+!!$             write(200+oct,'(2i8,2g18.10)') a,b,mt(a,b)
+!!$          end do
+!!$       end do
+!!$
+!!$
+!!$    end if
 
 
     ! calculate matrix S=T^-1*S0

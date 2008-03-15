@@ -66,7 +66,7 @@ subroutine kernxc_bse(oct)
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
-logical,parameter :: tcont=.true.
+logical,parameter :: tcont=.false.
 
 
 t3=1.d0

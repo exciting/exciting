@@ -363,7 +363,13 @@ subroutine scrcoulint
 
 
         ! * version 1
-	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
+!!!	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
+        ! * version 2 : like in calkWD.frc and SELF documentation
+!!!	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
+        ! * version 3 like in pep-thesis
+	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
+
+
 
         sccli(:,:,:,:,jknr)=zzero
 !!$        do igq1=1,n

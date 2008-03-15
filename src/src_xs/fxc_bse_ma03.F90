@@ -48,8 +48,8 @@ contains
     call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
          acont=acont,nar=.not.aresdf,iqmt=1,filnam=filnam)
     inquire(iolength=recl) fxc(:,:)
-    open(un,file=trim(filnam),form='unformatted',action='write', &
-         status='replace',access='direct',recl=recl)
+    open(un,file=trim(filnam),form='unformatted',action='read', &
+         status='old',access='direct',recl=recl)
     
 
     do ig=1,msiz
@@ -57,7 +57,12 @@ contains
           read(un,rec=iw) fxc
        end do
     end do
-    
+
+    !*** head only
+    !zt1=fxc(1,1)
+    !fxc(:,:)=zzero
+    !fxc(1,1)=zt1
+
     close(un)
 
   end subroutine fxc_bse_ma03

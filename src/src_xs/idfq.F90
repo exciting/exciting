@@ -94,7 +94,7 @@ subroutine idfq(iq)
               end if
               ! generate xc-kernel
               select case(fxctype)
-              case(1,2,3,4,7,8)
+              case(0,1,2,3,4,7,8)
                  call fxcifc(fxctype,ng=m,iw=iw,w=w(iw),alrc=alphalrc,&
                       alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
