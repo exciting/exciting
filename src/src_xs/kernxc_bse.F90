@@ -30,11 +30,12 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-5
-  character(256) :: filnam,filnam2
-  complex(8),allocatable :: chi0(:,:), fxc(:,:,:), idf(:,:), mdf1(:),w(:)
-  complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct1,oct2,igmt
+  real(8), parameter :: delt=1.d-3
+  character(256) :: filnam,filnam2,filnam3
+  complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
+  complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
+  complex(8),allocatable :: chi0h2(:),chi0wg2(:,:,:),chi02(:,:),chi02i(:,:)
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,octh,oct1,oct2,igmt
   integer, external :: l2int
   complex(8) :: zt1,bsediagshift
   integer :: sh(2),ig
@@ -42,11 +43,11 @@ subroutine kernxc_bse(oct)
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,iflg
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
+  integer :: ngridkt(3),iv(3),ivgsym(3),un,un2,j1,j2,iws1,iws2,a1,a2,a3,t2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,ikkph
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-  logical :: nosymt,reducekt,tq0,nsc,tphf
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,t1
+  logical :: nosymt,reducekt,tq0,nsc,tphf,ksintp,tks1,tks2
+  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,t1,ws,ws1,ws2
   real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
   real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:)
   real(8), allocatable :: zmr(:,:),zmq(:,:)
@@ -64,6 +65,12 @@ subroutine kernxc_bse(oct)
   real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
+
+logical,parameter :: tcont=.true.
+
+
+t3=1.d0
+
 
   !----------------!
   !   initialize   !
@@ -127,6 +134,7 @@ subroutine kernxc_bse(oct)
   nst34=nst3*nst4
   nst13=nst1*nst3
   nst24=nst2*nst4
+  call getunit(un)
 
 
   call genparidxran('w')
@@ -159,7 +167,9 @@ subroutine kernxc_bse(oct)
   allocate(scclit(nst13,nst13))
   allocate(emat12k(n,nst1,nst3),emat12kp(nst1,nst3,n))
   allocate(residr(nst13,n),residq(nst13,n))
-  allocate(w(n),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
+  allocate(w(nwdf),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
+  allocate(chi0i(n,n),chi0(n,n),chi0wg(n,2,3),chi0h(9))
+  allocate(chi02i(n,n),chi02(n,n),chi0wg2(n,2,3),chi0h2(9))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
 
@@ -168,11 +178,15 @@ subroutine kernxc_bse(oct)
 
   ! open file for screened Coulomb interaction
   call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
-  call getunit(un)
   inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
        sccli(:,:,:,:)
   open(un,file=trim(fname),form='unformatted',action='read', &
        status='old',access='direct',recl=recl)
+
+
+!@@@@@@@@@@@@@@@@@@@
+  if (tcont) goto 101
+
 
   !-------------------------------!
   !     loop over (k,kp) pairs    !
@@ -340,7 +354,6 @@ subroutine kernxc_bse(oct)
         do ist2=1,nst3
            do ist1=1,nst1
               j1=j1+1
-!!$              emat12(j1,:)=emat12k(:,ist1,ist2)              
               emat12p(j1,:)=emat12kp(ist1,ist2,:)
            end do
         end do
@@ -358,6 +371,8 @@ subroutine kernxc_bse(oct)
                     t1=dekp(ist2,ist4)-dek(ist1,ist3)
                     ! arrays for R- and Q-residuals
                     if (abs(t1).ge.delt) then
+!t3=max(t3,1.d0/t1)
+!write(779,'(i6,2x,4i5,3g18.10)') j1+nst13*(j2-1),ist3,ist1,ist4,ist2,dekp(ist1,ist3),dek(ist2,ist4),t1
                        zmr(j2,j1)=zt1/t1
                        zmq(j2,j1)=0.d0
                     else
@@ -376,6 +391,9 @@ subroutine kernxc_bse(oct)
         ! calculate residual "Q" 
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
+
+write(*,*) 'max 1/denom',t3
+write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
 
         call cpu_time(cpu3)
         t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph+cpu_suma+cpu_write
@@ -400,10 +418,10 @@ subroutine kernxc_bse(oct)
      !     set up BSE-kernel    !
      !--------------------------!
 
-     osca(:,:)=zzero
-     oscb(:,:)=zzero
      do ist3=1,nst3
         do ist1=1,nst1
+           osca(:,:)=zzero
+           oscb(:,:)=zzero
            j1=ist1+(ist3-1)*nst1
            ! set up inner part of kernel
            
@@ -414,38 +432,184 @@ subroutine kernxc_bse(oct)
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
            ! set up energy denominators
-           den1(:)=1.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)
-           den2(:)=1.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2
+           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
+                omega          
+           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
+                omega
+           ! update kernel
+           do iw=1,nwdf
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+!write(*,'(a,4i4,g18.10)') 'increment',iknr,ist3,ist1,iw,maxval(abs(osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)))
+
+           end do
+
+
+!write(776,'(a,3i4,g18.10)') 'max:fxc(w)',iknr,ist3,ist1,maxval(abs(fxc))
+!write(776,'(a,3i4,g18.10)') 'min:fxc(w)',iknr,ist3,ist1,minval(abs(fxc))
+!!$write(*,'(a,3i4,g18.10)') 'max:fxc(head)',iknr,ist3,ist1,maxval(abs(fxc(1,1,:)))
+!!$write(*,'(a,3i4,g18.10)') 'min:fxc(head)',iknr,ist3,ist1,minval(abs(fxc(1,1,:)))
+!!$write(*,'(a,3i4,g18.10)') ' fxc(head,50)',iknr,ist3,ist1,abs(fxc(1,1,50))
+!!$
+!!$
+!!$write(*,'(a,3i4,g18.10)') 'max:den1',iknr,ist3,ist1,maxval(abs(den1))
+!!$write(*,'(a,3i4,g18.10)') 'max:den2',iknr,ist3,ist1,maxval(abs(den2))
+!!$write(*,'(a,3i4,g18.10)') 'max:osca',iknr,ist3,ist1,maxval(abs(osca))
+!!$write(*,'(a,3i4,g18.10)') 'max:oscb',iknr,ist3,ist1,maxval(abs(oscb))
+
         end do
      end do
-
-     ! update kernel
-     do iw=1,nwdf
-        fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-     end do
-
+     
      ! end outer loop over k-points
   end do
+  close(un)
 
   do iw=1,nwdf
      do igq1=1,n
         do igq2=1,n
-           write(777,'(3i5,2g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw)
+           write(777,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw)
         end do
      end do
   end do
 
 
-  ! multiply inner part of kernel with inverse QP-response function from
-  ! both sides
+101 continue
+ if (tcont)  bsediagshift=cmplx(0.7716475564E-02,0.5831708302E-13,8)
 
-  ! write kernel to file for each w-point
 
+  ! filename for response function file
+  call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
+       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
+
+  ! filename for xc-kernel (ASCII)
+  call genfilname(basename='FXC_BSE',asc=.true.,bzsampl=bzsampl,&
+       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam2)
+  open(un,file=trim(filnam2),form='formatted',action='write',status='replace')
+
+  call getunit(un2)
+  ! filename for xc-kernel
+  call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
+       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
+  inquire(iolength=recl) fxc(:,:,1)
+  open(un2,file=trim(filnam3),form='unformatted',action='write', &
+       status='replace',access='direct',recl=recl)
+  
+  ! set up kernel
+  do iw=1,nwdf
+     ! locate shifted energy on grid
+     t1=dble(w(iw))+bsediagshift
+     ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
+     iws1=floor(ws)
+     iws2=ceiling(ws)
+     ws1=dble(w(iws1))
+     ws2=dble(w(iws2))
+
+t3=dble(w(iw))
+write(*,*) iw,t3,t1,ws,iws1,iws2
+
+     if (iws1.lt.1) then
+        write(*,*)
+        write(*,'("Error(",a,"): negative shifted w-point")') &
+             trim(thisnam)
+        write(*,*)
+        call terminate
+     end if
+     ksintp=.true.
+     tks1=.true.
+     tks2=.true.
+     if (iws1.eq.iws2) ksintp=.false.
+     if (iws1.gt.nwdf) tks1=.false.
+     if ((.not.ksintp).or.(iws2.gt.nwdf)) tks2=.false.
+     ! zero in case frequency above the interval is required
+     chi0i(:,:)=zzero
+     oct1=oct
+     oct2=oct
+     octh=1+(oct-1)*4
+
+
+write(*,*) 'octs',oct,oct1,oct2,octh
+     if (tks1) then
+        ! get KS/QP response function for lower w-point
+        call getx0(.true.,iqmt,iws1,trim(filnam),'',chi0,chi0wg,chi0h)
+        ! head
+        chi0(1,1)=chi0h(octh)
+        ! wings
+        if (n.gt.1) then
+           chi0(1,2:)=chi0wg(2:,1,oct1)
+           chi0(2:,1)=chi0wg(2:,2,oct2)
+        end if
+
+        t2=0.d0
+     do igq1=1,n
+        do igq2=1,n
+           if (igq1.eq.igq2) t2=1.d0
+
+!@@@@@@@@@@@
+!chi0(igq1,igq2)=t2-chi0(igq1,igq2)
+
+           write(772,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0(igq1,igq2)
+        end do
+     end do
+
+        ! invert
+        call zinvert_hermitian(0,chi0,chi0i)
+     end if
+     if (tks2) then
+        ! get KS/QP response function for lower w-point
+        call getx0(.true.,iqmt,iws2,trim(filnam),'',chi02,chi0wg2,chi0h2)
+        ! head
+        chi02(1,1)=chi0h2(octh)
+        ! wings
+        if (n.gt.1) then
+           chi02(1,2:)=chi0wg2(2:,1,oct1)
+           chi02(2:,1)=chi0wg2(2:,2,oct2)
+        end if
+
+        t2=0.d0
+     do igq1=1,n
+        do igq2=1,n
+           if (igq1.eq.igq2) t2=1.d0
+
+!@@@@@@@@@@@
+!chi02(igq1,igq2)=t2-chi02(igq1,igq2)
+
+        end do
+     end do
+
+        ! invert
+        call zinvert_hermitian(0,chi02,chi02i)
+     end if
+     if (ksintp) then
+        t3=(t1-ws1)/(ws2-ws1)
+        ! linear interpolation
+        chi0i(:,:)=(1.d0-t3)*chi0i(:,:) + t3*chi02i(:,:)
+     end if
+     ! multiply inner part of kernel with inverse QP-response function from
+     ! both sides
+
+if (tcont) then
+     do igq1=1,n
+        do igq2=1,n
+           read(777,*) a1,a2,a3,fxc(igq1,igq2,iw)
+        end do
+     end do
+end if
+
+
+     fxc(:,:,iw)=matmul(chi0i,matmul(fxc(:,:,iw),chi0i))
+     ! write kernel to file for each frequency
+     write(un2,rec=iw) fxc(:,:,iw)
+     do igq1=1,n
+        do igq2=1,n
+           write(un,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw)
+           write(773,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0i(igq1,igq2)
+        end do
+     end do
+  end do
+  close(un)
+  close(un2)
 
   ! deallocate
-  deallocate(fxc,sccli,scclih,scclit,dek,dekp,dde,dok,dokp,scisk,sciskp)
-  deallocate(zmr,zmq,emat12k,emat12kp,emat12,emat12p)
-  deallocate(residr,residq,w,osca,oscb,den1,den2)
+  !deallocte(..............................)
 end subroutine kernxc_bse
 
 

@@ -7,7 +7,6 @@ subroutine scrcoulint
   use modmain
   use modmpi
   use modxs
-  use invert
   use m_tdgauntgen
   use m_findgntn0
   use m_writegqpts

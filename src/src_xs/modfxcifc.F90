@@ -11,7 +11,7 @@ contains
 !BOP
 ! !ROUTINE: fxcifc
 ! !INTERFACE:
-  subroutine fxcifc(fxctype,w,iq,ng,alrc,alrcd,blrcd,lrccoef,fxcg)
+  subroutine fxcifc(fxctype,w,iw,iq,ng,alrc,alrcd,blrcd,lrccoef,fxcg)
     use m_fxc_lrc
     use m_fxc_lrcd
 !    use m_fxc_lrcmodel
@@ -34,6 +34,7 @@ contains
     integer, intent(in) :: fxctype
     ! optional arguments
     complex(8), optional, intent(in) :: w
+    integer, optional, intent(in) :: iw
     integer, optional, intent(in) :: iq
     integer, optional, intent(in) :: ng
     real(8), optional, intent(in) :: alrc
@@ -104,8 +105,8 @@ contains
        ! xc-kernel derived from the Bethe-Salpeter equation
        ! no local field effects
        ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-       if (present(fxcg).and.(present(ng)).and.(present(w))) then
-          call fxc_bse_ma03(ng,.false.,w,fxcg)
+       if (present(fxcg).and.(present(ng)).and.(present(iw))) then
+          call fxc_bse_ma03(ng,.false.,iw,fxcg)
        else
           goto 10
        end if
@@ -113,8 +114,8 @@ contains
        ! xc-kernel derived from the Bethe-Salpeter equation
        ! inclusion of local field effects
        ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-       if (present(fxcg).and.(present(ng)).and.(present(w))) then
-          call fxc_bse_ma03(ng,.true.,w,fxcg)
+       if (present(fxcg).and.(present(ng)).and.(present(iw))) then
+          call fxc_bse_ma03(ng,.true.,iw,fxcg)
        else
           goto 10
        end if
