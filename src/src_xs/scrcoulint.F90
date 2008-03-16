@@ -313,18 +313,21 @@ subroutine scrcoulint
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!$        do ist1=1,nst1
-!!$           do ist2=1,nst2
-!!$              write(4000,'(3i5,3g18.10)') ikkp,ist1,ist2,xiou(ist1,ist2,1),&
-!!$                   abs(xiou(ist1,ist2,1))**2
-!!$           end do
-!!$        end do
-!!$        do ist3=1,nst3
-!!$           do ist4=1,nst4
-!!$              write(4001,'(3i5,3g18.10)') ikkp,ist3,ist4,xiuo(ist3,ist4,1),&
-!!$                   abs(xiuo(ist3,ist4,1))**2
-!!$           end do
-!!$        end do
+
+write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
+
+	do ist1=1,nst1
+	   do ist2=1,nst2
+	      write(4000,'(3i5,3g18.10)') ikkp,ist1,ist2,xiou(ist1,ist2,1),&
+		   abs(xiou(ist1,ist2,1))**2
+	   end do
+	end do
+	do ist3=1,nst3
+	   do ist4=1,nst4
+	      write(4001,'(3i5,3g18.10)') ikkp,ist3,ist4,xiuo(ist3,ist4,1),&
+		   abs(xiuo(ist3,ist4,1))**2
+	   end do
+	end do
 
         call cpu_time(cpu1)
         cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
@@ -363,11 +366,13 @@ subroutine scrcoulint
 
 
         ! * version 1
-!!!	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
+	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
+
         ! * version 2 : like in calkWD.frc and SELF documentation
 !!!	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
+
         ! * version 3 like in pep-thesis
-	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
+!!!	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
 
 
 
@@ -452,7 +457,7 @@ subroutine scrcoulint
         write(*,*)
 
         ! end loop over (k,kp) pairs
-     end do
+     end do     
   end do
   close(un)
 

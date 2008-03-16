@@ -31,7 +31,7 @@ subroutine kernxc_bse(oct)
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
   real(8), parameter :: delt=1.d-3
-  character(256) :: filnam,filnam2,filnam3
+  character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
   complex(8),allocatable :: chi0h2(:),chi0wg2(:,:,:),chi02(:,:),chi02i(:,:)
@@ -43,7 +43,7 @@ subroutine kernxc_bse(oct)
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,iflg
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,un2,j1,j2,iws1,iws2,a1,a2,a3,t2
+  integer :: ngridkt(3),iv(3),ivgsym(3),un,un2,un3,j1,j2,iws1,iws2,a1,a2,a3,t2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,ikkph
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
   logical :: nosymt,reducekt,tq0,nsc,tphf,ksintp,tks1,tks2
@@ -68,6 +68,7 @@ subroutine kernxc_bse(oct)
 
 logical,parameter :: tcont=.false.
 
+  call genfilname(setfilext=.true.)
 
 t3=1.d0
 
@@ -336,6 +337,15 @@ t3=1.d0
         ! *** improve later
         if (ikkp.eq.1) bsediagshift=sccli(1,1,1,1)
 
+        ! set diagonal of Bethe-Salpeter kernel to zero (cf. A. Marini, PRL 2003)
+        if (iknr.eq.jknr) then
+           do ist3=1,nst3
+              do ist1=1,nst1
+                 sccli(ist1,ist3,ist1,ist3)=zzero
+              end do
+           end do
+        end if
+	
 !!$if (iknr.le.jknr) then
 !!$        	! * write out screened Coulomb interaction
 !!$	do ist1=1,nst1
@@ -493,10 +503,16 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
   
+  call getunit(un3)
+  ! filename for xc-kernel
+  call genfilname(basename='FXC_BSE_HEAD',asc=.false.,bzsampl=bzsampl,&
+       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
+  open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
+  
   ! set up kernel
   do iw=1,nwdf
      ! locate shifted energy on grid
-     t1=dble(w(iw))+bsediagshift
+     t1=dble(w(iw))-bsediagshift
      ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
      iws1=floor(ws)
      iws2=ceiling(ws)
@@ -506,18 +522,22 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
 t3=dble(w(iw))
 write(*,*) iw,t3,t1,ws,iws1,iws2
 
-     if (iws1.lt.1) then
-        write(*,*)
-        write(*,'("Error(",a,"): negative shifted w-point")') &
-             trim(thisnam)
-        write(*,*)
-        call terminate
-     end if
+!     if (iws1.lt.1) then
+!        write(*,*)
+!        write(*,'("Error(",a,"): negative shifted w-point")') &
+!             trim(thisnam)
+!        write(*,*)
+!        call terminate
+!     end if
      ksintp=.true.
      tks1=.true.
      tks2=.true.
      if (iws1.eq.iws2) ksintp=.false.
      if (iws1.gt.nwdf) tks1=.false.
+     if (iws1.lt.1) then
+     	tks1=.false.
+	tks2=.false.
+     end if
      if ((.not.ksintp).or.(iws2.gt.nwdf)) tks2=.false.
      ! zero in case frequency above the interval is required
      chi0i(:,:)=zzero
@@ -538,14 +558,8 @@ write(*,*) 'octs',oct,oct1,oct2,octh
            chi0(2:,1)=chi0wg(2:,2,oct2)
         end if
 
-        t2=0.d0
      do igq1=1,n
         do igq2=1,n
-           if (igq1.eq.igq2) t2=1.d0
-
-!@@@@@@@@@@@
-!chi0(igq1,igq2)=t2-chi0(igq1,igq2)
-
            write(772,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0(igq1,igq2)
         end do
      end do
@@ -563,18 +577,6 @@ write(*,*) 'octs',oct,oct1,oct2,octh
            chi02(1,2:)=chi0wg2(2:,1,oct1)
            chi02(2:,1)=chi0wg2(2:,2,oct2)
         end if
-
-        t2=0.d0
-     do igq1=1,n
-        do igq2=1,n
-           if (igq1.eq.igq2) t2=1.d0
-
-!@@@@@@@@@@@
-!chi02(igq1,igq2)=t2-chi02(igq1,igq2)
-
-        end do
-     end do
-
         ! invert
         call zinvert_hermitian(0,chi02,chi02i)
      end if
@@ -595,7 +597,7 @@ if (tcont) then
 end if
 
 
-     fxc(:,:,iw)=matmul(chi0i,matmul(fxc(:,:,iw),chi0i))
+     fxc(:,:,iw)=matmul(chi0i,matmul(fxc(:,:,iw),chi0i)) / fourpi !@@@@@@@
      ! write kernel to file for each frequency
      write(un2,rec=iw) fxc(:,:,iw)
      do igq1=1,n
@@ -604,9 +606,11 @@ end if
            write(773,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0i(igq1,igq2)
         end do
      end do
+     write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
   end do
   close(un)
   close(un2)
+  close(un3)
 
   ! deallocate
   !deallocte(..............................)

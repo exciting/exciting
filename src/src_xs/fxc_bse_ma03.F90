@@ -51,17 +51,26 @@ contains
     open(un,file=trim(filnam),form='unformatted',action='read', &
          status='old',access='direct',recl=recl)
     
-
     do ig=1,msiz
        do igp=1,msiz
           read(un,rec=iw) fxc
        end do
     end do
 
-    !*** head only
-    !zt1=fxc(1,1)
-    !fxc(:,:)=zzero
-    !fxc(1,1)=zt1
+    if (.not.sw) then
+       zt1=fxc(1,1)
+       fxc(:,:)=zzero
+       fxc(1,1)=zt1
+    end if
+
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!write(*,*) 'reading fxc-bse:',iw,fxc
+!fxc(1,1)=dble(fxc(1,1))
+!fxc(1,1)=-0.2/fourpi
+!fxc(1,1)=(-8.191520659266058E-002,-3.652876264792654E-003)
+!fxc(1,1)=(-8.191520659266058E-002,0.d0)
+
+
 
     close(un)
 
