@@ -7,6 +7,7 @@ subroutine scrcoulint
   use modmain
   use modmpi
   use modxs
+  use ioarray
   use m_tdgauntgen
   use m_findgntn0
   use m_writegqpts
@@ -366,13 +367,13 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
 
 
         ! * version 1
-	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
+!!!	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
 
         ! * version 2 : like in calkWD.frc and SELF documentation
 !!!	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
 
         ! * version 3 like in pep-thesis
-!!!	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
+	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
 
 
 
@@ -416,6 +417,9 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
         call cpu_time(cpu0)
 
 	! * write out screened Coulomb interaction
+        call ioarr(un=1200,ioa='write',arr4dc=sccli(:,:,:,:,jknr),&
+             header='# iv,ic,ivp,icp')
+
 	do ist1=1,nst1
 	   do ist3=1,nst3
 	      do ist2=1,nst2
@@ -477,67 +481,3 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screened Coulomb interaction&
        & finished"
 end subroutine scrcoulint
-
-
-!///////////////////////////////////////////////////////////////////////////////
-!///////////////////////////////////////////////////////////////////////////////
-!///////////////////////////////////////////////////////////////////////////////
-
-
-subroutine putematrad(iq)
-  use modmain
-  use modxs
-  use m_genfilname
-  use m_getunit
-  implicit none
-  ! arguments
-  integer, intent(in) :: iq
-  ! local variables
-  character(256) :: fname
-  logical :: exist
-  integer :: un
-  ! calculate radial integrals
-  call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
-  inquire(file=trim(fname),exist=exist)
-  if (.not.exist) then
-     call ematrad(iq )
-     call getunit(un)
-     open(un,file=trim(fname),form='unformatted',action='write', &
-          status='replace')
-     write(un) riaa,riloa,rilolo
-     close(un)
-  end if
-end subroutine putematrad
-
-!///////////////////////////////////////////////////////////////////////////////
-
-subroutine getematrad(iq)
-  use modmain
-  use modxs
-  use m_genfilname
-  use m_getunit
-  implicit none
-  ! arguments
-  integer, intent(in) :: iq
-  ! local variables
-  integer :: lmax1,lmax2,lmax3,un
-  character(256) :: fname
-  lmax1=max(lmaxapwtd,lolmax)
-  lmax2=lmaxemat
-  ! lmax1 and lmax3 should be the same!
-  lmax3=lmax1
-  if (allocated(riaa)) deallocate(riaa)
-  allocate(riaa(0:lmax1,apwordmax,0:lmax3,apwordmax,0:lmax2,natmtot, &
-       ngq(iq)))
-  if (allocated(riloa)) deallocate(riloa)
-  allocate(riloa(nlomax,0:lmax3,apwordmax,0:lmax2,natmtot,ngq(iq)))
-  if (allocated(rilolo)) deallocate(rilolo)
-  allocate(rilolo(nlomax,nlomax,0:lmax2,natmtot,ngq(iq)))
-  call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
-  call getunit(un)
-  open(un,file=trim(fname),form='unformatted',action='read', &
-       status='old')
-  read(un) riaa,riloa,rilolo
-  close(un)
-end subroutine getematrad
-

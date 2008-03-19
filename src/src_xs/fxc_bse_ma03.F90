@@ -63,6 +63,11 @@ contains
        fxc(1,1)=zt1
     end if
 
+
+    ! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    ! apply scaling for debugging purposes
+    fxc = fxc / fourpi
+
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !write(*,*) 'reading fxc-bse:',iw,fxc
 !fxc(1,1)=dble(fxc(1,1))

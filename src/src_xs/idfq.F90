@@ -70,6 +70,7 @@ subroutine idfq(iq)
      ! loop over longitudinal components for optics
      do oct1=1,nc
         do oct2=1,nc
+           if (oct1.ne.oct2) goto 111
            oct=octmap(oct1,oct2)
            ! filename for output file
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
@@ -135,6 +136,7 @@ subroutine idfq(iq)
               write(unit1,rec=iw-wi+1) mdf1(iw)
            end do ! iw
            close(unit1)
+111        continue
            ! end loop over optical components
         end do
      end do

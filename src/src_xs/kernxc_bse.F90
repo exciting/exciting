@@ -7,7 +7,6 @@ subroutine kernxc_bse(oct)
   !
   ! BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
   !
-  !
   use modmain
   use modmpi
   use modtetra
@@ -66,7 +65,10 @@ subroutine kernxc_bse(oct)
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
-logical,parameter :: tcont=.false.
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+logical,parameter :: tcont=.true. !@@@@@@@@@@@@@@@@@@@@@@@
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 
   call genfilname(setfilext=.true.)
 
@@ -483,8 +485,8 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
 
 
 101 continue
- if (tcont)  bsediagshift=cmplx(0.7716475564E-02,0.5831708302E-13,8)
-
+!! if (tcont)  bsediagshift=cmplx(0.7716475564E-02,0.5831708302E-13,8)
+ if (tcont)  bsediagshift=cmplx(0.6909239449E-02,0.1209911682E-04,8)
 
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
@@ -597,7 +599,7 @@ if (tcont) then
 end if
 
 
-     fxc(:,:,iw)=matmul(chi0i,matmul(fxc(:,:,iw),chi0i)) / fourpi !@@@@@@@
+     fxc(:,:,iw)=matmul(chi0i,matmul(fxc(:,:,iw),chi0i))
      ! write kernel to file for each frequency
      write(un2,rec=iw) fxc(:,:,iw)
      do igq1=1,n
@@ -641,3 +643,5 @@ integer function idxkkp(ik,ikp,n)
   end do
   idxkkp=s+ikp-ik+1
 end function idxkkp
+
+

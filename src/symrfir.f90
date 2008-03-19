@@ -27,8 +27,8 @@ implicit none
 integer, intent(in) :: ngv
 real(8), intent(inout) :: rfir(ngrtot)
 ! local variables
-integer isym,lspl,iv(3)
-integer ig,jg,ifg,jfg
+integer isym,lspl,ilspl,sym(3,3)
+integer iv(3),ig,jg,ifg,jfg
 real(8) vtc(3),t1
 complex(8) zt1
 ! allocatable arrays
@@ -44,24 +44,21 @@ do isym=1,nsymcrys
   call r3mv(avec,vtlsymc(1,isym),vtc)
 ! index to lattice symmetry of spatial rotation
   lspl=lsplsymc(isym)
+! inverse rotation required for rotation of G-vectors
+  ilspl=isymlat(lspl)
+  sym(:,:)=symlat(:,:,ilspl)
   do ig=1,ngv
     ifg=igfft(ig)
-    t1=-dot_product(vgc(:,ig),vtc(:))
-! complex phase factor for translation
-    zt1=cmplx(cos(t1),sin(t1),8)
-! multiply the transpose of the symmetry matrix with the G-vector
-    iv(1)=symlat(1,1,lspl)*ivg(1,ig) &
-         +symlat(2,1,lspl)*ivg(2,ig) &
-         +symlat(3,1,lspl)*ivg(3,ig)
-    iv(2)=symlat(1,2,lspl)*ivg(1,ig) &
-         +symlat(2,2,lspl)*ivg(2,ig) &
-         +symlat(3,2,lspl)*ivg(3,ig)
-    iv(3)=symlat(1,3,lspl)*ivg(1,ig) &
-         +symlat(2,3,lspl)*ivg(2,ig) &
-         +symlat(3,3,lspl)*ivg(3,ig)
+! multiply the transpose of the inverse symmetry matrix with the G-vector
+    iv(1)=sym(1,1)*ivg(1,ig)+sym(2,1)*ivg(2,ig)+sym(3,1)*ivg(3,ig)
+    iv(2)=sym(1,2)*ivg(1,ig)+sym(2,2)*ivg(2,ig)+sym(3,2)*ivg(3,ig)
+    iv(3)=sym(1,3)*ivg(1,ig)+sym(2,3)*ivg(2,ig)+sym(3,3)*ivg(3,ig)
     iv(:)=modulo(iv(:)-intgv(:,1),ngrid(:))+intgv(:,1)
     jg=ivgig(iv(1),iv(2),iv(3))
     jfg=igfft(jg)
+! complex phase factor for translation
+    t1=-dot_product(vgc(:,ig),vtc(:))
+    zt1=cmplx(cos(t1),sin(t1),8)
     zfft2(jfg)=zfft2(jfg)+zt1*zfft1(ifg)
   end do
 end do
