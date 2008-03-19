@@ -15,7 +15,7 @@ subroutine writepmatxs(lgather)
   use m_genfilname
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
-!   writes them to direct access file {\tt PMAT_XS.OUT}. Derived from
+!   writes them to direct access file {\tt PMAT\_XS.OUT}. Derived from
 !   the routine {\tt writepmat}.
 !
 ! !REVISION HISTORY:
