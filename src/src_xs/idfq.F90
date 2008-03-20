@@ -22,7 +22,7 @@ subroutine idfq(iq)
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt,ig1,ig2
   logical :: tq0
   integer, external :: l2int,octmap
   logical, external :: tqgamma
@@ -93,6 +93,29 @@ subroutine idfq(iq)
                     chi0(2:,1)=chi0wg(2:,2,oct2)
                  end if
               end if
+
+
+if (m.eq.n) then
+   do ig1=1,n
+      do ig2=1,n
+         write(200,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
+      end do
+   end do
+end if
+
+              ! symmerize KS-respones ( ** experimental ** )
+              call  symg2f(vql(1,iq),n,igqig(1,iq),chi0) 
+
+
+if (m.eq.n) then
+   do ig1=1,n
+      do ig2=1,n
+         write(300,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
+      end do
+   end do
+end if
+
+             
               ! generate xc-kernel
               select case(fxctype)
               case(0,1,2,3,4,7,8)
