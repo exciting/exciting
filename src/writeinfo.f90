@@ -111,7 +111,7 @@ do is=1,nspecies
   write(fnum,'(" number of radial points in muffin-tin : ",I6)') nrmt(is)
   write(fnum,'(" atomic positions (lattice), magnetic fields (Cartesian) :")')
   do ia=1,natoms(is)
-    write(fnum,'("  atom ",I4," : ",3F12.8,"  ",3F12.8)') ia,atposl(:,ia,is), &
+    write(fnum,'(I4," : ",3F12.8,"  ",3F12.8)') ia,atposl(:,ia,is), &
      bfcmt(:,ia,is)
   end do
 end do
