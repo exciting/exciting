@@ -10,6 +10,8 @@
 subroutine symg2f(vpl,ngp,igpig,fg)
 ! !USES:
 use modmain
+use modxs
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   vpl     :vpl
 !   ngp     :ngp
@@ -68,13 +70,15 @@ use modmain
 
   fg2(:,:)=zzero
   ! loop over crystal symmetries of group of q
-  do j=1,nscq
-     isym=scq(j)
+!!$  do j=1,nscq
+!!$     isym=scq(j)
+  do isym=1,nsymcrys
      vtc=matmul(avec,vtlsymc(:,isym))
      lspl=lsplsymc(isym)
      ilspl=isymlat(lspl)
      sym(:,:)=symlat(:,:,ilspl)
-     ivgs(:)=ivgscq(:,isym)
+!!$     ivgs(:)=ivgscq(:,isym)
+     ivgs(:)=0.d0
      do igp1=1,ngp
         ! (s^-1)^LT ( G + G_s ) or in Cartesian s ( G + G_s )
         iv1=matmul(transpose(sym),ivg(:,igpig(igp1))+ivgs)
@@ -90,6 +94,36 @@ use modmain
      end do
   end do
   ! normalize
-  fg(:,:)=fg2(:,:)/dble(nscq)
+!!$  fg(:,:)=fg2(:,:)/dble(nscq)
+  fg(:,:)=fg2(:,:)/dble(nsymcrys)
+
+   
+!!$   fg2(1,:)=fg(1,:)*dble(nsymcrys)
+!!$   fg2(:,1)=fg(:,1)*dble(nsymcrys)
+!!$   do igp1=1,ngp
+!!$      do igp2=1,ngp
+!!$         
+!!$         do isym=1,nsymcrys
+!!$
+!!$            sym(:,:)=symlat(:,:,isymlat(lsplsymc(isym)))
+!!$            iv1=matmul(transpose(sym),ivg(:,igqig(igp1,1)))
+!!$            iv2=matmul(transpose(sym),ivg(:,igqig(igp2,1)))
+!!$            jgp1=ivgig(iv1(1),iv1(2),iv1(3))
+!!$            jgp2=ivgig(iv2(1),iv2(2),iv2(3))
+!!$            fg2(igp1,igp2)=fg2(igp1,igp2)+fg(jgp1,jgp2)
+!!$
+!!$
+!!$            if (igp1.eq.1) then
+!!$               write(*,*) isym,igp2,jgp2
+!!$            end if
+!!$            
+!!$         end do
+!!$         
+!!$         if (igp1.eq.1) write(*,*)
+!!$         
+!!$      end do
+!!$   end do
+!!$   fg(:,:)=fg2(:,:)/dble(nsymcrys)
+
   deallocate(fg2)
 end subroutine symg2f

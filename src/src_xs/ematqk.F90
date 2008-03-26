@@ -173,7 +173,7 @@ subroutine ematqk(iq,ik)
   cpuall=cpuini+cpuread+cpumain+cpuwrite
 
   ! write timing information
-  if ((task.ne.430).and.(task.ne.440).and.(task.ne.450)) then
+  if ((task.ne.430).and.(task.ne.440).and.(task.ne.441).and.(task.ne.450)) then
      call emattim(iq,ik,trim(fnetim),&
           cpuini,cpuread,cpumain,cpuwrite,cpuall, &
           cpugnt,cpumt,cpuir, &

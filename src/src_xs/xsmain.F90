@@ -101,6 +101,12 @@ subroutine xsmain
   case(440)
      ! screened Coulomb interaction
      call scrcoulint
+  case(441)
+     ! exchange Coulomb interaction
+     call exccoulint
+  case(445)
+     ! Bethe-Salpeter equation
+     call bse
   case(450)
      ! BSE-kernel
      call kernxc_bse(1)

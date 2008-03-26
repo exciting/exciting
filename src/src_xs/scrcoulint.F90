@@ -248,7 +248,7 @@ subroutine scrcoulint
            do igq2=igq1,n
               ! calculate weights for Coulomb potential
               iflg=0
-              if (tq0.and.(igq1.eq.1).or.(igq2.eq.1)) then
+              if (tq0.and.((igq1.eq.1).or.(igq2.eq.1))) then
                  ! consider only 1/q and 1/q^2 cases for q goint to zero
                  iflg=bsediagweight
               else if ((igq1.eq.1).and.(igq2.eq.1)) then

@@ -45,6 +45,7 @@ subroutine idfq(iq)
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iq,filnam=filnam)
   call genfilname(iqmt=iq,setfilext=.true.)
+  call init1xs(qvkloff(1,iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find limits for band combinations
@@ -95,22 +96,30 @@ subroutine idfq(iq)
               end if
 
 
-if (m.eq.n) then
+if (m.eq.n.and.iw.eq.1) then
    do ig1=1,n
       do ig2=1,n
-         write(200,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
+         write(200+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
       end do
    end do
 end if
 
-              ! symmerize KS-respones ( ** experimental ** )
-              call  symg2f(vql(1,iq),n,igqig(1,iq),chi0) 
 
 
 if (m.eq.n) then
+              ! symmerize KS-respones ( ** experimental ** )
+              call  symg2f(vql(1,iq),n,igqig(1,iq),chi0)
+
+!if (lfediag) then
+!   forall (ig1=1:n,ig2=1:n,ig1.ne.ig2) chi0(ig1,ig2)=zzero
+!end if
+
+end if
+
+if (m.eq.n.and.iw.eq.1) then
    do ig1=1,n
       do ig2=1,n
-         write(300,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
+         write(300+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
       end do
    end do
 end if
