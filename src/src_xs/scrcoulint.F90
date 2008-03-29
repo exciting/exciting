@@ -147,6 +147,10 @@ subroutine scrcoulint
   open(un,file=trim(fname),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
 
+
+write(*,*) 'shape(sccli)',shape(sccli)
+write(*,*) 'record length for SCI',recl
+
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
@@ -309,9 +313,13 @@ subroutine scrcoulint
 
         call cpu_time(cpu0)
         emattype=2
+        ! calculate matrix elements of the plane wave
+write(*,*) 'before ematqk1 nst1,nst2,nst3,nst4',nst1,nst2,nst3,nst4
         call ematqk1(iq,iknr)
+write(*,*) 'after ematqk1 nst1,nst2,nst3,nst4 ',nst1,nst2,nst3,nst4
 	call ematbdcmbs(emattype) !!! ***
-
+write(*,*) 'reset ematqk1 nst1,nst2,nst3,nst4 ',nst1,nst2,nst3,nst4
+write(*,*)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -370,12 +378,10 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
 !!!	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
 
         ! * version 2 : like in calkWD.frc and SELF documentation
-!!!	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
+	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
 
         ! * version 3 like in pep-thesis
-	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
-
-
+!!!	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
 
         sccli(:,:,:,:,jknr)=zzero
 !!$        do igq1=1,n
@@ -416,9 +422,9 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
         cpu_suma=cpu_suma+cpu1-cpu0
         call cpu_time(cpu0)
 
-	! * write out screened Coulomb interaction
-        call ioarr(un=1200,ioa='write',arr4dc=sccli(:,:,:,:,jknr),&
-             header='# iv,ic,ivp,icp')
+!!$	! * write out screened Coulomb interaction
+!!$        call ioarr(un=1200,ioa='write',arr4dc=sccli(:,:,:,:,jknr),&
+!!$             header='# iv,ic,ivp,icp')
 
 	do ist1=1,nst1
 	   do ist3=1,nst3

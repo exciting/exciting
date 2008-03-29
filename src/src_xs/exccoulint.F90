@@ -244,7 +244,7 @@ subroutine exccoulint
 	end do
 
         ! write exchange Coulomb interaction to direct-access file
-        write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst4,nst3,nst4, &
+        write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
              sccli(:,:,:,:)
 
         call genfilname(dotext='_SCI.OUT',setfilext=.true.)

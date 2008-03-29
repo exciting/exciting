@@ -6,29 +6,50 @@
 subroutine bse
   use modmain
   use modxs
+  use m_genwgrid
+  use m_getpmat
+  use m_genfilname
+  use m_getunit
   implicit none
   ! local variables
   character(*), parameter :: thisnam='bse'
   integer, parameter :: iqmt=1
-  character(256) :: fname
+  character(256) :: fnamesc,fnameex,fnamepm
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,n,iflg,recl
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,unsc,unex,j1,j2,s1,s2,hamsiz
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,bsetype
+  integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,n,iflg,recl,iw
+  integer :: ngridkt(3),iv2(3),ivgsym(3),un,unsc,unex,j1,j2,s1,s2,hamsiz,nexc
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,bsetype,oct
+  integer :: iv,ic,ik,lwork
   logical :: nosymt,reducekt,tq0,nsc,tphf
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,abstol
-  real(8), allocatable :: potcl(:),rwork(:)
+  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,abstol,t1,de
+  real(8), allocatable :: potcl(:),rwork(:),beval(:),spectr(:),w(:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
-  integer, allocatable :: iwork(:),ifail(:)
-  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),ham(:,:),work(:)
-  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
-  complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
+  integer, allocatable :: iwork(:),ifail(:),sor(:)
+  complex(8), allocatable :: excli(:,:,:,:),sccli(:,:,:,:),ham(:,:),work(:)
+  complex(8), allocatable :: bevec(:,:),pm(:,:,:),pmat(:),oszs(:)
   logical, allocatable :: done(:)
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
+
+  integer :: nvbse,ncbse,nvdif,ncdif,il,iu,nbeval,info
+  real(8) :: vl,vu
+
   ! external functions
   integer, external :: iplocnr
   logical, external :: tqgamma
   real(8), external :: dlamch
+
+  ! reset file extension to default
+  call genfilname(setfilext=.true.)
+
+
+oct=1
+
+vl=0.d0
+vu=1.d0
+
+nvbse=4
+ncbse=4
+
 
   ! type of contributions to BSE-Hamlitonian
   ! H = H_diag + 2H_x + H_c
@@ -40,7 +61,7 @@ subroutine bse
   ! 1........... H = H_diag + 2H_x              RPA-spectrum
   ! 2........... H = H_diag + 2H_x + H_c        correlated, spin-singlet
   ! 3........... H = H_diag + H_c               correlated, spin-triplet
-  bsetype=0
+  bsetype=3
 
   !----------------!
   !   initialize   !
@@ -69,8 +90,17 @@ subroutine bse
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   call ematbdcmbs(emattype)
 
+nvdif=nstval-nvbse
+ncdif=nstcon-ncbse
+
+write(*,*) 'nvdif',nvdif
+write(*,*) 'ncdif',ncdif
+write(*,*) 'oct',oct
+
+if ((nvdif.lt.0).or.(ncdif.lt.0)) stop 'bse: bad nvbse,ncbse'
+
   ! size of BSE-Hamiltonian
-  hamsiz=nkptnr*nstcon*nstval
+  hamsiz=nvbse*ncbse*nkptnr
 
   write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
   allocate(sccli(nst1,nst2,nst1,nst2))
@@ -83,10 +113,15 @@ subroutine bse
        sccli(:,:,:,:)
   call genfilname(basename='SCCLI',dotext='.OUT',filnam=fnamesc)
   call genfilname(basename='EXCLI',dotext='.OUT',filnam=fnameex)
+  call getunit(unsc)
   open(unsc,file=trim(fnamesc),form='unformatted',action='read', &
        status='old',access='direct',recl=recl)
+  call getunit(unex)
   open(unex,file=trim(fnameex),form='unformatted',action='read', &
        status='old',access='direct',recl=recl)
+
+write(*,*) 'shape(sccli)',shape(sccli)
+write(*,*) 'record length for SCI',recl
 
   ! read in energies
   do iknr=1,nkptnr
@@ -99,14 +134,17 @@ subroutine bse
   do iknr=1,nkptnr
      do jknr=iknr,nkptnr
         ikkp=ikkp+1
-        iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
-        iv(:)=modulo(iv(:),ngridk(:))
+        iv2(:)=ivknr(:,jknr)-ivknr(:,iknr)
+        iv2(:)=modulo(iv2(:),ngridk(:))
         ! q-point (reduced)
-        iqr=iqmapr(iv(1),iv(2),iv(3))
+        iqr=iqmapr(iv2(1),iv2(2),iv2(3))
         ! q-point (non-reduced)
-        iq=iqmap(iv(1),iv(2),iv(3))
+        iq=iqmap(iv2(1),iv2(2),iv2(3))
 
-        if (bsetype.ne.0) then
+
+!write(*,*) 'setting up Hamiltonian for (k,kp)-pair:',ikkp
+
+        if ((bsetype.eq.2).or.(bsetype.eq.3)) then
            ! read screened Coulomb interaction
            read(unsc,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,sccli
@@ -125,35 +163,38 @@ subroutine bse
               write(*,*)
               call terminate
            end if
-
-           ! read exchange Coulomb interaction
-           read(unex,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
-                nst4_,excli
-           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
-                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
-                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
-              write(*,*)
-              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
-                   & interaction")')
-              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
-                   &nst4)")')
-              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
-                   iq,iqr,nst1,nst2,nst3,nst4
-              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
-                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-              write(*,*)
-              call terminate
-           end if
         end if
 
-        do ist1=1,nst1
-           do ist2=1,nst2
-              do ist3=1,nst1
-                 do ist4=1,nst2
-                    s1=hamidx(ist1,ist2,iknr)
-                    s2=hamidx(ist3,ist4,jknr)
+        ! read exchange Coulomb interaction
+        if ((bsetype.eq.1).or.(bsetype.eq.2)) then
+           read(unex,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
+                nst4_,excli
+!!$           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
+!!$                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
+!!$                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
+!!$              write(*,*)
+!!$              write(*,'("Error(kernxc_bse): wrong indices for exchange Coulomb&
+!!$                   & interaction")')
+!!$              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
+!!$                   &nst4)")')
+!!$              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
+!!$                   iq,iqr,nst1,nst2,nst3,nst4
+!!$              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
+!!$                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
+!!$              write(*,*)
+!!$              call terminate
+!!$           end if
+        end if
+
+        do ist1=1+nvdif,nst1
+           do ist2=1,nst2-ncdif
+              do ist3=1+nvdif,nst1
+                 do ist4=1,nst2-ncdif
+                    s1=hamidx(ist1-nvdif,ist2,iknr,nvbse,ncbse)
+                    s2=hamidx(ist3-nvdif,ist4,jknr,nvbse,ncbse)
                     ! add diagonal term
-                    if (ist1.eq.ist3.and.ist2.eq.ist4.and.iknr.eq.jknr) then
+!                    if (ist1.eq.ist3.and.ist2.eq.ist4.and.iknr.eq.jknr) then
+                    if (s1.eq.s2) then
                        ham(s1,s2)=ham(s1,s2)+ &
                             evalsv(ist2+istocc,iknr)-evalsv(ist1,iknr)+scissor
                     end if
@@ -172,60 +213,119 @@ subroutine bse
            end do
         end do
 
+        if (ikkp.eq.1) then
+           do ist1=1+nvdif,nst1
+              do ist2=1,nst2-ncdif
+                 do ist3=1+nvdif,nst1
+                    do ist4=1,nst2-ncdif                    
+                       write(983,'(4i5,2g18.10)') ist1,ist2,ist3,ist4, &
+                            sccli(ist1,ist2,ist3,ist4)
+                    end do
+                 end do
+              end do
+           end do
+           stop
+        end if
 
         ! end loop over (k,kp)-pairs
      end do
   end do
 
   deallocate(excli,sccli)
-  lwork=2*hamsiz
-  allocate(work(lwork),rwork(7*hamsiz),iwork(5*hamsiz),ifail(hamsiz))
-  
-  
-  ! assign lower triangle of Hamiltonian
-  do s1=1,hamsiz
-     do s2=1,s1-1
-        ham(s1,s2)=conjg(ham(s2,s1))
-     end do
-  end do
 
 
-  ! *** solve eigenvalue problem
   abstol=2.d0*dlamch('S')
-  ! allocate help arrays
-
+  lwork=(32+1)*hamsiz
+  allocate(work(lwork),rwork(7*hamsiz),iwork(5*hamsiz),ifail(hamsiz))
+  allocate(beval(hamsiz),bevec(hamsiz,hamsiz))
   
 
-!!$ZHEEVX( JOBZ, RANGE, UPLO, N, A, LDA, VL, VU, IL, IU,
-!!$                   ABSTOL, M, W, Z, LDZ, WORK, LWORK, RWORK,
-!!$                   IWORK, IFAIL, INFO )
-!!$*     .. Scalar Arguments ..
-!!$      CHARACTER          JOBZ, RANGE, UPLO
-!!$      INTEGER            IL, INFO, IU, LDA, LDZ, LWORK, M, N
-!!$      DOUBLE PRECISION   ABSTOL, VL, VU
-!!$*     ..
-!!$*     .. Array Arguments ..
-!!$      INTEGER            IFAIL( * ), IWORK( * )
-!!$      DOUBLE PRECISION   RWORK( * ), W( * )
-!!$      COMPLEX*16         A( LDA, * ), WORK( * ), Z( LDZ, * )
+  write(*,*) 'call to zheevx..............'
+  write(*,*) 'Hamiltonian size is: ', hamsiz
+
+  ! LAPACK 3.0 call
+  call zheevx('V','A','U',hamsiz,ham,hamsiz,vl,vu,il,iu, &
+       abstol,nbeval,beval,bevec,hamsiz,work,lwork,rwork, &
+       iwork,ifail,info)
+
+  if (info.ne.0) then
+     write(*,*)
+     write(*,'("Error(bse): zheevx returned non-zero info:",i6)') info
+     write(*,*)
+     call terminate
+  end if
+
+  write(*,*) 'zheevx finished..............'
 
   ! deallocate Hamiltonian array
   deallocate(ham,work,rwork,iwork,ifail)
 
   ! read momentum matrix elements
+  call genfilname(basename='PMAT_XS',dotext='.OUT',filnam=fnamepm)
+  allocate(pm(3,nstsv,nstsv),pmat(hamsiz))
+  do iknr=1,nkptnr
+     call getpmat(iknr,vkl,.true.,trim(fnamepm),pm)
+     do ist1=1+nvdif,nstsv-nstcon
+        do ist2=nstval+1,nstsv-ncdif
+           s1=hamidx(ist1-nvdif,ist2-nstval,iknr,nvbse,ncbse)
+           pmat(s1)=pm(oct,ist1,ist2)
 
+write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
+
+        end do
+     end do
+  end do
+  deallocate(pm)
+
+  ! calculate oscillators for spectrum  
+  ! number of excitons to consider
+  nexc=hamsiz
+  allocate(oszs(nexc))
+  oszs(:)=zzero
+  do s1=1,nexc
+     do iknr=1,nkptnr
+        do iv=1,nvbse
+           do ic=1,ncbse
+              s2=hamidx(iv,ic,iknr,nvbse,ncbse)
+              oszs(s1)=oszs(s1)+bevec(s2,s1)*pmat(s2)/(evalsv(ic+istocc,iknr)- &
+                   evalsv(iv+nvdif,iknr))
+           end do
+        end do
+     end do
+  end do
+  deallocate(bevec)
 
   ! calculate spectrum
+  allocate(w(nwdos),spectr(nwdos))
+  call genwgrid(nwdf,wdos,acont,0.d0,w_real=w)
+  spectr(:)=0.d0
+  do iw=1,nwdos
+     do s1=1,nexc
+        spectr(iw)=spectr(iw)+abs(oszs(s1))**2* &
+             (brdtd/(brdtd**2+(w(iw)-beval(s1))**2)- &
+             brdtd/(brdtd**2+(w(iw)+beval(s1))**2))
+     end do
+  end do
+  spectr(:)=spectr(:)*8.d0*pi/omega/nkptnr
+
+do s1=1,hamsiz
+   write(984,'(i8,2g18.10)') s1,oszs(s1)
+end do
 
 
+do iw=1,nwdos
+   write(788,'(i6,2g18.10)') iw,escale*w(iw),spectr(iw)
+
+end do
 
 !///////////////////////////////////////////////////////////////////////////////
 contains
 
-  integer function hamidx(iv,ic,ik)
+  integer function hamidx(iv,ic,ik,nv,nc)
     use modxs
     implicit none
-    hamidx=iv + nstval*(ic-1) + nstval*nstcon*(ik-1)
+    integer, intent(in) :: iv,ic,ik,nv,nc
+    hamidx=iv + nv*(ic-1) + nv*nc*(ik-1)
   end function hamidx
 
 

@@ -108,7 +108,7 @@ end if
 
 if (m.eq.n) then
               ! symmerize KS-respones ( ** experimental ** )
-              call  symg2f(vql(1,iq),n,igqig(1,iq),chi0)
+!!!              call  symg2f(vql(1,iq),n,igqig(1,iq),chi0)
 
 !if (lfediag) then
 !   forall (ig1=1:n,ig2=1:n,ig1.ne.ig2) chi0(ig1,ig2)=zzero
