@@ -148,21 +148,21 @@ write(*,*) 'record length for SCI',recl
            ! read screened Coulomb interaction
            read(unsc,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,sccli
-           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
-                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
-                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
-              write(*,*)
-              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
-                   & interaction")')
-              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
-                   &nst4)")')
-              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
-                   iq,iqr,nst1,nst2,nst3,nst4
-              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
-                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-              write(*,*)
-              call terminate
-           end if
+!!$           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
+!!$                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
+!!$                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
+!!$              write(*,*)
+!!$              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
+!!$                   & interaction")')
+!!$              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
+!!$                   &nst4)")')
+!!$              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
+!!$                   iq,iqr,nst1,nst2,nst3,nst4
+!!$              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
+!!$                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
+!!$              write(*,*)
+!!$              call terminate
+!!$           end if
         end if
 
         ! read exchange Coulomb interaction
@@ -205,27 +205,17 @@ write(*,*) 'record length for SCI',recl
                     end if
                     ! add correlation term
                     if ((bsetype.eq.2).or.(bsetype.eq.3)) then
-                       ham(s1,s2)=ham(s1,s2)+ &
+!@@@@@@@@@@@@@@@@@@@@@@@@
+if (s1.ne.s2) then
+                       ham(s1,s2)=ham(s1,s2)- &
                             sccli(ist1,ist2,ist3,ist4)
+end if                       
+
                     end if
                  end do
               end do
            end do
         end do
-
-        if (ikkp.eq.1) then
-           do ist1=1+nvdif,nst1
-              do ist2=1,nst2-ncdif
-                 do ist3=1+nvdif,nst1
-                    do ist4=1,nst2-ncdif                    
-                       write(983,'(4i5,2g18.10)') ist1,ist2,ist3,ist4, &
-                            sccli(ist1,ist2,ist3,ist4)
-                    end do
-                 end do
-              end do
-           end do
-           stop
-        end if
 
         ! end loop over (k,kp)-pairs
      end do
@@ -247,6 +237,8 @@ write(*,*) 'record length for SCI',recl
   call zheevx('V','A','U',hamsiz,ham,hamsiz,vl,vu,il,iu, &
        abstol,nbeval,beval,bevec,hamsiz,work,lwork,rwork, &
        iwork,ifail,info)
+
+  write(*,'(a,i8)') 'Info(bse): nbeval',nbeval
 
   if (info.ne.0) then
      write(*,*)

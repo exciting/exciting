@@ -157,17 +157,6 @@ write(*,*) 'record length for SCI',recl
   ! first k-point
   do iknr=1,nkptnr
 
-     ! matrix elements for k and q=0
-!!$     emattype=1
-!!$     call init1xs(qvkloff(1,1))
-!!$     call getematrad(1)
-!!$     call ematqalloc
-!!$     call cpu_time(cpu0)
-!!$     call ematqk1(1,iknr)
-!!$     call cpu_time(cpu1)
-!!$     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
-!!$     emat12k(:,:,:)=xiou(:,:,:)
-!!$     deallocate(xiou,xiuo)
      emattype=2
      call ematbdcmbs(emattype)
 
@@ -276,21 +265,8 @@ write(*,*) 'record length for SCI',recl
         if (.not.done(iq)) call writegqpts(iq)
         call genfilname(dotext='_SCR.OUT',setfilext=.true.)
 
-
-!!$        ! matrix elements for kp and q=0
-!!$        emattype=1
-!!$        call init1xs(qvkloff(1,1))
-!!$        call getematrad(1)
-!!$        call ematqalloc
-!!$        call cpu_time(cpu0)
-!!$        call ematqk1(1,jknr)
-!!$        call cpu_time(cpu1)
-!!$        cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
-!!$        emat12kp(:,:,:)=xiou(:,:,:)
-!!$        deallocate(xiou,xiuo)
         emattype=2
         call ematbdcmbs(emattype)
-
 
         ! calculate matrix elements of the plane wave
         call cpu_time(cpu0)
@@ -314,30 +290,8 @@ write(*,*) 'record length for SCI',recl
         call cpu_time(cpu0)
         emattype=2
         ! calculate matrix elements of the plane wave
-write(*,*) 'before ematqk1 nst1,nst2,nst3,nst4',nst1,nst2,nst3,nst4
         call ematqk1(iq,iknr)
-write(*,*) 'after ematqk1 nst1,nst2,nst3,nst4 ',nst1,nst2,nst3,nst4
 	call ematbdcmbs(emattype) !!! ***
-write(*,*) 'reset ematqk1 nst1,nst2,nst3,nst4 ',nst1,nst2,nst3,nst4
-write(*,*)
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
-
-	do ist1=1,nst1
-	   do ist2=1,nst2
-	      write(4000,'(3i5,3g18.10)') ikkp,ist1,ist2,xiou(ist1,ist2,1),&
-		   abs(xiou(ist1,ist2,1))**2
-	   end do
-	end do
-	do ist3=1,nst3
-	   do ist4=1,nst4
-	      write(4001,'(3i5,3g18.10)') ikkp,ist3,ist4,xiuo(ist3,ist4,1),&
-		   abs(xiuo(ist3,ist4,1))**2
-	   end do
-	end do
-
         call cpu_time(cpu1)
         cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
 
@@ -370,15 +324,11 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
         end do
 
 
-!!$write(*,*) 'shape(emat34)',shape(emat34)
-!!$write(*,*) 'shape(emat12)',shape(emat12)
-
-
         ! * version 1
-!!!	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
+	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
 
         ! * version 2 : like in calkWD.frc and SELF documentation
-	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
+!!!	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
 
         ! * version 3 like in pep-thesis
 !!!	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
@@ -422,10 +372,6 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
         cpu_suma=cpu_suma+cpu1-cpu0
         call cpu_time(cpu0)
 
-!!$	! * write out screened Coulomb interaction
-!!$        call ioarr(un=1200,ioa='write',arr4dc=sccli(:,:,:,:,jknr),&
-!!$             header='# iv,ic,ivp,icp')
-
 	do ist1=1,nst1
 	   do ist3=1,nst3
 	      do ist2=1,nst2
@@ -439,7 +385,7 @@ write(*,*) 'shape(xiou),shape(xiuo)',shape(xiou),shape(xiuo)
 	end do
 
         ! write screened Coulomb interaction to direct-access file
-        write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
+        write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2, &
              sccli(:,:,:,:,jknr)
 
         call cpu_time(cpu1)
