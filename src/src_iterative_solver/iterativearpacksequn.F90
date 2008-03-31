@@ -47,7 +47,8 @@ type (evsystem)::system
   integer :: nevmax, ncvmax,nmax
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
-  complex(8),allocatable::workd(:),resid(:),v(:,:),workev(:),workl(:),d(:)
+  complex(8),allocatable::resid(:),v(:,:),workev(:),workl(:),d(:)
+  complex(8),pointer::workd(:)
   real(8),allocatable:: rwork(:),rd(:)
   integer,allocatable::idx(:)
   complex(8)::sigma
@@ -139,22 +140,25 @@ type (evsystem)::system
   !################################################
   !# reverse comunication loop of arpack library: #
   !################################################
+
   do i=1,maxitr 
      call znaupd  &
           ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam,  &
           ipntr, workd, workl, lworkl, rwork, infoznaupd)
-
+  	 vin=>workd(ipntr(1):ipntr(1)+n-1)
+   	 vout=>workd(ipntr(2):ipntr(2)+n-1)
 
      if (ido .eq. -1 .or. ido .eq. 1) then
-	call Hermiteanmatrixvector(system%overlap,one,workd(ipntr(1)),&
-	zero,workd(ipntr(2)))  
-	call  Hermiteanmatrixlinsolve(system%hamilton,workd(ipntr(2)))    
+    
+	call Hermiteanmatrixvector(system%overlap,one,vin,&
+	zero,vout)  
+	call  Hermiteanmatrixlinsolve(system%hamilton,vout)    
      else if(ido .eq.1) then
-        call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
-        call  Hermiteanmatrixlinsolve(system%hamilton,workd(ipntr(2)))      
+        call zcopy (n, workd(ipntr(3)), 1, vout, 1)
+        call  Hermiteanmatrixlinsolve(system%hamilton,vout)      
      else if (ido .eq. 2) then
-     call Hermiteanmatrixvector(system%overlap,one,workd(ipntr(1)),&
-     	zero,workd(ipntr(2)) ) 
+     call Hermiteanmatrixvector(system%overlap,one,vin,&
+     	zero,vout ) 
    
      else 
         exit

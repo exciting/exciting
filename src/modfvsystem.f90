@@ -97,8 +97,8 @@ contains
     implicit none
     type (HermiteanMatrix),intent(inout)::self
     complex(8),intent(in)::alpha,beta
-    complex(8),intent(inout)::vin(*)
-    complex(8),intent(inout)::vout(*)
+    complex(8),intent(inout)::vin(:)
+    complex(8),intent(inout)::vout(:)
     
     if(self%packed.eqv..true.)then
        call zhpmv("U",self%rank,alpha,getpackedpointer(self),vin, 1,beta,vout, 1)
@@ -138,7 +138,7 @@ contains
   
   subroutine Hermiteanmatrixlinsolve(self,b)
     type(HermiteanMatrix)::self
-    complex(8),intent(inout)::b(*)
+    complex(8),intent(inout)::b(:)
     integer info
     if(self%ludecomposed) then
        if(.not.ispacked(self))then
