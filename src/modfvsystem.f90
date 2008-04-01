@@ -101,9 +101,9 @@ contains
     complex(8),intent(inout)::vout(:)
     
     if(self%packed.eqv..true.)then
-       call zhpmv("U",self%rank,alpha,getpackedpointer(self),vin, 1,beta,vout, 1)
+       call zhpmv("U",self%rank,alpha,self%zap,vin, 1,beta,vout, 1)
     else
-       call zhemv("U",self%rank,alpha,get2dpointer(self),self%rank,vin, 1,beta,vout, 1)
+       call zhemv("U",self%rank,alpha,self%za,self%rank,vin, 1,beta,vout, 1)
     endif
   end subroutine Hermiteanmatrixvector
   
@@ -124,9 +124,9 @@ contains
     allocate(self%ipiv(self%rank))
     if(.not.self%ludecomposed)then
        if(.not.ispacked(self))then
-          call ZGETRF( self%rank,self%rank, get2dpointer(self), self%rank, self%IPIV, INFO )
+          call ZGETRF( self%rank,self%rank, self%za, self%rank, self%IPIV, INFO )
        else
-          call ZHPTRF('U',self%rank, getpackedpointer(self), self%IPIV, INFO )
+          call ZHPTRF('U',self%rank, self%zap, self%IPIV, INFO )
        endif
        if (info.ne.0)then
           write(*,*)"error in iterativearpacksecequn  HermiteanmatrixLU ",info
@@ -142,10 +142,10 @@ contains
     integer info
     if(self%ludecomposed) then
        if(.not.ispacked(self))then
-          call ZGETRS( 'N', self%rank, 1, get2dpointer(self), self%rank, self%IPIV, &
+          call ZGETRS( 'N', self%rank, 1, self%za, self%rank, self%IPIV, &
                b , self%rank, INFO)
        else
-          call ZHPTRS( 'U', self%rank, 1, getpackedpointer(self), self%IPIV, b, self%rank, INFO )
+          call ZHPTRS( 'U', self%rank, 1, self%zap, self%IPIV, b, self%rank, INFO )
        endif
        if (info.ne.0)then
           write(*,*)"error in iterativearpacksecequn Hermiteanmatrixlinsolve ",info
@@ -182,10 +182,10 @@ contains
     integer:: mysize
     if (ispacked(x)) then 
        mysize=(x%rank*(x%rank+1))/2
-        call zaxpy(mysize,alpha,getpackedpointer(x),1,getpackedpointer(y),1)
+        call zaxpy(mysize,alpha,x%zap,1,getpackedpointer(y),1)
     else
        mysize=x%rank*(x%rank)
-        call zaxpy(mysize,alpha,get2dpointer(x),1,get2dpointer(y),1)
+        call zaxpy(mysize,alpha,x%za,1,get2dpointer(y),1)
     endif
   end subroutine HermiteanMatrixAXPY
   
@@ -195,10 +195,10 @@ contains
     integer:: mysize
     if (ispacked(x)) then 
        mysize=(x%rank*(x%rank+1))/2
-        call zcopy(mysize,getpackedpointer(x),1,getpackedpointer(y),1)
+        call zcopy(mysize,x%zap,1,getpackedpointer(y),1)
     else
        mysize=x%rank*(x%rank)
-        call zcopy(mysize,get2dpointer(x),1,get2dpointer(y),1)
+        call zcopy(mysize,x%za,1,get2dpointer(y),1)
     endif
   end subroutine 
   
