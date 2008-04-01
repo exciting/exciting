@@ -61,7 +61,7 @@ ncbse=4
   ! 1........... H = H_diag + 2H_x              RPA-spectrum
   ! 2........... H = H_diag + 2H_x + H_c        correlated, spin-singlet
   ! 3........... H = H_diag + H_c               correlated, spin-triplet
-  bsetype=3
+  bsetype=2
 
   !----------------!
   !   initialize   !
@@ -206,10 +206,10 @@ write(*,*) 'record length for SCI',recl
                     ! add correlation term
                     if ((bsetype.eq.2).or.(bsetype.eq.3)) then
 !@@@@@@@@@@@@@@@@@@@@@@@@
-if (s1.ne.s2) then
+!if (s1.eq.s2) then
                        ham(s1,s2)=ham(s1,s2)- &
                             sccli(ist1,ist2,ist3,ist4)
-end if                       
+!end if                       
 
                     end if
                  end do
@@ -272,7 +272,7 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   ! calculate oscillators for spectrum  
   ! number of excitons to consider
   nexc=hamsiz
-  allocate(oszs(nexc))
+  allocate(oszs(nexc),sor(nexc))
   oszs(:)=zzero
   do s1=1,nexc
      do iknr=1,nkptnr
@@ -300,8 +300,10 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   end do
   spectr(:)=spectr(:)*8.d0*pi/omega/nkptnr
 
+  call sortidx(hamsiz,abs(oszs),sor)
 do s1=1,hamsiz
-   write(984,'(i8,2g18.10)') s1,oszs(s1)
+   s2=hamsiz-sor(s1)+1
+   write(984,'(i8,3g18.10)') s1,oszs(s2),abs(oszs(s2))
 end do
 
 

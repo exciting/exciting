@@ -324,6 +324,24 @@ write(*,*) 'record length for SCI',recl
         end do
 
 
+        select case (trim(screentype))
+        case('longrange')
+           ! long range screening
+           ! keep (0,0)-element
+           do igq1=2,n
+              tm(igq1,igq1)=tmi(1,1)/gqc(igq1,iq)**2
+           end do
+        case('diag')
+           ! only diagonal of screening
+           forall(igq1=1:n,igq2=1:n,igq1.ne.igq2)
+              tm(igq1,igq2)=zzero
+           end forall
+        end select
+        
+!!$write(1234,*) 'ikkp',ikkp,tm
+!!$write(1234,*)
+
+
         ! * version 1
 	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
 

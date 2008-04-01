@@ -36,6 +36,8 @@ subroutine exccoulint
 
   complex(8), allocatable :: emat12k(:,:,:,:)
 
+  call genfilname(setfilext=.true.)
+
   !----------------!
   !   initialize   !
   !----------------!

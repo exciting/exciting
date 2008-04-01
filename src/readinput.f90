@@ -1082,7 +1082,7 @@ case('screentype')
    case('full')
    case('diag')
    case('noinvdiag')
-   case('constant')
+   case('longrange')
    case default
       write(*,*)
       write(*,'("Error(readinput): unknown screening type: ",a)') &
