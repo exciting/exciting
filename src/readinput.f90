@@ -227,6 +227,7 @@ fnevecfvscr='EVECFV_SCR.OUT'
 fnevalsvscr='EVALSV_SCR.OUT'
 fnoccsvscr='OCCSV_SCR.OUT'
 ! BSE (-kernel) variables
+bsetype=0
 nosymbse=.false.
 reducekbse=.true.
 vkloffbse(:)=-1.d0
@@ -1129,6 +1130,8 @@ case('fnevalsvscr')
 case('fnoccsvscr')
   read(50,*,err=20) fnoccsvscr
   ! BSE (-kernel) variables
+case('bsetype')
+  read(50,*,err=20) bsetype
 case('nosymbse')
   read(50,*,err=20) nosymbse
 case('reducekbse')

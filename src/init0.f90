@@ -273,13 +273,6 @@ if (chgtot.lt.1.d-8) then
   write(*,*)
   stop
 end if
-#ifdef XS
-! occupations for BSE (-kernel)
-if (task.eq.440) then
-   ! "nempty" variable might be affected here
-   call initoccbse(nempty)
-end if
-#endif
 
 !-------------------------!
 !     G-vector arrays     !

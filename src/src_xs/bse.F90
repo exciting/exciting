@@ -18,7 +18,7 @@ subroutine bse
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,n,iflg,recl,iw
   integer :: ngridkt(3),iv2(3),ivgsym(3),un,unsc,unex,j1,j2,s1,s2,hamsiz,nexc
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,bsetype,oct
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,oct
   integer :: iv,ic,ik,lwork
   logical :: nosymt,reducekt,tq0,nsc,tphf
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,abstol,t1,de
@@ -41,15 +41,7 @@ subroutine bse
   ! reset file extension to default
   call genfilname(setfilext=.true.)
 
-
 oct=1
-
-vl=0.d0
-vu=1.d0
-
-nvbse=4
-ncbse=4
-
 
   ! type of contributions to BSE-Hamlitonian
   ! H = H_diag + 2H_x + H_c
@@ -61,7 +53,6 @@ ncbse=4
   ! 1........... H = H_diag + 2H_x              RPA-spectrum
   ! 2........... H = H_diag + 2H_x + H_c        correlated, spin-singlet
   ! 3........... H = H_diag + H_c               correlated, spin-triplet
-  bsetype=2
 
   !----------------!
   !   initialize   !
@@ -90,17 +81,20 @@ ncbse=4
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   call ematbdcmbs(emattype)
 
-nvdif=nstval-nvbse
-ncdif=nstcon-ncbse
+  write(*,'("number of states below Fermi energy:",i6)') nstbef
+  write(*,'("number of states above Fermi energy:",i6)') nstabf
+
+nvdif=nstval-nstbef
+ncdif=nstcon-nstabf
 
 write(*,*) 'nvdif',nvdif
 write(*,*) 'ncdif',ncdif
 write(*,*) 'oct',oct
 
-if ((nvdif.lt.0).or.(ncdif.lt.0)) stop 'bse: bad nvbse,ncbse'
+if ((nvdif.lt.0).or.(ncdif.lt.0)) stop 'bse: bad nstbef,nstabf'
 
   ! size of BSE-Hamiltonian
-  hamsiz=nvbse*ncbse*nkptnr
+  hamsiz=nstbef*nstabf*nkptnr
 
   write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
   allocate(sccli(nst1,nst2,nst1,nst2))
@@ -190,8 +184,8 @@ write(*,*) 'record length for SCI',recl
            do ist2=1,nst2-ncdif
               do ist3=1+nvdif,nst1
                  do ist4=1,nst2-ncdif
-                    s1=hamidx(ist1-nvdif,ist2,iknr,nvbse,ncbse)
-                    s2=hamidx(ist3-nvdif,ist4,jknr,nvbse,ncbse)
+                    s1=hamidx(ist1-nvdif,ist2,iknr,nstbef,nstabf)
+                    s2=hamidx(ist3-nvdif,ist4,jknr,nstbef,nstabf)
                     ! add diagonal term
 !                    if (ist1.eq.ist3.and.ist2.eq.ist4.and.iknr.eq.jknr) then
                     if (s1.eq.s2) then
@@ -259,7 +253,7 @@ write(*,*) 'record length for SCI',recl
      call getpmat(iknr,vkl,.true.,trim(fnamepm),pm)
      do ist1=1+nvdif,nstsv-nstcon
         do ist2=nstval+1,nstsv-ncdif
-           s1=hamidx(ist1-nvdif,ist2-nstval,iknr,nvbse,ncbse)
+           s1=hamidx(ist1-nvdif,ist2-nstval,iknr,nstbef,nstabf)
            pmat(s1)=pm(oct,ist1,ist2)
 
 write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
@@ -276,9 +270,9 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   oszs(:)=zzero
   do s1=1,nexc
      do iknr=1,nkptnr
-        do iv=1,nvbse
-           do ic=1,ncbse
-              s2=hamidx(iv,ic,iknr,nvbse,ncbse)
+        do iv=1,nstbef
+           do ic=1,nstabf
+              s2=hamidx(iv,ic,iknr,nstbef,nstabf)
               oszs(s1)=oszs(s1)+bevec(s2,s1)*pmat(s2)/(evalsv(ic+istocc,iknr)- &
                    evalsv(iv+nvdif,iknr))
            end do
