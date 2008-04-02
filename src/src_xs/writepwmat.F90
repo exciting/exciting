@@ -39,6 +39,7 @@ subroutine writepwmat
   ! initialise universal variables
   call init0
   call init1
+  call readfermi
   call init2xs
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
 

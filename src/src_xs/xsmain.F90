@@ -98,9 +98,12 @@ subroutine xsmain
   case(430)
      ! RPA screening
      call screen
-  case(440)
+  case(11111)
      ! screened Coulomb interaction
      call scrcoulint
+  case(440)
+     ! screened Coulomb interaction **********************************
+     call scrcoulint3
   case(441)
      ! exchange Coulomb interaction
      call exccoulint

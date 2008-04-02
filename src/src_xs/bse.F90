@@ -22,7 +22,7 @@ subroutine bse
   integer :: iv,ic,ik,lwork
   logical :: nosymt,reducekt,tq0,nsc,tphf
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,abstol,t1,de
-  real(8), allocatable :: potcl(:),rwork(:),beval(:),spectr(:),w(:)
+  real(8), allocatable :: potcl(:),rwork(:),beval(:),spectr(:),w(:),oszsa(:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   integer, allocatable :: iwork(:),ifail(:),sor(:)
   complex(8), allocatable :: excli(:,:,:,:),sccli(:,:,:,:),ham(:,:),work(:)
@@ -49,10 +49,10 @@ oct=1
   ! H_x ............. exchange term
   ! H_c ............. correlation term
   ! value of bsetype corresponds to
-  ! 0........... H = H_diag                     IP-spectrum
-  ! 1........... H = H_diag + 2H_x              RPA-spectrum
-  ! 2........... H = H_diag + 2H_x + H_c        correlated, spin-singlet
-  ! 3........... H = H_diag + H_c               correlated, spin-triplet
+  ! ip      ........... H = H_diag                     IP-spectrum
+  ! rpa     ........... H = H_diag + 2H_x              RPA-spectrum
+  ! singlet ........... H = H_diag + 2H_x + H_c        correlated, spin-singlet
+  ! triplet ........... H = H_diag + H_c               correlated, spin-triplet
 
   !----------------!
   !   initialize   !
@@ -78,6 +78,7 @@ oct=1
   ! read Fermi energy from file
   call readfermi
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+  call initoccbse
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   call ematbdcmbs(emattype)
 
@@ -137,8 +138,8 @@ write(*,*) 'record length for SCI',recl
 
 
 !write(*,*) 'setting up Hamiltonian for (k,kp)-pair:',ikkp
-
-        if ((bsetype.eq.2).or.(bsetype.eq.3)) then
+        select case(trim(bsetype))
+        case('singlet','triplet')
            ! read screened Coulomb interaction
            read(unsc,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,sccli
@@ -157,10 +158,11 @@ write(*,*) 'record length for SCI',recl
 !!$              write(*,*)
 !!$              call terminate
 !!$           end if
-        end if
+        end select
 
         ! read exchange Coulomb interaction
-        if ((bsetype.eq.1).or.(bsetype.eq.2)) then
+        select case(trim(bsetype))
+        case('rpa','singlet')
            read(unex,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,excli
 !!$           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
@@ -178,7 +180,7 @@ write(*,*) 'record length for SCI',recl
 !!$              write(*,*)
 !!$              call terminate
 !!$           end if
-        end if
+        end select
 
         do ist1=1+nvdif,nst1
            do ist2=1,nst2-ncdif
@@ -187,25 +189,22 @@ write(*,*) 'record length for SCI',recl
                     s1=hamidx(ist1-nvdif,ist2,iknr,nstbef,nstabf)
                     s2=hamidx(ist3-nvdif,ist4,jknr,nstbef,nstabf)
                     ! add diagonal term
-!                    if (ist1.eq.ist3.and.ist2.eq.ist4.and.iknr.eq.jknr) then
                     if (s1.eq.s2) then
                        ham(s1,s2)=ham(s1,s2)+ &
                             evalsv(ist2+istocc,iknr)-evalsv(ist1,iknr)+scissor
                     end if
                     ! add exchange term
-                    if ((bsetype.eq.1).or.(bsetype.eq.2)) then
+                    select case(trim(bsetype))
+                    case('rpa','singlet')
                        ham(s1,s2)=ham(s1,s2)+ &
                             2.d0*excli(ist1,ist2,ist3,ist4)
-                    end if
+                    end select
                     ! add correlation term
-                    if ((bsetype.eq.2).or.(bsetype.eq.3)) then
-!@@@@@@@@@@@@@@@@@@@@@@@@
-!if (s1.eq.s2) then
-                       ham(s1,s2)=ham(s1,s2)- &
+                    select case(trim(bsetype))
+                    case('singlet','triplet')
+                       ham(s1,s2)=ham(s1,s2)-               &
                             sccli(ist1,ist2,ist3,ist4)
-!end if                       
-
-                    end if
+                    end select
                  end do
               end do
            end do
@@ -266,7 +265,7 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   ! calculate oscillators for spectrum  
   ! number of excitons to consider
   nexc=hamsiz
-  allocate(oszs(nexc),sor(nexc))
+  allocate(oszs(nexc),oszsa(nexc),sor(nexc))
   oszs(:)=zzero
   do s1=1,nexc
      do iknr=1,nkptnr
@@ -294,11 +293,20 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   end do
   spectr(:)=spectr(:)*8.d0*pi/omega/nkptnr
 
-  call sortidx(hamsiz,abs(oszs),sor)
-do s1=1,hamsiz
-   s2=hamsiz-sor(s1)+1
-   write(984,'(i8,3g18.10)') s1,oszs(s2),abs(oszs(s2))
-end do
+  do s2=1,hamsiz
+     write(983,'(i8,3g18.10)') s2,beval(s2)*escale,abs(oszs(s2))
+  end do
+
+
+
+  oszsa=abs(oszs)
+  call sortidx(hamsiz,oszsa,sor)
+  sor=sor(hamsiz:1:-1)
+!  oszs=oszs(sor)
+  do s1=1,hamsiz
+     s2=sor(s1)
+     write(984,'(i8,3g18.10)') s1,beval(sor(s2))*escale,abs(oszs(s2))
+  end do
 
 
 do iw=1,nwdos

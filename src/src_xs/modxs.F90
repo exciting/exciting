@@ -412,7 +412,7 @@ module modxs
   !     Bethe-Salpeter (kernel) variables    !
   !------------------------------------------!
   ! type of BSE-Hamiltonian
-  integer :: bsetype
+  character(32) :: bsetype
   ! nosym is .true. if no symmetry information should be used
   logical nosymbse
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)

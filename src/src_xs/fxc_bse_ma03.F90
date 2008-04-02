@@ -66,7 +66,7 @@ contains
 
     ! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ! apply scaling for debugging purposes
-    fxc = fxc / fourpi
+    fxc = conjg(fxc)
 
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !write(*,*) 'reading fxc-bse:',iw,fxc

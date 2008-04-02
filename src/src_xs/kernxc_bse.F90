@@ -66,7 +66,7 @@ subroutine kernxc_bse(oct)
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-logical,parameter :: tcont=.true. !@@@@@@@@@@@@@@@@@@@@@@@
+logical,parameter :: tcont=.false. !@@@@@@@@@@@@@@@@@@@@@@@
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
@@ -337,7 +337,7 @@ t3=1.d0
         end if
         ! diagonal of BSE-kernel (approximate by first value in matrix)
         ! *** improve later
-        if (ikkp.eq.1) bsediagshift=sccli(1,1,1,1)
+        if (ikkp.eq.1) bsediagshift=-sccli(1,1,1,1)
 
         ! set diagonal of Bethe-Salpeter kernel to zero (cf. A. Marini, PRL 2003)
         if (iknr.eq.jknr) then
@@ -485,8 +485,8 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
 
 
 101 continue
-!! if (tcont)  bsediagshift=cmplx(0.7716475564E-02,0.5831708302E-13,8)
- if (tcont)  bsediagshift=cmplx(0.6909239449E-02,0.1209911682E-04,8)
+!! if (tcont)  bsediagshift=-cmplx(0.7716475564E-02,0.5831708302E-13,8)
+ if (tcont)  bsediagshift=-cmplx(0.6909239449E-02,0.1209911682E-04,8)
 
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
@@ -514,7 +514,7 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
   ! set up kernel
   do iw=1,nwdf
      ! locate shifted energy on grid
-     t1=dble(w(iw))-bsediagshift
+     t1=dble(w(iw))+bsediagshift
      ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
      iws1=floor(ws)
      iws2=ceiling(ws)

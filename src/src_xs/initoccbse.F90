@@ -29,7 +29,7 @@ subroutine initoccbse
      if (nstabf.gt.(nempty+1)) then
         nstabf=nempty+1
         write(unitout,'("Info(",a,"): nstabf too large: adjusting &
-             &" to ",I6)') nstabf
+             & to ",I6)') nstabf
      end if
   end if
 end subroutine initoccbse

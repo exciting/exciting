@@ -22,6 +22,7 @@ subroutine scrcoulint
   integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
+  complex(8) :: zt1
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
@@ -299,12 +300,6 @@ write(*,*) 'record length for SCI',recl
         call ematqdealloc
         call cpu_time(cpu1)
         cpu_ematqdealloc=cpu_ematqdealloc+cpu1-cpu0
-
-
-        ! * calculate phasefact(G,Gp;q)*potcoul(G,Gp;q)*eps^-1(G1,Gp1,qr)
-        !tm(:,:)=phf(:,:)*potcl(:,:)*tmi(:,:)
-        tm(:,:)=potcl(:,:)*tmi(:,:)
-
         call cpu_time(cpu0)
 
         ! help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
@@ -327,26 +322,35 @@ write(*,*) 'record length for SCI',recl
         select case (trim(screentype))
         case('longrange')
            ! long range screening
+	   tm(:,:)=zzero
            ! keep (0,0)-element
+	   tm(1,1)=tmi(1,1)*potcl(1,1)
            do igq1=2,n
-              tm(igq1,igq1)=tmi(1,1)/gqc(igq1,iq)**2
+              tm(igq1,igq1)=fourpi*tmi(1,1)/gqc(igq1,iq)**2
            end do
         case('diag')
            ! only diagonal of screening
+           tm(:,:)=potcl(1:n,1:n)*tmi(:,:)
            forall(igq1=1:n,igq2=1:n,igq1.ne.igq2)
               tm(igq1,igq2)=zzero
            end forall
+	case('full')
+	   ! full screening
+	   !!tm(:,:)=phf(:,:)*potcl(:,:)*tmi(:,:)
+           tm(:,:)=potcl(1:n,1:n)*tmi(:,:)
         end select
         
-!!$write(1234,*) 'ikkp',ikkp,tm
-!!$write(1234,*)
+!write(1234,*) 'ikkp',ikkp,tm
+!write(1234,*)
 
 
         ! * version 1
-	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
+!!	scclit=matmul(conjg(emat34),matmul(tm,transpose(emat12)))/omega/nkptnr
 
         ! * version 2 : like in calkWD.frc and SELF documentation
-!!!	scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
+scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12))))/omega/nkptnr
+
+write (*,'(a,3g18.10)') 'upper limits:',maxval(abs(tm)),maxval(abs(emat12)),maxval(abs(emat34))
 
         ! * version 3 like in pep-thesis
 !!!	scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12))))/omega/nkptnr
