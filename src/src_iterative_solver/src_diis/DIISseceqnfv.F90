@@ -135,8 +135,9 @@ call newsystem(system,packed,n)
            write(*,*)"recalculate preconditioner"
            exit
         endif
-        call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
-             eigenvector,trialvecs(:,:,idiis))      
+       ! call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
+       !      eigenvector,trialvecs(:,:,idiis))      
+        call exactupdatevectors(system%hamilton,system%overlap,r,eigenvector,trialvecs(:,:,idiis))     
         call setuphsvect(n,iunconverged,get2dpointer(system%hamilton),get2dpointer(system%overlap),eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
