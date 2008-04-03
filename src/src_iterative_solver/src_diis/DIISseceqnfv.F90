@@ -91,8 +91,8 @@ call newsystem(system,packed,n)
      call zlarnv(2, iseed, n*nstfv, eigenvector)
      call zscal(n*nstfv,dcmplx(1e-4/n/nstfv,0),eigenvector,1)
      do i=1,nstfv
-        !call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
-        call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        !call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do

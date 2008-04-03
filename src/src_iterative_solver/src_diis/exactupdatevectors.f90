@@ -1,16 +1,13 @@
 subroutine exactupdatevectors(n,iunconverged,hamilton,overlap,r,&
 rhizvalue,eigenvector,trialvecs)  
 !calculate update equation with linsolver   
-
 !solvefor dA:  dA=(H-e*S)\R
-
 ! dA 	Update step to zero residual
 ! H 	Hamilton 
 ! S 	Overlap
 ! e 	Rhitz Value
 ! R 	Residual
-
-!trialvecs=eigenvector+dA
+! trialvecs=eigenvector+dA
 use modfvsystem
 use modmain,only:zone
 integer, intent(in):: n,iunconverged
