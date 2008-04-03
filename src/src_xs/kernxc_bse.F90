@@ -63,7 +63,7 @@ subroutine kernxc_bse(oct)
   real(8) :: cpu0,cpu1,cpu2,cpu3
   real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
-  complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:),emat(:,:,:,:)
+  complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 logical,parameter :: tcont=.false. !@@@@@@@@@@@@@@@@@@@@@@@
@@ -169,7 +169,6 @@ t3=1.d0
   allocate(scclih(nst1,nst3,nst2,nst4))
   allocate(scclit(nst13,nst13))
   allocate(emat12k(n,nst1,nst3),emat12kp(nst1,nst3,n))
-  allocate(emat(n,nst1,nst3,nkptnr))
   allocate(residr(nst13,n),residq(nst13,n))
   allocate(w(nwdf),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
   allocate(chi0i(n,n),chi0(n,n),chi0wg(n,2,3),chi0h(9))
@@ -190,20 +189,6 @@ t3=1.d0
 
 !@@@@@@@@@@@@@@@@@@@
   if (tcont) goto 101
-
-
-  call ematqalloc
-  do iknr=1,nkptnr
-     write(*,*) 'generation of matrix elements: k-point:',iknr
-     ! matrix elements for k and q=0
-     call ematqk1(iqmt,iknr)
-     emat(:,:,:,iknr)=xiou(:,:,:)
-     deallocate(xiou,xiuo)
-  end do
-  emattype=2
-  call ematbdcmbs(emattype)
-
-
 
 
   !-------------------------------!
@@ -292,7 +277,7 @@ t3=1.d0
         call cpu_time(cpu1)
         cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
         ! apply gauge wrt. symmetrized Coulomb potential
-        call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+        call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
         ! assign optical component
         xiou(:,:,1)=pmou(oct,:,:)
         emat12kp(:,:,:)=xiou(:,:,:)
@@ -354,6 +339,9 @@ t3=1.d0
         ! *** improve later
         if (ikkp.eq.1) bsediagshift=-sccli(1,1,1,1)
 
+        ! rescale
+        sccli = - sccli
+
         ! set diagonal of Bethe-Salpeter kernel to zero (cf. A. Marini, PRL 2003)
         if (iknr.eq.jknr) then
            do ist3=1,nst3
@@ -381,7 +369,7 @@ t3=1.d0
         do ist2=1,nst3
            do ist1=1,nst1
               j1=j1+1
-              emat12p(j1,:)=emat12kp(ist1,ist2,:)
+              emat12p(j1,:)=conjg(emat12kp(ist1,ist2,:))
            end do
         end do
         ! map 
@@ -422,18 +410,18 @@ t3=1.d0
 write(*,*) 'max 1/denom',t3
 write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
 
-        call cpu_time(cpu3)
-        t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph+cpu_suma+cpu_write
-        write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
-        write(*,'(a,f12.3)') 'ematrad     :',cpu_ematrad
-        write(*,'(a,f12.3)') 'ematqalloc  :',cpu_ematqalloc
-        write(*,'(a,f12.3)') 'ematqk1     :',cpu_ematqk1
-        write(*,'(a,f12.3)') 'ematqdealloc:',cpu_ematqdealloc
-        write(*,'(a,f12.3)') 'summation   :',cpu_suma
-        write(*,'(a,f12.3)') 'write       :',cpu_write
-        write(*,'(a,f12.3)') '*** sum     :',t3
-        write(*,'(a,f12.3)') '*** rest    :',cpu3-cpu2-t3
-        write(*,'(a,f12.3)') '*** overall :',cpu3-cpu2
+!!$        call cpu_time(cpu3)
+!!$        t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph+cpu_suma+cpu_write
+!!$        write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
+!!$        write(*,'(a,f12.3)') 'ematrad     :',cpu_ematrad
+!!$        write(*,'(a,f12.3)') 'ematqalloc  :',cpu_ematqalloc
+!!$        write(*,'(a,f12.3)') 'ematqk1     :',cpu_ematqk1
+!!$        write(*,'(a,f12.3)') 'ematqdealloc:',cpu_ematqdealloc
+!!$        write(*,'(a,f12.3)') 'summation   :',cpu_suma
+!!$        write(*,'(a,f12.3)') 'write       :',cpu_write
+!!$        write(*,'(a,f12.3)') '*** sum     :',t3
+!!$        write(*,'(a,f12.3)') '*** rest    :',cpu3-cpu2-t3
+!!$        write(*,'(a,f12.3)') '*** overall :',cpu3-cpu2
         write(*,*)
 
         ! end inner loop over k-points
@@ -528,80 +516,96 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
   
   ! set up kernel
   do iw=1,nwdf
-     ! locate shifted energy on grid
-     t1=dble(w(iw))+bsediagshift
-     ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
-     iws1=floor(ws)
-     iws2=ceiling(ws)
-     ws1=dble(w(iws1))
-     ws2=dble(w(iws2))
+!!$     ! locate shifted energy on grid
+!!$     t1=dble(w(iw))+bsediagshift
+!!$     ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
+!!$     iws1=floor(ws)
+!!$     iws2=ceiling(ws)
+!!$     ws1=dble(w(iws1))
+!!$     ws2=dble(w(iws2))
+!!$
+!!$t3=dble(w(iw))
+!!$write(*,*) iw,t3,t1,ws,iws1,iws2
+!!$
+!!$!     if (iws1.lt.1) then
+!!$!        write(*,*)
+!!$!        write(*,'("Error(",a,"): negative shifted w-point")') &
+!!$!             trim(thisnam)
+!!$!        write(*,*)
+!!$!        call terminate
+!!$!     end if
+!!$     ksintp=.true.
+!!$     tks1=.true.
+!!$     tks2=.true.
+!!$     if (iws1.eq.iws2) ksintp=.false.
+!!$     if (iws1.gt.nwdf) tks1=.false.
+!!$     if (iws1.lt.1) then
+!!$     	tks1=.false.
+!!$	tks2=.false.
+!!$     end if
+!!$     if ((.not.ksintp).or.(iws2.gt.nwdf)) tks2=.false.
+!!$     ! zero in case frequency above the interval is required
+!!$     chi0i(:,:)=zzero
+!!$     oct1=oct
+!!$     oct2=oct
+!!$     octh=1+(oct-1)*4
+!!$
+!!$
+!!$write(*,*) 'octs',oct,oct1,oct2,octh
+!!$     if (tks1) then
+!!$        ! get KS/QP response function for lower w-point
+!!$        call getx0(.true.,iqmt,iws1,trim(filnam),'',chi0,chi0wg,chi0h)
+!!$        ! head
+!!$        chi0(1,1)=chi0h(octh)
+!!$        ! wings
+!!$        if (n.gt.1) then
+!!$           chi0(1,2:)=chi0wg(2:,1,oct1)
+!!$           chi0(2:,1)=chi0wg(2:,2,oct2)
+!!$        end if
+!!$
+!!$     do igq1=1,n
+!!$        do igq2=1,n
+!!$           write(772,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0(igq1,igq2)
+!!$        end do
+!!$     end do
+!!$
+!!$        ! invert
+!!$        call zinvert_hermitian(0,chi0,chi0i)
+!!$     end if
+!!$     if (tks2) then
+!!$        ! get KS/QP response function for lower w-point
+!!$        call getx0(.true.,iqmt,iws2,trim(filnam),'',chi02,chi0wg2,chi0h2)
+!!$        ! head
+!!$        chi02(1,1)=chi0h2(octh)
+!!$        ! wings
+!!$        if (n.gt.1) then
+!!$           chi02(1,2:)=chi0wg2(2:,1,oct1)
+!!$           chi02(2:,1)=chi0wg2(2:,2,oct2)
+!!$        end if
+!!$        ! invert
+!!$        call zinvert_hermitian(0,chi02,chi02i)
+!!$     end if
+!!$     if (ksintp) then
+!!$        t3=(t1-ws1)/(ws2-ws1)
+!!$        ! linear interpolation
+!!$        chi0i(:,:)=(1.d0-t3)*chi0i(:,:) + t3*chi02i(:,:)
+!!$     end if
 
-t3=dble(w(iw))
-write(*,*) iw,t3,t1,ws,iws1,iws2
-
-!     if (iws1.lt.1) then
-!        write(*,*)
-!        write(*,'("Error(",a,"): negative shifted w-point")') &
-!             trim(thisnam)
-!        write(*,*)
-!        call terminate
-!     end if
-     ksintp=.true.
-     tks1=.true.
-     tks2=.true.
-     if (iws1.eq.iws2) ksintp=.false.
-     if (iws1.gt.nwdf) tks1=.false.
-     if (iws1.lt.1) then
-     	tks1=.false.
-	tks2=.false.
-     end if
-     if ((.not.ksintp).or.(iws2.gt.nwdf)) tks2=.false.
-     ! zero in case frequency above the interval is required
-     chi0i(:,:)=zzero
      oct1=oct
      oct2=oct
      octh=1+(oct-1)*4
-
-
-write(*,*) 'octs',oct,oct1,oct2,octh
-     if (tks1) then
-        ! get KS/QP response function for lower w-point
-        call getx0(.true.,iqmt,iws1,trim(filnam),'',chi0,chi0wg,chi0h)
-        ! head
-        chi0(1,1)=chi0h(octh)
-        ! wings
-        if (n.gt.1) then
-           chi0(1,2:)=chi0wg(2:,1,oct1)
-           chi0(2:,1)=chi0wg(2:,2,oct2)
-        end if
-
-     do igq1=1,n
-        do igq2=1,n
-           write(772,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0(igq1,igq2)
-        end do
-     end do
-
-        ! invert
-        call zinvert_hermitian(0,chi0,chi0i)
+     ! get KS/QP response function for lower w-point
+     call getx0(.true.,iqmt,iw,trim(filnam),'',chi0,chi0wg,chi0h)
+     ! head
+     chi0(1,1)=chi0h(octh)
+     ! wings
+     if (n.gt.1) then
+        chi0(1,2:)=chi0wg(2:,1,oct1)
+        chi0(2:,1)=chi0wg(2:,2,oct2)
      end if
-     if (tks2) then
-        ! get KS/QP response function for lower w-point
-        call getx0(.true.,iqmt,iws2,trim(filnam),'',chi02,chi0wg2,chi0h2)
-        ! head
-        chi02(1,1)=chi0h2(octh)
-        ! wings
-        if (n.gt.1) then
-           chi02(1,2:)=chi0wg2(2:,1,oct1)
-           chi02(2:,1)=chi0wg2(2:,2,oct2)
-        end if
-        ! invert
-        call zinvert_hermitian(0,chi02,chi02i)
-     end if
-     if (ksintp) then
-        t3=(t1-ws1)/(ws2-ws1)
-        ! linear interpolation
-        chi0i(:,:)=(1.d0-t3)*chi0i(:,:) + t3*chi02i(:,:)
-     end if
+     ! invert
+     call zinvert_hermitian(0,chi0,chi0i)
+
      ! multiply inner part of kernel with inverse QP-response function from
      ! both sides
 
