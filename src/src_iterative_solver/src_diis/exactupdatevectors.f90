@@ -1,4 +1,5 @@
-subroutine exactupdatevectors(n,iunconverged,hamilton,overlap,r,rhizvalue,eigenvector,trialvecs)  
+subroutine exactupdatevectors(n,iunconverged,hamilton,overlap,r,&
+rhizvalue,eigenvector,trialvecs)  
 !calculate update equation with linsolver   
 
 !solvefor dA:  dA=(H-e*S)\R
