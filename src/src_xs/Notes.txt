@@ -1,0 +1,10 @@
+
+
+--------------------------------------------------------------------------------
+>> Apr 3, 2008
+--------------------------------------------------------------------------------
+
+	+ global variable for BSE-diag minimum/average  bsediag
+	+ subtract bsediag from BSE ham.
+	+ account for bsediag in KS/QP-response functions
+

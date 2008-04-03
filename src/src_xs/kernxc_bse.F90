@@ -29,7 +29,7 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-3
+  real(8), parameter :: delt=1.d-4
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
@@ -337,7 +337,7 @@ t3=1.d0
         end if
         ! diagonal of BSE-kernel (approximate by first value in matrix)
         ! *** improve later
-        if (ikkp.eq.1) bsediagshift=-sccli(1,1,1,1)
+        if (ikkp.eq.1) bsediagshift=sccli(1,1,1,1) !@@@@@@@@
 
         ! rescale
         sccli = - sccli
@@ -446,11 +446,18 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
            osca=osca+conjg(transpose(osca))
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
+!!$           ! set up energy denominators
+!!$           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
+!!$                omega          
+!!$           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
+!!$                omega
            ! set up energy denominators
-           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
-                omega          
-           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
-                omega
+           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd) + &
+                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)
+           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2 + &
+                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)**2
+           den1=den1/nkpt/omega
+           den2=den2/nkpt/omega
            ! update kernel
            do iw=1,nwdf
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
@@ -516,95 +523,96 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
   
   ! set up kernel
   do iw=1,nwdf
-!!$     ! locate shifted energy on grid
-!!$     t1=dble(w(iw))+bsediagshift
-!!$     ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
-!!$     iws1=floor(ws)
-!!$     iws2=ceiling(ws)
-!!$     ws1=dble(w(iws1))
-!!$     ws2=dble(w(iws2))
-!!$
-!!$t3=dble(w(iw))
-!!$write(*,*) iw,t3,t1,ws,iws1,iws2
-!!$
-!!$!     if (iws1.lt.1) then
-!!$!        write(*,*)
-!!$!        write(*,'("Error(",a,"): negative shifted w-point")') &
-!!$!             trim(thisnam)
-!!$!        write(*,*)
-!!$!        call terminate
-!!$!     end if
-!!$     ksintp=.true.
-!!$     tks1=.true.
-!!$     tks2=.true.
-!!$     if (iws1.eq.iws2) ksintp=.false.
-!!$     if (iws1.gt.nwdf) tks1=.false.
-!!$     if (iws1.lt.1) then
-!!$     	tks1=.false.
-!!$	tks2=.false.
-!!$     end if
-!!$     if ((.not.ksintp).or.(iws2.gt.nwdf)) tks2=.false.
-!!$     ! zero in case frequency above the interval is required
-!!$     chi0i(:,:)=zzero
-!!$     oct1=oct
-!!$     oct2=oct
-!!$     octh=1+(oct-1)*4
-!!$
-!!$
-!!$write(*,*) 'octs',oct,oct1,oct2,octh
-!!$     if (tks1) then
-!!$        ! get KS/QP response function for lower w-point
-!!$        call getx0(.true.,iqmt,iws1,trim(filnam),'',chi0,chi0wg,chi0h)
-!!$        ! head
-!!$        chi0(1,1)=chi0h(octh)
-!!$        ! wings
-!!$        if (n.gt.1) then
-!!$           chi0(1,2:)=chi0wg(2:,1,oct1)
-!!$           chi0(2:,1)=chi0wg(2:,2,oct2)
-!!$        end if
-!!$
-!!$     do igq1=1,n
-!!$        do igq2=1,n
-!!$           write(772,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0(igq1,igq2)
-!!$        end do
-!!$     end do
-!!$
-!!$        ! invert
-!!$        call zinvert_hermitian(0,chi0,chi0i)
-!!$     end if
-!!$     if (tks2) then
-!!$        ! get KS/QP response function for lower w-point
-!!$        call getx0(.true.,iqmt,iws2,trim(filnam),'',chi02,chi0wg2,chi0h2)
-!!$        ! head
-!!$        chi02(1,1)=chi0h2(octh)
-!!$        ! wings
-!!$        if (n.gt.1) then
-!!$           chi02(1,2:)=chi0wg2(2:,1,oct1)
-!!$           chi02(2:,1)=chi0wg2(2:,2,oct2)
-!!$        end if
-!!$        ! invert
-!!$        call zinvert_hermitian(0,chi02,chi02i)
-!!$     end if
-!!$     if (ksintp) then
-!!$        t3=(t1-ws1)/(ws2-ws1)
-!!$        ! linear interpolation
-!!$        chi0i(:,:)=(1.d0-t3)*chi0i(:,:) + t3*chi02i(:,:)
-!!$     end if
+     ! locate shifted energy on grid
+     t1=dble(w(iw))+bsediagshift
+     ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
+     iws1=floor(ws)
+     iws2=ceiling(ws)
+     ws1=dble(w(iws1))
+     ws2=dble(w(iws2))
 
+t3=dble(w(iw))
+write(*,*) iw,t3,t1,ws,iws1,iws2
+
+!     if (iws1.lt.1) then
+!        write(*,*)
+!        write(*,'("Error(",a,"): negative shifted w-point")') &
+!             trim(thisnam)
+!        write(*,*)
+!        call terminate
+!     end if
+     ksintp=.true.
+     tks1=.true.
+     tks2=.true.
+     if (iws1.eq.iws2) ksintp=.false.
+     if (iws1.gt.nwdf) tks1=.false.
+     if (iws1.lt.1) then
+     	tks1=.false.
+	tks2=.false.
+     end if
+     if ((.not.ksintp).or.(iws2.gt.nwdf)) tks2=.false.
+     ! zero in case frequency above the interval is required
+     chi0i(:,:)=zzero
      oct1=oct
      oct2=oct
      octh=1+(oct-1)*4
-     ! get KS/QP response function for lower w-point
-     call getx0(.true.,iqmt,iw,trim(filnam),'',chi0,chi0wg,chi0h)
-     ! head
-     chi0(1,1)=chi0h(octh)
-     ! wings
-     if (n.gt.1) then
-        chi0(1,2:)=chi0wg(2:,1,oct1)
-        chi0(2:,1)=chi0wg(2:,2,oct2)
+
+
+write(*,*) 'octs',oct,oct1,oct2,octh
+     if (tks1) then
+        ! get KS/QP response function for lower w-point
+        call getx0(.true.,iqmt,iws1,trim(filnam),'',chi0,chi0wg,chi0h)
+        ! head
+        chi0(1,1)=chi0h(octh)
+        ! wings
+        if (n.gt.1) then
+           chi0(1,2:)=chi0wg(2:,1,oct1)
+           chi0(2:,1)=chi0wg(2:,2,oct2)
+        end if
+
+     do igq1=1,n
+        do igq2=1,n
+           write(772,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0(igq1,igq2)
+        end do
+     end do
+
+        ! invert
+        call zinvert_hermitian(0,chi0,chi0i)
      end if
-     ! invert
-     call zinvert_hermitian(0,chi0,chi0i)
+     if (tks2) then
+        ! get KS/QP response function for lower w-point
+        call getx0(.true.,iqmt,iws2,trim(filnam),'',chi02,chi0wg2,chi0h2)
+        ! head
+        chi02(1,1)=chi0h2(octh)
+        ! wings
+        if (n.gt.1) then
+           chi02(1,2:)=chi0wg2(2:,1,oct1)
+           chi02(2:,1)=chi0wg2(2:,2,oct2)
+        end if
+        ! invert
+        call zinvert_hermitian(0,chi02,chi02i)
+     end if
+     if (ksintp) then
+        t3=(t1-ws1)/(ws2-ws1)
+        ! linear interpolation
+        chi0i(:,:)=(1.d0-t3)*chi0i(:,:) + t3*chi02i(:,:)
+     end if
+
+!!$     ! simple version without interpolation
+!!$     oct1=oct
+!!$     oct2=oct
+!!$     octh=1+(oct-1)*4
+!!$     ! get KS/QP response function for lower w-point
+!!$     call getx0(.true.,iqmt,iw,trim(filnam),'',chi0,chi0wg,chi0h)
+!!$     ! head
+!!$     chi0(1,1)=chi0h(octh)
+!!$     ! wings
+!!$     if (n.gt.1) then
+!!$        chi0(1,2:)=chi0wg(2:,1,oct1)
+!!$        chi0(2:,1)=chi0wg(2:,2,oct2)
+!!$     end if
+!!$     ! invert
+!!$     call zinvert_hermitian(0,chi0,chi0i)
 
      ! multiply inner part of kernel with inverse QP-response function from
      ! both sides

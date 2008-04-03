@@ -22,11 +22,11 @@ subroutine bse
   integer :: iv,ic,ik,lwork
   logical :: nosymt,reducekt,tq0,nsc,tphf
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,abstol,t1,de
-  real(8), allocatable :: potcl(:),rwork(:),beval(:),spectr(:),w(:),oszsa(:)
+  real(8), allocatable :: potcl(:),rwork(:),beval(:),spectrkk(:),w(:),oszsa(:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   integer, allocatable :: iwork(:),ifail(:),sor(:)
   complex(8), allocatable :: excli(:,:,:,:),sccli(:,:,:,:),ham(:,:),work(:)
-  complex(8), allocatable :: bevec(:,:),pm(:,:,:),pmat(:),oszs(:)
+  complex(8), allocatable :: bevec(:,:),pm(:,:,:),pmat(:),oszs(:),spectr(:)
   logical, allocatable :: done(:)
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
 
@@ -35,7 +35,7 @@ subroutine bse
 
   ! external functions
   integer, external :: iplocnr
-  logical, external :: tqgamma
+  logical, external :: tqgamma,l2int
   real(8), external :: dlamch
 
   ! reset file extension to default
@@ -281,20 +281,24 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   deallocate(bevec)
 
   ! calculate spectrum
-  allocate(w(nwdos),spectr(nwdos))
+  allocate(w(nwdos),spectr(nwdos),spectrkk(nwdos))
   call genwgrid(nwdf,wdos,acont,0.d0,w_real=w)
-  spectr(:)=0.d0
+  spectr(:)=zzero
+  spectrkk(:)=zzero
   do iw=1,nwdos
      do s1=1,nexc
-        spectr(iw)=spectr(iw)+abs(oszs(s1))**2* &
-             (brdtd/(brdtd**2+(w(iw)-beval(s1))**2)- &
-             brdtd/(brdtd**2+(w(iw)+beval(s1))**2))
+!!$        spectr(iw)=spectr(iw)+abs(oszs(s1))**2* &
+!!$             (brdtd/(brdtd**2+(w(iw)-beval(s1))**2)- &
+!!$             brdtd/(brdtd**2+(w(iw)+beval(s1))**2))
+        spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
+             1.d0/(w(iw)-beval(s1)+zi*brdtd) + &
+             1.d0/(-w(iw)-beval(s1)-zi*brdtd) )
      end do
   end do
-  spectr(:)=spectr(:)*8.d0*pi/omega/nkptnr
-
+  spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr
+  call kramkron(oct,oct,epslat,nwdos,dble(w),aimag(spectr),spectrkk)
   do s2=1,hamsiz
-     write(983,'(i8,3g18.10)') s2,beval(s2)*escale,abs(oszs(s2))
+     write(983,'(i8,5g18.10)') s2,beval(s2)*escale,abs(oszs(s2))
   end do
 
 
@@ -310,8 +314,7 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
 
 
 do iw=1,nwdos
-   write(788,'(i6,2g18.10)') iw,escale*w(iw),spectr(iw)
-
+   write(788,'(i6,4g18.10)') iw,escale*w(iw),spectr(iw),spectrkk(iw)
 end do
 
 !///////////////////////////////////////////////////////////////////////////////
