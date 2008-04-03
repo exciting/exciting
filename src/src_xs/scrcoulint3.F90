@@ -22,7 +22,7 @@ subroutine scrcoulint3
   integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
-  complex(8) :: zt1
+  complex(8) :: zt1,scrni0
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
@@ -108,25 +108,16 @@ subroutine scrcoulint3
      call writeqpts
   end if
 
-  ! read dielectric matrix and invert for reduced q-point set
-  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-  call getunit(un)
-
-  !---------------------------------------!
-  !     loop over non-reduced q-points    !
-  !---------------------------------------!
-  do iq=1,nqpt
-     write(*,*) 'radial integrals for q-point:',iq
-     call putematrad(iq)
-  end do
-
+  ! local arrays
   allocate(phf(ngqmax,ngqmax),potcl(ngqmax,ngqmax))
   allocate(sccli(nst1,nst3,nst2,nst4))
-  allocate(emat12k(nst1,nst3,ngq(1)),emat12kp(nst1,nst3,ngq(1)))
+  allocate(scrni(ngqmax,ngqmax,nqptr))
   potcl(:,:)=0.d0
   sccli(:,:,:,:)=zzero
-  
+  scrni(:,:,:)=zzero
 
+  ! set file extension and open file for output
+  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
   call getunit(un)
   inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
@@ -134,6 +125,24 @@ subroutine scrcoulint3
   open(un,file=trim(fname),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
 
+  !-----------------------------------!
+  !     loop over reduced q-points    !
+  !-----------------------------------!
+  do iqr=1,nqptr
+     ! locate reduced q-point in non-reduced set
+     iqrnr=iplocnr(ivqr(1,iqr),ngridq)
+     n=ngq(iqrnr)
+     ! obtain inverse of dielectric matrix
+     call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
+  end do
+  
+  !---------------------------------------!
+  !     loop over non-reduced q-points    !
+  !---------------------------------------!
+  do iq=1,nqpt
+     write(*,*) 'radial integrals for q-point:',iq
+     call putematrad(iq)
+  end do
 
 write(*,*) 'shape(sccli)',shape(sccli)
 write(*,*) 'record length for SCI',recl
@@ -164,50 +173,150 @@ write(*,*) 'record length for SCI',recl
         tq0=tqgamma(iq)
         n=ngq(iq)
 
-        allocate(emat12(nst12,n),emat34(nst34,n))
-        allocate(scclit(nst34,nst12))
-
         write(*,'(i5,3x,2i5,2x,i5,2x,2i5)') ikkp,iknr,jknr,iq,iqr,iqrnr
 
+        allocate(emat12(nst12,n),emat34(nst34,n))
+        allocate(tm(n,n),tmi(n,n))
+        allocate(scclit(nst34,nst12))
 
-        ! Coulomb potential
+        call findsymeqiv(vq,vqr,nsc,sc,ivgsc)
+        call findgqmap(iq,iqr,nsc,sc,ivgsc,ngqmax,n,jsym,jsymi,ivgsym,igqmap)
+
+        ! generate phase factor for dielectric matrix due to non-primitive
+        ! translations
+        call genphasedm(iq,jsym,ngqmax,n,phf,tphf)
+
+        ! rotate inverse of screening
         do igq1=1,n
-           if ((gqc(igq1,iq).gt.epslat)) then
-              potcl(igq1,igq1)=fourpi/gqc(igq1,iq)**2
-           else
-              call genwiq2xs(1,iq,igq1,igq1,potcl(igq1,igq1))
-           end if
+           j1=igqmap(igq1)
+           do igq2=1,n
+              j2=igqmap(igq2)
+              if (tphf) then
+                 tmi(igq1,igq2)=scrni(j2,j1,iqr)
+              else
+                 tmi(igq1,igq2)=scrni(j1,j2,iqr)
+              end if
+           end do
         end do
 
+        ! set up Coulomb potential
+        do igq1=1,n
+           do igq2=igq1,n
+              ! calculate weights for Coulomb potential
+              iflg=0
+              if (tq0.and.((igq1.eq.1).or.(igq2.eq.1))) then
+                 ! consider only 1/q and 1/q^2 cases for q goint to zero
+                 iflg=bsediagweight
+              end if
+              call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2))
+              potcl(igq2,igq1)=potcl(igq1,igq2)
+           end do
+        end do
+
+        ! calculate matrix elements of the plane wave
         emattype=2
         call ematbdcmbs(emattype)
         call getematrad(iq)
         call ematqalloc
-        ! calculate matrix elements of the plane wave
         call ematqk1(iq,iknr)
         emattype=2
         call ematbdcmbs(emattype)
 
-        sccli(:,:,:,:)=zzero
-        do igq1=1,n
-!           do igq2=1,n
-              do ist1=1,nst1
-                 do ist3=1,nst3
-                    do ist2=1,nst2
-                       do ist4=1,nst4
-                          sccli(ist1,ist3,ist2,ist4)= &
-                               sccli(ist1,ist3,ist2,ist4)+ &
-                               potcl(igq1,igq1)/14.d0*  &
-                               conjg(xiou(ist1,ist2,igq1))* &
-                               xiuo(ist3,ist4,igq1) /omega/nkptnr
-                       end do
-                    end do
-                 end do
-              end do
-              ! end loop over (G,Gp) pairs
- !          end do
+        ! select screening level
+        tm(:,:)=zzero
+        select case (trim(screentype))
+        case('longrange')
+           ! constant screening (q=0 average tensor)
+           forall(igq1=1:n)
+              tm(igq1,igq1)=scrni(1,1,1)*potcl(igq1,igq1)
+           end forall
+        case('diag')
+           ! only diagonal of screening
+           forall(igq1=1:n)
+              tm(igq1,igq1)=tmi(igq1,igq1)*potcl(igq1,igq1)
+           end forall
+	case('full')
+	   ! full screening
+           tm(:,:)=tmi(:,:)*potcl(1:n,1:n)
+        end select
+
+        ! combine indices for matrix elements of plane wave
+        j1=0
+        do ist2=1,nst2
+           do ist1=1,nst1
+              j1=j1+1
+              emat12(j1,:)=xiou(ist1,ist2,:)
+           end do
+        end do
+        j2=0
+        do ist4=1,nst4
+           do ist3=1,nst3
+              j2=j2+1
+              emat34(j2,:)=xiuo(ist3,ist4,:)
+           end do
         end do
 
+        ! matrix elements of direct term (as in BSE-code of Peter and
+        ! in the SELF-documentation of Andrea Marini)
+        scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
+             /omega/nkptnr
+
+        ! map back to individual band indices
+        j2=0
+        do ist4=1,nst4
+           do ist3=1,nst3
+              j2=j2+1
+              j1=0
+              do ist2=1,nst2
+                 do ist1=1,nst1
+                    j1=j1+1
+                    sccli(ist1,ist3,ist2,ist4)=scclit(j2,j1)
+                 end do
+              end do
+           end do
+        end do
+
+!<backup comment="slow version for checking">
+!!$        ! set up the screened Coulomb interaction (diagonal screening)
+!!$        sccli(:,:,:,:)=zzero
+!!$        do igq1=1,n
+!!$           do ist1=1,nst1
+!!$              do ist3=1,nst3
+!!$                 do ist2=1,nst2
+!!$                    do ist4=1,nst4
+!!$                       sccli(ist1,ist3,ist2,ist4)= &
+!!$                            sccli(ist1,ist3,ist2,ist4)+ &
+!!$                            tm(igq1,igq1)*  &
+!!$                            conjg(xiou(ist1,ist2,igq1))* &
+!!$                            xiuo(ist3,ist4,igq1) /omega/nkptnr
+!!$                    end do
+!!$                 end do
+!!$              end do
+!!$           end do
+!!$        end do
+        
+!!$        ! set up the screened Coulomb interaction (full screening)
+!!$        sccli(:,:,:,:)=zzero
+!!$        do igq1=1,n
+!!$           do igq2=1,n
+!!$              do ist1=1,nst1
+!!$                 do ist3=1,nst3
+!!$                    do ist2=1,nst2
+!!$                       do ist4=1,nst4
+!!$                          sccli(ist1,ist3,ist2,ist4)= &
+!!$                               sccli(ist1,ist3,ist2,ist4)+ &
+!!$                               tm(igq1,igq2)*  &
+!!$                               conjg(xiou(ist1,ist2,igq1))* &
+!!$                               xiuo(ist3,ist4,igq2) /omega/nkptnr
+!!$                       end do
+!!$                    end do
+!!$                 end do
+!!$              end do
+!!$           end do
+!!$        end do
+!</backup>
+
+        ! write to ASCII file
 	do ist1=1,nst1
 	   do ist3=1,nst3
 	      do ist2=1,nst2
@@ -225,6 +334,7 @@ write(*,*) 'record length for SCI',recl
              sccli(:,:,:,:)
 
         deallocate(emat12,emat34)
+        deallocate(tm,tmi)
         deallocate(scclit)
 
 

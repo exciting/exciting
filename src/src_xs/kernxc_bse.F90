@@ -63,7 +63,7 @@ subroutine kernxc_bse(oct)
   real(8) :: cpu0,cpu1,cpu2,cpu3
   real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
-  complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
+  complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:),emat(:,:,:,:)
 
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 logical,parameter :: tcont=.false. !@@@@@@@@@@@@@@@@@@@@@@@
@@ -169,6 +169,7 @@ t3=1.d0
   allocate(scclih(nst1,nst3,nst2,nst4))
   allocate(scclit(nst13,nst13))
   allocate(emat12k(n,nst1,nst3),emat12kp(nst1,nst3,n))
+  allocate(emat(n,nst1,nst3,nkptnr))
   allocate(residr(nst13,n),residq(nst13,n))
   allocate(w(nwdf),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
   allocate(chi0i(n,n),chi0(n,n),chi0wg(n,2,3),chi0h(9))
@@ -189,6 +190,20 @@ t3=1.d0
 
 !@@@@@@@@@@@@@@@@@@@
   if (tcont) goto 101
+
+
+  call ematqalloc
+  do iknr=1,nkptnr
+     write(*,*) 'generation of matrix elements: k-point:',iknr
+     ! matrix elements for k and q=0
+     call ematqk1(iqmt,iknr)
+     emat(:,:,:,iknr)=xiou(:,:,:)
+     deallocate(xiou,xiuo)
+  end do
+  emattype=2
+  call ematbdcmbs(emattype)
+
+
 
 
   !-------------------------------!

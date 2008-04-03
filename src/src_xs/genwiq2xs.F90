@@ -48,9 +48,14 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
      if ((igq1.ne.1).or.(igq2.ne.1)) then
         ! integrate out 1/q singularity by spherical Volume
         clwt=(qsz**2*omega*nqpt/pi)/gqc(igq2,iq)
-     else
+     else if ((igq1.eq.1).and.(igq2.eq.1)) then
         ! integrate out 1/q^2 singularity by spherical Volume
         clwt=2*qsz*omega*nqpt/pi
+     else
+        write(*,*)
+        write(*,'("Error(genwiq2xs): analytic method chosen for regular case")')
+        write(*,*)
+        call terminate
      end if
   case(2)
      np=2
