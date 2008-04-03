@@ -6,7 +6,7 @@ serial:make.inc
     ../../src  \
 	../../src/src_xs \
     ../../src/src_iterative_solver \
-    ../../src/src_iterative_solver/src_jacobidavidson \
+    ../../src/src_iterative_solver/src_jdqz  \
     && make -f Makefile.serial excitingsmp 
      
 

@@ -145,5 +145,28 @@ end subroutine
        real(8), intent(out)::c(m)
      end subroutine solvediis
   end interface
+  interface
+  subroutine exactupdatevectors(n,iunconverged,hamilton,overlap,r,rhizvalue,eigenvector,trialvecs)  
+!calculate update equation with linsolver   
+
+!solvefor dA:  dA=(H-e*S)\R
+
+! dA 	Update step to zero residual
+! H 	Hamilton 
+! S 	Overlap
+! e 	Rhitz Value
+! R 	Residual
+
+!trialvecs=eigenvector+dA
+use modfvsystem
+use modmain,only:zone
+integer, intent(in):: n,iunconverged
+type(HermiteanMatrix),intent(in)::hamilton,overlap
+complex(8),intent(in)::r(n,iunconverged),eigenvector(n,iunconverged)
+real(8),intent(in)::rhizvalue(iunconverged)
+complex(8),intent(out)::trialvecs(n,iunconverged)
+
+end subroutine
+end interface
 end module diisinterfaces
 

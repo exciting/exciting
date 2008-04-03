@@ -7,7 +7,7 @@ serial:make.inc
 	../../src  \
 	../../src/src_xs \
 	../../src/src_iterative_solver \
-	../../src/src_iterative_solver/src_jacobidavidson \
+	../../src/src_iterative_solver/src_jdqz \
 	../../src/src_iterative_solver/src_diis \
 	&& make -f Makefile.serial excitings \
 	&& cp -f excitings ..
