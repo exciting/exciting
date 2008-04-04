@@ -53,6 +53,7 @@ logical::packed
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
   integer iunconverged,evecmap(nstfv)
+  complex(8),pointer::hamp(:,:),overp(:,:)
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
      write(*,*)
      write(*,'("Error(seceqnfv): k-point out of range : ",I8)') ik
@@ -70,7 +71,8 @@ logical::packed
 
 call newsystem(system,packed,n)
   call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
-
+hamp=>get2dpointer(system%hamilton)
+overp=>get2dpointer(system%overlap)
   call cpu_time(cpu1)
 
   !$OMP CRITICAL
@@ -80,7 +82,7 @@ call newsystem(system,packed,n)
     recalculate_preconditioner=.false.
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
-     call seceqfvprecond(n,get2dpointer(system%hamilton),get2dpointer(system%overlap),P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+     call seceqfvprecond(n,hamp,overp,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
  
@@ -89,7 +91,7 @@ call newsystem(system,packed,n)
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
      call zlarnv(2, iseed, n*nstfv, eigenvector)
-     call zscal(n*nstfv,dcmplx(1e-4/n/nstfv,0),eigenvector,1)
+     call zscal(n*nstfv,dcmplx(1e-5/n/nstfv,0),eigenvector,1)
      do i=1,nstfv
         call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         !call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
@@ -111,7 +113,7 @@ call newsystem(system,packed,n)
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,iunconverged,get2dpointer(system%hamilton),get2dpointer(system%overlap),eigenvector,n,&
+        call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
@@ -140,17 +142,17 @@ call newsystem(system,packed,n)
        ! call exactupdatevectors(n,iunconverged,system%hamilton,&
        ! system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
         
-        call setuphsvect(n,iunconverged,get2dpointer(system%hamilton),get2dpointer(system%overlap),eigenvector,n,&
+        call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
 
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
-           call normalize(n,nstfv,get2dpointer(system%overlap),eigenvector,n)	
+           call normalize(n,nstfv,overp,eigenvector,n)	
         endif
      end do
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
-        call seceqfvprecond(n,get2dpointer(system%hamilton),get2dpointer(system%overlap),P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+        call seceqfvprecond(n,hamp,overp,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
         write(*,*)"recalculate preconditioner"
       endif

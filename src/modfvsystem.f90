@@ -121,7 +121,8 @@ contains
   subroutine HermiteanmatrixLU(self)
     type(HermiteanMatrix)::self
     integer info
-    allocate(self%ipiv(self%rank))
+    if(.not.self%ludecomposed) allocate(self%ipiv(self%rank))
+   
     if(.not.self%ludecomposed)then
        if(.not.ispacked(self))then
           call ZGETRF( self%rank,self%rank, self%za, self%rank, self%IPIV, INFO )
@@ -182,10 +183,10 @@ contains
     integer:: mysize
     if (ispacked(x)) then 
        mysize=(x%rank*(x%rank+1))/2
-        call zaxpy(mysize,alpha,x%zap,1,getpackedpointer(y),1)
+        call zaxpy(mysize,alpha,x%zap,1,y%zap,1)
     else
        mysize=x%rank*(x%rank)
-        call zaxpy(mysize,alpha,x%za,1,get2dpointer(y),1)
+        call zaxpy(mysize,alpha,x%za,1,y%za,1)
     endif
   end subroutine HermiteanMatrixAXPY
   
@@ -195,10 +196,10 @@ contains
     integer:: mysize
     if (ispacked(x)) then 
        mysize=(x%rank*(x%rank+1))/2
-        call zcopy(mysize,x%zap,1,getpackedpointer(y),1)
+        call zcopy(mysize,x%zap,1,y%zap,1)
     else
        mysize=x%rank*(x%rank)
-        call zcopy(mysize,x%za,1,get2dpointer(y),1)
+        call zcopy(mysize,x%za,1,y%za,1)
     endif
   end subroutine 
   
