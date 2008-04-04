@@ -29,7 +29,7 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-5
+  real(8), parameter :: delt=1.d-10
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
@@ -63,6 +63,7 @@ subroutine kernxc_bse(oct)
   real(8) :: cpu0,cpu1,cpu2,cpu3
   real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
+  real(8) :: brd
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
   call genfilname(setfilext=.true.)
@@ -70,6 +71,8 @@ subroutine kernxc_bse(oct)
 t3=1.d0
 bsediagshift=zzero
 bsediagshiftc=zzero
+
+brd=brdtd
 
   !----------------!
   !   initialize   !
@@ -389,31 +392,31 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
                 nst4_,sccli
 
 
-write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
-
-
-           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
-                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
-                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
-              write(*,*)
-              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
-                   & interaction")')
-              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
-                   &nst4)")')
-              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
-                   iq,iqr,nst1,nst2,nst3,nst4
-              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
-                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-              write(*,*)
-              call terminate
-           end if
+!!$write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
+!!$
+!!$
+!!$           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
+!!$                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
+!!$                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
+!!$              write(*,*)
+!!$              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
+!!$                   & interaction")')
+!!$              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
+!!$                   &nst4)")')
+!!$              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
+!!$                   iq,iqr,nst1,nst2,nst3,nst4
+!!$              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
+!!$                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
+!!$              write(*,*)
+!!$              call terminate
+!!$           end if
         else
            write(*,*) 'using Hermitian transposed scr. Coul. int.'
            ! use Hermitian property for lower triangle
            read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,scclih
            do ist1=1,nst1
-              do ist2=1,nst2
+              do ist2=1,nst3
                  sccli(ist1,ist2,:,:)=conjg(scclih(:,:,ist1,ist2))
               end do
            end do
@@ -425,15 +428,13 @@ write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
         end if
 
         ! rescale
-        sccli = - sccli
+        sccli = -sccli
 
         ! set diagonal of Bethe-Salpeter kernel to zero (cf. A. Marini, PRL 2003)
         if (iknr.eq.jknr) then
            do ist3=1,nst3
               do ist1=1,nst1
                  sccli(ist1,ist3,ist1,ist3)=zzero
-!!$                 sccli(ist1,ist3,ist1,ist3)=sccli(ist1,ist3,ist1,ist3) - &
-!!$                      bsediagshiftc
               end do
            end do
         end if
@@ -459,6 +460,8 @@ write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
               emat12p(j1,:)=conjg(emat12kp(ist1,ist2,:))
            end do
         end do
+        zmr=zzero
+        zmq=zzero
         ! map 
         j2=0
         do ist3=1,nst3
@@ -526,19 +529,19 @@ write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
            osca=osca+conjg(transpose(osca))
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
-           ! set up energy denominators
-           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
-                omega          
-           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
-                omega
-
 !!$           ! set up energy denominators
-!!$           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd) + &
-!!$                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)
-!!$           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2 + &
-!!$                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)**2
-!!$           den1=den1/nkpt/omega
-!!$           den2=den2/nkpt/omega
+!!$           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)/nkptnr/&
+!!$                omega          
+!!$           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)**2/nkptnr/&
+!!$                omega
+
+           ! set up energy denominators
+           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd) + &
+                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brd)
+           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)**2 + &
+                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brd)**2
+           den1=den1/nkpt/omega
+           den2=den2/nkpt/omega
 
            ! update kernel
            do iw=1,nwdf

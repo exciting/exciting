@@ -1,7 +1,15 @@
 
 tasks
+401
+430
+440
+441
+445
 450
 350
+
+nosym
+.true.
 
 bsetype
 'singlet'
@@ -58,7 +66,10 @@ ngridq
 #.false.
 
 vkloff
-  0.1  0.3  0.5
+  0.5  0.4  0.45
+
+reducek
+.false.
 
 ! These are the vertices to be joined for the band structure plot
 plot1d
@@ -90,7 +101,7 @@ gqmax
 
 ! TDDFT parameter
 brdtd
-  0.007
+  0.01
 
 ! TDDFT parameter
 tevout
