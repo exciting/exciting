@@ -1,12 +1,23 @@
 
 tasks
-401
-430
-440
+450
+350
+
+bsetype
+'singlet'
+
+fxctype
+8
+
+nstbef
+4
+
+nstabf
+4
 
 ! for screening
 nempty
-30
+3
 
 #tetra
 #  .true.
@@ -43,8 +54,8 @@ reducek
 ngridq
   4  4  4
 
-reduceq
-.false.
+#reduceq
+#.false.
 
 vkloff
   0.1  0.3  0.5

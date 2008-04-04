@@ -29,14 +29,14 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-4
+  real(8), parameter :: delt=1.d-5
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
   complex(8),allocatable :: chi0h2(:),chi0wg2(:,:,:),chi02(:,:),chi02i(:,:)
   integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,octh,oct1,oct2,igmt
   integer, external :: l2int
-  complex(8) :: zt1,bsediagshift
+  complex(8) :: zt1,bsediagshift,bsediagshiftc
   integer :: sh(2),ig
   ! ***    
   character(256) :: fname
@@ -49,11 +49,11 @@ subroutine kernxc_bse(oct)
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,t1,ws,ws1,ws2
   real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
   real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:)
-  real(8), allocatable :: zmr(:,:),zmq(:,:)
+  real(8), allocatable :: zmr(:,:),zmq(:,:),deval(:,:,:),docc(:,:,:),scis(:,:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:),den1(:),den2(:)
-  complex(8), allocatable :: phf(:,:),emat12(:,:),emat12p(:,:)
+  complex(8), allocatable :: phf(:,:),emat12(:,:),emat12p(:,:),emat(:,:,:,:)
   complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
   logical, allocatable :: done(:)
   ! external functions
@@ -65,15 +65,11 @@ subroutine kernxc_bse(oct)
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-logical,parameter :: tcont=.false. !@@@@@@@@@@@@@@@@@@@@@@@
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
   call genfilname(setfilext=.true.)
 
 t3=1.d0
-
+bsediagshift=zzero
+bsediagshiftc=zzero
 
   !----------------!
   !   initialize   !
@@ -139,6 +135,7 @@ t3=1.d0
   nst24=nst2*nst4
   call getunit(un)
 
+write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
   call genparidxran('w')
   ! sampling type for Brillouin zone sampling
@@ -175,6 +172,10 @@ t3=1.d0
   allocate(chi02i(n,n),chi02(n,n),chi0wg2(n,2,3),chi0h2(9))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
+  allocate(emat(nst1,nst3,n,nkptnr))
+  allocate(deval(nst1,nst3,nkptnr))
+  allocate(docc(nst1,nst3,nkptnr))
+  allocate(scis(nst1,nst3,nkptnr))
 
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
@@ -186,9 +187,26 @@ t3=1.d0
   open(un,file=trim(fname),form='unformatted',action='read', &
        status='old',access='direct',recl=recl)
 
-
-!@@@@@@@@@@@@@@@@@@@
-  if (tcont) goto 101
+  ! precalculate matrix elements
+  emattype=1
+  call ematbdcmbs(emattype)
+  call ematrad(iqmt)
+  call ematqalloc
+  do iknr=1,nkptnr
+     iknrq=ikmapikq(iknr,iqmt)
+     write(*,*) 'generation of matrix elements: k-point:',iknr
+     ! matrix elements for k and q=0
+     call ematqk1(iqmt,iknr)
+     emat(:,:,:,iknr)=xiou(:,:,:)
+     deallocate(xiou,xiuo)
+     call getdevaldoccsv(iqmt,iknr,iknrq,istlo1,isthi1,istlo2,isthi2,deou, &
+          docc12,scisk)
+     deval(:,:,iknr)=deou(:,:)
+     docc(:,:,iknr)=docc12(:,:)
+     scis(:,:,iknr)=scisk(:,:)
+  end do
+  emattype=2
+  call ematbdcmbs(emattype)
 
 
   !-------------------------------!
@@ -198,27 +216,56 @@ t3=1.d0
   ! first k-point
   do iknr=1,nkptnr
      iknrq=ikmapikq(iknr,iqmt)
-     ! matrix elements for k and q=0
+
+!<new>
      emattype=1
      call ematbdcmbs(emattype)
-     call init1xs(qvkloff(1,iqmt))
-     call getdevaldoccsv(iqmt,iknr,iknrq,istlo1,isthi1,istlo2,isthi2,deou, &
-          docc12,scisk)
-     dek(:,:)=deou(:,:)
-     dok(:,:)=docc12(:,:)
-     call getematrad(iqmt)
-     call ematqalloc
-!     call cpu_time(cpu0)
-     call ematqk1(iqmt,iknr)
-!     call cpu_time(cpu1)
-!     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+     allocate(xiou(nst1,nst3,n))
+     xiou(:,:,:)=emat(:,:,:,iknr)
+     deou(:,:)=deval(:,:,iknr)
+     docc12(:,:)=docc(:,:,iknr)
+
+ write(7712,*) xiou(2,3,1),xiou(2,3,7),xiou(1,2,1),xiou(1,2,6)
+ write(8712,*) deou(2,3),deou(3,2),deou(1,2),deou(2,1)
+
      ! apply gauge wrt. symmetrized Coulomb potential
      call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+ write(6712,*) pmou(oct,2,3),pmou(oct,1,2)
+     dek(:,:)=deou(:,:)
+     dok(:,:)=docc12(:,:)
+     scisk(:,:)=scis(:,:,iknr)
      ! assign optical component
      xiou(:,:,1)=pmou(oct,:,:)
      do igq1=1,n
         emat12k(igq1,:,:)=xiou(:,:,igq1)
      end do
+!</new>
+
+
+!!$     ! matrix elements for k and q=0
+!!$     emattype=1
+!!$     call ematbdcmbs(emattype)
+!!$     call init1xs(qvkloff(1,iqmt))
+!!$     call getdevaldoccsv(iqmt,iknr,iknrq,istlo1,isthi1,istlo2,isthi2,deou, &
+!!$          docc12,scisk)
+!!$     dek(:,:)=deou(:,:)
+!!$     dok(:,:)=docc12(:,:)
+!!$     call getematrad(iqmt)
+!!$     call ematqalloc
+!!$!     call cpu_time(cpu0)
+!!$     call ematqk1(iqmt,iknr)
+!!$!     call cpu_time(cpu1)
+!!$!     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+!!$     ! apply gauge wrt. symmetrized Coulomb potential
+!!$     call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+!!$     ! assign optical component
+!!$     xiou(:,:,1)=pmou(oct,:,:)
+!!$     do igq1=1,n
+!!$        emat12k(igq1,:,:)=xiou(:,:,igq1)
+!!$     end do
+
+
+
      deallocate(xiou)
      emattype=2
      call ematbdcmbs(emattype)
@@ -262,28 +309,59 @@ t3=1.d0
    write(*,'(a,i6,2x,2i5,2x,2i5)') 'ikkp,iknr,jknr,iq,iqr',&
              ikkp,iknr,jknr,iq,iqr
 
-        ! matrix elements for kp and q=0
+
+
+!<new>
         emattype=1
         call ematbdcmbs(emattype)
-        call init1xs(qvkloff(1,iqmt))
-        call getdevaldoccsv(iqmt,jknr,jknrq,istlo1,isthi1,istlo2,isthi2,deou, &
-             docc12,sciskp)
-        dekp(:,:)=deou(:,:)
-        dokp(:,:)=docc12(:,:)
-        call getematrad(iqmt)
-        call ematqalloc
-        call cpu_time(cpu0)
-        call ematqk1(iqmt,jknr)
-        call cpu_time(cpu1)
-        cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+        allocate(xiou(nst1,nst3,n))
+        xiou(:,:,:)=emat(:,:,:,jknr)
+        deou(:,:)=deval(:,:,jknr)
+        docc12(:,:)=docc(:,:,jknr)
+
+ write(7713,*) xiou(2,3,1),xiou(2,3,7),xiou(1,2,1),xiou(1,2,6)
+ write(8713,*) deou(2,3),deou(3,2),deou(1,2),deou(2,1)
+
         ! apply gauge wrt. symmetrized Coulomb potential
         call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+ write(6713,*) pmou(oct,2,3),pmou(oct,1,2)
+        dekp(:,:)=deou(:,:)
+        dokp(:,:)=docc12(:,:)
+        sciskp(:,:)=scis(:,:,jknr)
         ! assign optical component
         xiou(:,:,1)=pmou(oct,:,:)
         emat12kp(:,:,:)=xiou(:,:,:)
+!</new>
+
+
+
+
+!!$        ! matrix elements for kp and q=0
+!!$        emattype=1
+!!$        call ematbdcmbs(emattype)
+!!$        call init1xs(qvkloff(1,iqmt))
+!!$        call getdevaldoccsv(iqmt,jknr,jknrq,istlo1,isthi1,istlo2,isthi2,deou, &
+!!$             docc12,sciskp)
+!!$        dekp(:,:)=deou(:,:)
+!!$        dokp(:,:)=docc12(:,:)
+!!$        call getematrad(iqmt)
+!!$        call ematqalloc
+!!$        call cpu_time(cpu0)
+!!$        call ematqk1(iqmt,jknr)
+!!$        call cpu_time(cpu1)
+!!$        cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
+!!$        ! apply gauge wrt. symmetrized Coulomb potential
+!!$        call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+!!$        ! assign optical component
+!!$        xiou(:,:,1)=pmou(oct,:,:)
+!!$        emat12kp(:,:,:)=xiou(:,:,:)
+
         deallocate(xiou)
         emattype=2
         call ematbdcmbs(emattype)
+
+!!!!!!!!!!!!!!!!!!!!!!!! CHECK
+        write(7711,*) emat12kp(2,3,1),emat12kp(2,3,7),emat12kp(1,2,1),emat12kp(1,2,6)
 
 
 !!$!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -309,6 +387,11 @@ t3=1.d0
            ! read from file
            read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,sccli
+
+
+write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
+
+
            if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
                 (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
                 (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
@@ -337,7 +420,9 @@ t3=1.d0
         end if
         ! diagonal of BSE-kernel (approximate by first value in matrix)
         ! *** improve later
-        if (ikkp.eq.1) bsediagshift=sccli(1,1,1,1) !@@@@@@@@
+        if (ikkp.eq.1) then
+           bsediagshift=dble(sccli(1,1,1,1))
+        end if
 
         ! rescale
         sccli = - sccli
@@ -347,6 +432,8 @@ t3=1.d0
            do ist3=1,nst3
               do ist1=1,nst1
                  sccli(ist1,ist3,ist1,ist3)=zzero
+!!$                 sccli(ist1,ist3,ist1,ist3)=sccli(ist1,ist3,ist1,ist3) - &
+!!$                      bsediagshiftc
               end do
            end do
         end if
@@ -386,8 +473,6 @@ t3=1.d0
                     t1=dekp(ist2,ist4)-dek(ist1,ist3)
                     ! arrays for R- and Q-residuals
                     if (abs(t1).ge.delt) then
-!t3=max(t3,1.d0/t1)
-!write(779,'(i6,2x,4i5,3g18.10)') j1+nst13*(j2-1),ist3,ist1,ist4,ist2,dekp(ist1,ist3),dek(ist2,ist4),t1
                        zmr(j2,j1)=zt1/t1
                        zmq(j2,j1)=0.d0
                     else
@@ -407,9 +492,6 @@ t3=1.d0
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
 
-write(*,*) 'max 1/denom',t3
-write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
-
 !!$        call cpu_time(cpu3)
 !!$        t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph+cpu_suma+cpu_write
 !!$        write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
@@ -426,8 +508,6 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
 
         ! end inner loop over k-points
      end do
-
-!!!!!!!!     if (iknr.eq.2) stop 'stop in kernxc_bse'
 
      !--------------------------!
      !     set up BSE-kernel    !
@@ -446,39 +526,28 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
            osca=osca+conjg(transpose(osca))
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
-!!$           ! set up energy denominators
-!!$           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
-!!$                omega          
-!!$           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
-!!$                omega
            ! set up energy denominators
-           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd) + &
-                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)
-           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2 + &
-                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)**2
-           den1=den1/nkpt/omega
-           den2=den2/nkpt/omega
+           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
+                omega          
+           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
+                omega
+
+!!$           ! set up energy denominators
+!!$           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd) + &
+!!$                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)
+!!$           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2 + &
+!!$                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)**2
+!!$           den1=den1/nkpt/omega
+!!$           den2=den2/nkpt/omega
+
            ! update kernel
            do iw=1,nwdf
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-!write(*,'(a,4i4,g18.10)') 'increment',iknr,ist3,ist1,iw,maxval(abs(osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)))
-
            end do
 
-
-!write(776,'(a,3i4,g18.10)') 'max:fxc(w)',iknr,ist3,ist1,maxval(abs(fxc))
-!write(776,'(a,3i4,g18.10)') 'min:fxc(w)',iknr,ist3,ist1,minval(abs(fxc))
-!!$write(*,'(a,3i4,g18.10)') 'max:fxc(head)',iknr,ist3,ist1,maxval(abs(fxc(1,1,:)))
-!!$write(*,'(a,3i4,g18.10)') 'min:fxc(head)',iknr,ist3,ist1,minval(abs(fxc(1,1,:)))
-!!$write(*,'(a,3i4,g18.10)') ' fxc(head,50)',iknr,ist3,ist1,abs(fxc(1,1,50))
-!!$
-!!$
-!!$write(*,'(a,3i4,g18.10)') 'max:den1',iknr,ist3,ist1,maxval(abs(den1))
-!!$write(*,'(a,3i4,g18.10)') 'max:den2',iknr,ist3,ist1,maxval(abs(den2))
-!!$write(*,'(a,3i4,g18.10)') 'max:osca',iknr,ist3,ist1,maxval(abs(osca))
-!!$write(*,'(a,3i4,g18.10)') 'max:oscb',iknr,ist3,ist1,maxval(abs(oscb))
-
+           ! end loop over states #1
         end do
+        ! end loop over states #3
      end do
      
      ! end outer loop over k-points
@@ -493,10 +562,6 @@ write(*,*) 'maxval(resid)',maxval(abs(residr)),maxval(abs(residq))
      end do
   end do
 
-
-101 continue
-!! if (tcont)  bsediagshift=-cmplx(0.7716475564E-02,0.5831708302E-13,8)
- if (tcont)  bsediagshift=-cmplx(0.6909239449E-02,0.1209911682E-04,8)
 
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
@@ -616,16 +681,6 @@ write(*,*) 'octs',oct,oct1,oct2,octh
 
      ! multiply inner part of kernel with inverse QP-response function from
      ! both sides
-
-if (tcont) then
-     do igq1=1,n
-        do igq2=1,n
-           read(777,*) a1,a2,a3,fxc(igq1,igq2,iw)
-        end do
-     end do
-end if
-
-
      fxc(:,:,iw)=matmul(chi0i,matmul(fxc(:,:,iw),chi0i))
      ! write kernel to file for each frequency
      write(un2,rec=iw) fxc(:,:,iw)
