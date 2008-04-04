@@ -10,7 +10,7 @@ implicit none
   integer,parameter:: diismax=25,diisfirstscl=3
   real(8) lowesteval
   real(8) epsarpack
-  real ,parameter::diisthreshould=1,reps=0.1e-7
+  real ,parameter::diisthreshould=1,reps=0.1e-9
   integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
   external idamax

@@ -139,8 +139,8 @@ overp=>get2dpointer(system%overlap)
         endif
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
-       ! call exactupdatevectors(n,iunconverged,system%hamilton,&
-       ! system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
+        !call exactupdatevectors(n,iunconverged,system%hamilton,&
+        !system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
         
         call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 

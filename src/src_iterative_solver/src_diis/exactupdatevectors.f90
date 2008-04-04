@@ -26,7 +26,7 @@ Do i=1,iunconverged
 	call HermiteanMatrixAXPY(sigma,overlap,HES)
 	call HermiteanmatrixLU(HES)
 	call Hermiteanmatrixlinsolve(hes,dA(:,i))
-	call zaxpy(n,zone,dA(1,i),1,trialvecs(1,i),1)
+	call zaxpy(n,-zone,dA(1,i),1,trialvecs(1,i),1)
 end do
 call deletematrix(HES)
 end subroutine
