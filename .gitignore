@@ -30,3 +30,7 @@ Makefile.serial
 output.*
 outerr.*
 testcase*
+*.aux
+*.dvi
+*.log
+*.toc
