@@ -177,7 +177,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
               ! convert to spherical harmonics
               call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zfshtapw, &
                    lmmaxapw,zfmt,lmmaxapw,zzero,wfmtkp(1,1,ist),lmmaxapw)
-end do
+           end do
            ! structure factor for G+p vector
            zt2=conjg(sfacgp(igp,ias))
            do ist=1,nstfv

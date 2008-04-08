@@ -107,6 +107,8 @@ subroutine writepwmat
         do igq=1,ngq(iq)
            do ist=1,nstsv
               do jst=1,nstsv
+!!$           do ist=1,nstval
+!!$              do jst=nstval+1,nstsv
                  write(50,'(4i5,3g18.10)') ik,igq,ist,jst,pwmat(igq,ist,jst), &
                       abs(pwmat(igq,ist,jst))**2
               end do

@@ -303,6 +303,22 @@ MONTD ()
     echo    
 }
 
+KILL ()
+{
+
+test -x /sbin/pidof && cmd=/sbin/pidof
+test -x /bin/pidof && cmd=/bin/pidof
+
+pids=`$cmd -x exciting`
+if [ $pids ]; then
+	echo "killing instances of exciting with pids: $pids ......."
+	kill $pids
+	kill -9 $pids
+	echo "done"
+fi
+
+}
+
 #---------------#
 #   main part   #
 #---------------#
@@ -330,9 +346,12 @@ case "$1" in
     montd)
 	MONTD $2
 	;;
+    kill)
+	KILL
+	;;
     *)
 	echo
-	echo $" Usage: `basename $0` {info|monscf|montd|dparam|param|save}"
+	echo $" Usage: `basename $0` {info|monscf|montd|dparam|param|kill|save}"
 	echo ""
 	exit 1
 esac

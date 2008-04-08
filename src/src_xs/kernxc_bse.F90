@@ -29,7 +29,7 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-10
+  real(8), parameter :: delt=1.d-3
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
@@ -423,9 +423,9 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
         end if
         ! diagonal of BSE-kernel (approximate by first value in matrix)
         ! *** improve later
-        if (ikkp.eq.1) then
-           bsediagshift=dble(sccli(1,1,1,1))
-        end if
+!        if (ikkp.eq.1) then
+!           bsediagshift=dble(sccli(1,1,1,1))
+!        end if
 
         ! rescale
         sccli = -sccli

@@ -61,6 +61,7 @@ read(70,rec=koffset) vkl_,nstsv_,occsvp
      write(*,'("Error(getoccsv): differing nstsv for k-point ",I8)') ik
      write(*,'(" current    : ",I8)') nstsv
      write(*,'(" OCCSV.OUT  : ",I8)') nstsv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if
