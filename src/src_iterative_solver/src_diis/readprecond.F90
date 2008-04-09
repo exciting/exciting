@@ -18,6 +18,8 @@ use modmpi
      else
         koffset =ik
      endif
+     X=0
+     w=0
      read(70,rec=koffset)X,w
      close(70)
   else

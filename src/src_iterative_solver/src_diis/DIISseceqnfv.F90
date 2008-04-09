@@ -82,19 +82,22 @@ overp=>get2dpointer(system%overlap)
     recalculate_preconditioner=.false.
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
+  P=0
+  w=0
      call seceqfvprecond(n,hamp,overp,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
- 
+  
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
+     write(*,*)"readeigenvalues",w
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
      call zlarnv(2, iseed, n*nstfv, eigenvector)
      call zscal(n*nstfv,dcmplx(1e-5/n/nstfv,0),eigenvector,1)
      do i=1,nstfv
-        call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
-        !call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+       ! call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
@@ -117,11 +120,12 @@ overp=>get2dpointer(system%overlap)
              h(:,:,idiis),s(:,:,idiis))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
+         !    write (*,*)"eigenvalue",eigenvalue
         ! write (777,*)w(:)
         !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
-             
+           write(*,*)"res",r(:,4)  
         !write(*,*)"rnorms",rnorms
         do i=1,nstfv
            if(evecmap(i).ne.0) then
@@ -136,12 +140,14 @@ overp=>get2dpointer(system%overlap)
            recalculate_preconditioner=.true.
            write(*,*)"recalculate preconditioner"
            exit
-        endif
+        endif 
+         write(*,*)"eigenvectorbevore",eigenvector(:,4)
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         !call exactupdatevectors(n,iunconverged,system%hamilton,&
         !system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
-        
+        write(*,*)"eigenvector",eigenvector(:,4)
+        stop
         call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then

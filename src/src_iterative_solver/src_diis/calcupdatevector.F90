@@ -10,15 +10,15 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
   complex(8)::z,v(n,nstfv),alpha
   real(8)::nrm
   integer m,i,j
-  m=nstfv
+  m=iunconverged
   call zgemm('C','N',n,m,n,zone,P,nmatmax,r,n,zzero,v,n)
 
   do j=1,m
      do i=1,n
-        z=cmplx (w(i)-evalfv(j),0.0)
-        if(abs(z).gt.1e-7)then  
+        z=dcmplx (w(i)-evalfv(j),0.0)
+        write(*,*)z,w(i),evalfv(j),i,j,iunconverged
+        if(abs(z).gt.1e-6)then  
            v(i,j)=-v(i,j)/z
-
         else
            v(i,j)=zzero
         endif
