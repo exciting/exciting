@@ -86,6 +86,9 @@ overp=>get2dpointer(system%overlap)
   w=0
      call seceqfvprecond(n,hamp,overp,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
+
+	write(*,*) evalfv
+
   else
   
      iunconverged=nstfv	
@@ -101,7 +104,7 @@ overp=>get2dpointer(system%overlap)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
-! write(*,*)"eigenvaluebevore use",eigenvalue
+
      if( doprerotate_preconditioner()) then
 
         !write(777,*)P
@@ -144,7 +147,7 @@ overp=>get2dpointer(system%overlap)
            write(*,*)"recalculate preconditioner"
            exit
         endif 
-        ! write(*,*)"eigenvaluebevore",eigenvalue
+        write(*,*)"eigenvaluebevore",eigenvalue
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         !call exactupdatevectors(n,iunconverged,system%hamilton,&
@@ -161,6 +164,7 @@ overp=>get2dpointer(system%overlap)
 		   	 
         endif
      end do
+	 stop
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,hamp,overp,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
