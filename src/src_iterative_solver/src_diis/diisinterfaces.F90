@@ -18,12 +18,14 @@ module diisinterfaces
   end interface
 
   interface
-     subroutine seceqfvprecond  (n,h,o,X,w,evalfv,evecfv)
+     subroutine seceqfvprecond  (n,system,X,w,evalfv,evecfv)
        use modmain, only: nmatmax,nstfv
+      use  modfvsystem
+	     implicit none
+  type(evsystem)::system
     
-       implicit none
        integer, intent(in)::n
-       complex(8),intent(in)::h(n,n),o(n,n)
+       
        complex(8),intent(out)::evecfv(nmatmax,nstfv)
        real(8),intent(out)::evalfv(nstfv), w(nmatmax)
        complex(8),intent (OUT)::X(nmatmax,nmatmax)
@@ -71,12 +73,14 @@ module diisinterfaces
      end subroutine writeprecond
   end interface
   interface
-subroutine setuphsvect(n,m,hamilton,overlap,evecfv,ldv,h,s)
+subroutine setuphsvect(n,m,system,evecfv,ldv,h,s)
 
   use modmain, only : nstfv,zone,zzero
+   use modfvsystem
   implicit none
   integer ,intent(in):: n,m,ldv
-  complex(8), intent(in):: hamilton(n,n),overlap(n,n),evecfv(ldv,m)
+  type(evsystem)::system
+  complex(8), intent(in):: evecfv(ldv,m)
   complex(8), intent(out)::h(n,m),s(n,m)
 
      end subroutine setuphsvect

@@ -1,3 +1,4 @@
+
 !Driver for jakobi Davidson librarie from Gerard Sleijpen http://www.math.ruu.nl/people/sleijpen/
 subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&
@@ -70,7 +71,7 @@ w=v+jmax
  ! write(80,rec=1)zwork
  ! close(80)
   
-  if(ispacked(system%overlap)) call normalizep(n,nstfv,getpackedpointer(system%overlap),eivec,n)	
+  if(ispacked(system%overlap)) call normalizep(n,nstfv,system%overlap%zap,eivec,n)	
   
   do i=1,nstfv
      call zcopy(n,eivec(1,i),1,evecfv(1,i,ispn),1)

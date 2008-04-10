@@ -7,7 +7,7 @@ module modfvsystem
   implicit none
   
   type HermiteanMatrix
-     private
+ 
      integer:: rank
      logical:: packed,ludecomposed
      integer,pointer::ipiv(:)
@@ -154,28 +154,6 @@ contains
        endif
     endif
   end subroutine Hermiteanmatrixlinsolve
-
-  function getpackedpointer(self)
-    complex(8),pointer::getpackedpointer(:)
-    type(HermiteanMatrix)::self
-    if(ispacked(self))then
-       getpackedpointer=>self%zap
-    else
-       write(*,*)"error in getpackedpointer"
-       stop
-    endif
-  end function getpackedpointer
-
-  function get2dpointer(self)
-    complex(8),pointer::get2dpointer(:,:)
-    type(HermiteanMatrix)::self
-    if(.not.ispacked(self))then
-       get2dpointer=>self%za
-    else
-       write(*,*)"error in get2dpointer"
-       stop
-    endif
-  end function get2dpointer
 
   subroutine HermiteanMatrixAXPY(alpha,x,y)
     complex(8)::alpha

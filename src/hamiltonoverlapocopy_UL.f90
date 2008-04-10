@@ -8,8 +8,8 @@ complex(8),pointer::h(:,:),o(:,:)
 if(ispacked(system%hamilton).eqv..false.)then
 allocate(tmp(getrank(system%hamilton)))
 ohrank=getrank(system%hamilton)
-h=>get2dpointer(system%hamilton)
-o=>get2dpointer(system%overlap)
+h=>system%hamilton%za
+o=>system%overlap%za
 do i=1, ohrank-1
 call zcopy(ohrank-i,h(i,i+1),ohrank,tmp,1)
 tmp(1:ohrank-1)=conjg(tmp(1:ohrank-1))

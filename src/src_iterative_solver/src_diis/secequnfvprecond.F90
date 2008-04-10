@@ -1,9 +1,10 @@
-subroutine seceqfvprecond  (n,h,o,X,w,evalfv,evecfv)
+subroutine seceqfvprecond  (n,system,X,w,evalfv,evecfv)
   use modmain, only: nmatmax,nstfv
+  use  modfvsystem
   use diisinterfaces
   implicit none
   integer, intent(in)::n
-  complex(8),intent(in)::h(n,n),o(n,n)
+type(evsystem)::system
   complex(8),intent(out)::evecfv(nmatmax,nstfv)
   real(8),intent(out)::evalfv(nstfv), w(nmatmax)
   complex(8),intent (OUT)::X(nmatmax,nmatmax)	
@@ -19,7 +20,7 @@ subroutine seceqfvprecond  (n,h,o,X,w,evalfv,evecfv)
   complex(8):: work(2*n)
   lwork=2*n
    abstol=2.d0*dlamch('S')
-  call zhegvx(1,'V','A','U',n,h,n,o,n,v,v,1,nstfv,abstol,mfound,w,X,nmatmax, &
+  call zhegvx(1,'V','A','U',n,system%hamilton%za,n,system%overlap%za,n,v,v,1,nstfv,abstol,mfound,w,X,nmatmax, &
        work,lwork,rwork,iwork,ifail,info)
   if (info.ne.0) then
      write(*,*)

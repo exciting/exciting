@@ -80,8 +80,8 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   allocate(rwork(7*nmatp))
   allocate(v(1))
   allocate(work(2*nmatp))
-  call zhpgvx(1,'V','I','U',nmatp,getpackedpointer(system%hamilton),&
-       getpackedpointer(system%overlap),vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
+  call zhpgvx(1,'V','I','U',nmatp,system%hamilton%zap,&
+     system%overlap%zap,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
        work,rwork,iwork,ifail,info)
   evalfv(1:nstfv)=w(1:nstfv)
 

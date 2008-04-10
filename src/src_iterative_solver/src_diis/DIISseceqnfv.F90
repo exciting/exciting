@@ -53,7 +53,7 @@ logical::packed
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
   integer iunconverged,evecmap(nstfv)
-  complex(8),pointer::hamp(:,:),overp(:,:)
+
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
      write(*,*)
      write(*,'("Error(seceqnfv): k-point out of range : ",I8)') ik
@@ -71,8 +71,7 @@ logical::packed
 
 call newsystem(system,packed,n)
   call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
-hamp=>get2dpointer(system%hamilton)
-overp=>get2dpointer(system%overlap)
+
   call cpu_time(cpu1)
 
   !$OMP CRITICAL
@@ -84,7 +83,7 @@ overp=>get2dpointer(system%overlap)
   if(calculate_preconditioner()) then
   P=0
   w=0
-     call seceqfvprecond(n,hamp,overp,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+     call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
 
 	write(*,*) evalfv
@@ -119,7 +118,7 @@ overp=>get2dpointer(system%overlap)
         !h(:,:,diis) holds matrix with current aproximate 
         !vectors multiplied with hamilton
         !o: same for overlap*evecfv
-        call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
+        call setuphsvect(n,iunconverged,system,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
 		!	 write(*,*)"h",h(:,iunconverged,idiis)
 		!	  write(*,*)"s",s(:,iunconverged,idiis)
@@ -154,19 +153,19 @@ overp=>get2dpointer(system%overlap)
         !system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
        ! write(*,*)"eigenvector",eigenvector(:,4)
 
-        call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
+        call setuphsvect(n,iunconverged,system,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
 
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
-           call normalize(n,nstfv,overp,eigenvector,n)	
+           call normalize(n,nstfv,system%overlap%za,eigenvector,n)	
 		   	 
         endif
      end do
 	 stop
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
-        call seceqfvprecond(n,hamp,overp,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
+        call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
         write(*,*)"recalculate preconditioner"
       endif
