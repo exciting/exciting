@@ -29,7 +29,7 @@ subroutine dfq(iq)
   character(256) :: fnscreen
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
-  complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:)
+  complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:),hdg(:,:,:)
   complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:)
   complex(8), allocatable :: xou(:),xouc(:),xuo(:),xuoc(:),wou(:),wuo(:)
   complex(8) :: wout
@@ -135,6 +135,9 @@ subroutine dfq(iq)
   if (allocated(pmuo)) deallocate(pmuo)
   allocate(pmuo(3,nst3,nst4))
   ! allocate arrays
+  
+  allocate(hdg(nst1,nst2,nkpt))
+  
   allocate(scis12(nst1,nst2))
   allocate(scis21(nst2,nst1))
   allocate(w(nwdf))
@@ -171,6 +174,17 @@ subroutine dfq(iq)
           ngq(iq)
      call ematqalloc
   end if
+  
+ 
+
+hdg=zzero
+!!!	read(1108) hdg
+
+
+
+ 
+  
+  
   ! loop over k-points
   do ik=1,nkpt
      write(*,*) 'dfq: k-point:',ik,ikmapikq(ik,iq)
@@ -186,6 +200,16 @@ subroutine dfq(iq)
         ! for screening calculate matrix elements of plane wave on the fly
         call ematqk1(iq,ik)
      end if
+
+
+! *** this is working for Si_lapw/apw+lo
+	scis12=scis12+hdg(:,:,ik)
+!***
+
+	scis21=scis21-hdg(:,:,ik)
+
+
+
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)

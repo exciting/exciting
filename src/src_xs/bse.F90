@@ -31,10 +31,9 @@ subroutine bse
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
 
   integer :: nvbse,ncbse,nvdif,ncdif,il,iu,nbeval,info
-  real(8) :: vl,vu
+  real(8) :: vl,vu,egap
 
-  ! external functions
-  integer, external :: iplocnr
+  ! external functions  integer, external :: iplocnr
   logical, external :: tqgamma,l2int
   real(8), external :: dlamch
 
@@ -42,6 +41,8 @@ subroutine bse
   call genfilname(setfilext=.true.)
 
 oct=1
+
+egap=1.d8
 
   ! type of contributions to BSE-Hamlitonian
   ! H = H_diag + 2H_x + H_c
@@ -190,8 +191,9 @@ write(*,*) 'record length for SCI',recl
                     s2=hamidx(ist3-nvdif,ist4,jknr,nstbef,nstabf)
                     ! add diagonal term
                     if (s1.eq.s2) then
-                       ham(s1,s2)=ham(s1,s2)+ &
-                            evalsv(ist2+istocc,iknr)-evalsv(ist1,iknr)+scissor
+                       de=evalsv(ist2+istocc,iknr)-evalsv(ist1,iknr)+scissor
+                       ham(s1,s2)=ham(s1,s2)+de
+                       egap=min(egap,de)
                     end if
                     ! add exchange term
                     select case(trim(bsetype))
@@ -287,9 +289,7 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   spectrkk(:)=zzero
   do iw=1,nwdos
      do s1=1,nexc
-!!$        spectr(iw)=spectr(iw)+abs(oszs(s1))**2* &
-!!$             (brdtd/(brdtd**2+(w(iw)-beval(s1))**2)- &
-!!$             brdtd/(brdtd**2+(w(iw)+beval(s1))**2))
+        ! Lorentzian lineshape
         spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
              1.d0/(w(iw)-beval(s1)+zi*brdtd) + &
              1.d0/(-w(iw)-beval(s1)-zi*brdtd) )
@@ -298,7 +298,8 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr
   call kramkron(oct,oct,epslat,nwdos,dble(w),aimag(spectr),spectrkk)
   do s2=1,hamsiz
-     write(983,'(i8,5g18.10)') s2,beval(s2)*escale,abs(oszs(s2))
+     write(983,'(i8,5g18.10)') s2,beval(s2)*escale,(beval(s2)-egap)*escale, &
+          abs(oszs(s2))
   end do
 
 
@@ -309,7 +310,8 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
 !  oszs=oszs(sor)
   do s1=1,hamsiz
      s2=sor(s1)
-     write(984,'(i8,3g18.10)') s1,beval(sor(s2))*escale,abs(oszs(s2))
+     write(984,'(i8,4g18.10)') s1,beval(sor(s2))*escale, &
+          (beval(sor(s2))-egap)*escale,abs(oszs(s2))
   end do
 
 

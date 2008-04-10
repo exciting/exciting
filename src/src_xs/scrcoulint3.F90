@@ -222,6 +222,9 @@ write(*,*) 'record length for SCI',recl
         emattype=2
         call ematbdcmbs(emattype)
 
+
+if (ikkp.eq.1) write(*,'(a,2g18.10)') 'W-diagonal long range term:',scrni(1,1,1)*potcl(1,1)/nkptnr/omega
+
         ! select screening level
         tm(:,:)=zzero
         select case (trim(screentype))
@@ -239,7 +242,7 @@ write(*,*) 'record length for SCI',recl
 	   ! full screening
            tm(:,:)=tmi(:,:)*potcl(1:n,1:n)
         end select
-
+	
         ! combine indices for matrix elements of plane wave
         j1=0
         do ist2=1,nst2

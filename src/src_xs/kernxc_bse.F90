@@ -42,11 +42,11 @@ subroutine kernxc_bse(oct)
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,iflg
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,un2,un3,j1,j2,iws1,iws2,a1,a2,a3,t2
+  integer :: ngridkt(3),iv(3),ivgsym(3),un,un2,un3,j1,j2,iws1,iws2,a1,a2,a3
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,ikkph
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
   logical :: nosymt,reducekt,tq0,nsc,tphf,ksintp,tks1,tks2
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,t1,ws,ws1,ws2
+  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t1,t2,t3,ws,ws1,ws2,tp
   real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
   real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:)
   real(8), allocatable :: zmr(:,:),zmq(:,:),deval(:,:,:),docc(:,:,:),scis(:,:,:)
@@ -54,7 +54,7 @@ subroutine kernxc_bse(oct)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:),den1(:),den2(:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat12p(:,:),emat(:,:,:,:)
-  complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
+  complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:),hdg(:,:,:)
   logical, allocatable :: done(:)
   ! external functions
   integer, external :: iplocnr,idxkkp
@@ -176,6 +176,9 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
   allocate(deval(nst1,nst3,nkptnr))
   allocate(docc(nst1,nst3,nkptnr))
   allocate(scis(nst1,nst3,nkptnr))
+
+allocate(hdg(nst1,nst3,nkptnr))
+hdg=zzero
 
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
@@ -389,31 +392,31 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
                 nst4_,sccli
 
 
-write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
-
-
-           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
-                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
-                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
-              write(*,*)
-              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
-                   & interaction")')
-              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
-                   &nst4)")')
-              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
-                   iq,iqr,nst1,nst2,nst3,nst4
-              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
-                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-              write(*,*)
-              call terminate
-           end if
+!!$write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
+!!$
+!!$
+!!$           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
+!!$                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
+!!$                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
+!!$              write(*,*)
+!!$              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
+!!$                   & interaction")')
+!!$              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
+!!$                   &nst4)")')
+!!$              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
+!!$                   iq,iqr,nst1,nst2,nst3,nst4
+!!$              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
+!!$                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
+!!$              write(*,*)
+!!$              call terminate
+!!$           end if
         else
            write(*,*) 'using Hermitian transposed scr. Coul. int.'
            ! use Hermitian property for lower triangle
            read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,scclih
            do ist1=1,nst1
-              do ist2=1,nst2
+              do ist2=1,nst3
                  sccli(ist1,ist2,:,:)=conjg(scclih(:,:,ist1,ist2))
               end do
            end do
@@ -431,9 +434,16 @@ write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
         if (iknr.eq.jknr) then
            do ist3=1,nst3
               do ist1=1,nst1
-                 sccli(ist1,ist3,ist1,ist3)=zzero
-!!$                 sccli(ist1,ist3,ist1,ist3)=sccli(ist1,ist3,ist1,ist3) - &
-!!$                      bsediagshiftc
+	      
+	      zt1=sccli(ist1,ist3,ist1,ist3)
+!!!	      hdg(ist1,ist3,iknr)=-zt1
+	      t1=dble(zt1)
+	      t2=aimag(zt1)
+    tp=atan2(t2,t1)
+    if (tp.lt.0.d0) tp=tp+twopi
+    write(1107,'(3i5,2g18.10,2x,2g18.10)') iknr,ist1,ist3,zt1,abs(zt1),tp*180.d0/pi
+	      
+                 sccli(ist1,ist3,ist1,ist3)= zzero
               end do
            end do
         end if
@@ -526,20 +536,35 @@ write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
            osca=osca+conjg(transpose(osca))
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
+!           ! set up energy denominators
+!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
+!                omega          
+!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
+!                omega
+
+!           ! set up energy denominators
+!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd) + &
+!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)
+!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2 + &
+!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)**2
+!           den1=den1/nkpt/omega
+!           den2=den2/nkpt/omega
+
+!!$! *** this part is working for Si_lapw and Si_APW+lo ***
 !!$           ! set up energy denominators
-!!$           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
-!!$                omega          
-!!$           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
-!!$                omega
+!!$           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd)
+!!$           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd)**2
+!!$           den1=den1/nkpt/omega
+!!$           den2=den2/nkpt/omega
+!!$! *** end
 
            ! set up energy denominators
-           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd) + &
-                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)
-           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2 + &
-                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)**2
+           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd) + &
+                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brdtd)
+           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd)**2 +&
+                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brdtd)**2
            den1=den1/nkpt/omega
            den2=den2/nkpt/omega
-
            ! update kernel
            do iw=1,nwdf
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
@@ -553,6 +578,10 @@ write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
      ! end outer loop over k-points
   end do
   close(un)
+
+
+!!!! write BSE diagonal to file
+write(1108) hdg
 
   do iw=1,nwdf
      do igq1=1,n
