@@ -92,7 +92,7 @@ contains
          write(*,*)" converged",rnorms(idamax(n,rnorms,1))
     else
        allconverged=.false.
-     !  write(*,*)"not converged",rnorms(idamax(n,rnorms,1))
+	write(*,*)"not converged",rnorms(idamax(n,rnorms,1)) ,idamax(n,rnorms,1)
     endif
 
   end function allconverged

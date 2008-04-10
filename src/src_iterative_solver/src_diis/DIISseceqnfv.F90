@@ -90,7 +90,7 @@ overp=>get2dpointer(system%overlap)
   
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
-     write(*,*)"readeigenvalues",w
+ !    write(*,*)"readeigenvalues",w
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
     ! call zlarnv(2, iseed, n*nstfv, eigenvector)
@@ -101,7 +101,7 @@ overp=>get2dpointer(system%overlap)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
- write(*,*)"eigenvaluebevore use",eigenvalue
+! write(*,*)"eigenvaluebevore use",eigenvalue
      if( doprerotate_preconditioner()) then
 
         !write(777,*)P
@@ -118,12 +118,12 @@ overp=>get2dpointer(system%overlap)
         !o: same for overlap*evecfv
         call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
-			 write(*,*)"h",h(:,iunconverged,idiis)
-			  write(*,*)"s",s(:,iunconverged,idiis)
-			  write(*,*)"eigenvector" ,eigenvector(:,iunconverged)
+		!	 write(*,*)"h",h(:,iunconverged,idiis)
+		!	  write(*,*)"s",s(:,iunconverged,idiis)
+		!	  write(*,*)"eigenvector" ,eigenvector(:,iunconverged)
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
-             write (*,*)"eigenvalue after rq",eigenvalue
+         !    write (*,*)"eigenvalue after rq",eigenvalue
         ! write (777,*)w(:)
         !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
@@ -144,12 +144,12 @@ overp=>get2dpointer(system%overlap)
            write(*,*)"recalculate preconditioner"
            exit
         endif 
-         write(*,*)"eigenvaluebevore",eigenvalue
+        ! write(*,*)"eigenvaluebevore",eigenvalue
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         !call exactupdatevectors(n,iunconverged,system%hamilton,&
         !system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
-        write(*,*)"eigenvector",eigenvector(:,4)
+       ! write(*,*)"eigenvector",eigenvector(:,4)
 
         call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
@@ -158,7 +158,7 @@ overp=>get2dpointer(system%overlap)
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
            call normalize(n,nstfv,overp,eigenvector,n)	
-		   	   stop
+		   	 
         endif
      end do
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 

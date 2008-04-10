@@ -13,6 +13,6 @@ subroutine rayleighqotient(n,m,evecfv, h,s,evalfv)
      vhv= zdotc(n,evecfv(1,i),1,h(1,i),1)
      vsv= zdotc(n,evecfv(1,i),1,s(1,i),1)
      evalfv(i)=vhv/vsv
-	 write (*,*) " vhv ,shv",vhv ,vsv
+	
   end do
 end subroutine rayleighqotient
