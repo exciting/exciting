@@ -93,15 +93,15 @@ overp=>get2dpointer(system%overlap)
      write(*,*)"readeigenvalues",w
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
-     call zlarnv(2, iseed, n*nstfv, eigenvector)
-     call zscal(n*nstfv,dcmplx(1e-5/n/nstfv,0),eigenvector,1)
+    ! call zlarnv(2, iseed, n*nstfv, eigenvector)
+    ! call zscal(n*nstfv,dcmplx(1e-5/n/nstfv,0),eigenvector,1)
      do i=1,nstfv
-       ! call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
-        call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+      !  call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
-
+ write(*,*)"eigenvaluebevore use",eigenvalue
      if( doprerotate_preconditioner()) then
 
         !write(777,*)P
@@ -118,14 +118,17 @@ overp=>get2dpointer(system%overlap)
         !o: same for overlap*evecfv
         call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
+			 write(*,*)"h",h(:,iunconverged,idiis)
+			  write(*,*)"s",s(:,iunconverged,idiis)
+			  write(*,*)"eigenvector" ,eigenvector(:,iunconverged)
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
-         !    write (*,*)"eigenvalue",eigenvalue
+             write (*,*)"eigenvalue after rq",eigenvalue
         ! write (777,*)w(:)
         !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
-           write(*,*)"res",r(:,4)  
+          ! write(*,*)"res",r(:,4)  
         !write(*,*)"rnorms",rnorms
         do i=1,nstfv
            if(evecmap(i).ne.0) then
@@ -141,13 +144,13 @@ overp=>get2dpointer(system%overlap)
            write(*,*)"recalculate preconditioner"
            exit
         endif 
-         write(*,*)"eigenvectorbevore",eigenvector(:,4)
+         write(*,*)"eigenvaluebevore",eigenvalue
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         !call exactupdatevectors(n,iunconverged,system%hamilton,&
         !system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
         write(*,*)"eigenvector",eigenvector(:,4)
-        stop
+
         call setuphsvect(n,iunconverged,hamp,overp,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
@@ -155,6 +158,7 @@ overp=>get2dpointer(system%overlap)
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
            call normalize(n,nstfv,overp,eigenvector,n)	
+		   	   stop
         endif
      end do
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
@@ -163,9 +167,11 @@ overp=>get2dpointer(system%overlap)
         write(*,*)"recalculate preconditioner"
       endif
      call cpu_time(cpu1)
+
   endif
     call deleteystem(system)
   timefv=timefv+cpu1-cpu0
+        
   return
 end subroutine DIISseceqnfv
 !EOC
