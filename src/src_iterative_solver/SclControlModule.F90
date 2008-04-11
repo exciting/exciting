@@ -25,7 +25,7 @@ contains
     
   write(*,*)"precond"
     else if (mod(diiscounter,5).eq.0)then
-    if(currentconvergence.gt.1e-2) then
+    if(currentconvergence.gt.1e-3) then
        calculate_preconditioner =.true.
     endif
   write(*,*)"precon"
