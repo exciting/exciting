@@ -42,13 +42,13 @@ logical::packed
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
-  complex(8):: P(nmatmax,nmatmax)
-  complex(8)::         h(nmat(ik,ispn),nstfv,diismax) 
-  complex(8)::         s(nmat(ik,ispn),nstfv,diismax)
-  complex(8)::         r(nmat(ik,ispn),nstfv)
-  complex(8):: trialvecs(nmat(ik,ispn),nstfv,diismax)
-  complex(8):: eigenvector(nmat(ik,ispn),nstfv)
-  real(8):: eigenvalue(nstfv)
+  complex(8),allocatable:: P(:,:)
+  complex(8),allocatable::         h(:,:,:) 
+  complex(8),allocatable::         s(:,:,:)
+  complex(8),allocatable::         r(:,:)
+  complex(8),allocatable:: trialvecs(:,:,:)
+  complex(8),allocatable:: eigenvector(:,:)
+  real(8),allocatable:: eigenvalue(:)
   integer :: iseed
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
@@ -62,7 +62,13 @@ logical::packed
   end if
   n=nmat(ik,ispn)
   np=npmat(ik,ispn)
-
+  allocate( P(nmatmax,nmatmax))
+ allocate(h(nmat(ik,ispn),nstfv,diismax)) 
+ allocate( s(nmat(ik,ispn),nstfv,diismax))
+ allocate(    r(nmat(ik,ispn),nstfv))
+ allocate(  trialvecs(nmat(ik,ispn),nstfv,diismax))
+ allocate(eigenvector(nmat(ik,ispn),nstfv))
+ allocate(eigenvalue(nstfv))
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
@@ -163,7 +169,7 @@ call newsystem(system,packed,n)
 		   	 
         endif
      end do
-	 stop
+	
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
@@ -172,6 +178,7 @@ call newsystem(system,packed,n)
      call cpu_time(cpu1)
 
   endif
+   deallocate(P,h,s, r,trialvecs,eigenvector, eigenvalue)
     call deleteystem(system)
   timefv=timefv+cpu1-cpu0
         

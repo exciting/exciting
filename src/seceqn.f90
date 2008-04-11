@@ -50,7 +50,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
           sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
      ! solve the first-variational secular equation
      if(doDIIScycle()) then 
-        call DIISseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),vgkc(1,1,ik,ispn),evalfv,evecfv)
+        call DIISseceqnfv(ik,ispn,apwalm(:,:,:,:,ispn),vgkc(:,:,ik,ispn),evalfv,evecfv)
     
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
      else     if (doLAPACKsolver()) then
