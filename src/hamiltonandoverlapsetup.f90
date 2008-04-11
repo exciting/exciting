@@ -13,6 +13,7 @@ character(256)::prefix
 integer::i,is,ia
 complex(8) v(1)
 real:: cpu0,cpu1
+real(8)::threshold
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
@@ -35,11 +36,14 @@ end do
 ! interstitial contributions
 call hmlistln(system%hamilton,ngp,igpig,vgpc)
 call olpistln(system%overlap,ngp,igpig)
+threshold=1e-16
+call HermiteanMatrixTruncate(system%hamilton,threshold)
+call HermiteanMatrixTruncate(system%overlap,threshold)
 
 if(.not.ispacked(system%hamilton))then
  	call hamiltonoverlapocopy_UL(system)
 endif
-
+#define  DEBUGHO
 #ifdef DEBUGHO
 write(*,*)"apwalm", apwalm
 prefix="H"
