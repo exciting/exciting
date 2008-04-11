@@ -10,7 +10,8 @@ implicit none
   integer,parameter:: diismax=25,diisfirstscl=3
   real(8) lowesteval
   real(8) epsarpack
-  real ,parameter::diisthreshould=1,reps=0.5e-7
+  real(8) ,parameter::diisthreshould=1,reps=0.5e-8
+  real(8) ::lastresnorm
   integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
   external idamax
@@ -41,6 +42,7 @@ contains
        if(currentconvergence.gt.1.0)doDIIScycle=.false.
       if(doDIIScycle) write(*,*)"DIIS"
     endif
+    lastresnorm=1.e300
   end function doDIIScycle
 
 
@@ -86,15 +88,20 @@ contains
     logical allconverged
     integer,intent(in)::n
     real(8),intent(in):: rnorms(n)
-
-    if (rnorms(idamax(n,rnorms,1)).lt.reps) then 
+	real(8)::rnormmax
+	rnormmax=rnorms(idamax(n,rnorms,1))
+    if (rnormmax.lt.reps) then 
        allconverged=.true.
          write(*,*)" converged",rnorms(idamax(n,rnorms,1))
     else
        allconverged=.false.
 	write(*,*)"not converged",rnorms(idamax(n,rnorms,1)) ,idamax(n,rnorms,1)
     endif
-
+	if(rnormmax.gt.lastresnorm)then
+ 		allconverged=.true.
+        write(*,*)"warning: error is gettig larger again",rnorms(idamax(n,rnorms,1))
+    endif
+    lastresnorm=rnormmax       
   end function allconverged
   
   function dojacobdavidson()

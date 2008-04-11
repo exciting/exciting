@@ -91,9 +91,6 @@ call newsystem(system,packed,n)
   w=0
      call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
-
-
-
   else
   
      iunconverged=nstfv	

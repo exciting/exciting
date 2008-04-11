@@ -46,7 +46,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
         do is=1,idiis
            Qmatrix(is,ir)=dble(zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1))
            if (dble(Qmatrix(is,ir)).lt.1.e-4) then
-           write(*,*)"warning Qmatrix(is,ir)).lt.1.e-4 in diisupdate"
+          ! write(*,*)"warning Qmatrix(is,ir)).lt.1.e-4 in diisupdate"
            !   write(888,*)"ir,is,trialvec(1,i,is),s(1,i,ir)",ir,is,trialvec(:,i,is),"s\n\n",s(:,i,ir)
            endif
 
