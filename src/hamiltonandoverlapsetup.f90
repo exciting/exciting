@@ -39,7 +39,9 @@ call olpistln(system%overlap,ngp,igpig)
 if(.not.ispacked(system%hamilton))then
  	call hamiltonoverlapocopy_UL(system)
 endif
+
 #ifdef DEBUGHO
+write(*,*)"apwalm", apwalm
 prefix="H"
  call HermiteanMatrixToFiles(system%hamilton,prefix)
 prefix="O"

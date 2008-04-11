@@ -20,7 +20,11 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
   real(8):: Pmatrix(idiis+1,idiis+1), Qmatrix(idiis+1,idiis+1)
   real(8)::   c(idiis+1),residnorm2
   complex(8)::z
-
+  
+ Pmatrix=0.0
+ Qmatrix=0.0
+ p=0
+ c=0
   do i=1,iunconverged 
      !calculate residuals
      do j=1,idiis
@@ -29,6 +33,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
         call zaxpy(n,z,s(1,i,j),1,p(1,j),1)
      end do
      residnorm2=dble(zdotc(n,p(1,idiis),1,p(1,idiis),1))
+	 write(*,*)"  residnorm2",   residnorm2
      do ir=1,idiis
         do is=1,idiis
            Pmatrix(is,ir)=dble(zdotc(n,p(1,is),1,p(1,ir),1))/residnorm2
@@ -47,7 +52,10 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
 
         enddo
      enddo
+	  write(*,*)"Pmatrix",Pmatrix
+	 write(*,*)"Qmatrix",Qmatrix
      call solvediislin(idiis,Pmatrix,Qmatrix,c)
+	
      if  (recalculate_preconditioner .eqv. .true.) then
         infodiisupdate=1
         exit

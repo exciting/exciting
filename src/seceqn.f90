@@ -10,6 +10,8 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   use modmain
   use modmpi
   use sclcontroll
+  use diisinterfaces
+  
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   evalfv : first-variational eigenvalues (out,real(nstfv))
@@ -48,8 +50,8 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
           sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
      ! solve the first-variational secular equation
      if(doDIIScycle()) then 
-        call DIISseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
-             vgkc(1,1,ik,ispn),evalfv,evecfv)
+        call DIISseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),vgkc(1,1,ik,ispn),evalfv,evecfv)
+    
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
      else     if (doLAPACKsolver()) then
      	call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
