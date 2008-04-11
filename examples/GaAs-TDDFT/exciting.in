@@ -6,7 +6,6 @@
 !**********************************************************************
 
 tasks
-340
 450
 350
 
@@ -21,13 +20,13 @@ scrherm
 0
 
 nstbef
-10
+5
 
 bsetype
 'singlet'
 
 screentype
-'full'
+'diag'
 
 fxctype
 8
@@ -38,8 +37,8 @@ lmaxapwtd
 lmaxemat
 2
 
-#tetra
-#  .true.
+tetra
+  .true.
 
 maxscl
   1

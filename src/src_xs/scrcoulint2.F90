@@ -19,6 +19,7 @@ end function iplocnr
 
 
 subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
+  use modtetra
   use m_genfilname
   use m_getunit
   implicit none
@@ -28,9 +29,12 @@ subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
   ! local variables
   character(256) :: fname
   real(8) :: rm(2,9)
-  integer :: igq1,igq2,j,it1,it2,it3,un
+  integer :: igq1,igq2,j,it1,it2,it3,un,bzsampl
+  ! sampling of Brillouin zone
+  bzsampl=0
+  if (tetra) bzsampl=1
   ! read in screening
-  call genfilname(basename='SCREEN',iq=iqr,filnam=fname)
+  call genfilname(basename='SCREEN',iq=iqr,bzsampl=bzsampl,filnam=fname)
   call getunit(un)
   open(un,file=trim(fname),form='formatted',action='read',status='old')
   do igq1=1,ngq

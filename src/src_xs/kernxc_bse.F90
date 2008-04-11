@@ -29,7 +29,7 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-5
+  real(8), parameter :: delt=1.d-3
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
@@ -60,7 +60,7 @@ subroutine kernxc_bse(oct)
   integer, external :: iplocnr,idxkkp
   logical, external :: tqgamma
 
-  real(8) :: cpu0,cpu1,cpu2,cpu3
+  real(8) :: cpu0,cpu1,cpu2,cpu3,brd
   real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
@@ -70,6 +70,8 @@ subroutine kernxc_bse(oct)
 t3=1.d0
 bsediagshift=zzero
 bsediagshiftc=zzero
+
+brd=brdtd
 
   !----------------!
   !   initialize   !
@@ -537,32 +539,32 @@ hdg=zzero
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
 !           ! set up energy denominators
-!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)/nkptnr/&
+!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)/nkptnr/&
 !                omega          
-!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2/nkptnr/&
+!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)**2/nkptnr/&
 !                omega
 
 !           ! set up energy denominators
-!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd) + &
-!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)
-!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brdtd)**2 + &
-!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brdtd)**2
+!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd) + &
+!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brd)
+!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)**2 + &
+!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brd)**2
 !           den1=den1/nkpt/omega
 !           den2=den2/nkpt/omega
 
 !!$! *** this part is working for Si_lapw and Si_APW+lo ***
 !!$           ! set up energy denominators
-!!$           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd)
-!!$           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd)**2
+!!$           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
+!!$           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
 !!$           den1=den1/nkpt/omega
 !!$           den2=den2/nkpt/omega
 !!$! *** end
 
            ! set up energy denominators
-           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd) + &
-                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brdtd)
-           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brdtd)**2 +&
-                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brdtd)**2
+           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
+                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
+           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
+                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
            den1=den1/nkpt/omega
            den2=den2/nkpt/omega
            ! update kernel
