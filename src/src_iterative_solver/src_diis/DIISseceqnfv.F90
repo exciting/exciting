@@ -92,7 +92,7 @@ call newsystem(system,packed,n)
      call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
 
-	write(*,*) evalfv
+
 
   else
   
@@ -152,7 +152,7 @@ call newsystem(system,packed,n)
            write(*,*)"recalculate preconditioner"
            exit
         endif 
-        write(*,*)"eigenvaluebevore",eigenvalue
+       
         call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
              eigenvector,trialvecs(:,:,idiis))      
         !call exactupdatevectors(n,iunconverged,system%hamilton,&
