@@ -66,7 +66,7 @@ contains
 
     ! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ! apply scaling for debugging purposes
-    fxc = conjg(fxc)
+!!!    fxc = conjg(fxc)
 
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !write(*,*) 'reading fxc-bse:',iw,fxc

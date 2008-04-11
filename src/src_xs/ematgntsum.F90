@@ -121,19 +121,24 @@ subroutine ematgntsum(iq,igq)
         !----------------------------------------------------------!
         do ilo=1,nlorb(is)
            l1=lorbl(ilo,is)
-           do cm1 = 1, m1shape(l1)
-              m1 = m1map(l1,cm1)
-              lm1=idxlm(l1,m1)
-              do cl2 = 1, l2shape(l1,m1)
-                 l3 = l2map(l1,m1,cl2)
-                 do cm2 = 1, m2shape(l1,m1,l3)
-                    m3 = m2map(l1,m1,l3,cm2)
+!!$           do cm1 = 1, m1shape(l1)
+!!$              m1 = m1map(l1,cm1)
+do m1=-l1,l1
+             lm1=idxlm(l1,m1)
+!!$              do cl2 = 1, l2shape(l1,m1)
+!!$                 l3 = l2map(l1,m1,cl2)
+!!$                 do cm2 = 1, m2shape(l1,m1,l3)
+!!$                    m3 = m2map(l1,m1,l3,cm2)
+do l3=0,lmaxapwtd
+do m3=-l3,l3
                     lm3=idxlm(l3,m3)
                     do io=1,apword(l3,is)
-                       do cl3 = 1, l3shape(l1,m1,l3,m3)
-                          l2 = l3map(l1,m1,l3,m3,cl3)
-                          do cm3 = 1, m3shape(l1,m1,l3,m3,l2)
-                             m2 = m3map(l1,m1,l3,m3,l2,cm3)
+!!$                       do cl3 = 1, l3shape(l1,m1,l3,m3)
+!!$                          l2 = l3map(l1,m1,l3,m3,cl3)
+!!$                          do cm3 = 1, m3shape(l1,m1,l3,m3,l2)
+!!$                             m2 = m3map(l1,m1,l3,m3,l2,cm3)
+do l2=0,lmaxemat
+do m2=-l2,l2
                              lm2=idxlm(l2,m2)
                              ! summation wrt. Gaunt coefficients
                              ! for lo-A part
