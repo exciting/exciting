@@ -203,10 +203,10 @@ hdg=zzero
 
 
 ! *** this is working for Si_lapw/apw+lo
-	scis12=scis12+hdg(:,:,ik)
+!	scis12=scis12+hdg(:,:,ik)
 !***
 
-	scis21=scis21-hdg(:,:,ik)
+!	scis21=scis21-hdg(:,:,ik)
 
 
 

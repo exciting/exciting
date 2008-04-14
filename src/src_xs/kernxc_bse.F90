@@ -423,47 +423,46 @@ hdg=zzero
               end do
            end do
         end if
-        ! diagonal of BSE-kernel (approximate by first value in matrix)
-        ! *** improve later
-!        if (ikkp.eq.1) then
-!           bsediagshift=dble(sccli(1,1,1,1))
-!        end if
 
-        ! rescale
+        ! proper sign of screened Coulomb interaction
         sccli = - sccli
 
-        ! set diagonal of Bethe-Salpeter kernel to zero (cf. A. Marini, PRL 2003)
+        ! set diagonal of Bethe-Salpeter kernel to zero
+        ! (cf. A. Marini, PRL 2003)
         if (iknr.eq.jknr) then
            do ist3=1,nst3
-              do ist1=1,nst1
-	      
-	      zt1=sccli(ist1,ist3,ist1,ist3)
-!!!	      hdg(ist1,ist3,iknr)=-zt1
-	      t1=dble(zt1)
-	      t2=aimag(zt1)
-    tp=atan2(t2,t1)
-    if (tp.lt.0.d0) tp=tp+twopi
-    write(1107,'(3i5,2g18.10,2x,2g18.10)') iknr,ist1,ist3,zt1,abs(zt1),tp*180.d0/pi
-	      
-                 sccli(ist1,ist3,ist1,ist3)= zzero
+              do ist1=1,nst1	      
+                 zt1=sccli(ist1,ist3,ist1,ist3)
+!!!                 hdg(ist1,ist3,iknr)=-zt1
+                 t1=dble(zt1)
+                 t2=aimag(zt1)
+                 tp=atan2(t2,t1)
+                 if (tp.lt.0.d0) tp=tp+twopi
+                 write(1107,'(3i5,2g18.10,2x,2g18.10)') iknr,ist1,ist3,zt1, &
+                      abs(zt1),tp*180.d0/pi
+                 sccli(ist1,ist3,ist1,ist3)=zzero
               end do
            end do
         end if
 	
-!!$if (iknr.le.jknr) then
-!!$        	! * write out screened Coulomb interaction
-!!$	do ist1=1,nst1
-!!$	   do ist3=1,nst3
-!!$	      do ist2=1,nst2
-!!$		 do ist4=1,nst4
-!!$		    write(1101,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-!!$			 ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4),&
-!!$			 abs(sccli(ist1,ist3,ist2,ist4))
-!!$		 end do
-!!$	      end do
-!!$	   end do
-!!$	end do
-!!$end if
+        if (dbglev.gt.1) then
+           if (iknr.le.jknr) then
+              ! * write out screened Coulomb interaction
+              do ist1=1,nst1
+                 do ist3=1,nst3
+                    do ist2=1,nst2
+                       do ist4=1,nst4
+                          write(1101,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') &
+                               ikkp,iknr,ist1,ist3,jknr,ist2,ist4, &
+                               sccli(ist1,ist3,ist2,ist4),&
+                               abs(sccli(ist1,ist3,ist2,ist4))
+                       end do
+                    end do
+                 end do
+              end do
+           end if
+        end if
+
         j1=0
         do ist2=1,nst3
            do ist1=1,nst1
@@ -538,19 +537,6 @@ hdg=zzero
            osca=osca+conjg(transpose(osca))
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
-!           ! set up energy denominators
-!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)/nkptnr/&
-!                omega          
-!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)**2/nkptnr/&
-!                omega
-
-!           ! set up energy denominators
-!           den1(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd) + &
-!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brd)
-!           den2(:)=2.d0/(w(:)+bsediagshift+dek(ist1,ist3)+zi*brd)**2 + &
-!                2.d0/(-w(:)-bsediagshift+dek(ist1,ist3)-zi*brd)**2
-!           den1=den1/nkpt/omega
-!           den2=den2/nkpt/omega
 
 !!$! *** this part is working for Si_lapw and Si_APW+lo ***
 !!$           ! set up energy denominators
@@ -619,82 +605,6 @@ write(1108) hdg
   
   ! set up kernel
   do iw=1,nwdf
-!!$     ! locate shifted energy on grid
-!!$     t1=dble(w(iw))-bsediagshift
-!!$     ws=1.d0+(t1-wdos(1))*dble(nwdf)/(wdos(2)-wdos(1))
-!!$     iws1=floor(ws)
-!!$     iws2=ceiling(ws)
-!!$     ws1=dble(w(iws1))
-!!$     ws2=dble(w(iws2))
-!!$
-!!$t3=dble(w(iw))
-!!$write(*,*) iw,t3,t1,ws,iws1,iws2
-!!$
-!!$!     if (iws1.lt.1) then
-!!$!        write(*,*)
-!!$!        write(*,'("Error(",a,"): negative shifted w-point")') &
-!!$!             trim(thisnam)
-!!$!        write(*,*)
-!!$!        call terminate
-!!$!     end if
-!!$     ksintp=.true.
-!!$     tks1=.true.
-!!$     tks2=.true.
-!!$     if (iws1.eq.iws2) ksintp=.false.
-!!$     if (iws1.gt.nwdf) tks1=.false.
-!!$     if (iws1.lt.1) then
-!!$     	tks1=.false.
-!!$	tks2=.false.
-!!$     end if
-!!$     if ((.not.ksintp).or.(iws2.gt.nwdf)) tks2=.false.
-!!$     ! zero in case frequency above the interval is required
-!!$     chi0i(:,:)=zzero
-!!$     oct1=oct
-!!$     oct2=oct
-!!$     octh=1+(oct-1)*4
-!!$
-!!$
-!!$write(*,*) 'octs',oct,oct1,oct2,octh
-!!$     if (tks1) then
-!!$        ! get KS/QP response function for lower w-point
-!!$        call getx0(.true.,iqmt,iws1,trim(filnam),'',chi0,chi0wg,chi0h)
-!!$        ! head
-!!$        chi0(1,1)=chi0h(octh)
-!!$        ! wings
-!!$        if (n.gt.1) then
-!!$           chi0(1,2:)=chi0wg(2:,1,oct1)
-!!$           chi0(2:,1)=chi0wg(2:,2,oct2)
-!!$        end if
-!!$
-!!$     do igq1=1,n
-!!$        do igq2=1,n
-!!$           write(772,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0(igq1,igq2)
-!!$        end do
-!!$     end do
-!!$
-!!$        ! invert
-!!$        call zinvert_hermitian(0,chi0,chi0i)
-!!$     end if
-!!$     if (tks2) then
-!!$        ! get KS/QP response function for lower w-point
-!!$        call getx0(.true.,iqmt,iws2,trim(filnam),'',chi02,chi0wg2,chi0h2)
-!!$        ! head
-!!$        chi02(1,1)=chi0h2(octh)
-!!$        ! wings
-!!$        if (n.gt.1) then
-!!$           chi02(1,2:)=chi0wg2(2:,1,oct1)
-!!$           chi02(2:,1)=chi0wg2(2:,2,oct2)
-!!$        end if
-!!$        ! invert
-!!$        call zinvert_hermitian(0,chi02,chi02i)
-!!$     end if
-!!$     if (ksintp) then
-!!$        t3=(t1-ws1)/(ws2-ws1)
-!!$        ! linear interpolation
-!!$        chi0i(:,:)=(1.d0-t3)*chi0i(:,:) + t3*chi02i(:,:)
-!!$     end if
-
-     ! simple version without interpolation
      oct1=oct
      oct2=oct
      octh=1+(oct-1)*4
@@ -722,6 +632,7 @@ write(1108) hdg
         end do
      end do
      write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
+     ! end loop over frequencies
   end do
   close(un)
   close(un2)
