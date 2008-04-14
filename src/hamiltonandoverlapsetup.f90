@@ -43,7 +43,6 @@ call HermiteanMatrixTruncate(system%overlap,threshold)
 if(.not.ispacked(system%hamilton))then
  	call hamiltonoverlapocopy_UL(system)
 endif
-#define  DEBUGHO
 #ifdef DEBUGHO
 write(*,*)"apwalm", apwalm
 prefix="H"
