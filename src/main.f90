@@ -89,9 +89,6 @@ program main
         case(901)
            ! generate STATE.OUT file from portable ASCII STATE.xml file
            call portstate(.false.)
-        case(902)
-           ! k-point in SCF
-           call atkp
         case(999)
            ! * debug task *
            call testmain

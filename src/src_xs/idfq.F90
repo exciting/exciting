@@ -99,7 +99,7 @@ subroutine idfq(iq)
 if (m.eq.n.and.iw.eq.1) then
    do ig1=1,n
       do ig2=1,n
-         write(200+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
+         !write(200+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
       end do
    end do
 end if
@@ -119,7 +119,7 @@ end if
 if (m.eq.n.and.iw.eq.1) then
    do ig1=1,n
       do ig2=1,n
-         write(300+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
+         !write(300+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
       end do
    end do
 end if

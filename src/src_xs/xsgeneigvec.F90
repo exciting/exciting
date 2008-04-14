@@ -15,6 +15,7 @@ subroutine xsgeneigvec
   character(*), parameter :: thisnam='xsgeneigvec'
   real(8) :: vqlt(3)
   integer :: iq,qi,qf
+  logical, external :: tqgamma
   ! initialize universal variables
   call init0
   call init1
@@ -24,6 +25,8 @@ subroutine xsgeneigvec
   qf=nqpt
   ! add extra q-point for if files for q=0 are to be calculated
   if (tq0ev) qi=0
+  ! if first Q-point is Gamma-point we copy files
+  if (tqgamma(1)) qi=1
   if (tscreen) then
      qi=0
      qf=0
@@ -66,6 +69,19 @@ subroutine xsgeneigvec
      end if
      ! end loop over q-points
   end do
+  ! generate symbolic links for Gamma-Q-point files (probably not ISO-Fortran)
+  ! alternatively one could write these files again one by one
+  if ((rank.eq.0).and.tqgamma(1).and.(.not.tscreen)) then
+  	 write(unitout,'(a)') 'Info('//thisnam//'): First Q-point is Gamma-point'
+     call system('ln -sf EVECFV_QMT001.OUT EVECFV_QMT000.OUT')
+     call system('ln -sf EVECSV_QMT001.OUT EVECSV_QMT000.OUT')
+     call system('ln -sf EVALSV_QMT001.OUT EVALSV_QMT000.OUT')
+     call system('ln -sf OCCSV_QMT001.OUT OCCSV_QMT000.OUT')
+     call system('ln -sf APWDLM_QMT001.OUT APWDLM_QMT000.OUT')
+     call system('ln -sf EIGVAL_QMT001.OUT EIGVAL_QMT000.OUT')
+     call system('ln -sf KPOINTS_QMT001.OUT KPOINTS_QMT000.OUT')
+     call system('ln -sf EFERMI_QMT001.OUT EFERMI_QMT000.OUT')
+  end if
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): generation of &
        &eigenvectors finished"
@@ -91,7 +107,7 @@ subroutine writeevec(vq,voff,filxt)
   allocate(evecfv(nmatmax,nstfv,nspnfv))
   if (allocated(apwalm)) deallocate(apwalm)
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-  allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
+  allocate(apwdlm(nstsv,apwordmax,lmmaxapw,natmtot))
   call getunit(unit1)
   inquire(iolength=recl) vq,vkl(:,1),apwdlm
   open(unit1,file='APWDLM'//trim(filxt),action='write',&
@@ -100,7 +116,7 @@ subroutine writeevec(vq,voff,filxt)
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
           apwalm)
-     call genapwcmt(lmaxapwtd,ngk(ik,1),1,nstsv,apwalm,evecfv,apwdlm)
+     call genapwcmt(lmaxapw,ngk(ik,1),1,nstsv,apwalm,evecfv,apwdlm)
      write(unit1,rec=ik) vq,vkl(:,ik),apwdlm
   end do
   close(unit1)

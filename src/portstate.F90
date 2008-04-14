@@ -12,9 +12,9 @@ subroutine portstate(tb2a)
   use ioarray
 ! !DESCRIPTION:
 !   Toggle file format of {\tt STATE.OUT}. If tb2a is true an ASCII
-!   file with the name {\tt STATE_ASC.OUT} is generated and the data
+!   file with the name {\tt STATE.xml} is generated and the data
 !   from {\tt STATE.OUT} is transferred. If tb2a is false the conversion
-!   goes in the other direction. based upon the routines {\tt readstate}
+!   goes in the other direction. Based upon the routines {\tt readstate}
 !   and {\tt writestate}.
 !   
 ! !REVISION HISTORY:
@@ -25,10 +25,10 @@ subroutine portstate(tb2a)
   ! arguments
   logical, intent(in) :: tb2a
   ! local variables
-  logical spinpol_
+  logical exist,spinpol_
   integer natmtot,is
   integer version_(3),nspecies_,lmmaxvr_,nrmtmax_
-  integer natoms_,ngrid_(3)
+  integer natoms_(10000),ngrid_(3)
   integer ngrtot_,ngvec_,ndmag_,nspinor_,ldapu_,lmmaxlu_
   ! allocatable arrays
   integer, allocatable :: nrmt_(:)
@@ -50,6 +50,13 @@ subroutine portstate(tb2a)
   if (tb2a) then
      open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
           status='OLD')
+     inquire(file='STATE.xml',exist=exist)
+	 if (exist) then
+	 	write(*,*)
+	    write(*,'("Error(portstate): not overwriting existent STATE.xml file")')
+		write(*,*)
+		stop
+	 end if
      open(51,file='STATE.xml',action='WRITE',form='FORMATTED',&
           status='replace')
      read(50) version_
@@ -81,6 +88,13 @@ subroutine portstate(tb2a)
   else
      open(50,file='STATE.xml',action='READ',form='FORMATTED', &
           status='OLD')
+     inquire(file='STATE.OUT',exist=exist)
+	 if (exist) then
+	 	write(*,*)
+	    write(*,'("Error(portstate): not overwriting existent STATE.OUT file")')
+		write(*,*)
+		stop
+	 end if
      open(51,file='STATE.OUT',action='WRITE',form='UNFORMATTED', &
           status='replace')
      read(50,*)
@@ -110,12 +124,12 @@ subroutine portstate(tb2a)
   if (tb2a) then
      natmtot=0
      do is=1,nspecies_
-        read(50) natoms_
+        read(50) natoms_(is)
         read(50) nrmt_(is)
         read(50) spr_(1:nrmt_(is),is)
         write(51,'(a)') '<data name="natoms" type="integer" dimension="1" &
              &shape="1" index="species" indexval="'//trim(i2str(is))//'">'
-        write(51,*) natoms_
+        write(51,*) natoms_(is)
         write(51,'(a)') '</data>'
         write(51,'(a)') '<data name="nrmt" type="integer" dimension="1" &
              &shape="1" index="species" indexval="'//trim(i2str(is))//'">'
@@ -126,14 +140,22 @@ subroutine portstate(tb2a)
              //trim(i2str(is))//'">'
      call ioarr(un=51,ioa='write',arr1dr=spr_(1:nrmt_(is),is))
         write(51,'(a)') '</data>'
-        natmtot=natmtot+natoms_
+        natmtot=natmtot+natoms_(is)
      end do
      read(50) ngrid_
      read(50) ngvec_
      read(50) ndmag_
-     read(50) nspinor_
-     read(50) ldapu_
-     read(50) lmmaxlu_
+     ! versions > 0.9.131
+     if ((version_(1).gt.0).or.(version_(2).gt.9).or.(version_(3).gt.131)) then
+        read(50) nspinor_
+        read(50) ldapu_
+        read(50) lmmaxlu_
+     else
+        nspinor_=1
+        if (spinpol_) nspinor_=2
+        ldapu_=0
+        lmmaxlu_=0
+     end if
      write(51,'(a)') '<data name="ngrid" type="integer" dimension="1" &
           &shape="3">'
      call ioarr(un=51,ioa='write',arr1di=ngrid_)
@@ -162,7 +184,7 @@ subroutine portstate(tb2a)
      natmtot=0
      do is=1,nspecies_
         read(50,*)
-        read(50,*) natoms_
+        read(50,*) natoms_(is)
         read(50,*)
         read(50,*)
         read(50,*) nrmt_(is)
@@ -170,10 +192,10 @@ subroutine portstate(tb2a)
         read(50,*)
         call ioarr(un=50,ioa='read',arr1dr=spr_(1:nrmt_(is),is))
         read(50,*)
-        write(51) natoms_
+        write(51) natoms_(is)
         write(51) nrmt_(is)
         write(51) spr_(1:nrmt_(is),is)
-        natmtot=natmtot+natoms_
+        natmtot=natmtot+natoms_(is)
      end do
      read(50,*)
      call ioarr(un=50,ioa='read',arr1di=ngrid_)
@@ -407,13 +429,13 @@ subroutine portstate(tb2a)
   if (spinpol_) deallocate(magmt_,magir_,bxcmt_,bxcir_)
   if (tb2a) then
      write(*,*)
-     write(*,'("Info(portstate): generated portable ASCII state file &
+     write(*,'("Info(portstate): generated portable ASCII file &
           &STATE.xml from STATE.OUT file")')
      write(*,*)
   else
      write(*,*)
      write(*,'("Info(portstate): generated STATE.OUT file from portable &
-          &ASCII state file STATE.xml")')
+          &ASCII file STATE.xml")')
      write(*,*)
   end if
 contains

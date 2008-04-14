@@ -7,29 +7,41 @@ module m_getapwdlm
   implicit none
 contains
 
-  subroutine getapwdlm(iq,ik,apwlm)
+  subroutine getapwdlm(iq,ik,lmax,apwlm)
     use modmain
     use modmpi
     use modxs
     use m_getunit
     implicit none
     ! arguments
-    integer, intent(in) :: iq,ik
+    integer, intent(in) :: iq,ik,lmax
     complex(8), intent(out) :: apwlm(:,:,:,:)
     ! local variables
     character(*), parameter :: thisnam='getapwdlm'
     character(256) :: filextt
     integer :: recl
     real(8) :: vql_(3),vkl_(3),vklt(3),vqlt(3)
+	complex(8), allocatable :: apwlmt(:,:,:,:)
     real(8), external :: r3dist
+	! check lmax value
+	if (lmax.gt.lmaxapw) then
+	   write(unitout,*)
+	   write(unitout,'(a,i8)') 'Error('//thisnam//'): lmax > lmaxapw:',lmax
+	   write(unitout,*)
+	   stop
+	end if
+	allocate(apwlmt(nstsv,apwordmax,lmmaxapw,natmtot))
     filextt=filext
     if (iq.eq.0) call genfilextread(task)
-    inquire(iolength=recl) vql_,vkl_,apwlm
+    inquire(iolength=recl) vql_,vkl_,apwlmt
     call getunit(unit1)
     open(unit1,file='APWDLM'//trim(filext),action='read',&
          form='unformatted',status='old',access='direct',recl=recl)
-    read(unit1,rec=ik) vql_,vkl_,apwlm
+    read(unit1,rec=ik) vql_,vkl_,apwlmt
     close(unit1)
+	! assign to output array and apply cutoff
+	apwlm(:,:,:,:)=apwlmt(:,:,1:(lmax+1)**2,:)
+	deallocate(apwlmt)
     if (iq.eq.0) then
        vklt(:)=vkl0(:,ik)
        vqlt(:)=0.d0
