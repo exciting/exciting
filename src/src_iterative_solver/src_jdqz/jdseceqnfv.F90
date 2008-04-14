@@ -23,7 +23,7 @@ subroutine  jdseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !interface vars for JDQZ
   complex(8)::alpha(4*nstfv),beta(4*nstfv),eivec(nmat(ik,ispn),nstfv),target
   real(8),parameter:: eps=1e-9,lock=1e-8
-  integer::jmax,jmin,ldeg,lwork,i,mparam,v,w,iseed
+  integer::jmax,jmin,ldeg,lwork,i,mparam,v,w
   complex(8),allocatable::zwork(:,:)
   jmax=3*nstfv 
   jmin=2*nstfv

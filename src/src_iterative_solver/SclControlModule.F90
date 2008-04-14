@@ -8,6 +8,7 @@ implicit none
   integer iterativetype
   logical packedmatrixstorage
   integer,parameter:: diismax=25,diisfirstscl=3
+  integer :: iseed(4)=1
   real(8) lowesteval
   real(8) epsarpack
   real(8) ,parameter::diisthreshould=1,reps=0.5e-8
@@ -42,7 +43,7 @@ contains
        if(currentconvergence.gt.1.0)doDIIScycle=.false.
       if(doDIIScycle) write(*,*)"DIIS"
     endif
-    lastresnorm=1.e300
+    lastresnorm=1.e10
   end function doDIIScycle
 
 
@@ -97,7 +98,8 @@ contains
        allconverged=.false.
 	write(*,*)"not converged",rnorms(idamax(n,rnorms,1)) ,idamax(n,rnorms,1)
     endif
-	if(rnormmax.gt.lastresnorm)then
+    
+	if(rnormmax/lastresnorm.gt.1)then
  		allconverged=.true.
         write(*,*)"warning: error is gettig larger again",rnorms(idamax(n,rnorms,1))
     endif

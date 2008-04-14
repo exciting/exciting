@@ -211,7 +211,7 @@ contains
 
   subroutine HermiteanMatrixTruncate(self,threshold)  
     implicit none
-    type(HermiteanMatrix),intent(in)::self
+    type(HermiteanMatrix),intent(inout)::self
     real(8),intent(in)::threshold
     integer ::n,i,j
     n= self%rank

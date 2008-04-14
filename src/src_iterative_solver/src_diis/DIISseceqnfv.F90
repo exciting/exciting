@@ -49,7 +49,7 @@ logical::packed
   complex(8),allocatable:: trialvecs(:,:,:)
   complex(8),allocatable:: eigenvector(:,:)
   real(8),allocatable:: eigenvalue(:)
-  integer :: iseed
+
   real(8)::w(nmatmax),rnorms(nstfv)
   complex(8)::z
   integer iunconverged,evecmap(nstfv)
@@ -69,6 +69,7 @@ logical::packed
  allocate(  trialvecs(nmat(ik,ispn),nstfv,diismax))
  allocate(eigenvector(nmat(ik,ispn),nstfv))
  allocate(eigenvalue(nstfv))
+
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
   !----------------------------------------!
@@ -98,11 +99,13 @@ call newsystem(system,packed,n)
  !    write(*,*)"readeigenvalues",w
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
-    ! call zlarnv(2, iseed, n*nstfv, eigenvector)
-    ! call zscal(n*nstfv,dcmplx(1e-5/n/nstfv,0),eigenvector,1)
+   
+     call zlarnv(2, iseed, n*nstfv, eigenvector)
+    ! eigenvector=cmplx(dble(eigenvector),0.)
+     call zscal(n*nstfv,dcmplx(1e-2/n,0.),eigenvector,1)
      do i=1,nstfv
         call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
-      !  call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+       !call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do

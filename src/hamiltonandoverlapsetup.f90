@@ -43,7 +43,7 @@ call HermiteanMatrixTruncate(system%overlap,threshold)
 if(.not.ispacked(system%hamilton))then
  	call hamiltonoverlapocopy_UL(system)
 endif
-#define  DEBUGHO
+
 #ifdef DEBUGHO
 write(*,*)"apwalm", apwalm
 prefix="H"
@@ -52,7 +52,7 @@ prefix="O"
  call HermiteanMatrixToFiles(system%overlap,prefix)		
  	write(*,*)"wrote" 
 	stop
-#endif s
+#endif 
 
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
