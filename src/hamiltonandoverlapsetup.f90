@@ -37,8 +37,10 @@ end do
 call hmlistln(system%hamilton,ngp,igpig,vgpc)
 call olpistln(system%overlap,ngp,igpig)
 threshold=1e-16
-call HermiteanMatrixTruncate(system%hamilton,threshold)
-call HermiteanMatrixTruncate(system%overlap,threshold)
+!call HermiteanMatrixTruncate(system%hamilton,threshold)
+!call HermiteanMatrixTruncate(system%overlap,threshold)
+
+!
 
 if(.not.ispacked(system%hamilton))then
  	call hamiltonoverlapocopy_UL(system)
