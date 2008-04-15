@@ -11,7 +11,7 @@ implicit none
   integer :: iseed(4)=1
   real(8) lowesteval
   real(8) epsarpack
-  real(8) ,parameter::diisthreshould=1,reps=0.5e-8
+  real(8) ,parameter::diisthreshould=1,reps=5.e-8
   real(8) ::lastresnorm
   integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
@@ -102,6 +102,9 @@ contains
 	if(rnormmax/lastresnorm.gt.1)then
  		allconverged=.true.
         write(*,*)"warning: error is gettig larger again",rnorms(idamax(n,rnorms,1))
+        if (rnormmax.gt. 1e-6)then
+        allconverged=.false.
+        endif
     endif
     lastresnorm=rnormmax       
   end function allconverged

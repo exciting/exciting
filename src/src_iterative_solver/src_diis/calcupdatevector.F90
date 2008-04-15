@@ -17,7 +17,7 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
      do i=1,n
         z=dcmplx (w(i)-evalfv(j),0.0)
      !   write(*,*)z,w(i),evalfv(j),i,j,iunconverged
-       if(abs(z).gt.1e-6)then  
+       if(abs(z).gt.0.1e-6)then  
            v(i,j)=-v(i,j)/z
         else
            v(i,j)=zzero
