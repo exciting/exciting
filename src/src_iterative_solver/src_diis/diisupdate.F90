@@ -52,7 +52,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
 
         enddo
      enddo
-	 
+	 write(*,*)"Pmatrix,Qmatrix",Pmatrix,Qmatrix
      call solvediislin(idiis,Pmatrix,Qmatrix,c)
 	
      if  (recalculate_preconditioner .eqv. .true.) then

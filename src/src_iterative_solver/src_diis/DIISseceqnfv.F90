@@ -38,7 +38,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
 type(evsystem)::system
 logical::packed
-  integer 	::is,ia,idiis,n,np,ievec,i,info
+  integer 	::is,ia,idiis,n,np,ievec,i,info,flag
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
   real(8) 	::eps,rnorm
@@ -119,6 +119,9 @@ call newsystem(system,packed,n)
         !write(778,*)P     
         !stop 
      endif
+     call jacdavblock(n, iunconverged, system, n, & 
+   		 eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
+   		 trialvecs(:,:,idiis), h(:,:,idiis), 0)
      do idiis=1,diismax
         write(*,*)"diisiter", idiis
         !h(:,:,diis) holds matrix with current aproximate 
@@ -153,8 +156,17 @@ call newsystem(system,packed,n)
            exit
         endif 
        
-        call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
-             eigenvector,trialvecs(:,:,idiis))      
+       ! call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
+        !     eigenvector,trialvecs(:,:,idiis))    
+       trialvecs(:,:,idiis)=0
+ 
+   call jacdavblock(n, iunconverged, system, n, & 
+       eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
+       trialvecs(:,:,idiis), h(:,:,idiis), 1) 
+          call zcopy(n*iunconverged,trialvecs(1,1,idiis),1,eigenvector(1,1),1)
+
+     write(*,*)"eigenvalue",eigenvalue
+     
         !call exactupdatevectors(n,iunconverged,system%hamilton,&
         !system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
        ! write(*,*)"eigenvector",eigenvector(:,4)
@@ -163,8 +175,8 @@ call newsystem(system,packed,n)
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
 
-           call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
-                ,eigenvalue,eigenvector,info)
+      !     call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
+       !         ,eigenvalue,eigenvector,info)
            call normalize(n,nstfv,system%overlap%za,eigenvector,n)	
 		   	 
         endif
@@ -176,9 +188,16 @@ call newsystem(system,packed,n)
         write(*,*)"recalculate preconditioner"
       endif
      call cpu_time(cpu1)
-
+call jacdavblock(n, iunconverged, system, n, & 
+   		 eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
+   		 trialvecs(:,:,idiis), h(:,:,idiis), -1) 
+   		 stop
   endif
+  
    deallocate(P,h,s, r,trialvecs,eigenvector, eigenvalue)
+  
+      
+   		
     call deleteystem(system)
   timefv=timefv+cpu1-cpu0
         
