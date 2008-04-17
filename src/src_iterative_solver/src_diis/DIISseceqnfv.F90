@@ -37,7 +37,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   ! local variables
 
   type(evsystem)::system
-  logical::packed
+  logical::packed,jacdav
   integer 	::is,ia,idiis,n,np,ievec,i,info,flag
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
@@ -75,7 +75,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !----------------------------------------!
   call cpu_time(cpu0)
   packed=.false.
-
+jacdav=.false.
   call newsystem(system,packed,n)
   call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
 
@@ -119,7 +119,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         !write(778,*)P     
         !stop 
      endif
-     call jacdavblock(n, iunconverged, system, n, & 
+    	 if(jacdav)   call jacdavblock(n, iunconverged, system, n, & 
           eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
           trialvecs(:,:,idiis), h(:,:,idiis), 0)
      do idiis=1,diismax
@@ -148,7 +148,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
            write(*,*)"recalculate preconditioner"
            exit
         endif
-        if(.true.)then
+        if(.not.jacdav)then
            call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
                 eigenvector,trialvecs(:,:,idiis))    
         else
@@ -173,7 +173,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         write(*,*)"recalculate preconditioner"
      endif
      call cpu_time(cpu1)
-     call jacdavblock(n, iunconverged, system, n, & 
+	 if(jacdav)     call jacdavblock(n, iunconverged, system, n, & 
           eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
           trialvecs(:,:,idiis), h(:,:,idiis), -1) 
 
