@@ -11,7 +11,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
   real(8), intent(in):: evalfv(nstfv)
   complex(8),intent(out)::evecfv(n,nstfv)
   integer, intent(out)::infodiisupdate
-
+  logical lin	
 
 
   complex(8) p(n,idiis)
@@ -20,11 +20,11 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
   real(8):: Pmatrix(idiis+1,idiis+1), Qmatrix(idiis+1,idiis+1)
   real(8)::   c(idiis+1),residnorm2
   complex(8)::z
-  
- Pmatrix=0.0
- Qmatrix=0.0
- p=0
- c=0
+  lin=.true.
+  Pmatrix=0.0
+  Qmatrix=0.0
+  p=0
+  c=0
   do i=1,iunconverged 
      !calculate residuals
      do j=1,idiis
@@ -33,7 +33,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
         call zaxpy(n,z,s(1,i,j),1,p(1,j),1)
      end do
      residnorm2=dble(zdotc(n,p(1,idiis),1,p(1,idiis),1))
-	 
+
      do ir=1,idiis
         do is=1,idiis
            Pmatrix(is,ir)=dble(zdotc(n,p(1,is),1,p(1,ir),1))/residnorm2
@@ -42,24 +42,29 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
            !endif
         enddo
      enddo
-     do ir=1,idiis
-        do is=1,idiis
-           Qmatrix(is,ir)=dble(zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1))
-           if (dble(Qmatrix(is,ir)).lt.1.e-4) then
-          ! write(*,*)"warning Qmatrix(is,ir)).lt.1.e-4 in diisupdate"
-           !   write(888,*)"ir,is,trialvec(1,i,is),s(1,i,ir)",ir,is,trialvec(:,i,is),"s\n\n",s(:,i,ir)
-           endif
+     if(.not.lin) then
+        do ir=1,idiis
+           do is=1,idiis
+              Qmatrix(is,ir)=dble(zdotc(n,trialvec(1,i,is),1,s(1,i,ir),1))
+              if (dble(Qmatrix(is,ir)).lt.1.e-4) then
+                 ! write(*,*)"warning Qmatrix(is,ir)).lt.1.e-4 in diisupdate"
+                 !   write(888,*)"ir,is,trialvec(1,i,is),s(1,i,ir)",ir,is,trialvec(:,i,is),"s\n\n",s(:,i,ir)
+              endif
 
+           enddo
         enddo
-     enddo
-	! write(*,*)"Pmatrix,Qmatrix",Pmatrix,Qmatrix
-     call solvediislin(idiis,Pmatrix,Qmatrix,c)
-	
+     endif
+     ! write(*,*)"Pmatrix,Qmatrix",Pmatrix,Qmatrix
+     if(lin) then
+        call solvediislin(idiis,Pmatrix,Qmatrix,c)
+     else
+		call solvediis(idiis,Pmatrix,Qmatrix,c)
+     endif
      if  (recalculate_preconditioner .eqv. .true.) then
         infodiisupdate=1
         exit
      endif
-    ! write(*,*) "c",c
+     ! write(*,*) "c",c
      evecfv(:,i)=0.0
      do ir=1,idiis
         z=cmplx(c(ir),0.0)

@@ -11,7 +11,7 @@ implicit none
   integer :: iseed(4)=1
   real(8) lowesteval
   real(8) epsarpack
-  real(8) ,parameter::diisthreshould=1,reps=.5e-8
+  real(8) ,parameter::diisthreshould=1,reps=.1e-8
   real(8) ::lastresnorm
   integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
@@ -27,7 +27,7 @@ contains
     
   write(*,*)"precond"
     else if (mod(diiscounter,5).eq.0)then
-    if(currentconvergence.gt.1.0e-4) then
+    if(currentconvergence.gt.5.0e-4) then
        calculate_preconditioner =.true.
     endif
   write(*,*)"precon"

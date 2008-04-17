@@ -156,9 +156,9 @@ jacdav=.false.
                 eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
                 trialvecs(:,:,idiis), h(:,:,idiis), 1) 
            call zaxpy(n*iunconverged,zone,trialvecs(1,1,idiis),1,eigenvector(1,1),1)
-           !    call zcopy(n*iunconverged,trialvecs(1,1,idiis),1,eigenvector(1,1),1)
+             call zcopy(n*iunconverged,trialvecs(1,1,idiis),1,eigenvector(1,1),1)
         endif
-        call zcopy(n*iunconverged,eigenvector(1,1),1,trialvecs(1,1,idiis),1)
+        
         call setuphsvect(n,iunconverged,system,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
