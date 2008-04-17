@@ -7,9 +7,7 @@ use modfvsystem
         DOUBLE COMPLEX, intent(in) :: u(ld, nstfv)   
         DOUBLE COMPLEX, intent(in) :: u_A(ld,nstfv )
         DOUBLE COMPLEX, intent(in) :: u_B(ld, nstfv)
-
         DOUBLE PRECISION, intent(in) :: theta(nstfv)
-
         DOUBLE COMPLEX, intent(out) :: t(ld, nstfv)
         DOUBLE COMPLEX, intent(out) :: t_A(ld, nstfv)
         INTEGER, intent(in) :: flag
@@ -129,13 +127,11 @@ use modfvsystem
 ! ..
 
         DOUBLE COMPLEX, allocatable, save :: u_B1(:,:)
-
         DOUBLE COMPLEX, allocatable :: work(:)
         DOUBLE COMPLEX, allocatable, save :: Afacts(:,:)
         INTEGER, allocatable, save :: ipiv(:)
         INTEGER :: i, j, info, lwork
         DOUBLE COMPLEX :: olwork
-       
         DOUBLE COMPLEX :: dconjg 
 
 !from BLAS:
@@ -159,7 +155,7 @@ use modfvsystem
 
             ! Afacts = A 
             do j = 1, n
-                do i = 1, j
+                do i = 1, n
                     Afacts(j, i) = system%hamilton%za(j,i) 
                 end do
             end do

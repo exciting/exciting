@@ -5,7 +5,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
        ,apwordmax,lmmaxapw,natmtot,nkpt,nmatmax,nspnfv,timefv,ngkmax,zzero,zone
   use sclcontroll
   use diisinterfaces
-   use modfvsystem 
+  use modfvsystem 
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -36,8 +36,8 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   ! local variables
 
-type(evsystem)::system
-logical::packed
+  type(evsystem)::system
+  logical::packed
   integer 	::is,ia,idiis,n,np,ievec,i,info,flag
   real(8)  	::vl,vu,abstol
   real(8) 	::cpu0,cpu1
@@ -63,12 +63,12 @@ logical::packed
   n=nmat(ik,ispn)
   np=npmat(ik,ispn)
   allocate( P(nmatmax,nmatmax))
- allocate(h(nmat(ik,ispn),nstfv,diismax)) 
- allocate( s(nmat(ik,ispn),nstfv,diismax))
- allocate(    r(nmat(ik,ispn),nstfv))
- allocate(  trialvecs(nmat(ik,ispn),nstfv,diismax))
- allocate(eigenvector(nmat(ik,ispn),nstfv))
- allocate(eigenvalue(nstfv))
+  allocate(h(nmat(ik,ispn),nstfv,diismax)) 
+  allocate( s(nmat(ik,ispn),nstfv,diismax))
+  allocate(    r(nmat(ik,ispn),nstfv))
+  allocate(  trialvecs(nmat(ik,ispn),nstfv,diismax))
+  allocate(eigenvector(nmat(ik,ispn),nstfv))
+  allocate(eigenvalue(nstfv))
 
   !----------------------------------------!
   !     Hamiltonian and overlap set up     !
@@ -76,7 +76,7 @@ logical::packed
   call cpu_time(cpu0)
   packed=.false.
 
-call newsystem(system,packed,n)
+  call newsystem(system,packed,n)
   call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
 
   call cpu_time(cpu1)
@@ -85,27 +85,27 @@ call newsystem(system,packed,n)
   timemat=timemat+cpu1-cpu0
   !$OMP END CRITICAL
   !update eigenvectors with iteration
-    recalculate_preconditioner=.false.
+  recalculate_preconditioner=.false.
   call cpu_time(cpu0)
   if(calculate_preconditioner()) then
-  P=0
-  w=0
+     P=0
+     w=0
      call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
-  
+
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
- !    write(*,*)"readeigenvalues",w
+     !    write(*,*)"readeigenvalues",w
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call getevalfv(vkl(1,ik),evalfv)
-   
-    ! call zlarnv(2, iseed, n*nstfv, eigenvector)
-    ! eigenvector=cmplx(dble(eigenvector),0.)
-    ! call zscal(n*nstfv,dcmplx(1e-2/n,0.),eigenvector,1)
+
+     ! call zlarnv(2, iseed, n*nstfv, eigenvector)
+     ! eigenvector=cmplx(dble(eigenvector),0.)
+     ! call zscal(n*nstfv,dcmplx(1e-2/n,0.),eigenvector,1)
      do i=1,nstfv
         call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
-       !call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        !call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
@@ -120,8 +120,8 @@ call newsystem(system,packed,n)
         !stop 
      endif
      call jacdavblock(n, iunconverged, system, n, & 
-   		 eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
-   		 trialvecs(:,:,idiis), h(:,:,idiis), 0)
+          eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
+          trialvecs(:,:,idiis), h(:,:,idiis), 0)
      do idiis=1,diismax
         write(*,*)"diisiter", idiis
         !h(:,:,diis) holds matrix with current aproximate 
@@ -129,78 +129,63 @@ call newsystem(system,packed,n)
         !o: same for overlap*evecfv
         call setuphsvect(n,iunconverged,system,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis))
-		!	 write(*,*)"h",h(:,iunconverged,idiis)
-		!	  write(*,*)"s",s(:,iunconverged,idiis)
-		!	  write(*,*)"eigenvector" ,eigenvector(:,iunconverged)
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
-         !    write (*,*)"eigenvalue after rq",eigenvalue
-        ! write (777,*)w(:)
-        !write (778,*)evalfv(:,ispn)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
-          ! write(*,*)"res",r(:,4)  
-        !write(*,*)"rnorms",rnorms
         do i=1,nstfv
            if(evecmap(i).ne.0) then
               call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
+          
               evalfv(i,ispn)=eigenvalue(evecmap(i))
            endif
         end do
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
         call remove_converged(evecmap,iunconverged,&
              rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
-   if (rnorms(idamax(iunconverged,rnorms,1)).gt.1e-1.and.(idiis.gt.1)) then
+        if (rnorms(idamax(iunconverged,rnorms,1)).gt.1e-1.and.(idiis.gt.1)) then
            recalculate_preconditioner=.true.
            write(*,*)"recalculate preconditioner"
            exit
-        endif 
-       
-       ! call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
-        !     eigenvector,trialvecs(:,:,idiis))    
-       trialvecs(:,:,idiis)=0
- 
-   call jacdavblock(n, iunconverged, system, n, & 
-       eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
-       trialvecs(:,:,idiis), h(:,:,idiis), 1) 
-          call zcopy(n*iunconverged,trialvecs(1,1,idiis),1,eigenvector(1,1),1)
-
-     write(*,*)"eigenvalue",eigenvalue
-     
-        !call exactupdatevectors(n,iunconverged,system%hamilton,&
-        !system%overlap,r,eigenvalue,eigenvector,trialvecs(:,:,idiis))     
-       ! write(*,*)"eigenvector",eigenvector(:,4)
-
+        endif
+        if(.true.)then
+           call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
+                eigenvector,trialvecs(:,:,idiis))    
+        else
+           call jacdavblock(n, iunconverged, system, n, & 
+                eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
+                trialvecs(:,:,idiis), h(:,:,idiis), 1) 
+           call zaxpy(n*iunconverged,zone,trialvecs(1,1,idiis),1,eigenvector(1,1),1)
+           !    call zcopy(n*iunconverged,trialvecs(1,1,idiis),1,eigenvector(1,1),1)
+        endif
+        call zcopy(n*iunconverged,eigenvector(1,1),1,trialvecs(1,1,idiis),1)
         call setuphsvect(n,iunconverged,system,eigenvector,n,&
              h(:,:,idiis),s(:,:,idiis)) 
         if(idiis.gt.1)then
-
-      !     call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
-       !         ,eigenvalue,eigenvector,info)
-           call normalize(n,nstfv,system%overlap%za,eigenvector,n)	
-		   	 
+           call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
+                ,eigenvalue,eigenvector,info)
         endif
      end do
-	
+    call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
         write(*,*)"recalculate preconditioner"
-      endif
+     endif
      call cpu_time(cpu1)
-call jacdavblock(n, iunconverged, system, n, & 
-   		 eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
-   		 trialvecs(:,:,idiis), h(:,:,idiis), -1) 
-   		 stop
+     call jacdavblock(n, iunconverged, system, n, & 
+          eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
+          trialvecs(:,:,idiis), h(:,:,idiis), -1) 
+
   endif
-  
-   deallocate(P,h,s, r,trialvecs,eigenvector, eigenvalue)
-  
-      
-   		
-    call deleteystem(system)
+
+  deallocate(P,h,s, r,trialvecs,eigenvector, eigenvalue)
+
+
+
+  call deleteystem(system)
   timefv=timefv+cpu1-cpu0
-        
+
   return
 end subroutine DIISseceqnfv
 !EOC
