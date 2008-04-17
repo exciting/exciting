@@ -109,7 +109,7 @@ contains
       !  stop
       !  endif
         
-    endif
+    !endif
     lastresnorm=rnormmax       
   end function allconverged
   
