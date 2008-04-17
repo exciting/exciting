@@ -99,17 +99,17 @@ contains
 	write(*,*)"not converged",rnorms(idamax(n,rnorms,1)) ,idamax(n,rnorms,1)
     endif
     
-	!if(rnormmax/lastresnorm.gt.1.1)then
- 	!	allconverged=.true.
-     !   write(*,*)"warning: error is gettig larger again",rnorms(idamax(n,rnorms,1))
-      !  if (rnormmax.gt. 1e-6)then
-      !  allconverged=.false.
-      !  else
-      !  write(*,*)"error:error is gettig larger again"
+	if(rnormmax/lastresnorm.gt.1.1)then
+ 		allconverged=.true.
+        write(*,*)"warning: error is gettig larger again",rnorms(idamax(n,rnorms,1))
+        if (rnormmax.gt. .5e-6)then
+        allconverged=.false.
+        else
+        write(*,*)"error:error is gettig larger again"
       !  stop
-      !  endif
+        endif
         
-    !endif
+    endif
     lastresnorm=rnormmax       
   end function allconverged
   
