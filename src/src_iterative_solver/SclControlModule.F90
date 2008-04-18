@@ -7,7 +7,7 @@ implicit none
   integer diiscounter !! counter for DIIS iterations
   integer iterativetype
   logical packedmatrixstorage
-  integer,parameter:: diismax=25,diisfirstscl=3
+  integer,parameter:: diismax=35,diisfirstscl=3
   integer :: iseed(4)=1
   real(8) lowesteval
   real(8) epsarpack
@@ -30,7 +30,7 @@ contains
   write(*,*)"precond"
     else if (mod(diiscounter,5).eq.0)then
     if(currentconvergence.gt.5.0e-4) then
-       calculate_preconditioner =.true.
+     !  calculate_preconditioner =.true.
     endif
   write(*,*)"precon"
     endif
