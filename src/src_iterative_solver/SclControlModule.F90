@@ -11,7 +11,9 @@ implicit none
   integer :: iseed(4)=1
   real(8) lowesteval
   real(8) epsarpack
-  real(8) ,parameter::diisthreshould=1,reps=.1e-8
+  real(8) epsresid
+  
+  real(8) ,parameter::diisthreshould=1
   real(8) ::lastresnorm
   integer ,parameter::jacofidavidsonfirstscl=1
 integer idamax
@@ -91,7 +93,7 @@ contains
     real(8),intent(in):: rnorms(n)
 	real(8)::rnormmax
 	rnormmax=rnorms(idamax(n,rnorms,1))
-    if (rnormmax.lt.reps) then 
+    if (rnormmax.lt.epsresid) then 
        allconverged=.true.
          write(*,*)" converged",rnorms(idamax(n,rnorms,1))
     else

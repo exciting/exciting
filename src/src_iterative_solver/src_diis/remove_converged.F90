@@ -1,5 +1,5 @@
 subroutine remove_converged(evecmap,iunconverged,rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
-  use sclcontroll,only:diismax,reps
+  use sclcontroll,only:diismax,epsresid
   use modmain,only:nstfv
   implicit none
   integer, intent(in)::n
@@ -11,7 +11,7 @@ subroutine remove_converged(evecmap,iunconverged,rnorms,n,r,h,s,eigenvector,eige
   skipp=0
   do i=1,nstfv
      if (evecmap(i).gt.0) then
-        if(rnorms(evecmap(i)).lt.reps)then
+        if(rnorms(evecmap(i)).lt.epsresid)then
            evecmap(i)=0	
            skipp=skipp+1
         else

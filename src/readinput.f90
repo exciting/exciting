@@ -97,6 +97,7 @@ iterativetype=0
 lowesteval=-1.d0
 packedmatrixstorage=.false.
 epsarpack=1e-8
+epsresid=1e-9
 maxncv=200
 if (allocated(vvlp1d)) deallocate(vvlp1d)
 allocate(vvlp1d(3,nvp1d))
@@ -430,7 +431,8 @@ case('iterativetype')
   read(50,*) packedmatrixstorage
 case('epsarpack')
   read(50,*) epsarpack
-
+case('epsresid')
+  read(50,*) epsresid
 case ('maxncv')
   read(50,*)maxncv
 case('lowesteval')

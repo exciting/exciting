@@ -133,11 +133,15 @@ jacdav=.false.
              , h(:,:,idiis),s(:,:,idiis),eigenvalue)
         call residualvectors(n,iunconverged,h(:,:,idiis),s(:,:,idiis)&
              ,eigenvalue,r,rnorms)
+             
+
+
         do i=1,nstfv
            if(evecmap(i).ne.0) then
               call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
           
               evalfv(i,ispn)=eigenvalue(evecmap(i))
+               write(203,*)idiis,ik,i,rnorms(evecmap(i))
            endif
         end do
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
