@@ -178,7 +178,7 @@ jacdav=.false.
                   
         endif
      end do
-   call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
+  ! call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
