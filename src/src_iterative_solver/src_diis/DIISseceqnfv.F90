@@ -141,7 +141,7 @@ jacdav=.false.
               call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
           
               evalfv(i,ispn)=eigenvalue(evecmap(i))
-               write(203,*)idiis,ik,i,rnorms(evecmap(i))
+               write(203,*)idiis,ik,i,rnorms(evecmap(i)),iscl
            endif
         end do
        
@@ -174,11 +174,13 @@ jacdav=.false.
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
                  write(*,*)"norm,afterdiis" , dznrm2( n, eigenvector, 1)
-                 if(dznrm2( n, eigenvector, 1).lt.0.1e-2) stop
+                 if(dznrm2( n, eigenvector, 1).lt.0.8e-2) then
+                   call normalize(n,nstfv,system%overlap%za,eigenvector,n)
+                   endif
                   
         endif
      end do
-  ! call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
+   call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
