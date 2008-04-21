@@ -67,8 +67,9 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
         exit
      endif
      ! write(*,*) "c",c
-     evecfv(:,i)=0.0
-
+   
+   
+call zcopy(n,zzero,0,evecfv(:,i),1)
      do ir=1,idiis
         z=dcmplx(c(idx(ir)),0.0)
         call zaxpy(n, z,trialvec( 1,i, idx(ir) ) ,1,evecfv(1,i),1)
