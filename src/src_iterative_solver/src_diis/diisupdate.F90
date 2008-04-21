@@ -16,7 +16,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
 
   complex(8) p(n,idiis)
   real(8)::nrm
-  integer::i,j,ir,is
+  integer::i,j,ir,is,idx(idiis)
   real(8):: Pmatrix(idiis+1,idiis+1), Qmatrix(idiis+1,idiis+1)
   real(8)::   c(idiis+1),residnorm2
   complex(8)::z
@@ -36,7 +36,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
 
      do ir=1,idiis
         do is=1,idiis
-           Pmatrix(is,ir)=dble(zdotc(n,p(1,is),1,p(1,ir),1))/residnorm2
+           Pmatrix(is,ir)=dble(zdotc(n,p(1,is),1,p(1,ir),1))
            !if (dble(Pmatrix(is,ir)).lt.1.e-4) then
            !write(889,*)"ir,is,p(1,i,ir)",ir,is,p(1,is)
            !endif
@@ -57,6 +57,8 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
      ! write(*,*)"Pmatrix,Qmatrix",Pmatrix,Qmatrix
      if(lin) then
         call solvediislin(idiis,Pmatrix,Qmatrix,c)
+         call sortidx(idiis,-abs(c),idx)
+        if(i==1 )write(*,*)"c:",c(idx),"sum",sum(c(idx))
      else
 		call solvediis(idiis,Pmatrix,Qmatrix,c)
      endif
@@ -66,9 +68,11 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
      endif
      ! write(*,*) "c",c
      evecfv(:,i)=0.0
+
      do ir=1,idiis
-        z=cmplx(c(ir),0.0)
-        call zaxpy(n, z,trialvec(1,i,ir),1,evecfv(1,i),1)
+        z=dcmplx(c(idx(ir)),0.0)
+        call zaxpy(n, z,trialvec( 1,i, idx(ir) ) ,1,evecfv(1,i),1)
+        if(i==1 )write (*,*)"trialnrm",i,dznrm2( n,  trialvec( 1,i, idx(ir)),1)
      end do
   end do
   infodiisupdate=0

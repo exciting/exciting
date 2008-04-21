@@ -4,6 +4,7 @@ module diisinterfaces
   complex(8) zdotc
   real(8) dlamch
   external zdotc,dlamch
+   real(8),external::dznrm2
   interface
   subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv) 
    use modmain, only: nstfv,vkl,ngk,igkig,nmat,vgkl,timemat,npmat&

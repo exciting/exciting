@@ -12,7 +12,9 @@ do i=1,m
 		call zhemv('U',n,zone,overlap(1,1),n,evecfv(1,i),1,&
       	zzero,tmp,1)
       	z =sqrt(dble (zdotc(n,evecfv(1,i),1,tmp,1)))
+      		write(*,*)z
       	z=1.d0/z
       	call zscal(n,z,evecfv(1,i),1)
+      		
 end do
 end subroutine

@@ -104,8 +104,8 @@ jacdav=.false.
       eigenvector=cmplx(dble(eigenvector),0.)
       call zscal(n*nstfv,dcmplx(1e-3/n/nstfv,0.),eigenvector,1)
      do i=1,nstfv
-     !   call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
-        call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+        call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
+   !     call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         eigenvalue(i)=evalfv(i,ispn)
         evecmap(i)=i
      end do
@@ -144,6 +144,8 @@ jacdav=.false.
                write(203,*)idiis,ik,i,rnorms(evecmap(i))
            endif
         end do
+       
+          
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
         call remove_converged(evecmap,iunconverged,&
              rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
@@ -152,9 +154,12 @@ jacdav=.false.
            write(*,*)"recalculate preconditioner"
            exit
         endif
+  
+      write(*,*)"norm,beforecalc" , dznrm2( n, eigenvector, 1)
         if(.not.jacdav)then
            call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
-                eigenvector,trialvecs(:,:,idiis))    
+                eigenvector,trialvecs(:,:,idiis))  
+   write(*,*)"norm,afterecalc" , dznrm2( n, eigenvector, 1)
         else
            call jacdavblock(n, iunconverged, system, n, & 
                 eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue, &
@@ -168,9 +173,12 @@ jacdav=.false.
         if(idiis.gt.1)then
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
+                 write(*,*)"norm,afterdiis" , dznrm2( n, eigenvector, 1)
+                 if(dznrm2( n, eigenvector, 1).lt.0.1e-2) stop
+                  
         endif
      end do
-    call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
+   call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)

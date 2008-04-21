@@ -35,6 +35,7 @@ subroutine calcupdatevectors(n,iunconverged,P,w,r,evalfv,evecfv,phi)
   ! alpha=dcmplx(.6,0)
   ! call zscal(n,alpha,phi,1)
   ! call zaxpy(n,1-alpha,evecfv,1,phi,1)
+
   do i=1,m
      call zcopy(n,phi(1,i),1,evecfv(1,i),1)
   end do
