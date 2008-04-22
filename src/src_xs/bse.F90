@@ -34,7 +34,8 @@ subroutine bse
   real(8) :: vl,vu,egap
 
   ! external functions  integer, external :: iplocnr
-  logical, external :: tqgamma,l2int
+  logical, external :: tqgamma
+  integer, external :: l2int
   real(8), external :: dlamch
 
   ! reset file extension to default
