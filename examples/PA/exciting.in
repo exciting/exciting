@@ -7,10 +7,10 @@
 
 
 tasks
-1
+430
 
-maxscl
-1
+#aresdf
+#.false.
 
 !-----------------------------------!
 !     excited states parameters     !
@@ -45,8 +45,8 @@ lradstp
 nempty
   15
 
-ngridq
-  2  2  32
+#ngridq
+#  2  2  32
 
 ngridk
   2  2  32

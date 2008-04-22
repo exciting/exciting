@@ -8,6 +8,8 @@ exciting_debug
 exciting_interfaces
 *.dat
 *.OUT
+*.OUT.*
+*.OUT_*
 *.mod
 .cdtproject
 .project
