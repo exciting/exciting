@@ -7,6 +7,7 @@ subroutine ematqk(iq,ik)
   use modmain
   use modmpi
   use modxs
+  use summations
   use m_getapwdlm
   use m_putemat
   use m_emattim
@@ -22,27 +23,24 @@ subroutine ematqk(iq,ik)
   complex(8), allocatable :: evecfvu(:,:)
   complex(8), allocatable :: evecfvo20(:,:)
   complex(8), allocatable :: evecfvu2(:,:)
-  complex(8), allocatable :: helpm(:,:),helpm2(:,:)
   integer :: ikq,igq,n,n0
   real(8) :: cpuini,cpuread,cpumain,cpuwrite,cpuall
   real(8) :: cpugnt,cpumt,cpuir
-  real(8) :: cpumalores,cpumaloares,cpumloares,cpumloaares
-  real(8) :: cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg
+  real(8) :: cpumalores,cpumloares
+  real(8) :: cpumlolores,cpumirres,cpudbg
   real(8) :: cpu0,cpu1,cpu00,cpu01
 
   call cpu_time(cpu0)
   ! find equivalent k-point
   ikq=ikmapikq(ik,iq)
-  !    if ((modulo(ik,nkpt/10).eq.0).or.(ik.eq.nkpt)) &
-  !         write(*,'("Info(ematqk2): ",I6,I6," of ",I6," k-points")') ik,ikq,nkpt
   ! check for stop statement
   write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
   call tdchkstop
 
   cpumtaa=0.d0; cpumtalo=0.d0; cpumtloa=0.d0; cpumtlolo=0.d0
   cpugnt=0.d0; cpumt=0.d0; cpuir=0.d0
-  cpumalores=0.d0; cpumaloares=0.d0; cpumloares=0.d0; cpumloaares=0.d0
-  cpumlolores=0.d0; cpumloloares=0.d0; cpumirres=0.d0; cpumirares=0.d0
+  cpumalores=0.d0; cpumloares=0.d0
+  cpumlolores=0.d0; cpumirres=0.d0
   cpudbg=0.d0
 
   ! allocate temporary arrays
@@ -59,8 +57,6 @@ subroutine ematqk(iq,ik)
   allocate(evecfvo20(n0,nst1))
   allocate(evecfvu2(n,nst2))
   allocate(xihir(n0,n))
-  allocate(helpm(nlotot,max(nst1,nst2)))
-  allocate(helpm2(n0,max(nst1,nst2)))
   ! zero arrays
   xiohalo(:,:)=zzero
   xiuhloa(:,:)=zzero
@@ -124,48 +120,36 @@ subroutine ematqk(iq,ik)
         ! multiplication xi = evecfvo * xihu
         call zgemm('c','n', nst1, nst2, nlotot, zone, evecfvo0, &
              nlotot, xiuhloa, nlotot, zone, xiou(1,1,igq), nst1 )
-        call cpu_time(cpu00)
-        cpumloares=cpumloares+cpu00-cpu01
+        call cpu_time(cpu01)
+        cpumloares=cpumloares+cpu01-cpu00
 
         ! lo-lo contribution
-        ! multiplication helpm(i,m) = xih * evecfvu
-        call zgemm('n','n', nlotot, nst2, nlotot, zone, xih, &
-             nlotot, evecfvu, nlotot, zzero, helpm, nlotot )
-        ! multiplication xi = hermc(evecfvo) * helpm
-        call zgemm('c','n', nst1, nst2, nlotot, zone, evecfvo0, &
-             nlotot, helpm, nlotot, zone, xiou(1,1,igq), nst1 )
+        call doublesummation_simple_cz(xiou(:,:,igq),evecfvo0,xih,evecfvu, &
+             zone,zone,.true.)
+
         call cpu_time(cpu00)
         cpumlolores=cpumlolores+cpu00-cpu01
+        cpu01=cpu00
      end if
 
      ! interstitial contribution
-     ! multiplication helpm2(i,m) = xih * evecfvu2
-     call zgemm('n','n', n0, nst2, n, zone, xihir, &
-          n0, evecfvu2, n, zzero, helpm2, n0 )
-     ! multiplication xi = hermc(evecfvo2) * helpm2
-     call zgemm('c','n', nst1, nst2, n0, zone, evecfvo20, &
-          n0, helpm2, n0, zone, xiou(1,1,igq), nst1 )
+     call doublesummation_simple_cz(xiou(:,:,igq),evecfvo20,xihir,evecfvu2, &
+          zone,zone,.true.)
+
      call cpu_time(cpu00)
      cpumirres=cpumirres+cpu00-cpu01
 
-!!$     if (dbglev.gt.0) then
-!!$        ! check non-diagonal parts of <phi_nk|exp(-i(G+q)r|phi_nk+q>
-!!$        do i1=1,nst1
-!!$           do i2=1,nst2
-!!$              write(1100 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
-!!$                   ik,igq,i1,i2,xiou(i1,i2,igq),abs(xiou(i1,i2,igq))**2
-!!$           end do
-!!$        end do
-!!$     end if
-     call cpu_time(cpu00)
-     cpudbg=cpudbg+cpu00-cpu01
+     call cpu_time(cpu01)
+     cpudbg=cpudbg+cpu01-cpu00
   end do ! igq
+
+write(*,'(a,2i8,f12.3)') 'nst1,nst2,time:',nst1,nst2,cpumirres
 
   call cpu_time(cpu1)
   cpumain=cpu1-cpu0
 
   ! deallocate
-  deallocate(helpm,helpm2,xihir)
+  deallocate(xihir)
   deallocate(evecfvu,evecfvo0)
   deallocate(evecfvu2,evecfvo20)
   call cpu_time(cpu0)
@@ -174,12 +158,9 @@ subroutine ematqk(iq,ik)
 
   ! write timing information
   if ((task.ne.430).and.(task.ne.440).and.(task.ne.441).and.(task.ne.450)) then
-     call emattim(iq,ik,trim(fnetim),&
-          cpuini,cpuread,cpumain,cpuwrite,cpuall, &
-          cpugnt,cpumt,cpuir, &
-          cpumalores,cpumaloares,cpumloares,cpumloaares, &
-          cpumlolores,cpumloloares,cpumirres,cpumirares,cpudbg, &
-          cpumtaa,cpumtalo,cpumtloa,cpumtlolo)
+     call emattim(iq,ik,trim(fnetim),cpuini,cpuread,cpumain,cpuwrite,cpuall, &
+          cpugnt,cpumt,cpuir,cpumalores,cpumloares,cpumlolores,cpumirres, &
+          cpudbg,cpumtaa,cpumtalo,cpumtloa,cpumtlolo)
   end if
 
 end subroutine ematqk

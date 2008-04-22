@@ -7,7 +7,10 @@
 
 
 tasks
-  0
+1
+
+maxscl
+1
 
 !-----------------------------------!
 !     excited states parameters     !
@@ -36,11 +39,23 @@ tevout
 !     main parameters     !
 !-------------------------!
 
+lradstp
+2
+
 nempty
-  5
+  15
+
+ngridq
+  2  2  32
 
 ngridk
   2  2  32
+  
+#vkloff
+#  0.1  0.2  0.15
+
+gmaxvr
+14.0
 
 dos
   500  100  0
