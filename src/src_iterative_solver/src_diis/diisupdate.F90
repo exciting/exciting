@@ -25,6 +25,8 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
   Qmatrix=0.0
   p=0
   c=0
+
+  
   do i=1,iunconverged 
      !calculate residuals
      do j=1,idiis
@@ -36,10 +38,10 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
 
      do ir=1,idiis
         do is=1,idiis
-           Pmatrix(is,ir)=dble(zdotc(n,p(1,is),1,p(1,ir),1))
-           !if (dble(Pmatrix(is,ir)).lt.1.e-4) then
-           !write(889,*)"ir,is,p(1,i,ir)",ir,is,p(1,is)
-           !endif
+           Pmatrix(is,ir)=dble(zdotc(n,p(1,is),1,p(1,ir),1))/ residnorm2
+           if (dble(Pmatrix(is,ir)).lt.1.e-4) then
+           write(889,*)"ir,is,p(1,i,ir)",ir,is,p(1,is)
+           endif
         enddo
      enddo
      if(.not.lin) then
@@ -54,7 +56,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
            enddo
         enddo
      endif
-     ! write(*,*)"Pmatrix,Qmatrix",Pmatrix,Qmatrix
+    ! if(i==1 )write(*,*)"Pmatrix",Pmatrix
      if(lin) then
         call solvediislin(idiis,Pmatrix,Qmatrix,c)
          call sortidx(idiis,-abs(c),idx)

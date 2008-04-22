@@ -159,6 +159,8 @@ jacdav=.false.
         if(.not.jacdav)then
            call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue,&
                 eigenvector,trialvecs(:,:,idiis))  
+           call normalize(n,iunconverged,system%overlap%za,trialvecs(:,:,idiis),n)
+           call normalize(n,iunconverged,system%overlap%za,eigenvector,n)
    write(*,*)"norm,afterecalc" , dznrm2( n, eigenvector, 1)
         else
            call jacdavblock(n, iunconverged, system, n, & 
@@ -175,7 +177,7 @@ jacdav=.false.
                 ,eigenvalue,eigenvector,info)
                  write(*,*)"norm,afterdiis" , dznrm2( n, eigenvector, 1)
                  if(dznrm2( n, eigenvector, 1).lt.0.8e-2) then
-                   call normalize(n,nstfv,system%overlap%za,eigenvector,n)
+                   
                    endif
                   
         endif
