@@ -143,8 +143,6 @@ subroutine ematqk(iq,ik)
      cpudbg=cpudbg+cpu01-cpu00
   end do ! igq
 
-write(*,'(a,2i8,f12.3)') 'nst1,nst2,time:',nst1,nst2,cpumirres
-
   call cpu_time(cpu1)
   cpumain=cpu1-cpu0
 

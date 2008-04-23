@@ -9,8 +9,8 @@
 tasks
 430
 
-#aresdf
-#.false.
+maxscl
+1
 
 !-----------------------------------!
 !     excited states parameters     !
@@ -21,7 +21,7 @@ vgqlmt
 0.0  0.0  0.0
 
 gqmax
-2.0
+3.0
 
 lmaxapwtd
 3
@@ -43,13 +43,16 @@ lradstp
 2
 
 nempty
-  15
+240
 
-#ngridq
-#  2  2  32
+#nempty
+#  15
+
+ngridq
+  1 1 2
 
 ngridk
-  2  2  32
+  1 1 2
   
 #vkloff
 #  0.1  0.2  0.15
