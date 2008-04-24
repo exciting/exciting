@@ -72,6 +72,7 @@ contains
     write(un,'(a,i8)') '# lmaxemat          :',lmaxemat
     write(un,'(a,i8)') '# lradstp           :',lradstp
     write(un,'(a,l8)') '# tevout            :',tevout
+    write(un,'(a,i8)') '# ematstrat         :',ematstrat
     write(un,'(a,l8)') '# nosym             :',nosym
     write(un,'(a,l8)') '# symwings          :',symwings
     write(un,'(a,l8)') '# tsymdfq0dn        :',tsymdfq0dn
