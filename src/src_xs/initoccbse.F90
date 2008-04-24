@@ -9,7 +9,7 @@ subroutine initoccbse
   implicit none
   ! local variables
   character(*), parameter :: thisnam='initoccbse'
-  integer :: nemptyt, nvalel
+  integer :: nvalel
   ! number of valence electrons
   nvalel=nint(chgval/2.d0)
   ! number of states below Fermi energy

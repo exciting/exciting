@@ -14,7 +14,7 @@ contains
     complex(8), intent(in) :: alpha,beta
     logical, intent(in) :: tbal
     ! local variables
-    integer :: n1,n2,m1,m2,r1,r2,s1,s2,sw
+    integer :: n1,n2,m1,m2,r1,r2,s1,s2
     complex(8), parameter :: zzero=cmplx(0.d0,0.d0,8), zone=cmplx(1.d0,0.d0,8)
     complex(8), allocatable :: zw(:,:)
     r1=size(z,1);  r2=size(z,2)

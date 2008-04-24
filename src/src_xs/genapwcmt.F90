@@ -7,6 +7,7 @@ module m_genapwcmt
   implicit none
 contains
 
+  ! APW functions
   subroutine genapwcmt(lmax,ngp,isti,istf,apwalm,evecfv,wfcmt)
     use modmain
     implicit none
@@ -16,9 +17,6 @@ contains
     complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
     complex(8), intent(in) :: evecfv(nmatmax,nstfv,nspnfv)
     complex(8), intent(out) :: wfcmt(istf-isti+1,apwordmax,(lmax+1)**2,natmtot)
-    ! external functions
-    complex(8) zdotu
-    external zdotu
     ! local variables
     integer :: ist,istc,is,ia,ias
     if (lmax.gt.lmaxapw) then
@@ -65,5 +63,33 @@ contains
     end do
 
   end subroutine genapwcmt_part
+
+  ! local orbitals
+  subroutine genlocmt(ngp,isti,istf,evecfv,wfcmt)
+    use modmain
+    implicit none
+    ! arguments
+    integer, intent(in) :: ngp,isti,istf
+    complex(8), intent(in) :: evecfv(nmatmax,nstfv,nspnfv)
+    complex(8), intent(out) :: wfcmt(istf-isti+1,nlomax,(lolmax+1)**2,natmtot)
+    ! local variables
+    integer :: ist,istc,is,ia,ias,i,ilo,l,m,lm
+    do istc=isti,istf
+       ist=istc-isti+1
+       do is=1,nspecies
+          do ia=1,natoms(is)
+             ias=idxas(ia,is)
+             do ilo=1,nlorb(is)
+                l=lorbl(ilo,is)
+                do m=-l,l
+                   lm=idxlm(l,m)
+                   i=idxlo(lm,ilo,ias)
+                   wfcmt(ist,ilo,lm,ias)=evecfv(ngp+i,istc,1)
+                end do
+             end do
+          end do ! ia
+       end do ! is
+    end do ! ist
+  end subroutine genlocmt
 
 end module m_genapwcmt

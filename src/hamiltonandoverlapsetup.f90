@@ -30,6 +30,8 @@ do i=1,np
 end do
 
 cpuaa=0.d0
+cpualo=0.d0
+cpulolo=0.d0
 
 ! muffin-tin contributions
 do is=1,nspecies

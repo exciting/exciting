@@ -18,7 +18,7 @@ contains
     real(8), intent(in) :: t13,t14,t15,t16,t17!,t18,t19,t20,t21
     ! local variables
     integer :: un
-    real(8) :: tm,tmres!,tmares
+    real(8) :: tm
     call getunit(un)
     open(un,file=trim(filnam),action='write',form='formatted', &
          position='append')

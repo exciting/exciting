@@ -51,6 +51,7 @@ contains
     write(un,'(a,i8)') '# nmatmax           :',nmatmax
     write(un,'(a,i8)') '# ngkmax            :',ngkmax
     write(un,'(a,i8)') '# nlotot            :',nlotot
+    write(un,'(a,i8)') '# nlomax            :',nlomax
     write(un,'(a,i8)') '# nst1              :',nst1
     write(un,'(a,i8)') '# nst2              :',nst2
     write(un,'(a,i8)') '# nstsv             :',nstsv

@@ -55,7 +55,7 @@ use modxs
   integer, intent(in) :: igpig(ngp)
   complex(8), intent(inout) :: fg(ngp,ngp)
   ! local variables
-  integer j,isym,lspl,ilspl,sym(3,3)
+  integer isym,lspl,ilspl,sym(3,3)
   integer iv1(3),iv2(3),igp1,igp2,jgp1,jgp2
   integer :: nscq,scq(nsymcrys),ivgscq(3,nsymcrys),ivgs(3)
   real(8) vtc(3),t1
