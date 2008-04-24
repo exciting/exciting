@@ -189,6 +189,7 @@ vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
 lmaxapwtd=-1
+ematstrat=0
 emattype=1
 lmaxemat=3
 rsptype='reta'
@@ -983,6 +984,8 @@ case('lmaxapwtd')
     write(*,*)
     stop
   end if
+case('ematstrat')
+  read(50,*,err=20) ematstrat
 case('emattype')
   read(50,*,err=20) emattype
 case('lmaxemat')

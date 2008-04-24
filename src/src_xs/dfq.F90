@@ -166,15 +166,8 @@ subroutine dfq(iq)
   chi0w(:,:,:,:)=zzero
   chi0h(:,:)=zzero
   if (tscreen) then
-  
-call cpu_time(cpu0)
-  
      ! generate radial integrals wrt. sph. Bessel functions
      call ematrad(iq)
-     
-call cpu_time(cpu1)
-write(*,'(a,i6,f12.2)') 'radial integrals',iq,cpu1-cpu0
-     
      ! delete timing information of previous runs
      call filedel(trim(fnetim))
      ! write information

@@ -109,25 +109,23 @@ subroutine ematqk(iq,ik)
      call cpu_time(cpu01)
      cpuir=cpuir+cpu01-cpu00
 
-     if (nlotot.gt.0) then 
-!!$        ! muffin-tin contributions
-!!$        ! APW-lo contribution
-!!$        ! multiplication xi = xiho * evecfvu
-!!$        call zgemm('n','n', nst1, nst2, nlotot, zone, xiohalo, &
-!!$             nst1, evecfvu, nlotot, zone, xiou(1,1,igq), nst1 )
+     if ((ematstrat.gt.0).and.(nlotot.gt.0)) then 
+        ! muffin-tin contributions
+        ! APW-lo contribution
+        ! multiplication xi = xiho * evecfvu
+        call zgemm('n','n', nst1, nst2, nlotot, zone, xiohalo, &
+             nst1, evecfvu, nlotot, zone, xiou(1,1,igq), nst1 )
         call cpu_time(cpu00)
         cpumalores=cpumalores+cpu00-cpu01
-
-!!$        ! lo-APW contribution
-!!$        ! multiplication xi = evecfvo * xihu
-!!$        call zgemm('c','n', nst1, nst2, nlotot, zone, evecfvo0, &
-!!$             nlotot, xiuhloa, nlotot, zone, xiou(1,1,igq), nst1 )
+        ! lo-APW contribution
+        ! multiplication xi = evecfvo * xihu
+        call zgemm('c','n', nst1, nst2, nlotot, zone, evecfvo0, &
+             nlotot, xiuhloa, nlotot, zone, xiou(1,1,igq), nst1 )
         call cpu_time(cpu01)
         cpumloares=cpumloares+cpu01-cpu00
-
-!!$        ! lo-lo contribution
-!!$        call doublesummation_simple_cz(xiou(:,:,igq),evecfvo0,xih,evecfvu, &
-!!$             zone,zone,.true.)
+        ! lo-lo contribution
+        call doublesummation_simple_cz(xiou(:,:,igq),evecfvo0,xih,evecfvu, &
+             zone,zone,.true.)
 
         call cpu_time(cpu00)
         cpumlolores=cpumlolores+cpu00-cpu01

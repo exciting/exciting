@@ -250,6 +250,8 @@ module modxs
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
+  ! strategy to calculate APW-lo, lo-APW and lo-lo parts in MT
+  integer :: ematstrat
   ! type of matrix element generation (band-combinations)
   integer :: emattype
   ! maximum angular momentum for Rayleigh expansion of exponential
