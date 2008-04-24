@@ -16,11 +16,11 @@ subroutine bse
   integer, parameter :: iqmt=1
   character(256) :: fnamesc,fnameex,fnamepm
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,n,iflg,recl,iw
-  integer :: ngridkt(3),iv2(3),ivgsym(3),un,unsc,unex,j1,j2,s1,s2,hamsiz,nexc
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,oct
-  integer :: iv,ic,ik,lwork
-  logical :: nosymt,reducekt,tq0,nsc,tphf
+  integer :: iknr,jknr,iqr,iq,recl,iw
+  integer :: ngridkt(3),iv2(3),unsc,unex,s1,s2,hamsiz,nexc
+  integer :: ist1,ist2,ist3,ist4,ikkp,oct
+  integer :: iv,ic,lwork
+  logical :: nosymt,reducekt
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,abstol,t1,de
   real(8), allocatable :: potcl(:),rwork(:),beval(:),spectrkk(:),w(:),oszsa(:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)

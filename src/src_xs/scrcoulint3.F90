@@ -18,28 +18,22 @@ subroutine scrcoulint3
   character(*), parameter :: thisnam='scrcoulint'
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,n,iflg,recl
+  integer :: iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl
   integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
-  complex(8) :: zt1,scrni0
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
+  real(8) :: vklofft(3),vqr(3),vq(3)
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
-  logical, allocatable :: done(:)
   ! external functions
   integer, external :: iplocnr
   logical, external :: tqgamma
-
-  real(8) :: cpu0,cpu1,cpu2,cpu3
-  real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
-  real(8) :: cpu_clph,cpu_suma,cpu_write
-  complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
-
-
+!!$  real(8) :: cpu0,cpu1,cpu2,cpu3
+!!$  real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
+!!$  real(8) :: cpu_clph,cpu_suma,cpu_write
 
   !----------------!
   !   initialize   !

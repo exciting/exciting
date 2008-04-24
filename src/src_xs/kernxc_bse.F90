@@ -31,36 +31,33 @@ subroutine kernxc_bse(oct)
   integer, parameter :: iqmt=1
   real(8), parameter :: delt=1.d-3
   character(256) :: filnam,filnam2,filnam3,filnam4
-  complex(8),allocatable :: fxc(:,:,:), idf(:,:), mdf1(:),w(:), chi0hd(:)
+  complex(8),allocatable :: fxc(:,:,:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
   complex(8),allocatable :: chi0h2(:),chi0wg2(:,:,:),chi02(:,:),chi02i(:,:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,octh,oct1,oct2,igmt
+  integer :: n,recl,iw,wi,wf,nwdfp,octh,oct1,oct2
   integer, external :: l2int
   complex(8) :: zt1,bsediagshift,bsediagshiftc
-  integer :: sh(2),ig
-  ! ***    
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,iflg
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,un2,un3,j1,j2,iws1,iws2,a1,a2,a3
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,ikkph
+  integer :: iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
+  integer :: ngridkt(3),iv(3),un,un2,un3,j1,j2
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-  logical :: nosymt,reducekt,tq0,nsc,tphf,ksintp,tks1,tks2
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t1,t2,t3,ws,ws1,ws2,tp
-  real(8), allocatable :: potcl(:,:),dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
+  logical :: nosymt,reducekt,tq0
+  real(8) :: vklofft(3),vqr(3),vq(3),t1,t2,t3,tp
+  real(8), allocatable :: dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
   real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:)
   real(8), allocatable :: zmr(:,:),zmq(:,:),deval(:,:,:),docc(:,:,:),scis(:,:,:)
-  integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
-  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:),den1(:),den2(:)
-  complex(8), allocatable :: phf(:,:),emat12(:,:),emat12p(:,:),emat(:,:,:,:)
-  complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:),hdg(:,:,:)
-  logical, allocatable :: done(:)
+  complex(8), allocatable :: den1(:),den2(:)
+  complex(8), allocatable :: emat12(:,:),emat12p(:,:),emat(:,:,:,:)
+  complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
+  complex(8), allocatable :: hdg(:,:,:)
   ! external functions
   integer, external :: iplocnr,idxkkp
   logical, external :: tqgamma
 
-  real(8) :: cpu0,cpu1,cpu2,cpu3,brd
+  real(8) :: brd
   real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
@@ -222,7 +219,6 @@ hdg=zzero
   do iknr=1,nkptnr
      iknrq=ikmapikq(iknr,iqmt)
 
-!<new>
      emattype=1
      call ematbdcmbs(emattype)
      allocate(xiou(nst1,nst3,n))
@@ -244,32 +240,6 @@ hdg=zzero
      do igq1=1,n
         emat12k(igq1,:,:)=xiou(:,:,igq1)
      end do
-!</new>
-
-
-!!$     ! matrix elements for k and q=0
-!!$     emattype=1
-!!$     call ematbdcmbs(emattype)
-!!$     call init1xs(qvkloff(1,iqmt))
-!!$     call getdevaldoccsv(iqmt,iknr,iknrq,istlo1,isthi1,istlo2,isthi2,deou, &
-!!$          docc12,scisk)
-!!$     dek(:,:)=deou(:,:)
-!!$     dok(:,:)=docc12(:,:)
-!!$     call getematrad(iqmt)
-!!$     call ematqalloc
-!!$!     call cpu_time(cpu0)
-!!$     call ematqk1(iqmt,iknr)
-!!$!     call cpu_time(cpu1)
-!!$!     cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
-!!$     ! apply gauge wrt. symmetrized Coulomb potential
-!!$     call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
-!!$     ! assign optical component
-!!$     xiou(:,:,1)=pmou(oct,:,:)
-!!$     do igq1=1,n
-!!$        emat12k(igq1,:,:)=xiou(:,:,igq1)
-!!$     end do
-
-
 
      deallocate(xiou)
      emattype=2
@@ -315,8 +285,6 @@ hdg=zzero
              ikkp,iknr,jknr,iq,iqr
 
 
-
-!<new>
         emattype=1
         call ematbdcmbs(emattype)
         allocate(xiou(nst1,nst3,n))
@@ -336,30 +304,6 @@ hdg=zzero
         ! assign optical component
         xiou(:,:,1)=pmou(oct,:,:)
         emat12kp(:,:,:)=xiou(:,:,:)
-!</new>
-
-
-
-
-!!$        ! matrix elements for kp and q=0
-!!$        emattype=1
-!!$        call ematbdcmbs(emattype)
-!!$        call init1xs(qvkloff(1,iqmt))
-!!$        call getdevaldoccsv(iqmt,jknr,jknrq,istlo1,isthi1,istlo2,isthi2,deou, &
-!!$             docc12,sciskp)
-!!$        dekp(:,:)=deou(:,:)
-!!$        dokp(:,:)=docc12(:,:)
-!!$        call getematrad(iqmt)
-!!$        call ematqalloc
-!!$        call cpu_time(cpu0)
-!!$        call ematqk1(iqmt,jknr)
-!!$        call cpu_time(cpu1)
-!!$        cpu_ematqk1=cpu_ematqk1+cpu1-cpu0
-!!$        ! apply gauge wrt. symmetrized Coulomb potential
-!!$        call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
-!!$        ! assign optical component
-!!$        xiou(:,:,1)=pmou(oct,:,:)
-!!$        emat12kp(:,:,:)=xiou(:,:,:)
 
         deallocate(xiou)
         emattype=2
@@ -368,24 +312,6 @@ hdg=zzero
 !!!!!!!!!!!!!!!!!!!!!!!! CHECK
         write(7711,*) emat12kp(2,3,1),emat12kp(2,3,7),emat12kp(1,2,1),emat12kp(1,2,6)
 
-
-!!$!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!$        do igq1=1,n
-!!$           do ist1=1,nst1
-!!$              do ist2=1,nst3
-!!$                 write(4000,'(4i5,3g18.10)') iknr,igq1,ist1,ist2, &
-!!$                      emat12k(igq1,ist1,ist2),abs(emat12k(igq1,ist1,ist2))**2
-!!$              end do
-!!$           end do
-!!$        end do
-!!$        do igq1=1,n
-!!$           do ist1=1,nst1
-!!$              do ist2=1,nst3
-!!$                 write(5000,'(4i5,3g18.10)') jknr,igq1,ist1,ist2, &
-!!$                      emat12kp(ist1,ist2,igq1),abs(emat12kp(ist1,ist2,igq1))**2
-!!$              end do
-!!$           end do
-!!$        end do
 
         ! get screened Coulomb interaction
         if (iknr.le.jknr) then

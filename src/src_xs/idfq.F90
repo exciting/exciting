@@ -70,8 +70,7 @@ subroutine idfq(iq)
      end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
-        do oct2=1,nc
-           if (oct1.ne.oct2) goto 111
+        do oct2=oct1,oct1 !1,nc
            oct=octmap(oct1,oct2)
            ! filename for output file
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
@@ -94,37 +93,10 @@ subroutine idfq(iq)
                     chi0(2:,1)=chi0wg(2:,2,oct2)
                  end if
               end if
-
-
-if (m.eq.n.and.iw.eq.1) then
-   do ig1=1,n
-      do ig2=1,n
-         !write(200+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
-      end do
-   end do
-end if
-
-
-
-if (m.eq.n) then
-              ! symmerize KS-respones ( ** experimental ** )
-!!!              call  symg2f(vql(1,iq),n,igqig(1,iq),chi0)
-
-!if (lfediag) then
-!   forall (ig1=1:n,ig2=1:n,ig1.ne.ig2) chi0(ig1,ig2)=zzero
-!end if
-
-end if
-
-if (m.eq.n.and.iw.eq.1) then
-   do ig1=1,n
-      do ig2=1,n
-         !write(300+iq,'(2i6,3g18.10)') ig1,ig2,chi0(ig1,ig2),abs(chi0(ig1,ig2))
-      end do
-   end do
-end if
-
-             
+              ! symmerize KS-response ( ** not working ** )
+              !if (m.eq.n) then
+              !   call  symg2f(vql(1,iq),n,igqig(1,iq),chi0)
+              !end if
               ! generate xc-kernel
               select case(fxctype)
               case(0,1,2,3,4,7,8)
@@ -138,7 +110,7 @@ end if
                  if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
               end select
               ! solve Dyson's equation for the interacting response function
-              call dyson(iq,oct,iw,n,chi0,fxc,idf)
+              call dyson(n,chi0,fxc,idf)
               ! symmetrized inverse dielectric function (add one)
               forall(j=1:m) 
                  idf(j,j)=idf(j,j)+1.d0
@@ -168,7 +140,6 @@ end if
               write(unit1,rec=iw-wi+1) mdf1(iw)
            end do ! iw
            close(unit1)
-111        continue
            ! end loop over optical components
         end do
      end do

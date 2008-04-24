@@ -58,7 +58,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
   ! local variables
   integer i,j,k,l,m,lm,irc,igp,ig,ir,iv(3),ivu(3),ispn,is,ia,ias,ist,jst
   integer :: igp1,igp2,ig1,ig2,iv1(3)
-  real(8) :: v1(3)
+  real(8) :: v1(3),t1
   complex(8) zt1,zt2
   ! allocatable arrays
   real(8), allocatable :: jlgpr(:,:)
@@ -76,7 +76,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
   ! external functions
   real(8), external :: r3taxi
   complex(8), external :: zfmtinp
-
+  t1=vgpc(1,1) ! for convenience:)
   ! allocate arrays
   allocate(cfunt(ngkk,ngkkp))
   allocate(h(ngkk,nstfv))

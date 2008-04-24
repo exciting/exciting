@@ -22,7 +22,6 @@ subroutine scrcoulint
   integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
-  complex(8) :: zt1
   real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)

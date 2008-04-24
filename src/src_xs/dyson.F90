@@ -7,7 +7,7 @@ module m_dyson
   implicit none
 contains
   
-  subroutine dyson(iq,oct,iw,n,s0,k,s)
+  subroutine dyson(n,s0,k,s)
     use invert
     !
     ! solve Dyson's equation S = S0 + S0*K*S
@@ -15,7 +15,6 @@ contains
     !
     implicit none
     ! arguments
-    integer, intent(in) :: iq,oct,iw
     integer, intent(in) :: n
     complex(8), intent(in) :: s0(:,:), k(:,:)
     complex(8), intent(out) :: s(:,:)
@@ -24,10 +23,6 @@ contains
     complex(8),parameter :: zone=(1.d0,0.d0),zzero=(0.d0,0.d0)
     complex(8), allocatable :: mt(:,:)
     integer :: shs0(2),shk(2),shs(2),nmin,nmax,j
-
-
-    integer :: a,b
-
 
     ! check matrix sizes
     shs0=shape(s0)
@@ -56,26 +51,12 @@ contains
     ! invert matrix T
     call zinvert_lapack(mt,mt)
 
-
-!!$    if ((iq.eq.1).and.(iw.eq.1).and.(n.ne.1)) then
-!!$       do a=1,n
-!!$          do b=1,n
-!!$             write(200+oct,'(2i8,2g18.10)') a,b,mt(a,b)
-!!$          end do
-!!$       end do
-!!$
-!!$
-!!$    end if
-
-
     ! calculate matrix S=T^-1*S0
     call zgemm('n','n', n, n, n, zone, mt, n, s0, n, zzero, s, n )
 
     deallocate(mt)
 
   end subroutine dyson
-  
-
 
 end module m_dyson
 

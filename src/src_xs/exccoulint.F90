@@ -19,17 +19,14 @@ subroutine exccoulint
   integer, parameter :: iqmt=1
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,isym,jsym,jsymi,igq1,igq2,n,iflg,recl
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
+  integer :: iknr,jknr,iqr,iq,igq1,n,iflg,recl
+  integer :: ngridkt(3),iv(3),un,j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
-  logical :: nosymt,reducekt,tq0,nsc,tphf
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3
+  logical :: nosymt,reducekt
+  real(8) :: vklofft(3)
   real(8), allocatable :: potcl(:)
-  integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
-  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
-  complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
-  logical, allocatable :: done(:)
+  complex(8), allocatable :: emat12(:,:),emat34(:,:)
   ! external functions
   integer, external :: iplocnr
   logical, external :: tqgamma
