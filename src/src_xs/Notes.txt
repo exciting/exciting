@@ -25,14 +25,21 @@
 --------------------------------------------------------------------------------
 >> Apr 24, 2008
 --------------------------------------------------------------------------------
-
+FINISHED
 	+ shift APW-lo, lo-APW and lo-lo parts in ematqk to ematqkgmt
 		by defining a contracted quantity similar to "apwdlm" for
-		APW-APW part
-
-
-
-
+		APW-APW part *** DONE & WORKING ***
+--------------------------------------------------------------------------------
 
 
 --------------------------------------------------------------------------------
+>> Apr 24, 2008
+--------------------------------------------------------------------------------
+	+ write nv/nc to file for SCCLI/EXCLI
+	+ input parameters for SCCLI/EXCLI and BSE (nv/nc)
+	proposal:  nbf,naf as generic names and
+	"nbfci,nafci" (number below/abve Fermi Coulomb interactions)
+	and "nbfbse,nafbse"
+
+--------------------------------------------------------------------------------
+

@@ -31,7 +31,7 @@ subroutine kernxc_bse(oct)
   integer, parameter :: iqmt=1
   real(8), parameter :: delt=1.d-3
   character(256) :: filnam,filnam2,filnam3,filnam4
-  complex(8),allocatable :: fxc(:,:,:)
+  complex(8),allocatable :: fxc(:,:,:),w(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
   complex(8),allocatable :: chi0h2(:),chi0wg2(:,:,:),chi02(:,:),chi02i(:,:)
   integer :: n,recl,iw,wi,wf,nwdfp,octh,oct1,oct2
@@ -251,7 +251,6 @@ hdg=zzero
      do jknr=1,nkptnr
         jknrq=ikmapikq(jknr,iqmt)
 
-        call cpu_time(cpu2)
         cpu_init1xs=0.d0
         cpu_ematrad=0.d0
         cpu_ematqalloc=0.d0

@@ -21,16 +21,14 @@ subroutine bse
   integer :: ist1,ist2,ist3,ist4,ikkp,oct
   integer :: iv,ic,lwork
   logical :: nosymt,reducekt
-  real(8) :: vklofft(3),vqr(3),vq(3),v2(3),s(3,3),si(3,3),t3,abstol,t1,de
-  real(8), allocatable :: potcl(:),rwork(:),beval(:),spectrkk(:),w(:),oszsa(:)
-  integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
+  real(8) :: vklofft(3),abstol,de
+  real(8), allocatable :: rwork(:),beval(:),spectrkk(:),w(:),oszsa(:)
   integer, allocatable :: iwork(:),ifail(:),sor(:)
   complex(8), allocatable :: excli(:,:,:,:),sccli(:,:,:,:),ham(:,:),work(:)
   complex(8), allocatable :: bevec(:,:),pm(:,:,:),pmat(:),oszs(:),spectr(:)
-  logical, allocatable :: done(:)
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
 
-  integer :: nvbse,ncbse,nvdif,ncdif,il,iu,nbeval,info
+  integer :: nvdif,ncdif,il,iu,nbeval,info
   real(8) :: vl,vu,egap
 
   ! external functions  integer, external :: iplocnr
@@ -40,6 +38,10 @@ subroutine bse
 
   ! reset file extension to default
   call genfilname(setfilext=.true.)
+
+
+!TODO: symmetrize head of DM for spectrum
+!TODO: loop over optical components? use "optcomp"
 
 oct=1
 
