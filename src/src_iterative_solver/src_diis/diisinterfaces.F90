@@ -121,15 +121,18 @@ subroutine setuphsvect(n,m,system,evecfv,ldv,h,s)
   
   end interface
   interface
-     subroutine   diisupdate(idiis,iunconverged,n,h,s,trialvec,evalfv ,evecfv,infodiisupdate)
-       use modmain,only: nstfv
-       implicit none
-       integer ,intent(in)::idiis,iunconverged,n
-       complex(8),intent(in)::h(n,nstfv,idiis),s(n,nstfv,idiis),trialvec(n,nstfv,idiis)
-       real(8), intent(in):: evalfv(nstfv)
-       complex(8),intent(out)::evecfv(n,nstfv)
-         integer, intent(out)::infodiisupdate
-       
+  subroutine   diisupdate(idiis,iunconverged,n,h,s&
+     ,trialvec,evalfv ,evecfv,infodiisupdate)
+  use modmain,only: nstfv,zone,zzero
+  use sclcontroll,only:diismax
+  implicit none
+  integer ,intent(in)::idiis,iunconverged,n
+  complex(8),intent(in)::h(n,nstfv, diismax)
+  complex(8),intent(in):: s(n,nstfv, diismax),trialvec(n,nstfv, diismax)
+  real(8), intent(in):: evalfv(nstfv,diismax)
+  complex(8),intent(out)::evecfv(n,nstfv)
+  integer, intent(out)::infodiisupdate
+      
      end subroutine diisupdate
   end interface
     interface

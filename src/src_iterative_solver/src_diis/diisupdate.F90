@@ -8,7 +8,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
   integer ,intent(in)::idiis,iunconverged,n
   complex(8),intent(in)::h(n,nstfv, diismax)
   complex(8),intent(in):: s(n,nstfv, diismax),trialvec(n,nstfv, diismax)
-  real(8), intent(in):: evalfv(nstfv)
+  real(8), intent(in):: evalfv(nstfv,diismax)
   complex(8),intent(out)::evecfv(n,nstfv)
   integer, intent(out)::infodiisupdate
   logical lin	
@@ -31,7 +31,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
      !calculate residuals
      do j=1,idiis
         call zcopy(n,h(1,i,j),1,p(1,j),1)
-        z=cmplx(-evalfv(i),0)
+        z=cmplx(-evalfv(i,j),0)
         call zaxpy(n,z,s(1,i,j),1,p(1,j),1)
      end do
      residnorm2=dble(zdotc(n,p(1,idiis),1,p(1,idiis),1))
