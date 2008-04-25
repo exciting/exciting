@@ -61,6 +61,7 @@ subroutine   diisupdate(idiis,iunconverged,n,h,s&
         call solvediislin(idiis,Pmatrix,Qmatrix,c)
          call sortidx(idiis,-abs(c),idx)
         if(i==1 )write(*,*)"c:",c(idx),"sum",sum(c(idx))
+        c=c/sum(c(idx))
      else
 		call solvediis(idiis,Pmatrix,Qmatrix,c)
      endif
@@ -78,5 +79,6 @@ call zcopy(n,zzero,0,evecfv(:,i),1)
         if(i==1 )write (*,*)"trialnrm",i,dznrm2( n,  trialvec( 1,i, idx(ir)),1)
      end do
   end do
+  call zcopy(n*iunconverged,evecfv,1,trialvec( 1,1, idiis ),1)
   infodiisupdate=0
 end subroutine diisupdate

@@ -175,7 +175,12 @@ jacdav=.false.
         if(idiis.gt.1)then
            call diisupdate(idiis,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
+           call normalize(n,iunconverged,system%overlap%za,&
+                  eigenvector(:,1:iunconverged),n)
                  write(*,*)"norm,afterdiis" , dznrm2( n, eigenvector, 1)
+           call setuphsvect(n,iunconverged,system,eigenvector,n,&
+             h(:,:,idiis),s(:,:,idiis)) 
+             
         endif
      end do
    call normalize(n,nstfv,system%overlap%za,evecfv(:,:,ispn),nmatmax)	
