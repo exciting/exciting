@@ -43,6 +43,7 @@ integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
 #ifdef XS
 integer :: igp1,igp2,ig1,ig2,ig,iv1(3),iv(3)
+real(8) :: cpu0,cpu1
 #endif
 ! allocatable arrays
 complex(8), allocatable :: wfmt(:,:,:)
@@ -79,9 +80,10 @@ pm(:,:,:)=0.d0
 ! calculate momentum matrix elements in the muffin-tin
 do is=1,nspecies
   do ia=1,natoms(is)
+    call cpu_time(cpu0)
     do ist=1,nstfv
 ! calculate the wavefunction
-      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
+      call wavefmt_apw(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
        wfmt(1,1,ist))
 ! calculate the gradient
       call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
@@ -106,8 +108,24 @@ do is=1,nspecies
         end do
       end do
     end do
+    call cpu_time(cpu1)
+write(*,'(a,i6,f12.3)') 'genpmat: ',idxas(ia,is),cpu1-cpu0
   end do
 end do
+
+
+!!$  !******************+
+!!$  do ist=1,nstfv
+!!$     do jst=ist,nstfv
+!!$        do i=1,3
+!!$           write(750,'(3i6,3g18.10)') ist,jst,i,pm(i,ist,jst),abs(pm(i,ist,jst))
+!!$        end do
+!!$     end do
+!!$  end do
+!!$  stop 'genpmat'
+!!$
+
+
 #ifdef XS
 if (pmatira) then
    ! analytic evaluation

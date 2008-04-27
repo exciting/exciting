@@ -7,10 +7,15 @@
 
 
 tasks
-430
+320
 
-ematstrat
+! 0...old version; 1...fast version
+pmatstrat
 1
+
+! 1...old version; 0...fast version
+ematstrat
+0
 
 maxscl
 1
