@@ -75,7 +75,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        lm3=idxlm(l3,m3)
                        do io=1,apword(l3,is)
                           call zaxpy(nstsv, &
-                               intrgloa(lm1,ilo,lm3,io,ias), &
+                               intrgloa(m1,ilo,lm3,io,ias), &
                                apwdlm(1,io,lm3,ias),1,zv,1)
                        end do ! io
                     end do ! m3
@@ -102,7 +102,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        do m1=-l1,l1
                           lm1=idxlm(l1,m1)
                           call zaxpy(nstsv, &
-                               intrgalo(lm1,ilo,lm3,io,ias), &
+                               intrgalo(m1,ilo,lm3,io,ias), &
                                lodlm(1,ilo,m1,ias),1,zv,1)
                        end do ! m1
                     end do ! ilo
@@ -127,7 +127,7 @@ subroutine ematqkgmt(iq,ik,igq)
                     do m3=-l3,l3
                        lm3=idxlm(l3,m3)
                        call zaxpy(nstsv, &
-                            intrglolo(lm1,ilo1,lm3,ilo2,ias), &
+                            intrglolo(m1,ilo1,m3,ilo2,ias), &
                             lodlm(1,ilo2,m3,ias),1,zv,1)
                     end do ! m3
                  end do ! ilo2
@@ -154,7 +154,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        lm3=idxlm(l3,m3)
                        do io=1,apword(l3,is)
                           call zaxpy(nstsv, &
-                               intrgloa(lm1,ilo,lm3,io,ias), &
+                               intrgloa(m1,ilo,lm3,io,ias), &
                                apwdlm(1,io,lm3,ias),1,zv,1)
                        end do ! io
                     end do ! m3
@@ -180,7 +180,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        lm3=idxlm(l3,m3)
                        do io=1,apword(l3,is)
                           call zaxpyc(nstsv, &
-                               intrgalo(lm1,ilo,lm3,io,ias), &
+                               intrgalo(m1,ilo,lm3,io,ias), &
                                apwdlm0(:,io,lm3,ias),1,zv,1)
                        end do ! io
                     end do ! m3
@@ -205,7 +205,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        j=idxlo(lm3,ilo2,ias)
                        xih(i,j) = xih(i,j) + &
                             fourpi*conjg(sfacgq(igq,ias,iq))* &
-                            intrglolo(lm1,ilo1,lm3,ilo2,ias)
+                            intrglolo(m1,ilo1,m3,ilo2,ias)
                     end do ! m3
                  end do ! ilo2
               end do ! m1

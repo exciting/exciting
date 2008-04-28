@@ -12,7 +12,7 @@ subroutine ematgntsum(iq,igq)
   ! arguments
   integer, intent(in) :: iq,igq
   ! local variables
-  integer is,ia,ias,c1
+  integer is,ia,ias
   integer l1,l2,l3,m2,lm2
   integer ilo,ilo1,ilo2,io,io1,io2
   integer :: lmax1, lmax2, lmax3, lmmax1, lmmax2, lmmax3
@@ -34,11 +34,10 @@ subroutine ematgntsum(iq,igq)
   if (allocated(intrgalo)) deallocate(intrgalo)
   if (allocated(intrglolo)) deallocate(intrglolo)
   allocate(intrgaa(lmmax1,apwordmax,lmmax3,apwordmax,natmtot))
-  allocate(intrgloa(lolmmax,nlomax,lmmax3,apwordmax,natmtot))
-  allocate(intrgalo(lolmmax,nlomax,lmmax3,apwordmax,natmtot))
-  allocate(intrglolo(lolmmax,nlomax,lolmmax,nlomax,natmtot))
+  allocate(intrgloa(-lolmax:lolmax,nlomax,lmmax3,apwordmax,natmtot))
+  allocate(intrgalo(-lolmax:lolmax,nlomax,lmmax3,apwordmax,natmtot))
+  allocate(intrglolo(-lolmax:lolmax,nlomax,-lolmax:lolmax,nlomax,natmtot))
   ! allocate temporary arrays
-  c1=max(apwordmax,nlomax)
   intrgaa(:,:,:,:,:) = 0.d0
   intrgloa(:,:,:,:,:) = 0.d0
   intrgalo(:,:,:,:,:) = 0.d0
@@ -142,16 +141,16 @@ do m2=-l2,l2
                              lm2=idxlm(l2,m2)
                              ! summation wrt. Gaunt coefficients
                              ! for lo-A part
-                             intrgloa(lm1,ilo,lm3,io,ias)= &
-                                  intrgloa(lm1,ilo,lm3,io,ias) &
+                             intrgloa(m1,ilo,lm3,io,ias)= &
+                                  intrgloa(m1,ilo,lm3,io,ias) &
                                   + conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
                                   tdgnt(lm1,lm2,lm3)
                              ! summation wrt. Gaunt coefficients
                              ! for A-lo part (swap indices in
                              ! Gaunt coefficient!)
-                             intrgalo(lm1,ilo,lm3,io,ias)= &
-                                  intrgalo(lm1,ilo,lm3,io,ias) &
+                             intrgalo(m1,ilo,lm3,io,ias)= &
+                                  intrgalo(m1,ilo,lm3,io,ias) &
                                   + conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
                                   tdgnt(lm3,lm2,lm1)
@@ -159,11 +158,11 @@ do m2=-l2,l2
                        end do ! l2
                        if (dbglev.gt.2) then
                           write(u2,'(6i5,2g18.10)') &
-                               igq,ias,lm1,ilo,lm3,io, &
-                               intrgalo(lm1,ilo,lm3,io,ias)
+                               igq,ias,m1,ilo,lm3,io, &
+                               intrgalo(m1,ilo,lm3,io,ias)
                           write(u3,'(6i5,2g18.10)') &
-                               igq,ias,lm1,ilo,lm3,io, &
-                               intrgloa(lm1,ilo,lm3,io,ias)
+                               igq,ias,m1,ilo,lm3,io, &
+                               intrgloa(m1,ilo,lm3,io,ias)
                        end if
                     end do ! io
                  end do ! m3
@@ -188,8 +187,8 @@ do m2=-l2,l2
                        do cm3 = 1, m3shape(l1,m1,l3,m3,l2)
                           m2 = m3map(l1,m1,l3,m3,l2,cm3)
                           lm2=idxlm(l2,m2)
-                          intrglolo(lm1,ilo1,lm3,ilo2,ias)= &
-                               intrglolo(lm1,ilo1,lm3,ilo2,ias) &
+                          intrglolo(m1,ilo1,m3,ilo2,ias)= &
+                               intrglolo(m1,ilo1,m3,ilo2,ias) &
                                + conjg(zil(l2))*rilolo(ilo1,ilo2,l2,ias,igq)* &
                                conjg(ylmgq(lm2,igq,iq))* &
                                tdgnt(lm1,lm2,lm3)
@@ -197,8 +196,8 @@ do m2=-l2,l2
                     end do ! l2
                     if (dbglev.gt.2) then
                        write(u4,'(6i5,2g18.10)') &
-                            igq,ias,lm1,ilo1,lm3,ilo2, &
-                            intrglolo(lm1,ilo1,lm3,ilo2,ias)
+                            igq,ias,m1,ilo1,m3,ilo2, &
+                            intrglolo(m1,ilo1,m3,ilo2,ias)
                     end if
                  end do ! m3
               end do ! ilo2
