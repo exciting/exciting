@@ -82,7 +82,7 @@ subroutine ematqkgmt(iq,ik,igq)
                  end do ! l3
                  call tdzoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      lodlm0(istlo1:isthi1,ilo,lm1,ias),zv(istlo2:isthi2), &
+                      lodlm0(istlo1:isthi1,ilo,m1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))
               end do ! m1
            end do ! ilo
@@ -103,7 +103,7 @@ subroutine ematqkgmt(iq,ik,igq)
                           lm1=idxlm(l1,m1)
                           call zaxpy(nstsv, &
                                intrgalo(lm1,ilo,lm3,io,ias), &
-                               lodlm(1,ilo,lm1,ias),1,zv,1)
+                               lodlm(1,ilo,m1,ias),1,zv,1)
                        end do ! m1
                     end do ! ilo
                     call tdzoutpr(nst1,nst2, &
@@ -128,12 +128,12 @@ subroutine ematqkgmt(iq,ik,igq)
                        lm3=idxlm(l3,m3)
                        call zaxpy(nstsv, &
                             intrglolo(lm1,ilo1,lm3,ilo2,ias), &
-                            lodlm(1,ilo2,lm3,ias),1,zv,1)
+                            lodlm(1,ilo2,m3,ias),1,zv,1)
                     end do ! m3
                  end do ! ilo2
                  call tdzoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      lodlm0(istlo1:isthi1,ilo1,lm1,ias),zv(istlo2:isthi2), &
+                      lodlm0(istlo1:isthi1,ilo1,m1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))
               end do ! m1
            end do ! ilo1

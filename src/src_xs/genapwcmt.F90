@@ -71,7 +71,7 @@ contains
     ! arguments
     integer, intent(in) :: ngp,isti,istf
     complex(8), intent(in) :: evecfv(nmatmax,nstfv,nspnfv)
-    complex(8), intent(out) :: wfcmt(istf-isti+1,nlomax,(lolmax+1)**2,natmtot)
+    complex(8), intent(out) :: wfcmt(istf-isti+1,nlomax,-lolmax:lolmax,natmtot)
     ! local variables
     integer :: ist,istc,is,ia,ias,i,ilo,l,m,lm
     do istc=isti,istf
@@ -84,7 +84,7 @@ contains
                 do m=-l,l
                    lm=idxlm(l,m)
                    i=idxlo(lm,ilo,ias)
-                   wfcmt(ist,ilo,lm,ias)=evecfv(ngp+i,istc,1)
+                   wfcmt(ist,ilo,m,ias)=evecfv(ngp+i,istc,1)
                 end do
              end do
           end do ! ia

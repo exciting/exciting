@@ -110,7 +110,7 @@ subroutine writeevec(vq,voff,filxt)
   if (allocated(apwalm)) deallocate(apwalm)
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(apwdlm(nstsv,apwordmax,lmmaxapw,natmtot))
-  allocate(lodlm(nstsv,nlomax,lolmmax,natmtot))
+  allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
   call getunit(unit1)
   inquire(iolength=reclapw) vq,vkl(:,1),apwdlm
   open(unit1,file='APWDLM'//trim(filxt),action='write',&

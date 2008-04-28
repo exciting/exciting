@@ -25,7 +25,7 @@ subroutine ematqalloc
   allocate(apwdlm0(nstsv,apwordmax,lmmaxapwtd,natmtot))
   ! allocate contracted coefficients array for local orbitals-part
   if (allocated(lodlm)) deallocate(lodlm)
-  allocate(lodlm(nstsv,nlomax,lolmmax,natmtot))
+  allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
   if (allocated(lodlm0)) deallocate(lodlm0)
-  allocate(lodlm0(nstsv,nlomax,lolmmax,natmtot))
+  allocate(lodlm0(nstsv,nlomax,-lolmax:lolmax,natmtot))
 end subroutine ematqalloc

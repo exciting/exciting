@@ -36,7 +36,7 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
   integer, intent(in) :: igpig(ngkmax)
   real(8), intent(in) :: vgpc(3,ngkmax)
   complex(8), intent(in) :: apwdlmt(nstfv,apwordmax,lmmaxapw,natmtot)
-  complex(8), intent(in) :: lodlmt(nstfv,nlomax,lolmmax,natmtot)
+  complex(8), intent(in) :: lodlmt(nstfv,nlomax,-lolmax:lolmax,natmtot)
   complex(8), intent(in) :: evecfvt(nmatmax,nstfv)
   complex(8), intent(in) :: evecsvt(nstsv,nstsv)
   complex(8), intent(out) :: pmat(3,nstsv,nstsv)
@@ -118,7 +118,7 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
                              lm1=idxlm(l1,m1)
                              call zaxpy(nstfv, &
                                   zone*ripalo(io,lm3,ilo,m1,ias,j), &
-                                  lodlmt(1,ilo,lm1,ias),1,zv2,1)
+                                  lodlmt(1,ilo,m1,ias),1,zv2,1)
                           end do ! m1
                        end do ! ilo
                        call tdzoutpr(nstfv,nstfv, &
@@ -148,7 +148,7 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
                        end do ! m3
                     end do ! l3
                     call tdzoutpr(nstfv,nstfv, &
-                         zone,lodlmt(:,ilo,lm1,ias),zv2,pm(:,:,j))
+                         zone,lodlmt(:,ilo,m1,ias),zv2,pm(:,:,j))
                  end do ! m1
               end do ! ilo
            end do
@@ -168,11 +168,11 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
                           lm3=idxlm(l3,m3)
                           call zaxpy(nstfv, &
                                zone*riplolo(ilo1,m1,ilo2,m3,ias,j), &
-                               lodlmt(1,ilo2,lm3,ias),1,zv2,1)
+                               lodlmt(1,ilo2,m3,ias),1,zv2,1)
                        end do ! m3
                     end do ! ilo2
                     call tdzoutpr(nstfv,nstfv, &
-                         zone,lodlmt(:,ilo1,lm1,ias),zv2,pm(:,:,j))
+                         zone,lodlmt(:,ilo1,m1,ias),zv2,pm(:,:,j))
                  end do ! m1
               end do ! ilo1
            end do

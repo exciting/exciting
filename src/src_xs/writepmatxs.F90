@@ -77,7 +77,7 @@ subroutine writepmatxs(lgather)
      allocate(apwdlm(nstsv,apwordmax,lmmaxapw,natmtot))
      if (nlotot.gt.0) then
         if (allocated(lodlm)) deallocate(lodlm)
-        allocate(lodlm(nstsv,nlomax,lolmmax,natmtot))
+        allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
      end if
   end if
   do ik=kpari,kparf
