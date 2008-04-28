@@ -61,7 +61,7 @@ subroutine ematqkgmt(iq,ik,igq)
         call cpu_time(cmt1)
         if (ematstrat.eq.0) then
            !--------------------------------------!
-           !     local-orbital-APW contribution   ! new
+           !     local-orbital-APW contribution   !
            !--------------------------------------!
            ! loop over local orbitals
            do ilo=1,nlorb(is)
@@ -88,7 +88,7 @@ subroutine ematqkgmt(iq,ik,igq)
            end do ! ilo
            call cpu_time(cmt2)
            !--------------------------------------!
-           !     APW-local-orbital contribution   ! new
+           !     APW-local-orbital contribution   !
            !--------------------------------------!
            ! loop over (l'',m'',p'')
            do l3=0,lmax3
@@ -115,7 +115,7 @@ subroutine ematqkgmt(iq,ik,igq)
            end do ! l3
            call cpu_time(cmt3)
            !------------------------------------------------!
-           !     local-orbital-local-orbital contribution   ! new
+           !     local-orbital-local-orbital contribution   !
            !------------------------------------------------!
            do ilo1=1,nlorb(is)
               l1=lorbl(ilo1,is)
