@@ -24,10 +24,10 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
   ! !DESCRIPTION:
   !   Calculates the momentum matrix elements
   !   $$ p_{ij}=\langle\Psi_{i,{\bf k}}|-i\nabla|\Psi_{j,{\bf k}}\rangle. $$
+  !   Based upon the routine {\tt genpmat}.
   !
   ! !REVISION HISTORY:
-  !   Created November 2003 (Sharma)
-  !   Fixed bug found by Juergen Spitaler, September 2006 (JKD)
+  !   Created April 2008 (Sagmeister)
   !EOP
   !BOC
   implicit none
@@ -35,8 +35,8 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
   integer, intent(in) :: ngp
   integer, intent(in) :: igpig(ngkmax)
   real(8), intent(in) :: vgpc(3,ngkmax)
-  complex(8), intent(in) :: apwdlmt(nstsv,apwordmax,lmmaxapw,natmtot)
-  complex(8), intent(in) :: lodlmt(nstsv,nlomax,lolmmax,natmtot)
+  complex(8), intent(in) :: apwdlmt(nstfv,apwordmax,lmmaxapw,natmtot)
+  complex(8), intent(in) :: lodlmt(nstfv,nlomax,lolmmax,natmtot)
   complex(8), intent(in) :: evecfvt(nmatmax,nstfv)
   complex(8), intent(in) :: evecsvt(nstsv,nstsv)
   complex(8), intent(out) :: pmat(3,nstsv,nstsv)
@@ -66,73 +66,12 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
   allocate(pm(nstfv,nstfv,3))
   ! set the momentum matrix elements to zero
   pm(:,:,:)=0.d0
-
-  !/////////////////////////////////////////////////////////////////////////////
-
-!!$  ! calculate momentum matrix elements in the muffin-tin
-!!$  do is=1,nspecies
-!!$     do ia=1,natoms(is)
-!!$        do ist=1,nstfv
-!!$           ! calculate the wavefunction
-!!$           call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
-!!$                wfmt(1,1,ist))
-!!$           ! calculate the gradient
-!!$           call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
-!!$                wfmt(1,1,ist),gwfmt(1,1,1,ist))
-!!$           !wfmt(:,:,ist)=zzero
-!!$           !wfmt(1,:,ist)=1.d0/y00
-!!$           !gwfmt(:,:,:,ist)=zzero
-!!$           !gwfmt(1,:,:,ist)=1.d0/y00
-!!$        end do
-!!$        do ist=1,nstfv
-!!$           do jst=ist,nstfv
-!!$              do i=1,3
-!!$                 zt1=zfmtinp(.true.,lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
-!!$                      wfmt(1,1,ist),gwfmt(1,1,i,jst))
-!!$                 pm(i,ist,jst)=pm(i,ist,jst)+zt1
-!!$              end do
-!!$           end do
-!!$        end do
-!!$     end do
-!!$  end do
-
   ! summation wrt. expansioncoeffs (apwdlm/lodlm)
   ! loop over species and atoms
   do is=1,nspecies
      do ia=1,natoms(is)
         ias=idxas(ia,is)
         call cpu_time(cmt0)
-
-
-!!$        !---------------------------!
-!!$        !     APW-APW contribution  !
-!!$        !---------------------------!
-!!$        ! loop over (l',m',p')
-!!$        do l1=0,lmax1
-!!$           do m1=-l1,l1
-!!$              lm1=idxlm(l1,m1)
-!!$              do io1=1,apword(l1,is)
-!!$                 zv(:)=zzero
-!!$                 ! loop over (l'',m'',p'')
-!!$                 do l3=0,lmax3
-!!$                    do m3=-l3,l3
-!!$                       lm3=idxlm(l3,m3)
-!!$                       do io2=1,apword(l3,is)
-!!$                          call zaxpy(nstsv, &
-!!$                               intrgaa(lm1,io1,lm3,io2,ias), &
-!!$                               apwdlm(1,io2,lm3,ias),1,zv,1)
-!!$                       end do
-!!$                    end do ! m3
-!!$                 end do ! l3
-!!$                 call tdzoutpr(nst1,nst2, &
-!!$                      fourpi*conjg(sfacgq(igq,ias,iq)), &
-!!$                      apwdlm0(istlo1:isthi1,io1,lm1,ias),zv(istlo2:isthi2), &
-!!$                      xiou(:,:,igq))
-!!$                 ! end loop over (l',m',p')
-!!$              end do! io1
-!!$           end do ! m1
-!!$        end do ! l1
-
         !---------------------------!
         !     APW-APW contribution  !
         !---------------------------!
@@ -161,108 +100,89 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
               end do ! m1
            end do ! l1
         end do
-        call cpu_time(cmt1)
-
-        write(*,'(a,i6,f12.3)') 'APW-APW  : ',ias,cmt1-cmt0
-
-!!$        !--------------------------------------!
-!!$        !     local-orbital-APW contribution   !
-!!$        !--------------------------------------!
-!!$        ! loop over local orbitals
-!!$        do ilo=1,nlorb(is)
-!!$           l1=lorbl(ilo,is)
-!!$           do m1=-l1,l1
-!!$              lm1=idxlm(l1,m1)
-!!$              zv(:)=zzero
-!!$              ! loop over (l'',m'',p'')
-!!$              do l3=0,lmax3
-!!$                 do m3=-l3,l3
-!!$                    lm3=idxlm(l3,m3)
-!!$                    do io=1,apword(l3,is)
-!!$                       call zaxpy(nstsv, &
-!!$                            intrgloa(lm1,ilo,lm3,io,ias), &
-!!$                            apwdlm(1,io,lm3,ias),1,zv,1)
-!!$                    end do ! io
-!!$                 end do ! m3
-!!$              end do ! l3
-!!$              call tdzoutpr(nst1,nst2, &
-!!$                   fourpi*conjg(sfacgq(igq,ias,iq)), &
-!!$                   lodlm0(istlo1:isthi1,ilo,lm1,ias),zv(istlo2:isthi2), &
-!!$                   xiou(:,:,igq))
-!!$           end do ! m1
-!!$        end do ! ilo
-!!$        call cpu_time(cmt2)
-!!$        !--------------------------------------!
-!!$        !     APW-local-orbital contribution   !
-!!$        !--------------------------------------!
-!!$        ! loop over (l'',m'',p'')
-!!$        do l3=0,lmax3
-!!$           do m3=-l3,l3
-!!$              lm3=idxlm(l3,m3)
-!!$              do io=1,apword(l3,is)
-!!$                 zv(:)=zzero
-!!$                 ! loop over local orbitals
-!!$                 do ilo=1,nlorb(is)
-!!$                    l1=lorbl(ilo,is)
-!!$                    do m1=-l1,l1
-!!$                       lm1=idxlm(l1,m1)
-!!$                       call zaxpy(nstsv, &
-!!$                            intrgalo(lm1,ilo,lm3,io,ias), &
-!!$                            lodlm(1,ilo,lm1,ias),1,zv,1)
-!!$                    end do ! m1
-!!$                 end do ! ilo
-!!$                 call tdzoutpr(nst1,nst2, &
-!!$                      fourpi*conjg(sfacgq(igq,ias,iq)), &
-!!$                      apwdlm0(istlo1:isthi1,io,lm3,ias),zv(istlo2:isthi2), &
-!!$                      xiou(:,:,igq))
-!!$              end do ! io
-!!$           end do ! m3
-!!$        end do ! l3
-!!$        call cpu_time(cmt3)
-!!$        !------------------------------------------------!
-!!$        !     local-orbital-local-orbital contribution   !
-!!$        !------------------------------------------------!
-!!$        do ilo1=1,nlorb(is)
-!!$           l1=lorbl(ilo1,is)
-!!$           do m1=-l1,l1
-!!$              lm1=idxlm(l1,m1)
-!!$              zv(:)=zzero
-!!$              do ilo2=1,nlorb(is)
-!!$                 l3=lorbl(ilo2,is)
-!!$                 do m3=-l3,l3
-!!$                    lm3=idxlm(l3,m3)
-!!$                    call zaxpy(nstsv, &
-!!$                         intrglolo(lm1,ilo1,lm3,ilo2,ias), &
-!!$                         lodlm(1,ilo2,lm3,ias),1,zv,1)
-!!$                 end do ! m3
-!!$              end do ! ilo2
-!!$              call tdzoutpr(nst1,nst2, &
-!!$                   fourpi*conjg(sfacgq(igq,ias,iq)), &
-!!$                   lodlm0(istlo1:isthi1,ilo1,lm1,ias),zv(istlo2:isthi2), &
-!!$                   xiou(:,:,igq))
-!!$           end do ! m1
-!!$        end do ! ilo1
-
+        if (nlotot.gt.0) then
+           !--------------------------------------!
+           !     APW-local-orbital contribution   !
+           !--------------------------------------!
+           do j=1,3
+              ! loop over (l'',m'',p'')
+              do l3=0,lmaxapw
+                 do m3=-l3,l3
+                    lm3=idxlm(l3,m3)
+                    do io=1,apword(l3,is)
+                       zv2(:)=zzero
+                       ! loop over local orbitals
+                       do ilo=1,nlorb(is)
+                          l1=lorbl(ilo,is)
+                          do m1=-l1,l1
+                             lm1=idxlm(l1,m1)
+                             call zaxpy(nstfv, &
+                                  zone*ripalo(io,lm3,ilo,m1,ias,j), &
+                                  lodlmt(1,ilo,lm1,ias),1,zv2,1)
+                          end do ! m1
+                       end do ! ilo
+                       call tdzoutpr(nstfv,nstfv, &
+                            zone,apwdlmt(:,io,lm3,ias),zv2,pm(:,:,j))
+                    end do ! io
+                 end do ! m3
+              end do ! l3
+           end do
+           !--------------------------------------!
+           !     local-orbital-APW contribution   !
+           !--------------------------------------!
+           do j=1,3
+              do ilo=1,nlorb(is)
+                 l1=lorbl(ilo,is)
+                 do m1=-l1,l1
+                    lm1=idxlm(l1,m1)
+                    zv2(:)=zzero
+                    ! loop over (l'',m'',p'')
+                    do l3=0,lmaxapw
+                       do m3=-l3,l3
+                          lm3=idxlm(l3,m3)
+                          do io=1,apword(l3,is)
+                             call zaxpy(nstfv, &
+                                  zone*riploa(ilo,m1,io,lm3,ias,j), &
+                                  apwdlmt(1,io,lm3,ias),1,zv2,1)
+                          end do ! io
+                       end do ! m3
+                    end do ! l3
+                    call tdzoutpr(nstfv,nstfv, &
+                         zone,lodlmt(:,ilo,lm1,ias),zv2,pm(:,:,j))
+                 end do ! m1
+              end do ! ilo
+           end do
+           call cpu_time(cmt3)
+           !------------------------------------------------!
+           !     local-orbital-local-orbital contribution   !
+           !------------------------------------------------!
+           do j=1,3
+              do ilo1=1,nlorb(is)
+                 l1=lorbl(ilo1,is)
+                 do m1=-l1,l1
+                    lm1=idxlm(l1,m1)
+                    zv2(:)=zzero
+                    do ilo2=1,nlorb(is)
+                       l3=lorbl(ilo2,is)
+                       do m3=-l3,l3
+                          lm3=idxlm(l3,m3)
+                          call zaxpy(nstfv, &
+                               zone*riplolo(ilo1,m1,ilo2,m3,ias,j), &
+                               lodlmt(1,ilo2,lm3,ias),1,zv2,1)
+                       end do ! m3
+                    end do ! ilo2
+                    call tdzoutpr(nstfv,nstfv, &
+                         zone,lodlmt(:,ilo1,lm1,ias),zv2,pm(:,:,j))
+                 end do ! m1
+              end do ! ilo1
+           end do
+           ! end case of local orbitals
+        end if
         ! end loop over atoms and species
      end do
   end do
-
   ! multiply y-component with imaginary unit
   pm(:,:,2)=zi*pm(:,:,2)
-
-!!$  !******************+
-!!$  do ist=1,nstfv
-!!$     do jst=ist,nstfv
-!!$        do i=1,3
-!!$           write(650,'(3i6,3g18.10)') ist,jst,i,pm(ist,jst,i),abs(pm(ist,jst,i))
-!!$        end do
-!!$     end do
-!!$  end do
-!!$  stop 'genpmat2'
-
-
-  !/////////////////////////////////////////////////////////////////////////////
-
   !  calculate momentum matrix elements in the interstitial region
   forall (ist1=1:nstfv)
      evecfvt1(ist1,:)=conjg(evecfvt(1:ngp,ist1))
@@ -285,9 +205,6 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
           nstfv, h, ngp, zzero, pmt, nstfv)
      pm(:,:,j)=pm(:,:,j)+pmt(:,:)
   end do
-
-  !/////////////////////////////////////////////////////////////////////////////
-
   ! multiply by -i and set lower triangular part
   do ist=1,nstfv
      do jst=ist,nstfv

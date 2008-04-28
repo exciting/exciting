@@ -34,9 +34,6 @@ subroutine writepmatxs(lgather)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-
-complex(8) :: zt1
-
   if (tscreen) then
      fnam='PMAT'
      call genfilname(basename=trim(fnam),appfilext=.true.,filnam=fnpmat)

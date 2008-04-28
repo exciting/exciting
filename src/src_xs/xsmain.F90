@@ -115,12 +115,7 @@ subroutine xsmain
      call kernxc_bse(1)
   case(499)
      ! * debug task
-     !!!call testxs
      call init0
-     call init1
-     call init2
-     call genwiq2
-     call writewiq2
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task

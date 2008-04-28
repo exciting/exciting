@@ -5,9 +5,14 @@
 !	
 
 tasks
-450
-350
+320
+321
 
+pmatstrat
+1
+
+lradstp
+1
 
 !******************************
 #emattype
@@ -55,9 +60,12 @@ optswidth
 #nempty
 #  107
   
-nempty
-3
+##nempty
+##3
   
+nempty
+12  
+
 emaxdf
   7.5
 

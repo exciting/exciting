@@ -83,21 +83,15 @@ do is=1,nspecies
     call cpu_time(cpu0)
     do ist=1,nstfv
 ! calculate the wavefunction
-      call wavefmt_apw(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
+      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw,&
        wfmt(1,1,ist))
 ! calculate the gradient
       call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
        wfmt(1,1,ist),gwfmt(1,1,1,ist))
-!!$
-!!$
-!!$
 !!$wfmt(:,:,ist)=zzero
 !!$wfmt(1,:,ist)=1.d0/y00
 !!$gwfmt(:,:,:,ist)=zzero
 !!$gwfmt(1,:,:,ist)=1.d0/y00
-!!$
-!!$
-!!$
     end do
     do ist=1,nstfv
       do jst=ist,nstfv
@@ -109,23 +103,9 @@ do is=1,nspecies
       end do
     end do
     call cpu_time(cpu1)
-write(*,'(a,i6,f12.3)') 'genpmat: ',idxas(ia,is),cpu1-cpu0
+write(*,'(a,i6,f12.3)') 'genpmat: ias, CPU-time ',idxas(ia,is),cpu1-cpu0
   end do
 end do
-
-
-!!$  !******************+
-!!$  do ist=1,nstfv
-!!$     do jst=ist,nstfv
-!!$        do i=1,3
-!!$           write(750,'(3i6,3g18.10)') ist,jst,i,pm(i,ist,jst),abs(pm(i,ist,jst))
-!!$        end do
-!!$     end do
-!!$  end do
-!!$  stop 'genpmat'
-!!$
-
-
 #ifdef XS
 if (pmatira) then
    ! analytic evaluation
@@ -171,16 +151,10 @@ do ist=1,nstfv
     call zfftifc(3,ngrid,1,gwfir(1,i,ist))
   end do
 end do
-!!$
-!!$
-!!$
 !!$wfir(:,:)=zone*sqrt(omega)
 !!$do i=1,3
 !!$   gwfir(:,:,:)=zone*sqrt(omega)
 !!$end do
-!!$
-!!$
-!!$
 ! find the overlaps
 do ist=1,nstfv
   do jst=ist,nstfv
