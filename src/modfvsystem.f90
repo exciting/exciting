@@ -229,4 +229,20 @@ contains
        end do
 	endif
   end subroutine  
+   subroutine HermiteanMatrixdiagonal(self,d)
+   implicit none
+   type(HermiteanMatrix),intent(in)::self
+   complex(8),intent(out)::d(self%rank)
+ integer i
+    if(ispacked(self)) then 
+    	do i=1,self%rank
+    		d(i)=self%zap((i*(i+1))/2)
+    	end do
+     else
+      	do i=1,self%rank
+    		d(i)=self%za(i,i)
+    	end do
+     endif
+   end subroutine
+   
 end module modfvsystem

@@ -7,7 +7,7 @@ implicit none
   integer diiscounter !! counter for DIIS iterations
   integer iterativetype
   logical packedmatrixstorage
-  integer,parameter:: diismax=35,diisfirstscl=3
+  integer,parameter:: diismax=35,diisfirstscl=3, maxdiisspace=5
   integer :: iseed(4)=1
   real(8) lowesteval
   real(8) epsarpack
@@ -102,7 +102,7 @@ contains
     endif
     
 	if(rnormmax/lastresnorm.gt.1.1)then
- 		allconverged=.true.
+ 		!allconverged=.true.
         write(*,*)"warning: error is gettig larger again",rnorms(idamax(n,rnorms,1))
         if (rnormmax.gt. .5e-6)then
         allconverged=.false.

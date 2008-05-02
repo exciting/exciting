@@ -1,5 +1,5 @@
 subroutine remove_converged(evecmap,iunconverged,rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
-  use sclcontroll,only:diismax,epsresid
+  use sclcontroll,only:diismax,epsresid,maxdiisspace
   use modmain,only:nstfv
   implicit none
   integer, intent(in)::n
@@ -22,7 +22,7 @@ subroutine remove_converged(evecmap,iunconverged,rnorms,n,r,h,s,eigenvector,eige
               call zcopy(n,r(1,oldindex),1,r(1,newindex),1)
              
               rnorms(newindex)=rnorms(oldindex)
-              do idiis=1,diismax
+              do idiis=1,maxdiisspace
                eigenvalue(newindex,idiis)=eigenvalue(oldindex,idiis)
                  call zcopy(n,h(1,oldindex,idiis),1,h(1,newindex,idiis),1)
                  call zcopy(n,s(1,oldindex,idiis),1,s(1,newindex,idiis),1)

@@ -71,8 +71,11 @@ w=v+jmax
  ! write(80,rec=1)zwork
  ! close(80)
   
-  if(ispacked(system%overlap)) call normalizep(n,nstfv,system%overlap%zap,eivec,n)	
-  
+  if(ispacked(system%overlap)) then
+  call normalizep(n,nstfv,system%overlap%zap,eivec,n)	
+  else
+  call normalize(n,nstfv,system%overlap%za,eivec,n)	
+  endif
   do i=1,nstfv
      call zcopy(n,eivec(1,i),1,evecfv(1,i,ispn),1)
      evalfv(i,ispn)=dble (alpha(i)/beta(i))
