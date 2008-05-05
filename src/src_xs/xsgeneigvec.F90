@@ -129,6 +129,7 @@ subroutine writeevec(vq,voff,filxt)
      write(unit2,rec=ik) vq,vkl(:,ik),lodlm
   end do
   close(unit1)
+  close(unit2)
   isreadstate0=.false.
   deallocate(evecfv,apwalm,apwdlm)
 end subroutine writeevec
