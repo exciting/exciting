@@ -68,8 +68,8 @@ subroutine xsinit(cnt)
      write(unitout,*)
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
-     write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3,&
-          " (eXcited States "I1.1,".",I3.3," ) started |")') version,versionxs
+     write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
+          &States "I1.1,".",I3.3," ) started |")') version,versionxs
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
 #ifdef MPI

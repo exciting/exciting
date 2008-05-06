@@ -1,12 +1,12 @@
 
-INFORMATION ON HOWTO BUILD SERIAL AND PARALLEL EXECUTABLES
+INFORMATION ON HOWTO BUILD EXECUTABLES
 
 The directories "serial" and "parallel" are provided for building
 serial and parallel executables independently.
 
 Building serial or parallel executables:
 
-(1) Go to either of the directories "serial" or "parallel"
+(1) Go to one of the subdirectories, e.g. to "serial" or "parallel"
 
     Copy or link one of the "make.inc*" templates there
     to "make.inc" or create your own "make.inc" file.
@@ -15,24 +15,20 @@ Building serial or parallel executables:
 
 	make libs
 
-    You should now have obtained the files "blas.a", "lapack.a", "fftlib.a"
-    and "libbzint.a"
+    You should now have obtained the files "libblas.a", "liblapack.a",
+    "fftlib.a","libbzint.a" and "libarpack.a"
 
     Alternatively, you can build any of the libraries separately
     by invoking
 
-        make {blas|lapack|fftlib|libbzint}
+        make {libblas.a|liblapack.a|fftlib.a|libbzint.a|libarpack.a}
 
 (3) Second, you build the main part of the code by invoking
 
 	make
 
-    or
-
-	make {serial|parallel}
-
 (4) If not specified otherwise, an executable with the name "exciting" or 
-    "excitingmpi" resides in the "serial" or "parallel" directory depending on 
-    where you are building and is ready for execution. The executable is also
+    "exciting*" resides in the subdirectory of choice, e.g. "serial" or
+    "parallel" and is ready for execution. The executable is also
     distributed to the (parent) build-directory.
 

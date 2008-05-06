@@ -68,8 +68,8 @@ contains
                       p34(j,i2,i1)=zzero
                       if (abs(docc21(i2,i1)).gt.epsocc) then
                          write(*,'("Warning(",a,"): divergent energy &
-                              denominator: q-point, k-point, band indices &
-                              &3-4:",4i6,g18.10)')&
+                              &denominator: q-point, k-point, band indices &
+                              &3-4:",4i6,g18.10)') &
                               thisnam,iq,ik,i1+istlo1-1,i2+istlo2-1,deuo(i2,i1)
                       end if
                    end if

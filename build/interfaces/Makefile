@@ -1,12 +1,14 @@
 include make.inc
 
 
-serial:make.inc
-	../../utilities/mkmf -t template -f -m Makefile.serial -p exciting_interfaces \
+interfaces :make.inc
+	../../utilities/mkmf -t template -f -m Makefile.interfaces -p \
+		exciting_interfaces \
         ../../src  \
-	../../src/src_xs \
         ../../src/src_iterative_solver \
-        && make -f Makefile.serial exciting_interfaces \
+	../../src/src_fermisurfdx \
+	../../src/src_xs \
+        && make -f Makefile.interfaces exciting_interfaces \
         && cp -f exciting_interfaces ..
 
 libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a

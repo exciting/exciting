@@ -1,13 +1,14 @@
 include make.inc
 
 
-serial:make.inc
-	../../utilities/mkmf -t template -f -m Makefile.serial -p excitingsmp \
+smp :make.inc
+	../../utilities/mkmf -t template -f -m Makefile.smp -p excitingsmp \
         ../../src  \
-	../../src/src_xs \
         ../../src/src_iterative_solver \
-        && make -f Makefile.serial excitingsmp \
-     
+	../../src/src_fermisurfdx \
+	../../src/src_xs \
+        && make -f Makefile.smp excitingsmp \
+
 
 libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a
 

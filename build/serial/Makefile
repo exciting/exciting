@@ -6,6 +6,7 @@ serial: make.inc
 	../../utilities/mkmf -t template -f -m Makefile.serial -p exciting \
         ../../src  \
         ../../src/src_iterative_solver \
+	../../src/src_fermisurfdx \
 	../../src/src_xs \
         && make -f Makefile.serial exciting \
         && cp -f exciting ..

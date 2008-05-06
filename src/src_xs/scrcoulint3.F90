@@ -140,6 +140,7 @@ subroutine scrcoulint3
 
 write(*,*) 'shape(sccli)',shape(sccli)
 write(*,*) 'record length for SCI',recl
+write(*,'(a,f12.3)') 'estimated disk space (GB)',recl*nkptnr*(nkptnr+1)/2.d0*(nst12*nst34)**2/1024.d0**3
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
@@ -313,6 +314,7 @@ if (ikkp.eq.1) write(*,'(a,2g18.10)') 'W-diagonal long range term:',scrni(1,1,1)
 !!$        end do
 !</backup>
 
+if (ikkp.le.100) then
         ! write to ASCII file
 	do ist1=1,nst1
 	   do ist3=1,nst3
@@ -325,6 +327,7 @@ if (ikkp.eq.1) write(*,'(a,2g18.10)') 'W-diagonal long range term:',scrni(1,1,1)
 	      end do
 	   end do
 	end do
+end if	
 
         ! write screened Coulomb interaction to direct-access file
         write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2, &
