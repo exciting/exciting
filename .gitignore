@@ -2,9 +2,8 @@
 *.mod
 *.a
 exciting
-excitings
-excitingp
 excitingmpi
+excitingsmp
 exciting_debug
 exciting_interfaces
 *.dat
@@ -25,6 +24,9 @@ examples/xs
 .settings/*
 Makefile.serial
 Makefile.parallel
+Makefile.smp
+Makefile.debug
+Makefile.interfaces
 make.inc
 make.out
 mpif.h
