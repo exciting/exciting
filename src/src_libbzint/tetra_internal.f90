@@ -167,7 +167,7 @@ subroutine tetrareportsettings
   write(*,'(a,i6)') '  debug level      (default=1000)     :', tetradbglv
   write(*,'(a,i6)') '  pointer handling (default=0)        :', pointerhandling
   write(*,'(a,i6)') '  resonance type   (default=0)        :', restype
-  write(*,'(a,l)')  '  kplusq           (default=F)        :', kplusq
+  write(*,'(a,l6)') '  kplusq           (default=F)        :', kplusq
   write(*,*)
 end subroutine tetrareportsettings
 !</sag>
