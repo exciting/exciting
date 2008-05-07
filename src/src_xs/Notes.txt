@@ -1,0 +1,45 @@
+
+
+--------------------------------------------------------------------------------
+>> Apr 3, 2008
+--------------------------------------------------------------------------------
+
+	+ global variable for BSE-diag minimum/average  bsediag
+	+ subtract bsediag from BSE ham.
+	+ account for bsediag in KS/QP-response functions
+
+--------------------------------------------------------------------------------
+>> Apr 22, 2008
+--------------------------------------------------------------------------------
+
+	+ faster momentum-matrix elements:
+	----------------------------------
+	  * pmatrad.F90
+	  * pmatkgmt.F90
+	  * genpmat2.F90
+	  - writepmat.F90 : switch for choosing either genpmat.F90 or
+	  	genpmat2.F90
+
+
+
+--------------------------------------------------------------------------------
+>> Apr 24, 2008
+--------------------------------------------------------------------------------
+FINISHED
+	+ shift APW-lo, lo-APW and lo-lo parts in ematqk to ematqkgmt
+		by defining a contracted quantity similar to "apwdlm" for
+		APW-APW part *** DONE & WORKING ***
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+>> Apr 24, 2008
+--------------------------------------------------------------------------------
+	+ write nv/nc to file for SCCLI/EXCLI
+	+ input parameters for SCCLI/EXCLI and BSE (nv/nc)
+	proposal:  nbf,naf as generic names and
+	"nbfci,nafci" (number below/abve Fermi Coulomb interactions)
+	and "nbfbse,nafbse"
+
+--------------------------------------------------------------------------------
+

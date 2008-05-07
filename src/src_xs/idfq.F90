@@ -45,6 +45,7 @@ subroutine idfq(iq)
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iq,filnam=filnam)
   call genfilname(iqmt=iq,setfilext=.true.)
+  call init1xs(qvkloff(1,iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find limits for band combinations
@@ -57,18 +58,19 @@ subroutine idfq(iq)
   call getunit(unit2)
   ! neglect/include local field effects
   do m=1,n,max(n-1,1)
-     ! The ALDA kernel does not depend on q in principle, but the G-mesh
-     ! depends through its cutoff for G+q on q. It is independent of w.
-     if (fxctype.eq.5) then
+     select case(fxctype)
+     case(5)
+        ! The ALDA kernel does not depend on q in principle, but the G-mesh
+        ! depends through its cutoff for G+q on q. It is independent of w.
         call fxcifc(fxctype,iq=iq,ng=m,fxcg=fxc)
         ! add symmetrized Coulomb potential (is equal to unity matrix)
         forall(j=1:m) 
            fxc(j,j)=fxc(j,j)+1.d0
         end forall
-     end if
+     end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
-        do oct2=1,nc
+        do oct2=oct1,oct1 !1,nc
            oct=octmap(oct1,oct2)
            ! filename for output file
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
@@ -91,9 +93,14 @@ subroutine idfq(iq)
                     chi0(2:,1)=chi0wg(2:,2,oct2)
                  end if
               end if
+              ! symmerize KS-response ( ** not working ** )
+              !if (m.eq.n) then
+              !   call  symg2f(vql(1,iq),n,igqig(1,iq),chi0)
+              !end if
               ! generate xc-kernel
-              if (fxctype.ne.5) then
-                 call fxcifc(fxctype,ng=m,w=w(iw),alrc=alphalrc,&
+              select case(fxctype)
+              case(0,1,2,3,4,7,8)
+                 call fxcifc(fxctype,ng=m,iw=iw,w=w(iw),alrc=alphalrc,&
                       alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
                  forall(j=1:m) 
@@ -101,9 +108,9 @@ subroutine idfq(iq)
                  end forall
                  ! head of pure f_xc kernel
                  if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
-              end if
+              end select
               ! solve Dyson's equation for the interacting response function
-              call dyson(iq,oct,iw,n,chi0,fxc,idf)
+              call dyson(n,chi0,fxc,idf)
               ! symmetrized inverse dielectric function (add one)
               forall(j=1:m) 
                  idf(j,j)=idf(j,j)+1.d0

@@ -842,7 +842,7 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,150 /
+data version / 0,9,151 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=20
 ! number of tasks

@@ -11,9 +11,6 @@ notes
  with respect to k-point set later.
  Run by H. Golightly
 
-
-
-
 avec
   1.0  1.0  0.0
   1.0  0.0  1.0
@@ -37,4 +34,3 @@ ngridk
 
 vkloff
   0.5  0.5  0.5
-

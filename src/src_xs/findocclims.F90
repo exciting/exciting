@@ -106,9 +106,9 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      write(*,'(a)') 'Info(findocclims): partially occupied states present'
   end if
   if (ksgap) then
-     write(*,'(a)') 'Info(findocclims): system has KS-gap'
+     write(*,'(a)') 'Info(findocclims): system has Kohn-Sham gap'
   else
-     write(*,'(a)') 'Info(findocclims): no KS-gap found'
+     write(*,'(a)') 'Info(findocclims): no Kohn-Sham gap found'
   end if
   ! debug output
   if (dbglev.gt.0) then

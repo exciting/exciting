@@ -164,9 +164,13 @@ subroutine linopt
      w(iw)=t1*dble(iw-1)+wdos(1)
   end do
   ! number of subdivisions used for interpolation
-  do i=1,3
-     nsk(i)=max(ngrdos/ngridk(i),1)
-  end do
+!!$  do i=1,3
+!!$     nsk(i)=max(ngrdos/ngridk(i),1)
+!!$  end do
+  ! <sag>
+  ! keep original ratio of ngridk
+  nsk(:)=ngrdos
+  ! </sag>
   ! find the record length for momentum matrix element file
   inquire(iolength=recl) pmat
 #ifdef XS

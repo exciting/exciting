@@ -8,5 +8,5 @@ subroutine ematqdealloc
   use modmpi
   use modxs
   implicit none
-  deallocate(evecfv,evecfv0,evalsv0,xih,apwdlm,apwdlm0)
+  deallocate(evecfv,evecfv0,evalsv0,xih,apwdlm,apwdlm0,lodlm,lodlm0)
 end subroutine ematqdealloc

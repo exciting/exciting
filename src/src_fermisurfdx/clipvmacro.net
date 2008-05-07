@@ -1,0 +1,734 @@
+//
+// time: Tue Jan 18 13:58:08 2005
+//
+// version: 3.2.0 (format), 4.3.0 (DX)
+//
+//
+//
+// macro reference (direct): ClipSurfaceMacro /usr/local/dx/samples/macros/ClipSurfaceMacro.net
+include "ClipSurfaceMacro.net"
+//
+// Begin MDF
+// MODULE clipvmacro
+// CATEGORY Macros
+// INPUT surface; field; (none);  surface field
+// INPUT volume; object; (none); volume field
+// INPUT point; value list or field or string or string list; (none);  point of plane
+// INPUT normal; value list or field or string or string list; (none);  normal of plane
+// OUTPUT output_1; object;  
+// End MDF
+// page assignment: cap	order=3, windowed=0, showing=0
+// page assignment: clipCap	order=5, windowed=0, showing=0
+// page assignment: main	order=6, windowed=0, showing=1
+// page assignment: plane	order=4, windowed=0, showing=0
+// page assignment: surfaceInfo	order=2, windowed=0, showing=0
+// workspace: width = 847, height = 613
+// layout: snap = 0, width = 50, height = 50, align = NN
+//
+macro clipvmacro(
+ surface
+,volume
+,point
+,normal
+) -> (
+ output_1
+) {
+    // 
+    // node Input[5]: x = 32, y = 10, inputs = 0, label = Input
+    // page group: main
+    // parameter: position = 1, name = 'surface', value = ' ', descriptive = 0, description = ' surface field', required = 1, visible = 1
+    //
+clipvmacro_Input_5_out_1 = surface;
+    // 
+    // node Transmitter[7]: x = 107, y = 58, inputs = 1, label = Surface
+    // page group: main
+    //
+Surface = clipvmacro_Input_5_out_1;
+    // 
+    // node Receiver[5]: x = 267, y = 10, inputs = 1, label = Surface
+    // page group: surfaceInfo
+    //
+clipvmacro_Receiver_5_out_1[cache: 0] = Surface;
+    // 
+    // node Inquire[2]: x = 25, y = 118, inputs = 3, label = Inquire
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "has attribute"
+    // input[3]: defaulting = 0, visible = 1, type = 32, value = "Isosurface value"
+    // page group: surfaceInfo
+    //
+clipvmacro_Inquire_2_out_1 = 
+    Inquire(
+    clipvmacro_Receiver_5_out_1,
+    "has attribute",
+    "Isosurface value"
+    ) [instance: 2, cache: 1];
+    // 
+    // node Route[3]: x = 113, y = 177, inputs = 2, outputs = 2, label = Route
+    // page group: surfaceInfo
+    //
+clipvmacro_Route_3_out_1,
+clipvmacro_Route_3_out_2 = 
+    Route(
+    clipvmacro_Inquire_2_out_1,
+    clipvmacro_Receiver_5_out_1
+    ) [instance: 3, cache: 1];
+    // 
+    // node Attribute[2]: x = 108, y = 268, inputs = 2, label = Attribute
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "Isosurface value"
+    // page group: surfaceInfo
+    //
+clipvmacro_Attribute_2_out_1 = 
+    Attribute(
+    clipvmacro_Route_3_out_1,
+    "Isosurface value"
+    ) [instance: 2, cache: 1];
+    // 
+    // node Inquire[3]: x = 447, y = 113, inputs = 3, label = Inquire
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "has attribute"
+    // input[3]: defaulting = 0, visible = 1, type = 32, value = "ClipVolume planes"
+    // page group: surfaceInfo
+    //
+clipvmacro_Inquire_3_out_1 = 
+    Inquire(
+    clipvmacro_Receiver_5_out_1,
+    "has attribute",
+    "ClipVolume planes"
+    ) [instance: 3, cache: 1];
+    // 
+    // node Route[4]: x = 542, y = 119, inputs = 2, outputs = 2, label = Route
+    // page group: surfaceInfo
+    //
+clipvmacro_Route_4_out_1,
+clipvmacro_Route_4_out_2 = 
+    Route(
+    clipvmacro_Inquire_3_out_1,
+    clipvmacro_Receiver_5_out_1
+    ) [instance: 4, cache: 1];
+    // 
+    // node Attribute[3]: x = 566, y = 195, inputs = 2, label = Attribute
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "ClipVolume planes"
+    // page group: surfaceInfo
+    //
+clipvmacro_Attribute_3_out_1 = 
+    Attribute(
+    clipvmacro_Route_4_out_1,
+    "ClipVolume planes"
+    ) [instance: 3, cache: 1];
+    // 
+    // node Attribute[4]: x = 321, y = 142, inputs = 2, label = Attribute
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "CappedIsosurface capDir"
+    // page group: surfaceInfo
+    //
+clipvmacro_Attribute_4_out_1 = 
+    Attribute(
+    clipvmacro_Receiver_5_out_1,
+    "CappedIsosurface capDir"
+    ) [instance: 4, cache: 1];
+    // 
+    // node Input[2]: x = 208, y = 16, inputs = 0, label = Input
+    // page group: main
+    // parameter: position = 2, name = 'volume', value = ' ', descriptive = 0, description = 'volume field', required = 1, visible = 1
+    //
+clipvmacro_Input_2_out_1 = volume;
+    // 
+    // node Transmitter[5]: x = 199, y = 101, inputs = 1, label = Volume
+    // page group: main
+    //
+Volume = clipvmacro_Input_2_out_1;
+    // 
+    // node Receiver[4]: x = 29, y = 0, inputs = 1, label = Volume
+    // page group: cap
+    //
+clipvmacro_Receiver_4_out_1[cache: 0] = Volume;
+    // 
+    // node Input[3]: x = 63, y = 20, inputs = 0, label = Input
+    // page group: plane
+    // parameter: position = 3, name = 'point', value = ' ', descriptive = 0, description = ' point of plane', required = 1, visible = 1
+    //
+clipvmacro_Input_3_out_1 = point;
+    // 
+    // node Transmitter[2]: x = 45, y = 109, inputs = 1, label = Point
+    // page group: plane
+    //
+Point = clipvmacro_Input_3_out_1;
+    // 
+    // node Receiver[2]: x = 98, y = 0, inputs = 1, label = Point
+    // page group: cap
+    //
+clipvmacro_Receiver_2_out_1[cache: 0] = Point;
+    // 
+    // node Input[4]: x = 167, y = 27, inputs = 0, label = Input
+    // page group: plane
+    // parameter: position = 4, name = 'normal', value = ' ', descriptive = 0, description = ' normal of plane', required = 1, visible = 1
+    //
+clipvmacro_Input_4_out_1 = normal;
+    // 
+    // node Transmitter[3]: x = 220, y = 117, inputs = 1, label = Normal
+    // page group: plane
+    //
+Normal = clipvmacro_Input_4_out_1;
+    // 
+    // node Receiver[3]: x = 130, y = 68, inputs = 1, label = Normal
+    // page group: cap
+    //
+clipvmacro_Receiver_3_out_1[cache: 0] = Normal;
+    // 
+    // node MapToPlane[1]: x = 25, y = 124, inputs = 3, label = MapToPlane
+    // page group: cap
+    //
+clipvmacro_MapToPlane_1_out_1 = 
+    MapToPlane(
+    clipvmacro_Receiver_4_out_1,
+    clipvmacro_Receiver_2_out_1,
+    clipvmacro_Receiver_3_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node Transmitter[9]: x = 124, y = 354, inputs = 1, label = isoval
+    // page group: surfaceInfo
+    //
+isoval = clipvmacro_Attribute_2_out_1;
+    // 
+    // node Receiver[11]: x = 378, y = 194, inputs = 1, label = isoval
+    // page group: cap
+    //
+clipvmacro_Receiver_11_out_1[cache: 0] = isoval;
+    // 
+    // node Band[3]: x = 227, y = 221, inputs = 4, label = Band
+    // input[4]: defaulting = 0, visible = 1, type = 32, value = "original"
+    // page group: cap
+    //
+clipvmacro_Band_3_out_1 = 
+    Band(
+    clipvmacro_MapToPlane_1_out_1,
+    clipvmacro_Receiver_11_out_1,
+    NULL,
+    "original"
+    ) [instance: 3, cache: 1];
+    // 
+    // node Compute[2]: x = 106, y = 131, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "[$1.x,$1.y,$1.z,-($0.x*$1.x + $0.y*$1.y + $0.z*$1.z)]"
+    // page group: plane
+    // expression: value = [b.x,b.y,b.z,-(a.x*b.x + a.y*b.y + a.z*b.z)]
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+clipvmacro_Compute_2_out_1 = 
+    Compute(
+    "[$1.x,$1.y,$1.z,-($0.x*$1.x + $0.y*$1.y + $0.z*$1.z)]",
+    clipvmacro_Input_3_out_1,
+    clipvmacro_Input_4_out_1
+    ) [instance: 2, cache: 1];
+    // 
+    // node Transmitter[6]: x = 102, y = 232, inputs = 1, label = plane
+    // page group: plane
+    //
+plane = clipvmacro_Compute_2_out_1;
+    // 
+    // node Receiver[13]: x = 143, y = 166, inputs = 1, label = plane
+    // page group: main
+    //
+clipvmacro_Receiver_13_out_1[cache: 0] = plane;
+    // 
+    // node ClipSurfaceMacro[2]: x = 92, y = 258, inputs = 2, label = ClipSurfaceMacro
+    // page group: main
+    //
+clipvmacro_ClipSurfaceMacro_2_out_1 = 
+    ClipSurfaceMacro(
+    clipvmacro_Input_5_out_1,
+    clipvmacro_Receiver_13_out_1
+    ) [instance: 2, cache: 1];
+    // 
+    // node Transmitter[8]: x = 31, y = 344, inputs = 1, label = isIso
+    // page group: surfaceInfo
+    //
+isIso = clipvmacro_Inquire_2_out_1;
+    // 
+    // node Receiver[10]: x = 41, y = 196, inputs = 1, label = isIso
+    // page group: cap
+    //
+clipvmacro_Receiver_10_out_1[cache: 0] = isIso;
+    // 
+    // node Compute[7]: x = 42, y = 305, inputs = 2, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$0+1"
+    // page group: cap
+    // expression: value = a+1
+    // name[2]: value = a
+    //
+clipvmacro_Compute_7_out_1 = 
+    Compute(
+    "$0+1",
+    clipvmacro_Receiver_10_out_1
+    ) [instance: 7, cache: 1];
+    // 
+    // node Inquire[4]: x = 215, y = 143, inputs = 3, label = Inquire
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "has attribute + 1"
+    // input[3]: defaulting = 0, visible = 1, type = 32, value = "CappedIsosurface capDir"
+    // page group: surfaceInfo
+    //
+clipvmacro_Inquire_4_out_1 = 
+    Inquire(
+    clipvmacro_Receiver_5_out_1,
+    "has attribute + 1",
+    "CappedIsosurface capDir"
+    ) [instance: 4, cache: 1];
+    // 
+    // node Switch[4]: x = 250, y = 230, inputs = 3, label = Switch
+    // input[2]: defaulting = 0, visible = 1, type = 67108863, value = 1
+    // page group: surfaceInfo
+    //
+clipvmacro_Switch_4_out_1 = 
+    Switch(
+    clipvmacro_Inquire_4_out_1,
+    1,
+    clipvmacro_Attribute_4_out_1
+    ) [instance: 4, cache: 1];
+    // 
+    // node Transmitter[14]: x = 263, y = 326, inputs = 1, label = isoCapDir
+    // page group: surfaceInfo
+    //
+isoCapDir = clipvmacro_Switch_4_out_1;
+    // 
+    // node Receiver[12]: x = 182, y = 418, inputs = 1, label = isoCapDir
+    // page group: cap
+    //
+clipvmacro_Receiver_12_out_1[cache: 0] = isoCapDir;
+    // 
+    // node Compute[8]: x = 285, y = 449, inputs = 2, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$0 == 1 ? 2 : 1"
+    // page group: cap
+    // expression: value = a == 1 ? 2 : 1
+    // name[2]: value = a
+    //
+clipvmacro_Compute_8_out_1 = 
+    Compute(
+    "$0 == 1 ? 2 : 1",
+    clipvmacro_Receiver_12_out_1
+    ) [instance: 8, cache: 1];
+    // 
+    // node Include[3]: x = 239, y = 339, inputs = 6, label = Include
+    // page group: cap
+    //
+clipvmacro_Include_3_out_1 = 
+    Include(
+    clipvmacro_Band_3_out_1,
+    clipvmacro_Receiver_11_out_1,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+    ) [instance: 3, cache: 1];
+    // 
+    // node Include[4]: x = 402, y = 330, inputs = 6, label = Include
+    // page group: cap
+    //
+clipvmacro_Include_4_out_1 = 
+    Include(
+    clipvmacro_Band_3_out_1,
+    NULL,
+    clipvmacro_Receiver_11_out_1,
+    NULL,
+    NULL,
+    NULL
+    ) [instance: 4, cache: 1];
+    // 
+    // node Switch[6]: x = 398, y = 480, inputs = 3, label = Switch
+    // page group: cap
+    //
+clipvmacro_Switch_6_out_1 = 
+    Switch(
+    clipvmacro_Compute_8_out_1,
+    clipvmacro_Include_3_out_1,
+    clipvmacro_Include_4_out_1
+    ) [instance: 6, cache: 1];
+    // 
+    // node Switch[7]: x = 94, y = 497, inputs = 3, label = Switch
+    // page group: cap
+    //
+clipvmacro_Switch_7_out_1 = 
+    Switch(
+    clipvmacro_Compute_7_out_1,
+    clipvmacro_MapToPlane_1_out_1,
+    clipvmacro_Switch_6_out_1
+    ) [instance: 7, cache: 1];
+    // 
+    // node Transmitter[15]: x = 188, y = 551, inputs = 1, label = cap
+    // page group: cap
+    //
+cap = clipvmacro_Switch_7_out_1;
+    // 
+    // node Receiver[15]: x = 136, y = 63, inputs = 1, label = cap
+    // page group: clipCap
+    //
+clipvmacro_Receiver_15_out_1[cache: 0] = cap;
+    // 
+    // node GetLocal[1]: x = 276, y = 90, inputs = 3, label = GetLocal
+    // page group: clipCap
+    //
+clipvmacro_GetLocal_1_out_1,
+clipvmacro_GetLocal_1_out_2 = 
+    GetLocal(
+    clipvmacro_Receiver_15_out_1,
+    NULL,
+    NULL
+    ) [instance: 1, cache: 1];
+    // 
+    // node Transmitter[11]: x = 556, y = 316, inputs = 1, label = inputPlanes
+    // page group: surfaceInfo
+    //
+inputPlanes = clipvmacro_Attribute_3_out_1;
+    // 
+    // node Receiver[14]: x = 404, y = 48, inputs = 1, label = inputPlanes
+    // page group: clipCap
+    //
+clipvmacro_Receiver_14_out_1[cache: 0] = inputPlanes;
+    // 
+    // node ForEachMember[1]: x = 400, y = 135, inputs = 1, label = ForEachMember
+    // page group: clipCap
+    //
+clipvmacro_ForEachMember_1_out_1,
+clipvmacro_ForEachMember_1_out_2,
+clipvmacro_ForEachMember_1_out_3 = 
+    ForEachMember(
+    clipvmacro_Receiver_14_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node ClipSurfaceMacro[3]: x = 245, y = 202, inputs = 2, label = ClipSurfaceMacro
+    // page group: clipCap
+    //
+clipvmacro_ClipSurfaceMacro_3_out_1 = 
+    ClipSurfaceMacro(
+    clipvmacro_GetLocal_1_out_1,
+    clipvmacro_ForEachMember_1_out_1
+    ) [instance: 3, cache: 1];
+    // 
+    // node Collect[3]: x = 188, y = 360, inputs = 2, label = Collect
+    // page group: main
+    //
+clipvmacro_Collect_3_out_1 = 
+    Collect(
+    clipvmacro_ClipSurfaceMacro_2_out_1,
+    NULL
+    ) [instance: 3, cache: 1];
+    // 
+    // node Transmitter[10]: x = 430, y = 205, inputs = 1, label = hasInputPlanes
+    // page group: surfaceInfo
+    //
+hasInputPlanes = clipvmacro_Inquire_3_out_1;
+    // 
+    // node Receiver[7]: x = 226, y = 286, inputs = 1, label = hasInputPlanes
+    // page group: plane
+    //
+clipvmacro_Receiver_7_out_1[cache: 0] = hasInputPlanes;
+    // 
+    // node Compute[5]: x = 246, y = 381, inputs = 2, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$0+1"
+    // page group: plane
+    // expression: value = a+1
+    // name[2]: value = a
+    //
+clipvmacro_Compute_5_out_1 = 
+    Compute(
+    "$0+1",
+    clipvmacro_Receiver_7_out_1
+    ) [instance: 5, cache: 1];
+    // 
+    // node Receiver[18]: x = 49, y = 414, inputs = 1, label = isIso
+    // page group: main
+    //
+clipvmacro_Receiver_18_out_1[cache: 0] = isIso;
+    // 
+    // node Compute[9]: x = 71, y = 507, inputs = 2, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$0+1"
+    // page group: main
+    // expression: value = a+1
+    // name[2]: value = a
+    //
+clipvmacro_Compute_9_out_1 = 
+    Compute(
+    "$0+1",
+    clipvmacro_Receiver_18_out_1
+    ) [instance: 9, cache: 1];
+    // 
+    // node Receiver[21]: x = 25, y = 272, inputs = 1, label = hasInputPlanes
+    // page group: clipCap
+    //
+clipvmacro_Receiver_21_out_1[cache: 0] = hasInputPlanes;
+    // 
+    // node Compute[10]: x = 28, y = 375, inputs = 2, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$0+1"
+    // page group: clipCap
+    // expression: value = a+1
+    // name[2]: value = a
+    //
+clipvmacro_Compute_10_out_1 = 
+    Compute(
+    "$0+1",
+    clipvmacro_Receiver_21_out_1
+    ) [instance: 10, cache: 1];
+    // 
+    // node Receiver[6]: x = 438, y = 280, inputs = 1, label = inputPlanes
+    // page group: plane
+    //
+clipvmacro_Receiver_6_out_1[cache: 0] = inputPlanes;
+    // 
+    // node Receiver[8]: x = 377, y = 327, inputs = 1, label = plane
+    // page group: plane
+    //
+clipvmacro_Receiver_8_out_1[cache: 0] = plane;
+    // 
+    // node List[1]: x = 464, y = 395, inputs = 2, label = List
+    // page group: plane
+    //
+clipvmacro_List_1_out_1 = 
+    List(
+    clipvmacro_Receiver_6_out_1,
+    clipvmacro_Receiver_8_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node Switch[3]: x = 363, y = 460, inputs = 3, label = Switch
+    // page group: plane
+    //
+clipvmacro_Switch_3_out_1 = 
+    Switch(
+    clipvmacro_Compute_5_out_1,
+    clipvmacro_Receiver_8_out_1,
+    clipvmacro_List_1_out_1
+    ) [instance: 3, cache: 1];
+    // 
+    // node Transmitter[12]: x = 378, y = 541, inputs = 1, label = planeList
+    // page group: plane
+    //
+planeList = clipvmacro_Switch_3_out_1;
+    // 
+    // node Receiver[17]: x = 262, y = 388, inputs = 1, label = planeList
+    // page group: main
+    //
+clipvmacro_Receiver_17_out_1[cache: 0] = planeList;
+    // 
+    // node Options[2]: x = 176, y = 457, inputs = 3, label = Options
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "ClipVolume planes"
+    // page group: main
+    //
+clipvmacro_Options_2_out_1 = 
+    Options(
+    clipvmacro_Collect_3_out_1,
+    "ClipVolume planes",
+    clipvmacro_Receiver_17_out_1
+    ) [instance: 2, cache: 1];
+    // 
+    // node Receiver[19]: x = 374, y = 387, inputs = 1, label = isoval
+    // page group: main
+    //
+clipvmacro_Receiver_19_out_1[cache: 0] = isoval;
+    // 
+    // node Receiver[20]: x = 431, y = 391, inputs = 1, label = isoCapDir
+    // page group: main
+    //
+clipvmacro_Receiver_20_out_1[cache: 0] = isoCapDir;
+    // 
+    // node Options[3]: x = 284, y = 524, inputs = 5, label = Options
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "Isosurface value"
+    // input[4]: defaulting = 0, visible = 1, type = 32, value = "CappedIsosurface capClip"
+    // page group: main
+    //
+clipvmacro_Options_3_out_1 = 
+    Options(
+    clipvmacro_Options_2_out_1,
+    "Isosurface value",
+    clipvmacro_Receiver_19_out_1,
+    "CappedIsosurface capClip",
+    clipvmacro_Receiver_20_out_1
+    ) [instance: 3, cache: 1];
+    // 
+    // node Switch[8]: x = 178, y = 541, inputs = 3, label = Switch
+    // page group: main
+    //
+clipvmacro_Switch_8_out_1 = 
+    Switch(
+    clipvmacro_Compute_9_out_1,
+    clipvmacro_Options_2_out_1,
+    clipvmacro_Options_3_out_1
+    ) [instance: 8, cache: 1];
+    // 
+    // node Output[2]: x = 447, y = 551, inputs = 1, label = Output
+    // page group: main
+    // parameter: position = 1, name = 'output_1', value = ' ', descriptive = 0, description = ' ', required = 0, visible = 1
+    //
+output_1 = clipvmacro_Switch_8_out_1;
+    // 
+    // node Transmitter[16]: x = 465, y = 219, inputs = 1, label = loopDone
+    // page group: clipCap
+    //
+loopDone = clipvmacro_ForEachMember_1_out_3;
+    // 
+    // node Receiver[22]: x = 217, y = 311, inputs = 1, label = loopDone
+    // page group: clipCap
+    //
+clipvmacro_Receiver_22_out_1[cache: 0] = loopDone;
+    // 
+    // node Route[2]: x = 304, y = 363, inputs = 2, outputs = 2, label = Route
+    // page group: clipCap
+    //
+clipvmacro_Route_2_out_1,
+clipvmacro_Route_2_out_2 = 
+    Route(
+    clipvmacro_Receiver_22_out_1,
+    clipvmacro_ClipSurfaceMacro_3_out_1
+    ) [instance: 2, cache: 1];
+    // 
+    // node Switch[9]: x = 165, y = 421, inputs = 3, label = Switch
+    // page group: clipCap
+    //
+clipvmacro_Switch_9_out_1 = 
+    Switch(
+    clipvmacro_Compute_10_out_1,
+    clipvmacro_Receiver_15_out_1,
+    clipvmacro_Route_2_out_1
+    ) [instance: 9, cache: 1];
+    // 
+    // node Transmitter[17]: x = 170, y = 519, inputs = 1, label = clippedCap
+    // page group: clipCap
+    //
+clippedCap = clipvmacro_Switch_9_out_1;
+    // 
+    // node Receiver[23]: x = 264, y = 247, inputs = 1, label = clippedCap
+    // page group: main
+    //
+clipvmacro_Receiver_23_out_1[cache: 0] = clippedCap;
+    // 
+    // node SetLocal[1]: x = 338, y = 283, inputs = 3, label = SetLocal
+    // page group: clipCap
+    //
+    SetLocal(
+    clipvmacro_ClipSurfaceMacro_3_out_1,
+    clipvmacro_GetLocal_1_out_2,
+    NULL
+    ) [instance: 1, cache: 1];
+    //
+    // decorator Annotate	pos=(267,22) size=532x172 style(Label), value = <NULL>
+    // annotation user_begin: 671
+    // annotation user: Given a surface and the volume from which it was generated, this
+    // annotation user: macro clips the surface against a given plane, and closes the result
+    // annotation user: by generating the intersection of the volume with the plane (MapToPlane)
+    // annotation user: and clipping it against any previous clipping planes.  In this manner the 
+    // annotation user: ShowBoundary of the volume can be clipped away, revealing an interior
+    // annotation user: slice.  If the input surface is derived from ClippedIsosurface (and thus has
+    // annotation user: both Isosurface value and CappedIsosurface capDir attributes) the mapped
+    // annotation user: planar intersection is clipped at the isovalue and the one part or the other 
+    // annotation user: is disarded.  In this manner we can slice away a closed isosurface to reveal 
+    // annotation user: its interior.
+    // annotation user_end: <NULL>
+    // page group: main
+    //
+    // decorator Annotate	pos=(201,214) size=471x44 style(Label), value = <NULL>
+    // annotation user_begin: 116
+    // annotation user: Create a planar equation from a point/normal form.  Append this to
+    // annotation user: the list of prior clipping planes, if one exists.
+    // annotation user_end: <NULL>
+    // page group: plane
+    //
+    // decorator Annotate	pos=(99,451) size=467x60 style(Label), value = <NULL>
+    // annotation user_begin: 155
+    // annotation user: Extract information from the input surface - is it an isosurface, and
+    // annotation user: if so, what value?  Were there earlier clipping planes?  Was it a 
+    // annotation user: capped isosurface?
+    // annotation user_end: <NULL>
+    // page group: surfaceInfo
+    //
+    // decorator Annotate	pos=(196,20) size=453x44 style(Label), value = <NULL>
+    // annotation user_begin: 104
+    // annotation user: Generate the cap in the clipping plane, dividing it if the surfaces
+    // annotation user: were derived from a CappedIsosurface
+    // annotation user_end: <NULL>
+    // page group: cap
+    //
+    // decorator Annotate	pos=(269,455) size=477x60 style(Label), value = <NULL>
+    // annotation user_begin: 166
+    // annotation user: If there were previous clipping planes, we need to apply then to the
+    // annotation user: cap we are generating in this clipping plane.  We do this by looping
+    // annotation user: on the list of prior planes.
+    // annotation user_end: <NULL>
+    // page group: clipCap
+    //
+    // decorator Annotate	pos=(522,449) size=325x92 style(Label), value = <NULL>
+    // annotation user_begin: 193
+    // annotation user: Add the updated list of clipping planes as the
+    // annotation user: ClipVolume planes attribute.  If we were
+    // annotation user: operating on a result of isosurface, add the
+    // annotation user: Isosurface isovalue and CappedIsosurface 
+    // annotation user: capDir attributes.
+    // annotation user_end: <NULL>
+    // page group: main
+// network: end of macro body
+}
+clipvmacro_Input_5_out_1 = NULL;
+clipvmacro_Transmitter_7_out_1 = NULL;
+clipvmacro_Receiver_5_out_1 = NULL;
+clipvmacro_Inquire_2_out_1 = NULL;
+clipvmacro_Route_3_out_1 = NULL;
+clipvmacro_Attribute_2_out_1 = NULL;
+clipvmacro_Inquire_3_out_1 = NULL;
+clipvmacro_Route_4_out_1 = NULL;
+clipvmacro_Attribute_3_out_1 = NULL;
+clipvmacro_Attribute_4_out_1 = NULL;
+clipvmacro_Input_2_out_1 = NULL;
+clipvmacro_Transmitter_5_out_1 = NULL;
+clipvmacro_Receiver_4_out_1 = NULL;
+clipvmacro_Input_3_out_1 = NULL;
+clipvmacro_Transmitter_2_out_1 = NULL;
+clipvmacro_Receiver_2_out_1 = NULL;
+clipvmacro_Input_4_out_1 = NULL;
+clipvmacro_Transmitter_3_out_1 = NULL;
+clipvmacro_Receiver_3_out_1 = NULL;
+clipvmacro_MapToPlane_1_out_1 = NULL;
+clipvmacro_Transmitter_9_out_1 = NULL;
+clipvmacro_Receiver_11_out_1 = NULL;
+clipvmacro_Band_3_out_1 = NULL;
+clipvmacro_Compute_2_out_1 = NULL;
+clipvmacro_Transmitter_6_out_1 = NULL;
+clipvmacro_Receiver_13_out_1 = NULL;
+clipvmacro_ClipSurfaceMacro_2_out_1 = NULL;
+clipvmacro_Transmitter_8_out_1 = NULL;
+clipvmacro_Receiver_10_out_1 = NULL;
+clipvmacro_Compute_7_out_1 = NULL;
+clipvmacro_Inquire_4_out_1 = NULL;
+clipvmacro_Switch_4_out_1 = NULL;
+clipvmacro_Transmitter_14_out_1 = NULL;
+clipvmacro_Receiver_12_out_1 = NULL;
+clipvmacro_Compute_8_out_1 = NULL;
+clipvmacro_Include_3_out_1 = NULL;
+clipvmacro_Include_4_out_1 = NULL;
+clipvmacro_Switch_6_out_1 = NULL;
+clipvmacro_Switch_7_out_1 = NULL;
+clipvmacro_Transmitter_15_out_1 = NULL;
+clipvmacro_Receiver_15_out_1 = NULL;
+clipvmacro_GetLocal_1_out_1 = NULL;
+clipvmacro_GetLocal_1_out_2 = NULL;
+clipvmacro_Transmitter_11_out_1 = NULL;
+clipvmacro_Receiver_14_out_1 = NULL;
+clipvmacro_ForEachMember_1_out_1 = NULL;
+clipvmacro_ForEachMember_1_out_3 = NULL;
+clipvmacro_ClipSurfaceMacro_3_out_1 = NULL;
+clipvmacro_Collect_3_out_1 = NULL;
+clipvmacro_Transmitter_10_out_1 = NULL;
+clipvmacro_Receiver_7_out_1 = NULL;
+clipvmacro_Compute_5_out_1 = NULL;
+clipvmacro_Receiver_18_out_1 = NULL;
+clipvmacro_Compute_9_out_1 = NULL;
+clipvmacro_Receiver_21_out_1 = NULL;
+clipvmacro_Compute_10_out_1 = NULL;
+clipvmacro_Receiver_6_out_1 = NULL;
+clipvmacro_Receiver_8_out_1 = NULL;
+clipvmacro_List_1_out_1 = NULL;
+clipvmacro_Switch_3_out_1 = NULL;
+clipvmacro_Transmitter_12_out_1 = NULL;
+clipvmacro_Receiver_17_out_1 = NULL;
+clipvmacro_Options_2_out_1 = NULL;
+clipvmacro_Receiver_19_out_1 = NULL;
+clipvmacro_Receiver_20_out_1 = NULL;
+clipvmacro_Options_3_out_1 = NULL;
+clipvmacro_Switch_8_out_1 = NULL;
+clipvmacro_Transmitter_16_out_1 = NULL;
+clipvmacro_Receiver_22_out_1 = NULL;
+clipvmacro_Route_2_out_1 = NULL;
+clipvmacro_Switch_9_out_1 = NULL;
+clipvmacro_Transmitter_17_out_1 = NULL;

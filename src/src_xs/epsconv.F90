@@ -13,7 +13,7 @@ subroutine epsconv
   ! local variables
   character(*), parameter :: thisnam='epsconv'
   character(256) :: filnam
-  integer, parameter :: numlines_top=57
+  integer, parameter :: numlines_top=59
   integer :: iq,iw,iwp,j,m,n,oct,oct1,oct2,nc,un
   logical :: exis,tq0
   real(8), parameter :: epsc=1.d-8

@@ -8,7 +8,6 @@ subroutine ematq(iq)
   use modxs
   use modmpi
   use m_writegqpts
-  use m_putemat
   use m_filedel
   use m_genfilname
   implicit none

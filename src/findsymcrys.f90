@@ -102,7 +102,7 @@ do i=1,n
   do isym=1,nsym
 #ifdef XS
      ! exclude non-zero translations
-     if (nofract.and.(sum(abs(vtl(:,i))).gt.epslat)) goto 20
+     if (symmorph.and.(sum(abs(vtl(:,i))).gt.epslat)) goto 20
 #endif
     nsymcrys=nsymcrys+1
     if (nsymcrys.gt.maxsymcrys) then

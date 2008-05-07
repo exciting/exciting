@@ -20,9 +20,9 @@ subroutine writeemat
   call init1
   call init2xs
   ! k-point parallelization for TDDFT
-  if ((task.ge.300).or.(task.le.399)) call genparidxran('k')
+  if ((task.ge.300).and.(task.le.399)) call genparidxran('k')
   ! q-point parallelization for screening
-  if ((task.ge.400).or.(task.le.499)) call genparidxran('q')
+  if ((task.ge.400).and.(task.le.499)) call genparidxran('q')
    ! write q-point set
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file
@@ -30,9 +30,9 @@ subroutine writeemat
   ! save variables for the Gamma q-point
   call tdsave0
   ! generate Gaunt coefficients
-  call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
+  call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
   ! find indices for non-zero Gaunt coefficients
-  call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+  call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
   write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
        &within lmax values:', lmaxapw,lmaxemat,lmaxapw
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt

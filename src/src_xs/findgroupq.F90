@@ -22,7 +22,7 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
   integer, intent(out) :: ivscwrapq(3,nsymcrys)
   ! local variables
   character(*), parameter :: thisnam = 'findgroupq'
-  integer :: isym, lspl, iv(3),iv2(3)
+  integer :: isym, lspl, iv(3)
   real(8) :: s(3,3), v1(3), v1t(3), v2(3), t1
   real(8), external :: r3taxi
   nsymcrysq=0
@@ -39,14 +39,12 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
      v1t(:)=v1(:)
      ! convert v1 to equivalent point and wrapping vector
      call r3frac(epslat,v1,iv)
-!!$     ! map to first Brillouin zone
-!!$     call mapto1bz(v1,v1,iv2)
-     iv(:)=iv(:)+iv2(:)
+     iv=-iv
      ! check if new vector is equal to orinial vql vector
      t1=r3taxi(vql,v1)
      if (t1.lt.epslat) then
-        ! check again if q = s^T q + G
-        v2(:)=vql(:)+dble(iv(:))
+        ! check again if qL = sL^T qL + GL ( q = s^-1 q + G )
+        v2(:)=vql(:)-dble(iv(:))
         t1=r3taxi(v1t,v2)
         ! +++ should be obsolescent if r3taxi is working properly +++
         if (t1.gt.epslat) then

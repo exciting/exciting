@@ -74,7 +74,7 @@ subroutine xcd_pwca(n,rho,dvx,dvc)
 !   parameterisation of the Ceperley-Alder electron gas,
 !   Phys. Rev. B 45, 13244
 !   (1992) and Phys. Rev. Lett. 45, 566 (1980). Based upon the routine
-!   {\tt xc_pwca}.
+!   {\tt xc\_pwca}.
 !
 ! !REVISION HISTORY:
 !   Created February 2007 (Sagmeister)

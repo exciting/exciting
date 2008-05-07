@@ -10,6 +10,9 @@ real(8), intent(in) :: vgpc(3,ngkmax)
 integer ::n
 character(256)::prefix
 !local variables
+integer,save::ikc
+real,save :: cputot
+real:: cpuaa,cpualo,cpulolo,cpui,cpu00,cpu01
 integer::i,is,ia
 complex(8) v(1)
 real:: cpu0,cpu1
@@ -33,6 +36,7 @@ do is=1,nspecies
     call olplolon(system%overlap,is,ia,ngp)
   end do
 end do
+
 ! interstitial contributions
 call hmlistln(system%hamilton,ngp,igpig,vgpc)
 call olpistln(system%overlap,ngp,igpig)
@@ -57,5 +61,20 @@ prefix="O"
 
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
+
+
+write(60,*)
+write(60,'("Muffin-tin Hamiltonian setup; Timings (CPU seconds) :")')
+write(60,'(" k-point",T40,": ",I8)') ikc
+write(60,'(" APW-APW",T40,": ",F12.2)') cpuaa
+write(60,'(" APW- lo",T40,": ",F12.2)') cpualo
+write(60,'(" lo - lo",T40,": ",F12.2)') cpulolo
+write(60,'(" interstitial",T40,": ",F12.2)') cpui
+write(60,'(" total",T40,": ",F12.2)') cpuaa+cpualo+cpulolo+cpui
+cputot=cputot+cpuaa+cpualo+cpulolo+cpui
+write(60,'(" cumulative total",T40,": ",F12.2)') cputot
+write(60,*)
+
+
 
 end subroutine

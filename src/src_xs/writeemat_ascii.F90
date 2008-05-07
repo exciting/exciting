@@ -17,6 +17,7 @@ subroutine writeemat_ascii
   call init1
   call tdsave0
   call init2xs
+  call readfermi
   call getunit(un)
   ! loop over q-points
   do iq=1,nqpt
@@ -41,7 +42,7 @@ subroutine writeemat_ascii
      open(un,file=trim(filnam),action='write')
      ! read matrix elements of exponential expression
      call genfilname(basename='EMAT',iqmt=iq,etype=emattype,filnam=fnemat)
-     write(un,'(a)') 'iq,ik,igq,i1,i2,emat,|emat|^2, below'
+!!$     write(un,'(a)') 'iq,ik,igq,i1,i2,emat,|emat|^2, below'
      ! loop over k-points
      do ik=1,nkpt
         if (emattype.eq.0) then

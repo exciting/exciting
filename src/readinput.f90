@@ -192,6 +192,8 @@ vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
 lmaxapwtd=-1
+pmatstrat=0
+ematstrat=0
 emattype=1
 lmaxemat=3
 rsptype='reta'
@@ -200,6 +202,7 @@ nwacont=0
 brdtd=0.01
 aresdf=.true.
 epsdfde=1.d-8
+emaxdf=1.d10
 symwings=.false.
 lfediag=.false.
 fxctype=0
@@ -212,7 +215,7 @@ if (allocated(dftrans)) deallocate(dftrans)
 allocate(dftrans(3,ndftrans))
 dftrans(:,:)=0
 gather=.false.
-nofract=.false.
+symmorph=.false.
 tevout=.false.
 tappinfo=.false.
 dbglev=0
@@ -229,6 +232,7 @@ fnevecfvscr='EVECFV_SCR.OUT'
 fnevalsvscr='EVALSV_SCR.OUT'
 fnoccsvscr='OCCSV_SCR.OUT'
 ! BSE (-kernel) variables
+bsetype='ip'
 nosymbse=.false.
 reducekbse=.true.
 vkloffbse(:)=-1.d0
@@ -986,6 +990,10 @@ case('lmaxapwtd')
     write(*,*)
     stop
   end if
+case('pmatstrat')
+  read(50,*,err=20) pmatstrat
+case('ematstrat')
+  read(50,*,err=20) ematstrat
 case('emattype')
   read(50,*,err=20) emattype
 case('lmaxemat')
@@ -1030,6 +1038,8 @@ case('epsdfde')
     write(*,'("Warning(readinput[td]): epsdfde <= 0 : ",g18.10)') epsdfde
     write(*,*)
   end if
+case('emaxdf')
+  read(50,*,err=20) emaxdf
 case('symwings')
   read(50,*,err=20) symwings
 case('lfediag')
@@ -1069,8 +1079,8 @@ case('dftrans')
   end do
 case('gather')
   read(50,*,err=20) gather
-case('nofract')
-  read(50,*,err=20) nofract
+case('symmorph')
+  read(50,*,err=20) symmorph
 case('tevout')
   read(50,*,err=20) tevout
 case('appinfo')
@@ -1081,10 +1091,7 @@ case('dbglev')
 case('screentype')
    read(50,*,err=20) screentype
    select case(trim(screentype))
-   case('full')
-   case('diag')
-   case('noinvdiag')
-   case('constant')
+   case('full','diag','noinvdiag','longrange')
    case default
       write(*,*)
       write(*,'("Error(readinput): unknown screening type: ",a)') &
@@ -1131,6 +1138,17 @@ case('fnevalsvscr')
 case('fnoccsvscr')
   read(50,*,err=20) fnoccsvscr
   ! BSE (-kernel) variables
+case('bsetype')
+   read(50,*,err=20) bsetype
+   select case(trim(bsetype))
+   case('ip','rpa','singlet','triplet')
+   case default
+      write(*,*)
+      write(*,'("Error(readinput): unknown BSE-type: ",a)') &
+           trim(bsetype)
+      write(*,*)
+      stop
+   end select
 case('nosymbse')
   read(50,*,err=20) nosymbse
 case('reducekbse')

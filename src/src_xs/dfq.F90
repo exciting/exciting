@@ -19,6 +19,7 @@ subroutine dfq(iq)
   use m_chi0upd
   use m_putx0
   use m_getunit
+  use m_tdwriteh
   use m_filedel
   use m_genfilname
   implicit none
@@ -29,14 +30,14 @@ subroutine dfq(iq)
   character(256) :: fnscreen
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
-  complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:)
+  complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:),hdg(:,:,:)
   complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:)
   complex(8), allocatable :: xou(:),xouc(:),xuo(:),xuoc(:),wou(:),wuo(:)
   complex(8) :: wout
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
-  integer :: n,j,i1,i2,j1,j2,ik,ikq,iw,wi,wf,ist1,ist2,nwdfp
+  integer :: n,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
   integer :: oct,oct1,oct2,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
@@ -135,6 +136,9 @@ subroutine dfq(iq)
   if (allocated(pmuo)) deallocate(pmuo)
   allocate(pmuo(3,nst3,nst4))
   ! allocate arrays
+  
+  allocate(hdg(nst1,nst2,nkpt))
+  
   allocate(scis12(nst1,nst2))
   allocate(scis21(nst2,nst1))
   allocate(w(nwdf))
@@ -171,8 +175,16 @@ subroutine dfq(iq)
           ngq(iq)
      call ematqalloc
   end if
+
+!*******************************************************************************
+hdg=zzero
+!!!	read(1108) hdg
+!*******************************************************************************
+
   ! loop over k-points
   do ik=1,nkpt
+     write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
+          ikmapikq(ik,iq)
      cpuosc=0.d0
      cpuupd=0.d0
      call cpu_time(cpu0)
@@ -184,10 +196,32 @@ subroutine dfq(iq)
      if (tscreen) then
         ! for screening calculate matrix elements of plane wave on the fly
         call ematqk1(iq,ik)
+        if (.not.allocated(xiuo)) allocate(xiuo(nst3,nst4,n))
+        if (.not.allocated(pmuo)) allocate(pmuo(3,nst3,nst4))
      end if
+
+!*******************************************************************************
+! *** this is working for Si_lapw/apw+lo
+!	scis12=scis12+hdg(:,:,ik)
+!	scis21=scis21-hdg(:,:,ik)
+!*******************************************************************************
+
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
+     if (tscreen) then
+        ! we don't need anti-resonant parts here, assign them the same
+        ! value as for resonant parts, resulting in a factor of two.
+        do igq=1,n
+           xiuo(:,:,igq)=transpose(xiou(:,:,igq))
+        end do
+        do j=1,3
+           pmuo(j,:,:)=transpose(pmou(j,:,:))
+        end do
+        deuo(:,:)=transpose(deou(:,:))
+        docc21(:,:)=transpose(docc12(:,:))
+        scis21(:,:)=transpose(scis12(:,:))
+     end if
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
      ! response function
      if (.not.aresdf) then
@@ -310,11 +344,11 @@ subroutine dfq(iq)
                        chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                             wout*hou(1,1)+wuo(iw)*huo(1,1)
                     end do
-                    call cpu_time(cpu1)
-                    cpuosc=cpuosc+cpu1-cpu0
                  end do !oct2
               end do !oct1
            end if
+           call cpu_time(cpu1)
+           cpuosc=cpuosc+cpu1-cpu0	   
            !----------------------------------!
            !     update response function     !
            !----------------------------------!
@@ -366,6 +400,7 @@ subroutine dfq(iq)
            end if
         end do
      end do
+     call tdwriteh(un,iq)
      close(un)
   else
      do j=0,procs-1

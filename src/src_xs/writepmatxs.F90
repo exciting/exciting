@@ -11,11 +11,12 @@ subroutine writepmatxs(lgather)
   use modmain
   use modmpi
   use modxs
+  use m_getapwdlm
   use m_putpmat
   use m_genfilname
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
-!   writes them to direct access file {\tt PMAT_XS.OUT}. Derived from
+!   writes them to direct access file {\tt PMAT\_XS.OUT}. Derived from
 !   the routine {\tt writepmat}.
 !
 ! !REVISION HISTORY:
@@ -68,6 +69,17 @@ subroutine writepmatxs(lgather)
   ! generate band combinations
   call ematbdcmbs(1)
   if (lgather) goto 10
+  if (pmatstrat.ne.0) then
+     call tdsave0
+     call pmatrad
+     ! allocate contracted coefficients arrays
+     if (allocated(apwdlm)) deallocate(apwdlm)
+     allocate(apwdlm(nstsv,apwordmax,lmmaxapw,natmtot))
+     if (nlotot.gt.0) then
+        if (allocated(lodlm)) deallocate(lodlm)
+        allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
+     end if
+  end if
   do ik=kpari,kparf
      if ((modulo(ik-kpari+1,max((kparf-kpari+1)/10,1)).eq.0).or.(ik.eq.kparf)) &
           write(*,'("Info(",a,"): ",I6," of ",I6,I6," k-points")') thisnam,ik, &
@@ -75,11 +87,19 @@ subroutine writepmatxs(lgather)
      ! get the eigenvectors and values from file
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
      call getevecsv(vkl(1,ik),evecsvt)
-     ! find the matching coefficients
-     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalmt)
      ! calculate the momentum matrix elements
-     call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
-          evecsvt,pmat)
+     if (pmatstrat.eq.0) then
+        ! find the matching coefficients
+        call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
+             apwalmt)
+        call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
+             evecsvt,pmat)
+     else
+        call getapwdlm(0,ik,lmaxapw,apwdlm)
+        if (nlotot.gt.0) call getlodlm(0,ik,lodlm)
+        call genpmat2(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwdlm,lodlm, &
+             evecfvt,evecsvt,pmat)
+     end if
      call putpmat(ik,.false.,trim(fnpmat_t),pmat)
      ! synchronize for common number of k-points to all processes
      if (ik-kpari+1 <= nkpt/procs) call barrier
@@ -88,7 +108,13 @@ subroutine writepmatxs(lgather)
 10 continue
   ! lgather from processes
   if ((procs.gt.1).and.(rank.eq.0)) call pmatgather
-  deallocate(apwalmt,evecfvt,evecsvt,pmat)
+  deallocate(evecfvt,evecsvt,pmat)
+  if (pmatstrat.eq.0) then
+     deallocate(apwalmt)
+  else
+     deallocate(apwdlm)
+     if (nlotot.gt.0) deallocate(lodlm)
+  end if
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): momentum matrix elements &
        &finished"

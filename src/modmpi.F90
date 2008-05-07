@@ -16,8 +16,8 @@
 module  modmpi
 #ifdef MPI
 #include "mpif.h"
+!  use mpi
 #endif
-!!$  use mpi
   integer :: rank
   integer :: procs
   integer :: ierr

@@ -82,7 +82,7 @@ subroutine init2xs
      ! generate reduced q-point set
      call genppts(reduceq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
   end if
-  if (task.eq.440) then
+  if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450)) then
      if (allocated(ivqr)) deallocate(ivqr)
      allocate(ivqr(3,ngridq(1)*ngridq(2)*ngridq(3)))
      if (allocated(vqlr)) deallocate(vqlr)
@@ -95,9 +95,6 @@ subroutine init2xs
      allocate(iqmapr(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
      ! generate reduced q-point set
      call genppts(reduceq,ngridq,vqloff,nqptr,iqmapr,ivqr,vqlr,vqcr,wqptr)
-!!$     do iq=1,nqpt
-!!$        call mapto1bz(vql(1,iq),vql(1,iq))
-!!$     end do
      if (allocated(ivq)) deallocate(ivq)
      allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
      if (allocated(vql)) deallocate(vql)
@@ -110,9 +107,6 @@ subroutine init2xs
      allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
      ! generate non-reduced q-point set
      call genppts(.false.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
-!!$     do iq=1,nqpt
-!!$        call mapto1bz(vql(1,iq),vql(1,iq),iv)
-!!$     end do
   end if
 
   ! find (little/small) group of q

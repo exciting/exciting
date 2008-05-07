@@ -98,12 +98,24 @@ subroutine xsmain
   case(430)
      ! RPA screening
      call screen
-  case(440)
+  case(11111)
      ! screened Coulomb interaction
      call scrcoulint
+  case(440)
+     ! screened Coulomb interaction **********************************
+     call scrcoulint3
+  case(441)
+     ! exchange Coulomb interaction
+     call exccoulint
+  case(445)
+     ! Bethe-Salpeter equation
+     call bse
+  case(450)
+     ! BSE-kernel
+     call kernxc_bse(1)
   case(499)
      ! * debug task
-     call testxs
+     call init0
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task

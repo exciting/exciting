@@ -3,15 +3,13 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine initoccbse(nempty_)
+subroutine initoccbse
   use modmain
   use modxs
   implicit none
-  ! arguments
-  integer, intent(inout) :: nempty_
   ! local variables
   character(*), parameter :: thisnam='initoccbse'
-  integer :: nemptyt, nvalel
+  integer :: nvalel
   ! number of valence electrons
   nvalel=nint(chgval/2.d0)
   ! number of states below Fermi energy
@@ -25,12 +23,13 @@ subroutine initoccbse(nempty_)
   ! number of states above Fermi energy
   if (nstabf.eq.-1) then
      ! if "nstabf" is not specified define it using "nempty"
-     nstabf=nempty_+1
+     nstabf=nempty+1
   else
-     ! replace "nempty" using "nstabf"
-     nemptyt=nempty_
-     nempty_=nstabf-1
-     write(unitout,'("Info(init0): nempty has been adjusted from ",I6," to ",&
-          &I6)') nemptyt,nempty_
+     ! check if number is too large
+     if (nstabf.gt.(nempty+1)) then
+        nstabf=nempty+1
+        write(unitout,'("Info(",a,"): nstabf too large: adjusting &
+             & to ",I6)') nstabf
+     end if
   end if
 end subroutine initoccbse

@@ -24,9 +24,9 @@ subroutine df
   call init2xs
   if (tscreen) then
      ! generate Gaunt coefficients
-     call tdgauntgen(lmaxapw,lmaxemat,lmaxapw)
+     call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
      ! find indices for non-zero Gaunt coefficients
-     call findgntn0(lmaxapwtd,lmaxapwtd,lmaxemat,tdgnt)
+     call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
   end if
   ! read Fermi energy
   call readfermi

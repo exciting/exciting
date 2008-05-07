@@ -24,8 +24,31 @@ contains
     real(8), allocatable :: r1(:),r2(:),fr(:),fr2(:),gr(:),cf(:,:)
     integer :: ig,ifg,is,ia,ias,ir,nr,l,m,lm
 
-    ftg(:)=zzero
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
+integer :: ig1,ig2,iv(3),iv1(3)
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
 
+
+
+    ftg(:)=zzero
+    
+    
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
+if (.false.) then
+  do ig1=1,ng
+     iv1(:)=ivg(:,ig1)
+     do ig2=1,1
+        iv(:)=iv1(:)-ivg(:,ig2)
+	iv(:)=modulo(iv(:)-intgv(:,1),ngrid(:))+intgv(:,1)
+        ig=ivgig(iv(1),iv(2),iv(3))
+        ftg(ig1)=cfunig(ig)*gir(ig2)
+     end do
+  end do
+end if
+  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
+
+  
+  
     ! interstitial part
     if (tir) then
        allocate(zfft(ngrtot))

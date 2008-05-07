@@ -29,12 +29,23 @@ subroutine getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
   scissv(:,:)=0.d0
   do ist=l1,u1
      do jst=l2,u2
-        devalsv(ist-l1+1,jst-l2+1)=e0(ist)-e(jst)
-        doccsv(ist-l1+1,jst-l2+1)=o0(ist)-o(jst)
-        if ((e0(ist).le.efermi).and.(e(jst).gt.efermi)) &
-             scissv(ist-l1+1,jst-l2+1)=-scissor
-        if ((e0(ist).gt.efermi).and.(e(jst).le.efermi)) &
-             scissv(ist-l1+1,jst-l2+1)=scissor
+        ! neglect contributions above cutoff
+        if ((e0(ist).lt.emaxdf).and.(e(jst).lt.emaxdf)) then
+           devalsv(ist-l1+1,jst-l2+1)=e0(ist)-e(jst)
+           doccsv(ist-l1+1,jst-l2+1)=o0(ist)-o(jst)
+           if ((e0(ist).le.efermi).and.(e(jst).gt.efermi)) &
+                scissv(ist-l1+1,jst-l2+1)=-scissor
+           if ((e0(ist).gt.efermi).and.(e(jst).le.efermi)) &
+                scissv(ist-l1+1,jst-l2+1)=scissor
+        else
+           write(*,'("Info(getdevaldoccsv): cutoff applied: iq,ik,ist,jst,&
+                &energies:",4i6,2g18.10)') iq,ik,ist,jst,e0(ist),e(jst)
+           ! set energy difference to arbitrary number
+           devalsv(ist-l1+1,jst-l2+1)=1.d0
+           ! set occupation number difference to zero as a factor in the
+           ! terms of the dielectric function
+           doccsv(ist-l1+1,jst-l2+1)=0.d0
+        end if
      end do
   end do
   deallocate(e0,e,o0,o)

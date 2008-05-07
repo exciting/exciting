@@ -124,7 +124,6 @@ while (<INFILE>)
 	    # workaround for arrays like a(1,22,333) to match 'blabla(...)
             # since I don't know how to match them exactley:
             # here also '333' would appear as matched pattern from above.
-            # but right now I'm not a perl expert as you can see.
 	    if ( $_ =~ /\(.*\)/ )
 	    {
 		$_ =~ s/\(.*\)//;

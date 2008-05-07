@@ -32,8 +32,9 @@ module modxs
   !----------------------------!
   !     symmetry variables     !
   !----------------------------!
-  ! if .true. exclude symmetry operations including fractional translations
-  logical :: nofract
+  ! true if only symmorphic space-group operations are to be considered
+  ! all non-primitive translations are zero in this case
+  logical :: symmorph
   ! maximum allowed number of symmetry operations (private to this module)
   integer, private, parameter :: maxsymcrs=192
   ! map to inverse crystal symmetry
@@ -198,6 +199,10 @@ module modxs
   complex(8), allocatable :: apwdlm(:,:,:,:)
   ! expansion coefficients of APW functions (q=0)
   complex(8), allocatable :: apwdlm0(:,:,:,:)
+  ! expansion coefficients of local orbitals functions
+  complex(8), allocatable :: lodlm(:,:,:,:)
+  ! expansion coefficients of local orbitals functions (q=0)
+  complex(8), allocatable :: lodlm0(:,:,:,:)
   ! APW coefficients for muffin-tin part of the wavefunction
   complex(8), allocatable :: wfcmt(:,:,:,:)
   ! APW coefficients for muffin-tin part of the wavefunction (q=0)
@@ -245,6 +250,8 @@ module modxs
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
+  ! strategy to calculate APW-lo, lo-APW and lo-lo parts in MT
+  integer :: ematstrat
   ! type of matrix element generation (band-combinations)
   integer :: emattype
   ! maximum angular momentum for Rayleigh expansion of exponential
@@ -293,6 +300,16 @@ module modxs
   !---------------------------------!
   !     momentum matrix elements    !
   !---------------------------------!
+  ! strategy to calculate matrix elements
+  integer :: pmatstrat
+  ! radial integrals (APW-APW)
+  real(8), allocatable :: ripaa(:,:,:,:,:,:)
+  ! radial integrals (APW-lo)
+  real(8), allocatable :: ripalo(:,:,:,:,:,:)
+  ! radial integrals (lo-APW)
+  real(8), allocatable :: riploa(:,:,:,:,:,:)
+  ! radial integrals (lo-lo)
+  real(8), allocatable :: riplolo(:,:,:,:,:,:)
   ! momentum matrix elements (resonant part)
   complex(8), allocatable :: pmou(:,:,:)
   ! momentum matrix elements (anti-resonant part)
@@ -337,6 +354,8 @@ module modxs
   integer, allocatable :: dftrans(:,:)
   ! smallest energy difference for which the inverse square will be considered
   real(8) :: epsdfde
+  ! cutoff energy for dielectric function
+  real(8) :: emaxdf
 
   !----------------------------!
   !     xc-kernel variables    !
@@ -408,6 +427,8 @@ module modxs
   !------------------------------------------!
   !     Bethe-Salpeter (kernel) variables    !
   !------------------------------------------!
+  ! type of BSE-Hamiltonian
+  character(32) :: bsetype
   ! nosym is .true. if no symmetry information should be used
   logical nosymbse
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)

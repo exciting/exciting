@@ -89,9 +89,6 @@ program main
         case(901)
            ! generate STATE.OUT file from portable ASCII STATE.xml file
            call portstate(.false.)
-        case(902)
-           ! k-point in SCF
-           call atkp
         case(999)
            ! * debug task *
            call testmain
@@ -116,7 +113,7 @@ program main
 end program main
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.150
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.151
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction

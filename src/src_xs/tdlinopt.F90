@@ -64,6 +64,7 @@ subroutine tdlinopt(iq)
      ! loop over longitudinal components for optics
      do oct1=1,nc
      do oct2=1,nc
+        if (oct1.ne.oct2) goto 111
         oct=octmap(oct1,oct2)
         optcomp(1,1)=oct1
         optcomp(2,1)=oct2
@@ -138,6 +139,7 @@ subroutine tdlinopt(iq)
         call writeloss(iq,wplot,loss,trim(fnloss))
         call writesigma(iq,wplot,sigma,trim(fnsigma))
         call writesumrls(iq,sumrls,trim(fnsumrules))
+111     continue
      end do ! oct
      end do
   end do ! m

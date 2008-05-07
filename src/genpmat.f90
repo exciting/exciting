@@ -43,7 +43,9 @@ integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
 #ifdef XS
 integer :: igp1,igp2,ig1,ig2,ig,iv1(3),iv(3)
+
 #endif
+real(8) :: cpu0,cpu1
 ! allocatable arrays
 complex(8), allocatable :: wfmt(:,:,:)
 complex(8), allocatable :: gwfmt(:,:,:,:)
@@ -79,23 +81,18 @@ pm(:,:,:)=0.d0
 ! calculate momentum matrix elements in the muffin-tin
 do is=1,nspecies
   do ia=1,natoms(is)
+    call cpu_time(cpu0)
     do ist=1,nstfv
 ! calculate the wavefunction
-      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
+      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw,&
        wfmt(1,1,ist))
 ! calculate the gradient
       call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
        wfmt(1,1,ist),gwfmt(1,1,1,ist))
-!!$
-!!$
-!!$
 !!$wfmt(:,:,ist)=zzero
 !!$wfmt(1,:,ist)=1.d0/y00
 !!$gwfmt(:,:,:,ist)=zzero
 !!$gwfmt(1,:,:,ist)=1.d0/y00
-!!$
-!!$
-!!$
     end do
     do ist=1,nstfv
       do jst=ist,nstfv
@@ -106,6 +103,8 @@ do is=1,nspecies
         end do
       end do
     end do
+    call cpu_time(cpu1)
+write(*,'(a,i6,f12.3)') 'genpmat: ias, CPU-time ',idxas(ia,is),cpu1-cpu0
   end do
 end do
 #ifdef XS
@@ -153,16 +152,10 @@ do ist=1,nstfv
     call zfftifc(3,ngrid,1,gwfir(1,i,ist))
   end do
 end do
-!!$
-!!$
-!!$
 !!$wfir(:,:)=zone*sqrt(omega)
 !!$do i=1,3
 !!$   gwfir(:,:,:)=zone*sqrt(omega)
 !!$end do
-!!$
-!!$
-!!$
 ! find the overlaps
 do ist=1,nstfv
   do jst=ist,nstfv

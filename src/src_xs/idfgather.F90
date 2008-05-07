@@ -36,7 +36,7 @@ subroutine idfgather
      do m=1,n,max(n-1,1)
         ! loop over longitudinal components for optics
         do oct1=1,nc
-        do oct2=1,nc
+        do oct2=oct1,oct1
            oct=octmap(oct1,oct2)
            do iproc=0,procs-1
               wpari=firstofset(iproc,nwdf)
