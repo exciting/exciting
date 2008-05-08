@@ -1,3 +1,7 @@
+
+iterativetype
+2
+
 tasks
   0
 
@@ -55,7 +59,7 @@ rgkmax
   3.0
 
 ngridk
-  4  4  32
+ 2 2 2 
 
 ! These are the vertices to be joined for the band structure plot
 plot1d

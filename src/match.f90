@@ -87,6 +87,7 @@ do is=1,nspecies
   do l=0,lmaxapw
     omax=max(omax,apword(l,is))
   end do
+  
   do igp=1,ngp
     t1=gpc(igp)*rmt(is)
     do io1=1,omax
@@ -98,20 +99,23 @@ do is=1,nspecies
       djl(:,io1,igp)=t1*djl(:,io1,igp)
     end do
   end do
+ 
   do ia=1,natoms(is)
     ias=idxas(ia,is)
 ! begin loop over l
     do l=0,lmaxapw
       zt1=(fourpi/sqrt(omega))*zil(l)
 ! set up matrix of derivatives
+
       do io2=1,apword(l,is)
         ir=nrmt(is)-np+1
         do io1=1,apword(l,is)
+      
           zd(io1,io2)=polynom(io1-1,np,spr(ir,is),apwfr(ir,1,io2,l,ias),c, &
            rmt(is))
         end do
       end do
-! set up target vectors
+
       i=0
       do igp=1,ngp
         zt2=zt1*sfacgp(igp,ias)
@@ -124,7 +128,9 @@ do is=1,nspecies
         end do
       end do
 ! solve the general complex linear systems
+
       call zgesv(apword(l,is),i,zd,apwordmax,ipiv,zb,apwordmax,info)
+   
       if (info.ne.0) then
         write(*,*)
         write(*,'("Error(match): could not find APW matching coefficients")')
@@ -132,7 +138,7 @@ do is=1,nspecies
         write(*,'(" and atom ",I4)') ia
         write(*,'(" ZGESV returned INFO = ",I8)') info
         write(*,*)
-        stop
+       ! stop
       end if
       i=0
       do igp=1,ngp
@@ -148,6 +154,7 @@ do is=1,nspecies
     end do
 ! end loops over atoms and species
   end do
+
 end do
 deallocate(ipiv,c,djl,ylmgp,zd,zb)
 return

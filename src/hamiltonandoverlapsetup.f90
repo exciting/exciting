@@ -1,69 +1,64 @@
-subroutine hamiltonandoverlapsetup(np,ngp,apwalm,igpig,vgpc,h,o)
+subroutine hamiltonandoverlapsetup(system,ngp,apwalm,igpig,vgpc)
+use modfvsystem
 use modmain
 implicit none
-integer, intent(in)::np,ngp
+type(evsystem)::system
+integer, intent(in)::ngp
 complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 integer, intent(in) :: igpig(ngkmax)
 real(8), intent(in) :: vgpc(3,ngkmax)
-complex(8),intent(inout)::h(np),o(np)
-
+integer ::n
+character(256)::prefix
 !local variables
+integer,save::ikc
+real,save :: cputot
+real:: cpuaa,cpualo,cpulolo,cpui,cpu00,cpu01
 integer::i,is,ia
 complex(8) v(1)
-real:: cpu0,cpu1,cpuaa,cpualo,cpulolo,cpui,cpu00,cpu01
-real,save :: cputot
-data cputot /0.d0/
-integer,save::ikc
-data ikc /0/
-
-ikc=ikc+1
-
+real:: cpu0,cpu1
+real(8)::threshold
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
 
+
 call cpu_time(cpu0)
 ! set the matrices to zero
-do i=1,np
- h(i)=0.0
- o(i)=0.0
-end do
-
-cpuaa=0.d0
-cpualo=0.d0
-cpulolo=0.d0
 
 ! muffin-tin contributions
 do is=1,nspecies
   do ia=1,natoms(is)
-
-    call cpu_time(cpu00)
-    call hmlaa(.false.,is,ia,ngp,apwalm,v,h)
-    call cpu_time(cpu01)
-    cpuaa=cpuaa+cpu01-cpu00
-
-    call hmlalo(.false.,is,ia,ngp,apwalm,v,h)
-    call cpu_time(cpu00)
-    cpualo=cpualo+cpu00-cpu01
-
-    call hmllolo(.false.,is,ia,ngp,v,h)
-    call cpu_time(cpu01)
-    cpulolo=cpulolo+cpu01-cpu00
-
-    call olpaa(.false.,is,ia,ngp,apwalm,v,o)
-    call olpalo(.false.,is,ia,ngp,apwalm,v,o)
-    call olplolo(.false.,is,ia,ngp,v,o)
-
+    call hmlaan(system%hamilton,is,ia,ngp,apwalm)
+    call hmlalon(system%hamilton,is,ia,ngp,apwalm)
+    call hmllolon(system%hamilton,is,ia,ngp)
+    call olpaan(system%overlap,is,ia,ngp,apwalm)
+    call olpalon(system%overlap,is,ia,ngp,apwalm)
+    call olplolon(system%overlap,is,ia,ngp)
   end do
 end do
 
 ! interstitial contributions
-call cpu_time(cpu00)
-call hmlistl(.false.,ngp,igpig,vgpc,v,h)
-call cpu_time(cpu01)
-cpui=cpu01-cpu00
+call hmlistln(system%hamilton,ngp,igpig,vgpc)
+call olpistln(system%overlap,ngp,igpig)
+threshold=1e-16
+!call HermiteanMatrixTruncate(system%hamilton,threshold)
+!call HermiteanMatrixTruncate(system%overlap,threshold)
 
-call olpistl(.false.,ngp,igpig,v,o)
+!
+
+if(.not.ispacked(system%hamilton))then
+ 	call hamiltonoverlapocopy_UL(system)
+endif
+#ifdef DEBUGHO
+write(*,*)"apwalm", apwalm
+prefix="H"
+ call HermiteanMatrixToFiles(system%hamilton,prefix)
+prefix="O"
+ call HermiteanMatrixToFiles(system%overlap,prefix)		
+ 	write(*,*)"wrote" 
+	stop
+#endif 
+
 call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
 

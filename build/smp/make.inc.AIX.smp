@@ -7,3 +7,4 @@ LIB_SYS =
 LIB_LPK = libarpack.a liblapack.a -llapack64 -lesslsmp 
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a  -lxlsmp
+MAKE=gmake

@@ -3,7 +3,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   !USES:
   use modmain
   use modmpi
-
+  use sclcontroll
+  use modfvsystem 
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -30,8 +31,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   complex(8),intent(inout) :: evecfv(nmatmax,nstfv,nspnfv)
 
   ! local variables
-  complex(8) 	:: h(npmat(ik,ispn))
-  complex(8) 	:: o(npmat(ik,ispn))
+type (evsystem)::system
+
   integer ::n
   real:: cpu0,cpu1,cpu2
   Complex(8)::                 zero, one
@@ -40,13 +41,14 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   integer::koffset,recl
   character(256):: outfilenamestring,filetag
   external outfilenamestring
-  logical::  dorestart
+
   !ARPACK Interface vars
   integer:: ido, nev, ncv, lworkl, info,infoznaupd, info2, j,i
   integer :: nevmax, ncvmax,nmax
   integer:: nconv, maxitr, ishfts, mode, ldv
   integer::iparam(11), ipntr(14)
-  complex(8),allocatable::workd(:),resid(:),v(:,:),workev(:),workl(:),d(:)
+  complex(8),allocatable::resid(:),v(:,:),workev(:),workl(:),d(:)
+  complex(8),pointer::workd(:)
   real(8),allocatable:: rwork(:),rd(:)
   integer,allocatable::idx(:)
   complex(8)::sigma
@@ -54,8 +56,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   real(8):: tol
   logical::rvec
   logical:: select(nmat(ik,ispn))
-  !ZHPTR interface vars
-  integer ::IPIV(nmat(ik,ispn))
+  complex(8),pointer::vin(:),vout(:)
+ 
 #ifdef DEBUG
   ndigit = -3
   logfil = 6
@@ -68,6 +70,8 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   mneupd = 1
   open (logfil,file="ARPACK.OUT",action="WRITE") 
 #endif
+
+
   !##################	
   !ARPACK parameters
   !##################
@@ -91,13 +95,18 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   allocate(rd(ncvmax),idx(ncvmax))
   bmat  = 'G'
   which = 'LM'
-  sigma=dcmplx(lowesteval,0)
+ if(lowesteval.eq.-1.d0) then
+  call minenergy(sigma)
+ else
+ sigma=dcmplx(lowesteval,0)
+ endif
+
   resid(:)=0.0
-  tol    = 1.e-8
+  tol    = epsarpack
   ido    = 0
   info   = 0
   ishfts = 1
-  maxitr = 2000
+  maxitr = 40*nstfv
   mode= 3
   iparam(1) = ishfts
   iparam(3) = maxitr  
@@ -108,59 +117,49 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   inquire(iolength=recl)resid  
   koffset=ik-firstk(procofk(ik))+1      
   infoznaupd=0
-  dorestart=.true.
-  filetag='ARPACKVEC'
-  if(iscl.ne.1.and.doarpackrestart)then
-     !take old eigenvector as new starting vector to increase convergence               
-     open(70,file=outfilenamestring(filetag,ik),action='READ', &
-          form='UNFORMATTED',access='DIRECT',recl=recl)
-     resid=0
-     read(70,rec=koffset)resid
-     close(70)  
-     infoznaupd=1
-  endif
+  
   !##################
   !setup hamiltonian#
   !##################
-  call hamiltonandoverlapsetup(npmat(ik,ispn),ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc,h,o)
+  
+
+
+
+ call newsystem(system,packedmatrixstorage,n)
+ call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
+
+
   call cpu_time(cpu0)
   !#######################################################################
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 
-  call zaxpy(npmat(ik,ispn),-sigma,o,1,h,1)
-  call zhptrf('U', n, h, IPIV, info )
-
-  if (info.ne.0)then
-     write(*,*)"error in iterativearpacksecequn zhptrf ",info
-     stop
-  endif
+  call HermiteanMatrixAXPY(-sigma,system%overlap,system%hamilton)
+  call HermiteanMatrixLU(system%hamilton)
   call cpu_time(cpu1)
   !################################################
   !# reverse comunication loop of arpack library: #
   !################################################
+
   do i=1,maxitr 
      call znaupd  &
           ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam,  &
           ipntr, workd, workl, lworkl, rwork, infoznaupd)
-
+  	 vin=>workd(ipntr(1):ipntr(1)+n-1)
+   	 vout=>workd(ipntr(2):ipntr(2)+n-1)
 
      if (ido .eq. -1 .or. ido .eq. 1) then
-
-	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
-             dcmplx(0,0),workd(ipntr(2)), 1)
-
-        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
-        if (info.ne.0)then
-           write(*,*)"error in iterativearpacksecequn zhptrs ",info
-           stop
-        endif
+    
+	call Hermiteanmatrixvector(system%overlap,one,vin,&
+	zero,vout)  
+	call  Hermiteanmatrixlinsolve(system%hamilton,vout)    
      else if(ido .eq.1) then
-        call zcopy (n, workd(ipntr(3)), 1, workd(ipntr(2)), 1)
-        call zhptrs('U', N, 1, h, IPIV, workd(ipntr(2)), n, INFO )
+        call zcopy (n, workd(ipntr(3)), 1, vout, 1)
+        call  Hermiteanmatrixlinsolve(system%hamilton,vout)      
      else if (ido .eq. 2) then
- 	call zhpmv("U",n,dcmplx(1.0,0.0),o,workd(ipntr(1)), 1,&
-             dcmplx(0,0),workd(ipntr(2)), 1)
+     call Hermiteanmatrixvector(system%overlap,one,vin,&
+     	zero,vout ) 
+   
      else 
         exit
      endif
@@ -175,15 +174,11 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      print *, ' '
      stop
   else
-     !#################################################
-     !write data to scratch for restart with old vector
-     !#################################################
-     if(doarpackrestart)then
-        open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
-             form='UNFORMATTED',access='DIRECT',recl=recl)   
-        write(70,rec=koffset)v(:,1)
-        close(70)   
-     endif
+  
+     if (i.gt.maxitr) then
+     write(*,*)"Error reached maximum iteration count in arpack."
+     stop
+ 	endif
      !########################
      !post processing of evec
      !########################
@@ -193,12 +188,6 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
           workev,bmat,n,which,nev,tol,resid,ncv,v,&
           n, iparam, ipntr, workd, workl, lworkl, rwork,&
           info2 )
-     !         (rvec , howmny, select, d     ,
-     !    &                   z    , ldz   , sigma , workev,
-     !    &                   bmat , n     , which , nev   ,
-     !    &                   tol  , resid , ncv   , v     ,
-     !    &                   ldv  , iparam, ipntr , workd ,
-     !    &                   workl, lworkl, rwork , info  )
      if ( info2 .ne. 0 ) then
         print *, ' ' 
         print *, ' Error with zneupd, info = ', info2
@@ -215,9 +204,9 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 #ifdef DEBUG
   close(logfil)
 #endif
-  if(rank.eq.0)write(60,*)"ARPACK iter", i
+  if(rank.eq.0)write(60,*)"k=",ik,"ARPACK iterations", i
   if(rank.eq.0)write(60,*)"matrixsize",n&
-       ,"time LU/iter",cpu1-cpu0,"/",cpu2-cpu1
+       ,"time LU",cpu1-cpu0,"iterations",cpu2-cpu1
 
   !##########################
   !sort and copy eigenvectors
@@ -228,6 +217,7 @@ subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      evecfv(:,j,ispn)=v(:,idx(j))
      evalfv(j,ispn)=rd(idx(j))
   end do
+    call deleteystem(system)
   deallocate(workd,resid,v,workev,workl,d)
   deallocate(rwork,rd,idx)
   return

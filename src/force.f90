@@ -148,13 +148,17 @@ if (tfibs) then
     end do
   end do
 ! compute k-point dependent contribution to the IBS force
+#ifdef KSMP
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
+#endif
   do ik=1,nkpt
     call forcek(ik,ff)
   end do
+#ifdef KSMP
 !$OMP END DO
 !$OMP END PARALLEL
+#endif
 ! symmetrise IBS force
   call symvect(forceibs)
   deallocate(ff)

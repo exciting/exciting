@@ -2,9 +2,9 @@ include make.inc
 
 # translation for mkmf utility
 FC = $(F90)
-FFLAGS = $(F90_OPTS)
+FFLAGS = $(F90_OPTS) $(F90CPPOPTS)
 LD = $(FC)
-LDFLAGS 	= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
+LDFLAGS 	= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS) libarpack.a libjdqz.a
 AR = ar
 ARFLAGS = -rc
 

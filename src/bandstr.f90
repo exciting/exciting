@@ -72,11 +72,13 @@ call hmlrad
 emin=1.d5
 emax=-1.d5
 ! begin parallel loop over k-points
+#ifdef KSMP
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(evalfv,evecfv,evecsv) &
 !$OMP PRIVATE(bndchr,elmsym) &
 !$OMP PRIVATE(ispn,ist,is,ia,ias,l,m,lm,sum)
 !$OMP DO
+#endif
 do ik=1,nkpt
   allocate(evalfv(nstfv,nspnfv))
   allocate(evecfv(nmatmax,nstfv,nspnfv))
@@ -126,8 +128,10 @@ do ik=1,nkpt
   end if
 ! end loop over k-points
 end do
+#ifdef KSMP
 !$OMP END DO
 !$OMP END PARALLEL
+#endif
 emax=emax+(emax-emin)*0.5d0
 emin=emin-(emax-emin)*0.5d0
 ! output the band structure

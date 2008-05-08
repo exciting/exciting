@@ -18,7 +18,7 @@ subroutine putevalfv(ik,evalfv)
   
   !find the record length
   inquire(iolength=recl) vkl(:,ik),nstfv,nspnfv,evalfv
-  !$OMP CRITICAL
+!$OMP CRITICAL
 filetag='EVALFV'
 if (splittfile.or.(rank.eq.0)) then
   open(70,file=outfilenamestring(filetag,ik),action='WRITE', &

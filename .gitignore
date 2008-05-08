@@ -1,6 +1,7 @@
 *.o
 *.mod
 *.a
+*~
 exciting
 excitingmpi
 excitingsmp
@@ -33,6 +34,7 @@ mpif.h
 fort.*
 *.diff
 Makefile.serial
+*.orig
 output.*
 outerr.*
 testcase*

@@ -23,8 +23,5 @@ do i=1,m
 		!evecfv(:,i)=evecfv(:,i)+basis(:,j)*evecp(j,i)
 	end do
 end do
-do i=1,m
-	evalfv(i)=evalp(i)
-end do
 
 end subroutine

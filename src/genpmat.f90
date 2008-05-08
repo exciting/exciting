@@ -43,8 +43,9 @@ integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
 #ifdef XS
 integer :: igp1,igp2,ig1,ig2,ig,iv1(3),iv(3)
-real(8) :: cpu0,cpu1
+
 #endif
+real(8) :: cpu0,cpu1
 ! allocatable arrays
 complex(8), allocatable :: wfmt(:,:,:)
 complex(8), allocatable :: gwfmt(:,:,:,:)

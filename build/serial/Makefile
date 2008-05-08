@@ -1,58 +1,18 @@
-include make.inc
+all:
+	make  -f ../Make.common
 
-MAKE=make
 
-serial: make.inc
-	../../utilities/mkmf -t template -f -m Makefile.serial -p exciting \
-        ../../src  \
-        ../../src/src_iterative_solver \
-	../../src/src_fermisurfdx \
-	../../src/src_xs \
-        && make -f Makefile.serial exciting \
-        && cp -f exciting ..
-
-libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a
-
-libblas.a: make.inc
-	cp -f make.inc ../..
-	cd ../../src/BLAS && make clean && make
-	cp ../../src/BLAS/libblas.a .
-	cd ../../src/BLAS && make clean
-
-liblapack.a: make.inc
-	cp -f make.inc ../..
-	cd ../../src/LAPACK && make clean && make
-	cp ../../src/LAPACK/liblapack.a .
-	cd ../../src/LAPACK && make clean
-
-fftlib.a: make.inc
-	cp -f make.inc ../..
-	cd ../../src/fftlib && make clean && make
-	cp ../../src/fftlib/fftlib.a .
-	cd ../../src/fftlib && make clean
-
-libbzint.a: make.inc
-	cp -f make.inc ../..
-	cd ../../src/src_libbzint && make clean && make
-	cp ../../src/src_libbzint/libbzint.a .
-	cd ../../src/src_libbzint && make clean
-
-libarpack.a: make.inc
-	cp -f make.inc ../..
-	cd ../../src/ARPACK && make clean && make lib
-	cp ../../src/ARPACK/libarpack.a .
-	cd ../../src/ARPACK && make clean
+libs:
+	make libs -f ../Make.common
 
 clean:
-	rm -f *.o *.mod
+	make clean -f ../Make.common
 
 cleanlibs:
-	rm -f *.a
+	make cleanlibs  -f ../Make.common
 
-### build libbzint, do not clean source tree of library and build exciting
-bzex:
-	cp -f make.inc ../..
-	cd ../../src/src_libbzint && make
-	cp ../../src/src_libbzint/libbzint.a .
-	rm -f exciting
-	make serial
+
+
+
+
+	

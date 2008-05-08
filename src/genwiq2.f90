@@ -41,7 +41,7 @@ implicit none
 integer, parameter :: np=5
 integer, parameter :: ns0=10,nss=20
 integer ns,iq,i1,i2,i3,i,ip
-real(8) d(3),dv,sum,t1,t2
+real(8) d(3),dvol,sum,t1,t2
 real(8) v0(3),v1(3),v2(3),v3(3)
 real(8) xa(np),ya(np),c(np)
 real(8) :: cpu0,cpu1
@@ -83,7 +83,7 @@ do iq=1,nqpt
       d(i)=1.d0/(dble(ngridk(i)*2*ns))
     end do
 ! smallest volume element
-    dv=((twopi**3)/omega)*d(1)*d(2)*d(3)
+    dvol=((twopi**3)/omega)*d(1)*d(2)*d(3)
 ! compute the integral of 1/q^2
     sum=0.d0
     do i1=-ns,ns-1
@@ -102,8 +102,8 @@ do iq=1,nqpt
         end do
       end do
     end do
-    sum=sum*dv
-    xa(ip)=dv**(1.d0/3.d0)
+    sum=sum*dvol
+    xa(ip)=dvol**(1.d0/3.d0)
     ya(ip)=sum
 ! increment number of subdivisions
     ns=ns+nss

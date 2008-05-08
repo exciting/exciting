@@ -10,8 +10,8 @@ tasks
 rgkmax
   6.0
 
-iterativetype
-2 
+
+ 
 
 
 ! conservative mixing
@@ -59,3 +59,6 @@ ngridk
 
 vkloff
   0.25  0.5  0.5
+
+maxscl 
+3

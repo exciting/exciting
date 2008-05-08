@@ -376,14 +376,7 @@ character(256) xcdescr
 integer xcspin
 ! exchange-correlation functional density gradient treatment
 integer xcgrad
-! type of Iterative Solver 
-! 0: direct solver
-! -1 Block Davidson serial
-! ge 1 ARPACK
-integer iterativetype
-real lowesteval
-logical doarpackrestart
-integer iterativeinterval
+
 integer maxncv
 ! muffin-tin charge density
 real(8), allocatable :: rhomt(:,:,:)
@@ -663,6 +656,8 @@ real(8) epspot
 real(8) epsengy
 ! force convergence tolerance
 real(8) epsforce
+!curent convergence
+real(8) currentconvergence
 
 !------------------------------------------------!
 !     density of states and optics variables     !

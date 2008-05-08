@@ -8,6 +8,10 @@
 subroutine seceqn(ik,evalfv,evecfv,evecsv)
   ! !USES:
   use modmain
+  use modmpi
+  use sclcontroll
+  use diisinterfaces
+  
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   evalfv : first-variational eigenvalues (out,real(nstfv))
@@ -30,39 +34,43 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   complex(8), intent(out) :: evecsv(nstsv,nstsv)
   ! local variables
   integer ispn
- 
+
 
   ! allocatable arrays
   complex(8), allocatable :: apwalm(:,:,:,:,:)
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
+#ifdef KSMP  
   !$OMP PARALLEL DEFAULT(SHARED)
   !$OMP DO
- 
-
+#endif
   do ispn=1,nspnfv
      ! find the matching coefficients
      call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
           sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
      ! solve the first-variational secular equation
- 
-     if(iterativetype.ge.1) then
-        call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
-             vgkc(1,1,ik,ispn),evalfv,evecfv)
-     else if((iterativetype.eq.-1).and.&
-          (.not.((mod(iscl,iterativeinterval).eq.1)))) then
-        call iterativeseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
-             vgkc(1,1,ik,ispn),evalfv,evecfv)
-     else 
-        call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
+     if(doDIIScycle()) then 
+        call DIISseceqnfv(ik,ispn,apwalm(:,:,:,:,ispn),vgkc(:,:,ik,ispn),evalfv,evecfv)
+    
+        if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
+     else     if (doLAPACKsolver()) then
+     	call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
              apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
+     else  if(dojacobdavidson())then
+     		call jdseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
+             vgkc(1,1,ik,ispn),evalfv,evecfv)
+     else if(doARPACKiteration()) then 
+      	call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
+             vgkc(1,1,ik,ispn),evalfv,evecfv)
+     else if(.true.) then
+     write(*,*)"error in solverselect secequn.F90"
+
      endif
- 
-
- end do
-
+  end do
+#ifdef KSMP
   !$OMP END DO
   !$OMP END PARALLEL
+#endif
   if (spinsprl) then
      ! solve the spin-spiral second-variational secular equation
      call seceqnss(ik,apwalm,evalfv,evecfv,evecsv)

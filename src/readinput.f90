@@ -15,6 +15,8 @@ use modtetra
 #ifdef XS
 use modxs
 #endif
+
+use sclcontroll
 ! !DESCRIPTION:
 !   Reads in the input parameters from the file {\tt exciting.in} as well as
 !   from the species files. Also sets default values for the input parameters.
@@ -92,9 +94,10 @@ sppath='./'
 scrpath='./'
 nvp1d=2
 iterativetype=0
-lowesteval=-1.
-doarpackrestart=.false.
-iterativeinterval=5
+lowesteval=-1.d0
+packedmatrixstorage=.false.
+epsarpack=1e-8
+epsresid=1e-12
 maxncv=200
 if (allocated(vvlp1d)) deallocate(vvlp1d)
 allocate(vvlp1d(3,nvp1d))
@@ -428,12 +431,14 @@ case('stype')
   read(50,*,err=20) stype
 case('iterativetype')
   read(50,*) iterativetype
+ case('packedmatrixstorage')
+  read(50,*) packedmatrixstorage
+case('epsarpack')
+  read(50,*) epsarpack
+case('epsresid')
+  read(50,*) epsresid
 case ('maxncv')
   read(50,*)maxncv
-case('doarpackrestart')
-  read(50,*)doarpackrestart
-case('iterativeinterval')
-  read(50,*) iterativeinterval
 case('lowesteval')
    read(50,*)lowesteval
 case('swidth')
