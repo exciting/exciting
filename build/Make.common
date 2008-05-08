@@ -3,7 +3,7 @@ include make.inc
 MAKE=make
 
 bin:make.inc
-	../../utilities/mkmf -t template -f -m Makefile.serial -p exciting$(SUFFIX) \
+	../../utilities/mkmf -t template -f -m Makefile.$(SUFFIX) -p exciting$(SUFFIX) \
 	../../src  \
 	../../src/src_xs \
 	../../src/src_fermisurfdx \
