@@ -7,7 +7,8 @@ implicit none
   integer diiscounter !! counter for DIIS iterations
   logical packedmatrixstorage
   logical tarpack,tlapack,tdiis,tjdqz
-  integer,parameter:: diismax=35,diisfirstscl=3, maxdiisspace=15
+  integer diisfirstscl
+  integer,parameter:: diismax=35, maxdiisspace=15
   integer :: iseed(4)=1
   real(8) lowesteval
   real(8) epsarpack

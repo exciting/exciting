@@ -98,6 +98,7 @@ nvp1d=2
  tlapack=.true.
  tdiis=.false.
  tjdqz=.false.
+ diisfirstscl=4
 lowesteval=-1.d0
 packedmatrixstorage=.true.
 epsarpack=1e-8
@@ -441,6 +442,8 @@ case('tdiis')
   read(50,*,err=20)tdiis
 case('tjdqz')
   read(50,*,err=20)tjdqz
+case('diisfirstscl') 
+  read(50,*,err=20)diisfirstscl 
 !case('iterativetype')
  ! read(50,*) iterativetype
 case('packedmatrixstorage')
