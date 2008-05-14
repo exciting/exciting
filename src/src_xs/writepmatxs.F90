@@ -7,13 +7,12 @@
 ! !ROUTINE: writepmatxs
 ! !INTERFACE:
 subroutine writepmatxs(lgather)
-  ! !USES:
+! !USES:
   use modmain
   use modmpi
   use modxs
   use m_putpmat
   use m_genfilname
-  use m_genapwcmt
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT\_XS.OUT}. Derived from
@@ -77,19 +76,15 @@ subroutine writepmatxs(lgather)
   if (lgather) goto 10
   if (pmatstrat.ne.0) then
      allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
+     allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
      if (nlotot.gt.0) then
         allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
         allocate(riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
         allocate(riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
+        allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
      end if
      ! calculate gradient of radial functions times spherical harmonics
      call pmatrad(ripaa,ripalo,riploa,riplolo)
-     if (allocated(apwcmt)) deallocate(apwcmt)
-     allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
-     if (nlotot.gt.0) then
-        if (allocated(locmt)) deallocate(locmt)
-        allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
-     end if
   end if
   do ik=kpari,kparf
      if ((modulo(ik-kpari+1,max((kparf-kpari+1)/10,1)).eq.0).or.(ik.eq.kparf)) &

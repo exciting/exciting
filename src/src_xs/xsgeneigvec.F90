@@ -94,7 +94,6 @@ subroutine writeevec(vq,voff,filxt)
   use modmain
   use modxs
   use m_gndstateq
-  use m_genapwcmt
   use m_getunit
   implicit none
   ! arguments
