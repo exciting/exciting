@@ -302,14 +302,14 @@ module modxs
   !---------------------------------!
   ! strategy to calculate matrix elements
   integer :: pmatstrat
-  ! radial integrals (APW-APW)
-  real(8), allocatable :: ripaa(:,:,:,:,:,:)
-  ! radial integrals (APW-lo)
-  real(8), allocatable :: ripalo(:,:,:,:,:,:)
-  ! radial integrals (lo-APW)
-  real(8), allocatable :: riploa(:,:,:,:,:,:)
-  ! radial integrals (lo-lo)
-  real(8), allocatable :: riplolo(:,:,:,:,:,:)
+!!$  ! radial integrals (APW-APW)
+!!$  real(8), allocatable :: ripaa(:,:,:,:,:,:)
+!!$  ! radial integrals (APW-lo)
+!!$  real(8), allocatable :: ripalo(:,:,:,:,:,:)
+!!$  ! radial integrals (lo-APW)
+!!$  real(8), allocatable :: riploa(:,:,:,:,:,:)
+!!$  ! radial integrals (lo-lo)
+!!$  real(8), allocatable :: riplolo(:,:,:,:,:,:)
   ! momentum matrix elements (resonant part)
   complex(8), allocatable :: pmou(:,:,:)
   ! momentum matrix elements (anti-resonant part)

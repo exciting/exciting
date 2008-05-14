@@ -15,7 +15,7 @@ use m_genfilname
 ! !DESCRIPTION:
 !   Writes the ${\bf q}$-points in lattice coordinates, weights and number of
 !   ${\bf G+q}$-vectors to the file {\tt QPOINTS.OUT}. Based on the routine 
-!   "writekpts.f90"
+!   {\tt writekpts}.
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (Sagmeister)

@@ -60,7 +60,7 @@ contains
     deallocate(de,eho,elu)
 
   end subroutine bandgap
-!EOP
+!EOC
 end module m_bandgap
 
 

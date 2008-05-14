@@ -11,9 +11,9 @@ subroutine writepmatxs(lgather)
   use modmain
   use modmpi
   use modxs
-  use m_getapwdlm
   use m_putpmat
   use m_genfilname
+  use m_genapwcmt
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT\_XS.OUT}. Derived from
@@ -31,9 +31,15 @@ subroutine writepmatxs(lgather)
   integer :: ik
   character(32) :: fnam
   complex(8), allocatable :: apwalmt(:,:,:,:)
+  complex(8), allocatable :: apwcmt(:,:,:,:)
+  complex(8), allocatable :: locmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
+  real(8), allocatable :: ripaa(:,:,:,:,:,:)
+  real(8), allocatable :: ripalo(:,:,:,:,:,:)
+  real(8), allocatable :: riploa(:,:,:,:,:,:)
+  real(8), allocatable :: riplolo(:,:,:,:,:,:)
   if (tscreen) then
      fnam='PMAT'
      call genfilname(basename=trim(fnam),appfilext=.true.,filnam=fnpmat)
@@ -70,14 +76,19 @@ subroutine writepmatxs(lgather)
   call ematbdcmbs(1)
   if (lgather) goto 10
   if (pmatstrat.ne.0) then
-     call tdsave0
-     call pmatrad
-     ! allocate contracted coefficients arrays
-     if (allocated(apwdlm)) deallocate(apwdlm)
-     allocate(apwdlm(nstsv,apwordmax,lmmaxapw,natmtot))
+     allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
      if (nlotot.gt.0) then
-        if (allocated(lodlm)) deallocate(lodlm)
-        allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
+        allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
+        allocate(riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
+        allocate(riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
+     end if
+     ! calculate gradient of radial functions times spherical harmonics
+     call pmatrad(ripaa,ripalo,riploa,riplolo)
+     if (allocated(apwcmt)) deallocate(apwcmt)
+     allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
+     if (nlotot.gt.0) then
+        if (allocated(locmt)) deallocate(locmt)
+        allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
      end if
   end if
   do ik=kpari,kparf
@@ -95,10 +106,15 @@ subroutine writepmatxs(lgather)
         call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
              evecsvt,pmat)
      else
-        call getapwdlm(0,ik,lmaxapw,apwdlm)
-        if (nlotot.gt.0) call getlodlm(0,ik,lodlm)
-        call genpmat2(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwdlm,lodlm, &
-             evecfvt,evecsvt,pmat)
+        ! find the matching coefficients
+        call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
+             apwalmt)
+        ! generate APW expansion coefficients for muffin-tin
+        call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalmt,evecfvt,apwcmt)
+        ! generate local orbital expansion coefficients for muffin-tin
+        if (nlotot.gt.0) call genlocmt(ngk(ik,1),1,nstfv,evecfvt,locmt)
+        call genpmat2(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),ripaa,ripalo, &
+             riploa,riplolo,apwcmt,locmt,evecfvt,evecsvt,pmat)
      end if
      call putpmat(ik,.false.,trim(fnpmat_t),pmat)
      ! synchronize for common number of k-points to all processes
@@ -112,8 +128,11 @@ subroutine writepmatxs(lgather)
   if (pmatstrat.eq.0) then
      deallocate(apwalmt)
   else
-     deallocate(apwdlm)
-     if (nlotot.gt.0) deallocate(lodlm)
+     deallocate(apwcmt)
+     if (nlotot.gt.0) then
+        deallocate(locmt)
+        deallocate(ripaa,ripalo,riploa,riplolo)
+     end if
   end if
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): momentum matrix elements &

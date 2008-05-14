@@ -123,9 +123,9 @@ subroutine writeevec(vq,voff,filxt)
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
           apwalm)
-     call genapwcmt(lmaxapw,ngk(ik,1),1,nstsv,apwalm,evecfv,apwdlm)
+     call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalm,evecfv,apwdlm)
      write(unit1,rec=ik) vq,vkl(:,ik),apwdlm
-     call genlocmt(ngk(ik,1),1,nstsv,evecfv,lodlm)
+     call genlocmt(ngk(ik,1),1,nstfv,evecfv,lodlm)
      write(unit2,rec=ik) vq,vkl(:,ik),lodlm
   end do
   close(unit1)

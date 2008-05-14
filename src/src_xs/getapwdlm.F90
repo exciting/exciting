@@ -102,7 +102,7 @@ contains
     if (r3dist(vkl_,vklt).gt.epslat) then
        write(unitout,'(a)') 'Error('//thisnam//'): differring parameters for &
             &APW MT coefficients (current/file): '
-       if (procs > 1) write(unitout,'(a,i6)') '(parallel) rank', rank
+       if (procs.gt.1) write(unitout,'(a,i6)') '(parallel) rank', rank
        write(unitout,'(a,i6)') ' q-point index  :', iq
        write(unitout,'(a,i6)') ' k-point index  :', ik
        write(unitout,'(a,3f12.6,a,3f12.6)') ' vql            :', vqlt,',', vql_

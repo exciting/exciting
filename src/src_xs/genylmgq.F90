@@ -11,9 +11,9 @@ subroutine genylmgq(iq,lmax)
 use modmain
 use modxs
 ! !DESCRIPTION:
-!   Generates a set of spherical harmonics, $Y_{lm}(\hat{\bf G}+{\bf q})$,
+!   Generates a set of spherical harmonics, $Y_{lm}(\widehat{{\bf G}+{\bf q}})$,
 !   with angular
-!   momenta up to {\tt lmaxvr} for the set of ${\bf G+q}$-vectors. Based upon
+!   momenta up to {\tt lmax} for the set of ${\bf G+q}$-vectors. Based upon
 !   the routine genylmg.
 !
 ! !REVISION HISTORY:

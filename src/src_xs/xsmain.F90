@@ -4,9 +4,7 @@
 ! See the file COPYING for license details.
 
 !BOI
-! !TITLE: The Developers' Guide for the excited-states implementation within
-!   the 
-!   EXCITING Code \\ Version
+! !TITLE: The XS/EXCITING Code (eXited States) Manual \\ Version 0.9
 ! !AUTHORS: S. Sagmeister and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
@@ -15,7 +13,7 @@
 !   only to the excited states (TDDFT and BSE) part into one document.
 !   \\\\
 !   S. Sagmeister\\
-!   Graz, 2006
+!   Leoben, 2008
 !
 !EOI
 
