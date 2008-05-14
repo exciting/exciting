@@ -23,16 +23,16 @@ subroutine   diisupdate(idiis,icurrent,iunconverged,n,h,s&
   real(8)::residnorm2
   complex(8)::z
   lin=.true.
-  Pmatrix=0.0
-  Qmatrix=0.0
-  p=0
-  c=0
+  
    isubspace=min(idiis,maxdiisspace)
    allocate(p(n,isubspace))
    allocate(Pmatrix(isubspace+1,isubspace+1),Qmatrix(isubspace+1,isubspace+1))
    allocate(c(isubspace+1))
    allocate(idx(isubspace))
-  
+  Pmatrix=0.0
+  Qmatrix=0.0
+  p=0
+  c=0
   do i=1,iunconverged 
      !calculate residuals
      do j=1,isubspace

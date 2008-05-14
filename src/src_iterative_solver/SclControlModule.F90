@@ -5,8 +5,8 @@ use modmain,only:iscl,currentconvergence
 implicit none
  !scl index
   integer diiscounter !! counter for DIIS iterations
-  integer iterativetype
   logical packedmatrixstorage
+  logical tarpack,tlapack,tdiis,tjdqz
   integer,parameter:: diismax=35,diisfirstscl=3, maxdiisspace=15
   integer :: iseed(4)=1
   real(8) lowesteval
@@ -39,7 +39,7 @@ contains
   function doDIIScycle()
     logical doDIIScycle
     doDIIScycle=.false.
-    if(iterativetype.eq.1) then
+    if(tdiis) then
        !this may get more advanced:
        if(iscl.ge.diisfirstscl) doDIIScycle=.true.
        if(currentconvergence.gt.1.0)doDIIScycle=.false.
@@ -56,18 +56,11 @@ contains
     if(diiscounter.ge.3) doprerotate_preconditioner=.true.
   end function doprerotate_preconditioner
 
-  function doDavidsoncycle()
-    logical doDavidsoncycle
-    doDavidsoncycle=.false.
-    if(iterativetype.eq.3) then
-       if(iscl.ge.2) doDavidsoncycle=.true.
-    endif
-  end function doDavidsoncycle
-
+ 
   function doARPACKiteration()
     logical doARPACKiteration
     doARPACKiteration=.false.
-    if (iterativetype.ge.2) then
+    if (tarpack) then
        doARPACKiteration=.true.
        write(*,*)"ARPACK"
        diiscounter=1
@@ -78,7 +71,7 @@ contains
   function doLAPACKsolver()
     logical doLAPACKsolver
     doLAPACKsolver=.false.
-    if ((iterativetype.eq.0.or.iterativetype.eq.1)) then
+    if ((tlapack)) then
        doLAPACKsolver=.true.
        write(*,*)"LAPACK hevx"
        diiscounter=1
@@ -118,7 +111,7 @@ contains
   function dojacobdavidson()
   logical dojacobdavidson
   dojacobdavidson=.false.
-if(iterativetype.eq.3.and.iscl.ge.jacofidavidsonfirstscl) then
+if(tjdqz) then
 dojacobdavidson=.true.
 write(*,*)"JDQZ"
 endif  
