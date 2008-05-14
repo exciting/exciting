@@ -75,6 +75,7 @@ do ik=1,nkpt
   call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalm,evecfv,apwcmt)
 ! generate local orbital expansion coefficients for muffin-tin
   if (nlotot.gt.0) call genlocmt(ngk(ik,1),1,nstfv,evecfv,locmt)
+! calculate the momentum matrix elements
   call genpmat2(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),ripaa,ripalo, &
        riploa,riplolo,apwcmt,locmt,evecfv,evecsv,pmat)
 !</sag> ------------------------------------------------------------------------
@@ -90,11 +91,8 @@ write(*,'(" momentum matrix elements written to file PMAT.OUT")')
 write(*,*)
 deallocate(apwalm,evecfv,evecsv,pmat)
 !<sag> -------------------------------------------------------------------------
-deallocate(apwcmt)
-if (nlotot.gt.0) then
-   deallocate(ripaa,ripalo,riploa,riplolo)
-   deallocate(locmt)
-end if
+deallocate(ripaa,apwcmt)
+if (nlotot.gt.0) deallocate(ripalo,riploa,riplolo,locmt)
 !</sag> ------------------------------------------------------------------------
 end subroutine
 !EOC

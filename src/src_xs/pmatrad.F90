@@ -5,7 +5,6 @@
 
 subroutine pmatrad(ripaa,ripalo,riploa,riplolo)
   use modmain
-!  use m_gradzfmtr
   implicit none
   ! arguments
   real(8), intent(out) :: ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3)
