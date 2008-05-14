@@ -182,7 +182,6 @@ tetra=.false.
 #ifdef XS
 ! TDDFT variables
 imbandstr=.false.
-pmatira=.false.
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
@@ -953,8 +952,6 @@ case('tetra')
 ! TDDFT variables
 case('imbandstr')
   read(50,*,err=20) imbandstr
-case('pmatira')
-  read(50,*,err=20) pmatira
 case('vgqlmt')
   read(50,*,err=20) nqptmt
   if (nqptmt.le.0) then

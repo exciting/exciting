@@ -49,12 +49,6 @@ subroutine writepmatxs(lgather)
      call genfilname(basename=trim(fnam),filnam=fnpmat)
      call genfilname(basename=trim(fnam),procs=procs,rank=rank,filnam=fnpmat_t)
   end if
-  ! analytic evaluation of interstitial contribution
-  if (pmatira) then
-     write(unitout,'(a)') 'Info('//thisnam//'): using an analytic method for &
-          &calculation of momentum'
-     write(unitout,'(a)') ' matrix elements in the interstitial'
-  end if
   ! initialise universal variables
   if (calledxs.eq.1) call init0
   call init1
