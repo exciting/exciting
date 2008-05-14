@@ -23,11 +23,7 @@ examples/xs
 .cdtproject
 .project
 .settings/*
-Makefile.serial
-Makefile.parallel
-Makefile.smp
-Makefile.debug
-Makefile.interfaces
+Makefile.*
 make.inc
 make.out
 mpif.h
