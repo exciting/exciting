@@ -117,7 +117,6 @@ subroutine writepmatxs(lgather)
   end do
   call barrier
 10 continue
-  ! lgather from processes
   if ((procs.gt.1).and.(rank.eq.0)) call pmatgather
   deallocate(evecfvt,evecsvt,pmat)
   if (pmatstrat.eq.0) then
