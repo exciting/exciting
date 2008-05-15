@@ -63,17 +63,6 @@ call cpu_time(cpu1)
  timemat= timemat+cpu1-cpu0
 
 
-write(60,*)
-write(60,'("Muffin-tin Hamiltonian setup; Timings (CPU seconds) :")')
-write(60,'(" k-point",T40,": ",I8)') ikc
-write(60,'(" APW-APW",T40,": ",F12.2)') cpuaa
-write(60,'(" APW- lo",T40,": ",F12.2)') cpualo
-write(60,'(" lo - lo",T40,": ",F12.2)') cpulolo
-write(60,'(" interstitial",T40,": ",F12.2)') cpui
-write(60,'(" total",T40,": ",F12.2)') cpuaa+cpualo+cpulolo+cpui
-cputot=cputot+cpuaa+cpualo+cpulolo+cpui
-write(60,'(" cumulative total",T40,": ",F12.2)') cputot
-write(60,*)
 
 
 
