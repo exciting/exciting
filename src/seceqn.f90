@@ -49,20 +49,25 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
      call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
           sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
      ! solve the first-variational secular equation
+     
      if(doDIIScycle()) then 
         call DIISseceqnfv(ik,ispn,apwalm(:,:,:,:,ispn),vgkc(:,:,ik,ispn),evalfv,evecfv)
-    
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
-     else     if (doLAPACKsolver()) then
-     	call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
-             apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
-     else  if(dojacobdavidson())then
-     		call jdseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
-             vgkc(1,1,ik,ispn),evalfv,evecfv)
+
      else if(doARPACKiteration()) then 
       	call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)
-     else if(.true.) then
+
+     else if(dojacobdavidson())then
+     	call jdseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
+             vgkc(1,1,ik,ispn),evalfv,evecfv)
+
+     else if(doLAPACKsolver()) then
+     	call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
+             apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
+
+     else   if(.true.) then
+
      write(*,*)"error in solverselect secequn.F90"
 
      endif

@@ -1,0 +1,9 @@
+F90=xlf90 
+F90_OPTS=-O3  -qsuffix=cpp=f90 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict -qnosave 
+F77 =xlf
+F77_OPTS = -O3 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave 
+LIB_SYS =
+LIB_LPK = libarpack.a liblapack.a libjdqz.a -llapack64 -lessl
+LIB_FFT = fftlib.a
+LIB_BZINT=libbzint.a  
+MAKE=gmake
