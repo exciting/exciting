@@ -66,8 +66,6 @@ subroutine   diisupdate(idiis,icurrent,iunconverged,n,h,s&
      if(lin) then
         call solvediislin(isubspace,Pmatrix,Qmatrix,c)
          call sortidx(isubspace,-abs(c),idx)
-        if(i==1 )write(*,*)"c:",c(idx),"sum",sum(c(idx))
-        c=c/sum(c(idx))
      else
 		call solvediis(isubspace,Pmatrix,Qmatrix,c)
      endif
@@ -82,7 +80,6 @@ call zcopy(n,zzero,0,evecfv(:,i),1)
      do ir=1,isubspace
         z=dcmplx(c(idx(ir)),0.0)
         call zaxpy(n, z,trialvec( 1,i, idx(ir) ) ,1,evecfv(1,i),1)
-        if(i==1 )write (*,*)"trialnrm",i,dznrm2( n,  trialvec( 1,i, idx(ir)),1)
      end do
   end do
   call zcopy(n*iunconverged,evecfv,1,trialvec( 1,1, icurrent ),1)
