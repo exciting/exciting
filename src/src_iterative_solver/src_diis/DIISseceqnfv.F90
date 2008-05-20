@@ -135,7 +135,6 @@ jacdav=.false.
              ,eigenvalue(:,icurrent),r,rnorms)
              
 
-
         do i=1,nstfv
            if(evecmap(i).ne.0) then
               call zcopy (n,eigenvector(1,evecmap(i)), 1,evecfv(1,i,ispn),1)
@@ -178,7 +177,7 @@ jacdav=.false.
              
         endif
      end do
-       	
+ 
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
