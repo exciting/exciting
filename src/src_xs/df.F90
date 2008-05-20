@@ -31,10 +31,10 @@ subroutine df
   ! read Fermi energy
   call readfermi
   ! w-point parallelization for dielectric function
-  call genparidxran('w')
+  call genparidxran('w',nwdf)
   if (tscreen) then
      nwdf=1
-     call genparidxran('q')
+     call genparidxran('q',nqpt)
   end if
   ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   emattype=1

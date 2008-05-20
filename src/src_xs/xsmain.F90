@@ -114,6 +114,8 @@ subroutine xsmain
   case(499)
      ! * debug task
      call init0
+     call init1
+     call writesymi
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task

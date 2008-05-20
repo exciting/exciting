@@ -54,7 +54,7 @@ subroutine writepmatxs(lgather)
   call init1
   call init2xs
   ! generate index ranges for parallel execution
-  call genparidxran('k')
+  call genparidxran('k',nkpt)
   ! k-point interval for process
   kpari=firstofset(rank,nkpt)
   kparf=lastofset(rank,nkpt)

@@ -289,7 +289,8 @@ subroutine init1
      if (allocated(strmapsymc)) deallocate(strmapsymc)
      allocate(strmapsymc(nkptnr))
      ! determine inverse symmery elements
-     call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
+     call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat, &
+          scimap)
      ! generate stars for k-point set
      call genstark
 #endif

@@ -497,6 +497,10 @@ module modxs
   integer :: kpari
   ! current final k-point index
   integer :: kparf
+  ! current initial (k,kp) pair index
+  integer :: ppari
+  ! current final (k,kp) pair index
+  integer :: pparf
   ! current initial w-point index
   integer :: wpari
   ! current final w-point index

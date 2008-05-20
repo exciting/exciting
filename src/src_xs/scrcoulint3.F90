@@ -122,21 +122,28 @@ subroutine scrcoulint3
   !-----------------------------------!
   !     loop over reduced q-points    !
   !-----------------------------------!
-  do iqr=1,nqptr
+  call genparidxran('q',nqptr)
+  do iqr=qpari,qparf
      ! locate reduced q-point in non-reduced set
      iqrnr=iplocnr(ivqr(1,iqr),ngridq)
      n=ngq(iqrnr)
      ! obtain inverse of dielectric matrix
      call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
+
+! COMMUNICATE alltoall
+
   end do
   
   !---------------------------------------!
   !     loop over non-reduced q-points    !
   !---------------------------------------!
-  do iq=1,nqpt
+  call genparidxran('q',nqpt)
+  do iq=qpari,qparf
      write(*,*) 'radial integrals for q-point:',iq
      call putematrad(iq)
   end do
+  call barrier
+
 
 write(*,*) 'shape(sccli)',shape(sccli)
 write(*,*) 'record length for SCI',recl
@@ -144,6 +151,15 @@ write(*,'(a,f12.3)') 'estimated disk space (GB)',recl*nkptnr*(nkptnr+1)/2.d0*(ns
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
+  call genparidxran('p',nkpt*(nkpt+1)/2)
+
+! @@@ other way of doing loops (one kkp-loop and calculate iknr and jknr
+! out of that  @@@
+
+!!$  nkkp=nkptnr*(nkptnr+1)/2
+!!$  do ikkp=1,nkkp
+!!$     iknr=
+
   ikkp=0
   ! first k-point
   do iknr=1,nkptnr

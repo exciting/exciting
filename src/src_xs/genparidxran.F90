@@ -3,35 +3,40 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine genparidxran(typ)
+subroutine genparidxran(typ,n)
   use modmain
   use modmpi
   use modxs
   implicit none
   ! arguments
   character(1), intent(in) :: typ
+  integer, intent(in) :: n
+  ! local variables
+  integer :: np
+  ! default values
+  wpari=1
+  wparf=nwdf
+  qpari=1
+  qparf=nqpt
+  kpari=1
+  kparf=nkpt
+  ! number of (k,kp) pairs
+  np=nkpt*(nkpt+1)/2
+  ppari=1
+  pparf=np
   select case (typ)
      case('w')
-        wpari=firstofset(rank,nwdf)
-        wparf=lastofset(rank,nwdf)
-        qpari=1
-        qparf=nqpt
-        kpari=1
-        kparf=nkpt
+        wpari=firstofset(rank,n)
+        wparf=lastofset(rank,n)
      case('q')
-        wpari=1
-        wparf=nwdf
-        qpari=firstofset(rank,nqpt)
-        qparf=lastofset(rank,nqpt)        
-        kpari=1
-        kparf=nkpt
+        qpari=firstofset(rank,n)
+        qparf=lastofset(rank,n)        
      case('k')
-        wpari=1
-        wparf=nwdf
-        qpari=1
-        qparf=nqpt
-        kpari=firstofset(rank,nkpt)
-        kparf=lastofset(rank,nkpt)
+        kpari=firstofset(rank,n)
+        kparf=lastofset(rank,n)
+     case('p')
+        ppari=firstofset(rank,n)
+        pparf=lastofset(rank,n)
      case default
         write(*,*)
         write(*,'("Error(genparidxran): unknown parallelization type: ",a)') &
