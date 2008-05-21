@@ -93,7 +93,9 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
      call writeprecond(ik,n,P,w)
   else
-
+     !---------------------------------!
+     ! initialisation from file        !
+     !---------------------------------! 
      iunconverged=nstfv	
      call readprecond(ik,n,P,w)    	
      !    write(*,*)"readeigenvalues",w
@@ -103,6 +105,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
      call zlarnv(2, iseed, n*nstfv, eigenvector)
      eigenvector=cmplx(dble(eigenvector),0.)
      call zscal(n*nstfv,dcmplx(1e-3/n/nstfv,0.),eigenvector,1)
+     !coppy eigenvectors to work aray eigenvector
      do i=1,nstfv
         call zcopy(n ,evecfv(1,i,ispn),1,eigenvector(1,i),1)
         !     call zaxpy(n ,zone,evecfv(1,i,ispn),1,eigenvector(1,i),1)
@@ -110,7 +113,7 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         evecmap(i)=i
      end do
 
-
+     !initialisation for jacobidavidson preconditioning
      if(jacdav)   call jacdavblock(n, iunconverged, system, n, & 
           eigenvector, h(:,:,idiis), s(:,:,idiis), eigenvalue(:,idiis), &
           trialvecs(:,:,idiis), h(:,:,idiis), 0)
@@ -124,34 +127,43 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
         icurrent=mod(idiis-1,maxdiisspace)+1	
         write(*,*)"icurrent",icurrent
         write(*,*)"diisiter", idiis
-        !h(:,:,diis) holds matrix with current aproximate 
-        !vectors multiplied with hamilton
-        !o: same for overlap*evecfv
+        !----------------------------------------------------!
+        ! h(:,:,diis) holds matrix with current aproximate   !
+        ! vectors multiplied with hamilton                   !
+        ! o: same for overlap*evecfv                         !
+        !----------------------------------------------------!
 
-        do i=1,nstfv
-           if(evecmap(i).ne.0)  call zcopy (n,eigenvector(1,evecmap(i)), &
-                1,evecfv(1,i,ispn),1)
-        end do
-        call setuphsvect(n,nstfv,system,evecfv,nmatmax,&
-             h(:,:,icurrent),s(:,:,icurrent))
-        call orthogonalise(n,nstfv,evecfv,s(:,:,icurrent))
-        do i=1,nstfv
-           if(evecmap(i).ne.0) call zcopy (n,evecfv(1,i,ispn),&
-                1,eigenvector(1,evecmap(i)), 1)
-        end do
+        if(idiis.gt.1) then
+           !after first iteration copy refined vectors to evecfv
+           do i=1,nstfv
+              if(evecmap(i).ne.0)  call zcopy (n,eigenvector(1,evecmap(i)), &
+                   1,evecfv(1,i,ispn),1)
+           end do
+           ! setuphs computes H*v and S*v and normalises
+           call setuphsvect(n,nstfv,system,evecfv,nmatmax,&
+                h(:,:,icurrent),s(:,:,icurrent))
+           !orthogonalise all vectors
+           call orthogonalise(n,nstfv,evecfv(:,:,ispn),nmatmax,s(:,:,icurrent))
+           !copy back orthogonalised vectors to work array
+           do i=1,nstfv
+              if(evecmap(i).ne.0) call zcopy (n,evecfv(1,i,ispn),&
+                   1,eigenvector(1,evecmap(i)), 1)
+           end do
+        endif
+        ! setuphs computes H*v and S*v and normalises
         call setuphsvect(n,iunconverged,system,eigenvector,n,&
              h(:,:,icurrent),s(:,:,icurrent))
         call rayleighqotient(n,iunconverged,eigenvector&
              , h(:,:,icurrent),s(:,:,icurrent),eigenvalue(:,icurrent))
         call residualvectors(n,iunconverged,h(:,:,icurrent),s(:,:,icurrent)&
              ,eigenvalue(:,icurrent),r,rnorms)
+        !update eigenvalues     
         do i=1,nstfv
            if(evecmap(i).ne.0)  evalfv(i,ispn)=eigenvalue(evecmap(i),icurrent)
         end do
-
-
-
-
+        !------------------------------------------------------------------!
+        !check for convergence and remove converged vectors from iteration !
+        !------------------------------------------------------------------!
         if  (allconverged(iunconverged,rnorms).or. idiis.eq.(diismax-1)) exit	
         call remove_converged(evecmap,iunconverged,&
              rnorms,n,r,h,s,eigenvector,eigenvalue,trialvecs)
@@ -159,15 +171,20 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
            recalculate_preconditioner=.true.
            write(*,*)"recalculate preconditioner"
            exit
+           !----------------------------------------------------!
+           !if all residuals are converged exit diis loop!      !
+           !vectors are normalized and already copied to evecfv !
+           !----------------------------------------------------!
         endif
-
+        !-----------------------------------------------------!
+        ! correction equation with spectral precond or jacdav !
+        !-----------------------------------------------------!
         if(.not.jacdav)then
            call calcupdatevectors(n,iunconverged,P,w,r,eigenvalue(:,icurrent),&
                 eigenvector,trialvecs(:,:,icurrent))  
            call setuphsvect(n,iunconverged,system,trialvecs(:,:,icurrent),n,&
                 h(:,:,icurrent),s(:,:,icurrent)) 
            call zcopy(n*iunconverged, trialvecs(1,1,icurrent),1,eigenvector,1)      
-
         else
            !  call jacdavblock(n, iunconverged, system, n, & 
            !  eigenvector, h(:,:,icurrent), s(:,:,icurrent), eigenvalue(:,icurrent), &
@@ -175,17 +192,20 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
            !  call zaxpy(n*iunconverged,zone,trialvecs(1,1,icurrent),1,eigenvector(1,1),1)
            !  call zcopy(n*iunconverged,trialvecs(1,1,icurrent),1,eigenvector(1,1),1)
         endif
-
-
+        !-----------------!
+        ! diis refinement !
+        !-----------------!
         if(idiis.gt.1)then
            call diisupdate(idiis,icurrent,iunconverged,n,h,s, trialvecs&
                 ,eigenvalue,eigenvector,info)
-
-
-
         endif
+        !----------------!
+        ! end DIIS cycle !
+        !----------------!
      end do
-
+     !--------------------------------------!
+     ! if failed recalculate preconditioner !
+     !--------------------------------------!
      if ( recalculate_preconditioner .or. (idiis .gt. diismax-1)) then 
         call seceqfvprecond(n,system,P,w,evalfv(:,ispn),evecfv(:,:,ispn))
         call writeprecond(ik,n,P,w)
@@ -206,8 +226,6 @@ subroutine  DIISseceqnfv(ik,ispn,apwalm,vgpc,evalfv,evecfv)
   deallocate(s)
   deallocate(h)
   deallocate(P)
-
-
 
   timefv=timefv+cpu1-cpu0
 

@@ -1,7 +1,7 @@
-subroutine orthonormalise(n,nstfv,evecfv,s)
+subroutine orthogonalise(n,nstfv,evecfv,ldv,s)
 implicit none
-integer, intent(in)::n,nstfv
-complex(8),intent(inout)::evecfv(n,nstfv)
+integer, intent(in)::n,nstfv,ldv
+complex(8),intent(inout)::evecfv(ldv,nstfv)
 complex(8),intent(in)::s(n,nstfv)
 
 integer :: ist,jst,i
