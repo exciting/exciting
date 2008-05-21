@@ -16,7 +16,7 @@ real(8)::t
   Do i=1,m
   	t=(dble (zdotc(n,evecfv(1,i),1,s(1,i),1)))
     z=1.d0/sqrt(t)
-    write(*,*)"z",z
+   ! write(*,*)"z",z
   	call zscal(n,z,evecfv(1,i),1)
   	call zscal(n,z,s(1,i),1)  
   end do
