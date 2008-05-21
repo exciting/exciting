@@ -21,7 +21,7 @@ real(8)::t
   	call zscal(n,z,s(1,i),1)  
   end do
   
-   call zhemm('L','U',n,m,zone,system%hamilton%za(1,1),n,evecfv(1,1),ldv,&
-     zzero,h(1,1),n)
+   !call zhemm('L','U',n,m,zone,system%hamilton%za(1,1),n,evecfv(1,1),ldv,&
+   !  zzero,h(1,1),n)
  
 end subroutine setuphsvect
