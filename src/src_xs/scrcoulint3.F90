@@ -18,7 +18,7 @@ subroutine scrcoulint3
   character(*), parameter :: thisnam='scrcoulint'
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl
+  integer :: iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl,rlen,proc
   integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
@@ -129,11 +129,20 @@ subroutine scrcoulint3
      n=ngq(iqrnr)
      ! obtain inverse of dielectric matrix
      call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
-
-! COMMUNICATE alltoall
-
   end do
-  
+#ifdef MPI
+  rlen=ngqmax**2
+  do proc=0,procs-1
+     call MPI_Alltoallv(sendbuf=scrni, recvbuf=scrni, &
+          mpisndcnts=nofset(rank,nqptr)*rlen, &
+          mpisnddispls=(firstofset(rank,nqptr)-1)*rlen, &
+          mpireccnts=nofset(proc,nqptr)*rlen, &
+          mpirecdispls=(firstofset(proc,nqptr)-1)*rlen, &
+          sendtype=MPI_DOUBLE_COMPLEX, recvtype=MPI_DOUBLE_COMPLEX, & 
+          MPI_Comm=MPI_COMM_WORLD,ierr=ierr)
+  end do
+#endif
+
   !---------------------------------------!
   !     loop over non-reduced q-points    !
   !---------------------------------------!
