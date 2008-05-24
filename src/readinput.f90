@@ -191,8 +191,8 @@ vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
 lmaxapwtd=-1
-pmatstrat=0
-ematstrat=0
+fastpmat=.true.
+fastemat=.true.
 emattype=1
 lmaxemat=3
 rsptype='reta'
@@ -987,10 +987,10 @@ case('lmaxapwtd')
     write(*,*)
     stop
   end if
-case('pmatstrat')
-  read(50,*,err=20) pmatstrat
-case('ematstrat')
-  read(50,*,err=20) ematstrat
+case('fastpmat')
+  read(50,*,err=20) fastpmat
+case('fastemat')
+  read(50,*,err=20) fastemat
 case('emattype')
   read(50,*,err=20) emattype
 case('lmaxemat')

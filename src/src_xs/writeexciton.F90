@@ -11,7 +11,7 @@ contains
     use modmain
     use modxs
     use m_getunit
-    use m_tdwriteh
+    use m_writevars
     implicit none
     ! arguments
     integer, intent(in) :: iq,oct
@@ -28,14 +28,15 @@ contains
     allocate(eps(nwdos),epstet(nwdos))
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
-    ! write parameters as header to file
-    call tdwriteh(unit1,iq)
     ! write data to file
 
     do j=1,nexcit(oct)
        wp=excite(j,oct)
        write(unit1,'(3g18.10)') j, wp*escale, excito(j,oct)
     end do
+
+    ! write parameters to file
+    call writevars(unit1,iq)
 
     ! close files
     close(unit1)

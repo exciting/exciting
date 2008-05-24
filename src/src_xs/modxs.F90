@@ -250,8 +250,8 @@ module modxs
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
-  ! strategy to calculate APW-lo, lo-APW and lo-lo parts in MT
-  integer :: ematstrat
+  ! fast method to calculate APW-lo, lo-APW and lo-lo parts in MT
+  logical :: fastemat
   ! type of matrix element generation (band-combinations)
   integer :: emattype
   ! maximum angular momentum for Rayleigh expansion of exponential
@@ -300,8 +300,8 @@ module modxs
   !---------------------------------!
   !     momentum matrix elements    !
   !---------------------------------!
-  ! strategy to calculate matrix elements
-  integer :: pmatstrat
+  ! fast method to calculate matrix elements
+  logical :: fastpmat
   ! momentum matrix elements (resonant part)
   complex(8), allocatable :: pmou(:,:,:)
   ! momentum matrix elements (anti-resonant part)

@@ -133,6 +133,7 @@ subroutine scrcoulint3
 #ifdef MPI
   rlen=ngqmax**2
   do proc=0,procs-1
+! remove keywords !! for ADAM, write generic routine, array A(*)
      call MPI_Alltoallv(sendbuf=scrni, recvbuf=scrni, &
           mpisndcnts=nofset(rank,nqptr)*rlen, &
           mpisnddispls=(firstofset(rank,nqptr)-1)*rlen, &

@@ -3,11 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_tdwriteh
+module m_writevars
   implicit none
 contains
 
-  subroutine tdwriteh(un,iq)
+  subroutine writevars(un,iq)
     use modmain
     use modxs
     implicit none
@@ -72,7 +72,8 @@ contains
     write(un,'(a,i8)') '# lmaxemat          :',lmaxemat
     write(un,'(a,i8)') '# lradstp           :',lradstp
     write(un,'(a,l8)') '# tevout            :',tevout
-    write(un,'(a,i8)') '# ematstrat         :',ematstrat
+    write(un,'(a,l8)') '# fastpmat          :',fastemat
+    write(un,'(a,l8)') '# fastemat          :',fastemat
     write(un,'(a,l8)') '# nosym             :',nosym
     write(un,'(a,l8)') '# symwings          :',symwings
     write(un,'(a,l8)') '# tsymdfq0dn        :',tsymdfq0dn
@@ -81,6 +82,6 @@ contains
     write(un,'(a,9f12.6)') '# symdfq0 (row3)    :',symdfq0(3,:)
     write(un,*)
 
-  end subroutine tdwriteh
+  end subroutine writevars
 
-end module m_tdwriteh
+end module m_writevars

@@ -68,7 +68,7 @@ subroutine writepmatxs(lgather)
   ! generate band combinations
   call ematbdcmbs(1)
   if (lgather) goto 10
-  if (pmatstrat.ne.0) then
+  if (fastpmat) then
      allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
      allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
      if (nlotot.gt.0) then
@@ -87,23 +87,21 @@ subroutine writepmatxs(lgather)
      ! get the eigenvectors and values from file
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
      call getevecsv(vkl(1,ik),evecsvt)
-     ! calculate the momentum matrix elements
-     if (pmatstrat.eq.0) then
-        ! find the matching coefficients
-        call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
-             apwalmt)
-        call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
-             evecsvt,pmat)
-     else
-        ! find the matching coefficients
-        call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
-             apwalmt)
+     ! find the matching coefficients
+     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
+          apwalmt)
+     if (fastpmat) then
         ! generate APW expansion coefficients for muffin-tin
         call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalmt,evecfvt,apwcmt)
         ! generate local orbital expansion coefficients for muffin-tin
         if (nlotot.gt.0) call genlocmt(ngk(ik,1),1,nstfv,evecfvt,locmt)
+        ! calculate the momentum matrix elements
         call genpmat2(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),ripaa,ripalo, &
              riploa,riplolo,apwcmt,locmt,evecfvt,evecsvt,pmat)
+     else
+        ! calculate the momentum matrix elements
+        call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
+             evecsvt,pmat)
      end if
      call putpmat(ik,.false.,trim(fnpmat_t),pmat)
      ! synchronize for common number of k-points to all processes
@@ -112,10 +110,8 @@ subroutine writepmatxs(lgather)
   call barrier
 10 continue
   if ((procs.gt.1).and.(rank.eq.0)) call pmatgather
-  deallocate(evecfvt,evecsvt,pmat)
-  if (pmatstrat.eq.0) then
-     deallocate(apwalmt)
-  else
+  deallocate(apwalmt,evecfvt,evecsvt,pmat)
+  if (fastpmat) then
      deallocate(apwcmt)
      if (nlotot.gt.0) then
         deallocate(locmt)
