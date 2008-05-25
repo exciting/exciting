@@ -19,7 +19,7 @@ subroutine scrcoulint3
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl,rlen,proc
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2
+  integer :: ngridkt(3),iv(3),ivgsym(3),un,j,j1,j2,j3,nkkp
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
   real(8) :: vklofft(3),vqr(3),vq(3)
@@ -29,7 +29,7 @@ subroutine scrcoulint3
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
   ! external functions
-  integer, external :: iplocnr
+  integer, external :: iplocnr,idxkkp
   logical, external :: tqgamma
 !!$  real(8) :: cpu0,cpu1,cpu2,cpu3
 !!$  real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
@@ -114,10 +114,11 @@ subroutine scrcoulint3
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
   call getunit(un)
-  inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
-       sccli(:,:,:,:)
-  open(un,file=trim(fname),form='unformatted',action='write', &
-       status='replace',access='direct',recl=recl)
+
+!!$  inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
+!!$       sccli(:,:,:,:)
+!!$  if (rank.eq.0) open(un,file=trim(fname),form='unformatted',action='write', &
+!!$       status='replace',access='direct',recl=recl)
 
   !-----------------------------------!
   !     loop over reduced q-points    !
@@ -130,19 +131,8 @@ subroutine scrcoulint3
      ! obtain inverse of dielectric matrix
      call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
   end do
-#ifdef MPI
-  rlen=ngqmax**2
-  do proc=0,procs-1
-! remove keywords !! for ADAM, write generic routine, array A(*)
-     call MPI_Alltoallv(sendbuf=scrni, recvbuf=scrni, &
-          mpisndcnts=nofset(rank,nqptr)*rlen, &
-          mpisnddispls=(firstofset(rank,nqptr)-1)*rlen, &
-          mpireccnts=nofset(proc,nqptr)*rlen, &
-          mpirecdispls=(firstofset(proc,nqptr)-1)*rlen, &
-          sendtype=MPI_DOUBLE_COMPLEX, recvtype=MPI_DOUBLE_COMPLEX, & 
-          MPI_Comm=MPI_COMM_WORLD,ierr=ierr)
-  end do
-#endif
+  ! communicate array-parts
+  call zalltoallv(scrni,ngqmax**2,nqptr)
 
   !---------------------------------------!
   !     loop over non-reduced q-points    !
@@ -154,152 +144,141 @@ subroutine scrcoulint3
   end do
   call barrier
 
+  write(*,'(a,f12.3)') 'estimated disk space (GB) for screened Coulomb &
+       &interaction',recl*nkptnr*(nkptnr+1)/2.d0/1024.d0**3
 
-write(*,*) 'shape(sccli)',shape(sccli)
-write(*,*) 'record length for SCI',recl
-write(*,'(a,f12.3)') 'estimated disk space (GB)',recl*nkptnr*(nkptnr+1)/2.d0*(nst12*nst34)**2/1024.d0**3
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
-  call genparidxran('p',nkpt*(nkpt+1)/2)
+  nkkp=nkptnr*(nkptnr+1)/2
+  call genparidxran('p',nkkp)
 
-! @@@ other way of doing loops (one kkp-loop and calculate iknr and jknr
-! out of that  @@@
+!@@@
+write(unitout,*) 'kkp limits',ppari,pparf
 
-!!$  nkkp=nkptnr*(nkptnr+1)/2
-!!$  do ikkp=1,nkkp
-!!$     iknr=
-
-  ikkp=0
-  ! first k-point
-  do iknr=1,nkptnr
-
-     ! second k-point
-     do jknr=iknr,nkptnr
-
-        ikkp=ikkp+1
-
-        ! k-point difference
-        iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
-        iv(:)=modulo(iv(:),ngridk(:))
-        ! q-point (reduced)
-        iqr=iqmapr(iv(1),iv(2),iv(3))
-        vqr(:)=vqlr(:,iqr)
-        ! q-point (non-reduced)
-        iq=iqmap(iv(1),iv(2),iv(3))
-        vq(:)=vql(:,iq)
-        ! locate reduced q-point in non-reduced set
-        iqrnr=iplocnr(ivqr(1,iqr),ngridq)
-        ! local field effects size
-        tq0=tqgamma(iq)
-        n=ngq(iq)
-
-        write(*,'(i5,3x,2i5,2x,i5,2x,2i5)') ikkp,iknr,jknr,iq,iqr,iqrnr
-
-        allocate(emat12(nst12,n),emat34(nst34,n))
-        allocate(tm(n,n),tmi(n,n))
-        allocate(scclit(nst34,nst12))
-
-        call findsymeqiv(vq,vqr,nsc,sc,ivgsc)
-        call findgqmap(iq,iqr,nsc,sc,ivgsc,ngqmax,n,jsym,jsymi,ivgsym,igqmap)
-
-        ! generate phase factor for dielectric matrix due to non-primitive
-        ! translations
-        call genphasedm(iq,jsym,ngqmax,n,phf,tphf)
-
-        ! rotate inverse of screening
-        do igq1=1,n
-           j1=igqmap(igq1)
-           do igq2=1,n
-              j2=igqmap(igq2)
-              if (tphf) then
-                 tmi(igq1,igq2)=scrni(j2,j1,iqr)
-              else
-                 tmi(igq1,igq2)=scrni(j1,j2,iqr)
-              end if
-           end do
+  do ikkp=ppari,pparf
+     call kkpmap(ikkp,nkptnr,iknr,jknr)
+     
+     ! k-point difference
+     iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
+     iv(:)=modulo(iv(:),ngridk(:))
+     ! q-point (reduced)
+     iqr=iqmapr(iv(1),iv(2),iv(3))
+     vqr(:)=vqlr(:,iqr)
+     ! q-point (non-reduced)
+     iq=iqmap(iv(1),iv(2),iv(3))
+     vq(:)=vql(:,iq)
+     ! locate reduced q-point in non-reduced set
+     iqrnr=iplocnr(ivqr(1,iqr),ngridq)
+     ! local field effects size
+     tq0=tqgamma(iq)
+     n=ngq(iq)
+     
+     write(*,'(i5,3x,2i5,2x,i5,2x,2i5)') ikkp,iknr,jknr,iq,iqr,iqrnr
+     
+     allocate(emat12(nst12,n),emat34(nst34,n))
+     allocate(tm(n,n),tmi(n,n))
+     allocate(scclit(nst34,nst12))
+     
+     call findsymeqiv(vq,vqr,nsc,sc,ivgsc)
+     call findgqmap(iq,iqr,nsc,sc,ivgsc,ngqmax,n,jsym,jsymi,ivgsym,igqmap)
+     
+     ! generate phase factor for dielectric matrix due to non-primitive
+     ! translations
+     call genphasedm(iq,jsym,ngqmax,n,phf,tphf)
+     
+     ! rotate inverse of screening
+     do igq1=1,n
+        j1=igqmap(igq1)
+        do igq2=1,n
+           j2=igqmap(igq2)
+           if (tphf) then
+              tmi(igq1,igq2)=scrni(j2,j1,iqr)
+           else
+              tmi(igq1,igq2)=scrni(j1,j2,iqr)
+           end if
         end do
-
-        ! set up Coulomb potential
-        do igq1=1,n
-           do igq2=igq1,n
-              ! calculate weights for Coulomb potential
-              iflg=0
-              if (tq0.and.((igq1.eq.1).or.(igq2.eq.1))) then
-                 ! consider only 1/q and 1/q^2 cases for q goint to zero
-                 iflg=bsediagweight
-              end if
-              call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2))
-              potcl(igq2,igq1)=potcl(igq1,igq2)
-           end do
+     end do
+     
+     ! set up Coulomb potential
+     do igq1=1,n
+        do igq2=igq1,n
+           ! calculate weights for Coulomb potential
+           iflg=0
+           if (tq0.and.((igq1.eq.1).or.(igq2.eq.1))) then
+              ! consider only 1/q and 1/q^2 cases for q goint to zero
+              iflg=bsediagweight
+           end if
+           call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2))
+           potcl(igq2,igq1)=potcl(igq1,igq2)
         end do
+     end do
+     
+     ! calculate matrix elements of the plane wave
+     emattype=2
+     call ematbdcmbs(emattype)
+     call getematrad(iq)
+     call ematqalloc
+     call ematqk1(iq,iknr)
+     emattype=2
+     call ematbdcmbs(emattype)
 
-        ! calculate matrix elements of the plane wave
-        emattype=2
-        call ematbdcmbs(emattype)
-        call getematrad(iq)
-        call ematqalloc
-        call ematqk1(iq,iknr)
-        emattype=2
-        call ematbdcmbs(emattype)
+     if (ikkp.eq.1) write(*,'(a,2g18.10)') 'W-diagonal long range term:',scrni(1,1,1)*potcl(1,1)/nkptnr/omega
 
-
-if (ikkp.eq.1) write(*,'(a,2g18.10)') 'W-diagonal long range term:',scrni(1,1,1)*potcl(1,1)/nkptnr/omega
-
-        ! select screening level
-        tm(:,:)=zzero
-        select case (trim(screentype))
-        case('longrange')
-           ! constant screening (q=0 average tensor)
-           forall(igq1=1:n)
-              tm(igq1,igq1)=scrni(1,1,1)*potcl(igq1,igq1)
-           end forall
-        case('diag')
-           ! only diagonal of screening
-           forall(igq1=1:n)
-              tm(igq1,igq1)=tmi(igq1,igq1)*potcl(igq1,igq1)
-           end forall
-	case('full')
-	   ! full screening
-           tm(:,:)=tmi(:,:)*potcl(1:n,1:n)
-        end select
-	
-        ! combine indices for matrix elements of plane wave
-        j1=0
-        do ist2=1,nst2
-           do ist1=1,nst1
-              j1=j1+1
-              emat12(j1,:)=xiou(ist1,ist2,:)
-           end do
+     ! select screening level
+     tm(:,:)=zzero
+     select case (trim(screentype))
+     case('longrange')
+        ! constant screening (q=0 average tensor)
+        forall(igq1=1:n)
+           tm(igq1,igq1)=scrni(1,1,1)*potcl(igq1,igq1)
+        end forall
+     case('diag')
+        ! only diagonal of screening
+        forall(igq1=1:n)
+           tm(igq1,igq1)=tmi(igq1,igq1)*potcl(igq1,igq1)
+        end forall
+     case('full')
+        ! full screening
+        tm(:,:)=tmi(:,:)*potcl(1:n,1:n)
+     end select
+     
+     ! combine indices for matrix elements of plane wave
+     j1=0
+     do ist2=1,nst2
+        do ist1=1,nst1
+           j1=j1+1
+           emat12(j1,:)=xiou(ist1,ist2,:)
         end do
-        j2=0
-        do ist4=1,nst4
-           do ist3=1,nst3
-              j2=j2+1
-              emat34(j2,:)=xiuo(ist3,ist4,:)
-           end do
+     end do
+     j2=0
+     do ist4=1,nst4
+        do ist3=1,nst3
+           j2=j2+1
+           emat34(j2,:)=xiuo(ist3,ist4,:)
         end do
-
-        ! matrix elements of direct term (as in BSE-code of Peter and
-        ! in the SELF-documentation of Andrea Marini)
-        scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
-             /omega/nkptnr
-
-        ! map back to individual band indices
-        j2=0
-        do ist4=1,nst4
-           do ist3=1,nst3
-              j2=j2+1
-              j1=0
-              do ist2=1,nst2
-                 do ist1=1,nst1
-                    j1=j1+1
-                    sccli(ist1,ist3,ist2,ist4)=scclit(j2,j1)
-                 end do
+     end do
+     
+     ! matrix elements of direct term (as in BSE-code of Peter and
+     ! in the SELF-documentation of Andrea Marini)
+     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
+          /omega/nkptnr
+     
+     ! map back to individual band indices
+     j2=0
+     do ist4=1,nst4
+        do ist3=1,nst3
+           j2=j2+1
+           j1=0
+           do ist2=1,nst2
+              do ist1=1,nst1
+                 j1=j1+1
+                 sccli(ist1,ist3,ist2,ist4)=scclit(j2,j1)
               end do
            end do
         end do
-
+     end do
+     
 !<backup comment="slow version for checking">
 !!$        ! set up the screened Coulomb interaction (diagonal screening)
 !!$        sccli(:,:,:,:)=zzero
@@ -340,36 +319,41 @@ if (ikkp.eq.1) write(*,'(a,2g18.10)') 'W-diagonal long range term:',scrni(1,1,1)
 !!$        end do
 !</backup>
 
-if (ikkp.le.100) then
+     if (ikkp.le.100) then
         ! write to ASCII file
-	do ist1=1,nst1
-	   do ist3=1,nst3
-	      do ist2=1,nst2
-		 do ist4=1,nst4
-		    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-			 ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4),&
-			 abs(sccli(ist1,ist3,ist2,ist4))
-		 end do
-	      end do
-	   end do
-	end do
-end if	
-
-        ! write screened Coulomb interaction to direct-access file
-        write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2, &
-             sccli(:,:,:,:)
-
-        deallocate(emat12,emat34)
-        deallocate(tm,tmi)
-        deallocate(scclit)
-
-
-        ! end loop over k,kp
+        do ist1=1,nst1
+           do ist3=1,nst3
+              do ist2=1,nst2
+                 do ist4=1,nst4
+                    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+                         ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4),&
+                         abs(sccli(ist1,ist3,ist2,ist4))
+                 end do
+              end do
+           end do
+        end do
+     end if
+     
+!!$     ! write screened Coulomb interaction to direct-access file
+!!$     write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2, &
+!!$          sccli(:,:,:,:)
+     ! processe write sequentially to one file
+     do j=0,procs-1
+        if (rank.eq.j) then
+           call putbsemat('bsemat.out',sccli,ikkp,iknr,jknr,iq,iqr, &
+                nst1,nst3,nst4,nst2)
+        end if
+        call barrier
      end do
+
+     deallocate(emat12,emat34)
+     deallocate(tm,tmi)
+     deallocate(scclit)
+
+     ! end loop over (k,kp)-pairs
   end do
-
+  ! close output file
   close(un)
-
 
   call findgntn0_clear
 
@@ -385,3 +369,20 @@ end if
        & finished"
 
 end subroutine scrcoulint3
+
+subroutine putbsemat(fname,zmat,ikkp,iknr,jknr,iq,iqr,n1,n2,n3,n4)
+  use m_getunit
+  implicit none
+  ! arguments
+  character(*), intent(in) :: fname
+  complex(8), intent(in) :: zmat(n1,n2,n3,n4)
+  integer, intent(in) :: ikkp,iknr,jknr,iq,iqr,n1,n2,n3,n4
+  ! local variables
+  integer :: recl,un
+  call getunit(un)
+  inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,n1,n2,n3,n4,zmat
+  open(unit=un,file=trim(fname),form='unformatted',action='write', &
+       access='direct',recl=recl)
+  write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,n1,n2,n3,n4,zmat
+  close(un)
+end subroutine putbsemat

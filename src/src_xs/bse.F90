@@ -130,6 +130,7 @@ write(*,*) 'record length for SCI',recl
 
 
   ! set up BSE-Hamiltonian
+  ikkp=0
   do iknr=1,nkptnr
      do jknr=iknr,nkptnr
         ikkp=ikkp+1

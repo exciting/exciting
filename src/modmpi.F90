@@ -132,5 +132,26 @@ subroutine barrier
 #endif
 end subroutine barrier
 
+!------------------wrappers for MPI_Alltoallv-like communication on arrays
+subroutine zalltoallv(zarr,rlen,set)
+  implicit none
+  ! arguments
+  complex(8), intent(inout) :: zarr(*)
+  integer, intent(in) :: rlen,set
+#ifdef MPI
+  ! local variables
+  integer :: mpireccnts(procs),mpirecdispls(procs)
+  integer :: mpisndcnts(procs),mpisnddispls(procs)
+  integer :: proc
+  mpisndcnts(:)=nofset(rank,set)*rlen
+  mpisnddispls(:)=(firstofset(rank,set)-1)*rlen
+  do proc=0,procs-1
+     mpireccnts(proc+1)=nofset(proc,set)*rlen
+     mpirecdispls(proc+1)=(firstofset(proc,set)-1)*rlen
+  end do
+  call MPI_Alltoallv(zarr,mpisndcnts,mpisnddispls,MPI_DOUBLE_COMPLEX, &
+       zarr,mpireccnts,mpirecdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD,ierr)
+#endif
+end subroutine zalltoallv
 
 end module modmpi

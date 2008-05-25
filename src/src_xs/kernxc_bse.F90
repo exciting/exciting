@@ -586,11 +586,19 @@ integer function idxkkp(ik,ikp,n)
      write(*,*)
      call terminate
   end if
-  s=0
-  do a=1,ik-1
-     s=s+n-a+1
-  end do
-  idxkkp=s+ikp-ik+1
+!!$  s=0
+!!$  do a=1,ik-1
+!!$     s=s+n-a+1
+!!$  end do
+!!$  idxkkp=s+ikp-ik+1
+  ! (i,j) -> (i-1)i/2 + (N-i+1)(i-1) + j-i+1
+  idxkkp=-(ik*(ik-1))/2+n*(ik-1)+ikp
 end function idxkkp
 
-
+subroutine kkpmap(ikkp,n,ik,ikp)
+  implicit none
+  integer, intent(in) :: ikkp,n
+  integer, intent(out) :: ik,ikp
+  ik=ceiling(0.5d0+n-sqrt((0.5d0+n)**2-2.d0*ikkp))
+  ikp=ikkp+(ik*(ik-1))/2-n*(ik-1)
+end subroutine kkpmap

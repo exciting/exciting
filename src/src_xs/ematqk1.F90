@@ -12,7 +12,7 @@ subroutine ematqk1(iq,ik)
   ! arguments
   integer, intent(in) :: iq,ik
   ! set band combinations
-  if (.not.tscreen) then
+  if (.not.(task.eq.430)) then
      call ematbdlims(2*emattype,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
      if (allocated(xiou)) deallocate(xiou)
      if (allocated(xiuo)) deallocate(xiuo)
@@ -26,7 +26,7 @@ subroutine ematqk1(iq,ik)
           call putemat(iq,ik,.false.,trim(fnemat_t),x1=xiou)
   else
      ! v-c/c-v or v-v/c-c band combinations
-     if (.not.tscreen) then
+     if (.not.(task.eq.430)) then
         allocate(xiuo(nst1,nst2,ngq(iq)))
         xiuo(:,:,:)=xiou(:,:,:)
      end if
@@ -35,7 +35,7 @@ subroutine ematqk1(iq,ik)
      if (allocated(xiou)) deallocate(xiou)
      allocate(xiou(nst1,nst2,ngq(iq)))
      call ematqk(iq,ik)
-     if (.not.((task.ge.400).and.(task.le.499))) &
+     if (.not.tscreen) &
           call putemat(iq,ik,.false.,trim(fnemat_t),x1=xiou,x2=xiuo)
   end if
 end subroutine ematqk1
