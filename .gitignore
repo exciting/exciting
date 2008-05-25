@@ -13,6 +13,7 @@ exciting_interfaces
 .cdtproject
 .project
 .settings
+build/gfortran
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species

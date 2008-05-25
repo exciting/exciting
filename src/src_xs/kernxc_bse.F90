@@ -566,39 +566,3 @@ write(1108) hdg
   ! deallocate
   !deallocte(..............................)
 end subroutine kernxc_bse
-
-
-integer function idxkkp(ik,ikp,n)
-  implicit none
-  ! arguments
-  integer, intent(in) :: ik,ikp,n
-  ! local variables
-  integer :: a,s
-  if ((ik.le.0).or.(ikp.le.0).or.(n.le.0)) then
-     write(*,*)
-     write(*,'("Error(idxkkp): negative indices or number of points")')
-     write(*,*)
-     call terminate
-  end if
-  if (ik.gt.ikp) then
-     write(*,*)
-     write(*,'("Error(idxkkp): ik > ikp")')
-     write(*,*)
-     call terminate
-  end if
-!!$  s=0
-!!$  do a=1,ik-1
-!!$     s=s+n-a+1
-!!$  end do
-!!$  idxkkp=s+ikp-ik+1
-  ! (i,j) -> (i-1)i/2 + (N-i+1)(i-1) + j-i+1
-  idxkkp=-(ik*(ik-1))/2+n*(ik-1)+ikp
-end function idxkkp
-
-subroutine kkpmap(ikkp,n,ik,ikp)
-  implicit none
-  integer, intent(in) :: ikkp,n
-  integer, intent(out) :: ik,ikp
-  ik=ceiling(0.5d0+n-sqrt((0.5d0+n)**2-2.d0*ikkp))
-  ikp=ikkp+(ik*(ik-1))/2-n*(ik-1)
-end subroutine kkpmap

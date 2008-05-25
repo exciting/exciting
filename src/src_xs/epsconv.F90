@@ -13,7 +13,7 @@ subroutine epsconv
   ! local variables
   character(*), parameter :: thisnam='epsconv'
   character(256) :: filnam
-  integer :: iq,iw,iwp,j,m,n,oct,oct1,oct2,nc,un
+  integer :: iq,iw,iwp,m,n,oct,oct1,oct2,nc,un
   logical :: exis,tq0
   real(8), parameter :: epsc=1.d-8
   real(8), allocatable :: w(:), epst(:,:),lor(:),f(:),f1(:),g(:),g1(:),cf(:,:)
