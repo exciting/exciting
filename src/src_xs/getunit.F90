@@ -24,8 +24,8 @@ contains
           return
        end if
     end do
-    write(*,'("Error(",a,"): no free file unit available between",i6,"and", &
-         i6)') thisnam,u_lo,u_hi
+    write(*,'("Error(",a,"): no free file unit available between",i6,"and",&
+         &i6)') thisnam,u_lo,u_hi
     stop
   end subroutine getunit
 

@@ -59,7 +59,7 @@ subroutine xsfinit
   write(unitout,'("+----------------------------------------------------------&
        &+")')
   write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
-       &States "I1.1,".",I3.3," ) stopped |")') version,versionxs
+       &States ",I1.1,".",I3.3," ) stopped |")') version,versionxs
   write(unitout,'("+----------------------------------------------------------&
        &+")')
   write(unitout,*)
