@@ -1,7 +1,8 @@
-F90_OPTS =-g -qflttrap -qsigtrap -qinitauto  -WF,-DDEBUG
+F90_OPTS =-g -qsuffix=cpp=f90 -qflttrap -qsigtrap -qinitauto  -WF,-DDEBUG
 F77 =xlf
 F77_OPTS = -g
 LIB_SYS =
-LIB_LPK = liblapack.a libblas.a libarpack.a -llapack64 -lessl
+LIB_LPK = libjdqz.a liblapack.a libblas.a libarpack.a -llapack64 -lessl
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a
+MAKE=gmake
