@@ -122,7 +122,7 @@ subroutine scrcoulint
      ! obtain inverse of dielectric matrix
      call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
   end do
-  ! communicate array-parts
+  ! communicate array-parts wrt. q-points
   call zalltoallv(scrni,ngqmax**2,nqptr)
 
   !---------------------------------------!

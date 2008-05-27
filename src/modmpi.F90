@@ -132,6 +132,15 @@ subroutine barrier
 #endif
 end subroutine barrier
 
+subroutine endloopbarrier(set,mult)
+  implicit none
+  integer, intent(in) :: set,mult
+  integer :: i,im
+  do i=1,(nofset(0,set)-nofset(rank,set))*mult
+     call barrier
+  end do
+end subroutine endloopbarrier
+
 !------------------wrappers for MPI_Alltoallv-like communication on arrays
 subroutine zalltoallv(zarr,rlen,set)
   implicit none
