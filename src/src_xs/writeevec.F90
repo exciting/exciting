@@ -14,7 +14,7 @@ subroutine writeevec(vq,voff,filxt)
   real(8), intent(in) :: vq(3),voff(3)
   character(*), intent(in) :: filxt
   ! local variables
-  integer :: ik,reclapw,recllo,j
+  integer :: ik,j
   ! read from STATE.OUT exclusively
   isreadstate0=.true.
   ! SCF calculation with one cycle
@@ -30,6 +30,8 @@ subroutine writeevec(vq,voff,filxt)
   if (rank.eq.0) call filedel('LODLM'//trim(filxt))
   call genparidxran('k',nkpt)
   do ik=kpari,kparf
+     apwdlm(:,:,:,:)=zzero
+     lodlm(:,:,:,:)=zzero
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
           apwalm)
