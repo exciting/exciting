@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -27,7 +27,7 @@ subroutine writepmatxs(lgather)
   logical :: lgather
   ! local variables
   character(*), parameter :: thisnam='writepmatxs'
-  integer :: ik
+  integer :: ik,j
   character(32) :: fnam
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: apwcmt(:,:,:,:)
@@ -103,13 +103,15 @@ subroutine writepmatxs(lgather)
         call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
              evecsvt,pmat)
      end if
-     call putpmat(ik,.false.,trim(fnpmat_t),pmat)
-     ! synchronize for common number of k-points to all processes
-     if (ik-kpari+1 <= nkpt/procs) call barrier
+     do j=0,procs-1
+        if (rank.eq.j) then
+           call putpmat(ik,.true.,trim(fnpmat),pmat)
+        end if
+        call barrier
+     end do
   end do
-  call barrier
+  call endloopbarrier(nkpt,procs)
 10 continue
-  if ((procs.gt.1).and.(rank.eq.0)) call pmatgather
   deallocate(apwalmt,evecfvt,evecsvt,pmat)
   if (fastpmat) then
      deallocate(apwcmt)
