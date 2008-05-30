@@ -22,7 +22,7 @@ contains
     ! local variables
     integer :: un, recl, ikr
 #ifdef MPI
-    integer :: iproc,tag,dest,source,status(MPI_STATUS_SIZE)
+    integer :: n,n0,iproc,tag,dest,source,status(MPI_STATUS_SIZE)
 #endif
     ! record position for k-point
     ikr=ik
@@ -39,22 +39,24 @@ contains
             MPI_COMM_WORLD,ierr)
     end if
     if (rank.eq.0) then
+       n0=nofset(0,nkpt)
        do iproc=0,procs-1
+          ikr=firstofset(iproc,nkpt)-1+ik
+          n=nofset(iproc,nkpt)
+          if ((ik.eq.n0).and.(n.lt.n0)) cycle
           if (iproc.ne.0) then
              ! receive data from slaves
              source=iproc
              call mpi_recv(pm,size(pm),MPI_DOUBLE_COMPLEX,source,tag, &
                   MPI_COMM_WORLD,status,ierr)
           end if
-          ! only master is performing I/O
-          if (rank.eq.0) then
 #endif
-             open(unit=un,file=trim(filnam),form='unformatted',action='write', &
-                  access='direct',recl=recl)
-             write(un,rec=ikr) nstsv,nkpt,vkl(:,ik),pm
-             close(un)
+          ! only master is performing I/O
+          open(unit=un,file=trim(filnam),form='unformatted',action='write', &
+               access='direct',recl=recl)
+          write(un,rec=ikr) nstsv,nkpt,vkl(:,ikr),pm
+          close(un)
 #ifdef MPI
-          end if
        end do
     end if
 #endif
