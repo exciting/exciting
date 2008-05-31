@@ -40,7 +40,7 @@ subroutine xsinit(cnt)
   end if
   ! set splittfile parameter for splitting of eigenvector files in
   ! parallelization of SCF cycle
-  if ((task.ne.301).or.(task.ne.401)) splittfile=.false.
+  if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
   ! generate resume file
   if (procs.gt.1) then
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&
