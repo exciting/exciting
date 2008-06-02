@@ -103,20 +103,10 @@ subroutine writepmatxs(lgather)
         call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
              evecsvt,pmat)
      end if
-
-call putpmat(ik,.true.,trim(fnpmat),pmat)
-
-!!$     do j=0,procs-1
-!!$        if (rank.eq.j) then
-!!$           call putpmat(ik,.true.,trim(fnpmat),pmat)
-!!$        end if
-!!$        call barrier
-!!$     end do
+     ! parallel write
+     call putpmat(ik,.true.,trim(fnpmat),pmat)
   end do
-
-call barrier
-
-!!!  call endloopbarrier(nkpt,procs)
+  call barrier
 10 continue
   deallocate(apwalmt,evecfvt,evecsvt,pmat)
   if (fastpmat) then

@@ -122,6 +122,22 @@ function procofindex(k,set)
    end do
 end function procofindex
 
+function lastproc(row,set)
+  implicit none
+  integer :: lastproc
+  integer, intent(in) :: row,set
+  integer :: iproc
+  if (row.ne.nofset(0,set)) then
+     lastproc=procs
+  else
+     lastproc=modulo(set,procs)
+     if (lastproc.eq.0) lastproc=procs
+  end if
+  lastproc=lastproc-1
+end function lastproc
+
+
+
 !------------------interface to MPI_barrier for xs-part
 subroutine barrier
   implicit none

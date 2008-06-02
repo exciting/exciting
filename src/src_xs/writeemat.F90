@@ -37,7 +37,6 @@ subroutine writeemat
        &within lmax values:', lmaxapw,lmaxemat,lmaxapw
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
   call flushifc(unitout)
-  if (gather) goto 10
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point
@@ -46,13 +45,6 @@ subroutine writeemat
           &exponentials finished for q-point:',iq
      call flushifc(unitout)
   end do
-  ! synchronize
-  call barrier
-10 continue
-  ! gather from processes
-  if ((procs.gt.1).and.(rank.eq.0).and.(partype.eq.'k')) then
-     call ematgather
-  end if
   ! synchronize
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): matrix elements of &

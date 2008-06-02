@@ -9,7 +9,6 @@ contains
 
   subroutine putpmat(ik,tarec,filnam,pm)
     use modmain
-    use modxs
     use modmpi
     use m_getunit
     implicit none
@@ -20,34 +19,23 @@ contains
     character(*), intent(in) :: filnam
     complex(8), intent(in) :: pm(:,:,:)
     ! local variables
-    integer :: un, recl, ikr
+    integer :: un,recl,ikr
 #ifdef MPI
-    integer :: n,n0,iproc,tag,dest,source,status(MPI_STATUS_SIZE)
+    integer :: iproc,tag,status(MPI_STATUS_SIZE)
 #endif
-    ! record position for k-point
     ikr=ik
-    ! record position is not absolute k-point index
-    if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
-    ! I/O record length
     inquire(iolength=recl) nstsv,nkpt,vkl(:,ik),pm
     call getunit(un)
 #ifdef MPI
     tag=77
-    if (rank.ne.0) then
-       dest=0
-       call mpi_send(pm,size(pm),MPI_DOUBLE_COMPLEX,dest,tag, &
-            MPI_COMM_WORLD,ierr)
-    end if
+    if (rank.ne.0) call mpi_send(pm,size(pm),MPI_DOUBLE_COMPLEX,0,tag, &
+         MPI_COMM_WORLD,ierr)
     if (rank.eq.0) then
-       n0=nofset(0,nkpt)
-       do iproc=0,procs-1
+       do iproc=0,lastproc(ik,nkpt)
           ikr=firstofset(iproc,nkpt)-1+ik
-          n=nofset(iproc,nkpt)
-          if ((ik.eq.n0).and.(n.lt.n0)) cycle
           if (iproc.ne.0) then
              ! receive data from slaves
-             source=iproc
-             call mpi_recv(pm,size(pm),MPI_DOUBLE_COMPLEX,source,tag, &
+             call mpi_recv(pm,size(pm),MPI_DOUBLE_COMPLEX,iproc,tag, &
                   MPI_COMM_WORLD,status,ierr)
           end if
 #endif

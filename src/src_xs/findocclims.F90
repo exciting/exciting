@@ -103,12 +103,12 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   nstval=max(iocc0,iocc)
   nstcon=nstsv-nstval
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
-     write(*,'(a)') 'Info(findocclims): partially occupied states present'
+     write(unitout,'(a)') 'Info(findocclims): partially occupied states present'
   end if
   if (ksgap) then
-     write(*,'(a)') 'Info(findocclims): system has Kohn-Sham gap'
+     write(unitout,'(a)') 'Info(findocclims): system has Kohn-Sham gap'
   else
-     write(*,'(a)') 'Info(findocclims): no Kohn-Sham gap found'
+     write(unitout,'(a)') 'Info(findocclims): no Kohn-Sham gap found'
   end if
   ! debug output
   if (dbglev.gt.0) then
