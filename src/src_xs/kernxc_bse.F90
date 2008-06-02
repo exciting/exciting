@@ -136,7 +136,7 @@ brd=brdtd
 
 write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
-  call genparidxran('w')
+  call genparidxran('w',nwdf)
   ! sampling type for Brillouin zone sampling
   bzsampl=l2int(tetra)
   ! limits for w-points
@@ -566,31 +566,3 @@ write(1108) hdg
   ! deallocate
   !deallocte(..............................)
 end subroutine kernxc_bse
-
-
-integer function idxkkp(ik,ikp,n)
-  implicit none
-  ! arguments
-  integer, intent(in) :: ik,ikp,n
-  ! local variables
-  integer :: a,s
-  if ((ik.le.0).or.(ikp.le.0).or.(n.le.0)) then
-     write(*,*)
-     write(*,'("Error(idxkkp): negative indices or number of points")')
-     write(*,*)
-     call terminate
-  end if
-  if (ik.gt.ikp) then
-     write(*,*)
-     write(*,'("Error(idxkkp): ik > ikp")')
-     write(*,*)
-     call terminate
-  end if
-  s=0
-  do a=1,ik-1
-     s=s+n-a+1
-  end do
-  idxkkp=s+ikp-ik+1
-end function idxkkp
-
-

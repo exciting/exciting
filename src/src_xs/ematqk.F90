@@ -109,7 +109,7 @@ subroutine ematqk(iq,ik)
      call cpu_time(cpu01)
      cpuir=cpuir+cpu01-cpu00
 
-     if ((ematstrat.gt.0).and.(nlotot.gt.0)) then 
+     if ((.not.fastemat).and.(nlotot.gt.0)) then 
         ! muffin-tin contributions
         ! APW-lo contribution
         ! multiplication xi = xiho * evecfvu

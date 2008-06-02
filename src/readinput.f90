@@ -182,7 +182,6 @@ tetra=.false.
 #ifdef XS
 ! TDDFT variables
 imbandstr=.false.
-pmatira=.false.
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
@@ -192,8 +191,8 @@ vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
 lmaxapwtd=-1
-pmatstrat=0
-ematstrat=0
+fastpmat=.true.
+fastemat=.true.
 emattype=1
 lmaxemat=3
 rsptype='reta'
@@ -246,7 +245,6 @@ nstabf=-1
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,&
      vacuum)
-write(*,'(a)') 'Info(readinput): processing blocks:'
 #endif
 
 !-------------------------------!
@@ -276,9 +274,6 @@ end if
 read(50,*,end=30) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
-#ifdef XS
-write(*,'(a)') 'reading block for: '//trim(bname)
-#endif
 select case(trim(bname))
 case('tasks')
   do i=1,maxtasks
@@ -953,8 +948,6 @@ case('tetra')
 ! TDDFT variables
 case('imbandstr')
   read(50,*,err=20) imbandstr
-case('pmatira')
-  read(50,*,err=20) pmatira
 case('vgqlmt')
   read(50,*,err=20) nqptmt
   if (nqptmt.le.0) then
@@ -990,10 +983,10 @@ case('lmaxapwtd')
     write(*,*)
     stop
   end if
-case('pmatstrat')
-  read(50,*,err=20) pmatstrat
-case('ematstrat')
-  read(50,*,err=20) ematstrat
+case('fastpmat')
+  read(50,*,err=20) fastpmat
+case('fastemat')
+  read(50,*,err=20) fastemat
 case('emattype')
   read(50,*,err=20) emattype
 case('lmaxemat')
@@ -1233,7 +1226,6 @@ if (molecule) then
   end do
 end if
 #ifdef XS
-write(*,'(a)') 'reading in of '//trim(fname)//' finished'
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
 #endif

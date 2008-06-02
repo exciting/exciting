@@ -3,15 +3,17 @@
 --------------------------------------------------------------------------------
 >> Apr 3, 2008
 --------------------------------------------------------------------------------
-
+FINISHED
 	+ global variable for BSE-diag minimum/average  bsediag
 	+ subtract bsediag from BSE ham.
 	+ account for bsediag in KS/QP-response functions
 
+DONE
+
 --------------------------------------------------------------------------------
 >> Apr 22, 2008
 --------------------------------------------------------------------------------
-
+FINISHED
 	+ faster momentum-matrix elements:
 	----------------------------------
 	  * pmatrad.F90
@@ -19,7 +21,6 @@
 	  * genpmat2.F90
 	  - writepmat.F90 : switch for choosing either genpmat.F90 or
 	  	genpmat2.F90
-
 
 
 --------------------------------------------------------------------------------
@@ -38,7 +39,7 @@ FINISHED
 	+ write nv/nc to file for SCCLI/EXCLI
 	+ input parameters for SCCLI/EXCLI and BSE (nv/nc)
 	proposal:  nbf,naf as generic names and
-	"nbfci,nafci" (number below/abve Fermi Coulomb interactions)
+	"nbfce,nafce" (number below/abve Fermi Coulomb interactions)
 	and "nbfbse,nafbse"
 
 --------------------------------------------------------------------------------

@@ -46,7 +46,7 @@ real(8), intent(out) :: f0(nr)
 integer, parameter :: maxit=2000
 integer kpa,it,nn,ir,irm,nnd,nndp
 ! energy convergence tolerance
-real(8), parameter :: eps=1.d-10
+real(8), parameter :: eps=1.d-11!!1.d-10
 real(8) t1,de
 ! automatic arrays
 real(8) g1(nr),f1(nr),fr(nr),gr(nr),cf(3,nr)

@@ -80,7 +80,7 @@ contains
     doLAPACKsolver=.false.
     if ((iterativetype.eq.0.or.iterativetype.eq.1)) then
        doLAPACKsolver=.true.
-       write(*,*)"LAPACK hevx"
+!!!       write(*,*)"LAPACK hevx"
        diiscounter=1
     endif
 

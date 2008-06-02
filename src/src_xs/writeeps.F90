@@ -11,7 +11,7 @@ contains
     use modmain
     use modxs
     use m_getunit
-    use m_tdwriteh
+    use m_writevars
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -34,9 +34,9 @@ contains
     call kramkron(optcomp(1,1),optcomp(2,1),1.d-8,n,w,imeps,kkeps)
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
-    ! write relevant parameters as header to file
-    call tdwriteh(unit1,iq)
     write(unit1,'(4g18.10)') (w(iw)*escale,eps(iw),kkeps(iw),iw=1,n)
+    ! write relevant parameters to file
+    call writevars(unit1,iq)
     close(unit1)
     deallocate(imeps,kkeps)
   end subroutine writeeps

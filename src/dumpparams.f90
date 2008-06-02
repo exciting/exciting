@@ -1,5 +1,5 @@
 
-! Copyright (C) 2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -22,7 +22,7 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   open(unit=77,file=trim(string),action='write',status='replace')
   write(77,*)
   write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
-  write(77,*)
+  write(77,'(a)') trim(comment)
   write(77,'("tasks")')
   do j=1,ntasks
      write(77,*) tasks(j)

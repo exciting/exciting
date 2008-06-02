@@ -20,9 +20,9 @@ subroutine writeemat
   call init1
   call init2xs
   ! k-point parallelization for TDDFT
-  if ((task.ge.300).and.(task.le.399)) call genparidxran('k')
+  if ((task.ge.300).and.(task.le.399)) call genparidxran('k',nkpt)
   ! q-point parallelization for screening
-  if ((task.ge.400).and.(task.le.499)) call genparidxran('q')
+  if ((task.ge.400).and.(task.le.499)) call genparidxran('q',nqpt)
    ! write q-point set
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file
@@ -37,7 +37,6 @@ subroutine writeemat
        &within lmax values:', lmaxapw,lmaxemat,lmaxapw
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
   call flushifc(unitout)
-  if (gather) goto 10
   ! loop over q-points
   do iq=1,nqpt
      ! call for q-point
@@ -46,13 +45,6 @@ subroutine writeemat
           &exponentials finished for q-point:',iq
      call flushifc(unitout)
   end do
-  ! synchronize
-  call barrier
-10 continue
-  ! gather from processes
-  if ((procs.gt.1).and.(rank.eq.0).and.(partype.eq.'k')) then
-     call ematgather
-  end if
   ! synchronize
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): matrix elements of &

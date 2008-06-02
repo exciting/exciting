@@ -22,7 +22,7 @@ subroutine idf
   call init2xs
   call readfermi
   ! w-point parallelization for dielectric function
-  call genparidxran('w')
+  call genparidxran('w',nwdf)
   write(unitout,'("Exchange-correlation kernel type :",i4)') fxctype
   write(unitout,'("  ",a)') trim(fxcdescr)
   ! loop over q-points

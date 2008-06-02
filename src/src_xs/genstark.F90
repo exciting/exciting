@@ -11,9 +11,9 @@ subroutine genstark
   use modmain
   use modxs
 ! !DESCRIPTION:
-!   Generates the stars for the $k$-point set as reference to crystal
-!   symmetries. For a non-zero q-point the little group of q is taken
-!   instead of the full symmetry group.
+!   Generates the stars for the ${\bf k}$-point set as reference to crystal
+!   symmetries. For a non-zero ${\bf q}$-point the little group of ${\bf q}$
+!   is taken instead of the full symmetry group.
 !
 ! !REVISION HISTORY:
 !   Created December 2007 (Sagmeister)

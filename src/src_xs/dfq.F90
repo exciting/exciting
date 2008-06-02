@@ -19,7 +19,7 @@ subroutine dfq(iq)
   use m_chi0upd
   use m_putx0
   use m_getunit
-  use m_tdwriteh
+  use m_writevars
   use m_filedel
   use m_genfilname
   implicit none
@@ -400,7 +400,7 @@ hdg=zzero
            end if
         end do
      end do
-     call tdwriteh(un,iq)
+     call writevars(un,iq)
      close(un)
   else
      do j=0,procs-1

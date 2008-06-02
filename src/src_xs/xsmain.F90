@@ -4,9 +4,7 @@
 ! See the file COPYING for license details.
 
 !BOI
-! !TITLE: The Developers' Guide for the excited-states implementation within
-!   the 
-!   EXCITING Code \\ Version
+! !TITLE: The XS/EXCITING Code (eXited States) Manual \\ Version 0.9
 ! !AUTHORS: S. Sagmeister and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
@@ -15,7 +13,7 @@
 !   only to the excited states (TDDFT and BSE) part into one document.
 !   \\\\
 !   S. Sagmeister\\
-!   Graz, 2006
+!   Leoben, 2008
 !
 !EOI
 
@@ -99,11 +97,11 @@ subroutine xsmain
      ! RPA screening
      call screen
   case(11111)
+     ! screened Coulomb interaction (old version)
+     call scrcoulint_old
+  case(440)
      ! screened Coulomb interaction
      call scrcoulint
-  case(440)
-     ! screened Coulomb interaction **********************************
-     call scrcoulint3
   case(441)
      ! exchange Coulomb interaction
      call exccoulint
@@ -116,6 +114,8 @@ subroutine xsmain
   case(499)
      ! * debug task
      call init0
+     call init1
+     call writesymi
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task

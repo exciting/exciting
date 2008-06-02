@@ -10,9 +10,9 @@ subroutine zoutpr(n1,n2,alpha,x,y,a)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n1,n2 : size of vectors and matrix, respectively (in,integer)
 !   alpha : complex constant (in,complex)
-!   x     : first input vector (in,complex(n))
-!   y     : second input vector (in,complex(n))
-!   a     : output matrix
+!   x     : first input vector (in,complex(n1))
+!   y     : second input vector (in,complex(n2))
+!   a     : output matrix (out,complex(n1,n2))
 ! !DESCRIPTION:
 !   Performs the rank-2 operation
 !   $$ A_{ij}\rightarrow\alpha{\bf x}_i^*{\bf y}_j+A_{ij}. $$

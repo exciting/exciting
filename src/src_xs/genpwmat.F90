@@ -1,6 +1,5 @@
 
-! Copyright (C) 2002-2008 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -13,23 +12,15 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
 ! !USES:
   use modmain
   use modxs
-!  use modxs
 ! !INPUT/OUTPUT PARAMETERS:
-!   ngp    : number of G+p-vectors (in,integer)
-!   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
-!   vgpc   : G+p-vectors in Cartesian coordinates (in,real(3,ngkmax))
-!   apwalm : APW matching coefficients
-!            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
-!   evecfv : first-variational eigenvector (in,complex(nmatmax,nstfv))
-!   evecsv : second-variational eigenvectors (in,complex(nstsv,nstsv))
-!   pwmat  : matrix elements of plane wave (out,complex(ngq(iqcu),nstsv,nstsv))
 ! !DESCRIPTION:
-!   Calculates the momentum matrix elements
-!   $$ p_{ij}=\langle\Psi_{i,{\bf k}}|-i\nabla|\Psi_{j,{\bf k}}\rangle. $$
+!   Calculates the matrix elements of the plane wave
+!   $$ p_{ij}=\langle\Psi_{i,{\bf k}}|e^{-i({\bf G}+{\bf q}){\bf r}}|
+!      \Psi_{j,{\bf k}}\rangle. $$
+!  Straightforward implementation for checking.
 !
 ! !REVISION HISTORY:
 !   Created November 2007 (Sagmeister)
-!   Fixed bug found by Juergen Spitaler, September 2006 (JKD)
 !EOP
 !BOC
   implicit none
@@ -238,7 +229,6 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
      ! end loop over G+p vectors
   end do
   deallocate(wfmtk,wfmtkp,wfmt1,wfmt2,zfmt,pwfmt,wfirk,wfirkp,pm,jlgpr)
-
   deallocate(cfunt,h,pmt,evecfvt1,evecfvt2)
 end subroutine genpwmat
 !EOC

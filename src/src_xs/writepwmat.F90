@@ -7,19 +7,20 @@
 ! !ROUTINE: writepwmat
 ! !INTERFACE:
 subroutine writepwmat
-  ! !USES:
+! !USES:
   use modmain
   use modxs
   use m_genfilname
-  ! !DESCRIPTION:
-  !   Calculates the matrix elements of the plane wave $exp(-i(\mathbf{G}+
-  !   mathbf{q})\mathbf{r})$ using routine {\tt genpwmat} and writes them to
-  !   direct access file {\tt PWMAT.OUT}.
-  !
-  ! !REVISION HISTORY:
-  !   Created November 2007 (Sagmeister)
-  !EOP
-  !BOC
+! !DESCRIPTION:
+!   Calculates the matrix elements of the plane wave
+!   $e^{-i({\bf G}+{\bf q}){\bf r}}$
+!   using routine {\tt genpwmat} and writes them to
+!   direct access file {\tt PWMAT.OUT}.
+!
+! !REVISION HISTORY:
+!   Created November 2007 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! local variables
   integer :: iq

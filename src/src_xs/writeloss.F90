@@ -11,7 +11,7 @@ contains
     use modmain
     use modxs
     use m_getunit
-    use m_tdwriteh
+    use m_writevars
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -29,8 +29,6 @@ contains
     n1=shape(w); n=n1(1)
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
-    ! write relevant parameters as header to file
-    call tdwriteh(unit1,iq)
     ! include dynamical structure factor
     !*** dynamical structure factor like in Weissker, PRL 2006
     write(unit1,'(3g18.10)') (w(iw)*escale,loss(iw),loss(iw)* &
@@ -38,6 +36,8 @@ contains
 !!$    ! *** dynamical structure factor like in Idoia thesis
 !!$    write(unit1,'(3g18.10)') (w(iw),loss(iw),loss(iw)* &
 !!$         gqc(1,iq)**2*omega/(twopi),iw=1,n)
+    ! write relevant parameters to file
+    call writevars(unit1,iq)
     close(unit1)
   end subroutine writeloss
 

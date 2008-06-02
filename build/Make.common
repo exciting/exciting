@@ -11,7 +11,7 @@ bin:make.inc
 	../../src/src_iterative_solver/src_jdqz \
 	../../src/src_iterative_solver/src_diis \
 	&& make -f Makefile.$(SUFFIX) exciting$(SUFFIX) \
-
+	&& cp -f exciting$(SUFFIX) ..
 
 libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a libjdqz.a
 

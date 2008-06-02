@@ -250,8 +250,8 @@ module modxs
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
-  ! strategy to calculate APW-lo, lo-APW and lo-lo parts in MT
-  integer :: ematstrat
+  ! fast method to calculate APW-lo, lo-APW and lo-lo parts in MT
+  logical :: fastemat
   ! type of matrix element generation (band-combinations)
   integer :: emattype
   ! maximum angular momentum for Rayleigh expansion of exponential
@@ -300,16 +300,8 @@ module modxs
   !---------------------------------!
   !     momentum matrix elements    !
   !---------------------------------!
-  ! strategy to calculate matrix elements
-  integer :: pmatstrat
-  ! radial integrals (APW-APW)
-  real(8), allocatable :: ripaa(:,:,:,:,:,:)
-  ! radial integrals (APW-lo)
-  real(8), allocatable :: ripalo(:,:,:,:,:,:)
-  ! radial integrals (lo-APW)
-  real(8), allocatable :: riploa(:,:,:,:,:,:)
-  ! radial integrals (lo-lo)
-  real(8), allocatable :: riplolo(:,:,:,:,:,:)
+  ! fast method to calculate matrix elements
+  logical :: fastpmat
   ! momentum matrix elements (resonant part)
   complex(8), allocatable :: pmou(:,:,:)
   ! momentum matrix elements (anti-resonant part)
@@ -505,6 +497,10 @@ module modxs
   integer :: kpari
   ! current final k-point index
   integer :: kparf
+  ! current initial (k,kp) pair index
+  integer :: ppari
+  ! current final (k,kp) pair index
+  integer :: pparf
   ! current initial w-point index
   integer :: wpari
   ! current final w-point index
@@ -559,8 +555,6 @@ module modxs
   ! additionally bandstructure that is not shifted to the Fermi level
   logical :: imbandstr
   data imbandstr /.false./
-  ! analytic evaluation of momentum matrix elements in interstitial
-  logical :: pmatira
   ! true if state is only allowed to be read from STATE.OUT file
   ! and from no other file extension
   logical :: isreadstate0

@@ -59,7 +59,7 @@ subroutine ematqkgmt(iq,ik,igq)
            end do ! m1
         end do ! l1
         call cpu_time(cmt1)
-        if (ematstrat.eq.0) then
+        if (fastemat) then
            !--------------------------------------!
            !     local-orbital-APW contribution   !
            !--------------------------------------!

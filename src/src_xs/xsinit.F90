@@ -40,7 +40,7 @@ subroutine xsinit(cnt)
   end if
   ! set splittfile parameter for splitting of eigenvector files in
   ! parallelization of SCF cycle
-  if ((task.ne.301).or.(task.ne.401)) splittfile=.false.
+  if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
   ! generate resume file
   if (procs.gt.1) then
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&
@@ -69,7 +69,7 @@ subroutine xsinit(cnt)
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
      write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
-          &States "I1.1,".",I3.3," ) started |")') version,versionxs
+          &States ",I1.1,".",I3.3," ) started |")') version,versionxs
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
 #ifdef MPI

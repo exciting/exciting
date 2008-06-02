@@ -82,7 +82,7 @@ subroutine tetcalccwq(iq)
        action='write',status='replace',access='direct',recl=recl)
   ! calculate weights
   do iw=1,nwdfp
-!!$     if ((modulo(iw,max(nwdfp/10,1)).eq.0).or.(iw.eq.nwdfp)) &
+!!!     if ((modulo(iw,max(nwdfp/10,1)).eq.0).or.(iw.eq.nwdfp)) &
           write(*,'("Info(tetcalccwq): tetrahedron weights for ",I6," of ",&
           &I6," w-points")') iw,nwdfp
      wt=wreal(iw)

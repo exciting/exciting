@@ -23,7 +23,7 @@ subroutine init1
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
-!   Modifications for TDDFT 2007 (Sagmeister)
+!   Modifications for excited states 2007-2008 (Sagmeister)
 !EOP
 !BOC
   implicit none
@@ -289,7 +289,8 @@ subroutine init1
      if (allocated(strmapsymc)) deallocate(strmapsymc)
      allocate(strmapsymc(nkptnr))
      ! determine inverse symmery elements
-     call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scimap)
+     call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat, &
+          scimap)
      ! generate stars for k-point set
      call genstark
 #endif

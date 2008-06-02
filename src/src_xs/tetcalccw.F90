@@ -28,9 +28,9 @@ subroutine tetcalccw
   ! w-point interval for process
   if (tscreen) then
      nwdf=1
-     call genparidxran('q')
+     call genparidxran('q',nqpt)
   else
-     call genparidxran('w')
+     call genparidxran('w',nwdf)
   end if
   ! loop over q-points
   do iq=qpari,qparf

@@ -13,6 +13,7 @@ exciting_interfaces
 .cdtproject
 .project
 .settings
+build/gfortran
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species
@@ -23,11 +24,7 @@ examples/xs
 .cdtproject
 .project
 .settings/*
-Makefile.serial
-Makefile.parallel
-Makefile.smp
-Makefile.debug
-Makefile.interfaces
+Makefile.*
 make.inc
 make.out
 mpif.h
