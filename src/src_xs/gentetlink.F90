@@ -80,22 +80,18 @@ subroutine gentetlink(vpl)
   ! generate fraction for k-point offset
   call r3fraction(vkloff,ikloff,dkloff)
 
-
-
-!SAG **************************************************************************
+  !new interface function
   ! call to libbzint-routine
   call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
-       ntet,tnodes      ,wtet     ,link,tvol)
+       ntet,tnodes,wtet,link,tvol)
 
-
+  !old function call (deprecated)
 !!$allocate(linkt(6*nkptnr,nkptnr),kqid(nkpt,nkpt))
 !!$  call kqgen(bvec,ngridk,ikloff,dkloff,nkpt, ivkt,ivqt,dvk,dvq,   &
 !!$     &                 kqid,  ntet,tnodes     ,wtet       ,linkt,tvol)
 !!$! assign link array
 !!$link(:)=linkt(:,iqnr)
 !!$deallocate(linkt,kqid)
-
-
 
   ! deallocate local arrays
   deallocate(ivkt,ivqt)

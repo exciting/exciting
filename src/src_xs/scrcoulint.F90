@@ -324,14 +324,17 @@ subroutine scrcoulint
         end do
      end if
      
-     ! processe write sequentially to one file
-     do j=0,procs-1
-        if (rank.eq.j) then
-           call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr, &
-                nst1,nst3,nst4,nst2)
-        end if
-        call barrier
-     end do
+!!$     ! processe write sequentially to one file
+!!$     do j=0,procs-1
+!!$        if (rank.eq.j) then
+!!$           call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr, &
+!!$                nst1,nst3,nst4,nst2)
+!!$        end if
+!!$        call barrier
+!!$     end do
+
+     ! parallel write
+     call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2)
 
      deallocate(emat12,emat34)
      deallocate(tm,tmi)
@@ -339,6 +342,9 @@ subroutine scrcoulint
 
      ! end loop over (k,kp)-pairs
   end do
+
+call barrier
+
   ! close output file
   close(un)
 

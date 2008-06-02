@@ -23,7 +23,7 @@ subroutine init1
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
-!   Modifications for TDDFT 2007 (Sagmeister)
+!   Modifications for excited states 2007-2008 (Sagmeister)
 !EOP
 !BOC
   implicit none

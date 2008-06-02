@@ -12,20 +12,19 @@ subroutine exccoulint
   use m_findgntn0
   use m_writegqpts
   use m_genfilname
-  use m_getunit
   implicit none
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
   integer, parameter :: iqmt=1
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,igq1,n,iflg,recl
-  integer :: ngridkt(3),iv(3),un,j1,j2
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
+  integer :: iknr,jknr,iqr,iq,igq1,n,iflg
+  integer :: ngridkt(3),iv(3),j1,j2
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,nkkp
   logical :: nosymt,reducekt
   real(8) :: vklofft(3)
   real(8), allocatable :: potcl(:)
-  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
+  complex(8), allocatable :: exclit(:,:),excli(:,:,:,:)
   complex(8), allocatable :: emat12(:,:),emat34(:,:)
   ! external functions
   integer, external :: iplocnr
@@ -96,7 +95,7 @@ subroutine exccoulint
   nst34=nst3*nst4
   nst13=nst1*nst3
   nst24=nst2*nst4
-  
+
   write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
   write(*,'(a,4i6)') 'nst12,34,13,24',nst12,nst34,nst13,nst24
 
@@ -108,20 +107,12 @@ subroutine exccoulint
   n=ngq(iqmt)
   call ematrad(iqmt)
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-  call getunit(un)
   allocate(potcl(n))
-  allocate(sccli(nst1,nst2,nst1,nst2))
+  allocate(excli(nst1,nst2,nst1,nst2))
   allocate(emat12k(nst1,nst2,n,nkptnr))
   potcl(:)=0.d0
-  sccli(:,:,:,:)=zzero
+  excli(:,:,:,:)=zzero
   ikkp=0
-
-  call genfilname(basename='EXCLI',dotext='.OUT',filnam=fname)
-  call getunit(un)
-  inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
-       sccli(:,:,:,:)
-  open(un,file=trim(fname),form='unformatted',action='write', &
-       status='replace',access='direct',recl=recl)
 
   !---------------------------!
   !     loop over k-points    !
@@ -137,127 +128,124 @@ subroutine exccoulint
   end do
   emattype=1
   call ematbdcmbs(emattype)
-  
+
   write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
   write(*,'(a,4i6)') 'nst12,34,13,24',nst12,nst34,nst13,nst24
 
-  do iknr=1,nkptnr
-     do jknr=iknr,nkptnr
-        ikkp=ikkp+1
-        iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
-        iv(:)=modulo(iv(:),ngridk(:))
-        ! q-point (reduced)
-        iqr=iqmapr(iv(1),iv(2),iv(3))
-        ! q-point (non-reduced)
-        iq=iqmap(iv(1),iv(2),iv(3))
+  nkkp=nkptnr*(nkptnr+1)/2
+  call genparidxran('p',nkkp)
 
-        ! temporary arrays
-        allocate(emat12(nst12,n),emat34(nst34,n))
-        allocate(scclit(nst34,nst12))
+  do ikkp=ppari,pparf
+     call kkpmap(ikkp,nkptnr,iknr,jknr)
 
-        ! set up Coulomb potential
-        do igq1=1,n
-           ! calculate weights for Coulomb potential
-           iflg=0
-           if (igq1.eq.1) then
-              ! consider 1/q^2 for q point to zero
-              iflg=bsediagweight
-           end if
-           call genwiq2xs(iflg,iqmt,igq1,igq1,potcl(igq1))
-           ! end loop over G-vectors
+     iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
+     iv(:)=modulo(iv(:),ngridk(:))
+     ! q-point (reduced)
+     iqr=iqmapr(iv(1),iv(2),iv(3))
+     ! q-point (non-reduced)
+     iq=iqmap(iv(1),iv(2),iv(3))
+
+     ! temporary arrays
+     allocate(emat12(nst12,n),emat34(nst34,n))
+     allocate(exclit(nst34,nst12))
+
+     ! set up Coulomb potential
+     do igq1=1,n
+        ! calculate weights for Coulomb potential
+        iflg=0
+        if (igq1.eq.1) then
+           ! consider 1/q^2 for q point to zero
+           iflg=bsediagweight
+        end if
+        call genwiq2xs(iflg,iqmt,igq1,igq1,potcl(igq1))
+        ! end loop over G-vectors
+     end do
+     ! *** set G=0 term to zero [Ambegoaker-Kohn]
+     potcl(1)=0.d0
+
+     call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+
+     write(*,'(a,i6,2x,2i5,2x,2i5,2x,i6)') 'ikkp,iknr,jknr,iq,iqr,n',&
+          ikkp,iknr,jknr,iq,iqr,n
+
+     ! help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
+     j1=0
+     do ist2=1,nst2
+        do ist1=1,nst1
+           j1=j1+1
+           emat12(j1,:)=emat12k(ist1,ist2,:,iknr)
         end do
-        ! *** set G=0 term to zero [Ambegoaker-Kohn]
-        potcl(1)=0.d0
-
-        call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-
-        write(*,'(a,i6,2x,2i5,2x,2i5,2x,i6)') 'ikkp,iknr,jknr,iq,iqr,n',&
-             ikkp,iknr,jknr,iq,iqr,n
-
-        ! help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
-        j1=0
-        do ist2=1,nst2
-           do ist1=1,nst1
-              j1=j1+1
-              emat12(j1,:)=emat12k(ist1,ist2,:,iknr)
-           end do
+     end do
+     j2=0
+     do ist4=1,nst2
+        do ist3=1,nst1
+           j2=j2+1
+           emat34(j2,:)=emat12k(ist3,ist4,:,jknr)*potcl(:)
         end do
-        j2=0
-        do ist4=1,nst2
-           do ist3=1,nst1
-              j2=j2+1
-              emat34(j2,:)=emat12k(ist3,ist4,:,jknr)*potcl(:)
-           end do
-        end do
+     end do
 
-        ! * calculate exchange matrix elements
-        scclit=matmul(conjg(emat12),transpose(emat34))/omega/nkptnr
+     ! * calculate exchange matrix elements
+     exclit=matmul(conjg(emat12),transpose(emat34))/omega/nkptnr
 
-        ! map back to individual band indices
-        j2=0
-        do ist4=1,nst2
-           do ist3=1,nst1
-              j2=j2+1
-              j1=0
-              do ist2=1,nst2
-                 do ist1=1,nst1
-                    j1=j1+1
-                    sccli(ist1,ist2,ist3,ist4)=scclit(j1,j2)
-                 end do
+     ! map back to individual band indices
+     j2=0
+     do ist4=1,nst2
+        do ist3=1,nst1
+           j2=j2+1
+           j1=0
+           do ist2=1,nst2
+              do ist1=1,nst1
+                 j1=j1+1
+                 excli(ist1,ist2,ist3,ist4)=exclit(j1,j2)
               end do
            end do
         end do
+     end do
 
+     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+     !        excli(:,:,:,:)=zzero
+     !        do igq1=1,n
+     !           do ist1=1,nst1
+     !              do ist2=1,nst2
+     !                 do ist3=1,nst1
+     !                    do ist4=1,nst2
+     !                       excli(ist1,ist2,ist3,ist4)= &
+     !                            excli(ist1,ist2,ist3,ist4)+ &
+     !                            conjg(emat12k(ist1,ist2,igq1,iknr))* &
+     !			    potcl(igq1)* &
+     !                            (emat12k(ist3,ist4,igq1,jknr))/omega/nkptnr
+     !                    end do
+     !                 end do
+     !              end do
+     !           end do
+     !        end do
+     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-!        sccli(:,:,:,:)=zzero
-!        do igq1=1,n
-!           do ist1=1,nst1
-!              do ist2=1,nst2
-!                 do ist3=1,nst1
-!                    do ist4=1,nst2
-!                       sccli(ist1,ist2,ist3,ist4)= &
-!                            sccli(ist1,ist2,ist3,ist4)+ &
-!                            conjg(emat12k(ist1,ist2,igq1,iknr))* &
-!			    potcl(igq1)* &
-!                            (emat12k(ist3,ist4,igq1,jknr))/omega/nkptnr
-!                    end do
-!                 end do
-!              end do
-!           end do
-!        end do
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+     do ist1=1,nst1
+        do ist2=1,nst2
+           do ist3=1,nst1
+              do ist4=1,nst2
+                 write(1200,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+                      ist2,jknr,ist3,ist4,excli(ist1,ist2,ist3,ist4),&
+                      abs(excli(ist1,ist2,ist3,ist4))
+              end do
+           end do
+        end do
+     end do
 
+     ! parallel write
+     call putbsemat('EXCLI.OUT',excli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2)
 
+     call genfilname(dotext='_SCI.OUT',setfilext=.true.)
+     deallocate(emat12,emat34,exclit)
 
-	do ist1=1,nst1
-	   do ist2=1,nst2
-	      do ist3=1,nst1
-		 do ist4=1,nst2
-		    write(1200,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-			 ist2,jknr,ist3,ist4,sccli(ist1,ist2,ist3,ist4),&
-			 abs(sccli(ist1,ist2,ist3,ist4))
-		 end do
-	      end do
-	   end do
-	end do
-
-        ! write exchange Coulomb interaction to direct-access file
-        write(un,rec=ikkp) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
-             sccli(:,:,:,:)
-
-        call genfilname(dotext='_SCI.OUT',setfilext=.true.)
-        deallocate(emat12,emat34,scclit)
-
-        ! end loop over (k,kp) pairs
-     end do     
+     ! end loop over (k,kp) pairs
   end do
-  close(un)
-
+  call barrier
 
   call findgntn0_clear
   deallocate(emat12k)
-  deallocate(potcl,sccli)
+  deallocate(potcl,excli)
 
   !--------------!
   !   finalize   !
@@ -269,4 +257,4 @@ subroutine exccoulint
   vkloff(:)=vklofft(:)
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Exchange Coulomb interaction&
        & finished"
-end subroutine
+end subroutine exccoulint

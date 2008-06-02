@@ -24,7 +24,6 @@ subroutine reduk(nsymt,divsh,weight)
   !<sag>
   real(8), parameter :: epslat=1.d-6
   real(8) :: kpr(3),kprt(3)
-  integer :: iv(3)
   logical, allocatable :: done(:)
   !</sag>
 

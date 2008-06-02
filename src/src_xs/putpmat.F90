@@ -48,7 +48,6 @@ contains
        end do
     end if
 #endif
-
   end subroutine putpmat
 
 end module m_putpmat
