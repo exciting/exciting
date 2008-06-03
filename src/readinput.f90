@@ -240,8 +240,10 @@ bsediagsym=0
 fnevecfvbse='EVECFV_BSE.OUT'
 fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
-nstbef=-1
-nstabf=-1
+nbfce=-1
+nafce=-1
+nbfbse=-1
+nafbse=-1
 ! dump default values
 if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,&
      vacuum)
@@ -1158,19 +1160,20 @@ case('fnevalsvbse')
   read(50,*,err=20) fnevalsvbse
 case('fnoccsvbse')
   read(50,*,err=20) fnoccsvbse
-case('nstbef')
-  read(50,*,err=20) nstbef
-  if (nstbef.le.0) then
+case('nstlce')
+  read(50,*,err=20) nbfce,nafce
+  if ((nbfce.le.0).or.(nafce.le.0)) then
     write(*,*)
-    write(*,'("Error(readinput[BSE]): nstbef <= 0 : ",I8)') nstbef
+    write(*,'("Error(readinput[BSE]): nbfce or nafce <= 0 : ",I8)') nbfce,nafce
     write(*,*)
     stop
   end if
-case('nstabf')
-  read(50,*,err=20) nstabf
-  if (nstabf.le.0) then
+case('nstlbse')
+  read(50,*,err=20) nbfbse,nafbse
+  if ((nbfbse.le.0).or.(nafbse.le.0)) then
     write(*,*)
-    write(*,'("Error(readinput[BSE]): nstabf <= 0 : ",I8)') nstabf
+    write(*,'("Error(readinput[BSE]): nbfbse or nafbse <= 0 : ",I8)') nbfbse, &
+         nafbse
     write(*,*)
     stop
   end if
