@@ -82,24 +82,24 @@ egap=1.d8
   ! read Fermi energy from file
   call readfermi
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-  call initoccbse
+  call initoccbse(nbfbse,nafbse)
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   call ematbdcmbs(emattype)
 
-  write(*,'("number of states below Fermi energy:",i6)') nstbef
-  write(*,'("number of states above Fermi energy:",i6)') nstabf
+  write(*,'("number of states below Fermi energy:",i6)') nbfbse
+  write(*,'("number of states above Fermi energy:",i6)') nafbse
 
-nvdif=nstval-nstbef
-ncdif=nstcon-nstabf
+nvdif=nstval-nbfbse
+ncdif=nstcon-nafbse
 
 write(*,*) 'nvdif',nvdif
 write(*,*) 'ncdif',ncdif
 write(*,*) 'oct',oct
 
-if ((nvdif.lt.0).or.(ncdif.lt.0)) stop 'bse: bad nstbef,nstabf'
+if ((nvdif.lt.0).or.(ncdif.lt.0)) stop 'bse: bad nbfbse,nafbse'
 
   ! size of BSE-Hamiltonian
-  hamsiz=nstbef*nstabf*nkptnr
+  hamsiz=nbfbse*nafbse*nkptnr
 
   write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
   allocate(sccli(nst1,nst2,nst1,nst2))
@@ -191,8 +191,8 @@ write(*,*) 'record length for SCI',recl
            do ist2=1,nst2-ncdif
               do ist3=1+nvdif,nst1
                  do ist4=1,nst2-ncdif
-                    s1=hamidx(ist1-nvdif,ist2,iknr,nstbef,nstabf)
-                    s2=hamidx(ist3-nvdif,ist4,jknr,nstbef,nstabf)
+                    s1=hamidx(ist1-nvdif,ist2,iknr,nbfbse,nafbse)
+                    s2=hamidx(ist3-nvdif,ist4,jknr,nbfbse,nafbse)
                     ! add diagonal term
                     if (s1.eq.s2) then
                        de=evalsv(ist2+istocc,iknr)-evalsv(ist1,iknr)+scissor
@@ -258,7 +258,7 @@ write(*,*) 'record length for SCI',recl
      call getpmat(iknr,vkl,.true.,trim(fnamepm),pm)
      do ist1=1+nvdif,nstsv-nstcon
         do ist2=nstval+1,nstsv-ncdif
-           s1=hamidx(ist1-nvdif,ist2-nstval,iknr,nstbef,nstabf)
+           s1=hamidx(ist1-nvdif,ist2-nstval,iknr,nbfbse,nafbse)
            pmat(s1)=pm(oct,ist1,ist2)
 
 write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
@@ -275,9 +275,9 @@ write(985,'(i6,3x,3i6,2g18.10)') s1,iknr,ist1,ist2,pmat(s1)
   oszs(:)=zzero
   do s1=1,nexc
      do iknr=1,nkptnr
-        do iv=1,nstbef
-           do ic=1,nstabf
-              s2=hamidx(iv,ic,iknr,nstbef,nstabf)
+        do iv=1,nbfbse
+           do ic=1,nafbse
+              s2=hamidx(iv,ic,iknr,nbfbse,nafbse)
               oszs(s1)=oszs(s1)+bevec(s2,s1)*pmat(s2)/(evalsv(ic+istocc,iknr)- &
                    evalsv(iv+nvdif,iknr))
            end do

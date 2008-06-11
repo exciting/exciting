@@ -178,7 +178,8 @@ subroutine dfq(iq)
 
 !*******************************************************************************
 hdg=zzero
-!!!	read(1108) hdg
+write(*,*) 'dfq, shape(hdg)',shape(hdg)
+!	read(1108) hdg
 !*******************************************************************************
 
   ! loop over k-points
@@ -202,8 +203,8 @@ hdg=zzero
 
 !*******************************************************************************
 ! *** this is working for Si_lapw/apw+lo
-!	scis12=scis12+hdg(:,:,ik)
-!	scis21=scis21-hdg(:,:,ik)
+	scis12=scis12+hdg(:,:,ik)
+	scis21=scis21-hdg(:,:,ik)
 !*******************************************************************************
 
      ! get matrix elements (exp. expr. or momentum op.)

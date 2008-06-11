@@ -29,7 +29,7 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-3
+  real(8), parameter :: delt=1.d-6
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:),w(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
@@ -178,6 +178,7 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
 allocate(hdg(nst1,nst3,nkptnr))
 hdg=zzero
+write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
 
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
@@ -358,7 +359,7 @@ hdg=zzero
            do ist3=1,nst3
               do ist1=1,nst1	      
                  zt1=sccli(ist1,ist3,ist1,ist3)
-!!!                 hdg(ist1,ist3,iknr)=-zt1
+!!!hdg(ist1,ist3,iknr)=-zt1
                  t1=dble(zt1)
                  t2=aimag(zt1)
                  tp=atan2(t2,t1)
@@ -463,21 +464,22 @@ hdg=zzero
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
 
-!!$! *** this part is working for Si_lapw and Si_APW+lo ***
-!!$           ! set up energy denominators
-!!$           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
-!!$           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
-!!$           den1=den1/nkpt/omega
-!!$           den2=den2/nkpt/omega
-!!$! *** end
+!! *** this part is working for Si_lapw and Si_APW+lo ***
+!           ! set up energy denominators
+!           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
+!           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
+!           den1=den1/nkpt/omega
+!           den2=den2/nkpt/omega
+!! *** end
 
-           ! set up energy denominators
-           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
-                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
-           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
-                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
-           den1=den1/nkpt/omega
-           den2=den2/nkpt/omega
+	   ! set up energy denominators
+	   den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
+		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
+	   den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
+		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
+	   den1=den1/nkpt/omega
+	   den2=den2/nkpt/omega
+
            ! update kernel
            do iw=1,nwdf
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)

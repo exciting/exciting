@@ -429,10 +429,14 @@ module modxs
   real(8) :: vkloffbse(3)
   ! smallest muffin-tin radius times gkmax
   real(8) :: rgkmaxbse
+  ! number of states below Fermi energy (Coulomb - and exchange term)
+  integer :: nbfce
+  ! number of states above Fermi energy (Coulomb - and exchange term)
+  integer :: nafce
   ! number of states below Fermi energy
-  integer :: nstbef
+  integer :: nbfbse
   ! number of states above Fermi energy
-  integer :: nstabf
+  integer :: nafbse
   ! filenames for eigenvector file, eigenvalues and occupancies
   character(256) :: fnevecfvbse, fnevalsvbse, fnoccsvbse
   ! treatment of weights for BSE diagonal (integrating out singularity)
