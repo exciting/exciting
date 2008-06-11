@@ -29,7 +29,7 @@ subroutine kernxc_bse(oct)
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-4
+  real(8), parameter :: delt=1.d-6
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:),w(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
@@ -464,21 +464,22 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
            call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
 
-! *** this part is working for Si_lapw and Si_APW+lo ***
-           ! set up energy denominators
-           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
-           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
-           den1=den1/nkpt/omega
-           den2=den2/nkpt/omega
-! *** end
+!! *** this part is working for Si_lapw and Si_APW+lo ***
+!           ! set up energy denominators
+!           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
+!           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
+!           den1=den1/nkpt/omega
+!           den2=den2/nkpt/omega
+!! *** end
 
-!!$           ! set up energy denominators
-!!$           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
-!!$                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
-!!$           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
-!!$                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
-!!$           den1=den1/nkpt/omega
-!!$           den2=den2/nkpt/omega
+	   ! set up energy denominators
+	   den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
+		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
+	   den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
+		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
+	   den1=den1/nkpt/omega
+	   den2=den2/nkpt/omega
+
            ! update kernel
            do iw=1,nwdf
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)

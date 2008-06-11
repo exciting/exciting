@@ -38,8 +38,10 @@ subroutine getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
            if ((e0(ist).gt.efermi).and.(e(jst).le.efermi)) &
                 scissv(ist-l1+1,jst-l2+1)=scissor
         else
+	  if (dbglev.gt.1) then
            write(*,'("Info(getdevaldoccsv): cutoff applied: iq,ik,ist,jst,&
                 &energies:",4i6,2g18.10)') iq,ik,ist,jst,e0(ist),e(jst)
+	  end if
            ! set energy difference to arbitrary number
            devalsv(ist-l1+1,jst-l2+1)=1.d0
            ! set occupation number difference to zero as a factor in the
