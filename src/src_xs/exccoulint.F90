@@ -109,7 +109,10 @@ subroutine exccoulint
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   allocate(potcl(n))
   allocate(excli(nst1,nst2,nst1,nst2))
+  allocate(exclit(nst34,nst12))
   allocate(emat12k(nst1,nst2,n,nkptnr))
+  allocate(emat12(nst12,n),emat34(nst34,n))
+
   potcl(:)=0.d0
   excli(:,:,:,:)=zzero
   ikkp=0
@@ -132,6 +135,9 @@ subroutine exccoulint
   write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
   write(*,'(a,4i6)') 'nst12,34,13,24',nst12,nst34,nst13,nst24
 
+  !-------------------------------!
+  !     loop over (k,kp) pairs    !
+  !-------------------------------!
   nkkp=nkptnr*(nkptnr+1)/2
   call genparidxran('p',nkkp)
 
@@ -145,23 +151,12 @@ subroutine exccoulint
      ! q-point (non-reduced)
      iq=iqmap(iv(1),iv(2),iv(3))
 
-     ! temporary arrays
-     allocate(emat12(nst12,n),emat34(nst34,n))
-     allocate(exclit(nst34,nst12))
-
-     ! set up Coulomb potential
-     do igq1=1,n
-        ! calculate weights for Coulomb potential
-        iflg=0
-        if (igq1.eq.1) then
-           ! consider 1/q^2 for q point to zero
-           iflg=bsediagweight
-        end if
-        call genwiq2xs(iflg,iqmt,igq1,igq1,potcl(igq1))
-        ! end loop over G-vectors
-     end do
-     ! *** set G=0 term to zero [Ambegoaker-Kohn]
+     ! set G=0 term of Coulomb potential to zero [Ambegoaker-Kohn]
      potcl(1)=0.d0
+     ! set up Coulomb potential
+     do igq1=2,n
+        call genwiq2xs(0,iqmt,igq1,igq1,potcl(igq1))
+     end do
 
      call genfilname(dotext='_SCR.OUT',setfilext=.true.)
 
@@ -186,6 +181,10 @@ subroutine exccoulint
 
      ! * calculate exchange matrix elements
      exclit=matmul(conjg(emat12),transpose(emat34))/omega/nkptnr
+
+!     emat12=conjg(emat12)
+!     call zgemm('n','t', nst12, nst12, n, zone, emat12, &
+!          nst12, emat34, nst12, zzero, exclit, nst12 )
 
      ! map back to individual band indices
      j2=0
@@ -221,30 +220,30 @@ subroutine exccoulint
      !        end do
      !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-     do ist1=1,nst1
-        do ist2=1,nst2
-           do ist3=1,nst1
-              do ist4=1,nst2
-                 write(1200,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-                      ist2,jknr,ist3,ist4,excli(ist1,ist2,ist3,ist4),&
-                      abs(excli(ist1,ist2,ist3,ist4))
+     if (ikkp.le.100) then
+        do ist1=1,nst1
+           do ist2=1,nst2
+              do ist3=1,nst1
+                 do ist4=1,nst2
+                    write(1200,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+                         ist2,jknr,ist3,ist4,excli(ist1,ist2,ist3,ist4),&
+                         abs(excli(ist1,ist2,ist3,ist4))
+                 end do
               end do
            end do
         end do
-     end do
+     end if
 
      ! parallel write
      call putbsemat('EXCLI.OUT',excli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst2,nst4)
-
      call genfilname(dotext='_SCI.OUT',setfilext=.true.)
-     deallocate(emat12,emat34,exclit)
 
      ! end loop over (k,kp) pairs
   end do
   call barrier
 
   call findgntn0_clear
-  deallocate(emat12k)
+  deallocate(emat12k,exclit,emat12,emat34)
   deallocate(potcl,excli)
 
   !--------------!
