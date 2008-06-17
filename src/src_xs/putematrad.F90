@@ -17,13 +17,13 @@ subroutine putematrad(iq)
   integer :: un
   ! calculate radial integrals
   call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
-  inquire(file=trim(fname),exist=exist)
-  if (.not.exist) then
+!!$  inquire(file=trim(fname),exist=exist)
+!!$  if (.not.exist) then
      call ematrad(iq )
      call getunit(un)
      open(un,file=trim(fname),form='unformatted',action='write', &
           status='replace')
      write(un) riaa,riloa,rilolo
      close(un)
-  end if
+!!$  end if
 end subroutine putematrad

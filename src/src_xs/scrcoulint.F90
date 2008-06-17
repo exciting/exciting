@@ -334,7 +334,7 @@ subroutine scrcoulint
 !!$     end do
 
      ! parallel write
-     call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2)
+     call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst2,nst4)
 
      deallocate(emat12,emat34)
      deallocate(tm,tmi)

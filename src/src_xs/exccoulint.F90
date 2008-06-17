@@ -234,7 +234,7 @@ subroutine exccoulint
      end do
 
      ! parallel write
-     call putbsemat('EXCLI.OUT',excli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst4,nst2)
+     call putbsemat('EXCLI.OUT',excli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst2,nst4)
 
      call genfilname(dotext='_SCI.OUT',setfilext=.true.)
      deallocate(emat12,emat34,exclit)
