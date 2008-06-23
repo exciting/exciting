@@ -47,5 +47,5 @@ subroutine writeevec(vq,voff,filxt)
   end do
   call endloopbarrier(nkpt,procs)
   isreadstate0=.false.
-  deallocate(evecfv,apwalm,apwdlm)
+  deallocate(evecfv,apwalm,apwdlm,lodlm)
 end subroutine writeevec

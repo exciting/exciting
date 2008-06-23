@@ -8,8 +8,8 @@ module m_genfilname
 contains
 
   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
-       nar,nlf,fxctype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext,setfilext,&
-       revertfilext,appfilext,filnam,fileext)
+       nar,nlf,fxctype,scrtype,bsetype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
+       setfilext,revertfilext,appfilext,filnam,fileext)
     use modmain, only: filext
     use modxs, only: filextrevert
     ! Generates file name and extension according to optional input parameters.
@@ -23,7 +23,7 @@ contains
     integer, optional, intent(in) :: etype
     logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
     logical, optional, intent(in) :: revertfilext,setfilext,appfilext
-    character(*), optional, intent(in) :: basename,dotext
+    character(*), optional, intent(in) :: basename,dotext,scrtype,bsetype
     character(256), optional, intent(out) :: filnam,fileext
     ! local variables
     logical :: nodot0,revert,setfxt,appfxt,dotxt,oct
@@ -112,6 +112,16 @@ contains
     ! xc-kernel type
     if (present(fxctype)) then
        write(s1,'("_FXC",i2.2)') fxctype
+       s=trim(s)//trim(s1)
+    end if
+    ! BSE effective Hamiltonian type
+    if (present(bsetype)) then
+       write(s1,'("_BSE",a)') trim(adjustl(bsetype))
+       s=trim(s)//trim(s1)
+    end if
+    ! screening type in screened Coulomb interaction
+    if (present(scrtype)) then
+       write(s1,'("_SCR",a)') trim(adjustl(scrtype))
        s=trim(s)//trim(s1)
     end if
     ! optical components

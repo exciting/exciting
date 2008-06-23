@@ -49,7 +49,7 @@
 \def\tr{\mathop{\rm tr}}
 %-------------------------------------------------------------
 
-\markboth{Left}{Source File: xsmain.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: xsmain.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -74,7 +74,7 @@
 %/////////////////////////////////////////////////////////////
 \newpage
 
-\markboth{Left}{Source File: bandgap.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: bandgap.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -94,15 +94,90 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created July 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: bse.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: bse2.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{bse (Source File: bse2.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim} subroutine bse2\end{verbatim}{\em USES:}
+\begin{verbatim}   use modmain
+   use modxs
+   use m_genfilname\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Solves the Bethe-Salpeter equation (BSE). The BSE is treated as equivalent
+     effective eigenvalue problem (thanks to the spectral theorem that can
+     be applied to the original BSE in the case of a statically screened Coulomb
+     interaction). The effective BSE-Hamiltonian consists of three parts
+     originating from different sources. It reads
+     $$ H^{\rm eff} = H^{\rm diag} + 2H^{\rm x} + H^{\rm c}, $$
+     where $H^{\rm diag}$ is the diagonal part stemming from the independent
+     particle transitions, $H^{\rm x}$ denotes the exchange-term caused by the
+     unscreened (bare) Coulomb interaction, whereas $H^{\rm c}$ accounts for the
+     particle-hole correlations and is originating from the screened Coulomb
+     interaction.
+     For the purpose of describing independent particle transitions with the
+     BSE only the diagonal term is referred to:
+     $$ H^{\rm eff} = H^{\rm diag}. $$
+     By neglecting the correlation part in the effective Hamiltonian we arrive
+     at the random phase approximation (RPA)
+     $$ H^{\rm eff} = H^{\rm diag} + 2H^{\rm x}. $$
+     Investigations on the spin-structure of the BSE-Hamiltonian show that there
+     are tow channels, namely the {\it singlet}-channel as solution to the
+     Hamiltonian
+     $$  H^{\rm eff} = H^{\rm diag} + 2H^{\rm x} + H^{\rm c} $$
+     and a {\it triplet} channel with the exchange-part being absent.
+     $$ H^{\rm eff} = H^{\rm diag} + H^{\rm c}. $$
+     For the diagonalization of the Hamiltonian, a LAPACK-routine ({\tt zheevx})
+     is invoked to obtain the eigenvalues $\varepsilon_{\lambda}$ and
+     eigenvectors $A^{\lambda}_{vc{\bf k}}$ (alternatively, a time-evolution
+     method shall be implemented to obtain the macroscopic dielectric function
+     directly).
+     Consequently, the transition amplitudes $t_{\lambda}$ are calculated
+     according to
+     $$ t^{i}_{\lambda} = \left|\sum_{vc{\bf k}} A^{\lambda}_{vc{\bf k}} 
+        \frac{ p^{i}_{vc{\bf k}} }{ \varepsilon_{c{\bf k}}- 
+                                    \varepsilon_{v{\bf k}} } \right|^2. $$
+     Here, the index $i$ labels the polarization and the matrix elements
+     $p^{i}_{vc{\bf k}}$ are the ones for the $i$-th component of the momentum
+     operator in Cartesian coordinates.
+     The macroscopic dielectric function (MDF) is obtained by the realation
+     $$ {\rm Im}\; \epsilon^{i}_{\rm M}(\omega) = \frac{8\pi^2}{V} 
+                       \sum_{\lambda} t^{i}_{\lambda}
+                       \delta(\omega-\varepsilon_{\lambda}+\Delta),$$
+     where $\epsilon^{i}_{\rm M}$ is the MDF for the $i$-th polarization, $V$
+     denotes the crystal volume and $\Delta$ is a constant shift of the
+     conduction bands (scissors shift). The delta-function in the latter
+     expression is convoluted with a (symmetrized) Lorentzian 
+     $$ \pi\delta(\omega-\omega_0) = \lim_{\eta\rightarrow 0} \left[
+                           \frac{\eta}{(\omega-\omega_0)^2+\eta^2} +
+                           \frac{\eta}{(-\omega-\omega_0)^2-\eta^2} \right] =
+       \pi\delta(\omega-\omega_0) +  \pi\delta(\omega+\omega_0)       $$
+     which is true for $\omega>=0$ if $\omega_0>0$. In doing so, the analytic
+     property ${\rm Im}\epsilon_{\rm M}(0)=0$ is fulfilled.
+     The broadening $\eta$ in the latter expression is adjusted by the
+     {\tt brdtd} parameter.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created June 2008 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: bse.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: chi0upd.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: chi0upd.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: connecta.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: connecta.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -137,139 +212,135 @@
 \begin{verbatim}     Created June 2003 (JKD)
      Modifications 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: ctdfrac.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ctdfrac.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: df.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: df.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfgather.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: dfgather.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfq.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: dfq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfqoscbo.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: dfqoscbo.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfqoschd.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: dfqoschd.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfqoscwg.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: dfqoscwg.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dftim.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: dftim.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dyson.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: dyson.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematbdcmbs.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematbdcmbs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematbdlims.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematbdlims.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematgather.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematgntsum.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematgntsum.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematqalloc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqalloc.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematqdealloc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqdealloc.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematq.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematqk1.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqk1.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematqk.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqk.F90,  Date: Sun May 25 22:48:10 CEST 2008
+\markboth{Left}{Source File: ematqkgir.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqkgir.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: ematqkgmt.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqkgmt.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: ematrad.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematrad.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: emattest.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: emattest.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: emattim.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: emattim.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: epsconv.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: epsconv.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: exccoulint.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: exccoulint.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: filedel.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: filedel.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findexciton.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findexciton.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findgntn0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findgntn0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findgqmap.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findgqmap.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findgroupq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findgroupq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findkmapkq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findkmapkq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findocclims.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findocclims.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findsymeqiv.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findsymeqiv.F90,  Date: Sun May 25 22:48:11 CEST 2008
-}
-
-
-\markboth{Left}{Source File: findsymi.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: findsymi.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -298,27 +369,27 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created April 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: ftfun.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: ftfun.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: fxc\_alda\_check.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: fxc\_alda\_check.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: fxc\_bse\_ma03.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: fxc\_bse\_ma03.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: fxc\_lrcd.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: fxc\_lrcd.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: fxc\_lrc.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: fxc\_lrc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: fxc\_pwca.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: fxc\_pwca.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -348,19 +419,19 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created February 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genapwcmt.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genapwcmt.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genfilextread.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genfilextread.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genfilname.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genfilname.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gengqvec.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gengqvec.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -394,27 +465,27 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: geniscreen.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: geniscreen.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genlocmt.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genlocmt.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genloss.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genloss.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genparidxran.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genparidxran.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genphasedm.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genphasedm.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genpmat2.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genpmat2.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -460,7 +531,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created April 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genpwmat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genpwmat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -488,15 +559,15 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created November 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genqvkloff.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genqvkloff.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gensigma.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gensigma.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genstar.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genstar.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -522,7 +593,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created December 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genstark.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genstark.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -547,15 +618,15 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created December 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: gensumrls.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gensumrls.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gensymdf.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gensymdf.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gentetlink.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gentetlink.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -580,15 +651,15 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created January 2008 (SAG)\end{verbatim}
 
-\markboth{Left}{Source File: gentim.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gentim.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genwgrid.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genwgrid.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genwiq2xs.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genwiq2xs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -613,7 +684,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created February 2008 (SAG)\end{verbatim}
 
-\markboth{Left}{Source File: genylmgq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: genylmgq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -639,27 +710,35 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: getapwdlm.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getapwdlm.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getdevaldoccsv.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getbsemat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getemat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getdevaldoccsv.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getevalsv0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getemat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getevecfv0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getematrad.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getngqmax.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getevalsv0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+
+\markboth{Left}{Source File: getevecfv0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+
+\markboth{Left}{Source File: getngqmax.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -685,43 +764,43 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: getoccsv0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getoccsv0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getpemat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getpemat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getpmat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getpmat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getridx.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getridx.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getscreen.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getscreen.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gettetcw.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gettetcw.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getunit.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getunit.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getx0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: getx0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gndstateq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gndstateq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gradzfmtr.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: gradzfmtr.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -755,59 +834,59 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created April 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: i2str.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: i2str.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idf.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: idf.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idfgather.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: idfgather.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idfq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: idfq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idxkkp.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: idxkkp.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: init1xs.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: init1xs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: init2xs.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: init2xs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: initbse.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: initbse.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: initoccbse.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: initoccbse.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: initscr.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: initscr.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: invert.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: invert.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: iplocnr.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: iplocnr.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: kernxc\_bse.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: kernxc\_bse.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: kernxc.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: kernxc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -833,31 +912,31 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created March 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: kkpmap.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: kkpmap.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: kramkron.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: kramkron.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: l2int.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: l2int.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: linoptkpq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: linoptkpq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: linoptold.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: linoptold.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: mapto1bz.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: mapto1bz.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: modfxcifc.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: modfxcifc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -914,95 +993,103 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: modifcs.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: modifcs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: modxs.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: modxs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: octmap.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: octmap.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: pade.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: pade.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: pmatgather.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: pmatrad.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: pmatrad.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: pmattd2orig.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: pmattd2orig.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: putapwcmt.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putbsemat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: putbsemat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putemat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: putemat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putpmat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: putematrad.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: puttetcw.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: putlocmt.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putx0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: putpmat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: r2str.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: puttetcw.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrcoulint.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: putx0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrcoulint\_old.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: r2str.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: screen.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: scrcoulint.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrgeneigvec.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: scrcoulint\_old.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrtetcalccw.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: screen.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: showunits.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: scrgeneigvec.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: sleepifc.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: scrtetcalccw.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: stringtim.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: showunits.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: summations.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: sleepifc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: symg2f.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: stringtim.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+
+\markboth{Left}{Source File: summations.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+
+\markboth{Left}{Source File: symg2f.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1054,67 +1141,71 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created March 2008 (SAG)\end{verbatim}
 
-\markboth{Left}{Source File: symsci0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: symsci0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdchkstop.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tdchkstop.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdgauntgen.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tdgauntgen.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdlinopt.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tdlinopt.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdsave0.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tdsave0.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdzoutpr2.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tdzoutpr2.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdzoutpr.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tdzoutpr3.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: terminate.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tdzoutpr.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: testmain.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: terminate.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: testxs.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: testmain.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tetcalccw.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: testxs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tetcalccwq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tetcalccw.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tetgather.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tetcalccwq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tqgamma.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tetgather.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: updateq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: tqgamma.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: wavefmt\_apw.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: updateq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+
+\markboth{Left}{Source File: wavefmt\_apw.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1147,7 +1238,7 @@
      Fixed description, October 2004 (C. Brouder)
      Removed argument ist, November 2006 (JKD)\end{verbatim}
 
-\markboth{Left}{Source File: wavefmt\_lo.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: wavefmt\_lo.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1180,7 +1271,7 @@
      Fixed description, October 2004 (C. Brouder)
      Removed argument ist, November 2006 (JKD)\end{verbatim}
 
-\markboth{Left}{Source File: writeangmom.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeangmom.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1204,23 +1295,31 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writeemat\_ascii.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeemat\_ascii.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeemat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeemat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeeps.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeeps.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeexciton.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeevec.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writegqpts.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeexcbse.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+
+\markboth{Left}{Source File: writeexciton.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
+}
+
+
+\markboth{Left}{Source File: writegqpts.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1246,19 +1345,19 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writekmapkq.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writekmapkq.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeloss.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeloss.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writepmat\_ascii.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writepmat\_ascii.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writepmatxs.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writepmatxs.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1286,7 +1385,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writepwmat.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writepwmat.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1313,7 +1412,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created November 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writeqpts.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writeqpts.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1340,15 +1439,15 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writesigma.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writesigma.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writesumrls.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writesumrls.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writesymi.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writesymi.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1372,43 +1471,43 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created December 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writevars.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: writevars.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: x0toasc.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: x0toasc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: x0tobin.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: x0tobin.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xscheck.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: xscheck.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsestimate.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: xsestimate.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsfinit.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: xsfinit.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsgeneigvec.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: xsgeneigvec.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsinit.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: xsinit.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: zaxpyc.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: zaxpyc.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
 
-\markboth{Left}{Source File: zfinp2.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: zfinp2.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  
@@ -1444,7 +1543,7 @@
 \begin{verbatim}     Created July 2004 (Sharma)
      Modifications Jannuary 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: zoutpr.F90,  Date: Sun May 25 22:48:11 CEST 2008
+\markboth{Left}{Source File: zoutpr.F90,  Date: Tue Jun 17 15:38:14 CEST 2008
 }
 
  

@@ -108,6 +108,8 @@ subroutine xsmain
   case(445)
      ! Bethe-Salpeter equation
      call bse
+  case(446)
+     call bse2
   case(450)
      ! BSE-kernel
      call kernxc_bse(1)
