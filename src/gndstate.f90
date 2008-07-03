@@ -102,7 +102,7 @@ subroutine gndstate
   call mixer(.true.,beta0,betamax,n,nu,mu,beta,f,currentconvergence)
   call packeff(.false.,n,nu)
   ! delete any existing eigenvector files
-  call delevec
+  if(splittfile.or.rank.eq.0) call delevec
   ! begin the self-consistent loop
   if(rank.eq.0) then
      write(60,*)
