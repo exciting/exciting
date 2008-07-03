@@ -1,6 +1,10 @@
-
+tdiis
+.true.
 ! Band structure of silicon. The points listed after plot1d below are the
 ! vertices joined in the band structure.
+
+diisfirstscl
+3
 
 tasks
   0
@@ -26,8 +30,6 @@ atoms
 ngridk
   2  2  2
 
-iterativetype
-3 
 
 
 lowesteval

@@ -8,12 +8,11 @@ bin:make.inc
 	../../src/src_xs \
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
-	../../src/src_iterative_solver/src_jdqz \
 	../../src/src_iterative_solver/src_diis \
 	&& make -f Makefile.$(SUFFIX) exciting$(SUFFIX) \
 
 
-libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a libjdqz.a
+libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a 
 
 libblas.a: make.inc
 	cp -f make.inc ../..
@@ -45,12 +44,7 @@ libarpack.a: make.inc
 	cd ../../src/ARPACK && $(MAKE) clean && make lib
 	cp ../../src/ARPACK/libarpack.a .
 	cd ../../src/ARPACK && $(MAKE) clean
-	
-libjdqz.a: make.inc
-	cp -f make.inc ../..
-	cd ../../src/JDQZ && $(MAKE) clean && make 
-	cp ../../src/JDQZ/jdlib/libjdqz.a ./
-	cd ../../src/JDQZ && $(MAKE)  clean
+
 
 
 clean:

@@ -11,7 +11,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   use modmpi
   use sclcontroll
   use diisinterfaces
-  
+
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   evalfv : first-variational eigenvalues (out,real(nstfv))
@@ -40,7 +40,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   complex(8), allocatable :: apwalm(:,:,:,:,:)
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
   ! loop over first-variational spins (nspnfv=2 for spin-spirals only)
-#ifdef KSMP  
+#ifdef KSMP
   !$OMP PARALLEL DEFAULT(SHARED)
   !$OMP DO
 #endif
@@ -49,18 +49,18 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
      call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
           sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
      ! solve the first-variational secular equation
-     
-     if(doDIIScycle()) then 
+
+     if(doDIIScycle()) then
         call DIISseceqnfv(ik,ispn,apwalm(:,:,:,:,ispn),vgkc(:,:,ik,ispn),evalfv,evecfv)
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
 
-     else if(doARPACKiteration()) then 
+     else if(doARPACKiteration()) then
       	call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ik,ispn),evalfv,evecfv)
 
      else if(dojacobdavidson())then
-     	call jdseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
-             vgkc(1,1,ik,ispn),evalfv,evecfv)
+     	write(*,*)"jacobdavidson is osolete please use something else"
+     	stop
 
      else if(doLAPACKsolver()) then
      	call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
