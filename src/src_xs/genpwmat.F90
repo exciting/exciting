@@ -15,7 +15,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
 ! !INPUT/OUTPUT PARAMETERS:
 ! !DESCRIPTION:
 !   Calculates the matrix elements of the plane wave
-!   $$ p_{ij}=\langle\Psi_{i,{\bf k}}|e^{-i({\bf G}+{\bf q}){\bf r}}|
+!   $$ M_{ij{\bf k}}=\langle\Psi_{i,{\bf k}}|e^{-i({\bf G}+{\bf q}){\bf r}}|
 !      \Psi_{j,{\bf k}}\rangle. $$
 !  Straightforward implementation for checking.
 !

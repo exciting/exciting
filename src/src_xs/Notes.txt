@@ -44,3 +44,25 @@ FINISHED
 
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+>> Jul 2, 2008
+--------------------------------------------------------------------------------
+	* More flexible interfaces for fetching eigenvalues, -vectors
+	  and occupation numbers
+	  - Allow for specifying a lower number of band indices than
+	    the one that is stored in the file. Cutoff checking
+	  - Modify the routines in main /src directory (YES) or write
+	    an interface/wrapper (YES):
+	    The main routines are:
+	    - getevecfv, -sv
+	    - getevalfv, -sv
+	    - getoccsv
+
+	 * testing (getevecfv) for subset of bands	FINISHED
+	 * testing (getevecsv) for subset of bands	FINISHED
+	 * testing (getevalfv) for subset of bands	FINISHED
+	 * testing (getevalsv) for subset of bands .... to be tested......
+	 * testing (getoccsv) for subset of bands .... to be implemented....
+
+--------------------------------------------------------------------------------
+

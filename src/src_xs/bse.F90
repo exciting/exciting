@@ -180,7 +180,7 @@ subroutine bse
 
   do oct=1,noptcomp
      oszs(:)=zzero
-     call genfilname(basename='EPSILON_BSE',tq0=.true.,oc1=oct,oc2=oct, &
+     call genfilname(basename='EPSILON',tq0=.true.,oc1=oct,oc2=oct, &
           bsetype=bsetype,scrtype=screentype,filnam=fneps)
 
      ! read momentum matrix elements
