@@ -28,10 +28,12 @@ integer fnum
 ! local variables
 integer i,is,ia
 character(10) dat,tim
-write(fnum,'("+----------------------------------+")')
-write(fnum,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," started |")') &
+write(fnum,'(" +----------------------------------+")')
+write(fnum,'(" | EXCITING version ",I1.1,".",I1.1,".",I3.3," started |")') &
  version
-write(fnum,'("+----------------------------------+")')
+#include "version.inc"
+write(fnum,*)"| git hash id ", GITHASH," |"
+write(fnum,'(" +----------------------------------+")')
 if (notelns.gt.0) then
   write(fnum,*)
   write(fnum,'("Notes :")')

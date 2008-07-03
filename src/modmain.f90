@@ -5,6 +5,7 @@
 
 module modmain
 
+
 !----------------------------!
 !     lattice parameters     !
 !----------------------------!
@@ -687,7 +688,7 @@ logical bcsym
 ! Lorentzian lineshape in optics
 logical :: optltz
 ! broadening for Lorentzian lineshape
-real(8) :: optswidth  
+real(8) :: optswidth
 !</sag>
 
 !-------------------------------------!
@@ -843,6 +844,7 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
 ! code version
 integer version(3)
 data version / 0,9,151 /
+
 ! maximum number of tasks
 integer, parameter :: maxtasks=20
 ! number of tasks

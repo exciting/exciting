@@ -3,6 +3,7 @@ include make.inc
 MAKE=make
 
 bin:make.inc
+	sh ../../utilities/versionstamp.sh
 	../../utilities/mkmf -t template -f -m Makefile.$(SUFFIX) -p exciting$(SUFFIX) \
 	../../src  \
 	../../src/src_xs \
