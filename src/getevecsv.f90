@@ -67,6 +67,7 @@ enddo
      write(*,'("Error(getevecsv): invalid nstsv for k-point ",I8)') ik
      write(*,'(" current    : ",I8)') nstsv
      write(*,'(" EVECSV.OUT : ",I8)') nstsv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if
@@ -89,6 +90,7 @@ if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
   write(*,'("Error(getevecsv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)
   write(*,'(" EVECSV.OUT : ",3G18.10)') vkl_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
@@ -98,6 +100,7 @@ if (nstsv.ne.nstsv_) then
   write(*,'("Error(getevecsv): differing nstsv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nstsv
   write(*,'(" EVECSV.OUT : ",I8)') nstsv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if

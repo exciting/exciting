@@ -8,16 +8,21 @@ subroutine testmain
   use m_getevecfvr
   use m_getevecsvr
   use m_getevalfvr
+  use m_getevalsvr
+  use m_getoccsvr
   implicit none
-  integer, parameter :: istfvi=2, istfvf=6, nstfvr=istfvf-istfvi+1, ik=11
-  integer, parameter :: istsvi=2, istsvf=6, nstsvr=istsvf-istsvi+1
-  
+  integer, parameter :: ik=11
+  integer, parameter :: istfvi=3, istfvf=7, nstfvr=istfvf-istfvi+1
+  integer, parameter :: istsvi=3, istsvf=7, nstsvr=istsvf-istsvi+1
   complex(8), allocatable :: ev(:,:,:), evr(:,:,:)
   complex(8), allocatable :: evs(:,:), evsr(:,:)
   real(8), allocatable :: eva(:,:), evar(:,:)
+  real(8), allocatable :: evas(:), evasr(:)
+  real(8), allocatable :: occs(:), occsr(:)
 
-  
-  call init0; call init1
+  ! initialize
+  call init0
+  call init1
 
   ! first variational eigenvectors
   write(*,'(a,4i6)') 'istfvi,istfvf,nstfvr,ik',istfvi,istfvf,nstfvr,ik
@@ -53,8 +58,27 @@ subroutine testmain
   write(*,'("evalfv",2g18.10)') eva(istfvf,1),evar(nstfvr,1)
   deallocate(eva,evar)
 
+  ! second variational eigenvalues
+  write(*,'(a,4i6)') 'istsvi,istsvf,nstsvr',istsvi,istsvf,nstsvr
+  allocate(evas(nstsv),evasr(nstsvr))
+  call getevalsv(vkl(1,ik),evas)
+  call getevalsvr(istsvi,istsvf,vkl(:,ik),evasr)
+  write(*,'("evalsv should be zero: ",g18.10)') evas(istsvi)-evasr(1)
+  write(*,'("evalsv should be zero: ",g18.10)') evas(istsvf)-evasr(nstsvr)
+  write(*,'("evalsv",2g18.10)') evas(istsvi),evasr(1)
+  write(*,'("evalsv",2g18.10)') evas(istsvf),evasr(nstsvr)
+  deallocate(evas,evasr)
 
-  
+  ! second variational occupation numbers
+  write(*,'(a,4i6)') 'istsvi,istsvf,nstsvr',istsvi,istsvf,nstsvr
+  allocate(occs(nstsv),occsr(nstsvr))
+  call getoccsv(vkl(1,ik),occs)
+  call getoccsvr(istsvi,istsvf,vkl(:,ik),occsr)
+  write(*,'("occsv should be zero: ",g18.10)') occs(istsvi)-occsr(1)
+  write(*,'("occsv should be zero: ",g18.10)') occs(istsvf)-occsr(nstsvr)
+  write(*,'("occsv",2g18.10)') occs(istsvi),occsr(1)
+  write(*,'("occsv",2g18.10)') occs(istsvf),occsr(nstsvr)
+  deallocate(occs,occsr)
 
 end subroutine testmain
 

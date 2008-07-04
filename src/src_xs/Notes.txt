@@ -47,6 +47,7 @@ FINISHED
 --------------------------------------------------------------------------------
 >> Jul 2, 2008
 --------------------------------------------------------------------------------
+FINISHED
 	* More flexible interfaces for fetching eigenvalues, -vectors
 	  and occupation numbers
 	  - Allow for specifying a lower number of band indices than
@@ -61,8 +62,17 @@ FINISHED
 	 * testing (getevecfv) for subset of bands	FINISHED
 	 * testing (getevecsv) for subset of bands	FINISHED
 	 * testing (getevalfv) for subset of bands	FINISHED
-	 * testing (getevalsv) for subset of bands .... to be tested......
-	 * testing (getoccsv) for subset of bands .... to be implemented....
+	 * testing (getevalsv) for subset of bands 	FINISHED
+	 * testing (getoccsv)  for subset of bands 	FINISHED
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+>> Jul 4, 2008
+--------------------------------------------------------------------------------
+	* testing of lin. resp. TDDFT with modified
+		getevecfv,-evecsv,...
+
 
 --------------------------------------------------------------------------------
 

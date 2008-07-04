@@ -219,7 +219,7 @@ subroutine init1
            nerr=nerr+1
         else
            do ik=1,nkpt
-              if (any(abs(vklt(:,ik)-vkl(:,ik)).gt.epslat)) then
+              if (any(abs(vklt(:,ik)-vkl(:,ik)).gt.epslat*10)) then
                  write(*,*) 'Error(init1): k-point set inconsistency for &
                       &tetrahedron method'
                  write(*,*) ' differring k-point (current/default/diff)',ik

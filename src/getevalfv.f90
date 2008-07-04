@@ -65,6 +65,7 @@ enddo
      write(*,'("Error(getevalfv): invalid nstfv for k-point ",I8)') ik
      write(*,'(" current    : ",I8)') nstfv
      write(*,'(" EVALFV.OUT : ",I8)') nstfv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if
@@ -90,6 +91,7 @@ if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
   write(*,'("Error(getevalfv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)
   write(*,'(" EVALFV.OUT : ",3G18.10)') vkl_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
@@ -99,6 +101,7 @@ if (nstfv.ne.nstfv_) then
   write(*,'("Error(getevalfv): differing nstfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nstfv
   write(*,'(" EVALFV.OUT : ",I8)') nstfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
@@ -108,6 +111,7 @@ if (nspnfv.ne.nspnfv_) then
   write(*,'("Error(getevalfv): differing nspnfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nspnfv
   write(*,'(" EVALFV.OUT : ",I8)') nspnfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if

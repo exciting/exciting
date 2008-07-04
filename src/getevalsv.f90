@@ -62,6 +62,7 @@ enddo
      write(*,'("Error(getevalsv): invalid nstsv for k-point ",I8)') ik
      write(*,'(" current    : ",I8)') nstsv
      write(*,'(" EVALSV.OUT : ",I8)') nstsv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if
@@ -94,6 +95,7 @@ close(70)
      write(*,'("Error(getevalsv): differing nstsv for k-point ",I8)') ik
      write(*,'(" current    : ",I8)') nstsv
      write(*,'(" EVALSV.OUT : ",I8)') nstsv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if
@@ -124,12 +126,12 @@ contains
        write(*,*)
        err=err+1
     end if
-    if (size(evalsv,1).ne.(istf-isti+1)) then
+    if (size(evalsvp,1).ne.(istf-isti+1)) then
        write(*,*)
        write(*,'("Error(getevalsvr): output array does not match for bands:")')
        write(*,'(" band limits              : ",2i6)') isti,istf
        write(*,'(" requested number of bands: ",i6)') istf-isti+1
-       write(*,'(" array size               : ",i6)') size(evalsv,1)
+       write(*,'(" array size               : ",i6)') size(evalsvp,1)
        write(*,*)
        err=err+1
     end if

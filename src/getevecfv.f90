@@ -71,6 +71,7 @@ enddo
      write(*,'("Error(getevecfv): invalid nstfv for k-point ",I8)') ik
      write(*,'(" current    : ",I8)') nstfv
      write(*,'(" EVECFV.OUT : ",I8)') nstfv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
      write(*,*)
      stop
   end if
@@ -93,6 +94,7 @@ read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
   write(*,'("Error(getevecfv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)
   write(*,'(" EVECFV.OUT : ",3G18.10)') vkl_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
@@ -101,6 +103,7 @@ read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
   write(*,'("Error(getevecfv): differing nmatmax for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nmatmax
   write(*,'(" EVECFV.OUT : ",I8)') nmatmax_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
@@ -110,6 +113,7 @@ read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
   write(*,'("Error(getevecfv): differing nstfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nstfv
   write(*,'(" EVECFV.OUT : ",I8)') nstfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
@@ -119,6 +123,7 @@ read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
   write(*,'("Error(getevecfv): differing nspnfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nspnfv
   write(*,'(" EVECFV.OUT : ",I8)') nspnfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
