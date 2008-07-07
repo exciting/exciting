@@ -6,8 +6,10 @@ serial:
 parallel:
 	cd build/parallel; $(MAKE) libs
 	cd build/parallel; $(MAKE) 
-
-all:serial parallel
+test:
+	cd test/build; $(MAKE) libs
+	cd test/build; $(MAKE) 
+all:serial parallel test
 	cp build/serial/make.inc ./
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)

@@ -1,3 +1,4 @@
+version.inc
 *.o
 *.mod
 *.a
@@ -6,6 +7,7 @@ excitingmpi
 excitingsmp
 exciting_debug
 exciting_interfaces
+test
 *.dat
 *.OUT
 *.OUT.*
@@ -27,6 +29,7 @@ Makefile.parallel
 Makefile.smp
 Makefile.debug
 Makefile.interfaces
+Makefile.test
 make.inc
 make.out
 mpif.h
@@ -41,3 +44,4 @@ testcase*
 *.dvi
 *.log
 *.toc
+testsummary.*

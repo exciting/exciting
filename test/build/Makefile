@@ -1,18 +1,20 @@
-include make.inc
+all:test
 
-MAKE=make
-
-bin::make.inc
+Makefile.test::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t ../template -f -m Makefile.$(SUFFIX) -p exciting$(SUFFIX) \
+	../../utilities/mkmf -t ../../build/template -f -m Makefile.test -p testprogram \
 	../../src  \
-	../../src/main \
+	../src \
 	../../src/src_xs \
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
-	&& make -f Makefile.$(SUFFIX) exciting$(SUFFIX) \
 
+testprogram:Makefile.test
+	make -f Makefile.test testprogram \
+
+test:testprogram
+	cd ../run ; ../build/testprogram
 
 libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a 
 
