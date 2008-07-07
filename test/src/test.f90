@@ -8,7 +8,7 @@ call inittestoutputfile(50) !file unit 50
 call test_readinput()
 call test_gndstate_init()
 call test_comparefiles()
-
+call test_GEOMETRY()
 call finalizeoutput(50)
 
 end program
