@@ -196,13 +196,13 @@ module modxs
   ! matching coefficients (q=0)
   complex(8), allocatable :: apwalm0(:,:,:,:)
   ! expansion coefficients of APW functions
-  complex(8), allocatable :: apwdlm(:,:,:,:)
+  complex(8), allocatable :: apwcmt(:,:,:,:)
   ! expansion coefficients of APW functions (q=0)
-  complex(8), allocatable :: apwdlm0(:,:,:,:)
+  complex(8), allocatable :: apwcmt0(:,:,:,:)
   ! expansion coefficients of local orbitals functions
-  complex(8), allocatable :: lodlm(:,:,:,:)
+  complex(8), allocatable :: locmt(:,:,:,:)
   ! expansion coefficients of local orbitals functions (q=0)
-  complex(8), allocatable :: lodlm0(:,:,:,:)
+  complex(8), allocatable :: locmt0(:,:,:,:)
   ! APW coefficients for muffin-tin part of the wavefunction
   complex(8), allocatable :: wfcmt(:,:,:,:)
   ! APW coefficients for muffin-tin part of the wavefunction (q=0)

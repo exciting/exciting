@@ -23,29 +23,29 @@ subroutine writeevec(vq,voff,filxt)
   allocate(evecfv(nmatmax,nstfv,nspnfv))
   if (allocated(apwalm)) deallocate(apwalm)
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-  allocate(apwdlm(nstsv,apwordmax,lmmaxapw,natmtot))
-  allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
+  allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
+  allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
   ! delete existing coefficients files
   if (rank.eq.0) call filedel('APWDLM'//trim(filxt))
   if (rank.eq.0) call filedel('LODLM'//trim(filxt))
   call genparidxran('k',nkpt)
   do ik=kpari,kparf
-     apwdlm(:,:,:,:)=zzero
-     lodlm(:,:,:,:)=zzero
+     apwcmt(:,:,:,:)=zzero
+     locmt(:,:,:,:)=zzero
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
      call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
           apwalm)
-     call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalm,evecfv,apwdlm)
-     call genlocmt(ngk(ik,1),1,nstfv,evecfv,lodlm)
+     call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalm,evecfv,apwcmt)
+     call genlocmt(ngk(ik,1),1,nstfv,evecfv,locmt)
      do j=0,procs-1
         if (rank.eq.j) then
-           call putapwcmt('APWDLM'//trim(filxt),ik,vkl(1,ik),vq,apwdlm)
-           call putlocmt('LODLM'//trim(filxt),ik,vkl(1,ik),vq,lodlm)
+           call putapwcmt('APWDLM'//trim(filxt),ik,vkl(1,ik),vq,apwcmt)
+           call putlocmt('LODLM'//trim(filxt),ik,vkl(1,ik),vq,locmt)
         end if
         call barrier
      end do
   end do
   call endloopbarrier(nkpt,procs)
   isreadstate0=.false.
-  deallocate(evecfv,apwalm,apwdlm,lodlm)
+  deallocate(evecfv,apwalm,apwcmt,locmt)
 end subroutine writeevec

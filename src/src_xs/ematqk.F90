@@ -8,8 +8,8 @@ subroutine ematqk(iq,ik)
   use modmpi
   use modxs
   use summations
-  use m_getapwdlm
-  use m_getlodlm
+  use m_getapwcmt
+  use m_getlocmt
   use m_putemat
   use m_emattim
   use m_getunit
@@ -82,10 +82,10 @@ subroutine ematqk(iq,ik)
   evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
   ! change back file extension
 
-  call getapwdlm(0,ik,lmaxapwtd,apwdlm0)
-  call getapwdlm(iq,ikq,lmaxapwtd,apwdlm)
-  call getlodlm(0,ik,lodlm0)
-  call getlodlm(iq,ikq,lodlm)
+  call getapwcmt(0,ik,lmaxapwtd,apwcmt0)
+  call getapwcmt(iq,ikq,lmaxapwtd,apwcmt)
+  call getlocmt(0,ik,locmt0)
+  call getlocmt(iq,ikq,locmt)
 
   call cpu_time(cpu0)
   cpuread=cpu0-cpu1
