@@ -68,11 +68,17 @@ FINISHED
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
->> Jul 4, 2008
+>> Jul 4,8 2008
 --------------------------------------------------------------------------------
-	* testing of lin. resp. TDDFT with modified
-		getevecfv,-evecsv,...
+	* testing SCF with modified routines for getting eigenvalues,
+		-vectors..	    FINISHED
 
+	* modify these routines for accessing subsets of bands
+		getapwdlm.F90 (includes getlodlm)
+		getemat.F90
+		getpemat.F90
+		getpmat.F90
+		gettetcw.F90	(linear index calculated from band indices!!!)
 
 --------------------------------------------------------------------------------
 

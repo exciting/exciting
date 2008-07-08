@@ -6,7 +6,7 @@
 module m_getapwdlm
   implicit none
 contains
-
+  
   ! APW functions
   subroutine getapwdlm(iq,ik,lmax,apwlm)
     use modmain
@@ -65,6 +65,12 @@ contains
     end if
     filext=filextt
   end subroutine getapwdlm
+end module m_getapwdlm
+
+
+module m_getlodlm
+  implicit none
+contains
 
   ! local orbitals functions
   subroutine getlodlm(iq,ik,apwlm)
@@ -113,4 +119,4 @@ contains
     filext=filextt
   end subroutine getlodlm
 
-end module m_getapwdlm
+end module m_getlodlm

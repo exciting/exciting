@@ -9,6 +9,7 @@ subroutine ematqk(iq,ik)
   use modxs
   use summations
   use m_getapwdlm
+  use m_getlodlm
   use m_putemat
   use m_emattim
   use m_getunit
