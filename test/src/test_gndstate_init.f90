@@ -3,7 +3,7 @@ use modmain
 use modreport
 implicit none
 logical passed
-maxscl=0
+maxscl=1
 passed=.false.
 call gndstate()
 testunitname="gndstate_init"

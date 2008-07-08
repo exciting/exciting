@@ -5,6 +5,12 @@ character s
 logical, intent(out):: identical
 integer::iostat
 character(256)::command
+logical existfile1,existfile2,exist
+inquire(file=trim(file1),exist=exist)
+existfile1=exist
+inquire(file=trim(file2),exist=exist)
+existfile2=exist
+if (existfile1.and.existfile2) then
 
 write(command,*)"diff ", trim(file1)," ",trim(file2)," >",trim(diff)
 CALL SYSTEM(COMMAND)
@@ -27,5 +33,10 @@ read(782,*,END=10)s
 	identical=.false.
 	close(782)
 12 	continue
+else
+identical=.false.
+if (.not.existfile1) write(*,*)"There is no ", trim(file1), "to compare"
+if (.not.existfile2) write(*,*)"There is no " ,trim(file2), "to compare"
+endif
 	return
 end subroutine
