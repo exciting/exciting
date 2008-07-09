@@ -15,7 +15,7 @@ subroutine putapwcmt(fname,ik,vk,vq,apwcmt)
   ! local variables
   integer :: recl,un
   call getunit(un)
-  inquire(iolength=recl) vq,vk,apwcmt
+  inquire(iolength=recl) vq,vk,nstfv,apwordmax,lmaxapw,apwcmt
   open(un,file=trim(fname),action='write',form='unformatted',access='direct', &
        recl=recl)
   write(un,rec=ik) vq,vk,nstfv,apwordmax,lmaxapw,apwcmt

@@ -10,7 +10,6 @@ contains
   ! local orbitals functions
   subroutine getlocmt(iq,ik,isti,istf,lolm)
     use modmain
-    use modmpi
     use modxs
     use m_getunit
     implicit none
@@ -27,20 +26,23 @@ contains
     err=0
     ! check band range
     if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
-       write(*,*)
-       write(*,'("Error(getlocmt): inconsistent limits for bands:")')
-       write(*,'(" band limits  : ",2i6)') isti,istf
-       write(*,'(" maximum value: ",i6)') nstfv
-       write(*,*)
+       write(unitout,*)
+       write(unitout,'("Error(getlocmt): inconsistent limits for bands:")')
+       write(unitout,'(" band limits  : ",2i6)') isti,istf
+       write(unitout,'(" maximum value: ",i6)') nstfv
+       write(unitout,*)
+       call flushifc(unitout)
        err=err+1
     end if
     if (size(lolm,1).ne.(istf-isti+1)) then
-       write(*,*)
-       write(*,'("Error(getlocmt): output array does not match for bands:")')
-       write(*,'(" band limits              : ",2i6)') isti,istf
-       write(*,'(" requested number of bands: ",i6)') istf-isti+1
-       write(*,'(" array size               : ",i6)') size(lolm,1)
-       write(*,*)
+       write(unitout,*)
+       write(unitout,'("Error(getlocmt): output array does not match for &
+            &bands:")')
+       write(unitout,'(" band limits              : ",2i6)') isti,istf
+       write(unitout,'(" requested number of bands: ",i6)') istf-isti+1
+       write(unitout,'(" array size               : ",i6)') size(lolm,1)
+       write(unitout,*)
+       call flushifc(unitout)
        err=err+1
     end if
     if (err.gt.0) call terminate
@@ -50,33 +52,37 @@ contains
     !------------------------!
     !     get parameters     !
     !------------------------!
-    inquire(iolength=recl) vql_,vkl_,nlomax,lolmax
+    inquire(iolength=recl) vql_,vkl_,nstfv_,nlomax_,lolmax_
     call getunit(un)
     open(un,file='LOCMT'//trim(filext),action='read',form='unformatted', &
          status='old',access='direct',recl=recl)
-    read(un,rec=1) vql_,vkl_,nlomax,lolmax
+    read(un,rec=1) vql_,vkl_,nstfv_,nlomax_,lolmax
     close(un)
     err=0
     ! check number of bands
     if (nstfv.gt.nstfv_) then
-       write(*,*)
-       write(*,'("Error(",a,"): invalid nstfv for k-point ",I8)') thisnam,ik
-       write(*,'(" q-point    : ",I8)') iq
-       write(*,'(" current    : ",I8)') nstfv
-       write(*,'(" FILE       : ",I8)') nstfv_
-       write(*,'(" filename   : ",a      )') 'LOCMT'//trim(filext)
-       write(*,*)
+       write(unitout,*)
+       write(unitout,'("Error(",a,"): invalid nstfv for k-point ",I8)') &
+            thisnam,ik
+       write(unitout,'(" q-point    : ",I8)') iq
+       write(unitout,'(" current    : ",I8)') nstfv
+       write(unitout,'(" FILE       : ",I8)') nstfv_
+       write(unitout,'(" filename   : ",a )') 'LOCMT'//trim(filext)
+       write(unitout,*)
+       call flushifc(unitout)
        err=err+1
     end if
     ! check number of local orbitals
     if (nlomax.ne.nlomax_) then
-       write(*,*)
-       write(*,'("Error(",a,"): invalid nlomax for k-point ",I8)') thisnam,ik
-       write(*,'(" q-point    : ",I8)') iq
-       write(*,'(" current    : ",I8)') nlomax
-       write(*,'(" FILE       : ",I8)') nlomax_
-       write(*,'(" filename   : ",a      )') 'LOCMT'//trim(filext)
-       write(*,*)
+       write(unitout,*)
+       write(unitout,'("Error(",a,"): invalid nlomax for k-point ",I8)') &
+            thisnam,ik
+       write(unitout,'(" q-point    : ",I8)') iq
+       write(unitout,'(" current    : ",I8)') nlomax
+       write(unitout,'(" FILE       : ",I8)') nlomax_
+       write(unitout,'(" filename   : ",a )') 'LOCMT'//trim(filext)
+       write(unitout,*)
+       call flushifc(unitout)
        err=err+1
     end if
     if (err.gt.0) call terminate
@@ -86,11 +92,11 @@ contains
     ! assign to output array and apply cutoff
     allocate(lolmt(nstfv_,nlomax,-lolmax:lolmax,natmtot))
     ! read data from file
-    inquire(iolength=recl) vql_,vkl_,nlomax,lolmax,lolmt
+    inquire(iolength=recl) vql_,vkl_,nstfv_,nlomax_,lolmax_,lolmt
     call getunit(un)
     open(un,file='LOCMT'//trim(filext),action='read',form='unformatted', &
          status='old',access='direct',recl=recl)
-    read(un,rec=ik) vql_,vkl_,nlomax,lolmax,lolmt
+    read(un,rec=ik) vql_,vkl_,nstfv_,nlomax_,lolmax_,lolmt
     close(un)
     ! check q-point and k-point
     if (iq.eq.0) then
@@ -102,14 +108,16 @@ contains
        vqlt(:)=vql(:,iq)
     end if
     if ((r3dist(vkl_,vklt).gt.epslat).or.(r3dist(vql_,vqlt).gt.epslat)) then
-       write(*,'(a)') 'Error('//thisnam//'): differring parameters for &
+       write(unitout,*)
+       write(unitout,'(a)') 'Error('//thisnam//'): differring parameters for &
             &LO MT coefficients (current/file): '
-       if (procs.gt.1) write(*,'(a,i6)') '(parallel) rank', rank
-       write(*,'(a,i6)') ' q-point index  :', iq
-       write(*,'(a,i6)') ' k-point index  :', ik
-       write(*,'(a,3f12.6,a,3f12.6)') ' vql            :', vqlt,',', vql_
-       write(*,'(a,3f12.6,a,3f12.6)') ' vkl            :', vklt,',', vkl_
-       write(*,'(a)')    ' file           : LOCMT'//trim(filext)
+       write(unitout,'(a,i6)') ' q-point index  :', iq
+       write(unitout,'(a,i6)') ' k-point index  :', ik
+       write(unitout,'(a,3f12.6,a,3f12.6)') ' vql            :', vqlt,',', vql_
+       write(unitout,'(a,3f12.6,a,3f12.6)') ' vkl            :', vklt,',', vkl_
+       write(unitout,'(a)')    ' file           : LOCMT'//trim(filext)
+       write(unitout,*)
+       call flushifc(unitout)
        call terminate
     end if
     ! retreive data within cutoffs

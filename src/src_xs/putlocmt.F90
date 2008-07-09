@@ -15,9 +15,9 @@ subroutine putlocmt(fname,ik,vk,vq,locmt)
   ! local variables
   integer :: recl,un
   call getunit(un)
-  inquire(iolength=recl) vq,vk,locmt
+  inquire(iolength=recl) vq,vk,nstfv,nlomax,lolmax,locmt
   open(un,file=trim(fname),action='write',form='unformatted',access='direct', &
        recl=recl)
-  write(un,rec=ik) vq,vk,nlomax,lolmax,locmt
+  write(un,rec=ik) vq,vk,nstfv,nlomax,lolmax,locmt
   close(un)
 end subroutine putlocmt
