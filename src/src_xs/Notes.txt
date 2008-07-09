@@ -82,9 +82,9 @@ FINISHED
 	* modify these routines for accessing subsets of bands
 		getapwcmt.F90	IMPLEMENTED   FINISHED
 		getlocmt.F90	IMPLEMENTED   FINISHED
-		getemat.F90
-		getpemat.F90
-		getpmat.F90
+		getemat.F90	??
+		getpemat.F90	??
+		getpmat.F90	??
 		gettetcw.F90	(linear index calculated from band indices!!!)
 
 

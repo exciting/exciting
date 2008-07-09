@@ -13,6 +13,7 @@ use modmain
 use modtetra
 #endif
 #ifdef XS
+use modmpi, only: rank
 use modxs
 #endif
 
@@ -39,8 +40,10 @@ character(256) bname
 character(256) sppath
 #ifdef XS
 logical, parameter :: dumpmain=.true.
-logical, parameter :: dumpmpi=.false.
-logical, parameter :: dumptddft=.false.
+logical, parameter :: dumpadd=.true.
+logical, parameter :: dumptetra=.true.
+logical, parameter :: dumpmpiiter=.true.
+logical, parameter :: dumpxs=.true.
 #endif
 !------------------------!
 !     default values     !
@@ -244,9 +247,18 @@ nbfce=-1
 nafce=-1
 nbfbse=-1
 nafbse=-1
-! dump default values
-if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,&
-     vacuum)
+! dump default parameters
+if (rank.eq.0) then
+   if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','! main parameters:', &
+        sppath,sc,sc1,sc2,sc3,vacuum)
+   if (dumpadd) call dumpparams_add('PARAMS_DEFAULT_ADDITIONAL.OUT', &
+        '! additional parameters:')
+   if (dumpmpiiter) call dumpparams_mpiiter('PARAMS_DEFAULT_MPIITER.OUT', &
+        '! MPI parallelization and iterative solver parameters:')
+   if (dumptetra) call dumpparams_tetra('PARAMS_DEFAULT_TETRA.OUT','')
+   if (dumpxs) call dumpparams_xs('PARAMS_DEFAULT_XS.OUT', &
+        '! excited states parameters:')
+end if
 #endif
 
 !-------------------------------!
@@ -1229,8 +1241,19 @@ if (molecule) then
   end do
 end if
 #ifdef XS
-! dump default values
-if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
+! dump default parameters corrected by input file
+if (rank.eq.0) then
+   if (dumpmain) call dumpparams('PARAMS.OUT','! main parameters:', &
+        sppath,sc,sc1,sc2,sc3,vacuum)
+   if (dumpadd) call dumpparams_add('PARAMS_ADDITIONAL.OUT', &
+        '! additional parameters')
+   if (dumpmpiiter) call dumpparams_mpiiter('PARAMS_MPIITER.OUT', &
+        '! MPI parallelization and iterative solver parameters:')
+   if (dumptetra) call dumpparams_tetra('PARAMS_TETRA.OUT', &
+        'tetrahedron method parameters:')
+   if (dumpxs) call dumpparams_xs('PARAMS_XS.OUT', &
+        '! excited states parameters:')
+end if
 #endif
 !---------------------------------------------!
 !     read from atomic species data files     !

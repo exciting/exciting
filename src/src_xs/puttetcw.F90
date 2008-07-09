@@ -7,14 +7,14 @@ module m_puttetcw
   implicit none
 contains
 
-  subroutine puttetcw(iq,ik,i1,i2,filnam,cw,cwa,cwsurf)
+  subroutine puttetcw(iq,ik,i1,i2,n1,n2,filnam,cw,cwa,cwsurf)
     use modmain
     use modxs
     use modmpi
     use m_getunit
     implicit none
     ! arguments
-    integer, intent(in) :: iq,ik,i1,i2
+    integer, intent(in) :: iq,ik,i1,i2,n1,n2
     character(*), intent(in) :: filnam
     real(8), intent(in) :: cw(:),cwa(:),cwsurf(:)
     ! local variables
@@ -22,13 +22,13 @@ contains
     ! q-point
     iqt=iq
     ! record position
-    irec=(ik-1)*nst1*nst2 + (i1-1)*nst2 + i2
+    irec=(ik-1)*n1*n2 + (i1-1)*n2 + i2
     ! I/O record length
-    inquire(iolength=recl) cw,cwa,cwsurf
+    inquire(iolength=recl) vql(:,iq),vkl(:,ik),nstsv,n1,n2,cw,cwa,cwsurf
     call getunit(un)
     open(unit=un,file=trim(filnam),form='unformatted', &
          action='write',access='direct',recl=recl)
-    write(un,rec=irec) cw,cwa,cwsurf
+    write(un,rec=irec) vql(:,iq),vkl(:,ik),nstsv,n1,n2,cw,cwa,cwsurf
     close(un)
   end subroutine puttetcw
 
