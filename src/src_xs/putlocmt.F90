@@ -11,13 +11,13 @@ subroutine putlocmt(fname,ik,vk,vq,locmt)
   character(*), intent(in) :: fname
   integer, intent(in) :: ik
   real(8), intent(in) :: vk(3),vq(3)
-  complex(8), intent(in) :: locmt(nstsv,nlomax,-lolmax:lolmax,natmtot)
+  complex(8), intent(in) :: locmt(nstfv,nlomax,-lolmax:lolmax,natmtot)
   ! local variables
   integer :: recl,un
   call getunit(un)
   inquire(iolength=recl) vq,vk,locmt
   open(un,file=trim(fname),action='write',form='unformatted',access='direct', &
        recl=recl)
-  write(un,rec=ik) vq,vk,locmt
+  write(un,rec=ik) vq,vk,nlomax,lolmax,locmt
   close(un)
 end subroutine putlocmt

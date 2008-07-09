@@ -11,13 +11,13 @@ subroutine putapwcmt(fname,ik,vk,vq,apwcmt)
   character(*), intent(in) :: fname
   integer, intent(in) :: ik
   real(8), intent(in) :: vk(3),vq(3)
-  complex(8), intent(in) :: apwcmt(nstsv,apwordmax,lmmaxapw,natmtot)
+  complex(8), intent(in) :: apwcmt(nstfv,apwordmax,lmmaxapw,natmtot)
   ! local variables
   integer :: recl,un
   call getunit(un)
   inquire(iolength=recl) vq,vk,apwcmt
   open(un,file=trim(fname),action='write',form='unformatted',access='direct', &
        recl=recl)
-  write(un,rec=ik) vq,vk,apwcmt
+  write(un,rec=ik) vq,vk,nstfv,apwordmax,lmaxapw,apwcmt
   close(un)
 end subroutine putapwcmt

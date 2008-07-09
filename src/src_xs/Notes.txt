@@ -70,15 +70,25 @@ FINISHED
 --------------------------------------------------------------------------------
 >> Jul 4,8 2008
 --------------------------------------------------------------------------------
+
 	* testing SCF with modified routines for getting eigenvalues,
 		-vectors..	    FINISHED
+	(!!) renamed routines *DLM* --> CMT  (e.g. getapwdlm --> getapwcmt)
+		FINISHED     	
+
+	* modify putapwcmt.F90/putlocmt.F90 to also write dimensions
+	  of array to output file
 
 	* modify these routines for accessing subsets of bands
-		getapwdlm.F90 (includes getlodlm)
+		getapwcmt.F90  getlocmt.F90
 		getemat.F90
 		getpemat.F90
 		getpmat.F90
 		gettetcw.F90	(linear index calculated from band indices!!!)
+
+
+(********) renmae LMAXAPWTD --> LMAXAPWWF, WFLMAXAPW
+
 
 --------------------------------------------------------------------------------
 

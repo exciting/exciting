@@ -82,10 +82,10 @@ subroutine ematqk(iq,ik)
   evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
   ! change back file extension
 
-  call getapwcmt(0,ik,lmaxapwtd,apwcmt0)
-  call getapwcmt(iq,ikq,lmaxapwtd,apwcmt)
-  call getlocmt(0,ik,locmt0)
-  call getlocmt(iq,ikq,locmt)
+  call getapwcmt(0,ik,1,nstfv,lmaxapwtd,apwcmt0)
+  call getapwcmt(iq,ikq,1,nstfv,lmaxapwtd,apwcmt)
+  call getlocmt(0,ik,1,nstfv,locmt0)
+  call getlocmt(iq,ikq,1,nstfv,locmt)
 
   call cpu_time(cpu0)
   cpuread=cpu0-cpu1
