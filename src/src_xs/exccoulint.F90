@@ -16,9 +16,8 @@ subroutine exccoulint
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
   integer, parameter :: iqmt=1
-  character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,igq1,n,iflg
+  integer :: iknr,jknr,iqr,iq,igq1,n
   integer :: ngridkt(3),iv(3),j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,nkkp
   logical :: nosymt,reducekt

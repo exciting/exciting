@@ -18,7 +18,7 @@ subroutine linopt
   ! local variables
   integer ik,nsk(3),iw,jw
   integer isym,lspl,iop
-  integer i,i1,i2,n,recl
+  integer i1,i2,n,recl
   real(8), parameter :: eps=1.d-8
   real(8) wd(2),wplas,t1,t2
   character(256) fname

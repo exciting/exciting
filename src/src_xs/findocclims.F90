@@ -99,9 +99,9 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      write(*,*)
      call terminate
   end if
-  ! *** assign nstval and nstcon ***
-  nstval=max(iocc0,iocc)
-  nstcon=nstsv-nstval
+  ! *** assign nstocc0 and nstunocc0 ***
+  nstocc0=max(iocc0,iocc)
+  nstunocc0=nstsv-nstocc0
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
      write(unitout,'(a)') 'Info(findocclims): partially occupied states present'
   end if

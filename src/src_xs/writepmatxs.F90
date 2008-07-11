@@ -27,7 +27,7 @@ subroutine writepmatxs(lgather)
   logical :: lgather
   ! local variables
   character(*), parameter :: thisnam='writepmatxs'
-  integer :: ik,j
+  integer :: ik
   character(32) :: fnam
   complex(8), allocatable :: apwalmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)

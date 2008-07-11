@@ -18,6 +18,7 @@ subroutine writeexcbse(iq,n,w,eps,fn)
   integer :: iw,un
   call getunit(un)
   open(un,file=trim(fn),action='write')
+  !TODO: finish this routine
 !  write(un,'(4g18.10)') (w(iw)*escale,eps(iw),kkeps(iw),iw=1,n)
   ! write relevant parameters to file
   call writevars(un,iq)

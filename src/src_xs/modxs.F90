@@ -211,14 +211,12 @@ module modxs
   !--------------------------------------------!
   !     eigenvalue and occupancy variables     !
   !--------------------------------------------!
-  ! number of occupied valence states (valence band states)
-  integer :: nstval
-  ! number of unoccupied valence states (conduction band states)
-  integer :: nstcon
   ! eigenvalue differences (resonant part)
   real(8), allocatable :: deou(:,:)
   ! eigenvalue differences (anti-resonant part)
   real(8), allocatable :: deuo(:,:)
+  ! occupation numbers (q=0)
+  real(8), allocatable :: occsv0(:,:)
   ! occupation number differences (first band combination)
   real(8), allocatable :: docc12(:,:)
   ! occupation number differences (second band combination)
@@ -227,25 +225,26 @@ module modxs
   integer, allocatable :: isto0(:), isto(:)
   ! lowest (at least partially) unoccupied state
   integer, allocatable :: istu0(:), istu(:)
-  ! maximum nsto over k-points
+  ! maximum isto over k-points
   integer :: istocc0, istocc
-  ! minimum nstu over k-points
+  ! minimum istu over k-points
   integer :: istunocc0, istunocc
-  ! occupation numbers (q=0)
-  real(8), allocatable :: occsv0(:,:)
-  ! lower and upper limits and numbers for band indices combinations
-  integer :: nst1,istlo1,isthi1,nst2,istlo2,isthi2
-  ! lower and upper limits and numbers for band indices combinations second
-  ! block
-  integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
-  ! minimum and maximum energies over k-points
-  real(8) :: evlmin,evlmax,evlmincut,evlmaxcut,ecrmin,ecrmax
   ! highest (at least partially) occupied state energy
   real(8) :: evlhpo
   ! lowest (at least partially) unoccupied state energy
   real(8) :: evllpu
+  ! lower and upper limits and numbers for band indices combinations
+  integer :: nst1,istlo1,isthi1,nst2,istlo2,isthi2
+  ! lower and upper limits and numbers for band indices combinations, 2nd block
+  integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
+  ! minimum and maximum energies over k-points
+  real(8) :: evlmin,evlmax,evlmincut,evlmaxcut,ecrmin,ecrmax
   ! true if system has a Kohn-Sham gap
   logical :: ksgap
+  ! number of (at least partially) occupied valence states
+  integer :: nstocc0,nstocc
+  ! number of (at least partially) unoccupied valence states
+  integer :: nstunocc0,nstunocc
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !

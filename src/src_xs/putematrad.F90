@@ -13,8 +13,9 @@ subroutine putematrad(iq)
   integer, intent(in) :: iq
   ! local variables
   character(256) :: fname
-  logical :: exist
+!!$  logical :: exist
   integer :: un
+! TODO: finish this routine
   ! calculate radial integrals
   call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
 !!$  inquire(file=trim(fname),exist=exist)

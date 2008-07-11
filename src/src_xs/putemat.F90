@@ -21,9 +21,12 @@ contains
     complex(8), optional, intent(in) :: x2(:,:,:)
     ! local variables
     integer :: un,recl,ikr
+    logical :: tarec_
 #ifdef MPI
     integer :: iproc,tag1,tag2,status(MPI_STATUS_SIZE)
 #endif
+    !TODO: use "tarec"
+    tarec_=tarec
     ikr=ik
     call getunit(un)
     if (present(x2)) then

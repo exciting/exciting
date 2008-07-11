@@ -19,6 +19,9 @@ contains
     ! local variables
     integer :: un,irec,recl,iqt,nstsv_,n1_,n2_
     real(8) :: vql_(3),vkl_(3)
+
+    ! TODO: finish this routine: check q-point, k-point, number of states,...
+
     ! q-point
     iqt=iq
     ! record position

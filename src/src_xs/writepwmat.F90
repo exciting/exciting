@@ -57,14 +57,14 @@ subroutine writepwmat
 
      ! allocate matrix elements array
      if (allocated(xiou)) deallocate(xiou)
-     allocate(xiou(nstval,nstcon,ngq(iq)))
+     allocate(xiou(nstocc0,nstunocc0,ngq(iq)))
      if (allocated(xiuo)) deallocate(xiuo)
-     allocate(xiuo(nstcon,nstval,ngq(iq)))
+     allocate(xiuo(nstunocc0,nstocc0,ngq(iq)))
 
      if (allocated(yiou)) deallocate(yiou)
-     allocate(yiou(nstval,nstcon,ngq(iq)))
+     allocate(yiou(nstocc0,nstunocc0,ngq(iq)))
      if (allocated(yiuo)) deallocate(yiuo)
-     allocate(yiuo(nstcon,nstval,ngq(iq)))
+     allocate(yiuo(nstunocc0,nstocc0,ngq(iq)))
 
      ! read in the density and potentials from file
      call readstate
@@ -108,19 +108,19 @@ subroutine writepwmat
         do igq=1,ngq(iq)
            do ist=1,nstsv
               do jst=1,nstsv
-!!$           do ist=1,nstval
-!!$              do jst=nstval+1,nstsv
+!!$           do ist=1,nstocc0
+!!$              do jst=nstocc0+1,nstsv
                  write(50,'(4i5,3g18.10)') ik,igq,ist,jst,pwmat(igq,ist,jst), &
                       abs(pwmat(igq,ist,jst))**2
               end do
            end do
         end do
         do igq=1,ngq(iq)
-           xiou(:,:,igq)=pwmat(igq,1:nstval,nstval+1:nstsv)
-           xiuo(:,:,igq)=pwmat(igq,nstval+1:nstsv,1:nstval)
+           xiou(:,:,igq)=pwmat(igq,1:nstocc0,nstocc0+1:nstsv)
+           xiuo(:,:,igq)=pwmat(igq,nstocc0+1:nstsv,1:nstocc0)
         end do
         ! write to direct access file
-        inquire(iolength=recl) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), &
+        inquire(iolength=recl) nstocc0, nstunocc0, nkpt, ngq(iq), vql(:,iq), &
              vkl(:,ik), xiou,xiuo
         inquire(iolength=reclfull) pwmat
         un=51
@@ -129,7 +129,7 @@ subroutine writepwmat
         call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
         open(unit=un,file=trim(fnemat),form='unformatted', &
              action='write',access='direct',recl=recl)
-        write(un,rec=ik) nstval, nstcon, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
+        write(un,rec=ik) nstocc0, nstunocc0, nkpt, ngq(iq), vql(:,iq), vkl(:,ik), &
              xiou, xiuo
         close(un)
 
@@ -173,15 +173,15 @@ subroutine writepwmat
                        write(90,'(7i5,5g18.10)') iknr,ik,isym,igq,ist,jst,ig, &
                             zt2,abs(zt2)**2, zt1
 
-                       if ((ist.le.nstval).and.(jst.gt.nstval)) then
-                          yiou(ist,jst-nstval,igq)=zt2
+                       if ((ist.le.nstocc0).and.(jst.gt.nstocc0)) then
+                          yiou(ist,jst-nstocc0,igq)=zt2
                           write(300 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
-                               iknr,igq,ist,jst-nstval,zt2,abs(zt2)**2
+                               iknr,igq,ist,jst-nstocc0,zt2,abs(zt2)**2
                        end if
-                       if ((ist.gt.nstval).and.(jst.le.nstval)) then
-                          yiuo(ist-nstval,jst,igq)=zt2
+                       if ((ist.gt.nstocc0).and.(jst.le.nstocc0)) then
+                          yiuo(ist-nstocc0,jst,igq)=zt2
                           write(400 + iq,'(a,4i6,3g18.10)') 'ik,igq,i1,i2', &
-                               iknr,igq,ist-nstval,jst,zt2,abs(zt2)**2
+                               iknr,igq,ist-nstocc0,jst,zt2,abs(zt2)**2
                        end if
                     end do
                  end do
@@ -191,7 +191,7 @@ subroutine writepwmat
               ! write v-c and c-v matrix elements
               open(unit=un,file='EMAT_NR_Q00001.OUT',form='unformatted', &
                    action='write',access='direct',recl=recl)
-              write(un,rec=iknr) nstval, nstcon, nkptnr, ngq(iq), vql(:,iq), &
+              write(un,rec=iknr) nstocc0, nstunocc0, nkptnr, ngq(iq), vql(:,iq), &
                    vklnr(:,iknr), yiou, yiuo
               close(un)
 

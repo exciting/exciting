@@ -17,7 +17,7 @@ subroutine scrcoulint
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,j,j1,j2,nkkp
+  integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2,nkkp
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
   real(8) :: vklofft(3),vqr(3),vq(3)

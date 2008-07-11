@@ -75,8 +75,8 @@ subroutine bse
   ! file names
   fnpmat='PMAT_XS.OUT'
 
-  nvdif=nstval-nbfbse
-  ncdif=nstcon-nafbse
+  nvdif=nstocc0-nbfbse
+  ncdif=nstunocc0-nafbse
 
 
   write(*,'("number of states below Fermi energy:",i6)') nbfbse
@@ -187,9 +187,9 @@ subroutine bse
      allocate(pm(3,nstsv,nstsv))
      do iknr=1,nkptnr
         call getpmat(iknr,vkl,.true.,trim(fnpmat),pm)
-        do ist1=1+nvdif,nstsv-nstcon
-           do ist2=nstval+1,nstsv-ncdif
-              s1=hamidx(ist1-nvdif,ist2-nstval,iknr,nbfbse,nafbse)
+        do ist1=1+nvdif,nstsv-nstunocc0
+           do ist2=nstocc0+1,nstsv-ncdif
+              s1=hamidx(ist1-nvdif,ist2-nstocc0,iknr,nbfbse,nafbse)
               pmat(s1)=pm(oct,ist1,ist2)
            end do
         end do
