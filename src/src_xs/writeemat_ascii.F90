@@ -46,9 +46,11 @@ subroutine writeemat_ascii
      ! loop over k-points
      do ik=1,nkpt
         if (emattype.eq.0) then
-           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou)
+           call getemat(iq,ik,.true.,nst1,nst2,nst3,nst4,ngq(iq), &
+                trim(fnemat),x1=xiou)
         else
-           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou,x2=xiuo)
+           call getemat(iq,ik,.true.,nst1,nst2,nst1,nst2,ngq(iq), &
+                trim(fnemat),x1=xiou,x2=xiuo)
         end if
         do igq=1,ngq(iq)
            do i=1,nst1

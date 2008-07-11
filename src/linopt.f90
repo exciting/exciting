@@ -218,7 +218,8 @@ subroutine linopt
         ! read matrix elements from direct-access file
 #ifdef XS
         if (tqfmt) then
-           call getemat(1,ik,.true.,'EMAT_FULL_QMT001.OUT',xiou)
+           call getemat(1,ik,.true.,1,nstsv,1,nstsv,ngq(iq), &
+                'EMAT_FULL_QMT001.OUT',xiou)
            call linoptkpq(iq,ik,xiou,e(1,ik),f(1,ik))
         else
 #endif

@@ -86,9 +86,11 @@ contains
        else
           if (present(m34)) then
              ! read matrix elemets of exponential expression
-             call getemat(iq,ik,.true.,trim(efilnam),m12,m34)
+             call getemat(iq,ik,.true.,nst1,nst2,nst3,nst4,ngq(iq), &
+                  trim(efilnam),m12,m34)
           else
-             call getemat(iq,ik,.true.,trim(efilnam),m12)
+             call getemat(iq,ik,.true.,nst1,nst2,nst1,nst2,ngq(iq), &
+                  trim(efilnam),m12)
           end if
        end if
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))

@@ -66,7 +66,8 @@ subroutine emattest
      ! read matrix elemets of exponential expression
      call getpmat(ik,vkl0,1,nstsv,.true.,trim(fnpmat),pmat(:,:,:,ik))
      ! read matrix elemets of exponential expression
-     call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
+     call getemat(iq,ik,.true.,nst1,nst2,nst2,nst1,ngq(iq), &
+          trim(fnemat),xiou,xiuo)
      ikq=ikmapikq(ik,iq)
      call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12, &
           scis12)
