@@ -9,6 +9,7 @@ subroutine tetcalccwq(iq)
   use modtetra
   use modmpi
   use m_genwgrid
+  use m_puttetcw
   use m_getunit
   use m_filedel
   use m_genfilname
@@ -27,7 +28,7 @@ subroutine tetcalccwq(iq)
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
   real(8) :: wt
   integer :: ik,ist1,ist2
-  integer :: iw,wi,wf,nwdfp,un,un2,recl,recl2,irec,irec2
+  integer :: iw,wi,wf,nwdfp,un,un2,recl,irec
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
   ! generate link array for tetrahedra
@@ -116,14 +117,7 @@ subroutine tetcalccwq(iq)
   ! open temporary file for reading
   open(un,file=trim(filnamt),form='unformatted',action='read',&
        status='old',access='direct',recl=recl)
-  call getunit(un2)
-  inquire(iolength=recl2) vql(:,iq),vkl(:,ik),nstsv,nst1,nst2,cwt1,cwat1, &
-       cwsurft1
-  ! open file for reading
-  open(un2,file=trim(filnam),form='unformatted',&
-       action='write',status='replace',access='direct',recl=recl2)
   irec=0
-  irec2=0
   do ik=1,nkpt
      do iw=1,nwdfp
         irec=irec+1
@@ -134,18 +128,16 @@ subroutine tetcalccwq(iq)
      end do
      do ist1=1,nst1
         do ist2=1,nst2
-           irec2=irec2+1
            cwsurft1(:)=cwsurf(:,ist1,ist2)
            cwt1(:)=cw(:,ist1,ist2)
            cwat1(:)=cwa(:,ist1,ist2)
-           write(un2,rec=irec2) vql(:,iq),vkl(:,ik),nstsv,nst1,nst2,cwt1, &
-                cwat1,cwsurft1
+           ! routine cares for record position
+           call puttetcw(iq,ik,ist1,ist2,nst1,nst2,filnam,cwt1,cwat1,cwsurft1)
         end do
      end do
   end do
   close(un)
   call filedel(trim(filnamt))
-  close(un2)
   deallocate(cwt2,cwat2,cwsurft2)
   deallocate(cw,cwa,cwsurf,eb)
   deallocate(cwt1,cwat1,cwsurft1)

@@ -324,8 +324,6 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   do is=1,nspecies
      write(77,*) is,llu(is),ujlu(1,is),ujlu(2,is)
   end do
-
-
   write(77,*)
   write(77,'("rdmxctype")')
   write(77,*) rdmxctype

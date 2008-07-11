@@ -28,8 +28,8 @@ contains
     if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
        write(unitout,*)
        write(unitout,'("Error(getapwcmt): inconsistent limits for bands:")')
-       write(unitout,'(" band limits  : ",2i6)') isti,istf
-       write(unitout,'(" maximum value: ",i6)') nstfv
+       write(unitout,'(" band limits   : ",2i6)') isti,istf
+       write(unitout,'(" maximum value : ",i6)') nstfv
        write(unitout,*)
        call flushifc(unitout)
        err=err+1
@@ -38,9 +38,9 @@ contains
        write(unitout,*)
        write(unitout,'("Error(getapwcmt): output array does not match for &
             &bands:")')
-       write(unitout,'(" band limits              : ",2i6)') isti,istf
-       write(unitout,'(" requested number of bands: ",i6)') istf-isti+1
-       write(unitout,'(" array size               : ",i6)') size(apwlm,1)
+       write(unitout,'(" band limits               : ",2i6)') isti,istf
+       write(unitout,'(" requested number of bands : ",i6)') istf-isti+1
+       write(unitout,'(" array size                : ",i6)') size(apwlm,1)
        write(unitout,*)
        call flushifc(unitout)
        err=err+1
