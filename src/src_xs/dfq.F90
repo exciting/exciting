@@ -59,7 +59,7 @@ subroutine dfq(iq)
   ! matrix size for response function
   n=ngq(iq)
   ! zero broadening for analytic contiunation
-  brd=brdtd
+  brd=broad
   if (acont) brd=0.d0
   ! *** experimental *** zero broadening for dielectric matrix (w=0)
   ! for band-gap systems

@@ -53,7 +53,7 @@ subroutine xsmain
      call writepmat_ascii
   case(322)
      ! convert momentum matrix elements file to old format
-     call pmattd2orig
+     call pmatxs2orig
   case(330)
      ! calculate matrix elements of exponential expression (band combs)
      call writeemat

@@ -13,12 +13,12 @@ subroutine kernxc_bse(oct)
   use modxs
   use modfxcifc
   use invert
-  use m_tdgauntgen
+  use m_xsgauntgen
   use m_findgntn0
   use m_writegqpts
   use m_genwgrid
   use m_dyson
-  use m_tdzoutpr3
+  use m_xszoutpr3
   use m_getpemat
   use m_getx0
   use m_getunit
@@ -68,7 +68,7 @@ t3=1.d0
 bsediagshift=zzero
 bsediagshiftc=zzero
 
-brd=brdtd
+brd=broad
 
   !----------------!
   !   initialize   !
@@ -99,11 +99,11 @@ brd=brdtd
   ! read Fermi energy from file
   call readfermi
   ! save variables for the Gamma q-point
-  call tdsave0
+  call xssave0
   ! generate Gaunt coefficients
-  call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
+  call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
   ! find indices for non-zero Gaunt coefficients
-  call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
+  call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
   write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated&
        & within lmax values:', lmaxapw,lmaxemat,lmaxapw
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
@@ -458,10 +458,10 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
            ! set up inner part of kernel
            
            ! generate oscillators
-           call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
+           call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
            ! add Hermitian transpose
            osca=osca+conjg(transpose(osca))
-           call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
+           call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
 
 !! *** this part is working for Si_lapw and Si_APW+lo ***

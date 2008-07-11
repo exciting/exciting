@@ -14,7 +14,7 @@ subroutine getematrad(iq)
   ! local variables
   integer :: lmax1,lmax2,lmax3,un
   character(256) :: fname
-  lmax1=max(lmaxapwtd,lolmax)
+  lmax1=max(lmaxapwwf,lolmax)
   lmax2=lmaxemat
   ! lmax1 and lmax3 should be the same!
   lmax3=lmax1

@@ -3,11 +3,11 @@
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
-module m_tdzoutpr
+module m_xszoutpr
   implicit none
 contains
 
-  subroutine tdzoutpr(n1,n2,alpha,x,y,a)
+  subroutine xszoutpr(n1,n2,alpha,x,y,a)
     !
     ! perform the operation: A_ij -> A_ij + alpha*conjg(x_i)*y_j
     !
@@ -26,6 +26,6 @@ contains
        call zaxpy(n1,alpha*y(i2),h,1,a(1,i2),1)
     end do
     deallocate(h)
-  end subroutine tdzoutpr
+  end subroutine xszoutpr
 
-end module m_tdzoutpr
+end module m_xszoutpr

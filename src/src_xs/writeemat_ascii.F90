@@ -15,7 +15,7 @@ subroutine writeemat_ascii
   complex(8) :: zt
   call init0
   call init1
-  call tdsave0
+  call xssave0
   call init2xs
   call readfermi
   call getunit(un)

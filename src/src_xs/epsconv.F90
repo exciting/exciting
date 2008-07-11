@@ -74,12 +74,12 @@ subroutine epsconv
            do iw=1,nwdf
               do iwp=1,nwdf
 !!$                 ! standard Lorentzian with peak at w(iw)
-!!$                 lor(iwp)=(1/pi)*brdtd/((w(iw)-w(iwp))**2+brdtd**2)
+!!$                 lor(iwp)=(1/pi)*broad/((w(iw)-w(iwp))**2+broad**2)
                  ! antisymmetric Lorentzian at w(iw) and -w(iw)
-                 ! with norm arctan(w/brdtd) to assure zero crossing
-                 lor(iwp)=(1.d0/(2.d0*atan(w(iw)/brdtd)))*( &
-                      brdtd/((w(iw)-w(iwp))**2+brdtd**2) - &
-                      brdtd/((-w(iw)-w(iwp))**2+brdtd**2) )
+                 ! with norm arctan(w/broad) to assure zero crossing
+                 lor(iwp)=(1.d0/(2.d0*atan(w(iw)/broad)))*( &
+                      broad/((w(iw)-w(iwp))**2+broad**2) - &
+                      broad/((-w(iw)-w(iwp))**2+broad**2) )
                  if (w(iw) < epsc) lor(iwp) = 0.d0
                  f(iwp)=lor(iwp)*aimag(eps(iwp))
                  f1(iwp)=lor(iwp)*dble(eps(iwp))
@@ -89,7 +89,7 @@ subroutine epsconv
               call fderiv(-1,nwdf,w,f1,g1,cf)
 
               write(un,'(4g18.10)') w(iw)*escale,g1(nwdf),g(nwdf),&
-                   (pi/brdtd)*brdtd**2/((w(iw)-w(iwp))**2+brdtd**2)
+                   (pi/broad)*broad**2/((w(iw)-w(iwp))**2+broad**2)
            end do ! iw
 !!$           call fsmooth(nsmdos,nwdf,1,g)
 !!$           call fsmooth(nsmdos,nwdf,1,g1)

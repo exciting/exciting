@@ -36,7 +36,7 @@ subroutine ematqk(iq,ik)
   ikq=ikmapikq(ik,iq)
   ! check for stop statement
   write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
-  call tdchkstop
+  call xschkstop
 
   cpumtaa=0.d0; cpumtalo=0.d0; cpumtloa=0.d0; cpumtlolo=0.d0
   cpugnt=0.d0; cpumt=0.d0; cpuir=0.d0
@@ -82,8 +82,8 @@ subroutine ematqk(iq,ik)
   evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
   ! change back file extension
 
-  call getapwcmt(0,ik,1,nstfv,lmaxapwtd,apwcmt0)
-  call getapwcmt(iq,ikq,1,nstfv,lmaxapwtd,apwcmt)
+  call getapwcmt(0,ik,1,nstfv,lmaxapwwf,apwcmt0)
+  call getapwcmt(iq,ikq,1,nstfv,lmaxapwwf,apwcmt)
   call getlocmt(0,ik,1,nstfv,locmt0)
   call getlocmt(iq,ikq,1,nstfv,locmt)
 

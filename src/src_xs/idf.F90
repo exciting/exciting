@@ -17,7 +17,7 @@ subroutine idf
   if (calledxs.eq.1) call init0
   call init1
   ! save Gamma-point variables
-  call tdsave0
+  call xssave0
   ! initialize q-point set
   call init2xs
   call readfermi
@@ -42,7 +42,7 @@ subroutine idf
   if (rank.eq.0) then
      do iq=1,nqpt
         ! call for q-point
-        call tdlinopt(iq)
+        call xslinopt(iq)
         write(unitout,'(a,i8)') 'Info('//thisnam//'): TDDFT linear optics &
              &finished for q-point:',iq
      end do

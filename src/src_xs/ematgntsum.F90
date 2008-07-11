@@ -20,7 +20,7 @@ subroutine ematgntsum(iq,igq)
   integer :: u1,u2,u3,u4
   integer :: cl1,cm1,cl2,cm2,cl3,cm3
 
-  lmax1 = max(lmaxapwtd,lolmax)
+  lmax1 = max(lmaxapwwf,lolmax)
   lmax2 = lmaxemat
   ! lmax1 and lmax3 should be the same!
   lmax3 = lmax1
@@ -101,7 +101,7 @@ subroutine ematgntsum(iq,igq)
                                      + conjg(zil(l2))* &
                                      riaa(l1,io1,l3,io2,l2,ias,igq)* &
                                      conjg(ylmgq(lm2,igq,iq))* &
-                                     tdgnt(lm1,lm2,lm3)
+                                     xsgnt(lm1,lm2,lm3)
                              end do ! m2
                           end do ! l2
                           if (dbglev.gt.2) then
@@ -128,7 +128,7 @@ do m1=-l1,l1
 !!$                 l3 = l2map(l1,m1,cl2)
 !!$                 do cm2 = 1, m2shape(l1,m1,l3)
 !!$                    m3 = m2map(l1,m1,l3,cm2)
-do l3=0,lmaxapwtd
+do l3=0,lmaxapwwf
 do m3=-l3,l3
                     lm3=idxlm(l3,m3)
                     do io=1,apword(l3,is)
@@ -145,7 +145,7 @@ do m2=-l2,l2
                                   intrgloa(m1,ilo,lm3,io,ias) &
                                   + conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
-                                  tdgnt(lm1,lm2,lm3)
+                                  xsgnt(lm1,lm2,lm3)
                              ! summation wrt. Gaunt coefficients
                              ! for A-lo part (swap indices in
                              ! Gaunt coefficient!)
@@ -153,7 +153,7 @@ do m2=-l2,l2
                                   intrgalo(m1,ilo,lm3,io,ias) &
                                   + conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
-                                  tdgnt(lm3,lm2,lm1)
+                                  xsgnt(lm3,lm2,lm1)
                           end do ! m2
                        end do ! l2
                        if (dbglev.gt.2) then
@@ -191,7 +191,7 @@ do m2=-l2,l2
                                intrglolo(m1,ilo1,m3,ilo2,ias) &
                                + conjg(zil(l2))*rilolo(ilo1,ilo2,l2,ias,igq)* &
                                conjg(ylmgq(lm2,igq,iq))* &
-                               tdgnt(lm1,lm2,lm3)
+                               xsgnt(lm1,lm2,lm3)
                        end do ! m2
                     end do ! l2
                     if (dbglev.gt.2) then

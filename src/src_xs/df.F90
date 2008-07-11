@@ -7,7 +7,7 @@ subroutine df
   use modmain
   use modxs
   use modmpi
-  use m_tdgauntgen
+  use m_xsgauntgen
   use m_findgntn0
   use m_genfilname
   implicit none
@@ -19,14 +19,14 @@ subroutine df
   ! initialise universal variables
   call init1
   ! save Gamma-point variables
-  call tdsave0
+  call xssave0
   ! initialize q-point set
   call init2xs
   if (tscreen) then
      ! generate Gaunt coefficients
-     call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
+     call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
      ! find indices for non-zero Gaunt coefficients
-     call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
+     call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
   end if
   ! read Fermi energy
   call readfermi

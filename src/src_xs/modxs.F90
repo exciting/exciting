@@ -259,11 +259,11 @@ module modxs
   ! (lmaxemat+1)^2
   integer :: lmmaxemat
   ! maximum angular momentum for APW functions (for matrix elements)
-  integer :: lmaxapwtd
-  ! (lmaxapwtd+1)^2
-  integer :: lmmaxapwtd
+  integer :: lmaxapwwf
+  ! (lmaxapwwf+1)^2
+  integer :: lmmaxapwwf
   ! Gaunt coefficients array
-  real(8), allocatable :: tdgnt(:,:,:)
+  real(8), allocatable :: xsgnt(:,:,:)
   ! radial integrals coefficients (APW-APW)
   complex(8), allocatable :: intrgaa(:,:,:,:,:)
   ! radial integrals coefficients (lo-APW)
@@ -321,7 +321,7 @@ module modxs
   ! number of energy intervals (on imaginary axis) for analytic continuation
   integer :: nwacont
   ! broadening for Kohn Sham response function
-  real(8) :: brdtd
+  real(8) :: broad
   ! true if to consider the anti-resonant part for the dielectric function
   logical :: aresdf
   ! true if only diagonal part of local field effects is considered
@@ -542,8 +542,6 @@ module modxs
   integer :: dbglev
   ! true if to append info to output file
   logical :: tappinfo
-  ! task for TDDFT part
-  integer :: tasktd
   ! gather option
   logical :: gather
   data gather /.false./
@@ -551,7 +549,7 @@ module modxs
   character(1024) :: msg
   ! default file extension
   data msg / 'no message' /  
-  ! number of times the main tddft routine was called
+  ! number of times the main excited states routine was called
   integer :: calledxs
   data calledxs / 0 /
   ! true if to skip allocations of radial functions in "init1"

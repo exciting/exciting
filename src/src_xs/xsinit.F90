@@ -17,8 +17,8 @@ subroutine xsinit(cnt)
   character(*), parameter :: thisnam = 'xsinit'
   character(10) dat, tim
   integer :: i
-  ! assign xs code version
-  versionxs=(/0,87/)
+  ! set version of XS part
+  call xssetversion
   ! remember how often this routine is called
   cnt=cnt+1
   ! initialize global counters

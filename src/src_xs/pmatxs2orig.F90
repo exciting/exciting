@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine pmattd2orig
+subroutine pmatxs2orig
   use modmain
   use modxs
   use modmpi
@@ -11,7 +11,7 @@ subroutine pmattd2orig
   use m_getpmat
   implicit none
   ! local variables
-  character(*),parameter :: thisnam='pmattd2orig'
+  character(*),parameter :: thisnam='pmatxs2orig'
   complex(8), allocatable :: pm(:,:,:)
   integer :: un,ik,recl
   if (rank == 0) then
@@ -33,4 +33,4 @@ subroutine pmattd2orig
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): conversion of PMAT &
        &to original format finished"
-end subroutine pmattd2orig
+end subroutine pmatxs2orig

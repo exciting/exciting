@@ -47,12 +47,12 @@ contains
        do iw=1,nwdf
           ! single Lorentz peak at zero frequency
           eps(iw)=eps(iw)&
-               +excito(ne,oct)*1.0d0/pi*brdtd/(brdtd**2+(w(iw)-we)**2) &
-               -excito(ne,oct)*1.0d0/pi*brdtd/(brdtd**2+(-w(iw)-we)**2)
+               +excito(ne,oct)*1.0d0/pi*broad/(broad**2+(w(iw)-we)**2) &
+               -excito(ne,oct)*1.0d0/pi*broad/(broad**2+(-w(iw)-we)**2)
           ! convolute with two Lorentz peaks (+/-) at zero frequency
-!!$          eps(iw)=eps(iw)+(1.d0/(2*atan(we/brdtd)))*( &
-!!$                      brdtd/((w(iw)-we)**2+brdtd**2) - &
-!!$                      brdtd/((-w(iw)-we)**2+brdtd**2) )
+!!$          eps(iw)=eps(iw)+(1.d0/(2*atan(we/broad)))*( &
+!!$                      broad/((w(iw)-we)**2+broad**2) - &
+!!$                      broad/((-w(iw)-we)**2+broad**2) )
        end do ! iw
     end do
 

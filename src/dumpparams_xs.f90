@@ -27,9 +27,11 @@ subroutine dumpparams_xs(string,comment)
   character(*), intent(in) :: string,comment
   ! local variables
   integer :: i
+  call xssetversion
   open(unit=77,file=trim(string),action='write',position='append')
   write(77,*)
   write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
+  write(77,'("! xs (eXited States) version ",I1.1,".",I3.3)') versionxs
   write(77,'(a)') trim(comment)
   write(77,*)
   write(77,'("imbandstr")')
@@ -53,8 +55,8 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("gqmax")')
   write(77,*) gqmax
   write(77,*)
-  write(77,'("lmaxapwtd")')
-  write(77,*) lmaxapwtd
+  write(77,'("lmaxapwwf")')
+  write(77,*) lmaxapwwf
   write(77,*)
   write(77,'("fastpmat")')
   write(77,*) fastpmat
@@ -77,8 +79,8 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("nwacont")')
   write(77,*) nwacont
   write(77,*)
-  write(77,'("brdtd")')
-  write(77,*) brdtd
+  write(77,'("broad")')
+  write(77,*) broad
   write(77,*)
   write(77,'("aresdf")')
   write(77,*) aresdf

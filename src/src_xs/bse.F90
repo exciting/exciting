@@ -214,8 +214,8 @@ subroutine bse
         do s1=1,nexc
            ! Lorentzian lineshape
            spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
-                1.d0/(w(iw)-beval(s1)+zi*brdtd) + &
-                1.d0/(-w(iw)-beval(s1)-zi*brdtd) )
+                1.d0/(w(iw)-beval(s1)+zi*broad) + &
+                1.d0/(-w(iw)-beval(s1)-zi*broad) )
         end do
      end do
      spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr

@@ -4,7 +4,7 @@
 ! See the file COPYING for license details.
 
 subroutine getdevaldoccsv(iq,ik,ikq,l1,u1,l2,u2,devalsv,doccsv,scissv)
-  ! tdsave0 has to be called in advance.
+  ! xssave0 has to be called in advance.
   use modmain
   use modxs
   use m_genfilname

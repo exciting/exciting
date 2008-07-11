@@ -7,8 +7,8 @@ subroutine ematqkgmt(iq,ik,igq)
   use modmain
   use modxs
   use m_zaxpyc
-  use m_tdzoutpr
-  use m_tdzoutpr3
+  use m_xszoutpr
+  use m_xszoutpr3
   implicit none
   ! arguments
   integer, intent(in) :: iq,ik,igq
@@ -19,7 +19,7 @@ subroutine ematqkgmt(iq,ik,igq)
   complex(8), allocatable :: zv(:)
   allocate(zv(nstsv))
   ikt=ik
-  lmax1=lmaxapwtd
+  lmax1=lmaxapwwf
   lmax3=lmax1
   xih(:,:) = zzero
   xiuhloa(:,:) = zzero
@@ -50,7 +50,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        end do
                     end do ! m3
                  end do ! l3
-                 call tdzoutpr(nst1,nst2, &
+                 call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
                       apwcmt0(istlo1:isthi1,io1,lm1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))
@@ -80,7 +80,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        end do ! io
                     end do ! m3
                  end do ! l3
-                 call tdzoutpr(nst1,nst2, &
+                 call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
                       locmt0(istlo1:isthi1,ilo,m1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))
@@ -106,7 +106,7 @@ subroutine ematqkgmt(iq,ik,igq)
                                locmt(1,ilo,m1,ias),1,zv,1)
                        end do ! m1
                     end do ! ilo
-                    call tdzoutpr(nst1,nst2, &
+                    call xszoutpr(nst1,nst2, &
                          fourpi*conjg(sfacgq(igq,ias,iq)), &
                          apwcmt0(istlo1:isthi1,io,lm3,ias),zv(istlo2:isthi2), &
                          xiou(:,:,igq))
@@ -131,7 +131,7 @@ subroutine ematqkgmt(iq,ik,igq)
                             locmt(1,ilo2,m3,ias),1,zv,1)
                     end do ! m3
                  end do ! ilo2
-                 call tdzoutpr(nst1,nst2, &
+                 call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
                       locmt0(istlo1:isthi1,ilo1,m1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))

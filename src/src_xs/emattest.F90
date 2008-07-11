@@ -23,7 +23,7 @@ subroutine emattest
   call init0
   call init1
   call init2xs
-  call tdsave0
+  call xssave0
   n = ngq(iq)
   if (tqgamma(iq)) then
      write(*,*)

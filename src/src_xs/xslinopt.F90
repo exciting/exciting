@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine tdlinopt(iq)
+subroutine xslinopt(iq)
   use modmain
   use modxs
   use modtetra
@@ -26,7 +26,7 @@ subroutine tdlinopt(iq)
   ! arguments
   integer, intent(in) :: iq
   ! local variables
-  character(*), parameter :: thisnam='tdlinopt'
+  character(*), parameter :: thisnam='xslinopt'
   character(256) :: filnam,filnam2
   complex(8),allocatable :: mdf(:), mdf1(:),w(:),wr(:),sigma(:)
   real(8),allocatable :: wplot(:),loss(:)
@@ -52,7 +52,7 @@ subroutine tdlinopt(iq)
   allocate(eps1(nwdos),eps2(nwdos))
   ! generate energy grids
   brd=0.d0
-  if (acont) brd=brdtd
+  if (acont) brd=broad
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
   call genwgrid(nwdos,wdos,.false.,brd,w_cmplx=wr)
   wplot=dble(wr)
@@ -147,4 +147,4 @@ subroutine tdlinopt(iq)
   if (allocated(mdfrpa)) deallocate(mdfrpa)
   deallocate(mdf,mdf1,w,wr,wplot,loss,sigma)
   deallocate(eps1,eps2,cf)
-end subroutine tdlinopt
+end subroutine xslinopt

@@ -40,7 +40,7 @@ subroutine writeangmom(un)
      write(un,'(a,2i8)') ' PW matr. el.                 : ',&
           lmaxemat, (lmaxemat+1)**2
      write(un,'(a,2i8)') ' APW functions (PW matr. el.) : ',&
-          lmaxapwtd, (lmaxapwtd+1)**2
+          lmaxapwwf, (lmaxapwwf+1)**2
   end if
 end subroutine writeangmom
 !EOC

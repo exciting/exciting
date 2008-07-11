@@ -67,7 +67,7 @@ subroutine bse2
 !   which is true for $\omega \ge 0$ if $\omega_0>0$. In doing so, the analytic
 !   property ${\rm Im}\epsilon_{\rm M}(0)=0$ is fulfilled.
 !   The broadening $\eta$ in the latter expression is adjusted by the
-!   {\tt brdtd} parameter. (All parts of the documentation written by
+!   {\tt broad} parameter. (All parts of the documentation written by
 !   S. Sagmeister are part of the author's PhD-thesis.)
 !
 ! !REVISION HISTORY:

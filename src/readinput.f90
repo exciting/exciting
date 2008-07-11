@@ -193,7 +193,7 @@ mdfqtype=0
 vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
-lmaxapwtd=-1
+lmaxapwwf=-1
 fastpmat=.true.
 fastemat=.true.
 emattype=1
@@ -201,7 +201,7 @@ lmaxemat=3
 rsptype='reta'
 acont=.false.
 nwacont=0
-brdtd=0.01
+broad=0.01d0
 aresdf=.true.
 epsdfde=1.d-8
 emaxdf=1.d10
@@ -992,11 +992,11 @@ case('tq0ev')
    read(50,*,err=20) tq0ev
 case('gqmax')
   read(50,*,err=20) gqmax
-case('lmaxapwtd')
-  read(50,*,err=20) lmaxapwtd
-  if (lmaxapwtd.lt.0) then
+case('lmaxapwwf')
+  read(50,*,err=20) lmaxapwwf
+  if (lmaxapwwf.lt.0) then
     write(*,*)
-    write(*,'("Error(readinput)[td]: lmaxapwtd < 0 : ",I8)') lmaxapwtd
+    write(*,'("Error(readinput)[td]: lmaxapwwf < 0 : ",I8)') lmaxapwwf
     write(*,*)
     stop
   end if
@@ -1026,24 +1026,24 @@ case('acont')
   read(50,*,err=20) acont
 case('nwacont')
   read(50,*,err=20) nwacont
-  if (brdtd.le.0) then
+  if (broad.le.0) then
     write(*,*)
     write(*,'("Error(readinput[td]): nwacont <= 0 : ",g18.10)') nwacont
     write(*,*)
     stop
   end if
-case('brdtd')
-  read(50,*,err=20) brdtd
-  if (brdtd.le.0) then
+case('broad')
+  read(50,*,err=20) broad
+  if (broad.le.0) then
     write(*,*)
-    write(*,'("Warning(readinput[td]): brdtd <= 0 : ",g18.10)') brdtd
+    write(*,'("Warning(readinput[td]): broad <= 0 : ",g18.10)') broad
     write(*,*)
   end if
 case('aresdf')
   read(50,*,err=20) aresdf
 case('epsdfde')
   read(50,*,err=20) epsdfde
-  if (brdtd.le.0) then
+  if (broad.le.0) then
     write(*,*)
     write(*,'("Warning(readinput[td]): epsdfde <= 0 : ",g18.10)') epsdfde
     write(*,*)

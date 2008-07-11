@@ -37,7 +37,7 @@ contains
     write(un,'(a,l8)') '# aresdf            :',aresdf
     write(un,'(a,l8)') '# acont             :',acont
     write(un,'(a,i8)') '# nwacont           :',nwacont
-    write(un,'(a,2f12.6)') '# brdtd (H,eV)      :',brdtd,h2ev*brdtd
+    write(un,'(a,2f12.6)') '# broad (H,eV)      :',broad,h2ev*broad
     write(un,'(a,2f12.6)') '# scissor (H,eV)    :',scissor,h2ev*scissor
     write(un,'(a,i8)') '# nwdos             :',nwdos
     write(un,'(a,i8)') '# ngq               :',ngq(iq)
@@ -64,7 +64,7 @@ contains
          h2ev*evllpu
     write(un,'(a,l8)') '# ksgap             :',ksgap
     write(un,'(a,i8)') '# lmaxapw           :',lmaxapw
-    write(un,'(a,i8)') '# lmaxapwtd         :',lmaxapwtd
+    write(un,'(a,i8)') '# lmaxapwwf         :',lmaxapwwf
     write(un,'(a,i8)') '# lmaxmat           :',lmaxmat
     write(un,'(a,i8)') '# lmaxvr            :',lmaxvr
     write(un,'(a,i8)') '# lmaxinr           :',lmaxinr

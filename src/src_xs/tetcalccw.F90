@@ -20,7 +20,7 @@ subroutine tetcalccw
   tetra=.true.
   call init1
   ! save Gamma-point variables
-  call tdsave0
+  call xssave0
   ! initialize q-point set
   call init2xs
   ! read Fermi energy

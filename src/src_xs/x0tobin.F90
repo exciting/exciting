@@ -22,7 +22,7 @@ subroutine x0tobin
   ! initialise universal variables
   call init1
   ! save Gamma-point variables
-  call tdsave0
+  call xssave0
   ! initialize q-point set
   call init2xs
   ! loop over q-points

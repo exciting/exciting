@@ -4,7 +4,7 @@ module m_dfqoscbo
 contains
 
   subroutine dfqoscbo(n,xou,xuo,you,yuo)
-    use m_tdzoutpr2
+    use m_xszoutpr2
     implicit none
     ! arguments
     integer, intent(in) :: n
@@ -14,8 +14,8 @@ contains
     complex(8) :: zt
 
     zt=(1.d0,0.d0)
-    call tdzoutpr2(n,n,zt,xou,xou,you)
-    call tdzoutpr2(n,n,zt,xuo,xuo,yuo)
+    call xszoutpr2(n,n,zt,xou,xou,you)
+    call xszoutpr2(n,n,zt,xuo,xuo,yuo)
 
   end subroutine dfqoscbo
 

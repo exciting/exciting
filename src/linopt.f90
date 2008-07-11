@@ -88,7 +88,7 @@ subroutine linopt
   call init2xs
   tqfmt=.not.tqgamma(iq)
   if (tqfmt) then
-     call tdsave0
+     call xssave0
      call genfilname(iqmt=iq,setfilext=.true.)
      ! take first q-point
      call init1xs(qvkloff(1,iq))
