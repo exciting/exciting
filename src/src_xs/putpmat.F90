@@ -45,7 +45,7 @@ contains
           ! only master is performing I/O
           open(unit=un,file=trim(filnam),form='unformatted',action='write', &
                access='direct',recl=recl)
-          write(un,rec=ikr) ,vkl(:,ikr),nstsv,pm
+          write(un,rec=ikr) vkl(:,ikr),nstsv,pm
           close(un)
 #ifdef MPI
        end do

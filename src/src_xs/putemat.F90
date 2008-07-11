@@ -25,7 +25,7 @@ contains
 #ifdef MPI
     integer :: iproc,tag1,tag2,status(MPI_STATUS_SIZE)
 #endif
-    !TODO: use "tarec"
+    !TODO: use "tarec"; access subset of bands!!! UNFINISHED
     tarec_=tarec
     ikr=ik
     call getunit(un)
@@ -49,12 +49,12 @@ contains
              end if
 #endif
              ! I/O record length
-             inquire(iolength=recl) nst1,nst2,nst3,nst4,nkpt,ngq(iq),vql(:,iq),&
-                  vkl(:,ikr),x1,x2
+             inquire(iolength=recl) vql(:,iq),vkl(:,ikr),nstsv,ngq(iq), &
+                  nst1,nst2,nst3,nst4,x1,x2
              open(unit=un,file=trim(filnam),form='unformatted', &
                   action='write',access='direct',recl=recl)
-             write(un,rec=ikr) nst1,nst2,nst3,nst4,nkpt,ngq(iq),vql(:,iq), &
-                  vkl(:,ikr),x1,x2
+             write(un,rec=ikr) vql(:,iq),vkl(:,ikr),nstsv,ngq(iq), &
+                  nst1,nst2,nst3,nst4,x1,x2
 #ifdef MPI
           end do
        end if
@@ -74,12 +74,12 @@ contains
              end if
 #endif
              ! I/O record length
-             inquire(iolength=recl) nst1,nst2,nkpt,ngq(iq),vql(:,iq), &
-                  vkl(:,ikr),x1
+             inquire(iolength=recl) vql(:,iq),vkl(:,ikr),nstsv,ngq(iq), &
+                  nst1,nst2,x1
              open(unit=un,file=trim(filnam),form='unformatted', &
                   action='write',access='direct',recl=recl)
-             write(un,rec=ikr) nst1,nst2,nkpt,ngq(iq),vql(:,iq), &
-                  vkl(:,ikr),x1
+             write(un,rec=ikr) vql(:,iq),vkl(:,ikr),nstsv,ngq(iq), &
+                  nst1,nst2,x1
 #ifdef MPI
           end do
        end if
