@@ -31,7 +31,7 @@ subroutine tetcalccwq(iq)
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
   ! generate link array for tetrahedra
-  call gentetlink(vql(1,iq))
+  call gentetlink(vql(1,iq),tetraqweights)
   ! initial and final w-point
   wi=wpari
   wf=wparf

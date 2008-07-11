@@ -340,6 +340,8 @@ module modxs
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
   ! method)
   integer :: bzsampl
+  ! choice of weights and nodes for tetrahedron method and non-zero Q-point
+  integer :: tetraqweights
   ! number of band transitions for analysis
   integer :: ndftrans
   ! k-point and band combination analysis

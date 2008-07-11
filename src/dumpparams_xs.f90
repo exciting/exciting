@@ -27,7 +27,7 @@ subroutine dumpparams_xs(string,comment)
   character(*), intent(in) :: string,comment
   ! local variables
   integer :: i
-  open(unit=77,file=trim(string),action='write',status='replace')
+  open(unit=77,file=trim(string),action='write',position='append')
   write(77,*)
   write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
   write(77,'(a)') trim(comment)

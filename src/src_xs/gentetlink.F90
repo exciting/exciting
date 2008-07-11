@@ -6,8 +6,8 @@
 !BOP
 ! !ROUTINE: gentetlink
 ! !INTERFACE:
-subroutine gentetlink(vpl)
-! !USES:
+subroutine gentetlink(vpl,tqw)
+  ! !USES:
   use modmain
   use modtetra
 ! !DESCRIPTION:
@@ -22,15 +22,16 @@ subroutine gentetlink(vpl)
   implicit none
   ! arguments
   real(8), intent(in) :: vpl(3)
+  integer, intent(in) :: tqw
   ! local variables
   real(8), parameter :: epscomm=1.d-5
   real(8) :: vr(3)
   integer :: j,iv(3),iqnr
   integer, allocatable :: ivkt(:,:),ivqt(:,:),tnodest(:,:),wtett(:)
   real(8), external :: r3taxi
-
-!!$integer,allocatable::linkt(:,:)
-
+!!$  !begin old interface (deprecated)
+!!$  integer,allocatable::linkt(:,:)
+!!$  !end old interface
   ! get index to reducible q-point which is commensurate to k-point set
   vr(:)=vpl(:)*ngridk(:)
   call r3frac(epslat,vr,iv)
@@ -51,13 +52,19 @@ subroutine gentetlink(vpl)
   vr(:)=vklnr(:,iqnr)-vkloff(:)/ngridk(:)
   if (abs(r3taxi(vpl,vr)).gt.epscomm) then
      write(*,*)
-     write(*,'("Error(gentetlink): q-point on grid does not match q-point - &
-          &check routine gentetlink.F90")')
+     write(*,'("Error(gentetlink): specified q-point does not match derived &
+          &q-point on grid")')
+     write(*,'(" specified q-point :",3g18.10)') vpl
+     write(*,'(" derived q-point   :",3g18.10)') vr
+     write(*,'(" non-reduced index :",i6)') iqnr
      write(*,*)
      call terminate
   end if
-  write(*,'(a,i6,3g18.10)') 'Info(gentetlink): reducible q-point in grid:', &
-       iqnr,vr
+  write(*,*)
+  write(*,'("Info(gentetlink): q-point on grid")')
+  write(*,'(" q-point           :",3g18.10)') vr
+  write(*,'(" non-reduced index :",i6)') iqnr
+  write(*,*)
   ! check if k-point set is not reduced for q-point different from Gamma point
   if ((nkpt.ne.nkptnr).and.(iqnr.ne.1)) then
      write(*,*)
@@ -79,20 +86,22 @@ subroutine gentetlink(vpl)
   allocate(wtett(6*nkptnr),tnodest(4,6*nkptnr))
   ! generate fraction for k-point offset
   call r3fraction(vkloff,ikloff,dkloff)
-
-  !new interface function
-  ! call to libbzint-routine
+  ! generate link array, nodes and weights
   call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
-       ntet,tnodes,wtet,link,tvol)
-
-  !old function call (deprecated)
-!!$allocate(linkt(6*nkptnr,nkptnr),kqid(nkpt,nkpt))
-!!$  call kqgen(bvec,ngridk,ikloff,dkloff,nkpt, ivkt,ivqt,dvk,dvq,   &
-!!$     &                 kqid,  ntet,tnodes     ,wtet       ,linkt,tvol)
-!!$! assign link array
-!!$link(:)=linkt(:,iqnr)
-!!$deallocate(linkt,kqid)
-
+       ntet,tnodest,wtett,link,tvol)
+  if (tqw.ne.0) then
+     ! use weights and nodes from kgen-routine
+     tnodes(:,:)=tnodest(:,:)
+     wtet(:)=wtett(:)
+  end if
+!!$  !begin old interface call (deprecated)
+!!$  allocate(linkt(6*nkptnr,nkptnr),kqid(nkpt,nkpt))
+!!$  call kqgen(bvec,ngridk,ikloff,dkloff,nkpt, ivkt,ivqt,dvk,dvq,kqid,ntet, &
+!!$       tnodes,wtet,linkt,tvol)
+!!$  ! assign link array
+!!$  link(:)=linkt(:,iqnr)
+!!$  deallocate(linkt,kqid)
+!!$  ! end old interface call
   ! deallocate local arrays
   deallocate(ivkt,ivqt)
   deallocate(wtett,tnodest)

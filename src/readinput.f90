@@ -216,6 +216,7 @@ ndftrans=1
 if (allocated(dftrans)) deallocate(dftrans)
 allocate(dftrans(3,ndftrans))
 dftrans(:,:)=0
+tetraqweights=1
 gather=.false.
 symmorph=.false.
 tevout=.false.
@@ -249,14 +250,16 @@ nbfbse=-1
 nafbse=-1
 ! dump default parameters
 if (rank.eq.0) then
-   if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','! main parameters:', &
-        sppath,sc,sc1,sc2,sc3,vacuum)
-   if (dumpadd) call dumpparams_add('PARAMS_DEFAULT_ADDITIONAL.OUT', &
+   fname='PARAMS_DEFAULT.OUT'
+   if (dumpmain) call dumpparams(trim(fname), &
+        '! main parameters:',sppath,sc,sc1,sc2,sc3,vacuum)
+   if (dumpadd) call dumpparams_add(trim(fname), &
         '! additional parameters:')
-   if (dumpmpiiter) call dumpparams_mpiiter('PARAMS_DEFAULT_MPIITER.OUT', &
+   if (dumpmpiiter) call dumpparams_mpiiter(trim(fname), &
         '! MPI parallelization and iterative solver parameters:')
-   if (dumptetra) call dumpparams_tetra('PARAMS_DEFAULT_TETRA.OUT','')
-   if (dumpxs) call dumpparams_xs('PARAMS_DEFAULT_XS.OUT', &
+   if (dumptetra) call dumpparams_tetra(trim(fname), &
+        '! tetrahedron method parameters:')
+   if (dumpxs) call dumpparams_xs(trim(fname), &
         '! excited states parameters:')
 end if
 #endif
@@ -1084,6 +1087,8 @@ case('dftrans')
       stop
     end if
   end do
+case('tetraqweights')
+  read(50,*,err=20) tetraqweights
 case('gather')
   read(50,*,err=20) gather
 case('symmorph')
@@ -1241,17 +1246,18 @@ if (molecule) then
   end do
 end if
 #ifdef XS
-! dump default parameters corrected by input file
+! dump default parameters (partially) corrected by input file
 if (rank.eq.0) then
-   if (dumpmain) call dumpparams('PARAMS.OUT','! main parameters:', &
-        sppath,sc,sc1,sc2,sc3,vacuum)
-   if (dumpadd) call dumpparams_add('PARAMS_ADDITIONAL.OUT', &
-        '! additional parameters')
-   if (dumpmpiiter) call dumpparams_mpiiter('PARAMS_MPIITER.OUT', &
+   fname='PARAMS.OUT'
+   if (dumpmain) call dumpparams(trim(fname), &
+        '! main parameters:',sppath,sc,sc1,sc2,sc3,vacuum)
+   if (dumpadd) call dumpparams_add(trim(fname), &
+        '! additional parameters:')
+   if (dumpmpiiter) call dumpparams_mpiiter(trim(fname), &
         '! MPI parallelization and iterative solver parameters:')
-   if (dumptetra) call dumpparams_tetra('PARAMS_TETRA.OUT', &
-        'tetrahedron method parameters:')
-   if (dumpxs) call dumpparams_xs('PARAMS_XS.OUT', &
+   if (dumptetra) call dumpparams_tetra(trim(fname), &
+        '! tetrahedron method parameters:')
+   if (dumpxs) call dumpparams_xs(trim(fname), &
         '! excited states parameters:')
 end if
 #endif
