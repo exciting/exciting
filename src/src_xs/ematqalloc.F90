@@ -19,13 +19,13 @@ subroutine ematqalloc
   if (allocated(xih)) deallocate(xih)
   allocate(xih(nlotot,nlotot))
   ! allocate contracted coefficients array for APW-part
-  if (allocated(apwdlm)) deallocate(apwdlm)
-  allocate(apwdlm(nstsv,apwordmax,lmmaxapwtd,natmtot))
-  if (allocated(apwdlm0)) deallocate(apwdlm0)
-  allocate(apwdlm0(nstsv,apwordmax,lmmaxapwtd,natmtot))
+  if (allocated(apwcmt)) deallocate(apwcmt)
+  allocate(apwcmt(nstsv,apwordmax,lmmaxapwtd,natmtot))
+  if (allocated(apwcmt0)) deallocate(apwcmt0)
+  allocate(apwcmt0(nstsv,apwordmax,lmmaxapwtd,natmtot))
   ! allocate contracted coefficients array for local orbitals-part
-  if (allocated(lodlm)) deallocate(lodlm)
-  allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
-  if (allocated(lodlm0)) deallocate(lodlm0)
-  allocate(lodlm0(nstsv,nlomax,-lolmax:lolmax,natmtot))
+  if (allocated(locmt)) deallocate(locmt)
+  allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
+  if (allocated(locmt0)) deallocate(locmt0)
+  allocate(locmt0(nstsv,nlomax,-lolmax:lolmax,natmtot))
 end subroutine ematqalloc

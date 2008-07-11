@@ -24,12 +24,21 @@ character(256), external:: outfilenamestring
 logical exist
 integer koffset
 !</chm>
+#ifdef XS
+  ! added feature to access arrays for only a subset of bands
+  complex(8), allocatable :: evecsv_(:,:)
+#endif
 ! find the k-point number
 call findkpt(vpl,isym,ik)
 ! index to global spin rotation in lattice point group
 lspn=lspnsymc(isym)
 ! find the record length
+#ifdef XS
+inquire(iolength=recl) vkl_,nstsv_
+#endif
+#ifndef XS
 inquire(iolength=recl) vkl_,nstsv_,evecsv
+#endif
 filetag='EVECSV'
 !$OMP CRITICAL
 do i=1,100
@@ -50,7 +59,30 @@ enddo
  else
  koffset =ik
  endif
+#ifdef XS
+  read(70,rec=1) vkl_,nstsv_
+  close(70)
+  if (nstsv.gt.nstsv_) then
+     write(*,*)
+     write(*,'("Error(getevecsv): invalid nstsv for k-point ",I8)') ik
+     write(*,'(" current    : ",I8)') nstsv
+     write(*,'(" EVECSV.OUT : ",I8)') nstsv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
+     write(*,*)
+     stop
+  end if
+  allocate(evecsv_(nstsv_,nstsv_))
+  inquire(iolength=recl) vkl_,nstsv_,evecsv_
+  open(70,file=outfilenamestring(filetag,ik),action='READ', &
+       form='UNFORMATTED',access='DIRECT',recl=recl)
+  read(70,rec=koffset) vkl_,nstsv_,evecsv_
+  ! retreive subset
+  evecsv(:,:)=evecsv_(:nstsv,:nstsv)
+  deallocate(evecsv_)
+#endif
+#ifndef XS
 read(70,rec=koffset) vkl_,nstsv_,evecsv
+#endif
 close(70)
 !$OMP END CRITICAL
 if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
@@ -58,17 +90,21 @@ if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
   write(*,'("Error(getevecsv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)
   write(*,'(" EVECSV.OUT : ",3G18.10)') vkl_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
+#ifndef XS
 if (nstsv.ne.nstsv_) then
   write(*,*)
   write(*,'("Error(getevecsv): differing nstsv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nstsv
   write(*,'(" EVECSV.OUT : ",I8)') nstsv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
+#endif
 ! if symmetry element is the identity return
 if (lspn.eq.1) return
 ! if eigenvectors are spin-unpolarised return
@@ -87,3 +123,43 @@ end do
 return
 end subroutine
 
+module m_getevecsvr 
+  implicit none
+contains
+  subroutine getevecsvr(isti,istf,vpl,evecsv)
+    use modmain
+    implicit none
+    ! arguments
+    integer, intent(in) :: isti,istf
+    real(8), intent(in) :: vpl(3)
+    complex(8), intent(out) :: evecsv(:,:)
+    ! local variables
+    integer :: err
+    complex(8), allocatable :: evecsvt(:,:)
+    ! check correct shapes
+    err=0
+    if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
+       write(*,*)
+       write(*,'("Error(getevecsvr): inconsistent limits for bands:")')
+       write(*,'(" band limits  : ",2i6)') isti,istf
+       write(*,'(" maximum value: ",i6)') nstsv
+       write(*,*)
+       err=err+1
+    end if
+    if ((size(evecsv,1).ne.size(evecsv,2)).or. &
+         (size(evecsv,1).ne.(istf-isti+1))) then
+       write(*,*)
+       write(*,'("Error(getevecsvr): output array does not match for bands:")')
+       write(*,'(" band limits              : ",2i6)') isti,istf
+       write(*,'(" requested number of bands: ",i6)') istf-isti+1
+       write(*,'(" array size               : ",i6)') size(evecsv,1)
+       write(*,*)
+       err=err+1
+    end if
+    if (err.ne.0) stop
+    allocate(evecsvt(nstsv,nstsv))   
+    call getevecsv(vpl,evecsvt)
+    evecsv(:,:)=evecsvt(isti:istf,isti:istf)
+    deallocate(evecsvt)
+  end subroutine getevecsvr
+end module m_getevecsvr

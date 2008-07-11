@@ -82,7 +82,7 @@ subroutine tetcalccwq(iq)
        action='write',status='replace',access='direct',recl=recl)
   ! calculate weights
   do iw=1,nwdfp
-!!!     if ((modulo(iw,max(nwdfp/10,1)).eq.0).or.(iw.eq.nwdfp)) &
+     if ((modulo(iw,max(nwdfp/10,1)).eq.0).or.(iw.eq.nwdfp)) &
           write(*,'("Info(tetcalccwq): tetrahedron weights for ",I6," of ",&
           &I6," w-points")') iw,nwdfp
      wt=wreal(iw)
@@ -117,7 +117,8 @@ subroutine tetcalccwq(iq)
   open(un,file=trim(filnamt),form='unformatted',action='read',&
        status='old',access='direct',recl=recl)
   call getunit(un2)
-  inquire(iolength=recl2) cw(:,1,1),cwa(:,1,1),cwsurf(:,1,1)
+  inquire(iolength=recl2) vql(:,iq),vkl(:,ik),nstsv,nst1,nst2,cwt1,cwat1, &
+       cwsurft1
   ! open file for reading
   open(un2,file=trim(filnam),form='unformatted',&
        action='write',status='replace',access='direct',recl=recl2)
@@ -137,7 +138,8 @@ subroutine tetcalccwq(iq)
            cwsurft1(:)=cwsurf(:,ist1,ist2)
            cwt1(:)=cw(:,ist1,ist2)
            cwat1(:)=cwa(:,ist1,ist2)
-           write(un2,rec=irec2) cwt1,cwat1,cwsurft1
+           write(un2,rec=irec2) vql(:,iq),vkl(:,ik),nstsv,nst1,nst2,cwt1, &
+                cwat1,cwsurft1
         end do
      end do
   end do

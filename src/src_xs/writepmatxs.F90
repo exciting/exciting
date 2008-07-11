@@ -30,8 +30,6 @@ subroutine writepmatxs(lgather)
   integer :: ik,j
   character(32) :: fnam
   complex(8), allocatable :: apwalmt(:,:,:,:)
-  complex(8), allocatable :: apwcmt(:,:,:,:)
-  complex(8), allocatable :: locmt(:,:,:,:)
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
@@ -70,11 +68,13 @@ subroutine writepmatxs(lgather)
   if (lgather) goto 10
   if (fastpmat) then
      allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
+     if (allocated(apwcmt)) deallocate(apwcmt)
      allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
      if (nlotot.gt.0) then
         allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
         allocate(riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
         allocate(riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
+        if (allocated(locmt)) deallocate(locmt)
         allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
      end if
      ! calculate gradient of radial functions times spherical harmonics

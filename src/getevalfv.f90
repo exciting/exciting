@@ -21,11 +21,20 @@ character(256) ::filetag
 real(8) r3taxi
 external  r3taxi
 character(256), external:: outfilenamestring
+#ifdef XS
+  ! added feature to access arrays for only a subset of bands
+  real(8), allocatable :: evalfv_(:,:)
+#endif
 ! find the k-point number
 call findkpt(vpl,isym,ik)
 ! find the record length
 
+#ifdef XS
+inquire(iolength=recl) vkl_,nstfv_,nspnfv_
+#endif
+#ifndef XS
 inquire(iolength=recl) vkl_,nstfv_,nspnfv_,evalfv
+#endif
 
 filetag='EVALFV'
 do i=1,100
@@ -48,7 +57,31 @@ enddo
  koffset =ik
  endif
 
+#ifdef XS
+  read(70,rec=1) vkl_,nstfv_,nspnfv_
+  close(70)
+  if (nstfv.gt.nstfv_) then
+     write(*,*)
+     write(*,'("Error(getevalfv): invalid nstfv for k-point ",I8)') ik
+     write(*,'(" current    : ",I8)') nstfv
+     write(*,'(" EVALFV.OUT : ",I8)') nstfv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
+     write(*,*)
+     stop
+  end if
+  allocate(evalfv_(nstfv_,nspnfv_))
+  inquire(iolength=recl) vkl_,nstfv_,nspnfv_,evalfv_
+  open(70,file=outfilenamestring(filetag,ik),action='READ', &
+       form='UNFORMATTED',access='DIRECT',recl=recl)
+  read(70,rec=koffset) vkl_,nstfv_,nspnfv_,evalfv_
+  ! retreive subset
+  evalfv(:,:)=evalfv_(:nstfv,:)
+  deallocate(evalfv_)
+#endif
+
+#ifndef XS
 read(70,rec=koffset) vkl_,nstfv_,nspnfv_,evalfv
+#endif
 close(70)
 
 
@@ -58,25 +91,78 @@ if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
   write(*,'("Error(getevalfv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)
   write(*,'(" EVALFV.OUT : ",3G18.10)') vkl_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
+#ifndef XS
 if (nstfv.ne.nstfv_) then
   write(*,*)
   write(*,'("Error(getevalfv): differing nstfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nstfv
   write(*,'(" EVALFV.OUT : ",I8)') nstfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
+#endif
 if (nspnfv.ne.nspnfv_) then
   write(*,*)
   write(*,'("Error(getevalfv): differing nspnfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nspnfv
   write(*,'(" EVALFV.OUT : ",I8)') nspnfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
 end if
 return
 end subroutine
 
+module m_getevalfvr
+  implicit none
+contains
+  subroutine getevalfvr(isti,istf,vpl,evalfv)
+    use modmain
+    implicit none
+    ! arguments
+    integer, intent(in) :: isti,istf
+    real(8), intent(in) :: vpl(3)
+    real(8), intent(out) :: evalfv(:,:)
+    ! local variables
+    integer :: err
+    real(8), allocatable :: evalfvt(:,:)
+    ! check correct shapes
+    err=0
+    if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
+       write(*,*)
+       write(*,'("Error(getevalfvr): inconsistent limits for bands:")')
+       write(*,'(" band limits  : ",2i6)') isti,istf
+       write(*,'(" maximum value: ",i6)') nstfv
+       write(*,*)
+       err=err+1
+    end if
+    if (size(evalfv,1).ne.(istf-isti+1)) then
+       write(*,*)
+       write(*,'("Error(getevalfvr): output array does not match for bands:")')
+       write(*,'(" band limits              : ",2i6)') isti,istf
+       write(*,'(" requested number of bands: ",i6)') istf-isti+1
+       write(*,'(" array size               : ",i6)') size(evalfv,1)
+       write(*,*)
+       err=err+1
+    end if
+    if (size(evalfv,2).ne.nspnfv) then
+       write(*,*)
+       write(*,'("Error(getevalfvr): output array does not match for &
+            &nspnfv:")')
+       write(*,'(" nspnfv    : ",i6)') nspnfv
+       write(*,'(" array size: ",i6)') size(evalfv,2)
+       write(*,*)
+       err=err+1       
+    end if
+    if (err.ne.0) stop
+    allocate(evalfvt(nstfv,nspnfv))
+    call getevalfv(vpl,evalfvt)
+    evalfv(:,:)=evalfvt(isti:istf,:)
+    deallocate(evalfvt)
+  end subroutine getevalfvr
+end module m_getevalfvr

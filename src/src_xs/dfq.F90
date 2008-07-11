@@ -272,7 +272,7 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                  j2=ist2
               end if
               ! read weights for tetrahedron method
-              call gettetcw(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
+              call gettetcw(iq,ik,j1,j2,nst1,nst2,nwdf,trim(fnwtet),cw,cwa, &
                    cwsurf)
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &

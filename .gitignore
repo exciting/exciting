@@ -1,11 +1,14 @@
+*.f90_*
 *.o
 *.mod
 *.a
 *~
+*.old
 exciting
 excitingmpi
 excitingsmp
 exciting_debug
+exciting_gfortran
 exciting_interfaces
 *.dat
 *.OUT

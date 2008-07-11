@@ -8,9 +8,10 @@
 ! !AUTHORS: S. Sagmeister and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
-!   Welcome to the {\sf XS/EXCITING} code developers' manual
-!   This is supposed to collect the routines and modules belonging
-!   only to the excited states (TDDFT and BSE) part into one document.
+!   Welcome to the {\sf XS/EXCITING} code developers' manual.
+!   This manual is supposed to collect the routines and modules belonging
+!   exclusively to the excited states (TDDFT and BSE) part into one document.
+!   The content of this manual is partially taken from the author's PhD thesis.
 !   \\\\
 !   S. Sagmeister\\
 !   Leoben, 2008
@@ -109,6 +110,7 @@ subroutine xsmain
      ! Bethe-Salpeter equation
      call bse
   case(446)
+     ! ** Bethe-Salpeter equation - NEW VERSION - EXPERIMENTAL
      call bse2
   case(450)
      ! BSE-kernel

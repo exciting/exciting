@@ -44,3 +44,52 @@ FINISHED
 
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+>> Jul 2, 2008
+--------------------------------------------------------------------------------
+FINISHED
+	* More flexible interfaces for fetching eigenvalues, -vectors
+	  and occupation numbers
+	  - Allow for specifying a lower number of band indices than
+	    the one that is stored in the file. Cutoff checking
+	  - Modify the routines in main /src directory (YES) or write
+	    an interface/wrapper (YES):
+	    The main routines are:
+	    - getevecfv, -sv
+	    - getevalfv, -sv
+	    - getoccsv
+
+	 * testing (getevecfv) for subset of bands	FINISHED
+	 * testing (getevecsv) for subset of bands	FINISHED
+	 * testing (getevalfv) for subset of bands	FINISHED
+	 * testing (getevalsv) for subset of bands 	FINISHED
+	 * testing (getoccsv)  for subset of bands 	FINISHED
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+>> Jul 4,8 2008
+--------------------------------------------------------------------------------
+
+	* testing SCF with modified routines for getting eigenvalues,
+		-vectors..	    FINISHED
+	(!!) renamed routines *DLM* --> CMT  (e.g. getapwdlm --> getapwcmt)
+		FINISHED     	
+
+	* modify putapwcmt.F90/putlocmt.F90 to also write dimensions
+	  of array to output file	    FINISHED
+
+	* modify these routines for accessing subsets of bands
+		getapwcmt.F90	IMPLEMENTED   FINISHED
+		getlocmt.F90	IMPLEMENTED   FINISHED
+		getemat.F90	??
+		getpemat.F90	??
+		getpmat.F90	??
+		gettetcw.F90	(linear index calculated from band indices!!!)
+
+
+(********) renmae LMAXAPWTD --> LMAXAPWWF, WFLMAXAPW
+
+
+--------------------------------------------------------------------------------
+

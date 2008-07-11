@@ -27,7 +27,7 @@ subroutine bse2
 !   BSE only the diagonal term is referred to:
 !   $$ H^{\rm eff} = H^{\rm diag}. $$
 !   By neglecting the correlation part in the effective Hamiltonian we arrive
-!   at the random phase approximation (RPA)
+!   at the {\it random phase approximation} (RPA)
 !   $$ H^{\rm eff} = H^{\rm diag} + 2H^{\rm x}. $$
 !   Investigations on the spin-structure of the BSE-Hamiltonian show that there
 !   are tow channels, namely the {\it singlet}-channel as solution to the
@@ -35,6 +35,10 @@ subroutine bse2
 !   $$  H^{\rm eff} = H^{\rm diag} + 2H^{\rm x} + H^{\rm c} $$
 !   and a {\it triplet} channel with the exchange-part being absent.
 !   $$ H^{\rm eff} = H^{\rm diag} + H^{\rm c}. $$
+!   The equation of the eigenvalue problem is given by
+!   $$ \sum_{v'c'{\bf k'}} H^{\rm eff}_{vc{\bf k},v'c'{\bf k'}}
+!       A^{\lambda}_{v'c'{\bf k'}}
+!       =  \varepsilon_{\lambda} A^{\lambda}_{vc{\bf k}}. $$
 !   For the diagonalization of the Hamiltonian, a LAPACK-routine ({\tt zheevx})
 !   is invoked to obtain the eigenvalues $\varepsilon_{\lambda}$ and
 !   eigenvectors $A^{\lambda}_{vc{\bf k}}$ (alternatively, a time-evolution
@@ -60,10 +64,11 @@ subroutine bse2
 !                         \frac{\eta}{(\omega-\omega_0)^2+\eta^2} +
 !                         \frac{\eta}{(-\omega-\omega_0)^2-\eta^2} \right] =
 !     \pi\delta(\omega-\omega_0) +  \pi\delta(\omega+\omega_0)       $$
-!   which is true for $\omega>=0$ if $\omega_0>0$. In doing so, the analytic
+!   which is true for $\omega \ge 0$ if $\omega_0>0$. In doing so, the analytic
 !   property ${\rm Im}\epsilon_{\rm M}(0)=0$ is fulfilled.
 !   The broadening $\eta$ in the latter expression is adjusted by the
-!   {\tt brdtd} parameter.
+!   {\tt brdtd} parameter. (All parts of the documentation written by
+!   S. Sagmeister are part of the author's PhD-thesis.)
 !
 ! !REVISION HISTORY:
 !   Created June 2008 (Sagmeister)
@@ -82,10 +87,9 @@ subroutine bse2
      ! files to write BSE spectra for each polarization
      call genfilname(basename='EPSILON',tq0=.true.,oc1=iop,oc2=iop, &
           bsetype=bsetype,scrtype=screentype,filnam=fnameps(iop))
-
-     write(*,*) trim(fnameps(iop))
-
   end do
+
+  
 
 
 end subroutine bse2

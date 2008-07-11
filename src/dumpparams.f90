@@ -3,9 +3,24 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: dumpparams
+! !INTERFACE:
 subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
+! !USES:
   use modmain
-  use modmpi
+! !DESCRIPTION:
+!   Writes out all input parameters which can be specified in the input file
+!   {\tt exciting.in}.
+!   Only show those array elements that are within a corresponding cutoff.
+!   Trailling whitespaces in string expressions are trimmed.
+!   This routine refers only to parameters of the main version of Exciting.
+!
+! !REVISION HISTORY:
+!   Created 2007 (Sagmeister)
+!   Added parameters, July 2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   character(*), intent(in) :: string,comment
@@ -14,15 +29,11 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   real(8), intent(in) :: vacuum_
   ! local variables
   integer :: j,ia,is
-  ! execute only for master process
-  if (rank.gt.0) return
-  ! write out specifyable parameters
-  ! only show assigned array elements and strings where trailling whitespace
-  ! is trimmed
   open(unit=77,file=trim(string),action='write',status='replace')
   write(77,*)
   write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
   write(77,'(a)') trim(comment)
+  write(77,*)
   write(77,'("tasks")')
   do j=1,ntasks
      write(77,*) tasks(j)
@@ -276,6 +287,9 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   write(77,'("maxitoep")')
   write(77,*) maxitoep
   write(77,*)
+  write(77,'("tauoep")')
+  write(77,*) tauoep
+  write(77,*)
   write(77,'("kstlist")')
   do j=1,nkstlist
      write(77,*) kstlist(:,j)
@@ -310,6 +324,32 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   do is=1,nspecies
      write(77,*) is,llu(is),ujlu(1,is),ujlu(2,is)
   end do
-  ! close file
+
+
+  write(77,*)
+  write(77,'("rdmxctype")')
+  write(77,*) rdmxctype
+  write(77,*)
+  write(77,'("rdmmaxscl")')
+  write(77,*) rdmmaxscl
+  write(77,*)
+  write(77,'("maxitn")')
+  write(77,*) maxitn
+  write(77,*)
+  write(77,'("maxitc")')
+  write(77,*) maxitc
+  write(77,*)
+  write(77,'("taurdmn")')
+  write(77,*) taurdmn
+  write(77,*)
+  write(77,'("taurdmc")')
+  write(77,*) taurdmc
+  write(77,*)
+  write(77,'("rdmalpha")')
+  write(77,*) rdmalpha
+  write(77,*)
+  write(77,'("reducebf")')
+  write(77,*) reducebf
   close(77)
 end subroutine dumpparams
+!EOC

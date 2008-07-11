@@ -46,7 +46,7 @@ contains
     real(8), intent(in) :: r(3)
     integer, intent(out) :: n(3),d
     ! parameters
-    real(8), parameter :: epst=1.d-6
+    real(8), parameter :: epst=1.d-5
     ! call to libbzint-routine
     call factorize(3,r,n,d)
     ! check factorization
