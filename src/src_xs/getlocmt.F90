@@ -126,4 +126,5 @@ contains
     ! restore file extension
     filext=filextt
   end subroutine getlocmt
+
 end module m_getlocmt

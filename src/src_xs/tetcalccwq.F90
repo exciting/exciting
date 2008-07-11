@@ -28,7 +28,7 @@ subroutine tetcalccwq(iq)
   real(8), allocatable :: cwsurf(:,:,:),cw(:,:,:),cwa(:,:,:)
   real(8) :: wt
   integer :: ik,ist1,ist2
-  integer :: iw,wi,wf,nwdfp,un,un2,recl,irec
+  integer :: iw,wi,wf,nwdfp,un,recl,irec
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
   ! generate link array for tetrahedra

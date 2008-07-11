@@ -85,10 +85,10 @@ FINISHED
 		getemat.F90	??
 		getpemat.F90	??
 		getpmat.F90	??
-		gettetcw.F90	(linear index calculated from band indices!!!)
+		gettetcw.F90	IMPLEMENTED
 
 
-(********) renmae LMAXAPWTD --> LMAXAPWWF, WFLMAXAPW
+	(!!) renamed LMAXAPWTD --> LMAXAPWWF
 
 
 --------------------------------------------------------------------------------

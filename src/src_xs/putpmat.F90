@@ -20,11 +20,14 @@ contains
     complex(8), intent(in) :: pm(:,:,:)
     ! local variables
     integer :: un,recl,ikr
+    logical :: tarect
 #ifdef MPI
     integer :: iproc,tag,status(MPI_STATUS_SIZE)
 #endif
+    ! TODO: use "tarec"
+    tarect=tarec
     ikr=ik
-    inquire(iolength=recl) nstsv,nkpt,vkl(:,ik),pm
+    inquire(iolength=recl) vkl(:,ik),nstsv,pm
     call getunit(un)
 #ifdef MPI
     tag=77
@@ -42,7 +45,7 @@ contains
           ! only master is performing I/O
           open(unit=un,file=trim(filnam),form='unformatted',action='write', &
                access='direct',recl=recl)
-          write(un,rec=ikr) nstsv,nkpt,vkl(:,ikr),pm
+          write(un,rec=ikr) ,vkl(:,ikr),nstsv,pm
           close(un)
 #ifdef MPI
        end do

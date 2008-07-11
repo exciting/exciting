@@ -24,7 +24,7 @@ subroutine pmatxs2orig
      open(un,file='PMAT.OUT',form='unformatted',action='write',&
           status='replace',access='direct',recl=recl)
      do ik=1,nkpt
-        call getpmat(ik,vkl,.true.,'PMAT_XS.OUT',pm)
+        call getpmat(ik,vkl,1,nstsv,.true.,'PMAT_XS.OUT',pm)
         write(un,rec=ik) pm
      end do
      close(un)

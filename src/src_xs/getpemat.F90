@@ -41,7 +41,7 @@ contains
        ! Gamma q-point
        allocate(pm(3,nstsv,nstsv))
        ! read momentum matrix elements
-       call getpmat(ik,vkl0,.true.,trim(pfilnam),pm)
+       call getpmat(ik,vkl0,1,nstsv,.true.,trim(pfilnam),pm)
        p12(:,:,:)=pm(:,istlo1:isthi1,istlo2:isthi2)
        if (present(p34)) p34(:,:,:)=pm(:,istlo3:isthi3,istlo4:isthi4)
        deallocate(pm)

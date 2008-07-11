@@ -186,7 +186,7 @@ subroutine bse
      ! read momentum matrix elements
      allocate(pm(3,nstsv,nstsv))
      do iknr=1,nkptnr
-        call getpmat(iknr,vkl,.true.,trim(fnpmat),pm)
+        call getpmat(iknr,vkl,1,nstsv,.true.,trim(fnpmat),pm)
         do ist1=1+nvdif,nstsv-nstunocc0
            do ist2=nstocc0+1,nstsv-ncdif
               s1=hamidx(ist1-nvdif,ist2-nstocc0,iknr,nbfbse,nafbse)
