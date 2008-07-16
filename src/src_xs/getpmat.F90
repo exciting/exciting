@@ -84,9 +84,9 @@ contains
        err=err+1
     end if
     if (err.gt.0) call terminate
-    !------------------------!
-    !     get parameters     !
-    !------------------------!
+    !------------------!
+    !     get data     !
+    !------------------!
     ! allocate local arrays
     allocate(pmt(3,nstsv_,nstsv_))
     ! I/O record length
