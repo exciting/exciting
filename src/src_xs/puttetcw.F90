@@ -18,7 +18,28 @@ contains
     character(*), intent(in) :: filnam
     real(8), intent(in) :: cw(:),cwa(:),cwsurf(:)
     ! local variables
-    integer :: un, recl, irec, iqt
+    integer :: un,recl,irec,iqt,err
+    ! check input parameters
+    err=0
+    if ((n1.lt.1).or.(n1.gt.nstsv)) then
+       write(unitout,*)
+       write(unitout,'("Error(puttetcw): n1 < 1 or n1 > nstsv")')
+       write(unitout,'(" n1    :",i6)') n1
+       write(unitout,'(" nstsv :",i6)') nstsv
+       write(unitout,*)
+       call flushifc(unitout)
+       err=err+1
+    end if
+    if ((n2.lt.1).or.(n2.gt.nstsv)) then
+       write(unitout,*)
+       write(unitout,'("Error(puttetcw): n2 < 1 or n2 > nstsv")')
+       write(unitout,'(" n1    :",i6)') n2
+       write(unitout,'(" nstsv :",i6)') nstsv
+       write(unitout,*)
+       call flushifc(unitout)
+       err=err+1
+    end if
+    if (err.ne.0) call terminate
     ! q-point
     iqt=iq
     ! record position

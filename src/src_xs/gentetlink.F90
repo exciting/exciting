@@ -16,7 +16,7 @@ subroutine gentetlink(vpl,tqw)
 !   referencing the {\tt libbzint} library of Ricardo Gomez-Abal.
 !
 ! !REVISION HISTORY:
-!   Created January 2008 (SAG)
+!   Created January 2008 (Sagmeister)
 !EOP
 !BOC
   implicit none
