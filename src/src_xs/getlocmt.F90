@@ -120,7 +120,7 @@ contains
        call flushifc(unitout)
        call terminate
     end if
-    ! retreive data within cutoffs
+    ! retrieve data within cutoffs
     lolm(:,:,:,:)=lolmt(isti:istf,:,:,:)
     deallocate(lolmt)
     ! restore file extension

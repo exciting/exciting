@@ -111,7 +111,7 @@ contains
        call flushifc(unitout)
        call terminate
     end if
-    ! retreive data within cutoffs
+    ! retrieve data within cutoffs
     pm(:,:,:)=pmt(:,isti:istf,isti:istf)
     deallocate(pmt)
   end subroutine getpmat

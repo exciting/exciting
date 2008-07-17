@@ -142,7 +142,7 @@ contains
        call flushifc(unitout)
        call terminate
     end if
-    ! retreive data within cutoffs
+    ! retrieve data within cutoffs
     apwlm(:,:,:,:)=apwlmt(isti:istf,:,1:(lmax+1)**2,:)
     deallocate(apwlmt)
     ! restore file extension
