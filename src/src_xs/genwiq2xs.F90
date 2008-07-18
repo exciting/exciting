@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -13,10 +13,10 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   use m_genfilname
   use m_getunit
 ! !DESCRIPTION:
-!   Effective integrals of Coulomb interaction.
+!   Effective integrals of Coulomb interaction. Based on routine {\tt genwiq2}.
 !
 ! !REVISION HISTORY:
-!   Created February 2008 (SAG)
+!   Created February 2008 (Sagmeister)
 !EOP
 !BOC
   implicit none

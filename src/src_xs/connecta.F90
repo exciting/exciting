@@ -1,6 +1,5 @@
 
-! Copyright (C) 2002-2007 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
@@ -26,8 +25,7 @@ subroutine connecta(cvec,nv,np,vvl,vpl,dv,dp)
 !   {\tt dp}, respectively. Based upon the routine {\tt connect}.
 !
 ! !REVISION HISTORY:
-!   Created June 2003 (JKD)
-!   Modifications 2007 (Sagmeister)
+!   Created June 2007 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -121,4 +119,4 @@ subroutine linterplin(np,v1,v2,vintp)
      vintp(:,j)=v1(:)*(1-lam)+v2(:)*lam
   end do
 end subroutine linterplin
-
+!EOC

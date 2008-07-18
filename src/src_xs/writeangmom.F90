@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2006 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -44,4 +44,3 @@ subroutine writeangmom(un)
   end if
 end subroutine writeangmom
 !EOC
-

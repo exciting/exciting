@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -14,7 +14,7 @@
 !   The content of this manual is partially taken from the author's PhD thesis.
 !   \\\\
 !   S. Sagmeister\\
-!   Leoben, 2008
+!   Leoben, July 2008
 !
 !EOI
 

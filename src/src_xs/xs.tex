@@ -49,7 +49,7 @@
 \def\tr{\mathop{\rm tr}}
 %-------------------------------------------------------------
 
-\markboth{Left}{Source File: xsmain.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: xsmain.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -70,18 +70,18 @@
      The content of this manual is partially taken from the author's PhD thesis.
      \\\\
      S. Sagmeister\\
-     Leoben, 2008
+     Leoben, July 2008
    
 %/////////////////////////////////////////////////////////////
 \newpage
 
-\markboth{Left}{Source File: bandgap.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: bandgap.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
 %/////////////////////////////////////////////////////////////
 \section{Routine/Function Prologues} \label{app:ProLogues}
-\subsection{bandgapgrid (Source File: bandgap.F90)}
+\subsection{bandgap (Source File: bandgap.F90)}
 
 
 \bigskip{\sf INTERFACE:}
@@ -95,7 +95,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created July 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: bse2.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: bse2.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -169,21 +169,21 @@
      which is true for $\omega \ge 0$ if $\omega_0>0$. In doing so, the analytic
      property ${\rm Im}\epsilon_{\rm M}(0)=0$ is fulfilled.
      The broadening $\eta$ in the latter expression is adjusted by the
-     {\tt brdtd} parameter. (All parts of the documentation written by
+     {\tt broad} parameter. (All parts of the documentation written by
      S. Sagmeister are part of the author's PhD-thesis.)
   
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created June 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: bse.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: bse.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: chi0upd.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: chi0upd.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: connecta.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: connecta.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -215,138 +215,209 @@
      {\tt dp}, respectively. Based upon the routine {\tt connect}.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created June 2003 (JKD)
-     Modifications 2007 (Sagmeister)\end{verbatim}
+\begin{verbatim}     Created June 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: ctdfrac.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: copyfilesq0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: df.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ctdfrac.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{fxc\_lrc (Source File: ctdfrac.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine ctdfrac(n,a,b,f)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     n     : depth of continued fraction (in,integer)
+     a     : a-coefficients (in,complex(n))
+     b     : b-coefficients (in,complex(0:n))
+     f     : continued fraction result\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Straight foreward implemetation of a continued fraction with depth $n$
+     without any checking of convergence.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2006 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: df.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfgather.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: dfgather.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: dfq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfqoscbo.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: dfqoscbo.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfqoschd.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: dfqoschd.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dfqoscwg.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: dfqoscwg.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dftim.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: dftim.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: dyson.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: dyson.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{dyson (Source File: dyson.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine dyson(n,s0,k,s)\end{verbatim}{\em USES:}
+\begin{verbatim}     use invert\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     n     : matrix size of local field effects (in,integer)
+     s0    : S0 matrix (in,complex(:,:))
+     k     : kernel matrix (in,complex(:,:))
+     s     : S (solution) matrix (in,complex(:,:))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Solve Dyson's equation
+       $$   S = S_0 + S_0 K S  $$
+     for $S$ by inversion.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2005 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: ematbdcmbs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematbdcmbs.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematbdlims.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematbdlims.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematgntsum.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematgntsum.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematqalloc.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqalloc.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematqdealloc.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqdealloc.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematqk1.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqk1.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematqk.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqk.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematqkgir.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqkgir.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematqkgmt.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematqkgmt.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ematrad.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: ematrad.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: emattest.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: emattest.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: emattim.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: emattim.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: epsconv.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: epsconv.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: exccoulint.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: exccoulint.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: filedel.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: filedel.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: findexciton.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findexciton.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: findgntn0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findgntn0.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: findgqmap.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findgqmap.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: findgroupq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{findgroupq (Source File: findgroupq.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim} subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
+      ivscwrapq)\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Find the (little) group of {\bf q} (which includes finding the small group
+     of {\bf q}).
+     All symmetries, where the rotational part transforms {\bf q} into an
+     equivalent vector are collected for the small group of {\bf q}. Inclusion
+     of non-primitive translations yields the little group of {\bf q}.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2006 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: findkmapkq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findgroupq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: findocclims.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findkmapkq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: findsymeqiv.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: findocclims.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
-}
-
-
-\markboth{Left}{Source File: findsymeqiv.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
-}
-
-
-\markboth{Left}{Source File: findsymi.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: findsymi.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -375,27 +446,11 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created April 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: ftfun.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: ftfun.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: fxc\_alda\_check.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
-}
-
-
-\markboth{Left}{Source File: fxc\_bse\_ma03.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
-}
-
-
-\markboth{Left}{Source File: fxc\_lrcd.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
-}
-
-
-\markboth{Left}{Source File: fxc\_lrc.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
-}
-
-
-\markboth{Left}{Source File: fxc\_pwca.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: fxc\_alda\_check.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -403,41 +458,171 @@
  
 \mbox{}\hrulefill\ 
  
-\subsection{xcd\_pwca (Source File: fxc\_pwca.F90)}
+\subsection{fxc\_alda\_check (Source File: fxc\_alda\_check.F90)}
 
 
 \bigskip{\sf INTERFACE:}
-\begin{verbatim} subroutine xcd_pwca(n,rho,dvx,dvc)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
-\begin{verbatim}     n     : number of density points (in,integer)
-     rho   : charge density (in,real(n))
-     dvx   : exchange potential derivative (out,real(n))
-     dvc   : correlation potential derivative (out,real(n))\end{verbatim}
+\begin{verbatim} subroutine fxc_alda_check\end{verbatim}{\em USES:}
+\begin{verbatim}   use modmain
+   use modxcifc
+   use modxs
+   use modfxcifc\end{verbatim}
 {\sf DESCRIPTION:\\ }
 
 
-     Spin-unpolarised exchange-correlation potential derivative of the 
-     Perdew-Wang
-     parameterisation of the Ceperley-Alder electron gas,
-     Phys. Rev. B 45, 13244
-     (1992) and Phys. Rev. Lett. 45, 566 (1980). Based upon the routine
-     {\tt xc\_pwca}.
+     Checks the validity of the analytical expressions for the ALDA
+     exchange-correlation kernel.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created February 2007 (Sagmeister)\end{verbatim}
+\begin{verbatim}     Created April 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genapwcmt.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: fxc\_bse\_ma03.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{fxc\_bse\_ma03 (Source File: fxc\_bse\_ma03.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine fxc_bse_ma03(msiz,sw,iw,fxc)\end{verbatim}{\em USES:}
+\begin{verbatim}     use modmain
+     use modmpi
+     use modxs
+     use invert
+     use m_xsgauntgen
+     use m_findgntn0
+     use m_writegqpts
+     use m_genfilname
+     use m_getunit\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     msiz  : matrix size of local field effects (in,integer)
+     sw    : true for inclusion of local field effects (in,logical)
+     alpha : real constant (in,real)
+     fxc   : xc-kernel Fourier coefficients (out,complex(:,:))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003).
+     Interface function.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2008 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: fxc\_lrcd.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{fxc\_lrcd (Source File: fxc\_lrcd.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine fxc_lrcd(msiz,sw,alpha,beta,w,fxc)\end{verbatim}{\em USES:}
+\begin{verbatim}     use modmain
+     use modxs\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     msiz  : matrix size of local field effects (in,integer)
+     sw    : true for inclusion of local field effects (in,logical)
+     alpha : real constant (in,real)
+     w     : frequency grid (in,complex(:))
+     fxc   : xc-kernel Fourier coefficients (out,complex(:,:))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Dynamical long range xc-kernel; S. Botti, PRB 72, 125203 (2005).
+     Calculates the symmetrized xc-kernel for the static long range model.
+     According to the switch {\tt sw} either $$
+           f_{\rm xc}({\bf G},{\bf G'}) = - \frac{1}{4\pi} (\alpha+\beta\omega^2)
+           \delta({\bf G},{\bf G'}), $$
+     if the switch is true, or $$
+           f_{\rm xc}({\bf G},{\bf G'}) = - \frac{1}{4\pi} (\alpha+\beta\omega^2)
+           \delta({\bf G},{\bf G'})\delta({\bf G},{\bf 0}), $$
+     otherwise.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2006 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: fxc\_lrc.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{fxc\_lrc (Source File: fxc\_lrc.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine fxc_lrc(msiz,sw,alpha,fxc)\end{verbatim}{\em USES:}
+\begin{verbatim}     use modmain
+     use modxs\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     msiz  : matrix size of local field effects (in,integer)
+     sw    : true for inclusion of local field effects (in,logical)
+     alpha : real constant (in,real)
+     fxc   : xc-kernel Fourier coefficients (out,complex(:,:))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Static long range xc-kernel; S. Botti, PRB 70, 045301 (2004).
+     Calculates the symmetrized xc-kernel for the static long range model.
+     According to the switch {\tt sw} either $$
+           f_{\rm xc}({\bf G},{\bf G'}) = - \frac{\alpha}{4\pi} 
+           \delta({\bf G},{\bf G'}), $$
+     if the switch is true, or $$
+           f_{\rm xc}({\bf G},{\bf G'}) = - \frac{\alpha}{4\pi} 
+           \delta({\bf G},{\bf G'})\delta({\bf G},{\bf 0}), $$
+     otherwise.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2006 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: fxc\_pwca.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genfilextread.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genapwcmt.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genfilname.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genfilextread.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gengqvec.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genfilname.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{genfilname (Source File: genfilname.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
+        nar,nlf,fxctype,scrtype,bsetype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
+        setfilext,revertfilext,appfilext,filnam,fileext)\end{verbatim}{\em USES:}
+\begin{verbatim}     use modmain, only: filext
+     use modxs, only: filextrevert\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Generates file name and extension according to optional input parameters (
+     see routine).
+     Interpret bzsampl variable as default (Lorentzian) for 0, as
+     tetrahedron method for 1. Trilinear method to be followed.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created October 2007 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: gengqvec.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -466,32 +651,32 @@
      Generates a set of ${\bf G+p}$-vectors for the input ${\bf p}$-point with
      length less than {\tt gkmax}. These are used as the plane waves in the APW
      functions. Also computes the spherical coordinates of each vector.
-     Based on gengpvec.
+     Based on {\tt gengpvec}.
   
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: geniscreen.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: geniscreen.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genlocmt.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genlocmt.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genloss.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genloss.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genparidxran.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genparidxran.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genphasedm.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genphasedm.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genpmat2.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genpmat2.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -537,7 +722,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created April 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genpwmat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genpwmat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -565,15 +750,15 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created November 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genqvkloff.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genqvkloff.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gensigma.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: gensigma.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genstar.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genstar.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -592,14 +777,14 @@
 {\sf DESCRIPTION:\\ }
 
 
-     Generates the stars for the $k$-point set as reference to crystal
+     Generates the stars for the $p$-point set as reference to crystal
      symmetries. For a non-zero q-point the little group of q is taken
      instead of the full symmetry group.
   
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created December 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genstark.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genstark.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -624,15 +809,38 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created December 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: gensumrls.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: gensumrls.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{gensumrls (Source File: gensumrls.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine gensumrls(w,eps,sumrls)\end{verbatim}{\em USES:}
+\begin{verbatim}     use modmain
+     use modxs\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     w      : frequency grid (in,real(:))
+     eps    : dielectric function tensor component (in,complex(:))
+     sumrls : values of three different sumrules (out,real(3))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Expressions for the sumrules taken from Ambrosch-Draxl,
+     CPC 175 (2006) 1-14, p5, Eq. 26.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2006 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: gensymdf.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gensymdf.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
-}
-
-
-\markboth{Left}{Source File: gentetlink.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: gentetlink.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -644,7 +852,7 @@
 
 
 \bigskip{\sf INTERFACE:}
-\begin{verbatim} subroutine gentetlink(vpl)\end{verbatim}{\em USES:}
+\begin{verbatim} subroutine gentetlink(vpl,tqw)\end{verbatim}{\em USES:}
 \begin{verbatim}   use modmain
    use modtetra\end{verbatim}
 {\sf DESCRIPTION:\\ }
@@ -655,17 +863,17 @@
      referencing the {\tt libbzint} library of Ricardo Gomez-Abal.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created January 2008 (SAG)\end{verbatim}
+\begin{verbatim}     Created January 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: gentim.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: gentim.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genwgrid.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genwgrid.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: genwiq2xs.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genwiq2xs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -685,12 +893,12 @@
 {\sf DESCRIPTION:\\ }
 
 
-     Effective integrals of Coulomb interaction.
+     Effective integrals of Coulomb interaction. Based on routine {\tt genwiq2}.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created February 2008 (SAG)\end{verbatim}
+\begin{verbatim}     Created February 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: genylmgq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: genylmgq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -716,35 +924,39 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: getapwdlm.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getapwcmt.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getbsemat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getbsemat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getdevaldoccsv.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getdevaldoccsv.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getemat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getemat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getematrad.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getematrad.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getevalsv0.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getevalsv0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getevecfv0.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getevecfv0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getngqmax.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getlocmt.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+
+\markboth{Left}{Source File: getngqmax.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -765,48 +977,48 @@
      Determines the largest number of ${\bf G+q}$-vectors with length less than
      {\tt gqmax} over all the ${\bf q}$-points and stores it in the global
      variable {\tt ngqmax}. This variable is used for allocating arrays.
-     Based upon the routine getngkmax.
+     Based upon the routine {\tt getngkmax}.
   
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: getoccsv0.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getoccsv0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getpemat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getpemat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getpmat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getpmat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getridx.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getridx.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getscreen.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getscreen.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gettetcw.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: gettetcw.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getunit.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getunit.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: getx0.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: getx0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gndstateq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: gndstateq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: gradzfmtr.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: gradzfmtr.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -840,59 +1052,113 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created April 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: i2str.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: i2str.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idf.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: idf.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idfgather.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: idfgather.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idfq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: idfq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: idxkkp.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: idxkkp.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: init1xs.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: init1xs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: init2xs.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: init2xs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: initbse.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: initbse.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: initoccbse.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: initoccbse.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: initscr.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: initscr.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: invert.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: invert.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: iplocnr.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: iplocnr.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{iplocnr (Source File: iplocnr.F90)}
 
-\markboth{Left}{Source File: kernxc\_bse.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim} integer function iplocnr(ivp,ngridp)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     ivp    : integer coordinates of p-point (in,integer(3))
+     ngridp : p-point set grid sizes (in,integer(3))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Locate {\bf p}-point with index on grid following the convention that the
+     first coordinate runs fastest.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2008 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: kernxc\_bse.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{kernxc\_bse (Source File: kernxc\_bse.F90)}
 
-\markboth{Left}{Source File: kernxc.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim} subroutine kernxc_bse(oct)\end{verbatim}{\em USES:}
+\begin{verbatim}   use modmain
+   use modmpi
+   use modtetra
+   use modxs
+   use modfxcifc
+   use invert
+   use m_xsgauntgen
+   use m_findgntn0
+   use m_writegqpts
+   use m_genwgrid
+   use m_dyson
+   use m_xszoutpr3
+   use m_getpemat
+   use m_getx0
+   use m_getunit
+   use m_genfilname\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     oct   : optical diagonal tensor component (in,integer)\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2008 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: kernxc.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -918,31 +1184,58 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created March 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: kkpmap.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: kkpmap.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: kramkron.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: kramkron.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{kramkron (Source File: kramkron.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim} subroutine kramkron(i1,i2,eps,n,w,im,re)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     i1,i2 : tensor components of dielectric function tensor (in,integer)
+     eps   : zero frequency tolerance
+     n     : number of frequency points (in,integer)
+     w     : frequency grid (in,real(n))
+     im    : imaginary part of dielectric function tensor component (in,real(n))
+     re    : real part of dielectric function tensor component (out,real(n))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Algorithm taken from routine {\tt linopt}.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created November 2007 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: l2int.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: l2int.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: linkfilesq0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: linoptkpq.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: linoptkpq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: linoptold.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: linoptold.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: mapto1bz.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: mapto1bz.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: modfxcifc.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: modfxcifc.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -999,103 +1292,103 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: modifcs.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: modifcs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: modxs.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: modxs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: octmap.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: octmap.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: pade.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: pade.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: pmatrad.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: pmatrad.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: pmattd2orig.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: pmatxs2orig.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putapwcmt.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: putapwcmt.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putbsemat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: putbsemat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putemat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: putemat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putematrad.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: putematrad.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putlocmt.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: putlocmt.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putpmat.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: putpmat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: puttetcw.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: puttetcw.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: putx0.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: putx0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: r2str.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: r2str.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrcoulint.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: scrcoulint.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrcoulint\_old.F90,  Date: Wed Jul  2 14:57:25 CEST 2008
+\markboth{Left}{Source File: scrcoulint\_old.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: screen.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: screen.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrgeneigvec.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: scrgeneigvec.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: scrtetcalccw.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: scrtetcalccw.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: showunits.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: showunits.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: sleepifc.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: sleepifc.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: stringtim.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: stringtim.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: summations.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: summations.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: symg2f.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: symg2f.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1109,8 +1402,7 @@
 \bigskip{\sf INTERFACE:}
 \begin{verbatim} subroutine symg2f(vpl,ngp,igpig,fg)\end{verbatim}{\em USES:}
 \begin{verbatim} use modmain
- use modxs
- \end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+ use modxs\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
 \begin{verbatim}     vpl     :vpl
      ngp     :ngp
      igpig   :igpig
@@ -1145,73 +1437,45 @@
      and $N_{\bf q}$ its number of elements.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created March 2008 (SAG)\end{verbatim}
+\begin{verbatim}     Created March 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: symsci0.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: symsci0.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdchkstop.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: terminate.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdgauntgen.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: testmain.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdlinopt.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: testxs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdsave0.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: tetcalccw.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdzoutpr2.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: tetcalccwq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdzoutpr3.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: tetgather.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: tdzoutpr.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: tqgamma.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: terminate.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: updateq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: testmain.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
-}
-
-
-\markboth{Left}{Source File: testxs.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
-}
-
-
-\markboth{Left}{Source File: tetcalccw.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
-}
-
-
-\markboth{Left}{Source File: tetcalccwq.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
-}
-
-
-\markboth{Left}{Source File: tetgather.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
-}
-
-
-\markboth{Left}{Source File: tqgamma.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
-}
-
-
-\markboth{Left}{Source File: updateq.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
-}
-
-
-\markboth{Left}{Source File: wavefmt\_apw.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: wavefmt\_apw.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1238,13 +1502,13 @@
 {\sf DESCRIPTION:\\ }
 
 
+     Muffin-tin wavefunction built up by APW contribution only.
+     Based upon the routine {\tt wavefmt}.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created April 2003 (JKD)
-     Fixed description, October 2004 (C. Brouder)
-     Removed argument ist, November 2006 (JKD)\end{verbatim}
+\begin{verbatim}     Created May 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: wavefmt\_lo.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: wavefmt\_lo.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1271,13 +1535,13 @@
 {\sf DESCRIPTION:\\ }
 
 
+     Muffin-tin wavefunction built up by local orbital contribution only.
+     Based upon the routine {\tt wavefmt}.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created April 2003 (JKD)
-     Fixed description, October 2004 (C. Brouder)
-     Removed argument ist, November 2006 (JKD)\end{verbatim}
+\begin{verbatim}     Created May 2008 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writeangmom.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeangmom.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1301,31 +1565,31 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writeemat\_ascii.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeemat\_ascii.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeemat.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeemat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeeps.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeeps.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeevec.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeevec.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeexcbse.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeexcbse.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeexciton.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeexciton.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writegqpts.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writegqpts.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1346,24 +1610,24 @@
 
      Writes the ${\bf G+q}$-points in lattice coordinates, Cartesian 
      coordinates, and lengths of ${\bf G+q}$-vectors to the file 
-     {\tt QPOINTS.OUT}. Based on the routine {\tt writekpts.f90}.
+     {\tt GQPOINTS.OUT}.
   
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writekmapkq.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writekmapkq.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writeloss.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeloss.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writepmat\_ascii.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writepmat\_ascii.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writepmatxs.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writepmatxs.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1391,7 +1655,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writepwmat.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writepwmat.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1418,7 +1682,7 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created November 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writeqpts.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writeqpts.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1445,15 +1709,15 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created October 2006 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writesigma.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writesigma.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writesumrls.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writesumrls.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: writesymi.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writesymi.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
  
@@ -1477,43 +1741,194 @@
 \bigskip{\sf REVISION HISTORY:}
 \begin{verbatim}     Created December 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: writevars.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: writevars.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: x0toasc.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: x0toasc.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: x0tobin.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: x0tobin.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xscheck.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: xcd\_pwca.F90,  Date: Fri Jul 18 16:06:39 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{xcd\_pwca (Source File: xcd\_pwca.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim} subroutine xcd_pwca(n,rho,dvx,dvc)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     n     : number of density points (in,integer)
+     rho   : charge density (in,real(n))
+     dvx   : exchange potential derivative (out,real(n))
+     dvc   : correlation potential derivative (out,real(n))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Spin-unpolarised exchange-correlation potential derivative of the 
+     Perdew-Wang
+     parameterisation of the Ceperley-Alder electron gas,
+     Phys. Rev. B 45, 13244
+     (1992) and Phys. Rev. Lett. 45, 566 (1980).
+     Based upon the routine {\tt xc\_pwca}.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created February 2007 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: xscheck.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsestimate.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: xschkstop.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsfinit.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: xsestimate.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsgeneigvec.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: xsfinit.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
 
-\markboth{Left}{Source File: xsinit.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: xsgauntgen.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
 
-\markboth{Left}{Source File: zaxpyc.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: xsgeneigvec.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
 
-\markboth{Left}{Source File: zfinp2.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: xsinit.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+
+\markboth{Left}{Source File: xslinopt.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+
+\markboth{Left}{Source File: xssave0.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{xssave0 (Source File: xssave0.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim} subroutine xssave0\end{verbatim}{\em USES:}
+\begin{verbatim}   use modmain
+   use modxs\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     This routine is be called after init0, init1 and init2xs in order to save
+     variables realted to the k-point set for q=0.
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2005 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: xssetversion.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+
+\markboth{Left}{Source File: xszoutpr2.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{xszoutpr2 (Source File: xszoutpr2.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine xszoutpr2(n1,n2,alpha,x,y,a)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     n1,n2 : size of vectors and matrix, respectively (in,integer)
+     alpha : complex constant (in,complex)
+     x     : first input vector (in,complex(n1))
+     y     : second input vector (in,complex(n2))
+     a     : output matrix (out,complex(n1,n2))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Performs the rank-2 operation
+     $$ A_{ij}\rightarrow\alpha{\bf x}_i{\bf y}_j^*+A_{ij}. $$
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2008 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: xszoutpr3.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{xszoutpr3 (Source File: xszoutpr3.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine xszoutpr3(n1,n2,alpha,x,y,a)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     n1,n2 : size of vectors and matrix, respectively (in,integer)
+     alpha : complex constant (in,complex)
+     x     : first input vector (in,complex(n1))
+     y     : second input vector (in,complex(n2))
+     a     : output matrix (out,complex(n1,n2))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Performs the rank-2 operation
+     $$ A_{ij}\rightarrow\alpha{\bf x}_i{\bf y}_j+A_{ij}. $$
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2008 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: xszoutpr.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+ 
+%/////////////////////////////////////////////////////////////
+ 
+\mbox{}\hrulefill\ 
+ 
+\subsection{xszoutpr (Source File: xszoutpr.F90)}
+
+
+\bigskip{\sf INTERFACE:}
+\begin{verbatim}   subroutine xszoutpr(n1,n2,alpha,x,y,a)\end{verbatim}{\em INPUT/OUTPUT PARAMETERS:}
+\begin{verbatim}     n1,n2 : size of vectors and matrix, respectively (in,integer)
+     alpha : complex constant (in,complex)
+     x     : first input vector (in,complex(n1))
+     y     : second input vector (in,complex(n2))
+     a     : output matrix (out,complex(n1,n2))\end{verbatim}
+{\sf DESCRIPTION:\\ }
+
+
+     Performs the rank-2 operation
+     $$ A_{ij}\rightarrow\alpha{\bf x}_i^*{\bf y}_j+A_{ij}. $$
+  
+\bigskip{\sf REVISION HISTORY:}
+\begin{verbatim}     Created March 2008 (Sagmeister)\end{verbatim}
+
+\markboth{Left}{Source File: zaxpyc.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
+}
+
+
+\markboth{Left}{Source File: zfinp2.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
  
@@ -1543,13 +1958,13 @@
      and have angular momentum cut-off {\tt lmaxvr}. In the intersitial region,
      the integrand is multiplied with the smooth characteristic function,
      $\tilde{\Theta}({\bf r})$, to remove the contribution from the muffin-tin.
-     See routines {\tt zfmtinp} and {\tt gencfun}.
+     See routines {\tt zfmtinp} and {\tt gencfun}. Based upon the routine
+     {\tt zfinp}.
   
 \bigskip{\sf REVISION HISTORY:}
-\begin{verbatim}     Created July 2004 (Sharma)
-     Modifications Jannuary 2007 (Sagmeister)\end{verbatim}
+\begin{verbatim}     Created January 2007 (Sagmeister)\end{verbatim}
 
-\markboth{Left}{Source File: zoutpr.F90,  Date: Wed Jul  2 14:57:26 CEST 2008
+\markboth{Left}{Source File: zoutpr.F90,  Date: Fri Jul 18 16:06:40 CEST 2008
 }
 
  

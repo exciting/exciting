@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -19,7 +19,6 @@ contains
     character(*), intent(in) :: fn
     ! local variables
     character(*), parameter :: thisnam = 'writesumrls'
-
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
     ! zeroth frequency moment sumrule
@@ -35,7 +34,6 @@ contains
     call writevars(unit1,iq)
     ! close file
     close(unit1)
-
   end subroutine writesumrls
 
 end module m_writesumrls

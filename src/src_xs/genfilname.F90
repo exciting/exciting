@@ -1,5 +1,5 @@
 
-! Copyright (C) 2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -7,16 +7,25 @@ module m_genfilname
   implicit none
 contains
 
+!BOP
+! !ROUTINE: genfilname
+! !INTERFACE:
   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
        nar,nlf,fxctype,scrtype,bsetype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
        setfilext,revertfilext,appfilext,filnam,fileext)
+! !USES:
     use modmain, only: filext
     use modxs, only: filextrevert
-    ! Generates file name and extension according to optional input parameters.
-    ! Interpret bzsampl variable as default (Lorentzian) for 0, as
-    ! tetrahedron method for 1. Trilinear method to be followed.
-    !
-    ! October 2007
+! !DESCRIPTION:
+!   Generates file name and extension according to optional input parameters (
+!   see routine).
+!   Interpret bzsampl variable as default (Lorentzian) for 0, as
+!   tetrahedron method for 1. Trilinear method to be followed.
+!
+! !REVISION HISTORY:
+!   Created October 2007 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! arguments
     integer, optional, intent(in) :: bzsampl,fxctype,oc1,oc2,iq,iqmt,procs,rank
@@ -172,5 +181,6 @@ contains
     end if
     if (present(filnam)) filnam=trim(s)
   end subroutine genfilname
+!EOC
 
 end module m_genfilname

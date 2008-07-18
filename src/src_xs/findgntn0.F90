@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -23,7 +23,7 @@ module m_findgntn0
 
 contains
 
-  subroutine findgntn0 ( lmax1, lmax2, lmax3, gntc )
+  subroutine findgntn0( lmax1, lmax2, lmax3, gntc )
 
     implicit none
 

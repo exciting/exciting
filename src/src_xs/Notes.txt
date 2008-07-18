@@ -82,9 +82,9 @@ FINISHED
 	* modify these routines for accessing subsets of bands
 		getapwcmt.F90	IMPLEMENTED   FINISHED
 		getlocmt.F90	IMPLEMENTED   FINISHED
-		getemat.F90	??
-		getpemat.F90	??
-		getpmat.F90	??
+		getemat.F90	IMPLEMENTED
+		getpemat.F90	IMPLEMENTED
+		getpmat.F90	IMPLEMENTED
 		gettetcw.F90	IMPLEMENTED
 
 
@@ -93,3 +93,15 @@ FINISHED
 
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+>> Jul 18 2008
+--------------------------------------------------------------------------------
+
+	* use "writeangmom" routine somwhere!
+	* what about "updateq": is it used somewhere?
+
+
+	* finish "getpemat"
+	* Kathrin: send description of interface "tetraqweights"
+
+--------------------------------------------------------------------------------

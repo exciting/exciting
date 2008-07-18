@@ -1,15 +1,23 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: xssave0
+! !INTERFACE:
 subroutine xssave0
-  !
-  ! This routine is be called after init0, init1 and init2xs in order to save
-  ! variables realted to the k-point set for q=0.
-  !
+! !USES:
   use modmain
   use modxs
+! !DESCRIPTION:
+!   This routine is be called after init0, init1 and init2xs in order to save
+!   variables realted to the k-point set for q=0.
+!
+! !REVISION HISTORY:
+!   Created March 2005 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! allocate the k-point arrays
   if (allocated(vkl0)) deallocate(vkl0)
@@ -48,3 +56,4 @@ subroutine xssave0
   nmatmax0 = nmatmax
   nmat0(:,:) = nmat(:,:)
 end subroutine xssave0
+!EOC

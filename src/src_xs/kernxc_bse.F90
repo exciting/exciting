@@ -3,10 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: kernxc_bse
+! !INTERFACE:
 subroutine kernxc_bse(oct)
-  !
-  ! BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-  !
+! !USES:
   use modmain
   use modmpi
   use modtetra
@@ -23,6 +24,15 @@ subroutine kernxc_bse(oct)
   use m_getx0
   use m_getunit
   use m_genfilname
+! !INPUT/OUTPUT PARAMETERS:
+!   oct   : optical diagonal tensor component (in,integer)
+! !DESCRIPTION:
+!   BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
+!
+! !REVISION HISTORY:
+!   Created March 2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   integer, intent(in) :: oct
@@ -568,3 +578,4 @@ write(1108) hdg
   ! deallocate
   !deallocte(..............................)
 end subroutine kernxc_bse
+!EOC

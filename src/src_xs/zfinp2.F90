@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -24,11 +24,11 @@ complex(8) function zfinp2(ngp1,ngp2,igpig,zfmt1,zfmt2,zfir1,zfir2)
 !   and have angular momentum cut-off {\tt lmaxvr}. In the intersitial region,
 !   the integrand is multiplied with the smooth characteristic function,
 !   $\tilde{\Theta}({\bf r})$, to remove the contribution from the muffin-tin.
-!   See routines {\tt zfmtinp} and {\tt gencfun}.
+!   See routines {\tt zfmtinp} and {\tt gencfun}. Based upon the routine
+!   {\tt zfinp}.
 !
 ! !REVISION HISTORY:
-!   Created July 2004 (Sharma)
-!   Modifications Jannuary 2007 (Sagmeister)
+!   Created January 2007 (Sagmeister)
 !EOP
 !BOC
   implicit none
@@ -68,4 +68,3 @@ complex(8) function zfinp2(ngp1,ngp2,igpig,zfmt1,zfmt2,zfir1,zfir2)
   zfinp2=zsum
 end function zfinp2
 !EOC
-

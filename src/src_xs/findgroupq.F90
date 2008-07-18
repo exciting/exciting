@@ -1,15 +1,24 @@
 
-! Copyright (C) 2006-2007 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: findgroupq
+! !INTERFACE:
 subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
      ivscwrapq)
-  ! Find the (little) group of q (which includes finding the small group of q).
-  ! All symmetries, where the rotational part transforms q into an equivalent
-  ! vector are collected for the small group of q. Inclusion of fractional
-  ! translations yields the little group of q.
+! !DESCRIPTION:
+!   Find the (little) group of {\bf q} (which includes finding the small group
+!   of {\bf q}).
+!   All symmetries, where the rotational part transforms {\bf q} into an
+!   equivalent vector are collected for the small group of {\bf q}. Inclusion
+!   of non-primitive translations yields the little group of {\bf q}.
+!
+! !REVISION HISTORY:
+!   Created March 2006 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   real(8), intent(in) :: vql(3)
@@ -70,3 +79,4 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
      call terminate
   end if
 end subroutine findgroupq
+!EOC

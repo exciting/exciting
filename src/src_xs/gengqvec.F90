@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -23,7 +23,7 @@ subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
 !   Generates a set of ${\bf G+p}$-vectors for the input ${\bf p}$-point with
 !   length less than {\tt gkmax}. These are used as the plane waves in the APW
 !   functions. Also computes the spherical coordinates of each vector.
-!   Based on gengpvec.
+!   Based on {\tt gengpvec}.
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (Sagmeister)

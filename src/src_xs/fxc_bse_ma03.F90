@@ -8,10 +8,11 @@ module m_fxc_bse_ma03
 
 contains
 
+!BOP
+! !ROUTINE: fxc_bse_ma03
+! !INTERFACE:
   subroutine fxc_bse_ma03(msiz,sw,iw,fxc)
-    !
-    ! BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-    !
+! !USES:
     use modmain
     use modmpi
     use modxs
@@ -21,6 +22,19 @@ contains
     use m_writegqpts
     use m_genfilname
     use m_getunit
+! !INPUT/OUTPUT PARAMETERS:
+!   msiz  : matrix size of local field effects (in,integer)
+!   sw    : true for inclusion of local field effects (in,logical)
+!   alpha : real constant (in,real)
+!   fxc   : xc-kernel Fourier coefficients (out,complex(:,:))
+! !DESCRIPTION:
+!   BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003).
+!   Interface function.
+!
+! !REVISION HISTORY:
+!   Created March 2008 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! arguments
     integer, intent(in) :: msiz
@@ -59,5 +73,6 @@ contains
     end if
     close(un)
   end subroutine fxc_bse_ma03
+!EOC
 
 end module m_fxc_bse_ma03

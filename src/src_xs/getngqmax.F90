@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -14,7 +14,7 @@ use modxs
 !   Determines the largest number of ${\bf G+q}$-vectors with length less than
 !   {\tt gqmax} over all the ${\bf q}$-points and stores it in the global
 !   variable {\tt ngqmax}. This variable is used for allocating arrays.
-!   Based upon the routine getngkmax.
+!   Based upon the routine {\tt getngkmax}.
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (Sagmeister)

@@ -1,6 +1,5 @@
 
-! Copyright (C) 2002-2006 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -9,7 +8,7 @@ module m_bandgap
 contains
 
 !BOP
-! !ROUTINE: bandgapgrid
+! !ROUTINE: bandgap
 ! !INTERFACE:
   subroutine bandgap(n,e,ef,egf,ego,ikgf,ikgo,istho)
 ! !USES:

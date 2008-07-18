@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -13,14 +13,11 @@ subroutine xsestimate
   real(8) :: d_ev(2), d_apwcmt(2), d_pmat(2), d_emat(2), d_x0(2), d_tetw(2)
   real(8) :: d_tot(2), mb,gb
   integer :: sreal,scmplx,un
-  
   call init0
   call init1
   call init2xs
-
   nst2=nempty+1
   nst1=nstsv-nst2
-
   ! estimate disk space usage
   sreal = 8
   scmplx = 16
@@ -44,11 +41,9 @@ subroutine xsestimate
   ! Kohn-Sham response function
   d_x0(1) = dble(scmplx*nwdf)*dble(ngqmax**2+3*2*ngqmax+3)
   d_x0(2) = d_x0(1)*dble(nqpt)
-
   ! totals
   d_tot(1) = d_ev(1)+d_tetw(1)+d_apwcmt(1)+d_pmat(1)+d_emat(1)+d_x0(1)
   d_tot(2) = d_ev(2)+d_tetw(2)+d_apwcmt(2)+d_pmat(2)+d_emat(2)+d_x0(2)
-
   !write information to file
   call getunit(un)
   open(un,file='TDESTIMATE.OUT',form='formatted',action='write',&
@@ -80,5 +75,4 @@ subroutine xsestimate
   write(un,'(a,2f12.3)') ' total                  :',d_tot(1)/gb,d_tot(2)/gb
   write(un,*)
   close(un)
-
 end subroutine xsestimate

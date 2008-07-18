@@ -7,10 +7,24 @@ module m_xszoutpr
   implicit none
 contains
 
+!BOP
+! !ROUTINE: xszoutpr
+! !INTERFACE:
   subroutine xszoutpr(n1,n2,alpha,x,y,a)
-    !
-    ! perform the operation: A_ij -> A_ij + alpha*conjg(x_i)*y_j
-    !
+! !INPUT/OUTPUT PARAMETERS:
+!   n1,n2 : size of vectors and matrix, respectively (in,integer)
+!   alpha : complex constant (in,complex)
+!   x     : first input vector (in,complex(n1))
+!   y     : second input vector (in,complex(n2))
+!   a     : output matrix (out,complex(n1,n2))
+! !DESCRIPTION:
+!   Performs the rank-2 operation
+!   $$ A_{ij}\rightarrow\alpha{\bf x}_i^*{\bf y}_j+A_{ij}. $$
+!
+! !REVISION HISTORY:
+!   Created March 2008 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! arguments
     integer, intent(in) :: n1,n2
@@ -27,5 +41,6 @@ contains
     end do
     deallocate(h)
   end subroutine xszoutpr
+!EOC
 
 end module m_xszoutpr

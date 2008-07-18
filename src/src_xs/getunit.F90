@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -15,7 +15,9 @@ contains
     character(*), parameter :: thisnam='getunit'
     integer :: u, u_lo, u_hi
     logical :: connected
+    ! lower value for units
     u_lo=100
+    ! upper value for units
     u_hi=5000
     do u=u_lo,u_hi
        inquire(u,opened=connected)

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2006-2007 S. Sagmeister and Claudia Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 

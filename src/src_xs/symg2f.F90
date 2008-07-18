@@ -1,6 +1,5 @@
 
-! Copyright (C) 2007-2008 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -11,7 +10,6 @@ subroutine symg2f(vpl,ngp,igpig,fg)
 ! !USES:
 use modmain
 use modxs
-
 ! !INPUT/OUTPUT PARAMETERS:
 !   vpl     :vpl
 !   ngp     :ngp
@@ -45,7 +43,7 @@ use modxs
 !   and $N_{\bf q}$ its number of elements.
 !
 ! !REVISION HISTORY:
-!   Created March 2008 (SAG)
+!   Created March 2008 (Sagmeister)
 !EOP
 !BOC
   implicit none

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -19,6 +19,8 @@ subroutine ematgntsum(iq,igq)
   integer :: m1, m3, lm1, lm3
   integer :: u1,u2,u3,u4
   integer :: cl1,cm1,cl2,cm2,cl3,cm3
+
+  ! TODO: check consistency with Gaunt non-coefficients treatment
 
   lmax1 = max(lmaxapwwf,lolmax)
   lmax2 = lmaxemat

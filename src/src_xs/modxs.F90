@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -8,20 +8,11 @@ module modxs
   !   Global variables for the {\tt XS} (eXcited States) implementation
   !   in the {\tt EXCITING}-code.
   !
-  !
   ! !REVISION HISTORY: 
   !
-  !  Created June 2006 (SAG)
+  !  Created June 2004 (Sagmeister)
   ! !PUBLIC DATA MEMBERS:
   implicit none
-
-  !---------------!
-  !     NOTES     !
-  !---------------!
-  ! the following units are used for standard output and standard error
-  ! but depend on environment
-  ! -1,5: standard output (stdout)
-  !  0  : standard error (stderr)
 
   !---------------------------------------------------------------!
   !     muffin-tin radial mesh and angular momentum variables     !

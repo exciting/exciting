@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -15,7 +15,6 @@ contains
     integer, intent(in) :: iq,un
     ! local variables
     character(10) :: dat,tim
-
     ! write prologue to file
     call date_and_time(date=dat,time=tim)
     write(un,*)
@@ -81,7 +80,6 @@ contains
     write(un,'(a,9f12.6)') '# symdfq0 (row2)    :',symdfq0(2,:)
     write(un,'(a,9f12.6)') '# symdfq0 (row3)    :',symdfq0(3,:)
     write(un,*)
-
   end subroutine writevars
 
 end module m_writevars
