@@ -75,7 +75,7 @@ subroutine xsgeneigvec
 #ifdef ISO
      ! write files again one by one
      call copyfilesq0
-#elif
+#else
      ! generate symbolic links
      call linkfilesq0
 #endif

@@ -23,7 +23,7 @@ contains
     complex(8), optional, intent(in) :: x34(:,:,:)
     ! local variables
     integer :: un,recl,ikr
-    logical :: lt1,lt2,tarec_
+    logical :: tarec_
 #ifdef MPI
     integer :: iproc,tag1,tag2,status(MPI_STATUS_SIZE)
 #endif

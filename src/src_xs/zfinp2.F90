@@ -39,7 +39,7 @@ complex(8) function zfinp2(ngp1,ngp2,igpig,zfmt1,zfmt2,zfir1,zfir2)
   complex(8), intent(in) :: zfir1(ngp1)
   complex(8), intent(in) :: zfir2(ngp2)
   ! local variables
-  integer is,ia,ias,ir,ig,igp1,igp2,iv(3)
+  integer is,ia,ias,ig,igp1,igp2,iv(3)!!$,ir
   complex(8) zsum
   ! external functions
   complex(8) zfmtinp
