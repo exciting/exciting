@@ -175,7 +175,7 @@ contains
        read(un,rec=ikr) vql_,vkl_,nstsv_,ngq_,l1_,h1_,l2_,h2_,x12t
     end if
     close(un)
-    ! check consistency
+    ! check q-point and k-point
     if ((r3dist(vql_,vql(1,iq)).gt.epslat).or. &
          (r3dist(vkl_,vkl(1,ik)).gt.epslat)) then
        write(unitout,*)

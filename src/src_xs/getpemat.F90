@@ -39,12 +39,20 @@ contains
     end if
     if (tq0) then
        ! Gamma q-point
-       allocate(pm(3,nstsv,nstsv))
+!!$       allocate(pm(3,nstsv,nstsv))
        ! read momentum matrix elements
-       call getpmat(ik,vkl0,1,nstsv,.true.,trim(pfilnam),pm)
-       p12(:,:,:)=pm(:,istlo1:isthi1,istlo2:isthi2)
-       if (present(p34)) p34(:,:,:)=pm(:,istlo3:isthi3,istlo4:isthi4)
-       deallocate(pm)
+!!$       call getpmat(ik,vkl0,1,nstsv,.true.,trim(pfilnam),pm)
+!!$       p12(:,:,:)=pm(:,istlo1:isthi1,istlo2:isthi2)
+!!$       if (present(p34)) p34(:,:,:)=pm(:,istlo3:isthi3,istlo4:isthi4)
+
+       call getpmat(ik,vkl0,istlo1,isthi1,istlo2,isthi2,.true.,trim(pfilnam), &
+            p12)
+       if (present(p34)) call getpmat(ik,vkl0,istlo1,isthi1,istlo2,isthi2, &
+            .true.,trim(pfilnam),p34)
+
+
+
+!!$       deallocate(pm)
        ! consider symmetric gauge wrt. Coulomb potential
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)
@@ -84,13 +92,13 @@ contains
           m12(:,:,:)=xiou(:,:,:)
           if (present(m34)) m34(:,:,:)=xiuo(:,:,:)
        else
+          ! read matrix elemets of plane wave
           if (present(m34)) then
-             ! read matrix elemets of exponential expression
-             call getemat(iq,ik,.true.,nst1,nst2,nst3,nst4,ngq(iq), &
-                  trim(efilnam),m12,m34)
+             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istlo1,isthi1, &
+                  istlo2,isthi2,m12,istlo3,isthi3,istlo4,isthi4,m34)
           else
-             call getemat(iq,ik,.true.,nst1,nst2,nst1,nst2,ngq(iq), &
-                  trim(efilnam),m12)
+             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istlo1,isthi1, &
+                  istlo2,isthi2,m12)
           end if
        end if
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))

@@ -7,14 +7,14 @@ module m_getpmat
   implicit none
 contains
 
-  subroutine getpmat(ik,vklt,isti,istf,tarec,filnam,pm)
+  subroutine getpmat(ik,vklt,i1,f1,i2,f2,tarec,filnam,pm)
     use modmain
     use modxs
     use modmpi
     use m_getunit
     implicit none
     ! arguments
-    integer, intent(in) :: ik,isti,istf
+    integer, intent(in) :: ik,i1,f1,i2,f2
     real(8), intent(in) :: vklt(:,:)
     logical :: tarec
     character(*) :: filnam
@@ -39,22 +39,25 @@ contains
     if (.not.tarec) call getridx(procs,nkpt,ik,ikr)
     err=0
     ! check band range
-    if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
+    if ((i1.lt.1).or.(i1.gt.nstsv).or.(f1.lt.1).or.(f1.gt.nstsv).or. &
+         (i2.lt.1).or.(i2.gt.nstsv).or.(f2.lt.1).or.(f2.gt.nstsv).or. &
+         (i1.ge.f1).or.(i2.ge.f2)) then
        write(unitout,*)
-       write(unitout,'("Error(",a,"): inconsistent limits for bands:")') thisnam
-       write(unitout,'(" band limits   : ",2i6)') isti,istf
-       write(unitout,'(" maximum value : ",i6)') nstsv
+       write(unitout,'("Error(",a,"): inconsistent limits for states:")') &
+            thisnam
+       write(unitout,'(" limits (lo/hi) : ",2(2i6,2x))') i1,f1,i2,f2
+       write(unitout,'(" maximum value  : ",i6)') nstsv
        write(unitout,*)
        call flushifc(unitout)
        err=err+1
     end if
-    if ((size(pm,2).ne.(istf-isti+1)).or.(size(pm,3).ne.(istf-isti+1))) then
+    if ((size(pm,2).ne.(f1-i1+1)).or.(size(pm,3).ne.(f2-i2+1))) then
        write(unitout,*)
        write(unitout,'("Error(",a,"): output array does not match for &
-            &bands:")') thisnam
-       write(unitout,'(" band limits               : ",2i6)') isti,istf
-       write(unitout,'(" requested number of bands : ",i6)') istf-isti+1
-       write(unitout,'(" array sizes               : ",2i6)') size(pm,2), &
+            &states:")') thisnam
+       write(unitout,'(" limits                     : ",2(2i6,2x))') i1,f1,i2,f2
+       write(unitout,'(" requested number of states : ",2i6)') f1-i1+1,f2-i2+1
+       write(unitout,'(" array sizes                : ",2i6)') size(pm,2), &
             size(pm,3)
        write(unitout,*)
        call flushifc(unitout)
@@ -71,14 +74,14 @@ contains
     read(un,rec=1) vkl_,nstsv_
     close(un)
     err=0
-    ! check number of bands
-    if (nstsv.gt.nstsv_) then
+    ! check if all states can be read from file
+    if ((f1.gt.nstsv_).or.(f2.gt.nstsv_)) then
        write(unitout,*)
-       write(unitout,'("Error(",a,"): invalid nstsv for k-point ",I8)') &
-            thisnam,ik
-       write(unitout,'(" current    : ",I8)') nstsv
-       write(unitout,'(" FILE       : ",I8)') nstsv_
-       write(unitout,'(" filename   : ",a )') trim(filnam)
+       write(unitout,'("Error(",a,"): requested states out of range for &
+            &k-point ",I8)') thisnam,ik
+       write(unitout,'(" limits          : ",2(2I6,2x))') i1,f1,i2,f2
+       write(unitout,'(" cutoff from file: ",I8)') nstsv_
+       write(unitout,'(" filename        : ",a )') trim(filnam)
        write(unitout,*)
        call flushifc(unitout)
        err=err+1
@@ -112,7 +115,7 @@ contains
        call terminate
     end if
     ! retrieve data within cutoffs
-    pm(:,:,:)=pmt(:,isti:istf,isti:istf)
+    pm(:,:,:)=pmt(:,i1:f1,i2:f2)
     deallocate(pmt)
   end subroutine getpmat
 
