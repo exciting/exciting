@@ -42,15 +42,14 @@ subroutine writeemat_ascii
      open(un,file=trim(filnam),action='write')
      ! read matrix elements of exponential expression
      call genfilname(basename='EMAT',iqmt=iq,etype=emattype,filnam=fnemat)
-!!$     write(un,'(a)') 'iq,ik,igq,i1,i2,emat,|emat|^2, below'
      ! loop over k-points
      do ik=1,nkpt
         if (emattype.eq.0) then
-           call getemat(iq,ik,.true.,nst1,nst2,nst3,nst4,ngq(iq), &
-                trim(fnemat),x1=xiou)
+           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istlo1,isthi1,istlo2,&
+                isthi2,xiou)
         else
-           call getemat(iq,ik,.true.,nst1,nst2,nst1,nst2,ngq(iq), &
-                trim(fnemat),x1=xiou,x2=xiuo)
+           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istlo1,isthi1,istlo2,&
+                isthi2,xiou,istlo3,isthi3,istlo4,isthi4,xiuo)
         end if
         do igq=1,ngq(iq)
            do i=1,nst1

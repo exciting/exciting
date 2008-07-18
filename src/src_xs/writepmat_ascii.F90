@@ -20,7 +20,7 @@ subroutine writepmat_ascii
   open(un,file='PMAT_XS_ASC.OUT',action='write')
   do ik=1,nkpt
      ! read momentum matrix elements if required
-     call getpmat(ik,vkl,1,nstsv,.true.,'PMAT_XS.OUT',pmat)
+     call getpmat(ik,vkl,1,nstsv,1,nstsv,.true.,'PMAT_XS.OUT',pmat)
      do ist1=1,nstsv
         do ist2=1,nstsv
            do oct=1,3
