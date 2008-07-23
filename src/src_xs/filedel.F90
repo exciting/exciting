@@ -20,7 +20,7 @@ contains
     inquire(file=trim(fnam),exist=existent)
     if (.not.existent) then
        write(*,*) 'Warning('//thisnam//'): attempted to delete &
-            non-existent file:'//trim(fnam)
+            &non-existent file: '//trim(fnam)
        return
     end if
     ! check if file is opened

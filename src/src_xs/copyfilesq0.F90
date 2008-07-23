@@ -19,7 +19,7 @@ subroutine copyfilesq0
   allocate(lolm(nstfv,nlomax,-lolmax:lolmax,natmtot))
   do ik=1,nkpt
      ! read files
-     filext='QMT001.OUT'
+     filext='_QMT001.OUT'
      call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
      call getevecsv(vkl(1,ik),evecsv)     
      call getevalsv(vkl(1,ik),evalsv(1,ik))
@@ -27,7 +27,7 @@ subroutine copyfilesq0
      call getapwcmt(iq,ik,1,nstfv,lmaxapw,apwlm)
      call getlocmt(iq,ik,1,nstfv,lolm)
      ! write files
-     filext='QMT000.OUT'
+     filext='_QMT000.OUT'
      call putevecfv(ik,evecfvt)
      call putevecsv(ik,evecsv)
      call putevalsv(ik,evalsv(1,ik))
@@ -36,10 +36,10 @@ subroutine copyfilesq0
      call putlocmt('LOCMT_QMT000.OUT',ik,vkl(:,ik),vql(:,iq),locmt)
   end do
   ! read files
-  filext='QMT001.OUT'
+  filext='_QMT001.OUT'
   call readfermi
   ! write files
-  filext='QMT000.OUT'
+  filext='_QMT000.OUT'
   call writeeval
   call writefermi
   deallocate(evecfvt,evecsv,apwlm,lolm)

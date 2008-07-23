@@ -38,7 +38,7 @@ contains
        write(*,*)
        call terminate
     end if
-    !TODO: use "tarec"; access subset of bands!!! UNFINISHED
+    !TODO: use "tarec"
     tarec_=tarec
     ikr=ik
     call getunit(un)

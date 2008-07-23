@@ -3,7 +3,17 @@
 ! vertices joined in the band structure.
 
 tasks
-  0
+0
+
+#maxscl
+#1
+
+#scissor
+#0.05
+
+dos
+500 100 0
+0.0  0.4
 
 avec
   5.13 5.13 0.00
@@ -13,8 +23,8 @@ avec
 sppath
   '../../species/'
 
-scrpath
- 'tmp'
+#scrpath
+# 'tmp'
 
 atoms
   1                                 : nspecies
@@ -26,12 +36,12 @@ atoms
 ngridk
   2  2  2
 
-iterativetype
-3 
+#iterativetype
+#3 
 
 
-lowesteval
--0.27
+#lowesteval
+#-0.27
 
 vkloff
   0.25  0.5  0.625

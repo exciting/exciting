@@ -60,6 +60,7 @@ contains
          lerr=lerr.or.(l3.lt.1).or.(l3.gt.nstsv).or.(h3.lt.1).or.(h3.gt.nstsv) &
          .or.(l4.lt.1).or.(l4.gt.nstsv).or.(h4.lt.1).or.(h4.gt.nstsv).or. &
          (l3.ge.h3).or.(l4.ge.h4)
+    err=0
     if (lerr) then
        write(unitout,*)
        write(unitout,'("Error(",a,"): inconsistent requested limits for &
@@ -146,6 +147,7 @@ contains
                l1,h1,l2,h2
           write(unitout,'(" state limits from file (lo,hi): ",2(2i6,2x))') &
                l1_,h1_,l2_,h2_
+          write(unitout,'(" file                          : ",a)') trim(filnam)
        end if
        write(unitout,*)
        call flushifc(unitout)

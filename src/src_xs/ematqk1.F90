@@ -32,7 +32,8 @@ subroutine ematqk1(iq,ik)
         xiuo(:,:,:)=xiou(:,:,:)
      end if
      call ematbdlims(2*emattype-1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-     nst3=nst2; nst4=nst1
+     istlo3=istlo2; isthi3=isthi2; istlo4=istlo1; isthi4=isthi1
+     nst3=nst2; nst4=nst1     
      if (allocated(xiou)) deallocate(xiou)
      allocate(xiou(nst1,nst2,ngq(iq)))
      call ematqk(iq,ik)

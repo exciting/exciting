@@ -65,5 +65,5 @@ subroutine xsfinit
   close(unitout)
 !!$  ! remove tag
 !!$  if (.not.tresume) call filedel(trim(fnresume))
-  call filedel(trim(fnresume))
+!!$  call filedel(trim(fnresume))
 end subroutine xsfinit
