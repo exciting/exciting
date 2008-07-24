@@ -26,7 +26,7 @@ subroutine ematqk1(iq,ik)
           call putemat(iq,ik,.true.,trim(fnemat),istlo1,isthi1,istlo2,isthi2, &
           xiou)
   else
-     ! v-c/c-v or v-v/c-c band combinations
+     ! o-u/u-o or o-o/u-u band combinations
      if (.not.(task.eq.430)) then
         allocate(xiuo(nst1,nst2,ngq(iq)))
         xiuo(:,:,:)=xiou(:,:,:)

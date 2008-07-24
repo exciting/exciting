@@ -35,10 +35,10 @@ subroutine ematgntsum(iq,igq)
   allocate(intrgalo(-lolmax:lolmax,nlomax,lmmax3,apwordmax,natmtot))
   allocate(intrglolo(-lolmax:lolmax,nlomax,-lolmax:lolmax,nlomax,natmtot))
   ! allocate temporary arrays
-  intrgaa(:,:,:,:,:) = 0.d0
-  intrgloa(:,:,:,:,:) = 0.d0
-  intrgalo(:,:,:,:,:) = 0.d0
-  intrglolo(:,:,:,:,:) = 0.d0
+  intrgaa(:,:,:,:,:)=zzero
+  intrgloa(:,:,:,:,:)=zzero
+  intrgalo(:,:,:,:,:)=zzero
+  intrglolo(:,:,:,:,:)=zzero
   if (dbglev.gt.2) then
      ! APW-APW
      call getunit(u1)
@@ -50,19 +50,19 @@ subroutine ematgntsum(iq,igq)
      call getunit(u2)
      open(unit=u2,file='IRADGAUNTalo'//filext,form='formatted', &
           action='write',status='replace')
-     write(u2,'(a)') 'igq,ias,lm1,ilo,lm3,io,   intrgalo'
+     write(u2,'(a)') 'igq,ias,m3,ilo,lm1,io,     intrgalo'
      write(u2,'(a)') '------------------------------------------------------'
      ! lo-APW
      call getunit(u3)
      open(unit=u3,file='IRADGAUNTloa'//filext,form='formatted', &
           action='write',status='replace')
-     write(u3,'(a)') 'igq,ias,lm1,ilo,lm3,io,   intrgloa'
+     write(u3,'(a)') 'igq,ias,m1,ilo,lm3,io,     intrgloa'
      write(u3,'(a)') '------------------------------------------------------'
      ! lo-lo
      call getunit(u4)
      open(unit=u4,file='IRADGAUNTlolo'//filext,form='formatted', &
           action='write', status='replace')
-     write(u4,'(a)') 'igq,ias,lm1,ilo1,lm3,ilo2,   intrglolo'
+     write(u4,'(a)') 'igq,ias,m1,ilo1,m3,ilo2,   intrglolo'
      write(u4,'(a)') '------------------------------------------------------'
   end if
   ! begin loop over species
@@ -92,7 +92,7 @@ subroutine ematgntsum(iq,igq)
                                 lm2=idxlm(l2,m2)
                                 intrgaa(lm1,io1,lm3,io2,ias)= &
                                      intrgaa(lm1,io1,lm3,io2,ias) &
-                                     + conjg(zil(l2))* &
+                                     +conjg(zil(l2))* &
                                      riaa(l1,io1,l3,io2,l2,ias,igq)* &
                                      conjg(ylmgq(lm2,igq,iq))* &
                                      xsgnt(lm1,lm2,lm3)
@@ -130,15 +130,15 @@ subroutine ematgntsum(iq,igq)
                              lm2=idxlm(l2,m2)
                              intrgalo(m3,ilo,lm1,io,ias)= &
                                   intrgalo(m3,ilo,lm1,io,ias) &
-                                  + conjg(zil(l2))*riloa(ilo,l1,io,l2,ias,igq)*&
+                                  +conjg(zil(l2))*riloa(ilo,l1,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
                                   xsgnt(lm1,lm2,lm3)
                           end do
                        end do
                        if (dbglev.gt.2) then
                           write(u2,'(6i5,2g18.10)') &
-                               igq,ias,m1,ilo,lm3,io, &
-                               intrgalo(m1,ilo,lm3,io,ias)
+                               igq,ias,m3,ilo,lm1,io, &
+                               intrgalo(m3,ilo,lm1,io,ias)
                        end if
                     end do
                  end do
@@ -166,7 +166,7 @@ subroutine ematgntsum(iq,igq)
                              lm2=idxlm(l2,m2)
                              intrgloa(m1,ilo,lm3,io,ias)= &
                                   intrgloa(m1,ilo,lm3,io,ias) &
-                                  + conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
+                                  +conjg(zil(l2))*riloa(ilo,l3,io,l2,ias,igq)*&
                                   conjg(ylmgq(lm2,igq,iq))* &
                                   xsgnt(lm1,lm2,lm3)
                           end do
@@ -201,7 +201,7 @@ subroutine ematgntsum(iq,igq)
                           lm2=idxlm(l2,m2)
                           intrglolo(m1,ilo1,m3,ilo2,ias)= &
                                intrglolo(m1,ilo1,m3,ilo2,ias) &
-                               + conjg(zil(l2))*rilolo(ilo1,ilo2,l2,ias,igq)* &
+                               +conjg(zil(l2))*rilolo(ilo1,ilo2,l2,ias,igq)* &
                                conjg(ylmgq(lm2,igq,iq))* &
                                xsgnt(lm1,lm2,lm3)
                        end do
