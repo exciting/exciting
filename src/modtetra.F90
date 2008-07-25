@@ -4,8 +4,8 @@
 ! See the file COPYING for license details.
 
 module modtetra
-  ! variable names taken from the GW implementation into the EXCITING code
-  ! version 0.9.52 done by R. Gomez-Abal
+  ! Variable names taken from the GW implementation into the EXCITING code
+  ! version 0.9.52 by R. Gomez-Abal.
   implicit none
 
   !--------------------------------------!
@@ -40,38 +40,64 @@ module modtetra
 
 contains
 
+!BOP
+! !ROUTINE: rtorat
+! !INTERFACE:
+  subroutine rtorat(eps,n,x,k,div)
+! !DESCRIPTION: 
+!   This subroutine factorizes the real coordinates of a vector {\bf x}.
+!   The output is an integer vector {\bf k}, such that $k(i)/{\rm div}=x(i)$
+!   and
+!   $$ |x(i)-k(i)/{\rm div}| < {\rm eps} $$.
+!
+! !REVISION HISTORY:
+!   Created July 2008 by Sagmeister
+!EOP
+!BOC
+    implicit none
+    ! arguments
+    real(8), intent(in) :: eps
+    integer(4), intent(in) :: n
+    real(8), intent(in) :: x(n)
+    integer(4), intent(out) :: div
+    integer(4), intent(out) :: k(n)
+    ! local variables
+    integer :: maxint
+    real(8) :: dx
+    maxint=nint(1.d0/eps)
+    do div=1,maxint
+       k(:)=nint(dble(div)*x(:))
+       dx=maxval(abs(dble(k)/dble(div)-x))
+       if (dx.lt.eps) exit
+    end do
+    if (dx.ge.eps) then
+       write(*,*)
+       write(*,'("Error(modtetra:rtorat): factorization failed")')
+       write(*,'(" maximum integer :",i12)') maxint
+       write(*,'(" tolerance       :",g18.10)') eps
+       write(*,'(" deviation       :",g18.10)') dx
+       write(*,*)
+       stop
+    end if
+    if (dx.gt.1.d-12) then
+       write(*,*)
+       write(*,'("Warning(modtetra:rtorat): small deviation in factorization")')
+       write(*,'(" maximum deviation :",g18.10)') dx
+       write(*,*)
+    end if
+  end subroutine rtorat
+!EOC
+
   subroutine r3fraction(r,n,d)
     implicit none
     ! arguments
     real(8), intent(in) :: r(3)
     integer, intent(out) :: n(3),d
     ! parameters
-    real(8), parameter :: epst=1.d-5
-    ! call to libbzint-routine
-    call factorize(3,r,n,d)
+    real(8), parameter :: eps=1.d-5,eps2=1.d-3
+    call rtorat(eps,3,r,n,d)
     ! check factorization
-    if (any(abs(dble(n)/dble(d)-r).gt.epst)) then
-       write(*,*)
-       write(*,'("Error(modtetra:r3fraction): factorization failed:")')
-       write(*,'(" vector                   :",3g18.10)') r
-       write(*,'(" vector from factorization:",3g18.10)') dble(n)/dble(d)
-       write(*,*)
-       stop
-    end if
-    if (d.lt.0) then
-       d=-d
-       n=-n
-    end if
-    if (any(n.lt.0.d0)) then
-       write(*,*)
-       write(*,'("Error(modtetra:r3fraction): factorization failed:")')
-       write(*,'(" negative vector components present; vector :",3g18.10)') r
-       write(*,'(" vector from factorization                  :",3g18.10)') &
-            dble(n)/dble(d)
-       write(*,*)
-       stop
-    end if
-    if ((sum(abs(r)).lt.1.d-3).and.(sum(abs(r)).gt.0.d0)) then
+    if ((sum(abs(r)).lt.eps2).and.(sum(abs(r)).gt.0.d0)) then
        write(*,*)
        write(*,'("Warning(modtetra:r3fraction): very small offset:")')
        write(*,'(" kgen and related routines might fail")')

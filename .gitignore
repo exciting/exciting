@@ -38,6 +38,7 @@ Makefile.serial
 output.*
 outerr.*
 testcase*
+*.tex
 *.aux
 *.dvi
 *.log
