@@ -65,7 +65,76 @@ subroutine reduk(nsymt,divsh,weight)
   !<sag>
   if (trim(tetraifc)=='wien2k') then
 
-     ! original code
+!!! *** OLD CODE WITH BUGS ***
+!!$     ! original code
+!!$     do i1=0,div(1)-1
+!!$        kk(1)=divsh*i1+shift(1)
+!!$        onek(1)=i1
+!!$        do i2=0,div(2)-1
+!!$           kk(2)=divsh*i2+shift(2)
+!!$           onek(2)=i2
+!!$           do i3=0,div(3)-1
+!!$              kk(3)=divsh*i3+shift(3)
+!!$              onek(3)=i3
+!!$              kpid=idkp(onek)
+!!$              if(jget(kpav,kpid).eq.0) then
+!!$                 nirkp=nirkp+1
+!!$                 ikpid(kpid)=nirkp
+!!$                 do i=1,48
+!!$                    starr(i)=0
+!!$                 enddo
+!!$                 !              write(24,*)
+!!$                 !              write(24,'(i6,3i4)')divsh,div
+!!$                 !              write(24,'(3i4,"  ",3i4)')onek,kk
+!!$                 do i=1,nsymt
+!!$                    do j=1,3
+!!$                       nkp(j)=mod(iio(j,1,i)*kk(1)+iio(j,2,i)*kk(2)+&
+!!$                            &                 iio(j,3,i)*kk(3),divsh*div(j))
+!!$                       ktp(j)=nkp(j)
+!!$                       nkp(j)=nkp(j)+(1-isign(1,nkp(j)))*divsh*div(j)/2
+!!$                       nkp(j)=(nkp(j)-shift(j))/divsh
+!!$                    enddo
+!!$                    !               write(24,'(i6,3i4,"  ",3i4)')i,ktp,nkp
+!!$                    nkpid=idkp(nkp)
+!!$                    !                write(24,'(4x,2i4)')nirkp,nkpid
+!!$                    call jset(kpav,nkpid,1)
+!!$                    redkp(nkpid)=kpid
+!!$                    starr(i)=nkpid
+!!$                 enddo
+!!$                 members=0
+!!$                 do i=1,nsymt
+!!$                    if(starr(i).ne.0) then
+!!$                       members=members+1
+!!$                       do j=i+1,nsymt
+!!$                          if(starr(i).eq.starr(j)) starr(j)=0
+!!$                       enddo
+!!$                    endif
+!!$                 enddo
+!!$                 weight(nirkp)=members
+!!$              else
+!!$                 ikpid(kpid)=0
+!!$              endif
+!!$              ! find coords of reduced onek
+!!$              call coorskp(redkp(kpid),nkp)
+!!$           enddo
+!!$        enddo
+!!$     enddo
+
+     allocate(done(div(1)*div(2)*div(3)))
+     done(:)=.false.
+
+     ! debug information
+     if (tetradbglv.gt.0) then
+        write(*,*) 'libbzint(reduk): number of symmetries: ',nsymt
+        do i=1,nsymt
+           write(*,*) i
+           write(*,*) iio(1,:,i)
+           write(*,*) iio(2,:,i)
+           write(*,*) iio(3,:,i)
+           write(*,*)
+        end do
+     end if
+
      do i1=0,div(1)-1
         kk(1)=divsh*i1+shift(1)
         onek(1)=i1
@@ -76,29 +145,35 @@ subroutine reduk(nsymt,divsh,weight)
               kk(3)=divsh*i3+shift(3)
               onek(3)=i3
               kpid=idkp(onek)
-              if(jget(kpav,kpid).eq.0) then
+              if (.not.done(kpid)) then
                  nirkp=nirkp+1
                  ikpid(kpid)=nirkp
                  do i=1,48
                     starr(i)=0
                  enddo
-                 !              write(24,*)
-                 !              write(24,'(i6,3i4)')divsh,div
-                 !              write(24,'(3i4,"  ",3i4)')onek,kk
                  do i=1,nsymt
-                    do j=1,3
-                       nkp(j)=mod(iio(j,1,i)*kk(1)+iio(j,2,i)*kk(2)+&
-                            &                 iio(j,3,i)*kk(3),divsh*div(j))
-                       ktp(j)=nkp(j)
-                       nkp(j)=nkp(j)+(1-isign(1,nkp(j)))*divsh*div(j)/2
-                       nkp(j)=(nkp(j)-shift(j))/divsh
-                    enddo
-                    !               write(24,'(i6,3i4,"  ",3i4)')i,ktp,nkp
+                    ! from internal coordinates to lattice coordinates
+                    kpr(:)=dble(kk(:))/dble(divsh*div(:))
+                    ! rotate k-point
+                    kprt(:)=iio(:,1,i)*kpr(1)+iio(:,2,i)*kpr(2)+&
+                         iio(:,3,i)*kpr(3)
+                    ! map to reciprocal unit cell
+                    call mapto01(epslat,kprt)
+                    ! from lattice coordinates to internal coordinates
+                    ! for unshifted mesh
+                    kprt(:)=(kprt(:)*div(:)*divsh-shift(:))/dble(divsh)
+                    ! location of rotated k-point on integer grid
+                    nkp(:)=nint(kprt(:))
+                    ! determine fractional part of rotated k-point
+                    call mapto01(epslat,kprt)
+                    ! if fractional part is present discard k-point
+                    if (any(kprt.gt.epslat)) nkp(:)=-1
                     nkpid=idkp(nkp)
-                    !                write(24,'(4x,2i4)')nirkp,nkpid
-                    call jset(kpav,nkpid,1)
-                    redkp(nkpid)=kpid
-                    starr(i)=nkpid
+                    if (.not.all(nkp.eq.-1)) then
+                       done(nkpid)=.true.
+                       redkp(nkpid)=kpid
+                       starr(i)=nkpid
+                    end if
                  enddo
                  members=0
                  do i=1,nsymt
@@ -119,7 +194,9 @@ subroutine reduk(nsymt,divsh,weight)
         enddo
      enddo
 
-     ! end original code
+     deallocate(done)
+
+
   else if (trim(tetraifc)=='exciting') then
      ! new code
 

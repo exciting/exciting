@@ -23,7 +23,8 @@ subroutine init1
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
-!   Modifications for excited states 2007-2008 (Sagmeister)
+!   Modifications for excited states 2006-2008 (Sagmeister)
+!   Modifications for tetrahedron method 2006-2008 (Gomez-Abal,Sagmeister)
 !EOP
 !BOC
   implicit none
@@ -136,7 +137,7 @@ subroutine init1
         ! report interface parameters
         call tetrareportsettings
         ! generate fraction for k-point offset
-        call r3fraction(vkloff,ikloff,dkloff)
+        call rtorat(1.d-4,3,vkloff,ikloff,dkloff)
         if (allocated(indirkp)) deallocate(indirkp)
         allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
         if (allocated(iwkp)) deallocate(iwkp)
@@ -147,10 +148,13 @@ subroutine init1
         if (allocated(tnodes)) deallocate(tnodes)
         allocate(tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6))
         tnodes(:,:)=0
+        ! check number of symmetries
         if (nsymcrys.gt.48) then
-           write(*,*) 'Error(init1): number of crystal symmetries > 48'
-           write(*,*) ' does not work with k-point generation for'
-           write(*,*) ' linear tetrahedron method'
+           write(*,*)
+           write(*,'("Error(init1): number of crystal symmetries > 48:")')
+           write(*,'(" This does not work with the k-point generation of")')
+           write(*,'(" the linear tetrahedron method.")')
+           write(*,*)
            stop
         end if
         ! get rotational part of crystal symmetries 

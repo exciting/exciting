@@ -52,41 +52,48 @@ subroutine redusym(nsym,symmat,dvof,nsymr)
   !<sag>
   if (tetraifc.eq."wien2k") then
 
-     tmpsym=0
-     isymr=0
-     do isym=1,nsym
-        do i=1,3
-           t1(i)=symmat(i,1,isym)*shift(1)+symmat(i,2,isym)*shift(2)+   &
-                &          symmat(i,3,isym)*shift(3)
-           t2(i)=mod(t1(i),dvof*div(i))
-           toff(i)=t2(i)+(1-isign(1,t2(i)))*dvof*div(i)/2
-        enddo
-        do i=1,3
-           tsdif(i)=mod(abs(toff(i)-shift(i)),dvof)
-           !          write(24,'(3i4,5i6)')symmat(1:3,i,isym),shift(i),    &
-           !     &           t1(i),t2(i),toff(i),tsdif(i)
-        enddo
-        sgroupsh=((toff(1).eq.shift(1)).and.(toff(2).eq.shift(2)).and.  &
-             &       (toff(3).eq.shift(3)))
-        tsdink=((tsdif(1).eq.0).and.(tsdif(2).eq.0).and.(tsdif(3).eq.0))
-        !        write(24,'(i4,2l4)')isym,sgroupsh,tsdink
-        if(tsdink.or.sgroupsh)then
-           isymr=isymr+1
-           tmpsym(1:3,1:3,isymr)=symmat(1:3,1:3,isym)
-        endif
-     enddo
-     nsymr=isymr
-     !<sag>
-     if (tetradbglv > 0) then
-        !</sag>
-        if(nsymr.lt.nsym)write(*,*)'WARNING: The k-point offset ',       &
-             & 'selected reduces the symmetry group of the mesh, resulting in '&
-             & ,'a larger number of irreducible k-points'
-        !<sag>
-     end if
-     !</sag>
+!!! *** OLD CODE ***
+!!$     tmpsym=0
+!!$     isymr=0
+!!$     do isym=1,nsym
+!!$        do i=1,3
+!!$           t1(i)=symmat(i,1,isym)*shift(1)+symmat(i,2,isym)*shift(2)+   &
+!!$                &          symmat(i,3,isym)*shift(3)
+!!$           t2(i)=mod(t1(i),dvof*div(i))
+!!$           toff(i)=t2(i)+(1-isign(1,t2(i)))*dvof*div(i)/2
+!!$        enddo
+!!$        do i=1,3
+!!$           tsdif(i)=mod(abs(toff(i)-shift(i)),dvof)
+!!$           !          write(24,'(3i4,5i6)')symmat(1:3,i,isym),shift(i),    &
+!!$           !     &           t1(i),t2(i),toff(i),tsdif(i)
+!!$        enddo
+!!$        sgroupsh=((toff(1).eq.shift(1)).and.(toff(2).eq.shift(2)).and.  &
+!!$             &       (toff(3).eq.shift(3)))
+!!$        tsdink=((tsdif(1).eq.0).and.(tsdif(2).eq.0).and.(tsdif(3).eq.0))
+!!$        !        write(24,'(i4,2l4)')isym,sgroupsh,tsdink
+!!$        if(tsdink.or.sgroupsh)then
+!!$           isymr=isymr+1
+!!$           tmpsym(1:3,1:3,isymr)=symmat(1:3,1:3,isym)
+!!$        endif
+!!$     enddo
+!!$     nsymr=isymr
+!!$     !<sag>
+!!$     if (tetradbglv > 0) then
+!!$        !</sag>
+!!$        if(nsymr.lt.nsym)write(*,*)'WARNING: The k-point offset ',       &
+!!$             & 'selected reduces the symmetry group of the mesh, resulting in '&
+!!$             & ,'a larger number of irreducible k-points'
+!!$        !<sag>
+!!$     end if
+!!$     !</sag>
+!!$     allocate(iio(3,3,nsymr))
+!!$     iio(1:3,1:3,1:nsymr)=tmpsym(1:3,1:3,1:nsymr)
+
+     ! return all symmetry operations and let kgen do the considerations
+     ! for the offset of the k-mesh
+     nsymr=nsym
      allocate(iio(3,3,nsymr))
-     iio(1:3,1:3,1:nsymr)=tmpsym(1:3,1:3,1:nsymr)
+     iio(1:3,1:3,1:nsymr)=symmat(1:3,1:3,1:nsymr)
 
   else if (tetraifc.eq."exciting") then
 
