@@ -19,15 +19,17 @@ contains
     ! check if file exists
     inquire(file=trim(fnam),exist=existent)
     if (.not.existent) then
-       write(*,*) 'Warning('//thisnam//'): attempted to delete &
-            &non-existent file: '//trim(fnam)
+       write(*,*) 'Warning('//thisnam//'): attempted to delete non-existent &
+            &file: '//trim(fnam)
        return
     end if
     ! check if file is opened
     inquire(file=trim(fnam),opened=opened,number=un)
+    ! close file if opened
     if (opened) then
        close(un)
     end if
+    ! open file for writing
     call getunit(un)
     open(un,file=trim(fnam),action='write')
     ! delete file

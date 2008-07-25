@@ -22,7 +22,6 @@ contains
     ! local variables
     character(*), parameter :: thisnam='getpemat'
     real(8), parameter :: eps=1.d-8
-    complex(8), allocatable :: pm(:,:,:)
     real(8) :: fourpisqt
     integer :: n,igq,j,i1,i2
     logical :: tq0
@@ -37,22 +36,13 @@ contains
        write(*,*)
        call terminate
     end if
+    ! Gamma q-point
     if (tq0) then
-       ! Gamma q-point
-!!$       allocate(pm(3,nstsv,nstsv))
        ! read momentum matrix elements
-!!$       call getpmat(ik,vkl0,1,nstsv,.true.,trim(pfilnam),pm)
-!!$       p12(:,:,:)=pm(:,istlo1:isthi1,istlo2:isthi2)
-!!$       if (present(p34)) p34(:,:,:)=pm(:,istlo3:isthi3,istlo4:isthi4)
-
        call getpmat(ik,vkl0,istlo1,isthi1,istlo2,isthi2,.true.,trim(pfilnam), &
             p12)
-       if (present(p34)) call getpmat(ik,vkl0,istlo1,isthi1,istlo2,isthi2, &
+       if (present(p34)) call getpmat(ik,vkl0,istlo3,isthi3,istlo4,isthi4, &
             .true.,trim(pfilnam),p34)
-
-
-
-!!$       deallocate(pm)
        ! consider symmetric gauge wrt. Coulomb potential
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)

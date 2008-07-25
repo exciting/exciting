@@ -12,7 +12,7 @@ subroutine copyfilesq0
   ! local variables
   integer, parameter :: iq=1
   integer :: ik
-  real(8), allocatable :: evecfvt(:,:,:)
+  complex(8), allocatable :: evecfvt(:,:,:)
   complex(8), allocatable :: apwlm(:,:,:,:),lolm(:,:,:,:)
   allocate(evecfvt(nmatmax,nstfv,nspnfv),evecsv(nstsv,nstsv))
   allocate(apwlm(nstfv,apwordmax,lmmaxapw,natmtot))
@@ -32,8 +32,8 @@ subroutine copyfilesq0
      call putevecsv(ik,evecsv)
      call putevalsv(ik,evalsv(1,ik))
      call putoccsv(ik,occsv(1,ik))
-     call putapwcmt('APWCMT_QMT000.OUT',ik,vkl(:,ik),vql(:,iq),apwcmt)
-     call putlocmt('LOCMT_QMT000.OUT',ik,vkl(:,ik),vql(:,iq),locmt)
+     call putapwcmt('APWCMT_QMT000.OUT',ik,vkl(:,ik),vql(:,iq),apwlm)
+     call putlocmt('LOCMT_QMT000.OUT',ik,vkl(:,ik),vql(:,iq),lolm)
   end do
   ! read files
   filext='_QMT001.OUT'
@@ -42,5 +42,8 @@ subroutine copyfilesq0
   filext='_QMT000.OUT'
   call writeeval
   call writefermi
-  deallocate(evecfvt,evecsv,apwlm,lolm)
+  deallocate(evecfvt)
+deallocate(evecsv)
+deallocate(apwlm)
+deallocate(lolm)
 end subroutine copyfilesq0
