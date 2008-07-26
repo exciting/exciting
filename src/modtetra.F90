@@ -8,6 +8,14 @@ module modtetra
   ! version 0.9.52 by R. Gomez-Abal.
   implicit none
 
+  !----------------------------!
+  !     ordering variables     !
+  !----------------------------!
+  ! map from library k-point index to application k-point index
+  integer, allocatable :: iktet2ik(:)
+  ! reverse map
+  integer, allocatable :: ik2iktet(:)
+
   !--------------------------------------!
   !     tetrahedron method variables     !
   !--------------------------------------!
@@ -104,5 +112,44 @@ contains
        write(*,*)
     end if
   end subroutine r3fraction
+
+  subroutine geniktetmap(eps,nppt,ngridp,vploff,vpllib,vpl,ipmap)
+    implicit none
+    ! arguments
+    real(8), intent(in) :: eps
+    integer, intent(in) :: nppt
+    integer, intent(in) :: ngridp(3)
+    real(8), intent(in) :: vploff(3)
+    real(8), intent(in) :: vpl(3,nppt)
+    real(8), intent(in) :: vpllib(3,nppt)
+    integer, intent(in) :: ipmap(0:ngridp(1)-1,0:ngridp(2)-1,0:ngridp(3)-1)
+    ! local variables
+    integer :: ip,ipd,iv(3)
+    if (allocated(iktet2ik)) deallocate(iktet2ik)
+    allocate(iktet2ik(nppt))
+    if (allocated(ik2iktet)) deallocate(ik2iktet)
+    allocate(ik2iktet(nppt))
+    do ip=1,nppt
+       ! grid coordinates of library k-point
+       iv(:)=nint(vpllib(:,ip)*ngridp-vploff(:))
+       ! index in default p-point set
+       ipd=ipmap(iv(1),iv(2),iv(3))
+       ! map from library to default
+       iktet2ik(ip)=ipd
+       ! reverse map
+       ik2iktet(ipd)=ip
+       ! check maps
+!!$       if (sum(abs(vpl(:,ipd)-vpllib(:,ip))).ge.eps) then
+!!$          write(*,*)
+!!$          write(*,'("Error(modtetra:geniktetmap): k-point mapping between")')
+!!$          write(*,'(" set of library and default set failed:")')
+          write(*,'(" library k-point       :",3g18.10)') vpllib(:,ip)
+          write(*,'(" mapped default k-point:",3g18.10)') vpl(:,ipd)
+          write(*,'(" map from library to default:",2i8)') ip,ipd
+          write(*,*)
+!!$          stop
+!!$       end if
+    end do
+  end subroutine geniktetmap
 
 end module modtetra

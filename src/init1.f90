@@ -125,7 +125,7 @@ subroutine init1
 #ifdef TETRA
      if (tetra) then
         ! switch to exciting interface
-        call tetrasetifc('exciting')
+!!!        call tetrasetifc('exciting')
         ! suppress debug output in tetrahedron integration library (0)
         call tetrasetdbglv(0)
         ! safer pointer handling in tetrahedron integration library (1)
@@ -222,28 +222,31 @@ subroutine init1
                 nkpt,nkptt
            nerr=nerr+1
         else
-           do ik=1,nkpt
-              if (any(abs(vklt(:,ik)-vkl(:,ik)).gt.epslat*10)) then
-                 write(*,*) 'Error(init1): k-point set inconsistency for &
-                      &tetrahedron method'
-                 write(*,*) ' differring k-point (current/default/diff)',ik
-                 write(*,*) vkl(:,ik)
-                 write(*,*) vklt(:,ik)
-                 write(*,*) vkl(:,ik)-vklt(:,ik)
-                 write(*,*)
-                 nerr=nerr+1
-              end if
-              if (abs(wkptt(ik)-wkpt(ik)).gt.epslat) then
-                 write(*,*) 'Error(init1): k-point set inconsistency for &
-                      &tetrahedron method'
-                 write(*,*) ' differring k-point weight (current/default)',ik
-                 write(*,*) wkpt(ik)
-                 write(*,*) wkptt(ik)
-                 write(*,*) wkpt(ik)-wkptt(ik)
-                 write(*,*)  
-                 nerr=nerr+1
-              end if
-           end do
+           ! call to module routine
+           call geniktetmap(epslat,nkptt,ngridk,vkloff,vkl,vklt,ikmapt)
+
+!!$           do ik=1,nkpt
+!!$              if (any(abs(vklt(:,ik)-vkl(:,ik)).gt.epslat*10)) then
+!!$                 write(*,*) 'Error(init1): k-point set inconsistency for &
+!!$                      &tetrahedron method'
+!!$                 write(*,*) ' differring k-point (current/default/diff)',ik
+!!$                 write(*,*) vkl(:,ik)
+!!$                 write(*,*) vklt(:,ik)
+!!$                 write(*,*) vkl(:,ik)-vklt(:,ik)
+!!$                 write(*,*)
+!!$                 nerr=nerr+1
+!!$              end if
+!!$              if (abs(wkptt(ik)-wkpt(ik)).gt.epslat) then
+!!$                 write(*,*) 'Error(init1): k-point set inconsistency for &
+!!$                      &tetrahedron method'
+!!$                 write(*,*) ' differring k-point weight (current/default)',ik
+!!$                 write(*,*) wkpt(ik)
+!!$                 write(*,*) wkptt(ik)
+!!$                 write(*,*) wkpt(ik)-wkptt(ik)
+!!$                 write(*,*)  
+!!$                 nerr=nerr+1
+!!$              end if
+!!$           end do
         end if
         if (nerr.gt.0) then
            write(*,*) 'Errors occurred - stop', nerr
