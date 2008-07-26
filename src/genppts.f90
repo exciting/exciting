@@ -105,18 +105,12 @@ subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
   end if
   t1=1.d0/dble(ngridp(1)*ngridp(2)*ngridp(3))
   ip=0
-!!$  do i3=0,ngridp(3)-1
-!!$     v1(3)=(dble(i3)+vploff(3))/dble(ngridp(3))
-!!$     do i2=0,ngridp(2)-1
-!!$        v1(2)=(dble(i2)+vploff(2))/dble(ngridp(2))
-!!$        do i1=0,ngridp(1)-1
-!!$           v1(1)=(dble(i1)+vploff(1))/dble(ngridp(1))
-  do i1=0,ngridp(1)-1
-     v1(1)=(dble(i1)+vploff(1))/dble(ngridp(1))
+  do i3=0,ngridp(3)-1
+     v1(3)=(dble(i3)+vploff(3))/dble(ngridp(3))
      do i2=0,ngridp(2)-1
         v1(2)=(dble(i2)+vploff(2))/dble(ngridp(2))
-        do i3=0,ngridp(3)-1
-           v1(3)=(dble(i3)+vploff(3))/dble(ngridp(3))
+        do i1=0,ngridp(1)-1
+           v1(1)=(dble(i1)+vploff(1))/dble(ngridp(1))
            if (reducep) then
               ! determine if this point is equivalent to one already in the set
               do isym=1,nsymcrys
