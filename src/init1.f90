@@ -125,7 +125,7 @@ subroutine init1
 #ifdef TETRA
      if (tetra) then
         ! switch to exciting interface
-        call tetrasetifc('exciting')
+        !!!call tetrasetifc('exciting')
         ! suppress debug output in tetrahedron integration library (0)
         call tetrasetdbglv(0)
         ! safer pointer handling in tetrahedron integration library (1)
@@ -296,7 +296,7 @@ subroutine init1
      call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat, &
           scimap)
      ! generate stars for k-point set
-     call genstark
+!TODO     call genstark
 #endif
   end if ! if ((task.eq.20).or.(task.eq.21))
 

@@ -15,6 +15,9 @@ subroutine findkmapkq(vq,voff,map)
   real(8) :: vkq(3)
   real(8), external :: r3taxi
   do ik=1,nkpt
+
+write(*,*) 'ik,vkl',ik,vkl(:,ik)
+
      vkq(:)=vkl(:,ik)+vq(:)
      call r3frac(epslat,vkq,ivt)
      iv(:)=nint(vkq(:)*ngridk(:)-voff(:))
