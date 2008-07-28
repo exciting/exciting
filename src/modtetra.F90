@@ -139,17 +139,143 @@ contains
        ! reverse map
        ik2iktet(ipd)=ip
        ! check maps
-!!$       if (sum(abs(vpl(:,ipd)-vpllib(:,ip))).ge.eps) then
-!!$          write(*,*)
-!!$          write(*,'("Error(modtetra:geniktetmap): k-point mapping between")')
-!!$          write(*,'(" set of library and default set failed:")')
+       if (sum(abs(vpl(:,ipd)-vpllib(:,ip))).ge.eps) then
+          write(*,*)
+          write(*,'("Error(modtetra:geniktetmap): k-point mapping between")')
+          write(*,'(" set of library and default set failed:")')
           write(*,'(" library k-point       :",3g18.10)') vpllib(:,ip)
           write(*,'(" mapped default k-point:",3g18.10)') vpl(:,ipd)
           write(*,'(" map from library to default:",2i8)') ip,ipd
           write(*,*)
-!!$          stop
-!!$       end if
+          stop
+       end if
     end do
   end subroutine geniktetmap
+
+  subroutine genkpts_tet(eps,bvec,maxsymcrys,nsymcrys,lsplsymc,symlat,reducek, &
+       ngridk,vkloff,nkpt,ikmap,vkl,wkpt)
+    implicit none
+    ! arguments
+    real(8), intent(in) :: eps
+    real(8), intent(in) :: bvec(3,3)
+    integer, intent(in) :: maxsymcrys
+    integer, intent(in) :: nsymcrys
+    integer, intent(in) :: lsplsymc(maxsymcrys)
+    integer, intent(in) :: symlat(3,3,48)
+    logical, intent(in) :: reducek
+    integer, intent(in) :: ngridk(3)
+    real(8), intent(in) :: vkloff(3)
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1)
+    real(8), intent(in) :: vkl(3,ngridk(1)*ngridk(2)*ngridk(3))
+    real(8), intent(in) :: wkpt(ngridk(1)*ngridk(2)*ngridk(3))
+    ! local variables
+    integer :: isym,lspl,i1,i2,nsymcryst
+    integer :: ik,ikd,nkptlib
+    real(8) :: wkptlib
+    integer, allocatable :: symc(:,:,:)
+    integer, allocatable :: ivk(:,:)
+    integer, allocatable :: indirkp(:)
+    integer, allocatable :: iwkp(:)
+    real(8), allocatable :: vkllib(:,:)
+    if (.not.tetra) return
+    if (nsymcrys.gt.48) then
+       write(*,*)
+       write(*,'("Error(modtetra:genkpts_tet): number of crystal symmetries > &
+            &48:")')
+       write(*,'(" This does not work with the k-point generation of")')
+       write(*,'(" the linear tetrahedron method.")')
+       write(*,*)
+       stop
+    end if
+    ! switch to exciting interface
+    !call tetrasetifc('exciting')
+    ! suppress debug output in tetrahedron integration library (0)
+    call tetrasetdbglv(0)
+    ! safer pointer handling in tetrahedron integration library (1)
+    call tetrasetpointerhandling(1)
+    ! set resonance type (1...resonant weights)
+    call tetrasetresptype(1)
+    ! set treatment of q-shifted k-mesh
+    call tetrasetkplusq(.true.)
+    ! report interface parameters
+    call tetrareportsettings
+    ! generate fraction for k-point offset
+    call rtorat(1.d-4,3,vkloff,ikloff,dkloff)
+    ! get rotational part of crystal symmetries 
+    allocate(symc(3,3,nsymcrys))
+    do isym=1,nsymcrys
+       lspl=lsplsymc(isym)
+       ! transpose of rotation for use with the library
+       do i1=1,3
+          do i2=1,3
+             symc(i1,i2,isym)=symlat(i2,i1,lspl)
+          end do
+       end do
+    end do    
+    nsymcryst=1
+    if (reducek) nsymcryst=nsymcrys
+    ! allocate local variables
+    allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
+    allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
+    allocate(ivk(3,ngridk(1)*ngridk(2)*ngridk(3)))
+    ! allocate weights
+    if (allocated(wtet)) deallocate(wtet)
+    allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+    wtet(:)=0
+    ! allocate nodes
+    if (allocated(tnodes)) deallocate(tnodes)
+    allocate(tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6))
+    tnodes(:,:)=0
+    ! generate k-point set by using library-routine
+    call kgen(bvec,nsymcryst,symc,ngridk,ikloff,dkloff,nkptlib,ivk,dvk,indirkp,&
+         iwkp,ntet,tnodes,wtet,tvol,mnd)
+    if (nkptlib.ne.nkpt) then
+       write(*,*)
+       write(*,'("Error(modtetra:genkpts_tet): k-point set inconsistency for &
+            &tetrahedron method")')
+       write(*,'(" differring number of k-points (library/default)",2i8)'), &
+            nkptlib,nkpt
+       write(*,*)
+       stop
+    end if
+    ! generate map between the k-point set of the library and the default one
+    call geniktetmap(eps,nkpt,ngridk,vkloff,vkllib,vkl,ikmap)
+    ! check weights of k-points
+    do ik=1,nkpt
+       ikd=iktet2ik(ik)
+       wkptlib=iwkp(ik)/dble(ngridk(1)*ngridk(2)*ngridk(3))
+       if (abs(wkpt(ikd)-wkptlib).gt.eps) then
+          write(*,*)
+          write(*,'("Error(modtetra:genkpts_tet): differring weights:")')
+          write(*,'(" k-point (default)",i8,3g18.10)') ikd,vkl(:,ikd)
+          write(*,'(" weight (default)",g18.10)') wkpt(ikd)
+          write(*,'(" weight (library)",g18.10)') wkptlib
+          write(*,*)
+          stop 
+       end if
+    end do
+    ! write maps
+    call writeiktetmap
+  end subroutine genkpts_tet
+
+  subroutine writeiktetmap
+    implicit none
+    integer :: ik
+    open(771,file='KTETMAP'//trim(filext),form='formatted',action='write', &
+         status='replace')
+    write(un,'(i9,a)') nkpt, ' : nkpt; k-point, iktet2ik below'
+    do ik=1,nkpt
+       write(un,'(2i9)') ik,iktet2ik(ik)
+    end do
+    close(771)
+    open(771,file='KTETIMAP'//trim(filext),form='formatted',action='write', &
+         status='replace')
+    write(un,'(i9,a)') nkpt, ' : nkpt; k-point, ik2iktet below'
+    do ik=1,nkpt
+       write(un,'(2i9)') ik,ik2iktet(ik)
+    end do
+    close(771)
+  end subroutine writeiktetmap
 
 end module modtetra

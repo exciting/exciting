@@ -8,11 +8,11 @@ subroutine testxs
   use modxs
   implicit none
   logical :: tabel
-  integer :: scmut(48,48),i,j
+  integer :: scmut(maxsymcrys,maxsymcrys),i,j
 
   call init0
   call init1
-  call gensymcmut(epslat,maxsymcrys,nsymcrys,symlatc,lsplsymc,vtlsymc,scmut, &
+  call gensymcmut(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scmut, &
      tabel)
 
   do i=1,48
@@ -21,6 +21,7 @@ subroutine testxs
      end do
   end do
 
+  write (*,*) 'abelian ? ',tabel
 
 !!$  integer, parameter :: n=50
 !!$  complex(8) :: m(n,n),m2(n,n),m3(n,n), z

@@ -7,9 +7,6 @@
 ! !ROUTINE: sphcover
 ! !INTERFACE:
 subroutine sphcover(ntp,tp)
-!!$#ifdef XS
-!!$  use modxs
-!!$#endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   ntp : number of required points (in,integer)
 !   tp  : (theta, phi) coordinates (out,real(2,ntp))
@@ -38,14 +35,6 @@ real(8), parameter :: twopi=6.2831853071795864769d0
 real(8) dmxmn,dmn,d,th,ph,v(3),vm(3),r
 ! allocatable arrays
 real(8), allocatable :: va(:,:)
-!!$#ifdef XS
-!!$integer :: ncalled
-!!$data ncalled / 0 /
-!!$if (ncalled.ne.0) then
-!!$   tp(:,:)=sphcov(:,:)
-!!$   return
-!!$end if
-!!$#endif
 if (ntp.le.0) then
   write(*,*)
   write(*,'("Error(sphcover): ntp <= 0 : ",I8)') ntp
@@ -86,13 +75,6 @@ va(:,n)=vm(:)
 ! compute the spherical coordinates of the vector
 call sphcrd(vm,r,tp(1,n))
 if (n.lt.ntp) goto 10
-!!$#ifdef XS
-!!$if (ncalled.eq.0) then
-!!$   allocate(sphcov(2,ntp))
-!!$   sphcov(:,:)=tp(:,:)
-!!$end if
-!!$ncalled=ncalled+1
-!!$#endif
 deallocate(va)
 return
 end subroutine
