@@ -116,8 +116,8 @@ else
   call genppts(.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr,wkptnr)
 #ifdef TETRA
   ! call to module routine
-  call genkpts_tet(epslat,bvec,maxsymcrys,nsymcrys,lsplsymc,symlat,reducek, &
-       ngridk,vkloff,nkpt,ikmap,vkl,wkpt)
+  call genkpts_tet(filext,epslat,bvec,maxsymcrys,nsymcrys,lsplsymc,symlat, &
+       reducek,ngridk,vkloff,nkpt,ikmap,vkl,wkpt)
 #endif
 #ifdef XS
   ! determine inverse symmery elements

@@ -32,7 +32,7 @@ subroutine tetcalccwq(iq)
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
   ! generate link array for tetrahedra
-  call gentetlink(vql(1,iq),tetraqweights)
+  call gentetlinkp(vql(1,iq),tetraqweights)
   ! initial and final w-point
   wi=wpari
   wf=wparf
@@ -74,7 +74,7 @@ subroutine tetcalccwq(iq)
   ! generate complex energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
   wreal(:)=dble(w(wi:wf))
-  ! *** replace zero frequency by very small number *** check if needed
+  ! TODO: replace zero frequency by very small number *** check if needed
   if (wreal(1).lt.epstetra) wreal(1)=epstetra
   call getunit(un)
   inquire(iolength=recl) cwt2,cwat2,cwsurft2

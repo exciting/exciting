@@ -234,7 +234,7 @@ subroutine linopt
 #ifdef XS
         if (tqfmt) then
            ! generate link array for tetrahedra
-           call gentetlink(vql(1,iq))
+           call gentetlinkp(vql(1,iq),1)
         end if
 #endif
         ! prefactor

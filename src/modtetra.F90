@@ -96,6 +96,7 @@ contains
   end subroutine rtorat
 !EOC
 
+
   subroutine r3fraction(r,n,d)
     implicit none
     ! arguments
@@ -112,6 +113,7 @@ contains
        write(*,*)
     end if
   end subroutine r3fraction
+
 
   subroutine geniktetmap(eps,nppt,ngridp,vploff,vpllib,vpl,ipmap)
     implicit none
@@ -152,10 +154,37 @@ contains
     end do
   end subroutine geniktetmap
 
-  subroutine genkpts_tet(eps,bvec,maxsymcrys,nsymcrys,lsplsymc,symlat,reducek, &
-       ngridk,vkloff,nkpt,ikmap,vkl,wkpt)
+
+  subroutine writeiktetmap(filext,nkpt)
     implicit none
     ! arguments
+    character(*), intent(in) :: filext
+    integer, intent(in) :: nkpt
+    ! local variables
+    integer :: ik,un
+    un=771
+    open(un,file='KTETMAP'//trim(filext),form='formatted',action='write', &
+         status='replace')
+    write(un,'(i9,a)') nkpt, ' : nkpt; k-point, iktet2ik below'
+    do ik=1,nkpt
+       write(un,'(2i9)') ik,iktet2ik(ik)
+    end do
+    close(un)
+    open(un,file='KTETIMAP'//trim(filext),form='formatted',action='write', &
+         status='replace')
+    write(un,'(i9,a)') nkpt, ' : nkpt; k-point, ik2iktet below'
+    do ik=1,nkpt
+       write(un,'(2i9)') ik,ik2iktet(ik)
+    end do
+    close(un)
+  end subroutine writeiktetmap
+
+
+  subroutine genkpts_tet(filext,eps,bvec,maxsymcrys,nsymcrys,lsplsymc,symlat, &
+       reducek,ngridk,vkloff,nkpt,ikmap,vkl,wkpt)
+    implicit none
+    ! arguments
+    character(*), intent(in) :: filext
     real(8), intent(in) :: eps
     real(8), intent(in) :: bvec(3,3)
     integer, intent(in) :: maxsymcrys
@@ -189,7 +218,7 @@ contains
        stop
     end if
     ! switch to exciting interface
-    !call tetrasetifc('exciting')
+    call tetrasetifc('exciting')
     ! suppress debug output in tetrahedron integration library (0)
     call tetrasetdbglv(0)
     ! safer pointer handling in tetrahedron integration library (1)
@@ -219,6 +248,7 @@ contains
     allocate(indirkp(ngridk(1)*ngridk(2)*ngridk(3)))
     allocate(iwkp(ngridk(1)*ngridk(2)*ngridk(3)))
     allocate(ivk(3,ngridk(1)*ngridk(2)*ngridk(3)))
+    allocate(vkllib(3,ngridk(1)*ngridk(2)*ngridk(3)))
     ! allocate weights
     if (allocated(wtet)) deallocate(wtet)
     allocate(wtet(1:ngridk(1)*ngridk(2)*ngridk(3)*6))
@@ -239,6 +269,10 @@ contains
        write(*,*)
        stop
     end if
+    ! k-point in lattice coordinates
+    do ik=1,nkpt
+       vkllib(:,ik)=dble(ivk(:,ik))/dble(dvk)
+    end do
     ! generate map between the k-point set of the library and the default one
     call geniktetmap(eps,nkpt,ngridk,vkloff,vkllib,vkl,ikmap)
     ! check weights of k-points
@@ -255,27 +289,119 @@ contains
           stop 
        end if
     end do
+    deallocate(indirkp,iwkp,ivk,vkllib)
     ! write maps
-    call writeiktetmap
+    call writeiktetmap(filext,nkpt)
   end subroutine genkpts_tet
 
-  subroutine writeiktetmap
+
+!BOP
+! !ROUTINE: gentetlink
+! !INTERFACE:
+  subroutine gentetlink(vpl,tqw,eps,bvec,ngridk,vkloff,nkpt,nkptnr,vklnr, &
+       ikmapnr)
+! !DESCRIPTION:
+!   Generates an array connecting the tetrahedra of the $\mathbf{k}$-point with
+!   the ones of the  $\mathbf{k}+\mathbf{q}$-point. Interface routine
+!   referencing the {\tt libbzint} library of Ricardo Gomez-Abal.
+!
+! !REVISION HISTORY:
+!   Created January 2008 (Sagmeister)
+!EOP
+!BOC
     implicit none
-    integer :: ik
-    open(771,file='KTETMAP'//trim(filext),form='formatted',action='write', &
-         status='replace')
-    write(un,'(i9,a)') nkpt, ' : nkpt; k-point, iktet2ik below'
-    do ik=1,nkpt
-       write(un,'(2i9)') ik,iktet2ik(ik)
-    end do
-    close(771)
-    open(771,file='KTETIMAP'//trim(filext),form='formatted',action='write', &
-         status='replace')
-    write(un,'(i9,a)') nkpt, ' : nkpt; k-point, ik2iktet below'
-    do ik=1,nkpt
-       write(un,'(2i9)') ik,ik2iktet(ik)
-    end do
-    close(771)
-  end subroutine writeiktetmap
+    ! arguments
+    real(8), intent(in) :: vpl(3)
+    integer, intent(in) :: tqw
+    real(8), intent(in) :: eps
+    real(8), intent(in) :: bvec(3,3)
+    integer, intent(in) :: ngridk(3)
+    real(8), intent(in) :: vkloff(3)
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nkptnr
+    real(8), intent(in) :: vklnr(3,ngridk(1)*ngridk(2)*ngridk(3))
+    integer, intent(in) :: ikmapnr(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1)
+    ! local variables
+    real(8), parameter :: epscomm=1.d-5
+    real(8) :: vr(3)
+    integer :: j,iv(3),iqnr
+    logical :: tqg
+    integer, allocatable :: ivkt(:,:),ivqt(:,:),tnodest(:,:),wtett(:)
+    real(8), external :: r3taxi
+    tqg=sum(abs(vpl)).lt.eps
+    ! get index to reducible q-point which is commensurate to k-point set
+    vr(:)=vpl(:)*ngridk(:)
+    call r3frac(eps,vr,iv)
+    if (sum(abs(vr/ngridk)).gt.epscomm) then
+       write(*,*)
+       write(*,'("Error(gentetlink): q-point not commensurate with k-point &
+            &set")')
+       write(*,'(" which is required for tetrahedron method")')
+       write(*,'(" commensurability tolerance: ",g18.10)') epscomm
+       write(*,'(" q-point (latt. coords.)   : ",3g18.10)') vpl
+       write(*,'(" deviation                 : ",3g18.10)') vr/ngridk(:)
+       write(*,'(" minimum nonzero coords.   : ",3g18.10)') 1.d0/ngridk(:)
+       write(*,*)
+       call terminate
+    end if
+    iqnr=ikmapnr(iv(1),iv(2),iv(3))
+    ! cross check q-point again
+    vr(:)=vklnr(:,iqnr)-vkloff(:)/ngridk(:)
+    if (abs(r3taxi(vpl,vr)).gt.epscomm) then
+       write(*,*)
+       write(*,'("Error(gentetlink): specified q-point does not match derived &
+            &q-point on grid")')
+       write(*,'(" specified q-point :",3g18.10)') vpl
+       write(*,'(" derived q-point   :",3g18.10)') vr
+       write(*,'(" non-reduced index :",i6)') iqnr
+       write(*,*)
+       call terminate
+    end if
+    write(*,*)
+    write(*,'("Info(gentetlink): q-point on grid")')
+    write(*,'(" q-point           :",3g18.10)') vr
+    write(*,'(" non-reduced index :",i6)') iqnr
+    write(*,*)
+    ! check if k-point set is not reduced for q-point different from Gamma point
+    if ((nkpt.ne.nkptnr).and.(.not.tqg)) then
+       write(*,*)
+       write(*,'("Error(gentetlink): k-point set is reduced by symmetries and &
+            &q-point is not Gamma point")')
+       write(*,*)
+       call terminate
+    end if
+    ! allocate link array
+    if (allocated(link)) deallocate(link)
+    allocate(link(6*nkptnr))
+    ! quick return for Gamma q-point
+    if (tqg) then
+       forall (j=1:6*nkptnr) link(j)=j
+       return
+    end if
+    ! allocate local arrays
+    allocate(ivkt(3,nkptnr),ivqt(3,nkptnr))
+    allocate(wtett(6*nkptnr),tnodest(4,6*nkptnr))
+    ! generate fraction for k-point offset
+    call r3fraction(vkloff,ikloff,dkloff)
+    ! generate link array, nodes and weights
+    call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
+         ntet,tnodest,wtett,link,tvol)
+    if (tqw.ne.0) then
+       ! use weights and nodes from kqgen-routine
+       tnodes(:,:)=tnodest(:,:)
+       wtet(:)=wtett(:)
+    else if (sum(abs(vpl)).gt.eps) then
+       write(*,*)
+       write(*,'("Warning(gentetlink): using WTET and TNODES arrays from KGEN &
+            &routine")')
+       write(*,'(" but arrays from KQGEN_EXCITING are differring for")')
+       write(*,'(" non-Gamma q-point: "3g18.10)') vpl
+       write(*,*)
+    end if
+    ! deallocate local arrays
+    deallocate(ivkt,ivqt)
+    deallocate(wtett,tnodest)
+  end subroutine gentetlink
+!EOC
 
 end module modtetra
