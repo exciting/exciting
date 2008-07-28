@@ -11,7 +11,7 @@ module modtetra
   !----------------------------!
   !     ordering variables     !
   !----------------------------!
-  ! map from library k-point index to application k-point index
+  ! map from library k-point index to default k-point index
   integer, allocatable :: iktet2ik(:)
   ! reverse map
   integer, allocatable :: ik2iktet(:)
@@ -218,7 +218,7 @@ contains
        stop
     end if
     ! switch to exciting interface
-    call tetrasetifc('exciting')
+    !call tetrasetifc('exciting')
     ! suppress debug output in tetrahedron integration library (0)
     call tetrasetdbglv(0)
     ! safer pointer handling in tetrahedron integration library (1)
@@ -403,5 +403,35 @@ contains
     deallocate(wtett,tnodest)
   end subroutine gentetlink
 !EOC
+
+
+  subroutine tetcwifc(nkpt,nst,eval,efermi,w,ifreq,cw)
+    implicit none
+    ! arguments
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: efermi
+    real(8), intent(in) :: w
+    integer, intent(in) :: ifreq       
+    real(8), intent(out) :: cw(nst,nst,nkpt)
+    ! local variables
+    integer :: ik,ikd
+    real(8), allocatable :: evallib(:,:),cwt(:,:)
+    allocate(evallib(nst,nkpt),cwt(nst,nst))
+    ! reorder energies to library order
+    do ik=1,nkpt
+       evallib(:,ik)=eval(:,iktet2ik(ik))
+    end do
+    call tetcw(nkpt,ntet,nst,wtet,evallib,tnodes,link,tvol,efermi,w,ifreq,cw)
+    ! reorder convolution weights to default order
+    do ik=1,nkpt
+       ikd=iktet2ik(ik)
+       cwt(:,:)=cw(:,:,ikd)
+       cw(:,:,ikd)=cw(:,:,ik)
+       cw(:,:,ik)=cwt(:,:)
+    end do
+    deallocate(evallib,cwt)
+  end subroutine tetcwifc
 
 end module modtetra

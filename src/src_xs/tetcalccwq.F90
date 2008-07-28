@@ -87,17 +87,13 @@ subroutine tetcalccwq(iq)
           write(*,'("Info(tetcalccwq): tetrahedron weights for ",I6," of ",&
           &I6," w-points")') iw,nwdfp
      wt=wreal(iw)
-     if (abs(wt).lt.epstetra) wt=epstetra
      ! switch 2 below in tetcw defines bulk integration for real part
      ! resonant contribution
-     call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-          wt,2,cw)
+     call tetcwifc(nkpt,nstsv,eb,efermi,wt,2,cw)
      ! anti-resonant contribution
-     call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-          -wt,2,cwa)
+     call tetcwifc(nkpt,nstsv,eb,efermi,-wt,2,cwa)
      ! switch 4 below in tetcw defines surface integration for imag. part
-     call tetcw(nkpt,ntet,nstsv,wtet,eb,tnodes,link,tvol,efermi, &
-          wt,4,cwsurf)
+     call tetcwifc(nkpt,nstsv,eb,efermi,wt,4,cwsurf)
      do ik=1,nkpt
         irec=(ik-1)*nwdfp+iw
         cwsurft2(:,:)=cwsurf(istlo1:isthi1,istlo2:isthi2,ik)
