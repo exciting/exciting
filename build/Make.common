@@ -6,6 +6,7 @@ bin:make.inc
 	../../utilities/mkmf -t template -f -m Makefile.$(SUFFIX) -p exciting$(SUFFIX) \
 	../../src  \
 	../../src/src_xs \
+	../../src/src_sym \
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_jdqz \
