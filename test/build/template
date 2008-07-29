@@ -1,4 +1,4 @@
-include ../make.inc
+include ../../build/make.inc
 
 FC = $(F90)
 ### default
@@ -6,9 +6,7 @@ FFLAGS = $(F90_OPTS) $(F90CPP_OPTS)
 ### debug
 #FFLAGS = $(F90_OPTS) -check all -traceback
 LD = $(FC)
-LDFLAGS = $(LIB_LPK) $(LIB_FFT) $(LIB_SYS) $(LIB_BZINT)
-AR = ar
-ARFLAGS = -rc
+LDFLAGS =$(LIB_BZINT) $(LIB_LPK) $(LIB_FFT) $(LIB_SYS) 
 
 F77=$(F77) $(OPTIMIZATION_OPTS)
 TMPFILES = *.mod

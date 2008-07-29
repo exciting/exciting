@@ -1,0 +1,25 @@
+BUILDMPI=true
+BUILDSMP=false
+
+F90 =gfortran 
+MPIF90=mpif90
+MPIF90MT=mpif90
+F90_DEBUGOPTS = -g 
+F90_SMP_OPTS=
+F90MT=gfortran 
+F77MT=gfortran 
+OPTIMIZATION_OPTS=-O3
+F90CPP_OPTS=-x f95-cpp-input 
+F90CPP_OPTS_DEBUG=-x f95-cpp-input -DDEBUG
+F90CPP_OPTS_MPI=-x f95-cpp-input -DMPI -DMPIRHO -DMPISEC
+F77 = gfortran
+F77_OPTS=-O3 
+LIB_SYS = 
+LIB_LPK = libarpack.a  -llapack -lblas
+LIB_LPK_SMP =libarpack.a  -llapack -lblas
+LIB_FFT = fftlib.a
+LIB_BZINT=libbzint.a
+AR = ar
+ARFLAGS = -rc
+BUILDMPI=true
+BUILDSMP=false

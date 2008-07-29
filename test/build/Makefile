@@ -1,49 +1,66 @@
-include ../make.inc
+all:test
 
-MAKE=make
-
-bin::../make.inc
+Makefile.test1::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting$(SUFFIX) \
+	../../utilities/mkmf -t template -f -m Makefile.test1 -p testprogram1 \
 	../../src  \
-	../../src/main \
+	../src \
 	../../src/src_xs \
-	../../src/src_sym \
-	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
-	&& make -f Makefile.mkmf exciting$(SUFFIX) \
-	&& cp -f exciting$(SUFFIX) ..
+	../src/testplans/test1.f90
+
+
+Makefile.test2::
+	sh ../../utilities/versionstamp.sh
+	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2 \
+	../../src  \
+	../src \
+	../../src/src_xs \
+	../../src/src_iterative_solver/src_diis \
+	../../src/src_iterative_solver \
+	../src/testplans/test2.f90
+
+
+testprogram::Makefile.test1 Makefile.test2
+	make -f Makefile.test1 testprogram1 
+	make -f Makefile.test2 testprogram2 
+
+	
+test::testprogram
+	cd ../run ; ../build/testprogram1
+	cd ../run ; ../build/testprogram2
+
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
 
-libblas.a: ../make.inc
-	cp -f ../make.inc ../..
+libblas.a: make.inc
+	cp -f make.inc ../..
 	cd ../../src/BLAS && make clean && make
 	cp ../../src/BLAS/libblas.a .
 	cd ../../src/BLAS && make clean
 
-liblapack.a: ../make.inc
-	cp -f ../make.inc ../..
+liblapack.a: make.inc
+	cp -f make.inc ../..
 	cd ../../src/LAPACK && make clean && make
 	cp ../../src/LAPACK/liblapack.a .
 	cd ../../src/LAPACK && make clean
 
-fftlib.a: ../make.inc
-	cp -f ../make.inc ../..
+fftlib.a: make.inc
+	cp -f make.inc ../..
 	cd ../../src/fftlib && make clean && make
 	cp ../../src/fftlib/fftlib.a .
 	cd ../../src/fftlib && make clean
 
-libbzint.a: ../make.inc
-	cp -f ../make.inc ../..
+libbzint.a: make.inc
+	cp -f make.inc ../..
 	cd ../../src/src_libbzint && make clean && make
 	cp ../../src/src_libbzint/libbzint.a .
 	cd ../../src/src_libbzint && make clean
 
 
-libarpack.a: ../make.inc
-	cp -f ../make.inc ../..
+libarpack.a: make.inc
+	cp -f make.inc ../..
 	cd ../../src/ARPACK && $(MAKE) clean && make lib
 	cp ../../src/ARPACK/libarpack.a .
 	cd ../../src/ARPACK && $(MAKE) clean
@@ -58,7 +75,7 @@ cleanlibs:
 
 ### build libbzint, do not clean source tree of library and build exciting
 bzex:
-	cp -f ../make.inc ../..
+	cp -f make.inc ../..
 	cd ../../src/src_libbzint && make
 	cp ../../src/src_libbzint/libbzint.a .
 	rm -f exciting

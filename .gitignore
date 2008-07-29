@@ -1,4 +1,4 @@
-*.f90_*
+version.inc
 *.o
 *.mod
 *.a
@@ -10,6 +10,7 @@ excitingsmp
 exciting_debug
 exciting_gfortran
 exciting_interfaces
+test
 *.dat
 *.OUT
 *.OUT.*
@@ -43,3 +44,4 @@ testcase*
 *.dvi
 *.log
 *.toc
+testsummary.*
