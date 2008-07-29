@@ -15,11 +15,19 @@ subroutine testxs
   call gensymcmut(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scmut, &
      tabel)
 
-  do i=1,48
-     do j=1,48
+  do i=1,nsymcrys
+     do j=1,nsymcrys
         write(*,*) i,j,scmut(i,j)
      end do
   end do
+  do i=1,nsymcrys
+     write(8899,'(48i3.2)') scmut(i,:nsymcrys)
+  end do
+  do i=1,nsymcrys
+     write(8999,'(2i5.2)') i,scmut(i,i)
+  end do
+
+  call findsubgrps(nsymcrys,scmut)
 
   write (*,*) 'abelian ? ',tabel
 
