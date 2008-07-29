@@ -4,6 +4,7 @@
 ! See the file COPYING for license details.
 
 subroutine copyfilesq0
+#ifdef ISO
   use modmain
   use modxs
   use m_getapwcmt
@@ -43,7 +44,19 @@ subroutine copyfilesq0
   call writeeval
   call writefermi
   deallocate(evecfvt)
-deallocate(evecsv)
-deallocate(apwlm)
-deallocate(lolm)
+  deallocate(evecsv)
+  deallocate(apwlm)
+  deallocate(lolm)
+#endif
+#ifndef ISO
+  call system('ln -sf EVECFV_QMT001.OUT  EVECFV_QMT000.OUT')
+  call system('ln -sf EVECSV_QMT001.OUT  EVECSV_QMT000.OUT')
+  call system('ln -sf EVALSV_QMT001.OUT  EVALSV_QMT000.OUT')
+  call system('ln -sf OCCSV_QMT001.OUT   OCCSV_QMT000.OUT')
+  call system('ln -sf APWCMT_QMT001.OUT  APWCMT_QMT000.OUT')
+  call system('ln -sf LOCMT_QMT001.OUT   LOCMT_QMT000.OUT')
+  call system('ln -sf EIGVAL_QMT001.OUT  EIGVAL_QMT000.OUT')
+  call system('ln -sf KPOINTS_QMT001.OUT KPOINTS_QMT000.OUT')
+  call system('ln -sf EFERMI_QMT001.OUT  EFERMI_QMT000.OUT')
+#endif
 end subroutine copyfilesq0
