@@ -2,7 +2,7 @@ include ../../build/make.inc
 
 FC = $(F90)
 ### default
-FFLAGS = $(F90_OPTS) $(F90CPP_OPTS)
+FFLAGS = $(F90_OPTS) $(F90CPP_OPTS) $(IEEE_OPTS)
 ### debug
 #FFLAGS = $(F90_OPTS) -check all -traceback
 LD = $(FC)
