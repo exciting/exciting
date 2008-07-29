@@ -3,15 +3,17 @@
 --------------------------------------------------------------------------------
 >> Apr 3, 2008
 --------------------------------------------------------------------------------
-
+FINISHED
 	+ global variable for BSE-diag minimum/average  bsediag
 	+ subtract bsediag from BSE ham.
 	+ account for bsediag in KS/QP-response functions
 
+DONE
+
 --------------------------------------------------------------------------------
 >> Apr 22, 2008
 --------------------------------------------------------------------------------
-
+FINISHED
 	+ faster momentum-matrix elements:
 	----------------------------------
 	  * pmatrad.F90
@@ -19,7 +21,6 @@
 	  * genpmat2.F90
 	  - writepmat.F90 : switch for choosing either genpmat.F90 or
 	  	genpmat2.F90
-
 
 
 --------------------------------------------------------------------------------
@@ -38,8 +39,69 @@ FINISHED
 	+ write nv/nc to file for SCCLI/EXCLI
 	+ input parameters for SCCLI/EXCLI and BSE (nv/nc)
 	proposal:  nbf,naf as generic names and
-	"nbfci,nafci" (number below/abve Fermi Coulomb interactions)
+	"nbfce,nafce" (number below/abve Fermi Coulomb interactions)
 	and "nbfbse,nafbse"
 
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+>> Jul 2, 2008
+--------------------------------------------------------------------------------
+FINISHED
+	* More flexible interfaces for fetching eigenvalues, -vectors
+	  and occupation numbers
+	  - Allow for specifying a lower number of band indices than
+	    the one that is stored in the file. Cutoff checking
+	  - Modify the routines in main /src directory (YES) or write
+	    an interface/wrapper (YES):
+	    The main routines are:
+	    - getevecfv, -sv
+	    - getevalfv, -sv
+	    - getoccsv
+
+	 * testing (getevecfv) for subset of bands	FINISHED
+	 * testing (getevecsv) for subset of bands	FINISHED
+	 * testing (getevalfv) for subset of bands	FINISHED
+	 * testing (getevalsv) for subset of bands 	FINISHED
+	 * testing (getoccsv)  for subset of bands 	FINISHED
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+>> Jul 4,8 2008
+--------------------------------------------------------------------------------
+
+	* testing SCF with modified routines for getting eigenvalues,
+		-vectors..	    FINISHED
+	(!!) renamed routines *DLM* --> CMT  (e.g. getapwdlm --> getapwcmt)
+		FINISHED     	
+
+	* modify putapwcmt.F90/putlocmt.F90 to also write dimensions
+	  of array to output file	    FINISHED
+
+	* modify these routines for accessing subsets of bands
+		getapwcmt.F90	IMPLEMENTED   FINISHED
+		getlocmt.F90	IMPLEMENTED   FINISHED
+		getemat.F90	IMPLEMENTED
+		getpemat.F90	IMPLEMENTED
+		getpmat.F90	IMPLEMENTED
+		gettetcw.F90	IMPLEMENTED
+
+
+	(!!) renamed LMAXAPWTD --> LMAXAPWWF
+
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+>> Jul 18 2008
+--------------------------------------------------------------------------------
+
+	* use "writeangmom" routine somwhere!
+	* what about "updateq": is it used somewhere?
+
+
+	* finish "getpemat"
+	* Kathrin: send description of interface "tetraqweights"
+
+--------------------------------------------------------------------------------

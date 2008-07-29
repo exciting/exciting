@@ -1,11 +1,26 @@
 
-! Copyright (C) 2002-2007 S. Sagmeister, S. Sharma, J. K. Dewhurst and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: kramkron
+! !INTERFACE:
 subroutine kramkron(i1,i2,eps,n,w,im,re)
-  ! Algorithm taken from routine {\rm linopt.f90}.
+! !INPUT/OUTPUT PARAMETERS:
+!   i1,i2 : tensor components of dielectric function tensor (in,integer)
+!   eps   : zero frequency tolerance
+!   n     : number of frequency points (in,integer)
+!   w     : frequency grid (in,real(n))
+!   im    : imaginary part of dielectric function tensor component (in,real(n))
+!   re    : real part of dielectric function tensor component (out,real(n))
+! !DESCRIPTION:
+!   Algorithm taken from routine {\tt linopt}.
+!
+! !REVISION HISTORY:
+!   Created November 2007 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   integer, intent(in) :: i1,i2

@@ -1,22 +1,42 @@
 all:test
 
-Makefile.test::
+Makefile.test1::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t ../../build/template -f -m Makefile.test -p testprogram \
+	../../utilities/mkmf -t template -f -m Makefile.test1 -p testprogram1 \
 	../../src  \
 	../src \
 	../../src/src_xs \
+	../../src/src_sym \
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
+	../src/testplans/test1.f90
 
-testprogram:Makefile.test
-	make -f Makefile.test testprogram \
 
-test:testprogram
-	cd ../run ; ../build/testprogram
+Makefile.test2::
+	sh ../../utilities/versionstamp.sh
+	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2 \
+	../../src  \
+	../src \
+	../../src/src_xs \
+	../../src/src_sym \
+	../../src/src_fermisurfdx \
+	../../src/src_iterative_solver \
+	../../src/src_iterative_solver/src_diis \
+	../src/testplans/test2.f90
 
-libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a 
+
+testprogram::Makefile.test1 Makefile.test2
+	make -f Makefile.test1 testprogram1 
+	make -f Makefile.test2 testprogram2 
+
+	
+test::testprogram
+	cd ../run ; ../build/testprogram1
+	cd ../run ; ../build/testprogram2
+
+
+libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
 
 libblas.a: make.inc
 	cp -f make.inc ../..

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -24,14 +24,19 @@ contains
     real(8), allocatable :: r1(:),r2(:),fr(:),fr2(:),gr(:),cf(:,:)
     integer :: ig,ifg,is,ia,ias,ir,nr,l,m,lm
 
+!TODO: check this routine
+!*** make routine more general ***
+! pass the following arguments to routine:
+! * p-vector
+! * |G+p| values
+! * structure factors for -(G+q) !!!!! (G+p) is calculated in routine
+! * spherical harmonics Y_lm(^G+q^)
+
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
 integer :: ig1,ig2,iv(3),iv1(3)
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
 
-
-
     ftg(:)=zzero
-    
     
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
 if (.false.) then
@@ -46,8 +51,6 @@ if (.false.) then
   end do
 end if
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq    
-
-  
   
     ! interstitial part
     if (tir) then
@@ -120,19 +123,3 @@ end if
   end subroutine ftfun
 
 end module m_ftfun
-
-
-!*** make routine more general ***
-
-! pass the following arguments to routine:
-
-! * p-vector
-! * |G+p| values
-! * structure factors for -(G+q) !!!!! (G+p) is calculated in routine
-! * spherical harmonics Y_lm(^G+q^)
-
-
-
-
-! INTERFACE: genjlgpr(lmax,gpc,jlgpr)
-

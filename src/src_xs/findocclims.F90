@@ -1,5 +1,5 @@
 
-! Copyright (C) 2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -99,16 +99,16 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      write(*,*)
      call terminate
   end if
-  ! *** assign nstval and nstcon ***
-  nstval=max(iocc0,iocc)
-  nstcon=nstsv-nstval
+  ! *** assign nstocc0 and nstunocc0 ***
+  nstocc0=max(iocc0,iocc)
+  nstunocc0=nstsv-nstocc0
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
-     write(*,'(a)') 'Info(findocclims): partially occupied states present'
+     write(unitout,'(a)') 'Info(findocclims): partially occupied states present'
   end if
   if (ksgap) then
-     write(*,'(a)') 'Info(findocclims): system has Kohn-Sham gap'
+     write(unitout,'(a)') 'Info(findocclims): system has Kohn-Sham gap'
   else
-     write(*,'(a)') 'Info(findocclims): no Kohn-Sham gap found'
+     write(unitout,'(a)') 'Info(findocclims): no Kohn-Sham gap found'
   end if
   ! debug output
   if (dbglev.gt.0) then

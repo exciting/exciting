@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -69,67 +69,14 @@ subroutine xsgeneigvec
      end if
      ! end loop over q-points
   end do
-  ! generate symbolic links for Gamma-Q-point files (probably not ISO-Fortran)
-  ! alternatively one could write these files again one by one
   if ((rank.eq.0).and.tqgamma(1).and.(.not.tscreen)) then
-  	 write(unitout,'(a)') 'Info('//thisnam//'): First Q-point is &
-              &Gamma-point'
-     call system('ln -sf EVECFV_QMT001.OUT  EVECFV_QMT000.OUT')
-     call system('ln -sf EVECSV_QMT001.OUT  EVECSV_QMT000.OUT')
-     call system('ln -sf EVALSV_QMT001.OUT  EVALSV_QMT000.OUT')
-     call system('ln -sf OCCSV_QMT001.OUT   OCCSV_QMT000.OUT')
-     call system('ln -sf APWDLM_QMT001.OUT  APWDLM_QMT000.OUT')
-     call system('ln -sf LODLM_QMT001.OUT   LODLM_QMT000.OUT')
-     call system('ln -sf EIGVAL_QMT001.OUT  EIGVAL_QMT000.OUT')
-     call system('ln -sf KPOINTS_QMT001.OUT KPOINTS_QMT000.OUT')
-     call system('ln -sf EFERMI_QMT001.OUT  EFERMI_QMT000.OUT')
+     write(unitout,'(a)') 'Info('//thisnam//'): First Q-point is &
+          &Gamma-point - copying relevant files'
+     ! write files again one by one
+     call copyfilesq0
   end if
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): generation of &
        &eigenvectors finished"
   call genfilname(setfilext=.true.)
 end subroutine xsgeneigvec
-
-subroutine writeevec(vq,voff,filxt)
-  use modmain
-  use modxs
-  use m_gndstateq
-  use m_genapwcmt
-  use m_getunit
-  implicit none
-  ! arguments
-  real(8), intent(in) :: vq(3),voff(3)
-  character(*), intent(in) :: filxt
-  ! local variables
-  integer :: ik,reclapw,recllo
-  ! read from STATE.OUT exclusively
-  isreadstate0=.true.
-  call gndstateq(voff,filxt)
-  if (allocated(evecfv)) deallocate(evecfv)
-  allocate(evecfv(nmatmax,nstfv,nspnfv))
-  if (allocated(apwalm)) deallocate(apwalm)
-  allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
-  allocate(apwdlm(nstsv,apwordmax,lmmaxapw,natmtot))
-  allocate(lodlm(nstsv,nlomax,-lolmax:lolmax,natmtot))
-  call getunit(unit1)
-  inquire(iolength=reclapw) vq,vkl(:,1),apwdlm
-  open(unit1,file='APWDLM'//trim(filxt),action='write',&
-       form='unformatted',status='replace',access='direct',recl=reclapw)
-  call getunit(unit2)
-  inquire(iolength=recllo) vq,vkl(:,1),lodlm
-  open(unit2,file='LODLM'//trim(filxt),action='write',&
-       form='unformatted',status='replace',access='direct',recl=recllo)
-  do ik=1,nkpt
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
-          apwalm)
-     call genapwcmt(lmaxapw,ngk(ik,1),1,nstsv,apwalm,evecfv,apwdlm)
-     write(unit1,rec=ik) vq,vkl(:,ik),apwdlm
-     call genlocmt(ngk(ik,1),1,nstsv,evecfv,lodlm)
-     write(unit2,rec=ik) vq,vkl(:,ik),lodlm
-  end do
-  close(unit1)
-  close(unit2)
-  isreadstate0=.false.
-  deallocate(evecfv,apwalm,apwdlm)
-end subroutine writeevec

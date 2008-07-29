@@ -21,6 +21,10 @@ subroutine getevecfv(vpl,vgpl,evecfv)
   real(8) s(3,3),si(3,3),sc(3,3)
   complex(8) zt1
   ! allocatable arrays
+#ifdef XS
+  ! added feature to access arrays for only a subset of bands
+  complex(8), allocatable :: evecfv_(:,:,:)
+#endif
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: zflm(:,:)
   ! external functions
@@ -33,7 +37,12 @@ subroutine getevecfv(vpl,vgpl,evecfv)
   ! index to spatial rotation in lattice point group
   lspl=lsplsymc(isym)
   ! find the record length
+#ifdef XS
+  inquire(iolength=recl) vkl_,nmatmax_,nstfv_,nspnfv_
+#endif
+#ifndef XS
   inquire(iolength=recl) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
+#endif
   !$OMP CRITICAL
   filetag='EVECFV'
   do i=1,100
@@ -54,7 +63,30 @@ enddo
  else
  koffset =ik
  endif
+#ifdef XS
+  read(70,rec=1) vkl_,nmatmax_,nstfv_,nspnfv_
+  close(70)
+  if (nstfv.gt.nstfv_) then
+     write(*,*)
+     write(*,'("Error(getevecfv): invalid nstfv for k-point ",I8)') ik
+     write(*,'(" current    : ",I8)') nstfv
+     write(*,'(" EVECFV.OUT : ",I8)') nstfv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
+     write(*,*)
+     stop
+  end if
+  allocate(evecfv_(nmatmax_,nstfv_,nspnfv_))
+  inquire(iolength=recl) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv_
+  open(70,file=outfilenamestring(filetag,ik),action='READ', &
+       form='UNFORMATTED',access='DIRECT',recl=recl)
+  read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv_
+  ! retreive subset
+  evecfv(:,:,:)=evecfv_(:,:nstfv,:)
+  deallocate(evecfv_)
+#endif
+#ifndef XS
 read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
+#endif
   close(70)
   !$OMP END CRITICAL
   if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
@@ -62,6 +94,7 @@ read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
   write(*,'("Error(getevecfv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)
   write(*,'(" EVECFV.OUT : ",3G18.10)') vkl_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
@@ -70,22 +103,27 @@ read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
   write(*,'("Error(getevecfv): differing nmatmax for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nmatmax
   write(*,'(" EVECFV.OUT : ",I8)') nmatmax_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
+#ifndef XS
   if (nstfv.ne.nstfv_) then
   write(*,*)
   write(*,'("Error(getevecfv): differing nstfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nstfv
   write(*,'(" EVECFV.OUT : ",I8)') nstfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
+#endif
   if (nspnfv.ne.nspnfv_) then
   write(*,*)
   write(*,'("Error(getevecfv): differing nspnfv for k-point ",I8)') ik
   write(*,'(" current    : ",I8)') nspnfv
   write(*,'(" EVECFV.OUT : ",I8)') nspnfv_
+  write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
   write(*,*)
   stop
   end if
@@ -98,7 +136,7 @@ read(70,rec=koffset) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
   write(*,'(" (first run one self-consistent loop with no k-point reduction)")')
   write(*,*)
   stop
-end if
+  end if
 ! the inverse of the spatial symmetry rotates k into p
 ilspl=isymlat(lspl)
 si(:,:)=symlat(:,:,ilspl)
@@ -107,18 +145,18 @@ si(:,:)=symlat(:,:,ilspl)
 !-----------------------------------------------!
 allocate(evecfvt(nmatmax,nstfv))
 do ist=1,nstfv
-  do igk=1,ngk(ik,1)
-    evecfvt(igk,ist)=evecfv(igk,ist,1)
-  end do
-  end do
-  do igk=1,ngk(ik,1)
-  call r3mtv(si,vgkl(1,igk,ik,1),v)
-  do igp=1,ngk(ik,1)
-    if (r3taxi(v,vgpl(1,igp)).lt.epslat) then
-      evecfv(igp,:,1)=evecfvt(igk,:)
-      goto 10
-    end if
-  end do
+   do igk=1,ngk(ik,1)
+      evecfvt(igk,ist)=evecfv(igk,ist,1)
+   end do
+end do
+do igk=1,ngk(ik,1)
+   call r3mtv(si,vgkl(1,igk,ik,1),v)
+   do igp=1,ngk(ik,1)
+      if (r3taxi(v,vgpl(1,igp)).lt.epslat) then
+         evecfv(igp,:,1)=evecfvt(igk,:)
+         goto 10
+      end if
+   end do
 10 continue
 end do
 deallocate(evecfvt)
@@ -168,3 +206,60 @@ do is=1,nspecies
   return
 end subroutine getevecfv
 
+module m_getevecfvr
+  implicit none
+contains
+  subroutine getevecfvr(isti,istf,vpl,vgpl,evecfv)
+    use modmain
+    implicit none
+    ! arguments
+    integer, intent(in) :: isti,istf
+    real(8), intent(in) :: vpl(3),vgpl(3,ngkmax)
+    complex(8), intent(out) :: evecfv(:,:,:)
+    ! local variables
+    integer :: err
+    complex(8), allocatable :: evecfvt(:,:,:)
+    ! check correct shapes
+    err=0
+    if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
+       write(*,*)
+       write(*,'("Error(getevecfvr): inconsistent limits for bands:")')
+       write(*,'(" band limits  : ",2i6)') isti,istf
+       write(*,'(" maximum value: ",i6)') nstfv
+       write(*,*)
+       err=err+1
+    end if
+    if (size(evecfv,2).ne.(istf-isti+1)) then
+       write(*,*)
+       write(*,'("Error(getevecfvr): output array does not match for bands:")')
+       write(*,'(" band limits              : ",2i6)') isti,istf
+       write(*,'(" requested number of bands: ",i6)') istf-isti+1
+       write(*,'(" array size               : ",i6)') size(evecfv,2)
+       write(*,*)
+       err=err+1
+    end if
+    if (size(evecfv,1).ne.nmatmax) then
+       write(*,*)
+       write(*,'("Error(getevecfvr): output array does not match for &
+            &nmatmax:")')
+       write(*,'(" nmatmax   : ",i6)') nmatmax
+       write(*,'(" array size: ",i6)') size(evecfv,1)
+       write(*,*)
+       err=err+1
+    end if
+    if (size(evecfv,3).ne.nspnfv) then
+       write(*,*)
+       write(*,'("Error(getevecfvr): output array does not match for &
+            &nspnfv:")')
+       write(*,'(" nspnfv    : ",i6)') nspnfv
+       write(*,'(" array size: ",i6)') size(evecfv,3)
+       write(*,*)
+       err=err+1       
+    end if
+    if (err.ne.0) stop
+    allocate(evecfvt(nmatmax,nstfv,nspnfv))   
+    call getevecfv(vpl,vgpl,evecfvt)
+    evecfv(:,:,:)=evecfvt(:,isti:istf,:)
+    deallocate(evecfvt)
+  end subroutine getevecfvr
+end module m_getevecfvr

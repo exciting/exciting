@@ -38,61 +38,34 @@ complex(8), intent(in) :: evecsv(nstsv,nstsv)
 complex(8), intent(out) :: pmat(3,nstsv,nstsv)
 ! local variables
 integer ispn,is,ia,ist,jst
-integer ist1
 integer i,j,k,l,igp,ifg,ir
 complex(8) zsum,zt1,zv(3)
-#ifdef XS
-integer :: igp1,igp2,ig1,ig2,ig,iv1(3),iv(3)
-
-#endif
-real(8) :: cpu0,cpu1
 ! allocatable arrays
 complex(8), allocatable :: wfmt(:,:,:)
 complex(8), allocatable :: gwfmt(:,:,:,:)
 complex(8), allocatable :: wfir(:,:)
 complex(8), allocatable :: gwfir(:,:,:)
 complex(8), allocatable :: pm(:,:,:)
-#ifdef XS
-complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
-complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
-logical, parameter :: pmatira=.false.
-#endif
 ! external functions
 complex(8) zfmtinp
 external zfmtinp
 allocate(wfmt(lmmaxapw,nrcmtmax,nstfv))
 allocate(gwfmt(lmmaxapw,nrcmtmax,3,nstfv))
-#ifdef XS
-if (pmatira) then
-   allocate(cfunt(ngp,ngp))
-   allocate(h(ngp,nstfv))
-   allocate(pmt(nstfv,nstfv))
-   allocate(evecfvt1(nstfv,ngp),evecfvt2(ngp,nstfv))
-else
-#endif
-   allocate(wfir(ngrtot,nstfv))
-   allocate(gwfir(ngrtot,3,nstfv))
-#ifdef XS
-end if
-#endif
+allocate(wfir(ngrtot,nstfv))
+allocate(gwfir(ngrtot,3,nstfv))
 allocate(pm(3,nstfv,nstfv))
 ! set the momentum matrix elements to zero
 pm(:,:,:)=0.d0
 ! calculate momentum matrix elements in the muffin-tin
 do is=1,nspecies
   do ia=1,natoms(is)
-    call cpu_time(cpu0)
     do ist=1,nstfv
 ! calculate the wavefunction
-      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw,&
+      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
        wfmt(1,1,ist))
 ! calculate the gradient
       call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
        wfmt(1,1,ist),gwfmt(1,1,1,ist))
-!!$wfmt(:,:,ist)=zzero
-!!$wfmt(1,:,ist)=1.d0/y00
-!!$gwfmt(:,:,:,ist)=zzero
-!!$gwfmt(1,:,:,ist)=1.d0/y00
     end do
     do ist=1,nstfv
       do jst=ist,nstfv
@@ -103,36 +76,8 @@ do is=1,nspecies
         end do
       end do
     end do
-    call cpu_time(cpu1)
-write(*,'(a,i6,f12.3)') 'genpmat: ias, CPU-time ',idxas(ia,is),cpu1-cpu0
   end do
 end do
-#ifdef XS
-if (pmatira) then
-   ! analytic evaluation
-   forall (ist1=1:nstfv)
-      evecfvt1(ist1,:)=conjg(evecfv(1:ngp,ist1))
-   end forall
-   evecfvt2(:,:)=evecfv(1:ngp,:)
-   do j=1,3
-      do igp1=1,ngp
-         ig1=igpig(igp1)
-         iv1(:)=ivg(:,ig1)
-         do igp2=1,ngp
-            ig2=igpig(igp2)
-            iv(:)=iv1(:)-ivg(:,ig2)
-            ig=ivgig(iv(1),iv(2),iv(3))
-            cfunt(igp1,igp2)=zi*vgpc(j,igp2)*cfunig(ig)
-         end do
-      end do
-      call zgemm('n','n', ngp, nstfv, ngp, zone, cfunt, &
-           ngp, evecfvt2, ngp, zzero, h, ngp)
-      call zgemm('n','n', nstfv, nstfv, ngp, zone, evecfvt1, &
-           nstfv, h, ngp, zzero, pmt, nstfv)
-      pm(j,:,:)=pm(j,:,:)+pmt(:,:)
-   end do
-else ! pmatira
-#endif
 ! calculate momemntum matrix elements in the interstitial region
 wfir(:,:)=0.d0
 gwfir(:,:,:)=0.d0
@@ -152,10 +97,6 @@ do ist=1,nstfv
     call zfftifc(3,ngrid,1,gwfir(1,i,ist))
   end do
 end do
-!!$wfir(:,:)=zone*sqrt(omega)
-!!$do i=1,3
-!!$   gwfir(:,:,:)=zone*sqrt(omega)
-!!$end do
 ! find the overlaps
 do ist=1,nstfv
   do jst=ist,nstfv
@@ -169,9 +110,6 @@ do ist=1,nstfv
     end do
   end do
 end do
-#ifdef XS
-end if ! pmatira
-#endif
 ! multiply by -i and set lower triangular part
 do ist=1,nstfv
   do jst=ist,nstfv
@@ -202,15 +140,8 @@ if (tevecsv) then
 else
   pmat(:,:,:)=pm(:,:,:)
 end if
-#ifdef XS
-if (pmatira) then
-   deallocate(wfmt,gwfmt,pm,cfunt,h,pmt,evecfvt1,evecfvt2)
-else
-#endif
-   deallocate(wfmt,gwfmt,wfir,gwfir,pm)
-#ifdef XS
-end if
-#endif
+deallocate(wfmt,gwfmt,wfir,gwfir,pm)
 return
 end subroutine
 !EOC
+

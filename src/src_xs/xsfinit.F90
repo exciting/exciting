@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -17,7 +17,6 @@ subroutine xsfinit
   integer :: days,hours,minutes,seconds
   character(256) :: str,str2
   character(256), external :: stringtim,r2str
-
   ! finalize global counters
   call date_and_time(date=dat,time=tim)
   call cpu_time(cputim0f)
@@ -58,15 +57,13 @@ subroutine xsfinit
   write(unitout,*)
   write(unitout,'("+----------------------------------------------------------&
        &+")')
-  write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3,&
-  " (eXcited &             &States "I1.1,".",I3.3," ) stopped |")') version,versionxs
+  write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
+       &States ",I1.1,".",I3.3," ) stopped |")') version,versionxs
   write(unitout,'("+----------------------------------------------------------&
        &+")')
   write(unitout,*)
   close(unitout)
-
-  ! remove tag
+!!$  ! remove tag
 !!$  if (.not.tresume) call filedel(trim(fnresume))
-  call filedel(trim(fnresume))
-
+!!$  call filedel(trim(fnresume))
 end subroutine xsfinit

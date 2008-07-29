@@ -1,44 +1,62 @@
 
-! Copyright (C) 2008 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
 !BOP
 ! !ROUTINE: genpmat2
 ! !INTERFACE:
-subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
-  ! !USES:
+subroutine genpmat2(ngp,igpig,vgpc,ripaa,ripalo,riploa,riplolo,apwcmt,locmt, &
+     evecfv,evecsv,pmat)
+! !USES:
   use modmain
-  use modxs
-  use m_tdzoutpr
-  ! !INPUT/OUTPUT PARAMETERS:
-  !   ngp    : number of G+p-vectors (in,integer)
-  !   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
-  !   vgpc   : G+p-vectors in Cartesian coordinates (in,real(3,ngkmax))
-  !   apwalm : APW matching coefficients
-  !            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
-  !   evecfv : first-variational eigenvector (in,complex(nmatmax,nstfv))
-  !   evecsv : second-variational eigenvectors (in,complex(nstsv,nstsv))
-  !   pmat   : momentum matrix elements (out,complex(3,nstsv,nstsv))
-  ! !DESCRIPTION:
-  !   Calculates the momentum matrix elements
-  !   $$ p_{ij}=\langle\Psi_{i,{\bf k}}|-i\nabla|\Psi_{j,{\bf k}}\rangle. $$
-  !   Based upon the routine {\tt genpmat}.
-  !
-  ! !REVISION HISTORY:
-  !   Created April 2008 (Sagmeister)
-  !EOP
-  !BOC
+! !INPUT/OUTPUT PARAMETERS:
+!   ngp    : number of G+p-vectors (in,integer)
+!   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
+!   vgpc   : G+p-vectors in Cartesian coordinates (in,real(3,ngkmax))
+!   ripaa  : gradient of radial functions time spherical harmonics (APW-APW)
+!            (in,complex(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
+!   ripalo : gradient of radial functions time spherical harmonics (APW-lo)
+!            (in,complex(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
+!   riploa : gradient of radial functions time spherical harmonics (lo-APW)
+!            (in,complex(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
+!   riplolo: gradient of radial functions time spherical harmonics (lo-lo)
+!            (in,complex(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
+!   apwcmt : APW expansion coefficients coefficients
+!            (in,complex(nstfv,apwordmax,lmmaxapw,natmtot))
+!   locmt  : local orbitals expansion coefficients coefficients
+!            (in,complex(nstfv,nlomax,-lolmax:lolmax,natmtot))
+!   evecfv : first-variational eigenvector (in,complex(nmatmax,nstfv))
+!   evecsv : second-variational eigenvectors (in,complex(nstsv,nstsv))
+!   pmat   : momentum matrix elements (out,complex(3,nstsv,nstsv))
+! !DESCRIPTION:
+!   Calculates the momentum matrix elements
+!   $$ p_{ij}=\langle\Psi_{i,{\bf k}}|-i\nabla|\Psi_{j,{\bf k}}\rangle. $$
+!   The gradient is applied explicitly only to the radial functions and 
+!   corresponding spherical harmonics for the muffin-tin part. In the 
+!   interstitial region the gradient is evaluated analytically.
+!   Parts taken from the routine {\tt genpmat}.
+!
+! !REVISION HISTORY:
+!   Created April 2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   integer, intent(in) :: ngp
   integer, intent(in) :: igpig(ngkmax)
   real(8), intent(in) :: vgpc(3,ngkmax)
-  complex(8), intent(in) :: apwdlmt(nstfv,apwordmax,lmmaxapw,natmtot)
-  complex(8), intent(in) :: lodlmt(nstfv,nlomax,-lolmax:lolmax,natmtot)
-  complex(8), intent(in) :: evecfvt(nmatmax,nstfv)
-  complex(8), intent(in) :: evecsvt(nstsv,nstsv)
+  real(8), intent(in) :: ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3)
+  real(8), intent(in) :: ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax, &
+       natmtot,3)
+  real(8), intent(in) :: riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw, &
+       natmtot,3)
+  real(8), intent(in) :: riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax, &
+       natmtot,3)
+  complex(8), intent(in) :: apwcmt(nstfv,apwordmax,lmmaxapw,natmtot)
+  complex(8), intent(in) :: locmt(nstfv,nlomax,-lolmax:lolmax,natmtot)
+  complex(8), intent(in) :: evecfv(nmatmax,nstfv)
+  complex(8), intent(in) :: evecsv(nstsv,nstsv)
   complex(8), intent(out) :: pmat(3,nstsv,nstsv)
   ! local variables
   integer :: ispn,is,ia,ias,ist,jst
@@ -51,7 +69,7 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
   complex(8), allocatable :: gwfmt(:,:,:,:)
   complex(8), allocatable :: pm(:,:,:)
   complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
-  complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
+  complex(8), allocatable :: evecfv1(:,:), evecfv2(:,:)
   complex(8), allocatable :: zv2(:)
   ! external functions
   complex(8) zfmtinp
@@ -62,70 +80,63 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
   allocate(cfunt(ngp,ngp))
   allocate(h(ngp,nstfv))
   allocate(pmt(nstfv,nstfv))
-  allocate(evecfvt1(nstfv,ngp),evecfvt2(ngp,nstfv))
+  allocate(evecfv1(nstfv,ngp),evecfv2(ngp,nstfv))
   allocate(pm(nstfv,nstfv,3))
   ! set the momentum matrix elements to zero
   pm(:,:,:)=0.d0
-  ! summation wrt. expansioncoeffs (apwdlm/lodlm)
   ! loop over species and atoms
   do is=1,nspecies
      do ia=1,natoms(is)
         ias=idxas(ia,is)
-        call cpu_time(cmt0)
         !---------------------------!
         !     APW-APW contribution  !
         !---------------------------!
-        ! loop over (l',m',p')
         do j=1,3
            do l1=0,lmaxapw
               do m1=-l1,l1
                  lm1=idxlm(l1,m1)
                  do io1=1,apword(l1,is)
                     zv2(:)=zzero
-                    ! loop over (l'',m'',p'')
                     do l3=0,lmaxapw
                        do m3=-l3,l3
                           lm3=idxlm(l3,m3)
                           do io2=1,apword(l3,is)
                              call zaxpy(nstfv, &
                                   zone*ripaa(io1,lm1,io2,lm3,ias,j), &
-                                  apwdlmt(1,io2,lm3,ias),1,zv2,1)
+                                  apwcmt(1,io2,lm3,ias),1,zv2,1)
                           end do
                        end do
-                    end do ! l3
-                    call tdzoutpr(nstfv,nstfv, &
-                         zone,apwdlmt(:,io1,lm1,ias),zv2,pm(:,:,j))
-                    ! end loop over (l',m',p')
-                 end do! io1
-              end do ! m1
-           end do ! l1
+                    end do
+                    call zoutpr(nstfv,nstfv, &
+                         zone,apwcmt(1,io1,lm1,ias),zv2,pm(1,1,j))
+                 end do
+              end do
+           end do
         end do
         if (nlotot.gt.0) then
            !--------------------------------------!
            !     APW-local-orbital contribution   !
            !--------------------------------------!
            do j=1,3
-              ! loop over (l'',m'',p'')
               do l3=0,lmaxapw
                  do m3=-l3,l3
                     lm3=idxlm(l3,m3)
                     do io=1,apword(l3,is)
                        zv2(:)=zzero
-                       ! loop over local orbitals
                        do ilo=1,nlorb(is)
                           l1=lorbl(ilo,is)
                           do m1=-l1,l1
                              lm1=idxlm(l1,m1)
                              call zaxpy(nstfv, &
                                   zone*ripalo(io,lm3,ilo,m1,ias,j), &
-                                  lodlmt(1,ilo,m1,ias),1,zv2,1)
-                          end do ! m1
-                       end do ! ilo
-                       call tdzoutpr(nstfv,nstfv, &
-                            zone,apwdlmt(:,io,lm3,ias),zv2,pm(:,:,j))
-                    end do ! io
-                 end do ! m3
-              end do ! l3
+                                  locmt(1,ilo,m1,ias),1,zv2,1)
+                          end do
+                       end do
+                       call zoutpr(nstfv,nstfv, &
+                            zone,apwcmt(1,io,lm3,ias),zv2,pm(1,1,j))
+                    end do
+                 end do
+              end do
            end do
            !--------------------------------------!
            !     local-orbital-APW contribution   !
@@ -136,23 +147,21 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
                  do m1=-l1,l1
                     lm1=idxlm(l1,m1)
                     zv2(:)=zzero
-                    ! loop over (l'',m'',p'')
                     do l3=0,lmaxapw
                        do m3=-l3,l3
                           lm3=idxlm(l3,m3)
                           do io=1,apword(l3,is)
                              call zaxpy(nstfv, &
                                   zone*riploa(ilo,m1,io,lm3,ias,j), &
-                                  apwdlmt(1,io,lm3,ias),1,zv2,1)
-                          end do ! io
-                       end do ! m3
-                    end do ! l3
-                    call tdzoutpr(nstfv,nstfv, &
-                         zone,lodlmt(:,ilo,m1,ias),zv2,pm(:,:,j))
-                 end do ! m1
-              end do ! ilo
+                                  apwcmt(1,io,lm3,ias),1,zv2,1)
+                          end do
+                       end do
+                    end do
+                    call zoutpr(nstfv,nstfv, &
+                         zone,locmt(1,ilo,m1,ias),zv2,pm(1,1,j))
+                 end do
+              end do
            end do
-           call cpu_time(cmt3)
            !------------------------------------------------!
            !     local-orbital-local-orbital contribution   !
            !------------------------------------------------!
@@ -168,13 +177,13 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
                           lm3=idxlm(l3,m3)
                           call zaxpy(nstfv, &
                                zone*riplolo(ilo1,m1,ilo2,m3,ias,j), &
-                               lodlmt(1,ilo2,m3,ias),1,zv2,1)
-                       end do ! m3
-                    end do ! ilo2
-                    call tdzoutpr(nstfv,nstfv, &
-                         zone,lodlmt(:,ilo1,m1,ias),zv2,pm(:,:,j))
-                 end do ! m1
-              end do ! ilo1
+                               locmt(1,ilo2,m3,ias),1,zv2,1)
+                       end do
+                    end do
+                    call zoutpr(nstfv,nstfv, &
+                         zone,locmt(1,ilo1,m1,ias),zv2,pm(1,1,j))
+                 end do
+              end do
            end do
            ! end case of local orbitals
         end if
@@ -185,9 +194,9 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
   pm(:,:,2)=zi*pm(:,:,2)
   !  calculate momentum matrix elements in the interstitial region
   forall (ist1=1:nstfv)
-     evecfvt1(ist1,:)=conjg(evecfvt(1:ngp,ist1))
+     evecfv1(ist1,:)=conjg(evecfv(1:ngp,ist1))
   end forall
-  evecfvt2(:,:)=evecfvt(1:ngp,:)
+  evecfv2(:,:)=evecfv(1:ngp,:)
   do j=1,3
      do igp1=1,ngp
         ig1=igpig(igp1)
@@ -200,8 +209,8 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
         end do
      end do
      call zgemm('n','n', ngp, nstfv, ngp, zone, cfunt, &
-          ngp, evecfvt2, ngp, zzero, h, ngp)
-     call zgemm('n','n', nstfv, nstfv, ngp, zone, evecfvt1, &
+          ngp, evecfv2, ngp, zzero, h, ngp)
+     call zgemm('n','n', nstfv, nstfv, ngp, zone, evecfv1, &
           nstfv, h, ngp, zzero, pmt, nstfv)
      pm(:,:,j)=pm(:,:,j)+pmt(:,:)
   end do
@@ -224,7 +233,7 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
                  l=(ispn-1)*nstfv
                  do jst=1,nstfv
                     l=l+1
-                    zt1=conjg(evecsvt(k,i))*evecsvt(l,j)
+                    zt1=conjg(evecsv(k,i))*evecsv(l,j)
                     zv(:)=zv(:)+zt1*pm(ist,jst,:)
                  end do
               end do
@@ -237,6 +246,6 @@ subroutine genpmat2(ngp,igpig,vgpc,apwdlmt,lodlmt,evecfvt,evecsvt,pmat)
         pmat(j,:,:)=pm(:,:,j)
      end do
   end if
-  deallocate(wfmt,gwfmt,pm,cfunt,h,pmt,evecfvt1,evecfvt2)
+  deallocate(wfmt,gwfmt,pm,cfunt,h,pmt,evecfv1,evecfv2)
 end subroutine genpmat2
 !EOC

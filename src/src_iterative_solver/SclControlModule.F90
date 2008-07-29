@@ -74,7 +74,7 @@ contains
     doLAPACKsolver=.false.
     if ((tlapack)) then
        doLAPACKsolver=.true.
-       write(*,*)"LAPACK hevx"
+!!!       write(*,*)"LAPACK hevx"
        diiscounter=1
     endif
 

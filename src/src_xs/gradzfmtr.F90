@@ -1,11 +1,7 @@
 
-! Copyright (C) 2008 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-module m_gradzfmtr
-implicit none
-contains
 !BOP
 ! !ROUTINE: gradzfmtr
 ! !INTERFACE:
@@ -21,29 +17,12 @@ subroutine gradzfmtr(lmax,nr,r,l1,m1,ld1,ld2,fmt,gfmt)
 !   fmt  : real muffin-tin function (in,real(nr))
 !   gfmt : gradient of zfmt (out,real(ld1,ld2,3))
 ! !DESCRIPTION:
-!   Calculates the gradient of a real muffin-tin function. In other words,
-!   given the spherical harmonic expansion coefficients, $f_{lm}(r)$, of a
-!   function $f({\bf r})$, the routine returns ${\bf F}_{lm}$ where
-!   $$ \sum_{lm}{\bf F}_{lm}(r)Y_{lm}(\hat{\bf r})=\nabla f({\bf r}). $$
-!   This is done using the identity
-!   \begin{align*}
-!    \nabla\left[f_{lm}(r)Y_{lm}(\hat{\bf r})\right]=&-\left[\frac{l+1}{2l+1}
-!    \right]^{1/2}\left[\frac{d}{dr}-\frac{l}{r}\right]f_{lm}(r)
-!    {\bf Y}_{ll+1m}(\hat{\bf r})\\
-!    &+\left[\frac{l}{2l+1}\right]^{1/2}\left[\frac{d}{dr}+\frac{l+1}{r}\right]
-!    f_{lm}(r){\bf Y}_{ll-1m}(\hat{\bf r}),
-!   \end{align*}
-!   where the vector spherical harmonics are given by
-!   $$ {\bf Y}_{ll'm}(\hat{\bf r})=\sum_{m'=-l'}^{l'}\sum_{m''=-1}^1
-!    C(l'1l|m'm''m)\,Y_{lm}(\hat{\bf r})\,\hat{\bf e}_{m''}, $$
-!   $C$ is a Clebsch-Gordan coefficient and
-!   $$ \hat{\bf e}_{+1}=-\frac{\hat{\bf x}+i\hat{\bf y}}{\sqrt{2}},\quad\quad
-!    \hat{\bf e}_0=\hat{\bf z},\quad\quad \hat{\bf e}_{-1}=\frac{\hat{\bf x}-
-!    i\hat{\bf y}}{\sqrt{2}} $$
-!   are unit vectors. Note that the gradient returned is in terms of the global
-!   $(\hat{\bf x},\hat{\bf y},\hat{\bf z})$ coordinate system. The $y$-component
-!   is divided by $i$ to be expressed as a real number. This routine is based
-!   upon the routine {\tt gradzfmt}.
+!   Calculates the gradient of a muffin-tin function with real spherical 
+!   harmonics expansion coefficients, $f(r)$, corresponding to a specific
+!   $lm$-combination. The gradient is given in a spherical harmonics
+!   representation.
+!   The $y$-component is divided by $i$ to be expressed as a real number.
+!   See routine {\tt gradzfmt}.
 !
 ! !REVISION HISTORY:
 !   Created April 2008 (Sagmeister)
@@ -121,4 +100,3 @@ subroutine gradzfmtr(lmax,nr,r,l1,m1,ld1,ld2,fmt,gfmt)
   end if
 end subroutine gradzfmtr
 !EOC
-end module m_gradzfmtr

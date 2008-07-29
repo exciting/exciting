@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -29,17 +29,13 @@ contains
     integer :: i
 !!$    integer :: sys0,sys1,cnt
     complex(8) :: m(10,10), n(10,10)
-
 !!$    call system_clock(COUNT_RATE=cnt)
 !!$    call system_clock(COUNT=sys0)
-
     do i=1,c
        n=matmul(m,m)
     end do
-
 !!$    call system_clock(COUNT=sys1)
 !!$    write(*,*) 'Time elapsed   : ', dble(sys1-sys0)/dble(cnt)
-
   end subroutine sleepm
 
 end subroutine sleepifc

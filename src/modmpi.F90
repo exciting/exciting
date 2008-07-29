@@ -1,4 +1,4 @@
-! Copyright (C) 2006 C. Ambrosch-Draxl. C. Meisenbichler
+! Copyright (C) 2006-2008 C. Ambrosch-Draxl. C. Meisenbichler S. Sagmeister
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details
 !BOP
@@ -12,6 +12,7 @@
 
 ! !REVISION HISTORY:
 !   Created October 2006 (CHM)
+!   Added wrapper routines, 2007-2008 (Sagmeister)
 !EOP
 module  modmpi
 #ifdef MPI
@@ -121,6 +122,22 @@ function procofindex(k,set)
    end do
 end function procofindex
 
+function lastproc(row,set)
+  implicit none
+  integer :: lastproc
+  integer, intent(in) :: row,set
+  integer :: iproc
+  if (row.ne.nofset(0,set)) then
+     lastproc=procs
+  else
+     lastproc=modulo(set,procs)
+     if (lastproc.eq.0) lastproc=procs
+  end if
+  lastproc=lastproc-1
+end function lastproc
+
+
+
 !------------------interface to MPI_barrier for xs-part
 subroutine barrier
   implicit none
@@ -129,8 +146,63 @@ subroutine barrier
   ! call the MPI barrier
 #ifdef MPI
   call MPI_barrier(mpi_comm_world,ierr)
+
+write(300+rank,*) 'barrier, rank=',rank
+call flushifc(300+rank)
+
 #endif
 end subroutine barrier
 
+subroutine endloopbarrier(set,mult)
+  implicit none
+  integer, intent(in) :: set,mult
+  integer :: i,im
+  do i=1,(nofset(0,set)-nofset(rank,set))*mult
+     call barrier
+  end do
+end subroutine endloopbarrier
+
+!------------------wrappers for MPI communication
+subroutine zalltoallv(zarr,rlen,set)
+  implicit none
+  ! arguments
+  complex(8), intent(inout) :: zarr(*)
+  integer, intent(in) :: rlen,set
+#ifdef MPI
+  ! local variables
+  integer :: mpireccnts(procs),mpirecdispls(procs)
+  integer :: mpisndcnts(procs),mpisnddispls(procs)
+  integer :: proc
+  mpisndcnts(:)=nofset(rank,set)*rlen
+  mpisnddispls(:)=(firstofset(rank,set)-1)*rlen
+  do proc=0,procs-1
+     mpireccnts(proc+1)=nofset(proc,set)*rlen
+     mpirecdispls(proc+1)=(firstofset(proc,set)-1)*rlen
+  end do
+  call MPI_Alltoallv(zarr,mpisndcnts,mpisnddispls,MPI_DOUBLE_COMPLEX, &
+       zarr,mpireccnts,mpirecdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD,ierr)
+#endif
+end subroutine zalltoallv
+
+subroutine ralltoallv(rarr,rlen,set)
+  implicit none
+  ! arguments
+  real(8), intent(inout) :: rarr(*)
+  integer, intent(in) :: rlen,set
+#ifdef MPI
+  ! local variables
+  integer :: mpireccnts(procs),mpirecdispls(procs)
+  integer :: mpisndcnts(procs),mpisnddispls(procs)
+  integer :: proc
+  mpisndcnts(:)=nofset(rank,set)*rlen
+  mpisnddispls(:)=(firstofset(rank,set)-1)*rlen
+  do proc=0,procs-1
+     mpireccnts(proc+1)=nofset(proc,set)*rlen
+     mpirecdispls(proc+1)=(firstofset(proc,set)-1)*rlen
+  end do
+  call MPI_Alltoallv(rarr,mpisndcnts,mpisnddispls,MPI_DOUBLE_COMPLEX, &
+       rarr,mpireccnts,mpirecdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD,ierr)
+#endif
+end subroutine ralltoallv
 
 end module modmpi

@@ -1,4 +1,8 @@
 
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 module m_dfqoscwg
   implicit none
 contains
@@ -15,6 +19,8 @@ contains
     complex(8) :: pout1,pout2,puot1,puot2
 !!$    real(8) :: s(3,3)
     integer :: oc1,oc2
+
+    !TODO: clean up
 
 ! *** old stuff ***
 !!$    if (symwings) then

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2006 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -7,9 +7,23 @@ module m_ctdfrac
   implicit none
 contains
 
+!BOP
+! !ROUTINE: fxc_lrc
+! !INTERFACE:
   subroutine ctdfrac(n,a,b,f)
-    ! Straight foreward implemetation of a continued fraction with depth n
-    ! without any checking of convergence.
+! !INPUT/OUTPUT PARAMETERS:
+!   n     : depth of continued fraction (in,integer)
+!   a     : a-coefficients (in,complex(n))
+!   b     : b-coefficients (in,complex(0:n))
+!   f     : continued fraction result
+! !DESCRIPTION:
+!   Straight foreward implemetation of a continued fraction with depth $n$
+!   without any checking of convergence.
+!
+! !REVISION HISTORY:
+!   Created March 2006 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! arguments
     integer, intent(in) :: n
@@ -24,4 +38,4 @@ contains
   end subroutine
 
 end module
-
+!EOC

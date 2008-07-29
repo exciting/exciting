@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -10,17 +10,14 @@ subroutine xsestimate
   use m_getunit
   use m_gndstateq
   implicit none
-  real(8) :: d_ev(2), d_apwdlm(2), d_pmat(2), d_emat(2), d_x0(2), d_tetw(2)
+  real(8) :: d_ev(2), d_apwcmt(2), d_pmat(2), d_emat(2), d_x0(2), d_tetw(2)
   real(8) :: d_tot(2), mb,gb
   integer :: sreal,scmplx,un
-  
   call init0
   call init1
   call init2xs
-
   nst2=nempty+1
   nst1=nstsv-nst2
-
   ! estimate disk space usage
   sreal = 8
   scmplx = 16
@@ -33,8 +30,8 @@ subroutine xsestimate
   d_tetw(1) = dble(sreal*nkpt*nwdf)*dble(nst1*nst2*3)
   d_tetw(2) = d_tetw(1)
   ! expansion coefficients of muffin-tin wavefunctions
-  d_apwdlm(1) = dble(scmplx*nkpt)*dble(nstfv*apwordmax*lmmaxapw*natmtot)
-  d_apwdlm(2) = d_apwdlm(1)*dble(nqpt+1)
+  d_apwcmt(1) = dble(scmplx*nkpt)*dble(nstfv*apwordmax*lmmaxapw*natmtot)
+  d_apwcmt(2) = d_apwcmt(1)*dble(nqpt+1)
   ! matrix elements of the momentum operator
   d_pmat(1) = dble(scmplx*nkpt)*dble(3*nstsv*nstsv)
   d_pmat(2) = d_pmat(1)
@@ -44,11 +41,9 @@ subroutine xsestimate
   ! Kohn-Sham response function
   d_x0(1) = dble(scmplx*nwdf)*dble(ngqmax**2+3*2*ngqmax+3)
   d_x0(2) = d_x0(1)*dble(nqpt)
-
   ! totals
-  d_tot(1) = d_ev(1)+d_tetw(1)+d_apwdlm(1)+d_pmat(1)+d_emat(1)+d_x0(1)
-  d_tot(2) = d_ev(2)+d_tetw(2)+d_apwdlm(2)+d_pmat(2)+d_emat(2)+d_x0(2)
-
+  d_tot(1) = d_ev(1)+d_tetw(1)+d_apwcmt(1)+d_pmat(1)+d_emat(1)+d_x0(1)
+  d_tot(2) = d_ev(2)+d_tetw(2)+d_apwcmt(2)+d_pmat(2)+d_emat(2)+d_x0(2)
   !write information to file
   call getunit(un)
   open(un,file='TDESTIMATE.OUT',form='formatted',action='write',&
@@ -71,8 +66,8 @@ subroutine xsestimate
        &total):'
   write(un,'(a,2f12.3)') ' eigenvectors           :',d_ev(1)/gb,d_ev(2)/gb
   write(un,'(a,2f12.3)') ' tetrahedron weights    :',d_tetw(1)/gb,d_tetw(2)/gb
-  write(un,'(a,2f12.3)') ' MT expansion coeffs    :',d_apwdlm(1)/gb,&
-       d_apwdlm(2)/gb
+  write(un,'(a,2f12.3)') ' MT expansion coeffs    :',d_apwcmt(1)/gb,&
+       d_apwcmt(2)/gb
   write(un,'(a,2f12.3)') ' matr. el. of mom. op.  :',d_pmat(1)/gb,d_pmat(2)/gb
   write(un,'(a,2f12.3)') ' matr. el. of plane wave:',d_emat(1)/gb,d_emat(2)/gb
   write(un,'(a,2f12.3)') ' KS response function   :',d_x0(1)/gb,d_x0(2)/gb
@@ -80,5 +75,4 @@ subroutine xsestimate
   write(un,'(a,2f12.3)') ' total                  :',d_tot(1)/gb,d_tot(2)/gb
   write(un,*)
   close(un)
-
 end subroutine xsestimate

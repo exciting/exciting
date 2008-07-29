@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -17,8 +17,8 @@ subroutine xsinit(cnt)
   character(*), parameter :: thisnam = 'xsinit'
   character(10) dat, tim
   integer :: i
-  ! assign xs code version
-  versionxs=(/0,87/)
+  ! set version of XS part
+  call xssetversion
   ! remember how often this routine is called
   cnt=cnt+1
   ! initialize global counters
@@ -40,7 +40,7 @@ subroutine xsinit(cnt)
   end if
   ! set splittfile parameter for splitting of eigenvector files in
   ! parallelization of SCF cycle
-  if ((task.ne.301).or.(task.ne.401)) splittfile=.false.
+  if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
   ! generate resume file
   if (procs.gt.1) then
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&
@@ -69,7 +69,7 @@ subroutine xsinit(cnt)
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
      write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
-          &States "I1.1,".",I3.3," ) started |")') version,versionxs
+          &States ",I1.1,".",I3.3," ) started |")') version,versionxs
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
 #ifdef MPI

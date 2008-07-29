@@ -86,7 +86,13 @@
                 outet(i,6*(index-1)+t)=cornid
               enddo
                 do j=1,3
-                  orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j)) !SAG
+                  if (kplusq) then
+                     ! k+q
+                     orig2(j)=mod(orig(j)+q(j)+(1-isign(1,orig(j)+q(j)))/2*div(j),div(j)) !SAG
+                  else
+                     ! k-q
+                     orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j))
+                  end if
                 enddo
               sib(6*(index-1)+t)=6*(idkp(orig2)-1)+t
             enddo
@@ -115,8 +121,10 @@
               enddo
                 do j=1,3
                   if (kplusq) then
+                     ! k+q
                      orig2(j)=mod(orig(j)+q(j)+(1-isign(1,orig(j)+q(j)))/2*div(j),div(j)) !SAG
                   else
+                     ! k-q
                      orig2(j)=mod(orig(j)-q(j)+(1-isign(1,orig(j)-q(j)))/2*div(j),div(j))
                   end if
                 enddo

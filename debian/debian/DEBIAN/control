@@ -1,5 +1,5 @@
 Package: exciting
-Version: 0.9.93-1
+Version: 0.9.151-1
 Section: science
 Priority: optional
 Architecture: i386
@@ -12,3 +12,5 @@ Description: Full-potential linearised augmented-plane wave (FP-LAPW) code
  designed to be as developer-friendly as possible so that new developments
  in the field of density functional theory (DFT) can be added quickly and
  reliably. The code is freely available under the  GNU General Public License.
+ For the source code please visit http://exciting.sourceforge.net.
+

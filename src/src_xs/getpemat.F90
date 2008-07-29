@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -22,7 +22,6 @@ contains
     ! local variables
     character(*), parameter :: thisnam='getpemat'
     real(8), parameter :: eps=1.d-8
-    complex(8), allocatable :: pm(:,:,:)
     real(8) :: fourpisqt
     integer :: n,igq,j,i1,i2
     logical :: tq0
@@ -37,14 +36,13 @@ contains
        write(*,*)
        call terminate
     end if
+    ! Gamma q-point
     if (tq0) then
-       ! Gamma q-point
-       allocate(pm(3,nstsv,nstsv))
        ! read momentum matrix elements
-       call getpmat(ik,vkl0,.true.,trim(pfilnam),pm)
-       p12(:,:,:)=pm(:,istlo1:isthi1,istlo2:isthi2)
-       if (present(p34)) p34(:,:,:)=pm(:,istlo3:isthi3,istlo4:isthi4)
-       deallocate(pm)
+       call getpmat(ik,vkl0,istlo1,isthi1,istlo2,isthi2,.true.,trim(pfilnam), &
+            p12)
+       if (present(p34)) call getpmat(ik,vkl0,istlo3,isthi3,istlo4,isthi4, &
+            .true.,trim(pfilnam),p34)
        ! consider symmetric gauge wrt. Coulomb potential
        ! (multiply with v^(1/2))
        ! and normalization wrt. KS eigenvalues (no scissors correction!)
@@ -84,11 +82,13 @@ contains
           m12(:,:,:)=xiou(:,:,:)
           if (present(m34)) m34(:,:,:)=xiuo(:,:,:)
        else
+          ! read matrix elemets of plane wave
           if (present(m34)) then
-             ! read matrix elemets of exponential expression
-             call getemat(iq,ik,.true.,trim(efilnam),m12,m34)
+             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istlo1,isthi1, &
+                  istlo2,isthi2,m12,istlo3,isthi3,istlo4,isthi4,m34)
           else
-             call getemat(iq,ik,.true.,trim(efilnam),m12)
+             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istlo1,isthi1, &
+                  istlo2,isthi2,m12)
           end if
        end if
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))

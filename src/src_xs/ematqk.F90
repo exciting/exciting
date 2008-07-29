@@ -1,5 +1,5 @@
 
-! Copyright (C) 2006-2007 S. Sagmeister and Claudia Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -8,7 +8,8 @@ subroutine ematqk(iq,ik)
   use modmpi
   use modxs
   use summations
-  use m_getapwdlm
+  use m_getapwcmt
+  use m_getlocmt
   use m_putemat
   use m_emattim
   use m_getunit
@@ -35,7 +36,7 @@ subroutine ematqk(iq,ik)
   ikq=ikmapikq(ik,iq)
   ! check for stop statement
   write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'
-  call tdchkstop
+  call xschkstop
 
   cpumtaa=0.d0; cpumtalo=0.d0; cpumtloa=0.d0; cpumtlolo=0.d0
   cpugnt=0.d0; cpumt=0.d0; cpuir=0.d0
@@ -81,10 +82,10 @@ subroutine ematqk(iq,ik)
   evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
   ! change back file extension
 
-  call getapwdlm(0,ik,lmaxapwtd,apwdlm0)
-  call getapwdlm(iq,ikq,lmaxapwtd,apwdlm)
-  call getlodlm(0,ik,lodlm0)
-  call getlodlm(iq,ikq,lodlm)
+  call getapwcmt(0,ik,1,nstfv,lmaxapwwf,apwcmt0)
+  call getapwcmt(iq,ikq,1,nstfv,lmaxapwwf,apwcmt)
+  call getlocmt(0,ik,1,nstfv,locmt0)
+  call getlocmt(iq,ikq,1,nstfv,locmt)
 
   call cpu_time(cpu0)
   cpuread=cpu0-cpu1
@@ -109,7 +110,7 @@ subroutine ematqk(iq,ik)
      call cpu_time(cpu01)
      cpuir=cpuir+cpu01-cpu00
 
-     if ((ematstrat.gt.0).and.(nlotot.gt.0)) then 
+     if ((.not.fastemat).and.(nlotot.gt.0)) then 
         ! muffin-tin contributions
         ! APW-lo contribution
         ! multiplication xi = xiho * evecfvu

@@ -3,9 +3,12 @@ version.inc
 *.mod
 *.a
 *~
+*.old
+exciting
 excitingmpi
 excitingsmp
 exciting_debug
+exciting_gfortran
 exciting_interfaces
 test
 *.dat
@@ -14,6 +17,7 @@ test
 .cdtproject
 .project
 .settings
+build/gfortran
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species
@@ -24,12 +28,7 @@ examples/xs
 .cdtproject
 .project
 .settings/*
-Makefile.serial
-Makefile.parallel
-Makefile.smp
-Makefile.debug
-Makefile.interfaces
-Makefile.test
+Makefile.*
 make.inc
 make.out
 mpif.h
@@ -40,6 +39,7 @@ Makefile.serial
 output.*
 outerr.*
 testcase*
+*.tex
 *.aux
 *.dvi
 *.log

@@ -3,12 +3,17 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine pmatrad
+subroutine pmatrad(ripaa,ripalo,riploa,riplolo)
   use modmain
-  use modxs
-  use m_gradzfmtr
-  use m_getunit
   implicit none
+  ! arguments
+  real(8), intent(out) :: ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3)
+  real(8), intent(out) :: ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax, &
+       natmtot,3)
+  real(8), intent(out) :: riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw, &
+       natmtot,3)
+  real(8), intent(out) :: riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax, &
+       natmtot,3)
   ! local variables
   integer :: is,ia,ias,nr,ir
   integer :: l1,m1,lm1,l3,m3,lm3
@@ -26,17 +31,8 @@ subroutine pmatrad
      allocate(dlofr(lmmaxapw,nrmtmax,3,nlomax,-lolmax:lolmax))
      dlofr(:,:,:,:,:)=0.d0
   end if
-  ! allocate arrays for radial integrals
-  if (allocated(ripaa)) deallocate(ripaa)
-  allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
   ripaa(:,:,:,:,:,:)=0.d0
   if (nlotot.gt.0) then
-     if (allocated(ripalo)) deallocate(ripalo)
-     if (allocated(riploa)) deallocate(riploa)
-     if (allocated(riplolo)) deallocate(riplolo)
-     allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
-     allocate(riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
-     allocate(riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
      ripalo(:,:,:,:,:,:)=0.d0
      riploa(:,:,:,:,:,:)=0.d0
      riplolo(:,:,:,:,:,:)=0.d0

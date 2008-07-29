@@ -192,11 +192,11 @@ contains
           sh(1:1)=shape(arr1dc)
           lb(1:1)=lbound(arr1dc); ub(1:1)=ubound(arr1dc) 
           str='('//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='('//fmtdi//'," ("'//trim(frmt)//',","'// &
+          if (tparent) str='('//fmtdi//'," (",'//trim(frmt)//',",",'// &
                trim(frmt)//',")")'
           if (tfmtidx) then
              str='('//fmtidx//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-             if (tparent) str='('//fmtidx//'," ("'//trim(frmt)//',","'// &
+             if (tparent) str='('//fmtidx//'," (",'//trim(frmt)//',",",'// &
                   trim(frmt)//',")")'
           end if
           do i1=lb(1),ub(1)
@@ -269,11 +269,11 @@ contains
           sh(1:2)=shape(arr2dc)
           lb(1:2)=lbound(arr2dc); ub(1:2)=ubound(arr2dc)
           str='(2'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(2'//fmtdi//'," ("'//trim(frmt)//',","'// &
+          if (tparent) str='(2'//fmtdi//'," (",'//trim(frmt)//',",",'// &
                trim(frmt)//',")")'
           if (tfmtidx) then
              str='('//fmtidx//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-             if (tparent) str='('//fmtidx//'," ("'//trim(frmt)//',","'// &
+             if (tparent) str='('//fmtidx//'," (",'//trim(frmt)//',",",'// &
                   trim(frmt)//',")")'
           end if
           do i1=lb(1),ub(1)
@@ -359,11 +359,11 @@ contains
           sh(1:3)=shape(arr3dc)
           lb(1:3)=lbound(arr3dc); ub(1:3)=ubound(arr3dc)
           str='(3'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(3'//fmtdi//'," ("'//trim(frmt)//',","'// &
+          if (tparent) str='(3'//fmtdi//'," (",'//trim(frmt)//',",",'// &
                trim(frmt)//',")")'
           if (tfmtidx) then
              str='('//fmtidx//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-             if (tparent) str='('//fmtidx//'," ("'//trim(frmt)//',","'// &
+             if (tparent) str='('//fmtidx//'," (",'//trim(frmt)//',",",'// &
                   trim(frmt)//',")")'
           end if
           do i1=lb(1),ub(1)
@@ -453,11 +453,11 @@ contains
           sh(1:4)=shape(arr4dc)
           lb(1:4)=lbound(arr4dc); ub(1:4)=ubound(arr4dc)
           str='(4'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(4'//fmtdi//'," ("'//trim(frmt)//',","'// &
+          if (tparent) str='(4'//fmtdi//'," (",'//trim(frmt)//',",",'// &
                trim(frmt)//',")")'
           if (tfmtidx) then
              str='('//fmtidx//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-             if (tparent) str='('//fmtidx//'," ("'//trim(frmt)//',","'// &
+             if (tparent) str='('//fmtidx//'," (",'//trim(frmt)//',",",'// &
                   trim(frmt)//',")")'
           end if
           do i1=lb(1),ub(1)
@@ -555,11 +555,11 @@ contains
           sh(1:5)=shape(arr5dc)
           lb(1:5)=lbound(arr5dc); ub(1:5)=ubound(arr5dc)
           str='(5'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(5'//fmtdi//'," ("'//trim(frmt)//',","'// &
+          if (tparent) str='(5'//fmtdi//'," (",'//trim(frmt)//',",",'// &
                trim(frmt)//',")")'
           if (tfmtidx) then
              str='('//fmtidx//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-             if (tparent) str='('//fmtidx//'," ("'//trim(frmt)//',","'// &
+             if (tparent) str='('//fmtidx//'," (",'//trim(frmt)//',",",'// &
                   trim(frmt)//',")")'
           end if
           do i1=lb(1),ub(1)
@@ -665,11 +665,11 @@ contains
           sh(1:6)=shape(arr6dc)
           lb(1:6)=lbound(arr6dc); ub(1:6)=ubound(arr6dc)
           str='(6'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(6'//fmtdi//'," ("'//trim(frmt)//',","'// &
+          if (tparent) str='(6'//fmtdi//'," (",'//trim(frmt)//',",",'// &
                trim(frmt)//',")")'
           if (tfmtidx) then
              str='('//fmtidx//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-             if (tparent) str='('//fmtidx//'," ("'//trim(frmt)//',","'// &
+             if (tparent) str='('//fmtidx//'," (",'//trim(frmt)//',",",'// &
                   trim(frmt)//',")")'
           end if
           do i1=lb(1),ub(1)
@@ -783,11 +783,11 @@ contains
           sh(1:7)=shape(arr7dc)
           lb(1:7)=lbound(arr7dc); ub(1:7)=ubound(arr7dc)
           str='(7'//fmtdi//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-          if (tparent) str='(7'//fmtdi//'," ("'//trim(frmt)//',","'// &
+          if (tparent) str='(7'//fmtdi//'," (",'//trim(frmt)//',",",'// &
                trim(frmt)//',")")'
           if (tfmtidx) then
              str='('//fmtidx//'," ",'//trim(frmt)//'," ",'//trim(frmt)//')'
-             if (tparent) str='('//fmtidx//'," ("'//trim(frmt)//',","'// &
+             if (tparent) str='('//fmtidx//'," (",'//trim(frmt)//',",",'// &
                   trim(frmt)//',")")'
           end if
           do i1=lb(1),ub(1)

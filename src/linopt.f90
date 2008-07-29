@@ -18,7 +18,7 @@ subroutine linopt
   ! local variables
   integer ik,nsk(3),iw,jw
   integer isym,lspl,iop
-  integer i,i1,i2,n,recl
+  integer i1,i2,n,recl
   real(8), parameter :: eps=1.d-8
   real(8) wd(2),wplas,t1,t2
   character(256) fname
@@ -88,7 +88,7 @@ subroutine linopt
   call init2xs
   tqfmt=.not.tqgamma(iq)
   if (tqfmt) then
-     call tdsave0
+     call xssave0
      call genfilname(iqmt=iq,setfilext=.true.)
      ! take first q-point
      call init1xs(qvkloff(1,iq))
@@ -218,7 +218,8 @@ subroutine linopt
         ! read matrix elements from direct-access file
 #ifdef XS
         if (tqfmt) then
-           call getemat(1,ik,.true.,'EMAT_FULL_QMT001.OUT',xiou)
+           call getemat(1,ik,.true.,'EMAT_FULL_QMT001.OUT',ngq(iq),1,nstsv,1, &
+                nstsv,xiou)
            call linoptkpq(iq,ik,xiou,e(1,ik),f(1,ik))
         else
 #endif
@@ -233,7 +234,7 @@ subroutine linopt
 #ifdef XS
         if (tqfmt) then
            ! generate link array for tetrahedra
-           call gentetlink(vql(1,iq))
+           call gentetlinkp(vql(1,iq),1)
         end if
 #endif
         ! prefactor

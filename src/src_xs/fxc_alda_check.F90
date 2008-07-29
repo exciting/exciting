@@ -1,19 +1,27 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: fxc_alda_check
+! !INTERFACE:
 subroutine fxc_alda_check
-  !
-  ! For checking the validity of the analytical expression for the
-  ! ALDA exchange-correlation kernel
-  ! Apr. 2007 (Sagmeister)
-  !
+! !USES:
   use modmain
   use modxcifc
   use modxs
   use modfxcifc
+! !DESCRIPTION:
+!   Checks the validity of the analytical expressions for the ALDA
+!   exchange-correlation kernel.
+!
+! !REVISION HISTORY:
+!   Created April 2007 (Sagmeister)
+!EOP
+!BOC
   implicit none
+  ! local variables
   real(8), allocatable :: vx(:),ex(:)
   real(8), allocatable :: vc(:),ec(:)
   real(8), allocatable :: dvx(:),dvc(:),vxc(:),dvxc2(:),dvxc(:),cf(:,:)
@@ -33,7 +41,6 @@ subroutine fxc_alda_check
 !!$  rhoint(2)=1.d0
   rhoint(1)=1.d0
   rhoint(2)=7400.0d0
-  
   
   allocate(rhogr(nrho))
   allocate(dvx(nrho),dvc(nrho),dvxc2(nrho),dvxc(nrho),cf(3,nrho))
@@ -69,5 +76,5 @@ subroutine fxc_alda_check
   write(*,*) 'maximum interstital potential:',maxval(vxcir)
   write(*,*) 'maximum muffin-tin potential :',maxval(vxcmt)
 
-
 end subroutine fxc_alda_check
+!EOC

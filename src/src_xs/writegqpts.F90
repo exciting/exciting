@@ -1,6 +1,5 @@
 
-! Copyright (C) 2002-2005 S. Sagmeister J. K. Dewhurst, S. Sharma
-! and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -19,7 +18,7 @@ contains
 ! !DESCRIPTION:
 !   Writes the ${\bf G+q}$-points in lattice coordinates, Cartesian 
 !   coordinates, and lengths of ${\bf G+q}$-vectors to the file 
-!   {\tt QPOINTS.OUT}. Based on the routine {\tt writekpts.f90}.
+!   {\tt GQPOINTS.OUT}.
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (Sagmeister)

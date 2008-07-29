@@ -1,6 +1,5 @@
 
-! Copyright (C) 2006-2007 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -20,11 +19,11 @@ subroutine init2xs
   !------------------------------------!
   !     angular momentum variables     !
   !------------------------------------!
-  ! if not specified in input file set lmaxapwtd to lmaxmat
-  if (lmaxapwtd.eq.-1) lmaxapwtd=lmaxmat
-  ! check lmaxapwtd
-  if (lmaxapwtd.gt.lmaxapw) then
-     write(*,*) 'Error('//thisnam//'): lmaxapwtd > lmaxapw:', lmaxapwtd
+  ! if not specified in input file set lmaxapwwf to lmaxmat
+  if (lmaxapwwf.eq.-1) lmaxapwwf=lmaxmat
+  ! check lmaxapwwf
+  if (lmaxapwwf.gt.lmaxapw) then
+     write(*,*) 'Error('//thisnam//'): lmaxapwwf > lmaxapw:', lmaxapwwf
      call terminate
   end if
   ! check lmaxemat
@@ -32,11 +31,11 @@ subroutine init2xs
      write(*,*) 'Error('//thisnam//'): lmaxemat > lmaxapw:', lmaxemat
      call terminate
   end if
-  if (lmaxemat.gt.lmaxapwtd) then
-     write(*,*) 'Warning('//thisnam//'): lmaxemat > lmaxapwtd:', lmaxemat
+  if (lmaxemat.gt.lmaxapwwf) then
+     write(*,*) 'Warning('//thisnam//'): lmaxemat > lmaxapwwf:', lmaxemat
      call terminate
   end if
-  lmmaxapwtd=(lmaxapwtd+1)**2
+  lmmaxapwwf=(lmaxapwwf+1)**2
   lmmaxemat=(lmaxemat+1)**2
 
   !---------------------!

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -23,7 +23,7 @@ subroutine emattest
   call init0
   call init1
   call init2xs
-  call tdsave0
+  call xssave0
   n = ngq(iq)
   if (tqgamma(iq)) then
      write(*,*)
@@ -64,9 +64,10 @@ subroutine emattest
   ! test matrix elements
   do ik=1,nkpt
      ! read matrix elemets of exponential expression
-     call getpmat(ik,vkl0,.true.,trim(fnpmat),pmat(:,:,:,ik))
+     call  getpmat(ik,vkl0,1,nstsv,1,nstsv,.true.,trim(fnpmat),pmat(:,:,:,ik))
      ! read matrix elemets of exponential expression
-     call getemat(iq,ik,.true.,trim(fnemat),xiou,xiuo)
+     call  getemat(iq,ik,.true.,trim(fnpmat),ngq(iq),istlo1,isthi1,istlo2, &
+          isthi2,xiou,istlo3,isthi3,istlo4,isthi4,xiuo)
      ikq=ikmapikq(ik,iq)
      call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12, &
           scis12)
