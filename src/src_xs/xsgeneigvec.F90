@@ -71,14 +71,9 @@ subroutine xsgeneigvec
   end do
   if ((rank.eq.0).and.tqgamma(1).and.(.not.tscreen)) then
      write(unitout,'(a)') 'Info('//thisnam//'): First Q-point is &
-          &Gamma-point'
-#ifdef ISO
+          &Gamma-point - copying relevant files'
      ! write files again one by one
      call copyfilesq0
-#else
-     ! generate symbolic links
-     call linkfilesq0
-#endif
   end if
   call barrier
   write(unitout,'(a)') "Info("//trim(thisnam)//"): generation of &

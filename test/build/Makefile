@@ -6,6 +6,8 @@ Makefile.test1::
 	../../src  \
 	../src \
 	../../src/src_xs \
+	../../src/src_sym \
+	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
 	../src/testplans/test1.f90
@@ -17,8 +19,10 @@ Makefile.test2::
 	../../src  \
 	../src \
 	../../src/src_xs \
-	../../src/src_iterative_solver/src_diis \
+	../../src/src_sym \
+	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
+	../../src/src_iterative_solver/src_diis \
 	../src/testplans/test2.f90
 
 

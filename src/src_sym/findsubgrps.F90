@@ -12,7 +12,7 @@ subroutine findsubgrps(n,sld,lspl,mt,sg)
   integer, intent(in) :: mt(n,n)
   integer, intent(out) :: sg(n,*)
   ! local variables
-  integer :: i,j,done(n),map(n)
+  integer :: i,j,l,done(n),map(n)
 
   ! find generators and favour those with positive determinant
   j=0

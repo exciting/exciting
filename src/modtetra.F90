@@ -264,7 +264,7 @@ contains
        write(*,*)
        write(*,'("Error(modtetra:genkpts_tet): k-point set inconsistency for &
             &tetrahedron method")')
-       write(*,'(" differring number of k-points (library/default)",2i8)'), &
+       write(*,'(" differring number of k-points (library/default)",2i8)') &
             nkptlib,nkpt
        write(*,*)
        stop
@@ -395,7 +395,7 @@ contains
        write(*,'("Warning(gentetlink): using WTET and TNODES arrays from KGEN &
             &routine")')
        write(*,'(" but arrays from KQGEN_EXCITING are differring for")')
-       write(*,'(" non-Gamma q-point: "3g18.10)') vpl
+       write(*,'(" non-Gamma q-point: ",3g18.10)') vpl
        write(*,*)
     end if
     ! deallocate local arrays
