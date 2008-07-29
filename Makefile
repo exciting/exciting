@@ -1,24 +1,46 @@
 
-MAKE = make
+
+include build/make.inc
+
+default:all
+
+build/make.inc:
+	perl ./setup.pl
+
 serial:
 	cd build/serial; $(MAKE) libs
 	cd build/serial; $(MAKE) 
-parallel:
-	cd build/parallel; $(MAKE) libs
-	cd build/parallel; $(MAKE) 
-test:
-	cd test/build; $(MAKE) libs
-	cd test/build; $(MAKE) 
-all:serial parallel test
-	cp build/serial/make.inc ./
+
+mpi:
+	cd build/mpi; $(MAKE) libs
+	cd build/mpi; $(MAKE) 
+
+smp:
+	cd build/smp; $(MAKE) libs
+	cd build/smp; $(MAKE)
+
+mpiandsmp:
+	cd build/mpiandsmp; $(MAKE) libs
+	cd build/mpiandsmp; $(MAKE)
+
+test::
+	cd test/; $(MAKE) 
+	
+ 
+all:serial mpi  smp mpiandsmp test 
+	cp build/make.inc ./
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)
 	cd src/species; $(MAKE)
 
 clean:
 
-	cd build/serial; $(MAKE) clean
-	cd build/parallel; $(MAKE) clean
+	cd build/serial; $(MAKE) clean cleanlibs
+	cd build/mpi; $(MAKE) clean cleanlibs
+	cd build/smp; $(MAKE) clean cleanlibs
+	cd build/debug; $(MAKE) clean cleanlibs
+	cd build/mpiandsmp; $(MAKE) clean cleanlibs
+	cd test/build ;$(MAKE) clean cleanlibs
 	cd src/eos; $(MAKE) clean
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean

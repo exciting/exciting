@@ -1,0 +1,10 @@
+include ../make.inc
+
+FC = $(F90MT)
+F77=F77MT
+### default
+FFLAGS = $(F90_OPTS) $(F90CPP_OPTS) $(OPTIMIZATION_OPTS) $(F90_SMP_OPTS)
+LD = $(FC)
+LDFLAGS = $(LIB_LPK_SMP) $(LIB_FFT) $(LIB_SYS) 
+F77_OPTS =$(OPTIMIZATION_OPTS)
+TMPFILES = *.mod

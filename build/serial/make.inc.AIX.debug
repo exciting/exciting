@@ -1,8 +1,0 @@
-F90_OPTS =-g -qflttrap=zerodivide:invalid:overflow:enable -C -qflttrap -qextchk
--qsigtrap -qinitauto  -WF,-DDEBUG
-F77 =xlf
-F77_OPTS =
-LIB_SYS =
-LIB_LPK = liblapack.a libblas
-LIB_FFT = fftlib.a
-LIB_BZINT=libbzint.a

@@ -1,2 +1,2 @@
 test:
-	cd build;make test
+	cd build;make libs  test

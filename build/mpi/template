@@ -1,0 +1,11 @@
+include ../make.inc
+
+FC = $(MPIF90)
+### default
+FFLAGS = $(F90_OPTS) $(F90CPP_OPTS_MPI) $(OPTIMIZATION_OPTS)
+### debug
+#FFLAGS = $(F90_OPTS) -check all -traceback
+LD = $(FC)
+LDFLAGS =$(LIB_BZINT) $(LIB_LPK) $(LIB_FFT) $(LIB_SYS) 
+F77_OPTS =$(OPTIMIZATION_OPTS)
+TMPFILES = *.mod
