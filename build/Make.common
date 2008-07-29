@@ -7,11 +7,12 @@ bin:make.inc
 	../../utilities/mkmf -t template -f -m Makefile.$(SUFFIX) -p exciting$(SUFFIX) \
 	../../src  \
 	../../src/src_xs \
+	../../src/src_sym \
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
 	&& make -f Makefile.$(SUFFIX) exciting$(SUFFIX) \
-
+	&& cp -f exciting$(SUFFIX) ..
 
 libs:	libblas.a liblapack.a fftlib.a libbzint.a libarpack.a 
 

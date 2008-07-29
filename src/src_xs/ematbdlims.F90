@@ -20,7 +20,7 @@ subroutine ematbdlims(typ,n1,lo1,hi1,n2,lo2,hi2)
      n1=nstsv
      n2=nstsv
   case(1)
-     ! 1-2 combinations
+     ! o-u combinations
      lo1=1
      hi1=istocc0
      lo2=istunocc0
@@ -28,7 +28,7 @@ subroutine ematbdlims(typ,n1,lo1,hi1,n2,lo2,hi2)
      n1=istocc0-1+1
      n2=nstsv-istunocc0+1
   case(2)
-     ! 2-1 combinations
+     ! u-o combinations
      lo1=istunocc0
      hi1=nstsv
      lo2=1
@@ -36,7 +36,7 @@ subroutine ematbdlims(typ,n1,lo1,hi1,n2,lo2,hi2)
      n1=nstsv-istunocc0+1
      n2=istocc0-1+1
   case(3)
-     ! 1-1 combinations
+     ! o-o combinations
      lo1=1
      hi1=istocc0
      lo2=1
@@ -44,7 +44,7 @@ subroutine ematbdlims(typ,n1,lo1,hi1,n2,lo2,hi2)
      n1=istocc0-1+1
      n2=istocc0-1+1
   case(4)
-     ! 2-2 combinations
+     ! u-u combinations
      lo1=istunocc0
      hi1=nstsv
      lo2=istunocc0

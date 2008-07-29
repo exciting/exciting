@@ -36,7 +36,7 @@ f_optic="$f_in $f_params EPSILON_[1-3][1-3].OUT EPSILON_TET_[1-3][1-3].OUT EPSIL
 # TDDFT input files 
 f_tddft_in="qpoints.in"
 # TDDFT optics and important files from SCF calculation
-f_tddft="$f_in $f_tddft_in $f_params EFERMI_Q*.OUT EIGVAL_Q*.OUT EMAT_TIMING_Q*.OUT EPSILON*_Q*.OUT GQPOINTS_Q*.OUT INFO_Q*.OUT KMAPKQ_Q*.OUT KPOINTS_Q*.OUT LOSS*_Q*.OUT QPOINTS.OUT SIGMA*_Q*.OUT SUMRULES*_Q*.OUT TDINFO.OUT X0_TIMING_Q*.OUT"
+f_tddft="$f_in $f_tddft_in $f_params EFERMI_Q*.OUT EIGVAL_Q*.OUT EMAT_TIMING_Q*.OUT EPSILON*_Q*.OUT GQPOINTS_Q*.OUT INFO_Q*.OUT KMAPKQ_Q*.OUT KPOINTS_Q*.OUT LOSS*_Q*.OUT QPOINTS.OUT SIGMA*_Q*.OUT SUMRULES*_Q*.OUT XSINFO.OUT X0_TIMING_Q*.OUT"
 
 # large TDDFT output files
 f_tddft_large="EMAT_*.OUT APWDLM_*.OUT DEVALSV_*.OUT EVECFV_*.OUT EVECSV_*.OUT OCCSV_*.OUT"

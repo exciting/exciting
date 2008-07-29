@@ -1,6 +1,5 @@
 
-! Copyright (C) 2002-2007 S. Sagmeister, J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
@@ -23,11 +22,11 @@ subroutine connecta(cvec,nv,np,vvl,vpl,dv,dp)
 !   converted to Cartesian coordinates with the matrix {\tt cvec}. Interpolating
 !   points are stored in the array {\tt vpl}. The cummulative distances to the
 !   vertices and points along the path are stored in arrays {\tt dv} and
-!   {\tt dp}, respectively. Based upon the routine {\tt connect}.
+!   {\tt dp}, respectively. The given vertex points are contained in the set of
+!   output vectors. Based upon the routine {\tt connect}.
 !
 ! !REVISION HISTORY:
-!   Created June 2003 (JKD)
-!   Modifications 2007 (Sagmeister)
+!   Created June 2007 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -47,13 +46,13 @@ real(8), allocatable :: seg(:)
 integer, allocatable :: idx(:), segpts(:)
 if (nv.lt.1) then
   write(*,*)
-  write(*,'("Error(connect): nv < 1 : ",I8)') nv
+  write(*,'("Error(connecta): nv < 1 : ",I8)') nv
   write(*,*)
   stop
 end if
 if (np.lt.nv) then
   write(*,*)
-  write(*,'("Error(connect): np < nv : ",2I8)') np,nv
+  write(*,'("Error(connecta): np < nv : ",2I8)') np,nv
   write(*,*)
   stop
 end if
@@ -121,4 +120,3 @@ subroutine linterplin(np,v1,v2,vintp)
      vintp(:,j)=v1(:)*(1-lam)+v2(:)*lam
   end do
 end subroutine linterplin
-

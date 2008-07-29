@@ -13,6 +13,7 @@ use modmain
 use modtetra
 #endif
 #ifdef XS
+use modmpi, only: rank
 use modxs
 #endif
 
@@ -39,8 +40,10 @@ character(256) bname
 character(256) sppath
 #ifdef XS
 logical, parameter :: dumpmain=.true.
-logical, parameter :: dumpmpi=.false.
-logical, parameter :: dumptddft=.false.
+logical, parameter :: dumpadd=.true.
+logical, parameter :: dumptetra=.true.
+logical, parameter :: dumpmpiiter=.true.
+logical, parameter :: dumpxs=.true.
 #endif
 !------------------------!
 !     default values     !
@@ -187,7 +190,6 @@ tetra=.false.
 #ifdef XS
 ! TDDFT variables
 imbandstr=.false.
-pmatira=.false.
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
@@ -196,15 +198,15 @@ mdfqtype=0
 vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
-lmaxapwtd=-1
-pmatstrat=0
-ematstrat=0
+lmaxapwwf=-1
+fastpmat=.true.
+fastemat=.true.
 emattype=1
 lmaxemat=3
 rsptype='reta'
 acont=.false.
 nwacont=0
-brdtd=0.01
+broad=0.01d0
 aresdf=.true.
 epsdfde=1.d-8
 emaxdf=1.d10
@@ -219,6 +221,7 @@ ndftrans=1
 if (allocated(dftrans)) deallocate(dftrans)
 allocate(dftrans(3,ndftrans))
 dftrans(:,:)=0
+tetraqweights=1
 gather=.false.
 symmorph=.false.
 tevout=.false.
@@ -246,12 +249,24 @@ bsediagsym=0
 fnevecfvbse='EVECFV_BSE.OUT'
 fnevalsvbse='EVALSV_BSE.OUT'
 fnoccsvbse='OCCSV_BSE.OUT'
-nstbef=-1
-nstabf=-1
-! dump default values
-if (dumpmain) call dumpparams('PARAMS_DEFAULT.OUT','',sppath,sc,sc1,sc2,sc3,&
-     vacuum)
-write(*,'(a)') 'Info(readinput): processing blocks:'
+nbfce=-1
+nafce=-1
+nbfbse=-1
+nafbse=-1
+! dump default parameters
+if (rank.eq.0) then
+   fname='PARAMS_DEFAULT.OUT'
+   if (dumpmain) call dumpparams(trim(fname), &
+        '! main parameters:',sppath,sc,sc1,sc2,sc3,vacuum)
+   if (dumpadd) call dumpparams_add(trim(fname), &
+        '! additional parameters:')
+   if (dumpmpiiter) call dumpparams_mpiiter(trim(fname), &
+        '! MPI parallelization and iterative solver parameters:')
+   if (dumptetra) call dumpparams_tetra(trim(fname), &
+        '! tetrahedron method parameters:')
+   if (dumpxs) call dumpparams_xs(trim(fname), &
+        '! excited states parameters:')
+end if
 #endif
 
 !-------------------------------!
@@ -281,9 +296,6 @@ end if
 read(50,*,end=30) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 10
-#ifdef XS
-write(*,'(a)') 'reading block for: '//trim(bname)
-#endif
 select case(trim(bname))
 case('tasks')
   do i=1,maxtasks
@@ -968,8 +980,6 @@ case('tetra')
 ! TDDFT variables
 case('imbandstr')
   read(50,*,err=20) imbandstr
-case('pmatira')
-  read(50,*,err=20) pmatira
 case('vgqlmt')
   read(50,*,err=20) nqptmt
   if (nqptmt.le.0) then
@@ -997,18 +1007,18 @@ case('tq0ev')
    read(50,*,err=20) tq0ev
 case('gqmax')
   read(50,*,err=20) gqmax
-case('lmaxapwtd')
-  read(50,*,err=20) lmaxapwtd
-  if (lmaxapwtd.lt.0) then
+case('lmaxapwwf')
+  read(50,*,err=20) lmaxapwwf
+  if (lmaxapwwf.lt.0) then
     write(*,*)
-    write(*,'("Error(readinput)[td]: lmaxapwtd < 0 : ",I8)') lmaxapwtd
+    write(*,'("Error(readinput)[td]: lmaxapwwf < 0 : ",I8)') lmaxapwwf
     write(*,*)
     stop
   end if
-case('pmatstrat')
-  read(50,*,err=20) pmatstrat
-case('ematstrat')
-  read(50,*,err=20) ematstrat
+case('fastpmat')
+  read(50,*,err=20) fastpmat
+case('fastemat')
+  read(50,*,err=20) fastemat
 case('emattype')
   read(50,*,err=20) emattype
 case('lmaxemat')
@@ -1031,24 +1041,24 @@ case('acont')
   read(50,*,err=20) acont
 case('nwacont')
   read(50,*,err=20) nwacont
-  if (brdtd.le.0) then
+  if (broad.le.0) then
     write(*,*)
     write(*,'("Error(readinput[td]): nwacont <= 0 : ",g18.10)') nwacont
     write(*,*)
     stop
   end if
-case('brdtd')
-  read(50,*,err=20) brdtd
-  if (brdtd.le.0) then
+case('broad')
+  read(50,*,err=20) broad
+  if (broad.le.0) then
     write(*,*)
-    write(*,'("Warning(readinput[td]): brdtd <= 0 : ",g18.10)') brdtd
+    write(*,'("Warning(readinput[td]): broad <= 0 : ",g18.10)') broad
     write(*,*)
   end if
 case('aresdf')
   read(50,*,err=20) aresdf
 case('epsdfde')
   read(50,*,err=20) epsdfde
-  if (brdtd.le.0) then
+  if (broad.le.0) then
     write(*,*)
     write(*,'("Warning(readinput[td]): epsdfde <= 0 : ",g18.10)') epsdfde
     write(*,*)
@@ -1092,6 +1102,8 @@ case('dftrans')
       stop
     end if
   end do
+case('tetraqweights')
+  read(50,*,err=20) tetraqweights
 case('gather')
   read(50,*,err=20) gather
 case('symmorph')
@@ -1180,19 +1192,20 @@ case('fnevalsvbse')
   read(50,*,err=20) fnevalsvbse
 case('fnoccsvbse')
   read(50,*,err=20) fnoccsvbse
-case('nstbef')
-  read(50,*,err=20) nstbef
-  if (nstbef.le.0) then
+case('nstlce')
+  read(50,*,err=20) nbfce,nafce
+  if ((nbfce.le.0).or.(nafce.le.0)) then
     write(*,*)
-    write(*,'("Error(readinput[BSE]): nstbef <= 0 : ",I8)') nstbef
+    write(*,'("Error(readinput[BSE]): nbfce or nafce <= 0 : ",I8)') nbfce,nafce
     write(*,*)
     stop
   end if
-case('nstabf')
-  read(50,*,err=20) nstabf
-  if (nstabf.le.0) then
+case('nstlbse')
+  read(50,*,err=20) nbfbse,nafbse
+  if ((nbfbse.le.0).or.(nafbse.le.0)) then
     write(*,*)
-    write(*,'("Error(readinput[BSE]): nstabf <= 0 : ",I8)') nstabf
+    write(*,'("Error(readinput[BSE]): nbfbse or nafbse <= 0 : ",I8)') nbfbse, &
+         nafbse
     write(*,*)
     stop
   end if
@@ -1248,9 +1261,20 @@ if (molecule) then
   end do
 end if
 #ifdef XS
-write(*,'(a)') 'reading in of '//trim(fname)//' finished'
-! dump default values
-if (dumpmain) call dumpparams('PARAMS.OUT','',sppath,sc,sc1,sc2,sc3,vacuum)
+! dump default parameters (partially) corrected by input file
+if (rank.eq.0) then
+   fname='PARAMS.OUT'
+   if (dumpmain) call dumpparams(trim(fname), &
+        '! main parameters:',sppath,sc,sc1,sc2,sc3,vacuum)
+   if (dumpadd) call dumpparams_add(trim(fname), &
+        '! additional parameters:')
+   if (dumpmpiiter) call dumpparams_mpiiter(trim(fname), &
+        '! MPI parallelization and iterative solver parameters:')
+   if (dumptetra) call dumpparams_tetra(trim(fname), &
+        '! tetrahedron method parameters:')
+   if (dumpxs) call dumpparams_xs(trim(fname), &
+        '! excited states parameters:')
+end if
 #endif
 !---------------------------------------------!
 !     read from atomic species data files     !

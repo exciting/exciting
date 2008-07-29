@@ -45,9 +45,7 @@ subroutine ematq(iq)
   ! loop over k-points
   do ik=kpari,kparf
      call ematqk1(iq,ik)
-     ! synchronize for common number of k-points to all processes
-     if ((partype.eq.'k').and.(ik-kpari+1 <= nkpt/procs)) call barrier
-     ! end loop over k-points
   end do
   call ematqdealloc
+  call barrier
 end subroutine ematq

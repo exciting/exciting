@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -21,11 +21,11 @@ use modmain
 !   ld     : leading dimension (in,integer)
 !   wfmt   : muffin-tin wavefunction (out,complex(ld,*))
 ! !DESCRIPTION:
+!   Muffin-tin wavefunction built up by local orbital contribution only.
+!   Based upon the routine {\tt wavefmt}.
 !
 ! !REVISION HISTORY:
-!   Created April 2003 (JKD)
-!   Fixed description, October 2004 (C. Brouder)
-!   Removed argument ist, November 2006 (JKD)
+!   Created May 2008 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -41,9 +41,8 @@ integer, intent(in) :: ld
 complex(8), intent(out) :: wfmt(ld,*)
 ! local variables
 integer ias,l,m,lm,i
-integer ir,nr,io,ilo
+integer ir,nr,ilo
 real(8) a,b
-complex(8) zt1
 ! external functions
 complex(8) zdotu
 external zdotu

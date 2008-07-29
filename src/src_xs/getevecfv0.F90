@@ -1,6 +1,5 @@
 
-! Copyright (C) 2007 S. Sagmeister J. K. Dewhurst, S. Sharma and 
-! C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -16,7 +15,6 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   integer, allocatable :: ngkt(:,:)
   real(8), allocatable :: vklt(:,:), vgklt(:,:,:,:)
   character(256) :: filextt
-
   ! copy varialbes of k+(q=0) to default variables
   allocate(ngkt(nkpt,nspnfv))
   allocate(vklt(3,nkptnr))
@@ -32,11 +30,9 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   vgklt(:,:,:,:)=vgkl(:,:,:,:)
   vgkl(:,:,:,:)=vgkl0(:,:,:,:)
   filextt=filext
-
   ! call to getevecfv with changed (G+)k-point sets / matrix size
   call genfilextread(task)
   call getevecfv(vpl,vgpl,evecfvt)
-
   ! restore original variables
   nmatmax=nmatmaxt
   ngkmax=ngkmaxt
@@ -45,5 +41,4 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   vgkl(:,:,:,:)=vgklt(:,:,:,:)
   filext=filextt
   deallocate(ngkt,vklt,vgklt)
-
 end subroutine getevecfv0

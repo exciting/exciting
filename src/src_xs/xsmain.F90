@@ -1,21 +1,20 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
 !BOI
-! !TITLE: The Developers' Guide for the excited-states implementation within
-!   the 
-!   EXCITING Code \\ Version
+! !TITLE: The XS/EXCITING Code (eXited States) Manual \\ Version 0.9
 ! !AUTHORS: S. Sagmeister and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
-!   Welcome to the {\sf XS/EXCITING} code developers' manual
-!   This is supposed to collect the routines and modules belonging
-!   only to the excited states (TDDFT and BSE) part into one document.
+!   Welcome to the {\sf XS/EXCITING} code developers' manual.
+!   This manual is supposed to collect the routines and modules belonging
+!   exclusively to the excited states (TDDFT and BSE) part into one document.
+!   The content of this manual is partially taken from the author's PhD thesis.
 !   \\\\
 !   S. Sagmeister\\
-!   Graz, 2006
+!   Leoben, July 2008
 !
 !EOI
 
@@ -54,7 +53,7 @@ subroutine xsmain
      call writepmat_ascii
   case(322)
      ! convert momentum matrix elements file to old format
-     call pmattd2orig
+     call pmatxs2orig
   case(330)
      ! calculate matrix elements of exponential expression (band combs)
      call writeemat
@@ -99,23 +98,26 @@ subroutine xsmain
      ! RPA screening
      call screen
   case(11111)
+     ! screened Coulomb interaction (old version)
+     call scrcoulint_old
+  case(440)
      ! screened Coulomb interaction
      call scrcoulint
-  case(440)
-     ! screened Coulomb interaction **********************************
-     call scrcoulint3
   case(441)
      ! exchange Coulomb interaction
      call exccoulint
   case(445)
      ! Bethe-Salpeter equation
      call bse
+  case(446)
+     ! ** Bethe-Salpeter equation - NEW VERSION - EXPERIMENTAL
+     call bse2
   case(450)
      ! BSE-kernel
      call kernxc_bse(1)
   case(499)
      ! * debug task
-     call init0
+     call testxs
   case default
      write(*,*)
      write(*,*) 'Error('//thisnam//'): task not defined:', task

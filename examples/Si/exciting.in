@@ -1,10 +1,6 @@
-tdiis
-.true.
+
 ! Band structure of silicon. The points listed after plot1d below are the
 ! vertices joined in the band structure.
-
-diisfirstscl
-3
 
 tasks
   0
@@ -17,8 +13,8 @@ avec
 sppath
   '../../species/'
 
-scrpath
- 'tmp'
+#scrpath
+# 'tmp'
 
 atoms
   1                                 : nspecies
@@ -32,8 +28,8 @@ ngridk
 
 
 
-lowesteval
--0.27
+#lowesteval
+#-0.27
 
 vkloff
   0.25  0.5  0.625

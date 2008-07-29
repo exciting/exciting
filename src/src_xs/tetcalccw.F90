@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -20,7 +20,7 @@ subroutine tetcalccw
   tetra=.true.
   call init1
   ! save Gamma-point variables
-  call tdsave0
+  call xssave0
   ! initialize q-point set
   call init2xs
   ! read Fermi energy
@@ -28,9 +28,9 @@ subroutine tetcalccw
   ! w-point interval for process
   if (tscreen) then
      nwdf=1
-     call genparidxran('q')
+     call genparidxran('q',nqpt)
   else
-     call genparidxran('w')
+     call genparidxran('w',nwdf)
   end if
   ! loop over q-points
   do iq=qpari,qparf

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -7,12 +7,26 @@ module m_dyson
   implicit none
 contains
   
+!BOP
+! !ROUTINE: dyson
+! !INTERFACE:
   subroutine dyson(n,s0,k,s)
+! !USES:
     use invert
-    !
-    ! solve Dyson's equation S = S0 + S0*K*S
-    ! for S by inversion.
-    !
+! !INPUT/OUTPUT PARAMETERS:
+!   n     : matrix size of local field effects (in,integer)
+!   s0    : S0 matrix (in,complex(:,:))
+!   k     : kernel matrix (in,complex(:,:))
+!   s     : S (solution) matrix (in,complex(:,:))
+! !DESCRIPTION:
+!   Solve Dyson's equation
+!     $$   S = S_0 + S_0 K S  $$
+!   for $S$ by inversion.
+!
+! !REVISION HISTORY:
+!   Created March 2005 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! arguments
     integer, intent(in) :: n
@@ -57,6 +71,7 @@ contains
     deallocate(mt)
 
   end subroutine dyson
+!EOC
 
 end module m_dyson
 

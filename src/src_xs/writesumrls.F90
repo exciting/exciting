@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -11,7 +11,7 @@ contains
     use modmain
     use modxs
     use m_getunit
-    use m_tdwriteh
+    use m_writevars
     implicit none
     ! arguments
     integer, intent(in) :: iq
@@ -19,11 +19,8 @@ contains
     character(*), intent(in) :: fn
     ! local variables
     character(*), parameter :: thisnam = 'writesumrls'
-
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
-    ! write parameters as header to file
-    call tdwriteh(unit1,iq)
     ! zeroth frequency moment sumrule
     write(unit1,'(a,g18.10,a,g18.10,a)') 'zeroth frequency moment sumrule &
          &(num. val. el.):', s(1), '(', chgval/2.d0, ')'
@@ -33,9 +30,10 @@ contains
     ! one over frequency sumrule
     write(unit1,'(a,g18.10,a,g18.10,a)') 'pi half sumrule                 &
          &(target)       :', s(3), '(', pi/2.d0, ')'
-    ! close files
+    ! write parameters as header to file
+    call writevars(unit1,iq)
+    ! close file
     close(unit1)
-
   end subroutine writesumrls
 
 end module m_writesumrls

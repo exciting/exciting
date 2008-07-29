@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -19,7 +19,7 @@ subroutine dfq(iq)
   use m_chi0upd
   use m_putx0
   use m_getunit
-  use m_tdwriteh
+  use m_writevars
   use m_filedel
   use m_genfilname
   implicit none
@@ -59,7 +59,7 @@ subroutine dfq(iq)
   ! matrix size for response function
   n=ngq(iq)
   ! zero broadening for analytic contiunation
-  brd=brdtd
+  brd=broad
   if (acont) brd=0.d0
   ! *** experimental *** zero broadening for dielectric matrix (w=0)
   ! for band-gap systems
@@ -178,7 +178,8 @@ subroutine dfq(iq)
 
 !*******************************************************************************
 hdg=zzero
-!!!	read(1108) hdg
+write(*,*) 'dfq, shape(hdg)',shape(hdg)
+!	read(1108) hdg
 !*******************************************************************************
 
   ! loop over k-points
@@ -271,7 +272,7 @@ hdg=zzero
                  j2=ist2
               end if
               ! read weights for tetrahedron method
-              call gettetcw(iq,ik,j1,j2,nwdf,trim(fnwtet),cw,cwa, &
+              call gettetcw(iq,ik,j1,j2,nst1,nst2,nwdf,trim(fnwtet),cw,cwa, &
                    cwsurf)
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &
@@ -400,7 +401,7 @@ hdg=zzero
            end if
         end do
      end do
-     call tdwriteh(un,iq)
+     call writevars(un,iq)
      close(un)
   else
      do j=0,procs-1

@@ -65,7 +65,7 @@ use modifcs
   use m_genfilname
   use m_getpemat
   use m_findgntn0
-  use m_tdgauntgen
+  use m_xsgauntgen
   implicit none
   integer :: iq,ik,ikq,n,ist,jst,ig,igp
   complex(8), allocatable :: scrn(:,:)
@@ -79,10 +79,10 @@ use modifcs
   if (calledxs.eq.1) call init0
   ! initialise universal variables
   call init1
-  call tdsave0
+  call xssave0
   call init2xs
-  call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
-  call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
+  call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
+  call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
   call readfermi
   ! all band combinations
   emattype=0

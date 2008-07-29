@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2006 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -40,8 +40,7 @@ subroutine writeangmom(un)
      write(un,'(a,2i8)') ' PW matr. el.                 : ',&
           lmaxemat, (lmaxemat+1)**2
      write(un,'(a,2i8)') ' APW functions (PW matr. el.) : ',&
-          lmaxapwtd, (lmaxapwtd+1)**2
+          lmaxapwwf, (lmaxapwwf+1)**2
   end if
 end subroutine writeangmom
 !EOC
-

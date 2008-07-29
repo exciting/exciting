@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -8,20 +8,11 @@ module modxs
   !   Global variables for the {\tt XS} (eXcited States) implementation
   !   in the {\tt EXCITING}-code.
   !
-  !
   ! !REVISION HISTORY: 
   !
-  !  Created June 2006 (SAG)
+  !  Created June 2004 (Sagmeister)
   ! !PUBLIC DATA MEMBERS:
   implicit none
-
-  !---------------!
-  !     NOTES     !
-  !---------------!
-  ! the following units are used for standard output and standard error
-  ! but depend on environment
-  ! -1,5: standard output (stdout)
-  !  0  : standard error (stderr)
 
   !---------------------------------------------------------------!
   !     muffin-tin radial mesh and angular momentum variables     !
@@ -196,13 +187,13 @@ module modxs
   ! matching coefficients (q=0)
   complex(8), allocatable :: apwalm0(:,:,:,:)
   ! expansion coefficients of APW functions
-  complex(8), allocatable :: apwdlm(:,:,:,:)
+  complex(8), allocatable :: apwcmt(:,:,:,:)
   ! expansion coefficients of APW functions (q=0)
-  complex(8), allocatable :: apwdlm0(:,:,:,:)
+  complex(8), allocatable :: apwcmt0(:,:,:,:)
   ! expansion coefficients of local orbitals functions
-  complex(8), allocatable :: lodlm(:,:,:,:)
+  complex(8), allocatable :: locmt(:,:,:,:)
   ! expansion coefficients of local orbitals functions (q=0)
-  complex(8), allocatable :: lodlm0(:,:,:,:)
+  complex(8), allocatable :: locmt0(:,:,:,:)
   ! APW coefficients for muffin-tin part of the wavefunction
   complex(8), allocatable :: wfcmt(:,:,:,:)
   ! APW coefficients for muffin-tin part of the wavefunction (q=0)
@@ -211,14 +202,12 @@ module modxs
   !--------------------------------------------!
   !     eigenvalue and occupancy variables     !
   !--------------------------------------------!
-  ! number of occupied valence states (valence band states)
-  integer :: nstval
-  ! number of unoccupied valence states (conduction band states)
-  integer :: nstcon
   ! eigenvalue differences (resonant part)
   real(8), allocatable :: deou(:,:)
   ! eigenvalue differences (anti-resonant part)
   real(8), allocatable :: deuo(:,:)
+  ! occupation numbers (q=0)
+  real(8), allocatable :: occsv0(:,:)
   ! occupation number differences (first band combination)
   real(8), allocatable :: docc12(:,:)
   ! occupation number differences (second band combination)
@@ -227,31 +216,32 @@ module modxs
   integer, allocatable :: isto0(:), isto(:)
   ! lowest (at least partially) unoccupied state
   integer, allocatable :: istu0(:), istu(:)
-  ! maximum nsto over k-points
+  ! maximum isto over k-points
   integer :: istocc0, istocc
-  ! minimum nstu over k-points
+  ! minimum istu over k-points
   integer :: istunocc0, istunocc
-  ! occupation numbers (q=0)
-  real(8), allocatable :: occsv0(:,:)
-  ! lower and upper limits and numbers for band indices combinations
-  integer :: nst1,istlo1,isthi1,nst2,istlo2,isthi2
-  ! lower and upper limits and numbers for band indices combinations second
-  ! block
-  integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
-  ! minimum and maximum energies over k-points
-  real(8) :: evlmin,evlmax,evlmincut,evlmaxcut,ecrmin,ecrmax
   ! highest (at least partially) occupied state energy
   real(8) :: evlhpo
   ! lowest (at least partially) unoccupied state energy
   real(8) :: evllpu
+  ! lower and upper limits and numbers for band indices combinations
+  integer :: nst1,istlo1,isthi1,nst2,istlo2,isthi2
+  ! lower and upper limits and numbers for band indices combinations, 2nd block
+  integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
+  ! minimum and maximum energies over k-points
+  real(8) :: evlmin,evlmax,evlmincut,evlmaxcut,ecrmin,ecrmax
   ! true if system has a Kohn-Sham gap
   logical :: ksgap
+  ! number of (at least partially) occupied valence states
+  integer :: nstocc0,nstocc
+  ! number of (at least partially) unoccupied valence states
+  integer :: nstunocc0,nstunocc
 
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
-  ! strategy to calculate APW-lo, lo-APW and lo-lo parts in MT
-  integer :: ematstrat
+  ! fast method to calculate APW-lo, lo-APW and lo-lo parts in MT
+  logical :: fastemat
   ! type of matrix element generation (band-combinations)
   integer :: emattype
   ! maximum angular momentum for Rayleigh expansion of exponential
@@ -259,11 +249,11 @@ module modxs
   ! (lmaxemat+1)^2
   integer :: lmmaxemat
   ! maximum angular momentum for APW functions (for matrix elements)
-  integer :: lmaxapwtd
-  ! (lmaxapwtd+1)^2
-  integer :: lmmaxapwtd
+  integer :: lmaxapwwf
+  ! (lmaxapwwf+1)^2
+  integer :: lmmaxapwwf
   ! Gaunt coefficients array
-  real(8), allocatable :: tdgnt(:,:,:)
+  real(8), allocatable :: xsgnt(:,:,:)
   ! radial integrals coefficients (APW-APW)
   complex(8), allocatable :: intrgaa(:,:,:,:,:)
   ! radial integrals coefficients (lo-APW)
@@ -300,16 +290,8 @@ module modxs
   !---------------------------------!
   !     momentum matrix elements    !
   !---------------------------------!
-  ! strategy to calculate matrix elements
-  integer :: pmatstrat
-  ! radial integrals (APW-APW)
-  real(8), allocatable :: ripaa(:,:,:,:,:,:)
-  ! radial integrals (APW-lo)
-  real(8), allocatable :: ripalo(:,:,:,:,:,:)
-  ! radial integrals (lo-APW)
-  real(8), allocatable :: riploa(:,:,:,:,:,:)
-  ! radial integrals (lo-lo)
-  real(8), allocatable :: riplolo(:,:,:,:,:,:)
+  ! fast method to calculate matrix elements
+  logical :: fastpmat
   ! momentum matrix elements (resonant part)
   complex(8), allocatable :: pmou(:,:,:)
   ! momentum matrix elements (anti-resonant part)
@@ -329,7 +311,7 @@ module modxs
   ! number of energy intervals (on imaginary axis) for analytic continuation
   integer :: nwacont
   ! broadening for Kohn Sham response function
-  real(8) :: brdtd
+  real(8) :: broad
   ! true if to consider the anti-resonant part for the dielectric function
   logical :: aresdf
   ! true if only diagonal part of local field effects is considered
@@ -348,6 +330,8 @@ module modxs
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
   ! method)
   integer :: bzsampl
+  ! choice of weights and nodes for tetrahedron method and non-zero Q-point
+  integer :: tetraqweights
   ! number of band transitions for analysis
   integer :: ndftrans
   ! k-point and band combination analysis
@@ -437,10 +421,14 @@ module modxs
   real(8) :: vkloffbse(3)
   ! smallest muffin-tin radius times gkmax
   real(8) :: rgkmaxbse
+  ! number of states below Fermi energy (Coulomb - and exchange term)
+  integer :: nbfce
+  ! number of states above Fermi energy (Coulomb - and exchange term)
+  integer :: nafce
   ! number of states below Fermi energy
-  integer :: nstbef
+  integer :: nbfbse
   ! number of states above Fermi energy
-  integer :: nstabf
+  integer :: nafbse
   ! filenames for eigenvector file, eigenvalues and occupancies
   character(256) :: fnevecfvbse, fnevalsvbse, fnoccsvbse
   ! treatment of weights for BSE diagonal (integrating out singularity)
@@ -505,6 +493,10 @@ module modxs
   integer :: kpari
   ! current final k-point index
   integer :: kparf
+  ! current initial (k,kp) pair index
+  integer :: ppari
+  ! current final (k,kp) pair index
+  integer :: pparf
   ! current initial w-point index
   integer :: wpari
   ! current final w-point index
@@ -540,8 +532,6 @@ module modxs
   integer :: dbglev
   ! true if to append info to output file
   logical :: tappinfo
-  ! task for TDDFT part
-  integer :: tasktd
   ! gather option
   logical :: gather
   data gather /.false./
@@ -549,7 +539,7 @@ module modxs
   character(1024) :: msg
   ! default file extension
   data msg / 'no message' /  
-  ! number of times the main tddft routine was called
+  ! number of times the main excited states routine was called
   integer :: calledxs
   data calledxs / 0 /
   ! true if to skip allocations of radial functions in "init1"
@@ -559,8 +549,6 @@ module modxs
   ! additionally bandstructure that is not shifted to the Fermi level
   logical :: imbandstr
   data imbandstr /.false./
-  ! analytic evaluation of momentum matrix elements in interstitial
-  logical :: pmatira
   ! true if state is only allowed to be read from STATE.OUT file
   ! and from no other file extension
   logical :: isreadstate0

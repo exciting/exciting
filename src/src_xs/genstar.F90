@@ -1,5 +1,5 @@
 
-! Copyright (C) 2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -12,7 +12,7 @@ subroutine genstar(tsmgrq,ngridp,nppt,npptnr,vpl,vplnr,ivpnr,ipmap,ipmapnr, &
   use modmain
   use modxs
 ! !DESCRIPTION:
-!   Generates the stars for the $k$-point set as reference to crystal
+!   Generates the stars for the $p$-point set as reference to crystal
 !   symmetries. For a non-zero q-point the little group of q is taken
 !   instead of the full symmetry group.
 !

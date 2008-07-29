@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -15,7 +15,7 @@ use m_genfilname
 ! !DESCRIPTION:
 !   Writes the ${\bf q}$-points in lattice coordinates, weights and number of
 !   ${\bf G+q}$-vectors to the file {\tt QPOINTS.OUT}. Based on the routine 
-!   "writekpts.f90"
+!   {\tt writekpts}.
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (Sagmeister)

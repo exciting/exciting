@@ -1,13 +1,13 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module m_tdwriteh
+module m_writevars
   implicit none
 contains
 
-  subroutine tdwriteh(un,iq)
+  subroutine writevars(un,iq)
     use modmain
     use modxs
     implicit none
@@ -15,7 +15,6 @@ contains
     integer, intent(in) :: iq,un
     ! local variables
     character(10) :: dat,tim
-
     ! write prologue to file
     call date_and_time(date=dat,time=tim)
     write(un,*)
@@ -37,7 +36,7 @@ contains
     write(un,'(a,l8)') '# aresdf            :',aresdf
     write(un,'(a,l8)') '# acont             :',acont
     write(un,'(a,i8)') '# nwacont           :',nwacont
-    write(un,'(a,2f12.6)') '# brdtd (H,eV)      :',brdtd,h2ev*brdtd
+    write(un,'(a,2f12.6)') '# broad (H,eV)      :',broad,h2ev*broad
     write(un,'(a,2f12.6)') '# scissor (H,eV)    :',scissor,h2ev*scissor
     write(un,'(a,i8)') '# nwdos             :',nwdos
     write(un,'(a,i8)') '# ngq               :',ngq(iq)
@@ -64,7 +63,7 @@ contains
          h2ev*evllpu
     write(un,'(a,l8)') '# ksgap             :',ksgap
     write(un,'(a,i8)') '# lmaxapw           :',lmaxapw
-    write(un,'(a,i8)') '# lmaxapwtd         :',lmaxapwtd
+    write(un,'(a,i8)') '# lmaxapwwf         :',lmaxapwwf
     write(un,'(a,i8)') '# lmaxmat           :',lmaxmat
     write(un,'(a,i8)') '# lmaxvr            :',lmaxvr
     write(un,'(a,i8)') '# lmaxinr           :',lmaxinr
@@ -72,7 +71,8 @@ contains
     write(un,'(a,i8)') '# lmaxemat          :',lmaxemat
     write(un,'(a,i8)') '# lradstp           :',lradstp
     write(un,'(a,l8)') '# tevout            :',tevout
-    write(un,'(a,i8)') '# ematstrat         :',ematstrat
+    write(un,'(a,l8)') '# fastpmat          :',fastemat
+    write(un,'(a,l8)') '# fastemat          :',fastemat
     write(un,'(a,l8)') '# nosym             :',nosym
     write(un,'(a,l8)') '# symwings          :',symwings
     write(un,'(a,l8)') '# tsymdfq0dn        :',tsymdfq0dn
@@ -80,7 +80,6 @@ contains
     write(un,'(a,9f12.6)') '# symdfq0 (row2)    :',symdfq0(2,:)
     write(un,'(a,9f12.6)') '# symdfq0 (row3)    :',symdfq0(3,:)
     write(un,*)
+  end subroutine writevars
 
-  end subroutine tdwriteh
-
-end module m_tdwriteh
+end module m_writevars

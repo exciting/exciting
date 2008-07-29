@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -7,13 +7,25 @@ module m_gensumrls
   implicit none
 contains
 
+!BOP
+! !ROUTINE: gensumrls
+! !INTERFACE:
   subroutine gensumrls(w,eps,sumrls)
-    !
-    ! Expressions for the sumrules taken from  
-    ! [cad, CPC 175 (2006) 1-14, p5, eq. 26]
-    !
+! !USES:
     use modmain
     use modxs
+! !INPUT/OUTPUT PARAMETERS:
+!   w      : frequency grid (in,real(:))
+!   eps    : dielectric function tensor component (in,complex(:))
+!   sumrls : values of three different sumrules (out,real(3))
+! !DESCRIPTION:
+!   Expressions for the sumrules taken from Ambrosch-Draxl,
+!   CPC 175 (2006) 1-14, p5, Eq. 26.
+!
+! !REVISION HISTORY:
+!   Created March 2006 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! arguments
     real(8), intent(in) :: w(:)
@@ -53,5 +65,6 @@ contains
     deallocate(f,g,cf)
 
   end subroutine gensumrls
+!EOC
 
 end module m_gensumrls

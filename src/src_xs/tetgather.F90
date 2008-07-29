@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -37,7 +37,7 @@ subroutine tetgather
                  wparf=lastofset(iproc,nwdf)
                  nwdfp=wparf-wpari+1
                  allocate(cwp(nwdfp),cwap(nwdfp),cwsurfp(nwdfp))
-                 call gettetcw(iq,ik,i1,i2,nwdfp,trim(filnam_t),&
+                 call gettetcw(iq,ik,i1,i2,nst1,nst2,nwdfp,trim(filnam_t),&
                       cwp,cwap,cwsurfp)
                  cw(wpari:wparf)=cwp(:)
                  cwa(wpari:wparf)=cwap(:)
@@ -45,7 +45,7 @@ subroutine tetgather
                  deallocate(cwp,cwap,cwsurfp)
               end do ! iproc
               ! write weights
-              call puttetcw(iq,ik,i1,i2,trim(filnam),cw,cwa,cwsurf)
+              call puttetcw(iq,ik,i1,i2,nst1,nst2,trim(filnam),cw,cwa,cwsurf)
            end do
         end do
         ! end loop over k-points

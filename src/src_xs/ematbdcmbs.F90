@@ -14,14 +14,14 @@ subroutine ematbdcmbs(etyp)
      call ematbdlims(0,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
      nst3=0; nst4=0
   case(1)
-     ! v-c combinations
+     ! o-u combinations
      call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-     ! c-v combinations
+     ! u-o combinations
      call ematbdlims(2,nst3,istlo3,isthi3,nst4,istlo4,isthi4)
   case(2)
-     ! v-v combinations
+     ! o-o combinations
      call ematbdlims(3,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-     ! c-c combinations
+     ! u-u combinations
      call ematbdlims(4,nst3,istlo3,isthi3,nst4,istlo4,isthi4)
   end select
 end subroutine ematbdcmbs

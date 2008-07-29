@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -11,7 +11,7 @@ contains
     use modmain
     use modxs
     use m_getunit
-    use m_tdwriteh
+    use m_writevars
     implicit none
     ! arguments
     integer, intent(in) :: iq,oct
@@ -28,14 +28,15 @@ contains
     allocate(eps(nwdos),epstet(nwdos))
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
-    ! write parameters as header to file
-    call tdwriteh(unit1,iq)
     ! write data to file
 
     do j=1,nexcit(oct)
        wp=excite(j,oct)
        write(unit1,'(3g18.10)') j, wp*escale, excito(j,oct)
     end do
+
+    ! write parameters to file
+    call writevars(unit1,iq)
 
     ! close files
     close(unit1)
@@ -46,12 +47,12 @@ contains
        do iw=1,nwdf
           ! single Lorentz peak at zero frequency
           eps(iw)=eps(iw)&
-               +excito(ne,oct)*1.0d0/pi*brdtd/(brdtd**2+(w(iw)-we)**2) &
-               -excito(ne,oct)*1.0d0/pi*brdtd/(brdtd**2+(-w(iw)-we)**2)
+               +excito(ne,oct)*1.0d0/pi*broad/(broad**2+(w(iw)-we)**2) &
+               -excito(ne,oct)*1.0d0/pi*broad/(broad**2+(-w(iw)-we)**2)
           ! convolute with two Lorentz peaks (+/-) at zero frequency
-!!$          eps(iw)=eps(iw)+(1.d0/(2*atan(we/brdtd)))*( &
-!!$                      brdtd/((w(iw)-we)**2+brdtd**2) - &
-!!$                      brdtd/((-w(iw)-we)**2+brdtd**2) )
+!!$          eps(iw)=eps(iw)+(1.d0/(2*atan(we/broad)))*( &
+!!$                      broad/((w(iw)-we)**2+broad**2) - &
+!!$                      broad/((-w(iw)-we)**2+broad**2) )
        end do ! iw
     end do
 

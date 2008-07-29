@@ -6,7 +6,7 @@ FFLAGS = $(F90_OPTS) $(F90CPP_OPTS)
 ### debug
 #FFLAGS = $(F90_OPTS) -check all -traceback
 LD = $(FC)
-LDFLAGS = $(LIB_LPK) $(LIB_FFT) $(LIB_SYS) $(LIB_BZINT) 
+LDFLAGS = $(LIB_LPK) $(LIB_FFT) $(LIB_SYS) $(LIB_BZINT)
 AR = ar
 ARFLAGS = -rc
 

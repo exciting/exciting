@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -24,7 +24,7 @@ subroutine x0toasc
   ! initialise universal variables
   call init1
   ! save Gamma-point variables
-  call tdsave0
+  call xssave0
   ! initialize q-point set
   call init2xs
   ! loop over q-points

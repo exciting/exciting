@@ -1,17 +1,24 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine tdsave0
-  !
-  ! This routine is be called after init0, init1 and init2xs in order to save
-  ! variables realted to the k-point set for q=0.
-  !
+!BOP
+! !ROUTINE: xssave0
+! !INTERFACE:
+subroutine xssave0
+! !USES:
   use modmain
   use modxs
+! !DESCRIPTION:
+!   This routine is be called after init0, init1 and init2xs in order to save
+!   variables realted to the k-point set for q=0.
+!
+! !REVISION HISTORY:
+!   Created March 2005 (Sagmeister)
+!EOP
+!BOC
   implicit none
-
   ! allocate the k-point arrays
   if (allocated(vkl0)) deallocate(vkl0)
   allocate(vkl0(3,nkptnr))
@@ -33,7 +40,6 @@ subroutine tdsave0
   ! overlap and Hamiltonian matrix sizes
   if (allocated(nmat0)) deallocate(nmat0)
   allocate(nmat0(nkpt,nspnfv))
-
   ! save variables for k-vectors
   nkpt0=nkpt
   vkl0(:,:) = vkl(:,:)
@@ -49,5 +55,5 @@ subroutine tdsave0
   ! save variables for overlap and Hamiltonian matrix sizes
   nmatmax0 = nmatmax
   nmat0(:,:) = nmat(:,:)
-
-end subroutine tdsave0
+end subroutine xssave0
+!EOC

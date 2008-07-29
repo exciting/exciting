@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -7,8 +7,8 @@ subroutine ematqkgmt(iq,ik,igq)
   use modmain
   use modxs
   use m_zaxpyc
-  use m_tdzoutpr
-  use m_tdzoutpr3
+  use m_xszoutpr
+  use m_xszoutpr3
   implicit none
   ! arguments
   integer, intent(in) :: iq,ik,igq
@@ -19,7 +19,7 @@ subroutine ematqkgmt(iq,ik,igq)
   complex(8), allocatable :: zv(:)
   allocate(zv(nstsv))
   ikt=ik
-  lmax1=lmaxapwtd
+  lmax1=lmaxapwwf
   lmax3=lmax1
   xih(:,:) = zzero
   xiuhloa(:,:) = zzero
@@ -46,20 +46,20 @@ subroutine ematqkgmt(iq,ik,igq)
                        do io2=1,apword(l3,is)
                           call zaxpy(nstsv, &
                                intrgaa(lm1,io1,lm3,io2,ias), &
-                               apwdlm(1,io2,lm3,ias),1,zv,1)
+                               apwcmt(1,io2,lm3,ias),1,zv,1)
                        end do
                     end do ! m3
                  end do ! l3
-                 call tdzoutpr(nst1,nst2, &
+                 call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      apwdlm0(istlo1:isthi1,io1,lm1,ias),zv(istlo2:isthi2), &
+                      apwcmt0(istlo1:isthi1,io1,lm1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))
                  ! end loop over (l',m',p')
               end do! io1
            end do ! m1
         end do ! l1
         call cpu_time(cmt1)
-        if (ematstrat.eq.0) then
+        if (fastemat) then
            !--------------------------------------!
            !     local-orbital-APW contribution   !
            !--------------------------------------!
@@ -76,13 +76,13 @@ subroutine ematqkgmt(iq,ik,igq)
                        do io=1,apword(l3,is)
                           call zaxpy(nstsv, &
                                intrgloa(m1,ilo,lm3,io,ias), &
-                               apwdlm(1,io,lm3,ias),1,zv,1)
+                               apwcmt(1,io,lm3,ias),1,zv,1)
                        end do ! io
                     end do ! m3
                  end do ! l3
-                 call tdzoutpr(nst1,nst2, &
+                 call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      lodlm0(istlo1:isthi1,ilo,m1,ias),zv(istlo2:isthi2), &
+                      locmt0(istlo1:isthi1,ilo,m1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))
               end do ! m1
            end do ! ilo
@@ -103,12 +103,12 @@ subroutine ematqkgmt(iq,ik,igq)
                           lm1=idxlm(l1,m1)
                           call zaxpy(nstsv, &
                                intrgalo(m1,ilo,lm3,io,ias), &
-                               lodlm(1,ilo,m1,ias),1,zv,1)
+                               locmt(1,ilo,m1,ias),1,zv,1)
                        end do ! m1
                     end do ! ilo
-                    call tdzoutpr(nst1,nst2, &
+                    call xszoutpr(nst1,nst2, &
                          fourpi*conjg(sfacgq(igq,ias,iq)), &
-                         apwdlm0(istlo1:isthi1,io,lm3,ias),zv(istlo2:isthi2), &
+                         apwcmt0(istlo1:isthi1,io,lm3,ias),zv(istlo2:isthi2), &
                          xiou(:,:,igq))
                  end do ! io
               end do ! m3
@@ -128,12 +128,12 @@ subroutine ematqkgmt(iq,ik,igq)
                        lm3=idxlm(l3,m3)
                        call zaxpy(nstsv, &
                             intrglolo(m1,ilo1,m3,ilo2,ias), &
-                            lodlm(1,ilo2,m3,ias),1,zv,1)
+                            locmt(1,ilo2,m3,ias),1,zv,1)
                     end do ! m3
                  end do ! ilo2
-                 call tdzoutpr(nst1,nst2, &
+                 call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      lodlm0(istlo1:isthi1,ilo1,m1,ias),zv(istlo2:isthi2), &
+                      locmt0(istlo1:isthi1,ilo1,m1,ias),zv(istlo2:isthi2), &
                       xiou(:,:,igq))
               end do ! m1
            end do ! ilo1
@@ -155,7 +155,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        do io=1,apword(l3,is)
                           call zaxpy(nstsv, &
                                intrgloa(m1,ilo,lm3,io,ias), &
-                               apwdlm(1,io,lm3,ias),1,zv,1)
+                               apwcmt(1,io,lm3,ias),1,zv,1)
                        end do ! io
                     end do ! m3
                  end do ! l3
@@ -181,7 +181,7 @@ subroutine ematqkgmt(iq,ik,igq)
                        do io=1,apword(l3,is)
                           call zaxpyc(nstsv, &
                                intrgalo(m1,ilo,lm3,io,ias), &
-                               apwdlm0(:,io,lm3,ias),1,zv,1)
+                               apwcmt0(:,io,lm3,ias),1,zv,1)
                        end do ! io
                     end do ! m3
                  end do ! l3

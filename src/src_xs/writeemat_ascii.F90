@@ -1,5 +1,5 @@
 
-! Copyright (C) 2004-2007 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -15,7 +15,7 @@ subroutine writeemat_ascii
   complex(8) :: zt
   call init0
   call init1
-  call tdsave0
+  call xssave0
   call init2xs
   call readfermi
   call getunit(un)
@@ -42,13 +42,14 @@ subroutine writeemat_ascii
      open(un,file=trim(filnam),action='write')
      ! read matrix elements of exponential expression
      call genfilname(basename='EMAT',iqmt=iq,etype=emattype,filnam=fnemat)
-!!$     write(un,'(a)') 'iq,ik,igq,i1,i2,emat,|emat|^2, below'
      ! loop over k-points
      do ik=1,nkpt
         if (emattype.eq.0) then
-           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou)
+           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istlo1,isthi1,istlo2,&
+                isthi2,xiou)
         else
-           call getemat(iq,ik,.true.,trim(fnemat),x1=xiou,x2=xiuo)
+           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istlo1,isthi1,istlo2,&
+                isthi2,xiou,istlo3,isthi3,istlo4,isthi4,xiuo)
         end if
         do igq=1,ngq(iq)
            do i=1,nst1

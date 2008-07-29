@@ -88,7 +88,7 @@
       vt = v
 
       !<sag>
-      if (pointerhandling == 0) then
+      if (pointerhandling.eq.0) then
          ! default treatment
       !</sag>
          tetcorn => tetc(1:4,1:ntet)
@@ -96,23 +96,23 @@
          eband   => ebd(1:nb,1:nik)
          tetweig => wt(1:ntet)
       !<sag>
-      else if (pointerhandling == 1) then
-         ! additional targets to get around with core dumps in combination with
-         ! the Portland compiler
+      else if (pointerhandling.eq.1) then
+         ! additional target arrays to get around with core dumps in
+         ! combination with the Portland compiler
          allocate(target_tetc(1:4,1:ntet))
          allocate(target_linkt(1:ntet))
          allocate(target_ebd(1:nb,1:nik))
          allocate(target_wt(1:ntet))
          ! store copy of input parameters locally for this routine
-         target_tetc(1:4,1:ntet)=tetc(1:4,1:ntet)
-         target_linkt(1:ntet)=linkt(1:ntet)
-         target_ebd(1:nb,1:nik)=ebd(1:nb,1:nik)
-         target_wt(1:ntet)=wt(1:ntet)
+         target_tetc(:,:)=tetc(1:4,1:ntet)
+         target_linkt(:)=linkt(1:ntet)
+         target_ebd(:,:)=ebd(1:nb,1:nik)
+         target_wt(:)=wt(1:ntet)
          ! assign pointers to local objects
-         tetcorn => target_tetc(1:4,1:ntet)
-         tetln => target_linkt(1:ntet)
-         eband   => target_ebd(1:nb,1:nik)
-         tetweig => target_wt(1:ntet)
+         tetcorn=>target_tetc(:,:)
+         tetln=>target_linkt(:)
+         eband=>target_ebd(:,:)
+         tetweig=>target_wt(:)
       end if
       !</sag>
 !

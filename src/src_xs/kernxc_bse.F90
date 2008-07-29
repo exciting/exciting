@@ -3,33 +3,43 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: kernxc_bse
+! !INTERFACE:
 subroutine kernxc_bse(oct)
-  !
-  ! BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-  !
+! !USES:
   use modmain
   use modmpi
   use modtetra
   use modxs
   use modfxcifc
   use invert
-  use m_tdgauntgen
+  use m_xsgauntgen
   use m_findgntn0
   use m_writegqpts
   use m_genwgrid
   use m_dyson
-  use m_tdzoutpr3
+  use m_xszoutpr3
   use m_getpemat
   use m_getx0
   use m_getunit
   use m_genfilname
+! !INPUT/OUTPUT PARAMETERS:
+!   oct   : optical diagonal tensor component (in,integer)
+! !DESCRIPTION:
+!   BSE-kernel of A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
+!
+! !REVISION HISTORY:
+!   Created March 2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   integer, intent(in) :: oct
   ! local variables
   character(*), parameter :: thisnam = 'kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-3
+  real(8), parameter :: delt=1.d-6
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:),w(:)
   complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
@@ -68,7 +78,7 @@ t3=1.d0
 bsediagshift=zzero
 bsediagshiftc=zzero
 
-brd=brdtd
+brd=broad
 
   !----------------!
   !   initialize   !
@@ -99,11 +109,11 @@ brd=brdtd
   ! read Fermi energy from file
   call readfermi
   ! save variables for the Gamma q-point
-  call tdsave0
+  call xssave0
   ! generate Gaunt coefficients
-  call tdgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
+  call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
   ! find indices for non-zero Gaunt coefficients
-  call findgntn0(max(lmaxapwtd,lolmax),max(lmaxapwtd,lolmax),lmaxemat,tdgnt)
+  call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
   write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated&
        & within lmax values:', lmaxapw,lmaxemat,lmaxapw
   write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
@@ -136,7 +146,7 @@ brd=brdtd
 
 write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
-  call genparidxran('w')
+  call genparidxran('w',nwdf)
   ! sampling type for Brillouin zone sampling
   bzsampl=l2int(tetra)
   ! limits for w-points
@@ -178,6 +188,7 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
 allocate(hdg(nst1,nst3,nkptnr))
 hdg=zzero
+write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
 
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
@@ -358,7 +369,7 @@ hdg=zzero
            do ist3=1,nst3
               do ist1=1,nst1	      
                  zt1=sccli(ist1,ist3,ist1,ist3)
-!!!                 hdg(ist1,ist3,iknr)=-zt1
+!!!hdg(ist1,ist3,iknr)=-zt1
                  t1=dble(zt1)
                  t2=aimag(zt1)
                  tp=atan2(t2,t1)
@@ -457,27 +468,28 @@ hdg=zzero
            ! set up inner part of kernel
            
            ! generate oscillators
-           call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
+           call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
            ! add Hermitian transpose
            osca=osca+conjg(transpose(osca))
-           call tdzoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
+           call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
 
 
-!!$! *** this part is working for Si_lapw and Si_APW+lo ***
-!!$           ! set up energy denominators
-!!$           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
-!!$           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
-!!$           den1=den1/nkpt/omega
-!!$           den2=den2/nkpt/omega
-!!$! *** end
+!! *** this part is working for Si_lapw and Si_APW+lo ***
+!           ! set up energy denominators
+!           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
+!           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
+!           den1=den1/nkpt/omega
+!           den2=den2/nkpt/omega
+!! *** end
 
-           ! set up energy denominators
-           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
-                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
-           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
-                2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
-           den1=den1/nkpt/omega
-           den2=den2/nkpt/omega
+	   ! set up energy denominators
+	   den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
+		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
+	   den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
+		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
+	   den1=den1/nkpt/omega
+	   den2=den2/nkpt/omega
+
            ! update kernel
            do iw=1,nwdf
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
@@ -566,31 +578,4 @@ write(1108) hdg
   ! deallocate
   !deallocte(..............................)
 end subroutine kernxc_bse
-
-
-integer function idxkkp(ik,ikp,n)
-  implicit none
-  ! arguments
-  integer, intent(in) :: ik,ikp,n
-  ! local variables
-  integer :: a,s
-  if ((ik.le.0).or.(ikp.le.0).or.(n.le.0)) then
-     write(*,*)
-     write(*,'("Error(idxkkp): negative indices or number of points")')
-     write(*,*)
-     call terminate
-  end if
-  if (ik.gt.ikp) then
-     write(*,*)
-     write(*,'("Error(idxkkp): ik > ikp")')
-     write(*,*)
-     call terminate
-  end if
-  s=0
-  do a=1,ik-1
-     s=s+n-a+1
-  end do
-  idxkkp=s+ikp-ik+1
-end function idxkkp
-
-
+!EOC

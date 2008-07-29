@@ -7,9 +7,6 @@
 ! !ROUTINE: sphcover
 ! !INTERFACE:
 subroutine sphcover(ntp,tp)
-#ifdef XS
-  use modxs
-#endif
 ! !INPUT/OUTPUT PARAMETERS:
 !   ntp : number of required points (in,integer)
 !   tp  : (theta, phi) coordinates (out,real(2,ntp))
@@ -78,9 +75,6 @@ va(:,n)=vm(:)
 ! compute the spherical coordinates of the vector
 call sphcrd(vm,r,tp(1,n))
 if (n.lt.ntp) goto 10
-#ifdef XS
-sphcov(:,:)=va(:,:)
-#endif
 deallocate(va)
 return
 end subroutine
