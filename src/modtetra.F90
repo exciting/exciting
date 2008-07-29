@@ -383,7 +383,7 @@ contains
     allocate(wtett(6*nkptnr),tnodest(4,6*nkptnr))
     ! generate fraction for k-point offset
     call r3fraction(vkloff,ikloff,dkloff)
-    ! generate link array, nodes and weights
+    ! call to library routine (generate link array, nodes and weights)
     call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
          ntet,tnodest,wtett,link,tvol)
     if (tqw.ne.0) then
@@ -405,6 +405,70 @@ contains
 !EOC
 
 
+  subroutine fermitetifc(nkpt,nst,eval,chgval,spinpol,efermi,fermidos)
+    implicit none
+    ! arguments
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: chgval
+    logical, intent(in) :: spinpol
+    real(8), intent(out) :: efermi
+    real(8), intent(out) :: fermidos
+    ! local variables
+    integer :: ik,ikd
+    real(8), allocatable :: evallib(:,:)
+    allocate(evallib(nst,nkpt))
+    ! reorder energies to library order
+    do ik=1,nkpt
+       evallib(:,ik)=eval(:,iktet2ik(ik))
+    end do
+    ! call to library routine
+    call fermitet(nkpt,nst,evallib,ntet,tnodes,wtet,tvol,chgval,spinpol, &
+         efermi,fermidos,.false.)
+    deallocate(evallib)
+  end subroutine fermitetifc
+
+! TODO : vkloff has different order for wien2k settings (z,y,x) !!!
+! TODO: also ngridk is different
+
+  subroutine tetiwifc(nkpt,wkpt,occmax,nst,eval,efermi,occ)
+    implicit none
+    ! arguments
+    integer, intent(in) :: nkpt
+    real(8), intent(in) :: wkpt(nkpt)
+    real(8), intent(in) :: occmax
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: efermi
+    real(8), intent(out) :: occ(nst,nkpt)
+    ! local variables
+    integer :: ik,ikd
+    real(8), allocatable :: evallib(:,:),occt(:)
+    allocate(evallib(nst,nkpt),occt(nst))
+    ! reorder energies to library order
+    do ik=1,nkpt
+       evallib(:,ik)=eval(:,iktet2ik(ik))
+    end do
+    ! call to library routine
+    call tetiw(nkpt,ntet,nst,evallib,tnodes,wtet,tvol,efermi,occ)
+    ! reorder occupation numbers to default order
+    do ik=1,nkpt
+       ikd=iktet2ik(ik)
+       occt(:)=occ(:,ikd)
+       occ(:,ikd)=occ(:,ik)
+       occ(:,ik)=occt(:)
+    end do
+    deallocate(evallib,occt)
+    do ik=1,nkpt
+       ! The "occ" variable returned from "tetiw" already contains the
+       ! k-point weight "wkpt" and does not account for spin degeneracy -
+       ! rescaling is necessary (Stephan Sagmeister).
+       occ(:,ik)=(occmax/wkpt(ik))*occ(:,ik)
+    end do
+  end subroutine tetiwifc
+
+
   subroutine tetcwifc(nkpt,nst,eval,efermi,w,ifreq,cw)
     implicit none
     ! arguments
@@ -423,6 +487,7 @@ contains
     do ik=1,nkpt
        evallib(:,ik)=eval(:,iktet2ik(ik))
     end do
+    ! call to library routine
     call tetcw(nkpt,ntet,nst,wtet,evallib,tnodes,link,tvol,efermi,w,ifreq,cw)
     ! reorder convolution weights to default order
     do ik=1,nkpt

@@ -100,9 +100,12 @@ fermidos=fermidos*occmax/2.d0
 !<rga>
 else
   ! calculate the Fermi energy and the density of states at the Fermi energy
-  call fermitet(nkpt,nstsv,evalsv,ntet,tnodes,wtet,tvol,chgval,spinpol, &
-  efermi,fermidos,.false.)
-  call tetiw(nkpt,ntet,nstsv,evalsv,tnodes,wtet,tvol,efermi,occsv)
+  call fermitetifc(nkpt,nstsv,evalsv,chgval,spinpol,efermi,fermidos)
+  call tetiwifc(nkpt,wkpt,occmax,nstsv,evalsv,efermi,occsv)
+!!$  ! calculate the Fermi energy and the density of states at the Fermi energy
+!!$  call fermitet(nkpt,nstsv,evalsv,ntet,tnodes,wtet,tvol,chgval,spinpol, &
+!!$  efermi,fermidos,.false.)
+!!$  call tetiw(nkpt,ntet,nstsv,evalsv,tnodes,wtet,tvol,efermi,occsv)
   do ik=1,nkpt
     ! The "occsv" variable returned from "tetiw" already contains the
     ! weight "wkpt" and does not account for spin degeneracy - rescaling is
