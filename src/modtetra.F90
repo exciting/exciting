@@ -72,7 +72,7 @@ contains
     ! local variables
     integer :: maxint
     real(8) :: dx
-    maxint=nint(1.d0/eps)
+    maxint=nint(1.d0/eps)/10
     do div=1,maxint
        k(:)=nint(dble(div)*x(:))
        dx=maxval(abs(dble(k)/dble(div)-x))
@@ -199,6 +199,7 @@ contains
     real(8), intent(in) :: vkl(3,ngridk(1)*ngridk(2)*ngridk(3))
     real(8), intent(in) :: wkpt(ngridk(1)*ngridk(2)*ngridk(3))
     ! local variables
+    real(8), parameter :: epsvkloff=1.d-5
     integer :: isym,lspl,i1,i2,nsymcryst
     integer :: ik,ikd,nkptlib
     real(8) :: wkptlib
@@ -230,7 +231,7 @@ contains
     ! report interface parameters
     call tetrareportsettings
     ! generate fraction for k-point offset
-    call rtorat(1.d-4,3,vkloff,ikloff,dkloff)
+    call rtorat(epsvkloff,3,vkloff,ikloff,dkloff)
     ! get rotational part of crystal symmetries 
     allocate(symc(3,3,nsymcrys))
     do isym=1,nsymcrys
