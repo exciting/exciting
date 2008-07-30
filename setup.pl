@@ -5,14 +5,15 @@ print "---------------------------------------------------------\n";
 
 opendir(PDIR, "build/platforms") || die("Cannot open directory");
 @makeincfiles= readdir(PDIR);
-
 $count=1;
 foreach $file (@makeincfiles){
-	$file=~ m/make.inc.(.+$)/;
-	if($1!~m//){
-	   print $count." ".$1;
+ 	$platform="";
+	if($file=~ m/make\.inc\.(.+$)/) 
+	{ $platform=$1;
+	   print $count." ".$platform;
 	   print ("\n");
 	   $count++;
+	push(@fileslist,$file);
 	   if ($count>10) {
 		   print "type enter for more";
 		   $wait=<>;
@@ -27,7 +28,7 @@ if ($sel>$count-1 || $sel<1 || $sel=~m/^$/ || $sel!~m/^\d+$/) {
 	exit;
 }
 
-$filename="build/platforms/" . @makeincfiles[$sel+1];
+$filename="build/platforms/" . @fileslist[$sel];
 
 @args=("cp",$filename,"build/make.inc");
 $return= system(@args);

@@ -1,9 +1,10 @@
 program test
 
-call inittestoutputfile(50) !file unit 50
+call inittestoutputfile()
 
 ! list test routines here and call testreport(testunit,input,output,passed)
 ! before leaving the routine
+call system("rm *.OUT")
 
 call test_readinput()
 call test_gndstate_init()
@@ -15,6 +16,6 @@ call test_EVALCORE()
 call test_EQATOMS()
 call test_LINENGY()
 
-call finalizeoutput(50)
+call finalizeoutput()
 
 end program
