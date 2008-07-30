@@ -429,15 +429,11 @@ contains
     deallocate(evallib)
   end subroutine fermitetifc
 
-! TODO : vkloff has different order for wien2k settings (z,y,x) !!!
-! TODO: also ngridk is different
 
-  subroutine tetiwifc(nkpt,wkpt,occmax,nst,eval,efermi,occ)
+  subroutine tetiwifc(nkpt,nst,eval,efermi,occ)
     implicit none
     ! arguments
     integer, intent(in) :: nkpt
-    real(8), intent(in) :: wkpt(nkpt)
-    real(8), intent(in) :: occmax
     integer, intent(in) :: nst
     real(8), intent(in) :: eval(nst,nkpt)
     real(8), intent(in) :: efermi
@@ -460,12 +456,6 @@ contains
        occ(:,ik)=occt(:)
     end do
     deallocate(evallib,occt)
-    do ik=1,nkpt
-       ! The "occ" variable returned from "tetiw" already contains the
-       ! k-point weight "wkpt" and does not account for spin degeneracy -
-       ! rescaling is necessary (Stephan Sagmeister).
-       occ(:,ik)=(occmax/wkpt(ik))*occ(:,ik)
-    end do
   end subroutine tetiwifc
 
 
