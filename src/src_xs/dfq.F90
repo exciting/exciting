@@ -3,7 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: df
+! !INTERFACE:
 subroutine dfq(iq)
+! !USES:
   use modmain
   use modxs
   use modtetra
@@ -22,6 +26,58 @@ subroutine dfq(iq)
   use m_writevars
   use m_filedel
   use m_genfilname
+! !DESCRIPTION:
+!   Calculates the symmetrized Kohn-Sham response function $\chi^0_{\bf{GG'}}
+!   ({\bf q},\omega)$ for one ${\bf q}$-point according to
+!   $$  \chi^0_{\bf{GG'}}({\bf q},\omega) = \sum_{ou{\bf k}}
+!      M^{\bf G}_{ou{\bf k}}({\bf q}) M^{\bf G'}_{ou{\bf k}}({\bf q})^*
+!      w_{ou{\bf k}}({\bf q},\omega) +
+!      M^{\bf G}_{uo{\bf k}}({\bf q}) M^{\bf G'}_{uo{\bf k}}({\bf q})^*
+!      w_{uo{\bf k}}({\bf q},\omega)
+!   $$
+!   It is related to the Kohn-Sham response function
+!    $\chi^0_{\bf{GG'}}({\bf q},\omega)$ by
+!   $$ \chi^0_{\bf{GG'}}({\bf q},\omega) = v^{-\frac{1}{2}}_{\bf G}({\bf q})
+!      \bar{\chi}^0_{\bf{GG'}}({\bf q},\omega)
+!      v^{-\frac{1}{2}}_{\bf G'}({\bf q}) $$
+!   and is well defined in the limit as ${\bf q}$ goes to zero.
+!   The symmetrized matrix elements are defined as
+!   $$   M^{\bf G}_{ou{\bf k}}({\bf q}) = 
+!         v^{-\frac{1}{2}}_{\bf G}({\bf q})
+!         \bar{M}^{\bf G}_{ou{\bf k}}({\bf q}), $$
+!   where
+!   $$   \bar{M}^{\bf G}_{ou{\bf k}}({\bf q}) = 
+!        \langle o{\bf k}|e^{-i({\bf{G+q}}){\bf r}}|u{\bf k+q} \rangle. $$
+!   For ${\bf G}=0$ we have to consider three vectors stemming from the limits
+!   as ${\bf q}\rightarrow 0$ along the Cartezian basis vectors ${\bf e_i}$,
+!   i.e., we can think of ${\bf 0}_1,{\bf 0}_2,{\bf 0}_3$ in place of ${\bf 0}$.
+!   The weights $w_{\rm ou{\bf k}}({\bf q},\omega)$ are defined as
+!   $$   w_{nm{\bf k}}({\bf q},\omega) = \lambda_{\bf k}
+!        \frac{f_{n{\bf k}}-f_{m{\bf k+q}}}
+!        {\varepsilon_{n{\bf k}}-\varepsilon_{m{\bf k+q}}+
+!        \Delta_{n{\bf k}}-\Delta_{m{\bf k+q}}+\omega+i\eta} $$
+!   in the case where we use a Lorentzian broadening $\eta$.
+!   In the above expression $\lambda_{\bf k}$ is the weight of the
+!   ${\bf k}$-point, $\varepsilon_{n{\bf k}}$ and
+!   $\varepsilon_{m{\bf k+q}}$ are the DFT Kohn-Sham energies,
+!   $\Delta_{n{\bf k}}$ and $\Delta_{m{\bf k+q}}$ are the scissors corrections
+!   that are non-zero in the case where $m{\bf k+q}$ corresponds to a
+!   conduction state.
+!   The indices $o$ and $u$ denote {\it at least partially occupied} and
+!   {\it at least partially unoccupied} states, respectively.
+!   The symmetrized Kohn-Sham response function can also be calculated
+!   for imaginary frequencies $i\omega$ without broadening $\eta$. In this
+!   case the replacement
+!   $$ \omega+i\eta \mapsto i\omega $$
+!   is applied to the expressions for the weights.
+!   Optionally, the weights can be calculated with the help of the linear
+!   tetrahedron method (including Bloechl's correction).
+!   This routine can be run with MPI parallelization for ${\bf k}$-points.
+!
+! !REVISION HISTORY:
+!   Created March 2005 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   integer, intent(in) :: iq
@@ -424,3 +480,4 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
   deallocate(xou,xouc,xuo,xuoc,hou,huo)
   if (tetra) deallocate(cw,cwa,cwsurf)
 end subroutine dfq
+!EOC

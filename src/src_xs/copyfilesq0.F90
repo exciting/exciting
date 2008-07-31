@@ -16,7 +16,9 @@ subroutine copyfilesq0
 ! !DESCRIPTION:
 !   If a finite momentum transfer Q-point is the Gamma-point, eigenvalues
 !   eigenvectors, occupancies and muffin-tin expansion coefficients are
-!   identical to those of the unshifted mesh. 
+!   identical to those corresponding to the unshifted mesh. Files are copied
+!   using the associated generic routines for ISO compatibility, or links
+!   are generated if ISO compatibility is dropped.
 !
 ! !REVISION HISTORY:
 !   Created January 2008 (Sagmeister)
