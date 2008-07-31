@@ -3,12 +3,25 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: copyfilesq0
+! !INTERFACE:
 subroutine copyfilesq0
 #ifdef ISO
+! !USES:
   use modmain
   use modxs
   use m_getapwcmt
   use m_getlocmt
+! !DESCRIPTION:
+!   If a finite momentum transfer Q-point is the Gamma-point, eigenvalues
+!   eigenvectors, occupancies and muffin-tin expansion coefficients are
+!   identical to those of the unshifted mesh. 
+!
+! !REVISION HISTORY:
+!   Created January 2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! local variables
   integer, parameter :: iq=1
@@ -60,3 +73,4 @@ subroutine copyfilesq0
   call system('ln -sf EFERMI_QMT001.OUT  EFERMI_QMT000.OUT')
 #endif
 end subroutine copyfilesq0
+!EOC

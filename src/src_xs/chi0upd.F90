@@ -7,8 +7,19 @@ module m_chi0upd
   implicit none
 contains
 
+!BOP
+! !ROUTINE: chi0upd
+! !INTERFACE:
   subroutine chi0upd(n,wou,wuo,hou,huo,chi0)
+! !USES:
     use modmain
+! !DESCRIPTION:
+!   Updates the Kohn-Sham response function.
+!
+! !REVISION HISTORY:
+!   Created January 2005 (Sagmeister)
+!EOP
+!BOC
     implicit none
     ! arguments
     integer, intent(in) :: n
@@ -23,3 +34,4 @@ contains
   end subroutine chi0upd
 
 end module m_chi0upd
+!EOC
