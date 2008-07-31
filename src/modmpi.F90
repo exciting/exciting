@@ -16,8 +16,10 @@
 !EOP
 module  modmpi
 #ifdef MPI
-#include "mpif.h"
-!  use mpi
+
+!#include <mpi.h>
+
+  use mpi
 #endif
   integer :: rank
   integer :: procs

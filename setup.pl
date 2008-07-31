@@ -6,6 +6,9 @@ print "---------------------------------------------------------\n";
 opendir(PDIR, "build/platforms") || die("Cannot open directory");
 @makeincfiles= readdir(PDIR);
 $count=1;
+#print @makeincfiles;
+
+@fileslist=[];
 foreach $file (@makeincfiles){
  	$platform="";
 	if($file=~ m/make\.inc\.(.+$)/) 
@@ -13,19 +16,23 @@ foreach $file (@makeincfiles){
 	   print $count." ".$platform;
 	   print ("\n");
 	   $count++;
-	push(@fileslist,$file);
+	   push(@fileslist,$file);
 	   if ($count>10) {
 		   print "type enter for more";
 		   $wait=<>;
 	   }
 	}
 }
-print "\n enter the number of the plattform that suites your system best:\n";
+print "\n enter the number of the plattform that suites your system best:\n\n";
 $sel=<>;
 
 if ($sel>$count-1 || $sel<1 || $sel=~m/^$/ || $sel!~m/^\d+$/) {
 	print "\ntry again\n\n";
 	exit;
+}else{
+
+print "\nyou use the makefile from:\n\n build/platforms/" . @fileslist[$sel];
+print "\n\nif it doesnt compile, edit build/make.inc and type make again"
 }
 
 $filename="build/platforms/" . @fileslist[$sel];
