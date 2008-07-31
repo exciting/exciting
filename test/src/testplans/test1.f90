@@ -1,5 +1,6 @@
 program test
-
+use modreport
+testplan_name ="test1"
 call inittestoutputfile(50) !file unit 50
 
 ! list test routines here and call testreport(testunit,input,output,passed)

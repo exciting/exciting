@@ -4,7 +4,7 @@ use modmain,only: version
 use modreport
 implicit none
 character(256) tmp
-write (tmp,*)"../testsummary.",GITHASH
+write (tmp,*)"../",trim(adjustl (testplan_name)),".summary"!,".",GITHASH
 reportfilename=trim(adjustl(tmp))
 reportfileu=84
 write(*,*)"Result is written to: ",reportfilename
