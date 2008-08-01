@@ -37,32 +37,32 @@ test::testprogram
 
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
-libblas.a: ../../build/make.inc
+libblas.a:
 	cp -f ../../build/make.inc ../..
 	cd ../../src/BLAS && make clean && make
 	cp ../../src/BLAS/libblas.a .
 	cd ../../src/BLAS && make clean
 
-liblapack.a: ../../build/make.inc
+liblapack.a: 
 	cp -f ../../build/make.inc ../..
 	cd ../../src/LAPACK && make clean && make
 	cp ../../src/LAPACK/liblapack.a .
 	cd ../../src/LAPACK && make clean
 
-fftlib.a: ../../build/make.inc
+fftlib.a: 
 	cp -f ../../build/make.inc ../..
 	cd ../../src/fftlib && make clean && make
 	cp ../../src/fftlib/fftlib.a .
 	cd ../../src/fftlib && make clean
 
-libbzint.a: ../../build/make.inc
+libbzint.a: 
 	cp -f ../../build/make.inc ../..
 	cd ../../src/src_libbzint && make clean && make
 	cp ../../src/src_libbzint/libbzint.a .
 	cd ../../src/src_libbzint && make clean
 
 
-libarpack.a: ../../build/make.inc
+libarpack.a: 
 	cp -f ../../build/make.inc ../..
 	cd ../../src/ARPACK && $(MAKE) clean && make lib
 	cp ../../src/ARPACK/libarpack.a .
