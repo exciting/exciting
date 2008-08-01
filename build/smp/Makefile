@@ -7,7 +7,7 @@ endif
 	
 
 libs:
-ifeq (BUILDSMP,true)
+ifeq ($(BUILDSMP),true)
 	make libs -f ../Make.common
 endif
 
