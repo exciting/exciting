@@ -1,11 +1,13 @@
 
 
-include build/make.inc
 
-default:all
 
+default: build/make.inc all
+ 
 build/make.inc:
 	perl ./setup.pl
+	
+include build/make.inc
 
 serial:
 	cd build/serial; $(MAKE) libs
