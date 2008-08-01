@@ -1,9 +1,9 @@
 include ../make.inc
 
-FC = $(MPIF90)
+FC = $(MPIF90) $(CPP_ON_OPT)
 ### default
 FFLAGS = $(MPI_OPTS)
 ### debug
 LD = $(FC)
-LDFLAGS =$(LIB_BZINT) $(LIB_LPK) $(LIB_FFT) $(LIB_SYS) 
+LDFLAGS =$(MPI_OPTS) $(LIBS) 
 TMPFILES = *.mod

@@ -1,50 +1,30 @@
-# This configuration file configures all builds
-# If you dont have smp blas laback pleas set BUILDSMP to false
-BUILDSMP=true
-# if you dont have MPI Libraries installed please set BUILDMPI to "false" 
-# (else to  "true")
-BUILDMPI=true
-
-# Configure f77
-
-F77 = xlf
-# comand for multithreaded compiler
-F77MT=xlf_r 
-# options for compiling f77 libraries
-F77_OPTS =-O3 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave
-
-# Configiure F90
-
-F90 =xlf90
-# multithreaded compiler command
-F90MT=xlf90_r
-
-# Configure MPI compiler 
-
-MPIF90=mpxlf90_r
-# multithreaded compiler command
-MPIF90MT=mpxlf90_r
-F90_DEBUGOPTS = -g 
-
-# options for multithreaded Binaries 
-F90_SMP_OPTS=-qsmp=noomp:noauto  
-
-
-OPTIMIZATION_OPTS=-O3 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave -qsuffix=cpp=f90
-
-# option that forces the compiler to use the CPP bevore compilation
-F90CPP_OPTS=-qsuffix=cpp=f90
-
-# CPP Parameters
-F90CPP_OPTS_DEBUG= -WF,-DDEBUG
-F90CPP_OPTS_MPI=-WF,-DMPI,-DMPIRHO,-DMPISEC
-F77 = xlf
- 
-LIB_SYS = 
-LIB_LPK = -lessl  -llapack64 libarpack.a 
-LIB_LPK_SMP =
+F90=xlf90
+F90_OPTS =-O3 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave 
+CPP_ON_OPT = -qsuffix=cpp=f90
+F77 =xlf
+F77_OPTS = -O3 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave 
+LIB_ARP =libarpack.a
+LIB_LPK =  -llapack64 -lessl
 LIB_FFT = fftlib.a
-LIB_BZINT=
-AR = ar
-ARFLAGS = -rc
+LIB_BZINT=libbzint.a
+
+LIBS= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
+MAKE=gmake
+F90_DEBUGOPTS=-g
+F77_DEBUGOPTS=-g
+
+
+#Ignore if you don't have MPI or smplibs
+ 
+MPIF90=mpxlf90
+MPIF90_OPTS=$(F90_OPTS) -WF,-DMPI,-DMPIRHO,-DMPISEC
+
+F77MT=$(F77)_r
+F90MT=$(F90)_r
+SMP_LIBS= -llapack64smp -lesslsmp $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
+MAKE=gmake
+SMPF90_OPTS=$(F90_OPTS) -qsmp=noomp:noauto 
+SMPF77_OPTS=$(SMPF90_OPTS) 
+MPISMPF90_OPTS=$(SMPF90_OPTS)  -WF,-DMPI,-DMPIRHO,-DMPISEC
+
 

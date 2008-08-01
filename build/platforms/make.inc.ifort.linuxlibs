@@ -1,47 +1,27 @@
-# This configuration file configures all builds
-# If you dont have smp blas lapack pleas set BUILDSMP to false.
-BUILDSMP=true
-# if you dont have MPI Libraries installed please set BUILDMPI to "false" 
-# (else to  "true")
-BUILDMPI=true
-
-# Configure fortran Compiler for fortran77
-
-F77 =ifort 
-# comand for multithreaded compiler
-F77MT=ifort
-# options for compiling f77 libraries
-F77_OPTS =-O3 
-
-# Configiure F90
-
-F90 =ifort
-# multithreaded compiler command if acailable
-F90MT=$(F90)
-
-# Configure MPI compiler 
-
-MPIF90=mpif90
-# multithreaded compiler command
-MPIF90MT=$(MPIF90)
-
-
-#Options
- 
-F90_DEBUGOPTS = -g 
-F77_OPTS        = -O3 -ip -unroll -prefetch -scalar_rep -w90
-F90_OPTS        = -cpp -O3 -ip -unroll -prefetch -scalar_rep -w90 
-MPI_OPTS =-I /usr/include/mpi -O3 -x f95-cpp-input   -DMPI -DMPIRHO -DMPISEC
-# options for multithreaded Binaries 
-F90_SMP_OPTS=
-F90_DEBUG_OPTS= -g -cpp -DDEBUG
-
-
-#Libraries
-LIB_BZINT = libbzint.a
-LIB_LPK =libarpack.a -L /usr/local/src/lapack/lapack-3.1.1 -llapack -lblas
-LIB_LPK_SMP=
+F90=ifort
+F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90 
+CPP_ON_OPT = -cpp
+F77=$(F90)
+F77_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
+LIB_ARP =libarpack.a
+LIB_LPK =  -llapack -lblas
 LIB_FFT = fftlib.a
+LIB_BZINT=libbzint.a
 
-BUILDMPI=true
-BUILDSMP=false
+LIBS= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
+MAKE=make
+F90_DEBUGOPTS=-g
+F77_DEBUGOPTS=-g
+
+#Ignore if you don't have MPI or smplibs
+ 
+MPIF90=mpif90
+MPIF90_OPTS=$(F90_OPTS) -DMPI -DMPIRHO -DMPISEC
+
+F77MT=$(F77)
+F90MT=$(F90)
+SMP_LIBS= 
+SMPF90_OPTS=$(F90_OPTS) 
+SMPF77_OPTS=$(SMPF90_OPTS) 
+MPISMPF90_OPTS=$(SMPF90_OPTS)  -DMPI -DMPIRHO -DMPISEC
+

@@ -1,25 +1,28 @@
-BUILDMPI=true
-BUILDSMP=false
-
-F90 =gfortran 
-MPIF90=mpif90
-MPIF90MT=mpif90
-F90_DEBUGOPTS = -g 
-F90_SMP_OPTS=
-F90MT=gfortran 
-F77MT=gfortran 
-OPTIMIZATION_OPTS=-O3
-F90CPP_OPTS=-x f95-cpp-input 
-F90CPP_OPTS_DEBUG=-x f95-cpp-input -DDEBUG
-F90CPP_OPTS_MPI=-x f95-cpp-input -DMPI -DMPIRHO -DMPISEC
-F77 = gfortran
-F77_OPTS=-O3 
-LIB_SYS = 
-LIB_LPK = libarpack.a  -llapack -lblas
-LIB_LPK_SMP =libarpack.a  -llapack -lblas
+F90=gfortran
+F77=$(F90)
+F90_OPTS = -O3 
+F77_OPTS =  -O3
+CPP_ON_OPT = -x f95-cpp-input
+LIB_ARP =libarpack.a
+LIB_LPK =  -llapack -lblas
 LIB_FFT = fftlib.a
-LIB_BZINT=libbzint.a
-AR = ar
-ARFLAGS = -rc
-BUILDMPI=true
-BUILDSMP=false
+LIB_BZINT= libbzint.a
+
+LIBS= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
+MAKE=make
+F90_DEBUGOPTS=-g
+
+
+
+#Ignore if you don't have MPI or smplibs
+ 
+MPIF90=mpif90
+MPIF90_OPTS=$(F90_OPTS) -DMPI -DMPIRHO -DMPISEC
+
+F77MT=$(F77)
+F90MT=$(F90)
+SMP_LIBS= 
+SMPF90_OPTS=$(F90_OPTS) 
+SMPF77_OPTS=$(SMPF90_OPTS) 
+
+

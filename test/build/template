@@ -1,12 +1,11 @@
 include ../../build/make.inc
 
 FC = $(F90)
-### default
-FFLAGS = $(F90_OPTS) $(F90CPP_OPTS) $(IEEE_OPTS)
-### debug
-#FFLAGS = $(F90_OPTS) -check all -traceback
-LD = $(FC)
-LDFLAGS =$(LIB_BZINT) $(LIB_LPK) $(LIB_FFT) $(LIB_SYS) 
 
-F77=$(F77) $(OPTIMIZATION_OPTS)
+FFLAGS = $(F90_OPTS) $(CPP_ON_OPT) $(IEEE_OPTS)
+LD = $(FC)
+LDFLAGS =$(F90_OPTS) $(LIBS) 
+
+F77=$(F77) 
+
 TMPFILES = *.mod
