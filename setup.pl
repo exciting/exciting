@@ -17,7 +17,7 @@ foreach $file (@makeincfiles){
 	   print ("\n");
 	   $count++;
 	   push(@fileslist,$file);
-	   if ($count>10) {
+	   if ($count%20==0) {
 		   print "type enter for more";
 		   $wait=<>;
 	   }

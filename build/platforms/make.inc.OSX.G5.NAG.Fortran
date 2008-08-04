@@ -1,0 +1,10 @@
+MAKE = make
+F90 = f95
+F90_OPTS = -O4 -kind=byte -dusty -dcfuns
+F77 = f95
+F77_OPTS = -O4 -kind=byte -dusty -dcfuns
+AR = ar
+LIB_SYS = 
+LIB_LPK = lapack.a blas.a
+LIB_FFT = fftlib.a
+CPP_ON_OPT = -fpp
