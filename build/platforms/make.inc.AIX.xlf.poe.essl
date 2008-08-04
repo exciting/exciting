@@ -1,8 +1,8 @@
 F90=xlf90
-F90_OPTS =-O3 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave 
+F90_OPTS =-O3 
 CPP_ON_OPT = -qsuffix=cpp=f90
 F77 =xlf
-F77_OPTS = -O3 -q64 -qarch=pwr5 -qtune=pwr5 -qstrict  -qnosave 
+F77_OPTS = -O3 
 LIB_ARP =libarpack.a
 LIB_LPK =  -llapack64 -lessl
 LIB_FFT = fftlib.a
@@ -21,12 +21,11 @@ F77_DEBUGOPTS=-g
 MPIF90=mpxlf90
 MPIF90_OPTS=$(F90_OPTS) -WF,-DMPI,-DMPIRHO,-DMPISEC
 
-F77MT=$(F77)_r
-F90MT=$(F90)_r
+F77MT=xlf_r
+F90MT=xlf90_r
 SMP_LIBS= -llapack64smp -lesslsmp $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
 MAKE=gmake
 SMPF90_OPTS=$(F90_OPTS) -qsmp=noomp:noauto 
 SMPF77_OPTS=$(SMPF90_OPTS) 
 MPISMPF90_OPTS=$(SMPF90_OPTS)  -WF,-DMPI,-DMPIRHO,-DMPISEC
-
-
+MPIF90MT=mpxlf90_r
