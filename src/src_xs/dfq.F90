@@ -72,7 +72,7 @@ subroutine dfq(iq)
 !   is applied to the expressions for the weights.
 !   Optionally, the weights can be calculated with the help of the linear
 !   tetrahedron method (including Bloechl's correction).
-!   This routine can be run with MPI parallelization for ${\bf k}$-points.
+!   This routine can be run with MPI parallelization for energies.
 !
 ! !REVISION HISTORY:
 !   Created March 2005 (Sagmeister)
