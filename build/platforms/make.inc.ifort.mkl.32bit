@@ -4,7 +4,7 @@ CPP_ON_OPT = -cpp
 F77=$(F90)
 F77_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
 LIB_ARP =libarpack.a
-LIB_LPK =  -llapack -lblas
+LIB_LPK =  -L /opt/intel/mkl/10.0.1.014/lib/32 -lmkl -lmkl_lapack -lmkl_blas -lguide -lpthread 
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a
 
@@ -24,4 +24,3 @@ SMP_LIBS=
 SMPF90_OPTS=$(F90_OPTS) 
 SMPF77_OPTS=$(SMPF90_OPTS) 
 MPISMPF90_OPTS=$(SMPF90_OPTS)  -DMPI -DMPIRHO -DMPISEC
-
