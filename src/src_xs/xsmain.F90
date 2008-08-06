@@ -14,7 +14,7 @@
 !   The content of this manual is partially taken from the author's PhD thesis.
 !   \\\\
 !   S. Sagmeister\\
-!   Leoben, July 2008
+!   Leoben, August 2008
 !
 !EOI
 
