@@ -118,6 +118,44 @@ else
   ! call to module routine
   call genkpts_tet(filext,epslat,bvec,maxsymcrys,nsymcrys,lsplsymc,symlat, &
        reducek,ngridk,vkloff,nkpt,ikmap,vkl,wkpt)
+
+!!!  tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6)
+  write(11111,*) 'tet(1-6),k(1-nkpt),i(1-4)'
+  do i2=1,6
+     do i3=1,nkpt
+        do i1=1,4
+           write(11111,'(3i6,6x,i6)') i2,i3,i1,tnodes(i1,i2*i3)
+        end do
+     end do
+  end do
+
+  write(11112,*) 'k(1-nkpt),tet(1-6),i(1-4)'
+  do i3=1,nkpt
+     do i2=1,6
+        do i1=1,4
+           write(11112,'(3i6,6x,i6)') i3,i2,i1,tnodes(i1,i2*i3)
+        end do
+     end do
+  end do
+
+  write(11113,*) 'i(1-4),k(1-nkpt),tet(1-6)'
+  do i1=1,4
+     do i3=1,nkpt
+        do i2=1,6
+           write(11113,'(3i6,6x,i6)') i1,i3,i2,tnodes(i1,i2*i3)
+        end do
+     end do
+  end do
+
+  write(11114,*) 'tet(1-6),i(1-4),k(1-nkpt)'
+  do i2=1,6
+     do i1=1,4
+        do i3=1,nkpt
+           write(11114,'(3i6,6x,i6)') i2,i1,i3,tnodes(i1,i2*i3)
+        end do
+     end do
+  end do
+
 #endif
 #ifdef XS
   ! determine inverse symmery elements

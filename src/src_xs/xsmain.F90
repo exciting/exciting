@@ -115,6 +115,11 @@ subroutine xsmain
   case(450)
      ! BSE-kernel
      call kernxc_bse(1)
+  case(498)
+     ! * debug task
+     call init0
+     call init1
+     write(*,*) 'debug task 498 finished'
   case(499)
      ! * debug task
      call testxs
