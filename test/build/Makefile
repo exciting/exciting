@@ -37,11 +37,8 @@ test::testprogram
 
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
-<<<<<<< HEAD:test/build/Makefile
-libblas.a:
-=======
+
 libblas.a: 
->>>>>>> 8dca4f0e52026ca775e259cb5bfeb8c98ffb99a5:test/build/Makefile
 	cp -f ../../build/make.inc ../..
 	cd ../../src/BLAS && make clean && make
 	cp ../../src/BLAS/libblas.a .

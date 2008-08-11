@@ -6,7 +6,11 @@ call inittestoutputfile()
 ! list test routines here and call testreport(testunit,input,output,passed)
 ! before leaving the routine
 call system("rm *.OUT")
-
+call test_readinput()
+call test_gndstate_init()
+call test_hamiltonsetup
+call test_lapacksolver
+call test_arpacksolver
 
 
 call finalizeoutput()
