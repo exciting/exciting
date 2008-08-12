@@ -219,7 +219,7 @@ contains
        stop
     end if
     ! switch to exciting interface
-    !call tetrasetifc('exciting')
+ call tetrasetifc('exciting')
     ! suppress debug output in tetrahedron integration library (0)
     call tetrasetdbglv(0)
     ! safer pointer handling in tetrahedron integration library (1)
@@ -417,7 +417,7 @@ contains
     real(8), intent(out) :: efermi
     real(8), intent(out) :: fermidos
     ! local variables
-    integer :: ik,ikd
+    integer :: ik
     real(8), allocatable :: evallib(:,:)
     allocate(evallib(nst,nkpt))
     ! reorder energies to library order

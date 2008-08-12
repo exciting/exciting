@@ -24,6 +24,18 @@ use modxs
 !EOP
 !BOC
 implicit none
+
+
+!TODO: remove debug code parts
+
+
+
+
+integer, allocatable::ntkmap(:),tkmap(:,:)
+
+
+
+
 ! local variables
 integer ik,is,ia,ias,io,ilo
 integer i1,i2,i3,ispn,iv(3)
@@ -120,38 +132,44 @@ else
        reducek,ngridk,vkloff,nkpt,ikmap,vkl,wkpt)
 
 !!!  tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6)
-  write(11111,*) 'tet(1-6),k(1-nkpt),i(1-4)'
-  do i2=1,6
-     do i3=1,nkpt
-        do i1=1,4
-           write(11111,'(3i6,6x,i6)') i2,i3,i1,tnodes(i1,i2*i3)
-        end do
-     end do
-  end do
 
-  write(11112,*) 'k(1-nkpt),tet(1-6),i(1-4)'
-  do i3=1,nkpt
-     do i2=1,6
-        do i1=1,4
-           write(11112,'(3i6,6x,i6)') i3,i2,i1,tnodes(i1,i2*i3)
-        end do
-     end do
-  end do
 
-  write(11113,*) 'i(1-4),k(1-nkpt),tet(1-6)'
+  
+!***      kin=tetcorn(i,itet)
+!***      cweight(ib,jb,kin)=cweight(ib,jb,kin)+term*tw
+
+allocate(ntkmap(nkpt))
+ntkmap(:)=0
+allocate(tkmap(48,nkpt))
+tkmap(:,:)=0
+
+do i1=1,ntet
+   do i2=1,4
+
+      ik=tnodes(i2,i1)
+
+      ntkmap(ik)=ntkmap(ik)+1
+      tkmap(ntkmap(ik),ik)=i1
+
+   end do
+end do
+
+
+do ik=1,nkpt
+   do i3=1,ntkmap(ik)
+
+      write(*,*) ik,i3,tkmap(i3,ik)
+      
+   end do
+end do
+
+
+
+  write(11114,*) 'i(1-4),tet(1-6),k(1-nkpt)'
   do i1=1,4
-     do i3=1,nkpt
-        do i2=1,6
-           write(11113,'(3i6,6x,i6)') i1,i3,i2,tnodes(i1,i2*i3)
-        end do
-     end do
-  end do
-
-  write(11114,*) 'tet(1-6),i(1-4),k(1-nkpt)'
-  do i2=1,6
-     do i1=1,4
+     do i2=1,6
         do i3=1,nkpt
-           write(11114,'(3i6,6x,i6)') i2,i1,i3,tnodes(i1,i2*i3)
+           write(11114,'(3i6,6x,i6)') i1,i2,i3,tnodes(i1,6*(i3-1)+i2)
         end do
      end do
   end do
