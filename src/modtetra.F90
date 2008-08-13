@@ -25,6 +25,8 @@ module modtetra
   logical :: tetraopt
   ! tetrahedron method is used for dielectric function/matrix
   logical :: tetradf
+  ! use different k-point ordering that matches the one of the exciting code
+  logical :: tetrakordexc
   ! integer k-point offset
   integer(4) :: ikloff(3)
   ! k-point offset divisor
@@ -222,7 +224,7 @@ contains
        stop
     end if
     ! switch to exciting interface
- call tetrasetifc('exciting')
+    if (tetrakordexc) call tetrasetifc('exciting')
     ! suppress debug output in tetrahedron integration library (0)
     call tetrasetdbglv(0)
     ! safer pointer handling in tetrahedron integration library (1)
@@ -492,5 +494,59 @@ contains
     end do
     deallocate(evallib,cwt)
   end subroutine tetcwifc
+
+
+  subroutine tetcwifc_1k(ik,nkpt,nst,eval,efermi,w,ifreq,cw)
+    implicit none
+    ! arguments
+    integer, intent(in) :: ik
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: efermi
+    real(8), intent(in) :: w
+    integer, intent(in) :: ifreq       
+    real(8), intent(out) :: cw(nst,nst)
+    ! local variables
+    integer :: ikt,iklib
+    real(8), allocatable :: evallib(:,:)
+    allocate(evallib(nst,nkpt))
+    ! reorder energies to library order
+    do ikt=1,nkpt
+       evallib(:,ikt)=eval(:,iktet2ik(ikt))
+    end do
+    ! call to library routine
+    iklib=ik2iktet(ik)
+    call tetcw_1k(iklib,nkpt,ntet,nst,wtet,evallib,tnodes,link,tvol, &
+         efermi,w,ifreq,cw)
+    deallocate(evallib)
+  end subroutine tetcwifc_1k
+
+
+  subroutine tetcwifc_1kbc(ik,ist,jst,nkpt,nst,eval,efermi,w,ifreq,cw)
+    implicit none
+    ! arguments
+    integer, intent(in) :: ik,ist,jst
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: efermi
+    real(8), intent(in) :: w
+    integer, intent(in) :: ifreq       
+    real(8), intent(out) :: cw
+    ! local variables
+    integer :: ikt,iklib
+    real(8), allocatable :: evallib(:,:)
+    allocate(evallib(nst,nkpt))
+    ! reorder energies to library order
+    do ikt=1,nkpt
+       evallib(:,ikt)=eval(:,iktet2ik(ikt))
+    end do
+    ! call to library routine
+    iklib=ik2iktet(ik)
+    call tetcw_1kbc(iklib,ist,jst,nkpt,ntet,nst,wtet,evallib,tnodes,link,tvol, &
+         efermi,w,ifreq,cw)
+    deallocate(evallib)
+  end subroutine tetcwifc_1kbc
 
 end module modtetra

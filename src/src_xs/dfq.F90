@@ -4,7 +4,7 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: df
+! !ROUTINE: dfq
 ! !INTERFACE:
 subroutine dfq(iq)
 ! !USES:
@@ -91,9 +91,10 @@ subroutine dfq(iq)
   complex(8), allocatable :: xou(:),xouc(:),xuo(:),xuoc(:),wou(:),wuo(:)
   complex(8) :: wout
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
-  real(8), allocatable :: scis12(:,:),scis21(:,:)
+  real(8), allocatable :: cw1k(:,:,:),cwa1k(:,:,:),cwsurf1k(:,:,:)
+  real(8), allocatable :: scis12(:,:),scis21(:,:),eb(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
-  integer :: n,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
+  integer :: n,j,i1,i2,j1,j2,a1,a2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
   integer :: oct,oct1,oct2,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
@@ -117,12 +118,10 @@ subroutine dfq(iq)
   ! zero broadening for analytic contiunation
   brd=broad
   if (acont) brd=0.d0
-  ! *** experimental *** zero broadening for dielectric matrix (w=0)
-  ! for band-gap systems
+  ! zero broadening for dielectric matrix (w=0) for band-gap systems
   if (task.eq.430) brd=0.d0
   ! file extension for q-point
   if (.not.tscreen) call genfilname(iqmt=iq,setfilext=.true.)
-  ! filenames for input
   ! filenames for output
   if (tscreen) then
      call genfilname(basename='TETW',iq=iq,appfilext=.true.,filnam=fnwtet)
@@ -150,6 +149,8 @@ subroutine dfq(iq)
   call filedel(trim(fnxtim))
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
+  ! generate link array for tetrahedra
+  call gentetlinkp(vql(1,iq),tetraqweights)
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find limits for band combinations
@@ -194,6 +195,7 @@ subroutine dfq(iq)
   ! allocate arrays
   
   allocate(hdg(nst1,nst2,nkpt))
+  allocate(eb(nstsv,nkpt))
   
   allocate(scis12(nst1,nst2))
   allocate(scis21(nst2,nst1))
@@ -212,7 +214,11 @@ subroutine dfq(iq)
   allocate(huo(n,n))
   scis12(:,:)=0.d0
   scis21(:,:)=0.d0
-  if (tetradf) allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
+  if (tetradf) then
+     allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
+     allocate(cw1k(nstsv,nstsv,nwdf),cwa1k(nstsv,nstsv,nwdf))
+     allocate(cwsurf1k(nstsv,nstsv,nwdf))
+  end if
   ! generate complex energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
   wreal(:)=w(wi:wf)
@@ -237,6 +243,10 @@ hdg=zzero
 write(*,*) 'dfq, shape(hdg)',shape(hdg)
 !	read(1108) hdg
 !*******************************************************************************
+
+  eb(:,:)=evalsv(:,:)
+  ! scissors shift
+  where (eb.gt.efermi) eb=eb+scissor
 
   ! loop over k-points
   do ik=1,nkpt
@@ -308,6 +318,21 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
      end do
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0
+
+
+!!$     !*****************************************************
+!!$
+!!$     do iw=wi,wf
+!!$        call tetcwifc_1k(ik,nkpt,nstsv,eb,efermi,dble(w(iw)), &
+!!$             2,cw1k(1,1,iw))
+!!$        call tetcwifc_1k(ik,nkpt,nstsv,eb,efermi,dble(-w(iw)),&
+!!$             2,cwa1k(1,1,iw))
+!!$        call tetcwifc_1k(ik,nkpt,nstsv,eb,efermi,dble(w(iw)), &
+!!$             4,cwsurf1k(1,1,iw))
+!!$     end do
+!!$
+!!$     !*****************************************************
+
      do ist1=1,nst1
         do ist2=1,nst2
            !---------------------!
@@ -327,9 +352,27 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                  j1=ist1
                  j2=ist2
               end if
+
+!******************************************************
+
               ! read weights for tetrahedron method
               call gettetcw(iq,ik,j1,j2,nst1,nst2,nwdf,trim(fnwtet),cw,cwa, &
                    cwsurf)
+
+!!$!******************************************************
+!!$              a1=i1
+!!$              a2=i2
+!!$              if (i1.gt.i2) then
+!!$                 a1=i2
+!!$                 a2=i1
+!!$              end if
+!!$
+!!$              cw(wi:wf)=cw1k(a1,a2,wi:wf)
+!!$              cwa(wi:wf)=cwa1k(a1,a2,wi:wf)
+!!$              cwsurf(wi:wf)=cwsurf1k(a1,a2,wi:wf)
+!!$
+!!$!******************************************************
+
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &
                    omega
@@ -343,6 +386,17 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
            end if
            hou(:,:)=zzero
            huo(:,:)=zzero
+
+
+!TODO: try ZGERC(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
+!*  ZGERC  performs the rank 1 operation
+!*
+!*     A := alpha*x*conjg( y' ) + A,
+!*
+!*  where alpha is a scalar, x is an m element vector, y is an n element
+!*  vector and A is an m by n matrix.
+!*
+
            !---------------------!
            !     oscillators     !
            !---------------------!
@@ -471,13 +525,13 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
      end do
   end if
 
-  deallocate(docc12,docc21,scis12,scis21)
+  deallocate(docc12,docc21,scis12,scis21,eb)
   deallocate(chi0h)
   deallocate(chi0w)
   deallocate(deou,deuo,wou,wuo)
   deallocate(xiou,xiuo,pmou,pmuo)
   deallocate(w,wreal,chi0)
   deallocate(xou,xouc,xuo,xuoc,hou,huo)
-  if (tetradf) deallocate(cw,cwa,cwsurf)
+  if (tetradf) deallocate(cw,cwa,cwsurf,cw1k,cwa1k,cwsurf1k)
 end subroutine dfq
 !EOC

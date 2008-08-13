@@ -183,6 +183,7 @@ reducebf=1.d0
 tetraocc=.false.
 tetraopt=.false.
 tetradf=.false.
+tetrakordexc=.false.
 #endif
 #ifdef XS
 ! TDDFT variables
@@ -966,6 +967,8 @@ case('tetraopt')
   read(50,*,err=20) tetraopt
 case('tetradf')
   read(50,*,err=20) tetradf
+case('tetrakordexc')
+  read(50,*,err=20) tetrakordexc
 #endif
 #ifdef XS
 ! TDDFT variables
