@@ -107,7 +107,7 @@ subroutine dfq(iq)
   end if
   ! sampling of Brillouin zone
   bzsampl=0
-  if (tetra) bzsampl=1
+  if (tetradf) bzsampl=1
   ! initial and final w-point
   wi=wpari
   wf=wparf
@@ -212,7 +212,7 @@ subroutine dfq(iq)
   allocate(huo(n,n))
   scis12(:,:)=0.d0
   scis21(:,:)=0.d0
-  if (tetra) allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
+  if (tetradf) allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
   ! generate complex energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
   wreal(:)=w(wi:wf)
@@ -316,7 +316,7 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
            call cpu_time(cpu0)
            ! user request termination
            call terminate_inqr('dfq')
-           if (tetra) then
+           if (tetradf) then
               ! absolute band indices
               i1=ist1; i2=istunocc0+ist2-1
               ! mirror index pair on diagonal if necessary
@@ -374,7 +374,7 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                        wout=wou(iw)
                        ! be careful with gauge in the w-variable
                        ! one has to subtract the scissor's shift
-                       if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
+                       if (tetradf) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
                             deou(ist1,ist2)/(-wreal(iw-wi+1)-scis12(ist1,ist2)))
                        chi0w(2:,1,oct1,iw-wi+1)=chi0w(2:,1,oct1,iw-wi+1)+&
                             wout*hou(1,2:)+wuo(iw)*huo(1,2:)
@@ -395,7 +395,7 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                        wout=wou(iw)
                        ! be careful with gauge in the w-variable
                        ! one has to subtract the scissor's shift
-                       if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
+                       if (tetradf) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
                             deou(ist1,ist2)**2 &
                             /(wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
                        chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
@@ -478,6 +478,6 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
   deallocate(xiou,xiuo,pmou,pmuo)
   deallocate(w,wreal,chi0)
   deallocate(xou,xouc,xuo,xuoc,hou,huo)
-  if (tetra) deallocate(cw,cwa,cwsurf)
+  if (tetradf) deallocate(cw,cwa,cwsurf)
 end subroutine dfq
 !EOC

@@ -19,8 +19,12 @@ module modtetra
   !--------------------------------------!
   !     tetrahedron method variables     !
   !--------------------------------------!
-  ! true if tetrahedron method is used
-  logical :: tetra
+  ! tetrahedron method is used for occupation numbers and Fermi energy
+  logical :: tetraocc
+  ! tetrahedron method is used for optics
+  logical :: tetraopt
+  ! tetrahedron method is used for dielectric function/matrix
+  logical :: tetradf
   ! integer k-point offset
   integer(4) :: ikloff(3)
   ! k-point offset divisor
@@ -208,7 +212,6 @@ contains
     integer, allocatable :: indirkp(:)
     integer, allocatable :: iwkp(:)
     real(8), allocatable :: vkllib(:,:)
-    if (.not.tetra) return
     if (nsymcrys.gt.48) then
        write(*,*)
        write(*,'("Error(modtetra:genkpts_tet): number of crystal symmetries > &

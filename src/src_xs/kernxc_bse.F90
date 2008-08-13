@@ -148,7 +148,7 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
   call genparidxran('w',nwdf)
   ! sampling type for Brillouin zone sampling
-  bzsampl=l2int(tetra)
+  bzsampl=l2int(tetradf)
   ! limits for w-points
   wi=wpari
   wf=wparf

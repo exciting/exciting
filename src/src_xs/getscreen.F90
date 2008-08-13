@@ -17,7 +17,7 @@ subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
   integer :: igq1,igq2,j,it1,it2,it3,un,bzsampl
   ! sampling of Brillouin zone
   bzsampl=0
-  if (tetra) bzsampl=1
+  if (tetradf) bzsampl=1
   ! read in screening
   call genfilname(basename='SCREEN',iq=iqr,bzsampl=bzsampl,filnam=fname)
   call getunit(un)

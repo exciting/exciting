@@ -252,7 +252,7 @@ end if
 write(fnum,*)
 write(fnum,'("Smearing scheme :")')
 #ifdef XS
-if (.not.tetra) then
+if (.not.tetraocc) then
 #endif
    write(fnum,'(" ",A)') trim(sdescr)
    write(fnum,'("Smearing width : ",G18.10)') swidth

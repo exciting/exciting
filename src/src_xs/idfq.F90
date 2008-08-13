@@ -27,7 +27,7 @@ subroutine idfq(iq)
   integer, external :: l2int,octmap
   logical, external :: tqgamma
   ! sampling type for Brillouin zone sampling
-  bzsampl=l2int(tetra)
+  bzsampl=l2int(tetradf)
   tq0=tqgamma(iq)
   ! number of components (3 for q=0)
   nc=1

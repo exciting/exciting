@@ -25,7 +25,7 @@ subroutine epsconv
   call init1
   call init2xs
   ! original sampling method fo Brillouine zone
-  bzsampl=l2int(tetra)
+  bzsampl=l2int(tetradf)
   allocate(w(nwdf),epst(nwdf,2),eps(nwdf),lor(nwdf))
   allocate(f(nwdf),f1(nwdf),g(nwdf),g1(nwdf),cf(3,nwdf))
   ! loop over q-points

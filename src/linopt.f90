@@ -64,14 +64,14 @@ subroutine linopt
   tqfmt=.false.
   !</sag>
 #ifdef TETRA
-  if (tetra.and.optltz) then
+  if (tetraopt.and.optltz) then
      write(*,*)
      write(*,'("Error(linopt): specified tetrahedron method and Lorentzian &
           &broadening")')
      write(*,*)
      stop
   end if
-  if (tetra) bzsmpl=1
+  if (tetraopt) bzsmpl=1
 #endif
   if ((usegdft).and.(xctype.lt.0)) then
      write(*,*)
@@ -132,7 +132,7 @@ subroutine linopt
      eps1r(:)=0.d0
   end if
 #ifdef TETRA
-  if (tetra) then
+  if (tetraopt) then
      allocate(e1(nstsv,nkpt))
      allocate(cw(nstsv,nstsv,nkpt))
      allocate(cwa(nstsv,nstsv,nkpt))
@@ -230,7 +230,7 @@ subroutine linopt
 #endif
      end do
 #if TETRA
-     if (tetra) then
+     if (tetraopt) then
 #ifdef XS
         if (tqfmt) then
            ! generate link array for tetrahedra
@@ -298,7 +298,7 @@ subroutine linopt
               end if
            end if
         end do ! iw
-     end if ! *** if (tetra)
+     end if ! *** if (tetraopt)
 #endif
      if (optltz) then
         ! prefactor
@@ -455,7 +455,7 @@ subroutine linopt
   deallocate(evecfv,evecsv,pmat,pmatint)
   if (usegdft) deallocate(delta,apwalm)
 #ifdef TETRA
-  if (tetra) then
+  if (tetraopt) then
      deallocate(e1,cw,cwa,cwsurf)
   end if
 #endif

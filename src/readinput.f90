@@ -180,7 +180,9 @@ rdmalpha=0.7d0
 reducebf=1.d0
 #ifdef TETRA
 ! tetrahedron method variables
-tetra=.false.
+tetraocc=.false.
+tetraopt=.false.
+tetradf=.false.
 #endif
 #ifdef XS
 ! TDDFT variables
@@ -958,8 +960,12 @@ case('reducebf')
   end if
 #ifdef TETRA
 !  tetrahedron method variables
-case('tetra')
-  read(50,*,err=20) tetra
+case('tetraocc')
+  read(50,*,err=20) tetraocc
+case('tetraopt')
+  read(50,*,err=20) tetraopt
+case('tetradf')
+  read(50,*,err=20) tetradf
 #endif
 #ifdef XS
 ! TDDFT variables

@@ -16,8 +16,8 @@ subroutine tetcalccw
   logical :: tet
   if (calledxs.eq.1) call init0
   ! initialise universal variables
-  tet=tetra
-  tetra=.true.
+  tet=tetradf
+  tetradf=.true.
   call init1
   ! save Gamma-point variables
   call xssave0
@@ -43,7 +43,7 @@ subroutine tetcalccw
   call barrier
   if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call tetgather
   call barrier
-  tetra=tet
+  tetradf=tet
   write(unitout,'(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &
        &method finished"
   call genfilname(setfilext=.true.)

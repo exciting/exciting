@@ -101,7 +101,7 @@ subroutine xslinopt(iq)
         call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
              tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsumrules)
-        if (tetra.and.(fxctype/=0).and.(oct1.eq.oct2)) then
+        if (tetradf.and.(fxctype/=0).and.(oct1.eq.oct2)) then
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=0,&
                 tq0=tq0,oc1=oct1,oc2=oct1,iqmt=iq,filnam=filnam)

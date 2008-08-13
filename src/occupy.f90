@@ -48,7 +48,7 @@ if (e0.lt.evalmin) then
 end if
 #ifdef TETRA
 !<rga>
-if (.not.tetra) then
+if (.not.tetraocc) then
 !</rga>
 #endif
 t1=1.d0/swidth
@@ -105,12 +105,12 @@ else
   do ik=1,nkpt
     ! The "occsv" variable returned from "tetiw" already contains the
     ! weight "wkpt" and does not account for spin degeneracy - rescaling is
-    ! necessary (Stephan Sagmeister).
+    ! necessary (S. Sagmeister).
     do ist=1,nstsv
-      occsv(ist,ik)=(occmax/wkpt(ik))* occsv(ist,ik)
+      occsv(ist,ik)=(occmax/wkpt(ik))*occsv(ist,ik)
     end do  
   end do
-endif
+end if
 !</rga>
 #endif
 return
