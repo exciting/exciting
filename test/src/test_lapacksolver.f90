@@ -1,22 +1,45 @@
-/*
- * test_lapacksolver.f90
- *
- *  Created on: Aug 11, 2008
- *      Author: chm
- */
 
-subroutine test_lapacksolver(apwalm)
+subroutine test_lapacksolver()
  use modfvsystem
  use modmain
  use sclcontroll
-
+use modreport
 implicit none
-complex(8),intent(in)::apwalm(:,:,:,:,:)
-integer:: ik=1,ispn=1
+integer,parameter:: ik=1,ispn=1
 type (evsystem)::system
+complex(8)::evecfv(nmat(ik,ispn),nstfv) ,evecfvref(nmat(ik,ispn),nstfv)
+real(8)::evalfv(nstfv),evalfvref(nstfv)
+real(8):: tol=1e-7
+logical::equalevec,equaleval,packed
+character(256)::name
+  packed=.true.
 
-call newsystem(system,packedmatrixstorage,nmat(ik,ispn))
-call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgkc(1,1,ik,ispn))
-call  deleteystem(system)
+
+call newsystem(system,packed,nmat(ik,ispn))
+call evSystemRestorefromFile(system)
+
+call lapackevsolve(system,evalfv,evecfv)
+call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvref)
+call getevalfv(vkl(1,ik),evalfvref)
+testunitname="eigenvectors"
+inputf="EVECFV.OUT"
+outputf="eigenvectors.err"
+name=outputf
+
+call zarray_assert_equal(name,evecfv, evecfvref, nmat(ik,ispn)*nstfv,tol,equalevec)
+call testreport(equalevec)
+
+testunitname="eigenvalues"
+inputf="EIGVEC.OUT"
+
+outputf="eigenvalues.err"
+name=outputf
+
+call darray_assert_equal(name,evalfv,evalfvref, nstfv,tol,equaleval)
+
+
+call testreport(equaleval)
+call deleteystem(system)
 
 end subroutine
+

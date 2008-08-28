@@ -16,49 +16,35 @@ end subroutine
 subroutine test_EFERMI()
 use modreport
 implicit none
-character(256)::file1,file2,diff
+character(256)::file1,file2,errfile
 logical::passed
+real:: efermi1,efermi2,tol
+tol=1e-8
 file1="EFERMI.OUT"
 file2="../reference/EFERMI.OUT"
-diff="../output/EFERMI.diff"
-call comparefiles(file1,file2,diff,passed)
-testunitname="EFERMI.OUT"
-inputf="EFERMI.OUT"
-outputf="EFERMI.diff"
+errfile="../output/EFERMI.err"
+open(888,file=file1)
+read(888,*) efermi1
+close(888)
+open(888,file=file2)
+read(888,*) efermi2
+close(888)
+if(abs(efermi1-efermi2).lt.tol) then
+passed=.true.
+else
+passed=.false.
+endif
+open(888,file=errfile)
+write(888,*) "error, tol"
+write(888,*) efermi1-efermi2, tol
+close(888)
+testunitname="Fermienergy"
+inputf="EFERRMI.OUT"
+outputf=errfile
 call testreport(passed)
 end subroutine
 
 
-subroutine test_EIGVAL()
-use modreport
-implicit none
-character(256)::file1,file2,diff
-logical::passed
-file1="EIGVAL.OUT"
-file2="../reference/EIGVAL.OUT"
-diff="../output/EIGVAL.diff"
-call comparefiles(file1,file2,diff,passed)
-testunitname="EIGVAL.OUT"
-inputf="EIGVAL.OUT"
-outputf="EIGVAL.diff"
-call testreport(passed)
-end subroutine
-
-
-subroutine test_EVALCORE()
-use modreport
-implicit none
-character(256)::file1,file2,diff
-logical::passed
-file1="EVALCORE.OUT"
-file2="../reference/EVALCORE.OUT"
-diff="../output/EVALCORE.diff"
-call comparefiles(file1,file2,diff,passed)
-testunitname="EVALCORE.OUT"
-inputf="EVALCORE.OUT"
-outputf="EVALCORE.diff"
-call testreport(passed)
-end subroutine
 
 
 subroutine test_EQATOMS()
