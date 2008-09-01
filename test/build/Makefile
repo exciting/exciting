@@ -24,18 +24,23 @@ Makefile.test2::
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
-	../src/testplans/test2.f90 \
+	../test02/src \
 	../src/testframework
 
 
-testprogram::Makefile.test1 Makefile.test2
+testprogram1::Makefile.test1
 	make -f Makefile.test1 testprogram1 
+
+testprogram2::Makefile.test2
 	make -f Makefile.test2 testprogram2 
 
 	
-test::testprogram
+test01::testprogram1
 	cd ../test01/run ; ../../build/testprogram1
-	cd ../test02/run2 ; ../../build/testprogram2
+
+test02::testprogram2
+	cd ../test02/runlapack ; ../../build/testprogram2
+	cd ../test02/runarp; ../../build/testprogram2
 
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
