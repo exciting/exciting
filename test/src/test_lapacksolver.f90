@@ -18,7 +18,7 @@ character(256)::name
 call newsystem(system,packed,nmat(ik,ispn))
 call evSystemRestorefromFile(system)
 
-call lapackevsolve(system,evalfv,evecfv)
+!call lapackevsolve(system,evalfv,evecfv)
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvref)
 call getevalfv(vkl(1,ik),evalfvref)
 testunitname="eigenvectors"

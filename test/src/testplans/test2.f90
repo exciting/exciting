@@ -8,8 +8,8 @@ call inittestoutputfile()
 call system("rm *.OUT")
 call test_readinput()
 call test_gndstate_init()
-call test_lapacksolver()
-call test_arpacksolver()
+!call test_lapacksolver()
+!call test_arpacksolver()
 
 call finalizeoutput()
 end program

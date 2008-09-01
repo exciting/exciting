@@ -1,0 +1,15 @@
+ +----------------------------------+
+ | EXCITING version 0.9.151 started |
+ | git hash id f0c5226dc8ed472e0838 |
+ +----------------------------------+
+
+ unit                input               output              status
+ -------------------------------------------------------------------
+ readinput           exciting.in         parameters.out      passed
+ gndstate_init       exciting            INFO.OUT            passed
+
+
+ -------------------------------------
+ total tests           2
+ passed                2
+ failed                0

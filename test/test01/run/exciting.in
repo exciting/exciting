@@ -21,7 +21,7 @@ scale
 
 ! this is the relative path to the species files
 sppath
-  '../../species/'
+  '../../../species/'
 
 atoms
   1                                   : nspecies
@@ -30,7 +30,7 @@ atoms
   0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
 
 ngridk
- 1 1 1 
+  4  4  4
 
 vkloff
   0.5  0.5  0.5

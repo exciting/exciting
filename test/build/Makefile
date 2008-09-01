@@ -34,8 +34,8 @@ testprogram::Makefile.test1 Makefile.test2
 
 	
 test::testprogram
-	cd ../run ; ../build/testprogram1
-	cd ../run2 ; ../build/testprogram2
+	cd ../test01/run ; ../../build/testprogram1
+	cd ../test02/run2 ; ../../build/testprogram2
 
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
