@@ -159,7 +159,7 @@ contains
     complex(8)::alpha
     type(HermiteanMatrix)::x,y
     integer:: mysize
-    if (ispacked(x)) then
+    if (ispacked(x)) then 
        mysize=(x%rank*(x%rank+1))/2
        call zaxpy(mysize,alpha,x%zap,1,y%zap,1)
     else
@@ -172,7 +172,7 @@ contains
     complex(8)::alpha
     type(HermiteanMatrix)::x,y
     integer:: mysize
-    if (ispacked(x)) then
+    if (ispacked(x)) then 
        mysize=(x%rank*(x%rank+1))/2
        call zcopy(mysize,x%zap,1,y%zap,1)
     else
@@ -209,18 +209,18 @@ contains
     close (888)
   end subroutine HermiteanMatrixToFiles
 
-  subroutine HermiteanMatrixTruncate(self,threshold)
+  subroutine HermiteanMatrixTruncate(self,threshold)  
     implicit none
     type(HermiteanMatrix),intent(inout)::self
     real(8),intent(in)::threshold
     integer ::n,i,j
     n= self%rank
-    if(ispacked(self)) then
+    if(ispacked(self)) then 
        do i=1,n*(n+1)/2
           if(abs(dble(self%zap(i))).lt.threshold) self%zap(i)=self%zap(i)-dcmplx(dble(self%zap(i)),0)
           if(abs(aimag(self%zap(i))).lt.threshold) self%zap(i)=self%zap(i)-dcmplx(0,aimag(self%zap(i)))
        end do
-    else
+    else 
        do j=1,n
           do i=1,n
              if(abs(dble(self%za(i,j))).lt.threshold) self%za(i,j)=self%za(i,j)-dcmplx(dble(self%za(i,j)),0)
@@ -228,13 +228,13 @@ contains
           end do
        end do
 	endif
-  end subroutine
+  end subroutine  
    subroutine HermiteanMatrixdiagonal(self,d)
    implicit none
    type(HermiteanMatrix),intent(in)::self
    complex(8),intent(out)::d(self%rank)
  integer i
-    if(ispacked(self)) then
+    if(ispacked(self)) then 
     	do i=1,self%rank
     		d(i)=self%zap((i*(i+1))/2)
     	end do
@@ -244,45 +244,5 @@ contains
     	end do
      endif
    end subroutine
-
-subroutine evSystemPuttoFile(self)
-	type(evsystem),intent(in)::self
-	integer::recl
-	if (self%hamilton%packed) then
-	  inquire(iolength=recl) self%hamilton%zap
-	open(888,file="fvsystem.OUT", action='WRITE', &
-       form='UNFORMATTED',access='DIRECT',recl=recl)
-	write(888,rec=1)self%hamilton%zap
-	write(888,rec=2)self%overlap%zap
-	close(888)
-	else
-	  inquire(iolength=recl) self%hamilton%za
-	open(888,file="fvsystem.OUT", action='WRITE', &
-       form='UNFORMATTED',access='DIRECT',recl=recl)
-	write(888,rec=1)self%hamilton%za
-	write(888,rec=2)self%overlap%za
-	close(888)
-	endif
-
-end subroutine
-subroutine evSystemRestorefromFile(self)
-	type(evsystem),intent(out)::self
-	integer::recl
-	if (self%hamilton%packed) then
-	  inquire(iolength=recl) self%hamilton%zap
-	open(888,file="fvsystem.OUT", action='READ', &
-       form='UNFORMATTED',access='DIRECT',recl=recl)
-	read(888,rec=1)self%hamilton%zap
-	read(888,rec=2)self%overlap%zap
-	close(888)
-	else
-	  inquire(iolength=recl) self%hamilton%za
-	open(888,file="fvsystem.OUT", action='READ', &
-       form='UNFORMATTED',access='DIRECT',recl=recl)
-	read(888,rec=1)self%hamilton%za
-	read(888,rec=2)self%overlap%za
-	close(888)
-	endif
-end subroutine
-
+   
 end module modfvsystem

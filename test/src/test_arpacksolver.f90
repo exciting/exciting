@@ -16,7 +16,7 @@ character(256)::name
 
 
 call newsystem(system,packed,nmat(ik,ispn))
-call evSystemRestorefromFile(system)
+!call evSystemRestorefromFile(system)
 
 !call arpacksolve(system,evalfv,evecfv)
 call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvref)
