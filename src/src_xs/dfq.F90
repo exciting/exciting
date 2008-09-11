@@ -89,7 +89,7 @@ subroutine dfq(iq)
   complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:),hdg(:,:,:)
   complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:)
   complex(8), allocatable :: xou(:),xouc(:),xuo(:),xuoc(:),wou(:),wuo(:)
-  complex(8) :: wout
+  complex(8) :: wout,wuot
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: cw1k(:,:,:),cwa1k(:,:,:),cwsurf1k(:,:,:)
   real(8), allocatable :: scis12(:,:),scis21(:,:),eb(:,:)
@@ -426,14 +426,21 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                          huo(2:,1))
                     do iw=wi,wf
                        wout=wou(iw)
+                       wuot=wuo(iw)
                        ! be careful with gauge in the w-variable
                        ! one has to subtract the scissor's shift
-                       if (tetradf) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                            deou(ist1,ist2)/(-wreal(iw-wi+1)-scis12(ist1,ist2)))
+                       if (tetradf) then
+                          wout=cmplx(dble(wou(iw)),aimag(wou(iw))* &
+                               deou(ist1,ist2)/ &
+                               (-wreal(iw-wi+1)-scis12(ist1,ist2)))
+                          wuot=cmplx(dble(wuo(iw)),aimag(wuo(iw))* &
+                               deuo(ist2,ist1)/ &
+                               (-wreal(iw-wi+1)-scis21(ist2,ist1)))
+                       end if
                        chi0w(2:,1,oct1,iw-wi+1)=chi0w(2:,1,oct1,iw-wi+1)+&
-                            wout*hou(1,2:)+wuo(iw)*huo(1,2:)
+                            wout*hou(1,2:)+wuot*huo(1,2:)
                        chi0w(2:,2,oct1,iw-wi+1)=chi0w(2:,2,oct1,iw-wi+1)+&
-                            wout*hou(2:,1)+wuo(iw)*huo(2:,1)
+                            wout*hou(2:,1)+wuot*huo(2:,1)
                     end do
                  end if
                  do oct2=1,3
@@ -447,13 +454,19 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                          huo(1,1))
                     do iw=wi,wf
                        wout=wou(iw)
+                       wuot=wuo(iw)
                        ! be careful with gauge in the w-variable
                        ! one has to subtract the scissor's shift
-                       if (tetradf) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                            deou(ist1,ist2)**2 &
-                            /(wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
+                       if (tetradf) then
+                          wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
+                               deou(ist1,ist2)**2/ &
+                               (wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
+                          wuot=cmplx(dble(wuo(iw)),aimag(wuo(iw))*&
+                               deuo(ist2,ist1)**2/ &
+                               (wreal(iw-wi+1)+scis21(ist2,ist1))**2) !SAG
+                       end if
                        chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
-                            wout*hou(1,1)+wuo(iw)*huo(1,1)
+                            wout*hou(1,1)+wuot*huo(1,1)
                     end do
                  end do !oct2
               end do !oct1

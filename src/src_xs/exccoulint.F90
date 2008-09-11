@@ -150,7 +150,7 @@ subroutine exccoulint
      ! q-point (non-reduced)
      iq=iqmap(iv(1),iv(2),iv(3))
 
-     ! set G=0 term of Coulomb potential to zero [Ambegoaker-Kohn]
+     ! set G=0 term of Coulomb potential to zero [Ambegaoker-Kohn]
      potcl(1)=0.d0
      ! set up Coulomb potential
      do igq1=2,n
