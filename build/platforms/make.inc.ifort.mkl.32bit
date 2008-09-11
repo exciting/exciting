@@ -8,7 +8,7 @@ LIB_LPK =  -L /opt/intel/mkl/10.0.1.014/lib/32 -lmkl -lmkl_lapack -lmkl_blas -lg
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a
 
-LIBS= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
+LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 MAKE=make
 F90_DEBUGOPTS=-g
 F77_DEBUGOPTS=-g
