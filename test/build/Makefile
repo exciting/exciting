@@ -41,6 +41,7 @@ test01::testprogram1
 test02::testprogram2
 	cd ../test02/runlapack ; ../../build/testprogram2
 	cd ../test02/runarp; ../../build/testprogram2
+	cd ../test02 ; perl assert.pl
 
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
