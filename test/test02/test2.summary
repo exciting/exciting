@@ -1,8 +1,0 @@
- +----------------------------------+
- | EXCITING version 0.9.151 started |
- | git hash id cfb32ecbfc5b7a0d6db4 |
- +----------------------------------+
-
- unit                input               output              status
- -------------------------------------------------------------------
- readinput           exciting.in         parameters.out      passed
