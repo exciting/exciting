@@ -12,7 +12,11 @@ status="failed"
 nfailed=nfailed+1
 endif
 
-write(reportfileu,*)testunitname,inputf,outputf,status
+write(reportfileu,*)"   <test name=""",trim(testunitname),""">"
+write(reportfileu,*)"        <description>",inputf, outputf,"</description>"
+write(reportfileu,*)"        <status>",status,"</status>"
+write(reportfileu,*)"   </test>"
+
 write(*,*)testunitname,inputf,outputf,status
 
 end subroutine
