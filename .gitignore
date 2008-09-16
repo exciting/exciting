@@ -45,3 +45,5 @@ testcase*
 *.log
 *.toc
 testsummary.*
+.DS*
+._.DS*

@@ -1,4 +1,5 @@
 use lib "../perl/";
+use lib "../perl/lib/";
 use XML::Simple;
 use XML::Writer;
 use IO::File;

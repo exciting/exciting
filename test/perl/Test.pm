@@ -1,4 +1,5 @@
 package Test;
+use lib "./lib/XML";
 use XML::Simple;
 use XML::Writer;
 use IO::File;
