@@ -53,7 +53,10 @@ sub make_summary{
    	print Dumper %merged;
    	$xml = new XML::Simple(NoAttr=>1, RootName=>'report');
     $data{test}=\%merged;
-    print $xml->XMLout(\%data)
+open ALL,"all.xml";
+    print ALL $xml->XMLout(\%data)
+    close ALL;
+
 }
 
 
