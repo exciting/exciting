@@ -60,15 +60,20 @@ $writer=@_[0] ;
   
 sub writetestreport(%$) { #hash with values and writer object
 $writer=@_[1];
-  $writer->startTag("test", 
-                    "directory" => @_[0]->{directory}, 
-                    "name"=>@_[0]->{name});
-  $writer->startTag("description");     
-  $writer->characters(@_[0]->{description});
-  $writer->endTag("description");
-  $writer->startTag("status");
-  $writer->characters(@_[0]->{status});
-  $writer->endTag("status");  
+$elements=@_[0];
+  $writer->startTag("test");
+  #,"directory" => @_[0]->{"directory"}, 
+  #                  "name"=>@_[0]->{"name"});
+                   
+  foreach $key (keys %$elements ) { # once for each key of @_
+
+	#if($key ne "name" && $key ne "directory"){
+		$writer->startTag($key);
+		$writer->characters($elements->{$key});
+		$writer->endTag($key);
+	#	}
+			
+  } 
   $writer->endTag("test");  
 return 1;
 }

@@ -12,7 +12,8 @@ status="failed"
 nfailed=nfailed+1
 endif
 
-write(reportfileu,*)"   <test name=""",trim(testunitname),""">"
+write(reportfileu,*)"   <test>"
+write(reportfileu,*)"        <name>",trim(testunitname),"</name>"
 write(reportfileu,*)"        <description>",inputf, outputf,"</description>"
 write(reportfileu,*)"        <status>",status,"</status>"
 write(reportfileu,*)"   </test>"
