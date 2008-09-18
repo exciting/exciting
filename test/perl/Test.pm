@@ -47,6 +47,7 @@ sub initreport{ #call with filename
   my $output = new IO::File(">@_[0]");
   my $writer = new XML::Writer(OUTPUT => $output,DATA_MODE => 'true', DATA_INDENT => 2);
   $writer->xmlDecl( 'UTF-8' );
+  $writer->pi('xml-stylesheet', 'href="perl/style.css" type="text/xsl"')
   $writer->startTag("report");
 return $writer
  }
