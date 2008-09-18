@@ -289,6 +289,9 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
         docc21(:,:)=transpose(docc12(:,:))
         scis21(:,:)=transpose(scis12(:,:))
      end if
+     ! Lindhard function
+     !TODO *** if (lindhard) then; xiou=xiuo=pmou=pmuo=zone ***
+
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
      ! response function
      if (.not.aresdf) then
@@ -319,20 +322,6 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0
 
-
-!!$     !*****************************************************
-!!$
-!!$     do iw=wi,wf
-!!$        call tetcwifc_1k(ik,nkpt,nstsv,eb,efermi,dble(w(iw)), &
-!!$             2,cw1k(1,1,iw))
-!!$        call tetcwifc_1k(ik,nkpt,nstsv,eb,efermi,dble(-w(iw)),&
-!!$             2,cwa1k(1,1,iw))
-!!$        call tetcwifc_1k(ik,nkpt,nstsv,eb,efermi,dble(w(iw)), &
-!!$             4,cwsurf1k(1,1,iw))
-!!$     end do
-!!$
-!!$     !*****************************************************
-
      do ist1=1,nst1
         do ist2=1,nst2
            !---------------------!
@@ -353,25 +342,9 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                  j2=ist2
               end if
 
-!******************************************************
-
               ! read weights for tetrahedron method
               call gettetcw(iq,ik,j1,j2,nst1,nst2,nwdf,trim(fnwtet),cw,cwa, &
                    cwsurf)
-
-!!$!******************************************************
-!!$              a1=i1
-!!$              a2=i2
-!!$              if (i1.gt.i2) then
-!!$                 a1=i2
-!!$                 a2=i1
-!!$              end if
-!!$
-!!$              cw(wi:wf)=cw1k(a1,a2,wi:wf)
-!!$              cwa(wi:wf)=cwa1k(a1,a2,wi:wf)
-!!$              cwsurf(wi:wf)=cwsurf1k(a1,a2,wi:wf)
-!!$
-!!$!******************************************************
 
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &
