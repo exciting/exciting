@@ -4,6 +4,9 @@
 	xmlns="http://www.w3.org/1999/xhtml">
 	<body style="font-family:Arial;font-size:12pt;background-color:#EEEEEE">
 		<xsl:for-each select="report/test">
+			<xsl:sort select="status"/>
+			<xsl:sort select="directory"/>
+			<xsl:sort select="name"/>
 			<div>
 			<xsl:variable name="mystatus">
 		<xsl:value-of select="status" /> 
