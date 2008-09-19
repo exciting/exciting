@@ -65,7 +65,7 @@ sub make_summary{
 	
     }
    #	print Dumper %merged;
-   	$xml = new XML::Simple(NoAttr=>1, RootName=>'report',XMLDecl=>"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet', 'href=\"perl/style.css\" type=\"text/xsl\"?>");
+   	$xml = new XML::Simple(NoAttr=>1, RootName=>'report',XMLDecl=>"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet href=\"perl/report.xsl\" type=\"text/xsl\"?>");
     $data{test}=\%merged;
     unless (open (ALL,">./all.xml")){
   		die "Sorry, I couldn't create all.xml: $!";
@@ -119,16 +119,22 @@ sub make_summary{
   	print HTML "<html><body><h1>Test Result</h1><p>Test suite run from";
   	($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
   	$mon=$mon+1;
-  	print HTML " $mday.$mon $hour:$min :  ";
+  	print HTML " $mday.$mon $hour:$min :</p><p>  ";
   	 
   	print HTML "<img src=\"";
   	print HTML "http://chart.apis.google.com/chart?cht=bhs";
   	print HTML "&chd=t:$ppassed|$punspec|$pfailed&";
-  	print HTML "chs=300x50&";
-  	print HTML "chl=passed:$npassed|unspec:$nunspec|failed:$nfailed&";
+  	print HTML "chs=500x80&";
+ 
+  	print HTML "chdl=passed|unspecified|failed&chdlp=t&";
+  	print HTML "chl=passed:$npassed|unspecified:$nunspec|failed:$nfailed&";
   	print HTML "chco=006600,ccff00,cc0033";
   	print HTML "\" >";
-  	print HTML "</p></body></html>";
+  	print HTML "</p>";
+  	print HTML "<p><a href=passed.xml>passed</a> ";
+  	print HTML "<a href=unspecified.xml>unspecified</a> ";
+  	print HTML "<a href=failed.xml>failed</a> </p>";
+  		print HTML "</body></html>";
 	close (HTML);
 }
 
