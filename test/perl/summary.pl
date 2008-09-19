@@ -65,29 +65,29 @@ sub make_summary{
 	
     }
    #	print Dumper %merged;
-   	$xml = new XML::Simple(NoAttr=>1, RootName=>'report',XMLDecl=>"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet href=\"perl/report.xsl\" type=\"text/xsl\"?>");
+   	$xml = new XML::Simple(NoAttr=>1, RootName=>'report',XMLDecl=>"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet href=\"./report.xsl\" type=\"text/xsl\"?>");
     $data{test}=\%merged;
-    unless (open (ALL,">./all.xml")){
+    unless (open (ALL,">./report/all.xml")){
   		die "Sorry, I couldn't create all.xml: $!";
     };
     print ALL $xml->XMLout(\%data);
     close ALL;
     
-    unless (open (FAILED ,">./failed.xml")){
+    unless (open (FAILED ,">./report/failed.xml")){
   		die "Sorry, I couldn't create failed.xml: $!";
     };
     $data{test}=\%failedtests;
     print FAILED $xml->XMLout(\%data);
     close FAILED;
     
-    unless (open (PASSED ,">./passed.xml")){
+    unless (open (PASSED ,">./report/passed.xml")){
   		die "Sorry, I couldn't create passed.xml: $!";
     };
     $data{test}=\%passedtests;
     print PASSED $xml->XMLout(\%data);
     close PASSED;
     
-    unless (open (UNSPEC ,">./unspecified.xml")){
+    unless (open (UNSPEC ,">./report/unspecified.xml")){
   		die "Sorry, I couldn't create unsecified.xml: $!";
     };
     $data{test}=\%unspecifiedtests;
@@ -104,7 +104,7 @@ sub make_summary{
     $punspec=$nunsped/$nall*100;
     $pfailed=$nfailed/$nall*100;
     
-    my $output = new IO::File(">stats.xml");
+    my $output = new IO::File(">report/stats.xml");
   	my $writer = new XML::Writer(OUTPUT => $output,DATA_MODE => 'true', DATA_INDENT => 2);
   	$writer->xmlDecl( 'UTF-8' );
   	$writer->startTag("statistics");
@@ -115,7 +115,7 @@ sub make_summary{
     $writer->endTag("statistics");
     $output=$writer-> getOutput();
   	$output->close();
-  	open(HTML,">result.html");
+  	open(HTML,">report/index.html");
   	print HTML "<html><body><h1>Test Result</h1><p>Test suite run from";
   	($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
   	$mon=$mon+1;
@@ -128,7 +128,7 @@ sub make_summary{
  
   	print HTML "chdl=passed|unspecified|failed&chdlp=t&";
   	print HTML "chl=passed:$npassed|unspecified:$nunspec|failed:$nfailed&";
-  	print HTML "chco=006600,ccff00,cc0033";
+  	print HTML "chco=006600,f0f000,cc0033";
   	print HTML "\" >";
   	print HTML "</p>";
   	print HTML "<p><a href=passed.xml>passed</a> ";
