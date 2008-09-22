@@ -7,7 +7,7 @@
 		<xsl:for-each select="statistics/run">
 			<xsl:sort select="timestamp/time" />
 			<div style="margin-bottom:1em;margin-top:2em;font-size:12pt;background-color:#dddddd">
-			<span style="font-size:18pt;margin-right:1em">Test Nr:<xsl:value-of select="@name"/> </span>
+			<span style="font-size:18pt;margin-right:1em">Test run Nr:<xsl:value-of select="@name"/> </span>
 <span style="margin-right:2em"><b>Time: </b> 
 				<xsl:value-of select="timestamp/@timestring" />
 </span>
