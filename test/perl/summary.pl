@@ -9,8 +9,4 @@ use Data::Dumper;
 
 my @allreports=Summary::collectreports();
 Summary::make_summary (@allreports);
-
-
-
-
-Summary::get_git_hash("../src/version.inc");
+Summary::write_history("");
