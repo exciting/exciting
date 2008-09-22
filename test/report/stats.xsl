@@ -8,12 +8,13 @@
 			<xsl:sort select="timestamp/time" />
 			<div style="margin-bottom:1em;margin-top:2em;font-size:12pt;background-color:#dddddd">
 			<span style="font-size:18pt;margin-right:1em">Test Nr:<xsl:value-of select="@name"/> </span>
-<b>Time: </b>
+<span style="margin-right:2em"><b>Time: </b> 
 				<xsl:value-of select="timestamp/@timestring" />
-
-<b>githash: </b>
+</span>
+<span style="margin-right:2em"><b>githash: </b>
  
 				<xsl:value-of select="githash/@hash" />
+</span>
 		</div>
 			<div
 				style="background-color:#ffffff;margin-bottom:1em;font-size:10pt">
