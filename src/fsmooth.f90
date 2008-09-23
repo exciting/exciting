@@ -27,10 +27,13 @@ integer, intent(in) :: ld
 real(8), intent(inout) :: f(ld,n)
 ! local variables
 integer i,j
+! automatic arrays
+real(8) g(n)
 do i=1,m
   do j=2,n-1
-    f(1,j)=0.3333333333333333333d0*(f(1,j-1)+f(1,j)+f(1,j+1))
+    g(j)=0.3333333333333333333d0*(f(1,j-1)+f(1,j)+f(1,j+1))
   end do
+  f(1,2:n-1)=g(2:n-1)
 end do
 return
 end subroutine

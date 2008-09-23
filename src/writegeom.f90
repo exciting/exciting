@@ -10,12 +10,11 @@ subroutine writegeom(topt)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
-!   topt : .true. if GEOMETRY-OPT.OUT is to be written
+!   topt : if .true. then the filename will be {\tt GEOMETRY_OPT.OUT}, otherwise
+!          {\tt GEOMETRY.OUT} (in,logical)
 ! !DESCRIPTION:
 !   Outputs the lattice vectors and atomic positions to file, in a format
-!   which may be then used directly in {\tt exciting.in}. If {\tt topt} is
-!   {\tt .false.} then the file name is {\tt GEOMETRY.OUT}, otherwise it is
-!   {\tt GEOMETRY\_OPT.OUT}.
+!   which may be then used directly in {\tt exciting.in}.
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
@@ -63,7 +62,7 @@ do is=1,nspecies
   do ia=1,natoms(is)
     if (molecule) then
 ! write Cartesian coordinates for the molecular case
-      call r3mv(avec,atposl(1,ia,is),v)
+      call r3mv(avec,atposl(:,ia,is),v)
     else
 ! otherwise write lattice coordinates
       v(:)=atposl(:,ia,is)

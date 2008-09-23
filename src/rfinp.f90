@@ -52,8 +52,8 @@ sum=sum*omega/dble(ngrtot)
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    sum=sum+rfmtinp(lrstp,lmaxvr,nrmt(is),spr(1,is),lmmaxvr,rfmt1(1,1,ias), &
-     rfmt2(1,1,ias))
+    sum=sum+rfmtinp(lrstp,lmaxvr,nrmt(is),spr(:,is),lmmaxvr,rfmt1(:,:,ias), &
+     rfmt2(:,:,ias))
   end do
 end do
 rfinp=sum

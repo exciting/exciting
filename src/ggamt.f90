@@ -78,11 +78,11 @@ else
   rfmt1(:,1:nr)=rhomt(:,1:nr,ias)
 end if
 ! |grad rhoup|
-call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
 do ir=1,nr
   do i=1,3
-    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
-     0.d0,rftp1(1,ir,i),1)
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt1(:,ir,i),1,0.d0, &
+     rftp1(:,ir,i),1)
   end do
   do itp=1,lmmaxvr
     gupmt(itp,ir)=sqrt(rftp1(itp,ir,1)**2+rftp1(itp,ir,2)**2+rftp1(itp,ir,3)**2)
@@ -91,23 +91,23 @@ end do
 ! grad^2 rhoup
 g2upmt(:,1:nr)=0.d0
 do i=1,3
-  call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,grfmt1(1,1,i),grfmt2)
+  call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,grfmt1(:,:,i),grfmt2)
   do ir=1,nr
-    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt2(1,ir,i),1, &
-     1.d0,g2upmt(1,ir),1)
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt2(:,ir,i),1,1.d0, &
+     g2upmt(:,ir),1)
   end do
 end do
 ! (grad rhoup).(grad |grad rhoup|)
 do ir=1,nr
-  call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,gupmt(1,ir),1,0.d0, &
-   rfmt1(1,ir),1)
+  call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,gupmt(:,ir),1,0.d0, &
+   rfmt1(:,ir),1)
 end do
-call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
 g3upmt(:,1:nr)=0.d0
 do i=1,3
   do ir=1,nr
-    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
-     0.d0,rftp3,1)
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt1(:,ir,i),1,0.d0, &
+     rftp3,1)
     do itp=1,lmmaxvr
       g3upmt(itp,ir)=g3upmt(itp,ir)+rftp1(itp,ir,i)*rftp3(itp)
     end do
@@ -117,11 +117,11 @@ if (spinpol) then
 ! rhodn
   rfmt1(:,1:nr)=0.5d0*(rhomt(:,1:nr,ias)-magmt(:,1:nr,ias,ndmag))
 ! |grad rhodn|
-  call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+  call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
   do ir=1,nr
     do i=1,3
-      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
-       0.d0,rftp2(1,ir,i),1)
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt1(:,ir,i),1, &
+       0.d0,rftp2(:,ir,i),1)
     end do
     do itp=1,lmmaxvr
       gdnmt(itp,ir)=sqrt(rftp2(itp,ir,1)**2+rftp2(itp,ir,2)**2 &
@@ -131,22 +131,22 @@ if (spinpol) then
 ! grad^2 rhodn
   g2dnmt(:,1:nr)=0.d0
   do i=1,3
-    call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,grfmt1(1,1,i),grfmt2)
+    call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,grfmt1(:,:,i),grfmt2)
     do ir=1,nr
-      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt2(1,ir,i),1, &
-       1.d0,g2dnmt(1,ir),1)
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt2(:,ir,i),1, &
+       1.d0,g2dnmt(:,ir),1)
     end do
   end do
 ! (grad rhodn).(grad |grad rhodn|)
   do ir=1,nr
-    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,gdnmt(1,ir),1,0.d0, &
-     rfmt1(1,ir),1)
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,gdnmt(:,ir),1,0.d0, &
+     rfmt1(:,ir),1)
   end do
-  call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+  call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
   g3dnmt(:,1:nr)=0.d0
   do i=1,3
     do ir=1,nr
-      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt1(:,ir,i),1, &
        0.d0,rftp3,1)
       do itp=1,lmmaxvr
         g3dnmt(itp,ir)=g3dnmt(itp,ir)+rftp2(itp,ir,i)*rftp3(itp)
@@ -163,14 +163,14 @@ if (spinpol) then
   end do
 ! (grad rho).(grad |grad rho|)
   do ir=1,nr
-    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,grhomt(1,ir),1,0.d0, &
-     rfmt1(1,ir),1)
+    call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,grhomt(:,ir),1,0.d0, &
+     rfmt1(:,ir),1)
   end do
-  call gradrfmt(lmaxvr,nr,spr(1,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
+  call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,rfmt1,grfmt1)
   g3rhomt(:,1:nr)=0.d0
   do i=1,3
     do ir=1,nr
-      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt1(1,ir,i),1, &
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt1(:,ir,i),1, &
        0.d0,rftp3,1)
       do itp=1,lmmaxvr
         g3rhomt(itp,ir)=g3rhomt(itp,ir) &
@@ -183,3 +183,4 @@ deallocate(rfmt1,rftp1,rftp2,rftp3,grfmt1,grfmt2)
 return
 end subroutine
 !EOC
+

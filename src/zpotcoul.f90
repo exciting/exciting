@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: zpotcoul
 ! !INTERFACE:
-subroutine zpotcoul(nr,nrmax,ld,r,igp0,gpc,jlgpr,ylmgp,sfacgp,zpchg,zrhomt, &
+subroutine zpotcoul(nr,nrmax,ld,r,igp0,gpc,jlgpr,ylmgp,sfacgp,zn,zrhomt, &
  zrhoir,zvclmt,zvclir,zrho0)
 ! !USES:
 use modmain
@@ -21,12 +21,12 @@ use modmain
 !            radius (in,real(0:lmaxvr+npsden+1,ngvec,nspecies))
 !   ylmgp  : spherical harmonics of the G+p-vectors (in,complex(lmmaxvr,ngvec))
 !   sfacgp : structure factors of the G+p-vectors (in,complex(ngvec,natmtot))
-!   zpchg  : point charges at the atomic centers (in,complex(natmtot))
+!   zn     : nuclear charges at the atomic centers (in,real(nspecies))
 !   zrhomt : muffin-tin charge density (in,complex(lmmaxvr,nrmax,natmtot))
 !   zrhoir : interstitial charge density (in,complex(ngrtot))
 !   zvclmt : muffin-tin Coulomb potential (out,complex(lmmaxvr,nrmax,natmtot))
 !   zvclir : interstitial Coulomb potential (out,complex(ngrtot))
-!   zrho0  : G=0 term of the pseudocharge density (out,complex)
+!   zrho0  : G+p=0 term of the pseudocharge density (out,complex)
 ! !DESCRIPTION:
 !   Calculates the Coulomb potential of a complex charge density by solving
 !   Poisson's equation. First, the multipole moments of the muffin-tin charge
@@ -99,7 +99,7 @@ real(8), intent(in) :: gpc(ngvec)
 real(8), intent(in) :: jlgpr(0:lmaxvr+npsden+1,ngvec,nspecies)
 complex(8), intent(in) :: ylmgp(lmmaxvr,ngvec)
 complex(8), intent(in) :: sfacgp(ngvec,natmtot)
-complex(8), intent(in) :: zpchg(natmtot)
+real(8), intent(in) :: zn(nspecies)
 complex(8), intent(in) :: zrhomt(lmmaxvr,nrmax,natmtot)
 complex(8), intent(in) :: zrhoir(ngrtot)
 complex(8), intent(out) :: zvclmt(lmmaxvr,nrmax,natmtot)
@@ -113,8 +113,6 @@ complex(8) zsum,zt1,zt2
 ! automatic arrays
 real(8) rmtl(0:lmaxvr+3,nspecies)
 real(8) rl(nrmax,0:lmaxvr)
-real(8) fr1(nrmax),fr2(nrmax)
-real(8) gr(nrmax),cf(3,nrmax)
 complex(8) vilm(lmmaxvr)
 complex(8) qmt(lmmaxvr,natmtot)
 complex(8) qi(lmmaxvr,natmtot)
@@ -123,6 +121,19 @@ complex(8) zrp(lmmaxvr)
 real(8) factnm
 external factnm
 fpo=fourpi/omega
+! solve Poisson's equation for the isolated charge in the muffin-tin
+do is=1,nspecies
+!$OMP PARALLEL DEFAULT(SHARED) &
+!$OMP PRIVATE(ias)
+!$OMP DO
+  do ia=1,natoms(is)
+    ias=idxas(ia,is)
+    call zpotclmt(ptnucl,lmaxvr,nr(is),r(:,is),zn(is),lmmaxvr,zrhomt(:,:,ias), &
+     zvclmt(:,:,ias))
+  end do
+!$OMP END DO
+!$OMP END PARALLEL
+end do
 ! compute (R_mt)^l
 do is=1,nspecies
   rmtl(0,is)=1.d0
@@ -130,42 +141,24 @@ do is=1,nspecies
     rmtl(l,is)=rmtl(l-1,is)*rmt(is)
   end do
 end do
-! find the multipole moments of the muffin-tin charges
-qmt(:,:)=0.d0
+! compute the multipole moments from the muffin-tin potentials
 do is=1,nspecies
-! compute r^(l+2)
-  do ir=1,nr(is)
-    t1=r(ir,is)
-    rl(ir,0)=t1**2
-    do l=1,lmaxvr
-      rl(ir,l)=rl(ir,l-1)*t1
-    end do
-  end do
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     lm=0
     do l=0,lmaxvr
+      t1=dble(2*l+1)*rmtl(l+1,is)/fourpi
       do m=-l,l
         lm=lm+1
-        do ir=1,nr(is)
-          fr1(ir)=dble(zrhomt(lm,ir,ias))*rl(ir,l)
-          fr2(ir)=aimag(zrhomt(lm,ir,ias))*rl(ir,l)
-        end do
-        call fderiv(-1,nr(is),r(1,is),fr1,gr,cf)
-        t1=gr(nr(is))
-        call fderiv(-1,nr(is),r(1,is),fr2,gr,cf)
-        t2=gr(nr(is))
-        qmt(lm,ias)=cmplx(t1,t2,8)
+        qmt(lm,ias)=t1*zvclmt(lm,nr(is),ias)
       end do
     end do
-! add the point charge monopole
-    qmt(1,ias)=qmt(1,ias)+zpchg(ias)*y00
   end do
 end do
-! find the multipole moments of the interstitial charge density
+! Fourier transform density to G-space and store in zvclir
 zvclir(:)=zrhoir(:)
-! Fourier transform density to G-space
 call zfftifc(3,ngrid,-1,zvclir)
+! find the multipole moments of the interstitial charge density
 qi(:,:)=0.d0
 do is=1,nspecies
   do ia=1,natoms(is)
@@ -243,19 +236,6 @@ do ig=1,ngvec
   else
     zvclir(ifg)=0.d0
   end if
-end do
-! solve Poisson's equation for the isolated charge in the muffin-tin
-do is=1,nspecies
-!$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(ias)
-!$OMP DO
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    call zpotclmt(lmaxvr,nr(is),r(1,is),zpchg(ias),lmmaxvr,zrhomt(1,1,ias), &
-     zvclmt(1,1,ias))
-  end do
-!$OMP END DO
-!$OMP END PARALLEL
 end do
 ! match potentials at muffin-tin boundary by adding homogeneous solution
 do is=1,nspecies

@@ -25,13 +25,11 @@ integer is,ia,ias,ir,lmax
 complex(8) zrho0
 ! allocatable arrays
 real(8), allocatable :: jlgr(:,:,:)
-complex(8), allocatable :: zpchg(:)
 complex(8), allocatable :: zrhomt(:,:,:)
 complex(8), allocatable :: zrhoir(:)
 complex(8), allocatable :: zvclmt(:,:,:)
 complex(8), allocatable :: zvclir(:)
 allocate(jlgr(0:lmaxvr+npsden+1,ngvec,nspecies))
-allocate(zpchg(natmtot))
 allocate(zrhomt(lmmaxvr,nrmtmax,natmtot))
 allocate(zrhoir(ngrtot))
 allocate(zvclmt(lmmaxvr,nrmtmax,natmtot))
@@ -41,37 +39,30 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     do ir=1,nrmt(is)
-      call rtozflm(lmaxvr,rhomt(1,ir,ias),zrhomt(1,ir,ias))
+      call rtozflm(lmaxvr,rhomt(:,ir,ias),zrhomt(:,ir,ias))
     end do
   end do
 end do
 ! store real interstitial charge density in complex array
 zrhoir(:)=rhoir(:)
-! set up the point charge array
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    zpchg(ias)=spzn(is)
-  end do
-end do
 ! compute the required spherical Bessel functions
 lmax=lmaxvr+npsden+1
 call genjlgpr(lmax,gc,jlgr)
 ! solve the complex Poisson's equation
-call zpotcoul(nrmt,nrmtmax,spnrmax,spr,1,gc,jlgr,ylmg,sfacg,zpchg,zrhomt, &
+call zpotcoul(nrmt,nrmtmax,spnrmax,spr,1,gc,jlgr,ylmg,sfacg,spzn,zrhomt, &
  zrhoir,zvclmt,zvclir,zrho0)
 ! convert complex muffin-tin potential to real spherical harmonic expansion
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     do ir=1,nrmt(is)
-      call ztorflm(lmaxvr,zvclmt(1,ir,ias),vclmt(1,ir,ias))
+      call ztorflm(lmaxvr,zvclmt(:,ir,ias),vclmt(:,ir,ias))
     end do
   end do
 end do
 ! store complex interstitial potential in real array
 vclir(:)=dble(zvclir(:))
-deallocate(jlgr,zpchg,zrhomt,zrhoir,zvclmt,zvclir)
+deallocate(jlgr,zrhomt,zrhoir,zvclmt,zvclir)
 return
 end subroutine
 !EOC

@@ -23,8 +23,10 @@ real(8) function sdelta(stype,x)
 !    \item[1.] Methfessel-Paxton order 1
 !    \item[2.] Methfessel-Paxton order 2
 !    \item[3.] Fermi-Dirac
+!    \item[4.] Square-wave impulse
 !   \end{list}
-!   See routines {\tt stheta}, {\tt sdelta\_mp} and {\tt sdelta\_fd}.
+!   See routines {\tt stheta}, {\tt sdelta\_mp}, {\tt sdelta\_fd} and
+!   {\tt sdelta\_sq}.
 !
 ! !REVISION HISTORY:
 !   Created April 2003 (JKD)
@@ -35,8 +37,8 @@ implicit none
 integer, intent(in) :: stype
 real(8), intent(in) :: x
 ! external functions
-real(8) sdelta_mp,sdelta_fd
-external sdelta_mp,sdelta_fd
+real(8) sdelta_mp,sdelta_fd,sdelta_sq
+external sdelta_mp,sdelta_fd,sdelta_sq
 sdelta=0.d0
 select case(stype)
 case(0)
@@ -51,6 +53,8 @@ case(2)
 case(3)
   sdelta=sdelta_fd(x)
   return
+case(4)
+  sdelta=sdelta_sq(x)
 case default
   write(*,*)
   write(*,'("Error(sdelta): sytpe not defined : ",I8)') stype
@@ -92,6 +96,8 @@ case(2)
 case(3)
   sdescr='Fermi-Dirac'
   return
+case(4)
+  sdescr='Square-wave impulse'
 case default
   write(*,*)
   write(*,'("Error(getsdata): sytpe not defined : ",I8)') stype

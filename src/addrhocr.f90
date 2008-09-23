@@ -35,7 +35,7 @@ do is=1,nspecies
       fr(ir)=fourpi*rhocr(ir,ias)*spr(ir,is)**2
     end do
 ! compute the core charge inside the muffin-tins
-    call fderiv(-1,nrmt(is),spr(1,is),fr,gr,cf)
+    call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
     sum1=sum1+gr(nrmt(is))
   end do
   sum2=sum2+dble(natoms(is))*(4.d0/3.d0)*pi*(rmt(is)**3)

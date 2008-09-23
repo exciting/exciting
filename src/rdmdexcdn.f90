@@ -16,10 +16,9 @@ integer ist1,ist2,iv(3)
 real(8), parameter :: eps=1.d-12
 real(8) t1,t2,t3,t4
 ! external functions
-real(8) r3dist
-external r3dist
+real(8) r3taxi
+external r3taxi
 if (rdmxctype.eq.0) return
-
 ! calculate the pre-factor
 if (rdmxctype.eq.1) then
   t1=1.d0/occmax
@@ -34,8 +33,6 @@ else
   write(*,'("Error(rdmdexcdn): rdmxctype not defined : ",I8)') rdmxctype
   write(*,*)
 end if
-
-
 do ik1=1,nkpt
   do ist1=1,nstsv
     do ik2=1,nkptnr
@@ -48,9 +45,14 @@ do ik1=1,nkpt
           t2=t1*occsv(ist2,ik3)
 ! SDLG functional
         else if (rdmxctype.eq.2) then
-          t3=max(occsv(ist1,ik1),eps)
-          t4=max(occsv(ist2,ik3),eps)
-          t2=t1*(t4**rdmalpha)/(t3**(1.d0-rdmalpha))
+          if ((ist1.eq.ist2).and. &
+           (r3taxi(vkl(1,ik1),vklnr(1,ik2)).lt.epslat)) then
+            t2=(1.d0/occmax)*occsv(ist2,ik3)
+          else
+            t3=max(occsv(ist1,ik1),eps)
+            t4=max(occsv(ist2,ik3),eps)
+            t2=t1*(t4**rdmalpha)/(t3**(1.d0-rdmalpha))
+          end if
         end if
         dedn(ist1,ik1)=dedn(ist1,ik1)+t2*vnlrdm(ist1,ik1,ist2,ik2)
       end do

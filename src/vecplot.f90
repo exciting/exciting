@@ -32,9 +32,6 @@ real(8) vl1(3),vl2(3),vc1(3),vc2(3),vc3(3),vc4(3),t1
 ! allocatable arrays
 real(8), allocatable :: rvfmt(:,:,:,:)
 real(8), allocatable :: rvfir(:,:)
-! external functions
-real(8) r3dot
-external r3dot
 if ((task.eq.72).or.(task.eq.73).or.(task.eq.82).or.(task.eq.83)) then
   if (.not.spinpol) then
     write(*,*)
@@ -52,7 +49,7 @@ allocate(rvfir(ngrtot,3))
 select case(task)
 case(72,73)
 ! magnetisation
-  if (ndmag.eq.3) then
+  if (ncmag) then
 ! non-collinear
     rvfmt(:,:,:,:)=magmt(:,:,:,:)
     rvfir(:,:)=magir(:,:)
@@ -65,7 +62,7 @@ case(72,73)
   end if
 case(82,83)
 ! effective magnetic field
-  if (ndmag.eq.3) then
+  if (ncmag) then
 ! non-collinear
     rvfmt(:,:,:,:)=bxcmt(:,:,:,:)
     rvfir(:,:)=bxcir(:,:)
@@ -114,18 +111,18 @@ case(72,82,142,152)
       do ir=1,nrmt(is)
         do lm=1,lmmaxvr
           vc4(:)=rvfmt(lm,ir,ias,:)
-          rvfmt(lm,ir,ias,1)=r3dot(vc4,vc1)
-          rvfmt(lm,ir,ias,2)=r3dot(vc4,vc2)
-          rvfmt(lm,ir,ias,3)=r3dot(vc4,vc3)
+          rvfmt(lm,ir,ias,1)=dot_product(vc4(:),vc1(:))
+          rvfmt(lm,ir,ias,2)=dot_product(vc4(:),vc2(:))
+          rvfmt(lm,ir,ias,3)=dot_product(vc4(:),vc3(:))
         end do
       end do
     end do
   end do
   do ir=1,ngrtot
     vc4(:)=rvfir(ir,:)
-    rvfir(ir,1)=r3dot(vc4,vc1)
-    rvfir(ir,2)=r3dot(vc4,vc2)
-    rvfir(ir,3)=r3dot(vc4,vc3)
+    rvfir(ir,1)=dot_product(vc4(:),vc1(:))
+    rvfir(ir,2)=dot_product(vc4(:),vc2(:))
+    rvfir(ir,3)=dot_product(vc4(:),vc3(:))
   end do
   if (task.eq.72) then
     open(50,file='MAG2D.OUT',action='WRITE',form='FORMATTED')

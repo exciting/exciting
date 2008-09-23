@@ -73,17 +73,16 @@ fermidos=0.d0
 do ik=1,nkpt
   do ist=1,nstsv
     if (evalsv(ist,ik).gt.evalmin) then
-      x=(efermi-evalsv(ist,ik))*t1
+      x=(evalsv(ist,ik)-efermi)*t1
       fermidos=fermidos+wkpt(ik)*sdelta(stype,x)*t1
     end if
   end do
   if (occsv(nstsv,ik).gt.epsocc) then
     write(*,*)
     write(*,'("Warning(occupy): not enough empty states for k-point ",I6)') ik
-    write(*,'("Increase parameter nempty")')
   end if
 end do
-fermidos=fermidos*occmax/2.d0
+fermidos=fermidos*occmax
 return
 end subroutine
 !EOC

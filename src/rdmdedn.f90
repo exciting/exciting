@@ -17,9 +17,9 @@ allocate(evecsv(nstsv,nstsv),c(nstsv,nstsv))
 dedn(:,:)=0.d0
 do ik=1,nkpt
 ! get evecsv from a file
-  call getevecsv(vkl(1,ik),evecsv)
+  call getevecsv(vkl(:,ik),evecsv)
 ! kinetic contribution
-  call zgemm('C','N',nstsv,nstsv,nstsv,zone,evecsv,nstsv,dkdc(1,1,ik),nstsv, &
+  call zgemm('C','N',nstsv,nstsv,nstsv,zone,evecsv,nstsv,dkdc(:,:,ik),nstsv, &
    zzero,c,nstsv)
   do ist=1,nstsv
 ! include Coulomb contribution
@@ -28,6 +28,10 @@ do ik=1,nkpt
 end do
 ! add exchange correlation contribution
 call rdmdexcdn(dedn)
+! add entropic contribution if needed
+if (rdmtemp.gt.0.d0) then
+  call rdmdsdn(dedn)
+end if
 deallocate(evecsv,c)
 return
 end subroutine

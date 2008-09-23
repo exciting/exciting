@@ -20,13 +20,9 @@ use modxcifc
 !BOC
 implicit none
 ! local variables
-integer is,ia,ias,ist
-integer l,m,lm,iv(3)
-real(8) cs,sn,r
-real(8) cpu0,cpu1
-! external functions
-real(8) dlamch
-external dlamch
+integer is,js,ia,ias
+integer ist,l,m,lm,iv(3)
+real(8) ts0,ts1
 
 !-------------------------------!
 !     zero timing variables     !
@@ -38,7 +34,7 @@ timesv=0.d0
 timerho=0.d0
 timepot=0.d0
 timefor=0.d0
-call cpu_time(cpu0)
+call timesec(ts0)
 
 !------------------------------------!
 !     angular momentum variables     !
@@ -165,6 +161,18 @@ if (spinpol) then
 else
   ndmag=0
 end if
+! set the non-collinear flag
+if (ndmag.eq.3) then
+  ncmag=.true.
+else
+  ncmag=.false.
+end if
+if ((ncmag).and.(xcgrad.gt.0)) then
+  write(*,*)
+  write(*,'("Error(init0): GGA does not work with non-collinear magnetism")')
+  write(*,*)
+  stop
+end if
 ! set fixed spin moment effective field to zero
 bfsmc(:)=0.d0
 ! set muffin-tin FSM fields to zero
@@ -182,11 +190,11 @@ call r3minv(bvec,binv)
 do is=1,nspecies
   do ia=1,natoms(is)
 ! map atomic lattice coordinates to [0,1) if not in molecule mode
-    if (.not.molecule) call r3frac(epslat,atposl(1,ia,is),iv)
+    if (.not.molecule) call r3frac(epslat,atposl(:,ia,is),iv)
 ! determine atomic Cartesian coordinates
-    call r3mv(avec,atposl(1,ia,is),atposc(1,ia,is))
+    call r3mv(avec,atposl(:,ia,is),atposc(:,ia,is))
 ! lattice coordinates of the muffin-tin magnetic fields
-    call r3mv(ainv,bfcmt(1,ia,is),bflmt(1,ia,is))
+    call r3mv(ainv,bfcmt(:,ia,is),bflmt(:,ia,is))
   end do
 end do
 ! lattice coordinates of the global magnetic field
@@ -211,13 +219,7 @@ call checkmt
 !-----------------------!
 nrmtmax=1
 nrcmtmax=1
-if (nspecies.eq.0) then
-  rmtmin=2.d0
-  rmtmax=2.d0
-else
-  rmtmin=rmt(1)
-  rmtmax=rmt(1)
-end if
+js=1
 do is=1,nspecies
 ! make the muffin-tin mesh commensurate with lradstp
   nrmt(is)=nrmt(is)-mod(nrmt(is)-1,lradstp)
@@ -225,10 +227,10 @@ do is=1,nspecies
 ! number of coarse radial mesh points
   nrcmt(is)=(nrmt(is)-1)/lradstp+1
   nrcmtmax=max(nrcmtmax,nrcmt(is))
-! smallest and largest muffin-tin radii
-  rmtmin=min(rmtmin,rmt(is))
-  rmtmax=max(rmtmax,rmt(is))
+! smallest muffin-tin radius
+  if (rmt(is).lt.rmt(js)) js=is
 end do
+if ((isgkmax.lt.1).or.(isgkmax.gt.nspecies)) isgkmax=js
 ! set up atomic and muffin-tin radial meshes
 call genrmesh
 
@@ -266,6 +268,8 @@ if (chgtot.lt.1.d-8) then
   write(*,*)
   stop
 end if
+! effective Wigner radius
+rwigner=(3.d0/(fourpi*(chgtot/omega)))**(1.d0/3.d0)
 
 !-------------------------!
 !     G-vector arrays     !
@@ -385,7 +389,7 @@ tauatm(:)=tau0atm
 !-------------------------!
 !     LDA+U variables     !
 !-------------------------!
-if (ldapu.ne.0) then
+if ((ldapu.ne.0).or.(task.eq.17)) then
 ! LDA+U requires second-variational eigenvectors
   tevecsv=.true.
 ! density matrices
@@ -409,8 +413,6 @@ end if
 !-----------------------!
 ! determine the nuclear-nuclear energy
 call energynn
-! call LAPACK routines which contain the SAVE attribute
-call dlartg(1.d0,0.d0,cs,sn,r)
 ! get smearing function data
 call getsdata(stype,sdescr)
 ! generate the spherical harmonic transform (SHT) matrices
@@ -424,9 +426,10 @@ if (allocated(dpp1d)) deallocate(dpp1d)
 allocate(dpp1d(npp1d))
 ! zero self-consistent loop number
 iscl=0
+tlast=.false.
 
-call cpu_time(cpu1)
-timeinit=timeinit+cpu1-cpu0
+call timesec(ts1)
+timeinit=timeinit+ts1-ts0
 
 return
 end subroutine

@@ -37,7 +37,8 @@ do ilo=1,nlorb(is)
               end do
             end if
           end do
-          if (abs(dble(zsum))+abs(aimag(zsum)).gt.1.d-20) then
+! note that what is actually computed is the Hermitian conjugate of <lo|H|APW>
+          if (abs(dble(zsum))+abs(aimag(zsum)).gt.1.d-14) then
             if (tapp) then
 ! apply the Hamiltonian operator to v
               do j=1,ngp
@@ -50,8 +51,7 @@ do ilo=1,nlorb(is)
               k=((i-1)*i)/2
               do j=1,ngp
                 k=k+1
-                zt1=zsum*apwalm(j,io,lm3,ias)
-                h(k)=h(k)+conjg(zt1)
+                h(k)=h(k)+conjg(zsum*apwalm(j,io,lm3,ias))
               end do
             end if
           end if

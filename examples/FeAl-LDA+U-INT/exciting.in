@@ -5,7 +5,7 @@
 ! localization of Fe d-electrons. Note the interpolation factor in file
 ! ALPHALU.OUT about 0.1, this  value is a sign of a weakly correlated compound
 ! ( see PRB 67, 153106 (2003)).
-! Example created by Fredrik Bultmark, Francesco Cricchio and Lars Norsdtrom.
+! Example created by Fredrik Bultmark, Francesco Cricchio and Lars Nordstrom.
 
 tasks
   0
@@ -50,10 +50,6 @@ sppath
 ! automatic muffin tin radius
 autormt
   .true.
-
-! conservative mixing
-beta0
-  0.05
 
 ! fair number of empty states
 nempty

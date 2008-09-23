@@ -100,7 +100,7 @@ end do
 20 continue
 ! index to the inverse of each operation
 do i=1,nsymlat
-  call i3minv(symlat(1,1,i),sym)
+  call i3minv(symlat(:,:,i),sym)
   do j=1,nsymlat
     if ((symlat(1,1,j).eq.sym(1,1)).and.(symlat(1,2,j).eq.sym(1,2)).and. &
         (symlat(1,3,j).eq.sym(1,3)).and.(symlat(2,1,j).eq.sym(2,1)).and. &
@@ -122,7 +122,7 @@ end do
 do i=1,nsymlat
   s(:,:)=dble(symlat(:,:,i))
   call r3mm(s,ainv,c)
-  call r3mm(avec,c,symlatc(1,1,i))
+  call r3mm(avec,c,symlatc(:,:,i))
 end do
 return
 end subroutine

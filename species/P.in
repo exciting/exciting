@@ -2,7 +2,7 @@
  'phosphorus'                               : spname
   -15.0000                                  : spzn
    56461.71408                              : spmass
-  0.516398E-06    2.0000   39.8012   400    : sprmin, rmt, sprmax, nrmt
+  0.516398E-06    2.0000   32.9108   400    : sprmin, rmt, sprmax, nrmt
    7                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

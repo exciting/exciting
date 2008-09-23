@@ -61,9 +61,9 @@ real(8), allocatable :: f0(:),f1(:)
 real(8), allocatable :: e0(:),e1(:)
 real(8), allocatable :: f00(:),f01(:),f10(:),f11(:)
 real(8), allocatable :: e00(:),e01(:),e10(:),e11(:)
-if ((ngridk(1).lt.2).or.(ngridk(2).lt.2).or.(ngridk(3).lt.2)) then
+if ((ngridk(1).lt.1).or.(ngridk(2).lt.1).or.(ngridk(3).lt.1)) then
   write(*,*)
-  write(*,'("Error(brzint): ngridk < 2 : ",3I8)') ngridk
+  write(*,'("Error(brzint): ngridk < 1 : ",3I8)') ngridk
   write(*,*)
   stop
 end if

@@ -22,10 +22,10 @@ use modmain
 !   wfmt   : muffin-tin wavefunction (out,complex(ld,*))
 ! !DESCRIPTION:
 !   Calculates the first-variational wavefunction in the muffin-tin in terms of
-!   a spherical harmonic expansion. For atom $\alpha$ and a particular
-!   $p$-point, the $r$-dependent $(l,m)$-coefficients of the wavefunction for
+!   a spherical harmonic expansion. For atom $\alpha$ and a particular $k$-point
+!   ${\bf p}$, the $r$-dependent $(l,m)$-coefficients of the wavefunction for
 !   the $i$th state are given by
-!   $$ \Psi^{i{\bf p}\alpha}_{lm}(r)=\sum_{\bf G}\Phi^{i{\bf p}}_{\bf G}
+!   $$ \Phi^{i{\bf p}}_{\alpha lm}(r)=\sum_{\bf G}\Phi^{i{\bf p}}_{\bf G}
 !    \sum_{j=1}^{M^{\alpha}_l}A^{\alpha}_{jlm}({\bf G+p})u^{\alpha}_{jl}(r)
 !    +\sum_{j=1}^{N^{\alpha}}\Phi^{i{\bf p}}_{(\alpha,j,m)}v^{\alpha}_j(r)
 !    \delta_{l,l_j}, $$
@@ -80,10 +80,10 @@ do l=0,lmax
   do m=-l,l
     lm=idxlm(l,m)
     do io=1,apword(l,is)
-      zt1=zdotu(ngp,evecfv,1,apwalm(1,io,lm,ias),1)
+      zt1=zdotu(ngp,evecfv,1,apwalm(:,io,lm,ias),1)
       a=dble(zt1)
       b=aimag(zt1)
-      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,apwfr(1,1,io,l,ias))
+      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,apwfr(:,:,io,l,ias))
     end do
   end do
 end do
@@ -96,7 +96,7 @@ do ilo=1,nlorb(is)
       i=ngp+idxlo(lm,ilo,ias)
       a=dble(evecfv(i))
       b=aimag(evecfv(i))
-      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,lofr(1,1,ilo,ias))
+      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,lofr(:,:,ilo,ias))
     end do
   end if
 end do

@@ -17,7 +17,7 @@ do ik=1,nkpt
 !$OMP CRITICAL
   write(*,'("Info(oepvnl): ",I6," of ",I6," k-points")') ik,nkpt
 !$OMP END CRITICAL
-  call oepvnlk(ik,vnlcv(1,1,1,ik),vnlvv(1,1,ik))
+  call oepvnlk(ik,vnlcv(:,:,:,ik),vnlvv(:,:,ik))
 end do
 !$OMP END DO
 !$OMP END PARALLEL

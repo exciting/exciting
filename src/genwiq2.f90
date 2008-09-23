@@ -12,9 +12,9 @@ use modmain
 ! !DESCRIPTION:
 !   The Fock matrix elements
 !   $$ V^{\rm NL}_{ij{\bf k}}\equiv\sum_{l{\bf k'}}\int
-!    \frac{\phi^*_{i{\bf k}}({\bf r})\phi_{l{\bf k}'}({\bf r})
-!    \phi^*_{l{\bf k}'}({\bf r}')\phi_{j{\bf k}}({\bf r}')}{|{\bf r}-{\bf r'}|}
-!    \,d{\bf r}\,d{\bf r'} $$
+!    \frac{\Psi^{\dag}_{i{\bf k}}({\bf r})\cdot\Psi_{l{\bf k}'}({\bf r})
+!    \Psi^{\dag}_{l{\bf k}'}({\bf r}')\cdot\Psi_{j{\bf k}}({\bf r}')}
+!    {|{\bf r}-{\bf r'}|}\,d{\bf r}\,d{\bf r'} $$
 !   contain a divergent term in the sum over ${\bf k}'$ which behaves as
 !   $1/q^2$, where ${\bf q}\equiv{\bf k}-{\bf k}'$ is in the first Brillouin
 !   zone. The resulting convergence with respect to the number of discrete
@@ -42,7 +42,7 @@ integer, parameter :: np=5
 integer, parameter :: ns0=10,nss=20
 integer ns,iq,i1,i2,i3,i,ip
 real(8) d(3),dv,sum,t1,t2
-real(8) v0(3),v1(3),v2(3),v3(3)
+real(8) v1(3),v2(3),v3(3)
 real(8) xa(np),ya(np),c(np)
 ! external functions
 real(8) polynom
@@ -55,24 +55,9 @@ if (molecule) then
   wiq2(:)=0
   return
 end if
-! begin loop over q-points
+! begin loop over q-points, note that the vectors vqc are assumed to be in the
+! first Brillouin zone
 do iq=1,nqpt
-! map the q-vector into the first Brillouin zone
-  t1=1.d8
-  v0(:)=0.d0
-  do i1=-1,1
-    do i2=-1,1
-      do i3=-1,1
-        v1(:)=vqc(:,iq)+dble(i1)*bvec(:,1)+dble(i2)*bvec(:,2) &
-         +dble(i3)*bvec(:,3)
-        t2=v1(1)**2+v1(2)**2+v1(3)**2
-        if (t2.lt.t1) then
-          t1=t2
-          v0(:)=v1(:)
-        end if
-      end do
-    end do
-  end do
 ! loop over different subdivisions
   ns=ns0
   do ip=1,np
@@ -86,7 +71,7 @@ do iq=1,nqpt
     sum=0.d0
     do i1=-ns,ns-1
       t1=dble(i1)*d(1)
-      v1(:)=v0(:)+t1*bvec(:,1)
+      v1(:)=vqc(:,iq)+t1*bvec(:,1)
       do i2=-ns,ns-1
         t1=dble(i2)*d(2)
         v2(:)=v1(:)+t1*bvec(:,2)

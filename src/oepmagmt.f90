@@ -15,28 +15,28 @@ complex(8), intent(in) ::  wfmt3(lmmaxvr,nrcmtmax)
 complex(8), intent(in) ::  wfmt4(lmmaxvr,nrcmtmax)
 complex(8), intent(out) :: zvfmt(lmmaxvr,nrcmtmax,ndmag)
 ! local variables
-integer nr
+integer nrc
 ! allocatable arrays
 complex(8), allocatable :: zfmt(:,:,:)
 allocate(zfmt(lmmaxvr,nrcmtmax,2))
 ! muffin-tin part
-nr=nrcmt(is)
+nrc=nrcmt(is)
 ! up-up spin density
-call vnlrhomt(tsh,is,wfmt1,wfmt3,zfmt(1,1,1))
+call vnlrhomt(tsh,is,wfmt1,wfmt3,zfmt(:,:,1))
 ! dn-dn spin density
-call vnlrhomt(tsh,is,wfmt2,wfmt4,zfmt(1,1,2))
+call vnlrhomt(tsh,is,wfmt2,wfmt4,zfmt(:,:,2))
 ! calculate the z-component of mangetisation: up-up - dn-dn
-zvfmt(:,1:nr,ndmag)=zfmt(:,1:nr,1)-zfmt(:,1:nr,2)
+zvfmt(:,1:nrc,ndmag)=zfmt(:,1:nrc,1)-zfmt(:,1:nrc,2)
 ! non-collinear case
-if (ndmag.eq.3) then
+if (ncmag) then
 ! up-dn spin density
-  call vnlrhomt(tsh,is,wfmt1,wfmt4,zfmt(1,1,1))
+  call vnlrhomt(tsh,is,wfmt1,wfmt4,zfmt(:,:,1))
 ! dn-up spin density
-  call vnlrhomt(tsh,is,wfmt2,wfmt3,zfmt(1,1,2))
+  call vnlrhomt(tsh,is,wfmt2,wfmt3,zfmt(:,:,2))
 ! calculate the x-component: up-dn + dn-up
-  zvfmt(:,1:nr,1)=zfmt(:,1:nr,1)+zfmt(:,1:nr,2)
+  zvfmt(:,1:nrc,1)=zfmt(:,1:nrc,1)+zfmt(:,1:nrc,2)
 ! calculate the y-component: i*(dn-up - up-dn)
-  zvfmt(:,1:nr,2)=zi*(zfmt(:,1:nr,2)-zfmt(:,1:nr,1))
+  zvfmt(:,1:nrc,2)=zi*(zfmt(:,1:nrc,2)-zfmt(:,1:nrc,1))
 end if
 deallocate(zfmt)
 return

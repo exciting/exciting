@@ -6,12 +6,13 @@
 !BOP
 ! !ROUTINE: zpotclmt
 ! !INTERFACE:
-subroutine zpotclmt(lmax,nr,r,zpchg,ld,zrhomt,zvclmt)
+subroutine zpotclmt(ptnucl,lmax,nr,r,zn,ld,zrhomt,zvclmt)
 ! !INPUT/OUTPUT PARAMETERS:
+!   ptnucl : .true. if the nucleus is a point particle (in,logical)
 !   lmax   : maximum angular momentum (in,integer)
 !   nr     : number of radial mesh points (in,integer)
 !   r      : radial mesh (in,real(nr))
-!   zpchg  : point charge  at the atomic center (in,complex(natmtot))
+!   zn     : nuclear charge at the atomic center (in,real)
 !   ld     : leading dimension (in,integer)
 !   zrhomt : muffin-tin charge density (in,complex(ld,nr))
 !   zvclmt : muffin-tin Coulomb potential (out,complex(ld,nr))
@@ -32,10 +33,11 @@ subroutine zpotclmt(lmax,nr,r,zpchg,ld,zrhomt,zvclmt)
 !BOC
 implicit none
 ! arguments
+logical, intent(in) :: ptnucl
 integer, intent(in) :: lmax
 integer, intent(in) :: nr
 real(8), intent(in) :: r(nr)
-complex(8), intent(in) :: zpchg
+real(8), intent(in) :: zn
 integer, intent(in) :: ld
 complex(8), intent(in) :: zrhomt(ld,nr)
 complex(8), intent(out) :: zvclmt(ld,nr)
@@ -45,9 +47,8 @@ real(8), parameter :: fourpi=12.566370614359172954d0
 ! spherical harmonic for l=m=0
 real(8), parameter :: y00=0.28209479177387814347d0
 real(8) t1,t2,t3,t4,t5,t6,t7
-complex(8) zt1
 ! automatic arrays
-real(8) ri(nr),rl(nr),ril1(nr),cf(3,nr)
+real(8) ri(nr),rl(nr),ril1(nr),cf(3,nr),vn(nr)
 real(8) fr1(nr),fr2(nr),fr3(nr),fr4(nr)
 real(8) gr1(nr),gr2(nr),gr3(nr),gr4(nr)
 ! initialise r^l and r^(-l-1)
@@ -93,11 +94,12 @@ do l=0,lmax
     end do
   end if
 end do
-! add the point charge potential
-if (zpchg.ne.(0.d0,0.d0)) then
-  zt1=zpchg/y00
+! add the nuclear potential
+if (zn.ne.0.d0) then
+  call potnucl(ptnucl,nr,r,zn,vn)
+  t1=1.d0/y00
   do ir=1,nr
-    zvclmt(1,ir)=zvclmt(1,ir)+zt1*ri(ir)
+    zvclmt(1,ir)=zvclmt(1,ir)+t1*vn(ir)
   end do
 end if
 return

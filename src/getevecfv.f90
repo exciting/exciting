@@ -21,10 +21,7 @@ real(8) si(3,3),sc(3,3)
 complex(8) zt1
 ! allocatable arrays
 complex(8), allocatable :: evecfvt(:,:)
-complex(8), allocatable :: zflm(:,:)
-! external functions
-real(8) r3taxi,r3dot
-external r3taxi,r3dot
+complex(8), allocatable :: zflm1(:,:),zflm2(:,:)
 ! find the equivalent k-point number and crystal symmetry element
 call findkpt(vpl,isym,ik)
 ! index to spatial rotation in lattice point group
@@ -37,7 +34,8 @@ open(70,file=trim(scrpath)//'EVECFV'//trim(filext),action='READ', &
 read(70,rec=ik) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
 close(70)
 !$OMP END CRITICAL
-if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
+t1=abs(vkl(1,ik)-vkl_(1))+abs(vkl(2,ik)-vkl_(2))+abs(vkl(3,ik)-vkl_(3))
+if (t1.gt.epslat) then
   write(*,*)
   write(*,'("Error(getevecfv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)
@@ -87,14 +85,15 @@ si(:,:)=symlat(:,:,ilspl)
 !-----------------------------------------------!
 allocate(evecfvt(nmatmax,nstfv))
 do ist=1,nstfv
-  do igk=1,ngk(ik,1)
+  do igk=1,ngk(1,ik)
     evecfvt(igk,ist)=evecfv(igk,ist,1)
   end do
 end do
-do igk=1,ngk(ik,1)
-  call r3mtv(si,vgkl(1,igk,ik,1),v)
-  do igp=1,ngk(ik,1)
-    if (r3taxi(v,vgpl(1,igp)).lt.epslat) then
+do igk=1,ngk(1,ik)
+  call r3mtv(si,vgkl(:,igk,1,ik),v)
+  do igp=1,ngk(1,ik)
+    t1=abs(v(1)-vgpl(1,igp))+abs(v(2)-vgpl(2,igp))+abs(v(3)-vgpl(3,igp))
+    if (t1.lt.epslat) then
       evecfv(igp,:,1)=evecfvt(igk,:)
       goto 10
     end if
@@ -107,7 +106,7 @@ if (nlotot.le.0) return
 !---------------------------------------------------------!
 !     translate and rotate local-orbital coefficients     !
 !---------------------------------------------------------!
-allocate(zflm(lolmmax,nstfv))
+allocate(zflm1(lolmmax,nstfv),zflm2(lolmmax,nstfv))
 ! spatial rotation symmetry matrix in Cartesian coordinates
 sc(:,:)=symlatc(:,:,lspl)
 do is=1,nspecies
@@ -117,34 +116,34 @@ do is=1,nspecies
     ja=ieqatom(ia,is,isym)
     jas=idxas(ja,is)
 ! phase factor from translation
-    t1=-twopi*r3dot(vkl(1,ik),atposl(1,ia,is))
+    t1=-twopi*dot_product(vkl(:,ik),atposl(:,ia,is))
     zt1=cmplx(cos(t1),sin(t1),8)
-    call r3mtv(si,vkl(1,ik),v)
-    t1=twopi*r3dot(v,atposl(1,ja,is))
+    call r3mtv(si,vkl(:,ik),v)
+    t1=twopi*dot_product(v(:),atposl(:,ja,is))
     zt1=zt1*cmplx(cos(t1),sin(t1),8)
 ! rotate local orbitals
     do ilo=1,nlorb(is)
       l=lorbl(ilo,is)
-      zflm(:,:)=0.d0
+      zflm1(:,:)=0.d0
       do ist=1,nstfv
         do m=-l,l
           lm=idxlm(l,m)
-          i=ngk(ik,1)+idxlo(lm,ilo,ias)
-          zflm(lm,ist)=evecfv(i,ist,1)
+          i=ngk(1,ik)+idxlo(lm,ilo,ias)
+          zflm1(lm,ist)=evecfv(i,ist,1)
         end do
       end do
-      call rotzflm(sc,l,nstfv,lolmmax,zflm,zflm)
+      call rotzflm(sc,l,nstfv,lolmmax,zflm1,zflm2)
       do ist=1,nstfv
         do m=-l,l
           lm=idxlm(l,m)
-          i=ngk(ik,1)+idxlo(lm,ilo,jas)
-          evecfv(i,ist,1)=zt1*zflm(lm,ist)
+          i=ngk(1,ik)+idxlo(lm,ilo,jas)
+          evecfv(i,ist,1)=zt1*zflm2(lm,ist)
         end do
       end do
     end do
   end do
 end do
-deallocate(zflm)
+deallocate(zflm1,zflm2)
 return
 end subroutine
 

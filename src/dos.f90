@@ -20,8 +20,7 @@ use modmain
 !   identification of the irreducible representations of the site symmetries,
 !   for example $e_g$ or $t_{2g}$. Spin-up is made positive and spin-down
 !   negative for the partial DOS in both the collinear and non-collinear cases
-!   and for the total DOS in the collinear case. See the routines {\tt bandchar}
-!   and {\tt brzint}.
+!   and for the total DOS in the collinear case. See the routine {\tt brzint}.
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)
@@ -29,36 +28,52 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer lmax,lmmax,l,m,lm,nsk(3)
-integer ik,ispn,is,ia,ias,ist,iw,i
-real(8) t1
+logical tsqaz
+integer lmax,lmmax,l,m,lm
+integer ispn,jspn,is,ia,ias
+integer ik,nsk(3),ist,iw
+real(8) dw,th,t1
+real(8) v1(3),v2(3),v3(3)
+complex(8) su2(2,2),dm1(2,2),dm2(2,2)
 character(256) fname
 ! allocatable arrays
-real(8), allocatable :: bndchr(:,:,:,:,:)
-real(8), allocatable :: elmsym(:,:)
 real(8), allocatable :: e(:,:,:)
 real(8), allocatable :: f(:,:)
 real(8), allocatable :: w(:)
 real(8), allocatable :: g(:,:)
 real(8), allocatable :: gp(:)
+! low precision for band character array saves memory
+real(4), allocatable :: bc(:,:,:,:,:)
+real(8), allocatable :: elm(:,:)
+complex(8), allocatable :: ulm(:,:,:)
+complex(8), allocatable :: a(:,:)
+complex(8), allocatable :: dmat(:,:,:,:,:)
+complex(8), allocatable :: sdmat(:,:,:,:)
+complex(8), allocatable :: apwalm(:,:,:,:,:)
 complex(8), allocatable :: evecfv(:,:,:)
 complex(8), allocatable :: evecsv(:,:)
 ! initialise universal variables
 call init0
 call init1
-allocate(evecfv(nmatmax,nstfv,nspnfv))
-allocate(evecsv(nstsv,nstsv))
-! allocate the band character array
 lmax=min(3,lmaxapw)
 lmmax=(lmax+1)**2
-allocate(bndchr(lmmax,natmtot,nspinor,nstsv,nkpt))
-allocate(elmsym(lmmax,natmtot))
 ! allocate local arrays
 allocate(e(nstsv,nkpt,nspinor))
 allocate(f(nstsv,nkpt))
 allocate(w(nwdos))
 allocate(g(nwdos,nspinor))
 allocate(gp(nwdos))
+allocate(bc(lmmax,nspinor,natmtot,nstsv,nkpt))
+if (lmirep) then
+  allocate(elm(lmmax,natmtot))
+  allocate(ulm(lmmax,lmmax,natmtot))
+  allocate(a(lmmax,lmmax))
+end if
+allocate(dmat(lmmax,lmmax,nspinor,nspinor,nstsv))
+allocate(sdmat(nspinor,nspinor,nstsv,nkpt))
+allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
+allocate(evecfv(nmatmax,nstfv,nspnfv))
+allocate(evecsv(nstsv,nstsv))
 ! read density and potentials from file
 call readstate
 ! read Fermi energy from file
@@ -69,26 +84,106 @@ call linengy
 call genapwfr
 ! generate the local-orbital radial functions
 call genlofr
+! generate unitary matrices which convert the (l,m) basis into the irreducible
+! representation basis of the symmetry group at each atomic site
+if (lmirep) then
+  call genlmirep(lmax,lmmax,elm,ulm)
+end if
+! compute the SU(2) operator used for rotating the density matrix to the
+! desired spin-quantisation axis
+v1(:)=sqados(:)
+t1=sqrt(v1(1)**2+v1(2)**2+v1(3)**2)
+if (t1.le.epslat) then
+  write(*,*)
+  write(*,'("Error(dos): spin-quantisation axis (sqados) has zero length")')
+  write(*,*)
+  stop
+end if
+v1(:)=v1(:)/t1
+if (v1(3).ge.1.d0-epslat) then
+  tsqaz=.true.
+else
+  tsqaz=.false.
+  v2(1:2)=0.d0
+  v2(3)=1.d0
+  call r3cross(v1,v2,v3)
+! note that the spin-quantisation axis is rotated, so the density matrix should
+! be rotated in the opposite direction
+  th=-acos(v1(3))
+  call axangsu2(v3,th,su2)
+end if
+! loop over k-points
 do ik=1,nkpt
 ! get the eigenvalues/vectors from file
-  call getevalsv(vkl(1,ik),evalsv(1,ik))
-  call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-  call getevecsv(vkl(1,ik),evecsv)
-! compute the band character (appromximate for spin-spirals)
-  call bandchar(lmax,ik,evecfv,evecsv,lmmax,bndchr(1,1,1,1,ik),elmsym)
-! compute the spin characters
-  call spinchar(ik,evecsv)
+  call getevalsv(vkl(:,ik),evalsv(:,ik))
+  call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+  call getevecsv(vkl(:,ik),evecsv)
+! find the matching coefficients
+  do ispn=1,nspnfv
+    call match(ngk(ispn,ik),gkc(:,ispn,ik),tpgkc(:,:,ispn,ik), &
+     sfacgk(:,:,ispn,ik),apwalm(:,:,:,:,ispn))
+  end do
+  do is=1,nspecies
+    do ia=1,natoms(is)
+      ias=idxas(ia,is)
+! generate the density matrix
+      call gendmat(.false.,.false.,0,lmax,is,ia,ngk(:,ik),apwalm,evecfv, &
+       evecsv,lmmax,dmat)
+! convert (l,m) part to an irreducible representation if required
+      if (lmirep) then
+        do ist=1,nstsv
+          do ispn=1,nspinor
+            do jspn=1,nspinor
+              call zgemm('N','N',lmmax,lmmax,lmmax,zone,ulm(:,:,ias),lmmax, &
+               dmat(:,:,ispn,jspn,ist),lmmax,zzero,a,lmmax)
+              call zgemm('N','C',lmmax,lmmax,lmmax,zone,a,lmmax,ulm(:,:,ias), &
+               lmmax,zzero,dmat(:,:,ispn,jspn,ist),lmmax)
+            end do
+          end do
+        end do
+      end if
+! spin rotate the density matrices to desired spin-quantisation axis
+      if (spinpol.and.(.not.tsqaz)) then
+        do ist=1,nstsv
+          do lm=1,lmmax
+            dm1(:,:)=dmat(lm,lm,:,:,ist)
+            call z2mm(su2,dm1,dm2)
+            call z2mmct(dm2,su2,dm1)
+            dmat(lm,lm,:,:,ist)=dm1(:,:)
+          end do
+        end do
+      end if
+! determine the band characters from the density matrix
+      do ist=1,nstsv
+        do ispn=1,nspinor
+          do lm=1,lmmax
+            t1=dble(dmat(lm,lm,ispn,ispn,ist))
+            bc(lm,ispn,ias,ist,ik)=real(t1)
+          end do
+        end do
+      end do
+    end do
+  end do
+! compute the spin density matrices of the second-variational states
+  call gensdmat(evecsv,sdmat(:,:,:,ik))
+! spin rotate the density matrices to desired spin-quantisation axis
+  if (spinpol.and.(.not.tsqaz)) then
+    do ist=1,nstsv
+      call z2mm(su2,sdmat(:,:,ist,ik),dm1)
+      call z2mmct(dm1,su2,sdmat(:,:,ist,ik))
+    end do
+  end if
 end do
 ! generate energy grid
-t1=(wdos(2)-wdos(1))/dble(nwdos)
+dw=(wdos(2)-wdos(1))/dble(nwdos)
 do iw=1,nwdos
-  w(iw)=t1*dble(iw-1)+wdos(1)
+  w(iw)=dw*dble(iw-1)+wdos(1)
 end do
 ! number of subdivisions used for interpolation
-do i=1,3
-  nsk(i)=max(ngrdos/ngridk(i),1)
-end do
-! output total (spin-projected) DOS
+nsk(:)=max(ngrdos/ngridk(:),1)
+!--------------------------!
+!     output total DOS     !
+!--------------------------!
 open(50,file='TDOS.OUT',action='WRITE',form='FORMATTED')
 do ispn=1,nspinor
   if (ispn.eq.1) then
@@ -102,19 +197,23 @@ do ispn=1,nspinor
       e(ist,ik,ispn)=evalsv(ist,ik)-efermi
 ! correction for scissors operator
       if (e(ist,ik,ispn).gt.0.d0) e(ist,ik,ispn)=e(ist,ik,ispn)+scissor
-! use spin character for weight
-      f(ist,ik)=spnchr(ispn,ist,ik)
+! use diagonal of spin density matrix for weight
+      f(ist,ik)=dble(sdmat(ispn,ispn,ist,ik))
     end do
   end do
-  call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,nstsv,nstsv,e(1,1,ispn),f, &
-   g(1,ispn))
+  call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,nstsv,nstsv,e(:,:,ispn),f, &
+   g(:,ispn))
+! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
+  g(:,ispn)=occmax*g(:,ispn)
   do iw=1,nwdos
     write(50,'(2G18.10)') w(iw),t1*g(iw,ispn)
   end do
   write(50,'("     ")')
 end do
 close(50)
-! output partial DOS
+!----------------------------!
+!     output partial DOS     !
+!----------------------------!
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
@@ -131,11 +230,12 @@ do is=1,nspecies
           lm=idxlm(l,m)
           do ik=1,nkpt
             do ist=1,nstsv
-              f(ist,ik)=bndchr(lm,ias,ispn,ist,ik)
+              f(ist,ik)=bc(lm,ispn,ias,ist,ik)
             end do
           end do
           call brzint(nsmdos,ngridk,nsk,ikmap,nwdos,wdos,nstsv,nstsv, &
-           e(1,1,ispn),f,gp)
+           e(:,:,ispn),f,gp)
+          gp(:)=occmax*gp(:)
           do iw=1,nwdos
             write(50,'(2G18.10)') w(iw),t1*gp(iw)
 ! interstitial DOS
@@ -148,24 +248,28 @@ do is=1,nspecies
     close(50)
   end do
 end do
-! output eigenvalues of (l,m)-projection operator
-open(50,file='ELMSYM.OUT',action='WRITE',form='FORMATTED')
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    write(50,*)
-    write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
-    do l=0,lmax
-      do m=-l,l
-        lm=idxlm(l,m)
-        write(50,'(" l = ",I2,", m = ",I2,", lm= ",I3," : ",G18.10)') l,m,lm, &
-         elmsym(lm,ias)
+if (lmirep) then
+  open(50,file='ELMIREP.OUT',action='WRITE',form='FORMATTED')
+  do is=1,nspecies
+    do ia=1,natoms(is)
+      ias=idxas(ia,is)
+      write(50,*)
+      write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is, &
+       trim(spsymb(is)),ia
+      do l=0,lmax
+        do m=-l,l
+          lm=idxlm(l,m)
+          write(50,'(" l = ",I2,", m = ",I2,", lm= ",I3," : ",G18.10)') l,m, &
+           lm,elm(lm,ias)
+        end do
       end do
     end do
   end do
-end do
-close(50)
-! output interstitial DOS
+  close(50)
+end if
+!---------------------------------!
+!     output interstitial DOS     !
+!---------------------------------!
 open(50,file='IDOS.OUT',action='WRITE',form='FORMATTED')
 do ispn=1,nspinor
   if (ispn.eq.1) then
@@ -180,17 +284,27 @@ end do
 close(50)
 write(*,*)
 write(*,'("Info(dos):")')
-write(*,'(" total density of states written to TDOS.OUT")')
-write(*,'(" partial density of states written to PDOS_Sss_Aaaaa.OUT")')
-write(*,'("  for all species and atoms")')
-write(*,'(" eigenvalues of a matrix in the Y_lm basis which has been")')
-write(*,'("  symmetrised with the site symmetries written to ELMSYM.OUT")')
-write(*,'(" interstitial density of states written to IDOS.OUT")')
+write(*,'(" Total density of states written to TDOS.OUT")')
 write(*,*)
-write(*,'(" (DOS units are states/Hartree/spin/unit cell)")')
+write(*,'(" Partial density of states written to PDOS_Sss_Aaaaa.OUT")')
+write(*,'(" for all species and atoms")')
+if (lmirep) then
+  write(*,*)
+  write(*,'(" Eigenvalues of a random matrix in the (l,m) basis symmetrised")')
+  write(*,'(" with the site symmetries written to ELMIREP.OUT for all")')
+  write(*,'(" species and atoms. Degenerate eigenvalues correspond to")')
+  write(*,'(" irreducible representations of each site symmetry group")')
+end if
 write(*,*)
-deallocate(bndchr,elmsym,e,f,w,g,gp)
-deallocate(evecfv,evecsv)
+write(*,'(" Interstitial density of states written to IDOS.OUT")')
+write(*,*)
+write(*,'(" Fermi energy is at zero in plot")')
+write(*,*)
+write(*,'(" DOS units are states/Hartree/unit cell")')
+write(*,*)
+deallocate(e,f,w,g,gp,bc)
+if (lmirep) deallocate(elm,ulm,a)
+deallocate(dmat,sdmat,apwalm,evecfv,evecsv)
 return
 end subroutine
 !EOC

@@ -69,7 +69,7 @@ irc=0
 do ir=1,nr,lrstp
   irc=irc+1
   rc(irc)=r(ir)
-  fr(irc)=ddot(lmmax,rfmt1(1,ir),1,rfmt2(1,ir),1)*(r(ir)**2)
+  fr(irc)=ddot(lmmax,rfmt1(:,ir),1,rfmt2(:,ir),1)*(r(ir)**2)
 end do
 call fderiv(-1,irc,rc,fr,gr,cf)
 rfmtinp=gr(irc)

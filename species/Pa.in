@@ -2,7 +2,7 @@
  'protactinium'                             : spname
   -91.0000                                  : spzn
    421152.6453                              : spmass
-  0.209657E-06    2.2000   57.2135   800    : sprmin, rmt, sprmax, nrmt
+  0.209657E-06    2.2000   45.7973   800    : sprmin, rmt, sprmax, nrmt
   27                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

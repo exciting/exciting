@@ -42,7 +42,7 @@ if (scan(str1,'(').eq.1) then
 ! apply vector shift to all Seitz matrices
   do i=1,ngen
     v3(:)=-v1(:)
-    call r3mv(srgen(1,1,i),v3,v2)
+    call r3mv(srgen(:,:,i),v3,v2)
     v2(:)=v2(:)+stgen(:,i)
     stgen(:,i)=v2(:)+v1(:)
   end do
@@ -399,7 +399,7 @@ goto 10
 20 continue
 ! map translations to [0,1)
 do i=1,ngen
-  call r3frac(eps,stgen(1,i),id)
+  call r3frac(eps,stgen(:,i),id)
 end do
 return
 end subroutine

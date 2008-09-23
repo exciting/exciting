@@ -12,10 +12,7 @@ real(8), intent(out) :: evalfv(nstfv,nspnfv)
 ! local variables
 integer isym,ik
 integer recl,nstfv_,nspnfv_
-real(8) vkl_(3)
-! external functions
-real(8) r3taxi
-external r3taxi
+real(8) vkl_(3),t1
 ! find the k-point number
 call findkpt(vpl,isym,ik)
 ! find the record length
@@ -26,7 +23,8 @@ open(70,file=trim(scrpath)//'EVALFV'//trim(filext),action='READ', &
 read(70,rec=ik) vkl_,nstfv_,nspnfv_,evalfv
 close(70)
 !$OMP END CRITICAL
-if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
+t1=abs(vkl(1,ik)-vkl_(1))+abs(vkl(2,ik)-vkl_(2))+abs(vkl(3,ik)-vkl_(3))
+if (t1.gt.epslat) then
   write(*,*)
   write(*,'("Error(getevalfv): differing vectors for k-point ",I8)') ik
   write(*,'(" current    : ",3G18.10)') vkl(:,ik)

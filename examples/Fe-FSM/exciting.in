@@ -23,13 +23,6 @@ bfieldc
 nempty
   10
 
-! conservative mixing
-beta0
-  0.1
-
-betamax
-  0.1
-
 avec
   1.0  1.0 -1.0
   1.0 -1.0  1.0

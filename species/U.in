@@ -2,7 +2,7 @@
  'uranium'                                  : spname
   -92.0000                                  : spzn
    433900.1409                              : spmass
-  0.208514E-06    2.0000   54.3795   800    : sprmin, rmt, sprmax, nrmt
+  0.208514E-06    2.0000   43.5827   800    : sprmin, rmt, sprmax, nrmt
   27                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

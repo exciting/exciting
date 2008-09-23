@@ -25,11 +25,12 @@ real(8), parameter :: ge=2.0023193043718d0
 real(8), parameter :: ga4=ge*alpha/4.d0
 real(8), parameter :: a24=alpha**2/4.d0
 real(8) rm,t1
-real(8) cpu0,cpu1
+real(8) ts0,ts1
 ! automatic arrays
 complex(8) zftp1(lmmaxvr),zftp2(lmmaxvr)
 complex(8) zlflm(lmmaxvr,3)
 ! allocatable arrays
+integer, allocatable :: idx(:)
 real(8), allocatable :: bmt(:,:,:)
 real(8), allocatable :: bir(:,:)
 real(8), allocatable :: vr(:)
@@ -58,14 +59,17 @@ if ((.not.spinpol).and.(ldapu.eq.0)) then
   return
 end if
 ! number of spin combinations after application of Hamiltonian
-if ((ndmag.eq.3).or.(spinorb)) then
-  nsc=3
-else if (ndmag.eq.1) then
-  nsc=2
+if (spinpol) then
+  if ((ncmag).or.(spinorb)) then
+    nsc=3
+  else
+    nsc=2
+  end if
 else
   nsc=1
 end if
-call cpu_time(cpu0)
+call timesec(ts0)
+allocate(idx(nstsv))
 allocate(bmt(lmmaxvr,nrcmtmax,3))
 allocate(bir(ngrtot,3))
 allocate(vr(nrmtmax))
@@ -90,14 +94,14 @@ do is=1,nspecies
     ias=idxas(ia,is)
     if (spinpol) then
 ! exchange-correlation magnetic field in spherical coordinates
-      if (ndmag.eq.3) then
+      if (ncmag) then
 ! non-collinear
         irc=0
         do ir=1,nrmt(is),lradstp
           irc=irc+1
           do i=1,3
-            call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
-             bxcmt(1,ir,ias,i),1,0.d0,bmt(1,irc,i),1)
+            call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
+             bxcmt(:,ir,ias,i),1,0.d0,bmt(:,irc,i),1)
           end do
         end do
       else
@@ -106,8 +110,8 @@ do is=1,nspecies
         do ir=1,nrmt(is),lradstp
           irc=irc+1
           bmt(:,irc,1:2)=0.d0
-          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
-           bxcmt(1,ir,ias,1),1,0.d0,bmt(1,irc,3),1)
+          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
+           bxcmt(:,ir,ias,1),1,0.d0,bmt(:,irc,3),1)
         end do
       end if
 ! external muffin-tin magnetic field
@@ -120,7 +124,7 @@ do is=1,nspecies
       if (spinorb) then
 ! radial derivative of the spherical part of the potential
         vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
-        call fderiv(1,nrmt(is),spr(1,is),vr,drv,cf)
+        call fderiv(1,nrmt(is),spr(:,is),vr,drv,cf)
 ! spin-orbit coupling prefactor
         irc=0
         do ir=1,nrmt(is),lradstp
@@ -132,29 +136,29 @@ do is=1,nspecies
     end if
 ! compute the first-variational wavefunctions
     do ist=1,nstfv
-      call wavefmt(lradstp,lmaxvr,is,ia,ngk(ik,1),apwalm,evecfv(1,ist), &
-       lmmaxvr,wfmt1(1,1,ist))
+      call wavefmt(lradstp,lmaxvr,is,ia,ngk(1,ik),apwalm,evecfv(:,ist), &
+       lmmaxvr,wfmt1(:,:,ist))
     end do
 ! begin loop over states
     do jst=1,nstfv
       if (spinpol) then
         do irc=1,nrcmt(is)
 ! convert wavefunction to spherical coordinates
-          call zgemv('N',lmmaxvr,lmmaxvr,zone,zbshtapw,lmmaxapw, &
-           wfmt1(1,irc,jst),1,zzero,zftp1,1)
+          call zgemv('N',lmmaxvr,lmmaxvr,zone,zbshtvr,lmmaxvr, &
+           wfmt1(:,irc,jst),1,zzero,zftp1,1)
 ! apply effective magnetic field and convert to spherical harmonics
           zftp2(:)=zftp1(:)*bmt(:,irc,3)
           call zgemv('N',lmmaxvr,lmmaxvr,zone,zfshtvr,lmmaxvr,zftp2,1,zzero, &
-           wfmt2(1,irc,1),1)
+           wfmt2(:,irc,1),1)
           wfmt2(:,irc,2)=-wfmt2(:,irc,1)
           if (nsc.eq.3) then
             zftp2(:)=zftp1(:)*cmplx(bmt(:,irc,1),-bmt(:,irc,2),8)
             call zgemv('N',lmmaxvr,lmmaxvr,zone,zfshtvr,lmmaxvr,zftp2,1,zzero, &
-             wfmt2(1,irc,3),1)
+             wfmt2(:,irc,3),1)
           end if
 ! apply spin-orbit coupling if required
           if (spinorb) then
-            call lopzflm(lmaxvr,wfmt1(1,irc,jst),lmmaxvr,zlflm)
+            call lopzflm(lmaxvr,wfmt1(:,irc,jst),lmmaxvr,zlflm)
             t1=sor(irc)
             do lm=1,lmmaxvr
               wfmt2(lm,irc,1)=wfmt2(lm,irc,1)+t1*zlflm(lm,3)
@@ -201,7 +205,7 @@ do is=1,nspecies
           end if
           if (i.le.j) then
             evecsv(i,j)=evecsv(i,j)+zfmtinp(.true.,lmaxmat,nrcmt(is), &
-             rcmt(1,is),lmmaxvr,wfmt1(1,1,ist),wfmt2(1,1,k))
+             rcmt(:,is),lmmaxvr,wfmt1(:,:,ist),wfmt2(:,:,k))
           end if
         end do
       end do
@@ -213,7 +217,7 @@ end do
 !     interstitial part     !
 !---------------------------!
 if (spinpol) then
-  if (ndmag.eq.3) then
+  if (ncmag) then
 ! non-collinear
     do ir=1,ngrtot
       bir(ir,:)=(bxcir(ir,:)+ga4*bfieldc(:))*cfunir(ir)
@@ -227,8 +231,8 @@ if (spinpol) then
   end if
   do jst=1,nstfv
     zfft1(:)=0.d0
-    do igk=1,ngk(ik,1)
-      ifg=igfft(igkig(igk,ik,1))
+    do igk=1,ngk(1,ik)
+      ifg=igfft(igkig(igk,1,ik))
       zfft1(ifg)=evecfv(igk,jst)
     end do
 ! Fourier transform wavefunction to real-space
@@ -236,16 +240,16 @@ if (spinpol) then
 ! multiply with magnetic field and transform to G-space
     zfft2(:)=zfft1(:)*bir(:,3)
     call zfftifc(3,ngrid,-1,zfft2)
-    do igk=1,ngk(ik,1)
-      ifg=igfft(igkig(igk,ik,1))
+    do igk=1,ngk(1,ik)
+      ifg=igfft(igkig(igk,1,ik))
       zv(igk,1)=zfft2(ifg)
       zv(igk,2)=-zfft2(ifg)
     end do
     if (nsc.eq.3) then
       zfft2(:)=zfft1(:)*cmplx(bir(:,1),-bir(:,2),8)
       call zfftifc(3,ngrid,-1,zfft2)
-      do igk=1,ngk(ik,1)
-        ifg=igfft(igkig(igk,ik,1))
+      do igk=1,ngk(1,ik)
+        ifg=igfft(igkig(igk,1,ik))
         zv(igk,3)=zfft2(ifg)
       end do
     end if
@@ -263,7 +267,7 @@ if (spinpol) then
           j=jst+nstfv
         end if
         if (i.le.j) then
-          evecsv(i,j)=evecsv(i,j)+zdotc(ngk(ik,1),evecfv(1,ist),1,zv(1,k),1)
+          evecsv(i,j)=evecsv(i,j)+zdotc(ngk(1,ik),evecfv(:,ist),1,zv(:,k),1)
         end if
       end do
     end do
@@ -280,7 +284,7 @@ end do
 ! diagonalise second-variational Hamiltonian
 if (ndmag.eq.1) then
 ! collinear: block diagonalise H
-  call zheev('V','U',nstfv,evecsv,nstsv,evalsv(1,ik),work,lwork,rwork,info)
+  call zheev('V','U',nstfv,evecsv,nstsv,evalsv(:,ik),work,lwork,rwork,info)
   if (info.ne.0) goto 20
   i=nstfv+1
   call zheev('V','U',nstfv,evecsv(i,i),nstsv,evalsv(i,ik),work,lwork,rwork,info)
@@ -291,16 +295,28 @@ if (ndmag.eq.1) then
       evecsv(i+nstfv,j)=0.d0
     end do
   end do
+! sort the eigenvalues (and eigenvectors) into ascending order
+  call sortidx(nstsv,evalsv(:,ik),idx)
+  do i=1,nstsv
+    j=idx(i)
+    t1=evalsv(i,ik)
+    evalsv(i,ik)=evalsv(j,ik)
+    evalsv(j,ik)=t1
+    call zswap(nstsv,evecsv(:,i),1,evecsv(:,j),1)
+    do k=i+1,nstsv
+      if (idx(k).eq.i) idx(k)=j
+    end do
+  end do
 else
 ! non-collinear or spin-unpolarised: full diagonalisation
-  call zheev('V','U',nstsv,evecsv,nstsv,evalsv(1,ik),work,lwork,rwork,info)
+  call zheev('V','U',nstsv,evecsv,nstsv,evalsv(:,ik),work,lwork,rwork,info)
   if (info.ne.0) goto 20
 end if
-deallocate(bmt,bir,vr,drv,cf,sor,rwork)
+deallocate(idx,bmt,bir,vr,drv,cf,sor,rwork)
 deallocate(wfmt1,wfmt2,zfft1,zfft2,zv,work)
-call cpu_time(cpu1)
+call timesec(ts1)
 !$OMP CRITICAL
-timesv=timesv+cpu1-cpu0
+timesv=timesv+ts1-ts0
 !$OMP END CRITICAL
 return
 20 continue

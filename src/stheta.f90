@@ -25,8 +25,8 @@ implicit none
 integer, intent(in) :: stype
 real(8), intent(in) :: x
 ! external functions
-real(8) stheta_mp,stheta_fd
-external stheta_mp,stheta_fd
+real(8) stheta_mp,stheta_fd,stheta_sq
+external stheta_mp,stheta_fd,stheta_sq
 stheta=0.d0
 select case(stype)
 case(0)
@@ -41,6 +41,8 @@ case(2)
 case(3)
   stheta=stheta_fd(x)
   return
+case(4)
+  stheta=stheta_sq(x)
 case default
   write(*,*)
   write(*,'("Error(stheta): sytpe not defined : ",I8)') stype

@@ -3,14 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine gdft(ik,apwalm,evecfv,evecsv,delta)
+subroutine gdft(ik,delta)
 use modmain
 implicit none
 ! arguments
 integer, intent(in) :: ik
-complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
-complex(8), intent(in) :: evecfv(nmatmax,nstfv)
-complex(8), intent(in) :: evecsv(nstsv,nstsv)
 real(8), intent(out) :: delta(nstsv,nstsv)
 ! local variables
 integer ist,jst,is,ia,ias
@@ -22,14 +19,25 @@ real(8) rflm(lmmaxvr),rftp(lmmaxvr)
 ! allocatable arrays
 real(8), allocatable :: rfmt(:,:,:)
 real(8), allocatable :: rfir(:)
+complex(8), allocatable :: apwalm(:,:,:,:)
+complex(8), allocatable :: evecfv(:,:)
+complex(8), allocatable :: evecsv(:,:)
 complex(8), allocatable :: wfmt(:,:,:,:,:)
 complex(8), allocatable :: wfir(:,:,:)
 allocate(rfmt(lmmaxvr,nrcmtmax,natmtot))
 allocate(rfir(ngrtot))
+allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
+allocate(evecfv(nmatmax,nstfv))
+allocate(evecsv(nstsv,nstsv))
 allocate(wfmt(lmmaxvr,nrcmtmax,natmtot,nspinor,nstsv))
 allocate(wfir(ngrtot,nspinor,nstsv))
+! get the eigenvectors from file for input k-point
+call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+call getevecsv(vkl(:,ik),evecsv)
+! find the matching coefficients
+call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm)
 ! calculate the wavefunctions for all second-variational states
-call genwfsv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv, &
+call genwfsv(.false.,ngk(1,ik),igkig(:,1,ik),evalsv(:,ik),apwalm,evecfv, &
  evecsv,wfmt,wfir)
 do ist=1,nstsv
   delta(ist,ist)=0.d0
@@ -42,7 +50,7 @@ do ist=1,nstsv
         do ir=1,nrmt(is),lradstp
           irc=irc+1
           rflm(:)=2.d0*(exmt(:,ir,ias)+ecmt(:,ir,ias))-vxcmt(:,ir,ias)
-          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,rflm,1,0.d0, &
+          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,rflm,1,0.d0, &
            rftp,1)
           do itp=1,lmmaxvr
             t1=dble(wfmt(itp,irc,ias,1,ist))**2 &
@@ -93,6 +101,7 @@ do ist=1,nstsv
   end do
 end do
 deallocate(rfmt,rfir,wfmt,wfir)
+deallocate(apwalm,evecfv,evecsv)
 return
 end subroutine
 

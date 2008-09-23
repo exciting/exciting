@@ -19,9 +19,9 @@ complex(8), allocatable :: c(:,:)
 allocate(evecsv(nstsv,nstsv))
 allocate(c(nstsv,nstsv))
 ! get the eigenvectors from file
-call getevecsv(vkl(1,ik),evecsv)
+call getevecsv(vkl(:,ik),evecsv)
 ! kinetic and Coulomb potential contribution
-call zgemm('N','N',nstsv,nstsv,nstsv,zone,evecsv,nstsv,vclmat(1,1,ik),nstsv, &
+call zgemm('N','N',nstsv,nstsv,nstsv,zone,evecsv,nstsv,vclmat(:,:,ik),nstsv, &
  zzero,c,nstsv)
 do ist=1,nstsv
   dedc(:,ist)=occsv(ist,ik)*(dkdc(:,ist,ik)+c(:,ist))

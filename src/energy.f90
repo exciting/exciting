@@ -67,6 +67,7 @@ real(8), parameter :: alpha=1.d0/137.03599911d0
 ! electron g factor
 real(8), parameter :: ge=2.0023193043718d0
 real(8), parameter :: ga4=ge*alpha/4.d0
+real(8) vn
 complex(8) zt1
 ! allocatable arrays
 complex(8), allocatable :: evecsv(:,:),c(:,:)
@@ -83,8 +84,8 @@ engyvxc=rfinp(1,rhomt,vxcmt,rhoir,vxcir)
 !-----------------------------------------------------!
 engybxc=0.d0
 do idm=1,ndmag
-  engybxc=engybxc+rfinp(1,magmt(1,1,1,idm),bxcmt(1,1,1,idm),magir(1,idm), &
-   bxcir(1,idm))
+  engybxc=engybxc+rfinp(1,magmt(:,:,:,idm),bxcmt(:,:,:,idm),magir(:,idm), &
+   bxcir(:,idm))
 end do
 !------------------------------------------!
 !     external magnetic field energies     !
@@ -92,7 +93,7 @@ end do
 engybext=0.d0
 engybmt=0.d0
 do idm=1,ndmag
-  if (ndmag.eq.3) then
+  if (ncmag) then
     jdm=idm
   else
     jdm=3
@@ -116,9 +117,11 @@ engyvcl=rfinp(1,rhomt,vclmt,rhoir,vclir)
 !-----------------------!
 engymad=0.d0
 do is=1,nspecies
+! compute the bare nucleus potential at the origin
+  call potnucl(ptnucl,1,spr(:,is),spzn(is),vn)
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    engymad=engymad+0.5d0*spzn(is)*(vclmt(1,1,ias)*y00-spzn(is)/spr(1,is))
+    engymad=engymad+0.5d0*spzn(is)*(vclmt(1,1,ias)*y00-vn)
   end do
 end do
 !---------------------------------------------!
@@ -197,11 +200,11 @@ if (task.eq.5) then
   allocate(evecsv(nstsv,nstsv))
   allocate(c(nstsv,nstsv))
   do ik=1,nkpt
-    call getevecsv(vkl(1,ik),evecsv)
-    call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(1,1,ik),nstsv,evecsv, &
+    call getevecsv(vkl(:,ik),evecsv)
+    call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(:,:,ik),nstsv,evecsv, &
      nstsv,zzero,c,nstsv)
     do ist=1,nstsv
-      zt1=zdotc(nstsv,evecsv(1,ist),1,c(1,ist),1)
+      zt1=zdotc(nstsv,evecsv(:,ist),1,c(:,ist),1)
       engykn=engykn+wkpt(ik)*occsv(ist,ik)*dble(zt1)
     end do
   end do

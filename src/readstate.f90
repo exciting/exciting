@@ -20,11 +20,12 @@ use modmain
 implicit none
 ! local variables
 logical spinpol_
+integer iostat
 integer is,ia,ias,lmmax,lm,ir,jr
 integer idm,ngm,i1,i2,i3,j1,j2,j3
-integer version_(3),nspecies_,lmmaxvr_,nrmtmax_
-integer natoms_,nrmt_(maxspecies),ngrid_(3)
-integer ngrtot_,ngvec_,ndmag_
+integer version_(3),nspecies_,lmmaxvr_
+integer natoms_,nrmt_(maxspecies),nrmtmax_
+integer ngrid_(3),ngrtot_,ngvec_,ndmag_
 integer nspinor_,ldapu_,lmmaxlu_
 real(8) t1
 ! allocatable arrays
@@ -45,7 +46,13 @@ real(8), allocatable :: bxcir_(:,:)
 complex(8), allocatable :: veffig_(:)
 complex(8), allocatable :: vmatlu_(:,:,:,:,:)
 open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
- status='OLD')
+ status='OLD',iostat=iostat)
+if (iostat.ne.0) then
+  write(*,*)
+  write(*,'("Error(readstate): error opening ",A)') 'STATE'//trim(filext)
+  write(*,*)
+  stop
+end if
 read(50) version_
 if ((version(1).ne.version_(1)).or.(version(2).ne.version_(2)) &
  .or.(version(3).ne.version_(3))) then
@@ -160,31 +167,31 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     do lm=1,lmmax
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,rhomt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,rhomt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,vclmt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,vclmt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,vxcmt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,vxcmt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,veffmt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,veffmt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,rhomt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,rhomt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,vclmt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,vclmt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,vxcmt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,vxcmt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,veffmt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,veffmt(lm,1,ias))
     end do
     if ((spinpol).and.(spinpol_)) then
       if (ndmag.eq.ndmag_) then
         do idm=1,ndmag
           do lm=1,lmmax
-            call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,magmt_(lm,1,ias,idm), &
-             nrmt(is),spr(1,is),lmmaxvr,magmt(lm,1,ias,idm))
-            call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,bxcmt_(lm,1,ias,idm), &
-             nrmt(is),spr(1,is),lmmaxvr,bxcmt(lm,1,ias,idm))
+            call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,magmt_(lm,1,ias,idm), &
+             nrmt(is),spr(:,is),lmmaxvr,magmt(lm,1,ias,idm))
+            call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,bxcmt_(lm,1,ias,idm), &
+             nrmt(is),spr(:,is),lmmaxvr,bxcmt(lm,1,ias,idm))
           end do
         end do
       else
         do lm=1,lmmax
-          call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,magmt_(lm,1,ias,ndmag_), &
-           nrmt(is),spr(1,is),lmmaxvr,magmt(lm,1,ias,ndmag))
-          call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,bxcmt_(lm,1,ias,ndmag_), &
-           nrmt(is),spr(1,is),lmmaxvr,bxcmt(lm,1,ias,ndmag))
+          call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,magmt_(lm,1,ias,ndmag_), &
+           nrmt(is),spr(:,is),lmmaxvr,magmt(lm,1,ias,ndmag))
+          call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,bxcmt_(lm,1,ias,ndmag_), &
+           nrmt(is),spr(:,is),lmmaxvr,bxcmt(lm,1,ias,ndmag))
         end do
       end if
     end if

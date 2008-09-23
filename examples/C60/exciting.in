@@ -1,5 +1,6 @@
 
-! C60 buckyball example. This example has high memory requirements.
+! C60 buckyball example. This example has high memory and time requirements.
+! Note that a modified C.in is used, in which the f local-orbital is removed.
 
 tasks
   0
@@ -15,9 +16,6 @@ autormt
 ! use a small energy cut-off
 rgkmax
   4.0
-
-sppath
-  '../../species/'
 
 atoms
    1                                    : nspecies

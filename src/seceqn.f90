@@ -15,8 +15,7 @@ use modmain
 !   evecsv : second-variational eigenvectors (out,complex(nstsv,nstsv))
 ! !DESCRIPTION:
 !   Solves the first- and second-variational secular equations. See routines
-!   {\tt match}, {\tt seceqnfv}, {\tt seceqnss}, {\tt seceqnsv} and
-!   {\tt spinchar}.
+!   {\tt match}, {\tt seceqnfv}, {\tt seceqnss} and {\tt seceqnsv}.
 !
 ! !REVISION HISTORY:
 !   Created March 2004 (JKD)
@@ -38,11 +37,19 @@ allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
 !$OMP DO
 do ispn=1,nspnfv
 ! find the matching coefficients
-  call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
-   sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
+  call match(ngk(ispn,ik),gkc(:,ispn,ik),tpgkc(:,:,ispn,ik), &
+   sfacgk(:,:,ispn,ik),apwalm(:,:,:,:,ispn))
 ! solve the first-variational secular equation
-  call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
-   apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
+  if (tseqit) then
+! iteratively
+    call seceqnit(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik),vkl(:,ik), &
+     vgkl(:,:,ispn,ik),vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn), &
+     evecfv(:,:,ispn))
+  else
+! directly
+    call seceqnfv(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik), &
+     vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn),evecfv(:,:,ispn))
+  end if
 end do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -53,8 +60,6 @@ else
 ! solve the second-variational secular equation
   call seceqnsv(ik,apwalm,evalfv,evecfv,evecsv)
 end if
-! compute the spin characters
-call spinchar(ik,evecsv)
 deallocate(apwalm)
 return
 end subroutine

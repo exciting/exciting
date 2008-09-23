@@ -13,7 +13,7 @@ use modmain
 !   Computes the contact charge density and contact magnetic hyperfine field for
 !   each atom and outputs the data to the file {\tt MOSSBAUER.OUT}. The nuclear
 !   radius used for the contact quantities is approximated by the empirical
-!   formula $R_{\rm N}=1.2 Z^{1/3}$ fm, where $Z$ is the atomic number.
+!   formula $R_{\rm N}=1.25 Z^{1/3}$ fm, where $Z$ is the atomic number.
 !
 ! !REVISION HISTORY:
 !   Created May 2004 (JKD)
@@ -22,7 +22,9 @@ use modmain
 implicit none
 ! local variables
 integer is,ia,ias,ir,nr
-real(8) t1,rn,vn,rho0,b
+! nuclear radius constant in Bohr
+real(8), parameter :: r0=1.25d-15/0.52917720859d-10
+real(8) rn,vn,rho0,b,t1
 ! allocatable arrays
 real(8), allocatable :: fr(:)
 real(8), allocatable :: gr(:)
@@ -40,9 +42,8 @@ do is=1,nspecies
 !--------------------------------!
 !     contact charge density     !
 !--------------------------------!
-! determine approximate nuclear radius : 1.2*A^(1/3) fm
-  t1=1.2d-15/0.5291772108d-10
-  rn=t1*abs(spzn(is))**(1.d0/3.d0)
+! approximate nuclear radius : r0*A^(1/3)
+  rn=r0*abs(spzn(is))**(1.d0/3.d0)
   do ir=1,nrmt(is)
     if (spr(ir,is).gt.rn) goto 10
   end do
@@ -65,7 +66,7 @@ do is=1,nspecies
     do ir=1,nr
       fr(ir)=(fourpi*spr(ir,is)**2)*fr(ir)
     end do
-    call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+    call fderiv(-1,nr,spr(:,is),fr,gr,cf)
     rho0=gr(nr)/vn
     write(50,*)
     write(50,'("Species : ",I4," (",A,"), atom : ",I4)') is,trim(spsymb(is)),ia
@@ -77,15 +78,17 @@ do is=1,nspecies
 !------------------------------------------!
     if (spinpol) then
       do ir=1,nr
-        if (ndmag.eq.3) then
+        if (ncmag) then
+! non-collinear
           t1=sqrt(magmt(1,ir,ias,1)**2+magmt(1,ir,ias,2)**2 &
            +magmt(1,ir,ias,3)**2)
         else
+! collinear
           t1=magmt(1,ir,ias,1)
         end if
         fr(ir)=t1*y00*fourpi*spr(ir,is)**2
       end do
-      call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+      call fderiv(-1,nr,spr(:,is),fr,gr,cf)
       b=gr(nr)/vn
       write(50,'(" contact magnetic hyperfine field (mu_B) : ",G18.10)') b
     end if

@@ -1,14 +1,12 @@
 
-! Linear optical spectrum of titanium dioxide. Note that many more k-points are
-! required for good convergence of the optical spectrum.
+! Linear optical spectrum of titanium dioxide. The inverse lifetime is
+! determined by swidth. Note that many more k-points are required for good
+! convergence of the optical spectrum.
 
 tasks
   0
   120
   121
-
-xctype
-  2
 
 avec
   1.0000  0.0000  0.0000

@@ -8,10 +8,10 @@ use modmain
 implicit none
 ! local variables
 integer is,ia,ist,ic,m
-real(8) cpu0,cpu1
+real(8) ts0,ts1
 real(8) vqloff(3)
 
-call cpu_time(cpu0)
+call timesec(ts0)
 
 !---------------------!
 !     q-point set     !
@@ -36,8 +36,9 @@ if (allocated(iqmap)) deallocate(iqmap)
 allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
 ! the q-point offset should always be zero
 vqloff(:)=0.d0
-! generate the q-point set
-call genppts(reduceq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+! generate the q-point set, note that the vectors vql and vqc are mapped to the
+! first Brillouin zone
+call genppts(reduceq,.true.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
 
 !-----------------------------------------------!
 !     OEP, Hartree-Fock and RDMFT variables     !
@@ -49,8 +50,9 @@ if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.300)) then
   call writewiq2
 end if
 if (xctype.lt.0) then
-! initialise OEP residue magnitude
+! initialise OEP residual magnitude
   resoep=1.d0
+! find maximum core states over all species
   ncrmax=0
   do is=1,nspecies
     do ia=1,natoms(is)
@@ -62,7 +64,6 @@ if (xctype.lt.0) then
           end do
         end if
       end do
-! maximum core states over all species
       ncrmax=max(ncrmax,ic)
     end do
   end do
@@ -96,8 +97,8 @@ if (task.eq.300) then
   allocate(vnlrdm(nstsv,nkpt,nstsv,nkptnr))
 end if
 
-call cpu_time(cpu1)
-timeinit=timeinit+cpu1-cpu0
+call timesec(ts1)
+timeinit=timeinit+ts1-ts0
 
 return
 end subroutine

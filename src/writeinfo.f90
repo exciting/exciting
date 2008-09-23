@@ -50,7 +50,7 @@ case(0)
   write(fnum,'("+-------------------------------------------------+")')
   write(fnum,'("| Ground-state run starting from atomic densities |")')
   write(fnum,'("+-------------------------------------------------+")')
-case(1)
+case(1,200)
   write(fnum,*)
   write(fnum,'("+------------------------------------------+")')
   write(fnum,'("| Ground-state run resuming from STATE.OUT |")')
@@ -129,11 +129,11 @@ if (spinorb) then
 end if
 if (spinpol) then
   write(fnum,'(" global magnetic field (Cartesian) : ",3G18.10)') bfieldc
-end if
-if (ndmag.eq.1) then
-  write(fnum,'(" collinear magnetisation in z-direction")')
-else if (ndmag.eq.3) then
-  write(fnum,'(" non-collinear magnetisation")')
+  if (ncmag) then
+    write(fnum,'(" non-collinear magnetisation")')
+  else
+    write(fnum,'(" collinear magnetisation in z-direction")')
+  end if
 end if
 if (spinsprl) then
   write(fnum,'(" spin-spiral state assumed")')
@@ -163,8 +163,8 @@ write(fnum,'("Number of Bravais lattice symmetries : ",I4)') nsymlat
 write(fnum,'("Number of crystal symmetries         : ",I4)') nsymcrys
 write(fnum,*)
 if (autokpt) then
-  write(fnum,'("de Broglie wavelength used to determine k-point grid : ",&
-   &G18.10)') rlambda
+  write(fnum,'("radius of sphere used to determine k-point grid density : ",&
+   &G18.10)') radkpt
 end if
 write(fnum,'("k-point grid : ",3I6)') ngridk
 write(fnum,'("k-point offset : ",3G18.10)') vkloff
@@ -177,6 +177,10 @@ write(fnum,'("Total number of k-points : ",I8)') nkpt
 write(fnum,*)
 write(fnum,'("Smallest muffin-tin radius times maximum |G+k| : ",G18.10)') &
  rgkmax
+if ((isgkmax.ge.1).and.(isgkmax.le.nspecies)) then
+  write(fnum,'("Species with smallest (or selected) muffin-tin radius : ",&
+   &I4," (",A,")")') isgkmax,trim(spsymb(isgkmax))
+end if
 write(fnum,'("Maximum |G+k| for APW functions       : ",G18.10)') gkmax
 write(fnum,'("Maximum |G| for potential and density : ",G18.10)') gmaxvr
 write(fnum,'("Polynomial order for pseudocharge density : ",I4)') npsden
@@ -195,6 +199,8 @@ write(fnum,'("Total core charge       : ",G18.10)') chgcr
 write(fnum,'("Total valence charge    : ",G18.10)') chgval
 write(fnum,'("Total excess charge     : ",G18.10)') chgexs
 write(fnum,'("Total electronic charge : ",G18.10)') chgtot
+write(fnum,*)
+write(fnum,'("Effective Wigner radius, r_s : ",G18.10)') rwigner
 write(fnum,*)
 write(fnum,'("Number of empty states         : ",I4)') nempty
 write(fnum,'("Total number of valence states : ",I4)') nstsv

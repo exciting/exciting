@@ -6,11 +6,13 @@
 !BOP
 ! !ROUTINE: genppts
 ! !INTERFACE:
-subroutine genppts(reducep,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
+subroutine genppts(reducep,tfbz,ngridp,vploff,nppt,ipmap,ivp,vpl,vpc,wppt)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   reducep : .true. if p-point set is to be reduced (in,logical)
+!   tfbz    : .true. if vpl and vpc should be mapped to the first Brillouin
+!             zone (in,logical)
 !   ngridp  : p-point grid size (in,integer(3))
 !   vploff  : offset of p-point grid in lattice coordinates (in,real(3))
 !   nppt    : total number of p-points (out,integer)
@@ -32,18 +34,21 @@ use modmain
 !   $$ {\bf p}=(\frac{i_1}{n_1},\frac{i_2}{n_2},\frac{i_3}{n_3})+
 !    {\bf v}_{\rm off}, $$
 !   where $i_j$ runs from 0 to $n_j-1$ and $0\le{\bf v}_{{\rm off};j}<1$ for
-!   $j=1,2,3$. The $p$-point weights are stored in {\tt wppt} and the array
-!   {\tt ipmap} contains the map from the integer coordinates to the reduced
-!   index.
+!   $j=1,2,3$. If {\tt tfbz} is {\tt .true.}, then the vectors {\tt vpl} and
+!   {\tt vpc} are mapped to the first Brillouin zone. The $p$-point weights are
+!   stored in {\tt wppt} and the array {\tt ipmap} contains the map from the
+!   integer coordinates to the reduced index.
 !
 ! !REVISION HISTORY:
 !   Created August 2002 (JKD)
 !   Updated April 2007 (JKD)
+!   Added mapping to the first Brillouin zone, September 2008 (JKD)
 !EOP
 !BOC
 implicit none
 ! arguments
 logical, intent(in) :: reducep
+logical, intent(in) :: tfbz
 integer, intent(in) :: ngridp(3)
 real(8), intent(in) :: vploff(3)
 integer, intent(out) :: nppt
@@ -57,9 +62,6 @@ integer i1,i2,i3,ip,jp
 integer isym,lspl,iv(3)
 real(8) v1(3),v2(3)
 real(8) s(3,3),t1,t2
-! external functions
-real(8) r3taxi
-external r3taxi
 if ((ngridp(1).le.0).or.(ngridp(2).le.0).or.(ngridp(3).le.0)) then
   write(*,*)
   write(*,'("Error(genppts): invalid ngridp : ",3I8)') ngridp
@@ -91,7 +93,7 @@ do i3=0,ngridp(3)-1
           call r3mtv(s,v1,v2)
           call r3frac(epslat,v2,iv)
           do jp=1,ip
-            t2=r3taxi(vpl(1,jp),v2)
+            t2=abs(vpl(1,jp)-v2(1))+abs(vpl(2,jp)-v2(2))+abs(vpl(3,jp)-v2(3))
             if (t2.lt.epslat) then
 ! equivalent k-point found so add to current weight
               ipmap(i1,i2,i3)=jp
@@ -112,9 +114,11 @@ do i3=0,ngridp(3)-1
   end do
 end do
 nppt=ip
-! determine the Cartesian coordinates of the p-points
 do ip=1,nppt
-  call r3mv(bvec,vpl(1,ip),vpc(1,ip))
+! map vpl to the first Brillouin zone if required
+  if (tfbz) call vecfbz(epslat,bvec,vpl(:,ip),iv)
+! determine the Cartesian coordinates of the p-points
+  call r3mv(bvec,vpl(:,ip),vpc(:,ip))
 end do
 return
 end subroutine

@@ -40,9 +40,9 @@ if (lmax.lt.0) then
   write(*,*)
   stop
 end if
+lm1=0
 do l=0,lmax
-  lm1=l**2
-  lm2=(l+1)**2+1
+  lm2=lm1+2*(l+1)
   do m=-l,l
     lm1=lm1+1
     lm2=lm2-1

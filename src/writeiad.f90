@@ -6,17 +6,22 @@
 !BOP
 ! !ROUTINE: writeiad
 ! !INTERFACE:
-subroutine writeiad
+subroutine writeiad(topt)
 ! !USES:
 use modmain
+! !INPUT/OUTPUT PARAMETERS:
+!   topt : if .true. then the filename will be {\tt IADIST_OPT.OUT}, otherwise
+!          {\tt IADIST.OUT} (in,logical)
 ! !DESCRIPTION:
-!   Outputs the interatomic distances to the file {\tt IADIST.OUT}.
+!   Outputs the interatomic distances to file.
 !
 ! !REVISION HISTORY:
 !   Created May 2005 (JKD)
 !EOP
 !BOC
 implicit none
+! arguments
+logical, intent(in) :: topt
 ! local variables
 integer is,js,ia,ja
 integer i1,i2,i3
@@ -24,7 +29,11 @@ real(8) d,dmin,v(3)
 ! external functions
 real(8) r3dist
 external r3dist
-open(50,file='IADIST'//trim(filext),action='WRITE',form='FORMATTED')
+if (topt) then
+  open(50,file='IADIST_OPT'//trim(filext),action='WRITE',form='FORMATTED')
+else
+  open(50,file='IADIST'//trim(filext),action='WRITE',form='FORMATTED')
+end if
 do is=1,nspecies
   do ia=1,natoms(is)
     write(50,*)
@@ -38,7 +47,7 @@ do is=1,nspecies
             do i3=-1,1
               v(:)=dble(i1)*avec(:,1)+dble(i2)*avec(:,2)+dble(i3)*avec(:,3) &
                +atposc(:,ja,js)
-              d=r3dist(atposc(1,ia,is),v)
+              d=r3dist(atposc(:,ia,is),v)
               dmin=min(d,dmin)
             end do
           end do

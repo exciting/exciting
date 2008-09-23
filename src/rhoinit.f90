@@ -26,22 +26,22 @@ integer, parameter :: n=4
 integer lmax,lmmax,l,m,lm,ir,irc
 integer is,ia,ias,ig,ifg
 real(8) x,t1,t2
-complex(8) zt1,zt2
+complex(8) zt1,zt2,zt3
 ! automatic arrays
 real(8) fr(spnrmax),gr(spnrmax),cf(3,spnrmax)
 ! allocatable arrays
-real(8), allocatable :: jl(:,:)
+real(8), allocatable :: jlgr(:,:)
 real(8), allocatable :: th(:,:)
-real(8), allocatable :: ff(:)
+real(8), allocatable :: ffacg(:)
 complex(8), allocatable :: zfmt(:,:)
 complex(8), allocatable :: zfft(:)
 ! maximum angular momentum for density initialisation
-lmax=min(lmaxvr,1)
+lmax=1
 lmmax=(lmax+1)**2
 ! allocate local arrays
-allocate(jl(0:lmax,nrcmtmax))
+allocate(jlgr(0:lmax,nrcmtmax))
 allocate(th(nrmtmax,nspecies))
-allocate(ff(ngvec))
+allocate(ffacg(ngvec))
 allocate(zfmt(lmmax,nrcmtmax))
 allocate(zfft(ngrtot))
 ! zero the charge density and magnetisation arrays
@@ -61,22 +61,22 @@ do is=1,nspecies
   do ig=1,ngvec
     do ir=1,spnr(is)
       x=gc(ig)*spr(ir,is)
-      call sbessel(0,x,jl(0,1))
-      t1=sprho(ir,is)*jl(0,1)*spr(ir,is)**2
+      call sbessel(0,x,jlgr(0,1))
+      t1=sprho(ir,is)*jlgr(0,1)*spr(ir,is)**2
       if (ir.lt.nrmt(is)) then
         fr(ir)=th(ir,is)*t1
       else
         fr(ir)=t1
       end if
     end do
-    call fderiv(-1,spnr(is),spr(1,is),fr,gr,cf)
-    ff(ig)=(fourpi/omega)*gr(spnr(is))
+    call fderiv(-1,spnr(is),spr(:,is),fr,gr,cf)
+    ffacg(ig)=(fourpi/omega)*gr(spnr(is))
   end do
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     do ig=1,ngvec
       ifg=igfft(ig)
-      zfft(ifg)=zfft(ifg)+ff(ig)*conjg(sfacg(ig,ias))
+      zfft(ifg)=zfft(ifg)+ffacg(ig)*conjg(sfacg(ig,ias))
     end do
   end do
 end do
@@ -87,17 +87,19 @@ do is=1,nspecies
     zfmt(:,:)=0.d0
     do ig=1,ngvec
       ifg=igfft(ig)
+      do irc=1,nrcmt(is)
+        x=gc(ig)*rcmt(irc,is)
+        call sbessel(lmax,x,jlgr(:,irc))
+      end do
       zt1=fourpi*zfft(ifg)*sfacg(ig,ias)
+      lm=0
       do l=0,lmax
-        do irc=1,nrcmt(is)
-          x=gc(ig)*rcmt(irc,is)
-          call sbessel(lmax,x,jl(0,irc))
-        end do
+        zt2=zt1*zil(l)
         do m=-l,l
-          lm=idxlm(l,m)
-          zt2=zt1*zil(l)*conjg(ylmg(lm,ig))
+          lm=lm+1
+          zt3=zt2*conjg(ylmg(lm,ig))
           do irc=1,nrcmt(is)
-            zfmt(lm,irc)=zfmt(lm,irc)+jl(l,irc)*zt2
+            zfmt(lm,irc)=zfmt(lm,irc)+jlgr(l,irc)*zt3
           end do
         end do
       end do
@@ -105,7 +107,7 @@ do is=1,nspecies
     irc=0
     do ir=1,nrmt(is),lradstp
       irc=irc+1
-      call ztorflm(lmax,zfmt(1,irc),rhomt(1,ir,ias))
+      call ztorflm(lmax,zfmt(:,irc),rhomt(:,ir,ias))
     end do
   end do
 end do
@@ -131,7 +133,7 @@ end do
 call charge
 ! normalise the density
 call rhonorm
-deallocate(jl,th,ff,zfmt,zfft)
+deallocate(jlgr,th,ffacg,zfmt,zfft)
 return
 end subroutine
 !EOC

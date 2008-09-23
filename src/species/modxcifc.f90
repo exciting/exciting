@@ -112,7 +112,7 @@ case(3)
     if (n.le.0) goto 20
     allocate(ra(n,1))
     ra(1:n,1)=0.5d0*rho(1:n)
-    call xc_pwca(n,ra(1,1),ra(1,1),ex,ec,vx,vx,vc,vc)
+    call xc_pwca(n,ra(:,1),ra(:,1),ex,ec,vx,vx,vc,vc)
     deallocate(ra)
   else
     goto 10
@@ -127,6 +127,26 @@ case(4)
 ! set correlation energy and potential to zero
     ec(1:n)=0.d0
     vc(1:n)=0.d0
+  else
+    goto 10
+  end if
+case(5)
+! U. von Barth and L. Hedin parameterisation of LSDA
+! J. Phys. C, 5, 1629 (1972)
+  if (present(n).and.present(rhoup).and.present(rhodn).and.present(ex) &
+   .and.present(ec).and.present(vxup).and.present(vxdn).and.present(vcup) &
+   .and.present(vcdn)) then
+! spin-polarised density
+    if (n.le.0) goto 20
+    call xc_vbh(n,rhoup,rhodn,ex,ec,vxup,vxdn,vcup,vcdn)
+  else if (present(n).and.present(rho).and.present(ex).and.present(ec) &
+   .and.present(vx).and.present(vc)) then
+! divide spin-unpolarised density into up and down
+    if (n.le.0) goto 20
+    allocate(ra(n,1))
+    ra(1:n,1)=0.5d0*rho(1:n)
+    call xc_vbh(n,ra(:,1),ra(:,1),ex,ec,vx,vx,vc,vc)
+    deallocate(ra)
   else
     goto 10
   end if
@@ -163,8 +183,8 @@ case(20,21,22)
     ra(1:n,2)=0.5d0*grho(1:n)
     ra(1:n,3)=0.5d0*g2rho(1:n)
     ra(1:n,4)=0.25d0*g3rho(1:n)
-    call xc_pbe(n,kappa,mu,beta,ra(1,1),ra(1,1),grho,ra(1,2),ra(1,2),ra(1,3), &
-     ra(1,3),g3rho,ra(1,4),ra(1,4),ex,ec,vx,vx,vc,vc)
+    call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
+     ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,vx,vc,vc)
     deallocate(ra)
   else
     goto 10
@@ -261,6 +281,10 @@ case(3)
 case(4)
   xcdescr='X-alpha approximation, J. C. Slater, Phys. Rev. 81, 385 (1951)'
   xcspin=0
+  xcgrad=0
+case(5)
+  xcdescr='von Barth-Hedin, J. Phys. C 5, 1629 (1972)'
+  xcspin=1
   xcgrad=0
 case(20)
   xcdescr='Perdew-Burke-Ernzerhof, Phys. Rev. Lett. 77, 3865 (1996)'

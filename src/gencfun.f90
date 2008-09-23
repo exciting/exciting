@@ -31,12 +31,12 @@ use modmain
 implicit none
 ! local variables
 integer is,ia,ig,ifg
-real(8) t1,t2,t3,t4
+real(8) t1,t2
 complex(8) zt1
 ! allocatable arrays
-real(8), allocatable :: ff(:)
+real(8), allocatable :: ffacg(:)
 complex(8), allocatable :: zfft(:)
-allocate(ff(ngrtot))
+allocate(ffacg(ngrtot))
 allocate(zfft(ngrtot))
 ! allocate global characteristic function arrays
 if (allocated(cfunig)) deallocate(cfunig)
@@ -46,32 +46,25 @@ allocate(cfunir(ngrtot))
 cfunig(:)=0.d0
 cfunig(1)=1.d0
 t1=fourpi/omega
-t2=cfdamp/gmaxvr
 ! begin loop over species
 do is=1,nspecies
 ! smooth step function form factors for each species
   do ig=1,ngrtot
     if (gc(ig).gt.epslat) then
-      if (cfdamp.ne.0.d0) then
-! use damping if required
-        t3=exp(-(t2*gc(ig))**2)
-      else
-        t3=1.d0
-      end if
-      t4=gc(ig)*rmt(is)
-      ff(ig)=t1*t3*(sin(t4)-t4*cos(t4))/(gc(ig)**3)
+      t2=gc(ig)*rmt(is)
+      ffacg(ig)=t1*(sin(t2)-t2*cos(t2))/(gc(ig)**3)
     else
-      ff(ig)=t1*(rmt(is)**3)/3.d0
+      ffacg(ig)=(t1/3.d0)*rmt(is)**3
     end if
   end do
 ! loop over atoms
   do ia=1,natoms(is)
     do ig=1,ngrtot
-      t3=-dot_product(vgc(:,ig),atposc(:,ia,is))
 ! structure factor
-      zt1=cmplx(cos(t3),sin(t3),8)
+      t2=-dot_product(vgc(:,ig),atposc(:,ia,is))
+      zt1=cmplx(cos(t2),sin(t2),8)
 ! add to characteristic function in G-space
-      cfunig(ig)=cfunig(ig)-zt1*ff(ig)
+      cfunig(ig)=cfunig(ig)-zt1*ffacg(ig)
     end do
   end do
 end do
@@ -82,7 +75,15 @@ end do
 ! Fourier transform to real-space
 call zfftifc(3,ngrid,1,zfft)
 cfunir(:)=dble(zfft(:))
-deallocate(ff,zfft)
+! damp the characteristic function in G-space if required
+if (cfdamp.gt.0.d0) then
+  t1=cfdamp/gmaxvr
+  do ig=1,ngrtot
+    t2=exp(-(t1*gc(ig))**2)
+    cfunig(ig)=cfunig(ig)*t2
+  end do
+end if
+deallocate(ffacg,zfft)
 return
 end subroutine
 !EOC

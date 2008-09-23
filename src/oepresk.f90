@@ -16,7 +16,7 @@ real(8), intent(inout) :: dbxmt(lmmaxvr,nrcmtmax,natmtot,ndmag)
 real(8), intent(inout) :: dbxir(ngrtot,ndmag)
 ! local variables
 integer is,ia,ias,ist,jst
-integer nr,ic,m,idm
+integer nrc,ic,m,idm
 real(8) de
 complex(8) zde,zvnl,zrvx,zmbx,zt1,zt2
 ! allocatable arrays
@@ -50,19 +50,19 @@ if (spinpol) then
   allocate(zfmt(lmmaxvr,nrcmtmax))
 end if
 ! get the eigenvalues/vectors from file for input k-point
-call getevalsv(vkl(1,ik),evalsv(1,ik))
-call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-call getevecsv(vkl(1,ik),evecsv)
+call getevalsv(vkl(:,ik),evalsv(:,ik))
+call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+call getevecsv(vkl(:,ik),evecsv)
 ! find the matching coefficients
-call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
+call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm)
 ! calculate the wavefunctions for all states
-call genwfsv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv, &
+call genwfsv(.false.,ngk(1,ik),igkig(:,1,ik),evalsv(:,ik),apwalm,evecfv, &
  evecsv,wfmt,wfir)
 !-----------------------------------------------------------!
 !     core-conduction overlap density and magnetisation     !
 !-----------------------------------------------------------!
 do is=1,nspecies
-  nr=nrcmt(is)
+  nrc=nrcmt(is)
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     ic=0
@@ -77,36 +77,37 @@ do is=1,nspecies
               de=evalcr(ist,ias)-evalsv(jst,ik)
               zde=occmax*wkpt(ik)/(de+zi*swidth)
 ! calculate the complex overlap density in the muffin-tin
-              call vnlrhomt(.false.,is,wfcr(1,1,1),wfmt(1,1,ias,1,jst), &
-               zrhomt(1,1,ias))
+              call vnlrhomt(.false.,is,wfcr(:,:,1),wfmt(:,:,ias,1,jst), &
+               zrhomt(:,:,ias))
               if (spinpol) then
-                call vnlrhomt(.false.,is,wfcr(1,1,2),wfmt(1,1,ias,2,jst),zfmt)
-                zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
+                call vnlrhomt(.false.,is,wfcr(:,:,2),wfmt(:,:,ias,2,jst),zfmt)
+                zrhomt(:,1:nrc,ias)=zrhomt(:,1:nrc,ias)+zfmt(:,1:nrc)
               end if
               zvnl=conjg(vnlcv(ic,ias,jst,ik))
-              zrvx=zfmtinp(.false.,lmaxvr,nr,rcmt(1,is),lmmaxvr, &
-               zrhomt(1,1,ias),zvxmt(1,1,ias))
+              zrvx=zfmtinp(.false.,lmaxvr,nrc,rcmt(:,is),lmmaxvr, &
+               zrhomt(:,:,ias),zvxmt(:,:,ias))
               zt1=zvnl-zrvx
 ! spin-polarised case
               if (spinpol) then
-                call oepmagmt(.false.,is,wfcr(1,1,1),wfcr(1,1,2), &
-                 wfmt(1,1,ias,1,jst),wfmt(1,1,ias,2,jst),zvfmt)
+                call oepmagmt(.false.,is,wfcr(:,:,1),wfcr(:,:,2), &
+                 wfmt(:,:,ias,1,jst),wfmt(:,:,ias,2,jst),zvfmt)
 ! integral of magnetisation dot exchange field
                 zmbx=0.d0
                 do idm=1,ndmag
-                  zmbx=zmbx+zfmtinp(.false.,lmaxvr,nr,rcmt(1,is),lmmaxvr, &
-                   zvfmt(1,1,idm),zbxmt(1,1,ias,idm))
+                  zmbx=zmbx+zfmtinp(.false.,lmaxvr,nrc,rcmt(:,is),lmmaxvr, &
+                   zvfmt(:,:,idm),zbxmt(:,:,ias,idm))
                 end do
                 zt1=zt1-zmbx
 ! end spin-polarised case
               end if
               zt2=zde*zt1
-! residues for exchange potential and field
+! residuals for exchange potential and field
 !$OMP CRITICAL
-              dvxmt(:,1:nr,ias)=dvxmt(:,1:nr,ias)+dble(zt2*zrhomt(:,1:nr,ias))
+              dvxmt(:,1:nrc,ias)=dvxmt(:,1:nrc,ias) &
+               +dble(zt2*zrhomt(:,1:nrc,ias))
               do idm=1,ndmag
-                dbxmt(:,1:nr,ias,idm)=dbxmt(:,1:nr,ias,idm) &
-                 +dble(zt2*zvfmt(:,1:nr,idm))
+                dbxmt(:,1:nrc,ias,idm)=dbxmt(:,1:nrc,ias,idm) &
+                 +dble(zt2*zvfmt(:,1:nrc,idm))
               end do
 !$OMP END CRITICAL
 ! end loop over jst
@@ -127,35 +128,36 @@ do ist=1,nstsv
     do jst=1,nstsv
       if (evalsv(jst,ik).gt.efermi) then
 ! calculate the overlap density
-        call vnlrho(.false.,wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst),wfir(1,1,ist), &
-         wfir(1,1,jst),zrhomt,zrhoir)
+        call vnlrho(.false.,wfmt(:,:,:,:,ist),wfmt(:,:,:,:,jst),wfir(:,:,ist), &
+         wfir(:,:,jst),zrhomt,zrhoir)
         de=evalsv(ist,ik)-evalsv(jst,ik)
         zde=occmax*wkpt(ik)/(de+zi*swidth)
         zvnl=conjg(vnlvv(ist,jst,ik))
         zrvx=zfinp(.false.,zrhomt,zvxmt,zrhoir,zvxir)
         zt1=zvnl-zrvx
+! spin-polarised case
         if (spinpol) then
-          call oepmag(.false.,wfmt(1,1,1,1,ist),wfmt(1,1,1,1,jst), &
-           wfir(1,1,ist),wfir(1,1,jst),zmagmt,zmagir)
+          call oepmag(.false.,wfmt(:,:,:,:,ist),wfmt(:,:,:,:,jst), &
+           wfir(:,:,ist),wfir(:,:,jst),zmagmt,zmagir)
 ! integral of magnetisation dot exchange field
           zmbx=0.d0
           do idm=1,ndmag
-            zmbx=zmbx+zfinp(.false.,zmagmt(1,1,1,idm),zbxmt(1,1,1,idm), &
-             zmagir(1,idm),zbxir(1,idm))
+            zmbx=zmbx+zfinp(.false.,zmagmt(:,:,:,idm),zbxmt(:,:,:,idm), &
+             zmagir(:,idm),zbxir(:,idm))
           end do
           zt1=zt1-zmbx
         end if
         zt2=zde*zt1
-! residues for exchange potential and field
+! residuals for exchange potential and field
 !$OMP CRITICAL
         do is=1,nspecies
-          nr=nrcmt(is)
+          nrc=nrcmt(is)
           do ia=1,natoms(is)
             ias=idxas(ia,is)
-            dvxmt(:,1:nr,ias)=dvxmt(:,1:nr,ias)+dble(zt2*zrhomt(:,1:nr,ias))
+            dvxmt(:,1:nrc,ias)=dvxmt(:,1:nrc,ias)+dble(zt2*zrhomt(:,1:nrc,ias))
             do idm=1,ndmag
-              dbxmt(:,1:nr,ias,idm)=dbxmt(:,1:nr,ias,idm) &
-               +dble(zt2*zmagmt(:,1:nr,ias,idm))
+              dbxmt(:,1:nrc,ias,idm)=dbxmt(:,1:nrc,ias,idm) &
+               +dble(zt2*zmagmt(:,1:nrc,ias,idm))
             end do
           end do
         end do

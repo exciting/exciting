@@ -38,11 +38,8 @@ real(8), intent(out) :: evalfv(nstfv)
 complex(8), intent(out) :: evecfv(nmatmax,nstfv)
 ! local variables
 integer is,ia,i,m,np,info
-real(8) vl,vu,abstol
-real(8) cpu0,cpu1
-! external functions
-real(8) dlamch
-external dlamch
+real(8) vl,vu
+real(8) ts0,ts1
 ! allocatable arrays
 integer, allocatable :: iwork(:)
 integer, allocatable :: ifail(:)
@@ -64,7 +61,7 @@ allocate(work(2*nmatp))
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
-call cpu_time(cpu0)
+call timesec(ts0)
 ! set the matrices to zero
 h(:)=0.d0
 o(:)=0.d0
@@ -82,19 +79,18 @@ end do
 ! interstitial contributions
 call hmlistl(.false.,ngp,igpig,vgpc,v,h)
 call olpistl(.false.,ngp,igpig,v,o)
-call cpu_time(cpu1)
+call timesec(ts1)
 !$OMP CRITICAL
-timemat=timemat+cpu1-cpu0
+timemat=timemat+ts1-ts0
 !$OMP END CRITICAL
 !------------------------------------!
 !     solve the secular equation     !
 !------------------------------------!
-call cpu_time(cpu0)
+call timesec(ts0)
 vl=0.d0
 vu=0.d0
-abstol=2.d0*dlamch('S')
 ! LAPACK 3.0 call
-call zhpgvx(1,'V','I','U',nmatp,h,o,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
+call zhpgvx(1,'V','I','U',nmatp,h,o,vl,vu,1,nstfv,evaltol,m,w,evecfv,nmatmax, &
  work,rwork,iwork,ifail,info)
 evalfv(1:nstfv)=w(1:nstfv)
 if (info.ne.0) then
@@ -110,9 +106,9 @@ if (info.ne.0) then
   end if
   stop
 end if
-call cpu_time(cpu1)
+call timesec(ts1)
 !$OMP CRITICAL
-timefv=timefv+cpu1-cpu0
+timefv=timefv+ts1-ts0
 !$OMP END CRITICAL
 deallocate(iwork,ifail,w,rwork,v,h,o,work)
 return

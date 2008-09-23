@@ -1,6 +1,6 @@
 
-! High T_c superconductor YBa_2Cu_3O_7. Note that the code determines which
-! atoms are equivalent, and lists them in EQATOMS.OUT. This example is quite
+! High T_c superconductor YBa2Cu3O7. Note that the code determines which atoms
+! are equivalent, and lists them in EQATOMS.OUT. This example is quite
 ! time-consuming.
 
 tasks
@@ -9,10 +9,6 @@ tasks
 ! small cut-off for testing purposes
 rgkmax
   6.0
-
-! conservative mixing
-beta0
-  0.05
 
 avec
   7.2246  0.0     0.0

@@ -41,9 +41,9 @@ allocate(spvr(spnrmax,nspecies))
 !$OMP DO
 do is=1,nspecies
   allocate(rwf(spnrmax,2,spnstmax))
-  call atom(spzn(is),spnst(is),spn(1,is),spl(1,is),spk(1,is),spocc(1,is), &
-   xctype_,xcgrad_,nprad,spnr(is),spr(1,is),speval(1,is),sprho(1,is), &
-   spvr(1,is),rwf)
+  call atom(ptnucl,spzn(is),spnst(is),spn(:,is),spl(:,is),spk(:,is), &
+   spocc(:,is),xctype_,xcgrad_,nprad,spnr(is),spr(:,is),speval(:,is), &
+   sprho(:,is),spvr(:,is),rwf)
   deallocate(rwf)
 end do
 !$OMP END DO

@@ -23,13 +23,12 @@ use modmain
 implicit none
 ! local variables
 logical exist
-integer ik,is,ia,idm,n
+integer ik,is,ia,idm
+integer n,nwork
 real(8) dv,timetot
 ! allocatable arrays
-real(8), allocatable :: nu(:)
-real(8), allocatable :: mu(:)
-real(8), allocatable :: beta(:)
-real(8), allocatable :: f(:)
+real(8), allocatable :: v(:)
+real(8), allocatable :: work(:)
 real(8), allocatable :: evalfv(:,:)
 complex(8), allocatable :: evecfv(:,:,:)
 complex(8), allocatable :: evecsv(:,:)
@@ -42,8 +41,8 @@ call init1
 if (xctype.lt.0) call init2
 ! write the real and reciprocal lattice vectors to file
 call writelat
-! write inter-atomic distances to file
-call writeiad
+! write interatomic distances to file
+call writeiad(.false.)
 ! write symmetry matrices to file
 call writesym
 ! output the k-point set to file
@@ -71,7 +70,10 @@ iscl=0
 write(60,*)
 if ((task.eq.1).or.(task.eq.3)) then
   call readstate
-  write(60,'("Density and potential read in from STATE.OUT")')
+  write(60,'("Potential read in from STATE.OUT")')
+else if (task.eq.200) then
+  call phveff
+  write(60,'("Supercell potential constructed from STATE.OUT")')
 else
   call rhoinit
   call poteff
@@ -84,21 +86,17 @@ n=lmmaxvr*nrmtmax*natmtot+ngrtot
 if (spinpol) n=n*(1+ndmag)
 if (ldapu.ne.0) n=n+2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
 ! allocate mixing arrays
-allocate(nu(n))
-allocate(mu(n))
-allocate(beta(n))
-allocate(f(n))
+allocate(v(n))
+nwork=-1
+call mixerifc(mixtype,n,v,dv,nwork,work)
+allocate(work(nwork))
 ! set stop flag
 tstop=.false.
 10 continue
 ! set last iteration flag
 tlast=.false.
-! initialise the mixer
-call packeff(.true.,n,nu)
-call mixer(.true.,beta0,betamax,n,nu,mu,beta,f,dv)
-call packeff(.false.,n,nu)
 ! delete any existing eigenvector files
-call delevec
+if ((task.eq.0).or.(task.eq.2)) call delevec
 ! begin the self-consistent loop
 write(60,*)
 write(60,'("+------------------------------+")')
@@ -143,7 +141,7 @@ do iscl=1,maxscl
     call seceqn(ik,evalfv,evecfv,evecsv)
 ! write the eigenvalues/vectors to file
     call putevalfv(ik,evalfv)
-    call putevalsv(ik,evalsv(1,ik))
+    call putevalsv(ik,evalsv(:,ik))
     call putevecfv(ik,evecfv)
     call putevecsv(ik,evecsv)
     deallocate(evalfv,evecfv,evecsv)
@@ -170,10 +168,10 @@ do iscl=1,maxscl
     allocate(evecfv(nmatmax,nstfv,nspnfv))
     allocate(evecsv(nstsv,nstsv))
 ! write the occupancies to file
-    call putoccsv(ik,occsv(1,ik))
+    call putoccsv(ik,occsv(:,ik))
 ! get the eigenvectors from file
-    call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-    call getevecsv(vkl(1,ik),evecsv)
+    call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+    call getevecsv(vkl(:,ik),evecsv)
 ! add to the density and magnetisation
     call rhovalk(ik,evecfv,evecsv)
     deallocate(evecfv,evecsv)
@@ -188,7 +186,7 @@ do iscl=1,maxscl
   call rfmtctof(rhomt)
 ! convert the magnetisation from a coarse to a fine radial mesh
   do idm=1,ndmag
-    call rfmtctof(magmt(1,1,1,idm))
+    call rfmtctof(magmt(:,:,:,idm))
   end do
 ! add the core density to the total density
   call addrhocr
@@ -210,11 +208,11 @@ do iscl=1,maxscl
 ! compute the effective potential
   call poteff
 ! pack interstitial and muffin-tin effective potential and field into one array
-  call packeff(.true.,n,nu)
+  call packeff(.true.,n,v)
 ! mix in the old potential and field with the new
-  call mixer(.false.,beta0,betamax,n,nu,mu,beta,f,dv)
+  call mixerifc(mixtype,n,v,dv,nwork,work)
 ! unpack potential and field
-  call packeff(.false.,n,nu)
+  call packeff(.false.,n,v)
 ! add the fixed spin moment effect field
   if (fixspin.ne.0) call fsmfield
 ! Fourier transform effective potential to G-space
@@ -230,9 +228,9 @@ do iscl=1,maxscl
   call writeengy(60)
   write(60,*)
   write(60,'("Density of states at Fermi energy : ",G18.10)') fermidos
-  write(60,'(" (states/Hartree/spin/unit cell)")')
+  write(60,'(" (states/Hartree/unit cell)")')
 ! write total energy to TOTENERGY.OUT and flush
-  write(61,'(G18.10)') engytot
+  write(61,'(G22.12)') engytot
   call flushifc(61)
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
   write(62,'(G18.10)') fermidos
@@ -280,7 +278,7 @@ do iscl=1,maxscl
   end if
   if (xctype.lt.0) then
     write(60,*)
-    write(60,'("Magnitude of OEP residue : ",G18.10)') resoep
+    write(60,'("Magnitude of OEP residual : ",G18.10)') resoep
   end if
 ! check for STOP file
   inquire(file='STOP',exist=exist)
@@ -348,10 +346,11 @@ if ((.not.tstop).and.((task.eq.2).or.(task.eq.3))) then
       write(60,'(I4," : ",3F14.8)') ia,atposl(:,ia,is)
     end do
   end do
-! add blank line to TOTENERGY.OUT, FERMIDOS.OUT and MOMENT.OUT
+! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
   write(61,*)
   write(62,*)
   if (spinpol) write (63,*)
+  write(65,*)
 ! begin new self-consistent loop with updated positions
   goto 10
 end if
@@ -388,7 +387,7 @@ if (spinpol) close(63)
 if (tforce) close(64)
 ! close the RMSDVEFF.OUT file
 close(65)
-deallocate(nu,mu,beta,f)
+deallocate(v,work)
 return
 end subroutine
 !EOC

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -53,10 +53,16 @@ do itask=1,ntasks
   case(120)
     call writepmat
   case(121)
-    call linopt
+    call dielectric
   case(122)
     call moke
-  case(200)
+  case(130)
+    call writeexpiqr
+  case(140)
+    call elnes
+  case(190)
+    call geomplot
+  case(200,201)
     call phonon
   case(210)
     call phdos
@@ -64,8 +70,12 @@ do itask=1,ntasks
     call phdisp
   case(230)
     call writephn
+  case(240)
+    call epcouple
+  case(245)
+    call phlwidth
   case(250)
-    call geomplot
+    call alpha2f
   case(300)
     call rdmft
   case default
@@ -79,11 +89,11 @@ stop
 end program
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.151
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.202
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
-!   Welcome to the {\sf EXCITING} Code Manual!
+!   Welcome to the {\sf EXCITING} Code!
 !   The {\sf EXCITING} code is a state-of-the-art full-potential linearised
 !   augmented-plane-wave (FP-LAPW) code for determining the properties of
 !   crystalline solids. It was developed mainly at the
@@ -114,7 +124,7 @@ end program
 !   Kay Dewhurst, Sangeeta Sharma and Claudia Ambrosch-Draxl
 !
 !   \vspace{12pt}
-!   Edinburgh, Berlin and Leoben, February 2008
+!   Edinburgh, Berlin and Leoben, May 2008
 !   \newpage
 !
 !   \section{Units}
@@ -240,30 +250,6 @@ end program
 !   \end{tabularx}\newline\newline
 !   Lattice vectors of the crystal in atomic units (Bohr). If {\tt molecule} is
 !   {\tt .true.} then these vectors are not used.
-!
-!   \subsection{{\tt beta0}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt beta0 } & initial mixing parameter and increment & real & $0.1$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   This sets the initial parameter used for mixing the old and new potentials
-!   during the self-consistent cycle. For some materials, such as magnetic
-!   metals, this should be made smaller to avoid instability. The code
-!   automatically adjusts the mixing parameter to the optimial size. Making
-!   {\tt beta0} too large can result in instability and poor convergence. See
-!   {\tt betamax} as well as the routine {\tt mixer}.
-!
-!   \subsection{{\tt betamax}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt betamax } & maximum mixing parameter & real & $1.0$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   The mixing parameter is adjusted in increments of {\tt beta0} to optimise
-!   that rate of convergece. {\tt betamax} sets the upper limit to this
-!   parameter. Making this too large can result in poor convergence due to
-!   charge sloshing.
 !
 !   \subsection{{\tt bfieldc}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -464,7 +450,18 @@ end program
 !   {\tt intraband} & {\tt .true.} if the intraband (Drude-like) contribution is
 !    to be added to the dieletric tensor & logical & {\tt .false.} \\
 !   \hline
+!   \end{tabularx}
+!
+!   \subsection{{\tt isgkmax}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt isgkmax} & species for which the muffin-tin radius will be used for
+!    calculating {\tt gkmax} & integer & $-1$ \\
+!   \hline
 !   \end{tabularx}\newline\newline
+!   By default the smallest muffin-tin radius is used for determining
+!   {\tt gkmax} from {\tt rgkmax}. This can be changed by setting {\tt isgkmax}
+!   to the desired species number.
 !
 !   \subsection{{\tt kstlist}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -803,6 +800,17 @@ end program
 !   those which connect atomic sites, and using the three shortest which produce
 !   a unit cell with non-zero volume.
 !
+!   \subsection{{\tt radkpt}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt radkpt } & radius of sphere used to determine k-point density & real &
+!    $40.0$ \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   Used for the automatic determination of the {\bf k}-point mesh. If
+!   {\tt autokpt} is set to {\tt .true.} then the mesh sizes will be determined
+!   by $n_i=\lambda/|{\bf A}_i|+1$.
+!
 !   \subsection{{\tt reducebf}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
@@ -843,17 +851,6 @@ end program
 !   \end{tabularx}\newline\newline
 !   This sets the maximum length for the ${\bf G}+{\bf k}$ vectors, defined as
 !   {\tt rgkmax} divided by the smallest muffin-tin radius.
-!
-!   \subsection{{\tt rlambda}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt rlambda } & maximum de Broglie wavelength of {\bf k}-vectors & real &
-!    $20.0$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   Used for the automatic determination of the {\bf k}-point mesh. If
-!   {\tt autokpt} is set to {\tt .true.} then the mesh sizes will be determined
-!   by $n_i=\lambda/|{\bf A}_i|+1$.
 !
 !   \subsection{{\tt rmtapm}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1008,7 +1005,7 @@ end program
 !   41, 42, 43 & 1/2/3D exchange-correlation and Coulomb potential plots. \\
 !   51, 52, 53 & 1/2/3D electron localisation function (ELF) plot. \\
 !   61, 62, 63 & 1/2/3D wavefunction plot:
-!    $\left|\Phi_{i{\bf k}}({\bf r})\right|^2$. \\
+!    $\left|\Psi_{i{\bf k}}({\bf r})\right|^2$. \\
 !   72, 73 & 2/3D plot of magnetisation vector field, ${\bf m}({\bf r})$. \\
 !   82, 83 & 2/3D plot of exchange-correlation magnetic vector field,
 !    ${\bf B}_{\rm xc}({\bf r})$. \\
@@ -1022,22 +1019,26 @@ end program
 !   115 & Calculation of the electric field gradient (EFG) at the nuclear
 !    sites. \\
 !   120 & Output of the momentum matrix elements
-!    $\langle\Phi_{i{\bf k}}|-i\nabla|\Phi_{j{\bf k}}\rangle$. \\
+!    $\langle\Psi_{i{\bf k}}|-i\nabla|\Psi_{j{\bf k}}\rangle$. \\
 !   121 & Linear optical response tensor. \\
 !   122 & Magneto optical Kerr effect angle. \\
+!   130 & Output matrix elements of the type
+!    $\langle\Psi_{i{\bf k+q}}|\exp[i({\bf G+q})\cdot{\bf r}]|
+!    \Psi_{j{\bf k}}\rangle$. \\
+!   140 & Energy loss near edge structure (ELNES). \\
 !   142, 143 & 2/3D plot of the electric field
 !    ${\bf E}({\bf r})\equiv\nabla V_{\rm C}({\bf r})$. \\
 !   152, 153 & 2/3D plot of
 !    ${\bf m}({\bf r})\times{\bf B}_{\rm xc}({\bf r})$. \\
 !   162 & Scanning-tunneling microscopy (STM) image. \\
+!   190 & Write the atomic geometry to file for plotting with {\sf XCrySDen}
+!    and {\sf V\_Sim}. \\
 !   200 & Calculation of dynamical matrices on a {\bf q}-point set defined by
 !    {\tt ngridq}. \\
 !   210 & Phonon density of states. \\
 !   220 & Phonon dispersion plot. \\
 !   230 & Phonon frequencies and eigenvectors for an arbitrary
-!    ${\bf q}$-point. \\
-!   250 & Write the atomic geometry to file for plotting with {\sf XCrySDen}
-!    and {\sf V\_Sim}.
+!    ${\bf q}$-point.
 !   \end{tabularx}
 !
 !   \subsection{{\tt tau0atm}}
@@ -1112,16 +1113,6 @@ end program
 !    logical & {\tt .true.} \\
 !   \hline
 !   \end{tabularx}
-!
-!   \subsection{{\tt usegdft}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt usegdft} & set to {\tt .true.} if the generalised DFT correction of
-!    L. Fritsche and Y. M. Gu, Phys. Rev. {\bf B} 48, 4250 (1993), is to be
-!    used & logical & {\tt .false.} \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   Experimental feature.
 !
 !   \subsection{{\tt vacuum}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1249,8 +1240,8 @@ end program
 !   \item All reading in of ASCII data should be done in the subroutine
 !    {\tt readinput}. For binary data, separate routines for reading and writing
 !    should be used (for example {\tt writestate} and {\tt readstate}).
-!   \item Input file names should be in lowercase and have the extension
-!    {\tt .in} . All output file names should be in uppercase with the extension
+!   \item Input filenames should be in lowercase and have the extension
+!    {\tt .in} . All output filenames should be in uppercase with the extension
 !    {\tt .OUT} .
 !   \item All internal units should be atomic. Input and output units should be
 !    atomic by default and clearly stated otherwise. Rydbergs should not be used

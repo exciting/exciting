@@ -17,8 +17,7 @@ use modmain
 !   to files {\tt BAND\_Sss\_Aaaaa.OUT} for atom {\tt aaaa} of species {\tt ss},
 !   which include the band characters for each $l$ component of that atom in
 !   columns 4 onwards. Column 3 contains the sum over $l$ of the characters.
-!   Vertex location lines are written to {\tt BANDLINES.OUT}. See routine
-!   {\tt bandchar}.
+!   Vertex location lines are written to {\tt BANDLINES.OUT}.
 !
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
@@ -32,11 +31,11 @@ real(8) emin,emax,sum
 character(256) fname
 ! allocatable arrays
 real(8), allocatable :: evalfv(:,:)
-real(8), allocatable :: bndchr(:,:,:,:)
-real(8), allocatable :: elmsym(:,:)
 real(8), allocatable :: e(:,:)
 ! low precision for band character array saves memory
 real(4), allocatable :: bc(:,:,:,:)
+complex(8), allocatable :: dmat(:,:,:,:,:)
+complex(8), allocatable :: apwalm(:,:,:,:,:)
 complex(8), allocatable :: evecfv(:,:,:)
 complex(8), allocatable :: evecsv(:,:)
 ! initialise universal variables
@@ -47,7 +46,6 @@ allocate(e(nstsv,nkpt))
 ! maximum angular momentum for band character
 lmax=min(3,lmaxapw)
 lmmax=(lmax+1)**2
-! allocate band character array if required
 if (task.eq.21) then
   allocate(bc(0:lmax,natmtot,nstsv,nkpt))
 end if
@@ -70,17 +68,14 @@ emax=-1.d5
 ! begin parallel loop over k-points
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(evalfv,evecfv,evecsv) &
-!$OMP PRIVATE(bndchr,elmsym) &
-!$OMP PRIVATE(ispn,ist,is,ia,ias,l,m,lm,sum)
+!$OMP PRIVATE(dmat,apwalm) &
+!$OMP PRIVATE(ispn,ist,is,ia,ias) &
+!$OMP PRIVATE(l,m,lm,sum)
 !$OMP DO
 do ik=1,nkpt
   allocate(evalfv(nstfv,nspnfv))
   allocate(evecfv(nmatmax,nstfv,nspnfv))
   allocate(evecsv(nstsv,nstsv))
-  if (task.eq.21) then
-    allocate(bndchr(lmmax,natmtot,nspinor,nstsv))
-    allocate(elmsym(lmmax,natmtot))
-  end if
 !$OMP CRITICAL
   write(*,'("Info(bandstr): ",I6," of ",I6," k-points")') ik,nkpt
 !$OMP END CRITICAL
@@ -91,23 +86,34 @@ do ik=1,nkpt
     e(ist,ik)=evalsv(ist,ik)-efermi
 ! add scissors correction
     if (e(ist,ik).gt.0.d0) e(ist,ik)=e(ist,ik)+scissor
+!$OMP CRITICAL
     emin=min(emin,e(ist,ik))
     emax=max(emax,e(ist,ik))
+!$OMP END CRITICAL
   end do
 ! compute the band characters if required
   if (task.eq.21) then
-    call bandchar(lmax,ik,evecfv,evecsv,lmmax,bndchr,elmsym)
+    allocate(dmat(lmmax,lmmax,nspinor,nspinor,nstsv))
+    allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot,nspnfv))
+! find the matching coefficients
+    do ispn=1,nspnfv
+      call match(ngk(ispn,ik),gkc(:,ispn,ik),tpgkc(:,:,ispn,ik), &
+       sfacgk(:,:,ispn,ik),apwalm(:,:,:,:,ispn))
+    end do
 ! average band character over spin and m for all atoms
     do is=1,nspecies
       do ia=1,natoms(is)
         ias=idxas(ia,is)
+! generate the diagonal of the density matrix
+        call gendmat(.true.,.true.,0,lmax,is,ia,ngk(:,ik),apwalm,evecfv, &
+         evecsv,lmmax,dmat)
         do ist=1,nstsv
           do l=0,lmax
             sum=0.d0
             do m=-l,l
               lm=idxlm(l,m)
               do ispn=1,nspinor
-                sum=sum+bndchr(lm,ias,ispn,ist)
+                sum=sum+dble(dmat(lm,lm,ispn,ispn,ist))
               end do
             end do
             bc(l,ias,ist,ik)=real(sum)
@@ -115,11 +121,9 @@ do ik=1,nkpt
         end do
       end do
     end do
+    deallocate(dmat,apwalm)
   end if
   deallocate(evalfv,evecfv,evecsv)
-  if (task.eq.21) then
-    deallocate(bndchr,elmsym)
-  end if
 ! end loop over k-points
 end do
 !$OMP END DO
@@ -165,6 +169,8 @@ else
   write(*,'(" band structure plot written to BAND_Sss_Aaaaa.OUT")')
   write(*,'("  for all species and atoms")')
 end if
+write(*,*)
+write(*,'(" Fermi energy is at zero in plot")')
 ! output the vertex location lines
 open(50,file='BANDLINES.OUT',action='WRITE',form='FORMATTED')
 do iv=1,nvp1d
@@ -173,6 +179,7 @@ do iv=1,nvp1d
   write(50,'("     ")')
 end do
 close(50)
+write(*,*)
 write(*,'(" vertex location lines written to BANDLINES.OUT")')
 write(*,*)
 deallocate(e)
