@@ -21,7 +21,7 @@ close INFO;
 
  Test::writetestreport({
  		directory=>"test02/runarp",
- 		name=>"arpackrun",
+ 		name=>"arpack run",
  		description=>"The test run  using arpack finished without errors",
  		status=>$status
  		}, $writer);
@@ -39,7 +39,7 @@ close INFO;
 
  Test::writetestreport({
  		directory=>"test02/runlapack",
- 		name=>"laackrun",
+ 		name=>"lapack run",
  		description=>"The test run  using lapack finished without errors",
  		status=>$status
  		}, $writer);

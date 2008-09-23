@@ -3,6 +3,11 @@
 <html xsl:version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns="http://www.w3.org/1999/xhtml">
 	<body style="font-family:Arial;font-size:12pt;background-color:#EEEEEE">
+	<xsl:choose>
+	<xsl:when test="/report/test=''">
+			<h1>No items in this view</h1>
+			</xsl:when>
+			<xsl:otherwise>
 		<xsl:for-each select="report/test">
 			<xsl:sort select="status"/>
 			<xsl:sort select="directory"/>
@@ -11,8 +16,8 @@
 			<xsl:variable name="mystatus">
 		<xsl:value-of select="status" /> 
 			</xsl:variable>
-			
-				<xsl:choose>
+			<xsl:choose>
+				
 					<xsl:when test="$mystatus='failed'">
 						<xsl:attribute name="style">
 				 <xsl:text>background-color:red;color:white;padding:4px</xsl:text>
@@ -47,5 +52,7 @@
 				style="background-color:#dddddd;margin-left:20px;margin-bottom:1em;font-size:10pt">
 				<xsl:value-of select="status" /></div>
 		</xsl:for-each>
+		</xsl:otherwise>
+		</xsl:choose>
 	</body>
 </html>

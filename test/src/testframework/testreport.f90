@@ -16,6 +16,7 @@ write(reportfileu,*)"   <test>"
 write(reportfileu,*)"        <name>",trim(testunitname),"</name>"
 write(reportfileu,*)"        <description>",inputf, outputf,"</description>"
 write(reportfileu,*)"        <status>",status,"</status>"
+write(reportfileu,*)"        <directory>",trim(tdirectory),"</directory>"
 write(reportfileu,*)"   </test>"
 
 write(*,*)testunitname,inputf,outputf,status
