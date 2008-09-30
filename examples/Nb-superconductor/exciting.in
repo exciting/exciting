@@ -8,8 +8,8 @@
 ! parameters and err on the side of caution. Electron-phonon coupling is still
 ! an experimental feature at this stage.
 
-! Follow the instructions below for niobium on a 3x3x3 q-point grid. Results
-! obtained for a 6x6x6 q-point grid are included in this directory.
+! Follow the steps below for niobium on a 3x3x3 q-point grid. Results obtained
+! for a 6x6x6 q-point grid are included in this directory.
 
 avec
   1.0  1.0 -1.0
@@ -64,10 +64,10 @@ lmaxvr
 ! (scrpath) to \tmp\.
 
 ! The code works by determining which DYN_Qqqqq_qqqq_qqqq_Sss_Aaa_Pp.OUT files
-! still need to be calculated. These files contain a single row of a dynamical
-! matrix. If a calculation fails to complete, just delete that particular DYN
-! file and re-run the code. All the DYN files must be calculated before
-! proceeding to the next step.
+! need to be calculated. These files contain a single row of a dynamical matrix.
+! If a calculation fails to complete, just delete that particular DYN file and
+! re-run the code. All the DYN files must be calculated before proceeding to the
+! next step.
 
 ! Uncomment the lines below.
 

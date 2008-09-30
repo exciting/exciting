@@ -89,7 +89,7 @@ stop
 end program
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.202
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.218
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
@@ -124,7 +124,7 @@ end program
 !   Kay Dewhurst, Sangeeta Sharma and Claudia Ambrosch-Draxl
 !
 !   \vspace{12pt}
-!   Edinburgh, Berlin and Leoben, May 2008
+!   Edinburgh, Berlin and Leoben, October 2008
 !   \newpage
 !
 !   \section{Units}
@@ -155,7 +155,7 @@ end program
 !   \end{verbatim}
 !   This will hopefully compile the entire code and all the libraries into one
 !   executable, {\tt exciting}, located in the {\tt src} directory. It will also
-!   compile a few useful auxilliary programs, namely {\tt spacegroup} for
+!   compile a few useful auxiliary programs, namely {\tt spacegroup} for
 !   producing crystal geometries from spacegroup data, {\tt species} for
 !   generating species files, and {\tt eos} for fitting equations of state to
 !   energy-volume data. If you want to compile everything all over again, then
@@ -258,7 +258,7 @@ end program
 !    real(3) & $(0.0,0.0,0.0)$ \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   This is a constant magnetic field applied thoughout the entire unit cell
+!   This is a constant magnetic field applied throughout the entire unit cell
 !   and enters the second-variational Hamiltonian as
 !   $$ \frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm ext}, $$
 !   where $g_e$ is the electron $g$-factor (2.0023193043718). This field is
@@ -347,15 +347,6 @@ end program
 !   Alternatively, the output function can be artificially smoothed up to a
 !   level given by {\tt nsmdos}. This is the number of successive 3-point
 !   averages to be applied to the function $g$.
-!
-!   \subsection{{\tt dtauoep}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt dtauoep} & step length increment for the exact exchange iterative
-!    solver & real & $0.5$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   See {\tt maxitoep} and {\tt tau0oep}
 !
 !   \subsection{{\tt epschg}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -510,7 +501,7 @@ end program
 !   \subsection{{\tt lmaxinr}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt lmaxinr} & angular momentum cut-off for themuffin-tin density and
+!   {\tt lmaxinr} & angular momentum cut-off for the muffin-tin density and
 !    potential on the inner part of the muffin-tin & integer & 2 \\
 !   \hline
 !   \end{tabularx}\newline\newline
@@ -534,6 +525,20 @@ end program
 !   \hline
 !   \end{tabularx}
 !
+!   \subsection{{\tt lmirep}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt lmirep} & {\tt .true.} if the $Y_{lm}$ basis is to be transformed
+!    into the basis of irreducible representations of the site symmetries for
+!    DOS plotting & logical & {\tt .false.} \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   When lmirep is set to .true., the spherical harmonic basis is transformed
+!   into one in which the site symmetries are block diagonal. Band characters
+!   determined from the density matrix expressed in this basis correspond to
+!   irreducible representations, and allow the partial DOS to be resolved into
+!   physically relevant contributions, for example $e_g$ and $t_{2g}$.
+!
 !   \subsection{{\tt lradstp}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
@@ -554,7 +559,7 @@ end program
 !   exchange integral equations & integer & 120 \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   See {\tt tau0oep} and {\tt dtauoep}.
+!   See {\tt tau0oep}.
 !
 !   \subsection{{\tt maxscl}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -610,6 +615,20 @@ end program
 !   list terminated with a blank line. Note that all three components must be
 !   specified (even for collinear calculations). See {\tt fixspin}, {\tt taufsm}
 !   and {\tt spinpol}.
+!
+!   \subsection{{\tt mustar}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt mustar} & Coulomb pseudopotential, $\mu^*$, used in the
+!    McMillan-Allen-Dynes equation & real & $0.15$ \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   This is used when calculating the superconducting critical temperature with
+!   the formula [Phys. Rev. B 12, 905 (1975)]
+!   $$ T_c=\frac{\omega_{\rm log}}{1.2 k_B}\exp\left[\frac{-1.04(1+\lambda)}
+!    {\lambda-\mu^*(1+0.62\lambda)}\right], $$
+!   where $\omega_{\rm log}$ is the logarithmic average frequency and $\lambda$
+!   is the electron-phonon coupling constant.
 !
 !   \subsection{{\tt ndspem}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -696,6 +715,15 @@ end program
 !   This sets the polynomial order for the predictor-corrector method when
 !   solving the radial Dirac and Schr\"odinger equations, as well as for
 !   performing radial interpolation in the plotting routines.
+!
+!   \subsection{{\tt nseqit}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt nseqit} & number of iterations per self-consistent loop using the
+!    iterative first-variational secular equation solver & integer & 6 \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   See {\tt tseqit}.
 !
 !   \subsection{{\tt nstfsp}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -991,7 +1019,7 @@ end program
 !    atomic positions written to {\tt GEOMETRY.OUT}. \\
 !   3 & Resumption of structural optimisation run using density in
 !    {\tt STATE.OUT} but with positions from {\tt exciting.in}. \\
-!   5 & Ground state Hartree-Fock run (experimental feature). \\
+!   5 & Ground state Hartree-Fock run. \\
 !   10 & Total, partial and interstitial density of states (DOS). \\
 !   15 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ total expectation values. \\
 !   16 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ expectation values for each
@@ -1021,7 +1049,7 @@ end program
 !   120 & Output of the momentum matrix elements
 !    $\langle\Psi_{i{\bf k}}|-i\nabla|\Psi_{j{\bf k}}\rangle$. \\
 !   121 & Linear optical response tensor. \\
-!   122 & Magneto optical Kerr effect angle. \\
+!   122 & Magneto optical Kerr effect (MOKE) angle. \\
 !   130 & Output matrix elements of the type
 !    $\langle\Psi_{i{\bf k+q}}|\exp[i({\bf G+q})\cdot{\bf r}]|
 !    \Psi_{j{\bf k}}\rangle$. \\
@@ -1038,7 +1066,14 @@ end program
 !   210 & Phonon density of states. \\
 !   220 & Phonon dispersion plot. \\
 !   230 & Phonon frequencies and eigenvectors for an arbitrary
-!    ${\bf q}$-point.
+!    ${\bf q}$-point. \\
+!   240 & Generate the ${\bf q}$-dependent phonon linewidths and electron-phonon
+!    coupling constants and write them to file. \\
+!   245 & Phonon linewidths plot. \\
+!   250 & Eliashberg function $\alpha^2F(\omega)$, electron-phonon coupling
+!    constant $\lambda$, and the McMillan-Allen-Dynes critical temperature
+!    $T_c$. \\
+!   300 & Reduced density matrix functional theory (RDMFT) calculation.
 !   \end{tabularx}
 !
 !   \subsection{{\tt tau0atm}}
@@ -1056,14 +1091,18 @@ end program
 !   the same amount if the atom is moving in the same direction between steps.
 !   If the direction changes then $\tau_{\alpha}$ is reset to {\tt tau0atm}.
 !
-!   \subsection{{\tt tau0oep}}
+!   \subsection{{\tt tauoep}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt tau0oep} & initial step length for the exact exchange iterative
-!    solver & real & $0.5$ \\
+!   {\tt tauoep} & step length initial value and scaling factors for the OEP
+!    iterative solver & real(3) & $(1.0, 0.2, 1.5)$ \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   See {\tt maxitoep} and {\tt dtauoep}.
+!   The optimised effective potential is determined using an interative method.
+!   [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration the step length
+!   is set to {\tt tauoep(1)}. During subsequent iterations, the step length is
+!   scaled by {\tt tauoep(2)} or {\tt tauoep(3)}, when the residual is
+!   increasing or decreasing, respectively. See also {\tt maxitoep}.
 !
 !   \subsection{{\tt taufsm}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1104,6 +1143,15 @@ end program
 !   \end{tabularx}\newline\newline
 !   This variable is automatically set to {\tt .true.} when performing
 !   structural optimisation.
+!
+!   \subsection{{\tt tseqit}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt tseqit} & set to {\tt .true.} if the first-variational secular equation
+!    should be solved iteratively & logical & {\tt .false.} \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   See also {\tt nseqit}.
 !
 !   \subsection{{\tt tshift}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}

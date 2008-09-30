@@ -246,12 +246,12 @@ subroutine getxcdata(xctype,xcdescr,xcspin,xcgrad)
 !   xcspin  : spin treatment (out,integer)
 !   xcgrad  : gradient treatment (out,integer)
 ! !DESCRIPTION:
-!   Returns data on the exchange-correlation functional labelled by
-!   {\tt xctype}. The character array {\tt xctype} contains a short description
-!   of the functional including journal references. The variable {\tt xcspin} is
-!   set to 1 or 0 for spin-polarised or -unpolarised functionals, respectively.
-!   For functionals which require the gradients of the density {\tt xcgrad} is
-!   set to 1, otherwise it is set to 0.
+!   Returns data on the exchange-correlation functional labeled by {\tt xctype}.
+!   The character array {\tt xctype} contains a short description of the
+!   functional including journal references. The variable {\tt xcspin} is set to
+!   1 or 0 for spin-polarised or -unpolarised functionals, respectively. For
+!   functionals which require the gradients of the density {\tt xcgrad} is set
+!   to 1, otherwise it is set to 0.
 !
 ! !REVISION HISTORY:
 !   Created October 2002 (JKD)

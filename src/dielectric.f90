@@ -12,7 +12,7 @@ integer ist,jst,iw,i,j,l
 integer recl,nsk(3)
 real(8) eji,wd(2),wplas,t1,t2
 real(8) v1(3),v2(3),v3(3)
-complex(8) zv(3),eta,zt1,zt2
+complex(8) zv(3),eta,zt1
 character(256) fname
 ! allocatable arrays
 integer, allocatable :: lspl(:)
@@ -92,13 +92,12 @@ do l=1,noptcomp
             v1(:)=aimag(pmat(:,ist,jst))
             call r3mv(symlatc(:,:,lspl(ik)),v1,v3)
             zv(:)=cmplx(v2(:),v3(:),8)
-            t1=occsv(ist,jk)-occsv(jst,jk)
-            zt1=zv(i)*conjg(zv(j))
+            zt1=occmax*zv(i)*conjg(zv(j))
             eji=evalsv(jst,jk)-evalsv(ist,jk)+scissor
             if (usegdft) eji=eji+delta(jst,ist,jk)
-            zt2=1.d0/(eji+eta)
+            t1=1.d0/(eji+swidth)
             do iw=1,nwdos
-              sigma(iw)=sigma(iw)+zt2*(zt1/(w(iw)-eji+eta) &
+              sigma(iw)=sigma(iw)+t1*(zt1/(w(iw)-eji+eta) &
                +conjg(zt1)/(w(iw)+eji+eta))
             end do
           end if

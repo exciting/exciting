@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -24,7 +24,6 @@ integer i,l,iv,iostat
 integer ist,io,nlx,ilx,lx,ilo
 real(8) sc,sc1,sc2,sc3
 real(8) vacuum,v(3),t1,t2
-character(256) fname
 character(256) str
 character(256) bname
 character(256) sppath
@@ -173,23 +172,11 @@ sqados(3)=1.d0
 !-------------------------------!
 !     read from exciting.in     !
 !-------------------------------!
-fname='exciting.in'
-!----- uncomment for command line input filename (M. Rajagopalan) --------------
-!if (iargc().gt.1) then
-!  write(*,*)
-!  write(*,'("Usage: exciting [INPUT FILE]")')
-!  write(*,*)
-!  stop
-!end if
-!if (iargc().eq.1) then
-!  call getarg(1,fname)
-!end if
-!-------------------------------------------------------------------------------
-open(50,file=trim(fname),action='READ',status='OLD',form='FORMATTED', &
+open(50,file='exciting.in',action='READ',status='OLD',form='FORMATTED', &
  iostat=iostat)
 if (iostat.ne.0) then
   write(*,*)
-  write(*,'("Error(readinput): error opening ",A)') trim(fname)
+  write(*,'("Error(readinput): error opening exciting.in")')
   write(*,*)
   stop
 end if

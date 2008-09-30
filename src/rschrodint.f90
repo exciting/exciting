@@ -67,7 +67,7 @@ real(8), intent(out) :: q1(nr)
 integer ir,ir0,npl
 ! fine-structure constant
 real(8), parameter :: alpha=1.d0/137.03599911d0
-real(8) rm,ri,t1
+real(8) rm,ri,t1,t2
 ! automatic arrays
 real(8) c(np)
 ! external functions
@@ -89,6 +89,7 @@ do ir=2,nr
   rm=1.d0-0.5d0*(alpha**2)*vr(ir)
   ri=1.d0/r(ir)
   t1=dble(l*(l+1))/(2.d0*rm*r(ir)**2)
+  t2=t1+vr(ir)-e
 ! predictor-corrector order
   npl=min(ir,np)
   ir0=ir-npl+1
@@ -99,7 +100,7 @@ do ir=2,nr
   q0(ir)=polynom(-1,npl,r(ir0),q1(ir0),c,r(ir))+q0(ir0)
 ! compute the derivatives
   p1(ir)=2.d0*rm*q0(ir)+p0(ir)*ri
-  q1(ir)=(t1+vr(ir)-e)*p0(ir)-q0(ir)*ri
+  q1(ir)=t2*p0(ir)-q0(ir)*ri
   if (m.ne.0) then
     q1(ir)=q1(ir)-dble(m)*p0p(ir)
   end if
@@ -108,7 +109,7 @@ do ir=2,nr
   q0(ir)=polynom(-1,npl,r(ir0),q1(ir0),c,r(ir))+q0(ir0)
 ! compute the derivatives again
   p1(ir)=2.d0*rm*q0(ir)+p0(ir)*ri
-  q1(ir)=(t1+vr(ir)-e)*p0(ir)-q0(ir)*ri
+  q1(ir)=t2*p0(ir)-q0(ir)*ri
   if (m.ne.0) then
     q1(ir)=q1(ir)-dble(m)*p0p(ir)
   end if

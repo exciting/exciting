@@ -211,17 +211,14 @@ if (spinpol) then
 end if
 ! map from new grid to old
 do i3=0,ngrid(3)-1
-  t1=dble(ngrid_(3))/dble(ngrid(3))
-  j3=nint(t1*dble(i3))
-  j3=min(max(j3,0),ngrid_(3)-1)
+  t1=dble(i3*ngrid_(3))/dble(ngrid(3))
+  j3=modulo(nint(t1),ngrid_(3))
   do i2=0,ngrid(2)-1
-    t1=dble(ngrid_(2))/dble(ngrid(2))
-    j2=nint(t1*dble(i2))
-    j2=min(max(j2,0),ngrid_(2)-1)
+    t1=dble(i2*ngrid_(2))/dble(ngrid(2))
+    j2=modulo(nint(t1),ngrid_(2))
     do i1=0,ngrid(1)-1
-      t1=dble(ngrid_(1))/dble(ngrid(1))
-      j1=nint(t1*dble(i1))
-      j1=min(max(j1,0),ngrid_(1)-1)
+      t1=dble(i1*ngrid_(1))/dble(ngrid(1))
+      j1=modulo(nint(t1),ngrid_(1))
       ir=i3*ngrid(2)*ngrid(1)+i2*ngrid(1)+i1+1
       jr=j3*ngrid_(2)*ngrid_(1)+j2*ngrid_(1)+j1+1
       mapir(ir)=jr

@@ -20,7 +20,7 @@ use modmain
 !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
 ! !DESCRIPTION:
 !   Solves the secular equation,
-!   $$ (H-\epsilon O)\Phi=0, $$
+!   $$ (H-\epsilon O)b=0, $$
 !   for the all the first-variational states of the input $k$-point.
 !
 ! !REVISION HISTORY:

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -730,9 +730,9 @@ integer np3d(3)
 ! number of states for plotting Fermi surface
 integer nstfsp
 
-!-------------------------------------------------------------------!
-!     non-local matrix elements, OEP and Hartree-Fock variables     !
-!-------------------------------------------------------------------!
+!----------------------------------------!
+!     OEP and Hartree-Fock variables     !
+!----------------------------------------!
 ! maximum number of core states over all species
 integer ncrmax
 ! maximum number of OEP iterations
@@ -785,8 +785,6 @@ real(8) deltaph
 real(8) avec0(3,3)
 ! original inverse of lattice vector matrix
 real(8) ainv0(3,3)
-! original inverse lattice vectors
-real(8) bvec0(3,3)
 ! original number of atoms
 integer natoms0(maxspecies)
 integer natmtot0
@@ -795,8 +793,6 @@ real(8) atposc0(3,maxatoms,maxspecies)
 ! original G-vector grid sizes
 integer ngrid0(3)
 integer ngrtot0
-! number of original G-vectors with G < gmaxvr
-integer ngvec0
 ! original effective potentials
 real(8), allocatable :: veffmt0(:,:,:)
 real(8), allocatable :: veffir0(:)
@@ -885,7 +881,7 @@ real(8), parameter :: kboltz=3.166815343d-6
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,217 /
+data version / 0,9,218 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=40
 ! number of tasks

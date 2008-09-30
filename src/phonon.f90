@@ -51,7 +51,6 @@ natoms0(1:nspecies)=natoms(1:nspecies)
 natmtot0=natmtot
 avec0(:,:)=avec(:,:)
 ainv0(:,:)=ainv(:,:)
-bvec0(:,:)=bvec(:,:)
 atposc0(:,:,:)=0.d0
 do is=1,nspecies
   do ia=1,natoms(is)
@@ -60,7 +59,6 @@ do is=1,nspecies
 end do
 ngrid0(:)=ngrid(:)
 ngrtot0=ngrtot
-ngvec0=ngvec
 !---------------------------------------!
 !     compute dynamical matrix rows     !
 !---------------------------------------!

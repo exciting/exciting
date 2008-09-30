@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -15,12 +15,16 @@ use modmain
 !   to the file {\tt PDOS\_Sss\_Aaaaa.OUT} for atom {\tt aaaa} of species
 !   {\tt ss}. In the case of the partial DOS, each symmetrised
 !   $(l,m)$-projection is written consecutively and separated by blank lines.
-!   Eigenvalues of a matrix in the $Y_{lm}$ basis which has been symmetrised
-!   with the site symmetries are written to {\tt ELMSYM.OUT}. This allows for
-!   identification of the irreducible representations of the site symmetries,
-!   for example $e_g$ or $t_{2g}$. Spin-up is made positive and spin-down
-!   negative for the partial DOS in both the collinear and non-collinear cases
-!   and for the total DOS in the collinear case. See the routine {\tt brzint}.
+!   If the global variable {\tt lmirep} is {\tt .true.}, then the density matrix
+!   from which the $(l,m)$-projections are obtained is first rotated into a
+!   irreducible representation basis, i.e. one that block diagonalises all the
+!   site symmetry matrices in the $Y_{lm}$ basis. Eigenvalues of a quasi-random
+!   matrix in the $Y_{lm}$ basis which has been symmetrised with the site
+!   symmetries are written to {\tt ELMIREP.OUT}. This allows for identification
+!   of the irreducible representations of the site symmetries, for example $e_g$
+!   or $t_{2g}$, by the degeneracies of the eigenvalues. In the plot, spin-up is
+!   made positive and spin-down negative. See the routines {\tt gendmat} and
+!   {\tt brzint}.
 !
 ! !REVISION HISTORY:
 !   Created January 2004 (JKD)

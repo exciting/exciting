@@ -51,21 +51,21 @@ use modmain
 !   correction in terms of the basis of first-variational states as
 !   \begin{align*}
 !    {\bf F}_{ij}^{\alpha{\bf k}}=\sum_{\bf G,G'}
-!    \Phi^{i{\bf k}*}_{\bf G}\Phi^{j{\bf k}}_{\bf G'}\left(
+!    b^{i{\bf k}*}_{\bf G}b^{j{\bf k}}_{\bf G'}\left(
 !    \delta H_{\bf G,G'}^{\alpha}-\epsilon_j\delta O_{\bf G,G'}^{\alpha}\right),
 !   \end{align*}
-!   where $\Phi^{i{\bf k}}$ is the first-variational eigenvector.
+!   where $b^{i{\bf k}}$ is the first-variational eigenvector.
 !   Finally, the ${\bf F}_{ij}^{\alpha{\bf k}}$ matrix elements can be
 !   multiplied by the second-variational coefficients, and contracted over all
 !   indices to obtain the IBS force:
 !   \begin{align*}
 !    {\bf F}_{\rm IBS}^{\alpha}=\sum_{\bf k}w_{\bf k}\sum_{l\sigma}n_{l{\bf k}}
-!    \sum_{ij}\Psi_{\sigma i}^{l{\bf k}*}\Psi_{\sigma j}^{l{\bf k}}
+!    \sum_{ij}c_{\sigma i}^{l{\bf k}*}c_{\sigma j}^{l{\bf k}}
 !    {\bf F}_{ij}^{\alpha{\bf k}}
 !    +\int_{\rm MT_{\alpha}}v_{\rm s}({\bf r})\nabla\left[\rho({\bf r})
 !    -\rho^{\alpha}_{\rm core}({\bf r})\right]\,d{\bf r},
 !   \end{align*}
-!   where $\Psi^{l{\bf k}}$ are the second-variational coefficients, $w_{\bf k}$
+!   where $c^{l{\bf k}}$ are the second-variational coefficients, $w_{\bf k}$
 !   are the $k$-point weights, $n_{l{\bf k}}$ are the occupancies, and
 !   $v_{\rm s}$ is the Kohn-Sham effective potential. See routines {\tt hmlaa},
 !   {\tt olpaa}, {\tt hmlalo}, {\tt olpalo}, {\tt energy}, {\tt seceqn} and

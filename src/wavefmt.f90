@@ -25,11 +25,11 @@ use modmain
 !   a spherical harmonic expansion. For atom $\alpha$ and a particular $k$-point
 !   ${\bf p}$, the $r$-dependent $(l,m)$-coefficients of the wavefunction for
 !   the $i$th state are given by
-!   $$ \Phi^{i{\bf p}}_{\alpha lm}(r)=\sum_{\bf G}\Phi^{i{\bf p}}_{\bf G}
+!   $$ \Phi^{i{\bf p}}_{\alpha lm}(r)=\sum_{\bf G}b^{i{\bf p}}_{\bf G}
 !    \sum_{j=1}^{M^{\alpha}_l}A^{\alpha}_{jlm}({\bf G+p})u^{\alpha}_{jl}(r)
-!    +\sum_{j=1}^{N^{\alpha}}\Phi^{i{\bf p}}_{(\alpha,j,m)}v^{\alpha}_j(r)
+!    +\sum_{j=1}^{N^{\alpha}}b^{i{\bf p}}_{(\alpha,j,m)}v^{\alpha}_j(r)
 !    \delta_{l,l_j}, $$
-!   where $\Phi^{i{\bf p}}$ is the $i$th eigenvector returned from routine
+!   where $b^{i{\bf p}}$ is the $i$th eigenvector returned from routine
 !   {\tt seceqn}; $A^{\alpha}_{jlm}({\bf G+p})$ is the matching coefficient;
 !   $M^{\alpha}_l$ is the order of the APW; $u^{\alpha}_{jl}$ is the APW radial
 !   function; $N^{\alpha}$ is the number of local-orbitals; $v^{\alpha}_j$ is
