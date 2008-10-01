@@ -24,18 +24,6 @@ use modxs
 !EOP
 !BOC
 implicit none
-
-
-!TODO: remove debug code parts
-
-
-
-
-integer, allocatable::ntkmap(:),tkmap(:,:)
-
-
-
-
 ! local variables
 integer ik,is,ia,ias,io,ilo
 integer i1,i2,i3,ispn,iv(3)
@@ -131,32 +119,6 @@ else
   if (tetraocc.or.tetraopt.or.tetradf) call genkpts_tet(filext,epslat,bvec, &
        maxsymcrys,nsymcrys,lsplsymc,symlat,reducek,ngridk,vkloff,nkpt,ikmap, &
        vkl,wkpt)
-
-
-!***      tnodes(1:4,1:ngridk(1)*ngridk(2)*ngridk(3)*6)
-!***      kin=tetcorn(i,itet)
-!***      cweight(ib,jb,kin)=cweight(ib,jb,kin)+term*tw
-
-!!$allocate(ntkmap(nkpt))
-!!$ntkmap(:)=0
-!!$allocate(tkmap(48,nkpt))
-!!$tkmap(:,:)=0
-!!$do i1=1,ntet
-!!$   do i2=1,4
-!!$      ik=tnodes(i2,i1)
-!!$      ntkmap(ik)=ntkmap(ik)+1
-!!$      tkmap(ntkmap(ik),ik)=i1
-!!$   end do
-!!$end do
-!!$do ik=1,nkpt
-!!$   do i3=1,ntkmap(ik)
-!!$      write(*,*) ik,i3,tkmap(i3,ik)
-!!$   end do
-!!$end do
-!!$deallocate(ntkmap,tkmap)
-!***
-
-
 #endif
 #ifdef XS
   ! determine inverse symmery elements

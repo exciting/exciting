@@ -76,9 +76,9 @@ contains
     write(un,'(a,l8)') '# nosym             :',nosym
     write(un,'(a,l8)') '# symwings          :',symwings
     write(un,'(a,l8)') '# tsymdfq0dn        :',tsymdfq0dn
-    write(un,'(a,9f12.6)') '# symdfq0 (row1)    :',symdfq0(1,:)
-    write(un,'(a,9f12.6)') '# symdfq0 (row2)    :',symdfq0(2,:)
-    write(un,'(a,9f12.6)') '# symdfq0 (row3)    :',symdfq0(3,:)
+    write(un,'(a,3f12.6)') '# symdfq0 (row1)    :',symdfq0(1,:)
+    write(un,'(a,3f12.6)') '# symdfq0 (row2)    :',symdfq0(2,:)
+    write(un,'(a,3f12.6)') '# symdfq0 (row3)    :',symdfq0(3,:)
     write(un,*)
   end subroutine writevars
 

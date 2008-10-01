@@ -318,7 +318,7 @@ module modxs
   logical :: lfediag
   ! true if wings of dielectric function use symmetrized momentum matr. el.
   logical :: symwings
-  ! symmetrization matrix for q=0 dielectric tensor
+  ! symmetrization matrix for the head of the dielectric tensor (q=0)
   real(8) :: symdfq0(3,3)
   ! true on occurrance of negative 1,2-minor determinant contribution in above 
   ! symmetrization matrix

@@ -70,7 +70,7 @@ subroutine idfq(iq)
      end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
-        do oct2=oct1,oct1 !1,nc
+        do oct2=1,nc
            oct=octmap(oct1,oct2)
            ! filename for output file
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
@@ -93,10 +93,6 @@ subroutine idfq(iq)
                     chi0(2:,1)=chi0wg(2:,2,oct2)
                  end if
               end if
-              ! symmerize KS-response ( ** not working ** )
-              !if (m.eq.n) then
-              !   call  symg2f(vql(1,iq),n,igqig(1,iq),chi0)
-              !end if
               ! generate xc-kernel
               select case(fxctype)
               case(0,1,2,3,4,7,8)

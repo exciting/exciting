@@ -54,7 +54,7 @@ subroutine df
   ! loop over q-points
   do iq=qpari,qparf
      ! call for q-point
-     if (.not.gather) call dfq(iq)
+     if (.not.gather) call dfq2(iq)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sahm response &
           &function finished for q-point:',iq
   end do

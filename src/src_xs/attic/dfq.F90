@@ -94,7 +94,7 @@ subroutine dfq(iq)
   real(8), allocatable :: cw1k(:,:,:),cwa1k(:,:,:),cwsurf1k(:,:,:)
   real(8), allocatable :: scis12(:,:),scis21(:,:),eb(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
-  integer :: n,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
+  integer :: n,j,i1,i2,j1,j2,a1,a2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
   integer :: oct,oct1,oct2,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
@@ -453,8 +453,6 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
               ! * most time-consuming part of routine *
               call chi0upd(n,wou(iw),wuo(iw),hou,huo,&
                    chi0(:,:,iw-wi+1))
-              ! in place of dfqoscbo and chi0upd one could use the LAPACK
-              ! routine zgerc but this makes no difference in speed
            end do
            call cpu_time(cpu0)
            cpuupd=cpuupd+cpu0-cpu1
