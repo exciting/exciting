@@ -289,9 +289,6 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
         docc21(:,:)=transpose(docc12(:,:))
         scis21(:,:)=transpose(scis12(:,:))
      end if
-     ! Lindhard function
-     !TODO *** if (lindhard) then; xiou=xiuo=pmou=pmuo=zone ***
-
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
      ! response function
      if (.not.aresdf) then
@@ -359,17 +356,6 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
            end if
            hou(:,:)=zzero
            huo(:,:)=zzero
-
-
-!TODO: try ZGERC(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
-!*  ZGERC  performs the rank 1 operation
-!*
-!*     A := alpha*x*conjg( y' ) + A,
-!*
-!*  where alpha is a scalar, x is an m element vector, y is an n element
-!*  vector and A is an m by n matrix.
-!*
-
            !---------------------!
            !     oscillators     !
            !---------------------!
@@ -433,10 +419,10 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                        if (tetradf) then
                           wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
                                deou(ist1,ist2)**2/ &
-                               (wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
+                               (wreal(iw-wi+1)+scis12(ist1,ist2))**2)
                           wuot=cmplx(dble(wuo(iw)),aimag(wuo(iw))*&
                                deuo(ist2,ist1)**2/ &
-                               (wreal(iw-wi+1)+scis21(ist2,ist1))**2) !SAG
+                               (wreal(iw-wi+1)+scis21(ist2,ist1))**2)
                        end if
                        chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                             wout*hou(1,1)+wuot*huo(1,1)
