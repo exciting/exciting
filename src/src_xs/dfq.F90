@@ -76,6 +76,7 @@ subroutine dfq(iq)
 !
 ! !REVISION HISTORY:
 !   Created March 2005 (Sagmeister)
+!   Added band and k-point analysis, 2007-2008 (Sagmeister)
 !EOP
 !BOC
   implicit none
@@ -98,7 +99,7 @@ subroutine dfq(iq)
   integer :: oct,oct1,oct2,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
-  logical, external :: tqgamma
+  logical, external :: tqgamma,transik,transijst
   if (acont.and.tscreen) then
      write(*,*)
      write(*,'("Error(",a,"): analytic continuation does not work for &
@@ -250,6 +251,10 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
 
   ! loop over k-points
   do ik=1,nkpt
+
+     ! k-point analysis
+     if (.not.transik(ik,dftrans)) cycle
+
      write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
           ikmapikq(ik,iq)
      cpuosc=0.d0
@@ -324,12 +329,18 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
            !---------------------!
            !     denominator     !
            !---------------------!
+           ! absolute band indices
+           i1=ist1
+           i2=istunocc0+ist2-1
+           ! band analysis
+           if (.not.transijst(ik,i1,i2,dftrans)) cycle
+
+write(*,*) 'ik,i1,i2',ik,i1,i2
+
            call cpu_time(cpu0)
            ! user request termination
            call terminate_inqr('dfq')
            if (tetradf) then
-              ! absolute band indices
-              i1=ist1; i2=istunocc0+ist2-1
               ! mirror index pair on diagonal if necessary
               if (i1.gt.i2) then
                  j1=ist2
