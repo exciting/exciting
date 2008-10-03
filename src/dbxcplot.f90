@@ -1,3 +1,8 @@
+
+! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine dbxcplot
 use modmain
 implicit none
@@ -26,7 +31,7 @@ allocate(rfmt(lmmaxvr,nrmtmax,natmtot))
 allocate(rfir(ngrtot))
 allocate(grfmt(lmmaxvr,nrmtmax,natmtot,3))
 allocate(grfir(ngrtot,3))
-if (ndmag.eq.3) then
+if (ncmag) then
 ! non-collinear
   rvfmt(:,:,:,:)=bxcmt(:,:,:,:)
   rvfir(:,:)=bxcir(:,:)
@@ -40,7 +45,7 @@ end if
 rfmt(:,:,:)=0.d0
 rfir(:)=0.d0
 do idm=1,3
-  call gradrf(rvfmt(1,1,1,idm),rvfir(1,idm),grfmt,grfir)
+  call gradrf(rvfmt(:,:,:,idm),rvfir(:,idm),grfmt,grfir)
   do is=1,nspecies
     do ia=1,natoms(is)
       ias=idxas(ia,is)

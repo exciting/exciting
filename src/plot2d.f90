@@ -73,7 +73,7 @@ do ip2=0,np2d(2)-1
   end do
 end do
 do i=1,nf
-  call rfarray(lmax,ld,rfmt(1,1,1,i),rfir(1,i),ip,vpl,fp(1,i))
+  call rfarray(lmax,ld,rfmt(:,:,:,i),rfir(:,i),ip,vpl,fp(:,i))
 end do
 write(fnum,'(2I6," : grid size")') np2d(1),np2d(2)
 ip=0

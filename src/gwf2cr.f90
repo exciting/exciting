@@ -31,11 +31,11 @@ do is=1,nspecies
           do ir=1,nrmt(is)
             zfmt(lm,ir)=rwfcr(ir,1,ist,ias)/spr(ir,is)
           end do
-          call gradzfmt(lmaxvr,nrmt(is),spr(1,is),lmmaxvr,nrmtmax,zfmt,gzfmt)
+          call gradzfmt(lmaxvr,nrmt(is),spr(:,is),lmmaxvr,nrmtmax,zfmt,gzfmt)
           do i=1,3
             do ir=1,nrmt(is)
-              call zgemv('N',lmmaxvr,lmmaxvr,zone,zbshtapw,lmmaxapw, &
-               gzfmt(1,ir,i),1,zzero,zftp,1)
+              call zgemv('N',lmmaxvr,lmmaxvr,zone,zbshtvr,lmmaxvr, &
+               gzfmt(:,ir,i),1,zzero,zftp,1)
               do itp=1,lmmaxvr
                 t1=dble(zftp(itp))**2+aimag(zftp(itp))**2
 ! factor of 2 from spin

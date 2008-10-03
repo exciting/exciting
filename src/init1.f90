@@ -29,12 +29,12 @@ integer ik,is,ia,ias,io,ilo
 integer i1,i2,i3,ispn,iv(3)
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
 real(8) vl(3),vc(3)
-real(8) cpu0,cpu1
+real(8) ts0,ts1
 ! external functions
 complex(8) gauntyry
 external gauntyry
 
-call cpu_time(cpu0)
+call timesec(ts0)
 
 !---------------------!
 !     k-point set     !
@@ -55,7 +55,7 @@ if ((task.eq.20).or.(task.eq.21)) then
   allocate(vkc(3,nkpt))
   do ik=1,nkpt
     vkl(:,ik)=vplp1d(:,ik)
-    call r3mv(bvec,vkl(1,ik),vkc(1,ik))
+    call r3mv(bvec,vkl(:,ik),vkc(:,ik))
   end do
 else if (task.eq.25) then
 ! effective mass calculation
@@ -78,14 +78,14 @@ else if (task.eq.25) then
         vc(:)=vc(:)*deltaem
         call r3mv(binv,vc,vl)
         vkl(:,ik)=vklem(:)+vl(:)
-        call r3mv(bvec,vkl(1,ik),vkc(1,ik))
+        call r3mv(bvec,vkl(:,ik),vkc(:,ik))
       end do
     end do
   end do
 else
-! determine the k-point grid from the maximum de Broglie wavelength if required
+! determine the k-point grid automatically from radkpt if required
   if (autokpt) then
-    ngridk(:)=int(rlambda/sqrt(avec(1,:)**2+avec(2,:)**2+avec(3,:)**2))+1
+    ngridk(:)=int(radkpt/sqrt(avec(1,:)**2+avec(2,:)**2+avec(3,:)**2))+1
   end if
 ! allocate the reduced k-point set arrays
   if (allocated(ivk)) deallocate(ivk)
@@ -99,7 +99,7 @@ else
   if (allocated(ikmap)) deallocate(ikmap)
   allocate(ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
 ! generate the reduced k-point set
-  call genppts(reducek,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
+  call genppts(reducek,.false.,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
 ! allocate the non-reduced k-point set arrays
   nkptnr=ngridk(1)*ngridk(2)*ngridk(3)
   if (allocated(ivknr)) deallocate(ivknr)
@@ -113,7 +113,8 @@ else
   if (allocated(ikmapnr)) deallocate(ikmapnr)
   allocate(ikmapnr(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
 ! generate the non-reduced k-point set
-  call genppts(.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr,wkptnr)
+  call genppts(.false.,.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr, &
+   wkptnr)
 #ifdef TETRA
   ! call to module routine
   if (tetraocc.or.tetraopt.or.tetradf) call genkpts_tet(filext,epslat,bvec, &
@@ -131,7 +132,11 @@ end if
 !     G+k vectors     !
 !---------------------!
 ! determine gkmax
-gkmax=rgkmax/rmtmin
+if ((isgkmax.ge.1).and.(isgkmax.le.nspecies)) then
+  gkmax=rgkmax/rmt(isgkmax)
+else
+  gkmax=rgkmax/2.d0
+end if
 if (2.d0*gkmax.gt.gmaxvr+epslat) then
   write(*,*)
   write(*,'("Error(init1): 2*gkmax > gmaxvr  ",2G18.10)') 2.d0*gkmax,gmaxvr
@@ -142,21 +147,21 @@ end if
 call getngkmax
 ! allocate the G+k-vector arrays
 if (allocated(ngk)) deallocate(ngk)
-allocate(ngk(nkpt,nspnfv))
+allocate(ngk(nspnfv,nkpt))
 if (allocated(igkig)) deallocate(igkig)
-allocate(igkig(ngkmax,nkpt,nspnfv))
+allocate(igkig(ngkmax,nspnfv,nkpt))
 if (allocated(vgkl)) deallocate(vgkl)
-allocate(vgkl(3,ngkmax,nkpt,nspnfv))
+allocate(vgkl(3,ngkmax,nspnfv,nkpt))
 if (allocated(vgkc)) deallocate(vgkc)
-allocate(vgkc(3,ngkmax,nkpt,nspnfv))
+allocate(vgkc(3,ngkmax,nspnfv,nkpt))
 if (allocated(gkc)) deallocate(gkc)
-allocate(gkc(ngkmax,nkpt,nspnfv))
+allocate(gkc(ngkmax,nspnfv,nkpt))
 if (allocated(tpgkc)) deallocate(tpgkc)
-allocate(tpgkc(2,ngkmax,nkpt,nspnfv))
+allocate(tpgkc(2,ngkmax,nspnfv,nkpt))
 if (allocated(sfacgk)) deallocate(sfacgk)
-allocate(sfacgk(ngkmax,natmtot,nkpt,nspnfv))
-do ispn=1,nspnfv
-  do ik=1,nkpt
+allocate(sfacgk(ngkmax,natmtot,nspnfv,nkpt))
+do ik=1,nkpt
+  do ispn=1,nspnfv
     if (spinsprl) then
 ! spin-spiral case
       if (ispn.eq.1) then
@@ -171,10 +176,10 @@ do ispn=1,nspnfv
       vc(:)=vkc(:,ik)
     end if
 ! generate the G+k-vectors
-    call gengpvec(vl,vc,ngk(ik,ispn),igkig(1,ik,ispn),vgkl(1,1,ik,ispn), &
-     vgkc(1,1,ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn))
+    call gengpvec(vl,vc,ngk(ispn,ik),igkig(:,ispn,ik),vgkl(:,:,ispn,ik), &
+     vgkc(:,:,ispn,ik),gkc(:,ispn,ik),tpgkc(:,:,ispn,ik))
 ! generate structure factors for G+k-vectors
-    call gensfacgp(ngk(ik,ispn),vgkc(1,1,ik,ispn),ngkmax,sfacgk(1,1,ik,ispn))
+    call gensfacgp(ngk(ispn,ik),vgkc(:,:,ispn,ik),ngkmax,sfacgk(:,:,ispn,ik))
   end do
 end do
 
@@ -240,18 +245,18 @@ end if
 nstfv=int(chgval/2.d0)+nempty+1
 ! overlap and Hamiltonian matrix sizes
 if (allocated(nmat)) deallocate(nmat)
-allocate(nmat(nkpt,nspnfv))
+allocate(nmat(nspnfv,nkpt))
 if (allocated(npmat)) deallocate(npmat)
-allocate(npmat(nkpt,nspnfv))
+allocate(npmat(nspnfv,nkpt))
 nmatmax=0
-do ispn=1,nspnfv
-  do ik=1,nkpt
-    nmat(ik,ispn)=ngk(ik,ispn)+nlotot
-    nmatmax=max(nmatmax,nmat(ik,ispn))
+do ik=1,nkpt
+  do ispn=1,nspnfv
+    nmat(ispn,ik)=ngk(ispn,ik)+nlotot
+    nmatmax=max(nmatmax,nmat(ispn,ik))
 ! packed matrix sizes
-    npmat(ik,ispn)=(nmat(ik,ispn)*(nmat(ik,ispn)+1))/2
+    npmat(ispn,ik)=(nmat(ispn,ik)*(nmat(ispn,ik)+1))/2
 ! the number of first-variational states should not exceed the matrix size
-    nstfv=min(nstfv,nmat(ik,ispn))
+    nstfv=min(nstfv,nmat(ispn,ik))
   end do
 end do
 ! number of second-variational states
@@ -265,8 +270,6 @@ allocate(evalsv(nstsv,nkpt))
 if (allocated(occsv)) deallocate(occsv)
 allocate(occsv(nstsv,nkpt))
 occsv(:,:)=0.d0
-if (allocated(spnchr)) deallocate(spnchr)
-allocate(spnchr(nspinor,nstsv,nkpt))
 ! allocate overlap and Hamiltonian integral arrays
 if (allocated(oalo)) deallocate(oalo)
 allocate(oalo(apwordmax,nlomax,natmtot))
@@ -301,8 +304,8 @@ end do
 end if
 #endif
 
-call cpu_time(cpu1)
-timeinit=timeinit+cpu1-cpu0
+call timesec(ts1)
+timeinit=timeinit+ts1-ts0
 
 return
 end subroutine

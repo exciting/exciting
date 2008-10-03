@@ -1,6 +1,6 @@
 
 ! FeAl in CsCl (B2) structure using LDA. Compare with LDA+U case.
-! Example Created by Fredrik Bultmark, Francesco Cricchio and Lars Norsdtrom.
+! Example Created by Fredrik Bultmark, Francesco Cricchio and Lars Nordstrom.
 
 tasks
   0
@@ -36,10 +36,6 @@ sppath
 ! automatic muffin tin radius
 autormt
   .true.
-
-! conservative mixing
-beta0
-  0.05
 
 ! fair number of empty states
 nempty

@@ -36,12 +36,12 @@ allocate(zfft1(ngrtot,ndmag),zfft2(ngrtot,ndmag))
 ! Fourier transform vector function to G-space
 do i=1,ndmag
   zfft1(:,i)=rvfir(:,i)
-  call zfftifc(3,ngrid,-1,zfft1(1,i))
+  call zfftifc(3,ngrid,-1,zfft1(:,i))
 end do
 zfft2(:,:)=0.d0
 do isym=1,nsymcrys
 ! translation vector in Cartesian coordinates
-  call r3mv(avec,vtlsymc(1,isym),vtc)
+  call r3mv(avec,vtlsymc(:,isym),vtc)
 ! index to spatial rotation lattice symmetry
   lspl=lsplsymc(isym)
 ! inverse rotation required for rotation of G-vectors
@@ -68,7 +68,7 @@ do isym=1,nsymcrys
 ! global spin symmetry is the identity
       zfft2(jfg,:)=zfft2(jfg,:)+zt1*zfft1(ifg,:)
     else
-      if (ndmag.eq.3) then
+      if (ncmag) then
 ! non-collinear case
         zv(1)=sc(1,1)*zfft1(ifg,1)+sc(1,2)*zfft1(ifg,2)+sc(1,3)*zfft1(ifg,3)
         zv(2)=sc(2,1)*zfft1(ifg,1)+sc(2,2)*zfft1(ifg,2)+sc(2,3)*zfft1(ifg,3)
@@ -84,7 +84,7 @@ end do
 ! Fourier transform to real-space and normalise
 t1=1.d0/dble(nsymcrys)
 do i=1,ndmag
-  call zfftifc(3,ngrid,1,zfft2(1,i))
+  call zfftifc(3,ngrid,1,zfft2(:,i))
   rvfir(:,i)=t1*dble(zfft2(:,i))
 end do
 deallocate(zfft1,zfft2)

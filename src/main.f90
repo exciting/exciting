@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -63,10 +63,16 @@ program main
         case(120)
            call writepmat
         case(121)
-           call linopt
+           call dielectric
         case(122)
            call moke
-        case(200)
+        case(130)
+           call writeexpiqr
+        case(140)
+           call elnes
+        case(190)
+           call geomplot
+        case(200,201)
            call phonon
         case(210)
            call phdos
@@ -74,8 +80,12 @@ program main
            call phdisp
         case(230)
            call writephn
+        case(240)
+           call epcouple
+        case(245)
+           call phlwidth
         case(250)
-           call geomplot
+           call alpha2f
         case(300)
            call rdmft
 #ifdef TETRA
@@ -113,11 +123,11 @@ program main
 end program main
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.151
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.218
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
-!   Welcome to the {\sf EXCITING} Code Manual!
+!   Welcome to the {\sf EXCITING} Code!
 !   The {\sf EXCITING} code is a state-of-the-art full-potential linearised
 !   augmented-plane-wave (FP-LAPW) code for determining the properties of
 !   crystalline solids. It was developed mainly at the
@@ -148,7 +158,7 @@ end program main
 !   Kay Dewhurst, Sangeeta Sharma and Claudia Ambrosch-Draxl
 !
 !   \vspace{12pt}
-!   Edinburgh, Berlin and Leoben, February 2008
+!   Edinburgh, Berlin and Leoben, October 2008
 !   \newpage
 !
 !   \section{Units}
@@ -179,7 +189,7 @@ end program main
 !   \end{verbatim}
 !   This will hopefully compile the entire code and all the libraries into one
 !   executable, {\tt exciting}, located in the {\tt src} directory. It will also
-!   compile a few useful auxilliary programs, namely {\tt spacegroup} for
+!   compile a few useful auxiliary programs, namely {\tt spacegroup} for
 !   producing crystal geometries from spacegroup data, {\tt species} for
 !   generating species files, and {\tt eos} for fitting equations of state to
 !   energy-volume data. If you want to compile everything all over again, then
@@ -275,30 +285,6 @@ end program main
 !   Lattice vectors of the crystal in atomic units (Bohr). If {\tt molecule} is
 !   {\tt .true.} then these vectors are not used.
 !
-!   \subsection{{\tt beta0}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt beta0 } & initial mixing parameter and increment & real & $0.1$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   This sets the initial parameter used for mixing the old and new potentials
-!   during the self-consistent cycle. For some materials, such as magnetic
-!   metals, this should be made smaller to avoid instability. The code
-!   automatically adjusts the mixing parameter to the optimial size. Making
-!   {\tt beta0} too large can result in instability and poor convergence. See
-!   {\tt betamax} as well as the routine {\tt mixer}.
-!
-!   \subsection{{\tt betamax}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt betamax } & maximum mixing parameter & real & $1.0$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   The mixing parameter is adjusted in increments of {\tt beta0} to optimise
-!   that rate of convergece. {\tt betamax} sets the upper limit to this
-!   parameter. Making this too large can result in poor convergence due to
-!   charge sloshing.
-!
 !   \subsection{{\tt bfieldc}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
@@ -306,7 +292,7 @@ end program main
 !    real(3) & $(0.0,0.0,0.0)$ \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   This is a constant magnetic field applied thoughout the entire unit cell
+!   This is a constant magnetic field applied throughout the entire unit cell
 !   and enters the second-variational Hamiltonian as
 !   $$ \frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm ext}, $$
 !   where $g_e$ is the electron $g$-factor (2.0023193043718). This field is
@@ -395,15 +381,6 @@ end program main
 !   Alternatively, the output function can be artificially smoothed up to a
 !   level given by {\tt nsmdos}. This is the number of successive 3-point
 !   averages to be applied to the function $g$.
-!
-!   \subsection{{\tt dtauoep}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt dtauoep} & step length increment for the exact exchange iterative
-!    solver & real & $0.5$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   See {\tt maxitoep} and {\tt tau0oep}
 !
 !   \subsection{{\tt epschg}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -498,7 +475,18 @@ end program main
 !   {\tt intraband} & {\tt .true.} if the intraband (Drude-like) contribution is
 !    to be added to the dieletric tensor & logical & {\tt .false.} \\
 !   \hline
+!   \end{tabularx}
+!
+!   \subsection{{\tt isgkmax}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt isgkmax} & species for which the muffin-tin radius will be used for
+!    calculating {\tt gkmax} & integer & $-1$ \\
+!   \hline
 !   \end{tabularx}\newline\newline
+!   By default the smallest muffin-tin radius is used for determining
+!   {\tt gkmax} from {\tt rgkmax}. This can be changed by setting {\tt isgkmax}
+!   to the desired species number.
 !
 !   \subsection{{\tt kstlist}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -547,7 +535,7 @@ end program main
 !   \subsection{{\tt lmaxinr}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt lmaxinr} & angular momentum cut-off for themuffin-tin density and
+!   {\tt lmaxinr} & angular momentum cut-off for the muffin-tin density and
 !    potential on the inner part of the muffin-tin & integer & 2 \\
 !   \hline
 !   \end{tabularx}\newline\newline
@@ -571,6 +559,20 @@ end program main
 !   \hline
 !   \end{tabularx}
 !
+!   \subsection{{\tt lmirep}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt lmirep} & {\tt .true.} if the $Y_{lm}$ basis is to be transformed
+!    into the basis of irreducible representations of the site symmetries for
+!    DOS plotting & logical & {\tt .false.} \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   When lmirep is set to .true., the spherical harmonic basis is transformed
+!   into one in which the site symmetries are block diagonal. Band characters
+!   determined from the density matrix expressed in this basis correspond to
+!   irreducible representations, and allow the partial DOS to be resolved into
+!   physically relevant contributions, for example $e_g$ and $t_{2g}$.
+!
 !   \subsection{{\tt lradstp}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
@@ -591,7 +593,7 @@ end program main
 !   exchange integral equations & integer & 120 \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   See {\tt tau0oep} and {\tt dtauoep}.
+!   See {\tt tau0oep}.
 !
 !   \subsection{{\tt maxscl}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -647,6 +649,20 @@ end program main
 !   list terminated with a blank line. Note that all three components must be
 !   specified (even for collinear calculations). See {\tt fixspin}, {\tt taufsm}
 !   and {\tt spinpol}.
+!
+!   \subsection{{\tt mustar}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt mustar} & Coulomb pseudopotential, $\mu^*$, used in the
+!    McMillan-Allen-Dynes equation & real & $0.15$ \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   This is used when calculating the superconducting critical temperature with
+!   the formula [Phys. Rev. B 12, 905 (1975)]
+!   $$ T_c=\frac{\omega_{\rm log}}{1.2 k_B}\exp\left[\frac{-1.04(1+\lambda)}
+!    {\lambda-\mu^*(1+0.62\lambda)}\right], $$
+!   where $\omega_{\rm log}$ is the logarithmic average frequency and $\lambda$
+!   is the electron-phonon coupling constant.
 !
 !   \subsection{{\tt ndspem}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -733,6 +749,15 @@ end program main
 !   This sets the polynomial order for the predictor-corrector method when
 !   solving the radial Dirac and Schr\"odinger equations, as well as for
 !   performing radial interpolation in the plotting routines.
+!
+!   \subsection{{\tt nseqit}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt nseqit} & number of iterations per self-consistent loop using the
+!    iterative first-variational secular equation solver & integer & 6 \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   See {\tt tseqit}.
 !
 !   \subsection{{\tt nstfsp}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -837,6 +862,17 @@ end program main
 !   those which connect atomic sites, and using the three shortest which produce
 !   a unit cell with non-zero volume.
 !
+!   \subsection{{\tt radkpt}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt radkpt } & radius of sphere used to determine k-point density & real &
+!    $40.0$ \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   Used for the automatic determination of the {\bf k}-point mesh. If
+!   {\tt autokpt} is set to {\tt .true.} then the mesh sizes will be determined
+!   by $n_i=\lambda/|{\bf A}_i|+1$.
+!
 !   \subsection{{\tt reducebf}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
@@ -877,17 +913,6 @@ end program main
 !   \end{tabularx}\newline\newline
 !   This sets the maximum length for the ${\bf G}+{\bf k}$ vectors, defined as
 !   {\tt rgkmax} divided by the smallest muffin-tin radius.
-!
-!   \subsection{{\tt rlambda}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt rlambda } & maximum de Broglie wavelength of {\bf k}-vectors & real &
-!    $20.0$ \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   Used for the automatic determination of the {\bf k}-point mesh. If
-!   {\tt autokpt} is set to {\tt .true.} then the mesh sizes will be determined
-!   by $n_i=\lambda/|{\bf A}_i|+1$.
 !
 !   \subsection{{\tt rmtapm}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1028,7 +1053,7 @@ end program main
 !    atomic positions written to {\tt GEOMETRY.OUT}. \\
 !   3 & Resumption of structural optimisation run using density in
 !    {\tt STATE.OUT} but with positions from {\tt exciting.in}. \\
-!   5 & Ground state Hartree-Fock run (experimental feature). \\
+!   5 & Ground state Hartree-Fock run. \\
 !   10 & Total, partial and interstitial density of states (DOS). \\
 !   15 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ total expectation values. \\
 !   16 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ expectation values for each
@@ -1042,7 +1067,7 @@ end program main
 !   41, 42, 43 & 1/2/3D exchange-correlation and Coulomb potential plots. \\
 !   51, 52, 53 & 1/2/3D electron localisation function (ELF) plot. \\
 !   61, 62, 63 & 1/2/3D wavefunction plot:
-!    $\left|\Phi_{i{\bf k}}({\bf r})\right|^2$. \\
+!    $\left|\Psi_{i{\bf k}}({\bf r})\right|^2$. \\
 !   72, 73 & 2/3D plot of magnetisation vector field, ${\bf m}({\bf r})$. \\
 !   82, 83 & 2/3D plot of exchange-correlation magnetic vector field,
 !    ${\bf B}_{\rm xc}({\bf r})$. \\
@@ -1056,22 +1081,33 @@ end program main
 !   115 & Calculation of the electric field gradient (EFG) at the nuclear
 !    sites. \\
 !   120 & Output of the momentum matrix elements
-!    $\langle\Phi_{i{\bf k}}|-i\nabla|\Phi_{j{\bf k}}\rangle$. \\
+!    $\langle\Psi_{i{\bf k}}|-i\nabla|\Psi_{j{\bf k}}\rangle$. \\
 !   121 & Linear optical response tensor. \\
-!   122 & Magneto optical Kerr effect angle. \\
+!   122 & Magneto optical Kerr effect (MOKE) angle. \\
+!   130 & Output matrix elements of the type
+!    $\langle\Psi_{i{\bf k+q}}|\exp[i({\bf G+q})\cdot{\bf r}]|
+!    \Psi_{j{\bf k}}\rangle$. \\
+!   140 & Energy loss near edge structure (ELNES). \\
 !   142, 143 & 2/3D plot of the electric field
 !    ${\bf E}({\bf r})\equiv\nabla V_{\rm C}({\bf r})$. \\
 !   152, 153 & 2/3D plot of
 !    ${\bf m}({\bf r})\times{\bf B}_{\rm xc}({\bf r})$. \\
 !   162 & Scanning-tunneling microscopy (STM) image. \\
+!   190 & Write the atomic geometry to file for plotting with {\sf XCrySDen}
+!    and {\sf V\_Sim}. \\
 !   200 & Calculation of dynamical matrices on a {\bf q}-point set defined by
 !    {\tt ngridq}. \\
 !   210 & Phonon density of states. \\
 !   220 & Phonon dispersion plot. \\
 !   230 & Phonon frequencies and eigenvectors for an arbitrary
 !    ${\bf q}$-point. \\
-!   250 & Write the atomic geometry to file for plotting with {\sf XCrySDen}
-!    and {\sf V\_Sim}.
+!   240 & Generate the ${\bf q}$-dependent phonon linewidths and electron-phonon
+!    coupling constants and write them to file. \\
+!   245 & Phonon linewidths plot. \\
+!   250 & Eliashberg function $\alpha^2F(\omega)$, electron-phonon coupling
+!    constant $\lambda$, and the McMillan-Allen-Dynes critical temperature
+!    $T_c$. \\
+!   300 & Reduced density matrix functional theory (RDMFT) calculation.
 !   \end{tabularx}
 !
 !   \subsection{{\tt tau0atm}}
@@ -1089,14 +1125,18 @@ end program main
 !   the same amount if the atom is moving in the same direction between steps.
 !   If the direction changes then $\tau_{\alpha}$ is reset to {\tt tau0atm}.
 !
-!   \subsection{{\tt tau0oep}}
+!   \subsection{{\tt tauoep}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt tau0oep} & initial step length for the exact exchange iterative
-!    solver & real & $0.5$ \\
+!   {\tt tauoep} & step length initial value and scaling factors for the OEP
+!    iterative solver & real(3) & $(1.0, 0.2, 1.5)$ \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   See {\tt maxitoep} and {\tt dtauoep}.
+!   The optimised effective potential is determined using an interative method.
+!   [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration the step length
+!   is set to {\tt tauoep(1)}. During subsequent iterations, the step length is
+!   scaled by {\tt tauoep(2)} or {\tt tauoep(3)}, when the residual is
+!   increasing or decreasing, respectively. See also {\tt maxitoep}.
 !
 !   \subsection{{\tt taufsm}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1138,6 +1178,15 @@ end program main
 !   This variable is automatically set to {\tt .true.} when performing
 !   structural optimisation.
 !
+!   \subsection{{\tt tseqit}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt tseqit} & set to {\tt .true.} if the first-variational secular equation
+!    should be solved iteratively & logical & {\tt .false.} \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   See also {\tt nseqit}.
+!
 !   \subsection{{\tt tshift}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
@@ -1146,16 +1195,6 @@ end program main
 !    logical & {\tt .true.} \\
 !   \hline
 !   \end{tabularx}
-!
-!   \subsection{{\tt usegdft}}
-!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
-!   \hline
-!   {\tt usegdft} & set to {\tt .true.} if the generalised DFT correction of
-!    L. Fritsche and Y. M. Gu, Phys. Rev. {\bf B} 48, 4250 (1993), is to be
-!    used & logical & {\tt .false.} \\
-!   \hline
-!   \end{tabularx}\newline\newline
-!   Experimental feature.
 !
 !   \subsection{{\tt vacuum}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1283,8 +1322,8 @@ end program main
 !   \item All reading in of ASCII data should be done in the subroutine
 !    {\tt readinput}. For binary data, separate routines for reading and writing
 !    should be used (for example {\tt writestate} and {\tt readstate}).
-!   \item Input file names should be in lowercase and have the extension
-!    {\tt .in} . All output file names should be in uppercase with the extension
+!   \item Input filenames should be in lowercase and have the extension
+!    {\tt .in} . All output filenames should be in uppercase with the extension
 !    {\tt .OUT} .
 !   \item All internal units should be atomic. Input and output units should be
 !    atomic by default and clearly stated otherwise. Rydbergs should not be used

@@ -51,7 +51,7 @@ allocate(fp(npp1d,nf))
 call connect(avec,nvp1d,npp1d,vvlp1d,vplp1d,dvp1d,dpp1d)
 do i=1,nf
 ! evaluate function at each point
-  call rfarray(lmax,ld,rfmt(1,1,1,i),rfir(1,i),npp1d,vplp1d,fp(1,i))
+  call rfarray(lmax,ld,rfmt(:,:,:,i),rfir(:,i),npp1d,vplp1d,fp(:,i))
 end do
 fmin=fp(1,1)
 fmax=fp(1,1)

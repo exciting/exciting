@@ -44,10 +44,10 @@ do is=1,nspecies
     ias=idxas(ia,is)
     do ir=1,nrmt(is)
       do i=1,3
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
-         rvfmt1(1,ir,ias,i),1,0.d0,rftp1(1,i),1)
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
-         rvfmt2(1,ir,ias,i),1,0.d0,rftp2(1,i),1)
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
+         rvfmt1(:,ir,ias,i),1,0.d0,rftp1(:,i),1)
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
+         rvfmt2(:,ir,ias,i),1,0.d0,rftp2(:,i),1)
       end do
       do itp=1,lmmaxvr
         v1(:)=rftp1(itp,:)
@@ -56,8 +56,8 @@ do is=1,nspecies
         rftp1(itp,:)=v3(:)
       end do
       do i=1,3
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rftp1(1,i),1,0.d0, &
-         rvfmt3(1,ir,ias,i),1)
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rftp1(:,i),1,0.d0, &
+         rvfmt3(:,ir,ias,i),1)
       end do
     end do
   end do

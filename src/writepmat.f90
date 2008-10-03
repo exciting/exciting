@@ -66,21 +66,21 @@ open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
  status='REPLACE',recl=recl)
 do ik=1,nkpt
 ! get the eigenvectors from file
-  call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-  call getevecsv(vkl(1,ik),evecsv)
+  call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+  call getevecsv(vkl(:,ik),evecsv)
 ! find the matching coefficients
-  call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
+  call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm)
 !<sag> -------------------------------------------------------------------------
 ! generate APW expansion coefficients for muffin-tin
-  call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalm,evecfv,apwcmt)
+  call genapwcmt(lmaxapw,ngk(1,ik),1,nstfv,apwalm,evecfv,apwcmt)
 ! generate local orbital expansion coefficients for muffin-tin
-  if (nlotot.gt.0) call genlocmt(ngk(ik,1),1,nstfv,evecfv,locmt)
+  if (nlotot.gt.0) call genlocmt(ngk(1,ik),1,nstfv,evecfv,locmt)
 ! calculate the momentum matrix elements
-  call genpmat2(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),ripaa,ripalo, &
+  call genpmat2(ngk(1,ik),igkig(:,1,ik),vgkc(:,:,1,ik),ripaa,ripalo, &
        riploa,riplolo,apwcmt,locmt,evecfv,evecsv,pmat)
 !</sag> ------------------------------------------------------------------------
 ! calculate the momentum matrix elements
-!!$  call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalm,evecfv,evecsv,pmat)
+!!$  call genpmat(ngk(1,ik),igkig(:,1,ik),vgkc(:,:,1,ik),apwalm,evecfv,evecsv,pmat)
 ! write the matrix elements to direct-access file
   write(50,rec=ik) pmat
 end do

@@ -77,15 +77,15 @@ do is=1,nspecies
               zt1=evecsv(i,j)
               if (abs(dble(zt1))+abs(aimag(zt1)).gt.epsocc) then
                 if (.not.done(ist)) then
-                  call wavefmt(lradstp,lmaxvr,is,ia,ngp,apwalm,evecfv(1,ist), &
+                  call wavefmt(lradstp,lmaxvr,is,ia,ngp,apwalm,evecfv(:,ist), &
                    lmmaxvr,wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-                  call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtapw, &
-                   lmmaxapw,wfmt1,lmmaxvr,zzero,wfmt2(1,1,ist),lmmaxvr)
+                  call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtvr, &
+                   lmmaxvr,wfmt1,lmmaxvr,zzero,wfmt2(:,:,ist),lmmaxvr)
                   done(ist)=.true.
                 end if
 ! add to spinor wavefunction
-                call zaxpy(n,zt1,wfmt2(1,1,ist),1,wfmt(1,1,ias,ispn,j),1)
+                call zaxpy(n,zt1,wfmt2(:,:,ist),1,wfmt(:,:,ias,ispn,j),1)
               end if
 ! end loop over first-variational states
             end do
@@ -93,11 +93,11 @@ do is=1,nspecies
           end do
         else
 ! spin-unpolarised wavefunction
-          call wavefmt(lradstp,lmaxvr,is,ia,ngp,apwalm,evecfv(1,j),lmmaxvr, &
+          call wavefmt(lradstp,lmaxvr,is,ia,ngp,apwalm,evecfv(:,j),lmmaxvr, &
            wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-          call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtapw,lmmaxapw, &
-           wfmt1,lmmaxvr,zzero,wfmt(1,1,ias,1,j),lmmaxvr)
+          call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtvr,lmmaxvr, &
+           wfmt1,lmmaxvr,zzero,wfmt(:,:,ias,1,j),lmmaxvr)
         end if
       end if
 ! end loop over second-variational states
@@ -137,7 +137,7 @@ do j=1,nstsv
     end if
 ! Fourier transform wavefunction to real-space
     do ispn=1,nspinor
-      call zfftifc(3,ngrid,1,wfir(1,ispn,j))
+      call zfftifc(3,ngrid,1,wfir(:,ispn,j))
     end do
   end if
 end do

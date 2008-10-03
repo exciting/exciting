@@ -26,7 +26,7 @@ do is=1,nspecies
         apl(:,ja,js)=atposl(:,ja,js)-atposl(:,ia,is)
       end do
     end do
-    call findsym(apl,apl,nsymsite(ias),lsplsyms(1,ias),lspnsyms(1,ias),iea)
+    call findsym(apl,apl,nsymsite(ias),lsplsyms(:,ias),lspnsyms(:,ias),iea)
   end do
 end do
 return

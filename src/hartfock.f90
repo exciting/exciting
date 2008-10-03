@@ -76,13 +76,11 @@ do iscl=1,maxscl
 !$OMP DO
   do ik=1,nkpt
     allocate(evecsv(nstsv,nstsv))
-    call getevecsv(vkl(1,ik),evecsv)
+    call getevecsv(vkl(:,ik),evecsv)
 ! solve the Hartree-Fock secular equation
     call seceqnhf(ik,evecsv)
-! compute the spin characters
-    call spinchar(ik,evecsv)
 ! write the eigenvalues/vectors to file
-    call putevalsv(ik,evalsv(1,ik))
+    call putevalsv(ik,evalsv(:,ik))
     call putevecsv(ik,evecsv)
     deallocate(evecsv)
   end do
@@ -108,10 +106,10 @@ do iscl=1,maxscl
     allocate(evecfv(nmatmax,nstfv,nspnfv))
     allocate(evecsv(nstsv,nstsv))
 ! write the occupancies to file
-    call putoccsv(ik,occsv(1,ik))
+    call putoccsv(ik,occsv(:,ik))
 ! get the eigenvectors from file
-    call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-    call getevecsv(vkl(1,ik),evecsv)
+    call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+    call getevecsv(vkl(:,ik),evecsv)
 ! add to the density and magnetisation
     call rhovalk(ik,evecfv,evecsv)
     deallocate(evecfv,evecsv)
@@ -126,7 +124,7 @@ do iscl=1,maxscl
   call rfmtctof(rhomt)
 ! convert the magnetisation from a coarse to a fine radial mesh
   do idm=1,ndmag
-    call rfmtctof(magmt(1,1,1,idm))
+    call rfmtctof(magmt(:,:,:,idm))
   end do
 ! add the core density to the total density
   call addrhocr
@@ -144,9 +142,9 @@ do iscl=1,maxscl
   call writeengy(60)
   write(60,*)
   write(60,'("Density of states at Fermi energy : ",G18.10)') fermidos
-  write(60,'(" (states/Hartree/spin/unit cell)")')
+  write(60,'(" (states/Hartree/unit cell)")')
 ! write total energy to TOTENERGY.OUT and flush
-  write(61,'(G18.10)') engytot
+  write(61,'(G22.12)') engytot
   call flushifc(61)
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
   write(62,'(G18.10)') fermidos

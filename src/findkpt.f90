@@ -15,10 +15,7 @@ integer, intent(out) :: isym
 integer, intent(out) :: ik
 ! local variables
 integer lspl,iv(3)
-real(8) s(3,3),v1(3),v2(3)
-! external functions
-real(8) r3taxi
-external r3taxi
+real(8) s(3,3),v1(3),v2(3),t1
 do isym=1,nsymcrys
   lspl=lsplsymc(isym)
   s(:,:)=dble(symlat(:,:,lspl))
@@ -33,11 +30,12 @@ do isym=1,nsymcrys
 !!$     end do
 !!$  else
 #endif
-     do ik=1,nkpt
-        v2(:)=vkl(:,ik)
-        call r3frac(epslat,v2,iv)
-        if (r3taxi(v1,v2).lt.epslat) return
-     end do
+  do ik=1,nkpt
+    v2(:)=vkl(:,ik)
+    call r3frac(epslat,v2,iv)
+    t1=abs(v1(1)-v2(1))+abs(v1(2)-v2(2))+abs(v1(3)-v2(3))
+    if (t1.lt.epslat) return
+  end do
 #ifdef XS
 !!$  end if
 #endif

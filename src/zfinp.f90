@@ -55,8 +55,8 @@ zsum=zsum*omega/dble(ngrtot)
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    zsum=zsum+zfmtinp(tsh,lmaxvr,nrcmt(is),rcmt(1,is),lmmaxvr,zfmt1(1,1,ias), &
-     zfmt2(1,1,ias))
+    zsum=zsum+zfmtinp(tsh,lmaxvr,nrcmt(is),rcmt(:,is),lmmaxvr,zfmt1(:,:,ias), &
+     zfmt2(:,:,ias))
   end do
 end do
 zfinp=zsum

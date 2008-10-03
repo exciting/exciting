@@ -13,7 +13,7 @@ complex(8), intent(in) :: wfmt(lmmaxvr,nrcmtmax,natmtot,nspinor,nstsv)
 complex(8), intent(in) :: wfir(ngrtot,nspinor,nstsv)
 complex(8), intent(out) :: vmat(nstsv,nstsv)
 ! local variables
-integer is,ia,ias,nr,irc
+integer is,ia,ias,nrc,irc
 integer ispn,ist,jst
 real(8) t1
 complex(8) zt1
@@ -35,18 +35,18 @@ vmat(:,:)=0.d0
 !-------------------------!
 do jst=1,nstsv
   do is=1,nspecies
-    nr=nrcmt(is)
+    nrc=nrcmt(is)
     do ia=1,natoms(is)
       ias=idxas(ia,is)
       do ispn=1,nspinor
 ! apply potential to wavefunction
-        do irc=1,nr
+        do irc=1,nrc
           zfmt(:,irc)=vmt(:,irc,ias)*wfmt(:,irc,ias,ispn,jst)
         end do
         do ist=1,jst
 ! compute inner product (functions are in spherical coordinates)
-          zt1=zfmtinp(.false.,lmaxvr,nr,rcmt(1,is),lmmaxvr, &
-           wfmt(1,1,ias,ispn,ist),zfmt)
+          zt1=zfmtinp(.false.,lmaxvr,nrc,rcmt(:,is),lmmaxvr, &
+           wfmt(:,:,ias,ispn,ist),zfmt)
           vmat(ist,jst)=vmat(ist,jst)+zt1
         end do
       end do
@@ -63,7 +63,7 @@ do jst=1,nstsv
 ! apply potential to wavefunction
     zfir(:)=rfir(:)*wfir(:,ispn,jst)
     do ist=1,jst
-      zt1=zdotc(ngrtot,wfir(1,ispn,ist),1,zfir,1)
+      zt1=zdotc(ngrtot,wfir(:,ispn,ist),1,zfir,1)
       vmat(ist,jst)=vmat(ist,jst)+t1*zt1
     end do
   end do

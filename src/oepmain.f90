@@ -60,14 +60,14 @@ do it=1,maxitoep
   if (mod(it,10).eq.0) then
     write(*,'("Info(oepmain): done ",I4," iterations of ",I4)') it,maxitoep
   end if
-! zero the residues
+! zero the residual
   dvxmt(:,:,:)=0.d0
   dvxir(:)=0.d0
   if (spinpol) then
     dbxmt(:,:,:,:)=0.d0
     dbxir(:,:)=0.d0
   end if
-! calculate the k-dependent residues
+! calculate the k-dependent residuals
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
   do ik=1,nkpt
@@ -75,30 +75,30 @@ do it=1,maxitoep
   end do
 !$OMP END DO
 !$OMP END PARALLEL
-! convert muffin-tin residues to spherical harmonics
+! convert muffin-tin residuals to spherical harmonics
   do is=1,nspecies
     do ia=1,natoms(is)
       ias=idxas(ia,is)
       irc=0
       do ir=1,nrmt(is),lradstp
         irc=irc+1
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,dvxmt(1,irc,ias), &
-         1,0.d0,rfmt(1,ir,ias),1)
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,dvxmt(:,irc,ias), &
+         1,0.d0,rfmt(:,ir,ias),1)
         do idm=1,ndmag
           call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr, &
-           dbxmt(1,irc,ias,idm),1,0.d0,rvfmt(1,ir,ias,idm),1)
+           dbxmt(:,irc,ias,idm),1,0.d0,rvfmt(:,ir,ias,idm),1)
         end do
       end do
     end do
   end do
-! symmetrise the residues
+! symmetrise the residuals
   call symrf(lradstp,rfmt,dvxir)
   if (spinpol) call symrvf(lradstp,rvfmt,dbxir)
-! magnitude of residues
+! magnitude of residuals
   resoep=sqrt(abs(rfinp(lradstp,rfmt,rfmt,dvxir,dvxir)))
   do idm=1,ndmag
-    t1=rfinp(lradstp,rvfmt(1,1,1,idm),rvfmt(1,1,1,idm),dbxir(1,idm), &
-     dbxir(1,idm))
+    t1=rfinp(lradstp,rvfmt(:,:,:,idm),rvfmt(:,:,:,idm),dbxir(:,idm), &
+     dbxir(:,idm))
     resoep=resoep+sqrt(abs(t1))
   end do
   resoep=resoep/omega
@@ -120,13 +120,13 @@ do it=1,maxitoep
       irc=0
       do ir=1,nrmt(is),lradstp
         irc=irc+1
-! convert residue to spherical coordinates and subtract from complex potential
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,rfmt(1,ir,ias), &
-         1,0.d0,rflm,1)
+! convert residual to spherical coordinates and subtract from complex potential
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,rfmt(:,ir,ias),1, &
+         0.d0,rflm,1)
         zvxmt(:,irc,ias)=zvxmt(:,irc,ias)-tau*rflm(:)
         do idm=1,ndmag
-          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
-           rvfmt(1,ir,ias,idm),1,0.d0,rflm,1)
+          call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
+           rvfmt(:,ir,ias,idm),1,0.d0,rflm,1)
           zbxmt(:,irc,ias,idm)=zbxmt(:,irc,ias,idm)-tau*rflm(:)
         end do
       end do
@@ -148,11 +148,11 @@ do is=1,nspecies
 ! convert to real spherical harmonics
       rflm(:)=dble(zvxmt(:,irc,ias))
       call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rflm,1,0.d0, &
-       rfmt(1,ir,ias),1)
+       rfmt(:,ir,ias),1)
       do idm=1,ndmag
         rflm(:)=dble(zbxmt(:,irc,ias,idm))
         call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rflm,1,0.d0, &
-         rvfmt(1,ir,ias,idm),1)
+         rvfmt(:,ir,ias,idm),1)
       end do
     end do
   end do
@@ -160,7 +160,7 @@ end do
 ! convert potential and field from a coarse to a fine radial mesh
 call rfmtctof(rfmt)
 do idm=1,ndmag
-  call rfmtctof(rvfmt(1,1,1,idm))
+  call rfmtctof(rvfmt(:,:,:,idm))
 end do
 ! add to existing correlation potential and field
 do is=1,nspecies

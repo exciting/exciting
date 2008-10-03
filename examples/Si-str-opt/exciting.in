@@ -1,6 +1,6 @@
 
 ! Silicon structural optimisation example. The equilibrium atomic positions are
-! found using tasks=2. Updated positions are written to GEOMETRY.OUT.
+! found using tasks=2. Updated positions are written to GEOMETRY_OPT.OUT.
 
 tasks
   2

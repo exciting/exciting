@@ -1,6 +1,6 @@
 
 ! Ununhexium in the simple cubic unit cell (like polonium). This example is to
-! show how you can create your own species files using the "Species" program.
+! show how you can create your own species files using the "species" program.
 
 ! run the ground state and find the electric field gradient (EFG)
 tasks

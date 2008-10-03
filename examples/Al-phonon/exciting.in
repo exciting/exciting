@@ -1,11 +1,14 @@
 
-! Phonon spectrum of Aluminium. This can be run on as many machines as you like
-! so long as they all use the same working directory. Once complete, set
-! tasks=210 to generate the phonon density of states, and tasks=220 for the
-! phonon dispersion.
+! Phonon spectrum of Aluminium.  First run with task=0, and then with task=200.
+
+! You can submit the same job (with task=200) on as many machines as you like,
+! but they must be be able to see the same directory. Each machine with compute
+! a row of a particular dynamical matrix. When run with task=220, the code
+! assembles all the pieces to construct the dynamical matrices throughout the
+! Brillouin zone. The phonon DOS can also be produced with task=210.
 
 tasks
-  200
+  0
 
 avec
   1.0  1.0  0.0
@@ -15,12 +18,16 @@ avec
 scale
   3.75
 
-! phonon q-point mesh
+! phonon q-point grid
 ngridq
   2  2  2
 
-! k-point grid is determined by maximum de Broglie wavelength
-rlambda
+! automatic k-point determination
+autokpt
+ .true.
+
+! k-point grid density is determined by the radius radkpt
+radkpt
   30.0
 
 vkloff

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -50,7 +50,7 @@ real(8) atposc(3,maxatoms,maxspecies)
 !----------------------------------!
 !     atomic species variables     !
 !----------------------------------!
-! species file names
+! species filenames
 character(256) spfname(maxspecies)
 ! species name
 character(256) spname(maxspecies)
@@ -58,6 +58,9 @@ character(256) spname(maxspecies)
 character(256) spsymb(maxspecies)
 ! species nuclear charge
 real(8) spzn(maxspecies)
+! ptnucl is .true. if the nuclei are to be treated as point charges, if .false.
+! the nuclei have a finite spherical distribution
+logical ptnucl
 ! species electronic charge
 real(8) spze(maxspecies)
 ! species mass
@@ -110,10 +113,8 @@ logical autormt
 real(8) rmtapm(2)
 ! muffin-tin radii
 real(8) rmt(maxspecies)
-! smallest muffin-tin radius
-real(8) rmtmin
-! largest muffin-tin radius
-real(8) rmtmax
+! species for which the muffin-tin radius will be used for calculating gkmax
+integer isgkmax
 ! radial step length for coarse mesh
 integer lradstp
 ! number of coarse radial mesh points
@@ -158,6 +159,8 @@ logical spinorb
 integer fixspin
 ! dimension of magnetisation and magnetic vector fields (1 or 3)
 integer ndmag
+! ncmag is .true. if the magnetisation is non-collinear, i.e. when ndmag = 3
+logical ncmag
 ! fixed total spin magnetic moment
 real(8) momfix(3)
 ! fixed spin moment global effective field in Cartesian coordinates
@@ -240,7 +243,7 @@ integer ngrtot
 integer intgv(3,2)
 ! number of G-vectors with G < gmaxvr
 integer ngvec
-! locations of G-vectors on integer grid
+! G-vector integer coordinates
 integer, allocatable :: ivg(:,:)
 ! map from integer grid to G-vector array
 integer, allocatable :: ivgig(:,:,:)
@@ -264,10 +267,10 @@ real(8) cfdamp
 !-------------------------------!
 !     k-point set variables     !
 !-------------------------------!
-! maximum de Broglie wavelength
-real(8) rlambda
-! autokpt is .true. if the k-point set is determined by rlambda
+! autokpt is .true. if the k-point set is determined automatically
 logical autokpt
+! radius of sphere used to determine k-point density when autokpt is .true.
+real(8) radkpt
 ! k-point grid sizes
 integer ngridk(3)
 ! total number of k-points
@@ -356,12 +359,18 @@ real(8), allocatable :: wiq2(:)
 !-----------------------------------------------------!
 ! real backward SHT matrix for lmaxapw
 real(8), allocatable :: rbshtapw(:,:)
+! real forward SHT matrix for lmmaxapw
+real(8), allocatable :: rfshtapw(:,:)
+! real backward SHT matrix for lmaxvr
+real(8), allocatable :: rbshtvr(:,:)
 ! real forward SHT matrix for lmaxvr
 real(8), allocatable :: rfshtvr(:,:)
 ! complex backward SHT matrix for lmaxapw
 complex(8), allocatable :: zbshtapw(:,:)
 ! complex forward SHT matrix for lmaxapw
 complex(8), allocatable :: zfshtapw(:,:)
+! complex backward SHT matrix for lmaxvr
+complex(8), allocatable :: zbshtvr(:,:)
 ! complex forward SHT matrix for lmaxvr
 complex(8), allocatable :: zfshtvr(:,:)
 
@@ -416,10 +425,12 @@ real(8), allocatable :: exir(:)
 real(8), allocatable :: ecmt(:,:,:)
 ! interstitial real-space correlation energy density
 real(8), allocatable :: ecir(:)
-! default potential mixing parameter
+! type of mixing to use for the potential
+integer mixtype
+! adaptive mixing parameters
 real(8) beta0
-! maximum potential mixing parameter
-real(8) betamax
+real(8) betainc
+real(8) betadec
 
 !-------------------------------------!
 !     charge and moment variables     !
@@ -446,6 +457,8 @@ real(8) chgir
 real(8), allocatable :: chgmt(:)
 ! total muffin-tin charge
 real(8) chgmttot
+! effective Wigner radius
+real(8) rwigner
 ! total moment
 real(8) momtot(3)
 ! interstitial region moment
@@ -530,6 +543,11 @@ real(8), allocatable :: hloa(:,:,:,:,:)
 real(8), allocatable :: hlolo(:,:,:,:)
 ! complex Gaunt coefficient array
 complex(8), allocatable :: gntyry(:,:,:)
+! tseqit is .true. if the first-variational secular equation is to be solved
+! iteratively
+logical tseqit
+! number of secular equation iterations per self-consistent loop
+integer nseqit
 
 !--------------------------------------------!
 !     eigenvalue and occupancy variables     !
@@ -552,12 +570,12 @@ real(8) occmax
 real(8) epsocc
 ! second-variational occupation number array
 real(8), allocatable :: occsv(:,:)
-! spin characters of the second-variational states
-real(8), allocatable :: spnchr(:,:,:)
 ! Fermi energy for second-variational states
 real(8) efermi
 ! density of states at the Fermi energy
 real(8) fermidos
+! error tolerance for the first-variational eigenvalues
+real(8) evaltol
 ! minimum allowed eigenvalue
 real(8) evalmin
 ! second-variational eigenvalues
@@ -569,7 +587,7 @@ integer, parameter :: maxkst=20
 ! number of k-point and states indices in user-defined list
 integer nkstlist
 ! user-defined list of k-point and state indices
-integer kstlist(2,maxkst)
+integer kstlist(3,maxkst)
 
 !------------------------------!
 !     core state variables     !
@@ -659,9 +677,9 @@ real(8) epsforce
 !curent convergence
 real(8) currentconvergence
 
-!------------------------------------------------!
-!     density of states and optics variables     !
-!------------------------------------------------!
+!----------------------------------------------------------!
+!     density of states, optics and response variables     !
+!----------------------------------------------------------!
 ! number of energy intervals in the DOS/optics function
 integer nwdos
 ! effective size of k/q-point grid for integrating the Brillouin zone
@@ -680,15 +698,21 @@ integer optcomp(3,27)
 logical usegdft
 ! intraband is .true. if the intraband term is to be added to the optical matrix
 logical intraband
-! bcsym is .true. if the band characters are to correspond to the the
+! lmirep is .true. if the (l,m) band characters should correspond to the
 ! irreducible representations of the site symmetries
-logical bcsym
 !<sag>
 ! Lorentzian lineshape in optics
 logical :: optltz
 ! broadening for Lorentzian lineshape
 real(8) :: optswidth  
 !</sag>
+logical lmirep
+! spin-quantisation axis in Cartesian coordinates used when plotting the
+! spin-resolved DOS (z-axis by default)
+real(8) sqados(3)
+! q-vector in lattice coordinates for calculating the matrix elements
+! < i,k+q | exp(iq.r) | j,k >
+real(8) vecql(3)
 
 !-------------------------------------!
 !     1D/2D/3D plotting variables     !
@@ -716,16 +740,16 @@ integer np3d(3)
 ! number of states for plotting Fermi surface
 integer nstfsp
 
-!-------------------------------------------------------------------!
-!     non-local matrix elements, OEP and Hartree-Fock variables     !
-!-------------------------------------------------------------------!
+!----------------------------------------!
+!     OEP and Hartree-Fock variables     !
+!----------------------------------------!
 ! maximum number of core states over all species
 integer ncrmax
 ! maximum number of OEP iterations
 integer maxitoep
-! default and maximum step size and mixing parameter for OEP
+! initial value and scaling factors for OEP step size
 real(8) tauoep(3)
-! magnitude of the OEP residue
+! magnitude of the OEP residual
 real(8) resoep
 ! kinetic matrix elements
 complex(8), allocatable :: kinmatc(:,:,:)
@@ -763,12 +787,31 @@ real(8) engylu
 !--------------------------!
 ! number of primitive unit cells in phonon supercell
 integer nphcell
+! Cartesian offset vectors for each primitive cell in the supercell
+real(8) vphcell(3,maxatoms)
 ! phonon displacement distance
 real(8) deltaph
+! original lattice vectors
+real(8) avec0(3,3)
+! original inverse of lattice vector matrix
+real(8) ainv0(3,3)
+! original number of atoms
+integer natoms0(maxspecies)
+integer natmtot0
+! original atomic positions in Cartesian coordinates
+real(8) atposc0(3,maxatoms,maxspecies)
+! original G-vector grid sizes
+integer ngrid0(3)
+integer ngrtot0
+! original effective potentials
+real(8), allocatable :: veffmt0(:,:,:)
+real(8), allocatable :: veffir0(:)
 ! number of vectors for writing out frequencies and eigenvectors
 integer nphwrt
 ! vectors in lattice coordinates for writing out frequencies and eigenvectors
 real(8), allocatable :: vqlwrt(:,:)
+! Coulomb pseudopotential
+real(8) mustar
 
 !-------------------------------------------------------------!
 !     reduced density matrix functional (RDMFT) variables     !
@@ -793,6 +836,10 @@ integer maxitn
 integer maxitc
 ! exponent for the functional
 real(8) rdmalpha
+! temperature
+real(8) rdmtemp
+! entropy
+real(8) rdmentrpy
 
 !--------------------------!
 !     timing variables     !
@@ -836,15 +883,17 @@ complex(8) sigmat(2,2,3)
 data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
               (0.d0,0.d0), (0.d0,1.d0),(0.d0,-1.d0), (0.d0,0.d0), &
               (1.d0,0.d0), (0.d0,0.d0), (0.d0,0.d0),(-1.d0,0.d0) /
+! Boltzmann constant in Hartree/kelvin (CODATA 2006)
+real(8), parameter :: kboltz=3.166815343d-6
 
 !---------------------------------!
 !     miscellaneous variables     !
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,151 /
+data version / 0,9,218 /
 ! maximum number of tasks
-integer, parameter :: maxtasks=20
+integer, parameter :: maxtasks=40
 ! number of tasks
 integer ntasks
 ! task array
@@ -857,7 +906,7 @@ logical tstop
 logical tlast
 ! number of iterations after which STATE.OUT is written
 integer nwrite
-! file name extension for files generated by gndstate
+! filename extension for files generated by gndstate
 character(256) filext
 ! default file extension
 data filext / '.OUT' /

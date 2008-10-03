@@ -53,10 +53,6 @@ sppath
 nempty
   10
 
-! conservative mixing
-beta0
-  0.05
-
 ! this grid is too small for accurate magnetic moment
 ngridk
   4  4  4

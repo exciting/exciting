@@ -39,7 +39,7 @@ do idm=1,ndmag
       do ir=1,nrmt(is)
         fr(ir)=fourpi*magmt(1,ir,ias,idm)*y00*spr(ir,is)**2
       end do
-      call fderiv(-1,nrmt(is),spr(1,is),fr,gr,cf)
+      call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
       mommt(idm,ias)=gr(nrmt(is))
       mommttot(idm)=mommttot(idm)+mommt(idm,ias)
     end do

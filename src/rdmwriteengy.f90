@@ -15,6 +15,9 @@ write(fnum,'(" core electron kinetic",T30,": ",G18.10)') engykncr
 write(fnum,'(" Coulomb",T30,": ",G18.10)') engyvcl
 write(fnum,'(" Madelung",T30,": ",G18.10)') engymad
 write(fnum,'(" exchange-correlation",T30,": ",G18.10)') engyx
+if (rdmtemp.gt.0.d0) then
+  write(*,'(" entropy",T30,": ",G18.10)') rdmentrpy
+end if
 write(fnum,'(" total energy",T30,": ",G18.10)') engytot
 call flushifc(fnum)
 return

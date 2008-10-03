@@ -22,7 +22,7 @@ real(8)::threshold
 !----------------------------------------!
 
 
-call cpu_time(cpu0)
+call timesec(cpu0)
 ! set the matrices to zero
 
 ! muffin-tin contributions
@@ -59,7 +59,7 @@ prefix="O"
 	stop
 #endif 
 
-call cpu_time(cpu1)
+call timesec(cpu1)
  timemat= timemat+cpu1-cpu0
 
 

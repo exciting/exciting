@@ -29,7 +29,7 @@ do ik=1,nkpt
   write(*,'("Info(rdmvaryc): ",I6," of ",I6," k-points")') ik,nkpt
 !$OMP END CRITICAL
 ! compute the derivative w.r.t. evecsv
-  call rdmdedc(ik,dedc(1,1,ik))
+  call rdmdedc(ik,dedc(:,:,ik))
 end do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -38,14 +38,14 @@ allocate(evecsvt(nstsv))
 sum=0.d0
 do ik=1,nkpt
 ! get the eigenvectors from file
-  call getevecsv(vkl(1,ik),evecsv)
+  call getevecsv(vkl(:,ik),evecsv)
 ! calculate new evecsv
   evecsv(:,:)=evecsv(:,:)-taurdmc*dedc(:,:,ik)
 ! othogonalise evecsv (Gram-Schmidt)
   do ist1=1,nstsv
     evecsvt(:)=evecsv(:,ist1)
     do ist2=1,ist1-1
-      zt1=zdotc(nstsv,evecsv(1,ist2),1,evecsv(1,ist1),1)
+      zt1=zdotc(nstsv,evecsv(:,ist2),1,evecsv(:,ist1),1)
       evecsvt(:)=evecsvt(:)-zt1*evecsv(:,ist2)
     end do
     t1=dznrm2(nstsv,evecsvt,1)

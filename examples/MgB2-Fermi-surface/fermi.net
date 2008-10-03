@@ -1,0 +1,257 @@
+//
+// time: Fri Jun  6 19:22:54 2008
+//
+// version: 3.2.0 (format), 4.4.0 (DX)
+//
+//
+// MODULE main
+// workspace: width = 527, height = 582
+// layout: snap = 0, width = 50, height = 50, align = NN
+//
+macro main(
+) -> (
+) {
+    // 
+    // node Import[1]: x = 151, y = 24, inputs = 6, label = Import
+    // input[1]: defaulting = 0, visible = 1, type = 32, value = "fermi.general"
+    //
+main_Import_1_out_1 = 
+    Import(
+    main_Import_1_in_1,
+    main_Import_1_in_2,
+    main_Import_1_in_3,
+    main_Import_1_in_4,
+    main_Import_1_in_5,
+    main_Import_1_in_6
+    ) [instance: 1, cache: 1];
+    // 
+    // node Select[1]: x = 240, y = 119, inputs = 3, label = Select
+    // input[2]: defaulting = 0, visible = 1, type = 1, value = 1
+    //
+main_Select_1_out_1 = 
+    Select(
+    main_Import_1_out_1,
+    main_Select_1_in_2,
+    main_Select_1_in_3
+    ) [instance: 1, cache: 1];
+    // 
+    // node Isosurface[1]: x = 182, y = 209, inputs = 6, label = Isosurface
+    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.0
+    //
+main_Isosurface_1_out_1 = 
+    Isosurface(
+    main_Select_1_out_1,
+    main_Isosurface_1_in_2,
+    main_Isosurface_1_in_3,
+    main_Isosurface_1_in_4,
+    main_Isosurface_1_in_5,
+    main_Isosurface_1_in_6
+    ) [instance: 1, cache: 1];
+    // 
+    // node Color[1]: x = 199, y = 297, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "red"
+    //
+main_Color_1_out_1 = 
+    Color(
+    main_Isosurface_1_out_1,
+    main_Color_1_in_2,
+    main_Color_1_in_3,
+    main_Color_1_in_4,
+    main_Color_1_in_5
+    ) [instance: 1, cache: 1];
+    // 
+    // node Select[2]: x = 319, y = 120, inputs = 3, label = Select
+    // input[2]: defaulting = 0, visible = 1, type = 1, value = 2
+    //
+main_Select_2_out_1 = 
+    Select(
+    main_Import_1_out_1,
+    main_Select_2_in_2,
+    main_Select_2_in_3
+    ) [instance: 2, cache: 1];
+    // 
+    // node Isosurface[2]: x = 310, y = 211, inputs = 6, label = Isosurface
+    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.0
+    //
+main_Isosurface_2_out_1 = 
+    Isosurface(
+    main_Select_2_out_1,
+    main_Isosurface_2_in_2,
+    main_Isosurface_2_in_3,
+    main_Isosurface_2_in_4,
+    main_Isosurface_2_in_5,
+    main_Isosurface_2_in_6
+    ) [instance: 2, cache: 1];
+    // 
+    // node Color[2]: x = 316, y = 299, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "yellow"
+    //
+main_Color_2_out_1 = 
+    Color(
+    main_Isosurface_2_out_1,
+    main_Color_2_in_2,
+    main_Color_2_in_3,
+    main_Color_2_in_4,
+    main_Color_2_in_5
+    ) [instance: 2, cache: 1];
+    // 
+    // node Select[3]: x = 406, y = 122, inputs = 3, label = Select
+    // input[2]: defaulting = 0, visible = 1, type = 1, value = 3
+    //
+main_Select_3_out_1 = 
+    Select(
+    main_Import_1_out_1,
+    main_Select_3_in_2,
+    main_Select_3_in_3
+    ) [instance: 3, cache: 1];
+    // 
+    // node Isosurface[3]: x = 449, y = 213, inputs = 6, label = Isosurface
+    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.0
+    //
+main_Isosurface_3_out_1 = 
+    Isosurface(
+    main_Select_3_out_1,
+    main_Isosurface_3_in_2,
+    main_Isosurface_3_in_3,
+    main_Isosurface_3_in_4,
+    main_Isosurface_3_in_5,
+    main_Isosurface_3_in_6
+    ) [instance: 3, cache: 1];
+    // 
+    // node Color[3]: x = 444, y = 300, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "green"
+    //
+main_Color_3_out_1 = 
+    Color(
+    main_Isosurface_3_out_1,
+    main_Color_3_in_2,
+    main_Color_3_in_3,
+    main_Color_3_in_4,
+    main_Color_3_in_5
+    ) [instance: 3, cache: 1];
+    // 
+    // node Collect[1]: x = 299, y = 392, inputs = 3, label = Collect
+    //
+main_Collect_1_out_1 = 
+    Collect(
+    main_Color_1_out_1,
+    main_Color_2_out_1,
+    main_Color_3_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node AutoCamera[2]: x = 422, y = 412, inputs = 9, label = AutoCamera
+    // input[2]: defaulting = 0, visible = 1, type = 8, value = [1.0 -0.25 0.5]
+    // input[3]: defaulting = 0, visible = 0, type = 5, value = 4.0
+    // input[4]: defaulting = 0, visible = 0, type = 1, value = 800
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [0 0 1]
+    //
+main_AutoCamera_2_out_1 = 
+    AutoCamera(
+    main_Collect_1_out_1,
+    main_AutoCamera_2_in_2,
+    main_AutoCamera_2_in_3,
+    main_AutoCamera_2_in_4,
+    main_AutoCamera_2_in_5,
+    main_AutoCamera_2_in_6,
+    main_AutoCamera_2_in_7,
+    main_AutoCamera_2_in_8,
+    main_AutoCamera_2_in_9
+    ) [instance: 2, cache: 1];
+    // 
+    // node Render[1]: x = 255, y = 507, inputs = 3, label = Render
+    //
+main_Render_1_out_1 = 
+    Render(
+    main_Collect_1_out_1,
+    main_AutoCamera_2_out_1,
+    main_Render_1_in_3
+    ) [instance: 1, cache: 1];
+    // 
+    // node Display[1]: x = 451, y = 520, inputs = 8, label = Display
+    // depth: value = 24
+    // window: position = (0.0086,0.0234), size = 0.6359x0.6270
+    //
+main_Display_1_out_1[cache: 2] = 
+    Display(
+    main_Render_1_out_1,
+    main_Display_1_in_2,
+    main_Display_1_in_3,
+    main_Display_1_in_4,
+    main_Display_1_in_5,
+    main_Display_1_in_6,
+    main_Display_1_in_7,
+    main_Display_1_in_8
+    ) [instance: 1, cache: 1];
+// network: end of macro body
+}
+main_Import_1_in_1 = "fermi.general";
+main_Import_1_in_2 = NULL;
+main_Import_1_in_3 = NULL;
+main_Import_1_in_4 = NULL;
+main_Import_1_in_5 = NULL;
+main_Import_1_in_6 = NULL;
+main_Import_1_out_1 = NULL;
+main_Select_1_in_2 = 1;
+main_Select_1_in_3 = NULL;
+main_Select_1_out_1 = NULL;
+main_Isosurface_1_in_2 = 0.0;
+main_Isosurface_1_in_3 = NULL;
+main_Isosurface_1_in_4 = NULL;
+main_Isosurface_1_in_5 = NULL;
+main_Isosurface_1_in_6 = NULL;
+main_Isosurface_1_out_1 = NULL;
+main_Color_1_in_2 = "red";
+main_Color_1_in_3 = NULL;
+main_Color_1_in_4 = NULL;
+main_Color_1_in_5 = NULL;
+main_Color_1_out_1 = NULL;
+main_Select_2_in_2 = 2;
+main_Select_2_in_3 = NULL;
+main_Select_2_out_1 = NULL;
+main_Isosurface_2_in_2 = 0.0;
+main_Isosurface_2_in_3 = NULL;
+main_Isosurface_2_in_4 = NULL;
+main_Isosurface_2_in_5 = NULL;
+main_Isosurface_2_in_6 = NULL;
+main_Isosurface_2_out_1 = NULL;
+main_Color_2_in_2 = "yellow";
+main_Color_2_in_3 = NULL;
+main_Color_2_in_4 = NULL;
+main_Color_2_in_5 = NULL;
+main_Color_2_out_1 = NULL;
+main_Select_3_in_2 = 3;
+main_Select_3_in_3 = NULL;
+main_Select_3_out_1 = NULL;
+main_Isosurface_3_in_2 = 0.0;
+main_Isosurface_3_in_3 = NULL;
+main_Isosurface_3_in_4 = NULL;
+main_Isosurface_3_in_5 = NULL;
+main_Isosurface_3_in_6 = NULL;
+main_Isosurface_3_out_1 = NULL;
+main_Color_3_in_2 = "green";
+main_Color_3_in_3 = NULL;
+main_Color_3_in_4 = NULL;
+main_Color_3_in_5 = NULL;
+main_Color_3_out_1 = NULL;
+main_Collect_1_out_1 = NULL;
+main_AutoCamera_2_in_2 = [1.0 -0.25 0.5];
+main_AutoCamera_2_in_3 = 4.0;
+main_AutoCamera_2_in_4 = 800;
+main_AutoCamera_2_in_5 = NULL;
+main_AutoCamera_2_in_6 = [0 0 1];
+main_AutoCamera_2_in_7 = NULL;
+main_AutoCamera_2_in_8 = NULL;
+main_AutoCamera_2_in_9 = NULL;
+main_AutoCamera_2_out_1 = NULL;
+main_Render_1_in_3 = NULL;
+main_Render_1_out_1 = NULL;
+main_Display_1_in_2 = NULL;
+main_Display_1_in_3 = "X24,,";
+main_Display_1_in_4 = NULL;
+main_Display_1_in_5 = NULL;
+main_Display_1_in_6 = NULL;
+main_Display_1_in_7 = NULL;
+main_Display_1_in_8 = NULL;
+Executive("product version 4 4 0");
+$sync
+main();

@@ -42,9 +42,6 @@ real(8) apl(3,maxatoms,maxspecies)
 ! allocatable arrays
 integer, allocatable :: iea(:,:,:)
 real(8), allocatable :: vtl(:,:)
-! external functions
-real(8) r3taxi
-external r3taxi
 ! allocate local array
 allocate(iea(natmmax,nspecies,48))
 ! allocate equivalent atom arrays
@@ -57,7 +54,7 @@ is=1
 do js=1,nspecies
   if (natoms(js).lt.natoms(is)) is=js
 end do
-if (tshift) then
+if ((tshift).and.(natmtot.gt.0)) then
 ! shift basis so that the first atom in the smallest atom set is at the origin
   v(:)=atposl(:,1,is)
   do js=1,nspecies
@@ -65,21 +62,23 @@ if (tshift) then
 ! shift atom
       atposl(:,ia,js)=atposl(:,ia,js)-v(:)
 ! map lattice coordinates back to [0,1)
-      call r3frac(epslat,atposl(1,ia,js),iv)
+      call r3frac(epslat,atposl(:,ia,js),iv)
 ! determine the new Cartesian coordinates
-      call r3mv(avec,atposl(1,ia,js),atposc(1,ia,js))
+      call r3mv(avec,atposl(:,ia,js),atposc(:,ia,js))
     end do
   end do
 end if
 ! determine possible translation vectors from smallest set of atoms
-allocate(vtl(3,natoms(is)*natoms(is)))
-n=0
+n=max(natoms(is)*natoms(is),1)
+allocate(vtl(3,n))
+n=1
+vtl(:,1)=0.d0
 do ia=1,natoms(is)
-  do ja=1,natoms(is)
+  do ja=2,natoms(is)
     v(:)=atposl(:,ia,is)-atposl(:,ja,is)
     call r3frac(epslat,v,iv)
     do i=1,n
-      t1=r3taxi(vtl(1,i),v)
+      t1=abs(vtl(1,i)-v(1))+abs(vtl(2,i)-v(2))+abs(vtl(3,i)-v(3))
       if (t1.lt.epslat) goto 10
     end do
     n=n+1

@@ -68,7 +68,7 @@ do is=1,nspecies
 ! equivalent atom index (symmetry rotates atom ja into atom ia)
         ja=ieqatom(ia,is,isym)
 ! apply the rotation to the muffin-tin function
-        call symrfmt(lrstp,is,symlatc(1,1,lspl),rfmt1(1,1,ja),rfmt2)
+        call symrfmt(lrstp,is,symlatc(:,:,lspl),rfmt1(:,:,ja),rfmt2)
 ! accumulate in original function array
         do ir=1,nrmt(is),lrstp
           rfmt(:,ir,ias)=rfmt(:,ir,ias)+rfmt2(:,ir)
@@ -88,7 +88,7 @@ do is=1,nspecies
 ! inverse symmetry (which rotates atom ia into atom ja)
           ilspl=isymlat(lspl)
 ! rotate symmetrised function into equivalent muffin-tin
-          call symrfmt(lrstp,is,symlatc(1,1,ilspl),rfmt(1,1,ias),rfmt(1,1,jas))
+          call symrfmt(lrstp,is,symlatc(:,:,ilspl),rfmt(:,:,ias),rfmt(:,:,jas))
           done(ja)=.true.
         end if
       end do

@@ -23,11 +23,12 @@ use modxs, only : isreadstate0
 implicit none
 ! local variables
 logical spinpol_
+integer iostat
 integer is,ia,ias,lmmax,lm,ir,jr
 integer idm,ngm,i1,i2,i3,j1,j2,j3
-integer version_(3),nspecies_,lmmaxvr_,nrmtmax_
-integer natoms_,nrmt_(maxspecies),ngrid_(3)
-integer ngrtot_,ngvec_,ndmag_
+integer version_(3),nspecies_,lmmaxvr_
+integer natoms_,nrmt_(maxspecies),nrmtmax_
+integer ngrid_(3),ngrtot_,ngvec_,ndmag_
 integer nspinor_,ldapu_,lmmaxlu_
 real(8) t1
 ! allocatable arrays
@@ -49,15 +50,21 @@ complex(8), allocatable :: veffig_(:)
 complex(8), allocatable :: vmatlu_(:,:,:,:,:)
 #ifdef XS
 if (isreadstate0) then
-   open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
- status='OLD')
 else
+open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
+ status='OLD',iostat=iostat)
 #endif
-   open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
-        status='OLD')
+open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
+ status='OLD',iostat=iostat)
 #ifdef XS
 end if
 #endif
+if (iostat.ne.0) then
+  write(*,*)
+  write(*,'("Error(readstate): error opening ",A)') 'STATE'//trim(filext)
+  write(*,*)
+  stop
+end if
 read(50) version_
 if ((version(1).ne.version_(1)).or.(version(2).ne.version_(2)) &
  .or.(version(3).ne.version_(3))) then
@@ -230,31 +237,31 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     do lm=1,lmmax
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,rhomt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,rhomt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,vclmt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,vclmt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,vxcmt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,vxcmt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,veffmt_(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,veffmt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,rhomt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,rhomt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,vclmt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,vclmt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,vxcmt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,vxcmt(lm,1,ias))
+      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,veffmt_(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,veffmt(lm,1,ias))
     end do
     if ((spinpol).and.(spinpol_)) then
       if (ndmag.eq.ndmag_) then
         do idm=1,ndmag
           do lm=1,lmmax
-            call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,magmt_(lm,1,ias,idm), &
-             nrmt(is),spr(1,is),lmmaxvr,magmt(lm,1,ias,idm))
-            call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,bxcmt_(lm,1,ias,idm), &
-             nrmt(is),spr(1,is),lmmaxvr,bxcmt(lm,1,ias,idm))
+            call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,magmt_(lm,1,ias,idm), &
+             nrmt(is),spr(:,is),lmmaxvr,magmt(lm,1,ias,idm))
+            call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,bxcmt_(lm,1,ias,idm), &
+             nrmt(is),spr(:,is),lmmaxvr,bxcmt(lm,1,ias,idm))
           end do
         end do
       else
         do lm=1,lmmax
-          call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,magmt_(lm,1,ias,ndmag_), &
-           nrmt(is),spr(1,is),lmmaxvr,magmt(lm,1,ias,ndmag))
-          call rfinterp(nrmt_(is),spr_(1,is),lmmaxvr_,bxcmt_(lm,1,ias,ndmag_), &
-           nrmt(is),spr(1,is),lmmaxvr,bxcmt(lm,1,ias,ndmag))
+          call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,magmt_(lm,1,ias,ndmag_), &
+           nrmt(is),spr(:,is),lmmaxvr,magmt(lm,1,ias,ndmag))
+          call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,bxcmt_(lm,1,ias,ndmag_), &
+           nrmt(is),spr(:,is),lmmaxvr,bxcmt(lm,1,ias,ndmag))
         end do
       end if
     end if
@@ -274,17 +281,14 @@ if (spinpol) then
 end if
 ! map from new grid to old
 do i3=0,ngrid(3)-1
-  t1=dble(ngrid_(3))/dble(ngrid(3))
-  j3=nint(t1*dble(i3))
-  j3=min(max(j3,0),ngrid_(3)-1)
+  t1=dble(i3*ngrid_(3))/dble(ngrid(3))
+  j3=modulo(nint(t1),ngrid_(3))
   do i2=0,ngrid(2)-1
-    t1=dble(ngrid_(2))/dble(ngrid(2))
-    j2=nint(t1*dble(i2))
-    j2=min(max(j2,0),ngrid_(2)-1)
+    t1=dble(i2*ngrid_(2))/dble(ngrid(2))
+    j2=modulo(nint(t1),ngrid_(2))
     do i1=0,ngrid(1)-1
-      t1=dble(ngrid_(1))/dble(ngrid(1))
-      j1=nint(t1*dble(i1))
-      j1=min(max(j1,0),ngrid_(1)-1)
+      t1=dble(i1*ngrid_(1))/dble(ngrid(1))
+      j1=modulo(nint(t1),ngrid_(1))
       ir=i3*ngrid(2)*ngrid(1)+i2*ngrid(1)+i1+1
       jr=j3*ngrid_(2)*ngrid_(1)+j2*ngrid_(1)+j1+1
       mapir(ir)=jr

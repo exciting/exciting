@@ -3,17 +3,19 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine symdmatlu(dmat)
+subroutine symdmat(lmax,ld,dmat)
 use modmain
 implicit none
 ! arguments
-complex(8), intent(inout) :: dmat(lmmaxlu,lmmaxlu,nspinor,nspinor,natmtot)
+integer, intent(in) :: lmax
+integer, intent(in) :: ld
+complex(8), intent(inout) :: dmat(ld,ld,nspinor,nspinor,natmtot)
 ! local variables
 integer isym,lspl,lspn
 integer ispn,jspn
+integer lmmax,lm1,lm2
 integer is,ia,ja,ias,jas
-integer lm1,lm2
-real(8) det,t1
+real(8) det,v(3),th,t1
 ! automatic arrays
 logical done(natmmax)
 ! allocatable arrays
@@ -25,27 +27,28 @@ complex(8), allocatable :: dm2(:,:)
 complex(8), allocatable :: dm3(:,:,:,:)
 complex(8), allocatable :: dm4(:,:)
 complex(8), allocatable :: dm5(:,:)
-if (ldapu.eq.0) return
+lmmax=(lmax+1)**2
 ! allocate local arrays
-allocate(zflm(lmmaxlu,lmmaxlu))
-allocate(ulm(lmmaxlu,lmmaxlu,nsymlat))
+allocate(zflm(lmmax,lmmax))
+allocate(ulm(lmmax,lmmax,nsymlat))
 allocate(su2(nspinor,nspinor,nsymlat))
-allocate(dm1(lmmaxlu,lmmaxlu,nspinor,nspinor,natmmax))
-allocate(dm2(lmmaxlu,lmmaxlu))
-allocate(dm3(lmmaxlu,lmmaxlu,nspinor,nspinor))
+allocate(dm1(lmmax,lmmax,nspinor,nspinor,natmmax))
+allocate(dm2(lmmax,lmmax))
+allocate(dm3(lmmax,lmmax,nspinor,nspinor))
 allocate(dm4(nspinor,nspinor),dm5(nspinor,nspinor))
 ! setup a complex unit matrix for (l,m) components
 zflm(:,:)=0.d0
-do lm1=1,lmmaxlu
+do lm1=1,lmmax
   zflm(lm1,lm1)=1.d0
 end do
 do isym=1,nsymlat
 ! construct (l,m) rotation matrix for each lattice symmetry
-  call rotzflm(symlatc(1,1,isym),lmaxlu,lmmaxlu,lmmaxlu,zflm,ulm(1,1,isym))
+  call rotzflm(symlatc(:,:,isym),lmax,lmmax,lmmax,zflm,ulm(:,:,isym))
 ! construct SU(2) matrix for proper rotation of spinor components
 ! (note that rotsu2 uses only the proper part of the rotation matrix)
   if (spinpol) then
-    call rotsu2(symlatc(1,1,isym),det,su2(1,1,isym))
+    call rotaxang(epslat,symlatc(:,:,isym),det,v,th)
+    call axangsu2(v,th,su2(:,:,isym))
   end if
 end do
 t1=1.d0/dble(nsymcrys)
@@ -53,7 +56,7 @@ do is=1,nspecies
 ! make copy of the density matrices
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    dm1(:,:,:,:,ia)=dmat(:,:,:,:,ias)
+    dm1(1:lmmax,1:lmmax,:,:,ia)=dmat(1:lmmax,1:lmmax,:,:,ias)
   end do
   done(:)=.false.
   do ia=1,natoms(is)
@@ -69,24 +72,25 @@ do is=1,nspecies
 ! apply (l,m) symmetry matrix as U*D*conjg(U')
         do ispn=1,nspinor
           do jspn=1,nspinor
-            call zgemm('N','N',lmmaxlu,lmmaxlu,lmmaxlu,zone,ulm(1,1,lspl), &
-             lmmaxlu,dm1(1,1,ispn,jspn,ja),lmmaxlu,zzero,dm2,lmmaxlu)
-            call zgemm('N','C',lmmaxlu,lmmaxlu,lmmaxlu,zone,dm2,lmmaxlu, &
-             ulm(1,1,lspl),lmmaxlu,zzero,dm3(1,1,ispn,jspn),lmmaxlu)
+            call zgemm('N','N',lmmax,lmmax,lmmax,zone,ulm(:,:,lspl),lmmax, &
+             dm1(:,:,ispn,jspn,ja),lmmax,zzero,dm2,lmmax)
+            call zgemm('N','C',lmmax,lmmax,lmmax,zone,dm2,lmmax,ulm(:,:,lspl), &
+             lmmax,zzero,dm3(:,:,ispn,jspn),lmmax)
           end do
         end do
 ! apply SU(2) symmetry matrix as U*D*conjg(U') and add
         if (spinpol) then
-          do lm1=1,lmmaxlu
-            do lm2=1,lmmaxlu
+          do lm1=1,lmmax
+            do lm2=1,lmmax
               dm4(:,:)=dm3(lm1,lm2,:,:)
-              call z2mm(su2(1,1,lspn),dm4,dm5)
-              call z2mmct(dm5,su2(1,1,lspn),dm4)
+              call z2mm(su2(:,:,lspn),dm4,dm5)
+              call z2mmct(dm5,su2(:,:,lspn),dm4)
               dmat(lm1,lm2,:,:,ias)=dmat(lm1,lm2,:,:,ias)+dm4(:,:)
             end do
           end do
         else
-          dmat(:,:,1,1,ias)=dmat(:,:,1,1,ias)+dm3(:,:,1,1)
+          dmat(1:lmmax,1:lmmax,1,1,ias)=dmat(1:lmmax,1:lmmax,1,1,ias) &
+           +dm3(1:lmmax,1:lmmax,1,1)
         end if
 ! end loop over crystal symmetries
       end do
@@ -103,24 +107,24 @@ do is=1,nspecies
 ! apply (l,m) symmetry matrix as conjg(U')*D*U (rotates atom ia into atom ja)
           do ispn=1,nspinor
             do jspn=1,nspinor
-              call zgemm('C','N',lmmaxlu,lmmaxlu,lmmaxlu,zone,ulm(1,1,lspl), &
-               lmmaxlu,dmat(1,1,ispn,jspn,ias),lmmaxlu,zzero,dm2,lmmaxlu)
-              call zgemm('N','N',lmmaxlu,lmmaxlu,lmmaxlu,zone,dm2,lmmaxlu, &
-               ulm(1,1,lspl),lmmaxlu,zzero,dm3(1,1,ispn,jspn),lmmaxlu)
+              call zgemm('C','N',lmmax,lmmax,lmmax,zone,ulm(:,:,lspl),lmmax, &
+               dmat(:,:,ispn,jspn,ias),ld,zzero,dm2,lmmax)
+              call zgemm('N','N',lmmax,lmmax,lmmax,zone,dm2,lmmax, &
+               ulm(:,:,lspl),lmmax,zzero,dm3(:,:,ispn,jspn),lmmax)
             end do
           end do
 ! apply SU(2) symmetry matrix as conjg(U')*D*U
           if (spinpol) then
-            do lm1=1,lmmaxlu
-              do lm2=1,lmmaxlu
+            do lm1=1,lmmax
+              do lm2=1,lmmax
                 dm4(:,:)=dm3(lm1,lm2,:,:)
-                call z2mctm(su2(1,1,lspn),dm4,dm5)
-                call z2mm(dm5,su2(1,1,lspn),dm4)
+                call z2mctm(su2(:,:,lspn),dm4,dm5)
+                call z2mm(dm5,su2(:,:,lspn),dm4)
                 dmat(lm1,lm2,:,:,jas)=dm4(:,:)
               end do
             end do
           else
-            dmat(:,:,1,1,jas)=dm3(:,:,1,1)
+            dmat(1:lmmax,1:lmmax,1,1,jas)=dm3(1:lmmax,1:lmmax,1,1)
           end if
           done(ja)=.true.
         end if

@@ -2,7 +2,7 @@
  'polonium'                                 : spname
   -84.0000                                  : spzn
    382806.5818                              : spmass
-  0.218218E-06    2.0000   40.0514   700    : sprmin, rmt, sprmax, nrmt
+  0.218218E-06    2.0000   34.9025   700    : sprmin, rmt, sprmax, nrmt
   24                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

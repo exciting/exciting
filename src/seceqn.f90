@@ -19,8 +19,7 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   !   evecsv : second-variational eigenvectors (out,complex(nstsv,nstsv))
   ! !DESCRIPTION:
   !   Solves the first- and second-variational secular equations. See routines
-  !   {\tt match}, {\tt seceqnfv}, {\tt seceqnss}, {\tt seceqnsv} and
-  !   {\tt spinchar}.
+  !   {\tt match}, {\tt seceqnfv}, {\tt seceqnss} and {\tt seceqnsv}.
   !
   ! !REVISION HISTORY:
   !   Created March 2004 (JKD)
@@ -44,24 +43,36 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   !$OMP PARALLEL DEFAULT(SHARED)
   !$OMP DO
 #endif
+!
+!-IMPORTANT: the first-variational spinor index and the k-point index have been
+! swapped in the following arrays: ngk, igkig, vgkl, vgkc, gkc, tpgkc, sfacgk
+!
   do ispn=1,nspnfv
      ! find the matching coefficients
-     call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
-          sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
+     call match(ngk(ispn,ik),gkc(:,ispn,ik),tpgkc(:,:,ispn,ik), &
+          sfacgk(:,:,ispn,ik),apwalm(:,:,:,:,ispn))
      ! solve the first-variational secular equation
      if(doDIIScycle()) then 
-        call DIISseceqnfv(ik,ispn,apwalm(:,:,:,:,ispn),vgkc(:,:,ik,ispn),evalfv,evecfv)
+        call DIISseceqnfv(ik,ispn,apwalm(:,:,:,:,ispn),vgkc(:,:,ispn,ik),evalfv,evecfv)
     
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
      else     if (doLAPACKsolver()) then
-     	call seceqnfv(nmat(ik,ispn),ngk(ik,ispn),igkig(1,ik,ispn),vgkc(1,1,ik,ispn), &
-             apwalm(1,1,1,1,ispn),evalfv(1,ispn),evecfv(1,1,ispn))
+  if (tseqit) then
+! iteratively
+    call seceqnit(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik),vkl(:,ik), &
+     vgkl(:,:,ispn,ik),vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn), &
+     evecfv(:,:,ispn))
+  else
+! directly
+    call seceqnfv(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik), &
+     vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn),evecfv(:,:,ispn))
+  end if
      else  if(dojacobdavidson())then
      		call jdseceqnfv(ik,ispn,apwalm(1,1,1,1,ispn),&
-             vgkc(1,1,ik,ispn),evalfv,evecfv)
+             vgkc(1,1,ispn,ik),evalfv,evecfv)
      else if(doARPACKiteration()) then 
       	call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
-             vgkc(1,1,ik,ispn),evalfv,evecfv)
+             vgkc(1,1,ispn,ik),evalfv,evecfv)
      else if(.true.) then
      write(*,*)"error in solverselect secequn.F90"
 
@@ -78,8 +89,6 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
      ! solve the second-variational secular equation
      call seceqnsv(ik,apwalm,evalfv,evecfv,evecsv)
   end if
-  ! compute the spin characters
-  call spinchar(ik,evecsv)
 
   deallocate(apwalm)
   return

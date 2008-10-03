@@ -2,7 +2,7 @@
  'gallium'                                  : spname
   -31.0000                                  : spzn
    127097.2538                              : spmass
-  0.359211E-06    2.0000   54.2416   500    : sprmin, rmt, sprmax, nrmt
+  0.359211E-06    2.0000   45.0010   500    : sprmin, rmt, sprmax, nrmt
   11                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

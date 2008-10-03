@@ -1,0 +1,116 @@
+ 
+   1 : total number of atoms
+    16 : number of q-points
+ 
+     1 : q-point
+   0.000000000       0.000000000       0.000000000     : q-vector (lattice coordinates)
+   0.000000000       0.000000000       0.000000000     : q-vector (Cartesian coordinates)
+   1   0.000000000    
+   2   0.000000000    
+   3   0.000000000    
+ 
+     2 : q-point
+  0.1666666667       0.000000000       0.000000000     : q-vector (lattice coordinates)
+  0.1679277664      0.1679277664       0.000000000     : q-vector (Cartesian coordinates)
+   1  0.8781567644    
+   2  0.2913423800    
+   3  0.2085172746    
+ 
+     3 : q-point
+  0.3333333333       0.000000000       0.000000000     : q-vector (lattice coordinates)
+  0.3358555328      0.3358555328       0.000000000     : q-vector (Cartesian coordinates)
+   1  0.2330957369    
+   2  0.1286280466    
+   3  0.2862594135    
+ 
+     4 : q-point
+  0.5000000000       0.000000000       0.000000000     : q-vector (lattice coordinates)
+  0.5037832992      0.5037832992       0.000000000     : q-vector (Cartesian coordinates)
+   1  0.1462420139    
+   2  0.1322200675    
+   3  0.3042454945    
+ 
+     5 : q-point
+  0.1666666667      0.1666666667       0.000000000     : q-vector (lattice coordinates)
+  0.3358555328      0.1679277664      0.1679277664     : q-vector (Cartesian coordinates)
+   1  0.6989071509    
+   2  0.2323903615    
+   3  0.1773584295    
+ 
+     6 : q-point
+  0.3333333333      0.1666666667       0.000000000     : q-vector (lattice coordinates)
+  0.5037832992      0.3358555328      0.1679277664     : q-vector (Cartesian coordinates)
+   1  0.2968641597    
+   2  0.1847941384    
+   3  0.1640627684    
+ 
+     7 : q-point
+  0.3333333333      0.3333333333       0.000000000     : q-vector (lattice coordinates)
+  0.6717110656      0.3358555328      0.3358555328     : q-vector (Cartesian coordinates)
+   1  0.2629512987    
+   2  0.2005258315    
+   3  0.1927794798    
+ 
+     8 : q-point
+  0.1666666667      0.1666666667      0.1666666667     : q-vector (lattice coordinates)
+  0.3358555328      0.3358555328      0.3358555328     : q-vector (Cartesian coordinates)
+   1  0.3228554562    
+   2  0.3117383719    
+   3  0.1284114778    
+ 
+     9 : q-point
+  0.3333333333      0.1666666667      0.1666666667     : q-vector (lattice coordinates)
+  0.5037832992      0.5037832992      0.3358555328     : q-vector (Cartesian coordinates)
+   1  0.2428528571    
+   2  0.1643298699    
+   3  0.1904045954    
+ 
+    10 : q-point
+ -0.1666666667      0.1666666667      0.1666666667     : q-vector (lattice coordinates)
+ -0.8326672685E-16 -0.8326672685E-16  0.3358555328     : q-vector (Cartesian coordinates)
+   1  0.9426593734    
+   2  0.9396188319    
+   3  0.1226792118    
+ 
+    11 : q-point
+ -0.3333333333      0.3333333333      0.1666666667     : q-vector (lattice coordinates)
+ -0.5551115123E-16 -0.1679277664      0.5037832992     : q-vector (Cartesian coordinates)
+   1  0.2315167304    
+   2  0.3160391914    
+   3  0.1373777122    
+ 
+    12 : q-point
+  0.5000000000     -0.5000000000      0.1666666667     : q-vector (lattice coordinates)
+   0.000000000      0.6717110656     -0.3358555328     : q-vector (Cartesian coordinates)
+   1  0.2855812945    
+   2  0.1011406274    
+   3  0.2084242043    
+ 
+    13 : q-point
+ -0.3333333333      0.5000000000      0.1666666667     : q-vector (lattice coordinates)
+  0.1679277664     -0.1679277664      0.6717110656     : q-vector (Cartesian coordinates)
+   1  0.2688313260    
+   2  0.1918836205    
+   3  0.1504610119    
+ 
+    14 : q-point
+ -0.3333333333      0.3333333333      0.3333333333     : q-vector (lattice coordinates)
+ -0.5551115123E-16 -0.5551115123E-16  0.6717110656     : q-vector (Cartesian coordinates)
+   1  0.1549688972    
+   2  0.1544242485    
+   3  0.2037811931    
+ 
+    15 : q-point
+  0.5000000000     -0.5000000000      0.3333333333     : q-vector (lattice coordinates)
+   0.000000000      0.8396388319     -0.1679277664     : q-vector (Cartesian coordinates)
+   1  0.2260872190    
+   2  0.9328007453E-01
+   3  0.1175415069    
+ 
+    16 : q-point
+  0.5000000000      0.5000000000     -0.5000000000     : q-vector (lattice coordinates)
+   1.007566598       0.000000000       0.000000000     : q-vector (Cartesian coordinates)
+   1  0.8787450443E-01
+   2  0.8700101986E-01
+   3  0.9131078202E-01
+ 

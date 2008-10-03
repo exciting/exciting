@@ -31,7 +31,7 @@ if ((.not.spinpol).or.(fixspin.eq.0)) return
 t1=1.d0/y00
 ! determine the global effective field
 if ((fixspin.eq.1).or.(fixspin.eq.3)) then
-  if (ndmag.eq.3) then
+  if (ncmag) then
     v(:)=momfix(:)
   else
     v(1)=momfix(3)
@@ -58,7 +58,7 @@ if ((fixspin.eq.2).or.(fixspin.eq.3)) then
   do is=1,nspecies
     do ia=1,natoms(is)
       ias=idxas(ia,is)
-      if (ndmag.eq.3) then
+      if (ncmag) then
         v(:)=mommtfix(:,ia,is)
       else
         v(1)=mommtfix(3,ia,is)

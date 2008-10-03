@@ -52,16 +52,10 @@ real(8) fr1(nr),fr2(nr),gr(nr),cf(3,nr)
 ! external functions
 complex(8) zdotc
 external zdotc
-if (lmax.lt.0) then
-  write(*,*)
-  write(*,'("Error(zfmtinp): lmax < 0 : ",I8)') lmax
-  write(*,*)
-  stop
-end if
 lmmax=(lmax+1)**2
 do ir=1,nr
   t1=r(ir)**2
-  zt1=zdotc(lmmax,zfmt1(1,ir),1,zfmt2(1,ir),1)
+  zt1=zdotc(lmmax,zfmt1(:,ir),1,zfmt2(:,ir),1)
   fr1(ir)=t1*dble(zt1)
   fr2(ir)=t1*aimag(zt1)
 end do

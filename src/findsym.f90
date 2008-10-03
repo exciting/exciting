@@ -64,16 +64,16 @@ do isym=1,nsymlat
 ! map apl1 coordinates to [0,1) and store in apl3
     do ia=1,natoms(is)
       apl3(:,ia)=apl1(:,ia,is)
-      call r3frac(epslat,apl3(1,ia),iv)
+      call r3frac(epslat,apl3(:,ia),iv)
     end do
     do ja=1,natoms(is)
 ! apply lattice symmetry to atomic positions
-      call r3mv(sl,apl2(1,ja,is),v)
+      call r3mv(sl,apl2(:,ja,is),v)
 ! map coordinates to [0,1)
       call r3frac(epslat,v,iv)
 ! check if atomic positions are invariant
       do ia=1,natoms(is)
-        t1=r3taxi(apl3(1,ia),v)
+        t1=r3taxi(apl3(:,ia),v)
         if (t1.lt.epslat) then
 ! equivalent atom index
           jea(ia,is)=ja
@@ -103,7 +103,7 @@ do isym=1,nsymlat
 ! determinant of the symmetry matrix
       md=symlatd(jsym)
 ! rotate global field and check invariance using proper part of symmetry matrix
-      call r3mv(symlatc(1,1,jsym),bfieldc,v)
+      call r3mv(symlatc(:,:,jsym),bfieldc,v)
       v(:)=v(:)*dble(md)
       t1=r3taxi(bfieldc,v)
 ! if not invariant try a different global spin rotation
@@ -113,9 +113,9 @@ do isym=1,nsymlat
         do ia=1,natoms(is)
 ! equivalent atom
           ja=jea(ia,is)
-          call r3mv(symlatc(1,1,jsym),bfcmt(1,ja,is),v)
+          call r3mv(symlatc(:,:,jsym),bfcmt(:,ja,is),v)
           v(:)=v(:)*dble(md)
-          t1=r3taxi(bfcmt(1,ia,is),v)
+          t1=r3taxi(bfcmt(:,ia,is),v)
 ! if not invariant try a different global spin rotation
           if (t1.gt.epslat) goto 20
         end do

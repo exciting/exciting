@@ -60,7 +60,7 @@ do ip3=0,np3d(3)-1
   end do
 end do
 do i=1,nf
-  call rfarray(lmax,ld,rfmt(1,1,1,i),rfir(1,i),ip,vpl,fp(1,i))
+  call rfarray(lmax,ld,rfmt(:,:,:,i),rfir(:,i),ip,vpl,fp(:,i))
 end do
 write(fnum,'(3I6," : grid size")') nup3d(1)*np3d(1),nup3d(2)*np3d(2), &
  nup3d(3)*np3d(3)

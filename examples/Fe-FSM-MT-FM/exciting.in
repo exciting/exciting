@@ -5,9 +5,6 @@
 tasks
   0
 
-beta0
- 0.05
-
 ! ferromagnetic local fixed spin moment calculation
 fixspin
   2

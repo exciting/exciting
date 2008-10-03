@@ -22,7 +22,7 @@ real(8), parameter :: alpha=1.d0/137.03599911d0
 ! electron g factor
 real(8), parameter :: ge=2.0023193043718d0
 real(8), parameter :: ga4=ge*alpha/4.d0
-real(8) cpu0,cpu1
+real(8) ts0,ts1
 ! automatic arrays
 complex(8) zftp1(lmmaxvr,nspnfv),zftp2(lmmaxvr)
 ! allocatable arrays
@@ -45,7 +45,7 @@ if (.not.spinpol) then
   write(*,*)
   stop
 end if
-call cpu_time(cpu0)
+call timesec(ts0)
 allocate(bmt(lmmaxvr,nrcmtmax,3))
 allocate(bir(ngrtot,3))
 allocate(rwork(3*nstsv))
@@ -69,8 +69,8 @@ do is=1,nspecies
     do ir=1,nrmt(is),lradstp
       irc=irc+1
       do i=1,3
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
-         bxcmt(1,ir,ias,i),1,0.d0,bmt(1,irc,i),1)
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,bxcmt(:,ir,ias,i), &
+         1,0.d0,bmt(:,irc,i),1)
       end do
     end do
 ! external muffin-tin magnetic field
@@ -82,27 +82,27 @@ do is=1,nspecies
 ! compute the first-variational wavefunctions
     do ispn=1,nspnfv
       do ist=1,nstfv
-        call wavefmt(lradstp,lmaxvr,is,ia,ngk(ik,ispn),apwalm(1,1,1,1,ispn), &
-         evecfv(1,ist,ispn),lmmaxvr,wfmt1(1,1,ist,ispn))
+        call wavefmt(lradstp,lmaxvr,is,ia,ngk(ispn,ik),apwalm(:,:,:,:,ispn), &
+         evecfv(:,ist,ispn),lmmaxvr,wfmt1(:,:,ist,ispn))
       end do
     end do
     do jst=1,nstfv
       do irc=1,nrcmt(is)
 ! convert wavefunctions to spherical coordinates
         do ispn=1,nspnfv
-          call zgemv('N',lmmaxvr,lmmaxvr,zone,zbshtapw,lmmaxapw, &
-           wfmt1(1,irc,jst,ispn),1,zzero,zftp1(1,ispn),1)
+          call zgemv('N',lmmaxvr,lmmaxvr,zone,zbshtvr,lmmaxvr, &
+           wfmt1(:,irc,jst,ispn),1,zzero,zftp1(:,ispn),1)
         end do
 ! apply effective magnetic field and convert to spherical harmonics
         zftp2(:)=zftp1(:,1)*bmt(:,irc,3)
         call zgemv('N',lmmaxvr,lmmaxvr,zone,zfshtvr,lmmaxvr,zftp2,1,zzero, &
-         wfmt2(1,irc,1),1)
+         wfmt2(:,irc,1),1)
         zftp2(:)=-zftp1(:,2)*bmt(:,irc,3)
         call zgemv('N',lmmaxvr,lmmaxvr,zone,zfshtvr,lmmaxvr,zftp2,1,zzero, &
-         wfmt2(1,irc,2),1)
+         wfmt2(:,irc,2),1)
         zftp2(:)=zftp1(:,2)*cmplx(bmt(:,irc,1),-bmt(:,irc,2),8)
         call zgemv('N',lmmaxvr,lmmaxvr,zone,zfshtvr,lmmaxvr,zftp2,1,zzero, &
-         wfmt2(1,irc,3),1)
+         wfmt2(:,irc,3),1)
       end do
 ! apply LDA+U potential if required
       if ((ldapu.ne.0).and.(llu(is).ge.0)) then
@@ -142,7 +142,7 @@ do is=1,nspecies
           end if
           if (i.le.j) then
             evecsv(i,j)=evecsv(i,j)+zfmtinp(.true.,lmaxmat,nrcmt(is), &
-             rcmt(1,is),lmmaxvr,wfmt1(1,1,ist,ispn),wfmt2(1,1,k))
+             rcmt(:,is),lmmaxvr,wfmt1(:,:,ist,ispn),wfmt2(:,:,k))
           end if
         end do
       end do
@@ -159,12 +159,12 @@ end do
 do jst=1,nstfv
   do ispn=1,nspnfv
     zfft1(:,ispn)=0.d0
-    do igk=1,ngk(ik,ispn)
-      ifg=igfft(igkig(igk,ik,ispn))
+    do igk=1,ngk(ispn,ik)
+      ifg=igfft(igkig(igk,ispn,ik))
       zfft1(ifg,ispn)=evecfv(igk,jst,ispn)
     end do
 ! Fourier transform wavefunction to real-space
-    call zfftifc(3,ngrid,1,zfft1(1,ispn))
+    call zfftifc(3,ngrid,1,zfft1(:,ispn))
   end do
 ! multiply with magnetic field and transform to G-space
   do k=1,3
@@ -179,8 +179,8 @@ do jst=1,nstfv
       zfft2(:)=zfft1(:,2)*cmplx(bir(:,1),-bir(:,2),8)
     end if
     call zfftifc(3,ngrid,-1,zfft2)
-    do igk=1,ngk(ik,ispn)
-      ifg=igfft(igkig(igk,ik,ispn))
+    do igk=1,ngk(ispn,ik)
+      ifg=igfft(igkig(igk,ispn,ik))
       zv(igk,k)=zfft2(ifg)
     end do
   end do
@@ -201,7 +201,7 @@ do jst=1,nstfv
       end if
       if (i.le.j) then
         evecsv(i,j)=evecsv(i,j) &
-         +zdotc(ngk(ik,ispn),evecfv(1,ist,ispn),1,zv(1,k),1)
+         +zdotc(ngk(ispn,ik),evecfv(:,ist,ispn),1,zv(:,k),1)
       end if
     end do
   end do
@@ -215,7 +215,7 @@ do ispn=1,nspinor
   end do
 end do
 ! diagonalise the Hamiltonian
-call zheev('V','U',nstsv,evecsv,nstsv,evalsv(1,ik),work,lwork,rwork,info)
+call zheev('V','U',nstsv,evecsv,nstsv,evalsv(:,ik),work,lwork,rwork,info)
 if (info.ne.0) then
   write(*,*)
   write(*,'("Error(seceqnss): diagonalisation of the second-variational &
@@ -227,9 +227,9 @@ if (info.ne.0) then
 end if
 deallocate(bmt,bir,rwork)
 deallocate(wfmt1,wfmt2,zfft1,zfft2,work)
-call cpu_time(cpu1)
+call timesec(ts1)
 !$OMP CRITICAL
-timesv=timesv+cpu1-cpu0
+timesv=timesv+ts1-ts0
 !$OMP END CRITICAL
 return
 end subroutine

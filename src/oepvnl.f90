@@ -24,7 +24,7 @@ do ik=firstk(rank),lastk(rank)
 do ik=1,nkpt
  write(*,'("Info(oepvnl): ",I6," of ",I6," k-points")') ik,nkpt
 #endif
-  call oepvnlk(ik,vnlcv(1,1,1,ik),vnlvv(1,1,ik))
+  call oepvnlk(ik,vnlcv(:,:,:,ik),vnlvv(:,:,ik))
 end do
 !$OMP END DO
 !$OMP END PARALLEL

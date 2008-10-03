@@ -41,7 +41,7 @@ zfft2(:)=0.d0
 ! loop over crystal symmetries
 do isym=1,nsymcrys
 ! translation in Cartesian coordinates
-  call r3mv(avec,vtlsymc(1,isym),vtc)
+  call r3mv(avec,vtlsymc(:,isym),vtc)
 ! index to lattice symmetry of spatial rotation
   lspl=lsplsymc(isym)
 ! inverse rotation required for rotation of G-vectors

@@ -1,3 +1,8 @@
+
+! Copyright (C) 2007-2008 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
+! This file is distributed under the terms of the GNU Lesser General Public
+! License. See the file COPYING for license details.
+
 subroutine energykncr
 use modmain
 implicit none
@@ -22,8 +27,8 @@ do is=1,nspecies
     do ir=1,nrmt(is)
       rfmt(1,ir)=rhocr(ir,ias)/y00
     end do
-    engykncr=engykncr-rfmtinp(1,0,nrmt(is),spr(1,is),lmmaxvr,rfmt, &
-     veffmt(1,1,ias))
+    engykncr=engykncr-rfmtinp(1,0,nrmt(is),spr(:,is),lmmaxvr,rfmt, &
+     veffmt(:,:,ias))
   end do
 end do
 deallocate(rfmt)

@@ -12,9 +12,9 @@ complex(8), allocatable :: evecsv(:,:)
 integer ik
 allocate(evecsv(nstsv,nstsv))
 do ik=1,nkpt
-  call getevecsv(vkl(1,ik),evecsv)
-  call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(1,1,ik),nstsv,evecsv, &
-   nstsv,zzero,dkdc(1,1,ik),nstsv)
+  call getevecsv(vkl(:,ik),evecsv)
+  call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(:,:,ik),nstsv,evecsv, &
+   nstsv,zzero,dkdc(:,:,ik),nstsv)
 end do
 deallocate(evecsv)
 return

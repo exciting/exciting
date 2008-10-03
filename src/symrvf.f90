@@ -76,15 +76,15 @@ do is=1,nspecies
 ! parallel transport of vector field
         lspl=lsplsymc(isym)
         do i=1,ndmag
-          call symrfmt(lrstp,is,symlatc(1,1,lspl),rvfmt1(1,1,ja,i), &
-           rvfmt2(1,1,i))
+          call symrfmt(lrstp,is,symlatc(:,:,lspl),rvfmt1(:,:,ja,i), &
+           rvfmt2(:,:,i))
         end do
 ! global spin proper rotation matrix in Cartesian coordinates
         lspn=lspnsymc(isym)
         md=symlatd(lspn)
         sc(:,:)=dble(md)*symlatc(:,:,lspn)
 ! global spin rotation of vector field
-        if (ndmag.eq.3) then
+        if (ncmag) then
 ! non-collinear case
           do ir=1,nrmt(is),lrstp
             do lm=1,lmmaxvr
@@ -125,8 +125,8 @@ do is=1,nspecies
           lspl=lsplsymc(isym)
           ilspl=isymlat(lspl)
           do i=1,ndmag
-            call symrfmt(lrstp,is,symlatc(1,1,ilspl),rvfmt(1,1,ias,i), &
-             rvfmt(1,1,jas,i))
+            call symrfmt(lrstp,is,symlatc(:,:,ilspl),rvfmt(:,:,ias,i), &
+             rvfmt(:,:,jas,i))
           end do
 ! inverse of global proper rotation matrix in Cartesian coordinates
           lspn=lspnsymc(isym)
@@ -134,7 +134,7 @@ do is=1,nspecies
           md=symlatd(ilspn)
           sc(:,:)=dble(md)*symlatc(:,:,ilspn)
 ! global spin rotation of vector field
-          if (ndmag.eq.3) then
+          if (ncmag) then
 ! non-collinear case
             do ir=1,nrmt(is),lrstp
               do lm=1,lmmaxvr

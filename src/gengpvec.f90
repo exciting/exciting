@@ -60,7 +60,7 @@ do ig=1,ngvec
 ! G+p-vector in Cartesian coordinates
     vgpc(:,igp)=v(:)
 ! G+p-vector length and (theta, phi) coordinates
-    call sphcrd(vgpc(1,igp),gpc(igp),tpgpc(1,igp))
+    call sphcrd(vgpc(:,igp),gpc(igp),tpgpc(:,igp))
   end if
 end do
 ngp=igp
