@@ -50,9 +50,9 @@ complex(8), allocatable :: veffig_(:)
 complex(8), allocatable :: vmatlu_(:,:,:,:,:)
 #ifdef XS
 if (isreadstate0) then
-else
 open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
  status='OLD',iostat=iostat)
+else
 #endif
 open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
  status='OLD',iostat=iostat)

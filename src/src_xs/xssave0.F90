@@ -30,7 +30,7 @@ subroutine xssave0
   if (allocated(gkc0)) deallocate(gkc0)
   if (allocated(tpgkc0)) deallocate(tpgkc0)
   if (allocated(sfacgk0)) deallocate(sfacgk0)
-  allocate(ngk0(nkpt,nspnfv))
+  allocate(ngk0(nspnfv,nkpt))
   allocate(igkig0(ngkmax,nspnfv,nkpt))
   allocate(vgkl0(3,ngkmax,nspnfv,nkpt))
   allocate(vgkc0(3,ngkmax,nspnfv,nkpt))
@@ -39,7 +39,7 @@ subroutine xssave0
   allocate(sfacgk0(ngkmax,natmtot,nspnfv,nkpt))
   ! overlap and Hamiltonian matrix sizes
   if (allocated(nmat0)) deallocate(nmat0)
-  allocate(nmat0(nkpt,nspnfv))
+  allocate(nmat0(nspnfv,nkpt))
   ! save variables for k-vectors
   nkpt0=nkpt
   vkl0(:,:) = vkl(:,:)

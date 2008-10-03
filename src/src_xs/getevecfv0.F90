@@ -16,9 +16,9 @@ subroutine getevecfv0(vpl,vgpl,evecfvt)
   real(8), allocatable :: vklt(:,:), vgklt(:,:,:,:)
   character(256) :: filextt
   ! copy varialbes of k+(q=0) to default variables
-  allocate(ngkt(nkpt,nspnfv))
+  allocate(ngkt(nspnfv,nkpt))
   allocate(vklt(3,nkptnr))
-  allocate(vgklt(3,ngkmax,nkpt,nspnfv))
+  allocate(vgklt(3,ngkmax,nspnfv,nkpt))
   nmatmaxt=nmatmax
   nmatmax=nmatmax0
   ngkmaxt=ngkmax

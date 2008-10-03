@@ -1013,6 +1013,251 @@ case('mustar')
   read(50,*,err=20) mustar
 case('sqados')
   read(50,*,err=20) sqados(:)
+#ifdef TETRA
+!  tetrahedron method variables
+case('tetraocc')
+  read(50,*,err=20) tetraocc
+case('tetraopt')
+  read(50,*,err=20) tetraopt
+case('tetradf')
+  read(50,*,err=20) tetradf
+case('tetrakordexc')
+  read(50,*,err=20) tetrakordexc
+#endif
+#ifdef XS
+! TDDFT variables
+case('imbandstr')
+  read(50,*,err=20) imbandstr
+case('vgqlmt')
+  read(50,*,err=20) nqptmt
+  if (nqptmt.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput): nqptmt <= 0 : ",I8)') nqptmt
+    write(*,*)
+    stop
+  end if
+  if (allocated(vgqlmt)) deallocate(vgqlmt)
+  allocate(vgqlmt(3,nqptmt))
+  do i=1,nqptmt
+    read(50,*,err=20) vgqlmt(:,i)
+  end do
+case('mdfqtype')
+  read(50,*,err=20) mdfqtype
+  if ((mdfqtype.lt.0).or.(mdfqtype.gt.1)) then
+    write(*,*)
+    write(*,'("Error(readinput): mdfqtype not in {0,1} : ",I8)') mdfqtype
+    write(*,*)
+    stop
+  end if
+case('vqloff')
+   read(50,*,err=20) vqloff(1),vqloff(2),vqloff(3)
+case('tq0ev')
+   read(50,*,err=20) tq0ev
+case('gqmax')
+  read(50,*,err=20) gqmax
+case('lmaxapwwf')
+  read(50,*,err=20) lmaxapwwf
+  if (lmaxapwwf.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput)[td]: lmaxapwwf < 0 : ",I8)') lmaxapwwf
+    write(*,*)
+    stop
+  end if
+case('fastpmat')
+  read(50,*,err=20) fastpmat
+case('fastemat')
+  read(50,*,err=20) fastemat
+case('emattype')
+  read(50,*,err=20) emattype
+case('lmaxemat')
+  read(50,*,err=20) lmaxemat
+  if (lmaxemat.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): lmaxemat < 0 : ",I8)') lmaxemat
+    write(*,*)
+    stop
+  end if
+case('rsptype')
+  read(50,*,err=20) rsptype
+  if ((rsptype.ne.'tord').and.(rsptype.ne.'reta')) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): invalid rsptype : ",a)') rsptype
+    write(*,*)
+    stop
+  end if
+case('acont')
+  read(50,*,err=20) acont
+case('nwacont')
+  read(50,*,err=20) nwacont
+  if (broad.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput[td]): nwacont <= 0 : ",g18.10)') nwacont
+    write(*,*)
+    stop
+  end if
+case('broad')
+  read(50,*,err=20) broad
+  if (broad.le.0) then
+    write(*,*)
+    write(*,'("Warning(readinput[td]): broad <= 0 : ",g18.10)') broad
+    write(*,*)
+  end if
+case('aresdf')
+  read(50,*,err=20) aresdf
+case('epsdfde')
+  read(50,*,err=20) epsdfde
+  if (broad.le.0) then
+    write(*,*)
+    write(*,'("Warning(readinput[td]): epsdfde <= 0 : ",g18.10)') epsdfde
+    write(*,*)
+  end if
+case('emaxdf')
+  read(50,*,err=20) emaxdf
+case('symwings')
+  read(50,*,err=20) symwings
+case('lfediag')
+  read(50,*,err=20) lfediag
+case('fxctype')
+  read(50,*,err=20) fxctype
+case('nexcitmax')
+  read(50,*,err=20) nexcitmax
+case('alphalrc')
+  read(50,*,err=20) alphalrc
+case('alphalrcdyn')
+  read(50,*,err=20) alphalrcdyn
+case('betalrcdyn')
+  read(50,*,err=20) betalrcdyn
+case('dftrans')
+  read(50,*,err=20) ndftrans
+  if (allocated(dftrans)) deallocate(dftrans)
+  allocate(dftrans(3,ndftrans))
+  do i=1,ndftrans
+    read(50,'(A80)') str
+    if (trim(str).eq.'') then
+      write(*,*)
+      write(*,'("Error(readinput): missing k-point and state in list for &
+           &transition analysis")')
+      write(*,*)
+      stop
+    end if
+    read(str,*,iostat=iostat) dftrans(:,i)
+    if (iostat.ne.0) then
+      write(*,*)
+      write(*,'("Error(readinput): error reading k-point and state list for&
+           &transition analysis")')
+      write(*,'("(blank line required after dftrans block)")')
+      write(*,*)
+      stop
+    end if
+  end do
+case('tetraqweights')
+  read(50,*,err=20) tetraqweights
+case('gather')
+  read(50,*,err=20) gather
+case('symmorph')
+  read(50,*,err=20) symmorph
+case('tevout')
+  read(50,*,err=20) tevout
+case('appinfo')
+  read(50,*,err=20) tappinfo
+case('dbglev')
+  read(50,*,err=20) dbglev
+  ! screening variables
+case('screentype')
+   read(50,*,err=20) screentype
+   select case(trim(screentype))
+   case('full','diag','noinvdiag','longrange')
+   case default
+      write(*,*)
+      write(*,'("Error(readinput): unknown screening type: ",a)') &
+           trim(screentype)
+      write(*,*)
+      stop
+   end select
+case('nosymscr')
+  read(50,*,err=20) nosymscr
+case('reducekscr')
+  read(50,*,err=20) reducekscr
+case('ngridkscr')
+  read(50,*,err=20) ngridkscr(1),ngridkscr(2),ngridkscr(3)
+  if ((ngridkscr(1).le.0).or.(ngridkscr(2).le.0).or.(ngridkscr(3).le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput): invalid ngridkscr : ",3I8)') ngridkscr
+    write(*,*)
+    stop
+  end if
+case('vkloffscr')
+  read(50,*,err=20) vkloffscr(1),vkloffscr(2),vkloffscr(3)
+case('rgkmaxscr')
+  read(50,*,err=20) rgkmaxscr
+  if (rgkmaxscr.le.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput[screen]): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
+    write(*,*)
+    stop
+  end if
+case('nemptyscr')
+  read(50,*,err=20) nemptyscr
+  if (nemptyscr.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput): nemptyscr <= 0 : ",I8)') nemptyscr
+    write(*,*)
+    stop
+  end if
+case('scrherm')
+  read(50,*,err=20) scrherm
+case('fnevecfvscr')
+  read(50,*,err=20) fnevecfvscr
+case('fnevalsvscr')
+  read(50,*,err=20) fnevalsvscr
+case('fnoccsvscr')
+  read(50,*,err=20) fnoccsvscr
+  ! BSE (-kernel) variables
+case('bsetype')
+   read(50,*,err=20) bsetype
+   select case(trim(bsetype))
+   case('ip','rpa','singlet','triplet')
+   case default
+      write(*,*)
+      write(*,'("Error(readinput): unknown BSE-type: ",a)') &
+           trim(bsetype)
+      write(*,*)
+      stop
+   end select
+case('nosymbse')
+  read(50,*,err=20) nosymbse
+case('reducekbse')
+  read(50,*,err=20) reducekbse
+case('vkloffbse')
+  read(50,*,err=20) vkloffbse(1),vkloffbse(2),vkloffbse(3)
+case('bsediagweight')
+  read(50,*,err=20) bsediagweight
+case('bsediagsym')
+  read(50,*,err=20) bsediagsym
+case('fnevecfvbse')
+  read(50,*,err=20) fnevecfvbse
+case('fnevalsvbse')
+  read(50,*,err=20) fnevalsvbse
+case('fnoccsvbse')
+  read(50,*,err=20) fnoccsvbse
+case('nstlce')
+  read(50,*,err=20) nbfce,nafce
+  if ((nbfce.le.0).or.(nafce.le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput[BSE]): nbfce or nafce <= 0 : ",I8)') nbfce,nafce
+    write(*,*)
+    stop
+  end if
+case('nstlbse')
+  read(50,*,err=20) nbfbse,nafbse
+  if ((nbfbse.le.0).or.(nafbse.le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput[BSE]): nbfbse or nafbse <= 0 : ",I8)') nbfbse, &
+         nafbse
+    write(*,*)
+    stop
+  end if
+#endif
 case('')
   goto 10
 case default
