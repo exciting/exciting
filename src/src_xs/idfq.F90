@@ -111,7 +111,11 @@ subroutine idfq(iq)
               forall(j=1:m) 
                  idf(j,j)=idf(j,j)+1.d0
               end forall
+
+
 !!!!              if ((m.ne.1).and.(oct1.ne.oct2)) idf(1,1)=idf(1,1)-1.d0
+
+
               ! Adler-Wiser treatment of macroscopic dielectric function
               igmt=ivgigq(ivgmt(1,iq),ivgmt(2,iq),ivgmt(3,iq),iq)
               if (igmt.gt.n) then
@@ -129,9 +133,13 @@ subroutine idfq(iq)
                  write(*,*)
               end if
               mdf1(iw)=1.d0/idf(igmt,igmt)
+
+
               ! ??? mimic zero Kronecker delta in case of off-diagonal tensor
               ! components ???
               if ((m.eq.1).and.(oct1.ne.oct2)) mdf1(iw)=mdf1(iw)-1.d0
+
+
               ! write macroscopic dielectric function to file
               write(unit1,rec=iw-wi+1) mdf1(iw)
            end do ! iw
