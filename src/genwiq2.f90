@@ -44,11 +44,9 @@ integer ns,iq,i1,i2,i3,i,ip
 real(8) d(3),dv,sum,t1,t2
 real(8) v1(3),v2(3),v3(3)
 real(8) xa(np),ya(np),c(np)
-real(8) :: cpu0,cpu1
 ! external functions
 real(8) polynom
 external polynom
-call cpu_time(cpu0)
 ! allocate global wiq2 array
 if (allocated(wiq2)) deallocate(wiq2)
 allocate(wiq2(ngridq(1)*ngridq(2)*ngridq(3)))
@@ -68,7 +66,7 @@ do iq=1,nqpt
       d(i)=1.d0/(dble(ngridk(i)*2*ns))
     end do
 ! smallest volume element
-    dvol=((twopi**3)/omega)*d(1)*d(2)*d(3)
+    dv=((twopi**3)/omega)*d(1)*d(2)*d(3)
 ! compute the integral of 1/q^2
     sum=0.d0
     do i1=-ns,ns-1
@@ -87,8 +85,8 @@ do iq=1,nqpt
         end do
       end do
     end do
-    sum=sum*dvol
-    xa(ip)=dvol**(1.d0/3.d0)
+    sum=sum*dv
+    xa(ip)=dv**(1.d0/3.d0)
     ya(ip)=sum
 ! increment number of subdivisions
     ns=ns+nss
@@ -96,9 +94,6 @@ do iq=1,nqpt
 ! extrapolate the volume element to zero with a polynomial
   wiq2(iq)=polynom(0,np,xa,ya,c,0.d0)
 end do
-call cpu_time(cpu1)
-t1=cpu1-cpu0
-write(*,'("Time in genwiq2 (total/q-point): ",2f12.2)') t1,t1/nqpt
 return
 end subroutine
 !EOC

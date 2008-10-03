@@ -36,7 +36,7 @@ subroutine copyfilesq0
   do ik=1,nkpt
      ! read files
      filext='_QMT001.OUT'
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
+     call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvt)
      call getevecsv(vkl(1,ik),evecsv)     
      call getevalsv(vkl(1,ik),evalsv(1,ik))
      call getoccsv(vkl(1,ik),occsv(1,ik))

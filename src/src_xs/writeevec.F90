@@ -32,11 +32,11 @@ subroutine writeevec(vq,voff,filxt)
   do ik=kpari,kparf
      apwcmt(:,:,:,:)=zzero
      locmt(:,:,:,:)=zzero
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
+     call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfv)
+     call match(ngk(1,ik),gkc(1,1,ik),tpgkc(1,1,1,ik),sfacgk(1,1,1,ik), &
           apwalm)
-     call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalm,evecfv,apwcmt)
-     call genlocmt(ngk(ik,1),1,nstfv,evecfv,locmt)
+     call genapwcmt(lmaxapw,ngk(1,ik),1,nstfv,apwalm,evecfv,apwcmt)
+     call genlocmt(ngk(1,ik),1,nstfv,evecfv,locmt)
      do j=0,procs-1
         if (rank.eq.j) then
            call putapwcmt('APWCMT'//trim(filxt),ik,vkl(1,ik),vq,apwcmt)

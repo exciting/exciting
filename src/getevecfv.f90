@@ -26,7 +26,7 @@ subroutine getevecfv(vpl,vgpl,evecfv)
   complex(8), allocatable :: evecfv_(:,:,:)
 #endif
   complex(8), allocatable :: evecfvt(:,:)
-  complex(8), allocatable :: zflm1(:,:),zflm1(:,:)
+  complex(8), allocatable :: zflm1(:,:),zflm2(:,:)
   character(256) ::filetag
   character(256), external:: outfilenamestring
   ! find the equivalent k-point number and crystal symmetry element

@@ -82,10 +82,10 @@ subroutine writepwmat
      do ik=1,nkpt
         write(*,*) 'Info(writepwmat): ik',ik
         ! get the eigenvectors from file for k-point
-        call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvk)
+        call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvk)
         call getevecsv(vkl(1,ik),evecsvk)
         ! find the matching coefficients for k-point
-        call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
+        call match(ngk(1,ik),gkc(1,1,ik),tpgkc(1,1,1,ik),sfacgk(1,1,1,ik), &
              apwalmk)
         ! find k-point equivalent to k+q
         vpl(:)=vql(:,iq)+vkl(:,ik)
@@ -93,16 +93,16 @@ subroutine writepwmat
         write(*,*) 'ik,ikp',ik,ikp
         vkpl(:)=vkl(:,ikp)
         ! get the eigenvectors from file for kp-point
-        call getevecfv(vkl(1,ikp),vgkl(1,1,ikp,1),evecfvkp)
+        call getevecfv(vkl(1,ikp),vgkl(1,1,1,ikp),evecfvkp)
         call getevecsv(vkl(1,ikp),evecsvkp)
         ! find the matching coefficients for kp-point
-        call match(ngk(ikp,1),gkc(1,ikp,1),tpgkc(1,1,ikp,1),sfacgk(1,1,ikp,1), &
+        call match(ngk(1,ikp),gkc(1,1,ikp),tpgkc(1,1,1,ikp),sfacgk(1,1,1,ikp), &
              apwalmkp)
         ! calculate the matrix elements of the plane wave
         call genpwmat(vql(1,iq),ngqmax,ngq(iq),vgqc(1,1,iq),gqc(1,iq), &
              igqig(1,iq),&
-             ylmgq(1,1,iq),sfacgq(1,1,iq),vkl(1,ik),ngk(ik,1),igkig(1,ik,1), &
-             apwalmk,evecfvk,evecsvk,vkl(1,ikp),ngk(ikp,1),igkig(1,ikp,1), &
+             ylmgq(1,1,iq),sfacgq(1,1,iq),vkl(1,ik),ngk(1,ik),igkig(1,1,ik), &
+             apwalmk,evecfvk,evecsvk,vkl(1,ikp),ngk(1,ikp),igkig(1,1,ikp), &
              apwalmkp,evecfvkp,evecsvkp,pwmat)
         ! write to ASCII file
         do igq=1,ngq(iq)

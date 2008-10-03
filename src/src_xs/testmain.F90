@@ -27,8 +27,8 @@ subroutine testmain
   ! first variational eigenvectors
   write(*,'(a,4i6)') 'istfvi,istfvf,nstfvr,ik',istfvi,istfvf,nstfvr,ik
   allocate(ev(nmatmax,nstfv,nspnfv),evr(nmatmax,nstfvr,nspnfv))
-  call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),ev)
-  call getevecfvr(istfvi,istfvf,vkl(:,ik),vgkl(:,:,ik,1),evr)
+  call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),ev)
+  call getevecfvr(istfvi,istfvf,vkl(:,ik),vgkl(:,:,1,ik),evr)
   write(*,'("evecfv should be zero: ",2g18.10)') ev(1,istfvi,1)-evr(1,1,1)
   write(*,'("evecfv should be zero: ",2g18.10)') ev(1,istfvf,1)-evr(1,nstfvr,1)
   write(*,'("evecfv",4g18.10)') ev(1,istfvi,1),evr(1,1,1)

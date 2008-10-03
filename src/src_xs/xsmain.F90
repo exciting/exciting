@@ -78,9 +78,6 @@ subroutine xsmain
   case(350)
      ! inversion of dielectric function wrt. xc-kernel
      call idf
-  case(351)
-     ! linear optics of old version
-     call linoptold
   case(396)
      ! convolute dielectric function from tetrahedron method with Lorentzian
      call epsconv

@@ -39,6 +39,7 @@ character(256) str
 character(256) bname
 character(256) sppath
 #ifdef XS
+character(256) :: fname
 logical, parameter :: dumpmain=.true.
 logical, parameter :: dumpadd=.true.
 logical, parameter :: dumptetra=.true.
@@ -195,6 +196,7 @@ vecql(:)=0.d0
 mustar=0.15d0
 sqados(1:2)=0.d0
 sqados(3)=1.d0
+#ifdef TETRA
 ! tetrahedron method variables
 tetraocc=.false.
 tetraopt=.false.
