@@ -1,0 +1,10 @@
+include ../make.inc
+
+FC = $(F90MT) $(CPP_ON_OPT)
+F77=F77MT
+### default
+FFLAGS = $(SMPF90_OPTS) 
+LD = $(FC)
+LDFLAGS = $(SMPF90_OPTS)  $(SMP_LIBS) 
+F77_OPTS =$(SMPF77_OPTS)
+TMPFILES = *.mod

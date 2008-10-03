@@ -1,0 +1,371 @@
+#! /bin/bash
+#
+# Purpose: utilities for the EXCITING program
+#
+#	TODO: many things....
+#
+#
+# Author: S. Sagmeister
+# Date: 2006/06
+# License: GPLv2
+#
+
+#
+# global definitions
+#
+
+# input files including all species files
+f_in="exciting.in Ac.in Ag.in Al.in Am.in Ar.in As.in At.in Au.in Ba.in Be.in Bi.in B.in Bk.in Br.in Ca.in Cd.in Ce.in Cf.in C.in Cl.in Cm.in Co.in Cr.in Cs.in Cu.in Dy.in Er.in Es.in Eu.in Fe.in F.in Fm.in Fr.in Ga.in Gd.in Ge.in He.in Hf.in Hg.in H.in Ho.in I.in In.in Ir.in K.in Kr.in La.in Li.in Lr.in Lu.in Md.in Mg.in Mn.in Mo.in Na.in Nb.in Nd.in Ne.in Ni.in N.in No.in Np.in O.in Os.in Pa.in Pb.in Pd.in P.in Pm.in Po.in Pr.in Pt.in Pu.in Ra.in Rb.in Re.in Rf.in Rh.in Rn.in Ru.in Sb.in Sc.in Se.in Si.in S.in Sm.in Sn.in Sr.in Ta.in Tb.in Tc.in Te.in Th.in Ti.in Tl.in Tm.in U.in V.in W.in Xe.in Yb.in Y.in Zn.in Zr.in"
+
+# all default parameters and all actual parameters
+f_params="PARAMS_DEFAULT.OUT PARAMS.OUT "
+
+# SCF calculation
+f_scf_bin="EVALFV.OUT EVALSV.OUT EVECFV.OUT EVECSV.OUT OCCSV.OUT STATE.OUT"
+f_scf_ascii="EFERMI.OUT EIGVAL.OUT EQATOMS.OUT EVALCORE.OUT FERMIDOS.OUT GEOMETRY.OUT IADIST.OUT INFO.OUT KPOINTS.OUT LATTICE.OUT LINENGY.OUT RMSDVEFF.OUT SYMCRYS.OUT SYMLAT.OUT SYMSITE.OUT TOTENERGY.OUT MOMENT.OUT"
+f_scf_save="$f_in $f_params $f_scf_ascii STATE.OUT"
+f_scf_all="$f_in $f_params $f_scf_ascii $f_scf_bin"
+    
+# bandstructure
+f_bandstr="$f_in $f_params BANDLINES.OUT BAND.OUT BAND_NF0.OUT BANDGAP.OUT BANDGAP_GRID.OUT"
+
+# linear optic
+f_optic="$f_in $f_params EPSILON_[1-3][1-3].OUT EPSILON_TET_[1-3][1-3].OUT EPSILON_LTZ_[1-3][1-3].OUT EPSINTRA_[1-3][1-3].OUT SIGMA_[1-3][1-3].OUT SIGMA_TET_[1-3][1-3].OUT SIGMA_LTZ_[1-3][1-3].OUT SIGINTRA_[1-3][1-3].OUT PLASMA_[1-3][1-3].OUT"
+
+# *** TDDFT part
+# TDDFT input files 
+f_tddft_in="qpoints.in"
+# TDDFT optics and important files from SCF calculation
+f_tddft="$f_in $f_tddft_in $f_params EFERMI_Q*.OUT EIGVAL_Q*.OUT EMAT_TIMING_Q*.OUT EPSILON*_Q*.OUT GQPOINTS_Q*.OUT INFO_Q*.OUT KMAPKQ_Q*.OUT KPOINTS_Q*.OUT LOSS*_Q*.OUT QPOINTS.OUT SIGMA*_Q*.OUT SUMRULES*_Q*.OUT XSINFO.OUT X0_TIMING_Q*.OUT"
+
+# large TDDFT output files
+f_tddft_large="EMAT_*.OUT APWDLM_*.OUT DEVALSV_*.OUT EVECFV_*.OUT EVECSV_*.OUT OCCSV_*.OUT"
+    
+# TDDFT X0 output files
+f_tddft_x0="X0_Q*.OUT X0_AC*.OUT X0_NAR*.OUT"
+
+#---------------------------------#
+#   check environment variable    #
+#---------------------------------#
+CHKENV ()
+{
+# check for environment variable
+if [ ! ${EXCITINGROOT:+1} ]; then
+	echo "No EXCITING root-directory specified - set EXCITINGROOT environment variable"
+	exit 1
+fi
+}
+
+#-----------------#
+#   save files    #
+#-----------------#
+SAVE() #$1 #$2
+{
+    # selector for which files to save
+    selector=$1
+
+    case "$selector" in
+	scf)
+	    sfiles="$f_scf_save"
+	    ;;
+	scfall)
+	    sfiles="$f_scf_all"
+	    ;;
+	band)
+	    sfiles="$f_bandstr"
+	    ;;
+	optic)
+	    sfiles="$f_optic"
+	    ;;
+	tddft)
+	    sfiles="$f_tddft"
+	    ;;
+	*)
+	    echo " specify which files you want to save"
+	    grep '^###scf' $0 | awk -F '##scf' '{print $2}'
+	    exit 1
+    esac
+
+    pass=0
+    indirnam=$2
+    if [ ${indirnam:+1} ]; then
+	dirnam="$indirnam"
+    else
+	dirnam=results/$selector
+    fi
+    dir="$dirnam"
+    if [ ! -e $dir ]; then
+       # create directory
+	mkdir -p $dir
+    fi
+    
+    echo
+    echo "saving files for $selector:"
+    echo
+
+    for i in $sfiles; do
+	if [ -f $i ]; then
+	    echo "saving $i..."
+	    if [ -f $dir/$i ]; then
+		chmod 640 $dir/$i
+	    fi
+ 	    /bin/cp -i $i $dir && chmod 440 $dir/$i
+	else
+	    basnam=`expr "$fil" : "\(.*\).*\."`
+	    ext=`expr "$i" : ".*\.\(.*\)"`
+	    if [ ! "$ext" == "in" ] || [ "$i" == "exciting.in" ] ; then
+		echo "Warning: missing file: $i"
+	    fi
+	fi
+    done
+
+    cat <<EOF
+
+files for $selector saved in directory "$dir"
+
+EOF
+}
+
+#-----------------------------------#
+#   list parameters of inputfiles   #
+#-----------------------------------#
+DPARAM () #$1
+{
+    if [ ! ${1:+1} ]; then
+	echo
+	echo "xci dparam: no default parameter name specified"
+	echo
+	exit 1
+    fi
+    tags="$1"
+    for i in $tags; do
+	grep "^ *$1.* *=" $EXCITINGROOT/src/readinput.F90
+    done
+}
+
+
+#-----------------------------------#
+#   list parameters of inputfiles   #
+#-----------------------------------#
+PARAM () #$1 #$2
+{
+    inputfiles=exciting.in
+    tags="$1"
+    if [ ${2:+1} ]; then
+	inputfiles="$2"
+    fi
+    lineh=""
+    for i in $tags; do
+	lineh="$lineh $i |"
+    done
+    lineh="$lineh param / file"
+    echo " "
+    echo $lineh
+    echo "==============================================================================="
+    # extract block
+    for i in $inputfiles; do
+	line=""
+	for j in $tags; do
+	    str="`cat $i | grep -v '^ *#'| awk '/'$j'/,/^ *$/' | awk -F':' '{print $1}' | grep -v $j`"
+	    if [ "$str" == "" ]; then
+		str="NA"
+	    fi
+	    line=" $line $str |"
+	done
+	line="$line $i"
+	echo $line
+    done
+    echo " "
+}
+
+#----------------------------#
+#   remove all outputfiles   #
+#----------------------------#
+CLEAN () #$1
+{
+    selector="$1"
+    case "$selector" in
+	allout)
+	    msg="deleting all output files"
+	    dfiles=""
+	    ;;
+	out)
+	    msg="deleting all output files except EFERMI.OUT and STATE.OUT"
+	    ;;
+	allbin)
+	    msg="deleting all binary output files"
+	    ;;
+	bin)
+	    msg="deleting all binary output files except STATE.OUT"
+	    ;;
+	tdall)
+	    msg="deleting all binary output files of TDDFT"
+	    ;;
+	tdvec)
+	    msg="deleting eigenvector -value and occupancy files"
+	    ;;
+	tdmat)
+	    msg="deleting matrix elements files"
+	    ;;
+	tdx)
+	    msg="deleting response function files"
+    esac
+}
+
+
+#------------------------------------------#
+#   information about exciting processes   #
+#------------------------------------------#
+INFOEXC ()
+{
+    echo "info - to be implemented"
+}
+
+
+#-------------------------#
+#   monitor calculation   #
+#-------------------------#
+MONSCF ()
+{
+    ofile=INFO.OUT
+    taillen=5
+
+    isfinished=`grep 'EXCITING version.*stopped' $ofile | wc -l`
+
+    echo
+    if [ $isfinished == 1 ]; then
+	str='finished'
+    else
+	str='is'
+    fi
+    echo "Calculation $str at iteration Nr. `grep Iteration $ofile | tail -1 | awk '{print $5}'`"
+    echo
+
+    echo "Analyzing output file $ofile:"
+    echo "---------------------------------------------------------"
+    grep 'target' $ofile | tail -$taillen
+    echo
+
+    echo "Analyzing total energies TOTENERGY.OUT:"
+    echo "---------------------------------------------------------"
+    tail -$taillen TOTENERGY.OUT
+    echo
+
+    echo "Analyzing density of states at Fermi energy FERMIDOS.OUT:"
+    echo "---------------------------------------------------------"
+    tail -$taillen FERMIDOS.OUT
+    echo
+
+    echo "Analyzing Fermi energy EFERMI.OUT"
+    echo "---------------------------------------------------------"
+    test -f EFERMI.OUT && tail -$taillen EFERMI.OUT
+    echo
+}
+
+#-------------------------------#
+#   monitor TDDFT calculation   #
+#-------------------------------#
+MONTD ()
+{
+    if [ ${1:+1} ]; then
+	if [ -d $1 ]; then
+	    cd $1
+	else
+	    echo "Error: directory $1 does not exist"
+	    exit 1
+	fi
+    fi
+
+    echo
+    echo "Status of matrix elements of planewave:"
+    echo "==============================================="
+    j=0
+    for i in EMAT_TIMING_Q*.OUT .EMAT_TIMING_Q*_par*.OUT; do
+	j=`expr $j + 1`
+	if [ -s $i ]; then
+	    str="`tail -25 $i | grep CPU`"
+	    printf "%5d: $str\n" $j
+	fi
+    done
+    echo
+
+    echo
+    echo "Status of Kohn-Sham response function:"
+    echo "==============================================="
+    j=0
+    for i in X0_TIMING_Q*.OUT .X0_TIMING_Q*_par*.OUT; do
+	j=`expr $j + 1`
+	if [ -s $i ]; then
+	    str="`tail -5 $i | grep CPU`"
+	    printf "%5d: $str\n" $j
+	fi
+    done
+    echo    
+}
+
+KILL ()
+{
+
+test -x /sbin/pidof && cmd=/sbin/pidof
+test -x /bin/pidof && cmd=/bin/pidof
+
+pids=`$cmd -x exciting`
+if [ $pids ]; then
+	echo "killing instances of exciting with pids: $pids ......."
+	kill $pids
+	kill -9 $pids
+	echo "done"
+fi
+
+}
+
+#---------------#
+#   main part   #
+#---------------#
+
+# check for environment variable
+CHKENV
+
+# selection
+case "$1" in
+    dparam)
+	DPARAM "$2"
+	;;
+    param)
+	PARAM "$2" "$3"
+	;;
+    save)
+	SAVE $2 "$3"
+	;;
+    info)
+	INFOEXC
+	;;
+    monscf)
+	MONSCF
+	;;
+    montd)
+	MONTD $2
+	;;
+    kill)
+	KILL
+	;;
+    *)
+	echo
+	echo $" Usage: `basename $0` {info|monscf|montd|dparam|param|kill|save}"
+	echo ""
+	exit 1
+esac
+
+###############################################################################
+### help output below, scripts prints part of itself ###
+###############################################################################
+
+###param
+###param Usage: xci param {ngridk}
+###param
+
+###scf
+###scf Usage: xci save {scf|scfall|band|optic|tddft}
+###scf
+
+#.

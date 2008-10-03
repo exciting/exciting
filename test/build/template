@@ -1,0 +1,13 @@
+include ../../build/make.inc
+
+FC = $(F90)
+
+
+FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT)
+
+LD = $(FC)
+LDFLAGS =$(F90_OPTS) $(LIBS) $(F90_DEBUGOPTS)
+
+F77=$(F77) 
+
+TMPFILES = *.mod
