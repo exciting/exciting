@@ -76,6 +76,7 @@ subroutine dfq(iq)
 !
 ! !REVISION HISTORY:
 !   Created March 2005 (Sagmeister)
+!   Added band and k-point analysis, 2007-2008 (Sagmeister)
 !EOP
 !BOC
   implicit none
@@ -94,11 +95,11 @@ subroutine dfq(iq)
   real(8), allocatable :: cw1k(:,:,:),cwa1k(:,:,:),cwsurf1k(:,:,:)
   real(8), allocatable :: scis12(:,:),scis21(:,:),eb(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
-  integer :: n,j,i1,i2,j1,j2,a1,a2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
+  integer :: n,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
   integer :: oct,oct1,oct2,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
-  logical, external :: tqgamma
+  logical, external :: tqgamma,transik,transijst
   if (acont.and.tscreen) then
      write(*,*)
      write(*,'("Error(",a,"): analytic continuation does not work for &
@@ -250,6 +251,10 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
 
   ! loop over k-points
   do ik=1,nkpt
+
+     ! k-point analysis
+     if (.not.transik(ik,dftrans)) cycle
+
      write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
           ikmapikq(ik,iq)
      cpuosc=0.d0
@@ -289,9 +294,6 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
         docc21(:,:)=transpose(docc12(:,:))
         scis21(:,:)=transpose(scis12(:,:))
      end if
-     ! Lindhard function
-     !TODO *** if (lindhard) then; xiou=xiuo=pmou=pmuo=zone ***
-
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
      ! response function
      if (.not.aresdf) then
@@ -327,12 +329,18 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
            !---------------------!
            !     denominator     !
            !---------------------!
+           ! absolute band indices
+           i1=ist1
+           i2=istunocc0+ist2-1
+           ! band analysis
+           if (.not.transijst(ik,i1,i2,dftrans)) cycle
+
+write(*,*) 'ik,i1,i2',ik,i1,i2
+
            call cpu_time(cpu0)
            ! user request termination
            call terminate_inqr('dfq')
            if (tetradf) then
-              ! absolute band indices
-              i1=ist1; i2=istunocc0+ist2-1
               ! mirror index pair on diagonal if necessary
               if (i1.gt.i2) then
                  j1=ist2
@@ -359,17 +367,6 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
            end if
            hou(:,:)=zzero
            huo(:,:)=zzero
-
-
-!TODO: try ZGERC(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
-!*  ZGERC  performs the rank 1 operation
-!*
-!*     A := alpha*x*conjg( y' ) + A,
-!*
-!*  where alpha is a scalar, x is an m element vector, y is an n element
-!*  vector and A is an m by n matrix.
-!*
-
            !---------------------!
            !     oscillators     !
            !---------------------!
@@ -433,10 +430,10 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                        if (tetradf) then
                           wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
                                deou(ist1,ist2)**2/ &
-                               (wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
+                               (wreal(iw-wi+1)+scis12(ist1,ist2))**2)
                           wuot=cmplx(dble(wuo(iw)),aimag(wuo(iw))*&
                                deuo(ist2,ist1)**2/ &
-                               (wreal(iw-wi+1)+scis21(ist2,ist1))**2) !SAG
+                               (wreal(iw-wi+1)+scis21(ist2,ist1))**2)
                        end if
                        chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
                             wout*hou(1,1)+wuot*huo(1,1)
@@ -453,6 +450,8 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
               ! * most time-consuming part of routine *
               call chi0upd(n,wou(iw),wuo(iw),hou,huo,&
                    chi0(:,:,iw-wi+1))
+              ! in place of dfqoscbo and chi0upd one could use the LAPACK
+              ! routine zgerc but this makes no difference in speed
            end do
            call cpu_time(cpu0)
            cpuupd=cpuupd+cpu0-cpu1
