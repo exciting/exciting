@@ -287,10 +287,15 @@ subroutine gndstate
         if(rank.eq.0) call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
 
 #ifdef MPI
-        call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
-        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
-        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
-        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+        call  MPI_BCAST(v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+        call  MPI_BCAST(nwork, n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+        call  MPI_BCAST(work(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+
+	
+!	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
 #endif
         ! unpack potential and field
         call packeff(.false.,n,v)

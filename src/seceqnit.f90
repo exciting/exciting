@@ -20,7 +20,7 @@ complex(8), intent(out) :: evecfv(nmatmax,nstfv)
 integer is,ia,it,i,m
 integer ist,jst,info
 integer iwork(5*2),ifail(2)
-integer cnt0,cnt1
+real ts0,ts1
 real(8) vl,vu,w(2),t1
 real(8) rwork(7*2)
 complex(8) ap(3),bp(3),z(2,2)
@@ -34,7 +34,7 @@ complex(8), allocatable :: og(:)
 ! external functions
 complex(8) zdotc
 external zdotc
-call system_clock(COUNT=cnt0)
+call timesec(ts0)
 allocate(o(nmatp,nstfv))
 if ((iscl.ge.2).or.(task.eq.1).or.(task.eq.3)) then
 ! read in the eigenvalues/vectors from file
@@ -135,9 +135,9 @@ do it=1,nseqit
 ! end iteration loop
 end do
 deallocate(o)
-call system_clock(COUNT=cnt1)
+call timesec(ts1)
 !$OMP CRITICAL
-timefv=timefv+max(cnt1-cnt0,0)
+timefv=timefv+ts1-ts0
 !$OMP END CRITICAL
 return
 end subroutine
