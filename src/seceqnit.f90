@@ -20,7 +20,7 @@ complex(8), intent(out) :: evecfv(nmatmax,nstfv)
 integer is,ia,it,i,m
 integer ist,jst,info
 integer iwork(5*2),ifail(2)
-real ts0,ts1
+real(8) ts0,ts1
 real(8) vl,vu,w(2),t1
 real(8) rwork(7*2)
 complex(8) ap(3),bp(3),z(2,2)

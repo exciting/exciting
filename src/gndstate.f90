@@ -26,7 +26,7 @@ subroutine gndstate
   logical exist
   integer ik,is,ia,idm
   integer n,nwork
-  real(8) dv,timetot
+  real(8) timetot
   ! allocatable arrays
   real(8), allocatable :: v(:)
   real(8), allocatable :: work(:)
@@ -92,7 +92,7 @@ subroutine gndstate
   ! allocate mixing arrays
   allocate(v(n))
   nwork=-1
-  call mixerifc(mixtype,n,v,dv,nwork,work)
+  call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
   allocate(work(nwork))
   ! set stop flag
   tstop=.false.
@@ -288,7 +288,7 @@ subroutine gndstate
 
 #ifdef MPI
         call  MPI_BCAST(v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-        call  MPI_BCAST(nwork, n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+        call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
         call  MPI_BCAST(work(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 
 	

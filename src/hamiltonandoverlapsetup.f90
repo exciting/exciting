@@ -11,11 +11,11 @@ integer ::n
 character(256)::prefix
 !local variables
 integer,save::ikc
-real,save :: cputot
-real:: cpuaa,cpualo,cpulolo,cpui,cpu00,cpu01
+real(8),save :: cputot
+real(8):: cpuaa,cpualo,cpulolo,cpui,cpu00,cpu01
 integer::i,is,ia
 complex(8) v(1)
-real:: cpu0,cpu1
+real(8):: cpu0,cpu1
 real(8)::threshold
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
