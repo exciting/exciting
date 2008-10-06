@@ -16,7 +16,7 @@ bin::../make.inc
 	&& make -f Makefile.mkmf exciting$(SUFFIX) \
 	&& cp -f exciting$(SUFFIX) ..
 
-libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
+libs:libblas.a liblapack.a fftlib.a  
 
 libblas.a: 
 	cp -f ../make.inc ../..
