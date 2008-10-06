@@ -21,6 +21,8 @@ case(1)
     return
   end if
   call mixadapt(iscl,beta0,betainc,betadec,n,v,work,work(n+1),work(2*n+1),dv)
+case(2)
+  call mixmsec(iscl,v,n)
 case default
   write(*,*)
   write(*,'("Error(mixerifc): mtype not defined : ",I8)') mtype

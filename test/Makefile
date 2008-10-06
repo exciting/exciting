@@ -1,4 +1,4 @@
-test:test01 test02 test03
+test:  test03
 	perl perl/summary.pl
 test01::
 	cd build;make libs  test01
