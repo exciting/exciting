@@ -24,7 +24,7 @@ src/spacegroup/spacegroup
 src/species/species
 src/src_try
 src/tools/atkp
-src_libbzint
+libbzint
 local
 examples/xs
 .cdtproject

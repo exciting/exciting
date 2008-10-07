@@ -10,6 +10,7 @@ Makefile.test1::
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
+	../../src/src_mixing \
 	../src/testplans/test1.f90 \
 	../src/testframework/
 
@@ -24,6 +25,7 @@ Makefile.test2::
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
+	../../src/src_mixing \
 	../test02/src \
 	../src/testframework
 
