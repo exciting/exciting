@@ -20,7 +20,7 @@ use modmain
 !   v      : input vector to which H is applied if tapp is .true., otherwise
 !            not referenced (in,complex(nmatmax))
 !   h      : H applied to v if tapp is .true., otherwise it is the Hamiltonian
-!            matrix in packed form (inout,complex(npmatmax))
+!            matrix in packed form (inout,complex(*))
 ! !DESCRIPTION:
 !   Calculates the APW-APW contribution to the Hamiltonian matrix.
 !
@@ -44,10 +44,6 @@ real(8) t1
 complex(8) zt1,zsum
 ! automatic arrays
 complex(8) zv(ngp)
-! external functions
-real(8) polynom
-complex(8) zdotc
-external polynom,zdotc
 ias=idxas(ia,is)
 do l1=0,lmaxmat
   do m1=-l1,l1
@@ -74,14 +70,14 @@ do l1=0,lmaxmat
                 end if
               end do
               if (lm1.eq.lm3) zsum=zsum*0.5d0
-              if (abs(dble(zsum))+abs(aimag(zsum)).gt.1.d-20) then
-                call zaxpy(ngp,zsum,apwalm(1,io2,lm3,ias),1,zv,1)
+              if (abs(dble(zsum))+abs(aimag(zsum)).gt.1.d-14) then
+                call zaxpy(ngp,zsum,apwalm(:,io2,lm3,ias),1,zv,1)
               end if
             end do
           end if
         end do
       end do
-      call zmatinp(tapp,ngp,zone,apwalm(1,io1,lm1,ias),zv,v,h)
+      call zmatinp(tapp,ngp,zone,apwalm(:,io1,lm1,ias),zv,v,h)
     end do
   end do
 end do
@@ -93,7 +89,7 @@ do l1=0,lmaxmat
     do io1=1,apword(l1,is)
       do io2=1,apword(l1,is)
         zt1=t1*apwfr(nrmt(is),1,io1,l1,ias)*apwdfr(io2,l1,ias)
-        call zmatinp(tapp,ngp,zt1,apwalm(1,io1,lm1,ias),apwalm(1,io2,lm1,ias), &
+        call zmatinp(tapp,ngp,zt1,apwalm(:,io1,lm1,ias),apwalm(:,io2,lm1,ias), &
          v,h)
       end do
     end do

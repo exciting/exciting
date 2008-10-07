@@ -19,14 +19,14 @@ subroutine ematqkgir(iq,ik,igq)
   ! positive umklapp G-vector
   ivu(:)=nint(vkl0(:,ik)+vql(:,iq)-vkl(:,ikq))
   ! precalculate for speedup
-  aigk0(:)=igkig0(:,ik,1)
-  aigk(:)=igkig(:,ikq,1)
+  aigk0(:)=igkig0(:,1,ik)
+  aigk(:)=igkig(:,1,ikq)
   ig3=igqig(igq,iq)
   iv3(:)=ivg(:,ig3)
-  do igk0=1,ngk0(ik,1)
+  do igk0=1,ngk0(1,ik)
      ig1=aigk0(igk0)
      iv1(:)=ivg(:,ig1)+iv3(:)
-     do igk=1,ngk(ikq,1)
+     do igk=1,ngk(1,ikq)
         ig2=aigk(igk)
         ! umklapp of k+q vector included
         iv(:)=iv1(:)-(ivg(:,ig2)-ivu(:))

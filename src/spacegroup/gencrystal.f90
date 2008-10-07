@@ -60,7 +60,7 @@ do is=1,nspecies
   do ip=1,nwpos(is)
     do j=1,ngrp
 ! apply the space group operation
-      call r3mv(srgrp(1,1,j),wpos(1,ip,is),v1)
+      call r3mv(srgrp(:,1,j),wpos(:,ip,is),v1)
       v1(:)=v1(:)+stgrp(:,j)
       do i1=0,ncell(1)-1
         do i2=0,ncell(2)-1
@@ -71,7 +71,7 @@ do is=1,nspecies
             call r3frac(epslat,v2,id)
 ! check if new position already exists
             do ia=1,natoms(is)
-              if (r3taxi(v2,atposl(1,ia,is)).lt.epslat) goto 30
+              if (r3taxi(v2,atposl(:,ia,is)).lt.epslat) goto 30
             end do
 ! add new position to list
             natoms(is)=natoms(is)+1
@@ -104,7 +104,7 @@ end do
 ! determine the Cartesian atomic coordinates
 do is=1,nspecies
   do ia=1,natoms(is)
-    call r3mv(avec,atposl(1,ia,is),atposc(1,ia,is))
+    call r3mv(avec,atposl(:,ia,is),atposc(:,ia,is))
   end do
 end do
 return

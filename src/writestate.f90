@@ -11,7 +11,8 @@ subroutine writestate
 use modmain
 ! !DESCRIPTION:
 !   Writes the charge density, potentials and other relevant variables to the
-!   file {\tt STATE.OUT}.
+!   file {\tt STATE.OUT}. Note to developers: changes to the way the variables
+!   are written should be mirrored in {\tt readstate}.
 !
 ! !REVISION HISTORY:
 !   Created May 2003 (JKD)

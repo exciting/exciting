@@ -37,9 +37,9 @@ complex(8), intent(in) :: evecfv(nmatmax,nstfv,nspnfv)
 complex(8), intent(in) :: evecsv(nstsv,nstsv)
 ! local variables
 integer nsd,ispn,jspn,is,ia,ias,ist
-integer ir,irc,itp,igk,ifg,lm,i,j,n
+integer ir,irc,itp,igk,ifg,i,j,n
 real(8) t1,t2,t3,t4
-real(8) cpu0,cpu1
+real(8) ts0,ts1
 complex(8) zt1,zt2,zt3
 ! allocatable arrays
 logical, allocatable :: done(:,:)
@@ -59,9 +59,9 @@ complex(8), allocatable :: zfft(:,:)
  magir_k(:,:)=0
  rhomt_k(:,:,:)=0
  magmt_k(:,:,:,:)=0 
-call cpu_time(cpu0)
+call timesec(ts0)
 if (spinpol) then
-  if (ndmag.eq.3) then
+  if (ncmag) then
     nsd=4
   else
     nsd=2
@@ -79,8 +79,8 @@ allocate(wfmt3(lmmaxvr,nrcmtmax,nspinor))
 allocate(zfft(ngrtot,nspinor))
 ! find the matching coefficients
 do ispn=1,nspnfv
-  call match(ngk(ik,ispn),gkc(1,ik,ispn),tpgkc(1,1,ik,ispn), &
-   sfacgk(1,1,ik,ispn),apwalm(1,1,1,1,ispn))
+  call match(ngk(ispn,ik),gkc(:,ispn,ik),tpgkc(:,:,ispn,ik), &
+   sfacgk(:,:,ispn,ik),apwalm(:,:,:,:,ispn))
 end do
 !----------------------------!
 !     muffin-tin density     !
@@ -109,24 +109,24 @@ do is=1,nspecies
               zt1=evecsv(i,j)
               if (abs(dble(zt1))+abs(aimag(zt1)).gt.epsocc) then
                 if (.not.done(ist,jspn)) then
-                  call wavefmt(lradstp,lmaxvr,is,ia,ngk(ik,jspn), &
-                   apwalm(1,1,1,1,jspn),evecfv(1,ist,jspn),lmmaxvr,wfmt1)
+                  call wavefmt(lradstp,lmaxvr,is,ia,ngk(jspn,ik), &
+                   apwalm(:,:,:,:,jspn),evecfv(:,ist,jspn),lmmaxvr,wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-                  call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtapw, &
-                   lmmaxapw,wfmt1,lmmaxvr,zzero,wfmt2(1,1,ist,jspn),lmmaxvr)
+                  call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtvr, &
+                   lmmaxvr,wfmt1,lmmaxvr,zzero,wfmt2(:,:,ist,jspn),lmmaxvr)
                   done(ist,jspn)=.true.
                 end if
 ! add to spinor wavefunction
-                call zaxpy(n,zt1,wfmt2(1,1,ist,jspn),1,wfmt3(1,1,ispn),1)
+                call zaxpy(n,zt1,wfmt2(:,:,ist,jspn),1,wfmt3(:,:,ispn),1)
               end if
             end do
           end do
         else
 ! spin-unpolarised wavefunction
-          call wavefmt(lradstp,lmaxvr,is,ia,ngk(ik,1),apwalm,evecfv(1,j,1), &
+          call wavefmt(lradstp,lmaxvr,is,ia,ngk(1,ik),apwalm,evecfv(:,j,1), &
            lmmaxvr,wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-          call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtapw,lmmaxapw, &
+          call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zbshtvr,lmmaxvr, &
            wfmt1,lmmaxvr,zzero,wfmt3,lmmaxvr)
         end if
 ! add to the spin density matrix
@@ -139,7 +139,7 @@ do is=1,nspecies
               zt3=zt1*conjg(zt2)
               rfmt(itp,irc,1)=rfmt(itp,irc,1)+t1*(dble(zt1)**2+aimag(zt1)**2)
               rfmt(itp,irc,2)=rfmt(itp,irc,2)+t1*(dble(zt2)**2+aimag(zt2)**2)
-              if (ndmag.eq.3) then
+              if (ncmag) then
                 rfmt(itp,irc,3)=rfmt(itp,irc,3)+t1*dble(zt3)
                 rfmt(itp,irc,4)=rfmt(itp,irc,4)+t1*aimag(zt3)
               end if
@@ -162,26 +162,24 @@ do is=1,nspecies
     do ir=1,nrmt(is),lradstp
       irc=irc+1
       do i=1,nsd
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rfmt(:,irc,i),1, &
+         0.d0,rflm(:,i),1)
         call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rfmt(1,irc,i),1, &
          0.d0,rflm(1,i),1)
       end do
       if (spinpol) then
 ! spin-polarised
-        do lm=1,lmmaxvr
-          rhomt_k(lm,ir,ias)=rhomt_k(lm,ir,ias)+rflm(lm,1)+rflm(lm,2)
-          if (ndmag.eq.3) then
-            magmt_k(lm,ir,ias,1)=magmt_k(lm,ir,ias,1)+2.d0*rflm(lm,3)
-            magmt_k(lm,ir,ias,2)=magmt_k(lm,ir,ias,2)-2.d0*rflm(lm,4)
-            magmt_k(lm,ir,ias,3)=magmt_k(lm,ir,ias,3)+rflm(lm,1)-rflm(lm,2)
-          else
-            magmt_k(lm,ir,ias,1)=magmt_k(lm,ir,ias,1)+rflm(lm,1)-rflm(lm,2)
-          end if
-        end do
+        if (ncmag) then
+          magmt_k(:,ir,ias,1)=magmt_k(:,ir,ias,1)+2.d0*rflm(:,3)
+          magmt_k(:,ir,ias,2)=magmt_k(:,ir,ias,2)-2.d0*rflm(:,4)
+          magmt_k(:,ir,ias,3)=magmt_k(:,ir,ias,3)+rflm(:,1)-rflm(:,2)
+        else
+          magmt_k(:,ir,ias,1)=magmt_k(:,ir,ias,1)+rflm(:,1)-rflm(:,2)
+        end if
+        rhomt_k(:,ir,ias)=rhomt_k(:,ir,ias)+rflm(:,1)+rflm(:,2)
       else
 ! spin-unpolarised
-        do lm=1,lmmaxvr
-          rhomt_k(lm,ir,ias)=rhomt_k(lm,ir,ias)+rflm(lm,1)
-        end do
+        rhomt_k(:,ir,ias)=rhomt_k(:,ir,ias)+rflm(:,1)
       end if
     end do
 
@@ -208,8 +206,8 @@ do j=1,nstsv
           i=i+1
           zt1=evecsv(i,j)
           if (abs(dble(zt1))+abs(aimag(zt1)).gt.epsocc) then
-            do igk=1,ngk(ik,jspn)
-              ifg=igfft(igkig(igk,ik,jspn))
+            do igk=1,ngk(jspn,ik)
+              ifg=igfft(igkig(igk,jspn,ik))
               zfft(ifg,ispn)=zfft(ifg,ispn)+zt1*evecfv(igk,ist,jspn)
             end do
           end if
@@ -217,14 +215,14 @@ do j=1,nstsv
       end do
     else
 ! spin-unpolarised wavefunction
-      do igk=1,ngk(ik,1)
-        ifg=igfft(igkig(igk,ik,1))
+      do igk=1,ngk(1,ik)
+        ifg=igfft(igkig(igk,1,ik))
         zfft(ifg,1)=evecfv(igk,j,1)
       end do
     end if
 ! Fourier transform wavefunction to real-space
     do ispn=1,nspinor
-      call zfftifc(3,ngrid,1,zfft(1,ispn))
+      call zfftifc(3,ngrid,1,zfft(:,ispn))
     end do
 
     if (spinpol) then
@@ -236,7 +234,7 @@ do j=1,nstsv
         t3=dble(zt1)**2+aimag(zt1)**2
         t4=dble(zt2)**2+aimag(zt2)**2
         rhoir_k(ir)=rhoir_k(ir)+t2*(t3+t4)
-        if (ndmag.eq.3) then
+        if (ncmag) then
           magir_k(ir,1)=magir_k(ir,1)+2.d0*t2*dble(zt3)
           magir_k(ir,2)=magir_k(ir,2)-2.d0*t2*aimag(zt3)
           magir_k(ir,3)=magir_k(ir,3)+t2*(t3-t4)
@@ -256,7 +254,7 @@ do j=1,nstsv
 end do
 deallocate(done,rflm,rfmt,apwalm,wfmt1,wfmt3,zfft)
 if (tevecsv) deallocate(wfmt2)
-call cpu_time(cpu1)
+call timesec(ts1)
 !$OMP CRITICAL
  rhoir(:)=rhoir(:)+rhoir_k(:)
  
@@ -265,7 +263,7 @@ call cpu_time(cpu1)
  	magmt(:,:,:,:)=magmt(:,:,:,:)+magmt_k(:,:,:,:)
 	magir(:,:)=magir(:,:)+magir_k(:,:)
 	endif	
-timerho=timerho+cpu1-cpu0
+timerho=timerho+ts1-ts0
 !$OMP END CRITICAL
 return
 end subroutine

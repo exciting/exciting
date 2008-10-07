@@ -45,8 +45,8 @@ subroutine ematqk(iq,ik)
   cpudbg=0.d0
 
   ! allocate temporary arrays
-  n0=ngk0(ik,1)
-  n=ngk(ikq,1)
+  n0=ngk0(1,ik)
+  n=ngk(1,ikq)
   ! allocate matrix elements array
   if (allocated(xiohalo)) deallocate(xiohalo)
   allocate(xiohalo(nst1,nlotot))
@@ -66,20 +66,20 @@ subroutine ematqk(iq,ik)
   cpuini=cpu1-cpu0
 
   ! read eigenvectors, eigenvalues and occupancies for G+k+q
-  call getevecfv(vkl(1,ikq),vgkl(1,1,ikq,1),evecfv)
+  call getevecfv(vkl(1,ikq),vgkl(1,1,1,ikq),evecfv)
   call getevalsv(vkl(1,ikq),evalsv(1,ikq))
   ! read occupation numbers for G+k+q
   call getoccsv(vkl(1,ikq),occsv(1,ikq))
-  evecfvu(:,:)=evecfv(ngk(ikq,1)+1:ngk(ikq,1)+nlotot,istlo2:isthi2,1)
-  evecfvu2(:,:)=evecfv(1:ngk(ikq,1),istlo2:isthi2,1)
+  evecfvu(:,:)=evecfv(ngk(1,ikq)+1:ngk(1,ikq)+nlotot,istlo2:isthi2,1)
+  evecfvu2(:,:)=evecfv(1:ngk(1,ikq),istlo2:isthi2,1)
 
   ! read eigenvectors, eigenvalues and occupancies for G+k (q=0)
-  call getevecfv0(vkl0(1,ik),vgkl0(1,1,ik,1),evecfv0)
+  call getevecfv0(vkl0(1,ik),vgkl0(1,1,1,ik),evecfv0)
   call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
   ! read occupation numbers for G+k
   call getoccsv0(vkl0(1,ik),occsv0(1,ik))
-  evecfvo0(:,:)=evecfv0(ngk0(ik,1)+1:ngk0(ik,1)+nlotot,istlo1:isthi1,1)
-  evecfvo20(:,:)=evecfv0(1:ngk0(ik,1),istlo1:isthi1,1)
+  evecfvo0(:,:)=evecfv0(ngk0(1,ik)+1:ngk0(1,ik)+nlotot,istlo1:isthi1,1)
+  evecfvo20(:,:)=evecfv0(1:ngk0(1,ik),istlo1:isthi1,1)
   ! change back file extension
 
   call getapwcmt(0,ik,1,nstfv,lmaxapwwf,apwcmt0)

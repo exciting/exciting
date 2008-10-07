@@ -25,8 +25,8 @@ real(8) r,tp(2)
 if (allocated(ylmg)) deallocate(ylmg)
 allocate(ylmg(lmmaxvr,ngvec))
 do ig=1,ngvec
-  call sphcrd(vgc(1,ig),r,tp)
-  call genylm(lmaxvr,tp,ylmg(1,ig))
+  call sphcrd(vgc(:,ig),r,tp)
+  call genylm(lmaxvr,tp,ylmg(:,ig))
 end do
 return
 end subroutine

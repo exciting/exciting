@@ -1,0 +1,50 @@
+
+! Energy-loss Near-edge Structure (ELNES) of cubic boron-nitride. Note that
+! special B.in and N.in species files are required with the core states
+! represented by local-orbitals. Remember to check that the core linearisation
+! energies (in LINENGY.OUT) are determined correctly, i.e. not fixed to the
+! default energy. Compare with Phys. Rev. B 64, 115107 (2001).
+
+tasks
+  0
+  140
+
+nempty
+  20
+
+! lower the minimum allowed valence eigenvalue to accommodate core states
+evalmin
+ -20.0
+
+! select number of grid points and energy range (see manual)
+dos
+  300 100 0    : nwdos, ngrdos, nsmdos
+  6.0 9.0      : wdos (for the boron K edge)
+
+! q-vector in lattice coordinates
+vecql
+ 0.0 0.0 0.125
+
+autormt
+ .true.
+
+avec
+ 0.5 0.0 0.5
+ 0.0 0.5 0.5
+ 0.5 0.5 0.0
+
+scale
+  6.8408
+
+atoms
+  2
+  'B.in'
+  1
+  0.0 0.0 0.0    0.0 0.0 0.0
+  'N.in'
+  1
+  0.25 0.25 0.25 0.0 0.0 0.0
+
+ngridk
+  8  8  8
+

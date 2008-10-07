@@ -12,8 +12,8 @@ integer ik1,ik2,ik3
 integer ist1,ist2,iv(3)
 real(8) t1,t2,t3
 ! external functions
-real(8) r3dist,rfmtinp
-external r3dist,rfmtinp
+real(8) r3taxi,rfmtinp
+external r3taxi,rfmtinp
 ! calculate the prefactor
 if (rdmxctype.eq.0) then
   engyx=0.d0
@@ -47,10 +47,15 @@ do ik1=1,nkpt
 ! SDLG functional
         else if (rdmxctype.eq.2) then
           t3=occsv(ist1,ik1)*occsv(ist2,ik3)
-          if (t3.gt.0.d0) then
-            t2=t1*wkpt(ik1)*t3**rdmalpha
+          if ((ist1.eq.ist2).and. &
+           (r3taxi(vkl(1,ik1),vklnr(1,ik2)).lt.epslat)) then
+            t2=(0.5d0/occmax)*wkpt(ik1)*t3
           else
-            t2=0.d0
+            if (t3.gt.0.d0) then
+              t2=t1*wkpt(ik1)*t3**rdmalpha
+            else
+              t2=0.d0
+            end if
           end if
         end if
         engyx=engyx-t2*vnlrdm(ist1,ik1,ist2,ik2)

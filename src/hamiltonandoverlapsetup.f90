@@ -11,18 +11,18 @@ integer ::n
 character(256)::prefix
 !local variables
 integer,save::ikc
-real,save :: cputot
-real:: cpuaa,cpualo,cpulolo,cpui,cpu00,cpu01
+real(8),save :: cputot
+real(8):: cpuaa,cpualo,cpulolo,cpui,cpu00,cpu01
 integer::i,is,ia
 complex(8) v(1)
-real:: cpu0,cpu1
+real(8):: cpu0,cpu1
 real(8)::threshold
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
 
 
-call cpu_time(cpu0)
+call timesec(cpu0)
 ! set the matrices to zero
 
 ! muffin-tin contributions
@@ -59,7 +59,7 @@ prefix="O"
 	stop
 #endif 
 
-call cpu_time(cpu1)
+call timesec(cpu1)
  timemat= timemat+cpu1-cpu0
 
 

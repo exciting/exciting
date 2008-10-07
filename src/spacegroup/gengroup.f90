@@ -29,10 +29,10 @@ stgrp(:,1)=0.d0
 ! right multiply by the generators
 do i=1,ngen
   do j=1,ngrp
-    call seitzmul(eps,srgrp(1,1,j),stgrp(1,j),srgen(1,1,i),stgen(1,i),sr,st)
+    call seitzmul(eps,srgrp(:,:,j),stgrp(:,j),srgen(:,:,i),stgen(:,i),sr,st)
 ! check if the new element already exists
     do k=1,ngrp
-      if (seitzeq(eps,srgrp(1,1,k),stgrp(1,k),sr,st)) goto 20
+      if (seitzeq(eps,srgrp(:,:,k),stgrp(:,k),sr,st)) goto 20
     end do
     goto 40
 20 continue
@@ -41,10 +41,10 @@ end do
 ! left multiply by the generators
 do i=1,ngen
   do j=1,ngrp
-    call seitzmul(eps,srgen(1,1,i),stgen(1,i),srgrp(1,1,j),stgrp(1,j),sr,st)
+    call seitzmul(eps,srgen(:,:,i),stgen(:,i),srgrp(:,:,j),stgrp(:,j),sr,st)
 ! check if the new element already exists
     do k=1,ngrp
-      if (seitzeq(eps,srgrp(1,1,k),stgrp(1,k),sr,st)) goto 30
+      if (seitzeq(eps,srgrp(:,:,k),stgrp(:,k),sr,st)) goto 30
     end do
     goto 40
 30 continue

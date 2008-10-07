@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
+! Copyright (C) 2007-2008 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
@@ -33,7 +33,7 @@ call energykncr
 call genkinmat
 ! read in the occupancies
 do ik=1,nkpt
-  call getoccsv(vkl(1,ik),occsv(1,ik))
+  call getoccsv(vkl(:,ik),occsv(:,ik))
 end do
 ! calculate Coulomb potential matrix elements
 call genvmat(vclmt,vclir,vclmat)
@@ -70,7 +70,7 @@ end do
 call writestate
 ! write occupation numbers for restart
 do ik=1,nkpt
-  call putoccsv(ik,occsv(1,ik))
+  call putoccsv(ik,occsv(:,ik))
 end do
 ! close RDM_INFO.OUT file
 close(60)

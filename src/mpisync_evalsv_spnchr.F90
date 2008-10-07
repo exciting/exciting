@@ -33,12 +33,12 @@ subroutine mpisync_evalsv_spnchr
   mpisnddispls=(firstk(rank)-1)*nstsv
   call MPI_Alltoallv(evalsv, mpisndcnts, mpisnddispls, MPI_DOUBLE_PRECISION,& 
        evalsv,mpireccnts,  mpirecdispls,  MPI_DOUBLE_PRECISION ,  MPI_COMM_WORLD,ierr)
-  mpireccnts=kgatherrecvcnts*nspinor*nstsv
-  mpirecdispls=kgatherdispls*nspinor*nstsv
-  mpisndcnts=nofk(rank)*nspinor*nstsv
-  mpisnddispls=(firstk(rank)-1)*nspinor*nstsv
-  call MPI_Alltoallv(spnchr, mpisndcnts, mpisnddispls, MPI_DOUBLE_PRECISION,&
-       spnchr, mpireccnts,  mpirecdispls,  MPI_DOUBLE_PRECISION ,  MPI_COMM_WORLD,ierr)
+!  mpireccnts=kgatherrecvcnts*nspinor*nstsv
+!  mpirecdispls=kgatherdispls*nspinor*nstsv
+!  mpisndcnts=nofk(rank)*nspinor*nstsv
+!  mpisnddispls=(firstk(rank)-1)*nspinor*nstsv
+!  call MPI_Alltoallv(spnchr, mpisndcnts, mpisnddispls, MPI_DOUBLE_PRECISION,&
+!       spnchr, mpireccnts,  mpirecdispls,  MPI_DOUBLE_PRECISION ,  !MPI_COMM_WORLD,ierr)
 
 #endif
 

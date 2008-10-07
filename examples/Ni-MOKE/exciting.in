@@ -1,13 +1,21 @@
 
-! Magneto-optical Kerr effect for ferromagnetic nickel. For reasonable accuracy
-! of the Kerr rotation a k-point grid of 20x20x20 is required.
+! Magneto-optical Kerr effect for ferromagnetic nickel. For good accuracy of the
+! Kerr rotation a k-point grid of 20x20x20 is required.
 
 tasks
-   0
+ 0
  120
  122
 
+! the relaxation time is taken to be 1/swidth
+swidth
+ 0.01
+
 spinpol
+ .true.
+
+! spin-orbit coupling is required for MOKE
+spinorb
  .true.
 
 bfieldc
@@ -31,5 +39,5 @@ atoms
   0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
 
 ngridk
-  8  8  8
+  10  10  10
 

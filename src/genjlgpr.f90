@@ -16,7 +16,7 @@ real(8) t1
 do is=1,nspecies
   do ig=1,ngvec
     t1=gpc(ig)*rmt(is)
-    call sbessel(lmax,t1,jlgpr(0,ig,is))
+    call sbessel(lmax,t1,jlgpr(:,ig,is))
   end do
 end do
 return

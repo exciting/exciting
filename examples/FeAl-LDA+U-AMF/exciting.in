@@ -6,7 +6,7 @@
 ! (the exact value of U depends on the muffin-tin (MT) radius used since LDA+U
 ! is applied only inside mt spheres). Try to plot the magnetic moment as
 ! function of U for different MT radius. Example created by Fredrik Bultmark,
-! Francesco Cricchio and Lars Norsdtrom.
+! Francesco Cricchio and Lars Nordstrom.
 
 tasks
   0
@@ -51,10 +51,6 @@ sppath
 ! automatic muffin tin radius
 autormt
   .true.
-
-! conservative mixing
-beta0 
-  0.05
 
 ! fair number of empty states
 nempty

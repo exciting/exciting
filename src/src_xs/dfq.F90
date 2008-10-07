@@ -3,25 +3,77 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: dfq
+! !INTERFACE:
 subroutine dfq(iq)
+! !USES:
   use modmain
   use modxs
   use modtetra
   use modmpi
   use m_genwgrid
-  use m_gensymdf
   use m_getpemat
-  use m_dfqoschd
-  use m_dfqoscwg
-  use m_dfqoscbo
   use m_dftim
   use m_gettetcw
-  use m_chi0upd
   use m_putx0
   use m_getunit
   use m_writevars
   use m_filedel
   use m_genfilname
+! !DESCRIPTION:
+!   Calculates the symmetrized Kohn-Sham response function $\chi^0_{\bf{GG'}}
+!   ({\bf q},\omega)$ for one ${\bf q}$-point according to
+!   $$  \chi^0_{\bf{GG'}}({\bf q},\omega) = \sum_{ou{\bf k}} \left[
+!      M^{\bf G}_{ou{\bf k}}({\bf q}) M^{\bf G'}_{ou{\bf k}}({\bf q})^*
+!      w_{ou{\bf k}}({\bf q},\omega) +
+!      M^{\bf G}_{uo{\bf k}}({\bf q}) M^{\bf G'}_{uo{\bf k}}({\bf q})^*
+!      w_{uo{\bf k}}({\bf q},\omega) \right]
+!   $$
+!   It is related to the Kohn-Sham response function
+!    $\chi^0_{\bf{GG'}}({\bf q},\omega)$ by
+!   $$ \chi^0_{\bf{GG'}}({\bf q},\omega) = v^{-\frac{1}{2}}_{\bf G}({\bf q})
+!      \bar{\chi}^0_{\bf{GG'}}({\bf q},\omega)
+!      v^{-\frac{1}{2}}_{\bf G'}({\bf q}) $$
+!   and is well defined in the limit as ${\bf q}$ goes to zero.
+!   The symmetrized matrix elements are defined as
+!   $$   M^{\bf G}_{ou{\bf k}}({\bf q}) = 
+!         v^{-\frac{1}{2}}_{\bf G}({\bf q})
+!         \bar{M}^{\bf G}_{ou{\bf k}}({\bf q}), $$
+!   where
+!   $$   \bar{M}^{\bf G}_{ou{\bf k}}({\bf q}) = 
+!        \langle o{\bf k}|e^{-i({\bf{G+q}}){\bf r}}|u{\bf k+q} \rangle. $$
+!   For ${\bf G}=0$ we have to consider three vectors stemming from the limits
+!   as ${\bf q}\rightarrow 0$ along the Cartezian basis vectors ${\bf e_i}$,
+!   i.e., we can think of ${\bf 0}_1,{\bf 0}_2,{\bf 0}_3$ in place of ${\bf 0}$.
+!   The weights $w_{\rm ou{\bf k}}({\bf q},\omega)$ are defined as
+!   $$   w_{nm{\bf k}}({\bf q},\omega) = \lambda_{\bf k}
+!        \frac{f_{n{\bf k}}-f_{m{\bf k+q}}}
+!        {\varepsilon_{n{\bf k}}-\varepsilon_{m{\bf k+q}}+
+!        \Delta_{n{\bf k}}-\Delta_{m{\bf k+q}}+\omega+i\eta} $$
+!   in the case where we use a Lorentzian broadening $\eta$.
+!   In the above expression $\lambda_{\bf k}$ is the weight of the
+!   ${\bf k}$-point, $\varepsilon_{n{\bf k}}$ and
+!   $\varepsilon_{m{\bf k+q}}$ are the DFT Kohn-Sham energies,
+!   $\Delta_{n{\bf k}}$ and $\Delta_{m{\bf k+q}}$ are the scissors corrections
+!   that are non-zero in the case where $m{\bf k+q}$ corresponds to a
+!   conduction state.
+!   The indices $o$ and $u$ denote {\it at least partially occupied} and
+!   {\it at least partially unoccupied} states, respectively.
+!   The symmetrized Kohn-Sham response function can also be calculated
+!   for imaginary frequencies $i\omega$ without broadening $\eta$. In this
+!   case the replacement
+!   $$ \omega+i\eta \mapsto i\omega $$
+!   is applied to the expressions for the weights.
+!   Optionally, the weights can be calculated with the help of the linear
+!   tetrahedron method (including Bloechl's correction).
+!   This routine can be run with MPI parallelization for energies.
+!
+! !REVISION HISTORY:
+!   Created March 2005 (Sagmeister)
+!   Added band and k-point analysis, 2007-2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! arguments
   integer, intent(in) :: iq
@@ -30,10 +82,10 @@ subroutine dfq(iq)
   character(256) :: fnscreen
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
-  complex(8), allocatable :: chi0(:,:,:),hou(:,:),huo(:,:),hdg(:,:,:)
+  complex(8), allocatable :: chi0(:,:,:),hdg(:,:,:)
   complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:)
-  complex(8), allocatable :: xou(:),xouc(:),xuo(:),xuoc(:),wou(:),wuo(:)
-  complex(8) :: wout
+  complex(8), allocatable :: wou(:),wuo(:),wouw(:),wuow(:),wouh(:),wuoh(:)
+  complex(8), allocatable :: zvou(:),zvuo(:)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
@@ -41,7 +93,7 @@ subroutine dfq(iq)
   integer :: oct,oct1,oct2,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
-  logical, external :: tqgamma
+  logical, external :: tqgamma,transik,transijst
   if (acont.and.tscreen) then
      write(*,*)
      write(*,'("Error(",a,"): analytic continuation does not work for &
@@ -51,7 +103,7 @@ subroutine dfq(iq)
   end if
   ! sampling of Brillouin zone
   bzsampl=0
-  if (tetra) bzsampl=1
+  if (tetradf) bzsampl=1
   ! initial and final w-point
   wi=wpari
   wf=wparf
@@ -61,12 +113,10 @@ subroutine dfq(iq)
   ! zero broadening for analytic contiunation
   brd=broad
   if (acont) brd=0.d0
-  ! *** experimental *** zero broadening for dielectric matrix (w=0)
-  ! for band-gap systems
+  ! zero broadening for dielectric matrix (w=0) for band-gap systems
   if (task.eq.430) brd=0.d0
   ! file extension for q-point
   if (.not.tscreen) call genfilname(iqmt=iq,setfilext=.true.)
-  ! filenames for input
   ! filenames for output
   if (tscreen) then
      call genfilname(basename='TETW',iq=iq,appfilext=.true.,filnam=fnwtet)
@@ -94,6 +144,8 @@ subroutine dfq(iq)
   call filedel(trim(fnxtim))
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
+  ! generate link array for tetrahedra
+  call gentetlinkp(vql(1,iq),tetraqweights)
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find limits for band combinations
@@ -136,9 +188,7 @@ subroutine dfq(iq)
   if (allocated(pmuo)) deallocate(pmuo)
   allocate(pmuo(3,nst3,nst4))
   ! allocate arrays
-  
   allocate(hdg(nst1,nst2,nkpt))
-  
   allocate(scis12(nst1,nst2))
   allocate(scis21(nst2,nst1))
   allocate(w(nwdf))
@@ -148,15 +198,13 @@ subroutine dfq(iq)
   allocate(chi0(n,n,nwdfp))
   allocate(wou(nwdf))
   allocate(wuo(nwdf))
-  allocate(xou(n))
-  allocate(xouc(n))
-  allocate(xuo(n))
-  allocate(xuoc(n))
-  allocate(hou(n,n))
-  allocate(huo(n,n))
+  allocate(wouw(nwdf),wuow(nwdf),wouh(nwdf),wuoh(nwdf))
+  allocate(zvou(n),zvuo(n))
   scis12(:,:)=0.d0
   scis21(:,:)=0.d0
-  if (tetra) allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
+  if (tetradf) then
+     allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
+  end if
   ! generate complex energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
   wreal(:)=w(wi:wf)
@@ -184,7 +232,9 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
 
   ! loop over k-points
   do ik=1,nkpt
-     write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
+     ! k-point analysis
+     if (.not.transik(ik,dftrans)) cycle
+ write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
           ikmapikq(ik,iq)
      cpuosc=0.d0
      cpuupd=0.d0
@@ -252,17 +302,21 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
      end do
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0
+
      do ist1=1,nst1
         do ist2=1,nst2
            !---------------------!
            !     denominator     !
            !---------------------!
+           ! absolute band indices
+           i1=ist1
+           i2=istunocc0+ist2-1
+           ! band analysis
+           if (.not.transijst(ik,i1,i2,dftrans)) cycle
            call cpu_time(cpu0)
            ! user request termination
            call terminate_inqr('dfq')
-           if (tetra) then
-              ! absolute band indices
-              i1=ist1; i2=istunocc0+ist2-1
+           if (tetradf) then
               ! mirror index pair on diagonal if necessary
               if (i1.gt.i2) then
                  j1=ist2
@@ -278,85 +332,61 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &
                    omega
               wuo(wi:wf)=-docc21(ist2,ist1)*cmplx(cwa(wi:wf),0.d0,8)/omega
+              if (tq0) then
+                 ! rescale: use delta-function delta(e_nmk + scis_nmk - w)
+                 wouw(wi:wf)=cmplx(dble(wou(wi:wf)),aimag(wou(wi:wf))* &
+                      deou(ist1,ist2)/ &
+                      (-wreal(:)-scis12(ist1,ist2)))
+                 wuow(wi:wf)=cmplx(dble(wuo(iw:wf)),aimag(wuo(wi:wf))* &
+                      deuo(ist2,ist1)/ &
+                      (-wreal(:)-scis21(ist2,ist1)))
+                 wouh(wi:wf)=cmplx(dble(wou(wi:wf)),aimag(wou(wi:wf))* &
+                      deou(ist1,ist2)**2/ &
+                      (wreal(:)+scis12(ist1,ist2))**2)
+                 wuoh(wi:wf)=cmplx(dble(wuo(wi:wf)),aimag(wuo(wi:wf))* &
+                      deuo(ist2,ist1)**2/ &
+                      (wreal(:)+scis21(ist2,ist1))**2)
+              end if
            else
               ! include occupation number differences
-              wou(:)=docc12(ist1,ist2)*wkpt(ik)/omega/(w(:)+deou(ist1,ist2) &
-                   +scis12(ist1,ist2)+zi*brd)
-              wuo(:)=docc21(ist2,ist1)*wkpt(ik)/omega/(w(:)+deuo(ist2,ist1) &
-                   +scis21(ist2,ist1)+zi*brd)
+              wou(wi:wf)=docc12(ist1,ist2)*wkpt(ik)/omega/(w(wi:wf)+ &
+                   deou(ist1,ist2)+scis12(ist1,ist2)+zi*brd)
+              wuo(wi:wf)=docc21(ist2,ist1)*wkpt(ik)/omega/(w(wi:wf)+ &
+                   deuo(ist2,ist1)+scis21(ist2,ist1)+zi*brd)
+              wouw(wi:wf)=wou(wi:wf)
+              wuow(wi:wf)=wuo(wi:wf)
+              wouh(wi:wf)=wou(wi:wf)
+              wuoh(wi:wf)=wuo(wi:wf)
            end if
-           hou(:,:)=zzero
-           huo(:,:)=zzero
-           !---------------------!
-           !     oscillators     !
-           !---------------------!
-           ! calculate oscillators
-           if (.not.tq0) then
-              ! set up body, head and wings in one
-              call dfqoscbo(n,xiou(ist1,ist2,:),xiuo(ist2,ist1,:),hou,huo)
-           end if
-           if (tq0.and.(n.gt.1)) then
-              ! set up body
-              call dfqoscbo(n-1,xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:), &
-                   hou(2:,2:),huo(2:,2:))
-           end if
-           ! loop over longitudinal Cartesian (diagonal) components of
-           ! response function
-           if (tq0) then
-              do oct1=1,3
-                 optcomp(1,1)=oct1
-                 optcomp(2,1)=oct1
-                 if (n.gt.1) then
-                    ! wings
-                    call dfqoscwg(1,pmou(:,ist1,ist2),pmuo(:,ist2,ist1), &
-                         xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:),hou(1,2:), &
-                         huo(1,2:))
-                    call dfqoscwg(2,pmou(:,ist1,ist2),pmuo(:,ist2,ist1), &
-                         xiou(ist1,ist2,2:),xiuo(ist2,ist1,2:),hou(2:,1), &
-                         huo(2:,1))
-                    do iw=wi,wf
-                       wout=wou(iw)
-                       ! be careful with gauge in the w-variable
-                       ! one has to subtract the scissor's shift
-                       if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                            deou(ist1,ist2)/(-wreal(iw-wi+1)-scis12(ist1,ist2)))
-                       chi0w(2:,1,oct1,iw-wi+1)=chi0w(2:,1,oct1,iw-wi+1)+&
-                            wout*hou(1,2:)+wuo(iw)*huo(1,2:)
-                       chi0w(2:,2,oct1,iw-wi+1)=chi0w(2:,2,oct1,iw-wi+1)+&
-                            wout*hou(2:,1)+wuo(iw)*huo(2:,1)
-                    end do
-                 end if
-                 do oct2=1,3
-                    oct=octmap(oct1,oct2)
-                    ! symmetrization matrix for dielectric function
-                    call gensymdf(oct1,oct2)
-                    optcomp(1,1)=oct1
-                    optcomp(2,1)=oct2
-                    ! head
-                    call dfqoschd(pmou(:,ist1,ist2),pmuo(:,ist2,ist1),hou(1,1),&
-                         huo(1,1))
-                    do iw=wi,wf
-                       wout=wou(iw)
-                       ! be careful with gauge in the w-variable
-                       ! one has to subtract the scissor's shift
-                       if (tetra) wout=cmplx(dble(wou(iw)),aimag(wou(iw))*&
-                            deou(ist1,ist2)**2 &
-                            /(wreal(iw-wi+1)+scis12(ist1,ist2))**2) !SAG
-                       chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
-                            wout*hou(1,1)+wuo(iw)*huo(1,1)
-                    end do
-                 end do !oct2
-              end do !oct1
-           end if
-           call cpu_time(cpu1)
-           cpuosc=cpuosc+cpu1-cpu0	   
            !----------------------------------!
            !     update response function     !
            !----------------------------------!
+           zvou(:)=xiou(ist1,ist2,:)
+           zvuo(:)=xiuo(ist2,ist1,:)
            do iw=wi,wf
-              ! * most time-consuming part of routine *
-              call chi0upd(n,wou(iw),wuo(iw),hou,huo,&
-                   chi0(:,:,iw-wi+1))
+              ! body
+              call zgerc(n,n,wou(iw),zvou,1,zvou,1,chi0(:,:,iw-wi+1),n)
+              call zgerc(n,n,wuo(iw),zvuo,1,zvuo,1,chi0(:,:,iw-wi+1),n)
+              if (tq0) then
+                 do oct1=1,3
+                    ! wings
+                    chi0w(2:,1,oct1,iw-wi+1)=chi0w(2:,1,oct1,iw-wi+1)+ &
+                          wouw(iw)*pmou(oct1,ist1,ist2)*conjg(zvou(2:))+ &
+                          wuow(iw)*pmuo(oct1,ist2,ist1)*conjg(zvuo(2:))
+                    chi0w(2:,2,oct1,iw-wi+1)=chi0w(2:,2,oct1,iw-wi+1)+ &
+                          wouw(iw)*zvou(2:)*conjg(pmou(oct1,ist1,ist2))+ &
+                          wuow(iw)*zvuo(2:)*conjg(pmuo(oct1,ist2,ist1))
+                    do oct2=1,3
+                       oct=octmap(oct1,oct2)
+                       ! head
+                       chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
+                            wouh(iw)*pmou(oct1,ist1,ist2)* &
+                            conjg(pmou(oct2,ist1,ist2))+ &
+                            wuoh(iw)*pmuo(oct1,ist2,ist1)* &
+                            conjg(pmuo(oct2,ist2,ist1))
+                    end do
+                 end do
+              end if
            end do
            call cpu_time(cpu0)
            cpuupd=cpuupd+cpu0-cpu1
@@ -415,12 +445,11 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
      end do
   end if
 
+  deallocate(chi0,chi0h,chi0w)
   deallocate(docc12,docc21,scis12,scis21)
-  deallocate(chi0h)
-  deallocate(chi0w)
-  deallocate(deou,deuo,wou,wuo)
+  deallocate(deou,deuo,wou,wuo,wouw,wuow,wouh,wuoh,zvou,zvuo)
   deallocate(xiou,xiuo,pmou,pmuo)
-  deallocate(w,wreal,chi0)
-  deallocate(xou,xouc,xuo,xuoc,hou,huo)
-  if (tetra) deallocate(cw,cwa,cwsurf)
+  deallocate(w,wreal)
+  if (tetradf) deallocate(cw,cwa,cwsurf)
 end subroutine dfq
+!EOC

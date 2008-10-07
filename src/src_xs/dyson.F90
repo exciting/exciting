@@ -21,7 +21,10 @@ contains
 ! !DESCRIPTION:
 !   Solve Dyson's equation
 !     $$   S = S_0 + S_0 K S  $$
-!   for $S$ by inversion.
+!   for $S$ by inversion;
+!     $$ S = \left[ 1 + S_0 K \right]^{-1} S_0. $$
+!   The inversion is carried out using the LAPACK routines {\tt zgetrf} and
+!   {\tt zgetri}.
 !
 ! !REVISION HISTORY:
 !   Created March 2005 (Sagmeister)

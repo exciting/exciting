@@ -3,13 +3,26 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: df
+! !INTERFACE:
 subroutine df
+! !USES:
   use modmain
   use modxs
   use modmpi
   use m_xsgauntgen
   use m_findgntn0
   use m_genfilname
+! !DESCRIPTION:
+!   Control routine for setting up the Kohn-Sham response function or the
+!   microscopic dielectric function/matrix for all specified ${\bf q}$-points.
+!   Can be run with MPI parallelization for ${\bf q}$-points.
+!
+! !REVISION HISTORY:
+!   Created March 2006 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! local variables
   character(*), parameter :: thisnam='df'
@@ -60,3 +73,4 @@ subroutine df
   if (.not.tscreen) call genfilname(setfilext=.true.)
   if (tscreen) call findgntn0_clear
 end subroutine df
+!EOC

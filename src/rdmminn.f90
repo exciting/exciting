@@ -51,8 +51,8 @@ do it=1,maxitn
 ! compute the charge density and magnetisation with the new occupancies
   do ik=1,nkpt
 ! get the eigenvectors from file
-    call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-    call getevecsv(vkl(1,ik),evecsv)
+    call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+    call getevecsv(vkl(:,ik),evecsv)
 ! calculate the density
     call rhovalk(ik,evecfv,evecsv)
   end do
@@ -65,7 +65,7 @@ do it=1,maxitn
     call symrvf(lradstp,magmt,magir)
 ! convert the magnetisation from a coarse to a fine radial mesh
     do idm=1,ndmag
-      call rfmtctof(magmt(1,1,1,idm))
+      call rfmtctof(magmt(:,:,:,idm))
     end do
   end if
 ! add core density to the valence density

@@ -29,8 +29,17 @@ subroutine dumpparams_tetra(string,comment)
   write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
   write(77,'(a)') trim(comment)
   write(77,*)
-  write(77,'("tetra")')
-  write(77,*) tetra
+  write(77,'("tetraocc")')
+  write(77,*) tetraocc
+  write(77,*)
+  write(77,'("tetraopt")')
+  write(77,*) tetraopt
+  write(77,*)
+  write(77,'("tetradf")')
+  write(77,*) tetradf
+  write(77,*)
+  write(77,'("tetrakordexc")')
+  write(77,*) tetrakordexc
   close(77)
 end subroutine dumpparams_tetra
 !EOC

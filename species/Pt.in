@@ -2,7 +2,7 @@
  'platinum'                                 : spname
   -78.0000                                  : spzn
    355605.4399                              : spmass
-  0.226455E-06    2.0000   38.9116   700    : sprmin, rmt, sprmax, nrmt
+  0.226455E-06    2.0000   34.7051   700    : sprmin, rmt, sprmax, nrmt
   22                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

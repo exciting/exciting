@@ -59,7 +59,12 @@ do ik=1,nkptnr
             t2=t1*occsv(ist3,ikp)*occsv(ist4,jk)
           else if (rdmxctype.eq.2) then
 ! SDLG functional
-            t2=t1*(occsv(ist3,ikp)*occsv(ist4,jk))**rdmalpha
+            if ((ist3.eq.ist4).and. &
+              (r3taxi(vkl(1,ikp),vklnr(1,jk)).lt.epslat)) then
+              t2=(1.d0/occmax)*occsv(ist4,jk)**2
+            else
+              t2=t1*(occsv(ist3,ikp)*occsv(ist4,jk))**rdmalpha
+            end if
           end if
           dedc(ist2,ist3)=dedc(ist2,ist3)-t2*evecsv(ist2,ist1)* &
            vnl(ist1,ist3,ist4,ik)

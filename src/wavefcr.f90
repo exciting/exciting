@@ -46,12 +46,12 @@ do ir=1,nrmt(is),lrstp
   if (abs(m).le.l) then
     lm=idxlm(l,m)
     t2=t1*cg1
-    wfcr(1:lmmaxvr,irc,1)=t2*zbshtapw(1:lmmaxvr,lm)
+    wfcr(1:lmmaxvr,irc,1)=t2*zbshtvr(1:lmmaxvr,lm)
   end if
   if (abs(m+1).le.l) then
     lm=idxlm(l,m+1)
     t2=t1*cg2
-    wfcr(1:lmmaxvr,irc,2)=t2*zbshtapw(1:lmmaxvr,lm)
+    wfcr(1:lmmaxvr,irc,2)=t2*zbshtvr(1:lmmaxvr,lm)
   end if
 end do
 return

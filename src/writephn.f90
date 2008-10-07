@@ -31,7 +31,7 @@ call sumrule(dynq)
 call dynqtor(dynq,dynr)
 open(50,file='PHONON.OUT',action='WRITE',form='FORMATTED')
 do iq=1,nphwrt
-  call dynrtoq(vqlwrt(1,iq),dynr,dynp)
+  call dynrtoq(vqlwrt(:,iq),dynr,dynp)
   call dyndiag(dynp,w,ev)
   write(50,*)
   write(50,'(I6,3G18.10," : q-point, vqlwrt")') iq,vqlwrt(:,iq)
@@ -59,6 +59,7 @@ close(50)
 write(*,*)
 write(*,'("Info(writephn): phonon frequencies and eigenvectors written to &
  &PHONON.OUT")')
+write(*,'(" for all q-vectors in the phwrite list")')
 write(*,*)
 deallocate(w,ev,dynq,dynp,dynr)
 return

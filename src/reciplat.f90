@@ -26,9 +26,9 @@ use modmain
 implicit none
 ! local variables
 real(8) t1
-call r3cross(avec(1,2),avec(1,3),bvec(1,1))
-call r3cross(avec(1,3),avec(1,1),bvec(1,2))
-call r3cross(avec(1,1),avec(1,2),bvec(1,3))
+call r3cross(avec(:,2),avec(:,3),bvec(:,1))
+call r3cross(avec(:,3),avec(:,1),bvec(:,2))
+call r3cross(avec(:,1),avec(:,2),bvec(:,3))
 t1=avec(1,1)*bvec(1,1)+avec(2,1)*bvec(2,1)+avec(3,1)*bvec(3,1)
 ! compute unit cell volume
 omega=abs(t1)

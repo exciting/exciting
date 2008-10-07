@@ -85,22 +85,22 @@ subroutine writepmatxs(lgather)
           write(*,'("Info(",a,"): ",I6," of ",I6,I6," k-points")') thisnam,ik, &
           kpari,kparf
      ! get the eigenvectors and values from file
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
+     call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvt)
      call getevecsv(vkl(1,ik),evecsvt)
      ! find the matching coefficients
-     call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1), &
+     call match(ngk(1,ik),gkc(1,1,ik),tpgkc(1,1,1,ik),sfacgk(1,1,1,ik), &
           apwalmt)
      if (fastpmat) then
         ! generate APW expansion coefficients for muffin-tin
-        call genapwcmt(lmaxapw,ngk(ik,1),1,nstfv,apwalmt,evecfvt,apwcmt)
+        call genapwcmt(lmaxapw,ngk(1,ik),1,nstfv,apwalmt,evecfvt,apwcmt)
         ! generate local orbital expansion coefficients for muffin-tin
-        if (nlotot.gt.0) call genlocmt(ngk(ik,1),1,nstfv,evecfvt,locmt)
+        if (nlotot.gt.0) call genlocmt(ngk(1,ik),1,nstfv,evecfvt,locmt)
         ! calculate the momentum matrix elements
-        call genpmat2(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),ripaa,ripalo, &
+        call genpmat2(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik),ripaa,ripalo, &
              riploa,riplolo,apwcmt,locmt,evecfvt,evecsvt,pmat)
      else
         ! calculate the momentum matrix elements
-        call genpmat(ngk(ik,1),igkig(1,ik,1),vgkc(1,1,ik,1),apwalmt,evecfvt, &
+        call genpmat(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik),apwalmt,evecfvt, &
              evecsvt,pmat)
      end if
      ! parallel write

@@ -36,8 +36,7 @@ subroutine rotzflm(rot,lmax,n,ld,zflm1,zflm2)
 !   non-negative. For improper rotations, i.e. those which are a combination of
 !   a rotation and inversion, the rotation is first made proper with
 !   $R\rightarrow-R$ and $D$ is modified with
-!   $D^l_{mm'}\rightarrow(-1)^l D^l_{mm'}$. The routine may be used in-place, in
-!   other words, {\tt zflm1} and {\tt zflm2} can refer to the same array.
+!   $D^l_{mm'}\rightarrow(-1)^l D^l_{mm'}$.
 !
 ! !REVISION HISTORY:
 !   Created April 2003 (JKD)
@@ -60,7 +59,6 @@ complex(8), parameter :: zzero=(0.d0,0.d0)
 complex(8), parameter :: zone=(1.d0,0.d0)
 ! allocatable arrays
 complex(8), allocatable :: d(:,:)
-complex(8), allocatable :: zflm3(:)
 ! external functions
 real(8) factnm
 external factnm
@@ -79,7 +77,6 @@ if (n.lt.0) then
 end if
 lmmax=(lmax+1)**2
 allocate(d(lmmax,lmmax))
-allocate(zflm3(lmmax))
 ! find the determinant
 det=rot(1,2)*rot(2,3)*rot(3,1)-rot(1,3)*rot(2,2)*rot(3,1) &
    +rot(1,3)*rot(2,1)*rot(3,2)-rot(1,1)*rot(2,3)*rot(3,2) &
@@ -135,14 +132,10 @@ do l=0,lmax
 ! apply rotation operator
   nm=2*l+1
   lm2=l**2+1
-  do i=1,n
-! make a copy in case zflm1 and zflm2 refer to the same array
-    zflm3(lm2:lm2+nm-1)=zflm1(lm2:lm2+nm-1,i)
-    call zgemv('N',nm,nm,zone,d(lm2,lm2),lmmax,zflm3(lm2),1,zzero, &
-     zflm2(lm2,i),1)
-  end do
+  call zgemm('N','N',nm,n,nm,zone,d(lm2,lm2),lmmax,zflm1(lm2,1),ld,zzero, &
+   zflm2(lm2,1),ld)
 end do
-deallocate(d,zflm3)
+deallocate(d)
 return
 end subroutine
 !EOC

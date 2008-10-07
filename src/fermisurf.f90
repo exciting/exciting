@@ -17,7 +17,7 @@ call init1
 call readfermi
 ! get eigenvalues from file
 do ik=1,nkpt
-  call getevalsv(vkl(1,ik),evalsv(1,ik))
+  call getevalsv(vkl(:,ik),evalsv(:,ik))
 end do
 ! states to include in plot (task=101)
 ist=(nstfv-nempty)*nspinor

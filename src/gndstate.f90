@@ -24,13 +24,12 @@ subroutine gndstate
   implicit none
   ! local variables
   logical exist
-  integer ik,is,ia,idm,n
+  integer ik,is,ia,idm
+  integer n,nwork
   real(8) timetot
   ! allocatable arrays
-  real(8), allocatable :: nu(:)
-  real(8), allocatable :: mu(:)
-  real(8), allocatable :: beta(:)
-  real(8), allocatable :: f(:)
+  real(8), allocatable :: v(:)
+  real(8), allocatable :: work(:)
   real(8), allocatable :: evalfv(:,:)
   complex(8), allocatable :: evecfv(:,:,:)
   complex(8), allocatable :: evecsv(:,:)
@@ -42,11 +41,11 @@ subroutine gndstate
   call init1
   ! initialise OEP variables if required
   if (xctype.lt.0) call init2
-  if(rank.eq.0) then
+  if(rank.eq.0) then 	
      ! write the real and reciprocal lattice vectors to file
      call writelat
-     ! write inter-atomic distances to file
-     call writeiad
+     ! write interatomic distances to file
+     call writeiad(.false.)
      ! write symmetry matrices to file
      call writesym
      ! output the k-point set to file
@@ -75,7 +74,10 @@ subroutine gndstate
   write(60,*)
   if ((task.eq.1).or.(task.eq.3)) then
      call readstate
-     if(rank.eq.0) write(60,'("Density and potential read in from STATE.OUT")')
+     if(rank.eq.0) write(60,'("Potential read in from STATE.OUT")')
+  else if (task.eq.200) then
+     call phveff
+     if(rank.eq.0) write(60,'("Supercell potential constructed from STATE.OUT")')
   else
      call rhoinit
      call poteff
@@ -88,21 +90,17 @@ subroutine gndstate
   if (spinpol) n=n*(1+ndmag)
   if (ldapu.ne.0) n=n+2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
   ! allocate mixing arrays
-  allocate(nu(n))
-  allocate(mu(n))
-  allocate(beta(n))
-  allocate(f(n))
+  allocate(v(n))
+  nwork=-1
+  call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
+  allocate(work(nwork))
   ! set stop flag
   tstop=.false.
 10 continue
   ! set last iteration flag
   tlast=.false.
-  ! initialise the mixer
-  call packeff(.true.,n,nu)
-  call mixer(.true.,beta0,betamax,n,nu,mu,beta,f,currentconvergence)
-  call packeff(.false.,n,nu)
   ! delete any existing eigenvector files
-  if(splittfile.or.rank.eq.0) call delevec
+  if((splittfile.or.rank.eq.0).and.(task.eq.0).or.(task.eq.2)) call delevec
   ! begin the self-consistent loop
   if(rank.eq.0) then
      write(60,*)
@@ -174,12 +172,12 @@ subroutine gndstate
         call seceqn(ik,evalfv,evecfv,evecsv)
         ! write the eigenvalues/vectors to file
         call putevalfv(ik,evalfv)
-        call putevalsv(ik,evalsv(1,ik))
+        call putevalsv(ik,evalsv(:,ik))
         call putevecfv(ik,evecfv)
         call putevecsv(ik,evecsv)
         deallocate(evalfv,evecfv,evecsv)
      end do
-#ifdef KSMP
+#ifdef KSMP     
      !$OMP END DO
      !$OMP END PARALLEL
 #endif
@@ -207,51 +205,51 @@ subroutine gndstate
         magir(:,:)=0.d0
      end if
 
-#ifdef MPIRHO
+#ifdef MPIRHO	 
 
      do ik=firstk(rank),lastk(rank)
         !write the occupancies to file
-        call putoccsv(ik,occsv(1,ik))
+        call putoccsv(ik,occsv(:,ik))
      end do
      do ik=firstk(rank),lastk(rank)
 #endif
 
-#ifndef MPIRHO
+#ifndef MPIRHO	
         if (rank.eq.0)then
            do ik=1,nkpt
               !write the occupancies to file
-              call putoccsv(ik,occsv(1,ik))
+              call putoccsv(ik,occsv(:,ik))
            end do
         endif
-#ifdef KSMP
+#ifdef KSMP     
         ! begin parallel loop over k-points
         !$OMP PARALLEL DEFAULT(SHARED) &
         !$OMP PRIVATE(evecfv,evecsv)
         !$OMP DO
-#endif
-        do ik=1,nkpt
+#endif     
+        do ik=1,nkpt	
 #endif
            allocate(evecfv(nmatmax,nstfv,nspnfv))
            allocate(evecsv(nstsv,nstsv))
            !
            ! get the eigenvectors from file
-           call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-           call getevecsv(vkl(1,ik),evecsv)
+           call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+           call getevecsv(vkl(:,ik),evecsv)
            ! add to the density and magnetisation
            call rhovalk(ik,evecfv,evecsv)
            deallocate(evecfv,evecsv)
         end do
-#ifndef MPIRHO
+#ifndef MPIRHO	   
 #ifdef KSMP
         !$OMP END DO
         !$OMP END PARALLEL
 #endif
 #endif
-#ifdef MPIRHO
+#ifdef MPIRHO    
         call mpisumrhoandmag
-#endif
+#endif  
 #ifdef MPI
-        if(xctype.lt.0) call mpiresumeevecfiles()
+        if(xctype.lt.0) call mpiresumeevecfiles()	
 #endif
         ! symmetrise the density
         call symrf(lradstp,rhomt,rhoir)
@@ -261,7 +259,7 @@ subroutine gndstate
         call rfmtctof(rhomt)
         ! convert the magnetisation from a coarse to a fine radial mesh
         do idm=1,ndmag
-           call rfmtctof(magmt(1,1,1,idm))
+           call rfmtctof(magmt(:,:,:,idm))
         end do
         ! add the core density to the total density
         call addrhocr
@@ -283,19 +281,24 @@ subroutine gndstate
         ! compute the effective potential
         call poteff
         ! pack interstitial and muffin-tin effective potential and field into one array
-        call packeff(.true.,n,nu)
+        call packeff(.true.,n,v)
         ! mix in the old potential and field with the new
 
-        if(rank.eq.0)call mixer(.false.,beta0,betamax,n,nu,mu,beta,f,&
-        currentconvergence)
+        if(rank.eq.0) call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
+
 #ifdef MPI
-        call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+        call  MPI_BCAST(v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+        call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+        call  MPI_BCAST(work(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+
+	
+!	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
 #endif
         ! unpack potential and field
-        call packeff(.false.,n,nu)
+        call packeff(.false.,n,v)
         ! add the fixed spin moment effect field
         if (fixspin.ne.0) call fsmfield
         ! Fourier transform effective potential to G-space
@@ -312,9 +315,9 @@ subroutine gndstate
            call writeengy(60)
            write(60,*)
            write(60,'("Density of states at Fermi energy : ",G18.10)') fermidos
-           write(60,'(" (states/Hartree/spin/unit cell)")')
+           write(60,'(" (states/Hartree/unit cell)")')
            ! write total energy to TOTENERGY.OUT and flush
-           write(61,'(G18.10)') engytot
+           write(61,'(G22.12)') engytot
            call flushifc(61)
            ! write DOS at Fermi energy to FERMIDOS.OUT and flush
            write(62,'(G18.10)') fermidos
@@ -364,7 +367,7 @@ subroutine gndstate
            end if
            if (xctype.lt.0) then
               write(60,*)
-              write(60,'("Magnitude of OEP residue : ",G18.10)') resoep
+              write(60,'("Magnitude of OEP residual : ",G18.10)') resoep
            end if
 
            ! check for STOP file
@@ -430,14 +433,14 @@ subroutine gndstate
         endif
         ! check force convergence
         if(rank.eq.0)	then
-           force_converged=.false.
+           force_converged=.false.	
            if (forcemax.le.epsforce) then
-              write(60,*)
+              write(60,*)	
               write(60,'("Force convergence target achieved")')
               force_converged=.true.
            end if
         endif
-#ifdef MPI
+#ifdef MPI     
         call mpi_bcast(force_converged,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
 #endif
         if(force_converged) goto 30
@@ -456,10 +459,11 @@ subroutine gndstate
                  write(60,'(I4," : ",3F14.8)') ia,atposl(:,ia,is)
               end do
            end do
-           ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT and MOMENT.OUT
+! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
            write(61,*)
            write(62,*)
            if (spinpol) write (63,*)
+           write(65,*)
            ! begin new self-consistent loop with updated positions
            redoscl=.true.
         endif
@@ -518,8 +522,8 @@ subroutine gndstate
         ! close the RMSDVEFF.OUT file
         close(65)
      endif
-     deallocate(nu,mu,beta,f)
-     call mpiresumeevecfiles()
+     deallocate(v,work)
+     call mpiresumeevecfiles()	
      return
    end subroutine gndstate
 !EOC

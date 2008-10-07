@@ -65,9 +65,6 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   write(77,'("tshift")')
   write(77,*) tshift
   write(77,*)
-  write(77,'("rlambda")')
-  write(77,*) rlambda
-  write(77,*)
   write(77,'("autokpt")')
   write(77,*) autokpt
   write(77,*)
@@ -137,9 +134,6 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   write(77,'("beta0")')
   write(77,*) beta0
   write(77,*)
-  write(77,'("betamax")')
-  write(77,*) betamax
-  write(77,*)
   write(77,'("maxscl")')
   write(77,*) maxscl
   write(77,*)
@@ -197,9 +191,6 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   write(77,'("dos")')
   write(77,*) nwdos,ngrdos,nsmdos
   write(77,*) wdos(1),wdos(2)
-  write(77,*)
-  write(77,'("bcsym")')
-  write(77,*) bcsym
   write(77,*)
   write(77,'("tau0atm")')
   write(77,*) tau0atm

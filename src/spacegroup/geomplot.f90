@@ -31,8 +31,8 @@ write(50,'("PRIMCOORD")')
 write(50,'(2I8)') natmtot,1
 do is=1,nspecies
   do ia=1,natoms(is)
-    call r3mv(avec,atposl(1,ia,is),v1)
-    write(50,'(A,3G18.10)') trim(spsymb(is)),v1*au_to_ang
+    call r3mv(avec,atposl(:,ia,is),v1)
+    write(50,'(A,3G18.10)') trim(spsymb(is)),v1(:)*au_to_ang
   end do
 end do
 close(50)
@@ -53,12 +53,12 @@ v3(:)=v3(:)/t1
 call r3cross(v3,v1,v2)
 t1=sqrt(v2(1)**2+v2(2)**2+v2(3)**2)
 v2(:)=v2(:)/t1
-dxx=r3dot(avec(1,1),v1)
-dyx=r3dot(avec(1,2),v1)
-dyy=r3dot(avec(1,2),v2)
-dzx=r3dot(avec(1,3),v1)
-dzy=r3dot(avec(1,3),v2)
-dzz=r3dot(avec(1,3),v3)
+dxx=r3dot(avec(:,1),v1)
+dyx=r3dot(avec(:,2),v1)
+dyy=r3dot(avec(:,2),v2)
+dzx=r3dot(avec(:,3),v1)
+dzy=r3dot(avec(:,3),v2)
+dzz=r3dot(avec(:,3),v3)
 open(50,file='crystal.ascii',action='WRITE',form='FORMATTED')
 write(50,*)
 write(50,'(3G18.10)') dxx,dyx,dyy
@@ -66,9 +66,9 @@ write(50,'(3G18.10)') dzx,dzy,dzz
 write(50,*)
 do is=1,nspecies
   do ia=1,natoms(is)
-    v4(1)=r3dot(atposc(1,ia,is),v1)
-    v4(2)=r3dot(atposc(1,ia,is),v2)
-    v4(3)=r3dot(atposc(1,ia,is),v3)
+    v4(1)=r3dot(atposc(:,ia,is),v1)
+    v4(2)=r3dot(atposc(:,ia,is),v2)
+    v4(3)=r3dot(atposc(:,ia,is),v3)
     write(50,'(3G18.10," ",A)') v4,trim(spsymb(is))
   end do
 end do

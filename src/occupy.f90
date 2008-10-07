@@ -48,7 +48,7 @@ if (e0.lt.evalmin) then
 end if
 #ifdef TETRA
 !<rga>
-if (.not.tetra) then
+if (.not.tetraocc) then
 !</rga>
 #endif
 t1=1.d0/swidth
@@ -85,33 +85,31 @@ fermidos=0.d0
 do ik=1,nkpt
   do ist=1,nstsv
     if (evalsv(ist,ik).gt.evalmin) then
-      x=(efermi-evalsv(ist,ik))*t1
+      x=(evalsv(ist,ik)-efermi)*t1
       fermidos=fermidos+wkpt(ik)*sdelta(stype,x)*t1
     end if
   end do
   if (occsv(nstsv,ik).gt.epsocc) then
     write(*,*)
     write(*,'("Warning(occupy): not enough empty states for k-point ",I6)') ik
-    write(*,'("Increase parameter nempty")')
   end if
 end do
-fermidos=fermidos*occmax/2.d0
+fermidos=fermidos*occmax
 #ifdef TETRA
 !<rga>
 else
   ! calculate the Fermi energy and the density of states at the Fermi energy
-  call fermitet(nkpt,nstsv,evalsv,ntet,tnodes,wtet,tvol,chgval,spinpol, &
-  efermi,fermidos,.false.)
-  call tetiw(nkpt,ntet,nstsv,evalsv,tnodes,wtet,tvol,efermi,occsv)
+  call fermitetifc(nkpt,nstsv,evalsv,chgval,spinpol,efermi,fermidos)
+  call tetiwifc(nkpt,nstsv,evalsv,efermi,occsv)
   do ik=1,nkpt
     ! The "occsv" variable returned from "tetiw" already contains the
     ! weight "wkpt" and does not account for spin degeneracy - rescaling is
-    ! necessary (Stephan Sagmeister).
+    ! necessary (S. Sagmeister).
     do ist=1,nstsv
-      occsv(ist,ik)=(occmax/wkpt(ik))* occsv(ist,ik)
+      occsv(ist,ik)=(occmax/wkpt(ik))*occsv(ist,ik)
     end do  
   end do
-endif
+end if
 !</rga>
 #endif
 return

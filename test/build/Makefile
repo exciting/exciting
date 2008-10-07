@@ -66,9 +66,9 @@ fftlib.a:
 
 libbzint.a: 
 	cp -f ../../build/make.inc ../..
-	cd ../../src/src_libbzint && make clean && make
-	cp ../../src/src_libbzint/libbzint.a .
-	cd ../../src/src_libbzint && make clean
+	cd ../../src/libbzint && make clean && make
+	cp ../../src/libbzint/libbzint.a .
+	cd ../../src/libbzint && make clean
 
 
 libarpack.a: 

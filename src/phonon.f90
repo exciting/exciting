@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -7,18 +7,17 @@ subroutine phonon
 use modmain
 implicit none
 ! local variables
-integer iq,is,ia,ip,js,ja,jas,jp,ka
-integer nph,iph,i1,i2,i3,iv(3)
-integer natoms0(maxspecies)
-real(8) v1(3),v2(3),v3(3),t1,t2
-real(8) deltaph0,avec0(3,3)
-real(8) atposc0(3,maxatoms,maxspecies)
+integer is,js,ia,ja,ka,jas,kas
+integer iq,ip,jp,nph,iph,i
+real(8) dph,a,b,t1
 real(8) ftp(3,maxatoms,maxspecies)
-real(8) df(3,maxatoms,maxspecies,0:1)
-complex(8) zsum,zt1
-! external functions
-real(8) r3taxi
-external r3taxi
+complex(8) zt1,zt2
+complex(8) dyn(3,maxatoms,maxspecies)
+! allocatable arrays
+real(8), allocatable :: veffmtp(:,:,:)
+real(8), allocatable :: veffirp(:)
+complex(8), allocatable :: dveffmt(:,:,:)
+complex(8), allocatable :: dveffir(:)
 !------------------------!
 !     initialisation     !
 !------------------------!
@@ -30,33 +29,48 @@ primcell=.false.
 call init0
 ! initialise q-point dependent variables
 call init2
+! read original effective potential from file and store in global arrays
+call readstate
+if (allocated(veffmt0)) deallocate(veffmt0)
+allocate(veffmt0(lmmaxvr,nrmtmax,natmtot))
+if (allocated(veffir0)) deallocate(veffir0)
+allocate(veffir0(ngrtot))
+veffmt0(:,:,:)=veffmt(:,:,:)
+veffir0(:)=veffir(:)
+! allocate local arrays
+allocate(dveffmt(lmmaxvr,nrcmtmax,natmtot))
+allocate(dveffir(ngrtot))
 ! switch off automatic determination of muffin-tin radii
 autormt=.false.
 ! no shifting of atomic basis allowed
 tshift=.false.
-! determine k-point grid size from maximum de Broglie wavelength
+! determine k-point grid size from radkpt
 autokpt=.true.
-! store input values
+! store original parameters
 natoms0(1:nspecies)=natoms(1:nspecies)
-deltaph0=deltaph
+natmtot0=natmtot
 avec0(:,:)=avec(:,:)
+ainv0(:,:)=ainv(:,:)
 atposc0(:,:,:)=0.d0
 do is=1,nspecies
   do ia=1,natoms(is)
     atposc0(:,ia,is)=atposc(:,ia,is)
   end do
 end do
+ngrid0(:)=ngrid(:)
+ngrtot0=ngrtot
 !---------------------------------------!
 !     compute dynamical matrix rows     !
 !---------------------------------------!
 10 continue
 natoms(1:nspecies)=natoms0(1:nspecies)
 ! find a dynamical matrix to calculate
-call dyntask(80,iq,is,ia)
+call dyntask(80,iq,is,ia,ip)
+! phonon dry run
+if (task.eq.201) goto 10
 ! check to see if mass is considered infinite
 if (spmass(is).le.0.d0) then
   do ip=1,3
-    write(80,*)
     do js=1,nspecies
       do ja=1,natoms0(js)
         do jp=1,3
@@ -69,111 +83,85 @@ if (spmass(is).le.0.d0) then
   close(80)
   goto 10
 end if
-if (sqrt(vql(1,iq)**2+vql(2,iq)**2+vql(3,iq)**2).lt.epslat) then
-  nph=0
-else
-  nph=1
-end if
-! start from atomic densities
-task=0
-! begin loop over polarisations
-do ip=1,3
+task=200
+nph=1
+if ((ivq(1,iq).eq.0).and.(ivq(2,iq).eq.0).and.(ivq(3,iq).eq.0)) nph=0
+dyn(:,:,:)=0.d0
+dveffmt(:,:,:)=0.d0
+dveffir(:)=0.d0
 ! loop over phases (cos and sin displacements)
-  do iph=0,nph
-! restore input values
-    natoms(1:nspecies)=natoms0(1:nspecies)
-    avec(:,:)=avec0(:,:)
-    atposc(:,:,:)=atposc0(:,:,:)
-    deltaph=deltaph0
-! generate the supercell
-    call phcell(iph,iq,is,ia,ip)
-! run the ground-state calculation
-    call gndstate
-! store the total force for the first displacement
-    do js=1,nspecies
-      do ja=1,natoms(js)
-        jas=idxas(ja,js)
-        ftp(:,ja,js)=forcetot(:,jas)
-      end do
-    end do
-! restore input values
-    natoms(1:nspecies)=natoms0(1:nspecies)
-    avec(:,:)=avec0(:,:)
-    atposc(:,:,:)=atposc0(:,:,:)
-! double the displacement
-    deltaph=deltaph0+deltaph0
-! generate the supercell again
-    call phcell(iph,iq,is,ia,ip)
-! run the ground-state calculation again starting from previous density
-    task=1
-    call gndstate
-! store force derivative for current phase
-    do js=1,nspecies
-      do ja=1,natoms(js)
-        jas=idxas(ja,js)
-        df(:,ja,js,iph)=-(forcetot(:,jas)-ftp(:,ja,js))/deltaph0
-      end do
-    end do
-  end do
-!---------------------------------------------!
-!     Fourier transform force derivatives     !
-!---------------------------------------------!
-  write(80,*)
+do iph=0,nph
 ! restore input values
   natoms(1:nspecies)=natoms0(1:nspecies)
   avec(:,:)=avec0(:,:)
   atposc(:,:,:)=atposc0(:,:,:)
-! zero displacement
-  deltaph=0.d0
-  call phcell(0,iq,is,ia,ip)
-  t1=1.d0/dble(ngridq(1)*ngridq(2)*ngridq(3))
-! begin loops over species, atoms and polarisations
+! generate the supercell
+  call phcell(iph,deltaph,iq,is,ia,ip)
+! run the ground-state calculation
+  call gndstate
+! store the total force for the first displacement
   do js=1,nspecies
+    do ja=1,natoms(js)
+      jas=idxas(ja,js)
+      ftp(:,ja,js)=forcetot(:,jas)
+    end do
+  end do
+! store the effective potential for the first displacement
+  allocate(veffmtp(lmmaxvr,nrmtmax,natmtot))
+  allocate(veffirp(ngrtot))
+  veffmtp(:,:,:)=veffmt(:,:,:)
+  veffirp(:)=veffir(:)
+! restore input values
+  natoms(1:nspecies)=natoms0(1:nspecies)
+  avec(:,:)=avec0(:,:)
+  atposc(:,:,:)=atposc0(:,:,:)
+! generate the supercell again with twice the displacement
+  dph=deltaph+deltaph
+  call phcell(iph,dph,iq,is,ia,ip)
+! run the ground-state calculation again starting from the previous density
+  task=1
+  call gndstate
+! compute the complex perturbing effective potential with implicit q-phase
+  call phdveff(iph,iq,veffmtp,veffirp,dveffmt,dveffir)
+  deallocate(veffmtp,veffirp)
+! Fourier transform the force differences to obtain the dynamical matrix
+  zt1=1.d0/(dble(nphcell)*deltaph)
+! multiply by i for sin-like displacement
+  if (iph.eq.1) zt1=zt1*zi
+  kas=0
+  do js=1,nspecies
+    ka=0
     do ja=1,natoms0(js)
-      do jp=1,3
-! Fourier transform the force derivatives
-        zsum=0.d0
-! loop over phases (cos and sin displacements)
-        do iph=0,nph
-! loop over R-vectors
-          do i3=ngridq(3)/2-ngridq(3)+1,ngridq(3)/2
-            do i2=ngridq(2)/2-ngridq(2)+1,ngridq(2)/2
-              do i1=ngridq(1)/2-ngridq(1)+1,ngridq(1)/2
-                v1(:)=dble(i1)*avec(:,1)+dble(i2)*avec(:,2)+dble(i3)*avec(:,3)
-                t2=-(vqc(1,iq)*v1(1)+vqc(2,iq)*v1(2)+vqc(3,iq)*v1(3))
-                zt1=cmplx(cos(t2),sin(t2),8)
-                if (iph.eq.1) zt1=zt1*zi
-                v3(:)=v1(:)+atposc0(:,ja,js)
-! convert atomic position to supercell lattice coordinates
-                call r3mv(ainv,v3,v2)
-                call r3frac(epslat,v2,iv)
-! locate atom in current supercell
-                do ka=1,natoms(js)
-                  v3(:)=atposl(:,ka,js)
-                  call r3frac(epslat,v3,iv)
-                  if (r3taxi(v2,v3).lt.epslat) then
-                    zsum=zsum+zt1*df(jp,ka,js,iph)
-                    goto 30
-                  end if
-                end do
-30 continue
-              end do
-            end do
-          end do
+      do i=1,nphcell
+        ka=ka+1
+        kas=kas+1
+        t1=-dot_product(vqc(:,iq),vphcell(:,i))
+        zt2=zt1*cmplx(cos(t1),sin(t1),8)
+        do jp=1,3
+          t1=-(forcetot(jp,kas)-ftp(jp,ka,js))
+          dyn(jp,ja,js)=dyn(jp,ja,js)+zt2*t1
         end do
-        zsum=t1*zsum
-! write dynamical matrix row to file
-        write(80,'(2G18.10," : is = ",I4,", ia = ",I4,", ip = ",I4)') zsum,js, &
-         ja,jp
       end do
     end do
   end do
- ! call flushifc(80)
-! end loop over polarisations
+end do
+! write dynamical matrix row to file
+do js=1,nspecies
+  do ja=1,natoms0(js)
+    do jp=1,3
+      a=dble(dyn(jp,ja,js))
+      b=aimag(dyn(jp,ja,js))
+      if (abs(a).lt.1.d-12) a=0.d0
+      if (abs(b).lt.1.d-12) b=0.d0
+      write(80,'(2G18.10," : is = ",I4,", ia = ",I4,", ip = ",I4)') a,b,js,ja,jp
+    end do
+  end do
 end do
 close(80)
-! delete the eigenvector files
-call delevec
+! write the complex perturbing effective potential to file
+call writedveff(iq,is,ia,ip,dveffmt,dveffir)
+! delete the non-essential files
+call phdelete
 goto 10
 end subroutine
 

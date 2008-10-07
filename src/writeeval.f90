@@ -10,8 +10,8 @@ subroutine writeeval
 ! !USES:
 use modmain
 ! !DESCRIPTION:
-!   Outputs the second-variational eigenvalues, occupancion numbers and spin
-!   characters to the file {\tt EIGVAL.OUT}.
+!   Outputs the second-variational eigenvalues and occupation numbers to the
+!   file {\tt EIGVAL.OUT}.
 !
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
@@ -27,9 +27,9 @@ write(50,'(I6," : nstsv")') nstsv
 do ik=1,nkpt
   write(50,*)
   write(50,'(I6,3G18.10," : k-point, vkl")') ik,vkl(:,ik)
-  write(50,'("     (state, evalsv, occsv, spnchr below)")')
+  write(50,'(" (state, eigenvalue and occupancy below)")')
   do ist=1,nstsv
-    write(50,'(I6,4G18.10)') ist,evalsv(ist,ik),occsv(ist,ik),spnchr(:,ist,ik)
+    write(50,'(I6,2G18.10)') ist,evalsv(ist,ik),occsv(ist,ik)
   end do
   write(50,*)
 end do

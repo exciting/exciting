@@ -33,7 +33,7 @@ integer ispn,jspn
 n=0
 call rfpack(tpack,n,1,veffmt,veffir,nu)
 do idm=1,ndmag
-  call rfpack(tpack,n,1,bxcmt(1,1,1,idm),bxcir(1,idm),nu)
+  call rfpack(tpack,n,1,bxcmt(:,:,:,idm),bxcir(:,idm),nu)
 end do
 ! pack the LDA+U potential if required
 if (ldapu.ne.0) then

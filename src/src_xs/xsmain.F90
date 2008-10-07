@@ -14,7 +14,7 @@
 !   The content of this manual is partially taken from the author's PhD thesis.
 !   \\\\
 !   S. Sagmeister\\
-!   Leoben, July 2008
+!   Leoben, August 2008
 !
 !EOI
 
@@ -78,9 +78,6 @@ subroutine xsmain
   case(350)
      ! inversion of dielectric function wrt. xc-kernel
      call idf
-  case(351)
-     ! linear optics of old version
-     call linoptold
   case(396)
      ! convolute dielectric function from tetrahedron method with Lorentzian
      call epsconv
@@ -115,6 +112,11 @@ subroutine xsmain
   case(450)
      ! BSE-kernel
      call kernxc_bse(1)
+  case(498)
+     ! * debug task
+     call init0
+     call init1
+     write(*,*) 'debug task 498 finished'
   case(499)
      ! * debug task
      call testxs

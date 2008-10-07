@@ -48,7 +48,7 @@ do i1=-1,1
             do ja=1,natoms(js)
               if ((i1.ne.0).or.(i2.ne.0).or.(i3.ne.0).or.(is.ne.js).or. &
                (ia.ne.ja)) then
-                t2=r3dist(v2,atposc(1,ja,js))
+                t2=r3dist(v2,atposc(:,ja,js))
                 t3=t1*t2
                 if (t3.lt.s) s=t3
               end if

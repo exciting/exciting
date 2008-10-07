@@ -47,14 +47,14 @@ allocate(zfmt(lmmax,nr))
 allocate(gzfmt(lmmax,nr,3))
 ! convert real to complex spherical harmonic expansion
 do ir=1,nr
-  call rtozflm(lmax,rfmt(1,ir),zfmt(1,ir))
+  call rtozflm(lmax,rfmt(:,ir),zfmt(:,ir))
 end do
 ! compute the gradient
 call gradzfmt(lmax,nr,r,lmmax,nr,zfmt,gzfmt)
 ! convert complex to real spherical harmonic expansion
 do i=1,3
   do ir=1,nr
-    call ztorflm(lmax,gzfmt(1,ir,i),grfmt(1,ir,i))
+    call ztorflm(lmax,gzfmt(:,ir,i),grfmt(:,ir,i))
   end do
 end do
 deallocate(zfmt,gzfmt)
