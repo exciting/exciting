@@ -20,9 +20,9 @@ case(1)
     nwork=3*n
     return
   end if
-  call mixadapt(iscl,beta0,betainc,betadec,n,v,work,work(n+1),work(2*n+1),dv)
+  call mixadapt(iscl,beta0,betainc,betadec,n,v,dv)
 case(2)
-  call mixmsec(iscl,v,n)
+  call mixmsec(iscl,v,dv,n)
 case default
   write(*,*)
   write(*,'("Error(mixerifc): mtype not defined : ",I8)') mtype

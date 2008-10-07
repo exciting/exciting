@@ -6,7 +6,9 @@
 !BOP
 ! !ROUTINE: mixadapt
 ! !INTERFACE:
-subroutine mixadapt(iscl,beta0,betainc,betadec,n,nu,mu,beta,f,d)
+subroutine mixadapt(iscl,beta0,betainc,betadec,n,nu,f,d)
+use  modmixadapt
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   iscl    : self-consistent loop number (in,integer)
 !   beta0   : initial value for mixing parameter (in,real)
@@ -48,9 +50,8 @@ real(8), intent(in) :: betainc
 real(8), intent(in) :: betadec
 integer, intent(in) :: n
 real(8), intent(inout) :: nu(n)
-real(8), intent(inout) :: mu(n)
-real(8), intent(inout) :: beta(n)
-real(8), intent(inout) :: f(n)
+
+
 real(8), intent(out) :: d
 ! local variables
 integer i
@@ -83,3 +84,13 @@ return
 end subroutine
 !EOC
 
+module modmixadapt
+real(8), allocatable :: mu(:)
+real(8), allocatable :: beta(:)
+real(8), allocatable :: f(:)
+contains
+subroutine init_arrays(n)
+integer ,intent(in)::n
+allocate (mu(n),beta(n),f(n))
+end subroutine
+end module
