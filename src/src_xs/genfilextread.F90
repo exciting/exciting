@@ -9,7 +9,7 @@ subroutine genfilextread(task)
   ! arguments
   integer, intent(in) :: task
   select case(task)
-  case(121,330,340,350)
+  case(121,330,331,340,350)
      call genfilname(iqmt=0,setfilext=.true.)
   case(430,440,441,445,450)
      call genfilname(dotext='_SCR.OUT',setfilext=.true.)

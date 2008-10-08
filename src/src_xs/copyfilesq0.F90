@@ -30,6 +30,7 @@ subroutine copyfilesq0
   integer :: ik
   complex(8), allocatable :: evecfvt(:,:,:)
   complex(8), allocatable :: apwlm(:,:,:,:),lolm(:,:,:,:)
+  call init1xs(qvkloff(1,iq))
   allocate(evecfvt(nmatmax,nstfv,nspnfv),evecsv(nstsv,nstsv))
   allocate(apwlm(nstfv,apwordmax,lmmaxapw,natmtot))
   allocate(lolm(nstfv,nlomax,-lolmax:lolmax,natmtot))

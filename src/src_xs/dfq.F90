@@ -145,7 +145,7 @@ subroutine dfq(iq)
   ! calculate k+q and G+k+q related variables
   call init1xs(qvkloff(1,iq))
   ! generate link array for tetrahedra
-  call gentetlinkp(vql(1,iq),tetraqweights)
+  if (tetradf) call gentetlinkp(vql(1,iq),tetraqweights)
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find limits for band combinations

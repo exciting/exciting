@@ -129,7 +129,7 @@ contains
        vklt(:)=vkl(:,ik)
        vqlt(:)=vql(:,iq)
     end if
-    if ((r3dist(vkl_,vklt).gt.epslat).or.(r3dist(vql_,vqlt).gt.epslat)) then
+    if ((r3dist(vkl_,vklt).gt.epslat).or.((r3dist(vql_,vqlt).gt.epslat).and.(.not.tscreen))) then
        write(unitout,*)
        write(unitout,'(a)') 'Error('//thisnam//'): differring parameters for &
             &APW MT coefficients (current/file): '
