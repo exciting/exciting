@@ -1,7 +1,11 @@
 include ../build/make.inc
 
-
+ifeq ($(BUILDMPI),true)
+test:test01 test02 test03 testmpi
+endif 
+ifeq ($(BUILDMPI),false)
 test:test01 test02 test03
+endif 
 	perl perl/summary.pl
 test01::
 	cd build;make libs  test01
@@ -16,8 +20,8 @@ test03::exciting
 	cd test03/run && ../../../build/debug/exciting
 	cd test03 && perl report.pl
 
-ifeq ($(BUILDMPI),true)
+
 testmpi::
 	cd build;make libs testmpi
-endif
+
 
