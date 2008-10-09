@@ -62,7 +62,8 @@ test02::testprogram2
 	cd ../test02/runarp; ../../build/testprogram2
 	cd ../test02 ; perl assert.pl
 
-testmpi::testprogram2mpi
+testmpi::
+	cd ../../build/mpi/; make libs exciting
 	cd ../test02/runlapackmpi ;sh startmpirun 
 	cd ../test02 ; perl assertmpi.pl
 
