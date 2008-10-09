@@ -12,3 +12,9 @@ exciting::
 test03::exciting
 	cd test03/run && ../../../build/debug/exciting
 	cd test03 && perl report.pl
+
+ifeq ($(BUILDMPI),true)
+testmpi::
+	cd build;make libs testmpi
+endif
+

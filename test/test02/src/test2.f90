@@ -1,5 +1,6 @@
 program test
 use modreport
+use modmpi
 testplan_name ="test2"
 !call inittestoutputfile()
 
@@ -8,7 +9,8 @@ testplan_name ="test2"
 !call system("rm *.OUT")
 call readinput()
 call gndstate()
+if (rank.eq.0) then
 call write_evec_formatted()
-
+endif
 !call finalizeoutput()
 end program

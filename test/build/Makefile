@@ -30,12 +30,28 @@ Makefile.test2::
 	../src/testframework
 
 
+Makefile.test2mpi::
+	sh ../../utilities/versionstamp.sh
+	../../utilities/mkmf -t templatempi -f -m Makefile.test2mpi -p testprogram2mpi \
+	../../src  \
+	../src \
+	../../src/src_xs \
+	../../src/src_sym \
+	../../src/src_fermisurfdx \
+	../../src/src_iterative_solver \
+	../../src/src_iterative_solver/src_diis \
+	../../src/src_mixing \
+	../test02/src \
+	../src/testframework
+
 testprogram1::Makefile.test1
 	make -f Makefile.test1 testprogram1 
 
 testprogram2::Makefile.test2
 	make -f Makefile.test2 testprogram2 
-
+	
+testprogram2mpi::Makefile.test2mpi
+	make -f Makefile.test2mpi testprogram2mpi 
 	
 test01::testprogram1
 	cd ../test01/run ; ../../build/testprogram1
@@ -45,6 +61,10 @@ test02::testprogram2
 	cd ../test02/runarp; ../../build/testprogram2
 	cd ../test02 ; perl assert.pl
 
+test02::testprogram2mpi
+	cd ../test02/runlapackmpi ; ../../build/testprogram2
+	cd ../test02/runarpmpi; ../../build/testprogram2
+	cd ../test02 ; perl assertmpi.pl
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
 
