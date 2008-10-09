@@ -17,7 +17,7 @@
 module  modmpi
 #ifdef MPI
 
-#include </usr/lib/mpich/include/mpif.h>
+#include "../build/mpiconf.inc"
 
 
 !  use mpi
