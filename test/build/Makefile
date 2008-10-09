@@ -63,8 +63,7 @@ test02::testprogram2
 	cd ../test02 ; perl assert.pl
 
 testmpi::testprogram2mpi
-	cd ../test02/runlapackmpi ; ../../build/testprogram2
-	cd ../test02/runarpmpi; ../../build/testprogram2
+	cd ../test02/runlapackmpi ;sh startmpirun 
 	cd ../test02 ; perl assertmpi.pl
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 

@@ -39,7 +39,7 @@ close INFO;
 
  Test::writetestreport({
  		directory=>"test02/runlapack",
- 		name=>"lapack run",
+ 		name=>"lapack_run",
  		description=>"The test run  using lapack finished without errors",
  		status=>$status
  		}, $writer);
@@ -60,7 +60,7 @@ $status="passed";
 }
  Test::writetestreport({
  		directory=>"test02/ ",
- 		name=>"totalenergy compare LAPACK ARPACK ",
+ 		name=>"totalenergy_compare_LAPACK_ARPACK ",
  		description=>"The test is passed if the total energy differs\
  		 less than $tol between lapack and Arpack 
  		 difference=$err",
@@ -73,12 +73,22 @@ $tol=1e-8;
 	"runlapack/EIGVAL.OUT",$tol);
  Test::writetestreport({
  		"directory"=>"test02/ ",
- 		"name"=>"eigenvalue comparison LAPACK ARPACK ",
+ 		"name"=>"eigenvalue_comparison_LAPACK ARPACK ",
  		"description"=>"The test is passed if the eigenvalues  differ
  		 less than $tol between lapack and Arpack 
  		 difference=" .  %statuseigval->{maxerror},
  		"status"=> %statuseigval->{status}
  		}, $writer);
 
+%statuseigval=Test::assert_file_same_within( "reference/EIGVAL.OUT",
+	"runlapack/EIGVAL.OUT",$tol);
+ Test::writetestreport({
+ 		"directory"=>"test02/ ",
+ 		"name"=>"Eigenvalues_same_as_reference_file",
+ 		"description"=>"The test is passed if the eigenvalues  differ
+ 		 less than $tol between lapack and reference file reference/EIGVAL.OUT
+ 		 difference=" .  %statuseigval->{maxerror},
+ 		"status"=> %statuseigval->{status}
+ 		}, $writer);
 
  Test::closereport($writer);

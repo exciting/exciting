@@ -7,10 +7,12 @@ testplan_name ="test2"
 ! list test routines here and call testreport(testunit,input,output,passed)
 ! before leaving the routine
 !call system("rm *.OUT")
+ call initMPI
 call readinput()
 call gndstate()
 if (rank.eq.0) then
 call write_evec_formatted()
 endif
+call finitMPI
 !call finalizeoutput()
 end program

@@ -29,7 +29,6 @@ sub collectreports{
 
 
 sub make_summary{
-    %merged=();
     $reports=@_[0];
     foreach $report (@reports)
     {
@@ -48,6 +47,7 @@ sub make_summary{
 		    else
 		    {
 	    			$unspecifiedtests{$k}=$v;
+	    			print "$k\n";
 			    }
 		    
 		}
@@ -56,18 +56,21 @@ sub make_summary{
 
     $xml = new XML::Simple(NoAttr=>1, RootName=>'report',XMLDecl=>"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet href=\"./report.xsl\" type=\"text/xsl\"?>");
     $data{test}=\%merged;
+     age_files("all.xml");
     unless (open (ALL,">./report/all.xml")){
 	die "Sorry, I couldn't create all.xml: $!";
     };
     print ALL $xml->XMLout(\%data);
     close ALL;
-      age_files("failed.xml");
+    
+    age_files("failed.xml");
     unless (open (FAILED ,">./report/failed.xml")){
 	die "Sorry, I couldn't create failed.xml: $!";
     };
     $data{test}=\%failedtests;
     print FAILED $xml->XMLout(\%data);
     close FAILED;
+      
       age_files("passed.xml");
     unless (open (PASSED ,">./report/passed.xml")){
 	die "Sorry, I couldn't create passed.xml: $!";
@@ -76,6 +79,7 @@ sub make_summary{
     $data{test}=\%passedtests;
     print PASSED $xml->XMLout(\%data);
     close PASSED;
+     
       age_files("unspecified.xml");
     unless (open (UNSPEC ,">./report/unspecified.xml")){
 	die "Sorry, I couldn't create unsecified.xml: $!";

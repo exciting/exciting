@@ -7,7 +7,7 @@ file1="GEOMETRY.OUT"
 file2="../reference/GEOMETRY.OUT"
 diff="../output/geomdiff"
 call comparefiles(file1,file2,diff,passed)
-testunitname="Geometry file"
+testunitname="Geometry_file"
 inputf="GEOMETRY.OUT"
 outputf="geomdiff"
 call testreport(passed)
