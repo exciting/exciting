@@ -6,6 +6,7 @@
 subroutine terminate
   use modmpi
   implicit none
+  integer ierr
   ! abort MPI if necessary
 #ifdef MPI
   call mpi_abort(mpi_comm_world, ierr)
