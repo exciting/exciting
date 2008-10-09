@@ -2,7 +2,7 @@ all:test
 
 Makefile.test1::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t template -f -m Makefile.test1 -p testprogram1 \
+	../../utilities/mkmf   -t template -f -m Makefile.test1 -p testprogram1  \
 	../../src  \
 	../src \
 	../../src/src_xs \
@@ -17,7 +17,7 @@ Makefile.test1::
 
 Makefile.test2::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2 \
+	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2  \
 	../../src  \
 	../src \
 	../../src/src_xs \
@@ -32,7 +32,8 @@ Makefile.test2::
 
 Makefile.test2mpi::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t templatempi -f -m Makefile.test2mpi -p testprogram2mpi \
+	../../utilities/mkmf -t templatempi -f -c -DMPI-DMPISEC-DMPIRHO\
+	 -m Makefile.test2mpi -p testprogram2mpi \
 	../../src  \
 	../src \
 	../../src/src_xs \

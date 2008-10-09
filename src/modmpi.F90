@@ -17,9 +17,10 @@
 module  modmpi
 #ifdef MPI
 
-include <mpif.h>
+#include </usr/lib/mpich/include/mpif.h>
 
-  use mpi
+
+!  use mpi
 #endif
   integer :: rank
   integer :: procs
