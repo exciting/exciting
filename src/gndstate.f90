@@ -92,7 +92,9 @@ subroutine gndstate
   ! allocate mixing arrays
   allocate(v(n))
   nwork=-1
+allocate(work(1))
   call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
+deallocate(work)
   allocate(work(nwork))
   ! set stop flag
   tstop=.false.

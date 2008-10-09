@@ -6,10 +6,9 @@
 subroutine terminate
   use modmpi
   implicit none
-  integer ierr
   ! abort MPI if necessary
 #ifdef MPI
-  call mpi_abort(mpi_comm_world, ierr)
+  call mpi_abort(mpi_comm_world, 1,ierr)
   if (ierr.eq.0) then
      write(*,'(a)') 'MPI abort clean. STOP'
   else
