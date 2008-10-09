@@ -1,23 +1,3 @@
-module modmixadapt
-real(8), allocatable :: mu(:)
-real(8), allocatable :: beta(:)
-real(8), allocatable :: f(:)
-contains
-subroutine init_mixadapt_arrays(n)
-integer ,intent(in)::n
-if(.not. allocated(mu))then
-allocate (mu(n),beta(n),f(n))
-endif
-end subroutine
-end module
-
-subroutine mixadapt__free_arrays()
-use modmixadapt
-if(allocated(mu)) then
-deallocate (mu,beta,f)
-endif
-end subroutine
-
 
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
@@ -26,9 +6,7 @@ end subroutine
 !BOP
 ! !ROUTINE: mixadapt
 ! !INTERFACE:
-subroutine mixadapt(iscl,beta0,betainc,betadec,n,nu,d)
-use  modmixadapt
-
+subroutine mixadapt(iscl,beta0,betainc,betadec,n,nu,mu,beta,f,d)
 ! !INPUT/OUTPUT PARAMETERS:
 !   iscl    : self-consistent loop number (in,integer)
 !   beta0   : initial value for mixing parameter (in,real)
@@ -70,8 +48,9 @@ real(8), intent(in) :: betainc
 real(8), intent(in) :: betadec
 integer, intent(in) :: n
 real(8), intent(inout) :: nu(n)
-
-
+real(8), intent(inout) :: mu(n)
+real(8), intent(inout) :: beta(n)
+real(8), intent(inout) :: f(n)
 real(8), intent(out) :: d
 ! local variables
 integer i
@@ -103,5 +82,4 @@ mu(:)=nu(:)
 return
 end subroutine
 !EOC
-
 

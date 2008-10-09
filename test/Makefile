@@ -1,3 +1,6 @@
+include ../build/make.inc
+
+
 test:test01 test02 test03
 	perl perl/summary.pl
 test01::

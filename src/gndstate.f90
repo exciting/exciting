@@ -41,7 +41,7 @@ subroutine gndstate
   call init1
   ! initialise OEP variables if required
   if (xctype.lt.0) call init2
-  if(rank.eq.0) then
+  if(rank.eq.0) then 	
      ! write the real and reciprocal lattice vectors to file
      call writelat
      ! write interatomic distances to file
@@ -93,7 +93,7 @@ subroutine gndstate
   allocate(v(n))
   nwork=-1
   call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
-
+  allocate(work(nwork))
   ! set stop flag
   tstop=.false.
 10 continue
@@ -177,7 +177,7 @@ subroutine gndstate
         call putevecsv(ik,evecsv)
         deallocate(evalfv,evecfv,evecsv)
      end do
-#ifdef KSMP
+#ifdef KSMP     
      !$OMP END DO
      !$OMP END PARALLEL
 #endif
@@ -205,7 +205,7 @@ subroutine gndstate
         magir(:,:)=0.d0
      end if
 
-#ifdef MPIRHO
+#ifdef MPIRHO	 
 
      do ik=firstk(rank),lastk(rank)
         !write the occupancies to file
@@ -214,20 +214,20 @@ subroutine gndstate
      do ik=firstk(rank),lastk(rank)
 #endif
 
-#ifndef MPIRHO
+#ifndef MPIRHO	
         if (rank.eq.0)then
            do ik=1,nkpt
               !write the occupancies to file
               call putoccsv(ik,occsv(:,ik))
            end do
         endif
-#ifdef KSMP
+#ifdef KSMP     
         ! begin parallel loop over k-points
         !$OMP PARALLEL DEFAULT(SHARED) &
         !$OMP PRIVATE(evecfv,evecsv)
         !$OMP DO
-#endif
-        do ik=1,nkpt
+#endif     
+        do ik=1,nkpt	
 #endif
            allocate(evecfv(nmatmax,nstfv,nspnfv))
            allocate(evecsv(nstsv,nstsv))
@@ -239,17 +239,17 @@ subroutine gndstate
            call rhovalk(ik,evecfv,evecsv)
            deallocate(evecfv,evecsv)
         end do
-#ifndef MPIRHO
+#ifndef MPIRHO	   
 #ifdef KSMP
         !$OMP END DO
         !$OMP END PARALLEL
 #endif
 #endif
-#ifdef MPIRHO
+#ifdef MPIRHO    
         call mpisumrhoandmag
-#endif
+#endif  
 #ifdef MPI
-        if(xctype.lt.0) call mpiresumeevecfiles()
+        if(xctype.lt.0) call mpiresumeevecfiles()	
 #endif
         ! symmetrise the density
         call symrf(lradstp,rhomt,rhoir)
@@ -291,11 +291,11 @@ subroutine gndstate
         call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
         call  MPI_BCAST(work(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 
-
-!	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-!        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-!        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-!        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+	
+!	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
+!        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr) 
 #endif
         ! unpack potential and field
         call packeff(.false.,n,v)
@@ -433,14 +433,14 @@ subroutine gndstate
         endif
         ! check force convergence
         if(rank.eq.0)	then
-           force_converged=.false.
+           force_converged=.false.	
            if (forcemax.le.epsforce) then
-              write(60,*)
+              write(60,*)	
               write(60,'("Force convergence target achieved")')
               force_converged=.true.
            end if
         endif
-#ifdef MPI
+#ifdef MPI     
         call mpi_bcast(force_converged,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
 #endif
         if(force_converged) goto 30
@@ -522,10 +522,8 @@ subroutine gndstate
         ! close the RMSDVEFF.OUT file
         close(65)
      endif
-     deallocate(v)
-
-     call mixadapt__free_arrays()
-     call mpiresumeevecfiles()
+     deallocate(v,work)
+     call mpiresumeevecfiles()	
      return
    end subroutine gndstate
 !EOC

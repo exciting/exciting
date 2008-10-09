@@ -5,7 +5,6 @@
 
 subroutine mixerifc(mtype,n,v,dv,nwork,work)
 use modmain
-use modmixadapt
 implicit none
 ! arguments
 integer, intent(in) :: mtype
@@ -18,12 +17,10 @@ select case(mtype)
 case(1)
 ! adaptive linear mixing
   if (nwork.le.0) then
-	call    init_mixadapt_arrays(n)
+    nwork=3*n
     return
   end if
-  call mixadapt(iscl,beta0,betainc,betadec,n,v,dv)
-case(2)
-  call mixmsec(iscl,v,dv,n)
+  call mixadapt(iscl,beta0,betainc,betadec,n,v,work,work(n+1),work(2*n+1),dv)
 case default
   write(*,*)
   write(*,'("Error(mixerifc): mtype not defined : ",I8)') mtype

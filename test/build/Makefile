@@ -61,7 +61,7 @@ test02::testprogram2
 	cd ../test02/runarp; ../../build/testprogram2
 	cd ../test02 ; perl assert.pl
 
-test02::testprogram2mpi
+testmpi::testprogram2mpi
 	cd ../test02/runlapackmpi ; ../../build/testprogram2
 	cd ../test02/runarpmpi; ../../build/testprogram2
 	cd ../test02 ; perl assertmpi.pl
