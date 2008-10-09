@@ -1,1 +1,0 @@
- mpirun -np 4 -machinefile machinefile  ../../build/testprogram2mpi 
