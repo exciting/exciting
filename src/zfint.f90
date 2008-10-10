@@ -30,9 +30,9 @@ do is=1,nspecies
       fr1(irc)=dble(zfmt(1,irc,ias))*t1
       fr2(irc)=aimag(zfmt(1,irc,ias))*t1
     end do
-    call fderiv(-1,nrcmt(is),rcmt(1,is),fr1,gr,cf)
+    call fderiv(-1,nrcmt(is),rcmt(:,is),fr1,gr,cf)
     t1=gr(nrcmt(is))
-    call fderiv(-1,nrcmt(is),rcmt(1,is),fr2,gr,cf)
+    call fderiv(-1,nrcmt(is),rcmt(:,is),fr2,gr,cf)
     t2=gr(nrcmt(is))
     zsum=zsum+fourpi*y00*cmplx(t1,t2,8)
   end do

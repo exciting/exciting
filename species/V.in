@@ -2,7 +2,7 @@
  'vanadium'                                 : spname
   -23.0000                                  : spzn
    92860.67376                              : spmass
-  0.417029E-06    2.0000   43.8451   500    : sprmin, rmt, sprmax, nrmt
+  0.417029E-06    2.0000   36.4410   500    : sprmin, rmt, sprmax, nrmt
    9                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

@@ -12,10 +12,12 @@ real(8), intent(inout) :: evv
 real(8), intent(inout) :: ecv
 ! local variables
 integer ngknr,ik,ist,jst
-integer is,ia,ias,nr,m,lmax
+integer is,ia,ias,nrc,m,lmax
 integer iv(3),iq,ig,igq0
 real(8) cfq,v(3),t1
 complex(8) zrho0,zt1
+! automatic arrays
+real(8) zn(nspecies)
 ! allocatable arrays
 integer, allocatable :: igkignr(:)
 real(8), allocatable :: vgklnr(:,:)
@@ -41,7 +43,6 @@ complex(8), allocatable :: wfir2(:,:,:)
 complex(8), allocatable :: wfcr(:,:,:)
 complex(8), allocatable :: zrhomt(:,:,:)
 complex(8), allocatable :: zrhoir(:)
-complex(8), allocatable :: zpchg(:)
 complex(8), allocatable :: zvclmt(:,:,:)
 complex(8), allocatable :: zvclir(:)
 complex(8), allocatable :: zfmt(:,:)
@@ -63,7 +64,6 @@ allocate(evalsvnr(nstsv))
 allocate(sfacgknr(ngkmax,natmtot))
 allocate(ylmgq(lmmaxvr,ngvec))
 allocate(sfacgq(ngvec,natmtot))
-allocate(zpchg(natmtot))
 allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
 allocate(evecfv(nmatmax,nstfv))
 allocate(evecsv(nstsv,nstsv))
@@ -79,26 +79,26 @@ allocate(wfcr(lmmaxvr,nrcmtmax,2))
 allocate(zfmt(lmmaxvr,nrcmtmax))
 ! coefficient for long-range term
 cfq=0.5d0*(omega/pi)**2
-! set the point charges to zero
-zpchg(:)=0.d0
+! set the nuclear charges to zero
+zn(:)=0.d0
 ! get the eigenvalues/vectors from file for input k-point
-call getevalsv(vkl(1,ikp),evalsvp)
-call getevecfv(vkl(1,ikp),vgkl(1,1,ikp,1),evecfv)
-call getevecsv(vkl(1,ikp),evecsv)
+call getevalsv(vkl(:,ikp),evalsvp)
+call getevecfv(vkl(:,ikp),vgkl(:,:,:,ikp),evecfv)
+call getevecsv(vkl(:,ikp),evecsv)
 ! find the matching coefficients
-call match(ngk(ikp,1),gkc(1,ikp,1),tpgkc(1,1,ikp,1),sfacgk(1,1,ikp,1),apwalm)
+call match(ngk(1,ikp),gkc(:,1,ikp),tpgkc(:,:,1,ikp),sfacgk(:,:,1,ikp),apwalm)
 ! calculate the wavefunctions for occupied states for the input k-point
-call genwfsv(.true.,ngk(ikp,1),igkig(1,ikp,1),evalsvp,apwalm,evecfv,evecsv, &
+call genwfsv(.true.,ngk(1,ikp),igkig(:,1,ikp),evalsvp,apwalm,evecfv,evecsv, &
  wfmt1,wfir1)
 ! start loop over non-reduced k-point set
 do ik=1,nkptnr
 ! generate G+k vectors
-  call gengpvec(vklnr(1,ik),vkcnr(1,ik),ngknr,igkignr,vgklnr,vgkcnr,gkcnr, &
+  call gengpvec(vklnr(:,ik),vkcnr(:,ik),ngknr,igkignr,vgklnr,vgkcnr,gkcnr, &
    tpgkcnr)
 ! get the eigenvalues/vectors from file for non-reduced k-points
-  call getevalsv(vklnr(1,ik),evalsvnr)
-  call getevecfv(vklnr(1,ik),vgklnr,evecfv)
-  call getevecsv(vklnr(1,ik),evecsv)
+  call getevalsv(vklnr(:,ik),evalsvnr)
+  call getevecfv(vklnr(:,ik),vgklnr,evecfv)
+  call getevecsv(vklnr(:,ik),evecsv)
 ! generate the structure factors
   call gensfacgp(ngknr,vgkcnr,ngkmax,sfacgknr)
 ! find the matching coefficients
@@ -112,9 +112,9 @@ do ik=1,nkptnr
 ! determine G+q vectors
     vgqc(:,ig)=vgc(:,ig)+v(:)
 ! G+q-vector length and (theta, phi) coordinates
-    call sphcrd(vgqc(1,ig),gqc(ig),tpgqc(1,ig))
+    call sphcrd(vgqc(:,ig),gqc(ig),tpgqc(:,ig))
 ! spherical harmonics for G+q-vectors
-    call genylm(lmaxvr,tpgqc(1,ig),ylmgq(1,ig))
+    call genylm(lmaxvr,tpgqc(:,ig),ylmgq(:,ig))
   end do
 ! structure factor for G+q
   call gensfacgp(ngvec,vgqc,ngvec,sfacgq)
@@ -133,11 +133,11 @@ do ik=1,nkptnr
       do ist=1,nstsv
         if (evalsvp(ist).lt.efermi) then
 ! calculate the complex overlap density
-          call vnlrho(.true.,wfmt2(1,1,1,1,jst),wfmt1(1,1,1,1,ist), &
-           wfir2(1,1,jst),wfir1(1,1,ist),zrhomt,zrhoir)
+          call vnlrho(.true.,wfmt2(:,:,:,:,jst),wfmt1(:,:,:,:,ist), &
+           wfir2(:,:,jst),wfir1(:,:,ist),zrhomt,zrhoir)
 ! calculate the Coulomb potential
           call zpotcoul(nrcmt,nrcmtmax,nrcmtmax,rcmt,igq0,gqc,jlgqr,ylmgq, &
-           sfacgq,zpchg,zrhomt,zrhoir,zvclmt,zvclir,zrho0) 
+           sfacgq,zn,zrhomt,zrhoir,zvclmt,zvclir,zrho0) 
           zt1=zfinp(.true.,zrhomt,zvclmt,zrhoir,zvclir)
           t1=cfq*wiq2(iq)*(dble(zrho0)**2+aimag(zrho0)**2)
 !$OMP CRITICAL
@@ -156,7 +156,7 @@ end do
 !-----------------------------------------!
 ! begin loops over atoms and species
 do is=1,nspecies
-  nr=nrcmt(is)
+  nrc=nrcmt(is)
   do ia=1,natoms(is)
     ias=idxas(ia,is)
     do jst=1,spnst(is)
@@ -167,17 +167,17 @@ do is=1,nspecies
           do ist=1,nstsv
             if (evalsvp(ist).lt.efermi) then
 ! calculate the complex overlap density
-              call vnlrhomt(.true.,is,wfcr(1,1,1),wfmt1(1,1,ias,1,ist), &
-               zrhomt(1,1,ias))
+              call vnlrhomt(.true.,is,wfcr(:,:,1),wfmt1(:,:,ias,1,ist), &
+               zrhomt(:,:,ias))
               if (spinpol) then
-                call vnlrhomt(.true.,is,wfcr(1,1,2),wfmt1(1,1,ias,2,ist),zfmt)
-                zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
+                call vnlrhomt(.true.,is,wfcr(:,:,2),wfmt1(:,:,ias,2,ist),zfmt)
+                zrhomt(:,1:nrc,ias)=zrhomt(:,1:nrc,ias)+zfmt(:,1:nrc)
               end if
 ! calculate the Coulomb potential
-              call zpotclmt(lmaxvr,nr,rcmt(1,is),zpchg(ias),lmmaxvr, &
-               zrhomt(1,1,ias),zvclmt(1,1,ias))
-              zt1=zfmtinp(.true.,lmaxvr,nr,rcmt(1,is),lmmaxvr,zrhomt(1,1,ias), &
-               zvclmt(1,1,ias))
+              call zpotclmt(ptnucl,lmaxvr,nrc,rcmt(:,is),0.d0,lmmaxvr, &
+               zrhomt(:,:,ias),zvclmt(:,:,ias))
+              zt1=zfmtinp(.true.,lmaxvr,nrc,rcmt(:,is),lmmaxvr, &
+               zrhomt(:,:,ias),zvclmt(:,:,ias))
 !$OMP CRITICAL
               ecv=ecv-occmax*wkpt(ikp)*dble(zt1)
 !$OMP END CRITICAL
@@ -192,11 +192,12 @@ do is=1,nspecies
 ! end loops over atoms and species
   end do
 end do
-deallocate(igkignr,vgklnr,vgkcnr,gkcnr,tpgkcnr,vgqc,tpgqc,gqc,jlgqr)
+deallocate(igkignr,vgklnr,vgkcnr,gkcnr,tpgkcnr)
+deallocate(vgqc,tpgqc,gqc,jlgqr)
 deallocate(evalsvp,evalsvnr,evecfv,evecsv)
 deallocate(sfacgknr,apwalm,ylmgq,sfacgq)
 deallocate(wfmt1,wfmt2,wfir1,wfir2,wfcr)
-deallocate(zrhomt,zrhoir,zpchg,zvclmt,zvclir,zfmt)
+deallocate(zrhomt,zrhoir,zvclmt,zvclir,zfmt)
 return
 end subroutine
 

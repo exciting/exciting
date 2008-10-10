@@ -91,26 +91,26 @@ do ig=1,ngrtot
   vgc(:,ig)=dble(i1)*bvec(:,1)+dble(i2)*bvec(:,2)+dble(i3)*bvec(:,3)
 ! Fourier transform index
   if (i1.ge.0) then
-    j1=i1+1
+    j1=i1
   else
-    j1=ngrid(1)+i1+1
+    j1=ngrid(1)+i1
   end if
   if (i2.ge.0) then
-    j2=i2+1
+    j2=i2
   else
-    j2=ngrid(2)+i2+1
+    j2=ngrid(2)+i2
   end if
   if (i3.ge.0) then
-    j3=i3+1
+    j3=i3
   else
-    j3=ngrid(3)+i3+1
+    j3=ngrid(3)+i3
   end if
-  igfft(ig)=(j3-1)*ngrid(2)*ngrid(1)+(j2-1)*ngrid(1)+j1
+  igfft(ig)=j3*ngrid(2)*ngrid(1)+j2*ngrid(1)+j1+1
 end do
 ! find the number of vectors with G < gmaxvr
 ngvec=1
-do ig=1,ngrtot
-  if (gc(ig).ge.gmaxvr) then
+do ig=ngrtot,1,-1
+  if (gc(ig).lt.gmaxvr) then
     ngvec=ig
     goto 10
   end if

@@ -20,8 +20,8 @@ use modmain
 implicit none
 ! local variables
 integer is,ia,ias,ir,lm,lmmax
-real(8) cpu0,cpu1
-call cpu_time(cpu0)
+real(8) ts0,ts1
+call timesec(ts0)
 ! compute the Coulomb potential
 call potcoul
 ! compute the exchange-correlation potential
@@ -45,8 +45,8 @@ do is=1,nspecies
 end do
 ! interstitial part
 veffir(:)=vclir(:)+vxcir(:)
-call cpu_time(cpu1)
-timepot=timepot+cpu1-cpu0
+call timesec(ts1)
+timepot=timepot+ts1-ts0
 return
 end subroutine
 !EOC

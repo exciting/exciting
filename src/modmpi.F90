@@ -6,8 +6,8 @@
 ! !DESCRIPTION:
 !   MPI variables and interface functions
 !   In case of compiled without MPI support it defines the
-!   mpi specific variables such that the code behaves exactly as 
-!   the unmodified scalar version 
+!   mpi specific variables such that the code behaves exactly as
+!   the unmodified scalar version
 !#include "/usr/local/include/mpif.h"
 
 ! !REVISION HISTORY:
@@ -17,9 +17,10 @@
 module  modmpi
 #ifdef MPI
 
-!#include <mpi.h>
+#include "../build/mpiconf.inc"
 
-  use mpi
+
+!  use mpi
 #endif
   integer :: rank
   integer :: procs
@@ -44,7 +45,7 @@ contains
   end subroutine initMPI
 
   subroutine finitMPI
-#ifdef MPI 
+#ifdef MPI
     call MPI_Finalize(ierr)
 #endif
   end subroutine finitmpi

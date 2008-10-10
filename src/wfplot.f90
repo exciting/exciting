@@ -55,7 +55,7 @@ else
   t1=1.d0/swidth
   do ik=1,nkpt
 ! get the eigenvalues from file
-    call getevalsv(vkl(1,ik),evalsv(1,ik))
+    call getevalsv(vkl(:,ik),evalsv(:,ik))
     do ist=1,nstsv
       x=(efermi-evalsv(ist,ik))*t1
       occsv(ist,ik)=occmax*wkpt(ik)*sdelta(stype,x)*t1
@@ -68,8 +68,8 @@ rhoir(:)=0.d0
 ! compute the charge density with the new occupancies
 do ik=1,nkpt
 ! get the eigenvectors from file
-  call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-  call getevecsv(vkl(1,ik),evecsv)
+  call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+  call getevecsv(vkl(:,ik),evecsv)
   call rhovalk(ik,evecfv,evecsv)
 end do
 ! symmetrise the density for the STM plot

@@ -42,11 +42,14 @@ complex(8), intent(in) :: v(n)
 complex(8), intent(inout) :: a(*)
 ! local variables
 integer i,j,k
+real(8) a1,a2
 ! numbers less than eps are considered to be zero
 real(8), parameter :: eps=1.d-12
 complex(8) zt1,zt2
 if (tapp) then
-! apply the matrix
+!--------------------------!
+!     apply the matrix     !
+!--------------------------!
   zt1=y(1)*v(1)
   zt2=x(1)*v(1)
   do j=2,n
@@ -55,26 +58,50 @@ if (tapp) then
   end do
   zt1=conjg(alpha*zt1)
   zt2=alpha*conjg(zt2)
-  if ((abs(dble(zt1)).gt.eps).or.(abs(aimag(zt1)).gt.eps).or. &
-   (abs(dble(zt2)).gt.eps).or.(abs(aimag(zt2)).gt.eps)) then
+  if ((abs(aimag(zt1)).gt.eps).or.(abs(aimag(zt2)).gt.eps)) then
+! complex prefactors
     do i=1,n
       a(i)=a(i)+conjg(zt1*x(i)+zt2*y(i))
     end do
+  else
+! real prefactors
+    a1=dble(zt1)
+    a2=dble(zt2)
+    if ((abs(a1).gt.eps).or.(abs(a2).gt.eps)) then
+      do i=1,n
+        a(i)=a(i)+conjg(a1*x(i)+a2*y(i))
+      end do
+    end if
   end if
 else
-! calculate the matrix elements
+!---------------------------------------!
+!     calculate the matrix elements     !
+!---------------------------------------!
   k=0
   do j=1,n
     if ((abs(dble(x(j))).gt.eps).or.(abs(aimag(x(j))).gt.eps).or. &
      (abs(dble(y(j))).gt.eps).or.(abs(aimag(y(j))).gt.eps)) then
       zt1=conjg(alpha*y(j))
       zt2=alpha*conjg(x(j))
-      do i=1,j-1
+      if ((abs(aimag(zt1)).gt.eps).or.(abs(aimag(zt2)).gt.eps)) then
+! complex prefactors
+        do i=1,j-1
+          k=k+1
+          a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
+        end do
         k=k+1
-        a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
-      end do
-      k=k+1
-      a(k)=dble(a(k))+2.d0*dble(zt1*x(j))
+        a(k)=dble(a(k))+2.d0*dble(zt1*x(j))
+      else
+! real prefactors
+        a1=dble(zt1)
+        a2=dble(zt2)
+        do i=1,j-1
+          k=k+1
+          a(k)=a(k)+conjg(a1*x(i)+a2*y(i))
+        end do
+        k=k+1
+        a(k)=dble(a(k))+2.d0*a1*dble(x(j))
+      end if
     else
       k=k+j
     end if

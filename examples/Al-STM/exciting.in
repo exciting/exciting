@@ -13,12 +13,6 @@ plot2d
   0.0 2.0 0.25
   200 200
 
-beta0
- 0.05
-
-betamax
- 0.25
-
 ! use small cut-off just for testing
 rgkmax
   6.0

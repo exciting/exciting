@@ -61,17 +61,17 @@ do is=1,nspecies
   do ia=1,natoms(is)
     do ist=1,nstfv
 ! calculate the wavefunction
-      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(1,ist),lmmaxapw, &
-       wfmt(1,1,ist))
+      call wavefmt(lradstp,lmaxapw,is,ia,ngp,apwalm,evecfv(:,ist),lmmaxapw, &
+       wfmt(:,:,ist))
 ! calculate the gradient
-      call gradzfmt(lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw,nrcmtmax, &
-       wfmt(1,1,ist),gwfmt(1,1,1,ist))
+      call gradzfmt(lmaxapw,nrcmt(is),rcmt(:,is),lmmaxapw,nrcmtmax, &
+       wfmt(:,:,ist),gwfmt(:,:,:,ist))
     end do
     do ist=1,nstfv
       do jst=ist,nstfv
         do i=1,3
-          zt1=zfmtinp(.true.,lmaxapw,nrcmt(is),rcmt(1,is),lmmaxapw, &
-           wfmt(1,1,ist),gwfmt(1,1,i,jst))
+          zt1=zfmtinp(.true.,lmaxapw,nrcmt(is),rcmt(:,is),lmmaxapw, &
+           wfmt(:,:,ist),gwfmt(:,:,i,jst))
           pm(i,ist,jst)=pm(i,ist,jst)+zt1
         end do
       end do
@@ -91,10 +91,10 @@ do ist=1,nstfv
       gwfir(ifg,i,ist)=zi*vgpc(i,igp)*zt1
     end do
   end do
-! convert the wavefunction to real-space
-  call zfftifc(3,ngrid,1,wfir(1,ist))
+! Fourier transform the wavefunction to real-space
+  call zfftifc(3,ngrid,1,wfir(:,ist))
   do i=1,3
-    call zfftifc(3,ngrid,1,gwfir(1,i,ist))
+    call zfftifc(3,ngrid,1,gwfir(:,i,ist))
   end do
 end do
 ! find the overlaps

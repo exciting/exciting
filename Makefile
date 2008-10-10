@@ -29,7 +29,7 @@ test::
 	cd test/; $(MAKE) 
 	
  
-all:serial mpi  smp mpiandsmp test 
+all:serial mpi  smp mpiandsmp 
 	cp build/make.inc ./
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)

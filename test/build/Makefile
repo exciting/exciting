@@ -2,7 +2,7 @@ all:test
 
 Makefile.test1::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t template -f -m Makefile.test1 -p testprogram1 \
+	../../utilities/mkmf   -t template -f -m Makefile.test1 -p testprogram1  \
 	../../src  \
 	../src \
 	../../src/src_xs \
@@ -10,12 +10,14 @@ Makefile.test1::
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
-	../src/testplans/test1.f90
+	../../src/src_mixing \
+	../src/testplans/test1.f90 \
+	../src/testframework/
 
 
 Makefile.test2::
 	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2 \
+	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2  \
 	../../src  \
 	../src \
 	../../src/src_xs \
@@ -23,20 +25,50 @@ Makefile.test2::
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
-	../src/testplans/test2.f90
+	../../src/src_mixing \
+	../test02/src \
+	../src/testframework
 
 
-testprogram::Makefile.test1 Makefile.test2
+Makefile.test2mpi::
+	sh ../../utilities/versionstamp.sh
+	../../utilities/mkmf -t templatempi -f -c -DMPI-DMPISEC-DMPIRHO\
+	 -m Makefile.test2mpi -p testprogram2mpi \
+	../../src  \
+	../src \
+	../../src/src_xs \
+	../../src/src_sym \
+	../../src/src_fermisurfdx \
+	../../src/src_iterative_solver \
+	../../src/src_iterative_solver/src_diis \
+	../../src/src_mixing \
+	../test02/src \
+	../src/testframework
+
+testprogram1::Makefile.test1
 	make -f Makefile.test1 testprogram1 
+
+testprogram2::Makefile.test2
 	make -f Makefile.test2 testprogram2 
-
 	
-test::testprogram
-	cd ../run ; ../build/testprogram1
-	cd ../run2 ; ../build/testprogram2
+testprogram2mpi::Makefile.test2mpi
+	make -f Makefile.test2mpi testprogram2mpi 
+	
+test01::testprogram1
+	cd ../test01/run ; ../../build/testprogram1
 
+test02::testprogram2
+	cd ../test02/runlapack ; ../../build/testprogram2
+	cd ../test02/runarp; ../../build/testprogram2
+	cd ../test02 ; perl assert.pl
+
+testmpi::
+	cd ../../build/mpi/; make libs exciting
+	cd ../test02/runlapackmpi ;sh startmpirun 
+	cd ../test02 ; perl assertmpi.pl
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
+
 libblas.a: 
 	cp -f ../../build/make.inc ../..
 	cd ../../src/BLAS && make clean && make
@@ -57,9 +89,9 @@ fftlib.a:
 
 libbzint.a: 
 	cp -f ../../build/make.inc ../..
-	cd ../../src/src_libbzint && make clean && make
-	cp ../../src/src_libbzint/libbzint.a .
-	cd ../../src/src_libbzint && make clean
+	cd ../../src/libbzint && make clean && make
+	cp ../../src/libbzint/libbzint.a .
+	cd ../../src/libbzint && make clean
 
 
 libarpack.a: 

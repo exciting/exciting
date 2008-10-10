@@ -17,7 +17,7 @@ use modmain
 !   $$ D({\bf r})=\frac{1}{2}\left(\tau({\bf r})-\frac{1}{4}
 !    \frac{[\nabla n({\bf r})]^2}{n({\bf r})}\right) $$
 !   and
-!   $$ \tau({\bf r})=\sum_{i=1}^N \left|\nabla\Phi_i({\bf r})
+!   $$ \tau({\bf r})=\sum_{i=1}^N \left|\nabla\Psi_i({\bf r})
 !    \right|^2 $$
 !   is the spin-averaged kinetic energy density from the spinor wavefunctions.
 !   The function $D^0$ is the kinetic energy density for the homogeneous
@@ -82,9 +82,9 @@ gwf2mt(:,:,:)=0.d0
 gwf2ir(:)=0.d0
 do ik=1,nkpt
 ! get the eigenvectors and occupancies from file
-  call getoccsv(vkl(1,ik),occsv(1,ik))
-  call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfv)
-  call getevecsv(vkl(1,ik),evecsv)
+  call getoccsv(vkl(:,ik),occsv(:,ik))
+  call getevecfv(vkl(:,ik),vgkl(:,:,:,ik),evecfv)
+  call getevecsv(vkl(:,ik),evecsv)
 ! add the valence wavefunction gradient squared
   call gwf2val(ik,evecfv,evecsv,gwf2mt,gwf2ir)
 end do
@@ -97,16 +97,16 @@ do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
 ! compute the gradient of the density
-    call gradrfmt(lmaxvr,nrmt(is),spr(1,is),lmmaxvr,nrmtmax,rhomt(1,1,ias), &
+    call gradrfmt(lmaxvr,nrmt(is),spr(:,is),lmmaxvr,nrmtmax,rhomt(:,:,ias), &
      grfmt)
     do ir=1,nrmt(is)
 ! convert rho from spherical harmonics to spherical coordinates
-      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,rhomt(1,ir,ias),1, &
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,rhomt(:,ir,ias),1, &
        0.d0,rftp1,1)
       rftp2(:)=0.d0
 ! compute the square of the gradient of rho
       do i=1,3
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,grfmt(1,ir,i),1, &
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,grfmt(:,ir,i),1, &
          0.d0,rftp3,1)
         do itp=1,lmmaxvr
           rftp2(itp)=rftp2(itp)+rftp3(itp)**2
@@ -123,7 +123,7 @@ do is=1,nspecies
       end do
 ! convert from spherical coordinates to spherical harmonics
       call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rfshtvr,lmmaxvr,rftp3,1,0.d0, &
-       elfmt(1,ir,ias),1)
+       elfmt(:,ir,ias),1)
     end do
   end do
 end do

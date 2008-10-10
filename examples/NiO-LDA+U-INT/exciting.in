@@ -52,10 +52,6 @@ autormt
 nempty
   10
 
-! conservative mixing 
-beta0
-  0.05
-
 sppath
   '../../species/'
 

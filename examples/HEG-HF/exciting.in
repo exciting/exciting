@@ -1,0 +1,28 @@
+
+! Hartree-Fock ground state of the homogenous electron gas. The Wigner radius
+! (r_s) is written to INFO.OUT. Note that the exact exchange energy is only
+! computed during the last iteration.
+
+tasks
+  0
+  5
+
+chgexs
+ 10.0
+
+! use the unit cell of aluminium
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  3.75
+
+! note that low density gases require denser k-point grids!
+ngridk
+  2  2  2
+
+vkloff
+  0.5  0.5  0.5
+

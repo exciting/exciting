@@ -14,13 +14,10 @@ subroutine getevalsv(vpl,evalsvp)
   logical exist
   integer isym,ik,koffset,i
   integer recl,nstsv_
-  real(8) vkl_(3)
-  ! external functions
-  real(8) r3taxi
+  real(8) vkl_(3),t1
     character(256) ::filetag
   character(256), external:: outfilenamestring
 
-  external r3taxi
 #ifdef XS
   ! added feature to access arrays for only a subset of bands
   real(8), allocatable :: evalsv_(:)
@@ -80,7 +77,8 @@ enddo
 #endif
 close(70)
 
-  if (r3taxi(vkl(1,ik),vkl_).gt.epslat) then
+t1=abs(vkl(1,ik)-vkl_(1))+abs(vkl(2,ik)-vkl_(2))+abs(vkl(3,ik)-vkl_(3))
+  if (t1.gt.epslat) then
      write(*,*)
      write(*,'("Error(getevalsv): differing vectors for k-point ",I8)') ik
      write(*,'(" current    : ",3G18.10)') vkl(:,ik)

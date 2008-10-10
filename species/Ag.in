@@ -2,7 +2,7 @@
  'silver'                                   : spname
   -47.0000                                  : spzn
    196631.6997                              : spmass
-  0.291730E-06    2.0000   41.5303   600    : sprmin, rmt, sprmax, nrmt
+  0.291730E-06    2.0000   35.4724   600    : sprmin, rmt, sprmax, nrmt
   15                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

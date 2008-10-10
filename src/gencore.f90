@@ -46,7 +46,7 @@ do is=1,nspecies
         if (spcore(ist,is)) then
 ! solve the Dirac equation
           call rdirac(spn(ist,is),spl(ist,is),spk(ist,is),nprad,spnr(is), &
-           spr(1,is),vr,evalcr(ist,ias),rwfcr(1,1,ist,ias),rwfcr(1,2,ist,ias))
+           spr(:,is),vr,evalcr(ist,ias),rwfcr(:,1,ist,ias),rwfcr(:,2,ist,ias))
           t1=spocc(ist,is)
 !$OMP CRITICAL
           do ir=1,spnr(is)

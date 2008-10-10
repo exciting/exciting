@@ -3,12 +3,27 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: copyfilesq0
+! !INTERFACE:
 subroutine copyfilesq0
 #ifdef ISO
+! !USES:
   use modmain
   use modxs
   use m_getapwcmt
   use m_getlocmt
+! !DESCRIPTION:
+!   If a finite momentum transfer Q-point is the Gamma-point, eigenvalues
+!   eigenvectors, occupancies and muffin-tin expansion coefficients are
+!   identical to those corresponding to the unshifted mesh. Files are copied
+!   using the associated generic routines for ISO compatibility, or links
+!   are generated if ISO compatibility is dropped.
+!
+! !REVISION HISTORY:
+!   Created January 2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! local variables
   integer, parameter :: iq=1
@@ -21,7 +36,7 @@ subroutine copyfilesq0
   do ik=1,nkpt
      ! read files
      filext='_QMT001.OUT'
-     call getevecfv(vkl(1,ik),vgkl(1,1,ik,1),evecfvt)
+     call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),evecfvt)
      call getevecsv(vkl(1,ik),evecsv)     
      call getevalsv(vkl(1,ik),evalsv(1,ik))
      call getoccsv(vkl(1,ik),occsv(1,ik))
@@ -60,3 +75,4 @@ subroutine copyfilesq0
   call system('ln -sf EFERMI_QMT001.OUT  EFERMI_QMT000.OUT')
 #endif
 end subroutine copyfilesq0
+!EOC

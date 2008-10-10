@@ -1,0 +1,150 @@
+
+! Example of how to determine the electron-phonon coupling parameters and
+! superconducting transition temperature T_c.
+
+! Note that these calculations are very time-consuming and require many
+! computers sharing a common directory to run efficiently. It is also important
+! to make sure the results are converged with respect to the various input
+! parameters and err on the side of caution. Electron-phonon coupling is still
+! an experimental feature at this stage.
+
+! Follow the steps below for niobium on a 3x3x3 q-point grid. Results obtained
+! for a 6x6x6 q-point grid are included in this directory.
+
+avec
+  1.0  1.0 -1.0
+  1.0 -1.0  1.0
+ -1.0  1.0  1.0
+
+scale
+  3.118
+
+atoms
+  1                                   : nspecies
+  'Nb.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+
+
+!------------------------------------------------------!
+!     Step 1: Determine the ground-state potential     !
+!------------------------------------------------------!
+
+! This should be run on one computer.
+
+tasks
+  0
+
+ngridk
+  4  4  4
+
+swidth
+  0.02
+
+gmaxvr
+  16.0
+
+lmaxapw
+  10
+
+lmaxvr
+  8
+
+
+
+!--------------------------------------------------------------------------!
+!     Step 2: Compute the dynamical matrices and potential derivatives     !
+!--------------------------------------------------------------------------!
+
+! This step should be run on as many computers as possible which share the same
+! directory on a networked file system - just keep submitting jobs to the queue
+! from the same directory. As usual, each job can be individually parallel
+! using OpenMP. In order not to overload the network, we set the scratch path
+! (scrpath) to \tmp\.
+
+! The code works by determining which DYN_Qqqqq_qqqq_qqqq_Sss_Aaa_Pp.OUT files
+! need to be calculated. These files contain a single row of a dynamical matrix.
+! If a calculation fails to complete, just delete that particular DYN file and
+! re-run the code. All the DYN files must be calculated before proceeding to the
+! next step.
+
+! Uncomment the lines below.
+
+!tasks
+!  200
+!
+!! good convergence required for accurate forces
+!epspot
+!  1.d-7
+!
+!! the q-point grid (a finer grid should be used for production)
+!ngridq
+!  3  3  3
+!
+!! set the scratch path to non-networked directory
+!scrpath
+! '/tmp/'
+!
+!nempty
+!  8
+!
+!! this is an important parameter which fixes the k-point density irrespective
+!! of the size of the phonon supercell
+!radkpt
+!  60.0
+
+
+
+!-----------------------------------------------------------------------!
+!     Step 3: Phonon dispersion curves and electron-phonon coupling     !
+!-----------------------------------------------------------------------!
+
+! This should be run on one computer. You can plot the dispersion curves in the
+! file PHDISP.OUT along with lines corresponding to high symmetry points stored
+! in PHDLINES.OUT. The phonon linewidths along the same directions are in the
+! file PHLWIDTH.OUT (PHLWLINES.OUT). The electron-phonon coupling parameter,
+! lambda, is stored in LAMBDA.OUT and the estimated T_c in TC_MCMILLAN.OUT. You
+! can also plot the Eliashberg function in ALPHA2F.OUT. Compare with the results
+! of Bauer et al. in PRB 57, 11276 (1998).
+
+! Uncomment the lines below.
+
+!tasks
+!  220
+!  1
+!  240
+!  245
+!  250
+!
+!! set the scratch path to the current directory
+!scrpath
+!  './'
+!
+!! fine k-point mesh required for electron-phonon coupling; it also should be
+!! commensurate with the q-point grid
+!ngridk
+!  12  12  12
+!
+!
+!! fairly large smearing width for accurate phonon linewidths
+!swidth
+!  0.04
+!
+!! important: large lmaxapw is needed for good wavefunction convergence
+!lmaxapw
+!  16
+!
+!! vertex location lines for the dispersion curves and phonon linewidths
+!plot1d
+!  9 400
+!  0.5   0.5   0.5
+!  0.25  0.25  0.25
+!  0.0   0.0   0.0
+! -0.5   0.5   0.5
+! -0.5   0.5   0.0
+! -0.75  0.25  0.25
+! -0.5   0.5   0.0
+!  0.0   0.0   0.0
+!  0.5   0.5   0.0
+

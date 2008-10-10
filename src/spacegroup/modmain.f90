@@ -90,7 +90,7 @@ real(8), parameter :: pi=3.1415926535897932385d0
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 1,1,2 /
+data version / 1,1,3 /
 
 end module
 !EOC

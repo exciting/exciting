@@ -22,7 +22,7 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
   ! !DESCRIPTION:
   !   Solves the secular equation,
-  !   $$ (H-\epsilon O)\Phi=0, $$
+  !   $$ (H-\epsilon O)b=0, $$
   !   for the all the first-variational states of the input $k$-point.
   !
   ! !REVISION HISTORY:
@@ -42,11 +42,8 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   type(evsystem)::system
   logical::packed
   integer is,ia,i,m,np,info
-  real(8) vl,vu,abstol
-  real(8) cpu0,cpu1
-  ! external functions
-  real(8) dlamch
-  external dlamch
+  real(8) vl,vu
+  real(8) ts0,ts1
   ! allocatable arrays
   integer, allocatable :: iwork(:)
   integer, allocatable :: ifail(:)
@@ -68,10 +65,9 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   !     solve the secular equation     !
   !------------------------------------!
 
-  call cpu_time(cpu0)
+  call timesec(ts0)
   vl=0.d0
   vu=0.d0
-  abstol=2.d0*dlamch('S')
   ! LAPACK 3.0 call
 
   allocate(iwork(5*nmatp))
@@ -81,7 +77,7 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   allocate(v(1))
   allocate(work(2*nmatp))
   call zhpgvx(1,'V','I','U',nmatp,system%hamilton%zap,&
-     system%overlap%zap,vl,vu,1,nstfv,abstol,m,w,evecfv,nmatmax, &
+     system%overlap%zap,vl,vu,1,nstfv,evaltol,m,w,evecfv,nmatmax, &
        work,rwork,iwork,ifail,info)
   evalfv(1:nstfv)=w(1:nstfv)
 
@@ -100,9 +96,9 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
      end if
      stop
   end if
-  call cpu_time(cpu1)
+  call timesec(ts1)
   !$OMP CRITICAL
-  timefv=timefv+cpu1-cpu0
+  timefv=timefv+ts1-ts0
   !$OMP END CRITICAL
   call deleteystem(system)
   deallocate(iwork,ifail,w,rwork,v,work)

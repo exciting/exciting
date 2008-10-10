@@ -38,7 +38,7 @@ contains
          present(x34)))) then
        write(*,*)
        write(*,'("Error(getemat): optional parameters not complete - check &
-            &routine")')
+            &calling routines")')
        write(*,*)
        call terminate
     end if
@@ -64,8 +64,7 @@ contains
     if (lerr) then
        write(unitout,*)
        write(unitout,'("Error(",a,"): inconsistent requested limits for &
-            &states:")') &
-            thisnam
+            &states:")') thisnam
        if (present(x34)) then
           write(unitout,'(" requested state limits (lo,hi): ",4(2i6,2x))') &
                l1,h1,l2,h2,l3,h3,l4,h4
@@ -135,8 +134,7 @@ contains
     if (lerr) then
        write(unitout,*)
        write(unitout,'("Error(",a,"): limits for states out of range in &
-            &file:")') &
-            thisnam
+            &file:")') thisnam
        if (present(x34)) then
           write(unitout,'(" requested state limits (lo,hi): ",4(2i6,2x))') &
                l1,h1,l2,h2,l3,h3,l4,h4

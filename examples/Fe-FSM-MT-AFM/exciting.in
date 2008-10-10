@@ -7,9 +7,6 @@
 tasks
   0
 
-beta0
-  0.05
-
 ! antiferromagnetic local fixed spin moment calculation
 fixspin
   2

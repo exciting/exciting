@@ -11,17 +11,17 @@ subroutine xscheck
   ! local variables
   character(*), parameter :: thisnam='xscheck'
   integer errc, warnc
-  errc = 0
-  warnc = 0
+  errc=0
+  warnc=0
   ! no spin-spirals
-  if ( spinsprl ) then
+  if (spinsprl) then
      write(*,*) 'Error('//thisnam//'): not working for spin-spirals'
-     errc = errc + 1
+     errc=errc+1
   end if
   ! warn for spin polarized calculations
-  if ( spinpol ) then
+  if (spinpol) then
      write(*,*) 'Warning('//thisnam//'): calculation is spin-polarized'
-     warnc = warnc + 1
+     warnc=warnc+1
   end if
  !!$ ! type of response functions
  !!$ if (rsptype.eq.'tord') then
@@ -30,18 +30,18 @@ subroutine xscheck
  !!$    errc = errc + 1
  !!$ end if
   ! tetrahedron method not implemented for analytic continuation
-  if (tetra.and.acont) then
+  if (tetradf.and.acont) then
      write(*,*) 'Error('//thisnam//'): tetrahedron method does not work &
           &together with analytic continuation'
-     errc = errc + 1
+     errc=errc+1
   end if
   ! stop on errors
-  if ( errc .gt. 0 ) then
+  if (errc.gt.0) then
      write(*,*) '  Errors occurred - abort'
      call terminate
   end if
   ! warn on warnings
-  if ( warnc .gt. 0 ) then
+  if (warnc.gt.0) then
      write(*,*) '  Warnings occurred:', warnc
   end if
   tscreen=.false.

@@ -11,9 +11,8 @@ subroutine rfmtctof(rfmt)
 !   rfmt : real muffin-tin function (in,real(lmmaxvr,nrmtmax,natmtot))
 ! !DESCRIPTION:
 !   Converts a real muffin-tin function from a coarse to a fine radial mesh by
-!   using cubic spline interpolation. Coefficients of large angular momenta
-!   (greater than {\tt lmaxinr}) are set to zero on the inner part of the
-!   muffin-tin. See routines {\tt rfinterp} and {\tt spline}.
+!   using cubic spline interpolation. See routines {\tt rfinterp} and
+!   {\tt spline}.
 !
 ! !REVISION HISTORY:
 !   Created October 2003 (JKD)
@@ -24,21 +23,15 @@ implicit none
 ! arguments
 real(8), intent(inout) :: rfmt(lmmaxvr,nrmtmax,natmtot)
 ! local variables
-integer is,ia,ias,lm,ir,ld
+integer is,ia,ias,ld,lm
 ld=lmmaxvr*lradstp
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
 ! interpolate with a clamped spline
     do lm=1,lmmaxvr
-      call rfinterp(nrcmt(is),rcmt(1,is),ld,rfmt(lm,1,ias),nrmt(is), &
-       spr(1,is),lmmaxvr,rfmt(lm,1,ias))
-    end do
-! zero coefficients of large (l,m) in the inner part of the muffin-tin
-    do ir=1,nrmtinr(is)
-      do lm=lmmaxinr+1,lmmaxvr
-        rfmt(lm,ir,ias)=0.d0
-      end do
+      call rfinterp(nrcmt(is),rcmt(:,is),ld,rfmt(lm,1,ias),nrmt(is), &
+       spr(:,is),lmmaxvr,rfmt(lm,1,ias))
     end do
   end do
 end do

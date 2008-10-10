@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -24,7 +24,8 @@ use sclcontroll
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
-!   Additional parmeters for TDDFT and tetrahedron method 2004-2008 (Sagmeister)
+!   Additional parmeters for excited states and tetrahedron method
+!     2004-2008 (Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -34,17 +35,18 @@ integer i,l,iv,iostat
 integer ist,io,nlx,ilx,lx,ilo
 real(8) sc,sc1,sc2,sc3
 real(8) vacuum,v(3),t1,t2
-character(256) fname
 character(256) str
 character(256) bname
 character(256) sppath
 #ifdef XS
+character(256) :: fname
 logical, parameter :: dumpmain=.true.
 logical, parameter :: dumpadd=.true.
 logical, parameter :: dumptetra=.true.
 logical, parameter :: dumpmpiiter=.true.
 logical, parameter :: dumpxs=.true.
 #endif
+
 !------------------------!
 !     default values     !
 !------------------------!
@@ -63,8 +65,8 @@ primcell=.false.
 tshift=.true.
 ngridk(:)=1
 vkloff(:)=0.d0
-rlambda=30.d0
 autokpt=.false.
+radkpt=40.0
 reducek=.true.
 ngridq(:)=1
 reduceq=.true.
@@ -82,9 +84,11 @@ swidth=0.01d0
 epsocc=1.d-8
 epschg=1.d-3
 nempty=5
-beta0=0.1d0
-betamax=1.d0
 maxscl=200
+mixtype=1
+beta0=0.4d0
+betainc=1.1d0
+betadec=0.6d0
 epspot=1.d-6
 epsengy=1.d-7
 epsforce=5.d-4
@@ -93,6 +97,10 @@ molecule=.false.
 vacuum=10.d0
 nspecies=0
 natoms(:)=0
+atposl(:,:,:)=0.d0
+atposc(:,:,:)=0.d0
+bfcmt(:,:,:)=0.d0
+bflmt(:,:,:)=0.d0
 sppath='./'
 scrpath='./'
 nvp1d=2
@@ -123,7 +131,7 @@ ngrdos=100
 nsmdos=0
 wdos(1)=-0.5d0
 wdos(2)=0.5d0
-bcsym=.true.
+lmirep=.false.
 spinpol=.false.
 spinorb=.false.
 tau0atm=0.2d0
@@ -139,6 +147,7 @@ optswidth=0.d0
 !</sag>
 usegdft=.false.
 intraband=.false.
+evaltol=1.d-8
 evalmin=-4.5d0
 deband=0.0025d0
 bfieldc(:)=0.d0
@@ -149,6 +158,7 @@ taufsm=0.01d0
 autormt=.false.
 rmtapm(1)=0.25d0
 rmtapm(2)=0.95d0
+isgkmax=-1
 nosym=.false.
 deltaph=0.03d0
 nphwrt=1
@@ -182,10 +192,21 @@ maxitc=10
 taurdmn=1.d0
 taurdmc=0.5d0
 rdmalpha=0.7d0
+rdmtemp=0.d0
 reducebf=1.d0
+ptnucl=.true.
+tseqit=.false.
+nseqit=6
+vecql(:)=0.d0
+mustar=0.15d0
+sqados(1:2)=0.d0
+sqados(3)=1.d0
 #ifdef TETRA
 ! tetrahedron method variables
-tetra=.false.
+tetraocc=.false.
+tetraopt=.false.
+tetradf=.false.
+tetrakordexc=.false.
 #endif
 #ifdef XS
 ! TDDFT variables
@@ -272,23 +293,11 @@ end if
 !-------------------------------!
 !     read from exciting.in     !
 !-------------------------------!
-fname='exciting.in'
-!----- uncomment for command line input filename (M. Rajagopalan) --------------
-!if (iargc()>1) then
-!  write(*,*)
-!  write(*,'("Usage: exciting [INPUT FILE]")')
-!  write(*,*)
-!  stop
-!end if
-!if (iargc().eq.1) then
-!  call getarg(1,fname)
-!end if
-!-------------------------------------------------------------------------------
-open(50,file=trim(fname),action='READ',status='OLD',form='FORMATTED', &
+open(50,file='exciting.in',action='READ',status='OLD',form='FORMATTED', &
  iostat=iostat)
 if (iostat.ne.0) then
   write(*,*)
-  write(*,'("Error(readinput): error opening ",A)') trim(fname)
+  write(*,'("Error(readinput): error opening exciting.in")')
   write(*,*)
   stop
 end if
@@ -324,9 +333,9 @@ case('tasks')
   write(*,*)
   stop
 case('avec')
-  read(50,*,err=20) avec(1,1),avec(2,1),avec(3,1)
-  read(50,*,err=20) avec(1,2),avec(2,2),avec(3,2)
-  read(50,*,err=20) avec(1,3),avec(2,3),avec(3,3)
+  read(50,*,err=20) avec(:,1)
+  read(50,*,err=20) avec(:,2)
+  read(50,*,err=20) avec(:,3)
 case('scale')
   read(50,*,err=20) sc
 case('scale1')
@@ -347,18 +356,18 @@ case('primcell')
   read(50,*,err=20) primcell
 case('tshift')
   read(50,*,err=20) tshift
-case('rlambda')
-  read(50,*,err=20) rlambda
-  if (rlambda.le.0.d0) then
+case('autokpt')
+  read(50,*,err=20) autokpt
+case('radkpt')
+  read(50,*,err=20) radkpt
+  if (radkpt.le.0.d0) then
     write(*,*)
-    write(*,'("Error(readinput): rlambda <= 0 : ",G18.10)') rlambda
+    write(*,'("Error(readinput): radkpt <= 0 : ",G18.10)') radkpt
     write(*,*)
     stop
   end if
-case('autokpt')
-  read(50,*,err=20) autokpt
 case('ngridk')
-  read(50,*,err=20) ngridk(1),ngridk(2),ngridk(3)
+  read(50,*,err=20) ngridk(:)
   if ((ngridk(1).le.0).or.(ngridk(2).le.0).or.(ngridk(3).le.0)) then
     write(*,*)
     write(*,'("Error(readinput): invalid ngridk : ",3I8)') ngridk
@@ -366,11 +375,11 @@ case('ngridk')
     stop
   end if
 case('vkloff')
-  read(50,*,err=20) vkloff(1),vkloff(2),vkloff(3)
+  read(50,*,err=20) vkloff(:)
 case('reducek')
   read(50,*,err=20) reducek
 case('ngridq')
-  read(50,*,err=20) ngridq(1),ngridq(2),ngridq(3)
+  read(50,*,err=20) ngridq(:)
   if ((ngridq(1).le.0).or.(ngridq(2).le.0).or.(ngridq(3).le.0)) then
     write(*,*)
     write(*,'("Error(readinput): invalid ngridq : ",3I8)') ngridq
@@ -501,6 +510,8 @@ case('nempty')
     write(*,*)
     stop
   end if
+case('mixtype')
+  read(50,*,err=20) mixtype
 case('beta0')
   read(50,*,err=20) beta0
   if (beta0.lt.0.d0) then
@@ -509,11 +520,20 @@ case('beta0')
     write(*,*)
     stop
   end if
-case('betamax')
-  read(50,*,err=20) betamax
-  if (betamax.lt.0.d0) then
+case('betainc')
+  read(50,*,err=20) betainc
+  if (betainc.lt.1.d0) then
     write(*,*)
-    write(*,'("Error(readinput): betamax < 0 : ",G18.10)') betamax
+    write(*,'("Error(readinput): betainc < 1 : ",G18.10)') betainc
+    write(*,*)
+    stop
+  end if
+case('betadec')
+  read(50,*,err=20) betadec
+  if ((betadec.le.0.d0).or.(betadec.gt.1.d0)) then
+    write(*,*)
+    write(*,'("Error(readinput): betadec should be in (0,1] : ",G18.10)') &
+     betadec
     write(*,*)
     stop
   end if
@@ -589,8 +609,7 @@ case('atoms')
       stop
     end if
     do ia=1,natoms(is)
-      read(50,*,err=20) atposl(1,ia,is),atposl(2,ia,is),atposl(3,ia,is), &
-       bfcmt(1,ia,is),bfcmt(2,ia,is),bfcmt(3,ia,is)
+      read(50,*,err=20) atposl(:,ia,is),bfcmt(:,ia,is)
     end do
   end do
 case('plot1d')
@@ -610,13 +629,13 @@ case('plot1d')
   if (allocated(vvlp1d)) deallocate(vvlp1d)
   allocate(vvlp1d(3,nvp1d))
   do iv=1,nvp1d
-    read(50,*,err=20) vvlp1d(1,iv),vvlp1d(2,iv),vvlp1d(3,iv)
+    read(50,*,err=20) vvlp1d(:,iv)
   end do
 case('plot2d')
-  read(50,*,err=20) vclp2d(1,1),vclp2d(2,1),vclp2d(3,1)
-  read(50,*,err=20) vclp2d(1,2),vclp2d(2,2),vclp2d(3,2)
-  read(50,*,err=20) vclp2d(1,3),vclp2d(2,3),vclp2d(3,3)
-  read(50,*,err=20) np2d(1),np2d(2)
+  read(50,*,err=20) vclp2d(:,1)
+  read(50,*,err=20) vclp2d(:,2)
+  read(50,*,err=20) vclp2d(:,3)
+  read(50,*,err=20) np2d(:)
   if ((np2d(1).lt.1).or.(np2d(2).lt.1)) then
     write(*,*)
     write(*,'("Error(readinput): np2d < 1 : ",2I8)') np2d
@@ -624,14 +643,14 @@ case('plot2d')
     stop
   end if
 case('plot3d')
-  read(50,*,err=20) nup3d(1),nup3d(2),nup3d(3)
+  read(50,*,err=20) nup3d(:)
   if ((nup3d(1).lt.1).or.(nup3d(2).lt.1).or.(nup3d(3).lt.1)) then
     write(*,*)
     write(*,'("Error(readinput): nup3d < 1 : ",3I8)') nup3d
     write(*,*)
     stop
   end if
-  read(50,*,err=20) np3d(1),np3d(2),np3d(3)
+  read(50,*,err=20) np3d(:)
   if ((np3d(1).lt.1).or.(np3d(2).lt.1).or.(np3d(3).lt.1)) then
     write(*,*)
     write(*,'("Error(readinput): np3d < 1 : ",3I8)') np3d
@@ -658,15 +677,15 @@ case('dos')
     write(*,*)
     stop
   end if
-  read(50,*,err=20) wdos(1),wdos(2)
+  read(50,*,err=20) wdos(:)
   if (wdos(1).ge.wdos(2)) then
     write(*,*)
     write(*,'("Error(readinput): wdos(1) >= wdos(2) : ",2G18.10)') wdos
     write(*,*)
     stop
   end if
-case('bcsym')
-  read(50,*,err=20) bcsym
+case('lmirep')
+  read(50,*,err=20) lmirep
 case('tau0atm')
   read(50,*,err=20) tau0atm
 case('nstfsp')
@@ -710,6 +729,7 @@ case('optcomp')
       noptcomp=i-1
       goto 10
     end if
+    str=trim(str)//' 1'
     read(str,*,iostat=iostat) optcomp(:,i)
     if (iostat.ne.0) then
       write(*,*)
@@ -745,6 +765,14 @@ case('usegdft')
   read(50,*,err=20) usegdft
 case('intraband')
   read(50,*,err=20) intraband
+case('evaltol')
+  read(50,*,err=20) evaltol
+  if (evaltol.le.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): evaltol <= 0 : ",G18.10)') evaltol
+    write(*,*)
+    stop
+  end if
 case('evalmin')
   read(50,*,err=20) evalmin
 case('deband')
@@ -786,7 +814,7 @@ case('taufsm')
 case('autormt')
   read(50,*,err=20) autormt
 case('rmtapm')
-  read(50,*,err=20) rmtapm
+  read(50,*,err=20) rmtapm(:)
   if (rmtapm(1).lt.0.d0) then
     write(*,*)
     write(*,'("Error(readinput): rmtapm(1) < 0 : ",G18.10)') rmtapm(1)
@@ -799,6 +827,8 @@ case('rmtapm')
     write(*,*)
     stop
   end if
+case('isgkmax')
+  read(50,*,err=20) isgkmax
 case('nosym')
   read(50,*,err=20) nosym
 case('deltaph')
@@ -861,6 +891,7 @@ case('kstlist')
       nkstlist=i-1
       goto 10
     end if
+    str=trim(str)//' 1 1'
     read(str,*,iostat=iostat) kstlist(:,i)
     if (iostat.ne.0) then
       write(*,*)
@@ -963,6 +994,14 @@ case('rdmalpha')
     write(*,*)
     stop
   end if
+case('rdmtemp')
+  read(50,*,err=20) rdmtemp
+  if (rdmtemp.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput): rdmtemp < 0 : ",G18.10)') rdmtemp
+    write(*,*)
+    stop
+  end if
 case('reducebf')
   read(50,*,err=20) reducebf
   if ((reducebf.lt.0.d0).or.(reducebf.gt.1.d0)) then
@@ -971,10 +1010,34 @@ case('reducebf')
     write(*,*)
     stop
   end if
+case('ptnucl')
+  read(50,*,err=20) ptnucl
+case('tseqit')
+  read(50,*,err=20) tseqit
+case('nseqit')
+  read(50,*,err=20) nseqit
+  if (nseqit.lt.1) then
+    write(*,*)
+    write(*,'("Error(readinput): nseqit < 1 : ",I8)') nseqit
+    write(*,*)
+    stop
+  end if
+case('vecql')
+  read(50,*,err=20) vecql(:)
+case('mustar')
+  read(50,*,err=20) mustar
+case('sqados')
+  read(50,*,err=20) sqados(:)
 #ifdef TETRA
 !  tetrahedron method variables
-case('tetra')
-  read(50,*,err=20) tetra
+case('tetraocc')
+  read(50,*,err=20) tetraocc
+case('tetraopt')
+  read(50,*,err=20) tetraopt
+case('tetradf')
+  read(50,*,err=20) tetradf
+case('tetrakordexc')
+  read(50,*,err=20) tetrakordexc
 #endif
 #ifdef XS
 ! TDDFT variables
@@ -1255,13 +1318,13 @@ if (molecule) then
   call r3minv(avec,ainv)
   do is=1,nspecies
     do ia=1,natoms(is)
-      call r3mv(ainv,atposl(1,ia,is),v)
+      call r3mv(ainv,atposl(:,ia,is),v)
       atposl(:,ia,is)=v(:)
     end do
   end do
 end if
 #ifdef XS
-! dump default parameters (partially) corrected by input file
+! dump default parameters (partially) redifined in input file
 if (rank.eq.0) then
    fname='PARAMS.OUT'
    if (dumpmain) call dumpparams(trim(fname), &
@@ -1276,6 +1339,7 @@ if (rank.eq.0) then
         '! excited states parameters:')
 end if
 #endif
+
 !---------------------------------------------!
 !     read from atomic species data files     !
 !---------------------------------------------!

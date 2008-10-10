@@ -1,3 +1,8 @@
+
+! Copyright (C) 2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 subroutine gradrf(rfmt,rfir,grfmt,grfir)
 use modmain
 implicit none
@@ -16,7 +21,7 @@ allocate(zfft1(ngrtot),zfft2(ngrtot))
 do is=1,nspecies
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    call gradrfmt(lmaxvr,nrmt(is),spr(1,is),lmmaxvr,nrmtmax,rfmt(1,1,ias), &
+    call gradrfmt(lmaxvr,nrmt(is),spr(:,is),lmmaxvr,nrmtmax,rfmt(:,:,ias), &
      grfmt1)
     do i=1,3
       grfmt(:,1:nrmt(is),ias,i)=grfmt1(:,1:nrmt(is),i)

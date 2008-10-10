@@ -2,9 +2,11 @@ include ../../build/make.inc
 
 FC = $(F90)
 
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPT) $(IEEE_OPTS)
+
+FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT)
+
 LD = $(FC)
-LDFLAGS =$(F90_OPTS) $(LIBS) 
+LDFLAGS =$(F90_OPTS) $(LIBS) $(F90_DEBUGOPTS)
 
 F77=$(F77) 
 

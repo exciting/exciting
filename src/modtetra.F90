@@ -19,8 +19,14 @@ module modtetra
   !--------------------------------------!
   !     tetrahedron method variables     !
   !--------------------------------------!
-  ! true if tetrahedron method is used
-  logical :: tetra
+  ! tetrahedron method is used for occupation numbers and Fermi energy
+  logical :: tetraocc
+  ! tetrahedron method is used for optics
+  logical :: tetraopt
+  ! tetrahedron method is used for dielectric function/matrix
+  logical :: tetradf
+  ! use different k-point ordering that matches the one of the exciting code
+  logical :: tetrakordexc
   ! integer k-point offset
   integer(4) :: ikloff(3)
   ! k-point offset divisor
@@ -72,7 +78,7 @@ contains
     ! local variables
     integer :: maxint
     real(8) :: dx
-    maxint=nint(1.d0/eps)
+    maxint=nint(1.d0/eps)/10
     do div=1,maxint
        k(:)=nint(dble(div)*x(:))
        dx=maxval(abs(dble(k)/dble(div)-x))
@@ -199,6 +205,7 @@ contains
     real(8), intent(in) :: vkl(3,ngridk(1)*ngridk(2)*ngridk(3))
     real(8), intent(in) :: wkpt(ngridk(1)*ngridk(2)*ngridk(3))
     ! local variables
+    real(8), parameter :: epsvkloff=1.d-5
     integer :: isym,lspl,i1,i2,nsymcryst
     integer :: ik,ikd,nkptlib
     real(8) :: wkptlib
@@ -207,7 +214,6 @@ contains
     integer, allocatable :: indirkp(:)
     integer, allocatable :: iwkp(:)
     real(8), allocatable :: vkllib(:,:)
-    if (.not.tetra) return
     if (nsymcrys.gt.48) then
        write(*,*)
        write(*,'("Error(modtetra:genkpts_tet): number of crystal symmetries > &
@@ -218,7 +224,7 @@ contains
        stop
     end if
     ! switch to exciting interface
-    !call tetrasetifc('exciting')
+    if (tetrakordexc) call tetrasetifc('exciting')
     ! suppress debug output in tetrahedron integration library (0)
     call tetrasetdbglv(0)
     ! safer pointer handling in tetrahedron integration library (1)
@@ -230,7 +236,7 @@ contains
     ! report interface parameters
     call tetrareportsettings
     ! generate fraction for k-point offset
-    call rtorat(1.d-4,3,vkloff,ikloff,dkloff)
+    call rtorat(epsvkloff,3,vkloff,ikloff,dkloff)
     ! get rotational part of crystal symmetries 
     allocate(symc(3,3,nsymcrys))
     do isym=1,nsymcrys
@@ -383,7 +389,7 @@ contains
     allocate(wtett(6*nkptnr),tnodest(4,6*nkptnr))
     ! generate fraction for k-point offset
     call r3fraction(vkloff,ikloff,dkloff)
-    ! generate link array, nodes and weights
+    ! call to library routine (generate link array, nodes and weights)
     call kqgen_exciting(bvec,ngridk,ikloff,dkloff,nkpt,iqnr,ivkt,ivqt,dvk,dvq, &
          ntet,tnodest,wtett,link,tvol)
     if (tqw.ne.0) then
@@ -405,6 +411,60 @@ contains
 !EOC
 
 
+  subroutine fermitetifc(nkpt,nst,eval,chgval,spinpol,efermi,fermidos)
+    implicit none
+    ! arguments
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: chgval
+    logical, intent(in) :: spinpol
+    real(8), intent(out) :: efermi
+    real(8), intent(out) :: fermidos
+    ! local variables
+    integer :: ik
+    real(8), allocatable :: evallib(:,:)
+    allocate(evallib(nst,nkpt))
+    ! reorder energies to library order
+    do ik=1,nkpt
+       evallib(:,ik)=eval(:,iktet2ik(ik))
+    end do
+    ! call to library routine
+    call fermitet(nkpt,nst,evallib,ntet,tnodes,wtet,tvol,chgval,spinpol, &
+         efermi,fermidos,.false.)
+    deallocate(evallib)
+  end subroutine fermitetifc
+
+
+  subroutine tetiwifc(nkpt,nst,eval,efermi,occ)
+    implicit none
+    ! arguments
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: efermi
+    real(8), intent(out) :: occ(nst,nkpt)
+    ! local variables
+    integer :: ik,ikd
+    real(8), allocatable :: evallib(:,:),occt(:)
+    allocate(evallib(nst,nkpt),occt(nst))
+    ! reorder energies to library order
+    do ik=1,nkpt
+       evallib(:,ik)=eval(:,iktet2ik(ik))
+    end do
+    ! call to library routine
+    call tetiw(nkpt,ntet,nst,evallib,tnodes,wtet,tvol,efermi,occ)
+    ! reorder occupation numbers to default order
+    do ik=1,nkpt
+       ikd=iktet2ik(ik)
+       occt(:)=occ(:,ikd)
+       occ(:,ikd)=occ(:,ik)
+       occ(:,ik)=occt(:)
+    end do
+    deallocate(evallib,occt)
+  end subroutine tetiwifc
+
+
   subroutine tetcwifc(nkpt,nst,eval,efermi,w,ifreq,cw)
     implicit none
     ! arguments
@@ -423,6 +483,7 @@ contains
     do ik=1,nkpt
        evallib(:,ik)=eval(:,iktet2ik(ik))
     end do
+    ! call to library routine
     call tetcw(nkpt,ntet,nst,wtet,evallib,tnodes,link,tvol,efermi,w,ifreq,cw)
     ! reorder convolution weights to default order
     do ik=1,nkpt
@@ -433,5 +494,59 @@ contains
     end do
     deallocate(evallib,cwt)
   end subroutine tetcwifc
+
+
+  subroutine tetcwifc_1k(ik,nkpt,nst,eval,efermi,w,ifreq,cw)
+    implicit none
+    ! arguments
+    integer, intent(in) :: ik
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: efermi
+    real(8), intent(in) :: w
+    integer, intent(in) :: ifreq       
+    real(8), intent(out) :: cw(nst,nst)
+    ! local variables
+    integer :: ikt,iklib
+    real(8), allocatable :: evallib(:,:)
+    allocate(evallib(nst,nkpt))
+    ! reorder energies to library order
+    do ikt=1,nkpt
+       evallib(:,ikt)=eval(:,iktet2ik(ikt))
+    end do
+    ! call to library routine
+    iklib=ik2iktet(ik)
+    call tetcw_1k(iklib,nkpt,ntet,nst,wtet,evallib,tnodes,link,tvol, &
+         efermi,w,ifreq,cw)
+    deallocate(evallib)
+  end subroutine tetcwifc_1k
+
+
+  subroutine tetcwifc_1kbc(ik,ist,jst,nkpt,nst,eval,efermi,w,ifreq,cw)
+    implicit none
+    ! arguments
+    integer, intent(in) :: ik,ist,jst
+    integer, intent(in) :: nkpt
+    integer, intent(in) :: nst
+    real(8), intent(in) :: eval(nst,nkpt)
+    real(8), intent(in) :: efermi
+    real(8), intent(in) :: w
+    integer, intent(in) :: ifreq       
+    real(8), intent(out) :: cw
+    ! local variables
+    integer :: ikt,iklib
+    real(8), allocatable :: evallib(:,:)
+    allocate(evallib(nst,nkpt))
+    ! reorder energies to library order
+    do ikt=1,nkpt
+       evallib(:,ikt)=eval(:,iktet2ik(ikt))
+    end do
+    ! call to library routine
+    iklib=ik2iktet(ik)
+    call tetcw_1kbc(iklib,ist,jst,nkpt,ntet,nst,wtet,evallib,tnodes,link,tvol, &
+         efermi,w,ifreq,cw)
+    deallocate(evallib)
+  end subroutine tetcwifc_1kbc
 
 end module modtetra

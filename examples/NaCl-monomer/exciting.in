@@ -11,10 +11,6 @@ tasks
 molecule
  .true.
 
-! conservative mixing avoids oscillations
-beta0
-  0.05
-
 ! large smearing width improves convergence for molecules
 swidth
   0.05

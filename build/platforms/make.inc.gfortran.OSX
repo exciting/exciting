@@ -8,7 +8,7 @@ LIB_LPK =  -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT= libbzint.a
 
-LIBS= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
+LIBS= $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) 
 MAKE=make
 F90_DEBUGOPTS=-g
 

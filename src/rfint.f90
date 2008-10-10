@@ -27,7 +27,7 @@ do is=1,nspecies
     do ir=1,nrmt(is)
       fr(ir)=rfmt(1,ir,ias)*spr(ir,is)**2
     end do
-    call fderiv(-1,nrmt(is),spr(1,is),fr,gr,cf)
+    call fderiv(-1,nrmt(is),spr(:,is),fr,gr,cf)
     sum=sum+gr(nrmt(is))
   end do
 end do

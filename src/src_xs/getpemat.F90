@@ -45,7 +45,7 @@ contains
             .true.,trim(pfilnam),p34)
        ! consider symmetric gauge wrt. Coulomb potential
        ! (multiply with v^(1/2))
-       ! and normalization wrt. KS eigenvalues (no scissors correction!)
+       ! and normalize wrt. KS eigenvalues (no scissors correction!)
        do j=1,3
           do i1=1,nst1
              do i2=1,nst2

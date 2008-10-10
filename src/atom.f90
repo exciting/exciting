@@ -6,10 +6,11 @@
 !BOP
 ! !ROUTINE: atom
 ! !INTERFACE:
-subroutine atom(zn,nst,n,l,k,occ,xctype,xcgrad,np,nr,r,eval,rho,vr,rwf)
+subroutine atom(ptnucl,zn,nst,n,l,k,occ,xctype,xcgrad,np,nr,r,eval,rho,vr,rwf)
 ! !USES:
 use modxcifc
 ! !INPUT/OUTPUT PARAMETERS:
+!   ptnucl : .true. if the nucleus is a point particle (in,logical)
 !   zn     : nuclear charge (in,real)
 !   nst    : number of states to solve for (in,integer)
 !   n      : priciple quantum number of each state (in,integer(nst))
@@ -43,6 +44,7 @@ use modxcifc
 !BOC
 implicit none
 ! arguments
+logical, intent(in) :: ptnucl
 real(8), intent(in) :: zn
 integer, intent(in) :: nst
 integer, intent(in) :: n(nst)
@@ -64,10 +66,10 @@ real(8), parameter :: fourpi=12.566370614359172954d0
 ! fine-structure constant
 real(8), parameter :: alpha=1.d0/137.03599911d0
 ! potential convergence tolerance
-real(8), parameter :: eps=1.d-7
+real(8), parameter :: eps=1.d-6
 real(8) sum,dv,dvp,ze,beta,t1
 ! allocatable arrays
-real(8), allocatable :: vh(:),ex(:),ec(:),vx(:),vc(:),vrp(:)
+real(8), allocatable :: vn(:),vh(:),ex(:),ec(:),vx(:),vc(:),vrp(:)
 real(8), allocatable :: ri(:),fr1(:),fr2(:),gr1(:),gr2(:),cf(:,:)
 real(8), allocatable :: grho(:),g2rho(:),g3rho(:)
 if (nst.le.0) then
@@ -89,7 +91,7 @@ if (nr.lt.np) then
   stop
 end if
 ! allocate local arrays
-allocate(vh(nr),ex(nr),ec(nr),vx(nr),vc(nr),vrp(nr))
+allocate(vn(nr),vh(nr),ex(nr),ec(nr),vx(nr),vc(nr),vrp(nr))
 allocate(ri(nr),fr1(nr),fr2(nr),gr1(nr),gr2(nr),cf(3,nr))
 if (xcgrad.eq.1) then
   allocate(grho(nr),g2rho(nr),g3rho(nr))
@@ -100,10 +102,11 @@ do ist=1,nst
   ze=ze+occ(ist)
 end do
 ! set up nuclear potential
-! initialise the total potential to nuclear potential
+call potnucl(ptnucl,nr,r,zn,vn)
 do ir=1,nr
   ri(ir)=1.d0/r(ir)
-  vr(ir)=zn*ri(ir)
+! initialise the effective potential to the nuclear potential
+  vr(ir)=vn(ir)
 end do
 dvp=0.d0
 vrp(:)=0.d0
@@ -122,8 +125,8 @@ do iscl=1,maxscl
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
   do ist=1,nst
-    call rdirac(n(ist),l(ist),k(ist),np,nr,r,vr,eval(ist),rwf(1,1,ist), &
-     rwf(1,2,ist))
+    call rdirac(n(ist),l(ist),k(ist),np,nr,r,vr,eval(ist),rwf(:,1,ist), &
+     rwf(:,2,ist))
   end do
 !$OMP END DO
 !$OMP END PARALLEL
@@ -187,18 +190,16 @@ do iscl=1,maxscl
     vr(ir)=(1.d0-beta)*vrp(ir)+beta*vr(ir)
     vrp(ir)=vr(ir)
 ! add nuclear potential
-    vr(ir)=vr(ir)+zn*ri(ir)
+    vr(ir)=vr(ir)+vn(ir)
   end do
 ! check for convergence
   if ((iscl.gt.2).and.(dv.lt.eps)) goto 10
 ! end self-consistent loop
 end do
 write(*,*)
-write(*,'("Error(atom): maximum iterations exceeded")')
-write(*,*)
-stop
+write(*,'("Warning(atom): maximum iterations exceeded")')
 10 continue
-deallocate(vh,ex,ec,vx,vc,vrp)
+deallocate(vn,vh,ex,ec,vx,vc,vrp)
 deallocate(ri,fr1,fr2,gr1,gr2,cf)
 if (xcgrad.eq.1) then
   deallocate(grho,g2rho,g3rho)

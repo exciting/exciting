@@ -28,12 +28,12 @@ subroutine xslinopt(iq)
   ! local variables
   character(*), parameter :: thisnam='xslinopt'
   character(256) :: filnam,filnam2
-  complex(8),allocatable :: mdf(:), mdf1(:),w(:),wr(:),sigma(:)
+  complex(8),allocatable :: mdf(:), mdf1(:),mdf2(:,:,:),w(:),wr(:),sigma(:)
   real(8),allocatable :: wplot(:),loss(:)
   real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
   real(8) :: sumrls(3),brd
   complex(8) :: zt1
-  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,optcompt(3)
+  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,optcompt(3),i,j
   logical :: tq0
   logical, external :: tqgamma
   integer, external :: octmap
@@ -47,7 +47,7 @@ subroutine xslinopt(iq)
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects
   n=ngq(iq)
-  allocate(mdf1(nwdf),w(nwdf),wr(nwdos),wplot(nwdos),mdf(nwdos), &
+  allocate(mdf1(nwdf),mdf2(3,3,nwdf),w(nwdf),wr(nwdos),wplot(nwdos),mdf(nwdos), &
        loss(nwdos),sigma(nwdos),cf(3,nwdos))
   allocate(eps1(nwdos),eps2(nwdos))
   ! generate energy grids
@@ -64,13 +64,6 @@ subroutine xslinopt(iq)
      ! loop over longitudinal components for optics
      do oct1=1,nc
      do oct2=1,nc
-        if (oct1.ne.oct2) goto 111
-        oct=octmap(oct1,oct2)
-        optcomp(1,1)=oct1
-        optcomp(2,1)=oct2
-        optcompt(:)=optcomp(:,1)
-        ! symmetrization matrix for dielectric function
-        call gensymdf(oct1,oct2)
         ! file name for inverse of dielectric function
         call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
@@ -88,6 +81,27 @@ subroutine xslinopt(iq)
         else
            mdf(:)=mdf1(:)
         end if
+	mdf2(oct1,oct2,:)=mdf(:)
+     end do
+     end do
+     
+     do oct1=1,nc
+     do oct2=1,nc
+        oct=octmap(oct1,oct2)
+        optcomp(1,1)=oct1
+        optcomp(2,1)=oct2
+        optcompt(:)=optcomp(:,1)    
+        ! symmetrization matrix for dielectric function
+        call gensymdf(oct1,oct2)
+     
+        ! symmetrize the macroscopic dielectric function tensor
+        mdf(:)=zzero
+        do i=1,3
+           do j=1,3
+              mdf(:)=mdf(:)+symdfq0(i,j)*mdf2(i,j,:)
+           end do
+        end do
+     
         ! file names for spectra
         call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
@@ -101,7 +115,7 @@ subroutine xslinopt(iq)
         call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
              tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsumrules)
-        if (tetra.and.(fxctype/=0).and.(oct1.eq.oct2)) then
+        if (tetradf.and.(fxctype/=0).and.(oct1.eq.oct2)) then
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=0,&
                 tq0=tq0,oc1=oct1,oc2=oct1,iqmt=iq,filnam=filnam)
@@ -139,12 +153,11 @@ subroutine xslinopt(iq)
         call writeloss(iq,wplot,loss,trim(fnloss))
         call writesigma(iq,wplot,sigma,trim(fnsigma))
         call writesumrls(iq,sumrls,trim(fnsumrules))
-111     continue
      end do ! oct
      end do
   end do ! m
   ! deallocate
   if (allocated(mdfrpa)) deallocate(mdfrpa)
-  deallocate(mdf,mdf1,w,wr,wplot,loss,sigma)
+  deallocate(mdf,mdf1,mdf2,w,wr,wplot,loss,sigma)
   deallocate(eps1,eps2,cf)
 end subroutine xslinopt

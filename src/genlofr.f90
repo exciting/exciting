@@ -57,12 +57,12 @@ do is=1,nspecies
       do io2=1,lorbord(ilo,is)
 ! integrate the radial Schrodinger equation
         call rschroddme(lorbdm(io2,ilo,is),l,0,lorbe(io2,ilo,ias),nprad,nr, &
-         spr(1,is),vr,nn,p0(1,io2),p1,q0(1,io2),q1(1,io2))
+         spr(:,is),vr,nn,p0(:,io2),p1,q0(:,io2),q1(:,io2))
 ! normalise radial functions
         do ir=1,nr
           fr(ir)=p0(ir,io2)**2
         end do
-        call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+        call fderiv(-1,nr,spr(:,is),fr,gr,cf)
         t1=1.d0/sqrt(abs(gr(nr)))
         p0(1:nr,io2)=t1*p0(1:nr,io2)
         q0(1:nr,io2)=t1*q0(1:nr,io2)
@@ -105,13 +105,13 @@ do is=1,nspecies
       do ir=1,nr
         fr(ir)=p0s(ir)**2
       end do
-      call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+      call fderiv(-1,nr,spr(:,is),fr,gr,cf)
       t1=1.d0/sqrt(abs(gr(nr)))
       p0s(1:nr)=t1*p0s(1:nr)
       q0s(1:nr)=t1*q0s(1:nr)
       q1s(1:nr)=t1*q1s(1:nr)
 ! apply the scalar relativistic Hamiltonian
-      call rschrodapp(l,nr,spr(1,is),vr,p0s,q0s,q1s,hp0)
+      call rschrodapp(l,nr,spr(:,is),vr,p0s,q0s,q1s,hp0)
 ! divide by r and store in global array
       do ir=1,nr
         t1=1.d0/spr(ir,is)

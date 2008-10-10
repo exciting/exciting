@@ -23,7 +23,7 @@ use modmain
 !   zrhoir : interstitial charge density (out,complex(ngrtot))
 ! !DESCRIPTION:
 !   Calculates the complex overlap charge density from two input wavefunctions:
-!   $$ \rho({\bf r})\equiv\Psi_1^*({\bf r})\Psi_2({\bf r}). $$
+!   $$ \rho({\bf r})\equiv\Psi_1^{\dag}({\bf r})\cdot\Psi_2({\bf r}). $$
 !   Note that the muffin-tin wavefunctions are provided in spherical coordinates
 !   and the returned density is either in terms of spherical harmonic
 !   coefficients or spherical coordinates when {\tt tsh} is {\tt .true.} or
@@ -43,20 +43,20 @@ complex(8), intent(in) ::  wfir2(ngrtot,nspinor)
 complex(8), intent(out) :: zrhomt(lmmaxvr,nrcmtmax,natmtot)
 complex(8), intent(out) :: zrhoir(ngrtot)
 ! local variables
-integer is,ia,ias,nr,ir
+integer is,ia,ias,nrc,ir
 ! allocatable arrays
 complex(8), allocatable :: zfmt(:,:)
 if (spinpol) allocate(zfmt(lmmaxvr,nrcmtmax))
 ! muffin-tin part
 do is=1,nspecies
-  nr=nrcmt(is)
+  nrc=nrcmt(is)
   do ia=1,natoms(is)
     ias=idxas(ia,is)
-    call vnlrhomt(tsh,is,wfmt1(1,1,ias,1),wfmt2(1,1,ias,1),zrhomt(1,1,ias))
+    call vnlrhomt(tsh,is,wfmt1(:,:,ias,1),wfmt2(:,:,ias,1),zrhomt(:,:,ias))
     if (spinpol) then
 ! spin-polarised
-      call vnlrhomt(tsh,is,wfmt1(1,1,ias,2),wfmt2(1,1,ias,2),zfmt)
-      zrhomt(:,1:nr,ias)=zrhomt(:,1:nr,ias)+zfmt(:,1:nr)
+      call vnlrhomt(tsh,is,wfmt1(:,:,ias,2),wfmt2(:,:,ias,2),zfmt)
+      zrhomt(:,1:nrc,ias)=zrhomt(:,1:nrc,ias)+zfmt(:,1:nrc)
     end if
   end do
 end do

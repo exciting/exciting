@@ -18,7 +18,7 @@ use modmain
 !   v     : input vector to which H is applied if tapp is .true., otherwise
 !           not referenced (in,complex(nmatmax))
 !   h     : H applied to v if tapp is .true., otherwise it is the Hamiltonian
-!           matrix in packed form (inout,complex(npmatmax))
+!           matrix in packed form (inout,complex(*))
 ! !DESCRIPTION:
 !   Computes the interstitial contribution to the Hamiltonian matrix for the APW
 !   basis functions. The Hamiltonian is given by
@@ -50,26 +50,22 @@ if (tapp) then
     do j=i,ngp
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
       ig=ivgig(iv(1),iv(2),iv(3))
-      if ((ig.gt.0).and.(ig.le.ngvec)) then
-        t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
-        zt1=veffig(ig)+t1*cfunig(ig)
-        h(i)=h(i)+zt1*v(j)
-        if (i.ne.j) h(j)=h(j)+conjg(zt1)*v(i)
-      end if
+      t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
+      zt1=veffig(ig)+t1*cfunig(ig)
+      h(i)=h(i)+zt1*v(j)
+      if (i.ne.j) h(j)=h(j)+conjg(zt1)*v(i)
     end do
   end do
 else
 ! calculate the matrix elements
+  k=0
   do j=1,ngp
-    k=((j-1)*j)/2
     do i=1,j
       k=k+1
       iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
       ig=ivgig(iv(1),iv(2),iv(3))
-      if ((ig.gt.0).and.(ig.le.ngvec)) then
-        t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
-        h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
-      end if
+      t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
+      h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
     end do
   end do
 end if

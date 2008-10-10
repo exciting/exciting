@@ -48,7 +48,7 @@ do is=1,nspecies
         do ir=1,nr
           fr(ir)=apwfr(ir,1,io,l,ias)*lofr(ir,1,ilo,ias)*r2(ir)
         end do
-        call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+        call fderiv(-1,nr,spr(:,is),fr,gr,cf)
         oalo(io,ilo,ias)=gr(nr)
       end do
     end do
@@ -62,7 +62,7 @@ do is=1,nspecies
           do ir=1,nr
             fr(ir)=lofr(ir,1,ilo1,ias)*lofr(ir,1,ilo2,ias)*r2(ir)
           end do
-          call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+          call fderiv(-1,nr,spr(:,is),fr,gr,cf)
           ololo(ilo1,ilo2,ias)=gr(nr)
         end if
       end do

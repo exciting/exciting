@@ -43,12 +43,12 @@ do is=1,nspecies
       do io1=1,apword(l,is)
 ! integrate the radial Schrodinger equation
         call rschroddme(apwdm(io1,l,is),l,0,apwe(io1,l,ias),nprad,nr, &
-         spr(1,is),vr,nn,p0(1,io1),p1,q0(1,io1),q1(1,io1))
+         spr(:,is),vr,nn,p0(:,io1),p1,q0(:,io1),q1(:,io1))
 ! normalise radial functions
         do ir=1,nr
           fr(ir)=p0(ir,io1)**2
         end do
-        call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+        call fderiv(-1,nr,spr(:,is),fr,gr,cf)
         t1=1.d0/sqrt(abs(gr(nr)))
         p0(1:nr,io1)=t1*p0(1:nr,io1)
         p1s(io1)=t1*p1(nr)
@@ -59,7 +59,7 @@ do is=1,nspecies
           do ir=1,nr
             fr(ir)=p0(ir,io1)*p0(ir,io2)
           end do
-          call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+          call fderiv(-1,nr,spr(:,is),fr,gr,cf)
           t1=gr(nr)
           p0(1:nr,io1)=p0(1:nr,io1)-t1*p0(1:nr,io2)
           p1s(io1)=p1s(io1)-t1*p1s(io2)
@@ -70,7 +70,7 @@ do is=1,nspecies
         do ir=1,nr
           fr(ir)=p0(ir,io1)**2
         end do
-        call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+        call fderiv(-1,nr,spr(:,is),fr,gr,cf)
         t1=abs(gr(nr))
         if (t1.lt.1.d-20) then
           write(*,*)
@@ -88,7 +88,7 @@ do is=1,nspecies
         q0(1:nr,io1)=t1*q0(1:nr,io1)
         q1(1:nr,io1)=t1*q1(1:nr,io1)
 ! apply the Hamiltonian
-        call rschrodapp(l,nr,spr(1,is),vr,p0(1,io1),q0(1,io1),q1(1,io1),hp0)
+        call rschrodapp(l,nr,spr(:,is),vr,p0(:,io1),q0(:,io1),q1(:,io1),hp0)
 ! divide by r and store in global array
         do ir=1,nr
           t1=1.d0/spr(ir,is)

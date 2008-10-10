@@ -92,8 +92,8 @@ do i=1,2
 ! generate the radial mesh
   call radmesh(spnr,nrmt,rmt,sprmin,r)
 ! solve the Kohn-Sham-Dirac equations for the atom
-  call atom(spzn,spnst,spn,spl,spk,spocc,xctype,xcgrad,np,spnr,r,eval,rho,vr, &
-   rwf)
+  call atom(.true.,spzn,spnst,spn,spl,spk,spocc,xctype,xcgrad,np,spnr,r,eval, &
+   rho,vr,rwf)
   do ir=spnr,1,-1
     if (rho(ir).gt.1.d-20) then
       sprmax=1.5d0*r(ir)

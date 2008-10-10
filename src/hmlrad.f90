@@ -54,7 +54,7 @@ do is=1,nspecies
               do ir=1,nr
                 fr(ir)=apwfr(ir,1,io1,l1,ias)*apwfr(ir,2,io2,l3,ias)*r2(ir)
               end do
-              call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+              call fderiv(-1,nr,spr(:,is),fr,gr,cf)
               haa(io1,l1,io2,l3,1,ias)=gr(nr)/y00
             else
               haa(io1,l1,io2,l3,1,ias)=0.d0
@@ -67,7 +67,7 @@ do is=1,nspecies
                     t1=apwfr(ir,1,io1,l1,ias)*apwfr(ir,1,io2,l3,ias)*r2(ir)
                     fr(ir)=t1*veffmt(lm2,ir,ias)
                   end do
-                  call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+                  call fderiv(-1,nr,spr(:,is),fr,gr,cf)
                   haa(io1,l1,io2,l3,lm2,ias)=gr(nr)
                 end do
               end do
@@ -87,7 +87,7 @@ do is=1,nspecies
             do ir=1,nr
               fr(ir)=lofr(ir,1,ilo,ias)*apwfr(ir,2,io,l3,ias)*r2(ir)
             end do
-            call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+            call fderiv(-1,nr,spr(:,is),fr,gr,cf)
             hloa(ilo,io,l3,1,ias)=gr(nr)/y00
           else
             hloa(ilo,io,l3,1,ias)=0.d0
@@ -99,7 +99,7 @@ do is=1,nspecies
                 t1=lofr(ir,1,ilo,ias)*apwfr(ir,1,io,l3,ias)*r2(ir)
                 fr(ir)=t1*veffmt(lm2,ir,ias)
               end do
-              call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+              call fderiv(-1,nr,spr(:,is),fr,gr,cf)
               hloa(ilo,io,l3,lm2,ias)=gr(nr)
             end do
           end do
@@ -117,7 +117,7 @@ do is=1,nspecies
           do ir=1,nr
             fr(ir)=lofr(ir,1,ilo1,ias)*lofr(ir,2,ilo2,ias)*r2(ir)
           end do
-          call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+          call fderiv(-1,nr,spr(:,is),fr,gr,cf)
           hlolo(ilo1,ilo2,1,ias)=gr(nr)/y00
         else
           hlolo(ilo1,ilo2,1,ias)=0.d0
@@ -129,7 +129,7 @@ do is=1,nspecies
               t1=lofr(ir,1,ilo1,ias)*lofr(ir,1,ilo2,ias)*r2(ir)
               fr(ir)=t1*veffmt(lm2,ir,ias)
             end do
-            call fderiv(-1,nr,spr(1,is),fr,gr,cf)
+            call fderiv(-1,nr,spr(:,is),fr,gr,cf)
             hlolo(ilo1,ilo2,lm2,ias)=gr(nr)
           end do
         end do

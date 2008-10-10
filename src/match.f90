@@ -56,7 +56,7 @@ complex(8), intent(out) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 integer np,is,ia,ias,omax
 integer l,m,lm,io1,io2
 integer i,ir,igp,info
-real(8) t1
+real(8) fpso,t1
 complex(8) zt1,zt2
 ! allocatable arrays
 integer, allocatable :: ipiv(:)
@@ -68,6 +68,7 @@ complex(8), allocatable :: zb(:,:)
 ! external functions
 real(8) polynom
 external polynom
+fpso=fourpi/sqrt(omega)
 ! polynomial order
 np=max(apwordmax+1,4)
 allocate(ipiv(np))
@@ -78,7 +79,7 @@ allocate(zd(apwordmax,apwordmax))
 allocate(zb(apwordmax,ngp*(2*lmaxapw+1)))
 ! compute the spherical harmonics of the G+p-vectors
 do igp=1,ngp
-  call genylm(lmaxapw,tpgpc(1,igp),ylmgp(1,igp))
+  call genylm(lmaxapw,tpgpc(:,igp),ylmgp(:,igp))
 end do
 ! begin loops over atoms and species
 do is=1,nspecies
@@ -91,7 +92,7 @@ do is=1,nspecies
   do igp=1,ngp
     t1=gpc(igp)*rmt(is)
     do io1=1,omax
-      call sbesseldm(io1-1,lmaxapw,t1,djl(0,io1,igp))
+      call sbesseldm(io1-1,lmaxapw,t1,djl(:,io1,igp))
     end do
     t1=1.d0
     do io1=2,omax
@@ -104,7 +105,7 @@ do is=1,nspecies
     ias=idxas(ia,is)
 ! begin loop over l
     do l=0,lmaxapw
-      zt1=(fourpi/sqrt(omega))*zil(l)
+      zt1=fpso*zil(l)
 ! set up matrix of derivatives
 
       do io2=1,apword(l,is)

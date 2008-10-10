@@ -42,11 +42,11 @@ do is=1,nspecies
     irc=0
     do ir=1,nrmt(is),lradstp
       irc=irc+1
-      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw,veffmt(1,ir,ias), &
-       1,0.d0,rfmt(1,irc,ias),1)
+      call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr,veffmt(:,ir,ias),1, &
+       0.d0,rfmt(:,irc,ias),1)
       do idm=1,ndmag
-        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
-         bxcmt(1,ir,ias,idm),1,0.d0,rvfmt(1,irc,ias,idm),1)
+        call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
+         bxcmt(:,ir,ias,idm),1,0.d0,rvfmt(:,irc,ias,idm),1)
       end do
     end do
   end do
@@ -60,12 +60,12 @@ do ik=1,nkpt
   call putevalfv(ik,evalfv)
   call putevecfv(ik,evecfv)
 ! find the matching coefficients
-  call match(ngk(ik,1),gkc(1,ik,1),tpgkc(1,1,ik,1),sfacgk(1,1,ik,1),apwalm)
+  call match(ngk(1,ik),gkc(:,1,ik),tpgkc(:,:,1,ik),sfacgk(:,:,1,ik),apwalm)
 ! calculate the wavefunctions for all states of the input k-point
-  call genwfsv(.false.,ngk(ik,1),igkig(1,ik,1),evalsv(1,ik),apwalm,evecfv, &
+  call genwfsv(.false.,ngk(1,ik),igkig(:,1,ik),evalsv(:,ik),apwalm,evecfv, &
    evecsv,wfmt,wfir)
 ! compute effective potential matrix elements
-  call genvmatk(rfmt,veffir,wfmt,wfir,kinmatc(1,1,ik))
+  call genvmatk(rfmt,veffir,wfmt,wfir,kinmatc(:,:,ik))
   kinmatc(:,:,ik)=-kinmatc(:,:,ik)
 ! add second-variational eigenvalues along the diagonal
   do ist=1,nstsv
@@ -77,10 +77,10 @@ do ik=1,nkpt
     kinmatc(:,:,ik)=kinmatc(:,:,ik)-bmat(:,:)
   end if
 ! rotate kinetic matrix elements to Cartesian basis
-  call zgemm('N','C',nstsv,nstsv,nstsv,zone,kinmatc(1,1,ik),nstsv,evecsv, &
+  call zgemm('N','C',nstsv,nstsv,nstsv,zone,kinmatc(:,:,ik),nstsv,evecsv, &
    nstsv,zzero,c,nstsv)
   call zgemm('N','N',nstsv,nstsv,nstsv,zone,evecsv,nstsv,c,nstsv,zzero, &
-   kinmatc(1,1,ik),nstsv)
+   kinmatc(:,:,ik),nstsv)
 end do
 if (spinpol) deallocate(rvfmt)
 deallocate(rfmt,evalfv,apwalm,evecfv,evecsv)
