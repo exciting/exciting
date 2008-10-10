@@ -48,6 +48,15 @@ while($selected==0){
 	if($MPI=~m/yes/){
 		$selected=1;
 		system("echo \"BUILDMPI=true\">>build/make.inc");
+print "select the mecanism to include mpi interface variables\n";
+print "    1 use mpi module (f90 interfaces) recomendet if available\n";
+print "    2 use #include <mpif.h> required by some mpiimplementations 
+(edit path in build mpiconf.inc if mpif.h is not in your includepath)\n";
+$mpiinclude=<>;
+if($mpiinclude==1) {$includefile="mpiconf.inc.module";}
+if($mpiinclude==2) {$includefile="mpiconf.inc.include";}
+system(("cp", "build/plattforms/$includefile", "build/mpiconf.inc"));
+
 	}elsif($MPI=~m/no/) {
 		system("echo \"BUILDMPI=false\">>build/make.inc");
 		$selected=1;

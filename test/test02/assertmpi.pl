@@ -52,7 +52,7 @@ $status="passed";
  		}, $writer);
 
 #compare eigenvalues
-$tol=1e-8;
+$tol=1.5e-7;
 %statuseigval=Test::assert_file_same_within( "runlapackmpi/EIGVAL.OUT",
 	"runlapack/EIGVAL.OUT",$tol);
  Test::writetestreport({

@@ -28,7 +28,7 @@
 				|
 				<xsl:value-of select="unspecified/@percent" />
 				|<xsl:value-of select="failed/@percent" />
-				&amp;chs=500x80&amp;chdl=passed|unspecified|failed&amp;chdlp=t&amp;chl=passed:
+				&amp;chs=<xsl:value-of select="all/@count*20"/>x80&amp;chdl=passed|unspecified|failed&amp;chdlp=t&amp;chl=passed:
 				<xsl:value-of select="passed/@count" />
 				|unspecified:
 				<xsl:value-of select="unspecified/@count" />
