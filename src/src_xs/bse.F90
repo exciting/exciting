@@ -142,8 +142,9 @@ subroutine bse
                     select case(trim(bsetype))
                     case('rpa','singlet')
                        ham(s1,s2)=ham(s1,s2)+ &
-                            2.d0*excli(ist1,ist2,ist3,ist4)
-                    end select
+!                            2.d0*excli(ist1,ist2,ist3,ist4)
+                            2.d0*excli(ist3,ist4,ist1,ist2)
+                   end select
                     ! add correlation term
                     select case(trim(bsetype))
                     case('singlet','triplet')

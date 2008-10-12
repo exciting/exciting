@@ -342,7 +342,8 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
               do ist4=1,nst3
                  do ist2=1,nst1
                     j1=j1+1
-                    zt1=sccli(ist1,ist3,ist2,ist4)
+!                    zt1=sccli(ist1,ist3,ist2,ist4)
+                    zt1=sccli(ist2,ist4,ist1,ist3)
                     ! four point energy difference
                     t1=dekp(ist2,ist4)-dek(ist1,ist3)
                     ! arrays for R- and Q-residuals
