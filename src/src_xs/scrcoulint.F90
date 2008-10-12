@@ -23,6 +23,7 @@ subroutine scrcoulint
   real(8) :: vklofft(3),vqr(3),vq(3)
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
+  complex(8) :: zt1
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
@@ -251,9 +252,12 @@ subroutine scrcoulint
      
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
-     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
+!     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
+!          /omega/nkptnr
+	  
+     scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12)))) &
           /omega/nkptnr
-     
+ 
      ! map back to individual band indices
      j2=0
      do ist4=1,nst4
@@ -315,9 +319,10 @@ subroutine scrcoulint
            do ist3=1,nst3
               do ist2=1,nst2
                  do ist4=1,nst4
+		    zt1=sccli(ist1,ist3,ist2,ist4)
                     write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-                         ist3,jknr,ist2,ist4,sccli(ist1,ist3,ist2,ist4),&
-                         abs(sccli(ist1,ist3,ist2,ist4))
+                         ist3,jknr,ist2,ist4,zt1,abs(zt1)**2, &
+			 atan2(aimag(zt1),dble(zt1))*180.d0/pi
                  end do
               end do
            end do

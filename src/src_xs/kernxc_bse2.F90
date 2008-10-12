@@ -438,6 +438,14 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
      write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
   end do
   
+   do iw=1,nwdf,10
+     do igq1=1,n
+        do igq2=1,n
+           write(un,'(3i6,3g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw),abs(fxc(igq1,igq2,iw))
+	end do
+     end do
+  end do
+
   close(un)
   close(un2)
   close(un3)

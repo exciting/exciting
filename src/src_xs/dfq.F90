@@ -428,6 +428,16 @@ write(*,*)
      deallocate(chi0hs)
   end if
   
+  do iw=1,nwdf,10
+  do ig1=1,n
+  do ig2=1,n
+
+write(88888,'(3i6,3g18.10)') iw,ig1,ig2,chi0(ig1,ig2,iw),abs(chi0(ig1,ig2,iw))**2
+  
+  end do
+  end do
+  end do
+  
 
   ! write response function to file
   if (tscreen) then
