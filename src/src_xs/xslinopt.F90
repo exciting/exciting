@@ -50,6 +50,7 @@ subroutine xslinopt(iq)
   allocate(mdf1(nwdf),mdf2(3,3,nwdf),w(nwdf),wr(nwdos),wplot(nwdos),mdf(nwdos), &
        loss(nwdos),sigma(nwdos),cf(3,nwdos))
   allocate(eps1(nwdos),eps2(nwdos))
+  mdf2(:,:,:)=zzero
   ! generate energy grids
   brd=0.d0
   if (acont) brd=broad
@@ -63,7 +64,7 @@ subroutine xslinopt(iq)
   do m=1,n,max(n-1,1)
      ! loop over longitudinal components for optics
      do oct1=1,nc
-     do oct2=1,nc
+     do oct2=oct1,oct1
         ! file name for inverse of dielectric function
         call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
              acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
@@ -86,13 +87,16 @@ subroutine xslinopt(iq)
      end do
      
      do oct1=1,nc
-     do oct2=1,nc
+     do oct2=oct1,oct1
         oct=octmap(oct1,oct2)
         optcomp(1,1)=oct1
         optcomp(2,1)=oct2
         optcompt(:)=optcomp(:,1)    
         ! symmetrization matrix for dielectric function
         call gensymdf(oct1,oct2)
+
+write(*,*) 'nosym,nsymcrys',nosym,nsymcrys
+
      
         ! symmetrize the macroscopic dielectric function tensor
         mdf(:)=zzero

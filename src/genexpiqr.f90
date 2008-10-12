@@ -48,6 +48,11 @@ complex(8), allocatable :: em(:,:)
 real(8) gaunt
 complex(8) zfmtinp,zdotc
 external gaunt,zfmtinp,zdotc
+
+!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+lmaxvr=3
+lmmaxvr=16
+
 ! check if q-vector is zero
 t1=vecql(1)**2+vecql(2)**2+vecql(3)**2
 if (t1.lt.epslat) then

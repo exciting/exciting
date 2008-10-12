@@ -12,7 +12,7 @@ subroutine showunits(un)
   logical :: connected
   character(256) :: fname
   minu=-1
-  maxu=5000
+  maxu=70000
   write(un,'(a)') 'Info(showunits):'
   write(un,'(a,i9,a,i9,a)') ' opened files between units ',minu,' and', &
        maxu,' (unit/name):'

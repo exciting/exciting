@@ -77,7 +77,12 @@ contains
        call flushifc(unitout)
        err=err+1
     end if
-    n1=h1-l1+1; n2=h2-l2+1; n3=h3-l3+1; n4=h4-l4+1
+    n1=h1-l1+1
+    n2=h2-l2+1
+    if (present(x34)) then
+       n3=h3-l3+1
+       n4=h4-l4+1
+    end if
     ! check block sizes against array
     lerr=(size(x12,1).ne.n1).or.(size(x12,2).ne.n2).or.(ngp.gt.ngq(iq)) &
          .or.(size(x12,3).ne.ngp)
@@ -123,7 +128,7 @@ contains
        inquire(iolength=recl) vql_,vkl_,nstsv_,ngq_,l1_,h1_,l2_,h2_
        open(unit=un,file=trim(filnam),form='unformatted',action='read', &
             access='direct',recl=recl)
-       read(un,rec=ikr) vql_,vkl_,nstsv_,ngq_,l1_,h1_,l2_,h2_
+       read(un,rec=1) vql_,vkl_,nstsv_,ngq_,l1_,h1_,l2_,h2_
        close(un)
     end if
     err=0
@@ -155,7 +160,10 @@ contains
     !------------------!
     !     get data     !
     !------------------!
-    n1_=h1_-l1_+1; n2_=h2_-l2_+1; n3_=h3_-l3_+1; n4_=h4_-l4_+1
+    n1_=h1_-l1_+1; n2_=h2_-l2_+1
+    if (present(x34)) then
+       n3_=h3_-l3_+1; n4_=h4_-l4_+1
+    end if
     allocate(x12t(n1_,n2_,ngq_))
     if (present(x34)) allocate(x34t(n3_,n4_,ngq_))
     call getunit(un)

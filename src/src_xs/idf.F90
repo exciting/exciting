@@ -14,7 +14,7 @@ subroutine idf
   character(*), parameter :: thisnam = 'idf'
   integer :: iq
   ! initialise universal variables
-  if (calledxs.eq.1) call init0
+  call init0
   call init1
   ! save Gamma-point variables
   call xssave0

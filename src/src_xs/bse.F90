@@ -17,7 +17,7 @@ subroutine bse
   integer, parameter :: iqmt=1
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iw,ngridkt(3),iv2(3),s1,s2,hamsiz,nexc, ne
-  integer :: ist1,ist2,ist3,ist4,ikkp,oct,iv,ic,nvdif,ncdif
+  integer :: nemptyscrt,emattypet,ist1,ist2,ist3,ist4,ikkp,oct,iv,ic,nvdif,ncdif
   logical :: nosymt,reducekt
   real(8) :: vklofft(3),de,egap,cpu0,cpu1
   ! allocatable arrays
@@ -53,6 +53,8 @@ subroutine bse
   reducekt=reducek
   ngridkt(:)=ngridk(:)
   vklofft(:)=vkloff(:)
+  nemptyscrt=nemptyscr
+  emattypet=emattype
   ! map variables for screened Coulomb interaction
   call initbse
   nosym=nosymscr
@@ -243,6 +245,13 @@ subroutine bse
      ! end loop over optical components
   end do
 
+  ! restore global variables
+  nosym=nosymt
+  reducek=reducekt
+  ngridk(:)=ngridkt(:)
+  vkloff(:)=vklofft(:)
+  nemptyscr=nemptyscrt
+  emattype=emattypet
 
 
   !/////////////////////////////////////////////////////////////////////////////

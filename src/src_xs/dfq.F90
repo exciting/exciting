@@ -13,6 +13,7 @@ subroutine dfq(iq)
   use modtetra
   use modmpi
   use m_genwgrid
+  use m_gensymdf
   use m_getpemat
   use m_dftim
   use m_gettetcw
@@ -85,12 +86,12 @@ subroutine dfq(iq)
   complex(8), allocatable :: chi0(:,:,:),hdg(:,:,:)
   complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:)
   complex(8), allocatable :: wou(:),wuo(:),wouw(:),wuow(:),wouh(:),wuoh(:)
-  complex(8), allocatable :: zvou(:),zvuo(:)
+  complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
-  integer :: n,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
-  integer :: oct,oct1,oct2,un,ig1,ig2
+  integer :: n,i,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
+  integer :: oct,oct1,oct2,lop,lops,un,ig1,ig2
   logical :: tq0
   integer, external :: octmap
   logical, external :: tqgamma,transik,transijst
@@ -402,6 +403,32 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
      ! end loop over k-points
   end do
   if (tscreen) call ematqdealloc
+
+  ! symmetrize head
+  if (tq0) then
+     allocate(chi0hs(9,nwdfp))
+     do oct1=1,3
+        do oct2=1,3
+           lops=octmap(oct1,oct2)
+           ! symmetrization matrix for dielectric function
+           call gensymdf(oct1,oct2)
+write(*,*) 'oct1,oct2,symdfq0',oct1,oct2
+write(*,*) symdfq0
+write(*,*)
+           chi0hs(lops,:)=zzero
+           do i=1,3
+              do j=1,3
+                 lop=octmap(i,j)
+                 chi0hs(lops,:)=chi0hs(lops,:)+symdfq0(i,j)*chi0h(lop,:)
+              end do
+           end do
+        end do
+     end do
+     chi0h(:,:)=chi0hs(:,:)
+     deallocate(chi0hs)
+  end if
+  
+
   ! write response function to file
   if (tscreen) then
      ! write out screening

@@ -111,7 +111,7 @@ subroutine xsmain
      call bse2
   case(450)
      ! BSE-kernel
-     call kernxc_bse(1)
+     call kernxc_bse2(1)
   case(498)
      ! * debug task
      call init0

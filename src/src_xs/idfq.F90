@@ -11,6 +11,7 @@ subroutine idfq(iq)
   use modmpi
   use m_genwgrid
   use m_dyson
+  use m_dysonsym
   use m_getx0
   use m_getunit
   use m_genfilname
@@ -70,7 +71,7 @@ subroutine idfq(iq)
      end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
-        do oct2=1,nc
+        do oct2=oct1,oct1
            oct=octmap(oct1,oct2)
            ! filename for output file
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
@@ -98,15 +99,24 @@ subroutine idfq(iq)
               case(0,1,2,3,4,7,8)
                  call fxcifc(fxctype,ng=m,iw=iw,w=w(iw),alrc=alphalrc,&
                       alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
+              end select
+              ! head of pure f_xc kernel
+              if (m.eq.1) fxc0(iw,oct)=fxc(1,1)
+              ! solve Dyson's equation for the interacting response function
+              select case(fxctype)
+              case(0,1,2,3,4,5)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
                  forall(j=1:m) 
                     fxc(j,j)=fxc(j,j)+1.d0
                  end forall
-                 ! head of pure f_xc kernel
-                 if (m.eq.1) fxc0(iw,oct)=fxc(1,1)-1.d0
+                 call dyson(n,chi0,fxc,idf)
+              case (7,8)
+                 ! we do not expect the kernel to contain the symmetrized
+                 ! Coulomb potential here, the kernel here is expected to be
+                 ! multiplied with the KS response function from both sides.
+                 ! [F. Sottile, PRL 2003]
+                 call dysonsym(n,chi0,fxc,idf)
               end select
-              ! solve Dyson's equation for the interacting response function
-              call dyson(n,chi0,fxc,idf)
               ! symmetrized inverse dielectric function (add one)
               forall(j=1:m) 
                  idf(j,j)=idf(j,j)+1.d0

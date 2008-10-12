@@ -4,24 +4,19 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: kernxc_bse
+! !ROUTINE: kernxc_bse2
 ! !INTERFACE:
-subroutine kernxc_bse(oct)
+subroutine kernxc_bse2(oct)
 ! !USES:
   use modmain
-  use modmpi
   use modtetra
   use modxs
-  use modfxcifc
-  use invert
   use m_xsgauntgen
   use m_findgntn0
   use m_writegqpts
   use m_genwgrid
-  use m_dyson
   use m_xszoutpr3
   use m_getpemat
-  use m_getx0
   use m_getunit
   use m_genfilname
 ! !INPUT/OUTPUT PARAMETERS:
@@ -37,19 +32,17 @@ subroutine kernxc_bse(oct)
   ! arguments
   integer, intent(in) :: oct
   ! local variables
-  character(*), parameter :: thisnam = 'kernxs_bse'
+  character(*), parameter :: thisnam = 'kernxs_bse2'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-6
+  real(8), parameter :: delt=1.d-4
   character(256) :: filnam,filnam2,filnam3,filnam4
   complex(8),allocatable :: fxc(:,:,:),w(:)
-  complex(8),allocatable :: chi0h(:),chi0wg(:,:,:),chi0(:,:),chi0i(:,:)
-  complex(8),allocatable :: chi0h2(:),chi0wg2(:,:,:),chi02(:,:),chi02i(:,:)
-  integer :: n,recl,iw,wi,wf,nwdfp,octh,oct1,oct2
+  integer :: n,recl,iw,wi,wf,nwdfp
   integer, external :: l2int
-  complex(8) :: zt1,bsediagshift,bsediagshiftc
+  complex(8) :: zt1
   character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
+  integer :: nemptyscrt,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
   integer :: ngridkt(3),iv(3),un,un2,un3,j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
@@ -62,7 +55,6 @@ subroutine kernxc_bse(oct)
   complex(8), allocatable :: den1(:),den2(:)
   complex(8), allocatable :: emat12(:,:),emat12p(:,:),emat(:,:,:,:)
   complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
-  complex(8), allocatable :: hdg(:,:,:)
   ! external functions
   integer, external :: iplocnr,idxkkp
   logical, external :: tqgamma
@@ -73,12 +65,7 @@ subroutine kernxc_bse(oct)
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
   call genfilname(setfilext=.true.)
-
-t3=1.d0
-bsediagshift=zzero
-bsediagshiftc=zzero
-
-brd=broad
+  brd=broad
 
   !----------------!
   !   initialize   !
@@ -88,6 +75,7 @@ brd=broad
   reducekt=reducek
   ngridkt(:)=ngridk(:)
   vklofft(:)=vkloff(:)
+  nemptyscrt=nemptyscr
   ! map variables for screened Coulomb interaction
   call initbse
   nosym=nosymscr
@@ -177,18 +165,12 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
   allocate(emat12k(n,nst1,nst3),emat12kp(nst1,nst3,n))
   allocate(residr(nst13,n),residq(nst13,n))
   allocate(w(nwdf),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
-  allocate(chi0i(n,n),chi0(n,n),chi0wg(n,2,3),chi0h(9))
-  allocate(chi02i(n,n),chi02(n,n),chi0wg2(n,2,3),chi0h2(9))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
   allocate(emat(nst1,nst3,n,nkptnr))
   allocate(deval(nst1,nst3,nkptnr))
   allocate(docc(nst1,nst3,nkptnr))
   allocate(scis(nst1,nst3,nkptnr))
-
-allocate(hdg(nst1,nst3,nkptnr))
-hdg=zzero
-write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
 
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
@@ -237,12 +219,8 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
      deou(:,:)=deval(:,:,iknr)
      docc12(:,:)=docc(:,:,iknr)
 
- write(7712,*) xiou(2,3,1),xiou(2,3,7),xiou(1,2,1),xiou(1,2,6)
- write(8712,*) deou(2,3),deou(3,2),deou(1,2),deou(2,1)
-
      ! apply gauge wrt. symmetrized Coulomb potential
      call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
- write(6712,*) pmou(oct,2,3),pmou(oct,1,2)
      dek(:,:)=deou(:,:)
      dok(:,:)=docc12(:,:)
      scisk(:,:)=scis(:,:,iknr)
@@ -278,6 +256,7 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
            ! swapped index for lower triangle
            ikkp=idxkkp(jknr,iknr,nkptnr)
         end if
+	write(*,*) 'ikkp',ikkp
 
         iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
         iv(:)=modulo(iv(:),ngridk(:))
@@ -291,10 +270,6 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
         ! locate reduced q-point in non-reduced set
         iqrnr=iplocnr(ivqr(1,iqr),ngridq)
 
-   write(*,'(a,i6,2x,2i5,2x,2i5)') 'ikkp,iknr,jknr,iq,iqr',&
-             ikkp,iknr,jknr,iq,iqr
-
-
         emattype=1
         call ematbdcmbs(emattype)
         allocate(xiou(nst1,nst3,n))
@@ -302,12 +277,8 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
         deou(:,:)=deval(:,:,jknr)
         docc12(:,:)=docc(:,:,jknr)
 
- write(7713,*) xiou(2,3,1),xiou(2,3,7),xiou(1,2,1),xiou(1,2,6)
- write(8713,*) deou(2,3),deou(3,2),deou(1,2),deou(2,1)
-
         ! apply gauge wrt. symmetrized Coulomb potential
         call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
- write(6713,*) pmou(oct,2,3),pmou(oct,1,2)
         dekp(:,:)=deou(:,:)
         dokp(:,:)=docc12(:,:)
         sciskp(:,:)=scis(:,:,jknr)
@@ -319,37 +290,12 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
         emattype=2
         call ematbdcmbs(emattype)
 
-!!!!!!!!!!!!!!!!!!!!!!!! CHECK
-        write(7711,*) emat12kp(2,3,1),emat12kp(2,3,7),emat12kp(1,2,1),emat12kp(1,2,6)
-
-
         ! get screened Coulomb interaction
         if (iknr.le.jknr) then
            ! read from file
            read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,sccli
-
-
-!!$write(*,*) '====nst1,2,3,4',nst1,nst2,nst3,nst4
-!!$
-!!$
-!!$           if ((ikkp.ne.ikkp_).or.(iknr.ne.iknr_).or.(jknr.ne.jknr_).or. &
-!!$                (iq.ne.iq_).or.(iqr.ne.iqr_).or.(nst1.ne.nst1_).or. &
-!!$                (nst2.ne.nst2_).or.(nst3.ne.nst3_).or.(nst4.ne.nst4_)) then
-!!$              write(*,*)
-!!$              write(*,'("Error(kernxc_bse): wrong indices for screened Coulomb&
-!!$                   & interaction")')
-!!$              write(*,'(" indices (ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,&
-!!$                   &nst4)")')
-!!$              write(*,'(" current:",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp,iknr,jknr,&
-!!$                   iq,iqr,nst1,nst2,nst3,nst4
-!!$              write(*,'(" file   :",i6,3x,2i4,2x,2i4,2x,4i4)') ikkp_,iknr_,&
-!!$                   jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-!!$              write(*,*)
-!!$              call terminate
-!!$           end if
         else
-           write(*,*) 'using Hermitian transposed scr. Coul. int.'
            ! use Hermitian property for lower triangle
            read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
                 nst4_,scclih
@@ -369,7 +315,6 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
            do ist3=1,nst3
               do ist1=1,nst1	      
                  zt1=sccli(ist1,ist3,ist1,ist3)
-!!!hdg(ist1,ist3,iknr)=-zt1
                  t1=dble(zt1)
                  t2=aimag(zt1)
                  tp=atan2(t2,t1)
@@ -381,24 +326,6 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
            end do
         end if
 	
-        if (dbglev.gt.1) then
-           if (iknr.le.jknr) then
-              ! * write out screened Coulomb interaction
-              do ist1=1,nst1
-                 do ist3=1,nst3
-                    do ist2=1,nst2
-                       do ist4=1,nst4
-                          write(1101,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') &
-                               ikkp,iknr,ist1,ist3,jknr,ist2,ist4, &
-                               sccli(ist1,ist3,ist2,ist4),&
-                               abs(sccli(ist1,ist3,ist2,ist4))
-                       end do
-                    end do
-                 end do
-              end do
-           end if
-        end if
-
         j1=0
         do ist2=1,nst3
            do ist1=1,nst1
@@ -439,20 +366,6 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
 
-!!$        call cpu_time(cpu3)
-!!$        t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph+cpu_suma+cpu_write
-!!$        write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
-!!$        write(*,'(a,f12.3)') 'ematrad     :',cpu_ematrad
-!!$        write(*,'(a,f12.3)') 'ematqalloc  :',cpu_ematqalloc
-!!$        write(*,'(a,f12.3)') 'ematqk1     :',cpu_ematqk1
-!!$        write(*,'(a,f12.3)') 'ematqdealloc:',cpu_ematqdealloc
-!!$        write(*,'(a,f12.3)') 'summation   :',cpu_suma
-!!$        write(*,'(a,f12.3)') 'write       :',cpu_write
-!!$        write(*,'(a,f12.3)') '*** sum     :',t3
-!!$        write(*,'(a,f12.3)') '*** rest    :',cpu3-cpu2-t3
-!!$        write(*,'(a,f12.3)') '*** overall :',cpu3-cpu2
-        write(*,*)
-
         ! end inner loop over k-points
      end do
 
@@ -476,19 +389,11 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
 
 ! *** this part is working for Si_lapw and Si_APW+lo ***
            ! set up energy denominators
-           den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)
-           den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2
+           den1(:)=2.d0/(w(:)+dek(ist1,ist3)+zi*brd)
+           den2(:)=2.d0/(w(:)+dek(ist1,ist3)+zi*brd)**2
            den1=den1/nkpt/omega
            den2=den2/nkpt/omega
 ! *** end
-
-!!$	   ! set up energy denominators
-!!$	   den1(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd) + &
-!!$		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)
-!!$	   den2(:)=2.d0/(w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)+zi*brd)**2 +&
-!!$		2.d0/(-w(:)+hdg(ist1,ist3,iknr)+dek(ist1,ist3)-zi*brd)**2
-!!$	   den1=den1/nkpt/omega
-!!$	   den2=den2/nkpt/omega
 
            ! update kernel
            do iw=1,nwdf
@@ -503,18 +408,6 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
      ! end outer loop over k-points
   end do
   close(un)
-
-
-!!!! write BSE diagonal to file
-write(1108) hdg
-
-  do iw=1,nwdf
-     do igq1=1,n
-        do igq2=1,n
-           write(777,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw)
-        end do
-     end do
-  end do
 
 
   ! filename for response function file
@@ -540,41 +433,6 @@ write(1108) hdg
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
   
-  goto 111
-  
-  ! set up kernel
-  do iw=1,nwdf
-     oct1=oct
-     oct2=oct
-     octh=1+(oct-1)*4
-     ! get KS/QP response function for lower w-point
-     call getx0(.true.,iqmt,iw,trim(filnam),'',chi0,chi0wg,chi0h)
-     ! head
-     chi0(1,1)=chi0h(octh)
-     ! wings
-     if (n.gt.1) then
-        chi0(1,2:)=chi0wg(2:,1,oct1)
-        chi0(2:,1)=chi0wg(2:,2,oct2)
-     end if
-     ! invert
-     call zinvert_hermitian(0,chi0,chi0i)
-
-     ! multiply inner part of kernel with inverse QP-response function from
-     ! both sides
-     fxc(:,:,iw)=matmul(chi0i,matmul(fxc(:,:,iw),chi0i))
-     ! write kernel to file for each frequency
-     write(un2,rec=iw) fxc(:,:,iw)
-     do igq1=1,n
-        do igq2=1,n
-           write(un,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw)
-           write(773,'(i6,2x,2i5,2g18.10)') iw,igq1,igq2,chi0i(igq1,igq2)
-        end do
-     end do
-     write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
-     ! end loop over frequencies
-  end do
-  
-  111 continue
   do iw=1,nwdf
      write(un2,rec=iw) fxc(:,:,iw)     
      write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
@@ -583,10 +441,22 @@ write(1108) hdg
   close(un)
   close(un2)
   close(un3)
-
-call showunits(123456)
+  close(1107)
 
   ! deallocate
-  !deallocte(..............................)
-end subroutine kernxc_bse
+  deallocate(emat12,emat12p,zmr,zmq,dek,dekp,dde,dok,dokp,scisk,sciskp,fxc)
+  deallocate(sccli,scclih,scclit,emat12k,emat12kp,residr,residq,w,osca,oscb)
+  deallocate(emat,deval,docc,scis)
+  
+  !-------------!
+  !   restore   !
+  !-------------!
+  ! save global variables
+  nosym=nosymt
+  reducek=reducekt
+  ngridk(:)=ngridkt(:)
+  vkloff(:)=vklofft(:)
+  nemptyscr=nemptyscrt
+  call genfilname(setfilext=.true.)
+end subroutine kernxc_bse2
 !EOC
