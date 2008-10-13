@@ -225,17 +225,17 @@ subroutine dfq(iq)
      call ematqalloc
   end if
 
-!*******************************************************************************
-hdg=zzero
-write(*,*) 'dfq, shape(hdg)',shape(hdg)
-!	read(1108) hdg
-!*******************************************************************************
+  if ((fxctype.eq.7).or.(fxctype.eq.8)) then
+     call getbsediag
+     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+     write(unitout,'(" mean value : ",2g18.10)') bsed
+  end if
 
   ! loop over k-points
   do ik=1,nkpt
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
- write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
+     write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
           ikmapikq(ik,iq)
      cpuosc=0.d0
      cpuupd=0.d0
@@ -250,6 +250,12 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
         call ematqk1(iq,ik)
         if (.not.allocated(xiuo)) allocate(xiuo(nst3,nst4,n))
         if (.not.allocated(pmuo)) allocate(pmuo(3,nst3,nst4))
+     end if
+
+
+     if ((fxctype.eq.7).or.(fxctype.eq.8)) then
+        scis12(:,:)=scis12(:,:)+bsed
+        scis21(:,:)=scis21(:,:)-bsed
      end if
 
 !*******************************************************************************
@@ -343,10 +349,10 @@ write(*,*) 'dfq, shape(hdg)',shape(hdg)
                       (-wreal(:)-scis21(ist2,ist1)))
                  wouh(wi:wf)=cmplx(dble(wou(wi:wf)),aimag(wou(wi:wf))* &
                       deou(ist1,ist2)**2/ &
-                      (wreal(:)+scis12(ist1,ist2))**2)
+                      (-wreal(:)-scis12(ist1,ist2))**2)
                  wuoh(wi:wf)=cmplx(dble(wuo(wi:wf)),aimag(wuo(wi:wf))* &
                       deuo(ist2,ist1)**2/ &
-                      (wreal(:)+scis21(ist2,ist1))**2)
+                      (-wreal(:)-scis21(ist2,ist1))**2)
               end if
            else
               ! include occupation number differences

@@ -435,6 +435,8 @@ module modxs
   integer :: bsediagweight
   ! symmetrisation method for BSE diagonal
   integer :: bsediagsym
+  ! diagonal of BSE kernel (mean value, lower, upper limit and range)
+  complex(8) :: bsed,bsedl,bsedu,bsedd
   
   !-----------------------!
   !     I/O variables     !

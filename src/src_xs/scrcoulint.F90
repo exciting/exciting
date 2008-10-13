@@ -17,15 +17,15 @@ subroutine scrcoulint
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl
-  integer :: ngridkt(3),iv(3),ivgsym(3),un,j1,j2,nkkp
+  integer :: ngridkt(3),iv(3),ivgsym(3),j1,j2,nkkp
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   logical :: nosymt,reducekt,tq0,nsc,tphf
-  real(8) :: vklofft(3),vqr(3),vq(3)
+  real(8) :: vklofft(3),vqr(3),vq(3),t1
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8) :: zt1
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
-  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:)
+  complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:),bsedt(:,:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
   ! external functions
   integer, external :: iplocnr,idxkkp
@@ -146,6 +146,10 @@ subroutine scrcoulint
   !-------------------------------!
   nkkp=nkptnr*(nkptnr+1)/2
   call genparidxran('p',nkkp)
+  allocate(bsedt(3,nkkp))
+  bsedt(1,:)=1.d8
+  bsedt(2,:)=-1.d8
+  bsedt(3,:)=zzero
 
   do ikkp=ppari,pparf
      call kkpmap(ikkp,nkptnr,iknr,jknr)
@@ -252,12 +256,9 @@ subroutine scrcoulint
      
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
-!     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
-!          /omega/nkptnr
-	  
-     scclit=matmul(emat34,matmul(tm,transpose(conjg(emat12)))) &
+     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
           /omega/nkptnr
- 
+	  
      ! map back to individual band indices
      j2=0
      do ist4=1,nst4
@@ -322,7 +323,7 @@ subroutine scrcoulint
 		    zt1=sccli(ist1,ist3,ist2,ist4)
                     write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
                          ist3,jknr,ist2,ist4,zt1,abs(zt1)**2, &
-			 atan2(aimag(zt1),dble(zt1))*180.d0/pi
+			 atan2(aimag(zt1),dble(zt1))/pi
                  end do
               end do
            end do
@@ -338,6 +339,23 @@ subroutine scrcoulint
 !!$        call barrier
 !!$     end do
 
+     if (iknr.eq.jknr) then
+        do ist1=1,nst1
+           do ist3=1,nst3
+              zt1=sccli(ist1,ist3,ist1,ist3)
+              write(1107,'(i5,3x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+                   ist3,zt1,abs(zt1)**2, &
+                   atan2(aimag(zt1),dble(zt1))/pi
+              t1=dble(zt1)
+              bsedt(1,ikkp)=min(dble(bsedt(1,ikkp)),t1)
+              bsedt(2,ikkp)=max(dble(bsedt(2,ikkp)),t1)
+              bsedt(3,ikkp)=bsedt(3,ikkp)+zt1/(nst1*nst3)
+           end do
+        end do
+        write(*,*) 'kkp:bsedl,bsedu,bsed',bsedt(1,ikkp),bsedt(2,ikkp), &
+             bsedt(3,ikkp)
+     end if
+
      ! parallel write
      call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst2,nst4)
 
@@ -348,10 +366,18 @@ subroutine scrcoulint
      ! end loop over (k,kp)-pairs
   end do
 
-call barrier
-
-  ! close output file
-  close(un)
+  call barrier
+  
+  ! communicate array-parts wrt. q-points
+  call zalltoallv(bsedt,3,nkkp)
+  ! BSE kernel diagonal parameters
+  bsedl=minval(dble(bsedt(1,:)))
+  bsedu=maxval(dble(bsedt(2,:)))
+  bsedd=bsedu-bsedl
+  bsed=sum(bsedt(3,:))/nkptnr
+  deallocate(bsedt)
+  ! write BSE kernel diagonal parameters
+  call putbsediag
 
   call findgntn0_clear
 

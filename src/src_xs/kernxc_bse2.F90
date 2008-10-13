@@ -172,6 +172,12 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
   allocate(docc(nst1,nst3,nkptnr))
   allocate(scis(nst1,nst3,nkptnr))
 
+  if ((fxctype.eq.7).or.(fxctype.eq.8)) then
+     call getbsediag
+     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+     write(unitout,'(" mean value : ",2g18.10)') bsed
+  end if
+
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
 
@@ -223,7 +229,8 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
      call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
      dek(:,:)=deou(:,:)
      dok(:,:)=docc12(:,:)
-     scisk(:,:)=scis(:,:,iknr)
+     ! add BSE diagonal
+     scisk(:,:)=scis(:,:,iknr)+bsed
      ! assign optical component
      xiou(:,:,1)=pmou(oct,:,:)
      do igq1=1,n
@@ -390,8 +397,8 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
 ! *** this part is working for Si_lapw and Si_APW+lo ***
            ! set up energy denominators
-           den1(:)=2.d0/(w(:)+dek(ist1,ist3)+zi*brd)
-           den2(:)=2.d0/(w(:)+dek(ist1,ist3)+zi*brd)**2
+           den1(:)=2.d0/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
+           den2(:)=2.d0/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
            den1=den1/nkpt/omega
            den2=den2/nkpt/omega
 ! *** end

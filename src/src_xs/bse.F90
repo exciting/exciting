@@ -149,6 +149,7 @@ subroutine bse
                     select case(trim(bsetype))
                     case('singlet','triplet')
                        ham(s1,s2)=ham(s1,s2)-               &
+!                            sccli(ist1,ist2,ist3,ist4)
                             sccli(ist3,ist4,ist1,ist2)
                     end select
                  end do
