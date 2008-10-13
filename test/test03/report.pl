@@ -10,6 +10,7 @@ $writer= Test::initreport("report.xml");
 
 open INFO, "run/INFO.OUT";
 $status=failed;
+$iterations=0;
 while(<INFO>)
 	{
 	if (m/\| EXCITING version.+stopped/){
@@ -30,7 +31,7 @@ close INFO;
  		}, $writer);
  		
  		$iterationsref=13;
- 		if ($iterations=13){$passed="true";}else{$passed="false";}
+ 		if ($iterations==$iterationsref){$status=passed;}else{$status="failed";}
  		
  		Test::writetestreport({
  		directory=>"test03/run",
@@ -40,8 +41,9 @@ close INFO;
  		}, $writer);
  		
  		
- 		open INFO, "runmixer2/INFO.OUT";
+open INFO, "runmixer2/INFO.OUT";
 $status=failed;
+$iterations=0;
 while(<INFO>)
 	{
 	if (m/\| EXCITING version.+stopped/){
@@ -54,18 +56,18 @@ while(<INFO>)
 Test::writetestreport({
  		directory=>"test03/runmixer2",
  		name=>"debug binary run mixer2",
- 		description=>"The test run  using arpack finished without errors",
+ 		description=>"The test run  using multicecant broyden finished without errors",
  		status=>$status
  		}, $writer);
  		
  		$iterationsref=13;
- 		if ($iterations=13){$passed="true";}else{$passed="false";}
+ 			if ($iterations==$iterationsref){$status=passed;}else{$status="failed";}
  		
  		Test::writetestreport({
  		directory=>"test03/runmixer2",
  		name=>"check iteration number of Al for mixer2",
  		description=>"iterations is $iterations reference is $iterationsref",
- 		status=>"unspecified"
+ 		status=>$status
  		}, $writer);
  		
  Test::closereport($writer);
