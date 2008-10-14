@@ -4,6 +4,7 @@
 ! See the file COPYING for license details.
 
 subroutine xsinit(cnt)
+#include "../version.inc"
   use modmain
   use modmpi
   use modxs
@@ -70,6 +71,7 @@ subroutine xsinit(cnt)
           &---+")')
      write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
           &States ",I1.1,".",I3.3," ) started |")') version,versionxs
+     write(unitout,*)"| git hash id ", GITHASH," |"
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
 #ifdef MPI

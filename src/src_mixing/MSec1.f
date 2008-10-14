@@ -1,4 +1,5 @@
-      subroutine MSEC1(Y,S,YY,F,STEP,MAXMIX,MEMORY,DMIX,IFAIL,DELTA,MUSE)
+      subroutine MSEC1(Y,S,YY,F,STEP,MAXMIX,MEMORY,DMIX,IFAIL,DELTA,
+     & MUSE)
            implicit real*8 (a-h,o-z)
            dimension STEP(MAXMIX),F(MAXMIX)
            dimension Y(MAXMIX,MEMORY),S(MAXMIX,MEMORY)

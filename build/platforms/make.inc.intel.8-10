@@ -5,5 +5,5 @@ F77 = ifort
 F77_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
 AR = ar
 LIB_SYS = 
-LIB_LPK = lapack.a blas.a
+LIB_LPK = libarpack.a libjdqz.a liblapack.a libblas.a
 LIB_FFT = fftlib.a
