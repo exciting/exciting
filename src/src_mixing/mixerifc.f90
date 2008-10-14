@@ -16,11 +16,21 @@ real(8), intent(inout) :: work(*)
 select case(mtype)
 case(1)
 ! adaptive linear mixing
+! query memmory requirement if nwork negative
   if (nwork.le.0) then
     nwork=3*n
     return
   end if
+!--
   call mixadapt(iscl,beta0,betainc,betadec,n,v,work,work(n+1),work(2*n+1),dv)
+
+case(2)
+ ! multicecant broyden
+   if (nwork.le.0) then
+    nwork=3*n
+    return
+  end if
+ call  mixmsec(iscl,v,dv,n)
 case default
   write(*,*)
   write(*,'("Error(mixerifc): mtype not defined : ",I8)') mtype

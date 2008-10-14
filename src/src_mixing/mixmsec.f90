@@ -10,17 +10,18 @@ noldsteps=min(iscl-1,8)
 
 if(iscl .gt. 2) call readbroydsteps(Vprev,Residprev,n,noldsteps)
 call appent_current_to_broyden_file(Vprev,Residprev,vpotential,residual,n,noldsteps)
-if (iscl.eq.2) then
+if (iscl.lt.2) then
 allocate(work(3*n))
-call mixadapt(iscl,beta0,betainc,betadec,n,v,work,work(n+1),work(2*n+1),dv)
+call mixadapt(iscl,beta0,betainc,betadec,n,potential,work,work(n+1),work(2*n+1),residual)
+
 deallocate(work)
 else
 
 !setup S,Y,YY,F
-
+allocate (S(n,n),Y(n,n),YY(n,n),STEP(n))
 !rescale things
 
-call  MSEC1(Y,S,YY,F,STEP,MAXMIX,MEMORY,DMIX,IFAIL,DELTA,MUSE)
+!call  MSEC1(Y,S,YY,F,STEP,MAXMIX,MEMORY,DMIX,IFAIL,DELTA,MUSE)
 !          Y,S:            Conventional Y and S arrays
 !          YY:             Matrix of Y*Y values
 !          F:              -Grad(MAXMIX) at the current point (residue)

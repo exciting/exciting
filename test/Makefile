@@ -18,6 +18,7 @@ exciting::
 
 test03::exciting
 	cd test03/run && ../../../build/debug/exciting
+	cd test03/runmixer2 && ../../../build/debug/exciting
 	cd test03 && perl report.pl
 
 

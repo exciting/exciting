@@ -32,14 +32,14 @@ $status=failed;
 
 
 #compare total energies
-$tol=1e-9;
+$tol=3e-8;
 open TOTEARP, "runlapackmpi/TOTENERGY.OUT";
 open TOTELAP, "runlapack/TOTENERGY.OUT";
 $status="failed";
 $totearp= <TOTEARP>;
 $totelap= <TOTELAP>;
 $err=$totearp-$totelap;
-if ($totearp-$totelap<=$tol){
+if (abs($totearp-$totelap)<=$tol){
 $status="passed";
 }
  Test::writetestreport({
@@ -52,7 +52,7 @@ $status="passed";
  		}, $writer);
 
 #compare eigenvalues
-$tol=1e-8;
+$tol=1.5e-7;
 %statuseigval=Test::assert_file_same_within( "runlapackmpi/EIGVAL.OUT",
 	"runlapack/EIGVAL.OUT",$tol);
  Test::writetestreport({

@@ -55,7 +55,7 @@ $status="failed";
 $totearp= <TOTEARP>;
 $totelap= <TOTELAP>;
 $err=$totearp-$totelap;
-if ($totearp-$totelap<=$tol){
+if (abs($totearp-$totelap)<=$tol){
 $status="passed";
 }
  Test::writetestreport({
