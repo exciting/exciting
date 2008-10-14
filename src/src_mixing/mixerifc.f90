@@ -30,7 +30,7 @@ case(2)
     nwork=3*n
     return
   end if
- call  mixmsec(iscl,v,dv,n)
+ !call  mixmsec(iscl,v,dv,n)
 case default
   write(*,*)
   write(*,'("Error(mixerifc): mtype not defined : ",I8)') mtype
