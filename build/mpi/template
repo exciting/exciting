@@ -1,0 +1,9 @@
+include ../make.inc
+
+FC = $(MPIF90) 
+### default
+FFLAGS = $(MPIF90_OPTS)
+### debug
+LD = $(FC)
+LDFLAGS =$(MPI_OPTS) $(LIBS) 
+TMPFILES = *.mod

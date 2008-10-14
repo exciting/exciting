@@ -104,9 +104,14 @@ bflmt(:,:,:)=0.d0
 sppath='./'
 scrpath='./'
 nvp1d=2
-iterativetype=0
+!iterativetype
+ tarpack=.false.
+ tlapack=.true.
+ tdiis=.false.
+ tjdqz=.false.
+ diisfirstscl=10
 lowesteval=-1.d0
-packedmatrixstorage=.false.
+packedmatrixstorage=.true.
 epsarpack=1e-8
 epsresid=1e-12
 maxncv=200
@@ -450,18 +455,28 @@ case('xctype')
   read(50,*,err=20) xctype
 case('stype')
   read(50,*,err=20) stype
-case('iterativetype')
-  read(50,*) iterativetype
- case('packedmatrixstorage')
-  read(50,*) packedmatrixstorage
+case('tarpack')
+  read(50,*,err=20)tarpack
+case('tlapack') 
+  read(50,*,err=20)tlapack
+case('tdiis')
+  read(50,*,err=20)tdiis
+case('tjdqz')
+  read(50,*,err=20)tjdqz
+case('diisfirstscl') 
+  read(50,*,err=20)diisfirstscl 
+!case('iterativetype')
+ ! read(50,*) iterativetype
+case('packedmatrixstorage')
+  read(50,*,err=20) packedmatrixstorage
 case('epsarpack')
-  read(50,*) epsarpack
+  read(50,*,err=20) epsarpack
 case('epsresid')
-  read(50,*) epsresid
+  read(50,*,err=20) epsresid
 case ('maxncv')
-  read(50,*)maxncv
+  read(50,*,err=20) maxncv
 case('lowesteval')
-   read(50,*)lowesteval
+  read(50,*,err=20) lowesteval
 case('swidth')
   read(50,*,err=20) swidth
   if (swidth.lt.1.d-9) then

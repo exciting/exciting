@@ -1,7 +1,26 @@
-F90_OPTS =-g -qflttrap -qsigtrap -qinitauto  -WF,-DDEBUG
+F90=xlf90
+F90_OPTS =-g -qsuffix=cpp=f90 -qflttrap -qsigtrap -qinitauto  -WF,-DDEBUG
 F77 =xlf
 F77_OPTS = -g
-LIB_SYS =
-LIB_LPK = liblapack.a libblas.a libarpack.a -llapack64 -lessl
+LIB_SYS =libarpack.a
+LIB_LPK =  liblapack.a libblas.a  -llapack64 -lessl
 LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a
+
+LIBS= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
+MAKE=gmake
+
+
+
+
+#Ignore if you don't have MPI or smplibs
+ 
+MPIF90=
+MPIF90_OPTS=
+
+F77MT=$(F77)
+F90MT=$(F90)
+SMP_LIBS=$(LIBS)
+SMPF90_OPTS=$(F90_OPTS)
+SMPF77_OPTS=$(SMPF90_OPTS)
+

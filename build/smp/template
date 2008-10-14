@@ -1,12 +1,10 @@
-include make.inc
+include ../make.inc
 
-# translation for mkmf utility
-FC = $(F90)
-FFLAGS = $(F90_OPTS)
+FC = $(F90MT) $(CPP_ON_OPT)
+F77=F77MT
+### default
+FFLAGS = $(SMPF90_OPTS) 
 LD = $(FC)
-LDFLAGS 	= $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
-AR = ar
-ARFLAGS = -rc
-
+LDFLAGS = $(SMPF90_OPTS)  $(SMP_LIBS) 
+F77_OPTS =$(SMPF77_OPTS)
 TMPFILES = *.mod
-

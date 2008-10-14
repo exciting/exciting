@@ -1,3 +1,4 @@
+version.inc
 *.f90_*
 *.o
 *.mod
@@ -10,6 +11,7 @@ excitingsmp
 exciting_debug
 exciting_gfortran
 exciting_interfaces
+test
 *.dat
 *.OUT
 *.OUT.*
@@ -22,7 +24,6 @@ src/spacegroup/spacegroup
 src/species/species
 src/src_try
 src/tools/atkp
-src_libbzint
 local
 examples/xs
 .cdtproject
@@ -44,4 +45,7 @@ testcase*
 *.dvi
 *.log
 *.toc
+testsummary.*
+.DS*
+._.DS*
 gitlog.txt

@@ -30,8 +30,8 @@ subroutine dumpparams_mpiiter(string,comment)
   write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
   write(77,'(a)') trim(comment)
   write(77,*)
-  write(77,'("iterativetype")')
-  write(77,*) iterativetype
+  write(77,'("tarpack")')
+  write(77,*) tarpack
   write(77,*)
   write(77,'("packedmatrixstorage")')
   write(77,*) packedmatrixstorage

@@ -1,6 +1,6 @@
 
-iterativetype
-2
+tdiis
+.true.
 
 tasks
   0
@@ -41,6 +41,7 @@ atoms
     0.56821720    0.47477150    0.23940900    0.00000000  0.00000000  0.00000000
 
 sppath
+
   './'
 
 swidth
