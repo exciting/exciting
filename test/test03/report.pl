@@ -1,3 +1,4 @@
+
 use lib "../perl/";
 use lib "../perl/lib/";
 use XML::Simple;
@@ -16,7 +17,7 @@ while(<INFO>)
 	if (m/\| EXCITING version.+stopped/){
 		$status="passed";
 	}
-	if (m/Iteration number :   (\d+)/){
+	if (m/Iteration number :\s*(\d+)/){
 	$iterations=$1;
 }
 }
@@ -49,7 +50,7 @@ while(<INFO>)
 	if (m/\| EXCITING version.+stopped/){
 		$status="passed";
 	}
-	if (m/Iteration number :   (\d+)/){
+	if (m/Iteration number :\s*(\d+)/){
 	$iterations=$1;
 }
 }

@@ -1,26 +1,23 @@
-subroutine    mixmsec(iscl,potential,residual,n)
+subroutine    mixmsec(iscl,potential,residualnorm,n)
 use modmain,only:beta0,betainc,betadec
+use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec
 implicit none
 integer, intent(in)::iscl,n
-real(8), intent(inout)::potential(n)
-real(8), intent(in)::residual(n)
+real(8), intent(inout)::potential(n) ! input/output potential
+real(8), intent(in)::residualnorm    ! residual norm
 !local variables
-real(8),allocatable::S(:,:),Y(:,:),YY(:,:),STEP(:),work(:)
+real(8),allocatable::S(:,:),Y(:,:),YY(:,:),STEP(:)
 integer noldsteps,nwork
 noldsteps=min(iscl-1,8)
+if(iscl .eq. 1)then
 
-if(iscl .gt. 2) call readbroydsteps(work,residual,n,noldsteps)
-call appent_current_to_broyden_file(work,residual,potential,residual,n,noldsteps)
-if (iscl.lt.2) then
-allocate(work(3*n))
-nwork=3*n
-write(*,*) "n:",n
-!call mixadapt(iscl,beta0,betainc,betadec,n,potential,work,work(n+1),work(2*n+1),residual)
-deallocate(work)
-else
+call initmixermsec(n)
+call mixadapt(iscl,beta0,betainc,betadec,n,potential,\
+		last_inputp,last_outputp,residual,residualnorm)
 
 !setup S,Y,YY,F
 write(*,*) "n2:",n
+else
 allocate (S(n,n),Y(n,n),YY(n,n),STEP(n))
 !rescale things
 

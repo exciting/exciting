@@ -95,7 +95,6 @@ subroutine gndstate
 allocate(work(1))
   call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
 deallocate(work)
-write(*,*)"nwork:",nwork
   allocate(work(nwork))
   ! set stop flag
   tstop=.false.
