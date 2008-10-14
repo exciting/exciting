@@ -5,8 +5,6 @@
 
 subroutine xsinit(cnt)
 #include "../version.inc"
-#include "../version2.inc"
-#include "../version3.inc"
   use modmain
   use modmpi
   use modxs

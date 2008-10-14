@@ -1,4 +1,4 @@
-version*.inc
+version.inc
 *.f90_*
 *.o
 *.mod
