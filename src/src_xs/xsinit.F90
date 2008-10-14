@@ -6,6 +6,7 @@
 subroutine xsinit(cnt)
 #include "../version.inc"
 #include "../version2.inc"
+#include "../version3.inc"
   use modmain
   use modmpi
   use modxs
@@ -71,9 +72,13 @@ subroutine xsinit(cnt)
      write(unitout,'("+-------------------------------------------------------&
           &---+")')
      write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
-          &States ",I1.1,".",I3.3," ) started |")') version,versionxs
-     write(unitout,'("| git hash id: ",2a20,"    |")') GITHASH,GITHASH2
-     write(unitout,'("+-------------------------------------------------------&
+          &States ",I1.1,".",I3.3,") started  |")') version,versionxs
+     write(unitout,'("| git hash id : ",2a20,"   |")') GITHASH,GITHASH2
+#ifdef LOCALCHG
+     write(unitout,'("| Warning     : source codes deviates from the git hash &
+          &id |")')
+#endif
+     write(unitout,'("+ ------------------------------------------------------&
           &---+")')
 #ifdef MPI
      write(unitout,'("compiled for MPI execution")') 
