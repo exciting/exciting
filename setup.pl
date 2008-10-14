@@ -55,7 +55,7 @@ print "    2 use #include <mpif.h> required by some mpiimplementations
 $mpiinclude=<>;
 if($mpiinclude==1) {$includefile="mpiconf.inc.module";}
 if($mpiinclude==2) {$includefile="mpiconf.inc.include";}
-system(("cp", "build/plattforms/$includefile", "build/mpiconf.inc"));
+system(("cp", "build/platforms/$includefile", "build/mpiconf.inc"));
 
 	}elsif($MPI=~m/no/) {
 		system("echo \"BUILDMPI=false\">>build/make.inc");

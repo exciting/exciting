@@ -1,4 +1,4 @@
-
+mpiconf.inc
 version.inc
 *.f90_*
 *.o

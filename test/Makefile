@@ -23,6 +23,9 @@ test03::exciting
 
 
 testmpi::
+	cd ../build/mpi/; make libs exciting
+	cd test02/runlapackmpi ;sh startmpirun 
+	cd test02 ; perl assertmpi.pl
 	cd build;make libs testmpi
 
 

@@ -16,7 +16,7 @@ real(8), intent(inout) :: work(*)
 select case(mtype)
 case(1)
 ! adaptive linear mixing
-! query memmory requirement if nwork negative
+! calculate memmory requirement if nwork negative
   if (nwork.le.0) then
     nwork=3*n
     return
