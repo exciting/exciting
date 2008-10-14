@@ -1,3 +1,3 @@
 [submodule "src/libbzint"]
 	path = src/libbzint
-	url = ssh+git://chm@g44222.unileoben.ac.at:52222/git/libbzint.git
+	url = ssh+git://g44222.unileoben.ac.at:52222/git/libbzint.git

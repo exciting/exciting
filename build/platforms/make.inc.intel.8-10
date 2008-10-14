@@ -1,6 +1,6 @@
 MAKE = make
 F90 = ifort
-F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
+F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90 -cpp
 F77 = ifort
 F77_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
 AR = ar
