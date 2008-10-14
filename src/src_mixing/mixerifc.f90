@@ -27,7 +27,7 @@ case(1)
 case(2)
  ! multicecant broyden
    if (nwork.le.0) then
-    nwork=3*n
+    nwork=0
     return
   end if
  call  mixmsec(iscl,v,dv,n)
