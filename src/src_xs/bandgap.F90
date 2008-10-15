@@ -137,7 +137,7 @@ subroutine writebandgapgrid
   ! local variables
   integer :: ik
   ! initialise universal variables
-  if (calledxs.eq.1) call init0
+  call init0
   ! file extension for q-point
   call genfilname(iqmt=0,setfilext=.true.)
   call init1

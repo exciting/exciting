@@ -16,7 +16,7 @@ subroutine writeemat
   character(*), parameter :: thisnam='writeemat'
   integer :: iq
   ! initialise universal variables
-  if (calledxs.eq.1) call init0
+  call init0
   call init1
   call init2xs
   ! k-point parallelization for TDDFT

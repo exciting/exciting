@@ -7,9 +7,6 @@ subroutine init2xs
   use modmain
   use modmpi
   use modxs
-  use modtetra
-  use m_getunit
-  use m_genfilname
   implicit none
   ! local variables
   character(*), parameter :: thisnam = 'init2xs'
@@ -111,10 +108,10 @@ subroutine init2xs
 
   ! find (little/small) group of q
   if (allocated(nsymcrysq)) deallocate(nsymcrysq)
-  if (allocated(scqmap)) deallocate(scqmap)
-  if (allocated(ivscwrapq)) deallocate(ivscwrapq)
   allocate(nsymcrysq(nqpt))
+  if (allocated(scqmap)) deallocate(scqmap)
   allocate(scqmap(nsymcrys,nqpt))
+  if (allocated(ivscwrapq)) deallocate(ivscwrapq)
   allocate(ivscwrapq(3,nsymcrys,nqpt))
   ! debug output
   if (dbglev.gt.1) then

@@ -28,7 +28,7 @@ subroutine df
   character(*), parameter :: thisnam='df'
   integer :: iq
   if (.not.tscreen) call genfilname(setfilext=.true.)
-  if (calledxs.eq.1) call init0
+  call init0
   ! initialise universal variables
   call init1
   ! save Gamma-point variables

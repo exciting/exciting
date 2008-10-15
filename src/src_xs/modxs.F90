@@ -544,6 +544,9 @@ module modxs
   ! number of times the main excited states routine was called
   integer :: calledxs
   data calledxs / 0 /
+  ! true if only symmetries are recalculated in "init0"
+  logical :: init0symonly
+  data init0symonly /.false./
   ! true if to skip allocations of radial functions in "init1"
   logical :: skipallocs1
   data skipallocs1 /.false./

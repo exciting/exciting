@@ -14,7 +14,7 @@ subroutine tetcalccw
   character(*), parameter :: thisnam='tetcalccw'
   integer :: iq
   logical :: tet
-  if (calledxs.eq.1) call init0
+  call init0
   ! initialise universal variables
   tet=tetradf
   tetradf=.true.

@@ -4,14 +4,14 @@
 ! See the file COPYING for license details.
 
 subroutine testxs
-use indices
+  use m_sccli
 !  use modmain
 !  use modxs
   implicit none
 !  logical :: tabel
 !  integer :: scmut(maxsymcrys,maxsymcrys),i,j
 
-call test_indices2
+  call test_sccli
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

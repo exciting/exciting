@@ -13,9 +13,9 @@ logical function transijst(ik,ist,jst,trans)
   integer :: l,ikt,it,jt,ir,jr
   transijst=.false.
   do l=1,ndftrans
-     ikt=dftrans(1,l)
-     it=dftrans(2,l)
-     jt=dftrans(3,l)
+     ikt=trans(1,l)
+     it=trans(2,l)
+     jt=trans(3,l)
      if ((ikt.eq.0).or.(ikt.eq.ik)) then
         ! it-jt, it-x, x-jt and x-x combinations
         if (((it.eq.0).or.(it.eq.ist)).and.((jt.eq.0).or.(jt.eq.jst))) then

@@ -76,7 +76,7 @@ use modifcs
 !!$integer, allocatable :: nstk(:)
 !!$real(8),allocatable :: wvkl(:,:),we(:,:)
 
-  if (calledxs.eq.1) call init0
+  call init0
   ! initialise universal variables
   call init1
   call xssave0

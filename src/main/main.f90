@@ -117,7 +117,7 @@ program main
 #ifndef TETRA
 ! Commenting out the "stop" statement in order to avoid a 'FORTRAN STOP'
 ! error and to obtain a clean exit
-  stop
+!  stop
 #endif
 #endif
 end program main

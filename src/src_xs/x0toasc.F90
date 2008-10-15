@@ -20,7 +20,7 @@ subroutine x0toasc
   logical :: tq0
   logical, external :: tqgamma
   integer, external :: octmap
-  if (calledxs.eq.1) call init0
+  call init0
   ! initialise universal variables
   call init1
   ! save Gamma-point variables

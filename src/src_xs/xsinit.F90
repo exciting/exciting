@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine xsinit(cnt)
+subroutine xsinit
 #include "../version.inc"
   use modmain
   use modmpi
@@ -12,8 +12,6 @@ subroutine xsinit(cnt)
   use m_getunit
   use m_genfilname
   implicit none
-  ! arguments
-  integer, intent(inout) :: cnt
   ! local variables
   character(*), parameter :: thisnam = 'xsinit'
   character(10) dat, tim
@@ -21,7 +19,9 @@ subroutine xsinit(cnt)
   ! set version of XS part
   call xssetversion
   ! remember how often this routine is called
-  cnt=cnt+1
+  calledxs=calledxs+1
+  ! only recalculate symmetries in init0
+  if (calledxs.gt.1) init0symonly=.true.
   ! initialize global counters
   call cpu_time(cputim0i)
   call system_clock(COUNT_RATE=cntrate)

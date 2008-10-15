@@ -48,7 +48,7 @@ subroutine writepmatxs(lgather)
      call genfilname(basename=trim(fnam),procs=procs,rank=rank,filnam=fnpmat_t)
   end if
   ! initialise universal variables
-  if (calledxs.eq.1) call init0
+  call init0
   call init1
   call init2xs
   ! generate index ranges for parallel execution

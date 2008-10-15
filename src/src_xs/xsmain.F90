@@ -27,7 +27,7 @@ subroutine xsmain
   implicit none
   character(*), parameter :: thisnam='xsmain'
   ! basic initialization
-  call xsinit(calledxs)
+  call xsinit
   ! check verify constraints
   call xscheck
   ! task selection

@@ -10,6 +10,9 @@ subroutine init0
 ! !USES:
 use modmain
 use modxcifc
+#ifdef XS
+use modxs
+#endif
 ! !DESCRIPTION:
 !   Performs basic consistency checks as well as allocating and initialising
 !   global variables not dependent on the $k$-point set.
@@ -24,6 +27,9 @@ integer is,js,ia,ias
 integer ist,l,m,lm,iv(3)
 real(8) ts0,ts1
 
+#ifdef XS
+if (init0symonly) goto 10
+#endif
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!
@@ -203,12 +209,18 @@ call r3mv(ainv,bfieldc,bfieldl)
 call r3mv(bvec,vqlss,vqcss)
 ! find Bravais lattice symmetries
 call findsymlat
+#ifdef XS
+10 continue
+#endif
 ! use only the identity if required
 if (nosym) nsymlat=1
 ! find the crystal symmetries and shift atomic positions if required
 call findsymcrys
 ! find the site symmetries
 call findsymsite
+#ifdef XS
+if (init0symonly) goto 20
+#endif
 ! automatically determine the muffin-tin radii if required
 if (autormt) call autoradmt
 ! check for overlapping muffin-tins
@@ -432,6 +444,9 @@ tlast=.false.
 call timesec(ts1)
 timeinit=timeinit+ts1-ts0
 
+#ifdef XS
+20 continue
+#endif
 return
 end subroutine
 !EOC
