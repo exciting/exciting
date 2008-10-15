@@ -11,7 +11,7 @@ use indices
 !  logical :: tabel
 !  integer :: scmut(maxsymcrys,maxsymcrys),i,j
 
-!call test_indices
+call test_indices2
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
