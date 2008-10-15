@@ -110,8 +110,7 @@ contains
 !!$          write(*,'(a,3i4,3x,3i4,3x,l)') 'loop:i1,i2,c|ifun:j1,j2,li:', &
 !!$               i1,i2,c,j1,j2,li,pass
 !!$       end do
-!!$    end do   
-    
-  end subroutine test_indices
+!!$    end do       
+!!$  end subroutine test_indices
 
 end module indices
