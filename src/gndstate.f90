@@ -91,11 +91,12 @@ subroutine gndstate
   if (ldapu.ne.0) n=n+2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
   ! allocate mixing arrays
   allocate(v(n))
+  !call mixing array allocation functions by setting
   nwork=-1
+  !and call interfacepe
 allocate(work(1))
   call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
-deallocate(work)
-  allocate(work(nwork))
+
   ! set stop flag
   tstop=.false.
 10 continue
@@ -291,7 +292,7 @@ deallocate(work)
 #ifdef MPI
         call  MPI_BCAST(v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
         call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-        call  MPI_BCAST(work(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+        call  MPI_BCAST(work(1), nwork, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 
 
 !	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
@@ -524,7 +525,10 @@ deallocate(work)
         ! close the RMSDVEFF.OUT file
         close(65)
      endif
-     deallocate(v,work)
+     deallocate(v)
+     !set nwork to -2 to tell interface to call the deallocation functions
+     call mixerifc(mixtype,n,v,currentconvergence,-2,work)
+
      call mpiresumeevecfiles()
      return
    end subroutine gndstate
