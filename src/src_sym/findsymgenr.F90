@@ -56,6 +56,7 @@ subroutine findsymgenr(nc,mt,ngen,nsgen,gen,orbgen)
   end do
   ! check if orbits cover the symmetry group
   done(:)=0
+  done(1)=ngen
   do i=1,ngen
      done(orbgen(i,:nsgen(i)))=done(orbgen(i,:nsgen(i)))+1
   end do
@@ -64,6 +65,6 @@ subroutine findsymgenr(nc,mt,ngen,nsgen,gen,orbgen)
      write(*,'("Error(findsymgenr): Generators do not cover the symmetry &
        &group")')
      write(*,*)
-!!!!!!!!     stop
+     stop
   end if
 end subroutine findsymgenr
