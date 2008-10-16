@@ -3,6 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
 subroutine gensymcmut(eps,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scmut, &
      tabel)
 ! !DESCRIPTION:
@@ -23,14 +24,13 @@ subroutine gensymcmut(eps,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scmut, &
   integer, intent(in) :: symlat(3,3,48)
   integer, intent(in) :: lsplsymc(nsymcrys)
   real(8), intent(in) :: vtlsymc(3,maxsymcrys)
-  integer, intent(out) :: scmut(maxsymcrys,maxsymcrys)
+  integer, intent(out) :: scmut(nsymcrys,nsymcrys)
   logical, intent(out) :: tabel
   ! local variables
   integer, parameter :: maxsymlat=48
   integer :: isym,jsym,asym,lspli,lsplj,lspla,iv(3)
   integer :: doner(maxsymlat),donec(maxsymlat)
-  real(8) :: c(3,3),ct(3,3),s(3,3),si(3,3),sj(3,3),sa(3,3),vtt(3),vtl(3),vtla(3),vtli(3),vtlj(3), cpu0,cpu1
-
+  real(8) :: c(3,3),ct(3,3),si(3,3),sj(3,3),sa(3,3),vtt(3),vtl(3),vtla(3)
   scmut(:,:)=0
   do isym=1,nsymcrys
      lspli=lsplsymc(isym)
@@ -90,7 +90,7 @@ subroutine gensymcmut(eps,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scmut, &
                 &column")')
            write(*,'(" row number    : ",i6)') jsym
            write(*,'(" column number : ",i6)') isym
-           write(*,'(" * multiple occurrence : ",i6)') donec(jsym)
+           write(*,'(" multiple occurrence : ",i6)') donec(jsym)
            write(*,*)
            stop
         end if
@@ -107,5 +107,6 @@ subroutine gensymcmut(eps,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,scmut, &
   end do
   ! check if group is Abelian
   tabel=.false.
-  if (all(scmut-transpose(scmut).eq.0)) tabel=.true.
+  if (all((scmut-transpose(scmut)).eq.0)) tabel=.true.
 end subroutine gensymcmut
+!EOC
