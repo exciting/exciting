@@ -5,6 +5,7 @@
 
 subroutine kkpmap(ikkp,nkp,ik,ikp)
   implicit none
+  ! arguments
   integer, intent(in) :: ikkp,nkp
   integer, intent(out) :: ik,ikp
   ik=ceiling(0.5d0+nkp-sqrt((0.5d0+nkp)**2-2.d0*ikkp))
