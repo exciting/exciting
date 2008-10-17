@@ -43,7 +43,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
-		call rescaleYS(n,S,Y)
+		call rescaleYS(noldsteps,n,S,Y,potential,residual)
 		call setup_YY(n,noldstepsmax,S,Y,YY)
 		call MSEC1(Y,S,YY,residual,STEP,n,noldstepsmax,DMIX,IFAIL,DELTA,noldsteps)
 		!          Y,S:            Conventional Y and S arrays
