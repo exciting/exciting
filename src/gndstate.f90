@@ -94,8 +94,8 @@ subroutine gndstate
   !call mixing array allocation functions by setting
   nwork=-1
   !and call interfacepe
-allocate(work(1))
-  call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
+
+  call mixerifc(mixtype,n,v,currentconvergence,nwork)
 
   ! set stop flag
   tstop=.false.
@@ -291,8 +291,8 @@ allocate(work(1))
 
 #ifdef MPI
         call  MPI_BCAST(v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-        call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-        call  MPI_BCAST(work(1), nwork, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+   !    call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+   !     call  MPI_BCAST(work(1), nwork, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 
 
 !	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
