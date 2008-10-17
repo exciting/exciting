@@ -454,9 +454,40 @@ end if
 if (nwacont.eq.0) nwacont=nwdos
 nwdf=nwdos
 if (acont) nwdf=nwacont
+
 ! scaling factor for output of energies
 escale=1.d0
 if (tevout) escale=27.2114d0
+
+!-------------------------------------!
+!     response function variables     !
+!-------------------------------------!
+if (allocated(mdfrpa)) deallocate(mdfrpa)
+allocate(mdfrpa(nwdos,3,2))
+mdfrpa(:,:,:)=0.d0
+if (allocated(mdfrpad)) deallocate(mdfrpad)
+allocate(mdfrpad(nwdos,3))
+mdfrpad(:,:)=0.d0 
+
+!-----------------------------!
+!     xc-kernel variables     !
+!-----------------------------!
+if (allocated(fxc0)) deallocate(fxc0)
+allocate(fxc0(nwdos,9))
+fxc0(:,:)=0.d0
+if (allocated(fxc0d)) deallocate(fxc0d)
+allocate(fxc0d(nwdos,9))
+fxc0d(:,:)=0.d0
+
+!---------------------------!
+!     exciton variables     !
+!---------------------------!
+if (allocated(excite)) deallocate(excite)
+allocate(excite(nexcitmax,3))
+excite(:,:)=0.d0
+if (allocated(excito)) deallocate(excito)
+allocate(excito(nexcitmax,3))
+excito(:,:)=0.d0
 #endif
 
 !-----------------------!

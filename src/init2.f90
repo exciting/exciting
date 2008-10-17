@@ -187,6 +187,20 @@ do iq=1,nqpt
    ! spherical harmonics for G+q-vectors
    call genylmgq(iq,lmaxvr)
 end do
+
+!------------------------!
+!     radial functions   !
+!------------------------!
+! read density and potentials from file (STATE.OUT) exclusively
+isreadstate0=.true.
+call readstate
+isreadstate0=.false.
+! find the new linearisation energies
+call linengy
+! generate the APW radial functions
+call genapwfr
+! generate the local-orbital radial functions
+call genlofr
 #endif
 
 !-----------------------------------------------!
