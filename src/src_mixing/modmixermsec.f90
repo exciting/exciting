@@ -1,5 +1,5 @@
 module  modmixermsec
-real(8),allocatable:: work(:),residual(:),last_outputp(:),last_inputp(:)
+real(8),allocatable:: residual(:),last_outputp(:),last_inputp(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
 integer:: record_of_last_iter
 integer, parameter::noldstepsmax=8,icond=1 !
@@ -27,5 +27,3 @@ end subroutine
 end subroutine
 
 end module
-
-

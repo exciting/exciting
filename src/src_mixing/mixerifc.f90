@@ -3,28 +3,32 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine mixerifc(mtype,n,v,dv,nwork)
+subroutine mixerifc(mtype,n,v,dv,mode)
 use modmain
 use modmixermsec
+use  modmixadapt
 implicit none
 ! arguments
 integer, intent(in) :: mtype
 integer, intent(in) :: n
 real(8), intent(inout) :: v(n)
 real(8), intent(out) :: dv
-integer, intent(inout) :: nwork
+integer, intent(inout) :: mode
+!mode: 	-1 call initialisation routines,
+!		-2:call destructor
+!		else ignore
 
 select case(mtype)
 case(1)
 ! adaptive linear mixing
-! calculate memmory requirement if nwork negative
-  if (nwork .eq. -1) then
-    nwork=3*n
+! calculate memmory requirement if mode negative
+  if (mode .eq. -1) then
+    mode=0
     if(allocated(work))deallocate(work)
-    allocate(work(nwork))
+    allocate(work(3*n))
     return
   end if
-    if (nwork .eq. -2) then
+    if (mode .eq. -2) then
     deallocate(work)
     return
   end if
@@ -33,12 +37,12 @@ case(1)
 
 case(2)
  ! multicecant broyden
-  if (nwork .eq. -1) then
+  if (mode .eq. -1) then
     call initmixermsec(n)
-    nwork=0
+    mode=0
     return
    end if
-    if (nwork .eq. -2) then
+    if (mode .eq. -2) then
     call freearraysmixermsec()
      return
   end if
