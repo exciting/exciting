@@ -29,17 +29,21 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 	integer:: ifail
 	noldsteps=min(iscl-2,noldstepsmax)
 	if(iscl .le. 2)then
-		call mixadapt(iscl,beta0,betainc,betadec,n,potential,\
-			last_inputp,last_outputp,residual,residualnorm)
 		if(iscl .eq. 2)then
-			call write_current_to_broyden_file(n,iscl,last_inputp,residual)
+			residual=potential-last_outputp
+			call write_current_to_broyden_file(n,iscl,potential,residual)
 		endif
+		call mixadapt(iscl,beta0,betainc,betadec,n,potential,\
+			last_outputp,last_inputp,residual,residualnorm)
+
+
 	else
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax),YY(noldstepsmax,noldstepsmax),STEP(n))
 		residual=potential-last_outputp
 
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
+		call rescaleYS(n,S,Y)
 		call setup_YY(n,noldstepsmax,S,Y,YY)
 		call MSEC1(Y,S,YY,residual,STEP,n,noldstepsmax,DMIX,IFAIL,DELTA,noldsteps)
 		!          Y,S:            Conventional Y and S arrays
