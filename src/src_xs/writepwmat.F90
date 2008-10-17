@@ -41,7 +41,7 @@ subroutine writepwmat
   call init0
   call init1
   call readfermi
-  call init2xs
+  call init2
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
 
   do iq=1,nqpt

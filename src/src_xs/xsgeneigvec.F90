@@ -19,7 +19,7 @@ subroutine xsgeneigvec
   ! initialize universal variables
   call init0
   call init1
-  call init2xs
+  call init2
   ! SCF allready parallelized for k-point set
   qi=1
   qf=nqpt

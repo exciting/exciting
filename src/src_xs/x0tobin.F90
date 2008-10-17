@@ -24,7 +24,7 @@ subroutine x0tobin
   ! save Gamma-point variables
   call xssave0
   ! initialize q-point set
-  call init2xs
+  call init2
   ! loop over q-points
   do iq=1,nqpt
      tq0=tqgamma(iq)

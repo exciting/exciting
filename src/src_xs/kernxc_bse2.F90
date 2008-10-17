@@ -93,7 +93,7 @@ subroutine kernxc_bse2(oct)
   emattype=2
   call init0
   call init1
-  call init2xs
+  call init2
   ! read Fermi energy from file
   call readfermi
   ! save variables for the Gamma q-point

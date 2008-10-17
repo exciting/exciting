@@ -18,7 +18,7 @@ subroutine writeemat
   ! initialise universal variables
   call init0
   call init1
-  call init2xs
+  call init2
   ! k-point parallelization for TDDFT
   if ((task.ge.300).and.(task.le.399)) call genparidxran('k',nkpt)
   ! q-point parallelization for screening

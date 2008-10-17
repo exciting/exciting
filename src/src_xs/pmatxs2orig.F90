@@ -17,7 +17,7 @@ subroutine pmatxs2orig
   if (rank == 0) then
      call init0
      call init1
-     call init2xs
+     call init2
      allocate(pm(3,nstsv,nstsv))
      inquire(iolength=recl) pm
      call getunit(un)

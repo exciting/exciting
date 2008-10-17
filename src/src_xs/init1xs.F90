@@ -5,17 +5,17 @@
 
 subroutine init1xs(vploff)
   use modmain, only: vkloff
-  use modxs, only: skipallocs1
+  use modxs, only: init1norealloc
   implicit none
   ! arguments
   real(8), intent(in) :: vploff(3)
   ! local variables
   real(8) :: vklofft(3)
-  skipallocs1=.true.
+  init1norealloc=.true.
   vklofft(:)=vkloff(:)
   vkloff(:)=vploff(:)
   ! call init1 without selected re-allocations and specified k-point offset
   call init1
-  skipallocs1=.false.
+  init1norealloc=.false.
   vkloff(:)=vklofft(:)
 end subroutine init1xs

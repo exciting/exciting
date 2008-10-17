@@ -12,6 +12,8 @@ use modmain
 use modxcifc
 #ifdef XS
 use modxs
+use modmpi
+use modfxcifc
 #endif
 ! !DESCRIPTION:
 !   Performs basic consistency checks as well as allocating and initialising
@@ -77,6 +79,23 @@ allocate(zil(0:lmaxapw))
 do l=0,lmaxapw
   zil(l)=zi**l
 end do
+#ifdef XS
+if (lmaxapwwf.eq.-1) lmaxapwwf=lmaxmat
+lmmaxapwwf=(lmaxapwwf+1)**2
+lmmaxemat=(lmaxemat+1)**2
+if (lmaxapwwf.gt.lmaxapw) then
+   write(*,*) 'Error(init0/xs): lmaxapwwf > lmaxapw:', lmaxapwwf
+   call terminate
+end if
+if (lmaxemat.gt.lmaxapw) then
+   write(*,*) 'Error(init0/xs): lmaxemat > lmaxapw:', lmaxemat
+   call terminate
+end if
+if (lmaxemat.gt.lmaxapwwf) then
+   write(*,*) 'Warning(init0/xs): lmaxemat > lmaxapwwf:', lmaxemat
+   call terminate
+end if
+#endif
 
 !------------------------------------!
 !     index to atoms and species     !
@@ -141,6 +160,10 @@ if (spinpol) tevecsv=.true.
 if ((task.eq.5).or.(task.eq.300)) tevecsv=.true.
 ! get exchange-correlation functional data
 call getxcdata(xctype,xcdescr,xcspin,xcgrad)
+#ifdef XS
+! get exchange-correlation kernel functional data
+call getfxcdata(fxctype,fxcdescr,fxcspin)
+#endif
 if ((spinpol).and.(xcspin.eq.0)) then
   write(*,*)
   write(*,'("Error(init0): requested spin-polarised run with &
@@ -219,6 +242,9 @@ call findsymcrys
 ! find the site symmetries
 call findsymsite
 #ifdef XS
+! determine inverse symmery elements
+call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat, &
+     scimap)
 if (init0symonly) goto 20
 #endif
 ! automatically determine the muffin-tin radii if required
@@ -419,6 +445,19 @@ if ((ldapu.ne.0).or.(task.eq.17)) then
   if (allocated(alphalu)) deallocate(alphalu)
   allocate(alphalu(natmtot))
 end if
+
+#ifdef XS
+!-----------------------!
+!     emergy meshes	!
+!-----------------------!
+! if imaginary frequencies intervals are not specified
+if (nwacont.eq.0) nwacont=nwdos
+nwdf=nwdos
+if (acont) nwdf=nwacont
+! scaling factor for output of energies
+escale=1.d0
+if (tevout) escale=27.2114d0
+#endif
 
 !-----------------------!
 !     miscellaneous     !

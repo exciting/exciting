@@ -14,7 +14,7 @@ subroutine writepmat_ascii
   ! initialize global variables
   call init0
   call init1
-  call init2xs
+  call init2
   allocate(pmat(3,nstsv,nstsv))
   call getunit(un)
   open(un,file='PMAT_XS_ASC.OUT',action='write')

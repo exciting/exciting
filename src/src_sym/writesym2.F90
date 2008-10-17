@@ -24,7 +24,7 @@ subroutine writesym2
   open(50,file='SYMMULT_TABLE'//trim(filext),action='WRITE',form='FORMATTED')
   write(str,*) maxsymcrys
   write(50,*)
-  write(50,'(" (symmety group multiplication table below)")')
+  write(50,'(" (symmetry group multiplication table below)")')
   do isym=1,nsymcrys
      write(50,'('//trim(str)//'i3.2)') sgmut(isym,:)
   end do

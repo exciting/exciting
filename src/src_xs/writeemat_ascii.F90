@@ -16,7 +16,7 @@ subroutine writeemat_ascii
   call init0
   call init1
   call xssave0
-  call init2xs
+  call init2
   call readfermi
   call getunit(un)
   ! loop over q-points

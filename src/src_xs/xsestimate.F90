@@ -15,7 +15,7 @@ subroutine xsestimate
   integer :: sreal,scmplx,un
   call init0
   call init1
-  call init2xs
+  call init2
   nst2=nempty+1
   nst1=nstsv-nst2
   ! estimate disk space usage

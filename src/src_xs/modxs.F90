@@ -69,8 +69,6 @@ module modxs
   ! treatment of macroscopic dielectric function for Q-point outside of
   ! Brillouin zone
   integer :: mdfqtype
-  ! q-point offset
-  real(8) :: vqloff(3)
   ! true if the eigenvectors for the Gamma point are to be calculated
   logical :: tq0ev
   ! current q-point
@@ -548,8 +546,8 @@ module modxs
   logical :: init0symonly
   data init0symonly /.false./
   ! true if to skip allocations of radial functions in "init1"
-  logical :: skipallocs1
-  data skipallocs1 /.false./
+  logical :: init1norealloc
+  data init1norealloc /.false./
   ! true if specified vertices are included in k-path and
   ! additionally bandstructure that is not shifted to the Fermi level
   logical :: imbandstr

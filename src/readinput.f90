@@ -216,7 +216,6 @@ if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
 vgqlmt(:,:)=0.d0
 mdfqtype=0
-vqloff(:)=0.d0
 tq0ev=.true.
 gqmax=0.d0
 lmaxapwwf=-1
@@ -1047,7 +1046,7 @@ case('vgqlmt')
   read(50,*,err=20) nqptmt
   if (nqptmt.le.0) then
     write(*,*)
-    write(*,'("Error(readinput): nqptmt <= 0 : ",I8)') nqptmt
+    write(*,'("Error(readinput/xs): nqptmt <= 0 : ",I8)') nqptmt
     write(*,*)
     stop
   end if
@@ -1060,12 +1059,10 @@ case('mdfqtype')
   read(50,*,err=20) mdfqtype
   if ((mdfqtype.lt.0).or.(mdfqtype.gt.1)) then
     write(*,*)
-    write(*,'("Error(readinput): mdfqtype not in {0,1} : ",I8)') mdfqtype
+    write(*,'("Error(readinput/xs): mdfqtype not in {0,1} : ",I8)') mdfqtype
     write(*,*)
     stop
   end if
-case('vqloff')
-   read(50,*,err=20) vqloff(1),vqloff(2),vqloff(3)
 case('tq0ev')
    read(50,*,err=20) tq0ev
 case('gqmax')
@@ -1074,7 +1071,7 @@ case('lmaxapwwf')
   read(50,*,err=20) lmaxapwwf
   if (lmaxapwwf.lt.0) then
     write(*,*)
-    write(*,'("Error(readinput)[td]: lmaxapwwf < 0 : ",I8)') lmaxapwwf
+    write(*,'("Error(readinput)/xs: lmaxapwwf < 0 : ",I8)') lmaxapwwf
     write(*,*)
     stop
   end if
@@ -1088,7 +1085,7 @@ case('lmaxemat')
   read(50,*,err=20) lmaxemat
   if (lmaxemat.lt.0) then
     write(*,*)
-    write(*,'("Error(readinput[td]): lmaxemat < 0 : ",I8)') lmaxemat
+    write(*,'("Error(readinput/xs): lmaxemat < 0 : ",I8)') lmaxemat
     write(*,*)
     stop
   end if
@@ -1096,7 +1093,7 @@ case('rsptype')
   read(50,*,err=20) rsptype
   if ((rsptype.ne.'tord').and.(rsptype.ne.'reta')) then
     write(*,*)
-    write(*,'("Error(readinput[td]): invalid rsptype : ",a)') rsptype
+    write(*,'("Error(readinput/xs): invalid rsptype : ",a)') rsptype
     write(*,*)
     stop
   end if
@@ -1106,7 +1103,7 @@ case('nwacont')
   read(50,*,err=20) nwacont
   if (broad.le.0) then
     write(*,*)
-    write(*,'("Error(readinput[td]): nwacont <= 0 : ",g18.10)') nwacont
+    write(*,'("Error(readinput/xs): nwacont <= 0 : ",g18.10)') nwacont
     write(*,*)
     stop
   end if
@@ -1114,7 +1111,7 @@ case('broad')
   read(50,*,err=20) broad
   if (broad.le.0) then
     write(*,*)
-    write(*,'("Warning(readinput[td]): broad <= 0 : ",g18.10)') broad
+    write(*,'("Warning(readinput/xs): broad <= 0 : ",g18.10)') broad
     write(*,*)
   end if
 case('aresdf')
@@ -1123,7 +1120,7 @@ case('epsdfde')
   read(50,*,err=20) epsdfde
   if (broad.le.0) then
     write(*,*)
-    write(*,'("Warning(readinput[td]): epsdfde <= 0 : ",g18.10)') epsdfde
+    write(*,'("Warning(readinput/xs): epsdfde <= 0 : ",g18.10)') epsdfde
     write(*,*)
   end if
 case('emaxdf')
@@ -1150,7 +1147,7 @@ case('dftrans')
     read(50,'(A80)') str
     if (trim(str).eq.'') then
       write(*,*)
-      write(*,'("Error(readinput): missing k-point and state in list for &
+      write(*,'("Error(readinput/xs): missing k-point and state in list for &
            &transition analysis")')
       write(*,*)
       stop
@@ -1158,7 +1155,7 @@ case('dftrans')
     read(str,*,iostat=iostat) dftrans(:,i)
     if (iostat.ne.0) then
       write(*,*)
-      write(*,'("Error(readinput): error reading k-point and state list for&
+      write(*,'("Error(readinput/xs): error reading k-point and state list for&
            &transition analysis")')
       write(*,'("(blank line required after dftrans block)")')
       write(*,*)
@@ -1184,7 +1181,7 @@ case('screentype')
    case('full','diag','noinvdiag','longrange')
    case default
       write(*,*)
-      write(*,'("Error(readinput): unknown screening type: ",a)') &
+      write(*,'("Error(readinput/xs): unknown screening type: ",a)') &
            trim(screentype)
       write(*,*)
       stop
@@ -1197,7 +1194,7 @@ case('ngridkscr')
   read(50,*,err=20) ngridkscr(1),ngridkscr(2),ngridkscr(3)
   if ((ngridkscr(1).le.0).or.(ngridkscr(2).le.0).or.(ngridkscr(3).le.0)) then
     write(*,*)
-    write(*,'("Error(readinput): invalid ngridkscr : ",3I8)') ngridkscr
+    write(*,'("Error(readinput/xs): invalid ngridkscr : ",3I8)') ngridkscr
     write(*,*)
     stop
   end if
@@ -1207,7 +1204,7 @@ case('rgkmaxscr')
   read(50,*,err=20) rgkmaxscr
   if (rgkmaxscr.le.0.d0) then
     write(*,*)
-    write(*,'("Error(readinput[screen]): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
+    write(*,'("Error(readinput/xs): rgkmaxscr <= 0 : ",G18.10)') rgkmaxscr
     write(*,*)
     stop
   end if
@@ -1215,7 +1212,7 @@ case('nemptyscr')
   read(50,*,err=20) nemptyscr
   if (nemptyscr.le.0) then
     write(*,*)
-    write(*,'("Error(readinput): nemptyscr <= 0 : ",I8)') nemptyscr
+    write(*,'("Error(readinput/xs): nemptyscr <= 0 : ",I8)') nemptyscr
     write(*,*)
     stop
   end if
@@ -1234,7 +1231,7 @@ case('bsetype')
    case('ip','rpa','singlet','triplet')
    case default
       write(*,*)
-      write(*,'("Error(readinput): unknown BSE-type: ",a)') &
+      write(*,'("Error(readinput/xs): unknown BSE-type: ",a)') &
            trim(bsetype)
       write(*,*)
       stop
@@ -1259,7 +1256,7 @@ case('nstlce')
   read(50,*,err=20) nbfce,nafce
   if ((nbfce.le.0).or.(nafce.le.0)) then
     write(*,*)
-    write(*,'("Error(readinput[BSE]): nbfce or nafce <= 0 : ",I8)') nbfce,nafce
+    write(*,'("Error(readinput/xs): nbfce or nafce <= 0 : ",I8)') nbfce,nafce
     write(*,*)
     stop
   end if
@@ -1267,7 +1264,7 @@ case('nstlbse')
   read(50,*,err=20) nbfbse,nafbse
   if ((nbfbse.le.0).or.(nafbse.le.0)) then
     write(*,*)
-    write(*,'("Error(readinput[BSE]): nbfbse or nafbse <= 0 : ",I8)') nbfbse, &
+    write(*,'("Error(readinput/xs): nbfbse or nafbse <= 0 : ",I8)') nbfbse, &
          nafbse
     write(*,*)
     stop

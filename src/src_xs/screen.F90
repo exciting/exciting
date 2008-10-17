@@ -80,7 +80,7 @@ use modifcs
   ! initialise universal variables
   call init1
   call xssave0
-  call init2xs
+  call init2
   call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
   call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
   call readfermi

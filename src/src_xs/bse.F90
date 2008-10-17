@@ -67,7 +67,7 @@ subroutine bse
   emattype=1
   call init0
   call init1
-  call init2xs
+  call init2
   ! read Fermi energy from file
   call readfermi
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)

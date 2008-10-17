@@ -22,7 +22,7 @@ subroutine tetcalccw
   ! save Gamma-point variables
   call xssave0
   ! initialize q-point set
-  call init2xs
+  call init2
   ! read Fermi energy
   call readfermi
   ! w-point interval for process

@@ -14,6 +14,7 @@ use modtetra
 #endif
 #ifdef XS
 use modxs
+use modmpi
 #endif
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
@@ -35,6 +36,19 @@ complex(8) gauntyry
 external gauntyry
 
 call timesec(ts0)
+
+#ifdef XS
+!-----------------------------!
+!     MPI parallelization     !
+!-----------------------------!
+! set splittfile parameter for splitting of eigenvector files in
+! parallelization of SCF cycle
+if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
+if (procs.gt.nkpt) then
+   procs=nkpt
+   write(*,*) 'Error(init1/xs): procs > nkpt'
+end if
+#endif  
 
 !---------------------!
 !     k-point set     !
@@ -184,7 +198,7 @@ do ik=1,nkpt
 end do
 
 #ifdef XS
-if (.not.skipallocs1) then
+if (init1norealloc) goto 10
 #endif
 !---------------------------------!
 !     APWs and local-orbitals     !
@@ -235,7 +249,7 @@ allocate(apwdfr(apwordmax,0:lmaxapw,natmtot))
 if (allocated(lofr)) deallocate(lofr)
 allocate(lofr(nrmtmax,2,nlomax,natmtot))
 #ifdef XS
-end if
+10 continue
 #endif
 
 !------------------------------------!
@@ -262,7 +276,7 @@ end do
 ! number of second-variational states
 nstsv=nstfv*nspinor
 #ifdef XS
-if (.not.skipallocs1) then
+if (init1norealloc) goto 20
 #endif
 ! allocate second-variational arrays
 if (allocated(evalsv)) deallocate(evalsv)
@@ -270,6 +284,18 @@ allocate(evalsv(nstsv,nkpt))
 if (allocated(occsv)) deallocate(occsv)
 allocate(occsv(nstsv,nkpt))
 occsv(:,:)=0.d0
+#ifdef XS
+if (allocated(occsv0)) deallocate(occsv0)
+allocate(occsv0(nstsv,nkpt))
+if (allocated(isto0)) deallocate(isto0)
+allocate(isto0(nkpt))
+if (allocated(isto)) deallocate(isto)
+allocate(isto(nkpt))
+if (allocated(istu0)) deallocate(istu0)
+allocate(istu0(nkpt))
+if (allocated(istu)) deallocate(istu)
+allocate(istu(nkpt))
+#endif
 ! allocate overlap and Hamiltonian integral arrays
 if (allocated(oalo)) deallocate(oalo)
 allocate(oalo(apwordmax,nlomax,natmtot))
@@ -301,7 +327,18 @@ do l1=0,lmaxmat
   end do
 end do
 #ifdef XS
+!-----------------------------!
+!     MPI parallelization     !
+!-----------------------------!
+! set splittfile parameter for splitting of eigenvector files in
+! parallelization of SCF cycle
+if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
+if (procs.gt.nkpt) then
+   procs=nkpt
+   write(*,*) 'Error(init1/xs): procs > nkpt'
 end if
+
+20 continue
 #endif
 
 call timesec(ts1)

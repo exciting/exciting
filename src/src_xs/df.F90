@@ -34,7 +34,7 @@ subroutine df
   ! save Gamma-point variables
   call xssave0
   ! initialize q-point set
-  call init2xs
+  call init2
   if (tscreen) then
      ! generate Gaunt coefficients
      call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))

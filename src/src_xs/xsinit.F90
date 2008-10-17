@@ -8,7 +8,6 @@ subroutine xsinit
   use modmain
   use modmpi
   use modxs
-  use modfxcifc
   use m_getunit
   use m_genfilname
   implicit none
@@ -39,9 +38,6 @@ subroutine xsinit
           &initialization: rank out of range:',rank
      call terminate
   end if
-  ! set splittfile parameter for splitting of eigenvector files in
-  ! parallelization of SCF cycle
-  if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
   ! generate resume file
   if (procs.gt.1) then
      call genfilname(basename='resume',rank=rank,procs=procs,dotext='',&
@@ -59,11 +55,6 @@ subroutine xsinit
   else
      open(unitout,file=trim(tdfileout),action='write',status='replace')
   end if
-  ! scaling factor for output of energies
-  escale=1.d0
-  if (tevout) escale=27.2114d0
-  ! get exchange-correlation functional data
-  call getfxcdata(fxctype,fxcdescr,fxcspin)
   ! write to info file
   if (calledxs.eq.1) then
      write(unitout,*)

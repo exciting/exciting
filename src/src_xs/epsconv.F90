@@ -23,7 +23,7 @@ subroutine epsconv
   ! initialize universal variables
   call init0
   call init1
-  call init2xs
+  call init2
   ! original sampling method fo Brillouine zone
   bzsampl=l2int(tetradf)
   allocate(w(nwdf),epst(nwdf,2),eps(nwdf),lor(nwdf))

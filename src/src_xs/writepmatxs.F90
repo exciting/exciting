@@ -50,7 +50,7 @@ subroutine writepmatxs(lgather)
   ! initialise universal variables
   call init0
   call init1
-  call init2xs
+  call init2
   ! generate index ranges for parallel execution
   call genparidxran('k',nkpt)
   ! k-point interval for process

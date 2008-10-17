@@ -22,7 +22,7 @@ subroutine emattest
   logical, external :: tqgamma
   call init0
   call init1
-  call init2xs
+  call init2
   call xssave0
   n = ngq(iq)
   if (tqgamma(iq)) then

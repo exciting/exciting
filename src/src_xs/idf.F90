@@ -19,7 +19,7 @@ subroutine idf
   ! save Gamma-point variables
   call xssave0
   ! initialize q-point set
-  call init2xs
+  call init2
   call readfermi
   ! w-point parallelization for dielectric function
   call genparidxran('w',nwdf)
