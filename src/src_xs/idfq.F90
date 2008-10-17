@@ -46,7 +46,7 @@ subroutine idfq(iq)
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iq,filnam=filnam)
   call genfilname(iqmt=iq,setfilext=.true.)
-  call init1xs(qvkloff(1,iq))
+  call init1offs(qvkloff(1,iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! find limits for band combinations
@@ -100,8 +100,6 @@ subroutine idfq(iq)
                  call fxcifc(fxctype,ng=m,iw=iw,w=w(iw),alrc=alphalrc,&
                       alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
               end select
-              ! head of pure f_xc kernel
-              if (m.eq.1) fxc0(iw,oct)=fxc(1,1)
               ! solve Dyson's equation for the interacting response function
               select case(fxctype)
               case(0,1,2,3,4,5)

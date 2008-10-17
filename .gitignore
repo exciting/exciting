@@ -19,6 +19,8 @@ test
 .project
 .settings
 build/gfortran
+build/parallel
+build/mpiconf.inc
 src/eos/eos
 src/spacegroup/spacegroup
 src/species/species

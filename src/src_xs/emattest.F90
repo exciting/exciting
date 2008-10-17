@@ -35,7 +35,7 @@ subroutine emattest
   ! file extension for q-point
   call genfilname(iqmt=iq,setfilext=.true.)
   ! calculate k+q and G+k+q related variables
-  call init1xs(vql(1,iq))
+  call init1offs(vql(1,iq))
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   ! allocate arrays
   if (allocated(deou)) deallocate(deou)

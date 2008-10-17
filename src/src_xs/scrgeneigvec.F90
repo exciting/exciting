@@ -23,8 +23,6 @@ subroutine scrgeneigvec
   vklofft(:)=vkloff(:)
   rgkmaxt=rgkmax
   nemptyt=nempty
-  ! map variables for screening
-  call initscr
   nosym=nosymscr
   ! no symmetries implemented for screening
   reducek=.false.

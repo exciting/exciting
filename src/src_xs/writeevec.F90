@@ -15,13 +15,13 @@ subroutine writeevec(vq,voff,filxt)
   character(*), intent(in) :: filxt
   ! local variables
   integer :: ik,j
+  complex(8), allocatable :: apwalm(:,:,:,:)
   ! read from STATE.OUT exclusively
   isreadstate0=.true.
   ! SCF calculation with one cycle
   call gndstateq(voff,filxt)
   if (allocated(evecfv)) deallocate(evecfv)
   allocate(evecfv(nmatmax,nstfv,nspnfv))
-  if (allocated(apwalm)) deallocate(apwalm)
   allocate(apwalm(ngkmax,apwordmax,lmmaxapw,natmtot))
   allocate(apwcmt(nstfv,apwordmax,lmmaxapw,natmtot))
   allocate(locmt(nstfv,nlomax,-lolmax:lolmax,natmtot))

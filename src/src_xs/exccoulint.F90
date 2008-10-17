@@ -41,8 +41,6 @@ subroutine exccoulint
   reducekt=reducek
   ngridkt(:)=ngridk(:)
   vklofft(:)=vkloff(:)
-  ! map variables for screened Coulomb interaction
-  call initbse
   nosym=nosymscr
   ! no symmetries implemented for screened Coulomb interaction
   reducek=.false.
@@ -119,7 +117,7 @@ subroutine exccoulint
   !---------------------------!
   !     loop over k-points    !
   !---------------------------!
-  call init1xs(qvkloff(1,iqmt))
+  call init1offs(qvkloff(1,iqmt))
   call ematqalloc
   do iknr=1,nkptnr
      write(*,*) 'generation of matrix elements: k-point:',iknr

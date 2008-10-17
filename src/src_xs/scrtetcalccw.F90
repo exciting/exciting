@@ -21,8 +21,6 @@ subroutine scrtetcalccw
   rgkmaxt=rgkmax
   nemptyt=nempty
   nwdft=nwdf
-  ! map variables for screening
-  call initscr
   nosym=nosymscr
   ! no symmetries implemented for screening
   reducek=.false.

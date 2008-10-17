@@ -32,7 +32,7 @@ subroutine ematqk(iq,ik)
   real(8) :: cpu0,cpu1,cpu00,cpu01
 
   call cpu_time(cpu0)
-  ! find equivalent k-point
+  ! find k+q-point
   ikq=ikmapikq(ik,iq)
   ! check for stop statement
   write(msg,*) 'for q-point', iq, ': k-point:', ik-1, ' finished'

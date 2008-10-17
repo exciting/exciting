@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine writeemat_ascii
+subroutine writeematasc
   use modmain
   use modxs
   use m_getunit
@@ -23,7 +23,7 @@ subroutine writeemat_ascii
   do iq=1,nqpt
      call genfilname(iqmt=iq,setfilext=.true.)
      ! calculate k+q and G+k+q related variables
-     call init1xs(qvkloff(1,iq))
+     call init1offs(qvkloff(1,iq))
      ! find highest (partially) occupied and lowest (partially) unoccupied
      ! states
      call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0, &
@@ -78,4 +78,4 @@ subroutine writeemat_ascii
      ! end loop over q-points
   end do
   call genfilname(setfilext=.true.)
-end subroutine writeemat_ascii
+end subroutine writeematasc

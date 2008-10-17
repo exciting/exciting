@@ -25,7 +25,7 @@ subroutine ematq(iq)
   ! file extension for q-point
   call genfilname(iqmt=iq,setfilext=.true.)
   ! calculate k+q and G+k+q related variables
-  call init1xs(qvkloff(1,iq))
+  call init1offs(qvkloff(1,iq))
   ! write G+q-vectors
   if (rank.eq.0) then
      call writegqpts(iq)

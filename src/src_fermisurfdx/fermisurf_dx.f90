@@ -32,7 +32,7 @@ use modmain
   ! local variables
   integer :: hndl_fermi, hndl_fermidx, hndl_fermidx_bz
   integer :: nk, nkx, nky, nkz, nst
-  integer :: a, j, ik, ist, obj_startoffset, allocstat, datetime_i(8)
+  integer :: a, j, ik, obj_startoffset, allocstat, datetime_i(8)
   integer :: nnlc(26,3)
   character(256) :: dump(6)
   character*10 file

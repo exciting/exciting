@@ -32,7 +32,7 @@ subroutine idfgather
      ! matrix size for local field effects
      n=ngq(iq)
      ! calculate k+q and G+k+q related variables
-     call init1xs(qvkloff(1,iq))
+     call init1offs(qvkloff(1,iq))
      do m=1,n,max(n-1,1)
         ! loop over longitudinal components for optics
         do oct1=1,nc

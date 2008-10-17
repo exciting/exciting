@@ -88,11 +88,14 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("emaxdf")')
   write(77,*) emaxdf
   write(77,*)
-  write(77,'("symwings")')
-  write(77,*) symwings
+  write(77,'("dfoffdiag")')
+  write(77,*) dfoffdiag
   write(77,*)
-  write(77,'("lfediag")')
-  write(77,*) lfediag
+  write(77,'("tetradf")')
+  write(77,*) tetradf
+  write(77,*)
+  write(77,'("kerndiag")')
+  write(77,*) kerndiag
   write(77,*)
   write(77,'("fxctype")')
   write(77,*) fxctype
@@ -154,15 +157,6 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("scrherm")')
   write(77,*) scrherm
   write(77,*)
-  write(77,'("fnevecfvscr")')
-  write(77,*) "'"//trim(fnevecfvscr)//"'"
-  write(77,*)
-  write(77,'("fnevalsvscr")')
-  write(77,*) "'"//trim(fnevalsvscr)//"'"
-  write(77,*)
-  write(77,'("fnoccsvscr")')
-  write(77,*) "'"//trim(fnoccsvscr)//"'"
-  write(77,*)
   write(77,'("bsetype")')
   write(77,*) "'"//trim(bsetype)//"'"
   write(77,*)
@@ -180,15 +174,6 @@ subroutine dumpparams_xs(string,comment)
   write(77,*)
   write(77,'("bsediagsym")')
   write(77,*) bsediagsym
-  write(77,*)
-  write(77,'("fnevecfvbse")')
-  write(77,*) "'"//trim(fnevecfvbse)//"'"
-  write(77,*)
-  write(77,'("fnevalsvbse")')
-  write(77,*) "'"//trim(fnevalsvbse)//"'"
-  write(77,*)
-  write(77,'("fnoccsvbse")')
-  write(77,*) "'"//trim(fnoccsvbse)//"'"
   write(77,*)
   write(77,'("nstlce")')
   write(77,*) nbfce,nafce

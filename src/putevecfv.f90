@@ -18,7 +18,6 @@ subroutine putevecfv(ik,evecfv)
   integer recl,koffset
 
 
-  real(8) vkl_(3)
   ! find the record length
   inquire(iolength=recl) vkl(:,ik),nmatmax,nstfv,nspnfv,evecfv
   !$OMP CRITICAL

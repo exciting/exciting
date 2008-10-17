@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: wavefmt_lo
 ! !INTERFACE:
-subroutine wavefmt_lo(lrstp,lmax,is,ia,ngp,apwalm,evecfv,ld,wfmt)
+subroutine wavefmt_lo(lrstp,lmax,is,ia,ngp,evecfv,ld,wfmt)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -15,8 +15,6 @@ use modmain
 !   is     : species number (in,integer)
 !   ia     : atom number (in,integer)
 !   ngp    : number of G+p-vectors (in,integer)
-!   apwalm : APW matching coefficients
-!            (in,complex(ngkmax,apwordmax,lmmaxapw,natmtot))
 !   evecfv : first-variational eigenvector (in,complex(nmatmax))
 !   ld     : leading dimension (in,integer)
 !   wfmt   : muffin-tin wavefunction (out,complex(ld,*))
@@ -35,7 +33,6 @@ integer, intent(in) :: lmax
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
-complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 complex(8), intent(in) :: evecfv(nmatmax)
 integer, intent(in) :: ld
 complex(8), intent(out) :: wfmt(ld,*)

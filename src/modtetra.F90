@@ -23,8 +23,6 @@ module modtetra
   logical :: tetraocc
   ! tetrahedron method is used for optics
   logical :: tetraopt
-  ! tetrahedron method is used for dielectric function/matrix
-  logical :: tetradf
   ! use different k-point ordering that matches the one of the exciting code
   logical :: tetrakordexc
   ! integer k-point offset

@@ -144,7 +144,7 @@ subroutine dfq(iq)
   ! remove timing files from previous runs
   call filedel(trim(fnxtim))
   ! calculate k+q and G+k+q related variables
-  call init1xs(qvkloff(1,iq))
+  call init1offs(qvkloff(1,iq))
   ! generate link array for tetrahedra
   if (tetradf) call gentetlinkp(vql(1,iq),tetraqweights)
   ! find highest (partially) occupied and lowest (partially) unoccupied states

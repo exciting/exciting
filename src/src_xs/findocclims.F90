@@ -73,7 +73,9 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
   ! commensurate can cause partially occupied states that are absent for the
   ! k-mesh
   iocc0=max(iocc0,iocc)
+  iocc=iocc0
   iunocc0=min(iunocc0,iunocc)
+  iunocc=iunocc0
   ! determine if system has a gap in energy
   ksgap=iocc0.lt.iunocc0
   if (iq.ne.0) then
@@ -100,7 +102,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      call terminate
   end if
   ! *** assign nstocc0 and nstunocc0 ***
-  nstocc0=max(iocc0,iocc)
+  nstocc0=iocc0
   nstunocc0=nstsv-nstocc0
   if ((iocc0.ge.iunocc).or.(iocc.ge.iunocc0)) then
      write(unitout,'(a)') 'Info(findocclims): partially occupied states present'

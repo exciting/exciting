@@ -31,7 +31,7 @@ subroutine scrcoulint
   integer, external :: iplocnr,idxkkp
   logical, external :: tqgamma
 !!$  real(8) :: cpu0,cpu1,cpu2,cpu3
-!!$  real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
+!!$  real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
 !!$  real(8) :: cpu_clph,cpu_suma,cpu_write
 
   !----------------!
@@ -42,8 +42,6 @@ subroutine scrcoulint
   reducekt=reducek
   ngridkt(:)=ngridk(:)
   vklofft(:)=vkloff(:)
-  ! map variables for screened Coulomb interaction
-  call initbse
   nosym=nosymscr
   ! no symmetries implemented for screened Coulomb interaction
   reducek=.false.

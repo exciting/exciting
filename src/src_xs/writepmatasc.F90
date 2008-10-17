@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine writepmat_ascii
+subroutine writepmatasc
   use modmain
   use modxs
   use m_getunit
@@ -34,4 +34,4 @@ subroutine writepmat_ascii
   end do
   close(un)
   deallocate(pmat)
-end subroutine writepmat_ascii
+end subroutine writepmatasc

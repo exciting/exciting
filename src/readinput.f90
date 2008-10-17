@@ -230,8 +230,8 @@ broad=0.01d0
 aresdf=.true.
 epsdfde=1.d-8
 emaxdf=1.d10
-symwings=.false.
-lfediag=.false.
+dfoffdiag=.false.
+kerndiag=.false.
 fxctype=0
 nexcitmax=100
 alphalrc=0.d0
@@ -251,14 +251,11 @@ dbglev=0
 screentype='full'
 nosymscr=.false.
 reducekscr=.true.
-ngridkscr(:)=-1
+ngridkscr(:)=0
 vkloffscr(:)=-1.d0
 rgkmaxscr=-1.d0
-nemptyscr=-1
+nemptyscr=0
 scrherm=0
-fnevecfvscr='EVECFV_SCR.OUT'
-fnevalsvscr='EVALSV_SCR.OUT'
-fnoccsvscr='OCCSV_SCR.OUT'
 ! BSE (-kernel) variables
 bsetype='ip'
 nosymbse=.false.
@@ -266,13 +263,10 @@ reducekbse=.true.
 vkloffbse(:)=-1.d0
 bsediagweight=1
 bsediagsym=0
-fnevecfvbse='EVECFV_BSE.OUT'
-fnevalsvbse='EVALSV_BSE.OUT'
-fnoccsvbse='OCCSV_BSE.OUT'
-nbfce=-1
-nafce=-1
-nbfbse=-1
-nafbse=-1
+nbfce=0
+nafce=0
+nbfbse=0
+nafbse=0
 ! dump default parameters
 if (rank.eq.0) then
    fname='PARAMS_DEFAULT.OUT'
@@ -1125,10 +1119,10 @@ case('epsdfde')
   end if
 case('emaxdf')
   read(50,*,err=20) emaxdf
-case('symwings')
-  read(50,*,err=20) symwings
-case('lfediag')
-  read(50,*,err=20) lfediag
+case('dfoffdiag')
+  read(50,*,err=20) dfoffdiag
+case('kerndiag')
+  read(50,*,err=20) kerndiag
 case('fxctype')
   read(50,*,err=20) fxctype
 case('nexcitmax')
@@ -1218,12 +1212,6 @@ case('nemptyscr')
   end if
 case('scrherm')
   read(50,*,err=20) scrherm
-case('fnevecfvscr')
-  read(50,*,err=20) fnevecfvscr
-case('fnevalsvscr')
-  read(50,*,err=20) fnevalsvscr
-case('fnoccsvscr')
-  read(50,*,err=20) fnoccsvscr
   ! BSE (-kernel) variables
 case('bsetype')
    read(50,*,err=20) bsetype
@@ -1246,12 +1234,6 @@ case('bsediagweight')
   read(50,*,err=20) bsediagweight
 case('bsediagsym')
   read(50,*,err=20) bsediagsym
-case('fnevecfvbse')
-  read(50,*,err=20) fnevecfvbse
-case('fnevalsvbse')
-  read(50,*,err=20) fnevalsvbse
-case('fnoccsvbse')
-  read(50,*,err=20) fnoccsvbse
 case('nstlce')
   read(50,*,err=20) nbfce,nafce
   if ((nbfce.le.0).or.(nafce.le.0)) then

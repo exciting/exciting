@@ -12,7 +12,7 @@ subroutine xsinit
   use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'xsinit'
+  character(*), parameter :: thisnam='xsinit'
   character(10) dat, tim
   integer :: i
   ! set version of XS part
@@ -29,13 +29,13 @@ subroutine xsinit
   if (calledxs.eq.1) call system_clock(COUNT=systimcum)
   ! check consistency of rank and procs
   if ((procs.lt.1).or.(procs.gt.maxproc)) then
-     write(*,*) 'Error('//trim(thisnam)//'): Error in parallel &
-          &initialization: number of processes out of range:',procs
+     write(*,'("Error(",a,"): Error in parallel initialization: number of &
+     	&processes out of range: ",i6)') thisnam,procs
      call terminate
   end if
   if ((rank.gt.procs).or.(rank.lt.0)) then
-     write(*,*) 'Error('//trim(thisnam)//'): Error in parallel &
-          &initialization: rank out of range:',rank
+     write(*,'("Error(",a,"): Error in parallel initialization: rank out of &
+     	&range: ",i6)') thisnam,rank
      call terminate
   end if
   ! generate resume file
@@ -47,13 +47,13 @@ subroutine xsinit
   end if
   ! name of output file
   call genfilname(nodotpar=.true.,basename='XSINFO',procs=procs,rank=rank, &
-       filnam=tdfileout)
+       filnam=xsfileout)
   ! reset or append to output file
   call getunit(unitout)
   if (tappinfo.or.(calledxs.gt.1)) then
-     open(unitout,file=trim(tdfileout),action='write',position='append')
+     open(unitout,file=trim(xsfileout),action='write',position='append')
   else
-     open(unitout,file=trim(tdfileout),action='write',status='replace')
+     open(unitout,file=trim(xsfileout),action='write',status='replace')
   end if
   ! write to info file
   if (calledxs.eq.1) then
@@ -76,10 +76,10 @@ subroutine xsinit
      write(unitout,'("compiled for serial execution")') 
 #endif
      if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'(a,2i6)') 'Info('// &
-          trim(thisnam)//'):(parallel) master, rank/number of processes:',&
+          thisnam//'):(parallel) master, rank/number of processes:',&
           rank,procs
      if ((procs.gt.1).and.(rank.ne.0)) write(unitout,'(a,2i6)') 'Info('// &
-          trim(thisnam)//'):(parallel) slave, rank/number of processes:',&
+          thisnam//'):(parallel) slave, rank/number of processes:',&
           rank,procs
      if (notelns.gt.0) then
         write(unitout,*)
@@ -95,7 +95,7 @@ subroutine xsinit
   write(unitout,'(a)') 'Time (hh:mm:ss)   : '//tim(1:2)//':'//tim(3:4)//':'// &
        tim(5:6)
   write(unitout,*)
-  write(unitout,'(a,i6,a)') 'Info('//trim(thisnam)//'): task Nr.', &
+  write(unitout,'(a,i6,a)') 'Info('//thisnam//'): task Nr.', &
        task,' started'
   call flushifc(unitout)
 end subroutine xsinit

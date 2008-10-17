@@ -73,8 +73,6 @@ real(8) s(3,3),t1,t2
      if (nsymcrys.ne.nsymcrysq(iqcu)) then
         write(*,'(a)') 'Info(genppts): using symmetries of the (little/small) &
              &group of q only'
-!!$        write(*,'(a,i6,3g18.10,2i6)') ' iq,vql,nsymcrys,nsymcrysq',iqcu,&
-!!$             vql(:,iqcu),nsymcrys,nsymcrysq(iqcu)
      end if
      ! save global variables
      nsymcrys_=nsymcrys; lsplsymc_(:)=lsplsymc(:)

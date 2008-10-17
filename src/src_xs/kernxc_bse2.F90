@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: kernxc_bse2
 ! !INTERFACE:
-subroutine kernxc_bse2(oct)
+subroutine kernxc_bse2
 ! !USES:
   use modmain
   use modtetra
@@ -29,9 +29,8 @@ subroutine kernxc_bse2(oct)
 !EOP
 !BOC
   implicit none
-  ! arguments
-  integer, intent(in) :: oct
-  ! local variables
+  !******************************************************************
+  integer, parameter :: oct=1
   character(*), parameter :: thisnam = 'kernxs_bse2'
   integer, parameter :: iqmt=1
   real(8), parameter :: delt=1.d-4
@@ -47,7 +46,7 @@ subroutine kernxc_bse2(oct)
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
   integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
   logical :: nosymt,reducekt,tq0
-  real(8) :: vklofft(3),vqr(3),vq(3),t1,t2,t3,tp
+  real(8) :: vklofft(3),vqr(3),vq(3),t1,t2,tp
   real(8), allocatable :: dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
   real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:)
   real(8), allocatable :: zmr(:,:),zmq(:,:),deval(:,:,:),docc(:,:,:),scis(:,:,:)
@@ -60,7 +59,7 @@ subroutine kernxc_bse2(oct)
   logical, external :: tqgamma
 
   real(8) :: brd
-  real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
+  real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
@@ -76,8 +75,6 @@ subroutine kernxc_bse2(oct)
   ngridkt(:)=ngridk(:)
   vklofft(:)=vkloff(:)
   nemptyscrt=nemptyscr
-  ! map variables for screened Coulomb interaction
-  call initbse
   nosym=nosymscr
   ! no symmetries implemented for screened Coulomb interaction
   reducek=.false.
@@ -247,7 +244,7 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
      do jknr=1,nkptnr
         jknrq=ikmapikq(jknr,iqmt)
 
-        cpu_init1xs=0.d0
+        cpu_init1offs=0.d0
         cpu_ematrad=0.d0
         cpu_ematqalloc=0.d0
         cpu_ematqk1=0.d0

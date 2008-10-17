@@ -18,7 +18,7 @@ subroutine getevecfv(vpl,vgpl,evecfv)
   integer is,ia,ja,ias,jas
   integer recl,nmatmax_,nstfv_,nspnfv_
   real(8) vkl_(3),v(3),t1
-  real(8) s(3,3),si(3,3),sc(3,3)
+  real(8) si(3,3),sc(3,3)
   complex(8) zt1
   ! allocatable arrays
 #ifdef XS

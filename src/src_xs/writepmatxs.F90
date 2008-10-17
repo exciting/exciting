@@ -6,7 +6,7 @@
 !BOP
 ! !ROUTINE: writepmatxs
 ! !INTERFACE:
-subroutine writepmatxs(lgather)
+subroutine writepmatxs
 ! !USES:
   use modmain
   use modmpi
@@ -23,8 +23,6 @@ subroutine writepmatxs(lgather)
 !EOP
 !BOC
   implicit none
-  ! arguments
-  logical :: lgather
   ! local variables
   character(*), parameter :: thisnam='writepmatxs'
   integer :: ik
@@ -65,7 +63,6 @@ subroutine writepmatxs(lgather)
   if (.not.tscreen) call genfilname(iqmt=0,setfilext=.true.)
   ! generate band combinations
   call ematbdcmbs(1)
-  if (lgather) goto 10
   if (fastpmat) then
      allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
      if (allocated(apwcmt)) deallocate(apwcmt)
@@ -107,7 +104,6 @@ subroutine writepmatxs(lgather)
      call putpmat(ik,.true.,trim(fnpmat),pmat)
   end do
   call barrier
-10 continue
   deallocate(apwalmt,evecfvt,evecsvt,pmat)
   if (fastpmat) then
      deallocate(apwcmt)

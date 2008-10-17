@@ -5,19 +5,14 @@
 
 subroutine xschkstop
   use modxs
-  use m_getunit
+  use m_filedel
   implicit none
   ! local variables
-  character(*), parameter :: thisnam = 'xschkstop'
-  integer :: un
   logical :: exist
   inquire(file='STOP',exist=exist)
   if (exist) then
-     call getunit(un)
-     write(unitout,'(a)') 'Warning('//thisnam//') stopped with message: '// &
-          trim(msg)
-     open(un,file='STOP')
-     close(un,status='delete')
+     write(unitout,'("STOP file exists - stopping with message: ",a)') trim(msg)
+     call filedel('STOP')
      call terminate
   end if
 end subroutine xschkstop

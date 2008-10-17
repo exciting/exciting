@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine init1xs(vploff)
+subroutine init1offs(vploff)
   use modmain, only: vkloff
   use modxs, only: init1norealloc
   implicit none
@@ -18,4 +18,4 @@ subroutine init1xs(vploff)
   call init1
   init1norealloc=.false.
   vkloff(:)=vklofft(:)
-end subroutine init1xs
+end subroutine init1offs

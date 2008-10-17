@@ -35,9 +35,6 @@ subroutine dumpparams_tetra(string,comment)
   write(77,'("tetraopt")')
   write(77,*) tetraopt
   write(77,*)
-  write(77,'("tetradf")')
-  write(77,*) tetradf
-  write(77,*)
   write(77,'("tetrakordexc")')
   write(77,*) tetrakordexc
   close(77)

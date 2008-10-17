@@ -61,6 +61,13 @@ use modxs
   ! allocatable arrays
   complex(8), allocatable :: fg2(:,:)
 
+
+
+!********** THIS PROCEDURE IS NOT CORRECT DUE TO q-dependence of G+q vectors
+!****
+
+
+
   allocate(fg2(ngp,ngp))
   call findgroupq(vpl,epslat,symlat,nsymcrys,lsplsymc,nscq,scq,ivgscq)
 

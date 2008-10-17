@@ -20,16 +20,12 @@
 
 subroutine xsmain
   use modmain
-  use modxs
-  use modtetra
   use modmpi
-  use m_getunit
+  use modtetra
+  use modxs
   implicit none
-  character(*), parameter :: thisnam='xsmain'
-  ! basic initialization
+  ! initialization
   call xsinit
-  ! check verify constraints
-  call xscheck
   ! task selection
   select case(task)
   case(23)
@@ -39,18 +35,18 @@ subroutine xsmain
      ! estimate disk-space, cpu-time and memory
      call xsestimate
   case(301)
-     ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
-     ! for TDDFT Q-point set
+     ! generate eigenvectors, eigenvalues, occupancies and MT-coefficients
+     ! for q-point set
      call xsgeneigvec
   case(310)
      ! calculate weights for tetrahedron method
      call tetcalccw
   case(320)
      ! parallel version of momentum matrix elements
-     call writepmatxs(.false.)
+     call writepmatxs
   case(321)
      ! ASCII output of momentum matrix elements
-     call writepmat_ascii
+     call writepmatasc
   case(322)
      ! convert momentum matrix elements file to old format
      call pmatxs2orig
@@ -59,7 +55,7 @@ subroutine xsmain
      call writeemat
   case(331)
      ! ASCII output of matrix elements of exponential expression
-     call writeemat_ascii
+     call writeematasc
   case(335)
      ! calculate matrix elements of the plane wave (simple version for checking)
      call writepwmat
@@ -76,7 +72,7 @@ subroutine xsmain
      ! binary output of Kohn Sham response function
      call x0tobin
   case(350)
-     ! inversion of dielectric function wrt. xc-kernel
+     ! inverse of dielectric function - solve Dyson equation for xc-kernel
      call idf
   case(396)
      ! convolute dielectric function from tetrahedron method with Lorentzian
@@ -94,9 +90,6 @@ subroutine xsmain
   case(430)
      ! RPA screening
      call screen
-  case(11111)
-     ! screened Coulomb interaction (old version)
-     call scrcoulint_old
   case(440)
      ! screened Coulomb interaction
      call scrcoulint
@@ -106,28 +99,18 @@ subroutine xsmain
   case(445)
      ! Bethe-Salpeter equation
      call bse
-  case(446)
-     ! ** Bethe-Salpeter equation - NEW VERSION - EXPERIMENTAL
-     call bse2
   case(450)
      ! BSE-kernel
-     call kernxc_bse2(1)
-  case(498)
-     ! * debug task
-     call init0
-     call init1
-     write(*,*) 'debug task 498 finished'
+     call kernxc_bse2
   case(499)
-     ! * debug task
+     ! call to test xs-routine
      call testxs
   case default
      write(*,*)
-     write(*,*) 'Error('//thisnam//'): task not defined:', task
+     write(*,*) 'Error(xsmain): task not defined:', task
      write(*,*)
      call terminate
   end select
-
   ! summarize information on run
   call xsfinit
-
 end subroutine xsmain

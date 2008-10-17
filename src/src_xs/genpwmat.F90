@@ -155,7 +155,8 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
               !      irc=0
               !      do ir=1,nrmt(is),lradstp
               !         irc=irc+1
-              !         vr(:)=spr(ir,is)*sphcov(:,lm)
+              !         vr(:)=spr(ir,is)*sphcov(:,lm) *** sphcover must be
+              !         ! invoked to obtain "sphcov(:,lm)" ***
               !         t1=dot_product(vgpc(:,igp),vr)
               !         wfmt2(lm,irc)=cmplx(cos(t1),-sin(t1),8)
               !      end do

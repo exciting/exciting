@@ -53,6 +53,11 @@ end if
 !---------------------!
 !     k-point set     !
 !---------------------!
+#ifdef XS
+if (any(ngridkscr.eq.0)) ngridkscr(:)=ngridk(:)
+if (any(vkloffscr.eq.-1.d0)) vkloffscr(:)=vkloff(:)
+if (any(vkloffbse.eq.-1.d0)) vkloffbse(:)=vkloff(:)
+#endif
 ! check if the system is an isolated molecule
 if (molecule) then
   ngridk(:)=1
@@ -135,16 +140,14 @@ else
        maxsymcrys,nsymcrys,lsplsymc,symlat,reducek,ngridk,vkloff,nkpt,ikmap, &
        vkl,wkpt)
 #endif
-#ifdef XS
-  ! determine inverse symmery elements
-  call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat, &
-       scimap)
-#endif
 end if
 
 !---------------------!
 !     G+k vectors     !
 !---------------------!
+#ifdef XS
+if (rgkmaxscr.eq.0.d0) rgkmaxscr=rgkmax
+#endif
 ! determine gkmax
 if ((isgkmax.ge.1).and.(isgkmax.le.nspecies)) then
   gkmax=rgkmax/rmt(isgkmax)

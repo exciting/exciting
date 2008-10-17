@@ -22,7 +22,7 @@ subroutine tetgather
   ! loop over q-points
   do iq=1,nqpt
      ! calculate k+q and G+k+q related variables
-     call init1xs(qvkloff(1,iq))
+     call init1offs(qvkloff(1,iq))
      ! file name for output file
      call genfilname(basename='TETW',iqmt=iq,filnam=filnam)
      do ik=1,nkpt

@@ -31,7 +31,7 @@ subroutine x0toasc
   do iq=1,nqpt
      tq0=tqgamma(iq)
      ! calculate k+q and G+k+q related variables
-     call init1xs(qvkloff(1,iq))
+     call init1offs(qvkloff(1,iq))
      ! size of local field effects
      n=ngq(iq)
      ! allocate

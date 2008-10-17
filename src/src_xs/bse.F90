@@ -41,6 +41,19 @@ subroutine bse
   ! BSE (singlet) ..... H = H_diag + 2H_x + H_c        correlated, spin-singlet
   ! BSE (triplet) ..... H = H_diag + H_c               correlated, spin-triplet
 
+
+!---------------------------!
+!     exciton variables     !   USE this ****************************
+!---------------------------!
+!!if (allocated(excite)) deallocate(excite)
+!!allocate(excite(nexcitmax,3))
+!!excite(:,:)=0.d0
+!!if (allocated(excito)) deallocate(excito)
+!!allocate(excito(nexcitmax,3))
+!!excito(:,:)=0.d0
+
+
+
   ! reset file extension to default
   call genfilname(setfilext=.true.)
   egap=1.d8
@@ -56,7 +69,6 @@ subroutine bse
   nemptyscrt=nemptyscr
   emattypet=emattype
   ! map variables for screened Coulomb interaction
-  call initbse
   nosym=nosymscr
   ! no symmetries implemented for screened Coulomb interaction
   reducek=.false.
@@ -71,7 +83,9 @@ subroutine bse
   ! read Fermi energy from file
   call readfermi
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-  call initoccbse(nbfbse,nafbse)
+  call initocc(nbfbse,nafbse)
+!!
+
   call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   call ematbdcmbs(emattype)
   ! file names

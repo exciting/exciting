@@ -34,7 +34,7 @@ subroutine scrcoulint_old
   logical, external :: tqgamma
 
   real(8) :: cpu0,cpu1,cpu2,cpu3
-  real(8) :: cpu_init1xs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
+  real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
   real(8) :: cpu_clph,cpu_suma,cpu_write
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
 
@@ -46,8 +46,6 @@ subroutine scrcoulint_old
   reducekt=reducek
   ngridkt(:)=ngridk(:)
   vklofft(:)=vkloff(:)
-  ! map variables for screened Coulomb interaction
-  call initbse
   nosym=nosymscr
   ! no symmetries implemented for screened Coulomb interaction
   reducek=.false.
@@ -164,7 +162,7 @@ write(*,*) 'record length for SCI',recl
      do jknr=iknr,nkptnr
 
         call cpu_time(cpu2)
-        cpu_init1xs=0.d0
+        cpu_init1offs=0.d0
         cpu_ematrad=0.d0
         cpu_ematqalloc=0.d0
         cpu_ematqk1=0.d0
@@ -270,9 +268,9 @@ write(*,*) 'record length for SCI',recl
 
         ! calculate matrix elements of the plane wave
         call cpu_time(cpu0)
-        call init1xs(qvkloff(1,iq))
+        call init1offs(qvkloff(1,iq))
         call cpu_time(cpu1)
-        cpu_init1xs=cpu_init1xs+cpu1-cpu0
+        cpu_init1offs=cpu_init1offs+cpu1-cpu0
 
         write(*,'(a,i6,2x,2i5,2x,2i5,2x,i6)') 'ikkp,iknr,jknr,iq,iqr,ngq(iq)',&
              ikkp,iknr,jknr,iq,iqr,ngq(iq)
@@ -419,8 +417,8 @@ write (*,'(a,3g18.10)') 'upper limits:',maxval(abs(tm)),maxval(abs(emat12)),maxv
         deallocate(tm,tmi,emat12,emat34,scclit)
 
         call cpu_time(cpu3)
-        t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1xs+cpu_clph+cpu_suma+cpu_write
-        write(*,'(a,f12.3)') 'init1xs     :',cpu_init1xs
+        t3=cpu_ematqdealloc+cpu_ematqk1+cpu_ematqalloc+cpu_ematrad+cpu_init1offs+cpu_clph+cpu_suma+cpu_write
+        write(*,'(a,f12.3)') 'init1offs     :',cpu_init1offs
         write(*,'(a,f12.3)') 'ematrad     :',cpu_ematrad
         write(*,'(a,f12.3)') 'ematqalloc  :',cpu_ematqalloc
         write(*,'(a,f12.3)') 'ematqk1     :',cpu_ematqk1

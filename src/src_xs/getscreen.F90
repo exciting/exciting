@@ -4,7 +4,7 @@
 ! See the file COPYING for license details.
 
 subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
-  use modtetra
+  use modxs, only: tetradf
   use m_genfilname
   use m_getunit
   implicit none

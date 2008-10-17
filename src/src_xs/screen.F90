@@ -23,8 +23,6 @@ subroutine screen
   rgkmaxt=rgkmax
   nemptyt=nempty
   nwdft=nwdf
-  ! map variables for screening
-  call initscr
   nosym=nosymscr
   ! no symmetries implemented for screening
   reducek=.false.
@@ -57,8 +55,6 @@ subroutine screendm
   ! March 2008
   ! poor man's implementation for checking * do not use for production use
   ! *
-
-use modifcs
 
   use modmain
   use modxs
@@ -116,7 +112,7 @@ use modifcs
 
   ! loop over q-points
   do iq=1,nqpt
-     call init1xs(qvkloff(1,iq))
+     call init1offs(qvkloff(1,iq))
      n=ngq(iq)
      if (allocated(xiou)) deallocate(xiou)
      allocate(xiou(nstsv,nstsv,n))

@@ -10,10 +10,9 @@ contains
 !BOP
 ! !ROUTINE: fxcifc
 ! !INTERFACE:
-  subroutine fxcifc(fxctype,w,iw,iq,ng,alrc,alrcd,blrcd,lrccoef,fxcg)
+  subroutine fxcifc(fxctype,w,iw,iq,ng,alrc,alrcd,blrcd,fxcg)
     use m_fxc_lrc
     use m_fxc_lrcd
-!    use m_fxc_lrcmodel
     use m_fxc_alda
     use m_fxc_bse_ma03
 ! !INPUT/OUTPUT PARAMETERS:
@@ -39,7 +38,6 @@ contains
     real(8), optional, intent(in) :: alrc
     real(8), optional, intent(in) :: alrcd
     real(8), optional, intent(in) :: blrcd
-    real(8), optional, intent(in) :: lrccoef(:,:)
     complex(8), optional, intent(out) :: fxcg(:,:)
     ! local variables
     ! automatic arrays
@@ -89,14 +87,6 @@ contains
        ! ALDA kernel, [Reference]
        if (present(fxcg).and.(present(ng)).and.present(iq)) then
           call fxc_alda(iq,ng,fxcg)
-       else
-          goto 10
-       end if
-    case(6)
-       ! LRC frequency dependent model (S. Sagmeister)
-       if (present(fxcg).and.(present(ng)).and.(present(w))&
-            .and.present(lrccoef)) then
-!          call fxc_lrcmodel(ng,.true.,lrccoef,w,fxcg)
        else
           goto 10
        end if

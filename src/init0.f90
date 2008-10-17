@@ -28,8 +28,36 @@ implicit none
 integer is,js,ia,ias
 integer ist,l,m,lm,iv(3)
 real(8) ts0,ts1
-
 #ifdef XS
+integer nerr
+nerr=0
+! warn for spin polarized calculations
+if (spinpol) then
+   write(*,*) 'Warning(init0/xs): calculation is spin-polarized - formalism &
+        &may be incomplete'
+end if
+! no spin-spirals
+if (spinsprl) then
+   write(*,*) 'Error(init0/xs): xs-part not working for spin-spirals'
+   nerr=nerr+1
+end if
+! type of response functions
+if (rsptype.ne.'reta') then
+   write(*,'(a,2i8)') 'Error(init0/xs): only retarded response functions &
+   &implemented'
+   nerr=nerr+1
+end if
+! tetrahedron method not implemented for analytic continuation
+if (tetradf.and.acont) then
+   write(*,*) 'Error(init0/xs): tetrahedron method does not work in &
+   	&combination  with analytic continuation'
+   nerr=nerr+1
+end if
+! stop on errors
+if (nerr.gt.0) stop
+tscreen=.false.
+if ((task.ge.400).and.(task.le.499)) tscreen=.true.
+! only perform calculation of symmetries
 if (init0symonly) goto 10
 #endif
 !-------------------------------!
@@ -447,47 +475,17 @@ if ((ldapu.ne.0).or.(task.eq.17)) then
 end if
 
 #ifdef XS
-!-----------------------!
-!     emergy meshes	!
-!-----------------------!
+!-------------------------------------------------!
+!     emergy intervals and occupation numbers     !
+!-------------------------------------------------!
 ! if imaginary frequencies intervals are not specified
 if (nwacont.eq.0) nwacont=nwdos
 nwdf=nwdos
 if (acont) nwdf=nwacont
-
 ! scaling factor for output of energies
 escale=1.d0
 if (tevout) escale=27.2114d0
-
-!-------------------------------------!
-!     response function variables     !
-!-------------------------------------!
-if (allocated(mdfrpa)) deallocate(mdfrpa)
-allocate(mdfrpa(nwdos,3,2))
-mdfrpa(:,:,:)=0.d0
-if (allocated(mdfrpad)) deallocate(mdfrpad)
-allocate(mdfrpad(nwdos,3))
-mdfrpad(:,:)=0.d0 
-
-!-----------------------------!
-!     xc-kernel variables     !
-!-----------------------------!
-if (allocated(fxc0)) deallocate(fxc0)
-allocate(fxc0(nwdos,9))
-fxc0(:,:)=0.d0
-if (allocated(fxc0d)) deallocate(fxc0d)
-allocate(fxc0d(nwdos,9))
-fxc0d(:,:)=0.d0
-
-!---------------------------!
-!     exciton variables     !
-!---------------------------!
-if (allocated(excite)) deallocate(excite)
-allocate(excite(nexcitmax,3))
-excite(:,:)=0.d0
-if (allocated(excito)) deallocate(excito)
-allocate(excito(nexcitmax,3))
-excito(:,:)=0.d0
+if (nemptyscr.eq.0) nemptyscr=nempty
 #endif
 
 !-----------------------!
