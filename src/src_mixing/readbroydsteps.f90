@@ -1,16 +1,32 @@
-subroutine readbroydsteps_and_init_SY(noldsteps,noldstepsmax,n,S,Y)
-implicit none
-integer, intent(in)::noldsteps,noldstepsmax,n
-real(8),INTENT(OUT)::S(n,noldstepsmax),Y(n,noldstepsmax)
-integer i
-open(23,file="BROYDEN.OUT",ACTION= "READ",FORM='UNFORMATTED')
+subroutine readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 
-Do i=1,noldsteps
-read(23)s(:,i),y(:,i)
-end do
-close(23)
+	use modmixermsec,only: record_of_last_iter,noldstepsmax
+	implicit none
+	integer, intent(in)::noldsteps,n
+	real(8),INTENT(OUT)::S(n,noldstepsmax),Y(n,noldstepsmax)
+	real(8),INTENT(in)::potential(n),residual(n)
+	integer i
+	integer::reclength,rectoread,firstrec
+	inquire(iolength=reclength) potential,residual
+	open(23,file="BROYDEN.OUT",ACCESS="DIRECT",RECL=reclength,\
+			ACTION= "READ",FORM='UNFORMATTED')
+	if(noldsteps .lt. noldstepsmax) then
+		firstrec=1
+	else
+		firstrec=mod(record_of_last_iter,noldstepsmax)+1
+	endif
+	S=0
+	Y=0
+	Do i=1,noldsteps
+		rectoread=firstrec-1+i
+		if (rectoread.gt.noldstepsmax) rectoread=rectoread-noldstepsmax
+		read(23,rec=rectoread) s(:,i),y(:,i)
+	end do
+	close(23)
 
-!setup Y ...
-
+	Do i=1,noldsteps
+		S(:,i)=S(:,i)-potential
+		Y(:,i)=Y(:,i)-residual
+	end do
 
 end subroutine

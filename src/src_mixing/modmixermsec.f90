@@ -1,10 +1,12 @@
 module  modmixermsec
 real(8),allocatable:: work(:),residual(:),last_outputp(:),last_inputp(:)
+integer:: record_of_last_iter
+integer, parameter::noldstepsmax=8
 contains
 subroutine initmixermsec(n)
 integer,intent(in)::n
 allocate(residual(n),last_outputp(n),last_inputp(n))
-
+record_of_last_iter=0
 residual=0
 last_outputp=0
 last_inputp=0
