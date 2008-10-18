@@ -31,10 +31,6 @@ subroutine writepmatxs
   complex(8), allocatable :: evecfvt(:,:)
   complex(8), allocatable :: evecsvt(:,:)
   complex(8), allocatable :: pmat(:,:,:)
-  real(8), allocatable :: ripaa(:,:,:,:,:,:)
-  real(8), allocatable :: ripalo(:,:,:,:,:,:)
-  real(8), allocatable :: riploa(:,:,:,:,:,:)
-  real(8), allocatable :: riplolo(:,:,:,:,:,:)
   if (tscreen) then
      fnam='PMAT'
      call genfilname(basename=trim(fnam),appfilext=.true.,filnam=fnpmat)
@@ -64,18 +60,22 @@ subroutine writepmatxs
   ! generate band combinations
   call ematbdcmbs(1)
   if (fastpmat) then
-     allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
      if (allocated(apwcmt)) deallocate(apwcmt)
      allocate(apwcmt(nstsv,apwordmax,lmmaxapw,natmtot))
+     if (allocated(ripaa)) deallocate(ripaa)
+     allocate(ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
      if (nlotot.gt.0) then
-        allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
-        allocate(riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
-        allocate(riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
         if (allocated(locmt)) deallocate(locmt)
         allocate(locmt(nstsv,nlomax,-lolmax:lolmax,natmtot))
+        if (allocated(ripalo)) deallocate(ripalo)
+        allocate(ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
+        if (allocated(riploa)) deallocate(riploa)
+        allocate(riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
+        if (allocated(riplolo)) deallocate(riplolo)
+        allocate(riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
      end if
      ! calculate gradient of radial functions times spherical harmonics
-     call pmatrad(ripaa,ripalo,riploa,riplolo)
+     call pmatrad
   end if
   do ik=kpari,kparf
      if ((modulo(ik-kpari+1,max((kparf-kpari+1)/10,1)).eq.0).or.(ik.eq.kparf)) &
@@ -93,8 +93,8 @@ subroutine writepmatxs
         ! generate local orbital expansion coefficients for muffin-tin
         if (nlotot.gt.0) call genlocmt(ngk(1,ik),1,nstfv,evecfvt,locmt)
         ! calculate the momentum matrix elements
-        call genpmat2(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik),ripaa,ripalo, &
-             riploa,riplolo,apwcmt,locmt,evecfvt,evecsvt,pmat)
+        call genpmat2(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik),evecfvt,evecsvt, &
+	     pmat)
      else
         ! calculate the momentum matrix elements
         call genpmat(ngk(1,ik),igkig(1,1,ik),vgkc(1,1,1,ik),apwalmt,evecfvt, &

@@ -249,18 +249,19 @@ tappinfo=.false.
 dbglev=0
 ! screening variables
 screentype='full'
-nosymscr=.false.
-reducekscr=.true.
+nosymscr=nosym
+reducekscr=reducek
 ngridkscr(:)=0
 vkloffscr(:)=-1.d0
-rgkmaxscr=-1.d0
+rgkmaxscr=0.d0
 nemptyscr=0
 scrherm=0
 ! BSE (-kernel) variables
 bsetype='ip'
-nosymbse=.false.
-reducekbse=.true.
+nosymbse=nosym
+reducekbse=reducek
 vkloffbse(:)=-1.d0
+rgkmaxbse=0.d0
 bsediagweight=1
 bsediagsym=0
 nbfce=0
@@ -1185,7 +1186,7 @@ case('nosymscr')
 case('reducekscr')
   read(50,*,err=20) reducekscr
 case('ngridkscr')
-  read(50,*,err=20) ngridkscr(1),ngridkscr(2),ngridkscr(3)
+  read(50,*,err=20) ngridkscr(:)
   if ((ngridkscr(1).le.0).or.(ngridkscr(2).le.0).or.(ngridkscr(3).le.0)) then
     write(*,*)
     write(*,'("Error(readinput/xs): invalid ngridkscr : ",3I8)') ngridkscr
@@ -1193,7 +1194,7 @@ case('ngridkscr')
     stop
   end if
 case('vkloffscr')
-  read(50,*,err=20) vkloffscr(1),vkloffscr(2),vkloffscr(3)
+  read(50,*,err=20) vkloffscr(:)
 case('rgkmaxscr')
   read(50,*,err=20) rgkmaxscr
   if (rgkmaxscr.le.0.d0) then
@@ -1229,7 +1230,15 @@ case('nosymbse')
 case('reducekbse')
   read(50,*,err=20) reducekbse
 case('vkloffbse')
-  read(50,*,err=20) vkloffbse(1),vkloffbse(2),vkloffbse(3)
+  read(50,*,err=20) vkloffbse(:)
+case('rgkmaxbse')
+  read(50,*,err=20) rgkmaxbse
+  if (rgkmaxscr.le.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): rgkmaxbse <= 0 : ",G18.10)') rgkmaxbse
+    write(*,*)
+    stop
+  end if
 case('bsediagweight')
   read(50,*,err=20) bsediagweight
 case('bsediagsym')
@@ -1303,6 +1312,8 @@ if (molecule) then
   end do
 end if
 #ifdef XS
+call backup0
+call backup1
 ! dump default parameters (partially) redifined in input file
 if (rank.eq.0) then
    fname='PARAMS.OUT'

@@ -82,11 +82,14 @@ subroutine xsmain
      call fxc_alda_check
   case(401)
      ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
-     ! for BSE(-kernel)
+     ! for screening and BSE(-kernel)
      call scrgeneigvec 
   case(410)
      ! calculate weights for tetrahedron method (screening)
      call scrtetcalccw
+  case(420)
+     ! momentum matrix elements for screening
+     call screen
   case(430)
      ! RPA screening
      call screen

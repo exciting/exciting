@@ -3,17 +3,10 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine pmatrad(ripaa,ripalo,riploa,riplolo)
+subroutine pmatrad
   use modmain
+  use modxs
   implicit none
-  ! arguments
-  real(8), intent(out) :: ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3)
-  real(8), intent(out) :: ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax, &
-       natmtot,3)
-  real(8), intent(out) :: riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw, &
-       natmtot,3)
-  real(8), intent(out) :: riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax, &
-       natmtot,3)
   ! local variables
   integer :: is,ia,ias,nr,ir
   integer :: l1,m1,lm1,l3,m3,lm3

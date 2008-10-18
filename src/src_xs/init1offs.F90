@@ -10,12 +10,14 @@ subroutine init1offs(vploff)
   ! arguments
   real(8), intent(in) :: vploff(3)
   ! local variables
-  real(8) :: vklofft(3)
+  real(8) :: vt(3)
+  logical :: lt
+  lt=init1norealloc
   init1norealloc=.true.
-  vklofft(:)=vkloff(:)
+  vt(:)=vkloff(:)
   vkloff(:)=vploff(:)
   ! call init1 without selected re-allocations and specified k-point offset
   call init1
-  init1norealloc=.false.
-  vkloff(:)=vklofft(:)
+  init1norealloc=lt
+  vkloff(:)=vt(:)
 end subroutine init1offs

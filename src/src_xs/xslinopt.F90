@@ -30,7 +30,7 @@ subroutine xslinopt(iq)
   real(8),allocatable :: wplot(:),loss(:)
   real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
   real(8) :: sumrls(3),brd
-  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,optcompt(3),i,j
+  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,octl,octu,optcompt(3),i,j
   logical :: tq0
   logical, external :: tqgamma
   integer, external :: octmap
@@ -44,7 +44,7 @@ subroutine xslinopt(iq)
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects
   n=ngq(iq)
-  allocate(mdf1(nwdf),mdf2(3,3,nwdf),w(nwdf),wr(nwdos),wplot(nwdos),mdf(nwdos), &
+  allocate(mdf1(nwdf),mdf2(3,3,nwdf),w(nwdf),wr(nwdos),wplot(nwdos),mdf(nwdos),&
        loss(nwdos),sigma(nwdos),cf(3,nwdos))
   allocate(eps1(nwdos),eps2(nwdos))
   mdf2(:,:,:)=zzero
@@ -61,67 +61,79 @@ subroutine xslinopt(iq)
   do m=1,n,max(n-1,1)
      ! loop over longitudinal components for optics
      do oct1=1,nc
-     do oct2=oct1,oct1
-        ! file name for inverse of dielectric function
-        call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
-             acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
-        ! read macroscopic dielectric function (original frequencies)
-        open(unit1,file=trim(filnam),form='unformatted', &
-             action='read',status='old',access='direct',recl=recl)
-        do iw=1,nwdf
-           read(unit1,rec=iw) mdf1(iw)
-        end do
-        close(unit1)
-        ! analytic continuation
-        if (acont) then
-           call pade(nwdos,wr,nwdf,w,mdf1,mdf)
+        if (dfoffdiag) then
+           octl=1
+           octu=nc
         else
-           mdf(:)=mdf1(:)
+           octl=oct1
+           octu=oct1
         end if
-	mdf2(oct1,oct2,:)=mdf(:)
-     end do
-     end do
-     
-     do oct1=1,nc
-     do oct2=oct1,oct1
-        oct=octmap(oct1,oct2)
-        optcomp(1,1)=oct1
-        optcomp(2,1)=oct2
-        optcompt(:)=optcomp(:,1)    
-        ! symmetrization matrix for dielectric function
-        call gensymdf(oct1,oct2)
-        ! symmetrize the macroscopic dielectric function tensor
-        mdf(:)=zzero
-        do i=1,3
-           do j=1,3
-              mdf(:)=mdf(:)+symdfq0(i,j)*mdf2(i,j,:)
+        do oct2=octl,octu
+           ! file name for inverse of dielectric function
+           call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
+                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
+           ! read macroscopic dielectric function (original frequencies)
+           open(unit1,file=trim(filnam),form='unformatted', &
+                action='read',status='old',access='direct',recl=recl)
+           do iw=1,nwdf
+              read(unit1,rec=iw) mdf1(iw)
            end do
+           close(unit1)
+           ! analytic continuation
+           if (acont) then
+              call pade(nwdos,wr,nwdf,w,mdf1,mdf)
+           else
+              mdf(:)=mdf1(:)
+           end if
+           mdf2(oct1,oct2,:)=mdf(:)
         end do
-     
-        ! file names for spectra
-        call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
-             acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fneps)
-        call genfilname(basename='LOSS',asc=.false.,bzsampl=bzsampl,&
-             acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnloss)
-        call genfilname(basename='SIGMA',asc=.false.,bzsampl=bzsampl,&
-             acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsigma)
-        call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
-             acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-             tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsumrules)
-        ! generate optical functions
-        call genloss(mdf,loss)
-        call gensigma(dble(wr),mdf,optcompt,sigma)
-        call gensumrls(dble(wr),mdf,sumrls)
-        ! write optical functions to file
-        call writeeps(iq,wplot,mdf,trim(fneps))
-        call writeloss(iq,wplot,loss,trim(fnloss))
-        call writesigma(iq,wplot,sigma,trim(fnsigma))
-        call writesumrls(iq,sumrls,trim(fnsumrules))
-     end do ! oct
+     end do
+     do oct1=1,nc
+        if (dfoffdiag) then
+           octl=1
+           octu=nc
+        else
+           octl=oct1
+           octu=oct1
+        end if
+        do oct2=octl,octu
+           oct=octmap(oct1,oct2)
+           optcomp(1,1)=oct1
+           optcomp(2,1)=oct2
+           optcompt(:)=optcomp(:,1)    
+           ! symmetrization matrix for dielectric function
+           call gensymdf(oct1,oct2)
+           ! symmetrize the macroscopic dielectric function tensor
+           mdf(:)=zzero
+           do i=1,3
+              do j=1,3
+                 mdf(:)=mdf(:)+symdfq0(i,j)*mdf2(i,j,:)
+              end do
+           end do
+           ! file names for spectra
+           call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
+                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fneps)
+           call genfilname(basename='LOSS',asc=.false.,bzsampl=bzsampl,&
+                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnloss)
+           call genfilname(basename='SIGMA',asc=.false.,bzsampl=bzsampl,&
+                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsigma)
+           call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
+                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsumrules)
+           ! generate optical functions
+           call genloss(mdf,loss)
+           call gensigma(dble(wr),mdf,optcompt,sigma)
+           call gensumrls(dble(wr),mdf,sumrls)
+           ! write optical functions to file
+           call writeeps(iq,wplot,mdf,trim(fneps))
+           call writeloss(iq,wplot,loss,trim(fnloss))
+           call writesigma(iq,wplot,sigma,trim(fnsigma))
+           call writesumrls(iq,sumrls,trim(fnsumrules))
+        end do ! oct
      end do
   end do ! m
   ! deallocate

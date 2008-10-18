@@ -224,19 +224,16 @@ subroutine dfq(iq)
           ngq(iq)
      call ematqalloc
   end if
-
   if ((fxctype.eq.7).or.(fxctype.eq.8)) then
      call getbsediag
      write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
      write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
-
   ! loop over k-points
   do ik=1,nkpt
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
-     write(*,'(a,i5,3x,2i6)') 'dfq: q-point/k-point/k+q-point:',iq,ik, &
-          ikmapikq(ik,iq)
+     call chkpt(2,(/iq,ik/),'dfq: q-point index, k-point index')
      cpuosc=0.d0
      cpuupd=0.d0
      call cpu_time(cpu0)
@@ -251,19 +248,11 @@ subroutine dfq(iq)
         if (.not.allocated(xiuo)) allocate(xiuo(nst3,nst4,n))
         if (.not.allocated(pmuo)) allocate(pmuo(3,nst3,nst4))
      end if
-
-
+     ! add BSE diagonal shift use with BSE-kernel
      if ((fxctype.eq.7).or.(fxctype.eq.8)) then
         scis12(:,:)=scis12(:,:)+bsed
         scis21(:,:)=scis21(:,:)-bsed
      end if
-
-!*******************************************************************************
-! *** this is working for Si_lapw/apw+lo
-!	scis12=scis12+hdg(:,:,ik)
-!	scis21=scis21-hdg(:,:,ik)
-!*******************************************************************************
-
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
@@ -309,7 +298,6 @@ subroutine dfq(iq)
      end do
      call cpu_time(cpu1)
      cpuread=cpu1-cpu0
-
      do ist1=1,nst1
         do ist2=1,nst2
            !---------------------!
@@ -322,7 +310,7 @@ subroutine dfq(iq)
            if (.not.transijst(ik,i1,i2,dftrans)) cycle
            call cpu_time(cpu0)
            ! user request termination
-           call terminate_inqr('dfq')
+           call terminateqry('dfq')
            if (tetradf) then
               ! mirror index pair on diagonal if necessary
               if (i1.gt.i2) then
@@ -409,7 +397,6 @@ subroutine dfq(iq)
      ! end loop over k-points
   end do
   if (tscreen) call ematqdealloc
-
   ! symmetrize head
   if (tq0) then
      allocate(chi0hs(9,nwdfp))
@@ -418,9 +405,6 @@ subroutine dfq(iq)
            lops=octmap(oct1,oct2)
            ! symmetrization matrix for dielectric function
            call gensymdf(oct1,oct2)
-write(*,*) 'oct1,oct2,symdfq0',oct1,oct2
-write(*,*) symdfq0
-write(*,*)
            chi0hs(lops,:)=zzero
            do i=1,3
               do j=1,3
@@ -433,18 +417,6 @@ write(*,*)
      chi0h(:,:)=chi0hs(:,:)
      deallocate(chi0hs)
   end if
-  
-  do iw=1,nwdf,10
-  do ig1=1,n
-  do ig2=1,n
-
-write(88888,'(3i6,3g18.10)') iw,ig1,ig2,chi0(ig1,ig2,iw),abs(chi0(ig1,ig2,iw))**2
-  
-  end do
-  end do
-  end do
-  
-
   ! write response function to file
   if (tscreen) then
      ! write out screening

@@ -45,8 +45,9 @@ subroutine xsgeneigvec
      ! write eigenvectors, -values, occupancies and contracted MT coefficients
      call writeevec(vqlt,qvkloff(1,iq),filext)
      if (.not.tscreen) then
-        write(unitout,'(a,i8,3g18.10)') 'Info('//thisnam//'): eigenvectors &
-             &generated for Q-point:', iq, vqlt(:)
+        write(unitout,'("Info(",a,"): eigenvectors generated for Q-point &
+	     &(iq,vql below)")') thisnam
+	write(unitout,'(i6,3g18.10)') iq, vqlt(:)
      else
         write(unitout,'(a)') 'Info('//thisnam//'): eigenvectors &
              &generated for screening/screened interaction:'
@@ -70,13 +71,12 @@ subroutine xsgeneigvec
      ! end loop over q-points
   end do
   if ((rank.eq.0).and.tqgamma(1).and.(.not.tscreen)) then
-     write(unitout,'(a)') 'Info('//thisnam//'): First Q-point is &
-          &Gamma-point - copying relevant files'
+     write(unitout,'("Info(",a,"): first Q-point is Gamma-point - copying &
+       &relevant files")') thisnam
      ! write files again one by one
      call copyfilesq0
   end if
   call barrier
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): generation of &
-       &eigenvectors finished"
+  write(unitout,'("Info(",a,"): generation of eigenvectors finished")') thisnam
   call genfilname(setfilext=.true.)
 end subroutine xsgeneigvec

@@ -10,34 +10,14 @@ subroutine terminate
 #ifdef MPI
   call mpi_abort(mpi_comm_world, 1,ierr)
   if (ierr.eq.0) then
-     write(*,'(a)') 'MPI abort clean. STOP'
+     write(*,'(a)') 'MPI abort'
   else
-     write(*,'(a)') 'MPI abort unclean - zombie processes might remain! STOP'
+     write(*,'(a)') 'MPI abort with errors - zombie processes might remain!'
   end if
 #endif
 #ifndef MPI
-  write(*,'(a)') 'Abort clean. STOP'
+  write(*,'(a)') 'Abort'
 #endif
-  ! stop
+  ! stop program
   stop
 end subroutine terminate
-
-subroutine terminate_inqr(str)
-  use m_getunit
-  implicit none
-  ! arguments
-  character(*) :: str
-  ! local variables
-  logical :: exis
-  integer :: un
-  ! check for terminating
-  inquire(file='TERMINATE',exist=exis)
-  if (exis) then
-     write(*,'(a)') 'Error: user termination of program in routine: '// &
-          trim(str)
-     call getunit(un)
-     open(un,file='TERMINATE',action='write')
-     close(un,status='delete')
-     call terminate
-  end if
-end subroutine terminate_inqr

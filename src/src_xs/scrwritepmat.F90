@@ -3,7 +3,7 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine scrgeneigvec
+subroutine scrwritepmat
   use modmain
   use modmpi
   use modxs
@@ -12,7 +12,7 @@ subroutine scrgeneigvec
   use m_writegqpts
   implicit none
   ! local variables
-  character(*), parameter :: thisnam='scrgeneigvec'
+  character(*), parameter :: thisnam='scrwritepmat'
   real(8) :: vklofft(3),rgkmaxt
   integer :: ngridkt(3),nemptyt
   logical :: nosymt,reducekt
@@ -32,12 +32,11 @@ subroutine scrgeneigvec
   vkloff(:)=vkloffscr(:)
   rgkmax=rgkmaxscr
   nempty=nemptyscr
-  ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-  call xsgeneigvec
-  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): eigenvectors for screening &
-       &finished"
+  ! calculate momentum matrix elements
+  call writepmatxs
+  write(unitout,'(a)') "Info("//trim(thisnam)//"): momentum matrix elements &
+       &for screening finished"
   ! restore global variables
   nosym=nosymt
   reducek=reducekt
@@ -45,4 +44,4 @@ subroutine scrgeneigvec
   vkloff(:)=vklofft(:)
   rgkmax=rgkmaxt
   nempty=nemptyt
-end subroutine scrgeneigvec
+end subroutine scrwritepmat

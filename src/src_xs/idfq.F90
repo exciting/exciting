@@ -23,7 +23,7 @@ subroutine idfq(iq)
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,igmt
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,octl,octu,igmt
   logical :: tq0
   integer, external :: l2int,octmap
   logical, external :: tqgamma
@@ -32,7 +32,9 @@ subroutine idfq(iq)
   tq0=tqgamma(iq)
   ! number of components (3 for q=0)
   nc=1
-  if (tq0) nc=3
+  if (tq0) then
+     nc=3
+  end if
   ! limits for w-points
   wi=wpari
   wf=wparf
@@ -71,7 +73,14 @@ subroutine idfq(iq)
      end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
-        do oct2=oct1,oct1
+     	if (dfoffdiag) then
+	   octl=1
+	   octu=nc
+	else
+	   octl=oct1
+	   octu=oct1
+	end if
+        do oct2=octl,octu
            oct=octmap(oct1,oct2)
            ! filename for output file
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&

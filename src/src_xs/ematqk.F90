@@ -95,7 +95,7 @@ subroutine ematqk(iq,ik)
 
   ! loop over G+q vectors
   do igq=1,ngq(iq)
-     call terminate_inqr('ematqk')
+     call terminateqry('ematqk')
      call cpu_time(cpu00)
      ! summation of Gaunt coefficients wrt radial integrals
      call ematgntsum(iq,igq)

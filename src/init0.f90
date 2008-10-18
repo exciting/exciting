@@ -12,8 +12,6 @@ use modmain
 use modxcifc
 #ifdef XS
 use modxs
-use modmpi
-use modfxcifc
 #endif
 ! !DESCRIPTION:
 !   Performs basic consistency checks as well as allocating and initialising
@@ -28,38 +26,7 @@ implicit none
 integer is,js,ia,ias
 integer ist,l,m,lm,iv(3)
 real(8) ts0,ts1
-#ifdef XS
-integer nerr
-nerr=0
-! warn for spin polarized calculations
-if (spinpol) then
-   write(*,*) 'Warning(init0/xs): calculation is spin-polarized - formalism &
-        &may be incomplete'
-end if
-! no spin-spirals
-if (spinsprl) then
-   write(*,*) 'Error(init0/xs): xs-part not working for spin-spirals'
-   nerr=nerr+1
-end if
-! type of response functions
-if (rsptype.ne.'reta') then
-   write(*,'(a,2i8)') 'Error(init0/xs): only retarded response functions &
-   &implemented'
-   nerr=nerr+1
-end if
-! tetrahedron method not implemented for analytic continuation
-if (tetradf.and.acont) then
-   write(*,*) 'Error(init0/xs): tetrahedron method does not work in &
-   	&combination  with analytic continuation'
-   nerr=nerr+1
-end if
-! stop on errors
-if (nerr.gt.0) stop
-tscreen=.false.
-if ((task.ge.400).and.(task.le.499)) tscreen=.true.
-! only perform calculation of symmetries
-if (init0symonly) goto 10
-#endif
+
 !-------------------------------!
 !     zero timing variables     !
 !-------------------------------!
@@ -107,23 +74,6 @@ allocate(zil(0:lmaxapw))
 do l=0,lmaxapw
   zil(l)=zi**l
 end do
-#ifdef XS
-if (lmaxapwwf.eq.-1) lmaxapwwf=lmaxmat
-lmmaxapwwf=(lmaxapwwf+1)**2
-lmmaxemat=(lmaxemat+1)**2
-if (lmaxapwwf.gt.lmaxapw) then
-   write(*,*) 'Error(init0/xs): lmaxapwwf > lmaxapw:', lmaxapwwf
-   call terminate
-end if
-if (lmaxemat.gt.lmaxapw) then
-   write(*,*) 'Error(init0/xs): lmaxemat > lmaxapw:', lmaxemat
-   call terminate
-end if
-if (lmaxemat.gt.lmaxapwwf) then
-   write(*,*) 'Warning(init0/xs): lmaxemat > lmaxapwwf:', lmaxemat
-   call terminate
-end if
-#endif
 
 !------------------------------------!
 !     index to atoms and species     !
@@ -188,10 +138,6 @@ if (spinpol) tevecsv=.true.
 if ((task.eq.5).or.(task.eq.300)) tevecsv=.true.
 ! get exchange-correlation functional data
 call getxcdata(xctype,xcdescr,xcspin,xcgrad)
-#ifdef XS
-! get exchange-correlation kernel functional data
-call getfxcdata(fxctype,fxcdescr,fxcspin)
-#endif
 if ((spinpol).and.(xcspin.eq.0)) then
   write(*,*)
   write(*,'("Error(init0): requested spin-polarised run with &
@@ -260,9 +206,6 @@ call r3mv(ainv,bfieldc,bfieldl)
 call r3mv(bvec,vqlss,vqcss)
 ! find Bravais lattice symmetries
 call findsymlat
-#ifdef XS
-10 continue
-#endif
 ! use only the identity if required
 if (nosym) nsymlat=1
 ! find the crystal symmetries and shift atomic positions if required
@@ -273,7 +216,6 @@ call findsymsite
 ! determine inverse symmery elements
 call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat, &
      scimap)
-if (init0symonly) goto 20
 #endif
 ! automatically determine the muffin-tin radii if required
 if (autormt) call autoradmt
@@ -357,6 +299,9 @@ call gencfun
 !-------------------------!
 !     atoms and cores     !
 !-------------------------!
+#ifdef XS
+goto 10
+#endif
 ! solve the Kohn-Sham-Dirac equations for all atoms
 call allatoms
 ! allocate core state eigenvalue array and set to default
@@ -376,6 +321,9 @@ allocate(rwfcr(spnrmax,2,spnstmax,natmtot))
 ! allocate core state charge density array
 if (allocated(rhocr)) deallocate(rhocr)
 allocate(rhocr(spnrmax,natmtot))
+#ifdef XS
+10 continue
+#endif
 
 !---------------------------------------!
 !     charge density and potentials     !
@@ -474,20 +422,6 @@ if ((ldapu.ne.0).or.(task.eq.17)) then
   allocate(alphalu(natmtot))
 end if
 
-#ifdef XS
-!-------------------------------------------------!
-!     emergy intervals and occupation numbers     !
-!-------------------------------------------------!
-! if imaginary frequencies intervals are not specified
-if (nwacont.eq.0) nwacont=nwdos
-nwdf=nwdos
-if (acont) nwdf=nwacont
-! scaling factor for output of energies
-escale=1.d0
-if (tevout) escale=27.2114d0
-if (nemptyscr.eq.0) nemptyscr=nempty
-#endif
-
 !-----------------------!
 !     miscellaneous     !
 !-----------------------!
@@ -512,9 +446,6 @@ tlast=.false.
 call timesec(ts1)
 timeinit=timeinit+ts1-ts0
 
-#ifdef XS
-20 continue
-#endif
 return
 end subroutine
 !EOC

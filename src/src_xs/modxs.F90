@@ -260,6 +260,14 @@ module modxs
   !---------------------------------!
   ! fast method to calculate matrix elements
   logical :: fastpmat
+  ! radial integrals coefficients (APW-APW)
+  real(8), allocatable :: ripaa(:,:,:,:,:,:)
+  ! radial integrals coefficients (APW-lo)
+  real(8), allocatable :: ripalo(:,:,:,:,:,:)
+  ! radial integrals coefficients (lo-APW)
+  real(8), allocatable :: riploa(:,:,:,:,:,:)
+  ! radial integrals coefficients (lo-lo)
+  real(8), allocatable :: riplolo(:,:,:,:,:,:)
   ! momentum matrix elements (resonant part)
   complex(8), allocatable :: pmou(:,:,:)
   ! momentum matrix elements (anti-resonant part)
@@ -425,6 +433,23 @@ module modxs
   character(256) :: fnsigma
   ! sumrules for optics
   character(256) :: fnsumrules
+  
+  !--------------------------!
+  !     backup variables     !
+  !--------------------------!
+  ! nosym is .true. if no symmetry information should be used
+  logical nosym_b
+  ! smallest muffin-tin radius times gkmax
+  real(8) :: rgkmax_b
+  ! number of empty states
+  integer :: nempty_b
+  ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
+  logical reducek_b
+  ! k-point grid sizes
+  integer :: ngridk_b(3)
+  ! k-point offset
+  real(8) :: vkloff_b(3)
+ 
 
   !------------------------------!
   !     parallel environment     !

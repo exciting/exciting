@@ -14,7 +14,6 @@ use modtetra
 #endif
 #ifdef XS
 use modxs
-use modmpi
 #endif
 ! !DESCRIPTION:
 !   Generates the $k$-point set and then allocates and initialises global
@@ -37,27 +36,9 @@ external gauntyry
 
 call timesec(ts0)
 
-#ifdef XS
-!-----------------------------!
-!     MPI parallelization     !
-!-----------------------------!
-! set splittfile parameter for splitting of eigenvector files in
-! parallelization of SCF cycle
-if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
-if (procs.gt.nkpt) then
-   procs=nkpt
-   write(*,*) 'Error(init1/xs): procs > nkpt'
-end if
-#endif  
-
 !---------------------!
 !     k-point set     !
 !---------------------!
-#ifdef XS
-if (any(ngridkscr.eq.0)) ngridkscr(:)=ngridk(:)
-if (any(vkloffscr.eq.-1.d0)) vkloffscr(:)=vkloff(:)
-if (any(vkloffbse.eq.-1.d0)) vkloffbse(:)=vkloff(:)
-#endif
 ! check if the system is an isolated molecule
 if (molecule) then
   ngridk(:)=1
@@ -145,9 +126,6 @@ end if
 !---------------------!
 !     G+k vectors     !
 !---------------------!
-#ifdef XS
-if (rgkmaxscr.eq.0.d0) rgkmaxscr=rgkmax
-#endif
 ! determine gkmax
 if ((isgkmax.ge.1).and.(isgkmax.le.nspecies)) then
   gkmax=rgkmax/rmt(isgkmax)
@@ -290,14 +268,19 @@ occsv(:,:)=0.d0
 #ifdef XS
 if (allocated(occsv0)) deallocate(occsv0)
 allocate(occsv0(nstsv,nkpt))
+occsv(:,:)=0.d0
 if (allocated(isto0)) deallocate(isto0)
 allocate(isto0(nkpt))
+isto0(:)=0.d0
 if (allocated(isto)) deallocate(isto)
 allocate(isto(nkpt))
+isto(:)=0.d0
 if (allocated(istu0)) deallocate(istu0)
 allocate(istu0(nkpt))
+istu0(:)=0.d0
 if (allocated(istu)) deallocate(istu)
 allocate(istu(nkpt))
+istu(:)=0.d0
 #endif
 ! allocate overlap and Hamiltonian integral arrays
 if (allocated(oalo)) deallocate(oalo)
@@ -330,17 +313,6 @@ do l1=0,lmaxmat
   end do
 end do
 #ifdef XS
-!-----------------------------!
-!     MPI parallelization     !
-!-----------------------------!
-! set splittfile parameter for splitting of eigenvector files in
-! parallelization of SCF cycle
-if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
-if (procs.gt.nkpt) then
-   procs=nkpt
-   write(*,*) 'Error(init1/xs): procs > nkpt'
-end if
-
 20 continue
 #endif
 

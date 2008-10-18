@@ -6,26 +6,14 @@
 !BOP
 ! !ROUTINE: genpmat2
 ! !INTERFACE:
-subroutine genpmat2(ngp,igpig,vgpc,ripaa,ripalo,riploa,riplolo,apwcmt,locmt, &
-     evecfv,evecsv,pmat)
+subroutine genpmat2(ngp,igpig,vgpc,evecfv,evecsv,pmat)
 ! !USES:
   use modmain
+  use modxs, only: apwcmt,locmt,ripaa,ripalo,riploa,riplolo
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   igpig  : index from G+p-vectors to G-vectors (in,integer(ngkmax))
 !   vgpc   : G+p-vectors in Cartesian coordinates (in,real(3,ngkmax))
-!   ripaa  : gradient of radial functions time spherical harmonics (APW-APW)
-!            (in,complex(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3))
-!   ripalo : gradient of radial functions time spherical harmonics (APW-lo)
-!            (in,complex(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax,natmtot,3))
-!   riploa : gradient of radial functions time spherical harmonics (lo-APW)
-!            (in,complex(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw,natmtot,3))
-!   riplolo: gradient of radial functions time spherical harmonics (lo-lo)
-!            (in,complex(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax,natmtot,3))
-!   apwcmt : APW expansion coefficients coefficients
-!            (in,complex(nstfv,apwordmax,lmmaxapw,natmtot))
-!   locmt  : local orbitals expansion coefficients coefficients
-!            (in,complex(nstfv,nlomax,-lolmax:lolmax,natmtot))
 !   evecfv : first-variational eigenvector (in,complex(nmatmax,nstfv))
 !   evecsv : second-variational eigenvectors (in,complex(nstsv,nstsv))
 !   pmat   : momentum matrix elements (out,complex(3,nstsv,nstsv))
@@ -46,15 +34,6 @@ subroutine genpmat2(ngp,igpig,vgpc,ripaa,ripalo,riploa,riplolo,apwcmt,locmt, &
   integer, intent(in) :: ngp
   integer, intent(in) :: igpig(ngkmax)
   real(8), intent(in) :: vgpc(3,ngkmax)
-  real(8), intent(in) :: ripaa(apwordmax,lmmaxapw,apwordmax,lmmaxapw,natmtot,3)
-  real(8), intent(in) :: ripalo(apwordmax,lmmaxapw,nlomax,-lolmax:lolmax, &
-       natmtot,3)
-  real(8), intent(in) :: riploa(nlomax,-lolmax:lolmax,apwordmax,lmmaxapw, &
-       natmtot,3)
-  real(8), intent(in) :: riplolo(nlomax,-lolmax:lolmax,nlomax,-lolmax:lolmax, &
-       natmtot,3)
-  complex(8), intent(in) :: apwcmt(nstfv,apwordmax,lmmaxapw,natmtot)
-  complex(8), intent(in) :: locmt(nstfv,nlomax,-lolmax:lolmax,natmtot)
   complex(8), intent(in) :: evecfv(nmatmax,nstfv)
   complex(8), intent(in) :: evecsv(nstsv,nstsv)
   complex(8), intent(out) :: pmat(3,nstsv,nstsv)

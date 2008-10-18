@@ -63,7 +63,11 @@ subroutine xsfinit
        &+")')
   write(unitout,*)
   close(unitout)
-!!$  ! remove tag
-!!$  if (.not.tresume) call filedel(trim(fnresume))
-!!$  call filedel(trim(fnresume))
+  
+  ! restore global variables
+  call restore0
+  call restore1    
+    
+  ! remove checkpoint file
+  call filedel(trim(fnresume))
 end subroutine xsfinit

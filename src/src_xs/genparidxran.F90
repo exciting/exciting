@@ -13,6 +13,17 @@ subroutine genparidxran(typ,n)
   integer, intent(in) :: n
   ! local variables
   integer :: np
+  ! check if number of processors is greater than set
+  if (procs.gt.n) then
+     write(*,*)
+     write(*,'("Error(genparidxran): number of processors exceeds size of &
+        &set")')
+     write(*,'(" parallelization type : ",a)') typ
+     write(*,'(" size of set          : ",i6)') n
+     write(*,'(" number of processors : ",i6)') procs
+     write(*,*)
+     call terminate
+  end if
   ! default values
   wpari=1
   wparf=nwdf

@@ -15,6 +15,8 @@ subroutine screen
   real(8) :: vklofft(3),rgkmaxt
   integer :: ngridkt(3),nemptyt,nwdft
   logical :: nosymt,reducekt
+  call init0
+  call init1
   ! save global variables
   nosymt=nosym
   reducekt=reducek
