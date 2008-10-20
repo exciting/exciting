@@ -300,7 +300,7 @@ call gencfun
 !     atoms and cores     !
 !-------------------------!
 #ifdef XS
-goto 10
+if (init0symonly) goto 10
 #endif
 ! solve the Kohn-Sham-Dirac equations for all atoms
 call allatoms
