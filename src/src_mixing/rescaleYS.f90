@@ -1,16 +1,20 @@
-subroutine rescaleYS(MEMALL,n,S,Y, PCURRENT,FCURRENT)
-use modmixermsec,only:noldstepsmax,PWHIST,FHIST,CLMHIST,yhist,FHIST,icond,scl_plane
-use modmain,only:ngrtot
+subroutine rescaleYS(noldsteps,n,S,Y, potential,F)
+use modmixermsec,only:noldstepsmax,PWHIST,FHIST,CLMHIST,yhist,FHIST,icond,scl_plane,MSECINFO
+use modmain,only:ngrtot,lmmaxvr,nrmtmax,natmtot
 implicit none
-integer, intent(in)::n,MEMALL
-real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax),PCURRENT(n),FCURRENT(n)
+integer, intent(in)::n,noldsteps
+real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax),potential(n),F(n)
 real(8)::PWAVE,CLAVE,Rescale,T1
-integer ::i,j,k
+integer ::i,j,k,nmt
+  nmt=lmmaxvr*nrmtmax*natmtot
 
+    FHIST(noldsteps)  =dot_product(F,F)
+    PWHIST(noldsteps) =dot_product(F(n-ngrtot:n),F(n-ngrtot:n))
+    CLMHIST(noldsteps)=FHIST(noldsteps)-PWHIST(noldsteps)
 
 		PWAVE=0.
         CLAVE=0.
-        do i=1,MEMALL
+        do i=1,noldsteps
                 PWAVE=PWAVE+sqrt(PWHIST(i)/FHIST(i))
                 CLAVE=CLAVE+sqrt(CLMHIST(i)/FHIST(i))
         enddo
@@ -20,16 +24,19 @@ integer ::i,j,k
 !       This makes sense because relative weights appear as Rescale**2 in algorithm
         Rescale = CLAVE/PWAVE
         if(icond .gt. 0)Rescale=sqrt(Rescale)
-       ! MSECINFO(1)=Rescale
+        MSECINFO(1)=Rescale
 1002    format(':INFO : ',a,10D11.3)
         write(*,1002)' Dynamic rescale ',rescale
-        PCURRENT(1:ngrtot)=PCURRENT(ngrtot:n)*rescale
-        FCURRENT(ngrtot:n)=FCURRENT(ngrtot:n)*rescale
-        Y(ngrtot:n,1:noldstepsmax)=Y(ngrtot:n,1:noldstepsmax)*rescale
-        S(ngrtot:n,1:noldstepsmax)=S(ngrtot:n,1:noldstepsmax)*rescale
-        PWHIST(1:MEMALL)=PWHIST(1:MEMALL)*rescale*rescale
-        FHIST(1:MEMALL)=PWHIST(1:MEMALL)+CLMHIST(1:MEMALL)
+        potential(n-ngrtot:n)=potential(n-ngrtot:n)*rescale
+        F(n-ngrtot:n)=F(n-ngrtot:n)*rescale
+        Y(n-ngrtot:n,1:noldstepsmax)=Y(n-ngrtot:n,1:noldstepsmax)*rescale
+        S(n-ngrtot:n,1:noldstepsmax)=S(n-ngrtot:n,1:noldstepsmax)*rescale
+        PWHIST(1:noldsteps)=PWHIST(1:noldsteps)*rescale*rescale
+        FHIST(1:noldsteps)=PWHIST(1:noldsteps)+CLMHIST(1:noldsteps)
         scl_plane=scl_plane*rescale
+
+
+
 
   do J=1,noldstepsmax
            T1=0.

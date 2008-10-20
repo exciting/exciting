@@ -1,9 +1,10 @@
 module  modmixermsec
 real(8),allocatable:: residual(:),last_outputp(:),last_inputp(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
-integer:: record_of_last_iter
-integer, parameter::noldstepsmax=8,icond=1 !
-real(8)::   scl_plane
+integer:: record_of_last_iter,noldsteps,MUSE,  IDSCALE
+integer, parameter::noldstepsmax=8,icond=1
+real(8)::   scl_plane,qmx,RedOld,RedPred,qmx_input,PM1,DIAG,dmix_last,dmixout
+real*8 MSECINFO(20)
 contains
 subroutine initmixermsec(n)
 integer,intent(in)::n
@@ -18,6 +19,13 @@ FHIST=0
 CLMHIST=0
 yhist=0
 scl_plane=1
+RedOld=1
+RedPred=1
+qmx_input=.5
+qmx=qmx_input
+PM1=0
+  IDSCALE=0
+   DIAG =5D-4
 end subroutine
 
  subroutine freearraysmixermsec()

@@ -16,7 +16,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 	use modmain,only:beta0,betainc,betadec
 ! persistent arrays and create/desdruct functions
 	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,\
-	freearraysmixermsec,noldstepsmax
+	freearraysmixermsec,noldstepsmax,noldsteps
 	implicit none
 	integer, intent(in)::iscl,n
 	real(8), intent(inout)::potential(n) ! input/output potential
@@ -24,7 +24,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 	!local variables
 	real(8),allocatable::S(:,:),Y(:,:),YY(:,:),STEP(:)
 
-	integer noldsteps,nwork
+	integer nwork
 	real(8),parameter::DELTA=1e-3,DMIX=.5
 	integer:: ifail
 	noldsteps=min(iscl-2,noldstepsmax)
@@ -44,7 +44,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
 		call rescaleYS(noldsteps,n,S,Y,potential,residual)
-		call setup_YY(n,noldstepsmax,S,Y,YY)
+		call setup_YY(iscl,n,S,Y,YY)
 		call MSEC1(Y,S,YY,residual,STEP,n,noldstepsmax,DMIX,IFAIL,DELTA,noldsteps)
 		!          Y,S:            Conventional Y and S arrays
 		!          YY:             Matrix of Y*Y values
