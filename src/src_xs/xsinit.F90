@@ -208,14 +208,16 @@ subroutine xsinit
      write(unitout,'("| Warning     : source codes deviates from the git hash &
           &id |")')
 #endif
-     write(unitout,'("+ ------------------------------------------------------&
-          &---+")')
 #ifdef MPI
-     write(unitout,'("compiled for MPI execution")') 
+     write(unitout,'("| compiled for MPI execution                            &
+          &   |")') 
 #endif
 #ifndef MPI
-     write(unitout,'("compiled for serial execution")') 
+     write(unitout,'("| compiled for serial execution                         &
+          &   |")') 
 #endif
+     write(unitout,'("+ ------------------------------------------------------&
+          &---+")')
      if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) master, &
      	&rank/number of processes:")') rank,procs
      if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) slave,  &
@@ -227,7 +229,6 @@ subroutine xsinit
            write(unitout,'(A)') notes(i)
         end do
      end if
-     write(unitout,*)
   end if
   write(unitout,*)
   write(unitout,'("Date (YYYY-MM-DD) : ",A4,"-",A2,"-",A2)') dat(1:4), &
