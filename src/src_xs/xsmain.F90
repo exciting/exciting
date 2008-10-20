@@ -89,7 +89,7 @@ subroutine xsmain
      call scrtetcalccw
   case(420)
      ! momentum matrix elements for screening
-     call screen
+     call scrwritepmat
   case(430)
      ! RPA screening
      call screen

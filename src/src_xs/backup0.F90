@@ -7,5 +7,6 @@ subroutine backup0
   use modmain
   use modxs
   implicit none
+  filext_b=trim(filext)
   nosym_b=nosym
 end subroutine backup0

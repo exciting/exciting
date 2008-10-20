@@ -7,5 +7,6 @@ subroutine restore0
   use modmain
   use modxs
   implicit none
+  filext=trim(filext_b)
   nosym=nosym_b
 end subroutine restore0

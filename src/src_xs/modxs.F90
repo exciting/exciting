@@ -437,6 +437,8 @@ module modxs
   !--------------------------!
   !     backup variables     !
   !--------------------------!
+  ! filename extension
+  character(256) :: filext_b
   ! nosym is .true. if no symmetry information should be used
   logical nosym_b
   ! smallest muffin-tin radius times gkmax
@@ -449,8 +451,11 @@ module modxs
   integer :: ngridk_b(3)
   ! k-point offset
   real(8) :: vkloff_b(3)
+  ! q-point grid sizes
+  integer :: ngridq_b(3)
+  ! type of matrix element generation (band-combinations)
+  integer :: emattype_b
  
-
   !------------------------------!
   !     parallel environment     !
   !------------------------------!

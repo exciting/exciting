@@ -34,9 +34,6 @@ subroutine getbsemat(fname,ikkp,n1,n2,zmat)
   inquire(iolength=recl) ikkp_,iknr_,jknr_,iq_,iqr_,n1_,n2_,n3_,n4_,zm
   open(unit=un,file=trim(fname),form='unformatted',action='read', &
        access='direct',recl=recl)
-
-write(*,*) 'getbsemat: accessing record:',ikkp
-
   read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,n1_,n2_,n3_,n4_,zm
   close(un)
   ! check kkp-index

@@ -59,7 +59,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
      end if
   case(2)
      np=2
-     ! higher order exrapolation for 1/q^2 term
+     ! higher order extrapolation for 1/q^2 term
      if ((igq1.eq.1).and.(igq2.eq.1)) np=3
      allocate(xa(np),ya(np),c(np))
      ! loop over different subdivisions

@@ -11,7 +11,7 @@ subroutine xssave0
   use modmain
   use modxs
 ! !DESCRIPTION:
-!   This routine is be called after init0, init1 and init2 in order to save
+!   This routine should be called after init0, init1 and init2 in order to save
 !   variables realted to the k-point set for q=0.
 !
 ! !REVISION HISTORY:

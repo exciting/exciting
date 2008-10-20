@@ -66,7 +66,8 @@ subroutine xsfinit
   
   ! restore global variables
   call restore0
-  call restore1    
+  call restore1
+  call restore2
     
   ! remove checkpoint file
   call filedel(trim(fnresume))

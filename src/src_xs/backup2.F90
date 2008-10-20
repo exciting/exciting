@@ -3,14 +3,9 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine backup1
+subroutine backup2
   use modmain
   use modxs
   implicit none
-  nempty_b=nempty
-  rgkmax_b=rgkmax
-  reducek_b=reducek
-  ngridk_b(:)=ngridk(:)
-  vkloff_b(:)=vkloff(:)
-  emattype_b=emattype
-end subroutine backup1
+  ngridq_b(:)=ngridq(:)
+end subroutine backup2

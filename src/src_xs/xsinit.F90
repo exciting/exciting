@@ -15,6 +15,7 @@ subroutine xsinit
   ! local variables
   character(10) dat, tim
   integer :: i
+  real(8) :: tv(3)
 
   !---------------------------!
   !     initialize timing     !
@@ -30,6 +31,63 @@ subroutine xsinit
   call date_and_time(date=dat,time=tim)
   if (calledxs.eq.1) call system_clock(COUNT=systimcum)  
 
+  !---------------------!
+  !     output file     !
+  !---------------------!
+  ! set version of XS part
+  call xssetversion
+  ! name of output file
+  call genfilname(nodotpar=.true.,basename='XSINFO',procs=procs,rank=rank, &
+       filnam=xsfileout)
+  ! reset or append to output file
+  call getunit(unitout)
+  if (tappinfo.or.(calledxs.gt.1)) then
+     open(unitout,file=trim(xsfileout),action='write',position='append')
+  else
+     open(unitout,file=trim(xsfileout),action='write',status='replace')
+  end if
+  ! write to info file
+  if (calledxs.eq.1) then
+     write(unitout,*)
+     write(unitout,'("+-------------------------------------------------------&
+          &---+")')
+     write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
+          &States ",I1.1,".",I3.3,") started  |")') version,versionxs
+     write(unitout,'("| git hash id : ",2a20,"   |")') GITHASH,GITHASH2
+#ifdef LOCALCHG
+     write(unitout,'("| Warning     : source codes deviates from the git hash &
+          &id |")')
+#endif
+#ifdef MPI
+     write(unitout,'("| compiled for MPI execution                            &
+          &   |")') 
+#endif
+#ifndef MPI
+     write(unitout,'("| compiled for serial execution                         &
+          &   |")') 
+#endif
+     write(unitout,'("+ ------------------------------------------------------&
+          &---+")')
+     if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) master, &
+     	&rank/number of processes:")') rank,procs
+     if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) slave,  &
+     	&rank/number of processes:")') rank,procs
+     if (notelns.gt.0) then
+        write(unitout,*)
+        write(unitout,'("Notes :")')
+        do i=1,notelns
+           write(unitout,'(A)') notes(i)
+        end do
+     end if
+  end if
+  write(unitout,*)
+  write(unitout,'("Date (YYYY-MM-DD) : ",A4,"-",A2,"-",A2)') dat(1:4), &
+  	dat(5:6),dat(7:8)
+  write(unitout,'("Time (hh:mm:ss)   : ",A2,":",A2,":",A2)') tim(1:2), &
+  	tim(3:4),tim(5:6)
+  write(unitout,'("Info(xsinit): task Nr.",i6," started")') task
+  call flushifc(unitout)
+  
   !-----------------------------------!
   !     parallelization variables     !
   !-----------------------------------!
@@ -149,7 +207,8 @@ subroutine xsinit
   !----------------------------------!
   !     task dependent variables     !
   !----------------------------------!
-  if ((task.ge.401).and.(task.le.430)) then
+  if ((task.ge.401).and.(task.le.439)) then
+     ! screening
      nosym=nosymscr
      reducek=reducekscr
      rgkmax=rgkmaxscr
@@ -159,7 +218,19 @@ subroutine xsinit
      write(unitout,*)
      write(unitout,'("Info(xsinit): mapping screening-specific parameters")')
      write(unitout,*)
-  else if ((task.ge.440).and.(task.le.445)) then
+     tv(:)=dble(ngridkscr(:))/dble(ngridq(:))
+     tv(:)=tv(:)-int(tv(:))
+     if (sum(tv).gt.epslat) then
+        write(unitout,*)
+        write(unitout,'("Error(xsinit): ngridkscr must be an integer multiple &
+             &of ngridq")')
+        write(unitout,'(" ngridkscr : ",3i6)') ngridkscr
+        write(unitout,'(" ngridq    : ",3i6)') ngridq
+        write(unitout,*)
+        call terminate
+     end if
+  else if ((task.ge.440).and.(task.le.450)) then
+     ! BSE
      nosym=nosymbse
      reducek=reducekbse
      rgkmax=rgkmaxbse
@@ -167,6 +238,15 @@ subroutine xsinit
      write(unitout,*)
      write(unitout,'("Info(xsinit): mapping BSE-specific parameters")')
      write(unitout,*)
+     if (any(ngridk.ne.ngridq)) then
+        write(unitout,*)
+        write(unitout,'("Error(xsinit): ngridk must be equal ngridq for the &
+             &BSE-Hamiltonian")')
+        write(unitout,'(" ngridk : ",3i6)') ngridk
+        write(unitout,'(" ngridq : ",3i6)') ngridq
+        write(unitout,*)
+        call terminate
+     end if
   end if
 
   !---------------------!
@@ -180,63 +260,6 @@ subroutine xsinit
   end if
   ! check for stale checkpoint file
   call chkptchk
-  
-  !---------------------!
-  !     output file     !
-  !---------------------!
-  ! set version of XS part
-  call xssetversion
-  ! name of output file
-  call genfilname(nodotpar=.true.,basename='XSINFO',procs=procs,rank=rank, &
-       filnam=xsfileout)
-  ! reset or append to output file
-  call getunit(unitout)
-  if (tappinfo.or.(calledxs.gt.1)) then
-     open(unitout,file=trim(xsfileout),action='write',position='append')
-  else
-     open(unitout,file=trim(xsfileout),action='write',status='replace')
-  end if
-  ! write to info file
-  if (calledxs.eq.1) then
-     write(unitout,*)
-     write(unitout,'("+-------------------------------------------------------&
-          &---+")')
-     write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
-          &States ",I1.1,".",I3.3,") started  |")') version,versionxs
-     write(unitout,'("| git hash id : ",2a20,"   |")') GITHASH,GITHASH2
-#ifdef LOCALCHG
-     write(unitout,'("| Warning     : source codes deviates from the git hash &
-          &id |")')
-#endif
-#ifdef MPI
-     write(unitout,'("| compiled for MPI execution                            &
-          &   |")') 
-#endif
-#ifndef MPI
-     write(unitout,'("| compiled for serial execution                         &
-          &   |")') 
-#endif
-     write(unitout,'("+ ------------------------------------------------------&
-          &---+")')
-     if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) master, &
-     	&rank/number of processes:")') rank,procs
-     if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) slave,  &
-     	&rank/number of processes:")') rank,procs
-     if (notelns.gt.0) then
-        write(unitout,*)
-        write(unitout,'("Notes :")')
-        do i=1,notelns
-           write(unitout,'(A)') notes(i)
-        end do
-     end if
-  end if
-  write(unitout,*)
-  write(unitout,'("Date (YYYY-MM-DD) : ",A4,"-",A2,"-",A2)') dat(1:4), &
-  	dat(5:6),dat(7:8)
-  write(unitout,'("Time (hh:mm:ss)   : ",A2,":",A2,":",A2)') tim(1:2), &
-  	tim(3:4),tim(5:6)
-  write(unitout,'("Info(xsinit): task Nr.",i6," started")') task
-  call flushifc(unitout)
   
   ! define checkpoint
   call chkpt(1,(/task/),'passed xsinit')

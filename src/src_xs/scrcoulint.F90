@@ -34,25 +34,27 @@ subroutine scrcoulint
 !!$  real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
 !!$  real(8) :: cpu_clph,cpu_suma,cpu_write
 
-  !----------------!
-  !   initialize   !
-  !----------------!
-  ! save global variables
-  nosymt=nosym
-  reducekt=reducek
-  ngridkt(:)=ngridk(:)
-  vklofft(:)=vkloff(:)
-  nosym=nosymscr
-  ! no symmetries implemented for screened Coulomb interaction
-  reducek=.false.
-  ! q-point set of screening corresponds to (k,kp)-pairs
-  ngridk(:)=ngridq(:)
-  vkloff(:)=vkloffbse(:)
-  if (nemptyscr.eq.-1) nemptyscr=nempty
+!!$  !----------------!
+!!$  !   initialize   !
+!!$  !----------------!
+!!$  ! save global variables
+!!$  nosymt=nosym
+!!$  reducekt=reducek
+!!$  ngridkt(:)=ngridk(:)
+!!$  vklofft(:)=vkloff(:)
+!!$  nosym=nosymscr
+!!$  ! no symmetries implemented for screened Coulomb interaction
+!!$  reducek=.false.
+!!$  vkloff(:)=vkloffbse(:)
+!!$  if (nemptyscr.eq.-1) nemptyscr=nempty
 
   !---------------!
   !   main part   !
   !---------------!
+  ! q-point set of screening corresponds to (k,kp)-pairs
+  ngridk(:)=ngridq(:)
+
+
   emattype=2
   call init0
   call init1
@@ -171,7 +173,7 @@ subroutine scrcoulint
      
      allocate(emat12(nst12,n),emat34(nst34,n))
      allocate(tm(n,n),tmi(n,n))
-     allocate(scclit(nst34,nst12))
+     allocate(scclit(nst12,nst34)) !!!****SAG
      
      call findsymeqiv(vq,vqr,nsc,sc,ivgsc)
      call findgqmap(iq,iqr,nsc,sc,ivgsc,ngqmax,n,jsym,jsymi,ivgsym,igqmap)
@@ -254,9 +256,27 @@ subroutine scrcoulint
      
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
-     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
-          /omega/nkptnr
+!!$     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
+!!$          /omega/nkptnr
+
+     scclit=matmul(conjg(emat12),matmul(tm,transpose(emat34)))/omega/nkptnr
+
 	  
+!!$     ! map back to individual band indices
+!!$     j2=0
+!!$     do ist4=1,nst4
+!!$        do ist3=1,nst3
+!!$           j2=j2+1
+!!$           j1=0
+!!$           do ist2=1,nst2
+!!$              do ist1=1,nst1
+!!$                 j1=j1+1
+!!$                 sccli(ist1,ist3,ist2,ist4)=scclit(j2,j1)
+!!$              end do
+!!$           end do
+!!$        end do
+!!$     end do
+     
      ! map back to individual band indices
      j2=0
      do ist4=1,nst4
@@ -266,7 +286,7 @@ subroutine scrcoulint
            do ist2=1,nst2
               do ist1=1,nst1
                  j1=j1+1
-                 sccli(ist1,ist3,ist2,ist4)=scclit(j2,j1)
+                 sccli(ist1,ist3,ist2,ist4)=scclit(j1,j2)
               end do
            end do
         end do
@@ -379,14 +399,16 @@ subroutine scrcoulint
 
   call findgntn0_clear
 
-  !--------------!
-  !   finalize   !
-  !--------------!
-  ! restore global variables
-  nosym=nosymt
-  reducek=reducekt
-  ngridk(:)=ngridkt(:)
-  vkloff(:)=vklofft(:)
+!!$  !--------------!
+!!$  !   finalize   !
+!!$  !--------------!
+!!$  ! restore global variables
+!!$  nosym=nosymt
+!!$  reducek=reducekt
+!!$  ngridk(:)=ngridkt(:)
+!!$  vkloff(:)=vklofft(:)
+!!$
+
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screened Coulomb interaction&
        & finished"
 

@@ -13,14 +13,14 @@ contains
     ! arguments
     character(*), intent(in) :: fnam
     ! local variables
-    character(*), parameter :: thisnam = 'filedel'
+    integer, parameter :: verb=0
     integer :: un
     logical :: existent, opened
     ! check if file exists
     inquire(file=trim(fnam),exist=existent)
-    if (.not.existent) then
-       write(*,*) 'Warning('//thisnam//'): attempted to delete non-existent &
-            &file: '//trim(fnam)
+    if ((verb.gt.0).and.(.not.existent)) then
+       write(*,'("Warning(filedel): attempted to delete non-existent file: ",&
+            &a)') trim(fnam)
        return
     end if
     ! check if file is opened

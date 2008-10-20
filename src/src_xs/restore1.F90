@@ -12,4 +12,5 @@ subroutine restore1
   reducek=reducek
   ngridk(:)=ngridk_b(:)
   vkloff(:)=vkloff_b(:)
+  emattype=emattype_b
 end subroutine restore1

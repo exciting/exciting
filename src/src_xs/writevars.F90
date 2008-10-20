@@ -15,6 +15,9 @@ contains
     integer, intent(in) :: iq,un
     ! local variables
     character(10) :: dat,tim
+    integer :: iqt
+    iqt=iq
+    if (iqt.eq.0) iqt=1
     ! write prologue to file
     call date_and_time(date=dat,time=tim)
     write(un,*)
@@ -25,8 +28,8 @@ contains
     write(un,'("# version           : ",i1.1,".",i1.1,".",i3.3)') version
     write(un,'("# version (xs)      : ",i1.1,".",i3.3)') versionxs
     write(un,'(a,2f12.6)') '# efermi (H,eV)     :',efermi,h2ev*efermi
-    write(un,'(a,3f12.6)') '# vql               :',vql(:,iq)
-    write(un,'(a,3f12.6)') '# vqc               :',vqc(:,iq)
+    write(un,'(a,3f12.6)') '# vql               :',vql(:,iqt)
+    write(un,'(a,3f12.6)') '# vqc               :',vqc(:,iqt)
     write(un,'(a,2i8)') '# optcomp           :',optcomp(1,1),optcomp(2,1)
     write(un,'(a,i8)') '# fxctype           :',fxctype
     write(un,'(a,f12.6)') '# alphalrc          :',alphalrc
@@ -39,7 +42,7 @@ contains
     write(un,'(a,2f12.6)') '# broad (H,eV)      :',broad,h2ev*broad
     write(un,'(a,2f12.6)') '# scissor (H,eV)    :',scissor,h2ev*scissor
     write(un,'(a,i8)') '# nwdos             :',nwdos
-    write(un,'(a,i8)') '# ngq               :',ngq(iq)
+    write(un,'(a,i8)') '# ngq               :',ngq(iqt)
     write(un,'(a,f12.6)') '# gqmax             :',gqmax
     write(un,'(a,f12.6)') '# gmaxvr            :',gmaxvr
     write(un,'(a,f12.6)') '# rgkmax            :',rgkmax

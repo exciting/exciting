@@ -3,7 +3,11 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: bse
+! !INTERFACE:
 subroutine bse
+! !USES:
   use modmain
   use modxs
   use m_genwgrid
@@ -11,113 +15,139 @@ subroutine bse
   use m_genfilname
   use m_getunit
   use m_writeeps
+! !DESCRIPTION:
+!   Solves the Bethe-Salpeter equation (BSE). The BSE is treated as equivalent
+!   effective eigenvalue problem (thanks to the spectral theorem that can
+!   be applied to the original BSE in the case of a statically screened Coulomb
+!   interaction). The effective BSE-Hamiltonian consists of three parts
+!   originating from different sources. It reads
+!   $$ H^{\rm eff} = H^{\rm diag} + 2H^{\rm x} + H^{\rm c}, $$
+!   where $H^{\rm diag}$ is the diagonal part stemming from the independent
+!   particle transitions, $H^{\rm x}$ denotes the exchange-term caused by the
+!   unscreened (bare) Coulomb interaction, whereas $H^{\rm c}$ accounts for the
+!   particle-hole correlations and is originating from the screened Coulomb
+!   interaction.
+!   For the purpose of describing independent particle transitions with the
+!   BSE only the diagonal term is referred to:
+!   $$ H^{\rm eff} = H^{\rm diag}. $$
+!   By neglecting the correlation part in the effective Hamiltonian we arrive
+!   at the {\it random phase approximation} (RPA)
+!   $$ H^{\rm eff} = H^{\rm diag} + 2H^{\rm x}. $$
+!   Investigations on the spin-structure of the BSE-Hamiltonian show that there
+!   are tow channels, namely the {\it singlet}-channel as solution to the
+!   Hamiltonian
+!   $$  H^{\rm eff} = H^{\rm diag} + 2H^{\rm x} + H^{\rm c} $$
+!   and a {\it triplet} channel with the exchange-part being absent.
+!   $$ H^{\rm eff} = H^{\rm diag} + H^{\rm c}. $$
+!   The equation of the eigenvalue problem is given by
+!   $$ \sum_{v'c'{\bf k'}} H^{\rm eff}_{vc{\bf k},v'c'{\bf k'}}
+!       A^{\lambda}_{v'c'{\bf k'}}
+!       =  \varepsilon_{\lambda} A^{\lambda}_{vc{\bf k}}. $$
+!   For the diagonalization of the Hamiltonian, a LAPACK-routine ({\tt zheevx})
+!   is invoked to obtain the eigenvalues $\varepsilon_{\lambda}$ and
+!   eigenvectors $A^{\lambda}_{vc{\bf k}}$ (alternatively, a time-evolution
+!   method shall be implemented to obtain the macroscopic dielectric function
+!   directly).
+!   Consequently, the transition amplitudes $t_{\lambda}$ are calculated
+!   according to
+!   $$ t^{i}_{\lambda} = \left|\sum_{vc{\bf k}} A^{\lambda}_{vc{\bf k}} 
+!      \frac{ p^{i}_{vc{\bf k}} }{ \varepsilon_{c{\bf k}}- 
+!                                  \varepsilon_{v{\bf k}} } \right|^2. $$
+!   Here, the index $i$ labels the polarization and the matrix elements
+!   $p^{i}_{vc{\bf k}}$ are the ones for the $i$-th component of the momentum
+!   operator in Cartesian coordinates.
+!   The macroscopic dielectric function (MDF) is obtained by the realation
+!   $$ {\rm Im}\; \epsilon^{i}_{\rm M}(\omega) = \frac{8\pi^2}{V} 
+!                     \sum_{\lambda} t^{i}_{\lambda}
+!                     \delta(\omega-\varepsilon_{\lambda}+\Delta),$$
+!   where $\epsilon^{i}_{\rm M}$ is the MDF for the $i$-th polarization, $V$
+!   denotes the crystal volume and $\Delta$ is a constant shift of the
+!   conduction bands (scissors shift). The delta-function in the latter
+!   expression is convoluted with a (symmetrized) Lorentzian 
+!   $$ \pi\delta(\omega-\omega_0) = \lim_{\eta\rightarrow 0} \left[
+!                         \frac{\eta}{(\omega-\omega_0)^2+\eta^2} +
+!                         \frac{\eta}{(-\omega-\omega_0)^2-\eta^2} \right] =
+!     \pi\delta(\omega-\omega_0) +  \pi\delta(\omega+\omega_0)       $$
+!   which is true for $\omega \ge 0$ if $\omega_0>0$. In doing so, the analytic
+!   property ${\rm Im}\epsilon_{\rm M}(0)=0$ is fulfilled.
+!   The broadening $\eta$ in the latter expression is adjusted by the
+!   {\tt broad} parameter. (All parts of the documentation written by
+!   S. Sagmeister are part of the author's PhD-thesis.)
+!
+! !REVISION HISTORY:
+!   Created June 2008 (Sagmeister)
+!EOP
+!BOC
   implicit none
   ! local variables
-  character(*), parameter :: thisnam='bse'
-  integer, parameter :: iqmt=1
+  integer, parameter :: iqmt=0
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iw,ngridkt(3),iv2(3),s1,s2,hamsiz,nexc, ne
-  integer :: nemptyscrt,emattypet,ist1,ist2,ist3,ist4,ikkp,oct,iv,ic,nvdif,ncdif
-  logical :: nosymt,reducekt
-  real(8) :: vklofft(3),de,egap,cpu0,cpu1
+  integer :: iknr,jknr,iqr,iq,iw,iv2(3),s1,s2,hamsiz,nexc,ne
+  integer :: ist1,ist2,ist3,ist4,ikkp,oct,iv,ic,nvdif,ncdif
+  real(8) :: de,egap,ts0,ts1
   ! allocatable arrays
-  real(8), allocatable :: beval(:),w(:),oszsa(:)
   integer, allocatable :: sor(:)
+  real(8), allocatable :: beval(:),w(:),oszsa(:)
   complex(8), allocatable :: excli(:,:,:,:),sccli(:,:,:,:),ham(:,:)
   complex(8), allocatable :: bevec(:,:),pm(:,:,:),pmat(:),oszs(:),spectr(:)
   ! external functions
   integer, external :: l2int
-
-  !TODO: symmetrize head of DM for spectrum
-
-  ! type of contributions to BSE-Hamlitonian
-  ! H = H_diag + 2H_x + H_c
-  ! H_diag .......... diagonal term containing IP-energy-differences
-  ! H_x ............. exchange term
-  ! H_c ............. correlation term
-  ! value of bsetype corresponds to
-  ! IP ................ H = H_diag                     IP-spectrum
-  ! RPA ............... H = H_diag + 2H_x              RPA-spectrum
-  ! BSE (singlet) ..... H = H_diag + 2H_x + H_c        correlated, spin-singlet
-  ! BSE (triplet) ..... H = H_diag + H_c               correlated, spin-triplet
-
-
-!---------------------------!
-!     exciton variables     !   USE this ****************************
-!---------------------------!
-!!if (allocated(excite)) deallocate(excite)
-!!allocate(excite(nexcitmax,3))
-!!excite(:,:)=0.d0
-!!if (allocated(excito)) deallocate(excito)
-!!allocate(excito(nexcitmax,3))
-!!excito(:,:)=0.d0
-
-
-
-  ! reset file extension to default
-  call genfilname(setfilext=.true.)
-  egap=1.d8
-
-  !----------------!
-  !   initialize   !
-  !----------------!
-  ! save global variables
-  nosymt=nosym
-  reducekt=reducek
-  ngridkt(:)=ngridk(:)
-  vklofft(:)=vkloff(:)
-  nemptyscrt=nemptyscr
-  emattypet=emattype
-  ! map variables for screened Coulomb interaction
-  nosym=nosymscr
-  ! no symmetries implemented for screened Coulomb interaction
-  reducek=.false.
-  ! q-point set of screening corresponds to (k,kp)-pairs
-  ngridk(:)=ngridq(:)
-  vkloff(:)=vkloffbse(:)
-  if (nemptyscr.eq.-1) nemptyscr=nempty
-  emattype=1
+  ! *** TODO: symmetrize head of DM for spectrum
+  !---------------------------!
+  !     exciton variables     !   USE this ****************************
+  !---------------------------!
+  !!if (allocated(excite)) deallocate(excite)
+  !!allocate(excite(nexcitmax,3))
+  !!excite(:,:)=0.d0
+  !!if (allocated(excito)) deallocate(excito)
+  !!allocate(excito(nexcitmax,3))
+  !!excito(:,:)=0.d0
   call init0
   call init1
   call init2
+  call xssave0
   ! read Fermi energy from file
   call readfermi
-  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+  ! initialize states below and above the Fermi energy
   call initocc(nbfbse,nafbse)
-!!
-
-  call findocclims(0,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-  call ematbdcmbs(emattype)
-  ! file names
-  fnpmat='PMAT_XS.OUT'
-
+  ! use eigenvector files from screening-calculation
+  call genfilname(dotext='_SCR.OUT',setfilext=.true.)
+  call findocclims(iqmt,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   nvdif=nstocc0-nbfbse
   ncdif=nstunocc0-nafbse
-
-
-  write(*,'("number of states below Fermi energy:",i6)') nbfbse
-  write(*,'("number of states above Fermi energy:",i6)') nafbse
-  write(*,*) 'nvdif',nvdif
-  write(*,*) 'ncdif',ncdif
-  write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
-
-  if ((nvdif.lt.0).or.(ncdif.lt.0)) stop 'bse: bad nbfbse,nafbse'
-
+  ! use only matrix elements for resonant contributions
+  emattype=1
+  call ematbdcmbs(emattype)
+  write(unitout,*)
+  write(unitout,'("Info(bse): information on number of states:")')
+  write(unitout,'(" number of states below Fermi energy in Hamiltonian:",i6)') &
+       nbfbse
+  write(unitout,'(" number of states above Fermi energy in Hamiltonian:",i6)') &
+       nafbse
+  write(unitout,'(" ranges of states according to BSE matrix:")')
+  write(unitout,'("  range of first index  :",2i6)') istlo1,isthi1
+  write(unitout,'("  range of second index :",2i6)') istlo2,isthi2
+  write(unitout,'("  range of third index  :",2i6)') istlo3,isthi3
+  write(unitout,'("  range of fourth index :",2i6)') istlo4,isthi4
+  if ((nvdif.lt.0).or.(ncdif.lt.0)) then
+     write(unitout,*)
+     write(unitout,'("Error(bse): inconsistency in ranges of states - check &
+          & routine for nvdif,ncdif")')
+     write(unitout,*)
+     call terminate
+  end if
   ! size of BSE-Hamiltonian
   hamsiz=nbfbse*nafbse*nkptnr
-
+  ! allocate arrays for Coulomb interactons
   allocate(sccli(nst1,nst2,nst1,nst2))
   allocate(excli(nst1,nst2,nst1,nst2))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
   allocate(ham(hamsiz,hamsiz))
   ham(:,:)=zzero
-
   ! read in energies
   do iknr=1,nkptnr
      call getevalsv(vkl(1,iknr),evalsv(1,iknr))
   end do
-  write(*,*) 'reading energies done'
-
   ! set up BSE-Hamiltonian
   ikkp=0
   do iknr=1,nkptnr
@@ -139,6 +169,7 @@ subroutine bse
         case('rpa','singlet')
            call getbsemat('EXCLI.OUT',ikkp,nst1,nst3,excli)
         end select
+        egap=1.d8
         ! set up matrix
         do ist1=1+nvdif,nst1
            do ist2=1,nst2-ncdif
@@ -156,14 +187,13 @@ subroutine bse
                     select case(trim(bsetype))
                     case('rpa','singlet')
                        ham(s1,s2)=ham(s1,s2)+ &
-!                            2.d0*excli(ist1,ist2,ist3,ist4)
-                            2.d0*excli(ist3,ist4,ist1,ist2)
-                   end select
+                            2.d0*excli(ist1,ist2,ist3,ist4)
+                    end select
                     ! add correlation term
                     select case(trim(bsetype))
                     case('singlet','triplet')
                        ham(s1,s2)=ham(s1,s2)-               &
-!                            sccli(ist1,ist2,ist3,ist4)
+                            !!!sccli(ist1,ist2,ist3,ist4)
                             sccli(ist3,ist4,ist1,ist2)
                     end select
                  end do
@@ -174,37 +204,34 @@ subroutine bse
      end do
   end do
   deallocate(excli,sccli)
-
-  write(*,*) 'call to zheevx..............'
-  write(*,*) 'Hamiltonian size is: ', hamsiz
-
-  ! diagonalize Hamlitonian
+  write(unitout,*)
+  write(unitout,'("Info(bse): invoking Lapack routine ZHEEVX")')
+  write(unitout,'(" size of BSE-Hamiltonian       : ",i8)') hamsiz
+  write(unitout,'(" number of requested solutions : ",i8)') nexcitmax
+  ! allocate eigenvector and eigenvalue arrays
   allocate(beval(hamsiz),bevec(hamsiz,hamsiz))
+  ! set number of excitons
   ne=hamsiz
-  call cpu_time(cpu0)
+  call timesec(ts0)
+  ! diagonalize Hamiltonian
   call bsesoldiag(hamsiz,ne,ham,beval,bevec)
-  call cpu_time(cpu1)
+  call timesec(ts1)
+  ! deallocate BSE-Hamiltonian
   deallocate(ham)
-
-  write(*,*) 'zheevx finished..............'
-  write(*,'("Number of requested solutions:",i8)') ne
-  write(*,'("Time (in seconds) in zheevx:",f12.3)') cpu1-cpu0
-
+  write(unitout,'(" timing (in seconds)           :",f12.3)') ts1-ts0
   ! number of excitons to consider
   nexc=hamsiz
   allocate(oszs(nexc),oszsa(nexc),sor(nexc),pmat(hamsiz))
   allocate(w(nwdos),spectr(nwdos))
   call genwgrid(nwdf,wdos,acont,0.d0,w_real=w)
-
   do oct=1,noptcomp
      oszs(:)=zzero
      call genfilname(basename='EPSILON',tq0=.true.,oc1=oct,oc2=oct, &
           bsetype=bsetype,scrtype=screentype,filnam=fneps)
-
      ! read momentum matrix elements
      allocate(pm(3,nstsv,nstsv))
      do iknr=1,nkptnr
-        call getpmat(iknr,vkl,1,nstsv,1,nstsv,.true.,trim(fnpmat),pm)
+        call getpmat(iknr,vkl,1,nstsv,1,nstsv,.true.,'PMAT_XS.OUT',pm)
         do ist1=1+nvdif,nstsv-nstunocc0
            do ist2=nstocc0+1,nstsv-ncdif
               s1=hamidx(ist1-nvdif,ist2-nstocc0,iknr,nbfbse,nafbse)
@@ -213,7 +240,6 @@ subroutine bse
         end do
      end do
      deallocate(pm)
-
      ! calculate oscillators for spectrum  
      do s1=1,nexc
         do iknr=1,nkptnr
@@ -226,7 +252,6 @@ subroutine bse
            end do
         end do
      end do
-
      spectr(:)=zzero
      do iw=1,nwdos
         do s1=1,nexc
@@ -237,16 +262,13 @@ subroutine bse
         end do
      end do
      spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr
-
      ! write BSE spectrum
-     call writeeps(0,w,spectr,fneps)
-
+     call writeeps(iqmt,w,spectr,fneps)
      ! oscillator strengths
      do s2=1,hamsiz
         write(983,'(i8,5g18.10)') s2,beval(s2)*escale,(beval(s2)-egap)*escale, &
              abs(oszs(s2))
      end do
-
      ! oscillator strengths sorted
      oszsa=abs(oszs)
      call sortidx(hamsiz,oszsa,sor)
@@ -256,25 +278,16 @@ subroutine bse
         write(984,'(i8,4g18.10)') s1,beval(sor(s2))*escale, &
              (beval(sor(s2))-egap)*escale,abs(oszs(s2))
      end do
-
      ! end loop over optical components
   end do
-
-  ! restore global variables
-  nosym=nosymt
-  reducek=reducekt
-  ngridk(:)=ngridkt(:)
-  vkloff(:)=vklofft(:)
-  nemptyscr=nemptyscrt
-  emattype=emattypet
 
 contains
 
   integer function hamidx(iv,ic,ik,nv,nc)
-    use modxs
     implicit none
     integer, intent(in) :: iv,ic,ik,nv,nc
     hamidx=iv + nv*(ic-1) + nv*nc*(ik-1)
   end function hamidx
 
 end subroutine bse
+!EOC

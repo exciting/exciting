@@ -1314,6 +1314,7 @@ end if
 #ifdef XS
 call backup0
 call backup1
+call backup2
 ! dump default parameters (partially) redifined in input file
 if (rank.eq.0) then
    fname='PARAMS.OUT'
