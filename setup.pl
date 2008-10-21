@@ -4,7 +4,8 @@
 print "---------------------------------------------------------\n";
 
 opendir(PDIR, "build/platforms") || die("Cannot open directory");
-@makeincfiles= readdir(PDIR);
+@makeincfiles= sort(readdir(PDIR));
+
 $count=1;
 #print @makeincfiles;
 
@@ -17,13 +18,13 @@ foreach $file (@makeincfiles){
 	   print ("\n");
 	   $count++;
 	   push(@fileslist,$file);
-	   if ($count>10) {
+	   if ($count%20==0) {
 		   print "type enter for more";
 		   $wait=<>;
 	   }
 	}
 }
-print "\n enter the number of the plattform that suites your system best:\n\n";
+print "\n enter the number of the platform that suites your system best:\n\n";
 $sel=<>;
 
 if ($sel>$count-1 || $sel<1 || $sel=~m/^$/ || $sel!~m/^\d+$/) {
