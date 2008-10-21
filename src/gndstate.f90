@@ -48,6 +48,14 @@ subroutine gndstate
      call writeiad(.false.)
      ! write symmetry matrices to file
      call writesym
+#ifdef XS
+     ! write realtion to inverse symmetries
+     call writesymi
+     ! write advanced information on symmetry group
+     call writesym2
+     ! write out symmetrization matrix for rank 2 tensors
+     call writesymt2
+#endif
      ! output the k-point set to file
      call writekpts
      ! write lattice vectors and atomic positions to file

@@ -216,6 +216,10 @@ call findsymsite
 ! determine inverse symmery elements
 call findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat, &
      scimap)
+! generate symmetrization array for rank 2 tensors
+call gensymt2(maxsymcrys,nsymcrys,symlatc,lsplsymc,symt2)
+! calculate advanced information on symmetry group
+call setupsym
 #endif
 ! automatically determine the muffin-tin radii if required
 if (autormt) call autoradmt

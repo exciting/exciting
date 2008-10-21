@@ -294,6 +294,8 @@ module modxs
   logical :: dfoffdiag
   ! symmetrization matrix for the head of the dielectric tensor (q=0)
   real(8) :: symdfq0(3,3)
+  ! symmetrization tensor
+  real(8) :: symt2(3,3,3,3)
   ! true on occurrance of negative 3,3-minor determinant contribution in above 
   ! symmetrization matrix
   logical :: tsymdfq0dn
