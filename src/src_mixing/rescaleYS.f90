@@ -3,7 +3,8 @@ use modmixermsec,only:noldstepsmax,PWHIST,FHIST,CLMHIST,yhist,FHIST,icond,scl_pl
 use modmain,only:ngrtot,lmmaxvr,nrmtmax,natmtot
 implicit none
 integer, intent(in)::n,noldsteps
-real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax),potential(n),F(n)
+real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax)
+real(8),intent(inout)::potential(n),F(n)
 real(8)::PWAVE,CLAVE,Rescale,T1
 integer ::i,j,k,nmt
   nmt=lmmaxvr*nrmtmax*natmtot
