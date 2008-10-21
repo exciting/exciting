@@ -56,7 +56,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 		!
 		!          Output
 		!          STEP            Multi-Secant Step
-		potential=potential+STEP
+		potential=potential-STEP
 		last_outputp=potential
 		deallocate (S,Y,YY,STEP)
 	endif
