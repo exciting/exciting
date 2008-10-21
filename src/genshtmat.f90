@@ -9,6 +9,9 @@
 subroutine genshtmat
 ! !USES:
 use modmain
+#ifdef XS
+use modxs
+#endif
 ! !DESCRIPTION:
 !   Generates the forward and backward spherical harmonic transformation (SHT)
 !   matrices using the spherical covering set produced by the routine
@@ -68,6 +71,13 @@ do itp=1,lmmaxapw
 end do
 ! generate spherical covering set for lmaxvr
 call sphcover(lmmaxvr,tp)
+#ifdef XS
+if (allocated(sphcov)) deallocate(sphcov)
+allocate(sphcov(3,lmmaxvr))
+sphcov(1,:)=sin(tp(1,:))*cos(tp(2,:))
+sphcov(2,:)=sin(tp(1,:))*sin(tp(2,:))
+sphcov(3,:)=cos(tp(2,:))
+#endif
 ! generate real and complex spherical harmonics and set the backward SHT arrays
 do itp=1,lmmaxvr
   call genrlm(lmaxvr,tp(:,itp),rlm)

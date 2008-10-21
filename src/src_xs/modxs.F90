@@ -502,6 +502,8 @@ module modxs
   !---------------------------------!
   !     miscellaneous variables     !
   !---------------------------------!
+  ! spherical covering set
+  real(8), allocatable :: sphcov(:,:)
   ! xs code version
   integer :: versionxs(2)
   ! true if energies output in eV

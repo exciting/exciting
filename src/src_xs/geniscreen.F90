@@ -48,6 +48,7 @@ subroutine geniscreen(iqr,nmax,n,scri)
      else
         l=f
      end if
+
      ! write dielectric tensor to file
      call getunit(un)
      open(un,file='DIELTENSOR'//trim(filext),form='formatted',action='write', &
@@ -59,7 +60,11 @@ subroutine geniscreen(iqr,nmax,n,scri)
      write(un,'(" dielectric tensor, imaginary part:")')
      write(un,'(3f12.8)') (aimag(l(oct,:)),oct=1,3)
      close(un)
-     !TODO
+     
+     ! average the angular dependence of the inverse dielectric matrix at the
+     ! Gamma q-point
+     call angavdm(l,s,bi,scri)
+
 
   else
      ! case q/=0
@@ -82,3 +87,19 @@ subroutine geniscreen(iqr,nmax,n,scri)
 
   deallocate(scrn,scrnw,scrnh,tm,tmi,   s3,s3i)
 end subroutine geniscreen
+
+
+
+subroutine angavdm(n,l,s,bi,av)
+  implicit none
+  ! arguments
+  integer, intent(in) :: n
+  complex(8), intent(in) :: bi(n-1,n-1),s(n-1,3),l(3,3)
+  complex(8), intent(out) :: av(n,n)
+  ! local variables
+  
+
+
+
+
+end subroutine angavdm
