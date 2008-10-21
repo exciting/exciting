@@ -3,7 +3,7 @@ real(8),allocatable:: residual(:),last_outputp(:),last_inputp(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
 integer:: record_of_last_iter,noldstepsin_file,noldsteps,MUSE,  IDSCALE
 integer, parameter::icond=1,noldstepsmax=8
-real(8)::   scl_plane,qmx,RedOld,RedPred,qmx_input,PM1,DIAG,dmix_last,dmixout
+real(8)::   scl_plane,qmx,RedOld,RedPred,qmx_input,PM1,DIAG,dmix_last,dmixout(4)
 real*8 MSECINFO(20)
 contains
 subroutine initmixermsec(n)
