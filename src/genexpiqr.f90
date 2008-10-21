@@ -260,6 +260,19 @@ if (tevecsv) then
 else
   emat(:,:)=em(:,:)
 end if
+
+
+do i=1,nstsv
+do j=1,nstsv
+write(8899,'(2i6,3g18.10)') i,j,conjg(emat(j,i)),abs(conjg(emat(j,i)))**2
+end do
+end do
+write(8899,'("# Q=q+Gq point",3g18.10)') vecql(:)
+write(8899,'("#     Gq point",3i6)') iv(:)
+write(8899,'("# (k)    point",3g18.10)') vkl(:,ik)
+write(8899,'("# (Q+k)  point",3g18.10)') vkql(:)
+
+
 deallocate(igkqig,gnt,jlqr,vgkql,vgkqc,gkqc,tpgkqc)
 deallocate(sfacgkq,apwalm1,apwalm2,evecfv1,evecfv2)
 if (tevecsv) deallocate(evecsv1,evecsv2)

@@ -224,7 +224,7 @@ subroutine dfq(iq)
           ngq(iq)
      call ematqalloc
   end if
-  if ((fxctype.eq.7).or.(fxctype.eq.8)) then
+  if (task.eq.345) then
      call getbsediag
      write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
      write(unitout,'(" mean value : ",2g18.10)') bsed
@@ -249,7 +249,7 @@ subroutine dfq(iq)
         if (.not.allocated(pmuo)) allocate(pmuo(3,nst3,nst4))
      end if
      ! add BSE diagonal shift use with BSE-kernel
-     if ((fxctype.eq.7).or.(fxctype.eq.8)) then
+     if (task.eq.345) then
         scis12(:,:)=scis12(:,:)+bsed
         scis21(:,:)=scis21(:,:)-bsed
      end if

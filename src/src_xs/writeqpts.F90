@@ -34,7 +34,7 @@ do iq=1,nqpt
 end do
 close(unit1)
 ! write out reduced q-point set for screened Coulomb interaction
-if (task.eq.440) then
+if (task.eq.430) then
    call genfilname(basename='QPOINTSR',appfilext=.true.,filnam=filnam)
    open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
    write(unit1,'(I6," : nqptr; q-point, vqlr, vqcr, wqptr below")') nqptr

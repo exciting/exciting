@@ -11,6 +11,7 @@ subroutine df
   use modmain
   use modxs
   use modmpi
+  use m_writegqpts
   use m_xsgauntgen
   use m_findgntn0
   use m_genfilname
@@ -26,6 +27,7 @@ subroutine df
   implicit none
   ! local variables
   character(*), parameter :: thisnam='df'
+  character(256) :: filex
   integer :: iq
   if (.not.tscreen) call genfilname(setfilext=.true.)
   call init0
@@ -51,10 +53,14 @@ subroutine df
   end if
   ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
   emattype=1
+  ! write out q-points
+  call writeqpts
   ! loop over q-points
   do iq=qpari,qparf
+     call genfilname(iq=iq,fileext=filex)
      ! call for q-point
      if (.not.gather) call dfq(iq)
+     if (tscreen) call writegqpts(iq,filex)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sahm response &
           &function finished for q-point:',iq
   end do

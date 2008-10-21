@@ -40,7 +40,7 @@ subroutine xsgeneigvec
      vqlt(:)=0.d0
      if ((iq.ne.0).and.(rank.eq.0)) then
         vqlt(:)=vql(:,iq)
-        call writegqpts(iq)
+        call writegqpts(iq,filext)
      end if
      ! write eigenvectors, -values, occupancies and contracted MT coefficients
      call writeevec(vqlt,qvkloff(1,iq),filext)

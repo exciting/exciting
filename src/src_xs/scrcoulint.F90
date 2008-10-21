@@ -23,6 +23,9 @@ subroutine scrcoulint
   real(8) :: vklofft(3),vqr(3),vq(3),t1
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
+  
+  logical, allocatable :: done(:)
+  
   complex(8) :: zt1
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:),bsedt(:,:)
@@ -151,6 +154,10 @@ subroutine scrcoulint
   bsedt(2,:)=-1.d8
   bsedt(3,:)=zzero
 
+
+
+allocate(done(nqpt))
+done(:)=.false.
   do ikkp=ppari,pparf
      call kkpmap(ikkp,nkptnr,iknr,jknr)
      
@@ -159,6 +166,9 @@ subroutine scrcoulint
      iv(:)=modulo(iv(:),ngridk(:))
      ! q-point (reduced)
      iqr=iqmapr(iv(1),iv(2),iv(3))
+     
+write(*,*) 'iqr=',iqr     
+     
      vqr(:)=vqlr(:,iqr)
      ! q-point (non-reduced)
      iq=iqmap(iv(1),iv(2),iv(3))
@@ -187,13 +197,24 @@ subroutine scrcoulint
         j1=igqmap(igq1)
         do igq2=1,n
            j2=igqmap(igq2)
-           if (tphf) then
-              tmi(igq1,igq2)=scrni(j2,j1,iqr)
-           else
-              tmi(igq1,igq2)=scrni(j1,j2,iqr)
-           end if
+!           if (tphf) then
+!              tmi(igq1,igq2)=scrni(j2,j1,iqr)
+!           else
+!              tmi(igq1,igq2)=scrni(j1,j2,iqr)
+!           end if
+tmi(igq1,igq2)=phf(igq1,igq2)*scrni(j1,j2,iqr)
         end do
      end do
+
+if (.not.done(iq)) then
+done(iq)=.true.
+do j1=1,n
+do j2=1,n
+write(12000+iq,'(2i6,3g18.10)') j1,j2,tmi(j1,j2),abs(tmi(j1,j2))**2
+end do
+end do
+if (tphf) write(12000+iq,*) 'non-primitive translation'
+end if
      
      ! set up Coulomb potential
      do igq1=1,n
@@ -409,6 +430,8 @@ subroutine scrcoulint
 !!$  vkloff(:)=vklofft(:)
 !!$
 
+
+deallocate(done)
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Screened Coulomb interaction&
        & finished"
 

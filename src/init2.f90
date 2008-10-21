@@ -127,10 +127,10 @@ if (allocated(scqmap)) deallocate(scqmap)
 allocate(scqmap(nsymcrys,nqpt))
 if (allocated(ivscwrapq)) deallocate(ivscwrapq)
 allocate(ivscwrapq(3,nsymcrys,nqpt))
-do iq=1,nqpt
-   call findgroupq(vql(1,iq),epslat,symlat,nsymcrys,lsplsymc,&
-	nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
-end do
+!do iq=1,nqpt
+!   call findgroupq(vql(1,iq),epslat,symlat,nsymcrys,lsplsymc,&
+!	nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
+!end do
 
 !-----------------------!
 !     k+q-point set	!

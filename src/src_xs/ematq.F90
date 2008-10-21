@@ -28,7 +28,7 @@ subroutine ematq(iq)
   call init1offs(qvkloff(1,iq))
   ! write G+q-vectors
   if (rank.eq.0) then
-     call writegqpts(iq)
+     call writegqpts(iq,filext)
      call writekmapkq(iq)
   end if
   ! find highest (partially) occupied and lowest (partially) unoccupied states
