@@ -16,11 +16,11 @@ subroutine scrcoulint
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl
-  integer :: ngridkt(3),iv(3),ivgsym(3),j1,j2,nkkp
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
-  logical :: nosymt,reducekt,tq0,nsc,tphf
-  real(8) :: vklofft(3),vqr(3),vq(3),t1
+  integer :: ikkp,iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,iflg,recl
+  integer :: iv(3),ivgsym(3),j1,j2,nkkp
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
+  logical :: tq0,nsc,tphf
+  real(8) :: vqr(3),vq(3),t1
   real(8), allocatable :: potcl(:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   
@@ -33,30 +33,10 @@ subroutine scrcoulint
   ! external functions
   integer, external :: iplocnr,idxkkp
   logical, external :: tqgamma
-!!$  real(8) :: cpu0,cpu1,cpu2,cpu3
-!!$  real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1,cpu_ematqdealloc
-!!$  real(8) :: cpu_clph,cpu_suma,cpu_write
-
-!!$  !----------------!
-!!$  !   initialize   !
-!!$  !----------------!
-!!$  ! save global variables
-!!$  nosymt=nosym
-!!$  reducekt=reducek
-!!$  ngridkt(:)=ngridk(:)
-!!$  vklofft(:)=vkloff(:)
-!!$  nosym=nosymscr
-!!$  ! no symmetries implemented for screened Coulomb interaction
-!!$  reducek=.false.
-!!$  vkloff(:)=vkloffbse(:)
-!!$  if (nemptyscr.eq.-1) nemptyscr=nempty
 
   !---------------!
   !   main part   !
   !---------------!
-  ! q-point set of screening corresponds to (k,kp)-pairs
-  ngridk(:)=ngridq(:)
-
 
   emattype=2
   call init0
@@ -166,9 +146,6 @@ done(:)=.false.
      iv(:)=modulo(iv(:),ngridk(:))
      ! q-point (reduced)
      iqr=iqmapr(iv(1),iv(2),iv(3))
-     
-write(*,*) 'iqr=',iqr     
-     
      vqr(:)=vqlr(:,iqr)
      ! q-point (non-reduced)
      iq=iqmap(iv(1),iv(2),iv(3))
@@ -279,25 +256,8 @@ end if
      ! in the SELF-documentation of Andrea Marini)
 !!$     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
 !!$          /omega/nkptnr
-
      scclit=matmul(conjg(emat12),matmul(tm,transpose(emat34)))/omega/nkptnr
-
 	  
-!!$     ! map back to individual band indices
-!!$     j2=0
-!!$     do ist4=1,nst4
-!!$        do ist3=1,nst3
-!!$           j2=j2+1
-!!$           j1=0
-!!$           do ist2=1,nst2
-!!$              do ist1=1,nst1
-!!$                 j1=j1+1
-!!$                 sccli(ist1,ist3,ist2,ist4)=scclit(j2,j1)
-!!$              end do
-!!$           end do
-!!$        end do
-!!$     end do
-     
      ! map back to individual band indices
      j2=0
      do ist4=1,nst4
@@ -313,46 +273,6 @@ end if
         end do
      end do
      
-!<backup comment="slow version for checking">
-!!$        ! set up the screened Coulomb interaction (diagonal screening)
-!!$        sccli(:,:,:,:)=zzero
-!!$        do igq1=1,n
-!!$           do ist1=1,nst1
-!!$              do ist3=1,nst3
-!!$                 do ist2=1,nst2
-!!$                    do ist4=1,nst4
-!!$                       sccli(ist1,ist3,ist2,ist4)= &
-!!$                            sccli(ist1,ist3,ist2,ist4)+ &
-!!$                            tm(igq1,igq1)*  &
-!!$                            conjg(xiou(ist1,ist2,igq1))* &
-!!$                            xiuo(ist3,ist4,igq1) /omega/nkptnr
-!!$                    end do
-!!$                 end do
-!!$              end do
-!!$           end do
-!!$        end do
-        
-!!$        ! set up the screened Coulomb interaction (full screening)
-!!$        sccli(:,:,:,:)=zzero
-!!$        do igq1=1,n
-!!$           do igq2=1,n
-!!$              do ist1=1,nst1
-!!$                 do ist3=1,nst3
-!!$                    do ist2=1,nst2
-!!$                       do ist4=1,nst4
-!!$                          sccli(ist1,ist3,ist2,ist4)= &
-!!$                               sccli(ist1,ist3,ist2,ist4)+ &
-!!$                               tm(igq1,igq2)*  &
-!!$                               conjg(xiou(ist1,ist2,igq1))* &
-!!$                               xiuo(ist3,ist4,igq2) /omega/nkptnr
-!!$                       end do
-!!$                    end do
-!!$                 end do
-!!$              end do
-!!$           end do
-!!$        end do
-!</backup>
-
      if (ikkp.le.100) then
         ! write to ASCII file
         do ist1=1,nst1
@@ -368,31 +288,17 @@ end if
            end do
         end do
      end if
-     
-!!$     ! processe write sequentially to one file
-!!$     do j=0,procs-1
-!!$        if (rank.eq.j) then
-!!$           call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr, &
-!!$                nst1,nst3,nst4,nst2)
-!!$        end if
-!!$        call barrier
-!!$     end do
-
+     ! analyze BSE diagonal
      if (iknr.eq.jknr) then
         do ist1=1,nst1
            do ist3=1,nst3
               zt1=sccli(ist1,ist3,ist1,ist3)
-              write(1107,'(i5,3x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
-                   ist3,zt1,abs(zt1)**2, &
-                   atan2(aimag(zt1),dble(zt1))/pi
               t1=dble(zt1)
               bsedt(1,ikkp)=min(dble(bsedt(1,ikkp)),t1)
               bsedt(2,ikkp)=max(dble(bsedt(2,ikkp)),t1)
               bsedt(3,ikkp)=bsedt(3,ikkp)+zt1/(nst1*nst3)
            end do
         end do
-        write(*,*) 'kkp:bsedl,bsedu,bsed',bsedt(1,ikkp),bsedt(2,ikkp), &
-             bsedt(3,ikkp)
      end if
 
      ! parallel write
@@ -416,23 +322,12 @@ end if
   bsed=sum(bsedt(3,:))/nkptnr
   deallocate(bsedt)
   ! write BSE kernel diagonal parameters
-  call putbsediag
+  if (rank.eq.0) call putbsediag
 
   call findgntn0_clear
 
-!!$  !--------------!
-!!$  !   finalize   !
-!!$  !--------------!
-!!$  ! restore global variables
-!!$  nosym=nosymt
-!!$  reducek=reducekt
-!!$  ngridk(:)=ngridkt(:)
-!!$  vkloff(:)=vklofft(:)
-!!$
-
-
 deallocate(done)
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): Screened Coulomb interaction&
-       & finished"
+
+  write(unitout,'("Info(scrcoulint): Screened Coulomb interaction finished")')
 
 end subroutine scrcoulint

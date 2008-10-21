@@ -159,7 +159,7 @@ end subroutine barrier
 subroutine endloopbarrier(set,mult)
   implicit none
   integer, intent(in) :: set,mult
-  integer :: i,im
+  integer :: i
   do i=1,(nofset(0,set)-nofset(rank,set))*mult
      call barrier
   end do

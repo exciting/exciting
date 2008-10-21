@@ -14,11 +14,8 @@ subroutine genphasedm(iq,jsym,nmax,n,phfdm,tphf)
   logical, intent(out) :: tphf
   ! local variables
   real(8), parameter :: epsortho=1.d-12
-  real(8) :: vtl(3),t1,t2,t3,s(3,3),si(3,3)
-  integer :: igq1,igq2,ivg1(3),ivg2(3),iv(3),jsymi
-  jsymi=scimap(jsym)
-  s(:,:)=dble(symlat(:,:,lsplsymc(jsym)))
-  si(:,:)=dble(symlat(:,:,lsplsymc(jsymi)))
+  real(8) :: vtl(3),t1,t2,t3
+  integer :: igq1,igq2,ivg1(3),ivg2(3),iv(3)
   do igq1=1,n
      ivg1(:)=ivg(:,igqig(igq1,iq))
      do igq2=igq1,n
@@ -36,8 +33,8 @@ subroutine genphasedm(iq,jsym,nmax,n,phfdm,tphf)
         phfdm(igq1,igq2)=cmplx(t2,t3,8)
         phfdm(igq2,igq1)=conjg(phfdm(igq1,igq2))
         if (dbglev.gt.2) then
-           write(40,'(a,i5,2x,2i5,2x,2i5,2g18.10)') 'q,g,gp,jsym,jsymi,phf', &
-                iq,igq1,igq2,jsym,jsymi,phfdm(igq1,igq2)
+           write(40,'(a,i5,2x,2i5,2x,i5,2g18.10)') 'q,g,gp,jsym,phf', &
+                iq,igq1,igq2,jsym,phfdm(igq1,igq2)
         end if
         ! end loop over (G,Gp)-vectors
      end do
