@@ -139,7 +139,7 @@ DPARAM () #$1
     fi
     tags="$1"
     for i in $tags; do
-	grep "^ *$1.* *=" $EXCITINGROOT/src/readinput.F90
+	grep "^ *$1.* *=" $EXCITINGROOT/src/readinput.f90
     done
 }
 

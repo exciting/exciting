@@ -76,7 +76,7 @@ if (allocated(sphcov)) deallocate(sphcov)
 allocate(sphcov(3,lmmaxvr))
 sphcov(1,:)=sin(tp(1,:))*cos(tp(2,:))
 sphcov(2,:)=sin(tp(1,:))*sin(tp(2,:))
-sphcov(3,:)=cos(tp(2,:))
+sphcov(3,:)=cos(tp(1,:))
 #endif
 ! generate real and complex spherical harmonics and set the backward SHT arrays
 do itp=1,lmmaxvr

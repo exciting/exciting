@@ -4,18 +4,15 @@
 ! See the file COPYING for license details.
 
 subroutine testxs
-!  use m_sccli
   use modmain
 !  use modxs
   implicit none
 
-  call init0
-  call setupsym
-  call writesym2
-
-
+ complex(8) :: bi,s(1,3),l(3,3),av
+   call init0
+   call angavdm(2,l,s,bi,av)
+ 
 !  call test_sccli
-
 !!$  integer, parameter :: n=50
 !!$  complex(8) :: m(n,n),m2(n,n),m3(n,n), z
 !!$  real(8) :: rnd1(n,n),rnd2(n,n),cpu0,cpu1,cpu2,cpumm,cpuzg
