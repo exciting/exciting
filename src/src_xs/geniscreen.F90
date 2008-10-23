@@ -60,10 +60,13 @@ subroutine geniscreen(iqr,nmax,n,scri)
      write(un,'(" dielectric tensor, imaginary part:")')
      write(un,'(3f12.8)') (aimag(l(oct,:)),oct=1,3)
      close(un)
-     
+
+     ! Hermitean average
+     ! *** if required (symhermdf ??)      
+
      ! average the angular dependence of the inverse dielectric matrix at the
      ! Gamma q-point
-     call angavdm(l,s,bi,scri)
+     call angavdm(n,l,s,bi,scri)
 
 
   else
@@ -95,63 +98,45 @@ subroutine angavdm(n,l,s,bi,av)
   use modxs
   implicit none
   ! arguments
-  integer, intent(in) :: avtype
   integer, intent(in) :: n
   complex(8), intent(in) :: bi(n-1,n-1),s(n-1,3),l(3,3)
   complex(8), intent(out) :: av(n,n)
   ! local variables
-  real(8), allocatable :: a(:,:),plat(:,:),p(:),m00(:),m0x(:),mxx(:)
-  real(8), allocatable :: ei00(:),ei0x(:,:)
-  allocate(a(3,lmmaxvr),plat(3,lmmaxvr),p(lmmaxvr))
-  allocate(m00(lmmaxvr),m0x(lmmaxvr),mxx(lmmaxvr))
-  allocate(ei00(lmmaxvr),ei0x(lmmaxvr,n-1),ei00lm(lmmaxvr),ei0xlm(lmmaxvr,n-1))
-  a(:,:)=sphcov(:,:)
+  integer :: i,j,lm
+  real(8), allocatable :: plat(:,:),p(:)
+  real(8), allocatable :: m00lm(:),m0xlm(:)
+  real(8), allocatable :: ei00(:),ei0x(:,:),ei00lm(:),ei0xlm(:,:)
+  allocate(plat(3,lmmaxvr),p(lmmaxvr))
+  allocate(m00lm(lmmaxvr),m0xlm(lmmaxvr))
+  allocate(ei00(lmmaxvr),ei0x(lmmaxvr,n-1))
+  allocate(ei00lm(lmmaxvr),ei0xlm(lmmaxvr,n-1))
   ! unit vectors of spherical covering set in lattice coordinates
-  plat=matmul(binv,a)
+  plat=matmul(binv,sphcov)
   ! distances to unit cell boundary in reciprocal space
   p(:)=1.d0/(2.d0*maxval(abs(plat),1))
-  ! head which is the 1/(p*L*p) factor
-  ei00(:)=1.d0/matmul(transpose(a),matmul(l,a))
-  ! wings: -p*s * ei00
-  do i=1,n-1
-     ei0x(:,i)=-ei00(:)*matmul(s,a)
+  do lm=1,lmmaxvr
+     ! head which is the 1/(p*L*p) factor
+     ei00(lm)=1.d0/dot_product(sphcov(:,lm),matmul(l,sphcov(:,lm)))
+     ! wings: -p*s * ei00
+     ei0x(lm,:)=-ei00(lm)*dot_product(sphcov(:,lm),s(:,lm))
   end do
-
   ! forward transform shape dependent factor for head to spherical harmonics
-  m00(:)=matmul(zfshtvr,p)
+  m00lm(:)=matmul(zfshtvr,p)
   ! forward transform shape dependent factor for wings to spherical harmonics
-  m0x(:)=matmul(zfshtvr,(1.d0/2.d0)*p**2)
-  ! forward transform shape dependent factor for body to spherical harmonics
-  mxx(:)=matmul(zfshtvr,(1.d0/3.d0)*p**3)
-  
+  m0xlm(:)=matmul(zfshtvr,(1.d0/2.d0)*p**2)
   !forward transform to spherical harmonics
-  ei00lm(:)=matmul(zfshtvr,ei00)
-  ei0xlm(:)=matmul(zfshtvr,ei0x)
-
+  ei00lm=matmul(zfshtvr,ei00)
+  ei0xlm=matmul(zfshtvr,ei0x)
   ! angular average
-  av(1,1)=sum(ei00lm*conjg(m00))
-  
-
-  deallocate(e,plat,p,m00,m0x,mxx,ei00,ei0x)
+  av(1,1)=dot_product(m00lm,ei00lm)
+  av(1,2:)=matmul(m0xlm,ei0xlm)
+  ! body without angular average
+  av(2:,2:)=bi(:,:)
+  ! set lower triangle
+  do i=1,n
+     do j=i+1,n
+        av(j,i)=conjg(av(i,j))
+     end do
+  end do 
+  deallocate(plat,p,m00lm,m0xlm,ei00,ei0x,ei00lm,ei0xlm)
 end subroutine angavdm
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
