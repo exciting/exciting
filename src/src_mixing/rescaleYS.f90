@@ -6,11 +6,12 @@ integer, intent(in)::n,noldsteps
 real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax)
 real(8),intent(inout)::potential(n),F(n)
 real(8)::PWAVE,CLAVE,Rescale,T1
-integer ::i,j,k,nmt
+integer ::i,j,k,nmt,firstpw,lastpw
   nmt=lmmaxvr*nrmtmax*natmtot
-
+firstpw=n-ngrtot
+lastpw=n
     FHIST(noldsteps)  =dot_product(F,F)
-    PWHIST(noldsteps) =dot_product(F(n-ngrtot:n),F(n-ngrtot:n))
+    PWHIST(noldsteps) =dot_product(F(firstpw:lastpw),F(firstpw:lastpw))
     CLMHIST(noldsteps)=FHIST(noldsteps)-PWHIST(noldsteps)
 
 		PWAVE=0.
@@ -28,10 +29,10 @@ integer ::i,j,k,nmt
         MSECINFO(1)=Rescale
 1002    format(':INFO : ',a,10D11.3)
         write(*,1002)' Dynamic rescale ',rescale
-        potential(n-ngrtot:n)=potential(n-ngrtot:n)*rescale
-        F(n-ngrtot:n)=F(n-ngrtot:n)*rescale
-        Y(n-ngrtot:n,1:noldstepsmax)=Y(n-ngrtot:n,1:noldstepsmax)*rescale
-        S(n-ngrtot:n,1:noldstepsmax)=S(n-ngrtot:n,1:noldstepsmax)*rescale
+        potential(firstpw:lastpw)=potential(firstpw:lastpw)*rescale
+        F(firstpw:lastpw)=F(firstpw:lastpw)*rescale
+        Y(firstpw:lastpw,1:noldstepsmax)=Y(firstpw:lastpw,1:noldstepsmax)*rescale
+        S(firstpw:lastpw,1:noldstepsmax)=S(firstpw:lastpw,1:noldstepsmax)*rescale
         PWHIST(1:noldsteps)=PWHIST(1:noldsteps)*rescale*rescale
         FHIST(1:noldsteps)=PWHIST(1:noldsteps)+CLMHIST(1:noldsteps)
         scl_plane=scl_plane*rescale
