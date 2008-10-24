@@ -11,6 +11,7 @@ integer ::i,j,k,nmt
     FHIST(noldsteps)  =dot_product(F,F)
     PWHIST(noldsteps) =dot_product(F(n-ngrtot:n),F(n-ngrtot:n))
     CLMHIST(noldsteps)=FHIST(noldsteps)-PWHIST(noldsteps)
+!Preconditioner Omega_n Pg 21
 
 		PWAVE=0.
         CLAVE=0.
