@@ -30,6 +30,22 @@ Makefile.test2::
 	../src/testframework
 
 
+Makefile.test4::
+	sh ../../utilities/versionstamp.sh
+	 ../../utilities/mkmf -t template -f -m Makefile.test4 -p testprogram4  \
+	../../src  \
+	../src \
+	../../src/src_xs \
+	../../src/src_sym \
+        ../../src/src_fermisurfdx \
+        ../../src/src_iterative_solver \
+	../../src/src_iterative_solver/src_diis \
+	../../src/src_mixing \
+	../test04/src \
+	../src/testframework
+
+
+
 
 testprogram1::Makefile.test1
 	make -f Makefile.test1 testprogram1 
@@ -37,6 +53,8 @@ testprogram1::Makefile.test1
 testprogram2::Makefile.test2
 	make -f Makefile.test2 testprogram2 
 	
+testprogram4::Makefile.test4
+	make -f Makefile.test4 testprogram4
  
 	
 test01::testprogram1
@@ -47,6 +65,8 @@ test02::testprogram2
 	cd ../test02/runarp; ../../build/testprogram2
 	cd ../test02 ; perl assert.pl
 
+test04::testprogram4
+	cd ../test04/run ; ../../build/testprogram4
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
 

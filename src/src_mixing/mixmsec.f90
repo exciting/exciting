@@ -15,19 +15,20 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 !config params:
 	use modmain,only:beta0,betainc,betadec
 ! persistent arrays and create/desdruct functions
-	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,\
-	freearraysmixermsec,noldstepsmax,noldsteps
+	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
+freearraysmixermsec,noldstepsmax,noldstepsin_file,&
+noldsteps,qmx
+
 	implicit none
 	integer, intent(in)::iscl,n
 	real(8), intent(inout)::potential(n) ! input/output potential
 	real(8), intent(out)::residualnorm    ! residual norm
 	!local variables
 	real(8),allocatable::S(:,:),Y(:,:),YY(:,:),STEP(:)
-
-	integer nwork
 	real(8),parameter::DELTA=1e-3,DMIX=.5
 	integer:: ifail
-	noldsteps=min(iscl-2,noldstepsmax)
+	real sreduction
+	noldsteps=noldstepsin_file
 	if(iscl .le. 2)then
 		if(iscl .eq. 2)then
 			residual=potential-last_outputp
@@ -40,9 +41,11 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 	else
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax),YY(noldstepsmax,noldstepsmax),STEP(n))
 		residual=potential-last_outputp
-
+		call check_msecparameters()
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
+	    call stepbound(sreduction)
+        write(21,4141)sreduction,qmx
 		call rescaleYS(noldsteps,n,S,Y,potential,residual)
 		call setup_YY(iscl,n,S,Y,YY)
 		call MSEC1(Y,S,YY,residual,STEP,n,noldstepsmax,DMIX,IFAIL,DELTA,noldsteps)
@@ -56,8 +59,13 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 		!
 		!          Output
 		!          STEP            Multi-Secant Step
-		potential=potential-STEP
+	    call stepbound(sreduction)
+
+		potential=potential+STEP
 		last_outputp=potential
 		deallocate (S,Y,YY,STEP)
 	endif
+4141    format(':REDuction and DMIX in Broyd:',3f10.4,E14.5)
+
 end subroutine
+

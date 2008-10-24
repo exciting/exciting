@@ -1,10 +1,10 @@
 include ../build/make.inc
 
 ifeq ($(BUILDMPI),true)
-test:test01 test02 test03 testmpi
+test:test01 test02 test03 test04 testmpi
 endif 
 ifeq ($(BUILDMPI),false)
-test:test01 test02 test03
+test:test01 test02 test03 test04
 endif 
 	perl perl/summary.pl
 test01::
@@ -12,6 +12,10 @@ test01::
 
 test02::
 	cd build;make libs  test02
+
+test04::
+	cd build;make libs  test04
+
 
 exciting::
 	cd ../build/debug/ && make libs && make

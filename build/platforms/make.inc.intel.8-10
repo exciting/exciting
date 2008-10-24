@@ -1,0 +1,9 @@
+MAKE = make
+F90 = ifort
+F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90 -cpp
+F77 = ifort
+F77_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
+AR = ar
+LIB_SYS = 
+LIB_LPK = lapack.a blas.a
+LIB_FFT = fftlib.a
