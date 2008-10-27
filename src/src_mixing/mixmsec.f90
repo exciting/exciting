@@ -17,7 +17,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 ! persistent arrays and create/desdruct functions
 	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
-noldsteps,qmx
+noldsteps,qmx,dmix,dmixout
 
 	implicit none
 	integer, intent(in)::iscl,n
@@ -25,9 +25,9 @@ noldsteps,qmx
 	real(8), intent(out)::residualnorm    ! residual norm
 	!local variables
 	real(8),allocatable::S(:,:),Y(:,:),YY(:,:),broydenstep(:)
-	real(8),parameter::DELTA=1e-3,DMIX=.5
+	real(8),parameter::DELTA=1e-3
 	integer:: ifail
-	real sreduction
+	real sreduction,dmixused,dmixm
 	noldsteps=noldstepsin_file
 	if(iscl .le. 2)then
 		if(iscl .eq. 2)then
@@ -42,6 +42,8 @@ noldsteps,qmx
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax))
 		allocate(YY(noldstepsmax,noldstepsmax))
 		allocate(broydenstep(n))
+
+
 		residual=potential-last_outputp
 		call check_msecparameters()
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
@@ -50,23 +52,27 @@ noldsteps,qmx
         write(21,4141)sreduction,qmx
 		call rescaleYS(noldsteps,n,S,Y,potential,residual)
 		call setup_YY(iscl,n,S,Y,YY)
-		call MSEC1(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIX,IFAIL,DELTA,noldsteps)
+		DMIXM=dmixout(1)
+        DMIX=DMIXM
+        qmx=dmixm
+		call MSEC1(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIXM,IFAIL,DELTA,noldsteps)
 		!          Y,S:            Conventional Y and S arrays
 		!          YY:             Matrix of Y*Y values
 		!          residual:       -Grad(MAXMIX) at the current point (residue)
 		!		   n:              Length of the variable vector
 		!          noldsteps :     Total number of memory values to use
 		!                          Most recent is last
-		!          DMIX:           Scaler for initial matrix
+		!          DMIXM:           Scaler for initial matrix
 		!
 		!          Output
 		!          broydenstep            Multi-Secant Step
-	   ! call stepbound(sreduction)
+	    ! call stepbound(sreduction)
 
 		potential(1:n)=potential(1:n)+broydenstep(1:n)
 		last_outputp=potential
-
-if(.not. allocated(broydenstep))write(*,*)"errore malloc broydenstep"
+		DMIXUSED=DMIXM
+		DMIX=DMIXUSED
+        QMX=DMIX
 		deallocate (S,Y,YY,broydenstep)
 4141    format(':REDuction and DMIX in Broyd:',3f10.4,E14.5)
 
