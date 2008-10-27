@@ -29,7 +29,7 @@ subroutine gndstate
   real(8) timetot
   ! allocatable arrays
   real(8), allocatable :: v(:)
-  real(8), allocatable :: work(:)
+
   real(8), allocatable :: evalfv(:,:)
   complex(8), allocatable :: evecfv(:,:,:)
   complex(8), allocatable :: evecsv(:,:)
@@ -287,7 +287,7 @@ subroutine gndstate
         call packeff(.true.,n,v)
         ! mix in the old potential and field with the new
 
-        if(rank.eq.0) call mixerifc(mixtype,n,v,currentconvergence,nwork,work)
+        if(rank.eq.0) call mixerifc(mixtype,n,v,currentconvergence,nwork)
 
 #ifdef MPI
         call  MPI_BCAST(v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
@@ -527,7 +527,7 @@ subroutine gndstate
      endif
      deallocate(v)
      !set nwork to -2 to tell interface to call the deallocation functions
-     call mixerifc(mixtype,n,v,currentconvergence,-2,work)
+     call mixerifc(mixtype,n,v,currentconvergence,-2)
 
      call mpiresumeevecfiles()
      return

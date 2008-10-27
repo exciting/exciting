@@ -18,7 +18,7 @@ PWHIST=0
 FHIST=0
 CLMHIST=0
 yhist=0
-scl_plane=1
+scl_plane=4
 RedOld=1
 RedPred=1
 qmx_input=.5
@@ -29,8 +29,9 @@ DIAG =5D-4
 noldstepsin_file=0
 noldsteps=0
 rtrap =0.1
-SCHARGE=0
-splane=0
+SCHARGE=2
+splane=1
+MSECINFO=1
 end subroutine
 
  subroutine freearraysmixermsec()
