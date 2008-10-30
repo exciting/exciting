@@ -138,7 +138,7 @@ subroutine scrcoulint
 
 allocate(done(nqpt))
 done(:)=.false.
-  do ikkp=ppari,pparf
+  do ikkp=ppari,1 !***************************************SAG pparf
      call kkpmap(ikkp,nkptnr,iknr,jknr)
      
      ! k-point difference
@@ -206,7 +206,12 @@ end if
            potcl(igq2,igq1)=potcl(igq1,igq2)
         end do
      end do
+
      
+write(*,*) 'SCRNI(1,1,1,1):',scrni(1,1,1)
+write(*,*) 'POTCL(1,1):',potcl(1,1)
+write(*,*) '1/nkptnr/omega',1.d0/nkptnr/omega
+
      ! calculate matrix elements of the plane wave
      emattype=2
      call ematbdcmbs(emattype)

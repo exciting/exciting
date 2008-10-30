@@ -67,4 +67,9 @@ subroutine findsymgenr(nc,mt,ngen,nsgen,gen,orbgen)
      write(*,*)
      stop
   end if
+  ! add identity to orbits
+  do i=1,ngen
+     nsgen(i)=nsgen(i)+1
+     orbgen(i,nsgen(i))=1
+  end do
 end subroutine findsymgenr

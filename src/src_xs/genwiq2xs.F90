@@ -13,7 +13,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   use m_genfilname
   use m_getunit
 ! !DESCRIPTION:
-!   Effective integrals of Coulomb interaction. Based on routine {\tt genwiq2}.
+!   Effective integrals of Coulomb interaction. See routine {\tt genwiq2}.
 !
 ! !REVISION HISTORY:
 !   Created February 2008 (Sagmeister)
@@ -103,7 +103,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
      clwt=polynom(0,np,xa,ya,c,0.d0)*fourpi*nqpt
      deallocate(xa,ya,c)
   case(3)
-     ! RIM method inspired by Andrea Marini
+     ! RIM method: documentation of Self code by Andrea Marini
      ! find maximum extension of small Brillouin zone
      blim(:)=0.d0
      do i1=-1,1,2

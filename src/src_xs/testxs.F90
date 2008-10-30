@@ -10,7 +10,8 @@ subroutine testxs
 
  complex(8) :: bi,s(1,3),l(3,3),av
    call init0
-   call angavdm(2,l,s,bi,av)
+
+!   call angavdm(2,l,s,bi,av)
  
 !  call test_sccli
 !!$  integer, parameter :: n=50
