@@ -25,7 +25,7 @@ subroutine gensymt2(maxsymcrys,nsymcrys,symlatc,lsplsymc,symt2)
               end do
            end do
         end do
-        symt2(iop1,iop2,:,:)=s(:,:)
+        symt2(iop1,iop2,:,:)=s(:,:)/dble(nsymcrys)
      end do
   end do
 end subroutine gensymt2

@@ -369,10 +369,12 @@ module modxs
   real(8) :: rgkmaxscr
   ! number of empty states
   integer :: nemptyscr
-  ! filenames for eigenvector file, eigenvalues and occupancies
-  character(256) :: fnevecfvscr, fnevalsvscr, fnoccsvscr
   ! Hermitian treatment
   integer :: scrherm
+  ! dielectric tensor in the RPA
+  complex(8) :: dielten(3,3)
+  ! dielectric tensor in the independent particle approximation
+  complex(8) :: dielten0(3,3)
 
   !------------------------------------------!
   !     Bethe-Salpeter (kernel) variables    !

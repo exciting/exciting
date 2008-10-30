@@ -417,6 +417,8 @@ subroutine dfq(iq)
      chi0h(:,:)=chi0hs(:,:)
      deallocate(chi0hs)
   end if
+  ! write dielectric tensor to file
+!***  if (rank.eq.0) call writedielt0(chi0h)
   ! write response function to file
   if (tscreen) then
      ! write out screening
