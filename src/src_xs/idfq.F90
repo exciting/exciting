@@ -22,10 +22,10 @@ subroutine idfq(iq)
   character(*), parameter :: thisnam='idfq'
   character(256) :: filnam,filnam2
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
-  complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:)
-  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,octl,octu,igmt
+  complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:,:)
+  integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct1,oct2,octl,octu,igmt
   logical :: tq0
-  integer, external :: l2int,octmap
+  integer, external :: l2int
   logical, external :: tqgamma
   ! sampling type for Brillouin zone sampling
   bzsampl=l2int(tetradf)
@@ -42,7 +42,7 @@ subroutine idfq(iq)
   ! matrix size for local field effects
   n=ngq(iq)
   allocate(chi0(n,n),fxc(n,n),idf(n,n),w(nwdf),mdf1(nwdf),chi0hd(nwdf))
-  allocate(chi0wg(n,2,3),chi0h(9))
+  allocate(chi0wg(n,2,3),chi0h(3,3))
   fxc=zzero
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
@@ -81,7 +81,6 @@ subroutine idfq(iq)
 	   octu=oct1
 	end if
         do oct2=octl,octu
-           oct=octmap(oct1,oct2)
            ! filename for output file
            call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,&
@@ -96,7 +95,7 @@ subroutine idfq(iq)
               ! assign components to main matrix for q=0
               if (tq0) then
                  ! head
-                 chi0(1,1)=chi0h(oct)
+                 chi0(1,1)=chi0h(oct1,oct2)
                  ! wings
                  if (m.gt.1) then
                     chi0(1,2:)=chi0wg(2:,1,oct1)

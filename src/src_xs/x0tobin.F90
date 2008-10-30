@@ -15,7 +15,7 @@ subroutine x0tobin
   character(*), parameter :: thisnam='x0tobin'
   character(256) :: filnam, filnama
   integer :: n,iq,iw,un
-  complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
+  complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:,:)
   logical :: tq0
   logical, external :: tqgamma
   call init0
@@ -33,7 +33,7 @@ subroutine x0tobin
      ! size of local field effects
      n=ngq(iq)
      ! allocate
-     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3))
+     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3,3))
      ! filenames
      call genfilname(asc=.true.,basename='X0',bzsampl=bzsampl,acont=acont,&
           nar=.not.aresdf,iqmt=iq,filnam=filnama)

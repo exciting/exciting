@@ -30,7 +30,6 @@ contains
     write(un,'(a,2f12.6)') '# efermi (H,eV)     :',efermi,h2ev*efermi
     write(un,'(a,3f12.6)') '# vql               :',vql(:,iqt)
     write(un,'(a,3f12.6)') '# vqc               :',vqc(:,iqt)
-    write(un,'(a,2i8)') '# optcomp           :',optcomp(1,1),optcomp(2,1)
     write(un,'(a,i8)') '# fxctype           :',fxctype
     write(un,'(a,f12.6)') '# alphalrc          :',alphalrc
     write(un,'(a,f12.6)') '# alphalrcdyn       :',alphalrcdyn
@@ -78,10 +77,6 @@ contains
     write(un,'(a,l8)') '# fastemat          :',fastemat
     write(un,'(a,l8)') '# nosym             :',nosym
     write(un,'(a,l8)') '# dfoffdiag         :',dfoffdiag
-    write(un,'(a,l8)') '# tsymdfq0dn        :',tsymdfq0dn
-    write(un,'(a,3f12.6)') '# symdfq0 (row1)    :',symdfq0(1,:)
-    write(un,'(a,3f12.6)') '# symdfq0 (row2)    :',symdfq0(2,:)
-    write(un,'(a,3f12.6)') '# symdfq0 (row3)    :',symdfq0(3,:)
     write(un,*)
   end subroutine writevars
 

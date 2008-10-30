@@ -263,7 +263,7 @@ subroutine bse
      end do
      spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr
      ! write BSE spectrum
-     call writeeps(iqmt,w,spectr,fneps)
+     call writeeps(iqmt,oct,oct,w,spectr,fneps)
      ! oscillator strengths
      do s2=1,hamsiz
         write(983,'(i8,5g18.10)') s2,beval(s2)*escale,(beval(s2)-egap)*escale, &

@@ -15,11 +15,10 @@ subroutine idfgather
   ! local variables
   character(*), parameter :: thisnam='idfgather'
   character(256) :: filnam,filnam2
-  integer :: n,m,iq,iw,iproc,recl,nc,oct,oct1,oct2
+  integer :: n,m,iq,iw,iproc,recl,nc,oct1,oct2,octl,octu
   logical :: tq0
   complex(8), allocatable :: mdf1(:)
   logical, external :: tqgamma
-  integer, external :: octmap
   allocate(mdf1(nwdf))
   inquire(iolength=recl) mdf1(1)
   call getunit(unit1)
@@ -36,41 +35,49 @@ subroutine idfgather
      do m=1,n,max(n-1,1)
         ! loop over longitudinal components for optics
         do oct1=1,nc
-        do oct2=oct1,oct1
-           oct=octmap(oct1,oct2)
-           do iproc=0,procs-1
-              wpari=firstofset(iproc,nwdf)
-              wparf=lastofset(iproc,nwdf)
-              ! filename for proc
-              call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
-                   nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0,oc1=oct1,&
-                   oc2=oct2,iqmt=iq,procs=procs,rank=iproc,filnam=filnam2)
-              open(unit1,file=trim(filnam2),form='unformatted',&
-                   action='read',status='old',access='direct',recl=recl)
-              do iw=wpari,wparf
-                 read(unit1,rec=iw-wpari+1) mdf1(iw)
+           if (dfoffdiag) then
+              octl=1
+              octu=nc
+           else
+              octl=oct1
+              octu=oct1
+           end if
+           do oct2=octl,octu
+              do iproc=0,procs-1
+                 wpari=firstofset(iproc,nwdf)
+                 wparf=lastofset(iproc,nwdf)
+                 ! filename for proc
+                 call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
+                      nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,tq0=tq0, &
+                      oc1=oct1,oc2=oct2,iqmt=iq,procs=procs,rank=iproc, &
+                      filnam=filnam2)
+                 open(unit1,file=trim(filnam2),form='unformatted',&
+                      action='read',status='old',access='direct',recl=recl)
+                 do iw=wpari,wparf
+                    read(unit1,rec=iw-wpari+1) mdf1(iw)
+                 end do
+                 close(unit1)
+              end do ! iproc
+              ! write to file
+              call genfilname(basename='IDF',bzsampl=bzsampl,&
+                   acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
+                   tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
+              open(unit1,file=trim(filnam),form='unformatted', &
+                   action='write',status='replace',access='direct',recl=recl)
+              do iw=1,nwdf
+                 write(unit1,rec=iw) mdf1(iw)
               end do
               close(unit1)
-           end do ! iproc
-           ! write to file
-           call genfilname(basename='IDF',bzsampl=bzsampl,&
-                acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
-                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
-           open(unit1,file=trim(filnam),form='unformatted', &
-                action='write',status='replace',access='direct',recl=recl)
-           do iw=1,nwdf
-              write(unit1,rec=iw) mdf1(iw)
+              ! remove partial files
+              do iproc=0,procs-1
+                 call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
+                      nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,tq0=tq0, &
+                      oc1=oct1,oc2=oct2,iqmt=iq,procs=procs,rank=iproc, &
+                      filnam=filnam2)
+                 call filedel(trim(filnam2))
+              end do
+              ! end loop over optical components
            end do
-           close(unit1)
-           ! remove partial files
-           do iproc=0,procs-1
-              call genfilname(basename='IDF',bzsampl=bzsampl,acont=acont,&
-                   nar=.not.aresdf,nlf=(m.eq.1),fxctype=fxctype,tq0=tq0, &
-                   oc1=oct1,oc2=oct2,iqmt=iq,procs=procs,rank=iproc, &
-                   filnam=filnam2)
-              call filedel(trim(filnam2))
-           end do
-        end do ! oct
         end do
      end do ! m
      write(unitout,'(a,i8)') 'Info('//thisnam//'): inverse dielectric &

@@ -292,13 +292,8 @@ module modxs
   logical :: kerndiag
   ! true if off-diagonal tensor components of dielectric function are calculated
   logical :: dfoffdiag
-  ! symmetrization matrix for the head of the dielectric tensor (q=0)
-  real(8) :: symdfq0(3,3)
   ! symmetrization tensor
   real(8) :: symt2(3,3,3,3)
-  ! true on occurrance of negative 3,3-minor determinant contribution in above 
-  ! symmetrization matrix
-  logical :: tsymdfq0dn
   ! true if tetrahedron method is used for dielectric function/matrix
   logical :: tetradf
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
@@ -498,6 +493,8 @@ module modxs
   !-----------------------------!
   !     numerical constants     !
   !-----------------------------!
+  ! Kronecker delta
+  integer, parameter :: krondelta(3,3) = (/ (/1,0,0/), (/0,1,0/), (/0,0,1/) /)
   ! conversion from hartree to electron volt
   real(8), parameter :: h2ev = 27.2114d0
 

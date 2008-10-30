@@ -13,7 +13,6 @@ subroutine dfq(iq)
   use modtetra
   use modmpi
   use m_genwgrid
-  use m_gensymdf
   use m_getpemat
   use m_dftim
   use m_gettetcw
@@ -84,16 +83,15 @@ subroutine dfq(iq)
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:,:,:),hdg(:,:,:)
-  complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:)
+  complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:,:)
   complex(8), allocatable :: wou(:),wuo(:),wouw(:),wuow(:),wouh(:),wuoh(:)
-  complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:)
+  complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:,:)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
-  real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,rv1(9),r1
+  real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,r1
   integer :: n,i,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
-  integer :: oct,oct1,oct2,lop,lops,un,ig1,ig2
+  integer :: oct1,oct2,un,ig1,ig2
   logical :: tq0
-  integer, external :: octmap
   logical, external :: tqgamma,transik,transijst
   if (acont.and.tscreen) then
      write(*,*)
@@ -194,7 +192,7 @@ subroutine dfq(iq)
   allocate(scis21(nst2,nst1))
   allocate(w(nwdf))
   allocate(wreal(nwdfp))
-  allocate(chi0h(9,nwdfp))
+  allocate(chi0h(3,3,nwdfp))
   allocate(chi0w(n,2,3,nwdfp))
   allocate(chi0(n,n,nwdfp))
   allocate(wou(nwdf))
@@ -213,7 +211,7 @@ subroutine dfq(iq)
   ! initializations
   chi0(:,:,:)=zzero
   chi0w(:,:,:,:)=zzero
-  chi0h(:,:)=zzero
+  chi0h(:,:,:)=zzero
   if (tscreen) then
      ! generate radial integrals wrt. sph. Bessel functions
      call ematrad(iq)
@@ -372,9 +370,8 @@ subroutine dfq(iq)
                           wouw(iw)*zvou(2:)*conjg(pmou(oct1,ist1,ist2))+ &
                           wuow(iw)*zvuo(2:)*conjg(pmuo(oct1,ist2,ist1))
                     do oct2=1,3
-                       oct=octmap(oct1,oct2)
                        ! head
-                       chi0h(oct,iw-wi+1)=chi0h(oct,iw-wi+1)+ &
+                       chi0h(oct1,oct2,iw-wi+1)=chi0h(oct1,oct2,iw-wi+1)+ &
                             wouh(iw)*pmou(oct1,ist1,ist2)* &
                             conjg(pmou(oct2,ist1,ist2))+ &
                             wuoh(iw)*pmuo(oct1,ist2,ist1)* &
@@ -399,22 +396,19 @@ subroutine dfq(iq)
   if (tscreen) call ematqdealloc
   ! symmetrize head
   if (tq0) then
-     allocate(chi0hs(9,nwdfp))
+     allocate(chi0hs(3,3,nwdfp))
      do oct1=1,3
         do oct2=1,3
-           lops=octmap(oct1,oct2)
-           ! symmetrization matrix for dielectric function
-           call gensymdf(oct1,oct2)
-           chi0hs(lops,:)=zzero
+           chi0hs(oct1,oct2,:)=zzero
            do i=1,3
               do j=1,3
-                 lop=octmap(i,j)
-                 chi0hs(lops,:)=chi0hs(lops,:)+symdfq0(i,j)*chi0h(lop,:)
+                 chi0hs(oct1,oct2,:)=chi0hs(oct1,oct2,:)+symt2(oct1,oct2,i,j)* &
+                      chi0h(i,j,:)
               end do
            end do
         end do
      end do
-     chi0h(:,:)=chi0hs(:,:)
+     chi0h(:,:,:)=chi0hs(:,:,:)
      deallocate(chi0hs)
   end if
   ! write dielectric tensor to file
@@ -425,26 +419,35 @@ subroutine dfq(iq)
      call getunit(un)
      open(un,file=trim(fnscreen),form='formatted',action='write', &
           status='replace')
-     rv1(:)=0.d0
-     rv1(1::4)=1.d0
+
+!!     rv1(:)=0.d0
+!!     rv1(1::4)=1.d0
+
      do ig1=1,n
         do ig2=1,n
            r1=0.d0
            if (ig1.eq.ig2) r1=1.d0
            if (tq0) then
               if ((ig1.eq.1).and.(ig2.eq.1)) then
-                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,rv1(j)-chi0h(j,1),j=1,9)
+!!                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,rv1(j)-chi0h(j,1),j=1,9)
+                 write(un,'(2i8,2g18.10)') ((-i,-j,dble(krondelta(i,j))- &
+                      chi0h(i,j,1),j=1,3),i=1,3)
               end if
               if ((ig1.eq.1).and.(ig2.ne.1)) then
-                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,-chi0w(ig2,1,j,1),j=1,3)
+!!                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,-chi0w(ig2,1,j,1),j=1,3)
+                 write(un,'(2i8,2g18.10)') (-i,ig2,-chi0w(ig2,1,i,1),i=1,3)
               end if
               if ((ig1.ne.1).and.(ig2.eq.1)) then
-                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,-chi0w(ig1,2,j,1),j=1,3)
+!!                 write(un,'(3i8,2g18.10)') (ig1,ig2,j,-chi0w(ig1,2,j,1),j=1,3)
+                 write(un,'(2i8,2g18.10)') (ig1,j,-chi0w(ig1,2,j,1),j=1,3)
               end if
-              if ((ig1.ne.1).and.(ig2.ne.1)) write(un,'(3i8,2g18.10)') ig1,ig2,&
-                   0,r1-chi0(ig1,ig2,1)
+              if ((ig1.ne.1).and.(ig2.ne.1)) then
+!!                 write(un,'(3i8,2g18.10)') ig1,ig2,0,r1-chi0(ig1,ig2,1)
+                 write(un,'(2i8,2g18.10)') ig1,ig2,r1-chi0(ig1,ig2,1)
+              end if
            else
-              write(un,'(3i8,2g18.10)') ig1,ig2,0,r1-chi0(ig1,ig2,1)
+!!              write(un,'(3i8,2g18.10)') ig1,ig2,0,r1-chi0(ig1,ig2,1)
+              write(un,'(2i8,2g18.10)') ig1,ig2,r1-chi0(ig1,ig2,1)
            end if
         end do
      end do
@@ -455,7 +458,7 @@ subroutine dfq(iq)
         if (rank.eq.j) then
            do iw=wi,wf
               call putx0(tq0,iq,iw-wi+1,trim(fnchi0_t),'',&
-                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,iw-wi+1))
+                   chi0(:,:,iw-wi+1),chi0w(:,:,:,iw-wi+1),chi0h(:,:,iw-wi+1))
            end do
         end if
         call barrier

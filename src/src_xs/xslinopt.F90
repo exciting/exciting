@@ -13,7 +13,6 @@ subroutine xslinopt(iq)
   use m_genloss
   use m_gensigma
   use m_gensumrls
-  use m_gensymdf
   use m_writeeps
   use m_writeloss
   use m_writesigma
@@ -30,10 +29,9 @@ subroutine xslinopt(iq)
   real(8),allocatable :: wplot(:),loss(:)
   real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
   real(8) :: sumrls(3),brd
-  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct,oct1,oct2,octl,octu,optcompt(3),i,j
+  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct1,oct2,octl,octu,optcompt(3),i,j
   logical :: tq0
   logical, external :: tqgamma
-  integer, external :: octmap
   tq0=tqgamma(iq)
   ! number of components (3 for q=0)
   nc=1
@@ -98,17 +96,12 @@ subroutine xslinopt(iq)
            octu=oct1
         end if
         do oct2=octl,octu
-           oct=octmap(oct1,oct2)
-           optcomp(1,1)=oct1
-           optcomp(2,1)=oct2
-           optcompt(:)=optcomp(:,1)    
-           ! symmetrization matrix for dielectric function
-           call gensymdf(oct1,oct2)
+           optcompt(:)=(/oct1,oct2,0/)  
            ! symmetrize the macroscopic dielectric function tensor
            mdf(:)=zzero
            do i=1,3
               do j=1,3
-                 mdf(:)=mdf(:)+symdfq0(i,j)*mdf2(i,j,:)
+                 mdf(:)=mdf(:)+symt2(oct1,oct2,i,j)*mdf2(i,j,:)
               end do
            end do
            ! file names for spectra
@@ -129,11 +122,12 @@ subroutine xslinopt(iq)
            call gensigma(dble(wr),mdf,optcompt,sigma)
            call gensumrls(dble(wr),mdf,sumrls)
            ! write optical functions to file
-           call writeeps(iq,wplot,mdf,trim(fneps))
+           call writeeps(iq,oct1,oct2,wplot,mdf,trim(fneps))
            call writeloss(iq,wplot,loss,trim(fnloss))
            call writesigma(iq,wplot,sigma,trim(fnsigma))
            call writesumrls(iq,sumrls,trim(fnsumrules))
-        end do ! oct
+           ! end loop over optical components
+        end do
      end do
   end do ! m
   ! deallocate

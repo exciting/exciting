@@ -14,12 +14,11 @@ subroutine geniscreen(iqr,nmax,n,scri)
   complex(8), intent(out) :: scri(nmax,nmax)
   ! local variables
   complex(8), allocatable :: tm(:,:),tmi(:,:),b(:,:),bi(:,:),u(:,:),s(:,:)
-  complex(8), allocatable :: scrn(:,:),scrnw(:,:,:),scrnh(:), s3(:,:),s3i(:,:)
+  complex(8), allocatable :: scrn(:,:),scrnw(:,:,:),scrnh(:,:), s3(:,:),s3i(:,:)
   complex(8) :: scrnh0(3),scrnih0(3),f(3,3),l(3,3)
   integer :: un,oct,oct2,i,j,ig1,ig2
-  integer, external :: octmap
 
-  allocate(scrn(n,n),scrnw(n,2,3),scrnh(9),tm(n,n),tmi(n,n),s3(n+2,n+2),s3i(n+2,n+2))
+  allocate(scrn(n,n),scrnw(n,2,3),scrnh(3,3),tm(n,n),tmi(n,n),s3(n+2,n+2),s3i(n+2,n+2))
   ! read screening from file
   call getscreen(iqr,n,scrnh,scrnw,scrn)
 
@@ -29,8 +28,7 @@ subroutine geniscreen(iqr,nmax,n,scri)
      ! head
      do oct=1,3
         do oct2=1,3
-           j=octmap(oct,oct2)
-           f(oct,oct2)=scrnh(j)
+           f(oct,oct2)=scrnh(oct,oct2)
         end do
      end do
      allocate(b(n-1,n-1),bi(n-1,n-1),u(n-1,3),s(n-1,3))
@@ -84,16 +82,13 @@ subroutine geniscreen(iqr,nmax,n,scri)
 
      do oct=1,3
         do oct2=1,3
-           j=octmap(oct,oct2)
-           s3(oct,oct2)=scrnh(j)
+           s3(oct,oct2)=scrnh(oct,oct2)
         end do
         if (n.gt.1) then
            s3(oct,4:)=scrnw(2:,1,oct)
         end if
    
-        ! index for diagonal tensor component
-        j=octmap(oct,oct)
-        scrn(1,1)=scrnh(j)
+        scrn(1,1)=scrnh(oct,oct)
         ! keep head of dielectric matrix for q=0
         scrnh0(oct)=scrn(1,1)
         if (n.gt.1) then

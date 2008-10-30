@@ -17,13 +17,12 @@ contains
     integer, intent(in) :: iq,iw
     character(*),intent(in) :: filnam,filxt
     complex(8), intent(out) :: ch0(:,:)
-    complex(8), intent(out), optional :: ch0wg(:,:,:),ch0hd(:)
+    complex(8), intent(out), optional :: ch0wg(:,:,:),ch0hd(:,:)
     ! local variables
     character(*), parameter :: thisnam = 'getx0'
     integer :: recl, un, ngq_
     real(8) :: vql_(3)
     logical :: existent
-
     ! check if file exists
     inquire(file=trim(filnam)//trim(filxt),exist=existent)
     if (.not.existent) then
@@ -31,13 +30,11 @@ contains
             &'// trim(filnam)//trim(filxt)
        call terminate
     end if
-
     ! q=0 but head or wings missing
     if (tp0.and.((.not.present(ch0wg)).or.(.not.present(ch0wg))) ) then
        write(*,*) 'Error('//trim(thisnam)//'): q=0 but head or wings missing'
        call terminate
     end if
-
     call getunit(un)
     ! I/O record length
     if (tp0) then
@@ -52,7 +49,6 @@ contains
        read(un,rec=iw) ngq_,vql_,ch0
     end if
     close(un)
-
     if ((ngq_.ne.ngq(iq)).or.(any(vql_.ne.vql(:,iq)))) then
        write(unitout,'(a)') 'Error('//trim(thisnam)//&
             &'): differring parameters for matrix elements (current/file): '
@@ -62,8 +58,7 @@ contains
        write(unitout,'(a,i6)') 'for w-point :',iw
        write(unitout,'(a)') ' file: ',trim(filnam)//trim(filxt)
        call terminate
-    end if
-    
+    end if    
   end subroutine getx0
 
 end module m_getx0

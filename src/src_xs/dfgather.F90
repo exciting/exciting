@@ -15,7 +15,7 @@ subroutine dfgather
   ! local variables
   character(*), parameter :: thisnam='dfgather'
   integer :: n,iq,iw,iproc
-  complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
+  complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:,:)
   logical :: tq0
   logical, external :: tqgamma
   ! loop over q-points
@@ -26,7 +26,7 @@ subroutine dfgather
      ! size of local field effects
      n=ngq(iq)
      ! allocate
-     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3))
+     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3,3))
      ! file extension for q-point
      do iproc=0,procs-1
         call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
@@ -43,7 +43,6 @@ subroutine dfgather
      do iproc=0,procs-1
         call genfilname(basename='X0',iqmt=iq,procs=procs,rank=iproc,&
              filnam=fnchi0_t)
-!!$        call filedel(trim(fnchi0_t))
      end do
      deallocate(chi0,chi0wg,chi0hd)
      write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sham response &

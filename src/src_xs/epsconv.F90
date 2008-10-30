@@ -13,12 +13,12 @@ subroutine epsconv
   ! local variables
   character(*), parameter :: thisnam='epsconv'
   character(256) :: filnam
-  integer :: iq,iw,iwp,m,n,oct,oct1,oct2,nc,un
+  integer :: iq,iw,iwp,m,n,oct1,oct2,nc,un
   logical :: exis,tq0
   real(8), parameter :: epsc=1.d-8
   real(8), allocatable :: w(:), epst(:,:),lor(:),f(:),f1(:),g(:),g1(:),cf(:,:)
   complex(8), allocatable :: eps(:)
-  integer, external :: l2int,octmap
+  integer, external :: l2int
   logical, external :: tqgamma
   ! initialize universal variables
   call init0
@@ -40,7 +40,6 @@ subroutine epsconv
         ! loop over longitudinal components for optics
         do oct1=1,nc
         do oct2=1,nc
-           oct=octmap(oct1,oct2)
            ! generate filename for Tetrahedron method
            call genfilname(basename='EPSILON',bzsampl=bzsampl,&
                 nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&

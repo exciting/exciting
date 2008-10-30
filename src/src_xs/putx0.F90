@@ -17,7 +17,7 @@ contains
     integer, intent(in) :: iq,iw
     character(*), intent(in) :: filnam,filxt
     complex(8), intent(in) :: ch0(:,:)
-    complex(8), intent(in), optional :: ch0wg(:,:,:),ch0hd(:)
+    complex(8), intent(in), optional :: ch0wg(:,:,:),ch0hd(:,:)
     ! local variables
     character(*), parameter :: thisnam = 'putx0'
     integer :: un, recl

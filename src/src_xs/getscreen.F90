@@ -10,11 +10,11 @@ subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
   implicit none
   ! arguments
   integer, intent(in) :: iqr,ngq
-  complex(8), intent(out) :: scrb(ngq,ngq),scrw(ngq,2,3),scrh(9)
+  complex(8), intent(out) :: scrb(ngq,ngq),scrw(ngq,2,3),scrh(3,3)
   ! local variables
   character(256) :: fname
-  real(8) :: rm(2,9)
-  integer :: igq1,igq2,j,it1,it2,it3,un,bzsampl
+  real(8) :: rm(2,3,3)
+  integer :: igq1,igq2,i,j,it1,it2,un,bzsampl
   ! sampling of Brillouin zone
   bzsampl=0
   if (tetradf) bzsampl=1
@@ -26,23 +26,23 @@ subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
      do igq2=1,ngq
         if (iqr.eq.1) then
            if ((igq1.eq.1).and.(igq2.eq.1)) then
-              read(un,*) (it1,it2,it3,rm(1,j),rm(2,j),j=1,9)
-              scrh(:)=cmplx(rm(1,:),rm(2,:),8)
+              read(un,*) ((it1,it2,rm(1,i,j),rm(2,i,j),j=1,3),i=1,3)
+              scrh(:,:)=cmplx(rm(1,:,:),rm(2,:,:),8)
            end if
            if ((igq1.eq.1).and.(igq2.ne.1)) then
-              read(un,*) (it1,it2,it3,rm(1,j),rm(2,j),j=1,3)
-              scrw(igq2,1,:)=cmplx(rm(1,:3),rm(2,:3),8)
+              read(un,*) (it1,it2,rm(1,1,j),rm(2,1,j),j=1,3)
+              scrw(igq2,1,:)=cmplx(rm(1,1,:),rm(2,1,:),8)
            end if
            if ((igq1.ne.1).and.(igq2.eq.1)) then
-              read(un,*) (it1,it2,it3,rm(1,j),rm(2,j),j=1,3)
-              scrw(igq1,2,:)=cmplx(rm(1,:3),rm(2,:3),8)
+              read(un,*) (it1,it2,rm(1,1,j),rm(2,1,j),j=1,3)
+              scrw(igq1,2,:)=cmplx(rm(1,1,:),rm(2,1,:),8)
            end if
-           if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) it1,it2,it3,&
-                rm(1,1),rm(2,1)
-           scrb(igq1,igq2)=cmplx(rm(1,1),rm(2,1),8)
+           if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) it1,it2,&
+                rm(1,1,1),rm(2,1,1)
+           scrb(igq1,igq2)=cmplx(rm(1,1,1),rm(2,1,1),8)
         else
-           read(un,*) it1,it2,it3,rm(1,1),rm(2,1)
-           scrb(igq1,igq2)=cmplx(rm(1,1),rm(2,1),8)
+           read(un,*) it1,it2,rm(1,1,1),rm(2,1,1)
+           scrb(igq1,igq2)=cmplx(rm(1,1,1),rm(2,1,1),8)
         end if
      end do
   end do

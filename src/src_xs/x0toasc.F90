@@ -14,12 +14,11 @@ subroutine x0toasc
   ! local variables
   character(*), parameter :: thisnam='x0toasc'
   character(256) :: filnam, filnama
-  integer :: n,iq,igq,igqp,iw,oct,oct1,oct2,noct,un
+  integer :: n,iq,igq,igqp,iw,oct1,oct2,noct,un
   complex(8) :: zt
-  complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:)
+  complex(8), allocatable :: chi0(:,:),chi0wg(:,:,:),chi0hd(:,:)
   logical :: tq0
   logical, external :: tqgamma
-  integer, external :: octmap
   call init0
   ! initialise universal variables
   call init1
@@ -35,7 +34,7 @@ subroutine x0toasc
      ! size of local field effects
      n=ngq(iq)
      ! allocate
-     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(9))
+     allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3,3))
      ! filenames
      call genfilname(asc=.true.,basename='X0',bzsampl=bzsampl,acont=acont,&
           nar=.not.aresdf,iqmt=iq,filnam=filnama)
@@ -56,22 +55,22 @@ subroutine x0toasc
               if (tq0) then
                  do oct1=1,noct
                     do oct2=1,noct
-                       oct=octmap(oct1,oct2)
                        ! head
                        if ((igq.eq.1).and.(igqp.eq.1)) &
-                            chi0(igq,igqp)=chi0hd(oct)
+                            chi0(igq,igqp)=chi0hd(oct1,oct2)
                        ! wings
                        if ((n.gt.1).and.(igq.eq.1).and.(igqp.gt.1)) &
                             chi0(igq,igqp)=chi0wg(igqp,1,oct1)
                        if ((n.gt.1).and.(igq.gt.1).and.(igqp.eq.1)) &
                             chi0(igq,igqp)=chi0wg(igq,2,oct2)              
                        zt=chi0(igq,igqp)
-                       write(un,'(5i6,3g18.10)') iq,iw,igq,igqp,oct,zt,abs(zt)
+                       write(un,'(6i6,3g18.10)') iq,iw,igq,igqp,oct1,oct2,zt, &
+                            abs(zt)
                     end do
                  end do
               else
                  zt=chi0(igq,igqp)
-                 write(un,'(5i6,3g18.10)') iq,iw,igq,igqp,0,zt,abs(zt)
+                 write(un,'(6i6,3g18.10)') iq,iw,igq,igqp,0,0,zt,abs(zt)
               end if
            end do
         end do

@@ -7,14 +7,14 @@ module m_writeeps
   implicit none
 contains
 
-  subroutine writeeps(iq,w,eps,fn)
+  subroutine writeeps(iq,iop1,iop2,w,eps,fn)
     use modmain
     use modxs
     use m_getunit
     use m_writevars
     implicit none
     ! arguments
-    integer, intent(in) :: iq
+    integer, intent(in) :: iq,iop1,iop2
     real(8), intent(in) :: w(:)
     complex(8), intent(in) :: eps(:)
     character(*), intent(in) :: fn
@@ -31,7 +31,7 @@ contains
     allocate(imeps(n),kkeps(n))
     ! Kramers-Kronig transform imaginary part
     imeps(:)=aimag(eps(:))
-    call kramkron(optcomp(1,1),optcomp(2,1),1.d-8,n,w,imeps,kkeps)
+    call kramkron(iop1,iop2,1.d-8,n,w,imeps,kkeps)
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
     write(unit1,'(4g18.10)') (w(iw)*escale,eps(iw),kkeps(iw),iw=1,n)
