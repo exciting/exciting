@@ -130,6 +130,7 @@ subroutine xsinit
   if (lmaxapwwf.eq.-1) lmaxapwwf=lmaxmat
   lmmaxapwwf=(lmaxapwwf+1)**2
   lmmaxemat=(lmaxemat+1)**2
+  lmmaxdielt=(lmaxdielt+1)**2
   if (lmaxapwwf.gt.lmaxapw) then
      write(unitout,*)
      write(unitout,'("Error(xsinit): lmaxapwwf > lmaxapw: ",i6)') lmaxapwwf

@@ -9,7 +9,10 @@ subroutine testxs
   implicit none
 
  complex(8) :: bi,s(1,3),l(3,3),av
+
    call init0
+   call init1
+   call genscclieff
 
 !   call angavdm(2,l,s,bi,av)
  

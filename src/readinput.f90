@@ -223,6 +223,8 @@ fastpmat=.true.
 fastemat=.true.
 emattype=1
 lmaxemat=3
+lmaxspi=20
+lmaxdielt=3
 rsptype='reta'
 acont=.false.
 nwacont=0
@@ -1081,6 +1083,22 @@ case('lmaxemat')
   if (lmaxemat.lt.0) then
     write(*,*)
     write(*,'("Error(readinput/xs): lmaxemat < 0 : ",I8)') lmaxemat
+    write(*,*)
+    stop
+  end if
+case('lmaxspi')
+  read(50,*,err=20) lmaxspi
+  if (lmaxspi.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): lmaxspi < 0 : ",I8)') lmaxspi
+    write(*,*)
+    stop
+  end if
+case('lmaxdielt')
+  read(50,*,err=20) lmaxdielt
+  if (lmaxdielt.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): lmaxdielt < 0 : ",I8)') lmaxdielt
     write(*,*)
     stop
   end if

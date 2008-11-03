@@ -370,6 +370,12 @@ module modxs
   complex(8) :: dielten(3,3)
   ! dielectric tensor in the independent particle approximation
   complex(8) :: dielten0(3,3)
+  ! maximum angular momentum for angular average of dielectric tensor
+  integer :: lmaxdielt
+  ! (lmaxdielt+1)^2
+  integer :: lmmaxdielt
+  ! maximum angular momentum analogue of spherical covering set for integration
+  integer :: lmaxspi
 
   !------------------------------------------!
   !     Bethe-Salpeter (kernel) variables    !
@@ -501,8 +507,10 @@ module modxs
   !---------------------------------!
   !     miscellaneous variables     !
   !---------------------------------!
-  ! spherical covering set
+  ! spherical covering set in Cartesian coordinates
   real(8), allocatable :: sphcov(:,:)
+  ! spherical covering set in tetha/phi angles
+  real(8), allocatable :: sphcovtp(:,:)
   ! xs code version
   integer :: versionxs(2)
   ! true if energies output in eV
