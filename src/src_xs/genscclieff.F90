@@ -11,8 +11,11 @@ subroutine genscclieff()
   ! local variables
   integer, parameter :: nleb=5294
   integer :: j,itp,lm,n,ntpsph
-  real(8) :: r,s,sq,m33(3,3),rnd(2)
+  real(8) :: t1,r,s,sq,m33(3,3),rnd(2),qsz,clwt
+  complex(8) :: z00,zt1
+  real(8), allocatable :: plat(:,:),p(:)
   real(8), allocatable :: tp(:,:),spc(:,:),spcll(:,:),w(:)
+  complex(8), allocatable :: m00lm(:)
   complex(8), allocatable :: ei00(:),ei00lm(:),ei00lma(:),ylm(:),zylm(:,:)
 
   ntpsph=nleb
@@ -22,6 +25,7 @@ subroutine genscclieff()
      write(*,*)
      stop
   end if
+  allocate(plat(3,ntpsph),p(ntpsph),m00lm(lmmaxdielt))
   allocate(ei00(ntpsph),ei00lm(ntpsph),ei00lma(lmmaxdielt))
   allocate(ylm(lmmaxdielt),zylm(ntpsph,lmmaxdielt))
   allocate(tp(2,ntpsph),spc(3,ntpsph))
@@ -40,10 +44,10 @@ subroutine genscclieff()
   dielten(2,:)=dielten(2,:)+zi*(/ 0.00000000, 0.00000000, 0.00000000 /)
   dielten(3,:)=dielten(3,:)+zi*(/ -0.00000579,0.00000000, 0.00000000 /)
 
-  call random_number(m33)
-  dielten(:,:)=dielten(:,:)+m33(:,:)*3.d0
-  call random_number(m33)
-  dielten(:,:)=dielten(:,:)+zi*m33(:,:)*3.d0
+!  call random_number(m33)
+!  dielten(:,:)=dielten(:,:)+m33(:,:)*3.d0
+!  call random_number(m33)
+!  dielten(:,:)=dielten(:,:)+zi*m33(:,:)*3.d0
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 !  ! generate spherical covering set (angles and coordinates)
@@ -59,6 +63,12 @@ subroutine genscclieff()
      zylm(itp,:)=ylm(:)
   end do
 
+  t1=(omega/(twopi)**3)*product(ngridq)
+  ! unit vectors of spherical covering set in lattice coordinates
+  plat=matmul(binv,spc)
+  ! distances to unit cell boundary in reciprocal space
+  p(:)=1.d0/(2.d0*maxval(abs(plat),1))
+
   ! calculate function on covering set
   do itp=1,ntpsph
      ! head which is the 1/(p*L*p) factor
@@ -68,14 +78,28 @@ subroutine genscclieff()
   ! calculate lm-expansion coefficients
   do lm=1,lmmaxdielt
      ei00lma(lm)=fourpi*dot_product(zylm(:,lm),ei00*w)
+     m00lm(lm)=fourpi*dot_product(zylm(:,lm),p*w)
   end do
 
+  ! calculate the averages
+  z00=t1*dot_product(m00lm,ei00lma)
+
+  ! * analytic version *
+  qsz=(6*pi**2/(omega*product(ngridq)))**(1.d0/3.d0)
+  clwt=2*qsz*omega*product(ngridq)/pi
+!!!  zt1=(dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0
+  zt1=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
+  zt1=1.d0/zt1
+  write(*,*) 'analytic average', (1.d0/zt1)*clwt/product(ngridq)/omega
+
+  write(*,*) 'spherical average',z00,z00/product(ngridq)/omega
+  write(*,*) 'spherical average',1.d0/z00,1.d0/(z00/product(ngridq)/omega)
   write(*,*) 'dielten',dielten
   write(10000+lmaxspi,'(i6,3f14.8)') (itp,spc(:,itp),itp=1,ntpsph)
   write(20000+lmaxspi,'(i6,2f14.8)') (itp,ei00(itp),itp=1,ntpsph)
   write(40000+lmaxspi,'(i6,2f14.8)') (lm,ei00lma(lm),lm=1,lmmaxdielt)
 
-  deallocate(ei00,ei00lm,ei00lma,ylm,zylm,tp,spc,w)
+  deallocate(ei00,ei00lm,ei00lma,m00lm,ylm,zylm,tp,spc,w,plat,p)
 
 end subroutine genscclieff
 
