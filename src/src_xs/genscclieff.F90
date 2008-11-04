@@ -9,10 +9,10 @@ subroutine genscclieff()
   use invert
   implicit none
   ! local variables
-  integer, parameter :: nleb=5294
+  integer, parameter :: nleb=4802 !5810 !5294
   integer :: j,itp,lm,n,ntpsph
   real(8) :: t1,r,s,sq,m33(3,3),rnd(2),qsz,clwt
-  complex(8) :: z00,zt1
+  complex(8) :: z00,z01,zt1,zt2
   real(8), allocatable :: plat(:,:),p(:)
   real(8), allocatable :: tp(:,:),spc(:,:),spcll(:,:),w(:)
   complex(8), allocatable :: m00lm(:)
@@ -33,7 +33,7 @@ subroutine genscclieff()
   w(:)=1.d0/ntpsph
 
   ! generate Lebedev Laikov grid
-  call leblaik(nleb,spc,w)
+  call leblaik(ntpsph,spc,w)
 
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   ! preset dielectric tensor for testing
@@ -43,6 +43,8 @@ subroutine genscclieff()
   dielten(1,:)=dielten(1,:)+zi*(/ 0.00000000, 0.00000000, 0.00000579 /)
   dielten(2,:)=dielten(2,:)+zi*(/ 0.00000000, 0.00000000, 0.00000000 /)
   dielten(3,:)=dielten(3,:)+zi*(/ -0.00000579,0.00000000, 0.00000000 /)
+  zt1=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0)
+  zt2=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
 
 !  call random_number(m33)
 !  dielten(:,:)=dielten(:,:)+m33(:,:)*3.d0
@@ -50,12 +52,16 @@ subroutine genscclieff()
 !  dielten(:,:)=dielten(:,:)+zi*m33(:,:)*3.d0
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-!  ! generate spherical covering set (angles and coordinates)
-!  call sphcover(ntpsph,tp)
-!  spc(1,:)=sin(tp(1,:))*cos(tp(2,:))
-!  spc(2,:)=sin(tp(1,:))*sin(tp(2,:))
-!  spc(3,:)=cos(tp(1,:))
+!!$  ! generate spherical covering set (angles and coordinates)
+!!$  call sphcover(ntpsph,tp)
+!!$  spc(1,:)=sin(tp(1,:))*cos(tp(2,:))
+!!$  spc(2,:)=sin(tp(1,:))*sin(tp(2,:))
+!!$  spc(3,:)=cos(tp(1,:))
     
+  ! * analytic version *
+  qsz=(6*pi**2/(omega*product(ngridq)))**(1.d0/3.d0)
+  clwt=2*qsz*omega*product(ngridq)/pi
+
   ! generate spherical harmonics on large covering set
   do itp=1,ntpsph
      call sphcrd(spc(:,itp),r,tp(:,itp))
@@ -63,11 +69,13 @@ subroutine genscclieff()
      zylm(itp,:)=ylm(:)
   end do
 
-  t1=(omega/(twopi)**3)*product(ngridq)
+  t1=(omega/(twopi)**3)*product(ngridq)*fourpi
   ! unit vectors of spherical covering set in lattice coordinates
   plat=matmul(binv,spc)
   ! distances to unit cell boundary in reciprocal space
   p(:)=1.d0/(2.d0*maxval(abs(plat),1))
+
+!!!p(:)=qsz
 
   ! calculate function on covering set
   do itp=1,ntpsph
@@ -75,25 +83,37 @@ subroutine genscclieff()
      ei00(itp)=1.d0/dot_product(spc(:,itp),matmul(dielten,spc(:,itp)))
   end do
 
+ei00=1.d0
+
   ! calculate lm-expansion coefficients
   do lm=1,lmmaxdielt
      ei00lma(lm)=fourpi*dot_product(zylm(:,lm),ei00*w)
      m00lm(lm)=fourpi*dot_product(zylm(:,lm),p*w)
   end do
 
-  ! calculate the averages
-  z00=t1*dot_product(m00lm,ei00lma)
-
   ! * analytic version *
   qsz=(6*pi**2/(omega*product(ngridq)))**(1.d0/3.d0)
   clwt=2*qsz*omega*product(ngridq)/pi
-!!!  zt1=(dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0
-  zt1=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
-  zt1=1.d0/zt1
-  write(*,*) 'analytic average', (1.d0/zt1)*clwt/product(ngridq)/omega
 
-  write(*,*) 'spherical average',z00,z00/product(ngridq)/omega
-  write(*,*) 'spherical average',1.d0/z00,1.d0/(z00/product(ngridq)/omega)
+write(600,'(i6,3f14.8)') (itp,p(itp)*spc(:,itp),itp=1,ntpsph)
+
+  ! calculate the averages
+  z00=t1*dot_product(m00lm,ei00lma)
+  z01=t1*conjg(m00lm(1))*ei00lma(1)
+
+  write(*,*) 'analytic average (av of scr):', zt1*clwt/product(ngridq)/omega
+  write(*,*) 'analytic average (av of inv.scr):',zt2*clwt/product(ngridq)/omega
+  write(*,*) 'spherical average',z00/product(ngridq)/omega
+  write(*,*) 'spherical average(1)',z01/product(ngridq)/omega
+  write(*,*) 'potcl eff',clwt
+  write(*,*) 'qsz',qsz
+  write(*,*) 'V_gamma',fourpi*qsz**3/3.d0
+  write(*,*) 'z00',z00
+  write(*,*) 'z01',z01
+  write(*,*) 'scal',t1
+  write(*,*) 'm00lm(1)',m00lm(1)
+  write(*,*) 'ei00lma(1)',ei00lma(1)
+  write(*,*) 'm00lm(1)*ei00lma(1)',ei00lma(1)*m00lm(1)
   write(*,*) 'dielten',dielten
   write(10000+lmaxspi,'(i6,3f14.8)') (itp,spc(:,itp),itp=1,ntpsph)
   write(20000+lmaxspi,'(i6,2f14.8)') (itp,ei00(itp),itp=1,ntpsph)
