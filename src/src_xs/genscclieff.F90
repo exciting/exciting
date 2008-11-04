@@ -17,7 +17,6 @@ subroutine genscclieff()
   real(8), allocatable :: tp(:,:),spc(:,:),spcll(:,:),w(:)
   complex(8), allocatable :: m00lm(:)
   complex(8), allocatable :: ei00(:),ei00lm(:),ei00lma(:),ylm(:),zylm(:,:)
-real(8), external :: polynom
 
   ntpsph=nleb
   if (lmmaxdielt.gt.ntpsph) then
@@ -86,7 +85,7 @@ real(8), external :: polynom
      ei00(itp)=1.d0/dot_product(spc(:,itp),matmul(dielten,spc(:,itp)))
   end do
 
-ei00=1.d0
+!!!ei00=1.d0
 
   ! calculate lm-expansion coefficients
   do lm=1,lmmaxdielt
