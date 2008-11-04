@@ -9,14 +9,15 @@ subroutine genscclieff()
   use invert
   implicit none
   ! local variables
-  integer, parameter :: nleb=4802 !5810 !5294
-  integer :: j,itp,lm,n,ntpsph
-  real(8) :: t1,r,s,sq,m33(3,3),rnd(2),qsz,clwt
+  integer, parameter :: nleb=5810  !(/ 4334, 4802, 5294, 5810 /)
+  integer :: j,itp,lm,ip,n,nl,ntpsph
+  real(8) :: t1,r,s,sq,m33(3,3),rnd(2),qsz,clwt,dnleb
   complex(8) :: z00,z01,zt1,zt2
   real(8), allocatable :: plat(:,:),p(:)
   real(8), allocatable :: tp(:,:),spc(:,:),spcll(:,:),w(:)
   complex(8), allocatable :: m00lm(:)
   complex(8), allocatable :: ei00(:),ei00lm(:),ei00lma(:),ylm(:),zylm(:,:)
+real(8), external :: polynom
 
   ntpsph=nleb
   if (lmmaxdielt.gt.ntpsph) then
@@ -73,7 +74,9 @@ subroutine genscclieff()
   ! unit vectors of spherical covering set in lattice coordinates
   plat=matmul(binv,spc)
   ! distances to unit cell boundary in reciprocal space
-  p(:)=1.d0/(2.d0*maxval(abs(plat),1))
+  do itp=1,ntpsph
+     p(itp:)=1.d0/(2.d0*maxval(abs(ngridq(:)*plat(:,itp)),1))
+  end do
 
 !!!p(:)=qsz
 
@@ -110,7 +113,7 @@ write(600,'(i6,3f14.8)') (itp,p(itp)*spc(:,itp),itp=1,ntpsph)
   write(*,*) 'V_gamma',fourpi*qsz**3/3.d0
   write(*,*) 'z00',z00
   write(*,*) 'z01',z01
-  write(*,*) 'scal',t1
+  write(*,*) 'sph.appr.',1.d0/(2.d0*pi)**3 *fourpi**2 *qsz *product(ngridq)*omega
   write(*,*) 'm00lm(1)',m00lm(1)
   write(*,*) 'ei00lma(1)',ei00lma(1)
   write(*,*) 'm00lm(1)*ei00lma(1)',ei00lma(1)*m00lm(1)

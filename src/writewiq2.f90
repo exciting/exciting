@@ -47,7 +47,8 @@ do iq=1,nqpt
   end do
   !<sag action="modification">
   write(50,'(I6,4G18.10,3x,2g18.10)') iq,v0,wiq2(iq), &
-     wiq2(iq)*omega/(twopi**3),1.d0/sum(v2**2)/dble(product(ngridq))
+     wiq2(iq)*fourpi*product(ngridq)*omega/(twopi**3), &
+        1.d0/sum(v2**2)/dble(product(ngridq))
 !  write(50,'(I6,4G18.10)') iq,v0,wiq2(iq)
   !</sag>
 end do
