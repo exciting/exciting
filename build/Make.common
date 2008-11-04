@@ -17,7 +17,7 @@ bin::make.inc
 	&& make -f Makefile.mkmf exciting$(SUFFIX) \
 	&& cp -f exciting$(SUFFIX) ..
 
-libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a
+libs:libbzint.a	libblas.a liblapack.a fftlib.a leblaiklib.a libarpack.a
 
 libblas.a: 
 	cp -f make.inc ../..
@@ -36,6 +36,12 @@ fftlib.a:
 	cd ../../src/fftlib && make clean && make
 	cp ../../src/fftlib/fftlib.a .
 	cd ../../src/fftlib && make clean
+
+leblaiklib.a:
+	cp -f make.inc ../..
+	cd ../../src/leblaiklib && make clean && make
+	cp ../../src/leblaiklib/leblaiklib.a .
+	cd ../../src/leblaiklib && make clean
 
 libbzint.a: 
 	cp -f make.inc ../..

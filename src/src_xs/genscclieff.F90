@@ -9,65 +9,29 @@ subroutine genscclieff()
   use invert
   implicit none
   ! local variables
-  integer, parameter :: nleb=5810 !5810,5294
+  integer, parameter :: nleb=5294
   integer :: j,itp,lm,n,ntpsph
   real(8) :: r,s,sq,m33(3,3),rnd(2)
-  real(8), allocatable :: tp(:,:),spc(:,:),spcll(:,:),x(:),y(:),z(:),w(:)
+  real(8), allocatable :: tp(:,:),spc(:,:),spcll(:,:),w(:)
   complex(8), allocatable :: ei00(:),ei00lm(:),ei00lma(:),ylm(:),zylm(:,:)
-  complex(8), allocatable :: zbsht(:,:), zfsht(:,:)
 
-  ntpsph=(lmaxspi+1)**2
   ntpsph=nleb
-  allocate(ei00(ntpsph),ei00lm(ntpsph),ei00lma(lmmaxdielt))
-  allocate(ylm(lmmaxdielt),zylm(ntpsph,lmmaxdielt))
-  allocate(tp(2,ntpsph),spc(3,ntpsph),spcll(3,nleb))
-  allocate(x(ntpsph),y(ntpsph),z(ntpsph),w(ntpsph))
-
-  w(:)=1.d0/ntpsph
   if (lmmaxdielt.gt.ntpsph) then
      write(*,*)
      write(*,'("Error(): lmmaxdielt.lt.ntpsph: ",2i6)') lmmaxdielt,ntpsph
      write(*,*)
      stop
   end if
+  allocate(ei00(ntpsph),ei00lm(ntpsph),ei00lma(lmmaxdielt))
+  allocate(ylm(lmmaxdielt),zylm(ntpsph,lmmaxdielt))
+  allocate(tp(2,ntpsph),spc(3,ntpsph))
+  allocate(w(ntpsph))
+  w(:)=1.d0/ntpsph
 
   ! generate Lebedev Laikov grid
-  n=0
-  x(:)=0.d0
-  y(:)=0.d0
-  z(:)=0.d0
-!  call ld5810(x,y,z,w,n)
-  spcll(1,:)=x
-  spcll(2,:)=y
-  spcll(3,:)=z
- call leblaik(nleb,spcll,w)
+  call leblaik(nleb,spc,w)
 
-  ! marsaglia's method
-  itp=0
-  do j=1,4*ntpsph
-     call random_number(rnd)
-     rnd=2.d0*rnd-1.d0
-     s=sum(rnd**2)
-     if (s.le.1.d0) then
-       itp=itp+1
-       sq=sqrt(1-s)
-!       spcll(1,itp)=2.d0*rnd(1)*sq
-!       spcll(2,itp)=2.d0*rnd(2)*sq
-!       spcll(3,itp)=1.d0-2.d0*s
-     end if
-     if (itp.eq.ntpsph) exit
-  end do
-
-
-  write(*,*) 'ntpsph',ntpsph
-  write(*,*) 'number of points:',n
-  write(*,*) 'sum of weights',sum(w)
-  write(601,*) x
-  write(602,*) y
-  write(603,*) z
-  write(604,*) w
-  write(600,'(i6,4f14.8)') (itp,x(itp),y(itp),z(itp),w(itp),itp=1,nleb)
-
+  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   ! preset dielectric tensor for testing
   dielten(1,:)=(/ 2.91911039, 0.00000000, 3.49765354 /)
   dielten(2,:)=(/ 0.00000000, 2.79383654, 0.00000000 /)
@@ -76,23 +40,18 @@ subroutine genscclieff()
   dielten(2,:)=dielten(2,:)+zi*(/ 0.00000000, 0.00000000, 0.00000000 /)
   dielten(3,:)=dielten(3,:)+zi*(/ -0.00000579,0.00000000, 0.00000000 /)
 
-
-  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   call random_number(m33)
   dielten(:,:)=dielten(:,:)+m33(:,:)*3.d0
   call random_number(m33)
   dielten(:,:)=dielten(:,:)+zi*m33(:,:)*3.d0
   !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  ! generate spherical covering set (angles and coordinates)
-  call sphcover(ntpsph,tp)
-  spc(1,:)=sin(tp(1,:))*cos(tp(2,:))
-  spc(2,:)=sin(tp(1,:))*sin(tp(2,:))
-  spc(3,:)=cos(tp(1,:))
-  
-  spc=spcll !********
-  write(*,*) 'norm of vectors:',sum(spc**2)
-  
+!  ! generate spherical covering set (angles and coordinates)
+!  call sphcover(ntpsph,tp)
+!  spc(1,:)=sin(tp(1,:))*cos(tp(2,:))
+!  spc(2,:)=sin(tp(1,:))*sin(tp(2,:))
+!  spc(3,:)=cos(tp(1,:))
+    
   ! generate spherical harmonics on large covering set
   do itp=1,ntpsph
      call sphcrd(spc(:,itp),r,tp(:,itp))
@@ -116,7 +75,7 @@ subroutine genscclieff()
   write(20000+lmaxspi,'(i6,2f14.8)') (itp,ei00(itp),itp=1,ntpsph)
   write(40000+lmaxspi,'(i6,2f14.8)') (lm,ei00lma(lm),lm=1,lmmaxdielt)
 
-  deallocate(ei00,ei00lm,ei00lma,ylm,zylm,tp,spc,spcll,x,y,z,w)
+  deallocate(ei00,ei00lm,ei00lma,ylm,zylm,tp,spc,w)
 
 end subroutine genscclieff
 

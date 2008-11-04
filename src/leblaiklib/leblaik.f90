@@ -87,6 +87,10 @@ subroutine leblaik(n,v,w)
   case default
     write(*,*)
     write(*,'("Error(leblaik): invalid number of covering points: ", i6)') m
+    write(*,'(" possible numbers are: 6, 14, 26, 38, 50, 74, 86, 110, 146,")')
+    write(*,'(" 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202,")')
+    write(*,'(" 1454, 1730, 2030, 2354, 2702, 3074, 3740, 3890, 4334, 4802,")')
+    write(*,'(" 5294, 5810")')
     write(*,*)
     stop
   end select
