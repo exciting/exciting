@@ -36,11 +36,12 @@ subroutine genscclieff()
   x(:)=0.d0
   y(:)=0.d0
   z(:)=0.d0
-  call ld5810(x,y,z,w,n)
+!  call ld5810(x,y,z,w,n)
   spcll(1,:)=x
   spcll(2,:)=y
   spcll(3,:)=z
- 
+ call leblaik(nleb,spcll,w)
+
   ! marsaglia's method
   itp=0
   do j=1,4*ntpsph
