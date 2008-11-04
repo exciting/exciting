@@ -9,6 +9,7 @@ bin::make.inc
 	../../src/main \
 	../../src/src_xs \
 	../../src/src_sym \
+	../../src/src_Lebedev-Laikov \
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
