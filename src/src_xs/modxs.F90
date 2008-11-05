@@ -374,8 +374,10 @@ module modxs
   integer :: lmaxdielt
   ! (lmaxdielt+1)^2
   integer :: lmmaxdielt
-  ! maximum angular momentum analogue of spherical covering set for integration
-  integer :: lmaxspi
+  ! number of points for Lebedev Laikov meshes
+  integer :: nleblaik
+  ! true if Lebedev Laikov meshes are to be used
+  logical :: tleblaik
 
   !------------------------------------------!
   !     Bethe-Salpeter (kernel) variables    !

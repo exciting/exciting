@@ -223,8 +223,8 @@ fastpmat=.true.
 fastemat=.true.
 emattype=1
 lmaxemat=3
-lmaxspi=20
-lmaxdielt=3
+lmaxdielt=14
+nleblaik=5810
 rsptype='reta'
 acont=.false.
 nwacont=0
@@ -1086,11 +1086,11 @@ case('lmaxemat')
     write(*,*)
     stop
   end if
-case('lmaxspi')
-  read(50,*,err=20) lmaxspi
-  if (lmaxspi.lt.0) then
+case('nleblaik')
+  read(50,*,err=20) nleblaik
+  if (nleblaik.lt.0) then
     write(*,*)
-    write(*,'("Error(readinput/xs): lmaxspi < 0 : ",I8)') lmaxspi
+    write(*,'("Error(readinput/xs): nleblaik < 0 : ",I8)') nleblaik
     write(*,*)
     stop
   end if

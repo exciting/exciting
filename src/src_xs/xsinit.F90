@@ -204,6 +204,8 @@ subroutine xsinit
   ! scaling factor for output of energies
   escale=1.d0
   if (tevout) escale=27.2114d0
+  tleblaik=.true.
+  if (nleblaik.eq.0) tleblaik=.false.
 
   !----------------------------------!
   !     task dependent variables     !
