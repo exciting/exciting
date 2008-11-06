@@ -26,6 +26,7 @@
 !--------------------------------------------------------------------
         allocate (YYINV(MUSE,MUSE),YPROJ(MUSE),YTG(MUSE))
         allocate (YT(MUSE,MUSE) )
+        ifail=1
 !       Invert YY
         ninverts=0
         ISKIP=MEMORY-MUSE

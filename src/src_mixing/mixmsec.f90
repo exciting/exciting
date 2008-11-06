@@ -17,7 +17,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 ! persistent arrays and create/desdruct functions
 	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
-noldsteps,qmx,dmix,dmixout
+noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane
 
 	implicit none
 	integer, intent(in)::iscl,n
@@ -27,8 +27,10 @@ noldsteps,qmx,dmix,dmixout
 	real(8),allocatable::S(:,:),Y(:,:),YY(:,:),broydenstep(:)
 	real(8),parameter::DELTA=1e-3
 	integer:: ifail
-	real sreduction,dmixused,dmixm
+	real(8) sreduction,dmixused,dmixm
+	real(8),external::dnrm2
 	noldsteps=noldstepsin_file
+	sreduction=1.2
 	if(iscl .le. 2)then
 		if(iscl .eq. 2)then
 			residual=potential-last_outputp
@@ -42,19 +44,22 @@ noldsteps,qmx,dmix,dmixout
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax))
 		allocate(YY(noldstepsmax,noldstepsmax))
 		allocate(broydenstep(n))
-
-
 		residual=potential-last_outputp
+		write(*,*) "resid: ",residual (n-4:n)
 		call check_msecparameters()
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
+		write(*,210)':PLANE:  INTERSTITIAL TOTAL ',Tplane, ' DISTAN ',Splane
+        write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
+210 	FORMAT(A,F12.5,A,F11.7)
 	    call stepbound(sreduction)
-        write(21,4141)sreduction,qmx
+        write(*,4141)sreduction,qmx
 		call rescaleYS(noldsteps,n,S,Y,potential,residual)
 		call setup_YY(iscl,n,S,Y,YY)
 		DMIXM=dmixout(1)
         DMIX=DMIXM
         qmx=dmixm
+DMIXM=0.2
 		call MSEC1(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIXM,IFAIL,DELTA,noldsteps)
 		!          Y,S:            Conventional Y and S arrays
 		!          YY:             Matrix of Y*Y values
@@ -66,9 +71,14 @@ noldsteps,qmx,dmix,dmixout
 		!
 		!          Output
 		!          broydenstep            Multi-Secant Step
-	    ! call stepbound(sreduction)
+	   if(IFAIL .ne. 0)then
+                write(21,*)':WARNING: Inversion of Multi-Secant Matrix Failed'
 
-		potential(1:n)=potential(1:n)+broydenstep(1:n)
+              stop
+       endif
+       !call stepbound(sreduction)
+
+		potential=potential+broydenstep
 		last_outputp=potential
 		DMIXUSED=DMIXM
 		DMIX=DMIXUSED
@@ -77,6 +87,6 @@ noldsteps,qmx,dmix,dmixout
 4141    format(':REDuction and DMIX in Broyd:',3f10.4,E14.5)
 
 	endif
-
+ residualnorm=dnrm2(n,residual,1)
 end subroutine
 
