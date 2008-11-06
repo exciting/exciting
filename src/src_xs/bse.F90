@@ -115,6 +115,9 @@ subroutine bse
   call findocclims(iqmt,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
   nvdif=nstocc0-nbfbse
   ncdif=nstunocc0-nafbse
+
+write(*,*) 'nvdif,ncdif',nvdif,ncdif
+
   ! use only matrix elements for resonant contributions
   emattype=1
   call ematbdcmbs(emattype)
@@ -193,8 +196,11 @@ subroutine bse
                     select case(trim(bsetype))
                     case('singlet','triplet')
                        ham(s1,s2)=ham(s1,s2)-               &
-                            !!!sccli(ist1,ist2,ist3,ist4)
-                            sccli(ist3,ist4,ist1,ist2)
+!                            sccli(1,1,1,1)*l2int(s1.eq.s2)
+!!!                            sccli(ist1,ist2,ist3,ist4)
+                            sccli(ist3,ist4,ist1,ist2) ! latest version
+
+!!$write(*,'(a,6i5,2g18.10)') 's1,s2,ist1,2,3,4',s1,s2,ist1,ist2,ist3,ist4,sccli(ist1,ist2,ist3,ist4)
                     end select
                  end do
               end do

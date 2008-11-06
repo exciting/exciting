@@ -26,14 +26,15 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   ! local variables
   integer, parameter :: ns0=10,nss=20
   integer :: np,ns,i1,i2,i3,i,ip,nrbox
-  real(8) :: d(3),dv,sum2,t1,blim(2),blen,vllim(3),ran(3),ranl(3),omegabox
-  real(8) :: t2,qsz,cpu0,cpu1
+  real(8) :: d(3),dv,sum2,t1,t11,t22,t33,t2
+  real(8) :: blim(2),blen,vllim(3),ran(3),ranl(3),omegabox
+  real(8) :: qsz,ts0,ts1
   real(8), allocatable :: xa(:),ya(:),c(:)
-  real(8) :: v01(3),v02(3),v11(3),v12(3),v21(3),v22(3),v31(3),v32(3)
+  real(8) :: vsc(3),v01(3),v02(3),v11(3),v12(3),v21(3),v22(3),v31(3),v32(3)
   ! external functions
   real(8) polynom
   external polynom
-  call cpu_time(cpu0)
+  call timesec(ts0)
   ! determine G+q-vectors
   v01(:)=vgqc(:,igq1,iq)
   v02(:)=vgqc(:,igq2,iq)
@@ -71,22 +72,24 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
         end do
         ! smallest volume element (we drop the (2pi)^3/omega factor!)
         dv=d(1)*d(2)*d(3)
-        ! compute the integral of 1/(|q+G||q+Gp|) over the small
-        ! fraction of the Brillouin zone centered at q 
+        ! compute the integral of 1/(|p+q+G||p+q+Gp|) over the small
+        ! fraction of the Brillouin zone centered at the Gamma-point
         sum2=0.d0
+        ! the p-point grid is started here
         do i1=-ns,ns-1
-           t1=dble(i1)*d(1)
-           v11(:)=v01(:)+t1*bvec(:,1)
-           v12(:)=v02(:)+t1*bvec(:,1)
+           t11=dble(i1)*d(1)
            do i2=-ns,ns-1
-              t1=dble(i2)*d(2)
-              v21(:)=v11(:)+t1*bvec(:,2)
-              v22(:)=v12(:)+t1*bvec(:,2)
+              t22=dble(i2)*d(2)
               do i3=-ns,ns-1
-                 t1=dble(i3)*d(3)
-                 v31(:)=v21(:)+t1*bvec(:,3)
-                 v32(:)=v22(:)+t1*bvec(:,3)
+                 t33=dble(i3)*d(3)
+                 ! p-vector
+                 vsc(:)=t11*bvec(:,1)+t22*bvec(:,2)+t33*bvec(:,3)
+                 ! p+q+G vector
+                 v31(:)=v01(:)+vsc(:)
+                 ! p+q+Gp vector
+                 v32(:)=v02(:)+vsc(:)
                  t2=sqrt(sum(v31**2)*sum(v32**2))
+                 ! check if integrand would approach singularity
                  if (t2.gt.1.d-14) then
                     sum2=sum2+1.d0/t2
                  end if
@@ -147,10 +150,16 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
      end do
      clwt=t1*(omegabox/nrbox)*fourpi*nqpt*omega/(twopi)**3
   end select
-  call cpu_time(cpu1)
-  t1=cpu1-cpu0
-!!$  if (flag.ne.0) write(*,'("Time in genwiq2xs (seconds):",3i6,f12.2)') iq, &
-!!$       igq1,igq2,t1
+  call timesec(ts1)
+  t1=ts1-ts0
+  if (flag.ne.0) write(*,'("Time in genwiq2xs (seconds):",3i6,f12.4)') iq, &
+       igq1,igq2,t1
 end subroutine genwiq2xs
 !EOC
 
+
+subroutine subcellint
+  implicit none
+  ! local variables
+
+end subroutine subcellint

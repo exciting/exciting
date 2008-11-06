@@ -131,7 +131,7 @@ subroutine scrcoulint
   bsedt(2,:)=-1.d8
   bsedt(3,:)=zzero
   ! loop over combinations of k-points
-  do ikkp=ppari,1 !***************************************SAG pparf
+  do ikkp=ppari,pparf
      call kkpmap(ikkp,nkptnr,iknr,jknr)
      
      ! k-point difference

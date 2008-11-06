@@ -9,12 +9,13 @@ subroutine genscclieff()
   use invert
   implicit none
   ! local variables
-  integer, parameter :: nsphcov=10000
+  integer, parameter :: nsphcov=5810
   integer :: itp,lm,ntpsph
-  real(8) :: t1,t2,r,qsz,clwt,clwt2
+  real(8) :: t1,t2,r,qsz,clwt,clwt2, ts0,ts1
   complex(8) :: z00,z01,zt1,zt2
   real(8), allocatable :: plat(:,:),p(:),tp(:,:),spc(:,:),w(:)
-  complex(8), allocatable :: m00lm(:),ylm(:),zylm(:,:)
+  complex(8), allocatable :: m00lm(:),mx0lm(:),mxxlm(:)
+  complex(8), allocatable :: ylm(:),zylm(:,:)
   complex(8), allocatable :: ei00(:),ei00lm(:),ei00lma(:)
   ! *** values for PA ***
   call preset_dielten
@@ -29,6 +30,7 @@ subroutine genscclieff()
 !!$  call writewiq2
 !!$  clwt2=wiq2(1)*fourpi*product(ngridq)*omega/(twopi**3)
 !!$  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
   ! number of points on sphere
   if (tleblaik) then
      ntpsph=nleblaik
@@ -37,11 +39,13 @@ subroutine genscclieff()
   end if
   if (lmmaxdielt.gt.ntpsph) then
      write(*,*)
-     write(*,'("Error(): lmmaxdielt.gt.ntpsph: ",2i6)') lmmaxdielt,ntpsph
+     write(*,'("Error(genscclieff): lmmaxdielt.gt.ntpsph: ",2i6)') lmmaxdielt, &
+          ntpsph
      write(*,*)
      stop
   end if
-  allocate(plat(3,ntpsph),p(ntpsph),m00lm(lmmaxdielt))
+  allocate(plat(3,ntpsph),p(ntpsph))
+  allocate(m00lm(lmmaxdielt),mx0lm(lmmaxdielt),mxxlm(lmmaxdielt))
   allocate(ei00(ntpsph),ei00lm(ntpsph),ei00lma(lmmaxdielt))
   allocate(ylm(lmmaxdielt),zylm(ntpsph,lmmaxdielt))
   allocate(tp(2,ntpsph),spc(3,ntpsph))
@@ -117,7 +121,7 @@ subroutine genscclieff()
   write(50000+lmaxdielt,'(2i6,3g18.10)') lmaxdielt,lmmaxdielt, &
        dble(z00)/t2,dble(zt1*clwt/t2),dble(zt2*clwt/t2)
 
-  deallocate(ei00,ei00lm,ei00lma,m00lm,ylm,zylm,tp,spc,w,plat,p)
+  deallocate(ei00,ei00lm,ei00lma,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
 
 end subroutine genscclieff
 
