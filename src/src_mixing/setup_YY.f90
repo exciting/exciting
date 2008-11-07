@@ -37,9 +37,7 @@ integer k,j
 
         RedPred=1
         !experiment:
-         dmix_last=.6
-        dmixout=.5
-        PM1=5
+
         MUSE=noldsteps
          call LimitDMIX(Y,S,YY,residual,FHIST,YHIST,PWHIST,CLMHIST,n,noldsteps,noldstepsmax, &
                              ascl1, qmx_input, dmix_last, qmx, dmixout, &

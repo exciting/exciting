@@ -27,17 +27,20 @@ lastpw=n
 !       This makes sense because relative weights appear as Rescale**2 in algorithm
         Rescale = CLAVE/PWAVE
         if(icond .gt. 0)Rescale=sqrt(Rescale)
+        !
+        Rescale=1
+        !
         MSECINFO(1)=Rescale
 1002    format(':INFO : ',a,10D11.3)
         write(*,1002)' Dynamic rescale ',rescale
         potential(firstpw:lastpw)=potential(firstpw:lastpw)*rescale
-        F(firstpw:lastpw)=F(firstpw:lastpw)*rescale
-        Y(firstpw:lastpw,1:noldstepsmax)=Y(firstpw:lastpw,1:noldstepsmax)*rescale
-        S(firstpw:lastpw,1:noldstepsmax)=S(firstpw:lastpw,1:noldstepsmax)*rescale
-        PWHIST(1:noldsteps)=PWHIST(1:noldsteps)*rescale*rescale
-        FHIST(1:noldsteps)=PWHIST(1:noldsteps)+CLMHIST(1:noldsteps)
+        !F(firstpw:lastpw)=F(firstpw:lastpw)*rescale
+        !Y(firstpw:lastpw,1:noldstepsmax)=Y(firstpw:lastpw,1:noldstepsmax)*rescale
+        !S(firstpw:lastpw,1:noldstepsmax)=S(firstpw:lastpw,1:noldstepsmax)*rescale
+        !PWHIST(1:noldsteps)=PWHIST(1:noldsteps)*rescale*rescale
+        !FHIST(1:noldsteps)=PWHIST(1:noldsteps)+CLMHIST(1:noldsteps)
         scl_plane=scl_plane*rescale
-
+  scl_plane=1
 
 
 

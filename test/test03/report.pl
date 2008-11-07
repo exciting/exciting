@@ -61,8 +61,8 @@ Test::writetestreport({
  		status=>$status
  		}, $writer);
  		
- 		$iterationsref=13;
- 			if ($iterations==$iterationsref){$status=passed;}else{$status="failed";}
+ 		$iterationsref=10;
+ 			if ($iterations<=$iterationsref){$status=passed;}else{$status="failed";}
  		
  		Test::writetestreport({
  		directory=>"test03/runmixer2",
