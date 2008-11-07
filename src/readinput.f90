@@ -210,7 +210,6 @@ tetrakordexc=.false.
 #endif
 #ifdef XS
 ! TDDFT variables
-imbandstr=.false.
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
@@ -1037,8 +1036,6 @@ case('tetrakordexc')
 #endif
 #ifdef XS
 ! TDDFT variables
-case('imbandstr')
-  read(50,*,err=20) imbandstr
 case('vgqlmt')
   read(50,*,err=20) nqptmt
   if (nqptmt.le.0) then

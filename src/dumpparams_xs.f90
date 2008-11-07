@@ -34,9 +34,6 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("! xs (eXited States) version ",I1.1,".",I3.3)') versionxs
   write(77,'(a)') trim(comment)
   write(77,*)
-  write(77,'("imbandstr")')
-  write(77,*) imbandstr
-  write(77,*)
   write(77,'("vgqlmt")')
   write(77,*) nqptmt
   do i=1,nqptmt

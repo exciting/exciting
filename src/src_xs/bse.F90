@@ -118,7 +118,7 @@ subroutine bse
 
 write(*,*) 'nvdif,ncdif',nvdif,ncdif
 
-  ! use only matrix elements for resonant contributions
+  ! ****************************************************
   emattype=1
   call ematbdcmbs(emattype)
   write(unitout,*)
@@ -128,10 +128,14 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
   write(unitout,'(" number of states above Fermi energy in Hamiltonian:",i6)') &
        nafbse
   write(unitout,'(" ranges of states according to BSE matrix:")')
-  write(unitout,'("  range of first index  :",2i6)') istlo1,isthi1
-  write(unitout,'("  range of second index :",2i6)') istlo2,isthi2
-  write(unitout,'("  range of third index  :",2i6)') istlo3,isthi3
-  write(unitout,'("  range of fourth index :",2i6)') istlo4,isthi4
+  write(unitout,'("  range of first index and number  :",2i6,3x,i6)') &
+       istlo1,isthi1,nst1
+  write(unitout,'("  range of second index and number :",2i6,3x,i6)') &
+       istlo2,isthi2,nst2
+  write(unitout,'("  range of third index and number  :",2i6,3x,i6)') &
+       istlo3,isthi3,nst3
+  write(unitout,'("  range of fourth index and number :",2i6,3x,i6)') &
+       istlo4,isthi4,nst4
   if ((nvdif.lt.0).or.(ncdif.lt.0)) then
      write(unitout,*)
      write(unitout,'("Error(bse): inconsistency in ranges of states - check &
@@ -200,7 +204,8 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
 !!!                            sccli(ist1,ist2,ist3,ist4)
                             sccli(ist3,ist4,ist1,ist2) ! latest version
 
-!!$write(*,'(a,6i5,2g18.10)') 's1,s2,ist1,2,3,4',s1,s2,ist1,ist2,ist3,ist4,sccli(ist1,ist2,ist3,ist4)
+                       write(*,'(a,6i5,2g18.10)') 's1,s2,ist1,2,3,4', &
+                            s1,s2,ist1,ist2,ist3,ist4,sccli(ist1,ist2,ist3,ist4)
                     end select
                  end do
               end do

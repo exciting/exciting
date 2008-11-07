@@ -538,10 +538,6 @@ module modxs
   ! true if to skip allocations of radial functions in "init1"
   logical :: init1norealloc
   data init1norealloc /.false./
-  ! true if specified vertices are included in k-path and
-  ! additionally bandstructure that is not shifted to the Fermi level
-  logical :: imbandstr
-  data imbandstr /.false./
   ! true if state (density and potential) is only allowed to be read from
   ! STATE.OUT file (no other file extension allowed)
   logical :: isreadstate0
