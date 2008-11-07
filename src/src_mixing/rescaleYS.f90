@@ -1,17 +1,17 @@
-subroutine rescaleYS(noldsteps,n,S,Y, potential,F)
+subroutine rescaleYS(noldsteps,n,S,Y, potential,residual)
 use modmixermsec,only:noldstepsmax,PWHIST,FHIST,CLMHIST,yhist,FHIST,icond,scl_plane,MSECINFO
 use modmain,only:ngrtot,lmmaxvr,nrmtmax,natmtot
 implicit none
 integer, intent(in)::n,noldsteps
 real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax)
-real(8),intent(inout)::potential(n),F(n)
+real(8),intent(inout)::potential(n),residual(n)
 real(8)::PWAVE,CLAVE,Rescale,T1
 integer ::i,j,k,nmt,firstpw,lastpw
   nmt=lmmaxvr*nrmtmax*natmtot
 firstpw=n-ngrtot
 lastpw=n
-    FHIST(noldsteps)  =dot_product(F,F)
-    PWHIST(noldsteps) =dot_product(F(firstpw:lastpw),F(firstpw:lastpw))
+    FHIST(noldsteps)  =dot_product(residual,residual)
+    PWHIST(noldsteps) =dot_product(residual(firstpw:lastpw),residual(firstpw:lastpw))
     CLMHIST(noldsteps)=FHIST(noldsteps)-PWHIST(noldsteps)
 !Preconditioner Omega_n Pg 21
 
@@ -28,19 +28,20 @@ lastpw=n
         Rescale = CLAVE/PWAVE
         if(icond .gt. 0)Rescale=sqrt(Rescale)
         !
+        !rescale doesnt work yet in exciting
         Rescale=1
         !
         MSECINFO(1)=Rescale
 1002    format(':INFO : ',a,10D11.3)
         write(*,1002)' Dynamic rescale ',rescale
         potential(firstpw:lastpw)=potential(firstpw:lastpw)*rescale
-        !F(firstpw:lastpw)=F(firstpw:lastpw)*rescale
-        !Y(firstpw:lastpw,1:noldstepsmax)=Y(firstpw:lastpw,1:noldstepsmax)*rescale
-        !S(firstpw:lastpw,1:noldstepsmax)=S(firstpw:lastpw,1:noldstepsmax)*rescale
-        !PWHIST(1:noldsteps)=PWHIST(1:noldsteps)*rescale*rescale
-        !FHIST(1:noldsteps)=PWHIST(1:noldsteps)+CLMHIST(1:noldsteps)
+        residual(firstpw:lastpw)=residual(firstpw:lastpw)*rescale
+        Y(firstpw:lastpw,1:noldstepsmax)=Y(firstpw:lastpw,1:noldstepsmax)*rescale
+        S(firstpw:lastpw,1:noldstepsmax)=S(firstpw:lastpw,1:noldstepsmax)*rescale
+        PWHIST(1:noldsteps)=PWHIST(1:noldsteps)*rescale*rescale
+        FHIST(1:noldsteps)=PWHIST(1:noldsteps)+CLMHIST(1:noldsteps)
         scl_plane=scl_plane*rescale
-  scl_plane=1
+
 
 
 

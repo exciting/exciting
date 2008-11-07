@@ -13,7 +13,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 ! residualnorm: measure for convergence
 ! n			: length of mixing vector
 !config params:
-	use modmain,only:beta0,betainc,betadec
+	use modmain,only:beta0,betainc,betadec,chgir,chgmttot,chgtot
 ! persistent arrays and create/desdruct functions
 	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
@@ -45,6 +45,8 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane
 		allocate(YY(noldstepsmax,noldstepsmax))
 		allocate(broydenstep(n))
 		residual=potential-last_outputp
+SCHARGE=chgir
+TCharge= chgtot
 		write(*,*) "resid: ",residual (n-4:n)
 		call check_msecparameters()
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
