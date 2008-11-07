@@ -66,12 +66,12 @@ subroutine emattest
      ! read matrix elemets of exponential expression
      call  getpmat(ik,vkl0,1,nstsv,1,nstsv,.true.,trim(fnpmat),pmat(:,:,:,ik))
      ! read matrix elemets of exponential expression
-     call  getemat(iq,ik,.true.,trim(fnpmat),ngq(iq),istlo1,isthi1,istlo2, &
-          isthi2,xiou,istlo3,isthi3,istlo4,isthi4,xiuo)
+     call  getemat(iq,ik,.true.,trim(fnpmat),ngq(iq),istl1,istu1,istl2, &
+          istu2,xiou,istl3,istu3,istl4,istu4,xiuo)
      ikq=ikmapikq(ik,iq)
-     call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12, &
+     call getdevaldoccsv(iq,ik,ikq,istl1,istu1,istl2,istu2,deou,docc12, &
           scis12)
-     call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
+     call getdevaldoccsv(iq,ik,ikq,istl2,istu2,istl1,istu1,deuo,docc21, &
           scis21)
      x(:,:,:,ik) = xiou(:,:,:)
      d(:,:,ik) = deou
@@ -79,7 +79,7 @@ subroutine emattest
         do ist2=1,nst2
            x_sc = x(ist1,ist2,1,ik)/gqc(1,iq)
            p_sc = dot_product(vgqc(:,1,iq)/gqc(1,iq), &
-                pmat(:,istlo1-1+ist1,istlo2-1+ist2,ik))/(-d(ist1,ist2,ik))
+                pmat(:,istl1-1+ist1,istl2-1+ist2,ik))/(-d(ist1,ist2,ik))
            a = dble(x_sc)**2 + aimag(x_sc)**2
            p = dble(p_sc)**2 + aimag(p_sc)**2
            d1 = abs(x_sc-p_sc)

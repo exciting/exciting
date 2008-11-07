@@ -126,7 +126,7 @@ subroutine screendm
      ! loop over k-points
      do ik=1,nkpt
         ikq=ikmapikq(ik,iq)
-        call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12, &
+        call getdevaldoccsv(iq,ik,ikq,istl1,istu1,istl2,istu2,deou,docc12, &
              scis12)
         call ematqk1(iq,ik)
         ! get matrix elements (exp. expr. or momentum op.)

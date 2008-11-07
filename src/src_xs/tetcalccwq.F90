@@ -96,9 +96,9 @@ subroutine tetcalccwq(iq)
      call tetcwifc(nkpt,nstsv,eb,efermi,wt,4,cwsurf)
      do ik=1,nkpt
         irec=(ik-1)*nwdfp+iw
-        cwsurft2(:,:)=cwsurf(istlo1:isthi1,istlo2:isthi2,ik)
-        cwt2(:,:)=cw(istlo1:isthi1,istlo2:isthi2,ik)
-        cwat2(:,:)=cwa(istlo1:isthi1,istlo2:isthi2,ik)
+        cwsurft2(:,:)=cwsurf(istl1:istu1,istl2:istu2,ik)
+        cwt2(:,:)=cw(istl1:istu1,istl2:istu2,ik)
+        cwat2(:,:)=cwa(istl1:istu1,istl2:istu2,ik)
         write(un,rec=irec) cwt2,cwat2,cwsurft2
      end do
      ! synchronize for common number of w-points to all processes

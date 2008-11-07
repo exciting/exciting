@@ -197,7 +197,7 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
      call ematqk1(iqmt,iknr)
      emat(:,:,:,iknr)=xiou(:,:,:)
      deallocate(xiou,xiuo)
-     call getdevaldoccsv(iqmt,iknr,iknrq,istlo1,isthi1,istlo2,isthi2,deou, &
+     call getdevaldoccsv(iqmt,iknr,iknrq,istl1,istu1,istl2,istu2,deou, &
           docc12,scisk)
      deval(:,:,iknr)=deou(:,:)
      docc(:,:,iknr)=docc12(:,:)

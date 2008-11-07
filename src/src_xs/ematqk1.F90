@@ -13,7 +13,7 @@ subroutine ematqk1(iq,ik)
   integer, intent(in) :: iq,ik
   ! set band combinations
   if (.not.(task.eq.430)) then
-     call ematbdlims(2*emattype,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
+     call ematbdlims(2*emattype,nst1,istl1,istu1,nst2,istl2,istu2)
      if (allocated(xiou)) deallocate(xiou)
      if (allocated(xiuo)) deallocate(xiuo)
      allocate(xiou(nst1,nst2,ngq(iq)))
@@ -23,7 +23,7 @@ subroutine ematqk1(iq,ik)
      ! all band combinations
      nst3=nstsv; nst4=nstsv
      if (.not.((task.ge.400).and.(task.le.499))) &
-          call putemat(iq,ik,.true.,trim(fnemat),istlo1,isthi1,istlo2,isthi2, &
+          call putemat(iq,ik,.true.,trim(fnemat),istl1,istu1,istl2,istu2, &
           xiou)
   else
      ! o-u/u-o or o-o/u-u band combinations
@@ -31,14 +31,14 @@ subroutine ematqk1(iq,ik)
         allocate(xiuo(nst1,nst2,ngq(iq)))
         xiuo(:,:,:)=xiou(:,:,:)
      end if
-     call ematbdlims(2*emattype-1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
-     istlo3=istlo2; isthi3=isthi2; istlo4=istlo1; isthi4=isthi1
+     call ematbdlims(2*emattype-1,nst1,istl1,istu1,nst2,istl2,istu2)
+     istl3=istl2; istu3=istu2; istl4=istl1; istu4=istu1
      nst3=nst2; nst4=nst1     
      if (allocated(xiou)) deallocate(xiou)
      allocate(xiou(nst1,nst2,ngq(iq)))
      call ematqk(iq,ik)
      if (.not.tscreen) &
-          call putemat(iq,ik,.true.,trim(fnemat),istlo1,isthi1,istlo2,isthi2, &
-          xiou,istlo3,isthi3,istlo4,isthi4,xiuo)
+          call putemat(iq,ik,.true.,trim(fnemat),istl1,istu1,istl2,istu2, &
+          xiou,istl3,istu3,istl4,istu4,xiuo)
   end if
 end subroutine ematqk1

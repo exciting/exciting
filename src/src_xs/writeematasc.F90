@@ -45,17 +45,17 @@ subroutine writeematasc
      ! loop over k-points
      do ik=1,nkpt
         if (emattype.eq.0) then
-           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istlo1,isthi1,istlo2,&
-                isthi2,xiou)
+           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istl1,istu1,istl2,&
+                istu2,xiou)
         else
-           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istlo1,isthi1,istlo2,&
-                isthi2,xiou,istlo3,isthi3,istlo4,isthi4,xiuo)
+           call getemat(iq,ik,.true.,trim(fnemat),ngq(iq),istl1,istu1,istl2,&
+                istu2,xiou,istl3,istu3,istl4,istu4,xiuo)
         end if
         do igq=1,ngq(iq)
            do i=1,nst1
-              ib=i+istlo1-1
+              ib=i+istl1-1
               do j=1,nst2
-                 jb=j+istlo2-1
+                 jb=j+istl2-1
                  zt=xiou(i,j,igq)
                  write(un,'(5i8,3g18.10)') iq,ik,igq,ib,jb,zt,abs(zt)**2
               end do
@@ -63,9 +63,9 @@ subroutine writeematasc
         end do
         do igq=1,ngq(iq)
            do i=1,nst3
-              ib=i+istlo3-1
+              ib=i+istl3-1
               do j=1,nst4
-                 jb=j+istlo4-1
+                 jb=j+istl4-1
                  zt=xiuo(i,j,igq)
                  write(un,'(5i8,3g18.10)') iq,ik,igq,ib,jb,zt,abs(zt)**2
               end do

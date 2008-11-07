@@ -39,9 +39,9 @@ contains
     ! Gamma q-point
     if (tq0) then
        ! read momentum matrix elements
-       call getpmat(ik,vkl0,istlo1,isthi1,istlo2,isthi2,.true.,trim(pfilnam), &
+       call getpmat(ik,vkl0,istl1,istu1,istl2,istu2,.true.,trim(pfilnam), &
             p12)
-       if (present(p34)) call getpmat(ik,vkl0,istlo3,isthi3,istlo4,isthi4, &
+       if (present(p34)) call getpmat(ik,vkl0,istl3,istu3,istl4,istu4, &
             .true.,trim(pfilnam),p34)
        ! consider symmetric gauge wrt. Coulomb potential
        ! (multiply with v^(1/2))
@@ -56,7 +56,7 @@ contains
                    if (abs(docc12(i1,i2)).gt.epsocc) then
                       write(*,'("Warning(",a,"): divergent energy denominator: &
                            &q-point, k-point, band indices 1-2:",4i6,g18.10)')&
-                           thisnam,iq,ik,i1+istlo1-1,i2+istlo2-1,deou(i1,i2)
+                           thisnam,iq,ik,i1+istl1-1,i2+istl2-1,deou(i1,i2)
                    end if
                 end if
                 if (present(p34)) then
@@ -68,7 +68,7 @@ contains
                          write(*,'("Warning(",a,"): divergent energy &
                               &denominator: q-point, k-point, band indices &
                               &3-4:",4i6,g18.10)') &
-                              thisnam,iq,ik,i1+istlo1-1,i2+istlo2-1,deuo(i2,i1)
+                              thisnam,iq,ik,i1+istl1-1,i2+istl2-1,deuo(i2,i1)
                       end if
                    end if
                 end if
@@ -84,11 +84,11 @@ contains
        else
           ! read matrix elemets of plane wave
           if (present(m34)) then
-             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istlo1,isthi1, &
-                  istlo2,isthi2,m12,istlo3,isthi3,istlo4,isthi4,m34)
+             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istl1,istu1, &
+                  istl2,istu2,m12,istl3,istu3,istl4,istu4,m34)
           else
-             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istlo1,isthi1, &
-                  istlo2,isthi2,m12)
+             call getemat(iq,ik,.true.,trim(efilnam),ngq(iq),istl1,istu1, &
+                  istl2,istu2,m12)
           end if
        end if
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))

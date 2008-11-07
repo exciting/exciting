@@ -203,9 +203,9 @@ module modxs
   ! lowest (at least partially) unoccupied state energy
   real(8) :: evllpu
   ! lower and upper limits and numbers for band indices combinations
-  integer :: nst1,istlo1,isthi1,nst2,istlo2,isthi2
+  integer :: nst1,istl1,istu1,nst2,istl2,istu2
   ! lower and upper limits and numbers for band indices combinations, 2nd block
-  integer :: nst3,istlo3,isthi3,nst4,istlo4,isthi4
+  integer :: nst3,istl3,istu3,nst4,istl4,istu4
   ! minimum and maximum energies over k-points
   real(8) :: evlmin,evlmax,evlmincut,evlmaxcut
   ! true if system has a Kohn-Sham gap

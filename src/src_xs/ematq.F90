@@ -33,7 +33,7 @@ subroutine ematq(iq)
   end if
   ! find highest (partially) occupied and lowest (partially) unoccupied states
   call findocclims(iq,istocc0,istocc,istunocc0,istunocc,isto0,isto,istu0,istu)
-  call ematbdlims(1,nst1,istlo1,isthi1,nst2,istlo2,isthi2)
+  call ematbdlims(1,nst1,istl1,istu1,nst2,istl2,istu2)
   ! generate radial integrals wrt. sph. Bessel functions
   call ematrad(iq)
   ! delete timing information of previous runs

@@ -165,9 +165,9 @@ subroutine dfq(iq)
   write(unitout,'(a,4i6)') 'Info('//thisnam//'): limits for band combinations&
        & nst1,nst2,nst3,nst4:',nst1,nst2,nst3,nst4
   write(unitout,'(a,4i6)') 'Info('//thisnam//'): limits for band combinations&
-       & istlo1,isthi1,istlo2,isthi2:',istlo1,isthi1,istlo2,isthi2
+       & istl1,istu1,istl2,istu2:',istl1,istu1,istl2,istu2
   write(unitout,'(a,4i6)') 'Info('//thisnam//'): limits for band combinations&
-       & istlo3,isthi3,istlo4,isthi4:',istlo3,isthi3,istlo4,isthi4
+       & istl3,istu3,istl4,istu4:',istl3,istu3,istl4,istu4
   ! allocate arrays for eigenvalue and occupation number differences
   if (allocated(deou)) deallocate(deou)
   allocate(deou(nst1,nst2))
@@ -236,9 +236,9 @@ subroutine dfq(iq)
      cpuupd=0.d0
      call cpu_time(cpu0)
      ikq=ikmapikq(ik,iq)
-     call getdevaldoccsv(iq,ik,ikq,istlo1,isthi1,istlo2,isthi2,deou,docc12, &
+     call getdevaldoccsv(iq,ik,ikq,istl1,istu1,istl2,istu2,deou,docc12, &
           scis12)
-     call getdevaldoccsv(iq,ik,ikq,istlo2,isthi2,istlo1,isthi1,deuo,docc21, &
+     call getdevaldoccsv(iq,ik,ikq,istl2,istu2,istl1,istu1,deuo,docc21, &
           scis21)
      if (tscreen) then
         ! for screening calculate matrix elements of plane wave on the fly

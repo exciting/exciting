@@ -70,16 +70,16 @@ subroutine ematqk(iq,ik)
   call getevalsv(vkl(1,ikq),evalsv(1,ikq))
   ! read occupation numbers for G+k+q
   call getoccsv(vkl(1,ikq),occsv(1,ikq))
-  evecfvu(:,:)=evecfv(ngk(1,ikq)+1:ngk(1,ikq)+nlotot,istlo2:isthi2,1)
-  evecfvu2(:,:)=evecfv(1:ngk(1,ikq),istlo2:isthi2,1)
+  evecfvu(:,:)=evecfv(ngk(1,ikq)+1:ngk(1,ikq)+nlotot,istl2:istu2,1)
+  evecfvu2(:,:)=evecfv(1:ngk(1,ikq),istl2:istu2,1)
 
   ! read eigenvectors, eigenvalues and occupancies for G+k (q=0)
   call getevecfv0(vkl0(1,ik),vgkl0(1,1,1,ik),evecfv0)
   call getevalsv0(vkl0(1,ik),evalsv0(1,ik))
   ! read occupation numbers for G+k
   call getoccsv0(vkl0(1,ik),occsv0(1,ik))
-  evecfvo0(:,:)=evecfv0(ngk0(1,ik)+1:ngk0(1,ik)+nlotot,istlo1:isthi1,1)
-  evecfvo20(:,:)=evecfv0(1:ngk0(1,ik),istlo1:isthi1,1)
+  evecfvo0(:,:)=evecfv0(ngk0(1,ik)+1:ngk0(1,ik)+nlotot,istl1:istu1,1)
+  evecfvo20(:,:)=evecfv0(1:ngk0(1,ik),istl1:istu1,1)
   ! change back file extension
 
   call getapwcmt(0,ik,1,nstfv,lmaxapwwf,apwcmt0)

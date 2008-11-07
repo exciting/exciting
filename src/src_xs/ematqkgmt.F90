@@ -52,7 +52,7 @@ subroutine ematqkgmt(iq,ik,igq)
                  end do ! l3
                  call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      apwcmt0(istlo1:isthi1,io1,lm1,ias),zv(istlo2:isthi2), &
+                      apwcmt0(istl1:istu1,io1,lm1,ias),zv(istl2:istu2), &
                       xiou(:,:,igq))
                  ! end loop over (l',m',p')
               end do! io1
@@ -82,7 +82,7 @@ subroutine ematqkgmt(iq,ik,igq)
                  end do ! l3
                  call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      locmt0(istlo1:isthi1,ilo,m1,ias),zv(istlo2:isthi2), &
+                      locmt0(istl1:istu1,ilo,m1,ias),zv(istl2:istu2), &
                       xiou(:,:,igq))
               end do ! m1
            end do ! ilo
@@ -108,7 +108,7 @@ subroutine ematqkgmt(iq,ik,igq)
                     end do ! ilo
                     call xszoutpr(nst1,nst2, &
                          fourpi*conjg(sfacgq(igq,ias,iq)), &
-                         apwcmt0(istlo1:isthi1,io,lm3,ias),zv(istlo2:isthi2), &
+                         apwcmt0(istl1:istu1,io,lm3,ias),zv(istl2:istu2), &
                          xiou(:,:,igq))
                  end do ! io
               end do ! m3
@@ -133,7 +133,7 @@ subroutine ematqkgmt(iq,ik,igq)
                  end do ! ilo2
                  call xszoutpr(nst1,nst2, &
                       fourpi*conjg(sfacgq(igq,ias,iq)), &
-                      locmt0(istlo1:isthi1,ilo1,m1,ias),zv(istlo2:isthi2), &
+                      locmt0(istl1:istu1,ilo1,m1,ias),zv(istl2:istu2), &
                       xiou(:,:,igq))
               end do ! m1
            end do ! ilo1
@@ -160,7 +160,7 @@ subroutine ematqkgmt(iq,ik,igq)
                     end do ! m3
                  end do ! l3
                  xiuhloa(i,:)=xiuhloa(i,:)+fourpi*conjg(sfacgq(igq,ias,iq))* &
-                      zv(istlo2:isthi2)
+                      zv(istl2:istu2)
               end do ! m1
            end do ! ilo
            call cpu_time(cmt2)
@@ -186,7 +186,7 @@ subroutine ematqkgmt(iq,ik,igq)
                     end do ! m3
                  end do ! l3
                  xiohalo(:,j)=xiohalo(:,j)+fourpi*conjg(sfacgq(igq,ias,iq))* &
-                      zv(istlo1:isthi1)
+                      zv(istl1:istu1)
               end do ! m1
            end do ! ilo
            call cpu_time(cmt3)

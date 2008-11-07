@@ -129,13 +129,13 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
        nafbse
   write(unitout,'(" ranges of states according to BSE matrix:")')
   write(unitout,'("  range of first index and number  :",2i6,3x,i6)') &
-       istlo1,isthi1,nst1
+       istl1,istu1,nst1
   write(unitout,'("  range of second index and number :",2i6,3x,i6)') &
-       istlo2,isthi2,nst2
+       istl2,istu2,nst2
   write(unitout,'("  range of third index and number  :",2i6,3x,i6)') &
-       istlo3,isthi3,nst3
+       istl3,istu3,nst3
   write(unitout,'("  range of fourth index and number :",2i6,3x,i6)') &
-       istlo4,isthi4,nst4
+       istl4,istu4,nst4
   if ((nvdif.lt.0).or.(ncdif.lt.0)) then
      write(unitout,*)
      write(unitout,'("Error(bse): inconsistency in ranges of states - check &
