@@ -2,9 +2,9 @@ module  modmixermsec
 real(8),allocatable:: residual(:),last_outputp(:),last_inputp(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
 integer:: record_of_last_iter,noldstepsin_file,noldsteps,MUSE,  IDSCALE
-integer, parameter::icond=1,noldstepsmax=8
+integer, parameter::icond=1,noldstepsmax=8,dbase=0.005D0
 real(8)::   scl_plane,qmx,RedOld,RedPred,qmx_input,PM1,DIAG,dmix_last,dmixout(4)
-real(8):: MSECINFO(20),rtrap,SCHARGE,TCharge,splane,tplane,dbase,qtot
+real(8):: MSECINFO(20),rtrap,SCHARGE,TCharge,splane,tplane,qtot
 real(8)::dmix
 contains
 subroutine initmixermsec(n)

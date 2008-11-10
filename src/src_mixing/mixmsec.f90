@@ -17,7 +17,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 ! persistent arrays and create/desdruct functions
 	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
-noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane
+noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 
 	implicit none
 	integer, intent(in)::iscl,n
@@ -47,7 +47,6 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane
 		residual=potential-last_outputp
 SCHARGE=chgir
 TCharge= chgtot
-		write(*,*) "resid: ",residual (n-4:n)
 		call check_msecparameters()
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
@@ -55,13 +54,14 @@ TCharge= chgtot
         write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
 210 	FORMAT(A,F12.5,A,F11.7)
 	    call stepbound(sreduction)
+
+
         write(*,4141)sreduction,qmx
 		call rescaleYS(noldsteps,n,S,Y,potential,residual)
 		call setup_YY(iscl,n,S,Y,YY)
-		DMIXM=dmixout(1)
-        DMIX=DMIXM
-        qmx=dmixm
-DMIXM=0.2
+
+
+
 		call MSEC1(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIXM,IFAIL,DELTA,noldsteps)
 		!          Y,S:            Conventional Y and S arrays
 		!          YY:             Matrix of Y*Y values
@@ -82,13 +82,13 @@ DMIXM=0.2
 
 		potential=potential+broydenstep
 		last_outputp=potential
-		DMIXUSED=DMIXM
-		DMIX=DMIXUSED
-        QMX=DMIX
+
+
 		deallocate (S,Y,YY,broydenstep)
 4141    format(':REDuction and DMIX in Broyd:',3f10.4,E14.5)
 
 	endif
  residualnorm=dnrm2(n,residual,1)
+ qtot= residualnorm
 end subroutine
 
