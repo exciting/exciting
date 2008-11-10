@@ -38,7 +38,7 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 		endif
 		call mixadapt(iscl,beta0,betainc,betadec,n,potential,\
 			last_outputp,last_inputp,residual,residualnorm)
-
+		last_outputp=potential
 
 	else
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax))

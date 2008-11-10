@@ -25,7 +25,7 @@ yhist=0
 scl_plane=4
 RedOld=1
 RedPred=1
-qmx_input=beta0
+qmx_input=.2
 qmx=qmx_input
 PM1=1
 IDSCALE=1
@@ -45,7 +45,8 @@ end subroutine
  subroutine freearraysmixermsec()
  deallocate(residual,last_outputp,last_inputp)
  deallocate(PWHIST,FHIST,CLMHIST)
-
+ open(23,file="BROYDEN.OUT")
+ close(23,STATUS='DELETE')
 end subroutine
 
 end module
