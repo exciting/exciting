@@ -9,7 +9,7 @@ subroutine getbsemat(fname,ikkp,n1,n2,zmat)
   ! arguments
   character(*), intent(in) :: fname
   integer, intent(in) :: ikkp,n1,n2
-  complex(8), intent(out) :: zmat(n1,n1,n2,n2)
+  complex(8), intent(out) :: zmat(n1,n2,n1,n2)
   ! local variables
   integer :: un,recl,ikkp_,iknr_,jknr_,iq_,iqr_,n1_,n2_,n3_,n4_
   complex(8), allocatable :: zm(:,:,:,:)
@@ -21,11 +21,11 @@ subroutine getbsemat(fname,ikkp,n1,n2,zmat)
   read(un,rec=1) ikkp_,iknr_,jknr_,iq_,iqr_,n1_,n2_,n3_,n4_
   close(un)
   ! check if requested size can be retrieved
-  if ((n1.gt.n1_).or.(n2.gt.n3_)) then
+  if ((n1.gt.n1_).or.(n2.gt.n2_)) then
      write(*,*)
      write(*,'("Error(getbsemat): requested matrix size out of range")')
      write(*,'(" requested size : ",2i8)') n1,n2
-     write(*,'(" stored size    : ",2i8)') n1_,n3_
+     write(*,'(" stored size    : ",2i8)') n1_,n2_
      write(*,*)
      call terminate
   end if

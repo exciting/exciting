@@ -7,10 +7,9 @@ subroutine scrcoulint
   use modmain
   use modmpi
   use modxs
-  use ioarray
+  use summations
   use m_xsgauntgen
   use m_findgntn0
-  use m_writegqpts
   use m_genfilname
   implicit none
   ! local variables
@@ -124,14 +123,15 @@ subroutine scrcoulint
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
-  nkkp=nkptnr*(nkptnr+1)/2
+  nkkp=(nkptnr*(nkptnr+1))/2
   call genparidxran('p',nkkp)
-  allocate(bsedt(3,nkkp))
+  allocate(bsedt(3,nkptnr))
   bsedt(1,:)=1.d8
   bsedt(2,:)=-1.d8
   bsedt(3,:)=zzero
   ! loop over combinations of k-points
   do ikkp=ppari,pparf
+     call chkpt(2,(/task,ikkp/),'task,(k,kp)-pair')
      call kkpmap(ikkp,nkptnr,iknr,jknr)
      
      ! k-point difference
@@ -148,8 +148,6 @@ subroutine scrcoulint
      ! local field effects size
      tq0=tqgamma(iq)
      n=ngq(iq)
-     
-     write(*,'(i5,3x,2i5,2x,i5,2x,2i5)') ikkp,iknr,jknr,iq,iqr,iqrnr
      
      allocate(emat12(nst12,n),emat34(nst34,n))
      allocate(tm(n,n),tmi(n,n))
@@ -187,11 +185,6 @@ subroutine scrcoulint
         end do
      end do
 
-     
-write(*,*) 'SCRNI(1,1,1,1):',scrni(1,1,1)
-write(*,*) 'POTCL(1,1):',potcl(1,1)
-write(*,*) '1/nkptnr/omega',1.d0/nkptnr/omega
-
      ! calculate matrix elements of the plane wave
      emattype=2
      call ematbdcmbs(emattype)
@@ -200,8 +193,6 @@ write(*,*) '1/nkptnr/omega',1.d0/nkptnr/omega
      call ematqk1(iq,iknr)
      emattype=2
      call ematbdcmbs(emattype)
-
-     if (ikkp.eq.1) write(*,'(a,2g18.10)') 'W-diagonal long range term:',scrni(1,1,1)*potcl(1,1)/nkptnr/omega
 
      ! select screening level
      tm(:,:)=zzero
@@ -239,9 +230,8 @@ write(*,*) '1/nkptnr/omega',1.d0/nkptnr/omega
      
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
-!!$     scclit=matmul(emat34,matmul(transpose(tm),transpose(conjg(emat12)))) &
-!!$          /omega/nkptnr
      scclit=matmul(conjg(emat12),matmul(tm,transpose(emat34)))/omega/nkptnr
+     ! interstitial contribution
 	  
      ! map back to individual band indices
      j2=0
@@ -279,9 +269,9 @@ write(*,*) '1/nkptnr/omega',1.d0/nkptnr/omega
            do ist3=1,nst3
               zt1=sccli(ist1,ist3,ist1,ist3)
               t1=dble(zt1)
-              bsedt(1,ikkp)=min(dble(bsedt(1,ikkp)),t1)
-              bsedt(2,ikkp)=max(dble(bsedt(2,ikkp)),t1)
-              bsedt(3,ikkp)=bsedt(3,ikkp)+zt1/(nst1*nst3)
+              bsedt(1,iknr)=min(dble(bsedt(1,iknr)),t1)
+              bsedt(2,iknr)=max(dble(bsedt(2,iknr)),t1)
+              bsedt(3,iknr)=bsedt(3,iknr)+zt1/(nst1*nst3)
            end do
         end do
      end if
@@ -307,7 +297,7 @@ write(*,*) '1/nkptnr/omega',1.d0/nkptnr/omega
   bsed=sum(bsedt(3,:))/nkptnr
   deallocate(bsedt)
   ! write BSE kernel diagonal parameters
-  if (rank.eq.0) call putbsediag
+  if (rank.eq.0) call putbsediag('BSEDIAG.OUT')
 
   call findgntn0_clear
 

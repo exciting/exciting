@@ -3,14 +3,16 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine putbsediag
+subroutine putbsediag(fname)
   use modxs
   use m_getunit
   implicit none
+  ! arguments
+  character(*), intent(in) :: fname
   ! local variables
   integer :: un
   call getunit(un)
-  open(un,file='BSEDIAG.OUT',action='write',form='formatted',status='replace')
+  open(un,file=trim(fname),action='write',form='formatted',status='replace')
   write(un,'(2g18.10," : BSE kernel diagonal mean value")') bsed
   write(un,'(2g18.10," : BSE kernel diagonal lower limit")') bsedl
   write(un,'(2g18.10," : BSE kernel diagonal upper limit")') bsedu

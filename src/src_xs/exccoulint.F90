@@ -14,41 +14,19 @@ subroutine exccoulint
   use m_genfilname
   implicit none
   ! local variables
-  character(*), parameter :: thisnam='scrcoulint'
+  character(*), parameter :: thisnam='exccoulint'
   integer, parameter :: iqmt=1
   real(8), parameter :: epsortho=1.d-12
   integer :: iknr,jknr,iqr,iq,igq1,n
-  integer :: ngridkt(3),iv(3),j1,j2
+  integer :: iv(3),j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,nkkp
-  logical :: nosymt,reducekt
-  real(8) :: vklofft(3)
   real(8), allocatable :: potcl(:)
   complex(8), allocatable :: exclit(:,:),excli(:,:,:,:)
   complex(8), allocatable :: emat12(:,:),emat34(:,:)
   ! external functions
   integer, external :: iplocnr
   logical, external :: tqgamma
-
   complex(8), allocatable :: emat12k(:,:,:,:)
-
-  call genfilname(setfilext=.true.)
-
-  !----------------!
-  !   initialize   !
-  !----------------!
-  ! save global variables
-  nosymt=nosym
-  reducekt=reducek
-  ngridkt(:)=ngridk(:)
-  vklofft(:)=vkloff(:)
-  nosym=nosymscr
-  ! no symmetries implemented for screened Coulomb interaction
-  reducek=.false.
-  ! q-point set of screening corresponds to (k,kp)-pairs
-  ngridk(:)=ngridq(:)
-  vkloff(:)=vkloffbse(:)
-  if (nemptyscr.eq.-1) nemptyscr=nempty
-
   !---------------!
   !   main part   !
   !---------------!
@@ -92,10 +70,6 @@ subroutine exccoulint
   nst34=nst3*nst4
   nst13=nst1*nst3
   nst24=nst2*nst4
-
-  write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
-  write(*,'(a,4i6)') 'nst12,34,13,24',nst12,nst34,nst13,nst24
-
   call genfilname(dotext='_SCI.OUT',setfilext=.true.)
   if (rank.eq.0) then
      call writekpts
@@ -106,21 +80,18 @@ subroutine exccoulint
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   allocate(potcl(n))
   allocate(excli(nst1,nst2,nst1,nst2))
-  allocate(exclit(nst34,nst12))
+  allocate(exclit(nst12,nst34))
   allocate(emat12k(nst1,nst2,n,nkptnr))
   allocate(emat12(nst12,n),emat34(nst34,n))
-
   potcl(:)=0.d0
   excli(:,:,:,:)=zzero
-  ikkp=0
-
   !---------------------------!
   !     loop over k-points    !
   !---------------------------!
   call init1offs(qvkloff(1,iqmt))
   call ematqalloc
   do iknr=1,nkptnr
-     write(*,*) 'generation of matrix elements: k-point:',iknr
+     call chkpt(3,(/task,1,iknr/),'task,sub,k-point')
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
      emat12k(:,:,:,iknr)=xiou(:,:,:)
@@ -128,19 +99,15 @@ subroutine exccoulint
   end do
   emattype=1
   call ematbdcmbs(emattype)
-
-  write(*,'(a,4i6)') 'nst1,2,3,4',nst1,nst2,nst3,nst4
-  write(*,'(a,4i6)') 'nst12,34,13,24',nst12,nst34,nst13,nst24
-
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
-  nkkp=nkptnr*(nkptnr+1)/2
+  nkkp=(nkptnr*(nkptnr+1))/2
   call genparidxran('p',nkkp)
 
   do ikkp=ppari,pparf
+     call chkpt(3,(/task,2,ikkp/),'task,sub,(k,kp)-pair')
      call kkpmap(ikkp,nkptnr,iknr,jknr)
-
      iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
      iv(:)=modulo(iv(:),ngridk(:))
      ! q-point (reduced)
@@ -156,11 +123,6 @@ subroutine exccoulint
      end do
 
      call genfilname(dotext='_SCR.OUT',setfilext=.true.)
-
-     write(*,'(a,i6,2x,2i5,2x,2i5,2x,i6)') 'ikkp,iknr,jknr,iq,iqr,n',&
-          ikkp,iknr,jknr,iq,iqr,n
-
-     ! help arrays h1(cc',G) = M_G(kcc'), h2(G',vv') = conjg(M_G'(kvv'))
      j1=0
      do ist2=1,nst2
         do ist1=1,nst1
@@ -177,11 +139,10 @@ subroutine exccoulint
      end do
 
      ! * calculate exchange matrix elements
-     exclit=matmul(conjg(emat12),transpose(emat34))/omega/nkptnr
-
-!     emat12=conjg(emat12)
-!     call zgemm('n','t', nst12, nst12, n, zone, emat12, &
-!          nst12, emat34, nst12, zzero, exclit, nst12 )
+!!$     exclit=matmul(conjg(emat12),transpose(emat34))/omega/nkptnr
+     emat12=conjg(emat12)
+     call zgemm('n','t', nst12, nst12, n, zone/omega/nkptnr, emat12, &
+          nst12, emat34, nst12, zzero, exclit, nst12 )
 
      ! map back to individual band indices
      j2=0
@@ -198,25 +159,6 @@ subroutine exccoulint
         end do
      end do
 
-     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-     !        excli(:,:,:,:)=zzero
-     !        do igq1=1,n
-     !           do ist1=1,nst1
-     !              do ist2=1,nst2
-     !                 do ist3=1,nst1
-     !                    do ist4=1,nst2
-     !                       excli(ist1,ist2,ist3,ist4)= &
-     !                            excli(ist1,ist2,ist3,ist4)+ &
-     !                            conjg(emat12k(ist1,ist2,igq1,iknr))* &
-     !			    potcl(igq1)* &
-     !                            (emat12k(ist3,ist4,igq1,jknr))/omega/nkptnr
-     !                    end do
-     !                 end do
-     !              end do
-     !           end do
-     !        end do
-     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
      if (ikkp.le.100) then
         do ist1=1,nst1
            do ist2=1,nst2
@@ -232,25 +174,16 @@ subroutine exccoulint
      end if
 
      ! parallel write
-     call putbsemat('EXCLI.OUT',excli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst2,nst4)
+     call putbsemat('EXCLI.OUT',excli,ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst4,nst3)
      call genfilname(dotext='_SCI.OUT',setfilext=.true.)
 
      ! end loop over (k,kp) pairs
   end do
   call barrier
-
   call findgntn0_clear
   deallocate(emat12k,exclit,emat12,emat34)
   deallocate(potcl,excli)
 
-  !--------------!
-  !   finalize   !
-  !--------------!
-  ! restore global variables
-  nosym=nosymt
-  reducek=reducekt
-  ngridk(:)=ngridkt(:)
-  vkloff(:)=vklofft(:)
   write(unitout,'(a)') "Info("//trim(thisnam)//"): Exchange Coulomb interaction&
        & finished"
 end subroutine exccoulint

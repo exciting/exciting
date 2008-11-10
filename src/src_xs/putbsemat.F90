@@ -40,6 +40,7 @@ subroutine putbsemat(fname,zmat,ikkp,iknr,jknr,iq,iqr,n1,n2,n3,n4)
                 MPI_COMM_WORLD,status,ierr)
         end if
 #endif
+        ! only the master is performing file I/O
         open(unit=un,file=trim(fname),form='unformatted',action='write', &
              access='direct',recl=recl)
         write(un,rec=ikkpr) ikkpr,iknrr,jknrr,iq_r,iqr_r,n1,n2,n3,n4,zmat

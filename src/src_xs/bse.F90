@@ -119,7 +119,7 @@ subroutine bse
 write(*,*) 'nvdif,ncdif',nvdif,ncdif
 
   ! ****************************************************
-  emattype=1
+  emattype=2
   call ematbdcmbs(emattype)
   write(unitout,*)
   write(unitout,'("Info(bse): information on number of states:")')
@@ -146,8 +146,8 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
   ! size of BSE-Hamiltonian
   hamsiz=nbfbse*nafbse*nkptnr
   ! allocate arrays for Coulomb interactons
-  allocate(sccli(nst1,nst2,nst1,nst2))
-  allocate(excli(nst1,nst2,nst1,nst2))
+  allocate(sccli(nst1,nst3,nst2,nst4))
+  allocate(excli(nst1,nst3,nst2,nst4))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
   allocate(ham(hamsiz,hamsiz))
   ham(:,:)=zzero
@@ -179,33 +179,27 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         egap=1.d8
         ! set up matrix
         do ist1=1+nvdif,nst1
-           do ist2=1,nst2-ncdif
-              do ist3=1+nvdif,nst1
-                 do ist4=1,nst2-ncdif
-                    s1=hamidx(ist1-nvdif,ist2,iknr,nbfbse,nafbse)
-                    s2=hamidx(ist3-nvdif,ist4,jknr,nbfbse,nafbse)
+           do ist3=1,nst3-ncdif
+              do ist2=1+nvdif,nst2
+                 do ist4=1,nst4-ncdif
+                    s1=hamidx(ist1-nvdif,ist3,iknr,nbfbse,nafbse)
+                    s2=hamidx(ist2-nvdif,ist4,jknr,nbfbse,nafbse)
                     ! add diagonal term
                     if (s1.eq.s2) then
-                       de=evalsv(ist2+istocc,iknr)-evalsv(ist1,iknr)+scissor
+                       de=evalsv(ist3+istocc,iknr)-evalsv(ist1,iknr)+scissor
                        ham(s1,s2)=ham(s1,s2)+de
                        egap=min(egap,de)
                     end if
                     ! add exchange term
                     select case(trim(bsetype))
                     case('rpa','singlet')
-                       ham(s1,s2)=ham(s1,s2)+ &
-                            2.d0*excli(ist1,ist2,ist3,ist4)
+                       ham(s1,s2)=ham(s1,s2)+2.d0*excli(ist1,ist3,ist2,ist4)
                     end select
                     ! add correlation term
                     select case(trim(bsetype))
                     case('singlet','triplet')
-                       ham(s1,s2)=ham(s1,s2)-               &
-!                            sccli(1,1,1,1)*l2int(s1.eq.s2)
-!!!                            sccli(ist1,ist2,ist3,ist4)
-                            sccli(ist3,ist4,ist1,ist2) ! latest version
-
-                       write(*,'(a,6i5,2g18.10)') 's1,s2,ist1,2,3,4', &
-                            s1,s2,ist1,ist2,ist3,ist4,sccli(ist1,ist2,ist3,ist4)
+!!!                       ham(s1,s2)=ham(s1,s2)-sccli(ist2,ist4,ist1,ist3)
+if (s1.eq.s2)                       ham(s1,s2)=ham(s1,s2)-sccli(ist1,ist3,ist2,ist4)
                     end select
                  end do
               end do
@@ -291,13 +285,12 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      end do
      ! end loop over optical components
   end do
-
 contains
 
-  integer function hamidx(iv,ic,ik,nv,nc)
+  integer function hamidx(i1,i2,ik,n1,n2)
     implicit none
-    integer, intent(in) :: iv,ic,ik,nv,nc
-    hamidx=iv + nv*(ic-1) + nv*nc*(ik-1)
+    integer, intent(in) :: i1,i2,ik,n1,n2
+    hamidx=i2+n2*(i1-1)+n1*n2*(ik-1)
   end function hamidx
 
 end subroutine bse
