@@ -1,4 +1,5 @@
 module  modmixermsec
+use modmain,only:beta0
 real(8),allocatable:: residual(:),last_outputp(:),last_inputp(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
 integer:: record_of_last_iter,noldstepsin_file,noldsteps,MUSE,  IDSCALE
@@ -24,7 +25,7 @@ yhist=0
 scl_plane=4
 RedOld=1
 RedPred=1
-qmx_input=.5
+qmx_input=beta0
 qmx=qmx_input
 PM1=1
 IDSCALE=1

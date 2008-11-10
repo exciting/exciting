@@ -89,6 +89,8 @@ TCharge= chgtot
 
 	endif
  residualnorm=dnrm2(n,residual,1)
+ !sqrt(n) is strange but thats how it is in mixadapt
+ residualnorm=residualnorm/sqrt(dble(n))
  qtot= residualnorm
 end subroutine
 
