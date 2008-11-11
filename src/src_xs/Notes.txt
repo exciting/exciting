@@ -82,10 +82,10 @@ FINISHED
 	* modify these routines for accessing subsets of bands
 		getapwcmt.F90	IMPLEMENTED   FINISHED
 		getlocmt.F90	IMPLEMENTED   FINISHED
-		getemat.F90	IMPLEMENTED
-		getpemat.F90	IMPLEMENTED
-		getpmat.F90	IMPLEMENTED
-		gettetcw.F90	IMPLEMENTED
+		getemat.F90	IMPLEMENTED   FINISHED
+		getpemat.F90	IMPLEMENTED   FINISHED
+		getpmat.F90	IMPLEMENTED   FINISHED
+		gettetcw.F90	IMPLEMENTED   FINISHED
 
 
 	(!!) renamed LMAXAPWTD --> LMAXAPWWF
@@ -103,5 +103,17 @@ FINISHED
 
 	* finish "getpemat"
 	* Kathrin: send description of interface "tetraqweights"
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+>> Nov 11 2008
+--------------------------------------------------------------------------------
+
+	* fixed SERIOUS BUG in kernxc_bse.F90, real array instead of
+	  complex one
+
+	* fix this: longrange screening: tensor is needed to be used!
+	* try this: transform q-point set to FIRST Brillouin zone!
 
 --------------------------------------------------------------------------------
