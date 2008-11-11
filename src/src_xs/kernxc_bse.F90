@@ -50,7 +50,8 @@ subroutine kernxc_bse
   real(8), allocatable :: dek(:,:),dok(:,:),scisk(:,:)
   real(8), allocatable :: dekp(:,:),dokp(:,:),sciskp(:,:)
   real(8), allocatable :: deval(:,:,:),docc(:,:,:),scis(:,:,:)
-  real(8), allocatable :: dde(:,:),zmr(:,:),zmq(:,:)
+  real(8), allocatable :: dde(:,:)
+  complex(8), allocatable :: zmr(:,:),zmq(:,:)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
   complex(8), allocatable :: emat(:,:,:,:),den1(:),den2(:)
   complex(8), allocatable :: emat12(:,:),emat12p(:,:)
@@ -148,14 +149,6 @@ subroutine kernxc_bse
 
   ! generate energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
-
-  ! open file for screened Coulomb interaction
-  call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
-  inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
-       sccli(:,:,:,:)
-  call getunit(un)
-  open(un,file=trim(fname),form='unformatted',action='read', &
-       status='old',access='direct',recl=recl)
 
   ! precalculate matrix elements
   emattype=1
@@ -272,16 +265,18 @@ subroutine kernxc_bse
 
         ! get screened Coulomb interaction
         if (iknr.le.jknr) then
-           ! read from file
-           read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
-                nst4_,sccli
+           call getbsemat('SCCLI.OUT',ikkp,nst1,nst3,sccli)
         else
+           call getbsemat('SCCLI.OUT',ikkp,nst1,nst3,scclih)
            ! use Hermitian property for lower triangle
-           read(un,rec=ikkp) ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_, &
-                nst4_,scclih
            do ist1=1,nst1
-              do ist2=1,nst3
-                 sccli(ist1,ist2,:,:)=conjg(scclih(:,:,ist1,ist2))
+              do ist3=1,nst3
+                 do ist2=1,nst1
+                    do ist4=1,nst3
+                       sccli(ist1,ist3,ist2,ist4)= &
+                            conjg(scclih(ist2,ist4,ist1,ist3))
+                    end do
+                 end do
               end do
            end do
         end if
@@ -296,7 +291,7 @@ subroutine kernxc_bse
               end do
            end do
         end if
-	        j1=0
+        j1=0
         do ist2=1,nst3
            do ist1=1,nst1
               j1=j1+1
@@ -319,9 +314,9 @@ subroutine kernxc_bse
                     ! arrays for R- and Q-residuals
                     if (abs(t1).ge.delt) then
                        zmr(j2,j1)=zt1/t1
-                       zmq(j2,j1)=0.d0
+                       zmq(j2,j1)=zzero
                     else
-                       zmr(j2,j1)=0.d0
+                       zmr(j2,j1)=zzero
                        zmq(j2,j1)=zt1
                     end if
                  end do
@@ -368,26 +363,25 @@ subroutine kernxc_bse
      end do
      ! end outer loop over k-points
   end do
-  close(un)
 
-  ! filename for response function file
-  call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
   ! filename for xc-kernel (ASCII)
   call genfilname(basename='FXC_BSE',asc=.true.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam2)
+  call getunit(un)
   open(un,file=trim(filnam2),form='formatted',action='write',status='replace')
-  call getunit(un2)
+
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
   inquire(iolength=recl) fxc(:,:,1)
+  call getunit(un2)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
-  call getunit(un3)
+
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE_HEAD',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
+  call getunit(un3)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
   
   do iw=1,nwdf
