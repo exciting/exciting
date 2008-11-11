@@ -44,7 +44,7 @@ DMIX=.5
 end subroutine
 
  subroutine freearraysmixermsec()
- deallocate(residual,last_outputp,last_inputp)
+ deallocate(residual,last_outputp)
  deallocate(PWHIST,FHIST,CLMHIST)
  open(23,file="BROYDEN.OUT")
  close(23,STATUS='DELETE')

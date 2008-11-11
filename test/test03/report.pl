@@ -31,7 +31,7 @@ close INFO;
  		status=>$status
  		}, $writer);
  		
- 		$iterationsref=13;
+ 		$iterationsref=15;
  		if ($iterations==$iterationsref){$status=passed;}else{$status="failed";}
  		
  		Test::writetestreport({
