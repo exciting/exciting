@@ -2,11 +2,13 @@ include ../build/make.inc
 
 ifeq ($(BUILDMPI),true)
 test:test01 test02 test03 test04 testmpi
+	perl perl/summary.pl
 endif 
 ifeq ($(BUILDMPI),false)
 test:test01 test02 test03 test04
-endif 
 	perl perl/summary.pl
+endif 
+	
 test01::
 	cd build;make libs  test01
 

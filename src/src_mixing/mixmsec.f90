@@ -40,7 +40,7 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 			call write_current_to_broyden_file(n,iscl,potential,residual)
 		endif
 
-		call mixadapt(iscl,beta0,betainc,betadec,n,potential,\
+		call mixadapt(iscl,beta0,betainc,betadec,n,potential,&
 			last_outputp,last_inputp,last_outputp2,residualnorm)
 		last_outputp=potential
 		if(iscl.eq.2) deallocate(last_outputp2,last_inputp)

@@ -1,5 +1,5 @@
 program test
-	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,\
+	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
 	freearraysmixermsec,noldstepsmax,noldsteps
 	use modreport
 	implicit none
@@ -10,7 +10,8 @@ program test
 	passed2=.true.
 		n=4
 		teststeps=24
-	allocate (S(n,noldstepsmax),Y(n,noldstepsmax),YY(noldstepsmax,noldstepsmax),STEP(n))
+	allocate (S(n,noldstepsmax),Y(n,noldstepsmax),YY(noldstepsmax,noldstepsmax)&
+	,STEP(n))
 	allocate (Potential(n))
 
 	call initmixermsec(n)

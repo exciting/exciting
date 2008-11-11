@@ -8,7 +8,7 @@ subroutine readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 	integer i,skipp
 	integer::reclength,rectoread,firstrec
 	inquire(iolength=reclength) potential,residual
-	open(23,file="BROYDEN.OUT",ACCESS="DIRECT",RECL=reclength,\
+	open(23,file="BROYDEN.OUT",ACCESS="DIRECT",RECL=reclength,&
 			ACTION= "READ",FORM='UNFORMATTED')
 	if(noldsteps .lt. noldstepsmax) then
 		firstrec=1

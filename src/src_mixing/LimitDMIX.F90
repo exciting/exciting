@@ -36,13 +36,13 @@
 !
 !--------------------------------------------------------------------
 !       Limit based upon improvement
-        PWLast   = PWHIST(MEMORY) 
+        PWLast   = PWHIST(MEMORY)
         CLMLast  = CLMHIST(MEMORY)
-        PWThis   = PWHIST(MEMALL) 
-        CLMThis  = CLMHIST(MEMALL) 
+        PWThis   = PWHIST(MEMALL)
+        CLMThis  = CLMHIST(MEMALL)
         RatioPW  = (PWThis*PWLast/(PWLast*PWLast+1D-50))
         RatioCLM = (CLMThis*CLMLast/(CLMLast*CLMLast+1D-50))
-        RedGot   =  sqrt((RatioCLM + RatioPW)*0.5D0) 
+        RedGot   =  sqrt((RatioCLM + RatioPW)*0.5D0)
         Better   = sqrt(max(RatioPW, RatioCLM))
         AllBetter= sqrt(FHIST(MEMALL)/FHIST(MEMORY))
 !
@@ -58,7 +58,7 @@
 #endif
         RedPred = PM1
 !
-        write(21,221)RedGot,RedOld, RedPred,AllBetter
+        write(*,221)RedGot,RedOld, RedPred,AllBetter
 221     format(':INFO :  Reduction ',F8.4,' Expected ',F8.4,' Next ',F8.4,' All ',F8.4)
         MSECINFO(2)=RedGot
         MSECINFO(3)=RedOld
@@ -108,7 +108,7 @@
 21      format(a,6D11.3)
 !
         dmixout(1)=min(dmix,rtrap/max(PM1,0.001D0))
-!	
+!
         write(21,21)':INFO :  Bounds       ',qlimit1,qlimit2,rtrap/max(PM1,0.001D0),dmixout(1)
 	do N=1,1
                 t=max(dmixout(N),Dbase)
