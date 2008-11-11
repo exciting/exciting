@@ -13,7 +13,7 @@
 !
         parameter (DSlope =2.0D0)       ! How much to reduce exponentially
         parameter (PFACT  =3.5D0  )     ! Controls reduction in terms of limit
-        limit=DSlope*max(qtot,splane/PFACT)!,scharge)
+        limit=DSlope*max(qtot,splane/PFACT)
         reduction=0.1+exp(-limit)
         qmx=qmx_input*reduction
         if(qmx .lt. DBASE) qmx=DBASE

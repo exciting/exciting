@@ -27,7 +27,7 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 	real(8),allocatable::S(:,:),Y(:,:),YY(:,:),broydenstep(:)
 	real(8),parameter::DELTA=1e-3
 	integer:: ifail
-	real(8) sreduction,dmixused,dmixm
+	real(8) sreduction,dmixm
 	real(8),external::dnrm2
 
 
@@ -43,7 +43,8 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 		call mixadapt(iscl,beta0,betainc,betadec,n,potential,&
 			last_outputp,last_inputp,last_outputp2,residualnorm)
 		last_outputp=potential
-		if(iscl.eq.2) deallocate(last_outputp2,last_inputp)
+		if(iscl.eq.2 .and. allocated(last_outputp2) .and.allocated(last_inputp))&
+			 deallocate(last_outputp2,last_inputp)
 	else
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax))
 		allocate(YY(noldstepsmax,noldstepsmax))
@@ -54,13 +55,11 @@ TCharge= chgtot
 		call check_msecparameters()
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
-		write(*,210)':PLANE:  INTERSTITIAL TOTAL ',Tplane, ' DISTAN ',Splane
-        write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
+		!write(*,210)':PLANE:  INTERSTITIAL TOTAL ',Tplane, ' DISTAN ',Splane
+     !   write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
 210 	FORMAT(A,F12.5,A,F11.7)
 	    call stepbound(sreduction)
-
-
-        write(*,4141)sreduction,qmx
+        write(60,4141)sreduction,qmx
 		call rescaleYS(noldsteps,n,S,Y,potential,residual)
 		call setup_YY(iscl,n,S,Y,YY)
 

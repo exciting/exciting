@@ -7,10 +7,12 @@ real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax)
 real(8),intent(inout)::potential(n),residual(n)
 real(8)::PWAVE,CLAVE,Rescale,T1
 integer ::i,j,k,nmt,firstpw,lastpw
+
   nmt=lmmaxvr*nrmtmax*natmtot
 firstpw=n-ngrtot
 lastpw=n
     FHIST(noldsteps)  =dot_product(residual,residual)
+#ifdef Full_Understanding_how_this_should_work
     PWHIST(noldsteps) =dot_product(residual(firstpw:lastpw),residual(firstpw:lastpw))
     CLMHIST(noldsteps)=FHIST(noldsteps)-PWHIST(noldsteps)
 !Preconditioner Omega_n Pg 21
@@ -43,7 +45,7 @@ lastpw=n
         scl_plane=scl_plane*rescale
 
 
-
+#endif
 
   do J=1,noldstepsmax
            T1=0.
