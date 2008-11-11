@@ -23,9 +23,6 @@ subroutine exccoulint
   real(8), allocatable :: potcl(:)
   complex(8), allocatable :: exclit(:,:),excli(:,:,:,:)
   complex(8), allocatable :: emat12(:,:),emat34(:,:)
-  ! external functions
-  integer, external :: iplocnr
-  logical, external :: tqgamma
   complex(8), allocatable :: emat12k(:,:,:,:)
   !---------------!
   !   main part   !
