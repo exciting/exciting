@@ -1,6 +1,6 @@
 module  modmixermsec
 use modmain,only:beta0
-real(8),allocatable:: residual(:),last_outputp(:),last_inputp(:)
+real(8),allocatable:: residual(:),last_outputp(:),last_inputp(:),last_outputp2(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
 integer:: record_of_last_iter,noldstepsin_file,noldsteps,MUSE,  IDSCALE
 integer, parameter::icond=1,noldstepsmax=8,dbase=0.005D0
@@ -12,12 +12,13 @@ subroutine initmixermsec(n)
 integer,intent(in)::n
 
 integer::niter
-allocate(residual(n),last_outputp(n),last_inputp(n))
+allocate(residual(n),last_outputp(n),last_outputp2(n),last_inputp(n))
 allocate(PWHIST(noldstepsmax),FHIST(noldstepsmax),CLMHIST(noldstepsmax),yhist(noldstepsmax))
 record_of_last_iter=0
 residual=0
 last_outputp=0
 last_inputp=0
+last_outputp2=0
 PWHIST=0
 FHIST=0
 CLMHIST=0

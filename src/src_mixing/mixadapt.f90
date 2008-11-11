@@ -55,6 +55,14 @@ real(8), intent(out) :: d
 ! local variables
 integer i
 real(8) t1
+
+d=0.d0
+do i=1,n
+  d=d+(nu(i)-mu(i))**2
+end do
+d=sqrt(d/dble(n))
+
+
 if (iscl.le.1) then
   mu(:)=nu(:)
   f(:)=0.d0
@@ -73,11 +81,7 @@ do i=1,n
   f(i)=t1
 end do
 nu(:)=beta(:)*nu(:)+(1.d0-beta(:))*mu(:)
-d=0.d0
-do i=1,n
-  d=d+(nu(i)-mu(i))**2
-end do
-d=sqrt(d/dble(n))
+
 mu(:)=nu(:)
 return
 end subroutine

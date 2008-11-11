@@ -15,7 +15,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 !config params:
 	use modmain,only:beta0,betainc,betadec,chgir,chgmttot,chgtot
 ! persistent arrays and create/desdruct functions
-	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
+	use modmixermsec,only:residual,last_outputp,last_outputp2,last_inputp,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
 noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 
@@ -29,17 +29,21 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 	integer:: ifail
 	real(8) sreduction,dmixused,dmixm
 	real(8),external::dnrm2
+
+
 	noldsteps=noldstepsin_file
 	sreduction=1.2
 	if(iscl .le. 2)then
-		if(iscl .eq. 2)then
+
+		if(iscl .ge. 2)then
 			residual=potential-last_outputp
 			call write_current_to_broyden_file(n,iscl,potential,residual)
 		endif
-		call mixadapt(iscl,beta0,betainc,betadec,n,potential,\
-			last_outputp,last_inputp,residual,residualnorm)
-		last_outputp=potential
 
+		call mixadapt(iscl,beta0,betainc,betadec,n,potential,\
+			last_outputp,last_inputp,last_outputp2,residualnorm)
+		last_outputp=potential
+		if(iscl.eq.2) deallocate(last_outputp2,last_inputp)
 	else
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax))
 		allocate(YY(noldstepsmax,noldstepsmax))
@@ -86,11 +90,11 @@ TCharge= chgtot
 
 		deallocate (S,Y,YY,broydenstep)
 4141    format(':REDuction and DMIX in Broyd:',3f10.4,E14.5)
-
-	endif
- residualnorm=dnrm2(n,residual,1)
+residualnorm=dnrm2(n,residual,1)
  !sqrt(n) is strange but thats how it is in mixadapt
  residualnorm=residualnorm/sqrt(dble(n))
+	endif
+
  qtot= residualnorm
 end subroutine
 
