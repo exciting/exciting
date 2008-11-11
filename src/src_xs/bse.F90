@@ -198,8 +198,10 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
                     ! add correlation term
                     select case(trim(bsetype))
                     case('singlet','triplet')
-!!!                       ham(s1,s2)=ham(s1,s2)-sccli(ist2,ist4,ist1,ist3)
-if (s1.eq.s2)                       ham(s1,s2)=ham(s1,s2)-sccli(ist1,ist3,ist2,ist4)
+!!!if (s1.eq.s2)
+!!ham(s1,s2)=ham(s1,s2)-sccli(ist2,ist4,ist1,ist3)
+!!!if (s1.eq.s2)
+ham(s1,s2)=ham(s1,s2)-sccli(ist1,ist3,ist2,ist4)
                     end select
                  end do
               end do

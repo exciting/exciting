@@ -213,7 +213,7 @@ end module blaswrappers
 
 subroutine test_blaswrappers
   ! PASSED TEST November 10, 2008
-  use blaswrapprs
+  use blaswrappers
   implicit none
   integer, parameter :: maxcase=9
   integer, parameter :: nz1=200,nz2=400, na1=200,na2=2000, nb1=2000,nb2=400
