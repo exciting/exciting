@@ -13,9 +13,8 @@ subroutine findgqmap(iq,iqr,nsc,sc,ivgsc,nmax,n,isc,isci,ivgu,igqmap)
   ! local variables
   real(8) :: vqr(3),v2(3),t1
   integer :: iqrnr,j,isym,isymi,lspl,lspli,iv(3),ivg1(3),igq1
-  integer, external :: iplocnr
   ! find map from G-vectors to rotated G-vectors
-  iqrnr=iplocnr(ivqr(1,iqr),ngridq)
+  iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
   vqr(:)=vqlr(:,iqr)
   do j=1,nsc
      isym=sc(j)
@@ -29,11 +28,10 @@ subroutine findgqmap(iq,iqr,nsc,sc,ivgsc,nmax,n,isc,isci,ivgu,igqmap)
         ! |G1 + q|
         v2=matmul(bvec,iv+vqr)
         t1=sqrt(sum(v2**2))
-!!$write(*,'(a,5i6,3g18.10,3x,3g18.10)') 'reduce:',iq,j,isym,&
-!!$     igq1,ivgigq(iv(1),iv(2),iv(3),iqrnr),vgql(:,igq1,iq)- &
-!!$     matmul(transpose(symlat(:,:,lspl)),vqr+iv)
         if ((n.gt.1).and.(t1.gt.gqmax)) then
-           write(*,*) '*** need one more symmetry operation'
+           write(*,*)
+           write(*,'("Info(findgqmap): need one more symmetry operation")')
+           write(*,*)
            goto 10
         end if
         ! locate G1 + q in G+q-vector set

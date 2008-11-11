@@ -152,14 +152,6 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   end select
   call timesec(ts1)
   t1=ts1-ts0
-  if (flag.ne.0) write(*,'("Time in genwiq2xs (seconds):",3i6,f12.4)') iq, &
-       igq1,igq2,t1
+  !TODO: TIME TO TRACK SOMEWHERE
 end subroutine genwiq2xs
 !EOC
-
-
-subroutine subcellint
-  implicit none
-  ! local variables
-
-end subroutine subcellint

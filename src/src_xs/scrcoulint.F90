@@ -27,7 +27,7 @@ subroutine scrcoulint
   complex(8), allocatable :: scrni(:,:,:),tm(:,:),tmi(:,:),bsedt(:,:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
   ! external functions
-  integer, external :: iplocnr,idxkkp
+  integer, external :: idxkkp
   logical, external :: tqgamma
 
   !---------------!
@@ -96,8 +96,10 @@ subroutine scrcoulint
   !-----------------------------------!
   call genparidxran('q',nqptr)
   do iqr=qpari,qparf
+     call chkpt(3,(/task,1,iqr/),'task,sub,reduced q-point; generate inverse of&
+          & screening')
      ! locate reduced q-point in non-reduced set
-     iqrnr=iplocnr(ivqr(1,iqr),ngridq)
+     iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
      n=ngq(iqrnr)
      ! obtain inverse of dielectric matrix
      call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
@@ -110,20 +112,22 @@ subroutine scrcoulint
   !---------------------------------------!
   call genparidxran('q',nqpt)
   do iq=qpari,qparf
-     write(*,*) 'radial integrals for q-point:',iq
+     call chkpt(3,(/task,2,iq/),'task,sub,q-point; generate radial integrals')
      call putematrad(iq)
   end do
   call barrier
 
   ! information on size of output file
+  nkkp=(nkptnr*(nkptnr+1))/2
   inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4,sccli
-  write(*,'(a,f12.3)') 'file size for screened Coulomb &
-       &interaction (GB):',recl*nkptnr*(nkptnr+1)/2.d0/1024.d0**3
+  write(unitout,*)
+  write(unitout,'(a,f12.3)') 'file size for screened Coulomb &
+       &interaction (GB):',recl*nkkp/1024.d0**3
+  write(unitout,*)
 
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
-  nkkp=(nkptnr*(nkptnr+1))/2
   call genparidxran('p',nkkp)
   allocate(bsedt(3,nkptnr))
   bsedt(1,:)=1.d8
@@ -131,12 +135,12 @@ subroutine scrcoulint
   bsedt(3,:)=zzero
   ! loop over combinations of k-points
   do ikkp=ppari,pparf
-     call chkpt(2,(/task,ikkp/),'task,(k,kp)-pair')
-     call kkpmap(ikkp,nkptnr,iknr,jknr)
-     
+     call chkpt(3,(/task,3,ikkp/),'task,sub,(k,kp)-pair; direct term of &
+          &BSE-Hamiltonian')
+     call kkpmap(ikkp,nkptnr,iknr,jknr)     
      ! k-point difference
      iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
-     iv(:)=modulo(iv(:),ngridk(:))
+     iv(:)=modulo(iv(:),ngridq(:))
      ! q-point (reduced)
      iqr=iqmapr(iv(1),iv(2),iv(3))
      vqr(:)=vqlr(:,iqr)
@@ -144,7 +148,7 @@ subroutine scrcoulint
      iq=iqmap(iv(1),iv(2),iv(3))
      vq(:)=vql(:,iq)
      ! locate reduced q-point in non-reduced set
-     iqrnr=iplocnr(ivqr(1,iqr),ngridq)
+     iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
      ! local field effects size
      tq0=tqgamma(iq)
      n=ngq(iq)

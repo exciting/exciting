@@ -91,7 +91,8 @@ subroutine exccoulint
   call init1offs(qvkloff(1,iqmt))
   call ematqalloc
   do iknr=1,nkptnr
-     call chkpt(3,(/task,1,iknr/),'task,sub,k-point')
+     call chkpt(3,(/task,1,iknr/),'task,sub,k-point; matrix elements of plane &
+          &wave')
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
      emat12k(:,:,:,iknr)=xiou(:,:,:)
@@ -106,7 +107,8 @@ subroutine exccoulint
   call genparidxran('p',nkkp)
 
   do ikkp=ppari,pparf
-     call chkpt(3,(/task,2,ikkp/),'task,sub,(k,kp)-pair')
+     call chkpt(3,(/task,2,ikkp/),'task,sub,(k,kp)-pair; exchange term of &
+          &BSE-Hamiltonian')
      call kkpmap(ikkp,nkptnr,iknr,jknr)
      iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
      iv(:)=modulo(iv(:),ngridk(:))

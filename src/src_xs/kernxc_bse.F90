@@ -4,9 +4,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: kernxc_bse2
+! !ROUTINE: kernxc_bse
 ! !INTERFACE:
-subroutine kernxc_bse2
+subroutine kernxc_bse
 ! !USES:
   use modmain
   use modtetra
@@ -31,62 +31,36 @@ subroutine kernxc_bse2
   implicit none
   !******************************************************************
   integer, parameter :: oct=1
-  character(*), parameter :: thisnam = 'kernxs_bse2'
+  !******************************************************************
+  character(*), parameter :: thisnam='kernxs_bse'
   integer, parameter :: iqmt=1
   real(8), parameter :: delt=1.d-6
-  character(256) :: filnam,filnam2,filnam3,filnam4
-  complex(8),allocatable :: fxc(:,:,:),w(:)
-  integer :: n,recl,iw,wi,wf,nwdfp
-  integer, external :: l2int
-  complex(8) :: zt1
-  character(256) :: fname
   real(8), parameter :: epsortho=1.d-12
-  integer :: nemptyscrt,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
-  integer :: ngridkt(3),iv(3),un,un2,un3,j1,j2
-  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp
-  integer :: ikkp_,iknr_,jknr_,iq_,iqr_,nst1_,nst2_,nst3_,nst4_
-  logical :: nosymt,reducekt,tq0
-  real(8) :: vklofft(3),vqr(3),vq(3),t1,t2,tp
-  real(8), allocatable :: dek(:,:),dekp(:,:),dok(:,:),dde(:,:)
-  real(8), allocatable :: dokp(:,:),scisk(:,:),sciskp(:,:)
-  real(8), allocatable :: zmr(:,:),zmq(:,:),deval(:,:,:),docc(:,:,:),scis(:,:,:)
-  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
-  complex(8), allocatable :: den1(:),den2(:)
-  complex(8), allocatable :: emat12(:,:),emat12p(:,:),emat(:,:,:,:)
-  complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
-  ! external functions
-  integer, external :: iplocnr,idxkkp
-  logical, external :: tqgamma
-
-  real(8) :: brd
+  character(256) :: fname,filnam,filnam2,filnam3,filnam4
+  logical :: tq0
+  integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2
+  integer :: ikkp,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
+  integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
+  integer :: ikkp_,iknr_,jknr_,iq_,iqr_
+  integer :: nst1_,nst2_,nst3_,nst4_
+  real(8) :: vqr(3),vq(3),t1,brd
   real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
+  complex(8) :: zt1
+  real(8), allocatable :: dek(:,:),dok(:,:),scisk(:,:)
+  real(8), allocatable :: dekp(:,:),dokp(:,:),sciskp(:,:)
+  real(8), allocatable :: deval(:,:,:),docc(:,:,:),scis(:,:,:)
+  real(8), allocatable :: dde(:,:),zmr(:,:),zmq(:,:)
+  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
+  complex(8), allocatable :: emat(:,:,:,:),den1(:),den2(:)
+  complex(8), allocatable :: emat12(:,:),emat12p(:,:)
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
-
-  call genfilname(setfilext=.true.)
+  complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
+  complex(8), allocatable :: fxc(:,:,:),w(:)
+  ! external functions
+  integer, external :: idxkkp,l2int
+  logical, external :: tqgamma
   brd=broad
-
-  !----------------!
-  !   initialize   !
-  !----------------!
-  ! save global variables
-  nosymt=nosym
-  reducekt=reducek
-  ngridkt(:)=ngridk(:)
-  vklofft(:)=vkloff(:)
-  nemptyscrt=nemptyscr
-  nosym=nosymscr
-  ! no symmetries implemented for screened Coulomb interaction
-  reducek=.false.
-  ! q-point set of screening corresponds to (k,kp)-pairs
-  ngridk(:)=ngridq(:)
-  vkloff(:)=vkloffbse(:)
-  if (nemptyscr.eq.-1) nemptyscr=nempty
-
-
-  !---------------!
-  !   main part   !
-  !---------------!
   emattype=2
   call init0
   call init1
@@ -127,9 +101,6 @@ subroutine kernxc_bse2
   nst34=nst3*nst4
   nst13=nst1*nst3
   nst24=nst2*nst4
-  call getunit(un)
-
-write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
 
   call genparidxran('w',nwdf)
   ! sampling type for Brillouin zone sampling
@@ -182,6 +153,7 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
   call genfilname(basename='SCCLI',dotext='.OUT',filnam=fname)
   inquire(iolength=recl) ikkp,iknr,jknr,iq,iqr,nst1,nst2,nst3,nst4, &
        sccli(:,:,:,:)
+  call getunit(un)
   open(un,file=trim(fname),form='unformatted',action='read', &
        status='old',access='direct',recl=recl)
 
@@ -190,9 +162,14 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
   call ematbdcmbs(emattype)
   call ematrad(iqmt)
   call ematqalloc
+
+  !---------------------------!
+  !     loop over k-points    !
+  !---------------------------!
   do iknr=1,nkptnr
+     call chkpt(3,(/task,1,iknr/),'task,sub,k-point; generate matrix elements &
+          & of plane wave')    
      iknrq=ikmapikq(iknr,iqmt)
-     write(*,*) 'generation of matrix elements: k-point:',iknr
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
      emat(:,:,:,iknr)=xiou(:,:,:)
@@ -206,13 +183,13 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
   emattype=2
   call ematbdcmbs(emattype)
 
-
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
   ikkp=0
   ! first k-point
   do iknr=1,nkptnr
+     call chkpt(3,(/task,3,ikkp/),'task,sub,(k,kp)-pair; BSE-fxc-kernel')
      iknrq=ikmapikq(iknr,iqmt)
 
      emattype=1
@@ -260,7 +237,6 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
            ! swapped index for lower triangle
            ikkp=idxkkp(jknr,iknr,nkptnr)
         end if
-	write(*,*) 'ikkp',ikkp
 
         iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
         iv(:)=modulo(iv(:),ngridk(:))
@@ -272,7 +248,7 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
         tq0=tqgamma(iq)
         vq(:)=vql(:,iq)
         ! locate reduced q-point in non-reduced set
-        iqrnr=iplocnr(ivqr(1,iqr),ngridq)
+        iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
 
         emattype=1
         call ematbdcmbs(emattype)
@@ -309,28 +285,18 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
               end do
            end do
         end if
-
         ! proper sign of screened Coulomb interaction
-        sccli = - sccli
-
+        sccli=-sccli
         ! set diagonal of Bethe-Salpeter kernel to zero
         ! (cf. A. Marini, PRL 2003)
         if (iknr.eq.jknr) then
            do ist3=1,nst3
               do ist1=1,nst1	      
-                 zt1=sccli(ist1,ist3,ist1,ist3)
-                 t1=dble(zt1)
-                 t2=aimag(zt1)
-                 tp=atan2(t2,t1)
-                 if (tp.lt.0.d0) tp=tp+twopi
-                 write(1107,'(3i5,2g18.10,2x,2g18.10)') iknr,ist1,ist3,zt1, &
-                      abs(zt1),tp*180.d0/pi
                  sccli(ist1,ist3,ist1,ist3)=zzero
               end do
            end do
         end if
-	
-        j1=0
+	        j1=0
         do ist2=1,nst3
            do ist1=1,nst1
               j1=j1+1
@@ -362,68 +328,55 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
               end do
            end do
         end do
-
         ! calculate residual "R" 
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residr=residr+matmul(zmr,emat12p)
-
         ! calculate residual "Q" 
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
-
         ! end inner loop over k-points
      end do
 
      !--------------------------!
      !     set up BSE-kernel    !
      !--------------------------!
-
      do ist3=1,nst3
         do ist1=1,nst1
            osca(:,:)=zzero
            oscb(:,:)=zzero
            j1=ist1+(ist3-1)*nst1
-           ! set up inner part of kernel
-           
+           ! set up inner part of kernel           
            ! generate oscillators
            call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
            ! add Hermitian transpose
            osca=osca+conjg(transpose(osca))
            call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
-
-
-! *** this part is working for Si_lapw and Si_APW+lo ***
+           ! *** this part is working for Si_lapw and Si_APW+lo ***
            ! set up energy denominators
            den1(:)=2.d0/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2(:)=2.d0/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
            den1=den1/nkpt/omega
            den2=den2/nkpt/omega
-! *** end
-
+           ! *** end
            ! update kernel
            do iw=1,nwdf
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
            end do
-
            ! end loop over states #1
         end do
         ! end loop over states #3
      end do
-     
      ! end outer loop over k-points
   end do
   close(un)
 
-
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
-
   ! filename for xc-kernel (ASCII)
   call genfilname(basename='FXC_BSE',asc=.true.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam2)
   open(un,file=trim(filnam2),form='formatted',action='write',status='replace')
-
   call getunit(un2)
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
@@ -431,7 +384,6 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
   inquire(iolength=recl) fxc(:,:,1)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
-  
   call getunit(un3)
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE_HEAD',asc=.false.,bzsampl=bzsampl,&
@@ -442,34 +394,22 @@ write(*,*) 'nst1,2,3,4',nst1,nst2,nst3,nst4
      write(un2,rec=iw) fxc(:,:,iw)     
      write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
   end do
-  
-   do iw=1,nwdf,10
+  do iw=1,nwdf,10
      do igq1=1,n
         do igq2=1,n
-           write(un,'(3i6,3g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw),abs(fxc(igq1,igq2,iw))
+           write(un,'(3i6,3g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw), &
+                abs(fxc(igq1,igq2,iw))
 	end do
      end do
-  end do
-
+  end do  
   close(un)
   close(un2)
   close(un3)
-  close(1107)
 
   ! deallocate
   deallocate(emat12,emat12p,zmr,zmq,dek,dekp,dde,dok,dokp,scisk,sciskp,fxc)
   deallocate(sccli,scclih,scclit,emat12k,emat12kp,residr,residq,w,osca,oscb)
   deallocate(emat,deval,docc,scis)
   
-  !-------------!
-  !   restore   !
-  !-------------!
-  ! save global variables
-  nosym=nosymt
-  reducek=reducekt
-  ngridk(:)=ngridkt(:)
-  vkloff(:)=vklofft(:)
-  nemptyscr=nemptyscrt
-  call genfilname(setfilext=.true.)
-end subroutine kernxc_bse2
+end subroutine kernxc_bse
 !EOC
