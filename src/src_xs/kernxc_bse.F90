@@ -29,31 +29,30 @@ subroutine kernxc_bse
 !EOP
 !BOC
   implicit none
+  ! local variables
   !******************************************************************
   integer, parameter :: oct=1
   !******************************************************************
   character(*), parameter :: thisnam='kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-6
-  real(8), parameter :: epsortho=1.d-12
-  character(256) :: fname,filnam,filnam2,filnam3,filnam4
+  real(8), parameter :: delt=1.d-3 ! use fxcbsesplit ***
+  character(256) :: filnam2,filnam3,filnam4
   logical :: tq0
   integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2
   integer :: ikkp,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
-  integer :: ikkp_,iknr_,jknr_,iq_,iqr_
-  integer :: nst1_,nst2_,nst3_,nst4_
   real(8) :: vqr(3),vq(3),t1,brd
   real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8) :: zt1
+  ! allocatable arrays
   real(8), allocatable :: dek(:,:),dok(:,:),scisk(:,:)
   real(8), allocatable :: dekp(:,:),dokp(:,:),sciskp(:,:)
   real(8), allocatable :: deval(:,:,:),docc(:,:,:),scis(:,:,:)
   real(8), allocatable :: dde(:,:)
   complex(8), allocatable :: zmr(:,:),zmq(:,:)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
-  complex(8), allocatable :: emat(:,:,:,:),den1(:),den2(:)
+  complex(8), allocatable :: emat(:,:,:,:),den1(:),den2(:),den1a(:),den2a(:)
   complex(8), allocatable :: emat12(:,:),emat12p(:,:)
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
   complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
@@ -133,7 +132,8 @@ subroutine kernxc_bse
   allocate(scclit(nst13,nst13))
   allocate(emat12k(n,nst1,nst3),emat12kp(nst1,nst3,n))
   allocate(residr(nst13,n),residq(nst13,n))
-  allocate(w(nwdf),osca(n,n),oscb(n,n),den1(nwdf),den2(nwdf))
+  allocate(w(nwdf),osca(n,n),oscb(n,n))
+  allocate(den1(nwdf),den2(nwdf),den1a(nwdf),den2a(nwdf))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
   allocate(emat(nst1,nst3,n,nkptnr))
@@ -308,7 +308,6 @@ subroutine kernxc_bse
                  do ist2=1,nst1
                     j1=j1+1
                     zt1=sccli(ist1,ist3,ist2,ist4)
-!!!                    zt1=sccli(ist2,ist4,ist1,ist3)
                     ! four point energy difference
                     t1=dekp(ist2,ist4)-dek(ist1,ist3)
                     ! arrays for R- and Q-residuals
@@ -335,6 +334,7 @@ subroutine kernxc_bse
      !--------------------------!
      !     set up BSE-kernel    !
      !--------------------------!
+     t1=1.d0/(nkptnr*omega)
      do ist3=1,nst3
         do ist1=1,nst1
            osca(:,:)=zzero
@@ -348,14 +348,21 @@ subroutine kernxc_bse
            call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
            ! *** this part is working for Si_lapw and Si_APW+lo ***
            ! set up energy denominators
-           den1(:)=2.d0/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
-           den2(:)=2.d0/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
-           den1=den1/nkpt/omega
-           den2=den2/nkpt/omega
+           den1(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
+           den2(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
+           den1a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
+           den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
            ! *** end
            ! update kernel
            do iw=1,nwdf
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              ! resonant contribution only
+!!$              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              ! mimic antiresonant contribution by adding a term c.c.(-w)
+              ! as known from response functions
+!!$              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
+!!$                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
+              ! * test osca only
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)!!!+oscb(:,:)*den2(iw)
            end do
            ! end loop over states #1
         end do
@@ -401,6 +408,7 @@ subroutine kernxc_bse
   close(un3)
 
   ! deallocate
+  deallocate(den1,den2,den1a,den2a)
   deallocate(emat12,emat12p,zmr,zmq,dek,dekp,dde,dok,dokp,scisk,sciskp,fxc)
   deallocate(sccli,scclih,scclit,emat12k,emat12kp,residr,residq,w,osca,oscb)
   deallocate(emat,deval,docc,scis)

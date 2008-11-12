@@ -238,6 +238,7 @@ nexcitmax=100
 alphalrc=0.d0
 alphalrcdyn=0.d0
 betalrcdyn=0.d0
+fxcbsesplit=1.d-5
 ndftrans=1
 if (allocated(dftrans)) deallocate(dftrans)
 allocate(dftrans(3,ndftrans))
@@ -1149,6 +1150,14 @@ case('alphalrcdyn')
   read(50,*,err=20) alphalrcdyn
 case('betalrcdyn')
   read(50,*,err=20) betalrcdyn
+case('fxcbsesplit')
+  read(50,*,err=20) fxcbsesplit
+    if (fxcbsesplit.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): fxcbsesplit <= 0 : ",g18.10)') fxcbsesplit
+    write(*,*)
+    stop
+  end if
 case('dftrans')
   read(50,*,err=20) ndftrans
   if (allocated(dftrans)) deallocate(dftrans)

@@ -332,6 +332,8 @@ module modxs
   ! beta-parameter for the asymptotic long range part of the kernel
   ! (see [Botti PRB 2005])
   real(8) :: betalrcdyn
+  ! split parameter for degeneracy in energy differences of BSE-kernel
+  real(8) :: fxcbsesplit
 
   !---------------------------!
   !     exciton variables     !
