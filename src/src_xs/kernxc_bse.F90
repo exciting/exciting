@@ -286,7 +286,7 @@ subroutine kernxc_bse
         ! (cf. A. Marini, PRL 2003)
         if (iknr.eq.jknr) then
            do ist3=1,nst3
-              do ist1=1,nst1	      
+              do ist1=1,nst1
                  sccli(ist1,ist3,ist1,ist3)=zzero
               end do
            end do
@@ -346,23 +346,19 @@ subroutine kernxc_bse
            ! add Hermitian transpose
            osca=osca+conjg(transpose(osca))
            call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
-           ! *** this part is working for Si_lapw and Si_APW+lo ***
            ! set up energy denominators
            den1(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
            den1a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
-           ! *** end
            ! update kernel
            do iw=1,nwdf
-              ! resonant contribution only
+!!$              ! resonant contribution only
 !!$              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
               ! mimic antiresonant contribution by adding a term c.c.(-w)
               ! as known from response functions
-!!$              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
-!!$                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
-              ! * test osca only
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)!!!+oscb(:,:)*den2(iw)
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
+                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
            end do
            ! end loop over states #1
         end do
@@ -400,7 +396,7 @@ subroutine kernxc_bse
         do igq2=1,n
            write(un,'(3i6,3g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw), &
                 abs(fxc(igq1,igq2,iw))
-	end do
+        end do
      end do
   end do  
   close(un)
