@@ -7,7 +7,7 @@ LIB_ARP =libarpack.a
 LIB_LPK =  -llapack -lblas
 LIB_FFT = fftlib.a
 LIB_BZINT= libbzint.a
-
+export USE_SYS_LAPACK=true
 LIBS= $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) 
 
 F90_DEBUGOPTS=-g

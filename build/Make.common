@@ -16,7 +16,14 @@ bin::../make.inc
 	&& $(MAKE) -f Makefile.mkmf exciting$(SUFFIX) \
 
 
+
+ifeq ($(USE_SYS_LAPACK),true)
+libs::libbzint.a fftlib.a  libarpack.a 
+endif
+
+ifeq ($(USE_SYS_LAPACK),)
 libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
+endif
 
 libblas.a::
 	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
