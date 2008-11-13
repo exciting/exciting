@@ -1,3 +1,4 @@
+test/test02/runlapackmpi/startmpirun
 *.err
 *.xml
 Makefile.*
@@ -38,7 +39,6 @@ mpif.h
 fort.*
 *.diff
 *.orig
-output.*
 outerr.*
 *.tex
 *.aux

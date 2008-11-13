@@ -68,51 +68,5 @@ test02::testprogram2
 test04::testprogram4
 	cd ../test04/run ; ../../build/testprogram4
 
-libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
-
-libblas.a: 
-	cp -f ../../build/make.inc ../..
-	cd ../../src/BLAS && make clean && make
-	cp ../../src/BLAS/libblas.a .
-	cd ../../src/BLAS && make clean
-
-liblapack.a: 
-	cp -f ../../build/make.inc ../..
-	cd ../../src/LAPACK && make clean && make
-	cp ../../src/LAPACK/liblapack.a .
-	cd ../../src/LAPACK && make clean
-
-fftlib.a: 
-	cp -f ../../build/make.inc ../..
-	cd ../../src/fftlib && make clean && make
-	cp ../../src/fftlib/fftlib.a .
-	cd ../../src/fftlib && make clean
-
-libbzint.a: 
-	cp -f ../../build/make.inc ../..
-	cd ../../src/libbzint && make clean && make
-	cp ../../src/libbzint/libbzint.a .
-	cd ../../src/libbzint && make clean
-
-
-libarpack.a: 
-	cp -f ../../build/make.inc ../..
-	cd ../../src/ARPACK && $(MAKE) clean && make lib
-	cp ../../src/ARPACK/libarpack.a .
-	cd ../../src/ARPACK && $(MAKE) clean
-
-
-
-clean:
-	rm -f *.o *.mod
-
-cleanlibs:
-	rm -f *.a
-
-### build libbzint, do not clean source tree of library and build exciting
-bzex:
-	cp -f ../../build/make.inc ../..
-	cd ../../src/src_libbzint && make
-	cp ../../src/src_libbzint/libbzint.a .
-	rm -f exciting
-	make serial
+#for the rules to build the libraries include the other makefile
+include ../../build/Make.common

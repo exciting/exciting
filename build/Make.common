@@ -1,4 +1,4 @@
-include ../make.inc
+#include ../make.inc
 
 MAKE=make
 
@@ -13,42 +13,41 @@ bin::../make.inc
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
 	../../src/src_mixing/ \
-	&& make -f Makefile.mkmf exciting$(SUFFIX) \
-	&& cp -f exciting$(SUFFIX) ..
+	&& $(MAKE) -f Makefile.mkmf exciting$(SUFFIX) \
+
 
 libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
 
 libblas.a: 
 	cp -f ../make.inc ../..
-	cd ../../src/BLAS && make clean && make
+	cd ../../src/BLAS && $(MAKE) clean && $(MAKE)
 	cp ../../src/BLAS/libblas.a .
-	cd ../../src/BLAS && make clean
+	cd ../../src/BLAS && $(MAKE) clean
 
 liblapack.a: 
 	cp -f ../make.inc ../..
-	cd ../../src/LAPACK && make clean && make
+	cd ../../src/LAPACK && $(MAKE) clean && $(MAKE)
 	cp ../../src/LAPACK/liblapack.a .
-	cd ../../src/LAPACK && make clean
+	cd ../../src/LAPACK && $(MAKE) clean
 
-fftlib.a:
-	cp -f ../make.inc ../..
-	cd ../../src/fftlib && make clean && make
-	cp ../../src/fftlib/fftlib.a .
-	cd ../../src/fftlib && make clean
+fftlib.a::
+	../../utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
+	../../src/fftlib\
+	&& $(MAKE) -f Makefile.fft fftlib.a 
 
-libbzint.a: 
-	../../utilities/mkmf -t ./template -f -m Makefile.libzint -p libbzint.a \
+libbzint.a:: 
+	../../utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
 	../../src/libbzint\
-	&& make -f Makefile.libzint libbzint.a 
+	&& $(MAKE) -f Makefile.libbzint libbzint.a 
 	
 	
 
 
-libarpack.a:
+libarpack.a::
 	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
 	../../src/ARPACK/SRC/ \
-	../../src/ARPACK/UTIL/ 
-	make -f Makefile.libarpack libarpack.a
+	../../src/ARPACK/UTIL/ \
+	&& $(MAKE) -f Makefile.libarpack libarpack.a
 	
 #cp -f ../make.inc ../..
 #cd ../../src/ARPACK && $(MAKE) clean 
@@ -66,7 +65,7 @@ cleanlibs:
 ### build libbzint, do not clean source tree of library and build exciting
 bzex:
 	cp -f ../make.inc ../..
-	cd ../../src/libbzint && make
+	cd ../../src/libbzint && $(MAKE)
 	cp ../../src/libbzint/libbzint.a .
 	rm -f exciting
-	make serial
+	$(MAKE) serial

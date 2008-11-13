@@ -1,5 +1,5 @@
 program test
-	use modmixermsec,only:residual,last_outputp,last_inputp,initmixermsec,&
+	use modmixermsec,only:residual,last_outputp,initmixermsec,&
 	freearraysmixermsec,noldstepsmax,noldsteps
 	use modreport
 	implicit none
