@@ -22,5 +22,8 @@ subroutine putbsediag(fname)
   write(un,'(2g18.10," : BSE kernel diagonal lower limit (eV)")') bsedl*h2ev
   write(un,'(2g18.10," : BSE kernel diagonal upper limit (eV)")') bsedu*h2ev
   write(un,'(2g18.10," : BSE kernel diagonal window size (eV)")') bsedd*h2ev
+  write(un,*)
+  write(un,'(g18.10," : BSE kernel diagonal deviation (%)")') dble(bsedd)/ &
+       dble(bsed)*100.d0
   close(un)
 end subroutine putbsediag

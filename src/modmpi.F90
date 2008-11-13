@@ -203,8 +203,8 @@ subroutine ralltoallv(rarr,rlen,set)
      mpireccnts(proc+1)=nofset(proc,set)*rlen
      mpirecdispls(proc+1)=(firstofset(proc,set)-1)*rlen
   end do
-  call MPI_Alltoallv(rarr,mpisndcnts,mpisnddispls,MPI_DOUBLE_COMPLEX, &
-       rarr,mpireccnts,mpirecdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD,ierr)
+  call MPI_Alltoallv(rarr,mpisndcnts,mpisnddispls,MPI_DOUBLE_PRECISION, &
+       rarr,mpireccnts,mpirecdispls,MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
 #endif
 end subroutine ralltoallv
 

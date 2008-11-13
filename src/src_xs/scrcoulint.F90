@@ -101,8 +101,10 @@ subroutine scrcoulint
      ! locate reduced q-point in non-reduced set
      iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
      n=ngq(iqrnr)
+     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
      ! obtain inverse of dielectric matrix
      call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
+     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   end do
   ! communicate array-parts wrt. q-points
   call zalltoallv(scrni,ngqmax**2,nqptr)
@@ -175,6 +177,7 @@ subroutine scrcoulint
         end do
      end do
 
+     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
      ! set up Coulomb potential
      do igq1=1,n
         do igq2=igq1,n
@@ -188,6 +191,7 @@ subroutine scrcoulint
            potcl(igq2,igq1)=potcl(igq1,igq2)
         end do
      end do
+     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
      ! calculate matrix elements of the plane wave
      emattype=2
