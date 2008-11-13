@@ -16,20 +16,19 @@ bin::../make.inc
 	&& $(MAKE) -f Makefile.mkmf exciting$(SUFFIX) \
 
 
-libs:libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
 
-libblas.a: 
-	cp -f ../make.inc ../..
-	cd ../../src/BLAS && $(MAKE) clean && $(MAKE)
-	cp ../../src/BLAS/libblas.a .
-	cd ../../src/BLAS && $(MAKE) clean
+libblas.a::
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
+	../../src/BLAS\
+	&& $(MAKE) -f Makefile.blas libblas.a 
+	
 
-liblapack.a: 
-	cp -f ../make.inc ../..
-	cd ../../src/LAPACK && $(MAKE) clean && $(MAKE)
-	cp ../../src/LAPACK/liblapack.a .
-	cd ../../src/LAPACK && $(MAKE) clean
-
+liblapack.a:: 
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
+	../../src/LAPACK\
+	&& $(MAKE) -f Makefile.lapack liblapack.a 
+	
 fftlib.a::
 	../../utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
 	../../src/fftlib\
