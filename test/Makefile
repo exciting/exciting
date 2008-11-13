@@ -1,5 +1,7 @@
 include ../build/make.inc
 
+.IGNORE:test cleantests test01 test02 test03 test04 testmpi
+
 ifeq ($(BUILDMPI),true)
 test: cleantests test01 test02 test03 test04 testmpi
 	perl perl/summary.pl
@@ -34,4 +36,5 @@ testmpi::
 	cd test02 ; perl assertmpi.pl
 
 cleantests::
-	rm -f test*/*.xml
+	-rm -f  test*/*.xml
+	-rm -f  test*/run*/*OUT
