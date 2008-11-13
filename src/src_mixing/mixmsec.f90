@@ -15,7 +15,7 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 !config params:
 	use modmain,only:beta0,betainc,betadec,chgir,chgmttot,chgtot
 ! persistent arrays and create/desdruct functions
-	use modmixermsec,only:residual,last_outputp,last_outputp2,last_inputp,initmixermsec,&
+	use modmixermsec,only:residual,last_outputp,work2,work3,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
 noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 
@@ -41,22 +41,22 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 		endif
 
 		call mixadapt(iscl,beta0,betainc,betadec,n,potential,&
-			last_outputp,last_inputp,last_outputp2,residualnorm)
+			last_outputp,work3,work2,residualnorm)
 		last_outputp=potential
-		if(iscl.eq.2 .and. allocated(last_outputp2) .and.allocated(last_inputp))&
-			 deallocate(last_outputp2,last_inputp)
+		if(iscl.eq.2 .and. allocated(work2) .and.allocated(work3))&
+			 deallocate(work2,work3)
 	else
 		allocate (S(n,noldstepsmax),Y(n,noldstepsmax))
 		allocate(YY(noldstepsmax,noldstepsmax))
 		allocate(broydenstep(n))
 		residual=potential-last_outputp
-SCHARGE=chgir
-TCharge= chgtot
+		SCHARGE=chgir
+		TCharge= chgtot
 		call check_msecparameters()
 		call readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 		call write_current_to_broyden_file(n,iscl,potential,residual)
 		!write(*,210)':PLANE:  INTERSTITIAL TOTAL ',Tplane, ' DISTAN ',Splane
-     !   write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
+     	! write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
 210 	FORMAT(A,F12.5,A,F11.7)
 	    call stepbound(sreduction)
         write(60,4141)sreduction,qmx
@@ -88,9 +88,11 @@ TCharge= chgtot
 
 
 		deallocate (S,Y,YY,broydenstep)
-4141    format(':REDuction and DMIX in Broyd:',3f10.4,E14.5)
+4141    format('REDuction and DMIX in Broyd:',3f10.4,E14.5)
 residualnorm=dnrm2(n,residual,1)
- !sqrt(n) is strange but thats how it is in mixadapt
+ !after /sqrt(n) its not the residual norm anny more
+ !nore is it residual mean square but thats how it is in mixadapt
+ !
  residualnorm=residualnorm/sqrt(dble(n))
 	endif
 
