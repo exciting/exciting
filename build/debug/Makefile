@@ -1,15 +1,15 @@
 all:
-	make  -f ../Make.common
+	$(MAKE)  -f ../Make.common
 
 
 libs:
-	make libs -f ../Make.common
+	$(MAKE) libs -f ../Make.common
 
 clean:
-	make clean -f ../Make.common
+	$(MAKE) clean -f ../Make.common
 
 cleanlibs:
-	make cleanlibs  -f ../Make.common
+	$(MAKE) cleanlibs  -f ../Make.common
 
 
 

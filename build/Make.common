@@ -1,6 +1,6 @@
 #include ../make.inc
 
-MAKE=make
+
 
 bin::../make.inc
 	sh ../../utilities/versionstamp.sh
@@ -61,10 +61,4 @@ clean:
 cleanlibs:
 	rm -f *.a
 
-### build libbzint, do not clean source tree of library and build exciting
-bzex:
-	cp -f ../make.inc ../..
-	cd ../../src/libbzint && $(MAKE)
-	cp ../../src/libbzint/libbzint.a .
-	rm -f exciting
-	$(MAKE) serial
+

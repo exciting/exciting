@@ -11,7 +11,7 @@ AR = ar
 ARFLAGS = -rc
 
 LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
-MAKE=gmake
+
 F90_DEBUGOPTS=-g
 F77_DEBUGOPTS=-g
 

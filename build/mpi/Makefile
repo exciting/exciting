@@ -2,20 +2,20 @@ include ../make.inc
 
 all:
 ifeq ($(BUILDMPI),true)
-	make  -f ../Make.common
+	$(MAKE)  -f ../Make.common
 endif
 
 libs:
 ifeq ($(BUILDMPI),true)
-	make libs -f ../Make.common
+	$(MAKE) libs -f ../Make.common
 
 endif
 
 clean:
-	make clean -f ../Make.common
+	$(MAKE) clean -f ../Make.common
 
 cleanlibs:
-	make cleanlibs  -f ../Make.common
+	$(MAKE) cleanlibs  -f ../Make.common
 
 
 

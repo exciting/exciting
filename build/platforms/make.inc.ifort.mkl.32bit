@@ -9,7 +9,7 @@ LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a
 
 LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
-MAKE=make
+
 F90_DEBUGOPTS=-g
 F77_DEBUGOPTS=-g
 
