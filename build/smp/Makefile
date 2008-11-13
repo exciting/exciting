@@ -1,8 +1,13 @@
 include ../make.inc
 
+ifeq ($(BUILDSMP),true)
+MTCOMPILE=true
+endif
+
 all:
 ifeq ($(BUILDSMP),true)
 	make  -f ../Make.common
+
 endif
 	
 

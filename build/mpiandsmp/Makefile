@@ -3,6 +3,8 @@ include ../make.inc
 ifeq  ($(BUILDSMP),true)
 ifeq ($(BUILDMPI),true)
 BUILDMPISMP=true
+F90=$(F90MT)
+F77=$(F77MT)
 endif
 endif
 

@@ -37,17 +37,23 @@ fftlib.a:
 	cd ../../src/fftlib && make clean
 
 libbzint.a: 
-	cp -f ../make.inc ../..
-	cd ../../src/libbzint && make clean && make
-	cp ../../src/libbzint/libbzint.a .
-	cd ../../src/libbzint && make clean
+	../../utilities/mkmf -t ./template -f -m Makefile.libzint -p libbzint.a \
+	../../src/libbzint\
+	&& make -f Makefile.libzint libbzint.a 
+	
+	
 
 
 libarpack.a:
-	cp -f ../make.inc ../..
-	cd ../../src/ARPACK && $(MAKE) clean && make lib
-	cp ../../src/ARPACK/libarpack.a .
-	cd ../../src/ARPACK && $(MAKE) clean
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
+	../../src/ARPACK/SRC/ \
+	../../src/ARPACK/UTIL/ 
+	make -f Makefile.libarpack libarpack.a
+	
+#cp -f ../make.inc ../..
+#cd ../../src/ARPACK && $(MAKE) clean 
+#cp ../../src/ARPACK/libarpack.a .
+#cd ../../src/ARPACK && $(MAKE) clean
 
 
 
