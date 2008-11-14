@@ -75,7 +75,7 @@ end do
 nu(:)=beta(:)*nu(:)+(1.d0-beta(:))*mu(:)
 d=0.d0
 do i=1,n
-  d=d+(nu(i)-mu(i))**2
+  d=d+f(i)**2
 end do
 d=sqrt(d/dble(n))
 mu(:)=nu(:)

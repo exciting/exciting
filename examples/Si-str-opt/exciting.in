@@ -5,6 +5,10 @@
 tasks
   2
 
+! use Pulay mixing of the potential
+mixtype
+  2
+
 avec
   5.13 5.13 0.00
   5.13 0.00 5.13

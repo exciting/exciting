@@ -1,7 +1,7 @@
 //
-// time: Sat Oct 14 19:21:43 2006
+// time: Wed Nov  5 14:14:42 2008
 //
-// version: 3.2.0 (format), 4.3.2 (DX)
+// version: 3.2.0 (format), 4.4.0 (DX)
 //
 //
 // MODULE main
@@ -14,7 +14,7 @@ macro main(
     // 
     // node Camera[1]: x = 404, y = 490, inputs = 9, label = Camera
     // input[2]: defaulting = 0, visible = 1, type = 8, value = [1 1 1]
-    // input[3]: defaulting = 0, visible = 1, type = 5, value = 10.0
+    // input[3]: defaulting = 0, visible = 1, type = 5, value = 6.0
     // input[4]: defaulting = 0, visible = 1, type = 1, value = 800
     // input[5]: defaulting = 0, visible = 1, type = 5, value = 0.65
     // input[9]: defaulting = 0, visible = 1, type = 32, value = "white"
@@ -114,7 +114,7 @@ main_Color_4_out_1 =
     ) [instance: 4, cache: 1];
     // 
     // node Translate[2]: x = 166, y = 364, inputs = 2, label = Translate
-    // input[2]: defaulting = 0, visible = 1, type = 8, value = [0 1.6 3.2]
+    // input[2]: defaulting = 0, visible = 1, type = 8, value = [0 1.2 2.0]
     //
 main_Translate_2_out_1 = 
     Translate(
@@ -169,7 +169,7 @@ main_Color_5_out_1 =
     ) [instance: 5, cache: 1];
     // 
     // node Ribbon[1]: x = 500, y = 264, inputs = 2, label = Ribbon
-    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.015
+    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.01
     //
 main_Ribbon_1_out_1 = 
     Ribbon(
@@ -192,8 +192,8 @@ main_Shade_1_out_1 =
     main_Shade_1_in_8
     ) [instance: 1, cache: 1];
     // 
-    // node Translate[1]: x = 359, y = 360, inputs = 2, label = Translate
-    // input[2]: defaulting = 0, visible = 1, type = 8, value = [3.2 1.6 0]
+    // node Translate[1]: x = 360, y = 360, inputs = 2, label = Translate
+    // input[2]: defaulting = 0, visible = 1, type = 8, value = [2.0 1.2 0]
     //
 main_Translate_1_out_1 = 
     Translate(
@@ -212,7 +212,7 @@ main_Collect_1_out_1 =
     // 
     // node Display[2]: x = 254, y = 562, inputs = 8, label = Display
     // depth: value = 24
-    // window: position = (0.0000,0.0000), size = 0.7949x0.7305
+    // window: position = (0.0035,0.0267), size = 0.5653x0.6233, screen = 0
     //
 main_Display_2_out_1[cache: 2] = 
     Display(
@@ -229,7 +229,7 @@ main_Display_2_out_1[cache: 2] =
 }
 main_Camera_1_in_1 = NULL;
 main_Camera_1_in_2 = [1 1 1];
-main_Camera_1_in_3 = 10.0;
+main_Camera_1_in_3 = 6.0;
 main_Camera_1_in_4 = 800;
 main_Camera_1_in_5 = 0.65;
 main_Camera_1_in_6 = NULL;
@@ -275,7 +275,7 @@ main_Color_4_in_3 = NULL;
 main_Color_4_in_4 = "back colors";
 main_Color_4_in_5 = NULL;
 main_Color_4_out_1 = NULL;
-main_Translate_2_in_2 = [0 1.6 3.2];
+main_Translate_2_in_2 = [0 1.2 2.0];
 main_Translate_2_out_1 = NULL;
 main_Refine_2_in_2 = 1;
 main_Refine_2_out_1 = NULL;
@@ -293,7 +293,7 @@ main_Color_5_in_3 = NULL;
 main_Color_5_in_4 = NULL;
 main_Color_5_in_5 = NULL;
 main_Color_5_out_1 = NULL;
-main_Ribbon_1_in_2 = 0.015;
+main_Ribbon_1_in_2 = 0.01;
 main_Ribbon_1_out_1 = NULL;
 main_Shade_1_in_2 = 0;
 main_Shade_1_in_3 = NULL;
@@ -303,7 +303,7 @@ main_Shade_1_in_6 = NULL;
 main_Shade_1_in_7 = NULL;
 main_Shade_1_in_8 = NULL;
 main_Shade_1_out_1 = NULL;
-main_Translate_1_in_2 = [3.2 1.6 0];
+main_Translate_1_in_2 = [2.0 1.2 0];
 main_Translate_1_out_1 = NULL;
 main_Collect_1_out_1 = NULL;
 main_Display_2_in_3 = "X24,,";
@@ -312,6 +312,6 @@ main_Display_2_in_5 = NULL;
 main_Display_2_in_6 = NULL;
 main_Display_2_in_7 = NULL;
 main_Display_2_in_8 = NULL;
-Executive("product version 4 3 2");
+Executive("product version 4 4 0");
 $sync
 main();

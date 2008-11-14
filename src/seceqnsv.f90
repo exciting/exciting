@@ -30,7 +30,6 @@ real(8) ts0,ts1
 complex(8) zftp1(lmmaxvr),zftp2(lmmaxvr)
 complex(8) zlflm(lmmaxvr,3)
 ! allocatable arrays
-integer, allocatable :: idx(:)
 real(8), allocatable :: bmt(:,:,:)
 real(8), allocatable :: bir(:,:)
 real(8), allocatable :: vr(:)
@@ -69,7 +68,6 @@ else
   nsc=1
 end if
 call timesec(ts0)
-allocate(idx(nstsv))
 allocate(bmt(lmmaxvr,nrcmtmax,3))
 allocate(bir(ngrtot,3))
 allocate(vr(nrmtmax))
@@ -295,24 +293,12 @@ if (ndmag.eq.1) then
       evecsv(i+nstfv,j)=0.d0
     end do
   end do
-! sort the eigenvalues (and eigenvectors) into ascending order
-  call sortidx(nstsv,evalsv(:,ik),idx)
-  do i=1,nstsv
-    j=idx(i)
-    t1=evalsv(i,ik)
-    evalsv(i,ik)=evalsv(j,ik)
-    evalsv(j,ik)=t1
-    call zswap(nstsv,evecsv(:,i),1,evecsv(:,j),1)
-    do k=i+1,nstsv
-      if (idx(k).eq.i) idx(k)=j
-    end do
-  end do
 else
 ! non-collinear or spin-unpolarised: full diagonalisation
   call zheev('V','U',nstsv,evecsv,nstsv,evalsv(:,ik),work,lwork,rwork,info)
   if (info.ne.0) goto 20
 end if
-deallocate(idx,bmt,bir,vr,drv,cf,sor,rwork)
+deallocate(bmt,bir,vr,drv,cf,sor,rwork)
 deallocate(wfmt1,wfmt2,zfft1,zfft2,zv,work)
 call timesec(ts1)
 !$OMP CRITICAL

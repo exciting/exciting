@@ -1,9 +1,18 @@
 
-! C60 buckyball example. This example has high memory and time requirements.
-! Note that a modified C.in is used, in which the f local-orbital is removed.
+! C60 buckyball example. This example has high memory and time requirements and
+! employs iterative diagonalisation.
+
+! Remember to set
+!   export OMP_NUM_THREADS=n
+!   export OMP_NESTED=true
+! where n is the number of available processors.
 
 tasks
   0
+
+! use iterative diaongalisation
+tseqit
+ .true.
 
 ! molecule calculation
 molecule
@@ -16,6 +25,9 @@ autormt
 ! use a small energy cut-off
 rgkmax
   4.0
+
+sppath
+  '../../species/'
 
 atoms
    1                                    : nspecies

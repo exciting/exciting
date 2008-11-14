@@ -13,6 +13,9 @@ real(8), intent(inout) :: v(n)
 real(8), intent(out) :: dv
 integer, intent(inout) :: nwork
 real(8), intent(inout) :: work(*)
+! local variables
+! maximum subspace dimension for the Pulay mixer
+integer, parameter :: maxsd=3
 select case(mtype)
 case(1)
 ! adaptive linear mixing
@@ -21,6 +24,18 @@ case(1)
     return
   end if
   call mixadapt(iscl,beta0,betainc,betadec,n,v,work,work(n+1),work(2*n+1),dv)
+case(2)
+! Pulay mixing
+  if (spinpol) then
+    write(*,*)
+    write(*,'("Warning(mixerifc): Pulay mixing problematic with spin-polarised&
+     & calculations")')
+  end if
+  if (nwork.le.0) then
+    nwork=2*n*maxsd
+    return
+  end if
+  call mixpulay(iscl,n,maxsd,v,work,work(n*maxsd+1),dv)
 case default
   write(*,*)
   write(*,'("Error(mixerifc): mtype not defined : ",I8)') mtype

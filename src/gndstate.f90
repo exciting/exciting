@@ -87,8 +87,9 @@ if (spinpol) n=n*(1+ndmag)
 if (ldapu.ne.0) n=n+2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
 ! allocate mixing arrays
 allocate(v(n))
+! determine the size of the mixer work array
 nwork=-1
-call mixerifc(mixtype,n,v,dv,nwork,work)
+call mixerifc(mixtype,n,v,dv,nwork,v)
 allocate(work(nwork))
 ! set stop flag
 tstop=.false.

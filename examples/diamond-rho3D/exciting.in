@@ -1,0 +1,36 @@
+
+! 3D plot of the charge density of diamond using OpenDX.
+
+tasks
+  0
+  33
+
+! define box corners and grid size for 3D plot, first point is the origin
+plot3d
+ 0.0  0.0  0.0      : vclp3d
+ 2.0  0.0  0.0
+ 0.0  2.0  0.0
+ 0.0  0.0  2.0
+ 80  80  80
+
+avec
+  3.3637 3.3637 0.0000
+  3.3637 0.0000 3.3637
+  0.0000 3.3637 3.3637
+
+sppath
+  '../../species/'
+
+atoms
+  1                                 : nspecies
+ 'C.in'                            : spfname
+  2                                 : natoms
+  0.0  0.0  0.0    0.0 0.0 0.0      : atposl, bfcmt
+  0.25 0.25 0.25   0.0 0.0 0.0
+
+ngridk
+  2  2  2
+
+vkloff
+  0.25  0.5  0.625
+
