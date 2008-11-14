@@ -9,7 +9,7 @@ implicit none
 ! local variables
 integer is,ia,ist,ic,m
 real(8) ts0,ts1
-real(8) vqloff(3)
+real(8) boxl(3,4)
 
 call timesec(ts0)
 
@@ -19,7 +19,7 @@ call timesec(ts0)
 ! check if the system is an isolated molecule
 if (molecule) ngridq(:)=1
 ! OEP, Hartree-Fock or RDMFT
-if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.300)) then
+if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.6).or.(task.eq.300)) then
   ngridq(:)=ngridk(:)
   reduceq=.false.
 end if
@@ -34,16 +34,17 @@ if (allocated(wqpt)) deallocate(wqpt)
 allocate(wqpt(ngridq(1)*ngridq(2)*ngridq(3)))
 if (allocated(iqmap)) deallocate(iqmap)
 allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
-! the q-point offset should always be zero
-vqloff(:)=0.d0
+! setup the q-point box (offset should always be zero)
+boxl(:,:)=0.d0
+boxl(1,2)=1.d0; boxl(2,3)=0.d0; boxl(3,4)=0.d0
 ! generate the q-point set, note that the vectors vql and vqc are mapped to the
 ! first Brillouin zone
-call genppts(reduceq,.true.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+call genppts(reduceq,.true.,ngridq,boxl,nqpt,iqmap,ivq,vql,vqc,wqpt)
 
 !-----------------------------------------------!
 !     OEP, Hartree-Fock and RDMFT variables     !
 !-----------------------------------------------!
-if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.300)) then
+if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.6).or.(task.eq.300)) then
 ! determine the 1/q^2 integral weights if required
   call genwiq2
 ! output the 1/q^2 integrals to WIQ2.OUT
@@ -83,7 +84,7 @@ if (xctype.lt.0) then
     zbxir(:,:)=0.d0
   end if
 end if
-if ((task.eq.5).or.(task.eq.300)) then
+if ((task.eq.5).or.(task.eq.6).or.(task.eq.300)) then
 ! allocate the kinetic matrix elements for Hartree-Fock/RDMFT
   if (allocated(kinmatc)) deallocate(kinmatc)
   allocate(kinmatc(nstsv,nstsv,nkpt))

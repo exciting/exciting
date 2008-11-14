@@ -17,20 +17,14 @@ complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
 real(8), intent(out) :: evalfv(nstfv)
 complex(8), intent(out) :: evecfv(nmatmax,nstfv)
 ! local variables
-integer is,ia,it,i,m
-integer ist,jst,info
-integer iwork(5*2),ifail(2)
-real(8) ts0,ts1
-real(8) vl,vu,w(2),t1
-real(8) rwork(7*2)
-complex(8) ap(3),bp(3),z(2,2)
-complex(8) work(2,2),zt1,zt2
+integer is,ia,it,i
+integer ist,jst
+real(8) ts1,ts0
+real(8) t1
+complex(8) zt1
 ! allocatable arrays
 complex(8), allocatable :: h(:)
 complex(8), allocatable :: o(:,:)
-complex(8), allocatable :: g(:)
-complex(8), allocatable :: hg(:)
-complex(8), allocatable :: og(:)
 ! external functions
 complex(8) zdotc
 external zdotc
@@ -49,14 +43,12 @@ else
 end if
 ! start iteration loop
 do it=1,nseqit
+! begin parallel loop over states
 !$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(h,g,hg,og) &
-!$OMP PRIVATE(is,ia,t1,ap,bp,vl,vu) &
-!$OMP PRIVATE(m,w,z,work,rwork) &
-!$OMP PRIVATE(iwork,ifail,info)
+!$OMP PRIVATE(h,is,ia,t1,i)
 !$OMP DO
   do ist=1,nstfv
-    allocate(h(nmatp),g(nmatp),hg(nmatp),og(nmatp))
+    allocate(h(nmatp))
 ! operate with H and O on the current vector
     h(:)=0.d0
     o(:,ist)=0.d0
@@ -72,61 +64,65 @@ do it=1,nseqit
     end do
     call hmlistl(.true.,ngp,igpig,vgpc,evecfv(:,ist),h)
     call olpistl(.true.,ngp,igpig,evecfv(:,ist),o(:,ist))
+! normalise
+    t1=dble(zdotc(nmatp,evecfv(:,ist),1,o(:,ist),1))
+    if (t1.gt.0.d0) then
+      t1=1.d0/sqrt(t1)
+      do i=1,nmatp
+        evecfv(i,ist)=t1*evecfv(i,ist)
+        h(i)=t1*h(i)
+        o(i,ist)=t1*o(i,ist)
+      end do
+    end if
 ! estimate the eigenvalue
     evalfv(ist)=dble(zdotc(nmatp,evecfv(:,ist),1,h,1))
-! limit magnitude of eigenvalue
-    if (abs(evalfv(ist)).gt.5.d0) evalfv(ist)=0.d0
-! compute the gradient of the Rayleigh quotient
+! subtract the gradient of the Rayleigh quotient from the eigenvector
     t1=evalfv(ist)
-    g(:)=h(:)-t1*o(:,ist)
-! operate with H and O on the current gradient
-    hg(:)=0.d0
-    og(:)=0.d0
+    do i=1,nmatp
+      evecfv(i,ist)=evecfv(i,ist)-tauseq*(h(i)-t1*o(i,ist))
+    end do
+! normalise
+    o(:,ist)=0.d0
     do is=1,nspecies
       do ia=1,natoms(is)
-        call hmlaa(.true.,is,ia,ngp,apwalm,g,hg)
-        call hmlalo(.true.,is,ia,ngp,apwalm,g,hg)
-        call hmllolo(.true.,is,ia,ngp,g,hg)
-        call olpaa(.true.,is,ia,ngp,apwalm,g,og)
-        call olpalo(.true.,is,ia,ngp,apwalm,g,og)
-        call olplolo(.true.,is,ia,ngp,g,og)
+        call olpaa(.true.,is,ia,ngp,apwalm,evecfv(:,ist),o(:,ist))
+        call olpalo(.true.,is,ia,ngp,apwalm,evecfv(:,ist),o(:,ist))
+        call olplolo(.true.,is,ia,ngp,evecfv(:,ist),o(:,ist))
       end do
     end do
-    call hmlistl(.true.,ngp,igpig,vgpc,g,hg)
-    call olpistl(.true.,ngp,igpig,g,og)
-! solve the 2x2 generalised eigenvalue problem in the basis {g,evecfv}
-    ap(1)=zdotc(nmatp,g,1,hg,1)
-    ap(2)=zdotc(nmatp,g,1,h,1)
-    ap(3)=evalfv(ist)
-    bp(1)=zdotc(nmatp,g,1,og,1)
-    bp(2)=zdotc(nmatp,g,1,o(:,ist),1)
-    bp(3)=zdotc(nmatp,evecfv(:,ist),1,o(:,ist),1)
-    call zhpgvx(1,'V','I','U',2,ap,bp,vl,vu,1,1,-1.d0,m,w,z,2,work,rwork, &
-     iwork,ifail,info)
-    zt1=z(1,1)
-    zt2=z(2,1)
-    do i=1,nmatp
-      evecfv(i,ist)=zt1*g(i)+zt2*evecfv(i,ist)
-    end do
-    deallocate(h,g,hg,og)
+    call olpistl(.true.,ngp,igpig,evecfv(:,ist),o(:,ist))
+    t1=dble(zdotc(nmatp,evecfv(:,ist),1,o(:,ist),1))
+    if (t1.gt.0.d0) then
+      t1=1.d0/sqrt(t1)
+      do i=1,nmatp
+        evecfv(i,ist)=t1*evecfv(i,ist)
+        o(i,ist)=t1*o(i,ist)
+      end do
+    end if
+    deallocate(h)
+! end parallel loop over states
   end do
 !$OMP END DO
 !$OMP END PARALLEL
 ! perform Gram-Schmidt orthonormalisation
 !$OMP PARALLEL DEFAULT(SHARED) &
-!$OMP PRIVATE(is,ia,t1,i,jst,zt1)
-!$OMP DO
+!$OMP PRIVATE(jst,zt1,t1,i)
+!$OMP DO ORDERED
   do ist=1,nstfv
+!$OMP ORDERED
     do jst=1,ist-1
       zt1=-zdotc(nmatp,evecfv(:,jst),1,o(:,ist),1)
       call zaxpy(nmatp,zt1,evecfv(:,jst),1,evecfv(:,ist),1)
+      call zaxpy(nmatp,zt1,o(:,jst),1,o(:,ist),1)
     end do
+!$OMP END ORDERED
 ! normalise
-    t1=abs(dble(zdotc(nmatp,evecfv(:,ist),1,o(:,ist),1)))
+    t1=dble(zdotc(nmatp,evecfv(:,ist),1,o(:,ist),1))
     if (t1.gt.0.d0) then
       t1=1.d0/sqrt(t1)
       do i=1,nmatp
         evecfv(i,ist)=t1*evecfv(i,ist)
+        o(i,ist)=t1*o(i,ist)
       end do
     end if
   end do

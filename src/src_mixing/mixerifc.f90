@@ -6,7 +6,7 @@
 subroutine mixerifc(mtype,n,v,dv,mode)
 use modmain
 use modmixermsec
-use  modmixadapt
+use modmixadapt
 implicit none
 ! arguments
 integer, intent(in) :: mtype
@@ -17,7 +17,7 @@ integer, intent(inout) :: mode
 !mode: 	-1 call initialisation routines,
 !		-2:call destructor
 !		else ignore
-
+integer, parameter :: maxsd=3
 select case(mtype)
 case(1)
 ! adaptive linear mixing
@@ -47,6 +47,23 @@ case(2)
      return
   end if
  call  mixmsec(iscl,v,dv,n)
+ case(3)
+ ! Pulay mixing
+   if (spinpol) then
+     write(*,*)
+     write(*,'("Warning(mixerifc): Pulay mixing problematic with spin-polarised&
+      & calculations")')
+   end if
+   if (mode.eq.-1) then
+
+     allocate(work(2*n*maxsd))
+     return
+   end if
+      if (mode.eq.-2) then
+     deallocate(work)
+     return
+   end if
+   call mixpulay(iscl,n,maxsd,v,work,work(n*maxsd+1),dv)
 case default
   write(*,*)
   write(*,'("Error(mixerifc): mtype not defined : ",I8)') mtype

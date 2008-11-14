@@ -50,6 +50,8 @@ real(8) atposc(3,maxatoms,maxspecies)
 !----------------------------------!
 !     atomic species variables     !
 !----------------------------------!
+! species files path
+character(256) sppath
 ! species filenames
 character(256) spfname(maxspecies)
 ! species name
@@ -548,6 +550,8 @@ complex(8), allocatable :: gntyry(:,:,:)
 logical tseqit
 ! number of secular equation iterations per self-consistent loop
 integer nseqit
+! iterative solver step length
+real(8) tauseq
 
 !--------------------------------------------!
 !     eigenvalue and occupancy variables     !
@@ -733,9 +737,9 @@ real(8), allocatable :: dpp1d(:)
 real(8) vclp2d(3,3)
 ! grid sizes of 2D plot
 integer np2d(2)
-! number of units cells in 3D plot
-integer nup3d(3)
-! grid sizes in 3D plot
+! corner vectors of 3D plot in lattice coordinates
+real(8) vclp3d(3,4)
+! grid sizes of 3D plot
 integer np3d(3)
 ! number of states for plotting Fermi surface
 integer nstfsp
@@ -891,7 +895,7 @@ real(8), parameter :: kboltz=3.166815343d-6
 !---------------------------------!
 ! code version
 integer version(3)
-data version / 0,9,218 /
+data version / 0,9,224 /
 ! maximum number of tasks
 integer, parameter :: maxtasks=40
 ! number of tasks

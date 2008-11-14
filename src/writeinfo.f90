@@ -70,7 +70,7 @@ case(3)
   write(fnum,'("+-----------------------------------------------------+")')
   write(fnum,'("| Structural optimisation run resuming from STATE.OUT |")')
   write(fnum,'("+-----------------------------------------------------+")')
-case(5)
+case(5,6)
   write(fnum,*)
   write(fnum,'("+-------------------------------+")')
   write(fnum,'("| Ground-state Hartree-Fock run |")')
@@ -212,7 +212,8 @@ write(fnum,'("Total number of valence states : ",I4)') nstsv
 write(fnum,*)
 write(fnum,'("Total number of local-orbitals : ",I4)') nlotot
 write(fnum,*)
-if (task.eq.5) write(fnum,'("Hartree-Fock calculation using Kohn-Sham states")')
+if ((task.eq.5).or.(task.eq.6)) &
+ write(fnum,'("Hartree-Fock calculation using Kohn-Sham states")')
 if (xctype.lt.0) then
   write(fnum,'("Optimised effective potential (OEP) and exact exchange (EXX)")')
   write(fnum,'(" Phys. Rev. B 53, 7024 (1996)")')

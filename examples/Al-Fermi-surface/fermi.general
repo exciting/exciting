@@ -1,5 +1,5 @@
 file = ./FERMISURF.OUT
-grid = 24 x 24 x 24
+grid = 40 x 40 x 40
 format = ascii
 interleaving = field
 majority = column

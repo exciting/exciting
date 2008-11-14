@@ -28,7 +28,7 @@ implicit none
 integer ik,is,ia,ias,io,ilo
 integer i1,i2,i3,ispn,iv(3)
 integer l1,l2,l3,m1,m2,m3,lm1,lm2,lm3
-real(8) vl(3),vc(3)
+real(8) vl(3),vc(3),boxl(3,4)
 real(8) ts0,ts1
 ! external functions
 complex(8) gauntyry
@@ -44,6 +44,15 @@ if (molecule) then
   ngridk(:)=1
   vkloff(:)=0.d0
   autokpt=.false.
+end if
+! setup the default k-point box
+boxl(:,:)=0.d0
+boxl(:,1)=vkloff(:)/dble(ngridk(:))
+boxl(1,2)=1.d0; boxl(2,3)=1.d0; boxl(3,4)=1.d0
+! k-point set and box for Fermi surface plots
+if ((task.eq.100).or.(task.eq.101)) then
+  ngridk(:)=np3d(:)
+  boxl(:,:)=vclp3d(:,:)
 end if
 if ((task.eq.20).or.(task.eq.21)) then
 ! for band structure plots generate k-points along a line
@@ -99,7 +108,7 @@ else
   if (allocated(ikmap)) deallocate(ikmap)
   allocate(ikmap(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
 ! generate the reduced k-point set
-  call genppts(reducek,.false.,ngridk,vkloff,nkpt,ikmap,ivk,vkl,vkc,wkpt)
+  call genppts(reducek,.false.,ngridk,boxl,nkpt,ikmap,ivk,vkl,vkc,wkpt)
 ! allocate the non-reduced k-point set arrays
   nkptnr=ngridk(1)*ngridk(2)*ngridk(3)
   if (allocated(ivknr)) deallocate(ivknr)
@@ -113,7 +122,7 @@ else
   if (allocated(ikmapnr)) deallocate(ikmapnr)
   allocate(ikmapnr(0:ngridk(1)-1,0:ngridk(2)-1,0:ngridk(3)-1))
 ! generate the non-reduced k-point set
-  call genppts(.false.,.false.,ngridk,vkloff,nkptnr,ikmapnr,ivknr,vklnr,vkcnr, &
+  call genppts(.false.,.false.,ngridk,boxl,nkptnr,ikmapnr,ivknr,vklnr,vkcnr, &
    wkptnr)
 #ifdef TETRA
   ! call to module routine

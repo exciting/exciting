@@ -1,6 +1,6 @@
 
 ! GaAs using the Perdew-Burke-Ernzerhof GGA functional. Try calculating the
-! effective mass tensor at the Gamma-point using runtype=25. Repeat this with
+! effective mass tensor at the Gamma-point using task=25. Repeat this with
 ! spin-orbit coupling switched on.
 
 tasks

@@ -132,7 +132,7 @@ end if
 ! spin-polarised calculations require second-variational eigenvectors
 if (spinpol) tevecsv=.true.
 ! Hartree-Fock/RDMFT requires second-variational eigenvectors
-if ((task.eq.5).or.(task.eq.300)) tevecsv=.true.
+if ((task.eq.5).or.(task.eq.6).or.(task.eq.300)) tevecsv=.true.
 ! get exchange-correlation functional data
 call getxcdata(xctype,xcdescr,xcspin,xcgrad)
 if ((spinpol).and.(xcspin.eq.0)) then
@@ -169,9 +169,7 @@ else
 end if
 if ((ncmag).and.(xcgrad.gt.0)) then
   write(*,*)
-  write(*,'("Error(init0): GGA does not work with non-collinear magnetism")')
-  write(*,*)
-  stop
+  write(*,'("Warning(init0): GGA inconsistent with non-collinear magnetism")')
 end if
 ! set fixed spin moment effective field to zero
 bfsmc(:)=0.d0

@@ -28,29 +28,28 @@ SRC_routines_flux = \
  zpotclmt.f90 writegeom.f90 nfftifc.f90 zfftifc.f90 allatoms.f90 gridsize.f90 \
  poteff.f90 genrmesh.f90 readfermi.f90 potcoul.f90 gensfacgp.f90 \
  checkmt.f90 zfinp.f90 match.f90 forcek.f90 writeefg.f90 packeff.f90 \
- findsymlat.f90 genffacg.f90 mixerifc.f90 mixadapt.f90 \
+ findsymlat.f90 genffacg.f90 mixerifc.f90 \
  genlofr.f90 atom.f90 writefermi.f90 writekpts.f90 fsmfield.f90 mossbauer.f90 \
- occupy.f90 writelinen.f90 writeinfo.f90 readinput.f90 charge.f90 moment.f90 \
- writesym.f90 genidxlo.f90 gencore.f90 addrhocr.f90 gengvec.f90 \
- genshtmat.f90 plot1d.f90 plot2d.f90 plot3d.f90 updatpos.f90 writeiad.f90 \
- symvect.f90 vecplot.f90 genylmg.f90 linengy.f90 init0.f90 init1.f90 \
- gengpvec.f90 genpmat.f90 ggamt.f90 ggair.f90 genveffig.f90 gencfun.f90 \
- genapwfr.f90 seceqnfv.f90 seceqnsv.f90 seceqnss.f90 getngkmax.f90 \
- dos.f90 rhoinit.f90 potplot.f90 writestate.f90 \
- potxc.f90 zpotcoul.f90 gndstate.f90 rhovalk.f90 readstate.f90 bandstr.f90 \
- writeeval.f90 rhoplot.f90 gwf2val.f90 gwf2cr.f90 \
- rfarray.f90 fermisurf.f90 symrvfir.f90 \
- symrvf.f90 symrfmt.f90 wfplot.f90 hmlrad.f90 olprad.f90 olpistl.f90 olpaa.f90 \
- olpalo.f90 olplolo.f90 hmlistl.f90 hmlaa.f90 hmlalo.f90 hmllolo.f90 init2.f90 \
- writelsj.f90 wavefcr.f90 gradrf.f90 dbxcplot.f90 effmass.f90 \
- projsbf.f90 seceqnhf.f90 writelat.f90 energynn.f90 findigp0.f90 \
- writeengy.f90 writechg.f90 writeforce.f90 genjlgpr.f90 findkpt.f90 \
- putevalfv.f90 getevalfv.f90 putevalsv.f90 getevalsv.f90 putoccsv.f90 \
- getoccsv.f90 putevecfv.f90 getevecfv.f90 putevecsv.f90 getevecsv.f90 \
- delevec.f90 genvmatk.f90 genvmat.f90 genwfsv.f90 gendmat.f90 \
- findsymsite.f90 geomplot.f90 hartfock.f90 genkinmat.f90 energykncr.f90 \
- zfint.f90 rfpack.f90 rfint.f90 writefsm.f90 genbmatk.f90 seceqnit.f90 \
- gdft.f90 genexpiqr.f90 writeexpiqr.f90 elnes.f90 symdmat.f90 genlmirep.f90
+ occupy.f90 writelinen.f90 writeinfo.f90 readinput.f90 readspecies.f90 \
+ charge.f90 moment.f90 writesym.f90 genidxlo.f90 gencore.f90 addrhocr.f90 \
+ gengvec.f90 genshtmat.f90 plot1d.f90 plot2d.f90 plot3d.f90 updatpos.f90 \
+ writeiad.f90 symvect.f90 vecplot.f90 genylmg.f90 linengy.f90 init0.f90 \
+ init1.f90 gengpvec.f90 genpmat.f90 ggamt.f90 ggair.f90 genveffig.f90 \
+ gencfun.f90 genapwfr.f90 seceqnfv.f90 seceqnsv.f90 seceqnss.f90 getngkmax.f90 \
+ dos.f90 rhoinit.f90 potplot.f90 writestate.f90 potxc.f90 zpotcoul.f90 \
+ gndstate.f90 rhovalk.f90 readstate.f90 bandstr.f90 writeeval.f90 rhoplot.f90 \
+ gwf2val.f90 gwf2cr.f90 rfarray.f90 fermisurf.f90 symrvfir.f90 symrvf.f90 \
+ symrfmt.f90 wfplot.f90 hmlrad.f90 olprad.f90 olpistl.f90 olpaa.f90 olpalo.f90 \
+ olplolo.f90 hmlistl.f90 hmlaa.f90 hmlalo.f90 hmllolo.f90 init2.f90 \
+ writelsj.f90 wavefcr.f90 gradrf.f90 dbxcplot.f90 effmass.f90 projsbf.f90 \
+ seceqnhf.f90 writelat.f90 energynn.f90 findigp0.f90 writeengy.f90 \
+ writechg.f90 writeforce.f90 genjlgpr.f90 findkpt.f90 putevalfv.f90 \
+ getevalfv.f90 putevalsv.f90 getevalsv.f90 putoccsv.f90 getoccsv.f90 \
+ putevecfv.f90 getevecfv.f90 putevecsv.f90 getevecsv.f90 delevec.f90 \
+ genvmatk.f90 genvmat.f90 genwfsv.f90 gendmat.f90 findsymsite.f90 geomplot.f90 \
+ hartfock.f90 genkinmat.f90 energykncr.f90 zfint.f90 rfpack.f90 rfint.f90 \
+ writefsm.f90 genbmatk.f90 seceqnit.f90 gdft.f90 genexpiqr.f90 writeexpiqr.f90 \
+ elnes.f90 symdmat.f90 genlmirep.f90
 
 SRC_phonon = \
  phonon.f90 dyntask.f90 phcell.f90 phdisp.f90 readdyn.f90 dynqtor.f90 \
@@ -89,7 +88,9 @@ SRC_lib = \
  rdirac.f90 rschrodint.f90 rschroddme.f90 rschrodapp.f90 reciplat.f90 \
  connect.f90 flushifc.f90 spline.f90 writewiq2.f90 rfinterp.f90 rfmtctof.f90 \
  fderiv.f90 fsmooth.f90 rotaxang.f90 i3minv.f90 axangsu2.f90 z2mm.f90 \
- z2mctm.f90 z2mmct.f90 potnucl.f90 timesec.f90 rfirvec.f90 vecfbz.f90
+ z2mctm.f90 z2mmct.f90 potnucl.f90 timesec.f90 rfirvec.f90 vecfbz.f90 \
+ mixadapt.f90 mixpulay.f90
+
 
 SRC_lib_flux =
 

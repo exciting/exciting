@@ -184,10 +184,7 @@ subroutine dumpparams(string,comment,sppath_,sc_,sc1_,sc2_,sc3_,vacuum_)
   write(77,*) vclp2d(1,3),vclp2d(2,3),vclp2d(3,3)
   write(77,*) np2d(1),np2d(2)
   write(77,*)
-  write(77,'("plot3d")')
-  write(77,*) nup3d(1),nup3d(2),nup3d(3)
-  write(77,*) np3d(1),np3d(2),np3d(3)
-  write(77,*)
+
   write(77,'("dos")')
   write(77,*) nwdos,ngrdos,nsmdos
   write(77,*) wdos(1),wdos(2)

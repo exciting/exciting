@@ -58,22 +58,31 @@ SCLAUX = \
    ssteqr.o ssterf.o slaisnan.o sisnan.o \
    ../INSTALL/slamch.o ../INSTALL/second_$(TIMER).o
 
-DZLAUX = \
-   dbdsdc.o \
-   dbdsqr.o ddisna.o dlabad.o dlacpy.o dladiv.o dlae2.o  dlaebz.o \
-   dlaed0.o dlaed1.o dlaed2.o dlaed3.o dlaed4.o dlaed5.o dlaed6.o \
-   dlaed7.o dlaed8.o dlaed9.o dlaeda.o dlaev2.o dlagtf.o \
-   dlagts.o dlamrg.o dlanst.o \
-   dlapy2.o dlapy3.o dlarnv.o \
-   dlarra.o dlarrb.o dlarrc.o dlarrd.o dlarre.o dlarrf.o dlarrj.o \
-   dlarrk.o dlarrr.o dlaneg.o \
-   dlartg.o dlaruv.o dlas2.o  dlascl.o \
-   dlasd0.o dlasd1.o dlasd2.o dlasd3.o dlasd4.o dlasd5.o dlasd6.o \
-   dlasd7.o dlasd8.o dlasda.o dlasdq.o dlasdt.o \
-   dlaset.o dlasq1.o dlasq2.o dlasq3.o dlazq3.o dlasq4.o dlazq4.o dlasq5.o dlasq6.o \
-   dlasr.o  dlasrt.o dlassq.o dlasv2.o dpttrf.o dstebz.o dstedc.o \
-   dsteqr.o dsterf.o dlaisnan.o disnan.o \
-   ../INSTALL/dlamch.o ../INSTALL/dsecnd_$(TIMER).o
+#-------------------------------------------------------------------------------
+# Suffix Rules
+#-------------------------------------------------------------------------------
+.SUFFIXES: .o .f
+.f.o:
+	$(F77) $(F77_OPTS) -c $<
+
+#-------------------------------------------------------------------------------
+# File dependencies
+#-------------------------------------------------------------------------------
+SRC = \
+ dgesv.f   dgetf2.f  dgetrf.f  dgetri.f  dgetrs.f  disnan.f    dladiv.f \
+ dlae2.f   dlaebz.f  dlaev2.f  dlagtf.f  dlagts.f  dlaisnan.f  dlamch.f \
+ dlanst.f  dlansy.f  dlapy2.f  dlapy3.f  dlarfb.f  dlarf.f     dlarfg.f \
+ dlarft.f  dlarnv.f  dlartg.f  dlaruv.f  dlascl.f  dlaset.f    dlasr.f \
+ dlasrt.f  dlassq.f  dlaswp.f  dlasyf.f  dlatrd.f  dorg2l.f    dorg2r.f \
+ dorgql.f  dorgqr.f  dorgtr.f  dstebz.f  dsteqr.f  dsterf.f    dsyev.f \
+ dsysv.f   dsytd2.f  dsytf2.f  dsytrd.f  dsytrf.f  dsytrs.f    dtrti2.f \
+ dtrtri.f  ieeeck.f  ilaenv.f  iparmq.f  xerbla.f  zgesv.f     zgetf2.f \
+ zgetrf.f  zgetri.f  zgetrs.f  zheev.f   zhetd2.f  zhetrd.f    zhpevx.f \
+ zhpgst.f  zhpgvx.f  zhptrd.f  zlacgv.f  zladiv.f  zlanhe.f    zlanhp.f \
+ zlarfb.f  zlarf.f   zlarfg.f  zlarft.f  zlascl.f  zlaset.f    zlasr.f \
+ zlassq.f  zlaswp.f  zlatrd.f  zpptrf.f  zstein.f  zsteqr.f    ztrti2.f \
+ ztrtri.f  zung2l.f  zung2r.f  zungql.f  zungqr.f  zungtr.f    zupgtr.f \
+ zupmtr.f
 
 SLASRC = \
    sgbbrd.o sgbcon.o sgbequ.o sgbrfs.o sgbsv.o  \
