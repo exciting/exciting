@@ -20,6 +20,9 @@ mpi:
 smp:
 	cd build/smp; $(MAKE) libs
 	cd build/smp; $(MAKE)
+debug:
+	cd build/debug; $(MAKE) libs
+	cd build/debug; $(MAKE)
 
 mpiandsmp:
 	cd build/mpiandsmp; $(MAKE) libs
