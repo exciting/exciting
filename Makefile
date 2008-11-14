@@ -47,4 +47,5 @@ clean:
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
+	rm bin/exciting?*
 

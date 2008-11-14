@@ -7,3 +7,4 @@ FFLAGS = $(MPIF90_OPTS)
 LD = $(FC)
 LDFLAGS =$(MPI_OPTS) $(LIBS) 
 TMPFILES = *.mod
+SUFFIX=mpi

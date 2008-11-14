@@ -12,11 +12,11 @@ integer ::i,j,k,nmt,firstpw,lastpw
 firstpw=n-ngrtot
 lastpw=n
     FHIST(noldsteps)  =dot_product(residual,residual)
-#ifdef Full_Understanding_how_this_should_work
+
     PWHIST(noldsteps) =dot_product(residual(firstpw:lastpw),residual(firstpw:lastpw))
     CLMHIST(noldsteps)=FHIST(noldsteps)-PWHIST(noldsteps)
 !Preconditioner Omega_n Pg 21
-
+#ifdef Full_Understanding_how_this_should_work
 		PWAVE=0.
         CLAVE=0.
         do i=1,noldsteps
