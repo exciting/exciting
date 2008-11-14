@@ -39,7 +39,7 @@ SCHARGE=chgir
 TCharge=chgmttot
 splane=.000001
 tplane=.000001
-MSECINFO=0
+MSECINFO=1
 
 DMIX=.5
 end subroutine
