@@ -1,5 +1,5 @@
 include ../make.inc
-
+export SUFFIX=mpismp
 ifeq  ($(BUILDSMP),true)
 ifeq ($(BUILDMPI),true)
 BUILDMPISMP=true

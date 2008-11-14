@@ -1,3 +1,4 @@
+export SUFFIX=debug
 all:
 	$(MAKE)  -f ../Make.common
 

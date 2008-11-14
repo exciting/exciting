@@ -1,3 +1,4 @@
+export SUFFIX=ser
 all:
 	$(MAKE)  -f ../Make.common
 

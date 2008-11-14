@@ -1,5 +1,5 @@
 include ../make.inc
-
+export SUFFIX=smp
 ifeq ($(BUILDSMP),true)
 MTCOMPILE=true
 endif
