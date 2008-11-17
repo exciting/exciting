@@ -5,13 +5,9 @@ while(<HEADREF>)
 	{
 	if(m/ref:\s*([\w\/]*)/){
 	$ref=$1;	
-	
 	}
-
 }
 close HEADREF;
-
-
 
 open HEAD, "../../.git/".$ref;
 read HEAD, $hash,20 ;
