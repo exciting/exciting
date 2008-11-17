@@ -5,6 +5,9 @@
 tarpack
 .true.
 
+epsarpack
+1e-10
+
 tasks
   0
 

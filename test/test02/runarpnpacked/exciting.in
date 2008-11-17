@@ -5,6 +5,10 @@
 tarpack
 .true.
 
+epsarpack
+1e-10
+
+
 packedmatrixstorage
 .false.
 

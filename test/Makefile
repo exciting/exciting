@@ -5,12 +5,11 @@ include ../build/make.inc
 ifeq ($(BUILDMPI),true)
 test: cleantests test01 test02 test03 test04 testmpi
 	perl perl/summary.pl
-endif 
-ifeq ($(BUILDMPI),false)
+else
 test: cleantests test01 test02 test03 test04
 	perl perl/summary.pl
-endif 
-	
+endif	
+
 test01::
 	-cd build;$(MAKE) libs  test01
 	-cd ./test01/run ; ../../build/testprogram1
