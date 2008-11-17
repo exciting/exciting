@@ -6,8 +6,8 @@
 !BOP
 ! !ROUTINE: findgroupq
 ! !INTERFACE:
-subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
-     ivscwrapq)
+subroutine findgroupq(tfbz,vql,epslat,bvec,symlat,nsymcrys,lsplsymc,nsymcrysq, &
+     scqmap,ivscwrapq)
 ! !DESCRIPTION:
 !   Find the (little) group of {\bf q} (which includes finding the small group
 !   of {\bf q}).
@@ -21,8 +21,10 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
 !BOC
   implicit none
   ! arguments
+  logical, intent(in) :: tfbz
   real(8), intent(in) :: vql(3)
   real(8), intent(in) :: epslat
+  real(8), intent(in) :: bvec(3,3)
   integer, intent(in) :: symlat(3,3,48)
   integer, intent(in) :: nsymcrys
   integer, intent(in) :: lsplsymc(nsymcrys)
@@ -31,8 +33,8 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
   integer, intent(out) :: ivscwrapq(3,nsymcrys)
   ! local variables
   character(*), parameter :: thisnam = 'findgroupq'
-  integer :: isym, lspl, iv(3)
-  real(8) :: s(3,3), v1(3), v1t(3), v2(3), t1
+  integer :: isym,lspl,iv(3),ivt(3)
+  real(8) :: s(3,3),v1(3),v1t(3),v2(3),t1
   real(8), external :: r3taxi
   nsymcrysq=0
   ivscwrapq(:,:)=0
@@ -48,6 +50,11 @@ subroutine findgroupq(vql,epslat,symlat,nsymcrys,lsplsymc,nsymcrysq,scqmap,&
      v1t(:)=v1(:)
      ! convert v1 to equivalent point and wrapping vector
      call r3frac(epslat,v1,iv)
+     ! mapt to first Brillouin zone
+     if (tfbz) then
+        call vecfbz(epslat,bvec,v1,ivt)
+        iv(:)=ivt(:)-iv(:)
+     end if
      iv=-iv
      ! check if new vector is equal to orinial vql vector
      t1=r3taxi(vql,v1)

@@ -16,9 +16,9 @@ subroutine scrcoulint
   character(*), parameter :: thisnam='scrcoulint'
   real(8), parameter :: epsortho=1.d-12
   integer :: ikkp,iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,n,recl
-  integer :: iv(3),ivgsym(3),j1,j2,nkkp
+  integer :: nsc,iv(3),ivgsym(3),j1,j2,nkkp
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
-  logical :: tq0,nsc,tphf
+  logical :: tq0,tphf
   real(8) :: vqr(3),vq(3),t1
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8) :: zt1
@@ -151,7 +151,18 @@ subroutine scrcoulint
      
      ! find symmetry operations that reduce the q-point to the irreducible
      ! part of the Brillouin zone
-     call findsymeqiv(vq,vqr,nsc,sc,ivgsc)
+     call findsymeqiv(.true.,vq,vqr,nsc,sc,ivgsc)
+
+write(*,*) 'scrcoulint: ikkp,iq,iqr',ikkp,iq,iqr
+write(*,*) 'vq',vq
+write(*,*) 'vqr',vqr
+write(*,*) 'number of symmetries found',nsc
+do j1=1,nsc
+   write(*,*) 'symmetries',sc(j1)
+   write(*,*) 'wrap vectors',ivgsc(:,j1)
+end do
+write(*,*)
+
      ! find the map that rotates the G-vectors
      call findgqmap(iq,iqr,nsc,sc,ivgsc,ngqmax,n,jsym,jsymi,ivgsym,igqmap)
      ! generate phase factor for dielectric matrix due to non-primitive

@@ -91,7 +91,7 @@ if ((task.ge.400).and.(task.le.439)) then
    if (allocated(iqmap)) deallocate(iqmap)
    allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate reduced q-point set
-   call genppts(reduceq,.false.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+   call genppts(reduceq,.true.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
    nqptr=nqpt
 end if
 if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
@@ -107,7 +107,7 @@ if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
    if (allocated(iqmapr)) deallocate(iqmapr)
    allocate(iqmapr(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate reduced q-point set
-   call genppts(reduceq,.false.,ngridq,vqloff,nqptr,iqmapr,ivqr,vqlr,vqcr, &
+   call genppts(reduceq,.true.,ngridq,vqloff,nqptr,iqmapr,ivqr,vqlr,vqcr, &
       wqptr)
    if (allocated(ivq)) deallocate(ivq)
    allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
@@ -120,7 +120,7 @@ if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
    if (allocated(iqmap)) deallocate(iqmap)
    allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate non-reduced q-point set
-   call genppts(.false.,.false.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+   call genppts(.false.,.true.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
 end if
 ! find (little/small) group of q
 if (allocated(nsymcrysq)) deallocate(nsymcrysq)
@@ -130,7 +130,7 @@ allocate(scqmap(nsymcrys,nqpt))
 if (allocated(ivscwrapq)) deallocate(ivscwrapq)
 allocate(ivscwrapq(3,nsymcrys,nqpt))
 !do iq=1,nqpt
-!   call findgroupq(vql(1,iq),epslat,symlat,nsymcrys,lsplsymc,&
+!   call findgroupq(.true.,vql(1,iq),epslat,bvec,symlat,nsymcrys,lsplsymc,&
 !	nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
 !end do
 
@@ -189,6 +189,9 @@ do iq=1,nqpt
    ! spherical harmonics for G+q-vectors
    call genylmgq(iq,lmaxvr)
 end do
+
+
+write(*,*) 'DEBUG: ivgigq',ivgigq
 
 !---------------------------!
 !     Coulomb potential     !

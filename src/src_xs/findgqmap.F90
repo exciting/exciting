@@ -34,8 +34,11 @@ subroutine findgqmap(iq,iqr,nsc,sc,ivgsc,nmax,n,isc,isci,ivgu,igqmap)
            write(*,*)
            goto 10
         end if
+write(*,*) 'DEBUG:findgqmap iv:',iv
+write(*,*) 'DEBUG:findgqmap iqr,iqrnr:',iqr,iqrnr
         ! locate G1 + q in G+q-vector set
         igqmap(igq1)=ivgigq(iv(1),iv(2),iv(3),iqrnr)
+write(*,*) 'DEBUG:findgqmap ivgigq:',igqmap(igq1)
         if (igqmap(igq1).le.0) then
            write(*,*)
            write(*,'("Error(findgqmap): failed to map rotated G-vector")')
