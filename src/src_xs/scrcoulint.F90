@@ -20,7 +20,7 @@ subroutine scrcoulint
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
   logical :: tq0,nsc,tphf
   real(8) :: vqr(3),vq(3),t1
-  real(8), allocatable :: potcl(:,:)
+  real(8), allocatable :: potcl(:,:,:)
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8) :: zt1
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
@@ -81,10 +81,10 @@ subroutine scrcoulint
   end if
 
   ! local arrays
-  allocate(phf(ngqmax,ngqmax),potcl(ngqmax,ngqmax))
+  allocate(phf(ngqmax,ngqmax),potcl(ngqmax,ngqmax,nqptr))
   allocate(sccli(nst1,nst3,nst2,nst4))
   allocate(scrni(ngqmax,ngqmax,nqptr))
-  potcl(:,:)=0.d0
+  potcl(:,:,:)=0.d0
   sccli(:,:,:,:)=zzero
   scrni(:,:,:)=zzero
 
@@ -96,27 +96,39 @@ subroutine scrcoulint
   !-----------------------------------!
   call genparidxran('q',nqptr)
   do iqr=qpari,qparf
-     call chkpt(3,(/task,1,iqr/),'task,sub,reduced q-point; generate inverse of&
-          & screening')
+     call chkpt(3,(/task,1,iqr/),'task,sub,reduced q-point; generate effective &
+          &screened Coulomb potential')
      ! locate reduced q-point in non-reduced set
      iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
      n=ngq(iqrnr)
-     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     ! obtain inverse of dielectric matrix
-     call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
-     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+     ! calculate effective screened Coulomb interaction
+     call genscclieff(iqr,ngqmax,n,scrni(1,1,iqr))
+
+!!$     ! obtain inverse of dielectric matrix
+!!$     call geniscreen(iqr,ngqmax,n,scrni(1,1,iqr))
+!!$     ! set up Coulomb potential
+!!$     tq0=tqgamma(iqr)
+!!$     do igq1=1,n
+!!$        do igq2=igq1,n
+!!$           ! calculate weights for Coulomb potential
+!!$           iflg=0
+!!$           if (tq0.and.((igq1.eq.1).or.(igq2.eq.1))) then
+!!$              ! consider only 1/q and 1/q^2 cases for q goint to zero
+!!$              iflg=bsediagweight
+!!$           end if
+!!$           call genwiq2xs(iflg,iqrnr,igq1,igq2,potcl(igq1,igq2,iqr))
+!!$           potcl(igq2,igq1,iqr)=potcl(igq1,igq2,iqr)
+!!$        end do
+!!$     end do
+
+
+     ! generate radial integrals for matrix elements of plane wave
+     call putematrad(iqr,iqrnr)
   end do
   ! communicate array-parts wrt. q-points
   call zalltoallv(scrni,ngqmax**2,nqptr)
 
-  !---------------------------------------!
-  !     loop over non-reduced q-points    !
-  !---------------------------------------!
-  call genparidxran('q',nqpt)
-  do iq=qpari,qparf
-     call chkpt(3,(/task,2,iq/),'task,sub,q-point; generate radial integrals')
-     call putematrad(iq)
-  end do
   call barrier
 
   ! information on size of output file
@@ -137,7 +149,7 @@ subroutine scrcoulint
   bsedt(3,:)=zzero
   ! loop over combinations of k-points
   do ikkp=ppari,pparf
-     call chkpt(3,(/task,3,ikkp/),'task,sub,(k,kp)-pair; direct term of &
+     call chkpt(3,(/task,2,ikkp/),'task,sub,(k,kp)-pair; direct term of &
           &BSE-Hamiltonian')
      call kkpmap(ikkp,nkptnr,iknr,jknr)     
      ! k-point difference
@@ -168,35 +180,18 @@ subroutine scrcoulint
      ! translations
      call genphasedm(iq,jsym,ngqmax,n,phf,tphf)
      
-     ! rotate inverse of screening
-     do igq1=1,n
-        j1=igqmap(igq1)
-        do igq2=1,n
-           j2=igqmap(igq2)
-           tmi(igq1,igq2)=phf(igq1,igq2)*scrni(j1,j2,iqr)
-        end do
-     end do
-
-     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     ! set up Coulomb potential
-     do igq1=1,n
-        do igq2=igq1,n
-           ! calculate weights for Coulomb potential
-           iflg=0
-           if (tq0.and.((igq1.eq.1).or.(igq2.eq.1))) then
-              ! consider only 1/q and 1/q^2 cases for q goint to zero
-              iflg=bsediagweight
-           end if
-           call genwiq2xs(iflg,iq,igq1,igq2,potcl(igq1,igq2))
-           potcl(igq2,igq1)=potcl(igq1,igq2)
-        end do
-     end do
-     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+     ! get radial integrals
+     call getematrad(iqr,iq)
+     ! rotate radial integrals
+     riaa(:,:,:,:,:,:,:)=riaa(:,:,:,:,:,:,igqmap)
+     riloa(:,:,:,:,:,:)=riloa(:,:,:,:,:,igqmap)
+     rilolo(:,:,:,:,:)=rilolo(:,:,:,:,igqmap)
+     ! rotate inverse of screening, Coulomb potential and radial integrals
+     tmi(:,:)=phf(:,:)*scrni(igqmap,igqmap,iqr)*potcl(igqmap,igqmap,iqr)
 
      ! calculate matrix elements of the plane wave
      emattype=2
      call ematbdcmbs(emattype)
-     call getematrad(iq)
      call ematqalloc
      call ematqk1(iq,iknr)
      emattype=2
@@ -208,16 +203,16 @@ subroutine scrcoulint
      case('longrange')
         ! constant screening (q=0 average tensor)
         forall(igq1=1:n)
-           tm(igq1,igq1)=scrni(1,1,1)*potcl(igq1,igq1)
+           !tm(igq1,igq1)= ? use tensor
         end forall
      case('diag')
         ! only diagonal of screening
         forall(igq1=1:n)
-           tm(igq1,igq1)=tmi(igq1,igq1)*potcl(igq1,igq1)
+           tm(igq1,igq1)=tmi(igq1,igq1)
         end forall
      case('full')
         ! full screening
-        tm(:,:)=tmi(:,:)*potcl(1:n,1:n)
+        tm(:,:)=tmi(:,:)
      end select
      
      ! combine indices for matrix elements of plane wave
@@ -239,7 +234,6 @@ subroutine scrcoulint
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
      scclit=matmul(conjg(emat12),matmul(tm,transpose(emat34)))/omega/nkptnr
-     ! interstitial contribution
 	  
      ! map back to individual band indices
      j2=0

@@ -372,6 +372,9 @@ module modxs
   complex(8) :: dielten(3,3)
   ! dielectric tensor in the independent particle approximation
   complex(8) :: dielten0(3,3)
+  ! average of body for screened Coulomb interaction at Gamma-point
+  ! and non-zero q-point, respectively
+  logical :: sciavbd,sciavq
   ! maximum angular momentum for angular average of dielectric tensor
   integer :: lmaxdielt
   ! (lmaxdielt+1)^2

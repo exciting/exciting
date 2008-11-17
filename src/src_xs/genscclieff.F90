@@ -3,34 +3,85 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine genscclieff()
+subroutine genscclieff(iqr,nmax,n,scieff)
   use modmain
   use modxs
   use invert
+  use m_getunit
   implicit none
+  ! arguments
+  integer, intent(in) :: iqr,n,nmax
+  complex(8), intent(out) :: scieff(nmax,nmax)
+  ! local variables
+  logical :: tq0
+  complex(8), allocatable :: scrn(:,:),scrnw(:,:,:),scrnh(:,:)
+  logical, external :: tqgamma
+  allocate(scrn(n,n),scrnw(n,2,3),scrnh(3,3))
+  ! read screening from file
+  call getscreen(iqr,n,scrnh,scrnw,scrn)
+  tq0=tqgamma(iqr)
+  if (tq0) then
+     ! averaging using Lebedev-Laikov spherical grids
+     call angavll(n,nmax,scrnh,scrnw,scrn,scieff)
+  else
+     ! invert dielectric matrix
+     call zinvert_hermitian(scrherm,scrn,scieff)
+     ! generate effective Coulomb potentials
+     ! +++ call genwiq2... (rename routine... genwiqggp ??)
+  end if
+
+
+
+
+end subroutine genscclieff
+
+
+subroutine angavll(n,nmax,scrnh,scrnw,scrn,scieff)
+  use modmain
+  use modxs
+  use invert
+  use m_getunit
+  implicit none
+  ! arguments
+  integer, intent(in) :: n,nmax
+  complex(8), intent(in) :: scrn(n,n),scrnw(n,2,3),scrnh(3,3)
+  complex(8), intent(out) :: scieff(nmax,nmax)
   ! local variables
   integer, parameter :: nsphcov=5810
-  integer :: itp,lm,ntpsph
-  real(8) :: t1,t2,r,qsz,clwt,clwt2, ts0,ts1
+  integer :: j1,j2,,itp,lm,ntpsph
+  real(8) :: t00,t2,r,qsz,clwt,clwt2, ts0,ts1
   complex(8) :: z00,z01,zt1,zt2
   real(8), allocatable :: plat(:,:),p(:),tp(:,:),spc(:,:),w(:)
   complex(8), allocatable :: m00lm(:),mx0lm(:),mxxlm(:)
   complex(8), allocatable :: ylm(:),zylm(:,:)
-  complex(8), allocatable :: ei00(:),ei00lm(:),ei00lma(:)
-  ! *** values for PA ***
-  call preset_dielten
-  zt1=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0)
-  zt2=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
-  ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
-  qsz=(6*pi**2/(omega*product(ngridq)))**(1.d0/3.d0)
-  clwt=2*qsz*omega*product(ngridq)/pi
-!!$  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-!!$  call init2
-!!$  call genwiq2
-!!$  call writewiq2
-!!$  clwt2=wiq2(1)*fourpi*product(ngridq)*omega/(twopi**3)
-!!$  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  complex(8), allocatable :: ei00(:),ei00lm(:)
+  complex(8), allocatable :: b(:,:),bi(:,:),u(:,:),s(:,:)
+  ! scaling factor
+  t00=(omega/(twopi)**3)*product(ngridq)
+  
+!!$  ! *** values for PA ***
+!!$  call preset_dielten
+!!$  zt1=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0),
+!!$  zt2=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
+!!$  ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
+!!$  qsz=(6*pi**2/(omega*product(ngridq)))**(1.d0/3.d0)
+!!$  clwt=2*qsz*omega*product(ngridq)/pi
 
+  ! invert dielectric tensor
+  dielten0(:,:)=scrnh(:,:)
+  if (n.gt.1) then
+     allocate(b(n-1,n-1),bi(n-1,n-1),u(n-1,3),s(n-1,3))
+     ! body of dielectric matrix
+     b(:,:)=scrn(2:,2:)
+     ! wings of dielectric matrix
+     u(:,:)=conjg(scrnw(2:,1,:))
+     ! invert body (optionally including Hermitian average)
+     call zinvert_hermitian(scrherm,b,bi)
+     s=matmul(bi,u)
+     dielten=dielten0-matmul(conjg(transpose(u)),s)
+  else
+     dielten=dielten0
+  end if
   ! number of points on sphere
   if (tleblaik) then
      ntpsph=nleblaik
@@ -46,7 +97,8 @@ subroutine genscclieff()
   end if
   allocate(plat(3,ntpsph),p(ntpsph))
   allocate(m00lm(lmmaxdielt),mx0lm(lmmaxdielt),mxxlm(lmmaxdielt))
-  allocate(ei00(ntpsph),ei00lm(ntpsph),ei00lma(lmmaxdielt))
+  allocate(ei00(ntpsph),eix0(ntpsph),eixx(ntpsph))
+  allocate(ei00lm(lmmaxdielt),eix0lm(lmmaxdielt),eixxlm(lmmaxdielt))
   allocate(ylm(lmmaxdielt),zylm(ntpsph,lmmaxdielt))
   allocate(tp(2,ntpsph),spc(3,ntpsph))
   allocate(w(ntpsph))
@@ -65,125 +117,68 @@ subroutine genscclieff()
      spc(1,:)=sin(tp(1,:))*cos(tp(2,:))
      spc(2,:)=sin(tp(1,:))*sin(tp(2,:))
      spc(3,:)=cos(tp(1,:))
-  end if    
+  end if
   ! generate spherical harmonics on covering set
   do itp=1,ntpsph
      call genylm(lmaxdielt,tp(:,itp),ylm)
      zylm(itp,:)=ylm(:)
   end do
-
   ! unit vectors of spherical covering set in lattice coordinates
   plat=matmul(binv,spc)
   ! distances to subcell cell boundaries in reciprocal space
   do itp=1,ntpsph
      p(itp:)=1.d0/(2.d0*maxval(abs(ngridq(:)*plat(:,itp)),1))
   end do
-
   ! calculate function on covering set
   do itp=1,ntpsph
-     ! head which is the 1/(p*L*p) factor
+     ! head, 1/(p*L*p)
      ei00(itp)=1.d0/dot_product(spc(:,itp),matmul(dielten,spc(:,itp)))
   end do
-
   ! calculate lm-expansion coefficients
   do lm=1,lmmaxdielt
-     ei00lma(lm)=fourpi*dot_product(zylm(:,lm),ei00*w)
+     ei00lm(lm)=fourpi*dot_product(zylm(:,lm),ei00*w)
      m00lm(lm)=fourpi*dot_product(zylm(:,lm),p*w)
+     mx0lm(lm)=fourpi*dot_product(zylm(:,lm),p**2/2.d0*w)
+     mxxlm(lm)=fourpi*dot_product(zylm(:,lm),p**3/3.d0*w)
   end do
-
-  ! scaling factor
-  t1=(omega/(twopi)**3)*product(ngridq)*fourpi
-  ! spherical approximation
-  z00=t1*dot_product(m00lm,ei00lma)
-  ! subcell average
-  z01=t1*conjg(m00lm(1))*ei00lma(1)
-
-  t2=product(ngridq)*omega
-  write(*,*) 'analytic average (av of scr):', zt1*clwt/t2
-  write(*,*) 'analytic average (av of inv.scr):',zt2*clwt/t2
-  write(*,*) 'spherical average',z00/t2
-  write(*,*) 'spherical average(1)',z01/t2
-  write(*,*) 'potcl eff',clwt
-  write(*,*) 'potcl eff2',clwt2
-  write(*,*) 'qsz',qsz
-  write(*,*) 'V_gamma',fourpi*qsz**3/3.d0
-  write(*,*) 'z00',z00
-  write(*,*) 'z01',z01
-  write(*,*) 'sph.appr.',1.d0/(2.d0*pi)**3*fourpi**2 *qsz *t2
-  write(*,*) 'm00lm(1)',m00lm(1)
-  write(*,*) 'ei00lma(1)',ei00lma(1)
-  write(*,*) 'm00lm(1)*ei00lma(1)',ei00lma(1)*m00lm(1)
-  write(*,*) 'dielten',dielten
-  write(10000+lmaxdielt,'(i6,3f14.8)') (itp,spc(:,itp),itp=1,ntpsph)
-  write(20000+lmaxdielt,'(i6,2f14.8)') (itp,ei00(itp),itp=1,ntpsph)
-  write(40000+lmaxdielt,'(i6,2f14.8)') (lm,ei00lma(lm),lm=1,lmmaxdielt)
-  write(45000+lmaxdielt,'(i6,2f14.8)') (lm,m00lm(lm),lm=1,lmmaxdielt)
-  write(50000+lmaxdielt,'(2i6,3g18.10)') lmaxdielt,lmmaxdielt, &
-       dble(z00)/t2,dble(zt1*clwt/t2),dble(zt2*clwt/t2)
-
-  deallocate(ei00,ei00lm,ei00lma,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
-
-end subroutine genscclieff
-
-
-
-
-
-subroutine angavdm(n,l,s,bi,av)
-  use modmain
-  use modxs
-  implicit none
-  ! arguments
-  integer, intent(in) :: n
-  complex(8), intent(in) :: bi(n-1,n-1),s(n-1,3),l(3,3)
-  complex(8), intent(out) :: av(n,n)
-  ! local variables
-  integer :: i,j,lm
-  real(8) :: t1
-  real(8), allocatable :: plat(:,:),p(:)
-  complex(8), allocatable :: m00lm(:),m0xlm(:)
-  complex(8), allocatable :: ei00(:),ei0x(:,:),ei00lm(:),ei0xlm(:,:)
-  allocate(plat(3,lmmaxvr),p(lmmaxvr))
-  allocate(m00lm(lmmaxvr),m0xlm(lmmaxvr))
-  allocate(ei00(lmmaxvr),ei0x(lmmaxvr,n-1))
-  allocate(ei00lm(lmmaxvr),ei0xlm(lmmaxvr,n-1))
-  ! unit vectors of spherical covering set in lattice coordinates
-  plat=matmul(binv,sphcov)
-  ! distances to unit cell boundary in reciprocal space
-  p(:)=1.d0/(2.d0*maxval(abs(plat),1))
-  do lm=1,lmmaxvr
-     ! head which is the 1/(p*L*p) factor
-     ei00(lm)=1.d0/dot_product(sphcov(:,lm),matmul(l,sphcov(:,lm)))
-     ! wings: -p*s * ei00
-     ei0x(lm,:)=-ei00(lm)*matmul(s,sphcov(:,lm))
-  end do
-! spherical approximation
-!***p(:)=((3.d0*(twopi**3/omega))/(fourpi*product(ngridq)))**(1.d0/3.d0)
-  ! forward transform shape dependent factor for head to spherical harmonics
-  m00lm(:)=matmul(zfshtvr,p)
-  ! forward transform shape dependent factor for wings to spherical harmonics
-  m0xlm(:)=matmul(zfshtvr,(1.d0/2.d0)*p**2)
-  !forward transform to spherical harmonics
-  ei00lm=matmul(zfshtvr,ei00)
-  ei0xlm=matmul(zfshtvr,ei0x)
-  ! angular average
-  t1=(omega/(twopi)**3)/product(ngridq)
-  av(1,1)=t1*dot_product(m00lm,ei00lm)
-  av(1,2:)=t1*matmul(m0xlm,ei0xlm)
-  ! body without angular average
-  av(2:,2:)=bi(:,:)
-  ! set lower triangle
-  do i=1,n
-     do j=i+1,n
-        av(j,i)=conjg(av(i,j))
+  ! subcell average (head)
+  scieff(1,1)=fourpi*t00*dot_product(m00lm,ei00lm)
+  ! loop over (G,Gp) indices
+  do j1=2,n
+     do itp=1,ntpsph
+        ! wing, -p*S/(p*L*p)
+        eix0(itp)=-dot_product(spc(:,itp),s(j1-1,:))*ei00(itp)
      end do
-  end do 
-  deallocate(plat,p,m00lm,m0xlm,ei00,ei0x,ei00lm,ei0xlm)
-  
-  write(7788,'(2i8,3g18.10)') ((i,j,av(i,j),abs(av(i,j))**2,j=1,n),i=1,n)
-   
-end subroutine angavdm
+     do lm=1,lmmaxdielt
+        eix0lm(lm)=fourpi*dot_product(zylm(:,lm),eix0*w)
+     end do
+     ! subcell average (wings)
+     scieff(j1,1)=sqrt(fourpi)/gqc(iqr)???*t00*dot_product(mx0lm,eix0lm)
+     scieff(1,j1)=conjg(scieff(j1,1))
+     if (sciavbd) then
+        do j2=j1,n
+           do itp=1,ntpsph
+              ! body, B^-1 + p*S p*conjg(S)/(p*L*p)
+              eixx(itp)=bi(j1-1,j2-1)*dot_product(spc(:,itp),s(j1-1,:))* &
+                   dot_product(s(j2-1,:),spc(:,itp))*ei00(itp)
+           end do
+           do lm=1,lmmaxdielt
+              eixxlm(lm)=fourpi*dot_product(zylm(:,lm),eixx*w)
+           end do
+           ! subcell average (body)
+           scieff(j1,j2)=fourpi*????*t00*dot_product(mxxlm,eixxlm)
+           scieff(j2,j1)=conjg(scieff(j1,j2))
+        end do
+     else
+        ! no subcell average (body)
+        scieff(j1,2:)=bi(j1-1,:)
+     end if
+  end do
+  deallocate(ei00,ei00lm,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
+end subroutine angavll
 
+
+!//////////////////////////////////////////////////////////////////////////////
 
 subroutine preset_dielten
   use modmain

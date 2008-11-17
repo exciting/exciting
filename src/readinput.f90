@@ -258,6 +258,8 @@ vkloffscr(:)=-1.d0
 rgkmaxscr=0.d0
 nemptyscr=0
 scrherm=0
+sciavbd=.false.
+sciavq=.false.
 ! BSE (-kernel) variables
 bsetype='ip'
 nosymbse=nosym
@@ -1237,6 +1239,10 @@ case('nemptyscr')
   end if
 case('scrherm')
   read(50,*,err=20) scrherm
+case('sciavbd')
+  read(50,*,err=20) sciavbd
+case('sciavq')
+  read(50,*,err=20) sciavq
   ! BSE (-kernel) variables
 case('bsetype')
    read(50,*,err=20) bsetype

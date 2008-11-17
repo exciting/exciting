@@ -3,14 +3,14 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine getematrad(iq)
+subroutine getematrad(iqr,iq)
   use modmain
   use modxs
   use m_genfilname
   use m_getunit
   implicit none
   ! arguments
-  integer, intent(in) :: iq
+  integer, intent(in) :: iqr,iq
   ! local variables
   integer :: lmax1,lmax2,lmax3,un
   character(256) :: fname
@@ -25,7 +25,7 @@ subroutine getematrad(iq)
   allocate(riloa(nlomax,0:lmax3,apwordmax,0:lmax2,natmtot,ngq(iq)))
   if (allocated(rilolo)) deallocate(rilolo)
   allocate(rilolo(nlomax,nlomax,0:lmax2,natmtot,ngq(iq)))
-  call genfilname(basename='EMATRAD',iq=iq,filnam=fname)
+  call genfilname(basename='EMATRAD',iq=iqr,filnam=fname)
   call getunit(un)
   open(un,file=trim(fname),form='unformatted',action='read', &
        status='old')
