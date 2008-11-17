@@ -3,7 +3,7 @@
 
 
 bin::../make.inc
-	sh ../../utilities/versionstamp.sh
+	perl ../../utilities/versionstamp.pl
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
 	../../src  \
 	../../src/main \

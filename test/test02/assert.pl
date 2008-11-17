@@ -10,10 +10,14 @@ $writer= Test::initreport("report.xml");
 
 open INFO, "runarp/INFO.OUT";
 $status=failed;
+$didarpack=failed;
 while(<INFO>)
 	{
 	if (m/\| EXCITING version.+stopped/){
 		$status="passed";
+	}
+		if (m/ARPACK iterations/){
+		$didarpack="passed";
 	}
 }
 close INFO;
@@ -26,6 +30,13 @@ close INFO;
  		status=>$status
  		}, $writer);
  
+  Test::writetestreport({
+ 		directory=>"test02/runarp",
+ 		name=>"arpack run",
+ 		description=>"The arpack solver was correctly invoked",
+ 		status=>$didarpack
+ 		}, $writer);
+ 		
  open INFO, "runlapack/INFO.OUT";
 $status=failed;
 while(<INFO>)

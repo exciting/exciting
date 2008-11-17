@@ -1,7 +1,7 @@
 all:test
 
 Makefile.test1::
-	sh ../../utilities/versionstamp.sh
+	perl ../../utilities/versionstamp.pl
 	../../utilities/mkmf   -t template -f -m Makefile.test1 -p testprogram1  \
 	../../src  \
 	../src \
@@ -16,7 +16,7 @@ Makefile.test1::
 
 
 Makefile.test2::
-	sh ../../utilities/versionstamp.sh
+	perl ../../utilities/versionstamp.pl
 	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2  \
 	../../src  \
 	../src \
@@ -31,7 +31,7 @@ Makefile.test2::
 
 
 Makefile.test4::
-	sh ../../utilities/versionstamp.sh
+	perl ../../utilities/versionstamp.pl
 	 ../../utilities/mkmf -t template -f -m Makefile.test4 -p testprogram4  \
 	../../src  \
 	../src \
@@ -58,15 +58,13 @@ testprogram4::Makefile.test4
  
 	
 test01::testprogram1
-	cd ../test01/run ; ../../build/testprogram1
+	
 
 test02::testprogram2
-	cd ../test02/runlapack ; ../../build/testprogram2
-	cd ../test02/runarp; ../../build/testprogram2
-	cd ../test02 ; perl assert.pl
+
 
 test04::testprogram4
-	cd ../test04/run ; ../../build/testprogram4
+	
 
 #for the rules to build the libraries include the other makefile
 
