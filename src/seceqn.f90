@@ -43,10 +43,10 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
   !$OMP PARALLEL DEFAULT(SHARED)
   !$OMP DO
 #endif
-!
-!-IMPORTANT: the first-variational spinor index and the k-point index have been
-! swapped in the following arrays: ngk, igkig, vgkl, vgkc, gkc, tpgkc, sfacgk
-!
+  !
+  !-IMPORTANT: the first-variational spinor index and the k-point index have been
+  ! swapped in the following arrays: ngk, igkig, vgkl, vgkc, gkc, tpgkc, sfacgk
+  !
   do ispn=1,nspnfv
      ! find the matching coefficients
      call match(ngk(ispn,ik),gkc(:,ispn,ik),tpgkc(:,:,ispn,ik), &
@@ -56,22 +56,23 @@ subroutine seceqn(ik,evalfv,evecfv,evecsv)
         call DIISseceqnfv(ik,ispn,apwalm(:,:,:,:,ispn),vgkc(:,:,ispn,ik),evalfv,evecfv)
 
         if (ik.eq.lastk(rank)) diiscounter=diiscounter+1
-     else     if (doLAPACKsolver()) then
-  if (tseqit) then
-! iteratively
-    call seceqnit(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik),vkl(:,ik), &
-     vgkl(:,:,ispn,ik),vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn), &
-     evecfv(:,:,ispn))
-  else
-! directly
-    call seceqnfv(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik), &
-     vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn),evecfv(:,:,ispn))
-  end if
+
      else if(doARPACKiteration()) then
       	call  iterativearpacksecequn(ik,ispn,apwalm(1,1,1,1,ispn),&
              vgkc(1,1,ispn,ik),evalfv,evecfv)
+     else if (doLAPACKsolver()) then
+        if (tseqit) then
+           ! iteratively
+           call seceqnit(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik),vkl(:,ik), &
+                vgkl(:,:,ispn,ik),vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn), &
+                evecfv(:,:,ispn))
+        else
+           ! directly
+           call seceqnfv(nmat(ispn,ik),ngk(ispn,ik),igkig(:,ispn,ik), &
+                vgkc(:,:,ispn,ik),apwalm(:,:,:,:,ispn),evalfv(:,ispn),evecfv(:,:,ispn))
+        end if
      else if(.true.) then
-     write(*,*)"error in solverselect secequn.F90"
+        write(*,*)"error in solverselect secequn.F90"
 
      endif
   end do

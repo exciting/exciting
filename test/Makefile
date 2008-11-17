@@ -13,13 +13,18 @@ endif
 	
 test01::
 	-cd build;$(MAKE) libs  test01
-
+	-cd ./test01/run ; ../../build/testprogram1
+	
 test02::
 	-cd build;$(MAKE) libs  test02
+	-cd ./test02/runlapack ; ../../build/testprogram2
+	-cd ./test02/runarp; ../../build/testprogram2
+	-cd ./test02/runarpnpacked; ../../build/testprogram2
+	-cd ./test01 ; perl assert.pl
 
 test04::
 	-cd build;$(MAKE) libs  test04
-
+	-cd ./test04/run ; ../../build/testprogram4
 
 exciting::
 	cd ../build/debug/ && $(MAKE) libs && $(MAKE)
