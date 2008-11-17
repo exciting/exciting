@@ -20,7 +20,7 @@ test02::
 	-cd ./test02/runlapack ; ../../build/testprogram2
 	-cd ./test02/runarp; ../../build/testprogram2
 	-cd ./test02/runarpnpacked; ../../build/testprogram2
-	-cd ./test01 ; perl assert.pl
+	-cd ./test02 ; perl assert.pl
 
 test04::
 	-cd build;$(MAKE) libs  test04
