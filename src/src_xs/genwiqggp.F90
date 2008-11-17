@@ -4,9 +4,9 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: genwiq2xs
+! !ROUTINE: genwiqggp
 ! !INTERFACE:
-subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
+subroutine genwiqggp(flag,iq,igq1,igq2,clwt)
 ! !USES:
   use modmain
   use modxs
@@ -30,7 +30,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   real(8) :: blim(2),blen,vllim(3),ran(3),ranl(3),omegabox
   real(8) :: qsz,ts0,ts1
   real(8), allocatable :: xa(:),ya(:),c(:)
-  real(8) :: vsc(3),v01(3),v02(3),v11(3),v12(3),v21(3),v22(3),v31(3),v32(3)
+  real(8) :: vsc(3),v01(3),v02(3),v11(3),v21(3),v31(3),v32(3)
   ! external functions
   real(8) polynom
   external polynom
@@ -42,7 +42,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   select case(flag)
   case(0)
      ! modified Coulomb potential in reciprocal space
-     clwt=fourpi/(gqc(igq1,iq)*gqc(igq2,iq))
+     clwt=sptclg(igq1,iq)*sptclg(igq2,iq)
   case(1)
      ! radius of sphere with same volume than subcell
      qsz=(6*pi**2/(omega*nqpt))**(1.d0/3.d0)
@@ -54,7 +54,7 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
         clwt=2*qsz*omega*nqpt/pi
      else
         write(*,*)
-        write(*,'("Error(genwiq2xs): analytic method chosen for regular case")')
+        write(*,'("Error(genwiqggp): analytic method chosen for regular case")')
         write(*,*)
         call terminate
      end if
@@ -153,5 +153,5 @@ subroutine genwiq2xs(flag,iq,igq1,igq2,clwt)
   call timesec(ts1)
   t1=ts1-ts0
   !TODO: TIME TO TRACK SOMEWHERE
-end subroutine genwiq2xs
+end subroutine genwiqggp
 !EOC

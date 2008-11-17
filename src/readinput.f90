@@ -259,7 +259,9 @@ rgkmaxscr=0.d0
 nemptyscr=0
 scrherm=0
 sciavbd=.false.
-sciavq=.false.
+sciavqhd=.false.
+sciavqwg=.false.
+sciavqbd=.false.
 ! BSE (-kernel) variables
 bsetype='ip'
 nosymbse=nosym
@@ -1241,8 +1243,12 @@ case('scrherm')
   read(50,*,err=20) scrherm
 case('sciavbd')
   read(50,*,err=20) sciavbd
-case('sciavq')
-  read(50,*,err=20) sciavq
+case('sciavqhd')
+  read(50,*,err=20) sciavqhd
+case('sciavqwg')
+  read(50,*,err=20) sciavqwg
+case('sciavqbd')
+  read(50,*,err=20) sciavqbd
   ! BSE (-kernel) variables
 case('bsetype')
    read(50,*,err=20) bsetype

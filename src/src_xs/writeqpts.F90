@@ -23,25 +23,26 @@ use m_genfilname
 !BOC
 implicit none
 ! local variables
-integer iq
+integer iq,un
 character(256) :: filnam
-call getunit(unit1)
+call getunit(un)
 call genfilname(basename='QPOINTS',appfilext=.true.,filnam=filnam)
-open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
-write(unit1,'(I6," : nqpt; q-point, vql, vqc, wqpt, ngq below")') nqpt
+open(un,file=trim(filnam),action='WRITE',form='FORMATTED')
+write(un,'(I6," : nqpt; q-point, vql, vqc, wqpt, ngq below")') nqpt
 do iq=1,nqpt
-  write(unit1,'(I6,6G18.10,I8)') iq,vql(:,iq),vqc(:,iq),ngq(iq)
+  write(un,'(I6,6G18.10,I8)') iq,vql(:,iq),vqc(:,iq),ngq(iq)
 end do
-close(unit1)
+close(un)
 ! write out reduced q-point set for screened Coulomb interaction
-if (task.eq.430) then
+if (task.eq.440) then
    call genfilname(basename='QPOINTSR',appfilext=.true.,filnam=filnam)
-   open(unit1,file=trim(filnam),action='WRITE',form='FORMATTED')
-   write(unit1,'(I6," : nqptr; q-point, vqlr, vqcr, wqptr below")') nqptr
+   open(un,file=trim(filnam),action='WRITE',form='FORMATTED', &
+        status='replace')
+   write(un,'(I6," : nqptr; q-point, vqlr, vqcr, wqptr below")') nqptr
    do iq=1,nqptr
-      write(unit1,'(I6,7G18.10)') iq,vqlr(:,iq),vqcr(:,iq),wqptr(iq)
+      write(un,'(I6,7G18.10)') iq,vqlr(:,iq),vqcr(:,iq),wqptr(iq)
    end do
-   close(unit1)
+   close(un)
 end if
 end subroutine writeqpts
 !EOC

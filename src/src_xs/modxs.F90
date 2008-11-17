@@ -147,6 +147,12 @@ module modxs
   ! structure factor for the G+k-vectors
   complex(8), allocatable :: sfacgk0(:,:,:,:)
 
+  !-----------------------------------------!
+  !     potential and density variables     !
+  !-----------------------------------------!
+  ! square root of Coulomb potential in G-space
+  real(8), allocatable :: sptclg(:,:)
+
   !---------------------------------------!
   !     Hamiltonian and APW variables     !
   !---------------------------------------!
@@ -373,8 +379,10 @@ module modxs
   ! dielectric tensor in the independent particle approximation
   complex(8) :: dielten0(3,3)
   ! average of body for screened Coulomb interaction at Gamma-point
-  ! and non-zero q-point, respectively
-  logical :: sciavbd,sciavq
+  logical :: sciavbd
+  ! average of head, wings and body for screened Coulomb interaction at
+  ! non-zero q-point
+  logical :: sciavqhd,sciavqwg,sciavqbd
   ! maximum angular momentum for angular average of dielectric tensor
   integer :: lmaxdielt
   ! (lmaxdielt+1)^2

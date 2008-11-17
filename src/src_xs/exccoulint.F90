@@ -118,7 +118,7 @@ subroutine exccoulint
      potcl(1)=0.d0
      ! set up Coulomb potential
      do igq1=2,n
-        call genwiq2xs(0,iqmt,igq1,igq1,potcl(igq1))
+        call genwiqggp(0,iqmt,igq1,igq1,potcl(igq1))
      end do
 
      call genfilname(dotext='_SCR.OUT',setfilext=.true.)

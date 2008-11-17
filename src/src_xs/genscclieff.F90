@@ -6,8 +6,6 @@
 subroutine genscclieff(iqr,nmax,n,scieff)
   use modmain
   use modxs
-  use invert
-  use m_getunit
   implicit none
   ! arguments
   integer, intent(in) :: iqr,n,nmax
@@ -22,39 +20,76 @@ subroutine genscclieff(iqr,nmax,n,scieff)
   tq0=tqgamma(iqr)
   if (tq0) then
      ! averaging using Lebedev-Laikov spherical grids
-     call angavll(n,nmax,scrnh,scrnw,scrn,scieff)
+     call angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   else
-     ! invert dielectric matrix
-     call zinvert_hermitian(scrherm,scrn,scieff)
-     ! generate effective Coulomb potentials
-     ! +++ call genwiq2... (rename routine... genwiqggp ??)
+     ! averaging using numerical method and extrapolation
+     call avscq(iqr,n,nmax,scrn,scieff)
   end if
-
-
-
-
 end subroutine genscclieff
 
 
-subroutine angavll(n,nmax,scrnh,scrnw,scrn,scieff)
+!//////////////////////////////////////////////////////////////////////////////
+
+
+subroutine avscq(iqr,n,nmax,scrn,scieff)
   use modmain
   use modxs
   use invert
-  use m_getunit
+  implicit none
+  ! arguments
+  integer, intent(in) :: iqr,n,nmax
+  complex(8), intent(in) :: scrn(n,n)
+  complex(8), intent(out) :: scieff(nmax,nmax)
+  ! local variables
+  integer :: iqrnr,j1,j2,flg
+  real(8) :: clwt
+  ! find reduced q-point in non-reduced set
+  iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
+  ! invert dielectric matrix
+  call zinvert_hermitian(scrherm,scrn,scieff)
+  do j1=1,n
+     do j2=1,j1
+        if ((sciavqhd.and.(j1.eq.1).and.(j2.eq.1)).or. &
+             (sciavqwg.and.(j1.ne.1).and.(j2.eq.1)).or. &
+             (sciavqbd.and.(j1.ne.1).and.(j2.ne.1))) then
+           ! numerical averaging on grids with extrapolation to continuum
+           flg=2
+        else
+           ! analytic expression, no averaging
+           flg=0
+        end if
+        ! generate the (averaged) symmetrized Coulomb potential
+        call genwiqggp(flg,iqrnr,j1,j2,clwt)
+        ! multiply with averaged Coulomb potential
+        scieff(j1,j2)=scieff(j1,j2)*clwt
+        ! set upper triangle
+        scieff(j2,j1)=conjg(scieff(j1,j2))
+     end do
+  end do
+end subroutine avscq
+
+
+!//////////////////////////////////////////////////////////////////////////////
+
+
+subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
+  use modmain
+  use modxs
+  use invert
   implicit none
   ! arguments
   integer, intent(in) :: n,nmax
   complex(8), intent(in) :: scrn(n,n),scrnw(n,2,3),scrnh(3,3)
   complex(8), intent(out) :: scieff(nmax,nmax)
   ! local variables
-  integer, parameter :: nsphcov=5810
-  integer :: j1,j2,,itp,lm,ntpsph
-  real(8) :: t00,t2,r,qsz,clwt,clwt2, ts0,ts1
-  complex(8) :: z00,z01,zt1,zt2
+  integer, parameter :: nsphcov=5810,iq0=1
+  integer :: j1,j2,itp,lm,ntpsph
+  real(8) :: t00,r
   real(8), allocatable :: plat(:,:),p(:),tp(:,:),spc(:,:),w(:)
   complex(8), allocatable :: m00lm(:),mx0lm(:),mxxlm(:)
+  complex(8), allocatable :: ei00(:),eix0(:),eixx(:)
+  complex(8), allocatable :: ei00lm(:),eix0lm(:),eixxlm(:)
   complex(8), allocatable :: ylm(:),zylm(:,:)
-  complex(8), allocatable :: ei00(:),ei00lm(:)
   complex(8), allocatable :: b(:,:),bi(:,:),u(:,:),s(:,:)
   ! scaling factor
   t00=(omega/(twopi)**3)*product(ngridq)
@@ -90,7 +125,7 @@ subroutine angavll(n,nmax,scrnh,scrnw,scrn,scieff)
   end if
   if (lmmaxdielt.gt.ntpsph) then
      write(*,*)
-     write(*,'("Error(genscclieff): lmmaxdielt.gt.ntpsph: ",2i6)') lmmaxdielt, &
+     write(*,'("Error(angavdm0): lmmaxdielt.gt.ntpsph: ",2i6)') lmmaxdielt, &
           ntpsph
      write(*,*)
      stop
@@ -153,7 +188,7 @@ subroutine angavll(n,nmax,scrnh,scrnw,scrn,scieff)
         eix0lm(lm)=fourpi*dot_product(zylm(:,lm),eix0*w)
      end do
      ! subcell average (wings)
-     scieff(j1,1)=sqrt(fourpi)/gqc(iqr)???*t00*dot_product(mx0lm,eix0lm)
+     scieff(j1,1)=sqrt(fourpi)*sptclg(j1,iq0)*t00*dot_product(mx0lm,eix0lm)
      scieff(1,j1)=conjg(scieff(j1,1))
      if (sciavbd) then
         do j2=j1,n
@@ -166,7 +201,8 @@ subroutine angavll(n,nmax,scrnh,scrnw,scrn,scieff)
               eixxlm(lm)=fourpi*dot_product(zylm(:,lm),eixx*w)
            end do
            ! subcell average (body)
-           scieff(j1,j2)=fourpi*????*t00*dot_product(mxxlm,eixxlm)
+           scieff(j1,j2)=sptclg(j1,iq0)*sptclg(j2,iq0)*t00* &
+                dot_product(mxxlm,eixxlm)
            scieff(j2,j1)=conjg(scieff(j1,j2))
         end do
      else
@@ -175,7 +211,7 @@ subroutine angavll(n,nmax,scrnh,scrnw,scrn,scieff)
      end if
   end do
   deallocate(ei00,ei00lm,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
-end subroutine angavll
+end subroutine angavsc0
 
 
 !//////////////////////////////////////////////////////////////////////////////

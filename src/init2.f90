@@ -92,6 +92,7 @@ if ((task.ge.400).and.(task.le.439)) then
    allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate reduced q-point set
    call genppts(reduceq,.false.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+   nqptr=nqpt
 end if
 if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
      (task.eq.499)) then
@@ -187,6 +188,16 @@ do iq=1,nqpt
    call gensfacgp(ngq(iq),vgqc(1,1,iq),ngqmax,sfacgq(1,1,iq))
    ! spherical harmonics for G+q-vectors
    call genylmgq(iq,lmaxvr)
+end do
+
+!---------------------------!
+!     Coulomb potential     !
+!---------------------------!
+if (allocated(sptclg)) deallocate(sptclg)
+allocate(sptclg(ngqmax,nqpt))
+do iq=1,nqpt
+   ! set up Coulomb potential square root
+   call genptclg('nocutoff',ngqmax,ngq,vgqc(:,:,iq),gqc(:,iq),sptclg(:,iq))
 end do
 
 !------------------------!
