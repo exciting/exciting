@@ -151,17 +151,7 @@ subroutine scrcoulint
      
      ! find symmetry operations that reduce the q-point to the irreducible
      ! part of the Brillouin zone
-     call findsymeqiv(.true.,vq,vqr,nsc,sc,ivgsc)
-
-write(*,*) 'scrcoulint: ikkp,iq,iqr',ikkp,iq,iqr
-write(*,*) 'vq',vq
-write(*,*) 'vqr',vqr
-write(*,*) 'number of symmetries found',nsc
-do j1=1,nsc
-   write(*,*) 'symmetries',sc(j1)
-   write(*,*) 'wrap vectors',ivgsc(:,j1)
-end do
-write(*,*)
+     call findsymeqiv(fbzq,vq,vqr,nsc,sc,ivgsc)
 
      ! find the map that rotates the G-vectors
      call findgqmap(iq,iqr,nsc,sc,ivgsc,ngqmax,n,jsym,jsymi,ivgsym,igqmap)

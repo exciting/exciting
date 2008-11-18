@@ -21,12 +21,10 @@ subroutine findsymeqiv(tfbz,vpl,vplr,nsc,sc,ivgsc)
      lspl=lsplsymc(isym)
      s(:,:)=dble(symlat(:,:,lspl))
      call r3mtv(s,vplr,v1)
-     v2(:)=v1(:)
-     call r3frac(epslat,v1,iv)
      if (tfbz) then
-        v1(:)=v2(:)
-        call vecfbz(epslat,bvec,v1,ivt)
-        iv(:)=ivt(:)+iv(:)
+        call vecfbz(epslat,bvec,v1,iv)
+     else
+        call r3frac(epslat,v1,iv)
      end if
      t1=r3taxi(vpl,v1)
      if (t1.lt.epslat) then

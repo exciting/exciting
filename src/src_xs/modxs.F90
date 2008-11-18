@@ -358,6 +358,8 @@ module modxs
   !-----------------------------!
   ! true if one of the screening tasks is executed
   logical :: tscreen
+  ! true if q-point set is taken from first Brillouin zone
+  logical :: fbzq
   ! screening type: can be either "full", "diag", "noinvdiag" or "constant"
   character(32) :: screentype
   ! nosym is .true. if no symmetry information should be used

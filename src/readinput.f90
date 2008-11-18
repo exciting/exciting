@@ -250,6 +250,7 @@ tevout=.false.
 tappinfo=.false.
 dbglev=0
 ! screening variables
+fbzq=.false.
 screentype='full'
 nosymscr=nosym
 reducekscr=reducek
@@ -1198,6 +1199,8 @@ case('appinfo')
 case('dbglev')
   read(50,*,err=20) dbglev
   ! screening variables
+case('fbzq')
+  read(50,*,err=20) fbzq
 case('screentype')
    read(50,*,err=20) screentype
    select case(trim(screentype))

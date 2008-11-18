@@ -46,7 +46,7 @@ subroutine avscq(iqr,n,nmax,scrn,scieff)
   ! find reduced q-point in non-reduced set
   iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
   ! invert dielectric matrix
-  call zinvert_hermitian(scrherm,scrn,scieff)
+  call zinvert_hermitian(scrherm,scrn,scieff(:n,:n))
   do j1=1,n
      do j2=1,j1
         if ((sciavqhd.and.(j1.eq.1).and.(j2.eq.1)).or. &
@@ -64,6 +64,12 @@ subroutine avscq(iqr,n,nmax,scrn,scieff)
         scieff(j1,j2)=scieff(j1,j2)*clwt
         ! set upper triangle
         scieff(j2,j1)=conjg(scieff(j1,j2))
+	
+	if (abs(scieff(j1,j2)).gt.1.d5) then
+	  write(*,'(a,3i5,2g18.10)') &
+	   'scieff,iqr,j1,j2',iqr,j1,j2,abs(scieff(j1,j2))
+	end if
+	
      end do
   end do
 end subroutine avscq

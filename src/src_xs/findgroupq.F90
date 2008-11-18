@@ -33,7 +33,7 @@ subroutine findgroupq(tfbz,vql,epslat,bvec,symlat,nsymcrys,lsplsymc,nsymcrysq, &
   integer, intent(out) :: ivscwrapq(3,nsymcrys)
   ! local variables
   character(*), parameter :: thisnam = 'findgroupq'
-  integer :: isym,lspl,iv(3),ivt(3)
+  integer :: isym,lspl,iv(3)
   real(8) :: s(3,3),v1(3),v1t(3),v2(3),t1
   real(8), external :: r3taxi
   nsymcrysq=0
@@ -48,12 +48,12 @@ subroutine findgroupq(tfbz,vql,epslat,bvec,symlat,nsymcrys,lsplsymc,nsymcrysq, &
      call r3mtv(s,vql,v1)
      ! save transformed vector
      v1t(:)=v1(:)
-     ! convert v1 to equivalent point and wrapping vector
-     call r3frac(epslat,v1,iv)
      ! mapt to first Brillouin zone
      if (tfbz) then
-        call vecfbz(epslat,bvec,v1,ivt)
-        iv(:)=ivt(:)-iv(:)
+        call vecfbz(epslat,bvec,v1,iv)
+     else
+        ! convert v1 to equivalent point and wrapping vector
+        call r3frac(epslat,v1,iv)
      end if
      iv=-iv
      ! check if new vector is equal to orinial vql vector
