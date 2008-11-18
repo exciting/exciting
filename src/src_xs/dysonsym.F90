@@ -73,7 +73,7 @@ contains
     
     ! calculate [S0(1-S0) - K]^-1 =: Y
     call zinvert_lapack(mt2,mt)
-    
+
     ! calculate S0 Y
     call zgemm('n','n', n, n, n, zone, s0, n, mt, n, zzero, mt2, n )
     

@@ -158,6 +158,7 @@ subroutine idfq(iq)
 
               ! write macroscopic dielectric function to file
               write(unit1,rec=iw-wi+1) mdf1(iw)
+	      
            end do ! iw
            close(unit1)
            ! end loop over optical components

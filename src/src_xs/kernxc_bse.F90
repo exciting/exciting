@@ -35,7 +35,6 @@ subroutine kernxc_bse
   !******************************************************************
   character(*), parameter :: thisnam='kernxs_bse'
   integer, parameter :: iqmt=1
-  real(8), parameter :: delt=1.d-3 ! use fxcbsesplit ***
   character(256) :: filnam2,filnam3,filnam4
   logical :: tq0
   integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2
@@ -311,7 +310,7 @@ subroutine kernxc_bse
                     ! four point energy difference
                     t1=dekp(ist2,ist4)-dek(ist1,ist3)
                     ! arrays for R- and Q-residuals
-                    if (abs(t1).ge.delt) then
+                    if (abs(t1).ge.fxcbsesplit) then
                        zmr(j2,j1)=zt1/t1
                        zmq(j2,j1)=zzero
                     else
@@ -353,12 +352,12 @@ subroutine kernxc_bse
            den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
            ! update kernel
            do iw=1,nwdf
-!!$              ! resonant contribution only
-!!$              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-              ! mimic antiresonant contribution by adding a term c.c.(-w)
-              ! as known from response functions
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
-                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
+              ! resonant contribution only
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+!              ! mimic antiresonant contribution by adding a term c.c.(-w)
+!              ! as known from response functions
+!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
+!                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
            end do
            ! end loop over states #1
         end do
