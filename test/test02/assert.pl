@@ -59,7 +59,7 @@ close INFO;
 
 
 #compare total energies
-$tol=1e-9;
+$tol=5e-8;
 open TOTEARP, "runarp/TOTENERGY.OUT";
 open TOTELAP, "runlapack/TOTENERGY.OUT";
 $status="failed";
@@ -79,7 +79,7 @@ $status="passed";
  		}, $writer);
 
 #compare eigenvalues
-$tol=1e-8;
+$tol=5e-8;
 %statuseigval=Test::assert_file_same_within( "runarp/EIGVAL.OUT",
 	"runlapack/EIGVAL.OUT",$tol);
  Test::writetestreport({

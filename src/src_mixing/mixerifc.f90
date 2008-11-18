@@ -24,6 +24,7 @@ case(1)
 ! calculate memmory requirement if mode negative
   if (mode .eq. -1) then
     mode=0
+    write(60,*)"Using Adaptive step size linear potential mixing (1)"
     if(allocated(work))deallocate(work)
     allocate(work(3*n))
     return
@@ -39,7 +40,8 @@ case(2)
  ! multicecant broyden
   if (mode .eq. -1) then
     call initmixermsec(n)
-
+	mode =0
+	 write(60,*)"Using Muttisecant Broyden potential mixing (2)"
     return
    end if
     if (mode .eq. -2) then
@@ -55,7 +57,7 @@ case(2)
       & calculations")')
    end if
    if (mode.eq.-1) then
-
+ write(60,*)"Using Pulay potential mixing (3)"
      allocate(work(2*n*maxsd))
         mode=0
      return
