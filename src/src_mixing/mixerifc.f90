@@ -39,7 +39,7 @@ case(2)
  ! multicecant broyden
   if (mode .eq. -1) then
     call initmixermsec(n)
-    mode=0
+
     return
    end if
     if (mode .eq. -2) then
@@ -57,10 +57,12 @@ case(2)
    if (mode.eq.-1) then
 
      allocate(work(2*n*maxsd))
+        mode=0
      return
    end if
       if (mode.eq.-2) then
      deallocate(work)
+
      return
    end if
    call mixpulay(iscl,n,maxsd,v,work,work(n*maxsd+1),dv)

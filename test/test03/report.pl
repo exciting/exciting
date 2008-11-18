@@ -71,4 +71,33 @@ Test::writetestreport({
  		status=>$status
  		}, $writer);
  		
+ 				
+open INFO, "runmixer3/INFO.OUT";
+$status=failed;
+$iterations=0;
+while(<INFO>)
+	{
+	if (m/\| EXCITING version.+stopped/){
+		$status="passed";
+	}
+	if (m/Iteration number :\s*(\d+)/){
+	$iterations=$1;
+}
+}
+Test::writetestreport({
+ 		directory=>"test03/runmixer2",
+ 		name=>"debug binary run mixer2",
+ 		description=>"The test run  using pulay (3) finished without errors",
+ 		status=>$status
+ 		}, $writer);
+ 		
+ 		$iterationsref=10;
+ 			if ($iterations<=$iterationsref){$status=passed;}else{$status="failed";}
+ 		
+ 		Test::writetestreport({
+ 		directory=>"test03/runmixer2",
+ 		name=>"check iteration number of Al for Pulay mixing (3) ",
+ 		description=>"iterations is $iterations reference is $iterationsref",
+ 		status=>$status
+ 		}, $writer);
  Test::closereport($writer);
