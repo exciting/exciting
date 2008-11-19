@@ -31,7 +31,7 @@ subroutine kernxc_bse
   implicit none
   ! local variables
   !******************************************************************
-  integer, parameter :: oct=1
+  integer, parameter :: oct=3
   !******************************************************************
   character(*), parameter :: thisnam='kernxs_bse'
   integer, parameter :: iqmt=1

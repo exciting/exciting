@@ -253,7 +253,7 @@ dbglev=0
 fbzq=.false.
 screentype='full'
 nosymscr=nosym
-reducekscr=reducek
+reducekscr=.false.
 ngridkscr(:)=0
 vkloffscr(:)=-1.d0
 rgkmaxscr=0.d0
@@ -266,7 +266,7 @@ sciavqbd=.false.
 ! BSE (-kernel) variables
 bsetype='ip'
 nosymbse=nosym
-reducekbse=reducek
+reducekbse=.false.
 vkloffbse(:)=-1.d0
 rgkmaxbse=0.d0
 bsediagweight=1
