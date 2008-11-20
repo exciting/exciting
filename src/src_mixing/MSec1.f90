@@ -72,8 +72,9 @@
               SP = SP - Y(J,N+ISKIP)*YPROJ(N)
            ENDDO
            STEP(J)  =ST+DMIX*SP
-        ENDDO
 
+        ENDDO
+   write(*,*)"DMIX IN MSEC1:",DMIX
         IFAIL=0
 100     deallocate (YYINV, YTG, YPROJ, YT )
         RETURN

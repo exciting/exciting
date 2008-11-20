@@ -63,6 +63,9 @@ noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
 		call rescaleYS(noldsteps,n,S,Y,potential,residual)
 		call setup_YY(iscl,n,S,Y,YY)
 
+DMIXM=0.1
+
+
 
 
 		call MSEC1(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIXM,IFAIL,DELTA,noldsteps)
