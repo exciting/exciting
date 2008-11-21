@@ -270,7 +270,7 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      call writeeps(iqmt,oct,oct,w,spectr,fneps)
      ! oscillator strengths
      do s2=1,hamsiz
-        write(983,'(i8,5g18.10)') s2,beval(s2)*escale,(beval(s2)-egap)*escale, &
+        write(900+oct,'(i8,5g18.10)') s2,beval(s2)*escale,(beval(s2)-egap)*escale, &
              abs(oszs(s2))
      end do
      ! oscillator strengths sorted
@@ -279,7 +279,7 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      sor=sor(hamsiz:1:-1)
      do s1=1,hamsiz
         s2=sor(s1)
-        write(984,'(i8,4g18.10)') s1,beval(sor(s2))*escale, &
+        write(800+oct,'(i8,4g18.10)') s1,beval(sor(s2))*escale, &
              (beval(sor(s2))-egap)*escale,abs(oszs(s2))
      end do
      ! end loop over optical components

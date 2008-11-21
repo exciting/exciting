@@ -31,7 +31,7 @@ subroutine kernxc_bse
   implicit none
   ! local variables
   !******************************************************************
-  integer, parameter :: oct=3
+  integer, parameter :: oct=1
   !******************************************************************
   character(*), parameter :: thisnam='kernxs_bse'
   integer, parameter :: iqmt=1
@@ -160,7 +160,7 @@ subroutine kernxc_bse
   !---------------------------!
   do iknr=1,nkptnr
      call chkpt(3,(/task,1,iknr/),'task,sub,k-point; generate matrix elements &
-          & of plane wave')    
+          &of plane wave')    
      iknrq=ikmapikq(iknr,iqmt)
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
@@ -352,12 +352,12 @@ subroutine kernxc_bse
            den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
            ! update kernel
            do iw=1,nwdf
-              ! resonant contribution only
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-!              ! mimic antiresonant contribution by adding a term c.c.(-w)
-!              ! as known from response functions
-!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
-!                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
+!              ! resonant contribution only
+!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              ! mimic antiresonant contribution by adding a term c.c.(-w)
+              ! as known from response functions
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
+                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
            end do
            ! end loop over states #1
         end do

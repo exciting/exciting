@@ -31,9 +31,12 @@ subroutine xsmain
   case(23)
      ! estimate bandgap from regular grid
      call writebandgapgrid
-  case(309)
+  case(700)
      ! estimate disk-space, cpu-time and memory
      call xsestimate
+  case(701)
+     ! test timing
+     call xstiming
   case(301)
      ! generate eigenvectors, eigenvalues, occupancies and MT-coefficients
      ! for q-point set

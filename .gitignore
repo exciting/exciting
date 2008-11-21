@@ -3,6 +3,7 @@ version.inc
 *.o
 *.mod
 *.a
+a.out
 *~
 *.old
 exciting

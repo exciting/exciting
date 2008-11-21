@@ -4,35 +4,12 @@
 ! See the file COPYING for license details.
 
 subroutine screen
-  use modmain
-  use modmpi
   use modxs
   use m_genfilname
-  use m_writegqpts
   implicit none
   ! local variables
-  character(*), parameter :: thisnam='screen'
-  real(8) :: vklofft(3),rgkmaxt
-  integer :: ngridkt(3),nemptyt,nwdft
-  logical :: nosymt,reducekt
-  call init0
-  call init1
-  ! save global variables
-  nosymt=nosym
-  reducekt=reducek
-  ngridkt(:)=ngridk(:)
-  vklofft(:)=vkloff(:)
-  rgkmaxt=rgkmax
-  nemptyt=nempty
+  integer :: nwdft
   nwdft=nwdf
-  nosym=nosymscr
-  ! no symmetries implemented for screening
-  reducek=.false.
-  ngridk(:)=ngridkscr(:)
-  vkloff(:)=vkloffscr(:)
-  rgkmax=rgkmaxscr
-  nempty=nemptyscr
-  ! only one frequency w=0
   nwdf=1
   emattype=1
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
@@ -40,15 +17,8 @@ subroutine screen
   call df
   ! alternative for checking only:
 !!$  call screendm
-  ! restore global variables
-  nosym=nosymt
-  reducek=reducekt
-  ngridk(:)=ngridkt(:)
-  vkloff(:)=vklofft(:)
-  rgkmax=rgkmaxt
-  nempty=nemptyt
   nwdf=nwdft
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): Screening finished"
+  write(unitout,'(a)') "Info(screen): Screening finished"
 end subroutine screen
 
 

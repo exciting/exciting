@@ -61,11 +61,7 @@ contains
     inquire(iolength=recl) fxc(:,:)
     open(un,file=trim(filnam),form='unformatted',action='read', &
          status='old',access='direct',recl=recl)
-    do ig=1,msiz
-       do igp=1,msiz
-          read(un,rec=iw) fxc
-       end do
-    end do
+    read(un,rec=iw) fxc
     if (.not.sw) then
        zt1=fxc(1,1)
        fxc(:,:)=zzero

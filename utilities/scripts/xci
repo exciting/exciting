@@ -32,17 +32,17 @@ f_bandstr="$f_in $f_params BANDLINES.OUT BAND.OUT BAND_NF0.OUT BANDGAP.OUT BANDG
 # linear optic
 f_optic="$f_in $f_params EPSILON_[1-3][1-3].OUT EPSILON_TET_[1-3][1-3].OUT EPSILON_LTZ_[1-3][1-3].OUT EPSINTRA_[1-3][1-3].OUT SIGMA_[1-3][1-3].OUT SIGMA_TET_[1-3][1-3].OUT SIGMA_LTZ_[1-3][1-3].OUT SIGINTRA_[1-3][1-3].OUT PLASMA_[1-3][1-3].OUT"
 
-# *** TDDFT part
-# TDDFT input files 
-f_tddft_in="qpoints.in"
-# TDDFT optics and important files from SCF calculation
-f_tddft="$f_in $f_tddft_in $f_params EFERMI_Q*.OUT EIGVAL_Q*.OUT EMAT_TIMING_Q*.OUT EPSILON*_Q*.OUT GQPOINTS_Q*.OUT INFO_Q*.OUT KMAPKQ_Q*.OUT KPOINTS_Q*.OUT LOSS*_Q*.OUT QPOINTS.OUT SIGMA*_Q*.OUT SUMRULES*_Q*.OUT XSINFO.OUT X0_TIMING_Q*.OUT"
+# *** xs part
+# xs input files 
+f_xs_in="qpoints.in"
+# xs optics and important files from SCF calculation
+f_xs="$f_in $f_xs_in $f_params EFERMI_Q*.OUT EIGVAL_Q*.OUT EMAT_TIMING_Q*.OUT EPSILON*_Q*.OUT EPSILON_BSE*_SCR*_OC*.OUT GQPOINTS_Q*.OUT INFO_Q*.OUT KMAPKQ_Q*.OUT KPOINTS_Q*.OUT LOSS*_Q*.OUT QPOINTS.OUT SIGMA*_Q*.OUT SUMRULES*_Q*.OUT XSINFO.OUT X0_TIMING_Q*.OUT"
 
-# large TDDFT output files
-f_tddft_large="EMAT_*.OUT APWDLM_*.OUT DEVALSV_*.OUT EVECFV_*.OUT EVECSV_*.OUT OCCSV_*.OUT"
+# large xs output files
+f_xs_large="EMAT_*.OUT APWDLM_*.OUT DEVALSV_*.OUT EVECFV_*.OUT EVECSV_*.OUT OCCSV_*.OUT"
     
-# TDDFT X0 output files
-f_tddft_x0="X0_Q*.OUT X0_AC*.OUT X0_NAR*.OUT"
+# xs X0 output files
+f_xs_x0="X0_Q*.OUT X0_AC*.OUT X0_NAR*.OUT"
 
 #---------------------------------#
 #   check environment variable    #
@@ -77,8 +77,8 @@ SAVE() #$1 #$2
 	optic)
 	    sfiles="$f_optic"
 	    ;;
-	tddft)
-	    sfiles="$f_tddft"
+	xs)
+	    sfiles="$f_xs"
 	    ;;
 	*)
 	    echo " specify which files you want to save"
@@ -109,7 +109,7 @@ SAVE() #$1 #$2
 	    if [ -f $dir/$i ]; then
 		chmod 640 $dir/$i
 	    fi
- 	    /bin/cp -i $i $dir && chmod 440 $dir/$i
+ 	    /bin/cp -p -i $i $dir && chmod 440 $dir/$i
 	else
 	    basnam=`expr "$fil" : "\(.*\).*\."`
 	    ext=`expr "$i" : ".*\.\(.*\)"`
@@ -198,10 +198,10 @@ CLEAN () #$1
 	bin)
 	    msg="deleting all binary output files except STATE.OUT"
 	    ;;
-	tdall)
-	    msg="deleting all binary output files of TDDFT"
+	xsall)
+	    msg="deleting all binary output files of xs"
 	    ;;
-	tdvec)
+	xsvec)
 	    msg="deleting eigenvector -value and occupancy files"
 	    ;;
 	tdmat)
@@ -263,9 +263,9 @@ MONSCF ()
 }
 
 #-------------------------------#
-#   monitor TDDFT calculation   #
+#   monitor xs calculation   #
 #-------------------------------#
-MONTD ()
+MONXS ()
 {
     if [ ${1:+1} ]; then
 	if [ -d $1 ]; then
@@ -343,8 +343,8 @@ case "$1" in
     monscf)
 	MONSCF
 	;;
-    montd)
-	MONTD $2
+    monxs)
+	MONXS $2
 	;;
     kill)
 	KILL
@@ -365,7 +365,7 @@ esac
 ###param
 
 ###scf
-###scf Usage: xci save {scf|scfall|band|optic|tddft}
+###scf Usage: xci save {scf|scfall|band|optic|xs}
 ###scf
 
 #.

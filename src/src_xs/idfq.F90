@@ -21,6 +21,9 @@ subroutine idfq(iq)
   ! local variables
   character(*), parameter :: thisnam='idfq'
   character(256) :: filnam,filnam2
+  
+real(8) :: ts0,ts1  
+  
   complex(8),allocatable :: chi0(:,:), fxc(:,:), idf(:,:), mdf1(:),w(:)
   complex(8),allocatable :: chi0hd(:),chi0wg(:,:,:),chi0h(:,:)
   integer :: n,m,recl,j,iw,wi,wf,nwdfp,nc,oct1,oct2,octl,octu,igmt
@@ -89,6 +92,9 @@ subroutine idfq(iq)
            open(unit1,file=trim(filnam2),form='unformatted', &
                 action='write',access='direct',recl=recl)
            do iw=wi,wf
+              call chkpt(6,(/task,iq,m,oct1,oct2,iw/),'task,q-point &
+                   &index, loc. field., opt. comp. 1, opt. comp. 2, w-point; &
+                   &Dyson equation')
               ! read Kohn-Sham response function
               call getx0(tq0,iq,iw,trim(filnam),'',chi0,chi0wg,&
                    chi0h)

@@ -91,7 +91,7 @@ program main
 #ifdef TETRA
 #ifdef XS
            ! tasks for excited states
-        case(23,301:399,400:499)
+        case(23,301:399,400:499,700:799)
            call xsmain
         case(900)
            ! generate portable ASCII STATE.xml file from STATE.OUT file
