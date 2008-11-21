@@ -517,9 +517,9 @@ module modxs
   !     numerical constants     !
   !-----------------------------!
   ! Kronecker delta
-  integer, parameter :: krondelta(3,3) = (/ (/1,0,0/), (/0,1,0/), (/0,0,1/) /)
+  integer, parameter :: krondelta(3,3)=reshape((/1,0,0, 0,1,0, 0,0,1/),(/3,3/))
   ! conversion from hartree to electron volt
-  real(8), parameter :: h2ev = 27.2114d0
+  real(8), parameter :: h2ev=27.2114d0
 
   !---------------------------------!
   !     miscellaneous variables     !

@@ -88,7 +88,7 @@ subroutine dfq(iq)
   complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:,:)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
-  real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,r1
+  real(8) :: tord,brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,r1
   integer :: n,i,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
   integer :: oct1,oct2,un,ig1,ig2
   logical :: tq0
@@ -100,6 +100,9 @@ subroutine dfq(iq)
      write(*,*)
      call terminate
   end if
+  ! set to time-ordered polarizability
+  tord=1.d0
+  if (task.eq.345) tord=-1.d0
   ! sampling of Brillouin zone
   bzsampl=0
   if (tetradf) bzsampl=1
@@ -345,7 +348,7 @@ subroutine dfq(iq)
               wou(wi:wf)=docc12(ist1,ist2)*wkpt(ik)/omega/(w(wi:wf)+ &
                    deou(ist1,ist2)+scis12(ist1,ist2)+zi*brd)
               wuo(wi:wf)=docc21(ist2,ist1)*wkpt(ik)/omega/(w(wi:wf)+ &
-                   deuo(ist2,ist1)+scis21(ist2,ist1)+zi*brd)
+                   deuo(ist2,ist1)+scis21(ist2,ist1)+tord*zi*brd)
               wouw(wi:wf)=wou(wi:wf)
               wuow(wi:wf)=wuo(wi:wf)
               wouh(wi:wf)=wou(wi:wf)

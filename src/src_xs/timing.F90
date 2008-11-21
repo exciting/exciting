@@ -17,7 +17,7 @@ subroutine xstiming
   complex(8), allocatable :: mz(:,:),mh(:,:),ma(:,:),mb(:,:)
   real(8), external :: polynom
   nlo=100
-  nup=1000
+  nup=2000
   ninc=100
   alpha=(2.d0,3.d0)
   beta=(4.d0,5.d0)
