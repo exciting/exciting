@@ -45,9 +45,12 @@ DMIX=.5
 end subroutine
 
  subroutine freearraysmixermsec()
+ character(256), external:: outfilenamestring
+	character(256)::filetag
+	filetag="BROYDEN"
  deallocate(residual,last_outputp)
  deallocate(PWHIST,FHIST,CLMHIST)
- open(23,file="BROYDEN.OUT")
+ open(23,file=outfilenamestring(filetag,1))
  close(23,STATUS='DELETE')
 end subroutine
 
