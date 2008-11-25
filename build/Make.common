@@ -20,15 +20,15 @@ libs:libbzint.a	libblas.a liblapack.a fftlib.a leblaiklib.a libarpack.a
 
 libblas.a: 
 	cp -f make.inc ../..
-	cd ../../src/BLAS && make clean && make
-	cp ../../src/BLAS/libblas.a .
-	cd ../../src/BLAS && make clean
+	cd ../../src/BLAS-3.1.1 && make clean && make
+	cp ../../src/BLAS-3.1.1/libblas.a .
+	cd ../../src/BLAS-3.1.1 && make clean
 
 liblapack.a: 
 	cp -f make.inc ../..
-	cd ../../src/LAPACK && make clean && make
-	cp ../../src/LAPACK/liblapack.a .
-	cd ../../src/LAPACK && make clean
+	cd ../../src/LAPACK-3.1.1 && make clean && make
+	cp ../../src/LAPACK-3.1.1/liblapack.a .
+	cd ../../src/LAPACK-3.1.1 && make clean
 
 fftlib.a:
 	cp -f make.inc ../..
