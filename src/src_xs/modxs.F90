@@ -282,8 +282,8 @@ module modxs
   !------------------------------------------!
   !     response and dielectric functions    !
   !------------------------------------------!
-  ! type of response function (time-ordered/retarded/advanced)
-  character(4) :: rsptype
+  ! type of response function (time-ordered/retarded)
+  character(32) :: rsptype
   ! true if analytic continuation to the real axis is to be performed
   logical :: acont
   ! number of energy intervals

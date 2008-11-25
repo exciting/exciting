@@ -224,7 +224,7 @@ emattype=1
 lmaxemat=3
 lmaxdielt=14
 nleblaik=5810
-rsptype='reta'
+rsptype='causal'
 acont=.false.
 nwacont=0
 broad=0.01d0
@@ -1107,7 +1107,8 @@ case('lmaxdielt')
   end if
 case('rsptype')
   read(50,*,err=20) rsptype
-  if ((rsptype.ne.'tord').and.(rsptype.ne.'reta')) then
+  if ((trim(adjustl(rsptype)).ne.'tord').and.(trim(adjustl(rsptype)) &
+     .ne.'causal')) then
     write(*,*)
     write(*,'("Error(readinput/xs): invalid rsptype : ",a)') rsptype
     write(*,*)

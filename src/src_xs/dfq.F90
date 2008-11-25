@@ -102,7 +102,13 @@ subroutine dfq(iq)
   end if
   ! set to time-ordered polarizability
   tord=1.d0
-  if (task.eq.345) tord=-1.d0
+  if (trim(adjustl(rsptype)).eq.'tord') then
+     tord=-1.d0
+     write(unitout,*)
+     write(unitout,'("Info(dfq): Using time-ordered Green functions")')
+     write(unitout,*)
+     call flushifc(unitout)
+  end if
   ! sampling of Brillouin zone
   bzsampl=0
   if (tetradf) bzsampl=1

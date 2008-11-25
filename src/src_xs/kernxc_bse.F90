@@ -60,8 +60,7 @@ subroutine kernxc_bse
   integer, external :: idxkkp,l2int
   logical, external :: tqgamma
   ! set to time-ordered polarizability
-  tord=1.d0
-  if (task.eq.345) tord=-1.d0
+  tord=-1.d0
   brd=broad
   emattype=2
   call init0
@@ -351,13 +350,13 @@ subroutine kernxc_bse
            ! set up energy denominators
            den1(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
-           den1a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+tord*zi*brd)
-           den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+tord*zi* &
+           den1a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi*brd)
+           den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi* &
                 brd)**2
            ! update kernel
            do iw=1,nwdf
-!              ! resonant contribution only
-!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+!!$              ! resonant contribution only
+!!$              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
               ! mimic antiresonant contribution by adding a term c.c.(-w)
               ! as known from response functions
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &

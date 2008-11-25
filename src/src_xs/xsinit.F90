@@ -175,14 +175,6 @@ subroutine xsinit
   !----------------------------!
   tscreen=.false.
   if ((task.ge.400).and.(task.le.499)) tscreen=.true.
-  ! type of response functions
-  if (rsptype.ne.'reta') then
-     write(unitout,*)
-     write(unitout,'("Error(xsinit): only retarded response functions &
-     &implemented")')
-     write(unitout,*)
-     call terminate
-  end if
   ! tetrahedron method not implemented for analytic continuation
   if (tetradf.and.acont) then
      write(unitout,*)
