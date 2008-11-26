@@ -30,12 +30,10 @@ contains
     call getunit(unit1)
     open(unit1,file=trim(fn),action='write')
     ! include dynamical structure factor
-    !TODO: *** dynamical structure factor like in Weissker, PRL 2006
+    ! Dynamical structure factor; expression taken from Weissker, PRL 2006
+    ! Units of dynamical structure factor are Hartree^-1
     write(unit1,'(3g18.10)') (w(iw)*escale,loss(iw),loss(iw)* &
-         (gqc(1,iq)**2/(4.d0*pi**2*chgtot/omega)),iw=1,n)
-!!$    ! *** dynamical structure factor like in Idoia thesis
-!!$    write(unit1,'(3g18.10)') (w(iw),loss(iw),loss(iw)* &
-!!$         gqc(1,iq)**2*omega/(twopi),iw=1,n)
+         (gqc(1,iq)**2/(4.d0*pi**2*chgval/omega)),iw=1,n)
     ! write relevant parameters to file
     call writevars(unit1,iq)
     close(unit1)
