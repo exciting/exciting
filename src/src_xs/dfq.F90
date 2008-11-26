@@ -240,7 +240,7 @@ subroutine dfq(iq)
   do ik=1,nkpt
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
-     call chkpt(3,(/task,iq,ik/),'dfq: q-point index, k-point index')
+     call chkpt(3,(/task,iq,ik/),'dfq: task, q-point index, k-point index')
      cpuosc=0.d0
      cpuupd=0.d0
      call cpu_time(cpu0)

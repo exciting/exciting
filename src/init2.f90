@@ -190,7 +190,7 @@ do iq=1,nqpt
    call genylmgq(iq,lmaxvr)
 end do
 t1=maxval(gqc(1,:))
-if (gqmax.lt.t1) then
+if ((task.ge.400).and.(task.le.499).and.(gqmax.lt.t1)) then
    write(*,*)
    write(*,'("Error(init2): gqmax too small:",g18.10)') gqmax
    write(*,'(" smalles possible value:",g18.10)') t1

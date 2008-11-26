@@ -126,6 +126,33 @@ files for $selector saved in directory "$dir"
 EOF
 }
 
+#------------------#
+#   run exciting   #
+#------------------#
+RUN ()
+{
+    if [ -x ./exciting ]; then
+        exex="./exciting"
+    fi
+    if [ ${EXCITINGROOT:+1} ]; then
+        if [ -x ${EXCITINGROOT}/src/exciting ]; then
+	    exex="${EXCITINGROOT}/src/exciting"
+	fi
+	if [ -x ${EXCITINGROOT}/build/serial/exciting ]; then
+	    exex="${EXCITINGROOT}/build/serial/exciting"
+	fi
+    fi
+    if [ "$exex" == "" ]; then
+        echo
+    	echo "Error: no Exciting executable neither in current working directory"
+	echo "nor within the Exiting root directory"
+	echo "Abort."
+	echo
+	exit 1
+    fi
+    (date && time $exex && date) > output.exciting 2> outerr.exciting &
+}
+
 #-----------------------------------#
 #   list parameters of inputfiles   #
 #-----------------------------------#
@@ -328,6 +355,9 @@ CHKENV
 
 # selection
 case "$1" in
+    run)
+    	RUN
+	;;
     dparam)
 	DPARAM "$2"
 	;;
@@ -351,7 +381,7 @@ case "$1" in
 	;;
     *)
 	echo
-	echo $" Usage: `basename $0` {info|monscf|montd|dparam|param|kill|save}"
+	echo $" Usage: `basename $0` {run|info|monscf|montd|dparam|param|kill|save}"
 	echo ""
 	exit 1
 esac
