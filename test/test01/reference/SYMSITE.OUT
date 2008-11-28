@@ -1,10 +1,10 @@
- 
+
 (rotation matrices are in lattice coordinates)
- 
- 
+
+
 Species :    1 (Al), atom :    1
   48 : nsymsite
- 
+
  Site symmetry :    1
   spatial rotation :
    1   0   0
@@ -14,7 +14,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    2
   spatial rotation :
   -1  -1  -1
@@ -24,7 +24,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    3
   spatial rotation :
   -1  -1  -1
@@ -34,7 +34,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    4
   spatial rotation :
   -1  -1  -1
@@ -44,7 +44,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    5
   spatial rotation :
   -1  -1  -1
@@ -54,7 +54,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    6
   spatial rotation :
   -1  -1  -1
@@ -64,7 +64,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    7
   spatial rotation :
   -1   0   0
@@ -74,7 +74,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    8
   spatial rotation :
   -1   0   0
@@ -84,7 +84,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :    9
   spatial rotation :
   -1   0   0
@@ -94,7 +94,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   10
   spatial rotation :
   -1   0   0
@@ -104,7 +104,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   11
   spatial rotation :
   -1   0   0
@@ -114,7 +114,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   12
   spatial rotation :
   -1   0   0
@@ -124,7 +124,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   13
   spatial rotation :
    0  -1   0
@@ -134,7 +134,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   14
   spatial rotation :
    0  -1   0
@@ -144,7 +144,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   15
   spatial rotation :
    0  -1   0
@@ -154,7 +154,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   16
   spatial rotation :
    0  -1   0
@@ -164,7 +164,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   17
   spatial rotation :
    0  -1   0
@@ -174,7 +174,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   18
   spatial rotation :
    0  -1   0
@@ -184,7 +184,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   19
   spatial rotation :
    0   0  -1
@@ -194,7 +194,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   20
   spatial rotation :
    0   0  -1
@@ -204,7 +204,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   21
   spatial rotation :
    0   0  -1
@@ -214,7 +214,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   22
   spatial rotation :
    0   0  -1
@@ -224,7 +224,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   23
   spatial rotation :
    0   0  -1
@@ -234,7 +234,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   24
   spatial rotation :
    0   0  -1
@@ -244,7 +244,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   25
   spatial rotation :
    0   0   1
@@ -254,7 +254,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   26
   spatial rotation :
    0   0   1
@@ -264,7 +264,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   27
   spatial rotation :
    0   0   1
@@ -274,7 +274,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   28
   spatial rotation :
    0   0   1
@@ -284,7 +284,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   29
   spatial rotation :
    0   0   1
@@ -294,7 +294,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   30
   spatial rotation :
    0   0   1
@@ -304,7 +304,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   31
   spatial rotation :
    0   1   0
@@ -314,7 +314,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   32
   spatial rotation :
    0   1   0
@@ -324,7 +324,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   33
   spatial rotation :
    0   1   0
@@ -334,7 +334,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   34
   spatial rotation :
    0   1   0
@@ -344,7 +344,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   35
   spatial rotation :
    0   1   0
@@ -354,7 +354,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   36
   spatial rotation :
    0   1   0
@@ -364,7 +364,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   37
   spatial rotation :
    1   0   0
@@ -374,7 +374,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   38
   spatial rotation :
    1   0   0
@@ -384,7 +384,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   39
   spatial rotation :
    1   0   0
@@ -394,7 +394,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   40
   spatial rotation :
    1   0   0
@@ -404,7 +404,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   41
   spatial rotation :
    1   0   0
@@ -414,7 +414,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   42
   spatial rotation :
   -1  -1  -1
@@ -424,7 +424,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   43
   spatial rotation :
    1   1   1
@@ -434,7 +434,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   44
   spatial rotation :
    1   1   1
@@ -444,7 +444,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   45
   spatial rotation :
    1   1   1
@@ -454,7 +454,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   46
   spatial rotation :
    1   1   1
@@ -464,7 +464,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   47
   spatial rotation :
    1   1   1
@@ -474,7 +474,7 @@ Species :    1 (Al), atom :    1
    1   0   0
    0   1   0
    0   0   1
- 
+
  Site symmetry :   48
   spatial rotation :
    1   1   1

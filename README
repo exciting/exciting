@@ -20,13 +20,15 @@ See the file COPYING for license details.
     along with EXCITING; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-This is a beta release of the EXCITING FP-LAPW code. The code can be compiled by
-first running "./setup" in this directory followed by "make all". This will
-compile the main code as well as several auxiliary programs. For optimal
-performance we recommend that you tune the Fortran compiler options in the file
-"make.inc" and use machine-optimised BLAS/LAPACK libraries. Setting the OpenMP
-options of your compiler will enable EXCITING to run in parallel mode on
-multiprocessor systems.
+This is a beta release of the EXCITING FP-LAPW code. The code can be compiled  by 
+running the setup script
+
+perl setup.pl
+
+in this directory. After choosing the platform you will be asked wether you want 
+to build a k-point parallel version using MPI and a version that uses multithreaded 
+BLAS/LAPACK. Choose yes or no dependent on if you have the required libraries 
+installed on your system. You can manually edit the make.inc in the build directory.
 
 The auxiliary programs include "spacegroup" for producing crystal geometries
 from spacegroup data, "species" for generating species files, and "eos" for
