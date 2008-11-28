@@ -1,10 +1,94 @@
 
+#define _MAXSPECIES_ 8
+#define _MAXATOMS_ 200
+#define _MAXLAPW_ 50
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
+module mod_atoms
 
-module modmain
+!--------------------------!
+!     atomic variables     !
+!--------------------------!
+! maximum allowed species
 
+! maximum allowed atoms per species
+
+! number of species
+integer nspecies
+! number of atoms for each species
+integer natoms(_MAXSPECIES_)
+! maximum number of atoms over all the species
+integer natmmax
+! total number of atoms
+integer natmtot
+! index to atoms and species
+integer idxas(_MAXATOMS_,_MAXSPECIES_)
+! molecule is .true. is the system is an isolated molecule
+logical molecule
+! primcell is .true. if primitive unit cell is to be found automatically
+logical primcell
+! atomic positions in lattice coordinates
+real(8) atposl(3,_MAXATOMS_,_MAXSPECIES_)
+! atomic positions in Cartesian coordinates
+real(8) atposc(3,_MAXATOMS_,_MAXSPECIES_)
+
+!----------------------------------!
+!     atomic species variables     !
+!----------------------------------!
+! species files path
+character(256) sppath
+! species filenames
+character(256) spfname(_MAXSPECIES_)
+! species name
+character(256) spname(_MAXSPECIES_)
+! species symbol
+character(256) spsymb(_MAXSPECIES_)
+! species nuclear charge
+real(8) spzn(_MAXSPECIES_)
+! ptnucl is .true. if the nuclei are to be treated as point charges, if .false.
+! the nuclei have a finite spherical distribution
+logical ptnucl
+! species electronic charge
+real(8) spze(_MAXSPECIES_)
+! species mass
+real(8) spmass(_MAXSPECIES_)
+! smallest radial point for each species
+real(8) sprmin(_MAXSPECIES_)
+! effective infinity for species
+real(8) sprmax(_MAXSPECIES_)
+! number of radial points to effective infinity for each species
+integer spnr(_MAXSPECIES_)
+! maximum spnr over all the species
+integer spnrmax
+! maximum allowed states for each species
+integer, parameter :: maxspst=40
+! number of states for each species
+integer spnst(_MAXSPECIES_)
+! maximum spnst over all the species
+integer spnstmax
+! state principle quantum number for each species
+integer spn(maxspst,_MAXSPECIES_)
+! state l value for each species
+integer spl(maxspst,_MAXSPECIES_)
+! state k value for each species
+integer spk(maxspst,_MAXSPECIES_)
+! spcore is .true. if species state is core
+logical spcore(maxspst,_MAXSPECIES_)
+! state eigenvalue for each species
+real(8) speval(maxspst,_MAXSPECIES_)
+! state occupancy for each species
+real(8) spocc(maxspst,_MAXSPECIES_)
+! species radial mesh
+real(8), allocatable :: spr(:,:)
+! species charge density
+real(8), allocatable :: sprho(:,:)
+! species self-consistent potential
+real(8), allocatable :: spvr(:,:)
+
+end module
+
+module mod_lattice
 !----------------------------!
 !     lattice parameters     !
 !----------------------------!
@@ -20,93 +104,15 @@ real(8) binv(3,3)
 real(8) omega
 ! any vector with length less than epslat is considered zero
 real(8) epslat
-
-!--------------------------!
-!     atomic variables     !
-!--------------------------!
-! maximum allowed species
-integer, parameter :: maxspecies=8
-! maximum allowed atoms per species
-integer, parameter :: maxatoms=200
-! number of species
-integer nspecies
-! number of atoms for each species
-integer natoms(maxspecies)
-! maximum number of atoms over all the species
-integer natmmax
-! total number of atoms
-integer natmtot
-! index to atoms and species
-integer idxas(maxatoms,maxspecies)
-! molecule is .true. is the system is an isolated molecule
-logical molecule
-! primcell is .true. if primitive unit cell is to be found automatically
-logical primcell
-! atomic positions in lattice coordinates
-real(8) atposl(3,maxatoms,maxspecies)
-! atomic positions in Cartesian coordinates
-real(8) atposc(3,maxatoms,maxspecies)
-
-!----------------------------------!
-!     atomic species variables     !
-!----------------------------------!
-! species files path
-character(256) sppath
-! species filenames
-character(256) spfname(maxspecies)
-! species name
-character(256) spname(maxspecies)
-! species symbol
-character(256) spsymb(maxspecies)
-! species nuclear charge
-real(8) spzn(maxspecies)
-! ptnucl is .true. if the nuclei are to be treated as point charges, if .false.
-! the nuclei have a finite spherical distribution
-logical ptnucl
-! species electronic charge
-real(8) spze(maxspecies)
-! species mass
-real(8) spmass(maxspecies)
-! smallest radial point for each species
-real(8) sprmin(maxspecies)
-! effective infinity for species
-real(8) sprmax(maxspecies)
-! number of radial points to effective infinity for each species
-integer spnr(maxspecies)
-! maximum spnr over all the species
-integer spnrmax
-! maximum allowed states for each species
-integer, parameter :: maxspst=40
-! number of states for each species
-integer spnst(maxspecies)
-! maximum spnst over all the species
-integer spnstmax
-! state principle quantum number for each species
-integer spn(maxspst,maxspecies)
-! state l value for each species
-integer spl(maxspst,maxspecies)
-! state k value for each species
-integer spk(maxspst,maxspecies)
-! spcore is .true. if species state is core
-logical spcore(maxspst,maxspecies)
-! state eigenvalue for each species
-real(8) speval(maxspst,maxspecies)
-! state occupancy for each species
-real(8) spocc(maxspst,maxspecies)
-! species radial mesh
-real(8), allocatable :: spr(:,:)
-! species charge density
-real(8), allocatable :: sprho(:,:)
-! species self-consistent potential
-real(8), allocatable :: spvr(:,:)
-
+end module
+module mod_muffin_tin
 !---------------------------------------------------------------!
 !     muffin-tin radial mesh and angular momentum variables     !
 !---------------------------------------------------------------!
 ! radial function integration and differentiation polynomial order
 integer nprad
 ! number of muffin-tin radial points for each species
-integer nrmt(maxspecies)
+integer nrmt(_MAXSPECIES_)
 ! maximum nrmt over all the species
 integer nrmtmax
 ! autormt is .true. for automatic determination of muffin-tin radii
@@ -114,19 +120,19 @@ logical autormt
 ! parameters for determining muffin-tin radii automatically
 real(8) rmtapm(2)
 ! muffin-tin radii
-real(8) rmt(maxspecies)
+real(8) rmt(_MAXSPECIES_)
 ! species for which the muffin-tin radius will be used for calculating gkmax
 integer isgkmax
 ! radial step length for coarse mesh
 integer lradstp
 ! number of coarse radial mesh points
-integer nrcmt(maxspecies)
+integer nrcmt(_MAXSPECIES_)
 ! maximum nrcmt over all the species
 integer nrcmtmax
 ! coarse muffin-tin radial mesh
 real(8), allocatable :: rcmt(:,:)
 ! maximum allowable angular momentum for augmented plane waves
-integer, parameter :: maxlapw=50
+
 ! maximum angular momentum for augmented plane waves
 integer lmaxapw
 ! (lmaxapw+1)^2
@@ -146,10 +152,12 @@ integer lmaxinr
 ! (lmaxinr+1)^2
 integer lmmaxinr
 ! number of radial points to the inner part of the muffin-tin
-integer nrmtinr(maxspecies)
+integer nrmtinr(_MAXSPECIES_)
 ! index to (l,m) pairs
 integer, allocatable :: idxlm(:,:)
 
+end module
+module mod_spin
 !--------------------------------!
 !     spin related variables     !
 !--------------------------------!
@@ -168,17 +176,17 @@ real(8) momfix(3)
 ! fixed spin moment global effective field in Cartesian coordinates
 real(8) bfsmc(3)
 ! muffin-tin fixed spin moments
-real(8) mommtfix(3,maxatoms,maxspecies)
+real(8) mommtfix(3,_MAXATOMS_,_MAXSPECIES_)
 ! muffin-tin fixed spin moment effective fields in Cartesian coordinates
-real(8) bfsmcmt(3,maxatoms,maxspecies)
+real(8) bfsmcmt(3,_MAXATOMS_,_MAXSPECIES_)
 ! fixed spin moment field mixing parameter
 real(8) taufsm
 ! second-variational spinor dimension (1 or 2)
 integer nspinor
 ! external magnetic field in each muffin-tin in lattice coordinates
-real(8) bflmt(3,maxatoms,maxspecies)
+real(8) bflmt(3,_MAXATOMS_,_MAXSPECIES_)
 ! external magnetic field in each muffin-tin in Cartesian coordinates
-real(8) bfcmt(3,maxatoms,maxspecies)
+real(8) bfcmt(3,_MAXATOMS_,_MAXSPECIES_)
 ! global external magnetic field in lattice coordinates
 real(8) bfieldl(3)
 ! global external magnetic field in Cartesian coordinates
@@ -193,7 +201,9 @@ integer nspnfv
 real(8) vqlss(3)
 ! spin-spiral q-vector in Cartesian coordinates
 real(8) vqcss(3)
+end module
 
+module mod_symmetry
 !----------------------------!
 !     symmetry variables     !
 !----------------------------!
@@ -231,7 +241,9 @@ integer, allocatable :: nsymsite(:)
 integer, allocatable :: lsplsyms(:,:)
 ! site symmetry global spin rotation element in lattice point group
 integer, allocatable :: lspnsyms(:,:)
+end module
 
+module mod_Gvector
 !--------------------------------!
 !     G-vector set variables     !
 !--------------------------------!
@@ -265,7 +277,8 @@ complex(8), allocatable :: cfunig(:)
 real(8), allocatable :: cfunir(:)
 ! damping coefficient for characteristic function
 real(8) cfdamp
-
+end module
+module mod_kpoint
 !-------------------------------!
 !     k-point set variables     !
 !-------------------------------!
@@ -309,7 +322,8 @@ real(8) vklem(3)
 real(8) deltaem
 ! number of displacements in each direction
 integer ndspem
-
+end module
+module mod_Gkvektor
 !----------------------------------!
 !     G+k-vector set variables     !
 !----------------------------------!
@@ -333,7 +347,8 @@ real(8), allocatable :: gkc(:,:,:)
 real(8), allocatable :: tpgkc(:,:,:,:)
 ! structure factor for the G+k-vectors
 complex(8), allocatable :: sfacgk(:,:,:,:)
-
+end module
+module mod_qpoint
 !-------------------------------!
 !     q-point set variables     !
 !-------------------------------!
@@ -355,7 +370,8 @@ real(8), allocatable :: vqc(:,:)
 real(8), allocatable :: wqpt(:)
 ! weights associated with the integral of 1/q^2
 real(8), allocatable :: wiq2(:)
-
+end module
+module mod_SHT
 !-----------------------------------------------------!
 !     spherical harmonic transform (SHT) matrices     !
 !-----------------------------------------------------!
@@ -375,7 +391,9 @@ complex(8), allocatable :: zfshtapw(:,:)
 complex(8), allocatable :: zbshtvr(:,:)
 ! complex forward SHT matrix for lmaxvr
 complex(8), allocatable :: zfshtvr(:,:)
+end module
 
+module mod_potentioal_and_density
 !-----------------------------------------!
 !     potential and density variables     !
 !-----------------------------------------!
@@ -433,7 +451,8 @@ integer mixtype
 real(8) beta0
 real(8) betainc
 real(8) betadec
-
+end module
+module mod_charge_and_moment
 !-------------------------------------!
 !     charge and moment variables     !
 !-------------------------------------!
@@ -469,24 +488,25 @@ real(8) momir(3)
 real(8), allocatable :: mommt(:,:)
 ! total muffin-tin moment
 real(8) mommttot(3)
-
+end module
+module mod_APW_LO
 !-----------------------------------------!
 !     APW and local-orbital variables     !
 !-----------------------------------------!
 ! maximum allowable APW order
 integer, parameter :: maxapword=3
 ! APW order
-integer apword(0:maxlapw,maxspecies)
+integer apword(0:_MAXLAPW_,_MAXSPECIES_)
 ! maximum of apword over all angular momenta and species
 integer apwordmax
 ! APW initial linearisation energies
-real(8) apwe0(maxapword,0:maxlapw,maxspecies)
+real(8) apwe0(maxapword,0:_MAXLAPW_,_MAXSPECIES_)
 ! APW linearisation energies
 real(8), allocatable :: apwe(:,:,:)
 ! APW derivative order
-integer apwdm(maxapword,0:maxlapw,maxspecies)
+integer apwdm(maxapword,0:_MAXLAPW_,_MAXSPECIES_)
 ! apwve is .true. if the linearisation energies are allowed to vary
-logical apwve(maxapword,0:maxlapw,maxspecies)
+logical apwve(maxapword,0:_MAXLAPW_,_MAXSPECIES_)
 ! APW radial functions
 real(8), allocatable :: apwfr(:,:,:,:,:)
 ! derivate of radial functions at the muffin-tin surface
@@ -496,32 +516,33 @@ integer, parameter :: maxlorb=20
 ! maximum allowable local-orbital order
 integer, parameter :: maxlorbord=4
 ! number of local-orbitals
-integer nlorb(maxspecies)
+integer nlorb(_MAXSPECIES_)
 ! maximum nlorb over all species
 integer nlomax
 ! total number of local-orbitals
 integer nlotot
 ! local-orbital order
-integer lorbord(maxlorb,maxspecies)
+integer lorbord(maxlorb,_MAXSPECIES_)
 ! local-orbital angular momentum
-integer lorbl(maxlorb,maxspecies)
+integer lorbl(maxlorb,_MAXSPECIES_)
 ! maximum lorbl over all species
 integer lolmax
 ! (lolmax+1)^2
 integer lolmmax
 ! local-orbital initial energies
-real(8) lorbe0(maxlorbord,maxlorb,maxspecies)
+real(8) lorbe0(maxlorbord,maxlorb,_MAXSPECIES_)
 ! local-orbital energies
 real(8), allocatable :: lorbe(:,:,:)
 ! local-orbital derivative order
-integer lorbdm(maxlorbord,maxlorb,maxspecies)
+integer lorbdm(maxlorbord,maxlorb,_MAXSPECIES_)
 ! lorbve is .true. if the linearisation energies are allowed to vary
-logical lorbve(maxlorbord,maxlorb,maxspecies)
+logical lorbve(maxlorbord,maxlorb,_MAXSPECIES_)
 ! local-orbital radial functions
 real(8), allocatable :: lofr(:,:,:,:)
 ! energy step size for locating the band energy
 real(8) deband
-
+end module
+module mod_eigensystem
 !-------------------------------------------!
 !     overlap and Hamiltonian variables     !
 !-------------------------------------------!
@@ -552,7 +573,8 @@ logical tseqit
 integer nseqit
 ! iterative solver step length
 real(8) tauseq
-
+end module
+module mod_eigenvalue_occupancy
 !--------------------------------------------!
 !     eigenvalue and occupancy variables     !
 !--------------------------------------------!
@@ -592,6 +614,8 @@ integer, parameter :: maxkst=20
 integer nkstlist
 ! user-defined list of k-point and state indices
 integer kstlist(3,maxkst)
+end module
+module mod_corestate
 
 !------------------------------!
 !     core state variables     !
@@ -602,7 +626,8 @@ real(8), allocatable :: evalcr(:,:)
 real(8), allocatable :: rwfcr(:,:,:,:)
 ! radial charge density for core states
 real(8), allocatable :: rhocr(:,:)
-
+end module
+module mod_energy
 !--------------------------!
 !     energy variables     !
 !--------------------------!
@@ -640,7 +665,8 @@ real(8) engyc
 real(8) engycbc
 ! total energy
 real(8) engytot
-
+end module
+module mod_force
 !-------------------------!
 !     force variables     !
 !-------------------------!
@@ -664,7 +690,8 @@ real(8) forcemax
 real(8) tau0atm
 ! step size parameters for each atom
 real(8), allocatable :: tauatm(:)
-
+end module
+module mod_convergence
 !-------------------------------!
 !     convergence variables     !
 !-------------------------------!
@@ -680,7 +707,8 @@ real(8) epsengy
 real(8) epsforce
 !curent convergence
 real(8) currentconvergence
-
+end module
+module mod_DOS_optics_response
 !----------------------------------------------------------!
 !     density of states, optics and response variables     !
 !----------------------------------------------------------!
@@ -708,7 +736,7 @@ logical intraband
 ! Lorentzian lineshape in optics
 logical :: optltz
 ! broadening for Lorentzian lineshape
-real(8) :: optswidth  
+real(8) :: optswidth
 !</sag>
 logical lmirep
 ! spin-quantisation axis in Cartesian coordinates used when plotting the
@@ -717,7 +745,8 @@ real(8) sqados(3)
 ! q-vector in lattice coordinates for calculating the matrix elements
 ! < i,k+q | exp(iq.r) | j,k >
 real(8) vecql(3)
-
+end module
+module mod_plotting
 !-------------------------------------!
 !     1D/2D/3D plotting variables     !
 !-------------------------------------!
@@ -743,7 +772,8 @@ real(8) vclp3d(3,4)
 integer np3d(3)
 ! number of states for plotting Fermi surface
 integer nstfsp
-
+end module
+module mod_OEP_HF
 !----------------------------------------!
 !     OEP and Hartree-Fock variables     !
 !----------------------------------------!
@@ -762,7 +792,8 @@ complex(8), allocatable :: zvxmt(:,:,:)
 complex(8), allocatable :: zvxir(:)
 complex(8), allocatable :: zbxmt(:,:,:,:)
 complex(8), allocatable :: zbxir(:,:)
-
+end module
+module mod_LDA_LU
 !-------------------------!
 !     LDA+U variables     !
 !-------------------------!
@@ -772,9 +803,9 @@ integer ldapu
 integer, parameter :: lmaxlu=3
 integer, parameter :: lmmaxlu=(lmaxlu+1)**2
 ! angular momentum for each species
-integer llu(maxspecies)
+integer llu(_MAXSPECIES_)
 ! U and J values for each species
-real(8) ujlu(2,maxspecies)
+real(8) ujlu(2,_MAXSPECIES_)
 ! LDA+U density matrix
 complex(8), allocatable :: dmatlu(:,:,:,:,:)
 ! LDA+U potential matrix in (l,m) basis
@@ -785,14 +816,15 @@ real(8), allocatable :: engyalu(:)
 real(8), allocatable :: alphalu(:)
 ! energy from the LDA+U correction
 real(8) engylu
-
+end module
+module mod_phonon
 !--------------------------!
 !     phonon variables     !
 !--------------------------!
 ! number of primitive unit cells in phonon supercell
 integer nphcell
 ! Cartesian offset vectors for each primitive cell in the supercell
-real(8) vphcell(3,maxatoms)
+real(8) vphcell(3,_MAXATOMS_)
 ! phonon displacement distance
 real(8) deltaph
 ! original lattice vectors
@@ -800,10 +832,10 @@ real(8) avec0(3,3)
 ! original inverse of lattice vector matrix
 real(8) ainv0(3,3)
 ! original number of atoms
-integer natoms0(maxspecies)
+integer natoms0(_MAXSPECIES_)
 integer natmtot0
 ! original atomic positions in Cartesian coordinates
-real(8) atposc0(3,maxatoms,maxspecies)
+real(8) atposc0(3,_MAXATOMS_,_MAXSPECIES_)
 ! original G-vector grid sizes
 integer ngrid0(3)
 integer ngrtot0
@@ -816,7 +848,8 @@ integer nphwrt
 real(8), allocatable :: vqlwrt(:,:)
 ! Coulomb pseudopotential
 real(8) mustar
-
+end module
+module mod_RDMFT
 !-------------------------------------------------------------!
 !     reduced density matrix functional (RDMFT) variables     !
 !-------------------------------------------------------------!
@@ -844,7 +877,8 @@ real(8) rdmalpha
 real(8) rdmtemp
 ! entropy
 real(8) rdmentrpy
-
+end module
+module mod_timing
 !--------------------------!
 !     timing variables     !
 !--------------------------!
@@ -862,7 +896,8 @@ real(8) timerho
 real(8) timepot
 ! force calculation
 real(8) timefor
-
+end module
+module mod_constants
 !-----------------------------!
 !     numerical constants     !
 !-----------------------------!
@@ -889,7 +924,8 @@ data sigmat / (0.d0,0.d0), (1.d0,0.d0), (1.d0,0.d0), (0.d0,0.d0), &
               (1.d0,0.d0), (0.d0,0.d0), (0.d0,0.d0),(-1.d0,0.d0) /
 ! Boltzmann constant in Hartree/kelvin (CODATA 2006)
 real(8), parameter :: kboltz=3.166815343d-6
-
+end module
+module mod_misc
 !---------------------------------!
 !     miscellaneous variables     !
 !---------------------------------!
@@ -925,3 +961,36 @@ character(80) notes(maxnlns)
 
 end module
 
+module modmain
+use mod_atoms
+use mod_lattice
+use mod_muffin_tin
+use mod_spin
+use mod_Gvector
+use mod_symmetry
+use mod_kpoint
+use mod_SHT
+use mod_qpoint
+use mod_Gkvektor
+use mod_potentioal_and_density
+use mod_charge_and_moment
+use mod_APW_LO
+use mod_eigensystem
+use mod_eigenvalue_occupancy
+use mod_corestate
+use mod_energy
+use mod_force
+use mod_plotting
+use mod_DOS_optics_response
+use mod_LDA_LU
+use mod_RDMFT
+use mod_misc
+use mod_timing
+use mod_constants
+use mod_phonon
+use mod_OEP_HF
+use mod_convergence
+integer,parameter::maxspecies=_MAXSPECIES_
+integer,parameter::maxatoms= _MAXATOMS_
+integer,parameter::maxlapw=_MAXLAPW_
+end module
