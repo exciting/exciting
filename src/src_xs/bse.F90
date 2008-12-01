@@ -155,6 +155,25 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
   do iknr=1,nkptnr
      call getevalsv(vkl(1,iknr),evalsv(1,iknr))
   end do
+  ! determine gap
+  call getbsediag
+  write(unitout,'("Info(bse): read diagonal of BSE kernel")')
+  write(unitout,'(" mean value : ",2g18.10)') bsed
+  egap=1.d8
+  do iknr=1,nkptnr
+     do ist1=1+nvdif,nst1
+        do ist3=1,nst3-ncdif
+	   egap=min(egap,evalsv(ist3+istocc,iknr)-evalsv(ist1,iknr)+scissor)
+        end do
+      end do
+  end do
+  write(unitout,'("Info(bse): gap:",g18.10)') egap
+  if (egap.lt.epspot) then
+     write(unitout,*)
+     write(unitout,'("Error(bse): BSE needs system with gap")')
+     write(unitout,*)
+     call terminate
+  end if
   ! set up BSE-Hamiltonian
   ikkp=0
   do iknr=1,nkptnr
@@ -176,7 +195,7 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         case('rpa','singlet')
            call getbsemat('EXCLI.OUT',ikkp,nst1,nst3,excli)
         end select
-        egap=1.d8
+!!!        egap=1.d8
         ! set up matrix
         do ist1=1+nvdif,nst1
            do ist3=1,nst3-ncdif
@@ -187,8 +206,8 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
                     ! add diagonal term
                     if (s1.eq.s2) then
                        de=evalsv(ist3+istocc,iknr)-evalsv(ist1,iknr)+scissor
-                       ham(s1,s2)=ham(s1,s2)+de
-                       egap=min(egap,de)
+                       ham(s1,s2)=ham(s1,s2)+de-egap+bsed
+!!!                       egap=min(egap,de)
                     end if
                     ! add exchange term
                     select case(trim(bsetype))
@@ -261,8 +280,8 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         do s1=1,nexc
            ! Lorentzian lineshape
            spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
-                1.d0/(w(iw)-beval(s1)+zi*broad) + &
-                1.d0/(-w(iw)-beval(s1)-zi*broad) )
+                1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*broad) + &
+                1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*broad) )
         end do
      end do
      spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr

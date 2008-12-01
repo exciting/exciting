@@ -69,10 +69,10 @@ real(8) :: ts0,ts1
         ! The ALDA kernel does not depend on q in principle, but the G-mesh
         ! depends through its cutoff for G+q on q. It is independent of w.
         call fxcifc(fxctype,iq=iq,ng=m,fxcg=fxc)
-        ! add symmetrized Coulomb potential (is equal to unity matrix)
-        forall(j=1:m) 
-           fxc(j,j)=fxc(j,j)+1.d0
-        end forall
+!        ! add symmetrized Coulomb potential (is equal to unity matrix)
+!        forall(j=1:m) 
+!           fxc(j,j)=fxc(j,j)+1.d0
+!        end forall
      end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
