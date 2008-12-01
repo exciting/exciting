@@ -2,7 +2,7 @@ subroutine setup_YY(iscl,n,S,Y,YY)
 use modmixermsec,only:noldstepsmax,PWHIST,FHIST,CLMHIST,&
 YHIST,qmx,RedPred,RedOld,PM1,qmx_input,noldsteps,&
 MUSE,MSECINFO,IDSCALE,residual,dmix_last,DIAG,dmixout,rtrap
-use modmain,only:ngrtot
+use mod_Gvector,only:ngrtot
 implicit none
 integer,intent(in)::iscl,n
 real(8),intent(in)::S(n,noldstepsmax),Y(n,noldstepsmax)

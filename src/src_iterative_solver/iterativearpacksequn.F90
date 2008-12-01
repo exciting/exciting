@@ -1,10 +1,20 @@
 subroutine iterativearpacksecequn(ik,ispn,apwalm,vgpc,evalfv,evecfv)
 
   !USES:
-  use modmain
-  use modmpi
-  use sclcontroll
   use modfvsystem
+  use modmpi
+  use mod_eigensystem
+  use mod_timing
+  use mod_Gkvector
+  use mod_potential_and_density
+  use mod_muffin_tin
+  use mod_atoms,only:natmtot
+
+  use mod_spin,only:nspnfv
+  use mod_APW_LO,only:apwordmax
+  use mod_eigenvalue_occupancy,only:nstfv
+  use sclcontroll
+
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)

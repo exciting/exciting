@@ -1,6 +1,12 @@
 subroutine hamiltonandoverlapsetup(system,ngp,apwalm,igpig,vgpc)
 use modfvsystem
-use modmain
+use mod_eigensystem
+use mod_atoms
+use mod_timing
+use mod_muffin_tin
+use mod_APW_LO
+use mod_gkvector
+
 implicit none
 type(evsystem)::system
 integer, intent(in)::ngp
@@ -54,10 +60,10 @@ write(*,*)"apwalm", apwalm
 prefix="H"
  call HermiteanMatrixToFiles(system%hamilton,prefix)
 prefix="O"
- call HermiteanMatrixToFiles(system%overlap,prefix)		
- 	write(*,*)"wrote" 
+ call HermiteanMatrixToFiles(system%overlap,prefix)
+ 	write(*,*)"wrote"
 	stop
-#endif 
+#endif
 
 call timesec(cpu1)
  timemat= timemat+cpu1-cpu0

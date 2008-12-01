@@ -38,3 +38,4 @@ integer, allocatable :: lsplsyms(:,:)
 ! site symmetry global spin rotation element in lattice point group
 integer, allocatable :: lspnsyms(:,:)
 end module
+

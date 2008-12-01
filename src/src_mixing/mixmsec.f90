@@ -13,7 +13,8 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 ! residualnorm: measure for convergence
 ! n			: length of mixing vector
 !config params:
-	use modmain,only:beta0,betainc,betadec,chgir,chgmttot,chgtot
+	use mod_potential_and_density,only:beta0,betainc,betadec
+	use mod_charge_and_moment,only:chgir,chgmttot,chgtot
 ! persistent arrays and create/desdruct functions
 	use modmixermsec,only:residual,last_outputp,work2,work3,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
@@ -79,6 +80,8 @@ DMIXM=0.1
 		!
 		!          Output
 		!          broydenstep            Multi-Secant Step
+		!call MSEC2(Y,S,YY,residual,broydenstep,n,noldstepsmax,DMIXM,IFAIL,DELTA)
+
 	   if(IFAIL .ne. 0)then
                 write(21,*)':WARNING: Inversion of Multi-Secant Matrix Failed'
 

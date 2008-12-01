@@ -1,5 +1,5 @@
 module  modmixermsec
-use modmain,only:beta0
+
 real(8),allocatable:: residual(:),last_outputp(:),work2(:),work3(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
 integer:: record_of_last_iter,noldstepsin_file,noldsteps,MUSE,  IDSCALE

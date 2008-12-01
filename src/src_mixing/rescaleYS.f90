@@ -1,6 +1,8 @@
 subroutine rescaleYS(noldsteps,n,S,Y, potential,residual)
 use modmixermsec,only:noldstepsmax,PWHIST,FHIST,CLMHIST,yhist,FHIST,icond,scl_plane,MSECINFO
-use modmain,only:ngrtot,lmmaxvr,nrmtmax,natmtot
+use mod_Gvector,only:ngrtot
+use mod_muffin_tin,only:lmmaxvr,nrmtmax
+use mod_atoms,only:natmtot
 implicit none
 integer, intent(in)::n,noldsteps
 real(8),intent(inout)::S(n,noldstepsmax),Y(n,noldstepsmax)

@@ -4,7 +4,10 @@
 ! See the file COPYING for license details.
 
 subroutine mixerifc(mtype,n,v,dv,mode)
-use modmain
+!use modmain
+use mod_potential_and_density,only:beta0,betainc,betadec
+use mod_spin,only:spinpol
+use mod_convergence,only:iscl
 use modmixermsec
 use modmixadapt
 implicit none

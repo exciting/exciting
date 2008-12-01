@@ -9,8 +9,8 @@ use mod_symmetry
 use mod_kpoint
 use mod_SHT
 use mod_qpoint
-use mod_Gkvektor
-use mod_potentioal_and_density
+use mod_Gkvector
+use mod_potential_and_density
 use mod_charge_and_moment
 use mod_APW_LO
 use mod_eigensystem

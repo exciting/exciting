@@ -1,5 +1,5 @@
 #include "maxdefinitions.inc"
-module mod_Gkvektor
+module mod_Gkvector
 !----------------------------------!
 !     G+k-vector set variables     !
 !----------------------------------!

@@ -1,4 +1,5 @@
       subroutine MSEC2(Y,S,SY,F,STEP,MAXMIX,MEMORY,DMIX,IFAIL,DELTA)
+
            implicit real*8 (a-h,o-z)
            dimension STEP(MAXMIX),F(MAXMIX)
            dimension Y(MAXMIX,MEMORY),S(MAXMIX,MEMORY)
@@ -32,7 +33,7 @@
 !       Note: SY is negative here
         YT=SY
         DO N=1,MEMORY
-                YT(N,N)=SY(N,N)-Delta 
+                YT(N,N)=SY(N,N)-Delta
         ENDDO
 !
         ADD=-1D-4

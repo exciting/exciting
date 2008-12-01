@@ -1,5 +1,5 @@
 #include "maxdefinitions.inc"
-module mod_potentioal_and_density
+module mod_potential_and_density
 !-----------------------------------------!
 !     potential and density variables     !
 !-----------------------------------------!
