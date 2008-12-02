@@ -1,18 +1,20 @@
 #include ../make.inc
-
+SOURCEDIRS=	../../src/  \
+	../../src/main/ \
+	../../src/src_xs/ \
+	../../src/src_sym/ \
+	../../src/src_fermisurfdx/ \
+	../../src/src_iterative_solver/ \
+	../../src/src_iterative_solver/src_diis/ \
+	../../src/src_mixing/ 
 
 
 bin::../make.inc
 	perl ../../utilities/versionstamp.pl
+	perl ../../utilities/interfacesmkmf.pl $(SOURCEDIRS)
+	$(MAKE) -f ../ifcmakefile  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
-	../../src  \
-	../../src/main \
-	../../src/src_xs \
-	../../src/src_sym \
-	../../src/src_fermisurfdx \
-	../../src/src_iterative_solver \
-	../../src/src_iterative_solver/src_diis \
-	../../src/src_mixing/ \
+	$(SOURCEDIRS) \
 	&& $(MAKE) -f Makefile.mkmf exciting \
 	&& cp exciting ../../bin/exciting$(SUFFIX)
 
