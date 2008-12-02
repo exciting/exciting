@@ -67,6 +67,11 @@ subroutine xsgeneigvec
         call filedel('TOTENERGY'//trim(filext))
         call filedel('EVALFV'//trim(filext))
         call filedel('RMSDVEFF'//trim(filext))
+        call filedel('SYMGENR'//trim(filext))
+        call filedel('SYMINV'//trim(filext))
+        call filedel('SYMMULT'//trim(filext))
+        call filedel('SYMMULT_TABLE'//trim(filext))
+        call filedel('SYMT2'//trim(filext))
      end if
      ! end loop over q-points
   end do

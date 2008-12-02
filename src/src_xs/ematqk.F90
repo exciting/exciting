@@ -31,7 +31,8 @@ subroutine ematqk(iq,ik)
   real(8) :: cpumlolores,cpumirres,cpudbg
   real(8) :: cpu0,cpu1,cpu00,cpu01
 
-  call chkpt(3,(/task,iq,ik/),'ematqk: task, q-point index, k-point index')
+  call chkpt(3,(/task,iq,ik/),'ematqk: task, q-point index, k-point index; &
+       &q-dependent matrix elements')
   call cpu_time(cpu0)
   ! find k+q-point
   ikq=ikmapikq(ik,iq)
