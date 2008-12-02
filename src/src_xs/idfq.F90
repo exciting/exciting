@@ -69,10 +69,10 @@ real(8) :: ts0,ts1
         ! The ALDA kernel does not depend on q in principle, but the G-mesh
         ! depends through its cutoff for G+q on q. It is independent of w.
         call fxcifc(fxctype,iq=iq,ng=m,fxcg=fxc)
-!        ! add symmetrized Coulomb potential (is equal to unity matrix)
-!        forall(j=1:m) 
-!           fxc(j,j)=fxc(j,j)+1.d0
-!        end forall
+        ! add symmetrized Coulomb potential (is equal to unity matrix)
+        forall(j=1:m) 
+           fxc(j,j)=fxc(j,j)+1.d0
+        end forall
      end select
      ! loop over longitudinal components for optics
      do oct1=1,nc
@@ -116,12 +116,14 @@ real(8) :: ts0,ts1
               end select
               ! solve Dyson's equation for the interacting response function
               select case(fxctype)
-              case(0,1,2,3,4,5)
+              case(0,1,2,3,4)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
                  forall(j=1:m) 
                     fxc(j,j)=fxc(j,j)+1.d0
                  end forall
                  call dyson(n,chi0,fxc,idf)
+	      case(5)
+	         call dyson(n,chi0,fxc,idf)
               case (7,8)
                  ! we do not expect the kernel to contain the symmetrized
                  ! Coulomb potential here, the kernel here is expected to be
