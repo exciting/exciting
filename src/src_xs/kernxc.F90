@@ -4,7 +4,7 @@
 ! See the file COPYING for license details.
 
 !BOP
-! !ROUTINE: fxc_alda
+! !ROUTINE: kernxc
 ! !INTERFACE:
 subroutine kernxc
 ! !DESCRIPTION:
