@@ -34,7 +34,7 @@ test::
 doc::
 	$(MAKE) -f build/Make.common doc
  
-all:serial mpi  smp mpiandsmp 
+all:serial mpi  smp mpiandsmp doc
 	cp build/make.inc ./
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)

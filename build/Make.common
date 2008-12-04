@@ -5,7 +5,14 @@ SOURCEDIRS=	../../src/main/ ../../src/  \
 	../../src/src_fermisurfdx/ \
 	../../src/src_iterative_solver/ \
 	../../src/src_iterative_solver/src_diis/ \
-	../../src/src_mixing/ 
+	../../src/src_mixing/ \
+	../../src/src_phonon/ \
+	../../src/src_optics/ \
+	../../src/src_LDAU/ \
+	../../src/src_rdmft/ \
+	../../src/src_lib/ \
+	
+
 
 
 bin::../make.inc

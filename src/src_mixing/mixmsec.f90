@@ -19,7 +19,8 @@ subroutine    mixmsec(iscl,potential,residualnorm,n)
 	use modmixermsec,only:residual,last_outputp,work2,work3,initmixermsec,&
 freearraysmixermsec,noldstepsmax,noldstepsin_file,&
 noldsteps,qmx,dmix,dmixout,TCharge,SCharge,splane,tplane,  qmx_input,qtot
-
+!EOP
+!BOC
 	implicit none
 	integer, intent(in)::iscl,n
 	real(8), intent(inout)::potential(n) ! input/output potential
@@ -104,4 +105,5 @@ residualnorm=dnrm2(n,residual,1)
 
  qtot= residualnorm
 end subroutine
+!EOC
 
