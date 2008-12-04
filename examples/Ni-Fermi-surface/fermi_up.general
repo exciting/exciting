@@ -1,0 +1,11 @@
+file = ./FERMISURF_UP.OUT
+grid = 40 x 40 x 40
+format = ascii
+interleaving = field
+majority = column
+header = lines 1
+field = locations, field0
+structure = 3-vector, scalar
+type = float, float
+
+end

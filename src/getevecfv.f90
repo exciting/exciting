@@ -48,7 +48,7 @@ inquire(file=outfilenamestring(filetag,ik),exist=exist)
 open(70,file=outfilenamestring(filetag,ik),action='READ', &
  form='UNFORMATTED',access='DIRECT',recl=recl)
 exit
-else 
+else
 call system('sync')
 call sleep(5)
 write(*,*) "Waiting for other process to write"//":getevecfv:"// &
@@ -257,10 +257,10 @@ contains
        write(*,'(" nspnfv    : ",i6)') nspnfv
        write(*,'(" array size: ",i6)') size(evecfv,3)
        write(*,*)
-       err=err+1       
+       err=err+1
     end if
     if (err.ne.0) stop
-    allocate(evecfvt(nmatmax,nstfv,nspnfv))   
+    allocate(evecfvt(nmatmax,nstfv,nspnfv))
     call getevecfv(vpl,vgpl,evecfvt)
     evecfv(:,:,:)=evecfvt(:,isti:istf,:)
     deallocate(evecfvt)

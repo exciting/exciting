@@ -10,3 +10,4 @@ AR = ar
 ARFLAGS = -rc
 F77_OPTS =$(F77_DEBUGOPTS)
 TMPFILES = *.mod
+SUFFIX=debug

@@ -16,8 +16,8 @@ program main
   call readinput
   ! perform the appropriate task
   do itask=1,ntasks
-     task=tasks(itask)
-     select case(task)
+  task=tasks(itask)
+  select case(task)
      case(0,1,2,3,200,23,301:399,400:499)
         paralleltask=.true.
      case default
@@ -25,69 +25,69 @@ program main
      end select
      if(paralleltask.or.rank.eq.0) then
         select case(task)
-        case(-1)
-           write(*,*)
-           write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
-           write(*,*)
-           stop
-        case(0,1,2,3)
-           call gndstate
-        case(5)
-           call hartfock
-        case(10)
-           call dos
-        case(15,16)
-           call writelsj
-        case(20,21)
-           call bandstr
-        case(25)
-           call effmass
-        case(31,32,33)
-           call rhoplot
-        case(41,42,43)
-           call potplot
-        case(51,52,53)
-           call elfplot
-        case(61,62,63,162)
-           call wfplot
-        case(72,73,82,83,142,143,152,153)
-           call vecplot
-        case(91,92,93)
-           call dbxcplot
-        case(100,101)
-           call fermisurf
-        case(110)
-           call mossbauer
-        case(115)
-           call writeefg
-        case(120)
-           call writepmat
-        case(121)
-           call dielectric
-        case(122)
-           call moke
-        case(130)
-           call writeexpiqr
-        case(140)
-           call elnes
-        case(190)
-           call geomplot
-        case(200,201)
-           call phonon
-        case(210)
-           call phdos
-        case(220)
-           call phdisp
-        case(230)
-           call writephn
-        case(240)
-           call epcouple
-        case(245)
-           call phlwidth
-        case(250)
-           call alpha2f
-        case(300)
-           call rdmft
+  case(-1)
+    write(*,*)
+    write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
+    write(*,*)
+    stop
+  case(0,1,2,3)
+    call gndstate
+  case(5,6)
+    call hartfock
+  case(10)
+    call dos
+  case(15,16)
+    call writelsj
+  case(20,21)
+    call bandstr
+  case(25)
+    call effmass
+  case(31,32,33)
+    call rhoplot
+  case(41,42,43)
+    call potplot
+  case(51,52,53)
+    call elfplot
+  case(61,62,63,162)
+    call wfplot
+  case(72,73,82,83,142,143,152,153)
+    call vecplot
+  case(91,92,93)
+    call dbxcplot
+  case(100,101)
+    call fermisurf
+  case(110)
+    call mossbauer
+  case(115)
+    call writeefg
+  case(120)
+    call writepmat
+  case(121)
+    call dielectric
+  case(122)
+    call moke
+  case(130)
+    call writeexpiqr
+  case(140)
+    call elnes
+  case(190)
+    call geomplot
+  case(200,201)
+    call phonon
+  case(210)
+    call phdos
+  case(220)
+    call phdisp
+  case(230)
+    call writephn
+  case(240)
+    call epcouple
+  case(245)
+    call phlwidth
+  case(250)
+    call alpha2f
+  case(300)
+    call rdmft
 #ifdef TETRA
 #ifdef XS
            ! tasks for excited states
@@ -104,12 +104,12 @@ program main
            call testmain
 #endif
 #endif
-        case default
-           write(*,*)
-           write(*,'("Error(main): task not defined : ",I8)') task
-           write(*,*)
-           stop
-        end select
+  case default
+    write(*,*)
+    write(*,'("Error(main): task not defined : ",I8)') task
+    write(*,*)
+    stop
+  end select
      endif
   end do
   call finitMPI()
@@ -123,7 +123,7 @@ program main
 end program main
 
 !BOI
-! !TITLE: The EXCITING Code Manual\\ Version 0.9.218
+! !TITLE: The EXCITING Code Manual\\ Version 0.9.224
 ! !AUTHORS: J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl
 ! !AFFILIATION:
 ! !INTRODUCTION: Introduction
@@ -148,17 +148,18 @@ end program main
 !   Sushil Auluck, Frank Wagner, Fateh Kalarasse, J\"{u}rgen Spitaler, Stefano
 !   Pittalis, Nektarios Lathiotakis, Tobias Burnus, Stephan Sagmeister,
 !   Christian Meisenbichler, Francesco Cricchio, S\'{e}bastien Leb\`{e}gue,
-!   Yigang Zhang, Fritz K\"{o}rmann and Alexey Baranov. Special mention of David
-!   Singh's very useful book {\it Planewaves, Pseudopotentials and the LAPW
-!   Method} \cite{singh} must also be made. Finally we would like to acknowledge
-!   the generous support of Karl-Franzens-Universit\"{a}t Graz, as well as the
-!   EU Marie-Curie Research Training Networks initiative.
+!   Yigang Zhang, Fritz K\"{o}rmann, Alexey Baranov, Anton Kozhevnikov and
+!   Shigeru Suehara. Special mention of David Singh's very useful book
+!   {\it Planewaves, Pseudopotentials and the LAPW Method} \cite{singh} must
+!   also be made. Finally we would like to acknowledge the generous support of
+!   Karl-Franzens-Universit\"{a}t Graz, as well as the EU Marie-Curie Research
+!   Training Networks initiative.
 !
 !   \vspace{24pt}
 !   Kay Dewhurst, Sangeeta Sharma and Claudia Ambrosch-Draxl
 !
 !   \vspace{12pt}
-!   Edinburgh, Berlin and Leoben, October 2008
+!   Edinburgh, Berlin and Leoben, November 2008
 !   \newpage
 !
 !   \section{Units}
@@ -607,6 +608,17 @@ end program main
 !   then the density and potential file, {\tt STATE.OUT}, will {\bf not} be
 !   written to disk at the end of the loop. See {\tt epspot}.
 !
+!   \subsection{{\tt mixtype}}
+!   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
+!   \hline
+!   {\tt mixtype } & type of mixing required for the potential & integer & 1 \\
+!   \hline
+!   \end{tabularx}\newline\newline
+!   \begin{tabularx}{\textwidth}[h]{lX}
+!   1 & Adaptive linear mixing \\
+!   2 & Pulay mixing, {\it Chem. Phys. Lett.} {\bf 73}, 393 (1980) \\
+!   \end{tabularx}
+!
 !   \subsection{{\tt molecule}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
@@ -833,22 +845,25 @@ end program main
 !    $(40,40)$ \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   Defines corners of the parallelogram and the mesh size used for producing 2D
-!   plots.
+!   Defines the corners of a parallelogram and the grid size used for producing
+!   2D plots.
 !
 !   \subsection{{\tt plot3d}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt nup3d} & number of unit cells to plot & integer(3) & $(1,1,1)$ \\
+!   {\tt vclp3d(1)} & first corner (origin) & real(3) & $(0.0,0.0,0.0)$ \\
+!   \hline
+!   {\tt vclp3d(2)} & second corner & real(3) & $(1.0,0.0,0.0)$ \\
+!   \hline
+!   {\tt vclp3d(3)} & third corner & real(3) & $(0.0,1.0,0.0)$ \\
+!   \hline
+!   {\tt vclp3d(4)} & fourth corner & real(3) & $(0.0,0.0,1.0)$ \\
 !   \hline
 !   {\tt np3d} & number of plotting points each direction & integer(3) &
 !    $(20,20,20)$ \\
 !   \hline
 !   \end{tabularx}\newline\newline
-!   Defines the number of unit cells in each direction to be plotted in 3D as
-!   well as the size of the plotting mesh. The {\tt nup3d} parameter is also
-!   used to define the number of reciprocal lattice unit cells to be plotted for
-!   Fermi surface plots.
+!   Defines the corners of a box and the grid size used for producing 3D plots.
 !
 !   \subsection{{\tt primcell}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
@@ -1258,6 +1273,7 @@ end program main
 !    (1992) \\
 !   4 & LDA, X-alpha approximation, J. C. Slater, {\it Phys. Rev.} {\bf 81}, 385
 !    (1951) \\
+!   5 & LSDA, von Barth-Hedin, {\it J. Phys. C} {\bf 5}, 1629 (1972) \\
 !   20 & GGA, Perdew-Burke-Ernzerhof, {\it Phys. Rev. Lett.} {\bf 77}, 3865
 !    (1996) \\
 !   21 & GGA, Revised PBE, Zhang-Yang, {\it Phys. Rev. Lett.} {\bf 80}, 890

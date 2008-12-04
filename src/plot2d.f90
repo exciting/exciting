@@ -58,7 +58,7 @@ d1=sqrt(vc1(1)**2+vc1(2)**2+vc1(3)**2)
 d2=sqrt(vc2(1)**2+vc2(2)**2+vc2(3)**2)
 if ((d1.lt.epslat).or.(d2.lt.epslat)) then
   write(*,*)
-  write(*,'("Error(plot2d): Zero length plotting vectors")')
+  write(*,'("Error(plot2d): zero length plotting vectors")')
   write(*,*)
   stop
 end if
@@ -72,10 +72,12 @@ do ip2=0,np2d(2)-1
     vpl(:,ip)=t1*vl1(:)+t2*vl2(:)+vclp2d(:,1)
   end do
 end do
+! evaluate the functions at the grid points
 do i=1,nf
   call rfarray(lmax,ld,rfmt(:,:,:,i),rfir(:,i),ip,vpl,fp(:,i))
 end do
-write(fnum,'(2I6," : grid size")') np2d(1),np2d(2)
+! write the functions to file
+write(fnum,'(2I6," : grid size")') np2d(:)
 ip=0
 do ip2=0,np2d(2)-1
   do ip1=0,np2d(1)-1

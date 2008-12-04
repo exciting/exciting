@@ -14,9 +14,9 @@ tasks
 tseqit
  .true.
 
-! number of iterations to use for the conjugate gradient solver
-nseqit
-  5
+! small step size required for convergence
+tauseq
+ 0.05
 
 ! molecule calculation
 molecule
@@ -30,7 +30,7 @@ autormt
  .true.
 
 rgkmax
- 5.0
+ 6.0
 
 gmaxvr
  17.0

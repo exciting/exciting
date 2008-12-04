@@ -1,2 +1,0 @@
-subroutine appent_current_to_broyden_file()
-end subroutine

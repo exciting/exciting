@@ -15,14 +15,14 @@ integer, parameter :: lmax=50
 ! exchange-correlation type
 integer, parameter :: xctype=3
 integer, parameter :: xcgrad=0
-integer nz,spnst,spnr
-integer nrmt,nlx,nlorb,i,l
-integer ist1,ist2,ir,iostat
+integer nz,spnst,spnr,nrmt
+integer nlx,nlorb,i,l,maxl
+integer ist,jst,ir,iostat
 real(8), parameter :: pi=3.1415926535897932385d0
 ! core-valence cut-off energy
 real(8), parameter :: ecvcut=-3.5d0
 ! semi-core cut-off energy
-real(8), parameter :: esccut=-0.5d0
+real(8), parameter :: esccut=-0.35d0
 ! band offset energy
 real(8), parameter :: boe=0.15d0
 real(8) spmass,rmt,spzn,sprmin,sprmax,t1
@@ -49,10 +49,10 @@ if (spnst.gt.maxspst) then
   write(*,*)
   stop
 end if
-do ist1=1,spnst
-  read(40,*) spn(ist1),spl(ist1),spk(ist1),i
-  if (ist1.ge.2) then
-    if (spn(ist1).lt.spn(ist1-1)) then
+do ist=1,spnst
+  read(40,*) spn(ist),spl(ist),spk(ist),i
+  if (ist.ge.2) then
+    if (spn(ist).lt.spn(ist-1)) then
       write(*,*)
       write(*,'("Error(species): states improperly ordered")')
       write(*,'(" for species ",A)') trim(spname)
@@ -60,7 +60,7 @@ do ist1=1,spnst
       stop
     end if
   end if
-  spocc(ist1)=dble(i)
+  spocc(ist)=dble(i)
 end do
 read(40,*)
 write(*,'("Info(species): running Z = ",I4,", (",A,")")') nz,trim(spname)
@@ -114,32 +114,35 @@ if (abs(gr(spnr)+spzn).gt.1.d-5) then
   stop
 end if
 ! find which states belong to core
-do ist1=1,spnst
-  if (eval(ist1).lt.ecvcut) then
-    spcore(ist1)=.true.
+do ist=1,spnst
+  if (eval(ist).lt.ecvcut) then
+    spcore(ist)=.true.
   else
-    spcore(ist1)=.false.
+    spcore(ist)=.false.
   end if
 end do
 ! check that the state for same n and l but different k is also core
-do ist1=1,spnst
-  if (spcore(ist1)) then
-    do ist2=1,spnst
-      if ((spn(ist1).eq.spn(ist2)).and.(spl(ist1).eq.spl(ist2))) &
-       spcore(ist2)=.true.
+do ist=1,spnst
+  if (spcore(ist)) then
+    do jst=1,spnst
+      if ((spn(ist).eq.spn(jst)).and.(spl(ist).eq.spl(jst))) spcore(jst)=.true.
     end do
   end if
 end do
 ! find the total number of local orbitals
-nlorb=4
-! search from lowest to highest energy
-do ist1=1,spnst
-  if (.not.spcore(ist1)) then
-    if ((spl(ist1).eq.0).or.(spl(ist1).eq.spk(ist1))) then
-      if (eval(ist1).lt.esccut) nlorb=nlorb+1
+nlorb=0
+maxl=0
+do ist=1,spnst
+  if (.not.spcore(ist)) then
+    if ((spl(ist).eq.0).or.(spl(ist).eq.spk(ist))) then
+      if (eval(ist).lt.esccut) nlorb=nlorb+1
     end if
+    if (spl(ist).gt.maxl) maxl=spl(ist)
   end if
 end do
+maxl=maxl+1
+if (maxl.gt.3) maxl=3
+nlorb=nlorb+maxl+1
 nlx=0
 ! open the atomic data file
 open(50,file=trim(spsymb)//'.in',action='WRITE',form='FORMATTED')
@@ -152,29 +155,28 @@ write(50,'(G14.6,2F10.4,I6,T45,": sprmin, rmt, sprmax, nrmt")') sprmin,rmt, &
 write(50,'(I4,T45,": spnst")') spnst
 write(50,'(3I4,G14.6,L1,T45,": spn, spl, spk, spocc, spcore")') spn(1),spl(1), &
  spk(1),spocc(1),spcore(1)
-do ist1=2,spnst
-  write(50,'(3I4,G14.6,L1)') spn(ist1),spl(ist1),spk(ist1),spocc(ist1), &
-   spcore(ist1)
+do ist=2,spnst
+  write(50,'(3I4,G14.6,L1)') spn(ist),spl(ist),spk(ist),spocc(ist),spcore(ist)
 end do
 write(50,'(I4,T45,": apword")') 1
 write(50,'(F8.4,I4,"  ",L1,T45,": apwe0, apwdm, apwve")') boe,0,.false.
 write(50,'(I4,T45,": nlx")') nlx
 write(50,'(I4,T45,": nlorb")') nlorb
 ! write the local-orbitals
-do l=0,3
+do l=0,maxl
   write(50,'(2I4,T45,": lorbl, lorbord")') l,2
   write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0,.false.
   write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
 end do
-do ist1=1,spnst
-  if (.not.spcore(ist1)) then
-    if ((spl(ist1).eq.0).or.(spl(ist1).eq.spk(ist1))) then
-      if (eval(ist1).lt.esccut) then
-        write(50,'(2I4,T45,": lorbl, lorbord")') spl(ist1),3
+do ist=1,spnst
+  if (.not.spcore(ist)) then
+    if ((spl(ist).eq.0).or.(spl(ist).eq.spk(ist))) then
+      if (eval(ist).lt.esccut) then
+        write(50,'(2I4,T45,": lorbl, lorbord")') spl(ist),3
         write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0, &
          .false.
         write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
-        write(50,'(F8.4,I4,"  ",L1)') eval(ist1)+boe,0,.true.
+        write(50,'(F8.4,I4,"  ",L1)') eval(ist)+0.5d0*boe,0,.true.
       end if
     end if
   end if

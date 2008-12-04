@@ -10,10 +10,14 @@ $writer= Test::initreport("report.xml");
 
 open INFO, "runarp/INFO.OUT";
 $status=failed;
+$didarpack=failed;
 while(<INFO>)
 	{
 	if (m/\| EXCITING version.+stopped/){
 		$status="passed";
+	}
+		if (m/ARPACK iterations/){
+		$didarpack="passed";
 	}
 }
 close INFO;
@@ -26,6 +30,13 @@ close INFO;
  		status=>$status
  		}, $writer);
  
+  Test::writetestreport({
+ 		directory=>"test02/runarp",
+ 		name=>"arpack run",
+ 		description=>"The arpack solver was correctly invoked",
+ 		status=>$didarpack
+ 		}, $writer);
+ 		
  open INFO, "runlapack/INFO.OUT";
 $status=failed;
 while(<INFO>)
@@ -48,7 +59,7 @@ close INFO;
 
 
 #compare total energies
-$tol=1e-9;
+$tol=5e-8;
 open TOTEARP, "runarp/TOTENERGY.OUT";
 open TOTELAP, "runlapack/TOTENERGY.OUT";
 $status="failed";
@@ -68,7 +79,7 @@ $status="passed";
  		}, $writer);
 
 #compare eigenvalues
-$tol=1e-8;
+$tol=5e-8;
 %statuseigval=Test::assert_file_same_within( "runarp/EIGVAL.OUT",
 	"runlapack/EIGVAL.OUT",$tol);
  Test::writetestreport({

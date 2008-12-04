@@ -12,7 +12,7 @@ implicit none
 ! local variables
 integer is,ia,ist,ic,m
 real(8) ts0,ts1
-real(8) vqloff(3)
+real(8) boxl(3,4)
 #ifdef XS
 real(8) :: v(3),t1
 integer :: iq,iv(3)
@@ -26,7 +26,7 @@ call timesec(ts0)
 ! check if the system is an isolated molecule
 if (molecule) ngridq(:)=1
 ! OEP, Hartree-Fock or RDMFT
-if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.300)) then
+if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.6).or.(task.eq.300)) then
   ngridq(:)=ngridk(:)
   reduceq=.false.
 end if
@@ -44,17 +44,20 @@ if (allocated(wqpt)) deallocate(wqpt)
 allocate(wqpt(ngridq(1)*ngridq(2)*ngridq(3)))
 if (allocated(iqmap)) deallocate(iqmap)
 allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
-! the q-point offset should always be zero
-vqloff(:)=0.d0
+! setup the q-point box (offset should always be zero)
+boxl(:,:)=0.d0
+boxl(1,2)=1.d0; boxl(2,3)=0.d0; boxl(3,4)=0.d0
 ! generate the q-point set, note that the vectors vql and vqc are mapped to the
 ! first Brillouin zone
-call genppts(reduceq,.true.,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+call genppts(reduceq,.true.,ngridq,boxl,nqpt,iqmap,ivq,vql,vqc,wqpt)
 # ifdef XS
 end if
 #endif
 #ifdef XS
 ! Q-/q-point set should have no offset
-vqloff(:)=0.d0
+! setup the q-point box (offset should always be zero)
+boxl(:,:)=0.d0
+boxl(1,2)=1.d0; boxl(2,3)=1.d0; boxl(3,4)=1.d0
 ! assign momentum transfer Q-points set to q-point set
 if (((task.ge.301).and.(task.le.399))) then
    nqpt=nqptmt
@@ -91,7 +94,7 @@ if ((task.ge.400).and.(task.le.439)) then
    if (allocated(iqmap)) deallocate(iqmap)
    allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate reduced q-point set
-   call genppts(reduceq,fbzq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+   call genppts(reduceq,fbzq,ngridq,boxl,nqpt,iqmap,ivq,vql,vqc,wqpt)
    nqptr=nqpt
 end if
 if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
@@ -107,7 +110,7 @@ if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
    if (allocated(iqmapr)) deallocate(iqmapr)
    allocate(iqmapr(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate reduced q-point set
-   call genppts(reduceq,fbzq,ngridq,vqloff,nqptr,iqmapr,ivqr,vqlr,vqcr, &
+   call genppts(reduceq,fbzq,ngridq,boxl,nqptr,iqmapr,ivqr,vqlr,vqcr, &
       wqptr)
    if (allocated(ivq)) deallocate(ivq)
    allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
@@ -120,7 +123,7 @@ if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
    if (allocated(iqmap)) deallocate(iqmap)
    allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate non-reduced q-point set
-   call genppts(.false.,fbzq,ngridq,vqloff,nqpt,iqmap,ivq,vql,vqc,wqpt)
+   call genppts(.false.,fbzq,ngridq,boxl,nqpt,iqmap,ivq,vql,vqc,wqpt)
 end if
 ! find (little/small) group of q
 if (allocated(nsymcrysq)) deallocate(nsymcrysq)
@@ -226,7 +229,7 @@ call genlofr
 !-----------------------------------------------!
 !     OEP, Hartree-Fock and RDMFT variables     !
 !-----------------------------------------------!
-if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.300)) then
+if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.6).or.(task.eq.300)) then
 ! determine the 1/q^2 integral weights if required
   call genwiq2
 ! output the 1/q^2 integrals to WIQ2.OUT
@@ -266,7 +269,7 @@ if (xctype.lt.0) then
     zbxir(:,:)=0.d0
   end if
 end if
-if ((task.eq.5).or.(task.eq.300)) then
+if ((task.eq.5).or.(task.eq.6).or.(task.eq.300)) then
 ! allocate the kinetic matrix elements for Hartree-Fock/RDMFT
   if (allocated(kinmatc)) deallocate(kinmatc)
   allocate(kinmatc(nstsv,nstsv,nkpt))

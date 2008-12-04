@@ -6,13 +6,19 @@ tasks
  0
  101
 
-! large k-point set (should be even larger for publication quality plots)
+! small smearing width for precise determination of Fermi energy
+swidth
+ 0.001
+
 ngridk
-  12  12  8
+  6  6  4
 
 ! plot a 2x2x2 reciprocal space cell
 plot3d
-  2   2   2
+  0.0  0.0  0.0
+  2.0  0.0  0.0
+  0.0  2.0  0.0
+  0.0  0.0  2.0
   24  24  16
 
 avec

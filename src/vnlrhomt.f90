@@ -37,15 +37,17 @@ complex(8), intent(in) :: wfmt2(lmmaxvr,nrcmtmax)
 complex(8), intent(out) :: zrhomt(lmmaxvr,nrcmtmax)
 ! local variables
 integer irc
-! automatic arrays
-complex(8) zfmt(lmmaxvr,nrcmtmax)
+! allocatable arrays
+complex(8), allocatable :: zfmt(:,:)
 if (tsh) then
 ! output density in spherical harmonics
+  allocate(zfmt(lmmaxvr,nrcmtmax))
   do irc=1,nrcmt(is)
     zfmt(:,irc)=conjg(wfmt1(:,irc))*wfmt2(:,irc)
   end do
   call zgemm('N','N',lmmaxvr,nrcmt(is),lmmaxvr,zone,zfshtvr,lmmaxvr,zfmt, &
    lmmaxvr,zzero,zrhomt,lmmaxvr)
+  deallocate(zfmt)
 else
 ! output density in spherical coordinates
   do irc=1,nrcmt(is)

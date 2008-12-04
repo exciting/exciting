@@ -5,67 +5,159 @@ use XML::Writer;
 use IO::File;
 use Test;
 
-$writer= Test::initreport("report.xml");
+$writer = Test::initreport("report.xml");
+
 #do things to assert test
 
 open INFO, "run/INFO.OUT";
-$status=failed;
-while(<INFO>)
-	{
-	if (m/\| EXCITING version.+stopped/){
-		$status="passed";
+$status     = failed;
+$iterations = 0;
+$rightmixer = failed;
+while (<INFO>) {
+	if (m/\| EXCITING version.+stopped/) {
+		$status = "passed";
 	}
-	if (m/Iteration number :   (\d+)/){
-	$iterations=$1;
-}
+	if (m/Iteration number :\s*(\d+)/) {
+		$iterations = $1;
+	}
+	if (m/Using Adaptive step size linear potential mixing/) {
+		$rightmixer = passed;
+	}
 }
 close INFO;
-
-
- Test::writetestreport({
- 		directory=>"test03/run",
- 		name=>"debug binary run",
- 		description=>"The test run  using arpack finished without errors",
- 		status=>$status
- 		}, $writer);
- 		
- 		$iterationsref=13;
- 		if ($iterations=13){$passed="true";}else{$passed="false";}
- 		
- 		Test::writetestreport({
- 		directory=>"test03/run",
- 		name=>"check iteration number of Al",
- 		description=>"iterations is $iterations reference is $iterationsref",
- 		status=>$status
- 		}, $writer);
- 		
- 		
- 		open INFO, "runmixer2/INFO.OUT";
-$status=failed;
-while(<INFO>)
+Test::writetestreport(
 	{
-	if (m/\| EXCITING version.+stopped/){
-		$status="passed";
+		directory   => "test03/run",
+		name        => "is_it_linadapt",
+		description => "linadapt mixer was invoked",
+		status      => $rightmixer
+	},
+	$writer
+);
+
+Test::writetestreport(
+	{
+		directory   => "test03/run",
+		name        => "debug binary run",
+		description => "The test run standard mixing finished without errors",
+		status      => $status
+	},
+	$writer
+);
+
+$iterationsref = 15;
+if   ( $iterations == $iterationsref ) { $status = passed; }
+else                                   { $status = "failed"; }
+
+Test::writetestreport(
+	{
+		directory   => "test03/run",
+		name        => "check iteration number of Al",
+		description => "iterations is $iterations reference is $iterationsref",
+		status      => $status
+	},
+	$writer
+);
+
+open INFO, "runmixer2/INFO.OUT";
+$status     = failed;
+$iterations = 0;
+$rightmixer = failed;
+while (<INFO>) {
+	if (m/\| EXCITING version.+stopped/) {
+		$status = "passed";
 	}
-	if (m/Iteration number :   (\d+)/){
-	$iterations=$1;
+	if (m/Iteration number :\s*(\d+)/) {
+		$iterations = $1;
+	}
+	if (m/Using Muttisecant Broyden potential mixing/) {
+		$rightmixer = passed;
+	}
 }
+Test::writetestreport(
+	{
+		directory => "test03/runmixer2",
+		name      => "is_it_msec",
+		description =>
+		  "used msec",
+		status => $rightmixer
+	},
+	$writer
+);
+Test::writetestreport(
+	{
+		directory => "test03/runmixer2",
+		name      => "debug binary run mixer2",
+		description =>
+		  "The test run  using multicecant broyden finished without errors",
+		status => $status
+	},
+	$writer
+);
+
+$iterationsref = 10;
+if   ( $iterations <= $iterationsref ) { $status = passed; }
+else                                   { $status = "failed"; }
+
+Test::writetestreport(
+	{
+		directory   => "test03/runmixer2",
+		name        => "check iteration number of Al for mixer2",
+		description => "iterations is $iterations reference is $iterationsref",
+		status      => $status
+	},
+	$writer
+);
+
+open INFO, "runmixer3/INFO.OUT";
+$status     = failed;
+$iterations = 0;
+$rightmixer = failed;
+while (<INFO>) {
+	if (m/\| EXCITING version.+stopped/) {
+		$status = "passed";
+	}
+	if (m/Iteration number :\s*(\d+)/) {
+		$iterations = $1;
+	}
+
+	if (m/Using Pulay potential mixing/) {
+		$rightmixer = passed;
+	}
 }
-Test::writetestreport({
- 		directory=>"test03/runmixer2",
- 		name=>"debug binary run mixer2",
- 		description=>"The test run  using arpack finished without errors",
- 		status=>$status
- 		}, $writer);
- 		
- 		$iterationsref=13;
- 		if ($iterations=13){$passed="true";}else{$passed="false";}
- 		
- 		Test::writetestreport({
- 		directory=>"test03/runmixer2",
- 		name=>"check iteration number of Al for mixer2",
- 		description=>"iterations is $iterations reference is $iterationsref",
- 		status=>"unspecified"
- 		}, $writer);
- 		
- Test::closereport($writer);
+
+Test::writetestreport(
+	{
+		directory   => "test03/runmixer3",
+		name        => "is_it_Pulay",
+		description => "Pulay Mixing is used",
+		status      => $rightmixer
+	},
+	$writer
+);
+
+Test::writetestreport(
+	{
+		directory   => "test03/runmixer3",
+		name        => "Pulay mixing works",
+		description => "The test run  using pulay (3) finished without errors",
+		status      => $status
+	},
+	$writer
+);
+
+$iterationsref = 10;
+if   ( $iterations <= $iterationsref ) { $status = passed; }
+else                                   { $status = "failed"; }
+
+Test::writetestreport(
+	{
+		directory   => "test03/runmixer2",
+		name        => "check iteration number of Al for Pulay mixing (3) ",
+		description => "iterations is $iterations reference is $iterationsref",
+		status      => $status
+	},
+	$writer
+);
+
+Test::closereport($writer);

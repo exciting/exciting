@@ -1,4 +1,4 @@
-MAKE = make
+
 F90 = xlf
 F90_OPTS = -O3 -qsuffix=f=f90 -qfree=f90
 F77 = xlf

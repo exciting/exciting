@@ -1,5 +1,5 @@
 
-! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -18,11 +18,12 @@ use modmain
 !   rfir : real intersitial function (in,real(ngrtot,nf))
 ! !DESCRIPTION:
 !   Produces a 3D plot of the real functions contained in arrays {\tt rfmt} and
-!   {\tt rfir} spanning the number of unit cells in the global array {\tt np3d}.
-!   See routine {\tt rfarray}.
+!   {\tt rfir} in the parallelepiped defined by the corner vertices in the
+!   global array {\tt vclp3d}. See routine {\tt rfarray}.
 !
 ! !REVISION HISTORY:
 !   Created June 2003 (JKD)
+!   Modified, October 2008 (F. Bultmark, F. Cricchio, L. Nordstrom)
 !EOP
 !BOC
 implicit none
@@ -34,8 +35,9 @@ integer, intent(in) :: ld
 real(8), intent(in) :: rfmt(ld,nrmtmax,natmtot,nf)
 real(8), intent(in) :: rfir(ngrtot,nf)
 ! local variables
-integer i,ip,ip1,ip2,ip3,i1,i2,i3
-real(8) vl(3),vc(3)
+integer np,ip,ip1,ip2,ip3,i
+real(8) v1(3),v2(3),v3(3)
+real(8) t1,t2,t3
 ! allocatable arrays
 real(8), allocatable :: vpl(:,:)
 real(8), allocatable :: fp(:,:)
@@ -49,38 +51,31 @@ end if
 allocate(vpl(3,np3d(1)*np3d(2)*np3d(3)))
 allocate(fp(np3d(1)*np3d(2)*np3d(3),nf))
 ! generate 3D grid
+v1(:)=vclp3d(:,2)-vclp3d(:,1)
+v2(:)=vclp3d(:,3)-vclp3d(:,1)
+v3(:)=vclp3d(:,4)-vclp3d(:,1)
+ip=0
 do ip3=0,np3d(3)-1
+  t3=dble(ip3)/dble(np3d(3))
   do ip2=0,np3d(2)-1
+    t2=dble(ip2)/dble(np3d(2))
     do ip1=0,np3d(1)-1
-      ip=ip3*np3d(1)*np3d(2)+ip2*np3d(1)+ip1+1
-      vpl(1,ip)=dble(ip1)/dble(np3d(1))
-      vpl(2,ip)=dble(ip2)/dble(np3d(2))
-      vpl(3,ip)=dble(ip3)/dble(np3d(3))
+      t1=dble(ip1)/dble(np3d(1))
+      ip=ip+1
+      vpl(:,ip)=t1*v1(:)+t2*v2(:)+t3*v3(:)+vclp3d(:,1)
     end do
   end do
 end do
+np=ip
+! evaluate the functions at the grid points
 do i=1,nf
-  call rfarray(lmax,ld,rfmt(:,:,:,i),rfir(:,i),ip,vpl,fp(:,i))
+  call rfarray(lmax,ld,rfmt(:,:,:,i),rfir(:,i),np,vpl,fp(:,i))
 end do
-write(fnum,'(3I6," : grid size")') nup3d(1)*np3d(1),nup3d(2)*np3d(2), &
- nup3d(3)*np3d(3)
-do i3=0,nup3d(3)-1
-  do ip3=0,np3d(3)-1
-    do i2=0,nup3d(2)-1
-      do ip2=0,np3d(2)-1
-        do i1=0,nup3d(1)-1
-          do ip1=0,np3d(1)-1
-            ip=ip3*np3d(1)*np3d(2)+ip2*np3d(1)+ip1+1
-            vl(1)=dble(i1)+dble(ip1)/dble(np3d(1))
-            vl(2)=dble(i2)+dble(ip2)/dble(np3d(2))
-            vl(3)=dble(i3)+dble(ip3)/dble(np3d(3))
-            vc(:)=vl(1)*avec(:,1)+vl(2)*avec(:,2)+vl(3)*avec(:,3)
-            write(fnum,'(7G18.10)') vc(1),vc(2),vc(3),(fp(ip,i),i=1,nf)
-          end do
-        end do
-      end do
-    end do
-  end do
+! write functions to file
+write(fnum,'(3I6," : grid size")') np3d(:)
+do ip=1,np
+  call r3mv(avec,vpl(:,ip),v1)
+  write(fnum,'(7G18.10)') v1(:),(fp(ip,i),i=1,nf)
 end do
 deallocate(vpl,fp)
 return

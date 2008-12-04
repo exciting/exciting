@@ -24,7 +24,7 @@ subroutine xc_vbh(n,rhoup,rhodn,ex,ec,vxup,vxdn,vcup,vcdn)
 !   the end the potential and energy are converted to Hartree.
 !
 ! !REVISION HISTORY:
-!   Created September 2007 (F.Cricchio)
+!   Created September 2007 (F. Cricchio)
 !EOP
 !BOC
 implicit none

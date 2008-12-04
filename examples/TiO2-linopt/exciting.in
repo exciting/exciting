@@ -11,6 +11,10 @@ tasks
 swidth
  0.005
 
+! use Pulay mixing for fast convergence
+mixtype
+ 2
+
 avec
   1.0000  0.0000  0.0000
   0.0000  1.0000  0.0000

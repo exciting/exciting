@@ -8,7 +8,7 @@ use modmain
 implicit none
 ! local variables
 logical exist
-integer ik,idm
+integer ik,is,ia,idm
 real(8) etp,de
 ! allocatable arrays
 complex(8), allocatable :: evecfv(:,:,:)
@@ -25,6 +25,9 @@ open(61,file='TOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
 open(62,file='FERMIDOS'//trim(filext),action='WRITE',form='FORMATTED')
 ! open MOMENT.OUT if required
 if (spinpol) open(63,file='MOMENT'//trim(filext),action='WRITE', &
+ form='FORMATTED')
+! open FORCEMAX.OUT if required
+if (tforce) open(64,file='FORCEMAX'//trim(filext),action='WRITE', &
  form='FORMATTED')
 ! open DENERGY.OUT
 open(65,file='DENERGY'//trim(filext),action='WRITE',form='FORMATTED')
@@ -52,6 +55,7 @@ call hmlrad
 call genkinmat
 ! find the occupation numbers and Fermi energy
 call occupy
+10 continue
 ! set last iteration flag
 tlast=.false.
 etp=0.d0
@@ -156,7 +160,7 @@ do iscl=1,maxscl
     write(63,'(3G18.10)') momtot(1:ndmag)
     call flushifc(63)
   end if
-  if (tlast) goto 10
+  if (tlast) goto 20
 ! compute the change in total energy and check for convergence
   if (iscl.ge.2) then
     de=abs(engytot-etp)/(abs(engytot)+1.d0)
@@ -182,7 +186,7 @@ do iscl=1,maxscl
     close(50,status='DELETE')
   end if
 end do
-10 continue
+20 continue
 write(60,*)
 write(60,'("+------------------------------+")')
 write(60,'("| Self-consistent loop stopped |")')
@@ -192,6 +196,54 @@ if (maxscl.gt.1) then
   write(60,*)
   write(60,'("Wrote STATE.OUT")')
 end if
+!-----------------------!
+!     compute forces    !
+!-----------------------!
+if ((.not.tstop).and.(tforce)) then
+  call force
+! output forces to INFO.OUT
+  call writeforce(60)
+! write maximum force magnitude to FORCEMAX.OUT
+  write(64,'(G18.10)') forcemax
+  call flushifc(64)
+end if
+!---------------------------------------!
+!     perform structural relaxation     !
+!---------------------------------------!
+if ((.not.tstop).and.(task.eq.6)) then
+  write(60,*)
+  write(60,'("Maximum force magnitude (target) : ",G18.10," (",G18.10,")")') &
+   forcemax,epsforce
+  call flushifc(60)
+! check force convergence
+  if (forcemax.le.epsforce) then
+    write(60,*)
+    write(60,'("Force convergence target achieved")')
+    goto 30
+  end if
+! update the atomic positions if forces are not converged
+  call updatpos
+  write(60,*)
+  write(60,'("+--------------------------+")')
+  write(60,'("| Updated atomic positions |")')
+  write(60,'("+--------------------------+")')
+  do is=1,nspecies
+    write(60,*)
+    write(60,'("Species : ",I4," (",A,")")') is,trim(spsymb(is))
+    write(60,'(" atomic positions (lattice) :")')
+    do ia=1,natoms(is)
+      write(60,'(I4," : ",3F14.8)') ia,atposl(:,ia,is)
+    end do
+  end do
+! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and DENERGY.OUT
+  write(61,*)
+  write(62,*)
+  if (spinpol) write (63,*)
+  write(65,*)
+! begin new self-consistent loop with updated positions
+  goto 10
+end if
+30 continue
 write(60,*)
 write(60,'("+----------------------------------+")')
 write(60,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," stopped |")') version
@@ -204,6 +256,8 @@ close(61)
 close(62)
 ! close the MOMENT.OUT file
 if (spinpol) close(63)
+! close the FORCEMAX.OUT file
+if (tforce) close(64)
 ! close the DENERGY.OUT file
 close(65)
 return

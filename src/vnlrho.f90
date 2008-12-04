@@ -12,13 +12,13 @@ use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   tsh    : .true. if the muffin-tin density is to be in spherical harmonics
 !            (in,logical)
-!   wfmt1  : muffin-tin part of wavefunction 1 in spherical harmonics/
-!            coordinates (in,complex(lmmaxvr,nrcmtmax,natmtot,nspinor))
-!   wfmt2  : muffin-tin part of wavefunction 2 in spherical harmonics/
-!            coordinates (in,complex(lmmaxvr,nrcmtmax,natmtot,nspinor))
+!   wfmt1  : muffin-tin part of wavefunction 1 in spherical coordinates
+!            (in,complex(lmmaxvr,nrcmtmax,natmtot,nspinor))
+!   wfmt2  : muffin-tin part of wavefunction 2 in spherical coordinates
+!            (in,complex(lmmaxvr,nrcmtmax,natmtot,nspinor))
 !   wfir1  : interstitial wavefunction 1 (in,complex(ngrtot))
 !   wfir2  : interstitial wavefunction 2 (in,complex(ngrtot))
-!   zrhomt : muffin-tin charge density in spherical harmonics
+!   zrhomt : muffin-tin charge density in spherical harmonics/coordinates
 !            (out,complex(lmmaxvr,nrcmtmax,natmtot))
 !   zrhoir : interstitial charge density (out,complex(ngrtot))
 ! !DESCRIPTION:

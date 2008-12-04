@@ -3,8 +3,8 @@ include make.inc
 MAKE=make
 
 bin::make.inc
-	sh ../../utilities/versionstamp.sh
-	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting$(SUFFIX) \
+	perl ../../utilities/versionstamp.pl
+	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
 	../../src  \
 	../../src/main \
 	../../src/src_xs \
@@ -13,10 +13,16 @@ bin::make.inc
 	../../src/src_iterative_solver \
 	../../src/src_iterative_solver/src_diis \
 	../../src/src_mixing/ \
-	&& make -f Makefile.mkmf exciting$(SUFFIX) \
-	&& cp -f exciting$(SUFFIX) ..
+	&& $(MAKE) -f Makefile.mkmf exciting \
+	&& cp -f exciting ../../bin/exciting$(SUFFIX)
 
-libs:libbzint.a	libblas.a liblapack.a fftlib.a leblaiklib.a libarpack.a
+ifeq ($(USE_SYS_LAPACK),true)
+libs::libbzint.a fftlib.a  libarpack.a leblaiklib.a
+endif
+
+ifeq ($(USE_SYS_LAPACK),)
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a leblaiklib.a
+endif
 
 libblas.a: 
 	cp -f make.inc ../..
@@ -42,13 +48,11 @@ leblaiklib.a:
 	cp ../../src/leblaiklib/leblaiklib.a .
 	cd ../../src/leblaiklib && make clean
 
-libbzint.a: 
-	cp -f make.inc ../..
-	cd ../../src/libbzint && make clean && make
-	cp ../../src/libbzint/libbzint.a .
-	cd ../../src/libbzint && make clean
-
-
+libbzint.a:: 
+	../../utilities/mkmf -t ./template -f -m Makefile.libbzint \
+	-p libbzint.a ../../src/libbzint\
+	&& $(MAKE) -f Makefile.libbzint libbzint.a 
+	
 libarpack.a:
 	cp -f make.inc ../..
 	cd ../../src/ARPACK && $(MAKE) clean && make lib
@@ -62,11 +66,3 @@ clean:
 
 cleanlibs:
 	rm -f *.a
-
-### build libbzint, do not clean source tree of library and build exciting
-bzex:
-	cp -f ../make.inc ../..
-	cd ../../src/libbzint && make
-	cp ../../src/libbzint/libbzint.a .
-	rm -f exciting
-	make serial

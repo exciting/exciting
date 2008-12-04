@@ -20,13 +20,16 @@ mpi:
 smp:
 	cd build/smp; $(MAKE) libs
 	cd build/smp; $(MAKE)
+debug:
+	cd build/debug; $(MAKE) libs
+	cd build/debug; $(MAKE)
 
 mpiandsmp:
 	cd build/mpiandsmp; $(MAKE) libs
 	cd build/mpiandsmp; $(MAKE)
 
 test::
-	cd test/; $(MAKE) 
+	cd test/; $(MAKE) -i
 	
  
 all:serial mpi  smp mpiandsmp 
@@ -47,4 +50,5 @@ clean:
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
+	rm bin/exciting?*
 

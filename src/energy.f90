@@ -142,7 +142,7 @@ engycl=engynn+engyen+engyhar
 ! exchange energy from the density
 engyx=rfinp(1,rhomt,exmt,rhoir,exir)
 ! exact exchange for OEP-EXX or Hartree-Fock on last iteration
-if ((xctype.lt.0).or.(task.eq.5)) then
+if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.6)) then
   if (tlast) call exxengy
 end if
 !----------------------------!
@@ -150,7 +150,7 @@ end if
 !----------------------------!
 engyc=rfinp(1,rhomt,ecmt,rhoir,ecir)
 ! zero correlation energy for Hartree-Fock
-if (task.eq.5) engyc=0.d0
+if ((task.eq.5).or.(task.eq.6)) engyc=0.d0
 !----------------------!
 !     LDA+U energy     !
 !----------------------!
@@ -193,7 +193,7 @@ end do
 ! core electron kinetic energy
 call energykncr
 ! total electron kinetic energy
-if (task.eq.5) then
+if ((task.eq.5).or.(task.eq.6)) then
 ! Hartree-Fock case
   engykn=engykncr
 ! kinetic energy from valence states

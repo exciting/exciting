@@ -10,8 +10,6 @@ tasks
 primcell
  .true.
 
-iterativetype
-1 
 
 avec
   9.99476  0.00000  0.00000

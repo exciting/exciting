@@ -31,7 +31,6 @@ call testreport(equalevec)
 
 testunitname="arpackvalues"
 inputf="EIGVEC.OUT"
-
 outputf="eigenvalues.err"
 name=outputf
 
