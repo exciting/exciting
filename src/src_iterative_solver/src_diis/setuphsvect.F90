@@ -10,7 +10,7 @@ subroutine setuphsvect(n,m,system,evecfv,ldv,h,s)
 integer ::i
 complex(8)::z
 real(8)::t
- 
+
   call zhemm('L','U',n,m,zone,system%overlap%za(1,1),n,evecfv(1,1),ldv,&
        zzero,s(1,1),n)
   Do i=1,m
@@ -18,10 +18,10 @@ real(8)::t
     z=1.d0/sqrt(t)
    ! write(*,*)"z",z
   	call zscal(n,z,evecfv(1,i),1)
-  	call zscal(n,z,s(1,i),1)  
+  	call zscal(n,z,s(1,i),1)
   end do
-  
+  h=h
    !call zhemm('L','U',n,m,zone,system%hamilton%za(1,1),n,evecfv(1,1),ldv,&
    !  zzero,h(1,1),n)
- 
+
 end subroutine setuphsvect

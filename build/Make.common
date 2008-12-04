@@ -1,5 +1,5 @@
 #include ../make.inc
-SOURCEDIRS=	../../src/main/ ../../src/  \
+SOURCEDIRS=	../../src/  \
 	../../src/src_xs/ \
 	../../src/src_sym/ \
 	../../src/src_fermisurfdx/ \
@@ -11,6 +11,10 @@ SOURCEDIRS=	../../src/main/ ../../src/  \
 	../../src/src_LDAU/ \
 	../../src/src_rdmft/ \
 	../../src/src_lib/ \
+	../../src/src_advanced/ \
+	../../src/src_eigensystem/ \
+	../../src/src_mpi/ \
+	../../src/src_xc/ \
 	
 
 
@@ -20,14 +24,14 @@ bin::../make.inc
 	perl ../../utilities/interfacesmkmf.pl $(SOURCEDIRS)
 	$(MAKE) -f ../ifcmakefile  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
-	$(SOURCEDIRS) \
+	$(SOURCEDIRS) ../../src/main/ \
 	&& $(MAKE) -f Makefile.mkmf exciting \
 	&& cp exciting ../../bin/exciting$(SUFFIX)
 
 
 doc::
 	cd ./docs/exciting; \
-	perl ../../utilities/scripts/genprotexdoc.pl $(SOURCEDIRS) ;\
+	perl ../../utilities/scripts/genprotexdoc.pl ../../src/main/  $(SOURCEDIRS)  ;\
 
 
 ifeq ($(USE_SYS_LAPACK),true)
