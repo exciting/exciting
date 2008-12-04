@@ -41,7 +41,7 @@ subroutine kernxc
            !     spin-unpolarised     !
            !--------------------------!
            ! convert density to real space
-           call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtapw,lmmaxapw, &
+           call dgemv('N',lmmaxvr,lmmaxvr,1.d0,rbshtvr,lmmaxvr, &
                 rhomt(1,ir,ias),1,0.d0,rftp,1)
            call xcd_pwca(lmmaxvr,rftp,dvx,dvc)
            do itp=1,lmmaxvr
@@ -49,7 +49,7 @@ subroutine kernxc
            end do
            ! convert kernel to spherical-harmonics expansion
            zftp(:,:)=rftp(:,:)
-           call zgemv('N',lmmaxvr,lmmaxvr,1.d0,zfshtvr,lmmaxvr,zftp,1,0.d0, &
+           call zgemv('N',lmmaxvr,lmmaxvr,zone,zfshtvr,lmmaxvr,zftp,1,zzero, &
                 fxcmt(1,ir,ias),1)
         end do
      end do
