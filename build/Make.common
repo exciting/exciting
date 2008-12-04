@@ -19,16 +19,18 @@ SOURCEDIRS=	../../src/  \
 
 
 
-bin::../make.inc
-	perl ../../utilities/versionstamp.pl
-	perl ../../utilities/interfacesmkmf.pl $(SOURCEDIRS)
-	$(MAKE) -f ../ifcmakefile  
+
+bin::../make.inc interfaces
+	perl ../../utilities/versionstamp.pl  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
 	$(SOURCEDIRS) ../../src/main/ \
 	&& $(MAKE) -f Makefile.mkmf exciting \
 	&& cp exciting ../../bin/exciting$(SUFFIX)
 
-
+interfaces::
+	#perl ../../utilities/interfacesmkmf.pl $(SOURCEDIRS)
+	#$(MAKE) -f ../ifcmakefile
+	
 doc::
 	cd ./docs/exciting; \
 	perl ../../utilities/scripts/genprotexdoc.pl ../../src/main/  $(SOURCEDIRS)  ;\

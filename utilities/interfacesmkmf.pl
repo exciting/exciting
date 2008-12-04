@@ -1,6 +1,6 @@
 #generate makefile
 
-$extractinterfacecommand = "perl ../../utilities/extractinterface.pl";
+$extractinterfacecommand = "../../utilities/extractinterface.pl";
 $interfacesdir="../../interfaces";
 open IFCMAKEFILE, ">","../ifcmakefile";
 print IFCMAKEFILE "all:interfaces\n\n";
@@ -13,8 +13,8 @@ foreach $sourcedir (@ARGV) {
 	foreach $file (@filelist) {
 		if ( $file =~ m/.+\.[fF]90/ ) {
 			push( @interfacelist, "$interfacesdir/ifc_$file " );
-			print IFCMAKEFILE
-"$interfacesdir/ifc_$file:$sourcedir$file\n\t$extractinterfacecommand $sourcedir$file >$interfacesdir/ifc_$file\n";
+			print IFCMAKEFILE "$interfacesdir/ifc_$file:$sourcedir$file $extractinterfacecommand\n";
+			print IFCMAKEFILE "\tperl $extractinterfacecommand $sourcedir$file >$interfacesdir/ifc_$file\n";
 
 		}
 	}
