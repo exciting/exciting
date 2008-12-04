@@ -1,4 +1,4 @@
-test/test02/runlapackmpi/startmpirun
+xest/test02/runlapackmpi/startmpirun
 *.err
 *.xml
 Makefile.*

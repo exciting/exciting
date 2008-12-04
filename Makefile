@@ -31,6 +31,8 @@ mpiandsmp:
 test::
 	cd test/; $(MAKE) -i
 	
+doc::
+	$(MAKE) -f build/Make.common doc
  
 all:serial mpi  smp mpiandsmp 
 	cp build/make.inc ./
