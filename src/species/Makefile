@@ -28,6 +28,7 @@ EXE = species
 
 species:	$(OBJ)
 	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ) $(LIB_SYS)
+	cp $(EXE) ../../bin/
 
 clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno gmon.out $(EXE)
