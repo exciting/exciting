@@ -49,6 +49,9 @@ end if
 boxl(:,:)=0.d0
 boxl(:,1)=vkloff(:)/dble(ngridk(:))
 boxl(1,2)=1.d0; boxl(2,3)=1.d0; boxl(3,4)=1.d0
+boxl(:,2)=boxl(:,2)+boxl(:,1)
+boxl(:,3)=boxl(:,3)+boxl(:,1)
+boxl(:,4)=boxl(:,4)+boxl(:,1)
 ! k-point set and box for Fermi surface plots
 if ((task.eq.100).or.(task.eq.101)) then
   ngridk(:)=np3d(:)

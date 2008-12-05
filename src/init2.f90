@@ -58,6 +58,9 @@ end if
 ! setup the q-point box (offset should always be zero)
 boxl(:,:)=0.d0
 boxl(1,2)=1.d0; boxl(2,3)=1.d0; boxl(3,4)=1.d0
+boxl(:,2)=boxl(:,2)+boxl(:,1)
+boxl(:,3)=boxl(:,3)+boxl(:,1)
+boxl(:,4)=boxl(:,4)+boxl(:,1)
 ! assign momentum transfer Q-points set to q-point set
 if (((task.ge.301).and.(task.le.399))) then
    nqpt=nqptmt
