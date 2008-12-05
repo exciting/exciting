@@ -71,9 +71,8 @@ real(8), intent(out) :: wppt(ngridp(1)*ngridp(2)*ngridp(3))
 ! local variables
 integer i1,i2,i3,ip,jp
 integer isym,lspl,iv(3)
-<<<<<<< HEAD:src/genppts.f90
-real(8) v1(3),v2(3)
-real(8) s(3,3),t1,t2
+real(8) v1(3),v2(3),v3(3)
+real(8) b(3,3),s(3,3),t1,t2
 #ifdef XS
   integer :: jsym,nsymcrys_,lsplsymc_(maxsymcrys),lsplsymct(maxsymcrys)
   ! use symmetries of little group of q
@@ -96,10 +95,6 @@ real(8) s(3,3),t1,t2
   end if
   ! now we are working with the point group symmetries of the small group of q
 #endif
-=======
-real(8) v1(3),v2(3),v3(3)
-real(8) b(3,3),s(3,3),t1,t2
->>>>>>> a57873d739a119fd03a5af00ff55f6f0cc3637a4:src/genppts.f90
 if ((ngridp(1).le.0).or.(ngridp(2).le.0).or.(ngridp(3).le.0)) then
   write(*,*)
   write(*,'("Error(genppts): invalid ngridp : ",3I8)') ngridp

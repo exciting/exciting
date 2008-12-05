@@ -75,7 +75,7 @@
            STEP(J)  =ST+DMIX*SP
 
         ENDDO
-   write(*,*)"DMIX IN MSEC1:",DMIX
+        write(*,*)"DMIX IN MSEC1:",DMIX
         IFAIL=0
 100     deallocate (YYINV, YTG, YPROJ, YT )
         RETURN
