@@ -1,0 +1,148 @@
+
+! Note: All units are atomic! (Hartree, bohr,...)
+
+!----------------------------!
+!     general parameters     !
+!----------------------------!
+
+! task, explanation, below:
+! 301	eigenvectors, -values (TDDFT-mode)
+! 320	momentum matrix elements (TDDFT-mode)
+! 330   matrix elements of planewave
+! 340   microscopic dielectric function
+! 345   microscopic dielectric function - including BSE diagonal
+! 350   macroscopic dielectric function (Dyson equation)
+! 401   eigenvectors, -values
+! 420	momentum matrix elements
+! 430	screening
+! 440	screened Coulomb interaction
+! 441	exchange (Coulomb) interaction
+! 445	solution of BSE and calculation of spectrum
+! 450   BSE-kernel
+tasks
+  301
+  320
+  330
+  340
+  350
+
+! if true, no symmetrization is used
+nosym
+  .true.
+
+! rigid shift of the conduction bands
+#scissor
+#0.0
+
+! number of empty states (number of unoccupied states minus one)
+! 55 empty states ~= 3.7 Hartree ~= 100 eV
+nempty
+  60
+
+! lmax for wavefunctions
+lmaxapw
+  10
+
+! smearing for Fermi-Dirac statistics; set this value between 1/1000 and 1/10000
+swidth
+  0.001
+
+! parameters for spectrum
+! nwdos: number of energy points
+! wdos: energy window
+dos
+  600 100 0 : nwdos, ngrdos, nsmdos
+  0.0 2.3   : wdos
+
+! optical components (of dielectric tensor) - the third component is not
+! referenced
+#optcomp
+#  1  1  1
+#  2  2  2
+#  3  3  3
+
+! no symmetry reduction of k-point grid - the k-point offset should break
+! all symmetries of the grid anyway
+reducek
+  .false.
+
+! k-point grid
+ngridk
+  4  4  4
+  
+! k-point grid offset - shift of k-point grid;
+! for sampling of spectra use an offset that breaks all symmetries of k-point
+! set
+! e.g.: shift=(1,3,5)/80 => vkloff=(0.05,0.15,0.25) for ngridk=(4,4,4)
+! or vkloff=(0.1,0.3,0.5)
+vkloff
+  0.1  0.3  0.5
+ 
+! structural data  
+avec
+  5.13 5.13 0.00
+  5.13 0.00 5.13
+  0.00 5.13 5.13
+
+atoms
+  1                                 : nspecies
+ 'Si.in'                            : spfname
+  2                                 : natoms
+  0.0 0.0 0.0      0.0 0.0 0.0      : atposl, bfcmt
+  0.25 0.25 0.25   0.0 0.0 0.0
+
+!-----------------------------------!
+!     excited states parameters     !
+!-----------------------------------!
+#rsptype
+#  'causal'
+
+#acont
+#  .true.
+
+! set to "1" for use of \epsilon^{-1}_{G,G}(Q') instead of
+! \epsilon^{-1}_{0,0}(Q'+G)
+mdfqtype
+  1
+
+! finite momentum transfer Q-point - for BSE it must be the Gamma-point
+vgqlmt
+  7
+  0.0    0.0    0.0
+  0.001  0.001  0.0
+  0.75   0.75   0.75  # 0.79553 a.u. along [111] direction
+  0.75421792889999  0.75421792889999  0.75421792889999  # 0.80 a.u. along [111]
+  1.24445958268498  1.24445958268498  1.24445958268498  # 1.32 a.u. along [111]
+  1.36701999613123  1.36701999613123  1.36701999613123  # 1.45 a.u. along [111]
+  1.49900813368873  1.49900813368873  1.49900813368873  # 1.59 a.u. along [111]
+
+! |G+q|_max cutoff for the expansion of the Coulomb potential in Fourier space
+gqmax
+  2.0
+
+! xc-kernel type (set to 8 for BSE-kernel)
+fxctype
+  0
+
+! lmax for wavefunctions in matrix elements of planewave
+! (a good choice is to set it equal to "lmaxemat")
+lmaxapwwf
+  5
+
+! lmax for Rayleigh-expansion of planewave in matrix elements of planewave
+! (a value of 2 is at the very lower end; checking is needed)
+lmaxemat
+  5
+
+! broadening for the Lorentzian lineshape of the spectra
+! 0.2 eV = 0.0073499 Hartree
+broad
+  0.02
+
+! cutoff energy for screening (empty states above are discarded)
+#emaxdf
+#  7.5
+
+! output energies in electron volts
+tevout
+  .true.

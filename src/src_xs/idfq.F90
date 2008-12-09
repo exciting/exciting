@@ -150,11 +150,11 @@ real(8) :: ts0,ts1
                  call terminate
               end if
               if (igmt.ne.1) then
-                 write(*,*)
-                 write(*,'("Info(",a,"): non-zero G-vector Fourier component &
+                 write(unitout,*)
+                 write(unitout,'("Info(",a,"): non-zero G-vector Fourier component &
                       &for momentum transfer:")') trim(thisnam)
-                 write(*,'(" index and G-vector:",i8,3g18.10)') igmt,ivgmt(:,iq)
-                 write(*,*)
+                 write(unitout,'(" index and G-vector:",i8,3g18.10)') igmt,ivgmt(:,iq)
+                 write(unitout,*)
               end if
               mdf1(iw)=1.d0/idf(igmt,igmt)
 

@@ -1,0 +1,36 @@
+#! /bin/sh
+cp="/bin/cp -f"
+rm="/bin/rm -f"
+mv="/bin/mv -f"
+githashhead=`cat ../../../.git/HEAD |awk '{print $2}'`
+githash=`cat ../../../.git/$githashhead`
+exec="echo ./exciting"
+
+fileskeep="QPOINTS.OUT GQPOINTS_QMT*.OUT EPSILON_*.OUT LOSS_*.OUT SIGMA_*.OUT \
+SUMRULES_*.OUT EIGVAL_QMT*.OUT XSINFO.OUT.*"
+
+# SCF calculation
+
+echo "SCF calculation..."
+$cp exciting.in.scf exciting.in
+$exec
+
+# test with mdftype=0 (using eps^-1(0,0)(q+G0))
+
+echo "EELS and dynamical structure factor. cf. Weissker, PRL 2006"
+echo "EELS: Si, RPA calculation..."
+$cp exciting.in.xs.1 exciting.in
+$exec
+$mv XSINFO.OUT XSINFO.OUT.1
+
+#echo "EELS: Si, ALDA calculation..."
+#$cp exciting.in.xs.2 exciting.in
+#$exec
+#$mv XSINFO.OUT XSINFO.OUT.2
+
+echo "saving files for git hash id: $githash"
+mkdir -p $githash
+$cp $fileskeep $githash
+
+
+echo "run finished"
