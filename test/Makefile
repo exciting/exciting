@@ -1,4 +1,4 @@
-include ../build/make.inc
+include ../build/serial/make.inc
 
 .IGNORE:test cleantests test01 test02 test03 test04 testmpi
 

@@ -1,13 +1,15 @@
-include ../../build/make.inc
+include ../../build/serial/make.inc
 
 FC = $(F90)
+FC77 = $(F77)
 
 
 FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT)
+FFLAGS77 = $(F77_DEBUGOPTS) $(CPP_ON_OPT)
 
 LD = $(FC)
 LDFLAGS =$(F90_OPTS) $(LIBS) $(F90_DEBUGOPTS)
-
-F77=$(F77) 
+LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
+#F77=$(F77) 
 
 TMPFILES = *.mod
