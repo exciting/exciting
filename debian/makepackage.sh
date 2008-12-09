@@ -10,6 +10,7 @@ cp ../docs/exciting/exciting.pdf 	\
 ./debian/usr/share/doc/exciting/
 
 cp ../bin/* ./debian/usr/bin/
-cp ../COPYING /debian/usr/share/doc/exciting/copyright
+cp ../COPYING ./debian/usr/share/doc/exciting/copyright
+
 chmod a-s -R debian/
 dpkg-deb --build debian exciting.deb
