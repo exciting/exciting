@@ -3,7 +3,7 @@ include ../make.inc
 FC = $(F90)
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
 LD = $(FC)
-LDFLAGS = $(F90_OPTS) $(LIBS)
+LDFLAGS = $(F90_OPTS) $(LIBS) libmsec.a
 AR = ar
 ARFLAGS = -rc
 F77=$(F77) $(F77_OPTS)

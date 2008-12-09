@@ -1,11 +1,11 @@
-        real*8 function Fprojmem(Y,S,F,YY,MAXMIX,MEMORY,PSTEP, &
-        DELTA, NPLANE,MUSE)
-!       Projects the current residue onto prior gradient information
-        implicit real*8 (a-h,o-z)
-        dimension Y(MAXMIX,MEMORY), YY(MEMORY,MEMORY), S(MAXMIX,MEMORY)
-        dimension F(MAXMIX)
-        real*8,allocatable :: YYINV(:,:),YPROJ(:),YTG(:), YT(:,:)
-        real*8,allocatable :: ETA(:), XI(:) !, TTT(:,:)
+      real(8) function Fprojmem(Y,S,F,YY,MAXMIX,MEMORY,PSTEP, &
+      DELTA,NPLANE,MUSE)
+!     Projects the current residue onto prior gradient information
+      implicit real*8 (a-h,o-z)
+      dimension Y(MAXMIX,MEMORY), YY(MEMORY,MEMORY), S(MAXMIX,MEMORY)
+      dimension F(MAXMIX)
+      real*8,allocatable :: YYINV(:,:),YPROJ(:),YTG(:), YT(:,:)
+      real*8,allocatable :: ETA(:), XI(:) !, TTT(:,:)
 !--------------------------------------------------------------------
 !       Estimate the NFL Projection
 !
@@ -24,9 +24,9 @@
 !       Parameter (Delta=5D-4)
 !
 !--------------------------------------------------------------------
-        allocate (YYINV(MUSE,MUSE),YPROJ(MUSE),YTG(MUSE))
-        allocate (YT(MUSE,MUSE) )
-        allocate (ETA(MAXMIX), XI(MAXMIX) )
+      allocate (YYINV(MUSE,MUSE),YPROJ(MUSE),YTG(MUSE))
+      allocate (YT(MUSE,MUSE) )
+      allocate (ETA(MAXMIX), XI(MAXMIX) )
         fprojmem=-1.D0
 
 !       Invert YY
@@ -69,7 +69,7 @@
 !        DO N=1,MUSE
 !12              format(10F12.5)
 !                write(21,12)TTT(1:MUSE,N)
-!                DO M=1,MUSE 
+!                DO M=1,MUSE
 !                        T=T+TTT(N,M)*TTT(M,N)
 !                ENDDO
 !        ENDDO
@@ -105,8 +105,8 @@
         ETA = 0
         XI  = 0
         DO N=1,MUSE
-                ETA(1:MAXMIX) = ETA(1:MAXMIX)+YPROJ(N)*Y(1:MAXMIX,N+ISKIP)
-                XI (1:MAXMIX) = XI (1:MAXMIX)-YPROJ(N)*S(1:MAXMIX,N+ISKIP)
+        ETA(1:MAXMIX) = ETA(1:MAXMIX)+YPROJ(N)*Y(1:MAXMIX,N+ISKIP)
+        XI (1:MAXMIX) = XI (1:MAXMIX)-YPROJ(N)*S(1:MAXMIX,N+ISKIP)
         ENDDO
         EE = dot_product(ETA,ETA)
         EX = dot_product(ETA,XI )
@@ -203,7 +203,7 @@
         YT=SY
 
         DO N=1,MEMORY
-                YT(N,N)=SY(N,N)-Delta 
+                YT(N,N)=SY(N,N)-Delta
         ENDDO
 !
         ADD=-1D-4

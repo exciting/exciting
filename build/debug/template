@@ -4,7 +4,7 @@ FC = $(F90)
 
 FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT)
 LD = $(FC)
-LDFLAGS = $(LIBS)
+LDFLAGS = $(LIBS) libmsec.a
 F77_OPTS =$(F77_DEBUGOPTS)
 TMPFILES = *.mod
 SUFFIX=debug

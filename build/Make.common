@@ -41,7 +41,7 @@ libs::libbzint.a fftlib.a  libarpack.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a 
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a
 endif
 
 libblas.a::
@@ -65,6 +65,10 @@ libbzint.a::
 	../../src/libbzint\
 	&& $(MAKE) -f Makefile.libbzint libbzint.a 
 	
+libmsec.a:: 
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
+	../../src/src_mixing/lib/ \
+	&& $(MAKE) -f Makefile.libmsec libmsec.a 
 	
 
 

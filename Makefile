@@ -38,13 +38,13 @@ excitingdoc::
 spacegroupdoc::
 	cd src/spacegroup; $(MAKE) doc
  
-all:serial mpi  smp mpiandsmp doc
+all:serial mpi  smp mpiandsmp  
 	cp build/make.inc ./
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)
 	cd src/species; $(MAKE)
 
-debian:all
+debian:all doc
 	cd debian &&  sh makepackage.sh
 
 clean:
