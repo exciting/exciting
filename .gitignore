@@ -1,4 +1,6 @@
-xest/test02/runlapackmpi/startmpirun
+*.deb
+debian/debian/usr
+test02/runlapackmpi/startmpirun
 *.err
 *.xml
 Makefile.*
@@ -49,3 +51,4 @@ testsummary.*
 .DS*
 ._.DS*
 gitlog.txt
+startmpirun 

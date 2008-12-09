@@ -15,4 +15,5 @@ $command = "../../utilities/scripts/protex -s " . join( " ", @fileslist );
 open TEX, ">", "exciting.tex";
 print TEX `$command`;
 close TEX;
-system "pdflatex", "exciting.tex"
+system "pdflatex", "exciting.tex";
+system "pdflatex", "exciting.tex";

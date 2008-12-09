@@ -30,9 +30,12 @@ mpiandsmp:
 
 test::
 	cd test/; $(MAKE) -i
+
+doc: excitingdoc spacegroupdoc
 	
-doc::
+excitingdoc::
 	$(MAKE) -f build/Make.common doc
+spacegroupdoc::
 	cd src/spacegroup; $(MAKE) doc
  
 all:serial mpi  smp mpiandsmp doc
@@ -40,6 +43,9 @@ all:serial mpi  smp mpiandsmp doc
 	cd src/eos; $(MAKE)
 	cd src/spacegroup; $(MAKE)
 	cd src/species; $(MAKE)
+
+debian:all
+	cd debian &&  sh makepackage.sh
 
 clean:
 
@@ -55,4 +61,7 @@ clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 	rm bin/exciting?*
 	rm interfaces/*
+	rm docs/exciting/*
+	rm docs/spacegroup/*
+	rm -r debian/debian/usr
 
