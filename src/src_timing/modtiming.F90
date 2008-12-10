@@ -19,6 +19,8 @@ module modtimer
      real(8) :: elapsed
      ! number of measured intervals
      integer :: intervals
+     ! last interval
+     real(8) :: int_last
      ! the smallest measured interval
      real(8) :: int_small
      ! the largest measured interval
@@ -42,20 +44,21 @@ contains
     t%running=.false.
     t%elapsed=0.d0
     t%intervals=0
+    t%int_last=0.d0
     t%int_small=1.d10
     t%int_large=-1.d10
     t%int_mean=0.d0
     select case (trim(adjustl(typ)))
-       case('system','wall')
-          t%systemclock=.true.
-       case('cpu')
-          t%systemclock=.false.
-       case default
-          write(*,*)
-          write(*,'("Error(timing:new_timer): unknown clocktype: ",a)') &
-	   trim(typ)
-          write(*,*)
-          stop
+    case('system','wall')
+       t%systemclock=.true.
+    case('cpu')
+       t%systemclock=.false.
+    case default
+       write(*,*)
+       write(*,'("Error(timing:new_timer): unknown clocktype: ",a)') &
+            trim(typ)
+       write(*,*)
+       stop
     end select
   end subroutine new_timer
 
@@ -98,6 +101,7 @@ contains
     end if
     write(un,'(" elapsed time      : ",g18.10)') t%elapsed
     write(un,'(" intervals         : ",i8)') t%intervals
+    write(un,'(" last interval     : ",g18.10)') t%int_last
     write(un,'(" mean interval     : ",g18.10)') t%int_mean
     write(un,'(" smallest interval : ",g18.10)') t%int_small
     write(un,'(" largest  interval : ",g18.10)') t%int_large
@@ -127,7 +131,7 @@ contains
     type(timer) :: t
     is_running_timer=t%running
   end function is_running_timer
-  
+
   real(8) function get_elapsed_timer(t)
     implicit none
     type(timer) :: t
@@ -145,6 +149,12 @@ contains
     type(timer) :: t
     get_intervals_timer=t%intervals
   end function get_intervals_timer
+
+  real(8) function get_intlast_timer(t)
+    implicit none
+    type(timer) :: t
+    get_intlast_timer=t%int_last
+  end function get_intlast_timer
 
   real(8) function get_intsmall_timer(t)
     implicit none
@@ -176,6 +186,7 @@ contains
     t%elapsed=t%elapsed+sint
     t%mark=s
     t%intervals=t%intervals+1
+    t%int_last=sint
     t%int_small=min(t%int_small,sint)
     t%int_large=max(t%int_large,sint)
     t%int_mean=(dble(t%intervals-1)*t%int_mean+sint)/dble(t%intervals)
@@ -273,7 +284,7 @@ contains
     real(8) :: r
     write(un,*)
     write(un,'("Combined timer; summary below")')
-    if (present(string)) write(un,'(" string            : ",a)') trim(string)
+    if (present(string)) write(un,'(" ID                : ",a)') trim(string)
     if (t%tsys) call report_timer(t%sys,un)
     if (t%tcpu) call report_timer(t%cpu,un)
     if (t%tsys.and.t%tcpu) then
@@ -392,6 +403,44 @@ contains
     if (t%tcpu) get_intervals_timer2=get_intervals_timer(t%cpu)
   end function get_intervals_timer2
   
+  real(8) function get_intlast_system_timer2(t)
+    implicit none
+    type(timer2) :: t
+    if (t%tsys) then
+       get_intlast_system_timer2=get_intlast_timer(t%sys)
+    else
+       write(*,*)
+       write(*,'("Error(timing:get_intlast_system_timer2): no System clock &
+       	&timer running")')
+       write(*,*)
+       stop
+    end if
+  end function get_intlast_system_timer2
+
+  real(8) function get_intlast_cpu_timer2(t)
+    implicit none
+    type(timer2) :: t
+    if (t%tcpu) then
+       get_intlast_cpu_timer2=get_intlast_timer(t%cpu)
+    else
+       write(*,*)
+       write(*,'("Error(timing:get_intlast_cpu_timer2): no CPU clock &
+       	&timer running")')
+       write(*,*)
+       stop
+    end if
+  end function get_intlast_cpu_timer2
+
+  real(8) function get_intlast_timer2(t)
+    implicit none
+    type(timer2) :: t
+    if (t%tsysdefault.and.t%tsys) then
+       get_intlast_timer2=get_intlast_system_timer2(t)
+    else
+       get_intlast_timer2=get_intlast_cpu_timer2(t)
+    end if
+  end function get_intlast_timer2
+
   real(8) function get_intsmall_system_timer2(t)
     implicit none
     type(timer2) :: t

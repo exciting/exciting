@@ -20,9 +20,6 @@ contains
     character(*), parameter :: thisnam = 'fxc_alda'
     complex(8), allocatable :: fxcft1(:)
     integer :: sh(2),ig,ngmax,igq1,igq2,iv1(3),iv(3)
-    type(timer2) :: t
-    call new_timer2(t)
-    call tic_timer2(t)
     sh=shape(fxcg)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then
        write(unitout,'(a,2i9,a,i9,a)') 'Error('//trim(thisnam)//'): size of &
@@ -33,12 +30,8 @@ contains
     if (allocated(fxcir)) deallocate(fxcir)
     allocate(fxcmt(lmmaxvr,nrmtmax,natmtot))
     allocate(fxcir(ngrtot))
-    call tic_timer2(t)
-    call report_timer2(t,unitout,'initialization')
     ! calculate exchange-correlation kernel in real space
     call kernxc
-    call tic_timer2(t)
-    call report_timer2(t,unitout,'kernxc')
     ! determine G-vector cutoff for 2*|G+q|_max
     do ngmax=1,ngvec
        if (2.d0*gqmax.lt.gc(ngmax)) exit
@@ -46,8 +39,6 @@ contains
     ! Fourier transform of muffin-tin and interstitial kernel
     allocate(fxcft1(ngmax))
     call ftfun(ngmax,lmaxalda,.true.,.true.,fxcir,fxcmt,fxcft1)
-    call tic_timer2(t)
-    call report_timer2(t,unitout,'Fourier transform')
     ! transform G''=G-G' to G and G'
     do igq1=1,msiz
        iv1(:)=ivg(:,igqig(igq1,iq))
@@ -61,8 +52,6 @@ contains
     end do
     ! deallocate
     deallocate(fxcmt,fxcir,fxcft1)
-    call toc_timer2(t)
-    call report_timer2(t,unitout,'settting up fxc_GGp')
   end subroutine fxc_alda
 
 end module m_fxc_alda
