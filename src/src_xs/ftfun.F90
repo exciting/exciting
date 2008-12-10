@@ -7,12 +7,13 @@ module m_ftfun
   implicit none
 contains
 
-  subroutine ftfun(ng,tir,tmt,gir,gmt,ftg)
+  subroutine ftfun(ng,lmax,tir,tmt,gir,gmt,ftg)
     use modmain
     use modxs
     implicit none
     ! arguments
     integer, intent(in) :: ng
+    integer, intent(in) :: lmax
     logical, intent(in) :: tir
     logical, intent(in) :: tmt
     complex(8), intent(in) :: gir(:)
@@ -25,13 +26,13 @@ contains
     real(8), allocatable :: r1(:),r2(:),fr(:),fr2(:),gr(:),cf(:,:)
     integer :: ig,ifg,is,ia,ias,ir,nr,l,m,lm
 
-!TODO: check this routine
-!*** make routine more general ***
-! pass the following arguments to routine:
-! * p-vector
-! * |G+p| values
-! * structure factors for -(G+q) !!!!! (G+p) is calculated in routine
-! * spherical harmonics Y_lm(^G+q^)
+    !TODO: check this routine
+    !*** make routine more general ***
+    ! pass the following arguments to routine:
+    ! * p-vector
+    ! * |G+p| values
+    ! * structure factors for -(G+q) !!!!! (G+p) is calculated in routine
+    ! * spherical harmonics Y_lm(^G+q^)
 
     ! interstitial part
     ftg(:)=zzero
@@ -51,8 +52,8 @@ contains
     ! muffin-tin part
     if (tmt) then
        ! allocate array for Bessel functions
-       allocate(jbessl(0:lmaxalda,nrmtmax))
-       allocate(jbesslh(0:lmaxalda))
+       allocate(jbessl(0:lmax,nrmtmax))
+       allocate(jbesslh(0:lmax))
        allocate(r1(nrmtmax),r2(nrmtmax),fr(nrmtmax),fr2(nrmtmax),gr(nrmtmax), &
             cf(3,nrmtmax))
        ! loop over G vectors
@@ -66,7 +67,7 @@ contains
              end do
              ! calculate bessel functions j_l(|G||r|)
              do ir=1,nr
-                call sbessel(lmaxalda,gc(ig)*r1(ir),jbesslh)
+                call sbessel(lmax,gc(ig)*r1(ir),jbesslh)
                 jbessl(:,ir)=jbesslh(:)
              end do
              ! loop over atoms
@@ -74,7 +75,7 @@ contains
                 ias=idxas(ia,is)
                 zt1=zzero
                 zt2=zzero
-                do l=0,lmaxalda
+                do l=0,lmax
                    do m=-l,l
                       lm=idxlm(l,m)
                       do ir=1,nr

@@ -65,10 +65,10 @@ my @inc_suffixes = ( q/\.H/, q/\.fh/, q/\.h/, q/\.inc/, q/\.h90/ );
 my @tgt_suffixes = ( q/\.a/ );
 
 my %compile_cmd = (			# command to create .o file from a given source file suffix
-      q/.F/   => q/$(FC77) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS77) $(OTHERFLAGS) -c/, # allow for f77-style compiler, by stephan.sagmeister@gmail.com
+      q/.F/   => q/$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(OTHERFLAGS) -c/,
       q/.F90/ => q/$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(OTHERFLAGS) -c/,
       q/.c/   => q/$(CC) $(CPPDEFS) $(CPPFLAGS) $(CFLAGS) $(OTHERFLAGS) -c/,
-      q/.f/   => q/$(FC77) $(FFLAGS77) $(OTHERFLAGS) -c/, # allow for f77-style compiler, by stephan.sagmeister@gmail.com
+      q/.f/   => q/$(FC) $(FFLAGS) $(OTHERFLAGS) -c/,
       q/.f90/ => q/$(FC) $(FFLAGS) $(OTHERFLAGS) -c/              );
 my %delim_match = ( q/'/ => q/'/,	# hash to find includefile delimiter pair
 		    q/"/ => q/"/,
@@ -106,7 +106,7 @@ if ( $opt_c ) {
       $cppdefs_xlf =~ s/,/\\,/g; # escape any commas already there
       $cppdefs_xlf =~ s/\s+/,/g; # replace whitespace with commas
       &print_formatted_list("CPPDEFS_XLF = $cppdefs_xlf");
-      $compile_cmd{'.F'}   = q/$(FC77) $(CPPDEFS_XLF) $(FFLAGS77) -c/; # allow for f77-style compiler, by stephan.sagmeister@gmail.com
+      $compile_cmd{'.F'}   = q/$(FC) $(CPPDEFS_XLF) $(FFLAGS) -c/;
       $compile_cmd{'.F90'} = q/$(FC) $(CPPDEFS_XLF) $(FFLAGS) -c/;
    }
    &print_formatted_list("CPPDEFS = $opt_c") if $opt_c;

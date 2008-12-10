@@ -19,7 +19,7 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'fxc_alda'
     complex(8), allocatable :: fxcft1(:)
-    integer :: sh(2),ig,igq1,igq2,iv1(3),iv(3)
+    integer :: sh(2),ig,ngmax,igq1,igq2,iv1(3),iv(3)
     type(timer2) :: t
     call new_timer2(t)
     call tic_timer2(t)
@@ -39,9 +39,13 @@ contains
     call kernxc
     call tic_timer2(t)
     call report_timer2(t,unitout,'kernxc')
+    ! determine G-vector cutoff for 2*|G+q|_max
+    do ngmax=1,ngvec
+       if (2.d0*gqmax.lt.gc(ngmax)) exit
+    end do
     ! Fourier transform of muffin-tin and interstitial kernel
-    allocate(fxcft1(ngvec))
-    call ftfun(ngvec,.true.,.true.,fxcir,fxcmt,fxcft1)
+    allocate(fxcft1(ngmax))
+    call ftfun(ngmax,lmaxalda,.true.,.true.,fxcir,fxcmt,fxcft1)
     call tic_timer2(t)
     call report_timer2(t,unitout,'Fourier transform')
     ! transform G''=G-G' to G and G'

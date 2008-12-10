@@ -71,6 +71,7 @@ contains
     write(un,'(a,i8)') '# lmaxinr           :',lmaxinr
     write(un,'(a,i8)') '# lolmax            :',lolmax
     write(un,'(a,i8)') '# lmaxemat          :',lmaxemat
+    write(un,'(a,i8)') '# lmaxalda          :',lmaxalda
     write(un,'(a,i8)') '# lradstp           :',lradstp
     write(un,'(a,l8)') '# tevout            :',tevout
     write(un,'(a,l8)') '# fastpmat          :',fastemat
