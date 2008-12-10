@@ -144,6 +144,12 @@ subroutine xsinit
      write(unitout,*)
      call terminate
   end if
+  if (lmaxalda.gt.lmaxapw) then
+     write(unitout,*)
+     write(unitout,'("Error(xsinit): lmaxalda > lmaxapw: ",i6)') lmaxalda
+     write(unitout,*)
+     call terminate
+  end if
   if (lmaxemat.gt.lmaxapwwf) then
      write(unitout,*)
      write(unitout,'("Warning(xsinit): lmaxemat > lmaxapwwf: ",i6)') lmaxemat
@@ -203,6 +209,15 @@ subroutine xsinit
   !----------------------------------!
   !     task dependent variables     !
   !----------------------------------!
+  if (fxctype.eq.5) then
+     if (gmaxvr.lt.2.d0*gqmax) then
+        write(unitout,*)
+        write(unitout,'("Error(xsinit): 2*gqmax > gmaxvr",2g18.10)') 2.d0* &
+	  gqmax,gmaxvr
+        write(unitout,*)
+	call terminate
+     end if
+  end if
   if ((task.ge.401).and.(task.le.439)) then
      ! screening
      nosym=nosymscr

@@ -212,7 +212,7 @@ tetradf=.false.
 tetrakordexc=.false.
 #endif
 #ifdef XS
-! TDDFT variables
+! XS variables
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
@@ -225,6 +225,7 @@ fastpmat=.true.
 fastemat=.true.
 emattype=1
 lmaxemat=3
+lmaxalda=3
 lmaxdielt=14
 nleblaik=5810
 rsptype='causal'
@@ -1102,6 +1103,14 @@ case('lmaxemat')
   if (lmaxemat.lt.0) then
     write(*,*)
     write(*,'("Error(readinput/xs): lmaxemat < 0 : ",I8)') lmaxemat
+    write(*,*)
+    stop
+  end if
+case('lmaxalda')
+  read(50,*,err=20) lmaxalda
+  if (lmaxalda.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): lmaxalda < 0 : ",I8)') lmaxalda
     write(*,*)
     stop
   end if

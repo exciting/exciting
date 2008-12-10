@@ -8,6 +8,7 @@ bin::make.inc
 	../../src  \
 	../../src/main \
 	../../src/src_xs \
+	../../src/src_timing \
 	../../src/src_sym \
 	../../src/src_fermisurfdx \
 	../../src/src_iterative_solver \

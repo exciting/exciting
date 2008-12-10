@@ -319,6 +319,9 @@ module modxs
   !----------------------------!
   !     xc-kernel variables    !
   !----------------------------!
+  ! maximum angular momentum for Rayleigh expansion of exponential in
+  ! ALDA-kernel
+  integer :: lmaxalda
   ! muffin-tin real space exchange-correlation kernel
   complex(8), allocatable :: fxcmt(:,:,:)
   ! interstitial real space exchange-correlation kernel

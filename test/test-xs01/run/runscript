@@ -2,8 +2,9 @@
 cp="/bin/cp -f"
 rm="/bin/rm -f"
 mv="/bin/mv -f"
-githashhead=`cat ../../../.git/HEAD |awk '{print $2}'`
-githash=`cat ../../../.git/$githashhead`
+#githashhead=`cat ../../../.git/HEAD |awk '{print $2}'`
+#githash=`cat ../../../.git/$githashhead`
+githash=`awk -F '"' '{print $2}' < ../../../src/version.inc`
 exec="../../../build/serial/exciting"
 
 fileskeep="QPOINTS.OUT GQPOINTS_QMT*.OUT EPSILON_*.OUT LOSS_*.OUT SIGMA_*.OUT \
@@ -11,7 +12,7 @@ SUMRULES_*.OUT EIGVAL_QMT*.OUT XSINFO.OUT.*"
 
 # check if source code has local modifications
 localmods=""
-if [ `git-diff --cached | wc -l` -ne 0 ]; then
+if [ `git-diff | wc -l` -ne 0 ]; then
 	echo "Warning: source code has local modifications"
 	localmods=".modified"
 fi
@@ -19,10 +20,10 @@ odir=$githash$localmods
 
 # SCF calculation
 
-#echo "SCF calculation..."
-#$cp exciting.in.scf exciting.in
-#$exec
-#$rm exciting.in
+echo "SCF calculation..."
+$cp exciting.in.scf exciting.in
+$exec
+$rm exciting.in
 
 # test with mdftype=0 (using eps^-1(0,0)(q+G0))
 
@@ -33,11 +34,11 @@ $exec
 $rm exciting.in
 $mv XSINFO.OUT XSINFO.OUT.1
 
-#echo "EELS: Si, ALDA calculation..."
-#$cp exciting.in.xs.2 exciting.in
-#$exec
-#$rm exciting.in
-#$mv XSINFO.OUT XSINFO.OUT.2
+echo "EELS: Si, ALDA calculation..."
+$cp exciting.in.xs.2 exciting.in
+$exec
+$rm exciting.in
+$mv XSINFO.OUT XSINFO.OUT.2
 
 echo "saving files for git hash id: $githash"
 mkdir -p $odir
