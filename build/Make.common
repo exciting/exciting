@@ -20,7 +20,7 @@ SOURCEDIRS=	../../src/  \
 
 
 
-bin::../make.inc interfaces
+bin::../make.inc interfaces libs
 	perl ../../utilities/versionstamp.pl  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
 	$(SOURCEDIRS) ../../src/main/ \
@@ -37,7 +37,7 @@ doc::
 
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a 
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)

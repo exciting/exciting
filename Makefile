@@ -10,22 +10,17 @@ build/make.inc:
 include build/make.inc
 
 serial:
-	cd build/serial; $(MAKE) libs
 	cd build/serial; $(MAKE) 
 
 mpi:
-	cd build/mpi; $(MAKE) libs
 	cd build/mpi; $(MAKE) 
 
 smp:
-	cd build/smp; $(MAKE) libs
 	cd build/smp; $(MAKE)
 debug:
-	cd build/debug; $(MAKE) libs
 	cd build/debug; $(MAKE)
 
 mpiandsmp:
-	cd build/mpiandsmp; $(MAKE) libs
 	cd build/mpiandsmp; $(MAKE)
 
 test::

@@ -23,13 +23,13 @@ Makefile.test4::
 	../src/testframework
 
 
-testprogram1::Makefile.test1
+testprogram1:Makefile.test1 libs
 	make -f Makefile.test1 testprogram1 
 
-testprogram2::Makefile.test2
+testprogram2:Makefile.test2 libs
 	make -f Makefile.test2 testprogram2 
 	
-testprogram4::Makefile.test4
+testprogram4:Makefile.test4 libs
 	make -f Makefile.test4 testprogram4
  
 	
