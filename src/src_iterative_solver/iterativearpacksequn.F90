@@ -65,7 +65,7 @@ type (evsystem)::system
   character:: bmat*1, which*2
   real(8):: tol
   logical::rvec
-  logical:: select(nmat(ik,ispn))
+  logical:: select(nmat(ispn,ik))
   complex(8),pointer::vin(:),vout(:)
 
 #ifdef DEBUG
@@ -92,7 +92,7 @@ type (evsystem)::system
   nevmax=nev
   ncvmax= ncv
   nmax=nmatmax
-  n=nmat(ik,ispn)
+  n=nmat(ispn,ik)
   ldv=n
   lworkl =3*ncvmax*ncvmax+5*ncvmax
   allocate(workd(3*nmax))
@@ -136,7 +136,7 @@ type (evsystem)::system
 
 
  call newsystem(system,packedmatrixstorage,n)
- call hamiltonandoverlapsetup(system,ngk(ik,ispn),apwalm,igkig(1,ik,ispn),vgpc)
+ call hamiltonandoverlapsetup(system,ngk(ispn,ik),apwalm,igkig(1,ispn,ik),vgpc)
 
 
   call cpu_time(cpu0)
