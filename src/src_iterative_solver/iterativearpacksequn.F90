@@ -225,7 +225,7 @@ type (evsystem)::system
   rd=real(d)
   call sortidx (nstfv,rd(:),idx(:))
   do j=1,nstfv
-     evecfv(:,j,ispn)=v(:,idx(j))
+     evecfv(1:n,j,ispn)=v(1:n,idx(j))
      evalfv(j,ispn)=rd(idx(j))
   end do
     call deleteystem(system)

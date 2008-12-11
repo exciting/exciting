@@ -525,10 +525,10 @@ subroutine gndstate
         ! close the RMSDVEFF.OUT file
         close(65)
      endif
-     deallocate(v)
+
      !set nwork to -2 to tell interface to call the deallocation functions
      call mixerifc(mixtype,n,v,currentconvergence,-2)
-
+     deallocate(v)
      call mpiresumeevecfiles()
      return
    end subroutine gndstate

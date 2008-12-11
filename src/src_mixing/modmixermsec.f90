@@ -9,6 +9,7 @@ real(8):: MSECINFO(20),rtrap,SCHARGE,TCharge,splane,tplane,qtot
 real(8)::dmix
 contains
 subroutine initmixermsec(n)
+use modmain,only:CHGIR,CHGMTTOT
 integer,intent(in)::n
 
 integer::niter
