@@ -3,7 +3,9 @@
 
 
 default: build/make.inc all
- 
+
+all: serial mpi  smp mpiandsmp  eos spacegroup species
+
 build/make.inc:
 	perl ./setup.pl
 	
@@ -17,6 +19,7 @@ mpi:
 
 smp:
 	cd build/smp; $(MAKE)
+	
 debug:
 	cd build/debug; $(MAKE)
 
@@ -30,13 +33,19 @@ doc: excitingdoc spacegroupdoc
 	
 excitingdoc::
 	$(MAKE) -f build/Make.common doc
+	
 spacegroupdoc::
 	cd src/spacegroup; $(MAKE) doc
  
-all:serial mpi  smp mpiandsmp  
-	cp build/make.inc ./
+
+
+eos::
 	cd src/eos; $(MAKE)
+	
+spacegroup::
 	cd src/spacegroup; $(MAKE)
+	
+species::
 	cd src/species; $(MAKE)
 
 debian:all doc
