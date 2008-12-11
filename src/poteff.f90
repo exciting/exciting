@@ -24,6 +24,10 @@ real(8) ts0,ts1
 call timesec(ts0)
 ! compute the Coulomb potential
 call potcoul
+
+write(500+iscl,'(i8,g18.10)') (ir,vclir(ir),ir=1,ngrtot)
+write(600+iscl,'(i8,g18.10)') (ir,vclir(igfft(ir)),ir=1,ngrtot)
+
 ! compute the exchange-correlation potential
 call potxc
 ! add Coulomb and exchange-correlation potentials together

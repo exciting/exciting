@@ -24,6 +24,9 @@ implicit none
 integer is,ia,ias,ir,lmax
 complex(8) zrho0
 ! allocatable arrays
+
+complex(8) :: zfft(ngrtot)
+
 real(8), allocatable :: jlgr(:,:,:)
 complex(8), allocatable :: zrhomt(:,:,:)
 complex(8), allocatable :: zrhoir(:)
@@ -62,6 +65,14 @@ do is=1,nspecies
 end do
 ! store complex interstitial potential in real array
 vclir(:)=dble(zvclir(:))
+
+
+zfft(:)=zvclir(:)
+call zfftifc(3,ngrid,-1,zfft)
+write(700+iscl,'(i8,g18.10)') (ir,dble(zfft(ir)),ir=1,ngrtot)
+write(800+iscl,'(i8,g18.10)') (ir,dble(zfft(igfft(ir))),ir=1,ngrtot)
+
+
 deallocate(jlgr,zrhomt,zrhoir,zvclmt,zvclir)
 return
 end subroutine
