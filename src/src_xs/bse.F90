@@ -82,8 +82,9 @@ subroutine bse
   ! local variables
   integer, parameter :: iqmt=0
   real(8), parameter :: epsortho=1.d-12
+  character(256) :: fnexc,fnexcs
   integer :: iknr,jknr,iqr,iq,iw,iv2(3),s1,s2,hamsiz,nexc,ne
-  integer :: ist1,ist2,ist3,ist4,ikkp,oct,iv,ic,nvdif,ncdif
+  integer :: unexc,ist1,ist2,ist3,ist4,ikkp,oct,iv,ic,nvdif,ncdif
   real(8) :: de,egap,ts0,ts1
   ! allocatable arrays
   integer, allocatable :: sor(:)
@@ -251,6 +252,10 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      oszs(:)=zzero
      call genfilname(basename='EPSILON',tq0=.true.,oc1=oct,oc2=oct, &
           bsetype=bsetype,scrtype=screentype,filnam=fneps)
+     call genfilname(basename='EXCITON',tq0=.true.,oc1=oct,oc2=oct, &
+          bsetype=bsetype,scrtype=screentype,filnam=fnexc)
+     call genfilname(basename='EXCITON_SORTED',tq0=.true.,oc1=oct,oc2=oct, &
+          bsetype=bsetype,scrtype=screentype,filnam=fnexcs)
      ! read momentum matrix elements
      allocate(pm(3,nstsv,nstsv))
      do iknr=1,nkptnr
@@ -288,19 +293,24 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      ! write BSE spectrum
      call writeeps(iqmt,oct,oct,w,spectr,fneps)
      ! oscillator strengths
+     call getunit(unexc)
+     open(unexc,file=fnexc,form='formatted',action='write',status='replace')
      do s2=1,hamsiz
-        write(900+oct,'(i8,5g18.10)') s2,beval(s2)*escale,(beval(s2)-egap)*escale, &
-             abs(oszs(s2))
+        write(unexc,'(i8,5g18.10)') s2,(beval(s2)+egap-dble(bsed))*escale, &
+	     (beval(s2)+dble(bsed))*escale,abs(oszs(s2))
      end do
+     close(unexc)
      ! oscillator strengths sorted
      oszsa=abs(oszs)
      call sortidx(hamsiz,oszsa,sor)
      sor=sor(hamsiz:1:-1)
+     open(unexc,file=fnexcs,form='formatted',action='write',status='replace')
      do s1=1,hamsiz
         s2=sor(s1)
-        write(800+oct,'(i8,4g18.10)') s1,beval(sor(s2))*escale, &
-             (beval(sor(s2))-egap)*escale,abs(oszs(s2))
+        write(unexc,'(i8,4g18.10)') s1,(beval(s2)+egap-dble(bsed))*escale, &
+             (beval(s2)+dble(bsed))*escale,abs(oszs(s2))
      end do
+     close(unexc)
      ! end loop over optical components
   end do
 contains

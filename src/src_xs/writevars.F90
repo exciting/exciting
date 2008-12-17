@@ -55,6 +55,7 @@ contains
     write(un,'(a,i8)') '# nlomax            :',nlomax
     write(un,'(a,i8)') '# nst1              :',nst1
     write(un,'(a,i8)') '# nst2              :',nst2
+    write(un,'(a,2i8)') '# nstlbse           :',nbfbse,nafbse
     write(un,'(a,i8)') '# nstsv             :',nstsv
     write(un,'(a,2f12.6)') '# evlmincut (H,eV)  :',evlmincut,h2ev*evlmincut
     write(un,'(a,2f12.6)') '# evlmaxcut (H,eV)  :',evlmaxcut,h2ev*evlmaxcut
