@@ -87,6 +87,7 @@ subroutine dfq(iq)
   complex(8), allocatable :: wou(:),wuo(:),wouw(:),wuow(:),wouh(:),wuoh(:)
   complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:,:)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
+  real(8), allocatable :: cwt(:,:),cw1k(:,:,:),cwa1k(:,:,:),cwsurf1k(:,:,:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
   real(8) :: tord,brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,r1
   integer :: n,i,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
@@ -212,10 +213,12 @@ subroutine dfq(iq)
   scis21(:,:)=0.d0
   if (tetradf) then
      allocate(cw(nwdf),cwa(nwdf),cwsurf(nwdf))
+     if (tetracw1k) allocate(cwt(nstsv,nstsv),cw1k(nst1,nst2,nwdfp), &
+          cwa1k(nst1,nst2,nwdfp),cwsurf1k(nst1,nst2,nwdfp))
   end if
   ! generate complex energy grid
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
-  wreal(:)=w(wi:wf)
+  wreal(:)=dble(w(wi:wf))
   if (wreal(1).lt.epstetra) wreal(1)=epstetra
   ! initializations
   chi0(:,:,:)=zzero
@@ -263,6 +266,16 @@ subroutine dfq(iq)
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
+     if (tetracw1k) then
+        do iw=1,nwdfp
+           call tetcwifc_1k(ik,nkpt,nstsv,evalsv,efermi,wreal(iw),2,cwt)
+           cw1k(:,:,iw)=cwt(istl1:istu1,istl2:istu2)
+           call tetcwifc_1k(ik,nkpt,nstsv,evalsv,efermi,-wreal(iw),2,cwt)
+           cwa1k(:,:,iw)=cwt(istl1:istu1,istl2:istu2)
+           call tetcwifc_1k(ik,nkpt,nstsv,evalsv,efermi,wreal(iw),4,cwt)
+           cwsurf1k(:,:,iw)=cwt(istl1:istu1,istl2:istu2)
+        end do
+     end if
      if (tscreen) then
         ! we don't need anti-resonant parts here, assign them the same
         ! value as for resonant parts, resulting in a factor of two.
@@ -328,8 +341,14 @@ subroutine dfq(iq)
                  j2=ist2
               end if
               ! read weights for tetrahedron method
-              call gettetcw(iq,ik,j1,j2,nst1,nst2,nwdf,trim(fnwtet),cw,cwa, &
-                   cwsurf)
+              if (tetracw1k) then
+                 cw(wi:wf)=cw1k(ist1,ist2,:)
+                 cwa(wi:wf)=cwa1k(ist1,ist2,:)
+                 cwsurf(wi:wf)=cwsurf1k(ist1,ist2,:)
+              else
+                 call gettetcw(iq,ik,j1,j2,nst1,nst2,nwdf, &
+                   trim(fnwtet),cw,cwa,cwsurf)
+              end if
               ! include occupation number differences
               wou(wi:wf)=docc12(ist1,ist2)*cmplx(cw(wi:wf),cwsurf(wi:wf),8)/ &
                    omega
@@ -470,6 +489,9 @@ subroutine dfq(iq)
   deallocate(deou,deuo,wou,wuo,wouw,wuow,wouh,wuoh,zvou,zvuo)
   deallocate(xiou,xiuo,pmou,pmuo)
   deallocate(w,wreal)
-  if (tetradf) deallocate(cw,cwa,cwsurf)
+  if (tetradf) then
+     deallocate(cw,cwa,cwsurf)
+     if (tetracw1k) deallocate(cwt,cw1k,cwa1k,cwsurf1k)
+  end if
 end subroutine dfq
 !EOC
