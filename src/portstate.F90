@@ -7,7 +7,7 @@
 !BOP
 ! !ROUTINE: portstate
 ! !INTERFACE:
-subroutine portstate(tb2a)
+subroutine portstate(act)
 ! !USES:
   use ioarray
 ! !DESCRIPTION:
@@ -23,9 +23,9 @@ subroutine portstate(tb2a)
 !BOC
   implicit none
   ! arguments
-  logical, intent(in) :: tb2a
+  integer, intent(in) :: act
   ! local variables
-  logical exist,spinpol_
+  logical tb2a,exist,spinpol_
   integer natmtot,is
   integer version_(3),nspecies_,lmmaxvr_,nrmtmax_
   integer natoms_(10000),ngrid_(3)
@@ -47,19 +47,38 @@ subroutine portstate(tb2a)
   real(8), allocatable :: bxcir_(:,:)
   complex(8), allocatable :: veffig_(:)
   complex(8), allocatable :: vmatlu_(:,:,:,:,:)
+  select case(act)
+  case(1,2,-1,-2)
+  case default
+     write(*,*)
+     write(*,'("Error(portstate): unknown action: ",i6)') act
+     write(*,*)
+     stop     
+  end select
+  tb2a=(act.eq.1).or.(act.eq.-1)
   if (tb2a) then
      open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
           status='OLD')
+     if (act.eq.-1) then
+        write(*,*)        
+        write(*,'("Information on STATE.OUT file:")')
+        write(*,*)
+     end if
      inquire(file='STATE.xml',exist=exist)
-	 if (exist) then
-	 	write(*,*)
-	    write(*,'("Error(portstate): not overwriting existent STATE.xml file")')
-		write(*,*)
-		stop
-	 end if
-     open(51,file='STATE.xml',action='WRITE',form='FORMATTED',&
+     if (exist.and.(act.eq.1)) then
+        write(*,*)
+        write(*,'("Error(portstate): not overwriting existent STATE.xml file")')
+        write(*,*)
+        stop
+     end if
+     if (act.eq.1) open(51,file='STATE.xml',action='WRITE',form='FORMATTED',&
           status='replace')
      read(50) version_
+     if (act.eq.-1) then
+        write(*,'("version:",3i8)') version_
+        write(*,*)
+        return
+     end if
      read(50) spinpol_
      read(50) nspecies_
      read(50) lmmaxvr_
@@ -88,18 +107,28 @@ subroutine portstate(tb2a)
   else
      open(50,file='STATE.xml',action='READ',form='FORMATTED', &
           status='OLD')
+     if (act.eq.-2) then
+        write(*,*)        
+        write(*,'("Information on STATE.xml file:")')
+        write(*,*)
+     end if
      inquire(file='STATE.OUT',exist=exist)
-	 if (exist) then
-	 	write(*,*)
-	    write(*,'("Error(portstate): not overwriting existent STATE.OUT file")')
-		write(*,*)
-		stop
-	 end if
-     open(51,file='STATE.OUT',action='WRITE',form='UNFORMATTED', &
+     if (exist.and.(act.eq.2)) then
+        write(*,*)
+        write(*,'("Error(portstate): not overwriting existent STATE.OUT file")')
+        write(*,*)
+        stop
+     end if
+     if (act.eq.2) open(51,file='STATE.OUT',action='WRITE',form='UNFORMATTED', &
           status='replace')
      read(50,*)
      read(50,*)
      call ioarr(un=50,ioa='read',arr1di=version_)
+     if (act.eq.-2) then
+        write(*,'("version:",3i8)') version_
+        write(*,*)
+        return
+     end if
      read(50,*)
      read(50,*)
      read(50,*) spinpol_

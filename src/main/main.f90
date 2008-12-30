@@ -95,10 +95,16 @@ program main
            call xsmain
         case(900)
            ! generate portable ASCII STATE.xml file from STATE.OUT file
-           call portstate(.true.)
+           call portstate(1)
         case(901)
            ! generate STATE.OUT file from portable ASCII STATE.xml file
-           call portstate(.false.)
+           call portstate(2)
+        case(910)
+           ! display Information about STATE.OUT file
+           call portstate(-1)
+        case(911)
+           ! display Information about STATE.xml file
+           call portstate(-2)
         case(999)
            ! * debug task *
            call testmain
