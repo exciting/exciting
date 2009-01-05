@@ -73,9 +73,9 @@ end do
 call sphcover(lmmaxvr,tp)
 #ifdef XS
 if (allocated(sphcov)) deallocate(sphcov)
-allocate(sphcov(3,lmmaxvr))
+allocate(sphcov(3,lmmaxapw))
 if (allocated(sphcovtp)) deallocate(sphcovtp)
-allocate(sphcovtp(2,lmmaxvr))
+allocate(sphcovtp(2,lmmaxapw))
 sphcovtp(:,:)=tp(:,:)
 sphcov(1,:)=sin(tp(1,:))*cos(tp(2,:))
 sphcov(2,:)=sin(tp(1,:))*sin(tp(2,:))

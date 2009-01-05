@@ -1,4 +1,4 @@
-export SUFFIX=debug
+export SUFFIX=dbg
 all:
 	$(MAKE)  -f ../Make.common
 

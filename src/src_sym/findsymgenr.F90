@@ -37,7 +37,7 @@ subroutine findsymgenr(nc,mt,ngen,nsgen,gen,orbgen)
   nsgen(:)=0
   nsgen(1)=norb(idx(nc))
   orbgen(:,:)=0
-  orbgen(1,:)=orb(idx(nc),:nsgen(1))
+  orbgen(1,:nsgen(1))=orb(idx(nc),:nsgen(1))
   do i=nc-1,1,-1
      is=idx(i)
      do j=nc,i+1,-1

@@ -10,4 +10,3 @@ AR = ar
 ARFLAGS = -rc
 ###F77=$(F77) $(F77_OPTS)
 TMPFILES = *.mod
-SUFFIX=
