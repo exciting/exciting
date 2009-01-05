@@ -1,7 +1,7 @@
 ! Copyright (C) 2006-2008 C. Ambrosch-Draxl. C. Meisenbichler S. Sagmeister
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details
-!BOP
+!
 ! !MODULE:  modmpi
 ! !DESCRIPTION:
 !   MPI variables and interface functions
@@ -13,14 +13,12 @@
 ! !REVISION HISTORY:
 !   Created October 2006 (CHM)
 !   Added wrapper routines, 2007-2008 (Sagmeister)
-!EOP
+!
+
+
 module  modmpi
 #ifdef MPI
-
 #include "../build/mpiconf.inc"
-
-
-!  use mpi
 #endif
   integer :: rank
   integer :: procs
@@ -159,7 +157,7 @@ end subroutine barrier
 subroutine endloopbarrier(set,mult)
   implicit none
   integer, intent(in) :: set,mult
-  integer :: i
+  integer :: i,im
   do i=1,(nofset(0,set)-nofset(rank,set))*mult
      call barrier
   end do
@@ -209,3 +207,4 @@ subroutine ralltoallv(rarr,rlen,set)
 end subroutine ralltoallv
 
 end module modmpi
+

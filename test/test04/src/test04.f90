@@ -2,12 +2,14 @@ program test
 	use modmixermsec,only:residual,last_outputp,initmixermsec,&
 	freearraysmixermsec,noldstepsmax,noldsteps
 	use modreport
+	use modmain,only:CHGIR
 	implicit none
 	real(8),allocatable::S(:,:),Y(:,:),YY(:,:),STEP(:),Potential(:)
 	integer::iscl,n,teststeps,steps,i
 	logical::passed1,passed2
 	passed1=.true.
 	passed2=.true.
+	CHGIR=1.0
 		n=4
 		teststeps=24
 	allocate (S(n,noldstepsmax),Y(n,noldstepsmax),YY(noldstepsmax,noldstepsmax)&

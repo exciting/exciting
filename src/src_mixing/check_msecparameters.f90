@@ -1,3 +1,5 @@
+!check parameterd for validity
+
  subroutine check_msecparameters()
  use  modmixermsec
  implicit none

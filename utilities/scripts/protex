@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 #
-#  $Id: protex,v 1.15 2004/06/03 23:49:46 eschwab Exp $
+#  $Id: protex,v 1.1.1.1 2008/05/21 20:41:33 bmy Exp $
 #
 #BOP
 #
 # !ROUTINE: ProTeX v. 2.00 - Translates DAO Prologues to LaTeX
 #
 # !INTERFACE:
-#         protex [-hbACFS] ] [+-nlsxf] [src_file(s)]
+#         protex [-hbgACFS] ] [+-nlsxf] [src_file(s)]
 #
 # !DESCRIPTION:
 #         Perl filter to produce a \LaTeX compatible document 
@@ -23,6 +23,7 @@
 #   -h   & Help mode: list command line options   \\ \hline
 #   -b   & Bare mode, meaning no preamble, etc.  \\ \hline
 #   -i   & internal mode: omit prologues marked !BOPI  \\ \hline
+#   -g   & Use GEOS style. Implies -n unless overidden.
 #   +/-n & New Page for each subsection (wastes paper) \\ \hline
 #   +/-l & Listing mode, default is prologues only \\ \hline
 #   +/-s & Shut-up mode, i.e., ignore any code from BOC to EOC \\ \hline
@@ -37,7 +38,7 @@
 #
 # The options can appear in any order.  The options, -h and -b, affect
 # the input from all files listed on command-line input.  Each of the
-# remaining options effects only the input from the files listed after
+# remaining options affects only the input from the files listed after
 # the option and prior to any overriding option.  The plus sign
 # turns off the option.  For example, the command-line input,
 # \bv
@@ -98,7 +99,7 @@
 
 # Set valid options lists
 # -----------------------
-  $GlobOptions = 'hb';    # Global options (i.e for all files)
+  $GlobOptions = 'hbg';    # Global options (i.e for all files)
   $LangOptions = 'ACFS';  # Options for setting programming languages
   $SwOptions   = 'flinsx'; # Options that can change for each input 
                           #   file
@@ -130,6 +131,12 @@ Arg:
   if ( $opt_h ) {
      &print_help();
       exit();
+} #end if
+
+# -g implies -n
+# ---------------------
+  if ( $opt_g ) {
+      $opt_n=1;
 }#end if
 
 # Optional Prologue Keywords
@@ -143,6 +150,9 @@ Arg:
             "!PUBLIC DATA MEMBERS:",
             "!PARAMETERS:",
             "!ARGUMENTS:",
+            "!IMPORT STATE:",
+            "!EXPORT STATE:",
+            "!INTERNAL STATE:",
             "!DEFINED PARAMETERS:",
             "!INPUT PARAMETERS:",
             "!INPUT/OUTPUT PARAMETERS:",
@@ -169,6 +179,8 @@ Arg:
   $verb = 0;              # verbatim mode?
   $tpage = 0;             # title page?
   $begdoc = 0;            # has \begin{document} been written?
+  $inspec = 0;            # are we processing state specs
+  $initem = 0;            # are we processing state specs item
 
 # Initial LaTeX stuff
 # -------------------
@@ -268,8 +280,17 @@ ARG:
 
 #    Print page header
 #    -----------------
-     printf "\n\\markboth{Left}{Source File: %s,  Date: %s}\n\n",
-                               $FileBaseName,    $Date;
+
+     if($opt_g) {
+	 $shname =  " ";
+	 $lnname =  " ";
+	 $units  =  " ";
+	 $dims   =  " ";
+	 $locs   =  " "; }
+     else {
+	 printf "\n\\markboth{Left}{Source File: %s,  Date: %s}\n\n",
+	   $FileBaseName,    $Date;
+ }#  endif
 
 LINE:
 #    Inner loop --- for processing each line of the input file
@@ -285,7 +306,8 @@ LINE:
 
 #       Straight quote
 #       --------------
-        if ($Fld[1] eq '!QUOTE:') {
+        if ( ($Fld[1] eq '!QUOTE:') || ($opt_g && ($Fld[1] eq '!!GEOS!!') )  ) {
+	   if($opt_g) {printf "\n";}
            for ($i = 2; $i <= $#Fld; $i++) {
                printf '%s ', $Fld[$i];
 }#         end for
@@ -348,7 +370,11 @@ LINE:
               print '%..............................................';
               shift @Fld;
               shift @Fld;
-              print "\\section{@Fld}";
+	      if($opt_g) {
+		  print "\\part{\\Large @Fld}";}
+	      else{
+		  print "\\section{@Fld}";
+}#            end if
               next LINE;
 }#         end if
 }#      end if
@@ -371,19 +397,22 @@ LINE:
            print ' ';
            print '%/////////////////////////////////////////////////////////////'; 
            &do_beg();
-           if ($first == 0) {
+           if ($first == 0 && $opt_n==0) {
               ### print "\\newpage";
               print " ";
               print "\\mbox{}\\hrulefill\\ ";
               print " ";}
            else {
-              unless($opt_b){print "\\section{Routine/Function Prologues} \\label{app:ProLogues}";}
+                 unless($opt_b || $opt_g) { 
+			 print "\\section{Routine/Function Prologues} \\label{app:ProLogues}";
+		     }
 }#         end if
 	
            $first = 0;
            $prologue = 1;
            $verb = 0;
            $source = 0;
+           $inspec = 0;
            &set_missing();   # no required keyword yet
            next LINE;
 }#     end if
@@ -397,18 +426,21 @@ LINE:
               print ' ';
               print '%/////////////////////////////////////////////////////////////';  
               &do_beg();
-              if ($first ==0) {
+              if ($first ==0 && $opt_n==0) {
                  ### print "\\newpage";
                  print " ";
                  print "\\mbox{}\\hrulefill\\";
                  print " ";}
               else {
-                 unless($opt_b){print "\\section{Routine/Function Prologues} \\label{app:ProLogues}";}
+                 unless($opt_b || $opt_g) { 
+			 print "\\section{Routine/Function Prologues} \\label{app:ProLogues}";
+		     }
 }#            endif              
               $first = 0;
               $prologue = 1;
               $verb = 0;
               $source = 0;
+              $inspec = 0;
               &set_missing();    # no required keyword yet
               next LINE;
            }#   endelse 
@@ -424,8 +456,8 @@ LINE:
               $name_is = $_;
               s/_/\\_/g;                         # Replace "_" with "\_"
               if ( $opt_n && $not_first ) { printf "\\newpage\n"; }
-              unless ($opt_f) {printf "\\subsection{%s (Source File: %s)}\n\n", $_, $FileBaseName;}
-              else            {printf "\\subsection{%s }\n\n", $_;}
+              unless ($opt_f) {printf "\\subsubsection{%s (Source File: %s)}\n\n", $_, $FileBaseName;}
+              else            {printf "\\subsubsection{%s }\n\n", $_;}
               $have_name = 1;
               $not_first = 1;
               next LINE;
@@ -442,8 +474,13 @@ LINE:
               $name_is = $_;
               s/_/\\_/g;                         # Replace "_" with "\_"
               if ( $opt_n && $not_first ) { printf "\\newpage\n"; }
-              unless($opt_f) {printf "\\subsection{Fortran:  Module Interface %s (Source File: %s)}\n\n", $_, $FileBaseName;}
-              else           {printf "\\subsection{Fortran:  Module Interface %s }\n\n", $_;}
+              if($opt_g) {
+		  printf "\\section [%s] {Module  %s }\n\n", $_,$_;}
+	      else {
+		  unless($opt_f) {printf "\\subsection{Fortran:  Module Interface %s (Source File: %s)}\n\n", $_, $FileBaseName;}
+		  else           {printf "\\subsection{Fortran:  Module Interface %s }\n\n", $_;}
+	      } # endif
+
               $have_name = 1;
               $have_intf = 1;  # fake it, it does not need one.
               $not_first = 1;
@@ -461,8 +498,8 @@ LINE:
               $name_is = $_;
               s/_/\\_/g;                         # Replace "_" with "\_"
               if ( $opt_n && $not_first ) { printf "\\newpage\n"; }
-              unless($opt_f) {printf "\\subsection{Include File %s (Source File: %s)}\n\n", $_, $FileBaseName;}
-              else           {printf "\\subsection{Include File %s }\n\n", $_;}  
+              unless($opt_f) {printf "\\subsubsection{Include File %s (Source File: %s)}\n\n", $_, $FileBaseName;}
+              else           {printf "\\subsubsection{Include File %s }\n\n", $_;}  
               $have_name = 1;
               $have_intf = 1;  # fake it, it does not need one.
               $not_first = 1;
@@ -480,7 +517,26 @@ LINE:
               $name_is = $_;
               s/_/\\_/g;                        # Replace "_" with "\_"
 	      @words = split " ", $_;
-              printf "\\subsection [$words[1]] {$_}\n\n";
+              if ( $opt_n && $not_first ) {printf "\\newpage\n";}
+	      if($opt_g) {printf "\\subsection [$words[1]] {$_}\n\n";}
+              else       {printf "\\subsubsection [$words[1]] {$_}\n\n";}
+              $have_name = 1;
+              next LINE;
+}#         end if
+}#      end if
+
+#       A new CONTAINED subroutine/function
+#       ----------------------------------
+
+        if ($Fld[2] eq '!CROUTINE:') {            # Contained routine
+           if ($prologue) {
+              shift @Fld;
+              shift @Fld;
+              $_ = join(' ', @Fld);
+              $name_is = $_;
+              s/_/\\_/g;                        # Replace "_" with "\_"
+	      @words = split " ", $_;
+              printf "\\subsubsection [$words[1]] {$_}\n\n";
               $have_name = 1;
               next LINE;
 }#         end if
@@ -515,8 +571,8 @@ LINE:
               $name_is = $_;
               s/_/\\_/g;                         # Replace "_" with "\_"
               if ( $opt_n && $not_first ) { printf "\\newpage\n"; }
-              unless ($opt_f) {printf "\\subsection{%s (Source File: %s)}\n\n", $_, $FileBaseName;}
-              else            {printf "\\subsection{%s }\n\n", $_;}
+              unless ($opt_f) {printf "\\subsubsection{%s (Source File: %s)}\n\n", $_, $FileBaseName;}
+              else            {printf "\\subsubsection{%s }\n\n", $_;}
               $have_name = 1;
               $not_first = 1;
               next LINE;
@@ -533,8 +589,8 @@ LINE:
               $name_is = $_;
               s/_/\\_/g;                         # Replace "_" with "\_"
               if ( $opt_n && $not_first ) { printf "\\newpage\n"; }
-              unless ($opt_f) {printf "\\subsection{%s (Source File: %s)}\n\n", $_, $FileBaseName;}
-              else            {printf "\\subsection{%s }\n\n", $_;}
+              unless ($opt_f) {printf "\\subsubsection{%s (Source File: %s)}\n\n", $_, $FileBaseName;}
+              else            {printf "\\subsubsection{%s }\n\n", $_;}
               $have_name = 1;
               $not_first = 1;
               next LINE;
@@ -547,7 +603,7 @@ LINE:
            if ($prologue) {
               if ($verb) {
                  printf "\\end{verbatim}";
-                 printf "\n{\\sf DESCRIPTION:\\\\ }\n\n";
+                 printf "\n{\\sf \\bf DESCRIPTION:\\\\ }\n\n";
                  $verb = 0; }
               else {                          # probably never occurs
 }#            end if
@@ -572,21 +628,32 @@ LINE:
 KEY:       foreach $key ( @keys ) {
               if ( /$key/ ) {
                  if ($verb) {
-                    printf "\\end{verbatim}";
-                    $verb = 0; }
-                 else {
-                    printf "\n\\bigskip";
+		    printf "\\end{verbatim}";
+		    $verb = 0;
 }#               end if
                  $k = sprintf('%s', $key);
                  $ln = length($k);
-                 ###printf "\\subsection*{%s}\n", substr($k, 2, $ln - 1);
-                 ###printf "{\\Large \\em %s}\n", ucfirst lc substr($k, 2, $ln - 1);
                  $_ = $key;
-                if( /USES/ || /INPUT/ || /OUTPUT/ || /PARAMETERS/ || 
-                    /VALUE/  || /ARGUMENTS/ ) {
-                    printf "{\\em %s}\n", substr($k, 2, $ln - 1); } # italics
-                 else {
-                    printf "{\\sf %s}\n", substr($k, 2, $ln - 1); # san serif
+		 if(opt_g) {
+		     if( /IMPORT STATE/ || /EXPORT STATE/ || /INTERNAL STATE/ ) {
+			 if($inspec) {
+			     &beg_item();
+}#                       end if
+                         printf "\n \\bigskip \n {\\bf %s} \n \n", substr($k, 2, $ln - 1);
+			 &hed_item();
+			 $inspec = 1;
+			 $initem = 0;
+			 next LINE;
+		     } else {
+			 printf "{\\bf %s}\n", substr($k, 2, $ln - 1); } # italics
+}#                   end if
+		 else {
+		     if( /USES/ || /INPUT/ || /OUTPUT/ || /PARAMETERS/ || 
+			 /VALUE/  || /ARGUMENTS/ ) {
+			 printf "{\\em %s}\n", substr($k, 2, $ln - 1); } # italics
+		     else {
+			 printf "{\\sf %s}\n", substr($k, 2, $ln - 1); # san serif
+}#                   end if
 }#               end if
 
                  printf "\\begin{verbatim} ";
@@ -607,6 +674,10 @@ KEY:       foreach $key ( @keys ) {
               print "\\end{verbatim}";
               $verb = 0;
 }#         end if
+           if ($opt_g && $inspec) {
+	      &beg_item();
+              $inspec = 0;
+}#         end if
            $prologue = 0;
 #           &check_if_all_there(); # check if all required keywords are there.
            if ( $opt_l ) {
@@ -624,6 +695,10 @@ KEY:       foreach $key ( @keys ) {
               print "\\end{verbatim}";
               $verb = 0;
 }#         endif
+           if ($opt_g && $inspec) {
+	      &beg_item();
+              $inspec = 0;
+}#         endif
            $prologue = 0;
 #          &check_if_all_there(); # check if all required keywords are there.
            if ($opt_l) {
@@ -640,7 +715,7 @@ KEY:       foreach $key ( @keys ) {
               $first = 0;
               $prologue = 0;
               $source = 1;
-              ### printf "\\subsection*{CONTENTS:}\n\n", $Fld[3];
+              ### printf "\\subsubsection*{CONTENTS:}\n\n", $Fld[3];
               ###printf "{\\sf CONTENTS:}";
               printf "\n \\begin{verbatim}\n";
               $verb = 1;
@@ -689,14 +764,32 @@ KEY:       foreach $key ( @keys ) {
         if ( $verb && $#Fld == 1 && ( $Fld[1] eq $comment_string ) ) {
            next LINE;                # to eliminate excessive blanks 
 }#      end if
+	if($opt_g) {
+	    if ( $verb && $#Fld == 2 && ( $Fld[1] eq 'implicit' ) ) {
+		next LINE;
+}#          end if
+            if ( $verb && $#Fld == 1 && ( $Fld[1] eq 'private' ) ) {
+		next LINE;
+}#          end if
+}#      endif
         if ( $Fld[2] eq "\\ev" ) {   # special handling
            $_ = $comment_string . " \\end{verbatim}";
 }#      end if
         s/^$comment_string/ /;       # replace comment string with blank
 #       $line = sprintf('%s', $_);   # not necessary -- comment str is absent
 #       $ln = length($line);         # not necessary -- comment str is absent
-        unless ( $first_verb ) { printf "\n "; }
-        printf '%s', $_;
+        if($opt_g && $inspec) {
+	    if ( $Fld[1] eq "call" ) {
+		&beg_item();
+                next LINE;
+	    }
+	    if ( $Fld[2] eq "=" ) {
+		&prc_item();
+	    }
+	} else {
+	    unless ( $first_verb ) { printf "\n "; }
+	    printf '%s', $_;
+	}
 #       printf '%s', substr($line, 1, $ln - 1);     # comment str is absent
         $first_verb = 0;
         next LINE;
@@ -1059,3 +1152,71 @@ $have_hist ||
  die "ProTeX: invalid prologue, missing !REVISION HISTORY: in <$name_is>";
 
 }# end sub check_if_all_there
+
+sub hed_item {
+		    printf "\\bigskip\n{ \\bf \\sf \n";
+		    printf "\\makebox[.9 in][l]{Short Name } \n";
+		    printf "\\makebox[.9 in][l]{Units      } \n";
+		    printf "\\makebox[.7 in][l]{Dims       } \n";
+		    printf "\\makebox[.7 in][l]{Vert Loc   } \n";
+		    printf "\\makebox[4. in][l]{Long Name  } \n";
+		    printf "} \n \n";
+		}
+
+sub beg_item {
+		if($initem) {
+		    if($intv){
+			printf "\\makebox[1.05 in][l]{\$\\overline{\\rm \\bf %s}\$} \n", $shname;
+		    } else {
+			printf "\\makebox[1.05 in][l]{\\bf            %s } \n", $shname;
+		    }
+		    printf "\\makebox[.9 in][l]{%s} \n", $units;
+		    if($dims ne " ") {
+			if($dims eq 'GEOS\_DIMSHORZONLY') {printf "\\makebox[.7 in][l]{HorzOnly}\n";}
+			if($dims eq 'GEOS\_DIMSHORZVERT') {printf "\\makebox[.7 in][l]{HorzVert}\n";}
+			if($dims eq 'GEOS\_DIMSVERTONLY') {printf "\\makebox[.7 in][l]{VertOnly}\n";}
+			if($dims eq 'GEOS\_DIMSTILEONLY') {printf "\\makebox[.7 in][l]{TileOnly}\n";}
+			if($dims eq 'GEOS\_DIMSTILETILE') {printf "\\makebox[.7 in][l]{TileTile}\n";}
+		    }
+		    if($locs ne " ") {
+			if($locs eq 'GEOS\_VLOCATIONCENTER') {printf "\\makebox[.7 in][l]{Center}\n";}
+			if($locs eq 'GEOS\_VLOCATIONEDGE'  ) {printf "\\makebox[.7 in][l]{Edge  }\n";}
+			if($locs eq 'GEOS\_VLOCATIONNONE'  ) {printf "\\makebox[.7 in][l]{None  }\n";}
+		    }
+		    printf "\\makebox[4 in][l]{\\small %s}\\newline\n", $lnname;
+		}
+		$initem=1;
+		$dims=' ';
+		$locs=' ';
+		$intv=0;
+}
+
+sub prc_units {
+    s/\+1//g;
+    s/([a-zA-Z])\+([1-9][0-9]*)/{\1}\$^{\2}\$/g;
+    s/\-([1-9][0-9]*)/\$^{-\1}\$/g;
+}
+
+sub prc_item {
+# Attribute name is the first field
+    $name = uc($Fld[1]);
+# Attribute value begins at the third field
+    @value=@Fld;
+    shift(@value);
+    shift(@value);
+    $_ = join(' ', @value);
+# Clean the value
+    s/_/\\_/g;
+    s/\'//g;
+    s/\"//g;
+    s/,//g;
+    s/&//g;
+    if($name eq "UNITS"     ){ &prc_units();}
+    if($name ne "UNITS"     ){ s/ //g;}
+    if($name eq "SHORT_NAME"){ $shname =  $_;}
+    if($name eq "LONG_NAME" ){ $lnname =  $_;}
+    if($name eq "UNITS"     ){ $units  =  $_;}
+    if($name eq "DIMS"      ){ $dims   =  uc($_);}
+    if($name eq "VLOCATION" ){ $locs   =  uc($_);}
+    if($name eq "AVERAGING_INTERVAL" ){ $intv = 1;}
+}

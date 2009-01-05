@@ -1,9 +1,20 @@
-MAKE = make
-F90 = ifort
-F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90 -cpp
-F77 = ifort
+F90=ifort
+F90_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90 
+CPP_ON_OPT = -cpp
+F77=$(F90)
 F77_OPTS = -O3 -ip -unroll -prefetch -scalar_rep -w90
-AR = ar
-LIB_SYS = 
-LIB_LPK = libarpack.a libjdqz.a liblapack.a libblas.a
+LIB_ARP =libarpack.a
+
+LIB_LPK=liblapack.a libblas.a
 LIB_FFT = fftlib.a
+LIB_BZINT=libbzint.a
+
+LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
+
+F90_DEBUGOPTS=-g  -O0 -warn all -check all -traceback 
+F77_DEBUGOPTS=-g  -O0 -warn all -check all -traceback 
+
+#Ignore if you don't have MPI or smplibs
+ 
+MPIF90=mpif90
+MPIF90_OPTS=$(F90_OPTS) -DMPI -DMPIRHO -DMPISEC

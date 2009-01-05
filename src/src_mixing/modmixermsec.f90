@@ -1,5 +1,5 @@
 module  modmixermsec
-use modmain,only:beta0
+
 real(8),allocatable:: residual(:),last_outputp(:),work2(:),work3(:)
 real(8),allocatable::PWHIST(:),FHIST(:),CLMHIST(:),yhist(:)
 integer:: record_of_last_iter,noldstepsin_file,noldsteps,MUSE,  IDSCALE
@@ -9,6 +9,7 @@ real(8):: MSECINFO(20),rtrap,SCHARGE,TCharge,splane,tplane,qtot
 real(8)::dmix
 contains
 subroutine initmixermsec(n)
+use modmain,only:CHGIR,CHGMTTOT
 integer,intent(in)::n
 
 integer::niter
@@ -45,9 +46,12 @@ DMIX=.5
 end subroutine
 
  subroutine freearraysmixermsec()
+ character(256), external:: outfilenamestring
+	character(256)::filetag
+	filetag="BROYDEN"
  deallocate(residual,last_outputp)
  deallocate(PWHIST,FHIST,CLMHIST)
- open(23,file="BROYDEN.OUT")
+ open(23,file=outfilenamestring(filetag,1))
  close(23,STATUS='DELETE')
 end subroutine
 

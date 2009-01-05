@@ -4,8 +4,12 @@ FC = $(F90)
 FFLAGS77 = $(F77_OPTS) $(CPP_ON_OPT)
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
 LD = $(FC)
+<<<<<<< HEAD:build/serial/template
 LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
 LDFLAGS = $(F90_OPTS) $(LIBS)
+=======
+LDFLAGS = $(F90_OPTS) $(LIBS) libmsec.a
+>>>>>>> 8efffcb53a6f2ff9e3715fc3760d67fe0e71d871:build/serial/template
 AR = ar
 ARFLAGS = -rc
 ###F77=$(F77) $(F77_OPTS)

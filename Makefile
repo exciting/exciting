@@ -3,40 +3,53 @@
 
 
 default: build/make.inc all
- 
+
+all: serial mpi  smp mpiandsmp  eos spacegroup species
+
 build/make.inc:
 	perl ./setup.pl
 	
 include build/make.inc
 
 serial:
-	cd build/serial; $(MAKE) libs
 	cd build/serial; $(MAKE) 
 
 mpi:
-	cd build/mpi; $(MAKE) libs
 	cd build/mpi; $(MAKE) 
 
 smp:
-	cd build/smp; $(MAKE) libs
 	cd build/smp; $(MAKE)
+	
 debug:
-	cd build/debug; $(MAKE) libs
 	cd build/debug; $(MAKE)
 
 mpiandsmp:
-	cd build/mpiandsmp; $(MAKE) libs
 	cd build/mpiandsmp; $(MAKE)
 
 test::
 	cd test/; $(MAKE) -i
+
+doc: excitingdoc spacegroupdoc
 	
+excitingdoc::
+	$(MAKE) -f build/Make.common doc
+	
+spacegroupdoc::
+	cd src/spacegroup; $(MAKE) doc
  
-all:serial mpi  smp mpiandsmp 
-	cp build/make.inc ./
+
+
+eos::
 	cd src/eos; $(MAKE)
+	
+spacegroup::
 	cd src/spacegroup; $(MAKE)
+	
+species::
 	cd src/species; $(MAKE)
+
+debian:all doc
+	cd debian &&  sh makepackage.sh
 
 clean:
 
@@ -51,4 +64,8 @@ clean:
 	cd src/species; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 	rm bin/exciting?*
+	rm interfaces/*
+	rm docs/exciting/*
+	rm docs/spacegroup/*
+	rm -r debian/debian/usr
 

@@ -1,4 +1,4 @@
-include ../../make.inc
+include ../../build/make.inc
 
 #-------------------------------------------------------------------------------
 # Suffix rules
@@ -18,6 +18,7 @@ EXE = eos
 
 eos:	$(OBJ)
 	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ)
+	cp $(EXE) ../../bin/
 
 clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.OUT gmon.out $(EXE)

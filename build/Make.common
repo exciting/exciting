@@ -1,28 +1,48 @@
-include make.inc
 
-MAKE=make
-
-bin::make.inc
-	perl ../../utilities/versionstamp.pl
-	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
-	../../src  \
-	../../src/main \
-	../../src/src_xs \
-	../../src/src_timing \
-	../../src/src_sym \
-	../../src/src_fermisurfdx \
-	../../src/src_iterative_solver \
-	../../src/src_iterative_solver/src_diis \
+#include ../make.inc
+SOURCEDIRS=	../../src/  \
+	../../src/src_xs/ \
+	../../src/src_sym/ \
+	../../src/src_fermisurfdx/ \
+	../../src/src_iterative_solver/ \
+	../../src/src_iterative_solver/src_diis/ \
 	../../src/src_mixing/ \
+	../../src/src_phonon/ \
+	../../src/src_optics/ \
+	../../src/src_LDAU/ \
+	../../src/src_rdmft/ \
+	../../src/src_lib/ \
+	../../src/src_advanced/ \
+	../../src/src_eigensystem/ \
+	../../src/src_mpi/ \
+	../../src/src_xc/ \
+	
+
+
+
+
+bin::make.inc interfaces libs
+	perl ../../utilities/versionstamp.pl  
+	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
+	$(SOURCEDIRS) ../../src/main/ \
 	&& $(MAKE) -f Makefile.mkmf exciting \
-	&& cp -f exciting ../../bin/exciting$(SUFFIX)
+	&& cp exciting ../../bin/exciting$(SUFFIX)
+
+interfaces::
+	#perl ../../utilities/interfacesmkmf.pl $(SOURCEDIRS)
+	#$(MAKE) -f ../ifcmakefile
+	
+doc::
+	cd ./docs/exciting; \
+	perl ../../utilities/scripts/genprotexdoc.pl ../../src/main/  $(SOURCEDIRS)  ;\
+
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a leblaiklib.a
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a leblaiklib.a
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a
 endif
 
 libblas.a: 
@@ -49,16 +69,44 @@ leblaiklib.a:
 	cp ../../src/leblaiklib/leblaiklib.a .
 	cd ../../src/leblaiklib && make clean
 
+#libblas.a::
+#	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
+#	../../src/BLAS\
+#	&& $(MAKE) -f Makefile.blas libblas.a 
+	
+
+#liblapack.a:: 
+#	../../utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
+#	../../src/LAPACK\
+#	&& $(MAKE) -f Makefile.lapack liblapack.a 
+	
+#fftlib.a::
+#	../../utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
+#	../../src/fftlib\
+#	&& $(MAKE) -f Makefile.fft fftlib.a 
+
 libbzint.a:: 
-	../../utilities/mkmf -t ./template -f -m Makefile.libbzint \
-	-p libbzint.a ../../src/libbzint\
+	../../utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
+	../../src/libbzint\
 	&& $(MAKE) -f Makefile.libbzint libbzint.a 
 	
-libarpack.a:
-	cp -f make.inc ../..
-	cd ../../src/ARPACK && $(MAKE) clean && make lib
-	cp ../../src/ARPACK/libarpack.a .
-	cd ../../src/ARPACK && $(MAKE) clean
+libmsec.a:: 
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
+	../../src/src_mixing/lib/ \
+	&& $(MAKE) -f Makefile.libmsec libmsec.a 
+	
+
+
+libarpack.a::
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
+	../../src/ARPACK/SRC/ \
+	../../src/ARPACK/UTIL/ \
+	&& $(MAKE) -f Makefile.libarpack libarpack.a
+	
+#cp -f ../make.inc ../..
+#cd ../../src/ARPACK && $(MAKE) clean 
+#cp ../../src/ARPACK/libarpack.a .
+#cd ../../src/ARPACK && $(MAKE) clean
 
 
 
@@ -67,3 +115,4 @@ clean:
 
 cleanlibs:
 	rm -f *.a
+

@@ -6,9 +6,12 @@ subroutine readbroydsteps_and_init_SY(noldsteps,n,S,Y,potential,residual)
 	real(8),INTENT(OUT)::S(n,noldstepsmax),Y(n,noldstepsmax)
 	real(8),INTENT(in)::potential(n),residual(n)
 	integer i,skipp
+	character(256), external:: outfilenamestring
+	character(256)::filetag
 	integer::reclength,rectoread,firstrec
 	inquire(iolength=reclength) potential,residual
-	open(23,file="BROYDEN.OUT",ACCESS="DIRECT",RECL=reclength,&
+	filetag="BROYDEN"
+	open(23,file=outfilenamestring(filetag,1),ACCESS="DIRECT",RECL=reclength,&
 			ACTION= "READ",FORM='UNFORMATTED')
 	if(noldsteps .lt. noldstepsmax) then
 		firstrec=1

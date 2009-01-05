@@ -1,4 +1,4 @@
-include ../../make.inc
+include ../../build/make.inc
 
 #-------------------------------------------------------------------------------
 # Suffix rules
@@ -28,6 +28,7 @@ EXE = spacegroup
 
 spacegroup:	$(OBJ)
 	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ)
+	cp $(EXE) ../../bin
 
 clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.OUT *.xsf *.ascii gmon.out \
@@ -37,8 +38,9 @@ copy:
 	cd ..;cp $(SRC_lib) spacegroup
 
 doc:
-	../protex -s $(SRC_main) $(SRC_modules) $(SRC_routines) $(SRC_lib) \
+	../../utilities/scripts/protex -s $(SRC_main) $(SRC_modules) $(SRC_routines) $(SRC_lib) \
          > spacegroup.tex
 	latex spacegroup;latex spacegroup;latex spacegroup
 	dvipdf spacegroup.dvi
+	mv spacegroup.pdf ../../docs/spacegroup
 
