@@ -11,8 +11,8 @@ subroutine findsymeqiv(tfbz,vpl,vplr,nsc,sc,ivgsc)
   real(8), intent(in) :: vpl(3),vplr(3)
   integer, intent(out) :: nsc,sc(maxsymcrys),ivgsc(3,maxsymcrys)
   ! local variables
-  integer :: isym,lspl,iv(3),ivt(3)
-  real(8) :: s(3,3),v1(3),v2(3),t1
+  integer :: isym,lspl,iv(3)
+  real(8) :: s(3,3),v1(3),t1
   real(8), external :: r3taxi
   ! symmetries that transform non-reduced q-point to reduced one, namely
   ! vpl = s^-1 * vplr + G_s

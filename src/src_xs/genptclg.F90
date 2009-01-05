@@ -29,6 +29,8 @@ real(8) function ptclg(cuttype,vgpc,gpc)
   ! arguments
   character(*), intent(in) :: cuttype
   real(8), intent(in) :: vgpc(3),gpc
+  ! local variables
+  real(8) :: t1
   select case(cuttype)
   case('nocutoff')
      ! set up the square root of the Coulomb potential from analytical
@@ -36,6 +38,7 @@ real(8) function ptclg(cuttype,vgpc,gpc)
      ptclg=sqrt(fourpi)/gpc
   case('0d')
      ! 0D spherical cutoff
+     t1=vgpc(1)
      write(*,*)
      write(*,'("Error(genptclg): 0D cutoff to be implemented")')
      write(*,*)

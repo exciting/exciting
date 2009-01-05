@@ -46,7 +46,7 @@ contains
     character(*), parameter :: thisnam = 'fxc_bse_ma03'
     character(256) :: filnam
     complex(8) :: zt1
-    integer :: sh(2),ig,igp,un,recl
+    integer :: sh(2),un,recl
     sh=shape(fxc)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then
        write(unitout,'(a,2i9,a,i9,a)') 'Error('//trim(thisnam)//'): size of &

@@ -226,7 +226,7 @@ subroutine preset_dielten
   use modmain
   use modxs
   implicit none
-  real(8) :: r(3,3)
+!!$  real(8) :: r(3,3)
   ! preset dielectric tensor for testing
   dielten(:,:)=zzero
 !!$!  (values are for trans-polyacetylene) from 2x2x16 k-point grid
