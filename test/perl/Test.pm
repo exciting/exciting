@@ -9,6 +9,7 @@ sub assert_file_same_within {
 	$file1=@_[0];
 	$file2=@_[1];
 	$tol=@_[2];
+	@error=0;
 	open FILE1,$file1;
 	open FILE2, $file2;
 	while(<FILE1>)
@@ -26,12 +27,14 @@ sub assert_file_same_within {
  		}
 		
 	}
+	print @error;
 	$status=failed;
 if(max( @error) <$tol)
 	{
  	$status=passed;
  	}
- 	
+ 	close  FILE1;
+ 	close  FILE2;
  	$maxerror=max(@error );
 
 %test=("status" => $status,
