@@ -34,6 +34,10 @@ test03::exciting cleantests
 	-cd test03/runmixer3 && ../../../build/debug/exciting
 	-cd test03 && perl report.pl
 
+test05::exciting cleantests
+	-cd test05/runconverge && ../../../build/debug/exciting
+	-cp test05/runconverge/STATE.OUT   test05/runrestart
+	-cd test05/runrestart && ../../../build/debug/exciting
 
 testmpi::
 	-cd ../build/mpi/; $(MAKE) libs; $(MAKE) 
