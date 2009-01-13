@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="vect" type="f" />
+
+	<xs:element name="unitbox">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="vect" minOccurs="3" maxOccurs="3" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="structure">
+		<xs:complexType>
+			<xs:SimpleContent>
+				<xs:element ref="unitbox" />
+			</xs:SimpleContent>
+			<xs:sequence>
+				<xs:element ref="species" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>
