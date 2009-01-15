@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:simpleType name="vector">
 		<xs:list itemType="xs:double" />
@@ -6,37 +6,49 @@
 	<xs:simpleType name="integerlist">
 		<xs:list itemType="xs:integer" />
 	</xs:simpleType>
-	<xs:element name="vect3d">
-		<xs:simpleType>
-			<xs:restriction base="vector">
-				<xs:length value="3" />
-			</xs:restriction>
-		</xs:simpleType>
-	</xs:element>
-	<xs:element name="run">
+
+	<xs:simpleType name="vect3d">
+		<xs:restriction base="vector">
+			<xs:length value="3" />
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<xs:simpleType name="grid3d">
+		<xs:restriction base="integerlist">
+			<xs:length value="3" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:element name="input">
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="structure">
 					<xs:complexType>
 						<xs:sequence>
-							<xs:element name="unitbox">
+							<xs:element name="unitcell" minOccurs="1" maxOccurs="1" >
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element ref="vect3d" minOccurs="3" maxOccurs="3" />
+										<xs:element name="basevect" minOccurs="3"
+											maxOccurs="3" type="vect3d" />
+
 									</xs:sequence>
+									<xs:attribute name="scale" type="xs:double" />
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="species" minOccurs="1" maxOccurs="unbounded">
+							<xs:element name="species" minOccurs="0" maxOccurs="unbounded">
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element ref="vect3d" minOccurs="1" maxOccurs="unbounded" />
+										<xs:element name="position" minOccurs="1"
+											maxOccurs="unbounded" type="vect3d" />
+
 									</xs:sequence>
-									<xs:attribute name="name" type="xs:string" />
-									<xs:attribute name="speciesfile" type="xs:URI" />
+									<xs:attribute name="abrev" type="xs:string" />
+									<xs:attribute name="speciesfile" type="xs:anyURI" />
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
-						<xs:attribute name="speciespath" type="xs:URI" />
+						<xs:attribute name="speciespath" type="xs:anyURI" />
 					</xs:complexType>
 				</xs:element>
 
@@ -47,26 +59,110 @@
 								<xs:complexType>
 									<xs:sequence>
 										<xs:element name="ngkgrit">
-											<xs:simpleType>
-												<xs:restriction base="integerlist">
-													<xs:length value="3" />
-												</xs:restriction>
-											</xs:simpleType>
+											<xs:complexType>
+												<xs:simpleContent>
+													<xs:extension base="grid3d">
+														<xs:attribute name="autokpt" type="xs:boolean" />
+													</xs:extension>
+
+												</xs:simpleContent>
+											</xs:complexType>
 										</xs:element>
 										<xs:element name="kpgrid" minOccurs="0">
-											<xs:simpleType>
-												<xs:restriction base="integerlist">
-													<xs:length value="3" />
-												</xs:restriction>
-											</xs:simpleType>
+											<xs:complexType>
+												<xs:simpleContent>
+													<xs:extension base="grid3d">
+														<xs:attribute name="autokpt" type="xs:boolean" />
+													</xs:extension>
+												</xs:simpleContent>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="spin" minOccurs="0" maxOccurs="1">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="mommtfix" minOccurs="0" maxOccurs="1">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="atommoment">
+																	<xs:complexType>
+																		<xs:simpleContent>
+																			<xs:extension base="vect3d">
+																		
+																				<xs:attribute name="speciesnr" type="xs:integer"  use="required"/>
+																				<xs:attribute name="atomnr" type="xs:integer" use="required" />
+																	
+																			</xs:extension>
+																		</xs:simpleContent>
+
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="spinpol" type="xs:boolean" use="required"/>
+												<xs:attribute name="bfieldc" type="vect3d" />
+												<xs:attribute name="momfix" type="vect3d" />
+												<xs:attribute name="spinorb" type="xs:boolean" />
+												<xs:attribute name="spinsprl" type="xs:boolean" />
+												<xs:attribute name="vglss" type="xs:string" />
+												<xs:attribute name="taufsm" type="xs:double" />
+
+											</xs:complexType>
 										</xs:element>
 									</xs:sequence>
-
+									<xs:attribute name="rgkmax" type="xs:double" />
+									<xs:attribute name="epspot" type="xs:double" use="optional" default="1e-6" />
+									<xs:attribute name="gmaxvr" type="xs:double" />
+									<xs:attribute name="nempty" type="xs:integer" />
+									<xs:attribute name="nosym" type="xs:boolean" />
+									<xs:attribute name="stype">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="Gaussian" />
+												<xs:enumeration value="Methfessel-Paxton 1" />
+												<xs:enumeration value="Methfessel-Paxton 1" />
+												<xs:enumeration value="Fermi Dirac" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="swidth" type="xs:double" />
+									<xs:attribute name="tfibs" type="xs:boolean" />
+									<xs:attribute name="tforce" type="xs:boolean" />
+									<xs:attribute name="lmaxapw" type="xs:integer" />
 									<xs:attribute name="maxscl" type="xs:integer" />
-									<xs:attribute name="solver" type="xs:string" />
-									<xs:attribute name="mixer" type="xs:string" />
-									<xs:attribute name="mixer" type="xs:string" />
+									<xs:attribute name="solver">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="Lapack" />
+												<xs:enumeration value="Arpack" />
+												<xs:enumeration value="DIIS" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+
+									<xs:attribute name="mixer">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="lin" />
+												<xs:enumeration value="msec" />
+												<xs:enumeration value="pulay" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 									<xs:attribute name="fromscratch" type="xs:boolean" />
+									<xs:attribute name="xctype">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="LDA" />
+												<xs:enumeration value="LSDA" />
+												<xs:enumeration value="GGA" />
+												<xs:enumeration value="GGA" />
+												<xs:enumeration value="none" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+
 
 								</xs:complexType>
 							</xs:element>
@@ -79,8 +175,9 @@
 													<xs:element name="path">
 														<xs:complexType>
 															<xs:sequence>
-																<xs:element ref="vect3d" minOccurs="1"
-																	maxOccurs="unbounded" />
+																<xs:element name="point" minOccurs="1"
+																	maxOccurs="unbounded" type="vect3d" />
+
 															</xs:sequence>
 															<xs:attribute name="steps" type="xs:integer" />
 														</xs:complexType>

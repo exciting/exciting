@@ -1,36 +1,43 @@
 <?xml version="1.0"  ?>
-<run xsi:noNamespaceSchemaLocation="./excitinginput.xsd"
+<input xsi:noNamespaceSchemaLocation="./excitinginput.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<structure speciespath="../species">
-		<unitbox>
-			<vect3d>1 0 0</vect3d>
-			<vect3d>0 1 0</vect3d>
-			<vect3d>0 0 1</vect3d>
-		</unitbox>
-		<species name="Cu">
-			<vect3d>0 0 .5</vect3d>
-			<vect3d>0 0 0</vect3d>
-			<vect3d>0 0 0</vect3d>
+		<unitcell>
+			<basevect>1 0 0</basevect>
+			<basevect>0 1 0</basevect>
+			<basevect>0 0 1</basevect>
+		</unitcell>
+		<species abrev="Cu">
+			<position>0 0 0</position>
+		
 		</species>
-		<species name="O">
-			<vect3d>0 0 .5</vect3d>
-			<vect3d>0 0 0</vect3d>
-			<vect3d>0 0 0</vect3d>
+		<species abrev="O">
+			<position>0 0 .5</position>
+			<position>0 0 0</position>
 		</species>
 	</structure>
 
 	<tasks>
-		<groundstate fromscratch="true" maxscl="30" solver="arpack"
-			mixer="msec">
-			<ngkgrit>2 2 2</ngkgrit>
+		<groundstate fromscratch="true" maxscl="30" solver="Arpack"
+			mixer="msec" >
+		
+			
+			<ngkgrit autokpt="true" >2 2 2</ngkgrit>
+			<spin spinpol="true">
+			<mommtfix>
+			<atommoment speciesnr="1" atomnr="1" > 2 4.23 3</atommoment>
+			</mommtfix>
+			</spin>
 		</groundstate>
+		
 		<bandstructure>
 			<plot1d>
 				<path steps="200">
-					<vect3d>0 0 0</vect3d>
-					<vect3d>0 1 0</vect3d>
+					<point>0 0 0</point>
+					<point>0 1 0</point>
+					<point>8 6 5</point>
 				</path>
 			</plot1d>
 		</bandstructure>
 	</tasks>
-</run>
+</input>
