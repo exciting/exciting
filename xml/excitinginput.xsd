@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="vector">
+		<xs:list itemType="xs:double" />
+	</xs:simpleType>
+	<xs:simpleType name="integerlist">
+		<xs:list itemType="xs:integer" />
+	</xs:simpleType>
+	<xs:element name="vect3d">
+		<xs:simpleType>
+			<xs:restriction base="vector">
+				<xs:length value="3" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="run">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="structure">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="unitbox">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element ref="vect3d" minOccurs="3" maxOccurs="3" />
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="species" minOccurs="1" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element ref="vect3d" minOccurs="1" maxOccurs="unbounded" />
+									</xs:sequence>
+									<xs:attribute name="name" type="xs:string" />
+									<xs:attribute name="speciesfile" type="xs:URI" />
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="speciespath" type="xs:URI" />
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="tasks">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="groundstate">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ngkgrit">
+											<xs:simpleType>
+												<xs:restriction base="integerlist">
+													<xs:length value="3" />
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="kpgrid" minOccurs="0">
+											<xs:simpleType>
+												<xs:restriction base="integerlist">
+													<xs:length value="3" />
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+									</xs:sequence>
+
+									<xs:attribute name="maxscl" type="xs:integer" />
+									<xs:attribute name="solver" type="xs:string" />
+									<xs:attribute name="mixer" type="xs:string" />
+									<xs:attribute name="mixer" type="xs:string" />
+									<xs:attribute name="fromscratch" type="xs:boolean" />
+
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="bandstructure">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="plot1d">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="path">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element ref="vect3d" minOccurs="1"
+																	maxOccurs="unbounded" />
+															</xs:sequence>
+															<xs:attribute name="steps" type="xs:integer" />
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
