@@ -4,6 +4,8 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_xs/ \
 	../../src/src_sym/ \
 	../../src/src_fermisurfdx/ \
+	../../src/src_timing/ \
+	../../src/tools/ \
 	../../src/src_iterative_solver/ \
 	../../src/src_iterative_solver/src_diis/ \
 	../../src/src_mixing/ \
@@ -38,52 +40,57 @@ doc::
 
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a leblaiklib.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a leblaiklib.a
 endif
 
-libblas.a: 
-	cp -f make.inc ../..
-	cd ../../src/BLAS-3.1.1 && make clean && make
-	cp ../../src/BLAS-3.1.1/libblas.a .
-	cd ../../src/BLAS-3.1.1 && make clean
+#libblas.a: 
+#	cp -f make.inc ../..
+#	cd ../../src/BLAS-3.1.1 && make clean && make
+#	cp ../../src/BLAS-3.1.1/libblas.a .
+#	cd ../../src/BLAS-3.1.1 && make clean
 
-liblapack.a: 
-	cp -f make.inc ../..
-	cd ../../src/LAPACK-3.1.1 && make clean && make
-	cp ../../src/LAPACK-3.1.1/liblapack.a .
-	cd ../../src/LAPACK-3.1.1 && make clean
+#liblapack.a: 
+#	cp -f make.inc ../..
+#	cd ../../src/LAPACK-3.1.1 && make clean && make
+#	cp ../../src/LAPACK-3.1.1/liblapack.a .
+#	cd ../../src/LAPACK-3.1.1 && make clean
 
-fftlib.a:
-	cp -f make.inc ../..
-	cd ../../src/fftlib && make clean && make
-	cp ../../src/fftlib/fftlib.a .
-	cd ../../src/fftlib && make clean
+#fftlib.a:
+#	cp -f make.inc ../..
+#	cd ../../src/fftlib && make clean && make
+#	cp ../../src/fftlib/fftlib.a .
+#	cd ../../src/fftlib && make clean
 
-leblaiklib.a:
-	cp -f make.inc ../..
-	cd ../../src/leblaiklib && make clean && make
-	cp ../../src/leblaiklib/leblaiklib.a .
-	cd ../../src/leblaiklib && make clean
+#leblaiklib.a:
+#	cp -f make.inc ../..
+#	cd ../../src/leblaiklib && make clean && make
+#	cp ../../src/leblaiklib/leblaiklib.a .
+#	cd ../../src/leblaiklib && make clean
 
-#libblas.a::
-#	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
-#	../../src/BLAS\
-#	&& $(MAKE) -f Makefile.blas libblas.a 
+libblas.a::
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
+	../../src/BLAS\
+	&& $(MAKE) -f Makefile.blas libblas.a 
 	
 
-#liblapack.a:: 
-#	../../utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
-#	../../src/LAPACK\
-#	&& $(MAKE) -f Makefile.lapack liblapack.a 
+liblapack.a:: 
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.lapack -p liblapack.a \
+	../../src/LAPACK\
+	&& $(MAKE) -f Makefile.lapack liblapack.a 
 	
-#fftlib.a::
-#	../../utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
-#	../../src/fftlib\
-#	&& $(MAKE) -f Makefile.fft fftlib.a 
+fftlib.a::
+	../../utilities/mkmf -t ./template -f -m Makefile.fft -p fftlib.a \
+	../../src/fftlib\
+	&& $(MAKE) -f Makefile.fft fftlib.a 
+
+leblaiklib.a:: 
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.leblaiklib -p leblaiklib.a \
+	../../src/leblaiklib/ \
+	&& $(MAKE) -f Makefile.leblaiklib leblaiklib.a 	
 
 libbzint.a:: 
 	../../utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
@@ -95,8 +102,6 @@ libmsec.a::
 	../../src/src_mixing/lib/ \
 	&& $(MAKE) -f Makefile.libmsec libmsec.a 
 	
-
-
 libarpack.a::
 	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
 	../../src/ARPACK/SRC/ \

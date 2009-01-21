@@ -1,7 +1,6 @@
-export SUFFIX=par
+export SUFFIX=.gfortran.mpi
 all:
 	make  -f ../Make.common
-
 
 libs:
 	make libs -f ../Make.common
@@ -11,10 +10,3 @@ clean:
 
 cleanlibs:
 	make cleanlibs  -f ../Make.common
-
-
-
-
-
-
-
