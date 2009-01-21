@@ -162,9 +162,7 @@ subroutine scrcoulint
      ! get radial integrals
      call getematrad(iqr,iq)
      ! rotate radial integrals
-     riaa(:,:,:,:,:,:,:)=riaa(:,:,:,:,:,:,igqmap)
-     riloa(:,:,:,:,:,:)=riloa(:,:,:,:,:,igqmap)
-     rilolo(:,:,:,:,:)=rilolo(:,:,:,:,igqmap)
+     call rotematrad(ngqmax,igqmap)
      ! rotate inverse of screening, Coulomb potential and radial integrals
      tmi(:,:)=phf(:,:)*scieffg(igqmap,igqmap,iqr)
 
@@ -175,6 +173,8 @@ subroutine scrcoulint
      call ematqk1(iq,iknr)
      emattype=2
      call ematbdcmbs(emattype)
+     call chkpt(3,(/task,2,ikkp/),'task,sub,(k,kp)-pair; direct term of &
+          &BSE-Hamiltonian')
 
      ! select screening level
      tm(:,:)=zzero
@@ -182,7 +182,8 @@ subroutine scrcoulint
      case('longrange')
         ! constant screening (q=0 average tensor)
         forall(igq1=1:n)
-           !tm(igq1,igq1)= ? use tensor
+           tm(igq1,igq1)=fourpi*dot_product(vgqc(:,igq1,iq),matmul(dielten, &
+                vgqc(:,igq1,iq)))
         end forall
      case('diag')
         ! only diagonal of screening

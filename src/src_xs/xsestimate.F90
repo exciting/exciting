@@ -68,6 +68,7 @@ subroutine xsestimate
   write(un,'(a,i6)') ' nqpt      :',nqpt
   write(un,'(a,i6)') ' ngqmax    :',ngqmax
   write(un,'(a,i6)') ' nkpt      :',nkpt
+  write(un,'(a,i6)') ' nkkpt     :',nkkpt
   write(un,'(a,i6)') ' nstsv     :',nstsv
   write(un,'(a,i6)') ' nst1      :',nst1
   write(un,'(a,i6)') ' nst2      :',nst2
