@@ -30,14 +30,11 @@ subroutine kernxc_bse
 !BOC
   implicit none
   ! local variables
-  !******************************************************************
-  integer, parameter :: oct=1
-  !******************************************************************
   character(*), parameter :: thisnam='kernxs_bse'
-  integer, parameter :: iqmt=1
+  integer, parameter :: iqmt=1,nopt=3
   character(256) :: filnam2,filnam3,filnam4
   logical :: tq0
-  integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2
+  integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2,oct,nn
   integer :: ikkp,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
   real(8) :: vqr(3),vq(3),t1,tord,brd
@@ -112,10 +109,13 @@ subroutine kernxc_bse
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects (first q-point is Gamma-point)
   n=ngq(iqmt)
+  ! extend size of G+q-vectors for optical components
+  nn=n  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  oct=1 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   ! allocate global arrays
   if (allocated(xiou)) deallocate(xiou)
-  allocate(xiou(nst1,nst3,n))
+  allocate(xiou(nst1,nst3,nn))
   if (allocated(pmou)) deallocate(pmou)
   allocate(pmou(3,nst1,nst3))
   if (allocated(deou)) deallocate(deou)
@@ -123,17 +123,18 @@ subroutine kernxc_bse
   if (allocated(docc12)) deallocate(docc12)
   allocate(docc12(nst1,nst3))
   ! allocate local arrays
-  allocate(emat12(nst13,n),emat12p(nst13,n),zmr(nst13,nst13),zmq(nst13,nst13))
+  allocate(emat12(nst13,nn),emat12p(nst13,nn),zmr(nst13,nst13), &
+       zmq(nst13,nst13))
   allocate(dek(nst1,nst3),dekp(nst1,nst3),dde(nst1,nst3))
   allocate(dok(nst1,nst3),dokp(nst1,nst3))
   allocate(scisk(nst1,nst3),sciskp(nst1,nst3))
-  allocate(fxc(n,n,nwdf))
+  allocate(fxc(nn,nn,nwdf))
   allocate(sccli(nst1,nst3,nst2,nst4))
   allocate(scclih(nst1,nst3,nst2,nst4))
   allocate(scclit(nst13,nst13))
-  allocate(emat12k(n,nst1,nst3),emat12kp(nst1,nst3,n))
-  allocate(residr(nst13,n),residq(nst13,n))
-  allocate(w(nwdf),osca(n,n),oscb(n,n))
+  allocate(emat12k(nn,nst1,nst3),emat12kp(nst1,nst3,nn))
+  allocate(residr(nst13,nn),residq(nst13,nn))
+  allocate(w(nwdf),osca(nn,nn),oscb(nn,nn))
   allocate(den1(nwdf),den2(nwdf),den1a(nwdf),den2a(nwdf))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
