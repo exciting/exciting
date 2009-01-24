@@ -284,9 +284,11 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      do iw=1,nwdos
         do s1=1,nexc
            ! Lorentzian lineshape
+!           spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
+!                1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*broad) + &
+!                1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*broad) )
            spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
-                1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*broad) + &
-                1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*broad) )
+                1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*broad))
         end do
      end do
      spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr

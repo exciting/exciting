@@ -30,8 +30,8 @@ subroutine kernxc_bse
 !BOC
   implicit none
   ! local variables
-  character(*), parameter :: thisnam='kernxs_bse'
-  integer, parameter :: iqmt=1,nopt=3
+  character(*), parameter :: thisnam='kernxc_bse'
+  integer, parameter :: iqmt=1,noptc=3
   character(256) :: filnam2,filnam3,filnam4
   logical :: tq0
   integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2,oct,nn
@@ -109,13 +109,10 @@ subroutine kernxc_bse
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects (first q-point is Gamma-point)
   n=ngq(iqmt)
-  ! extend size of G+q-vectors for optical components
-  nn=n  !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  oct=1 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   ! allocate global arrays
   if (allocated(xiou)) deallocate(xiou)
-  allocate(xiou(nst1,nst3,nn))
+  allocate(xiou(nst1,nst3,n))
   if (allocated(pmou)) deallocate(pmou)
   allocate(pmou(3,nst1,nst3))
   if (allocated(deou)) deallocate(deou)
@@ -123,18 +120,18 @@ subroutine kernxc_bse
   if (allocated(docc12)) deallocate(docc12)
   allocate(docc12(nst1,nst3))
   ! allocate local arrays
-  allocate(emat12(nst13,nn),emat12p(nst13,nn),zmr(nst13,nst13), &
+  allocate(emat12(nst13,-3:n),emat12p(nst13,-3:n),zmr(nst13,nst13), &
        zmq(nst13,nst13))
   allocate(dek(nst1,nst3),dekp(nst1,nst3),dde(nst1,nst3))
   allocate(dok(nst1,nst3),dokp(nst1,nst3))
   allocate(scisk(nst1,nst3),sciskp(nst1,nst3))
-  allocate(fxc(nn,nn,nwdf))
+  allocate(fxc(-3:n,-3:n,nwdf))
   allocate(sccli(nst1,nst3,nst2,nst4))
   allocate(scclih(nst1,nst3,nst2,nst4))
   allocate(scclit(nst13,nst13))
-  allocate(emat12k(nn,nst1,nst3),emat12kp(nst1,nst3,nn))
-  allocate(residr(nst13,nn),residq(nst13,nn))
-  allocate(w(nwdf),osca(nn,nn),oscb(nn,nn))
+  allocate(emat12k(-3:n,nst1,nst3),emat12kp(nst1,nst3,-3:n))
+  allocate(residr(nst13,-3:n),residq(nst13,-3:n))
+  allocate(w(nwdf),osca(-3:n,-3:n),oscb(-3:n,-3:n))
   allocate(den1(nwdf),den2(nwdf),den1a(nwdf),den2a(nwdf))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
@@ -200,10 +197,12 @@ subroutine kernxc_bse
      dok(:,:)=docc12(:,:)
      ! add BSE diagonal
      scisk(:,:)=scis(:,:,iknr)+bsed
-     ! assign optical component
-     xiou(:,:,1)=pmou(oct,:,:)
+     ! assign optical components
+     do oct=1,noptc
+       emat12k(-oct,:,:)=pmou(oct,:,:)
+     end do
      do igq1=1,n
-        emat12k(igq1,:,:)=xiou(:,:,igq1)
+       emat12k(igq1,:,:)=xiou(:,:,igq1)
      end do
 
      deallocate(xiou)
@@ -247,7 +246,7 @@ subroutine kernxc_bse
 
         emattype=1
         call ematbdcmbs(emattype)
-        allocate(xiou(nst1,nst3,n))
+        allocate(xiou(nst1,nst3,-3:n))
         xiou(:,:,:)=emat(:,:,:,jknr)
         deou(:,:)=deval(:,:,jknr)
         docc12(:,:)=docc(:,:,jknr)
@@ -258,8 +257,10 @@ subroutine kernxc_bse
         dokp(:,:)=docc12(:,:)
         sciskp(:,:)=scis(:,:,jknr)
         ! assign optical component
-        xiou(:,:,1)=pmou(oct,:,:)
-        emat12kp(:,:,:)=xiou(:,:,:)
+	do oct=1,noptc
+	  emat12kp(:,:,-oct)=pmou(oct,:,:)
+	end do
+        emat12kp(:,:,1:)=xiou(:,:,:)
 
         deallocate(xiou)
         emattype=2
@@ -344,10 +345,12 @@ subroutine kernxc_bse
            j1=ist1+(ist3-1)*nst1
            ! set up inner part of kernel           
            ! generate oscillators
-           call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
+           call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
+	   	residr(j1,:),osca)
            ! add Hermitian transpose
            osca=osca+conjg(transpose(osca))
-           call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residq(j1,:),oscb)
+           call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
+	   	residq(j1,:),oscb)
            ! set up energy denominators
            den1(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
@@ -379,7 +382,8 @@ subroutine kernxc_bse
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
-  inquire(iolength=recl) fxc(:,:,1)
+  inquire(iolength=recl) (fxc(-oct,-oct,1),oct=1,noptc), &
+     	(fxc(-oct,1:,1),oct=1,noptc),(fxc(1:,-oct,iw),oct=1,noptc),fxc(1:,1:,1)
   call getunit(un2)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
@@ -391,12 +395,15 @@ subroutine kernxc_bse
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
   
   do iw=1,nwdf
-     write(un2,rec=iw) fxc(:,:,iw)     
-     write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
+     write(un2,rec=iw) (fxc(-oct,-oct,iw),oct=1,noptc), &
+     	(fxc(-oct,1:,iw),oct=1,noptc),(fxc(1:,-oct,iw),oct=1,noptc), &
+	fxc(1:,1:,iw)     
+     write(un3,'(i6,2x,g18.10,2x,6g18.10)') iw,dble(w(iw)),(fxc(-oct,-oct,iw),&
+     	oct=1,noptc)
   end do
   do iw=1,nwdf,10
-     do igq1=1,n
-        do igq2=1,n
+     do igq1=-noptc,n
+        do igq2=-noptc,n
            write(un,'(3i6,3g18.10)') iw,igq1,igq2,fxc(igq1,igq2,iw), &
                 abs(fxc(igq1,igq2,iw))
         end do

@@ -107,8 +107,11 @@ subroutine idfq(iq)
               end if
               ! generate xc-kernel
               select case(fxctype)
-              case(0,1,2,3,4,7,8)
+              case(0,1,2,3,4)
                  call fxcifc(fxctype,ng=m,iw=iw,w=w(iw),alrc=alphalrc,&
+                      alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
+              case(7,8)
+                 call fxcifc(fxctype,oct=oct1,ng=m,iw=iw,w=w(iw),alrc=alphalrc,&
                       alrcd=alphalrcdyn,blrcd=betalrcdyn,fxcg=fxc)
               end select
               ! solve Dyson's equation for the interacting response function

@@ -11,7 +11,7 @@ contains
 !BOP
 ! !ROUTINE: fxc_bse_ma03
 ! !INTERFACE:
-  subroutine fxc_bse_ma03(msiz,sw,iw,fxc)
+  subroutine fxc_bse_ma03(msiz,oct,sw,iw,fxc)
 ! !USES:
     use modmain
     use modmpi
@@ -37,7 +37,7 @@ contains
 !BOC
     implicit none
     ! arguments
-    integer, intent(in) :: msiz
+    integer, intent(in) :: msiz,oct
     ! true if all G-components of fxc are to be considered
     logical, intent(in) :: sw
     integer, intent(in) :: iw
@@ -45,6 +45,7 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'fxc_bse_ma03'
     character(256) :: filnam
+    complex(8), allocatable :: fxch(:),fxcw1(:,:),fxcw2(:,:)
     complex(8) :: zt1
     integer :: sh(2),un,recl
     sh=shape(fxc)
@@ -53,21 +54,28 @@ contains
             &fxc is to small (required)', sh, '(', msiz, ')'
        call terminate
     end if
+    allocate(fxch(3),fxcw1(3,msiz),fxcw2(msiz,3))
     ! filename for BSE-xc-kernel
     call getunit(un)
     ! filename for xc-kernel
     call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
          acont=acont,nar=.not.aresdf,iqmt=1,filnam=filnam)
-    inquire(iolength=recl) fxc(:,:)
+    inquire(iolength=recl) fxch,fxcw1,fxcw2,fxc(:,:)
     open(un,file=trim(filnam),form='unformatted',action='read', &
          status='old',access='direct',recl=recl)
-    read(un,rec=iw) fxc
+    read(un,rec=iw) fxch,fxcw1,fxcw2,fxc
+    ! assign head
+    fxc(1,1)=fxch(oct)
+    ! assign wings
+    fxc(1,:)=fxcw1(oct,:)
+    fxc(:,1)=fxcw2(:,oct)
     if (.not.sw) then
        zt1=fxc(1,1)
        fxc(:,:)=zzero
        fxc(1,1)=zt1
     end if
     close(un)
+    deallocate(fxch,fxcw1,fxcw2)
   end subroutine fxc_bse_ma03
 !EOC
 
