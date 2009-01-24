@@ -67,9 +67,15 @@ contains
     ! assign head
     fxc(1,1)=fxch(oct)
     ! assign wings
-    fxc(1,:)=fxcw1(oct,:)
-    fxc(:,1)=fxcw2(:,oct)
- if (msiz.ne.1.and.iw.eq.1) write(7777,*) ,fxch,fxc
+    if (msiz.gt.1) then
+       fxc(1,2:)=fxcw1(oct,2:)
+       fxc(2:,1)=fxcw2(2:,oct)
+    end if
+
+if ((msiz.ne.1).and.(iw.eq.1)) then
+ 	write(7777,*) ,oct,fxch,fxc
+end if
+
     if (.not.sw) then
        zt1=fxc(1,1)
        fxc(:,:)=zzero
