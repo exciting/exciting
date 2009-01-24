@@ -34,7 +34,7 @@ subroutine kernxc_bse
   integer, parameter :: iqmt=1,noptc=3
   character(256) :: filnam2,filnam3,filnam4
   logical :: tq0
-  integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2,oct,nn
+  integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2,oct
   integer :: ikkp,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
   real(8) :: vqr(3),vq(3),t1,tord,brd
@@ -246,7 +246,7 @@ subroutine kernxc_bse
 
         emattype=1
         call ematbdcmbs(emattype)
-        allocate(xiou(nst1,nst3,-3:n))
+        allocate(xiou(nst1,nst3,n))
         xiou(:,:,:)=emat(:,:,:,jknr)
         deou(:,:)=deval(:,:,jknr)
         docc12(:,:)=docc(:,:,jknr)
@@ -359,12 +359,12 @@ subroutine kernxc_bse
                 brd)**2
            ! update kernel
            do iw=1,nwdf
-!!$              ! resonant contribution only
-!!$              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-              ! mimic antiresonant contribution by adding a term c.c.(-w)
-              ! as known from response functions
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
-                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
+              ! resonant contribution only
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+!              ! mimic antiresonant contribution by adding a term c.c.(-w)
+!              ! as known from response functions
+!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
+!                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
            end do
            ! end loop over states #1
         end do
@@ -382,8 +382,9 @@ subroutine kernxc_bse
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
-  inquire(iolength=recl) (fxc(-oct,-oct,1),oct=1,noptc), &
-     	(fxc(-oct,1:,1),oct=1,noptc),(fxc(1:,-oct,iw),oct=1,noptc),fxc(1:,1:,1)
+  inquire(iolength=recl) (/(fxc(-oct,-oct,1),oct=1,noptc)/), &
+     	(/(fxc(-oct,1:,1),oct=1,noptc)/), &
+	(/(fxc(1:,-oct,iw),oct=1,noptc)/),fxc(1:,1:,1)
   call getunit(un2)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
@@ -395,8 +396,8 @@ subroutine kernxc_bse
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
   
   do iw=1,nwdf
-     write(un2,rec=iw) (fxc(-oct,-oct,iw),oct=1,noptc), &
-     	(fxc(-oct,1:,iw),oct=1,noptc),(fxc(1:,-oct,iw),oct=1,noptc), &
+     write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
+     	(/(fxc(-oct,1:,iw),oct=1,noptc)/),(/(fxc(1:,-oct,iw),oct=1,noptc)/), &
 	fxc(1:,1:,iw)     
      write(un3,'(i6,2x,g18.10,2x,6g18.10)') iw,dble(w(iw)),(fxc(-oct,-oct,iw),&
      	oct=1,noptc)

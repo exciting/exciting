@@ -54,7 +54,7 @@ contains
             &fxc is to small (required)', sh, '(', msiz, ')'
        call terminate
     end if
-    allocate(fxch(3),fxcw1(3,msiz),fxcw2(msiz,3))
+    allocate(fxch(3),fxcw1(3,sh(1)),fxcw2(sh(1),3))
     ! filename for BSE-xc-kernel
     call getunit(un)
     ! filename for xc-kernel
