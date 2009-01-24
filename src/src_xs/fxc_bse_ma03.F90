@@ -60,7 +60,7 @@ contains
     ! filename for xc-kernel
     call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
          acont=acont,nar=.not.aresdf,iqmt=1,filnam=filnam)
-    inquire(iolength=recl) fxch,fxcw1,fxcw2,fxc(:,:)
+    inquire(iolength=recl) fxch,fxcw1,fxcw2,fxc
     open(un,file=trim(filnam),form='unformatted',action='read', &
          status='old',access='direct',recl=recl)
     read(un,rec=iw) fxch,fxcw1,fxcw2,fxc
@@ -69,6 +69,7 @@ contains
     ! assign wings
     fxc(1,:)=fxcw1(oct,:)
     fxc(:,1)=fxcw2(:,oct)
+ if (msiz.ne.1.and.iw.eq.1) write(7777,*) ,fxch,fxc
     if (.not.sw) then
        zt1=fxc(1,1)
        fxc(:,:)=zzero

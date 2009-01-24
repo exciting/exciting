@@ -359,12 +359,12 @@ subroutine kernxc_bse
                 brd)**2
            ! update kernel
            do iw=1,nwdf
-              ! resonant contribution only
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-!              ! mimic antiresonant contribution by adding a term c.c.(-w)
-!              ! as known from response functions
-!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
-!                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
+!              ! resonant contribution only
+!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              ! mimic antiresonant contribution by adding a term c.c.(-w)
+              ! as known from response functions
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
+                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
            end do
            ! end loop over states #1
         end do
