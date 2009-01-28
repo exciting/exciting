@@ -124,8 +124,12 @@ subroutine kernxc_bse
   allocate(pmuo(3,nst3,nst1))
   if (allocated(deou)) deallocate(deou)
   allocate(deou(nst1,nst3))
+  if (allocated(deuo)) deallocate(deuo)
+  allocate(deuo(nst3,nst1))
   if (allocated(docc12)) deallocate(docc12)
   allocate(docc12(nst1,nst3))
+  if (allocated(docc21)) deallocate(docc21)
+  allocate(docc21(nst3,nst1))
   ! allocate local arrays
   allocate(emat12p(nst13,-3:n),zmr(nst13,nst13), &
        zmq(nst13,nst13))
@@ -183,6 +187,8 @@ subroutine kernxc_bse
      deallocate(xiou,xiuo)
      call getdevaldoccsv(iqmt,iknr,iknrq,istl1,istu1,istl2,istu2,deou, &
           docc12,scisk)
+     call getdevaldoccsv(iqmt,iknr,iknrq,istl2,istu2,istl1,istu1,deuo, &
+     	  docc21,sciskp)
      deval(:,:,iknr)=deou(:,:)
      docc(:,:,iknr)=docc12(:,:)
      scis(:,:,iknr)=scisk(:,:)
@@ -429,7 +435,7 @@ subroutine kernxc_bse
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
   inquire(iolength=recl) (/(fxc(-oct,-oct,1),oct=1,noptc)/), &
      	(/(fxc(-oct,1:,1),oct=1,noptc)/), &
-	(/(fxc(1:,-oct,iw),oct=1,noptc)/),fxc(1:,1:,1)
+	(/(fxc(1:,-oct,1),oct=1,noptc)/),fxc(1:,1:,1)
   call getunit(un2)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
