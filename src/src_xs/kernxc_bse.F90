@@ -46,17 +46,20 @@ subroutine kernxc_bse
   real(8), allocatable :: dekp(:,:),dokp(:,:),sciskp(:,:)
   real(8), allocatable :: deval(:,:,:),docc(:,:,:),scis(:,:,:)
   real(8), allocatable :: dde(:,:)
-  complex(8), allocatable :: zmr(:,:),zmq(:,:)
+  complex(8), allocatable :: zmr(:,:),zmq(:,:),zmra(:,:),zmqa(:,:)
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclih(:,:,:,:)
-  complex(8), allocatable :: emat(:,:,:,:),den1(:),den2(:),den1a(:),den2a(:)
-  complex(8), allocatable :: emat12(:,:),emat12p(:,:)
+  complex(8), allocatable :: emat(:,:,:,:),emata(:,:,:,:)
+  complex(8), allocatable :: den1(:),den2(:),den1a(:),den2a(:)
+  complex(8), allocatable :: emat12p(:,:),emat12pa(:,:)
   complex(8), allocatable :: emat12k(:,:,:),emat12kp(:,:,:)
+  complex(8), allocatable :: emat12ka(:,:,:),emat12kpa(:,:,:)
   complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
+  complex(8), allocatable :: residra(:,:),residqa(:,:),oscaa(:,:),oscba(:,:)
   complex(8), allocatable :: fxc(:,:,:),w(:)
   ! external functions
   integer, external :: idxkkp,l2int
   logical, external :: tqgamma
-  ! set to time-ordered polarizability
+  ! set to time-ordered polarizability @@@@@@@@@@@@@@@@@@@@@@@@@
   tord=-1.d0
   brd=broad
   emattype=2
@@ -113,15 +116,21 @@ subroutine kernxc_bse
   ! allocate global arrays
   if (allocated(xiou)) deallocate(xiou)
   allocate(xiou(nst1,nst3,n))
+  if (allocated(xiuo)) deallocate(xiuo)
+  allocate(xiuo(nst3,nst1,n))
   if (allocated(pmou)) deallocate(pmou)
   allocate(pmou(3,nst1,nst3))
+  if (allocated(pmuo)) deallocate(pmuo)
+  allocate(pmuo(3,nst3,nst1))
   if (allocated(deou)) deallocate(deou)
   allocate(deou(nst1,nst3))
   if (allocated(docc12)) deallocate(docc12)
   allocate(docc12(nst1,nst3))
   ! allocate local arrays
-  allocate(emat12(nst13,-3:n),emat12p(nst13,-3:n),zmr(nst13,nst13), &
+  allocate(emat12p(nst13,-3:n),zmr(nst13,nst13), &
        zmq(nst13,nst13))
+  allocate(emat12pa(nst13,-3:n),zmra(nst13,nst13), &
+       zmqa(nst13,nst13))
   allocate(dek(nst1,nst3),dekp(nst1,nst3),dde(nst1,nst3))
   allocate(dok(nst1,nst3),dokp(nst1,nst3))
   allocate(scisk(nst1,nst3),sciskp(nst1,nst3))
@@ -131,11 +140,16 @@ subroutine kernxc_bse
   allocate(scclit(nst13,nst13))
   allocate(emat12k(-3:n,nst1,nst3),emat12kp(nst1,nst3,-3:n))
   allocate(residr(nst13,-3:n),residq(nst13,-3:n))
-  allocate(w(nwdf),osca(-3:n,-3:n),oscb(-3:n,-3:n))
+  allocate(emat12ka(-3:n,nst3,nst1),emat12kpa(nst3,nst1,-3:n))
+  allocate(residra(nst13,-3:n),residqa(nst13,-3:n))
+  allocate(w(nwdf))
+  allocate(osca(-3:n,-3:n),oscb(-3:n,-3:n))
+  allocate(oscaa(-3:n,-3:n),oscba(-3:n,-3:n))
   allocate(den1(nwdf),den2(nwdf),den1a(nwdf),den2a(nwdf))
   fxc(:,:,:)=zzero
   sccli(:,:,:,:)=zzero
   allocate(emat(nst1,nst3,n,nkptnr))
+  allocate(emata(nst3,nst1,n,nkptnr))
   allocate(deval(nst1,nst3,nkptnr))
   allocate(docc(nst1,nst3,nkptnr))
   allocate(scis(nst1,nst3,nkptnr))
@@ -165,6 +179,7 @@ subroutine kernxc_bse
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
      emat(:,:,:,iknr)=xiou(:,:,:)
+     emata(:,:,:,iknr)=xiuo(:,:,:)
      deallocate(xiou,xiuo)
      call getdevaldoccsv(iqmt,iknr,iknrq,istl1,istu1,istl2,istu2,deou, &
           docc12,scisk)
@@ -187,12 +202,15 @@ subroutine kernxc_bse
      emattype=1
      call ematbdcmbs(emattype)
      allocate(xiou(nst1,nst3,n))
+     allocate(xiuo(nst3,nst1,n))
      xiou(:,:,:)=emat(:,:,:,iknr)
+     xiuo(:,:,:)=emata(:,:,:,iknr)
      deou(:,:)=deval(:,:,iknr)
      docc12(:,:)=docc(:,:,iknr)
 
      ! apply gauge wrt. symmetrized Coulomb potential
-     call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+     call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou,m34=xiuo, &
+     	p34=pmuo)
      dek(:,:)=deou(:,:)
      dok(:,:)=docc12(:,:)
      ! add BSE diagonal
@@ -200,17 +218,21 @@ subroutine kernxc_bse
      ! assign optical components
      do oct=1,noptc
        emat12k(-oct,:,:)=pmou(oct,:,:)
+       emat12ka(-oct,:,:)=pmuo(oct,:,:)
      end do
      do igq1=1,n
        emat12k(igq1,:,:)=xiou(:,:,igq1)
+       emat12ka(igq1,:,:)=xiuo(:,:,igq1)
      end do
 
-     deallocate(xiou)
+     deallocate(xiou,xiuo)
      emattype=2
      call ematbdcmbs(emattype)
 
      residr(:,:)=zzero
      residq(:,:)=zzero
+     residra(:,:)=zzero
+     residqa(:,:)=zzero
      ! second k-point
      do jknr=1,nkptnr
         jknrq=ikmapikq(jknr,iqmt)
@@ -247,22 +269,27 @@ subroutine kernxc_bse
         emattype=1
         call ematbdcmbs(emattype)
         allocate(xiou(nst1,nst3,n))
+        allocate(xiuo(nst3,nst1,n))
         xiou(:,:,:)=emat(:,:,:,jknr)
+        xiuo(:,:,:)=emata(:,:,:,jknr)
         deou(:,:)=deval(:,:,jknr)
         docc12(:,:)=docc(:,:,jknr)
 
         ! apply gauge wrt. symmetrized Coulomb potential
-        call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou)
+        call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou,m34=xiuo, &
+     	p34=pmuo)
         dekp(:,:)=deou(:,:)
         dokp(:,:)=docc12(:,:)
         sciskp(:,:)=scis(:,:,jknr)
         ! assign optical component
 	do oct=1,noptc
 	  emat12kp(:,:,-oct)=pmou(oct,:,:)
+	  emat12kpa(:,:,-oct)=pmuo(oct,:,:)
 	end do
         emat12kp(:,:,1:)=xiou(:,:,:)
+        emat12kpa(:,:,1:)=xiuo(:,:,:)
 
-        deallocate(xiou)
+        deallocate(xiou,xiuo)
         emattype=2
         call ematbdcmbs(emattype)
 
@@ -299,6 +326,7 @@ subroutine kernxc_bse
            do ist1=1,nst1
               j1=j1+1
               emat12p(j1,:)=conjg(emat12kp(ist1,ist2,:))
+              emat12pa(j1,:)=conjg(emat12kpa(ist1,ist2,:))
            end do
         end do
         ! map 
@@ -317,20 +345,27 @@ subroutine kernxc_bse
                     if (abs(t1).ge.fxcbsesplit) then
                        zmr(j2,j1)=zt1/t1
                        zmq(j2,j1)=zzero
+                       zmra(j2,j1)=conjg(zt1)/t1
+                       zmqa(j2,j1)=zzero
                     else
                        zmr(j2,j1)=zzero
                        zmq(j2,j1)=zt1
+                       zmra(j2,j1)=zzero
+                       zmqa(j2,j1)=conjg(zt1)
                     end if
                  end do
               end do
            end do
         end do
-        ! calculate residual "R" 
+        ! calculate residual "R"; partial fraction decomposition without
+	! double poles
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residr=residr+matmul(zmr,emat12p)
-        ! calculate residual "Q" 
+        residra=residra+matmul(zmra,emat12pa)
+        ! calculate residual "Q"; double poles part
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
+        residqa=residqa+matmul(zmqa,emat12pa)
         ! end inner loop over k-points
      end do
 
@@ -342,29 +377,39 @@ subroutine kernxc_bse
         do ist1=1,nst1
            osca(:,:)=zzero
            oscb(:,:)=zzero
+           oscaa(:,:)=zzero
+           oscba(:,:)=zzero
            j1=ist1+(ist3-1)*nst1
            ! set up inner part of kernel           
            ! generate oscillators
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
 	   	residr(j1,:),osca)
+           call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12ka(:,ist3,ist1), &
+	   	residra(j1,:),oscaa)
            ! add Hermitian transpose
            osca=osca+conjg(transpose(osca))
+           oscaa=oscaa+conjg(transpose(oscaa))
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
 	   	residq(j1,:),oscb)
+           call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12ka(:,ist3,ist1), &
+	   	residqa(j1,:),oscba)
            ! set up energy denominators
            den1(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
-           den1a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi*brd)
-           den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi* &
-                brd)**2
+!old           den1a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi*brd)
+!old           den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi* &
+!                brd)**2
+            den1a(:)=2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
+	    	tord*zi*brd)
+            den2a(:)=2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
+	    	tord*zi*brd)**2
            ! update kernel
            do iw=1,nwdf
-!              ! resonant contribution only
-!              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-              ! mimic antiresonant contribution by adding a term c.c.(-w)
-              ! as known from response functions
+!             ! resonant contribution only
+!             fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              ! resonant and antiresonant contributions
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
-                   conjg(osca(:,:))*den1a(iw)+conjg(oscb(:,:))*den2a(iw)
+                   oscaa(:,:)*den1a(iw)+oscba(:,:)*den2a(iw)
            end do
            ! end loop over states #1
         end do
@@ -416,9 +461,12 @@ subroutine kernxc_bse
 
   ! deallocate
   deallocate(den1,den2,den1a,den2a)
-  deallocate(emat12,emat12p,zmr,zmq,dek,dekp,dde,dok,dokp,scisk,sciskp,fxc)
+  deallocate(emat12p,zmr,zmq,dek,dekp,dde,dok,dokp,scisk,sciskp,fxc)
   deallocate(sccli,scclih,scclit,emat12k,emat12kp,residr,residq,w,osca,oscb)
   deallocate(emat,deval,docc,scis)
+  ! deallocate antiresonant parts
+  deallocate(emata,emat12pa,emat12ka,emat12kpa,residra,residqa,zmra,zmqa)
+  deallocate(oscaa,oscba)
   
 end subroutine kernxc_bse
 !EOC
