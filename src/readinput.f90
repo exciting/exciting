@@ -229,11 +229,13 @@ lmaxemat=3
 lmaxalda=3
 lmaxdielt=14
 nleblaik=5810
-rsptype='causal'
+torddf='causal'
+tordfxc='causal'
 acont=.false.
 nwacont=0
 broad=0.01d0
 aresdf=.true.
+aresfxc=.true.
 epsdfde=1.d-8
 emaxdf=1.d10
 dfoffdiag=.false.
@@ -1133,12 +1135,21 @@ case('lmaxdielt')
     write(*,*)
     stop
   end if
-case('rsptype')
-  read(50,*,err=20) rsptype
-  if ((trim(adjustl(rsptype)).ne.'tord').and.(trim(adjustl(rsptype)) &
+case('torddf')
+  read(50,*,err=20) torddf
+  if ((trim(adjustl(torddf)).ne.'tord').and.(trim(adjustl(torddf)) &
      .ne.'causal')) then
     write(*,*)
-    write(*,'("Error(readinput/xs): invalid rsptype : ",a)') rsptype
+    write(*,'("Error(readinput/xs): invalid torddf : ",a)') torddf
+    write(*,*)
+    stop
+  end if
+case('tordfxc')
+  read(50,*,err=20) tordfxc
+  if ((trim(adjustl(tordfxc)).ne.'tord').and.(trim(adjustl(tordfxc)) &
+     .ne.'causal')) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): invalid tordfxc : ",a)') tordfxc
     write(*,*)
     stop
   end if
@@ -1161,6 +1172,8 @@ case('broad')
   end if
 case('aresdf')
   read(50,*,err=20) aresdf
+case('aresfxc')
+  read(50,*,err=20) aresfxc
 case('epsdfde')
   read(50,*,err=20) epsdfde
   if (broad.le.0) then

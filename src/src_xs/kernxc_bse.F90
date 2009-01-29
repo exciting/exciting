@@ -37,7 +37,7 @@ subroutine kernxc_bse
   integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2,oct
   integer :: ikkp,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
-  real(8) :: vqr(3),vq(3),t1,tord,brd
+  real(8) :: vqr(3),vq(3),t1,brd
   real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8) :: zt1
@@ -59,8 +59,6 @@ subroutine kernxc_bse
   ! external functions
   integer, external :: idxkkp,l2int
   logical, external :: tqgamma
-  ! set to time-ordered polarizability @@@@@@@@@@@@@@@@@@@@@@@@@
-  tord=-1.d0
   brd=broad
   emattype=2
   call init0
@@ -332,7 +330,7 @@ subroutine kernxc_bse
            do ist1=1,nst1
               j1=j1+1
               emat12p(j1,:)=conjg(emat12kp(ist1,ist2,:))
-              emat12pa(j1,:)=conjg(emat12kpa(ist1,ist2,:))
+              emat12pa(j1,:)=conjg(emat12kpa(ist2,ist1,:))
            end do
         end do
         ! map 
@@ -402,20 +400,16 @@ subroutine kernxc_bse
            ! set up energy denominators
            den1(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
-!old           den1a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi*brd)
-!old           den2a(:)=2.d0*t1/(-w(:)+scisk(ist1,ist3)+dek(ist1,ist3)-tord*zi* &
-!                brd)**2
-            den1a(:)=2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
-	    	tord*zi*brd)
-            den2a(:)=2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
-	    	tord*zi*brd)**2
+           den1a(:)=2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
+	    	torfxc*zi*brd)
+           den2a(:)=-2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
+	    	torfxc*zi*brd)**2
            ! update kernel
            do iw=1,nwdf
-!             ! resonant contribution only
-!             fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
               ! resonant and antiresonant contributions
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)+ &
-                   oscaa(:,:)*den1a(iw)+oscba(:,:)*den2a(iw)
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
+                   oscba(:,:)*den2a(iw)
            end do
            ! end loop over states #1
         end do

@@ -282,8 +282,10 @@ module modxs
   !------------------------------------------!
   !     response and dielectric functions    !
   !------------------------------------------!
-  ! type of response function (time-ordered/retarded)
-  character(32) :: rsptype
+  ! time ordering of response function (time-ordered/retarded)
+  character(32) :: torddf
+  ! factor for time-ordering
+  real(8) :: tordf
   ! true if analytic continuation to the real axis is to be performed
   logical :: acont
   ! number of energy intervals
@@ -319,6 +321,12 @@ module modxs
   !----------------------------!
   !     xc-kernel variables    !
   !----------------------------!
+  ! time ordering of xc-kernel function (time-ordered/retarded)
+  character(32) :: tordfxc
+  ! factor for time-ordering
+  real(8) :: torfxc
+  ! true if to consider the anti-resonant part
+  logical :: aresfxc
   ! maximum angular momentum for Rayleigh expansion of exponential in
   ! ALDA-kernel
   integer :: lmaxalda

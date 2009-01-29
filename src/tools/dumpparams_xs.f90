@@ -64,8 +64,11 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("lmaxemat")')
   write(77,*) lmaxemat
   write(77,*)
-  write(77,'("rsptype")')
-  write(77,*) "'"//trim(rsptype)//"'"
+  write(77,'("torddf")')
+  write(77,*) "'"//trim(torddf)//"'"
+  write(77,*)
+  write(77,'("tordfxc")')
+  write(77,*) "'"//trim(tordfxc)//"'"
   write(77,*)
   write(77,'("acont")')
   write(77,*) acont
