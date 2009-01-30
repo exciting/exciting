@@ -1,4 +1,4 @@
-export SUFFIX=dbg
+export SUFFIX=.ifort.serial.debug
 all:
 	$(MAKE)  -f ../Make.common
 
