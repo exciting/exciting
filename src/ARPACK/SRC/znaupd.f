@@ -1,20 +1,20 @@
 c\BeginDoc
 c
-c\Name: znaupd 
+c\Name: znaupd
 c
 c\Description: 
 c  Reverse communication interface for the Implicitly Restarted Arnoldi
 c  iteration. This is intended to be used to find a few eigenpairs of a 
 c  complex linear operator OP with respect to a semi-inner product defined 
 c  by a hermitian positive semi-definite real matrix B. B may be the identity 
-c  matrix.  NOTE: if both OP and B are real, then dsaupd  or dnaupd  should
+c  matrix.  NOTE: if both OP and B are real, then dsaupd or dnaupd should
 c  be used.
 c
 c
 c  The computed approximate eigenvalues are called Ritz values and
 c  the corresponding approximate eigenvectors are called Ritz vectors.
 c
-c  znaupd  is usually called iteratively to solve one of the 
+c  znaupd is usually called iteratively to solve one of the 
 c  following problems:
 c
 c  Mode 1:  A*x = lambda*x.
@@ -43,18 +43,18 @@ c        the accuracy requirements for the eigenvalue
 c        approximations.
 c
 c\Usage:
-c  call znaupd 
+c  call znaupd
 c     ( IDO, BMAT, N, WHICH, NEV, TOL, RESID, NCV, V, LDV, IPARAM,
 c       IPNTR, WORKD, WORKL, LWORKL, RWORK, INFO )
 c
 c\Arguments
 c  IDO     Integer.  (INPUT/OUTPUT)
 c          Reverse communication flag.  IDO must be zero on the first 
-c          call to znaupd .  IDO will be set internally to
+c          call to znaupd.  IDO will be set internally to
 c          indicate the type of operation to be performed.  Control is
 c          then given back to the calling routine which has the
 c          responsibility to carry out the requested operation and call
-c          znaupd  with the result.  The operand is given in
+c          znaupd with the result.  The operand is given in
 c          WORKD(IPNTR(1)), the result must be put in WORKD(IPNTR(2)).
 c          -------------------------------------------------------------
 c          IDO =  0: first call to the reverse communication interface
@@ -100,14 +100,14 @@ c
 c  NEV     Integer.  (INPUT)
 c          Number of eigenvalues of OP to be computed. 0 < NEV < N-1.
 c
-c  TOL     Double precision   scalar.  (INPUT)
+c  TOL     Double precision  scalar.  (INPUT)
 c          Stopping criteria: the relative accuracy of the Ritz value 
 c          is considered acceptable if BOUNDS(I) .LE. TOL*ABS(RITZ(I))
 c          where ABS(RITZ(I)) is the magnitude when RITZ(I) is complex.
-c          DEFAULT = dlamch ('EPS')  (machine precision as computed
-c                    by the LAPACK auxiliary subroutine dlamch ).
+c          DEFAULT = dlamch('EPS')  (machine precision as computed
+c                    by the LAPACK auxiliary subroutine dlamch).
 c
-c  RESID   Complex*16  array of length N.  (INPUT/OUTPUT)
+c  RESID   Complex*16 array of length N.  (INPUT/OUTPUT)
 c          On INPUT: 
 c          If INFO .EQ. 0, a random initial residual vector is used.
 c          If INFO .NE. 0, RESID contains the initial residual vector,
@@ -125,7 +125,7 @@ c          approximately NCV-NEV Arnoldi vectors at each subsequent update
 c          iteration. Most of the cost in generating each Arnoldi vector is 
 c          in the matrix-vector operation OP*x. (See remark 4 below.)
 c
-c  V       Complex*16  array N by NCV.  (OUTPUT)
+c  V       Complex*16 array N by NCV.  (OUTPUT)
 c          Contains the final set of Arnoldi basis vectors. 
 c
 c  LDV     Integer.  (INPUT)
@@ -167,7 +167,7 @@ c          No longer referenced. Implicit restarting is ALWAYS used.
 c
 c          IPARAM(7) = MODE
 c          On INPUT determines what type of eigenproblem is being solved.
-c          Must be 1,2,3; See under \Description of znaupd  for the 
+c          Must be 1,2,3; See under \Description of znaupd for the 
 c          four modes available.
 c
 c          IPARAM(8) = NP
@@ -197,7 +197,7 @@ c          IPNTR(7): pointer to the (projected) ritz vector array Q
 c          IPNTR(8): pointer to the error BOUNDS array in WORKL.
 c          IPNTR(14): pointer to the NP shifts in WORKL. See Remark 5 below.
 c
-c          Note: IPNTR(9:13) is only referenced by zneupd . See Remark 2 below.
+c          Note: IPNTR(9:13) is only referenced by zneupd. See Remark 2 below.
 c
 c          IPNTR(9): pointer to the NCV RITZ values of the 
 c                    original system.
@@ -207,24 +207,24 @@ c          IPNTR(12): pointer to the NCV by NCV upper triangular
 c                     Schur matrix for H.
 c          IPNTR(13): pointer to the NCV by NCV matrix of eigenvectors
 c                     of the upper Hessenberg matrix H. Only referenced by
-c                     zneupd  if RVEC = .TRUE. See Remark 2 below.
+c                     zneupd if RVEC = .TRUE. See Remark 2 below.
 c
 c          -------------------------------------------------------------
 c          
-c  WORKD   Complex*16  work array of length 3*N.  (REVERSE COMMUNICATION)
+c  WORKD   Complex*16 work array of length 3*N.  (REVERSE COMMUNICATION)
 c          Distributed array to be used in the basic Arnoldi iteration
 c          for reverse communication.  The user should not use WORKD 
 c          as temporary workspace during the iteration !!!!!!!!!!
 c          See Data Distribution Note below.  
 c
-c  WORKL   Complex*16  work array of length LWORKL.  (OUTPUT/WORKSPACE)
+c  WORKL   Complex*16 work array of length LWORKL.  (OUTPUT/WORKSPACE)
 c          Private (replicated) array on each PE or array allocated on
 c          the front end.  See Data Distribution Note below.
 c
 c  LWORKL  Integer.  (INPUT)
 c          LWORKL must be at least 3*NCV**2 + 5*NCV.
 c
-c  RWORK   Double precision   work array of length NCV (WORKSPACE)
+c  RWORK   Double precision  work array of length NCV (WORKSPACE)
 c          Private (replicated) array on each PE or array allocated on
 c          the front end.
 c
@@ -246,7 +246,7 @@ c                is to increase the size of NCV relative to NEV.
 c                See remark 4 below.
 c          = -1: N must be positive.
 c          = -2: NEV must be positive.
-c          = -3: NCV-NEV >= 2 and less than or equal to N.
+c          = -3: NCV-NEV >= 1 and less than or equal to N.
 c          = -4: The maximum number of Arnoldi update iteration 
 c                must be greater than zero.
 c          = -5: WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'
@@ -269,11 +269,11 @@ c     selection of WHICH should be made with this in mind when using
 c     Mode = 3.  When operating in Mode = 3 setting WHICH = 'LM' will
 c     compute the NEV eigenvalues of the original problem that are
 c     closest to the shift SIGMA . After convergence, approximate eigenvalues 
-c     of the original problem may be obtained with the ARPACK subroutine zneupd .
+c     of the original problem may be obtained with the ARPACK subroutine zneupd.
 c
 c  2. If a basis for the invariant subspace corresponding to the converged Ritz 
-c     values is needed, the user must call zneupd  immediately following 
-c     completion of znaupd . This is new starting with release 2 of ARPACK.
+c     values is needed, the user must call zneupd immediately following 
+c     completion of znaupd. This is new starting with release 2 of ARPACK.
 c
 c  3. If M can be factored into a Cholesky factorization M = LL`
 c     then Mode = 2 should not be selected.  Instead one should use
@@ -309,7 +309,7 @@ c\Data Distribution Note:
 c
 c  Fortran-D syntax:
 c  ================
-c  Complex*16  resid(n), v(ldv,ncv), workd(3*n), workl(lworkl)
+c  Complex*16 resid(n), v(ldv,ncv), workd(3*n), workl(lworkl)
 c  decompose  d1(n), d2(n,ncv)
 c  align      resid(i) with d1(i)
 c  align      v(i,j)   with d2(i,j)
@@ -321,7 +321,7 @@ c  replicated workl(lworkl)
 c
 c  Cray MPP syntax:
 c  ===============
-c  Complex*16  resid(n), v(ldv,ncv), workd(n,3), workl(lworkl)
+c  Complex*16 resid(n), v(ldv,ncv), workd(n,3), workl(lworkl)
 c  shared     resid(block), v(block,:), workd(block,:)
 c  replicated workl(lworkl)
 c  
@@ -337,7 +337,7 @@ c
 c\BeginLib
 c
 c\Local variables:
-c     xxxxxx  Complex*16 
+c     xxxxxx  Complex*16
 c
 c\References:
 c  1. D.C. Sorensen, "Implicit Application of Polynomial Filters in
@@ -347,17 +347,17 @@ c  2. R.B. Lehoucq, "Analysis and Implementation of an Implicitly
 c     Restarted Arnoldi Iteration", Rice University Technical Report
 c     TR95-13, Department of Computational and Applied Mathematics.
 c  3. B.N. Parlett & Y. Saad, "_Complex_ Shift and Invert Strategies for
-c     _Real_ Matrices", Linear Algebra and its Applications, vol 88/89,
+c     Double precision Matrices", Linear Algebra and its Applications, vol 88/89,
 c     pp 575-595, (1987).
 c
 c\Routines called:
-c     znaup2   ARPACK routine that implements the Implicitly Restarted
+c     znaup2  ARPACK routine that implements the Implicitly Restarted
 c             Arnoldi Iteration.
-c     zstatn   ARPACK routine that initializes the timing variables.
+c     zstatn  ARPACK routine that initializes the timing variables.
 c     ivout   ARPACK utility routine that prints integers.
-c     zvout    ARPACK utility routine that prints vectors.
+c     zvout   ARPACK utility routine that prints vectors.
 c     second  ARPACK utility routine for timing.
-c     dlamch   LAPACK routine that determines machine constants.
+c     dlamch  LAPACK routine that determines machine constants.
 c
 c\Author
 c     Danny Sorensen               Phuong Vu
@@ -368,7 +368,7 @@ c     Rice University
 c     Houston, Texas 
 c 
 c\SCCS Information: @(#)
-c FILE: naupd.F   SID: 2.8   DATE OF SID: 04/10/01   RELEASE: 2
+c FILE: naupd.F   SID: 2.9   DATE OF SID: 07/21/02   RELEASE: 2
 c
 c\Remarks
 c
@@ -376,7 +376,7 @@ c\EndLib
 c
 c-----------------------------------------------------------------------
 c
-      subroutine znaupd 
+      subroutine znaupd
      &   ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam, 
      &     ipntr, workd, workl, lworkl, rwork, info )
 c
@@ -393,7 +393,7 @@ c     %------------------%
 c
       character  bmat*1, which*2
       integer    ido, info, ldv, lworkl, n, ncv, nev
-      Double precision  
+      Double precision 
      &           tol
 c
 c     %-----------------%
@@ -401,18 +401,18 @@ c     | Array Arguments |
 c     %-----------------%
 c
       integer    iparam(11), ipntr(14)
-      Complex*16 
+      Complex*16
      &           resid(n), v(ldv,ncv), workd(3*n), workl(lworkl)
-      Double precision   
+      Double precision  
      &           rwork(ncv)
 c
 c     %------------%
 c     | Parameters |
 c     %------------%
 c
-      Complex*16 
+      Complex*16
      &           one, zero
-      parameter (one = (1.0D+0, 0.0D+0) , zero = (0.0D+0, 0.0D+0) )
+      parameter (one = (1.0D+0, 0.0D+0), zero = (0.0D+0, 0.0D+0))
 c
 c     %---------------%
 c     | Local Scalars |
@@ -429,15 +429,15 @@ c     %----------------------%
 c     | External Subroutines |
 c     %----------------------%
 c
-      external   znaup2 , zvout , ivout, second, zstatn 
+      external   znaup2, zvout, ivout, second, zstatn
 c
 c     %--------------------%
 c     | External Functions |
 c     %--------------------%
 c
-      Double precision  
-     &           dlamch 
-      external   dlamch 
+      Double precision 
+     &           dlamch
+      external   dlamch
 c
 c     %-----------------------%
 c     | Executable Statements |
@@ -450,7 +450,7 @@ c        | Initialize timing statistics  |
 c        | & message level for debugging |
 c        %-------------------------------%
 c
-         call zstatn 
+         call zstatn
          call second (t0)
          msglvl = mcaupd
 c
@@ -512,7 +512,7 @@ c        | Set default parameters |
 c        %------------------------%
 c
          if (nb .le. 0)				nb = 1
-         if (tol .le. 0.0D+0  )			tol = dlamch ('EpsMach')
+         if (tol .le. 0.0D+0 )			tol = dlamch('EpsMach')
          if (ishift .ne. 0  .and.  
      &       ishift .ne. 1  .and.
      &       ishift .ne. 2) 			ishift = 1
@@ -545,8 +545,8 @@ c        | workl(ncv*ncv+1:ncv*ncv+ncv) := the ritz values             |
 c        | workl(ncv*ncv+ncv+1:ncv*ncv+2*ncv)   := error bounds        |
 c        | workl(ncv*ncv+2*ncv+1:2*ncv*ncv+2*ncv) := rotation matrix Q |
 c        | workl(2*ncv*ncv+2*ncv+1:3*ncv*ncv+5*ncv) := workspace       |
-c        | The final workspace is needed by subroutine zneigh  called   |
-c        | by znaup2 . Subroutine zneigh  calls LAPACK routines for      |
+c        | The final workspace is needed by subroutine zneigh called   |
+c        | by znaup2. Subroutine zneigh calls LAPACK routines for      |
 c        | calculating eigenvalues and the last row of the eigenvector |
 c        | matrix.                                                     |
 c        %-------------------------------------------------------------%
@@ -572,7 +572,7 @@ c     %-------------------------------------------------------%
 c     | Carry out the Implicitly restarted Arnoldi Iteration. |
 c     %-------------------------------------------------------%
 c
-      call znaup2  
+      call znaup2 
      &   ( ido, bmat, n, which, nev0, np, tol, resid, mode, iupd,
      &     ishift, mxiter, v, ldv, workl(ih), ldh, workl(ritz), 
      &     workl(bounds), workl(iq), ldq, workl(iw), 
@@ -594,7 +594,7 @@ c
 c
 c     %------------------------------------%
 c     | Exit if there was an informational |
-c     | error within znaup2 .               |
+c     | error within znaup2.               |
 c     %------------------------------------%
 c
       if (info .lt. 0) go to 9000
@@ -605,9 +605,9 @@ c
      &               '_naupd: Number of update iterations taken')
          call ivout (logfil, 1, np, ndigit,
      &               '_naupd: Number of wanted "converged" Ritz values')
-         call zvout  (logfil, np, workl(ritz), ndigit, 
+         call zvout (logfil, np, workl(ritz), ndigit, 
      &               '_naupd: The final Ritz values')
-         call zvout  (logfil, np, workl(bounds), ndigit, 
+         call zvout (logfil, np, workl(bounds), ndigit, 
      &               '_naupd: Associated Ritz estimates')
       end if
 c
@@ -627,8 +627,8 @@ c
  1000    format (//,
      &      5x, '=============================================',/
      &      5x, '= Complex implicit Arnoldi update code      =',/
-     &      5x, '= Version Number: ', ' 2.3' , 21x, ' =',/
-     &      5x, '= Version Date:   ', ' 07/31/96' , 16x,   ' =',/
+     &      5x, '= Version Number: ', ' 2.3', 21x, ' =',/
+     &      5x, '= Version Date:   ', ' 07/31/96', 16x,   ' =',/
      &      5x, '=============================================',/
      &      5x, '= Summary of timing statistics              =',/
      &      5x, '=============================================',//)
@@ -658,7 +658,7 @@ c
       return
 c
 c     %---------------%
-c     | End of znaupd  |
+c     | End of znaupd |
 c     %---------------%
 c
       end

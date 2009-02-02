@@ -39,7 +39,7 @@ c  IUPD    Integer.  (INPUT)
 c          IUPD .EQ. 0: use explicit restart instead implicit update.
 c          IUPD .NE. 0: use implicit update.
 c
-c  V       Real  N by (NEV+NP) array.  (INPUT/OUTPUT)
+c  V       Real N by (NEV+NP) array.  (INPUT/OUTPUT)
 c          The Arnoldi basis vectors are returned in the first NEV 
 c          columns of V.
 c
@@ -47,22 +47,22 @@ c  LDV     Integer.  (INPUT)
 c          Leading dimension of V exactly as declared in the calling 
 c          program.
 c
-c  H       Real  (NEV+NP) by (NEV+NP) array.  (OUTPUT)
+c  H       Real (NEV+NP) by (NEV+NP) array.  (OUTPUT)
 c          H is used to store the generated upper Hessenberg matrix
 c
 c  LDH     Integer.  (INPUT)
 c          Leading dimension of H exactly as declared in the calling 
 c          program.
 c
-c  RITZR,  Real  arrays of length NEV+NP.  (OUTPUT)
+c  RITZR,  Real arrays of length NEV+NP.  (OUTPUT)
 c  RITZI   RITZR(1:NEV) (resp. RITZI(1:NEV)) contains the real (resp.
 c          imaginary) part of the computed Ritz values of OP.
 c
-c  BOUNDS  Real  array of length NEV+NP.  (OUTPUT)
+c  BOUNDS  Real array of length NEV+NP.  (OUTPUT)
 c          BOUNDS(1:NEV) contain the error bounds corresponding to 
 c          the computed Ritz values.
 c          
-c  Q       Real  (NEV+NP) by (NEV+NP) array.  (WORKSPACE)
+c  Q       Real (NEV+NP) by (NEV+NP) array.  (WORKSPACE)
 c          Private (replicated) work array used to accumulate the
 c          rotation in the shift application step.
 c
@@ -70,7 +70,7 @@ c  LDQ     Integer.  (INPUT)
 c          Leading dimension of Q exactly as declared in the calling
 c          program.
 c
-c  WORKL   Real  work array of length at least 
+c  WORKL   Real work array of length at least 
 c          (NEV+NP)**2 + 3*(NEV+NP).  (INPUT/WORKSPACE)
 c          Private (replicated) array on each PE or array allocated on
 c          the front end.  It is used in shifts calculation, shifts
@@ -95,7 +95,7 @@ c          IPNTR(3): pointer to the vector B * X when used in the
 c                    shift-and-invert mode.  X is the current operand.
 c          -------------------------------------------------------------
 c          
-c  WORKD   Real  work array of length 3*N.  (WORKSPACE)
+c  WORKD   Real work array of length 3*N.  (WORKSPACE)
 c          Distributed array to be used in the basic Arnoldi iteration
 c          for reverse communication.  The user should not use WORKD
 c          as temporary workspace during the iteration !!!!!!!!!!
@@ -190,7 +190,7 @@ c
       character  bmat*1, which*2
       integer    ido, info, ishift, iupd, mode, ldh, ldq, ldv, mxiter,
      &           n, nev, np
-      Real 
+      Real
      &           tol
 c
 c     %-----------------%
@@ -198,7 +198,7 @@ c     | Array Arguments |
 c     %-----------------%
 c
       integer    ipntr(13)
-      Real 
+      Real
      &           bounds(nev+np), h(ldh,nev+np), q(ldq,nev+np), resid(n),
      &           ritzi(nev+np), ritzr(nev+np), v(ldv,nev+np), 
      &           workd(3*n), workl( (nev+np)*(nev+np+3) )
@@ -207,9 +207,9 @@ c     %------------%
 c     | Parameters |
 c     %------------%
 c
-      Real 
+      Real
      &           one, zero
-      parameter (one = 1.0E+0 , zero = 0.0E+0 )
+      parameter (one = 1.0E+0, zero = 0.0E+0)
 c
 c     %---------------%
 c     | Local Scalars |
@@ -219,7 +219,7 @@ c
       logical    cnorm , getv0, initv, update, ushift
       integer    ierr  , iter , j    , kplusp, msglvl, nconv, 
      &           nevbef, nev0 , np0  , nptemp, numcnv
-      Real 
+      Real
      &           rnorm , temp , eps23
       save       cnorm , getv0, initv, update, ushift,
      &           rnorm , iter , eps23, kplusp, msglvl, nconv , 
@@ -242,7 +242,7 @@ c     %--------------------%
 c     | External Functions |
 c     %--------------------%
 c
-      Real 
+      Real
      &           sdot, snrm2, slapy2, slamch
       external   sdot, snrm2, slapy2, slamch
 c
@@ -267,7 +267,7 @@ c        | Get the machine dependent constant. |
 c        %-------------------------------------%
 c
          eps23 = slamch('Epsilon-Machine')
-         eps23 = eps23**(2.0E+0  / 3.0E+0 )
+         eps23 = eps23**(2.0E+0 / 3.0E+0)
 c
          nev0   = nev
          np0    = np
