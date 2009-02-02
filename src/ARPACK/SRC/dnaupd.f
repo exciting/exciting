@@ -1,6 +1,6 @@
 c\BeginDoc
 c
-c\Name: dnaupd 
+c\Name: dnaupd
 c
 c\Description: 
 c  Reverse communication interface for the Implicitly Restarted Arnoldi
@@ -9,12 +9,12 @@ c  of a linear operator "OP" with respect to a semi-inner product defined by
 c  a symmetric positive semi-definite real matrix B. B may be the identity 
 c  matrix. NOTE: If the linear operator "OP" is real and symmetric 
 c  with respect to the real positive semi-definite symmetric matrix B, 
-c  i.e. B*OP = (OP`)*B, then subroutine dsaupd  should be used instead.
+c  i.e. B*OP = (OP`)*B, then subroutine dsaupd should be used instead.
 c
 c  The computed approximate eigenvalues are called Ritz values and
 c  the corresponding approximate eigenvectors are called Ritz vectors.
 c
-c  dnaupd  is usually called iteratively to solve one of the 
+c  dnaupd is usually called iteratively to solve one of the 
 c  following problems:
 c
 c  Mode 1:  A*x = lambda*x.
@@ -57,18 +57,18 @@ c        the accuracy requirements for the eigenvalue
 c        approximations.
 c
 c\Usage:
-c  call dnaupd 
+c  call dnaupd
 c     ( IDO, BMAT, N, WHICH, NEV, TOL, RESID, NCV, V, LDV, IPARAM,
 c       IPNTR, WORKD, WORKL, LWORKL, INFO )
 c
 c\Arguments
 c  IDO     Integer.  (INPUT/OUTPUT)
 c          Reverse communication flag.  IDO must be zero on the first 
-c          call to dnaupd .  IDO will be set internally to
+c          call to dnaupd.  IDO will be set internally to
 c          indicate the type of operation to be performed.  Control is
 c          then given back to the calling routine which has the
 c          responsibility to carry out the requested operation and call
-c          dnaupd  with the result.  The operand is given in
+c          dnaupd with the result.  The operand is given in
 c          WORKD(IPNTR(1)), the result must be put in WORKD(IPNTR(2)).
 c          -------------------------------------------------------------
 c          IDO =  0: first call to the reverse communication interface
@@ -110,17 +110,17 @@ c          'SR' -> want the NEV eigenvalues of smallest real part.
 c          'LI' -> want the NEV eigenvalues of largest imaginary part.
 c          'SI' -> want the NEV eigenvalues of smallest imaginary part.
 c
-c  NEV     Integer.  (INPUT)
+c  NEV     Integer.  (INPUT/OUTPUT)
 c          Number of eigenvalues of OP to be computed. 0 < NEV < N-1.
 c
-c  TOL     Double precision  scalar.  (INPUT)
+c  TOL     Double precision scalar.  (INPUT)
 c          Stopping criterion: the relative accuracy of the Ritz value 
 c          is considered acceptable if BOUNDS(I) .LE. TOL*ABS(RITZ(I))
 c          where ABS(RITZ(I)) is the magnitude when RITZ(I) is complex.
-c          DEFAULT = DLAMCH ('EPS')  (machine precision as computed
-c                    by the LAPACK auxiliary subroutine DLAMCH ).
+c          DEFAULT = DLAMCH('EPS')  (machine precision as computed
+c                    by the LAPACK auxiliary subroutine DLAMCH).
 c
-c  RESID   Double precision  array of length N.  (INPUT/OUTPUT)
+c  RESID   Double precision array of length N.  (INPUT/OUTPUT)
 c          On INPUT: 
 c          If INFO .EQ. 0, a random initial residual vector is used.
 c          If INFO .NE. 0, RESID contains the initial residual vector,
@@ -140,7 +140,7 @@ c          in the matrix-vector operation OP*x.
 c          NOTE: 2 <= NCV-NEV in order that complex conjugate pairs of Ritz 
 c          values are kept together. (See remark 4 below)
 c
-c  V       Double precision  array N by NCV.  (OUTPUT)
+c  V       Double precision array N by NCV.  (OUTPUT)
 c          Contains the final set of Arnoldi basis vectors. 
 c
 c  LDV     Integer.  (INPUT)
@@ -182,12 +182,12 @@ c          No longer referenced. Implicit restarting is ALWAYS used.
 c
 c          IPARAM(7) = MODE
 c          On INPUT determines what type of eigenproblem is being solved.
-c          Must be 1,2,3,4; See under \Description of dnaupd  for the 
+c          Must be 1,2,3,4; See under \Description of dnaupd for the 
 c          four modes available.
 c
 c          IPARAM(8) = NP
 c          When ido = 3 and the user provides shifts through reverse
-c          communication (IPARAM(1)=0), dnaupd  returns NP, the number
+c          communication (IPARAM(1)=0), dnaupd returns NP, the number
 c          of shifts the user is to provide. 0 < NP <=NCV-NEV. See Remark
 c          5 below.
 c
@@ -217,7 +217,7 @@ c                    with the Ritz values located in RITZR and RITZI in WORKL.
 c
 c          IPNTR(14): pointer to the NP shifts in WORKL. See Remark 5 below.
 c
-c          Note: IPNTR(9:13) is only referenced by dneupd . See Remark 2 below.
+c          Note: IPNTR(9:13) is only referenced by dneupd. See Remark 2 below.
 c
 c          IPNTR(9):  pointer to the real part of the NCV RITZ values of the 
 c                     original system.
@@ -228,19 +228,19 @@ c          IPNTR(12): pointer to the NCV by NCV upper quasi-triangular
 c                     Schur matrix for H.
 c          IPNTR(13): pointer to the NCV by NCV matrix of eigenvectors
 c                     of the upper Hessenberg matrix H. Only referenced by
-c                     dneupd  if RVEC = .TRUE. See Remark 2 below.
+c                     dneupd if RVEC = .TRUE. See Remark 2 below.
 c          -------------------------------------------------------------
 c          
-c  WORKD   Double precision  work array of length 3*N.  (REVERSE COMMUNICATION)
+c  WORKD   Double precision work array of length 3*N.  (REVERSE COMMUNICATION)
 c          Distributed array to be used in the basic Arnoldi iteration
 c          for reverse communication.  The user should not use WORKD 
 c          as temporary workspace during the iteration. Upon termination
 c          WORKD(1:N) contains B*RESID(1:N). If an invariant subspace
 c          associated with the converged Ritz values is desired, see remark
-c          2 below, subroutine dneupd  uses this output.
+c          2 below, subroutine dneupd uses this output.
 c          See Data Distribution Note below.  
 c
-c  WORKL   Double precision  work array of length LWORKL.  (OUTPUT/WORKSPACE)
+c  WORKL   Double precision work array of length LWORKL.  (OUTPUT/WORKSPACE)
 c          Private (replicated) array on each PE or array allocated on
 c          the front end.  See Data Distribution Note below.
 c
@@ -283,11 +283,11 @@ c\Remarks
 c  1. The computed Ritz values are approximate eigenvalues of OP. The
 c     selection of WHICH should be made with this in mind when
 c     Mode = 3 and 4.  After convergence, approximate eigenvalues of the
-c     original problem may be obtained with the ARPACK subroutine dneupd .
+c     original problem may be obtained with the ARPACK subroutine dneupd.
 c
 c  2. If a basis for the invariant subspace corresponding to the converged Ritz 
-c     values is needed, the user must call dneupd  immediately following 
-c     completion of dnaupd . This is new starting with release 2 of ARPACK.
+c     values is needed, the user must call dneupd immediately following 
+c     completion of dnaupd. This is new starting with release 2 of ARPACK.
 c
 c  3. If M can be factored into a Cholesky factorization M = LL`
 c     then Mode = 2 should not be selected.  Instead one should use
@@ -334,7 +334,7 @@ c\Data Distribution Note:
 c
 c  Fortran-D syntax:
 c  ================
-c  Double precision  resid(n), v(ldv,ncv), workd(3*n), workl(lworkl)
+c  Double precision resid(n), v(ldv,ncv), workd(3*n), workl(lworkl)
 c  decompose  d1(n), d2(n,ncv)
 c  align      resid(i) with d1(i)
 c  align      v(i,j)   with d2(i,j)
@@ -346,7 +346,7 @@ c  replicated workl(lworkl)
 c
 c  Cray MPP syntax:
 c  ===============
-c  Double precision   resid(n), v(ldv,ncv), workd(n,3), workl(lworkl)
+c  Double precision  resid(n), v(ldv,ncv), workd(n,3), workl(lworkl)
 c  shared     resid(block), v(block,:), workd(block,:)
 c  replicated workl(lworkl)
 c  
@@ -376,12 +376,12 @@ c     Real Matrices", Linear Algebra and its Applications, vol 88/89,
 c     pp 575-595, (1987).
 c
 c\Routines called:
-c     dnaup2   ARPACK routine that implements the Implicitly Restarted
+c     dnaup2  ARPACK routine that implements the Implicitly Restarted
 c             Arnoldi Iteration.
 c     ivout   ARPACK utility routine that prints integers.
 c     second  ARPACK utility routine for timing.
-c     dvout    ARPACK utility routine that prints vectors.
-c     dlamch   LAPACK routine that determines machine constants.
+c     dvout   ARPACK utility routine that prints vectors.
+c     dlamch  LAPACK routine that determines machine constants.
 c
 c\Author
 c     Danny Sorensen               Phuong Vu
@@ -395,7 +395,7 @@ c\Revision history:
 c     12/16/93: Version '1.1'
 c
 c\SCCS Information: @(#) 
-c FILE: naupd.F   SID: 2.8   DATE OF SID: 04/10/01   RELEASE: 2
+c FILE: naupd.F   SID: 2.10   DATE OF SID: 08/23/02   RELEASE: 2
 c
 c\Remarks
 c
@@ -403,7 +403,7 @@ c\EndLib
 c
 c-----------------------------------------------------------------------
 c
-      subroutine dnaupd 
+      subroutine dnaupd
      &   ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam, 
      &     ipntr, workd, workl, lworkl, info )
 c
@@ -420,7 +420,7 @@ c     %------------------%
 c
       character  bmat*1, which*2
       integer    ido, info, ldv, lworkl, n, ncv, nev
-      Double precision 
+      Double precision
      &           tol
 c
 c     %-----------------%
@@ -428,16 +428,16 @@ c     | Array Arguments |
 c     %-----------------%
 c
       integer    iparam(11), ipntr(14)
-      Double precision 
+      Double precision
      &           resid(n), v(ldv,ncv), workd(3*n), workl(lworkl)
 c
 c     %------------%
 c     | Parameters |
 c     %------------%
 c
-      Double precision 
+      Double precision
      &           one, zero
-      parameter (one = 1.0D+0 , zero = 0.0D+0 )
+      parameter (one = 1.0D+0, zero = 0.0D+0)
 c
 c     %---------------%
 c     | Local Scalars |
@@ -454,15 +454,15 @@ c     %----------------------%
 c     | External Subroutines |
 c     %----------------------%
 c
-      external   dnaup2 , dvout , ivout, second, dstatn 
+      external   dnaup2, dvout, ivout, second, dstatn
 c
 c     %--------------------%
 c     | External Functions |
 c     %--------------------%
 c
-      Double precision 
-     &           dlamch 
-      external   dlamch 
+      Double precision
+     &           dlamch
+      external   dlamch
 c
 c     %-----------------------%
 c     | Executable Statements |
@@ -475,7 +475,7 @@ c        | Initialize timing statistics  |
 c        | & message level for debugging |
 c        %-------------------------------%
 c
-         call dstatn 
+         call dstatn
          call second (t0)
          msglvl = mnaupd
 c
@@ -498,13 +498,13 @@ c
          mode   = iparam(7)
 c
          if (n .le. 0) then
-             ierr = -1
+            ierr = -1
          else if (nev .le. 0) then
-             ierr = -2
+            ierr = -2
          else if (ncv .le. nev+1 .or.  ncv .gt. n) then
-             ierr = -3
-         else if (mxiter .le. 0) then
-             ierr = -4
+            ierr = -3
+         else if (mxiter .le.          0) then
+            ierr = 4
          else if (which .ne. 'LM' .and.
      &       which .ne. 'SM' .and.
      &       which .ne. 'LR' .and.
@@ -517,11 +517,11 @@ c
          else if (lworkl .lt. 3*ncv**2 + 6*ncv) then
             ierr = -7
          else if (mode .lt. 1 .or. mode .gt. 4) then
-                                                ierr = -10
+            ierr = -10
          else if (mode .eq. 1 .and. bmat .eq. 'G') then
-                                                ierr = -11
+            ierr = -11
          else if (ishift .lt. 0 .or. ishift .gt. 1) then
-                                                ierr = -12
+            ierr = -12
          end if
 c 
 c        %------------%
@@ -539,7 +539,7 @@ c        | Set default parameters |
 c        %------------------------%
 c
          if (nb .le. 0)				nb = 1
-         if (tol .le. zero)			tol = dlamch ('EpsMach')
+         if (tol .le. zero)			tol = dlamch('EpsMach')
 c
 c        %----------------------------------------------%
 c        | NP is the number of additional steps to      |
@@ -570,8 +570,8 @@ c        |                                   parts of ritz values      |
 c        | workl(ncv*ncv+2*ncv+1:ncv*ncv+3*ncv) := error bounds        |
 c        | workl(ncv*ncv+3*ncv+1:2*ncv*ncv+3*ncv) := rotation matrix Q |
 c        | workl(2*ncv*ncv+3*ncv+1:3*ncv*ncv+6*ncv) := workspace       |
-c        | The final workspace is needed by subroutine dneigh  called   |
-c        | by dnaup2 . Subroutine dneigh  calls LAPACK routines for      |
+c        | The final workspace is needed by subroutine dneigh called   |
+c        | by dnaup2. Subroutine dneigh calls LAPACK routines for      |
 c        | calculating eigenvalues and the last row of the eigenvector |
 c        | matrix.                                                     |
 c        %-------------------------------------------------------------%
@@ -599,7 +599,7 @@ c     %-------------------------------------------------------%
 c     | Carry out the Implicitly restarted Arnoldi Iteration. |
 c     %-------------------------------------------------------%
 c
-      call dnaup2  
+      call dnaup2 
      &   ( ido, bmat, n, which, nev0, np, tol, resid, mode, iupd,
      &     ishift, mxiter, v, ldv, workl(ih), ldh, workl(ritzr), 
      &     workl(ritzi), workl(bounds), workl(iq), ldq, workl(iw), 
@@ -621,7 +621,7 @@ c
 c
 c     %------------------------------------%
 c     | Exit if there was an informational |
-c     | error within dnaup2 .               |
+c     | error within dnaup2.               |
 c     %------------------------------------%
 c
       if (info .lt. 0) go to 9000
@@ -632,11 +632,11 @@ c
      &               '_naupd: Number of update iterations taken')
          call ivout (logfil, 1, np, ndigit,
      &               '_naupd: Number of wanted "converged" Ritz values')
-         call dvout  (logfil, np, workl(ritzr), ndigit, 
+         call dvout (logfil, np, workl(ritzr), ndigit, 
      &               '_naupd: Real part of the final Ritz values')
-         call dvout  (logfil, np, workl(ritzi), ndigit, 
+         call dvout (logfil, np, workl(ritzi), ndigit, 
      &               '_naupd: Imaginary part of the final Ritz values')
-         call dvout  (logfil, np, workl(bounds), ndigit, 
+         call dvout (logfil, np, workl(bounds), ndigit, 
      &               '_naupd: Associated Ritz estimates')
       end if
 c
@@ -656,8 +656,8 @@ c
  1000    format (//,
      &      5x, '=============================================',/
      &      5x, '= Nonsymmetric implicit Arnoldi update code =',/
-     &      5x, '= Version Number: ', ' 2.4' , 21x, ' =',/
-     &      5x, '= Version Date:   ', ' 07/31/96' , 16x,   ' =',/
+     &      5x, '= Version Number: ', ' 2.4', 21x, ' =',/
+     &      5x, '= Version Date:   ', ' 07/31/96', 16x,   ' =',/
      &      5x, '=============================================',/
      &      5x, '= Summary of timing statistics              =',/
      &      5x, '=============================================',//)
@@ -687,7 +687,7 @@ c
       return
 c
 c     %---------------%
-c     | End of dnaupd  |
+c     | End of dnaupd |
 c     %---------------%
 c
       end

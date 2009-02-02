@@ -1,0 +1,56 @@
+<?xml version="1.0"  ?>
+<input xsi:noNamespaceSchemaLocation="./excitinginput.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<structure speciespath="../species">
+		<unitcell>
+			<basevect>1 0 0</basevect>
+			<basevect>0 1 0</basevect>
+			<basevect>0 0 1</basevect>
+		</unitcell>
+		<species abrev="Cu">
+			<position>0 0 0</position>
+
+		</species>
+		<species abrev="O">
+			<position>0 0 .5</position>
+			<position>0 0 0</position>
+		</species>
+	</structure>
+
+	<tasks>
+		<bandstructure>
+			<plot1d>
+				<path steps="200">
+					<point>0 0 0</point>
+					<point>0 1 0</point>
+					<point>8 6 5</point>
+				</path>
+			</plot1d>
+		</bandstructure>
+		<wfplot>
+			<plot1d>
+				<path steps="200">
+					<point>0 0 0</point>
+					<point>0 1 0</point>
+				</path>
+			</plot1d>
+			<plot2d>
+				<parallelogram grid="40 40">
+					<point>2 2 2</point>
+					<point>0 0 0</point>
+					<point>3 4 3</point>
+				</parallelogram>
+			</plot2d>
+		</wfplot>
+	
+	<groundstate fromscratch="true" maxscl="30" solver="Arpack" mixer="msec" tforce="true">
+
+
+			<ngkgrit autokpt="true">2 2 2</ngkgrit>
+			<spin spinpol="true">
+				<mommtfix>
+					<atommoment speciesnr="1" atomnr="1">2 4.23 3</atommoment>
+				</mommtfix>
+			</spin>
+		</groundstate></tasks>
+</input>

@@ -79,7 +79,7 @@ $status="passed";
  		}, $writer);
 
 #compare eigenvalues
-$tol=5e-8;
+$tol=1e-5;
 %statuseigval=Test::assert_file_same_within( "runarp/EIGVAL.OUT",
 	"runlapack/EIGVAL.OUT",$tol);
  Test::writetestreport({
@@ -91,15 +91,15 @@ $tol=5e-8;
  		"status"=> %statuseigval->{status}
  		}, $writer);
 
-%statuseigval=Test::assert_file_same_within( "reference/EIGVAL.OUT",
+%statuseigvalr=Test::assert_file_same_within( "./reference/EIGVAL.OUT",
 	"runlapack/EIGVAL.OUT",$tol);
  Test::writetestreport({
  		"directory"=>"test02/ ",
  		"name"=>"Eigenvalues_same_as_reference_file",
  		"description"=>"The test is passed if the eigenvalues  differ
- 		 less than $tol between lapack and reference file reference/EIGVAL.OUT
- 		 difference=" .  %statuseigval->{maxerror},
- 		"status"=> %statuseigval->{status}
+ 		 less than $tol between runlapack/EIGVAL.OUT and reference file reference/EIGVAL.OUT
+ 		 difference=" .  %statuseigvalr->{maxerror},
+ 		"status"=> %statuseigvalr->{status}
  		}, $writer);
 
  Test::closereport($writer);

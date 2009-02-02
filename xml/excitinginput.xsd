@@ -1,0 +1,465 @@
+<?xml version="1.0" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="vector">
+		<xs:list itemType="xs:double" />
+	</xs:simpleType>
+	<xs:simpleType name="integerlist">
+		<xs:list itemType="xs:integer" />
+	</xs:simpleType>
+
+	<xs:simpleType name="vect3d">
+		<xs:restriction base="vector">
+			<xs:length value="3" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:attribute name="tfibs" type="xs:boolean" />
+	<xs:attribute name="tforce" type="xs:boolean" />
+	<xs:attributeGroup name="fermismearing">
+		<xs:attribute name="swidth" type="xs:double" />
+		<xs:attribute name="stype">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="Gaussian" />
+					<xs:enumeration value="Methfessel-Paxton 1" />
+					<xs:enumeration value="Methfessel-Paxton 1" />
+					<xs:enumeration value="Fermi Dirac" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:attributeGroup>
+	<xs:attribute name="scissor" type="xs:double" />
+
+	<xs:simpleType name="integertriple">
+		<xs:restriction base="integerlist">
+			<xs:length value="3" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="integerpair">
+		<xs:restriction base="integerlist">
+			<xs:length value="2" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="plot1d">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="path">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="point" minOccurs="2" maxOccurs="unbounded"
+								type="vect3d" />
+
+						</xs:sequence>
+						<xs:attribute name="steps" type="xs:integer" use="required" />
+
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="plot2d">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name=" parallelogram">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="point" minOccurs="3" maxOccurs="3"
+								type="vect3d" />
+
+						</xs:sequence>
+						<xs:attribute name="grid" type="integerpair" use="required" />
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="plot3d">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="box">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="point" minOccurs="4" maxOccurs="4"
+								type="vect3d" />
+
+						</xs:sequence>
+						<xs:attribute name="grid" type="integertriple" use="required" />
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="kstlist">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="pointstatepair" type="integerpair"
+					minOccurs="1" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:group name="plot123d">
+		<xs:choice>
+			<xs:element ref="plot1d" />
+			<xs:element ref="plot2d" />
+			<xs:element ref="plot3d" />
+		</xs:choice>
+	</xs:group>
+	<xs:group name="plot23d">
+		<xs:choice>
+			<xs:element ref="plot2d" />
+			<xs:element ref="plot3d" />
+		</xs:choice>
+	</xs:group>
+	<xs:element name="input">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="structure">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="unitcell" minOccurs="1" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="basevect" minOccurs="3"
+											maxOccurs="3" type="vect3d" />
+
+									</xs:sequence>
+									<xs:attribute name="scale" type="xs:double" />
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="species" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="position" minOccurs="1"
+											maxOccurs="unbounded" type="vect3d" />
+
+									</xs:sequence>
+									<xs:attribute name="abrev" type="xs:string" />
+									<xs:attribute name="speciesfile" type="xs:anyURI" />
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="speciespath" type="xs:anyURI" />
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="tasks">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="groundstate" maxOccurs="1"
+								minOccurs="0">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="ngkgrit">
+											<xs:complexType>
+												<xs:simpleContent>
+													<xs:extension base="integertriple">
+														<xs:attribute name="autokpt" type="xs:boolean" />
+													</xs:extension>
+
+												</xs:simpleContent>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="kpgrid" minOccurs="0">
+											<xs:complexType>
+												<xs:simpleContent>
+													<xs:extension base="integertriple">
+														<xs:attribute name="autokpt" type="xs:boolean" />
+													</xs:extension>
+												</xs:simpleContent>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="spin" minOccurs="0" maxOccurs="1">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="mommtfix" minOccurs="0"
+														maxOccurs="1">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="atommoment">
+																	<xs:complexType>
+																		<xs:simpleContent>
+																			<xs:extension base="vect3d">
+
+																				<xs:attribute name="speciesnr" type="xs:integer"
+																					use="required" />
+																				<xs:attribute name="atomnr" type="xs:integer"
+																					use="required" />
+
+																			</xs:extension>
+																		</xs:simpleContent>
+
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="spinpol" type="xs:boolean"
+													use="required" />
+												<xs:attribute name="bfieldc" type="vect3d" />
+												<xs:attribute name="momfix" type="vect3d" />
+												<xs:attribute name="spinorb" type="xs:boolean" />
+												<xs:attribute name="spinsprl" type="xs:boolean" />
+												<xs:attribute name="vglss" type="xs:string" />
+												<xs:attribute name="taufsm" type="xs:double" />
+
+											</xs:complexType>
+										</xs:element>
+									</xs:all>
+									<xs:attribute name="rgkmax" type="xs:double" />
+									<xs:attribute name="epspot" type="xs:double" use="optional"
+										default="1e-6" />
+									<xs:attribute name="gmaxvr" type="xs:double" />
+									<xs:attribute name="nempty" type="xs:integer" />
+									<xs:attribute name="nosym" type="xs:boolean" />
+									<xs:attributeGroup ref="fermismearing" />
+									<xs:attribute ref="tfibs" />
+									<xs:attribute ref="tforce" />
+									<xs:attribute name="lmaxapw" type="xs:integer" />
+									<xs:attribute name="maxscl" type="xs:integer" />
+									<xs:attribute name="solver">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="Lapack" />
+												<xs:enumeration value="Arpack" />
+												<xs:enumeration value="DIIS" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+
+									<xs:attribute name="mixer">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="lin" />
+												<xs:enumeration value="msec" />
+												<xs:enumeration value="pulay" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="fromscratch" type="xs:boolean" />
+									<xs:attribute name="xctype">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="LDA" />
+												<xs:enumeration value="LSDA" />
+												<xs:enumeration value="GGA" />
+												<xs:enumeration value="GGA" />
+												<xs:enumeration value="none" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+
+
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="structureoptimization" minOccurs="0">
+								<xs:complexType>
+									<xs:attribute name="epsforce" type="xs:double" />
+									<xs:attribute name="tau0atm" type="xs:double" />
+									<xs:attribute ref="tfibs" />
+									<xs:attribute ref="tforce" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="bandstructure" maxOccurs="1"
+								minOccurs="0">
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot1d" />
+									</xs:all>
+									<xs:attributeGroup ref="fermismearing" />
+									<xs:attribute ref="scissor" />
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="LSJ" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Output L, S and J expectation values
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="kstlist" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="dos" maxOccurs="1" minOccurs="0">
+								<xs:complexType>
+									<xs:attribute name="nwdos" type="xs:integer" />
+									<xs:attribute name="ngrdos" type="xs:integer" />
+									<xs:attribute name="nsmdos" type="xs:integer" />
+									<xs:attribute name="wintdos">
+										<xs:simpleType>
+											<xs:restriction base="vector">
+												<xs:length value="2" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="masstensor" maxOccurs="1" minOccurs="0">
+								<xs:complexType>
+									<xs:attribute name="deltaem" type="xs:double" />
+									<xs:attribute name="ndspem" type="xs:integer">
+										<xs:annotation>
+											<xs:documentation>
+												the number of k-vector displacements in
+												each direction around
+												vklem when computing the numerical
+												derivatives for the
+												effective mass tensor 
+												</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="vklem" type="vect3d" default="0 0 0">
+										<xs:annotation>
+											<xs:documentation>
+												the k-point in lattice coordinates at which
+												to compute
+												the effective mass tensors 
+							</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="chargedesityplot" maxOccurs="1"
+								minOccurs="0">
+								<xs:complexType>
+									<xs:group ref="plot123d" maxOccurs="unbounded" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="exccplot" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>exchange-correlation and
+										Coulomb potential plots.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:group ref="plot123d" maxOccurs="unbounded" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="elfplot" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> electron localisation function (ELF)
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:group maxOccurs="unbounded" ref="plot123d" />
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="wfplot" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> wavefunction plot</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element ref="kstlist" minOccurs="0" />
+										<xs:group ref="plot123d" maxOccurs="unbounded" />
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="mvecfield" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> plot of magnetisation vector field
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:group ref="plot23d" maxOccurs="unbounded" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="xcmvecfield" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> plot of exchange-correlation magnetic vector
+										field
+							</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:group ref="plot23d" maxOccurs="unbounded" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="gradmvecfield" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> plot of he gradient of the magnetic vector
+										field.
+							</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:group ref="plot123d" maxOccurs="unbounded" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="fermisurfaceplot" maxOccurs="1" minOccurs="0">
+								<xs:complexType>
+									<xs:attributeGroup ref="fermismearing" />
+									<xs:attribute name="nstfsp" type="xs:integer" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="EFG" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Calculation of electric field gradient
+										(EFG), contact charge	</xs:documentation>
+								</xs:annotation>
+
+							</xs:element>
+							<xs:element name="momentummatrix" maxOccurs="1" minOccurs="0"/>
+
+							<xs:element name="linresponsetensor" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Linear optical response tensor.
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute ref="scissor" />
+									<xs:attribute name="optcomp" type="integertriple" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="dynmatrices" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>
+										Calculation of dynamical matrices on a q-point set defined by ngridq.
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="deltph" type="xs:double" />
+									<xs:attribute name="reduceq" type="xs:boolean" />
+									<xs:attribute name="ngridq" type="integertriple" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="phonondos" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>
+										Phonon density of states.
+										<p> no special blocks required</p>
+									</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="phonondispplot" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>
+										Phonon dispersion plot. 
+ 							</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element ref="plot1d" />
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Phonons" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>
+										Phonon frequencies and eigenvectors for an arbitrary q-point.
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="qpoint" type="vect3d" minOccurs="1"
+											maxOccurs="unbounded" />
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

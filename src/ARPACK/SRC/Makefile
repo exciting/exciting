@@ -15,7 +15,7 @@
 ############################################################################
 #\SCCS Information: @(#)
 # FILE: Makefile   SID: 2.1   DATE OF SID: 9/9/96   RELEASE: 2
-include ../../../make.inc
+
 include ../ARmake.inc
 
 ############################################################################
@@ -52,20 +52,20 @@ ZOBJ  = znaitr.o znapps.o znaup2.o znaupd.o zneigh.o zneupd.o zngets.o \
 all: single double complex complex16
 
 single: $(SOBJ)
-	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(SOBJ)
-	$(RANLIB) .$(ARPACKLIB)
+	$(AR) $(ARFLAGS) $(ARPACKLIB) $(SOBJ)
+	$(RANLIB) $(ARPACKLIB)
 
 double: $(DOBJ)
-	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(DOBJ)
-	$(RANLIB) .$(ARPACKLIB)
+	$(AR) $(ARFLAGS) $(ARPACKLIB) $(DOBJ)
+	$(RANLIB) $(ARPACKLIB)
 
 complex: $(COBJ)
-	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(COBJ)
-	$(RANLIB) .$(ARPACKLIB)
+	$(AR) $(ARFLAGS) $(ARPACKLIB) $(COBJ)
+	$(RANLIB) $(ARPACKLIB)
 
 complex16: $(ZOBJ)
-	$(AR) $(ARFLAGS) .$(ARPACKLIB) $(ZOBJ)
-	$(RANLIB) .$(ARPACKLIB)
+	$(AR) $(ARFLAGS) $(ARPACKLIB) $(ZOBJ)
+	$(RANLIB) $(ARPACKLIB)
 #
 sdrv:
 	
