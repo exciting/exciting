@@ -36,7 +36,7 @@ contains
     open(unit1,file=trim(fn),action='write')
     write(unit1,'(4g18.10)') (w(iw)*escale,eps(iw),kkeps(iw),iw=1,n)
     ! write relevant parameters to file
-    call writevars(unit1,iq)
+    call writevars(unit1,iq,iq)
     close(unit1)
     deallocate(imeps,kkeps)
   end subroutine writeeps

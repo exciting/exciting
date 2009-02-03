@@ -461,7 +461,7 @@ subroutine dfq(iq)
            end if
         end do
      end do
-     call writevars(un,iq)
+     call writevars(un,iq,0)
      close(un)
   else
      do j=0,procs-1

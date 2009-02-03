@@ -31,7 +31,7 @@ contains
     write(unit1,'(a,g18.10,a,g18.10,a)') 'pi half sumrule                 &
          &(target)       :', s(3), '(', pi/2.d0, ')'
     ! write parameters as header to file
-    call writevars(unit1,iq)
+    call writevars(unit1,iq,iq)
     ! close file
     close(unit1)
   end subroutine writesumrls

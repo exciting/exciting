@@ -31,7 +31,7 @@ contains
     ! write data to file
     write(unit1,'(3g18.10)') (w(iw)*escale,sigma(iw),iw=1,n)
     ! write relevant parameters to file
-    call writevars(unit1,iq)
+    call writevars(unit1,iq,iq)
     close(unit1)
   end subroutine writesigma
 

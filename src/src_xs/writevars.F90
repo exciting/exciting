@@ -7,17 +7,19 @@ module m_writevars
   implicit none
 contains
 
-  subroutine writevars(un,iq)
+  subroutine writevars(un,iq,iqmt)
     use modmain
     use modxs
     implicit none
     ! arguments
-    integer, intent(in) :: iq,un
+    integer, intent(in) :: iq,iqmt,un
     ! local variables
     character(10) :: dat,tim
-    integer :: iqt
+    integer :: iqt,iqmtt
     iqt=iq
-    if (iqt.eq.0) iqt=1
+    if (iqt.eq.0) iqt=iqmt
+    iqmtt=iqmt
+    if (iqmtt.eq.0) iqmtt=1
     ! write prologue to file
     call date_and_time(date=dat,time=tim)
     write(un,*)
@@ -28,8 +30,9 @@ contains
     write(un,'("# version           : ",i1.1,".",i1.1,".",i3.3)') version
     write(un,'("# version (xs)      : ",i1.1,".",i3.3)') versionxs
     write(un,'(a,2f12.6)') '# efermi (H,eV)     :',efermi,h2ev*efermi
-    write(un,'(a,3f12.6)') '# vgqlmt            :',vgqlmt(:,iqt)
-    write(un,'(a,3i8)') '# ivgmt             :',ivgmt(:,iqt)
+    write(un,'(a,3f12.6)') '# vgqlmt            :',vgqlmt(:,iqmtt)
+    write(un,'(a,3i8)') '# ivgmt             :',ivgmt(:,iqmtt)
+    write(un,'(a,3f12.6)') '# vql               :',vql(:,iqt)
     write(un,'(a,i8)') '# fxctype           :',fxctype
     write(un,'(a,f12.6)') '# alphalrc          :',alphalrc
     write(un,'(a,f12.6)') '# alphalrcdyn       :',alphalrcdyn

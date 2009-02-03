@@ -83,6 +83,17 @@ if (((task.ge.301).and.(task.le.399))) then
       vqc(:,iq)=vql(1,iq)*bvec(:,1)+vql(2,iq)*bvec(:,2)+ &
 	   vql(3,iq)*bvec(:,3)
    end do
+else
+   ! determine only integer-part of Q-points
+   if (allocated(ivgmt)) deallocate(ivgmt)
+   allocate(ivgmt(3,nqptmt))
+   do iq=1,nqptmt
+      v(:)=vgqlmt(:,iq)
+      iv(:)=0
+      ! map Q-point to reciprocal unit cell
+      if (mdfqtype.eq.1) call r3frac(epslat,v,iv)
+      ivgmt(:,iq)=iv(:)
+   end do      
 end if
 ! generate q-point set from grid
 if ((task.ge.400).and.(task.le.439)) then

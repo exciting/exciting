@@ -213,7 +213,13 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
         end do
      else
         ! no subcell average (body)
-        scieff(j1,2:)=bi(j1-1,:)
+	
+	write(*,*) 'angavsc0: shape(scieff)',shape(scieff)
+	write(*,*) 'angavsc0: shape(scieff(j1,2:))',shape(scieff(j1,2:))
+	write(*,*) 'angavsc0: shape(bi)',shape(bi)
+	write(*,*) 'angavsc0: shape(bi(j1-1,:))',shape(bi(j1-1,:))
+
+        scieff(j1,2:n)=bi(j1-1,:)
      end if
   end do
   deallocate(ei00,ei00lm,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)

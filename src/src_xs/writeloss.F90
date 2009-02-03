@@ -36,7 +36,7 @@ contains
     write(unit1,'(3g18.10)') (w(iw)*escale,loss(iw),loss(iw)* &
          (gqc(igmt,iq)**2/(4.d0*pi**2*chgval/omega)),iw=1,n)
     ! write relevant parameters to file
-    call writevars(unit1,iq)
+    call writevars(unit1,iq,iq)
     close(unit1)
   end subroutine writeloss
 

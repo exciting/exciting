@@ -101,8 +101,8 @@ subroutine scrcoulint
      n=ngq(iqrnr)
 
      ! calculate effective screened Coulomb interaction
-     call genscclieff(iqr,ngqmax,n,scieffg(1,1,iqr)) !++++++++++++++++++++++++
-
+     call genscclieff(iqr,ngqmax,n,scieffg(1,1,iqr))
+     
      ! generate radial integrals for matrix elements of plane wave
      call putematrad(iqr,iqrnr)
   end do
