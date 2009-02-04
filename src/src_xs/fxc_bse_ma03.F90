@@ -71,11 +71,6 @@ contains
        fxc(1,2:)=fxcw1(oct,2:)
        fxc(2:,1)=fxcw2(2:,oct)
     end if
-
-if ((msiz.ne.1).and.(iw.eq.1)) then
- 	write(7777,*) ,oct,fxch,fxc
-end if
-
     if (.not.sw) then
        zt1=fxc(1,1)
        fxc(:,:)=zzero

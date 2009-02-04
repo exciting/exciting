@@ -98,7 +98,7 @@ libbzint.a::
 	&& $(MAKE) -f Makefile.libbzint libbzint.a 
 	
 libmsec.a:: 
-	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
+	../../utilities/mkmf -t ./template -f -m Makefile.libmsec -p libmsec.a \
 	../../src/src_mixing/lib/ \
 	&& $(MAKE) -f Makefile.libmsec libmsec.a 
 	
