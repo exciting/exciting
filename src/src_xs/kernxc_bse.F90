@@ -55,7 +55,7 @@ subroutine kernxc_bse
   complex(8), allocatable :: emat12ka(:,:,:),emat12kpa(:,:,:)
   complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
   complex(8), allocatable :: residra(:,:),residqa(:,:),oscaa(:,:),oscba(:,:)
-  complex(8), allocatable :: fxc(:,:,:),w(:)
+  complex(8), allocatable :: fxc(:,:,:),w(:),bsedg(:,:)
   ! external functions
   integer, external :: idxkkp,l2int
   logical, external :: tqgamma
@@ -155,11 +155,13 @@ subroutine kernxc_bse
   allocate(deval(nst1,nst3,nkptnr))
   allocate(docc(nst1,nst3,nkptnr))
   allocate(scis(nst1,nst3,nkptnr))
+  allocate(bsedg(nst1,nst3))
+
 
   if ((fxctype.eq.7).or.(fxctype.eq.8)) then
-     call getbsediag
-     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
-     write(unitout,'(" mean value : ",2g18.10)') bsed
+!     call getbsediag
+!     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+!     write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
 
   ! generate energy grid
@@ -203,6 +205,8 @@ subroutine kernxc_bse
      call chkpt(3,(/task,3,ikkp/),'task,sub,(k,kp)-pair; BSE-fxc-kernel')
      iknrq=ikmapikq(iknr,iqmt)
 
+     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg)
+     
      emattype=1
      call ematbdcmbs(emattype)
      allocate(xiou(nst1,nst3,n))
@@ -218,7 +222,9 @@ subroutine kernxc_bse
      dek(:,:)=deou(:,:)
      dok(:,:)=docc12(:,:)
      ! add BSE diagonal
-     scisk(:,:)=scis(:,:,iknr)+bsed
+!!!     scisk(:,:)=scis(:,:,iknr)+bsed
+scisk(:,:)=scis(:,:,iknr)+bsedg(:,:)
+
      ! assign optical components
      do oct=1,noptc
        emat12k(-oct,:,:)=pmou(oct,:,:)
@@ -258,17 +264,17 @@ subroutine kernxc_bse
            ikkp=idxkkp(jknr,iknr,nkptnr)
         end if
 
-        iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
-        iv(:)=modulo(iv(:),ngridk(:))
-        ! q-point (reduced)
-        iqr=iqmapr(iv(1),iv(2),iv(3))
-        vqr(:)=vqlr(:,iqr)
-        ! q-point (non-reduced)
-        iq=iqmap(iv(1),iv(2),iv(3))
-        tq0=tqgamma(iq)
-        vq(:)=vql(:,iq)
-        ! locate reduced q-point in non-reduced set
-        iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
+!!$        iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
+!!$        iv(:)=modulo(iv(:),ngridk(:))
+!!$        ! q-point (reduced)
+!!$        iqr=iqmapr(iv(1),iv(2),iv(3))
+!!$        vqr(:)=vqlr(:,iqr)
+!!$        ! q-point (non-reduced)
+!!$        iq=iqmap(iv(1),iv(2),iv(3))
+!!$        tq0=tqgamma(iq)
+!!$        vq(:)=vql(:,iq)
+!!$        ! locate reduced q-point in non-reduced set
+!!$        iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
 
         emattype=1
         call ematbdcmbs(emattype)
@@ -461,12 +467,14 @@ subroutine kernxc_bse
 
   ! deallocate
   deallocate(den1,den2,den1a,den2a)
-  deallocate(emat12p,zmr,zmq,dek,dekp,dde,dok,dokp,scisk,sciskp,fxc)
+  deallocate(emat12p,zmr,zmq,dek,dekp,dde,dok,dokp,scisk,fxc)
   deallocate(sccli,scclih,scclit,emat12k,emat12kp,residr,residq,w,osca,oscb)
   deallocate(emat,deval,docc,scis)
   ! deallocate antiresonant parts
   deallocate(emata,emat12pa,emat12ka,emat12kpa,residra,residqa,zmra,zmqa)
   deallocate(oscaa,oscba)
+
+  deallocate(bsedg)
   
 end subroutine kernxc_bse
 !EOC

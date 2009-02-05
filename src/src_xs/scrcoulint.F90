@@ -22,7 +22,7 @@ subroutine scrcoulint
   real(8) :: vqr(3),vq(3),t1
   integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
   complex(8) :: zt1
-  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:)
+  complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclid(:,:)
   complex(8), allocatable :: scieffg(:,:,:),tm(:,:),tmi(:,:),bsedt(:,:)
   complex(8), allocatable :: phf(:,:),emat12(:,:),emat34(:,:)
   ! external functions
@@ -81,7 +81,7 @@ subroutine scrcoulint
 
   ! local arrays
   allocate(phf(ngqmax,ngqmax))
-  allocate(sccli(nst1,nst3,nst2,nst4))
+  allocate(sccli(nst1,nst3,nst2,nst4),scclid(nst1,nst3))
   allocate(scieffg(ngqmax,ngqmax,nqptr))
   sccli(:,:,:,:)=zzero
   scieffg(:,:,:)=zzero
@@ -250,12 +250,16 @@ subroutine scrcoulint
         do ist1=1,nst1
            do ist3=1,nst3
               zt1=sccli(ist1,ist3,ist1,ist3)
+	      scclid(ist1,ist3)=zt1
               t1=dble(zt1)
               bsedt(1,iknr)=min(dble(bsedt(1,iknr)),t1)
               bsedt(2,iknr)=max(dble(bsedt(2,iknr)),t1)
-              bsedt(3,iknr)=bsedt(3,iknr)+zt1/(nst1*nst3)
+              bsedt(3,iknr)=bsedt(3,iknr)+zt1/(nst1*nst3)	      
            end do
         end do
+	
+	call putbsedg('BSED.OUT',iknr,nst1,nst3,scclid)
+	
      end if
 
      ! parallel write
@@ -277,7 +281,7 @@ subroutine scrcoulint
   bsedu=maxval(dble(bsedt(2,:)))
   bsedd=bsedu-bsedl
   bsed=sum(bsedt(3,:))/nkptnr
-  deallocate(bsedt)
+  deallocate(bsedt,scclid)
   ! write BSE kernel diagonal parameters
   if (rank.eq.0) call putbsediag('BSEDIAG.OUT')
 

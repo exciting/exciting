@@ -1,0 +1,11 @@
+include make.inc
+
+FC = $(F90)
+FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
+LD = $(FC)
+LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
+LDFLAGS = $(F90_OPTS) $(LIBS)
+AR = ar
+ARFLAGS = -rc
+F77=$(F77) $(F77_OPTS)
+TMPFILES = *.mod

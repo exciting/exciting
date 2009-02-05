@@ -85,7 +85,7 @@ subroutine dfq(iq)
   complex(8), allocatable :: chi0(:,:,:),hdg(:,:,:)
   complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:,:)
   complex(8), allocatable :: wou(:),wuo(:),wouw(:),wuow(:),wouh(:),wuoh(:)
-  complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:,:)
+  complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:,:),bsedg(:,:)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: cwt(:,:),cw1k(:,:,:),cwa1k(:,:,:),cwsurf1k(:,:,:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
@@ -200,6 +200,7 @@ subroutine dfq(iq)
   allocate(wuo(nwdf))
   allocate(wouw(nwdf),wuow(nwdf),wouh(nwdf),wuoh(nwdf))
   allocate(zvou(n),zvuo(n))
+  allocate(bsedg(nst1,nst2))
   scis12(:,:)=0.d0
   scis21(:,:)=0.d0
   if (tetradf) then
@@ -226,12 +227,15 @@ subroutine dfq(iq)
      call ematqalloc
   end if
   if (task.eq.345) then
-     call getbsediag
-     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
-     write(unitout,'(" mean value : ",2g18.10)') bsed
+!     call getbsediag
+!     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+!     write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
   ! loop over k-points
   do ik=1,nkpt
+     if (task.eq.345) then
+       call getbsedg('BSED.OUT',ik,nst1,nst2,bsedg)
+     end if
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
      call chkpt(3,(/task,iq,ik/),'dfq: task, q-point index, k-point index')
@@ -251,8 +255,10 @@ subroutine dfq(iq)
      end if
      ! add BSE diagonal shift use with BSE-kernel
      if (task.eq.345) then
-        scis12(:,:)=scis12(:,:)+bsed
-        scis21(:,:)=scis21(:,:)-bsed
+ !       scis12(:,:)=scis12(:,:)+bsed
+ !       scis21(:,:)=scis21(:,:)-bsed
+        scis12(:,:)=scis12(:,:)+bsedg(:,:)
+        scis21(:,:)=scis21(:,:)-bsedg(:,:)
      end if
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
@@ -479,6 +485,7 @@ subroutine dfq(iq)
   deallocate(docc12,docc21,scis12,scis21)
   deallocate(deou,deuo,wou,wuo,wouw,wuow,wouh,wuoh,zvou,zvuo)
   deallocate(xiou,xiuo,pmou,pmuo)
+  deallocate(bsedg)
   deallocate(w,wreal)
   if (tetradf) then
      deallocate(cw,cwa,cwsurf)
