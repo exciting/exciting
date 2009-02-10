@@ -1080,8 +1080,8 @@ case('mdfqtype')
   if (mdfqtype.eq.1) then
     write(*,*)
     write(*,'("Error(readinput/xs): mdfqtype=1; not compatible with idfq- &
-     routine, if local fields are neglected, needs to project out special &
-     G-vector - code limitation")')
+     &routine, if local fields are neglected, needs to project out special &
+     &G-vector - code limitation")')
     write(*,*)
     stop
   end if
