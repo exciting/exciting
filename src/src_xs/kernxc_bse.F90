@@ -159,9 +159,9 @@ subroutine kernxc_bse
 
 
   if ((fxctype.eq.7).or.(fxctype.eq.8)) then
-!     call getbsediag
-!     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
-!     write(unitout,'(" mean value : ",2g18.10)') bsed
+     call getbsediag
+     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+     write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
 
   ! generate energy grid
@@ -205,7 +205,8 @@ subroutine kernxc_bse
      call chkpt(3,(/task,3,ikkp/),'task,sub,(k,kp)-pair; BSE-fxc-kernel')
      iknrq=ikmapikq(iknr,iqmt)
 
-     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg)
+     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg); bsedg(:,:)=bsed ! REVERT TO
+!CONSTANT SHIFT
      
      emattype=1
      call ematbdcmbs(emattype)
@@ -222,8 +223,7 @@ subroutine kernxc_bse
      dek(:,:)=deou(:,:)
      dok(:,:)=docc12(:,:)
      ! add BSE diagonal
-!!!     scisk(:,:)=scis(:,:,iknr)+bsed
-scisk(:,:)=scis(:,:,iknr)+bsedg(:,:)
+     scisk(:,:)=scis(:,:,iknr)+bsedg(:,:)
 
      ! assign optical components
      do oct=1,noptc
@@ -264,18 +264,6 @@ scisk(:,:)=scis(:,:,iknr)+bsedg(:,:)
            ikkp=idxkkp(jknr,iknr,nkptnr)
         end if
 
-!!$        iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
-!!$        iv(:)=modulo(iv(:),ngridk(:))
-!!$        ! q-point (reduced)
-!!$        iqr=iqmapr(iv(1),iv(2),iv(3))
-!!$        vqr(:)=vqlr(:,iqr)
-!!$        ! q-point (non-reduced)
-!!$        iq=iqmap(iv(1),iv(2),iv(3))
-!!$        tq0=tqgamma(iq)
-!!$        vq(:)=vql(:,iq)
-!!$        ! locate reduced q-point in non-reduced set
-!!$        iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
-
         emattype=1
         call ematbdcmbs(emattype)
         allocate(xiou(nst1,nst3,n))
@@ -287,7 +275,7 @@ scisk(:,:)=scis(:,:,iknr)+bsedg(:,:)
 
         ! apply gauge wrt. symmetrized Coulomb potential
         call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou,m34=xiuo, &
-     	p34=pmuo)
+         p34=pmuo)
         dekp(:,:)=deou(:,:)
         dokp(:,:)=docc12(:,:)
         sciskp(:,:)=scis(:,:,jknr)
