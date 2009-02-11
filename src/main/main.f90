@@ -11,6 +11,8 @@ program main
   ! local variables
   integer itask
   logical  paralleltask
+  real(8) :: ts0,ts1
+  call timesec(ts0)
   ! read input files
   call initMPI
   call readinput
@@ -118,6 +120,8 @@ program main
   end select
      endif
   end do
+  call timesec(ts1)
+  call writetime(ts1-ts0,'TIME.OUT')
   call finitMPI()
 #ifndef XS
 #ifndef TETRA
