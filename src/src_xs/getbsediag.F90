@@ -9,12 +9,17 @@ subroutine getbsediag
   implicit none
   ! local variables
   integer :: un
+  real(8) :: re,im
   call getunit(un)
   open(un,file='BSEDIAG.OUT',action='read',form='formatted',status='old')
-  read(un,*) bsed
-  read(un,*) bsedl
-  read(un,*) bsedu
-  read(un,*) bsedd
+  read(un,*) re,im
+  bsed=cmplx(re,im,8)
+  read(un,*) re,im
+  bsedl=cmplx(re,im,8)
+  read(un,*) re,im
+  bsedu=cmplx(re,im,8)
+  read(un,*) re,im
+  bsedd=cmplx(re,im,8)
   close(un)
 end subroutine getbsediag
 
