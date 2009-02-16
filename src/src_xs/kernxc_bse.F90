@@ -450,9 +450,14 @@ end if
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
-  inquire(iolength=recl) (/(fxc(-oct,-oct,1),oct=1,noptc)/), &
-     	(/(fxc(-oct,1:,1),oct=1,noptc)/), &
-	(/(fxc(1:,-oct,1),oct=1,noptc)/),fxc(1:,1:,1)
+!  inquire(iolength=recl) (/(fxc(-oct,-oct,1),oct=1,noptc)/), &
+!     	(/(fxc(-oct,1:,1),oct=1,noptc)/), &
+!	(/(fxc(1:,-oct,1),oct=1,noptc)/),fxc(1:,1:,1)
+  iw=1
+  inquire(iolength=recl) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
+      	(/((fxc(-oct,igq1,iw),oct=1,noptc),igq1=1,n)/), &
+	(/((fxc(igq1,-oct,iw),igq1=1,n),oct=1,noptc)/),fxc(1:,1:,iw)
+
   call getunit(un2)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
@@ -464,9 +469,12 @@ end if
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
   
   do iw=1,nwdf
-     write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
-     	(/(fxc(-oct,1:,iw),oct=1,noptc)/),(/(fxc(1:,-oct,iw),oct=1,noptc)/), &
-	fxc(1:,1:,iw)     
+!     write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
+!     	(/(fxc(-oct,1:,iw),oct=1,noptc)/),(/(fxc(1:,-oct,iw),oct=1,noptc)/), &
+!	fxc(1:,1:,iw)     
+      write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
+      	(/((fxc(-oct,igq1,iw),oct=1,noptc),igq1=1,n)/), &
+	(/((fxc(igq1,-oct,iw),igq1=1,n),oct=1,noptc)/),fxc(1:,1:,iw)
      write(un3,'(i6,2x,g18.10,2x,6g18.10)') iw,dble(w(iw)),(fxc(-oct,-oct,iw),&
      	oct=1,noptc)
   end do

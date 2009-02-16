@@ -48,6 +48,9 @@ contains
     complex(8), allocatable :: fxch(:),fxcw1(:,:),fxcw2(:,:)
     complex(8) :: zt1
     integer :: sh(2),un,recl
+    
+integer :: i,j    
+    
     sh=shape(fxc)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then
        write(unitout,'(a,2i9,a,i9,a)') 'Error('//trim(thisnam)//'): size of &
@@ -79,7 +82,7 @@ contains
     close(un)
     
     !@@@@@@@@@@@@@@@@@@@@@@@@
-    if ((oct.eq.3).and.(iw.eq.101)) then
+    if ((msiz.gt.1).and.(oct.eq.3).and.(iw.eq.101)) then
           write(7777,*) fxc
     end if
     !@@@@@@@@@@@@@@@@@@@@@@@@
