@@ -208,7 +208,7 @@ subroutine kernxc_bse
 !!!     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg); bsedg(:,:)=bsed ! REVERT TO
 !CONSTANT SHIFT
 !@@@@@@@@@
-bsedg(:,:)=zzero
+bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
      
      emattype=1
      call ematbdcmbs(emattype)

@@ -227,9 +227,9 @@ subroutine dfq(iq)
      call ematqalloc
   end if
   if (task.eq.345) then
-!     call getbsediag
-!     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
-!     write(unitout,'(" mean value : ",2g18.10)') bsed
+     call getbsediag
+     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+     write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
   ! loop over k-points
   do ik=1,nkpt
@@ -237,7 +237,7 @@ subroutine dfq(iq)
 !       call getbsedg('BSED.OUT',ik,nst1,nst2,bsedg)
 !     end if
 !@@@@@@@@@@@@@@@@@@
-bsedg(:,:)=zzero
+bsedg(:,:)=bsed!!!bsedg(:,:)=zzero
 
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
