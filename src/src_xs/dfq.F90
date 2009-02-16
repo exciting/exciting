@@ -233,9 +233,12 @@ subroutine dfq(iq)
   end if
   ! loop over k-points
   do ik=1,nkpt
-     if (task.eq.345) then
-       call getbsedg('BSED.OUT',ik,nst1,nst2,bsedg)
-     end if
+!     if (task.eq.345) then
+!       call getbsedg('BSED.OUT',ik,nst1,nst2,bsedg)
+!     end if
+!@@@@@@@@@@@@@@@@@@
+bsedg(:,:)=zzero
+
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
      call chkpt(3,(/task,iq,ik/),'dfq: task, q-point index, k-point index')

@@ -205,8 +205,10 @@ subroutine kernxc_bse
      call chkpt(3,(/task,3,ikkp/),'task,sub,(k,kp)-pair; BSE-fxc-kernel')
      iknrq=ikmapikq(iknr,iqmt)
 
-     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg); bsedg(:,:)=bsed ! REVERT TO
+!!!     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg); bsedg(:,:)=bsed ! REVERT TO
 !CONSTANT SHIFT
+!@@@@@@@@@
+bsedg(:,:)=zzero
      
      emattype=1
      call ematbdcmbs(emattype)
@@ -351,6 +353,16 @@ subroutine kernxc_bse
                        zmra(j2,j1)=zzero
                        zmqa(j2,j1)=conjg(zt1)
                     end if
+
+if ((iknr.eq.3).and.(jknr.eq.2).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
+ (ist4.eq.1)) then
+write(unitout,*) 'sccli,wmat,k=3,1-1;k=2,2-1',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
+end if			
+
+if ((iknr.eq.1).and.(jknr.eq.1).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
+ (ist4.eq.1)) then
+write(unitout,*) 'sccli,wmat,k=1,1-1;k=1,1-2',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
+end if
                  end do
               end do
            end do
@@ -366,6 +378,23 @@ subroutine kernxc_bse
         residqa=residqa+matmul(zmqa,emat12pa)
         ! end inner loop over k-points
      end do
+
+!@@@@@@@@@@@@@@@@@@@@@@@@
+if (iknr.eq.1) then
+write(unitout,*) 'iknr',iknr
+write(unitout,*) 'residr:k=1,1-1:',residr(1,-3:2)
+write(unitout,*)
+end if
+if (iknr.eq.2) then
+write(unitout,*) 'iknr',iknr
+write(unitout,*) 'residr:k=2,2-1:',residr(2,-3:2)
+write(unitout,*)
+end if
+if (iknr.eq.3) then
+write(unitout,*) 'iknr',iknr
+write(unitout,*) 'residr:k=3,1-1:',residr(1,-3:2)
+write(unitout,*)
+end if
 
      !--------------------------!
      !     set up BSE-kernel    !
@@ -401,9 +430,9 @@ subroutine kernxc_bse
            ! update kernel
            do iw=1,nwdf
               ! resonant and antiresonant contributions
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
-                   oscba(:,:)*den2a(iw)
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)!@@@@+oscb(:,:)*den2(iw)
+!@@@@              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
+!@@@@                   oscba(:,:)*den2a(iw)
            end do
            ! end loop over states #1
         end do

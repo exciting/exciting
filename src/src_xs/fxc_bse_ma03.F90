@@ -77,6 +77,13 @@ contains
        fxc(1,1)=zt1
     end if
     close(un)
+    
+    !@@@@@@@@@@@@@@@@@@@@@@@@
+    if ((oct.eq.3).and.(iw.eq.101)) then
+          write(7777,*) fxc
+    end if
+    !@@@@@@@@@@@@@@@@@@@@@@@@
+
     deallocate(fxch,fxcw1,fxcw2)
   end subroutine fxc_bse_ma03
 !EOC

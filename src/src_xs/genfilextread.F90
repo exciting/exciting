@@ -11,7 +11,7 @@ subroutine genfilextread(task)
   select case(task)
   case(121,330,331,340,350)
      call genfilname(iqmt=0,setfilext=.true.)
-  case(430,440,441,445,450)
+  case(430,440,441,445,450,451)
      call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   end select
 end subroutine genfilextread

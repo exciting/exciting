@@ -112,7 +112,7 @@ if ((task.ge.400).and.(task.le.439)) then
    nqptr=nqpt
 end if
 if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or. &
-     (task.eq.499).or.(task.eq.700)) then
+     (task.eq.451).or.(task.eq.499).or.(task.eq.700)) then
    if (allocated(ivqr)) deallocate(ivqr)
    allocate(ivqr(3,ngridq(1)*ngridq(2)*ngridq(3)))
    if (allocated(vqlr)) deallocate(vqlr)

@@ -250,7 +250,7 @@ subroutine xsinit
         write(unitout,*)
         call terminate
      end if
-  else if ((task.ge.440).and.(task.le.450)) then
+  else if ((task.ge.440).and.(task.le.459)) then
      ! BSE
      nosym=nosymbse
      reducek=reducekbse
