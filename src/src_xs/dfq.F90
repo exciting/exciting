@@ -261,7 +261,7 @@ bsedg(:,:)=bsed!!!bsedg(:,:)=zzero
  !       scis12(:,:)=scis12(:,:)+bsed
  !       scis21(:,:)=scis21(:,:)-bsed
         scis12(:,:)=scis12(:,:)+bsedg(:,:)
-        scis21(:,:)=scis21(:,:)-bsedg(:,:)
+        scis21(:,:)=scis21(:,:)+bsedg(:,:)
      end if
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &

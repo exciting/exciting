@@ -145,7 +145,7 @@ goto 100
     end if
    
    ! invert singular values above cutoff
-   eps=1.d-3
+   eps=1.d-8
     do j=1,n
    	if (singv(j).lt.eps) then
 	   singv(j)=0.d0

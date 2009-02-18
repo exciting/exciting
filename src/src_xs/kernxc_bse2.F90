@@ -124,6 +124,11 @@ write(50,*) 'iknr,ic,iv;s',iknr,ic,iv,si
   allocate(xiout(nv,nc,n))
   allocate(pmout(3,nv,nc))
   allocate(scisk(nst1,nst3))
+!!$  if ((fxctype.eq.7).or.(fxctype.eq.8)) then
+!!$     call getbsediag
+!!$     write(unitout,'("Info(): read diagonal of BSE kernel")')
+!!$     write(unitout,'(" mean value : ",2g18.10)') bsed
+!!$  end if
   emattype=1
   call ematbdcmbs(emattype)
   call ematrad(iqmt)

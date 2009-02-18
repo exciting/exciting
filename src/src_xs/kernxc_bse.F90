@@ -202,7 +202,7 @@ subroutine kernxc_bse
   ikkp=0
   ! first k-point
   do iknr=1,nkptnr
-     call chkpt(3,(/task,3,ikkp/),'task,sub,(k,kp)-pair; BSE-fxc-kernel')
+     call chkpt(3,(/task,3,iknr/),'task,sub,k-point; BSE-fxc-kernel')
      iknrq=ikmapikq(iknr,iqmt)
 
 !!!     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg); bsedg(:,:)=bsed ! REVERT TO
@@ -430,9 +430,9 @@ end if
            ! update kernel
            do iw=1,nwdf
               ! resonant and antiresonant contributions
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)!@@@@+oscb(:,:)*den2(iw)
-!@@@@              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
-!@@@@                   oscba(:,:)*den2a(iw)
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
+                   oscba(:,:)*den2a(iw)
            end do
            ! end loop over states #1
         end do
