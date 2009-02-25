@@ -9,6 +9,7 @@
 subroutine kernxc_bse
 ! !USES:
   use modmain
+  use modmpi
   use modtetra
   use modxs
   use m_xsgauntgen
@@ -176,7 +177,7 @@ subroutine kernxc_bse
   call genparidxran('k',nkptnr)
   do iknr=kpari,kparf
      call chkpt(3,(/task,1,iknr/),'task,sub,k-point; generate matrix elements &
-          &of plane wave')    
+          &of plane wave')
      iknrq=ikmapikq(iknr,iqmt)
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
@@ -217,7 +218,7 @@ subroutine kernxc_bse
 !CONSTANT SHIFT
 !@@@@@@@@@
 bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
-     
+
      emattype=1
      call ematbdcmbs(emattype)
      allocate(xiou(nst1,nst3,n))
@@ -337,7 +338,7 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
               emat12pa(j1,:)=conjg(emat12kpa(ist2,ist1,:))
            end do
         end do
-        ! map 
+        ! map
         j2=0
         do ist3=1,nst3
            do ist1=1,nst1
@@ -365,7 +366,7 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
 if ((iknr.eq.3).and.(jknr.eq.2).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
  (ist4.eq.1)) then
 write(unitout,*) 'sccli,wmat,k=3,1-1;k=2,2-1',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
-end if			
+end if
 
 if ((iknr.eq.1).and.(jknr.eq.1).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
  (ist4.eq.1)) then
@@ -415,7 +416,7 @@ end if
            oscaa(:,:)=zzero
            oscba(:,:)=zzero
            j1=ist1+(ist3-1)*nst1
-           ! set up inner part of kernel           
+           ! set up inner part of kernel
            ! generate oscillators
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
 	   	residr(j1,:),osca)
@@ -475,11 +476,11 @@ end if
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
   call getunit(un3)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
-  
+
   do iw=1,nwdf
 !     write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
 !     	(/(fxc(-oct,1:,iw),oct=1,noptc)/),(/(fxc(1:,-oct,iw),oct=1,noptc)/), &
-!	fxc(1:,1:,iw)     
+!	fxc(1:,1:,iw)
       write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
       	(/((fxc(-oct,igq1,iw),oct=1,noptc),igq1=1,n)/), &
 	(/((fxc(igq1,-oct,iw),igq1=1,n),oct=1,noptc)/),fxc(1:,1:,iw)
@@ -493,7 +494,7 @@ end if
                 abs(fxc(igq1,igq2,iw))
         end do
      end do
-  end do  
+  end do
   close(un)
   close(un2)
   close(un3)
@@ -508,6 +509,6 @@ end if
   deallocate(oscaa,oscba)
 
   deallocate(bsedg)
-  
+
 end subroutine kernxc_bse
 !EOC

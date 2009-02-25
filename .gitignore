@@ -36,6 +36,7 @@ src/src_try
 src/tools/atkp
 local
 examples/xs
+.cproject
 .cdtproject
 .project
 .settings/*
@@ -57,4 +58,6 @@ testsummary.*
 ._.DS*
 gitlog.txt
 .resume
-startmpirun 
+startmpirun
+.externalToolBuilders
+
