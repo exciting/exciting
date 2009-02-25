@@ -1,4 +1,4 @@
-export SUFFIX=ser
+export SUFFIX=.ifort.serial
 all:
 	$(MAKE)  -f ../Make.common
 
