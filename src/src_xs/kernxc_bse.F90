@@ -101,12 +101,8 @@ subroutine kernxc_bse
   nst13=nst1*nst3
   nst24=nst2*nst4
 
-  call genparidxran('w',nwdf)
   ! sampling type for Brillouin zone sampling
   bzsampl=l2int(tetradf)
-  ! limits for w-points
-  wi=wpari
-  wf=wparf
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects (first q-point is Gamma-point)
   n=ngq(iqmt)
@@ -176,7 +172,9 @@ subroutine kernxc_bse
   !---------------------------!
   !     loop over k-points    !
   !---------------------------!
-  do iknr=1,nkptnr
+  ! limits for w-points
+  call genparidxran('k',nkptnr)
+  do iknr=kpari,kparf
      call chkpt(3,(/task,1,iknr/),'task,sub,k-point; generate matrix elements &
           &of plane wave')    
      iknrq=ikmapikq(iknr,iqmt)
@@ -193,12 +191,22 @@ subroutine kernxc_bse
      docc(:,:,iknr)=docc12(:,:)
      scis(:,:,iknr)=scisk(:,:)
   end do
+  ! communication
+  call zalltoallv(emat,nst1*nst3*n,nkptnr)
+  call zalltoallv(emata,nst1*nst3*n,nkptnr)
+  call ralltoallv(deval,nst1*nst3,nkptnr)
+  call ralltoallv(docc,nst1*nst3,nkptnr)
+  call ralltoallv(scis,nst1*nst3,nkptnr)
   emattype=2
   call ematbdcmbs(emattype)
 
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
+  ! limits for w-points
+  call genparidxran('w',nwdf)
+  wi=wpari
+  wf=wparf
   ikkp=0
   ! first k-point
   do iknr=1,nkptnr
