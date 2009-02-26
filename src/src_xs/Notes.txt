@@ -123,7 +123,7 @@ FINISHED
 --------------------------------------------------------------------------------
 
 	* bsed is added to scissor shift in dfq.F90 in wrong way for
-	  scis21, change sign
+	  scis21, change sign --- check this very carefully
 
 --------------------------------------------------------------------------------
 
