@@ -32,7 +32,7 @@ subroutine getevalsv(vpl,evalsvp)
 #ifdef XS
   inquire(iolength=recl) vkl_,nstsv_,evalsvp
 #endif
-  filetag='EVALSV'
+  filetag=trim(filetag_evalsv)
  do i=1,100
 inquire(file=outfilenamestring(filetag,ik),exist=exist)
  if (exist) then
@@ -104,16 +104,18 @@ end subroutine getevalsv
 module m_getevalsvr
   implicit none
 contains
-  subroutine getevalsvr(isti,istf,vpl,evalsvp)
+  subroutine getevalsvr(fname,isti,istf,vpl,evalsvp)
     use modmain
     implicit none
     ! arguments
+    character(*), intent(in) :: fname
     integer, intent(in) :: isti,istf
     real(8), intent(in) :: vpl(3)
     real(8), intent(out) :: evalsvp(:)
     ! local variables
     integer :: err
     real(8), allocatable :: evalsvt(:)
+    character(256) :: str
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
@@ -135,7 +137,12 @@ contains
     end if
     if (err.ne.0) stop
     allocate(evalsvt(nstsv))
+    filetag_evalsv=trim(fname)
+    str=trim(filext)
+    filext=''
     call getevalsv(vpl,evalsvt)
+    filetag_evalsv='EVALSV'
+    filext=trim(str)
     evalsvp(:)=evalsvt(isti:istf)
     deallocate(evalsvt)
   end subroutine getevalsvr

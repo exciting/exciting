@@ -9,7 +9,6 @@
 subroutine kernxc_bse
 ! !USES:
   use modmain
-  use modmpi
   use modtetra
   use modxs
   use m_xsgauntgen
@@ -56,15 +55,17 @@ subroutine kernxc_bse
   complex(8), allocatable :: emat12ka(:,:,:),emat12kpa(:,:,:)
   complex(8), allocatable :: residr(:,:),residq(:,:),osca(:,:),oscb(:,:)
   complex(8), allocatable :: residra(:,:),residqa(:,:),oscaa(:,:),oscba(:,:)
-  complex(8), allocatable :: fxc(:,:,:),w(:),bsedg(:,:)
+  complex(8), allocatable :: fxc(:,:,:),w(:),bsedg(:,:),bufou(:,:,:),bufuo(:,:,:),pufou(:,:,:),pufuo(:,:,:)
   ! external functions
   integer, external :: idxkkp,l2int
   logical, external :: tqgamma
   brd=broad
   emattype=2
+write(unitout,*) 'enty...'; call flushifc(unitout)
   call init0
   call init1
   call init2
+write(unitout,*) 'done init2...'; call flushifc(unitout)
   ! read Fermi energy from file
   call readfermi
   ! save variables for the Gamma q-point
@@ -102,12 +103,20 @@ subroutine kernxc_bse
   nst13=nst1*nst3
   nst24=nst2*nst4
 
+  call genparidxran('w',nwdf)
   ! sampling type for Brillouin zone sampling
   bzsampl=l2int(tetradf)
+  ! limits for w-points
+  wi=wpari
+  wf=wparf
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects (first q-point is Gamma-point)
   n=ngq(iqmt)
 
+  allocate(bufou(nst1,nst3,n))
+  allocate(bufuo(nst3,nst1,n))
+  allocate(pufou(3,nst1,nst3))
+  allocate(pufuo(3,nst3,nst1))
   ! allocate global arrays
   if (allocated(xiou)) deallocate(xiou)
   allocate(xiou(nst1,nst3,n))
@@ -173,11 +182,9 @@ subroutine kernxc_bse
   !---------------------------!
   !     loop over k-points    !
   !---------------------------!
-  ! limits for w-points
-  call genparidxran('k',nkptnr)
-  do iknr=kpari,kparf
+  do iknr=1,nkptnr
      call chkpt(3,(/task,1,iknr/),'task,sub,k-point; generate matrix elements &
-          &of plane wave')
+          &of plane wave')    
      iknrq=ikmapikq(iknr,iqmt)
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
@@ -192,32 +199,24 @@ subroutine kernxc_bse
      docc(:,:,iknr)=docc12(:,:)
      scis(:,:,iknr)=scisk(:,:)
   end do
-  ! communication
-  call zalltoallv(emat,nst1*nst3*n,nkptnr)
-  call zalltoallv(emata,nst1*nst3*n,nkptnr)
-  call ralltoallv(deval,nst1*nst3,nkptnr)
-  call ralltoallv(docc,nst1*nst3,nkptnr)
-  call ralltoallv(scis,nst1*nst3,nkptnr)
   emattype=2
   call ematbdcmbs(emattype)
 
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
-  ! limits for w-points
-  call genparidxran('w',nwdf)
-  wi=wpari
-  wf=wparf
+  if (allocated(xiou)) deallocate(xiou)
+  if (allocated(xiuo)) deallocate(xiuo)
   ikkp=0
   ! first k-point
   do iknr=1,nkptnr
      call chkpt(3,(/task,3,iknr/),'task,sub,k-point; BSE-fxc-kernel')
      iknrq=ikmapikq(iknr,iqmt)
 
-!!!     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg); bsedg(:,:)=bsed ! REVERT TO
-!CONSTANT SHIFT
-!@@@@@@@@@
-bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
+     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg)
+     !@@@@@@@@@@@@@@@@@@@@@bsedg(:,:)=bsed ! REVERTED TO CONSTANT SHIFT
+     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+     bsedg(:,:)=0.d0
 
      emattype=1
      call ematbdcmbs(emattype)
@@ -227,10 +226,9 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
      xiuo(:,:,:)=emata(:,:,:,iknr)
      deou(:,:)=deval(:,:,iknr)
      docc12(:,:)=docc(:,:,iknr)
-
      ! apply gauge wrt. symmetrized Coulomb potential
-     call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou,m34=xiuo, &
-     	p34=pmuo)
+     call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=bufou,p12=pufou,m34=bufuo, &
+     	p34=pufuo)
      dek(:,:)=deou(:,:)
      dok(:,:)=docc12(:,:)
      ! add BSE diagonal
@@ -238,12 +236,12 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
 
      ! assign optical components
      do oct=1,noptc
-       emat12k(-oct,:,:)=pmou(oct,:,:)
-       emat12ka(-oct,:,:)=pmuo(oct,:,:)
+       emat12k(-oct,:,:)=pufou(oct,:,:)
+       emat12ka(-oct,:,:)=pufuo(oct,:,:)
      end do
      do igq1=1,n
-       emat12k(igq1,:,:)=xiou(:,:,igq1)
-       emat12ka(igq1,:,:)=xiuo(:,:,igq1)
+       emat12k(igq1,:,:)=bufou(:,:,igq1)
+       emat12ka(igq1,:,:)=bufuo(:,:,igq1)
      end do
 
      deallocate(xiou,xiuo)
@@ -255,7 +253,7 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
      residra(:,:)=zzero
      residqa(:,:)=zzero
      ! second k-point
-     do jknr=1,nkptnr
+    do jknr=1,nkptnr
         jknrq=ikmapikq(jknr,iqmt)
 
         cpu_init1offs=0.d0
@@ -285,18 +283,18 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
         docc12(:,:)=docc(:,:,jknr)
 
         ! apply gauge wrt. symmetrized Coulomb potential
-        call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=xiou,p12=pmou,m34=xiuo, &
-         p34=pmuo)
+        call getpemat(iqmt,jknr,'PMAT_SCR.OUT','',m12=bufou,p12=pufou,m34=bufuo, &
+         p34=pufuo)
         dekp(:,:)=deou(:,:)
         dokp(:,:)=docc12(:,:)
         sciskp(:,:)=scis(:,:,jknr)
         ! assign optical component
 	do oct=1,noptc
-	  emat12kp(:,:,-oct)=pmou(oct,:,:)
-	  emat12kpa(:,:,-oct)=pmuo(oct,:,:)
+	  emat12kp(:,:,-oct)=pufou(oct,:,:)
+	  emat12kpa(:,:,-oct)=pufuo(oct,:,:)
 	end do
-        emat12kp(:,:,1:)=xiou(:,:,:)
-        emat12kpa(:,:,1:)=xiuo(:,:,:)
+        emat12kp(:,:,1:)=bufou(:,:,:)
+        emat12kpa(:,:,1:)=bufuo(:,:,:)
 
         deallocate(xiou,xiuo)
         emattype=2
@@ -338,7 +336,7 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
               emat12pa(j1,:)=conjg(emat12kpa(ist2,ist1,:))
            end do
         end do
-        ! map
+        ! map 
         j2=0
         do ist3=1,nst3
            do ist1=1,nst1
@@ -362,16 +360,12 @@ bsedg(:,:)=bsed !!!bsedg(:,:)=zzero
                        zmra(j2,j1)=zzero
                        zmqa(j2,j1)=conjg(zt1)
                     end if
-
-if ((iknr.eq.3).and.(jknr.eq.2).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
- (ist4.eq.1)) then
-write(unitout,*) 'sccli,wmat,k=3,1-1;k=2,2-1',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
-end if
-
+		    
 if ((iknr.eq.1).and.(jknr.eq.1).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
  (ist4.eq.1)) then
-write(unitout,*) 'sccli,wmat,k=1,1-1;k=1,1-2',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
-end if
+write(unitout,*) '1-1,2-1',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
+end if			    
+		    
                  end do
               end do
            end do
@@ -385,25 +379,16 @@ end if
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
         residqa=residqa+matmul(zmqa,emat12pa)
+	
+	
+	
         ! end inner loop over k-points
      end do
 
 !@@@@@@@@@@@@@@@@@@@@@@@@
-if (iknr.eq.1) then
 write(unitout,*) 'iknr',iknr
-write(unitout,*) 'residr:k=1,1-1:',residr(1,-3:2)
-write(unitout,*)
-end if
-if (iknr.eq.2) then
-write(unitout,*) 'iknr',iknr
-write(unitout,*) 'residr:k=2,2-1:',residr(2,-3:2)
-write(unitout,*)
-end if
-if (iknr.eq.3) then
-write(unitout,*) 'iknr',iknr
-write(unitout,*) 'residr:k=3,1-1:',residr(1,-3:2)
-write(unitout,*)
-end if
+write(unitout,*) '1-1',residr(1,-3:2)
+write(unitout,*) '1-2',residr(2,-3:2)
 
      !--------------------------!
      !     set up BSE-kernel    !
@@ -416,32 +401,36 @@ end if
            oscaa(:,:)=zzero
            oscba(:,:)=zzero
            j1=ist1+(ist3-1)*nst1
-           ! set up inner part of kernel
+           ! set up inner part of kernel           
            ! generate oscillators
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
 	   	residr(j1,:),osca)
-           call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12ka(:,ist3,ist1), &
+          call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12ka(:,ist3,ist1), &
 	   	residra(j1,:),oscaa)
-           ! add Hermitian transpose
-           osca=osca+conjg(transpose(osca))
-           oscaa=oscaa+conjg(transpose(oscaa))
+		
+           ! add Hermitian transpose 
+	   forall(igq1=-3:n,igq2=-3:n)
+	      osca(igq1,igq2)=osca(igq1,igq2)+conjg(osca(igq2,igq1))
+	      oscaa(igq1,igq2)=oscaa(igq1,igq2)+conjg(oscaa(igq2,igq1))
+	   end forall
+	   
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
 	   	residq(j1,:),oscb)
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12ka(:,ist3,ist1), &
 	   	residqa(j1,:),oscba)
-           ! set up energy denominators
+          ! set up energy denominators
            den1(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)
            den2(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)+dek(ist1,ist3)+zi*brd)**2
-           den1a(:)=2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
+           den1a(:)=2.d0*t1/(w(:)+scisk(ist1,ist3)-dek(ist1,ist3)+ &
 	    	torfxc*zi*brd)
-           den2a(:)=-2.d0*t1/(w(:)-(scisk(ist1,ist3)+dek(ist1,ist3))+ &
+           den2a(:)=-2.d0*t1/(w(:)+scisk(ist1,ist3)-dek(ist1,ist3)+ &
 	    	torfxc*zi*brd)**2
            ! update kernel
            do iw=1,nwdf
               ! resonant and antiresonant contributions
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
-                   oscba(:,:)*den2a(iw)
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw) !@@@@@@@@@+oscb(:,:)*den2(iw)
+!@@@@@@              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
+!@@@@@@                   oscba(:,:)*den2a(iw)
            end do
            ! end loop over states #1
         end do
@@ -462,11 +451,8 @@ end if
 !  inquire(iolength=recl) (/(fxc(-oct,-oct,1),oct=1,noptc)/), &
 !     	(/(fxc(-oct,1:,1),oct=1,noptc)/), &
 !	(/(fxc(1:,-oct,1),oct=1,noptc)/),fxc(1:,1:,1)
-  iw=1
-  inquire(iolength=recl) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
-      	(/((fxc(-oct,igq1,iw),oct=1,noptc),igq1=1,n)/), &
-	(/((fxc(igq1,-oct,iw),igq1=1,n),oct=1,noptc)/),fxc(1:,1:,iw)
-
+  inquire(iolength=recl) fxc(-3:-1,-3:-1,1), fxc(-3:-1,1:,1), fxc(1:,-3:-1,1), &
+	fxc(1:,1:,1)
   call getunit(un2)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
@@ -476,14 +462,13 @@ end if
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
   call getunit(un3)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
-
+  
   do iw=1,nwdf
 !     write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
 !     	(/(fxc(-oct,1:,iw),oct=1,noptc)/),(/(fxc(1:,-oct,iw),oct=1,noptc)/), &
-!	fxc(1:,1:,iw)
-      write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
-      	(/((fxc(-oct,igq1,iw),oct=1,noptc),igq1=1,n)/), &
-	(/((fxc(igq1,-oct,iw),igq1=1,n),oct=1,noptc)/),fxc(1:,1:,iw)
+!	fxc(1:,1:,iw)     
+     write(un2,rec=iw) fxc(-3:-1,-3:-1,iw), fxc(-3:-1,1:,iw), fxc(1:,-3:-1,iw), &
+	fxc(1:,1:,iw)     
      write(un3,'(i6,2x,g18.10,2x,6g18.10)') iw,dble(w(iw)),(fxc(-oct,-oct,iw),&
      	oct=1,noptc)
   end do
@@ -494,7 +479,7 @@ end if
                 abs(fxc(igq1,igq2,iw))
         end do
      end do
-  end do
+  end do  
   close(un)
   close(un2)
   close(un3)
@@ -509,6 +494,7 @@ end if
   deallocate(oscaa,oscba)
 
   deallocate(bsedg)
-
+  deallocate(bufou,bufuo,pufou,pufuo)
+  
 end subroutine kernxc_bse
 !EOC

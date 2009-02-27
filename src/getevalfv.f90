@@ -33,7 +33,7 @@ inquire(iolength=recl) vkl_,nstfv_,nspnfv_
 inquire(iolength=recl) vkl_,nstfv_,nspnfv_,evalfv
 #endif
 
-filetag='EVALFV'
+filetag=trim(filetag_evalfv)
 do i=1,100
 inquire(file=outfilenamestring(filetag,ik),exist=exist)
  if (exist) then
@@ -119,16 +119,18 @@ end subroutine
 module m_getevalfvr
   implicit none
 contains
-  subroutine getevalfvr(isti,istf,vpl,evalfv)
+  subroutine getevalfvr(fname,isti,istf,vpl,evalfv)
     use modmain
     implicit none
     ! arguments
+    character(*), intent(in) :: fname
     integer, intent(in) :: isti,istf
     real(8), intent(in) :: vpl(3)
     real(8), intent(out) :: evalfv(:,:)
     ! local variables
     integer :: err
     real(8), allocatable :: evalfvt(:,:)
+    character(256) :: str
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
@@ -159,7 +161,12 @@ contains
     end if
     if (err.ne.0) stop
     allocate(evalfvt(nstfv,nspnfv))
+    filetag_evalfv=trim(fname)
+    str=trim(filext)
+    filext=''
     call getevalfv(vpl,evalfvt)
+    filetag_evalfv='EVALFV'
+    filext=trim(str)
     evalfv(:,:)=evalfvt(isti:istf,:)
     deallocate(evalfvt)
   end subroutine getevalfvr

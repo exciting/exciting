@@ -39,7 +39,7 @@ subroutine kernxc_bse2
   complex(8), allocatable :: w(:),wmat(:,:),wmatq(:,:),wm(:,:,:,:)
   complex(8), allocatable :: resr(:,:),resq(:,:),oscr(:,:),oscq(:,:)
   complex(8), allocatable :: denr(:),denq(:),fxc(:,:,:)
-  complex(8), allocatable :: fxch(:),fxcw1(:,:),fxcw2(:,:),me(:,:),me2(:,:)
+  complex(8), allocatable :: fxch(:,:),fxcw1(:,:),fxcw2(:,:),me(:,:),me2(:,:)
   complex(8), allocatable :: xiout(:,:,:), pmout(:,:,:),resr2(:,:)
   real(8), allocatable :: ev(:),de(:),scisk(:,:)
   integer, allocatable :: widx(:,:,:)
@@ -77,7 +77,7 @@ subroutine kernxc_bse2
   allocate(de(wsiz),wmat(wsiz,wsiz),wmatq(wsiz,wsiz),me(n,wsiz),me2(n,wsiz))
   allocate(resr(n,wsiz),resq(n,wsiz),oscr(n,n),oscq(n,n),denr(nwdf),denq(nwdf))
   allocate(ev(nstsv))
-  allocate(fxc(n,n,nwdf),fxch(3),fxcw1(3,n),fxcw2(n,3))
+  allocate(fxc(n,n,nwdf),fxch(-3:-1,-3:-1),fxcw1(-3:-1,n),fxcw2(n,-3:-1))
   allocate(resr2(n,wsiz))
 
 
@@ -88,7 +88,6 @@ subroutine kernxc_bse2
   do ic=1,nc
     si=si+1
     widx(iv,ic,iknr)=si
-write(50,*) 'iknr,ic,iv;s',iknr,ic,iv,si
   end do
   end do
   end do
@@ -97,7 +96,7 @@ write(50,*) 'iknr,ic,iv;s',iknr,ic,iv,si
 
   ! set up energies and their differences
   do iknr=1,nkptnr
-    call getevalsvr(1,nstsv,vkl(:,iknr),ev)
+    call getevalsvr('EVALSV_SCR.OUT',1,nstsv,vkl(:,iknr),ev)
     do iv=1,nv
     do ic=1,nc
       si=widx(iv,ic,iknr)
@@ -124,11 +123,6 @@ write(50,*) 'iknr,ic,iv;s',iknr,ic,iv,si
   allocate(xiout(nv,nc,n))
   allocate(pmout(3,nv,nc))
   allocate(scisk(nst1,nst3))
-!!$  if ((fxctype.eq.7).or.(fxctype.eq.8)) then
-!!$     call getbsediag
-!!$     write(unitout,'("Info(): read diagonal of BSE kernel")')
-!!$     write(unitout,'(" mean value : ",2g18.10)') bsed
-!!$  end if
   emattype=1
   call ematbdcmbs(emattype)
   call ematrad(iqmt)
@@ -181,10 +175,10 @@ call flushifc(unitout)
 	  end if
 	end if
 	
-if ((iknr.eq.2).and.(jknr.eq.3).and.(iv.eq.1).and.(ic.eq.1).and.(jv.eq.2).and. &
+if ((iknr.eq.1).and.(jknr.eq.1).and.(iv.eq.1).and.(ic.eq.1).and.(jv.eq.2).and. &
  (jc.eq.1)) then
-   write(unitout,*) '1-1,2-1',wm(iv,ic,jv,jc),de(si),de(sj),de(si)-de(sj)
-   write(unitout,*) 'indices:',si,sj
+write(unitout,*) '1-1,2-1',wm(iv,ic,jv,jc),de(si),de(sj),de(si)-de(sj)
+write(unitout,*) 'indices:',si,sj
 end if	
 	
 	
@@ -194,7 +188,7 @@ end if
   
   do si=1,wsiz
     do sj=si+1,wsiz
-      wmat(sj,si)=-conjg(wmat(si,sj))
+      wmat(sj,si)=conjg(wmat(si,sj))
       wmatq(sj,si)=conjg(wmatq(si,sj))
     end do
   end do  
@@ -206,13 +200,12 @@ end if
   resq=transpose(matmul(wmatq,conjg(transpose(me))))
 
 !@@@@@@@@@@@@@@@@@@@@@@@@
+!si=widx(1,1,1); sj=widx(2,1,1)
+!write(unitout,*) '1-1,1-1:',si,sj,wmat(si,si)
+!write(unitout,*) '1-1,2-1',wmat(si,sj),de(si),de(sj),de(si)-de(sj)
+!write(unitout,*) '1-1',resr(1:2,si)
+!write(unitout,*) '1-2',resr(1:2,sj)
 
-si=widx(1,1,3); sj=widx(2,1,2)
-write(unitout,*) 'wmat:k=1,1-1;k=1,2-1:',si,sj,wmat(widx(1,1,1),widx(2,1,1)),&
-     de(widx(1,1,1)),de(widx(2,1,1)),de(widx(1,1,1))-de(widx(2,1,1))
-write(unitout,*) 'wmat:k=3,1-1;k=2,2-1',wmat(si,sj),de(si),de(sj),de(si)-de(sj)
-write(unitout,*) 'resr:k=3,1-1',resr(1:2,si)
-write(unitout,*) 'resr:k=2,1-2',resr(1:2,sj)
 
   ! deallocate the wmat arrays
   deallocate(wmat,wmatq)
@@ -227,13 +220,14 @@ write(unitout,*) 'si=',si
 call flushifc(unitout)
 
     oscr(:,:)=zzero
-    call xszoutpr3(n,n,zone,me(:,si),resr(:,si),oscr)
-    !!!call ZGERU(n,n,zone,me(:,si),1,resr(:,si),1,oscr,n)
-    ! add Hermitian transpose
-    oscr=oscr+conjg(transpose(oscr))
+    call xszoutpr3(n,n,zone,me(:,si),resr(si,:),oscr)
+    ! add Hermitian transpose 
+    forall(i=1:n,j=1:n)
+      oscr(i,j)=oscr(i,j)+conjg(oscr(j,i))
+    end forall
     denr(:)=1.d0/(w(:)-de(si)+zi*broad)
     do iw=1,nwdf
-      fxc(:,:,iw)=fxc(:,:,iw)+t1*denr(iw)*oscr(:,:)
+      fxc(:,:,iw)=fxc(:,:,iw)+denr(iw)*oscr(:,:)
     end do
   end do
   
@@ -249,30 +243,15 @@ call flushifc(unitout)
   open(un,file=trim(filnam),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
   do iw=1,nwdf
-     fxch(:)=fxc(1,1,iw)
-     if (n.gt.1) then
-       do i=1,noptc
-         fxcw1(i,:)=fxc(1,:,iw)
-         fxcw2(:,i)=fxc(:,1,iw)
-       end do
-     end if
+     fxch(:,:)=fxc(1,1,iw)
+     do i=1,noptc
+       fxcw1(-i,:)=fxc(1,:,iw)
+       fxcw2(:,-i)=fxc(:,1,iw)
+     end do
      write(un,rec=iw) fxch,fxcw1,fxcw2,fxc(:,:,iw)
-     write(8888,'(i8,g18.10,2x,3g18.10)') iw,dble(w(iw)),fxc(1,1,iw),aimag(w(iw))  
+     write(8888,'(i8,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)  
   end do
   close(un)
   
-  
-  do iw=1,nwdf,10
-     do i=-noptc,n
-        do j=-noptc,n
-	   if ((i.gt.0).and.(j.gt.0)) then
-             write(9999,'(3i6,3g18.10)') iw,i,j,fxc(i,j,iw), &
-                abs(fxc(i,j,iw))
-	   else
-	      write(9999,'(3i6,3g18.10)') iw,i,j,fxc(1,1,iw),abs(fxc(1,1,iw))
-	   end if
-        end do
-     end do
-  end do    
 end subroutine kernxc_bse2
 !EOC

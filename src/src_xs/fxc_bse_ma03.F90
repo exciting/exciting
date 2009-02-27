@@ -45,19 +45,16 @@ contains
     ! local variables
     character(*), parameter :: thisnam = 'fxc_bse_ma03'
     character(256) :: filnam
-    complex(8), allocatable :: fxch(:),fxcw1(:,:),fxcw2(:,:)
+    complex(8), allocatable :: fxch(:,:),fxcw1(:,:),fxcw2(:,:)
     complex(8) :: zt1
     integer :: sh(2),un,recl
-    
-integer :: i,j    
-    
     sh=shape(fxc)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then
        write(unitout,'(a,2i9,a,i9,a)') 'Error('//trim(thisnam)//'): size of &
             &fxc is to small (required)', sh, '(', msiz, ')'
        call terminate
     end if
-    allocate(fxch(3),fxcw1(3,sh(1)),fxcw2(sh(1),3))
+    allocate(fxch(-3:-1,-3:-1),fxcw1(-3:-1,sh(1)),fxcw2(sh(1),-3:-1))
     ! filename for BSE-xc-kernel
     call getunit(un)
     ! filename for xc-kernel
@@ -68,11 +65,11 @@ integer :: i,j
          status='old',access='direct',recl=recl)
     read(un,rec=iw) fxch,fxcw1,fxcw2,fxc
     ! assign head
-    fxc(1,1)=fxch(oct)
+    fxc(1,1)=fxch(-oct,-oct)
     ! assign wings
     if (msiz.gt.1) then
-       fxc(1,2:)=fxcw1(oct,2:)
-       fxc(2:,1)=fxcw2(2:,oct)
+       fxc(1,2:)=fxcw1(-oct,2:)
+       fxc(2:,1)=fxcw2(2:,-oct)
     end if
     if (.not.sw) then
        zt1=fxc(1,1)
@@ -80,13 +77,6 @@ integer :: i,j
        fxc(1,1)=zt1
     end if
     close(un)
-    
-    !@@@@@@@@@@@@@@@@@@@@@@@@
-    if ((msiz.gt.1).and.(oct.eq.3).and.(iw.eq.101)) then
-          write(7777,*) fxc
-    end if
-    !@@@@@@@@@@@@@@@@@@@@@@@@
-
     deallocate(fxch,fxcw1,fxcw2)
   end subroutine fxc_bse_ma03
 !EOC

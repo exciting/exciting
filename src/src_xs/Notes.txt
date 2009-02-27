@@ -82,9 +82,9 @@ FINISHED
 	* modify these routines for accessing subsets of bands
 		getapwcmt.F90	IMPLEMENTED   FINISHED
 		getlocmt.F90	IMPLEMENTED   FINISHED
-		getemat.F90		IMPLEMENTED   FINISHED
+		getemat.F90	IMPLEMENTED   FINISHED
 		getpemat.F90	IMPLEMENTED   FINISHED
-		getpmat.F90		IMPLEMENTED   FINISHED
+		getpmat.F90	IMPLEMENTED   FINISHED
 		gettetcw.F90	IMPLEMENTED   FINISHED
 
 
@@ -102,6 +102,7 @@ FINISHED
 
 
 	* finish "getpemat"
+	* Kathrin: send description of interface "tetraqweights"
 
 --------------------------------------------------------------------------------
 
@@ -116,41 +117,3 @@ FINISHED
 	* try this: transform q-point set to FIRST Brillouin zone!
 
 --------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
->> Feb 17 2009
---------------------------------------------------------------------------------
-
-	* bsed is added to scissor shift in dfq.F90 in wrong way for
-	  scis21, change sign --- check this very carefully
-
---------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -34,7 +34,7 @@ end subroutine testmain
 !!$  write(*,'(a,4i6)') 'istfvi,istfvf,nstfvr,ik',istfvi,istfvf,nstfvr,ik
 !!$  allocate(ev(nmatmax,nstfv,nspnfv),evr(nmatmax,nstfvr,nspnfv))
 !!$  call getevecfv(vkl(1,ik),vgkl(1,1,1,ik),ev)
-!!$  call getevecfvr(istfvi,istfvf,vkl(:,ik),vgkl(:,:,1,ik),evr)
+!!$  call getevecfvr('EVECFV.OUT',istfvi,istfvf,vkl(:,ik),vgkl(:,:,1,ik),evr)
 !!$  write(*,'("evecfv should be zero: ",2g18.10)') ev(1,istfvi,1)-evr(1,1,1)
 !!$  write(*,'("evecfv should be zero: ",2g18.10)') ev(1,istfvf,1)-evr(1,nstfvr,1)
 !!$  write(*,'("evecfv",4g18.10)') ev(1,istfvi,1),evr(1,1,1)
@@ -45,7 +45,7 @@ end subroutine testmain
 !!$  write(*,'(a,4i6)') 'istsvi,istsvf,nstsvr',istsvi,istsvf,nstsvr
 !!$  allocate(evs(nstsv,nstsv),evsr(nstsvr,nstsvr))
 !!$  call getevecsv(vkl(1,ik),evs)
-!!$  call getevecsvr(istsvi,istsvf,vkl(:,ik),evsr)
+!!$  call getevecsvr('EVECSV.OUT',istsvi,istsvf,vkl(:,ik),evsr)
 !!$  write(*,'("evecsv should be zero: ",2g18.10)') evs(istsvi,istsvi)-evsr(1,1)
 !!$  write(*,'("evecsv should be zero: ",2g18.10)') evs(istsvf,istsvi)- &
 !!$       evsr(nstsvr,1)
@@ -57,7 +57,7 @@ end subroutine testmain
 !!$  write(*,'(a,4i6)') 'istfvi,istfvf,nstfvr',istfvi,istfvf,nstfvr
 !!$  allocate(eva(nstfv,nspnfv),evar(nstfvr,nspnfv))
 !!$  call getevalfv(vkl(1,ik),eva)
-!!$  call getevalfvr(istfvi,istfvf,vkl(:,ik),evar)
+!!$  call getevalfvr('EVALFV.OUT',istfvi,istfvf,vkl(:,ik),evar)
 !!$  write(*,'("evalfv should be zero: ",g18.10)') eva(istfvi,1)-evar(1,1)
 !!$  write(*,'("evalfv should be zero: ",g18.10)') eva(istfvf,1)-evar(nstfvr,1)
 !!$  write(*,'("evalfv",2g18.10)') eva(istfvi,1),evar(1,1)
@@ -68,7 +68,7 @@ end subroutine testmain
 !!$  write(*,'(a,4i6)') 'istsvi,istsvf,nstsvr',istsvi,istsvf,nstsvr
 !!$  allocate(evas(nstsv),evasr(nstsvr))
 !!$  call getevalsv(vkl(1,ik),evas)
-!!$  call getevalsvr(istsvi,istsvf,vkl(:,ik),evasr)
+!!$  call getevalsvr('EVALSV.OUT',istsvi,istsvf,vkl(:,ik),evasr)
 !!$  write(*,'("evalsv should be zero: ",g18.10)') evas(istsvi)-evasr(1)
 !!$  write(*,'("evalsv should be zero: ",g18.10)') evas(istsvf)-evasr(nstsvr)
 !!$  write(*,'("evalsv",2g18.10)') evas(istsvi),evasr(1)
@@ -79,7 +79,7 @@ end subroutine testmain
 !!$  write(*,'(a,4i6)') 'istsvi,istsvf,nstsvr',istsvi,istsvf,nstsvr
 !!$  allocate(occs(nstsv),occsr(nstsvr))
 !!$  call getoccsv(vkl(1,ik),occs)
-!!$  call getoccsvr(istsvi,istsvf,vkl(:,ik),occsr)
+!!$  call getoccsvr('OCCSV.OUT',istsvi,istsvf,vkl(:,ik),occsr)
 !!$  write(*,'("occsv should be zero: ",g18.10)') occs(istsvi)-occsr(1)
 !!$  write(*,'("occsv should be zero: ",g18.10)') occs(istsvf)-occsr(nstsvr)
 !!$  write(*,'("occsv",2g18.10)') occs(istsvi),occsr(1)

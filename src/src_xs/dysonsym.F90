@@ -91,7 +91,7 @@ contains
     
     
     
-goto 100    
+!!!goto 100    
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     ! F. Sottile, PhD thesis, p. 167 (Appendix E)
@@ -127,7 +127,8 @@ goto 100
     ! calculate S_00 = S0 * Solv
     s(1,1)=zdotu(n,solv,1,s0row,1)
     deallocate(solv,s0row,s0col)
-100 continue
+!!!100 continue
+goto 200
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     
@@ -145,7 +146,7 @@ goto 100
     end if
    
    ! invert singular values above cutoff
-   eps=1.d-8
+   eps=1.d-3
     do j=1,n
    	if (singv(j).lt.eps) then
 	   singv(j)=0.d0
@@ -168,7 +169,7 @@ goto 100
 
 
     deallocate(mt,mt2,singv,u,vh,work,rwork)
-
+200 continue
   end subroutine dysonsym
 !EOC
 

@@ -31,7 +31,7 @@ subroutine getoccsv(vpl,occsvp)
 #ifndef XS
   inquire(iolength=recl) vkl_,nstsv_,occsvp
 #endif
-  filetag='OCCSV'
+  filetag=trim(filetag_occsv)
  do i=1,100
 inquire(file=outfilenamestring(filetag,ik),exist=exist)
  if (exist) then
@@ -103,16 +103,18 @@ end subroutine getoccsv
 module m_getoccsvr
   implicit none
 contains
-  subroutine getoccsvr(isti,istf,vpl,occsvp)
+  subroutine getoccsvr(fname,isti,istf,vpl,occsvp)
     use modmain
     implicit none
     ! arguments
+    character(*), intent(in) :: fname
     integer, intent(in) :: isti,istf
     real(8), intent(in) :: vpl(3)
     real(8), intent(out) :: occsvp(:)
     ! local variables
     integer :: err
     real(8), allocatable :: occsvt(:)
+    character(256) :: str
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
@@ -134,7 +136,12 @@ contains
     end if
     if (err.ne.0) stop
     allocate(occsvt(nstsv))
+    filetag_occsv=trim(fname)
+    str=trim(filext)
+    filext=''
     call getoccsv(vpl,occsvt)
+    filetag_occsv='OCCSV'
+    filext=trim(str)
     occsvp(:)=occsvt(isti:istf)
     deallocate(occsvt)
   end subroutine getoccsvr

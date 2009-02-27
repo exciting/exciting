@@ -270,6 +270,12 @@ subroutine xsinit
      end if
   end if
 
+  !--------------------!
+  !     file names     !
+  !--------------------!
+  ! revert file names to default
+  call revert_names
+
   !---------------------!
   !     checkpoints     !
   !---------------------!

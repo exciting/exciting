@@ -36,7 +36,7 @@ inquire(iolength=recl) vkl_,nstsv_
 #ifndef XS
 inquire(iolength=recl) vkl_,nstsv_,evecsv
 #endif
-filetag='EVECSV'
+filetag=trim(filetag_evecsv)
 !$OMP CRITICAL
 do i=1,100
 inquire(file=outfilenamestring(filetag,ik),exist=exist)
@@ -125,16 +125,18 @@ end subroutine
 module m_getevecsvr 
   implicit none
 contains
-  subroutine getevecsvr(isti,istf,vpl,evecsv)
+  subroutine getevecsvr(fname,isti,istf,vpl,evecsv)
     use modmain
     implicit none
     ! arguments
+    character(*), intent(in) :: fname
     integer, intent(in) :: isti,istf
     real(8), intent(in) :: vpl(3)
     complex(8), intent(out) :: evecsv(:,:)
     ! local variables
     integer :: err
     complex(8), allocatable :: evecsvt(:,:)
+    character(256) :: str
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
@@ -156,8 +158,13 @@ contains
        err=err+1
     end if
     if (err.ne.0) stop
-    allocate(evecsvt(nstsv,nstsv))   
+    allocate(evecsvt(nstsv,nstsv))
+    filetag_evecsv=trim(fname)
+    str=trim(filext)
+    filext=''
     call getevecsv(vpl,evecsvt)
+    filetag_evecsv='EVECSV'
+    filext=trim(str)
     evecsv(:,:)=evecsvt(isti:istf,isti:istf)
     deallocate(evecsvt)
   end subroutine getevecsvr

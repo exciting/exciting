@@ -41,7 +41,7 @@ subroutine getevecfv(vpl,vgpl,evecfv)
   inquire(iolength=recl) vkl_,nmatmax_,nstfv_,nspnfv_,evecfv
 #endif
   !$OMP CRITICAL
-  filetag='EVECFV'
+  filetag=trim(filetag_evecfv)
   do i=1,100
 inquire(file=outfilenamestring(filetag,ik),exist=exist)
  if (exist) then
@@ -212,16 +212,18 @@ end subroutine getevecfv
 module m_getevecfvr
   implicit none
 contains
-  subroutine getevecfvr(isti,istf,vpl,vgpl,evecfv)
+  subroutine getevecfvr(fname,isti,istf,vpl,vgpl,evecfv)
     use modmain
     implicit none
     ! arguments
+    character(*), intent(in) :: fname
     integer, intent(in) :: isti,istf
     real(8), intent(in) :: vpl(3),vgpl(3,ngkmax)
     complex(8), intent(out) :: evecfv(:,:,:)
     ! local variables
     integer :: err
     complex(8), allocatable :: evecfvt(:,:,:)
+    character(256) :: str
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
@@ -261,7 +263,12 @@ contains
     end if
     if (err.ne.0) stop
     allocate(evecfvt(nmatmax,nstfv,nspnfv))
+    filetag_evecfv=trim(fname)
+    str=trim(filext)
+    filext=''
     call getevecfv(vpl,vgpl,evecfvt)
+    filetag_evecfv='EVECFV'
+    filext=trim(str)
     evecfv(:,:,:)=evecfvt(:,isti:istf,:)
     deallocate(evecfvt)
   end subroutine getevecfvr
