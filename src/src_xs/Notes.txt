@@ -82,9 +82,9 @@ FINISHED
 	* modify these routines for accessing subsets of bands
 		getapwcmt.F90	IMPLEMENTED   FINISHED
 		getlocmt.F90	IMPLEMENTED   FINISHED
-		getemat.F90	IMPLEMENTED   FINISHED
+		getemat.F90		IMPLEMENTED   FINISHED
 		getpemat.F90	IMPLEMENTED   FINISHED
-		getpmat.F90	IMPLEMENTED   FINISHED
+		getpmat.F90		IMPLEMENTED   FINISHED
 		gettetcw.F90	IMPLEMENTED   FINISHED
 
 
@@ -102,7 +102,6 @@ FINISHED
 
 
 	* finish "getpemat"
-	* Kathrin: send description of interface "tetraqweights"
 
 --------------------------------------------------------------------------------
 
@@ -126,4 +125,32 @@ FINISHED
 	  scis21, change sign --- check this very carefully
 
 --------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
