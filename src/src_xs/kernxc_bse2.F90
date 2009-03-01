@@ -220,7 +220,7 @@ write(unitout,*) 'si=',si
 call flushifc(unitout)
 
     oscr(:,:)=zzero
-    call xszoutpr3(n,n,zone,me(:,si),resr(si,:),oscr)
+    call xszoutpr3(n,n,zone,me(:,si),resr(:,si),oscr)
     ! add Hermitian transpose 
     forall(i=1:n,j=1:n)
       oscr(i,j)=oscr(i,j)+conjg(oscr(j,i))

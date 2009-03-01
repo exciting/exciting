@@ -51,6 +51,7 @@ subroutine avscq(iqr,n,nmax,scrn,scieff)
      do j2=1,j1
         if ((sciavqhd.and.(j1.eq.1).and.(j2.eq.1)).or. &
              (sciavqwg.and.(j1.ne.1).and.(j2.eq.1)).or. &
+             (sciavqwg.and.(j1.eq.1).and.(j2.ne.1)).or. &
              (sciavqbd.and.(j1.ne.1).and.(j2.ne.1))) then
            ! numerical averaging on grids with extrapolation to continuum
            flg=2

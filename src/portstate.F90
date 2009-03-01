@@ -16,7 +16,7 @@ subroutine portstate(act)
 !   from {\tt STATE.OUT} is transferred. If tb2a is false the conversion
 !   goes in the other direction. Based upon the routines {\tt readstate}
 !   and {\tt writestate}.
-!   
+!
 ! !REVISION HISTORY:
 !   Created 2007 (Sagmeister)
 !EOP
@@ -53,14 +53,14 @@ subroutine portstate(act)
      write(*,*)
      write(*,'("Error(portstate): unknown action: ",i6)') act
      write(*,*)
-     stop     
+     stop
   end select
   tb2a=(act.eq.1).or.(act.eq.-1)
   if (tb2a) then
      open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
           status='OLD')
      if (act.eq.-1) then
-        write(*,*)        
+        write(*,*)
         write(*,'("Information on STATE.OUT file:")')
         write(*,*)
      end if
@@ -84,6 +84,7 @@ subroutine portstate(act)
      read(50) lmmaxvr_
      read(50) nrmtmax_
      write(51,'(a)') '<?xml version="1.0"?>'
+     write(51,'(a)') '<state>'
      write(51,'(a)') '<data name="version" type="integer" dimension="1" &
           &shape="3">'
      call ioarr(un=51,ioa='write',arr1di=version_)
@@ -108,7 +109,7 @@ subroutine portstate(act)
      open(50,file='STATE.xml',action='READ',form='FORMATTED', &
           status='OLD')
      if (act.eq.-2) then
-        write(*,*)        
+        write(*,*)
         write(*,'("Information on STATE.xml file:")')
         write(*,*)
      end if
@@ -121,6 +122,7 @@ subroutine portstate(act)
      end if
      if (act.eq.2) open(51,file='STATE.OUT',action='WRITE',form='UNFORMATTED', &
           status='replace')
+     read(50,*)
      read(50,*)
      read(50,*)
      call ioarr(un=50,ioa='read',arr1di=version_)
@@ -382,8 +384,9 @@ subroutine portstate(act)
              trim(i2str(nspinor_))//','//&
              trim(i2str(natmtot))//'">'
         call ioarr(un=51,ioa='write',arr5dc=vmatlu_)
-        write(51,'(a)') '</data>'        
+        write(51,'(a)') '</data>'
      end if
+     write(51,'(a)') '</state>'
   else
      ! read muffin-tin density
      read(50,*)
@@ -446,7 +449,7 @@ subroutine portstate(act)
         ! read the LDA+U potential matrix elements
         read(50,*)
         call ioarr(un=50,ioa='read',arr5dc=vmatlu_)
-        read(50,*)        
+        read(50,*)
         ! write the LDA+U potential matrix elements
         write(51) vmatlu_
      end if

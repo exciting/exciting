@@ -39,7 +39,7 @@ inquire(file=outfilenamestring(filetag,ik),exist=exist)
 open(70,file=outfilenamestring(filetag,ik),action='READ', &
  form='UNFORMATTED',access='DIRECT',recl=recl)
 exit
-else 
+else
 call system('sync')
 write(*,*) "Waiting for other process to write"//":getevalsv:"// &
      trim(outfilenamestring(filetag,ik))

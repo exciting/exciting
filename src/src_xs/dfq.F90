@@ -227,19 +227,16 @@ subroutine dfq(iq)
      call ematqalloc
   end if
   if (task.eq.345) then
-!     call getbsediag
-!     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
-!     write(unitout,'(" mean value : ",2g18.10)') bsed
+     call getbsediag
+     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+     write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
+  bsedg(:,:)=bsed
   ! loop over k-points
   do ik=1,nkpt
-     if (task.eq.345) then
-       call getbsedg('BSED.OUT',ik,nst1,nst2,bsedg)
-     end if
-     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq
-     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq
-     bsedg(:,:)=0.d0
-     
+!     if (task.eq.345) then
+!       call getbsedg('BSED.OUT',ik,nst1,nst2,bsedg)
+!     end if
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
      call chkpt(3,(/task,iq,ik/),'dfq: task, q-point index, k-point index')
@@ -259,10 +256,8 @@ subroutine dfq(iq)
      end if
      ! add BSE diagonal shift use with BSE-kernel
      if (task.eq.345) then
- !       scis12(:,:)=scis12(:,:)+bsed
- !       scis21(:,:)=scis21(:,:)-bsed
         scis12(:,:)=scis12(:,:)+bsedg(:,:)
-        scis21(:,:)=scis21(:,:)-bsedg(:,:)
+        scis21(:,:)=scis21(:,:)+bsedg(:,:)
      end if
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &

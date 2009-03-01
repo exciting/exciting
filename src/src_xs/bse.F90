@@ -50,20 +50,20 @@ subroutine bse
 !   directly).
 !   Consequently, the transition amplitudes $t_{\lambda}$ are calculated
 !   according to
-!   $$ t^{i}_{\lambda} = \left|\sum_{vc{\bf k}} A^{\lambda}_{vc{\bf k}} 
-!      \frac{ p^{i}_{vc{\bf k}} }{ \varepsilon_{c{\bf k}}- 
+!   $$ t^{i}_{\lambda} = \left|\sum_{vc{\bf k}} A^{\lambda}_{vc{\bf k}}
+!      \frac{ p^{i}_{vc{\bf k}} }{ \varepsilon_{c{\bf k}}-
 !                                  \varepsilon_{v{\bf k}} } \right|^2. $$
 !   Here, the index $i$ labels the polarization and the matrix elements
 !   $p^{i}_{vc{\bf k}}$ are the ones for the $i$-th component of the momentum
 !   operator in Cartesian coordinates.
 !   The macroscopic dielectric function (MDF) is obtained by the realation
-!   $$ {\rm Im}\; \epsilon^{i}_{\rm M}(\omega) = \frac{8\pi^2}{V} 
+!   $$ {\rm Im}\; \epsilon^{i}_{\rm M}(\omega) = \frac{8\pi^2}{V}
 !                     \sum_{\lambda} t^{i}_{\lambda}
 !                     \delta(\omega-\varepsilon_{\lambda}+\Delta),$$
 !   where $\epsilon^{i}_{\rm M}$ is the MDF for the $i$-th polarization, $V$
 !   denotes the crystal volume and $\Delta$ is a constant shift of the
 !   conduction bands (scissors shift). The delta-function in the latter
-!   expression is convoluted with a (symmetrized) Lorentzian 
+!   expression is convoluted with a (symmetrized) Lorentzian
 !   $$ \pi\delta(\omega-\omega_0) = \lim_{\eta\rightarrow 0} \left[
 !                         \frac{\eta}{(\omega-\omega_0)^2+\eta^2} +
 !                         \frac{\eta}{(-\omega-\omega_0)^2-\eta^2} \right] =
@@ -196,7 +196,6 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         case('rpa','singlet')
            call getbsemat('EXCLI.OUT',ikkp,nst1,nst3,excli)
         end select
-!!!        egap=1.d8
         ! set up matrix
         do ist1=1+nvdif,nst1
            do ist3=1,nst3-ncdif
@@ -208,7 +207,6 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
                     if (s1.eq.s2) then
                        de=evalsv(ist3+istocc,iknr)-evalsv(ist1,iknr)+scissor
                        ham(s1,s2)=ham(s1,s2)+de-egap+bsed
-!!!                       egap=min(egap,de)
                     end if
                     ! add exchange term
                     select case(trim(bsetype))
@@ -268,7 +266,7 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         end do
      end do
      deallocate(pm)
-     ! calculate oscillators for spectrum  
+     ! calculate oscillators for spectrum
      do s1=1,nexc
         do iknr=1,nkptnr
            do iv=1,nbfbse

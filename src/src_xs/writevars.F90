@@ -32,7 +32,7 @@ contains
     write(un,'(a,2f12.6)') '# efermi (H,eV)     :',efermi,h2ev*efermi
     write(un,'(a,3f12.6)') '# vgqlmt            :',vgqlmt(:,iqmtt)
     write(un,'(a,3i8)') '# ivgmt             :',ivgmt(:,iqmtt)
-    write(un,'(a,3f12.6)') '# vql               :',vql(:,iqt)
+    write(un,'(a,3f12.6)') '# vql               :',vql(:,iqmtt)
     write(un,'(a,i8)') '# fxctype           :',fxctype
     write(un,'(a,f12.6)') '# alphalrc          :',alphalrc
     write(un,'(a,f12.6)') '# alphalrcdyn       :',alphalrcdyn
@@ -47,7 +47,7 @@ contains
     write(un,'(a,2f12.6)') '# broad (H,eV)      :',broad,h2ev*broad
     write(un,'(a,2f12.6)') '# scissor (H,eV)    :',scissor,h2ev*scissor
     write(un,'(a,i8)') '# nwdos             :',nwdos
-    write(un,'(a,i8)') '# ngq               :',ngq(iqt)
+    write(un,'(a,i8)') '# ngq               :',ngq(iqmtt)
     write(un,'(a,f12.6)') '# gqmax             :',gqmax
     write(un,'(a,f12.6)') '# gmaxvr            :',gmaxvr
     write(un,'(a,f12.6)') '# rgkmax            :',rgkmax

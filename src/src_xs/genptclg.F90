@@ -57,8 +57,8 @@ real(8) function ptclg(cuttype,vgpc,gpc)
      call terminate
   case default
      write(*,*)
-     write(*,'("Error(genptclg): unknown type for Coulomb potential: ",a)') &
-          cuttype
+     write(*,'("Error(genptclg): unknown cutoff type for Coulomb potential: &
+     	&",a)') cuttype
      write(*,*)
      call terminate
   end select

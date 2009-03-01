@@ -184,7 +184,7 @@ write(unitout,*) 'done init2...'; call flushifc(unitout)
   !---------------------------!
   do iknr=1,nkptnr
      call chkpt(3,(/task,1,iknr/),'task,sub,k-point; generate matrix elements &
-          &of plane wave')    
+          &of plane wave')
      iknrq=ikmapikq(iknr,iqmt)
      ! matrix elements for k and q=0
      call ematqk1(iqmt,iknr)
@@ -214,9 +214,9 @@ write(unitout,*) 'done init2...'; call flushifc(unitout)
      iknrq=ikmapikq(iknr,iqmt)
 
      call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg)
-     !@@@@@@@@@@@@@@@@@@@@@bsedg(:,:)=bsed ! REVERTED TO CONSTANT SHIFT
+     bsedg(:,:)=bsed ! REVERTED TO CONSTANT SHIFT
      !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-     bsedg(:,:)=0.d0
+     !!!!!!!!!!!!!!bsedg(:,:)=0.d0
 
      emattype=1
      call ematbdcmbs(emattype)
@@ -336,7 +336,7 @@ write(unitout,*) 'done init2...'; call flushifc(unitout)
               emat12pa(j1,:)=conjg(emat12kpa(ist2,ist1,:))
            end do
         end do
-        ! map 
+        ! map
         j2=0
         do ist3=1,nst3
            do ist1=1,nst1
@@ -360,12 +360,12 @@ write(unitout,*) 'done init2...'; call flushifc(unitout)
                        zmra(j2,j1)=zzero
                        zmqa(j2,j1)=conjg(zt1)
                     end if
-		    
+
 if ((iknr.eq.1).and.(jknr.eq.1).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
  (ist4.eq.1)) then
 write(unitout,*) '1-1,2-1',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
-end if			    
-		    
+end if
+
                  end do
               end do
            end do
@@ -379,9 +379,9 @@ end if
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
         residqa=residqa+matmul(zmqa,emat12pa)
-	
-	
-	
+
+
+
         ! end inner loop over k-points
      end do
 
@@ -401,19 +401,19 @@ write(unitout,*) '1-2',residr(2,-3:2)
            oscaa(:,:)=zzero
            oscba(:,:)=zzero
            j1=ist1+(ist3-1)*nst1
-           ! set up inner part of kernel           
+           ! set up inner part of kernel
            ! generate oscillators
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
 	   	residr(j1,:),osca)
           call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12ka(:,ist3,ist1), &
 	   	residra(j1,:),oscaa)
-		
-           ! add Hermitian transpose 
+
+           ! add Hermitian transpose
 	   forall(igq1=-3:n,igq2=-3:n)
 	      osca(igq1,igq2)=osca(igq1,igq2)+conjg(osca(igq2,igq1))
 	      oscaa(igq1,igq2)=oscaa(igq1,igq2)+conjg(oscaa(igq2,igq1))
 	   end forall
-	   
+
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12k(:,ist1,ist3), &
 	   	residq(j1,:),oscb)
            call xszoutpr3(n+noptc+1,n+noptc+1,zone,emat12ka(:,ist3,ist1), &
@@ -428,9 +428,9 @@ write(unitout,*) '1-2',residr(2,-3:2)
            ! update kernel
            do iw=1,nwdf
               ! resonant and antiresonant contributions
-              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw) !@@@@@@@@@+oscb(:,:)*den2(iw)
-!@@@@@@              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
-!@@@@@@                   oscba(:,:)*den2a(iw)
+              fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
+              !!!if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
+              !!!     oscba(:,:)*den2a(iw)
            end do
            ! end loop over states #1
         end do
@@ -451,7 +451,7 @@ write(unitout,*) '1-2',residr(2,-3:2)
 !  inquire(iolength=recl) (/(fxc(-oct,-oct,1),oct=1,noptc)/), &
 !     	(/(fxc(-oct,1:,1),oct=1,noptc)/), &
 !	(/(fxc(1:,-oct,1),oct=1,noptc)/),fxc(1:,1:,1)
-  inquire(iolength=recl) fxc(-3:-1,-3:-1,1), fxc(-3:-1,1:,1), fxc(1:,-3:-1,1), &
+  inquire(iolength=recl) n, fxc(-3:-1,-3:-1,1), fxc(-3:-1,1:,1), fxc(1:,-3:-1,1), &
 	fxc(1:,1:,1)
   call getunit(un2)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
@@ -462,13 +462,13 @@ write(unitout,*) '1-2',residr(2,-3:2)
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
   call getunit(un3)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
-  
+
   do iw=1,nwdf
 !     write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
 !     	(/(fxc(-oct,1:,iw),oct=1,noptc)/),(/(fxc(1:,-oct,iw),oct=1,noptc)/), &
-!	fxc(1:,1:,iw)     
-     write(un2,rec=iw) fxc(-3:-1,-3:-1,iw), fxc(-3:-1,1:,iw), fxc(1:,-3:-1,iw), &
-	fxc(1:,1:,iw)     
+!	fxc(1:,1:,iw)
+     write(un2,rec=iw) n, fxc(-3:-1,-3:-1,iw), fxc(-3:-1,1:,iw), fxc(1:,-3:-1,iw), &
+	fxc(1:,1:,iw)
      write(un3,'(i6,2x,g18.10,2x,6g18.10)') iw,dble(w(iw)),(fxc(-oct,-oct,iw),&
      	oct=1,noptc)
   end do
@@ -479,7 +479,7 @@ write(unitout,*) '1-2',residr(2,-3:2)
                 abs(fxc(igq1,igq2,iw))
         end do
      end do
-  end do  
+  end do
   close(un)
   close(un2)
   close(un3)
@@ -495,6 +495,6 @@ write(unitout,*) '1-2',residr(2,-3:2)
 
   deallocate(bsedg)
   deallocate(bufou,bufuo,pufou,pufuo)
-  
+
 end subroutine kernxc_bse
 !EOC
