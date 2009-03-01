@@ -232,6 +232,11 @@ subroutine dfq(iq)
      write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
   bsedg(:,:)=bsed
+  
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!  bsedg(:,:)=zzero !!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
   ! loop over k-points
   do ik=1,nkpt
 !     if (task.eq.345) then

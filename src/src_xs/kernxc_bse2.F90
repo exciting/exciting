@@ -104,9 +104,7 @@ subroutine kernxc_bse2
     end do
     end do
   end do
-  
-  write(*,*) 'calculating matrix elements....'
-  
+    
   ! calculate matrix elements
   if (allocated(pmou)) deallocate(pmou)
   allocate(pmou(3,nv,nc))
@@ -155,6 +153,12 @@ call flushifc(unitout)
   
   write(*,*) 'done.'
 
+  if ((fxctype.eq.7).or.(fxctype.eq.8)) then
+     call getbsediag
+     write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
+     write(unitout,'(" mean value : ",2g18.10)') bsed
+  end if
+
   ! set up W-matrix
   wmat(:,:)=zzero
   wmatq(:,:)=zzero
@@ -168,7 +172,7 @@ call flushifc(unitout)
 	if (si.ne.sj) then
           dej=de(sj)
 	  zt1=-wm(iv,ic,jv,jc)
-	  if (abs(dei-dej).lt.eps) then
+	  if (abs(dei-dej).lt.fxcbsesplit) then
             wmatq(si,sj)=zt1
 	  else
             wmat(si,sj)=zt1/(dei-dej)
@@ -188,7 +192,7 @@ end if
   
   do si=1,wsiz
     do sj=si+1,wsiz
-      wmat(sj,si)=conjg(wmat(si,sj))
+      wmat(sj,si)=-conjg(wmat(si,sj))
       wmatq(sj,si)=conjg(wmatq(si,sj))
     end do
   end do  
@@ -220,14 +224,19 @@ write(unitout,*) 'si=',si
 call flushifc(unitout)
 
     oscr(:,:)=zzero
-    call xszoutpr3(n,n,zone,me(:,si),resr(:,si),oscr)
+    oscq(:,:)=zzero
+    call ZGERU(n,n,zone,me(:,si),1,resr(:,si),1,oscr,n)
+    call ZGERU(n,n,zone,me(:,si),1,resq(:,si),1,oscq,n)
+!!!    call xszoutpr3(n,n,zone,me(:,si),resr(:,si),oscr)
+!!!    call xszoutpr3(n,n,zone,me(:,si),resq(:,si),oscq)
     ! add Hermitian transpose 
     forall(i=1:n,j=1:n)
       oscr(i,j)=oscr(i,j)+conjg(oscr(j,i))
     end forall
-    denr(:)=1.d0/(w(:)-de(si)+zi*broad)
+    denr(:)=1.d0/(w(:)+bsed-de(si)+zi*broad)
+    denq(:)=denr(:)**2
     do iw=1,nwdf
-      fxc(:,:,iw)=fxc(:,:,iw)+denr(iw)*oscr(:,:)
+      fxc(:,:,iw)=fxc(:,:,iw)+t1*denr(iw)*oscr(:,:)+t1*denq(iw)*oscq(:,:)
     end do
   end do
   
@@ -236,7 +245,7 @@ call flushifc(unitout)
 
 
   ! write out kernel
-  inquire(iolength=recl) fxch,fxcw1,fxcw2,fxc(:,:,1)  
+  inquire(iolength=recl) n,fxch,fxcw1,fxcw2,fxc(:,:,1)  
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=0,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
   call getunit(un)
@@ -248,7 +257,7 @@ call flushifc(unitout)
        fxcw1(-i,:)=fxc(1,:,iw)
        fxcw2(:,-i)=fxc(:,1,iw)
      end do
-     write(un,rec=iw) fxch,fxcw1,fxcw2,fxc(:,:,iw)
+     write(un,rec=iw) n,fxch,fxcw1,fxcw2,fxc(:,:,iw)
      write(8888,'(i8,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)  
   end do
   close(un)

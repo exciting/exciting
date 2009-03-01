@@ -179,6 +179,10 @@ write(unitout,*) 'done init2...'; call flushifc(unitout)
   call ematrad(iqmt)
   call ematqalloc
 
+write(*,*) 'kernxc_bse: emattype=2; nst1,nst2,nst3,nst4',nst1,nst2,nst3,nst4
+write(*,*) ' istl1,istu1,istl2,istu2',istl1,istu1,istl2,istu2
+write(*,*) ' istl3,istu3,istl4,istu4',istl3,istu3,istl4,istu4
+
   !---------------------------!
   !     loop over k-points    !
   !---------------------------!
@@ -201,6 +205,11 @@ write(unitout,*) 'done init2...'; call flushifc(unitout)
   end do
   emattype=2
   call ematbdcmbs(emattype)
+
+
+write(*,*) 'kernxc_bse: emattype=2; nst1,nst2,nst3,nst4',nst1,nst2,nst3,nst4
+write(*,*) ' istl1,istu1,istl2,istu2',istl1,istu1,istl2,istu2
+write(*,*) ' istl3,istu3,istl4,istu4',istl3,istu3,istl4,istu4
 
   !-------------------------------!
   !     loop over (k,kp) pairs    !
