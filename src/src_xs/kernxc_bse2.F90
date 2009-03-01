@@ -31,16 +31,15 @@ subroutine kernxc_bse2
   ! local variables
   character(*), parameter :: thisnam='kernxc_bse2'
   real(8), parameter :: eps=1.d-5
-  integer, parameter :: iqmt=1,noptc=3,iop=3,ig0=1
+  integer, parameter :: iqmt=1,noptc=3
   character(256) :: filnam
-  integer :: ikkp,iknr,jknr,iv,ic,jv,jc,si,sj,nv,nc,wsiz,n,i,j,iw,un,recl
+  integer :: iknr,jknr,iv,ic,jv,jc,si,sj,nv,nc,wsiz,n,nt,i,j,iop,iw,un,recl
   real(8) :: t1,dei,dej
   complex(8) :: zt1
   complex(8), allocatable :: w(:),wmat(:,:),wmatq(:,:),wm(:,:,:,:)
   complex(8), allocatable :: resr(:,:),resq(:,:),oscr(:,:),oscq(:,:)
   complex(8), allocatable :: denr(:),denq(:),fxc(:,:,:)
-  complex(8), allocatable :: fxch(:,:),fxcw1(:,:),fxcw2(:,:),me(:,:),me2(:,:)
-  complex(8), allocatable :: xiout(:,:,:), pmout(:,:,:),resr2(:,:)
+  complex(8), allocatable :: xiout(:,:,:), pmout(:,:,:),me(:,:)
   real(8), allocatable :: ev(:),de(:),scisk(:,:)
   integer, allocatable :: widx(:,:,:)
   integer, external :: idxkkp
@@ -74,11 +73,23 @@ subroutine kernxc_bse2
   write(*,*) 'n,nv,nc,wsiz',n,nv,nc,wsiz
   
   allocate(wm(nv,nc,nv,nc),widx(nv,nc,nkptnr))
-  allocate(de(wsiz),wmat(wsiz,wsiz),wmatq(wsiz,wsiz),me(n,wsiz),me2(n,wsiz))
-  allocate(resr(n,wsiz),resq(n,wsiz),oscr(n,n),oscq(n,n),denr(nwdf),denq(nwdf))
-  allocate(ev(nstsv))
-  allocate(fxc(n,n,nwdf),fxch(-3:-1,-3:-1),fxcw1(-3:-1,n),fxcw2(n,-3:-1))
-  allocate(resr2(n,wsiz))
+  allocate(de(wsiz),wmat(wsiz,wsiz),wmatq(wsiz,wsiz),me(-3:n,wsiz))
+  allocate(resr(-3:n,wsiz),resq(-3:n,wsiz),oscr(-3:n,-3:n),oscq(-3:n,-3:n))
+  allocate(ev(nstsv),denr(nwdf),denq(nwdf))
+  allocate(fxc(-3:n,-3:n,nwdf))
+  allocate(xiout(nv,nc,n),pmout(3,nv,nc),scisk(nst1,nst3))
+  if (allocated(pmou)) deallocate(pmou)
+  allocate(pmou(3,nv,nc))
+  if (allocated(pmuo)) deallocate(pmuo)
+  allocate(pmuo(3,nc,nv))
+  if (allocated(deou)) deallocate(deou)
+  allocate(deou(nst1,nst3))
+  if (allocated(deuo)) deallocate(deuo)
+  allocate(deuo(nst3,nst1))
+  if (allocated(docc12)) deallocate(docc12)
+  allocate(docc12(nst1,nst3))
+  if (allocated(docc21)) deallocate(docc21)
+  allocate(docc21(nst3,nst1))
 
 
   ! set up indices
@@ -105,29 +116,14 @@ subroutine kernxc_bse2
     end do
   end do
     
+
+  write(*,*) 'calculating matrix elements....'
+
   ! calculate matrix elements
-  if (allocated(pmou)) deallocate(pmou)
-  allocate(pmou(3,nv,nc))
-  if (allocated(pmuo)) deallocate(pmuo)
-  allocate(pmuo(3,nc,nv))
-  if (allocated(deou)) deallocate(deou)
-  allocate(deou(nst1,nst3))
-  if (allocated(deuo)) deallocate(deuo)
-  allocate(deuo(nst3,nst1))
-  if (allocated(docc12)) deallocate(docc12)
-  allocate(docc12(nst1,nst3))
-  if (allocated(docc21)) deallocate(docc21)
-  allocate(docc21(nst3,nst1))
-  allocate(xiout(nv,nc,n))
-  allocate(pmout(3,nv,nc))
-  allocate(scisk(nst1,nst3))
   emattype=1
   call ematbdcmbs(emattype)
   call ematrad(iqmt)
   call ematqalloc
-
-  write(*,*) 'calculating matrix elements....'
-
   do iknr=1,nkptnr
 write(unitout,*) 'matrix elements iknr=',iknr
 call flushifc(unitout)
@@ -138,12 +134,10 @@ call flushifc(unitout)
     do iv=1,nv
       do ic=1,nc
         si=widx(iv,ic,iknr)
-        me(ig0,si)=pmout(iop,iv,ic)
-        if (n.gt.1) then
-	  do i=2,n
-	    me(i,si)=xiout(iv,ic,i)
-	  end do
-	end if
+	do iop=1,noptc
+          me(-iop,si)=pmout(iop,iv,ic)
+	end do
+	me(1:,si)=xiout(iv,ic,:)
       end do
     end do
   end do
@@ -177,15 +171,7 @@ call flushifc(unitout)
 	  else
             wmat(si,sj)=zt1/(dei-dej)
 	  end if
-	end if
-	
-if ((iknr.eq.1).and.(jknr.eq.1).and.(iv.eq.1).and.(ic.eq.1).and.(jv.eq.2).and. &
- (jc.eq.1)) then
-write(unitout,*) '1-1,2-1',wm(iv,ic,jv,jc),de(si),de(sj),de(si)-de(sj)
-write(unitout,*) 'indices:',si,sj
-end if	
-	
-	
+	end if	
       end do; end do
     end do; end do
   end do; end do
@@ -203,14 +189,6 @@ end if
   resr=transpose(matmul(wmat,conjg(transpose(me))))
   resq=transpose(matmul(wmatq,conjg(transpose(me))))
 
-!@@@@@@@@@@@@@@@@@@@@@@@@
-!si=widx(1,1,1); sj=widx(2,1,1)
-!write(unitout,*) '1-1,1-1:',si,sj,wmat(si,si)
-!write(unitout,*) '1-1,2-1',wmat(si,sj),de(si),de(sj),de(si)-de(sj)
-!write(unitout,*) '1-1',resr(1:2,si)
-!write(unitout,*) '1-2',resr(1:2,sj)
-
-
   ! deallocate the wmat arrays
   deallocate(wmat,wmatq)
   
@@ -218,19 +196,16 @@ end if
 
   t1=2.d0/(nkptnr*omega)
   fxc(:,:,:)=zzero
+  nt=n+noptc+1
   do si=1,wsiz
-
-write(unitout,*) 'si=',si
-call flushifc(unitout)
-
     oscr(:,:)=zzero
     oscq(:,:)=zzero
-    call ZGERU(n,n,zone,me(:,si),1,resr(:,si),1,oscr,n)
-    call ZGERU(n,n,zone,me(:,si),1,resq(:,si),1,oscq,n)
-!!!    call xszoutpr3(n,n,zone,me(:,si),resr(:,si),oscr)
-!!!    call xszoutpr3(n,n,zone,me(:,si),resq(:,si),oscq)
+    call ZGERU(nt,nt,zone,me(:,si),1,resr(:,si),1,oscr,nt)
+    call ZGERU(nt,nt,zone,me(:,si),1,resq(:,si),1,oscq,nt)
+!    call xszoutpr3(n+noptc+1,n+noptc+1,zone,me(:,si),resr(:,si),oscr)
+!    call xszoutpr3(n+noptc+1,n+noptc+1,zone,me(:,si),resq(:,si),oscq)
     ! add Hermitian transpose 
-    forall(i=1:n,j=1:n)
+    forall(i=-3:n,j=-3:n)
       oscr(i,j)=oscr(i,j)+conjg(oscr(j,i))
     end forall
     denr(:)=1.d0/(w(:)+bsed-de(si)+zi*broad)
@@ -245,22 +220,22 @@ call flushifc(unitout)
 
 
   ! write out kernel
-  inquire(iolength=recl) n,fxch,fxcw1,fxcw2,fxc(:,:,1)  
+  inquire(iolength=recl) n,fxc(-3:-1,-3:-1,1),fxc(-3:-1,1:,1),fxc(1:,-3:-1,1),fxc(1:,1:,1)
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=0,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
   call getunit(un)
   open(un,file=trim(filnam),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
   do iw=1,nwdf
-     fxch(:,:)=fxc(1,1,iw)
-     do i=1,noptc
-       fxcw1(-i,:)=fxc(1,:,iw)
-       fxcw2(:,-i)=fxc(:,1,iw)
-     end do
-     write(un,rec=iw) n,fxch,fxcw1,fxcw2,fxc(:,:,iw)
-     write(8888,'(i8,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)  
+     write(un,rec=iw) n,fxc(-3:-1,-3:-1,iw),fxc(-3:-1,1:,iw),fxc(1:,-3:-1,iw),fxc(1:,1:,iw)
   end do
   close(un)
+
+  deallocate(wm,widx)
+  deallocate(de,me)
+  deallocate(resr,resq,oscr,oscq)
+  deallocate(ev,denr,denq)
+  deallocate(xiout,pmout,scisk)
   
 end subroutine kernxc_bse2
 !EOC
