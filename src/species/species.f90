@@ -6,6 +6,13 @@
 program species
 implicit none
 ! local variables
+
+
+character(*), parameter :: version='0.9.224'
+character(256) :: bname,strat
+logical :: effstrat
+
+
 ! order of predictor-corrector polynomial
 integer, parameter :: np=4
 ! maximum number of states
@@ -34,6 +41,59 @@ real(8) spocc(maxspst),eval(maxspst)
 ! allocatable arrays
 real(8), allocatable :: r(:),rho(:),vr(:),rwf(:,:,:)
 real(8), allocatable :: fr(:),gr(:),cf(:,:)
+
+
+
+! get generation strategy from input file 'species.input'
+open(50,file='species.input',action='READ',status='OLD',form='FORMATTED', &
+ iostat=iostat)
+if (iostat.ne.0) then
+  write(*,*)
+  write(*,'("Error(species): error opening species.input")')
+  write(*,*)
+  stop
+end if
+100 continue
+read(50,*,end=300) bname
+! check for a comment
+if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 100
+select case(trim(bname))
+case('strategy')
+  read(50,*,err=200) strat
+  select case(trim(strat))
+  case('old')
+    effstrat=.false.
+  case('efficient')
+    effstrat=.true.
+  case default
+    write(*,*)
+    write(*,'("Error(species): invalid strategy name : ",A)') trim(strat)
+    write(*,*)
+    stop
+  end select
+case('')
+  goto 100
+case default
+  write(*,*)
+  write(*,'("Error(species): invalid block name : ",A)') trim(bname)
+  write(*,*)
+  stop
+end select
+goto 100
+200 continue
+write(*,*)
+write(*,'("Error(species): error reading from species.in")')
+write(*,'("Problem occurred in ''",A,"'' block")') trim(bname)
+write(*,*)
+stop
+300 continue
+close(50)
+write(*,*)
+write(*,'("Info(species): new effective method applied")')
+write(*,*)
+
+
+
 open(40,file='species.dat',action='READ',status='OLD',form='FORMATTED')
 10 continue
 read(40,*,iostat=iostat) nz
@@ -145,7 +205,11 @@ if (maxl.gt.3) maxl=3
 nlorb=nlorb+maxl+1
 nlx=0
 ! open the atomic data file
-open(50,file=trim(spsymb)//'.in',action='WRITE',form='FORMATTED')
+if (effstrat) then
+  open(50,file=trim(spsymb)//'_new.in',action='WRITE',form='FORMATTED')
+else
+  open(50,file=trim(spsymb)//'.in',action='WRITE',form='FORMATTED')
+end if
 write(50,'(" ''",A,"''",T45,": spsymb")') trim(spsymb)
 write(50,'(" ''",A,"''",T45,": spname")') trim(spname)
 write(50,'(G14.6,T45,": spzn")') spzn
@@ -160,7 +224,26 @@ do ist=2,spnst
 end do
 write(50,'(I4,T45,": apword")') 1
 write(50,'(F8.4,I4,"  ",L1,T45,": apwe0, apwdm, apwve")') boe,0,.false.
-write(50,'(I4,T45,": nlx")') nlx
+
+
+
+if (effstrat) then
+  ! number of exceptions corresponds to number of l-values
+  nlx=maxl+1
+  write(50,'(I4,T45,": nlx")') nlx
+  ! write the exceptions
+  do l=0,maxl
+    write(50,'(2I4,T45,": lorbl, lorbord")') l,2
+    write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0,.false.
+    write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
+  end do
+else
+  nlx=0
+  write(50,'(I4,T45,": nlx")') nlx
+end if
+
+
+
 write(50,'(I4,T45,": nlorb")') nlorb
 ! write the local-orbitals
 do l=0,maxl
@@ -181,6 +264,15 @@ do ist=1,spnst
     end if
   end if
 end do
+
+
+
+write(50,*)
+write(50,'("# Exciting code version : ",a)') version
+if (effstrat) write(50,'("# new effective strategy applied")')
+
+
+
 close(50)
 ! read another element from file
 goto 10
