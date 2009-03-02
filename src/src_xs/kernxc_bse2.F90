@@ -34,6 +34,7 @@ subroutine kernxc_bse2
   integer, parameter :: iqmt=1,noptc=3
   character(256) :: filnam
   integer :: iknr,jknr,iv,ic,jv,jc,si,sj,nv,nc,wsiz,n,nt,i,j,iop,iw,un,recl
+  integer :: nvl,ncu
   real(8) :: t1,dei,dej
   complex(8) :: zt1
   complex(8), allocatable :: w(:),wmat(:,:),wmatq(:,:),wm(:,:,:,:)
@@ -69,8 +70,11 @@ subroutine kernxc_bse2
   nv=nst1
   nc=nst3
   wsiz=nv*nc*nkptnr
+  ! same window for bands as bse-routine
+  nvl=nv-nbfbse+1
+  ncu=nafbse
   
-  write(*,*) 'n,nv,nc,wsiz',n,nv,nc,wsiz
+  write(*,*) 'n,nv,nc,nvl,ncu,wsiz',n,nv,nc,nvl,ncu,wsiz
   
   allocate(wm(nv,nc,nv,nc),widx(nv,nc,nkptnr))
   allocate(de(wsiz),wmat(wsiz,wsiz),wmatq(wsiz,wsiz),me(-3:n,wsiz))
@@ -158,10 +162,10 @@ call flushifc(unitout)
   wmatq(:,:)=zzero
   do iknr=1,nkptnr; do jknr=iknr,nkptnr
     call getbsemat('SCCLI.OUT',idxkkp(iknr,jknr,nkptnr),nv,nc,wm)
-    do iv=1,nv;  do ic=1,nc
+    do iv=nvl,nv;  do ic=1,ncu
       si=widx(iv,ic,iknr)
       dei=de(si)
-      do jv=1,nv; do jc=1,nc
+      do jv=nvl,nv; do jc=1,ncu
         sj=widx(jv,jc,jknr)
 	if (si.ne.sj) then
           dej=de(sj)

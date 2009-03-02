@@ -121,7 +121,7 @@ program main
      endif
   end do
   call timesec(ts1)
-  call writetime(ts1-ts0,'TIME.OUT')
+  if (rank.eq.0) call writetime(ts1-ts0,'TIME.OUT')
   call finitMPI()
 #ifndef XS
 #ifndef TETRA
