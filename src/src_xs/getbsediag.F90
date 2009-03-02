@@ -22,21 +22,3 @@ subroutine getbsediag
   bsedd=cmplx(re,im,8)
   close(un)
 end subroutine getbsediag
-
-subroutine getbsedg(fname,iknr,n1,n2,d)
-  use modxs
-  use m_getunit
-  implicit none
-  ! arguments
-  character(*), intent(in) :: fname
-  integer, intent(in) :: iknr,n1,n2
-  complex(8), intent(out) :: d(n1,n2)
-  ! local variables
-  integer :: un,recl,iknrt,n1t,n2t
-  call getunit(un)
-  inquire(iolength=recl) iknrt,n1t,n2t,d
-  open(un,file=trim(fname),action='read',form='unformatted', &
-  	status='old',access='direct',recl=recl)
-  read(un,rec=iknr) iknrt,n1t,n2t,d
-  close(un)
-end subroutine getbsedg

@@ -221,12 +221,7 @@ write(*,*) ' istl3,istu3,istl4,istu4',istl3,istu3,istl4,istu4
   do iknr=1,nkptnr
      call chkpt(3,(/task,3,iknr/),'task,sub,k-point; BSE-fxc-kernel')
      iknrq=ikmapikq(iknr,iqmt)
-
-     call getbsedg('BSED.OUT',iknr,nst1,nst3,bsedg)
-     bsedg(:,:)=bsed ! REVERTED TO CONSTANT SHIFT
-     !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-     !!!!!!!!!!!!!!bsedg(:,:)=0.d0
-
+     bsedg(:,:)=bsed
      emattype=1
      call ematbdcmbs(emattype)
      allocate(xiou(nst1,nst3,n))

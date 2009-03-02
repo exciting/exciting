@@ -102,7 +102,7 @@ subroutine scrcoulint
 
      ! calculate effective screened Coulomb interaction
      call genscclieff(iqr,ngqmax,n,scieffg(1,1,iqr))
-     
+
      ! generate radial integrals for matrix elements of plane wave
      call putematrad(iqr,iqrnr)
   end do
@@ -131,7 +131,7 @@ subroutine scrcoulint
   do ikkp=ppari,pparf
      call chkpt(3,(/task,2,ikkp/),'task,sub,(k,kp)-pair; direct term of &
           &BSE-Hamiltonian')
-     call kkpmap(ikkp,nkptnr,iknr,jknr)     
+     call kkpmap(ikkp,nkptnr,iknr,jknr)
      ! k-point difference
      iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
      iv(:)=modulo(iv(:),ngridq(:))
@@ -144,11 +144,11 @@ subroutine scrcoulint
      ! local field effects size
      tq0=tqgamma(iq)
      n=ngq(iq)
-     
+
      allocate(emat12(nst12,n),emat34(nst34,n))
      allocate(tm(n,n),tmi(n,n))
      allocate(scclit(nst12,nst34))
-     
+
      ! find symmetry operations that reduce the q-point to the irreducible
      ! part of the Brillouin zone
      call findsymeqiv(fbzq,vq,vqr,nsc,sc,ivgsc)
@@ -158,7 +158,7 @@ subroutine scrcoulint
      ! generate phase factor for dielectric matrix due to non-primitive
      ! translations
      call genphasedm(iq,jsym,ngqmax,n,phf,tphf)
-     
+
      ! get radial integrals
      call getematrad(iqr,iq)
      ! rotate radial integrals
@@ -194,7 +194,7 @@ subroutine scrcoulint
         ! full screening
         tm(:,:)=tmi(:,:)
      end select
-     
+
      ! combine indices for matrix elements of plane wave
      j1=0
      do ist2=1,nst2
@@ -210,11 +210,11 @@ subroutine scrcoulint
            emat34(j2,:)=xiuo(ist3,ist4,:)
         end do
      end do
-     
+
      ! matrix elements of direct term (as in BSE-code of Peter and
      ! in the SELF-documentation of Andrea Marini)
      scclit=matmul(conjg(emat12),matmul(tm,transpose(emat34)))/omega/nkptnr
-	  
+
      ! map back to individual band indices
      j2=0
      do ist4=1,nst4
@@ -229,8 +229,7 @@ subroutine scrcoulint
            end do
         end do
      end do
-     
-     if (ikkp.le.100) then
+     if ((rank.eq.1).and.(ikkp.le.100)) then
         ! write to ASCII file
         do ist1=1,nst1
            do ist3=1,nst3
@@ -254,12 +253,9 @@ subroutine scrcoulint
               t1=dble(zt1)
               bsedt(1,iknr)=min(dble(bsedt(1,iknr)),t1)
               bsedt(2,iknr)=max(dble(bsedt(2,iknr)),t1)
-              bsedt(3,iknr)=bsedt(3,iknr)+zt1/(nst1*nst3)	      
+              bsedt(3,iknr)=bsedt(3,iknr)+zt1/(nst1*nst3)
            end do
         end do
-	
-	call putbsedg('BSED.OUT',iknr,nst1,nst3,scclid)
-	
      end if
 
      ! parallel write
@@ -273,7 +269,7 @@ subroutine scrcoulint
   end do
 
   call barrier
-  
+
   ! communicate array-parts wrt. q-points
   call zalltoallv(bsedt,3,nkkp)
   ! BSE kernel diagonal parameters

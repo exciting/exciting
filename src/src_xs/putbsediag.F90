@@ -27,22 +27,3 @@ subroutine putbsediag(fname)
        dble(bsed)*100.d0
   close(un)
 end subroutine putbsediag
-
-
-subroutine putbsedg(fname,iknr,n1,n2,d)
-  use modxs
-  use m_getunit
-  implicit none
-  ! arguments
-  character(*), intent(in) :: fname
-  integer, intent(in) :: iknr,n1,n2
-  complex(8), intent(in) :: d(n1,n2)
-  ! local variables
-  integer :: un,recl
-  call getunit(un)
-  inquire(iolength=recl) iknr,n1,n2,d
-  open(un,file=trim(fname),action='write',form='unformatted', &
-  	access='direct',recl=recl)
-  write(un,rec=iknr) iknr,n1,n2,d
-  close(un)
-end subroutine putbsedg

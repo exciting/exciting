@@ -37,11 +37,11 @@ subroutine dfq(iq)
 !      v^{-\frac{1}{2}}_{\bf G'}({\bf q}) $$
 !   and is well defined in the limit as ${\bf q}$ goes to zero.
 !   The symmetrized matrix elements are defined as
-!   $$   M^{\bf G}_{ou{\bf k}}({\bf q}) = 
+!   $$   M^{\bf G}_{ou{\bf k}}({\bf q}) =
 !         v^{-\frac{1}{2}}_{\bf G}({\bf q})
 !         \bar{M}^{\bf G}_{ou{\bf k}}({\bf q}), $$
 !   where
-!   $$   \bar{M}^{\bf G}_{ou{\bf k}}({\bf q}) = 
+!   $$   \bar{M}^{\bf G}_{ou{\bf k}}({\bf q}) =
 !        \langle o{\bf k}|e^{-i({\bf{G+q}}){\bf r}}|u{\bf k+q} \rangle. $$
 !   For ${\bf G}=0$ we have to consider three vectors stemming from the limits
 !   as ${\bf q}\rightarrow 0$ along the Cartezian basis vectors ${\bf e_i}$,
@@ -232,16 +232,8 @@ subroutine dfq(iq)
      write(unitout,'(" mean value : ",2g18.10)') bsed
   end if
   bsedg(:,:)=bsed
-  
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!  bsedg(:,:)=zzero !!!!!!!!!!!!!!!!!!!!!!!
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
   ! loop over k-points
   do ik=1,nkpt
-!     if (task.eq.345) then
-!       call getbsedg('BSED.OUT',ik,nst1,nst2,bsedg)
-!     end if
      ! k-point analysis
      if (.not.transik(ik,dftrans)) cycle
      call chkpt(3,(/task,iq,ik/),'dfq: task, q-point index, k-point index')
