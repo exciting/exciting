@@ -165,7 +165,15 @@ call flushifc(unitout)
         sj=widx(jv,jc,jknr)
 	if (si.ne.sj) then
           dej=de(sj)
-	  zt1=-wm(iv,ic,jv,jc)
+	  zt1=-wm(iv,ic,jv,jc)	! correct
+! * all those cases below lead to unreasonable results *
+!zt1=wm(iv,ic,jv,jc)
+!zt1=conjg(wm(iv,ic,jv,jc))
+!zt1=-conjg(wm(iv,ic,jv,jc))
+!zt1=wm(jv,jc,iv,ic)
+!zt1=-wm(jv,jc,iv,ic)
+!zt1=conjg(wm(jv,jc,iv,ic))
+!zt1=-conjg(wm(jv,jc,iv,ic))
 	  if (abs(dei-dej).lt.fxcbsesplit) then
             wmatq(si,sj)=zt1
 	  else
@@ -202,8 +210,6 @@ call flushifc(unitout)
     oscq(:,:)=zzero
     call ZGERU(nt,nt,zone,me(:,si),1,resr(:,si),1,oscr,nt)
     call ZGERU(nt,nt,zone,me(:,si),1,resq(:,si),1,oscq,nt)
-!    call xszoutpr3(n+noptc+1,n+noptc+1,zone,me(:,si),resr(:,si),oscr)
-!    call xszoutpr3(n+noptc+1,n+noptc+1,zone,me(:,si),resq(:,si),oscq)
     ! add Hermitian transpose 
     forall(i=-3:n,j=-3:n)
       oscr(i,j)=oscr(i,j)+conjg(oscr(j,i))

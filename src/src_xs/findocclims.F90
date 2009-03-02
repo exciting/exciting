@@ -98,6 +98,7 @@ subroutine findocclims(iq,iocc0,iocc,iunocc0,iunocc,io0,io,iu0,iu)
      write(*,'(" highest part. occ state :",f12.6)') evlhpo
      write(*,'(" lowest part. unocc state:",f12.6)') evllpu
      write(*,'(" recalculate Fermi energy or eigenvalues with reduced swidth")')
+     write(*,'(" or use a denser k-point sampling")')
      write(*,*)
      call terminate
   end if

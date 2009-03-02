@@ -1,0 +1,8 @@
+
+
+! possible strategies are
+! 'old'	      : Kay's original program - no exceptions
+! 'efficient' : exceptions are added as many as lo's
+strategy
+  'efficient'
+
