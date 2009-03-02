@@ -89,7 +89,7 @@ subroutine xsmain
   case(401)
      ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
      ! for screening and BSE(-kernel)
-     call scrgeneigvec 
+     call scrgeneigvec
   case(410)
      ! calculate weights for tetrahedron method (screening)
      call scrtetcalccw
@@ -111,9 +111,12 @@ subroutine xsmain
   case(450)
      ! BSE-kernel
      call kernxc_bse
+!  case(451)
+!     ! BSE-kernel, new version
+!     call kernxc_bse2
   case(451)
      ! BSE-kernel, new version
-     call kernxc_bse2
+     call kernxc_bse3
   case(499)
      ! call to test xs-routine
      call testxs
