@@ -33,11 +33,10 @@ subroutine kernxc_bse
   character(*), parameter :: thisnam='kernxc_bse'
   integer, parameter :: iqmt=1,noptc=3
   character(256) :: filnam2,filnam3,filnam4
-  logical :: tq0
-  integer :: iv(3),iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2,oct
-  integer :: ikkp,iknr,jknr,iknrq,jknrq,iqr,iq,iqrnr,igq1,igq2
+  integer :: iw,wi,wf,nwdfp,n,recl,un,un2,un3,j1,j2,oct
+  integer :: ikkp,iknr,jknr,iknrq,jknrq,igq1,igq2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
-  real(8) :: vqr(3),vq(3),t1,brd
+  real(8) :: t1,brd
   real(8) :: cpu_init1offs,cpu_ematrad,cpu_ematqalloc,cpu_ematqk1
   real(8) :: cpu_ematqdealloc,cpu_clph,cpu_suma,cpu_write
   complex(8) :: zt1

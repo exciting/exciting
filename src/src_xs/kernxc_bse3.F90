@@ -33,14 +33,11 @@ subroutine kernxc_bse3
   real(8), parameter :: eps=1.d-5
   integer, parameter :: iqmt=1,noptc=3
   character(256) :: filnam
-  integer :: iknr,jknr,iv,ic,jv,jc,si,sj,nv,nc,wsiz,n,nt,i,j,iop,iw,un,recl
+  integer :: iknr,jknr,iv,ic,jv,jc,si,sj,nv,nc,wsiz,n,iop,iw,un,recl
   integer :: nvl,ncu
-  real(8) :: t1,dei,dej
-  complex(8) :: zt1
   complex(8), allocatable :: w(:),mat(:,:),wmat(:,:),wm(:,:,:,:),l0mat(:,:)
   complex(8), allocatable :: hmat(:,:),hmat2(:,:)
-  complex(8), allocatable :: resr(:,:),resq(:,:),oscr(:,:),oscq(:,:)
-  complex(8), allocatable :: denr(:),denq(:),fxc(:,:,:)
+  complex(8), allocatable :: fxc(:,:,:)
   complex(8), allocatable :: xiout(:,:,:), pmout(:,:,:),me(:,:)
   real(8), allocatable :: ev(:),de(:),scisk(:,:)
   integer, allocatable :: widx(:,:,:)
@@ -166,7 +163,6 @@ call flushifc(unitout)
     do iv=nvl,nv
     do ic=1,ncu
       si=widx(iv,ic,iknr)
-      dei=de(si)
       do jv=nvl,nv
       do jc=1,ncu
         sj=widx(jv,jc,jknr)

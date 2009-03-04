@@ -63,7 +63,7 @@ subroutine kernxc_bse2
   call ematbdcmbs(emattype)
   allocate(w(nwdf))
   call genwgrid(nwdf,wdos,acont,0.d0,w_cmplx=w)
-  
+
   write(*,*) 'done.'
 
   n=ngq(iqmt)
@@ -73,9 +73,9 @@ subroutine kernxc_bse2
   ! same window for bands as bse-routine
   nvl=nv-nbfbse+1
   ncu=nafbse
-  
+
   write(*,*) 'n,nv,nc,nvl,ncu,wsiz',n,nv,nc,nvl,ncu,wsiz
-  
+
   allocate(wm(nv,nc,nv,nc),widx(nv,nc,nkptnr))
   allocate(de(wsiz),wmat(wsiz,wsiz),wmatq(wsiz,wsiz),me(-3:n,wsiz))
   allocate(resr(-3:n,wsiz),resq(-3:n,wsiz),oscr(-3:n,-3:n),oscq(-3:n,-3:n))
@@ -119,7 +119,7 @@ subroutine kernxc_bse2
     end do
     end do
   end do
-    
+
 
   write(*,*) 'calculating matrix elements....'
 
@@ -134,7 +134,7 @@ call flushifc(unitout)
     call ematqk1(iqmt,iknr)
     call getdevaldoccsv(iqmt,iknr,iknr,istl1,istu1,istl2,istu2,deou, &
           docc12,scisk)
-    call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiout,p12=pmout)    
+    call getpemat(iqmt,iknr,'PMAT_SCR.OUT','',m12=xiout,p12=pmout)
     do iv=1,nv
       do ic=1,nc
         si=widx(iv,ic,iknr)
@@ -147,8 +147,8 @@ call flushifc(unitout)
   end do
   emattype=2
   call ematbdcmbs(emattype)
-  
-  
+
+
   write(*,*) 'done.'
 
   if ((fxctype.eq.7).or.(fxctype.eq.8)) then
@@ -183,27 +183,27 @@ call flushifc(unitout)
 	  else
             wmat(si,sj)=zt1/(dei-dej)
 	  end if
-	end if	
+	end if
       end do; end do
     end do; end do
   end do; end do
-  
+
   do si=1,wsiz
     do sj=si+1,wsiz
       wmat(sj,si)=-conjg(wmat(si,sj))
       wmatq(sj,si)=conjg(wmatq(si,sj))
     end do
-  end do  
-  
+  end do
+
   write(*,*) 'setting up residuals...'
-  
+
   ! set up residuals
   resr=transpose(matmul(wmat,conjg(transpose(me))))
   resq=transpose(matmul(wmatq,conjg(transpose(me))))
 
   ! deallocate the wmat arrays
   deallocate(wmat,wmatq)
-  
+
   write(*,*) 'setting up kernel...'
 
   t1=2.d0/(nkptnr*omega)
@@ -214,7 +214,7 @@ call flushifc(unitout)
     oscq(:,:)=zzero
     call ZGERU(nt,nt,zone,me(:,si),1,resr(:,si),1,oscr,nt)
     call ZGERU(nt,nt,zone,me(:,si),1,resq(:,si),1,oscq,nt)
-    ! add Hermitian transpose 
+    ! add Hermitian transpose
     forall(i=-3:n,j=-3:n)
       oscr(i,j)=oscr(i,j)+conjg(oscr(j,i))
     end forall
@@ -224,8 +224,8 @@ call flushifc(unitout)
       fxc(:,:,iw)=fxc(:,:,iw)+t1*denr(iw)*oscr(:,:)+t1*denq(iw)*oscq(:,:)
     end do
   end do
-  
-  
+
+
   write(*,*) 'writing out kernel...'
 
 
@@ -246,6 +246,6 @@ call flushifc(unitout)
   deallocate(resr,resq,oscr,oscq)
   deallocate(ev,denr,denq)
   deallocate(xiout,pmout,scisk)
-  
+
 end subroutine kernxc_bse2
 !EOC

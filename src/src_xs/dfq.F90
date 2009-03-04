@@ -259,6 +259,20 @@ subroutine dfq(iq)
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
           p12=pmou,p34=pmuo)
+     ! set matrix elements to one for Lindhard function
+     if (lindhard) then
+       ! set G=0 components to one
+       xiou(:,:,1)=zone
+       xiuo(:,:,1)=zone
+       ! set G/=0 components to zero
+       if (n.gt.1) then
+         xiou(:,:,2:)=zzero
+         xiuo(:,:,2:)=zzero
+       end if
+       ! set momentum matrix elements to one
+       pmou(:,:,:)=zone
+       pmuo(:,:,:)=zone
+     end if
      if (tetracw1k) then
         do iw=1,nwdfp
            call tetcwifc_1k(ik,nkpt,nstsv,evalsv,efermi,wreal(iw),2,cwt)

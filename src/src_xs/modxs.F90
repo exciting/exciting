@@ -4,11 +4,11 @@
 ! See the file COPYING for license details.
 
 module modxs
-! !DESCRIPTION: 
+! !DESCRIPTION:
 !   Global variables for the {\tt XS} (eXcited States) implementation
 !   in the {\tt EXCITING}-code.
 !
-! !REVISION HISTORY: 
+! !REVISION HISTORY:
 !
 !  Created June 2004 (Sagmeister)
   implicit none
@@ -55,7 +55,7 @@ module modxs
   ! index of current q-point
   integer :: iqcu
   data iqcu / 0 /
-  
+
 !*************************************************************************
   ! number of crystal symmetries for the little group of q
   integer, allocatable :: nsymcrysq(:)
@@ -254,7 +254,7 @@ module modxs
   complex(8), allocatable :: xihir(:,:)
   ! helper matrix
   complex(8), allocatable :: xiohalo(:,:)
-  ! helper matrix 
+  ! helper matrix
   complex(8), allocatable :: xiuhloa(:,:)
   ! matrix elements array (resonant part)
   complex(8), allocatable :: xiou(:,:,:)
@@ -294,6 +294,8 @@ module modxs
   integer :: nwacont
   ! broadening for Kohn Sham response function
   real(8) :: broad
+  ! true if Lindhard like function is calculated (trivial matrix elements)
+  logical :: lindhard
   ! true if to consider the anti-resonant part for the dielectric function
   logical :: aresdf
   ! true if only diagonal part of xc-kernel is used
@@ -432,7 +434,7 @@ module modxs
   integer :: bsediagsym
   ! diagonal of BSE kernel (mean value, lower, upper limit and range)
   complex(8) :: bsed,bsedl,bsedu,bsedd
-  
+
   !-----------------------!
   !     I/O variables     !
   !-----------------------!
@@ -466,7 +468,7 @@ module modxs
   character(256) :: fnsigma
   ! sumrules for optics
   character(256) :: fnsumrules
-  
+
   !--------------------------!
   !     backup variables     !
   !--------------------------!
@@ -488,7 +490,7 @@ module modxs
   integer :: ngridq_b(3)
   ! type of matrix element generation (band-combinations)
   integer :: emattype_b
- 
+
   !------------------------------!
   !     parallel environment     !
   !------------------------------!
@@ -554,7 +556,7 @@ module modxs
   data gather /.false./
   ! string for messages
   character(1024) :: msg
-  data msg / 'no message' /  
+  data msg / 'no message' /
   ! number of times the main excited states routine was called
   integer :: calledxs
   data calledxs / 0 /

@@ -233,6 +233,7 @@ tordfxc='causal'
 acont=.false.
 nwacont=0
 broad=0.01d0
+lindhard=.false.
 aresdf=.true.
 aresfxc=.true.
 epsdfde=1.d-8
@@ -1156,15 +1157,17 @@ case('acont')
   read(50,*,err=20) acont
 case('nwacont')
   read(50,*,err=20) nwacont
-  if (broad.le.0) then
+  if (nwacont.le.0) then
     write(*,*)
     write(*,'("Error(readinput/xs): nwacont <= 0 : ",g18.10)') nwacont
     write(*,*)
     stop
   end if
+case('lindhard')
+  read(50,*,err=20) lindhard
 case('broad')
   read(50,*,err=20) broad
-  if (broad.le.0) then
+  if (broad.le.0.d0) then
     write(*,*)
     write(*,'("Warning(readinput/xs): broad <= 0 : ",g18.10)') broad
     write(*,*)

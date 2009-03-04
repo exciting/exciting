@@ -7,13 +7,14 @@
 module m_dysonsym
   implicit none
 contains
-  
+
 !BOP
 ! !ROUTINE: dysonsym
 ! !INTERFACE:
   subroutine dysonsym(n,s0,k,s)
 ! !USES:
     use invert
+    use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : matrix size of local field effects (in,integer)
 !   s0    : S0 matrix (in,complex(:,:))
@@ -40,17 +41,17 @@ contains
     character(*), parameter :: thisnam='dysonsym'
     complex(8),parameter :: zone=(1.d0,0.d0),zzero=(0.d0,0.d0)
     complex(8), allocatable :: mt(:,:),mt2(:,:)
-    integer :: shs0(2),shk(2),shs(2),nmin,nmax,j
+    integer :: shs0(2),shk(2),shs(2),nmin,nmax,i,j
 
   complex(8), allocatable :: solv(:),s0row(:),s0col(:),u(:,:),vh(:,:),work(:)
   real(8), allocatable :: singv(:),rwork(:)
   integer, allocatable :: ipiv(:)
   integer :: info,lwork
   real(8) :: eps
-  
+
   complex(8), external :: zdotu
-    
-    
+
+
     ! check matrix sizes
     shs0=shape(s0)
     shk=shape(k)
@@ -69,40 +70,56 @@ contains
     ! allocate
     allocate(mt(n,n),mt2(n,n))
 
-    ! calculate matrix 1-S0
-    mt(:,:)=zzero
-    forall(j=1:n) mt(j,j)=1.d0
-    mt(:,:)=mt(:,:)-s0(:,:)
-    
+!    ! calculate matrix 1-S0
+!    mt(:,:)=zzero
+!    forall(j=1:n) mt(j,j)=1.d0
+!    mt(:,:)=mt(:,:)-s0(:,:)
+
+!!!!!!!
+    mt(1,1)= - s0(1,1)
+    if (n.gt.1) then
+        forall (j=2:n)
+            mt(1,j) = - s0(1,j)
+            mt(j,1) = - sptclg(j,1)**2 * s0(j,1)
+        end forall
+        forall (i=2:n,j=2:n)
+            mt(i,j) = - sptclg(i,1)**2 * s0(i,j)
+        end forall
+    end if
+    forall (j=1:n)
+        mt(j,j)=mt(j,j) + 1.d0
+    end forall
+!!!!!!!!!
+
     ! calculate S0(1-S0)
     call zgemm('n','n', n, n, n, zone, s0, n, mt, n, zzero, mt2, n )
-   
+
     ! calculate X := S0(1-S0) - K
     mt2(:,:)=mt2(:,:)-k(:,:)
-    
+
 !    ! calculate [S0(1-S0) - K]^-1 =: Y = X^-1
 !    call zinvert_lapack(mt2,mt)
 
 !    ! calculate S0 Y
 !    call zgemm('n','n', n, n, n, zone, s0, n, mt, n, zzero, mt2, n )
-    
+
 !    ! calculate solution S = S0 Y S0 = S0 [S0(1-S0) - K]^(-1) S0
 !    call zgemm('n','n', n, n, n, zone, mt2, n, s0, n, zzero, s, n )
-    
-    
-    
-!!!goto 100    
+
+
+
+!!!goto 100
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
     ! F. Sottile, PhD thesis, p. 167 (Appendix E)
     ! solve linear system of equations instead of direct inversion
-    
+
     ! first column of S0 is RHS of system of equations
     allocate(solv(n),s0row(n),s0col(n))
     s0row(:)=s0(1,:)
     s0col(:)=s0(:,1)
     solv(:)=s0col(:)
-    
+
     !------------------------------------ solve linear system of equations
     allocate(ipiv(n))
     call zgetrf(n,n,mt2,n,ipiv,info)
@@ -123,15 +140,15 @@ contains
     end if
     deallocate(ipiv)
     !------------------------------------
-    
+
     ! calculate S_00 = S0 * Solv
     s(1,1)=zdotu(n,solv,1,s0row,1)
     deallocate(solv,s0row,s0col)
 !!!100 continue
 goto 200
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-    
+
+
     lwork=3*n
     allocate(singv(n),u(n,n),vh(n,n),work(lwork),rwork(5*n))
 
@@ -144,7 +161,7 @@ goto 200
        write(*,*)
        call terminate
     end if
-   
+
    ! invert singular values above cutoff
    eps=1.d-3
     do j=1,n
@@ -159,11 +176,11 @@ goto 200
     ! inverse of matrix X^+:
     call zgemm('n','n', n, n, n, zone, u, n, vh, n, zzero, s, n )
     s=conjg(transpose(s))
-    
+
     ! left and right multiply with S0
     ! calculate S0 Y
     call zgemm('n','n', n, n, n, zone, s0, n, s, n, zzero, mt2, n )
-    
+
     ! calculate solution S = S0 Y S0 = S0 [S0(1-S0) - K]^(-1) S0
     call zgemm('n','n', n, n, n, zone, mt2, n, s0, n, zzero, s, n )
 

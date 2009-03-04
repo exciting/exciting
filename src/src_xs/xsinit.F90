@@ -29,7 +29,7 @@ subroutine xsinit
   call system_clock(COUNT_RATE=cntrate)
   call system_clock(COUNT=systim0i)
   call date_and_time(date=dat,time=tim)
-  if (calledxs.eq.1) call system_clock(COUNT=systimcum)  
+  if (calledxs.eq.1) call system_clock(COUNT=systimcum)
 
   !---------------------!
   !     output file     !
@@ -53,26 +53,25 @@ subroutine xsinit
           &---+")')
      write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
           &States ",I1.1,".",I3.3,") started  |")') version,versionxs
-     write(unitout,'("| git hash id : ",a20,"                       |")') &
-          GITHASH
+     write(unitout,'("| git hash id : ",a20,"                       |")') GITHASH
 #ifdef LOCALCHG
      write(unitout,'("| Warning     : source codes deviates from the git hash &
           &id |")')
 #endif
 #ifdef MPI
      write(unitout,'("| compiled for MPI execution                            &
-          &   |")') 
+          &   |")')
 #endif
 #ifndef MPI
      write(unitout,'("| compiled for serial execution                         &
-          &   |")') 
+          &   |")')
 #endif
      write(unitout,'("+ ------------------------------------------------------&
           &---+")')
      if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) master, &
-     	&rank/number of processes:")') rank,procs
-     if ((procs.gt.1).and.(rank.eq.0)) write(unitout,'("(parallel) slave,  &
-     	&rank/number of processes:")') rank,procs
+        &rank/number of processes:",2i8)') rank,procs
+     if ((procs.gt.1).and.(rank.ne.0)) write(unitout,'("(parallel) slave,  &
+        &rank/number of processes:",2i8)') rank,procs
      if (notelns.gt.0) then
         write(unitout,*)
         write(unitout,'("Notes :")')
@@ -88,7 +87,7 @@ subroutine xsinit
   	tim(3:4),tim(5:6)
   write(unitout,'("Info(xsinit): task Nr.",i6," started")') task
   call flushifc(unitout)
-  
+
   !-----------------------------------!
   !     parallelization variables     !
   !-----------------------------------!
@@ -176,7 +175,7 @@ subroutine xsinit
   ! set splittfile parameter for splitting of eigenvector files in
   ! parallelization of SCF cycle
   if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
-  
+
   !----------------------------!
   !     response functions     !
   !----------------------------!
@@ -199,12 +198,12 @@ subroutine xsinit
   if (acont) nwdf=nwacont
   ! get exchange-correlation kernel functional data
   call getfxcdata(fxctype,fxcdescr,fxcspin)
-  
+
   !-----------------------------!
   !     xc-kernel variables     !
   !-----------------------------!
   ! set time-ordering
-  torfxc=1.d0  
+  torfxc=1.d0
   if (trim(tordfxc).eq.'tord') torfxc=-1.d0
 
   !-----------------------!
@@ -287,7 +286,7 @@ subroutine xsinit
   end if
   ! check for stale checkpoint file
   call chkptchk
-  
+
   ! define checkpoint
   call chkpt(1,(/task/),'passed xsinit')
 end subroutine xsinit
