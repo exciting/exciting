@@ -70,26 +70,10 @@ contains
     ! allocate
     allocate(mt(n,n),mt2(n,n))
 
-!    ! calculate matrix 1-S0
-!    mt(:,:)=zzero
-!    forall(j=1:n) mt(j,j)=1.d0
-!    mt(:,:)=mt(:,:)-s0(:,:)
-
-!!!!!!!
-    mt(1,1)= - s0(1,1)
-    if (n.gt.1) then
-        forall (j=2:n)
-            mt(1,j) = - s0(1,j)
-            mt(j,1) = - sptclg(j,1)**2 * s0(j,1)
-        end forall
-        forall (i=2:n,j=2:n)
-            mt(i,j) = - sptclg(i,1)**2 * s0(i,j)
-        end forall
-    end if
-    forall (j=1:n)
-        mt(j,j)=mt(j,j) + 1.d0
-    end forall
-!!!!!!!!!
+    ! calculate matrix 1-S0
+    mt(:,:)=zzero
+    forall(j=1:n) mt(j,j)=1.d0
+    mt(:,:)=mt(:,:)-s0(:,:)
 
     ! calculate S0(1-S0)
     call zgemm('n','n', n, n, n, zone, s0, n, mt, n, zzero, mt2, n )

@@ -98,11 +98,11 @@ contains
        end if
        if (n.gt.1) then
           forall (igq=2:n)
-             m12(:,:,igq)=m12(:,:,igq)!!!/gqc(igq,iq)*fourpisqt
+             m12(:,:,igq)=m12(:,:,igq)/gqc(igq,iq)*fourpisqt
           end forall
           if (present(m34)) then
              forall (igq=2:n)
-                m34(:,:,igq)=m34(:,:,igq)!!!/gqc(igq,iq)*fourpisqt
+                m34(:,:,igq)=m34(:,:,igq)/gqc(igq,iq)*fourpisqt
              end forall
           end if
        end if
