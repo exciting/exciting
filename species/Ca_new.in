@@ -1,0 +1,47 @@
+ 'Ca'                                       : spsymb
+ 'calcium'                                  : spname
+  -20.0000                                  : spzn
+   73057.72470                              : spmass
+  0.447214E-06    2.2000   40.2509   500    : sprmin, rmt, sprmax, nrmt
+   8                                        : spnst
+   1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
+   2   0   1   2.00000    T
+   2   1   1   2.00000    T
+   2   1   2   4.00000    T
+   3   0   1   2.00000    F
+   3   1   1   2.00000    F
+   3   1   2   4.00000    F
+   4   0   1   2.00000    F
+   1                                        : apword
+  0.1500   0  F                             : apwe0, apwdm, apwve
+   3                                        : nlx
+   0   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   1   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   2   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   5                                        : nlorb
+   0   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   1   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   2   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   0   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -1.6458   0  T
+   1   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -0.9628   0  T
+ 
+# Exciting code version : 0.9.224
+# new effective strategy applied
