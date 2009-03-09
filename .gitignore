@@ -24,6 +24,8 @@ exciting_interfaces
 .cdtproject
 .project
 .settings
+.cproject
+.metadata
 build/gfortran
 src/eos/eos
 src/spacegroup/spacegroup
