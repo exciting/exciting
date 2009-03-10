@@ -26,6 +26,8 @@ exciting_interfaces
 .cdtproject
 .project
 .settings
+.cproject
+.metadata
 build/gfortran
 build/parallel
 build/mpiconf.inc
