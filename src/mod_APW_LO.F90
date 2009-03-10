@@ -4,7 +4,7 @@ module mod_APW_LO
 !     APW and local-orbital variables     !
 !-----------------------------------------!
 ! maximum allowable APW order
-integer, parameter :: maxapword=3
+integer, parameter :: maxapword=4
 ! APW order
 integer apword(0:_MAXLAPW_,_MAXSPECIES_)
 ! maximum of apword over all angular momenta and species
