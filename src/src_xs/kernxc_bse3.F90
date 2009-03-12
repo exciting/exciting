@@ -53,6 +53,8 @@ subroutine kernxc_bse3
   write(*,*) 'preparing...'
 
   call readfermi
+  ! initialize states below and above the Fermi energy
+  call initocc(nbfbse,nafbse)
   call xssave0
   call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
   call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
@@ -226,6 +228,7 @@ call flushifc(unitout)
        status='replace',access='direct',recl=recl)
   do iw=1,nwdf
      write(un,rec=iw) n,fxc(-3:-1,-3:-1,iw),fxc(-3:-1,1:,iw),fxc(1:,-3:-1,iw),fxc(1:,1:,iw)
+write(8888,'(i6,6g18.10)') iw,fxc(-1,-1,iw),fxc(-2,-2,iw),fxc(-3,-3,iw)
   end do
   close(un)
 
