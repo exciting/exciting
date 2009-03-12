@@ -3,13 +3,13 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine findgqmap(iq,iqr,nsc,sc,ivgsc,nmax,n,isc,isci,ivgu,igqmap)
+subroutine findgqmap(iq,iqr,nsc,sc,ivgsc,n,isc,isci,ivgu,igqmap)
   use modmain
   use modxs
   implicit none
   ! arguments
-  integer, intent(in) :: iq,iqr,nsc,sc(maxsymcrys),ivgsc(3,maxsymcrys),nmax,n
-  integer, intent(out) :: isc,isci,ivgu(3),igqmap(nmax)
+  integer, intent(in) :: iq,iqr,nsc,sc(maxsymcrys),ivgsc(3,maxsymcrys),n
+  integer, intent(out) :: isc,isci,ivgu(3),igqmap(n)
   ! local variables
   real(8) :: vqr(3),v2(3),t1
   integer :: iqrnr,j,isym,isymi,lspl,lspli,iv(3),ivg1(3),igq1

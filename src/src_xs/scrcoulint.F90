@@ -20,7 +20,8 @@ subroutine scrcoulint
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
   logical :: tq0,tphf
   real(8) :: vqr(3),vq(3),t1
-  integer :: igqmap(maxsymcrys),sc(maxsymcrys),ivgsc(3,maxsymcrys)
+  integer :: sc(maxsymcrys),ivgsc(3,maxsymcrys)
+  integer, allocatable :: igqmap(:)
   complex(8) :: zt1
   complex(8), allocatable :: scclit(:,:),sccli(:,:,:,:),scclid(:,:)
   complex(8), allocatable :: scieffg(:,:,:),tm(:,:),tmi(:,:),bsedt(:,:)
@@ -123,7 +124,7 @@ subroutine scrcoulint
   !     loop over (k,kp) pairs    !
   !-------------------------------!
   call genparidxran('p',nkkp)
-  allocate(bsedt(3,nkptnr))
+  allocate(bsedt(3,0:procs-1))
   bsedt(1,:)=1.d8
   bsedt(2,:)=-1.d8
   bsedt(3,:)=zzero
@@ -145,7 +146,7 @@ subroutine scrcoulint
      tq0=tqgamma(iq)
      n=ngq(iq)
 
-     allocate(emat12(nst12,n),emat34(nst34,n))
+     allocate(igqmap(n),emat12(nst12,n),emat34(nst34,n))
      allocate(tm(n,n),tmi(n,n))
      allocate(scclit(nst12,nst34))
 
@@ -154,7 +155,7 @@ subroutine scrcoulint
      call findsymeqiv(fbzq,vq,vqr,nsc,sc,ivgsc)
 
      ! find the map that rotates the G-vectors
-     call findgqmap(iq,iqr,nsc,sc,ivgsc,ngqmax,n,jsym,jsymi,ivgsym,igqmap)
+     call findgqmap(iq,iqr,nsc,sc,ivgsc,n,jsym,jsymi,ivgsym,igqmap)
      ! generate phase factor for dielectric matrix due to non-primitive
      ! translations
      call genphasedm(iq,jsym,ngqmax,n,phf,tphf)
@@ -162,9 +163,9 @@ subroutine scrcoulint
      ! get radial integrals
      call getematrad(iqr,iq)
      ! rotate radial integrals
-     call rotematrad(ngqmax,igqmap)
+     call rotematrad(n,igqmap)
      ! rotate inverse of screening, Coulomb potential and radial integrals
-     tmi(:,:)=phf(:,:)*scieffg(igqmap,igqmap,iqr)
+     tmi(:,:)=phf(:n,:n)*scieffg(igqmap,igqmap,iqr)
 
      ! calculate matrix elements of the plane wave
      emattype=2
@@ -251,9 +252,9 @@ subroutine scrcoulint
               zt1=sccli(ist1,ist3,ist1,ist3)
 	      scclid(ist1,ist3)=zt1
               t1=dble(zt1)
-              bsedt(1,iknr)=min(dble(bsedt(1,iknr)),t1)
-              bsedt(2,iknr)=max(dble(bsedt(2,iknr)),t1)
-              bsedt(3,iknr)=bsedt(3,iknr)+zt1/(nst1*nst3)
+              bsedt(1,rank)=min(dble(bsedt(1,rank)),t1)
+              bsedt(2,rank)=max(dble(bsedt(2,rank)),t1)
+              bsedt(3,rank)=bsedt(3,rank)+zt1/(nst1*nst3)
            end do
         end do
      end if
@@ -261,7 +262,7 @@ subroutine scrcoulint
      ! parallel write
      call putbsemat('SCCLI.OUT',sccli,ikkp,iknr,jknr,iq,iqr,nst1,nst3,nst2,nst4)
 
-     deallocate(emat12,emat34)
+     deallocate(igqmap,emat12,emat34)
      deallocate(tm,tmi)
      deallocate(scclit)
 
@@ -271,7 +272,7 @@ subroutine scrcoulint
   call barrier
 
   ! communicate array-parts wrt. q-points
-  call zalltoallv(bsedt,3,nkkp)
+  call zalltoallv(bsedt,3,procs)
   ! BSE kernel diagonal parameters
   bsedl=minval(dble(bsedt(1,:)))
   bsedu=maxval(dble(bsedt(2,:)))

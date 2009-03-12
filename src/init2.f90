@@ -17,7 +17,7 @@ real(8) boxl(3,4)
 real(8) :: v(3),t1
 integer :: iq,iv(3)
 #endif
-  
+
 call timesec(ts0)
 
 !---------------------!
@@ -53,7 +53,7 @@ boxl(:,4)=boxl(:,4)+boxl(:,1)
 ! generate the q-point set, note that the vectors vql and vqc are mapped to the
 ! first Brillouin zone
 call genppts(reduceq,.true.,ngridq,boxl,nqpt,iqmap,ivq,vql,vqc,wqpt)
-# ifdef XS
+#ifdef XS
 end if
 #endif
 #ifdef XS
@@ -96,7 +96,7 @@ else
       ! map Q-point to reciprocal unit cell
       if (mdfqtype.eq.1) call r3frac(epslat,v,iv)
       ivgmt(:,iq)=iv(:)
-   end do      
+   end do
 end if
 ! generate q-point set from grid
 if ((task.ge.400).and.(task.le.439)) then
