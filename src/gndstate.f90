@@ -131,7 +131,7 @@ subroutine gndstate
   end if
      if(rank.eq.0) call flushifc(60)
      ! generate the core wavefunctions and densities
-  call gencore
+  if ((.not.frozencore).or.(iscl.eq.1)) call gencore
      ! find the new linearisation energies
   call linengy
      ! write out the linearisation energies

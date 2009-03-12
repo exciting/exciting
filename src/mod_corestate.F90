@@ -10,4 +10,7 @@ real(8), allocatable :: evalcr(:,:)
 real(8), allocatable :: rwfcr(:,:,:,:)
 ! radial charge density for core states
 real(8), allocatable :: rhocr(:,:)
+! true for a frozen-core calculation (core state wavefunctions, densities and
+! energies calculated only in the first iteration)
+logical :: frozencore
 end module
