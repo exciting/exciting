@@ -12,11 +12,18 @@ subroutine writesymt2
   use modxs
 ! !DESCRIPTION:
 !   Outputs the symmetrization matrices for the tensor components of a rank-2
-!   tensor. The tensor(-field) in reciprocal space must be invariant under
+!   tensor. The tensor(-field) $t_{ij}$ in reciprocal space must be invariant under
 !   coordinate transforms of the system wrt. the rotational part of the crystal
 !   symmetries, so we can average:
 !   $$ t_{ij}^{\rm sym} = \frac{1}{N_{\alpha}}\sum_{\alpha} \sum_{k,l}
-!     \alpha_{ik}\alpha{jl}t_{kl}. $$
+!     \alpha_{ik}\alpha_{jl}t_{kl}. $$
+!   The symmetrized tensor $t_{ij}^{\rm sym}$ can then be written as
+!   $$ t_{ij}^{\rm sym} = \sum_{k,l} T_{ij,kl} t_{kl}, $$
+!   with the symmetrization tensor
+!   $$ T_{ij,kl} = \frac{1}{N_{\alpha}}\sum_{\alpha}\alpha_{ik}\alpha_{jl} $$
+!   where $N_{\alpha}$ is the number of symmetry operations in the space group.
+!   For each component $ij$ the symmetrization tensor $T_{ij,kl}$ is written as
+!   a matrix in the components $kl$ to the file {\tt SYMT2.OUT}.
 !
 ! !REVISION HISTORY:
 !   Created October 2008 (Sagmeister)

@@ -13,11 +13,16 @@ echo $files
 echo
 
 # invoke protex
-../protex -s $files > $texfile
+../../utilities/scripts/protex -s $files > $texfile
 
 # invoke latex
 cmd="latex $texfile"
 $cmd && $cmd && $cmd
+
+# generate PDF file
+dvipdf xs.dvi
+
+/bin/rm -f xs.log xs.dvi xs.toc xs.aux
 
 echo
 echo "done"
