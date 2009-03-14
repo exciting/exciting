@@ -104,6 +104,10 @@ if (autormt) then
   write(fnum,'("Automatic determination of muffin-tin radii")')
   write(fnum,'(" parameters : ",2G18.10)') rmtapm
 end if
+if (frozencore) then
+  write(fnum,*)
+  write(fnum,'("A frozen-core calculation is performed")')
+end if
 do is=1,nspecies
   write(fnum,*)
   write(fnum,'("Species : ",I4," (",A,")")') is,trim(spsymb(is))

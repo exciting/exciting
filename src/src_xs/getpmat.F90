@@ -109,7 +109,7 @@ contains
        write(unitout,'(a,i6)') ' record position:', ikr
        write(unitout,'(a,3f12.6,a,3f12.6)') ' vkl            :', vklt(:,ik), &
             ',', vkl_
-       write(unitout,'(a)')    ' file           : ',trim(filnam)
+       write(unitout,'(" filename        : ",a )') trim(filnam)
        write(unitout,*)
        call flushifc(unitout)
        call terminate

@@ -203,6 +203,7 @@ vecql(:)=0.d0
 mustar=0.15d0
 sqados(1:2)=0.d0
 sqados(3)=1.d0
+frozencore=.false.
 #ifdef TETRA
 ! tetrahedron method variables
 tetraocc=.false.
@@ -1041,6 +1042,8 @@ case('mustar')
   read(50,*,err=20) mustar
 case('sqados')
   read(50,*,err=20) sqados(:)
+case('frozencore')
+  read(50,*,err=20) frozencore
 #ifdef TETRA
 !  tetrahedron method variables
 case('tetraocc')
