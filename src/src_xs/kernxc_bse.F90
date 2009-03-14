@@ -432,8 +432,8 @@ write(unitout,*) '1-2',residr(2,-3:2)
            do iw=1,nwdf
               ! resonant and antiresonant contributions
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
-              !!!if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
-              !!!     oscba(:,:)*den2a(iw)
+              if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &
+                   oscba(:,:)*den2a(iw)
            end do
            ! end loop over states #1
         end do

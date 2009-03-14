@@ -254,7 +254,7 @@ subroutine dfq(iq)
      ! add BSE diagonal shift use with BSE-kernel
      if (task.eq.345) then
         scis12(:,:)=scis12(:,:)+bsedg(:,:)
-        scis21(:,:)=scis21(:,:)+bsedg(:,:)
+        scis21(:,:)=scis21(:,:)+transpose(bsedg(:,:))
      end if
      ! get matrix elements (exp. expr. or momentum op.)
      call getpemat(iq,ik,trim(fnpmat),trim(fnemat),m12=xiou,m34=xiuo, &
