@@ -1,10 +1,47 @@
-
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!subroutine testmain
+!  call test_blaswrappers
+!end subroutine testmain
+
+
 subroutine testmain
-  call test_blaswrappers
+  use modmain
+  use modxs
+  implicit none
+
+  real(8) :: r(3,3)
+  complex(8) :: m(3,3),msym(3,3)
+  integer :: i1,i2,iop1,iop2
+
+  call init0
+
+  ! set up random hermitian matrix
+  call random_number(r)
+  m(:,:)=r(:,:)
+  call random_number(r)
+  m(:,:)=m(:,:)+zi*r(:,:) + 0.1
+!!!  m=0.5d0*(m+conjg(transpose(m)))
+
+  ! symmetrize
+  msym(:,:)=zzero
+  do iop1=1,3
+  do iop2=1,3
+  do i1=1,3
+  do i2=1,3
+    msym(iop1,iop2)=msym(iop1,iop2)+symt2(iop1,iop2,i1,i2)*m(i1,i2)
+  end do
+  end do
+  end do
+  end do
+
+  write(*,'(2f12.4,3x,2f12.4,3x,2f12.4,3x)') msym(1,:)
+  write(*,'(2f12.4,3x,2f12.4,3x,2f12.4,3x)') msym(2,:)
+  write(*,'(2f12.4,3x,2f12.4,3x,2f12.4,3x)') msym(3,:)
+  write(*,*)
+
 end subroutine testmain
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -119,7 +156,7 @@ end subroutine testmain
 !!$     end do
 !!$  end do
 !!$
-!!$  
+!!$
 !!$  ! element-by-element
 !!$  j2=0
 !!$  do i4=1,n4
@@ -129,7 +166,7 @@ end subroutine testmain
 !!$        do i2=1,n2
 !!$           do i1=1,n1
 !!$              j1=j1+1
-!!$              
+!!$
 !!$              b(i1,i2,i3,i4)=a1(i1,i2)*a2(i3,i4)
 !!$
 !!$           end do
@@ -141,7 +178,7 @@ end subroutine testmain
 !!$  ! pack procedure
 !!$  ap1=reshape(a1,(/m1/))
 !!$  ap2=reshape(a2,(/m2/))
-!!$ 
+!!$
 !!$  do j2=1,m2
 !!$     do j1=1,m1
 !!$
@@ -156,7 +193,7 @@ end subroutine testmain
 !!$     do i3=1,n3
 !!$        do i2=1,n2
 !!$           do i1=1,n1
-!!$              
+!!$
 !!$              write(770077,'(4i4,4x,3i6)') i1,i2,i3,i4, &
 !!$                   b(i1,i2,i3,i4),bb(i1,i2,i3,i4),b(i1,i2,i3,i4)-bb(i1,i2,i3,i4)
 !!$
@@ -180,7 +217,7 @@ end subroutine testmain
 !!$  p=pack(f,.true.)
 !!$  ma=reshape((/(.true.,j=1,6)/),(/2,3/))
 !!$  u=unpack(p,ma,0)
-!!$  
+!!$
 !!$  write(*,*) 'f'
 !!$  write(*,*) f
 !!$  write(*,*) 'shape(f)'
