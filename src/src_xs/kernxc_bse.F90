@@ -60,11 +60,9 @@ subroutine kernxc_bse
   logical, external :: tqgamma
   brd=broad
   emattype=2
-write(unitout,*) 'enty...'; call flushifc(unitout)
   call init0
   call init1
   call init2
-write(unitout,*) 'done init2...'; call flushifc(unitout)
   ! read Fermi energy from file
   call readfermi
   ! save variables for the Gamma q-point
@@ -178,10 +176,6 @@ write(unitout,*) 'done init2...'; call flushifc(unitout)
   call ematrad(iqmt)
   call ematqalloc
 
-write(*,*) 'kernxc_bse: emattype=2; nst1,nst2,nst3,nst4',nst1,nst2,nst3,nst4
-write(*,*) ' istl1,istu1,istl2,istu2',istl1,istu1,istl2,istu2
-write(*,*) ' istl3,istu3,istl4,istu4',istl3,istu3,istl4,istu4
-
   !---------------------------!
   !     loop over k-points    !
   !---------------------------!
@@ -204,11 +198,6 @@ write(*,*) ' istl3,istu3,istl4,istu4',istl3,istu3,istl4,istu4
   end do
   emattype=2
   call ematbdcmbs(emattype)
-
-
-write(*,*) 'kernxc_bse: emattype=2; nst1,nst2,nst3,nst4',nst1,nst2,nst3,nst4
-write(*,*) ' istl1,istu1,istl2,istu2',istl1,istu1,istl2,istu2
-write(*,*) ' istl3,istu3,istl4,istu4',istl3,istu3,istl4,istu4
 
   !-------------------------------!
   !     loop over (k,kp) pairs    !
@@ -364,11 +353,6 @@ write(*,*) ' istl3,istu3,istl4,istu4',istl3,istu3,istl4,istu4
                        zmqa(j2,j1)=conjg(zt1)
                     end if
 
-if ((iknr.eq.1).and.(jknr.eq.1).and.(ist1.eq.1).and.(ist3.eq.1).and.(ist2.eq.2).and. &
- (ist4.eq.1)) then
-write(unitout,*) '1-1,2-1',j1,j2,sccli(ist1,ist3,ist2,ist4),zmr(j2,j1),dekp(2,1),dek(1,1),dekp(2,1)-dek(1,1)
-end if
-
                  end do
               end do
            end do
@@ -383,15 +367,8 @@ end if
         residq=residq+matmul(zmq,emat12p)
         residqa=residqa+matmul(zmqa,emat12pa)
 
-
-
         ! end inner loop over k-points
      end do
-
-!@@@@@@@@@@@@@@@@@@@@@@@@
-write(unitout,*) 'iknr',iknr
-write(unitout,*) '1-1',residr(1,-3:2)
-write(unitout,*) '1-2',residr(2,-3:2)
 
      !--------------------------!
      !     set up BSE-kernel    !
@@ -451,9 +428,6 @@ write(unitout,*) '1-2',residr(2,-3:2)
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
        acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
-!  inquire(iolength=recl) (/(fxc(-oct,-oct,1),oct=1,noptc)/), &
-!     	(/(fxc(-oct,1:,1),oct=1,noptc)/), &
-!	(/(fxc(1:,-oct,1),oct=1,noptc)/),fxc(1:,1:,1)
   inquire(iolength=recl) n, fxc(-3:-1,-3:-1,1), fxc(-3:-1,1:,1), fxc(1:,-3:-1,1), &
 	fxc(1:,1:,1)
   call getunit(un2)
@@ -467,9 +441,6 @@ write(unitout,*) '1-2',residr(2,-3:2)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
 
   do iw=1,nwdf
-!     write(un2,rec=iw) (/(fxc(-oct,-oct,iw),oct=1,noptc)/), &
-!     	(/(fxc(-oct,1:,iw),oct=1,noptc)/),(/(fxc(1:,-oct,iw),oct=1,noptc)/), &
-!	fxc(1:,1:,iw)
      write(un2,rec=iw) n, fxc(-3:-1,-3:-1,iw), fxc(-3:-1,1:,iw), fxc(1:,-3:-1,iw), &
 	fxc(1:,1:,iw)
      write(un3,'(i6,2x,g18.10,2x,6g18.10)') iw,dble(w(iw)),(fxc(-oct,-oct,iw),&

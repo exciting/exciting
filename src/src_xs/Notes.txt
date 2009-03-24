@@ -117,3 +117,18 @@ FINISHED
 	* try this: transform q-point set to FIRST Brillouin zone!
 
 --------------------------------------------------------------------------------
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ * bug in findocclims (rely on Fermi energy for determination of gap system)
+ * scr. coul. int. frame for valence/cond. bands
+ * long-range screening, use tensor
+ * parallelize fxc_BSE
+ * test why exch. coul. interaction is very slow
+ * T-ordered BSE-spectrum (q_mt = 0)
+
+
+
+
+
+

@@ -35,10 +35,13 @@ subroutine kernxc_bse3
   character(256) :: filnam
   integer :: iknr,jknr,iv,ic,jv,jc,si,sj,nv,nc,wsiz,n,iop,iw,un,recl
   integer :: nvl,ncu
-  complex(8), allocatable :: w(:),mat(:,:),wmat(:,:),wm(:,:,:,:),l0mat(:,:)
+  complex(8), allocatable :: w(:),mat(:,:),wmat(:,:),wm(:,:,:,:)
+  complex(8), allocatable :: l0mat(:,:),l0mata(:,:)
   complex(8), allocatable :: hmat(:,:),hmat2(:,:)
   complex(8), allocatable :: fxc(:,:,:)
-  complex(8), allocatable :: xiout(:,:,:), pmout(:,:,:),me(:,:)
+  complex(8), allocatable :: xiout(:,:,:), pmout(:,:,:)
+  complex(8), allocatable :: xiuot(:,:,:), pmuot(:,:,:)
+  complex(8), allocatable :: me(:,:), mea(:,:)
   real(8), allocatable :: ev(:),de(:),scisk(:,:)
   integer, allocatable :: widx(:,:,:)
   integer, external :: idxkkp
@@ -77,11 +80,15 @@ subroutine kernxc_bse3
   write(*,*) 'n,nv,nc,nvl,ncu,wsiz',n,nv,nc,nvl,ncu,wsiz
 
   allocate(wm(nv,nc,nv,nc),widx(nv,nc,nkptnr))
-  allocate(de(wsiz),wmat(wsiz,wsiz),mat(wsiz,wsiz),l0mat(wsiz,wsiz),me(-3:n,wsiz))
+  allocate(de(wsiz),wmat(wsiz,wsiz),mat(wsiz,wsiz))
+  allocate(l0mat(wsiz,wsiz),me(-3:n,wsiz))
+  allocate(l0mata(wsiz,wsiz),mea(-3:n,wsiz))
   allocate(hmat(-3:n,wsiz),hmat2(wsiz,-3:n))
   allocate(ev(nstsv))
   allocate(fxc(-3:n,-3:n,nwdf))
-  allocate(xiout(nv,nc,n),pmout(3,nv,nc),scisk(nst1,nst3))
+  allocate(scisk(nst1,nst3))
+  allocate(xiout(nv,nc,n),pmout(3,nv,nc))
+  allocate(xiuot(nc,nv,n),pmuot(3,nc,nv))
   if (allocated(pmou)) deallocate(pmou)
   allocate(pmou(3,nv,nc))
   if (allocated(pmuo)) deallocate(pmuo)
@@ -140,8 +147,10 @@ call flushifc(unitout)
         si=widx(iv,ic,iknr)
 	    do iop=1,noptc
           me(-iop,si)=pmout(iop,iv,ic)
+          mea(-iop,si)=pmuot(iop,ic,iv)
 	    end do
 	    me(1:,si)=xiout(iv,ic,:)
+	    mea(1:,si)=xiuot(ic,iv,:)
       end do
     end do
   end do
@@ -191,8 +200,10 @@ call flushifc(unitout)
 
     ! set up L0-matrix
     l0mat(:,:)=zzero
+    l0mata(:,:)=zzero
     do si=1,wsiz
       l0mat(si,si)=1.d0/(w(iw)+bsed-de(si)+zi*broad)
+      l0mata(si,si)=-1.d0/(w(iw)+bsed+de(si)+zi*broad)
     end do
 
 !    ! do the 4 matrix multiplications
@@ -201,6 +212,7 @@ call flushifc(unitout)
 !    hmat=matmul(hmat,l0mat)
 !    fxc(:,:,iw)=2.d0*matmul(hmat,conjg(transpose(me)))
 
+    ! resonant contribution
     do si=1,wsiz
       hmat(:,si)=me(:,si)*l0mat(si,si)
     end do
@@ -209,6 +221,18 @@ call flushifc(unitout)
       hmat2(si,:)=l0mat(si,si)*conjg(me(:,si))
     end do
     fxc(:,:,iw)=2.d0*matmul(hmat,hmat2)/(nkptnr*omega)
+
+   if (aresfxc) then
+    ! anti-resonant contribution
+    do si=1,wsiz
+      hmat(:,si)=mea(:,si)*l0mata(si,si)
+    end do
+    hmat=matmul(hmat,-conjg(wmat))
+    do si=1,wsiz
+      hmat2(si,:)=l0mata(si,si)*conjg(mea(:,si))
+    end do
+    fxc(:,:,iw)=fxc(:,:,iw) + 2.d0*matmul(hmat,hmat2)/(nkptnr*omega)
+   end if
 
   end do
 
@@ -235,7 +259,7 @@ write(8888,'(i6,6g18.10)') iw,fxc(-1,-1,iw),fxc(-2,-2,iw),fxc(-3,-3,iw)
   deallocate(wm,widx)
   deallocate(de,me)
   deallocate(ev,hmat,hmat2)
-  deallocate(xiout,pmout,scisk)
+  deallocate(xiout,pmout,xiuot,pmuot,scisk,l0mat,l0mata)
 
 end subroutine kernxc_bse3
 !EOC
