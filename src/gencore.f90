@@ -33,6 +33,13 @@ do is=1,nspecies
     if (.not.done(ia)) then
       ias=idxas(ia,is)
       vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
+      if (frozencore) then
+! use atomic potential for the frozen core approximation
+        vr(1:nrmt(is))=spvr(1:nrmt(is),is)
+      else
+! else use the spherical part of the crystal effective potential
+        vr(1:nrmt(is))=veffmt(1,1:nrmt(is),ias)*y00
+      end if
 ! append the effective potential from the atomic calculation
       t1=vr(nrmt(is))-spvr(nrmt(is),is)
       do ir=nrmt(is)+1,spnr(is)

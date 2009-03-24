@@ -129,7 +129,7 @@ subroutine gndstate
 #endif
 
   end if
-     if(rank.eq.0) call flushifc(60)
+   if (rank.eq.0) call flushifc(60)
      ! generate the core wavefunctions and densities
   call gencore
      ! find the new linearisation energies
