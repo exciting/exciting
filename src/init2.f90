@@ -37,9 +37,6 @@ allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
 ! setup the q-point box (offset should always be zero)
 boxl(:,:)=0.d0
 boxl(1,2)=1.d0; boxl(2,3)=0.d0; boxl(3,4)=0.d0
-boxl(:,2)=boxl(:,2)+boxl(:,1)
-boxl(:,3)=boxl(:,3)+boxl(:,1)
-boxl(:,4)=boxl(:,4)+boxl(:,1)
 ! generate the q-point set, note that the vectors vql and vqc are mapped to the
 ! first Brillouin zone
 call genppts(reduceq,.true.,ngridq,boxl,nqpt,iqmap,ivq,vql,vqc,wqpt)
