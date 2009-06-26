@@ -1,0 +1,96 @@
+
+
+********************************************************************************
+TDDFT - chain: 301,(310),320,330,340,350
+BSE   - chain: 401,(410),420,430,440,441,445
+TDDFT with BSE-kernel - chain: 
+               401,(410),420,430,440,450,  301,(310),320,330,340,350
+********************************************************************************
+
+main reason of splitting into different tasks: flexibility, avoiding of repeating
+  steps which are not necessary on change of parameters; subdividing overall
+  task into smaller ones preferrable when computation time is limited.
+
+
+********************************************************************************
+TDDFT - part
+********************************************************************************
+
+301 P[k-points] (eigenvectors, eigenvalues, occupation numbers; for all Q-points)
+===
+
+
+310 P[energies],* (execution depends on tetradf =? true; for all Q-points)
+===
+
+
+320 P[k-points] (momentum matrix elements)
+===
+
+
+330 P[k-points] (matrix elements of Q-vector; for all Q-points)
+===
+
+
+340 P[energies] (response function; for all Q-points)
+===
+
+
+
+350 P[energies] (solve Dyson equation, optical constants; for all Q-points)
+===
+
+
+
+********************************************************************************
+BSE - part
+********************************************************************************
+
+401 P[q-points] (as 301, wrapping of specific cutoffs)
+===
+
+
+410 P[k-points] (as 310, wrapping of specific cutoffs; for all q-vectors)
+===
+
+
+420 P[k-points] (as 320, wrapping of specific cutoffs)
+===
+
+
+430 P[q-points] (dielectric matrix, wrapping of specific cutoffs)
+===
+
+
+440 P[q-points,kkp-pairs] (BSE Hamiltonian, direct term, wrapping of specific cutoffs)
+===
+
+
+441 P[k-points,kkp-pairs] (BSE Hamiltonian, exchange term, wrapping of specific cutoffs)
+===
+
+
+445 P[] (solve BSE, exchange term, wrapping of specific cutoffs)
+===
+
+
+********************************************************************************
+fxc_BSE - part
+********************************************************************************
+
+450 P[energies,-kpoints] (BSExc-kernel, wrapping of specific cutoffs)
+===
+
+
+********************************************************************************
+********************************************************************************
+REMARKS
+********************************************************************************
+********************************************************************************
+
+
+- all other tasks are not necessary for obtaining the final results, but they
+  are useful for checking on the road to the final results
+
+
+
