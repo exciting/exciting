@@ -297,6 +297,9 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         write(unexc,'(i8,5g18.10)') s2,(beval(s2)+egap-dble(bsed))*escale, &
 	     (beval(s2)+dble(bsed))*escale,abs(oszs(s2))
      end do
+     write(unexc,'("# Nr.  E                 E - E_gap        |Osc.Str.|")')
+     write(unexc,'("# E_gap : ",g18.10)') egap*escale
+     if (tevout) write(unexc,'("# energies are in electron volts")')
      close(unexc)
      ! oscillator strengths sorted
      oszsa=abs(oszs)
@@ -308,6 +311,9 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         write(unexc,'(i8,4g18.10)') s1,(beval(s2)+egap-dble(bsed))*escale, &
              (beval(s2)+dble(bsed))*escale,abs(oszs(s2))
      end do
+     write(unexc,'("#    Nr.   E                 E - E_gap        |Osc.Str.|")')
+     write(unexc,'("# E_gap : ",g18.10)') egap*escale
+     if (tevout) write(unexc,'("# energies are in electron volts")')
      close(unexc)
      ! end loop over optical components
   end do
