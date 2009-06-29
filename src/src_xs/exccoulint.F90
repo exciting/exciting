@@ -116,7 +116,7 @@ subroutine exccoulint
      ! q-point (non-reduced)
      iq=iqmap(iv(1),iv(2),iv(3))
 
-     ! set G=0 term of Coulomb potential to zero [Ambegaoker-Kohn]
+     ! set G=0 term of Coulomb potential to zero [Ambegaokar-Kohn]
      potcl(1)=0.d0
      ! set up Coulomb potential
      do igq1=2,n
@@ -160,7 +160,7 @@ subroutine exccoulint
         end do
      end do
 
-     if ((rank.eq.1).and.(ikkp.le.100)) then
+     if ((rank.eq.0).and.(ikkp.le.100)) then
         do ist1=1,nst1
            do ist2=1,nst2
               do ist3=1,nst1

@@ -211,7 +211,7 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
                     ! add exchange term
                     select case(trim(bsetype))
                     case('rpa','singlet')
-                       ham(s1,s2)=ham(s1,s2)+2.d0*excli(ist1,ist3,ist2,ist4)
+                       ham(s1,s2)=ham(s1,s2)+2.0d0*excli(ist2,ist4,ist1,ist3)
                     end select
                     ! add correlation term
                     select case(trim(bsetype))
@@ -249,11 +249,11 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
   do oct=1,noptcomp
      oszs(:)=zzero
      call genfilname(basename='EPSILON',tq0=.true.,oc1=oct,oc2=oct, &
-          bsetype=bsetype,scrtype=screentype,filnam=fneps)
+          bsetype=bsetype,scrtype=screentype,nar=.not.aresdf,filnam=fneps)
      call genfilname(basename='EXCITON',tq0=.true.,oc1=oct,oc2=oct, &
-          bsetype=bsetype,scrtype=screentype,filnam=fnexc)
+          bsetype=bsetype,scrtype=screentype,nar=.not.aresdf,filnam=fnexc)
      call genfilname(basename='EXCITON_SORTED',tq0=.true.,oc1=oct,oc2=oct, &
-          bsetype=bsetype,scrtype=screentype,filnam=fnexcs)
+          bsetype=bsetype,scrtype=screentype,nar=.not.aresdf,filnam=fnexcs)
      ! read momentum matrix elements
      allocate(pm(3,nstsv,nstsv))
      do iknr=1,nkptnr
@@ -283,13 +283,15 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
         do s1=1,nexc
            ! Lorentzian lineshape
            spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
-                1.d0/( w(iw)-(beval(s1)+egap-bsed)+zi*broad) + &
+                1.d0/( w(iw)-(beval(s1)+egap-bsed)+zi*broad) )
+           if (aresdf) spectr(iw)=spectr(iw) + abs(oszs(s1))**2 * ( &
                 1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*broad) )
         end do
      end do
      spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr
      ! write BSE spectrum
      call writeeps(iqmt,oct,oct,w,spectr,fneps)
+     call writeeps(iqmt,oct,oct,-w,spectr,trim(fneps)//'_reverseE') !@@@@@@@@@@@@@@@@@@@@@
      ! oscillator strengths
      call getunit(unexc)
      open(unexc,file=fnexc,form='formatted',action='write',status='replace')
