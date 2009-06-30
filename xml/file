@@ -1,0 +1,726 @@
+
+
+[[toc]]
++ Root element input
+[[# input]]
+++++* Attributes:
++++++* scratchpath
+
+[[# scratchpath]]This is the path to scratch space where the eigenvector file EIGVEC.OUT will be written. If the local directory is accessed via a network then scrpath can be set to a directory on
+
+**type:** xs:anyURI **use:** optional 
++++++* id
+
+[[# id]]The id is a unique identifier in an input set. If the input element is part of an input set the id must be set.
+
+**type:** xs:ID 
++++++* depends
+
+[[# depends]]the depends attribute can be used to specify a dependence from another simulation in the same input set.
+
+**type:** xs:IDREFS 
+
++ structure element
+[[# structure]]The structure element contains all structural information such as atoms atom positions and symmetries.
+++++* Attributes:
++++++* speciespath
+
+[[# speciespath]]gives the path to the directory containing the species files
+
+**type:** xs:anyURI **use:** required 
++++++* molecule
+
+[[# molecule]]true if the system is an isolated molecule
+
+**type:** xs:boolean **default-value:** false 
++++++* epslat
+
+[[# epslat]]vectors with lengths less than this are considered zero
+
+**type:** xs:double **default-value:** 1e-6 
++++++* autormt
+
+[[# autormt]]
+
+**type:** xs:boolean 
++++++* vacuum
+
+[[# vacuum]]
+
+**type:** xs:double 
++++++* lradstp
+
+[[# lradstp]]Some muffn-tin functions (such as the density) are calculated on a coarse radial mesh and then interpolated onto a fine mesh. This is done for the sake of efficiency. lradstp defines the step size in going from the fine to the coarse radial mesh. If it is too large, loss of precision may occur.
+
+**type:** xs:integer **default-value:** 4 
+
+++ crystal element
+[[# crystal]]defines the unit cell of the simulation
+++++* Attributes:
++++++* scale
+
+[[# scale]]gives a scaling factor for the unit cell. it scales the lattice vectors. This is useful for varying the volume.
+
+**type:** xs:double **default-value:** 1 
++++++* stretch
+
+[[# stretch]]separate scaling for each lattice vector 1 1 1 is no scaling
+
+**type:** vect3d **default-value:** 1.0   1.0  1.0  
++++++* primcell
+
+[[# primcell]]Allows the primitive unit cell to be determined automatically from the conventional cell. This is done by searching for lattice vectors among all those which connect atomic sites, and using the three shortest which produce a unit cell with non-zero volume.
+
+**type:** xs:boolean **default-value:** false 
+
++++ basevect element
+[[# basevect]]basevectors or lattice vectors in Bohr
+++ species element
+[[# species]]for each atom type (species) a species element is defined containing all the atom positions
+++++* Attributes:
++++++* chemicalSymbol
+
+[[# chemicalSymbol]]The species abrevation is looked up in the species directory specified by the species path
+
+**type:** xs:string **use:** required 
++++++* speciesfile
+
+[[# speciesfile]]not implemented but may be used to specify a file for custom species definition
+
+**type:** xs:anyURI **default-value:**  
+
++++ atom element
+[[# atom]]atomic position in lattice coordinates for atom
+++++* Attributes:
++++++* position
+
+[[# position]]position in lattice coordinates
+
+**type:** vect3d 
++++++* bfcmt
+
+[[# bfcmt]]muffin-tin external magnetic field in Cartesian coordinates for atom
+
+**type:** vect3d 
+
++++ LDAplusu element
+[[# LDAplusu]]If present defines ldaplusU parameters for species
+++++* Attributes:
++++++* L
+
+[[# L]]
+
+**type:** xs:double **default-value:** 0 
++++++* U
+
+[[# U]]
+
+**type:** xs:double **default-value:** 0 
++++++* J
+
+[[# J]]
+
+**type:** xs:double **default-value:** 0 
+
++ groundstate element
+[[# groundstate]]
+++++* Attributes:
++++++* ngkgrid
+
+[[# ngkgrid]]
+
+**type:** integertriple **use:** required 
++++++* rgkmax
+
+[[# rgkmax]]This sets the maximum length for the [[$ { \bf G}+{ \bf k} $]]vectors, defined as {{ rgkmax }}divided by the smallest muffin-tin radius.
+
+**type:** xs:double **default-value:** 7 
++++++* epspot
+
+[[# epspot]]This sets the maximum length for the [[$ { \bf G}+{ \bf k} $]]vectors, defined as {{ rgkmax }}divided by the smallest muffin-tin radius.
+
+**type:** xs:double **use:** optional **default-value:** 1e-6 
++++++* rmtapm
+
+[[# rmtapm]]parameters governing the automatic generation of the muffin-tin radii
+
+**type:** vect2d **default-value:** 0.25 0.95 
++++++* isgkmax
+
+[[# isgkmax]]species for which the muffin-tin radius will be used for calculating gkmax
+
+**type:** xs:integer **default-value:** -1 
++++++* gmaxvr
+
+[[# gmaxvr]]maximum length of |G| for expanding the interstitial density and potential
+
+**type:** xs:double **default-value:** 12 
++++++* nempty
+
+[[# nempty]]Defines the number of eigenstates beyond that required for charge neutrality. When running metals it is not known // a priori //how many states will be below the Fermi energy for each-point. Setting {{ nempty }}greater than zero allows the additional states to act as a buffer in such cases. Furthermore, magnetic calculations use the first-variational eigenstates as a basis for setting up the second-variational Hamiltonian, and thus {{ nempty }}will determine the size of this basis set. Convergence with respect to this quantity should be checked.
+
+**type:** xs:integer **default-value:** 5 
++++++* nosym
+
+[[# nosym]]when set to {{ .true. }}no symmetries, apart from the identity, are used anywhere in the code
+
+**type:** xs:boolean **default-value:** false 
++++++* autokpt
+
+[[# autokpt]]if the-point set is to be determined automatically
+
+**type:** xs:boolean **default-value:** false 
++++++* radkpt
+
+[[# radkpt]]Used for the automatic determination of the-point mesh. If {{ autokpt }}is set to {{ .true. }}then the mesh sizes will be determined by [[$ n_i=\lambda/|{ \bf A}_i|+1 $]].
+
+**type:** xs:double **default-value:** 40 
++++++* reducek
+
+[[# reducek]] {{ reducek }}set to {{ .true. }}if the [[$ k $]]-point set is to be reduced with the crystal symmetries
+
+**type:** xs:boolean **default-value:** true 
++++++* tfibs
+ [[#tfibs see]] 
++++++* tforce
+ [[#tforce see]] 
++++++* lmaxapw
+
+[[# lmaxapw]]angular momentum cut-off for the APW functions
+
+**type:** xs:integer **default-value:** 8 
++++++* maxscl
+
+[[# maxscl]]upper limit for te selfconsistency loop
+
+**type:** xs:integer **default-value:** 200 
++++++* chgexs
+
+[[# chgexs]]This controls the amount of charge in the unit cell beyond that required to maintain neu-trality. It can be set positive or negative depending on whether electron or hole doping is required.
+
+**type:** xs:double **default-value:** 0 
++++++* deband
+
+[[# deband]]initial band energy step size The initial step length used when searching for the band energy, which is used as the APW linearisation energy. This is done by first searching upwards in energy until the radial wavefunction at the muffin-tin radius is zero. This is the energy at the top of the band, denoted [[$ E_{\rm t} $]]. A downward search is now performed from [[$ E_{\rm t} $]]until the slope of the radial wavefunction at the muffin-tin radius is zero. This energy, [[$ E_{\rm b} $]], is at the bottom of the band. The band energy is taken as [[$ (E_{\rm t}+E_{\rm b})/2 $]]. If either [[$ E_{\rm t} $]]or [[$ E_{\rm b} $]]cannot be found then the band energy is set to the default value.
+
+**type:** xs:double **default-value:** 0.0025 
++++++* epschg
+
+[[# epschg]]maximum allowed error in the calculated total charge beyond which a warning message will be issued
+
+**type:** xs:double **default-value:** 1.0e-3 
++++++* epsocc
+
+[[# epsocc]]smallest occupancy for which a state will contribute to the density
+
+**type:** xs:double **default-value:** 10e-8 
++++++* solver
+
+[[# solver]]select the eigenvalue solver for the first variational equation
+
+**type:**  select:
+
+* Lapack
+* Arpack
+* DIIS  **default-value:** Lapack 
++++++* mixer
+
+[[# mixer]]select the mixing (relaxation) scheme for SCF
+
+**type:**  select:
+
+* lin
+* msec
+* pulay  **default-value:** msec 
++++++* fromscratch
+
+[[# fromscratch]]if true program will start SCF from atomic densities, eve if STATE.OUT is present
+
+**type:** xs:boolean **default-value:** true 
++++++* lradstep
+
+[[# lradstep]]Some muffin-tin functions (such as the density) are calculated on a coarse radial mesh and then interpolated onto a fine mesh. This is done for the sake of efficiency. lradstp defines the step size in going from the fine to the coarse radial mesh. If it is too large, loss of precision may occur.
+
+**type:** xs:integer **default-value:** 4 
++++++* nprad
+
+[[# nprad]]smallest occupancy for which a state will contribute to the density
+
+**type:** xs:integer **default-value:** 4 
++++++* xctype
+
+[[# xctype]]type of exchange-correlation functional to be used \begin{itemize} \item No exchange-correlation funtional ( [[$ E_{\rm xc}\equiv 0 $]]) \item LDA, Perdew-Zunger/Ceperley-Alder, {\it Phys. Rev. B}, 5048 (1981) \item LSDA, Perdew-Wang/Ceperley-Alder, // Phys. Rev. B //, 13244 (1992) \item LDA, X-alpha approximation, J. C. Slater, // Phys. Rev. //, 385 (1951) \item LSDA, von Barth-Hedin, // J. Phys. C //, 1629 (1972) \\ \item GGA, Perdew-Burke-Ernzerhof, // Phys. Rev. Lett. //, 3865 (1996) \item GGA, Revised PBE, Zhang-Yang, {\it Phys. Rev. Lett.}, 890 (1998) \item GGA, PBEsol, arXiv:0707.2088v1 (2007) \item GGA, Wu-Cohen exchange (WC06) with PBE correlation, // Phys. Rev. B //, 235116 (2006) \item GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, {\it Phys. Rev. B}, 085108 (2005) \end{itemize}
+
+**type:**  select:
+
+* LDAPerdew-Zunger
+* LSDAPerdew-Wang
+* LDA-X-alpha
+* LSDA-Barth-Hedin
+* GGAPerdew-Burke-Ernzerhof
+* GGArevPBE
+* GGAPBEsol
+* GGA-Wu-Cohen
+* GGAArmiento-Mattsson
+* EXX
+* none  **default-value:** LDAPerdew-Zunger 
++++++* evalmin
+
+[[# evalmin]]Any valence states with eigenvalues below evalmin are not occupied and a warning message is issued.
+
+**type:** xs:double **default-value:** -4.5 
++++++* lmaxvr
+
+[[# lmaxvr]]angular momentum cut-off for the muffin-tin density and potential
+
+**type:** xs:integer **default-value:** 7 
++++++* fracinr
+
+[[# fracinr]]fraction of the muffin-tin radius up to which lmaxinr is used as the angular momentum cut-off
+
+**type:** xs:double **default-value:** 0.25 
++++++* lmaxinr
+
+[[# lmaxinr]]Close to the nucleus, the density and potential is almost spherical and therefore the spherical harmonic expansion can be truncated a low angular momentum. See also fracinr.
+
+**type:** xs:integer **default-value:** 2 
++++++* lmaxmat
+
+[[# lmaxmat]]angular momentum cut-off for the outer-most loop in the hamiltonian and overlap matrix setup
+
+**type:** xs:integer **default-value:** 5 
++++++* kdotpgrid
+
+[[# kdotpgrid]]
+
+**type:** integertriple **use:** optional 
++++++* vkloff
+
+[[# vkloff]]the k-point offset vector in lattice coordinates
+
+**type:** vect3d **default-value:** 0 0 0 
++++++* npsden
+
+[[# npsden]]
+
+**type:** xs:integer **default-value:** 9 
+
++++++* attribute group 
+fermismearing
+[[#fermismearing See]]
+++ spin element
+[[# spin]]If present calculation is done with spin polarization it may be switched of with the spinpol attribute set to false
+++++* Attributes:
++++++* bfieldc
+
+[[# bfieldc]]alows to apply a constant B field This is a constant magnetic field applied throughout the entire unit cell and enters the second-variational Hamiltonian as 
+[[math label]] 
+
+          							\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf
+          							B}_{\rm ext}, 
+[[/math]]
+where [[$ g_e $]]is the electron [[$ g $]]-factor (2.0023193043718). This field is normally used to break spin symmetry for spin-polarised calculations and considered to be infinitesimal with no direct contribution to the total energy. In cases where the magnetic field is finite (for example when computing magnetic response) the external [[$ { \bf B} $]]-field energy reported in {{ INFO.OUT }}should be added to the total by hand. This field is applied throughout the entire unit cell. To apply magnetic fields in particular muffin-tins use the {{ bfcmt }}vect ors in the {{ atoms }}block. Collinear calculations are more efficient if the field is applied in the [[$ z $]]-direction.
+
+**type:** vect3d **default-value:** 0 0 0  
++++++* momfix
+
+[[# momfix]]the desired total moment for a FSM calculation
+
+**type:** vect3d **default-value:** 0 0 0 
++++++* spinorb
+
+[[# spinorb]]if a spin-orbit coupling is required If {{ spinorb }}is {{ .true. }}, then a [[$ \boldsymbol \sigma\cdot{ \bf L} $]]term is added to the second-variational Hamiltonian. See {{ spinpol }}.
+
+**type:** xs:boolean 
++++++* spinsprl
+
+[[# spinsprl]]set to {{ .true. }}if a spin-spiral calculation is require Experimental feature for the calculation of spin-spiral states. See {{ vqlss }}for details.
+
+**type:** xs:boolean 
++++++* vqlss
+
+[[# vqlss]]the [[$ { \bf q} $]]-vector of the spin-spiral state in lattice coordinates Spin-spirals arise from spinor states assumed to be of the form 
+[[math label]] 
+ \Psi^{ \bf  q}_{ \bf  k}({ \bf  r})=
+          							\left( \begin{array}{c} U^{{\bf
+          							q}\uparrow}_{ \bf  k}({\bf
+          							r})e^{i({ \bf  k+q/2})\cdot{ \bf  r}}
+          							\\ U^{{ \bf  q}\downarrow}_{\bf
+          							k}({ \bf  r})e^{i({\bf
+          							k-q/2})\cdot{ \bf  r}} \\
+          							\end{array} \right). 
+[[/math]]
+These are determined using a second-variational approach, and give rise to a magnetisation density of the form 
+[[math label]] 
+ {\bf
+          							m}^{ \bf  q}({ \bf  r})=(m_x({\bf
+          							r})\cos({ \bf  q \cdot r}), m_y({\bf
+          							r})\sin({ \bf  q \cdot r}),m_z({\bf
+          							r})), 
+[[/math]]
+where [[$ m_x $]], [[$ m_y $]]and [[$ m_z $]]are lattice periodic. See also {{ spinprl }}.
+
+**type:** vect3d 
++++++* taufsm
+
+[[# taufsm]]
+
+**type:** xs:double 
++++++* reducebf
+
+[[# reducebf]]After each iteration the external magnetic fields are multiplied with reducebf. This al- lows for a large external magnetic field at the start of the self-consistent loop to break spin symmetry, while at the end of the loop the field will be effectively zero, i.e. infinitesimal. See bfieldc and atoms.
+
+**type:** xs:double **default-value:** 1 
++++++* fixspin
+
+[[# fixspin]]
+
+**type:**  select:
+
+* total FSM
+* localmt FSM
+* both  
+
+++ HartreeFock element
+[[# HartreeFock]]
++ structureoptimization element
+[[# structureoptimization]]The structure optimization element requires a groundstate element to be present
+++++* Attributes:
++++++* epsforce
+
+[[# epsforce]]convergence tolerance for the forces during a structural optimisation run
+
+**type:** xs:double **default-value:** 5e-5 
++++++* tau0atm
+
+[[# tau0atm]]the step size to be used for structural optimisation The position of atom [[$ \alpha $]]is updated on step [[$ m $]]of a structural optimisation run using 
+[[math label]] 
+  {\bf r}_{\alpha}^{m+1}={\bf
+                  r}_{\alpha}^m+\tau_{\alpha}^m \left({ \bf  F}_{\alpha}^m+{ \bf  F}_{\alpha}^{m-1}\right), 
+[[/math]]
+where [[$ \tau_{\alpha} $]]is set to {{ tau0atm }}for [[$ m=0 $]], and incremented by the same amount if the atom is moving in the same direction between steps. If the direction changes then [[$ \tau_{\alpha} $]]is reset to {{ tau0atm }}.
+
+**type:** xs:double **default-value:** 0.2 
++++++* resume
+
+[[# resume]]Resumption of structural optimisation run using density in {{ STATE.OUT }}but with positions from {{ exciting.in }}.
+
+**type:** xs:boolean **default-value:** false 
+
++ properties element
+[[# properties]]Properties listed in this element can be calculated from the groundstate. It works also from a saved state from a previous run.
+++ bandstructure element
+[[# bandstructure]]
+++++* Attributes:
++++++* scissor
+ [[#scissor see]] 
+
++++++* attribute group 
+fermismearing
+[[#fermismearing See]]
++++ plot1d element
+[[#plot1d See]]
+++ wfplot element
+[[# wfplot]]wavefunction plot
++++ kstlist element
+[[#kstlist See]]
++++ plot1d element
+[[#plot1d See]]
++++ plot2d element
+[[#plot2d See]]
++++ plot3d element
+[[#plot3d See]]
+++ dos element
+[[# dos]]DOS and optics plots require integrals of the kind 
+[[math label]] 
+ g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ} f({ \bf  k}) \delta(\omega_i-e({\bf
+                    k}))d{ \bf  k}. 
+[[/math]]
+These are calculated by first interpolating the functions [[$ e({ \bf k}) $]]and [[$ f({ \bf k}) $]]with the trilinear method on a much finer mesh whose size is determined by {{ ngrdos }}. Then the [[$ \omega $]]-dependent histogram of the integrand is accumulated over the fine mesh. If the output function is noisy then either {{ ngrdos }}should be increased or {{ nwdos }}decreased. Alternatively, the output function can be artificially smoothed up to a level given by {{ nsmdos }}. This is the number of successive 3-point averages to be applied to the function [[$ g $]].
+++++* Attributes:
++++++* lmirep
+
+[[# lmirep]]When lmirep is set to .true., the spherical harmonic basis is transformed into one in which the site symmetries are block diagonal. Band characters determined from the density ma- trix expressed in this basis correspond to irreducible representations, and allow the partial DOS to be resolved into physically relevant contributions, for example eg and t2g .
+
+**type:** xs:boolean **default-value:** false 
++++++* nwdos
+
+[[# nwdos]]number of frequency/energy points in the DOS or op- integer 500 tics plot
+
+**type:** xs:integer **default-value:** 500 
++++++* ngrdos
+
+[[# ngrdos]]effective k-point mesh size to be used for Brillouin zone integer
+
+**type:** xs:integer **default-value:** 100 
++++++* nsmdos
+
+[[# nsmdos]]level of smoothing applied to DOS/optics output integer 0
+
+**type:** xs:integer **default-value:** 0 
++++++* wintdos
+
+[[# wintdos]]frequency/energy window for the DOS or optics plot
+
+**type:** vect2d **default-value:** .5 .5 
+
+++ LSJ element
+[[# LSJ]]Output L, S and J expectation values
++++ kstlist element
+[[#kstlist See]] [[$ i $]]th [[$ { \bf k} $]]-point and state pair
+++ masstensor element
+[[# masstensor]]Compute the effective mass tensor at the-point given by vklem
+++++* Attributes:
++++++* deltaem
+
+[[# deltaem]]The size of the k-vector displacement used when calculating numerical derivatives for the effective mass tensor
+
+**type:** xs:double **default-value:** 0.025 
++++++* ndspem
+
+[[# ndspem]]the number of k-vector displacements in each direction around vklem when computing the numerical derivatives for the effective mass tensor
+
+**type:** xs:integer 
++++++* vklem
+
+[[# vklem]]the k-point in lattice coordinates at which to compute the effective mass tensors
+
+**type:** vect3d **default-value:** 0 0 0 
+
+++ chargedesityplot element
+[[# chargedesityplot]]Plot the charge density
++++ plot1d element
+[[#plot1d See]]
++++ plot2d element
+[[#plot2d See]]
++++ plot3d element
+[[#plot3d See]]
+++ exccplot element
+[[# exccplot]]exchange-correlation and Coulomb potential plots.
++++ plot1d element
+[[#plot1d See]]
++++ plot2d element
+[[#plot2d See]]
++++ plot3d element
+[[#plot3d See]]
+++ elfplot element
+[[# elfplot]]electron localisation function (ELF)
++++ plot1d element
+[[#plot1d See]]
++++ plot2d element
+[[#plot2d See]]
++++ plot3d element
+[[#plot3d See]]
+++ mvecfield element
+[[# mvecfield]]plot of magnetisation vector field
++++ plot1d element
+[[#plot1d See]]
++++ plot2d element
+[[#plot2d See]]
+++ xcmvecfield element
+[[# xcmvecfield]]plot of exchange-correlation magnetic vector field
++++ plot1d element
+[[#plot1d See]]
++++ plot2d element
+[[#plot2d See]]
+++ gradmvecfield element
+[[# gradmvecfield]]plot of he gradient of the magnetic vector field.
++++ plot1d element
+[[#plot1d See]]
++++ plot2d element
+[[#plot2d See]]
++++ plot3d element
+[[#plot3d See]]
+++ fermisurfaceplot element
+[[# fermisurfaceplot]]
+++++* Attributes:
++++++* nstfsp
+
+[[# nstfsp]]number of states to be included in the Fermi surface plot file
+
+**type:** xs:integer **default-value:** 6 
+
++++++* attribute group 
+fermismearing
+[[#fermismearing See]]
+++ EFG element
+[[# EFG]]Calculation of electric field gradient (EFG), contact charge
+++ momentummatrix element
+[[# momentummatrix]]
+++ linresponsetensor element
+[[# linresponsetensor]]Linear optical response tensor.
+++++* Attributes:
++++++* scissor
+ [[#scissor see]] 
+
++++ optcomp element
+[[# optcomp]]the components of the first- or second-order optical tensor to be calculated
+++ dynmatrices element
+[[# dynmatrices]]Calculation of dynamical matrices on a q-point set defined by ngridq.
+++++* Attributes:
++++++* deltaph
+
+[[# deltaph]]Phonon calculations are performed by constructing a supercell corresponding to a par- ticular q-vector and making a small periodic displacement of the atoms. The magnitude of this displacement is given by deltaph. This should not be made too large, as anharmonic terms could then become significant, neither should it be too small as this can introduce numerical error.
+
+**type:** xs:double **default-value:** 0.03 
++++++* reduceq
+
+[[# reduceq]]set to {{ .true. }}if the [[$ { \bf q} $]]-point set is to be reduced with the crystal symmetries
+
+**type:** xs:boolean **default-value:** true 
++++++* ngridq
+
+[[# ngridq]]grid of q points
+
+**type:** integertriple 
+
+++ mossbauer element
+[[# mossbauer]]
+++ dielectric element
+[[# dielectric]]
+++ expirqr element
+[[# expirqr]]
+++ elnes element
+[[# elnes]]
+++ eliashberg element
+[[# eliashberg]]
++ phonons element
+[[# phonons]]The phonon element requires a groundstate element to be present. Phonon frequencies and eigen vectors for an arbitrary q-point.
+++ qpointset element
+[[# qpointset]]
++++ qpoint element
+[[# qpoint]]a q-point is given in reciprocal space coordinates
+++ phonondos element
+[[# phonondos]]Phonon density of states.
+++ phonondispplot element
+[[# phonondispplot]]Phonon dispersion plot.
++++ plot1d element
+[[#plot1d See]]
++ xs element
+[[# xs]]
+++++* Attributes:
++++++* dummya
+
+[[# dummya]]
+
+**type:** xs:string 
+
+++ dummy element
+[[# dummy]]
+
++ reused Elements
+		These elements make sense in more than only one context. In this documentation there are references placed if one of these applies.
+		++ origin element
+[[# origin]]
+++ point element
+[[# point]]
+++ plot1d element
+[[# plot1d]]plot1d specifies sample points along a path. The coordinate space is chosen in the context of the parent
++++ path element
+[[# path]]
+++++* Attributes:
++++++* steps
+
+[[# steps]]
+
+**type:** xs:integer **use:** required 
++++++* outfileprefix
+ [[#outfileprefix see]] 
+
+++++* point element
+[[#point See]]
+++ plot2d element
+[[# plot2d]]defines a 2d plot domain
++++ parallelogram element
+[[# parallelogram]]
+++++* Attributes:
++++++* grid
+
+[[# grid]]
+
+**type:** integerpair **use:** required 
++++++* outfileprefix
+ [[#outfileprefix see]] 
+
+++++* origin element
+[[#origin See]]
+++++* point element
+[[#point See]]
+++ plot3d element
+[[# plot3d]]defines a 3d plot domain
++++ box element
+[[# box]]
+++++* Attributes:
++++++* grid
+
+[[# grid]]
+
+**type:** integertriple **use:** required 
++++++* outfileprefix
+ [[#outfileprefix see]] 
+
+++++* origin element
+[[#origin See]]
+++++* point element
+[[#point See]]
+++ pointstatepair element
+[[# pointstatepair]] [[$ { \bf k} $]]-point and state index pair
+++ kstlist element
+[[# kstlist]]kstlist is used in the LSJ and wavefunction plot element This is a user-defined list of [[$ { \bf k} $]]-point and state index pairs which are those used for plotting wavefunctions and writing [[$ { \bf L} $]], [[$ { \bf S} $]]and [[$ { \bf J} $]]expectation values.
++++ pointstatepair element
+[[#pointstatepair See]]
+++ inputset element
+[[# inputset]]The inputset element can be used to store a set of input elements, this may be useful for simulations rows.
++++ input element
+[[#input See]]
+
++ reused attributes
+These attributes make sense in more than only one context.  In this documentation there are references placed if one of these applies.
+	input schema
+++++* Attributes:
++++++* outfileprefix
+
+[[# outfileprefix]]a prefix to be prepended to the output files
+
+**type:** xs:string 
++++++* tfibs
+
+[[# tfibs]]if the IBS correction to the force should be calculated Because calculation of the incomplete basis set (IBS) correction to the force is fairly time-consuming, it can be switched off by setting {{ tfibs }}to {{ .false. }}This correction can then be included only when necessary, i.e. when the atoms are close to equilibrium in a structural relaxation run.
+
+**type:** xs:boolean **default-value:** true 
++++++* tforce
+
+[[# tforce]]set to {{ .true. }}if the force should be calculated at the end of the self-consistent cycle This variable is automatically set to {{ .true. }}pre when performing structural optimization.
+
+**type:** xs:boolean **default-value:** false 
++++++* scissor
+
+[[# scissor]]the scissors correction This is the scissors shift applied to states above the Fermi energy. Affects DOS, optics and band structure plots.
+
+**type:** xs:double 
++++++* dummy
+
+[[# dummy]]
+
+**type:** xs:string 
+
+++ fermismearing attribute group
+[[# fermismearing]]Group of attributes to define the smearing
+++++* Attributes:
++++++* swidth
+
+[[# swidth]]width of the smooth approximation to the Dirac delta function
+
+**type:** xs:double **default-value:** 0.01 
++++++* stype
+
+[[# stype]]A smooth approximation to the Dirac delta function is needed to compute the occupancies of the Kohn-Sham states. The variable {{ swidth }}determines the width of the approximate delta function. Currently implemented are
+
+**type:**  select:
+
+* Gaussian
+* Methfessel-Paxton 1
+* Methfessel-Paxton 2
+* Fermi Dirac  **default-value:** Gaussian 
+
+

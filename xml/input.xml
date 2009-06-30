@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="'../../species/'" autormt="true">
+<crystal>
+<basevect>7.2246  0.0     0.0</basevect>
+<basevect>  0.0     7.3442  0.0</basevect>
+<basevect>  0.0     0.0    22.0733</basevect>
+</crystal>
+<species speciesfile="Y.xml">
+<atom coord="0.5  0.5  0.5" bfcmt="0.0  0.0  0.0"></atom>
+</species>
+<species speciesfile="Ba.xml">
+<atom coord="0.5  0.5  0.1843" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.5  0.5  0.8157" bfcmt="0.0  0.0  0.0"></atom>
+</species>
+<species speciesfile="Cu.xml">
+<atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.0  0.0  0.3556" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.0  0.0  0.6444" bfcmt="0.0  0.0  0.0"></atom>
+</species>
+<species speciesfile="O.xml">
+<atom coord="0.0  0.5  0.0" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.5  0.0  0.3773" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.5  0.0  0.6227" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.0  0.5  0.3789" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.0  0.5  0.6211" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.0  0.0  0.1584" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.0  0.0  0.8416" bfcmt="0.0  0.0  0.0"></atom>
+</species>
+</structure>
+<groundstate fromscratch="true" vkloff="0.25  0.5  0.5" rgkmax="6.0" ngkgrid="2  2  1"></groundstate>
+<properties>
+<bandstructure>
+<plot1d>
+<path steps="20">
+<point coord="0 0 0 "/>
+<point coord="0 1 0 "/>
+</path>
+</plot1d>
+</bandstructure>
+</properties>
+</input>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" >
+    <xs:annotation>
+    	<xs:documentation>schema for species db</xs:documentation>
+<xs:appinfo>
+<title>Species file format reference</title>
+<root>species</root> 
+</xs:appinfo>
+</xs:annotation>
+<xs:simpleType name="fortrandouble">
+  <xs:restriction base="xs:token">
+    <xs:pattern value="[-]?[0-9]*\.?[0-9]+([eEdDqQ][-+]?[0-9]+)?"/>
+  </xs:restriction>
+</xs:simpleType>
+    <xs:element name="wf" >
+        <xs:annotation>
+        	<xs:documentation>defines the radial part of an  atomic wavefunction. This functions used to construct a lapw orbital. The actual basisfunctions  for the calculation inside the MT are linear combinations of these and Ylm.</xs:documentation>
+        </xs:annotation>
+        
+        <xs:complexType>
+    		
+            <xs:attribute name="trialEnergy" type="fortrandouble" use="required">
+    			<xs:annotation>
+    				<xs:documentation>energy level of the radial wave function (initial condition for numerical radial Schrodinger equation)</xs:documentation>
+    			</xs:annotation></xs:attribute>
+            
+            <xs:attribute name="matchingOrder" type="xs:integer" use="required"/>
+            
+            <xs:attribute name="searchE" type="xs:boolean" use="required">
+    			<xs:annotation>
+    				<xs:documentation>if true E0 is optimized to match boundary condtions</xs:documentation>
+    			</xs:annotation></xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="species">
+    	
+    
+        <xs:annotation>
+    		<xs:documentation>Aspecies is a Atom type definition containing all information to construcht a lapw basis</xs:documentation>
+    	</xs:annotation>
+        
+        <xs:complexType>
+    	
+            <xs:sequence>
+    		
+                <xs:element name="muffinTin" minOccurs="1" maxOccurs="1">
+                
+                    <xs:annotation>
+                	<xs:documentation>size and resolution of muffin tin</xs:documentation>
+                </xs:annotation>
+                     
+                    <xs:complexType>
+    				
+                        <xs:attribute name="rmin" type="fortrandouble" use="required"></xs:attribute>
+                        
+                        <xs:attribute name="rinf" type="fortrandouble" use="required"></xs:attribute>
+                        
+                        <xs:attribute name="radius" type="fortrandouble" use="required"></xs:attribute>
+                        
+                        <xs:attribute name="radialmeshPoints" type="xs:integer" use="required"></xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                
+                <xs:element name="atomicState" minOccurs="1" maxOccurs="unbounded">
+    			
+                    <xs:complexType>
+    				
+                        <xs:attribute name="n" type="xs:integer" use="required"></xs:attribute>
+                        
+                        <xs:attribute name="l" type="xs:integer" use="required"></xs:attribute>
+                        
+                        <xs:attribute name="kappa" type="xs:integer" use="required"></xs:attribute>
+                        
+                        <xs:attribute name="occ" type="fortrandouble" use="required"></xs:attribute>
+                        
+                        <xs:attribute name="core" type="xs:boolean" use="required"></xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                
+
+                <xs:element name="basis" minOccurs="1" maxOccurs="1">
+                
+                    <xs:annotation>
+                	<xs:documentation>defines apw basis</xs:documentation>
+                </xs:annotation>
+                    
+                    <xs:complexType>
+    				
+                        <xs:sequence>
+    					
+                            <xs:element ref="wf" maxOccurs="unbounded" minOccurs="1" />
+                            
+                            <xs:element name="exception" minOccurs="0" maxOccurs="unbounded">						
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element ref="wf" maxOccurs="unbounded" minOccurs="1"/>
+                                    </xs:sequence>
+                            
+                                    <xs:attribute name="l" type="xs:integer"></xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        
+                        <xs:attribute name="order" type="xs:integer" use="required"></xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                
+                <xs:element name="lorb" maxOccurs="unbounded" minOccurs="0">
+                
+                    <xs:annotation>
+                	<xs:documentation>local orbital (APW+lo or LAPW+lo)</xs:documentation>
+                </xs:annotation>
+                    
+                    <xs:complexType>
+    				
+                        <xs:sequence>
+    					
+                            <xs:element ref="wf" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                        </xs:sequence>
+                        
+                        <xs:attribute name="l" type="xs:integer" use="required"></xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            
+            <xs:attribute name="chemicalSymbol" type="xs:ID" use="required">
+    		<xs:annotation>
+    			<xs:documentation>Chemical Symbol serves a ID (must be uniqe) in case the speciesdef is inside a speciesdb </xs:documentation>
+    		</xs:annotation></xs:attribute>
+            
+            <xs:attribute name="z" type="fortrandouble" use="required">
+    		<xs:annotation>
+    			<xs:documentation>atomic number</xs:documentation>
+    		</xs:annotation></xs:attribute>
+            
+            <xs:attribute name="mass" type="fortrandouble" use="required">
+    		<xs:annotation>
+    			<xs:documentation>mass in ?</xs:documentation>
+    		</xs:annotation></xs:attribute>
+            
+            <xs:attribute name="name" type="xs:string" use="optional">
+    		<xs:annotation>
+    			<xs:documentation>optional element name</xs:documentation>
+    		</xs:annotation></xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="speciesdb">
+           <xs:annotation>
+        	<xs:documentation>can contain species definitions</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="species" maxOccurs="unbounded"></xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<speciesdb xsi:noNamespaceSchemaLocation="./species.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	
+	
+	<species mass="49184.33493" chemicalSymbol="Al" n="-13" name="aluminiun">
+		<muffinTin radius="2" rmin=".5" rinf="45" radialmeshPoints="400"/>
+	
+
+		<atomicState n="1" l="0" occ="2" kappa="1" core="true" />
+		<atomicState n="2" l="0" occ="2" kappa="1" core="true" />
+		<atomicState n="2" l="1" occ="2" kappa="1" core="false" />
+		<atomicState n="2" l="1" occ="4" kappa="2" core="false" />
+		<atomicState n="3" l="0" occ="2" kappa="1" core="false" />
+		<atomicState n="3" l="1" occ="1" kappa="1" core="false" />
+		
+		<basis order="1">
+			<wf matchingOrder="0" trialEnergy=".15" searchE="false" />
+			<exception>
+			<wf/>
+			</exception>
+		</basis>
+		<lorb l="4">
+<wf/>
+		</lorb>
+		<lorb l="0">
+			<wf dm="0" e0=".15" searchE="false" />
+			<wf dm="1" e0=".15" searchE="false" />
+		</lorb>
+		<lorb l="1">
+			<wf dm="0" e0=".15" searchE="false" />
+			<wf dm="1" e0=".15" searchE="false" />
+		</lorb>
+		<lorb l="2">
+			<wf dm="0" e0=".15" searchE="false" />
+			<wf dm="1" e0=".15" searchE="false" />
+		</lorb>
+		<lorb l="1">
+			<wf dm="0" e0=".15" searchE="false" />
+			<wf dm="1" e0=".15" searchE="false" />
+			<wf dm="0" e0="-2.4974" searchE="true"/>
+		</lorb>
+	</species>
+</speciesdb>
