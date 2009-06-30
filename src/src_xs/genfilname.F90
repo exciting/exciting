@@ -11,7 +11,7 @@ contains
 ! !ROUTINE: genfilname
 ! !INTERFACE:
   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
-       nar,nlf,fxctype,scrtype,bsetype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
+       nar,tord,nlf,fxctype,scrtype,bsetype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
        setfilext,revertfilext,appfilext,filnam,fileext)
 ! !USES:
     use modmain, only: filext
@@ -30,12 +30,12 @@ contains
     ! arguments
     integer, optional, intent(in) :: bzsampl,fxctype,oc1,oc2,iq,iqmt,procs,rank
     integer, optional, intent(in) :: etype
-    logical, optional, intent(in) :: nodotpar,asc,acont,nar,nlf,tq0
+    logical, optional, intent(in) :: nodotpar,asc,acont,nar,tord,nlf,tq0
     logical, optional, intent(in) :: revertfilext,setfilext,appfilext
     character(*), optional, intent(in) :: basename,dotext,scrtype,bsetype
     character(256), optional, intent(out) :: filnam,fileext
     ! local variables
-    logical :: nodot0,revert,setfxt,appfxt,dotxt,oct
+    logical :: nodot0,revert,setfxt,appfxt,dotxt,oct,lnar
     character(*), parameter :: thisnam = 'genfilname'
     character(256) :: s,s1
     ! if file extension in "modmain" is to be reset to last value: reset
@@ -107,9 +107,17 @@ contains
        end if
     end if
     ! exclusion of anti-resonant part
+    lnar=.false.
     if (present(nar)) then
        if (nar) then
+          lnar=.true.
           s=trim(s)//'_NAR'
+       end if
+    end if
+    ! time-ordering
+    if (present(tord)) then
+       if (tord.and.(.not.lnar)) then        
+          s=trim(s)//'_TORD'
        end if
     end if
     ! no local field effects
