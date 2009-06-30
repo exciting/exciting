@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet  href="./multiprototype.xsl" type="text/xsl"?>
+<!-- 
+to generate a set of inputs from this parameter definition use the command
+ # xsltproc inputtemplateexample.xsl parameterset.xml >multioutput.xml
+ -->
+<parameterset>
+
+
+<scale>.9</scale>
+<scale>.91</scale>
+<scale>.92</scale>
+<scale>.93</scale>
+<scale>.94</scale>
+<scale>.95</scale>
+<scale>.96</scale>
+<scale>.97</scale>
+<scale>.98</scale>
+<scale>.99</scale>
+<scale>1</scale>
+
+<rgkmax>7</rgkmax>
+<rgkmax>7.5</rgkmax>
+<rgkmax>8</rgkmax>
+
+</parameterset>
