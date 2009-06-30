@@ -302,6 +302,13 @@ subroutine dfq(iq)
         xiuo(:,:,:)=zzero
         pmuo(:,:,:)=zzero
      end if
+     
+     
+     !@@@@@@@@@@@@@@@@@@@@
+     xiou(:,:,:)=zzero
+     pmou(:,:,:)=zzero
+     !@@@@@@@@@@@@@@@@@@@@ SAG
+     
      do ist1=1,istocc0-istunocc0+1
         do ist2=1,istocc0-istunocc0+1
            j=ist1+istunocc0-1

@@ -123,7 +123,6 @@ subroutine xslinopt(iq)
            call gensumrls(dble(wr),mdf,sumrls)
            ! write optical functions to file
            call writeeps(iq,oct1,oct2,wplot,mdf,trim(fneps))
-           call writeeps(iq,oct1,oct2,-wplot,mdf,trim(fneps)//'reverseE')
            call writeloss(iq,wplot,loss,trim(fnloss))
            call writesigma(iq,wplot,sigma,trim(fnsigma))
            call writesumrls(iq,sumrls,trim(fnsumrules))

@@ -157,9 +157,12 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      call getevalsv(vkl(1,iknr),evalsv(1,iknr))
   end do
   ! determine gap
-  call getbsediag
-  write(unitout,'("Info(bse): read diagonal of BSE kernel")')
-  write(unitout,'(" mean value : ",2g18.10)') bsed
+
+bsed=0.d0
+write(*,*) 'set bsed to zero: finish bse-routine!'
+!  call getbsediag
+!  write(unitout,'("Info(bse): read diagonal of BSE kernel")')
+!  write(unitout,'(" mean value : ",2g18.10)') bsed
   egap=1.d8
   do iknr=1,nkptnr
      do ist1=1+nvdif,nst1
@@ -211,7 +214,7 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
                     ! add exchange term
                     select case(trim(bsetype))
                     case('rpa','singlet')
-                       ham(s1,s2)=ham(s1,s2)+2.0d0*excli(ist2,ist4,ist1,ist3)
+                       ham(s1,s2)=ham(s1,s2)+2.0d0*excli(ist1,ist3,ist2,ist4)
                     end select
                     ! add correlation term
                     select case(trim(bsetype))
@@ -291,7 +294,6 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
      spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr
      ! write BSE spectrum
      call writeeps(iqmt,oct,oct,w,spectr,fneps)
-     call writeeps(iqmt,oct,oct,-w,spectr,trim(fneps)//'_reverseE') !@@@@@@@@@@@@@@@@@@@@@
      ! oscillator strengths
      call getunit(unexc)
      open(unexc,file=fnexc,form='formatted',action='write',status='replace')

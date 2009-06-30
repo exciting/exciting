@@ -18,6 +18,13 @@
 !
 !EOI
 
+module modxsmain
+use mod_misc
+implicit none
+integer :: nxstasks
+character(256) :: xstasks(maxtasks)
+end module
+
 subroutine xsmain
   use modmain
   use modmpi
