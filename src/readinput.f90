@@ -272,7 +272,8 @@ sciavqhd=.false.
 sciavqwg=.false.
 sciavqbd=.false.
 ! BSE (-kernel) variables
-bsetype='ip'
+bsetype='singlet'
+bsedirsing=.true.
 nosymbse=.false.
 reducekbse=.false.
 vkloffbse(:)=-1.d0
@@ -1311,6 +1312,8 @@ case('bsetype')
       write(*,*)
       stop
    end select
+case('bsedirsing')
+  read(50,*,err=20) bsedirsing
 case('nosymbse')
   read(50,*,err=20) nosymbse
 case('reducekbse')

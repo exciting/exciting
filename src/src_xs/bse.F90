@@ -156,14 +156,16 @@ write(*,*) 'nvdif,ncdif',nvdif,ncdif
   do iknr=1,nkptnr
      call getevalsv(vkl(1,iknr),evalsv(1,iknr))
   end do
-  ! determine gap
-
+  ! read mean value of diagonal of direct term
   bsed=0.d0
   if ((trim(bsetype).eq.'singlet').or.(trim(bsetype).eq.'triplet')) then
-    call getbsediag
-    write(unitout,'("Info(bse): read diagonal of BSE kernel")')
-    write(unitout,'(" mean value : ",2g18.10)') bsed
+    if (bsedirsing) then
+      call getbsediag
+      write(unitout,'("Info(bse): read diagonal of BSE kernel")')
+      write(unitout,'(" mean value : ",2g18.10)') bsed
+    end if
   end if
+  ! determine gap
   egap=1.d8
   do iknr=1,nkptnr
      do ist1=1+nvdif,nst1

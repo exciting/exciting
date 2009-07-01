@@ -412,6 +412,8 @@ module modxs
   !------------------------------------------!
   ! type of BSE-Hamiltonian
   character(32) :: bsetype
+  ! true if effective singular part of direct term of BSE Hamiltonian is to be used
+  logical :: bsedirsing
   ! nosym is .true. if no symmetry information should be used
   logical nosymbse
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
