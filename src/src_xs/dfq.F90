@@ -121,12 +121,12 @@ subroutine dfq(iq)
   if (tscreen) then
      call genfilname(basename='TETW',iq=iq,appfilext=.true.,filnam=fnwtet)
      call genfilname(basename='PMAT',appfilext=.true.,filnam=fnpmat)
-     call genfilname(basename='SCREEN',bzsampl=bzsampl,nar=.not.aresdf,&
+     call genfilname(basename='SCREEN',bzsampl=bzsampl,&
           iq=iq,filnam=fnscreen)
      call genfilname(nodotpar=.true.,basename='EMAT_TIMING',iq=iq,&
           etype=emattype,procs=procs,rank=rank,appfilext=.true.,filnam=fnetim)
      call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
-          bzsampl=bzsampl,acont=acont,nar=.not.aresdf,procs=procs,rank=rank, &
+          bzsampl=bzsampl,acont=acont,procs=procs,rank=rank, &
           appfilext=.true.,filnam=fnxtim)
   else
      call genfilname(basename='TETW',iqmt=iq,filnam=fnwtet)
@@ -298,7 +298,7 @@ subroutine dfq(iq)
      end if
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
      ! response function
-     if (.not.aresdf) then
+     if ((.not.aresdf).and.(.not.tscreen)) then
         xiuo(:,:,:)=zzero
         pmuo(:,:,:)=zzero
      end if
