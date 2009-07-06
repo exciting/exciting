@@ -1,2062 +1,2222 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <!--
-    This schema defines the input file format. It should be the central
-    place for parameter and task specification and documentation
-  -->
-  <!--  global type definitions -->
-  <xs:simpleType name="fortrandouble">
-    <xs:restriction base="xs:token">
-      <xs:pattern value="[-]?[0-9]*\.?[0-9]+([eEdDqQ][-+]?[0-9]+)?" />
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:annotation>
-    <xs:documentation>input schema</xs:documentation>
-    <xs:appinfo>
-      <title>\exciting input reference</title>
-      <root>input</root>
-    </xs:appinfo>
-  </xs:annotation>
-  <xs:simpleType name="vector">
-    <xs:list itemType="fortrandouble" />
-  </xs:simpleType>
-  <xs:simpleType name="integerlist">
-    <xs:list itemType="xs:integer" />
-  </xs:simpleType>
-  <xs:simpleType name="vect3d">
-    <xs:restriction base="vector">
-      <xs:length value="3" />
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="vect2d">
-    <xs:restriction base="vector">
-      <xs:length value="2" />
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="integertriple">
-    <xs:restriction base="integerlist">
-      <xs:length value="3" />
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="integerpair">
-    <xs:restriction base="integerlist">
-      <xs:length value="2" />
-    </xs:restriction>
-  </xs:simpleType>
-  <!-- global attribute definitions -->
-  <xs:attribute name="outfileprefix" type="xs:string">
-    <xs:annotation>
-      <xs:documentation>a prefix to be prepended to the output files
+	<!--
+		This schema defines the input file format. It should be the central
+		place for parameter and task specification and documentation
+	-->
+	<!--  global type definitions -->
+	<xs:simpleType name="fortrandouble">
+		<xs:restriction base="xs:token">
+			<xs:pattern value="[-]?[0-9]*\.?[0-9]+([eEdDqQ][-+]?[0-9]+)?" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:annotation>
+		<xs:documentation>input schema</xs:documentation>
+		<xs:appinfo>
+			<title>\exciting input reference</title>
+			<root>input</root>
+		</xs:appinfo>
+	</xs:annotation>
+	<xs:simpleType name="vector">
+		<xs:list itemType="fortrandouble" />
+	</xs:simpleType>
+	<xs:simpleType name="integerlist">
+		<xs:list itemType="xs:integer" />
+	</xs:simpleType>
+	<xs:simpleType name="vect3d">
+		<xs:restriction base="vector">
+			<xs:length value="3" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="vect2d">
+		<xs:restriction base="vector">
+			<xs:length value="2" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="integertriple">
+		<xs:restriction base="integerlist">
+			<xs:length value="3" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="integerpair">
+		<xs:restriction base="integerlist">
+			<xs:length value="2" />
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- global attribute definitions -->
+	<xs:attribute name="outfileprefix" type="xs:string">
+		<xs:annotation>
+			<xs:documentation>a prefix to be prepended to the output files
+			</xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="tfibs" type="xs:boolean" default="true">
+		<xs:annotation>
+			<xs:documentation>
+				if the IBS correction to the force should be calculated Because
+				calculation of the incomplete basis set (IBS) correction to the
+				force is fairly
+				time-consuming, it can be switched off by setting
+				<pre> tfibs</pre>
+				to
+				<pre> .false.</pre>
+				This correction can then be included only when necessary, i.e.
+				when
+				the atoms are close to equilibrium in a structural
+				relaxation run.
+			</xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="tforce" type="xs:boolean" default="false">
+		<xs:annotation>
+			<xs:documentation>
+				set to
+				<pre> .true.</pre>
+				if the force should be calculated at the end of the
+				self-consistent
+				cycle This variable is automatically set to
+				<pre> .true.</pre>
+				pre when performing structural optimization.
+			</xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="scissor" type="fortrandouble" default="0">
+		<xs:annotation>
+			<xs:documentation>the scissors correction This is the scissors
+				shift
+				applied to states above the Fermi energy. Affects DOS,
+				optics and
+				band structure
+				plots.</xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+	<!-- global element definitions -->
+	<xs:element name="origin">
+		<xs:complexType>
+			<xs:attribute name="coord" type="vect3d" />
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="point">
+		<xs:complexType>
+			<xs:attribute name="coord" type="vect3d" />
+			<xs:attribute name="label" type="xs:string" default="" />
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="plot1d">
+		<xs:annotation>
+			<xs:documentation> plot1d specifies sample points along a path.
+				The
+				coordinate space is chosen in the context of the parent
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="path" maxOccurs="1" minOccurs="1">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:annotation>
+								<xs:documentation>A path consists of at least two
+									points and a
+									number of divisions.</xs:documentation>
+							</xs:annotation>
+							<xs:element ref="point" minOccurs="2" maxOccurs="unbounded" />
+						</xs:sequence>
+						<xs:attribute name="steps" type="xs:integer" use="required" />
+						<xs:attribute ref="outfileprefix" />
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="plot2d">
+		<xs:annotation>
+			<xs:documentation>defines a 2d plot domain
       </xs:documentation>
-    </xs:annotation>
-  </xs:attribute>
-  <xs:attribute name="tfibs" type="xs:boolean" default="true">
-    <xs:annotation>
-      <xs:documentation>
-        if the IBS correction to the force should be calculated Because
-        calculation of the incomplete basis set (IBS) correction to the
-        force is fairly
-        time-consuming, it can be switched off by setting
-        <pre> tfibs</pre>
-        to
-        <pre> .false.</pre>
-        This correction can then be included only when necessary, i.e.
-        when the atoms are close to equilibrium in a structural
-        relaxation run.
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="parallelogram" maxOccurs="1" minOccurs="1">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="origin" minOccurs="1" maxOccurs="1" />
+							<xs:element ref="point" minOccurs="2" maxOccurs="2" />
+						</xs:sequence>
+						<xs:attribute name="grid" type="integerpair" use="required" />
+						<xs:attribute ref="outfileprefix" />
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="plot3d">
+		<xs:annotation>
+			<xs:documentation>defines a 3d plot domain
       </xs:documentation>
-    </xs:annotation>
-  </xs:attribute>
-  <xs:attribute name="tforce" type="xs:boolean" default="false">
-    <xs:annotation>
-      <xs:documentation>
-        set to
-        <pre> .true.</pre>
-        if the force should be calculated at the end of the
-        self-consistent cycle This variable is automatically set to
-        <pre> .true.</pre>
-        pre when performing structural optimization.
-      </xs:documentation>
-    </xs:annotation>
-  </xs:attribute>
-  <xs:attribute name="scissor" type="fortrandouble"
-    default="0">
-    <xs:annotation>
-      <xs:documentation>the scissors correction This is the scissors
-        shift applied to states above the Fermi energy. Affects DOS,
-        optics and band structure
-        plots.</xs:documentation>
-    </xs:annotation>
-  </xs:attribute>
-  <!-- global element definitions -->
-  <xs:element name="origin">
-    <xs:complexType>
-      <xs:attribute name="coord" type="vect3d" />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="point">
-    <xs:complexType>
-      <xs:attribute name="coord" type="vect3d" />
-      <xs:attribute name="label" type="xs:string" default="" />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="plot1d">
-    <xs:annotation>
-      <xs:documentation> plot1d specifies sample points along a path.
-        The coordinate space is chosen in the context of the parent
-      </xs:documentation>
-    </xs:annotation>
-    <xs:complexType>
-      <xs:all>
-        <xs:element name="path" maxOccurs="1" minOccurs="1">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:annotation>
-                <xs:documentation>A path consists of at least two
-                  points and a number of divisions.</xs:documentation>
-              </xs:annotation>
-              <xs:element ref="point" minOccurs="2"
-                maxOccurs="unbounded" />
-            </xs:sequence>
-            <xs:attribute name="steps" type="xs:integer"
-              use="required" />
-            <xs:attribute ref="outfileprefix" />
-          </xs:complexType>
-        </xs:element>
-      </xs:all>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="plot2d">
-    <xs:annotation>
-      <xs:documentation>defines a 2d plot domain
-      </xs:documentation>
-    </xs:annotation>
-    <xs:complexType>
-      <xs:all>
-        <xs:element name="parallelogram" maxOccurs="1"
-          minOccurs="1">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element ref="origin" minOccurs="1"
-                maxOccurs="1" />
-              <xs:element ref="point" minOccurs="2"
-                maxOccurs="2" />
-            </xs:sequence>
-            <xs:attribute name="grid" type="integerpair"
-              use="required" />
-            <xs:attribute ref="outfileprefix" />
-          </xs:complexType>
-        </xs:element>
-      </xs:all>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="plot3d">
-    <xs:annotation>
-      <xs:documentation>defines a 3d plot domain
-      </xs:documentation>
-    </xs:annotation>
-    <xs:complexType>
-      <xs:all>
-        <xs:element name="box" maxOccurs="1" minOccurs="1">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element ref="origin" minOccurs="1"
-                maxOccurs="1" />
-              <xs:element ref="point" minOccurs="3"
-                maxOccurs="3" />
-            </xs:sequence>
-            <xs:attribute name="grid" type="integertriple"
-              use="required" />
-            <xs:attribute ref="outfileprefix" />
-          </xs:complexType>
-        </xs:element>
-      </xs:all>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="pointstatepair" type="integerpair">
-    <xs:annotation>
-      <xs:documentation>
-        <inlinemath>{ \bf k}</inlinemath>
-        -point and state index pair
-      </xs:documentation>
-    </xs:annotation>
-  </xs:element>
-  <xs:element name="kstlist">
-    <xs:annotation>
-      <xs:documentation>
-        kstlist is used in the LSJ and wavefunction plot element This is
-        a user-defined list of
-        <inlinemath>{ \bf k}</inlinemath>
-        -point and state index pairs which are those used for plotting
-        wavefunctions and writing
-        <inlinemath>{ \bf L}</inlinemath>
-        ,
-        <inlinemath>{ \bf S}</inlinemath>
-        and
-        <inlinemath>{ \bf J}</inlinemath>
-        expectation values.
-      </xs:documentation>
-    </xs:annotation>
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="pointstatepair" minOccurs="1"
-          maxOccurs="unbounded" />
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="box" maxOccurs="1" minOccurs="1">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="origin" minOccurs="1" maxOccurs="1" />
+							<xs:element ref="point" minOccurs="3" maxOccurs="3" />
+						</xs:sequence>
+						<xs:attribute name="grid" type="integertriple" use="required" />
+						<xs:attribute ref="outfileprefix" />
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="pointstatepair" type="integerpair">
+		<xs:annotation>
+			<xs:documentation>
+				<inlinemath>{ \bf k}</inlinemath>
+				-point and state index pair
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="kstlist">
+		<xs:annotation>
+			<xs:documentation>
+				kstlist is used in the LSJ and wavefunction plot element This is
+				a
+				user-defined list of
+				<inlinemath>{ \bf k}</inlinemath>
+				-point and state index pairs which are those used for plotting
+				wavefunctions and writing
+				<inlinemath>{ \bf L}</inlinemath>
+				,
+				<inlinemath>{ \bf S}</inlinemath>
+				and
+				<inlinemath>{ \bf J}</inlinemath>
+				expectation values.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="pointstatepair" minOccurs="1" maxOccurs="unbounded" />
 
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="inputset">
-    <xs:annotation>
-      <xs:documentation>The inputset element can be used to store a
-        set of input elements, this may be useful for simulations rows.
-      </xs:documentation>
-      <xs:appinfo>
-        <oldname>noname</oldname>
-      </xs:appinfo>
-    </xs:annotation>
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="input" minOccurs="1" maxOccurs="unbounded">
-          <xs:annotation>
-            <xs:appinfo>
-              <oldname>noname</oldname>
-            </xs:appinfo>
-          </xs:annotation>
-        </xs:element>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <!-- root element starts here -->
-  <xs:element name="input">
-    <xs:complexType>
-      <xs:annotation>
-        <xs:appinfo>
-          <oldname>noname</oldname>
-        </xs:appinfo>
-        <xs:documentation>
-          Every input file must contain a structure element to specify
-          the domain and the atoms.
-          <p />
-          Unless explicitly stated otherwise, EXCITING uses atomic
-          units. In this system
-          <inlinemath>\hbar=1</inlinemath>
-          , the electron mass
-          <inlinemath>m=1</inlinemath>
-          , the Bohr radius
-          <inlinemath>a_0=1</inlinemath>
-          and the electron charge
-          <inlinemath>e=1</inlinemath>
-          (note that the electron charge is positive, so that the atomic
-          numbers
-          <inlinemath>Z</inlinemath>
-          are negative). Thus, the atomic unit of length is
-          0.52917720859(36) \AA, and the atomic unit of energy is the
-          Hartree which equals 27.21138386(68) eV.
-          The unit of the
-          external magnetic fields is defined such that one unit of
-          magnetic field in
-          <pre>\tt exciting.in</pre>
-          equals 1717.2445320376 Tesla.
-        </xs:documentation>
-      </xs:annotation>
-      <xs:all>
-        <xs:element name="title" type="xs:string" minOccurs="1"
-          maxOccurs="1" />
-        <xs:element name="structure" maxOccurs="1" minOccurs="1">
-          <xs:annotation>
-            <xs:documentation> The structure element contains all
-              structural information such as atoms atom positions and
-              symmetries.</xs:documentation>
-          </xs:annotation>
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element name="symmetries" maxOccurs="1"
-                minOccurs="0">
-                <xs:complexType>
-                  <xs:annotation>
-                    <xs:documentation>The symmetries element is
-                      output from the spacegroup program the values are
-                      currently not used in the exciting program
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="inputset">
+		<xs:annotation>
+			<xs:documentation>The inputset element can be used to store a
+				set of
+				input elements, this may be useful for simulations rows.
+			</xs:documentation>
+			<xs:appinfo>
+				<oldname>noname</oldname>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="input" minOccurs="1" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:appinfo>
+							<oldname>noname</oldname>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<!-- root element starts here -->
+	<xs:element name="input">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:appinfo>
+					<oldname>noname</oldname>
+				</xs:appinfo>
+				<xs:documentation>
+					Every input file must contain a structure element to specify
+					the
+					domain and the atoms.
+					<p />
+					Unless explicitly stated otherwise, EXCITING uses atomic
+					units. In
+					this system
+					<inlinemath>\hbar=1</inlinemath>
+					, the electron mass
+					<inlinemath>m=1</inlinemath>
+					, the Bohr radius
+					<inlinemath>a_0=1</inlinemath>
+					and the electron charge
+					<inlinemath>e=1</inlinemath>
+					(note that the electron charge is positive, so that the atomic
+					numbers
+					<inlinemath>Z</inlinemath>
+					are negative). Thus, the atomic unit of length is
+					0.52917720859(36)
+					\AA, and the atomic unit of energy is the
+					Hartree which equals
+					27.21138386(68) eV.
+					The unit of the
+					external magnetic fields is
+					defined such that one unit of
+					magnetic field in
+					<pre>\tt exciting.in</pre>
+					equals 1717.2445320376 Tesla.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:all>
+				<xs:element name="title" type="xs:string" minOccurs="1"
+					maxOccurs="1" />
+				<xs:element name="structure" maxOccurs="1" minOccurs="1">
+					<xs:annotation>
+						<xs:documentation> The structure element contains all
+							structural
+							information such as atoms atom positions and
+							symmetries.
+						</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="symmetries" maxOccurs="1" minOccurs="0">
+								<xs:complexType>
+									<xs:annotation>
+										<xs:documentation>The symmetries element is
+											output from the
+											spacegroup program the values are
+											currently not used in the
+											exciting program
                     </xs:documentation>
-                  </xs:annotation>
-                  <xs:sequence>
-                    <xs:element name="lattice" maxOccurs="1"
-                      minOccurs="1">
-                      <xs:complexType>
-                        <xs:attribute name="a" type="fortrandouble"
-                          use="required" />
+									</xs:annotation>
+									<xs:sequence>
+										<xs:element name="lattice" maxOccurs="1" minOccurs="1">
+											<xs:complexType>
+												<xs:attribute name="a" type="fortrandouble"
+													use="required" />
 
-                        <xs:attribute name="b" type="fortrandouble"
-                          use="required" />
+												<xs:attribute name="b" type="fortrandouble"
+													use="required" />
 
-                        <xs:attribute name="c" type="fortrandouble"
-                          use="required" />
+												<xs:attribute name="c" type="fortrandouble"
+													use="required" />
 
-                        <xs:attribute name="ab" type="fortrandouble"
-                          use="required" />
+												<xs:attribute name="ab" type="fortrandouble"
+													use="required" />
 
-                        <xs:attribute name="ac" type="fortrandouble"
-                          use="required" />
+												<xs:attribute name="ac" type="fortrandouble"
+													use="required" />
 
-                        <xs:attribute name="bc" type="fortrandouble"
-                          use="required" />
+												<xs:attribute name="bc" type="fortrandouble"
+													use="required" />
 
-                        <xs:attribute name="ncell" type="integertriple"
-                          use="optional" default="1 1 1" />
+												<xs:attribute name="ncell" type="integertriple"
+													use="optional" default="1 1 1" />
 
-                      </xs:complexType>
-                    </xs:element>
-                    <xs:element name="WyckoffPositions"
-                      maxOccurs="1" minOccurs="0">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="wspecies"
-                            maxOccurs="unbounded" minOccurs="0">
-                            <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name="wpos"
-                                  maxOccurs="unbounded" minOccurs="0">
-                                  <xs:complexType>
-                                    <xs:attribute name="coord"
-                                      type="vect3d" />
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="WyckoffPositions" maxOccurs="1"
+											minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="wspecies" maxOccurs="unbounded"
+														minOccurs="0">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="wpos" maxOccurs="unbounded"
+																	minOccurs="0">
+																	<xs:complexType>
+																		<xs:attribute name="coord" type="vect3d" />
 
-                                  </xs:complexType>
-                                </xs:element>
-                              </xs:sequence>
-                              <xs:attribute name="speciesfile"
-                                type="xs:string" />
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+															<xs:attribute name="speciesfile" type="xs:string" />
 
-                            </xs:complexType>
-                          </xs:element>
-                        </xs:sequence>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                  <xs:attribute name="HermannMauguinSymbol"
-                    type="xs:string" use="required">
-                    <xs:annotation>
-                      <xs:documentation>Herman Mauguin sympol
-                        giving the spacegroup</xs:documentation>
-                      <xs:appinfo>
-                        <oldname>hrmg</oldname>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="HallSymbol" type="xs:string" />
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="HermannMauguinSymbol" type="xs:string"
+										use="required">
+										<xs:annotation>
+											<xs:documentation>Herman Mauguin sympol
+												giving the spacegroup
+											</xs:documentation>
+											<xs:appinfo>
+												<oldname>hrmg</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="HallSymbol" type="xs:string" />
 
-                  <xs:attribute name="SchoenfliesSymbol"
-                    type="xs:string" />
+									<xs:attribute name="SchoenfliesSymbol" type="xs:string" />
 
-                  <xs:attribute name="spaceGroupNumber"
-                    type="xs:string" />
+									<xs:attribute name="spaceGroupNumber" type="xs:string" />
 
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="crystal" minOccurs="0"
-                maxOccurs="1">
-                <xs:annotation>
-                  <xs:documentation>defines the unit cell of the
-                    simulation</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:annotation>
-                    <xs:documentation>unit cell is spanned by 3
-                      basevectors that define the lattice coordinates.
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="crystal" minOccurs="0" maxOccurs="1">
+								<xs:annotation>
+									<xs:documentation>defines the unit cell of the
+										simulation
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:annotation>
+										<xs:documentation>unit cell is spanned by 3
+											basevectors that
+											define the lattice coordinates.
                     </xs:documentation>
-                  </xs:annotation>
-                  <xs:sequence>
-                    <xs:element name="basevect" minOccurs="3"
-                      maxOccurs="3" type="vect3d">
-                      <xs:annotation>
-                        <xs:documentation>basevectors or
-                          lattice vectors in Bohr</xs:documentation>
-                        <xs:appinfo>
-                          <oldname>avec</oldname>
-                        </xs:appinfo>
-                      </xs:annotation>
-                    </xs:element>
-                  </xs:sequence>
-                  <xs:attribute name="scale" type="fortrandouble"
-                    default="1">
-                    <xs:annotation>
-                      <xs:documentation> gives a scaling factor for the
-                        unit cell. it scales the lattice vectors. This
-                        is useful for varying the volume.
+									</xs:annotation>
+									<xs:sequence>
+										<xs:element name="basevect" minOccurs="3"
+											maxOccurs="3" type="vect3d">
+											<xs:annotation>
+												<xs:documentation>basevectors or
+													lattice vectors in Bohr
+												</xs:documentation>
+												<xs:appinfo>
+													<oldname>avec</oldname>
+												</xs:appinfo>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="scale" type="fortrandouble"
+										default="1">
+										<xs:annotation>
+											<xs:documentation> gives a scaling factor for the
+												unit cell.
+												it scales the lattice vectors. This
+												is useful for varying the
+												volume.
                       </xs:documentation>
-                      <xs:appinfo>
-                        <oldname>scale</oldname>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="stretch" type="vect3d"
-                    default="1.0d0   1.0d0 1.0d0 ">
-                    <xs:annotation>
-                      <xs:documentation>separate scaling for
-                        each lattice vector 1 1 1 is no scaling
+											<xs:appinfo>
+												<oldname>scale</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="stretch" type="vect3d"
+										default="1.0d0   1.0d0 1.0d0 ">
+										<xs:annotation>
+											<xs:documentation>separate scaling for
+												each lattice vector 1 1
+												1 is no scaling
                       </xs:documentation>
-                      <xs:appinfo>
-                        <oldname>(sc1|sc2|sc3)</oldname>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:attribute>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="species" minOccurs="0"
-                maxOccurs="unbounded">
-                <xs:annotation>
-                  <xs:documentation>for each atom type (species) a
-                    species element is defined containing all the atom
-                    positions</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="atom" minOccurs="1"
-                      maxOccurs="unbounded">
-                      <xs:annotation>
-                        <xs:documentation>atomic position in
-                          lattice coordinates for atom
+											<xs:appinfo>
+												<oldname>(sc1|sc2|sc3)</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="species" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>for each atom type (species) a
+										species element
+										is defined containing all the atom
+										positions</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="atom" minOccurs="1" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>atomic position in
+													lattice coordinates for
+													atom
                         </xs:documentation>
-                        <xs:appinfo>
-                          <oldname>noname</oldname>
-                        </xs:appinfo>
-                      </xs:annotation>
-                      <xs:complexType>
-                        <xs:attribute name="coord" type="vect3d">
-                          <xs:annotation>
-                            <xs:documentation> position in lattice
-                              coordinates</xs:documentation>
-                            <xs:appinfo>
-                              <oldname>atposl</oldname>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:attribute>
-                        <xs:attribute name="bfcmt" type="vect3d"
-                          default="0 0 0">
-                          <xs:annotation>
-                            <xs:documentation> muffin-tin external
-                              magnetic field in Cartesian coordinates
-                              for atom</xs:documentation>
-                          </xs:annotation>
-                        </xs:attribute>
-                      </xs:complexType>
-                    </xs:element>
-                    <xs:element name="LDAplusu" minOccurs="0">
-                      <xs:annotation>
-                        <xs:documentation>If present defines ldaplusU
-                          parameters for species</xs:documentation>
-                      </xs:annotation>
-                      <xs:complexType>
-                        <xs:attribute name="L" type="fortrandouble"
-                          default="0">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldname>notaname</oldname>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:attribute>
-                        <xs:attribute name="U" type="fortrandouble"
-                          default="0">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldname>notaname</oldname>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:attribute>
-                        <xs:attribute name="J" type="fortrandouble"
-                          default="0">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldname>notaname</oldname>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:attribute>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                  <xs:attribute name="speciesfile" type="xs:anyURI"
-                    use="required">
-                    <xs:annotation>
-                      <xs:documentation> species file from which species
-                        definition is read. It is looked up in the
-                        species directory specified by the species
-                        path
+												<xs:appinfo>
+													<oldname>noname</oldname>
+												</xs:appinfo>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="coord" type="vect3d">
+													<xs:annotation>
+														<xs:documentation> position in lattice
+															coordinates
+														</xs:documentation>
+														<xs:appinfo>
+															<oldname>atposl</oldname>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="bfcmt" type="vect3d"
+													default="0 0 0">
+													<xs:annotation>
+														<xs:documentation> muffin-tin external
+															magnetic field in
+															Cartesian coordinates
+															for atom</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="LDAplusu" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>If present defines ldaplusU
+													parameters for
+													species</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="L" type="fortrandouble"
+													default="0">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldname>notaname</oldname>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="U" type="fortrandouble"
+													default="0">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldname>notaname</oldname>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="J" type="fortrandouble"
+													default="0">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldname>notaname</oldname>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="speciesfile" type="xs:anyURI"
+										use="required">
+										<xs:annotation>
+											<xs:documentation> species file from which species
+												definition
+												is read. It is looked up in the
+												species directory specified
+												by the species
+												path
                       </xs:documentation>
-                      <xs:appinfo>
-                        <oldname>spfname</oldname>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="chemicalSymbol" type="xs:string"
-                    use="optional" default="">
-                    <xs:annotation>
-                      <xs:documentation>can be given to simplify
-                        visualisation and converters. is ignored by
-                        exciting</xs:documentation>
-                      <xs:appinfo>
-                        <oldname>spsymb</oldname>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="atomicNumber" type="xs:integer"
-                    use="optional">
-                    <xs:annotation>
-                      <xs:documentation>can be given to simplify
-                        visualisation and converters. is ignored by
-                        exciting</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="rmt" type="fortrandouble"
-                    default="-1" use="optional">
-                    <xs:annotation>
-                      <xs:documentation>muffin tin radius this
-                        optional parameter allows to override
-                        speciesfile or automatic tetemination
-                      </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                </xs:complexType>
-              </xs:element>
-            </xs:sequence>
-            <xs:attribute name="speciespath" type="xs:anyURI"
-              use="required">
-              <xs:annotation>
-                <xs:documentation> gives the path to the directory
-                  containing the species files</xs:documentation>
-                <xs:appinfo>
-                  <oldname>sppath</oldname>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="molecule" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation> true if the system is an isolated
-                  molecule</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="epslat" type="fortrandouble"
-              default="1e-6">
-              <xs:annotation>
-                <xs:documentation> vectors with lengths less than this
-                  are considered zero</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="autormt" type="xs:boolean"
-              default="false" />
+											<xs:appinfo>
+												<oldname>spfname</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="chemicalSymbol" type="xs:string"
+										use="optional" default="">
+										<xs:annotation>
+											<xs:documentation>can be given to simplify
+												visualisation and
+												converters. is ignored by
+												exciting</xs:documentation>
+											<xs:appinfo>
+												<oldname>spsymb</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="atomicNumber" type="xs:integer"
+										use="optional">
+										<xs:annotation>
+											<xs:documentation>can be given to simplify
+												visualisation and
+												converters. is ignored by
+												exciting</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="rmt" type="fortrandouble"
+										default="-1" use="optional">
+										<xs:annotation>
+											<xs:documentation>muffin tin radius this
+												optional parameter
+												allows to override
+												speciesfile or automatic tetemination
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="speciespath" type="xs:anyURI"
+							use="required">
+							<xs:annotation>
+								<xs:documentation> gives the path to the directory
+									containing the
+									species files</xs:documentation>
+								<xs:appinfo>
+									<oldname>sppath</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="molecule" type="xs:boolean"
+							default="false">
+							<xs:annotation>
+								<xs:documentation> true if the system is an isolated
+									molecule
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="epslat" type="fortrandouble"
+							default="1e-6">
+							<xs:annotation>
+								<xs:documentation> vectors with lengths less than this
+									are
+									considered zero</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="autormt" type="xs:boolean"
+							default="false" />
 
-            <xs:attribute name="vacuum" type="fortrandouble"
-              default="10" />
+						<xs:attribute name="vacuum" type="fortrandouble"
+							default="10" />
 
-            <xs:attribute name="primcell" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation> Allows the primitive unit cell to be
-                  determined automatically from the conventional cell.
-                  This is done by searching for
-                  lattice vectors among all
-                  those which connect atomic sites, and using the three
-                  shortest which produce a unit cell with non-zero
-                  volume.
+						<xs:attribute name="primcell" type="xs:boolean"
+							default="false">
+							<xs:annotation>
+								<xs:documentation> Allows the primitive unit cell to be
+									determined automatically from the conventional cell.
+									This is
+									done by searching for
+									lattice vectors among all
+									those which
+									connect atomic sites, and using the three
+									shortest which produce
+									a unit cell with non-zero
+									volume.
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="groundstate" maxOccurs="1"
-          minOccurs="0">
-          <xs:annotation>
-            <xs:documentation />
-          </xs:annotation>
-          <xs:complexType>
-            <xs:all>
-              <xs:element name="spin" minOccurs="0"
-                maxOccurs="1">
-                <xs:annotation>
-                  <xs:documentation> If present calculation is done with
-                    spin polarization it may be switched of with the
-                    spinpol attribute set to false
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="groundstate" maxOccurs="1" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation />
+					</xs:annotation>
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="spin" minOccurs="0" maxOccurs="1">
+								<xs:annotation>
+									<xs:documentation> If present calculation is done with
+										spin
+										polarization it may be switched of with the
+										spinpol attribute
+										set to false
                   </xs:documentation>
-                  <xs:appinfo>
-                    <oldname>spinpol</oldname>
-                  </xs:appinfo>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:attribute name="bfieldc" type="vect3d"
-                    default="0 0 0 ">
-                    <xs:annotation>
-                      <xs:documentation>
-                        alows to apply a constant B field This is a
-                        constant magnetic field applied throughout the
-                        entire unit cell and enters the
-                        second-variational Hamiltonian as
-                        <displaymath>
-                          \frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf
-                          B}_{\rm ext}, </displaymath>
-                        where
-                        <inlinemath>g_e</inlinemath>
-                        is the electron
-                        <inlinemath>g</inlinemath>
-                        -factor (2.0023193043718). This field is
-                        normally used to break spin symmetry for
-                        spin-polarised calculations and considered to be
-                        infinitesimal with no direct contribution to the
-                        total energy. In cases where the magnetic field
-                        is finite (for example when computing
-                        magnetic
-                        response) the external
-                        <inlinemath>{ \bf B}</inlinemath>
-                        -field energy reported in
-                        <pre>INFO.OUT</pre>
-                        should be added to the total by hand. This field
-                        is applied throughout the entire unit cell. To
-                        apply magnetic fields in particular
-                        muffin-tins
-                        use the
-                        <pre>bfcmt</pre>
-                        vect ors in the
-                        <pre>atoms</pre>
-                        block. Collinear calculations are more efficient
-                        if the field is applied in the
-                        <inlinemath>z</inlinemath>
-                        -direction.
-                      </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="momfix" type="vect3d"
-                    default="0 0 0">
-                    <xs:annotation>
-                      <xs:documentation> the desired total moment for a
-                        FSM calculation</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="spinorb" type="xs:boolean">
-                    <xs:annotation>
-                      <xs:documentation>
-                        if a spin-orbit coupling is required If
-                        <pre>spinorb</pre>
-                        is
-                        <pre>.true.</pre>
-                        , then a
-                        <inlinemath> \boldsymbol \sigma\cdot{ \bf L} </inlinemath>
-                        term is added to the second-variational
-                        Hamiltonian. See
-                        <pre>spinpol</pre>
-                        .
-                      </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="spinsprl" type="xs:boolean">
-                    <xs:annotation>
-                      <xs:documentation>
-                        set to
-                        <pre>.true.</pre>
-                        if a spin-spiral calculation is require
-                        Experimental feature for the calculation of
-                        spin-spiral states. See
-                        <pre>vqlss</pre>
-                        for details.
-                      </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="vqlss" type="vect3d"
-                    default="0 0 0">
-                    <xs:annotation>
-                      <xs:documentation>
-                        the
-                        <inlinemath>{ \bf q}</inlinemath>
-                        -vector of the spin-spiral state in lattice
-                        coordinates Spin-spirals arise from spinor
-                        states assumed to be of the form
-                        <displaymath> \Psi^{ \bf q}_{ \bf k}({ \bf r})=
-                          \left( \begin{array}{c} U^{{\bf q}\uparrow}_{
-                          \bf k}({\bf r})e^{i({ \bf k+q/2})\cdot{
-                          \bf r}}
-                          \\ U^{{ \bf q}\downarrow}_{\bf k}({ \bf
-                          r})e^{i({\bf k-q/2})\cdot{ \bf r}} \\
-                          \end{array} \right). </displaymath>
-                        These are determined using a second-variational
-                        approach, and give rise to a magnetisation
-                        density of the form
-                        <displaymath> {\bf m}^{ \bf q}({ \bf
-                          r})=(m_x({\bf r})\cos({ \bf q \cdot r}),
-                          m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf
-                          r})), </displaymath>
-                        where
-                        <inlinemath>m_x</inlinemath>
-                        ,
-                        <inlinemath>m_y</inlinemath>
-                        and
-                        <inlinemath>m_z</inlinemath>
-                        are lattice periodic. See also
-                        <pre>spinprl</pre>
-                        .
-                      </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="taufsm" type="fortrandouble"
-                    default="0.01d0" />
-                  <xs:attribute name="reducebf" type="fortrandouble"
-                    default="1">
-                    <xs:annotation>
-                      <xs:documentation> After each iteration the
-                        external magnetic fields are multiplied with
-                        reducebf. This al- lows for a large external
-                        magnetic field at the start of the
-                        self-consistent loop to break spin symmetry,
-                        while at the end of the loop the field will be
-                        effectively zero, i.e. infinitesimal. See
-                        bfieldc and atoms.</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="fixspin" default="none">
-                    <xs:simpleType>
-                      <xs:restriction base="xs:string">
-                        <xs:enumeration value="none">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>0</oldnr>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:enumeration>
-                        <xs:enumeration value="total FSM">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>1</oldnr>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:enumeration>
-                        <xs:enumeration value="localmt FSM">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>2</oldnr>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:enumeration>
-                        <xs:enumeration value="both">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>3</oldnr>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:enumeration>
-                      </xs:restriction>
-                    </xs:simpleType>
-                  </xs:attribute>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="HartreeFock" minOccurs="0"
-                maxOccurs="1" />
+									<xs:appinfo>
+										<oldname>spinpol</oldname>
+									</xs:appinfo>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="bfieldc" type="vect3d"
+										default="0 0 0 ">
+										<xs:annotation>
+											<xs:documentation>
+												alows to apply a constant B field This is a
+												constant magnetic
+												field applied throughout the
+												entire unit cell and enters the
+												second-variational Hamiltonian as
+												<displaymath>
+													\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf
+													B}_{\rm ext}, </displaymath>
+												where
+												<inlinemath>g_e</inlinemath>
+												is the electron
+												<inlinemath>g</inlinemath>
+												-factor (2.0023193043718). This field is
+												normally used to
+												break spin symmetry for
+												spin-polarised calculations and
+												considered to be
+												infinitesimal with no direct contribution to
+												the
+												total energy. In cases where the magnetic field
+												is finite
+												(for example when computing
+												magnetic
+												response) the external
+												<inlinemath>{ \bf B}</inlinemath>
+												-field energy reported in
+												<pre>INFO.OUT</pre>
+												should be added to the total by hand. This field
+												is applied
+												throughout the entire unit cell. To
+												apply magnetic fields in
+												particular
+												muffin-tins
+												use the
+												<pre>bfcmt</pre>
+												vect ors in the
+												<pre>atoms</pre>
+												block. Collinear calculations are more efficient
+												if the field
+												is applied in the
+												<inlinemath>z</inlinemath>
+												-direction.
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="momfix" type="vect3d" default="0 0 0">
+										<xs:annotation>
+											<xs:documentation> the desired total moment for a
+												FSM
+												calculation</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="spinorb" type="xs:boolean">
+										<xs:annotation>
+											<xs:documentation>
+												if a spin-orbit coupling is required If
+												<pre>spinorb</pre>
+												is
+												<pre>.true.</pre>
+												, then a
+												<inlinemath> \boldsymbol \sigma\cdot{ \bf L} </inlinemath>
+												term is added to the second-variational
+												Hamiltonian. See
+												<pre>spinpol</pre>
+												.
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="spinsprl" type="xs:boolean">
+										<xs:annotation>
+											<xs:documentation>
+												set to
+												<pre>.true.</pre>
+												if a spin-spiral calculation is require
+												Experimental feature
+												for the calculation of
+												spin-spiral states. See
+												<pre>vqlss</pre>
+												for details.
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="vqlss" type="vect3d" default="0 0 0">
+										<xs:annotation>
+											<xs:documentation>
+												the
+												<inlinemath>{ \bf q}</inlinemath>
+												-vector of the spin-spiral state in lattice
+												coordinates
+												Spin-spirals arise from spinor
+												states assumed to be of the
+												form
+												<displaymath> \Psi^{ \bf q}_{ \bf k}({ \bf r})=
+													\left(
+													\begin{array}{c} U^{{\bf q}\uparrow}_{
+													\bf k}({\bf r})e^{i({
+													\bf k+q/2})\cdot{
+													\bf r}}
+													\\ U^{{ \bf q}\downarrow}_{\bf k}({
+													\bf
+													r})e^{i({\bf k-q/2})\cdot{ \bf r}} \\
+													\end{array}
+													\right). </displaymath>
+												These are determined using a second-variational
+												approach, and
+												give rise to a magnetisation
+												density of the form
+												<displaymath> {\bf m}^{ \bf q}({ \bf
+													r})=(m_x({\bf r})\cos({
+													\bf q \cdot r}),
+													m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf
+													r})), </displaymath>
+												where
+												<inlinemath>m_x</inlinemath>
+												,
+												<inlinemath>m_y</inlinemath>
+												and
+												<inlinemath>m_z</inlinemath>
+												are lattice periodic. See also
+												<pre>spinprl</pre>
+												.
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="taufsm" type="fortrandouble"
+										default="0.01d0" />
+									<xs:attribute name="reducebf" type="fortrandouble"
+										default="1">
+										<xs:annotation>
+											<xs:documentation> After each iteration the
+												external magnetic
+												fields are multiplied with
+												reducebf. This al- lows for a
+												large external
+												magnetic field at the start of the
+												self-consistent loop to break spin symmetry,
+												while at the end
+												of the loop the field will be
+												effectively zero, i.e.
+												infinitesimal. See
+												bfieldc and atoms.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="fixspin" default="none">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="none">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>0</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="total FSM">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>1</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="localmt FSM">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>2</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="both">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>3</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="HartreeFock" minOccurs="0"
+								maxOccurs="1" />
 
-              <xs:element name="solver" minOccurs="0"
-                maxOccurs="1">
-                <xs:complexType>
-                  <xs:attribute name="type" default="Lapack">
-                    <xs:annotation>
-                      <xs:documentation>select the eigenvalue
-                        solver for the first variational equation
+							<xs:element name="solver" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:attribute name="type" default="Lapack">
+										<xs:annotation>
+											<xs:documentation>select the eigenvalue
+												solver for the first
+												variational equation
                       </xs:documentation>
-                    </xs:annotation>
-                    <xs:simpleType>
-                      <xs:restriction base="xs:string">
-                        <xs:enumeration value="Lapack">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>1</oldnr>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:enumeration>
-                        <xs:enumeration value="Arpack">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>2</oldnr>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:enumeration>
-                        <xs:enumeration value="DIIS">
-                          <xs:annotation>
-                            <xs:appinfo>
-                              <oldnr>3</oldnr>
-                            </xs:appinfo>
-                          </xs:annotation>
-                        </xs:enumeration>
-                      </xs:restriction>
-                    </xs:simpleType>
-                  </xs:attribute>
-                  <xs:attribute name="packedmatrixstorage"
-                    type="xs:boolean" use="optional" default="true" />
-                  <xs:attribute name="epsarpack" type="xs:string" />
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="Lapack">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>1</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="Arpack">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>2</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="DIIS">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>3</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="packedmatrixstorage" type="xs:boolean"
+										use="optional" default="true" />
+									<xs:attribute name="epsarpack" type="xs:string" />
 
-                </xs:complexType>
-              </xs:element>
-            </xs:all>
-            <xs:attribute name="ngkgrid" type="integertriple"
-              use="required">
-              <xs:annotation>
-                <xs:appinfo>
-                  <oldname>ngridk</oldname>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="rgkmax" type="fortrandouble"
-              default="7">
-              <xs:annotation>
-                <xs:documentation>
-                  This sets the maximum length for the
-                  <inlinemath>{ \bf G}+{ \bf k}</inlinemath>
-                  vectors, defined as
-                  <pre>rgkmax</pre>
-                  divided by the smallest muffin-tin radius.
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+						<xs:attribute name="ngkgrid" type="integertriple"
+							use="required">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>ngridk</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="rgkmax" type="fortrandouble"
+							default="7">
+							<xs:annotation>
+								<xs:documentation>
+									This sets the maximum length for the
+									<inlinemath>{ \bf G}+{ \bf k}</inlinemath>
+									vectors, defined as
+									<pre>rgkmax</pre>
+									divided by the smallest muffin-tin radius.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="epspot" type="fortrandouble" use="optional"
+							default="1e-6">
+							<xs:annotation>
+								<xs:documentation>
+									This sets the maximum length for the
+									<inlinemath>{ \bf G}+{ \bf k}</inlinemath>
+									vectors, defined as
+									<pre>rgkmax</pre>
+									divided by the smallest muffin-tin radius.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="rmtapm" type="vect2d" default="0.25d0  0.95d0">
+							<xs:annotation>
+								<xs:documentation>parameters governing the
+									automatic generation
+									of the muffin-tin radii
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="epspot" type="fortrandouble"
-              use="optional" default="1e-6">
-              <xs:annotation>
-                <xs:documentation>
-                  This sets the maximum length for the
-                  <inlinemath>{ \bf G}+{ \bf k}</inlinemath>
-                  vectors, defined as
-                  <pre>rgkmax</pre>
-                  divided by the smallest muffin-tin radius.
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="swidth" type="fortrandouble"
+							default="0.01d0">
+							<xs:annotation>
+								<xs:documentation>width of the smooth approximation
+									to the Dirac
+									delta function</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="stype" default="Gaussian">
+							<xs:annotation>
+								<xs:documentation>
+									A smooth approximation to the Dirac delta function is
+									needed to
+									compute the occupancies of the Kohn-Sham
+									states. The variable
+									<pre>swidth</pre>
+									determines the width of the approximate delta
+									function.
+									Currently implemented are
+								</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="Gaussian">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>0</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="Methfessel-Paxton 1">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>1</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="Methfessel-Paxton 2">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>2</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="Fermi Dirac">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>3</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="isgkmax" type="xs:integer"
+							default="-1">
+							<xs:annotation>
+								<xs:documentation>species for which the
+									muffin-tin radius will be
+									used for calculating gkmax
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="rmtapm" type="vect2d"
-              default="0.25d0  0.95d0">
-              <xs:annotation>
-                <xs:documentation>parameters governing the
-                  automatic generation of the muffin-tin radii
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="gmaxvr" type="fortrandouble"
+							default="12">
+							<xs:annotation>
+								<xs:documentation>maximum length of |G| for
+									expanding the
+									interstitial density and potential
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="swidth" type="fortrandouble"
-              default="0.01d0">
-              <xs:annotation>
-                <xs:documentation>width of the smooth approximation
-                  to the Dirac delta function</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="stype" default="Gaussian">
-              <xs:annotation>
-                <xs:documentation>
-                  A smooth approximation to the Dirac delta function is
-                  needed to compute the occupancies of the Kohn-Sham
-                  states. The variable
-                  <pre>swidth</pre>
-                  determines the width of the approximate delta
-                  function. Currently implemented are
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="nempty" type="xs:integer"
+							default="5">
+							<xs:annotation>
+								<xs:documentation>
+									Defines the number of eigenstates beyond that required
+									for
+									charge neutrality. When running metals it is not
+									known
+									<it>a priori</it>
+									how many states will be below the Fermi energy for
+									each
+									<bf>k</bf>
+									-point. Setting
+									<pre>nempty</pre>
+									greater than zero allows the additional states to act
+									as a
+									buffer in such cases. Furthermore, magnetic
+									calculations use the
+									first-variational
+									eigenstates as a
+									basis for setting up the
+									second-variational
+									Hamiltonian, and thus
+									<pre>nempty</pre>
+									will determine the size of this basis set. Convergence
+									with
+									respect to this quantity should be checked.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="nosym" type="xs:boolean" default="false">
+							<xs:annotation>
+								<xs:documentation>
+									when set to
+									<pre>.true.</pre>
+									no symmetries, apart from the identity, are used
+									anywhere in the
+									code
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="autokpt" type="xs:boolean"
+							default="false">
+							<xs:annotation>
+								<xs:documentation>
+									if the
+									<bf>k</bf>
+									-point set is to be determined automatically
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="radkpt" type="fortrandouble"
+							default="40">
+							<xs:annotation>
+								<xs:documentation>
+									Used for the automatic determination of the
+									<bf>k</bf>
+									-point mesh. If
+									<pre>autokpt</pre>
+									is set to
+									<pre>.true.</pre>
+									then the mesh sizes will be determined by
+									<inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath>
+									.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="reducek" type="xs:boolean"
+							default="true">
+							<xs:annotation>
+								<xs:documentation>
+									<pre>reducek</pre>
+									set to
+									<pre>.true.</pre>
+									if the
+									<inlinemath>
+										<bf>k</bf>
+									</inlinemath>
+									-point set is to be reduced with the crystal
+									symmetries
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute ref="tfibs" default="true">
+							<xs:annotation>
+								<xs:documentation />
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute ref="tforce" default="false">
+							<xs:annotation>
+								<xs:documentation />
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="lmaxapw" type="xs:integer"
+							default="8">
+							<xs:annotation>
+								<xs:documentation>angular momentum cut-off for
+									the APW functions
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="maxscl" type="xs:integer"
+							default="200">
+							<xs:annotation>
+								<xs:documentation>upper limit for te
+									selfconsistency loop
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="chgexs" type="fortrandouble"
+							default="0">
+							<xs:annotation>
+								<xs:documentation> This controls the amount of charge in
+									the unit
+									cell beyond that required to maintain
+									neu-trality. It can be set
+									positive or
+									negative
+									depending on whether electron or hole doping
+									is
+									required.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="deband" type="fortrandouble"
+							default="0.0025d0">
+							<xs:annotation>
+								<xs:documentation>
+									initial band energy step size The initial step length
+									used when
+									searching for the band energy, which is used
+									as the APW
+									linearisation energy.
+									This is done by first
+									searching upwards in
+									energy until the radial
+									wavefunction at the muffin-tin radius is
+									zero. This is
+									the energy at the
+									top of the band, denoted
+									<inlinemath>E_{\rm t}</inlinemath>
+									. A downward search is now performed from
+									<inlinemath>E_{\rm t}</inlinemath>
+									until the slope of the radial wavefunction at the
+									muffin-tin
+									radius is zero. This energy,
+									<inlinemath>E_{\rm b}</inlinemath>
+									, is at the bottom of the band. The band energy is
+									taken as
+									<inlinemath>(E_{\rm t}+E_{\rm b})/2</inlinemath>
+									. If either
+									<inlinemath>E_{\rm t}</inlinemath>
+									or
+									<inlinemath>E_{\rm b}</inlinemath>
+									cannot be found then the band energy is set to the
+									default
+									value.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="epschg" type="fortrandouble"
+							default="1.0d-3">
+							<xs:annotation>
+								<xs:documentation>maximum allowed error in the
+									calculated total
+									charge beyond which a warning message
+									will be issued
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="epsocc" type="fortrandouble"
+							default="1e-8">
+							<xs:annotation>
+								<xs:documentation>smallest occupancy for which a
+									state will
+									contribute to the density
                 </xs:documentation>
-              </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="Gaussian">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>0</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="Methfessel-Paxton 1">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>1</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="Methfessel-Paxton 2">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>2</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="Fermi Dirac">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>3</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:attribute>
-            <xs:attribute name="isgkmax" type="xs:integer"
-              default="-1">
-              <xs:annotation>
-                <xs:documentation>species for which the
-                  muffin-tin radius will be used for calculating gkmax
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="mixer" default="lin">
+							<xs:annotation>
+								<xs:documentation>select the mixing (relaxation)
+									scheme for SCF
+								</xs:documentation>
+								<xs:appinfo>
+									<oldname>mixtype</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="lin">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>1</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="msec">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>2</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="pulay">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>3</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="fromscratch" type="xs:boolean"
+							default="true">
+							<xs:annotation>
+								<xs:documentation>if true program will start SCF from
+									atomic
+									densities, even if STATE.OUT is present
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="gmaxvr" type="fortrandouble"
-              default="12">
-              <xs:annotation>
-                <xs:documentation>maximum length of |G| for
-                  expanding the interstitial density and potential
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="lradstep" type="xs:integer"
+							default="4">
+							<xs:annotation>
+								<xs:documentation> Some muffin-tin functions (such as
+									the
+									density) are calculated on a coarse radial mesh
+									and then
+									interpolated onto a fine
+									mesh. This is done
+									for the sake of
+									efficiency. lradstp defines the step
+									size in going from the fine
+									to the coarse radial mesh.
+									If it is too
+									large, loss of precision
+									may occur.
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="nempty" type="xs:integer"
-              default="5">
-              <xs:annotation>
-                <xs:documentation>
-                  Defines the number of eigenstates beyond that required
-                  for charge neutrality. When running metals it is not
-                  known
-                  <it>a priori</it>
-                  how many states will be below the Fermi energy for
-                  each
-                  <bf>k</bf>
-                  -point. Setting
-                  <pre>nempty</pre>
-                  greater than zero allows the additional states to act
-                  as a buffer in such cases. Furthermore, magnetic
-                  calculations use the first-variational
-                  eigenstates as a
-                  basis for setting up the second-variational
-                  Hamiltonian, and thus
-                  <pre>nempty</pre>
-                  will determine the size of this basis set. Convergence
-                  with respect to this quantity should be checked.
+								<xs:appinfo>
+									<oldname>lradstp</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="nprad" type="xs:integer" default="4">
+							<xs:annotation>
+								<xs:documentation>smallest occupancy for which a
+									state will
+									contribute to the density
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="nosym" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  when set to
-                  <pre>.true.</pre>
-                  no symmetries, apart from the identity, are used
-                  anywhere in the code
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="xctype" default="LSDAPerdew-Wang">
+							<xs:annotation>
+								<xs:documentation>
+									type of exchange-correlation functional to be used
+									\begin{itemize} \item No exchange-correlation
+									funtional (
+									<inlinemath>E_{\rm xc}\equiv 0</inlinemath>
+									) \item LDA, Perdew-Zunger/Ceperley-Alder, {\it Phys.
+									Rev. B}
+									<bf>23</bf>
+									, 5048 (1981) \item LSDA, Perdew-Wang/Ceperley-Alder,
+									<it>Phys. Rev. B</it>
+									<bf>45</bf>
+									, 13244 (1992) \item LDA, X-alpha approximation, J. C.
+									Slater,
+									<it>Phys. Rev.</it>
+									<bf>81</bf>
+									, 385 (1951) \item LSDA, von Barth-Hedin,
+									<it>J. Phys. C</it>
+									<bf>5</bf>
+									, 1629 (1972) \\ \item GGA, Perdew-Burke-Ernzerhof,
+									<it>Phys. Rev. Lett.</it>
+									<bf>77</bf>
+									, 3865 (1996) \item GGA, Revised PBE, Zhang-Yang, {\it
+									Phys.
+									Rev. Lett.}
+									<bf>80</bf>
+									, 890 (1998) \item GGA, PBEsol, arXiv:0707.2088v1
+									(2007) \item
+									GGA, Wu-Cohen exchange (WC06) with PBE
+									correlation,
+									<it>Phys. Rev. B</it>
+									<bf>73</bf>
+									, 235116 (2006) \item GGA, Armiento-Mattsson (AM05)
+									spin-unpolarised functional, {\it Phys. Rev. B}
+									<bf>72</bf>
+									, 085108 (2005) \end{itemize}
+								</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="LDAPerdew-Zunger">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>2</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="LSDAPerdew-Wang">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>3</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="LDA-X-alpha">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>4</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="LSDA-Barth-Hedin">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>5</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="GGAPerdew-Burke-Ernzerhof">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>20</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="GGArevPBE">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>21</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="GGAPBEsol">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>22</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="GGA-Wu-Cohen">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>26</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="GGAArmiento-Mattsson">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>30</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="EXX" />
+									<xs:enumeration value="none">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>0</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="evalmin" type="fortrandouble"
+							default="-4.5d0">
+							<xs:annotation>
+								<xs:documentation>Any valence states with eigenvalues
+									below
+									evalmin are not occupied and a warning message
+									is issued.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="lmaxvr" type="xs:integer"
+							default="7">
+							<xs:annotation>
+								<xs:documentation>angular momentum cut-off for
+									the muffin-tin
+									density and potential
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="autokpt" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  if the
-                  <bf>k</bf>
-                  -point set is to be determined automatically
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="radkpt" type="fortrandouble"
-              default="40">
-              <xs:annotation>
-                <xs:documentation>
-                  Used for the automatic determination of the
-                  <bf>k</bf>
-                  -point mesh. If
-                  <pre>autokpt</pre>
-                  is set to
-                  <pre>.true.</pre>
-                  then the mesh sizes will be determined by
-                  <inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath>
-                  .
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="reducek" type="xs:boolean"
-              default="true">
-              <xs:annotation>
-                <xs:documentation>
-                  <pre>reducek</pre>
-                  set to
-                  <pre>.true.</pre>
-                  if the
-                  <inlinemath>
-                    <bf>k</bf>
-                  </inlinemath>
-                  -point set is to be reduced with the crystal
-                  symmetries
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ref="tfibs" default="true">
-              <xs:annotation>
-                <xs:documentation />
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ref="tforce" default="false">
-              <xs:annotation>
-                <xs:documentation />
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="lmaxapw" type="xs:integer"
-              default="8">
-              <xs:annotation>
-                <xs:documentation>angular momentum cut-off for
-                  the APW functions</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="maxscl" type="xs:integer"
-              default="200">
-              <xs:annotation>
-                <xs:documentation>upper limit for te
-                  selfconsistency loop</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="chgexs" type="fortrandouble"
-              default="0">
-              <xs:annotation>
-                <xs:documentation> This controls the amount of charge in
-                  the unit cell beyond that required to maintain
-                  neu-trality. It can be set positive or
-                  negative
-                  depending on whether electron or hole doping is
-                  required.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="deband" type="fortrandouble"
-              default="0.0025d0">
-              <xs:annotation>
-                <xs:documentation>
-                  initial band energy step size The initial step length
-                  used when searching for the band energy, which is used
-                  as the APW linearisation energy.
-                  This is done by first
-                  searching upwards in energy until the radial
-                  wavefunction at the muffin-tin radius is zero. This is
-                  the energy at the
-                  top of the band, denoted
-                  <inlinemath>E_{\rm t}</inlinemath>
-                  . A downward search is now performed from
-                  <inlinemath>E_{\rm t}</inlinemath>
-                  until the slope of the radial wavefunction at the
-                  muffin-tin radius is zero. This energy,
-                  <inlinemath>E_{\rm b}</inlinemath>
-                  , is at the bottom of the band. The band energy is
-                  taken as
-                  <inlinemath>(E_{\rm t}+E_{\rm b})/2</inlinemath>
-                  . If either
-                  <inlinemath>E_{\rm t}</inlinemath>
-                  or
-                  <inlinemath>E_{\rm b}</inlinemath>
-                  cannot be found then the band energy is set to the
-                  default value.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="epschg" type="fortrandouble"
-              default="1.0d-3">
-              <xs:annotation>
-                <xs:documentation>maximum allowed error in the
-                  calculated total charge beyond which a warning message
-                  will be issued</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="epsocc" type="fortrandouble"
-              default="1e-8">
-              <xs:annotation>
-                <xs:documentation>smallest occupancy for which a
-                  state will contribute to the density
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="mixer" default="lin">
-              <xs:annotation>
-                <xs:documentation>select the mixing (relaxation)
-                  scheme for SCF</xs:documentation>
-                <xs:appinfo>
-                  <oldname>mixtype</oldname>
-                </xs:appinfo>
-              </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="lin">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>1</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="msec">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>2</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="pulay">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>3</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:attribute>
-            <xs:attribute name="fromscratch" type="xs:boolean"
-              default="true">
-              <xs:annotation>
-                <xs:documentation>if true program will start SCF from
-                  atomic densities, even if STATE.OUT is present
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="lradstep" type="xs:integer"
-              default="4">
-              <xs:annotation>
-                <xs:documentation> Some muffin-tin functions (such as
-                  the density) are calculated on a coarse radial mesh
-                  and then interpolated onto a fine
-                  mesh. This is done
-                  for the sake of efficiency. lradstp defines the step
-                  size in going from the fine to the coarse radial mesh.
-                  If it is too
-                  large, loss of precision may occur.
-                </xs:documentation>
-                <xs:appinfo>
-                  <oldname>lradstp</oldname>
-                </xs:appinfo>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="nprad" type="xs:integer"
-              default="4">
-              <xs:annotation>
-                <xs:documentation>smallest occupancy for which a
-                  state will contribute to the density
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="xctype" default="LSDAPerdew-Wang">
-              <xs:annotation>
-                <xs:documentation>
-                  type of exchange-correlation functional to be used
-                  \begin{itemize} \item No exchange-correlation
-                  funtional (
-                  <inlinemath>E_{\rm xc}\equiv 0</inlinemath>
-                  ) \item LDA, Perdew-Zunger/Ceperley-Alder, {\it Phys.
-                  Rev. B}
-                  <bf>23</bf>
-                  , 5048 (1981) \item LSDA, Perdew-Wang/Ceperley-Alder,
-                  <it>Phys. Rev. B</it>
-                  <bf>45</bf>
-                  , 13244 (1992) \item LDA, X-alpha approximation, J. C.
-                  Slater,
-                  <it>Phys. Rev.</it>
-                  <bf>81</bf>
-                  , 385 (1951) \item LSDA, von Barth-Hedin,
-                  <it>J. Phys. C</it>
-                  <bf>5</bf>
-                  , 1629 (1972) \\ \item GGA, Perdew-Burke-Ernzerhof,
-                  <it>Phys. Rev. Lett.</it>
-                  <bf>77</bf>
-                  , 3865 (1996) \item GGA, Revised PBE, Zhang-Yang, {\it
-                  Phys. Rev. Lett.}
-                  <bf>80</bf>
-                  , 890 (1998) \item GGA, PBEsol, arXiv:0707.2088v1
-                  (2007) \item GGA, Wu-Cohen exchange (WC06) with PBE
-                  correlation,
-                  <it>Phys. Rev. B</it>
-                  <bf>73</bf>
-                  , 235116 (2006) \item GGA, Armiento-Mattsson (AM05)
-                  spin-unpolarised functional, {\it Phys. Rev. B}
-                  <bf>72</bf>
-                  , 085108 (2005) \end{itemize}
-                </xs:documentation>
-              </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="LDAPerdew-Zunger">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>2</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="LSDAPerdew-Wang">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>3</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="LDA-X-alpha">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>4</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="LSDA-Barth-Hedin">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>5</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="GGAPerdew-Burke-Ernzerhof">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>20</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="GGArevPBE">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>21</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="GGAPBEsol">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>22</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="GGA-Wu-Cohen">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>26</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="GGAArmiento-Mattsson">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>30</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="EXX" />
-                  <xs:enumeration value="none">
-                    <xs:annotation>
-                      <xs:appinfo>
-                        <oldnr>0</oldnr>
-                      </xs:appinfo>
-                    </xs:annotation>
-                  </xs:enumeration>
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:attribute>
-            <xs:attribute name="evalmin" type="fortrandouble"
-              default="-4.5d0">
-              <xs:annotation>
-                <xs:documentation>Any valence states with eigenvalues
-                  below evalmin are not occupied and a warning message
-                  is issued.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="lmaxvr" type="xs:integer"
-              default="7">
-              <xs:annotation>
-                <xs:documentation>angular momentum cut-off for
-                  the muffin-tin density and potential
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="fracinr" type="fortrandouble"
-              default="0.25d0">
-              <xs:annotation>
-                <xs:documentation>fraction of the muffin-tin
-                  radius up to which lmaxinr is used as the angular
-                  momentum cut-off</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="lmaxinr" type="xs:integer"
-              default="2">
-              <xs:annotation>
-                <xs:documentation> Close to the nucleus, the density and
-                  potential is almost spherical and therefore the
-                  spherical harmonic expansion can be
-                  truncated a low
-                  angular momentum. See also fracinr.</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="lmaxmat" type="xs:integer"
-              default="5">
-              <xs:annotation>
-                <xs:documentation>angular momentum cut-off for
-                  the outer-most loop in the hamiltonian and overlap
-                  matrix setup</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="kdotpgrid" type="integertriple"
-              use="optional" />
-            <xs:attribute name="vkloff" type="vect3d"
-              default="0 0 0">
-              <xs:annotation>
-                <xs:documentation>the k-point offset vector in
-                  lattice coordinates</xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="npsden" type="xs:integer"
-              default="9" />
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="structureoptimization" minOccurs="0">
-          <xs:annotation>
-            <xs:documentation> The structure optimization element
-              requires a groundstate element to be present
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="fracinr" type="fortrandouble"
+							default="0.25d0">
+							<xs:annotation>
+								<xs:documentation>fraction of the muffin-tin
+									radius up to which
+									lmaxinr is used as the angular
+									momentum cut-off
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="lmaxinr" type="xs:integer"
+							default="2">
+							<xs:annotation>
+								<xs:documentation> Close to the nucleus, the density and
+									potential is almost spherical and therefore the
+									spherical
+									harmonic expansion can be
+									truncated a low
+									angular momentum. See
+									also fracinr.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="lmaxmat" type="xs:integer"
+							default="5">
+							<xs:annotation>
+								<xs:documentation>angular momentum cut-off for
+									the outer-most
+									loop in the hamiltonian and overlap
+									matrix setup
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="kdotpgrid" type="integertriple"
+							use="optional" />
+						<xs:attribute name="vkloff" type="vect3d" default="0 0 0">
+							<xs:annotation>
+								<xs:documentation>the k-point offset vector in
+									lattice
+									coordinates</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="npsden" type="xs:integer"
+							default="9" />
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="structureoptimization" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation> The structure optimization element
+							requires a
+							groundstate element to be present
             </xs:documentation>
-          </xs:annotation>
-          <xs:complexType>
-            <xs:annotation>
-              <xs:documentation>
-                tructural optimisation run starting from the atomic
-                densities, with atomic positions written to
-                <pre>GEOMETRY.OUT</pre>
-                .
-              </xs:documentation>
-            </xs:annotation>
-            <xs:attribute name="epsforce" type="fortrandouble"
-              default="5e-5">
-              <xs:annotation>
-                <xs:documentation> convergence tolerance for the forces
-                  during a structural optimisation run
+					</xs:annotation>
+					<xs:complexType>
+						<xs:annotation>
+							<xs:documentation>
+								tructural optimisation run starting from the atomic
+								densities,
+								with atomic positions written to
+								<pre>GEOMETRY.OUT</pre>
+								.
+							</xs:documentation>
+						</xs:annotation>
+						<xs:attribute name="epsforce" type="fortrandouble"
+							default="5e-5">
+							<xs:annotation>
+								<xs:documentation> convergence tolerance for the forces
+									during a
+									structural optimisation run
                 </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="tau0atm" type="fortrandouble"
-              default="0.2d0">
-              <xs:annotation>
-                <xs:documentation>
-                  the step size to be used for structural optimisation
-                  <p />
-                  The position of atom
-                  <inlinemath>\alpha</inlinemath>
-                  is updated on step
-                  <inlinemath>m</inlinemath>
-                  of a structural optimisation run using
-                  <displaymath> {\bf r}_{\alpha}^{m+1}={\bf
-                    r}_{\alpha}^m+\tau_{\alpha}^m \left({ \bf
-                    F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right), </displaymath>
-                  where
-                  <inlinemath>\tau_{\alpha}</inlinemath>
-                  is set to
-                  <pre>tau0atm</pre>
-                  for
-                  <inlinemath>m=0</inlinemath>
-                  , and incremented by the same amount if the atom is
-                  moving in the same direction between steps. If the
-                  direction changes then
-                  <inlinemath>\tau_{\alpha}</inlinemath>
-                  is reset to
-                  <pre>tau0atm</pre>
-                  .
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="resume" type="xs:boolean"
-              default="false">
-              <xs:annotation>
-                <xs:documentation>
-                  Resumption of structural optimisation run using
-                  density in
-                  <pre>STATE.OUT</pre>
-                  but with positions from
-                  <pre>exciting.in</pre>
-                  .
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="properties" maxOccurs="1"
-          minOccurs="0">
-          <xs:annotation>
-            <xs:documentation> Properties listed in this element can be
-              calculated from the groundstate. It works also from a
-              saved state from a previous run.
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="tau0atm" type="fortrandouble"
+							default="0.2d0">
+							<xs:annotation>
+								<xs:documentation>
+									the step size to be used for structural optimisation
+									<p />
+									The position of atom
+									<inlinemath>\alpha</inlinemath>
+									is updated on step
+									<inlinemath>m</inlinemath>
+									of a structural optimisation run using
+									<displaymath> {\bf r}_{\alpha}^{m+1}={\bf
+										r}_{\alpha}^m+\tau_{\alpha}^m \left({ \bf
+										F}_{\alpha}^m+{ \bf
+										F}_{\alpha}^{m-1}\right), </displaymath>
+									where
+									<inlinemath>\tau_{\alpha}</inlinemath>
+									is set to
+									<pre>tau0atm</pre>
+									for
+									<inlinemath>m=0</inlinemath>
+									, and incremented by the same amount if the atom is
+									moving in
+									the same direction between steps. If the
+									direction changes then
+									<inlinemath>\tau_{\alpha}</inlinemath>
+									is reset to
+									<pre>tau0atm</pre>
+									.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="resume" type="xs:boolean"
+							default="false">
+							<xs:annotation>
+								<xs:documentation>
+									Resumption of structural optimisation run using
+									density in
+									<pre>STATE.OUT</pre>
+									but with positions from
+									<pre>exciting.in</pre>
+									.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="properties" maxOccurs="1" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation> Properties listed in this element can be
+							calculated from the groundstate. It works also from a
+							saved state
+							from a previous run.
             </xs:documentation>
-          </xs:annotation>
-          <xs:complexType>
-            <xs:all>
-              <xs:element name="bandstructure" maxOccurs="1"
-                minOccurs="0">
-                <xs:complexType>
-                  <xs:annotation>
-                    <xs:documentation> create a bandstructure
+					</xs:annotation>
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="bandstructure" maxOccurs="1"
+								minOccurs="0">
+								<xs:complexType>
+									<xs:annotation>
+										<xs:documentation> create a bandstructure
                     </xs:documentation>
-                  </xs:annotation>
-                  <xs:all>
-                    <xs:element ref="plot1d" />
-                  </xs:all>
-                  <xs:attribute ref="scissor" default="0d0" />
-                  <xs:attribute name="character" type="xs:boolean"
-                    default="false">
-                    <xs:annotation>
-                      <xs:documentation> Band structure plot which
-                        includes angular momentum characters for every
-                        atom.</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="STM" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot2d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="wfplot" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> wavefunction plot
+									</xs:annotation>
+									<xs:all>
+										<xs:element ref="plot1d" />
+									</xs:all>
+									<xs:attribute ref="scissor" default="0d0" />
+									<xs:attribute name="character" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:documentation> Band structure plot which
+												includes angular
+												momentum characters for every
+												atom.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="STM" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot2d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="wfplot" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> wavefunction plot
                   </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:annotation>
-                    <xs:documentation> Plot the wave function at a set
-                      of kpoints</xs:documentation>
-                  </xs:annotation>
-                  <xs:all>
-                    <xs:element ref="kstlist" minOccurs="0" />
-                    <xs:element ref="plot1d" minOccurs="0" />
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="dos" maxOccurs="1" minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation>
-                    DOS and optics plots require integrals of the kind
-                    <displaymath>
-                      g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ}
-                      f({ \bf k}) \delta(\omega_i-e({\bf k}))d{ \bf k}. </displaymath>
-                    These are calculated by first interpolating the
-                    functions
-                    <inlinemath>e({ \bf k})</inlinemath>
-                    and
-                    <inlinemath>f({ \bf k})</inlinemath>
-                    with the trilinear method on a much finer mesh whose
-                    size is determined by
-                    <pre>ngrdos</pre>
-                    . Then the
-                    <inlinemath>\omega</inlinemath>
-                    -dependent histogram of the integrand is accumulated
-                    over the fine mesh. If the output function is noisy
-                    then either
-                    <pre>ngrdos</pre>
-                    should be increased or
-                    <pre>nwdos</pre>
-                    decreased. Alternatively, the output function can be
-                    artificially smoothed up to a level given by
-                    <pre>nsmdos</pre>
-                    . This is the number of successive 3-point averages
-                    to be applied to the function
-                    <inlinemath>g</inlinemath>
-                    .
-                  </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:attribute name="lmirep" type="xs:boolean"
-                    default="false">
-                    <xs:annotation>
-                      <xs:documentation> When lmirep is set to .true.,
-                        the spherical harmonic basis is transformed into
-                        one in which the site symmetries are
-                        block
-                        diagonal. Band characters determined from the
-                        density ma- trix expressed in this basis
-                        correspond to irreducible representations,
-                        and
-                        allow the partial DOS to be resolved into
-                        physically relevant contributions, for example
-                        eg and t2g .</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="nwdos" type="xs:integer"
-                    default="500">
-                    <xs:annotation>
-                      <xs:documentation> number of frequency/energy
-                        points in the DOS or op- integer 500 tics plot
+								</xs:annotation>
+								<xs:complexType>
+									<xs:annotation>
+										<xs:documentation> Plot the wave function at a set
+											of kpoints
+										</xs:documentation>
+									</xs:annotation>
+									<xs:all>
+										<xs:element ref="kstlist" minOccurs="0" />
+										<xs:element ref="plot1d" minOccurs="0" />
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="dos" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>
+										DOS and optics plots require integrals of the kind
+										<displaymath>
+											g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ}
+											f({ \bf k}) \delta(\omega_i-e({\bf k}))d{ \bf k}. </displaymath>
+										These are calculated by first interpolating the
+										functions
+										<inlinemath>e({ \bf k})</inlinemath>
+										and
+										<inlinemath>f({ \bf k})</inlinemath>
+										with the trilinear method on a much finer mesh whose
+										size is
+										determined by
+										<pre>ngrdos</pre>
+										. Then the
+										<inlinemath>\omega</inlinemath>
+										-dependent histogram of the integrand is accumulated
+										over the
+										fine mesh. If the output function is noisy
+										then either
+										<pre>ngrdos</pre>
+										should be increased or
+										<pre>nwdos</pre>
+										decreased. Alternatively, the output function can be
+										artificially smoothed up to a level given by
+										<pre>nsmdos</pre>
+										. This is the number of successive 3-point averages
+										to be
+										applied to the function
+										<inlinemath>g</inlinemath>
+										.
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="lmirep" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:documentation> When lmirep is set to .true.,
+												the spherical
+												harmonic basis is transformed into
+												one in which the site
+												symmetries are
+												block
+												diagonal. Band characters determined from
+												the
+												density ma- trix expressed in this basis
+												correspond to
+												irreducible representations,
+												and
+												allow the partial DOS to be
+												resolved into
+												physically relevant contributions, for example
+												eg and t2g .</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="nwdos" type="xs:integer"
+										default="500">
+										<xs:annotation>
+											<xs:documentation> number of frequency/energy
+												points in the
+												DOS or op- integer 500 tics plot
                       </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="ngrdos" type="xs:integer"
-                    default="100">
-                    <xs:annotation>
-                      <xs:documentation> effective k-point mesh size to
-                        be used for Brillouin zone integer
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ngrdos" type="xs:integer"
+										default="100">
+										<xs:annotation>
+											<xs:documentation> effective k-point mesh size to
+												be used for
+												Brillouin zone integer
                       </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute ref="scissor" />
-                  <xs:attribute name="nsmdos" type="xs:integer"
-                    default="0">
-                    <xs:annotation>
-                      <xs:documentation> level of smoothing applied to
-                        DOS/optics output integer 0</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="wintdos" default=".5 .5"
-                    type="vect2d">
-                    <xs:annotation>
-                      <xs:documentation> frequency/energy window for the
-                        DOS or optics plot</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="LSJ" maxOccurs="1" minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> Output L, S and J expectation
-                    values</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="kstlist">
-                      <xs:annotation>
-                        <xs:documentation>
-                          <inlinemath>i</inlinemath>
-                          th
-                          <inlinemath> { \bf k} </inlinemath>
-                          -point and state pair
-                        </xs:documentation>
-                      </xs:annotation>
-                    </xs:element>
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="masstensor" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation>
-                    Compute the effective mass tensor at the
-                    <bf>k</bf>
-                    -point given by vklem
-                  </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:attribute name="deltaem" type="fortrandouble"
-                    default="0.025d0">
-                    <xs:annotation>
-                      <xs:documentation> The size of the k-vector
-                        displacement used when calculating numerical
-                        derivatives for the effective mass tensor
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute ref="scissor" />
+									<xs:attribute name="nsmdos" type="xs:integer"
+										default="0">
+										<xs:annotation>
+											<xs:documentation> level of smoothing applied to
+												DOS/optics
+												output integer 0</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="wintdos" default=".5 .5" type="vect2d">
+										<xs:annotation>
+											<xs:documentation> frequency/energy window for the
+												DOS or
+												optics plot</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="LSJ" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Output L, S and J expectation
+										values
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="kstlist">
+											<xs:annotation>
+												<xs:documentation>
+													<inlinemath>i</inlinemath>
+													th
+													<inlinemath> { \bf k} </inlinemath>
+													-point and state pair
+												</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="masstensor" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>
+										Compute the effective mass tensor at the
+										<bf>k</bf>
+										-point given by vklem
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="deltaem" type="fortrandouble"
+										default="0.025d0">
+										<xs:annotation>
+											<xs:documentation> The size of the k-vector
+												displacement used
+												when calculating numerical
+												derivatives for the effective mass
+												tensor
                       </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="ndspem" type="xs:integer"
-                    default="1">
-                    <xs:annotation>
-                      <xs:documentation> the number of k-vector
-                        displacements in each direction around vklem
-                        when computing the numerical derivatives for the
-                        effective mass tensor</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="vklem" type="vect3d"
-                    default="0 0 0">
-                    <xs:annotation>
-                      <xs:documentation> the k-point in lattice
-                        coordinates at which to compute the effective
-                        mass tensors</xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="chargedesityplot" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> Plot the charge density
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ndspem" type="xs:integer"
+										default="1">
+										<xs:annotation>
+											<xs:documentation> the number of k-vector
+												displacements in
+												each direction around vklem
+												when computing the numerical
+												derivatives for the
+												effective mass tensor</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="vklem" type="vect3d" default="0 0 0">
+										<xs:annotation>
+											<xs:documentation> the k-point in lattice
+												coordinates at which
+												to compute the effective
+												mass tensors</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="chargedesityplot" maxOccurs="1"
+								minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Plot the charge density
                   </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot1d" minOccurs="0" />
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="exccplot" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> exchange-correlation and Coulomb
-                    potential plots.</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot1d" minOccurs="0" />
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="elfplot" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> electron localisation function
-                    (ELF)</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot1d" minOccurs="0" />
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="mvecfield" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> plot of magnetisation vector field
-                  </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="xcmvecfield" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> plot of exchange-correlation
-                    magnetic vector field</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="electricfield" minOccurs="0"
-                maxOccurs="1">
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="gradmvecfield" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> plot of he gradient of the magnetic
-                    vector field.</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element ref="plot1d" minOccurs="0" />
-                    <xs:element ref="plot2d" minOccurs="0" />
-                    <xs:element ref="plot3d" minOccurs="0" />
-                  </xs:all>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="fermisurfaceplot" maxOccurs="1"
-                minOccurs="0">
-                <xs:complexType>
-                  <xs:attribute name="nstfsp" type="xs:integer"
-                    default="6">
-                    <xs:annotation>
-                      <xs:documentation> number of states to be included
-                        in the Fermi surface plot file
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot1d" minOccurs="0" />
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="exccplot" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> exchange-correlation and Coulomb
+										potential
+										plots.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot1d" minOccurs="0" />
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="elfplot" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> electron localisation function
+										(ELF)
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot1d" minOccurs="0" />
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="mvecfield" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> plot of magnetisation vector field
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="xcmvecfield" maxOccurs="1"
+								minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> plot of exchange-correlation
+										magnetic vector
+										field</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="electricfield" minOccurs="0"
+								maxOccurs="1">
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="gradmvecfield" maxOccurs="1"
+								minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> plot of he gradient of the magnetic
+										vector
+										field.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:all>
+										<xs:element ref="plot1d" minOccurs="0" />
+										<xs:element ref="plot2d" minOccurs="0" />
+										<xs:element ref="plot3d" minOccurs="0" />
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="fermisurfaceplot" maxOccurs="1"
+								minOccurs="0">
+								<xs:complexType>
+									<xs:attribute name="nstfsp" type="xs:integer"
+										default="6">
+										<xs:annotation>
+											<xs:documentation> number of states to be included
+												in the
+												Fermi surface plot file
                       </xs:documentation>
-                    </xs:annotation>
-                  </xs:attribute>
-                  <xs:attribute name="separate" type="xs:boolean" />
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="separate" type="xs:boolean" />
 
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="EFG" maxOccurs="1" minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> Calculation of electric field
-                    gradient (EFG), contact charge</xs:documentation>
-                </xs:annotation>
-                <xs:complexType />
-              </xs:element>
-              <xs:element name="momentummatrix" maxOccurs="1"
-                minOccurs="0">
-                <xs:complexType />
-              </xs:element>
-              <xs:element name="linresponsetensor" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> Linear optical response tensor.
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="EFG" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Calculation of electric field
+										gradient (EFG),
+										contact charge</xs:documentation>
+								</xs:annotation>
+								<xs:complexType />
+							</xs:element>
+							<xs:element name="momentummatrix" maxOccurs="1"
+								minOccurs="0">
+								<xs:complexType />
+							</xs:element>
+							<xs:element name="linresponsetensor" maxOccurs="1"
+								minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Linear optical response tensor.
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="optcomp" type="integertriple"
+											default="1 1 1" maxOccurs="27">
+											<xs:annotation>
+												<xs:documentation> the components of the first-
+													or
+													second-order optical tensor to be
+													calculated
+												</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute ref="scissor" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="mossbauer" minOccurs="0">
+								<xs:complexType />
+							</xs:element>
+							<xs:element name="dielectric" minOccurs="0">
+								<xs:annotation>
+									<xs:appinfo>
+										<oldname>noname</oldname>
+									</xs:appinfo>
+								</xs:annotation>
+								<xs:complexType />
+							</xs:element>
+							<xs:element name="expiqr" minOccurs="0">
+								<xs:complexType />
+							</xs:element>
+							<xs:element name="elnes" minOccurs="0">
+								<xs:complexType />
+							</xs:element>
+							<xs:element name="eliashberg" minOccurs="0">
+								<xs:complexType />
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="phonons" maxOccurs="1" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>
+							The phonon element requires a groundstate element to be
+							present.
+							<p />
+							Phonon frequencies and eigen vectors for an arbitrary
+							q-point.
+						</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:annotation>
+							<xs:documentation> The phonon element must contain one or
+								more
+								q-point elements</xs:documentation>
+						</xs:annotation>
+						<xs:all>
+							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1" />
+
+
+							<xs:element name="phonondos" maxOccurs="1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>
+										Phonon density of states.
+										<p>no special blocks required</p>
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType />
+							</xs:element>
+							<xs:element name="phonondispplot" maxOccurs="1"
+								minOccurs="0">
+								<xs:annotation>
+									<xs:documentation> Phonon dispersion plot.
                   </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="optcomp" type="integertriple"
-                      default="1 1 1" maxOccurs="27">
-                      <xs:annotation>
-                        <xs:documentation> the components of the first-
-                          or second-order optical tensor to be
-                          calculated</xs:documentation>
-                      </xs:annotation>
-                    </xs:element>
-                  </xs:sequence>
-                  <xs:attribute ref="scissor" />
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="mossbauer" minOccurs="0">
-                <xs:complexType />
-              </xs:element>
-              <xs:element name="dielectric" minOccurs="0">
-                <xs:annotation>
-                  <xs:appinfo>
-                    <oldname>noname</oldname>
-                  </xs:appinfo>
-                </xs:annotation>
-                <xs:complexType />
-              </xs:element>
-              <xs:element name="expiqr" minOccurs="0">
-                <xs:complexType />
-              </xs:element>
-              <xs:element name="elnes" minOccurs="0">
-                <xs:complexType />
-              </xs:element>
-              <xs:element name="eliashberg" minOccurs="0">
-                <xs:complexType />
-              </xs:element>
-            </xs:all>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="phonons" maxOccurs="1" minOccurs="0">
-          <xs:annotation>
-            <xs:documentation>
-              The phonon element requires a groundstate element to be
-              present.
-              <p />
-              Phonon frequencies and eigen vectors for an arbitrary
-              q-point.
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element ref="plot1d" />
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="xs" minOccurs="0" maxOccurs="1">
+					<xs:annotation>
+						<xs:documentation>If this element is present with valid
+							configuration, the dielectric function an associated
+							properties
+							are calculated.
             </xs:documentation>
-          </xs:annotation>
-          <xs:complexType>
-            <xs:annotation>
-              <xs:documentation> The phonon element must contain one or
-                more q-point elements</xs:documentation>
-            </xs:annotation>
-            <xs:all>
-              <xs:element ref="qpointset" minOccurs="1"
-                maxOccurs="1" />
+					</xs:annotation>
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="tddft" minOccurs="0">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="dftrans" maxOccurs="1" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="trans" type="integertriple"
+														maxOccurs="unbounded" minOccurs="1" />
+												</xs:sequence>
 
-
-              <xs:element name="phonondos" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation>
-                    Phonon density of states.
-                    <p>no special blocks required</p>
-                  </xs:documentation>
-                </xs:annotation>
-                <xs:complexType />
-              </xs:element>
-              <xs:element name="phonondispplot" maxOccurs="1"
-                minOccurs="0">
-                <xs:annotation>
-                  <xs:documentation> Phonon dispersion plot.
-                  </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element ref="plot1d" />
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
-            </xs:all>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="xs" minOccurs="0" maxOccurs="1">
-          <xs:annotation>
-            <xs:documentation>If this element is present with valid
-              configuration, the dielectric function an associated
-              properties are calculated.
-            </xs:documentation>
-          </xs:annotation>
-          <xs:complexType>
-            <xs:all>
-              <xs:element name="tddft" minOccurs="0">
-                <xs:complexType>
-                  <xs:all>
-                    <xs:element name="dftrans" maxOccurs="1" minOccurs="0">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="trans" type="integertriple" maxOccurs="unbounded" minOccurs="1" />
-                        </xs:sequence>
-                       
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:all>
-                   <xs:attribute name="dfoffdiag" type="xs:boolean" default="false" />
-                  <xs:attribute name="emattype" type="xs:integer" default="0" />
-                  <xs:attribute name="lmaxapwwf" type="xs:integer" default="-1" />
-                  <xs:attribute name="lmaxemat" type="xs:integer" default="3" />
-                  <xs:attribute name="scissor" type="fortrandouble" default="0" />
-                  <xs:attribute name="optswidth" type="fortrandouble" default="0" />
-                  <xs:attribute name="intraband" type="xs:boolean" default="false" />
-                  <xs:attribute name="tetradf" type="xs:boolean" default="false" />
-                  <xs:attribute name="torddf" type="xs:boolean" default="false" />
-                  <xs:attribute name="acont" type="xs:boolean" default="false" />
-                  <xs:attribute name="nwacont" type="xs:integer" default="0" />
-                  <xs:attribute name="broad" type="fortrandouble" default="0.01d0" />
-                  <xs:attribute name="lindhard" type="xs:boolean" default="false" />
-                  <xs:attribute name="aresdf" type="xs:boolean" default="true" />
-                  <xs:attribute name="epsdfde" type="fortrandouble" default="1.0d-8" />
-                  <xs:attribute name="emaxdf" type="fortrandouble" default="1d10" />
-                  <xs:attribute name="fxctype" default="0" >
-                  <xs:simpleType>
-                  <xs:restriction base="xs:string" >
-                    <xs:enumeration value="0">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>0</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>
-                  <xs:enumeration value="1">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>1</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>
-                    <xs:enumeration value="2">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>2</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>  <xs:enumeration value="3">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>3</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>  <xs:enumeration value="4">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>4</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>  <xs:enumeration value="5">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>5</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>  <xs:enumeration value="7">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>7</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>  <xs:enumeration value="8">
-                  <xs:annotation>
-                  <xs:appinfo>
-                  <oldnr>8</oldnr>
-                  </xs:appinfo>
-                  </xs:annotation>
-                  </xs:enumeration>
-                  </xs:restriction>
-                  </xs:simpleType>
-                  </xs:attribute>
-                  
-                  <xs:attribute name="kerndiag" type="xs:boolean" default="false" />
-                  <xs:attribute name="lmaxalda" type="xs:integer" default="3" />
-                  <xs:attribute name="alphalrc" type="fortrandouble" default="0" />
-                  <xs:attribute name="alphalrcdyn" type="fortrandouble" default="0" />
-                  <xs:attribute name="betalrcdyn" type="fortrandouble" fixed="0" />
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="BSE" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                  <xs:attribute name="tordfxc" type="xs:string" default="causal" />
-                  <xs:attribute name="aresfxc" type="xs:boolean" default="true" />
-                  <xs:attribute name="fxcbsesplit" type="fortrandouble" default="1d-5" />
-                  <xs:attribute name="lmaxdielt" type="xs:integer" default="14" />
-                  <xs:attribute name="nleblaik" type="xs:integer" default="5810" />
-                  <xs:attribute name="nexcitmax" type="xs:integer" default="100" />
-                </xs:complexType>
-              </xs:element>
-              <xs:element ref="qpointset" minOccurs="1" maxOccurs="1" />
-              <xs:element name="plan" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="doonly" minOccurs="0" maxOccurs="unbounded">
-                      <xs:complexType>
-                        <xs:attribute name="task" use="required">
-                          <xs:simpleType>
-                            <xs:restriction base="xs:string">
-                              <xs:enumeration value="xsgeneigvrc">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>301</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="writepmatxs">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>320</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="writeeemat">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>330</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="tetcalccw">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>310</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="df">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>340</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="idf">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>350</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="scrgeneigvec">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>401</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="screen">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>430</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="scrcoulint">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>440</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="kernxc_bse">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>450</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="scrwritepmat">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>420</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="scrtetcalccw">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>410</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                              <xs:enumeration value="exccoulint">
-                                <xs:annotation>
-                                  <xs:appinfo>
-                                    <oldnr>441</oldnr>
-                                  </xs:appinfo>
-                                </xs:annotation>
-                              </xs:enumeration>
-                            </xs:restriction>
-                          </xs:simpleType>
-                        </xs:attribute>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="tetra" maxOccurs="1" minOccurs="0">
-                <xs:complexType>
-                  <xs:attribute name="kordexc" type="xs:boolean" default="false" />
-                  <xs:attribute name="cw1k" type="xs:boolean" default="false" />
-                  <xs:attribute name="qweights" type="xs:integer" default="1" />
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
-                <xs:complexType>
-                  <xs:attribute name="points" type="xs:integer" default="500" />
-                  <xs:attribute name="start" type="fortrandouble" default="-0.5" />
-                  <xs:attribute name="stop" type="fortrandouble" default="0.5" />
-                </xs:complexType>
-              </xs:element>
-            </xs:all>
-            <xs:attribute name="ngridk" type="integertriple" use="required" />
-            <xs:attribute name="vkloff" type="vect3d" default="0 0 0 " />
-            <xs:attribute name="reducek" type="xs:boolean" default="true" />
-            <xs:attribute name="ngridq" type="integertriple" fixed="1 1 1" />
-            <xs:attribute name="nosym" type="xs:boolean" default="false" />
-            <xs:attribute name="gqmax" type="fortrandouble" default="0" />
-            <xs:attribute name="rgkmax" type="fortrandouble" default="7" />
-            <xs:attribute name="lmaxapw" type="fortrandouble" default="8" />
-            <xs:attribute name="nempty" type="xs:integer" default="5" />
-            <xs:attribute name="xstype" default="TDDFT">
-            <xs:simpleType>
-            <xs:restriction base="xs:string">
-            <xs:enumeration value="TDDFT"></xs:enumeration>
-            <xs:enumeration value="BSE"></xs:enumeration>
-            </xs:restriction>
-            </xs:simpleType>
-            </xs:attribute>
-          </xs:complexType>
-        </xs:element>
-      </xs:all>
-      <xs:attribute name="xsltpath" type="xs:anyURI"
-        default="../../xml" />
-      <xs:attribute name="scratchpath" type="xs:anyURI"
-        use="optional">
-        <xs:annotation>
-          <xs:documentation>This is the path to scratch space where
-            the eigenvector file EIGVEC.OUT will be written. If the
-            local directory is accessed via
-            a network then scrpath can be
-            set to a directory on</xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="id" type="xs:ID">
-        <xs:annotation>
-          <xs:documentation>The id is a unique identifier in an input
-            set. If the input element is part of an input set the id
-            must be set.          </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="depends" type="xs:IDREFS">
-        <!--
-          <xs:simpleType> <xs:list itemType="xs:IDREF"/>
-          </xs:simpleType>
-        -->
-        <xs:annotation>
-          <xs:documentation>the depends attribute can be used to
-            specify a dependence from another simulation in the same
-            input set.</xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="qpointset">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="qpoint" type="vect3d" minOccurs="1"
-          maxOccurs="unbounded">
-          <xs:annotation>
-            <xs:documentation> a q-point is given in reciprocal space
-              coordinates</xs:documentation>
-          </xs:annotation>
-        </xs:element>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
+											</xs:complexType>
+										</xs:element>
+									</xs:all>
+									<xs:attribute name="intraband" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="torddf" type="xs:string"
+										default="causal" />
+									<xs:attribute name="tordfxc" type="xs:string"
+										default="causal" />
+									<xs:attribute name="aresdf" type="xs:boolean"
+										default="true" />
+									<xs:attribute name="aresfxc" type="xs:boolean"
+										default="true" />
+									<xs:attribute name="fxcbsesplit" type="fortrandouble"
+										default="1d-5" />
+									<xs:attribute name="acont" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="nwacont" type="xs:integer"
+										default="0" />
+									<xs:attribute name="lindhard" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="epsdfde" type="fortrandouble"
+										default="1.0d-8" />
+									<xs:attribute name="kerndiag" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="lmaxalda" type="xs:integer"
+										default="3" />
+									<xs:attribute name="alphalrc" type="fortrandouble"
+										default="0" />
+									<xs:attribute name="alphalrcdyn" type="fortrandouble"
+										default="0" />
+									<xs:attribute name="betalrcdyn" type="fortrandouble"
+										fixed="0" />
+									<xs:attribute name="fxctype" default="0">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="0">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>0</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="1">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>1</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="2">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>2</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="3">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>3</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="4">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>4</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="5">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>5</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="7">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>7</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="8">
+													<xs:annotation>
+														<xs:appinfo>
+															<oldnr>8</oldnr>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:attribute name="lmaxdielt" type="xs:integer"
+										default="14" />
+									<xs:attribute name="nleblaik" type="xs:integer"
+										default="5810" />
+									<xs:attribute name="nexcitmax" type="xs:integer"
+										default="100" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1" />
+							<xs:element name="plan" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="doonly" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="task" use="required">
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="xsgeneigvec">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>301</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="writepmatxs">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>320</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="writeemat">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>330</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="tetcalccw">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>310</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="df">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>340</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="df">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>345</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="idf">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>350</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="scrgeneigvec">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>401</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="scrtetcalccw">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>410</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="scrwritepmat">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>420</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="screen">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>430</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="scrcoulint">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>440</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="exccoulint">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>441</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="kernxc_bse">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>450</oldnr>
+																	</xs:appinfo>
+																</xs:annotation>
+															</xs:enumeration>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="tetra" maxOccurs="1" minOccurs="0">
+								<xs:complexType>
+									<xs:attribute name="tetradf" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="kordexc" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="cw1k" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="qweights" type="xs:integer"
+										default="1" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
+								<xs:complexType>
+									<xs:attribute name="points" type="xs:integer"
+										default="500" />
+									<xs:attribute name="start" type="fortrandouble"
+										default="-0.5" />
+									<xs:attribute name="stop" type="fortrandouble"
+										default="0.5" />
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+						<xs:attribute name="ngridk" type="integertriple" use="required" />
+						<xs:attribute name="vkloff" type="vect3d" default="0 0 0 " />
+						<xs:attribute name="reducek" type="xs:boolean"
+							default="true" />
+						<xs:attribute name="ngridq" type="integertriple"
+							fixed="1 1 1" />
+						<xs:attribute name="nosym" type="xs:boolean" default="false" />
+						<xs:attribute name="gqmax" type="fortrandouble"
+							default="0" />
+						<xs:attribute name="rgkmax" type="fortrandouble"
+							default="7" />
+						<xs:attribute name="lmaxapw" type="xs:integer"
+							default="8" />
+						<xs:attribute name="nempty" type="xs:integer"
+							default="5" />
+						<xs:attribute name="emattype" type="xs:integer"
+							default="0" />
+						<xs:attribute name="dfoffdiag" type="xs:boolean"
+							default="false" />
+						<xs:attribute name="lmaxapwwf" type="xs:integer"
+							default="-1" />
+						<xs:attribute name="lmaxemat" type="xs:integer"
+							default="3" />
+						<xs:attribute name="emaxdf" type="fortrandouble"
+							default="1d10" />
+						<xs:attribute name="scissor" type="fortrandouble"
+							default="0" />
+						<xs:attribute name="broad" type="fortrandouble"
+							default="0.01d0" />
+						<xs:attribute name="xstype" default="TDDFT">
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="TDDFT" />
+									<xs:enumeration value="BSE" />
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+			<xs:attribute name="xsltpath" type="xs:anyURI" default="../../xml" />
+			<xs:attribute name="scratchpath" type="xs:anyURI" use="optional">
+				<xs:annotation>
+					<xs:documentation>This is the path to scratch space where
+						the
+						eigenvector file EIGVEC.OUT will be written. If the
+						local directory
+						is accessed via
+						a network then scrpath can be
+						set to a directory on
+					</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:ID">
+				<xs:annotation>
+					<xs:documentation>The id is a unique identifier in an input
+						set. If
+						the input element is part of an input set the id
+						must be set.					</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="depends" type="xs:IDREFS">
+				<!--
+					<xs:simpleType> <xs:list itemType="xs:IDREF"/> </xs:simpleType>
+				-->
+				<xs:annotation>
+					<xs:documentation>the depends attribute can be used to
+						specify a
+						dependence from another simulation in the same
+						input set.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="qpointset">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="qpoint" type="vect3d" minOccurs="1"
+					maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation> a q-point is given in reciprocal space
+							coordinates</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
 </xs:schema>
