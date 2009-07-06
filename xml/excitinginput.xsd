@@ -1991,6 +1991,42 @@
 										default="5810" />
 									<xs:attribute name="nexcitmax" type="xs:integer"
 										default="100" />
+									<xs:attribute name="nemptyscr" type="xs:integer"
+										default="0" />
+									<xs:attribute name="nstlbse" type="integerpair"
+										default="0 0">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>nbfbse nafbse</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>										
+									<xs:attribute name="bsetype" default="singlet">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="ip">
+												</xs:enumeration>
+												<xs:enumeration value="rpa">
+												</xs:enumeration>
+												<xs:enumeration value="singlet">
+												</xs:enumeration>
+												<xs:enumeration value="triplet">
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>										
+									<xs:attribute name="screentype" default="full">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="full">
+												</xs:enumeration>
+												<xs:enumeration value="diag">
+												</xs:enumeration>
+												<xs:enumeration value="noinvdiag">
+												</xs:enumeration>
+												<xs:enumeration value="longrange">
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>										
 								</xs:complexType>
 							</xs:element>
 							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1" />
@@ -2138,6 +2174,8 @@
 						<xs:attribute name="ngridq" type="integertriple"
 							fixed="1 1 1" />
 						<xs:attribute name="nosym" type="xs:boolean" default="false" />
+						<xs:attribute name="nosymscr" type="xs:boolean" default="false" />
+						<xs:attribute name="nosymbse" type="xs:boolean" default="false" />
 						<xs:attribute name="gqmax" type="fortrandouble"
 							default="0" />
 						<xs:attribute name="rgkmax" type="fortrandouble"
@@ -2160,7 +2198,9 @@
 							default="0" />
 						<xs:attribute name="broad" type="fortrandouble"
 							default="0.01d0" />
-						<xs:attribute name="xstype" default="TDDFT">
+						<xs:attribute name="tevout" type="xs:boolean"
+							default="false" />
+						<xs:attribute name="xstype" use="required">
 							<xs:simpleType>
 								<xs:restriction base="xs:string">
 									<xs:enumeration value="TDDFT" />
