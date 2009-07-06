@@ -219,7 +219,6 @@ if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
 vgqlmt(:,:)=0.d0
 mdfqtype=0
-tq0ev=.true.
 gqmax=0.d0
 lmaxapwwf=-1
 fastpmat=.true.
@@ -236,7 +235,7 @@ nwacont=0
 broad=0.01d0
 lindhard=.false.
 aresdf=.true.
-aresfxc=.true.
+aresfxc=.true.***************************************
 epsdfde=1.d-8
 emaxdf=1.d10
 dfoffdiag=.false.

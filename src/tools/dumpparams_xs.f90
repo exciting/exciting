@@ -43,9 +43,6 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("mdfqtype")')
   write(77,*) mdfqtype
   write(77,*)
-  write(77,'("tq0ev")')
-  write(77,*) tq0ev
-  write(77,*)
   write(77,'("gqmax")')
   write(77,*) gqmax
   write(77,*)

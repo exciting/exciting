@@ -85,7 +85,8 @@
 			<xs:documentation>the scissors correction This is the scissors
 				shift
 				applied to states above the Fermi energy. Affects DOS,
-				optics and
+				optics
+				and
 				band structure
 				plots.</xs:documentation>
 		</xs:annotation>
@@ -203,7 +204,8 @@
 	<xs:element name="inputset">
 		<xs:annotation>
 			<xs:documentation>The inputset element can be used to store a
-				set of
+				set
+				of
 				input elements, this may be useful for simulations rows.
 			</xs:documentation>
 			<xs:appinfo>
@@ -337,7 +339,8 @@
 										use="required">
 										<xs:annotation>
 											<xs:documentation>Herman Mauguin sympol
-												giving the spacegroup
+												giving the
+												spacegroup
 											</xs:documentation>
 											<xs:appinfo>
 												<oldname>hrmg</oldname>
@@ -361,7 +364,8 @@
 								<xs:complexType>
 									<xs:annotation>
 										<xs:documentation>unit cell is spanned by 3
-											basevectors that
+											basevectors
+											that
 											define the lattice coordinates.
                     </xs:documentation>
 									</xs:annotation>
@@ -370,7 +374,8 @@
 											maxOccurs="3" type="vect3d">
 											<xs:annotation>
 												<xs:documentation>basevectors or
-													lattice vectors in Bohr
+													lattice vectors
+													in Bohr
 												</xs:documentation>
 												<xs:appinfo>
 													<oldname>avec</oldname>
@@ -396,7 +401,8 @@
 										default="1.0d0   1.0d0 1.0d0 ">
 										<xs:annotation>
 											<xs:documentation>separate scaling for
-												each lattice vector 1 1
+												each lattice
+												vector 1 1
 												1 is no scaling
                       </xs:documentation>
 											<xs:appinfo>
@@ -409,16 +415,19 @@
 							<xs:element name="species" minOccurs="0" maxOccurs="unbounded">
 								<xs:annotation>
 									<xs:documentation>for each atom type (species) a
-										species element
+										species
+										element
 										is defined containing all the atom
-										positions</xs:documentation>
+										positions
+									</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
 										<xs:element name="atom" minOccurs="1" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>atomic position in
-													lattice coordinates for
+													lattice
+													coordinates for
 													atom
                         </xs:documentation>
 												<xs:appinfo>
@@ -450,7 +459,8 @@
 										<xs:element name="LDAplusu" minOccurs="0">
 											<xs:annotation>
 												<xs:documentation>If present defines ldaplusU
-													parameters for
+													parameters
+													for
 													species</xs:documentation>
 											</xs:annotation>
 											<xs:complexType>
@@ -500,7 +510,8 @@
 										use="optional" default="">
 										<xs:annotation>
 											<xs:documentation>can be given to simplify
-												visualisation and
+												visualisation
+												and
 												converters. is ignored by
 												exciting</xs:documentation>
 											<xs:appinfo>
@@ -512,7 +523,8 @@
 										use="optional">
 										<xs:annotation>
 											<xs:documentation>can be given to simplify
-												visualisation and
+												visualisation
+												and
 												converters. is ignored by
 												exciting</xs:documentation>
 										</xs:annotation>
@@ -521,9 +533,11 @@
 										default="-1" use="optional">
 										<xs:annotation>
 											<xs:documentation>muffin tin radius this
-												optional parameter
+												optional
+												parameter
 												allows to override
-												speciesfile or automatic tetemination
+												speciesfile or automatic
+												tetemination
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
@@ -791,7 +805,8 @@
 									<xs:attribute name="type" default="Lapack">
 										<xs:annotation>
 											<xs:documentation>select the eigenvalue
-												solver for the first
+												solver for the
+												first
 												variational equation
                       </xs:documentation>
 										</xs:annotation>
@@ -863,7 +878,8 @@
 						<xs:attribute name="rmtapm" type="vect2d" default="0.25d0  0.95d0">
 							<xs:annotation>
 								<xs:documentation>parameters governing the
-									automatic generation
+									automatic
+									generation
 									of the muffin-tin radii
                 </xs:documentation>
 							</xs:annotation>
@@ -872,7 +888,8 @@
 							default="0.01d0">
 							<xs:annotation>
 								<xs:documentation>width of the smooth approximation
-									to the Dirac
+									to the
+									Dirac
 									delta function</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -926,7 +943,8 @@
 							default="-1">
 							<xs:annotation>
 								<xs:documentation>species for which the
-									muffin-tin radius will be
+									muffin-tin radius
+									will be
 									used for calculating gkmax
                 </xs:documentation>
 							</xs:annotation>
@@ -1037,7 +1055,8 @@
 							default="8">
 							<xs:annotation>
 								<xs:documentation>angular momentum cut-off for
-									the APW functions
+									the APW
+									functions
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1103,7 +1122,8 @@
 							default="1.0d-3">
 							<xs:annotation>
 								<xs:documentation>maximum allowed error in the
-									calculated total
+									calculated
+									total
 									charge beyond which a warning message
 									will be issued
 								</xs:documentation>
@@ -1113,7 +1133,8 @@
 							default="1e-8">
 							<xs:annotation>
 								<xs:documentation>smallest occupancy for which a
-									state will
+									state
+									will
 									contribute to the density
                 </xs:documentation>
 							</xs:annotation>
@@ -1121,7 +1142,8 @@
 						<xs:attribute name="mixer" default="lin">
 							<xs:annotation>
 								<xs:documentation>select the mixing (relaxation)
-									scheme for SCF
+									scheme for
+									SCF
 								</xs:documentation>
 								<xs:appinfo>
 									<oldname>mixtype</oldname>
@@ -1187,7 +1209,8 @@
 						<xs:attribute name="nprad" type="xs:integer" default="4">
 							<xs:annotation>
 								<xs:documentation>smallest occupancy for which a
-									state will
+									state
+									will
 									contribute to the density
                 </xs:documentation>
 							</xs:annotation>
@@ -1321,7 +1344,8 @@
 							default="7">
 							<xs:annotation>
 								<xs:documentation>angular momentum cut-off for
-									the muffin-tin
+									the
+									muffin-tin
 									density and potential
                 </xs:documentation>
 							</xs:annotation>
@@ -1330,7 +1354,8 @@
 							default="0.25d0">
 							<xs:annotation>
 								<xs:documentation>fraction of the muffin-tin
-									radius up to which
+									radius up to
+									which
 									lmaxinr is used as the angular
 									momentum cut-off
 								</xs:documentation>
@@ -1352,7 +1377,8 @@
 							default="5">
 							<xs:annotation>
 								<xs:documentation>angular momentum cut-off for
-									the outer-most
+									the
+									outer-most
 									loop in the hamiltonian and overlap
 									matrix setup
 								</xs:documentation>
@@ -2000,36 +2026,42 @@
 												<oldnr>nbfbse nafbse</oldnr>
 											</xs:appinfo>
 										</xs:annotation>
-									</xs:attribute>										
+									</xs:attribute>
 									<xs:attribute name="bsetype" default="singlet">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="ip">
-												</xs:enumeration>
-												<xs:enumeration value="rpa">
-												</xs:enumeration>
-												<xs:enumeration value="singlet">
-												</xs:enumeration>
-												<xs:enumeration value="triplet">
+												<xs:enumeration value="ip" />
+
+												<xs:enumeration value="rpa" />
+
+												<xs:enumeration value="singlet" />
+
+												<xs:enumeration value="triplet" />
 											</xs:restriction>
 										</xs:simpleType>
-									</xs:attribute>										
+									</xs:attribute>
 									<xs:attribute name="screentype" default="full">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="full">
-												</xs:enumeration>
-												<xs:enumeration value="diag">
-												</xs:enumeration>
-												<xs:enumeration value="noinvdiag">
-												</xs:enumeration>
-												<xs:enumeration value="longrange">
+												<xs:enumeration value="full" />
+
+												<xs:enumeration value="diag" />
+
+												<xs:enumeration value="noinvdiag" />
+
+												<xs:enumeration value="longrange" />
 											</xs:restriction>
 										</xs:simpleType>
-									</xs:attribute>										
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1" />
+							<xs:annotation>
+								  <xs:documentation>
+									map to: vgqlmt and nqptmt
+								  </xs:documentation>
+							</xs:annotation>
+
 							<xs:element name="plan" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:sequence>
@@ -2146,6 +2178,8 @@
 							</xs:element>
 							<xs:element name="tetra" maxOccurs="1" minOccurs="0">
 								<xs:complexType>
+									<xs:attribute name="tetraocc" type="xs:boolean"
+										default="false" />
 									<xs:attribute name="tetradf" type="xs:boolean"
 										default="false" />
 									<xs:attribute name="kordexc" type="xs:boolean"
@@ -2174,8 +2208,10 @@
 						<xs:attribute name="ngridq" type="integertriple"
 							fixed="1 1 1" />
 						<xs:attribute name="nosym" type="xs:boolean" default="false" />
-						<xs:attribute name="nosymscr" type="xs:boolean" default="false" />
-						<xs:attribute name="nosymbse" type="xs:boolean" default="false" />
+						<xs:attribute name="nosymscr" type="xs:boolean"
+							default="false" />
+						<xs:attribute name="nosymbse" type="xs:boolean"
+							default="false" />
 						<xs:attribute name="gqmax" type="fortrandouble"
 							default="0" />
 						<xs:attribute name="rgkmax" type="fortrandouble"
@@ -2208,6 +2244,16 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
+						<!-- Here are experimental parameters -->
+						<xs:attribute name="symmorph" type="xs:boolean"
+							default="false" />
+						<xs:attribute name="mdfqtype" type="xs:integer"
+							default="0" />
+						<xs:attribute name="fastpmat" type="xs:boolean"
+							default="true" />
+						<xs:attribute name="fastemat" type="xs:boolean"
+							default="true" />
+
 					</xs:complexType>
 				</xs:element>
 			</xs:all>
@@ -2227,7 +2273,8 @@
 			<xs:attribute name="id" type="xs:ID">
 				<xs:annotation>
 					<xs:documentation>The id is a unique identifier in an input
-						set. If
+						set.
+						If
 						the input element is part of an input set the id
 						must be set.					</xs:documentation>
 				</xs:annotation>

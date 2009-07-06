@@ -19,7 +19,7 @@ module modxs
   ! maximum allowed number of symmetry operations (private to this module)
   integer, private, parameter :: maxsymcrs=192
   ! true if only symmorphic space-group operations are to be considered
-  ! all non-primitive translations are zero in this case
+  ! allow only symmetries without non-primitive translations
   logical :: symmorph
   ! map to inverse crystal symmetry
   integer :: scimap(maxsymcrs)
@@ -50,8 +50,6 @@ module modxs
   ! treatment of macroscopic dielectric function for Q-point outside of
   ! Brillouin zone
   integer :: mdfqtype
-  ! true if the eigenvectors for the Gamma point are to be calculated
-  logical :: tq0ev
   ! index of current q-point
   integer :: iqcu
   data iqcu / 0 /
