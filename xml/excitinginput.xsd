@@ -2031,11 +2031,8 @@
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="ip" />
-
 												<xs:enumeration value="rpa" />
-
 												<xs:enumeration value="singlet" />
-
 												<xs:enumeration value="triplet" />
 											</xs:restriction>
 										</xs:simpleType>
@@ -2044,24 +2041,21 @@
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="full" />
-
 												<xs:enumeration value="diag" />
-
 												<xs:enumeration value="noinvdiag" />
-
 												<xs:enumeration value="longrange" />
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1" />
+							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1">
 							<xs:annotation>
 								  <xs:documentation>
 									map to: vgqlmt and nqptmt
 								  </xs:documentation>
 							</xs:annotation>
-
+							</xs:element>
 							<xs:element name="plan" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:sequence>
@@ -2261,12 +2255,9 @@
 			<xs:attribute name="scratchpath" type="xs:anyURI" use="optional">
 				<xs:annotation>
 					<xs:documentation>This is the path to scratch space where
-						the
-						eigenvector file EIGVEC.OUT will be written. If the
-						local directory
-						is accessed via
-						a network then scrpath can be
-						set to a directory on
+						the eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be written. If the
+						local directory	is accessed via	a network then scrpath can be set to a directory
+						on
 					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
@@ -2274,8 +2265,7 @@
 				<xs:annotation>
 					<xs:documentation>The id is a unique identifier in an input
 						set.
-						If
-						the input element is part of an input set the id
+						If the input element is part of an input set the id
 						must be set.					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
