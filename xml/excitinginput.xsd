@@ -999,6 +999,16 @@
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
+						<xs:attribute name="frozencore" type="xs:boolean" default="false">
+							<xs:annotation>
+								<xs:documentation>
+									when set to
+									<pre>.true.</pre>
+									the frozen core approximation is applied, i.e., the
+									core states are fixed to the atomic states
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="autokpt" type="xs:boolean"
 							default="false">
 							<xs:annotation>
