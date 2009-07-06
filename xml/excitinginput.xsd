@@ -999,13 +999,15 @@
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="frozencore" type="xs:boolean" default="false">
+						<xs:attribute name="frozencore" type="xs:boolean"
+							default="false">
 							<xs:annotation>
 								<xs:documentation>
 									when set to
 									<pre>.true.</pre>
 									the frozen core approximation is applied, i.e., the
-									core states are fixed to the atomic states
+									core states
+									are fixed to the atomic states
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1916,12 +1918,16 @@
 								<xs:complexType>
 									<xs:all>
 										<xs:element name="dftrans" maxOccurs="1" minOccurs="0">
+											<xs:annotation>
+												<xs:appinfo>
+													<oldname>dftrans,ndftrans</oldname>
+												</xs:appinfo>
+											</xs:annotation>
 											<xs:complexType>
 												<xs:sequence>
 													<xs:element name="trans" type="integertriple"
 														maxOccurs="unbounded" minOccurs="1" />
 												</xs:sequence>
-
 											</xs:complexType>
 										</xs:element>
 									</xs:all>
@@ -1955,6 +1961,8 @@
 										default="0" />
 									<xs:attribute name="betalrcdyn" type="fortrandouble"
 										fixed="0" />
+									<xs:attribute name="mdfqtype" type="xs:integer"
+										default="0" />
 									<xs:attribute name="fxctype" default="0">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
@@ -2021,19 +2029,59 @@
 							</xs:element>
 							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
+									<xs:attribute name="nosymbse" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="nosymscr" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="ngridkscr" type="integertriple"
+										default="0 0 0" />
+									<xs:attribute name="reducekscr" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="vkloffscr" type="vect3d"
+										default="-1 -1 -1 " />
+									<xs:attribute name="rgkmaxscr" type="fortrandouble"
+										default="0" />
+									<xs:attribute name="nemptyscr" type="xs:integer"
+										default="0" />
+									<xs:attribute name="reducekbse" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="vkloffbse" type="vect3d"
+										default="-1 -1 -1 " />
+									<xs:attribute name="rgkmaxbse" type="fortrandouble"
+										default="0" />
+									<xs:attribute name="scrherm" type="xs:integer"
+										default="0" />
+									<xs:attribute name="fbzq" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="sciavbd" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="sciavqhd" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="sciavqwg" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="sciavqbd" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="bsedirsing" type="xs:boolean"
+										default="false" />
 									<xs:attribute name="lmaxdielt" type="xs:integer"
 										default="14" />
 									<xs:attribute name="nleblaik" type="xs:integer"
 										default="5810" />
 									<xs:attribute name="nexcitmax" type="xs:integer"
 										default="100" />
-									<xs:attribute name="nemptyscr" type="xs:integer"
-										default="0" />
 									<xs:attribute name="nstlbse" type="integerpair"
 										default="0 0">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldnr>nbfbse nafbse</oldnr>
+												<oldname>nbfbse,nafbse</oldname>>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="nstlce" type="integerpair"
+										default="0 0">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>nbfce,nafce</oldname>>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
@@ -2060,11 +2108,11 @@
 								</xs:complexType>
 							</xs:element>
 							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1">
-							<xs:annotation>
-								  <xs:documentation>
-									map to: vgqlmt and nqptmt
-								  </xs:documentation>
-							</xs:annotation>
+								<xs:annotation>
+									<xs:appinfo>
+										<oldname>vgqlmt,nqptmt</oldname>
+									</xs:appinfo>
+								</xs:annotation>
 							</xs:element>
 							<xs:element name="plan" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
@@ -2187,11 +2235,29 @@
 									<xs:attribute name="tetradf" type="xs:boolean"
 										default="false" />
 									<xs:attribute name="kordexc" type="xs:boolean"
-										default="false" />
+										default="false" >
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>tetraqweights</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="cw1k" type="xs:boolean"
-										default="false" />
+										default="false" >
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>tetraqweights</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="qweights" type="xs:integer"
-										default="1" />
+										default="1">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>tetraqweights</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
@@ -2212,10 +2278,6 @@
 						<xs:attribute name="ngridq" type="integertriple"
 							fixed="1 1 1" />
 						<xs:attribute name="nosym" type="xs:boolean" default="false" />
-						<xs:attribute name="nosymscr" type="xs:boolean"
-							default="false" />
-						<xs:attribute name="nosymbse" type="xs:boolean"
-							default="false" />
 						<xs:attribute name="gqmax" type="fortrandouble"
 							default="0" />
 						<xs:attribute name="rgkmax" type="fortrandouble"
@@ -2251,13 +2313,17 @@
 						<!-- Here are experimental parameters -->
 						<xs:attribute name="symmorph" type="xs:boolean"
 							default="false" />
-						<xs:attribute name="mdfqtype" type="xs:integer"
-							default="0" />
 						<xs:attribute name="fastpmat" type="xs:boolean"
 							default="true" />
 						<xs:attribute name="fastemat" type="xs:boolean"
 							default="true" />
-
+						<xs:attribute name="gather" type="xs:boolean"
+							default="false" />
+						<xs:attribute name="tappinfo" type="xs:boolean"
+							default="false" />
+						<xs:attribute name="dbglev" type="xs:integer"
+							default="0" />
+							
 					</xs:complexType>
 				</xs:element>
 			</xs:all>
@@ -2265,8 +2331,11 @@
 			<xs:attribute name="scratchpath" type="xs:anyURI" use="optional">
 				<xs:annotation>
 					<xs:documentation>This is the path to scratch space where
-						the eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be written. If the
-						local directory	is accessed via	a network then scrpath can be set to a directory
+						the
+						eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be
+						written. If the
+						local directory is accessed via a network then
+						scrpath can be set to a directory
 						on
 					</xs:documentation>
 				</xs:annotation>
