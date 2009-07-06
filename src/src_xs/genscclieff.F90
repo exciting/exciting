@@ -31,54 +31,6 @@ end subroutine genscclieff
 !//////////////////////////////////////////////////////////////////////////////
 
 
-subroutine avscq(iqr,n,nmax,scrn,scieff)
-  use modmain
-  use modxs
-  use invert
-  implicit none
-  ! arguments
-  integer, intent(in) :: iqr,n,nmax
-  complex(8), intent(in) :: scrn(n,n)
-  complex(8), intent(out) :: scieff(nmax,nmax)
-  ! local variables
-  integer :: iqrnr,j1,j2,flg
-  real(8) :: clwt
-  ! find reduced q-point in non-reduced set
-  iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
-  ! invert dielectric matrix
-  call zinvert_hermitian(scrherm,scrn,scieff(:n,:n))
-  do j1=1,n
-     do j2=1,j1
-        if ((sciavqhd.and.(j1.eq.1).and.(j2.eq.1)).or. &
-             (sciavqwg.and.(j1.ne.1).and.(j2.eq.1)).or. &
-             (sciavqwg.and.(j1.eq.1).and.(j2.ne.1)).or. &
-             (sciavqbd.and.(j1.ne.1).and.(j2.ne.1))) then
-           ! numerical averaging on grids with extrapolation to continuum
-           flg=2
-        else
-           ! analytic expression, no averaging
-           flg=0
-        end if
-        ! generate the (averaged) symmetrized Coulomb potential
-        call genwiqggp(flg,iqrnr,j1,j2,clwt)
-        ! multiply with averaged Coulomb potential
-        scieff(j1,j2)=scieff(j1,j2)*clwt
-        ! set upper triangle
-        scieff(j2,j1)=conjg(scieff(j1,j2))
-	
-	if (abs(scieff(j1,j2)).gt.1.d5) then
-	  write(*,'(a,3i5,2g18.10)') &
-	   'scieff,iqr,j1,j2',iqr,j1,j2,abs(scieff(j1,j2))
-	end if
-	
-     end do
-  end do
-end subroutine avscq
-
-
-!//////////////////////////////////////////////////////////////////////////////
-
-
 subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   use modmain
   use modxs
@@ -100,7 +52,7 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   complex(8), allocatable :: b(:,:),bi(:,:),u(:,:),s(:,:)
   ! scaling factor
   t00=(omega/(twopi)**3)*product(ngridq)
-  
+
 !!$  ! *** values for PA ***
 !!$  call preset_dielten
 !!$  zt1=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0),
@@ -222,6 +174,55 @@ end subroutine angavsc0
 
 
 !//////////////////////////////////////////////////////////////////////////////
+
+
+subroutine avscq(iqr,n,nmax,scrn,scieff)
+  use modmain
+  use modxs
+  use invert
+  implicit none
+  ! arguments
+  integer, intent(in) :: iqr,n,nmax
+  complex(8), intent(in) :: scrn(n,n)
+  complex(8), intent(out) :: scieff(nmax,nmax)
+  ! local variables
+  integer :: iqrnr,j1,j2,flg
+  real(8) :: clwt
+  ! find reduced q-point in non-reduced set
+  iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
+  ! invert dielectric matrix
+  call zinvert_hermitian(scrherm,scrn,scieff(:n,:n))
+  do j1=1,n
+     do j2=1,j1
+        if ((sciavqhd.and.(j1.eq.1).and.(j2.eq.1)).or. &
+             (sciavqwg.and.(j1.ne.1).and.(j2.eq.1)).or. &
+             (sciavqwg.and.(j1.eq.1).and.(j2.ne.1)).or. &
+             (sciavqbd.and.(j1.ne.1).and.(j2.ne.1))) then
+           ! numerical averaging on grids with extrapolation to continuum
+           flg=2
+        else
+           ! analytic expression, no averaging
+           flg=0
+        end if
+        ! generate the (averaged) symmetrized Coulomb potential
+        call genwiqggp(flg,iqrnr,j1,j2,clwt)
+        ! multiply with averaged Coulomb potential
+        scieff(j1,j2)=scieff(j1,j2)*clwt
+        ! set upper triangle
+        scieff(j2,j1)=conjg(scieff(j1,j2))
+
+	if (abs(scieff(j1,j2)).gt.1.d5) then
+	  write(*,'(a,3i5,2g18.10)') &
+	   'scieff,iqr,j1,j2',iqr,j1,j2,abs(scieff(j1,j2))
+	end if
+
+     end do
+  end do
+end subroutine avscq
+
+
+!//////////////////////////////////////////////////////////////////////////////
+
 
 subroutine preset_dielten
   use modmain

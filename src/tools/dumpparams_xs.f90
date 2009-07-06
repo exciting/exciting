@@ -166,12 +166,6 @@ subroutine dumpparams_xs(string,comment)
   write(77,'("vkloffbse")')
   write(77,*) vkloffbse
   write(77,*)
-  write(77,'("bsediagweight")')
-  write(77,*) bsediagweight
-  write(77,*)
-  write(77,'("bsediagsym")')
-  write(77,*) bsediagsym
-  write(77,*)
   write(77,'("nstlce")')
   write(77,*) nbfce,nafce
   write(77,*)

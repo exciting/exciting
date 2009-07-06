@@ -235,7 +235,7 @@ nwacont=0
 broad=0.01d0
 lindhard=.false.
 aresdf=.true.
-aresfxc=.true.***************************************
+aresfxc=.true.
 epsdfde=1.d-8
 emaxdf=1.d10
 dfoffdiag=.false.
@@ -277,8 +277,6 @@ nosymbse=.false.
 reducekbse=.false.
 vkloffbse(:)=-1.d0
 rgkmaxbse=0.d0
-bsediagweight=1
-bsediagsym=0
 nbfce=0
 nafce=0
 nbfbse=0
@@ -1327,10 +1325,6 @@ case('rgkmaxbse')
     write(*,*)
     stop
   end if
-case('bsediagweight')
-  read(50,*,err=20) bsediagweight
-case('bsediagsym')
-  read(50,*,err=20) bsediagsym
 case('nstlce')
   read(50,*,err=20) nbfce,nafce
   if ((nbfce.le.0).or.(nafce.le.0)) then
