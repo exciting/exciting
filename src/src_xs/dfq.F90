@@ -246,6 +246,11 @@ subroutine dfq(iq)
      call getdevaldoccsv(iq,ik,ikq,istl2,istu2,istl1,istu1,deuo,docc21, &
           scis21)
      if (tscreen) then
+        ! do not use scissors correction for screening
+        if (task.eq.430) then
+          scis12(:,:)=0.d0
+          scis21(:,:)=0.d0
+        end if
         ! for screening calculate matrix elements of plane wave on the fly
         call ematqk1(iq,ik)
         if (.not.allocated(xiuo)) allocate(xiuo(nst3,nst4,n))
