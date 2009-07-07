@@ -679,6 +679,7 @@
 												calculation</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
+									<!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
 									<xs:attribute name="spinorb" type="xs:boolean">
 										<xs:annotation>
 											<xs:documentation>
@@ -806,9 +807,19 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="HartreeFock" minOccurs="0"
-								maxOccurs="1" />
-
+							<!-- sag: xs:element name="HartreeFock" minOccurs="0"
+								maxOccurs="1" >
+								<xs:complexType>
+									<xs:attribute name="epsengy" type="fortrandouble" use="optional"
+										default="1e-7">
+										<xs:annotation>
+											<xs:documentation>
+												energy convergence tolerance
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>								
+								</xs:complexType>
+							</xs:element-->
 							<xs:element name="solver" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:attribute name="type" default="Lapack">
@@ -848,6 +859,14 @@
 									<xs:attribute name="packedmatrixstorage" type="xs:boolean"
 										use="optional" default="true" />
 									<xs:attribute name="epsarpack" type="xs:string" />
+									<!-- sag: xs:attribute name="evaltol" type="fortrandouble"
+										default="1e-8">
+										<xs:annotation>
+											<xs:documentation>
+												error tolerance for the first-variational eigenvalues
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute-->
 
 								</xs:complexType>
 							</xs:element>
@@ -876,11 +895,10 @@
 							default="1e-6">
 							<xs:annotation>
 								<xs:documentation>
-									This sets the maximum length for the
-									<inlinemath>{ \bf G}+{ \bf k}</inlinemath>
-									vectors, defined as
-									<pre>rgkmax</pre>
-									divided by the smallest muffin-tin radius.
+									If the RMS change in the effective potential and magnetic field is smaller than epspot,
+then the self-consistent loop is considered converged and exited. For structural optimisa-
+tion runs this results in the forces being calculated, the atomic positions updated and the
+loop restarted. See also maxscl.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -942,6 +960,13 @@
 										<xs:annotation>
 											<xs:appinfo>
 												<oldnr>3</oldnr>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="Square-wave impulse">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldnr>4</oldnr>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:enumeration>
@@ -1064,7 +1089,12 @@
 						</xs:attribute>
 						<xs:attribute ref="tfibs" default="true">
 							<xs:annotation>
-								<xs:documentation />
+								<xs:documentation>
+								Because calculation of the incomplete basis set (IBS) correction to the force is fairly time-
+consuming, it can be switched off by setting tfibs to .false. This correction can then be
+included only when necessary, i.e. when the atoms are close to equilibrium in a structural
+relaxation run.
+								</xs:documentation>								
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute ref="tforce" default="false">
@@ -1196,6 +1226,27 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
+						<!-- sag: xs:attribute name="beta0" type="fortrandouble"
+							default="0.4">
+							<xs:annotation>
+								<xs:documentation>initial value for mixing parameter
+                </xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="betainc" type="fortrandouble"
+							default="1.1">
+							<xs:annotation>
+								<xs:documentation>mixing parameter increase
+                </xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="betadec" type="fortrandouble"
+							default="0.6">
+							<xs:annotation>
+								<xs:documentation>mixing parameter decrease
+                </xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
 						<xs:attribute name="fromscratch" type="xs:boolean"
 							default="true">
 							<xs:annotation>
@@ -1416,7 +1467,69 @@
 						</xs:attribute>
 						<xs:attribute name="npsden" type="xs:integer"
 							default="9" />
-					</xs:complexType>
+						<!-- sag: xs:attribute name="cfdamp" type="fortrandouble"
+							default="0">
+							<xs:annotation>
+								<xs:documentation>damping coefficient for characteristic function
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: xs:attribute name="maxitoep" type="xs:integer"
+							default="120">
+							<xs:annotation>
+								<xs:documentation>maximum number of iterations when solving the exact exchange integral equations
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: xs:attribute name="tauoep" type="vect3d" default="1.0  0.2  1.5">
+							<xs:annotation>
+								<xs:documentation>
+								The optimised effective potential is determined using an interative method. [Phys. Rev.
+Lett. 98, 196405 (2007)]. At the first iteration the step length is set to tauoep(1). Dur-
+ing subsequent iterations, the step length is scaled by tauoep(2) or tauoep(3), when the
+residual is increasing or decreasing, respectively. See also maxitoep.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: xs:attribute name="nosource" type="xs:boolean"
+							default="false">
+							<xs:annotation>
+								<xs:documentation>
+									when set to .true., source fields are projected out of the
+									 exchange-correlation magnetic field. experimental feature
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: xs:attribute name="tevecsv" type="xs:boolean"
+							default="false">
+							<xs:annotation>
+								<xs:documentation>
+									tevecsv is .true. if second-variational eigenvectors are calculated
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: xs:attribute name="nwrite" type="xs:integer"
+							default="0">
+							<xs:annotation>
+								<xs:documentation>
+									Normally, the density and potentials are written to the file STATE.OUT only after com-
+pletion of the self-consistent loop. By setting nwrite to a positive integer the file will be
+written during the loop every nwrite iterations.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: xs:attribute name="ptnucl" type="xs:boolean"
+							default="true">
+							<xs:annotation>
+								<xs:documentation>
+									ptnucl is .true. if the nuclei are to be treated as point charges, if .false.
+! the nuclei have a finite spherical distribution
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: RDMFT parameters not uesd. these are:
+						  "rdmxctype,rdmmaxscl,maxitn,maxitc,taurdmn,taurdmc,rdmalpha,rdmtemp" -->
+					</xs:complexType>					
 				</xs:element>
 				<xs:element name="structureoptimization" minOccurs="0">
 					<xs:annotation>
@@ -1585,6 +1698,15 @@
 									</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
+									<xs:attribute name="sqados" default="0.0  0.0  1.0" type="vect3d">
+										<xs:annotation>
+											<xs:documentation>
+												spin-quantisation axis in Cartesian coordinates
+												used when plotting the spin-resolved DOS
+												(z-axis by default)
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>								
 									<xs:attribute name="lmirep" type="xs:boolean"
 										default="false">
 										<xs:annotation>
@@ -1861,10 +1983,26 @@
 								<xs:complexType />
 							</xs:element>
 							<xs:element name="elnes" minOccurs="0">
-								<xs:complexType />
+								<xs:complexType>
+									<xs:attribute name="vecql" type="vect3d">
+										<xs:annotation>
+											<xs:documentation>q-vector in lattice coordinates for calculating ELNES
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>								
+								</xs:complexType>
 							</xs:element>
 							<xs:element name="eliashberg" minOccurs="0">
-								<xs:complexType />
+								<xs:complexType>
+									<xs:attribute name="mustar" type="fortrandouble"
+										default="0.15">
+										<xs:annotation>
+											<xs:documentation> Coulomb pseudopotential, μ*,
+											 used in the McMillan-Allen-Dynes equation
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>								
+								</xs:complexType>
 							</xs:element>
 						</xs:all>
 					</xs:complexType>
@@ -1913,6 +2051,7 @@
 								</xs:complexType>
 							</xs:element>
 						</xs:all>
+						<!-- sag: phwrite-block: allocate(vqlwrt(3,nphwrt)); another q-point list -->
 						<!-- sag: xs:attribute name="reduceq" type="xs:boolean"
 							default="true">
 							<xs:annotation>
@@ -1926,6 +2065,19 @@
 									</inlinemath>
 									-point set is to be reduced with the crystal
 									symmetries.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute-->
+						<!-- sag: xs:attribute name="deltaph" type="fortrandouble"
+							default="0.03">
+							<xs:annotation>
+								<xs:documentation>
+									Phonon calculations are performed by constructing a supercell
+									corresponding to a particular <inlinemath>{\bf q}</inlinemath>-vector and making a small
+									periodic displacement of the atoms. The magnitude of
+									this displacement is given by deltaph. This should not be made too large,
+									as anharmonic terms could then become significant, neither should it be too small
+									as this can introduce numerical error.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute-->
@@ -2342,6 +2494,24 @@
 																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
+															<xs:enumeration value="writepmat">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>120</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>calculate momentum matrix elements (legacy)
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="dielectric">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>121</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>linear optics (legacy)
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
 															<xs:enumeration value="writepmatasc">
 																<xs:annotation>
 																	<xs:appinfo>
@@ -2648,6 +2818,10 @@
 							default="false" />
 						<xs:attribute name="dbglev" type="xs:integer"
 							default="0" />
+						<xs:attribute name="usegdft" type="xs:boolean"
+							default="false">
+							<!-- used from src_optics/mod_DOS_optics_response.F90 -->
+						</xs:attribute>
 						<!--
 							section of parameters from groundstate which are allowed to be
 							different from the ones of the ground state run
