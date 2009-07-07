@@ -2271,21 +2271,6 @@
 								</xs:complexType>
 							</xs:element>
 						</xs:all>
-						<xs:attribute name="ngridk" type="integertriple" use="required" />
-						<xs:attribute name="vkloff" type="vect3d" default="0 0 0 " />
-						<xs:attribute name="reducek" type="xs:boolean"
-							default="true" />
-						<xs:attribute name="ngridq" type="integertriple"
-							fixed="1 1 1" />
-						<xs:attribute name="nosym" type="xs:boolean" default="false" />
-						<xs:attribute name="gqmax" type="fortrandouble"
-							default="0" />
-						<xs:attribute name="rgkmax" type="fortrandouble"
-							default="7" />
-						<xs:attribute name="lmaxapw" type="xs:integer"
-							default="8" />
-						<xs:attribute name="nempty" type="xs:integer"
-							default="5" />
 						<xs:attribute name="emattype" type="xs:integer"
 							default="0" />
 						<xs:attribute name="dfoffdiag" type="xs:boolean"
@@ -2323,7 +2308,23 @@
 							default="false" />
 						<xs:attribute name="dbglev" type="xs:integer"
 							default="0" />
-							
+						<!-- section of parameters from groundstate which are allowed to be different
+						from the ones of the ground state run -->
+						<xs:attribute name="ngridk" type="integertriple" use="required" />
+						<xs:attribute name="vkloff" type="vect3d" default="0 0 0 " />
+						<xs:attribute name="reducek" type="xs:boolean"
+							default="true" />
+						<xs:attribute name="ngridq" type="integertriple"
+							fixed="1 1 1" />
+						<xs:attribute name="nosym" type="xs:boolean" default="false" />
+						<xs:attribute name="gqmax" type="fortrandouble"
+							default="0" />
+						<xs:attribute name="rgkmax" type="fortrandouble"
+							default="7" />
+						<xs:attribute name="lmaxapw" type="xs:integer"
+							default="8" />
+						<xs:attribute name="nempty" type="xs:integer"
+							default="5" />
 					</xs:complexType>
 				</xs:element>
 			</xs:all>
