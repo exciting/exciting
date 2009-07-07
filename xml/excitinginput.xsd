@@ -1962,7 +1962,21 @@
 									<xs:attribute name="betalrcdyn" type="fortrandouble"
 										fixed="0" />
 									<xs:attribute name="mdfqtype" type="xs:integer"
-										default="0" />
+										default="0" >
+										<xs:annotation>
+											<xs:documentation>treatment of macroscopic dielectric function
+											 for <inlinemath>{\bf Q}</inlinemath>-point outside of
+											 Brillouin zone. A value of 0 uses the full
+											 <inlinemath>{\bf Q}</inlinemath> and
+											 and the <inlinemath>({\bf 0},{\bf 0})</inlinemath> component
+											 of the microscopic dielectric matrix is used.
+											 A value of 1 invokes a decomposition
+											 <inlinemath>{\bf Q}={\bf q}+{\bf G}_{\bf q}</inlinemath> and
+											 and the <inlinemath>({\bf Q}_{\bf q},{\bf Q}_{\bf q})</inlinemath> component
+											 of the microscopic dielectric matrix is used.
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="fxctype" default="0">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
@@ -2109,6 +2123,9 @@
 							</xs:element>
 							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1">
 								<xs:annotation>
+									<xs:documentation>finite momentum transfer
+									<inlinemath>{ \bf G}+{ \bf q}</inlinemath> vector
+									</xs:documentation>
 									<xs:appinfo>
 										<oldname>vgqlmt,nqptmt</oldname>
 									</xs:appinfo>
@@ -2272,13 +2289,24 @@
 							</xs:element>
 						</xs:all>
 						<xs:attribute name="emattype" type="xs:integer"
-							default="0" />
+							default="0" >
+							<xs:annotation>
+								<xs:documentation>type of matrix element generation (band-combinations)
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="dfoffdiag" type="xs:boolean"
 							default="false" />
 						<xs:attribute name="lmaxapwwf" type="xs:integer"
 							default="-1" />
 						<xs:attribute name="lmaxemat" type="xs:integer"
-							default="3" />
+							default="3" >
+							<xs:annotation>
+								<xs:documentation>maximum angular momentum for Rayleigh expansion of
+								<inlinemath>{\bf q}</inlinemath>-dependent plane wave factor
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="emaxdf" type="fortrandouble"
 							default="1d10" />
 						<xs:attribute name="scissor" type="fortrandouble"
@@ -2297,11 +2325,30 @@
 						</xs:attribute>
 						<!-- Here are experimental parameters -->
 						<xs:attribute name="symmorph" type="xs:boolean"
-							default="false" />
+							default="false" >
+							<xs:annotation>
+								<xs:documentation>  True if only symmorphic space-group operations
+								 are to be considered, i.e. only symmetries without non-primitive
+								 translations are allowed.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="fastpmat" type="xs:boolean"
-							default="true" />
+							default="true" >
+							<xs:annotation>
+								<xs:documentation> if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts
+								of the momentum matrix elements in the muffin-tin is used.								
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="fastemat" type="xs:boolean"
-							default="true" />
+							default="true" >
+							<xs:annotation>
+								<xs:documentation> if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts
+								of the <inlinemath>{\bf q}</inlinemath>-dependent matrix elements in the muffin-tin is used.								
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="gather" type="xs:boolean"
 							default="false" />
 						<xs:attribute name="tappinfo" type="xs:boolean"
