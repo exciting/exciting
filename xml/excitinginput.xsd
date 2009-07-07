@@ -2139,25 +2139,14 @@
 												<xs:attribute name="task" use="required">
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
+															<!-- required workflow tasks below-->
 															<xs:enumeration value="xsgeneigvec">
 																<xs:annotation>
 																	<xs:appinfo>
 																		<oldnr>301</oldnr>
 																	</xs:appinfo>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writepmatxs">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>320</oldnr>
-																	</xs:appinfo>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writeemat">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>330</oldnr>
-																	</xs:appinfo>
+																	<xs:documentation>Calculate eigenvectors, -values and occupancies
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="tetcalccw">
@@ -2165,6 +2154,27 @@
 																	<xs:appinfo>
 																		<oldnr>310</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate frequency-dependent weights for
+																	convolutions using the linear tetrahedron method
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="writepmatxs">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>320</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>Calculate momentum matrix elements
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="writeemat">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>330</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>Calculate q-dependent matrix elements
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="df">
@@ -2172,6 +2182,8 @@
 																	<xs:appinfo>
 																		<oldnr>340</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation> Calculate the Kohn-Sham response function													checked in the code !
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="df">
@@ -2179,6 +2191,10 @@
 																	<xs:appinfo>
 																		<oldnr>345</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation> Calculate the Kohn-Sham response function taking
+																	into account the rigid shift of the BSE diagonal. This is not a 
+																	duplicate task, as the task-Nr. is referenced.																	checked in the code !
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="idf">
@@ -2186,6 +2202,10 @@
 																	<xs:appinfo>
 																		<oldnr>350</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Set up simple xc-kernels, solve Dyson's equation
+																	for the full polarizability and determine the macroscopic dielectric
+																	function and other spectroscopic quantities.
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="scrgeneigvec">
@@ -2193,6 +2213,9 @@
 																	<xs:appinfo>
 																		<oldnr>401</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate eigenvectors, -values and occupancies
+																	for screening
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="scrtetcalccw">
@@ -2200,6 +2223,9 @@
 																	<xs:appinfo>
 																		<oldnr>410</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate frequency-dependent weights for
+																	convolutions using the linear tetrahedron method for screening
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="scrwritepmat">
@@ -2207,6 +2233,8 @@
 																	<xs:appinfo>
 																		<oldnr>420</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate momentum matrix elements for screening
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="screen">
@@ -2214,6 +2242,8 @@
 																	<xs:appinfo>
 																		<oldnr>430</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate RPA screening (ignoring scissor's shift)
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="scrcoulint">
@@ -2221,6 +2251,8 @@
 																	<xs:appinfo>
 																		<oldnr>440</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate direct term of BSE Hamiltonian
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="exccoulint">
@@ -2228,6 +2260,8 @@
 																	<xs:appinfo>
 																		<oldnr>441</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate exchange term of BSE Hamiltonian
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
 															<xs:enumeration value="kernxc_bse">
@@ -2235,8 +2269,70 @@
 																	<xs:appinfo>
 																		<oldnr>450</oldnr>
 																	</xs:appinfo>
+																	<xs:documentation>Calculate frequency dependent xc-kernel
+																	drived from the Bethe-Salpeter equation in first order
+																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
+															<!-- experimental and debugging tasks below-->
+															<xs:enumeration value="writebandgapgrid">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>23</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>estimate bandgap from regular grid
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<!-- debugging main part-->
+															<xs:enumeration value="testmain">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>999</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>debug routine main part of code
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>															
+															<!-- import/export tasks below-->
+															<xs:enumeration value="portstate(1)">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>900</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>generate STATE.xml file from STATE.OUT file
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="portstate(2)">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>901</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>generate STATE.OUT file from STATE.xml file
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="portstate(-1)">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>910</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>display Information about STATE.OUT file
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="portstate(-2)">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>911</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>display Information about STATE.xml file
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+																														
+																														
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
@@ -2255,7 +2351,7 @@
 										default="false" >
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>tetraqweights</oldname>
+												<oldname>tetrakordexc</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
@@ -2263,7 +2359,7 @@
 										default="false" >
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>tetraqweights</oldname>
+												<oldname>tetracw1k</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
@@ -2289,9 +2385,10 @@
 							</xs:element>
 						</xs:all>
 						<xs:attribute name="emattype" type="xs:integer"
-							default="0" >
+							default="1" >
 							<xs:annotation>
-								<xs:documentation>type of matrix element generation (band-combinations)
+								<xs:documentation>Type of matrix element generation (band-combinations).
+								Should only be referenced for experimental features.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
