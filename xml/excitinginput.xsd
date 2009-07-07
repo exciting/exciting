@@ -610,195 +610,264 @@
 					</xs:annotation>
 					<xs:complexType>
 						<xs:all>
-							<xs:element name="spin" minOccurs="0" maxOccurs="1">
+							<xs:element name="spin" minOccurs="0"
+								maxOccurs="1">
 								<xs:annotation>
-									<xs:documentation> If present calculation is done with
-										spin
-										polarization it may be switched of with the
-										spinpol attribute
-										set to false
-                  </xs:documentation>
+									<xs:documentation>
+										If present calculation is done
+										with spin polarization it may be
+										switched of with the spinpol
+										attribute set to false
+									</xs:documentation>
 									<xs:appinfo>
 										<oldname>spinpol</oldname>
 									</xs:appinfo>
 								</xs:annotation>
 								<xs:complexType>
-									<xs:attribute name="bfieldc" type="vect3d"
-										default="0 0 0 ">
+									<xs:attribute name="bfieldc"
+										type="vect3d" default="0 0 0 ">
 										<xs:annotation>
 											<xs:documentation>
-												alows to apply a constant B field This is a
-												constant magnetic
-												field applied throughout the
-												entire unit cell and enters the
-												second-variational Hamiltonian as
+												alows to apply a
+												constant B field This is
+												a constant magnetic
+												field applied throughout
+												the entire unit cell and
+												enters the
+												second-variational
+												Hamiltonian as
 												<displaymath>
 													\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf
-													B}_{\rm ext}, </displaymath>
+													B}_{\rm ext},
+												</displaymath>
 												where
-												<inlinemath>g_e</inlinemath>
+												<inlinemath>
+													g_e
+												</inlinemath>
 												is the electron
-												<inlinemath>g</inlinemath>
-												-factor (2.0023193043718). This field is
-												normally used to
-												break spin symmetry for
-												spin-polarised calculations and
+												<inlinemath>
+													g
+												</inlinemath>
+												-factor
+												(2.0023193043718). This
+												field is normally used
+												to break spin symmetry
+												for spin-polarised
+												calculations and
 												considered to be
-												infinitesimal with no direct contribution to
-												the
-												total energy. In cases where the magnetic field
-												is finite
-												(for example when computing
-												magnetic
-												response) the external
-												<inlinemath>{ \bf B}</inlinemath>
-												-field energy reported in
+												infinitesimal with no
+												direct contribution to
+												the total energy. In
+												cases where the magnetic
+												field is finite (for
+												example when computing
+												magnetic response) the
+												external
+												<inlinemath>
+													{ \bf B}
+												</inlinemath>
+												-field energy reported
+												in
 												<pre>INFO.OUT</pre>
-												should be added to the total by hand. This field
-												is applied
-												throughout the entire unit cell. To
-												apply magnetic fields in
-												particular
-												muffin-tins
+												should be added to the
+												total by hand. This
+												field is applied
+												throughout the entire
+												unit cell. To apply
+												magnetic fields in
+												particular muffin-tins
 												use the
 												<pre>bfcmt</pre>
 												vect ors in the
 												<pre>atoms</pre>
-												block. Collinear calculations are more efficient
-												if the field
+												block. Collinear
+												calculations are more
+												efficient if the field
 												is applied in the
-												<inlinemath>z</inlinemath>
+												<inlinemath>
+													z
+												</inlinemath>
 												-direction.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="momfix" type="vect3d" default="0 0 0">
+									<xs:attribute name="momfix"
+										type="vect3d" default="0 0 0">
 										<xs:annotation>
-											<xs:documentation> the desired total moment for a
-												FSM
-												calculation</xs:documentation>
+											<xs:documentation>
+												the desired total moment
+												for a FSM calculation
+											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
-									<xs:attribute name="spinorb" type="xs:boolean">
+									<xs:attribute name="spinorb"
+										type="xs:boolean">
 										<xs:annotation>
 											<xs:documentation>
-												if a spin-orbit coupling is required If
+												if a spin-orbit coupling
+												is required If
 												<pre>spinorb</pre>
 												is
 												<pre>.true.</pre>
 												, then a
-												<inlinemath> \boldsymbol \sigma\cdot{ \bf L} </inlinemath>
-												term is added to the second-variational
+												<inlinemath>
+													\boldsymbol
+													\sigma\cdot{ \bf L}
+												</inlinemath>
+												term is added to the
+												second-variational
 												Hamiltonian. See
 												<pre>spinpol</pre>
 												.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="spinsprl" type="xs:boolean">
+									<xs:attribute name="spinsprl"
+										type="xs:boolean">
 										<xs:annotation>
 											<xs:documentation>
 												set to
 												<pre>.true.</pre>
-												if a spin-spiral calculation is require
-												Experimental feature
-												for the calculation of
+												if a spin-spiral
+												calculation is require
+												Experimental feature for
+												the calculation of
 												spin-spiral states. See
 												<pre>vqlss</pre>
 												for details.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="vqlss" type="vect3d" default="0 0 0">
+									<xs:attribute name="vqlss"
+										type="vect3d" default="0 0 0">
 										<xs:annotation>
 											<xs:documentation>
 												the
-												<inlinemath>{ \bf q}</inlinemath>
-												-vector of the spin-spiral state in lattice
-												coordinates
-												Spin-spirals arise from spinor
-												states assumed to be of the
-												form
-												<displaymath> \Psi^{ \bf q}_{ \bf k}({ \bf r})=
-													\left(
-													\begin{array}{c} U^{{\bf q}\uparrow}_{
-													\bf k}({\bf r})e^{i({
+												<inlinemath>
+													{ \bf q}
+												</inlinemath>
+												-vector of the
+												spin-spiral state in
+												lattice coordinates
+												Spin-spirals arise from
+												spinor states assumed to
+												be of the form
+												<displaymath>
+													\Psi^{ \bf q}_{ \bf
+													k}({ \bf r})= \left(
+													\begin{array}{c}
+													U^{{\bf
+													q}\uparrow}_{ \bf
+													k}({\bf r})e^{i({
 													\bf k+q/2})\cdot{
-													\bf r}}
-													\\ U^{{ \bf q}\downarrow}_{\bf k}({
-													\bf
-													r})e^{i({\bf k-q/2})\cdot{ \bf r}} \\
-													\end{array}
-													\right). </displaymath>
-												These are determined using a second-variational
-												approach, and
-												give rise to a magnetisation
+													\bf r}} \\ U^{{ \bf
+													q}\downarrow}_{\bf
+													k}({ \bf
+													r})e^{i({\bf
+													k-q/2})\cdot{ \bf
+													r}} \\ \end{array}
+													\right).
+												</displaymath>
+												These are determined
+												using a
+												second-variational
+												approach, and give rise
+												to a magnetisation
 												density of the form
-												<displaymath> {\bf m}^{ \bf q}({ \bf
-													r})=(m_x({\bf r})\cos({
-													\bf q \cdot r}),
-													m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf
-													r})), </displaymath>
+												<displaymath>
+													{\bf m}^{ \bf q}({
+													\bf r})=(m_x({\bf
+													r})\cos({ \bf q
+													\cdot r}), m_y({\bf
+													r})\sin({ \bf q
+													\cdot r}),m_z({\bf
+													r})),
+												</displaymath>
 												where
-												<inlinemath>m_x</inlinemath>
+												<inlinemath>
+													m_x
+												</inlinemath>
 												,
-												<inlinemath>m_y</inlinemath>
+												<inlinemath>
+													m_y
+												</inlinemath>
 												and
-												<inlinemath>m_z</inlinemath>
-												are lattice periodic. See also
+												<inlinemath>
+													m_z
+												</inlinemath>
+												are lattice periodic.
+												See also
 												<pre>spinprl</pre>
 												.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="taufsm" type="fortrandouble"
-										default="0.01d0" />
-									<xs:attribute name="reducebf" type="fortrandouble"
-										default="1">
+									<xs:attribute name="taufsm"
+										type="fortrandouble" default="0.01d0" />
+									<xs:attribute name="reducebf"
+										type="fortrandouble" default="1">
 										<xs:annotation>
-											<xs:documentation> After each iteration the
-												external magnetic
-												fields are multiplied with
-												reducebf. This al- lows for a
-												large external
-												magnetic field at the start of the
-												self-consistent loop to break spin symmetry,
-												while at the end
-												of the loop the field will be
+											<xs:documentation>
+												After each iteration the
+												external magnetic fields
+												are multiplied with
+												reducebf. This al- lows
+												for a large external
+												magnetic field at the
+												start of the
+												self-consistent loop to
+												break spin symmetry,
+												while at the end of the
+												loop the field will be
 												effectively zero, i.e.
 												infinitesimal. See
-												bfieldc and atoms.</xs:documentation>
+												bfieldc and atoms.
+											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="fixspin" default="none">
+									<xs:attribute name="fixspin"
+										default="none">
 										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="none">
+											<xs:restriction
+												base="xs:string">
+												<xs:enumeration
+													value="none">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>0</oldnr>
+															<oldnr>
+																0
+															</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="total FSM">
+												<xs:enumeration
+													value="total FSM">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>1</oldnr>
+															<oldnr>
+																1
+															</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="localmt FSM">
+												<xs:enumeration
+													value="localmt FSM">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>2</oldnr>
+															<oldnr>
+																2
+															</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="both">
+												<xs:enumeration
+													value="both">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>3</oldnr>
+															<oldnr>
+																3
+															</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
@@ -810,65 +879,85 @@
 							<!-- sag: xs:element name="HartreeFock" minOccurs="0"
 								maxOccurs="1" >
 								<xs:complexType>
-									<xs:attribute name="epsengy" type="fortrandouble" use="optional"
-										default="1e-7">
+								<xs:attribute name="epsengy" type="fortrandouble" use="optional"
+								default="1e-7">
+								<xs:annotation>
+								<xs:documentation>
+								energy convergence tolerance
+								</xs:documentation>
+								</xs:annotation>
+								</xs:attribute>								
+								</xs:complexType>
+								</xs:element-->
+							<xs:element name="solver" minOccurs="0"
+								maxOccurs="1">
+								<xs:complexType>
+									<xs:attribute name="type"
+										default="Lapack">
 										<xs:annotation>
 											<xs:documentation>
-												energy convergence tolerance
+												select the eigenvalue
+												solver for the first
+												variational equation
 											</xs:documentation>
 										</xs:annotation>
-									</xs:attribute>								
-								</xs:complexType>
-							</xs:element-->
-							<xs:element name="solver" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:attribute name="type" default="Lapack">
-										<xs:annotation>
-											<xs:documentation>select the eigenvalue
-												solver for the
-												first
-												variational equation
-                      </xs:documentation>
-										</xs:annotation>
 										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="Lapack">
+											<xs:restriction
+												base="xs:string">
+												<xs:enumeration
+													value="Lapack">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>1</oldnr>
+															<oldnr>
+																1
+															</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="Arpack">
+												<xs:enumeration
+													value="Arpack">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>2</oldnr>
+															<oldnr>
+																2
+															</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="DIIS">
+												<xs:enumeration
+													value="DIIS">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>3</oldnr>
+															<oldnr>
+																3
+															</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="packedmatrixstorage" type="xs:boolean"
-										use="optional" default="true" />
-									<xs:attribute name="epsarpack" type="xs:string" />
+									<xs:attribute
+										name="packedmatrixstorage" type="xs:boolean" use="optional"
+										default="true" />
+									<xs:attribute name="epsarpack"
+										type="xs:string" />
 									<!-- sag: xs:attribute name="evaltol" type="fortrandouble"
 										default="1e-8">
 										<xs:annotation>
-											<xs:documentation>
-												error tolerance for the first-variational eigenvalues
-											</xs:documentation>
+										<xs:documentation>
+										error tolerance for the first-variational eigenvalues
+										</xs:documentation>
 										</xs:annotation>
-									</xs:attribute-->
+										</xs:attribute-->
 
 								</xs:complexType>
+							</xs:element>
+							<xs:element name="OEP" type="OEPType"
+								minOccurs="0" maxOccurs="1">
+							</xs:element>
+							<xs:element name="RDMFT"
+								type="RDMFTType" minOccurs="0" maxOccurs="1">
 							</xs:element>
 						</xs:all>
 						<xs:attribute name="ngkgrid" type="integertriple"
@@ -1471,23 +1560,6 @@ relaxation run.
 							default="0">
 							<xs:annotation>
 								<xs:documentation>damping coefficient for characteristic function
-								</xs:documentation>
-							</xs:annotation>
-						</xs:attribute-->
-						<!-- sag: xs:attribute name="maxitoep" type="xs:integer"
-							default="120">
-							<xs:annotation>
-								<xs:documentation>maximum number of iterations when solving the exact exchange integral equations
-								</xs:documentation>
-							</xs:annotation>
-						</xs:attribute-->
-						<!-- sag: xs:attribute name="tauoep" type="vect3d" default="1.0  0.2  1.5">
-							<xs:annotation>
-								<xs:documentation>
-								The optimised effective potential is determined using an interative method. [Phys. Rev.
-Lett. 98, 196405 (2007)]. At the first iteration the step length is set to tauoep(1). Dur-
-ing subsequent iterations, the step length is scaled by tauoep(2) or tauoep(3), when the
-residual is increasing or decreasing, respectively. See also maxitoep.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute-->
@@ -2892,4 +2964,91 @@ written during the loop every nwrite iterations.
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
+
+	<xs:complexType name="OEPType">
+		<xs:attribute name="maxitoep" type="xs:integer"
+			default="120">
+							<xs:annotation>
+								<xs:documentation>maximum number of iterations when solving the exact exchange integral equations
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="tauoep" type="vect3d" default="1.0  0.2  1.5">
+							<xs:annotation>
+								<xs:documentation>
+								The optimised effective potential is determined using an interative method. [Phys. Rev.
+Lett. 98, 196405 (2007)]. At the first iteration the step length is set to tauoep(1). Dur-
+ing subsequent iterations, the step length is scaled by tauoep(2) or tauoep(3), when the
+residual is increasing or decreasing, respectively. See also maxitoep.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+		</xs:complexType>
+
+	<xs:complexType name="RDMFTType">
+		<xs:attribute name="rdmxctype" type="xs:integer"
+			default="2">
+			<xs:annotation>
+				<xs:documentation>
+					xc functional
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+		<xs:attribute name="rdmmaxscl" type="xs:integer"
+			default="1">
+			<xs:annotation>
+				<xs:documentation>
+					maximum number of self-consistent loops
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+		<xs:attribute name="maxitn" type="xs:integer"
+			default="250">
+			<xs:annotation>
+				<xs:documentation>
+					maximum number of iteration for occupation number optimisation
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+		<xs:attribute name="maxitc" type="xs:integer"
+			default="10">
+			<xs:annotation>
+				<xs:documentation>
+					maximum number of iteration for natural orbital optimisation
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+		<xs:attribute name="taurdmn" type="fortrandouble"
+			default="1.0">
+			<xs:annotation>
+				<xs:documentation>
+					step size for occupation numbers
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+		<xs:attribute name="taurdmc" type="fortrandouble"
+			default="0.5">
+			<xs:annotation>
+				<xs:documentation>
+					step size for natural orbital coefficients
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+		<xs:attribute name="rdmalpha" type="fortrandouble"
+			default="0.7">
+			<xs:annotation>
+				<xs:documentation>
+					exponent for the functional
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+		<xs:attribute name="rdmtemp" type="fortrandouble"
+			default="0.0">
+			<xs:annotation>
+				<xs:documentation>
+					temperature
+				</xs:documentation>
+			</xs:annotation>			
+		</xs:attribute>
+	</xs:complexType>
 </xs:schema>
