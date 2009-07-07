@@ -1980,56 +1980,56 @@
 									<xs:attribute name="fxctype" default="0">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="0">
+												<xs:enumeration value="RPA">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>0</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="1">
+												<xs:enumeration value="LRCstatic_NLF">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>1</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="2">
+												<xs:enumeration value="LRCstatic">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>2</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="3">
+												<xs:enumeration value="LRCdyn_NLF">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>3</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="4">
+												<xs:enumeration value="LRCdyn">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>4</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="5">
+												<xs:enumeration value="ALDA">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>5</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="7">
+												<xs:enumeration value="MB1_NLF">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>7</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
-												<xs:enumeration value="8">
+												<xs:enumeration value="MB1">
 													<xs:annotation>
 														<xs:appinfo>
 															<oldnr>8</oldnr>
