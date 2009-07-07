@@ -2284,6 +2284,123 @@
 																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
+															<xs:enumeration value="writepmatasc">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>321</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>ASCII output of momentum matrix elements
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="pmatxs2orig">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>322</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>convert momentum matrix elements file to old format
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="writeematasc">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>331</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>ASCII output of q-dependent matrix elements
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="writepwmat">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>335</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>calculate matrix elements of the plane wave (simple version for checking)
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="emattest">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>339</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>check relation between matr. el. of exp. and mom. matr. el.
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="x0toasc">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>341</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>ASCII output of Kohn Sham response function
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="x0tobin">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>342</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>binary output of Kohn Sham response function
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="epsconv">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>396</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>convolute dielectric function from tetrahedron method with Lorentzian
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="fxc_alda_check">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>398</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>check ALDA kernel
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="kernxc_bse3">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>451</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>BSE-kernel, straight forward version
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="testxs">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>499</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>degub routine of xs-part
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="xsestimate">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>700</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>estimate disk-space, cpu-time and memory requirements
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
+															<xs:enumeration value="xstiming">
+																<xs:annotation>
+																	<xs:appinfo>
+																		<oldnr>701</oldnr>
+																	</xs:appinfo>
+																	<xs:documentation>test timing
+																	</xs:documentation>
+																</xs:annotation>
+															</xs:enumeration>
 															<!-- debugging main part-->
 															<xs:enumeration value="testmain">
 																<xs:annotation>
