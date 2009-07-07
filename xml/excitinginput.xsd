@@ -1977,7 +1977,7 @@
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="fxctype" default="0">
+									<xs:attribute name="fxctype" default="RPA">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="RPA">
