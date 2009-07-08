@@ -13,6 +13,7 @@ subroutine xsgeneigvec
   implicit none
   ! local variables
   character(*), parameter :: thisnam='xsgeneigvec'
+  logical, parameter :: tq0ev=.true.
   real(8) :: vqlt(3)
   integer :: iq,qi,qf
   logical, external :: tqgamma
