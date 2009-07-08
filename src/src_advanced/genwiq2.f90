@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: genwiq2
 ! !INTERFACE:
+
+
 subroutine genwiq2
 ! !USES:
+use modinput
 use modmain
 ! !DESCRIPTION:
 !   The Fock matrix elements
@@ -39,50 +43,50 @@ use modmain
 implicit none
 ! local variables
 integer, parameter :: np=5
-integer, parameter :: ns0=10,nss=20
-integer ns,iq,i1,i2,i3,i,ip
-real(8) d(3),dv,sum,t1,t2
-real(8) v1(3),v2(3),v3(3)
-real(8) xa(np),ya(np),c(np)
+integer, parameter :: ns0=10, nss=20
+integer::ns, iq, i1, i2, i3, i, ip
+real(8)::d(3), dv, sum, t1, t2
+real(8)::v1(3), v2(3), v3(3)
+real(8)::xa(np), ya(np), c(np)
 ! external functions
-real(8) polynom
+real(8)::polynom
 external polynom
 ! allocate global wiq2 array
 if (allocated(wiq2)) deallocate(wiq2)
 allocate(wiq2(ngridq(1)*ngridq(2)*ngridq(3)))
 ! if system is a molecule wiq2 should be zero
-if (molecule) then
+if (input%structure%molecule) then
   wiq2(:)=0
   return
 end if
 ! begin loop over q-points, note that the vectors vqc are assumed to be in the
 ! first Brillouin zone
-do iq=1,nqpt
+do iq=1, nqpt
 ! loop over different subdivisions
   ns=ns0
-  do ip=1,np
+  do ip=1, np
 ! subdivision vectors in lattice coordinates
-    do i=1,3
-      d(i)=1.d0/(dble(ngridk(i)*2*ns))
+    do i=1, 3
+      d(i)=1.d0/(dble(input%groundstate%ngkgrid(i)*2*ns))
     end do
 ! smallest volume element
     dv=((twopi**3)/omega)*d(1)*d(2)*d(3)
 ! compute the integral of 1/q^2
     sum=0.d0
-    do i1=-ns,ns-1
+    do i1=-ns, ns-1
       t1=dble(i1)*d(1)
-      v1(:)=vqc(:,iq)+t1*bvec(:,1)
-      do i2=-ns,ns-1
-        t1=dble(i2)*d(2)
-        v2(:)=v1(:)+t1*bvec(:,2)
-        do i3=-ns,ns-1
-          t1=dble(i3)*d(3)
-          v3(:)=v2(:)+t1*bvec(:,3)
-          t2=v3(1)**2+v3(2)**2+v3(3)**2
-          if (t2.gt.1.d-14) then
-            sum=sum+1.d0/t2
-          end if
-        end do
+      v1(:)=vqc(:, iq)+t1*bvec(:, 1)
+      do i2=-ns, ns-1
+	t1=dble(i2)*d(2)
+	v2(:)=v1(:)+t1*bvec(:, 2)
+	do i3=-ns, ns-1
+	  t1=dble(i3)*d(3)
+	  v3(:)=v2(:)+t1*bvec(:, 3)
+	  t2=v3(1)**2+v3(2)**2+v3(3)**2
+	  if (t2.gt.1.d-14) then
+	    sum=sum+1.d0/t2
+	  end if
+	end do
       end do
     end do
     sum=sum*dv
@@ -92,9 +96,8 @@ do iq=1,nqpt
     ns=ns+nss
   end do
 ! extrapolate the volume element to zero with a polynomial
-  wiq2(iq)=polynom(0,np,xa,ya,c,0.d0)
+  wiq2(iq)=polynom(0, np, xa, ya, c, 0.d0)
 end do
 return
 end subroutine
 !EOC
-

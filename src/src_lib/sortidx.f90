@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: sortidx
 ! !INTERFACE:
-subroutine sortidx(n,a,idx)
+
+
+subroutine sortidx(n, a, idx)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n   : number of elements in array (in,integer)
 !   idx : permutation index (out,integer(n))
@@ -27,16 +30,16 @@ integer, intent(in) :: n
 real(8), intent(in) :: a(n)
 integer, intent(out) :: idx(n)
 ! local variables
-integer i,j,k,l,m
+integer::i, j, k, l, m
 ! tolerance for deciding if one number is smaller than another
 real(8), parameter :: eps=1.d-14
 if (n.le.0) then
-  write(*,*)
-  write(*,'("Error(sortidx): n <= 0 : ",I8)') n
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(sortidx): n <= 0 : ", I8)') n
+  write(*, *)
   stop
 end if
-do i=1,n
+do i=1, n
   idx(i)=i
 end do
 if (n.eq.1) return

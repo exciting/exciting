@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: findband
 ! !INTERFACE:
-subroutine findband(l,k,np,nr,r,vr,de0,e)
+
+
+subroutine findband(l, k, np, nr, r, vr, de0, e)
 ! !INPUT/OUTPUT PARAMETERS:
 !   l   : angular momentum quantum number (in,integer)
 !   k   : quantum number k, zero if Dirac eqn. is not to be used (in,integer)
@@ -43,19 +46,19 @@ real(8), intent(inout) :: e
 ! local variables
 ! maximum number of steps
 integer, parameter :: maxstp=1000
-integer ie,nn
+integer::ie, nn
 ! energy search tolerance
 real(8), parameter :: eps=1.d-5
-real(8) de,et,eb,t,tp
+real(8)::de, et, eb, t, tp
 ! automatic arrays
-real(8) p0(nr),p1(nr),q0(nr),q1(nr)
+real(8)::p0(nr), p1(nr), q0(nr), q1(nr)
 tp=0.d0
 ! find the top of the band
 de=abs(de0)
 et=e
-do ie=1,maxstp
+do ie=1, maxstp
   et=et+de
-  call rschroddme(0,l,k,et,np,nr,r,vr,nn,p0,p1,q0,q1)
+  call rschroddme(0, l, k, et, np, nr, r, vr, nn, p0, p1, q0, q1)
   t=p0(nr)
   if (ie.gt.1) then
     if (t*tp.le.0.d0) then
@@ -70,9 +73,9 @@ goto 30
 ! find the bottom of the band
 de=-abs(de0)
 eb=et+5.d0*abs(de0)
-do ie=1,maxstp
+do ie=1, maxstp
   eb=eb+de
-  call rschroddme(0,l,k,eb,np,nr,r,vr,nn,p0,p1,q0,q1)
+  call rschroddme(0, l, k, eb, np, nr, r, vr, nn, p0, p1, q0, q1)
   t=p1(nr)
   if (ie.gt.1) then
     if (t*tp.le.0.d0) then
@@ -90,4 +93,3 @@ e=(et+eb)/2.d0
 return
 end subroutine
 !EOC
-

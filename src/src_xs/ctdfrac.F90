@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -10,7 +11,9 @@ contains
 !BOP
 ! !ROUTINE: ctdfrac
 ! !INTERFACE:
-  subroutine ctdfrac(n,a,b,f)
+
+
+subroutine ctdfrac(n, a, b, f)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : depth of continued fraction (in,integer)
 !   a     : a-coefficients (in,complex(n))
@@ -34,7 +37,7 @@ contains
     ! local variables
     integer :: j
     f=b(n)
-    do j=n,1,-1
+    do j=n, 1, -1
       f=b(j-1)+a(j)/f
     end do
   end subroutine

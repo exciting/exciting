@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,6 +7,8 @@
 !BOP
 ! !ROUTINE: olprad
 ! !INTERFACE:
+
+
 subroutine olprad
 ! !USES:
 use modmain
@@ -28,43 +31,43 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer is,ia,ias,ir,nr
-integer l,ilo,ilo1,ilo2,io
+integer::is, ia, ias, ir, nr
+integer::l, ilo, ilo1, ilo2, io
 ! automatic arrays
-real(8) r2(nrmtmax),fr(nrmtmax),gr(nrmtmax),cf(3,nrmtmax)
-do is=1,nspecies
+real(8)::r2(nrmtmax), fr(nrmtmax), gr(nrmtmax), cf(3, nrmtmax)
+do is=1, nspecies
   nr=nrmt(is)
-  do ir=1,nr
-    r2(ir)=spr(ir,is)**2
+  do ir=1, nr
+    r2(ir)=spr(ir, is)**2
   end do
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
 !--------------------------------------!
 !     APW-local-orbital integtrals     !
 !--------------------------------------!
-    do ilo=1,nlorb(is)
-      l=lorbl(ilo,is)
-      do io=1,apword(l,is)
-        do ir=1,nr
-          fr(ir)=apwfr(ir,1,io,l,ias)*lofr(ir,1,ilo,ias)*r2(ir)
-        end do
-        call fderiv(-1,nr,spr(:,is),fr,gr,cf)
-        oalo(io,ilo,ias)=gr(nr)
+    do ilo=1, nlorb(is)
+      l=lorbl(ilo, is)
+      do io=1, apword(l, is)
+	do ir=1, nr
+	  fr(ir)=apwfr(ir, 1, io, l, ias)*lofr(ir, 1, ilo, ias)*r2(ir)
+	end do
+	call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+	oalo(io, ilo, ias)=gr(nr)
       end do
     end do
 !-----------------------------------------------!
 !     local-orbital-local-orbital integrals     !
 !-----------------------------------------------!
-    do ilo1=1,nlorb(is)
-      l=lorbl(ilo1,is)
-      do ilo2=1,nlorb(is)
-        if (lorbl(ilo2,is).eq.l) then
-          do ir=1,nr
-            fr(ir)=lofr(ir,1,ilo1,ias)*lofr(ir,1,ilo2,ias)*r2(ir)
-          end do
-          call fderiv(-1,nr,spr(:,is),fr,gr,cf)
-          ololo(ilo1,ilo2,ias)=gr(nr)
-        end if
+    do ilo1=1, nlorb(is)
+      l=lorbl(ilo1, is)
+      do ilo2=1, nlorb(is)
+	if (lorbl(ilo2, is).eq.l) then
+	  do ir=1, nr
+	    fr(ir)=lofr(ir, 1, ilo1, ias)*lofr(ir, 1, ilo2, ias)*r2(ir)
+	  end do
+	  call fderiv(-1, nr, spr(:, is), fr, gr, cf)
+	  ololo(ilo1, ilo2, ias)=gr(nr)
+	end if
       end do
     end do
   end do

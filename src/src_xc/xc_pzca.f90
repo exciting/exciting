@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: xc_pzca
 ! !INTERFACE:
-subroutine xc_pzca(n,rho,ex,ec,vx,vc)
+
+
+subroutine xc_pzca(n, rho, ex, ec, vx, vc)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n   : number of density points (in,integer)
 !   rho : charge density (in,real(n))
@@ -33,21 +36,21 @@ real(8), intent(out) :: ec(n)
 real(8), intent(out) :: vx(n)
 real(8), intent(out) :: vc(n)
 ! local variables
-integer i
+integer::i
 real(8), parameter :: pi=3.1415926535897932385d0
 real(8), parameter :: thrd=1.d0/3.d0
 real(8), parameter :: thrd2=2.d0/3.d0
 real(8), parameter :: thrd4=4.d0/3.d0
-real(8), parameter :: g=-0.1423d0,b1=1.0529d0,b2=0.3334d0
-real(8), parameter :: a=0.0311d0,b=-0.048d0,c=0.0020d0,d=-0.0116d0
-real(8) r,rs,srs,lrs
+real(8), parameter :: g=-0.1423d0, b1=1.0529d0, b2=0.3334d0
+real(8), parameter :: a=0.0311d0, b=-0.048d0, c=0.0020d0, d=-0.0116d0
+real(8)::r, rs, srs, lrs
 if (n.le.0) then
-  write(*,*)
-  write(*,'("Error(xc_pzca): invalid n : ",I8)') n
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(xc_pzca): invalid n : ", I8)') n
+  write(*, *)
   stop
 end if
-do i=1,n
+do i=1, n
   r=rho(i)
   if (r.gt.1.d-20) then
     rs=(3.d0/(4.d0*pi*r))**thrd

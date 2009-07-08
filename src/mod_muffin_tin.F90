@@ -1,54 +1,55 @@
+
 #include "maxdefinitions.inc"
 module mod_muffin_tin
 !---------------------------------------------------------------!
 !     muffin-tin radial mesh and angular momentum variables     !
 !---------------------------------------------------------------!
 ! radial function integration and differentiation polynomial order
-integer nprad
+integer::nprad
 ! number of muffin-tin radial points for each species
-integer nrmt(_MAXSPECIES_)
+integer::nrmt(_MAXSPECIES_)
 ! maximum nrmt over all the species
-integer nrmtmax
+integer::nrmtmax
 ! autormt is .true. for automatic determination of muffin-tin radii
-logical autormt
+logical::autormt
 ! parameters for determining muffin-tin radii automatically
-real(8) rmtapm(2)
+real(8)::rmtapm(2)
 ! muffin-tin radii
-real(8) rmt(_MAXSPECIES_)
+real(8)::rmt(_MAXSPECIES_)
 ! species for which the muffin-tin radius will be used for calculating gkmax
-integer isgkmax
+integer::isgkmax
 ! radial step length for coarse mesh
-integer lradstp
+integer::lradstp
 ! number of coarse radial mesh points
-integer nrcmt(_MAXSPECIES_)
+integer::nrcmt(_MAXSPECIES_)
 ! maximum nrcmt over all the species
-integer nrcmtmax
+integer::nrcmtmax
 ! coarse muffin-tin radial mesh
-real(8), allocatable :: rcmt(:,:)
+real(8), allocatable :: rcmt(:, :)
 ! maximum allowable angular momentum for augmented plane waves
 
 ! maximum angular momentum for augmented plane waves
-integer lmaxapw
+integer::lmaxapw
 ! (lmaxapw+1)^2
-integer lmmaxapw
+integer::lmmaxapw
 ! maximum angular momentum for potentials and densities
-integer lmaxvr
+integer::lmaxvr
 ! (lmaxvr+1)^2
-integer lmmaxvr
+integer::lmmaxvr
 ! maximum angular momentum used when evaluating the Hamiltonian matrix elements
-integer lmaxmat
+integer::lmaxmat
 ! (lmaxmat+1)^2
-integer lmmaxmat
+integer::lmmaxmat
 ! fraction of muffin-tin radius which constitutes the inner part
-real(8) fracinr
+real(8)::fracinr
 ! maximum angular momentum in the inner part of the muffin-int
-integer lmaxinr
+integer::lmaxinr
 ! (lmaxinr+1)^2
-integer lmmaxinr
+integer::lmmaxinr
 ! number of radial points to the inner part of the muffin-tin
-integer nrmtinr(_MAXSPECIES_)
+integer::nrmtinr(_MAXSPECIES_)
 ! index to (l,m) pairs
-integer, allocatable :: idxlm(:,:)
+integer, allocatable :: idxlm(:, :)
 !------------------------------!
 !     tolerance parameters     !
 !------------------------------!

@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: xc_pwca
 ! !INTERFACE:
-subroutine xc_pwca(n,rhoup,rhodn,ex,ec,vxup,vxdn,vcup,vcdn)
+
+
+subroutine xc_pwca(n, rhoup, rhodn, ex, ec, vxup, vxdn, vcup, vcdn)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : number of density points (in,integer)
 !   rhoup : spin-up charge density (in,real(n))
@@ -38,7 +41,7 @@ real(8), intent(out) :: vxdn(n)
 real(8), intent(out) :: vcup(n)
 real(8), intent(out) :: vcdn(n)
 ! local variables
-integer i
+integer::i
 real(8), parameter :: pi=3.1415926535897932385d0
 real(8), parameter :: thrd=1.d0/3.d0
 real(8), parameter :: thrd2=2.d0/3.d0
@@ -46,24 +49,24 @@ real(8), parameter :: thrd4=4.d0/3.d0
 real(8), parameter :: f20=1.709921d0
 ! beyond RPA
 real(8), parameter :: p=1.d0
-real(8) a(3),a1(3),b1(3),b2(3),b3(3),b4(3)
-data a  / 0.0310907d0, 0.01554535d0, 0.0168869d0 /
-data a1 / 0.21370d0,   0.20548d0,    0.11125d0   /
-data b1 / 7.5957d0,   14.1189d0,    10.357d0     /
-data b2 / 3.5876d0,    6.1977d0,     3.6231d0    /
-data b3 / 1.6382d0,    3.3662d0,     0.88026d0   /
-data b4 / 0.49294d0,   0.62517d0,    0.49671d0   /
-real(8) r,rs,srs,z,z4,ec0,ec1,ac,fz
-real(8) t1,t2,t3,dzf,dzec
-real(8) drec0,drec1,drac,drec
-real(8) q0(3),q1(3),q1p
+real(8)::a(3), a1(3), b1(3), b2(3), b3(3), b4(3)
+data a	/ 0.0310907d0, 0.01554535d0, 0.0168869d0 /
+data a1 / 0.21370d0,   0.20548d0,    0.11125d0	 /
+data b1 / 7.5957d0,   14.1189d0,    10.357d0	 /
+data b2 / 3.5876d0,    6.1977d0,     3.6231d0	 /
+data b3 / 1.6382d0,    3.3662d0,     0.88026d0	 /
+data b4 / 0.49294d0,   0.62517d0,    0.49671d0	 /
+real(8)::r, rs, srs, z, z4, ec0, ec1, ac, fz
+real(8)::t1, t2, t3, dzf, dzec
+real(8)::drec0, drec1, drac, drec
+real(8)::q0(3), q1(3), q1p
 if (n.le.0) then
-  write(*,*)
-  write(*,'("Error(xc_pwca): invalid n : ",I8)') n
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(xc_pwca): invalid n : ", I8)') n
+  write(*, *)
   stop
 end if
-do i=1,n
+do i=1, n
   if ((rhoup(i).gt.1.d-12).and.(rhodn(i).gt.1.d-12)) then
     r=rhoup(i)+rhodn(i)
     rs=(3.d0/(4.d0*pi*r))**thrd
@@ -71,8 +74,8 @@ do i=1,n
     z=(rhoup(i)-rhodn(i))/r
     z4=z**4
 ! exchange energy density
-    ex(i)=-(3.d0/(4.d0*pi*rs))*((9.d0*pi/4.d0)**thrd) &
-     *((1.d0+z)**thrd4+(1.d0-z)**thrd4)/2.d0
+    ex(i) =- (3.d0/(4.d0 * pi * rs)) * ((9.d0 * pi/4.d0) ** thrd) &
+     *((1.d0 + z) ** thrd4 + (1.d0 - z) ** thrd4)/2.d0
 ! correlation energy density
     q0(1)=-2.d0*a(1)*(1.d0+a1(1)*rs)
     q1(1)=2.d0*a(1)*(b1(1)*srs+b2(1)*rs+b3(1)*(srs**3)+b4(1)*rs**(p+1.d0))

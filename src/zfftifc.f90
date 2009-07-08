@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: zfftifc
 ! !INTERFACE:
-subroutine zfftifc(nd,n,sgn,z)
+
+
+subroutine zfftifc(nd, n, sgn, z)
 ! !INPUT/OUTPUT PARAMETERS:
 !   nd   : number of dimensions (in,integer)
 !   n    : grid sizes (in,integer(nd))
@@ -85,9 +88,8 @@ complex(8), intent(inout) :: z(*)
 !----------------------------------------!
 !     interface to modified FFTPACK5     !
 !----------------------------------------!
-call cfftnd(nd,n,sgn,z)
+call cfftnd(nd, n, sgn, z)
 
 return
 end subroutine
 !EOC
-

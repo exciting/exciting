@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -21,7 +22,7 @@ implicit none
 ! arguments
 real(8), intent(in) :: x
 ! local variables
-real(8) t1
+real(8)::t1
 if (abs(x).gt.50.d0) then
   sdelta_fd=0.d0
   return

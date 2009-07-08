@@ -1,10 +1,13 @@
 
+
 ! Copyright (C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+
 subroutine writeemat
   use modmain
+use modinput
   use modxs
   use modmpi
   use m_xsgauntgen
@@ -20,9 +23,9 @@ subroutine writeemat
   call init1
   call init2
   ! k-point parallelization for TDDFT
-  if ((task.ge.300).and.(task.le.399)) call genparidxran('k',nkpt)
+  if ((task.ge.300).and.(task.le.399)) call genparidxran('k', nkpt)
   ! q-point parallelization for screening
-  if ((task.ge.400).and.(task.le.499)) call genparidxran('q',nqpt)
+  if ((task.ge.400).and.(task.le.499)) call genparidxran('q', nqpt)
    ! write q-point set
   if (rank.eq.0) call writeqpts
   ! read Fermi energy from file
@@ -30,24 +33,24 @@ subroutine writeemat
   ! save variables for the Gamma q-point
   call xssave0
   ! generate Gaunt coefficients
-  call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
+  call xsgauntgen(max(input%groundstate%lmaxapw, lolmax), input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
   ! find indices for non-zero Gaunt coefficients
-  call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
-  write(unitout,'(a,3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
-       &within lmax values:', lmaxapw,lmaxemat,lmaxapw
-  write(unitout,'(a,i6)') 'Info('//thisnam//'): number of q-points: ',nqpt
+  call findgntn0(max(input%xs%lmaxapwwf, lolmax), max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
+  write(unitout, '(a, 3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
+       &within lmax values:', input%groundstate%lmaxapw, input%xs%lmaxemat, input%groundstate%lmaxapw
+  write(unitout, '(a, i6)') 'Info('//thisnam//'): number of q-input%xs%dosWindow%points: ', nqpt
   call flushifc(unitout)
   ! loop over q-points
-  do iq=1,nqpt
+  do iq=1, nqpt
      ! call for q-point
      call ematq(iq)
-     write(unitout,'(a,i8)') 'Info('//thisnam//'): matrix elements of the &
-          &exponentials finished for q-point:',iq
+     write(unitout, '(a, i8)') 'Info('//thisnam//'): matrix elements of the &
+	  &exponentials finished for q - point:', iq
      call flushifc(unitout)
   end do
   ! synchronize
   call barrier
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): matrix elements of &
+  write(unitout, '(a)') "Info("//trim(thisnam)//"): matrix elements of &
        &exponential expression finished"
   call findgntn0_clear
   call genfilname(setfilext=.true.)

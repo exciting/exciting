@@ -1,10 +1,13 @@
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+
 subroutine tetcalccw
   use modmain
+use modinput
   use modxs
   use modmpi
   use modtetra
@@ -16,8 +19,8 @@ subroutine tetcalccw
   logical :: tet
   call init0
   ! initialise universal variables
-  tet=tetradf
-  tetradf=.true.
+  tet=input%xs%tetra%tetradf
+  input%xs%tetra%tetradf=.true.
   call init1
   ! save Gamma-point variables
   call xssave0
@@ -28,23 +31,23 @@ subroutine tetcalccw
   ! w-point interval for process
   if (tscreen) then
      nwdf=1
-     call genparidxran('q',nqpt)
+     call genparidxran('q', nqpt)
   else
-     call genparidxran('w',nwdf)
+     call genparidxran('w', nwdf)
   end if
   ! loop over q-points
-  do iq=qpari,qparf
+  do iq=qpari, qparf
      ! call for q-point
      call tetcalccwq(iq)
-     write(unitout,'(a,i8)') 'Info('//thisnam//'): weights for tetrahedron &
-          &method finished for q-point:',iq
+     write(unitout, '(a, i8)') 'Info('//thisnam//'): weights for tetrahedron &
+	  &method finished for q - point:', iq
   end do
   ! synchronize
   call barrier
   if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call tetgather
   call barrier
-  tetradf=tet
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &
+  input%xs%tetra%tetradf=tet
+  write(unitout, '(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &
        &method finished"
   call genfilname(setfilext=.true.)
 end subroutine tetcalccw

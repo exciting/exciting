@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -11,8 +12,11 @@ contains
 !BOP
 ! !ROUTINE: fxc_bse_ma03
 ! !INTERFACE:
-  subroutine fxc_bse_ma03(msiz,oct,sw,iw,fxc)
+
+
+subroutine fxc_bse_ma03(msiz, oct, sw, iw, fxc)
 ! !USES:
+use modinput
     use modmain
     use modmpi
     use modxs
@@ -37,66 +41,66 @@ contains
 !BOC
     implicit none
     ! arguments
-    integer, intent(in) :: msiz,oct
+    integer, intent(in) :: msiz, oct
     ! true if all G-components of fxc are to be considered
     logical, intent(in) :: sw
     integer, intent(in) :: iw
-    complex(8), intent(out) :: fxc(:,:)
+    complex(8), intent(out) :: fxc(:, :)
     ! local variables
     character(*), parameter :: thisnam = 'fxc_bse_ma03'
     character(256) :: filnam
-    complex(8), allocatable :: fxch(:,:),fxcw1(:,:),fxcw2(:,:)
+    complex(8), allocatable :: fxch(:, :), fxcw1(:, :), fxcw2(:, :)
     complex(8) :: zt1
-    integer :: n,n2,un,recl,n_
-    n=size(fxc,1)
-    n2=size(fxc,2)
+    integer :: n, n2, un, recl, n_
+    n=size(fxc, 1)
+    n2=size(fxc, 2)
     if ((n.lt.msiz).or.(n.ne.n2)) then
-       write(unitout,'(a,2i9,a,i9,a)') 'Error('//trim(thisnam)//'): size of &
-            &fxc is inconsistent (required)', n,n2, '(', msiz, ')'
+       write(unitout, '(a, 2i9, a, i9, a)') 'Error('//trim(thisnam)//'): size of &
+	    &fxc is inconsistent (required)', n, n2, '(', msiz, ')'
        call terminate
     end if
-    allocate(fxch(-3:-1,-3:-1),fxcw1(-3:-1,n),fxcw2(n,-3:-1))
+    allocate(fxch(-3:-1, -3:-1), fxcw1(-3:-1, n), fxcw2(n, -3:-1))
     ! filename for BSE-xc-kernel
     call getunit(un)
     ! filename for xc-kernel
-    call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
-         acont=acont,nar=.not.aresdf,iqmt=1,filnam=filnam)
+    call genfilname(basename = 'FXC_BSE', asc = .false., bzsampl = bzsampl, &
+	 acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = 1, filnam = filnam)
 	  ! get LFE size
     inquire(iolength=recl) n_
-    open(un,file=trim(filnam),form='unformatted',action='read', &
-         status='old',access='direct',recl=recl)
-    read(un,rec=1) n_
+    open(un, file = trim(filnam), form = 'unformatted', action = 'read', &
+	 status = 'old', access = 'direct', recl = recl)
+    read(un, rec=1) n_
     close(un)
     ! check if data from file can be stored in local array
     if (n.lt.n_) then
-       write(unitout,*)
-       write(unitout,'("Error(",a,"): LFE size of file too large")') trim(thisnam)
-       write(unitout,'(" LFE size (file)    : ",i8)') n_
-       write(unitout,'(" LFE size (current) : ",i8)') n
-       write(unitout,*)
+       write(unitout, *)
+       write(unitout, '("Error(", a, "): LFE size of file too large")') trim(thisnam)
+       write(unitout, '(" LFE size (file)    : ", i8)') n_
+       write(unitout, '(" LFE size (current) : ", i8)') n
+       write(unitout, *)
        call terminate
     end if
 	  ! get data
-	  fxc(:,:)=zzero
-    inquire(iolength=recl) n_,fxch,fxcw1(:,:n_),fxcw2(:n_,:),fxc(:n_,:n_)
-    open(un,file=trim(filnam),form='unformatted',action='read', &
-         status='old',access='direct',recl=recl)
-    read(un,rec=iw) n_,fxch,fxcw1(:,:n_),fxcw2(:n_,:),fxc(:n_,:n_)
+	  fxc(:, :)=zzero
+    inquire(iolength=recl) n_, fxch, fxcw1(:, :n_), fxcw2(:n_, :), fxc(:n_, :n_)
+    open(un, file = trim(filnam), form = 'unformatted', action = 'read', &
+	 status = 'old', access = 'direct', recl = recl)
+    read(un, rec=iw) n_, fxch, fxcw1(:, :n_), fxcw2(:n_, :), fxc(:n_, :n_)
     ! assign head
-    fxc(1,1)=fxch(-oct,-oct)
+    fxc(1, 1)=fxch(-oct, -oct)
     ! assign wings
     if (msiz.gt.1) then
-       fxc(1,2:n_)=fxcw1(-oct,2:n_)
-       fxc(2:n_,1)=fxcw2(2:n_,-oct)
+       fxc(1, 2:n_)=fxcw1(-oct, 2:n_)
+       fxc(2:n_, 1)=fxcw2(2:n_, -oct)
     end if
     ! no LFE at all
     if (.not.sw) then
-       zt1=fxc(1,1)
-       fxc(:,:)=zzero
-       fxc(1,1)=zt1
+       zt1=fxc(1, 1)
+       fxc(:, :)=zzero
+       fxc(1, 1)=zt1
     end if
     close(un)
-    deallocate(fxch,fxcw1,fxcw2)
+    deallocate(fxch, fxcw1, fxcw2)
   end subroutine fxc_bse_ma03
 !EOC
 

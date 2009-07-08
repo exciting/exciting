@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,7 @@
 !BOP
 ! !ROUTINE: gauntyry
 ! !INTERFACE:
-complex(8) function gauntyry(l1,l2,l3,m1,m2,m3)
+complex(8) function gauntyry(l1, l2, l3, m1, m2, m3)
 ! !INPUT/OUTPUT PARAMETERS:
 !   l1, l2, l3 : angular momentum quantum numbers (in,integer)
 !   m1, m2, m3 : magnetic quantum numbers (in,integer)
@@ -31,28 +32,28 @@ integer, intent(in) :: m3
 ! local variables
 ! real constant sqrt(2)/2
 real(8), parameter :: c1=0.7071067811865475244d0
-real(8) t1,t2
+real(8)::t1, t2
 ! external functions
-real(8) gaunt
+real(8)::gaunt
 external gaunt
 if (m2.gt.0) then
-  if (mod(m2,2).eq.0) then
+  if (mod(m2, 2).eq.0) then
     t1=1.d0
   else
     t1=-1.d0
   end if
-  t2=c1*(gaunt(l1,l2,l3,m1,m2,m3)+t1*gaunt(l1,l2,l3,m1,-m2,m3))
-  gauntyry=cmplx(t2,0.d0,8)
+  t2=c1*(gaunt(l1, l2, l3, m1, m2, m3)+t1*gaunt(l1, l2, l3, m1, -m2, m3))
+  gauntyry=cmplx(t2, 0.d0, 8)
 else if (m2.lt.0) then
-  if (mod(m2,2).eq.0) then
+  if (mod(m2, 2).eq.0) then
     t1=1.d0
   else
     t1=-1.d0
   end if
-  t2=c1*(gaunt(l1,l2,l3,m1,m2,m3)-t1*gaunt(l1,l2,l3,m1,-m2,m3))
-  gauntyry=cmplx(0.d0,-t2,8)
+  t2=c1*(gaunt(l1, l2, l3, m1, m2, m3)-t1*gaunt(l1, l2, l3, m1, -m2, m3))
+  gauntyry=cmplx(0.d0, -t2, 8)
 else
-  gauntyry=cmplx(gaunt(l1,l2,l3,m1,m2,m3),0.d0,8)
+  gauntyry=cmplx(gaunt(l1, l2, l3, m1, m2, m3), 0.d0, 8)
 end if
 return
 end function

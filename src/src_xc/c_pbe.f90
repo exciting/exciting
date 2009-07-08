@@ -1,7 +1,9 @@
 
+
 ! This routine is based on code written by K. Burke.
 
-subroutine c_pbe(beta,rs,z,t,uu,vv,ww,ec,vcup,vcdn)
+
+subroutine c_pbe(beta, rs, z, t, uu, vv, ww, ec, vcup, vcdn)
 implicit none
 ! arguments
 real(8), intent(in) :: beta
@@ -24,20 +26,20 @@ real(8), parameter :: gam=0.5198420997897463295d0
 real(8), parameter :: fzz=8.d0/(9.d0*gam)
 real(8), parameter :: gamma=0.0310906908696548950d0
 real(8), parameter :: eta=1.d-12
-real(8) rtrs,eu,eurs,ep,eprs,alfm,alfrsm,z4,f
-real(8) ecrs,fz,ecz,comm,g,g3,pon,b,b2,t2,t4
-real(8) q4,q5,g4,t6,rsthrd,gz,fac,bg,bec,q8,q9
-real(8) hb,hrs,fact0,fact1,hbt,hrst,hz,ht,hzt
-real(8) fact2,fact3,htt,pref,fact5,h,dvcup,dvcdn
-real(8) delt
+real(8)::rtrs, eu, eurs, ep, eprs, alfm, alfrsm, z4, f
+real(8)::ecrs, fz, ecz, comm, g, g3, pon, b, b2, t2, t4
+real(8)::q4, q5, g4, t6, rsthrd, gz, fac, bg, bec, q8, q9
+real(8)::hb, hrs, fact0, fact1, hbt, hrst, hz, ht, hzt
+real(8)::fact2, fact3, htt, pref, fact5, h, dvcup, dvcdn
+real(8)::delt
 delt=beta/gamma
 rtrs=sqrt(rs)
-call c_pbe_gcor(0.0310907d0,0.21370d0,7.5957d0,3.5876d0,1.6382d0,0.49294d0, &
- rtrs,eu,eurs)
-call c_pbe_gcor(0.01554535d0,0.20548d0,14.1189d0,6.1977d0,3.3662d0,0.62517d0, &
- rtrs,ep,eprs)
-call c_pbe_gcor(0.0168869d0,0.11125d0,10.357d0,3.6231d0,0.88026d0,0.49671d0, &
- rtrs,alfm,alfrsm)
+call c_pbe_gcor(0.0310907d0, 0.21370d0, 7.5957d0, 3.5876d0, 1.6382d0, 0.49294d0, &
+ rtrs, eu, eurs)
+call c_pbe_gcor(0.01554535d0, 0.20548d0, 14.1189d0, 6.1977d0, 3.3662d0, 0.62517d0, &
+ rtrs, ep, eprs)
+call c_pbe_gcor(0.0168869d0, 0.11125d0, 10.357d0, 3.6231d0, 0.88026d0, 0.49671d0, &
+ rtrs, alfm, alfrsm)
 z4=z**4
 f=((1.d0+z)**thrd4+(1.d0-z)**thrd4-2.d0)/gam
 ! local contribution to correlation energy density
@@ -94,4 +96,3 @@ vcup=vcup+dvcup
 vcdn=vcdn+dvcdn
 return
 end subroutine
-

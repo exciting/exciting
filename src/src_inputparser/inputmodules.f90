@@ -454,7 +454,6 @@ type BSE_type
  integer::lmaxdielt
  integer::nleblaik
  integer::nexcitmax
- integer::nstlbse(2)
  integer::nstlce(2)
  character(512)::bsetype
  integer::bsetypenumber
@@ -3862,14 +3861,6 @@ getstructBSE%nexcitmax=100
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nexcitmax",getstructBSE%nexcitmax)
        call removeAttribute(thisnode,"nexcitmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nstlbse")
-getstructBSE%nstlbse=(/0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nstlbse",getstructBSE%nstlbse)
-       call removeAttribute(thisnode,"nstlbse")      
 endif
 
 nullify(np)  

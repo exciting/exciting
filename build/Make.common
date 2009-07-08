@@ -19,7 +19,7 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_inputparser/ \
 	../../src/src_timing/ \
 	../../src/leblaiklib/ \
-	../../src/main/ \
+	../../src/mainxml/ \
 	../../src/
 	
 GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	

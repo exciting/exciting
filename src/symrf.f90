@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: symrf
 ! !INTERFACE:
-subroutine symrf(lrstp,rfmt,rfir)
+
+
+subroutine symrf(lrstp, rfmt, rfir)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -29,68 +32,68 @@ use modmain
 implicit none
 ! arguments
 integer, intent(in) :: lrstp
-real(8), intent(inout) :: rfmt(lmmaxvr,nrmtmax,natmtot)
+real(8), intent(inout) :: rfmt(lmmaxvr, nrmtmax, natmtot)
 real(8), intent(inout) :: rfir(ngrtot)
 ! local variables
-integer is,ia,ja,ias,jas,ir
-integer isym,lspl,ilspl
-real(8) t1
+integer::is, ia, ja, ias, jas, ir
+integer::isym, lspl, ilspl
+real(8)::t1
 ! automatic arrays
-logical done(natmmax)
+logical::done(natmmax)
 ! allocatable arrays
-real(8), allocatable :: rfmt1(:,:,:),rfmt2(:,:)
-allocate(rfmt1(lmmaxvr,nrmtmax,natmmax))
-allocate(rfmt2(lmmaxvr,nrmtmax))
+real(8), allocatable :: rfmt1(:, :, :), rfmt2(:, :)
+allocate(rfmt1(lmmaxvr, nrmtmax, natmmax))
+allocate(rfmt2(lmmaxvr, nrmtmax))
 t1=1.d0/dble(nsymcrys)
 !-------------------------!
 !     muffin-tin part     !
 !-------------------------!
-do is=1,nspecies
+do is=1, nspecies
 ! make a copy of the input function
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    do ir=1,nrmt(is),lrstp
-      rfmt1(:,ir,ia)=rfmt(:,ir,ias)
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
+    do ir=1, nrmt(is), lrstp
+      rfmt1(:, ir, ia)=rfmt(:, ir, ias)
     end do
   end do
   done(:)=.false.
 ! loop over atoms
-  do ia=1,natoms(is)
+  do ia=1, natoms(is)
     if (.not.done(ia)) then
-      ias=idxas(ia,is)
-      do ir=1,nrmt(is),lrstp
-        rfmt(:,ir,ias)=0.d0
+      ias=idxas(ia, is)
+      do ir=1, nrmt(is), lrstp
+	rfmt(:, ir, ias)=0.d0
       end do
 ! loop over crystal symmetries
-      do isym=1,nsymcrys
+      do isym=1, nsymcrys
 ! index to spatial rotation lattice symmetry
-        lspl=lsplsymc(isym)
+	lspl=lsplsymc(isym)
 ! equivalent atom index (symmetry rotates atom ja into atom ia)
-        ja=ieqatom(ia,is,isym)
+	ja=ieqatom(ia, is, isym)
 ! apply the rotation to the muffin-tin function
-        call symrfmt(lrstp,is,symlatc(:,:,lspl),rfmt1(:,:,ja),rfmt2)
+	call symrfmt(lrstp, is, symlatc(:, :, lspl), rfmt1(:, :, ja), rfmt2)
 ! accumulate in original function array
-        do ir=1,nrmt(is),lrstp
-          rfmt(:,ir,ias)=rfmt(:,ir,ias)+rfmt2(:,ir)
-        end do
+	do ir=1, nrmt(is), lrstp
+	  rfmt(:, ir, ias)=rfmt(:, ir, ias)+rfmt2(:, ir)
+	end do
       end do
 ! normalise
-      do ir=1,nrmt(is),lrstp
-        rfmt(:,ir,ias)=t1*rfmt(:,ir,ias)
+      do ir=1, nrmt(is), lrstp
+	rfmt(:, ir, ias)=t1*rfmt(:, ir, ias)
       end do
       done(ia)=.true.
 ! rotate into equivalent atoms
-      do isym=1,nsymcrys
-        ja=ieqatom(ia,is,isym)
-        if (.not.done(ja)) then
-          jas=idxas(ja,is)
-          lspl=lsplsymc(isym)
+      do isym=1, nsymcrys
+	ja=ieqatom(ia, is, isym)
+	if (.not.done(ja)) then
+	  jas=idxas(ja, is)
+	  lspl=lsplsymc(isym)
 ! inverse symmetry (which rotates atom ia into atom ja)
-          ilspl=isymlat(lspl)
+	  ilspl=isymlat(lspl)
 ! rotate symmetrised function into equivalent muffin-tin
-          call symrfmt(lrstp,is,symlatc(:,:,ilspl),rfmt(:,:,ias),rfmt(:,:,jas))
-          done(ja)=.true.
-        end if
+	  call symrfmt(lrstp, is, symlatc(:, :, ilspl), rfmt(:, :, ias), rfmt(:, :, jas))
+	  done(ja)=.true.
+	end if
       end do
     end if
   end do
@@ -98,9 +101,8 @@ end do
 !---------------------------!
 !     interstitial part     !
 !---------------------------!
-call symrfir(ngvec,rfir)
-deallocate(rfmt1,rfmt2)
+call symrfir(ngvec, rfir)
+deallocate(rfmt1, rfmt2)
 return
 end subroutine
 !EOC
-

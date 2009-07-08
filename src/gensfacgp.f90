@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: gensfacgp
 ! !INTERFACE:
-subroutine gensfacgp(ngp,vgpc,ld,sfacgp)
+
+
+subroutine gensfacgp(ngp, vgpc, ld, sfacgp)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -26,18 +29,18 @@ use modmain
 implicit none
 ! arguments
 integer, intent(in) :: ngp
-real(8), intent(in) :: vgpc(3,ngp)
+real(8), intent(in) :: vgpc(3, ngp)
 integer, intent(in) :: ld
-complex(8), intent(out) :: sfacgp(ld,natmtot)
+complex(8), intent(out) :: sfacgp(ld, natmtot)
 ! local variables
-integer is,ia,ias,igp
-real(8) t1
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    do igp=1,ngp
-      t1=dot_product(vgpc(:,igp),atposc(:,ia,is))
-      sfacgp(igp,ias)=cmplx(cos(t1),sin(t1),8)
+integer::is, ia, ias, igp
+real(8)::t1
+do is=1, nspecies
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
+    do igp=1, ngp
+      t1=dot_product(vgpc(:, igp), atposc(:, ia, is))
+      sfacgp(igp, ias)=cmplx(cos(t1), sin(t1), 8)
     end do
   end do
 end do

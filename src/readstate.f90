@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: readstate
 ! !INTERFACE:
+
+
 subroutine readstate
 ! !USES:
+use modinput
 use modmain
 #ifdef XS
 use modxs, only : isreadstate0
@@ -22,113 +26,113 @@ use modxs, only : isreadstate0
 !BOC
 implicit none
 ! local variables
-logical spinpol_
-integer iostat
-integer is,ia,ias,lmmax,lm,ir,jr
-integer idm,ngm,i1,i2,i3,j1,j2,j3
-integer version_(3),nspecies_,lmmaxvr_
-integer natoms_,nrmt_(maxspecies),nrmtmax_
-integer ngrid_(3),ngrtot_,ngvec_,ndmag_
-integer nspinor_,ldapu_,lmmaxlu_
-real(8) t1
+logical::spinpol_
+integer::iostat
+integer::is, ia, ias, lmmax, lm, ir, jr
+integer::idm, ngm, i1, i2, i3, j1, j2, j3
+integer::version_(3), nspecies_, lmmaxvr_
+integer::natoms_, nrmt_(maxspecies), nrmtmax_
+integer::ngrid_(3), ngrtot_, ngvec_, ndmag_
+integer::nspinor_, ldapu_, lmmaxlu_
+real(8)::t1
 ! allocatable arrays
 integer, allocatable :: mapir(:)
-real(8), allocatable :: spr_(:,:)
-real(8), allocatable :: rhomt_(:,:,:)
+real(8), allocatable :: spr_(:, :)
+real(8), allocatable :: rhomt_(:, :, :)
 real(8), allocatable :: rhoir_(:)
-real(8), allocatable :: vclmt_(:,:,:)
+real(8), allocatable :: vclmt_(:, :, :)
 real(8), allocatable :: vclir_(:)
-real(8), allocatable :: vxcmt_(:,:,:)
+real(8), allocatable :: vxcmt_(:, :, :)
 real(8), allocatable :: vxcir_(:)
-real(8), allocatable :: veffmt_(:,:,:)
+real(8), allocatable :: veffmt_(:, :, :)
 real(8), allocatable :: veffir_(:)
-real(8), allocatable :: magmt_(:,:,:,:)
-real(8), allocatable :: magir_(:,:)
-real(8), allocatable :: bxcmt_(:,:,:,:)
-real(8), allocatable :: bxcir_(:,:)
+real(8), allocatable :: magmt_(:, :, :, :)
+real(8), allocatable :: magir_(:, :)
+real(8), allocatable :: bxcmt_(:, :, :, :)
+real(8), allocatable :: bxcir_(:, :)
 complex(8), allocatable :: veffig_(:)
-complex(8), allocatable :: vmatlu_(:,:,:,:,:)
+complex(8), allocatable :: vmatlu_(:, :, :, :, :)
 #ifdef XS
 if (isreadstate0) then
-open(50,file='STATE.OUT',action='READ',form='UNFORMATTED', &
- status='OLD',iostat=iostat)
+open(50, file='STATE.OUT', action='READ', form='UNFORMATTED', &
+ status='OLD', iostat=iostat)
 else
 #endif
-open(50,file='STATE'//trim(filext),action='READ',form='UNFORMATTED', &
- status='OLD',iostat=iostat)
+open(50, file = 'STATE'//trim(filext), action = 'READ', form = 'UNFORMATTED', &
+ status = 'OLD', iostat = iostat)
 #ifdef XS
 end if
 #endif
 if (iostat.ne.0) then
-  write(*,*)
-  write(*,'("Error(readstate): error opening ",A)') 'STATE'//trim(filext)
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(readstate): error opening ", A)') 'STATE'//trim(filext)
+  write(*, *)
   stop
 end if
 read(50) version_
 if ((version(1).ne.version_(1)).or.(version(2).ne.version_(2)) &
  .or.(version(3).ne.version_(3))) then
-  write(*,*)
-  write(*,'("Warning(readstate): different versions")')
-  write(*,'(" current   : ",I3.3,".",I3.3,".",I3.3)') version
-  write(*,'(" STATE.OUT : ",I3.3,".",I3.3,".",I3.3)') version_
+  write(*, *)
+  write(*, '("Warning(readstate): different versions")')
+  write(*, '(" current	 : ", I3.3, ".", I3.3, ".", I3.3)') version
+  write(*, '(" STATE.OUT : ", I3.3, ".", I3.3, ".", I3.3)') version_
 end if
 read(50) spinpol_
 read(50) nspecies_
 if (nspecies.ne.nspecies_) then
-  write(*,*)
-  write(*,'("Error(readstate): differing nspecies")')
-  write(*,'(" current   : ",I4)') nspecies
-  write(*,'(" STATE.OUT : ",I4)') nspecies_
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(readstate): differing nspecies")')
+  write(*, '(" current	 : ", I4)') nspecies
+  write(*, '(" STATE.OUT : ", I4)') nspecies_
+  write(*, *)
   stop
 end if
 read(50) lmmaxvr_
 #ifdef XS
 if (lmmaxvr.ne.lmmaxvr_) then
-   write(*,*)
-   write(*,'("Warning(readstate): differing lmmaxvr values ")')
-   write(*,'(" current   : ",I4)') lmmaxvr
-   write(*,'(" STATE.OUT : ",I4)') lmmaxvr_
+   write(*, *)
+   write(*, '("Warning(readstate): differing lmmaxvr values ")')
+   write(*, '(" current   : ", I4)') lmmaxvr
+   write(*, '(" STATE.OUT : ", I4)') lmmaxvr_
 end if
 #endif
 read(50) nrmtmax_
 #ifdef XS
 if (nrmtmax.ne.nrmtmax_) then
-   write(*,*)
-   write(*,'("Warning(readstate): differing nrmtmax values ")')
-   write(*,'(" current   : ",I4)') nrmtmax
-   write(*,'(" STATE.OUT : ",I4)') nrmtmax_
+   write(*, *)
+   write(*, '("Warning(readstate): differing nrmtmax values ")')
+   write(*, '(" current   : ", I4)') nrmtmax
+   write(*, '(" STATE.OUT : ", I4)') nrmtmax_
 end if
 #endif
-allocate(spr_(nrmtmax_,nspecies))
-do is=1,nspecies
+allocate(spr_(nrmtmax_, nspecies))
+do is=1, nspecies
   read(50) natoms_
   if (natoms(is).ne.natoms_) then
-    write(*,*)
-    write(*,'("Error(readstate): differing natoms for species ",I4)') is
-    write(*,'(" current   : ",I4)') natoms(is)
-    write(*,'(" STATE.OUT : ",I4)') natoms_
-    write(*,*)
+    write(*, *)
+    write(*, '("Error(readstate): differing natoms for species ", I4)') is
+    write(*, '(" current   : ", I4)') natoms(is)
+    write(*, '(" STATE.OUT : ", I4)') natoms_
+    write(*, *)
     stop
   end if
   read(50) nrmt_(is)
 #ifdef XS
   if (nrmt(is).ne.nrmt_(is)) then
-    write(*,*)
-    write(*,'("Warning(readstate): differing nrmt for species ",I4)') is
-    write(*,'(" current   : ",I4)') nrmt(is)
-    write(*,'(" STATE.OUT : ",I4)') nrmt_(is)
+    write(*, *)
+    write(*, '("Warning(readstate): differing nrmt for species ", I4)') is
+    write(*, '(" current   : ", I4)') nrmt(is)
+    write(*, '(" STATE.OUT : ", I4)') nrmt_(is)
   end if
 #endif
-  read(50) spr_(1:nrmt_(is),is)
+  read(50) spr_(1:nrmt_(is), is)
 #ifdef XS
   if (nrmt(is).eq.nrmt_(is)) then
-     if (any(abs(spr(1:nrmt(is),is)-spr_(1:nrmt(is),is)) > 1.d-10)) then
-        write(*,*)
-        write(*,'("Warning(readstate): differing spr for species ",I4)') is
-        write(*,'(" average RMS of difference   : ",G18.10)') &
-             sqrt(sum((spr(1:nrmt(is),is)-spr_(1:nrmt(is),is))**2)/nrmt(is))
+     if (any(abs(spr(1:nrmt(is), is)-spr_(1:nrmt(is), is)) > 1.d-10)) then
+	write(*, *)
+	write(*, '("Warning(readstate): differing spr for species ", I4)') is
+	write( * , '(" average RMS of difference   : ", G18.10)') &
+	     sqrt(sum((spr(1:nrmt(is), is) - spr_(1:nrmt(is), is)) ** 2)/nrmt(is))
      end if
   end if
 #endif
@@ -136,34 +140,34 @@ end do
 read(50) ngrid_
 #ifdef XS
 if (any(ngrid.ne.ngrid_)) then
-   write(*,*)
-   write(*,'("Warning(readstate): differing ngrid values ")')
-   write(*,'(" current   : ",3I4)') ngrid
-   write(*,'(" STATE.OUT : ",3I4)') ngrid_
+   write(*, *)
+   write(*, '("Warning(readstate): differing ngrid values ")')
+   write(*, '(" current   : ", 3I4)') ngrid
+   write(*, '(" STATE.OUT : ", 3I4)') ngrid_
 end if
 #endif
 read(50) ngvec_
 #ifdef XS
 if (ngvec.ne.ngvec_) then
-   write(*,*)
-   write(*,'("Warning(readstate): differing ngvec values ")')
-   write(*,'(" current   : ",I9)') ngvec
-   write(*,'(" STATE.OUT : ",I9)') ngvec_
+   write(*, *)
+   write(*, '("Warning(readstate): differing ngvec values ")')
+   write(*, '(" current   : ", I9)') ngvec
+   write(*, '(" STATE.OUT : ", I9)') ngvec_
 end if
 #endif
 read(50) ndmag_
 #ifdef XS
 if (ndmag.ne.ndmag_) then
-   write(*,*)
-   write(*,'("Warning(readstate): differing ndmag values ")')
-   write(*,'(" current   : ",I4)') ndmag
-   write(*,'(" STATE.OUT : ",I4)') ndmag_
+   write(*, *)
+   write(*, '("Warning(readstate): differing ndmag values ")')
+   write(*, '(" current   : ", I4)') ndmag
+   write(*, '(" STATE.OUT : ", I4)') ndmag_
 end if
 #endif
 if ((spinpol_).and.(ndmag_.ne.1).and.(ndmag_.ne.3)) then
-  write(*,*)
-  write(*,'("Error(readstate): invalid ndmag in STATE.OUT : ",I8)') ndmag_
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(readstate): invalid ndmag in STATE.OUT : ", I8)') ndmag_
+  write(*, *)
   stop
 end if
 ! versions > 0.9.131
@@ -176,46 +180,46 @@ else
 end if
 ngrtot_=ngrid_(1)*ngrid_(2)*ngrid_(3)
 allocate(mapir(ngrtot))
-allocate(rhomt_(lmmaxvr_,nrmtmax_,natmtot))
+allocate(rhomt_(lmmaxvr_, nrmtmax_, natmtot))
 allocate(rhoir_(ngrtot_))
-allocate(vclmt_(lmmaxvr_,nrmtmax_,natmtot))
+allocate(vclmt_(lmmaxvr_, nrmtmax_, natmtot))
 allocate(vclir_(ngrtot_))
-allocate(vxcmt_(lmmaxvr_,nrmtmax_,natmtot))
+allocate(vxcmt_(lmmaxvr_, nrmtmax_, natmtot))
 allocate(vxcir_(ngrtot_))
-allocate(veffmt_(lmmaxvr_,nrmtmax_,natmtot))
+allocate(veffmt_(lmmaxvr_, nrmtmax_, natmtot))
 allocate(veffir_(ngrtot_))
 allocate(veffig_(ngvec_))
 ! read muffin-tin density
-read(50) rhomt_,rhoir_
+read(50) rhomt_, rhoir_
 ! read Coulomb potential (spin independent)
-read(50) vclmt_,vclir_
+read(50) vclmt_, vclir_
 ! read exchange-correlation potential
-read(50) vxcmt_,vxcir_
+read(50) vxcmt_, vxcir_
 ! read effective potential
-read(50) veffmt_,veffir_,veffig_
+read(50) veffmt_, veffir_, veffig_
 ! read magnetisation and effective field
 if (spinpol_) then
-  allocate(magmt_(lmmaxvr_,nrmtmax_,natmtot,ndmag_))
-  allocate(magir_(ngrtot_,ndmag_))
-  allocate(bxcmt_(lmmaxvr_,nrmtmax_,natmtot,ndmag_))
-  allocate(bxcir_(ngrtot_,ndmag_))
-  read(50) magmt_,magir_
-  read(50) bxcmt_,bxcir_
+  allocate(magmt_(lmmaxvr_, nrmtmax_, natmtot, ndmag_))
+  allocate(magir_(ngrtot_, ndmag_))
+  allocate(bxcmt_(lmmaxvr_, nrmtmax_, natmtot, ndmag_))
+  allocate(bxcir_(ngrtot_, ndmag_))
+  read(50) magmt_, magir_
+  read(50) bxcmt_, bxcir_
 end if
 ! read LDA+U potential matrix elements
 if ((ldapu.ne.0).and.(ldapu_.ne.0)) then
-  allocate(vmatlu_(lmmaxlu_,lmmaxlu_,nspinor_,nspinor_,natmtot))
+  allocate(vmatlu_(lmmaxlu_, lmmaxlu_, nspinor_, nspinor_, natmtot))
   read(50) vmatlu_
-  lmmax=min(lmmaxlu,lmmaxlu_)
-  vmatlu(:,:,:,:,:)=0.d0
+  lmmax=min(lmmaxlu, lmmaxlu_)
+  vmatlu(:, :, :, :, :)=0.d0
   if (nspinor.eq.nspinor_) then
-    vmatlu(1:lmmax,1:lmmax,:,:,:)=vmatlu_(1:lmmax,1:lmmax,:,:,:)
+    vmatlu(1:lmmax, 1:lmmax, :, :, :)=vmatlu_(1:lmmax, 1:lmmax, :, :, :)
   else if ((nspinor.eq.1).and.(nspinor_.eq.2)) then
-    vmatlu(1:lmmax,1:lmmax,1,1,:)=0.5d0*(vmatlu_(1:lmmax,1:lmmax,1,1,:) &
-     +vmatlu_(1:lmmax,1:lmmax,2,2,:))
+    vmatlu(1:lmmax, 1:lmmax, 1, 1, :) = 0.5d0 * (vmatlu_(1:lmmax, 1:lmmax, 1, 1, :) &
+     +vmatlu_(1:lmmax, 1:lmmax, 2, 2, :))
   else
-    vmatlu(1:lmmax,1:lmmax,1,1,:)=vmatlu_(1:lmmax,1:lmmax,1,1,:)
-    vmatlu(1:lmmax,1:lmmax,2,2,:)=vmatlu_(1:lmmax,1:lmmax,1,1,:)
+    vmatlu(1:lmmax, 1:lmmax, 1, 1, :)=vmatlu_(1:lmmax, 1:lmmax, 1, 1, :)
+    vmatlu(1:lmmax, 1:lmmax, 2, 2, :)=vmatlu_(1:lmmax, 1:lmmax, 1, 1, :)
   end if
   deallocate(vmatlu_)
 end if
@@ -223,46 +227,46 @@ close(50)
 !---------------------------!
 !     muffin-tin arrays     !
 !---------------------------!
-rhomt(:,:,:)=0.d0
-vclmt(:,:,:)=0.d0
-vxcmt(:,:,:)=0.d0
-veffmt(:,:,:)=0.d0
-if (spinpol) then
-  magmt(:,:,:,:)=0.d0
-  bxcmt(:,:,:,:)=0.d0
+rhomt(:, :, :)=0.d0
+vclmt(:, :, :)=0.d0
+vxcmt(:, :, :)=0.d0
+veffmt(:, :, :)=0.d0
+if (associated(input%groundstate%spin)) then
+  magmt(:, :, :, :)=0.d0
+  bxcmt(:, :, :, :)=0.d0
 end if
-lmmax=min(lmmaxvr,lmmaxvr_)
+lmmax=min(lmmaxvr, lmmaxvr_)
 ! interpolate the old arrays on the new radial mesh
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    do lm=1,lmmax
-      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,rhomt_(lm,1,ias),nrmt(is), &
-       spr(:,is),lmmaxvr,rhomt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,vclmt_(lm,1,ias),nrmt(is), &
-       spr(:,is),lmmaxvr,vclmt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,vxcmt_(lm,1,ias),nrmt(is), &
-       spr(:,is),lmmaxvr,vxcmt(lm,1,ias))
-      call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,veffmt_(lm,1,ias),nrmt(is), &
-       spr(:,is),lmmaxvr,veffmt(lm,1,ias))
+do is=1, nspecies
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
+    do lm=1, lmmax
+      call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, rhomt_(lm, 1, ias), nrmt(is), &
+       spr(:, is), lmmaxvr, rhomt(lm, 1, ias))
+      call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, vclmt_(lm, 1, ias), nrmt(is), &
+       spr(:, is), lmmaxvr, vclmt(lm, 1, ias))
+      call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, vxcmt_(lm, 1, ias), nrmt(is), &
+       spr(:, is), lmmaxvr, vxcmt(lm, 1, ias))
+      call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, veffmt_(lm, 1, ias), nrmt(is), &
+       spr(:, is), lmmaxvr, veffmt(lm, 1, ias))
     end do
-    if ((spinpol).and.(spinpol_)) then
+    if ((associated(input%groundstate%spin)).and.(spinpol_)) then
       if (ndmag.eq.ndmag_) then
-        do idm=1,ndmag
-          do lm=1,lmmax
-            call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,magmt_(lm,1,ias,idm), &
-             nrmt(is),spr(:,is),lmmaxvr,magmt(lm,1,ias,idm))
-            call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,bxcmt_(lm,1,ias,idm), &
-             nrmt(is),spr(:,is),lmmaxvr,bxcmt(lm,1,ias,idm))
-          end do
-        end do
+	do idm=1, ndmag
+	  do lm=1, lmmax
+	    call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, magmt_(lm, 1, ias, idm), &
+	     nrmt(is), spr(:, is), lmmaxvr, magmt(lm, 1, ias, idm))
+	    call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, bxcmt_(lm, 1, ias, idm), &
+	     nrmt(is), spr(:, is), lmmaxvr, bxcmt(lm, 1, ias, idm))
+	  end do
+	end do
       else
-        do lm=1,lmmax
-          call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,magmt_(lm,1,ias,ndmag_), &
-           nrmt(is),spr(:,is),lmmaxvr,magmt(lm,1,ias,ndmag))
-          call rfinterp(nrmt_(is),spr_(:,is),lmmaxvr_,bxcmt_(lm,1,ias,ndmag_), &
-           nrmt(is),spr(:,is),lmmaxvr,bxcmt(lm,1,ias,ndmag))
-        end do
+	do lm=1, lmmax
+	  call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, magmt_(lm, 1, ias, ndmag_), &
+	   nrmt(is), spr(:, is), lmmaxvr, magmt(lm, 1, ias, ndmag))
+	  call rfinterp(nrmt_(is), spr_(:, is), lmmaxvr_, bxcmt_(lm, 1, ias, ndmag_), &
+	   nrmt(is), spr(:, is), lmmaxvr, bxcmt(lm, 1, ias, ndmag))
+	end do
       end if
     end if
   end do
@@ -275,50 +279,50 @@ vclir(:)=0.d0
 vxcir(:)=0.d0
 veffir(:)=0.d0
 veffig(:)=0.d0
-if (spinpol) then
-  magir(:,:)=0.d0
-  bxcir(:,:)=0.d0
+if (associated(input%groundstate%spin)) then
+  magir(:, :)=0.d0
+  bxcir(:, :)=0.d0
 end if
 ! map from new grid to old
-do i3=0,ngrid(3)-1
+do i3=0, ngrid(3)-1
   t1=dble(i3*ngrid_(3))/dble(ngrid(3))
-  j3=modulo(nint(t1),ngrid_(3))
-  do i2=0,ngrid(2)-1
+  j3=modulo(nint(t1), ngrid_(3))
+  do i2=0, ngrid(2)-1
     t1=dble(i2*ngrid_(2))/dble(ngrid(2))
-    j2=modulo(nint(t1),ngrid_(2))
-    do i1=0,ngrid(1)-1
+    j2=modulo(nint(t1), ngrid_(2))
+    do i1=0, ngrid(1)-1
       t1=dble(i1*ngrid_(1))/dble(ngrid(1))
-      j1=modulo(nint(t1),ngrid_(1))
+      j1=modulo(nint(t1), ngrid_(1))
       ir=i3*ngrid(2)*ngrid(1)+i2*ngrid(1)+i1+1
       jr=j3*ngrid_(2)*ngrid_(1)+j2*ngrid_(1)+j1+1
       mapir(ir)=jr
     end do
   end do
 end do
-do ir=1,ngrtot
+do ir=1, ngrtot
   jr=mapir(ir)
   rhoir(ir)=rhoir_(jr)
   vclir(ir)=vclir_(jr)
   vxcir(ir)=vxcir_(jr)
   veffir(ir)=veffir_(jr)
 end do
-ngm=min(ngvec,ngvec_)
+ngm=min(ngvec, ngvec_)
 veffig(1:ngm)=veffig_(1:ngm)
-if ((spinpol).and.(spinpol_)) then
-  do ir=1,ngrtot
+if ((associated(input%groundstate%spin)).and.(spinpol_)) then
+  do ir=1, ngrtot
     jr=mapir(ir)
     if (ndmag.eq.ndmag_) then
-      magir(ir,:)=magir_(jr,:)
-      bxcir(ir,:)=bxcir_(jr,:)
+      magir(ir, :)=magir_(jr, :)
+      bxcir(ir, :)=bxcir_(jr, :)
     else
-      magir(ir,ndmag)=magir_(jr,ndmag_)
-      bxcir(ir,ndmag)=bxcir_(jr,ndmag_)
+      magir(ir, ndmag)=magir_(jr, ndmag_)
+      bxcir(ir, ndmag)=bxcir_(jr, ndmag_)
     end if
   end do
 end if
-deallocate(mapir,spr_,rhomt_,rhoir_,vclmt_,vclir_)
-deallocate(vxcmt_,vxcir_,veffmt_,veffir_,veffig_)
-if (spinpol_) deallocate(magmt_,magir_,bxcmt_,bxcir_)
+deallocate(mapir, spr_, rhomt_, rhoir_, vclmt_, vclir_)
+deallocate(vxcmt_, vxcir_, veffmt_, veffir_, veffig_)
+if (spinpol_) deallocate(magmt_, magir_, bxcmt_, bxcir_)
 return
 end subroutine
 !EOC

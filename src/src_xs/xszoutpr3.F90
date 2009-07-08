@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -10,7 +11,9 @@ contains
 !BOP
 ! !ROUTINE: xszoutpr3
 ! !INTERFACE:
-  subroutine xszoutpr3(n1,n2,alpha,x,y,a)
+
+
+subroutine xszoutpr3(n1, n2, alpha, x, y, a)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n1,n2 : size of vectors and matrix, respectively (in,integer)
 !   alpha : complex constant (in,complex)
@@ -27,15 +30,15 @@ contains
 !BOC
     implicit none
     ! arguments
-    integer, intent(in) :: n1,n2
+    integer, intent(in) :: n1, n2
     complex(8), intent(in) :: alpha, x(:), y(:)
-    complex(8), intent(inout) :: a(:,:)
+    complex(8), intent(inout) :: a(:, :)
     ! local variables
     integer :: i2
     complex(8) :: yt
-    do i2=1,n2
+    do i2=1, n2
        yt=y(i2)
-       call zaxpy(n1,alpha*yt,x,1,a(1,i2),1)
+       call zaxpy(n1, alpha*yt, x, 1, a(1, i2), 1)
     end do
   end subroutine xszoutpr3
 !EOC

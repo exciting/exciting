@@ -2,6 +2,7 @@
 
 
 
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -61,7 +62,7 @@ is=1
 do js=1, nspecies
   if (natoms(js).lt.natoms(is)) is=js
 end do
-if ((tshift).and.(natmtot.gt.0)) then
+if ((input%structure%tshift).and.(natmtot.gt.0)) then
 ! shift basis so that the first atom in the smallest atom set is at the origin
   v(:)=input%structure%speciesarray(is)%species%atomarray(1)%atom%coord(:)
   do js=1, nspecies
@@ -112,7 +113,7 @@ do i=1, n
   do isym=1, nsym
 #ifdef XS
      ! exclude non-zero translations
-     if (symmorph.and.(sum(abs(vtl(:, i))).gt.input%structure%epslat)) goto 20
+     if (input%xs%symmorph.and.(sum(abs(vtl(:, i))).gt.input%structure%epslat)) goto 20
 #endif
     nsymcrys=nsymcrys+1
     if (nsymcrys.gt.maxsymcrys) then

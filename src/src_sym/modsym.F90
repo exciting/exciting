@@ -1,11 +1,12 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
 module modsym
   implicit none
-  
+
   !---------------------------!
   !     general variables     !
   !---------------------------!
@@ -14,7 +15,7 @@ module modsym
   ! true if symmetry group is abelian
   logical :: abelsg
   ! symmetry group multiplication table
-  integer, allocatable :: sgmut(:,:)
+  integer, allocatable :: sgmut(:, :)
 
   !--------------------!
   !     generators     !
@@ -26,24 +27,24 @@ module modsym
   ! generators
   integer, allocatable :: genr(:)
   ! orbits of generators
-  integer, allocatable :: orbgenr(:,:)
-  
+  integer, allocatable :: orbgenr(:, :)
+
   !-------------------!
   !     subgroups     !
   !-------------------!
   ! number of subgroups of space group
   integer :: nsubsymc
   ! space group subgroups
-  integer :: subsymc(maxsymcrs,maxsymcrs)
-  
+  integer :: subsymc(maxsymcrs, maxsymcrs)
+
   !---------------------------!
   !     conjugacy classes     !
   !---------------------------!
   ! number of classes of conjugated elements of spacegroup
   integer :: nsymccocl
   ! classes of conjugated elements of spacegroup
-  integer :: symccocl(maxsymcrs,maxsymcrs)
+  integer :: symccocl(maxsymcrs, maxsymcrs)
   ! conjugacy relation between crystal symmetries
-  logical :: tsymcocl(maxsymcrs,maxsymcrs)
+  logical :: tsymcocl(maxsymcrs, maxsymcrs)
 
 end module

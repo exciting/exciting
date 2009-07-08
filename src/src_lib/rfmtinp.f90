@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2003-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,7 @@
 !BOP
 ! !ROUTINE: rfmtinp
 ! !INTERFACE:
-real(8) function rfmtinp(lrstp,lmax,nr,r,ld,rfmt1,rfmt2)
+real(8) function rfmtinp(lrstp, lmax, nr, r, ld, rfmt1, rfmt2)
 ! !INPUT/OUTPUT PARAMETERS:
 !   lrstp : radial step length (in,integer)
 !   lmax  : maximum angular momentum (in,integer)
@@ -37,41 +38,41 @@ integer, intent(in) :: lmax
 integer, intent(in) :: nr
 real(8), intent(in) :: r(nr)
 integer, intent(in) :: ld
-real(8), intent(in) :: rfmt1(ld,nr)
-real(8), intent(in) :: rfmt2(ld,nr)
+real(8), intent(in) :: rfmt1(ld, nr)
+real(8), intent(in) :: rfmt2(ld, nr)
 ! local variables
-integer lmmax,ir,irc
+integer::lmmax, ir, irc
 ! automatic arrays
-real(8) rc(nr),fr(nr),gr(nr),cf(3,nr)
+real(8)::rc(nr), fr(nr), gr(nr), cf(3, nr)
 ! external functions
-real(8) ddot
+real(8)::ddot
 external ddot
 if (lrstp.le.0) then
-  write(*,*)
-  write(*,'("Error(rfmtinp): lrstp <= 0 : ",I8)') lrstp
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(rfmtinp): lrstp <= 0 : ", I8)') lrstp
+  write(*, *)
   stop
 end if
 if (lmax.lt.0) then
-  write(*,*)
-  write(*,'("Error(rfmtinp): lmax < 0 : ",I8)') lmax
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(rfmtinp): lmax < 0 : ", I8)') lmax
+  write(*, *)
   stop
 end if
 if (nr.le.0) then
-  write(*,*)
-  write(*,'("Error(rfmtinp): nr <= 0 : ",I8)') nr
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(rfmtinp): nr <= 0 : ", I8)') nr
+  write(*, *)
   stop
 end if
 lmmax=(lmax+1)**2
 irc=0
-do ir=1,nr,lrstp
+do ir=1, nr, lrstp
   irc=irc+1
   rc(irc)=r(ir)
-  fr(irc)=ddot(lmmax,rfmt1(:,ir),1,rfmt2(:,ir),1)*(r(ir)**2)
+  fr(irc)=ddot(lmmax, rfmt1(:, ir), 1, rfmt2(:, ir), 1)*(r(ir)**2)
 end do
-call fderiv(-1,irc,rc,fr,gr,cf)
+call fderiv(-1, irc, rc, fr, gr, cf)
 rfmtinp=gr(irc)
 return
 end function

@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -7,7 +8,8 @@ module m_writesigma
   implicit none
 contains
 
-  subroutine writesigma(iq,w,sigma,fn)
+
+subroutine writesigma(iq, w, sigma, fn)
     use modxs
     use m_getunit
     use m_writevars
@@ -19,19 +21,19 @@ contains
     character(*), intent(in) :: fn
     ! local variables
     character(*), parameter :: thisnam='writesigma'
-    integer :: n1(1),n,iw
+    integer :: n1(1), n, iw
     if (any(shape(w).ne.shape(sigma))) then
-       write(unitout,'(a)') 'Error('//thisnam//'): input arrays have &
-            &diffenrent shape'
+       write(unitout, '(a)') 'Error('//thisnam//'): input arrays have &
+	    &diffenrent shape'
        call terminate
     end if
     n1=shape(w); n=n1(1)
     call getunit(unit1)
-    open(unit1,file=trim(fn),action='write')
+    open(unit1, file=trim(fn), action='write')
     ! write data to file
-    write(unit1,'(3g18.10)') (w(iw)*escale,sigma(iw),iw=1,n)
+    write(unit1, '(3g18.10)') (w(iw)*escale, sigma(iw), iw=1, n)
     ! write relevant parameters to file
-    call writevars(unit1,iq,iq)
+    call writevars(unit1, iq, iq)
     close(unit1)
   end subroutine writesigma
 

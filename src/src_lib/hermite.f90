@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,7 @@
 !BOP
 ! !ROUTINE: hermite
 ! !INTERFACE:
-real(8) function hermite(n,x)
+real(8) function hermite(n, x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n : order of Hermite polynomial (in,integer)
 !   x : real argument (in,real)
@@ -25,24 +26,24 @@ implicit none
 integer, intent(in) :: n
 real(8), intent(in) :: x
 ! local variables
-integer i
-real(8) h1,h2,ht
+integer::i
+real(8)::h1, h2, ht
 if (n.lt.0) then
-  write(*,*)
-  write(*,'("Error(hermite): n < 0 : ",I8)') n
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(hermite): n < 0 : ", I8)') n
+  write(*, *)
   stop
 end if
 if (n.gt.20) then
-  write(*,*)
-  write(*,'("Error(hermite): n out of range : ",I8)') n
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(hermite): n out of range : ", I8)') n
+  write(*, *)
   stop
 end if
 if (abs(x).gt.1.d15) then
-  write(*,*)
-  write(*,'("Error(hermite): x out of range : ",G18.10)') x
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(hermite): x out of range : ", G18.10)') x
+  write(*, *)
   stop
 end if
 if (n.eq.0) then
@@ -55,7 +56,7 @@ if (n.eq.1) then
 end if
 h1=2.d0*x
 h2=1.d0
-do i=2,n
+do i=2, n
   ht=2.d0*x*h1-2.d0*dble(i-1)*h2
   h2=h1
   h1=ht

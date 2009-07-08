@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -7,7 +8,8 @@ module m_gensigma
   implicit none
 contains
 
-  subroutine gensigma(w,eps,oc,sigma)
+
+subroutine gensigma(w, eps, oc, sigma)
     use modmain
     use modxs
     implicit none
@@ -20,8 +22,8 @@ contains
     character(*), parameter :: thisnam = 'gensigma'
     real(8) :: delt
     if (any(shape(eps).ne.shape(sigma))) then
-       write(unitout,'(a)') 'Error('//thisnam//'): input and output arrays &
-            &have diffenrent shape'
+       write(unitout, '(a)') 'Error('//thisnam//'): input and output arrays &
+	    &have diffenrent shape'
        call terminate
     end if
     ! optical conductivity

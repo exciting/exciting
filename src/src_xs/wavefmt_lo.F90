@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: wavefmt_lo
 ! !INTERFACE:
-subroutine wavefmt_lo(lrstp,lmax,is,ia,ngp,evecfv,ld,wfmt)
+
+
+subroutine wavefmt_lo(lrstp, lmax, is, ia, ngp, evecfv, ld, wfmt)
 ! !USES:
+use modinput
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   lrstp  : radial step length (in,integer)
@@ -35,26 +39,26 @@ integer, intent(in) :: ia
 integer, intent(in) :: ngp
 complex(8), intent(in) :: evecfv(nmatmax)
 integer, intent(in) :: ld
-complex(8), intent(out) :: wfmt(ld,*)
+complex(8), intent(out) :: wfmt(ld, *)
 ! local variables
-integer ias,l,m,lm,i
-integer ir,nr,ilo
-real(8) a,b
+integer::ias, l, m, lm, i
+integer::ir, nr, ilo
+real(8)::a, b
 ! external functions
 complex(8) zdotu
 external zdotu
-if (lmax.gt.lmaxapw) then
-  write(*,*)
-  write(*,'("Error(wavefmt): lmax > lmaxapw : ",I8)') lmax
-  write(*,*)
+if (lmax.gt.input%groundstate%lmaxapw) then
+  write(*, *)
+  write(*, '("Error(wavefmt): lmax > lmaxapw : ", I8)') lmax
+  write(*, *)
   stop
 end if
-ias=idxas(ia,is)
+ias=idxas(ia, is)
 ! zero the wavefunction
 nr=0
-do ir=1,nrmt(is),lrstp
+do ir=1, nrmt(is), lrstp
   nr=nr+1
-  wfmt(:,nr)=0.d0
+  wfmt(:, nr)=0.d0
 end do
 !!$! APW functions
 !!$do l=0,lmax
@@ -69,19 +73,18 @@ end do
 !!$  end do
 !!$end do
 ! local-orbital functions
-do ilo=1,nlorb(is)
-  l=lorbl(ilo,is)
+do ilo=1, nlorb(is)
+  l=lorbl(ilo, is)
   if (l.le.lmax) then
-    do m=-l,l
-      lm=idxlm(l,m)
-      i=ngp+idxlo(lm,ilo,ias)
+    do m=-l, l
+      lm=idxlm(l, m)
+      i=ngp+idxlo(lm, ilo, ias)
       a=dble(evecfv(i))
       b=aimag(evecfv(i))
-      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,lofr(1,1,ilo,ias))
+      call wavefmt_add(nr, ld, wfmt(lm, 1), a, b, lrstp, lofr(1, 1, ilo, ias))
     end do
   end if
 end do
 return
 end subroutine
 !EOC
-

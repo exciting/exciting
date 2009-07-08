@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2007-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: findsym
 ! !INTERFACE:
-subroutine findsym(apl1,apl2,nsym,lspl,lspn,iea)
+
+
+subroutine findsym(apl1, apl2, nsym, lspl, lspn, iea)
 ! !USES:
+use modinput
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   apl1 : first set of atomic positions in lattice coordinates
@@ -38,47 +42,47 @@ use modmain
 !BOC
 implicit none
 ! arguments
-real(8), intent(in) :: apl1(3,maxatoms,maxspecies)
-real(8), intent(in) :: apl2(3,maxatoms,maxspecies)
+real(8), intent(in) :: apl1(3, maxatoms, maxspecies)
+real(8), intent(in) :: apl2(3, maxatoms, maxspecies)
 integer, intent(out) :: nsym
 integer, intent(out) :: lspl(48)
 integer, intent(out) :: lspn(48)
-integer, intent(out) :: iea(natmmax,nspecies,48)
+integer, intent(out) :: iea(natmmax, nspecies, 48)
 ! local variables
-integer isym,jsym,jsym0,jsym1
-integer is,ia,ja,iv(3),md
-real(8) sl(3,3),v(3),t1
+integer::isym, jsym, jsym0, jsym1
+integer::is, ia, ja, iv(3), md
+real(8)::sl(3, 3), v(3), t1
 ! automatic arrays
-integer jea(natmmax,nspecies)
-real(8) apl3(3,natmmax)
+integer::jea(natmmax, nspecies)
+real(8)::apl3(3, natmmax)
 ! external functions
-real(8) r3taxi
+real(8)::r3taxi
 external r3taxi
 nsym=0
 ! loop over lattice symmetries (spatial rotations)
-do isym=1,nsymlat
+do isym=1, nsymlat
 ! make real copy of lattice rotation symmetry
-  sl(:,:)=dble(symlat(:,:,isym))
+  sl(:, :)=dble(symlat(:, :, isym))
 ! loop over species
-  do is=1,nspecies
+  do is=1, nspecies
 ! map apl1 coordinates to [0,1) and store in apl3
-    do ia=1,natoms(is)
-      apl3(:,ia)=apl1(:,ia,is)
-      call r3frac(epslat,apl3(:,ia),iv)
+    do ia=1, natoms(is)
+      apl3(:, ia)=apl1(:, ia, is)
+      call r3frac(input%structure%epslat, apl3(:, ia), iv)
     end do
-    do ja=1,natoms(is)
+    do ja=1, natoms(is)
 ! apply lattice symmetry to atomic positions
-      call r3mv(sl,apl2(:,ja,is),v)
+      call r3mv(sl, apl2(:, ja, is), v)
 ! map coordinates to [0,1)
-      call r3frac(epslat,v,iv)
+      call r3frac(input%structure%epslat, v, iv)
 ! check if atomic positions are invariant
-      do ia=1,natoms(is)
-        t1=r3taxi(apl3(:,ia),v)
-        if (t1.lt.epslat) then
+      do ia=1, natoms(is)
+	t1=r3taxi(apl3(:, ia), v)
+	if (t1.lt.input%structure%epslat) then
 ! equivalent atom index
-          jea(ia,is)=ja
-          goto 10
-        end if
+	  jea(ia, is)=ja
+	  goto 10
+	end if
       end do
 ! not invariant so try new spatial rotation
       goto 40
@@ -88,9 +92,9 @@ do isym=1,nsymlat
 ! all atomic positions invariant at this point
   jsym=1
 ! spin polarised case
-  if (spinpol) then
+  if (associated(input%groundstate%spin)) then
 ! check invariance of magnetic fields under global spin rotation
-    if (spinorb) then
+    if (input%groundstate%spin%spinorb) then
 ! with spin-orbit coupling spin rotation equals spatial rotation
       jsym0=isym
       jsym1=isym
@@ -99,26 +103,26 @@ do isym=1,nsymlat
       jsym0=1
       jsym1=nsymlat
     end if
-    do jsym=jsym0,jsym1
+    do jsym=jsym0, jsym1
 ! determinant of the symmetry matrix
       md=symlatd(jsym)
 ! rotate global field and check invariance using proper part of symmetry matrix
-      call r3mv(symlatc(:,:,jsym),bfieldc,v)
+      call r3mv(symlatc(:, :, jsym), input%groundstate%spin%bfieldc, v)
       v(:)=v(:)*dble(md)
-      t1=r3taxi(bfieldc,v)
+      t1=r3taxi(input%groundstate%spin%bfieldc, v)
 ! if not invariant try a different global spin rotation
-      if (t1.gt.epslat) goto 20
+      if (t1.gt.input%structure%epslat) goto 20
 ! rotate muffin-tin magnetic fields and check invariance
-      do is=1,nspecies
-        do ia=1,natoms(is)
+      do is=1, nspecies
+	do ia=1, natoms(is)
 ! equivalent atom
-          ja=jea(ia,is)
-          call r3mv(symlatc(:,:,jsym),bfcmt(:,ja,is),v)
-          v(:)=v(:)*dble(md)
-          t1=r3taxi(bfcmt(:,ia,is),v)
+	  ja=jea(ia, is)
+	  call r3mv(symlatc(:, :, jsym), input%structure%speciesarray(is)%species%atomarray(ja)%atom%bfcmt(:), v)
+	  v(:)=v(:)*dble(md)
+	  t1=r3taxi(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:), v)
 ! if not invariant try a different global spin rotation
-          if (t1.gt.epslat) goto 20
-        end do
+	  if (t1.gt.input%structure%epslat) goto 20
+	end do
       end do
 ! all fields invariant
       goto 30
@@ -133,9 +137,9 @@ do isym=1,nsymlat
   nsym=nsym+1
   lspl(nsym)=isym
   lspn(nsym)=jsym
-  do is=1,nspecies
-    do ia=1,natoms(is)
-      iea(ia,is,nsym)=jea(ia,is)
+  do is=1, nspecies
+    do ia=1, natoms(is)
+      iea(ia, is, nsym)=jea(ia, is)
     end do
   end do
 40 continue
@@ -144,4 +148,3 @@ end do
 return
 end subroutine
 !EOC
-

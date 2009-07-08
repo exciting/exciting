@@ -1,5 +1,7 @@
 
+
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+use modinput
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -9,57 +11,57 @@ program main
   use modmpi
   implicit none
   ! local variables
-  integer itask
-  logical  paralleltask
-  real(8) :: ts0,ts1
+  integer::itask
+  logical::paralleltask
+  real(8) :: ts0, ts1
   call timesec(ts0)
   ! read input files
   call initMPI
   call readinput
   ! perform the appropriate task
-  do itask=1,ntasks
+  do itask=1, ntasks
   task=tasks(itask)
   select case(task)
-     case(0,1,2,3,200,23,301:399,400:499)
-        paralleltask=.true.
+     case(0, 1, 2, 3, 200, 23, 301:399, 400:499)
+	paralleltask=.true.
      case default
-        paralleltask=.false.
+	paralleltask=.false.
      end select
      if(paralleltask.or.rank.eq.0) then
-        select case(task)
+	select case(task)
   case(-1)
-    write(*,*)
-    write(*,'("EXCITING version ",I1.1,".",I2.2,".",I3.3)') version
-    write(*,*)
+    write(*, *)
+    write(*, '("EXCITING version ", I1.1, ".", I2.2, ".", I3.3)') version
+    write(*, *)
     stop
-  case(0,1,2,3)
+  case(0, 1, 2, 3)
     call gndstate
-  case(5,6)
+  case(5, 6)
     call hartfock
   case(10)
-    call dos
-  case(15,16)
+    call associated(input%properties%dos)
+  case(15, 16)
     call writelsj
-  case(20,21)
+  case(20, 21)
     call bandstr
   case(25)
     call effmass
-  case(31,32,33)
+  case(31, 32, 33)
     call rhoplot
-  case(41,42,43)
+  case(41, 42, 43)
     call potplot
-  case(51,52,53)
-    call elfplot
-  case(61,62,63,162)
-    call wfplot
-  case(72,73,82,83,142,143,152,153)
+  case(51, 52, 53)
+    call associated(input%properties%elfplot)
+  case(61, 62, 63, 162)
+    call associated(input%properties%wfplot)
+  case(72, 73, 82, 83, 142, 143, 152, 153)
     call vecplot
-  case(91,92,93)
+  case(91, 92, 93)
     call dbxcplot
-  case(100,101)
+  case(100, 101)
     call fermisurf
   case(110)
-    call mossbauer
+    call associated(input%properties%mossbauer)
   case(115)
     call writeefg
   case(120)
@@ -71,10 +73,10 @@ program main
   case(130)
     call writeexpiqr
   case(140)
-    call elnes
+    call associated(input%properties%elnes)
   case(190)
     call geomplot
-  case(200,201)
+  case(200, 201)
     call phonon
   case(210)
     call phdos
@@ -89,39 +91,39 @@ program main
   case(250)
     call alpha2f
   case(300)
-    call rdmft
+    call associated(input%groundstate%RDMFT)
 #ifdef TETRA
 #ifdef XS
            ! tasks for excited states
-        case(23,301:399,400:499,700:799)
-           call xsmain
-        case(900)
+	case(23, 301:399, 400:499, 700:799)
+	   call xsmain
+	case(900)
            ! generate portable ASCII STATE.xml file from STATE.OUT file
-           call portstate(1)
-        case(901)
+	   call portstate(1)
+	case(901)
            ! generate STATE.OUT file from portable ASCII STATE.xml file
-           call portstate(2)
-        case(910)
+	   call portstate(2)
+	case(910)
            ! display Information about STATE.OUT file
-           call portstate(-1)
-        case(911)
+	   call portstate(-1)
+	case(911)
            ! display Information about STATE.xml file
-           call portstate(-2)
-        case(999)
+	   call portstate(-2)
+	case(999)
            ! * debug task *
-           call testmain
+	   call testmain
 #endif
 #endif
   case default
-    write(*,*)
-    write(*,'("Error(main): task not defined : ",I8)') task
-    write(*,*)
+    write(*, *)
+    write(*, '("Error(main): task not defined : ", I8)') task
+    write(*, *)
     stop
   end select
      endif
   end do
   call timesec(ts1)
-  if (rank.eq.0) call writetime(ts1-ts0,'TIME.OUT')
+  if (rank.eq.0) call writetime(ts1-ts0, 'TIME.OUT')
   call finitMPI()
 #ifndef XS
 #ifndef TETRA
@@ -242,16 +244,16 @@ end program main
 !   \subsection{{\tt atoms}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt nspecies} & number of species & integer & 0 \\
+!   {\tt nspecies} & number of species & integer & 0 \&
 !   \hline
-!   {\tt spfname(i)} & species filename for species {\tt i} & string & - \\
+!   {\tt spfname(i)} & species filename for species {\tt i} & string & - \&
 !   \hline
-!   {\tt natoms(i)} & number of atoms for species {\tt i} & integer & - \\
+!   {\tt natoms(i)} & number of atoms for species {\tt i} & integer & - \&
 !   \hline
 !   {\tt atposl(j,i)} & atomic position in lattice coordinates for atom {\tt j}
-!    & real(3) & - \\
+!    & real(3) & - \&
 !   {\tt bfcmt(j,i)} & muffin-tin external magnetic field in Cartesian
-!    coordinates for atom {\tt j} & real(3) & - \\
+!    coordinates for atom {\tt j} & real(3) & - \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Defines the atomic species as well as their positions in the unit cell and
@@ -269,7 +271,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt autokpt} & {\tt .true.} if the {\bf k}-point set is to be determined
-!    automatically & logical & {\tt .false.} \\
+!    automatically & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt rlambda} for details.
@@ -278,7 +280,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt autormt} & {\tt .true.} if muffin-tin radii should be determined
-!    automatically & logical & {\tt .false.} \\
+!    automatically & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt rmtapm} for details.
@@ -286,11 +288,11 @@ end program main
 !   \subsection{{\tt avec}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt avec(1) } & first lattice vector & real(3) & $(1.0,0.0,0.0)$ \\
+!   {\tt avec(1) } & first lattice vector & real(3) & $(1.0,0.0,0.0)$ \&
 !   \hline
-!   {\tt avec(2) } & second lattice vector & real(3) & $(0.0,1.0,0.0)$ \\
+!   {\tt avec(2) } & second lattice vector & real(3) & $(0.0,1.0,0.0)$ \&
 !   \hline
-!   {\tt avec(3) } & third lattice vector & real(3) & $(0.0,0.0,1.0)$ \\
+!   {\tt avec(3) } & third lattice vector & real(3) & $(0.0,0.0,1.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Lattice vectors of the crystal in atomic units (Bohr). If {\tt molecule} is
@@ -300,7 +302,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt bfieldc} & global external magnetic field in Cartesian coordinates &
-!    real(3) & $(0.0,0.0,0.0)$ \\
+!    real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This is a constant magnetic field applied throughout the entire unit cell
@@ -320,7 +322,7 @@ end program main
 !   \subsection{{\tt chgexs}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt chgexs } & excess electronic charge & real & $0.0$ \\
+!   {\tt chgexs } & excess electronic charge & real & $0.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This controls the amount of charge in the unit cell beyond that required to
@@ -330,7 +332,7 @@ end program main
 !   \subsection{{\tt deband}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt deband} & initial band energy step size & real & $0.0025$ \\
+!   {\tt deband} & initial band energy step size & real & $0.0025$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   The initial step length used when searching for the band energy, which is
@@ -348,7 +350,7 @@ end program main
 !   \hline
 !   {\tt deltaem} & the size of the ${\bf k}$-vector displacement used when
 !    calculating numerical derivatives for the effective mass tensor & real &
-!    $0.025$ \\
+!    $0.025$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt ndspem} and {\tt vklem}.
@@ -357,7 +359,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt deltaph} & the size of the atomic displacement used for calculating
-!    dynamical matrices & real & $0.03$ \\
+!    dynamical matrices & real & $0.03$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Phonon calculations are performed by constructing a supercell corresponding
@@ -371,14 +373,14 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nwdos} & number of frequency/energy points in the DOS or optics plot &
-!    integer & $500$ \\
+!    integer & $500$ \&
 !   {\tt ngrdos} & effective {\bf k}-point mesh size to be used for Brillouin
-!    zone integration & integer & $100$ \\
+!    zone integration & integer & $100$ \&
 !   {\tt nsmdos} & level of smoothing applied to DOS/optics output & integer &
-!    $0$ \\
+!    $0$ \&
 !   \hline
 !   {\tt wintdos} & frequency/energy window for the DOS or optics plot &
-!    real(2) & $(-0.5,0.5)$ \\
+!    real(2) & $(-0.5,0.5)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   DOS and optics plots require integrals of the kind
@@ -397,7 +399,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt epschg} & maximum allowed error in the calculated total charge beyond
-!    which a warning message will be issued & real & $1\times 10^{-3}$ \\
+!    which a warning message will be issued & real & $1\times 10^{-3}$ \&
 !   \hline
 !   \end{tabularx}
 !
@@ -405,7 +407,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt epsforce} & convergence tolerance for the forces during a structural
-!    optimisation run & real & $5\times 10^{-4}$ \\
+!    optimisation run & real & $5\times 10^{-4}$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   If the mean absolute value of the atomic forces is less than {\tt epsforce}
@@ -415,7 +417,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt epslat } & vectors with lengths less than this are considered zero &
-!    real & $10^{-6}$ \\
+!    real & $10^{-6}$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Sets the tolerance for determining if a vector or its components are zero.
@@ -426,7 +428,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt epsocc} & smallest occupancy for which a state will contribute to the
-!    density & real & $1\times 10^{-8}$ \\
+!    density & real & $1\times 10^{-8}$ \&
 !   \hline
 !   \end{tabularx}
 !
@@ -434,7 +436,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt epspot} & convergence criterion for the effective potential and field &
-!    real & $1\times 10^{-6}$ \\
+!    real & $1\times 10^{-6}$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   If the RMS change in the effective potential and magnetic field is smaller
@@ -446,7 +448,7 @@ end program main
 !   \subsection{{\tt evalmin}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt evalmin} & valence eigenvalue minimum & real & $-4.5$ \\
+!   {\tt evalmin} & valence eigenvalue minimum & real & $-4.5$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Any valence states with eigenvalues below {\tt evalmin} are not occupied and
@@ -456,7 +458,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt fixspin} & 0 for no fixed spin moment (FSM), 1 for total FSM, 2 for
-!    local muffin-tin FSM, and 3 for both total and local FSM & integer & 0 \\
+!    local muffin-tin FSM, and 3 for both total and local FSM & integer & 0 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Set to 1, 2 or 3 for fixed spin moment calculations. See also
@@ -466,7 +468,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt fracinr} & fraction of the muffin-tin radius up to which {\tt lmaxinr}
-!    is used as the angular momentum cut-off & real & $0.25$ \\
+!    is used as the angular momentum cut-off & real & $0.25$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt lmaxinr}.
@@ -475,7 +477,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt gmaxvr} & maximum length of $|{\bf G}|$ for expanding the interstitial
-!    density and potential & real & $12.0$ \\
+!    density and potential & real & $12.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See also {\tt rgkmax}.
@@ -484,7 +486,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt intraband} & {\tt .true.} if the intraband (Drude-like) contribution is
-!    to be added to the dieletric tensor & logical & {\tt .false.} \\
+!    to be added to the dieletric tensor & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}
 !
@@ -492,7 +494,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt isgkmax} & species for which the muffin-tin radius will be used for
-!    calculating {\tt gkmax} & integer & $-1$ \\
+!    calculating {\tt gkmax} & integer & $-1$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   By default the smallest muffin-tin radius is used for determining
@@ -503,7 +505,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt kstlist(i)} & $i$th ${\bf k}$-point and state pair & integer(2) &
-!    $(1,1)$ \\
+!    $(1,1)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This is a user-defined list of ${\bf k}$-point and state index pairs which
@@ -514,12 +516,12 @@ end program main
 !   \subsection{{\tt lda+u}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt ldapu} & type of LDA+$U$ calculation & integer & 0 \\
+!   {\tt ldapu} & type of LDA+$U$ calculation & integer & 0 \&
 !   \hline
-!   {\tt is} & species number & integer & - \\
-!   {\tt l} & angular momentum value & integer & -1 \\
-!   {\tt u} & the desired $U$ value & real & $0.0$ \\
-!   {\tt j} & the desired $J$ value & real & $0.0$ \\
+!   {\tt is} & species number & integer & - \&
+!   {\tt l} & angular momentum value & integer & -1 \&
+!   {\tt u} & the desired $U$ value & real & $0.0$ \&
+!   {\tt j} & the desired $J$ value & real & $0.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This block contains the parameters required for an LDA+$U$ calculation, with
@@ -527,10 +529,10 @@ end program main
 !   type of calculation required is set with the parameter {\tt ldapu}.
 !   Currently implemented are:\newline\newline
 !   \begin{tabularx}{\textwidth}[h]{lX}
-!   0 & No LDA+$U$ calculation \\
-!   1 & Fully localised limit (FLL) \\
-!   2 & Around mean field (AFM) \\
-!   3 & An interpolation between FLL and AFM \\
+!   0 & No LDA+$U$ calculation \&
+!   1 & Fully localised limit (FLL) \&
+!   2 & Around mean field (AFM) \&
+!   3 & An interpolation between FLL and AFM \&
 !   \end{tabularx}\newline\newline
 !   See (amongst others) Phys. Rev. B {\bf 67}, 153106 (2003), Phys. Rev. B
 !   {\bf 52}, R5467 (1995), and Phys. Rev. B {\bf 60}, 10673 (1999).
@@ -539,7 +541,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lmaxapw} & angular momentum cut-off for the APW functions & integer &
-!    $8$ \\
+!    $8$ \&
 !   \hline
 !   \end{tabularx}
 !
@@ -547,7 +549,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lmaxinr} & angular momentum cut-off for the muffin-tin density and
-!    potential on the inner part of the muffin-tin & integer & 2 \\
+!    potential on the inner part of the muffin-tin & integer & 2 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Close to the nucleus, the density and potential is almost spherical and
@@ -558,7 +560,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lmaxmat} & angular momentum cut-off for the outer-most loop in the
-!    hamiltonian and overlap matrix setup & integer & 5 \\
+!    hamiltonian and overlap matrix setup & integer & 5 \&
 !   \hline
 !   \end{tabularx}
 !
@@ -566,7 +568,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lmaxvr} & angular momentum cut-off for the muffin-tin density and
-!    potential & integer & 7 \\
+!    potential & integer & 7 \&
 !   \hline
 !   \end{tabularx}
 !
@@ -575,7 +577,7 @@ end program main
 !   \hline
 !   {\tt lmirep} & {\tt .true.} if the $Y_{lm}$ basis is to be transformed
 !    into the basis of irreducible representations of the site symmetries for
-!    DOS plotting & logical & {\tt .false.} \\
+!    DOS plotting & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   When lmirep is set to .true., the spherical harmonic basis is transformed
@@ -588,7 +590,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt lradstp} & radial step length for determining coarse radial mesh &
-!    integer & 4 \\
+!    integer & 4 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Some muffin-tin functions (such as the density) are calculated on a coarse
@@ -601,7 +603,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt maxitoep} & maximum number of iterations when solving the exact
-!   exchange integral equations & integer & 120 \\
+!   exchange integral equations & integer & 120 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt tau0oep}.
@@ -610,7 +612,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt maxscl } & maximum number of self-consistent loops allowed & integer &
-!    200 \\
+!    200 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This determines after how many loops the self-consistent cycle will
@@ -621,19 +623,19 @@ end program main
 !   \subsection{{\tt mixtype}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt mixtype } & type of mixing required for the potential & integer & 1 \\
+!   {\tt mixtype } & type of mixing required for the potential & integer & 1 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   \begin{tabularx}{\textwidth}[h]{lX}
-!   1 & Adaptive linear mixing \\
-!   2 & Pulay mixing, {\it Chem. Phys. Lett.} {\bf 73}, 393 (1980) \\
+!   1 & Adaptive linear mixing \&
+!   2 & Pulay mixing, {\it Chem. Phys. Lett.} {\bf 73}, 393 (1980) \&
 !   \end{tabularx}
 !
 !   \subsection{{\tt molecule}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt molecule} & {\tt .true.} if the system is an isolated molecule &
-!    logical & {\tt .false.} \\
+!    logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   If {\tt molecule} is {\tt .true.}, then the atomic positions, ${\bf a}$,
@@ -652,7 +654,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt momfix} & the desired total moment for a FSM calculation &
-!    real(3) & $(0.0,0.0,0.0)$ \\
+!    real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Note that all three components must be specified (even for collinear
@@ -661,10 +663,10 @@ end program main
 !   \subsection{{\tt mommtfix}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt is} & species number & integer & 0 \\
-!   {\tt ia} & atom number & integer & 0 \\
+!   {\tt is} & species number & integer & 0 \&
+!   {\tt ia} & atom number & integer & 0 \&
 !   {\tt mommtfix} & the desired muffin-tin moment for a FSM calculation &
-!    real(3) & $(0.0,0.0,0.0)$ \\
+!    real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   The local muffin-tin moments are specified for a subset of atoms, with the
@@ -676,7 +678,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt mustar} & Coulomb pseudopotential, $\mu^*$, used in the
-!    McMillan-Allen-Dynes equation & real & $0.15$ \\
+!    McMillan-Allen-Dynes equation & real & $0.15$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This is used when calculating the superconducting critical temperature with
@@ -691,7 +693,7 @@ end program main
 !   \hline
 !   {\tt ndspem} & the number of {\bf k}-vector displacements in each direction
 !    around {\tt vklem} when computing the numerical derivatives for the
-!    effective mass tensor & integer & 1 \\
+!    effective mass tensor & integer & 1 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt deltaem} and {\tt vklem}.
@@ -699,7 +701,7 @@ end program main
 !   \subsection{{\tt nempty}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt nempty} & the number of empty states & integer & 5 \\
+!   {\tt nempty} & the number of empty states & integer & 5 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Defines the number of eigenstates beyond that required for charge
@@ -715,7 +717,7 @@ end program main
 !   \subsection{{\tt ngridk}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt ngridk } & the {\bf k}-point mesh sizes & integer(3) & $(1,1,1)$ \\
+!   {\tt ngridk } & the {\bf k}-point mesh sizes & integer(3) & $(1,1,1)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   \vspace{5pt}
@@ -729,7 +731,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt ngridq } & the phonon {\bf q}-point mesh sizes & integer(3) &
-!    $(1,1,1)$ \\
+!    $(1,1,1)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Same as {\tt ngridk}, except that this mesh is for the phonon
@@ -739,7 +741,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nosource} & when set to {\tt .true.}, source fields are projected out
-!    of the exchange-correlation magnetic field & logical & {\tt .false.} \\
+!    of the exchange-correlation magnetic field & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Experimental feature.
@@ -748,14 +750,14 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nosym} & when set to {\tt .true.} no symmetries, apart from the
-!    identity, are used anywhere in the code & logical & {\tt .false.} \\
+!    identity, are used anywhere in the code & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}
 !
 !   \subsection{{\tt notes}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt notes(i)} & the $i$th line of the notes & string & - \\
+!   {\tt notes(i)} & the $i$th line of the notes & string & - \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This block allows users to add their own notes to the file {\tt INFO.OUT}.
@@ -765,7 +767,7 @@ end program main
 !   \subsection{{\tt nprad}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt nprad} & radial polynomial order & integer & 4 \\
+!   {\tt nprad} & radial polynomial order & integer & 4 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This sets the polynomial order for the predictor-corrector method when
@@ -776,7 +778,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nseqit} & number of iterations per self-consistent loop using the
-!    iterative first-variational secular equation solver & integer & 6 \\
+!    iterative first-variational secular equation solver & integer & 6 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt tseqit}.
@@ -785,7 +787,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nstfsp} & number of states to be included in the Fermi surface plot
-!    file & integer & 6 \\
+!    file & integer & 6 \&
 !   \hline
 !   \end{tabularx}
 !
@@ -793,7 +795,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nwrite} & number of iterations after which {\tt STATE.OUT} is to be
-!    written & integer & 0 \\
+!    written & integer & 0 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Normally, the density and potentials are written to the file {\tt STATE.OUT}
@@ -805,7 +807,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt optcomp} & the components of the first- or second-order optical tensor
-!   to be calculated & integer(3) & $(1,1,1)$ \\
+!   to be calculated & integer(3) & $(1,1,1)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This selects which components of the optical tensor you would like to plot.
@@ -815,10 +817,10 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt nphwrt} & number of {\bf q}-points for which phonon modes are to be
-!    found & integer & 1 \\
+!    found & integer & 1 \&
 !   \hline
 !   {\tt vqlwrt(i)} & the $i$th {\bf q}-point in lattice coordinates & real(3) &
-!    $(0.0,0.0,0.0)$ \\
+!    $(0.0,0.0,0.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This is used in conjunction with {\tt task}=230. The code will write the
@@ -831,11 +833,11 @@ end program main
 !   \subsection{{\tt plot1d}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt nvp1d} & number of vertices & integer & 2 \\
-!   {\tt npp1d} & number of plotting points & integer & 200 \\
+!   {\tt nvp1d} & number of vertices & integer & 2 \&
+!   {\tt npp1d} & number of plotting points & integer & 200 \&
 !   \hline
 !   {\tt vvlp1d(i)} & lattice coordinates for vertex {\tt i} & real(3) &
-!    $(0.0,0.0,0.0)\rightarrow(1.0,1.0,1.0)$ \\
+!    $(0.0,0.0,0.0)\rightarrow(1.0,1.0,1.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Defines the path in either real or reciprocal space along which the 1D plot
@@ -845,14 +847,14 @@ end program main
 !   \subsection{{\tt plot2d}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt vclp2d(1)} & first corner (origin) & real(3) & $(0.0,0.0,0.0)$ \\
+!   {\tt vclp2d(1)} & first corner (origin) & real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
-!   {\tt vclp2d(2)} & second corner & real(3) & $(1.0,0.0,0.0)$ \\
+!   {\tt vclp2d(2)} & second corner & real(3) & $(1.0,0.0,0.0)$ \&
 !   \hline
-!   {\tt vclp2d(3)} & third corner & real(3) & $(0.0,1.0,0.0)$ \\
+!   {\tt vclp2d(3)} & third corner & real(3) & $(0.0,1.0,0.0)$ \&
 !   \hline
 !   {\tt np2d} & number of plotting points in both directions & integer(2) &
-!    $(40,40)$ \\
+!    $(40,40)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Defines the corners of a parallelogram and the grid size used for producing
@@ -861,16 +863,16 @@ end program main
 !   \subsection{{\tt plot3d}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt vclp3d(1)} & first corner (origin) & real(3) & $(0.0,0.0,0.0)$ \\
+!   {\tt vclp3d(1)} & first corner (origin) & real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
-!   {\tt vclp3d(2)} & second corner & real(3) & $(1.0,0.0,0.0)$ \\
+!   {\tt vclp3d(2)} & second corner & real(3) & $(1.0,0.0,0.0)$ \&
 !   \hline
-!   {\tt vclp3d(3)} & third corner & real(3) & $(0.0,1.0,0.0)$ \\
+!   {\tt vclp3d(3)} & third corner & real(3) & $(0.0,1.0,0.0)$ \&
 !   \hline
-!   {\tt vclp3d(4)} & fourth corner & real(3) & $(0.0,0.0,1.0)$ \\
+!   {\tt vclp3d(4)} & fourth corner & real(3) & $(0.0,0.0,1.0)$ \&
 !   \hline
 !   {\tt np3d} & number of plotting points each direction & integer(3) &
-!    $(20,20,20)$ \\
+!    $(20,20,20)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Defines the corners of a box and the grid size used for producing 3D plots.
@@ -879,7 +881,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt primcell} & {\tt .true.} if the primitive unit cell should be found
-!    & logical & {\tt .false.} \\
+!    & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Allows the primitive unit cell to be determined automatically from the
@@ -891,7 +893,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt radkpt } & radius of sphere used to determine k-point density & real &
-!    $40.0$ \\
+!    $40.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Used for the automatic determination of the {\bf k}-point mesh. If
@@ -902,7 +904,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt reducebf} & reduction factor for the external magnetic fields & real &
-!    $1.0$ \\
+!    $1.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   After each iteration the external magnetic fields are multiplied with
@@ -915,7 +917,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt reducek} & set to {\tt .true.} if the ${\bf k}$-point set is to be
-!    reduced with the crystal symmetries & logical & {\tt .true.} \\
+!    reduced with the crystal symmetries & logical & {\tt .true.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See also {\tt ngridk} and {\tt vkloff}.
@@ -924,7 +926,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt reduceq} & set to {\tt .true.} if the ${\bf q}$-point set is to be
-!    reduced with the crystal symmetries & logical & {\tt .true.} \\
+!    reduced with the crystal symmetries & logical & {\tt .true.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See also {\tt ngridq}.
@@ -933,7 +935,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt rgkmax} & $R^{\rm MT}_{\rm min}\times\max(|{\bf G}+{\bf k}|)$ & real &
-!    $7.0$ \\
+!    $7.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This sets the maximum length for the ${\bf G}+{\bf k}$ vectors, defined as
@@ -943,7 +945,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt rmtapm } & parameters governing the automatic generation of the
-!   muffin-tin radii & real(2) & $(0.25, 0.95)$ \\
+!   muffin-tin radii & real(2) & $(0.25, 0.95)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   When {\tt autormt} is set to true, the muffin-tin radii are found
@@ -957,7 +959,7 @@ end program main
 !   \subsection{{\tt scale}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt scale } & lattice vector scaling factor & real & $1.0$ \\
+!   {\tt scale } & lattice vector scaling factor & real & $1.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Scaling factor for all three lattice vectors. Applied in conjunction with
@@ -967,14 +969,14 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt scale1/2/3 } & separate scaling factors for each lattice vector &
-!    real & $1.0$ \\
+!    real & $1.0$ \&
 !   \hline
 !   \end{tabularx}
 !
 !   \subsection{{\tt scissor}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt scissor} & the scissors correction & real & $0.0$ \\
+!   {\tt scissor} & the scissors correction & real & $0.0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This is the scissors shift applied to states above the Fermi energy. Affects
@@ -983,7 +985,7 @@ end program main
 !   \subsection{{\tt scrpath}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt scrpath} & scratch space path & string & {\tt ./} \\
+!   {\tt scrpath} & scratch space path & string & {\tt ./} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This is the path to scratch space where the eigenvector file
@@ -996,7 +998,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt spinorb} & set to {\tt .true.} if a spin-orbit coupling is required
-!    & logical & {\tt .false.} \\
+!    & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   If {\tt spinorb} is {\tt .true.}, then a $\boldsymbol\sigma\cdot{\bf L}$
@@ -1006,7 +1008,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt spinpol} & set to {\tt .true.} if a spin-polarised calculation is
-!    required & logical & {\tt .false.} \\
+!    required & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   If {\tt spinpol} is {\tt .true.}, then the spin-polarised Hamiltonian is
@@ -1018,7 +1020,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt spinsprl} & set to {\tt .true.} if a spin-spiral calculation is
-!   required & logical & {\tt .false.} \\
+!   required & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Experimental feature for the calculation of spin-spiral states. See
@@ -1028,7 +1030,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt sppath} & path where the species files can be found & string &
-!    {\tt ./} \\
+!    {\tt ./} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Note that the forward slash {\tt /} at the end of the string must be
@@ -1038,7 +1040,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt stype} & integer defining the type of smearing to be used & integer &
-!    $0$ \\
+!    $0$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   A smooth approximation to the Dirac delta function is needed to compute the
@@ -1046,9 +1048,9 @@ end program main
 !   the width of the approximate delta function. Currently implemented are
 !   \newline\newline
 !   \begin{tabularx}{\textwidth}[h]{lX}
-!   0 & Gaussian \\
-!   1 & Methfessel-Paxton order 1, Phys. Rev. B {\bf 40}, 3616 (1989) \\
-!   2 & Methfessel-Paxton order 2 \\
+!   0 & Gaussian \&
+!   1 & Methfessel-Paxton order 1, Phys. Rev. B {\bf 40}, 3616 (1989) \&
+!   2 & Methfessel-Paxton order 2 \&
 !   3 & Fermi-Dirac
 !   \end{tabularx}
 !
@@ -1056,7 +1058,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt swidth} & width of the smooth approximation to the Dirac delta
-!    function & real & $0.01$ \\
+!    function & real & $0.01$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt stype} for details.
@@ -1064,74 +1066,74 @@ end program main
 !   \subsection{{\tt tasks}}
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
-!   {\tt task(i) } & the $i$th task & integer & $-1$ \\
+!   {\tt task(i) } & the $i$th task & integer & $-1$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   A list of tasks for the code to perform sequentially. The list should be
 !   terminated with a blank line. Each task has an associated integer as
 !   follows:\newline\newline
 !   \begin{tabularx}{\textwidth}[h]{lX}
-!   -1 & Write out the version number of the code. \\
-!   0 & Ground state run starting from the atomic densities. \\
-!   1 & Resumption of ground state run using density in {\tt STATE.OUT}. \\
+!   -1 & Write out the version number of the code. \&
+!   0 & Ground state run starting from the atomic densities. \&
+!   1 & Resumption of ground state run using density in {\tt STATE.OUT}. \&
 !   2 & Structural optimisation run starting from the atomic densities, with
-!    atomic positions written to {\tt GEOMETRY.OUT}. \\
+!    atomic positions written to {\tt GEOMETRY.OUT}. \&
 !   3 & Resumption of structural optimisation run using density in
-!    {\tt STATE.OUT} but with positions from {\tt exciting.in}. \\
-!   5 & Ground state Hartree-Fock run. \\
-!   10 & Total, partial and interstitial density of states (DOS). \\
-!   15 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ total expectation values. \\
+!    {\tt STATE.OUT} but with positions from {\tt exciting.in}. \&
+!   5 & Ground state Hartree-Fock run. \&
+!   10 & Total, partial and interstitial density of states (DOS). \&
+!   15 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ total expectation values. \&
 !   16 & Output ${\bf L}$, ${\bf S}$ and ${\bf J}$ expectation values for each
-!        {\bf k}-point and state in {\tt kstlist}. \\
-!   20 & Band structure plot. \\
+!        {\bf k}-point and state in {\tt kstlist}. \&
+!   20 & Band structure plot. \&
 !   21 & Band structure plot which includes angular momentum characters for
-!    every atom. \\
+!    every atom. \&
 !   25 & Compute the effective mass tensor at the {\bf k}-point given by
-!    {\tt vklem}. \\
-!   31, 32, 33 & 1/2/3D charge density plot. \\
-!   41, 42, 43 & 1/2/3D exchange-correlation and Coulomb potential plots. \\
-!   51, 52, 53 & 1/2/3D electron localisation function (ELF) plot. \\
+!    {\tt vklem}. \&
+!   31, 32, 33 & 1/2/3D charge density plot. \&
+!   41, 42, 43 & 1/2/3D exchange-correlation and Coulomb potential plots. \&
+!   51, 52, 53 & 1/2/3D electron localisation function (ELF) plot. \&
 !   61, 62, 63 & 1/2/3D wavefunction plot:
-!    $\left|\Psi_{i{\bf k}}({\bf r})\right|^2$. \\
-!   72, 73 & 2/3D plot of magnetisation vector field, ${\bf m}({\bf r})$. \\
+!    $\left|\Psi_{i{\bf k}}({\bf r})\right|^2$. \&
+!   72, 73 & 2/3D plot of magnetisation vector field, ${\bf m}({\bf r})$. \&
 !   82, 83 & 2/3D plot of exchange-correlation magnetic vector field,
-!    ${\bf B}_{\rm xc}({\bf r})$. \\
-!   91, 92, 93 & 1/2/3D plot of $\nabla\cdot{\bf B}_{\rm xc}({\bf r})$. \\
+!    ${\bf B}_{\rm xc}({\bf r})$. \&
+!   91, 92, 93 & 1/2/3D plot of $\nabla\cdot{\bf B}_{\rm xc}({\bf r})$. \&
 !   100 & 3D Fermi surface plot using the scalar product
-!    $p({\bf k})=\Pi_i(\epsilon_{i{\bf k}}-\epsilon_{\rm F})$. \\
+!    $p({\bf k})=\Pi_i(\epsilon_{i{\bf k}}-\epsilon_{\rm F})$. \&
 !   101 & 3D Fermi surface plot using separate bands (minus the Fermi
-!    energy). \\
+!    energy). \&
 !   110 & Calculation of M\"{o}ssbauer contact charge densities and magnetic
-!    fields at the nuclear sites. \\
+!    fields at the nuclear sites. \&
 !   115 & Calculation of the electric field gradient (EFG) at the nuclear
-!    sites. \\
+!    sites. \&
 !   120 & Output of the momentum matrix elements
-!    $\langle\Psi_{i{\bf k}}|-i\nabla|\Psi_{j{\bf k}}\rangle$. \\
-!   121 & Linear optical response tensor. \\
-!   122 & Magneto optical Kerr effect (MOKE) angle. \\
+!    $\langle\Psi_{i{\bf k}}|-i\nabla|\Psi_{j{\bf k}}\rangle$. \&
+!   121 & Linear optical response tensor. \&
+!   122 & Magneto optical Kerr effect (MOKE) angle. \&
 !   130 & Output matrix elements of the type
 !    $\langle\Psi_{i{\bf k+q}}|\exp[i({\bf G+q})\cdot{\bf r}]|
-!    \Psi_{j{\bf k}}\rangle$. \\
-!   140 & Energy loss near edge structure (ELNES). \\
+!    \Psi_{j{\bf k}}\rangle$. \&
+!   140 & Energy loss near edge structure (ELNES). \&
 !   142, 143 & 2/3D plot of the electric field
-!    ${\bf E}({\bf r})\equiv\nabla V_{\rm C}({\bf r})$. \\
+!    ${\bf E}({\bf r})\equiv\nabla V_{\rm C}({\bf r})$. \&
 !   152, 153 & 2/3D plot of
-!    ${\bf m}({\bf r})\times{\bf B}_{\rm xc}({\bf r})$. \\
-!   162 & Scanning-tunneling microscopy (STM) image. \\
+!    ${\bf m}({\bf r})\times{\bf B}_{\rm xc}({\bf r})$. \&
+!   162 & Scanning-tunneling microscopy (STM) image. \&
 !   190 & Write the atomic geometry to file for plotting with {\sf XCrySDen}
-!    and {\sf V\_Sim}. \\
+!    and {\sf V\_Sim}. \&
 !   200 & Calculation of dynamical matrices on a {\bf q}-point set defined by
-!    {\tt ngridq}. \\
-!   210 & Phonon density of states. \\
-!   220 & Phonon dispersion plot. \\
+!    {\tt ngridq}. \&
+!   210 & Phonon density of states. \&
+!   220 & Phonon dispersion plot. \&
 !   230 & Phonon frequencies and eigenvectors for an arbitrary
-!    ${\bf q}$-point. \\
+!    ${\bf q}$-point. \&
 !   240 & Generate the ${\bf q}$-dependent phonon linewidths and electron-phonon
-!    coupling constants and write them to file. \\
-!   245 & Phonon linewidths plot. \\
+!    coupling constants and write them to file. \&
+!   245 & Phonon linewidths plot. \&
 !   250 & Eliashberg function $\alpha^2F(\omega)$, electron-phonon coupling
 !    constant $\lambda$, and the McMillan-Allen-Dynes critical temperature
-!    $T_c$. \\
+!    $T_c$. \&
 !   300 & Reduced density matrix functional theory (RDMFT) calculation.
 !   \end{tabularx}
 !
@@ -1139,7 +1141,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt tau0atm} & the step size to be used for structural optimisation &
-!    real & $0.2$ \\
+!    real & $0.2$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   The position of atom $\alpha$ is updated on step $m$ of a structural
@@ -1154,7 +1156,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt tauoep} & step length initial value and scaling factors for the OEP
-!    iterative solver & real(3) & $(1.0, 0.2, 1.5)$ \\
+!    iterative solver & real(3) & $(1.0, 0.2, 1.5)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   The optimised effective potential is determined using an interative method.
@@ -1167,7 +1169,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt taufsm} & the step size to be used when finding the effective magnetic
-!   field in fixed spin moment calculations & real & $0.01$ \\
+!   field in fixed spin moment calculations & real & $0.01$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   An effective magnetic field, ${\bf B}_{\rm FSM}$, is required for fixing the
@@ -1184,7 +1186,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt tfibs} & set to {\tt .true.} if the IBS correction to the force should
-!    be calculated & logical & {\tt .true.} \\
+!    be calculated & logical & {\tt .true.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Because calculation of the incomplete basis set (IBS) correction to the
@@ -1197,7 +1199,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt tforce} & set to {\tt .true.} if the force should be calculated at the
-!    end of the self-consistent cycle & logical & {\tt .false.} \\
+!    end of the self-consistent cycle & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   This variable is automatically set to {\tt .true.} when performing
@@ -1207,7 +1209,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt tseqit} & set to {\tt .true.} if the first-variational secular equation
-!    should be solved iteratively & logical & {\tt .false.} \\
+!    should be solved iteratively & logical & {\tt .false.} \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See also {\tt nseqit}.
@@ -1217,7 +1219,7 @@ end program main
 !   \hline
 !   {\tt tshift} & set to {\tt .true.} if the crystal can be shifted so that the
 !    atom closest to the origin is exactly at the origin &
-!    logical & {\tt .true.} \\
+!    logical & {\tt .true.} \&
 !   \hline
 !   \end{tabularx}
 !
@@ -1225,7 +1227,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt vacuum} & the size of the vacuum region around a molecule & real &
-!    8.05 \\
+!    8.05 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt molecule}.
@@ -1234,7 +1236,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt vklem} & the ${\bf k}$-point in lattice coordinates at which to compute
-!    the effective mass tensors & real(3) & $(0.0,0.0,0.0)$ \\
+!    the effective mass tensors & real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt deltaem} and {\tt ndspem}.
@@ -1243,14 +1245,14 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt vqlss} & the ${\bf q}$-vector of the spin-spiral state in lattice
-!    coordinates & real(3) & $(0.0,0.0,0.0)$ \\
+!    coordinates & real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Spin-spirals arise from spinor states assumed to be of the form
 !   $$ \Psi^{\bf q}_{\bf k}({\bf r})=
 !    \left( \begin{array}{c}
-!    U^{{\bf q}\uparrow}_{\bf k}({\bf r})e^{i({\bf k+q/2})\cdot{\bf r}} \\
-!    U^{{\bf q}\downarrow}_{\bf k}({\bf r})e^{i({\bf k-q/2})\cdot{\bf r}} \\
+!    U^{{\bf q}\uparrow}_{\bf k}({\bf r})e^{i({\bf k+q/2})\cdot{\bf r}} \&
+!    U^{{\bf q}\downarrow}_{\bf k}({\bf r})e^{i({\bf k-q/2})\cdot{\bf r}} \&
 !    \end{array} \right). $$
 !   These are determined using a second-variational approach, and give rise to a
 !   magnetisation density of the form
@@ -1262,7 +1264,7 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt vkloff } & the ${\bf k}$-point offset vector in lattice coordinates &
-!    real(3) & $(0.0,0.0,0.0)$ \\
+!    real(3) & $(0.0,0.0,0.0)$ \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   See {\tt ngridk}.
@@ -1271,28 +1273,28 @@ end program main
 !   \begin{tabularx}{\textwidth}[h]{|l|X|c|c|}
 !   \hline
 !   {\tt xctype} & integer defining the type of exchange-correlation functional
-!    to be used & integer & 3 \\
+!    to be used & integer & 3 \&
 !   \hline
 !   \end{tabularx}\newline\newline
 !   Currently implemented are:\newline\newline
 !   \begin{tabularx}{\textwidth}[h]{lX}
-!   1 & No exchange-correlation funtional ($E_{\rm xc}\equiv 0$) \\
+!   1 & No exchange-correlation funtional ($E_{\rm xc}\equiv 0$) \&
 !   2 & LDA, Perdew-Zunger/Ceperley-Alder, {\it Phys. Rev. B} {\bf 23}, 5048
-!    (1981) \\
+!    (1981) \&
 !   3 & LSDA, Perdew-Wang/Ceperley-Alder, {\it Phys. Rev. B} {\bf 45}, 13244
-!    (1992) \\
+!    (1992) \&
 !   4 & LDA, X-alpha approximation, J. C. Slater, {\it Phys. Rev.} {\bf 81}, 385
-!    (1951) \\
-!   5 & LSDA, von Barth-Hedin, {\it J. Phys. C} {\bf 5}, 1629 (1972) \\
+!    (1951) \&
+!   5 & LSDA, von Barth-Hedin, {\it J. Phys. C} {\bf 5}, 1629 (1972) \&
 !   20 & GGA, Perdew-Burke-Ernzerhof, {\it Phys. Rev. Lett.} {\bf 77}, 3865
-!    (1996) \\
+!    (1996) \&
 !   21 & GGA, Revised PBE, Zhang-Yang, {\it Phys. Rev. Lett.} {\bf 80}, 890
-!    (1998) \\
-!   22 & GGA, PBEsol, arXiv:0707.2088v1 (2007) \\
+!    (1998) \&
+!   22 & GGA, PBEsol, arXiv:0707.2088v1 (2007) \&
 !   26 & GGA, Wu-Cohen exchange (WC06) with PBE correlation, {\it Phys. Rev. B}
-!    {\bf 73}, 235116 (2006) \\
+!    {\bf 73}, 235116 (2006) \&
 !   30 & GGA, Armiento-Mattsson (AM05) spin-unpolarised functional,
-!    {\it Phys. Rev. B} {\bf 72}, 085108 (2005) \\
+!    {\it Phys. Rev. B} {\bf 72}, 085108 (2005) \&
 !   \end{tabularx}
 !
 !   \section{Contributing to {\sf EXCITING}}
@@ -1322,7 +1324,7 @@ end program main
 !    prevent memory leakage. Use of automatic arrays should be limited to arrays
 !    of small size.
 !   \item Every function or subroutine must be documented with the {\sf Protex}
-!    source code documentation system. This should include a short \LaTeX\
+!    source code documentation system. This should include a short \LaTeX&
 !    description of the algorithms and methods involved. Equations which need to
 !    be referenced should be labeled with {\tt routine\_1}, {\tt routine\_2}
 !    etc. The authorship of each new piece of code or modification should be
@@ -1369,4 +1371,3 @@ end program main
 !   \bibliography{exciting}
 !
 !EOI
-

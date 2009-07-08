@@ -1,18 +1,19 @@
+
 #include "maxdefinitions.inc"
 module mod_convergence
 !-------------------------------!
 !     convergence variables     !
 !-------------------------------!
 ! maximum number of self-consistent loops
-integer maxscl
+integer::maxscl
 ! current self-consistent loop number
-integer iscl
+integer::iscl
 ! effective potential convergence tolerance
-real(8) epspot
+real(8)::epspot
 ! energy convergence tolerance
-real(8) epsengy
+real(8)::epsengy
 ! force convergence tolerance
-real(8) epsforce
+real(8)::epsforce
 !curent convergence
-real(8) currentconvergence
+real(8)::currentconvergence
 end module

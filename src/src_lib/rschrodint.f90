@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: rschrodint
 ! !INTERFACE:
-subroutine rschrodint(m,l,e,np,nr,r,vr,nn,p0p,p0,p1,q0,q1)
+
+
+subroutine rschrodint(m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   l   : angular momentum quantum number (in,integer)
@@ -27,7 +30,7 @@ subroutine rschrodint(m,l,e,np,nr,r,vr,nn,p0p,p0,p1,q0,q1)
 !   predictor-corrector method to solve the coupled first-order equations (in
 !   atomic units)
 !   \begin{align*}
-!    \frac{d}{dr}P^{(m)}_l&=2MQ^{(m)}_l+\frac{1}{r}P^{(m)}_l\\
+!    \frac{d}{dr}P^{(m)}_l&=2MQ^{(m)}_l+\frac{1}{r}P^{(m)}_l\&
 !    \frac{d}{dr}Q^{(m)}_l&=-\frac{1}{r}Q^{(m)}_l+\left[\frac{l(l+1)}{2Mr^2}
 !    +(V-E)\right]P^{(m)}_l-mP^{(m-1)}_l,
 !   \end{align*}
@@ -36,7 +39,7 @@ subroutine rschrodint(m,l,e,np,nr,r,vr,nn,p0p,p0,p1,q0,q1)
 !   C: Solid State Phys.} {\bf 10}, 3107 (1977), the functions $P_l$ and $Q_l$
 !   are defined by
 !   \begin{align*}
-!    P_l&=rg_l\\
+!    P_l&=rg_l\&
 !    Q_l&=\frac{r}{2M}\frac{dg_l}{dr},
 !   \end{align*}
 !   where $g_l$ is the major component of the Dirac equation (see the routine
@@ -64,14 +67,14 @@ real(8), intent(out) :: p1(nr)
 real(8), intent(out) :: q0(nr)
 real(8), intent(out) :: q1(nr)
 ! local variables
-integer ir,ir0,npl
+integer::ir, ir0, npl
 ! fine-structure constant
 real(8), parameter :: alpha=1.d0/137.03599911d0
-real(8) rm,ri,t1,t2
+real(8)::rm, ri, t1, t2
 ! automatic arrays
-real(8) c(np)
+real(8)::c(np)
 ! external functions
-real(8) polynom
+real(8)::polynom
 external polynom
 ! estimate r -> 0 boundary values
 q0(1)=0.d0
@@ -85,19 +88,19 @@ if (m.ne.0) then
   q1(1)=q1(1)-dble(m)*p0p(1)
 end if
 nn=0
-do ir=2,nr
+do ir=2, nr
   rm=1.d0-0.5d0*(alpha**2)*vr(ir)
   ri=1.d0/r(ir)
   t1=dble(l*(l+1))/(2.d0*rm*r(ir)**2)
   t2=t1+vr(ir)-e
 ! predictor-corrector order
-  npl=min(ir,np)
+  npl=min(ir, np)
   ir0=ir-npl+1
-  p1(ir)=polynom(0,npl-1,r(ir0),p1(ir0),c,r(ir))
-  q1(ir)=polynom(0,npl-1,r(ir0),q1(ir0),c,r(ir))
+  p1(ir)=polynom(0, npl-1, r(ir0), p1(ir0), c, r(ir))
+  q1(ir)=polynom(0, npl-1, r(ir0), q1(ir0), c, r(ir))
 ! integrate to find wavefunction
-  p0(ir)=polynom(-1,npl,r(ir0),p1(ir0),c,r(ir))+p0(ir0)
-  q0(ir)=polynom(-1,npl,r(ir0),q1(ir0),c,r(ir))+q0(ir0)
+  p0(ir)=polynom(-1, npl, r(ir0), p1(ir0), c, r(ir))+p0(ir0)
+  q0(ir)=polynom(-1, npl, r(ir0), q1(ir0), c, r(ir))+q0(ir0)
 ! compute the derivatives
   p1(ir)=2.d0*rm*q0(ir)+p0(ir)*ri
   q1(ir)=t2*p0(ir)-q0(ir)*ri
@@ -105,8 +108,8 @@ do ir=2,nr
     q1(ir)=q1(ir)-dble(m)*p0p(ir)
   end if
 ! integrate for correction
-  p0(ir)=polynom(-1,npl,r(ir0),p1(ir0),c,r(ir))+p0(ir0)
-  q0(ir)=polynom(-1,npl,r(ir0),q1(ir0),c,r(ir))+q0(ir0)
+  p0(ir)=polynom(-1, npl, r(ir0), p1(ir0), c, r(ir))+p0(ir0)
+  q0(ir)=polynom(-1, npl, r(ir0), q1(ir0), c, r(ir))+q0(ir0)
 ! compute the derivatives again
   p1(ir)=2.d0*rm*q0(ir)+p0(ir)*ri
   q1(ir)=t2*p0(ir)-q0(ir)*ri

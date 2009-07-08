@@ -1,3 +1,4 @@
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -12,35 +13,35 @@ subroutine testmain
   use modxs
   implicit none
 
-  real(8) :: r(3,3)
-  complex(8) :: m(3,3),msym(3,3)
-  integer :: i1,i2,iop1,iop2
+  real(8) :: r(3, 3)
+  complex(8) :: m(3, 3), msym(3, 3)
+  integer :: i1, i2, iop1, iop2
 
   call init0
 
   ! set up random hermitian matrix
   call random_number(r)
-  m(:,:)=r(:,:)
+  m(:, :)=r(:, :)
   call random_number(r)
-  m(:,:)=m(:,:)+zi*r(:,:) + 0.1
+  m(:, :)=m(:, :)+zi*r(:, :) + 0.1
 !!!  m=0.5d0*(m+conjg(transpose(m)))
 
   ! symmetrize
-  msym(:,:)=zzero
-  do iop1=1,3
-  do iop2=1,3
-  do i1=1,3
-  do i2=1,3
-    msym(iop1,iop2)=msym(iop1,iop2)+symt2(iop1,iop2,i1,i2)*m(i1,i2)
+  msym(:, :)=zzero
+  do iop1=1, 3
+  do iop2=1, 3
+  do i1=1, 3
+  do i2=1, 3
+    msym(iop1, iop2)=msym(iop1, iop2)+symt2(iop1, iop2, i1, i2)*m(i1, i2)
   end do
   end do
   end do
   end do
 
-  write(*,'(2f12.4,3x,2f12.4,3x,2f12.4,3x)') msym(1,:)
-  write(*,'(2f12.4,3x,2f12.4,3x,2f12.4,3x)') msym(2,:)
-  write(*,'(2f12.4,3x,2f12.4,3x,2f12.4,3x)') msym(3,:)
-  write(*,*)
+  write(*, '(2f12.4, 3x, 2f12.4, 3x, 2f12.4, 3x)') msym(1, :)
+  write(*, '(2f12.4, 3x, 2f12.4, 3x, 2f12.4, 3x)') msym(2, :)
+  write(*, '(2f12.4, 3x, 2f12.4, 3x, 2f12.4, 3x)') msym(3, :)
+  write(*, *)
 
 end subroutine testmain
 
@@ -266,4 +267,3 @@ end subroutine testmain
 !!$
 !!$
 !!$end subroutine
-

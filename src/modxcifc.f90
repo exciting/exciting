@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -9,8 +10,10 @@ contains
 !BOP
 ! !ROUTINE: xcifc
 ! !INTERFACE:
-subroutine xcifc(xctype,n,rho,rhoup,rhodn,grho,gup,gdn,g2rho,g2up,g2dn,g3rho, &
- g3up,g3dn,ex,ec,vx,vc,vxup,vxdn,vcup,vcdn)
+
+
+subroutine xcifc(xctype, n, rho, rhoup, rhodn, grho, gup, gdn, g2rho, g2up, g2dn, g3rho, &
+ g3up, g3dn, ex, ec, vx, vc, vxup, vxdn, vcup, vcdn)
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer)
 !   n      : number of density points (in,integer,optional)
@@ -69,9 +72,9 @@ real(8), optional, intent(out) :: vxdn(*)
 real(8), optional, intent(out) :: vcup(*)
 real(8), optional, intent(out) :: vcdn(*)
 ! local variables
-real(8) kappa,mu,beta
+real(8)::kappa, mu, beta
 ! automatic arrays
-real(8), allocatable :: ra(:,:)
+real(8), allocatable :: ra(:, :)
 select case(abs(xctype))
 case(1)
 ! No density-derived exchange-correlation energy or potential
@@ -92,7 +95,7 @@ case(2)
   if (present(n).and.present(rho).and.present(ex).and.present(ec) &
    .and.present(vx).and.present(vc)) then
     if (n.le.0) goto 20
-    call xc_pzca(n,rho,ex,ec,vx,vc)
+    call xc_pzca(n, rho, ex, ec, vx, vc)
   else
     goto 10
   end if
@@ -105,14 +108,14 @@ case(3)
    .and.present(vcdn)) then
 ! spin-polarised density
     if (n.le.0) goto 20
-    call xc_pwca(n,rhoup,rhodn,ex,ec,vxup,vxdn,vcup,vcdn)
+    call xc_pwca(n, rhoup, rhodn, ex, ec, vxup, vxdn, vcup, vcdn)
   else if (present(n).and.present(rho).and.present(ex).and.present(ec) &
    .and.present(vx).and.present(vc)) then
 ! divide spin-unpolarised density into up and down
     if (n.le.0) goto 20
-    allocate(ra(n,1))
-    ra(1:n,1)=0.5d0*rho(1:n)
-    call xc_pwca(n,ra(:,1),ra(:,1),ex,ec,vx,vx,vc,vc)
+    allocate(ra(n, 1))
+    ra(1:n, 1)=0.5d0*rho(1:n)
+    call xc_pwca(n, ra(:, 1), ra(:, 1), ex, ec, vx, vx, vc, vc)
     deallocate(ra)
   else
     goto 10
@@ -123,7 +126,7 @@ case(4)
   if (present(n).and.present(rho).and.present(ex).and.present(ec) &
    .and.present(vx).and.present(vc)) then
     if (n.le.0) goto 20
-    call xc_xalpha(n,rho,ex,vx)
+    call xc_xalpha(n, rho, ex, vx)
 ! set correlation energy and potential to zero
     ec(1:n)=0.d0
     vc(1:n)=0.d0
@@ -138,19 +141,19 @@ case(5)
    .and.present(vcdn)) then
 ! spin-polarised density
     if (n.le.0) goto 20
-    call xc_vbh(n,rhoup,rhodn,ex,ec,vxup,vxdn,vcup,vcdn)
+    call xc_vbh(n, rhoup, rhodn, ex, ec, vxup, vxdn, vcup, vcdn)
   else if (present(n).and.present(rho).and.present(ex).and.present(ec) &
    .and.present(vx).and.present(vc)) then
 ! divide spin-unpolarised density into up and down
     if (n.le.0) goto 20
-    allocate(ra(n,1))
-    ra(1:n,1)=0.5d0*rho(1:n)
-    call xc_vbh(n,ra(:,1),ra(:,1),ex,ec,vx,vx,vc,vc)
+    allocate(ra(n, 1))
+    ra(1:n, 1)=0.5d0*rho(1:n)
+    call xc_vbh(n, ra(:, 1), ra(:, 1), ex, ec, vx, vx, vc, vc)
     deallocate(ra)
   else
     goto 10
   end if
-case(20,21,22)
+case(20, 21, 22)
 ! original PBE kappa
   kappa=0.804d0
   if (xctype.eq.21) then
@@ -173,18 +176,18 @@ case(20,21,22)
    .and.present(g3rho).and.present(g3up).and.present(g3dn).and.present(ex) &
    .and.present(ec).and.present(vxup).and.present(vxdn).and.present(vcup) &
    .and.present(vcdn)) then
-    call xc_pbe(n,kappa,mu,beta,rhoup,rhodn,grho,gup,gdn,g2up,g2dn,g3rho,g3up, &
-     g3dn,ex,ec,vxup,vxdn,vcup,vcdn)
+    call xc_pbe(n, kappa, mu, beta, rhoup, rhodn, grho, gup, gdn, g2up, g2dn, g3rho, g3up, &
+     g3dn, ex, ec, vxup, vxdn, vcup, vcdn)
   else if (present(n).and.present(rho).and.present(grho).and.present(g2rho) &
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
-    allocate(ra(n,4))
-    ra(1:n,1)=0.5d0*rho(1:n)
-    ra(1:n,2)=0.5d0*grho(1:n)
-    ra(1:n,3)=0.5d0*g2rho(1:n)
-    ra(1:n,4)=0.25d0*g3rho(1:n)
-    call xc_pbe(n,kappa,mu,beta,ra(:,1),ra(:,1),grho,ra(:,2),ra(:,2),ra(:,3), &
-     ra(:,3),g3rho,ra(:,4),ra(:,4),ex,ec,vx,vx,vc,vc)
+    allocate(ra(n, 4))
+    ra(1:n, 1)=0.5d0*rho(1:n)
+    ra(1:n, 2)=0.5d0*grho(1:n)
+    ra(1:n, 3)=0.5d0*g2rho(1:n)
+    ra(1:n, 4)=0.25d0*g3rho(1:n)
+    call xc_pbe(n, kappa, mu, beta, ra(:, 1), ra(:, 1), grho, ra(:, 2), ra(:, 2), ra(:, 3), &
+     ra(:, 3), g3rho, ra(:, 4), ra(:, 4), ex, ec, vx, vx, vc, vc)
     deallocate(ra)
   else
     goto 10
@@ -195,7 +198,7 @@ case(26)
   if (present(n).and.present(rho).and.present(grho).and.present(g2rho) &
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
-    call xc_wc06(n,rho,grho,g2rho,g3rho,ex,ec,vx,vc)
+    call xc_wc06(n, rho, grho, g2rho, g3rho, ex, ec, vx, vc)
   else
     goto 10
   end if
@@ -205,14 +208,14 @@ case(30)
   if (present(n).and.present(rho).and.present(grho).and.present(g2rho) &
    .and.present(g3rho).and.present(ex).and.present(ec).and.present(vx) &
    .and.present(vc)) then
-    call xc_am05(n,rho,grho,g2rho,g3rho,ex,ec,vx,vc)
+    call xc_am05(n, rho, grho, g2rho, g3rho, ex, ec, vx, vc)
   else
     goto 10
   end if
 case default
-  write(*,*)
-  write(*,'("Error(xcifc): xctype not defined : ",I8)') xctype
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(xcifc): xctype not defined : ", I8)') xctype
+  write(*, *)
   stop
 end select
 ! set exchange potential to zero for EXX
@@ -223,15 +226,15 @@ if (xctype.le.-2) then
 end if
 return
 10 continue
-write(*,*)
+write(*, *)
 write(*, &
- '("Error(xcifc): missing arguments for exchange-correlation type ",I5)') xctype
-write(*,*)
+ '("Error(xcifc): missing arguments for exchange-correlation type ", I5)') xctype
+write(*, *)
 stop
 20 continue
-write(*,*)
-write(*,'("Error(xcifc): n <= 0 : ",I8)') n
-write(*,*)
+write(*, *)
+write(*, '("Error(xcifc): n <= 0 : ", I8)') n
+write(*, *)
 stop
 end subroutine
 !EOC
@@ -239,8 +242,11 @@ end subroutine
 !BOP
 ! !ROUTINE: getxcdata
 ! !INTERFACE:
-subroutine getxcdata(xctype,xcdescr,xcspin,xcgrad)
+
+
+subroutine getxcdata(xctype, xcdescr, xcspin, xcgrad)
 ! !INPUT/OUTPUT PARAMETERS:
+use modinput
 !   xctype  : type of exchange-correlation functional (in,integer)
 !   xcdescr : description of functional (out,character(256))
 !   xcspin  : spin treatment (out,integer)
@@ -307,9 +313,9 @@ case(30)
   xcspin=0
   xcgrad=1
 case default
-  write(*,*)
-  write(*,'("Error(getxcdata): xctype not defined : ",I8)') xctype
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(getxcdata): xctype not defined : ", I8)') xctype
+  write(*, *)
   stop
 end select
 return
@@ -317,4 +323,3 @@ end subroutine
 !EOC
 
 end module
-

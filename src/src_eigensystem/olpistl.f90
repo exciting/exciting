@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: olpistl
 ! !INTERFACE:
-subroutine olpistl(tapp,ngp,igpig,v,o)
+
+
+subroutine olpistl(tapp, ngp, igpig, v, o)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -35,14 +38,14 @@ integer, intent(in) :: igpig(ngkmax)
 complex(8), intent(in) :: v(nmatmax)
 complex(8), intent(inout) :: o(*)
 ! local variables
-integer i,j,k,iv(3),ig
+integer::i, j, k, iv(3), ig
 complex(8) zt1
 if (tapp) then
 ! apply the overlap operator to v
-  do i=1,ngp
-    do j=i,ngp
-      iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      ig=ivgig(iv(1),iv(2),iv(3))
+  do i=1, ngp
+    do j=i, ngp
+      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
+      ig=ivgig(iv(1), iv(2), iv(3))
       zt1=cfunig(ig)
       o(i)=o(i)+zt1*v(j)
       if (i.ne.j) o(j)=o(j)+conjg(zt1)*v(i)
@@ -51,11 +54,11 @@ if (tapp) then
 else
 ! calculate the matrix elements
   k=0
-  do j=1,ngp
-    do i=1,j
+  do j=1, ngp
+    do i=1, j
       k=k+1
-      iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      ig=ivgig(iv(1),iv(2),iv(3))
+      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
+      ig=ivgig(iv(1), iv(2), iv(3))
       o(k)=o(k)+cfunig(ig)
     end do
   end do
@@ -63,4 +66,3 @@ end if
 return
 end subroutine
 !EOC
-

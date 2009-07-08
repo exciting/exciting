@@ -1,9 +1,11 @@
 
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine putoccsv(ik,occsvp)
+
+subroutine putoccsv(ik, occsvp)
 use modmain
 use modmpi
 implicit none
@@ -14,24 +16,23 @@ real(8), intent(in) :: occsvp(nstsv)
 character(256), external:: outfilenamestring
 
 ! local variables
-integer recl,koffset
+integer::recl, koffset
 ! find the record length
-inquire(iolength=recl) vkl(:,ik),nstsv,occsvp
+inquire(iolength=recl) vkl(:, ik), nstsv, occsvp
 !$OMP CRITICAL
 filetag='OCCSV'
 if (splittfile.or.(rank.eq.0))then
-open(70,file=outfilenamestring(filetag,ik),action='WRITE', &
- form='UNFORMATTED',access='DIRECT',recl=recl)
+open(70, file = outfilenamestring(filetag, ik), action = 'WRITE', &
+ form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
 if (splittfile) then
  koffset=ik-firstk(procofk(ik))+1
  else
  koffset =ik
  endif
-write(70,rec=koffset) vkl(:,ik),nstsv,occsvp
+write(70, rec=koffset) vkl(:, ik), nstsv, occsvp
 close(70)
 
 endif
 !$OMP END CRITICAL
 return
 end subroutine
-

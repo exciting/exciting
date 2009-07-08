@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: atom
 ! !INTERFACE:
-subroutine atom(ptnucl,zn,nst,n,l,k,occ,xctype,xcgrad,np,nr,r,eval,rho,vr,rwf)
+
+
+subroutine atom(ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, r, eval, rho, vr, rwf)
 ! !USES:
 use modxcifc
 ! !INPUT/OUTPUT PARAMETERS:
@@ -59,51 +62,51 @@ real(8), intent(in) :: r(nr)
 real(8), intent(out) :: eval(nst)
 real(8), intent(out) :: rho(nr)
 real(8), intent(out) :: vr(nr)
-real(8), intent(out) :: rwf(nr,2,nst)
+real(8), intent(out) :: rwf(nr, 2, nst)
 integer, parameter :: maxscl=200
-integer ir,ist,iscl
+integer::ir, ist, iscl
 real(8), parameter :: fourpi=12.566370614359172954d0
 ! fine-structure constant
 real(8), parameter :: alpha=1.d0/137.03599911d0
 ! potential convergence tolerance
 real(8), parameter :: eps=1.d-6
-real(8) sum,dv,dvp,ze,beta,t1
+real(8)::sum, dv, dvp, ze, beta, t1
 ! allocatable arrays
-real(8), allocatable :: vn(:),vh(:),ex(:),ec(:),vx(:),vc(:),vrp(:)
-real(8), allocatable :: ri(:),fr1(:),fr2(:),gr1(:),gr2(:),cf(:,:)
-real(8), allocatable :: grho(:),g2rho(:),g3rho(:)
+real(8), allocatable :: vn(:), vh(:), ex(:), ec(:), vx(:), vc(:), vrp(:)
+real(8), allocatable :: ri(:), fr1(:), fr2(:), gr1(:), gr2(:), cf(:, :)
+real(8), allocatable :: grho(:), g2rho(:), g3rho(:)
 if (nst.le.0) then
-  write(*,*)
-  write(*,'("Error(atom): invalid nst : ",I8)') nst
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(atom): invalid nst : ", I8)') nst
+  write(*, *)
   stop
 end if
 if (np.lt.2) then
-  write(*,*)
-  write(*,'("Error(atom): np < 2 : ",I8)') np
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(atom): np < 2 : ", I8)') np
+  write(*, *)
   stop
 end if
 if (nr.lt.np) then
-  write(*,*)
-  write(*,'("Error(atom): nr < np : ",2I8)') nr,np
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(atom): nr < np : ", 2I8)') nr, np
+  write(*, *)
   stop
 end if
 ! allocate local arrays
-allocate(vn(nr),vh(nr),ex(nr),ec(nr),vx(nr),vc(nr),vrp(nr))
-allocate(ri(nr),fr1(nr),fr2(nr),gr1(nr),gr2(nr),cf(3,nr))
+allocate(vn(nr), vh(nr), ex(nr), ec(nr), vx(nr), vc(nr), vrp(nr))
+allocate(ri(nr), fr1(nr), fr2(nr), gr1(nr), gr2(nr), cf(3, nr))
 if (xcgrad.eq.1) then
-  allocate(grho(nr),g2rho(nr),g3rho(nr))
+  allocate(grho(nr), g2rho(nr), g3rho(nr))
 end if
 ! find total electronic charge
 ze=0.d0
-do ist=1,nst
+do ist=1, nst
   ze=ze+occ(ist)
 end do
 ! set up nuclear potential
-call potnucl(ptnucl,nr,r,zn,vn)
-do ir=1,nr
+call potnucl(ptnucl, nr, r, zn, vn)
+do ir=1, nr
   ri(ir)=1.d0/r(ir)
 ! initialise the effective potential to the nuclear potential
   vr(ir)=vn(ir)
@@ -113,38 +116,38 @@ vrp(:)=0.d0
 ! initialise mixing parameter
 beta=0.5d0
 ! initialise eigenvalues to relativistic values (minus the rest mass energy)
-do ist=1,nst
+do ist=1, nst
   t1=sqrt(dble(k(ist)**2)-(zn*alpha)**2)
   t1=(dble(n(ist)-abs(k(ist)))+t1)**2
   t1=1.d0+((zn*alpha)**2)/t1
   eval(ist)=(1.d0/alpha**2)/sqrt(t1)-1.d0/alpha**2
 end do
 ! start of self-consistent loop
-do iscl=1,maxscl
+do iscl=1, maxscl
 ! solve the Dirac equation for each state
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
-  do ist=1,nst
-    call rdirac(n(ist),l(ist),k(ist),np,nr,r,vr,eval(ist),rwf(:,1,ist), &
-     rwf(:,2,ist))
+  do ist=1, nst
+    call rdirac(n(ist), l(ist), k(ist), np, nr, r, vr, eval(ist), rwf(:, 1, ist), &
+     rwf(:, 2, ist))
   end do
 !$OMP END DO
 !$OMP END PARALLEL
 ! compute the charge density
-  do ir=1,nr
+  do ir=1, nr
     sum=0.d0
-    do ist=1,nst
-      sum=sum+occ(ist)*(rwf(ir,1,ist)**2+rwf(ir,2,ist)**2)
+    do ist=1, nst
+      sum=sum+occ(ist)*(rwf(ir, 1, ist)**2+rwf(ir, 2, ist)**2)
     end do
     fr1(ir)=sum
     fr2(ir)=sum*ri(ir)
     rho(ir)=(1.d0/fourpi)*sum*ri(ir)**2
   end do
-  call fderiv(-1,nr,r,fr1,gr1,cf)
-  call fderiv(-1,nr,r,fr2,gr2,cf)
+  call fderiv(-1, nr, r, fr1, gr1, cf)
+  call fderiv(-1, nr, r, fr2, gr2, cf)
 ! find the Hartree potential
   t1=gr2(nr)
-  do ir=1,nr
+  do ir=1, nr
     vh(ir)=gr1(ir)*ri(ir)+t1-gr2(ir)
   end do
 ! normalise charge density and potential
@@ -155,37 +158,37 @@ do iscl=1,maxscl
   if (xcgrad.eq.1) then
 ! GGA functional
 ! |grad rho|
-    call fderiv(1,nr,r,rho,grho,cf)
+    call fderiv(1, nr, r, rho, grho, cf)
 ! grad^2 rho
-    call fderiv(2,nr,r,rho,g2rho,cf)
-    do ir=1,nr
+    call fderiv(2, nr, r, rho, g2rho, cf)
+    do ir=1, nr
       g2rho(ir)=g2rho(ir)+2.d0*ri(ir)*grho(ir)
     end do
 ! approximate (grad rho).(grad |grad rho|)
-    do ir=1,nr
+    do ir=1, nr
       g3rho(ir)=grho(ir)*g2rho(ir)
     end do
-    call xcifc(xctype,n=nr,rho=rho,grho=grho,g2rho=g2rho,g3rho=g3rho,ex=ex, &
-     ec=ec,vx=vx,vc=vc)
+    call xcifc(xctype, n = nr, rho = rho, grho = grho, g2rho = g2rho, g3rho = g3rho, ex = ex, &
+     ec = ec, vx = vx, vc = vc)
   else
 ! LDA functional
-    call xcifc(xctype,n=nr,rho=rho,ex=ex,ec=ec,vx=vx,vc=vc)
+    call xcifc(xctype, n=nr, rho=rho, ex=ex, ec=ec, vx=vx, vc=vc)
   end if
 ! self-consistent potential
   vr(:)=vh(:)+vx(:)+vc(:)
 ! determine change in potential
   sum=0.d0
-  do ir=1,nr
+  do ir=1, nr
     sum=sum+(vr(ir)-vrp(ir))**2
   end do
   dv=sqrt(sum)/dble(nr)
   if (iscl.gt.2) then
 ! reduce beta if change in potential is diverging
     if (dv.gt.dvp) beta=beta*0.8d0
-    beta=max(beta,0.01d0)
+    beta=max(beta, 0.01d0)
   end if
   dvp=dv
-  do ir=1,nr
+  do ir=1, nr
 ! mix old and new potentials
     vr(ir)=(1.d0-beta)*vrp(ir)+beta*vr(ir)
     vrp(ir)=vr(ir)
@@ -196,15 +199,14 @@ do iscl=1,maxscl
   if ((iscl.gt.2).and.(dv.lt.eps)) goto 10
 ! end self-consistent loop
 end do
-write(*,*)
-write(*,'("Warning(atom): maximum iterations exceeded")')
+write(*, *)
+write(*, '("Warning(atom): maximum iterations exceeded")')
 10 continue
-deallocate(vn,vh,ex,ec,vx,vc,vrp)
-deallocate(ri,fr1,fr2,gr1,gr2,cf)
+deallocate(vn, vh, ex, ec, vx, vc, vrp)
+deallocate(ri, fr1, fr2, gr1, gr2, cf)
 if (xcgrad.eq.1) then
-  deallocate(grho,g2rho,g3rho)
+  deallocate(grho, g2rho, g3rho)
 end if
 return
 end subroutine
 !EOC
-

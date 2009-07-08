@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 F. Cricchio, J. K. Dewhurst and S. Sharma.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: xc_vbh
 ! !INTERFACE:
-subroutine xc_vbh(n,rhoup,rhodn,ex,ec,vxup,vxdn,vcup,vcdn)
+
+
+subroutine xc_vbh(n, rhoup, rhodn, ex, ec, vxup, vxdn, vcup, vcdn)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : number of density points (in,integer)
 !   rhoup : spin-up charge density (in,real(n))
@@ -39,20 +42,20 @@ real(8), intent(out) :: vxdn(n)
 real(8), intent(out) :: vcup(n)
 real(8), intent(out) :: vcdn(n)
 ! local variables
-integer i
+integer::i
 real(8), parameter :: pi=3.1415926535897932385d0
 real(8), parameter :: cp=0.0504d0
 real(8), parameter :: cf=0.0254d0
 real(8), parameter :: rp=30.d0
 real(8), parameter :: rf=75.d0
-real(8) alpha0,a,gamma,r,rs,x,zf,zp
-real(8) fx,fp,ff,eps0_x,epsp_x,mup_x
-real(8) epsp_c,epsf_c,mup_c,muf_c,vc,tau_c
+real(8)::alpha0, a, gamma, r, rs, x, zf, zp
+real(8)::fx, fp, ff, eps0_x, epsp_x, mup_x
+real(8)::epsp_c, epsf_c, mup_c, muf_c, vc, tau_c
 alpha0=(4.d0/(9.d0*pi))**(1.d0/3.d0)
 eps0_x=(3.d0/2.d0)/(pi*alpha0)
 a=2.d0**(-1.d0/3.d0)
 gamma=(4.d0/3.d0)*a/(1.d0-a)
-do i=1,n
+do i=1, n
   if ((rhoup(i).gt.1.d-12).and.(rhodn(i).gt.1.d-12)) then
     r=rhoup(i)+rhodn(i)
 ! Wigner-Seitz radius in atomic units (a0=1)
@@ -100,4 +103,3 @@ end do
 return
 end subroutine
 !EOC
-

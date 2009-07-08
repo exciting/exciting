@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: energy
 ! !INTERFACE:
+
+
 subroutine energy
 ! !USES:
+use modinput
 use modmain
 ! !DESCRIPTION:
 !   Computes the total energy and its individual contributions. The kinetic
@@ -23,7 +27,7 @@ use modmain
 !   magnetic field. The Hartree, electron-nuclear and nuclear-nuclear
 !   electrostatic energies are combined into the Coulomb energy:
 !   \begin{align*}
-!    E_{\rm C}&=E_{\rm H}+E_{\rm en}+E_{\rm nn} \\
+!    E_{\rm C}&=E_{\rm H}+E_{\rm en}+E_{\rm nn} \&
 !             &=\frac{1}{2}V_{\rm C}+E_{\rm Mad},
 !   \end{align*}
 !   where
@@ -61,67 +65,68 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer is,ia,ias,ik,ist,idm,jdm
+integer::is, ia, ias, ik, ist, idm, jdm
 ! fine structure constant
 real(8), parameter :: alpha=1.d0/137.03599911d0
 ! electron g factor
 real(8), parameter :: ge=2.0023193043718d0
 real(8), parameter :: ga4=ge*alpha/4.d0
-real(8) vn
+real(8)::vn
 complex(8) zt1
 ! allocatable arrays
-complex(8), allocatable :: evecsv(:,:),c(:,:)
+complex(8), allocatable :: evecsv(:, :), c(:, :)
 ! external functions
-real(8) rfmtinp,rfinp,rfint
+real(8)::rfmtinp, rfinp, rfint
 complex(8) zdotc
-external rfmtinp,rfinp,rfint,zdotc
+external rfmtinp, rfinp, rfint, zdotc
 !-----------------------------------------------!
 !     exchange-correlation potential energy     !
 !-----------------------------------------------!
-engyvxc=rfinp(1,rhomt,vxcmt,rhoir,vxcir)
+engyvxc=rfinp(1, rhomt, vxcmt, rhoir, vxcir)
 !-----------------------------------------------------!
 !     exchange-correlation effective field energy     !
 !-----------------------------------------------------!
 engybxc=0.d0
-do idm=1,ndmag
-  engybxc=engybxc+rfinp(1,magmt(:,:,:,idm),bxcmt(:,:,:,idm),magir(:,idm), &
-   bxcir(:,idm))
+do idm=1, ndmag
+  engybxc = engybxc + rfinp(1, magmt(:, :, :, idm), bxcmt(:, :, :, idm), magir(:, idm), &
+   bxcir(:, idm))
 end do
 !------------------------------------------!
 !     external magnetic field energies     !
 !------------------------------------------!
 engybext=0.d0
 engybmt=0.d0
-do idm=1,ndmag
+do idm=1, ndmag
   if (ncmag) then
     jdm=idm
   else
     jdm=3
   end if
 ! energy of physical global field
-  engybext=engybext+ga4*momtot(idm)*bfieldc(jdm)
+  engybext=engybext+ga4*momtot(idm)*input%groundstate%spin%bfieldc(jdm)
 ! energy of non-physical muffin-tin fields
-  do is=1,nspecies
-    do ia=1,natoms(is)
-      ias=idxas(ia,is)
-      engybmt=engybmt+ga4*mommt(idm,ias)*bfcmt(jdm,ia,is)
+  do is=1, nspecies
+    do ia=1, natoms(is)
+      ias=idxas(ia, is)
+      engybmt = engybmt + ga4 * mommt(idm, ias) *&
+    &input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(jdm)
     end do
   end do
 end do
 !----------------------------------!
 !     Coulomb potential energy     !
 !----------------------------------!
-engyvcl=rfinp(1,rhomt,vclmt,rhoir,vclir)
+engyvcl=rfinp(1, rhomt, vclmt, rhoir, vclir)
 !-----------------------!
 !     Madelung term     !
 !-----------------------!
 engymad=0.d0
-do is=1,nspecies
+do is=1, nspecies
 ! compute the bare nucleus potential at the origin
-  call potnucl(ptnucl,1,spr(:,is),spzn(is),vn)
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    engymad=engymad+0.5d0*spzn(is)*(vclmt(1,1,ias)*y00-vn)
+  call potnucl(input%groundstate%ptnucl, 1, spr(:, is), spzn(is), vn)
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
+    engymad=engymad+0.5d0*spzn(is)*(vclmt(1, 1, ias)*y00-vn)
   end do
 end do
 !---------------------------------------------!
@@ -140,15 +145,15 @@ engycl=engynn+engyen+engyhar
 !     exchange energy     !
 !-------------------------!
 ! exchange energy from the density
-engyx=rfinp(1,rhomt,exmt,rhoir,exir)
+engyx=rfinp(1, rhomt, exmt, rhoir, exir)
 ! exact exchange for OEP-EXX or Hartree-Fock on last iteration
-if ((xctype.lt.0).or.(task.eq.5).or.(task.eq.6)) then
+if ((input%groundstate%xctypenumber.lt.0).or.(task.eq.5).or.(task.eq.6)) then
   if (tlast) call exxengy
 end if
 !----------------------------!
 !     correlation energy     !
 !----------------------------!
-engyc=rfinp(1,rhomt,ecmt,rhoir,ecir)
+engyc=rfinp(1, rhomt, ecmt, rhoir, ecir)
 ! zero correlation energy for Hartree-Fock
 if ((task.eq.5).or.(task.eq.6)) engyc=0.d0
 !----------------------!
@@ -156,15 +161,15 @@ if ((task.eq.5).or.(task.eq.6)) engyc=0.d0
 !----------------------!
 engylu=0.d0
 if (ldapu.ne.0) then
-  do ias=1,natmtot
+  do ias=1, natmtot
     engylu=engylu+engyalu(ias)
   end do
 end if
 !-----------------------------------------------!
 !     compensating background charge energy     !
 !-----------------------------------------------!
-if (chgexs.ne.0.d0) then
-  engycbc=chgexs*rfint(vclmt,vclir)
+if (input%groundstate%chgexs.ne.0.d0) then
+  engycbc=input%groundstate%chgexs*rfint(vclmt, vclir)
 else
   engycbc=0.d0
 end if
@@ -173,18 +178,18 @@ end if
 !----------------------------!
 ! core eigenvalues
 evalsum=0.d0
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
-    do ist=1,spnst(is)
-      if (spcore(ist,is)) evalsum=evalsum+spocc(ist,is)*evalcr(ist,ias)
+do is=1, nspecies
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
+    do ist=1, spnst(is)
+      if (spcore(ist, is)) evalsum=evalsum+spocc(ist, is)*evalcr(ist, ias)
     end do
   end do
 end do
 ! valence eigenvalues
-do ik=1,nkpt
-  do ist=1,nstsv
-    evalsum=evalsum+wkpt(ik)*occsv(ist,ik)*evalsv(ist,ik)
+do ik=1, nkpt
+  do ist=1, nstsv
+    evalsum=evalsum+wkpt(ik)*occsv(ist, ik)*evalsv(ist, ik)
   end do
 end do
 !------------------------!
@@ -197,18 +202,18 @@ if ((task.eq.5).or.(task.eq.6)) then
 ! Hartree-Fock case
   engykn=engykncr
 ! kinetic energy from valence states
-  allocate(evecsv(nstsv,nstsv))
-  allocate(c(nstsv,nstsv))
-  do ik=1,nkpt
-    call getevecsv(vkl(:,ik),evecsv)
-    call zgemm('N','N',nstsv,nstsv,nstsv,zone,kinmatc(:,:,ik),nstsv,evecsv, &
-     nstsv,zzero,c,nstsv)
-    do ist=1,nstsv
-      zt1=zdotc(nstsv,evecsv(:,ist),1,c(:,ist),1)
-      engykn=engykn+wkpt(ik)*occsv(ist,ik)*dble(zt1)
+  allocate(evecsv(nstsv, nstsv))
+  allocate(c(nstsv, nstsv))
+  do ik=1, nkpt
+    call getevecsv(vkl(:, ik), evecsv)
+    call zgemm('N', 'N', nstsv, nstsv, nstsv, zone, kinmatc(:, :, ik), nstsv, evecsv, &
+     nstsv, zzero, c, nstsv)
+    do ist=1, nstsv
+      zt1=zdotc(nstsv, evecsv(:, ist), 1, c(:, ist), 1)
+      engykn=engykn+wkpt(ik)*occsv(ist, ik)*dble(zt1)
     end do
   end do
-  deallocate(evecsv,c)
+  deallocate(evecsv, c)
 else
 ! Kohn-Sham case
   engykn=evalsum-engyvcl-engyvxc-engybxc-engybext-engybmt
@@ -222,4 +227,3 @@ if (ldapu.ne.0) engytot=engytot+engylu
 return
 end subroutine
 !EOC
-

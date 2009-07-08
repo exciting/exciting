@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -11,7 +12,9 @@ contains
 !BOP
 ! !ROUTINE: fxc_lrc
 ! !INTERFACE:
-  subroutine fxc_lrc(msiz,sw,alpha,fxc)
+
+
+subroutine fxc_lrc(msiz, sw, alpha, fxc)
 ! !USES:
     use modmain
     use modxs
@@ -41,24 +44,24 @@ contains
     ! true if all G-components of fxc are to be considered
     logical, intent(in) :: sw
     real(8), intent(in) :: alpha
-    complex(8), intent(out) :: fxc(:,:)
+    complex(8), intent(out) :: fxc(:, :)
     ! local variables
     character(*), parameter :: thisnam = 'fxc_lrc'
     real(8) :: t1
-    integer :: sh(2),ig
+    integer :: sh(2), ig
     sh=shape(fxc)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then
-       write(unitout,'(a,2i9,a,i9,a)') 'Error('//trim(thisnam)//'): size of &
-            &fxc is to small (required)', sh, '(', msiz, ')'
+       write(unitout, '(a, 2i9, a, i9, a)') 'Error('//trim(thisnam)//'): size of &
+	    &fxc is to small (required)', sh, '(', msiz, ')'
        call terminate
     end if
-    fxc(:,:)=(0.d0,0.d0)
+    fxc(:, :)=(0.d0, 0.d0)
     t1=-alpha/fourpi
     if (.not.sw) then
-       fxc(1,1)=t1
+       fxc(1, 1)=t1
     else
-       do ig=1,msiz
-          fxc(ig,ig)=t1
+       do ig=1, msiz
+	  fxc(ig, ig)=t1
        end do
     end if
   end subroutine fxc_lrc

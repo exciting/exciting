@@ -543,6 +543,9 @@
 									<xs:attribute name="rmt" type="fortrandouble"
 										default="-1" use="optional">
 										<xs:annotation>
+                    <xs:appinfo>
+                    <oldname>noreplace></oldname>
+                    </xs:appinfo>
 											<xs:documentation>muffin tin radius this
 												optional
 												parameter
@@ -902,6 +905,11 @@
 							<xs:element name="solver" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:attribute name="type" default="Lapack">
+                  <xs:annotation>
+                  <xs:appinfo>
+                  <oldname>solvertype</oldname>
+                  </xs:appinfo>
+                  </xs:annotation>
 										<xs:annotation>
 											<xs:documentation>
 												select the eigenvalue
@@ -2576,6 +2584,7 @@
 										default="5810" />
 									<xs:attribute name="nexcitmax" type="xs:integer"
 										default="100" />
+                    <!--  
 									<xs:attribute name="nstlbse" type="integerpair"
 										default="0 0">
 										<xs:annotation>
@@ -2584,6 +2593,7 @@
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
+                  -->
 									<xs:attribute name="nstlce" type="integerpair"
 										default="0 0">
 										<xs:annotation>

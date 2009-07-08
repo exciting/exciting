@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: rdiracdme
 ! !INTERFACE:
-subroutine rdiracdme(m,kpa,e,np,nr,r,vr,nn,g0,g1,f0,f1)
+
+
+subroutine rdiracdme(m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   kpa : quantum number kappa (in,integer)
@@ -45,26 +48,26 @@ real(8), intent(out) :: g1(nr)
 real(8), intent(out) :: f0(nr)
 real(8), intent(out) :: f1(nr)
 ! local variables
-integer im
+integer::im
 ! automatic arrays
-real(8) g0p(nr),f0p(nr)
+real(8)::g0p(nr), f0p(nr)
 if (nr.le.0) then
-  write(*,*)
-  write(*,'("Error(rdiracdme): invalid nr : ",I8)') nr
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(rdiracdme): invalid nr : ", I8)') nr
+  write(*, *)
   stop
 end if
 if ((m.lt.0).or.(m.gt.6)) then
-  write(*,*)
-  write(*,'("Error(rdiracdme): m out of range : ",I8)') m
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(rdiracdme): m out of range : ", I8)') m
+  write(*, *)
   stop
 end if
 if (m.eq.0) then
-  call rdiracint(m,kpa,e,np,nr,r,vr,nn,g0p,f0p,g0,g1,f0,f1)
+  call rdiracint(m, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, g1, f0, f1)
 else
-  do im=0,m
-    call rdiracint(im,kpa,e,np,nr,r,vr,nn,g0p,f0p,g0,g1,f0,f1)
+  do im=0, m
+    call rdiracint(im, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, g1, f0, f1)
     g0p(:)=g0(:)
     f0p(:)=f0(:)
   end do

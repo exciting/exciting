@@ -1,22 +1,25 @@
 
+
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine genffacg(is,ffacg)
+
+subroutine genffacg(is, ffacg)
 use modmain
+use modinput
 implicit none
 ! arguments
 integer, intent(in) :: is
 real(8), intent(out) :: ffacg(ngvec)
 ! local variables
-integer ig
-real(8) t1,t2,t3,t4
+integer::ig
+real(8)::t1, t2, t3, t4
 t1=fourpi/omega
-t2=cfdamp/gmaxvr
-do ig=1,ngvec
-  if (gc(ig).gt.epslat) then
-    if (cfdamp.ne.0.d0) then
+t2=input%groundstate%cfdamp/input%groundstate%gmaxvr
+do ig=1, ngvec
+  if (gc(ig).gt.input%structure%epslat) then
+    if (input%groundstate%cfdamp.ne.0.d0) then
 ! use damping if required
       t3=exp(-(t2*gc(ig))**2)
     else
@@ -30,4 +33,3 @@ do ig=1,ngvec
 end do
 return
 end subroutine
-

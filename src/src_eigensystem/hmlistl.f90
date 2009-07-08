@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: hmlistl
 ! !INTERFACE:
-subroutine hmlistl(tapp,ngp,igpig,vgpc,v,h)
+
+
+subroutine hmlistl(tapp, ngp, igpig, vgpc, v, h)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -37,20 +40,20 @@ implicit none
 logical, intent(in) :: tapp
 integer, intent(in) :: ngp
 integer, intent(in) :: igpig(ngkmax)
-real(8), intent(in) :: vgpc(3,ngkmax)
+real(8), intent(in) :: vgpc(3, ngkmax)
 complex(8), intent(in) :: v(nmatmax)
 complex(8), intent(inout) :: h(*)
 ! local variables
-integer i,j,k,ig,iv(3)
-real(8) t1
+integer::i, j, k, ig, iv(3)
+real(8)::t1
 complex(8) zt1
 if (tapp) then
 ! apply the Hamiltonian operator to v
-  do i=1,ngp
-    do j=i,ngp
-      iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      ig=ivgig(iv(1),iv(2),iv(3))
-      t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
+  do i=1, ngp
+    do j=i, ngp
+      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
+      ig=ivgig(iv(1), iv(2), iv(3))
+      t1=0.5d0*dot_product(vgpc(:, i), vgpc(:, j))
       zt1=veffig(ig)+t1*cfunig(ig)
       h(i)=h(i)+zt1*v(j)
       if (i.ne.j) h(j)=h(j)+conjg(zt1)*v(i)
@@ -59,12 +62,12 @@ if (tapp) then
 else
 ! calculate the matrix elements
   k=0
-  do j=1,ngp
-    do i=1,j
+  do j=1, ngp
+    do i=1, j
       k=k+1
-      iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      ig=ivgig(iv(1),iv(2),iv(3))
-      t1=0.5d0*dot_product(vgpc(:,i),vgpc(:,j))
+      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
+      ig=ivgig(iv(1), iv(2), iv(3))
+      t1=0.5d0*dot_product(vgpc(:, i), vgpc(:, j))
       h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
     end do
   end do

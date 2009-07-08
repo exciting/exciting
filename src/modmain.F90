@@ -1,3 +1,4 @@
+
 #include "maxdefinitions.inc"
 module modmain
 use mod_atoms
@@ -29,7 +30,7 @@ use mod_phonon
 use mod_OEP_HF
 use mod_convergence
 use mod_names
-integer,parameter::maxspecies=_MAXSPECIES_
-integer,parameter::maxatoms= _MAXATOMS_
-integer,parameter::maxlapw=_MAXLAPW_
+integer, parameter::maxspecies=_MAXSPECIES_
+integer, parameter::maxatoms= _MAXATOMS_
+integer, parameter::maxlapw=_MAXLAPW_
 end module

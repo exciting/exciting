@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: r3frac
 ! !INTERFACE:
-subroutine r3frac(eps,v,iv)
+
+
+subroutine r3frac(eps, v, iv)
 ! !INPUT/OUTPUT PARAMETERS:
 !   eps : zero component tolerance (in,real)
 !   v   : input vector (inout,real(3))
@@ -27,8 +30,8 @@ real(8), intent(in) :: eps
 real(8), intent(inout) :: v(3)
 integer, intent(out) :: iv(3)
 ! local variables
-integer i
-do i=1,3
+integer::i
+do i=1, 3
   iv(i)=int(v(i))
   v(i)=v(i)-dble(iv(i))
   if (v(i).lt.0.d0) then

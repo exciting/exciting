@@ -1,4 +1,5 @@
- 
+
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: allatoms
 ! !INTERFACE:
+
+
 subroutine allatoms
 ! !USES:
+use modinput
 use modmain
 ! !DESCRIPTION:
 !   Solves the Kohn-Sham-Dirac equations for each atom type in the solid and
@@ -28,22 +32,22 @@ implicit none
 ! always use LDA to setup atomic densities
 integer, parameter :: xctype_=3
 integer, parameter :: xcgrad_=0
-integer is
+integer::is
 ! allocatable arrays
-real(8), allocatable :: rwf(:,:,:)
+real(8), allocatable :: rwf(:, :, :)
 ! allocate global species charge density and potential arrays
 if (allocated(sprho)) deallocate(sprho)
-allocate(sprho(spnrmax,nspecies))
+allocate(sprho(spnrmax, nspecies))
 if (allocated(spvr)) deallocate(spvr)
-allocate(spvr(spnrmax,nspecies))
+allocate(spvr(spnrmax, nspecies))
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(rwf)
 !$OMP DO
-do is=1,nspecies
-  allocate(rwf(spnrmax,2,spnstmax))
-  call atom(ptnucl,spzn(is),spnst(is),spn(:,is),spl(:,is),spk(:,is), &
-   spocc(:,is),xctype_,xcgrad_,nprad,spnr(is),spr(:,is),speval(:,is), &
-   sprho(:,is),spvr(:,is),rwf)
+do is=1, nspecies
+  allocate(rwf(spnrmax, 2, spnstmax))
+  call atom(input%groundstate%ptnucl, spzn(is), spnst(is), spn(:, is), spl(:, is), spk(:, is), &
+   spocc(:, is), xctype_, xcgrad_, input%groundstate%nprad, spnr(is), spr(:, is), speval(:, is), &
+   sprho(:, is), spvr(:, is), rwf)
   deallocate(rwf)
 end do
 !$OMP END DO
@@ -51,4 +55,3 @@ end do
 return
 end subroutine
 !EOC
-

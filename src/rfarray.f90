@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -12,7 +13,7 @@ implicit none
 ! arguments
 integer, intent(in) :: lmax
 integer, intent(in) :: ld
-real(8), intent(in) :: rfmt(ld,nrmtmax,natmtot)
+real(8), intent(in) :: rfmt(ld, nrmtmax, natmtot)
 real(8), intent(in) :: rfir(ngrtot)
 integer, intent(in) :: np
 real(8), intent(in) :: vpl(3, np)
@@ -24,7 +25,7 @@ integer::l, m, lm, ig, ifg, i, j
 real(8)::rmt2, r, tp(2), sum, t1, t2
 real(8)::v1(3), v2(3), v3(3), v4(3), v5(3)
 ! allocatable arrays
-real(8),allocatable::ya(:), c(:)
+real(8), allocatable::ya(:), c(:)
 real(8), allocatable :: rlm(:)
 complex(8), allocatable :: zfft(:)
 ! external functions
@@ -100,6 +101,6 @@ do ip=1, np
 10 continue
   fp(ip)=sum
 end do
-deallocate(rlm, zfft,ya,c)
+deallocate(rlm, zfft, ya, c)
 return
 end subroutine

@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -11,7 +12,9 @@ contains
 !BOP
 ! !ROUTINE: fxc_lrcd
 ! !INTERFACE:
-  subroutine fxc_lrcd(msiz,sw,alpha,beta,w,fxc)
+
+
+subroutine fxc_lrcd(msiz, sw, alpha, beta, w, fxc)
 ! !USES:
     use modmain
     use modxs
@@ -41,26 +44,26 @@ contains
     integer, intent(in) :: msiz
     ! true if all G-components of fxc are to be considered
     logical, intent(in) :: sw
-    real(8), intent(in) :: alpha,beta
+    real(8), intent(in) :: alpha, beta
     complex(8), intent(in) :: w
-    complex(8), intent(out) :: fxc(:,:)
+    complex(8), intent(out) :: fxc(:, :)
     ! local variables
     character(*), parameter :: thisnam = 'fxc_lrcd'
     complex(8) :: zt1
-    integer :: sh(2),ig
+    integer :: sh(2), ig
     sh=shape(fxc)
     if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then
-       write(unitout,'(a,2i9,a,i9,a)') 'Error('//trim(thisnam)//'): size of &
-            &fxc is to small (required)', sh, '(', msiz, ')'
+       write(unitout, '(a, 2i9, a, i9, a)') 'Error('//trim(thisnam)//'): size of &
+	    &fxc is to small (required)', sh, '(', msiz, ')'
        call terminate
     end if    
-    fxc(:,:)=(0.d0,0.d0)
+    fxc(:, :)=(0.d0, 0.d0)
     zt1=-(alpha+beta*w**2)/fourpi
     if (.not.sw) then
-       fxc(1,1)=zt1
+       fxc(1, 1)=zt1
     else
-       do ig=1,msiz
-          fxc(ig,ig)=zt1
+       do ig=1, msiz
+	  fxc(ig, ig)=zt1
        end do
     end if
   end subroutine fxc_lrcd

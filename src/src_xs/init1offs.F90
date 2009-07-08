@@ -1,10 +1,13 @@
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+
 subroutine init1offs(vploff)
-  use modmain, only: vkloff
+  use modmain, only: 
+use modinput
   use modxs, only: init1norealloc
   implicit none
   ! arguments
@@ -14,10 +17,10 @@ subroutine init1offs(vploff)
   logical :: lt
   lt=init1norealloc
   init1norealloc=.true.
-  vt(:)=vkloff(:)
-  vkloff(:)=vploff(:)
+  vt(:)=input%groundstate%vkloff(:)
+  input%groundstate%vkloff(:)=vploff(:)
   ! call init1 without selected re-allocations and specified k-point offset
   call init1
   init1norealloc=lt
-  vkloff(:)=vt(:)
+  input%groundstate%vkloff(:)=vt(:)
 end subroutine init1offs

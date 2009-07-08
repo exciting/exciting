@@ -1,14 +1,17 @@
 
+
 ! Copyright (C) 2007-2008 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
+
 subroutine rdmft
 ! 1-reduced density matrix functional theory
+use modinput
 use modmain
 implicit none
 ! local variables
-integer ik
+integer::ik
 call init0
 call init1
 ! generate q-point set and wiq2 array
@@ -32,36 +35,36 @@ call energykncr
 ! generate the kinetic matrix elements
 call genkinmat
 ! read in the occupancies
-do ik=1,nkpt
-  call getoccsv(vkl(:,ik),occsv(:,ik))
+do ik=1, nkpt
+  call getoccsv(vkl(:, ik), occsv(:, ik))
 end do
 ! calculate Coulomb potential matrix elements
-call genvmat(vclmt,vclir,vclmat)
+call genvmat(vclmt, vclir, vclmat)
 ! derivative of kinetic energy w.r.t. evecsv
 call rdmdkdc
 ! open information files
-open(60,file='RDM_INFO.OUT',action='WRITE',form='FORMATTED')
+open(60, file='RDM_INFO.OUT', action='WRITE', form='FORMATTED')
 ! write out general information to RDM_INFO.OUT
 call writeinfo(60)
 ! begin main self-consistent loop
-do iscl=1,rdmmaxscl
-  write(60,*)
-  write(60,'("+-------------------------+")')
-  write(60,'("| Iteration number : ",I4," |")') iscl
-  write(60,'("+-------------------------+")')
+do iscl=1, input%groundstate%RDMFT%rdmmaxscl
+  write(60, *)
+  write(60, '("+-------------------------+")')
+  write(60, '("| Iteration number : ", I4, " |")') iscl
+  write(60, '("+-------------------------+")')
   call flushifc(60)
 ! minimisation over natural orbitals
-  if (maxitc.ge.1) then
+  if (input%groundstate%RDMFT%maxitc.ge.1) then
     call rdmminc
-    write(60,*)
-    write(60,'("Natural orbital minimisation done")')
+    write(60, *)
+    write(60, '("Natural orbital minimisation done")')
     call rdmwriteengy(60)
   end if
 ! minimisation over occupation number
-  if (maxitn.ge.1) then
+  if (input%groundstate%RDMFT%maxitn.ge.1) then
     call rdmminn
-    write(60,*)
-    write(60,'("Occupation number minimisation done")')
+    write(60, *)
+    write(60, '("Occupation number minimisation done")')
     call rdmwriteengy(60)
   end if
 ! end loop over iscl
@@ -69,11 +72,10 @@ end do
 ! write density to STATE.OUT
 call writestate
 ! write occupation numbers for restart
-do ik=1,nkpt
-  call putoccsv(ik,occsv(:,ik))
+do ik=1, nkpt
+  call putoccsv(ik, occsv(:, ik))
 end do
 ! close RDM_INFO.OUT file
 close(60)
 return
 end subroutine
-

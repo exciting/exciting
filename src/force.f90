@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: force
 ! !INTERFACE:
+
+
 subroutine force
 ! !USES:
+use modinput
 use modmain
 ! !DESCRIPTION:
 !   Computes the various contributions to the atomic forces. In principle, the
@@ -31,7 +35,7 @@ use modmain
 !    \delta H_{\bf G,G'}^{\alpha}&=i({\bf G-G'})
 !    \left(H^{\alpha}_{\bf G+k,G'+k}-\frac{1}{2}({\bf G+k})\cdot({\bf G'+k})
 !    \tilde{\Theta}_{\alpha}({\bf G-G'})e^{-i({\bf G-G'})\cdot{\bf r}_{\alpha}}
-!    \right)\\
+!    \right)\&
 !    \delta O_{\bf G,G'}^{\alpha}&=i({\bf G-G'})\left(O^{\alpha}_{\bf G+k,G'+k}
 !    -\tilde{\Theta}_{\alpha}({\bf G-G'})e^{-i({\bf G-G'})\cdot{\bf r}_{\alpha}}
 !    \right)
@@ -42,7 +46,7 @@ use modmain
 !   Hamiltonian and overlap matrices, respectively. The APW-local-orbital part
 !   is given by
 !   \begin{align*}
-!    \delta H_{\bf G,G'}^{\alpha}&=i({\bf G+k})H^{\alpha}_{\bf G+k,G'+k}\\
+!    \delta H_{\bf G,G'}^{\alpha}&=i({\bf G+k})H^{\alpha}_{\bf G+k,G'+k}\&
 !    \delta O_{\bf G,G'}^{\alpha}&=i({\bf G+k})O^{\alpha}_{\bf G+k,G'+k}
 !   \end{align*}
 !   where ${\bf G}$ runs over the APW indices and ${\bf G'}$ runs over the
@@ -78,117 +82,116 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer ik,is,ia,ias,nr,i
-real(8) sum,t1
-real(8) ts0,ts1
+integer::ik, is, ia, ias, nr, i
+real(8)::sum, t1
+real(8)::ts0, ts1
 ! allocatable arrays
-real(8), allocatable :: rfmt(:,:)
-real(8), allocatable :: grfmt(:,:,:)
-real(8), allocatable :: ffacg(:,:)
+real(8), allocatable :: rfmt(:, :)
+real(8), allocatable :: grfmt(:, :, :)
+real(8), allocatable :: ffacg(:, :)
 ! external functions
-real(8) rfmtinp
+real(8)::rfmtinp
 external rfmtinp
 call timesec(ts0)
-allocate(rfmt(lmmaxvr,nrmtmax))
-allocate(grfmt(lmmaxvr,nrmtmax,3))
+allocate(rfmt(lmmaxvr, nrmtmax))
+allocate(grfmt(lmmaxvr, nrmtmax, 3))
 !--------------------------------!
 !     Hellmann-Feynman force     !
 !--------------------------------!
-do is=1,nspecies
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
+do is=1, nspecies
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
 ! compute the gradient of the Coulomb potential
-    call gradrfmt(1,nrmt(is),spr(:,is),lmmaxvr,nrmtmax,vclmt(:,:,ias),grfmt)
-    forcehf(:,ias)=-spzn(is)*grfmt(1,1,:)*y00
+    call gradrfmt(1, nrmt(is), spr(:, is), lmmaxvr, nrmtmax, vclmt(:, :, ias), grfmt)
+    forcehf(:, ias)=-spzn(is)*grfmt(1, 1, :)*y00
   end do
 end do
 ! symmetrise Hellmann-Feynman force
-call symvect(.false.,forcehf)
+call symvect(.false., forcehf)
 !--------------------------------------!
 !     core correction to the force     !
 !--------------------------------------!
-rfmt(:,:)=0.d0
-do is=1,nspecies
+rfmt(:, :)=0.d0
+do is=1, nspecies
   nr=nrmt(is)
-  do ia=1,natoms(is)
-    ias=idxas(ia,is)
+  do ia=1, natoms(is)
+    ias=idxas(ia, is)
 ! compute the gradient of the core density
-    rfmt(1,1:nr)=rhocr(1:nr,ias)/y00
-    call gradrfmt(1,nr,spr(:,is),lmmaxvr,nrmtmax,rfmt,grfmt)
-    do i=1,3
-      forcecr(i,ias)=rfmtinp(1,1,nr,spr(:,is),lmmaxvr,veffmt(:,:,ias), &
-       grfmt(:,:,i))
+    rfmt(1, 1:nr)=rhocr(1:nr, ias)/y00
+    call gradrfmt(1, nr, spr(:, is), lmmaxvr, nrmtmax, rfmt, grfmt)
+    do i=1, 3
+      forcecr(i, ias) = rfmtinp(1, 1, nr, spr(:, is), lmmaxvr, veffmt(:, :, ias), &
+       grfmt(:, :, i))
     end do
   end do
 end do
 ! symmetrise core correction force
-call symvect(.false.,forcecr)
+call symvect(.false., forcecr)
 !-------------------------------------!
 !     IBS correction to the force     !
 !-------------------------------------!
 ! set the IBS forces to zero
-forceibs(:,:)=0.d0
-if (tfibs) then
-  allocate(ffacg(ngvec,nspecies))
+forceibs(:, :)=0.d0
+if (input%groundstate%tfibs) then
+  allocate(ffacg(ngvec, nspecies))
 ! integral of effective potential with gradient of valence density
-  do is=1,nspecies
+  do is=1, nspecies
     nr=nrmt(is)
-    do ia=1,natoms(is)
-      ias=idxas(ia,is)
-      rfmt(:,1:nr)=rhomt(:,1:nr,ias)
-      rfmt(1,1:nr)=rfmt(1,1:nr)-rhocr(1:nr,ias)/y00
-      call gradrfmt(lmaxvr,nr,spr(:,is),lmmaxvr,nrmtmax,rfmt,grfmt)
-      do i=1,3
-        t1=rfmtinp(1,lmaxvr,nr,spr(:,is),lmmaxvr,veffmt(:,:,ias),grfmt(:,:,i))
-        forceibs(i,ias)=forceibs(i,ias)+t1
+    do ia=1, natoms(is)
+      ias=idxas(ia, is)
+      rfmt(:, 1:nr)=rhomt(:, 1:nr, ias)
+      rfmt(1, 1:nr)=rfmt(1, 1:nr)-rhocr(1:nr, ias)/y00
+      call gradrfmt(input%groundstate%lmaxvr, nr, spr(:, is), lmmaxvr, nrmtmax, rfmt, grfmt)
+      do i=1, 3
+	t1=rfmtinp(1, input%groundstate%lmaxvr, nr, spr(:, is), lmmaxvr, veffmt(:, :, ias), grfmt(:, :, i))
+	forceibs(i, ias)=forceibs(i, ias)+t1
       end do
     end do
   end do
 ! generate the step function form factors
-  do is=1,nspecies
-    call genffacg(is,ffacg(:,is))
+  do is=1, nspecies
+    call genffacg(is, ffacg(:, is))
   end do
 ! compute k-point dependent contribution to the IBS force
 #ifdef KSMP
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
 #endif
-  do ik=1,nkpt
-    call forcek(ik,ffacg)
+  do ik=1, nkpt
+    call forcek(ik, ffacg)
   end do
 #ifdef KSMP
 !$OMP END DO
 !$OMP END PARALLEL
 #endif
 ! symmetrise IBS force
-  call symvect(.false.,forceibs)
+  call symvect(.false., forceibs)
   deallocate(ffacg)
 end if
 ! total force
-do ias=1,natmtot
-  forcetot(:,ias)=forcehf(:,ias)+forcecr(:,ias)+forceibs(:,ias)
+do ias=1, natmtot
+  forcetot(:, ias)=forcehf(:, ias)+forcecr(:, ias)+forceibs(:, ias)
 end do
 ! symmetrise total force
-call symvect(.false.,forcetot)
+call symvect(.false., forcetot)
 ! remove net total force (center of mass should not move)
-do i=1,3
+do i=1, 3
   sum=0.d0
-  do ias=1,natmtot
-    sum=sum+forcetot(i,ias)
+  do ias=1, natmtot
+    sum=sum+forcetot(i, ias)
   end do
   sum=sum/dble(natmtot)
-  forcetot(i,:)=forcetot(i,:)-sum
+  forcetot(i, :)=forcetot(i, :)-sum
 end do
 ! compute maximum force magnitude over all atoms
 forcemax=0.d0
-do ias=1,natmtot
-  t1=sqrt(forcetot(1,ias)**2+forcetot(2,ias)**2+forcetot(3,ias)**2)
+do ias=1, natmtot
+  t1=sqrt(forcetot(1, ias)**2+forcetot(2, ias)**2+forcetot(3, ias)**2)
   if (t1.gt.forcemax) forcemax=t1
 end do
-deallocate(rfmt,grfmt)
+deallocate(rfmt, grfmt)
 call timesec(ts1)
 timefor=timefor+ts1-ts0
 return
 end subroutine
 !EOC
-

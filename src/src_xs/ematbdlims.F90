@@ -1,15 +1,17 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine ematbdlims(typ,n1,lo1,hi1,n2,lo2,hi2)
+
+subroutine ematbdlims(typ, n1, lo1, hi1, n2, lo2, hi2)
   use modmain
   use modxs
   implicit none
   ! arguments
   integer, intent(in) :: typ
-  integer, intent(out) :: n1,n2,lo1,hi1,lo2,hi2
+  integer, intent(out) :: n1, n2, lo1, hi1, lo2, hi2
   select case(typ)     
   case(0)
      ! all combinations

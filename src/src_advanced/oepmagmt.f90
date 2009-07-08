@@ -1,44 +1,45 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine oepmagmt(tsh,is,wfmt1,wfmt2,wfmt3,wfmt4,zvfmt)
+
+subroutine oepmagmt(tsh, is, wfmt1, wfmt2, wfmt3, wfmt4, zvfmt)
 use modmain
 implicit none
 ! arguments
 logical, intent(in) :: tsh
 integer, intent(in) :: is
-complex(8), intent(in) ::  wfmt1(lmmaxvr,nrcmtmax)
-complex(8), intent(in) ::  wfmt2(lmmaxvr,nrcmtmax)
-complex(8), intent(in) ::  wfmt3(lmmaxvr,nrcmtmax)
-complex(8), intent(in) ::  wfmt4(lmmaxvr,nrcmtmax)
-complex(8), intent(out) :: zvfmt(lmmaxvr,nrcmtmax,ndmag)
+complex(8), intent(in) ::  wfmt1(lmmaxvr, nrcmtmax)
+complex(8), intent(in) ::  wfmt2(lmmaxvr, nrcmtmax)
+complex(8), intent(in) ::  wfmt3(lmmaxvr, nrcmtmax)
+complex(8), intent(in) ::  wfmt4(lmmaxvr, nrcmtmax)
+complex(8), intent(out) :: zvfmt(lmmaxvr, nrcmtmax, ndmag)
 ! local variables
-integer nrc
+integer::nrc
 ! allocatable arrays
-complex(8), allocatable :: zfmt(:,:,:)
-allocate(zfmt(lmmaxvr,nrcmtmax,2))
+complex(8), allocatable :: zfmt(:, :, :)
+allocate(zfmt(lmmaxvr, nrcmtmax, 2))
 ! muffin-tin part
 nrc=nrcmt(is)
 ! up-up spin density
-call vnlrhomt(tsh,is,wfmt1,wfmt3,zfmt(:,:,1))
+call vnlrhomt(tsh, is, wfmt1, wfmt3, zfmt(:, :, 1))
 ! dn-dn spin density
-call vnlrhomt(tsh,is,wfmt2,wfmt4,zfmt(:,:,2))
+call vnlrhomt(tsh, is, wfmt2, wfmt4, zfmt(:, :, 2))
 ! calculate the z-component of mangetisation: up-up - dn-dn
-zvfmt(:,1:nrc,ndmag)=zfmt(:,1:nrc,1)-zfmt(:,1:nrc,2)
+zvfmt(:, 1:nrc, ndmag)=zfmt(:, 1:nrc, 1)-zfmt(:, 1:nrc, 2)
 ! non-collinear case
 if (ncmag) then
 ! up-dn spin density
-  call vnlrhomt(tsh,is,wfmt1,wfmt4,zfmt(:,:,1))
+  call vnlrhomt(tsh, is, wfmt1, wfmt4, zfmt(:, :, 1))
 ! dn-up spin density
-  call vnlrhomt(tsh,is,wfmt2,wfmt3,zfmt(:,:,2))
+  call vnlrhomt(tsh, is, wfmt2, wfmt3, zfmt(:, :, 2))
 ! calculate the x-component: up-dn + dn-up
-  zvfmt(:,1:nrc,1)=zfmt(:,1:nrc,1)+zfmt(:,1:nrc,2)
+  zvfmt(:, 1:nrc, 1)=zfmt(:, 1:nrc, 1)+zfmt(:, 1:nrc, 2)
 ! calculate the y-component: i*(dn-up - up-dn)
-  zvfmt(:,1:nrc,2)=zi*(zfmt(:,1:nrc,2)-zfmt(:,1:nrc,1))
+  zvfmt(:, 1:nrc, 2)=zi*(zfmt(:, 1:nrc, 2)-zfmt(:, 1:nrc, 1))
 end if
 deallocate(zfmt)
 return
 end subroutine
-

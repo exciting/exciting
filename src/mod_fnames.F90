@@ -1,5 +1,7 @@
 
+
 module mod_names
+use modinput
 ! filename for first-variational eigenvectors
 character(256) :: filetag_evecfv
 data filetag_evecfv / 'EVECFV' /
@@ -17,6 +19,7 @@ character(256) :: filetag_occsv
 data filetag_occsv / 'OCCSV' /
 
 contains
+
 
 subroutine revert_names
   implicit none

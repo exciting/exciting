@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: seceqnfv
 ! !INTERFACE:
-subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
+
+
+subroutine seceqnfv(nmatp, ngp, igpig, vgpc, apwalm, evalfv, evecfv)
   ! !USES:
+use modinput
   use modmain 
   use modfvsystem
 
@@ -34,16 +38,16 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   integer, intent(in) :: nmatp
   integer, intent(in) :: ngp
   integer, intent(in) :: igpig(ngkmax)
-  real(8), intent(in) :: vgpc(3,ngkmax)
-  complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+  real(8), intent(in) :: vgpc(3, ngkmax)
+  complex(8), intent(in) :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
   real(8), intent(out) :: evalfv(nstfv)
-  complex(8), intent(out) :: evecfv(nmatmax,nstfv)
+  complex(8), intent(out) :: evecfv(nmatmax, nstfv)
   ! local variables
   type(evsystem)::system
   logical::packed
-  integer is,ia,i,m,np,info
-  real(8) vl,vu
-  real(8) ts0,ts1
+  integer::is, ia, i, m, np, info
+  real(8)::vl, vu
+  real(8)::ts0, ts1
   ! allocatable arrays
   integer, allocatable :: iwork(:)
   integer, allocatable :: ifail(:)
@@ -58,8 +62,8 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   !----------------------------------------!
 
   packed=.true.
-  call newsystem(system,packed,nmatp)
-  call hamiltonandoverlapsetup(system,ngp,apwalm,igpig,vgpc)
+  call newsystem(system, packed, nmatp)
+  call hamiltonandoverlapsetup(system, ngp, apwalm, igpig, vgpc)
 
   !------------------------------------!
   !     solve the secular equation     !
@@ -76,23 +80,23 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   allocate(rwork(7*nmatp))
   allocate(v(1))
   allocate(work(2*nmatp))
-  call zhpgvx(1,'V','I','U',nmatp,system%hamilton%zap,&
-     system%overlap%zap,vl,vu,1,nstfv,evaltol,m,w,evecfv,nmatmax, &
-       work,rwork,iwork,ifail,info)
+  call zhpgvx(1, 'V', 'I', 'U', nmatp, system%hamilton%zap, &
+     system%overlap%zap, vl, vu, 1, nstfv, input%groundstate%solver%evaltol, m, w, evecfv, nmatmax, &
+       work, rwork, iwork, ifail, info)
   evalfv(1:nstfv)=w(1:nstfv)
 
 
 
   if (info.ne.0) then
-     write(*,*)
-     write(*,'("Error(seceqnfv): diagonalisation failed")')
-     write(*,'(" ZHPGVX returned INFO = ",I8)') info
+     write(*, *)
+     write(*, '("Error(seceqnfv): diagonalisation failed")')
+     write(*, '(" ZHPGVX returned INFO = ", I8)') info
      if (info.gt.nmatp) then
-        i=info-nmatp
-        write(*,'(" The leading minor of the overlap matrix of order ",I8)') i
-        write(*,'("  is not positive definite")')
-        write(*,'(" Order of overlap matrix : ",I8)') nmatp
-        write(*,*)
+	i=info-nmatp
+	write(*, '(" The leading minor of the overlap matrix of order ", I8)') i
+	write(*, '("  is not positive definite")')
+	write(*, '(" Order of overlap matrix : ", I8)') nmatp
+	write(*, *)
      end if
      stop
   end if
@@ -101,8 +105,7 @@ subroutine seceqnfv(nmatp,ngp,igpig,vgpc,apwalm,evalfv,evecfv)
   timefv=timefv+ts1-ts0
   !$OMP END CRITICAL
   call deleteystem(system)
-  deallocate(iwork,ifail,w,rwork,v,work)
+  deallocate(iwork, ifail, w, rwork, v, work)
   return
 end subroutine seceqnfv
 !EOC
-

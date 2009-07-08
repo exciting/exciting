@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: rdiracint
 ! !INTERFACE:
-subroutine rdiracint(m,kpa,e,np,nr,r,vr,nn,g0p,f0p,g0,g1,f0,f1)
+
+
+subroutine rdiracint(m, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, g1, f0, f1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   kpa : quantum number kappa (in,integer)
@@ -32,7 +35,7 @@ subroutine rdiracint(m,kpa,e,np,nr,r,vr,nn,g0p,f0p,g0,g1,f0,f1)
 !   the coupled first-order equations (in atomic units)
 !   \begin{align*}
 !    \left(\frac{d}{dr}+\frac{\kappa}{r}\right)G^{(m)}_\kappa&=\frac{1}{c}
-!    \{2E_0+E-V\}F^{(m)}_\kappa+\frac{m}{c}F^{(m-1)}_\kappa\\
+!    \{2E_0+E-V\}F^{(m)}_\kappa+\frac{m}{c}F^{(m-1)}_\kappa\&
 !    \left(\frac{d}{dr}-\frac{\kappa}{r}\right)F^{(m)}_\kappa&=
 !    -\frac{1}{c}\{E-V\}G^{(m)}_\kappa-\frac{m}{c}G^{(m-1)}_\kappa,
 !   \end{align*}
@@ -64,27 +67,27 @@ real(8), intent(out) :: g1(nr)
 real(8), intent(out) :: f0(nr)
 real(8), intent(out) :: f1(nr)
 ! local variables
-integer ir,ir0,npl
+integer::ir, ir0, npl
 ! fine-structure constant
 real(8), parameter :: alpha=1.d0/137.03599911d0
 ! rest mass of electron
 real(8), parameter :: e0=1.d0/(alpha**2)
-real(8) rkpa,ri
+real(8)::rkpa, ri
 ! automatic arrays
-real(8) c(np)
+real(8)::c(np)
 ! external functions
-real(8) polynom
+real(8)::polynom
 external polynom
 if (nr.le.0) then
-  write(*,*)
-  write(*,'("Error(rdiracint): invalid nr : ",I8)') nr
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(rdiracint): invalid nr : ", I8)') nr
+  write(*, *)
   stop
 end if
 if ((m.lt.0).or.(m.gt.6)) then
-  write(*,*)
-  write(*,'("Error(rdiracint): m out of range : ",I8)') m
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(rdiracint): m out of range : ", I8)') m
+  write(*, *)
   stop
 end if
 rkpa=dble(kpa)
@@ -100,16 +103,16 @@ if (m.ne.0) then
   f1(1)=f1(1)-alpha*dble(m)*g0p(1)
 end if
 nn=0
-do ir=2,nr
+do ir=2, nr
   ri=1.d0/r(ir)
 ! predictor-corrector order
-  npl=min(ir,np)
+  npl=min(ir, np)
   ir0=ir-npl+1
-  g1(ir)=polynom(0,npl-1,r(ir0),g1(ir0),c,r(ir))
-  f1(ir)=polynom(0,npl-1,r(ir0),f1(ir0),c,r(ir))
+  g1(ir)=polynom(0, npl-1, r(ir0), g1(ir0), c, r(ir))
+  f1(ir)=polynom(0, npl-1, r(ir0), f1(ir0), c, r(ir))
 ! integrate to find wavefunction
-  g0(ir)=polynom(-1,npl,r(ir0),g1(ir0),c,r(ir))+g0(ir0)
-  f0(ir)=polynom(-1,npl,r(ir0),f1(ir0),c,r(ir))+f0(ir0)
+  g0(ir)=polynom(-1, npl, r(ir0), g1(ir0), c, r(ir))+g0(ir0)
+  f0(ir)=polynom(-1, npl, r(ir0), f1(ir0), c, r(ir))+f0(ir0)
 ! compute the derivatives
   g1(ir)=alpha*(e+2.d0*e0-vr(ir))*f0(ir)-rkpa*ri*g0(ir)
   f1(ir)=-alpha*(e-vr(ir))*g0(ir)+rkpa*ri*f0(ir)
@@ -118,8 +121,8 @@ do ir=2,nr
     f1(ir)=f1(ir)-alpha*dble(m)*g0p(ir)
   end if
 ! integrate for correction
-  g0(ir)=polynom(-1,npl,r(ir0),g1(ir0),c,r(ir))+g0(ir0)
-  f0(ir)=polynom(-1,npl,r(ir0),f1(ir0),c,r(ir))+f0(ir0)
+  g0(ir)=polynom(-1, npl, r(ir0), g1(ir0), c, r(ir))+g0(ir0)
+  f0(ir)=polynom(-1, npl, r(ir0), f1(ir0), c, r(ir))+f0(ir0)
 ! compute the derivatives again
   g1(ir)=alpha*(e+2.d0*e0-vr(ir))*f0(ir)-rkpa*ri*g0(ir)
   f1(ir)=-alpha*(e-vr(ir))*g0(ir)+rkpa*ri*f0(ir)

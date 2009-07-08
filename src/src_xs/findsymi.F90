@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: findsymi
 ! !INTERFACE:
-subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat,&
+
+
+subroutine findsymi(epslat, maxsymcrys, nsymcrys, symlat, lsplsymc, vtlsymc, isymlat, &
      scimap)
 ! !DESCRIPTION:
 !   Throughout the code the symmetries are understood to be applied in a way 
@@ -25,51 +28,51 @@ subroutine findsymi(epslat,maxsymcrys,nsymcrys,symlat,lsplsymc,vtlsymc,isymlat,&
   implicit none
   ! arguments
   real(8), intent(in) :: epslat
-  integer, intent(in) :: symlat(3,3,48)
-  integer, intent(in) :: maxsymcrys,nsymcrys
+  integer, intent(in) :: symlat(3, 3, 48)
+  integer, intent(in) :: maxsymcrys, nsymcrys
   integer, intent(in) :: lsplsymc(nsymcrys)
-  real(8), intent(in) :: vtlsymc(3,maxsymcrys)
+  real(8), intent(in) :: vtlsymc(3, maxsymcrys)
   integer, intent(in) :: isymlat(48)
   integer, intent(out) :: scimap(maxsymcrys)
   ! local variables
-  real(8) :: c(3,3),si(3,3),sj(3,3),vtl(3)
-  integer :: i,isym,jsym,lspli,lsplj,iv(3)
+  real(8) :: c(3, 3), si(3, 3), sj(3, 3), vtl(3)
+  integer :: i, isym, jsym, lspli, lsplj, iv(3)
   scimap(:)=0
-  do isym=1,nsymcrys
+  do isym=1, nsymcrys
      lspli=lsplsymc(isym)
-     si(:,:)=dble(symlat(:,:,lspli))
-     do jsym=1,nsymcrys
-        lsplj=lsplsymc(jsym)
-        sj(:,:)=dble(symlat(:,:,lsplj))
+     si(:, :)=dble(symlat(:, :, lspli))
+     do jsym=1, nsymcrys
+	lsplj=lsplsymc(jsym)
+	sj(:, :)=dble(symlat(:, :, lsplj))
         ! translation
-        vtl(:)=vtlsymc(:,jsym)
-        vtl=matmul(sj,vtl)
-        vtl(:)=vtl(:)+vtlsymc(:,isym)
-        call r3frac(epslat,vtl,iv)
+	vtl(:)=vtlsymc(:, jsym)
+	vtl=matmul(sj, vtl)
+	vtl(:)=vtl(:)+vtlsymc(:, isym)
+	call r3frac(epslat, vtl, iv)
         ! rotation
-        call r3mm(si,sj,c)
+	call r3mm(si, sj, c)
         ! subract unit matrix
-        forall (i=1:3)
-           c(i,i)=c(i,i)-1.d0
-        end forall
-        if ((sum(vtl).lt.epslat).and.(sum(abs(c)).lt.epslat)) then
+	forall (i=1:3)
+	   c(i, i)=c(i, i)-1.d0
+	end forall
+	if ((sum(vtl).lt.epslat).and.(sum(abs(c)).lt.epslat)) then
            ! isym is inverse of jsym
-           scimap(isym)=jsym
-           goto 10
-        end if        
+	   scimap(isym)=jsym
+	   goto 10
+	end if	      
      end do
 10   continue
      ! check if inverse symmetry is consistent with inverse lattice symmetry
      if (isymlat(lsplsymc(isym)).ne.lsplsymc(jsym)) then
-        write(*,*)
-        write(*,'("Error(findsymi): inconsistency with inverse lattice &
-             &symmetry")')
-        write(*,'(" space group symmetry:",t40,i6)') isym
-        write(*,'(" lattice symmetry:",t40,i6)') lsplsymc(isym)
-        write(*,'(" inverse lattice symmetry:",t40,i6)') isymlat(lsplsymc(isym))
-        write(*,'(" proposed inverse lattice symmetry:",t40,i6)') lsplsymc(jsym)
-        write(*,*)
-        call terminate
+	write(*, *)
+	write(*, '("Error(findsymi): inconsistency with inverse lattice &
+	     &symmetry")')
+	write(*, '(" space group symmetry:", t40, i6)') isym
+	write(*, '(" lattice symmetry:", t40, i6)') lsplsymc(isym)
+	write(*, '(" inverse lattice symmetry:", t40, i6)') isymlat(lsplsymc(isym))
+	write(*, '(" proposed inverse lattice symmetry:", t40, i6)') lsplsymc(jsym)
+	write(*, *)
+	call terminate
      end if
   end do
 end subroutine findsymi

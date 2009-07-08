@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: zflmconj
 ! !INTERFACE:
-subroutine zflmconj(lmax,zflm1,zflm2)
+
+
+subroutine zflmconj(lmax, zflm1, zflm2)
 ! !INPUT/OUTPUT PARAMETERS:
 !   lmax  : maximum angular momentum (in,integer)
 !   zflm1 : coefficients of input complex spherical harmonic expansion
@@ -32,18 +35,18 @@ integer, intent(in) :: lmax
 complex(8), intent(in) :: zflm1(*)
 complex(8), intent(out) :: zflm2(*)
 ! local variables
-integer l,m,lm1,lm2
+integer::l, m, lm1, lm2
 complex(8) zt1
-do l=0,lmax
+do l=0, lmax
   lm1=l**2
   lm2=(l+1)**2+1
-  do m=-l,-1
+  do m=-l, -1
     lm1=lm1+1
     lm2=lm2-1
     zt1=zflm1(lm1)
     zflm2(lm1)=conjg(zflm1(lm2))
     zflm2(lm2)=conjg(zt1)
-    if (mod(m,2).ne.0) then
+    if (mod(m, 2).ne.0) then
       zflm2(lm1)=-zflm2(lm1)
       zflm2(lm2)=-zflm2(lm2)
     end if

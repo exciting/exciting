@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,7 @@
 !BOP
 ! !ROUTINE: polynom
 ! !INTERFACE:
-real(8) function polynom(m,np,xa,ya,c,x)
+real(8) function polynom(m, np, xa, ya, c, x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m  : order of derivative (in,integer)
 !   np : number of points to fit (in,integer)
@@ -33,9 +34,9 @@ real(8), intent(in) :: ya(np)
 real(8), intent(out) :: c(np)
 real(8), intent(in) :: x
 ! local variables
-integer i,j,k
-real(8) x0,x1,x2,x3,y1,y2,y3
-real(8) t1,t2,t3,t4,t5,t6,t7,sum
+integer::i, j, k
+real(8)::x0, x1, x2, x3, y1, y2, y3
+real(8)::t1, t2, t3, t4, t5, t6, t7, sum
 ! fast evaluations for small np
 select case(np)
 case(1)
@@ -106,8 +107,8 @@ case(4)
   t1=x-xa(1)
   select case(m)
   case(:-1)
-    polynom=t1*(ya(1)+t1*(0.5d0*c(2)+t1*(0.3333333333333333333d0*c(3) &
-     +0.25d0*c(4)*t1)))
+    polynom = t1 * (ya(1) + t1 * (0.5d0 * c(2) + t1 * (0.3333333333333333333d0 * c(3) &
+     +0.25d0 * c(4) * t1)))
   case(0)
     polynom=ya(1)+t1*(c(2)+t1*(c(3)+c(4)*t1))
   case(1)
@@ -122,9 +123,9 @@ case(4)
   return
 end select
 if (np.le.0) then
-  write(*,*)
-  write(*,'("Error(polynom): np <= 0 : ",I8)') np
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(polynom): np <= 0 : ", I8)') np
+  write(*, *)
   stop
 end if
 if (m.ge.np) then
@@ -133,8 +134,8 @@ if (m.ge.np) then
 end if
 ! find the polynomial coefficients in divided differences form
 c(:)=ya(:)
-do i=2,np
-  do j=np,i,-1
+do i=2, np
+  do j=np, i, -1
     c(j)=(c(j)-c(j-1))/(xa(j)-xa(j+1-i))
   end do
 end do
@@ -142,7 +143,7 @@ end do
 if (m.eq.0) then
   sum=c(1)
   t1=1.d0
-  do i=2,np
+  do i=2, np
     t1=t1*(x-xa(i-1))
     sum=sum+c(i)*t1
   end do
@@ -151,22 +152,22 @@ if (m.eq.0) then
 end if
 x0=xa(1)
 ! convert to standard form
-do j=1,np-1
-  do i=1,np-j
+do j=1, np-1
+  do i=1, np-j
     k=np-i
     c(k)=c(k)+(x0-xa(k-j+1))*c(k+1)
   end do
 end do
 if (m.gt.0) then
 ! take the m'th derivative
-  do j=1,m
-    do i=m+1,np
+  do j=1, m
+    do i=m+1, np
       c(i)=c(i)*dble(i-j)
     end do
   end do
   t1=c(np)
   t2=x-x0
-  do i=np-1,m+1,-1
+  do i=np-1, m+1, -1
     t1=t1*t2+c(i)
   end do
   polynom=t1
@@ -174,7 +175,7 @@ else
 ! find the integral
   t1=c(np)/dble(np)
   t2=x-x0
-  do i=np-1,1,-1
+  do i=np-1, 1, -1
     t1=t1*t2+c(i)/dble(i)
   end do
   polynom=t1*t2

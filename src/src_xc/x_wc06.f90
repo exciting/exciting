@@ -1,9 +1,11 @@
 
+
 ! Copyright (C) 2006 Zhigang Wu and R. E. Cohen.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
-subroutine x_wc06(rho,s,u,v,ex,vx)
+
+subroutine x_wc06(rho, s, u, v, ex, vx)
 implicit none
 ! arguments
 real(8), intent(in) :: rho
@@ -21,9 +23,9 @@ real(8), parameter :: b=10.d0/81.d0
 real(8), parameter :: c=0.00793746933516d0
 real(8), parameter :: thrd=1.d0/3.d0
 real(8), parameter :: thrd4=4.d0/3.d0
-real(8) dmu,exu
-real(8) s2,s4,es2,x,p0,fxwc
-real(8) fs,fss,t0,t1,t2,t3
+real(8)::dmu, exu
+real(8)::s2, s4, es2, x, p0, fxwc
+real(8)::fs, fss, t0, t1, t2, t3
 ! lda exchange energy density
 exu=ax*rho**thrd
 s2=s**2
@@ -46,4 +48,3 @@ fss=t3*(4.d0*t2-8.d0*s*(t1**2)/(kappa*p0))
 vx=exu*(thrd4*fxwc-(u-thrd4*s2*s)*fss-v*fs)
 return
 end
-

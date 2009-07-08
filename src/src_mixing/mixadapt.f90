@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: mixadapt
 ! !INTERFACE:
-subroutine mixadapt(iscl,beta0,betainc,betadec,n,nu,mu,beta,f,d)
+
+
+subroutine mixadapt(iscl, beta0, betainc, betadec, n, nu, mu, beta, f, d)
 ! !INPUT/OUTPUT PARAMETERS:
 !   iscl    : self-consistent loop number (in,integer)
 !   beta0   : initial value for mixing parameter (in,real)
@@ -53,11 +56,11 @@ real(8), intent(inout) :: beta(n)
 real(8), intent(inout) :: f(n)
 real(8), intent(out) :: d
 ! local variables
-integer i
-real(8) t1
+integer::i
+real(8)::t1
 
 d=0.d0
-do i=1,n
+do i=1, n
   d=d+(nu(i)-mu(i))**2
 end do
 d=sqrt(d/dble(n))
@@ -70,7 +73,7 @@ if (iscl.le.1) then
   d=1.d0
   return
 end if
-do i=1,n
+do i=1, n
   t1=nu(i)-mu(i)
   if (t1*f(i).gt.0.d0) then
     beta(i)=beta(i)*betainc
@@ -86,4 +89,3 @@ mu(:)=nu(:)
 return
 end subroutine
 !EOC
-

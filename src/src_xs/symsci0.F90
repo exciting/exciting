@@ -1,9 +1,11 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine symsci0(flag,scrnh0,scrnih0,scrnisym)
+
+subroutine symsci0(flag, scrnh0, scrnih0, scrnisym)
   implicit none
   ! arguments
   integer, intent(in) :: flag
@@ -22,10 +24,10 @@ subroutine symsci0(flag,scrnh0,scrnih0,scrnisym)
      ! the diagonal tensor components of the inverse of the screening matrix
      scrnisym=sum(scrnih0)/3.d0
   case default
-     write(*,*)
-     write(*,'("Error(symsci0): not a valid choice for symmetrizing")')
-     write(*,'(" the screened Coulomb interaction for q=0:",i8)') flag
-     write(*,*)
+     write(*, *)
+     write(*, '("Error(symsci0): not a valid choice for symmetrizing")')
+     write(*, '(" the screened Coulomb interaction for q=0:", i8)') flag
+     write(*, *)
      call terminate
   end select
 end subroutine symsci0

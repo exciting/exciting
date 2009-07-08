@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: wavefmt
 ! !INTERFACE:
-subroutine wavefmt(lrstp,lmax,is,ia,ngp,apwalm,evecfv,ld,wfmt)
+
+
+subroutine wavefmt(lrstp, lmax, is, ia, ngp, apwalm, evecfv, ld, wfmt)
 ! !USES:
+use modinput
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   lrstp  : radial step length (in,integer)
@@ -50,53 +54,53 @@ integer, intent(in) :: lmax
 integer, intent(in) :: is
 integer, intent(in) :: ia
 integer, intent(in) :: ngp
-complex(8), intent(in) :: apwalm(ngkmax,apwordmax,lmmaxapw,natmtot)
+complex(8), intent(in) :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
 complex(8), intent(in) :: evecfv(nmatmax)
 integer, intent(in) :: ld
-complex(8), intent(out) :: wfmt(ld,*)
+complex(8), intent(out) :: wfmt(ld, *)
 ! local variables
-integer ias,l,m,lm,i
-integer ir,nr,io,ilo
-real(8) a,b
+integer::ias, l, m, lm, i
+integer::ir, nr, io, ilo
+real(8)::a, b
 complex(8) zt1
 ! external functions
 complex(8) zdotu
 external zdotu
-if (lmax.gt.lmaxapw) then
-  write(*,*)
-  write(*,'("Error(wavefmt): lmax > lmaxapw : ",I8)') lmax
-  write(*,*)
+if (lmax.gt.input%groundstate%lmaxapw) then
+  write(*, *)
+  write(*, '("Error(wavefmt): lmax > lmaxapw : ", I8)') lmax
+  write(*, *)
   stop
 end if
-ias=idxas(ia,is)
+ias=idxas(ia, is)
 ! zero the wavefunction
 nr=0
-do ir=1,nrmt(is),lrstp
+do ir=1, nrmt(is), lrstp
   nr=nr+1
-  wfmt(:,nr)=0.d0
+  wfmt(:, nr)=0.d0
 end do
 ! APW functions
-do l=0,lmax
-  do m=-l,l
-    lm=idxlm(l,m)
-    do io=1,apword(l,is)
-      zt1=zdotu(ngp,evecfv,1,apwalm(:,io,lm,ias),1)
+do l=0, lmax
+  do m=-l, l
+    lm=idxlm(l, m)
+    do io=1, apword(l, is)
+      zt1=zdotu(ngp, evecfv, 1, apwalm(:, io, lm, ias), 1)
       a=dble(zt1)
       b=aimag(zt1)
-      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,apwfr(:,:,io,l,ias))
+      call wavefmt_add(nr, ld, wfmt(lm, 1), a, b, lrstp, apwfr(:, :, io, l, ias))
     end do
   end do
 end do
 ! local-orbital functions
-do ilo=1,nlorb(is)
-  l=lorbl(ilo,is)
+do ilo=1, nlorb(is)
+  l=lorbl(ilo, is)
   if (l.le.lmax) then
-    do m=-l,l
-      lm=idxlm(l,m)
-      i=ngp+idxlo(lm,ilo,ias)
+    do m=-l, l
+      lm=idxlm(l, m)
+      i=ngp+idxlo(lm, ilo, ias)
       a=dble(evecfv(i))
       b=aimag(evecfv(i))
-      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,lofr(:,:,ilo,ias))
+      call wavefmt_add(nr, ld, wfmt(lm, 1), a, b, lrstp, lofr(:, :, ilo, ias))
     end do
   end if
 end do
@@ -107,7 +111,9 @@ end subroutine
 !BOP
 ! !ROUTINE: wavefmt_add
 ! !INTERFACE:
-subroutine wavefmt_add(nr,ld,wfmt,a,b,lrstp,fr)
+
+
+subroutine wavefmt_add(nr, ld, wfmt, a, b, lrstp, fr)
 ! !INPUT/OUTPUT PARAMETERS:
 !   nr     : number of radial mesh points (in,integer)
 !   ld     : leading dimension (in,integer)
@@ -129,35 +135,34 @@ implicit none
 ! arguments
 integer, intent(in) :: nr
 integer, intent(in) :: ld
-real(8), intent(inout) :: wfmt(2*ld,*)
+real(8), intent(inout) :: wfmt(2*ld, *)
 real(8), intent(in) :: a
 real(8), intent(in) :: b
 integer, intent(in) :: lrstp
-real(8), intent(in) :: fr(lrstp,*)
+real(8), intent(in) :: fr(lrstp, *)
 ! local variables
-integer ir
+integer::ir
 ! values smaller than eps are taken to be zero
 real(8), parameter :: eps=1.d-14
 if (abs(b).lt.eps) then
 ! zero constant
   if (abs(a).lt.eps) return
 ! pure real constant
-  do ir=1,nr
-    wfmt(1,ir)=wfmt(1,ir)+a*fr(1,ir)
+  do ir=1, nr
+    wfmt(1, ir)=wfmt(1, ir)+a*fr(1, ir)
   end do
 else if (abs(a).lt.eps) then
 ! pure imaginary constant
-  do ir=1,nr
-    wfmt(2,ir)=wfmt(2,ir)+b*fr(1,ir)
+  do ir=1, nr
+    wfmt(2, ir)=wfmt(2, ir)+b*fr(1, ir)
   end do
 else
 ! general complex constant
-  do ir=1,nr
-    wfmt(1,ir)=wfmt(1,ir)+a*fr(1,ir)
-    wfmt(2,ir)=wfmt(2,ir)+b*fr(1,ir)
+  do ir=1, nr
+    wfmt(1, ir)=wfmt(1, ir)+a*fr(1, ir)
+    wfmt(2, ir)=wfmt(2, ir)+b*fr(1, ir)
   end do
 end if
 return
 end subroutine
 !EOC
-

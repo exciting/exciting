@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: zmatinp
 ! !INTERFACE:
-subroutine zmatinp(tapp,n,alpha,x,y,v,a)
+
+
+subroutine zmatinp(tapp, n, alpha, x, y, v, a)
 ! !INPUT/OUTPUT PARAMETERS:
 !   tapp  : .true. if the matrix is to be applied to the input vector v,
 !           .false. if the full matrix is to be calculated (in,logical)
@@ -41,18 +44,18 @@ complex(8), intent(in) :: y(n)
 complex(8), intent(in) :: v(n)
 complex(8), intent(inout) :: a(*)
 ! local variables
-integer i,j,k
-real(8) a1,a2
+integer::i, j, k
+real(8)::a1, a2
 ! numbers less than eps are considered to be zero
 real(8), parameter :: eps=1.d-12
-complex(8) zt1,zt2
+complex(8) zt1, zt2
 if (tapp) then
 !--------------------------!
 !     apply the matrix     !
 !--------------------------!
   zt1=y(1)*v(1)
   zt2=x(1)*v(1)
-  do j=2,n
+  do j=2, n
     zt1=zt1+y(j)*v(j)
     zt2=zt2+x(j)*v(j)
   end do
@@ -60,7 +63,7 @@ if (tapp) then
   zt2=alpha*conjg(zt2)
   if ((abs(aimag(zt1)).gt.eps).or.(abs(aimag(zt2)).gt.eps)) then
 ! complex prefactors
-    do i=1,n
+    do i=1, n
       a(i)=a(i)+conjg(zt1*x(i)+zt2*y(i))
     end do
   else
@@ -68,8 +71,8 @@ if (tapp) then
     a1=dble(zt1)
     a2=dble(zt2)
     if ((abs(a1).gt.eps).or.(abs(a2).gt.eps)) then
-      do i=1,n
-        a(i)=a(i)+conjg(a1*x(i)+a2*y(i))
+      do i=1, n
+	a(i)=a(i)+conjg(a1*x(i)+a2*y(i))
       end do
     end if
   end if
@@ -78,29 +81,29 @@ else
 !     calculate the matrix elements     !
 !---------------------------------------!
   k=0
-  do j=1,n
+  do j=1, n
     if ((abs(dble(x(j))).gt.eps).or.(abs(aimag(x(j))).gt.eps).or. &
      (abs(dble(y(j))).gt.eps).or.(abs(aimag(y(j))).gt.eps)) then
       zt1=conjg(alpha*y(j))
       zt2=alpha*conjg(x(j))
       if ((abs(aimag(zt1)).gt.eps).or.(abs(aimag(zt2)).gt.eps)) then
 ! complex prefactors
-        do i=1,j-1
-          k=k+1
-          a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
-        end do
-        k=k+1
-        a(k)=dble(a(k))+2.d0*dble(zt1*x(j))
+	do i=1, j-1
+	  k=k+1
+	  a(k)=a(k)+conjg(zt1*x(i)+zt2*y(i))
+	end do
+	k=k+1
+	a(k)=dble(a(k))+2.d0*dble(zt1*x(j))
       else
 ! real prefactors
-        a1=dble(zt1)
-        a2=dble(zt2)
-        do i=1,j-1
-          k=k+1
-          a(k)=a(k)+conjg(a1*x(i)+a2*y(i))
-        end do
-        k=k+1
-        a(k)=dble(a(k))+2.d0*a1*dble(x(j))
+	a1=dble(zt1)
+	a2=dble(zt2)
+	do i=1, j-1
+	  k=k+1
+	  a(k)=a(k)+conjg(a1*x(i)+a2*y(i))
+	end do
+	k=k+1
+	a(k)=dble(a(k))+2.d0*a1*dble(x(j))
       end if
     else
       k=k+j

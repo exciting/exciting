@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,6 +7,8 @@
 !BOP
 ! !ROUTINE: genveffig
 ! !INTERFACE:
+
+
 subroutine genveffig
 ! !USES:
 use modmain
@@ -20,15 +23,15 @@ use modmain
 !BOC
 implicit none
 ! local variables
-integer ig,ifg
+integer::ig, ifg
 ! allocatable arrays
 complex(8), allocatable :: zfft(:)
 allocate(zfft(ngrtot))
 ! multiply effective potential with characteristic function
 zfft(:)=veffir(:)*cfunir(:)
 ! Fourier transform to G-space
-call zfftifc(3,ngrid,-1,zfft)
-do ig=1,ngvec
+call zfftifc(3, ngrid, -1, zfft)
+do ig=1, ngvec
   ifg=igfft(ig)
   veffig(ig)=zfft(ifg)
 end do

@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: df
 ! !INTERFACE:
+
+
 subroutine df
 ! !USES:
+use modinput
   use modmain
   use modxs
   use modmpi
@@ -39,41 +43,41 @@ subroutine df
   call init2
   if (tscreen) then
      ! generate Gaunt coefficients
-     call xsgauntgen(max(lmaxapw,lolmax),lmaxemat,max(lmaxapw,lolmax))
+     call xsgauntgen(max(input%groundstate%lmaxapw, lolmax), input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
      ! find indices for non-zero Gaunt coefficients
-     call findgntn0(max(lmaxapwwf,lolmax),max(lmaxapwwf,lolmax),lmaxemat,xsgnt)
+     call findgntn0(max(input%xs%lmaxapwwf, lolmax), max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
   end if
   ! read Fermi energy
   call readfermi
   ! w-point parallelization for dielectric function
   if (tscreen) then
      nwdf=1
-     call genparidxran('q',nqpt)
+     call genparidxran('q', nqpt)
   else
-     call genparidxran('w',nwdf)
+     call genparidxran('w', nwdf)
   end if
   ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
-  emattype=1
+  input%xs%emattype=1
   ! write out q-points
   call writeqpts
   ! loop over q-points
-  do iq=qpari,qparf
-     call genfilname(iq=iq,fileext=filex)
+  do iq=qpari, qparf
+     call genfilname(iq=iq, fileext=filex)
      ! call for q-point
-     if (.not.gather) call dfq(iq)
-     if (tscreen) call writegqpts(iq,filex)
-     write(unitout,'(a,i8)') 'Info('//thisnam//'): Kohn Sahm response &
-          &function finished for q-point:',iq
+     if (.not.input%xs%gather) call dfq(iq)
+     if (tscreen) call writegqpts(iq, filex)
+     write(unitout, '(a, i8)') 'Info('//thisnam//'): Kohn Sahm response &
+	  &function finished for q - point:', iq
   end do
   ! synchronize
-  if (.not.gather) call barrier
+  if (.not.input%xs%gather) call barrier
   if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call dfgather
-  if (.not.gather) call barrier
-  write(unitout,'(a)') "Info("//trim(thisnam)//"): Kohn-Sham response &
+  if (.not.input%xs%gather) call barrier
+  write(unitout, '(a)') "Info("//trim(thisnam)//"): Kohn-Sham response &
        &function finished"
-  if (gather) then
-     write(unitout,'(a)') "Info("//trim(thisnam)//"): gather option: &
-          &exiting program"
+  if (input%xs%gather) then
+     write(unitout, '(a)') "Info("//trim(thisnam)//"): gather option: &
+	  &exiting program"
      call xsfinit
      call terminate
   end if

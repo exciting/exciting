@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -7,8 +8,10 @@ module m_gndstateq
   implicit none
 contains
 
-  subroutine gndstateq(voff,filxt)
+
+subroutine gndstateq(voff, filxt)
     use modmain
+use modinput
     implicit none
     ! arguments
     real(8), intent(in) :: voff(:)
@@ -19,21 +22,21 @@ contains
     integer :: task_save, maxscl_save
     ! save original values
     filext_save=trim(filext)
-    vkloff_save=vkloff
+    vkloff_save=input%groundstate%vkloff
     task_save=task
-    maxscl_save=maxscl
+    maxscl_save=input%groundstate%maxscl
     ! one iteration, new offset, special file extension
     filext=trim(filxt)
-    vkloff=voff
+    input%groundstate%vkloff=voff
     task=1
-    maxscl=1
+    input%groundstate%maxscl=1
     ! call with the above parameters changed
     call gndstate
     ! restore original parameters
     filext=trim(filext_save)
-    vkloff=vkloff_save
+    input%groundstate%vkloff=vkloff_save
     task=task_save
-    maxscl=maxscl_save
+    input%groundstate%maxscl=maxscl_save
   end subroutine gndstateq
 
 end module m_gndstateq

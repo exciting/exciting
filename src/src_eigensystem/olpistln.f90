@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: olpistl
 ! !INTERFACE:
-subroutine olpistln(overlap,ngp,igpig)
+
+
+subroutine olpistln(overlap, ngp, igpig)
 ! !USES:
 use modmain
 use modfvsystem
@@ -30,27 +33,27 @@ use modfvsystem
 !BOC
 implicit none
 ! arguments
-type(HermiteanMatrix),intent(inout)::overlap
+type(HermiteanMatrix), intent(inout)::overlap
 integer, intent(in) :: ngp
 integer, intent(in) :: igpig(ngkmax)
 
 
 ! local variables
-integer i,j,k,iv(3),ig
+integer::i, j, k, iv(3), ig
 complex(8) zt1
 
 ! calculate the matrix elements
 !$omp parallel default(shared) & 
 !$omp  private(iv,ig,i,j)
 !$omp do
-  do j=1,ngp
+  do j=1, ngp
     !k=((j-1)*j)/2
-    do i=1,j
+    do i=1, j
       !k=k+1
-      iv(:)=ivg(:,igpig(i))-ivg(:,igpig(j))
-      ig=ivgig(iv(1),iv(2),iv(3))
+      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
+      ig=ivgig(iv(1), iv(2), iv(3))
       if ((ig.gt.0).and.(ig.le.ngvec)) then
-          call Hermiteanmatrix_indexedupdate(overlap,j,i,cfunig(ig))
+	  call Hermiteanmatrix_indexedupdate(overlap, j, i, cfunig(ig))
       end if
     end do
   end do
@@ -60,4 +63,3 @@ complex(8) zt1
 return
 end subroutine
 !EOC
-

@@ -1,9 +1,11 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine genparidxran(typ,n)
+
+subroutine genparidxran(typ, n)
   use modmain
   use modmpi
   use modxs
@@ -15,13 +17,13 @@ subroutine genparidxran(typ,n)
   integer :: np
   ! check if number of processors is greater than set
   if (procs.gt.n) then
-     write(*,*)
-     write(*,'("Error(genparidxran): number of processors exceeds size of &
-        &set")')
-     write(*,'(" parallelization type : ",a)') typ
-     write(*,'(" size of set          : ",i6)') n
-     write(*,'(" number of processors : ",i6)') procs
-     write(*,*)
+     write(*, *)
+     write(*, '("Error(genparidxran): number of processors exceeds size of &
+	&set")')
+     write(*, '(" parallelization type : ", a)') typ
+     write(*, '(" size of set	       : ", i6)') n
+     write(*, '(" number of processors : ", i6)') procs
+     write(*, *)
      call terminate
   end if
   ! default values
@@ -37,23 +39,23 @@ subroutine genparidxran(typ,n)
   pparf=np
   select case (typ)
      case('w')
-        wpari=firstofset(rank,n)
-        wparf=lastofset(rank,n)
+	wpari=firstofset(rank, n)
+	wparf=lastofset(rank, n)
      case('q')
-        qpari=firstofset(rank,n)
-        qparf=lastofset(rank,n)        
+	qpari=firstofset(rank, n)
+	qparf=lastofset(rank, n)	
      case('k')
-        kpari=firstofset(rank,n)
-        kparf=lastofset(rank,n)
+	kpari=firstofset(rank, n)
+	kparf=lastofset(rank, n)
      case('p')
-        ppari=firstofset(rank,n)
-        pparf=lastofset(rank,n)
+	ppari=firstofset(rank, n)
+	pparf=lastofset(rank, n)
      case default
-        write(*,*)
-        write(*,'("Error(genparidxran): unknown parallelization type: ",a)') &
-             typ
-        write(*,*)
-        call terminate
+	write(*, *)
+	write(*, '("Error(genparidxran): unknown parallelization type: ", a)') &
+	     typ
+	write(*, *)
+	call terminate
   end select
   partype=typ
 end subroutine genparidxran

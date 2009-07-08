@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -13,8 +14,8 @@ real(8) function stheta_sq(x)
 !   Returns the Heaviside step function corresponding to the square-wave pulse
 !   approximation to the Dirac delta function
 !   $$ \tilde\Theta(x)=\left\{\begin{array}{ll}
-!    0 & \quad x \le -1/2 \\
-!    x+1/2 & \quad -1/2 < x < 1/2 \\
+!    0 & \quad x \le -1/2 \&
+!    x+1/2 & \quad -1/2 < x < 1/2 \&
 !    1 & \quad x\ge 1 \end{array}\right. $$
 !
 ! !REVISION HISTORY:
@@ -36,4 +37,3 @@ end if
 return
 end function
 !EOC
-

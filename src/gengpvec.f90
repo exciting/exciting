@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,7 +7,9 @@
 !BOP
 ! !ROUTINE: gengpvec
 ! !INTERFACE:
-subroutine gengpvec(vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
+
+
+subroutine gengpvec(vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc)
 ! !USES:
 use modmain
 ! !INPUT/OUTPUT PARAMETERS:
@@ -33,34 +36,34 @@ real(8), intent(in) :: vpl(3)
 real(8), intent(in) :: vpc(3)
 integer, intent(out) :: ngp
 integer, intent(out) :: igpig(ngkmax)
-real(8), intent(out) :: vgpl(3,ngkmax)
-real(8), intent(out) :: vgpc(3,ngkmax)
+real(8), intent(out) :: vgpl(3, ngkmax)
+real(8), intent(out) :: vgpc(3, ngkmax)
 real(8), intent(out) :: gpc(ngkmax)
-real(8), intent(out) :: tpgpc(2,ngkmax)
+real(8), intent(out) :: tpgpc(2, ngkmax)
 ! local variables
-integer ig,igp
-real(8) v(3),t1,t2
+integer::ig, igp
+real(8)::v(3), t1, t2
 t1=gkmax**2
 igp=0
-do ig=1,ngvec
-  v(:)=vgc(:,ig)+vpc(:)
+do ig=1, ngvec
+  v(:)=vgc(:, ig)+vpc(:)
   t2=v(1)**2+v(2)**2+v(3)**2
   if (t2.lt.t1) then
     igp=igp+1
     if (igp.gt.ngkmax) then
-      write(*,*)
-      write(*,'("Error(gengpvec): number of G+p-vectors exceeds ngkmax")')
-      write(*,*)
+      write(*, *)
+      write(*, '("Error(gengpvec): number of G+p-vectors exceeds ngkmax")')
+      write(*, *)
       stop
     end if
 ! index to G-vector
     igpig(igp)=ig
 ! G+p-vector in lattice coordinates
-    vgpl(:,igp)=dble(ivg(:,ig))+vpl(:)
+    vgpl(:, igp)=dble(ivg(:, ig))+vpl(:)
 ! G+p-vector in Cartesian coordinates
-    vgpc(:,igp)=v(:)
+    vgpc(:, igp)=v(:)
 ! G+p-vector length and (theta, phi) coordinates
-    call sphcrd(vgpc(:,igp),gpc(igp),tpgpc(:,igp))
+    call sphcrd(vgpc(:, igp), gpc(igp), tpgpc(:, igp))
   end if
 end do
 ngp=igp
