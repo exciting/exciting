@@ -214,6 +214,18 @@ tetracw1k=.false.
 #endif
 #ifdef XS
 ! XS variables
+nosymxs=.false.
+ngridkxs(:)=1
+vkloffxs(:)=0.d0
+reducekxs=.true.
+ngridqxs(:)=1
+reduceqxs=.true.
+rgkmaxxs=7.d0
+swidthxs=0.01d0
+lmaxapwxs=8
+lmaxmatxs=5
+nemptyxs=5
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
@@ -1057,6 +1069,84 @@ case('tetracw1k')
 #endif
 #ifdef XS
 ! TDDFT variables
+nosymxs=.false.
+ngridkxs(:)=1
+vkloffxs(:)=0.d0
+reducekxs=.true.
+ngridqxs(:)=1
+reduceqxs=.true.
+rgkmaxxs=7.d0
+swidthxs=0.01d0
+lmaxapwxs=8
+lmaxmatxs=5
+nemptyxs=5
+
+case('nosymxs')
+  read(50,*,err=20) nosymxs
+case('ngridkxs')
+  read(50,*,err=20) ngridkxs(:)
+  if ((ngridkxs(1).le.0).or.(ngridkxs(2).le.0).or.(ngridkxs(3).le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): invalid ngridkxs : ",3I8)') ngridkxs
+    write(*,*)
+    stop
+  end if
+case('vkloffxs')
+  read(50,*,err=20) vkloffxs(:)
+case('reducekxs')
+  read(50,*,err=20) reducekxs
+case('ngridqxs')
+  read(50,*,err=20) ngridqxs(:)
+  if ((ngridqxs(1).le.0).or.(ngridqxs(2).le.0).or.(ngridqxs(3).le.0)) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): invalid ngridqxs : ",3I8)') ngridqxs
+    write(*,*)
+    stop
+  end if
+case('reduceqxs')
+  read(50,*,err=20) reduceqxs
+case('rgkmaxxs')
+  read(50,*,err=20) rgkmaxxs
+  if (rgkmaxxs.le.0.d0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): rgkmaxxs <= 0 : ",G18.10)') rgkmaxxs
+    write(*,*)
+    stop
+  end if
+case('swidthxs')
+  read(50,*,err=20) swidthxs
+  if (swidth.lt.1.d-9) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): swidthxs too small or negative : ",G18.10)') &
+     swidthxs
+    write(*,*)
+    stop
+  end if
+case('lmaxapwxs')
+  read(50,*,err=20) lmaxapwxs
+  if (lmaxapwxs.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): lmaxapwxs < 0 : ",I8)') lmaxapwxs
+    write(*,*)
+    stop
+  end if
+case('lmaxmatxs')
+  read(50,*,err=20) lmaxmatxs
+  if (lmaxmatxs.lt.0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): lmaxmatxs < 0 : ",I8)') lmaxmatxs
+    write(*,*)
+    stop
+  end if
+case('nemptyxs')
+  read(50,*,err=20) nemptyxs
+  if (nemptyxs.le.0) then
+    write(*,*)
+    write(*,'("Error(readinput/xs): nemptyxs <= 0 : ",I8)') nemptyxs
+    write(*,*)
+    stop
+  end if
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 case('vgqlmt')
   read(50,*,err=20) nqptmt
   if (nqptmt.le.0) then
@@ -1092,7 +1182,7 @@ case('lmaxapwwf')
   read(50,*,err=20) lmaxapwwf
   if (lmaxapwwf.lt.0) then
     write(*,*)
-    write(*,'("Error(readinput)/xs: lmaxapwwf < 0 : ",I8)') lmaxapwwf
+    write(*,'("Error(readinput/xs): lmaxapwwf < 0 : ",I8)') lmaxapwwf
     write(*,*)
     stop
   end if

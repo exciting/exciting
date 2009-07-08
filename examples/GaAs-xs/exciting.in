@@ -2,19 +2,27 @@
 ! GaAs test example for excited states implementation
 
 tasks
-0
 301
 320
 330
-401
-420
-430
-440
-441
 445
 450
 345
 350
+
+#0
+#301
+#320
+#330
+#401
+#420
+#430
+#440
+#441
+#445
+#450
+#345
+#350
 
 avec
   5.3435 5.3435 0.0000
@@ -38,6 +46,9 @@ atoms
 ! GS-parameters used for xs-part
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+ngridq
+  3  4  2
+
 ngridk
   3  4  2
 
@@ -45,7 +56,7 @@ vkloff
   0.1 0.3 0.5
 
 nempty
-6
+4
 
 dos
 200 100 0
@@ -60,6 +71,12 @@ optcomp
 ! xs-parameters below
 !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+aresdf
+.false.
+
+aresfxc
+.false.
+
 swidth
 0.001
 
@@ -73,8 +90,8 @@ gqmax
 bsetype
 'singlet'
 
-nstlbse
-2  2
+#nstlbse
+#2  2
   
 fxctype
 8

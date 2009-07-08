@@ -41,7 +41,7 @@ contains
     character(*), parameter :: thisnam='dysonsym'
     complex(8),parameter :: zone=(1.d0,0.d0),zzero=(0.d0,0.d0)
     complex(8), allocatable :: mt(:,:),mt2(:,:)
-    integer :: shs0(2),shk(2),shs(2),nmin,nmax,i,j
+    integer :: shs0(2),shk(2),shs(2),nmin,nmax,j
 
   complex(8), allocatable :: solv(:),s0row(:),s0col(:),u(:,:),vh(:,:),work(:)
   real(8), allocatable :: singv(:),rwork(:)

@@ -9,4 +9,7 @@ subroutine backup0
   implicit none
   filext_b=trim(filext)
   nosym_b=nosym
+  swidth_b=swidth
+  lmaxapw_b=lmaxapw
+  lmaxmat_b=lmaxmat
 end subroutine backup0

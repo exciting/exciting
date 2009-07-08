@@ -8,4 +8,5 @@ subroutine restore2
   use modxs
   implicit none
   ngridq(:)=ngridq_b(:)
+  reduceq=reduceq_b
 end subroutine restore2

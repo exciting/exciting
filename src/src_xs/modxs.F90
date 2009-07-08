@@ -469,6 +469,23 @@ module modxs
   ! sumrules for optics
   character(256) :: fnsumrules
 
+
+  !------------------------------------------!
+  !     xs-parameters related to GS ones     !
+  !------------------------------------------!
+  logical :: nosymxs
+  integer :: ngridkxs(3)
+  real(8) :: vkloffxs(3)
+  logical :: reducekxs
+  integer :: ngridqxs(3)
+  logical :: reduceqxs
+  real(8) :: rgkmaxxs
+  real(8) :: swidthxs
+  integer :: lmaxapwxs
+  integer :: lmaxmatxs
+  integer :: nemptyxs
+
+
   !--------------------------!
   !     backup variables     !
   !--------------------------!
@@ -488,8 +505,13 @@ module modxs
   real(8) :: vkloff_b(3)
   ! q-point grid sizes
   integer :: ngridq_b(3)
+  ! reducek is .true. if q-points are to be reduced (with crystal symmetries)
+  logical reduceq_b
   ! type of matrix element generation (band-combinations)
   integer :: emattype_b
+  real(8) :: swidth_b
+  integer :: lmaxapw_b
+  integer :: lmaxmat_b
 
   !------------------------------!
   !     parallel environment     !

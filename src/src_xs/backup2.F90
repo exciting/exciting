@@ -8,4 +8,5 @@ subroutine backup2
   use modxs
   implicit none
   ngridq_b(:)=ngridq(:)
+  reduceq_b=reduceq
 end subroutine backup2
