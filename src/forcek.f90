@@ -52,7 +52,7 @@ complex(8), allocatable :: y(:)
 complex(8) zdotc
 external zdotc
 np=npmat(1, ik)
-if (input%groundstate%spin%spinsprl) np=max(np, npmat(2, ik))
+if (isspinspiral()) np=max(np, npmat(2, ik))
 ! allocate local arrays
 allocate(ijg(np))
 allocate(dp(np))
@@ -144,7 +144,7 @@ do ispn=1, nspnfv
 ! compute the force using the second-variational coefficients if required
 	sum=0.d0
 	if (input%groundstate%tevecsv) then
-	  if (input%groundstate%spin%spinsprl) then
+	  if (isspinspiral()) then
 ! spin-spiral case
 	    do j=1, nstsv
 	      t1=occsv(j, ik)

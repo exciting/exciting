@@ -905,12 +905,13 @@
 							<xs:element name="solver" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:attribute name="type" default="Lapack">
-                  <xs:annotation>
-                  <xs:appinfo>
+              
+             
+                 
+										<xs:annotation>
+                         <xs:appinfo>
                   <oldname>solvertype</oldname>
                   </xs:appinfo>
-                  </xs:annotation>
-										<xs:annotation>
 											<xs:documentation>
 												select the eigenvalue
 												solver for the first

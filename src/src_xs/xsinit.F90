@@ -120,7 +120,7 @@ use modinput
      write(unitout, *)
   end if
   ! no spin-spirals
-  if (input%groundstate%spin%spinsprl) then
+  if (isspinspiral()) then
      write(unitout, *)
      write(unitout, '("Error(xsinit): xs-part not working for spin-spirals")')
      write(unitout, *)

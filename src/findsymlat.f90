@@ -60,7 +60,7 @@ do i31=-1, 1; do i32=-1, 1; do i33=-1, 1
     end do
   end do
 ! check invariance of spin-spiral q-vector if required
-  if (input%groundstate%spin%spinsprl) then
+  if (isspinspiral()) then
     call r3mtv(s, input%groundstate%spin%vqlss, v)
     t1=r3taxi(input%groundstate%spin%vqlss, v)
     if (t1.gt.input%structure%epslat) goto 10

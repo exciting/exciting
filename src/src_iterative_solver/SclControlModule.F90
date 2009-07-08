@@ -1,7 +1,6 @@
 
 
 
-
 ! module to switch the different scl solver modes
 
 module sclcontroll

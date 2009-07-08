@@ -64,7 +64,7 @@ do j=1, nstsv
     wfmt2(:, :, :)=0.d0
     i=0
     do ispn=1, nspinor
-      if (input%groundstate%spin%spinsprl) then
+      if (isspinspiral()) then
 	jspn=ispn
       else
 	jspn=1

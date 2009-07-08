@@ -103,7 +103,7 @@ do is=1, nspecies
 	  wfmt3(:, :, :)=0.d0
 	  i=0
 	  do ispn=1, nspinor
-	    if (input%groundstate%spin%spinsprl) then
+	    if (isspinspiral()) then
 	      jspn=ispn
 	    else
 	      jspn=1
@@ -202,7 +202,7 @@ do j=1, nstsv
 ! generate spinor wavefunction from second-variational eigenvectors
       i=0
       do ispn=1, nspinor
-	if (input%groundstate%spin%spinsprl) then
+	if (isspinspiral()) then
 	  jspn=ispn
 	else
 	  jspn=1

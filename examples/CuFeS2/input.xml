@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="../../species/" autormt="true" primcell="true">
+<crystal>
+<basevect>9.99476  0.00000  0.00000</basevect>
+<basevect>  0.00000  9.99476  0.00000</basevect>
+<basevect>  0.00000  0.00000  19.6966</basevect>
+</crystal>
+<species speciesfile="Cu.xml">
+<atom coord="0.0000  0.0000  0.0000" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.0000  0.5000  0.2500" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.5000  0.0000  0.7500" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.5000  0.5000  0.5000" bfcmt="0.0000  0.0000  0.0000"></atom>
+</species>
+<species speciesfile="Fe.xml">
+<atom coord="0.0000  0.0000  0.5000" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.0000  0.5000  0.7500" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.5000  0.0000  0.2500" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.5000  0.5000  0.0000" bfcmt="0.0000  0.0000  0.0000"></atom>
+</species>
+<species speciesfile="S.xml">
+<atom coord="0.2574  0.2500  0.1250" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.7426  0.7500  0.1250" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.2500  0.7426  0.8750" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.7500  0.2574  0.8750" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.7574  0.7500  0.6250" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.2426  0.2500  0.6250" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.7500  0.2426  0.3750" bfcmt="0.0000  0.0000  0.0000"></atom>
+<atom coord="0.2500  0.7574  0.3750" bfcmt="0.0000  0.0000  0.0000"></atom>
+</species>
+</structure>
+<groundstate fromscratch="true" ngkgrid="2  2  2"></groundstate>
+<properties></properties>
+</input>

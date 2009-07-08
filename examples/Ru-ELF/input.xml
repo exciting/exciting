@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure>
+<crystal scale="1.0">
+<basevect>4.42816109463  -2.5566    0.0</basevect>
+<basevect> 0.0             5.1132    0.0</basevect>
+<basevect> 0.0             0.0       8.0901</basevect>
+</crystal>
+<species speciesfile="Ru.xml">
+<atom coord="0.3333333333  0.6666666667  0.25" bfcmt="0.0  0.0  0.0"></atom>
+<atom coord="0.6666666667  0.3333333333  0.75" bfcmt="0.0  0.0  0.0"></atom>
+</species>
+</structure>
+<groundstate fromscratch="true" rgkmax="11" gmaxvr="22" lmaxapw="12" ngkgrid="2  2  1" lmaxvr="12" lmaxmat="10" vkloff="0.5 0.5 0.5" lradstep="1"></groundstate>
+<properties>
+<chargedesityplot></chargedesityplot>
+<elfplot></elfplot>
+</properties>
+</input>

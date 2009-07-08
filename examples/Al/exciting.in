@@ -3,8 +3,6 @@ mixtype
 
 ! Ground state of aluminium. Try calculating the density of states by using
 ! tasks=10
-tarpack
-.true.
 
 tasks
   0

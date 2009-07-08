@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="../../species/">
+<crystal scale="5.3451">
+<basevect>1.0  1.0  0.0</basevect>
+<basevect>  1.0  0.0  1.0</basevect>
+<basevect>  0.0  1.0  1.0</basevect>
+</crystal>
+<species speciesfile="Ge.xml">
+<atom coord="0.0 0.0 0.0" bfcmt="0.0 0.0 0.0"></atom>
+<atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
+</species>
+</structure>
+<groundstate fromscratch="true" xctype="LSDAPerdew-Wang" gmaxvr="12.0" lmaxapw="10" ngkgrid="4 4 4 " lmaxvr="8" vkloff="0.25  0.25  0.75" nempty="50">
+<spin spinorb="true"></spin>
+</groundstate>
+<properties>
+<dos></dos>
+<bandstructure>
+<plot1d>
+<path steps="200">
+<point coord="  0.5   0.0   1.0"></point>
+<point coord="  0.0   0.0   1.0"></point>
+<point coord="  0.5   0.5   1.0"></point>
+</path>
+</plot1d>
+</bandstructure>
+</properties>
+</input>

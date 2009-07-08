@@ -92,11 +92,11 @@ case default
 end select
 write(fnum, *)
 write(fnum, '("Lattice vectors :")')
-write(fnum, '(3G18.10)') input%structure%crystal%basevect(1, 1), input%structure%crystal%basevect(2, 1),&
+write(fnum, '(3G18.10)') input%structure%crystal%basevect(1, 1), input%structure%crystal%basevect(2, 1), &
     &input%structure%crystal%basevect(3, 1)
-write(fnum, '(3G18.10)') input%structure%crystal%basevect(1, 2), input%structure%crystal%basevect(2, 2),&
+write(fnum, '(3G18.10)') input%structure%crystal%basevect(1, 2), input%structure%crystal%basevect(2, 2), &
     &input%structure%crystal%basevect(3, 2)
-write(fnum, '(3G18.10)') input%structure%crystal%basevect(1, 3), input%structure%crystal%basevect(2, 3),&
+write(fnum, '(3G18.10)') input%structure%crystal%basevect(1, 3), input%structure%crystal%basevect(2, 3), &
     &input%structure%crystal%basevect(3, 3)
 write(fnum, *)
 write(fnum, '("Reciprocal lattice vectors :")')
@@ -117,7 +117,7 @@ if (input%groundstate%frozencore) then
 end if
 do is=1, nspecies
   write(fnum, *)
-  write(fnum, '("Species : ", I4, " (", A, ")")') is, trim(input%structure%speciesarray(is)%species%chemicalSymbol)
+  write(fnum, '("Species : ", I4, " (", A, ")")') is, trim(spsymb(is))
   write(fnum, '(" parameters loaded from : ", A)') trim(input%structure%speciesarray(is)%species%speciesfile)
   write(fnum, '(" name : ", A)') trim(spname(is))
   write(fnum, '(" nuclear charge    : ", G18.10)') spzn(is)
@@ -127,7 +127,7 @@ do is=1, nspecies
   write(fnum, '(" number of radial points in muffin-tin : ", I6)') nrmt(is)
   write(fnum, '(" atomic positions (lattice), magnetic fields (Cartesian) :")')
   do ia=1, natoms(is)
-    write(fnum, '(I4, " : ", 3F12.8, "	", 3F12.8)') ia,&
+    write(fnum, '(I4, " : ", 3F12.8, "	", 3F12.8)') ia, &
     &input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
      input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:)
   end do
@@ -141,7 +141,7 @@ if (associated(input%groundstate%spin)) then
 else
   write(fnum, '(" spin-unpolarised")')
 end if
-if (input%groundstate%spin%spinorb) then
+if (isspinorb()) then
   write(fnum, '(" spin-orbit coupling")')
 end if
 if (associated(input%groundstate%spin)) then
@@ -152,26 +152,26 @@ if (associated(input%groundstate%spin)) then
     write(fnum, '(" collinear magnetisation in z-direction")')
   end if
 end if
-if (input%groundstate%spin%spinsprl) then
+if (isspinspiral()) then
   write(fnum, '(" spin-spiral state assumed")')
   write(fnum, '("  q-vector (lattice)	: ", 3G18.10)') input%groundstate%spin%vqlss
   write(fnum, '("  q-vector (Cartesian) : ", 3G18.10)') vqcss
   write(fnum, '("  q-vector length	: ", G18.10)') sqrt(vqcss(1)**2 &
    +vqcss(2)**2+vqcss(3)**2)
 end if
-if (input%groundstate%spin%fixspinnumber.ne.0) then
+if (getfixspinnumber().ne.0) then
   write(fnum, '(" fixed spin moment (FSM) calculation")')
 end if
-if ((input%groundstate%spin%fixspinnumber.eq.1).or.(input%groundstate%spin%fixspinnumber.eq.3)) then
+if ((getfixspinnumber().eq.1).or.(getfixspinnumber().eq.3)) then
   write(fnum, '("  fixing total moment to (Cartesian) :")')
   write(fnum, '("  ", 3G18.10)') input%groundstate%spin%momfix
 end if
-if ((input%groundstate%spin%fixspinnumber.eq.2).or.(input%groundstate%spin%fixspinnumber.eq.3)) then
+if ((getfixspinnumber().eq.2).or.(getfixspinnumber().eq.3)) then
   write(fnum, '("  fixing local muffin-tin moments to (Cartesian) :")')
   do is=1, nspecies
-    write(fnum, '("  species : ", I4, " (", A, ")")') is, trim(input%structure%speciesarray(is)%species%chemicalSymbol)
+    write(fnum, '("  species : ", I4, " (", A, ")")') is, trim(spsymb(is))
     do ia=1, natoms(is)
-      write(fnum, '("	", I4, 3G18.10)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%mommtfix(:)
+      write(fnum, '("	", I4, 3G18.10)') ia, mommtfix(:, ia, is)
     end do
   end do
 end if
@@ -196,8 +196,8 @@ write(fnum, '("Smallest muffin-tin radius times maximum |G+k| : ", G18.10)') &
  input%groundstate%rgkmax
 if ((input%groundstate%isgkmax.ge.1).and.(input%groundstate%isgkmax.le.nspecies)) then
   write(fnum, '("Species with smallest (or selected) muffin-tin radius : ", &
-   &I4, " (", A, ")")') input%groundstate%isgkmax,&
-    &trim(input%structure%speciesarray(input%groundstate%isgkmax)%species%chemicalSymbol)
+   &I4, " (", A, ")")') input%groundstate%isgkmax, &
+    &trim(spsymb(input%groundstate%isgkmax))
 end if
 write(fnum, '("Maximum |G+k| for APW functions	     : ", G18.10)') gkmax
 write(fnum, '("Maximum |G| for potential and density : ", G18.10)') input%groundstate%gmaxvr
@@ -256,7 +256,7 @@ if (ldapu.ne.0) then
   do is=1, nspecies
     if (llu(is).ge.0) then
       write(fnum, '(" species : ", I4, " (", A, ")", ", l = ", I2, ", U = ", F12.8, &
-       &", J = ", F12.8)') is, trim(input%structure%speciesarray(is)%species%chemicalSymbol), llu(is), ujlu(1, is),&
+       &", J = ", F12.8)') is, trim(spsymb(is)), llu(is), ujlu(1, is), &
     &ujlu(2, is)
     end if
   end do

@@ -1,7 +1,6 @@
 
 
 
-
 !BOP
 ! !ROUTINE: seceqn
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure autormt="true">
+<crystal scale="6.8408">
+<basevect>0.5 0.0 0.5</basevect>
+<basevect> 0.0 0.5 0.5</basevect>
+<basevect> 0.5 0.5 0.0</basevect>
+</crystal>
+<species speciesfile="B.xml">
+<atom coord="0.0 0.0 0.0" bfcmt="0.0 0.0 0.0"></atom>
+</species>
+<species speciesfile="N.xml">
+<atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
+</species>
+</structure>
+<groundstate fromscratch="true" mixer="msec" evalmin="-20.0" nempty="20" ngkgrid="8  8  8"></groundstate>
+<properties></properties>
+</input>

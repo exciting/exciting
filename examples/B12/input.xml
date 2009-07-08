@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="../../species/">
+<crystal scale="9.6376071">
+<basevect>0.5552208286774546    0.0000000000000000    0.8202701037340987</basevect>
+<basevect>  -0.2776104143387272    0.4808353423746850    0.8202701037340987</basevect>
+<basevect>  -0.2776104143387272   -0.4808353423746850    0.8202701037340987</basevect>
+</crystal>
+<species speciesfile="B.xml">
+<atom coord="0.7791796713741874  0.7791796713741448  0.3689976501302752" bfcmt="0. 0. 0."></atom>
+<atom coord="0.3689976501302326  0.7791796713741874  0.7791796713741874" bfcmt="0. 0. 0."></atom>
+<atom coord="0.7791796713741874  0.3689976501302752  0.7791796713741448" bfcmt="0. 0. 0."></atom>
+<atom coord="0.2208203286258126  0.2208203286258552  0.6310023498697248" bfcmt="0. 0. 0."></atom>
+<atom coord="0.2208203286258126  0.6310023498697248  0.2208203286258552" bfcmt="0. 0. 0."></atom>
+<atom coord="0.6310023498697674  0.2208203286258126  0.2208203286258126" bfcmt="0. 0. 0."></atom>
+<atom coord="0.9898987839828806  0.9898987839829161  0.3457964522602026" bfcmt="0. 0. 0."></atom>
+<atom coord="0.3457964522602381  0.9898987839828806  0.9898987839828806" bfcmt="0. 0. 0."></atom>
+<atom coord="0.9898987839828806  0.3457964522602026  0.9898987839829161" bfcmt="0. 0. 0."></atom>
+<atom coord="0.0101012160171194  0.0101012160170839  0.6542035477397974" bfcmt="0. 0. 0."></atom>
+<atom coord="0.0101012160171194  0.6542035477397974  0.0101012160170839" bfcmt="0. 0. 0."></atom>
+<atom coord="0.6542035477397619  0.0101012160171194  0.0101012160171194" bfcmt="0. 0. 0."></atom>
+</species>
+</structure>
+<groundstate fromscratch="true" rgkmax="6.0" ngkgrid="2  2  2"></groundstate>
+<properties>
+<dos></dos>
+</properties>
+</input>

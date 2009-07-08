@@ -84,7 +84,7 @@ use modinput
   !$OMP END DO
   !$OMP END PARALLEL
 #endif
-  if (input%groundstate%spin%spinsprl) then
+  if (isspinspiral()) then
      ! solve the spin-spiral second-variational secular equation
      call seceqnss(ik, apwalm, evalfv, evecfv, evecsv)
   else

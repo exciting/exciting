@@ -30,7 +30,7 @@ t1=gkmax**2
 ngkmax=0
 do ispn=1, nspnfv
   do ik=1, nkpt
-    if (input%groundstate%spin%spinsprl) then
+    if (isspinspiral()) then
 ! spin-spiral case
       if (ispn.eq.1) then
 	v1(:)=vkc(:, ik)+0.5d0*vqcss(:)

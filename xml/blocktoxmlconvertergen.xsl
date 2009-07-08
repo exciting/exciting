@@ -64,7 +64,7 @@ if(getvalue("<xsl:value-of select="(@name|@ref|*/*/oldname)[last()]"/>"))
    </xsl:for-each>
 </xsl:for-each>
 my $output = new IO::File(">input.xml");
-my $writer = new XML::Writer(OUTPUT => $output,DATA_MODE => 1);
+my $writer = new XML::Writer(DATA_MODE => 1);
 $writer->xmlDecl("UTF-8");
 $writer->pi('xml-stylesheet', 'href="inputtohtml.xsl" type="text/xsl"');
 
@@ -121,9 +121,7 @@ switch ($1) {
 	    {
 	    $atthashgroundstate{"fromscratch"}="false";
 	    }
-      if(getvalue("tarpack")==".true."){
-       $atthashgroundstate{"solver"}="Arpack";
-      }
+    
 
   
 	  $writer->startTag("groundstate",%atthashgroundstate);

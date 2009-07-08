@@ -131,7 +131,7 @@ read(70, rec=koffset) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
   ! if p = k then return
   t1=abs(vpl(1)-vkl(1, ik))+abs(vpl(2)-vkl(2, ik))+abs(vpl(3)-vkl(3, ik))
   if (t1.lt.input%structure%epslat) return
-  if (input%groundstate%spin%spinsprl) then
+  if (isspinspiral()) then
   write(*, *)
   write(*, '("Error(getevec): code limitation - cannot rotate spin-spiral &
   &states")')

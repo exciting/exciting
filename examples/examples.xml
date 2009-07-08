@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dirtree >
+  <head version="1.00">
+    <path>/Users/chm/git/exciting/examples</path>
+    <details>2</details>
+    <depth>1000</depth>
+    <orderby code="df"></orderby>
+  </head>
+  <directory name="examples" depth="0">
+    <path></path>
+    <modify-time epoch="1246520987">Thu Jul  2 09:49:47 2009</modify-time>
+    <directory name="Al" depth="1">
+      <path>/Al</path>
+      <modify-time epoch="1243431862">Wed May 27 15:44:22 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">706</size>
+        <modify-time epoch="1239199239">Wed Apr  8 16:00:39 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">614</size>
+        <modify-time epoch="1243431862">Wed May 27 15:44:22 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Al-Fermi-surface" depth="1">
+      <path>/Al-Fermi-surface</path>
+      <modify-time epoch="1243431894">Wed May 27 15:44:54 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">624</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="fermi.general">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">194</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="fermi.net">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">9322</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">671</size>
+        <modify-time epoch="1243432697">Wed May 27 15:58:17 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Al-STM" depth="1">
+      <path>/Al-STM</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1114</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="stm2d.general">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">187</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="stm2d.net">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">5533</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Al-exp[iq.r]" depth="1">
+      <path>/Al-exp[iq.r]</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">632</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Al-phonon" depth="1">
+      <path>/Al-phonon</path>
+      <modify-time epoch="1243582589">Fri May 29 09:36:29 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1146</size>
+        <modify-time epoch="1243582589">Fri May 29 09:36:29 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">682</size>
+        <modify-time epoch="1243582589">Fri May 29 09:36:29 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="AlAs-fatbands" depth="1">
+      <path>/AlAs-fatbands</path>
+      <modify-time epoch="1243497048">Thu May 28 09:50:48 2009</modify-time>
+      <file name="AlAs.par">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">2889</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">938</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">968</size>
+        <modify-time epoch="1243497345">Thu May 28 09:55:45 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Au" depth="1">
+      <path>/Au</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">678</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">992</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="B12" depth="1">
+      <path>/B12</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1350</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1914</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="BN-ELF" depth="1">
+      <path>/BN-ELF</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">494</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="BN-ELNES" depth="1">
+      <path>/BN-ELNES</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="B.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1328</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="N.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1518</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">896</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="C60" depth="1">
+      <path>/C60</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">5153</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">6582</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Cr-mono" depth="1">
+      <path>/Cr-mono</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1257</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">893</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+      <file name="mag2d.general">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">187</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="mag2d.net">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">9291</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Cu" depth="1">
+      <path>/Cu</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">802</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">657</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="CuFeS2" depth="1">
+      <path>/CuFeS2</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1668</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">2044</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+      <file name="inputtohtml.xsl">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">4466</size>
+        <modify-time epoch="1245151955">Tue Jun 16 13:32:35 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Fe" depth="1">
+      <path>/Fe</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">694</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">693</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Fe-AFM" depth="1">
+      <path>/Fe-AFM</path>
+      <modify-time epoch="1243432780">Wed May 27 15:59:40 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">652</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">739</size>
+        <modify-time epoch="1243432811">Wed May 27 16:00:11 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Fe-AFMadapt" depth="1">
+      <path>/Fe-AFMadapt</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">725</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Fe-FSM" depth="1">
+      <path>/Fe-FSM</path>
+      <modify-time epoch="1243432885">Wed May 27 16:01:25 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">668</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">726</size>
+        <modify-time epoch="1243432885">Wed May 27 16:01:25 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Fe-FSM-MT-AFM" depth="1">
+      <path>/Fe-FSM-MT-AFM</path>
+      <modify-time epoch="1243432907">Wed May 27 16:01:47 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1070</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">722</size>
+        <modify-time epoch="1243432907">Wed May 27 16:01:47 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Fe-FSM-MT-FM" depth="1">
+      <path>/Fe-FSM-MT-FM</path>
+      <modify-time epoch="1243432918">Wed May 27 16:01:58 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">694</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">660</size>
+        <modify-time epoch="1243432918">Wed May 27 16:01:58 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Fe-spiral" depth="1">
+      <path>/Fe-spiral</path>
+      <modify-time epoch="1243432925">Wed May 27 16:02:05 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">740</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">746</size>
+        <modify-time epoch="1243433064">Wed May 27 16:04:24 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="FeAl-LDA" depth="1">
+      <path>/FeAl-LDA</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">722</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">795</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="FeAl-LDA+U-AMF" depth="1">
+      <path>/FeAl-LDA+U-AMF</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1448</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="FeAl-LDA+U-INT" depth="1">
+      <path>/FeAl-LDA+U-INT</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1386</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="GaAs" depth="1">
+      <path>/GaAs</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">709</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">758</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Ge" depth="1">
+      <path>/Ge</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">832</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1006</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="H2O-iterative" depth="1">
+      <path>/H2O-iterative</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">867</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="HEG-HF" depth="1">
+      <path>/HEG-HF</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">426</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="HEG-OEP" depth="1">
+      <path>/HEG-OEP</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">450</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="HfSiO4" depth="1">
+      <path>/HfSiO4</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">2452</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="spacegroup.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">524</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="LiF" depth="1">
+      <path>/LiF</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">749</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">694</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="MgB2-Fermi-surface" depth="1">
+      <path>/MgB2-Fermi-surface</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1092</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="fermi.general">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">330</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="fermi.net">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">7318</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">993</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="NaCl-monomer" depth="1">
+      <path>/NaCl-monomer</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1112</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">594</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Nb-superconductor" depth="1">
+      <path>/Nb-superconductor</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="ALPHA2F.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">18500</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="GAMMAQ.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">4317</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="LAMBDA.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">74</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="LAMBDAQ.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">4317</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="Nb.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1784</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="PHDISP.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">44418</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="PHDLINES.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">720</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="PHLWIDTH.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">44418</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="PHLWLINES.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">720</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="TC_MCMILLAN.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">235</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">3967</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">522</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Ni" depth="1">
+      <path>/Ni</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">636</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">552</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Ni-Fermi-surface" depth="1">
+      <path>/Ni-Fermi-surface</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">852</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="fermi.net">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">15933</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="fermi_dn.general">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">197</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="fermi_up.general">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">197</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">591</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Ni-MOKE" depth="1">
+      <path>/Ni-MOKE</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">641</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">552</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="NiO-LDA" depth="1">
+      <path>/NiO-LDA</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">896</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">983</size>
+        <modify-time epoch="1246281834">Mon Jun 29 15:23:54 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="NiO-LDA+U-FLL" depth="1">
+      <path>/NiO-LDA+U-FLL</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1524</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="NiO-LDA+U-INT" depth="1">
+      <path>/NiO-LDA+U-INT</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1628</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Nimsec" depth="1">
+      <path>/Nimsec</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">552</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="PA" depth="1">
+      <path>/PA</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">2319</size>
+        <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1575</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Pb" depth="1">
+      <path>/Pb</path>
+      <modify-time epoch="1239199176">Wed Apr  8 15:59:36 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">660</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Ru-ELF" depth="1">
+      <path>/Ru-ELF</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="Ru.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">2081</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">848</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Si" depth="1">
+      <path>/Si</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">821</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Si-Hartree-Fock" depth="1">
+      <path>/Si-Hartree-Fock</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">872</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Si-OEP" depth="1">
+      <path>/Si-OEP</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1141</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Si-PBEsol" depth="1">
+      <path>/Si-PBEsol</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">784</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Si-phonon" depth="1">
+      <path>/Si-phonon</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="PHDISP.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">44436</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="PHDLINES.OUT">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">560</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1177</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Si-speciestest" depth="1">
+      <path>/Si-speciestest</path>
+      <modify-time epoch="1245394804">Fri Jun 19 09:00:04 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">749</size>
+        <modify-time epoch="1245394804">Fri Jun 19 09:00:04 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Si-str-opt" depth="1">
+      <path>/Si-str-opt</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">574</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="TiC-eg-t2g" depth="1">
+      <path>/TiC-eg-t2g</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1141</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="TiO2-linopt" depth="1">
+      <path>/TiO2-linopt</path>
+      <modify-time epoch="1246275045">Mon Jun 29 13:30:45 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">822</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1253</size>
+        <modify-time epoch="1246449587">Wed Jul  1 13:59:47 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="Ununhexium" depth="1">
+      <path>/Ununhexium</path>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      <file name="Uuh.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">2378</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">714</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="species.dat">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">656</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="YBCO" depth="1">
+      <path>/YBCO</path>
+      <modify-time epoch="1243433107">Wed May 27 16:05:07 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1323</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">1527</size>
+        <modify-time epoch="1243433108">Wed May 27 16:05:08 2009</modify-time>
+      </file>
+    </directory>
+    <directory name="diamond-rho3D" depth="1">
+      <path>/diamond-rho3D</path>
+      <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      <file name="exciting.in">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">617</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="input.xml">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">835</size>
+        <modify-time epoch="1246014962">Fri Jun 26 13:16:02 2009</modify-time>
+      </file>
+      <file name="rho3d.general">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">188</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+      <file name="rho3d.net">
+        <mode code="33188">rw-</mode>
+        <size unit="bytes">14658</size>
+        <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+      </file>
+    </directory>
+    <file name=".gitignore">
+      <mode code="33188">rw-</mode>
+      <size unit="bytes">23</size>
+      <modify-time epoch="1245394804">Fri Jun 19 09:00:04 2009</modify-time>
+    </file>
+    <file name="README">
+      <mode code="33188">rw-</mode>
+      <size unit="bytes">256</size>
+      <modify-time epoch="1239199177">Wed Apr  8 15:59:37 2009</modify-time>
+    </file>
+    <file name="examples.xml">
+      <mode code="33188">rw-</mode>
+      <size unit="bytes">0</size>
+      <modify-time epoch="1246520987">Thu Jul  2 09:49:47 2009</modify-time>
+    </file>
+  </directory>
+</dirtree>

@@ -62,7 +62,7 @@ if ((.not.associated(input%groundstate%spin)).and.(ldapu.eq.0)) then
 end if
 ! number of spin combinations after application of Hamiltonian
 if (associated(input%groundstate%spin)) then
-  if ((ncmag).or.(input%groundstate%spin%spinorb)) then
+  if ((ncmag).or.(isspinorb())) then
     nsc=3
   else
     nsc=2
@@ -123,7 +123,7 @@ do is=1, nspecies
 	end do
       end do
 ! spin-orbit radial function
-      if (input%groundstate%spin%spinorb) then
+      if (isspinorb()) then
 ! radial derivative of the spherical part of the potential
 	vr(1:nrmt(is))=veffmt(1, 1:nrmt(is), ias)*y00
 	call fderiv(1, nrmt(is), spr(:, is), vr, drv, cf)
@@ -159,7 +159,7 @@ do is=1, nspecies
 	     wfmt2(:, irc, 3), 1)
 	  end if
 ! apply spin-orbit coupling if required
-	  if (input%groundstate%spin%spinorb) then
+	  if (isspinorb()) then
 	    call lopzflm(input%groundstate%lmaxvr, wfmt1(:, irc, jst), lmmaxvr, zlflm)
 	    t1=sor(irc)
 	    do lm=1, lmmaxvr

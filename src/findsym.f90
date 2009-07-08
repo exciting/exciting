@@ -94,7 +94,7 @@ do isym=1, nsymlat
 ! spin polarised case
   if (associated(input%groundstate%spin)) then
 ! check invariance of magnetic fields under global spin rotation
-    if (input%groundstate%spin%spinorb) then
+    if (isspinorb()) then
 ! with spin-orbit coupling spin rotation equals spatial rotation
       jsym0=isym
       jsym1=isym
