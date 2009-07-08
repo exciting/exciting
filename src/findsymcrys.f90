@@ -1,4 +1,7 @@
 
+
+
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +9,11 @@
 !BOP
 ! !ROUTINE: findsymcrys
 ! !INTERFACE:
+
+
 subroutine findsymcrys
 ! !USES:
+use modinput
 use modmain
 #ifdef XS
 use modxs
@@ -34,92 +40,97 @@ use modxs
 !BOC
 implicit none
 ! local variables
-integer ia,ja,is,js,i,n
-integer isym,nsym,iv(3)
-integer lspl(48),lspn(48)
-real(8) v(3),t1
-real(8) apl(3,maxatoms,maxspecies)
+integer::ia, ja, is, js, i, n
+integer::isym, nsym, iv(3)
+integer::lspl(48), lspn(48)
+real(8)::v(3), t1
+real(8)::apl(3, maxatoms, maxspecies), aplt(3, maxatoms, maxspecies)
+
 ! allocatable arrays
-integer, allocatable :: iea(:,:,:)
-real(8), allocatable :: vtl(:,:)
+integer, allocatable :: iea(:, :, :)
+real(8), allocatable :: vtl(:, :)
 ! allocate local array
-allocate(iea(natmmax,nspecies,48))
+allocate(iea(natmmax, nspecies, 48))
 ! allocate equivalent atom arrays
 if (allocated(ieqatom)) deallocate(ieqatom)
-allocate(ieqatom(natmmax,nspecies,maxsymcrys))
+allocate(ieqatom(natmmax, nspecies, maxsymcrys))
 if (allocated(eqatoms)) deallocate(eqatoms)
-allocate(eqatoms(natmmax,natmmax,nspecies))
+allocate(eqatoms(natmmax, natmmax, nspecies))
 ! find the smallest set of atoms
 is=1
-do js=1,nspecies
+do js=1, nspecies
   if (natoms(js).lt.natoms(is)) is=js
 end do
 if ((tshift).and.(natmtot.gt.0)) then
 ! shift basis so that the first atom in the smallest atom set is at the origin
-  v(:)=atposl(:,1,is)
-  do js=1,nspecies
-    do ia=1,natoms(js)
+  v(:)=input%structure%speciesarray(is)%species%atomarray(1)%atom%coord(:)
+  do js=1, nspecies
+    do ia=1, natoms(js)
 ! shift atom
-      atposl(:,ia,js)=atposl(:,ia,js)-v(:)
+      input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:) =&
+    &input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:) - v(:)
 ! map lattice coordinates back to [0,1)
-      call r3frac(epslat,atposl(:,ia,js),iv)
+      call r3frac(input%structure%epslat, input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:), iv)
 ! determine the new Cartesian coordinates
-      call r3mv(avec,atposl(:,ia,js),atposc(:,ia,js))
+      call r3mv(input%structure%crystal%basevect, &
+    &input%structure%speciesarray(js)%species%atomarray(ia)%atom%coord(:), atposc(:, ia, js))
     end do
   end do
 end if
 ! determine possible translation vectors from smallest set of atoms
-n=max(natoms(is)*natoms(is),1)
-allocate(vtl(3,n))
+n=max(natoms(is)*natoms(is), 1)
+allocate(vtl(3, n))
 n=1
-vtl(:,1)=0.d0
-do ia=1,natoms(is)
-  do ja=2,natoms(is)
-    v(:)=atposl(:,ia,is)-atposl(:,ja,is)
-    call r3frac(epslat,v,iv)
-    do i=1,n
-      t1=abs(vtl(1,i)-v(1))+abs(vtl(2,i)-v(2))+abs(vtl(3,i)-v(3))
-      if (t1.lt.epslat) goto 10
+vtl(:, 1)=0.d0
+do ia=1, natoms(is)
+  do ja=2, natoms(is)
+    v(:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:) -&
+    &input%structure%speciesarray(is)%species%atomarray(ja)%atom%coord(:)
+    call r3frac(input%structure%epslat, v, iv)
+    do i=1, n
+      t1=abs(vtl(1, i)-v(1))+abs(vtl(2, i)-v(2))+abs(vtl(3, i)-v(3))
+      if (t1.lt.input%structure%epslat) goto 10
     end do
     n=n+1
-    vtl(:,n)=v(:)
+    vtl(:, n)=v(:)
 10 continue
   end do
 end do
-eqatoms(:,:,:)=.false.
+eqatoms(:, :, :)=.false.
 nsymcrys=0
 ! loop over all possible translations
-do i=1,n
+do i=1, n
 ! construct new array with translated positions
-  do is=1,nspecies
-    do ia=1,natoms(is)
-      apl(:,ia,is)=atposl(:,ia,is)+vtl(:,i)
+  do is=1, nspecies
+    do ia=1, natoms(is)
+      apl(:, ia, is) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:) + vtl(:, i)
+      aplt(:, ia, is)=input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
     end do
   end do
 ! find the symmetries for current translation
-  call findsym(atposl,apl,nsym,lspl,lspn,iea)
-  do isym=1,nsym
+  call findsym(aplt, apl, nsym, lspl, lspn, iea)
+  do isym=1, nsym
 #ifdef XS
      ! exclude non-zero translations
-     if (symmorph.and.(sum(abs(vtl(:,i))).gt.epslat)) goto 20
+     if (symmorph.and.(sum(abs(vtl(:, i))).gt.input%structure%epslat)) goto 20
 #endif
     nsymcrys=nsymcrys+1
     if (nsymcrys.gt.maxsymcrys) then
-      write(*,*)
-      write(*,'("Error(findsymcrys): too many symmetries")')
-      write(*,'(" Adjust maxsymcrys in modmain and recompile code")')
-      write(*,*)
+      write(*, *)
+      write(*, '("Error(findsymcrys): too many symmetries")')
+      write(*, '(" Adjust maxsymcrys in modmain and recompile code")')
+      write(*, *)
       stop
     end if
-    vtlsymc(:,nsymcrys)=vtl(:,i)
+    vtlsymc(:, nsymcrys)=vtl(:, i)
     lsplsymc(nsymcrys)=lspl(isym)
     lspnsymc(nsymcrys)=lspn(isym)
-    do is=1,nspecies
-      do ia=1,natoms(is)
-        ja=iea(ia,is,isym)
-        ieqatom(ia,is,nsymcrys)=ja
-        eqatoms(ia,ja,is)=.true.
-        eqatoms(ja,ia,is)=.true.
+    do is=1, nspecies
+      do ia=1, natoms(is)
+	ja=iea(ia, is, isym)
+	ieqatom(ia, is, nsymcrys)=ja
+	eqatoms(ia, ja, is)=.true.
+	eqatoms(ja, ia, is)=.true.
       end do
     end do
 #ifdef XS
@@ -127,8 +138,7 @@ do i=1,n
 #endif
   end do
 end do
-deallocate(iea,vtl)
+deallocate(iea, vtl)
 return
 end subroutine
 !EOC
-
