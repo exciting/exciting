@@ -1086,8 +1086,6 @@ case('mdfqtype')
     write(*,*)
     stop
   end if
-case('tq0ev')
-   read(50,*,err=20) tq0ev
 case('gqmax')
   read(50,*,err=20) gqmax
 case('lmaxapwwf')
