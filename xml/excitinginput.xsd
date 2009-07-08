@@ -1259,7 +1259,8 @@
 									is set to
 									<pre>.true.</pre>
 									then the mesh sizes will be determined by
-									<inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath>
+									<inlinemath>n_i=\lambda/|{ \bf A}_i|+1
+									</inlinemath>
 									.
 								</xs:documentation>
 							</xs:annotation>
@@ -1875,7 +1876,8 @@
 										DOS and optics plots require integrals of the kind
 										<displaymath>
 											g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ}
-											f({ \bf k}) \delta(\omega_i-e({\bf k}))d{ \bf k}. </displaymath>
+											f({ \bf k}) \delta(\omega_i-e({\bf k}))d{ \bf k}.
+										</displaymath>
 										These are calculated by first interpolating the
 										functions
 										<inlinemath>e({ \bf k})</inlinemath>
@@ -2386,7 +2388,8 @@
 												<inlinemath>{\bf Q}={\bf q}+{\bf G}_{\bf q}</inlinemath>
 												and
 												and the
-												<inlinemath>({\bf Q}_{\bf q},{\bf Q}_{\bf q})</inlinemath>
+												<inlinemath>({\bf Q}_{\bf q},{\bf Q}_{\bf q})
+												</inlinemath>
 												component
 												of the microscopic dielectric matrix is used.
 											</xs:documentation>
@@ -2461,37 +2464,48 @@
 									<xs:attribute name="nosym" type="xs:boolean"
 										default="false">
 										<xs:annotation>
-											<xs:appinfo><oldname>nosymscr</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>nosymscr</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="ngridk" type="integertriple"
 										default="0 0 0">
 										<xs:annotation>
-											<xs:appinfo><oldname>ngridkscr</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>ngridkscr</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="reducek" type="xs:boolean"
 										default="false">
 										<xs:annotation>
-											<xs:appinfo><oldname>reducekscr</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>reducekscr</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="vkloff" type="vect3d"
-										default="-1 -1 -1">
+									<xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
 										<xs:annotation>
-											<xs:appinfo><oldname>vkloffscr</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>vkloffscr</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="rgkmax" type="fortrandouble"
 										default="0">
 										<xs:annotation>
-											<xs:appinfo><oldname>rgkmaxscr</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>rgkmaxscr</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="nempty" type="xs:integer"
 										default="0">
 										<xs:annotation>
-											<xs:appinfo><oldname>nemptyscr</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>nemptyscr</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="screentype" default="full">
@@ -2511,25 +2525,32 @@
 									<xs:attribute name="nosym" type="xs:boolean"
 										default="false">
 										<xs:annotation>
-											<xs:appinfo><oldname>nosymbse</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>nosymbse</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="reducek" type="xs:boolean"
 										default="false">
 										<xs:annotation>
-											<xs:appinfo><oldname>reducekbse</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>reducekbse</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="vkloff" type="vect3d"
-										default="-1 -1 -1">
+									<xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
 										<xs:annotation>
-											<xs:appinfo><oldname>vkloffbse</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>vkloffbse</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="rgkmax" type="fortrandouble"
 										default="0">
 										<xs:annotation>
-											<xs:appinfo><oldname>rgkmaxbse</oldname></xs:appinfo>
+											<xs:appinfo>
+												<oldname>rgkmaxbse</oldname>
+											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="scrherm" type="xs:integer"
@@ -3102,25 +3123,98 @@
 							default="false">
 							<!-- used from src_optics/mod_DOS_optics_response.F90 -->
 						</xs:attribute>
+						<xs:attribute name="gqmax" type="fortrandouble"
+							default="0" />
 						<!--
 							section of parameters from groundstate which are allowed to be
 							different from the ones of the ground state run
 						-->
-						<xs:attribute name="ngridk" type="integertriple" use="required" />
-						<xs:attribute name="vkloff" type="vect3d" default="0 0 0 " />
+						<xs:attribute name="nosym" type="xs:boolean" default="false">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>nosymxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="ngridk" type="integertriple"
+							default="0 0 0">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>ngridkxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="vkloff" type="vect3d" default="0 0 0 ">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>vkloffxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="reducek" type="xs:boolean"
-							default="true" />
+							default="true">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>reducekxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="ngridq" type="integertriple"
-							fixed="1 1 1" />
-						<xs:attribute name="nosym" type="xs:boolean" default="false" />
-						<xs:attribute name="gqmax" type="fortrandouble"
-							default="0" />
+							default="0 0 0">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>ngridqxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="reduceq" type="xs:boolean"
+							default="true">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>reduceqxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="rgkmax" type="fortrandouble"
-							default="7" />
+							default="7">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>rgkmaxxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="swidth" type="fortrandouble"
+							default="0.01">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>swidthxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="lmaxapw" type="xs:integer"
-							default="8" />
+							default="8">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>lmaxapwxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="lmaxmat" type="xs:integer"
+							default="5">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>lmaxmatxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="nempty" type="xs:integer"
-							default="5" />
+							default="5">
+							<xs:annotation>
+								<xs:appinfo>
+									<oldname>nemptyxs</oldname>
+								</xs:appinfo>
+							</xs:annotation>
+						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 			</xs:all>
