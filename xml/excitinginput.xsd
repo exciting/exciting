@@ -2458,18 +2458,42 @@
 							</xs:element>
 							<xs:element name="screening" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
-									<xs:attribute name="nosymscr" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="ngridkscr" type="integertriple"
-										default="0 0 0" />
-									<xs:attribute name="reducekscr" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="vkloffscr" type="vect3d"
-										default="-1 -1 -1 " />
-									<xs:attribute name="rgkmaxscr" type="fortrandouble"
-										default="0" />
-									<xs:attribute name="nemptyscr" type="xs:integer"
-										default="0" />
+									<xs:attribute name="nosym" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:appinfo><oldname>nosymscr</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ngridk" type="integertriple"
+										default="0 0 0">
+										<xs:annotation>
+											<xs:appinfo><oldname>ngridkscr</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="reducek" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:appinfo><oldname>reducekscr</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="vkloff" type="vect3d"
+										default="-1 -1 -1">
+										<xs:annotation>
+											<xs:appinfo><oldname>vkloffscr</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="rgkmax" type="fortrandouble"
+										default="0">
+										<xs:annotation>
+											<xs:appinfo><oldname>rgkmaxscr</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="nempty" type="xs:integer"
+										default="0">
+										<xs:annotation>
+											<xs:appinfo><oldname>nemptyscr</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="screentype" default="full">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
@@ -2484,14 +2508,30 @@
 							</xs:element>
 							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
-									<xs:attribute name="nosymbse" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="reducekbse" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="vkloffbse" type="vect3d"
-										default="-1 -1 -1 " />
-									<xs:attribute name="rgkmaxbse" type="fortrandouble"
-										default="0" />
+									<xs:attribute name="nosym" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:appinfo><oldname>nosymbse</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="reducek" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:appinfo><oldname>reducekbse</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="vkloff" type="vect3d"
+										default="-1 -1 -1">
+										<xs:annotation>
+											<xs:appinfo><oldname>vkloffbse</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="rgkmax" type="fortrandouble"
+										default="0">
+										<xs:annotation>
+											<xs:appinfo><oldname>rgkmaxbse</oldname></xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="scrherm" type="xs:integer"
 										default="0" />
 									<xs:attribute name="fbzq" type="xs:boolean"
