@@ -1,5 +1,8 @@
 
 
+
+
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -7,7 +10,7 @@
 !BOP
 ! !ROUTINE: sdelta
 ! !INTERFACE:
-real(8) function sdelta(stype, x)
+ function sdelta(stype, x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   stype : smearing type (in,integer)
 !   x     : real argument (in,real)
@@ -34,6 +37,7 @@ real(8) function sdelta(stype, x)
 !EOP
 !BOC
 implicit none
+real(8)::sdelta
 ! arguments
 integer, intent(in) :: stype
 real(8), intent(in) :: x
@@ -72,7 +76,6 @@ end function
 
 subroutine getsdata(stype, sdescr)
 ! !INPUT/OUTPUT PARAMETERS:
-use modinput
 !   stype  : smearing type (in,integer)
 !   sdescr : smearing scheme description (out,character(256))
 ! !DESCRIPTION:
