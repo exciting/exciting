@@ -44,7 +44,7 @@ logical, parameter :: dumptetra=.true.
 logical, parameter :: dumpmpiiter=.true.
 logical, parameter :: dumpxs=.true.
 #endif
-
+allocate(natoms(200))
 !------------------------!
 !     default values     !
 !------------------------!
