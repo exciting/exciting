@@ -81,9 +81,9 @@ part:
 			if (   not( $stringar[$i] =~ m/^\s*!/ )
 				&& not( $stringar[$i] =~ m/function/i ) )
 			{
-				$stringar[$i] =~ s/(logical)\s*(?!,)(?=\w)/$1::/gi;
-				$stringar[$i] =~ s/(real(\(\d\))*)\s*(?!,)(?=\w)/$1::/gi;
-				$stringar[$i] =~ s/(integer(\(\d\))*)\s*(?!,)(?=\w)/$1::/gi;
+				$stringar[$i] =~ s/(^\s*logical)\s*(?!,)(?=\w)/$1::/gi;
+				$stringar[$i] =~ s/(^\s*real(\(\d\))*)\s*(?!,)(?=\w)/$1::/gi;
+				$stringar[$i] =~ s/(^\s*integer(\(\d\))*)\s*(?!,)(?=\w)/$1::/gi;
 				$stringar[$i] =~
 				  s/(character(\((\d+|\*)\))?)\s*(?!,)(?=\w)/$1::/gi;
 			}
@@ -181,6 +181,10 @@ m/input%structure%speciesarray\(speciesindex\)%species%(\w+?)(?!%)\(/gi
 s/(^\s*if(?!\w).*%fixspin(?!\w).*\)\s+then)/!$1 fixxxmlinput \n if(.false.) then/gi
 				  || $stringar[$i] =~
 s/(^\s*if(?!\w).*%fixspin(?!\w).*\).*(?!(then)))/!$1 fixxxmlinput \n  /gi;
+$stringar[$i] =~s/input%xs%tddft%acont = input%xs%tddft%acont/acont = input%xs%tddft%acont/;
+$stringar[$i] =~s/input%xs%tddft%fxctypenumber\s*=\s*input%xs%tddft%fxctypenumber/ fxctype = input%xs%tddft%fxctypenumber/;
+$stringar[$i] =~s/input%properties%bandstructure%character\((\d+)\)/character($1)/;
+
 
 		#	$stringar[$i] =~
 		#s/(^\s*if(?!\w).*%xctype.*\)(.*))/!$1 fixxxmlinput \n if(.false.)$2/gi;

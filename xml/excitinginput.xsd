@@ -289,13 +289,29 @@
 										<xs:element name="lattice" maxOccurs="1" minOccurs="1">
 											<xs:complexType>
 												<xs:attribute name="a" type="fortrandouble"
-													use="required" />
+													use="required" >
+                          <xs:annotation>
+                          <xs:appinfo>
+                          <oldname>noreplace</oldname>
+                          </xs:appinfo>
+                          </xs:annotation>
+                          </xs:attribute>
 
 												<xs:attribute name="b" type="fortrandouble"
-													use="required" />
+													use="required" > <xs:annotation>
+                          <xs:appinfo>
+                          <oldname>noreplace</oldname>
+                          </xs:appinfo>
+                          </xs:annotation>
+                          </xs:attribute>
 
 												<xs:attribute name="c" type="fortrandouble"
-													use="required" />
+													use="required" > <xs:annotation>
+                          <xs:appinfo>
+                          <oldname>noreplace</oldname>
+                          </xs:appinfo>
+                          </xs:annotation>
+                          </xs:attribute>
 
 												<xs:attribute name="ab" type="fortrandouble"
 													use="required" />
@@ -839,36 +855,28 @@
 												<xs:enumeration value="none">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>
-																0
-															</oldnr>
+															<oldnr>0</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
 												<xs:enumeration value="total FSM">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>
-																1
-															</oldnr>
+															<oldnr>1</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
 												<xs:enumeration value="localmt FSM">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>
-																2
-															</oldnr>
+															<oldnr>2</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
 												<xs:enumeration value="both">
 													<xs:annotation>
 														<xs:appinfo>
-															<oldnr>
-																3
-															</oldnr>
+															<oldnr>3</oldnr>
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:enumeration>
@@ -2614,6 +2622,11 @@
 										<xs:element name="doonly" minOccurs="0" maxOccurs="unbounded">
 											<xs:complexType>
 												<xs:attribute name="task" use="required">
+                        <xs:annotation>
+                        <xs:appinfo>
+                        <oldname>noreplace</oldname>
+                        </xs:appinfo>
+                        </xs:annotation>
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
 															<!-- required workflow tasks below-->
@@ -2669,7 +2682,7 @@
 																	</xs:documentation>
 																</xs:annotation>
 															</xs:enumeration>
-															<xs:enumeration value="df">
+															<xs:enumeration value="df2">
 																<xs:annotation>
 																	<xs:appinfo>
 																		<oldnr>345</oldnr>
@@ -3029,9 +3042,9 @@
 								<xs:complexType>
 									<xs:attribute name="points" type="xs:integer"
 										default="500" />
-									<xs:attribute name="start" type="fortrandouble"
+									<xs:attribute name="starte" type="fortrandouble"
 										default="-0.5" />
-									<xs:attribute name="stop" type="fortrandouble"
+									<xs:attribute name="stope" type="fortrandouble"
 										default="0.5" />
 								</xs:complexType>
 							</xs:element>

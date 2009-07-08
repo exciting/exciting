@@ -510,7 +510,7 @@ end function</xsl:text>
 <xsl:text>=</xsl:text>
 <xsl:choose>
 <xsl:when test="xs:annotation/xs:appinfo/oldnr">
-<xsl:value-of select="xs:annotation/xs:appinfo/oldnr"/>
+<xsl:value-of select="normalize-space( xs:annotation/xs:appinfo/oldnr)"/>
 </xsl:when>
 <xsl:otherwise>
 <xsl:value-of select="-1"/>

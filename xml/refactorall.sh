@@ -14,5 +14,7 @@ perl refactortoxmlinput.pl ../src/  \
 	../src/src_eigensystem/ \
 	../src/src_mpi/ \
 	../src/src_xc/ \
-	../src/src_try/ \
-        ../src/main/
+	../src/src_timing/ \
+	../src/leblaiklib/ \
+	../src/main/ \
+	
