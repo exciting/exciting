@@ -1,9 +1,0 @@
-MAKE = make
-F90 = f90
-F90_OPTS = -mips4 -64 -O2
-F77 = f90
-F77_OPTS = -mips4 -64 -O2
-AR = ar
-LIB_SYS = 
-LIB_LPK = lapack.a blas.a
-LIB_FFT = fftlib.a

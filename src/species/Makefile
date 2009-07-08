@@ -1,37 +1,15 @@
 include ../../build/make.inc
+bin:speciesbin
 
-#-------------------------------------------------------------------------------
-# Suffix Rules
-#-------------------------------------------------------------------------------
-.SUFFIXES: .o .f90
-.f90.o:
-	$(F90) $(F90_OPTS) -c $<
-
-#-------------------------------------------------------------------------------
-# Source files
-#-------------------------------------------------------------------------------
-SRC_modules = modxcifc.f90
-
-SRC_routines = species.f90
-
-SRC_lib = \
- atom.f90 rdirac.f90 rdiracdme.f90 rdiracint.f90 fderiv.f90 spline.f90 \
- polynom.f90 radmesh.f90 potnucl.f90
-
-SRC_xc = \
-  xc_pzca.f90 xc_pwca.f90 xc_pbe.f90 xc_am05.f90 xc_xalpha.f90 xc_wc06.f90 \
-  x_wc06.f90 x_pbe.f90 c_pbe.f90 c_pbe_gcor.f90 xc_vbh.f90
-
-SRC = $(SRC_modules) $(SRC_routines) $(SRC_lib) $(SRC_xc)
-OBJ = $(SRC:.f90=.o)
-EXE = species
-
-species:	$(OBJ)
-	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ) $(LIB_SYS)
-	cp $(EXE) ../../bin/
-
+speciesbin:: ../../build/make.inc 
+	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p species \
+	./ ../src_lib ../src_xc ../modxcifc.f90 ../atom.f90 \
+	../mod_muffin_tin.F90 \
+	&& $(MAKE) -f Makefile.mkmf species \
+	&& cp species ../../bin/species
+	
 clean:
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno gmon.out $(EXE)
 
-copy:
-	cd ..;cp $(SRC_lib) $(SRC_xc) modxcifc.f90 species
+
+#include ../../build/Make.common

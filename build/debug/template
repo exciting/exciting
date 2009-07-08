@@ -1,12 +1,10 @@
-include make.inc
-FC77 = $(F77)
+include ../make.inc
+
 FC = $(F90)
-FFLAGS77 = $(F77_OPTS) $(CPP_ON_OPT)
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
+
+FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT)
 LD = $(FC)
-LIBS = $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) $(LIB_SYS)
-LDFLAGS = $(F90_OPTS) $(LIBS) libmsec.a
-AR = ar
-ARFLAGS = -rc
-###F77=$(F77) $(F77_OPTS)
+LDFLAGS = $(LIBS) $(F90_DEBUGOPTS)  libmsec.a    libfox.a
+F77_OPTS =$(F77_DEBUGOPTS)
 TMPFILES = *.mod
+SUFFIX=debug

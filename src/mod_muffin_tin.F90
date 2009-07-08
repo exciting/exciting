@@ -49,5 +49,11 @@ integer lmmaxinr
 integer nrmtinr(_MAXSPECIES_)
 ! index to (l,m) pairs
 integer, allocatable :: idxlm(:,:)
-
+!------------------------------!
+!     tolerance parameters     !
+!------------------------------!
+! energy convergence tolerance for Dirac equation solver
+real(8) :: epsedirac
+! potential convergence tolerance for atomistic calculation
+real(8) :: epspotatom
 end module

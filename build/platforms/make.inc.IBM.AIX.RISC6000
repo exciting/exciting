@@ -1,9 +1,0 @@
-
-F90 = xlf
-F90_OPTS = -O3 -qsuffix=f=f90 -qfree=f90
-F77 = xlf
-F77_OPTS = -O3
-AR = ar
-LIB_SYS = 
-LIB_LPK = lapack.a blas.a
-LIB_FFT = fftlib.a

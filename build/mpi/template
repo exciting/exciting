@@ -5,6 +5,6 @@ FC = $(MPIF90)
 FFLAGS = $(MPIF90_OPTS)
 ### debug
 LD = $(FC)
-LDFLAGS =$(MPI_OPTS) $(LIBS) libmsec.a
+LDFLAGS =$(MPI_OPTS) $(LIBS) libmsec.a libfox.a
 TMPFILES = *.mod
 SUFFIX=mpi

@@ -1,0 +1,30 @@
+
+!-------------!
+!   SLAPW-4   !
+!-------------!
+apwdescr
+  'SAPW-4'
+
+suffix
+  'SLAPW4'
+
+apw
+  2
+  0	.false.
+  1	.false.
+
+apwx
+  4
+  0	.false.
+  1	.false.
+  0	.true.
+  1	.true.
+
+locorb
+  .false.
+
+locorbsc
+  .false.
+
+searchlocorb
+  .true.

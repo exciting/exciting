@@ -1,0 +1,23 @@
+
+!----------------------------------------------------------!
+!   Kay's original approach, no search for lin. energies   !
+!   APW+lo (semicore-local orbitals and small lo)          !
+!----------------------------------------------------------!
+apwdescr
+  'APW+lo-Kay'
+
+suffix
+  'APWloKay'
+
+apw
+  1
+  0	.false.
+
+locorb
+  .true.
+
+locorbsc
+  .true.
+
+searchlocorb
+  .false.

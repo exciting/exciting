@@ -1,8 +1,13 @@
+
+
+
 !BOP
 ! !ROUTINE: seceqn
-subroutine residualvectors(n,iunconverged,h,s,evalfv,r,rnorms)
-use modmain, only: nmatmax,zone,zzero
-	
+
+
+subroutine residualvectors(n, iunconverged, h, s, evalfv, r, rnorms)
+use modmain, only: nmatmax, zone, zzero
+
 ! !INPUT/OUTPUT PARAMETERS:
 
 ! !DESCRIPTION:
@@ -20,20 +25,20 @@ use modmain, only: nmatmax,zone,zzero
 use modmain, only:nstfv
   use diisinterfaces
 implicit none
-integer , intent (in)::n,iunconverged
+integer , intent (in)::n, iunconverged
 !packed ut
-complex(8),intent(in)::h(n,nstfv),s(n,nstfv) 
-complex(8),intent(out)::r(n,nstfv)
-real(8),intent(in)::evalfv(nstfv)
-real(8),intent(out)::rnorms(nstfv)
-integer i
+complex(8), intent(in)::h(n, nstfv), s(n, nstfv) 
+complex(8), intent(out)::r(n, nstfv)
+real(8), intent(in)::evalfv(nstfv)
+real(8), intent(out)::rnorms(nstfv)
+integer::i
 complex(8)::z
 
-do i=1,iunconverged
-call zcopy(n,h(1,i),1,r(1,i),1)
-z=cmplx(-evalfv(i),0)
-call zaxpy(n,z,s(1,i),1,r(1,i),1)
-rnorms(i)= sqrt(dble( zdotc(n,r(1,i),1,r(1,i),1)))
+do i=1, iunconverged
+call zcopy(n, h(1, i), 1, r(1, i), 1)
+z=cmplx(-evalfv(i), 0)
+call zaxpy(n, z, s(1, i), 1, r(1, i), 1)
+rnorms(i)= sqrt(dble( zdotc(n, r(1, i), 1, r(1, i), 1)))
 end do
 
 end subroutine

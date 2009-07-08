@@ -1,11 +1,8 @@
-
 #include ../make.inc
 SOURCEDIRS=	../../src/  \
 	../../src/src_xs/ \
 	../../src/src_sym/ \
 	../../src/src_fermisurfdx/ \
-	../../src/src_timing/ \
-	../../src/tools/ \
 	../../src/src_iterative_solver/ \
 	../../src/src_iterative_solver/src_diis/ \
 	../../src/src_mixing/ \
@@ -18,58 +15,41 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_eigensystem/ \
 	../../src/src_mpi/ \
 	../../src/src_xc/ \
+	../../src/src_xml/ \
+	../../src/src_inputparser/ \
+	../../src/src_timing/ \
+	../../src/leblaiklib/ \
+	../../src/main/ \
+	../../src/
 	
+GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
 
+#all:bin
 
-
-
-bin::make.inc interfaces libs
+bin::../make.inc libs $(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
-	$(SOURCEDIRS) ../../src/main/ \
+	$(SOURCEDIRS) \
 	&& $(MAKE) -f Makefile.mkmf exciting \
 	&& cp exciting ../../bin/exciting$(SUFFIX)
-
-interfaces::
-	#perl ../../utilities/interfacesmkmf.pl $(SOURCEDIRS)
-	#$(MAKE) -f ../ifcmakefile
 	
+	
+
+	
+
 doc::
 	cd ./docs/exciting; \
-	perl ../../utilities/scripts/genprotexdoc.pl ../../src/main/  $(SOURCEDIRS)  ;\
+	perl ../../utilities/scripts/genprotexdoc.pl ../../src/mainxml/  $(SOURCEDIRS)  ;\
+	mv doc.pdf excitingsubroutines.pdf
 
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a leblaiklib.a
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a leblaiklib.a
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox.a
 endif
-
-#libblas.a: 
-#	cp -f make.inc ../..
-#	cd ../../src/BLAS-3.1.1 && make clean && make
-#	cp ../../src/BLAS-3.1.1/libblas.a .
-#	cd ../../src/BLAS-3.1.1 && make clean
-
-#liblapack.a: 
-#	cp -f make.inc ../..
-#	cd ../../src/LAPACK-3.1.1 && make clean && make
-#	cp ../../src/LAPACK-3.1.1/liblapack.a .
-#	cd ../../src/LAPACK-3.1.1 && make clean
-
-#fftlib.a:
-#	cp -f make.inc ../..
-#	cd ../../src/fftlib && make clean && make
-#	cp ../../src/fftlib/fftlib.a .
-#	cd ../../src/fftlib && make clean
-
-#leblaiklib.a:
-#	cp -f make.inc ../..
-#	cd ../../src/leblaiklib && make clean && make
-#	cp ../../src/leblaiklib/leblaiklib.a .
-#	cd ../../src/leblaiklib && make clean
 
 libblas.a::
 	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
@@ -87,37 +67,52 @@ fftlib.a::
 	../../src/fftlib\
 	&& $(MAKE) -f Makefile.fft fftlib.a 
 
-leblaiklib.a:: 
-	../../utilities/mkmf -t ./template.f77 -f -m Makefile.leblaiklib -p leblaiklib.a \
-	../../src/leblaiklib/ \
-	&& $(MAKE) -f Makefile.leblaiklib leblaiklib.a 	
-
 libbzint.a:: 
 	../../utilities/mkmf -t ./template -f -m Makefile.libbzint -p libbzint.a \
 	../../src/libbzint\
 	&& $(MAKE) -f Makefile.libbzint libbzint.a 
 	
 libmsec.a:: 
-	../../utilities/mkmf -t ./template -f -m Makefile.libmsec -p libmsec.a \
+	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libmsec -p libmsec.a \
 	../../src/src_mixing/lib/ \
 	&& $(MAKE) -f Makefile.libmsec libmsec.a 
 	
+
+
 libarpack.a::
 	../../utilities/mkmf -t ./template.f77 -f -m Makefile.libarpack -p libarpack.a \
 	../../src/ARPACK/SRC/ \
 	../../src/ARPACK/UTIL/ \
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
+
+
+libfox.a::
+	../../utilities/mkmf -c "-DFC_HAVE_FLUSH -DFC_HAVE_ABORT -DFC_EOR_LF" -t ./template -f -m Makefile.libfox -p libfox.a \
+	../../src/FoX/common/ \
+	../../src/FoX/dom/ \
+	../../src/FoX/fsys/ \
+	../../src/FoX/sax \
+	../../src/FoX/utils \
+	../../src/FoX/wxml \
+	../../src/Fox/wcml \
+	&& $(MAKE) -f Makefile.libfox libfox.a
+	
 	
 #cp -f ../make.inc ../..
 #cd ../../src/ARPACK && $(MAKE) clean 
 #cp ../../src/ARPACK/libarpack.a .
 #cd ../../src/ARPACK && $(MAKE) clean
 
+../../src/src_inputparser/inputmodules.f90:   ../../xml/excitinginput.xsd ../../xml/schematofortran.xsl
+	xsltproc ../../xml/schematofortran.xsl   ../../xml/excitinginput.xsd > ../../src/src_inputparser/inputmodules.f90
 
-
+../../src/src_inputparser/speciesmodules.f90:   ../../xml/species.xsd ../../xml/schematofortran.xsl
+	xsltproc  ../../xml/schematofortran.xsl  ../../xml/species.xsd > ../../src/src_inputparser/speciesmodules.f90
+	
 clean:
 	rm -f *.o *.mod
 
 cleanlibs:
 	rm -f *.a
+
 

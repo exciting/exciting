@@ -11,7 +11,7 @@ module mod_atoms
 ! number of species
 integer nspecies
 ! number of atoms for each species
-integer natoms(_MAXSPECIES_)
+integer,allocatable:: natoms(:)
 ! maximum number of atoms over all the species
 integer natmmax
 ! total number of atoms

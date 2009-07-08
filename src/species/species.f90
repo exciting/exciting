@@ -4,45 +4,30 @@
 ! See the file COPYING for license details.
 
 program species
+use modspecies
+use  mod_muffin_tin , only:epsedirac,epspotatom
 implicit none
-! local variables
-
-
-character(*), parameter :: version='0.9.224'
-character(256) :: bname,strat
-logical :: effstrat
-
-
-! order of predictor-corrector polynomial
-integer, parameter :: np=4
-! maximum number of states
-integer, parameter :: maxspst=40
-! maximum angular momentum allowed
-integer, parameter :: lmax=50
-! exchange-correlation type
-integer, parameter :: xctype=3
-integer, parameter :: xcgrad=0
-integer nz,spnst,spnr,nrmt
-integer nlx,nlorb,i,l,maxl
-integer ist,jst,ir,iostat
-real(8), parameter :: pi=3.1415926535897932385d0
-! core-valence cut-off energy
-real(8), parameter :: ecvcut=-3.5d0
-! semi-core cut-off energy
-real(8), parameter :: esccut=-0.35d0
-! band offset energy
-real(8), parameter :: boe=0.15d0
-real(8) spmass,rmt,spzn,sprmin,sprmax,t1
-character(256) spsymb,spname
-! automatic arrays
-logical spcore(maxspst)
-integer spn(maxspst),spl(maxspst),spk(maxspst)
-real(8) spocc(maxspst),eval(maxspst)
-! allocatable arrays
-real(8), allocatable :: r(:),rho(:),vr(:),rwf(:,:,:)
-real(8), allocatable :: fr(:),gr(:),cf(:,:)
-
-
+!
+! Parameterset corresponding to original source code for species-program.
+! Note that for some of the shipped species files the cutoff parameters are
+! different (epsedirac=1.d-10 and epspotatom=eps=1.d-7)
+epsedirac=1.d-11
+epspotatom=1.d-6
+! set default values
+inspecies=''
+ecvcut=-3.5d0
+esccut=-0.35d0
+apwdescr=''
+suffix=''
+apword=1
+apwdm(:)=0
+apwve(:)=.false.
+apwordx=0
+apwdmx(:)=0
+apwve(:)=.false.
+locorb=.true.
+locorbsc=.true.
+searchlocorb=.false.
 
 ! get generation strategy from input file 'species.input'
 open(50,file='species.input',action='READ',status='OLD',form='FORMATTED', &
@@ -58,19 +43,87 @@ read(50,*,end=300) bname
 ! check for a comment
 if ((scan(trim(bname),'!').eq.1).or.(scan(trim(bname),'#').eq.1)) goto 100
 select case(trim(bname))
-case('strategy')
-  read(50,*,err=200) strat
-  select case(trim(strat))
-  case('old')
-    effstrat=.false.
-  case('efficient')
-    effstrat=.true.
-  case default
+case('epsedirac')
+  read(50,*,err=200) epsedirac
+  if (epsedirac.lt.0.d0) then
     write(*,*)
-    write(*,'("Error(species): invalid strategy name : ",A)') trim(strat)
+    write(*,'("Error(species): epsedirac < 0 : ",g18.10)') epsedirac
     write(*,*)
     stop
-  end select
+  end if
+case('epspotatom')
+  read(50,*,err=200) epspotatom
+  if (epspotatom.lt.0.d0) then
+    write(*,*)
+    write(*,'("Error(species): epspotatom < 0 : ",g18.10)') epspotatom
+    write(*,*)
+    stop
+  end if
+case('inspecies')
+  read(50,*,err=200) inspecies
+case('ecvcut')
+  read(50,*,err=200) ecvcut
+case('esccut')
+  read(50,*,err=200) esccut
+case('apwdescr')
+  read(50,*,err=200) apwdescr
+case('suffix')
+  read(50,*,err=200) suffix
+  suffix=trim(suffix)
+case('apw')
+  read(50,*,err=200) apword
+  if ((apword.lt.1).or.(apword.gt.maxapword)) then
+    write(*,*)
+    write(*,'("Error(species): apword < 1 : ",A)') apword
+    write(*,*)
+    stop
+  end if
+  if (apword.gt.maxapword) then
+    write(*,*)
+    write(*,'("Error(species): apword too large : ",I8)') apword
+    write(*,*)
+    stop
+  end if
+  do io=1,apword
+    read(50,*) apwdm(io),apwve(io)
+    if (apwdm(io).lt.0) then
+      write(*,*)
+      write(*,'("Error(species): apwdm < 0 : ",I8)') apwdm(io)
+      write(*,'(" for order ",I4)') io
+      write(*,*)
+      stop
+    end if
+  end do
+case('apwx')
+  read(50,*,err=200) apwordx
+  if ((apwordx.lt.1).or.(apwordx.gt.maxapword)) then
+    write(*,*)
+    write(*,'("Error(species): apwordx < 1 : ",A)') apwordx
+    write(*,*)
+    stop
+  end if
+  if (apwordx.gt.maxapword) then
+    write(*,*)
+    write(*,'("Error(species): apwordx too large : ",I8)') apwordx
+    write(*,*)
+    stop
+  end if
+  do io=1,apwordx
+    read(50,*) apwdmx(io),apwvex(io)
+    if (apwdmx(io).lt.0) then
+      write(*,*)
+      write(*,'("Error(species): apwdmx < 0 : ",I8)') apwdmx(io)
+      write(*,'(" for order ",I4)') io
+      write(*,*)
+      stop
+    end if
+  end do
+case('locorb')
+  read(50,*,err=200) locorb
+case('locorbsc')
+  read(50,*,err=200) locorbsc
+case('searchlocorb')
+  read(50,*,err=200) searchlocorb
 case('')
   goto 100
 case default
@@ -88,9 +141,6 @@ write(*,*)
 stop
 300 continue
 close(50)
-write(*,*)
-write(*,'("Info(species): new effective method applied")')
-write(*,*)
 
 
 
@@ -123,6 +173,8 @@ do ist=1,spnst
   spocc(ist)=dble(i)
 end do
 read(40,*)
+if ((adjustl(trim(inspecies)).ne.'').and.(adjustl(trim(inspecies)).ne. &
+	adjustl(trim(spsymb)))) goto 10
 write(*,'("Info(species): running Z = ",I4,", (",A,")")') nz,trim(spname)
 ! nuclear charge in units of e
 spzn=-dble(nz)
@@ -195,21 +247,28 @@ maxl=0
 do ist=1,spnst
   if (.not.spcore(ist)) then
     if ((spl(ist).eq.0).or.(spl(ist).eq.spk(ist))) then
+      l=spl(ist)
       if (eval(ist).lt.esccut) nlorb=nlorb+1
     end if
     if (spl(ist).gt.maxl) maxl=spl(ist)
   end if
 end do
+! save number of semi-core LO's
+nlorbsc=nlorb
 maxl=maxl+1
 if (maxl.gt.3) maxl=3
-nlorb=nlorb+maxl+1
-nlx=0
+! case for no local orbitals
+if ((.not.locorb).and.(.not.locorbsc)) nlorb=0
+! case for small lo's and semi-core lo's
+if (locorb.and.locorbsc) nlorb=nlorbsc+maxl+1
+! case for only semi-core LO's
+if ((.not.locorb).and.locorbsc) nlorb=nlorbsc
+! case for only small lo's
+if (locorb.and.(.not.locorbsc)) nlorb=maxl+1
+
 ! open the atomic data file
-if (effstrat) then
-  open(50,file=trim(spsymb)//'_new.in',action='WRITE',form='FORMATTED')
-else
-  open(50,file=trim(spsymb)//'.in',action='WRITE',form='FORMATTED')
-end if
+#ifdef DEBUG
+open(50,file=trim(spsymb)//trim(suffix)//'.in',action='WRITE',form='FORMATTED')
 write(50,'(" ''",A,"''",T45,": spsymb")') trim(spsymb)
 write(50,'(" ''",A,"''",T45,": spname")') trim(spname)
 write(50,'(G14.6,T45,": spzn")') spzn
@@ -222,58 +281,75 @@ write(50,'(3I4,G14.6,L1,T45,": spn, spl, spk, spocc, spcore")') spn(1),spl(1), &
 do ist=2,spnst
   write(50,'(3I4,G14.6,L1)') spn(ist),spl(ist),spk(ist),spocc(ist),spcore(ist)
 end do
-write(50,'(I4,T45,": apword")') 1
-write(50,'(F8.4,I4,"  ",L1,T45,": apwe0, apwdm, apwve")') boe,0,.false.
+
+
+! overall APW order
+write(50,'(I4,T45,": apword")') apword
+do io=1,apword
+   write(50,'(F8.4,I4,"  ",L1,T45,": apwe0, apwdm, apwve")') boe,apwdm(io),apwve(io)
+end do
 
 
 
-if (effstrat) then
+if (apwordx.gt.0) then
   ! number of exceptions corresponds to number of l-values
   nlx=maxl+1
   write(50,'(I4,T45,": nlx")') nlx
   ! write the exceptions
   do l=0,maxl
-    write(50,'(2I4,T45,": lorbl, lorbord")') l,2
-    write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0,.false.
-    write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
+    write(50,'(2I4,T45,": lorbl, lorbord")') l,apwordx
+    do io=1,apwordx
+      if (io.eq.1) then
+        write(50,'(F8.4,I4,"  ",L1,T45,": apwe0, apwdm, apwve")') boe,apwdmx(io),apwvex(io)
+      else
+        write(50,'(F8.4,I4,"  ",L1,T45)') boe,apwdmx(io),apwvex(io)
+      end if
+    end do
   end do
 else
   nlx=0
   write(50,'(I4,T45,": nlx")') nlx
 end if
 
-
-
 write(50,'(I4,T45,": nlorb")') nlorb
-! write the local-orbitals
-do l=0,maxl
-  write(50,'(2I4,T45,": lorbl, lorbord")') l,2
-  write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0,.false.
-  write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
-end do
-do ist=1,spnst
-  if (.not.spcore(ist)) then
-    if ((spl(ist).eq.0).or.(spl(ist).eq.spk(ist))) then
-      if (eval(ist).lt.esccut) then
-        write(50,'(2I4,T45,": lorbl, lorbord")') spl(ist),3
-        write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0, &
-         .false.
-        write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
-        write(50,'(F8.4,I4,"  ",L1)') eval(ist)+0.5d0*boe,0,.true.
+
+if (locorb) then
+  ! write the local-orbitals
+  do l=0,maxl
+    write(50,'(2I4,T45,": lorbl, lorbord")') l,2
+    if (searchlocorb) then
+       write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0,.true.
+       write(50,'(F8.4,I4,"  ",L1)') boe,1,.true.
+    else
+       write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0,.false.
+       write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
+    end if
+  end do
+end if
+
+if (locorbsc) then
+  do ist=1,spnst
+    if (.not.spcore(ist)) then
+      if ((spl(ist).eq.0).or.(spl(ist).eq.spk(ist))) then
+        if (eval(ist).lt.esccut) then
+          write(50,'(2I4,T45,": lorbl, lorbord")') spl(ist),3
+          write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0, &
+           .false.
+          write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
+          write(50,'(F8.4,I4,"  ",L1)') eval(ist)+0.5d0*boe,0,.true.
+        end if
       end if
     end if
-  end if
-end do
-
-
+  end do
+end if
 
 write(50,*)
 write(50,'("# Exciting code version : ",a)') version
-if (effstrat) write(50,'("# new effective strategy applied")')
-
-
+write(50,'("# Description of method : ",a)') trim(apwdescr)
 
 close(50)
+#endif
+ call writexmlspecies()
 ! read another element from file
 goto 10
 end program

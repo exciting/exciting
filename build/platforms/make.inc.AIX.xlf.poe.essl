@@ -1,6 +1,6 @@
 F90=xlf90
 F90_OPTS =-O3 
-CPP_ON_OPT = -qsuffix=cpp=f90
+CPP_ON_OPT = -qsuffix=cpp=f90  -WF,-DxlC
 F77 =xlf
 F77_OPTS = -O3 
 LIB_ARP =libarpack.a

@@ -1,46 +1,19 @@
-#include ../../build/make.inc
+include ../../build/make.inc
 
-#-------------------------------------------------------------------------------
-# Suffix rules
-#-------------------------------------------------------------------------------
-.SUFFIXES: .o .f90
-.f90.o:
-	$(F90) $(F90_OPTS) -c $<
+bin:spacegroupbin
 
-#-------------------------------------------------------------------------------
-# Source files
-#-------------------------------------------------------------------------------
-
-SRC_modules = modmain.f90
-
-SRC_main = main.f90
-
-SRC_routines = readinput.f90 gencrystal.f90 sgsymb.f90 seitzgen.f90 \
- gengroup.f90 seitzeq.f90 seitzmul.f90 writegeom.f90 geomplot.f90
-
-SRC_lib = findprim.f90 r3frac.f90 r3taxi.f90 r3mv.f90 r3cross.f90 r3minv.f90 \
- r3mm.f90 r3dot.f90
-
-SRC = $(SRC_modules) $(SRC_main) $(SRC_routines) $(SRC_lib)
-
-OBJ = $(SRC:.f90=.o)
-EXE = spacegroup
-
-spacegroup:	$(OBJ)
-	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ)
-	cp $(EXE) ../../bin
-
+spacegroupbin:: ../../build/make.inc 
+	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p spacegroup \
+	./ ../src_lib/r3*   \
+	 ../src_inputparser/inputmodules.f90    \
+	 ../src_inputparser/modinputdom.f90   \
+	&& $(MAKE) -f Makefile.mkmf spacegroup \
+	&& cp spacegroup ../../bin/spacegroup
+	
 clean:
-	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.OUT *.xsf *.ascii gmon.out \
-         *.aux *.dvi *.log *.pdf *.tex *.toc $(EXE)
-
-copy:
-	cd ..;cp $(SRC_lib) spacegroup
-
-doc:
-	../../utilities/scripts/protex -s $(SRC_main) $(SRC_modules) $(SRC_routines) $(SRC_lib) \
-         > spacegroup.tex
-	latex spacegroup;latex spacegroup;latex spacegroup
-	dvipdf spacegroup.dvi
-	mv spacegroup.pdf ../../docs/spacegroup
-
+	rm -f *.o *.mod *~ fort.* ifc* *.gcno gmon.out $(EXE)
+	
+doc::
+	cd ../../docs/spacegroup/
+	perl ../../utilities/scripts/genprotexdoc.pl ../../src/spacegroup/
+	mv doc.pdf spacegroup.pdf

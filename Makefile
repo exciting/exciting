@@ -29,24 +29,31 @@ mpiandsmp:
 test::
 	cd test/; $(MAKE) -i
 
-doc: excitingdoc spacegroupdoc
+doc:  spacegroupdoc inputdoc excitingfuncdoc
 	
-excitingdoc::
+excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
 	
 spacegroupdoc::
 	cd src/spacegroup; $(MAKE) doc
  
-
-
+inputdoc::
+	cd docs/exciting/;\
+	xsltproc ../../xml/schematodoc.xsl ../../xml/excitinginput.xsd >excitinginput.tex;\
+	pdflatex excitinginput.tex
+	pdflatex excitinginput.tex
+	
 eos::
 	cd src/eos; $(MAKE)
 	
 spacegroup::
 	cd src/spacegroup; $(MAKE)
 	
-species::
+species::libs
 	cd src/species; $(MAKE)
+
+libs:
+	cd build/serial; $(MAKE) libs
 
 debian:all doc
 	cd debian &&  sh makepackage.sh

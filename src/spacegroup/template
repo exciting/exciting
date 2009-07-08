@@ -1,0 +1,10 @@
+include ../../build/make.inc
+FC = $(F90) -g  -I../../build/serial
+FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
+LD = $(FC)
+LDFLAGS = $(F90_OPTS)   ../../build/serial/libfox.a
+AR = ar
+ARFLAGS = -rc
+F77=$(F77) $(F77_OPTS)
+TMPFILES = *.mod
+SUFFIX=ser

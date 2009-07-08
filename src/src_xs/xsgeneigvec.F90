@@ -24,7 +24,7 @@ subroutine xsgeneigvec
   qi=1
   qf=nqpt
   ! add extra q-point for if files for q=0 are to be calculated
-  if (tq0ev) qi=0
+
   ! if first Q-point is Gamma-point we copy files
   if (tqgamma(1)) qi=1
   if (tscreen) then

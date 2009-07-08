@@ -1,16 +1,20 @@
+
+
+
+
 subroutine jacdavblock(n, m, system, ld, u, u_A, u_B, theta, t, t_A, flag)
- use modmain,only: nstfv
+ use modmain, only: nstfv
 use modfvsystem
-        IMPLICIT NONE
-        INTEGER, intent(in) :: n, m, ld
-        type(evsystem), intent(in) :: system
-        DOUBLE COMPLEX, intent(in) :: u(ld, nstfv)   
-        DOUBLE COMPLEX, intent(in) :: u_A(ld,nstfv )
-        DOUBLE COMPLEX, intent(in) :: u_B(ld, nstfv)
-        DOUBLE PRECISION, intent(in) :: theta(nstfv)
-        DOUBLE COMPLEX, intent(out) :: t(ld, nstfv)
-        DOUBLE COMPLEX, intent(out) :: t_A(ld, nstfv)
-        INTEGER, intent(in) :: flag
+	IMPLICIT NONE
+	INTEGER, intent(in) :: n, m, ld
+	type(evsystem), intent(in) :: system
+	DOUBLE COMPLEX, intent(in) :: u(ld, nstfv)   
+	DOUBLE COMPLEX, intent(in) :: u_A(ld, nstfv )
+	DOUBLE COMPLEX, intent(in) :: u_B(ld, nstfv)
+	DOUBLE PRECISION, intent(in) :: theta(nstfv)
+	DOUBLE COMPLEX, intent(out) :: t(ld, nstfv)
+	DOUBLE COMPLEX, intent(out) :: t_A(ld, nstfv)
+	INTEGER, intent(in) :: flag
 
 !Purpose:
 !========
@@ -126,89 +130,87 @@ use modfvsystem
 !
 ! ..
 
-        DOUBLE COMPLEX, allocatable, save :: u_B1(:,:)
-        DOUBLE COMPLEX, allocatable :: work(:)
-        DOUBLE COMPLEX, allocatable, save :: Afacts(:,:)
-        INTEGER, allocatable, save :: ipiv(:)
-        INTEGER :: i, j, info, lwork
-        DOUBLE COMPLEX :: olwork
-        DOUBLE COMPLEX :: dconjg 
+	DOUBLE COMPLEX, allocatable, save :: u_B1(:, :)
+	DOUBLE COMPLEX, allocatable :: work(:)
+	DOUBLE COMPLEX, allocatable, save :: Afacts(:, :)
+	INTEGER, allocatable, save :: ipiv(:)
+	INTEGER :: i, j, info, lwork
+	DOUBLE COMPLEX :: olwork
+	DOUBLE COMPLEX :: dconjg 
 
 !from BLAS:
-        DOUBLE COMPLEX, external :: zdotc
-        EXTERNAL :: zcopy, zaxpy, zscal, zhemm
+	DOUBLE COMPLEX, external :: zdotc
+	EXTERNAL :: zcopy, zaxpy, zscal, zhemm
 !from LAPACK:
-        EXTERNAL :: zhetrf, zhetrs
+	EXTERNAL :: zhetrf, zhetrs
 
 
-        IF (flag == 0) THEN ! INIT
+	IF (flag == 0) THEN ! INIT
 
             ! construct precondtioner for A-theta*B
             ! We use a factorization of A which is assumed to be 
             ! symmetric but not necessarily positive definite
 
             ! workspace query: get optimal size of work
-            call zhetrf("L", n, Afacts, n, ipiv, olwork, -1, info )
-            lwork = olwork
-    
-            ALLOCATE( work(lwork), Afacts(n,n), ipiv(n) ) !TODO: error handling
+	    call zhetrf("L", n, Afacts, n, ipiv, olwork, -1, info )
+	    lwork = olwork
+
+	    ALLOCATE( work(lwork), Afacts(n, n), ipiv(n) ) !TODO: error handling
 
             ! Afacts = A 
-            do j = 1, n
-                do i = 1, n
-                    Afacts(j, i) = system%hamilton%za(j,i) 
-                end do
-            end do
-        
-            call zhetrf("L", n, Afacts, n, ipiv, work, lwork, info )
-            if (info .ne. 0) then
-                print *, "zhetrf: info = ", info
-                stop "jacdavblock"
-            end if
-            
-            DEALLOCATE( work )
+	    do j = 1, n
+		do i = 1, n
+		    Afacts(j, i) = system%hamilton%za(j, i) 
+		end do
+	    end do
 
-            ALLOCATE ( u_B1(n,m) ) ! todo: error handling 
+	    call zhetrf("L", n, Afacts, n, ipiv, work, lwork, info )
+	    if (info .ne. 0) then
+		print *, "zhetrf: info = ", info
+		stop "jacdavblock"
+	    end if
 
-            RETURN
+	    DEALLOCATE( work )
 
-        ELSE IF (flag == -1) THEN ! FINISH
+	    ALLOCATE ( u_B1(n, m) ) ! todo: error handling 
 
-            DEALLOCATE ( u_B1 )
-            DEALLOCATE ( Afacts, ipiv )
+	    RETURN
 
-            RETURN
+	ELSE IF (flag == -1) THEN ! FINISH
 
-        END IF
+	    DEALLOCATE ( u_B1 )
+	    DEALLOCATE ( Afacts, ipiv )
+
+	    RETURN
+
+	END IF
 
         ! u_B1 = u_B;
         ! t = u
         ! t_A = u_A
-        IF (ld == n) THEN
+	IF (ld == n) THEN
             !only one call to dcopy necessary 
-            call zcopy(n*m, u, 1, t, 1)
-            call zcopy(n*m, u_B, 1, u_B1, 1)
-            call zcopy(n*m, u_A, 1, t_A, 1)
-        ELSE
-            DO i=1,m
-               call zcopy(n, u(:,i), 1, t(:,i), 1)
-               call zcopy(n, u_B(:,i), 1, u_B1(:,i), 1)
-               call zcopy(n, u_A(:,i), 1, t_A(:,i), 1)
-            END DO
-        END IF    
+	    call zcopy(n*m, u, 1, t, 1)
+	    call zcopy(n*m, u_B, 1, u_B1, 1)
+	    call zcopy(n*m, u_A, 1, t_A, 1)
+	ELSE
+	    DO i=1, m
+	       call zcopy(n, u(:, i), 1, t(:, i), 1)
+	       call zcopy(n, u_B(:, i), 1, u_B1(:, i), 1)
+	       call zcopy(n, u_A(:, i), 1, t_A(:, i), 1)
+	    END DO
+	END IF	  
 
         ! u_B1 = A\u_B1;
-        call zhetrs("L", n, m, Afacts, n, ipiv, u_B1, n, info)
-        
-        DO i = 1, m 
-            ! t = t - theta*u_B1;       
-            call zaxpy(n, -dcmplx(theta(i)), u_B1(:,i), 1, t(:,i), 1)
-            ! t_A = t_A - theta*u_B;
-            call zaxpy(n, -dcmplx(theta(i)), u_B(:,i), 1, t_A(:,i), 1)
-        END DO
+	call zhetrs("L", n, m, Afacts, n, ipiv, u_B1, n, info)
 
-        RETURN
+	DO i = 1, m 
+            ! t = t - theta*u_B1;       
+	    call zaxpy(n, -dcmplx(theta(i)), u_B1(:, i), 1, t(:, i), 1)
+            ! t_A = t_A - theta*u_B;
+	    call zaxpy(n, -dcmplx(theta(i)), u_B(:, i), 1, t_A(:, i), 1)
+	END DO
+
+	RETURN
 
 END SUBROUTINE jacdavblock
-
-
