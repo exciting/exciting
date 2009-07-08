@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -6,7 +7,7 @@
 !BOP
 ! !ROUTINE: sdelta
 ! !INTERFACE:
-real(8) function sdelta(stype,x)
+real(8) function sdelta(stype, x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   stype : smearing type (in,integer)
 !   x     : real argument (in,real)
@@ -37,18 +38,18 @@ implicit none
 integer, intent(in) :: stype
 real(8), intent(in) :: x
 ! external functions
-real(8) sdelta_mp,sdelta_fd,sdelta_sq
-external sdelta_mp,sdelta_fd,sdelta_sq
+real(8)::sdelta_mp, sdelta_fd, sdelta_sq
+external sdelta_mp, sdelta_fd, sdelta_sq
 sdelta=0.d0
 select case(stype)
 case(0)
-  sdelta=sdelta_mp(0,x)
+  sdelta=sdelta_mp(0, x)
   return
 case(1)
-  sdelta=sdelta_mp(1,x)
+  sdelta=sdelta_mp(1, x)
   return
 case(2)
-  sdelta=sdelta_mp(2,x)
+  sdelta=sdelta_mp(2, x)
   return
 case(3)
   sdelta=sdelta_fd(x)
@@ -56,9 +57,9 @@ case(3)
 case(4)
   sdelta=sdelta_sq(x)
 case default
-  write(*,*)
-  write(*,'("Error(sdelta): sytpe not defined : ",I8)') stype
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(sdelta): sytpe not defined : ", I8)') stype
+  write(*, *)
   stop
 end select
 end function
@@ -67,8 +68,11 @@ end function
 !BOP
 ! !ROUTINE: getsdata
 ! !INTERFACE:
-subroutine getsdata(stype,sdescr)
+
+
+subroutine getsdata(stype, sdescr)
 ! !INPUT/OUTPUT PARAMETERS:
+use modinput
 !   stype  : smearing type (in,integer)
 !   sdescr : smearing scheme description (out,character(256))
 ! !DESCRIPTION:
@@ -99,9 +103,9 @@ case(3)
 case(4)
   sdescr='Square-wave impulse'
 case default
-  write(*,*)
-  write(*,'("Error(getsdata): sytpe not defined : ",I8)') stype
-  write(*,*)
+  write(*, *)
+  write(*, '("Error(getsdata): sytpe not defined : ", I8)') stype
+  write(*, *)
   stop
 end select
 end subroutine
