@@ -2,6 +2,8 @@
 ! Silicon (Si), excited states test example
 
 tasks
+0
+20
 301
 320
 330
@@ -36,10 +38,10 @@ reducek
   .false.
 
 ngridk
-  2 2 2
+  4  4  4
   
 ngridq
-  2 2 2
+  4  4  4
 
 vkloff
   0.033333333333333  0.100000000000000  0.166666666666667

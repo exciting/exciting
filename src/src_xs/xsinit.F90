@@ -91,7 +91,7 @@ subroutine xsinit
   !--------------------------------------------!
   !     map xs parameters associated to GS     !
   !--------------------------------------------!
-  !sag: call mapxsparameters
+  call mapxsparameters
 
 
   !-----------------------------------!
