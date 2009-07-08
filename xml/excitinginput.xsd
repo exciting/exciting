@@ -3137,7 +3137,7 @@
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="ngridk" type="integertriple"
-							default="0 0 0">
+							default="1 1 1">
 							<xs:annotation>
 								<xs:appinfo>
 									<oldname>ngridkxs</oldname>
