@@ -3184,7 +3184,7 @@
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="swidth" type="fortrandouble"
-							default="0.01">
+							default="0.01d0">
 							<xs:annotation>
 								<xs:appinfo>
 									<oldname>swidthxs</oldname>
