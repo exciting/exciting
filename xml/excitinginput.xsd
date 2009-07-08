@@ -2456,10 +2456,8 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
+							<xs:element name="screening" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
-									<xs:attribute name="nosymbse" type="xs:boolean"
-										default="false" />
 									<xs:attribute name="nosymscr" type="xs:boolean"
 										default="false" />
 									<xs:attribute name="ngridkscr" type="integertriple"
@@ -2472,6 +2470,22 @@
 										default="0" />
 									<xs:attribute name="nemptyscr" type="xs:integer"
 										default="0" />
+									<xs:attribute name="screentype" default="full">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="full" />
+												<xs:enumeration value="diag" />
+												<xs:enumeration value="noinvdiag" />
+												<xs:enumeration value="longrange" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:attribute name="nosymbse" type="xs:boolean"
+										default="false" />
 									<xs:attribute name="reducekbse" type="xs:boolean"
 										default="false" />
 									<xs:attribute name="vkloffbse" type="vect3d"
@@ -2503,7 +2517,6 @@
 										<xs:annotation>
 											<xs:appinfo>
 												<oldname>nbfbse,nafbse</oldname>
-												>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
@@ -2512,7 +2525,6 @@
 										<xs:annotation>
 											<xs:appinfo>
 												<oldname>nbfce,nafce</oldname>
-												>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
@@ -2523,16 +2535,6 @@
 												<xs:enumeration value="rpa" />
 												<xs:enumeration value="singlet" />
 												<xs:enumeration value="triplet" />
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
-									<xs:attribute name="screentype" default="full">
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="full" />
-												<xs:enumeration value="diag" />
-												<xs:enumeration value="noinvdiag" />
-												<xs:enumeration value="longrange" />
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
