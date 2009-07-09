@@ -54,14 +54,12 @@ module modxs
   integer :: iqcu
   data iqcu / 0 /
 
-!*************************************************************************
   ! number of crystal symmetries for the little group of q
   integer, allocatable :: nsymcrysq(:)
   ! map from little group of q to spacegroup
   integer, allocatable :: scqmap(:,:)
   ! wrapping vectors for elements of the small group of q
   integer, allocatable :: ivscwrapq(:,:,:)
-!*************************************************************************
 
   !----------------------------------!
   !     G+q-vector set variables     !
@@ -101,7 +99,6 @@ module modxs
   ! k-points in lattice coordinates for q=0
   real(8), allocatable :: vkl0(:,:)
 
-!*************************************************************************
   ! maximum number of space group operations in stars over all k
   integer :: nsymcrysstrmax
   ! number of space group operations for stars
@@ -114,7 +111,6 @@ module modxs
   integer, allocatable :: strmap(:)
   ! map from non-reduced k-point set to associated symmetry in star
   integer, allocatable :: strmapsymc(:)
-  !*************************************************************************
 
 
   !-------------------------!
