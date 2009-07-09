@@ -1,6 +1,8 @@
 program test
 use modreport
 use modmpi
+use modinput
+implicit none
 testplan_name ="test2"
 !call inittestoutputfile()
 
@@ -8,7 +10,15 @@ testplan_name ="test2"
 ! before leaving the routine
 !call system("rm *.OUT")
  call initMPI
-call readinput()
+
+call loadinputDOM()
+call setdefault
+input=getstructinput(inputnp)
+call ifparseerrorstop()
+call destroyDOM()
+call initatomcounters()
+call initlattice
+call readspeciesxml
 call gndstate()
 call finitMPI
 if (rank.eq.0) then

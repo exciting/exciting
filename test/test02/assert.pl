@@ -59,7 +59,7 @@ close INFO;
 
 
 #compare total energies
-$tol=5e-8;
+$tol=1e-7;
 open TOTEARP, "runarp/TOTENERGY.OUT";
 open TOTELAP, "runlapack/TOTENERGY.OUT";
 $status="failed";

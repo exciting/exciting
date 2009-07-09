@@ -2,21 +2,21 @@ all:test01 test02 test04
 
 include ../../build/Make.common
 
-Makefile.test1::
+Makefile.test1::$(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl
 	../../utilities/mkmf   -t template -f -m Makefile.test1 -p testprogram1  \
 	$(SOURCEDIRS) ../test01/src/ \
 	../src/testframework/
 
 
-Makefile.test2::
+Makefile.test2::$(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl
 	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2  \
 	$(SOURCEDIRS) ../test02/src \
 	../src/testframework
 
 
-Makefile.test4::
+Makefile.test4::$(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl
 	 ../../utilities/mkmf -t template -f -m Makefile.test4 -p testprogram4  \
 	$(SOURCEDIRS) ../test04/src \
@@ -41,7 +41,21 @@ test02::testprogram2
 
 test04::testprogram4
 	
+test06:testxml
+	
+	
+testxml:Makefile.testxml libs 
+	make -f Makefile.testxml testxml
+	
+	
+	
+Makefile.testxml::  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90 
+	perl ../../utilities/versionstamp.pl
+	../../utilities/mkmf  -t template -f -m Makefile.testxml -p testxml  \
+	../../src/src_inputparser/ \
+	$(SOURCEDIRS) ../test06/src/ \
 
+	
 #for the rules to build the libraries include the other makefile
 
 

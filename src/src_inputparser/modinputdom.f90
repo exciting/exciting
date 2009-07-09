@@ -2,7 +2,7 @@ module inputdom
 	use FoX_dom
 
   	implicit none
- 	type(Node), pointer :: doc,inputnp,nullnode
+ 	type(Node), pointer :: doc,inputnp,nullnode,emptynode,dummy
     type(DOMConfiguration),pointer :: config
     logical::parseerror
 ! Request full canonicalization
@@ -20,6 +20,8 @@ subroutine loadinputDOM()
   inputnp=>getDocumentElement(doc)
   nullnode =>getattributenode(inputnp,"schouldneverexist")
   parseerror=.false.
+   dummy => createDocument(getImplementation(), "", "info", null())
+   emptynode=>createElementNS(dummy, "", "empty")
 end subroutine
 
 subroutine handleunknownnodes(np)

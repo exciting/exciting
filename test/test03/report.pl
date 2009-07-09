@@ -45,7 +45,7 @@ Test::writetestreport(
 	$writer
 );
 
-$iterationsref = 15;
+$iterationsref = 17;
 if   ( $iterations == $iterationsref ) { $status = passed; }
 else                                   { $status = "failed"; }
 

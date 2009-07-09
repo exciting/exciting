@@ -5,5 +5,5 @@ FC = $(MPIF90)
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
 ### debug
 LD = $(FC)
-LDFLAGS =$(MPI_OPTS) $(LIBS) 
+LDFLAGS =$(MPI_OPTS) $(LIBS) libmsec.a libfox.a
 TMPFILES = *.mod

@@ -1,15 +1,12 @@
-include ../../build/serial/make.inc
+include ../../build/make.inc
 
-FC = $(F90)
-FC77 = $(F77)
+FC = $(F90) -I ../../src/FoX/objs/finclude
 
 
 FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT)
-FFLAGS77 = $(F77_DEBUGOPTS) $(CPP_ON_OPT)
 
 LD = $(FC)
-LDFLAGS =$(F90_OPTS) $(LIBS) $(F90_DEBUGOPTS) libmsec.a
-
+LDFLAGS =$(F90_OPTS) $(LIBS) $(F90_DEBUGOPTS) libmsec.a libfox.a
 F77=$(F77) 
 
 TMPFILES = *.mod

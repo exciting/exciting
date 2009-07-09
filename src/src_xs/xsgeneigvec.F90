@@ -49,8 +49,7 @@ use modinput
      ! write eigenvectors, -values, occupancies and contracted MT coefficients
      call writeevec(vqlt, qvkloff(1, iq), filext)
      if (.not.tscreen) then
-	write(unitout, '("Info(", a, "): eigenvectors generated for Q-point &
-	     &(iq, vql below)")') thisnam
+	write(unitout, '("Info(", a, "): eigenvectors generated for Q-point (iq, vql below)")') thisnam
 	write(unitout, '(i6, 3g18.10)') iq, vqlt(:)
      else
 	write(unitout, '(a)') 'Info('//thisnam//'): eigenvectors &
@@ -62,7 +61,7 @@ use modinput
 	call filedel('EVALCORE'//trim(filext))
 	call filedel('FERMIDOS'//trim(filext))
 	call filedel('GEOMETRY'//trim(filext))
-	call filedel('associated(input%structure%symmetries%lattice)'//trim(filext))
+	call filedel('lattice'//trim(filext))
 	call filedel('IADIST'//trim(filext))
 	call filedel('LINENGY'//trim(filext))
 	call filedel('SYMCRYS'//trim(filext))
