@@ -25,3 +25,4 @@ real(8), allocatable :: alphalu(:)
 ! energy from the LDA+U correction
 real(8)::engylu
 end module
+

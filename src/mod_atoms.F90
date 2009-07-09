@@ -23,11 +23,11 @@ integer::natmtot
 ! index to atoms and species
 integer::idxas(_MAXATOMS_, _MAXSPECIES_)
 ! molecule is .true. is the system is an isolated molecule
-!replaced by inputstructurelogical::molecule
+!replaced by inputstructure!replaced by inputstructurelogical::molecule
 ! primcell is .true. if primitive unit cell is to be found automatically
-!replaced by inputstructurelogical::primcell
+!replaced by inputstructure!replaced by inputstructurelogical::primcell
 ! atomic positions in lattice coordinates
-!replaced by inputstructurereal(8)::atposl(3, _MAXATOMS_, _MAXSPECIES_)
+!replaced by inputstructure!replaced by inputstructurereal(8)::atposl(3, _MAXATOMS_, _MAXSPECIES_)
 ! atomic positions in Cartesian coordinates
 real(8)::atposc(3, _MAXATOMS_, _MAXSPECIES_)
 
@@ -35,9 +35,9 @@ real(8)::atposc(3, _MAXATOMS_, _MAXSPECIES_)
 !     atomic species variables     !
 !----------------------------------!
 ! species files path
-!replaced by inputstructurecharacter(256)::sppath
+!replaced by inputstructure!replaced by inputstructurecharacter(256)::sppath
 ! species filenames
-!replaced by inputstructurecharacter(256)::spfname(_MAXSPECIES_)
+!replaced by inputstructure!replaced by inputstructurecharacter(256)::spfname(_MAXSPECIES_)
 ! species name
 character(256)::spname(_MAXSPECIES_)
 ! species symbol
@@ -46,7 +46,7 @@ character(64)::spsymb(_MAXSPECIES_)
 real(8)::spzn(_MAXSPECIES_)
 ! ptnucl is .true. if the nuclei are to be treated as point charges, if .false.
 ! the nuclei have a finite spherical distribution
-logical::ptnucl
+!replaced by inputstructurelogical::ptnucl
 ! species electronic charge
 real(8)::spze(_MAXSPECIES_)
 ! species mass
@@ -85,3 +85,4 @@ real(8), allocatable :: sprho(:, :)
 real(8), allocatable :: spvr(:, :)
 type(sp_type_array), allocatable ::speziesdeflist(:)
 end module
+

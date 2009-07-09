@@ -6,21 +6,21 @@ module mod_muffin_tin
 !     muffin-tin radial mesh and angular momentum variables     !
 !---------------------------------------------------------------!
 ! radial function integration and differentiation polynomial order
-integer::nprad
+!replaced by inputstructureinteger::nprad
 ! number of muffin-tin radial points for each species
 integer::nrmt(_MAXSPECIES_)
 ! maximum nrmt over all the species
 integer::nrmtmax
 ! autormt is .true. for automatic determination of muffin-tin radii
-logical::autormt
+!replaced by inputstructurelogical::autormt
 ! parameters for determining muffin-tin radii automatically
-real(8)::rmtapm(2)
+!replaced by inputstructurereal(8)::rmtapm(2)
 ! muffin-tin radii
 real(8)::rmt(_MAXSPECIES_)
 ! species for which the muffin-tin radius will be used for calculating gkmax
-integer::isgkmax
+!replaced by inputstructureinteger::isgkmax
 ! radial step length for coarse mesh
-integer::lradstp
+!replaced by inputstructureinteger::lradstp
 ! number of coarse radial mesh points
 integer::nrcmt(_MAXSPECIES_)
 ! maximum nrcmt over all the species
@@ -30,21 +30,21 @@ real(8), allocatable :: rcmt(:, :)
 ! maximum allowable angular momentum for augmented plane waves
 
 ! maximum angular momentum for augmented plane waves
-integer::lmaxapw
+!replaced by inputstructureinteger::lmaxapw
 ! (lmaxapw+1)^2
 integer::lmmaxapw
 ! maximum angular momentum for potentials and densities
-integer::lmaxvr
+!replaced by inputstructureinteger::lmaxvr
 ! (lmaxvr+1)^2
 integer::lmmaxvr
 ! maximum angular momentum used when evaluating the Hamiltonian matrix elements
-integer::lmaxmat
+!replaced by inputstructureinteger::lmaxmat
 ! (lmaxmat+1)^2
 integer::lmmaxmat
 ! fraction of muffin-tin radius which constitutes the inner part
-real(8)::fracinr
+!replaced by inputstructurereal(8)::fracinr
 ! maximum angular momentum in the inner part of the muffin-int
-integer::lmaxinr
+!replaced by inputstructureinteger::lmaxinr
 ! (lmaxinr+1)^2
 integer::lmmaxinr
 ! number of radial points to the inner part of the muffin-tin
@@ -59,3 +59,4 @@ real(8) :: epsedirac
 ! potential convergence tolerance for atomistic calculation
 real(8) :: epspotatom
 end module
+

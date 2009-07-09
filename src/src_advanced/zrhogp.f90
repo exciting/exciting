@@ -8,10 +8,11 @@
 
 subroutine zrhogp(gpc, jlgpr, ylmgp, sfacgp, zrhomt, zrhoir, zrho0)
 use modmain
+use modinput
 implicit none
 ! arguments
 real(8), intent(in) :: gpc
-real(8), intent(in) :: jlgpr(0:lmaxvr, nrcmtmax, nspecies)
+real(8), intent(in) :: jlgpr(0:input%groundstate%lmaxvr, nrcmtmax, nspecies)
 complex(8), intent(in) :: ylmgp(lmmaxvr)
 complex(8), intent(in) :: sfacgp(natmtot)
 complex(8), intent(in) :: zrhomt(lmmaxvr, nrcmtmax, natmtot)
@@ -45,7 +46,7 @@ do is=1, nspecies
     do ir=1, nrc
       zsum1=0.d0
       lm=0
-      do l=0, lmaxvr
+      do l=0,input%groundstate%lmaxvr
 	lm=lm+1
 	zsum2=zrhomt(lm, ir, ias)*ylmgp(lm)
 	do m=-l+1, l

@@ -10,7 +10,7 @@ integer::ngridq(3)
 ! total number of q-points
 integer::nqpt
 ! reduceq is .true. if q-points are to be reduced (with crystal symmetries)
-logical::reduceq
+!replaced by inputstructurelogical::reduceq
 ! locations of q-points on integer grid
 integer, allocatable :: ivq(:, :)
 ! map from non-reduced grid to reduced set
@@ -24,3 +24,4 @@ real(8), allocatable :: wqpt(:)
 ! weights associated with the integral of 1/q^2
 real(8), allocatable :: wiq2(:)
 end module
+

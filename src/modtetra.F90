@@ -23,11 +23,10 @@ module modtetra
   logical :: tetraocc
   ! tetrahedron method is used for optics
   logical :: tetraopt
+  ! tetrahedron method is used for dielectric function/matrix
+  logical :: tetradf
   ! use different k-point ordering that matches the one of the exciting code
   logical :: tetrakordexc
-  ! true if convolution-weights are calculated only for one k-point at once,
-  ! note that this way the calculation takes 4 times longer for all k-points
-  logical :: tetracw1k
   ! integer k-point offset
   integer(4) :: ikloff(3)
   ! k-point offset divisor

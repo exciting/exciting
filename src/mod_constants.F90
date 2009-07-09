@@ -29,3 +29,4 @@ data sigmat / (0.d0, 0.d0), (1.d0, 0.d0), (1.d0, 0.d0), (0.d0, 0.d0), &
 ! Boltzmann constant in Hartree/kelvin (CODATA 2006)
 real(8), parameter :: kboltz=3.166815343d-6
 end module
+

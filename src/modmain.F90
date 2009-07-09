@@ -35,3 +35,4 @@ integer, parameter::maxspecies=_MAXSPECIES_
 integer, parameter::maxatoms= _MAXATOMS_
 integer, parameter::maxlapw=_MAXLAPW_
 end module
+

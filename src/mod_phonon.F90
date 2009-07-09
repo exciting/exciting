@@ -10,7 +10,7 @@ integer::nphcell
 ! Cartesian offset vectors for each primitive cell in the supercell
 real(8)::vphcell(3, _MAXATOMS_)
 ! phonon displacement distance
-real(8)::deltaph
+!replaced by inputstructurereal(8)::deltaph
 ! original lattice vectors
 real(8)::avec0(3, 3)
 ! original inverse of lattice vector matrix
@@ -31,5 +31,6 @@ integer::nphwrt
 ! vectors in lattice coordinates for writing out frequencies and eigenvectors
 real(8), allocatable :: vqlwrt(:, :)
 ! Coulomb pseudopotential
-real(8)::mustar
+!replaced by inputstructurereal(8)::mustar
 end module
+

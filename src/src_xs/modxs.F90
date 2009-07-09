@@ -21,7 +21,7 @@ module modxs
   integer, private, parameter :: maxsymcrs=192
   ! true if only symmorphic space-group operations are to be considered
   ! allow only symmetries without non-primitive translations
-  logical :: symmorph
+!replaced by inputstructure  logical :: symmorph
   ! map to inverse crystal symmetry
   integer :: scimap(maxsymcrs)
 
@@ -50,7 +50,7 @@ module modxs
   integer, allocatable :: ivgmt(:, :)
   ! treatment of macroscopic dielectric function for Q-point outside of
   ! Brillouin zone
-  integer :: mdfqtype
+!replaced by inputstructure  integer :: mdfqtype
   ! index of current q-point
   integer :: iqcu
   data iqcu / 0 /
@@ -70,7 +70,7 @@ module modxs
   ! integer grid intervals for each direction for G-vectors
   integer::intgqv(3, 2)
   ! maximum |G+q| cut-off for APW functions
-  real(8)::gqmax
+!replaced by inputstructure  real(8)::gqmax
   ! number of G+q-vectors
   integer, allocatable :: ngq(:)
   ! maximum number of G+q-vectors over all q-points
@@ -216,15 +216,15 @@ module modxs
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
   ! fast method to calculate APW-lo, lo-APW and lo-lo parts in MT
-  logical :: fastemat
+!replaced by inputstructure  logical :: fastemat
   ! type of matrix element generation (band-combinations)
-  integer :: emattype
+!replaced by inputstructure  integer :: emattype
   ! maximum angular momentum for Rayleigh expansion of exponential
-  integer :: lmaxemat
+!replaced by inputstructure  integer :: lmaxemat
   ! (lmaxemat+1)^2
   integer :: lmmaxemat
   ! maximum angular momentum for APW functions (for matrix elements)
-  integer :: lmaxapwwf
+!replaced by inputstructure  integer :: lmaxapwwf
   ! (lmaxapwwf+1)^2
   integer :: lmmaxapwwf
   ! Gaunt coefficients array
@@ -260,7 +260,7 @@ module modxs
   !     momentum matrix elements    !
   !---------------------------------!
   ! fast method to calculate matrix elements
-  logical :: fastpmat
+!replaced by inputstructure  logical :: fastpmat
   ! radial integrals coefficients (APW-APW)
   real(8), allocatable :: ripaa(:, :, :, :, :, :)
   ! radial integrals coefficients (APW-lo)
@@ -278,82 +278,82 @@ module modxs
   !     response and dielectric functions    !
   !------------------------------------------!
   ! time ordering of response function (time-ordered/retarded)
-  character(32) :: torddf
+!replaced by inputstructure  character(32) :: torddf
   ! factor for time-ordering
   real(8) :: tordf
   ! true if analytic continuation to the real axis is to be performed
-  logical :: acont
+!replaced by inputstructure  logical :: acont
   ! number of energy intervals
   integer :: nwdf
   ! number of energy intervals (on imaginary axis) for analytic continuation
-  integer :: nwacont
+!replaced by inputstructure  integer :: nwacont
   ! broadening for Kohn Sham response function
-  real(8) :: broad
+!replaced by inputstructure  real(8) :: broad
   ! true if Lindhard like function is calculated (trivial matrix elements)
-  logical :: lindhard
+!replaced by inputstructure  logical :: lindhard
   ! true if to consider the anti-resonant part for the dielectric function
-  logical :: aresdf
+!replaced by inputstructure  logical :: aresdf
   ! true if only diagonal part of xc-kernel is used
-  logical :: kerndiag
+!replaced by inputstructure  logical :: kerndiag
   ! true if off-diagonal tensor components of dielectric function are calculated
-  logical :: dfoffdiag
+!replaced by inputstructure  logical :: dfoffdiag
   ! symmetrization tensor
   real(8) :: symt2(3, 3, 3, 3)
   ! true if tetrahedron method is used for dielectric function/matrix
-  logical :: tetradf
+!replaced by inputstructure  logical :: tetradf
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
   ! method)
   integer :: bzsampl
   ! choice of weights and nodes for tetrahedron method and non-zero Q-point
-  integer :: tetraqweights
+!replaced by inputstructure  integer :: tetraqweights
   ! number of band transitions for analysis
   integer :: ndftrans
   ! k-point and band combination analysis
   integer, allocatable :: dftrans(:, :)
   ! smallest energy difference for which the inverse square will be considered
-  real(8) :: epsdfde
+!replaced by inputstructure  real(8) :: epsdfde
   ! cutoff energy for dielectric function
-  real(8) :: emaxdf
+!replaced by inputstructure  real(8) :: emaxdf
 
   !----------------------------!
   !     xc-kernel variables    !
   !----------------------------!
   ! time ordering of xc-kernel function (time-ordered/retarded)
-  character(32) :: tordfxc
+!replaced by inputstructure  character(32) :: tordfxc
   ! factor for time-ordering
   real(8) :: torfxc
   ! true if to consider the anti-resonant part
-  logical :: aresfxc
+!replaced by inputstructure  logical :: aresfxc
   ! maximum angular momentum for Rayleigh expansion of exponential in
   ! ALDA-kernel
-  integer :: lmaxalda
+!replaced by inputstructure  integer :: lmaxalda
   ! muffin-tin real space exchange-correlation kernel
   complex(8), allocatable :: fxcmt(:, :, :)
   ! interstitial real space exchange-correlation kernel
   complex(8), allocatable :: fxcir(:)
   ! exchange-correlation kernel functional type
-  integer :: fxctype
+!replaced by inputstructure  integer :: fxctype
   ! exchange-correlation kernel functional description
   character(256)::fxcdescr
   ! exchange-correlation kernel functional spin treatment
   integer :: fxcspin
   ! alpha-parameter for the asymptotic long range part of the kernel
   ! (see [Reining PRL 2002])
-  real(8) :: alphalrc
+!replaced by inputstructure  real(8) :: alphalrc
   ! alpha-parameter for the asymptotic long range part of the kernel
   ! (see [Botti PRB 2005])
-  real(8) :: alphalrcdyn
+!replaced by inputstructure  real(8) :: alphalrcdyn
   ! beta-parameter for the asymptotic long range part of the kernel
   ! (see [Botti PRB 2005])
-  real(8) :: betalrcdyn
+!replaced by inputstructure  real(8) :: betalrcdyn
   ! split parameter for degeneracy in energy differences of BSE-kernel
-  real(8) :: fxcbsesplit
+!replaced by inputstructure  real(8) :: fxcbsesplit
 
   !---------------------------!
   !     exciton variables     !
   !---------------------------!
   ! maximum number of excitons
-  integer :: nexcitmax
+!replaced by inputstructure  integer :: nexcitmax
   ! number of excitons
   integer :: nexcit(3)
   ! exciton energies
@@ -367,38 +367,38 @@ module modxs
   ! true if one of the screening tasks is executed
   logical :: tscreen
   ! true if q-point set is taken from first Brillouin zone
-  logical :: fbzq
+!replaced by inputstructure  logical :: fbzq
   ! screening type: can be either "full", "diag", "noinvdiag" or "constant"
-  character(32) :: screentype
+!replaced by inputstructure  character(32) :: screentype
   ! nosym is .true. if no symmetry information should be used
-  logical::nosymscr
+!replaced by inputstructure  logical::nosymscr
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
-  logical::reducekscr
+!replaced by inputstructure  logical::reducekscr
   ! k-point grid sizes
-  integer :: ngridkscr(3)
+!replaced by inputstructure  integer :: ngridkscr(3)
   ! k-point offset
-  real(8) :: vkloffscr(3)
+!replaced by inputstructure  real(8) :: vkloffscr(3)
   ! smallest muffin-tin radius times gkmax
-  real(8) :: rgkmaxscr
+!replaced by inputstructure  real(8) :: rgkmaxscr
   ! number of empty states
-  integer :: nemptyscr
+!replaced by inputstructure  integer :: nemptyscr
   ! Hermitian treatment
-  integer :: scrherm
+!replaced by inputstructure  integer :: scrherm
   ! dielectric tensor in the RPA
   complex(8) :: dielten(3, 3)
   ! dielectric tensor in the independent particle approximation
   complex(8) :: dielten0(3, 3)
   ! average of body for screened Coulomb interaction at Gamma-point
-  logical :: sciavbd
+!replaced by inputstructure  logical :: sciavbd
   ! average of head, wings and body for screened Coulomb interaction at
   ! non-zero q-point
-  logical :: sciavqhd, sciavqwg, sciavqbd
+!replaced by inputstructure!replaced by inputstructure!replaced by inputstructure  logical :: sciavqhd, sciavqwg, sciavqbd
   ! maximum angular momentum for angular average of dielectric tensor
-  integer :: lmaxdielt
+!replaced by inputstructure  integer :: lmaxdielt
   ! (lmaxdielt+1)^2
   integer :: lmmaxdielt
   ! number of points for Lebedev Laikov meshes
-  integer :: nleblaik
+!replaced by inputstructure  integer :: nleblaik
   ! true if Lebedev Laikov meshes are to be used
   logical :: tleblaik
 
@@ -406,17 +406,17 @@ module modxs
   !     Bethe-Salpeter (kernel) variables    !
   !------------------------------------------!
   ! type of BSE-Hamiltonian
-  character(32) :: bsetype
+!replaced by inputstructure  character(32) :: bsetype
   ! true if effective singular part of direct term of BSE Hamiltonian is to be used
-  logical :: bsedirsing
+!replaced by inputstructure  logical :: bsedirsing
   ! nosym is .true. if no symmetry information should be used
-  logical::nosymbse
+!replaced by inputstructure  logical::nosymbse
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
-  logical::reducekbse
+!replaced by inputstructure  logical::reducekbse
   ! k-point offset
-  real(8) :: vkloffbse(3)
+!replaced by inputstructure  real(8) :: vkloffbse(3)
   ! smallest muffin-tin radius times gkmax
-  real(8) :: rgkmaxbse
+!replaced by inputstructure  real(8) :: rgkmaxbse
   ! number of states below Fermi energy (Coulomb - and exchange term)
   integer :: nbfce
   ! number of states above Fermi energy (Coulomb - and exchange term)
@@ -470,17 +470,17 @@ module modxs
   !------------------------------------------!
   !     xs-parameters related to GS ones     !
   !------------------------------------------!
-  logical :: nosymxs
-  integer :: ngridkxs(3)
-  real(8) :: vkloffxs(3)
-  logical :: reducekxs
-  integer :: ngridqxs(3)
-  logical :: reduceqxs
-  real(8) :: rgkmaxxs
-  real(8) :: swidthxs
-  integer :: lmaxapwxs
-  integer :: lmaxmatxs
-  integer :: nemptyxs
+!replaced by inputstructure  logical :: nosymxs
+!replaced by inputstructure  integer :: ngridkxs(3)
+!replaced by inputstructure  real(8) :: vkloffxs(3)
+!replaced by inputstructure  logical :: reducekxs
+!replaced by inputstructure  integer :: ngridqxs(3)
+!replaced by inputstructure  logical :: reduceqxs
+!replaced by inputstructure  real(8) :: rgkmaxxs
+!replaced by inputstructure  real(8) :: swidthxs
+!replaced by inputstructure  integer :: lmaxapwxs
+!replaced by inputstructure  integer :: lmaxmatxs
+!replaced by inputstructure  integer :: nemptyxs
 
 
   !--------------------------!
@@ -563,16 +563,16 @@ module modxs
   ! xs code version
   integer :: versionxs(2)
   ! true if energies output in eV
-  logical :: tevout
+!replaced by inputstructure  logical :: tevout
   ! scaling factor for writing energies
   real(8) :: escale
   ! debugging level
-  integer :: dbglev
+!replaced by inputstructure  integer :: dbglev
   ! true if to append info to output file
-  logical :: tappinfo
+!replaced by inputstructure  logical :: tappinfo
   ! gather option
-  logical :: gather
-  data gather /.false./
+!replaced by inputstructure  logical :: gather
+!  data gather /.false./
   ! string for messages
   character(1024) :: msg
   data msg / 'no message' /
@@ -591,3 +591,4 @@ module modxs
   data isreadstate0 /.false./
 
 end module modxs
+

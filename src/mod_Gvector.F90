@@ -6,7 +6,7 @@ module mod_Gvector
 !     G-vector set variables     !
 !--------------------------------!
 ! G-vector cut-off for interstitial potential and density
-real(8)::gmaxvr
+!replaced by inputstructurereal(8)::gmaxvr
 ! G-vector grid sizes
 integer::ngrid(3)
 ! total number of G-vectors
@@ -34,5 +34,6 @@ complex(8), allocatable :: cfunig(:)
 ! real-space characteristic function: 0 inside the muffin-tins and 1 outside
 real(8), allocatable :: cfunir(:)
 ! damping coefficient for characteristic function
-real(8)::cfdamp
+!replaced by inputstructurereal(8)::cfdamp
 end module
+

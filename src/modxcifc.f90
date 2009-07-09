@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -247,7 +248,6 @@ end subroutine
 
 subroutine getxcdata(xctype, xcdescr, xcspin, xcgrad)
 ! !INPUT/OUTPUT PARAMETERS:
-use modinput
 !   xctype  : type of exchange-correlation functional (in,integer)
 !   xcdescr : description of functional (out,character(256))
 !   xcspin  : spin treatment (out,integer)

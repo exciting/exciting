@@ -6,7 +6,7 @@ module mod_symmetry
 !     symmetry variables     !
 !----------------------------!
 ! nosym is .true. if no symmetry information should be used
-logical::nosym
+!replaced by inputstructurelogical::nosym
 ! number of Bravais lattice point group symmetries
 integer::nsymlat
 ! Bravais lattice point group symmetries
@@ -18,7 +18,7 @@ integer::isymlat(48)
 ! lattice point group symmetries in Cartesian coordinates
 real(8)::symlatc(3, 3, 48)
 ! tshift is .true. if atomic basis is allowed to be shifted
-logical::tshift
+!replaced by inputstructurelogical::tshift
 ! maximum of symmetries allowed
 integer, parameter :: maxsymcrys=192
 ! number of crystal symmetries
@@ -40,3 +40,4 @@ integer, allocatable :: lsplsyms(:, :)
 ! site symmetry global spin rotation element in lattice point group
 integer, allocatable :: lspnsyms(:, :)
 end module
+

@@ -7,7 +7,7 @@ use modinput
 !     potential and density variables     !
 !-----------------------------------------!
 ! exchange-correlation functional type
-integer::xctype
+!replaced by inputstructureinteger::xctype
 ! exchange-correlation functional description
 character(256)::xcdescr
 ! exchange-correlation functional spin treatment
@@ -29,7 +29,7 @@ real(8), allocatable :: vclmt(:, :, :)
 ! interstitial real-space Coulomb potential
 real(8), allocatable :: vclir(:)
 ! order of polynomial for pseudocharge density
-integer::npsden
+!replaced by inputstructureinteger::npsden
 ! muffin-tin exchange-correlation potential
 real(8), allocatable :: vxcmt(:, :, :)
 ! interstitial real-space exchange-correlation potential
@@ -39,7 +39,7 @@ real(8), allocatable :: bxcmt(:, :, :, :)
 ! interstitial exchange-correlation magnetic field
 real(8), allocatable :: bxcir(:, :)
 ! nosource is .true. if the field is to be made source-free
-logical::nosource
+!replaced by inputstructurelogical::nosource
 ! muffin-tin effective potential
 real(8), allocatable :: veffmt(:, :, :)
 ! interstitial effective potential
@@ -55,9 +55,10 @@ real(8), allocatable :: ecmt(:, :, :)
 ! interstitial real-space correlation energy density
 real(8), allocatable :: ecir(:)
 ! type of mixing to use for the potential
-integer::mixtype
+!replaced by inputstructureinteger::mixtype
 ! adaptive mixing parameters
-real(8)::beta0
-real(8)::betainc
-real(8)::betadec
+!replaced by inputstructurereal(8)::beta0
+!replaced by inputstructurereal(8)::betainc
+!replaced by inputstructurereal(8)::betadec
 end module
+

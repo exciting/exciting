@@ -14,5 +14,6 @@ real(8), allocatable :: rwfcr(:, :, :, :)
 real(8), allocatable :: rhocr(:, :)
 ! true for a frozen-core calculation (core state wavefunctions, densities and
 ! energies calculated only in the first iteration)
-logical :: frozencore
+!replaced by inputstructurelogical :: frozencore
 end module
+

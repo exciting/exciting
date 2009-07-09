@@ -7,14 +7,16 @@ if(.not.(associated(input%xs%tddft)))then
   ! set the default values if solver element not present
   input%xs%tddft=>getstructtddft(emptynode)
 endif
+
 if(.not.(associated(input%xs%screening)))then
   ! set the default values if solver element not present
   input%xs%screening=>getstructscreening(emptynode)
 endif
+
 if(.not.(associated(input%xs%BSE)))then
-  		! set the default values if solver element not present
-  		input%xs%BSE=>getstructBSE(emptynode)
-  	endif
+  ! set the default values if solver element not present
+	input%xs%BSE=>getstructBSE(emptynode)
+endif
 
 if(associated(input%xs%plan)) then
 	call xsmain(input%xs%plan)

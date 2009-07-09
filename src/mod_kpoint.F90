@@ -6,17 +6,17 @@ module mod_kpoint
 !     k-point set variables     !
 !-------------------------------!
 ! autokpt is .true. if the k-point set is determined automatically
-logical::autokpt
+!replaced by inputstructurelogical::autokpt
 ! radius of sphere used to determine k-point density when autokpt is .true.
-real(8)::radkpt
+!replaced by inputstructurereal(8)::radkpt
 ! k-point grid sizes
-integer::ngridk(3)
+!replaced by inputstructureinteger::ngridk(3)
 ! total number of k-points
 integer::nkpt
 ! k-point offset
-real(8)::vkloff(3)
+!replaced by inputstructurereal(8)::vkloff(3)
 ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
-logical::reducek
+!replaced by inputstructurelogical::reducek
 ! locations of k-points on integer grid
 integer, allocatable :: ivk(:, :)
 ! k-points in lattice coordinates
@@ -40,9 +40,10 @@ real(8), allocatable :: wkptnr(:)
 ! map from non-reduced grid to non-reduced set
 integer, allocatable :: ikmapnr(:, :, :)
 ! k-point at which to determine effective mass tensor
-real(8)::vklem(3)
+!replaced by inputstructurereal(8)::vklem(3)
 ! displacement size for computing the effective mass tensor
-real(8)::deltaem
+!replaced by inputstructurereal(8)::deltaem
 ! number of displacements in each direction
-integer::ndspem
+!replaced by inputstructureinteger::ndspem
 end module
+

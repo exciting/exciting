@@ -26,5 +26,6 @@ real(8)::vclp3d(3, 4)
 ! grid sizes of 3D plot
 integer::np3d(3)
 ! number of states for plotting Fermi surface
-integer::nstfsp
+!replaced by inputstructureinteger::nstfsp
 end module
+

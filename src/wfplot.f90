@@ -1,15 +1,17 @@
 
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
 
-subroutine wfplot
+subroutine wfplot (dostm)
 use modmain
 use modinput
 implicit none
+logical,intent(in)::dostm
 ! local variables
 integer::ik, ist
 real(8)::x, t1
@@ -35,7 +37,7 @@ call genapwfr
 ! generate the local-orbital radial functions
 call genlofr
 ! set the occupancies
-if ((task.eq.61).or.(task.eq.62).or.(task.eq.63)) then
+if (.not. dostm) then
   ik=kstlist(1, 1)
   ist=kstlist(2, 1)
   if ((ik.lt.1).or.(ik.gt.nkpt)) then
@@ -77,46 +79,38 @@ do ik=1, nkpt
   call rhovalk(ik, evecfv, evecsv)
 end do
 ! symmetrise the density for the STM plot
-if (task.eq.162) then
+if (dostm) then
   call symrf(input%groundstate%lradstep, rhomt, rhoir)
 end if
 ! convert the density from a coarse to a fine radial mesh
 call rfmtctof(rhomt)
 ! write the wavefunction modulus squared plot to file
-select case(task)
-case(61)
-  open(50, file='WF1D.OUT', action='WRITE', form='FORMATTED')
-  open(51, file='WFLINES.OUT', action='WRITE', form='FORMATTED')
-  call plot1d(50, 51, 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir)
-  close(50)
-  close(51)
+if(associated(input%properties%wfplot%plot1d)) then
+  call plot1d("WF", 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir,input%properties%wfplot%plot1d)
   write(*, *)
   write(*, '("Info(wfplot):")')
   write(*, '(" 1D wavefunction modulus squared written to WF1D.OUT")')
   write(*, '(" vertex location lines written to WFLINES.OUT")')
-case(62)
-  open(50, file='WF2D.OUT', action='WRITE', form='FORMATTED')
-  call plot2d(50, 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir)
-  close(50)
+endif
+if(associated(input%properties%wfplot%plot2d)) then
+  call plot2d("WF", 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir,input%properties%wfplot%plot2d)
   write(*, *)
   write(*, '("Info(wfplot):")')
   write(*, '(" 2D wavefunction modulus squared written to WF2D.OUT")')
-case(162)
-  open(50, file='STM2D.OUT', action='WRITE', form='FORMATTED')
-  call plot2d(50, 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir)
-  close(50)
+  endif
+if(dostm) then
+  call plot2d("STM", 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir,input%properties%STM%plot2d)
   write(*, *)
   write(*, '("Info(wfplot):")')
   write(*, '(" 2D STM image written to STM2D.OUT")')
-case(63)
-  open(50, file='WF3D.OUT', action='WRITE', form='FORMATTED')
-  call plot3d(50, 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir)
-  close(50)
+  endif
+if(associated(input%properties%wfplot%plot3d)) then
+  call plot3d("WF", 1, input%groundstate%lmaxvr, lmmaxvr, rhomt, rhoir,input%properties%wfplot%plot3d)
   write(*, *)
   write(*, '("Info(wfplot):")')
   write(*, '(" 3D wavefunction modulus squared written to WF3D.OUT")')
-end select
-if (task.ne.162) then
+endif
+if (.not. dostm) then
   write(*, '(" for k-point ", I6, " and state ", I6)') kstlist(1, 1), kstlist(2, 1)
 end if
 write(*, *)

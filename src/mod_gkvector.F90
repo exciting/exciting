@@ -6,7 +6,7 @@ module mod_Gkvector
 !     G+k-vector set variables     !
 !----------------------------------!
 ! smallest muffin-tin radius times gkmax
-real(8)::rgkmax
+!replaced by inputstructurereal(8)::rgkmax
 ! maximum |G+k| cut-off for APW functions
 real(8)::gkmax
 ! number of G+k-vectors for augmented plane waves
@@ -26,3 +26,4 @@ real(8), allocatable :: tpgkc(:, :, :, :)
 ! structure factor for the G+k-vectors
 complex(8), allocatable :: sfacgk(:, :, :, :)
 end module
+

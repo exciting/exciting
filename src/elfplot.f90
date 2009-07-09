@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -163,30 +164,26 @@ end do
 ! symmetrise the ELF
 call symrf(1, elfmt, elfir)
 ! plot the ELF to file
-select case(task)
-case(51)
-  open(50, file='ELF1D.OUT', action='WRITE', form='FORMATTED')
-  open(51, file='ELFLINES.OUT', action='WRITE', form='FORMATTED')
-  call plot1d(50, 51, 1, input%groundstate%lmaxvr, lmmaxvr, elfmt, elfir)
-  close(50)
-  close(51)
+
+if(associated(input%properties%elfplot%plot1d)) then
+
+  call plot1d("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, elfmt, elfir,input%properties%elfplot%plot1d)
+
   write(*, *)
   write(*, '("Info(elfplot):")')
   write(*, '(" 1D ELF plot written to ELF1D.OUT")')
   write(*, '(" vertex location lines written to ELFLINES.OUT")')
-case(52)
-  open(50, file='ELF2D.OUT', action='WRITE', form='FORMATTED')
-  call plot2d(50, 1, input%groundstate%lmaxvr, lmmaxvr, elfmt, elfir)
-  close(50)
+  endif
+if(associated(input%properties%elfplot%plot2d))then
+  call plot2d("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, elfmt, elfir,input%properties%elfplot%plot2d)
   write(*, *)
   write(*, '("Info(elfplot): 2D ELF plot written to ELF2D.OUT")')
-case(53)
-  open(50, file='ELF3D.OUT', action='WRITE', form='FORMATTED')
-  call plot3d(50, 1, input%groundstate%lmaxvr, lmmaxvr, elfmt, elfir)
-  close(50)
+  endif
+if(associated(input%properties%elfplot%plot3d))then
+  call plot3d("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, elfmt, elfir,input%properties%elfplot%plot3d)
   write(*, *)
   write(*, '("Info(elfplot): 3D ELF plot written to ELF3D.OUT")')
-end select
+end if
 write(*, *)
 deallocate(rftp1, rftp2, rftp3)
 deallocate(grfmt, grfir, gwf2mt, gwf2ir, elfmt, elfir)

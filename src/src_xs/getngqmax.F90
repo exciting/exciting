@@ -29,13 +29,13 @@ implicit none
 ! local variables
 integer::iq, i, j, ig
 real(8)::v1(3), v2(3), t1, t2
-if (gqmax.lt.input%structure%epslat) then
+if (input%xs%gqmax.lt.input%structure%epslat) then
    intgqv(:, :)=0
    ngqmax=1
    ngridgq(:)=1
    return
 end if
-t1=gqmax**2
+t1=input%xs%gqmax**2
 intgqv(:, :)=0
 ngqmax=0
 do iq=1, nqpt

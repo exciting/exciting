@@ -12,21 +12,22 @@ complex(8), allocatable :: vclmat(:, :, :)
 ! derivative of kinetic energy w.r.t. natural orbital coefficients
 complex(8), allocatable :: dkdc(:, :, :)
 ! step size for occupation numbers
-real(8)::taurdmn
+!replaced by inputstructurereal(8)::taurdmn
 ! step size for natural orbital coefficients
-real(8)::taurdmc
+!replaced by inputstructurereal(8)::taurdmc
 ! xc functional
-integer::rdmxctype
+!replaced by inputstructureinteger::rdmxctype
 ! maximum number of self-consistent loops
-integer::rdmmaxscl
+!replaced by inputstructureinteger::rdmmaxscl
 ! maximum number of iterations for occupation number optimisation
-integer::maxitn
+!replaced by inputstructureinteger::maxitn
 ! maximum number of iteration for natural orbital optimisation
-integer::maxitc
+!replaced by inputstructureinteger::maxitc
 ! exponent for the functional
-real(8)::rdmalpha
+!replaced by inputstructurereal(8)::rdmalpha
 ! temperature
-real(8)::rdmtemp
+!replaced by inputstructurereal(8)::rdmtemp
 ! entropy
 real(8)::rdmentrpy
 end module
+

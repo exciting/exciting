@@ -6,15 +6,16 @@ module mod_convergence
 !     convergence variables     !
 !-------------------------------!
 ! maximum number of self-consistent loops
-integer::maxscl
+!replaced by inputstructureinteger::maxscl
 ! current self-consistent loop number
 integer::iscl
 ! effective potential convergence tolerance
-real(8)::epspot
+!replaced by inputstructurereal(8)::epspot
 ! energy convergence tolerance
-real(8)::epsengy
+!replaced by inputstructurereal(8)::epsengy
 ! force convergence tolerance
-real(8)::epsforce
+!replaced by inputstructurereal(8)::epsforce
 !curent convergence
 real(8)::currentconvergence
 end module
+

@@ -52,5 +52,6 @@ logical::lorbve(maxlorbord, maxlorb, _MAXSPECIES_)
 ! local-orbital radial functions
 real(8), allocatable :: lofr(:, :, :, :)
 ! energy step size for locating the band energy
-real(8)::deband
+!replaced by inputstructurereal(8)::deband
 end module
+

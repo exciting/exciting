@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -60,33 +61,30 @@ do idm=1, 3
   end do
   rfir(:)=rfir(:)+grfir(:, idm)
 end do
-select case(task)
-case(91)
-  open(50, file='DBXC1D.OUT', action='WRITE', form='FORMATTED')
-  open(51, file='DBXCLINES.OUT', action='WRITE', form='FORMATTED')
-  call plot1d(50, 51, 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir)
-  close(50)
-  close(51)
+   if(associated(input%properties%gradmvecfield%plot1d)) then
+
+  call plot1d("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir,input%properties%gradmvecfield%plot1d)
+
   write(*, *)
   write(*, '("Info(dbxcplot):")')
   write(*, '(" 1D divergence of exchange-correlation field written to &
    &DBXC1D.OUT")')
   write(*, '(" vertex location lines written to DBXCLINES.OUT")')
-case(92)
-  open(50, file='DBXC2D.OUT', action='WRITE', form='FORMATTED')
-  call plot2d(50, 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir)
-  close(50)
+endif
+if(associated(input%properties%gradmvecfield%plot2d)) then
+
+  call plot2d("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir,input%properties%gradmvecfield%plot2d)
+
   write(*, '("Info(dbxcplot):")')
   write(*, '(" 2D divergence of exchange-correlation field written to &
    &DBXC2D.OUT")')
-case(93)
-  open(50, file='DBXC3D.OUT', action='WRITE', form='FORMATTED')
-  call plot3d(50, 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir)
-  close(50)
+endif
+if(associated(input%properties%gradmvecfield%plot3d)) then
+  call plot3d("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir,input%properties%gradmvecfield%plot3d)
   write(*, '("Info(dbxcplot):")')
   write(*, '(" 3D divergence of exchange-correlation field written to &
    &DBXC3D.OUT")')
-end select
+endif
 write(*, *)
 deallocate(rvfmt, rvfir, rfmt, rfir, grfmt, grfir)
 return
