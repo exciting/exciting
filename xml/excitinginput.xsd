@@ -2627,7 +2627,49 @@
 									</xs:appinfo>
 								</xs:annotation>
 							</xs:element>
-							<xs:element name="plan" minOccurs="0" maxOccurs="1">
+							<xs:element name="tetra" maxOccurs="1" minOccurs="0">
+								<xs:complexType>
+									<xs:attribute name="tetraocc" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="tetradf" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="kordexc" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>tetrakordexc</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="cw1k" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>tetracw1k</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="qweights" type="xs:integer"
+										default="1">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>tetraqweights</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
+								<xs:complexType>
+									<xs:attribute name="points" type="xs:integer"
+										default="500" />
+									<xs:attribute name="starte" type="fortrandouble"
+										default="-0.5" />
+									<xs:attribute name="stope" type="fortrandouble"
+										default="0.5" />
+								</xs:complexType>
+							</xs:element>
+                            <xs:element name="plan" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:sequence>
 										<xs:element name="doonly" minOccurs="0" maxOccurs="unbounded">
@@ -3017,49 +3059,7 @@
 									</xs:sequence>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="tetra" maxOccurs="1" minOccurs="0">
-								<xs:complexType>
-									<xs:attribute name="tetraocc" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="tetradf" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="kordexc" type="xs:boolean"
-										default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>tetrakordexc</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="cw1k" type="xs:boolean"
-										default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>tetracw1k</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="qweights" type="xs:integer"
-										default="1">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>tetraqweights</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
-								<xs:complexType>
-									<xs:attribute name="points" type="xs:integer"
-										default="500" />
-									<xs:attribute name="starte" type="fortrandouble"
-										default="-0.5" />
-									<xs:attribute name="stope" type="fortrandouble"
-										default="0.5" />
-								</xs:complexType>
-							</xs:element>
-						</xs:all>
+                        </xs:all>
 						<xs:attribute name="emattype" type="xs:integer"
 							default="1">
 							<xs:annotation>
@@ -3156,7 +3156,7 @@
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="ngridk" type="integertriple"
-							default="0 0 0">
+							default="1 1 1">
 							<xs:annotation>
 								<xs:appinfo>
 									<oldname>ngridkxs</oldname>

@@ -3333,7 +3333,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridk")
-getstructxs%ngridk=(/0,0,0/)
+getstructxs%ngridk=(/1,1,1/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridk",getstructxs%ngridk)
        call removeAttribute(thisnode,"ngridk")      

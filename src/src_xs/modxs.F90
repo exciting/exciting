@@ -1,5 +1,4 @@
 
-
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -29,25 +28,25 @@ module modxs
   !     q-point set variables    !
   !------------------------------!
   ! total number of q-points (reduced set)
-  integer::nqptr
+  integer nqptr
   ! locations of q-points on integer grid (reduced set)
-  integer, allocatable :: ivqr(:, :)
+  integer, allocatable :: ivqr(:,:)
   ! map from non-reduced grid to reduced set (reduced set)
-  integer, allocatable :: iqmapr(:, :, :)
+  integer, allocatable :: iqmapr(:,:,:)
   ! q-points in lattice coordinates (reduced set)
-  real(8), allocatable :: vqlr(:, :)
+  real(8), allocatable :: vqlr(:,:)
   ! q-points in Cartesian coordinates (reduced set)
-  real(8), allocatable :: vqcr(:, :)
+  real(8), allocatable :: vqcr(:,:)
   ! q-point weights (reduced set)
   real(8), allocatable :: wqptr(:)
   ! number of Q-points for momentum transfer
   integer :: nqptmt
   ! finite momentum transfer G+q-vector
-  real(8), allocatable :: vgqlmt(:, :)
+  real(8), allocatable :: vgqlmt(:,:)
   ! finite momentum transfer q-vector
-  real(8), allocatable :: vqlmt(:, :)
+  real(8), allocatable :: vqlmt(:,:)
   ! finite momentum transfer G-vector
-  integer, allocatable :: ivgmt(:, :)
+  integer, allocatable :: ivgmt(:,:)
   ! treatment of macroscopic dielectric function for Q-point outside of
   ! Brillouin zone
   integer :: mdfqtype
@@ -55,44 +54,42 @@ module modxs
   integer :: iqcu
   data iqcu / 0 /
 
-!*************************************************************************
   ! number of crystal symmetries for the little group of q
   integer, allocatable :: nsymcrysq(:)
   ! map from little group of q to spacegroup
-  integer, allocatable :: scqmap(:, :)
+  integer, allocatable :: scqmap(:,:)
   ! wrapping vectors for elements of the small group of q
-  integer, allocatable :: ivscwrapq(:, :, :)
-!*************************************************************************
+  integer, allocatable :: ivscwrapq(:,:,:)
 
   !----------------------------------!
   !     G+q-vector set variables     !
   !----------------------------------!
   ! G-vector grid sizes of (G+q)-vectors
-  integer::ngridgq(3)
+  integer ngridgq(3)
   ! integer grid intervals for each direction for G-vectors
-  integer::intgqv(3, 2)
+  integer intgqv(3,2)
   ! maximum |G+q| cut-off for APW functions
-  real(8)::gqmax
+  real(8) gqmax
   ! number of G+q-vectors
   integer, allocatable :: ngq(:)
   ! maximum number of G+q-vectors over all q-points
-  integer::ngqmax
+  integer ngqmax
   ! index from G+q-vectors to G-vectors
-  integer, allocatable :: igqig(:, :)
+  integer, allocatable :: igqig(:,:)
   ! map from integer grid to G+q-vector array
-  integer, allocatable :: ivgigq(:, :, :, :)
+  integer, allocatable :: ivgigq(:,:,:,:)
   ! G+q-vectors in lattice coordinates
-  real(8), allocatable :: vgql(:, :, :)
+  real(8), allocatable :: vgql(:,:,:)
   ! G+q-vectors in Cartesian coordinates
-  real(8), allocatable :: vgqc(:, :, :)
+  real(8), allocatable :: vgqc(:,:,:)
   ! length of G+q-vectors
-  real(8), allocatable :: gqc(:, :)
+  real(8), allocatable :: gqc(:,:)
   ! (theta, phi) coordinates of G+q-vectors
-  real(8), allocatable :: tpgqc(:, :, :)
+  real(8), allocatable :: tpgqc(:,:,:)
   ! structure factor for the G+q-vectors
-  complex(8), allocatable :: sfacgq(:, :, :)
+  complex(8), allocatable :: sfacgq(:,:,:)
   ! spherical harmonics of the G-vectors
-  complex(8), allocatable :: ylmgq(:, :, :)
+  complex(8), allocatable :: ylmgq(:,:,:)
 
   !---------------------------------!
   !     k-point set  variables      !
@@ -100,97 +97,95 @@ module modxs
   ! number of k-points for q=0
   integer :: nkpt0
   ! k-points in lattice coordinates for q=0
-  real(8), allocatable :: vkl0(:, :)
+  real(8), allocatable :: vkl0(:,:)
 
-!*************************************************************************
   ! maximum number of space group operations in stars over all k
   integer :: nsymcrysstrmax
   ! number of space group operations for stars
   integer, allocatable :: nsymcrysstr(:)
   ! star of space group operations for k-points
-  integer, allocatable :: scmapstr(:, :)
+  integer, allocatable :: scmapstr(:,:)
   ! star of k-point indices of non-reduced set
-  integer, allocatable :: ikstrmapiknr(:, :)
+  integer, allocatable :: ikstrmapiknr(:,:)
   ! map from non-reduced k-point set to reduced one
   integer, allocatable :: strmap(:)
   ! map from non-reduced k-point set to associated symmetry in star
   integer, allocatable :: strmapsymc(:)
-  !*************************************************************************
 
 
   !-------------------------!
   !     k+q-point set       !
   !-------------------------!
   ! offset for k+q-point set derived from q-point
-  real(8), allocatable :: qvkloff(:, :)
+  real(8),allocatable :: qvkloff(:,:)
   ! map from k-point index to k+q point index for same k
-  integer, allocatable :: ikmapikq(:, :)
+  integer, allocatable :: ikmapikq(:,:)
 
   !-----------------------------------------!
   !     G+k-vector set  variables (q=0)     !
   !-----------------------------------------!
   ! number of G+k-vectors for augmented plane waves
-  integer, allocatable :: ngk0(:, :)
+  integer, allocatable :: ngk0(:,:)
   ! maximum number of G+k-vectors over all k-points
-  integer::ngkmax0
+  integer ngkmax0
   ! index from G+k-vectors to G-vectors
-  integer, allocatable :: igkig0(:, :, :)
+  integer, allocatable :: igkig0(:,:,:)
   ! G+k-vectors in lattice coordinates
-  real(8), allocatable :: vgkl0(:, :, :, :)
+  real(8), allocatable :: vgkl0(:,:,:,:)
   ! G+k-vectors in Cartesian coordinates
-  real(8), allocatable :: vgkc0(:, :, :, :)
+  real(8), allocatable :: vgkc0(:,:,:,:)
   ! length of G+k-vectors
-  real(8), allocatable :: gkc0(:, :, :)
+  real(8), allocatable :: gkc0(:,:,:)
   ! (theta, phi) coordinates of G+k-vectors
-  real(8), allocatable :: tpgkc0(:, :, :, :)
+  real(8), allocatable :: tpgkc0(:,:,:,:)
   ! structure factor for the G+k-vectors
-  complex(8), allocatable :: sfacgk0(:, :, :, :)
+  complex(8), allocatable :: sfacgk0(:,:,:,:)
 
   !-----------------------------------------!
   !     potential and density variables     !
   !-----------------------------------------!
   ! square root of Coulomb potential in G-space
-  real(8), allocatable :: sptclg(:, :)
+  real(8), allocatable :: sptclg(:,:)
 
   !---------------------------------------!
   !     Hamiltonian and APW variables     !
   !---------------------------------------!
   ! maximum nmat over all k-points (q=0)
-  integer::nmatmax0
+  integer nmatmax0
   ! order of overlap and Hamiltonian matrices for each k-point (q=0)
-  integer, allocatable :: nmat0(:, :)
+  integer, allocatable :: nmat0(:,:)
   ! first-variational eigenvectors
-  complex(8), allocatable :: evecfv(:, :, :)
+  complex(8), allocatable :: evecfv(:,:,:)
   ! second variational eigenvectors
-  complex(8), allocatable :: evecsv(:, :)
+  complex(8), allocatable :: evecsv(:,:)
   ! first-variational eigenvectors (q=0)
-  complex(8), allocatable :: evecfv0(:, :, :)
+  complex(8), allocatable :: evecfv0(:,:,:)
   ! first variational eigenvalues
-  real(8), allocatable :: evalfv(:, :)
+  real(8), allocatable :: evalfv(:,:)
   ! second-variational eigenvalues
-  real(8), allocatable :: evalsv0(:, :)
+  real(8), allocatable :: evalsv0(:,:)
   ! expansion coefficients of APW functions
-  complex(8), allocatable :: apwcmt(:, :, :, :)
+  complex(8), allocatable :: apwcmt(:,:,:,:)
   ! expansion coefficients of APW functions (q=0)
-  complex(8), allocatable :: apwcmt0(:, :, :, :)
+  complex(8), allocatable :: apwcmt0(:,:,:,:)
   ! expansion coefficients of local orbitals functions
-  complex(8), allocatable :: locmt(:, :, :, :)
+  complex(8), allocatable :: locmt(:,:,:,:)
   ! expansion coefficients of local orbitals functions (q=0)
-  complex(8), allocatable :: locmt0(:, :, :, :)
+  complex(8), allocatable :: locmt0(:,:,:,:)
 
   !--------------------------------------------!
   !     eigenvalue and occupancy variables     !
   !--------------------------------------------!
   ! eigenvalue differences (resonant part)
-  real(8), allocatable :: deou(:, :)
+  real(8), allocatable :: deou(:,:)
   ! eigenvalue differences (anti-resonant part)
-  real(8), allocatable :: deuo(:, :)
+  real(8), allocatable :: deuo(:,:)
   ! occupation numbers (q=0)
-  real(8), allocatable :: occsv0(:, :)
+  real(8), allocatable :: occsv0(:,:)
   ! occupation number differences (first band combination)
-  real(8), allocatable :: docc12(:, :)
+  real(8), allocatable :: docc12(:,:)
   ! occupation number differences (second band combination)
-  real(8), allocatable :: docc21(:, :)
+  real(8), allocatable :: docc21(:,:)
   ! highest (at least partially) occupied state
   integer, allocatable :: isto0(:), isto(:)
   ! lowest (at least partially) unoccupied state
@@ -200,19 +195,19 @@ module modxs
   ! minimum istu over k-points
   integer :: istunocc0, istunocc
   ! number of (at least partially) occupied valence states
-  integer :: nstocc0, nstocc
+  integer :: nstocc0,nstocc
   ! number of (at least partially) unoccupied valence states
-  integer :: nstunocc0, nstunocc
+  integer :: nstunocc0,nstunocc
   ! highest (at least partially) occupied state energy
   real(8) :: evlhpo
   ! lowest (at least partially) unoccupied state energy
   real(8) :: evllpu
   ! lower and upper limits and numbers for band indices combinations
-  integer :: nst1, istl1, istu1, nst2, istl2, istu2
+  integer :: nst1,istl1,istu1,nst2,istl2,istu2
   ! lower and upper limits and numbers for band indices combinations, 2nd block
-  integer :: nst3, istl3, istu3, nst4, istl4, istu4
+  integer :: nst3,istl3,istu3,nst4,istl4,istu4
   ! minimum and maximum energies over k-points
-  real(8) :: evlmin, evlmax, evlmincut, evlmaxcut
+  real(8) :: evlmin,evlmax,evlmincut,evlmaxcut
   ! true if system has a Kohn-Sham gap
   logical :: ksgap
 
@@ -232,33 +227,33 @@ module modxs
   ! (lmaxapwwf+1)^2
   integer :: lmmaxapwwf
   ! Gaunt coefficients array
-  real(8), allocatable :: xsgnt(:, :, :)
+  real(8), allocatable :: xsgnt(:,:,:)
   ! radial integrals coefficients (APW-APW)
-  complex(8), allocatable :: intrgaa(:, :, :, :, :)
+  complex(8), allocatable :: intrgaa(:,:,:,:,:)
   ! radial integrals coefficients (lo-APW)
-  complex(8), allocatable :: intrgloa(:, :, :, :, :)
+  complex(8), allocatable :: intrgloa(:,:,:,:,:)
   ! radial integrals coefficients (APW-lo)
-  complex(8), allocatable :: intrgalo(:, :, :, :, :)
+  complex(8), allocatable :: intrgalo(:,:,:,:,:)
   ! radial integrals coefficients (lo-lo)
-  complex(8), allocatable :: intrglolo(:, :, :, :, :)
+  complex(8), allocatable :: intrglolo(:,:,:,:,:)
   ! radial integrals (APW-APW)
-  real(8), allocatable :: riaa(:, :, :, :, :, :, :)
+  real(8), allocatable :: riaa(:,:,:,:,:,:,:)
   ! radial integrals (lo-APW)
-  real(8), allocatable :: riloa(:, :, :, :, :, :)
+  real(8), allocatable :: riloa(:,:,:,:,:,:)
   ! radial integrals (lo-lo)
-  real(8), allocatable :: rilolo(:, :, :, :, :)
+  real(8), allocatable :: rilolo(:,:,:,:,:)
   ! helper matrix
-  complex(8), allocatable :: xih(:, :)
+  complex(8), allocatable :: xih(:,:)
   ! helper matrix
-  complex(8), allocatable :: xihir(:, :)
+  complex(8), allocatable :: xihir(:,:)
   ! helper matrix
-  complex(8), allocatable :: xiohalo(:, :)
+  complex(8), allocatable :: xiohalo(:,:)
   ! helper matrix
-  complex(8), allocatable :: xiuhloa(:, :)
+  complex(8), allocatable :: xiuhloa(:,:)
   ! matrix elements array (resonant part)
-  complex(8), allocatable :: xiou(:, :, :)
+  complex(8), allocatable :: xiou(:,:,:)
   ! matrix elements array (anti-resonant part)
-  complex(8), allocatable :: xiuo(:, :, :)
+  complex(8), allocatable :: xiuo(:,:,:)
 
   !---------------------------------!
   !     momentum matrix elements    !
@@ -266,17 +261,17 @@ module modxs
   ! fast method to calculate matrix elements
   logical :: fastpmat
   ! radial integrals coefficients (APW-APW)
-  real(8), allocatable :: ripaa(:, :, :, :, :, :)
+  real(8), allocatable :: ripaa(:,:,:,:,:,:)
   ! radial integrals coefficients (APW-lo)
-  real(8), allocatable :: ripalo(:, :, :, :, :, :)
+  real(8), allocatable :: ripalo(:,:,:,:,:,:)
   ! radial integrals coefficients (lo-APW)
-  real(8), allocatable :: riploa(:, :, :, :, :, :)
+  real(8), allocatable :: riploa(:,:,:,:,:,:)
   ! radial integrals coefficients (lo-lo)
-  real(8), allocatable :: riplolo(:, :, :, :, :, :)
+  real(8), allocatable :: riplolo(:,:,:,:,:,:)
   ! momentum matrix elements (resonant part)
-  complex(8), allocatable :: pmou(:, :, :)
+  complex(8), allocatable :: pmou(:,:,:)
   ! momentum matrix elements (anti-resonant part)
-  complex(8), allocatable :: pmuo(:, :, :)
+  complex(8), allocatable :: pmuo(:,:,:)
 
   !------------------------------------------!
   !     response and dielectric functions    !
@@ -302,7 +297,7 @@ module modxs
   ! true if off-diagonal tensor components of dielectric function are calculated
   logical :: dfoffdiag
   ! symmetrization tensor
-  real(8) :: symt2(3, 3, 3, 3)
+  real(8) :: symt2(3,3,3,3)
   ! true if tetrahedron method is used for dielectric function/matrix
   logical :: tetradf
   ! sampling type for Brillouin zone (0 Lorentzian broadening, 1 tetrahedron
@@ -313,7 +308,7 @@ module modxs
   ! number of band transitions for analysis
   integer :: ndftrans
   ! k-point and band combination analysis
-  integer, allocatable :: dftrans(:, :)
+  integer, allocatable :: dftrans(:,:)
   ! smallest energy difference for which the inverse square will be considered
   real(8) :: epsdfde
   ! cutoff energy for dielectric function
@@ -332,13 +327,13 @@ module modxs
   ! ALDA-kernel
   integer :: lmaxalda
   ! muffin-tin real space exchange-correlation kernel
-  complex(8), allocatable :: fxcmt(:, :, :)
+  complex(8), allocatable :: fxcmt(:,:,:)
   ! interstitial real space exchange-correlation kernel
   complex(8), allocatable :: fxcir(:)
   ! exchange-correlation kernel functional type
   integer :: fxctype
   ! exchange-correlation kernel functional description
-  character(256)::fxcdescr
+  character(256) fxcdescr
   ! exchange-correlation kernel functional spin treatment
   integer :: fxcspin
   ! alpha-parameter for the asymptotic long range part of the kernel
@@ -361,9 +356,9 @@ module modxs
   ! number of excitons
   integer :: nexcit(3)
   ! exciton energies
-  real(8), allocatable :: excite(:, :)
+  real(8), allocatable :: excite(:,:)
   ! exciton oscillator strengths
-  real(8), allocatable :: excito(:, :)
+  real(8), allocatable :: excito(:,:)
 
   !-----------------------------!
   !     screening variables     !
@@ -375,9 +370,9 @@ module modxs
   ! screening type: can be either "full", "diag", "noinvdiag" or "constant"
   character(32) :: screentype
   ! nosym is .true. if no symmetry information should be used
-  logical::nosymscr
+  logical nosymscr
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
-  logical::reducekscr
+  logical reducekscr
   ! k-point grid sizes
   integer :: ngridkscr(3)
   ! k-point offset
@@ -389,14 +384,14 @@ module modxs
   ! Hermitian treatment
   integer :: scrherm
   ! dielectric tensor in the RPA
-  complex(8) :: dielten(3, 3)
+  complex(8) :: dielten(3,3)
   ! dielectric tensor in the independent particle approximation
-  complex(8) :: dielten0(3, 3)
+  complex(8) :: dielten0(3,3)
   ! average of body for screened Coulomb interaction at Gamma-point
   logical :: sciavbd
   ! average of head, wings and body for screened Coulomb interaction at
   ! non-zero q-point
-  logical :: sciavqhd, sciavqwg, sciavqbd
+  logical :: sciavqhd,sciavqwg,sciavqbd
   ! maximum angular momentum for angular average of dielectric tensor
   integer :: lmaxdielt
   ! (lmaxdielt+1)^2
@@ -414,9 +409,9 @@ module modxs
   ! true if effective singular part of direct term of BSE Hamiltonian is to be used
   logical :: bsedirsing
   ! nosym is .true. if no symmetry information should be used
-  logical::nosymbse
+  logical nosymbse
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
-  logical::reducekbse
+  logical reducekbse
   ! k-point offset
   real(8) :: vkloffbse(3)
   ! smallest muffin-tin radius times gkmax
@@ -434,7 +429,7 @@ module modxs
   ! symmetrisation method for BSE diagonal
   integer :: bsediagsym
   ! diagonal of BSE kernel (mean value, lower, upper limit and range)
-  complex(8) :: bsed, bsedl, bsedu, bsedd
+  complex(8) :: bsed,bsedl,bsedu,bsedd
 
   !-----------------------!
   !     I/O variables     !
@@ -470,27 +465,49 @@ module modxs
   ! sumrules for optics
   character(256) :: fnsumrules
 
+
+  !------------------------------------------!
+  !     xs-parameters related to GS ones     !
+  !------------------------------------------!
+  logical :: nosymxs
+  integer :: ngridkxs(3)
+  real(8) :: vkloffxs(3)
+  logical :: reducekxs
+  integer :: ngridqxs(3)
+  logical :: reduceqxs
+  real(8) :: rgkmaxxs
+  real(8) :: swidthxs
+  integer :: lmaxapwxs
+  integer :: lmaxmatxs
+  integer :: nemptyxs
+
+
   !--------------------------!
   !     backup variables     !
   !--------------------------!
   ! filename extension
   character(256) :: filext_b
   ! nosym is .true. if no symmetry information should be used
-  logical::nosym_b
+  logical nosym_b
   ! smallest muffin-tin radius times gkmax
   real(8) :: rgkmax_b
   ! number of empty states
   integer :: nempty_b
   ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
-  logical::reducek_b
+  logical reducek_b
   ! k-point grid sizes
   integer :: ngridk_b(3)
   ! k-point offset
   real(8) :: vkloff_b(3)
   ! q-point grid sizes
   integer :: ngridq_b(3)
+  ! reducek is .true. if q-points are to be reduced (with crystal symmetries)
+  logical reduceq_b
   ! type of matrix element generation (band-combinations)
   integer :: emattype_b
+  real(8) :: swidth_b
+  integer :: lmaxapw_b
+  integer :: lmaxmat_b
 
   !------------------------------!
   !     parallel environment     !
@@ -524,14 +541,14 @@ module modxs
   ! initial and final timings for CPU timing
   real(8) :: cputim0i, cputim0f, cputimcum
   ! muffin-tin timings
-  real(8) :: cmt0, cmt1, cmt2, cmt3, cmt4
-  real(8) :: cpumtaa, cpumtalo, cpumtloa, cpumtlolo
+  real(8) :: cmt0,cmt1,cmt2,cmt3,cmt4
+  real(8) :: cpumtaa,cpumtalo,cpumtloa,cpumtlolo
 
   !-----------------------------!
   !     numerical constants     !
   !-----------------------------!
   ! Kronecker delta
-  integer, parameter :: krondelta(3, 3)=reshape((/1, 0, 0, 0, 1, 0, 0, 0, 1/), (/3, 3/))
+  integer, parameter :: krondelta(3,3)=reshape((/1,0,0, 0,1,0, 0,0,1/),(/3,3/))
   ! conversion from hartree to electron volt
   real(8), parameter :: h2ev=27.2114d0
 
@@ -539,9 +556,9 @@ module modxs
   !     miscellaneous variables     !
   !---------------------------------!
   ! spherical covering set in Cartesian coordinates
-  real(8), allocatable :: sphcov(:, :)
+  real(8), allocatable :: sphcov(:,:)
   ! spherical covering set in tetha/phi angles
-  real(8), allocatable :: sphcovtp(:, :)
+  real(8), allocatable :: sphcovtp(:,:)
   ! xs code version
   integer :: versionxs(2)
   ! true if energies output in eV

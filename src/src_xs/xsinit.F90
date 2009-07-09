@@ -91,6 +91,12 @@ use modinput
   write(unitout, '("Info(xsinit): task Nr.", i6, " started")') task
   call flushifc(unitout)
 
+  !--------------------------------------------!
+  !     map xs parameters associated to GS     !
+  !--------------------------------------------!
+  call mapxsparameters
+
+
   !-----------------------------------!
   !     parallelization variables     !
   !-----------------------------------!

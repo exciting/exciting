@@ -1,13 +1,28 @@
 
-! GaAs using the Perdew-Burke-Ernzerhof GGA functional. Try calculating the
-! effective mass tensor at the Gamma-point using task=25. Repeat this with
-! spin-orbit coupling switched on.
+! GaAs test example for excited states implementation
 
 tasks
-  0
+301
+320
+330
+445
+450
+345
+350
 
-xctype
-  20
+#0
+#301
+#320
+#330
+#401
+#420
+#430
+#440
+#441
+#445
+#450
+#345
+#350
 
 avec
   5.3435 5.3435 0.0000
@@ -26,8 +41,75 @@ atoms
   1                                   : natoms
   0.25 0.25 0.25  0.0 0.0 0.0         : atposl, bfcmt
 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! GS-parameters used for xs-part
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ngridq
+  3  4  2
+
 ngridk
-  4  4  4
+  3  4  2
 
 vkloff
-  0.5  0.5  0.5
+  0.1 0.3 0.5
+
+nempty
+4
+
+dos
+200 100 0
+-0.5 0.5
+
+optcomp
+1 1 1
+2 2 2
+3 3 3
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! xs-parameters below
+!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+aresdf
+.false.
+
+aresfxc
+.false.
+
+swidth
+0.001
+
+vgqlmt
+1
+0.0 0.0 0.0
+
+gqmax
+1.5
+
+bsetype
+'singlet'
+
+#nstlbse
+#2  2
+  
+fxctype
+8
+  
+screentype
+'full'
+
+nemptyscr
+20
+
+lmaxapwwf
+3
+
+lmaxemat
+2
+
+broad
+0.003
+
+tevout
+.true.
