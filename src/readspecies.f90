@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -13,7 +14,8 @@ implicit none
 integer::is, ist, iostat
 integer::io, nlx, ilx, lx, ilo
 do is=1, nspecies
-  open(50, file = trim(input%structure%speciespath)//trim(input%structure%speciesarray(is)%species%speciesfile), action&
+  open(50, file = trim(input%structure%speciespath)//trim(input%structure%speciesarray(is)%species%speciesfile),&
+    &action&
     &= 'READ', status = 'OLD', &
    form = 'FORMATTED', iostat = iostat)
   if (iostat.ne.0) then
@@ -222,7 +224,7 @@ do is=1, nspecies
     end if
     if (lorbl(ilo, is).gt.input%groundstate%lmaxmat) then
       write(*, *)
-      write(*, '("Error(readinput): lorbl > lmaxmat : ", 2I8)') lorbl(ilo, is), &
+      write( * , '("Error(readinput): lorbl > lmaxmat : ", 2I8)') lorbl(ilo, is), &
        input%groundstate%lmaxmat
       write(*, '(" for species ", I4)') is
       write(*, '(" and local-orbital ", I4)') ilo

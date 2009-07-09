@@ -1,5 +1,8 @@
 
-	subroutine stepbound(reduction)
+
+
+
+subroutine stepbound(reduction)
 	use modmixermsec, only:SCHARGE, splane, dbase, qmx_input, qmx, qtot
 	implicit none
 	real(8), intent(out)::reduction

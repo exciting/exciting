@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -51,7 +52,7 @@ use modinput
 		 wparf=lastofset(iproc, nwdf)
                  ! filename for proc
 		 call genfilname(basename = 'IDF', bzsampl = bzsampl, acont = input%xs%tddft%acont, &
-		      nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype = input%xs%tddft%fxctypenumber, tq0 =&
+		      nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),  fxctype = input%xs%tddft%fxctypenumber, tq0 =&
     &tq0, &
 		      oc1 = oct1, oc2 = oct2, iqmt = iq, procs = procs, rank = iproc, &
 		      filnam = filnam2)
@@ -64,8 +65,8 @@ use modinput
 	      end do ! iproc
               ! write to file
 	      call genfilname(basename = 'IDF', bzsampl = bzsampl, &
-		   acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype =&
-    &input%xs%tddft%fxctypenumber, &
+		   acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
+		   fxctype =input%xs%tddft%fxctypenumber, &
 		   tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = filnam)
 	      open(unit1, file = trim(filnam), form = 'unformatted', &
 		   action = 'write', status = 'replace', access = 'direct', recl = recl)
@@ -76,7 +77,7 @@ use modinput
               ! remove partial files
 	      do iproc=0, procs-1
 		 call genfilname(basename = 'IDF', bzsampl = bzsampl, acont = input%xs%tddft%acont, &
-		      nar = .not.input%xs%tddft%aresdf, nlf = (m.eq.1), fxctype = input%xs%tddft%fxctypenumber, tq0 =&
+		      nar = .not.input%xs%tddft%aresdf, nlf = (m.eq.1),  fxctype = input%xs%tddft%fxctypenumber, tq0 =&
     &tq0, &
 		      oc1 = oct1, oc2 = oct2, iqmt = iq, procs = procs, rank = iproc, &
 		      filnam = filnam2)

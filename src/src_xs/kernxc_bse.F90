@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -59,7 +60,7 @@ use modinput
   complex(8), allocatable :: residr(:, :), residq(:, :), osca(:, :), oscb(:, :)
   complex(8), allocatable :: residra(:, :), residqa(:, :), oscaa(:, :), oscba(:, :)
   complex(8), allocatable :: fxc(:, :, :), w(:), bsedg(:, :), bufou(:, :, :), bufuo(:, :, :), pufou(:, :, :), pufuo(:,&
-    &:, :)
+   &:, :)
   ! external functions
   integer, external :: idxkkp, l2int
   logical, external :: tqgamma

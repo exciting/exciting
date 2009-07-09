@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -375,8 +376,8 @@ use scl_xml_out_Module
       write(60, '("Wrote STATE.OUT")')
     end if
   end if
- 	call  scl_iter_xmlout()
- 	if(associated(input%groundstate%spin)) call scl_xml_write_moments()
+	call  scl_iter_xmlout()
+	if(associated(input%groundstate%spin)) call scl_xml_write_moments()
     call scl_xml_out_write()
 
 	endif
@@ -486,7 +487,7 @@ use scl_xml_out_Module
   write(60, '("+--------------------------+")')
   do is=1, nspecies
     write(60, *)
-    write(60, '("Species : ", I4, " (", A, ")")') is, trim(spsymb(is))
+    write(60, '("Species : ", I4, " (", A, ")")') is, trim(input%structure%speciesarray(is)%species%chemicalSymbol)
     write(60, '(" atomic positions (lattice) :")')
     do ia=1, natoms(is)
       write(60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
@@ -506,8 +507,8 @@ use scl_xml_out_Module
 
 	call MPI_Bcast(forcemax, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 	call MPI_Bcast(atposc, size(atposc), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	do is=1,nspecies
-	do ia=1,natoms(is)
+	do is=1, nspecies
+	do ia=1, natoms(is)
 	call MPI_Bcast(input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord, &
     &size(input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord), MPI_DOUBLE_PRECISION, 0, &
     &MPI_COMM_WORLD, ierr)

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -81,7 +82,7 @@ do is=1, nspecies
 	      zt1=evecsv(i, j)
 	      if (abs(dble(zt1))+abs(aimag(zt1)).gt.input%groundstate%epsocc) then
 		if (.not.done(ist)) then
-		  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngp, apwalm, evecfv(:,&
+		  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngp, apwalm, evecfv(:, &
     &ist), &
 		   lmmaxvr, wfmt1)
 ! convert from spherical harmonics to spherical coordinates
@@ -98,7 +99,7 @@ do is=1, nspecies
 	  end do
 	else
 ! spin-unpolarised wavefunction
-	  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngp, apwalm, evecfv(:, j),&
+	  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngp, apwalm, evecfv(:, j), &
     &lmmaxvr, &
 	   wfmt1)
 ! convert from spherical harmonics to spherical coordinates

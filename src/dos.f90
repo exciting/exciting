@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -209,7 +210,7 @@ do ispn=1, nspinor
       f(ist, ik)=dble(sdmat(ispn, ispn, ist, ik))
     end do
   end do
-  call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos, wdos,&
+  call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos, wdos, &
     &nstsv, nstsv, e(:, :, ispn), f, &
    g(:, ispn))
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
@@ -242,7 +243,7 @@ do is=1, nspecies
 	      f(ist, ik)=bc(lm, ispn, ias, ist, ik)
 	    end do
 	  end do
-	  call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos,&
+	  call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos, &
     &wdos, nstsv, nstsv, &
 	   e(:, :, ispn), f, gp)
 	  gp(:)=occmax*gp(:)

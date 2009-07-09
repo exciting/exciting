@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -67,7 +68,7 @@ do is=1, nspecies
     if (input%structure%molecule) then
 ! write Cartesian coordinates for the molecular case
       call r3mv(input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:),&
-    &v)
+   &v)
     else
 ! otherwise write lattice coordinates
       v(:)=input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)

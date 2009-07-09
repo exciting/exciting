@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -29,7 +30,7 @@ do is=1, nspecies
   do ia=1, natoms(is)
     ias=idxas(ia, is)
     write(50, *)
-    write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is,&
+    write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, &
     &trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
     write(50, '(" APW functions :")')
     do l=0, input%groundstate%lmaxapw

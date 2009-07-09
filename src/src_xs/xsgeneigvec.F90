@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -61,7 +62,7 @@ use modinput
 	call filedel('EVALCORE'//trim(filext))
 	call filedel('FERMIDOS'//trim(filext))
 	call filedel('GEOMETRY'//trim(filext))
-	call filedel('lattice'//trim(filext))
+	call filedel('associated(input%structure%symmetries%lattice)'//trim(filext))
 	call filedel('IADIST'//trim(filext))
 	call filedel('LINENGY'//trim(filext))
 	call filedel('SYMCRYS'//trim(filext))

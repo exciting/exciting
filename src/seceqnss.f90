@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2006 F. Bultmark, F. Cricchio, L. Nordstrom and J. K. Dewhurst.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -79,14 +80,15 @@ do is=1, nspecies
 ! external muffin-tin magnetic field
     do irc=1, nrcmt(is)
       do i=1, 3
-	bmt(:, irc, i) = bmt(:, irc, i) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(i) +&
+	bmt(:, irc, i) = bmt(:, irc, i) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(i)&
+    &+&
     &input%groundstate%spin%bfieldc(i))
       end do
     end do
 ! compute the first-variational wavefunctions
     do ispn=1, nspnfv
       do ist=1, nstfv
-	call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngk(ispn, ik), apwalm(:, :, :, :,&
+	call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngk(ispn, ik), apwalm(:, :, :, :, &
     &ispn), &
 	 evecfv(:, ist, ispn), lmmaxvr, wfmt1(:, :, ist, ispn))
       end do

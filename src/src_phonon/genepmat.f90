@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -120,7 +121,7 @@ do is=1, nspecies
     ias=idxas(ia, is)
     do ist=1, nstfv
 ! calculate the wavefunction for k-point p+q
-      call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxapw, is, ia, ngpq, apwalm2, evecfv2(:, ist),&
+      call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxapw, is, ia, ngpq, apwalm2, evecfv2(:, ist), &
     &lmmaxapw, &
        wfmt1)
 ! convert from spherical harmonics to spherical coordinates
@@ -129,7 +130,7 @@ do is=1, nspecies
     end do
     do jst=1, nstfv
 ! calculate the wavefunction for k-point p
-      call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxapw, is, ia, ngp, apwalm1, evecfv1(:, jst),&
+      call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxapw, is, ia, ngp, apwalm1, evecfv1(:, jst), &
     &lmmaxapw, &
        wfmt1)
 ! convert from spherical harmonics to spherical coordinates

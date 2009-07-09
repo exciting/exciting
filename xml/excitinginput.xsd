@@ -904,66 +904,47 @@
 							</xs:element>
 							<xs:element name="solver" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
-									<xs:attribute name="type" default="Lapack">
-              
-             
-                 
-										<xs:annotation>
-                         <xs:appinfo>
-                  <oldname>solvertype</oldname>
-                  </xs:appinfo>
-											<xs:documentation>
-												select the eigenvalue
-												solver for the first
-												variational equation
-											</xs:documentation>
-										</xs:annotation>
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="Lapack">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>
-																1
-															</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="Arpack">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>
-																2
-															</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="DIIS">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>
-																3
-															</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
-									<xs:attribute name="packedmatrixstorage" type="xs:boolean"
-										use="optional" default="true" />
-									<xs:attribute name="epsarpack" type="xs:string" />
-									<xs:attribute name="evaltol" type="fortrandouble"
-										default="1e-8">
-										<!-- sag -->
-										<xs:annotation>
-											<xs:documentation>
-												error tolerance for the first-variational
-												eigenvalues
-											</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-
+								  <xs:attribute name="type" default="Lapack">
+								    <xs:annotation>
+								      <xs:appinfo>
+								        <oldname>solvertype</oldname>
+								      </xs:appinfo>
+								      <xs:documentation>select the eigenvalue solver for the first variational equation</xs:documentation>
+								    </xs:annotation>
+								    <xs:simpleType>
+								      <xs:restriction base="xs:string">
+								        <xs:enumeration value="Lapack">
+								          <xs:annotation>
+								            <xs:appinfo>
+								              <oldnr>1</oldnr>
+								            </xs:appinfo>
+								          </xs:annotation>
+								        </xs:enumeration>
+								        <xs:enumeration value="Arpack">
+								          <xs:annotation>
+								            <xs:appinfo>
+								              <oldnr>2</oldnr>
+								            </xs:appinfo>
+								          </xs:annotation>
+								        </xs:enumeration>
+								        <xs:enumeration value="DIIS">
+								          <xs:annotation>
+								            <xs:appinfo>
+								              <oldnr>3</oldnr>
+								            </xs:appinfo>
+								          </xs:annotation>
+								        </xs:enumeration>
+								      </xs:restriction>
+								    </xs:simpleType>
+								  </xs:attribute>
+								  <xs:attribute name="packedmatrixstorage" type="xs:boolean" use="optional" default="true" />
+								  <xs:attribute name="epsarpack" type="fortrandouble" />
+								  <xs:attribute name="evaltol" type="fortrandouble" default="1e-8">
+								    <!-- sag -->
+								    <xs:annotation>
+								      <xs:documentation>error tolerance for the first-variational eigenvalues</xs:documentation>
+								    </xs:annotation>
+								  </xs:attribute>
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="OEP" minOccurs="0" maxOccurs="1">

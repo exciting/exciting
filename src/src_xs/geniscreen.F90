@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -21,7 +22,7 @@ use modinput
   complex(8) :: scrnh0(3), scrnih0(3), f(3, 3), l(3, 3)
   integer :: un, oct, oct2, i, j, ig1, ig2
 
-  allocate(scrn(n, n), scrnw(n, 2, 3), scrnh(3, 3), tm(n, n), tmi(n, n), s3(n+2, n+2), s3i(n+2, n+2))
+  allocate(scrn(n, n), scrnw(n, 2, 3), scrnh(3, 3), tm(n, n), tmi(n, n), s3(n + 2, n + 2), s3i(n + 2, n + 2))
   ! read screening from file
   call getscreen(iqr, n, scrnh, scrnw, scrn)
 
@@ -77,8 +78,8 @@ use modinput
 	   end do
 	end do
 	call zinvert_lapack(tm, tmi)
-	write(7700+oct, '(2i8, 3g18.10)') &
-	 ((i, j, tmi(i, j), abs(tmi(i, j))**2, j=1, n), i=1, n)
+	write(7700 + oct, '(2i8, 3g18.10)') &
+	 ((i, j, tmi(i, j), abs(tmi(i, j)) ** 2, j = 1, n), i = 1, n)
      end do
 !***************************************************************************
 
@@ -158,7 +159,7 @@ write(*, '(a, i5, 2g18.10)') 'iq,      eps_00(q)	     :', &
 
 write(*, '(a, i5, 2g18.10)') 'diel. matr.: iq,	 eps^-1_00(q):', &
      iqr, scri(1, 1)
-write(*, '(a, i5, 2g18.10)') 'diel. matr.: iq, 1/eps^-1_00(q):', &
+write( * , '(a, i5, 2g18.10)') 'diel. matr.: iq, 1/eps^ - 1_00(q):', &
      iqr, 1.d0/scri(1, 1)
 write(*, *)
 

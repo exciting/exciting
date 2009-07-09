@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -70,7 +71,7 @@ use modinput
         ! depends through its cutoff for G+q on q. It is independent of w.
 	call fxcifc(input%xs%tddft%fxctypenumber, iq=iq, ng=m, fxcg=fxc)
         ! add symmetrized Coulomb potential (is equal to unity matrix)
-	forall(j=1:m) 
+	forall(j=1:m)
 	   fxc(j, j)=fxc(j, j)+1.d0
 	end forall
      end select
@@ -86,8 +87,8 @@ use modinput
 	do oct2=octl, octu
            ! filename for output file
 	   call genfilname(basename = 'IDF', asc = .false., bzsampl = bzsampl, &
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m.eq.1), fxctype =&
-    &input%xs%tddft%fxctypenumber, &
+		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m.eq.1),&
+       fxctype =input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, procs = procs, rank = rank, &
 		filnam = filnam2)
 	   open(unit1, file = trim(filnam2), form = 'unformatted', &
@@ -123,7 +124,7 @@ use modinput
 	      select case(input%xs%tddft%fxctypenumber)
 	      case(0, 1, 2, 3, 4)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
-		 forall(j=1:m) 
+		 forall(j=1:m)
 		    fxc(j, j)=fxc(j, j)+1.d0
 		 end forall
 		 call dyson(n, chi0, fxc, idf)
@@ -137,7 +138,7 @@ use modinput
 		 call dysonsym(n, chi0, fxc, idf)
 	      end select
               ! symmetrized inverse dielectric function (add one)
-	      forall(j=1:m) 
+	      forall(j=1:m)
 		 idf(j, j)=idf(j, j)+1.d0
 	      end forall
 

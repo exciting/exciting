@@ -1,9 +1,10 @@
 
 
 
+
 #include "maxdefinitions.inc"
 module mod_atoms
-use modsp,only:sp_type_array
+use modsp, only:sp_type_array
 !--------------------------!
 !     atomic variables     !
 !--------------------------!
@@ -84,4 +85,3 @@ real(8), allocatable :: sprho(:, :)
 real(8), allocatable :: spvr(:, :)
 type(sp_type_array), allocatable ::speziesdeflist(:)
 end module
-

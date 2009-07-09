@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -155,18 +156,20 @@ end if
 if (associated(input%groundstate%spin)) then
   ndmag=1
   if&
-    &((abs(input%groundstate%spin%bfieldc(1)).gt.input%structure%epslat).or.(abs(input%groundstate%spin%bfieldc(2)).gt.&
+   &((abs(input%groundstate%spin%bfieldc(1)).gt.input%structure%epslat).or.(abs(input%groundstate%spin%bfieldc(2)).gt&
+    &.&
     &input%structure%epslat)) ndmag = 3
   do is=1, nspecies
     do ia=1, natoms(is)
       if&
-    &((abs(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(1)).gt.input%structure%epslat).or.(abs(inp&
+   &((abs(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(1)).gt.input%structure%epslat).or.(abs(in&
+    &p&
     &ut%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(2)).gt.input%structure%epslat)) &
        ndmag = 3
     end do
   end do
 ! source-free fields and spin-spirals are non-collinear in general
-  if ((nosource).or.(isspinspiral())) ndmag=3
+  if ((input%groundstate%nosource).or.(isspinspiral())) ndmag=3
 ! spin-orbit coupling is non-collinear in general
   if (isspinorb()) ndmag=3
 else

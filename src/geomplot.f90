@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -33,7 +34,7 @@ write(50, '("PRIMCOORD")')
 write(50, '(2I8)') natmtot, 1
 do is=1, nspecies
   do ia=1, natoms(is)
-    call r3mv(input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:),&
+    call r3mv(input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
     &v1)
     write(50, '(A, 3G18.10)') trim(input%structure%speciesarray(is)%species%chemicalSymbol), v1(:) * au_to_ang
   end do

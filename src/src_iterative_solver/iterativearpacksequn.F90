@@ -4,6 +4,7 @@
 
 subroutine iterativearpacksecequn(ik, ispn, apwalm, vgpc, evalfv, evecfv)
 
+use modinput
   !USES:
   use modfvsystem
   use modmpi
@@ -117,7 +118,7 @@ type (evsystem)::system
  endif
 
   resid(:)=0.0
-  tol	 = epsarpack
+  tol	 = input%groundstate%solver%epsarpack
   ido	 = 0
   info	 = 0
   ishfts = 1

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -248,14 +249,14 @@ call flushifc(unitout)
 
 
   ! write out kernel
-  inquire(iolength=recl) n, fxc(-3:-1, -3:-1, 1), fxc(-3:-1, 1:, 1), fxc(1:, -3:-1, 1), fxc(1:, 1:, 1)
+  inquire(iolength = recl) n, fxc( - 3: - 1, -3: - 1, 1), fxc( - 3: - 1, 1:, 1), fxc(1:, -3: - 1, 1), fxc(1:, 1:, 1)
   call genfilname(basename = 'FXC_BSE', asc = .false., bzsampl = 0, &
        acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = iqmt, filnam = filnam)
   call getunit(un)
   open(un, file = trim(filnam), form = 'unformatted', action = 'write', &
        status = 'replace', access = 'direct', recl = recl)
   do iw=1, nwdf
-     write(un, rec=iw) n, fxc(-3:-1, -3:-1, iw), fxc(-3:-1, 1:, iw), fxc(1:, -3:-1, iw), fxc(1:, 1:, iw)
+     write(un, rec = iw) n, fxc( - 3: - 1, -3: - 1, iw), fxc( - 3: - 1, 1:, iw), fxc(1:, -3: - 1, iw), fxc(1:, 1:, iw)
 write(8888, '(i6, 6g18.10)') iw, fxc(-1, -1, iw), fxc(-2, -2, iw), fxc(-3, -3, iw)
   end do
   close(un)

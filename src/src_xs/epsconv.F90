@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -45,7 +46,7 @@ use modinput
 	do oct2=1, nc
            ! generate filename for Tetrahedron method
 	   call genfilname(basename = 'EPSILON', bzsampl = bzsampl, &
-		nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype = input%xs%tddft%fxctypenumber, &
+		nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),  fxctype = input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = filnam)
            ! check for file to read
 	   inquire(file=trim(filnam), exist=exis)
@@ -64,7 +65,7 @@ use modinput
 	   close(un)
            ! generate filename for output (_s_ymmetric _l_orentzian)
 	   call genfilname(basename = 'EPSILON_sl', bzsampl = bzsampl, &
-		nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype = input%xs%tddft%fxctypenumber, &
+		nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),  fxctype = input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = filnam)
 	   open(unit = un, file = trim(filnam), &
 		form = 'formatted', action = 'write', status = 'replace')

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -58,7 +59,7 @@ nsk(:)=max(input%properties%dos%ngrdos/input%groundstate%ngkgrid(:), 1)
 n=nstsv*nstsv
 ! integrate over the Brillouin zone
 call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos, wdos, n, n,&
-    &e, f, eps2)
+   &e, f, eps2)
 ! q-vector in Cartesian coordinates
 call r3mv(bvec, input%properties%elnes%vecql, vecqc)
 qc=sqrt(vecqc(1)**2+vecqc(2)**2+vecqc(3)**2)

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 1998-2006 ABINIT group (DCA, XG, GMR).
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -171,7 +172,7 @@ if ((getfixspinnumber().eq.2).or.(getfixspinnumber().eq.3)) then
   do is=1, nspecies
     write(fnum, '("  species : ", I4, " (", A, ")")') is, trim(spsymb(is))
     do ia=1, natoms(is)
-      write(fnum, '("	", I4, 3G18.10)') ia, mommtfix(:, ia, is)
+      write(fnum, '("	", I4, 3G18.10)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%mommtfix(:)
     end do
   end do
 end if

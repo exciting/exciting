@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -40,7 +41,8 @@ case(1)
     return
   end if
 !--
-  call mixadapt(iscl, input%groundstate%beta0, input%groundstate%betainc, input%groundstate%betadec, n, v, work, work(n&
+  call mixadapt(iscl, input%groundstate%beta0, input%groundstate%betainc, input%groundstate%betadec, n, v, work,&
+    &work(n&
     &+ 1), work(2 * n + 1), dv)
 
 case(2)

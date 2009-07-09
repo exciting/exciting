@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -45,7 +46,7 @@ use modinput
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects
   n=ngq(iq)
-  allocate(mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), wr(input%properties%dos%nwdos), wplot(input%properties%dos%nwdos),&
+  allocate(mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), wr(input%properties%dos%nwdos), wplot(input%properties%dos%nwdos), &
     &mdf(input%properties%dos%nwdos), &
        loss(input%properties%dos%nwdos), sigma(input%properties%dos%nwdos), cf(3, input%properties%dos%nwdos))
   allocate(eps1(input%properties%dos%nwdos), eps2(input%properties%dos%nwdos))
@@ -73,8 +74,8 @@ use modinput
 	do oct2=octl, octu
            ! file name for inverse of dielectric function
 	   call genfilname(basename = 'IDF', asc = .false., bzsampl = bzsampl, &
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype =&
-    &input%xs%tddft%fxctypenumber, &
+		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
+		&fxctype =input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = filnam)
            ! read macroscopic dielectric function (original frequencies)
 	   open(unit1, file = trim(filnam), form = 'unformatted', &
@@ -101,7 +102,7 @@ use modinput
 	   octu=oct1
 	end if
 	do oct2=octl, octu
-	   optcompt(:)=(/oct1, oct2, 0/)  
+	   optcompt(:)=(/oct1, oct2, 0/)
            ! symmetrize the macroscopic dielectric function tensor
 	   mdf(:)=zzero
 	   do i=1, 3
@@ -111,20 +112,20 @@ use modinput
 	   end do
            ! file names for spectra
 	   call genfilname(basename = 'EPSILON', asc = .false., bzsampl = bzsampl, &
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype =&
-    &input%xs%tddft%fxctypenumber, &
+		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
+        fxctype=input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = fneps)
 	   call genfilname(basename = 'LOSS', asc = .false., bzsampl = bzsampl, &
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype =&
-    &input%xs%tddft%fxctypenumber, &
+		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
+        fxctype =input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = fnloss)
 	   call genfilname(basename = 'SIGMA', asc = .false., bzsampl = bzsampl, &
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype =&
-    &input%xs%tddft%fxctypenumber, &
+		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
+       fxctype =input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = fnsigma)
 	   call genfilname(basename = 'SUMRULES', asc = .false., bzsampl = bzsampl, &
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1), fxctype =&
-    &input%xs%tddft%fxctypenumber, &
+		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
+        fxctype=input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, filnam = fnsumrules)
            ! generate optical functions
 	   call genloss(mdf, loss)

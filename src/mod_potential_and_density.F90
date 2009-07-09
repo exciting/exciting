@@ -1,4 +1,5 @@
 
+
 #include "maxdefinitions.inc"
 module mod_potential_and_density
 use modinput

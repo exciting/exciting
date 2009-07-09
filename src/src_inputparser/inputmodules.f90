@@ -211,7 +211,7 @@ type solver_type
  character(512)::type
  integer::typenumber
  logical::packedmatrixstorage
- character(512)::epsarpack
+ real(8)::epsarpack
  real(8)::evaltol
 end type
 type OEP_type
@@ -401,9 +401,9 @@ type xs_type
   type(screening_type),pointer::screening
   type(BSE_type),pointer::BSE
   type(qpointset_type),pointer::qpointset
-  type(plan_type),pointer::plan
   type(tetra_type),pointer::tetra
   type(dosWindow_type),pointer::dosWindow
+  type(plan_type),pointer::plan
 end type
 type tddft_type
  logical::intraband
@@ -458,18 +458,7 @@ type BSE_type
  character(512)::bsetype
  integer::bsetypenumber
 end type
-type plan_type
-  type(doonly_type_array),pointer::doonlyarray(:)
-end type
-type doonly_type
- character(512)::task
- integer::tasknumber
-end type
-
-type doonly_type_array
-type(doonly_type),pointer::doonly
- end type
-    type tetra_type
+type tetra_type
  logical::tetraocc
  logical::tetradf
  logical::kordexc
@@ -481,7 +470,18 @@ type dosWindow_type
  real(8)::starte
  real(8)::stope
 end type
-type qpointset_type
+type plan_type
+  type(doonly_type_array),pointer::doonlyarray(:)
+end type
+type doonly_type
+ character(512)::task
+ integer::tasknumber
+end type
+
+type doonly_type_array
+type(doonly_type),pointer::doonly
+ end type
+    type qpointset_type
  real(8),pointer::qpoint(:,:)
 end type
 
@@ -3443,14 +3443,6 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "qpointset"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"plan")
-getstructxs%plan=>null()
-Do i=0,len-1
-getstructxs%plan=>getstructplan(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plan"),0)) ) 
-enddo
-
             len= countChildEmentsWithName(thisnode,"tetra")
 getstructxs%tetra=>null()
 Do i=0,len-1
@@ -3465,6 +3457,14 @@ Do i=0,len-1
 getstructxs%dosWindow=>getstructdosWindow(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "dosWindow"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"plan")
+getstructxs%plan=>null()
+Do i=0,len-1
+getstructxs%plan=>getstructplan(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"plan"),0)) ) 
 enddo
 
       i=0
@@ -3885,59 +3885,6 @@ getstructBSE%bsetypenumber=stringtonumberbsetype(getstructBSE%bsetype)
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructplan(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(plan_type),pointer::getstructplan
-		
-integer::len=1,i=0
-allocate(getstructplan)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at plan"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"doonly")
-     
-allocate(getstructplan%doonlyarray(len))
-Do i=0,len-1
-getstructplan%doonlyarray(i+1)%doonly=>getstructdoonly(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"doonly"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdoonly(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(doonly_type),pointer::getstructdoonly
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructdoonly)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at doonly"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"task")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"task",getstructdoonly%task)
-       call removeAttribute(thisnode,"task")      
-endif
-getstructdoonly%tasknumber=stringtonumbertask(getstructdoonly%task)
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
 function getstructtetra(thisnode)
 
 implicit none
@@ -4034,6 +3981,59 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"stope",getstructdosWindow%stope)
        call removeAttribute(thisnode,"stope")      
 endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructplan(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(plan_type),pointer::getstructplan
+		
+integer::len=1,i=0
+allocate(getstructplan)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at plan"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"doonly")
+     
+allocate(getstructplan%doonlyarray(len))
+Do i=0,len-1
+getstructplan%doonlyarray(i+1)%doonly=>getstructdoonly(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"doonly"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructdoonly(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(doonly_type),pointer::getstructdoonly
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructdoonly)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at doonly"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"task")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"task",getstructdoonly%task)
+       call removeAttribute(thisnode,"task")      
+endif
+getstructdoonly%tasknumber=stringtonumbertask(getstructdoonly%task)
 
       i=0
       len=0

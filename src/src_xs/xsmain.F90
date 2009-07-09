@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -12,8 +13,8 @@
 !   This manual is supposed to collect the routines and modules belonging
 !   exclusively to the excited states (TDDFT and BSE) part into one document.
 !   The content of this manual is partially taken from the author's PhD thesis.
-!   \\\\
-!   S. Sagmeister\\
+!   \\\&
+!   S. Sagmeister\&
 !   Leoben, August 2008
 !
 !EOI
@@ -25,8 +26,10 @@ integer :: nxstasks
 character(256) :: xstasks(maxtasks)
 end module
 
+
 subroutine xsmain
   use modmain
+use modinput
   use modmpi
   use modtetra
   use modxs
@@ -114,7 +117,7 @@ subroutine xsmain
      call exccoulint
   case(445)
      ! Bethe-Salpeter equation
-     call bse
+     call BSE
   case(450)
      ! BSE-kernel
      call kernxc_bse
@@ -128,9 +131,9 @@ subroutine xsmain
      ! call to test xs-routine
      call testxs
   case default
-     write(*,*)
-     write(*,*) 'Error(xsmain): task not defined:', task
-     write(*,*)
+     write(*, *)
+     write(*, *) 'Error(xsmain): task not defined:', task
+     write(*, *)
      call terminate
   end select
   ! summarize information on run

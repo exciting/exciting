@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -48,7 +49,7 @@ use modinput
     write(un, '(a, l8)') '# input%xs%tddft%acont	     :', input%xs%tddft%acont
     write(un, '(a, i8)') '# input%xs%tddft%nwacont	     :', input%xs%tddft%nwacont
     write(un, '(a, 2f12.6)') '# input%xs%broad (H, eV)	    :', input%xs%broad, h2ev*input%xs%broad
-    write(un, '(a, 2f12.6)') '# input%properties%bandstructure%scissor (H, eV)	  :',&
+    write(un, '(a, 2f12.6)') '# input%properties%bandstructure%scissor (H, eV)	  :', &
     &input%properties%bandstructure%scissor, h2ev * input%properties%bandstructure%scissor
     write(un, '(a, i8)') '# input%properties%dos%nwdos		   :', input%properties%dos%nwdos
     write(un, '(a, i8)') '# ngq 	      :', ngq(iqmtt)
@@ -65,7 +66,7 @@ use modinput
     write(un, '(a, i8)') '# nlomax	      :', nlomax
     write(un, '(a, i8)') '# nst1	      :', nst1
     write(un, '(a, i8)') '# nst2	      :', nst2
-    write(un, '(a, 2i8)') '# nstlbse	       :',nbfbse
+    write(un, '(a, 2i8)') '# nstlbse	       :', nbfbse
     write(un, '(a, i8)') '# nstsv	      :', nstsv
     write(un, '(a, 2f12.6)') '# evlmincut (H, eV)  :', evlmincut, h2ev*evlmincut
     write(un, '(a, 2f12.6)') '# evlmaxcut (H, eV)  :', evlmaxcut, h2ev*evlmaxcut

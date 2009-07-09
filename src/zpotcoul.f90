@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -132,7 +133,7 @@ do is=1, nspecies
 !$OMP DO
   do ia=1, natoms(is)
     ias=idxas(ia, is)
-    call zpotclmt(input%groundstate%ptnucl, input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), lmmaxvr, zrhomt(:, :,&
+    call zpotclmt(input%groundstate%ptnucl, input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), lmmaxvr, zrhomt(:, :, &
     &ias), &
      zvclmt(:, :, ias))
   end do

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -70,7 +71,7 @@ if ((task.eq.20).or.(task.eq.21)) then
   allocate(vplp1d(3, npp1d))
   if (allocated(dpp1d)) deallocate(dpp1d)
   allocate(dpp1d(npp1d))
-  call connect(bvec, input%properties%bandstructure%plot1d,nvp1d,  npp1d, vplp1d, dvp1d, dpp1d)
+  call connect(bvec, input%properties%bandstructure%plot1d, nvp1d,  npp1d, vplp1d, dvp1d, dpp1d)
 
   nkpt=input%properties%bandstructure%plot1d%path%steps
   if (allocated(vkl)) deallocate(vkl)
@@ -145,9 +146,9 @@ else
    wkptnr)
 #ifdef TETRA
   ! call to module routine
-  if (input%xs%tetra%tetraocc.or.tetraopt.or.input%xs%tetra%tetradf) call genkpts_tet(filext, input%structure%epslat,&
+  if (input%xs%tetra%tetraocc.or.tetraopt.or.input%xs%tetra%tetradf) call genkpts_tet(filext, input%structure%epslat, &
     &bvec, &
-       maxsymcrys, nsymcrys, lsplsymc, symlat, input%groundstate%reducek, input%groundstate%ngkgrid,&
+       maxsymcrys, nsymcrys, lsplsymc, symlat, input%groundstate%reducek, input%groundstate%ngkgrid, &
     &input%groundstate%vkloff, nkpt, ikmap, &
        vkl, wkpt)
 #endif

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -73,7 +74,7 @@ do is=1, nspecies
     call fderiv(-1, nr, spr(:, is), fr, gr, cf)
     rho0=gr(nr)/vn
     write(50, *)
-    write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is,&
+    write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, &
     &trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
     write(50, '(" approximate nuclear radius : ", G18.10)') rn
     write(50, '(" number of mesh points to nuclear radius : ", I6)') nr

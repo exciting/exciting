@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2006 C. Ambrosch-Draxl. C. Meisenbichler
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details
@@ -42,7 +43,7 @@ use modinput
      allocate(buffer4d(lmmaxvr, nrmtmax, natmtot, ndmag))
      buffer4d=0.d0
      call MPI_barrier(MPI_COMM_WORLD, ierr)
-     call MPI_allreduce(magmt, buffer4d, lmmaxvr * nrmtmax * natmtot * ndmag, MPI_DOUBLE_PRECISION, MPI_SUM,&
+     call MPI_allreduce(magmt, buffer4d, lmmaxvr * nrmtmax * natmtot * ndmag, MPI_DOUBLE_PRECISION, MPI_SUM, &
     &MPI_COMM_WORLD, ierr)
      magmt=buffer4d
      deallocate(buffer4d)

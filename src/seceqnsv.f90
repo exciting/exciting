@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma, C. Ambrosch-Draxl
 ! F. Bultmark, F. Cricchio and L. Nordstrom.
 ! This file is distributed under the terms of the GNU General Public License.
@@ -118,7 +119,8 @@ do is=1, nspecies
 ! external muffin-tin magnetic field
       do irc=1, nrcmt(is)
 	do i=1, 3
-	  bmt(:, irc, i) = bmt(:, irc, i) + ga4 * (input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(i)&
+	  bmt(:, irc, i) = bmt(:, irc, i) + ga4 *&
+    &(input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(i)&
     &+ input%groundstate%spin%bfieldc(i))
 	end do
       end do

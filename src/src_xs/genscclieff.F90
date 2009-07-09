@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -216,7 +217,7 @@ use modinput
 	scieff(j2, j1)=conjg(scieff(j1, j2))
 
 	if (abs(scieff(j1, j2)).gt.1.d5) then
-	  write(*, '(a, 3i5, 2g18.10)') &
+	  write( * , '(a, 3i5, 2g18.10)') &
 	   'scieff, iqr, j1, j2', iqr, j1, j2, abs(scieff(j1, j2))
 	end if
 

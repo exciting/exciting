@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -133,7 +134,7 @@ use modinput
        vklt(:)=vkl(:, ik)
        vqlt(:)=vql(:, iq)
     end if
-    if ((r3dist(vkl_, vklt).gt.input%structure%epslat).or.((r3dist(vql_,&
+    if ((r3dist(vkl_, vklt).gt.input%structure%epslat).or.((r3dist(vql_, &
     &vqlt).gt.input%structure%epslat).and.(.not.tscreen))) then
        write(unitout, *)
        write(unitout, '(a)') 'Error('//thisnam//'): differring parameters for &

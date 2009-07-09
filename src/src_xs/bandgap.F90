@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -113,13 +114,13 @@ use modinput
      end do
   end if
   write(50, '(a, g16.8, a, g16.8, a)') 'fundamental gap: ', egf, &
-       ' (', h2ev*egf, ' eV )'
+       ' (', h2ev * egf, ' eV )'
   write(50, '(a, i9, 4f12.6)') ' k - point (homo), energy: ', ikgf(1), &
        vkl(:, ikgf(1)), evalsv(istho, ikgf(1))
   write(50, '(a, i9, 4f12.6)') ' k - point (lumo), energy: ', ikgf(2), &
        vkl(:, istho + 1), evalsv(istho + 1, ikgf(2))
   write(50, '(a, g16.8, a, g16.8, a)') 'optical gap    : ', ego, &
-       ' (', h2ev*ego, ' eV )'
+       ' (', h2ev * ego, ' eV )'
   write(50, '(a, i9, 4f12.6)') ' k - point (homo), energy: ', ikgo, &
        vkl(:, ikgo), evalsv(istho, ikgo)
   write(50, '(a, i9, 4f12.6)') ' k - point (lumo), energy: ', ikgo, &

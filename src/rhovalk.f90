@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -127,7 +128,7 @@ do is=1, nspecies
 	  end do
 	else
 ! spin-unpolarised wavefunction
-	  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngk(1, ik), apwalm, evecfv(:, j,&
+	  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngk(1, ik), apwalm, evecfv(:, j, &
     &1), &
 	   lmmaxvr, wfmt1)
 ! convert from spherical harmonics to spherical coordinates

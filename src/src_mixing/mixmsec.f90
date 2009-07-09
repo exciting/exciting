@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2008 C. Meisenbichler and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -46,7 +47,7 @@ noldsteps, qmx, dmix, dmixout, TCharge, SCharge, splane, tplane, qmx_input, qtot
 			call write_current_to_broyden_file(n, iscl, potential, residual)
 		endif
 
-		call mixadapt(iscl, input%groundstate%beta0, input%groundstate%betainc, input%groundstate%betadec, n,&
+		call mixadapt(iscl, input%groundstate%beta0, input%groundstate%betainc, input%groundstate%betadec, n, &
     &potential, &
 			last_outputp, work3, work2, residualnorm)
 		last_outputp=potential

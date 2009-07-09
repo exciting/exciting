@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 S. Sharma, J. K. Dewhurst and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -29,8 +30,8 @@ allocate(w(input%properties%dos%nwdos))
 allocate(sig1(input%properties%dos%nwdos, 2), sig2(input%properties%dos%nwdos, 2))
 allocate(kerr(input%properties%dos%nwdos))
 ! read diagonal contribution to optical conductivity
-open(50, file='SIGMA_11.OUT', action='READ', status='OLD', &
- form='FORMATTED', iostat=iostat)
+open(50, file = 'SIGMA_11.OUT', action = 'READ', status = 'OLD', &
+ form = 'FORMATTED', iostat = iostat)
 if (iostat.ne.0) then
   write(*, *)
   write(*, '("Error(moke): error opening SIGMA_11.OUT")')
@@ -46,8 +47,8 @@ do iw=1, input%properties%dos%nwdos
 end do
 close(50)
 ! read off-diagonal contribution to optical conductivity
-open(50, file='SIGMA_12.OUT', action='READ', status='OLD', &
- form='FORMATTED', iostat=iostat)
+open(50, file = 'SIGMA_12.OUT', action = 'READ', status = 'OLD', &
+ form = 'FORMATTED', iostat = iostat)
 if (iostat.ne.0) then
   write(*, *)
   write(*, '("Error(moke): error opening SIGMA_12.OUT")')

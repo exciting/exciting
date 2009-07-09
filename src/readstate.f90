@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -54,8 +55,8 @@ complex(8), allocatable :: veffig_(:)
 complex(8), allocatable :: vmatlu_(:, :, :, :, :)
 #ifdef XS
 if (isreadstate0) then
-open(50, file='STATE.OUT', action='READ', form='UNFORMATTED', &
- status='OLD', iostat=iostat)
+open(50, file = 'STATE.OUT', action = 'READ', form = 'UNFORMATTED', &
+ status = 'OLD', iostat = iostat)
 else
 #endif
 open(50, file = 'STATE'//trim(filext), action = 'READ', form = 'UNFORMATTED', &

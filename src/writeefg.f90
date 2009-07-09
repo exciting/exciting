@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -54,7 +55,7 @@ do is=1, nspecies
     ias=idxas(ia, is)
     write(50, *)
     write(50, *)
-    write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is,&
+    write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, &
     &trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
 ! remove the l=m=0 part of the potential
     do ir=1, nrmt(is)

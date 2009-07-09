@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -43,7 +44,7 @@ do is=1, nspecies
 ! make sure all atomic coordinates are in [0,1)
     call r3frac(input%structure%epslat, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), iv)
 ! determine atomic Cartesian coordinates
-    call r3mv(input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:),&
+    call r3mv(input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
     &atposc(:, ia, is))
   end do
 end do
@@ -77,7 +78,7 @@ do ia=1, natoms(is)
 	    do ka=1, natoms(js)
 ! check both positions and magnetic fields
 	      t1=r3taxi(input%structure%speciesarray(js)%species%atomarray(ka)%atom%coord(:), v3)
-	      t2 = r3taxi(input%structure%speciesarray(js)%species%atomarray(ja)%atom%bfcmt(:),&
+	      t2 = r3taxi(input%structure%speciesarray(js)%species%atomarray(ja)%atom%bfcmt(:), &
     &input%structure%speciesarray(js)%species%atomarray(ka)%atom%bfcmt(:))
 	      if ((t1.lt.input%structure%epslat).and.(t2.lt.input%structure%epslat)) goto 10
 	    end do

@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -174,7 +175,7 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
   do iknr=1, nkptnr
      do ist1=1+nvdif, nst1
 	do ist3=1, nst3-ncdif
-	   egap=min(egap, evalsv(ist3+istocc, iknr)-evalsv(ist1, iknr)+input%properties%bandstructure%scissor)
+	   egap = min(egap, evalsv(ist3 + istocc, iknr) - evalsv(ist1, iknr) + input%properties%bandstructure%scissor)
 	end do
       end do
   end do
@@ -259,13 +260,13 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
   do oct=1, noptcomp
      oszs(:)=zzero
      call genfilname(basename = 'EPSILON', tq0 = .true., oc1 = oct, oc2 = oct, &
-	  bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
+	bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
     &.not.input%xs%tddft%aresdf, filnam = fneps)
      call genfilname(basename = 'EXCITON', tq0 = .true., oc1 = oct, oc2 = oct, &
-	  bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
+	  bsetype= input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
     &.not.input%xs%tddft%aresdf, filnam = fnexc)
      call genfilname(basename = 'EXCITON_SORTED', tq0 = .true., oc1 = oct, oc2 = oct, &
-	  bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
+	 bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
     &.not.input%xs%tddft%aresdf, filnam = fnexcs)
      ! read momentum matrix elements
      allocate(pm(3, nstsv, nstsv))

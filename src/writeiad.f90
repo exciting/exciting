@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -50,7 +51,7 @@ do is=1, nspecies
 	  do i2=-1, 1
 	    do i3=-1, 1
 	      v(:) = dble(i1) * input%structure%crystal%basevect(:, 1) + dble(i2) * input%structure%crystal%basevect(:,&
-    &2) + dble(i3) * input%structure%crystal%basevect(:, 3) &
+   &2) + dble(i3) * input%structure%crystal%basevect(:, 3) &
 	       +atposc(:, ja, js)
 	      d=r3dist(atposc(:, ia, is), v)
 	      dmin=min(d, dmin)

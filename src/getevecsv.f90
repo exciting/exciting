@@ -1,5 +1,6 @@
 
 
+
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -49,7 +50,7 @@ open(70, file = outfilenamestring(filetag, ik), action = 'READ', &
 exit
 else 
 call system('sync')
-write(*, *) "Waiting for other process to write"//":getevecsv:"// &
+write( * , *) "Waiting for other process to write"//":getevecsv:"// &
      trim(outfilenamestring(filetag, ik))
 call sleep(5)
 endif
