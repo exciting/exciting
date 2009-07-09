@@ -35,33 +35,17 @@ tasks
 sppath
   '../../species/'
 
-nosym
- .true.
-
 rgkmax
   6.0
 
 lmaxapw
   10
 
-! formerly 5
-nempty
-  5
-
-reducek
-  .false.
-
 ngridk
-  2 2 2
+  4  4  4
   
-ngridq
-  2 2 2
-
 vkloff
   0.033333333333333  0.100000000000000  0.166666666666667
-
-swidth
-  0.0001
 
 optcomp
   1  1  1
