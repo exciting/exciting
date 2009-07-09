@@ -407,6 +407,9 @@ subroutine kernxc_bse
 	    	torfxc*zi*brd)**2
            ! update kernel
            do iw=1,nwdf
+
+           		! TODO: speed up this summation, as in "dfq"
+
               ! resonant and antiresonant contributions
               fxc(:,:,iw)=fxc(:,:,iw)+osca(:,:)*den1(iw)+oscb(:,:)*den2(iw)
               if (aresfxc) fxc(:,:,iw)=fxc(:,:,iw)+oscaa(:,:)*den1a(iw)+ &

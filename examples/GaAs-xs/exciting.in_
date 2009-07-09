@@ -20,15 +20,22 @@ tasks
 sppath
 '../../species/'
 
-! parameters for spectrum
-! nwdos: number of energy points
-! wdos: energy window
+ngridk
+  4  4  4
+  
+vkloff
+  0.1  0.3  0.5
+  
+rgkmax
+  6.0
+
+lmaxapw
+  10
+
 dos
   601 100 0 : nwdos, ngrdos, nsmdos
   0.0 1.0   : wdos
 
-! optical components (of dielectric tensor) - the third component is not
-! referenced
 optcomp
   1  1  1
   2  2  2
@@ -40,31 +47,21 @@ optcomp
 nosymxs
 .true.
 
-! k-point grid
 ngridkxs
   4  4  4
   
-! k-point grid offset - shift of k-point grid;
-! for sampling of spectra use an offset that breaks all symmetries of k-point
-! set
-! e.g.: shift=(1,3,5)/80 => vkloff=(0.05,0.15,0.25) for ngridk=(4,4,4)
-! or vkloff=(0.1,0.3,0.5) for ngridk=(8,8,8)
 vkloffxs
   0.1  0.3  0.5
   
-! q-point grid - should be the same as k-point grid for BSE
 ngridqxs
   4  4  4
  
-! number of empty states (number of unoccupied states minus one)
 nemptyxs
   4
 
-! r_min*|G+k|_max
 rgkmaxxs
   6.0
 
-! lmax for wavefunctions
 lmaxapwxs
   10
 
@@ -108,7 +105,7 @@ bsetype
 
 ! number of states below and above Fermi energy for BSE
 nstlbse
-  6  5
+  5  5
 
 ! lmax for wavefunctions in matrix elements of planewave
 ! (a good choice is to set it equal to "lmaxemat")
