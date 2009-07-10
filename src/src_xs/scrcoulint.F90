@@ -11,11 +11,13 @@ subroutine scrcoulint
   use m_xsgauntgen
   use m_findgntn0
   use m_genfilname
+  use m_getunit
   implicit none
   ! local variables
   character(*), parameter :: thisnam='scrcoulint'
+  character(256) :: fnsccli, fnscreeninv
   real(8), parameter :: epsortho=1.d-12
-  integer :: ikkp,iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,n,recl
+  integer :: ikkp,iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,n,recl,un
   integer :: nsc,iv(3),ivgsym(3),j1,j2,nkkp
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
   logical :: tq0,tphf
@@ -123,6 +125,10 @@ subroutine scrcoulint
   !-------------------------------!
   !     loop over (k,kp) pairs    !
   !-------------------------------!
+  call genfilname(basename='SCCLI',asc=.true.,filnam=fnsccli)
+  call getunit(un)
+	if (rank.eq.0) open(un,file=trim(fnsccli),form='formatted',action='write', &
+		status='replace')
   call genparidxran('p',nkkp)
   allocate(bsedt(3,0:procs-1))
   bsedt(1,:)=1.d8
@@ -237,7 +243,7 @@ subroutine scrcoulint
               do ist2=1,nst2
                  do ist4=1,nst4
 		    zt1=sccli(ist1,ist3,ist2,ist4)
-                    write(1100,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+                    write(un,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
                          ist3,jknr,ist2,ist4,zt1,abs(zt1)**2, &
 			 atan2(aimag(zt1),dble(zt1))/pi
                  end do
@@ -268,6 +274,8 @@ subroutine scrcoulint
 
      ! end loop over (k,kp)-pairs
   end do
+  if (rank.eq.0) write(un,'("# ikkp, iknr,ist1,ist3, jknr,ist2,ist4,    Re(W),            Im(W),             |W|^2,           ang/pi")')
+	if (rank.eq.0) close(un)
 
   call barrier
 

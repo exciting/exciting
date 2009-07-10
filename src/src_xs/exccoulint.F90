@@ -12,12 +12,14 @@ subroutine exccoulint
   use m_findgntn0
   use m_writegqpts
   use m_genfilname
+  use m_getunit
   implicit none
   ! local variables
   character(*), parameter :: thisnam='exccoulint'
+  character(256) :: fnexcli
   integer, parameter :: iqmt=1
   real(8), parameter :: epsortho=1.d-12
-  integer :: iknr,jknr,iqr,iq,igq1,n
+  integer :: iknr,jknr,iqr,iq,igq1,n,un
   integer :: iv(3),j1,j2
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24,ikkp,nkkp
   real(8), allocatable :: potcl(:)
@@ -105,6 +107,11 @@ subroutine exccoulint
   !-------------------------------!
   nkkp=(nkptnr*(nkptnr+1))/2
   call genparidxran('p',nkkp)
+  call genfilname(basename='EXCLI',asc=.true.,filnam=fnexcli)
+  call getunit(un)
+  if (rank.eq.0) open(un,file=trim(fnexcli),form='formatted',action='write', &
+	status='replace')
+
   do ikkp=ppari,pparf
      call chkpt(3,(/task,2,ikkp/),'task,sub,(k,kp)-pair; exchange term of &
           &BSE-Hamiltonian')
@@ -165,7 +172,7 @@ subroutine exccoulint
            do ist2=1,nst2
               do ist3=1,nst1
                  do ist4=1,nst2
-                    write(1200,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
+                    write(un,'(i5,3x,3i4,2x,3i4,2x,4e18.10)') ikkp,iknr,ist1,&
                          ist2,jknr,ist3,ist4,excli(ist1,ist2,ist3,ist4),&
                          abs(excli(ist1,ist2,ist3,ist4))
                  end do
@@ -180,6 +187,9 @@ subroutine exccoulint
 
      ! end loop over (k,kp) pairs
   end do
+  if (rank.eq.0) write(un,'("# ikkp, iknr,ist1,ist3, jknr,ist2,ist4,    Re(V),            Im(V),             |V|^2")')
+  if (rank.eq.0) close(un)
+
   call barrier
   call findgntn0_clear
   deallocate(emat12k,exclit,emat12,emat34)

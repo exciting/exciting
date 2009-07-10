@@ -459,29 +459,7 @@ subroutine dfq(iq)
      call getunit(un)
      open(un,file=trim(fnscreen),form='formatted',action='write', &
           status='replace')
-     do ig1=1,n
-        do ig2=1,n
-           r1=0.d0
-           if (ig1.eq.ig2) r1=1.d0
-           if (tq0) then
-              if ((ig1.eq.1).and.(ig2.eq.1)) then
-                 write(un,'(2i8,2g18.10)') ((-i,-j,dble(krondelta(i,j))- &
-                      chi0h(i,j,1),j=1,3),i=1,3)
-              end if
-              if ((ig1.eq.1).and.(ig2.ne.1)) then
-                 write(un,'(2i8,2g18.10)') (-i,ig2,-chi0w(ig2,1,i,1),i=1,3)
-              end if
-              if ((ig1.ne.1).and.(ig2.eq.1)) then
-                 write(un,'(2i8,2g18.10)') (ig1,j,-chi0w(ig1,2,j,1),j=1,3)
-              end if
-              if ((ig1.ne.1).and.(ig2.ne.1)) then
-                 write(un,'(2i8,2g18.10)') ig1,ig2,r1-chi0(ig1,ig2,1)
-              end if
-           else
-              write(un,'(2i8,2g18.10)') ig1,ig2,r1-chi0(ig1,ig2,1)
-           end if
-        end do
-     end do
+     call putscreen(un,tq0,n,chi0h(:,:,1),chi0w(:,:,:,1),chi0(:,:,1))
      call writevars(un,iq,0)
      close(un)
   else
