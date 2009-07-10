@@ -240,8 +240,8 @@ lmaxemat=3
 lmaxalda=3
 lmaxdielt=14
 nleblaik=5810
-torddf='causal'
-tordfxc='causal'
+torddf=.false.
+tordfxc=.false.
 acont=.false.
 nwacont=0
 broad=0.01d0
@@ -1226,22 +1226,8 @@ case('lmaxdielt')
   end if
 case('torddf')
   read(50,*,err=20) torddf
-  if ((trim(adjustl(torddf)).ne.'tord').and.(trim(adjustl(torddf)) &
-     .ne.'causal')) then
-    write(*,*)
-    write(*,'("Error(readinput/xs): invalid torddf : ",a)') torddf
-    write(*,*)
-    stop
-  end if
 case('tordfxc')
   read(50,*,err=20) tordfxc
-  if ((trim(adjustl(tordfxc)).ne.'tord').and.(trim(adjustl(tordfxc)) &
-     .ne.'causal')) then
-    write(*,*)
-    write(*,'("Error(readinput/xs): invalid tordfxc : ",a)') tordfxc
-    write(*,*)
-    stop
-  end if
 case('acont')
   read(50,*,err=20) acont
 case('nwacont')

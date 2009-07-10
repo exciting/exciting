@@ -277,7 +277,7 @@ module modxs
   !     response and dielectric functions    !
   !------------------------------------------!
   ! time ordering of response function (time-ordered/retarded)
-  character(32) :: torddf
+  logical :: torddf
   ! factor for time-ordering
   real(8) :: tordf
   ! true if analytic continuation to the real axis is to be performed
@@ -318,7 +318,7 @@ module modxs
   !     xc-kernel variables    !
   !----------------------------!
   ! time ordering of xc-kernel function (time-ordered/retarded)
-  character(32) :: tordfxc
+  logical :: tordfxc
   ! factor for time-ordering
   real(8) :: torfxc
   ! true if to consider the anti-resonant part

@@ -40,8 +40,8 @@ contains
     write(un,'(a,l8)') '# intraband         :',intraband
     write(un,'(a,l8)') '# aresdf            :',aresdf
     write(un,'(a,l8)') '# aresfxc           :',aresfxc
-    write(un,'(a,a)') '# torddf            :',trim(torddf)
-    write(un,'(a,a)') '# tordfxc           :',trim(tordfxc)
+    write(un,'(a,l8)') '# torddf            :',torddf
+    write(un,'(a,l8)') '# tordfxc           :',tordfxc
     write(un,'(a,l8)') '# acont             :',acont
     write(un,'(a,i8)') '# nwacont           :',nwacont
     write(un,'(a,2f12.6)') '# broad (H,eV)      :',broad,h2ev*broad

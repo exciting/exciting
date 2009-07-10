@@ -187,7 +187,7 @@ subroutine xsinit
   !----------------------------!
   ! set time-ordering
   tordf=1.d0
-  if (trim(torddf).eq.'tord') tordf=-1.d0
+  if (torddf) tordf=-1.d0
   tscreen=.false.
   if ((task.ge.400).and.(task.le.499)) tscreen=.true.
   ! tetrahedron method not implemented for analytic continuation
@@ -210,7 +210,7 @@ subroutine xsinit
   !-----------------------------!
   ! set time-ordering
   torfxc=1.d0
-  if (trim(tordfxc).eq.'tord') torfxc=-1.d0
+  if (tordfxc) torfxc=-1.d0
 
   !-----------------------!
   !     miscellaneous     !

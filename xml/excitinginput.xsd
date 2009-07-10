@@ -2340,10 +2340,10 @@
 									</xs:all>
 									<xs:attribute name="intraband" type="xs:boolean"
 										default="false" />
-									<xs:attribute name="torddf" type="xs:string"
-										default="causal" />
-									<xs:attribute name="tordfxc" type="xs:string"
-										default="causal" />
+									<xs:attribute name="torddf" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="tordfxc" type="xs:boolean"
+										default="false" />
 									<xs:attribute name="aresdf" type="xs:boolean"
 										default="true" />
 									<xs:attribute name="aresfxc" type="xs:boolean"
