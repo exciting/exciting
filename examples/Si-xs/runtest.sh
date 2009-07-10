@@ -16,11 +16,14 @@ files="\
 	SYMGENR.OUT SYMINV.OUT SYMMULT.OUT SYMMULT_TABLE.OUT SYMT2.OUT \
 	GQPOINTS_*.OUT KMAPKQ_*.OUT QPOINTS*.OUT \
 	EIGVAL_*.OUT EFERMI_*.OUT \
-	SCREEN_*.OUT W_SCREEN_*.OUT DIELTENS_*.OUT \
 	FXC_BSE_HEAD*.OUT \
-	EXCLI_ASC.OUT SCCLI_ASC.OUT BSEDIAG.OUT \
+	BSEDIAG.OUT DIELTENS_*.OUT \
 	EXCITON_*.OUT EPSILON_*.OUT LOSS_*.OUT SIGMA_*.OUT SUMRULES_*.OUT \
 "
+
+# do not save the following files
+# 	SCREEN_*.OUT W_SCREEN_*.OUT EXCLI_ASC.OUT SCCLI_ASC.OUT
+# because they are too large
 
 ################################################################################
 
@@ -45,8 +48,6 @@ echo
 
 for file in $files; do
 	diff -B -w _reference/$file $rundir/$file > $diffdir/$file.diff
-	#diff -r -B -w _reference $rundir > reference_current.diff
-
 done
 
 echo "done."
