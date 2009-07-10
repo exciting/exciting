@@ -4,7 +4,7 @@
     	<xs:documentation>schema for species db</xs:documentation>
 <xs:appinfo>
 <title>Species file format reference</title>
-<root>species</root> 
+<root>sp</root> 
 </xs:appinfo>
 </xs:annotation>
 <xs:simpleType name="fortrandouble">
@@ -33,7 +33,7 @@
         </xs:complexType>
     </xs:element>
     
-    <xs:element name="species">
+    <xs:element name="sp">
     	
     
         <xs:annotation>
@@ -145,13 +145,13 @@
     		</xs:annotation></xs:attribute>
         </xs:complexType>
     </xs:element>
-    <xs:element name="speciesdb">
+    <xs:element name="spdb">
            <xs:annotation>
         	<xs:documentation>can contain species definitions</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="species" maxOccurs="unbounded"></xs:element>
+                <xs:element ref="sp" maxOccurs="unbounded"></xs:element>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
