@@ -232,7 +232,7 @@ call flushifc(unitout)
   ! write out kernel
   inquire(iolength=recl) n,fxc(-3:-1,-3:-1,1),fxc(-3:-1,1:,1),fxc(1:,-3:-1,1),fxc(1:,1:,1)
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=0,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam)
   call getunit(un)
   open(un,file=trim(filnam),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)

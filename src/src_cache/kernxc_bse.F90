@@ -517,17 +517,17 @@ write(1108) hdg
 
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,tord=torddf,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
+       acont=acont,nar=.not.aresdf,tord=torddf,iqmt=iqmt,filnam=filnam)
 
   ! filename for xc-kernel (ASCII)
   call genfilname(basename='FXC_BSE',asc=.true.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam2)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam2)
   open(un,file=trim(filnam2),form='formatted',action='write',status='replace')
 
   call getunit(un2)
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam3)
   inquire(iolength=recl) fxc(:,:,1)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
@@ -535,7 +535,7 @@ write(1108) hdg
   call getunit(un3)
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE_HEAD',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam4)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
 
   goto 111

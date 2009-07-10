@@ -60,7 +60,7 @@ contains
     call getunit(un)
     ! filename for xc-kernel
     call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
-         acont=acont,nar=.not.aresdf,iqmt=1,filnam=filnam)
+         acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=1,filnam=filnam)
 	  ! get LFE size
     inquire(iolength=recl) n_
     open(un,file=trim(filnam),form='unformatted',action='read', &

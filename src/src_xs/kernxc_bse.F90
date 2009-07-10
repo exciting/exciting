@@ -424,13 +424,13 @@ subroutine kernxc_bse
 
   ! filename for xc-kernel (ASCII)
   call genfilname(basename='FXC_BSE',asc=.true.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam2)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam2)
   call getunit(un)
   open(un,file=trim(filnam2),form='formatted',action='write',status='replace')
 
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam3)
   inquire(iolength=recl) n, fxc(-3:-1,-3:-1,1), fxc(-3:-1,1:,1), fxc(1:,-3:-1,1), &
 	fxc(1:,1:,1)
   call getunit(un2)
@@ -439,7 +439,7 @@ subroutine kernxc_bse
 
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE_HEAD',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam4)
   call getunit(un3)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
 
