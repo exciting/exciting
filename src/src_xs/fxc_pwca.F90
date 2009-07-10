@@ -10,7 +10,6 @@ contains
   subroutine fxc_alda(iq,msiz,fxcg)
     use modmain
     use modxs
-    use modtimer2
     use m_ftfun
     implicit none
     ! arguments

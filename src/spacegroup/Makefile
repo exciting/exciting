@@ -1,4 +1,4 @@
-#include ../../build/make.inc
+include ../../build/make.inc
 
 #-------------------------------------------------------------------------------
 # Suffix rules

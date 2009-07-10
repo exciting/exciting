@@ -118,11 +118,8 @@ subroutine xsmain
   case(450)
      ! BSE-kernel
      call kernxc_bse
-!  case(451)
-!     ! BSE-kernel, new version
-!     call kernxc_bse2
   case(451)
-     ! BSE-kernel, new version
+     ! BSE-kernel, simple version, very slow
      call kernxc_bse3
   case(499)
      ! call to test xs-routine

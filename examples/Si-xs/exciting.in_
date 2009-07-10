@@ -17,23 +17,6 @@ tasks
 345
 350
 
-
-#0
-#20
-#301
-#320
-#330
-#340
-#401
-#420
-#430
-#440
-#441
-#445  
-#450
-#345
-#350
-
 sppath
   '../../species/'
 
@@ -54,7 +37,6 @@ optcomp
   2  2  2
   3  3  3
 
-! formerly 0.0d0 to 0.5d0
 dos
    300 100 2
    0.0d0  0.5d0
@@ -81,7 +63,6 @@ rgkmaxxs
 lmaxapwxs
   10
 
-! formerly 5
 nemptyxs
   5
 
@@ -89,10 +70,10 @@ reducekxs
   .false.
 
 ngridkxs
-  2 2 2
+  2  2  2
   
 ngridqxs
-  2 2 2
+  2  2  2
 
 vkloffxs
   0.033333333333333  0.100000000000000  0.166666666666667

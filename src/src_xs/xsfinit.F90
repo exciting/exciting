@@ -28,7 +28,6 @@ subroutine xsfinit
   ! write out information
   write(unitout,'(a,i8,a)') 'Info('//thisnam//'): task Nr.', task, &
        ' stopped gracefully'
-  !call showunits(unitout)
   write(unitout,'(a)') 'Timings: '
   write(unitout,'(a)') '  Date (YYYY-MM-DD) : '//dat(1:4)//'-'//dat(5:6)//'-' &
        //dat(7:8)
@@ -63,12 +62,12 @@ subroutine xsfinit
        &+")')
   write(unitout,*)
   close(unitout)
-  
+
   ! restore global variables
   call restore0
   call restore1
   call restore2
-    
+
   ! remove checkpoint file
   call filedel(trim(fnresume))
 end subroutine xsfinit
