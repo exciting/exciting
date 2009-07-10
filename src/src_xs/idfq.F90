@@ -46,7 +46,7 @@ subroutine idfq(iq)
   fxc=zzero
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,tord=torddf,iqmt=iq,filnam=filnam)
+       acont=acont,nar=.not.aresdf,tord=torddf,markfxcbse=tfxcbse,iqmt=iq,filnam=filnam)
   call genfilname(iqmt=iq,setfilext=.true.)
   call init1offs(qvkloff(1,iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states

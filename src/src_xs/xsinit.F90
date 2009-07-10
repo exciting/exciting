@@ -224,6 +224,7 @@ subroutine xsinit
   !----------------------------------!
   !     task dependent variables     !
   !----------------------------------!
+  tfxcbse=.false.
   if (fxctype.eq.5) then
      if (gmaxvr.lt.2.d0*gqmax) then
         write(unitout,*)
@@ -233,6 +234,7 @@ subroutine xsinit
 	call terminate
      end if
   end if
+  if ((fxctype.eq.7).or.(fxctype.eq.8)) tfxcbse=.true.
   if ((task.ge.401).and.(task.le.439)) then
      ! screening
      nosym=nosymscr

@@ -11,7 +11,7 @@ contains
 ! !ROUTINE: genfilname
 ! !INTERFACE:
   subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
-       nar,tord,nlf,fxctype,scrtype,bsetype,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
+       nar,tord,nlf,fxctype,scrtype,bsetype,markfxcbse,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
        setfilext,revertfilext,appfilext,filnam,fileext)
 ! !USES:
     use modmain, only: filext
@@ -30,7 +30,7 @@ contains
     ! arguments
     integer, optional, intent(in) :: bzsampl,fxctype,oc1,oc2,iq,iqmt,procs,rank
     integer, optional, intent(in) :: etype
-    logical, optional, intent(in) :: nodotpar,asc,acont,nar,tord,nlf,tq0
+    logical, optional, intent(in) :: nodotpar,asc,acont,nar,tord,nlf,tq0,markfxcbse
     logical, optional, intent(in) :: revertfilext,setfilext,appfilext
     character(*), optional, intent(in) :: basename,dotext,scrtype,bsetype
     character(256), optional, intent(out) :: filnam,fileext
@@ -62,6 +62,7 @@ contains
     ! dot in front of filename in parallel output for rank eq. zero
     nodot0=.false.
     if (present(nodotpar)) nodot0=nodotpar
+    ! start with empty string
     s=''
     ! type of band combinations for plane wave matrix elements
     if (present(etype)) then
@@ -116,7 +117,7 @@ contains
     end if
     ! time-ordering
     if (present(tord)) then
-       if (tord.and.(.not.lnar)) then        
+       if (tord.and.(.not.lnar)) then
           s=trim(s)//'_TORD'
        end if
     end if
@@ -148,6 +149,12 @@ contains
           s=trim(s)//trim(s1)
        end if
     end if
+    ! mark file if it is generated in combination with fxc-BSE
+    if (present(markfxcbse)) then
+       if (markfxcbse) then
+         s=trim(s)//"_FXCBSE"
+       end if
+    end if
     ! Q-point (finite momentum transfer)
     if (present(iqmt)) then
        write(s1,'("_QMT",i3.3)') iqmt
@@ -160,7 +167,7 @@ contains
     end if
     ! parallelization
     if (present(rank).and.present(procs)) then
-       if ((procs > 1).and.((nodot0.and.(rank > 0)).or.(.not.nodot0))) then 
+       if ((procs > 1).and.((nodot0.and.(rank > 0)).or.(.not.nodot0))) then
           ! tag for rank
           write(s1,'("_par",i3.3)') rank+1
           s=trim(s)//trim(s1)

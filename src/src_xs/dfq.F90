@@ -79,7 +79,7 @@ subroutine dfq(iq)
   integer, intent(in) :: iq
   ! local variables
   character(*), parameter :: thisnam='dfq'
-  character(256) :: fnscreen
+  character(256) :: fnscreen,str
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:,:,:),hdg(:,:,:)
@@ -101,6 +101,9 @@ subroutine dfq(iq)
      write(*,*)
      call terminate
   end if
+  str=''
+  tfxcbse=(fxctype.eq.7).or.(fxctype.eq.8)
+  if (tfxcbse) str='_FXCBSE.OUT'
   ! sampling of Brillouin zone
   bzsampl=0
   if (tetradf) bzsampl=1
@@ -126,19 +129,18 @@ subroutine dfq(iq)
      call genfilname(nodotpar=.true.,basename='EMAT_TIMING',iq=iq,&
           etype=emattype,procs=procs,rank=rank,appfilext=.true.,filnam=fnetim)
      call genfilname(nodotpar=.true.,basename='X0_TIMING',iq=iq,&
-          bzsampl=bzsampl,acont=acont,procs=procs,rank=rank, &
-          appfilext=.true.,filnam=fnxtim)
+          procs=procs,rank=rank,appfilext=.true.,filnam=fnxtim)
   else
      call genfilname(basename='TETW',iqmt=iq,filnam=fnwtet)
      call genfilname(basename='PMAT_XS',filnam=fnpmat)
      call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
      call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
-          acont=acont,nar=.not.aresdf,tord=torddf,iqmt=iq,procs=procs,rank=rank, &
+          iqmt=iq,procs=procs,rank=rank, &
           filnam=fnxtim)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-          tord=torddf,iqmt=iq,filnam=fnchi0)
+          tord=torddf,markfxcbse=tfxcbse,iqmt=iq,filnam=fnchi0)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-          tord=torddf,iqmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
+          tord=torddf,markfxcbse=tfxcbse,iqmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
   end if
   ! remove timing files from previous runs
   call filedel(trim(fnxtim))
@@ -226,7 +228,7 @@ subroutine dfq(iq)
           ngq(iq)
      call ematqalloc
   end if
-  if (task.eq.345) then
+  if (tfxcbse) then
      call getbsediag
      write(unitout,'("Info(",a,"): read diagonal of BSE kernel")') trim(thisnam)
      write(unitout,'(" mean value : ",2g18.10)') bsed
@@ -257,7 +259,7 @@ subroutine dfq(iq)
         if (.not.allocated(pmuo)) allocate(pmuo(3,nst3,nst4))
      end if
      ! add BSE diagonal shift use with BSE-kernel
-     if (task.eq.345) then
+     if (tfxcbse) then
         scis12(:,:)=scis12(:,:)+bsedg(:,:)
         scis21(:,:)=scis21(:,:)+transpose(bsedg(:,:))
      end if

@@ -517,7 +517,7 @@ write(1108) hdg
 
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,tord=torddf,iqmt=iqmt,filnam=filnam)
+       acont=acont,nar=.not.aresdf,tord=torddf,markfxcbse=tfxcbse,iqmt=iqmt,filnam=filnam)
 
   ! filename for xc-kernel (ASCII)
   call genfilname(basename='FXC_BSE',asc=.true.,bzsampl=bzsampl,&

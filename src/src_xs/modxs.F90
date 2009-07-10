@@ -347,7 +347,8 @@ module modxs
   real(8) :: betalrcdyn
   ! split parameter for degeneracy in energy differences of BSE-kernel
   real(8) :: fxcbsesplit
-
+  ! true if BSE-derived xc-kernel is used
+  logical :: tfxcbse
   !---------------------------!
   !     exciton variables     !
   !---------------------------!
