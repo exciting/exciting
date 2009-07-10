@@ -37,9 +37,9 @@ subroutine x0toasc
      allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3,3))
      ! filenames
      call genfilname(asc=.true.,basename='X0',bzsampl=bzsampl,acont=acont,&
-          nar=.not.aresdf,iqmt=iq,filnam=filnama)
+          nar=.not.aresdf,tord=torddf,iqmt=iq,filnam=filnama)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
-          nar=.not.aresdf,iqmt=iq,filnam=filnam)
+          nar=.not.aresdf,tord=torddf,iqmt=iq,filnam=filnam)
      ! open file to write ASCI
      call getunit(un)
      open(unit=un,file=trim(filnama),form='formatted', &
@@ -62,7 +62,7 @@ subroutine x0toasc
                        if ((n.gt.1).and.(igq.eq.1).and.(igqp.gt.1)) &
                             chi0(igq,igqp)=chi0wg(igqp,1,oct1)
                        if ((n.gt.1).and.(igq.gt.1).and.(igqp.eq.1)) &
-                            chi0(igq,igqp)=chi0wg(igq,2,oct2)              
+                            chi0(igq,igqp)=chi0wg(igq,2,oct2)
                        zt=chi0(igq,igqp)
                        write(un,'(6i6,3g18.10)') iq,iw,igq,igqp,oct1,oct2,zt, &
                             abs(zt)

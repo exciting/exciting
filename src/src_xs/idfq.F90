@@ -46,7 +46,7 @@ subroutine idfq(iq)
   fxc=zzero
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iq,filnam=filnam)
+       acont=acont,nar=.not.aresdf,tord=torddf,iqmt=iq,filnam=filnam)
   call genfilname(iqmt=iq,setfilext=.true.)
   call init1offs(qvkloff(1,iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states
@@ -67,7 +67,7 @@ subroutine idfq(iq)
         ! depends through its cutoff for G+q on q. It is independent of w.
         call fxcifc(fxctype,iq=iq,ng=m,fxcg=fxc)
         ! add symmetrized Coulomb potential (is equal to unity matrix)
-        forall(j=1:m) 
+        forall(j=1:m)
            fxc(j,j)=fxc(j,j)+1.d0
         end forall
      end select
@@ -118,7 +118,7 @@ subroutine idfq(iq)
               select case(fxctype)
               case(0,1,2,3,4)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
-                 forall(j=1:m) 
+                 forall(j=1:m)
                     fxc(j,j)=fxc(j,j)+1.d0
                  end forall
                  call dyson(n,chi0,fxc,idf)
@@ -132,7 +132,7 @@ subroutine idfq(iq)
                  call dysonsym(n,chi0,fxc,idf)
               end select
               ! symmetrized inverse dielectric function (add one)
-              forall(j=1:m) 
+              forall(j=1:m)
                  idf(j,j)=idf(j,j)+1.d0
               end forall
 
@@ -166,7 +166,7 @@ subroutine idfq(iq)
 
               ! write macroscopic dielectric function to file
               write(unit1,rec=iw-wi+1) mdf1(iw)
-	      
+
            end do ! iw
            close(unit1)
            ! end loop over optical components

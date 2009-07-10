@@ -133,12 +133,12 @@ subroutine dfq(iq)
      call genfilname(basename='PMAT_XS',filnam=fnpmat)
      call genfilname(basename='EMAT',iqmt=iq,filnam=fnemat)
      call genfilname(nodotpar=.true.,basename='X0_TIMING',bzsampl=bzsampl,&
-          acont=acont,nar=.not.aresdf,iqmt=iq,procs=procs,rank=rank, &
+          acont=acont,nar=.not.aresdf,tord=torddf,iqmt=iq,procs=procs,rank=rank, &
           filnam=fnxtim)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-          iqmt=iq,filnam=fnchi0)
+          tord=torddf,iqmt=iq,filnam=fnchi0)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,nar=.not.aresdf,&
-          iqmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
+          tord=torddf,iqmt=iq,procs=procs,rank=rank,filnam=fnchi0_t)
   end if
   ! remove timing files from previous runs
   call filedel(trim(fnxtim))

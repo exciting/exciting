@@ -36,9 +36,9 @@ subroutine x0tobin
      allocate(chi0(n,n),chi0wg(n,2,3),chi0hd(3,3))
      ! filenames
      call genfilname(asc=.true.,basename='X0',bzsampl=bzsampl,acont=acont,&
-          nar=.not.aresdf,iqmt=iq,filnam=filnama)
+          nar=.not.aresdf,tord=torddf,iqmt=iq,filnam=filnama)
      call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
-          nar=.not.aresdf,iqmt=iq,filnam=filnam)
+          nar=.not.aresdf,tord=torddf,iqmt=iq,filnam=filnam)
      ! open file to read ASCI
      call getunit(un)
      open(unit=un,file=trim(filnama),form='formatted',action='read',&

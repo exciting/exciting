@@ -30,7 +30,7 @@ subroutine dfgather
      ! file extension for q-point
      do iproc=0,procs-1
         call genfilname(basename='X0',bzsampl=bzsampl,acont=acont,&
-             nar=.not.aresdf,iqmt=iq,procs=procs,rank=iproc,filnam=fnchi0_t)
+             nar=.not.aresdf,tord=torddf,iqmt=iq,procs=procs,rank=iproc,filnam=fnchi0_t)
         wpari=firstofset(iproc,nwdf)
         wparf=lastofset(iproc,nwdf)
         do iw=wpari,wparf
