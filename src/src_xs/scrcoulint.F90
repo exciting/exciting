@@ -10,6 +10,7 @@ subroutine scrcoulint
   use summations
   use m_xsgauntgen
   use m_findgntn0
+  use m_writevars
   use m_genfilname
   use m_getunit
   implicit none
@@ -17,7 +18,7 @@ subroutine scrcoulint
   character(*), parameter :: thisnam='scrcoulint'
   character(256) :: fnsccli, fnscreeninv
   real(8), parameter :: epsortho=1.d-12
-  integer :: ikkp,iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,n,recl,un
+  integer :: ikkp,iknr,jknr,iqr,iq,iqrnr,jsym,jsymi,igq1,igq2,n,recl,un
   integer :: nsc,iv(3),ivgsym(3),j1,j2,nkkp
   integer :: ist1,ist2,ist3,ist4,nst12,nst34,nst13,nst24
   logical :: tq0,tphf
@@ -95,9 +96,13 @@ subroutine scrcoulint
   !-----------------------------------!
   !     loop over reduced q-points    !
   !-----------------------------------!
+  call getunit(un)
   call genparidxran('q',nqptr)
   do iqr=qpari,qparf
-     call chkpt(3,(/task,1,iqr/),'task,sub,reduced q-point; generate effective &
+    call genfilname(basename='W_SCREEN',iq=iqr,filnam=fnscreeninv)
+	  open(un,file=trim(fnscreeninv),form='formatted',action='write', &
+			status='replace')
+    call chkpt(3,(/task,1,iqr/),'task,sub,reduced q-point; generate effective &
           &screened Coulomb potential')
      ! locate reduced q-point in non-reduced set
      iqrnr=iqmap(ivqr(1,iqr),ivqr(2,iqr),ivqr(3,iqr))
@@ -105,6 +110,13 @@ subroutine scrcoulint
 
      ! calculate effective screened Coulomb interaction
      call genscclieff(iqr,ngqmax,n,scieffg(1,1,iqr))
+     do igq1=1,n
+       do igq2=1,n
+         write(un,'(2i8,3g18.10)') igq1,igq2,scieffg(igq1,igq2,iqr),abs(scieffg(igq1,igq2,iqr))
+       end do
+     end do
+     call writevars(un,iqr,0)
+     close(un)
 
      ! generate radial integrals for matrix elements of plane wave
      call putematrad(iqr,iqrnr)

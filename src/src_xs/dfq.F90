@@ -459,7 +459,7 @@ subroutine dfq(iq)
      call getunit(un)
      open(un,file=trim(fnscreen),form='formatted',action='write', &
           status='replace')
-     call putscreen(un,tq0,n,chi0h(:,:,1),chi0w(:,:,:,1),chi0(:,:,1))
+     call putscreen(un,tq0,n,chi0(:,:,1),chi0h(:,:,1),chi0w(:,:,:,1))
      call writevars(un,iq,0)
      close(un)
   else
