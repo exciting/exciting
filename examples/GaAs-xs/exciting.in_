@@ -47,15 +47,15 @@ optcomp
 nosymxs
 .true.
 
+ngridqxs
+  4  4  4
+ 
 ngridkxs
   4  4  4
   
 vkloffxs
   0.1  0.3  0.5
   
-ngridqxs
-  4  4  4
- 
 nemptyxs
   4
 
