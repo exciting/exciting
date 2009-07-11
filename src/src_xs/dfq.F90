@@ -102,7 +102,7 @@ subroutine dfq(iq)
      call terminate
   end if
   str=''
-  tfxcbse=(fxctype.eq.7).or.(fxctype.eq.8)
+  tfxcbse=((fxctype.eq.7).or.(fxctype.eq.8)).and.(.not.tscreen)
   if (tfxcbse) str='_FXCBSE.OUT'
   ! sampling of Brillouin zone
   bzsampl=0
