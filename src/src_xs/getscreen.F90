@@ -13,7 +13,7 @@ subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
   complex(8), intent(out) :: scrb(ngq,ngq),scrw(ngq,2,3),scrh(3,3)
   ! local variables
   character(256) :: fname
-  real(8) :: rm(2,3,3)
+  real(8) :: rm(3,3,3)
   integer :: igq1,igq2,i,j,it1,it2,un,bzsampl
   ! sampling of Brillouin zone
   bzsampl=0
@@ -26,22 +26,22 @@ subroutine getscreen(iqr,ngq,scrh,scrw,scrb)
      do igq2=1,ngq
         if (iqr.eq.1) then
            if ((igq1.eq.1).and.(igq2.eq.1)) then
-              read(un,*) ((it1,it2,rm(1,i,j),rm(2,i,j),j=1,3),i=1,3)
+              read(un,*) ((it1,it2,rm(1,i,j),rm(2,i,j),rm(3,i,j),j=1,3),i=1,3)
               scrh(:,:)=cmplx(rm(1,:,:),rm(2,:,:),8)
            end if
            if ((igq1.eq.1).and.(igq2.ne.1)) then
-              read(un,*) (it1,it2,rm(1,1,j),rm(2,1,j),j=1,3)
+              read(un,*) (it1,it2,rm(1,1,j),rm(2,1,j),rm(3,1,j),j=1,3)
               scrw(igq2,1,:)=cmplx(rm(1,1,:),rm(2,1,:),8)
            end if
            if ((igq1.ne.1).and.(igq2.eq.1)) then
-              read(un,*) (it1,it2,rm(1,1,j),rm(2,1,j),j=1,3)
+              read(un,*) (it1,it2,rm(1,1,j),rm(2,1,j),rm(3,1,j),j=1,3)
               scrw(igq1,2,:)=cmplx(rm(1,1,:),rm(2,1,:),8)
            end if
            if ((igq1.ne.1).and.(igq2.ne.1)) read(un,*) it1,it2,&
-                rm(1,1,1),rm(2,1,1)
+                rm(1,1,1),rm(2,1,1),rm(3,1,1)
            scrb(igq1,igq2)=cmplx(rm(1,1,1),rm(2,1,1),8)
         else
-           read(un,*) it1,it2,rm(1,1,1),rm(2,1,1)
+           read(un,*) it1,it2,rm(1,1,1),rm(2,1,1),rm(3,1,1)
            scrb(igq1,igq2)=cmplx(rm(1,1,1),rm(2,1,1),8)
         end if
      end do
