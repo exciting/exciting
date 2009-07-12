@@ -62,7 +62,6 @@ do jk=1,nk
       a=dble(emat(i,j))
       b=aimag(emat(i,j))
       write(50,'(I6,3G18.10)') j,a,b,a**2+b**2
-      write(91919,'(3i6,2g18.10,3x,g18.10)') jk,i,j,conjg(emat(j,i)),abs(emat(j,i))**2  !SAG
     end do
   end do
 ! end loop over k-points

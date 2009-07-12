@@ -75,9 +75,6 @@ subroutine xsmain
   case(340)
      ! Kohn Sham response function
      call df
-  case(345)
-     ! Kohn Sham response function shifted by BSE diagonal
-     call df
   case(341)
      ! ASCII output of Kohn Sham response function
      call x0toasc

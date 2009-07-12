@@ -28,13 +28,12 @@ subroutine genwiqggp(flag,iq,igq1,igq2,clwt)
   integer :: np,ns,i1,i2,i3,i,ip,nrbox
   real(8) :: d(3),dv,sum2,t1,t11,t22,t33,t2
   real(8) :: blim(2),blen,vllim(3),ran(3),ranl(3),omegabox
-  real(8) :: qsz,ts0,ts1
+  real(8) :: qsz
   real(8), allocatable :: xa(:),ya(:),c(:)
   real(8) :: vsc(3),v01(3),v02(3),v11(3),v21(3),v31(3),v32(3)
   ! external functions
   real(8) polynom
   external polynom
-  call timesec(ts0)
   ! determine G+q-vectors
   v01(:)=vgqc(:,igq1,iq)
   v02(:)=vgqc(:,igq2,iq)
@@ -126,7 +125,7 @@ subroutine genwiqggp(flag,iq,igq1,igq2,clwt)
      end do
      ! box length
      blen=blim(2)-blim(1)
-     ! limits of sBZ in lattice      
+     ! limits of sBZ in lattice
      vllim(:)=1.d0/dble(2*ngridq(:))
      ! needs high value (above 1e6) to converge - inferior to method Nr. 2
      nrbox=1000000
@@ -145,13 +144,10 @@ subroutine genwiqggp(flag,iq,igq1,igq2,clwt)
 	if (all(ranl.gt.-vllim).and.(all(ranl.lt.vllim)).and.&
              (sum(abs(ran)).gt.1.d-14)) then
 	   t2=sum((v01+ran)**2)*sum((v02+ran)**2)
-	   t1=t1+1.d0/sqrt(t2)	   
+	   t1=t1+1.d0/sqrt(t2)
 	end if
      end do
      clwt=t1*(omegabox/nrbox)*fourpi*nqpt*omega/(twopi)**3
   end select
-  call timesec(ts1)
-  t1=ts1-ts0
-  !TODO: TIME TO TRACK SOMEWHERE
 end subroutine genwiqggp
 !EOC

@@ -20,10 +20,12 @@ files="\
 	BSEDIAG.OUT DIELTENS_*.OUT \
 	EXCITON_*.OUT EPSILON_*.OUT LOSS_*.OUT SIGMA_*.OUT SUMRULES_*.OUT \
 "
-
-# do not save the following files
-# 	SCREEN_*.OUT W_SCREEN_*.OUT EXCLI_ASC.OUT SCCLI_ASC.OUT
-# because they are too large
+# The following files are larger than the others in the list above.
+# They can be commented out
+files_large="\
+	SCREEN_*.OUT W_SCREEN_*.OUT EXCLI_ASC.OUT SCCLI_ASC.OUT
+"
+files="$files $files_large"
 
 ################################################################################
 
@@ -52,3 +54,4 @@ done
 
 echo "done."
 echo
+

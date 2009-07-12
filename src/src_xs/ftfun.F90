@@ -26,14 +26,6 @@ contains
     real(8), allocatable :: r1(:),r2(:),fr(:),fr2(:),gr(:),cf(:,:)
     integer :: ig,ifg,is,ia,ias,ir,nr,l,m,lm
 
-    !TODO: check this routine
-    !*** make routine more general ***
-    ! pass the following arguments to routine:
-    ! * p-vector
-    ! * |G+p| values
-    ! * structure factors for -(G+q) !!!!! (G+p) is calculated in routine
-    ! * spherical harmonics Y_lm(^G+q^)
-
     ! interstitial part
     ftg(:)=zzero
     if (tir) then

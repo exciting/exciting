@@ -213,7 +213,7 @@ tetrakordexc=.false.
 tetracw1k=.false.
 #endif
 #ifdef XS
-! XS variables
+! XS variables, general
 nosymxs=.false.
 ngridkxs(:)=1
 vkloffxs(:)=0.d0
@@ -225,7 +225,7 @@ swidthxs=0.01d0
 lmaxapwxs=8
 lmaxmatxs=5
 nemptyxs=5
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! XS variables, more specialized
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3,nqptmt))
@@ -1146,7 +1146,6 @@ case('nemptyxs')
     write(*,*)
     stop
   end if
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 case('vgqlmt')
   read(50,*,err=20) nqptmt
   if (nqptmt.le.0) then

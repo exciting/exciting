@@ -62,7 +62,7 @@ if (np.eq.1) then
   dp(1)=0.d0
   return
 end if
-allocate(seg(nv-1),idx(nv-1),segpts(nv-1)) !!!
+allocate(seg(nv-1),idx(nv-1),segpts(nv-1))
 ! find the total distance and the length of each segment
 st=0.d0
 do iv=1,nv-1
@@ -86,7 +86,7 @@ end do
 c=1
 do iv=1,nv-1
    v1(:) = vvl(:,iv)
-   v2(:) = vvl(:,iv+1)   
+   v2(:) = vvl(:,iv+1)
    vpl(:,c) = v1(:)
    dp(c) = dv(iv)
    c=c+1

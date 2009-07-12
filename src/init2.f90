@@ -222,7 +222,7 @@ if (allocated(sptclg)) deallocate(sptclg)
 allocate(sptclg(ngqmax,nqpt))
 do iq=1,nqpt
    ! set up Coulomb potential square root
-   call genptclg('nocutoff',ngqmax,ngq,vgqc(:,:,iq),gqc(:,iq),sptclg(:,iq))
+   call genptclg('nocutoff',ngqmax,ngq(iq),vgqc(:,:,iq),gqc(:,iq),sptclg(:,iq))
 end do
 
 !------------------------!

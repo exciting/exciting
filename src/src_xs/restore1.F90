@@ -9,7 +9,7 @@ subroutine restore1
   implicit none
   nempty=nempty_b
   rgkmax=rgkmax_b
-  reducek=reducek
+  reducek=reducek_b
   ngridk(:)=ngridk_b(:)
   vkloff(:)=vkloff_b(:)
   emattype=emattype_b
