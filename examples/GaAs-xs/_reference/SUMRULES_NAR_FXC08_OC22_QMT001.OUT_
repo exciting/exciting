@@ -1,0 +1,64 @@
+zeroth frequency moment sumrule (num. val. el.):   2.913962184    (   14.00000000    )
+first frequency moment sumrule  (num. val. el.):  0.1104654622    (   14.00000000    )
+pi half sumrule                 (target)       :  0.3428629720    (   1.570796327    )
+ 
+## Date (YYYY-MM-DD): 2009-07-13
+## Time (hh:mm:ss)  : 15:28:58
+# version           : 0.9.224
+# version (xs)      : 0.091
+# efermi (H,eV)     :    0.188435    5.127587
+# vgqlmt            :    0.000000    0.000000    0.000000
+# ivgmt             :       0       0       0
+# vql               :    0.000000    0.000000    0.000000
+# fxctype           :       8
+# alphalrc          :    0.000000
+# alphalrcdyn       :    0.000000
+# betalrcdyn        :    0.000000
+# intraband         :       F
+# aresdf            :       F
+# aresfxc           :       F
+# torddf            :       F
+# tordfxc           :       F
+# acont             :       F
+# nwacont           :     601
+# broad (H,eV)      :    0.007350    0.200001
+# scissor (H,eV)    :    0.000000    0.000000
+# nwdos             :     601
+# ngq               :      51
+# gqmax             :    2.000000
+# gmaxvr            :   12.000000
+# rgkmax            :    6.000000
+# gkmax             :    3.000000
+# ngridk            :       4       4       4
+# vkloff            :    0.100000    0.300000    0.500000
+# reducek           :       T
+# nmatmax           :     188
+# ngkmax            :     145
+# nlotot            :      43
+# nlomax            :       6
+# nst1              :      14
+# nst2              :       5
+# nstlbse           :       5       5
+# nstsv             :      19
+# evlmincut (H,eV)  :   -1.121144  -30.507899
+# evlmaxcut (H,eV)  :    0.446471   12.149097
+# evlmin (H,eV)     :   -1.121577  -30.519681
+# evlmax (H,eV)     :    0.559493   15.224584
+# evlhpo (H,eV)     :   14    0.158682    4.317968
+# evllpu (H,eV)     :   15    0.217650    5.922559
+# ksgap             :       T
+# lmaxapw           :      10
+# lmaxapwwf         :       3
+# lmaxmat           :       5
+# lmaxvr            :       7
+# lmaxinr           :       2
+# lolmax            :       3
+# lmaxemat          :       3
+# lmaxalda          :       3
+# lradstp           :       4
+# tevout            :       T
+# fastpmat          :       T
+# fastemat          :       T
+# nosym             :       T
+# dfoffdiag         :       F
+ 
