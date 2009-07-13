@@ -39,7 +39,7 @@ echo
 
 \cp -f exciting.in_ exciting.in
 
-#../../bin/excitingser
+../../bin/excitingser
 
 \rm -fr $rundir
 \rm -fr $diffdir
