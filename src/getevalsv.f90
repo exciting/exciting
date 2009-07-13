@@ -26,10 +26,10 @@ subroutine getevalsv(vpl,evalsvp)
   call findkpt(vpl,isym,ik)
 
   ! find the record length
-#ifndef XS
+#ifdef XS
   inquire(iolength=recl) vkl_,nstsv_
 #endif
-#ifdef XS
+#ifndef XS
   inquire(iolength=recl) vkl_,nstsv_,evalsvp
 #endif
   filetag=trim(filetag_evalsv)
