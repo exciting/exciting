@@ -1,0 +1,694 @@
+ +----------------------------------+
+ | EXCITING version 0.9.224 started |
+ | git hash id 0bf5415f12c11fea796c |
+ +----------------------------------+
+ 
+Date (YYYY-MM-DD) : 2009-07-12
+Time (hh:mm:ss)   : 21:18:47
+ 
+All units are atomic (Hartree, Bohr, etc.)
+ 
++-------------------------------------------------+
+| Ground-state run starting from atomic densities |
++-------------------------------------------------+
+ 
+Lattice vectors :
+   5.130000000       5.130000000       0.000000000    
+   5.130000000       0.000000000       5.130000000    
+   0.000000000       5.130000000       5.130000000    
+ 
+Reciprocal lattice vectors :
+  0.6123962288      0.6123962288     -0.6123962288    
+  0.6123962288     -0.6123962288      0.6123962288    
+ -0.6123962288      0.6123962288      0.6123962288    
+ 
+Unit cell volume      :    270.0113940    
+Brillouin zone volume :   0.9186657265    
+ 
+Species :    1 (Si)
+ parameters loaded from : Si.in
+ name : silicon
+ nuclear charge    :   -14.00000000    
+ electronic charge :    14.00000000    
+ atomic mass :    51196.73454    
+ muffin-tin radius :    2.000000000    
+ number of radial points in muffin-tin :    397
+ atomic positions (lattice), magnetic fields (Cartesian) :
+   1 :   0.00000000  0.00000000  0.00000000    0.00000000  0.00000000  0.00000000
+   2 :   0.25000000  0.25000000  0.25000000    0.00000000  0.00000000  0.00000000
+ 
+Total number of atoms per unit cell :    2
+ 
+Spin treatment :
+ spin-unpolarised
+ 
+Number of Bravais lattice symmetries :   48
+Number of crystal symmetries         :   48
+ 
+k-point grid :      4     4     4
+k-point offset :   0.3333333333E-01  0.1000000000      0.1666666667    
+k-point set is reduced with crystal symmetries
+Total number of k-points :       64
+ 
+Smallest muffin-tin radius times maximum |G+k| :    6.000000000    
+Species with smallest (or selected) muffin-tin radius :    1 (Si)
+Maximum |G+k| for APW functions       :    3.000000000    
+Maximum |G| for potential and density :    12.00000000    
+Polynomial order for pseudocharge density :    9
+ 
+G-vector grid sizes :     30    30    30
+Total number of G-vectors :     7799
+ 
+Maximum angular momentum used for
+ APW functions                     :   10
+ computing H and O matrix elements :    5
+ potential and density             :    7
+ inner part of muffin-tin          :    2
+ 
+Total nuclear charge    :   -28.00000000    
+Total core charge       :    20.00000000    
+Total valence charge    :    8.000000000    
+Total excess charge     :    0.000000000    
+Total electronic charge :    28.00000000    
+ 
+Effective Wigner radius, r_s :    1.320419158    
+ 
+Number of empty states         :    5
+Total number of valence states :   10
+ 
+Total number of local-orbitals :   20
+ 
+Exchange-correlation type :    3
+ Perdew-Wang/Ceperley-Alder, Phys. Rev. B 45, 13244 (1992)
+ 
+Smearing scheme :
+ Gaussian
+Smearing width :   0.1000000000E-01
+ 
+Radial integration step length :    4
+ 
+Density and potential initialised from atomic data
+ Using Adaptive step size linear potential mixing (1)
+ 
++------------------------------+
+| Self-consistent loop started |
++------------------------------+
+ 
++-------------------------+
+| Iteration number :    1 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.169130710791    
+ sum of eigenvalues          :     -316.771326320    
+ electronic kinetic          :      577.816122502    
+ core electron kinetic       :      566.531427981    
+ Coulomb                     :     -1117.74340763    
+ Coulomb potential           :     -842.099532837    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1215.07367165    
+ Hartree                     :      186.487069408    
+ Madelung                    :     -696.693641208    
+ xc potential                :     -52.4879159851    
+ exchange                    :     -37.5814271580    
+ correlation                 :     -2.14759005676    
+ total energy                :     -579.656302339    
+ 
+Density of states at Fermi energy :   0.1782776062    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7672511396E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.328054450    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.83597278    
+   atom    2                 :    11.83597278    
+ total in muffin-tins        :    23.67194555    
+ total charge                :    28.00000000    
+ 
+Time (CPU seconds) :        16.15
+ 
++-------------------------+
+| Iteration number :    2 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.207844473625    
+ sum of eigenvalues          :     -315.191230547    
+ electronic kinetic          :      579.587328783    
+ core electron kinetic       :      567.797614945    
+ Coulomb                     :     -1117.22738373    
+ Coulomb potential           :     -842.374616303    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1213.76654039    
+ Hartree                     :      185.695962045    
+ Madelung                    :     -696.040075578    
+ xc potential                :     -52.4039430274    
+ exchange                    :     -37.5207760829    
+ correlation                 :     -2.14465681177    
+ total energy                :     -577.305487841    
+ 
+Density of states at Fermi energy :    4.907031435    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7730576734E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.461212227    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.76939389    
+   atom    2                 :    11.76939389    
+ total in muffin-tins        :    23.53878777    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.1652470211E-01 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :        28.39
+ 
++-------------------------+
+| Iteration number :    3 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.206036083499    
+ sum of eigenvalues          :     -315.375850048    
+ electronic kinetic          :      579.413188511    
+ core electron kinetic       :      567.816692978    
+ Coulomb                     :     -1117.34084868    
+ Coulomb potential           :     -842.371240328    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1213.99684627    
+ Hartree                     :      185.812802973    
+ Madelung                    :     -696.155228518    
+ xc potential                :     -52.4177982305    
+ exchange                    :     -37.5308659887    
+ correlation                 :     -2.14503828472    
+ total energy                :     -577.603564445    
+ 
+Density of states at Fermi energy :    3.981158496    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7689966753E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.446403597    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.77679820    
+   atom    2                 :    11.77679820    
+ total in muffin-tins        :    23.55359640    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.9828990264E-02 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :        40.05
+ 
++-------------------------+
+| Iteration number :    4 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.204734346416    
+ sum of eigenvalues          :     -315.500291500    
+ electronic kinetic          :      579.291514837    
+ core electron kinetic       :      567.818615219    
+ Coulomb                     :     -1117.41256496    
+ Coulomb potential           :     -842.364909459    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.14660969    
+ Hartree                     :      185.890850118    
+ Madelung                    :     -696.230110228    
+ xc potential                :     -52.4268968786    
+ exchange                    :     -37.5374849701    
+ correlation                 :     -2.14529749920    
+ total energy                :     -577.803832590    
+ 
+Density of states at Fermi energy :    3.388318004    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7664185063E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.436036352    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.78198182    
+   atom    2                 :    11.78198182    
+ total in muffin-tins        :    23.56396365    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.5456097726E-02 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :        51.55
+ 
++-------------------------+
+| Iteration number :    5 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.203845717914    
+ sum of eigenvalues          :     -315.579040792    
+ electronic kinetic          :      579.210995425    
+ core electron kinetic       :      567.811588350    
+ Coulomb                     :     -1117.45425988    
+ Coulomb potential           :     -842.357554567    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.23735443    
+ Hartree                     :      185.939899930    
+ Madelung                    :     -696.275482595    
+ xc potential                :     -52.4324816499    
+ exchange                    :     -37.5415418068    
+ correlation                 :     -2.14546393918    
+ total energy                :     -577.930270200    
+ 
+Density of states at Fermi energy :    3.019791955    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7649113395E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.429127461    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.78543627    
+   atom    2                 :    11.78543627    
+ total in muffin-tins        :    23.57087254    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.2792090029E-02 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :        63.17
+ 
++-------------------------+
+| Iteration number :    6 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.203274402632    
+ sum of eigenvalues          :     -315.625283028    
+ electronic kinetic          :      579.161003218    
+ core electron kinetic       :      567.801598725    
+ Coulomb                     :     -1117.47600443    
+ Coulomb potential           :     -842.350647506    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.28775059    
+ Hartree                     :      185.968551540    
+ Madelung                    :     -696.300680675    
+ xc potential                :     -52.4356387396    
+ exchange                    :     -37.5438304519    
+ correlation                 :     -2.14556385820    
+ total energy                :     -578.004395520    
+ 
+Density of states at Fermi energy :    2.798397686    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7641217282E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.424786341    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.78760683    
+   atom    2                 :    11.78760683    
+ total in muffin-tins        :    23.57521366    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.1299478530E-02 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :        76.19
+ 
++-------------------------+
+| Iteration number :    7 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202931394109    
+ sum of eigenvalues          :     -315.650104499    
+ electronic kinetic          :      579.132218489    
+ core electron kinetic       :      567.792333528    
+ Coulomb                     :     -1117.48575220    
+ Coulomb potential           :     -842.345072689    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.31282094    
+ Hartree                     :      185.983874126    
+ Madelung                    :     -696.313215852    
+ xc potential                :     -52.4372502990    
+ exchange                    :     -37.5449951837    
+ correlation                 :     -2.14561923492    
+ total energy                :     -578.044148126    
+ 
+Density of states at Fermi energy :    2.671426954    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7637677122E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.422243130    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.78887844    
+   atom    2                 :    11.78887844    
+ total in muffin-tins        :    23.57775687    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.5438300529E-03 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :        87.76
+ 
++-------------------------+
+| Iteration number :    8 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202741061520    
+ sum of eigenvalues          :     -315.662042545    
+ electronic kinetic          :      579.117073738    
+ core electron kinetic       :      567.785471327    
+ Coulomb                     :     -1117.48918094    
+ Coulomb potential           :     -842.341143878    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32360724    
+ Hartree                     :      185.991231679    
+ Madelung                    :     -696.318608999    
+ xc potential                :     -52.4379724059    
+ exchange                    :     -37.5455145907    
+ correlation                 :     -2.14564713210    
+ total energy                :     -578.063268923    
+ 
+Density of states at Fermi energy :    2.603079839    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636468139E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.420872714    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.78956364    
+   atom    2                 :    11.78956364    
+ total in muffin-tins        :    23.57912729    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.2051158644E-03 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :        99.13
+ 
++-------------------------+
+| Iteration number :    9 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202644634143    
+ sum of eigenvalues          :     -315.667044170    
+ electronic kinetic          :      579.109933423    
+ core electron kinetic       :      567.781238945    
+ Coulomb                     :     -1117.48986104    
+ Coulomb potential           :     -842.338733656    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32737766    
+ Hartree                     :      185.994322003    
+ Madelung                    :     -696.320494212    
+ xc potential                :     -52.4382439371    
+ exchange                    :     -37.5457082579    
+ correlation                 :     -2.14565966106    
+ total energy                :     -578.071295536    
+ 
+Density of states at Fermi energy :    2.569231357    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636287326E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.420205013    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.78989749    
+   atom    2                 :    11.78989749    
+ total in muffin-tins        :    23.57979499    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.7221810933E-04 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :       112.62
+ 
++-------------------------+
+| Iteration number :   10 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202600702822    
+ sum of eigenvalues          :     -315.668791544    
+ electronic kinetic          :      579.106999875    
+ core electron kinetic       :      567.779071711    
+ Coulomb                     :     -1117.48969050    
+ Coulomb potential           :     -842.337468814    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32830141    
+ Hartree                     :      185.995416300    
+ Madelung                    :     -696.320956089    
+ xc potential                :     -52.4383226044    
+ exchange                    :     -37.5457633486    
+ correlation                 :     -2.14566455376    
+ total energy                :     -578.074118523    
+ 
+Density of states at Fermi energy :    2.554166350    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636423877E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.419917461    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.79004127    
+   atom    2                 :    11.79004127    
+ total in muffin-tins        :    23.58008254    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.2468431157E-04 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :       124.80
+ 
++-------------------------+
+| Iteration number :   11 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202582983536    
+ sum of eigenvalues          :     -315.669262940    
+ electronic kinetic          :      579.105996294    
+ core electron kinetic       :      567.778188642    
+ Coulomb                     :     -1117.48945328    
+ Coulomb potential           :     -842.336922723    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32837307    
+ Hartree                     :      185.995725176    
+ Madelung                    :     -696.320991918    
+ xc potential                :     -52.4383365109    
+ exchange                    :     -37.5457724883    
+ correlation                 :     -2.14566616153    
+ total energy                :     -578.074895636    
+ 
+Density of states at Fermi energy :    2.548302922    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636573258E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.419811480    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.79009426    
+   atom    2                 :    11.79009426    
+ total in muffin-tins        :    23.58018852    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.7849189547E-05 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :       138.66
+ 
++-------------------------+
+| Iteration number :   12 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202576744590    
+ sum of eigenvalues          :     -315.669352334    
+ electronic kinetic          :      579.105732679    
+ core electron kinetic       :      567.777924391    
+ Coulomb                     :     -1117.48935131    
+ Coulomb potential           :     -842.336747365    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32834449    
+ Hartree                     :      185.995798564    
+ Madelung                    :     -696.320977628    
+ xc potential                :     -52.4383376482    
+ exchange                    :     -37.5457729795    
+ correlation                 :     -2.14566661072    
+ total energy                :     -578.075058222    
+ 
+Density of states at Fermi energy :    2.546368988    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636660435E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.419779524    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.79011024    
+   atom    2                 :    11.79011024    
+ total in muffin-tins        :    23.58022048    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.2538239036E-05 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :       150.87
+ 
++-------------------------+
+| Iteration number :   13 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202574867011    
+ sum of eigenvalues          :     -315.669353074    
+ electronic kinetic          :      579.105687484    
+ core electron kinetic       :      567.777865900    
+ Coulomb                     :     -1117.48931749    
+ Coulomb potential           :     -842.336703614    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32832061    
+ Hartree                     :      185.995808497    
+ Madelung                    :     -696.320965685    
+ xc potential                :     -52.4383369441    
+ exchange                    :     -37.5457723768    
+ correlation                 :     -2.14566670270    
+ total energy                :     -578.075069087    
+ 
+Density of states at Fermi energy :    2.545853549    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636690993E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.419772440    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.79011378    
+   atom    2                 :    11.79011378    
+ total in muffin-tins        :    23.58022756    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.1042619837E-05 (  0.1000000000E-05)
+ 
+Time (CPU seconds) :       162.60
+ 
++-------------------------+
+| Iteration number :   14 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202574376398    
+ sum of eigenvalues          :     -315.669341215    
+ electronic kinetic          :      579.105687396    
+ core electron kinetic       :      567.777852830    
+ Coulomb                     :     -1117.48929997    
+ Coulomb potential           :     -842.336692976    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32829620    
+ Hartree                     :      185.995801612    
+ Madelung                    :     -696.320953481    
+ xc potential                :     -52.4383356352    
+ exchange                    :     -37.5457713986    
+ correlation                 :     -2.14566669760    
+ total energy                :     -578.075050669    
+ 
+Density of states at Fermi energy :    2.545751794    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636703710E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.419771751    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.79011412    
+   atom    2                 :    11.79011412    
+ total in muffin-tins        :    23.58022825    
+ total charge                :    28.00000000    
+ 
+RMS change in effective potential (target) :   0.4192792659E-06 (  0.1000000000E-05)
+ 
+Potential convergence target achieved
+ 
+Time (CPU seconds) :       174.18
+ 
++-------------------------+
+| Iteration number :   15 |
++-------------------------+
+ 
+Energies :
+ Fermi                       :     0.202574233962    
+ sum of eigenvalues          :     -315.669333949    
+ electronic kinetic          :      579.105691734    
+ core electron kinetic       :      567.777849988    
+ Coulomb                     :     -1117.48929189    
+ Coulomb potential           :     -842.336690905    
+ nuclear-nuclear             :     -89.1568053812    
+ electron-nuclear            :     -1214.32828212    
+ Hartree                     :      185.995795607    
+ Madelung                    :     -696.320946440    
+ xc potential                :     -52.4383347781    
+ exchange                    :     -37.5457707674    
+ correlation                 :     -2.14566668277    
+ total energy                :     -578.075037609    
+ 
+Density of states at Fermi energy :    2.545741637    
+ (states/Hartree/unit cell)
+ 
+Charges :
+ core                        :    20.00000000    
+ core leakage                :   0.7636708432E-02
+ valence                     :    8.000000000    
+ interstitial                :    4.419772046    
+ muffin-tins
+  species :    1 (Si)
+   atom    1                 :    11.79011398    
+   atom    2                 :    11.79011398    
+ total in muffin-tins        :    23.58022795    
+ total charge                :    28.00000000    
+ 
++------------------------------+
+| Self-consistent loop stopped |
++------------------------------+
+ 
+Wrote STATE.OUT
+ 
+Timings (CPU seconds) :
+ initialisation                        :         2.98
+ Hamiltonian and overlap matrix set up :        49.53
+ first-variational secular equation    :        46.67
+ charge density calculation            :        78.74
+ potential calculation                 :         8.63
+ total                                 :       186.55
+ 
++----------------------------------+
+| EXCITING version 0.9.224 stopped |
++----------------------------------+

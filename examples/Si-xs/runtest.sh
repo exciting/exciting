@@ -25,7 +25,7 @@ files="\
 files_large="\
 	SCREEN_*.OUT W_SCREEN_*.OUT EXCLI_ASC.OUT SCCLI_ASC.OUT
 "
-files="$files $files_large"
+#files="$files $files_large"
 
 ################################################################################
 
@@ -39,17 +39,17 @@ echo
 
 \cp -f exciting.in_ exciting.in
 
-../../bin/excitingser
+#../../bin/excitingser
 
 \rm -fr $rundir
 \rm -fr $diffdir
 \mkdir $rundir
 \mkdir $diffdir
 
-\cp -f $files $rundir
-
 for file in $files; do
-	diff -B -w _reference/$file $rundir/$file > $diffdir/$file.diff
+	f=$file"_"
+	\cp -f $file $rundir/$f
+	diff -B -w _reference/$f $rundir/$f > $diffdir/$file.diff
 done
 
 echo "done."
