@@ -18,7 +18,7 @@ subroutine xsfinit
   real(8) :: cput, wallt, cputcum, walltcum
   real(8) :: hrs
   integer :: days, hours, minutes, seconds
-  character(256) :: str, str2
+  character(256) :: str1, str2
   character(256), external :: stringtim, r2str
   ! finalize global counters
   call date_and_time(date=dat, time=tim)
@@ -38,23 +38,23 @@ subroutine xsfinit
   write(unitout, '(a)') '  Time (hh:mm:ss)   : '//tim(1:2)//':'//tim(3:4)//':' &
        //tim(5:6)
   call gentim(cput, hrs, days, hours, minutes, seconds)
-  str=stringtim(cput, hrs, days, hours, minutes, seconds)
-  write(unitout, '(a, 4g18.6)') '  CPU time		  : '//trim(str)
+  str1=stringtim(cput, hrs, days, hours, minutes, seconds)
+  write(unitout, '(a, 4g18.6)') '  CPU time		  : '//trim(str1)
   if (procs.eq.1) then
      call gentim(dble(wallt), hrs, days, hours, minutes, seconds)
-     str=stringtim(dble(wallt), hrs, days, hours, minutes, seconds)
+     str1=stringtim(dble(wallt), hrs, days, hours, minutes, seconds)
      str2=r2str(cput/wallt*100, '(f12.2)')
-     write(unitout, '(a, 4g18.6)') '  wall time 	     : '//trim(str)
+     write(unitout, '(a, 4g18.6)') '  wall time 	     : '//trim(str1)
      write(unitout, '(a, g18.6 )') '  CPU load		     : '//trim(str2)//' %'
   end if
   call gentim(cputcum, hrs, days, hours, minutes, seconds)
-  str=stringtim(cputcum, hrs, days, hours, minutes, seconds)
-  write(unitout, '(a, 4g18.6)') '  CPU time  (cumulative) : '//trim(str)
+  str1=stringtim(cputcum, hrs, days, hours, minutes, seconds)
+  write(unitout, '(a, 4g18.6)') '  CPU time  (cumulative) : '//trim(str1)
   if (procs.eq.1) then
      call gentim(dble(walltcum), hrs, days, hours, minutes, seconds)
-     str=stringtim(dble(walltcum), hrs, days, hours, minutes, seconds)
+     str1=stringtim(dble(walltcum), hrs, days, hours, minutes, seconds)
      str2=r2str(cput/wallt*100, '(f12.2)')
-     write(unitout, '(a, 4g18.6)') '  wall time (cumulative) : '//trim(str)
+     write(unitout, '(a, 4g18.6)') '  wall time (cumulative) : '//trim(str1)
      write(unitout, '(a, g18.6)')  '  CPU load	(cumulative) : '//trim(str2)//' %'
   end if
   write(unitout, *)

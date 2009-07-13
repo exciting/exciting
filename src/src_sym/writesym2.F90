@@ -12,7 +12,7 @@ subroutine writesym2
   implicit none
   ! local varaibles
   integer :: isym, jsym, igenr
-  character(32) :: str
+  character(32) :: str1
   ! write out multiplication table
   open(50, file='SYMMULT'//trim(filext), action='WRITE', form='FORMATTED')
   write(50, *)
@@ -25,11 +25,11 @@ subroutine writesym2
   end do
   close(50)
   open(50, file='SYMMULT_TABLE'//trim(filext), action='WRITE', form='FORMATTED')
-  write(str, *) maxsymcrys
+  write(str1, *) maxsymcrys
   write(50, *)
   write(50, '(" (symmetry group multiplication table below)")')
   do isym=1, nsymcrys
-     write(50, '('//trim(str)//'i3.2)') sgmut(isym, :)
+     write(50, '('//trim(str1)//'i3.2)') sgmut(isym, :)
   end do
   close(50)
   ! write out generators
@@ -42,7 +42,7 @@ subroutine writesym2
      write(50, '("generating element:", i4, " , number of elemnts in orbit:", i4)')&
        genr(igenr), negenr(igenr)
      write(50, '(" (orbit of generator below)")')
-     write(50, '('//trim(str)//'i4)') orbgenr(igenr, :negenr(igenr))
+     write(50, '('//trim(str1)//'i4)') orbgenr(igenr, :negenr(igenr))
      write(50, *)
   end do
   close(50)

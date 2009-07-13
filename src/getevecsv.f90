@@ -142,7 +142,7 @@ subroutine getevecsvr(fname, isti, istf, vpl, evecsv)
     ! local variables
     integer :: err
     complex(8), allocatable :: evecsvt(:, :)
-    character(256) :: str
+    character(256) :: strtmp
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
@@ -166,11 +166,11 @@ subroutine getevecsvr(fname, isti, istf, vpl, evecsv)
     if (err.ne.0) stop
     allocate(evecsvt(nstsv, nstsv))
     filetag_evecsv=trim(fname)
-    str=trim(filext)
+    strtmp=trim(filext)
     filext=''
     call getevecsv(vpl, evecsvt)
     filetag_evecsv='EVECSV'
-    filext=trim(str)
+    filext=trim(strtmp)
     evecsv(:, :)=evecsvt(isti:istf, isti:istf)
     deallocate(evecsvt)
   end subroutine getevecsvr
