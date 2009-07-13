@@ -229,7 +229,7 @@ subroutine getevecfvr(fname, isti, istf, vpl, vgpl, evecfv)
     ! local variables
     integer :: err
     complex(8), allocatable :: evecfvt(:, :, :)
-    character(256) :: str
+    character(256) :: str1
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
@@ -270,11 +270,11 @@ subroutine getevecfvr(fname, isti, istf, vpl, vgpl, evecfv)
     if (err.ne.0) stop
     allocate(evecfvt(nmatmax, nstfv, nspnfv))
     filetag_evecfv=trim(fname)
-    str=trim(filext)
+    str1=trim(filext)
     filext=''
     call getevecfv(vpl, vgpl, evecfvt)
     filetag_evecfv='EVECFV'
-    filext=trim(str)
+    filext=trim(str1)
     evecfv(:, :, :)=evecfvt(:, isti:istf, :)
     deallocate(evecfvt)
   end subroutine getevecfvr

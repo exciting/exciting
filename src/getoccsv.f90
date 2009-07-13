@@ -120,7 +120,7 @@ subroutine getoccsvr(fname, isti, istf, vpl, occsvp)
     ! local variables
     integer :: err
     real(8), allocatable :: occsvt(:)
-    character(256) :: str
+    character(256) :: strtmp
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
@@ -143,11 +143,11 @@ subroutine getoccsvr(fname, isti, istf, vpl, occsvp)
     if (err.ne.0) stop
     allocate(occsvt(nstsv))
     filetag_occsv=trim(fname)
-    str=trim(filext)
+    strtmp=trim(filext)
     filext=''
     call getoccsv(vpl, occsvt)
     filetag_occsv='OCCSV'
-    filext=trim(str)
+    filext=trim(strtmp)
     occsvp(:)=occsvt(isti:istf)
     deallocate(occsvt)
   end subroutine getoccsvr

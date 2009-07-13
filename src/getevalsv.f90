@@ -121,7 +121,7 @@ subroutine getevalsvr(fname, isti, istf, vpl, evalsvp)
     ! local variables
     integer :: err
     real(8), allocatable :: evalsvt(:)
-    character(256) :: str
+    character(256) :: tmpstr
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
@@ -144,11 +144,11 @@ subroutine getevalsvr(fname, isti, istf, vpl, evalsvp)
     if (err.ne.0) stop
     allocate(evalsvt(nstsv))
     filetag_evalsv=trim(fname)
-    str=trim(filext)
+    tmpstr=trim(filext)
     filext=''
     call getevalsv(vpl, evalsvt)
     filetag_evalsv='EVALSV'
-    filext=trim(str)
+    filext=trim(tmpstr)
     evalsvp(:)=evalsvt(isti:istf)
     deallocate(evalsvt)
   end subroutine getevalsvr
