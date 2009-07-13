@@ -1,4 +1,5 @@
-#include ../make.inc
+include ../make.inc
+
 SOURCEDIRS=	../../src/  \
 	../../src/src_xs/ \
 	../../src/src_sym/ \
@@ -33,9 +34,6 @@ bin::../make.inc libs $(GeneraedFiles)
 	&& cp exciting ../../bin/exciting$(SUFFIX)
 	
 	
-
-	
-
 doc::
 	cd ./docs/exciting; \
 	perl ../../utilities/scripts/genprotexdoc.pl ../../src/mainxml/  $(SOURCEDIRS)  ;\
@@ -43,11 +41,11 @@ doc::
 
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox.a
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox.a
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox
 endif
 
 libblas.a::
@@ -85,16 +83,13 @@ libarpack.a::
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
 
 
-libfox.a::
-	../../utilities/mkmf -c "-DFC_HAVE_FLUSH -DFC_HAVE_ABORT -DFC_EOR_LF" -t ./template -f -m Makefile.libfox -p libfox.a \
-	../../src/FoX/common/ \
-	../../src/FoX/dom/ \
-	../../src/FoX/fsys/ \
-	../../src/FoX/sax \
-	../../src/FoX/utils \
-	../../src/FoX/wxml \
-	../../src/Fox/wcml \
-	&& $(MAKE) -f Makefile.libfox libfox.a
+libfox::lib/libFoX_common.a
+
+lib/libFoX_common.a:
+	cd ../../src/FoX/ && \
+	./configure FC=$(F90) &&\
+	make 
+	cp -r ../../src/FoX/objs/ .
 	
 	
 #cp -f ../make.inc ../..

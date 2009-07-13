@@ -1,9 +1,9 @@
 include ../make.inc
 
 FC = $(F90)
-FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
+FFLAGS = $(F90_OPTS) $(CPP_ON_OPT) -I/finclude
 LD = $(FC)
-LDFLAGS = $(F90_OPTS) $(LIBS) libmsec.a   libfox.a
+LDFLAGS = $(F90_OPTS) $(LIBS) libmsec.a   -Llib -lFoX_common	-lFoX_dom	-lFoX_fsys	-lFoX_sax	-lFoX_utils	-lFoX_wcml	-lFoX_wxml
 AR = ar
 ARFLAGS = -rc
 F77=$(F77) $(F77_OPTS)

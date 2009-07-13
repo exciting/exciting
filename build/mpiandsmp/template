@@ -1,9 +1,9 @@
 include ../make.inc
 
 FC = $(MPIF90MT) $(CPP_ON_OPT)
-FFLAGS = $(MPISMPF90_OPTS)
+FFLAGS = $(MPISMPF90_OPTS) -Ifinclude
 LD = $(FC)
-LDFLAGS = $(MPISMPF90_OPTS) $(SMP_LIBS) libmsec.a libfox.a
+LDFLAGS = $(MPISMPF90_OPTS) $(SMP_LIBS) libmsec.a -Llib -lFoX_common	-lFoX_dom	-lFoX_fsys	-lFoX_sax	-lFoX_utils	-lFoX_wcml	-lFoX_wxml
 F77_OPTS =$(SMPF77_OPTS)
 F77=$(F77MT)
 TMPFILES = *.mod
