@@ -11,11 +11,11 @@ contains
 
 
 subroutine fxc_alda(iq, msiz, fxcg)
-    use modmain
-use modinput
-    use modxs
+    use modmain,only:ivg,gc,fourpi,lmmaxvr,nrmtmax,natmtot,ngrtot,ngvec,ivgig
+    use modinput
+    use modxs,only:unitout,fxcmt,gqc,fxcir,igqig
     use modtimer2
-    use m_ftfun
+    use m_ftfun,only:
     implicit none
     ! arguments
     integer, intent(in) :: iq, msiz

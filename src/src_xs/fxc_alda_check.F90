@@ -13,9 +13,9 @@
 subroutine fxc_alda_check
 ! !USES:
 use modinput
-  use modmain
-  use modxcifc
-  use modxs
+  use modmain,only:
+!  use modxcifc,only:
+  use modxs,only:
   use modfxcifc
 ! !DESCRIPTION:
 !   Checks the validity of the analytical expressions for the ALDA
