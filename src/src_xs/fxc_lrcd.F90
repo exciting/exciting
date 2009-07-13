@@ -17,7 +17,7 @@ contains
 
 subroutine fxc_lrcd(msiz, sw, alpha, beta, w, fxc)
 ! !USES:
-    use modmain,only:fourpi
+    use mod_constants,only:fourpi
     use modxs,only:unitout
 ! !INPUT/OUTPUT PARAMETERS:
 !   msiz  : matrix size of local field effects (in,integer)
@@ -57,7 +57,7 @@ subroutine fxc_lrcd(msiz, sw, alpha, beta, w, fxc)
        write(unitout, '(a, 2i9, a, i9, a)') 'Error('//trim(thisnam)//'): size of &
 	    &fxc is to small (required)', sh, '(', msiz, ')'
        call terminate
-    end if    
+    end if
     fxc(:, :)=(0.d0, 0.d0)
     zt1=-(alpha+beta*w**2)/fourpi
     if (.not.sw) then

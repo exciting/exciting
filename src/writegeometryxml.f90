@@ -7,6 +7,7 @@ subroutine writegeometryxml(topt)
 use modmain
 use modinput
 use modsp
+use  modspdb
 use FoX_wxml
 ! !INPUT/OUTPUT PARAMETERS:
 !   topt : if .true. then the filename will be {\ttgeometry_opt.xml}, otherwise

@@ -8,6 +8,7 @@ use modmain
 use modinput,only: input
 use modsp
 use  FoX_dom
+use  modspdb
 implicit none
 ! local variables
 integer::is, ist, iostat

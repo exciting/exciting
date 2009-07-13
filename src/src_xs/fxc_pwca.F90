@@ -15,7 +15,7 @@ subroutine fxc_alda(iq, msiz, fxcg)
     use modinput
     use modxs,only:unitout,fxcmt,gqc,fxcir,igqig
     use modtimer2
-    use m_ftfun,only:
+    use m_ftfun,only:ftfun
     implicit none
     ! arguments
     integer, intent(in) :: iq, msiz

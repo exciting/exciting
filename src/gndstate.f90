@@ -15,7 +15,7 @@ subroutine gndstate
 use modinput
 use modmain
 use modmpi
-!use scl_xml_out_Module
+use scl_xml_out_Module
 
 ! !DESCRIPTION:
 !   Computes the self-consistent Kohn-Sham ground-state. General information is

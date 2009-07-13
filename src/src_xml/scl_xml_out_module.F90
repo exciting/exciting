@@ -28,7 +28,12 @@ contains
     dummy => appendChild(root, nnewline)
   end subroutine scl_xml_out_create
   subroutine scl_iter_xmlout()
-     use modmain
+     use mod_energy
+     use mod_convergence
+     use mod_eigenvalue_occupancy
+     use mod_charge_and_moment
+     use mod_atoms
+     use mod_timing
      use modinput
      implicit none
      integer::is,ia,ias

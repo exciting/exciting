@@ -13,9 +13,8 @@
 subroutine fxc_alda_check
 ! !USES:
 use modinput
-  use modmain,only:
-!  use modxcifc,only:
-  use modxs,only:
+  use modmain,only:lmmaxvr,ngrtot,rhoir,rhomt,vxcir,vxcmt
+  use modxcifc,only:xcifc
   use modfxcifc
 ! !DESCRIPTION:
 !   Checks the validity of the analytical expressions for the ALDA

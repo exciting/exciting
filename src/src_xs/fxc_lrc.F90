@@ -17,7 +17,7 @@ contains
 
 subroutine fxc_lrc(msiz, sw, alpha, fxc)
 ! !USES:
-    use modmain,only:fourpi
+    use mod_constants,only:fourpi
     use modxs,only:unitout
 ! !INPUT/OUTPUT PARAMETERS:
 !   msiz  : matrix size of local field effects (in,integer)
@@ -28,10 +28,10 @@ subroutine fxc_lrc(msiz, sw, alpha, fxc)
 !   Static long range xc-kernel; S. Botti, PRB 70, 045301 (2004).
 !   Calculates the symmetrized xc-kernel for the static long range model.
 !   According to the switch {\tt sw} either $$
-!         f_{\rm xc}({\bf G},{\bf G'}) = - \frac{\alpha}{4\pi} 
+!         f_{\rm xc}({\bf G},{\bf G'}) = - \frac{\alpha}{4\pi}
 !         \delta({\bf G},{\bf G'}), $$
 !   if the switch is true, or $$
-!         f_{\rm xc}({\bf G},{\bf G'}) = - \frac{\alpha}{4\pi} 
+!         f_{\rm xc}({\bf G},{\bf G'}) = - \frac{\alpha}{4\pi}
 !         \delta({\bf G},{\bf G'})\delta({\bf G},{\bf 0}), $$
 !   otherwise.
 !

@@ -2,10 +2,9 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-
-!module modfxcifc
-!  implicit none
-!contains
+module modfxcifc
+  implicit none
+contains
 
 !BOP
 ! !ROUTINE: fxcifc
@@ -20,7 +19,7 @@ subroutine fxcifc(fxctype, w, iw, iq, ng, oct, alrc, alrcd, blrcd, fxcg)
 ! !INPUT/OUTPUT PARAMETERS:
 !   fxctype : type of exchange-correlation functional (in,integer)
 ! !DESCRIPTION:
-!   Interface to the exchange-correlation kernel routines. This makes it 
+!   Interface to the exchange-correlation kernel routines. This makes it
 !   relatively
 !   simple to add new functionals which do not necessarily depend only on
 !   all input parameters. Based upon the routine {\tt modxcifc}.
@@ -144,7 +143,7 @@ subroutine getfxcdata(fxctype, fxcdescr, fxcspin)
 !   Returns data on the exchange-correlation functional labelled by
 !   {\tt fxctype}. The character array {\tt fxctype} contains a short
 !   description
-!   of the functional including journal references. The variable 
+!   of the functional including journal references. The variable
 !   {\tt fxcspin} is
 !   set to 1 or 0 for spin-polarised or -unpolarised functionals,
 !   respectively.
@@ -162,7 +161,7 @@ subroutine getfxcdata(fxctype, fxcdescr, fxcspin)
        fxcdescr='xc-kernel set to zero (RPA case)'
        ! spin-polarisation not required
        fxcspin=-1
-       return	  
+       return
     case(1)
        fxcdescr='long-range xc-kernel, no local field effects'
        ! spin-polarisation not required
@@ -209,4 +208,4 @@ subroutine getfxcdata(fxctype, fxcdescr, fxcspin)
   end subroutine getfxcdata
 !EOC
 
-!end module modfxcifc
+end module modfxcifc
