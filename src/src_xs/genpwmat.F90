@@ -197,10 +197,10 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
            cfunt(igp1,igp2)=cfunig(ig)
         end do
      end do
-!!$h=matmul(cfunt,evecfvt2)
-!!$pmt=matmul(evecfvt1,h)
+	 ! h = cfunt*evecfvt2
      call zgemm('n','n', ngkk, nstfv, ngkkp, zone, cfunt, &
           ngkk, evecfvt2, ngkkp, zzero, h, ngkk)
+     ! pmt = evecfvt2*h
      call zgemm('n','n', nstfv, nstfv, ngkk, zone, evecfvt1, &
           nstfv, h, ngkk, zzero, pmt, nstfv)
      pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)

@@ -1,5 +1,5 @@
 
-! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2006-2009 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
@@ -11,6 +11,7 @@ subroutine epsconv
   use m_genfilname
   implicit none
   ! local variables
+  logical, parameter :: tsmooth=.false.
   character(*), parameter :: thisnam='epsconv'
   character(256) :: filnam
   integer :: iq,iw,iwp,m,n,oct1,oct2,nc,un
@@ -72,8 +73,8 @@ subroutine epsconv
            ! convolution with Lorentzian
            do iw=1,nwdf
               do iwp=1,nwdf
-!!$                 ! standard Lorentzian with peak at w(iw)
-!!$                 lor(iwp)=(1/pi)*broad/((w(iw)-w(iwp))**2+broad**2)
+                 ! standard Lorentzian with peak at w(iw)
+                 !lor(iwp)=(1/pi)*broad/((w(iw)-w(iwp))**2+broad**2)
                  ! antisymmetric Lorentzian at w(iw) and -w(iw)
                  ! with norm arctan(w/broad) to assure zero crossing
                  lor(iwp)=(1.d0/(2.d0*atan(w(iw)/broad)))*( &
@@ -86,12 +87,13 @@ subroutine epsconv
               ! do the convolution
               call fderiv(-1,nwdf,w,f,g,cf)
               call fderiv(-1,nwdf,w,f1,g1,cf)
-
               write(un,'(4g18.10)') w(iw)*escale,g1(nwdf),g(nwdf),&
                    (pi/broad)*broad**2/((w(iw)-w(iwp))**2+broad**2)
            end do ! iw
-!!$           call fsmooth(nsmdos,nwdf,1,g)
-!!$           call fsmooth(nsmdos,nwdf,1,g1)
+           if (tsmooth) then
+	          call fsmooth(nsmdos,nwdf,1,g)
+    	      call fsmooth(nsmdos,nwdf,1,g1)
+		   end if
            close(un)
         end do ! oct
         end do

@@ -98,8 +98,6 @@ subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
            vct=matmul(vc,c)
            vctl=matmul(binv,vct)
            igpt=ivgigq(ivlt(1),ivlt(2),ivlt(3),iq)
-!!$           write(*,'(3i6,15f8.4,2x,f8.4)') igp,isym,lspl,vl,vc,vlt,vct,vctl,&
-!!$                sum(abs(vlt-vgpl(:,igpt)))
            write(*,'(3i6,5x,3i5,3x,3i5)') igp,isym,lspl,nint(vl),nint(vlt)
         end do
      end do

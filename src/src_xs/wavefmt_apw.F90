@@ -72,19 +72,6 @@ do l=0,lmax
     end do
   end do
 end do
-!!$! local-orbital functions
-!!$do ilo=1,nlorb(is)
-!!$  l=lorbl(ilo,is)
-!!$  if (l.le.lmax) then
-!!$    do m=-l,l
-!!$      lm=idxlm(l,m)
-!!$      i=ngp+idxlo(lm,ilo,ias)
-!!$      a=dble(evecfv(i))
-!!$      b=aimag(evecfv(i))
-!!$      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,lofr(1,1,ilo,ias))
-!!$    end do
-!!$  end if
-!!$end do
 return
 end subroutine
 !EOC

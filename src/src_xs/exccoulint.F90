@@ -146,8 +146,7 @@ subroutine exccoulint
         end do
      end do
 
-     ! * calculate exchange matrix elements
-!!$     exclit=matmul(conjg(emat12),transpose(emat34))/omega/nkptnr
+     ! calculate exchange matrix elements: V_{1234} = M_{12}^* M_{34}^T
      emat12=conjg(emat12)
      call zgemm('n','t', nst12, nst12, n, zone/omega/nkptnr, emat12, &
           nst12, emat34, nst12, zzero, exclit, nst12 )

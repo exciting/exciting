@@ -147,10 +147,6 @@ subroutine barrier
   ! call the MPI barrier
 #ifdef MPI
   call MPI_barrier(mpi_comm_world,ierr)
-
-write(300+rank,*) 'barrier, rank=',rank
-call flushifc(300+rank)
-
 #endif
 end subroutine barrier
 

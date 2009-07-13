@@ -56,18 +56,6 @@ do ir=1,nrmt(is),lrstp
   nr=nr+1
   wfmt(:,nr)=0.d0
 end do
-!!$! APW functions
-!!$do l=0,lmax
-!!$  do m=-l,l
-!!$    lm=idxlm(l,m)
-!!$    do io=1,apword(l,is)
-!!$      zt1=zdotu(ngp,evecfv,1,apwalm(1,io,lm,ias),1)
-!!$      a=dble(zt1)
-!!$      b=aimag(zt1)
-!!$      call wavefmt_add(nr,ld,wfmt(lm,1),a,b,lrstp,apwfr(1,1,io,l,ias))
-!!$    end do
-!!$  end do
-!!$end do
 ! local-orbital functions
 do ilo=1,nlorb(is)
   l=lorbl(ilo,is)

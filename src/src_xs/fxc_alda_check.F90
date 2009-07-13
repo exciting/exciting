@@ -37,11 +37,9 @@ subroutine fxc_alda_check
   m=max(lmmaxvr,ngrtot)
 
   nrho=100000
-!!$  rhoint(1)=1.0d-3
-!!$  rhoint(2)=1.d0
   rhoint(1)=1.d0
   rhoint(2)=7400.0d0
-  
+
   allocate(rhogr(nrho))
   allocate(dvx(nrho),dvc(nrho),dvxc2(nrho),dvxc(nrho),cf(3,nrho))
   allocate(ex(nrho),ec(nrho),vx(nrho),vc(nrho),vxc(nrho))

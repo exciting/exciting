@@ -39,17 +39,12 @@ complex(8) function zfinp2(ngp1,ngp2,igpig,zfmt1,zfmt2,zfir1,zfir2)
   complex(8), intent(in) :: zfir1(ngp1)
   complex(8), intent(in) :: zfir2(ngp2)
   ! local variables
-  integer is,ia,ias,ig,igp1,igp2,iv(3)!!$,ir
+  integer is,ia,ias,ig,igp1,igp2,iv(3)
   complex(8) zsum
   ! external functions
   complex(8) zfmtinp
   external zfmtinp
-!!$! interstitial contribution
-!!$zsum=0.d0
-!!$do ir=1,ngrtot
-!!$  zsum=zsum+cfunir(ir)*conjg(zfir1(ir))*zfir2(ir)
-!!$end do
-!!$  zsum=zsum*omega/dble(ngrtot)
+  ! interstitial contribution
   do igp1=1,ngp1
      do igp2=1,ngp2
         iv(:) = ivg(:,igpig(igp1)) - ivg(:,igpig(igp2))
