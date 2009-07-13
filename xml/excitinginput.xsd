@@ -938,7 +938,7 @@
 								    </xs:simpleType>
 								  </xs:attribute>
 								  <xs:attribute name="packedmatrixstorage" type="xs:boolean" use="optional" default="true" />
-								  <xs:attribute name="epsarpack" type="fortrandouble" />
+								  <xs:attribute name="epsarpack" type="fortrandouble" default="1.0e-8"/>
 								  <xs:attribute name="evaltol" type="fortrandouble" default="1e-8">
 								    <!-- sag -->
 								    <xs:annotation>

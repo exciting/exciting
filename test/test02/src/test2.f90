@@ -1,16 +1,8 @@
 program test
-use modreport
-use modmpi
+use inputdom
 use modinput
+use scl_xml_out_Module
 implicit none
-testplan_name ="test2"
-!call inittestoutputfile()
-
-! list test routines here and call testreport(testunit,input,output,passed)
-! before leaving the routine
-!call system("rm *.OUT")
- call initMPI
-
 call loadinputDOM()
 call setdefault
 input=getstructinput(inputnp)
@@ -19,11 +11,12 @@ call destroyDOM()
 call initatomcounters()
 call initlattice
 call readspeciesxml
-call gndstate()
-call finitMPI
-if (rank.eq.0) then
-call write_evec_formatted()
-endif
+call scl_xml_out_create()
+call tasklauncher()
+call scl_xml_out_close()
 
+call write_evec_formatted()
+
+call scl_xml_out_close()
 !call finalizeoutput()
 end program

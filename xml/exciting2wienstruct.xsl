@@ -14,7 +14,6 @@
   xmlns:str="http://exslt.org/strings" 
   xmlns:math="http://exslt.org/math">
   <xsl:output method="text" />
-
   <xsl:template match="/">
 <xsl:value-of select="//title"/>
 <xsl:text>

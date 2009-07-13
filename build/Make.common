@@ -19,7 +19,6 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_inputparser/ \
 	../../src/src_timing/ \
 	../../src/leblaiklib/ \
-	../../src/mainxml/ \
 	../../src/
 	
 GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
@@ -29,7 +28,7 @@ GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputpa
 bin::../make.inc libs $(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
-	$(SOURCEDIRS) \
+	$(SOURCEDIRS) 	../../src/mainxml/ \
 	&& $(MAKE) -f Makefile.mkmf exciting \
 	&& cp exciting ../../bin/exciting$(SUFFIX)
 	

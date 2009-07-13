@@ -1979,6 +1979,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"epsarpack")
+getstructsolver%epsarpack=1.0e-8
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsarpack",getstructsolver%epsarpack)
        call removeAttribute(thisnode,"epsarpack")      
