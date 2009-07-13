@@ -83,7 +83,7 @@ libarpack.a::
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
 
 
-libfox::lib/libFoX_common.a
+libfox:lib/libFoX_common.a
 
 lib/libFoX_common.a:
 	cd ../../src/FoX/ && \
