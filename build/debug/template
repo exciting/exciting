@@ -2,7 +2,7 @@ include ../make.inc
 
 FC = $(F90)
 
-FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT) -I/finclude
+FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT) -I./finclude
 LD = $(FC)
 LDFLAGS = $(LIBS) $(F90_DEBUGOPTS)  libmsec.a    -Llib -lFoX_common	-lFoX_dom	-lFoX_fsys	-lFoX_sax	-lFoX_utils	-lFoX_wcml	-lFoX_wxml
 F77_OPTS =$(F77_DEBUGOPTS)

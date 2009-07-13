@@ -1,13 +1,11 @@
-
-
-
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-module modfxcifc
-  implicit none
-contains
+
+!module modfxcifc
+!  implicit none
+!contains
 
 !BOP
 ! !ROUTINE: fxcifc
@@ -15,10 +13,10 @@ contains
 
 
 subroutine fxcifc(fxctype, w, iw, iq, ng, oct, alrc, alrcd, blrcd, fxcg)
-    use m_fxc_lrc
-    use m_fxc_lrcd
-    use m_fxc_alda
-    use m_fxc_bse_ma03
+    use m_fxc_lrc,only:fxc_lrc
+    use m_fxc_lrcd,only:fxc_lrcd
+    use m_fxc_alda,only:fxc_alda
+    use m_fxc_bse_ma03,only:fxc_bse_ma03
 ! !INPUT/OUTPUT PARAMETERS:
 !   fxctype : type of exchange-correlation functional (in,integer)
 ! !DESCRIPTION:
@@ -137,7 +135,7 @@ subroutine fxcifc(fxctype, w, iw, iq, ng, oct, alrc, alrcd, blrcd, fxcg)
 
 subroutine getfxcdata(fxctype, fxcdescr, fxcspin)
 ! !INPUT/OUTPUT PARAMETERS:
-use modinput
+    use modinput
 !   fxctype  : type of exchange-correlation functional (in,integer)
 !   fxcdescr : description of functional (out,character(256))
 !   fxcspin  : spin treatment (out,integer)
@@ -211,4 +209,4 @@ use modinput
   end subroutine getfxcdata
 !EOC
 
-end module modfxcifc
+!end module modfxcifc

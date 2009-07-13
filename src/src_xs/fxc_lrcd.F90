@@ -17,8 +17,8 @@ contains
 
 subroutine fxc_lrcd(msiz, sw, alpha, beta, w, fxc)
 ! !USES:
-    use modmain
-    use modxs
+    use modmain,only:fourpi
+    use modxs,only:unitout
 ! !INPUT/OUTPUT PARAMETERS:
 !   msiz  : matrix size of local field effects (in,integer)
 !   sw    : true for inclusion of local field effects (in,logical)

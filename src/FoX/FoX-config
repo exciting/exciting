@@ -1,6 +1,6 @@
 #!/bin/sh
 
-comp_prefix=/Users/chm/git/exciting/src/FoX/objs
+comp_prefix=/tmp/chm/exciting/src/FoX/objs
 moddir=`echo $comp_prefix/finclude`
 libdir=`echo $comp_prefix/lib`
 version=4.0.2
