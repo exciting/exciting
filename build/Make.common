@@ -83,13 +83,13 @@ libarpack.a::
 	&& $(MAKE) -f Makefile.libarpack libarpack.a
 
 
-libfox::lib/libFoX_common.a
+libfox:lib/libFoX_common.a
 
 lib/libFoX_common.a:
 	cd ../../src/FoX/ && \
 	./configure FC=$(F90) &&\
 	make 
-	cp -r ../../src/FoX/objs/ .
+	cp -r ../../src/FoX/objs/* ./
 	
 	
 #cp -f ../make.inc ../..
