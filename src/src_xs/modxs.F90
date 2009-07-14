@@ -388,6 +388,8 @@ module modxs
   complex(8) :: dielten(3,3)
   ! dielectric tensor in the independent particle approximation
   complex(8) :: dielten0(3,3)
+  ! averaging type for singular term in screenend Coulomb interaction
+  character(256) :: sciavtype
   ! average of body for screened Coulomb interaction at Gamma-point
   logical :: sciavbd
   ! average of head, wings and body for screened Coulomb interaction at
@@ -425,10 +427,6 @@ module modxs
   integer :: nbfbse
   ! number of states above Fermi energy
   integer :: nafbse
-  ! treatment of weights for BSE diagonal (integrating out singularity)
-  integer :: bsediagweight
-  ! symmetrisation method for BSE diagonal
-  integer :: bsediagsym
   ! diagonal of BSE kernel (mean value, lower, upper limit and range)
   complex(8) :: bsed,bsedl,bsedu,bsedd
 

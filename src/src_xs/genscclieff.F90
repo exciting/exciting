@@ -43,7 +43,8 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   ! local variables
   integer, parameter :: nsphcov=5810,iq0=1
   integer :: j1,j2,itp,lm,ntpsph
-  real(8) :: t00,r
+  real(8) :: vomega,t00,r,qsz,clwt
+  complex(8) :: zsd,zisd,w1,w2
   real(8), allocatable :: plat(:,:),p(:),tp(:,:),spc(:,:),w(:)
   complex(8), allocatable :: m00lm(:),mx0lm(:),mxxlm(:)
   complex(8), allocatable :: ei00(:),eix0(:),eixx(:)
@@ -55,11 +56,18 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
 
 !!$  ! *** values for PA ***
 !!$  call preset_dielten
-!!$  zt1=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0),
-!!$  zt2=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
-!!$  ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
-!!$  qsz=(6*pi**2/(omega*product(ngridq)))**(1.d0/3.d0)
-!!$  clwt=2*qsz*omega*product(ngridq)/pi
+
+  vomega=omega*product(ngridq)
+  ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
+  qsz=(6*pi**2/vomega)**(1.d0/3.d0)
+  ! weight for sqrt(4pi)/q based on Wigner-Seitz radius
+  w1=qsz**2*vomega/(pi*sqrt(fourpi))
+  ! weight for 4pi/q^2 based on Wigner-Seitz radius
+  w2=2*qsz*omega*product(ngridq)/pi
+  ! average diagonal components of screening tensor and take the inverse
+  zsd=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0)
+  ! average the inverse of the diagonal components of screening tensor
+  zisd=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
 
   ! invert dielectric tensor
   dielten0(:,:)=scrnh(:,:)
@@ -76,102 +84,130 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   else
      dielten=dielten0
   end if
-  ! number of points on sphere
-  if (tleblaik) then
-     ntpsph=nleblaik
-  else
-     ntpsph=nsphcov
-  end if
-  if (lmmaxdielt.gt.ntpsph) then
-     write(*,*)
-     write(*,'("Error(angavdm0): lmmaxdielt.gt.ntpsph: ",2i6)') lmmaxdielt, &
-          ntpsph
-     write(*,*)
-     stop
-  end if
-  allocate(plat(3,ntpsph),p(ntpsph))
-  allocate(m00lm(lmmaxdielt),mx0lm(lmmaxdielt),mxxlm(lmmaxdielt))
-  allocate(ei00(ntpsph),eix0(ntpsph),eixx(ntpsph))
-  allocate(ei00lm(lmmaxdielt),eix0lm(lmmaxdielt),eixxlm(lmmaxdielt))
-  allocate(ylm(lmmaxdielt),zylm(ntpsph,lmmaxdielt))
-  allocate(tp(2,ntpsph),spc(3,ntpsph))
-  allocate(w(ntpsph))
-  if (tleblaik) then
-     ! generate Lebedev Laikov grid
-     call leblaik(ntpsph,spc,w)
-     ! generate tetha and phi angles
-     do itp=1,ntpsph
-        call sphcrd(spc(:,itp),r,tp(:,itp))
-     end do
-  else
-     ! distribution is assumed to be uniform
-     w(:)=1.d0/ntpsph
-     ! generate spherical covering set (angles and coordinates)
-     call sphcover(ntpsph,tp)
-     spc(1,:)=sin(tp(1,:))*cos(tp(2,:))
-     spc(2,:)=sin(tp(1,:))*sin(tp(2,:))
-     spc(3,:)=cos(tp(1,:))
-  end if
-  ! generate spherical harmonics on covering set
-  do itp=1,ntpsph
-     call genylm(lmaxdielt,tp(:,itp),ylm)
-     zylm(itp,:)=ylm(:)
-  end do
-  ! unit vectors of spherical covering set in lattice coordinates
-  plat=matmul(binv,spc)
-  ! distances to subcell cell boundaries in reciprocal space
-  do itp=1,ntpsph
-     p(itp:)=1.d0/(2.d0*maxval(abs(ngridq(:)*plat(:,itp)),1))
-  end do
-  ! calculate function on covering set
-  do itp=1,ntpsph
-     ! head, 1/(p*L*p)
-     ei00(itp)=1.d0/dot_product(spc(:,itp),matmul(dielten,spc(:,itp)))
-  end do
-  ! calculate lm-expansion coefficients
-  do lm=1,lmmaxdielt
-     ei00lm(lm)=fourpi*dot_product(zylm(:,lm),ei00*w)
-     m00lm(lm)=fourpi*dot_product(zylm(:,lm),p*w)
-     mx0lm(lm)=fourpi*dot_product(zylm(:,lm),p**2/2.d0*w)
-     mxxlm(lm)=fourpi*dot_product(zylm(:,lm),p**3/3.d0*w)
-  end do
-  ! subcell average (head)
-  scieff(1,1)=fourpi*t00*dot_product(m00lm,ei00lm)
-  ! loop over (G,Gp) indices
-  do j1=2,n
-     do itp=1,ntpsph
-        ! wing, -p*S/(p*L*p)
-        eix0(itp)=-dot_product(spc(:,itp),s(j1-1,:))*ei00(itp)
-     end do
-     do lm=1,lmmaxdielt
-        eix0lm(lm)=fourpi*dot_product(zylm(:,lm),eix0*w)
-     end do
-     ! subcell average (wings)
-     scieff(j1,1)=sqrt(fourpi)*sptclg(j1,iq0)*t00*dot_product(mx0lm,eix0lm)
-     scieff(1,j1)=conjg(scieff(j1,1))
-     if (sciavbd) then
-        do j2=j1,n
-           do itp=1,ntpsph
-              ! body, B^-1 + p*S p*conjg(S)/(p*L*p)
-              eixx(itp)=bi(j1-1,j2-1)*dot_product(spc(:,itp),s(j1-1,:))* &
-                   dot_product(s(j2-1,:),spc(:,itp))*ei00(itp)
-           end do
-           do lm=1,lmmaxdielt
-              eixxlm(lm)=fourpi*dot_product(zylm(:,lm),eixx*w)
-           end do
-           ! subcell average (body)
-           scieff(j1,j2)=sptclg(j1,iq0)*sptclg(j2,iq0)*t00* &
-                dot_product(mxxlm,eixxlm)
-           scieff(j2,j1)=conjg(scieff(j1,j2))
-        end do
-     else
-        ! no subcell average (body)
-        scieff(j1,2:n)=bi(j1-1,:)
-     end if
-  end do
-  deallocate(ei00,ei00lm,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
-end subroutine angavsc0
 
+  if ((trim(sciavtype).eq.'screendiag').or.(trim(sciavtype).eq.'invscreendiag')) then
+  	if (sciavbd) then
+      write(*,*)
+      write(*,'("Error(angavsc0): (inv)screendiag-method does not allow for averaging the body of W")')
+  	  write(*,*)
+  	  stop
+  	end if
+  end if
+
+  ! calculate averaged screened Coulomb interaction in Fourier space at Gamma point
+  select case(trim(sciavtype))
+  case('spherical')
+	  ! number of points on sphere
+	  if (tleblaik) then
+	     ntpsph=nleblaik
+	  else
+	     ntpsph=nsphcov
+	  end if
+	  if (lmmaxdielt.gt.ntpsph) then
+	     write(*,*)
+	     write(*,'("Error(angavdm0): lmmaxdielt.gt.ntpsph: ",2i6)') lmmaxdielt, &
+	          ntpsph
+	     write(*,*)
+	     stop
+	  end if
+	  allocate(plat(3,ntpsph),p(ntpsph))
+	  allocate(m00lm(lmmaxdielt),mx0lm(lmmaxdielt),mxxlm(lmmaxdielt))
+	  allocate(ei00(ntpsph),eix0(ntpsph),eixx(ntpsph))
+	  allocate(ei00lm(lmmaxdielt),eix0lm(lmmaxdielt),eixxlm(lmmaxdielt))
+	  allocate(ylm(lmmaxdielt),zylm(ntpsph,lmmaxdielt))
+	  allocate(tp(2,ntpsph),spc(3,ntpsph))
+	  allocate(w(ntpsph))
+	  if (tleblaik) then
+	     ! generate Lebedev Laikov grid
+	     call leblaik(ntpsph,spc,w)
+	     ! generate tetha and phi angles
+	     do itp=1,ntpsph
+	        call sphcrd(spc(:,itp),r,tp(:,itp))
+	     end do
+	  else
+	     ! distribution is assumed to be uniform
+	     w(:)=1.d0/ntpsph
+	     ! generate spherical covering set (angles and coordinates)
+	     call sphcover(ntpsph,tp)
+	     spc(1,:)=sin(tp(1,:))*cos(tp(2,:))
+	     spc(2,:)=sin(tp(1,:))*sin(tp(2,:))
+	     spc(3,:)=cos(tp(1,:))
+	  end if
+	  ! generate spherical harmonics on covering set
+	  do itp=1,ntpsph
+	     call genylm(lmaxdielt,tp(:,itp),ylm)
+	     zylm(itp,:)=ylm(:)
+	  end do
+	  ! unit vectors of spherical covering set in lattice coordinates
+	  plat=matmul(binv,spc)
+	  ! distances to subcell cell boundaries in reciprocal space
+	  do itp=1,ntpsph
+	     p(itp:)=1.d0/(2.d0*maxval(abs(ngridq(:)*plat(:,itp)),1))
+	  end do
+	  ! calculate function on covering set
+	  do itp=1,ntpsph
+	     ! head, 1/(p*L*p)
+	     ei00(itp)=1.d0/dot_product(spc(:,itp),matmul(dielten,spc(:,itp)))
+	  end do
+	  ! calculate lm-expansion coefficients
+	  do lm=1,lmmaxdielt
+	     ei00lm(lm)=fourpi*dot_product(zylm(:,lm),ei00*w)
+	     m00lm(lm)=fourpi*dot_product(zylm(:,lm),p*w)
+	     mx0lm(lm)=fourpi*dot_product(zylm(:,lm),p**2/2.d0*w)
+	     mxxlm(lm)=fourpi*dot_product(zylm(:,lm),p**3/3.d0*w)
+	  end do
+	  ! subcell average (head)
+	  scieff(1,1)=fourpi*t00*dot_product(m00lm,ei00lm)
+	  ! loop over (G,Gp) indices
+	  do j1=2,n
+	     do itp=1,ntpsph
+	        ! wing, -p*S/(p*L*p)
+	        eix0(itp)=-dot_product(spc(:,itp),s(j1-1,:))*ei00(itp)
+	     end do
+	     do lm=1,lmmaxdielt
+	        eix0lm(lm)=fourpi*dot_product(zylm(:,lm),eix0*w)
+	     end do
+	     ! subcell average (wings)
+	     scieff(j1,1)=sqrt(fourpi)*sptclg(j1,iq0)*t00*dot_product(mx0lm,eix0lm)
+	     scieff(1,j1)=conjg(scieff(j1,1))
+	     if (sciavbd) then
+	        do j2=j1,n
+	           do itp=1,ntpsph
+	              ! body, B^-1 + p*S p*conjg(S)/(p*L*p)
+	              eixx(itp)=bi(j1-1,j2-1)*dot_product(spc(:,itp),s(j1-1,:))* &
+	                   dot_product(s(j2-1,:),spc(:,itp))*ei00(itp)
+	           end do
+	           do lm=1,lmmaxdielt
+	              eixxlm(lm)=fourpi*dot_product(zylm(:,lm),eixx*w)
+	           end do
+	           ! subcell average (body)
+	           scieff(j1,j2)=sptclg(j1,iq0)*sptclg(j2,iq0)*t00* &
+	                dot_product(mxxlm,eixxlm)
+	           scieff(j2,j1)=conjg(scieff(j1,j2))
+	        end do
+	     else
+	        ! no subcell average (body)
+	        scieff(j1,2:n)=bi(j1-1,:)
+	     end if
+	  end do
+	  deallocate(ei00,ei00lm,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
+  case('screendiag')
+  	! head
+    !!scieff(1,1)=
+    ! wings
+    do j1=2,n
+      scieff(j1,1)=
+      scieff(1,j1)=conjg(scieff(j1,1))
+    end do
+  case('invscreendiag')
+  case default
+  	write(*,*)
+  	write(*,'("Error(angavsc0): invalid averaging method")')
+  	write(*,*)
+  	stop
+  end select
+
+end subroutine angavsc0
 
 !//////////////////////////////////////////////////////////////////////////////
 
