@@ -11,7 +11,7 @@ contains
 
 
 subroutine writeloss(iq, w, loss, fn)
-    use modmain
+    use modmain,only:omega,chgval,pi
     use modxs
     use m_getunit
     use m_writevars

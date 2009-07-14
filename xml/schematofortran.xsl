@@ -548,7 +548,6 @@ function countChildEmentsWithName(nodep,name)
   do i=0,getlength(children)-1
     child=>item(children,i)
     if(name.eq.getNodeName(child)) countChildEmentsWithName=countChildEmentsWithName+1
-    print*, getNodeName(child) 
   end do
 
 end function  

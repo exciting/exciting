@@ -12,7 +12,7 @@ contains
 
 subroutine writevars(un, iq, iqmt)
     use modmain
-use modinput
+    use modinput
     use modxs
     implicit none
     ! arguments

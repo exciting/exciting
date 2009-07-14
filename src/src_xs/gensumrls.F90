@@ -16,7 +16,6 @@ contains
 
 subroutine gensumrls(w, eps, sumrls)
 ! !USES:
-    use modmain
     use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   w      : frequency grid (in,real(:))

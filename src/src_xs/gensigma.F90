@@ -11,7 +11,7 @@ contains
 
 
 subroutine gensigma(w, eps, oc, sigma)
-    use modmain
+    use mod_constants,only:pi,zi
     use modxs
     implicit none
     ! arguments

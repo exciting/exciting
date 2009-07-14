@@ -13,7 +13,9 @@
 subroutine writepmatxs
 ! !USES:
 use modinput
-  use modmain
+  use modmain,only:nkpt,ngkmax,apwordmax,lmmaxapw,natmtot,nmatmax,&
+  nstfv,nstsv,nlotot,nlomax,lolmax,task,vkl, vgkl,ngk,gkc,tpgkc,sfacgk,&
+  igkig,vgkc
   use modmpi
   use modxs
   use m_putpmat
