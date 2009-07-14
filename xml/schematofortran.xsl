@@ -535,18 +535,21 @@ end function
  </xsl:for-each>
 
 function countChildEmentsWithName(nodep,name)
-implicit none
-integer::countChildEmentsWithName
-type(Node),pointer,intent(in) ::nodep
-character(len=*),intent(in)::name
-type(NodeList),pointer::children
-
-integer::i
-children=>getChildNodes(nodep)
-countChildEmentsWithName=0
-do i=1,getlength(children)
-if(name.eq.getNodeName(item(children,i-1))) countChildEmentsWithName=countChildEmentsWithName+1
-end do
+  implicit none
+  integer::countChildEmentsWithName
+  type(Node),pointer,intent(in) ::nodep
+  character(len=*),intent(in)::name
+  type(NodeList),pointer::children
+  type(Node),pointer::child
+  
+  integer::i
+  children=>getChildNodes(nodep)
+  countChildEmentsWithName=0
+  do i=0,getlength(children)-1
+    child=>item(children,i)
+    if(name.eq.getNodeName(child)) countChildEmentsWithName=countChildEmentsWithName+1
+    print*, getNodeName(child) 
+  end do
 
 end function  
     <xsl:if test="$root='input'">
