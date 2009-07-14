@@ -4,7 +4,7 @@ FC = $(F90)
 
 FFLAGS = $(F90_DEBUGOPTS) $(CPP_ON_OPT) -I./finclude
 LD = $(FC)
-LDFLAGS = $(LIBS) $(F90_DEBUGOPTS)  libmsec.a    -L./lib -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
+LDFLAGS = $(LIBS) $(F90_DEBUGOPTS) leblaiklib.a  libmsec.a    -L./lib -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
 F77_OPTS =$(F77_DEBUGOPTS)
 TMPFILES = *.mod
 SUFFIX=debug

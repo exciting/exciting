@@ -19,7 +19,6 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_xml/ \
 	../../src/src_inputparser/ \
 	../../src/src_timing/ \
-	../../src/leblaiklib/ \
 	../../src/
 	
 GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
@@ -41,11 +40,11 @@ doc::
 
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a
 endif
 
 libblas.a::
@@ -91,6 +90,9 @@ lib/libFoX_common.a:
 	make 
 	cp -r ../../src/FoX/objs/* ./
 	
+leblaiklib.a::
+	cd ../../src/leblaiklib && make
+	cp ../../src/leblaiklib/leblaiklib.a ./
 	
 #cp -f ../make.inc ../..
 #cd ../../src/ARPACK && $(MAKE) clean 

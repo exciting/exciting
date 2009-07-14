@@ -6,7 +6,7 @@ F77=$(F77MT)
 ### default
 FFLAGS = $(SMPF90_OPTS) 
 LD = $(FC)
-LDFLAGS = $(SMPF90_OPTS)  $(SMP_LIBS) libmsec.a -Llib -lFoX_common	-lFoX_dom	-lFoX_fsys	-lFoX_sax	-lFoX_utils	-lFoX_wcml	-lFoX_wxml
+LDFLAGS = $(SMPF90_OPTS)  $(SMP_LIBS) leblaiklib.a libmsec.a -Llib -lFoX_common	-lFoX_dom	-lFoX_fsys	-lFoX_sax	-lFoX_utils	-lFoX_wcml	-lFoX_wxml
 F77_OPTS =$(SMPF77_OPTS)
 TMPFILES = *.mod
 SUFFIX=smp
