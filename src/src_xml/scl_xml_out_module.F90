@@ -1,18 +1,28 @@
 module scl_xml_out_Module
-use FoX_dom
+     use FoX_dom
+     use mod_energy
+     use mod_convergence
+     use mod_eigenvalue_occupancy
+     use mod_charge_and_moment
+     use mod_atoms
+     use mod_timing
+     use mod_force
+     use mod_spin
+
+     use modinput
 implicit none
-type(Node),  pointer :: sclDoc, root, np,npatt,dummy,energies,niter,nnewline,charges,atom,xst,timing,nscl,ngroundstate
- type(DOMConfiguration),pointer :: config
+type(Node),  pointer :: sclDoc, root, np,npatt,energies,niter,nnewline,charges,atom,xst,timing,nscl,ngroundstate
+ type(DOMConfiguration),pointer :: configo
  real(8)::scltime0=0
   character(512)::buffer
   character::newline
 contains
 
   subroutine scl_xml_out_create
-  use modinput
+
     ! Create a new document and get a pointer to the root element, this gives you the minimum empty dom
     sclDoc => createDocument(getImplementation(), "", "info", null())
-    config => getDomConfig(scldoc)
+    configo => getDomConfig(scldoc)
     root => getDocumentElement(sclDoc)
     xst=>createProcessingInstruction(scldoc, "xml-stylesheet",&
      'href="'//trim(input%xsltpath)//'/info.xsl" type="text/xsl"')
@@ -28,13 +38,7 @@ contains
     dummy => appendChild(root, nnewline)
   end subroutine scl_xml_out_create
   subroutine scl_iter_xmlout()
-     use mod_energy
-     use mod_convergence
-     use mod_eigenvalue_occupancy
-     use mod_charge_and_moment
-     use mod_atoms
-     use mod_timing
-     use modinput
+
      implicit none
      integer::is,ia,ias
  real(8)::scltime
@@ -141,8 +145,7 @@ contains
 
   end subroutine scl_iter_xmlout
   subroutine structure_xmlout
-     use modmain
-     use modinput
+
      implicit none
      integer::is,ia,ias
      type(Node),  pointer :: structure,crystal,basevect,species,atom,forces,text,force
@@ -230,7 +233,7 @@ contains
 	endif
   end subroutine
   subroutine scl_xml_write_moments()
-  use modmain
+
 type(Node),pointer:: moments,moment
 integer::is,ia,ias
 
