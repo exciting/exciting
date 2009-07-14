@@ -12,7 +12,7 @@ module m_common_element
   use m_common_content_model, only: content_particle_t, newCP, destroyCPtree, &
     OP_MIXED, OP_CHOICE, OP_SEQ, OP_NAME, &
     REP_QUESTION_MARK, REP_ASTERISK, &
-    transformCPPlus, dumpCPtree
+    transformCPPlus ! , dumpCPtree ! For debugging - see below.
   use m_common_error, only: error_stack, add_error, in_error
   use m_common_namecheck, only: checkName, checkNames, checkNCName, &
     checkNCNames, checkQName, checkNmtoken, checkNmtokens
@@ -79,7 +79,7 @@ module m_common_element
 
   type attribute_t
     character, pointer :: name(:) => null()
-    integer :: attType = ATT_NULL
+    integer :: attType = ATT_NULL 
     integer :: attDefault = ATT_NULL
     type(string_list) :: enumerations
     character, pointer :: default(:) => null()
@@ -141,7 +141,7 @@ module m_common_element
 
   public :: ATT_NULL
   public :: ATT_CDATA
-  public :: ATT_ID
+  public :: ATT_ID 
   public :: ATT_IDREF
   public :: ATT_IDREFS
   public :: ATT_ENTITY
@@ -720,9 +720,9 @@ contains
       element%model => vs_str_alloc(trim(strip_spaces(contents)))
       element%cp => top
       element%internal = internal
-#ifdef DEBUG
-      call dumpCPtree(top)
-#endif
+! For debugging it may be useful to dump the result here...
+! Also need to use the subroutine.
+!      call dumpCPtree(top)
     else
       if (associated(top)) call destroyCPtree(top)
     endif
@@ -792,7 +792,7 @@ contains
   end subroutine init_attribute_list
 
   subroutine destroy_attribute_t(a)
-    type(attribute_t), pointer :: a
+    type(attribute_t), pointer :: a 
 
     if (associated(a%name)) deallocate(a%name)
     if (associated(a%default)) deallocate(a%default)
@@ -855,7 +855,7 @@ contains
     a%internal = internal
 
   end function add_attribute
-
+  
   function get_attribute(a_list, name) result(a)
     type(attribute_list), intent(inout) :: a_list
     character(len=*), intent(in) :: name
@@ -1337,7 +1337,7 @@ contains
           'Incomplete Attlist declaration')
       endif
     endif
-
+    
     if (associated(name)) deallocate(name)
     if (associated(attType)) deallocate(attType)
     if (associated(default)) deallocate(default)
@@ -1450,7 +1450,7 @@ contains
   function make_token_group(s_list) result(s)
     type(string_list), intent(in) :: s_list
     character(len=make_token_group_len(s_list)) :: s
-
+    
     integer :: i, m, n
     s(1:1) = '('
     n = 2
@@ -1538,7 +1538,7 @@ contains
     case (ATT_FIXED)
       n = n + len(" #FIXED")
     end select
-
+    
     if (associated(a%default)) &
       n = n + 3 + size(a%default)
   end function express_att_decl_len
@@ -1566,7 +1566,7 @@ contains
     case (ATT_FIXED)
       s = trim(s)//" #FIXED"
     end select
-
+    
     if (associated(a%default)) &
       s = trim(s)//" """//str_vs(a%default)//""""
   end function express_attribute_declaration
@@ -1617,16 +1617,16 @@ contains
       if (verify(s1(i:i),XML_WHITESPACE)==0) w = .true.
     enddo
     if (w) n = n - 1 ! Discard final space
-
+    
   end function att_value_normalize_len
 
   function att_value_normalize(s1) result(s2)
     character(len=*), intent(in) :: s1
     character(len=att_value_normalize_len(s1)) :: s2
-
+    
     integer :: i, i2
     logical :: w
-
+    
     i = 0
     i2 = 1
     w = .true.

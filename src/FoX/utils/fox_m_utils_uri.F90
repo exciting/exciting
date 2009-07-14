@@ -365,6 +365,7 @@ contains
     p = checkNonOpaquePath(path, segments)
     if (.not.p) then
       p = checkOpaquePart(path)
+      if (p) allocate(segments(0))
     endif
 
   end function checkPath
@@ -403,6 +404,7 @@ contains
     authority => null()
     userinfo => null()
     host => null()
+    port = -1
     path => null()
     segments => null()
     query => null()
@@ -418,7 +420,7 @@ contains
       endif
     endif
     ! if either i1==0 or the scheme doesn't validate, there is no scheme..
-    if (len(URIstring)>i1+3) then
+    if (len(URIstring)>=i1+3) then
       if (URIstring(i1+1:i1+2)=="//") then
         i2 = scan(URIstring(i1+3:), "/#?")
         if (i2==0) then
@@ -614,6 +616,20 @@ contains
     type(path_segment), pointer :: seg2(:)
 
     integer :: i, n, n2, parents
+    character, pointer :: tmp(:) 
+    
+
+    ! If the last of the input segments are
+    ! equal to '.' or '..', append a slash
+    ! so the rest of the subroutine works.
+
+    if ((str_vs(seg1(size(seg1))%s) == '.').or. &
+        (str_vs(seg1(size(seg1))%s) == '..')) then
+        tmp => vs_vs_alloc(seg1(size(seg1))%s)
+        deallocate(seg1(size(seg1))%s)
+        seg1(size(seg1))%s => vs_str_alloc(str_vs(tmp)//"/")
+        deallocate(tmp)
+    endif
 
     n = 0
     parents = 0
@@ -683,7 +699,8 @@ contains
       n = size(u%scheme) + 1
     if (associated(u%authority)) &
       n = n + pctEncode_len(str_vs(u%authority), unreserved//sub_delims//"@:") + 2
-    n = n + pctEncode_len(str_vs(u%path), pchar//"/")
+    !FIXME - I suspect that ';' as the first character of a segment should be escaped
+    n = n + pctEncode_len(str_vs(u%path), pchar//";"//"/")
     if (associated(u%query)) &
       n = n + pctEncode_len(str_vs(u%query), uric) + 1
     if (associated(u%fragment)) &
@@ -709,8 +726,9 @@ contains
       i = i + j + 2
     endif
     if (size(u%path)>0) then
-      j = pctEncode_len(str_vs(u%path), pchar//"/")
-      URIstring(i:i+j-1) = pctEncode(str_vs(u%path), pchar//"/")
+      !FIXME - I suspect that ';' as the first character of a segment should be escaped
+      j = pctEncode_len(str_vs(u%path), pchar//";"//"/")
+      URIstring(i:i+j-1) = pctEncode(str_vs(u%path), pchar//";"//"/")
       i = i + j
     endif
     if (associated(u%query)) then
@@ -749,7 +767,7 @@ contains
       write(*,*) "host UNDEFINED"
     endif
     if (u%port>0) then
-      write(*,*) "port: ", u%port
+      write(*,*) "port: ", str(u%port)
     else
       write(*,*) "port UNDEFINED"
     endif

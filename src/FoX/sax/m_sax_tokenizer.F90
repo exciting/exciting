@@ -52,6 +52,7 @@ contains
     q = " "
     phrase = 0
     firstChar = .true.
+    ws_discard = .false.
     do
       c = get_character(fb, eof, fx%error_stack)
       if (eof) then

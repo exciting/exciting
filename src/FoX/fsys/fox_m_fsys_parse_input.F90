@@ -161,6 +161,9 @@ contains
       else
         sp = .true.
         do i = 1, len(s)
+          if (s_i.gt.len(data)) exit ! Truncate long input... 
+                                     ! should we set iostat to 1?
+                                     ! probably not - it will break the tests.
           if (sp) then
             if (verify(s(i:i), whitespace)/=0) then
               data(s_i:s_i) = s(i:i)
