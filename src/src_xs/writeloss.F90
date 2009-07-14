@@ -11,7 +11,10 @@ contains
 
 
 subroutine writeloss(iq, w, loss, fn)
-    use modmain,only:omega,chgval,pi
+
+    use mod_lattice
+    use mod_constants
+    use mod_charge_and_moment
     use modxs
     use m_getunit
     use m_writevars

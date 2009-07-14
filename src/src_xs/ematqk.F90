@@ -7,8 +7,14 @@
 
 
 subroutine ematqk(iq, ik)
-  use modmain
-use modinput
+  use mod_constants
+  use mod_eigenvalue_occupancy
+  use mod_misc
+  use mod_Gkvector
+  use mod_APW_LO
+  use mod_Gvector
+  use mod_kpoint
+  use modinput
   use modmpi
   use modxs
   use summations
@@ -116,7 +122,7 @@ use modinput
      call cpu_time(cpu01)
      cpuir=cpuir+cpu01-cpu00
 
-     if ((.not.input%xs%fastemat).and.(nlotot.gt.0)) then 
+     if ((.not.input%xs%fastemat).and.(nlotot.gt.0)) then
         ! muffin-tin contributions
         ! APW-lo contribution
         ! multiplication xi = xiho * evecfvu

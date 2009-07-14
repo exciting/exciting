@@ -13,7 +13,16 @@
 subroutine dfq(iq)
 ! !USES:
 use modinput
-  use modmain,only:task,vql,nkpt,nstsv,zzero,zone,wdos,zi,evalsv,efermi,omega,wkpt
+ use mod_constants
+  use mod_eigenvalue_occupancy
+  use mod_misc
+  use mod_Gkvector
+  use mod_APW_LO
+  use mod_Gvector
+  use mod_kpoint
+  use mod_qpoint
+  use mod_lattice
+  use mod_DOS_optics_response
   use modxs
   use modtetra
   use modmpi
