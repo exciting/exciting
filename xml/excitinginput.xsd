@@ -2522,80 +2522,112 @@
 							</xs:element>
 							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
-									<xs:attribute name="nosym" type="xs:boolean"
-										default="false">
+									<xs:attribute name="nosym"
+										type="xs:boolean" default="false">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>nosymbse</oldname>
+												<oldname>
+													nosymbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="reducek" type="xs:boolean"
-										default="false">
+									<xs:attribute name="reducek"
+										type="xs:boolean" default="false">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>reducekbse</oldname>
+												<oldname>
+													reducekbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
+									<xs:attribute name="vkloff"
+										type="vect3d" default="-1 -1 -1">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>vkloffbse</oldname>
+												<oldname>
+													vkloffbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="rgkmax" type="fortrandouble"
-										default="0">
+									<xs:attribute name="rgkmax"
+										type="fortrandouble" default="0">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>rgkmaxbse</oldname>
+												<oldname>
+													rgkmaxbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="scrherm" type="xs:integer"
-										default="0" />
-									<xs:attribute name="fbzq" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavbd" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavqhd" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavqwg" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavqbd" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="bsedirsing" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="lmaxdielt" type="xs:integer"
-										default="14" />
-									<xs:attribute name="nleblaik" type="xs:integer"
-										default="5810" />
-									<xs:attribute name="nexcitmax" type="xs:integer"
-										default="100" />
-									<xs:attribute name="nstlbse" type="integerpair"
-										default="0 0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>nbfbse,nafbse</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="nstlce" type="integerpair"
-										default="0 0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>nbfce,nafce</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="bsetype" default="singlet">
+									<xs:attribute name="scrherm"
+										type="xs:integer" default="0" />
+									<xs:attribute name="fbzq"
+										type="xs:boolean" default="false" />
+                  <xs:attribute name="sciavtype" default="leblaik">
 										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="ip" />
-												<xs:enumeration value="rpa" />
-												<xs:enumeration value="singlet" />
-												<xs:enumeration value="triplet" />
+											<xs:restriction
+												base="xs:string">
+												<xs:enumeration
+													value="leblaik" />
+												<xs:enumeration
+													value="screendiag" />
+												<xs:enumeration
+													value="invscreendiag" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+                  <xs:attribute name="sciavbd"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="sciavqhd"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="sciavqwg"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="sciavqbd"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="bsedirsing"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="lmaxdielt"
+										type="xs:integer" default="14" />
+									<xs:attribute name="nleblaik"
+										type="xs:integer" default="5810" />
+									<xs:attribute name="nexcitmax"
+										type="xs:integer" default="100" />
+									<xs:attribute name="nstlbse"
+										type="integerpair" default="0 0">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>
+													nbfbse,nafbse
+												</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="nstlce"
+										type="integerpair" default="0 0">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>
+													nbfce,nafce
+												</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="bsetype"
+										default="singlet">
+										<xs:simpleType>
+											<xs:restriction
+												base="xs:string">
+												<xs:enumeration
+													value="ip" />
+												<xs:enumeration
+													value="rpa" />
+												<xs:enumeration
+													value="singlet" />
+												<xs:enumeration
+													value="triplet" />
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
