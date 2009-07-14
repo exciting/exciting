@@ -50,7 +50,7 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   complex(8), allocatable :: ei00(:),eix0(:),eixx(:)
   complex(8), allocatable :: ei00lm(:),eix0lm(:),eixxlm(:)
   complex(8), allocatable :: ylm(:),zylm(:,:)
-  complex(8), allocatable :: b(:,:),bi(:,:),u(:,:),s(:,:)
+  complex(8), allocatable :: b(:,:),bi(:,:),u(:,:),s(:,:),e3(:,:),ie3(:,:)
   ! scaling factor
   t00=(omega/(twopi)**3)*product(ngridq)
 
@@ -61,13 +61,14 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   ! Wigner-Seitz radius and spherical approximation to 1/q^2 average
   qsz=(6*pi**2/vomega)**(1.d0/3.d0)
   ! weight for sqrt(4pi)/q based on Wigner-Seitz radius
-  w1=qsz**2*vomega/(pi*sqrt(fourpi))
+  w1=qsz**2*vomega/(4.d0*pi**2)*sqrt(fourpi)
   ! weight for 4pi/q^2 based on Wigner-Seitz radius
-  w2=2*qsz*omega*product(ngridq)/pi
-  ! average diagonal components of screening tensor and take the inverse
-  zsd=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0)
-  ! average the inverse of the diagonal components of screening tensor
-  zisd=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
+  w2=2*qsz*vomega/pi
+
+ ! ! average diagonal components of screening tensor and take the inverse
+ ! zsd=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0)
+ ! ! average the inverse of the diagonal components of screening tensor
+ ! zisd=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
 
   ! invert dielectric tensor
   dielten0(:,:)=scrnh(:,:)
@@ -92,6 +93,18 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   	  write(*,*)
   	  stop
   	end if
+  	allocate(e3(n+2,n+2),ie3(n+2,n+2))
+  	! invert dielectric matrix including 3 times G=0 according to the limits
+  	! q->0_x, q->0_y, q->0_z
+  	! G=0, G'=0 elements
+  	e3(1:3,1:3)=dielten0(:,:)
+  	! G!=0, G'=0 components and vice versa
+  	if (n.gt.1) then
+  	  e3(4:n+2,1:3)=conjg(scrnw(2:,1,:)) !check
+  	  e3(1:3,4:n+2)=scrnw(2:,2,:) !check
+  	  e3(4:n,4:n)=scrn(2:,2:)
+  	  call zinvert_hermitian(scrherm,e3,ie3)
+    end if
   end if
 
   ! calculate averaged screened Coulomb interaction in Fourier space at Gamma point
@@ -191,21 +204,30 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
 	     end if
 	  end do
 	  deallocate(ei00,ei00lm,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
+	  if (n.gt.1) deallocate(b,bi,u,s)
   case('screendiag')
   	! head
-    !!scieff(1,1)=
+    scieff(1,1)=w2*(e3(1,1)+ie3(2,2)+ie3(3,3))/3.d0
+    ! wings, set to zero in this approximation
+    scieff(2,:)=zzero
+    scieff(:,2)=zzero
+  case('invscreendiag')
+  	! head
+    scieff(1,1)=w2*(ie3(1,1)+ie3(2,2)+ie3(3,3))/3.d0
     ! wings
     do j1=2,n
-      scieff(j1,1)=
+      scieff(j1,1)=w1*sptclg(j1,iq0)*(ie3(j1+2,1)+ie3(j1+2,2)+ie3(j1+3,3))/3.d0
       scieff(1,j1)=conjg(scieff(j1,1))
     end do
-  case('invscreendiag')
   case default
   	write(*,*)
   	write(*,'("Error(angavsc0): invalid averaging method")')
   	write(*,*)
   	stop
   end select
+
+  if ((trim(sciavtype).eq.'screendiag').or.(trim(sciavtype).eq.'invscreendiag')) &
+  	deallocate(e3,ie3)
 
 end subroutine angavsc0
 
