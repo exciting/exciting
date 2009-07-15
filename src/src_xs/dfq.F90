@@ -451,7 +451,7 @@ subroutine dfq(iq)
         end do
      end do
      !!! re-assign the head
-     !!!chi0h(:,:,:)=chi0hs(:,:,:)
+     chi0h(:,:,:)=chi0hs(:,:,:)
      ! write dielectric tensor to file
   	 forall (iw=1:nwdf)
    		eps0(:,:,iw)=dble(krondelta)-chi0hs(:,:,iw)
