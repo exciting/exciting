@@ -10,8 +10,6 @@ subroutine screen
   ! local variables
   integer :: nwdft
   nwdft=nwdf
-  nwdf=1
-  emattype=1
   call genfilname(dotext='_SCR.OUT',setfilext=.true.)
   ! call dielectric function with only one frequency point
   call df

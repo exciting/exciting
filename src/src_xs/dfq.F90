@@ -454,6 +454,14 @@ subroutine dfq(iq)
      deallocate(chi0hs)
   end if
   ! write dielectric tensor to file
+
+  !sag: debug
+  if (tscreen) then
+  	write(777,*) 'shape(chi0h)',shape(chi0h)
+  	write(777,*) chi0h
+  end if
+
+
   if (rank.eq.0) call writedielt(nwdf,dble(w),chi0h,0)
   ! write response function to file
   if (tscreen) then
