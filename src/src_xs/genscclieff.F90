@@ -42,9 +42,9 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   complex(8), intent(out) :: scieff(nmax,nmax)
   ! local variables
   integer, parameter :: nsphcov=5810,iq0=1
-  integer :: j1,j2,itp,lm,ntpsph
+  integer :: iop,jop,j1,j2,itp,lm,ntpsph
   real(8) :: vomega,t00,r,qsz,clwt
-  complex(8) :: zsd,zisd,w1,w2
+  complex(8) :: dt(3,3),zsd,zisd,w1,w2
   real(8), allocatable :: plat(:,:),p(:),tp(:,:),spc(:,:),w(:)
   complex(8), allocatable :: m00lm(:),mx0lm(:),mxxlm(:)
   complex(8), allocatable :: ei00(:),eix0(:),eixx(:)
@@ -65,11 +65,6 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   ! weight for 4pi/q^2 based on Wigner-Seitz radius
   w2=2*qsz*vomega/pi
 
- ! ! average diagonal components of screening tensor and take the inverse
- ! zsd=1.d0/((dielten(1,1)+dielten(2,2)+dielten(3,3))/3.d0)
- ! ! average the inverse of the diagonal components of screening tensor
- ! zisd=(1.d0/dielten(1,1)+1.d0/dielten(2,2)+1.d0/dielten(3,3))/3.d0
-
   ! invert dielectric tensor
   dielten0(:,:)=scrnh(:,:)
   if (n.gt.1) then
@@ -86,13 +81,15 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
      dielten=dielten0
   end if
 
-
-write(*,*) 'herm b?',maxval(abs(b-conjg(transpose(b))))
-write(*,*) 'herm bi?',maxval(abs(bi-conjg(transpose(bi))))
-stop 'debug stop'
-
-
+  ! symmetrize the dielectric tensor
+  dt(:,:)=dielten(:,:)
+  do iop=1,3
+  	do jop=1,3
+  	  call symt2app(iop,jop,1,symt2,dt, dielten(iop,jop))
+  	end do
+  end do
   call writedielt('DIELTENS',1,0.d0,dielten,1)
+  call writedielt('DIELTENS_NOSYM',1,0.d0,dt,1)
 
   if ((trim(sciavtype).eq.'screendiag').or.(trim(sciavtype).eq.'invscreendiag')) then
   	if (sciavbd) then
@@ -108,8 +105,8 @@ stop 'debug stop'
   	e3(1:3,1:3)=dielten0(:,:)
   	! G!=0, G'=0 components and vice versa
   	if (n.gt.1) then
-  	  e3(4:n+2,1:3)=conjg(scrnw(2:,1,:)) !check
-  	  e3(1:3,4:n+2)=scrnw(2:,2,:) !check
+  	  e3(1:3,4:n+2)=scrnw(2:,1,:)
+  	  e3(4:n+2,1:3)=scrnw(2:,2,:)
   	  e3(4:n,4:n)=scrn(2:,2:)
   	  call zinvert_hermitian(scrherm,e3,ie3)
     end if
@@ -195,7 +192,7 @@ stop 'debug stop'
 	        do j2=j1,n
 	           do itp=1,ntpsph
 	              ! body, B^-1 + p*S p*conjg(S)/(p*L*p)
-	              eixx(itp)=bi(j1-1,j2-1)*dot_product(spc(:,itp),s(j1-1,:))* &
+	              eixx(itp)=bi(j1-1,j2-1) + dot_product(spc(:,itp),s(j1-1,:))* &
 	                   dot_product(s(j2-1,:),spc(:,itp))*ei00(itp)
 	           end do
 	           do lm=1,lmmaxdielt
@@ -215,18 +212,29 @@ stop 'debug stop'
 	  if (n.gt.1) deallocate(b,bi,u,s)
   case('screendiag')
   	! head
-    scieff(1,1)=w2*(e3(1,1)+ie3(2,2)+ie3(3,3))/3.d0
-    ! wings, set to zero in this approximation
-    scieff(2,:)=zzero
-    scieff(:,2)=zzero
+    scieff(1,1)=w2*1.d0/((e3(1,1)+ie3(2,2)+ie3(3,3))/3.d0)
+	if (n.gt.1) then
+      ! wings, set to zero in this approximation
+      scieff(1,2:n)=zzero
+      scieff(2:n,1)=zzero
+      ! body, only diagonal is assigned
+      scieff(2:n,2:n)=zzero
+      forall (j1=2:n)
+        scieff(j1,j1)=1.d0/e3(j1+2,j1+2)
+      end forall
+    end if
   case('invscreendiag')
   	! head
     scieff(1,1)=w2*(ie3(1,1)+ie3(2,2)+ie3(3,3))/3.d0
     ! wings
-    do j1=2,n
-      scieff(j1,1)=w1*sptclg(j1,iq0)*(ie3(j1+2,1)+ie3(j1+2,2)+ie3(j1+3,3))/3.d0
-      scieff(1,j1)=conjg(scieff(j1,1))
-    end do
+    if (n.gt.1) then
+	  forall (j1=2:n)
+	    scieff(j1,1)=w1*sptclg(j1,iq0)*(ie3(j1+2,1)+ie3(j1+2,2)+ie3(j1+3,3))/3.d0
+	    scieff(1,j1)=conjg(scieff(j1,1))
+	  end forall
+      ! body
+      scieff(2:n,2:n)=ie3(4:,4:)
+    end if
   case default
   	write(*,*)
   	write(*,'("Error(angavsc0): invalid averaging method")')

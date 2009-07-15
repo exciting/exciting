@@ -10,8 +10,8 @@ subroutine writedielt(filtag,nw,w,dt,switch)
   ! arguments
   character(*), intent(in) :: filtag
   integer, intent(in) :: nw
-  complex(8), intent(in) :: dt(3,3,nw)
   real(8), intent(in) :: w(nw)
+  complex(8), intent(in) :: dt(3,3,nw)
   integer, intent(in) :: switch
   ! local variables
   integer :: un,oct,iw

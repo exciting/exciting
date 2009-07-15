@@ -438,33 +438,26 @@ subroutine dfq(iq)
   if (tscreen) call ematqdealloc
   ! symmetrize head
   if (tq0) then
-     allocate(chi0hs(3,3,nwdfp))
+     allocate(chi0hs(3,3,nwdfp),eps0(3,3,nwdf))
+     ! write dielectric tensor to file (unsymmetrized)
+  	 forall (iw=1:nwdf)
+   		eps0(:,:,iw)=dble(krondelta)-chi0h(:,:,iw)
+     end forall
+  	 if (rank.eq.0) call writedielt('DIELTENS0_NOSYM',1,0.d0,eps0(:,:,1),0)
+     ! symmetrize the macroscopic dielectric function tensor
      do oct1=1,3
         do oct2=1,3
-        ! symmetrize the macroscopic dielectric function tensor
-        call symt2app(oct1,oct2,nwdf,symt2,chi0h, chi0hs(oct1,oct2,:))
-
-!           chi0hs(oct1,oct2,:)=zzero
-!           do i=1,3
-!              do j=1,3
-!                 chi0hs(oct1,oct2,:)=chi0hs(oct1,oct2,:)+symt2(oct1,oct2,i,j)* &
-!                      chi0h(i,j,:)
-!              end do
-!           end do
-
+        call symt2app(oct1,oct2,nwdfp,symt2,chi0h, chi0hs(oct1,oct2,:))
         end do
      end do
-     chi0h(:,:,:)=chi0hs(:,:,:)
-     deallocate(chi0hs)
-  end if
-  ! write dielectric tensor to file
-  if ((rank.eq.0).and.tq0) then
-  	allocate(eps0(3,3,nwdf))
-  	forall (iw=1:nwdf)
-  		eps0(:,:,iw)=dble(krondelta)-chi0h(:,:,iw)
-    end forall
-  	call writedielt('DIELTENS0',nwdf,dble(w),eps0,0)
-  	deallocate(eps0)
+     !!! re-assign the head
+     !!!chi0h(:,:,:)=chi0hs(:,:,:)
+     ! write dielectric tensor to file
+  	 forall (iw=1:nwdf)
+   		eps0(:,:,iw)=dble(krondelta)-chi0hs(:,:,iw)
+     end forall
+  	 if (rank.eq.0) call writedielt('DIELTENS0',1,0.d0,eps0(:,:,1),0)
+  	 deallocate(chi0hs,eps0)
   end if
   ! write response function to file
   if (tscreen) then
