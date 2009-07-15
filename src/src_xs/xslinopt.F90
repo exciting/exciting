@@ -96,14 +96,9 @@ subroutine xslinopt(iq)
            octu=oct1
         end if
         do oct2=octl,octu
-           optcompt(:)=(/oct1,oct2,0/)  
+           optcompt(:)=(/oct1,oct2,0/)
            ! symmetrize the macroscopic dielectric function tensor
-           mdf(:)=zzero
-           do i=1,3
-              do j=1,3
-                 mdf(:)=mdf(:)+symt2(oct1,oct2,i,j)*mdf2(i,j,:)
-              end do
-           end do
+           call symt2app(oct1,oct2,nwdf,symt2,mdf2, mdf)
            ! file names for spectra
            call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
                 acont=acont,nar=.not.aresdf,nlf=(m==1),fxctype=fxctype,&
@@ -134,3 +129,23 @@ subroutine xslinopt(iq)
   deallocate(mdf,mdf1,mdf2,w,wr,wplot,loss,sigma)
   deallocate(eps1,eps2,cf)
 end subroutine xslinopt
+
+!///////////////////////////////////////////////////////////////////////////////
+
+subroutine symt2app(oct1,oct2,n,symt2,t,tsym)
+  implicit none
+  ! arguments
+  integer, intent(in) :: oct1,oct2,n
+  real(8), intent(in) :: symt2(3,3,3,3)
+  complex(8), intent(in) :: t(3,3,n)
+  complex(8), intent(out) :: tsym(n)
+  ! local variables
+  integer :: i,j
+  ! symmetrize the macroscopic dielectric function tensor
+  tsym(:)=(0.d0,0.d0)
+  do i=1,3
+     do j=1,3
+        tsym(:)=tsym(:)+symt2(oct1,oct2,i,j)*t(i,j,:)
+     end do
+  end do
+end subroutine

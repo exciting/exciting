@@ -86,6 +86,14 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
      dielten=dielten0
   end if
 
+
+write(*,*) 'herm b?',maxval(abs(b-conjg(transpose(b))))
+write(*,*) 'herm bi?',maxval(abs(bi-conjg(transpose(bi))))
+stop 'debug stop'
+
+
+  call writedielt('DIELTENS',1,0.d0,dielten,1)
+
   if ((trim(sciavtype).eq.'screendiag').or.(trim(sciavtype).eq.'invscreendiag')) then
   	if (sciavbd) then
       write(*,*)

@@ -14,7 +14,7 @@ subroutine symtr2(t2)
 !   Symmetrizes a rank-2 tensor wrt.the rotational part of the crystal
 !   symmetries:
 !   $$ t_{ij}^{\rm sym} = \frac{1}{N_{\alpha}}\sum_{\alpha} \sum_{k,l}
-!     \alpha_{ik}\alpha{jl}t_{kl}. $$
+!     \alpha_{ik} \alpha_{jl} t_{kl}. $$
 !
 ! !REVISION HISTORY:
 !   Created October 2008 (Sagmeister)

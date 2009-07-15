@@ -2566,12 +2566,12 @@
 										type="xs:integer" default="0" />
 									<xs:attribute name="fbzq"
 										type="xs:boolean" default="false" />
-                  <xs:attribute name="sciavtype" default="leblaik">
+                  <xs:attribute name="sciavtype" default="spherical">
 										<xs:simpleType>
 											<xs:restriction
 												base="xs:string">
 												<xs:enumeration
-													value="leblaik" />
+													value="spherical" />
 												<xs:enumeration
 													value="screendiag" />
 												<xs:enumeration

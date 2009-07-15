@@ -3,11 +3,12 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-subroutine writedielt(nw,w,dt,switch)
+subroutine writedielt(filtag,nw,w,dt,switch)
   use modmain
   use m_getunit
-  implicit none  
+  implicit none
   ! arguments
+  character(*), intent(in) :: filtag
   integer, intent(in) :: nw
   complex(8), intent(in) :: dt(3,3,nw)
   real(8), intent(in) :: w(nw)
@@ -15,7 +16,7 @@ subroutine writedielt(nw,w,dt,switch)
   ! local variables
   integer :: un,oct,iw
   call getunit(un)
-  open(un,file='DIELTENS'//trim(filext),form='formatted',action='write', &
+  open(un,file=trim(filtag)//trim(filext),form='formatted',action='write', &
        status='replace')
   write(un,*)
   if (switch.eq.0) then
@@ -27,8 +28,7 @@ subroutine writedielt(nw,w,dt,switch)
   do iw=1,nw
      write(un,'(" frequency index and value: ",i6,f14.8)') iw,w(iw)
      write(un,'(" real part, imaginary part below")')
-     write(un,'(3f14.8,5x,3f14.8)') (dble(dt(oct,:,iw)),aimag(dt(oct,:,iw)), &
-          oct=1,3)
+     write(un,'(3f14.8,5x,3f14.8)') (dble(dt(oct,:,iw)),aimag(dt(oct,:,iw)),oct=1,3)
      write(un,*)
   end do
   close(un)

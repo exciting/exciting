@@ -17,7 +17,7 @@ files="\
 	GQPOINTS_*.OUT KMAPKQ_*.OUT QPOINTS*.OUT \
 	EIGVAL_*.OUT EFERMI_*.OUT \
 	FXC_BSE_HEAD*.OUT \
-	BSEDIAG.OUT DIELTENS_*.OUT \
+	BSEDIAG.OUT DIELTENS*_*.OUT \
 	EXCITON_*.OUT EPSILON_*.OUT LOSS_*.OUT SIGMA_*.OUT SUMRULES_*.OUT \
 "
 # The following files are larger than the others in the list above.

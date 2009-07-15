@@ -278,6 +278,7 @@ vkloffscr(:)=-1.d0
 rgkmaxscr=0.d0
 nemptyscr=0
 scrherm=0
+sciavtype='spherical'
 sciavbd=.false.
 sciavqhd=.false.
 sciavqwg=.false.
@@ -1365,7 +1366,7 @@ case('scrherm')
 case('sciavtype')
    read(50,*,err=20) sciavtype
    select case(trim(sciavtype))
-   case('spherical','screendiag','invscreendiag','triplet')
+   case('spherical','screendiag','invscreendiag')
    case default
       write(*,*)
       write(*,'("Error(readinput/xs): unknown sciavtype-type: ",a)') &

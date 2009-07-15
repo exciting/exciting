@@ -83,7 +83,7 @@ subroutine dfq(iq)
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:,:,:),hdg(:,:,:)
-  complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:,:)
+  complex(8), allocatable :: chi0w(:,:,:,:),chi0h(:,:,:),eps0(:,:,:)
   complex(8), allocatable :: wou(:),wuo(:),wouw(:),wuow(:),wouh(:),wuoh(:)
   complex(8), allocatable :: zvou(:),zvuo(:), chi0hs(:,:,:),bsedg(:,:)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
@@ -441,28 +441,31 @@ subroutine dfq(iq)
      allocate(chi0hs(3,3,nwdfp))
      do oct1=1,3
         do oct2=1,3
-           chi0hs(oct1,oct2,:)=zzero
-           do i=1,3
-              do j=1,3
-                 chi0hs(oct1,oct2,:)=chi0hs(oct1,oct2,:)+symt2(oct1,oct2,i,j)* &
-                      chi0h(i,j,:)
-              end do
-           end do
+        ! symmetrize the macroscopic dielectric function tensor
+        call symt2app(oct1,oct2,nwdf,symt2,chi0h, chi0hs(oct1,oct2,:))
+
+!           chi0hs(oct1,oct2,:)=zzero
+!           do i=1,3
+!              do j=1,3
+!                 chi0hs(oct1,oct2,:)=chi0hs(oct1,oct2,:)+symt2(oct1,oct2,i,j)* &
+!                      chi0h(i,j,:)
+!              end do
+!           end do
+
         end do
      end do
      chi0h(:,:,:)=chi0hs(:,:,:)
      deallocate(chi0hs)
   end if
   ! write dielectric tensor to file
-
-  !sag: debug
-  if (tscreen) then
-  	write(777,*) 'shape(chi0h)',shape(chi0h)
-  	write(777,*) chi0h
+  if ((rank.eq.0).and.tq0) then
+  	allocate(eps0(3,3,nwdf))
+  	forall (iw=1:nwdf)
+  		eps0(:,:,iw)=dble(krondelta)-chi0h(:,:,iw)
+    end forall
+  	call writedielt('DIELTENS0',nwdf,dble(w),eps0,0)
+  	deallocate(eps0)
   end if
-
-
-  if (rank.eq.0) call writedielt(nwdf,dble(w),chi0h,0)
   ! write response function to file
   if (tscreen) then
      ! write out screening
