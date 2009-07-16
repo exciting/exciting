@@ -1,9 +1,9 @@
-zeroth frequency moment sumrule (num. val. el.):   5.044676032    (   4.000000000    )
-first frequency moment sumrule  (num. val. el.):  0.1454502399E-02(   4.000000000    )
-pi half sumrule                 (target)       :  0.4154030788E-01(   1.570796327    )
+zeroth frequency moment sumrule (num. val. el.):   5.044686750    (   4.000000000    )
+first frequency moment sumrule  (num. val. el.):  0.1454522833E-02(   4.000000000    )
+pi half sumrule                 (target)       :  0.4153905017E-01(   1.570796327    )
  
-## Date (YYYY-MM-DD): 2009-07-12
-## Time (hh:mm:ss)  : 23:46:56
+## Date (YYYY-MM-DD): 2009-07-16
+## Time (hh:mm:ss)  : 11:37:09
 # version           : 0.9.224
 # version (xs)      : 0.091
 # efermi (H,eV)     :    0.202574    5.512329

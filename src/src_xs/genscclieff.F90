@@ -220,7 +220,7 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
       ! body, only diagonal is assigned
       scieff(2:n,2:n)=zzero
       forall (j1=2:n)
-        scieff(j1,j1)=1.d0/e3(j1+2,j1+2)
+        scieff(j1,j1)=sptclg(j1,iq0)**2/e3(j1+2,j1+2)
       end forall
     end if
   case('invscreendiag')
@@ -233,7 +233,9 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
 	    scieff(1,j1)=conjg(scieff(j1,1))
 	  end forall
       ! body
-      scieff(2:n,2:n)=ie3(4:,4:)
+      forall (j1:2:n)
+        scieff(j1,j1)=sptclg(j1,iq0)**2*ie3(j1+2,j1+2)
+      end forall
     end if
   case default
   	write(*,*)

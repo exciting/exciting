@@ -1,12 +1,12 @@
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091) started  |
-| git hash id : 0bf5415f12c11fea796c                       |
+| git hash id : 3db8700c92f5b8cf5792                       |
 | compiled for serial execution                            |
 + ---------------------------------------------------------+
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:04:12
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:35:27
 Info(xsinit): task Nr.   301 started
 Info(xsgeneigvec): eigenvectors generated for Q-point (iq,vql below)
      1   0.000000000       0.000000000       0.000000000    
@@ -14,42 +14,42 @@ Info(xsgeneigvec): first Q-point is Gamma-point - copying relevant files
 Info(xsgeneigvec): generation of eigenvectors finished
 Info(xsfinit): task Nr.     301 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:04:23
-  CPU time               : 8.48 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 08 s )
-  wall time              : 10.94 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 11 s )
-  CPU load               : 77.57 %
-  CPU time  (cumulative) : 201.53 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 22 s )
-  wall time (cumulative) : 10.94 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 11 s )
-  CPU load  (cumulative) : 77.57 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:35:32
+  CPU time               : 4.10 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+  wall time              : 4.44 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+  CPU load               : 92.30 %
+  CPU time  (cumulative) : 4.11 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+  wall time (cumulative) : 4.44 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
+  CPU load  (cumulative) : 92.30 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:04:23
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:35:32
 Info(xsinit): task Nr.   320 started
 Info(writepmatxs): momentum matrix elements finished
 Info(xsfinit): task Nr.     320 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:04:33
-  CPU time               : 7.85 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 08 s )
-  wall time              : 9.53 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
-  CPU load               : 82.33 %
-  CPU time  (cumulative) : 209.39 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 29 s )
-  wall time (cumulative) : 20.47 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 20 s )
-  CPU load  (cumulative) : 82.33 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:35:35
+  CPU time               : 3.29 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+  wall time              : 3.49 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+  CPU load               : 94.13 %
+  CPU time  (cumulative) : 7.40 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 07 s )
+  wall time (cumulative) : 7.94 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 08 s )
+  CPU load  (cumulative) : 94.13 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:04:33
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:35:35
 Info(xsinit): task Nr.   330 started
 Info(writeemat): Gaunt coefficients generated within lmax values:      10       2      10
 Info(writeemat): number of q-points:      1
@@ -59,22 +59,22 @@ Info(writeemat): matrix elements of the exponentials finished for q-point:      
 Info(writeemat): matrix elements of exponential expression finished
 Info(xsfinit): task Nr.     330 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:04:39
-  CPU time               : 4.46 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 04 s )
-  wall time              : 5.83 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 06 s )
-  CPU load               : 76.42 %
-  CPU time  (cumulative) : 213.84 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 34 s )
-  wall time (cumulative) : 26.30 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 26 s )
-  CPU load  (cumulative) : 76.42 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:35:38
+  CPU time               : 2.21 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+  wall time              : 2.28 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+  CPU load               : 97.00 %
+  CPU time  (cumulative) : 9.60 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
+  wall time (cumulative) : 10.21 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
+  CPU load  (cumulative) : 97.00 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:04:39
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:35:38
 Info(xsinit): task Nr.   401 started
  
 Info(xsinit): mapping screening-specific parameters
@@ -84,22 +84,22 @@ Info(xsgeneigvec): generation of eigenvectors finished
 Info(scrgeneigvec): eigenvectors for screening finished
 Info(xsfinit): task Nr.     401 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:04:45
-  CPU time               : 4.68 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
-  wall time              : 6.25 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 06 s )
-  CPU load               : 74.85 %
-  CPU time  (cumulative) : 218.52 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 39 s )
-  wall time (cumulative) : 32.56 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 33 s )
-  CPU load  (cumulative) : 74.85 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:35:40
+  CPU time               : 2.44 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+  wall time              : 2.51 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 03 s )
+  CPU load               : 97.34 %
+  CPU time  (cumulative) : 12.05 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 12 s )
+  wall time (cumulative) : 12.72 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 13 s )
+  CPU load  (cumulative) : 97.34 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:04:45
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:35:40
 Info(xsinit): task Nr.   420 started
  
 Info(xsinit): mapping screening-specific parameters
@@ -108,22 +108,22 @@ Info(writepmatxs): momentum matrix elements finished
 Info(scrwritepmat): momentum matrix elements for screening finished
 Info(xsfinit): task Nr.     420 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:04:58
-  CPU time               : 9.91 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
-  wall time              : 12.96 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 13 s )
-  CPU load               : 76.46 %
-  CPU time  (cumulative) : 228.43 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 48 s )
-  wall time (cumulative) : 45.52 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 46 s )
-  CPU load  (cumulative) : 76.46 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:35:45
+  CPU time               : 4.72 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+  wall time              : 5.05 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
+  CPU load               : 93.42 %
+  CPU time  (cumulative) : 16.77 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 17 s )
+  wall time (cumulative) : 17.77 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 18 s )
+  CPU load  (cumulative) : 93.42 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:04:58
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:35:45
 Info(xsinit): task Nr.   430 started
  
 Info(xsinit): mapping screening-specific parameters
@@ -160,22 +160,22 @@ Info(df): Kohn-Sham response function finished
 Info(screen): Screening finished
 Info(xsfinit): task Nr.     430 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:05:20
-  CPU time               : 17.11 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 17 s )
-  wall time              : 21.83 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 22 s )
-  CPU load               : 78.34 %
-  CPU time  (cumulative) : 245.54 sec; 0.07 hrs; ( 0 d, 00 h, 04 m, 06 s )
-  wall time (cumulative) : 67.36 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 07 s )
-  CPU load  (cumulative) : 78.34 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:35:57
+  CPU time               : 10.24 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
+  wall time              : 11.67 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 12 s )
+  CPU load               : 87.71 %
+  CPU time  (cumulative) : 27.01 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 27 s )
+  wall time (cumulative) : 29.44 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 29 s )
+  CPU load  (cumulative) : 87.71 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:05:20
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:35:57
 Info(xsinit): task Nr.   440 started
  
 Info(xsinit): mapping BSE-specific parameters
@@ -189,22 +189,22 @@ file size for screened Coulomb interaction (GB):       0.000
 Info(scrcoulint): Screened Coulomb interaction finished
 Info(xsfinit): task Nr.     440 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:05:46
-  CPU time               : 20.85 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 21 s )
-  wall time              : 26.25 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 26 s )
-  CPU load               : 79.43 %
-  CPU time  (cumulative) : 266.39 sec; 0.07 hrs; ( 0 d, 00 h, 04 m, 26 s )
-  wall time (cumulative) : 93.61 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 34 s )
-  CPU load  (cumulative) : 79.43 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:36:09
+  CPU time               : 10.18 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 10 s )
+  wall time              : 12.00 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 12 s )
+  CPU load               : 84.82 %
+  CPU time  (cumulative) : 37.19 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 37 s )
+  wall time (cumulative) : 41.45 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 41 s )
+  CPU load  (cumulative) : 84.82 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:05:46
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:36:09
 Info(xsinit): task Nr.   441 started
  
 Info(xsinit): mapping BSE-specific parameters
@@ -215,22 +215,22 @@ Info(findocclims): system has Kohn-Sham gap
 Info(exccoulint): Exchange Coulomb interaction finished
 Info(xsfinit): task Nr.     441 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:05:53
-  CPU time               : 4.50 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 05 s )
-  wall time              : 7.10 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 07 s )
-  CPU load               : 63.43 %
-  CPU time  (cumulative) : 270.90 sec; 0.08 hrs; ( 0 d, 00 h, 04 m, 31 s )
-  wall time (cumulative) : 100.71 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 41 s )
-  CPU load  (cumulative) : 63.43 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:36:11
+  CPU time               : 1.89 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+  wall time              : 2.43 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
+  CPU load               : 77.95 %
+  CPU time  (cumulative) : 39.08 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 39 s )
+  wall time (cumulative) : 43.88 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 44 s )
+  CPU load  (cumulative) : 77.95 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:05:53
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:36:11
 Info(xsinit): task Nr.   445 started
  
 Info(xsinit): mapping BSE-specific parameters
@@ -246,31 +246,31 @@ Info(bse): information on number of states:
   range of third index and number  :     5    10        6
   range of fourth index and number :     5    10        6
 Info(bse): read diagonal of BSE kernel
- mean value :   0.6613710888E-02  0.1589011361E-13
+ mean value :   0.6603512099E-02  0.1585657964E-13
 Info(bse): gap:  0.9392893547E-01
  
 Info(bse): invoking Lapack routine ZHEEVX
  size of BSE-Hamiltonian       :      192
  number of requested solutions :      100
- timing (in seconds)           :       0.210
+ timing (in seconds)           :       0.094
 Info(xsfinit): task Nr.     445 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:05:55
-  CPU time               : 1.11 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
-  wall time              : 2.04 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 02 s )
-  CPU load               : 54.36 %
-  CPU time  (cumulative) : 272.00 sec; 0.08 hrs; ( 0 d, 00 h, 04 m, 32 s )
-  wall time (cumulative) : 102.75 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 43 s )
-  CPU load  (cumulative) : 54.36 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:36:12
+  CPU time               : 0.50 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+  wall time              : 0.61 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 01 s )
+  CPU load               : 81.45 %
+  CPU time  (cumulative) : 39.58 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 40 s )
+  wall time (cumulative) : 44.49 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 44 s )
+  CPU load  (cumulative) : 81.45 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:05:55
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:36:12
 Info(xsinit): task Nr.   450 started
  
 Info(xsinit): mapping BSE-specific parameters
@@ -279,25 +279,25 @@ Info(kernxc_bse): Gaunt coefficients generated within lmax values:      10      
 Info(kernxc_bse): number of q-points:      8
 Info(findocclims): system has Kohn-Sham gap
 Info(kernxc_bse): read diagonal of BSE kernel
- mean value :   0.6613710888E-02  0.1589011361E-13
+ mean value :   0.6603512099E-02  0.1585657964E-13
 Info(xsfinit): task Nr.     450 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:07:04
-  CPU time               : 49.69 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 50 s )
-  wall time              : 69.52 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 10 s )
-  CPU load               : 71.47 %
-  CPU time  (cumulative) : 321.69 sec; 0.09 hrs; ( 0 d, 00 h, 05 m, 22 s )
-  wall time (cumulative) : 172.27 sec; 0.05 hrs; ( 0 d, 00 h, 02 m, 52 s )
-  CPU load  (cumulative) : 71.47 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:36:36
+  CPU time               : 20.22 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 20 s )
+  wall time              : 24.41 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 24 s )
+  CPU load               : 82.85 %
+  CPU time  (cumulative) : 59.80 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 00 s )
+  wall time (cumulative) : 68.90 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 09 s )
+  CPU load  (cumulative) : 82.85 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:07:04
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:36:36
 Info(xsinit): task Nr.   340 started
 Info(findocclims): system has Kohn-Sham gap
 Info(dfq): Gamma q-point: using momentum matrix elements for dielectric function
@@ -308,27 +308,27 @@ Info(dfq): limits for band combinations nst1,nst2,nst3,nst4:     4     6     6  
 Info(dfq): limits for band combinations istl1,istu1,istl2,istu2:     1     4     5    10
 Info(dfq): limits for band combinations istl3,istu3,istl4,istu4:     5    10     1     4
 Info(dfq): read diagonal of BSE kernel
- mean value :   0.6613710888E-02  0.1589011361E-13
+ mean value :   0.6603512099E-02  0.1585657964E-13
 Info(df): Kohn Sahm response function finished for q-point:       1
 Info(df): Kohn-Sham response function finished
 Info(xsfinit): task Nr.     340 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:07:40
-  CPU time               : 28.00 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 28 s )
-  wall time              : 35.89 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 36 s )
-  CPU load               : 78.02 %
-  CPU time  (cumulative) : 349.69 sec; 0.10 hrs; ( 0 d, 00 h, 05 m, 50 s )
-  wall time (cumulative) : 208.16 sec; 0.06 hrs; ( 0 d, 00 h, 03 m, 28 s )
-  CPU load  (cumulative) : 78.02 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:36:47
+  CPU time               : 9.34 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 09 s )
+  wall time              : 10.56 sec; 0.00 hrs; ( 0 d, 00 h, 00 m, 11 s )
+  CPU load               : 88.43 %
+  CPU time  (cumulative) : 69.14 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 09 s )
+  wall time (cumulative) : 79.46 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 19 s )
+  CPU load  (cumulative) : 88.43 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
 +----------------------------------------------------------+
  
  
-Date (YYYY-MM-DD) : 2009-07-12
-Time (hh:mm:ss)   : 21:07:40
+Date (YYYY-MM-DD) : 2009-07-16
+Time (hh:mm:ss)   : 11:36:47
 Info(xsinit): task Nr.   350 started
 Exchange-correlation kernel type :   8
   BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), including local field effects
@@ -338,14 +338,14 @@ Info(idf): TDDFT linear optics finished for q-point:       1
 Info(idf): TDDFT linear optics finished
 Info(xsfinit): task Nr.     350 stopped gracefully
 Timings: 
-  Date (YYYY-MM-DD) : 2009-07-12
-  Time (hh:mm:ss)   : 21:09:43
-  CPU time               : 62.14 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 02 s )
-  wall time              : 122.55 sec; 0.03 hrs; ( 0 d, 00 h, 02 m, 03 s )
-  CPU load               : 50.70 %
-  CPU time  (cumulative) : 411.83 sec; 0.11 hrs; ( 0 d, 00 h, 06 m, 52 s )
-  wall time (cumulative) : 330.71 sec; 0.09 hrs; ( 0 d, 00 h, 05 m, 31 s )
-  CPU load  (cumulative) : 50.70 %
+  Date (YYYY-MM-DD) : 2009-07-16
+  Time (hh:mm:ss)   : 11:37:09
+  CPU time               : 19.81 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 20 s )
+  wall time              : 22.11 sec; 0.01 hrs; ( 0 d, 00 h, 00 m, 22 s )
+  CPU load               : 89.56 %
+  CPU time  (cumulative) : 88.95 sec; 0.02 hrs; ( 0 d, 00 h, 01 m, 29 s )
+  wall time (cumulative) : 101.57 sec; 0.03 hrs; ( 0 d, 00 h, 01 m, 42 s )
+  CPU load  (cumulative) : 89.56 %
  
 +----------------------------------------------------------+
 | EXCITING version 0.9.224 (eXcited States 0.091 ) stopped |
