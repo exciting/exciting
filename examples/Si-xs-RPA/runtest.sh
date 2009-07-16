@@ -25,7 +25,7 @@ files="\
 files_large="\
 	SCREEN_*.OUT W_SCREEN_*.OUT EXCLI_ASC.OUT SCCLI_ASC.OUT
 "
-#files="$files $files_large"
+files="$files $files_large"
 
 ################################################################################
 

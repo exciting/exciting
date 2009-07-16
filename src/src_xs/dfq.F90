@@ -450,7 +450,7 @@ subroutine dfq(iq)
         call symt2app(oct1,oct2,nwdfp,symt2,chi0h, chi0hs(oct1,oct2,:))
         end do
      end do
-     !!! re-assign the head
+     ! re-assign the symmetrized head
      chi0h(:,:,:)=chi0hs(:,:,:)
      ! write dielectric tensor to file
   	 forall (iw=1:nwdf)

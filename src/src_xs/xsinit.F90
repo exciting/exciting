@@ -37,7 +37,7 @@ subroutine xsinit
   ! set version of XS part
   call xssetversion
   ! name of output file
-  call genfilname(nodotpar=.true.,basename='INFO_XS',procs=procs,rank=rank, &
+  call genfilname(nodotpar=.true.,basename='INFOXS',procs=procs,rank=rank, &
        filnam=xsfileout)
   ! reset or append to output file
   call getunit(unitout)
