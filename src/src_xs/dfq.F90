@@ -89,9 +89,9 @@ subroutine dfq(iq)
   real(8), allocatable :: wreal(:),cw(:),cwa(:),cwsurf(:)
   real(8), allocatable :: cwt(:,:),cw1k(:,:,:),cwa1k(:,:,:),cwsurf1k(:,:,:)
   real(8), allocatable :: scis12(:,:),scis21(:,:)
-  real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot,r1
-  integer :: n,i,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
-  integer :: oct1,oct2,un,ig1,ig2
+  real(8) :: brd,cpu0,cpu1,cpuread,cpuosc,cpuupd,cputot
+  integer :: n,j,i1,i2,j1,j2,ik,ikq,igq,iw,wi,wf,ist1,ist2,nwdfp
+  integer :: oct1,oct2,un
   logical :: tq0
   logical, external :: tqgamma,transik,transijst
   if (acont.and.tscreen) then

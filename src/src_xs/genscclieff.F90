@@ -43,8 +43,8 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   ! local variables
   integer, parameter :: nsphcov=5810,iq0=1
   integer :: iop,jop,j1,j2,itp,lm,ntpsph
-  real(8) :: vomega,t00,r,qsz,clwt
-  complex(8) :: dt(3,3),dtns(3,3),zsd,zisd,w1,w2
+  real(8) :: vomega,t00,r,qsz
+  complex(8) :: dtns(3,3),w1,w2
   real(8), allocatable :: plat(:,:),p(:),tp(:,:),spc(:,:),w(:)
   complex(8), allocatable :: m00lm(:),mx0lm(:),mxxlm(:)
   complex(8), allocatable :: ei00(:),eix0(:),eixx(:)
