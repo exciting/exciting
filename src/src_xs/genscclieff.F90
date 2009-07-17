@@ -44,7 +44,7 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   integer, parameter :: nsphcov=5810,iq0=1
   integer :: iop,jop,j1,j2,itp,lm,ntpsph
   real(8) :: vomega,t00,r,qsz,clwt
-  complex(8) :: dt(3,3),zsd,zisd,w1,w2
+  complex(8) :: dt(3,3),dtns(3,3),zsd,zisd,w1,w2
   real(8), allocatable :: plat(:,:),p(:),tp(:,:),spc(:,:),w(:)
   complex(8), allocatable :: m00lm(:),mx0lm(:),mxxlm(:)
   complex(8), allocatable :: ei00(:),eix0(:),eixx(:)
@@ -52,36 +52,42 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   complex(8), allocatable :: ylm(:),zylm(:,:)
   complex(8), allocatable :: b(:,:),bi(:,:),u(:,:),s(:,:),e3(:,:),ie3(:,:)
 
+
+integer :: i1,i2
 !!$  ! *** values for PA ***
 !!$  call preset_dielten
+
+  ! calculate RPA dielectric tensor including local field effects
+  dielten0(:,:)=scrnh(:,:)
+  if (n.gt.1) then
+     allocate(b(n-1,n-1),bi(n-1,n-1),u(n-1,3),s(n-1,3))
+     ! body of dielectric matrix
+     b(:,:)=scrn(2:,2:)
+     ! wings of dielectric matrix
+     u(:,:)=conjg(scrnw(2:,1,:))
+     ! invert body (optionally including Hermitian average)
+     call zinvert_hermitian(scrherm,b,bi)
+     s=matmul(bi,u)
+     dielten=dielten0-matmul(conjg(transpose(u)),s)
+  else
+     dielten=dielten0
+  end if
+  ! symmetrize the dielectric tensor
+  dtns(:,:)=dielten(:,:)
+  do iop=1,3
+    do jop=1,3
+      call symt2app(iop,jop,1,symt2,dtns, dielten(iop,jop))
+    end do
+  end do
+
+!sag
+write(*,*) '00000000000000000000000000000'
 
   ! calculate averaged screened Coulomb interaction in Fourier space at Gamma point
   select case(trim(sciavtype))
   case('spherical')
 	  ! scaling factor
 	  t00=(omega/(twopi)**3)*product(ngridq)
-	  ! invert dielectric tensor
-	  dielten0(:,:)=scrnh(:,:)
-	  if (n.gt.1) then
-	     allocate(b(n-1,n-1),bi(n-1,n-1),u(n-1,3),s(n-1,3))
-	     ! body of dielectric matrix
-	     b(:,:)=scrn(2:,2:)
-	     ! wings of dielectric matrix
-	     u(:,:)=conjg(scrnw(2:,1,:))
-	     ! invert body (optionally including Hermitian average)
-	     call zinvert_hermitian(scrherm,b,bi)
-	     s=matmul(bi,u)
-	     dielten=dielten0-matmul(conjg(transpose(u)),s)
-	  else
-	     dielten=dielten0
-	  end if
-	  ! symmetrize the dielectric tensor
-	  dt(:,:)=dielten(:,:)
-	  do iop=1,3
-	  	do jop=1,3
-	  	  call symt2app(iop,jop,1,symt2,dt, dielten(iop,jop))
-	  	end do
-	  end do
 	  ! number of points on sphere
 	  if (tleblaik) then
 	     ntpsph=nleblaik
@@ -177,8 +183,6 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
 	  end do
 	  deallocate(ei00,ei00lm,m00lm,mx0lm,mxxlm,ylm,zylm,tp,spc,w,plat,p)
 	  if (n.gt.1) deallocate(b,bi,u,s)
-      call writedielt('DIELTENS',1,0.d0,dielten,1)
-      call writedielt('DIELTENS_NOSYM',1,0.d0,dt,1)
   case('screendiag','invscreendiag')
 	  ! crystal volume
 	  vomega=omega*product(ngridq)
@@ -201,11 +205,24 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
 	  e3(1:3,1:3)=dielten0(:,:)
 	  ! G!=0, G'=0 components and vice versa
 	  if (n.gt.1) then
-	    e3(1:3,4:n+2)=scrnw(2:,1,:)
-	    e3(4:n+2,1:3)=scrnw(2:,2,:)
-	    e3(4:n,4:n)=scrn(2:,2:)
-	    call zinvert_hermitian(scrherm,e3,ie3)
+	    do i1=1,3
+          do j2=2,n
+            e3(i1,j2+2)=scrnw(j2,1,i1)
+          end do
+        end do
+        do j1=2,n
+          do i2=1,3
+            e3(j1+2,i2)=scrnw(j1,2,i2)
+          end do
+        end do
+        do j1=2,n
+          do j2=2,n
+            e3(j1+2,j2+2)=scrn(j1,j2)
+          end do
+        end do
 	  end if
+      call zinvert_hermitian(scrherm,e3,ie3)
+      ! select again
       select case(trim(sciavtype))
       case('screendiag')
 	  	! head
@@ -230,17 +247,10 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
 		    scieff(1,j1)=conjg(scieff(j1,1))
 		  end forall
 	      ! body
-	      forall (j1=2:n)
-	        scieff(j1,j1)=sptclg(j1,iq0)**2*ie3(j1+2,j1+2)
+	      forall (j1=2:n,j2=2:n)
+	        scieff(j1,j2)=sptclg(j1,iq0)*sptclg(j2,iq0)*ie3(j1+2,j2+2)
 	      end forall
 	    end if
-		! symmetrize the dielectric tensor
-		dt(:,:)=dielten(:,:)
-		do iop=1,3
-		  do jop=1,3
-			call symt2app(iop,jop,1,symt2,dt, dielten(iop,jop))
-		  end do
-		end do
       end select
       deallocate(e3,ie3)
   case default
@@ -249,6 +259,9 @@ subroutine angavsc0(n,nmax,scrnh,scrnw,scrn,scieff)
   	write(*,*)
   	stop
   end select
+
+  call writedielt('DIELTENS',1,0.d0,dielten,1)
+  call writedielt('DIELTENS_NOSYM',1,0.d0,dtns,1)
 
 end subroutine angavsc0
 

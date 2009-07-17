@@ -26,7 +26,7 @@ subroutine putscreen(un,tq0,n,chi0,chi0h,chi0w)
             write(un,'(2i8,3g18.10)') (-i,ig2,-chi0w(ig2,1,i),abs(-chi0w(ig2,1,i)),i=1,3)
          end if
          if ((ig1.ne.1).and.(ig2.eq.1)) then
-            write(un,'(2i8,3g18.10)') (ig1,j,-chi0w(ig1,2,j),abs(-chi0w(ig1,2,j)),j=1,3)
+            write(un,'(2i8,3g18.10)') (ig1,-j,-chi0w(ig1,2,j),abs(-chi0w(ig1,2,j)),j=1,3)
          end if
          if ((ig1.ne.1).and.(ig2.ne.1)) then
             write(un,'(2i8,3g18.10)') ig1,ig2,r1-chi0(ig1,ig2),abs(r1-chi0(ig1,ig2))

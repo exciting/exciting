@@ -5,8 +5,10 @@
 !     general parameters     !
 !----------------------------!
 
+sciavtype
+'invscreendiag'
+
 tasks
-0
 301
 320
 330

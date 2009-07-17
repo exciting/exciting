@@ -1,12 +1,16 @@
 
 ! Silicon (Si), excited states test example
 
+scrherm
+0
+
+nosymscr
+.true.
+
+sciavtype
+'invscreendiag'
+
 tasks
-301
-320
-330
-401
-420
 430
 440
 441
@@ -14,6 +18,19 @@ tasks
 450
 340
 350
+
+#301
+#320
+#330
+#401
+#420
+#430
+#440
+#441
+#445
+#450
+#340
+#350
 
 sppath
   '../../species/'
