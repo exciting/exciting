@@ -249,7 +249,7 @@ subroutine scrcoulint
            end do
         end do
      end do
-     if ((rank.eq.0).and.(ikkp.le.100)) then
+     if ((rank.eq.0).and.(ikkp.le.3)) then
         ! write to ASCII file
         do ist1=1,nst1
            do ist3=1,nst3

@@ -166,7 +166,7 @@ subroutine exccoulint
         end do
      end do
 
-     if ((rank.eq.0).and.(ikkp.le.100)) then
+     if ((rank.eq.0).and.(ikkp.le.3)) then
         do ist1=1,nst1
            do ist2=1,nst2
               do ist3=1,nst1

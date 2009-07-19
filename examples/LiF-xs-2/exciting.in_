@@ -5,9 +5,6 @@
 !     general parameters     !
 !----------------------------!
 
-sciavtype
-'invscreendiag'
-
 tasks
 0
 301
@@ -22,9 +19,6 @@ tasks
 450
 340
 350
-
-sppath
-'../../species/'
 
 evaltol
   1.0d-300
@@ -99,7 +93,7 @@ vgqlmt
 
 ! set to '4.0'
 gqmax
-  3.0
+  2.0
 
 fxctype
   8

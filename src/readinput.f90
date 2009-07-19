@@ -1364,16 +1364,7 @@ case('nemptyscr')
 case('scrherm')
   read(50,*,err=20) scrherm
 case('sciavtype')
-   read(50,*,err=20) sciavtype
-   select case(trim(sciavtype))
-   case('spherical','screendiag','invscreendiag')
-   case default
-      write(*,*)
-      write(*,'("Error(readinput/xs): unknown sciavtype-type: ",a)') &
-           trim(sciavtype)
-      write(*,*)
-      stop
-   end select
+  read(50,*,err=20) sciavtype
 case('sciavbd')
   read(50,*,err=20) sciavbd
 case('sciavqhd')

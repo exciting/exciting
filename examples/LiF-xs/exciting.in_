@@ -5,10 +5,8 @@
 !     general parameters     !
 !----------------------------!
 
-sciavtype
-'invscreendiag'
-
 tasks
+0
 301
 320
 330
@@ -110,6 +108,9 @@ nemptyscr
 ! cutoff energy for screening (empty states above are discarded)
 emaxdf
   7.5
+
+! sciavtype = 'spherical', 'screendiag', 'invscreendiag'
+! 'spherical'
 
 bsetype
   'singlet'
