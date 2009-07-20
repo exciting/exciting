@@ -17,11 +17,25 @@ if(.not.(associated(input%xs%BSE)))then
   ! set the default values if solver element not present
 	input%xs%BSE=>getstructBSE(emptynode)
 endif
+call backup0
+call backup1
+call backup2
 
 if(associated(input%xs%plan)) then
 	call xsmain(input%xs%plan)
 else if(trim(input%xs%xstype).eq."TDDFT") then
- 	if(input%xs%tddft%fxctypenumber.eq.7 .or. input%xs%tddft%fxctypenumber.eq.8) then
+
+    task=301
+    call xsgeneigvec
+    if(associated(input%xs%tetra)) then
+	task=310
+		call tetcalccw
+	endif
+    task=320
+	call writepmatxs
+	task=330
+	call writeemat
+		if(input%xs%tddft%fxctypenumber.eq.7 .or. input%xs%tddft%fxctypenumber.eq.8) then
    	    task=401
  		call scrgeneigvec
  		task=420
@@ -37,16 +51,7 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
 		task=450
 		call kernxc_bse
     endif
-    task=301
-    call xsgeneigvec
-    task=320
-	call writepmatxs
-	task=330
-	call writeemat
-	if(associated(input%xs%tetra)) then
-	task=310
-		call tetcalccw
-	endif
+
 	task=340
 	call df
 else if(trim(input%xs%xstype).eq."BSE")then

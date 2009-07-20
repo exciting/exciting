@@ -1050,6 +1050,20 @@
 
 							</xs:element>
 						</xs:all>
+             <xs:attribute name="do" default="fromscratch" >
+             <xs:annotation>
+             <xs:appinfo>
+             <oldname>nonreplace</oldname>
+             </xs:appinfo>
+             </xs:annotation>
+            <xs:simpleType>
+            <xs:restriction base="xs:string">
+            <xs:enumeration value="fromscratch"></xs:enumeration>
+            <xs:enumeration value="fromfile"></xs:enumeration>
+            <xs:enumeration value="skipp"></xs:enumeration>
+            </xs:restriction>
+            </xs:simpleType>
+            </xs:attribute>
 						<xs:attribute name="ngkgrid" type="integertriple"
 							use="required">
 							<xs:annotation>

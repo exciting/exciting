@@ -12,5 +12,7 @@ use modinput
   use modxs
   implicit none
   ngridq_b(:)=ngridq(:)
+  if(associated(input%phonons))then
   reduceq_b=input%phonons%reduceq
+  endif
 end subroutine backup2

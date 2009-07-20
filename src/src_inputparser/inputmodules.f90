@@ -141,6 +141,8 @@ type(atom_type),pointer::atom
  real(8)::J
 end type
 type groundstate_type
+ character(512)::do
+ integer::donumber
  integer::ngkgrid(3)
  real(8)::rgkmax
  real(8)::epspot
@@ -1450,6 +1452,15 @@ allocate(getstructgroundstate)
       write(*,*)"we are at groundstate"
 #endif
       
+nullify(np)  
+np=>getAttributeNode(thisnode,"do")
+getstructgroundstate%do= "fromscratch"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"do",getstructgroundstate%do)
+       call removeAttribute(thisnode,"do")      
+endif
+getstructgroundstate%donumber=stringtonumberdo(getstructgroundstate%do)
+
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngkgrid")
 if(associated(np)) then
@@ -4180,6 +4191,24 @@ case('')
  stringtonumbertype=0
 case default
 write(*,*) "'", string,"' is not valid selection fortype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberdo(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumberdo=-1
+case('fromfile')
+ stringtonumberdo=-1
+case('skipp')
+ stringtonumberdo=-1
+case('')
+ stringtonumberdo=0
+case default
+write(*,*) "'", string,"' is not valid selection fordo "
 stop 
 end select
 end function

@@ -1,4 +1,5 @@
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -6,8 +7,11 @@
 !BOP
 ! !ROUTINE: dumpparams_mpiiter
 ! !INTERFACE:
-subroutine dumpparams_mpiiter(string,comment)
+
+
+subroutine dumpparams_mpiiter(string, comment)
 ! !USES:
+use modinput
   use modmain
   use sclcontroll
 ! !DESCRIPTION:
@@ -24,29 +28,29 @@ subroutine dumpparams_mpiiter(string,comment)
 !BOC
   implicit none
   ! arguments
-  character(*), intent(in) :: string,comment
-  open(unit=77,file=trim(string),action='write',position='append')
-  write(77,*)
-  write(77,'("! EXCITING version ",I1.1,".",I1.1,".",I3.3)') version
-  write(77,'(a)') trim(comment)
-  write(77,*)
-  write(77,'("tarpack")')
-  write(77,*) tarpack
-  write(77,*)
-  write(77,'("packedmatrixstorage")')
-  write(77,*) packedmatrixstorage
-  write(77,*)
-  write(77,'("epsarpack")')
-  write(77,*) epsarpack
-  write(77,*)
-  write(77,'("epsresid")')
-  write(77,*) epsresid
-  write(77,*)
-  write(77,'("maxncv")')
-  write(77,*) maxncv
-  write(77,*)
-  write(77,'("lowesteval")')
-  write(77,*) lowesteval
+  character(*), intent(in) :: string, comment
+  open(unit=77, file=trim(string), action='write', position='append')
+  write(77, *)
+  write(77, '("! EXCITING version ", I1.1, ".", I1.1, ".", I3.3)') version
+  write(77, '(a)') trim(comment)
+  write(77, *)
+  write(77, '("tarpack")')
+  write(77, *) tarpack
+  write(77, *)
+  write(77, '("packedmatrixstorage")')
+  write(77, *) input%groundstate%solver%packedmatrixstorage
+  write(77, *)
+  write(77, '("epsarpack")')
+  write(77, *) input%groundstate%solver%epsarpack
+  write(77, *)
+  write(77, '("epsresid")')
+  write(77, *) epsresid
+  write(77, *)
+  write(77, '("maxncv")')
+  write(77, *) maxncv
+  write(77, *)
+  write(77, '("lowesteval")')
+  write(77, *) lowesteval
   close(77)
 end subroutine dumpparams_mpiiter
 !EOC

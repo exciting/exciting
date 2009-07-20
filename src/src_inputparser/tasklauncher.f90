@@ -8,12 +8,12 @@ use modinput
 use modmain,only:task
 use inputdom
 implicit none
-  if(associated(input%groundstate)) then
+  if(associated(input%groundstate).and. .not. input%groundstate%do .eq. "skipp") then
   	if(.not.(associated(input%groundstate%solver)))then
   		! set the default values if solver element not present
   		input%groundstate%solver=>getstructsolver(emptynode)
   	endif
-   	 if(input%groundstate%fromscratch) then
+   	 if(input%groundstate%do.eq."fromscratch") then
 	    if(associated(input%structureoptimization)) then
 	        task=2
 	 	else

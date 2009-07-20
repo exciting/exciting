@@ -276,6 +276,7 @@ end if
 write(fnum, *)
 write(fnum, '("Smearing scheme :")')
 #ifdef XS
+  if(associated(input%xs%tetra)) then
 if (.not.input%xs%tetra%tetraocc) then
 #endif
    write(fnum, '(" ", A)') trim(sdescr)
@@ -285,6 +286,7 @@ else
    write(fnum, '(" ", A)') 'No smearing - using the linear tetrahedron method'
    write(fnum, '(" ", A)') 'for occupation numbers and Fermi energy'
 end if
+endif
 #endif
 write(fnum, *)
 write(fnum, '("Radial integration step length : ", I4)') input%groundstate%lradstep

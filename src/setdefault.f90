@@ -219,82 +219,83 @@ tetrakordexc=.false.
 #endif
 #ifdef XS
 ! TDDFT variables
-imbandstr=.false.
+!imbandstr=.false.
 nqptmt=1
 if (allocated(vgqlmt)) deallocate(vgqlmt)
 allocate(vgqlmt(3, nqptmt))
 vgqlmt(:, :)=0.d0
-mdfqtype=0
-vqloff(:)=0.d0
-tq0ev=.true.
-gqmax=0.d0
-lmaxapwwf=-1
-fastpmat=.true.
-fastemat=.true.
-emattype=1
-lmaxemat=3
-rsptype='reta'
-acont=.false.
-nwacont=0
-broad=0.01d0
-aresdf=.true.
-epsdfde=1.d-8
-emaxdf=1.d10
-symwings=.false.
-lfediag=.false.
+!mdfqtype=0
+!vqloff(:)=0.d0
+!tq0ev=.true.
+!gqmax=0.d0
+!lmaxapwwf=-1
+!fastpmat=.true.
+!fastemat=.true.
+!emattype=1
+!lmaxemat=3
+!rsptype='reta'
+!acont=.false.
+!nwacont=0
+!broad=0.01d0
+!aresdf=.true.
+!epsdfde=1.d-8
+!emaxdf=1.d10
+!symwings=.false.
+!lfediag=.false.
 !fxctype=0
-nexcitmax=100
-alphalrc=0.d0
-alphalrcdyn=0.d0
-betalrcdyn=0.d0
+!nexcitmax=100
+!alphalrc=0.d0
+!alphalrcdyn=0.d0
+!betalrcdyn=0.d0
 ndftrans=1
 if (allocated(dftrans)) deallocate(dftrans)
 allocate(dftrans(3, ndftrans))
 dftrans(:, :)=0
-tetraqweights=1
-gather=.false.
-symmorph=.false.
-tevout=.false.
-tappinfo=.false.
-dbglev=0
+!tetraqweights=1
+!gather=.false.
+!symmorph=.false.
+!tevout=.false.
+!tappinfo=.false.
+!dbglev=0
 ! screening variables
-screentype='full'
-nosymscr=.false.
-reducekscr=.true.
-ngridkscr(:)=-1
-vkloffscr(:)=-1.d0
-rgkmaxscr=-1.d0
-nemptyscr=-1
-scrherm=0
-fnevecfvscr='EVECFV_SCR.OUT'
-fnevalsvscr='EVALSV_SCR.OUT'
-fnoccsvscr='OCCSV_SCR.OUT'
+!screentype='full'
+!nosymscr=.false.
+!reducekscr=.true.
+!ngridkscr(:)=-1
+!vkloffscr(:)=-1.d0
+!rgkmaxscr=-1.d0
+!nemptyscr=-1
+!scrherm=0
+!fnevecfvscr='EVECFV_SCR.OUT'
+!fnevalsvscr='EVALSV_SCR.OUT'
+!fnoccsvscr='OCCSV_SCR.OUT'
 ! BSE (-kernel) variables
-bsetype='ip'
-nosymbse=.false.
-reducekbse=.true.
-vkloffbse(:)=-1.d0
-bsediagweight=1
-bsediagsym=0
-fnevecfvbse='EVECFV_BSE.OUT'
-fnevalsvbse='EVALSV_BSE.OUT'
-fnoccsvbse='OCCSV_BSE.OUT'
+!bsetype='ip'
+!nosymbse=.false.
+!reducekbse=.true.
+!vkloffbse(:)=-1.d0
+!bsediagweight=1
+!bsediagsym=0
+!fnevecfvbse='EVECFV_BSE.OUT'
+!fnevalsvbse='EVALSV_BSE.OUT'
+!fnoccsvbse='OCCSV_BSE.OUT'
 nbfce=-1
 nafce=-1
 nbfbse=-1
 nafbse=-1
 ! dump default parameters
-if (rank.eq.0) then
-   fname='PARAMS_DEFAULT.OUT'
-   if (dumpmain) call dumpparams(trim(fname),  main parameters:', input%structure%speciespath, &
-    &input%structure%crystal%scale, input%structure%crystal%stretch, input%structure%crystal%stretch, &
-    &input%structure%crystal%stretch, input%structure%vacuum)
-   if (dumpadd) call dumpparams_add(trim(fname),       '! additional parameters:')
-   if (dumpmpiiter) call dumpparams_mpiiter(trim(fname),	'! MPI parallelization and iterative&
-    &input%groundstate%solvernumber parameters:')
-   if (dumptetra) call dumpparams_tetra(trim(fname),	     '! tetrahedron method parameters:')
-   if (dumpxs) call dumpparams_xs(trim(fname),	       '! excited states parameters:')
-end if
+
+!if (rank.eq.0 ) then
+!   fname='PARAMS_DEFAULT.OUT'
+!   if (dumpmain) call dumpparams(trim(fname),  'main parameters:', input%structure%speciespath, &
+!    &input%structure%crystal%scale, input%structure%crystal%stretch, input%structure%crystal%stretch, &
+!    &input%structure%crystal%stretch, input%structure%vacuum)
+!   if (dumpadd) call dumpparams_add(trim(fname),       '! additional parameters:')
+!   if (dumpmpiiter) call dumpparams_mpiiter(trim(fname),	'! MPI parallelization and iterative&
+!    &input%groundstate%solvernumber parameters:')
+!   if (dumptetra) call dumpparams_tetra(trim(fname),	     '! tetrahedron method parameters:')
+!   if (dumpxs) call dumpparams_xs(trim(fname),	       '! excited states parameters:')
+!end if
 #endif
 
 end subroutine
