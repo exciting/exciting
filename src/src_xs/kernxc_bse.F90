@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -413,6 +414,9 @@ use modinput
 		torfxc * zi * brd) ** 2
            ! update kernel
 	   do iw=1, nwdf
+
+           		! TODO: speed up this summation, as in "dfq"
+
               ! resonant and antiresonant contributions
 	      fxc(:, :, iw)=fxc(:, :, iw)+osca(:, :)*den1(iw)+oscb(:, :)*den2(iw)
 	      if (input%xs%tddft%aresfxc) fxc(:, :, iw) = fxc(:, :, iw) + oscaa(:, :) * den1a(iw)+ &
@@ -427,13 +431,15 @@ use modinput
 
   ! filename for xc-kernel (ASCII)
   call genfilname(basename = 'FXC_BSE', asc = .true., bzsampl = bzsampl, &
-       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = iqmt, filnam = filnam2)
+       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresfxc, tord=input%xs%tddft%tordfxc, iqmt = iqmt,&
+    &filnam = filnam2)
   call getunit(un)
   open(un, file=trim(filnam2), form='formatted', action='write', status='replace')
 
   ! filename for xc-kernel
   call genfilname(basename = 'FXC_BSE', asc = .false., bzsampl = bzsampl, &
-       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = iqmt, filnam = filnam3)
+       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresfxc, tord=input%xs%tddft%tordfxc, iqmt = iqmt,&
+    &filnam = filnam3)
   inquire(iolength = recl) n, fxc( - 3: - 1, - 3: - 1, 1), fxc( - 3: - 1, 1:, 1), fxc(1:, - 3: - 1, 1), &
 	fxc(1:, 1:, 1)
   call getunit(un2)
@@ -442,7 +448,8 @@ use modinput
 
   ! filename for xc-kernel
   call genfilname(basename = 'FXC_BSE_HEAD', asc = .false., bzsampl = bzsampl, &
-       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = iqmt, filnam = filnam4)
+       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresfxc, tord=input%xs%tddft%tordfxc, iqmt = iqmt,&
+    &filnam = filnam4)
   call getunit(un3)
   open(un3, file=trim(filnam4), form='formatted', action='write', status='replace')
 

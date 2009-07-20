@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -50,7 +51,8 @@ use modinput
   fxc=zzero
   ! filename for response function file
   call genfilname(basename = 'X0', asc = .false., bzsampl = bzsampl, &
-       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = iq, filnam = filnam)
+       acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, markfxcbse =&
+    &tfxcbse, iqmt = iq, filnam = filnam)
   call genfilname(iqmt=iq, setfilext=.true.)
   call init1offs(qvkloff(1, iq))
   ! find highest (partially) occupied and lowest (partially) unoccupied states
@@ -87,8 +89,8 @@ use modinput
 	do oct2=octl, octu
            ! filename for output file
 	   call genfilname(basename = 'IDF', asc = .false., bzsampl = bzsampl, &
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m.eq.1),&
-       fxctype =input%xs%tddft%fxctypenumber, &
+		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m.eq.1), &
+	fxctype = input%xs%tddft%fxctypenumber, &
 		tq0 = tq0, oc1 = oct1, oc2 = oct2, iqmt = iq, procs = procs, rank = rank, &
 		filnam = filnam2)
 	   open(unit1, file = trim(filnam2), form = 'unformatted', &
@@ -141,11 +143,6 @@ use modinput
 	      forall(j=1:m)
 		 idf(j, j)=idf(j, j)+1.d0
 	      end forall
-
-
-!!!!              if ((m.ne.1).and.(oct1.ne.oct2)) idf(1,1)=idf(1,1)-1.d0
-
-
               ! Adler-Wiser treatment of macroscopic dielectric function
 	      igmt=ivgigq(ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, iq), iq)
 	      if (igmt.gt.n) then
@@ -163,16 +160,12 @@ use modinput
 		 write(unitout, *)
 	      end if
 	      mdf1(iw)=1.d0/idf(igmt, igmt)
-
-
+              ! TODO: check if this is possible at all
               ! ??? mimic zero Kronecker delta in case of off-diagonal tensor
               ! components ???
 	      if ((m.eq.1).and.(oct1.ne.oct2)) mdf1(iw)=mdf1(iw)-1.d0
-
-
               ! write macroscopic dielectric function to file
 	      write(unit1, rec=iw-wi+1) mdf1(iw)
-
 	   end do ! iw
 	   close(unit1)
            ! end loop over optical components

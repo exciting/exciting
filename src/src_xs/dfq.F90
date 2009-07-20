@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -93,19 +94,19 @@ use modinput
   integer, intent(in) :: iq
   ! local variables
   character(*), parameter :: thisnam='dfq'
-  character(256) :: fnscreen
+  character(256) :: fnscreen, str
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:, :, :), hdg(:, :, :)
-  complex(8), allocatable :: chi0w(:, :, :, :), chi0h(:, :, :)
+  complex(8), allocatable :: chi0w(:, :, :, :), chi0h(:, :, :), eps0(:, :, :)
   complex(8), allocatable :: wou(:), wuo(:), wouw(:), wuow(:), wouh(:), wuoh(:)
   complex(8), allocatable :: zvou(:), zvuo(:), chi0hs(:, :, :), bsedg(:, :)
   real(8), allocatable :: wreal(:), cw(:), cwa(:), cwsurf(:)
   real(8), allocatable :: cwt(:, :), cw1k(:, :, :), cwa1k(:, :, :), cwsurf1k(:, :, :)
   real(8), allocatable :: scis12(:, :), scis21(:, :)
-  real(8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, r1
-  integer :: n, i, j, i1, i2, j1, j2, ik, ikq, igq, iw, wi, wf, ist1, ist2, nwdfp
-  integer :: oct1, oct2, un, ig1, ig2
+  real(8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot
+  integer :: n, j, i1, i2, j1, j2, ik, ikq, igq, iw, wi, wf, ist1, ist2, nwdfp
+  integer :: oct1, oct2, un
   logical :: tq0
   logical, external :: tqgamma, transik, transijst
   if (input%xs%tddft%acont.and.tscreen) then
@@ -115,6 +116,9 @@ use modinput
      write(*, *)
      call terminate
   end if
+  str=''
+  tfxcbse = ((input%xs%tddft%fxctypenumber.eq.7).or.(input%xs%tddft%fxctypenumber.eq.8)).and.(.not.tscreen)
+  if (tfxcbse) str='_FXCBSE.OUT'
   ! sampling of Brillouin zone
   bzsampl=0
   if (input%xs%tetra%tetradf) bzsampl=1
@@ -140,21 +144,20 @@ use modinput
      call genfilname(nodotpar = .true., basename = 'EMAT_TIMING', iq = iq, &
 	  etype = input%xs%emattype, procs = procs, rank = rank, appfilext = .true., filnam = fnetim)
      call genfilname(nodotpar = .true., basename = 'X0_TIMING', iq = iq, &
-	  bzsampl = bzsampl, acont = input%xs%tddft%acont, procs = procs, rank = rank, &
-	  appfilext = .true., filnam = fnxtim)
+	  procs = procs, rank = rank, appfilext = .true., filnam = fnxtim)
   else
      call genfilname(basename='TETW', iqmt=iq, filnam=fnwtet)
      call genfilname(basename='PMAT_XS', filnam=fnpmat)
      call genfilname(basename='EMAT', iqmt=iq, filnam=fnemat)
      call genfilname(nodotpar = .true., basename = 'X0_TIMING', bzsampl = bzsampl, &
-	  acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = iq, procs = procs, rank = rank, &
+	  iqmt = iq, procs = procs, rank = rank, &
 	  filnam = fnxtim)
      call genfilname(basename = 'X0', bzsampl = bzsampl, acont = input%xs%tddft%acont, nar =&
     &.not.input%xs%tddft%aresdf, &
-	  iqmt = iq, filnam = fnchi0)
+	  tord=input%xs%tddft%torddf, markfxcbse = tfxcbse, iqmt = iq, filnam = fnchi0)
      call genfilname(basename = 'X0', bzsampl = bzsampl, acont = input%xs%tddft%acont, nar =&
     &.not.input%xs%tddft%aresdf, &
-	  iqmt = iq, procs = procs, rank = rank, filnam = fnchi0_t)
+	  tord=input%xs%tddft%torddf, markfxcbse = tfxcbse, iqmt = iq, procs = procs, rank = rank, filnam = fnchi0_t)
   end if
   ! remove timing files from previous runs
   call filedel(trim(fnxtim))
@@ -242,7 +245,7 @@ use modinput
 	  ngq(iq)
      call ematqalloc
   end if
-  if (task.eq.345) then
+  if (tfxcbse) then
      call getbsediag
      write(unitout, '("Info(", a, "): read diagonal of BSE kernel")') trim(thisnam)
      write(unitout, '(" mean value : ", 2g18.10)') bsed
@@ -273,7 +276,7 @@ use modinput
 	if (.not.allocated(pmuo)) allocate(pmuo(3, nst3, nst4))
      end if
      ! add BSE diagonal shift use with BSE-kernel
-     if (task.eq.345) then
+     if (tfxcbse) then
 	scis12(:, :)=scis12(:, :)+bsedg(:, :)
 	scis21(:, :)=scis21(:, :)+transpose(bsedg(:, :))
      end if
@@ -452,52 +455,34 @@ use modinput
   if (tscreen) call ematqdealloc
   ! symmetrize head
   if (tq0) then
-     allocate(chi0hs(3, 3, nwdfp))
+     allocate(chi0hs(3, 3, nwdfp), eps0(3, 3, nwdf))
+     ! write dielectric tensor to file (unsymmetrized)
+	 forall (iw=1:nwdf)
+		eps0(:, :, iw)=dble(krondelta)-chi0h(:, :, iw)
+     end forall
+	 if (rank.eq.0) call writedielt('DIELTENS0_NOSYM', 1, 0.d0, eps0(:, :, 1), 0)
+     ! symmetrize the macroscopic dielectric function tensor
      do oct1=1, 3
 	do oct2=1, 3
-	   chi0hs(oct1, oct2, :)=zzero
-	   do i=1, 3
-	      do j=1, 3
-		 chi0hs(oct1, oct2, :) = chi0hs(oct1, oct2, :) + symt2(oct1, oct2, i, j)* &
-		      chi0h(i, j, :)
-	      end do
-	   end do
+	call symt2app(oct1, oct2, nwdfp, symt2, chi0h, chi0hs(oct1, oct2, :))
 	end do
      end do
+     ! re-assign the symmetrized head
      chi0h(:, :, :)=chi0hs(:, :, :)
-     deallocate(chi0hs)
+     ! write dielectric tensor to file
+	 forall (iw=1:nwdf)
+		eps0(:, :, iw)=dble(krondelta)-chi0hs(:, :, iw)
+     end forall
+	 if (rank.eq.0) call writedielt('DIELTENS0', 1, 0.d0, eps0(:, :, 1), 0)
+	 deallocate(chi0hs, eps0)
   end if
-  ! write dielectric tensor to file
-  if (rank.eq.0) call writedielt(nwdf, dble(w), chi0h, 0)
   ! write response function to file
   if (tscreen) then
      ! write out screening
      call getunit(un)
      open(un, file = trim(fnscreen), form = 'formatted', action = 'write', &
 	  status = 'replace')
-     do ig1=1, n
-	do ig2=1, n
-	   r1=0.d0
-	   if (ig1.eq.ig2) r1=1.d0
-	   if (tq0) then
-	      if ((ig1.eq.1).and.(ig2.eq.1)) then
-		 write(un, '(2i8, 2g18.10)') (( - i, - j, dble(krondelta(i, j))- &
-		      chi0h(i, j, 1), j = 1, 3), i = 1, 3)
-	      end if
-	      if ((ig1.eq.1).and.(ig2.ne.1)) then
-		 write(un, '(2i8, 2g18.10)') (-i, ig2, -chi0w(ig2, 1, i, 1), i=1, 3)
-	      end if
-	      if ((ig1.ne.1).and.(ig2.eq.1)) then
-		 write(un, '(2i8, 2g18.10)') (ig1, j, -chi0w(ig1, 2, j, 1), j=1, 3)
-	      end if
-	      if ((ig1.ne.1).and.(ig2.ne.1)) then
-		 write(un, '(2i8, 2g18.10)') ig1, ig2, r1-chi0(ig1, ig2, 1)
-	      end if
-	   else
-	      write(un, '(2i8, 2g18.10)') ig1, ig2, r1-chi0(ig1, ig2, 1)
-	   end if
-	end do
-     end do
+     call putscreen(un, tq0, n, chi0(:, :, 1), chi0h(:, :, 1), chi0w(:, :, :, 1))
      call writevars(un, iq, 0)
      close(un)
   else

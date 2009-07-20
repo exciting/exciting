@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -41,7 +42,7 @@ use modinput
   ! set version of XS part
   call xssetversion
   ! name of output file
-  call genfilname(nodotpar = .true., basename = 'XSINFO', procs = procs, rank = rank, &
+  call genfilname(nodotpar = .true., basename = 'INFOXS', procs = procs, rank = rank, &
        filnam = xsfileout)
   ! reset or append to output file
   call getunit(unitout)
@@ -191,7 +192,7 @@ use modinput
   !----------------------------!
   ! set time-ordering
   tordf=1.d0
-  if (trim(input%xs%tddft%torddf).eq.'tord') tordf=-1.d0
+  if (input%xs%tddft%torddf) tordf=-1.d0
   tscreen=.false.
   if ((task.ge.400).and.(task.le.499)) tscreen=.true.
   ! tetrahedron method not implemented for analytic continuation
@@ -214,7 +215,7 @@ use modinput
   !-----------------------------!
   ! set time-ordering
   torfxc=1.d0
-  if (trim(input%xs%tddft%tordfxc).eq.'tord') torfxc=-1.d0
+  if (input%xs%tddft%tordfxc) torfxc=-1.d0
 
   !-----------------------!
   !     miscellaneous     !
@@ -228,6 +229,7 @@ use modinput
   !----------------------------------!
   !     task dependent variables     !
   !----------------------------------!
+  tfxcbse=.false.
   if (input%xs%tddft%fxctypenumber.eq.5) then
      if (input%groundstate%gmaxvr.lt.2.d0*input%xs%gqmax) then
 	write(unitout, *)
@@ -237,6 +239,7 @@ use modinput
 	call terminate
      end if
   end if
+  if ((input%xs%tddft%fxctypenumber.eq.7).or.(input%xs%tddft%fxctypenumber.eq.8)) tfxcbse=.true.
   if ((task.ge.401).and.(task.le.439)) then
      ! screening
      input%groundstate%nosym=input%xs%screening%nosym

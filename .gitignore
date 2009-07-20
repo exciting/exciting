@@ -30,7 +30,7 @@ outerr.*
 build/gfortran
 src/eos/eos
 src/spacegroup/spacegroup
-src/species/species 
+src/species/species
 src/src_try
 src/tools/atkp
 local
@@ -54,4 +54,8 @@ testsummary.*
 .DS*
 ._.DS*
 gitlog.txt
-startmpirun 
+startmpirun
+.externalToolBuilders
+results
+_current
+

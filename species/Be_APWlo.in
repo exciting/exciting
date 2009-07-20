@@ -1,0 +1,25 @@
+ 'Be'                                       : spsymb
+ 'beryllium'                                : spname
+  -4.00000                                  : spzn
+   16428.20279                              : spmass
+  0.100000E-05    1.4500   32.5113   300    : sprmin, rmt, sprmax, nrmt
+   2                                        : spnst
+   1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
+   2   0   1   2.00000    F
+   1                                        : apword
+  0.1500   0  F                             : apwe0, apwdm, apwve
+   2                                        : nlx
+   0   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   1   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   2                                        : nlorb
+   0   2                                    : lorbl, lorbord
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
+   1   2                                    : lorbl, lorbord
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
+ 
+# Exciting code version : 0.9.224
+# Description of method : APW+lo

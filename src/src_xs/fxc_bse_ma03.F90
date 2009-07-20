@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -18,9 +19,9 @@ contains
 subroutine fxc_bse_ma03(msiz, oct, sw, iw, fxc)
 ! !USES:
 use modinput
-    use mod_constants,only:zzero
-    use modmpi,only:
-    use modxs,only:unitout,bzsampl
+    use mod_constants, only:zzero
+    use modmpi, only:
+    use modxs, only:unitout, bzsampl
     use invert
     use m_xsgauntgen
     use m_findgntn0
@@ -65,7 +66,8 @@ use modinput
     call getunit(un)
     ! filename for xc-kernel
     call genfilname(basename = 'FXC_BSE', asc = .false., bzsampl = bzsampl, &
-	 acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, iqmt = 1, filnam = filnam)
+	 acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresfxc, tord=input%xs%tddft%tordfxc, iqmt = 1, filnam&
+    &= filnam)
 	  ! get LFE size
     inquire(iolength=recl) n_
     open(un, file = trim(filnam), form = 'unformatted', action = 'read', &

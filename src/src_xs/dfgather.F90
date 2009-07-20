@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -34,7 +35,8 @@ use modinput
      ! file extension for q-point
      do iproc=0, procs-1
 	call genfilname(basename = 'X0', bzsampl = bzsampl, acont = input%xs%tddft%acont, &
-	     nar = .not.input%xs%tddft%aresdf, iqmt = iq, procs = procs, rank = iproc, filnam = fnchi0_t)
+	     nar = .not.input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, markfxcbse = tfxcbse, iqmt = iq, procs =&
+    &procs, rank = iproc, filnam = fnchi0_t)
 	wpari=firstofset(iproc, nwdf)
 	wparf=lastofset(iproc, nwdf)
 	do iw=wpari, wparf

@@ -1,0 +1,24 @@
+ 'Li'                                       : spsymb
+ 'lithium'                                  : spname
+  -3.00000                                  : spzn
+   12652.66897                              : spmass
+  0.115470E-05    1.8000   46.2264   300    : sprmin, rmt, sprmax, nrmt
+   2                                        : spnst
+   1   0   1   2.00000    F                 : spn, spl, spk, spocc, spcore
+   2   0   1   1.00000    F
+   1                                        : apword
+  0.1500   0  F                             : apwe0, apwdm, apwve
+   0                                        : nlx
+   3                                        : nlorb
+   0   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   1   2                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+   0   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -1.8034   0  T
+
+# Exciting code version : 0.9.224; and modificatoins in RMT

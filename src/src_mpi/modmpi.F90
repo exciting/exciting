@@ -1,5 +1,3 @@
-
-
 ! Copyright (C) 2006-2008 C. Ambrosch-Draxl. C. Meisenbichler S. Sagmeister
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details
@@ -18,7 +16,7 @@
 !
 
 
-module	modmpi
+module  modmpi
 #ifdef MPI
 #include "../build/mpiconf.inc"
 #endif
@@ -29,9 +27,7 @@ module	modmpi
 
 !!$  character(256)::filename
 contains
-
-
-subroutine initMPI
+  subroutine initMPI
 #ifdef MPI
     !        mpi init
     call mpi_init(ierr)
@@ -46,8 +42,7 @@ subroutine initMPI
 #endif
   end subroutine initMPI
 
-
-subroutine finitMPI
+  subroutine finitMPI
 #ifdef MPI
     call MPI_Finalize(ierr)
 #endif
@@ -56,98 +51,87 @@ subroutine finitMPI
 ! service functions to partition k points
 ! still kept around but should be replaced by generig functions
 ! firstofset nofset lastofset ....
-
-
 function nofk(process)
 use modmain, only:nkpt
  integer::nofk
  integer, intent(in)::process
  nofk=nkpt/procs
- if ((mod(nkpt, procs).gt.process)) nofk=nofk+1
+ if ((mod(nkpt,procs).gt.process)) nofk=nofk+1
 end function nofk
-
 
 function firstk(process)
 integer::firstk
 integer, intent(in)::process
 firstk=1
-do i=0, process-1
+do i=0,process-1
 firstk=firstk+nofk(i)
 end do
 end function firstk
-
 
 function lastk(process)
 integer::lastk
 integer, intent(in)::process
 lastk=0
-do i=0, process
+do i=0,process
 lastk=lastk+nofk(i)
 end do
 end function lastk
-
 
 function procofk(k)
    integer:: procofk
    integer, intent(in)::k
    integer::iproc
    procofk=0
-   do iproc=0, procs-1
+   do iproc=0,procs-1
       if (k.gt.lastk(iproc)) procofk=procofk+1
    end do
 end function procofk
 
 !-------------generalized partition!
-
-
-function nofset(process, set)
+function nofset(process,set)
  integer::nofset
- integer, intent(in)::process, set
+ integer, intent(in)::process,set
  nofset=set/procs
- if ((mod(set, procs).gt.process)) nofset=nofset+1
+ if ((mod(set,procs).gt.process)) nofset=nofset+1
 end function nofset
 
-
-function firstofset(process, set)
+function firstofset(process,set)
 integer::firstofset
-integer, intent(in)::process, set
+integer, intent(in)::process,set
 firstofset=1
-do i=0, process-1
-firstofset=firstofset+nofset(i, set)
+do i=0,process-1
+firstofset=firstofset+nofset(i,set)
 end do
 end function firstofset
 
-
-function lastofset(process, set)
+function lastofset(process,set)
 integer::lastofset
-integer, intent(in)::process, set
+integer, intent(in)::process,set
 lastofset=0
-do i=0, process
-lastofset=lastofset+nofset(i, set)
+do i=0,process
+lastofset=lastofset+nofset(i,set)
 end do
 end function lastofset
 
-
-function procofindex(k, set)
+function procofindex(k,set)
    integer:: procofindex
-   integer, intent(in)::k, set
+   integer, intent(in)::k,set
    integer::iproc
   procofindex=0
-   do iproc=0, procs-1
-      if (k.gt.lastofset(iproc, set)) procofindex=procofindex+1
+   do iproc=0,procs-1
+      if (k.gt.lastofset(iproc,set)) procofindex=procofindex+1
    end do
 end function procofindex
 
-
-function lastproc(row, set)
+function lastproc(row,set)
   implicit none
   integer :: lastproc
-  integer, intent(in) :: row, set
+  integer, intent(in) :: row,set
   integer :: iproc
-  if (row.ne.nofset(0, set)) then
+  if (row.ne.nofset(0,set)) then
      lastproc=procs
   else
-     lastproc=modulo(set, procs)
+     lastproc=modulo(set,procs)
      if (lastproc.eq.0) lastproc=procs
   end if
   lastproc=lastproc-1
@@ -156,28 +140,22 @@ end function lastproc
 
 
 !------------------interface to MPI_barrier for xs-part
-
-
 subroutine barrier
   implicit none
   ! do nothing if only one process
   if (procs.eq.1) return
   ! call the MPI barrier
 #ifdef MPI
-  call MPI_barrier(mpi_comm_world, ierr)
-
-write(300+rank, *) 'barrier, rank=', rank
-call flushifc(300+rank)
-
+  call MPI_barrier(mpi_comm_world,ierr)
 #endif
 end subroutine barrier
 
 
-subroutine endloopbarrier(set, mult)
+subroutine endloopbarrier(set,mult)
   implicit none
-  integer, intent(in) :: set, mult
-  integer :: i, im
-  do i=1, (nofset(0, set)-nofset(rank, set))*mult
+  integer, intent(in) :: set,mult
+  integer :: i,im
+  do i=1,(nofset(0,set)-nofset(rank,set))*mult
      call barrier
   end do
 end subroutine endloopbarrier
@@ -185,46 +163,46 @@ end subroutine endloopbarrier
 !------------------wrappers for MPI communication
 
 
-subroutine zalltoallv(zarr, rlen, set)
+subroutine zalltoallv(zarr,rlen,set)
   implicit none
   ! arguments
   complex(8), intent(inout) :: zarr(*)
-  integer, intent(in) :: rlen, set
+  integer, intent(in) :: rlen,set
 #ifdef MPI
   ! local variables
-  integer :: mpireccnts(procs), mpirecdispls(procs)
-  integer :: mpisndcnts(procs), mpisnddispls(procs)
+  integer :: mpireccnts(procs),mpirecdispls(procs)
+  integer :: mpisndcnts(procs),mpisnddispls(procs)
   integer :: proc
-  mpisndcnts(:)=nofset(rank, set)*rlen
-  mpisnddispls(:)=(firstofset(rank, set)-1)*rlen
-  do proc=0, procs-1
-     mpireccnts(proc+1)=nofset(proc, set)*rlen
-     mpirecdispls(proc+1)=(firstofset(proc, set)-1)*rlen
+  mpisndcnts(:)=nofset(rank,set)*rlen
+  mpisnddispls(:)=(firstofset(rank,set)-1)*rlen
+  do proc=0,procs-1
+     mpireccnts(proc+1)=nofset(proc,set)*rlen
+     mpirecdispls(proc+1)=(firstofset(proc,set)-1)*rlen
   end do
-  call MPI_Alltoallv(zarr, mpisndcnts, mpisnddispls, MPI_DOUBLE_COMPLEX, &
-       zarr, mpireccnts, mpirecdispls, MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, ierr)
+  call MPI_Alltoallv(zarr,mpisndcnts,mpisnddispls,MPI_DOUBLE_COMPLEX, &
+       zarr,mpireccnts,mpirecdispls,MPI_DOUBLE_COMPLEX,MPI_COMM_WORLD,ierr)
 #endif
 end subroutine zalltoallv
 
 
-subroutine ralltoallv(rarr, rlen, set)
+subroutine ralltoallv(rarr,rlen,set)
   implicit none
   ! arguments
   real(8), intent(inout) :: rarr(*)
-  integer, intent(in) :: rlen, set
+  integer, intent(in) :: rlen,set
 #ifdef MPI
   ! local variables
-  integer :: mpireccnts(procs), mpirecdispls(procs)
-  integer :: mpisndcnts(procs), mpisnddispls(procs)
+  integer :: mpireccnts(procs),mpirecdispls(procs)
+  integer :: mpisndcnts(procs),mpisnddispls(procs)
   integer :: proc
-  mpisndcnts(:)=nofset(rank, set)*rlen
-  mpisnddispls(:)=(firstofset(rank, set)-1)*rlen
-  do proc=0, procs-1
-     mpireccnts(proc+1)=nofset(proc, set)*rlen
-     mpirecdispls(proc+1)=(firstofset(proc, set)-1)*rlen
+  mpisndcnts(:)=nofset(rank,set)*rlen
+  mpisnddispls(:)=(firstofset(rank,set)-1)*rlen
+  do proc=0,procs-1
+     mpireccnts(proc+1)=nofset(proc,set)*rlen
+     mpirecdispls(proc+1)=(firstofset(proc,set)-1)*rlen
   end do
-  call MPI_Alltoallv(rarr, mpisndcnts, mpisnddispls, MPI_DOUBLE_PRECISION, &
-       rarr, mpireccnts, mpirecdispls, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
+  call MPI_Alltoallv(rarr,mpisndcnts,mpisnddispls,MPI_DOUBLE_PRECISION, &
+       rarr,mpireccnts,mpirecdispls,MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
 #endif
 end subroutine ralltoallv
 

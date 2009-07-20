@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -44,12 +45,12 @@ subroutine writevars(un, iq, iqmt)
     write(un, '(a, l8)') '# input%xs%tddft%intraband	     :', input%xs%tddft%intraband
     write(un, '(a, l8)') '# input%xs%tddft%aresdf	     :', input%xs%tddft%aresdf
     write(un, '(a, l8)') '# input%xs%tddft%aresfxc	     :', input%xs%tddft%aresfxc
-    write(un, '(a, a)') '# input%xs%tddft%torddf	    :', trim(input%xs%tddft%torddf)
-    write(un, '(a, a)') '# input%xs%tddft%tordfxc	    :', trim(input%xs%tddft%tordfxc)
+    write(un, '(a, l8)') '# input%xs%tddft%torddf	     :', input%xs%tddft%torddf
+    write(un, '(a, l8)') '# input%xs%tddft%tordfxc	     :', input%xs%tddft%tordfxc
     write(un, '(a, l8)') '# input%xs%tddft%acont	     :', input%xs%tddft%acont
     write(un, '(a, i8)') '# input%xs%tddft%nwacont	     :', input%xs%tddft%nwacont
     write(un, '(a, 2f12.6)') '# input%xs%broad (H, eV)	    :', input%xs%broad, h2ev*input%xs%broad
-    write(un, '(a, 2f12.6)') '# input%properties%bandstructure%scissor (H, eV)	  :', &
+    write(un, '(a, 2f12.6)') '# input%properties%bandstructure%scissor (H, eV)	  :',&
     &input%properties%bandstructure%scissor, h2ev * input%properties%bandstructure%scissor
     write(un, '(a, i8)') '# input%properties%dos%nwdos		   :', input%properties%dos%nwdos
     write(un, '(a, i8)') '# ngq 	      :', ngq(iqmtt)

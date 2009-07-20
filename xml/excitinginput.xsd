@@ -451,19 +451,19 @@
 												</xs:appinfo>
 											</xs:annotation>
 											<xs:complexType>
-											  <xs:attribute name="coord" type="vect3d">
-											    <xs:annotation>
+												<xs:attribute name="coord" type="vect3d">
+													<xs:annotation>
 											      <xs:documentation>position in lattice coordinates</xs:documentation>
-											      <xs:appinfo>
-											        <oldname>atposl</oldname>
-											      </xs:appinfo>
-											    </xs:annotation>
-											  </xs:attribute>
+														<xs:appinfo>
+															<oldname>atposl</oldname>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:attribute>
 											  <xs:attribute name="bfcmt" type="vect3d" default="0 0 0">
-											    <xs:annotation>
+													<xs:annotation>
 											      <xs:documentation>muffin-tin external magnetic field in Cartesian coordinates for atom</xs:documentation>
-											    </xs:annotation>
-											  </xs:attribute>
+													</xs:annotation>
+												</xs:attribute>
 											  <xs:attribute name="mommtfix" type="vect3d"></xs:attribute>
 											</xs:complexType>
 										</xs:element>
@@ -904,47 +904,47 @@
 							</xs:element>
 							<xs:element name="solver" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
-								  <xs:attribute name="type" default="Lapack">
-								    <xs:annotation>
+									<xs:attribute name="type" default="Lapack">
+										<xs:annotation>
 								      <xs:appinfo>
 								        <oldname>solvertype</oldname>
 								      </xs:appinfo>
 								      <xs:documentation>select the eigenvalue solver for the first variational equation</xs:documentation>
-								    </xs:annotation>
-								    <xs:simpleType>
-								      <xs:restriction base="xs:string">
-								        <xs:enumeration value="Lapack">
-								          <xs:annotation>
-								            <xs:appinfo>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="Lapack">
+													<xs:annotation>
+														<xs:appinfo>
 								              <oldnr>1</oldnr>
-								            </xs:appinfo>
-								          </xs:annotation>
-								        </xs:enumeration>
-								        <xs:enumeration value="Arpack">
-								          <xs:annotation>
-								            <xs:appinfo>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="Arpack">
+													<xs:annotation>
+														<xs:appinfo>
 								              <oldnr>2</oldnr>
-								            </xs:appinfo>
-								          </xs:annotation>
-								        </xs:enumeration>
-								        <xs:enumeration value="DIIS">
-								          <xs:annotation>
-								            <xs:appinfo>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+												<xs:enumeration value="DIIS">
+													<xs:annotation>
+														<xs:appinfo>
 								              <oldnr>3</oldnr>
-								            </xs:appinfo>
-								          </xs:annotation>
-								        </xs:enumeration>
-								      </xs:restriction>
-								    </xs:simpleType>
-								  </xs:attribute>
+														</xs:appinfo>
+													</xs:annotation>
+												</xs:enumeration>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 								  <xs:attribute name="packedmatrixstorage" type="xs:boolean" use="optional" default="true" />
 								  <xs:attribute name="epsarpack" type="fortrandouble" default="1.0e-8"/>
 								  <xs:attribute name="evaltol" type="fortrandouble" default="1e-8">
-								    <!-- sag -->
-								    <xs:annotation>
+										<!-- sag -->
+										<xs:annotation>
 								      <xs:documentation>error tolerance for the first-variational eigenvalues</xs:documentation>
-								    </xs:annotation>
-								  </xs:attribute>
+										</xs:annotation>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="OEP" minOccurs="0" maxOccurs="1">
@@ -2333,10 +2333,10 @@
 									</xs:all>
 									<xs:attribute name="intraband" type="xs:boolean"
 										default="false" />
-									<xs:attribute name="torddf" type="xs:string"
-										default="causal" />
-									<xs:attribute name="tordfxc" type="xs:string"
-										default="causal" />
+									<xs:attribute name="torddf" type="xs:boolean"
+										default="false" />
+									<xs:attribute name="tordfxc" type="xs:boolean"
+										default="false" />
 									<xs:attribute name="aresdf" type="xs:boolean"
 										default="true" />
 									<xs:attribute name="aresfxc" type="xs:boolean"
@@ -2515,82 +2515,112 @@
 							</xs:element>
 							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
-									<xs:attribute name="nosym" type="xs:boolean"
-										default="false">
+									<xs:attribute name="nosym"
+										type="xs:boolean" default="false">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>nosymbse</oldname>
+												<oldname>
+													nosymbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="reducek" type="xs:boolean"
-										default="false">
+									<xs:attribute name="reducek"
+										type="xs:boolean" default="false">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>reducekbse</oldname>
+												<oldname>
+													reducekbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
+									<xs:attribute name="vkloff"
+										type="vect3d" default="-1 -1 -1">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>vkloffbse</oldname>
+												<oldname>
+													vkloffbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="rgkmax" type="fortrandouble"
-										default="0">
+									<xs:attribute name="rgkmax"
+										type="fortrandouble" default="0">
 										<xs:annotation>
 											<xs:appinfo>
-												<oldname>rgkmaxbse</oldname>
+												<oldname>
+													rgkmaxbse
+												</oldname>
 											</xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="scrherm" type="xs:integer"
-										default="0" />
-									<xs:attribute name="fbzq" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavbd" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavqhd" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavqwg" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="sciavqbd" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="bsedirsing" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="lmaxdielt" type="xs:integer"
-										default="14" />
-									<xs:attribute name="nleblaik" type="xs:integer"
-										default="5810" />
-									<xs:attribute name="nexcitmax" type="xs:integer"
-										default="100" />
-                    <!--  
-									<xs:attribute name="nstlbse" type="integerpair"
-										default="0 0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>nbfbse,nafbse</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-                  -->
-									<xs:attribute name="nstlce" type="integerpair"
-										default="0 0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>nbfce,nafce</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="bsetype" default="singlet">
+									<xs:attribute name="scrherm"
+										type="xs:integer" default="0" />
+									<xs:attribute name="fbzq"
+										type="xs:boolean" default="false" />
+                  <xs:attribute name="sciavtype" default="spherical">
 										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="ip" />
-												<xs:enumeration value="rpa" />
-												<xs:enumeration value="singlet" />
-												<xs:enumeration value="triplet" />
+											<xs:restriction
+												base="xs:string">
+												<xs:enumeration
+													value="spherical" />
+												<xs:enumeration
+													value="screendiag" />
+												<xs:enumeration
+													value="invscreendiag" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+                  <xs:attribute name="sciavbd"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="sciavqhd"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="sciavqwg"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="sciavqbd"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="bsedirsing"
+										type="xs:boolean" default="false" />
+									<xs:attribute name="lmaxdielt"
+										type="xs:integer" default="14" />
+									<xs:attribute name="nleblaik"
+										type="xs:integer" default="5810" />
+									<xs:attribute name="nexcitmax"
+										type="xs:integer" default="100" />
+									<xs:attribute name="nstlbse"
+										type="integerpair" default="0 0">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>
+													nbfbse,nafbse
+												</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="nstlce"
+										type="integerpair" default="0 0">
+										<xs:annotation>
+											<xs:appinfo>
+												<oldname>
+													nbfce,nafce
+												</oldname>
+											</xs:appinfo>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="bsetype"
+										default="singlet">
+										<xs:simpleType>
+											<xs:restriction
+												base="xs:string">
+												<xs:enumeration
+													value="ip" />
+												<xs:enumeration
+													value="rpa" />
+												<xs:enumeration
+													value="singlet" />
+												<xs:enumeration
+													value="triplet" />
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -2650,7 +2680,7 @@
 										default="0.5" />
 								</xs:complexType>
 							</xs:element>
-                            <xs:element name="plan" minOccurs="0" maxOccurs="1">
+							<xs:element name="plan" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:sequence>
 										<xs:element name="doonly" minOccurs="0" maxOccurs="unbounded">
@@ -3040,7 +3070,7 @@
 									</xs:sequence>
 								</xs:complexType>
 							</xs:element>
-                        </xs:all>
+						</xs:all>
 						<xs:attribute name="emattype" type="xs:integer"
 							default="1">
 							<xs:annotation>
@@ -3236,7 +3266,8 @@
 					<xs:documentation>The id is a unique identifier in an input
 						set.
 						If the input element is part of an input set the id
-						must be set.					</xs:documentation>
+						must be set.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="depends" type="xs:IDREFS">

@@ -6,7 +6,7 @@
 ! See the file COPYING for license details.
 
 
-subroutine getevalsv(vpl, evalsvp)
+subroutine getevalsv(vpl,evalsvp)
   use modmain
 use modinput
   use modmpi
@@ -27,26 +27,26 @@ use modinput
   real(8), allocatable :: evalsv_(:)
 #endif
   ! find the k-point number
-  call findkpt(vpl, isym, ik)
+  call findkpt(vpl,isym,ik)
 
   ! find the record length
-#ifndef XS
-  inquire(iolength=recl) vkl_, nstsv_
-#endif
 #ifdef XS
-  inquire(iolength=recl) vkl_, nstsv_, evalsvp
+  inquire(iolength=recl) vkl_,nstsv_
+#endif
+#ifndef XS
+  inquire(iolength=recl) vkl_,nstsv_,evalsvp
 #endif
   filetag=trim(filetag_evalsv)
- do i=1, 100
-inquire(file=outfilenamestring(filetag, ik), exist=exist)
+ do i=1,100
+inquire(file=outfilenamestring(filetag,ik),exist=exist)
  if (exist) then
-open(70, file = outfilenamestring(filetag, ik), action = 'READ', &
- form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
+open(70,file=outfilenamestring(filetag,ik),action='READ', &
+ form='UNFORMATTED',access='DIRECT',recl=recl)
 exit
 else
 call system('sync')
-write( * , *) "Waiting for other process to write"//":getevalsv:"// &
-     trim(outfilenamestring(filetag, ik))
+write(*,*) "Waiting for other process to write"//":getevalsv:"// &
+     trim(outfilenamestring(filetag,ik))
 call sleep(5)
 endif
 enddo
@@ -56,49 +56,49 @@ enddo
      koffset =ik
   endif
 #ifdef XS
-  read(70, rec=1) vkl_, nstsv_
+  read(70,rec=1) vkl_,nstsv_
   close(70)
   if (nstsv.gt.nstsv_) then
-     write(*, *)
-     write(*, '("Error(getevalsv): invalid nstsv for k-point ", I8)') ik
-     write(*, '(" current    : ", I8)') nstsv
-     write(*, '(" EVALSV.OUT : ", I8)') nstsv_
-     write(*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
-     write(*, *)
+     write(*,*)
+     write(*,'("Error(getevalsv): invalid nstsv for k-point ",I8)') ik
+     write(*,'(" current    : ",I8)') nstsv
+     write(*,'(" EVALSV.OUT : ",I8)') nstsv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
+     write(*,*)
      stop
   end if
   allocate(evalsv_(nstsv_))
-  inquire(iolength=recl) vkl_, nstsv_, evalsv_
-  open(70, file = outfilenamestring(filetag, ik), action = 'READ', &
-       form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
-  read(70, rec=koffset) vkl_, nstsv_, evalsv_
+  inquire(iolength=recl) vkl_,nstsv_,evalsv_
+  open(70,file=outfilenamestring(filetag,ik),action='READ', &
+       form='UNFORMATTED',access='DIRECT',recl=recl)
+  read(70,rec=koffset) vkl_,nstsv_,evalsv_
   ! retreive subset
   evalsvp(:)=evalsv_(:nstsv)
   deallocate(evalsv_)
 #endif
 #ifndef XS
-  read(70, rec=koffset) vkl_, nstsv_, evalsvp
+  read(70,rec=koffset) vkl_,nstsv_,evalsvp
 #endif
 close(70)
 
-t1=abs(vkl(1, ik)-vkl_(1))+abs(vkl(2, ik)-vkl_(2))+abs(vkl(3, ik)-vkl_(3))
+t1=abs(vkl(1,ik)-vkl_(1))+abs(vkl(2,ik)-vkl_(2))+abs(vkl(3,ik)-vkl_(3))
   if (t1.gt.input%structure%epslat) then
-     write(*, *)
-     write(*, '("Error(getevalsv): differing vectors for k-point ", I8)') ik
-     write(*, '(" current    : ", 3G18.10)') vkl(:, ik)
-     write(*, '(" EVALSV.OUT : ", 3G18.10)') vkl_
-     write(*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
-     write(*, *)
+     write(*,*)
+     write(*,'("Error(getevalsv): differing vectors for k-point ",I8)') ik
+     write(*,'(" current    : ",3G18.10)') vkl(:,ik)
+     write(*,'(" EVALSV.OUT : ",3G18.10)') vkl_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
+     write(*,*)
      stop
   end if
 #ifndef XS
   if (nstsv.ne.nstsv_) then
-     write(*, *)
-     write(*, '("Error(getevalsv): differing nstsv for k-point ", I8)') ik
-     write(*, '(" current    : ", I8)') nstsv
-     write(*, '(" EVALSV.OUT : ", I8)') nstsv_
-     write(*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
-     write(*, *)
+     write(*,*)
+     write(*,'("Error(getevalsv): differing nstsv for k-point ",I8)') ik
+     write(*,'(" current    : ",I8)') nstsv
+     write(*,'(" EVALSV.OUT : ",I8)') nstsv_
+     write(*,'(" file       : ",a      )') trim(outfilenamestring(filetag,ik))
+     write(*,*)
      stop
   end if
 #endif
@@ -110,12 +110,12 @@ module m_getevalsvr
 contains
 
 
-subroutine getevalsvr(fname, isti, istf, vpl, evalsvp)
+  subroutine getevalsvr(fname,isti,istf,vpl,evalsvp)
     use modmain
     implicit none
     ! arguments
     character(*), intent(in) :: fname
-    integer, intent(in) :: isti, istf
+    integer, intent(in) :: isti,istf
     real(8), intent(in) :: vpl(3)
     real(8), intent(out) :: evalsvp(:)
     ! local variables
@@ -125,20 +125,20 @@ subroutine getevalsvr(fname, isti, istf, vpl, evalsvp)
     ! check correct shapes
     err=0
     if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
-       write(*, *)
-       write(*, '("Error(getevalsvr): inconsistent limits for bands:")')
-       write(*, '(" band limits  : ", 2i6)') isti, istf
-       write(*, '(" maximum value: ", i6)') nstsv
-       write(*, *)
+       write(*,*)
+       write(*,'("Error(getevalsvr): inconsistent limits for bands:")')
+       write(*,'(" band limits  : ",2i6)') isti,istf
+       write(*,'(" maximum value: ",i6)') nstsv
+       write(*,*)
        err=err+1
     end if
-    if (size(evalsvp, 1).ne.(istf-isti+1)) then
-       write(*, *)
-       write(*, '("Error(getevalsvr): output array does not match for bands:")')
-       write(*, '(" band limits 	     : ", 2i6)') isti, istf
-       write(*, '(" requested number of bands: ", i6)') istf-isti+1
-       write(*, '(" array size		     : ", i6)') size(evalsvp, 1)
-       write(*, *)
+    if (size(evalsvp,1).ne.(istf-isti+1)) then
+       write(*,*)
+       write(*,'("Error(getevalsvr): output array does not match for bands:")')
+       write(*,'(" band limits              : ",2i6)') isti,istf
+       write(*,'(" requested number of bands: ",i6)') istf-isti+1
+       write(*,'(" array size               : ",i6)') size(evalsvp,1)
+       write(*,*)
        err=err+1
     end if
     if (err.ne.0) stop
@@ -146,7 +146,7 @@ subroutine getevalsvr(fname, isti, istf, vpl, evalsvp)
     filetag_evalsv=trim(fname)
     tmpstr=trim(filext)
     filext=''
-    call getevalsv(vpl, evalsvt)
+    call getevalsv(vpl,evalsvt)
     filetag_evalsv='EVALSV'
     filext=trim(tmpstr)
     evalsvp(:)=evalsvt(isti:istf)

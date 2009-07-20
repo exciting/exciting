@@ -365,7 +365,7 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
         ! (cf. A. Marini, PRL 2003)
         if (iknr.eq.jknr) then
            do ist3=1,nst3
-              do ist1=1,nst1	      
+              do ist1=1,nst1
                  zt1=sccli(ist1,ist3,ist1,ist3)
 !!!hdg(ist1,ist3,iknr)=-zt1
                  t1=dble(zt1)
@@ -378,7 +378,7 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
               end do
            end do
         end if
-	
+
         if (dbglev.gt.1) then
            if (iknr.le.jknr) then
               ! * write out screened Coulomb interaction
@@ -404,7 +404,7 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
               emat12p(j1,:)=conjg(emat12kp(ist1,ist2,:))
            end do
         end do
-        ! map 
+        ! map
         j2=0
         do ist3=1,nst3
            do ist1=1,nst1
@@ -429,11 +429,11 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
            end do
         end do
 
-        ! calculate residual "R" 
+        ! calculate residual "R"
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residr=residr+matmul(zmr,emat12p)
 
-        ! calculate residual "Q" 
+        ! calculate residual "Q"
         ! (cf. A. Marini, Phys. Rev. Lett. 91, 256402 (2003))
         residq=residq+matmul(zmq,emat12p)
 
@@ -464,7 +464,7 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
            oscb(:,:)=zzero
            j1=ist1+(ist3-1)*nst1
            ! set up inner part of kernel
-           
+
            ! generate oscillators
            call xszoutpr3(n,n,zone,emat12k(:,ist1,ist3),residr(j1,:),osca)
            ! add Hermitian transpose
@@ -497,7 +497,7 @@ write(*,*) 'kernxs_bse, shape(hdg)',shape(hdg)
         end do
         ! end loop over states #3
      end do
-     
+
      ! end outer loop over k-points
   end do
   close(un)
@@ -517,29 +517,29 @@ write(1108) hdg
 
   ! filename for response function file
   call genfilname(basename='X0',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam)
+       acont=acont,nar=.not.aresdf,tord=torddf,markfxcbse=tfxcbse,iqmt=iqmt,filnam=filnam)
 
   ! filename for xc-kernel (ASCII)
   call genfilname(basename='FXC_BSE',asc=.true.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam2)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam2)
   open(un,file=trim(filnam2),form='formatted',action='write',status='replace')
 
   call getunit(un2)
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam3)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam3)
   inquire(iolength=recl) fxc(:,:,1)
   open(un2,file=trim(filnam3),form='unformatted',action='write', &
        status='replace',access='direct',recl=recl)
-  
+
   call getunit(un3)
   ! filename for xc-kernel
   call genfilname(basename='FXC_BSE_HEAD',asc=.false.,bzsampl=bzsampl,&
-       acont=acont,nar=.not.aresdf,iqmt=iqmt,filnam=filnam4)
+       acont=acont,nar=.not.aresfxc,tord=tordfxc,iqmt=iqmt,filnam=filnam4)
   open(un3,file=trim(filnam4),form='formatted',action='write',status='replace')
-  
+
   goto 111
-  
+
   ! set up kernel
   do iw=1,nwdf
      oct1=oct
@@ -571,13 +571,13 @@ write(1108) hdg
      write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
      ! end loop over frequencies
   end do
-  
+
   111 continue
   do iw=1,nwdf
-     write(un2,rec=iw) fxc(:,:,iw)     
+     write(un2,rec=iw) fxc(:,:,iw)
      write(un3,'(i6,2x,g18.10,2x,2g18.10)') iw,dble(w(iw)),fxc(1,1,iw)
   end do
-  
+
   close(un)
   close(un2)
   close(un3)

@@ -41,8 +41,6 @@ use modinput
   m=max(lmmaxvr, ngrtot)
 
   nrho=100000
-!!$  rhoint(1)=1.0d-3
-!!$  rhoint(2)=1.d0
   rhoint(1)=1.d0
   rhoint(2)=7400.0d0
 

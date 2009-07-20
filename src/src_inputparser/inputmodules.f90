@@ -407,8 +407,8 @@ type xs_type
 end type
 type tddft_type
  logical::intraband
- character(512)::torddf
- character(512)::tordfxc
+ logical::torddf
+ logical::tordfxc
  logical::aresdf
  logical::aresfxc
  real(8)::fxcbsesplit
@@ -446,6 +446,8 @@ type BSE_type
  real(8)::rgkmax
  integer::scrherm
  logical::fbzq
+ character(512)::sciavtype
+ integer::sciavtypenumber
  logical::sciavbd
  logical::sciavqhd
  logical::sciavqwg
@@ -454,6 +456,7 @@ type BSE_type
  integer::lmaxdielt
  integer::nleblaik
  integer::nexcitmax
+ integer::nstlbse(2)
  integer::nstlce(2)
  character(512)::bsetype
  integer::bsetypenumber
@@ -3497,7 +3500,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"torddf")
-getstructtddft%torddf= "causal"
+getstructtddft%torddf= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"torddf",getstructtddft%torddf)
        call removeAttribute(thisnode,"torddf")      
@@ -3505,7 +3508,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"tordfxc")
-getstructtddft%tordfxc= "causal"
+getstructtddft%tordfxc= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tordfxc",getstructtddft%tordfxc)
        call removeAttribute(thisnode,"tordfxc")      
@@ -3801,6 +3804,15 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"sciavtype")
+getstructBSE%sciavtype= "spherical"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"sciavtype",getstructBSE%sciavtype)
+       call removeAttribute(thisnode,"sciavtype")      
+endif
+getstructBSE%sciavtypenumber=stringtonumbersciavtype(getstructBSE%sciavtype)
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"sciavbd")
 getstructBSE%sciavbd= .false.
 if(associated(np)) then
@@ -3862,6 +3874,14 @@ getstructBSE%nexcitmax=100
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nexcitmax",getstructBSE%nexcitmax)
        call removeAttribute(thisnode,"nexcitmax")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nstlbse")
+getstructBSE%nstlbse=(/0,0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nstlbse",getstructBSE%nstlbse)
+       call removeAttribute(thisnode,"nstlbse")      
 endif
 
 nullify(np)  
@@ -4282,6 +4302,24 @@ case('')
  stringtonumberscreentype=0
 case default
 write(*,*) "'", string,"' is not valid selection forscreentype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbersciavtype(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('spherical')
+ stringtonumbersciavtype=-1
+case('screendiag')
+ stringtonumbersciavtype=-1
+case('invscreendiag')
+ stringtonumbersciavtype=-1
+case('')
+ stringtonumbersciavtype=0
+case default
+write(*,*) "'", string,"' is not valid selection forsciavtype "
 stop 
 end select
 end function

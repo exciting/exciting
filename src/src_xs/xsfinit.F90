@@ -15,13 +15,13 @@ subroutine xsfinit
   ! local variables
   character(*), parameter :: thisnam='xsfinit'
   character(10)::dat, tim
-  real(8) :: cput, wallt, cputcum, walltcum
+  real(8) :: cput,wallt,cputcum,walltcum
   real(8) :: hrs
-  integer :: days, hours, minutes, seconds
+  integer :: days,hours,minutes,seconds
   character(256) :: str1, str2
-  character(256), external :: stringtim, r2str
+  character(256), external :: stringtim,r2str
   ! finalize global counters
-  call date_and_time(date=dat, time=tim)
+  call date_and_time(date=dat,time=tim)
   call cpu_time(cputim0f)
   call system_clock(COUNT=systim0f)
   cput=cputim0f-cputim0i
@@ -29,42 +29,41 @@ subroutine xsfinit
   cputcum=cputim0f-cputimcum
   walltcum=dble(systim0f-systimcum)/dble(cntrate)
   ! write out information
-  write(unitout, '(a, i8, a)') 'Info('//thisnam//'): task Nr.', task, &
+  write(unitout,'(a,i8,a)') 'Info('//thisnam//'): task Nr.', task, &
        ' stopped gracefully'
-  !call showunits(unitout)
-  write(unitout, '(a)') 'Timings: '
-  write(unitout, '(a)') '  Date (YYYY - MM - DD) : '//dat(1:4)//' - '//dat(5:6)//' - ' &
+  write(unitout,'(a)') 'Timings: '
+  write(unitout,'(a)') '  Date (YYYY-MM-DD) : '//dat(1:4)//'-'//dat(5:6)//'-' &
        //dat(7:8)
-  write(unitout, '(a)') '  Time (hh:mm:ss)   : '//tim(1:2)//':'//tim(3:4)//':' &
+  write(unitout,'(a)') '  Time (hh:mm:ss)   : '//tim(1:2)//':'//tim(3:4)//':' &
        //tim(5:6)
-  call gentim(cput, hrs, days, hours, minutes, seconds)
+  call gentim(cput,hrs,days,hours,minutes,seconds)
   str1=stringtim(cput, hrs, days, hours, minutes, seconds)
   write(unitout, '(a, 4g18.6)') '  CPU time		  : '//trim(str1)
   if (procs.eq.1) then
-     call gentim(dble(wallt), hrs, days, hours, minutes, seconds)
+     call gentim(dble(wallt),hrs,days,hours,minutes,seconds)
      str1=stringtim(dble(wallt), hrs, days, hours, minutes, seconds)
-     str2=r2str(cput/wallt*100, '(f12.2)')
+     str2=r2str(cput/wallt*100,'(f12.2)')
      write(unitout, '(a, 4g18.6)') '  wall time 	     : '//trim(str1)
-     write(unitout, '(a, g18.6 )') '  CPU load		     : '//trim(str2)//' %'
+     write(unitout,'(a,g18.6 )') '  CPU load               : '//trim(str2)//' %'
   end if
-  call gentim(cputcum, hrs, days, hours, minutes, seconds)
+  call gentim(cputcum,hrs,days,hours,minutes,seconds)
   str1=stringtim(cputcum, hrs, days, hours, minutes, seconds)
   write(unitout, '(a, 4g18.6)') '  CPU time  (cumulative) : '//trim(str1)
   if (procs.eq.1) then
-     call gentim(dble(walltcum), hrs, days, hours, minutes, seconds)
+     call gentim(dble(walltcum),hrs,days,hours,minutes,seconds)
      str1=stringtim(dble(walltcum), hrs, days, hours, minutes, seconds)
-     str2=r2str(cput/wallt*100, '(f12.2)')
+     str2=r2str(cput/wallt*100,'(f12.2)')
      write(unitout, '(a, 4g18.6)') '  wall time (cumulative) : '//trim(str1)
-     write(unitout, '(a, g18.6)')  '  CPU load	(cumulative) : '//trim(str2)//' %'
+     write(unitout,'(a,g18.6)')  '  CPU load  (cumulative) : '//trim(str2)//' %'
   end if
-  write(unitout, *)
-  write(unitout, '("+----------------------------------------------------------&
+  write(unitout,*)
+  write(unitout,'("+----------------------------------------------------------&
        &+")')
-  write(unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, " (eXcited &
-       &States ", I1.1, ".", I3.3, " ) stopped |")') version, versionxs
-  write(unitout, '("+----------------------------------------------------------&
+  write(unitout,'("| EXCITING version ",I1.1,".",I1.1,".",I3.3," (eXcited &
+       &States ",I1.1,".",I3.3," ) stopped |")') version,versionxs
+  write(unitout,'("+----------------------------------------------------------&
        &+")')
-  write(unitout, *)
+  write(unitout,*)
   close(unitout)
 
   ! restore global variables
