@@ -94,7 +94,7 @@ use modinput
   integer, intent(in) :: iq
   ! local variables
   character(*), parameter :: thisnam='dfq'
-  character(256) :: fnscreen, str
+  character(256) :: fnscreen, stri
   real(8), parameter :: epstetra=1.d-8
   complex(8), allocatable :: w(:)
   complex(8), allocatable :: chi0(:, :, :), hdg(:, :, :)
@@ -116,9 +116,9 @@ use modinput
      write(*, *)
      call terminate
   end if
-  str=''
+  stri=''
   tfxcbse = ((input%xs%tddft%fxctypenumber.eq.7).or.(input%xs%tddft%fxctypenumber.eq.8)).and.(.not.tscreen)
-  if (tfxcbse) str='_FXCBSE.OUT'
+  if (tfxcbse) stri='_FXCBSE.OUT'
   ! sampling of Brillouin zone
   bzsampl=0
   if (input%xs%tetra%tetradf) bzsampl=1
