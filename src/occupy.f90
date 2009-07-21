@@ -49,7 +49,7 @@ end do
 if (e0.lt.input%groundstate%evalmin) then
   write(*, *)
   write(*, '("Warning(occupy): valence eigenvalues below evalmin for s.c. &
-   &loop ", I5)') iscl
+   &loop ", I5)') iscl !"
 end if
 #ifdef TETRA
 !<rga>
@@ -112,7 +112,7 @@ else
     ! necessary (S. Sagmeister).
     do ist=1, nstsv
       occsv(ist, ik)=(occmax/wkpt(ik))*occsv(ist, ik)
-    end do  
+    end do
   end do
 end if
 !</rga>
