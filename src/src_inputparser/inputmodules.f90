@@ -474,6 +474,7 @@ end type
 type dosWindow_type
  integer::points
  real(8)::intv(2)
+ integer::nsmdos
 end type
 type plan_type
   type(doonly_type_array),pointer::doonlyarray(:)
@@ -4010,6 +4011,14 @@ np=>getAttributeNode(thisnode,"intv")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"intv",getstructdosWindow%intv)
        call removeAttribute(thisnode,"intv")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nsmdos")
+getstructdosWindow%nsmdos=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nsmdos",getstructdosWindow%nsmdos)
+       call removeAttribute(thisnode,"nsmdos")      
 endif
 
       i=0

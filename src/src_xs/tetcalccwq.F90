@@ -74,7 +74,7 @@ use modinput
   end do
   eb(:, :)=evalsv(:, :)
   ! scissors shift
-  where (eb.gt.efermi) eb=eb+input%properties%bandstructure%scissor
+  where (eb.gt.efermi) eb=eb+input%xs%scissor
   ! generate complex energy grid
   call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
   wreal(:)=dble(w(wi:wf))

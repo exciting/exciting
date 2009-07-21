@@ -175,7 +175,7 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
   do iknr=1, nkptnr
      do ist1=1+nvdif, nst1
 	do ist3=1, nst3-ncdif
-	   egap = min(egap, evalsv(ist3 + istocc, iknr) - evalsv(ist1, iknr) + input%properties%bandstructure%scissor)
+	   egap = min(egap, evalsv(ist3 + istocc, iknr) - evalsv(ist1, iknr) + input%xs%scissor)
 	end do
       end do
   end do
@@ -216,7 +216,7 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
 		    s2=hamidx(ist2-nvdif, ist4, jknr, nbfbse, nafbse)
                     ! add diagonal term
 		    if (s1.eq.s2) then
-		       de = evalsv(ist3 + istocc, iknr) - evalsv(ist1, iknr) + input%properties%bandstructure%scissor
+		       de = evalsv(ist3 + istocc, iknr) - evalsv(ist1, iknr) + input%xs%scissor
 		       ham(s1, s2)=ham(s1, s2)+de-egap+bsed
 		    end if
                     ! add exchange term

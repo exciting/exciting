@@ -50,8 +50,8 @@ subroutine writevars(un, iq, iqmt)
     write(un, '(a, l8)') '# input%xs%tddft%acont	     :', input%xs%tddft%acont
     write(un, '(a, i8)') '# input%xs%tddft%nwacont	     :', input%xs%tddft%nwacont
     write(un, '(a, 2f12.6)') '# input%xs%broad (H, eV)	    :', input%xs%broad, h2ev*input%xs%broad
-    write(un, '(a, 2f12.6)') '# input%properties%bandstructure%scissor (H, eV)	  :',&
-    &input%properties%bandstructure%scissor, h2ev * input%properties%bandstructure%scissor
+    write(un, '(a, 2f12.6)') '# scissor (H, eV)	  :',&
+    &input%xs%scissor, h2ev * input%xs%scissor
     write(un, '(a, i8)') '# input%xs%dosWindow%points		   :', input%xs%dosWindow%points
     write(un, '(a, i8)') '# ngq 	      :', ngq(iqmtt)
     write(un, '(a, f12.6)') '# input%xs%gqmax		  :', input%xs%gqmax

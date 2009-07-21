@@ -2617,6 +2617,13 @@
 					      <xs:complexType>
 					        <xs:attribute name="points" type="xs:integer" default="500" />
 					        <xs:attribute name="intv" type="vect2d"></xs:attribute>
+                  <xs:attribute name="nsmdos" type="xs:integer" default="0">
+                  <xs:annotation>
+                  <xs:appinfo>
+                  <oldname>noreplace</oldname>
+                  </xs:appinfo>
+                  </xs:annotation>
+                  </xs:attribute>
 					      </xs:complexType>
 					    </xs:element>
 					    <xs:element name="plan" minOccurs="0" maxOccurs="1">

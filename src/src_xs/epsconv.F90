@@ -94,8 +94,8 @@ use modinput
 		   (pi/input%xs%broad) * input%xs%broad** 2/((w(iw) - w(iwp)) ** 2 + input%xs%broad** 2)
 	   end do ! iw
 	   if (tsmooth) then
-		  call fsmooth(input%properties%dos%nsmdos, nwdf, 1, g)
-	      call fsmooth(input%properties%dos%nsmdos, nwdf, 1, g1)
+		  call fsmooth(input%xs%doswindow%nsmdos, nwdf, 1, g)
+	      call fsmooth(input%xs%doswindow%nsmdos, nwdf, 1, g1)
 		   end if
 	   close(un)
 	end do ! oct
