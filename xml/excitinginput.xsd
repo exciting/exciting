@@ -1974,11 +1974,14 @@
 												output integer 0</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="wintdos" default=".5 .5" type="vect2d">
+									<xs:attribute name="winddos" default=".5 .5" type="vect2d">
 										<xs:annotation>
 											<xs:documentation> frequency/energy window for the
 												DOS or
 												optics plot</xs:documentation>
+                        <xs:appinfo>
+                        <oldname>wdos</oldname>
+                        </xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
@@ -2327,938 +2330,756 @@
             </xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
-						<xs:all>
-							<xs:element name="tddft" minOccurs="0">
-								<xs:complexType>
-									<xs:all>
-										<xs:element name="dftrans" maxOccurs="1" minOccurs="0">
-											<xs:annotation>
-												<xs:appinfo>
-													<oldname>dftrans,ndftrans</oldname>
-												</xs:appinfo>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:sequence>
-													<xs:element name="trans" type="integertriple"
-														maxOccurs="unbounded" minOccurs="1" />
-												</xs:sequence>
-											</xs:complexType>
-										</xs:element>
-									</xs:all>
-									<xs:attribute name="intraband" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="torddf" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="tordfxc" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="aresdf" type="xs:boolean"
-										default="true" />
-									<xs:attribute name="aresfxc" type="xs:boolean"
-										default="true" />
-									<xs:attribute name="fxcbsesplit" type="fortrandouble"
-										default="1d-5" />
-									<xs:attribute name="acont" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="nwacont" type="xs:integer"
-										default="0" />
-									<xs:attribute name="lindhard" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="epsdfde" type="fortrandouble"
-										default="1.0d-8" />
-									<xs:attribute name="kerndiag" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="lmaxalda" type="xs:integer"
-										default="3" />
-									<xs:attribute name="alphalrc" type="fortrandouble"
-										default="0" />
-									<xs:attribute name="alphalrcdyn" type="fortrandouble"
-										default="0" />
-									<xs:attribute name="betalrcdyn" type="fortrandouble"
-										fixed="0" />
-									<xs:attribute name="mdfqtype" type="xs:integer"
-										default="0">
-										<xs:annotation>
-											<xs:documentation>
-												treatment of macroscopic dielectric function
-												for
-												<inlinemath>{\bf Q}</inlinemath>
-												-point outside of
-												Brillouin zone. A value of 0 uses the full
-												<inlinemath>{\bf Q}</inlinemath>
-												and
-												and the
-												<inlinemath>({\bf 0},{\bf 0})</inlinemath>
-												component
-												of the microscopic dielectric matrix is used.
-												A
-												value of 1 invokes a decomposition
-												<inlinemath>{\bf Q}={\bf q}+{\bf G}_{\bf q}</inlinemath>
-												and
-												and the
-												<inlinemath>({\bf Q}_{\bf q},{\bf Q}_{\bf q})
-												</inlinemath>
-												component
-												of the microscopic dielectric matrix is used.
-											</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="fxctype" default="RPA">
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="RPA">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>0</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="LRCstatic_NLF">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>1</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="LRCstatic">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>2</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="LRCdyn_NLF">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>3</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="LRCdyn">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>4</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="ALDA">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>5</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="MB1_NLF">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>7</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-												<xs:enumeration value="MB1">
-													<xs:annotation>
-														<xs:appinfo>
-															<oldnr>8</oldnr>
-														</xs:appinfo>
-													</xs:annotation>
-												</xs:enumeration>
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="screening" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:attribute name="nosym" type="xs:boolean"
-										default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>nosymscr</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="ngridk" type="integertriple"
-										default="0 0 0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>ngridkscr</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="reducek" type="xs:boolean"
-										default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>reducekscr</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>vkloffscr</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="rgkmax" type="fortrandouble"
-										default="0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>rgkmaxscr</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="nempty" type="xs:integer"
-										default="0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>nemptyscr</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="screentype" default="full">
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="full" />
-												<xs:enumeration value="diag" />
-												<xs:enumeration value="noinvdiag" />
-												<xs:enumeration value="longrange" />
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="BSE" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:attribute name="nosym"
-										type="xs:boolean" default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>
-													nosymbse
-												</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="reducek"
-										type="xs:boolean" default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>
-													reducekbse
-												</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="vkloff"
-										type="vect3d" default="-1 -1 -1">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>
-													vkloffbse
-												</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="rgkmax"
-										type="fortrandouble" default="0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>
-													rgkmaxbse
-												</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="scrherm"
-										type="xs:integer" default="0" />
-									<xs:attribute name="fbzq"
-										type="xs:boolean" default="false" />
-                  <xs:attribute name="sciavtype" default="spherical">
-										<xs:simpleType>
-											<xs:restriction
-												base="xs:string">
-												<xs:enumeration
-													value="spherical" />
-												<xs:enumeration
-													value="screendiag" />
-												<xs:enumeration
-													value="invscreendiag" />
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
-                  <xs:attribute name="sciavbd"
-										type="xs:boolean" default="false" />
-									<xs:attribute name="sciavqhd"
-										type="xs:boolean" default="false" />
-									<xs:attribute name="sciavqwg"
-										type="xs:boolean" default="false" />
-									<xs:attribute name="sciavqbd"
-										type="xs:boolean" default="false" />
-									<xs:attribute name="bsedirsing"
-										type="xs:boolean" default="false" />
-									<xs:attribute name="lmaxdielt"
-										type="xs:integer" default="14" />
-									<xs:attribute name="nleblaik"
-										type="xs:integer" default="5810" />
-									<xs:attribute name="nexcitmax"
-										type="xs:integer" default="100" />
-									<xs:attribute name="nstlbse"
-										type="integerpair" default="0 0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>
-													nbfbse,nafbse
-												</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="nstlce"
-										type="integerpair" default="0 0">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>
-													nbfce,nafce
-												</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="bsetype"
-										default="singlet">
-										<xs:simpleType>
-											<xs:restriction
-												base="xs:string">
-												<xs:enumeration
-													value="ip" />
-												<xs:enumeration
-													value="rpa" />
-												<xs:enumeration
-													value="singlet" />
-												<xs:enumeration
-													value="triplet" />
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
-							<xs:element ref="qpointset" minOccurs="1" maxOccurs="1">
-								<xs:annotation>
-									<xs:documentation>
-										finite momentum transfer
-										<inlinemath>{ \bf G}+{ \bf q}</inlinemath>
-										vector
-									</xs:documentation>
-									<xs:appinfo>
-										<oldname>vgqlmt,nqptmt</oldname>
-									</xs:appinfo>
-								</xs:annotation>
-							</xs:element>
-							<xs:element name="tetra" maxOccurs="1" minOccurs="0">
-								<xs:complexType>
-									<xs:attribute name="tetraocc" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="tetradf" type="xs:boolean"
-										default="false" />
-									<xs:attribute name="kordexc" type="xs:boolean"
-										default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>tetrakordexc</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="cw1k" type="xs:boolean"
-										default="false">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>tetracw1k</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="qweights" type="xs:integer"
-										default="1">
-										<xs:annotation>
-											<xs:appinfo>
-												<oldname>tetraqweights</oldname>
-											</xs:appinfo>
-										</xs:annotation>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
-								<xs:complexType>
-									<xs:attribute name="points" type="xs:integer"
-										default="500" />
-									<xs:attribute name="starte" type="fortrandouble"
-										default="-0.5" />
-									<xs:attribute name="stope" type="fortrandouble"
-										default="0.5" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="plan" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element name="doonly" minOccurs="0" maxOccurs="unbounded">
-											<xs:complexType>
-												<xs:attribute name="task" use="required">
-                        <xs:annotation>
-                        <xs:appinfo>
-                        <oldname>noreplace</oldname>
-                        </xs:appinfo>
-                        </xs:annotation>
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<!-- required workflow tasks below-->
-															<xs:enumeration value="xsgeneigvec">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>301</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate eigenvectors,
-																		-values and occupancies
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="tetcalccw">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>310</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate
-																		frequency-dependent weights for
-																		convolutions using the
-																		linear tetrahedron method
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writepmatxs">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>320</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate momentum matrix
-																		elements
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writeemat">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>330</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate q-dependent matrix
-																		elements
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="df">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>340</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation> Calculate the Kohn-Sham response
-																		function checked in the code !
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="df2">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>345</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation> Calculate the Kohn-Sham response
-																		function taking
-																		into account the rigid shift of the BSE
-																		diagonal. This is
-																		not a
-																		duplicate task, as the task-Nr.
-																		is referenced. checked in the
-																		code !
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="idf">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>350</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Set up simple xc-kernels, solve
-																		Dyson's equation
-																		for the full polarizability and
-																		determine the macroscopic
-																		dielectric
-																		function and other
-																		spectroscopic quantities.
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="scrgeneigvec">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>401</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate eigenvectors,
-																		-values and occupancies
-																		for screening
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="scrtetcalccw">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>410</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate
-																		frequency-dependent weights for
-																		convolutions using the
-																		linear tetrahedron method for screening
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="scrwritepmat">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>420</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate momentum matrix
-																		elements for screening
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="screen">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>430</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate RPA screening
-																		(ignoring scissor's shift)
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="scrcoulint">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>440</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate direct term of BSE
-																		Hamiltonian
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="exccoulint">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>441</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate exchange term of
-																		BSE Hamiltonian
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="kernxc_bse">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>450</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>Calculate frequency
-																		dependent xc-kernel
-																		drived from the Bethe-Salpeter
-																		equation in first order
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<!-- experimental and debugging tasks below-->
-															<xs:enumeration value="writebandgapgrid">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>23</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>estimate bandgap from regular
-																		grid
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writepmat">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>120</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>calculate momentum matrix
-																		elements (legacy)
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="dielectric">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>121</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>linear optics (legacy)
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writepmatasc">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>321</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>ASCII output of momentum matrix
-																		elements
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="pmatxs2orig">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>322</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>convert momentum matrix
-																		elements file to old format
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writeematasc">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>331</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>ASCII output of q-dependent
-																		matrix elements
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="writepwmat">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>335</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>calculate matrix elements of
-																		the plane wave (simple version for checking)
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="emattest">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>339</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>check relation between matr. el.
-																		of exp. and mom. matr. el.
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="x0toasc">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>341</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>ASCII output of Kohn Sham
-																		response function
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="x0tobin">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>342</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>binary output of Kohn Sham
-																		response function
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="epsconv">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>396</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>convolute dielectric
-																		function from tetrahedron method with Lorentzian
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="fxc_alda_check">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>398</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>check ALDA kernel
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="kernxc_bse3">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>451</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>BSE-kernel, straight
-																		forward version
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="testxs">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>499</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>degub routine of xs-part
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="xsestimate">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>700</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>estimate disk-space, cpu-time
-																		and memory requirements
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="xstiming">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>701</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>test timing
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<!-- debugging main part-->
-															<xs:enumeration value="testmain">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>999</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>debug routine main part of code
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<!-- import/export tasks below-->
-															<xs:enumeration value="portstate(1)">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>900</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>generate STATE.xml file from
-																		STATE.OUT file
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="portstate(2)">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>901</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>generate STATE.OUT file from
-																		STATE.xml file
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="portstate(-1)">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>910</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>display Information about
-																		STATE.OUT file
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-															<xs:enumeration value="portstate(-2)">
-																<xs:annotation>
-																	<xs:appinfo>
-																		<oldnr>911</oldnr>
-																	</xs:appinfo>
-																	<xs:documentation>display Information about
-																		STATE.xml file
-																	</xs:documentation>
-																</xs:annotation>
-															</xs:enumeration>
-
-
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
-									</xs:sequence>
-								</xs:complexType>
-							</xs:element>
-						</xs:all>
-						<xs:attribute name="emattype" type="xs:integer"
-							default="1">
-							<xs:annotation>
-								<xs:documentation>Type of matrix element generation
-									(band-combinations).
-									Should only be referenced for experimental
-									features.
-								</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="dfoffdiag" type="xs:boolean"
-							default="false" />
-						<xs:attribute name="lmaxapwwf" type="xs:integer"
-							default="-1" />
-						<xs:attribute name="lmaxemat" type="xs:integer"
-							default="3">
-							<xs:annotation>
-								<xs:documentation>
-									maximum angular momentum for Rayleigh expansion of
-									<inlinemath>{\bf q}</inlinemath>
-									-dependent plane wave factor
-								</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="emaxdf" type="fortrandouble"
-							default="1d10" />
-						<xs:attribute name="broad" type="fortrandouble"
-							default="0.01d0" />
-						<xs:attribute name="tevout" type="xs:boolean"
-							default="false" />
-						<xs:attribute name="xstype" use="required">
-							<xs:simpleType>
-								<xs:restriction base="xs:string">
-									<xs:enumeration value="TDDFT" />
-									<xs:enumeration value="BSE" />
-								</xs:restriction>
-							</xs:simpleType>
-						</xs:attribute>
-						<!-- Here are experimental parameters -->
-						<xs:attribute name="symmorph" type="xs:boolean"
-							default="false">
-							<xs:annotation>
-								<xs:documentation> True if only symmorphic space-group
-									operations
-									are to be considered, i.e. only symmetries without
-									non-primitive
-									translations are allowed.
-								</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="fastpmat" type="xs:boolean"
-							default="true">
-							<xs:annotation>
-								<xs:documentation> if true, a fast method to calculate APW-lo,
-									lo-APW and lo-lo parts
-									of the momentum matrix elements in the
-									muffin-tin is used.
-								</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="fastemat" type="xs:boolean"
-							default="true">
-							<xs:annotation>
-								<xs:documentation>
-									if true, a fast method to calculate APW-lo, lo-APW and lo-lo
-									parts
-									of the
-									<inlinemath>{\bf q}</inlinemath>
-									-dependent matrix elements in the muffin-tin is used.
-								</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="gather" type="xs:boolean"
-							default="false" />
-						<xs:attribute name="tappinfo" type="xs:boolean"
-							default="false" />
-						<xs:attribute name="dbglev" type="xs:integer"
-							default="0" />
-						<xs:attribute name="usegdft" type="xs:boolean"
-							default="false">
-							<!-- used from src_optics/mod_DOS_optics_response.F90 -->
-						</xs:attribute>
-						<xs:attribute name="gqmax" type="fortrandouble"
-							default="0" />
-						<!--
-							section of parameters from groundstate which are allowed to be
-							different from the ones of the ground state run
-						-->
-						<xs:attribute name="nosym" type="xs:boolean" default="false">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>nosymxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="ngridk" type="integertriple"
-							default="1 1 1">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>ngridkxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="vkloff" type="vect3d" default="0 0 0 ">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>vkloffxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="reducek" type="xs:boolean"
-							default="true">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>reducekxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="ngridq" type="integertriple"
-							default="0 0 0">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>ngridqxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="reduceq" type="xs:boolean"
-							default="true">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>reduceqxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="rgkmax" type="fortrandouble"
-							default="7">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>rgkmaxxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="swidth" type="fortrandouble"
-							default="0.01d0">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>swidthxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="lmaxapw" type="xs:integer"
-							default="8">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>lmaxapwxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="lmaxmat" type="xs:integer"
-							default="5">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>lmaxmatxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
-						<xs:attribute name="nempty" type="xs:integer"
-							default="5">
-							<xs:annotation>
-								<xs:appinfo>
-									<oldname>nemptyxs</oldname>
-								</xs:appinfo>
-							</xs:annotation>
-						</xs:attribute>
+					  <xs:all>
+					    <xs:element name="tddft" minOccurs="0">
+					      <xs:complexType>
+					        <xs:all>
+					          <xs:element name="dftrans" maxOccurs="1" minOccurs="0">
+					            <xs:annotation>
+					              <xs:appinfo>
+					                <oldname>dftrans,ndftrans</oldname>
+					              </xs:appinfo>
+					            </xs:annotation>
+					            <xs:complexType>
+					              <xs:sequence>
+					                <xs:element name="trans" type="integertriple" maxOccurs="unbounded" minOccurs="1" />
+					              </xs:sequence>
+					            </xs:complexType>
+					          </xs:element>
+					        </xs:all>
+					        <xs:attribute name="intraband" type="xs:boolean" default="false" />
+					        <xs:attribute name="torddf" type="xs:boolean" default="false" />
+					        <xs:attribute name="tordfxc" type="xs:boolean" default="false" />
+					        <xs:attribute name="aresdf" type="xs:boolean" default="true" />
+					        <xs:attribute name="aresfxc" type="xs:boolean" default="true" />
+					        <xs:attribute name="fxcbsesplit" type="fortrandouble" default="1d-5" />
+					        <xs:attribute name="acont" type="xs:boolean" default="false" />
+					        <xs:attribute name="nwacont" type="xs:integer" default="0" />
+					        <xs:attribute name="lindhard" type="xs:boolean" default="false" />
+					        <xs:attribute name="epsdfde" type="fortrandouble" default="1.0d-8" />
+					        <xs:attribute name="kerndiag" type="xs:boolean" default="false" />
+					        <xs:attribute name="lmaxalda" type="xs:integer" default="3" />
+					        <xs:attribute name="alphalrc" type="fortrandouble" default="0" />
+					        <xs:attribute name="alphalrcdyn" type="fortrandouble" default="0" />
+					        <xs:attribute name="betalrcdyn" type="fortrandouble" fixed="0" />
+					        <xs:attribute name="mdfqtype" type="xs:integer" default="0">
+					          <xs:annotation>
+					            <xs:documentation>
+					              treatment of macroscopic dielectric function for
+					              <inlinemath>{\bf Q}</inlinemath>
+					              -point outside of Brillouin zone. A value of 0 uses the full
+					              <inlinemath>{\bf Q}</inlinemath>
+					              and and the
+					              <inlinemath>({\bf 0},{\bf 0})</inlinemath>
+					              component of the microscopic dielectric matrix is used. A value of 1 invokes a decomposition
+					              <inlinemath>{\bf Q}={\bf q}+{\bf G}_{\bf q}</inlinemath>
+					              and and the
+					              <inlinemath>({\bf Q}_{\bf q},{\bf Q}_{\bf q})</inlinemath>
+					              component of the microscopic dielectric matrix is used.
+					            </xs:documentation>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="fxctype" default="RPA">
+					          <xs:simpleType>
+					            <xs:restriction base="xs:string">
+					              <xs:enumeration value="RPA">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>0</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					              <xs:enumeration value="LRCstatic_NLF">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>1</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					              <xs:enumeration value="LRCstatic">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>2</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					              <xs:enumeration value="LRCdyn_NLF">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>3</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					              <xs:enumeration value="LRCdyn">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>4</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					              <xs:enumeration value="ALDA">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>5</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					              <xs:enumeration value="MB1_NLF">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>7</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					              <xs:enumeration value="MB1">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldnr>8</oldnr>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					              </xs:enumeration>
+					            </xs:restriction>
+					          </xs:simpleType>
+					        </xs:attribute>
+					      </xs:complexType>
+					    </xs:element>
+					    <xs:element name="screening" minOccurs="0" maxOccurs="1">
+					      <xs:complexType>
+					        <xs:attribute name="nosym" type="xs:boolean" default="false">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>nosymscr</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="ngridk" type="integertriple" default="0 0 0">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>ngridkscr</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="reducek" type="xs:boolean" default="false">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>reducekscr</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>vkloffscr</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="rgkmax" type="fortrandouble" default="0">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>rgkmaxscr</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="nempty" type="xs:integer" default="0">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>nemptyscr</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="screentype" default="full">
+					          <xs:simpleType>
+					            <xs:restriction base="xs:string">
+					              <xs:enumeration value="full" />
+					              <xs:enumeration value="diag" />
+					              <xs:enumeration value="noinvdiag" />
+					              <xs:enumeration value="longrange" />
+					            </xs:restriction>
+					          </xs:simpleType>
+					        </xs:attribute>
+					      </xs:complexType>
+					    </xs:element>
+					    <xs:element name="BSE" minOccurs="0" maxOccurs="1">
+					      <xs:complexType>
+					        <xs:attribute name="nosym" type="xs:boolean" default="false">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>nosymbse</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="reducek" type="xs:boolean" default="false">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>reducekbse</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>vkloffbse</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="rgkmax" type="fortrandouble" default="0">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>rgkmaxbse</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="scrherm" type="xs:integer" default="0" />
+					        <xs:attribute name="fbzq" type="xs:boolean" default="false" />
+					        <xs:attribute name="sciavtype" default="spherical">
+					          <xs:simpleType>
+					            <xs:restriction base="xs:string">
+					              <xs:enumeration value="spherical" />
+					              <xs:enumeration value="screendiag" />
+					              <xs:enumeration value="invscreendiag" />
+					            </xs:restriction>
+					          </xs:simpleType>
+					        </xs:attribute>
+					        <xs:attribute name="sciavbd" type="xs:boolean" default="false" />
+					        <xs:attribute name="sciavqhd" type="xs:boolean" default="false" />
+					        <xs:attribute name="sciavqwg" type="xs:boolean" default="false" />
+					        <xs:attribute name="sciavqbd" type="xs:boolean" default="false" />
+					        <xs:attribute name="bsedirsing" type="xs:boolean" default="false" />
+					        <xs:attribute name="lmaxdielt" type="xs:integer" default="14" />
+					        <xs:attribute name="nleblaik" type="xs:integer" default="5810" />
+					        <xs:attribute name="nexcitmax" type="xs:integer" default="100" />
+					        <xs:attribute name="nstlbse" type="integerpair" default="0 0">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>nbfbse,nafbse</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="nstlce" type="integerpair" default="0 0">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>nbfce,nafce</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="bsetype" default="singlet">
+					          <xs:simpleType>
+					            <xs:restriction base="xs:string">
+					              <xs:enumeration value="ip" />
+					              <xs:enumeration value="rpa" />
+					              <xs:enumeration value="singlet" />
+					              <xs:enumeration value="triplet" />
+					            </xs:restriction>
+					          </xs:simpleType>
+					        </xs:attribute>
+					      </xs:complexType>
+					    </xs:element>
+					    <xs:element ref="qpointset" minOccurs="1" maxOccurs="1">
+					      <xs:annotation>
+					        <xs:documentation>
+					          finite momentum transfer
+					          <inlinemath>{ \bf G}+{ \bf q}</inlinemath>
+					          vector
+					        </xs:documentation>
+					        <xs:appinfo>
+					          <oldname>vgqlmt,nqptmt</oldname>
+					        </xs:appinfo>
+					      </xs:annotation>
+					    </xs:element>
+					    <xs:element name="tetra" maxOccurs="1" minOccurs="0">
+					      <xs:complexType>
+					        <xs:attribute name="tetraocc" type="xs:boolean" default="false" />
+					        <xs:attribute name="tetradf" type="xs:boolean" default="false" />
+					        <xs:attribute name="kordexc" type="xs:boolean" default="false">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>tetrakordexc</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="cw1k" type="xs:boolean" default="false">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>tetracw1k</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					        <xs:attribute name="qweights" type="xs:integer" default="1">
+					          <xs:annotation>
+					            <xs:appinfo>
+					              <oldname>tetraqweights</oldname>
+					            </xs:appinfo>
+					          </xs:annotation>
+					        </xs:attribute>
+					      </xs:complexType>
+					    </xs:element>
+					    <xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
+					      <xs:complexType>
+					        <xs:attribute name="points" type="xs:integer" default="500" />
+					        <xs:attribute name="intv" type="vect2d"></xs:attribute>
+					      </xs:complexType>
+					    </xs:element>
+					    <xs:element name="plan" minOccurs="0" maxOccurs="1">
+					      <xs:complexType>
+					        <xs:sequence>
+					          <xs:element name="doonly" minOccurs="0" maxOccurs="unbounded">
+					            <xs:complexType>
+					              <xs:attribute name="task" use="required">
+					                <xs:annotation>
+					                  <xs:appinfo>
+					                    <oldname>noreplace</oldname>
+					                  </xs:appinfo>
+					                </xs:annotation>
+					                <xs:simpleType>
+					                  <xs:restriction base="xs:string">
+					                    <!-- required workflow tasks below-->
+					                    <xs:enumeration value="xsgeneigvec">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>301</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate eigenvectors, -values and occupancies</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="tetcalccw">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>310</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>
+					                          Calculate frequency-dependent weights for convolutions using the linear tetrahedron method
+					                        </xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="writepmatxs">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>320</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate momentum matrix elements</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="writeemat">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>330</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate q-dependent matrix elements</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="df">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>340</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate the Kohn-Sham response function checked in the code !</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="df2">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>345</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>
+					                          Calculate the Kohn-Sham response function taking into account the rigid shift of the BSE diagonal. This is not a
+					                          duplicate task, as the task-Nr. is referenced. checked in the code !
+					                        </xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="idf">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>350</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>
+					                          Set up simple xc-kernels, solve Dyson's equation for the full polarizability and determine the macroscopic
+					                          dielectric function and other spectroscopic quantities.
+					                        </xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="scrgeneigvec">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>401</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate eigenvectors, -values and occupancies for screening</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="scrtetcalccw">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>410</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>
+					                          Calculate frequency-dependent weights for convolutions using the linear tetrahedron method for screening
+					                        </xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="scrwritepmat">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>420</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate momentum matrix elements for screening</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="screen">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>430</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate RPA screening (ignoring scissor's shift)</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="scrcoulint">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>440</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate direct term of BSE Hamiltonian</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="exccoulint">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>441</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>Calculate exchange term of BSE Hamiltonian</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="kernxc_bse">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>450</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>
+					                          Calculate frequency dependent xc-kernel drived from the Bethe-Salpeter equation in first order
+					                        </xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <!-- experimental and debugging tasks below-->
+					                    <xs:enumeration value="writebandgapgrid">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>23</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>estimate bandgap from regular grid</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="writepmat">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>120</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>calculate momentum matrix elements (legacy)</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="dielectric">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>121</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>linear optics (legacy)</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="writepmatasc">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>321</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>ASCII output of momentum matrix elements</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="pmatxs2orig">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>322</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>convert momentum matrix elements file to old format</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="writeematasc">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>331</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>ASCII output of q-dependent matrix elements</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="writepwmat">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>335</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>calculate matrix elements of the plane wave (simple version for checking)</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="emattest">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>339</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>check relation between matr. el. of exp. and mom. matr. el.</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="x0toasc">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>341</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>ASCII output of Kohn Sham response function</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="x0tobin">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>342</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>binary output of Kohn Sham response function</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="epsconv">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>396</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>convolute dielectric function from tetrahedron method with Lorentzian</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="fxc_alda_check">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>398</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>check ALDA kernel</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="kernxc_bse3">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>451</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>BSE-kernel, straight forward version</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="testxs">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>499</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>degub routine of xs-part</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="xsestimate">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>700</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>estimate disk-space, cpu-time and memory requirements</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="xstiming">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>701</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>test timing</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <!-- debugging main part-->
+					                    <xs:enumeration value="testmain">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>999</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>debug routine main part of code</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <!-- import/export tasks below-->
+					                    <xs:enumeration value="portstate(1)">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>900</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>generate STATE.xml file from STATE.OUT file</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="portstate(2)">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>901</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>generate STATE.OUT file from STATE.xml file</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="portstate(-1)">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>910</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>display Information about STATE.OUT file</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                    <xs:enumeration value="portstate(-2)">
+					                      <xs:annotation>
+					                        <xs:appinfo>
+					                          <oldnr>911</oldnr>
+					                        </xs:appinfo>
+					                        <xs:documentation>display Information about STATE.xml file</xs:documentation>
+					                      </xs:annotation>
+					                    </xs:enumeration>
+					                  </xs:restriction>
+					                </xs:simpleType>
+					              </xs:attribute>
+					            </xs:complexType>
+					          </xs:element>
+					        </xs:sequence>
+					      </xs:complexType>
+					    </xs:element>
+					  </xs:all>
+					  <xs:attribute name="emattype" type="xs:integer" default="1">
+					    <xs:annotation>
+					      <xs:documentation>
+					        Type of matrix element generation (band-combinations). Should only be referenced for experimental features.
+					      </xs:documentation>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="dfoffdiag" type="xs:boolean" default="false" />
+					  <xs:attribute name="lmaxapwwf" type="xs:integer" default="-1" />
+					  <xs:attribute name="lmaxemat" type="xs:integer" default="3">
+					    <xs:annotation>
+					      <xs:documentation>
+					        maximum angular momentum for Rayleigh expansion of
+					        <inlinemath>{\bf q}</inlinemath>
+					        -dependent plane wave factor
+					      </xs:documentation>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="emaxdf" type="fortrandouble" default="1d10" />
+					  <xs:attribute name="broad" type="fortrandouble" default="0.01d0" />
+					  <xs:attribute name="tevout" type="xs:boolean" default="false" />
+					  <xs:attribute name="xstype" use="required">
+					    <xs:simpleType>
+					      <xs:restriction base="xs:string">
+					        <xs:enumeration value="TDDFT" />
+					        <xs:enumeration value="BSE" />
+					      </xs:restriction>
+					    </xs:simpleType>
+					  </xs:attribute>
+					  <!-- Here are experimental parameters -->
+					  <xs:attribute name="symmorph" type="xs:boolean" default="false">
+					    <xs:annotation>
+					      <xs:documentation>
+					        True if only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are
+					        allowed.
+					      </xs:documentation>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="fastpmat" type="xs:boolean" default="true">
+					    <xs:annotation>
+					      <xs:documentation>
+					        if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
+					      </xs:documentation>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="fastemat" type="xs:boolean" default="true">
+					    <xs:annotation>
+					      <xs:documentation>
+					        if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the
+					        <inlinemath>{\bf q}</inlinemath>
+					        -dependent matrix elements in the muffin-tin is used.
+					      </xs:documentation>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="gather" type="xs:boolean" default="false" />
+					  <xs:attribute name="tappinfo" type="xs:boolean" default="false" />
+					  <xs:attribute name="dbglev" type="xs:integer" default="0" />
+					  <xs:attribute name="usegdft" type="xs:boolean" default="false">
+					    <!-- used from src_optics/mod_DOS_optics_response.F90 -->
+					  </xs:attribute>
+					  <xs:attribute name="gqmax" type="fortrandouble" default="0" />
+					  <!--
+					    section of parameters from groundstate which are allowed to be
+					    different from the ones of the ground state run
+					  -->
+					  <xs:attribute name="nosym" type="xs:boolean" default="false">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>nosymxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="ngridk" type="integertriple" default="1 1 1">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>ngridkxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="vkloff" type="vect3d" default="0 0 0 ">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>vkloffxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="reducek" type="xs:boolean" default="true">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>reducekxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="ngridq" type="integertriple" default="0 0 0">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>ngridqxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="reduceq" type="xs:boolean" default="true">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>reduceqxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="rgkmax" type="fortrandouble" default="7">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>rgkmaxxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="swidth" type="fortrandouble" default="0.01d0">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>swidthxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="lmaxapw" type="xs:integer" default="8">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>lmaxapwxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="lmaxmat" type="xs:integer" default="5">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>lmaxmatxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute name="nempty" type="xs:integer" default="5">
+					    <xs:annotation>
+					      <xs:appinfo>
+					        <oldname>nemptyxs</oldname>
+					      </xs:appinfo>
+					    </xs:annotation>
+					  </xs:attribute>
+					  <xs:attribute ref="scissor"/>
 					</xs:complexType>
 				</xs:element>
 			</xs:all>

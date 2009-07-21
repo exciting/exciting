@@ -280,7 +280,7 @@ type dos_type
  integer::ngrdos
  real(8)::scissor
  integer::nsmdos
- real(8)::wintdos(2)
+ real(8)::winddos(2)
 end type
 type LSJ_type
   type(kstlist_type),pointer::kstlist
@@ -399,6 +399,7 @@ type xs_type
  integer::lmaxapw
  integer::lmaxmat
  integer::nempty
+ real(8)::scissor
   type(tddft_type),pointer::tddft
   type(screening_type),pointer::screening
   type(BSE_type),pointer::BSE
@@ -472,8 +473,7 @@ type tetra_type
 end type
 type dosWindow_type
  integer::points
- real(8)::starte
- real(8)::stope
+ real(8)::intv(2)
 end type
 type plan_type
   type(doonly_type_array),pointer::doonlyarray(:)
@@ -2545,11 +2545,11 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"wintdos")
-getstructdos%wintdos=(/.5,.5/)
+np=>getAttributeNode(thisnode,"winddos")
+getstructdos%winddos=(/.5,.5/)
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"wintdos",getstructdos%wintdos)
-       call removeAttribute(thisnode,"wintdos")      
+       call extractDataAttribute(thisnode,"winddos",getstructdos%winddos)
+       call removeAttribute(thisnode,"winddos")      
 endif
 
       i=0
@@ -3426,6 +3426,13 @@ if(associated(np)) then
        call removeAttribute(thisnode,"nempty")      
 endif
 
+nullify(np)  
+np=>getAttributeNode(thisnode,"scissor")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scissor",getstructxs%scissor)
+       call removeAttribute(thisnode,"scissor")      
+endif
+
             len= countChildEmentsWithName(thisnode,"tddft")
 getstructxs%tddft=>null()
 Do i=0,len-1
@@ -3999,19 +4006,10 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"starte")
-getstructdosWindow%starte=-0.5
+np=>getAttributeNode(thisnode,"intv")
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"starte",getstructdosWindow%starte)
-       call removeAttribute(thisnode,"starte")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"stope")
-getstructdosWindow%stope=0.5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"stope",getstructdosWindow%stope)
-       call removeAttribute(thisnode,"stope")      
+       call extractDataAttribute(thisnode,"intv",getstructdosWindow%intv)
+       call removeAttribute(thisnode,"intv")      
 endif
 
       i=0
@@ -4520,6 +4518,16 @@ getfixspinnumber=input%groundstate%spin%fixspinnumber
 endif
 end function
 
+function istetraocc()
+  implicit none
+  logical ::istetraocc
+  istetraocc =.false.
+  if(associated(input%xs)) then
+    if(associated(input%xs%tetra)) then
+      istetraocc=input%xs%tetra%tetraocc
+    endif
+  endif
+end function
 
 end module
 

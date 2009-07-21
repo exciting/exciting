@@ -38,9 +38,9 @@ use modinput
 	   devalsv(ist-l1+1, jst-l2+1)=e0(ist)-e(jst)
 	   doccsv(ist-l1+1, jst-l2+1)=o0(ist)-o(jst)
 	   if ((e0(ist).le.efermi).and.(e(jst).gt.efermi)) &
-		scissv(ist - l1 + 1, jst - l2 + 1) =- input%properties%bandstructure%scissor
+		scissv(ist - l1 + 1, jst - l2 + 1) =- input%xs%scissor
 	   if ((e0(ist).gt.efermi).and.(e(jst).le.efermi)) &
-		scissv(ist - l1 + 1, jst - l2 + 1) = input%properties%bandstructure%scissor
+		scissv(ist - l1 + 1, jst - l2 + 1) = input%xs%scissor
 	else
 	  if (input%xs%dbglev.gt.1) then
 	   write(*, '("Info(getdevaldoccsv): cutoff applied: iq, ik, ist, jst, &

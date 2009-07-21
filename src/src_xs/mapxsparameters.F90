@@ -15,7 +15,7 @@ use modinput
 	input%groundstate%reducek=input%xs%reducek
 	input%groundstate%vkloff(:)=input%xs%vkloff(:)
 	ngridq(:)=input%xs%ngridq(:)
-	input%phonons%reduceq=input%xs%reduceq
+	if (associated(input%phonons))	input%phonons%reduceq=input%xs%reduceq
 	input%groundstate%rgkmax=input%xs%rgkmax
 	input%groundstate%swidth=input%xs%swidth
 	input%groundstate%lmaxapw=input%xs%lmaxapw

@@ -39,7 +39,7 @@ use modinput
   call findgntn0(max(input%xs%lmaxapwwf, lolmax), max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
   write(unitout, '(a, 3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
        &within lmax values:', input%groundstate%lmaxapw, input%xs%lmaxemat, input%groundstate%lmaxapw
-  write(unitout, '(a, i6)') 'Info('//thisnam//'): number of q-input%xs%dosWindow%points: ', nqpt
+  write(unitout, '(a, i6)') 'Info('//thisnam//'): number of q-points: ', nqpt
   call flushifc(unitout)
   ! loop over q-points
   do iq=1, nqpt

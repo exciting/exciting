@@ -17,6 +17,12 @@ if(.not.(associated(input%xs%BSE)))then
   ! set the default values if solver element not present
 	input%xs%BSE=>getstructBSE(emptynode)
 endif
+
+if(.not.(associated(input%xs%tetra)))then
+  ! set the default values if solver element not present
+	input%xs%tetra=>getstructtetra(emptynode)
+endif
+call xsinit
 call backup0
 call backup1
 call backup2
@@ -27,7 +33,7 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
 
     task=301
     call xsgeneigvec
-    if(associated(input%xs%tetra)) then
+    if((input%xs%tetra%tetradf)) then
 	task=310
 		call tetcalccw
 	endif
@@ -40,7 +46,7 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
  		call scrgeneigvec
  		task=420
  		call scrwritepmat
- 			if(associated(input%xs%tetra)) then
+ 			if((input%xs%tetra%tetradf)) then
 		task=410
 		call scrtetcalccw
 		endif
@@ -63,7 +69,7 @@ else if(trim(input%xs%xstype).eq."BSE")then
 
  	task=441
  	call exccoulint
- 	if(associated(input%xs%tetra)) then
+ 	if((input%xs%tetra%tetradf)) then
 		task=410
 		call scrtetcalccw
 	endif

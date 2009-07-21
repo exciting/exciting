@@ -71,7 +71,7 @@ use modinput
   call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
   call ematbdcmbs(input%xs%emattype)
   allocate(w(nwdf))
-  call genwgrid(nwdf, wdos, input%xs%tddft%acont, 0.d0, w_cmplx=w)
+  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
 
   write(*, *) 'done.'
 

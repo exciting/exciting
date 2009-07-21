@@ -80,7 +80,7 @@ use modinput
   call findgntn0(max(input%xs%lmaxapwwf, lolmax), max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
   write(unitout, '(a, 3i8)') 'Info('//thisnam//'): Gaunt coefficients generated&
        & within lmax values:', input%groundstate%lmaxapw, input%xs%lmaxemat, input%groundstate%lmaxapw
-  write(unitout, '(a, i6)') 'Info('//thisnam//'): number of q-input%xs%dosWindow%points: ', nqpt
+  write(unitout, '(a, i6)') 'Info('//thisnam//'): number of q-points: ', nqpt
   call flushifc(unitout)
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
   call findocclims(0, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
@@ -175,7 +175,7 @@ use modinput
   end if
 
   ! generate energy grid
-  call genwgrid(nwdf, wdos, input%xs%tddft%acont, 0.d0, w_cmplx=w)
+  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
 
   ! precalculate matrix elements
   input%xs%emattype=1

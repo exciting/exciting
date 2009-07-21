@@ -58,6 +58,7 @@ use modinput
 	  &---+")')
      write(unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, " (eXcited &
 	  &States ", I1.1, ".", I3.3, ") started  |")') version, versionxs
+	  !"
      write(unitout, '("| git hash id : ", a20, "		       |")') GITHASH
 #ifdef LOCALCHG
      write(unitout, '("| Warning     : source codes deviates from the git hash &
@@ -204,9 +205,14 @@ use modinput
      call terminate
   end if
   ! if imaginary frequencies intervals are not specified
-  if (input%xs%tddft%nwacont.eq.0) input%xs%tddft%nwacont=input%properties%dos%nwdos
-  nwdf=input%properties%dos%nwdos
-  if (input%xs%tddft%acont) nwdf=input%xs%tddft%nwacont
+ ! if (input%xs%tddft%nwacont.eq.0) input%xs%tddft%nwacont=input%xs%dosWindow%points
+ ! nwdf=input%xs%dosWindow%points
+
+  if (input%xs%tddft%acont)then
+  nwdf=input%xs%tddft%nwacont
+  else
+   nwdf=input%xs%dosWindow%points
+endif
   ! get exchange-correlation kernel functional data
   call getfxcdata(input%xs%tddft%fxctypenumber, fxcdescr, fxcspin)
 
@@ -292,10 +298,10 @@ use modinput
   !     checkpoints     !
   !---------------------!
   if (procs.gt.1) then
-     call genfilname(basename = 'input%structureoptimization%resume', rank = rank, procs = procs, dotext = '', &
+     call genfilname(basename = 'resume', rank = rank, procs = procs, dotext = '', &
 	  filnam = fnresume)
   else
-     call genfilname(basename='.input%structureoptimization%resume', dotext='', filnam=fnresume)
+     call genfilname(basename='resume', dotext='', filnam=fnresume)
   end if
   ! check for stale checkpoint file
   call chkptchk

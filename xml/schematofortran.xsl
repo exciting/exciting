@@ -582,6 +582,16 @@ getfixspinnumber=input%groundstate%spin%fixspinnumber
 endif
 end function
 
+function istetraocc()
+  implicit none
+  logical ::istetraocc
+  istetraocc =.false.
+  if(associated(input%xs)) then
+    if(associated(input%xs%tetra)) then
+      istetraocc=input%xs%tetra%tetraocc
+    endif
+  endif
+end function
 </xsl:text>
 </xsl:if>
   <xsl:text>

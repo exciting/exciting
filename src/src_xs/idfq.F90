@@ -60,7 +60,7 @@ use modinput
   ! find limits for band combinations
   call ematbdcmbs(input%xs%emattype)
   ! generate energy grid
-  call genwgrid(nwdf, wdos, input%xs%tddft%acont, 0.d0, w_cmplx=w)
+  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
   ! record length
   inquire(iolength=recl) mdf1(1)
   call getunit(unit1)

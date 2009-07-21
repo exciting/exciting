@@ -46,16 +46,16 @@ use modinput
   nwdfp=wparf-wpari+1
   ! matrix size for local field effects
   n=ngq(iq)
-  allocate(mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), wr(input%properties%dos%nwdos), wplot(input%properties%dos%nwdos), &
-    &mdf(input%properties%dos%nwdos), &
-       loss(input%properties%dos%nwdos), sigma(input%properties%dos%nwdos), cf(3, input%properties%dos%nwdos))
-  allocate(eps1(input%properties%dos%nwdos), eps2(input%properties%dos%nwdos))
+  allocate(mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), wr(input%xs%dosWindow%points), wplot(input%xs%dosWindow%points), &
+    &mdf(input%xs%dosWindow%points), &
+       loss(input%xs%dosWindow%points), sigma(input%xs%dosWindow%points), cf(3, input%xs%dosWindow%points))
+  allocate(eps1(input%xs%dosWindow%points), eps2(input%xs%dosWindow%points))
   mdf2(:,:,:)=zzero
   ! generate energy grids
   brd=0.d0
   if (input%xs%tddft%acont) brd=input%xs%broad
-  call genwgrid(nwdf, wdos, input%xs%tddft%acont, 0.d0, w_cmplx=w)
-  call genwgrid(input%properties%dos%nwdos, wdos, .false., brd, w_cmplx=wr)
+  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
+  call genwgrid(input%xs%dosWindow%points, input%xs%dosWindow%intv, .false., brd, w_cmplx=wr)
   wplot=dble(wr)
   ! record length
   inquire(iolength=recl) mdf1(1)
@@ -86,7 +86,7 @@ use modinput
            close(unit1)
            ! analytic continuation
 	   if (input%xs%tddft%acont) then
-	      call pade(input%properties%dos%nwdos, wr, nwdf, w, mdf1, mdf)
+	      call pade(input%xs%dosWindow%points, wr, nwdf, w, mdf1, mdf)
            else
               mdf(:)=mdf1(:)
            end if

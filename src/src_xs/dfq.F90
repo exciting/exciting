@@ -228,7 +228,7 @@ use modinput
 	  cwa1k(nst1, nst2, nwdfp), cwsurf1k(nst1, nst2, nwdfp))
   end if
   ! generate complex energy grid
-  call genwgrid(nwdf, wdos, input%xs%tddft%acont, 0.d0, w_cmplx=w)
+  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
   wreal(:)=dble(w(wi:wf))
   if (wreal(1).lt.epstetra) wreal(1)=epstetra
   ! initializations

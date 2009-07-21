@@ -14,7 +14,7 @@ subroutine occupy
 ! !USES:
 use modinput
 use modmain
-#ifdef TETRA
+#ifdef TETRAOCC_DOESNTWORK
 !<rga>
 use modtetra
 !</rga>
@@ -51,9 +51,9 @@ if (e0.lt.input%groundstate%evalmin) then
   write(*, '("Warning(occupy): valence eigenvalues below evalmin for s.c. &
    &loop ", I5)') iscl !"
 end if
-#ifdef TETRA
+#ifdef TETRAOCC_DOESNTWORK
 !<rga>
-if (.not.input%xs%tetra%tetraocc) then
+if (.not.istetraocc()) then
 !</rga>
 #endif
 t1=1.d0/input%groundstate%swidth
@@ -100,7 +100,7 @@ do ik=1, nkpt
   end if
 end do
 fermidos=fermidos*occmax
-#ifdef TETRA
+#ifdef TETRAOCC_DOESNTWORK
 !<rga>
 else
   ! calculate the Fermi energy and the density of states at the Fermi energy

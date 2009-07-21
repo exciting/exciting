@@ -255,8 +255,8 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
   ! number of excitons to consider
   nexc=hamsiz
   allocate(oszs(nexc), oszsa(nexc), sor(nexc), pmat(hamsiz))
-  allocate(w(input%properties%dos%nwdos), spectr(input%properties%dos%nwdos))
-  call genwgrid(nwdf, wdos, input%xs%tddft%acont, 0.d0, w_real=w)
+  allocate(w(input%xs%dosWindow%points), spectr(input%xs%dosWindow%points))
+  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_real=w)
   do oct=1, noptcomp
      oszs(:)=zzero
      call genfilname(basename = 'EPSILON', tq0 = .true., oc1 = oct, oc2 = oct, &
@@ -293,7 +293,7 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
 	end do
      end do
      spectr(:)=zzero
-     do iw=1, input%properties%dos%nwdos
+     do iw=1, input%xs%dosWindow%points
 	do s1=1, nexc
            ! Lorentzian lineshape
 	   spectr(iw) = spectr(iw) + abs(oszs(s1)) ** 2 * ( &

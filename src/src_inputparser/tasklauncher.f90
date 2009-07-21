@@ -7,7 +7,9 @@ subroutine tasklauncher
 use modinput
 use modmain,only:task
 use inputdom
+
 implicit none
+
   if(associated(input%groundstate).and. .not. input%groundstate%do .eq. "skipp") then
   	if(.not.(associated(input%groundstate%solver)))then
   		! set the default values if solver element not present
@@ -41,5 +43,4 @@ endif
 if(associated(input%xs)) then
 	call xstasklauncher()
 endif
-
 end subroutine

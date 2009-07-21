@@ -35,7 +35,7 @@ use modinput
   use modxs
   implicit none
   ! initialization
-  call xsinit
+
   ! task selection
   select case(task)
   case(23)

@@ -76,7 +76,7 @@ use modinput
   ! scissors shift
   where (eb.gt.efermi) eb=eb+input%properties%bandstructure%scissor
   ! generate complex energy grid
-  call genwgrid(nwdf, wdos, input%xs%tddft%acont, 0.d0, w_cmplx=w)
+  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
   wreal(:)=dble(w(wi:wf))
   ! TODO: replace zero frequency by very small number *** check if needed
   if (wreal(1).lt.epstetra) wreal(1)=epstetra
