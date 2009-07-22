@@ -14,11 +14,13 @@
       <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
     </species>
   </structure>
-  <groundstate do="fromfile" vkloff="0.25  0.5  0.625" mixer="pulay" ngkgrid="2  2  2"></groundstate>
+  <groundstate do="skipp" vkloff="0.25  0.5  0.625" mixer="pulay" ngkgrid="2  2  2"></groundstate>
   <properties></properties>
   <xs xstype="TDDFT">
     <qpointset>
       <qpoint>0 0 0</qpoint>
+      <qpoint>0 1 0</qpoint>
+       <qpoint>0 1 1</qpoint>
     </qpointset>
     <dosWindow points="500" intv="-0.5 0.5"/>
     <tddft fxctype="RPA" />

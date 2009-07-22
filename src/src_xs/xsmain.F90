@@ -27,16 +27,21 @@ character(256) :: xstasks(maxtasks)
 end module
 
 
-subroutine xsmain
+subroutine xsmain(plan)
   use modmain
 use modinput
   use modmpi
   use modtetra
   use modxs
   implicit none
+  type(plan_type)::plan
+  integer::i
   ! initialization
 
   ! task selection
+  do i=1,size(plan%doonlyarray)
+  task=plan%doonlyarray(i)%doonly%tasknumber
+  	call xsinit
   select case(task)
   case(23)
      ! estimate bandgap from regular grid
@@ -130,6 +135,8 @@ use modinput
      write(*, *)
      call terminate
   end select
+   call xsfinit
+  enddo
   ! summarize information on run
-  call xsfinit
+
 end subroutine xsmain

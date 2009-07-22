@@ -22,7 +22,7 @@ if(.not.(associated(input%xs%tetra)))then
   ! set the default values if solver element not present
 	input%xs%tetra=>getstructtetra(emptynode)
 endif
-call xsinit
+
 call backup0
 call backup1
 call backup2
@@ -32,54 +32,90 @@ if(associated(input%xs%plan)) then
 else if(trim(input%xs%xstype).eq."TDDFT") then
 
     task=301
+    call xsinit
     call xsgeneigvec
+    call xsfinit
     if((input%xs%tetra%tetradf)) then
 	task=310
-		call tetcalccw
+	call xsinit
+	call tetcalccw
+	call xsfinit
 	endif
     task=320
+    call xsinit
 	call writepmatxs
+	call xsfinit
 	task=330
+	call xsinit
 	call writeemat
+	call xsfinit
 		if(input%xs%tddft%fxctypenumber.eq.7 .or. input%xs%tddft%fxctypenumber.eq.8) then
    	    task=401
+   	    call xsinit
  		call scrgeneigvec
+ 		call xsfinit
  		task=420
+ 		call xsinit
  		call scrwritepmat
+ 		call xsfinit
  			if((input%xs%tetra%tetradf)) then
 		task=410
+		call xsinit
 		call scrtetcalccw
+		call xsfinit
 		endif
 		task=430
+		call xsinit
 		call screen
+		call xsfinit
 		task=440
+		call xsinit
 		call scrcoulint
+		call xsfinit
 		task=450
+		call xsinit
 		call kernxc_bse
+		call xsfinit
     endif
 
 	task=340
+	call xsinit
 	call df
+	call xsfinit
 else if(trim(input%xs%xstype).eq."BSE")then
 
     task=401
+    call xsinit
  	call scrgeneigvec
+ 	call xsfinit
  	task=420
+ 	call xsinit
  	call scrwritepmat
-
+    call xsfinit
  	task=441
+ 	call xsinit
  	call exccoulint
+ 	call xsfinit
  	if((input%xs%tetra%tetradf)) then
+
 		task=410
+		call xsinit
 		call scrtetcalccw
+    	call xsfinit
 	endif
 
 	task=430
+	call xsinit
     call screen
+    call xsfinit
     task=440
+    call xsinit
 	call scrcoulint
+    call xsfinit
 	task=445
+	call xsinit
     call bse
+    call xsfinit
 else
 !error
 endif

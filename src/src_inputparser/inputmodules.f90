@@ -171,7 +171,6 @@ type groundstate_type
  real(8)::beta0
  real(8)::betainc
  real(8)::betadec
- logical::fromscratch
  integer::lradstep
  integer::nprad
  character(512)::xctype
@@ -1669,14 +1668,6 @@ getstructgroundstate%betadec=0.6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"betadec",getstructgroundstate%betadec)
        call removeAttribute(thisnode,"betadec")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fromscratch")
-getstructgroundstate%fromscratch= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fromscratch",getstructgroundstate%fromscratch)
-       call removeAttribute(thisnode,"fromscratch")      
 endif
 
 nullify(np)  
@@ -4008,6 +3999,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"intv")
+getstructdosWindow%intv=(/-0.5,0.5/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"intv",getstructdosWindow%intv)
        call removeAttribute(thisnode,"intv")      

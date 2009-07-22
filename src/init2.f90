@@ -67,7 +67,7 @@ boxl(:,3)=boxl(:,3)+boxl(:,1)
 boxl(:,4)=boxl(:,4)+boxl(:,1)
 ! assign momentum transfer Q-points set to q-point set
 if (((task.ge.301).and.(task.le.399))) then
-   nqpt=nqptmt
+   nqpt=size(input%xs%qpointset%qpoint,1)
    if (allocated(vqlmt)) deallocate(vqlmt)
    allocate(vqlmt(3,nqpt))
    if (allocated(ivgmt)) deallocate(ivgmt)
@@ -77,7 +77,7 @@ if (((task.ge.301).and.(task.le.399))) then
    if (allocated(vqc)) deallocate(vqc)
    allocate(vqc(3,nqpt))
    do iq=1,nqpt
-      v(:)=vgqlmt(:,iq)
+      v(:)=input%xs%qpointset%qpoint(:,iq)
       iv(:)=0
       ! map Q-point to reciprocal unit cell
       if (input%xs%tddft%mdfqtype.eq.1) call r3frac(input%structure%epslat, v, iv)
@@ -90,9 +90,9 @@ if (((task.ge.301).and.(task.le.399))) then
 else
    ! determine only integer-part of Q-points
    if (allocated(ivgmt)) deallocate(ivgmt)
-   allocate(ivgmt(3,nqptmt))
-   do iq=1,nqptmt
-      v(:)=vgqlmt(:,iq)
+   allocate(ivgmt(3,size(input%xs%qpointset%qpoint,1)))
+   do iq=1,size(input%xs%qpointset%qpoint,1)
+      v(:)=input%xs%qpointset%qpoint(:,iq)
       iv(:)=0
       ! map Q-point to reciprocal unit cell
       if (input%xs%tddft%mdfqtype.eq.1) call r3frac(input%structure%epslat, v, iv)

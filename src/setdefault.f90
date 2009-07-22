@@ -220,10 +220,10 @@ tetrakordexc=.false.
 #ifdef XS
 ! TDDFT variables
 !imbandstr=.false.
-nqptmt=1
-if (allocated(vgqlmt)) deallocate(vgqlmt)
-allocate(vgqlmt(3, nqptmt))
-vgqlmt(:, :)=0.d0
+
+!if (allocated(vgqlmt)) deallocate(vgqlmt)
+!allocate(input%xs%qpointset%qpoint(3,size(input%xs%qpointset%qpoint,1)))
+!input%xs%qpointset%qpoint(:, :)=0.d0
 !mdfqtype=0
 !vqloff(:)=0.d0
 !tq0ev=.true.

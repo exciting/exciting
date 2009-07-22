@@ -1,6 +1,7 @@
 
 
 
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
@@ -10,7 +11,7 @@
 ! !INTERFACE:
 
 
-subroutine connect(cvec, nv, np, vvl, vpl, dv, dp)
+subroutine connect(cvec, plotdef,nv, np,vpl, dv, dp)
 ! !INPUT/OUTPUT PARAMETERS:
 !   cvec : matrix of (reciprocal) lattice vectors stored column-wise
 !         (in,real(3,3))
@@ -33,21 +34,32 @@ subroutine connect(cvec, nv, np, vvl, vpl, dv, dp)
 !   Improved September 2007 (JKD)
 !EOP
 !BOC
+use modinput
 implicit none
 ! arguments
 real(8), intent(in) :: cvec(3, 3)
-integer, intent(in) :: nv
-integer, intent(in) :: np
-real(8), intent(in) :: vvl(3, nv)
+type(plot1d_type),intent(in)::plotdef
+integer, intent(in)::nv
+integer, intent(in):: np
 real(8), intent(out) :: vpl(3, np)
 real(8), intent(out) :: dv(nv)
 real(8), intent(out) :: dp(np)
+
+
 ! local variables
+
+real(8):: vvl(3, size(plotdef%path%pointarray))
+
 integer::iv, ip, ip0, ip1, n
 real(8)::vl(3), vc(3)
 real(8)::dt, f, t1
 ! alloctable arrays
 real(8), allocatable :: seg(:)
+
+do iv=1,nv
+vvl(:, iv)=plotdef%path%pointarray(iv)%point%coord
+enddo
+
 if (nv.lt.1) then
   write(*, *)
   write(*, '("Error(connect): nv < 1 : ", I8)') nv

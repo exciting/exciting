@@ -35,7 +35,7 @@ subroutine writevars(un, iq, iqmt)
     write(un, '("# version	     : ", i1.1, ".", i1.1, ".", i3.3)') version
     write(un, '("# version (xs)      : ", i1.1, ".", i3.3)') versionxs
     write(un, '(a, 2f12.6)') '# efermi (H, eV)	   :', efermi, h2ev*efermi
-    write(un, '(a, 3f12.6)') '# vgqlmt		  :', vgqlmt(:, iqmtt)
+    write(un, '(a, 3f12.6)') '# vgqlmt		  :', input%xs%qpointset%qpoint(:, iqmtt)
     write(un, '(a, 3i8)') '# ivgmt	       :', ivgmt(:, iqmtt)
     write(un, '(a, 3f12.6)') '# vql		  :', vql(:, iqmtt)
     write(un, '(a, i8)') '# input%xs%tddft%fxctypenumber	   :', input%xs%tddft%fxctypenumber

@@ -1458,15 +1458,7 @@
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="fromscratch" type="xs:boolean"
-							default="true">
-							<xs:annotation>
-								<xs:documentation>if true program will start SCF from
-									atomic
-									densities, even if STATE.OUT is present
-                </xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
+						
 						<xs:attribute name="lradstep" type="xs:integer"
 							default="4">
 							<xs:annotation>
@@ -2616,7 +2608,7 @@
 					    <xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
 					      <xs:complexType>
 					        <xs:attribute name="points" type="xs:integer" default="500" />
-					        <xs:attribute name="intv" type="vect2d"></xs:attribute>
+					        <xs:attribute name="intv" type="vect2d" default="-0.5 0.5"></xs:attribute>
                   <xs:attribute name="nsmdos" type="xs:integer" default="0">
                   <xs:annotation>
                   <xs:appinfo>
