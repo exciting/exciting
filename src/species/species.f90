@@ -69,7 +69,7 @@ case('apwdescr')
   read(50,*,err=200) apwdescr
 case('suffix')
   read(50,*,err=200) suffix
-  suffix=trim(suffix)
+  suffix='_'//trim(suffix)
 case('apw')
   read(50,*,err=200) apword
   if ((apword.lt.1).or.(apword.gt.maxapword)) then
@@ -267,7 +267,6 @@ if ((.not.locorb).and.locorbsc) nlorb=nlorbsc
 if (locorb.and.(.not.locorbsc)) nlorb=maxl+1
 
 ! open the atomic data file
-#ifdef DEBUG
 open(50,file=trim(spsymb)//trim(suffix)//'.in',action='WRITE',form='FORMATTED')
 write(50,'(" ''",A,"''",T45,": spsymb")') trim(spsymb)
 write(50,'(" ''",A,"''",T45,": spname")') trim(spname)
@@ -334,8 +333,8 @@ if (locorbsc) then
         if (eval(ist).lt.esccut) then
           write(50,'(2I4,T45,": lorbl, lorbord")') spl(ist),3
           write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0, &
-           .false.
-          write(50,'(F8.4,I4,"  ",L1)') boe,1,.false.
+           .true.
+          write(50,'(F8.4,I4,"  ",L1)') boe,1,.true.
           write(50,'(F8.4,I4,"  ",L1)') eval(ist)+0.5d0*boe,0,.true.
         end if
       end if
@@ -348,7 +347,6 @@ write(50,'("# Exciting code version : ",a)') version
 write(50,'("# Description of method : ",a)') trim(apwdescr)
 
 close(50)
-#endif
  call writexmlspecies()
 ! read another element from file
 goto 10
