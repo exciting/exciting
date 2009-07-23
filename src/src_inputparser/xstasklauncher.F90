@@ -35,91 +35,110 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
     call xsinit
     call xsgeneigvec
     call xsfinit
+    
     if((input%xs%tetra%tetradf)) then
 	task=310
 	call xsinit
 	call tetcalccw
 	call xsfinit
-	endif
+    endif
+    
     task=320
     call xsinit
-	call writepmatxs
-	call xsfinit
-	task=330
-	call xsinit
-	call writeemat
-	call xsfinit
-		if(input%xs%tddft%fxctypenumber.eq.7 .or. input%xs%tddft%fxctypenumber.eq.8) then
-   	    task=401
-   	    call xsinit
- 		call scrgeneigvec
- 		call xsfinit
- 		task=420
- 		call xsinit
- 		call scrwritepmat
- 		call xsfinit
- 			if((input%xs%tetra%tetradf)) then
-		task=410
-		call xsinit
-		call scrtetcalccw
-		call xsfinit
-		endif
-		task=430
-		call xsinit
-		call screen
-		call xsfinit
-		task=440
-		call xsinit
-		call scrcoulint
-		call xsfinit
-		task=450
-		call xsinit
-		call kernxc_bse
-		call xsfinit
+    call writepmatxs
+    call xsfinit
+    
+    task=330
+    call xsinit
+    call writeemat
+    call xsfinit
+    
+    if(input%xs%tddft%fxctypenumber.eq.7 .or. input%xs%tddft%fxctypenumber.eq.8) then
+    	task=401
+    	call xsinit
+    	call scrgeneigvec
+    	call xsfinit
+	
+    	task=420
+    	call xsinit
+    	call scrwritepmat
+    	call xsfinit
+	
+    	if((input%xs%tetra%tetradf)) then
+    	    task=410
+    	    call xsinit
+    	    call scrtetcalccw
+    	    call xsfinit
+    	endif
+	
+    	task=430
+    	call xsinit
+    	call screen
+    	call xsfinit
+	
+    	task=440
+    	call xsinit
+    	call scrcoulint
+    	call xsfinit
+	
+    	task=450
+    	call xsinit
+    	call kernxc_bse
+    	call xsfinit
     endif
 
-	task=340
-	call xsinit
-	call df
-	call xsfinit
+    task=340
+    call xsinit
+    call df
+    call xsfinit
+    
+    task=350
+    call xsinit
+    call df
+    call xsfinit
+    
 else if(trim(input%xs%xstype).eq."BSE")then
 
     task=401
     call xsinit
- 	call scrgeneigvec
- 	call xsfinit
- 	task=420
- 	call xsinit
- 	call scrwritepmat
+    call scrgeneigvec
     call xsfinit
- 	task=441
- 	call xsinit
- 	call exccoulint
- 	call xsfinit
- 	if((input%xs%tetra%tetradf)) then
+    
+    if((input%xs%tetra%tetradf)) then
+    	    task=410
+    	    call xsinit
+    	    call scrtetcalccw
+            call xsfinit
+    endif
 
-		task=410
-		call xsinit
-		call scrtetcalccw
-    	call xsfinit
-	endif
-
-	task=430
-	call xsinit
+    task=420
+    call xsinit
+    call scrwritepmat
+    call xsfinit
+    
+    task=430
+    call xsinit
     call screen
     call xsfinit
+    
     task=440
     call xsinit
-	call scrcoulint
+    call scrcoulint
     call xsfinit
-	task=445
-	call xsinit
+    
+    task=441
+    call xsinit
+    call exccoulint
+    call xsfinit
+    
+    task=445
+    call xsinit
     call bse
     call xsfinit
 else
-write(*,*)"error xstasklauncher"
-write(*,*)trim(input%xs%xstype),"no valid xstype"
-stop
+  write(*,*)"error xstasklauncher"
+  write(*,*)trim(input%xs%xstype),"no valid xstype"
+  stop
 endif
 
 
