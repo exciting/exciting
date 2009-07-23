@@ -117,7 +117,9 @@ else if(trim(input%xs%xstype).eq."BSE")then
     call bse
     call xsfinit
 else
-!error
+write(*,*)"error xstasklauncher"
+write(*,*)trim(input%xs%xstype),"no valid xstype"
+stop
 endif
 
 

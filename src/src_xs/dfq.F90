@@ -183,7 +183,7 @@ use modinput
   write(unitout, '(a, 4i6)') 'Info('//thisnam//'): highest (partially)&
        & occupied state  : ', istocc0
   write(unitout, '(a, 4i6)') 'Info('//thisnam//'): limits for band combinations&
-       & nst1, nst2, nst3, nst4:', nst1, nst2, nst3, nst4
+       & nst1, nst2, nst3, nst4:', nst1, nst2, nst3, nst4 !'
   write(unitout, '(a, 4i6)') 'Info('//thisnam//'): limits for band combinations&
        & istl1, istu1, istl2, istu2:', istl1, istu1, istl2, istu2
   write(unitout, '(a, 4i6)') 'Info('//thisnam//'): limits for band combinations&
@@ -241,8 +241,7 @@ use modinput
      ! delete timing information of previous runs
      call filedel(trim(fnetim))
      ! write information
-     write(unitout, '(a, i6)') 'Info('//thisnam//'): number of G + q vectors:', &
-	  ngq(iq)
+     write(unitout, '(a, i6)') 'Info('//thisnam//'): number of G + q vectors:',ngq(iq)
      call ematqalloc
   end if
   if (tfxcbse) then

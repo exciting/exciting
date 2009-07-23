@@ -44,7 +44,7 @@
       <xsl:text>++++* Attributes:
 </xsl:text>
 			<xsl:for-each select="./xs:complexType/xs:attribute|./xs:attribute">
-				<xsl:text>+++++* </xsl:text>
+				<xsl:text>+++++* @</xsl:text>
 				<xsl:value-of select="./@name" />
 				<xsl:value-of select="./@ref" />
 				<xsl:text>
@@ -135,6 +135,7 @@
 				<xsl:text>+++++* </xsl:text>
 			</xsl:when>
 		</xsl:choose>
+    <xsl:text>&lt;</xsl:text>
 		<xsl:value-of select="./@name" />
 		<xsl:value-of select="./@ref" />
 		<xsl:choose>
@@ -142,7 +143,7 @@
 				<xsl:text> attribute group</xsl:text>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:text> element</xsl:text>
+				<xsl:text>&gt;</xsl:text>
 			</xsl:otherwise>
 		</xsl:choose>
 		<xsl:if test="./@ref">
@@ -171,7 +172,8 @@
 </xsl:text>
 		<xsl:text>
 [[f>toc]]
-+ Root element </xsl:text>
++ &lt;Root&gt;  </xsl:text>
+
 		<xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/root"/>
 		<xsl:text>
 [[# input]]</xsl:text>

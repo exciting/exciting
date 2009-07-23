@@ -112,7 +112,7 @@ if ((task.ge.400).and.(task.le.439)) then
    if (allocated(iqmap)) deallocate(iqmap)
    allocate(iqmap(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate reduced q-point set
-   call genppts(input%phonons%reduceq, input%xs%BSE%fbzq, ngridq, boxl, nqpt, iqmap, ivq, vql, vqc, wqpt)
+   call genppts(input%xs%reduceq, input%xs%BSE%fbzq, ngridq, boxl, nqpt, iqmap, ivq, vql, vqc, wqpt)
    nqptr=nqpt
 end if
 if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or.(task.eq.451).or. &
@@ -128,7 +128,7 @@ if ((task.eq.440).or.(task.eq.441).or.(task.eq.445).or.(task.eq.450).or.(task.eq
    if (allocated(iqmapr)) deallocate(iqmapr)
    allocate(iqmapr(0:ngridq(1)-1,0:ngridq(2)-1,0:ngridq(3)-1))
    ! generate reduced q-point set
-   call genppts(input%phonons%reduceq, input%xs%BSE%fbzq, ngridq, boxl, nqptr, iqmapr, ivqr, vqlr, vqcr, &
+   call genppts(input%xs%reduceq, input%xs%BSE%fbzq, ngridq, boxl, nqptr, iqmapr, ivqr, vqlr, vqcr, &
       wqptr)
    if (allocated(ivq)) deallocate(ivq)
    allocate(ivq(3,ngridq(1)*ngridq(2)*ngridq(3)))
@@ -175,7 +175,7 @@ end do
 !---------------------!
 ! checking
 if (input%xs%gqmax.ge.gkmax) then
-   write( * , '(a, 2g18.10)') 'Warning(init2/associated(input%xs)): input%xs%gqmax >= gkmax: ', input%xs%gqmax, &
+   write( * , '(a, 2g18.10)') 'Warning(init2/xs): input%xs%gqmax >= gkmax: ', input%xs%gqmax, &
 	gkmax
 end if
 ! maximum number of G+q vectors for all q
