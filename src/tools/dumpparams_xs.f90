@@ -39,8 +39,8 @@ use modinput
   write(77, '(a)') trim(comment)
   write(77, *)
   write(77, '("vgqlmt")')
-  write(77, *)size(input%xs%qpointset%qpoint,1)
-  do i=1,size(input%xs%qpointset%qpoint,1)
+  write(77, *)size(input%xs%qpointset%qpoint,2)
+  do i=1,size(input%xs%qpointset%qpoint,2)
     write(77, *) input%xs%qpointset%qpoint(:, i)
   end do
   write(77, *)

@@ -41,7 +41,7 @@ module modxs
   ! q-point weights (reduced set)
   real(8), allocatable :: wqptr(:)
   ! number of Q-points for momentum transfer
-  !integer ::size(input%xs%qpointset%qpoint,1)
+  !integer ::size(input%xs%qpointset%qpoint,2)
   ! finite momentum transfer G+q-vector
  ! real(8), allocatable :: input%xs%qpointset%qpoint(:,:)
   ! finite momentum transfer q-vector

@@ -222,7 +222,7 @@ tetrakordexc=.false.
 !imbandstr=.false.
 
 !if (allocated(vgqlmt)) deallocate(vgqlmt)
-!allocate(input%xs%qpointset%qpoint(3,size(input%xs%qpointset%qpoint,1)))
+!allocate(input%xs%qpointset%qpoint(3,size(input%xs%qpointset%qpoint,2)))
 !input%xs%qpointset%qpoint(:, :)=0.d0
 !mdfqtype=0
 !vqloff(:)=0.d0
