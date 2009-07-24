@@ -433,11 +433,11 @@ allocate(</xsl:text>
   <xsl:if test="@maxOccurs='unbounded' or @maxOccurs>1"> 
    <xsl:text>           
 allocate(</xsl:text> <xsl:value-of select="$struct"/>%<xsl:value-of select="@name|@ref"/>  
-<xsl:text>(len,</xsl:text> 
+<xsl:text>(</xsl:text> 
 <xsl:choose>
 <xsl:when test="//xs:element[@name=$ref]/@type='integerpair' or @type='integerpair'" >2</xsl:when>
 <xsl:otherwise>3</xsl:otherwise>
-</xsl:choose><xsl:text>))</xsl:text>
+</xsl:choose><xsl:text>,len))</xsl:text>
 </xsl:if>
 <xsl:text>
 Do i=1,len
@@ -448,7 +448,7 @@ Do i=1,len
             <xsl:text>%</xsl:text>
             <xsl:value-of select="@name|@ref"/> 
             <xsl:if test="@maxOccurs='unbounded' or @maxOccurs&gt;1 ">
-            <xsl:text>(i,:)</xsl:text>
+            <xsl:text>(:,i)</xsl:text>
             </xsl:if>
       <xsl:text>=getvalueof</xsl:text>
       <xsl:value-of select="@name|@ref"/>  <xsl:text>(&amp;

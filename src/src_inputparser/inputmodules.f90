@@ -783,10 +783,10 @@ allocate(getstructkstlist)
 #endif
       
       len= countChildEmentsWithName (thisnode,"pointstatepair")           
-allocate(getstructkstlist%pointstatepair(len,2))
+allocate(getstructkstlist%pointstatepair(2,len))
 Do i=1,len
 
-		getstructkstlist%pointstatepair(i,:)=getvalueofpointstatepair(&
+		getstructkstlist%pointstatepair(:,i)=getvalueofpointstatepair(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "pointstatepair"),0)))
 end do
@@ -1275,10 +1275,10 @@ if(associated(np)) then
 endif
 
       len= countChildEmentsWithName (thisnode,"basevect")           
-allocate(getstructcrystal%basevect(len,3))
+allocate(getstructcrystal%basevect(3,len))
 Do i=1,len
 
-		getstructcrystal%basevect(i,:)=getvalueofbasevect(&
+		getstructcrystal%basevect(:,i)=getvalueofbasevect(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "basevect"),0)))
 end do
@@ -2970,10 +2970,10 @@ if(associated(np)) then
 endif
 
       len= countChildEmentsWithName (thisnode,"optcomp")           
-allocate(getstructlinresponsetensor%optcomp(len,3))
+allocate(getstructlinresponsetensor%optcomp(3,len))
 Do i=1,len
 
-		getstructlinresponsetensor%optcomp(i,:)=getvalueofoptcomp(&
+		getstructlinresponsetensor%optcomp(:,i)=getvalueofoptcomp(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "optcomp"),0)))
 end do
@@ -3662,10 +3662,10 @@ allocate(getstructdftrans)
 #endif
       
       len= countChildEmentsWithName (thisnode,"trans")           
-allocate(getstructdftrans%trans(len,3))
+allocate(getstructdftrans%trans(3,len))
 Do i=1,len
 
-		getstructdftrans%trans(i,:)=getvalueoftrans(&
+		getstructdftrans%trans(:,i)=getvalueoftrans(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "trans"),0)))
 end do
@@ -4084,10 +4084,10 @@ allocate(getstructqpointset)
 #endif
       
       len= countChildEmentsWithName (thisnode,"qpoint")           
-allocate(getstructqpointset%qpoint(len,3))
+allocate(getstructqpointset%qpoint(3,len))
 Do i=1,len
 
-		getstructqpointset%qpoint(i,:)=getvalueofqpoint(&
+		getstructqpointset%qpoint(:,i)=getvalueofqpoint(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "qpoint"),0)))
 end do
