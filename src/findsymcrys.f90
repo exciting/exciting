@@ -114,7 +114,9 @@ do i=1, n
   do isym=1, nsym
 #ifdef XS
      ! exclude non-zero translations
+     if(associated(input%xs))then
      if (input%xs%symmorph.and.(sum(abs(vtl(:, i))).gt.input%structure%epslat)) goto 20
+     endif
 #endif
     nsymcrys=nsymcrys+1
     if (nsymcrys.gt.maxsymcrys) then

@@ -146,12 +146,14 @@ else
    wkptnr)
 #ifdef TETRA
   ! call to module routine
+   if(associated(input%xs)) then
   if(associated(input%xs%tetra)) then
  	 if (input%xs%tetra%tetraocc.or.tetraopt.or.input%xs%tetra%tetradf)then
  	  call genkpts_tet(filext, input%structure%epslat, bvec, &
        maxsymcrys, nsymcrys, lsplsymc, symlat, input%groundstate%reducek, input%groundstate%ngkgrid, &
        input%groundstate%vkloff, nkpt, ikmap,  vkl, wkpt)
      endif
+  endif
   endif
 #endif
 #ifdef XS
