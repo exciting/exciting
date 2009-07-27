@@ -1,5 +1,5 @@
 all:test01 test02 test04
-
+include ../../build/make.inc
 include ../../build/Make.common
 
 Makefile.test1::$(GeneraedFiles)

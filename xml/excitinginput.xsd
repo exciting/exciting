@@ -277,7 +277,7 @@
 						<xs:sequence>
 							<xs:element name="symmetries" maxOccurs="1" minOccurs="0">
               <xs:annotation>
-              <xs:appinfo><noinput/> </xs:appinfo>
+              <xs:appinfo ><notindocu/></xs:appinfo>
               </xs:annotation>
 								<xs:complexType>
 									<xs:annotation>

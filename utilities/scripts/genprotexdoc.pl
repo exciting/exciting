@@ -12,8 +12,8 @@ foreach $sourcedir (@ARGV) {
 
 #print @fileslist;
 $command = "../../utilities/scripts/protex -s " . join( " ", @fileslist );
-open TEX, ">", "exciting.tex";
+open TEX, ">", "doc.tex";
 print TEX `$command`;
 close TEX;
-system "pdflatex", "exciting.tex";
-system "pdflatex", "exciting.tex";
+system "pdflatex", "doc.tex";
+system "pdflatex", "doc.tex";

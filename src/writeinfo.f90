@@ -276,6 +276,7 @@ end if
 write(fnum, *)
 write(fnum, '("Smearing scheme :")')
 #ifdef XS
+  if(associated(input%xs)) then
   if(associated(input%xs%tetra)) then
 if (.not.input%xs%tetra%tetraocc) then
 #endif
@@ -286,6 +287,7 @@ else
    write(fnum, '(" ", A)') 'No smearing - using the linear tetrahedron method'
    write(fnum, '(" ", A)') 'for occupation numbers and Fermi energy'
 end if
+endif
 endif
 #endif
 write(fnum, *)

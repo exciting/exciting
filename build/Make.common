@@ -1,8 +1,7 @@
-include ../make.inc
+-include ../make.inc
 
 SOURCEDIRS=	../../src/  \
 	../../src/src_xs/ \
-	../../src/src_sym/ \
 	../../src/src_fermisurfdx/ \
 	../../src/src_iterative_solver/ \
 	../../src/src_iterative_solver/src_diis/ \
@@ -19,6 +18,7 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_xml/ \
 	../../src/src_inputparser/ \
 	../../src/src_timing/ \
+	../../src/src_sym/ \
 	../../src/ \
 	../../src/tools/
 	
