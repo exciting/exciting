@@ -42,14 +42,15 @@
     </qpointset>
     <plan>
       <!-- 301,320,330,401,420,430,440,441,445,450,340,350 -->
-      <doonly task="tetcalccw" />
+      <doonly task="xsgeneigvec"/>
       <doonly task="writepmatxs" />
       <doonly task="writeemat" />
-      <doonly task="scrtetcalccw" />
+      <doonly task="scrgeneigvec"/>
       <doonly task="scrwritepmat" />
       <doonly task="screen" />
       <doonly task="scrcoulint" />
       <doonly task="exccoulint" />
+      <doonly task="BSE"/>
       <doonly task="kernxc_bse" />
       <doonly task="df" />
       <doonly task="idf" />
