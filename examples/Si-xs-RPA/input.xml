@@ -9,7 +9,7 @@
       <basevect>5.13 0.00 5.13</basevect>
       <basevect>0.00 5.13 5.13</basevect>
     </crystal>
-    <species speciesfile="Si.xml">
+    <species speciesfile="Si_APWloKay.xml">
       <atom coord="0.0 0.0 0.0" bfcmt="0.0 0.0 0.0"></atom>
       <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
     </species>
