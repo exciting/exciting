@@ -10,6 +10,6 @@
 <basevect>  0.0  1.0  1.0</basevect>
 </crystal>
 </structure>
-<groundstate fromscratch="true" vkloff="0.5  0.5  0.5" xctype="" chgexs="10.0" ngkgrid="2  2  2"></groundstate>
+<groundstate  vkloff="0.5  0.5  0.5" xctype="" chgexs="10.0" ngkgrid="2  2  2"></groundstate>
 <properties></properties>
 </input>

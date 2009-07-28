@@ -20,6 +20,6 @@
 <atom coord="0.8048 0.1952 0.5" bfcmt="0.0 0.0 0.0"></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" mixer="msec" swidth="0.005" ngkgrid="2  2  2"></groundstate>
+<groundstate  mixer="msec" swidth="0.005" ngkgrid="2  2  2"></groundstate>
 <properties></properties>
 </input>

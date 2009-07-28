@@ -16,6 +16,6 @@
 <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" vkloff="0.5  0.5  0.5" xctype="GGAPerdew-Burke-Ernzerhof" ngkgrid="4  4  4"></groundstate>
+<groundstate  vkloff="0.5  0.5  0.5" xctype="GGAPerdew-Burke-Ernzerhof" ngkgrid="4  4  4"></groundstate>
 <properties></properties>
 </input>

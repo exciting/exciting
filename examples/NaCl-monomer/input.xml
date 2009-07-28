@@ -12,6 +12,6 @@
 <atom coord="4.4121  0.0000  0.0000" bfcmt="0.0000  0.0000  0.0000"></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" rgkmax="6.0" swidth="0.05"></groundstate>
+<groundstate  rgkmax="6.0" swidth="0.05"></groundstate>
 <properties></properties>
 </input>

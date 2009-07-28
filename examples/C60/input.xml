@@ -68,6 +68,6 @@
 <atom coord="0.04346370 -0.14161607 -6.71310040" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" rgkmax="4.0"></groundstate>
+<groundstate  rgkmax="4.0"></groundstate>
 <properties></properties>
 </input>

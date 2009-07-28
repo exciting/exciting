@@ -24,7 +24,7 @@
 <atom coord="0.6542035477397619  0.0101012160171194  0.0101012160171194" bfcmt="0. 0. 0."></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" rgkmax="6.0" ngkgrid="2  2  2"></groundstate>
+<groundstate  rgkmax="6.0" ngkgrid="2  2  2"></groundstate>
 <properties>
 <dos></dos>
 </properties>

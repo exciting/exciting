@@ -14,7 +14,7 @@
 <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" xctype="LSDAPerdew-Wang" gmaxvr="12.0" lmaxapw="10" ngkgrid="4 4 4 " lmaxvr="8" vkloff="0.25  0.25  0.75" nempty="50">
+<groundstate  xctype="LSDAPerdew-Wang" gmaxvr="12.0" lmaxapw="10" ngkgrid="4 4 4 " lmaxvr="8" vkloff="0.25  0.25  0.75" nempty="50">
 <spin spinorb="true"></spin>
 </groundstate>
 <properties>

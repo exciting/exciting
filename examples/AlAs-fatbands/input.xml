@@ -16,7 +16,7 @@
 <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" nempty="10" ngkgrid="4  4  4"></groundstate>
+<groundstate  nempty="10" ngkgrid="4  4  4"></groundstate>
 <properties>
 <bandstructure character="true">
 <plot1d>

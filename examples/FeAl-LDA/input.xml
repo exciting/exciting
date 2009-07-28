@@ -16,7 +16,7 @@
 <atom coord="0.5  0.5  0.5" bfcmt="0.0  0.0 0.0"></atom>
 </species>
 </structure>
-<groundstate fromscratch="true" nempty="10" ngkgrid="4  4  4">
+<groundstate  nempty="10" ngkgrid="4  4  4">
 <spin bfieldc="0.0 0.0 -0.01"></spin>
 </groundstate>
 <properties>
