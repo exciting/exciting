@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
-<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/"
+<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/"
   scratchpath="/tmp/chm/1">
-  <title></title>
+  <title />
   <structure speciespath="../../species/">
     <crystal>
       <basevect>5.13 5.13 0.00</basevect>
@@ -10,56 +11,48 @@
       <basevect>0.00 5.13 5.13</basevect>
     </crystal>
     <species speciesfile="Si.xml">
-      <atom coord="0.0 0.0 0.0" bfcmt="0.0 0.0 0.0"></atom>
-      <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
+      <atom coord="0.0 0.0 0.0" bfcmt="0.0 0.0 0.0" />
+      <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0" />
     </species>
   </structure>
-  <groundstate do="fromfile" vkloff="0.033333333333333  0.100000000000000  0.166666666666667" rgkmax="6.0" lmaxapw="10" ngkgrid="4  4  4"></groundstate>
+  <groundstate do="fromscratch"
+    vkloff="0.033333333333333  0.100000000000000  0.166666666666667"
+    rgkmax="6.0" lmaxapw="10" ngkgrid="4  4  4" />
   <properties>
-   <!--   <bandstructure>
-      <plot1d>
-        <path steps="200">
-          <point coord="  0.0   0.0   1.0"></point>
-          <point coord="  0.5   0.5   1.0"></point>
-          <point coord="  0.0   0.0   0.0"></point>
-          <point coord="  0.5   0.0   0.0"></point>
-          <point coord="  0.5   0.5   0.0"></point>
-          <point coord="  0.5   0.25 -0.25"></point>
-          <point coord="  0.5   0.0   0.0"></point>
-        </path>
-      </plot1d>
-    </bandstructure>-->
+    <!--
+      <bandstructure> <plot1d> <path steps="200"> <point coord=" 0.0 0.0
+      1.0"></point> <point coord=" 0.5 0.5 1.0"></point> <point coord="
+      0.0 0.0 0.0"></point> <point coord=" 0.5 0.0 0.0"></point> <point
+      coord=" 0.5 0.5 0.0"></point> <point coord=" 0.5 0.25
+      -0.25"></point> <point coord=" 0.5 0.0 0.0"></point> </path>
+      </plot1d> </bandstructure>
+    -->
   </properties>
-  <xs 
-  xstype="BSE" 
-  gqmax="3" 
-  lmaxemat="2" 
-  lmaxapwwf="2"
-  broad="0.007" 
-  tevout="true"
-  nosym="true" 
-  rgkmax="6" 
-  lmaxapw="10" 
-  nempty="5" 
-  reducek="false" 
-  ngridk="2 2 2" 
-  ngridq="2 2 2" 
-  vkloff=" 0.033333333333333    0.100000000000000  0.166666666666667" 
-  swidth=" 0.0001">
-    <screening 
-    screentype="full"
-    nempty="145" />
-    <BSE 
-    bsetype="singlet"/>
-    <tddft 
-    fxctype="MB1" 
-    aresdf="false" 
-    aresfxc="false"></tddft>
-    <dosWindow 
-    intv="0 0.5" 
-    points="300" />
+  <xs xstype="BSE" gqmax="3" lmaxemat="2" lmaxapwwf="2" broad="0.007"
+    tevout="true" nosym="true" rgkmax="6" lmaxapw="10" nempty="5"
+    reducek="false" ngridk="2 2 2" ngridq="2 2 2"
+    vkloff=" 0.033333333333333    0.100000000000000  0.166666666666667"
+    swidth=" 0.0001">
+    <screening screentype="full" nempty="145" />
+    <BSE bsetype="singlet" />
+    <tddft fxctype="MB1" aresdf="false" aresfxc="false" />
+    <dosWindow intv="0 0.5" points="300" />
     <qpointset>
       <qpoint>0 0 0</qpoint>
     </qpointset>
+    <plan>
+      <!-- 301,320,330,401,420,430,440,441,445,450,340,350 -->
+      <doonly task="tetcalccw" />
+      <doonly task="writepmatxs" />
+      <doonly task="writeemat" />
+      <doonly task="scrtetcalccw" />
+      <doonly task="scrwritepmat" />
+      <doonly task="screen" />
+      <doonly task="scrcoulint" />
+      <doonly task="exccoulint" />
+      <doonly task="kernxc_bse" />
+      <doonly task="df" />
+      <doonly task="idf" />
+    </plan>
   </xs>
 </input>
