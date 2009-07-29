@@ -3364,7 +3364,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridq")
-getstructxs%ngridq=(/0,0,0/)
+getstructxs%ngridq=(/1,1,1/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridq",getstructxs%ngridq)
        call removeAttribute(thisnode,"ngridq")      

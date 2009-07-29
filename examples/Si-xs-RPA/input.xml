@@ -9,7 +9,7 @@
       <basevect>5.13 0.00 5.13</basevect>
       <basevect>0.00 5.13 5.13</basevect>
     </crystal>
-    <species speciesfile="Si_APWloKay.xml">
+    <species speciesfile="Si.xml">
       <atom coord="0.0 0.0 0.0" bfcmt="0.0 0.0 0.0"></atom>
       <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
     </species>
@@ -42,5 +42,17 @@
     <qpointset>
       <qpoint>0 0 0</qpoint>
     </qpointset>
+    <plan>
+  <!--  301,320,330,340,350,401,420,441,445 -->
+    <doonly task="xsgeneigvec"/>
+    <doonly task="writepmatxs"/>
+    <doonly task="writeemat"/>
+    <doonly task="df"/>
+    <doonly task="idf"/>
+    <doonly task="scrgeneigvec"/>
+    <doonly task="scrwritepmat"/>
+    <doonly task="exccoulint"/>
+    <doonly task="BSE"/>
+    </plan>
   </xs>
 </input>

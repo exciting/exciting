@@ -2754,7 +2754,7 @@
                                   <xs:appinfo>
                                     <oldnr>445</oldnr>
                                   </xs:appinfo>
-                                  <xs:documentation></xs:documentation>
+                                  <xs:documentation>Bethe-Salpeter equation</xs:documentation>
                                 </xs:annotation>
                               </xs:enumeration>
 					                    <xs:enumeration value="kernxc_bse">
@@ -3040,7 +3040,7 @@
 					      </xs:appinfo>
 					    </xs:annotation>
 					  </xs:attribute>
-					  <xs:attribute name="ngridq" type="integertriple" default="0 0 0">
+					  <xs:attribute name="ngridq" type="integertriple" default="1 1 1">
 					    <xs:annotation>
 					      <xs:appinfo>
 					        <oldname>ngridqxs</oldname>
