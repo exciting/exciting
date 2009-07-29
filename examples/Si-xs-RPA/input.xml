@@ -2,14 +2,14 @@
 <?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
 <input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/"
   scratchpath="/tmp/chm/1">
-  <title></title>
+  <title>Si RPA</title>
   <structure speciespath="../../species/">
     <crystal>
       <basevect>5.13 5.13 0.00</basevect>
       <basevect>5.13 0.00 5.13</basevect>
       <basevect>0.00 5.13 5.13</basevect>
     </crystal>
-    <species speciesfile="Si.xml">
+    <species speciesfile="Si_APWloKay.xml">
       <atom coord="0.0 0.0 0.0" bfcmt="0.0 0.0 0.0"></atom>
       <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
     </species>
@@ -35,7 +35,7 @@
     </bandstructure>
   </properties>
   <xs xstype="TDDFT" nosym="true" rgkmax="6" lmaxapw="10" nempty="5" reducek="false" ngridk="2 2 2" vkloff="0.033333333333333  0.100000000000000  0.166666666666667"
-    swidth="0.0001" gqmax="3" lmaxemat="2" lmaxapwwf="2" broad="0.007" tevout="true">
+    swidth="0.0001" gqmax="3" lmaxemat="2" lmaxapwwf="2" broad="0.007" tevout="true" ngridq="2 2 2">
     <tddft aresdf="false" fxctype="RPA"></tddft>
     <BSE bsetype="rpa" />
     <dosWindow intv="0 0.5" points="300" />

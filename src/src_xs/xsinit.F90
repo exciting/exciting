@@ -270,6 +270,7 @@ endif
      input%groundstate%reducek=input%xs%BSE%reducek
      input%groundstate%rgkmax=input%xs%BSE%rgkmax
      input%groundstate%vkloff(:)=input%xs%BSE%vkloff(:)
+      ngridq(:)=input%xs%ngridq(:)
      write(unitout, *)
      write(unitout, '("Info(xsinit): mapping BSE-specific parameters")')
      write(unitout, *)

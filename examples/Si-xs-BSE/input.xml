@@ -3,7 +3,7 @@
 <input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/"
   scratchpath="/tmp/chm/1">
-  <title />
+  <title >Si BSE</title>
   <structure speciespath="../../species/">
     <crystal>
       <basevect>5.13 5.13 0.00</basevect>
