@@ -62,7 +62,7 @@ use modinput
 	call filedel('EVALCORE'//trim(filext))
 	call filedel('FERMIDOS'//trim(filext))
 	call filedel('GEOMETRY'//trim(filext))
-	call filedel('associated(input%structure%symmetries%lattice)'//trim(filext))
+	call filedel('LATTICE'//trim(filext))
 	call filedel('IADIST'//trim(filext))
 	call filedel('LINENGY'//trim(filext))
 	call filedel('SYMCRYS'//trim(filext))

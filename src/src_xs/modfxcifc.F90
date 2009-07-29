@@ -188,13 +188,13 @@ subroutine getfxcdata(fxctype, fxcdescr, fxcspin)
        fxcspin=0
        return
     case(7)
-       fxcdescr = 'associated(input%xs%BSE) kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
+       fxcdescr = 'BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
 	    &no local field effects'
        ! spin-polarisation not required
        fxcspin=0
        return
     case(8)
-       fxcdescr = 'associated(input%xs%BSE) kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
+       fxcdescr = 'BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
 	    &including local field effects'
        ! spin-polarisation not required
        fxcspin=0

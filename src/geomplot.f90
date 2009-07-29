@@ -21,7 +21,7 @@ call init0
 !------------------------------------------------!
 !     write the XCrysden file to crystal.xsf     !
 !------------------------------------------------!
-open(50, file='associated(input%structure%crystal).xsf', action='WRITE', form='FORMATTED')
+open(50, file='CRYSTAL.xsf', action='WRITE', form='FORMATTED')
 write(50, *)
 write(50, '("CRYSTAL")')
 write(50, *)
@@ -65,7 +65,7 @@ dyy=dot_product(input%structure%crystal%basevect(:, 2), v2(:))
 dzx=dot_product(input%structure%crystal%basevect(:, 3), v1(:))
 dzy=dot_product(input%structure%crystal%basevect(:, 3), v2(:))
 dzz=dot_product(input%structure%crystal%basevect(:, 3), v3(:))
-open(50, file='associated(input%structure%crystal).ascii', action='WRITE', form='FORMATTED')
+open(50, file='crystal.ascii', action='WRITE', form='FORMATTED')
 write(50, *)
 write(50, '(3G18.10)') dxx, dyx, dyy
 write(50, '(3G18.10)') dzx, dzy, dzz

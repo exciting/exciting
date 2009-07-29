@@ -10,7 +10,7 @@ subroutine writelat
 use modmain
 use modinput
 implicit none
-open(50, file = 'associated(input%structure%symmetries%lattice)'//trim(filext), action = 'WRITE', form = 'FORMATTED')
+open(50, file = 'LATTICE'//trim(filext), action = 'WRITE', form = 'FORMATTED')
 write(50, *)
 write(50, '("+----------------------------+")')
 write(50, '("| Real-space lattice vectors |")')
