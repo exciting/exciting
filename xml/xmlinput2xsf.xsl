@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:str="http://exslt.org/strings" xmlns:math="http://exslt.org/math">
   <xsl:output method="text" />
-  <!-- usage: xsltproc xmltobloc.xsl input.xml >exciting.in -->
+  <!-- usage: xsltproc xmlinput2xcf.xsl input.xml >exciting.in -->
   <xsl:template name="norm">
     <xsl:param name="vectorstring" />
     <xsl:value-of
@@ -75,7 +75,7 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
             <xsl:text>/</xsl:text>
             <xsl:value-of select="../@speciesfile" />
           </xsl:variable>
-          <xsl:value-of select="-1*document($speciesfile)/speciesdb/species/@z" />
+          <xsl:value-of select="-1*document($speciesfile)/spdb/sp/@z" />
         </xsl:otherwise>
       </xsl:choose>
       <xsl:text>   </xsl:text>

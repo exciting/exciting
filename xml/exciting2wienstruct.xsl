@@ -3,7 +3,7 @@
 ##################################################################
  Use:
  
- xsltproc --path "../../species/" exciting3wienstruct.xsl input.xml
+ xsltproc [dash dash]path "../../species/" exciting3wienstruct.xsl input.xml
  
  give the path option when species definitions should be loaded from
  that path
@@ -45,12 +45,12 @@ ATOM </xsl:text>
 <xsl:value-of select ="format-number(str:tokenize(@coord)[3],'0.00000000')"/>
 <xsl:text>          MULT= 1          ISPLIT= 8
 </xsl:text>
-<xsl:value-of select="../@chemicalSymbol|document($speciesfile)/speciesdb/species/@chemicalSymbol"/>
-<xsl:value-of select="str:padding(10 - string-length(../@chemicalSymbol|document($speciesfile)/speciesdb/species/@chemicalSymbol),' ')"/>
+<xsl:value-of select="../@chemicalSymbol|document($speciesfile)/spdb/sp/@chemicalSymbol"/>
+<xsl:value-of select="str:padding(10 - string-length(../@chemicalSymbol|document($speciesfile)/spdb/sp/@chemicalSymbol),' ')"/>
 <xsl:text>NPT=</xsl:text>  
 <xsl:choose>
 <xsl:when test="document($speciesfile)">
-<xsl:value-of select="format-number(document($speciesfile)/speciesdb/species/muffinTin/@radialmeshPoints,'00000')"/>
+<xsl:value-of select="format-number(document($speciesfile)/spdb/sp/muffinTin/@radialmeshPoints,'00000')"/>
 </xsl:when>
 <xsl:otherwise>
 <xsl:text>  700</xsl:text>
@@ -59,14 +59,14 @@ ATOM </xsl:text>
 <xsl:text>  R0=</xsl:text>
 <xsl:choose>
 <xsl:when test="document($speciesfile)">
-<xsl:value-of select="format-number(document($speciesfile)/speciesdb/species/muffinTin/@rmin,'0.00000000')"/>
+<xsl:value-of select="format-number(document($speciesfile)/spdb/sp/muffinTin/@rmin,'0.00000000')"/>
 </xsl:when>
 <xsl:otherwise><xsl:text>0.00005   </xsl:text> </xsl:otherwise>
 </xsl:choose>
 <xsl:text>   RMT=</xsl:text>
-<xsl:value-of select="format-number(../@rmt|document($speciesfile)/speciesdb/species/muffinTin/@radius,'0000.00000')"/>
+<xsl:value-of select="format-number(../@rmt|document($speciesfile)/spdb/sp/muffinTin/@radius,'0000.00000')"/>
 <xsl:text>     Z:</xsl:text>
-<xsl:value-of select="format-number( math:abs(../@atomicNumber|document($speciesfile)/speciesdb/species/@z),'00.00')"/>
+<xsl:value-of select="format-number( math:abs(../@atomicNumber|document($speciesfile)/spdb/sp/@z),'00.00')"/>
 <xsl:text>  
 LOCAL ROT MATRIX:    1.0000000 0.0000000 0.0000000
                      0.0000000 1.0000000 0.0000000
