@@ -10,10 +10,14 @@ $enumhashfixspin{"3"}="both";
 $enumhashtype{"1"}="Lapack";
 $enumhashtype{"2"}="Arpack";
 $enumhashtype{"3"}="DIIS";
+$enumhashdo{""}="fromscratch";
+$enumhashdo{""}="fromfile";
+$enumhashdo{""}="skipp";
 $enumhashstype{"0"}="Gaussian";
 $enumhashstype{"1"}="Methfessel-Paxton 1";
 $enumhashstype{"2"}="Methfessel-Paxton 2";
 $enumhashstype{"3"}="Fermi Dirac";
+$enumhashstype{"4"}="Square-wave impulse";
 $enumhashmixer{"1"}="lin";
 $enumhashmixer{"2"}="msec";
 $enumhashmixer{"3"}="pulay";
@@ -26,29 +30,63 @@ $enumhashxctype{"21"}="GGArevPBE";
 $enumhashxctype{"22"}="GGAPBEsol";
 $enumhashxctype{"26"}="GGA-Wu-Cohen";
 $enumhashxctype{"30"}="GGAArmiento-Mattsson";
-$enumhashxctype{""}="EXX";
+$enumhashxctype{"-2"}="EXX";
 $enumhashxctype{"0"}="none";
-$enumhashfxctype{"0"}="0";
-$enumhashfxctype{"1"}="1";
-$enumhashfxctype{"2"}="2";
-$enumhashfxctype{"3"}="3";
-$enumhashfxctype{"4"}="4";
-$enumhashfxctype{"5"}="5";
-$enumhashfxctype{"7"}="7";
-$enumhashfxctype{"8"}="8";
-$enumhashtask{"301"}="xsgeneigvrc";
-$enumhashtask{"320"}="writepmatxs";
-$enumhashtask{"330"}="writeeemat";
+$enumhashfxctype{"0"}="RPA";
+$enumhashfxctype{"1"}="LRCstatic_NLF";
+$enumhashfxctype{"2"}="LRCstatic";
+$enumhashfxctype{"3"}="LRCdyn_NLF";
+$enumhashfxctype{"4"}="LRCdyn";
+$enumhashfxctype{"5"}="ALDA";
+$enumhashfxctype{"7"}="MB1_NLF";
+$enumhashfxctype{"8"}="MB1";
+$enumhashscreentype{""}="full";
+$enumhashscreentype{""}="diag";
+$enumhashscreentype{""}="noinvdiag";
+$enumhashscreentype{""}="longrange";
+$enumhashsciavtype{""}="spherical";
+$enumhashsciavtype{""}="screendiag";
+$enumhashsciavtype{""}="invscreendiag";
+$enumhashbsetype{""}="ip";
+$enumhashbsetype{""}="rpa";
+$enumhashbsetype{""}="singlet";
+$enumhashbsetype{""}="triplet";
+$enumhashtask{"301"}="xsgeneigvec";
 $enumhashtask{"310"}="tetcalccw";
+$enumhashtask{"320"}="writepmatxs";
+$enumhashtask{"330"}="writeemat";
 $enumhashtask{"340"}="df";
+$enumhashtask{"345"}="df2";
 $enumhashtask{"350"}="idf";
 $enumhashtask{"401"}="scrgeneigvec";
+$enumhashtask{"410"}="scrtetcalccw";
+$enumhashtask{"420"}="scrwritepmat";
 $enumhashtask{"430"}="screen";
 $enumhashtask{"440"}="scrcoulint";
-$enumhashtask{"450"}="kernxc_bse";
-$enumhashtask{"420"}="scrwritepmat";
-$enumhashtask{"410"}="scrtetcalccw";
 $enumhashtask{"441"}="exccoulint";
+$enumhashtask{"445"}="BSE";
+$enumhashtask{"450"}="kernxc_bse";
+$enumhashtask{"23"}="writebandgapgrid";
+$enumhashtask{"120"}="writepmat";
+$enumhashtask{"121"}="dielectric";
+$enumhashtask{"321"}="writepmatasc";
+$enumhashtask{"322"}="pmatxs2orig";
+$enumhashtask{"331"}="writeematasc";
+$enumhashtask{"335"}="writepwmat";
+$enumhashtask{"339"}="emattest";
+$enumhashtask{"341"}="x0toasc";
+$enumhashtask{"342"}="x0tobin";
+$enumhashtask{"396"}="epsconv";
+$enumhashtask{"398"}="fxc_alda_check";
+$enumhashtask{"451"}="kernxc_bse3";
+$enumhashtask{"499"}="testxs";
+$enumhashtask{"700"}="xsestimate";
+$enumhashtask{"701"}="xstiming";
+$enumhashtask{"999"}="testmain";
+$enumhashtask{"900"}="portstate(1)";
+$enumhashtask{"901"}="portstate(2)";
+$enumhashtask{"910"}="portstate(-1)";
+$enumhashtask{"911"}="portstate(-2)";
 $enumhashxstype{""}="TDDFT";
 $enumhashxstype{""}="BSE";
 
@@ -198,6 +236,12 @@ if(getvalue("primcell"))
  
     }
    
+if(getvalue("tshift"))
+  {
+   $atthashstructure{"tshift"}=getvalue("tshift");
+ 
+    }
+   
 my %atthashsymmetries=();
    
 if(getvalue("hrmg"))
@@ -226,21 +270,21 @@ if(getvalue("spaceGroupNumber"))
    
 my %atthashlattice=();
    
-if(getvalue("a"))
+if(getvalue("noreplace"))
   {
-   $atthashlattice{"a"}=getvalue("a");
+   $atthashlattice{"a"}=getvalue("noreplace");
  
     }
    
-if(getvalue("b"))
+if(getvalue("noreplace"))
   {
-   $atthashlattice{"b"}=getvalue("b");
+   $atthashlattice{"b"}=getvalue("noreplace");
  
     }
    
-if(getvalue("c"))
+if(getvalue("noreplace"))
   {
-   $atthashlattice{"c"}=getvalue("c");
+   $atthashlattice{"c"}=getvalue("noreplace");
  
     }
    
@@ -318,9 +362,9 @@ if(getvalue("atomicNumber"))
  
     }
    
-if(getvalue("rmt"))
+if(getvalue("noreplace>"))
   {
-   $atthashspecies{"rmt"}=getvalue("rmt");
+   $atthashspecies{"rmt"}=getvalue("noreplace>");
  
     }
    
@@ -335,6 +379,12 @@ if(getvalue("atposl"))
 if(getvalue("bfcmt"))
   {
    $atthashatom{"bfcmt"}=getvalue("bfcmt");
+ 
+    }
+   
+if(getvalue("mommtfix"))
+  {
+   $atthashatom{"mommtfix"}=getvalue("mommtfix");
  
     }
    
@@ -359,6 +409,12 @@ if(getvalue("notaname"))
     }
    
 my %atthashgroundstate=();
+   
+if(getvalue("nonreplace"))
+  {
+  $atthashgroundstate{"do"}=$enumhashdo{getvalue("nonreplace")};
+
+    }
    
 if(getvalue("ngridk"))
   {
@@ -417,6 +473,12 @@ if(getvalue("nempty"))
 if(getvalue("nosym"))
   {
    $atthashgroundstate{"nosym"}=getvalue("nosym");
+ 
+    }
+   
+if(getvalue("frozencore"))
+  {
+   $atthashgroundstate{"frozencore"}=getvalue("frozencore");
  
     }
    
@@ -492,9 +554,21 @@ if(getvalue("mixtype"))
 
     }
    
-if(getvalue("fromscratch"))
+if(getvalue("beta0"))
   {
-   $atthashgroundstate{"fromscratch"}=getvalue("fromscratch");
+   $atthashgroundstate{"beta0"}=getvalue("beta0");
+ 
+    }
+   
+if(getvalue("betainc"))
+  {
+   $atthashgroundstate{"betainc"}=getvalue("betainc");
+ 
+    }
+   
+if(getvalue("betadec"))
+  {
+   $atthashgroundstate{"betadec"}=getvalue("betadec");
  
     }
    
@@ -564,6 +638,36 @@ if(getvalue("npsden"))
  
     }
    
+if(getvalue("cfdamp"))
+  {
+   $atthashgroundstate{"cfdamp"}=getvalue("cfdamp");
+ 
+    }
+   
+if(getvalue("nosource"))
+  {
+   $atthashgroundstate{"nosource"}=getvalue("nosource");
+ 
+    }
+   
+if(getvalue("tevecsv"))
+  {
+   $atthashgroundstate{"tevecsv"}=getvalue("tevecsv");
+ 
+    }
+   
+if(getvalue("nwrite"))
+  {
+   $atthashgroundstate{"nwrite"}=getvalue("nwrite");
+ 
+    }
+   
+if(getvalue("ptnucl"))
+  {
+   $atthashgroundstate{"ptnucl"}=getvalue("ptnucl");
+ 
+    }
+   
 my %atthashspin=();
    
 if(getvalue("bfieldc"))
@@ -614,11 +718,19 @@ if(getvalue("fixspin"))
 
     }
    
+my %atthashHartreeFock=();
+   
+if(getvalue("epsengy"))
+  {
+   $atthashHartreeFock{"epsengy"}=getvalue("epsengy");
+ 
+    }
+   
 my %atthashsolver=();
    
-if(getvalue("type"))
+if(getvalue("solvertype"))
   {
-  $atthashsolver{"type"}=$enumhashtype{getvalue("type")};
+  $atthashsolver{"type"}=$enumhashtype{getvalue("solvertype")};
 
     }
    
@@ -631,6 +743,76 @@ if(getvalue("packedmatrixstorage"))
 if(getvalue("epsarpack"))
   {
    $atthashsolver{"epsarpack"}=getvalue("epsarpack");
+ 
+    }
+   
+if(getvalue("evaltol"))
+  {
+   $atthashsolver{"evaltol"}=getvalue("evaltol");
+ 
+    }
+   
+my %atthashOEP=();
+   
+if(getvalue("maxitoep"))
+  {
+   $atthashOEP{"maxitoep"}=getvalue("maxitoep");
+ 
+    }
+   
+if(getvalue("tauoep"))
+  {
+   $atthashOEP{"tauoep"}=getvalue("tauoep");
+ 
+    }
+   
+my %atthashRDMFT=();
+   
+if(getvalue("rdmxctype"))
+  {
+   $atthashRDMFT{"rdmxctype"}=getvalue("rdmxctype");
+ 
+    }
+   
+if(getvalue("rdmmaxscl"))
+  {
+   $atthashRDMFT{"rdmmaxscl"}=getvalue("rdmmaxscl");
+ 
+    }
+   
+if(getvalue("maxitn"))
+  {
+   $atthashRDMFT{"maxitn"}=getvalue("maxitn");
+ 
+    }
+   
+if(getvalue("maxitc"))
+  {
+   $atthashRDMFT{"maxitc"}=getvalue("maxitc");
+ 
+    }
+   
+if(getvalue("taurdmn"))
+  {
+   $atthashRDMFT{"taurdmn"}=getvalue("taurdmn");
+ 
+    }
+   
+if(getvalue("taurdmc"))
+  {
+   $atthashRDMFT{"taurdmc"}=getvalue("taurdmc");
+ 
+    }
+   
+if(getvalue("rdmalpha"))
+  {
+   $atthashRDMFT{"rdmalpha"}=getvalue("rdmalpha");
+ 
+    }
+   
+if(getvalue("rdmtemp"))
+  {
+   $atthashRDMFT{"rdmtemp"}=getvalue("rdmtemp");
  
     }
    
@@ -670,6 +852,12 @@ if(getvalue("character"))
    
 my %atthashdos=();
    
+if(getvalue("sqados"))
+  {
+   $atthashdos{"sqados"}=getvalue("sqados");
+ 
+    }
+   
 if(getvalue("lmirep"))
   {
    $atthashdos{"lmirep"}=getvalue("lmirep");
@@ -700,9 +888,9 @@ if(getvalue("nsmdos"))
  
     }
    
-if(getvalue("wintdos"))
+if(getvalue("wdos"))
   {
-   $atthashdos{"wintdos"}=getvalue("wintdos");
+   $atthashdos{"winddos"}=getvalue("wdos");
  
     }
    
@@ -748,59 +936,77 @@ if(getvalue("scissor"))
  
     }
    
+my %atthashelnes=();
+   
+if(getvalue("vecql"))
+  {
+   $atthashelnes{"vecql"}=getvalue("vecql");
+ 
+    }
+   
+my %atthasheliashberg=();
+   
+if(getvalue("mustar"))
+  {
+   $atthasheliashberg{"mustar"}=getvalue("mustar");
+ 
+    }
+   
+my %atthashphonons=();
+   
+if(getvalue("reduceq"))
+  {
+   $atthashphonons{"reduceq"}=getvalue("reduceq");
+ 
+    }
+   
+if(getvalue("deltaph"))
+  {
+   $atthashphonons{"deltaph"}=getvalue("deltaph");
+ 
+    }
+   
 my %atthashxs=();
    
-if(getvalue("ngridk"))
+if(getvalue("emattype"))
   {
-   $atthashxs{"ngridk"}=getvalue("ngridk");
+   $atthashxs{"emattype"}=getvalue("emattype");
  
     }
    
-if(getvalue("vkloff"))
+if(getvalue("dfoffdiag"))
   {
-   $atthashxs{"vkloff"}=getvalue("vkloff");
+   $atthashxs{"dfoffdiag"}=getvalue("dfoffdiag");
  
     }
    
-if(getvalue("reducek"))
+if(getvalue("lmaxapwwf"))
   {
-   $atthashxs{"reducek"}=getvalue("reducek");
+   $atthashxs{"lmaxapwwf"}=getvalue("lmaxapwwf");
  
     }
    
-if(getvalue("ngridq"))
+if(getvalue("lmaxemat"))
   {
-   $atthashxs{"ngridq"}=getvalue("ngridq");
+   $atthashxs{"lmaxemat"}=getvalue("lmaxemat");
  
     }
    
-if(getvalue("nosym"))
+if(getvalue("emaxdf"))
   {
-   $atthashxs{"nosym"}=getvalue("nosym");
+   $atthashxs{"emaxdf"}=getvalue("emaxdf");
  
     }
    
-if(getvalue("gqmax"))
+if(getvalue("broad"))
   {
-   $atthashxs{"gqmax"}=getvalue("gqmax");
+   $atthashxs{"broad"}=getvalue("broad");
  
     }
    
-if(getvalue("rgkmax"))
+if(getvalue("tevout"))
   {
-   $atthashxs{"rgkmax"}=getvalue("rgkmax");
- 
-    }
-   
-if(getvalue("lmaxapw"))
-  {
-   $atthashxs{"lmaxapw"}=getvalue("lmaxapw");
- 
-    }
-   
-if(getvalue("nempty"))
-  {
-   $atthashxs{"nempty"}=getvalue("nempty");
+   $atthashxs{"tevout"}=getvalue("tevout");
  
     }
    
@@ -810,43 +1016,127 @@ if(getvalue("xstype"))
 
     }
    
-my %atthashtddft=();
-   
-if(getvalue("dfoffdiag"))
+if(getvalue("symmorph"))
   {
-   $atthashtddft{"dfoffdiag"}=getvalue("dfoffdiag");
+   $atthashxs{"symmorph"}=getvalue("symmorph");
  
     }
    
-if(getvalue("emattype"))
+if(getvalue("fastpmat"))
   {
-   $atthashtddft{"emattype"}=getvalue("emattype");
+   $atthashxs{"fastpmat"}=getvalue("fastpmat");
  
     }
    
-if(getvalue("lmaxapwwf"))
+if(getvalue("fastemat"))
   {
-   $atthashtddft{"lmaxapwwf"}=getvalue("lmaxapwwf");
+   $atthashxs{"fastemat"}=getvalue("fastemat");
  
     }
    
-if(getvalue("lmaxemat"))
+if(getvalue("gather"))
   {
-   $atthashtddft{"lmaxemat"}=getvalue("lmaxemat");
+   $atthashxs{"gather"}=getvalue("gather");
+ 
+    }
+   
+if(getvalue("tappinfo"))
+  {
+   $atthashxs{"tappinfo"}=getvalue("tappinfo");
+ 
+    }
+   
+if(getvalue("dbglev"))
+  {
+   $atthashxs{"dbglev"}=getvalue("dbglev");
+ 
+    }
+   
+if(getvalue("usegdft"))
+  {
+   $atthashxs{"usegdft"}=getvalue("usegdft");
+ 
+    }
+   
+if(getvalue("gqmax"))
+  {
+   $atthashxs{"gqmax"}=getvalue("gqmax");
+ 
+    }
+   
+if(getvalue("nosymxs"))
+  {
+   $atthashxs{"nosym"}=getvalue("nosymxs");
+ 
+    }
+   
+if(getvalue("ngridkxs"))
+  {
+   $atthashxs{"ngridk"}=getvalue("ngridkxs");
+ 
+    }
+   
+if(getvalue("vkloffxs"))
+  {
+   $atthashxs{"vkloff"}=getvalue("vkloffxs");
+ 
+    }
+   
+if(getvalue("reducekxs"))
+  {
+   $atthashxs{"reducek"}=getvalue("reducekxs");
+ 
+    }
+   
+if(getvalue("ngridqxs"))
+  {
+   $atthashxs{"ngridq"}=getvalue("ngridqxs");
+ 
+    }
+   
+if(getvalue("reduceqxs"))
+  {
+   $atthashxs{"reduceq"}=getvalue("reduceqxs");
+ 
+    }
+   
+if(getvalue("rgkmaxxs"))
+  {
+   $atthashxs{"rgkmax"}=getvalue("rgkmaxxs");
+ 
+    }
+   
+if(getvalue("swidthxs"))
+  {
+   $atthashxs{"swidth"}=getvalue("swidthxs");
+ 
+    }
+   
+if(getvalue("lmaxapwxs"))
+  {
+   $atthashxs{"lmaxapw"}=getvalue("lmaxapwxs");
+ 
+    }
+   
+if(getvalue("lmaxmatxs"))
+  {
+   $atthashxs{"lmaxmat"}=getvalue("lmaxmatxs");
+ 
+    }
+   
+if(getvalue("nemptyxs"))
+  {
+   $atthashxs{"nempty"}=getvalue("nemptyxs");
  
     }
    
 if(getvalue("scissor"))
   {
-   $atthashtddft{"scissor"}=getvalue("scissor");
+   $atthashxs{"scissor"}=getvalue("scissor");
  
     }
    
-if(getvalue("optswidth"))
-  {
-   $atthashtddft{"optswidth"}=getvalue("optswidth");
- 
-    }
+my %atthashtddft=();
    
 if(getvalue("intraband"))
   {
@@ -854,15 +1144,33 @@ if(getvalue("intraband"))
  
     }
    
-if(getvalue("tetradf"))
-  {
-   $atthashtddft{"tetradf"}=getvalue("tetradf");
- 
-    }
-   
 if(getvalue("torddf"))
   {
    $atthashtddft{"torddf"}=getvalue("torddf");
+ 
+    }
+   
+if(getvalue("tordfxc"))
+  {
+   $atthashtddft{"tordfxc"}=getvalue("tordfxc");
+ 
+    }
+   
+if(getvalue("aresdf"))
+  {
+   $atthashtddft{"aresdf"}=getvalue("aresdf");
+ 
+    }
+   
+if(getvalue("aresfxc"))
+  {
+   $atthashtddft{"aresfxc"}=getvalue("aresfxc");
+ 
+    }
+   
+if(getvalue("fxcbsesplit"))
+  {
+   $atthashtddft{"fxcbsesplit"}=getvalue("fxcbsesplit");
  
     }
    
@@ -878,21 +1186,9 @@ if(getvalue("nwacont"))
  
     }
    
-if(getvalue("broad"))
-  {
-   $atthashtddft{"broad"}=getvalue("broad");
- 
-    }
-   
 if(getvalue("lindhard"))
   {
    $atthashtddft{"lindhard"}=getvalue("lindhard");
- 
-    }
-   
-if(getvalue("aresdf"))
-  {
-   $atthashtddft{"aresdf"}=getvalue("aresdf");
  
     }
    
@@ -900,18 +1196,6 @@ if(getvalue("epsdfde"))
   {
    $atthashtddft{"epsdfde"}=getvalue("epsdfde");
  
-    }
-   
-if(getvalue("emaxdf"))
-  {
-   $atthashtddft{"emaxdf"}=getvalue("emaxdf");
- 
-    }
-   
-if(getvalue("fxctype"))
-  {
-  $atthashtddft{"fxctype"}=$enumhashfxctype{getvalue("fxctype")};
-
     }
    
 if(getvalue("kerndiag"))
@@ -944,23 +1228,133 @@ if(getvalue("betalrcdyn"))
  
     }
    
+if(getvalue("mdfqtype"))
+  {
+   $atthashtddft{"mdfqtype"}=getvalue("mdfqtype");
+ 
+    }
+   
+if(getvalue("fxctype"))
+  {
+  $atthashtddft{"fxctype"}=$enumhashfxctype{getvalue("fxctype")};
+
+    }
+   
+my %atthashscreening=();
+   
+if(getvalue("nosymscr"))
+  {
+   $atthashscreening{"nosym"}=getvalue("nosymscr");
+ 
+    }
+   
+if(getvalue("ngridkscr"))
+  {
+   $atthashscreening{"ngridk"}=getvalue("ngridkscr");
+ 
+    }
+   
+if(getvalue("reducekscr"))
+  {
+   $atthashscreening{"reducek"}=getvalue("reducekscr");
+ 
+    }
+   
+if(getvalue("vkloffscr"))
+  {
+   $atthashscreening{"vkloff"}=getvalue("vkloffscr");
+ 
+    }
+   
+if(getvalue("rgkmaxscr"))
+  {
+   $atthashscreening{"rgkmax"}=getvalue("rgkmaxscr");
+ 
+    }
+   
+if(getvalue("nemptyscr"))
+  {
+   $atthashscreening{"nempty"}=getvalue("nemptyscr");
+ 
+    }
+   
+if(getvalue("screentype"))
+  {
+  $atthashscreening{"screentype"}=$enumhashscreentype{getvalue("screentype")};
+
+    }
+   
 my %atthashBSE=();
    
-if(getvalue("tordfxc"))
+if(getvalue("nosymbse"))
   {
-   $atthashBSE{"tordfxc"}=getvalue("tordfxc");
+   $atthashBSE{"nosym"}=getvalue("nosymbse");
  
     }
    
-if(getvalue("aresfxc"))
+if(getvalue("reducekbse"))
   {
-   $atthashBSE{"aresfxc"}=getvalue("aresfxc");
+   $atthashBSE{"reducek"}=getvalue("reducekbse");
  
     }
    
-if(getvalue("fxcbsesplit"))
+if(getvalue("vkloffbse"))
   {
-   $atthashBSE{"fxcbsesplit"}=getvalue("fxcbsesplit");
+   $atthashBSE{"vkloff"}=getvalue("vkloffbse");
+ 
+    }
+   
+if(getvalue("rgkmaxbse"))
+  {
+   $atthashBSE{"rgkmax"}=getvalue("rgkmaxbse");
+ 
+    }
+   
+if(getvalue("scrherm"))
+  {
+   $atthashBSE{"scrherm"}=getvalue("scrherm");
+ 
+    }
+   
+if(getvalue("fbzq"))
+  {
+   $atthashBSE{"fbzq"}=getvalue("fbzq");
+ 
+    }
+   
+if(getvalue("sciavtype"))
+  {
+  $atthashBSE{"sciavtype"}=$enumhashsciavtype{getvalue("sciavtype")};
+
+    }
+   
+if(getvalue("sciavbd"))
+  {
+   $atthashBSE{"sciavbd"}=getvalue("sciavbd");
+ 
+    }
+   
+if(getvalue("sciavqhd"))
+  {
+   $atthashBSE{"sciavqhd"}=getvalue("sciavqhd");
+ 
+    }
+   
+if(getvalue("sciavqwg"))
+  {
+   $atthashBSE{"sciavqwg"}=getvalue("sciavqwg");
+ 
+    }
+   
+if(getvalue("sciavqbd"))
+  {
+   $atthashBSE{"sciavqbd"}=getvalue("sciavqbd");
+ 
+    }
+   
+if(getvalue("bsedirsing"))
+  {
+   $atthashBSE{"bsedirsing"}=getvalue("bsedirsing");
  
     }
    
@@ -982,31 +1376,53 @@ if(getvalue("nexcitmax"))
  
     }
    
-my %atthashdoonly=();
-   
-if(getvalue("task"))
+if(getvalue("nbfbse,nafbse"))
   {
-  $atthashdoonly{"task"}=$enumhashtask{getvalue("task")};
+   $atthashBSE{"nstlbse"}=getvalue("nbfbse,nafbse");
+ 
+    }
+   
+if(getvalue("nbfce,nafce"))
+  {
+   $atthashBSE{"nstlce"}=getvalue("nbfce,nafce");
+ 
+    }
+   
+if(getvalue("bsetype"))
+  {
+  $atthashBSE{"bsetype"}=$enumhashbsetype{getvalue("bsetype")};
 
     }
    
 my %atthashtetra=();
    
-if(getvalue("kordexc"))
+if(getvalue("tetraocc"))
   {
-   $atthashtetra{"kordexc"}=getvalue("kordexc");
+   $atthashtetra{"tetraocc"}=getvalue("tetraocc");
  
     }
    
-if(getvalue("cw1k"))
+if(getvalue("tetradf"))
   {
-   $atthashtetra{"cw1k"}=getvalue("cw1k");
+   $atthashtetra{"tetradf"}=getvalue("tetradf");
  
     }
    
-if(getvalue("qweights"))
+if(getvalue("tetrakordexc"))
   {
-   $atthashtetra{"qweights"}=getvalue("qweights");
+   $atthashtetra{"kordexc"}=getvalue("tetrakordexc");
+ 
+    }
+   
+if(getvalue("tetracw1k"))
+  {
+   $atthashtetra{"cw1k"}=getvalue("tetracw1k");
+ 
+    }
+   
+if(getvalue("tetraqweights"))
+  {
+   $atthashtetra{"qweights"}=getvalue("tetraqweights");
  
     }
    
@@ -1018,16 +1434,24 @@ if(getvalue("points"))
  
     }
    
-if(getvalue("start"))
+if(getvalue("intv"))
   {
-   $atthashdosWindow{"start"}=getvalue("start");
+   $atthashdosWindow{"intv"}=getvalue("intv");
  
     }
    
-if(getvalue("stop"))
+if(getvalue("noreplace"))
   {
-   $atthashdosWindow{"stop"}=getvalue("stop");
+   $atthashdosWindow{"nsmdos"}=getvalue("noreplace");
  
+    }
+   
+my %atthashdoonly=();
+   
+if(getvalue("noreplace"))
+  {
+  $atthashdoonly{"task"}=$enumhashtask{getvalue("noreplace")};
+
     }
    
 my $output = new IO::File(">input.xml");
