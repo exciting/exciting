@@ -1,0 +1,11 @@
+file = FERMISURF.OUT
+grid = 24 x 24 x 16
+format = ascii
+interleaving = field
+majority = column
+header = lines 1
+field = locations, field0, field1, field2, field3, field4, field5, field6
+structure = 3-vector, scalar, scalar, scalar, scalar, scalar, scalar, scalar
+type = float, float, float, float, float, float, float, float
+
+end

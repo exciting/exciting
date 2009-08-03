@@ -1,0 +1,6 @@
+ open ../../species//B.xml
+ open ../../species//N.xml
+ 
+Info(writegeom):
+ EXCITING lattice vectors and atomic positions written to geometry.xml
+ 

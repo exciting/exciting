@@ -1,0 +1,49 @@
+
+! Band structure of lead with spin-orbit coupling.
+
+tasks
+  0
+ 20
+
+spinpol
+ .true.
+
+spinorb
+ .true.
+
+nempty
+  10
+
+rgkmax
+  8.0
+
+avec
+  0.0 0.5 0.5
+  0.5 0.0 0.5
+  0.5 0.5 0.0
+
+scale
+  9.3541
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Pb.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+ngridk
+  8  8  8
+
+plot1d
+  7 200                               : nvp1d, npp1d
+  0.0   0.0   1.0                     : vlvp1d
+  0.5   0.5   1.0
+  0.0   0.0   0.0
+  0.5   0.0   0.0
+  0.5   0.5   0.0
+  0.5   0.25 -0.25
+  0.5   0.0   0.0
+

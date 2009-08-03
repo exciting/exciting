@@ -1,0 +1,47 @@
+
+! Ferromagnetic bcc iron fixed spin moment example.
+
+tasks
+  0
+
+spinpol
+ .true.
+
+! total fixed spin moment required
+fixspin
+  1
+
+! fixed spin moment vector
+momfix
+  0.0 0.0 1.0
+
+! small magnetic field in the z-direction
+bfieldc
+  0.0  0.0  0.01
+
+! fairly large number of empty states required for magnetic cases
+nempty
+  10
+
+avec
+  1.0  1.0 -1.0
+  1.0 -1.0  1.0
+ -1.0  1.0  1.0
+
+scale
+  2.708
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+ngridk
+  4  4  4
+
+vkloff
+  0.5  0.5  0.5

@@ -1,0 +1,621 @@
+sending incremental file list
+[sender] showing file Al-Fermi-surface/input.xml because of pattern input.xml
+[sender] showing file Al-STM/input.xml because of pattern input.xml
+[sender] showing file Al-exp[iq.r]/input.xml because of pattern input.xml
+[sender] showing file Al-phonon/input.xml because of pattern input.xml
+[sender] showing file Al/input.xml because of pattern input.xml
+[sender] showing file AlAs-fatbands/input.xml because of pattern input.xml
+[sender] showing file Au/input.xml because of pattern input.xml
+[sender] showing file B12/input.xml because of pattern input.xml
+[sender] showing file BN-ELF/input.xml because of pattern input.xml
+[sender] showing file BN-ELNES/input.xml because of pattern input.xml
+[sender] showing file C60/input.xml because of pattern input.xml
+[sender] showing file Cr-mono/input.xml because of pattern input.xml
+[sender] showing file Cu/input.xml because of pattern input.xml
+[sender] showing file CuFeS2/input.xml because of pattern input.xml
+[sender] showing file Fe-AFM/input.xml because of pattern input.xml
+[sender] showing file Fe-FSM-MT-AFM/input.xml because of pattern input.xml
+[sender] showing file Fe-FSM-MT-FM/input.xml because of pattern input.xml
+[sender] showing file Fe-FSM/input.xml because of pattern input.xml
+[sender] showing file Fe-spiral/input.xml because of pattern input.xml
+[sender] showing file Fe/input.xml because of pattern input.xml
+[sender] showing file FeAl-LDA+U-AMF/input.xml because of pattern input.xml
+[sender] showing file FeAl-LDA+U-INT/input.xml because of pattern input.xml
+[sender] showing file FeAl-LDA/input.xml because of pattern input.xml
+[sender] showing file GaAs/input.xml because of pattern input.xml
+[sender] showing file Ge/input.xml because of pattern input.xml
+[sender] showing file H2O-iterative/input.xml because of pattern input.xml
+[sender] showing file HEG-HF/input.xml because of pattern input.xml
+[sender] showing file HEG-OEP/input.xml because of pattern input.xml
+[sender] showing file HfSiO4/input.xml because of pattern input.xml
+[sender] showing file LiF/input.xml because of pattern input.xml
+[sender] showing file MgB2-Fermi-surface/input.xml because of pattern input.xml
+[sender] showing file NaCl-monomer/input.xml because of pattern input.xml
+[sender] showing file Nb-superconductor/input.xml because of pattern input.xml
+[sender] showing file Ni-Fermi-surface/input.xml because of pattern input.xml
+[sender] showing file Ni-MOKE/input.xml because of pattern input.xml
+[sender] showing file Ni/input.xml because of pattern input.xml
+[sender] showing file NiO-LDA+U-FLL/input.xml because of pattern input.xml
+[sender] showing file NiO-LDA+U-INT/input.xml because of pattern input.xml
+[sender] showing file NiO-LDA/input.xml because of pattern input.xml
+[sender] showing file PA/input.xml because of pattern input.xml
+[sender] showing file Pb/input.xml because of pattern input.xml
+[sender] showing file Ru-ELF/input.xml because of pattern input.xml
+[sender] showing file Si-Hartree-Fock/input.xml because of pattern input.xml
+[sender] showing file Si-OEP/input.xml because of pattern input.xml
+[sender] showing file Si-PBEsol/input.xml because of pattern input.xml
+[sender] showing file Si-phonon/input.xml because of pattern input.xml
+[sender] showing file Si-str-opt/input.xml because of pattern input.xml
+[sender] showing file Si-xs-BSE/input.xml because of pattern input.xml
+[sender] showing file Si-xs-RPA/input.xml because of pattern input.xml
+[sender] showing file Si-xs-xml/input.xml because of pattern input.xml
+[sender] showing file Si/input.xml because of pattern input.xml
+[sender] showing file TiC-eg-t2g/input.xml because of pattern input.xml
+[sender] showing file TiO2-linopt/input.xml because of pattern input.xml
+[sender] showing file Ununhexium/input.xml because of pattern input.xml
+[sender] showing file YBCO/input.xml because of pattern input.xml
+[sender] showing file diamond-rho3D/input.xml because of pattern input.xml
+delta-transmission disabled for local transfer or --whole-file
+drwxr-xr-x        4096 2009/07/29 09:01:10 .
+-rw-r--r--          23 2009/07/28 14:08:49 .gitignore
+-rw-r--r--         256 2009/06/23 00:05:30 README
+-rw-r--r--           0 2009/07/28 14:09:11 dir_xml_out.xml
+-rw-r--r--         950 2009/07/28 14:09:11 example_execute.xsl
+-rw-r--r--          44 2009/07/28 14:09:11 example_execute.xsl.out.xml
+-rw-r--r--       34305 2009/07/28 14:08:49 examples.xml
+-rw-r--r--           0 2009/07/28 13:41:58 examples_exec
+-rw-r--r--      117362 2009/07/28 14:09:11 filelist.xml
+-rw-r--r--         549 2009/07/28 14:08:49 filestoscripts.xsl
+-rw-r--r--          30 2009/07/29 09:01:10 test
+drwxr-xr-x        4096 2009/07/28 14:09:10 Al-Fermi-surface
+-rw-r--r--         624 2009/06/23 00:05:30 Al-Fermi-surface/exciting.in
+-rw-r--r--         194 2009/06/23 00:05:30 Al-Fermi-surface/fermi.general
+-rw-r--r--        9322 2009/06/23 00:05:30 Al-Fermi-surface/fermi.net
+-rw-r--r--         709 2009/07/28 14:09:10 Al-Fermi-surface/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Al-STM
+-rw-r--r--        1114 2009/06/23 00:05:30 Al-STM/exciting.in
+-rw-r--r--        1350 2009/07/28 14:09:10 Al-STM/input.xml
+-rw-r--r--         187 2009/06/23 00:05:30 Al-STM/stm2d.general
+-rw-r--r--        5533 2009/06/23 00:05:30 Al-STM/stm2d.net
+drwxr-xr-x        4096 2009/07/28 14:09:10 Al-exp[iq.r]
+-rw-r--r--         632 2009/06/23 00:05:30 Al-exp[iq.r]/exciting.in
+-rw-r--r--         655 2009/07/28 14:09:10 Al-exp[iq.r]/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Al-phonon
+-rw-r--r--        1146 2009/07/28 14:08:49 Al-phonon/exciting.in
+-rw-r--r--         720 2009/07/28 14:09:10 Al-phonon/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Al
+-rw-r--r--          19 2009/06/23 14:04:06 Al/EFERMI.OUT
+-rw-r--r--        5519 2009/06/23 14:04:06 Al/EIGVAL.OUT
+-rw-r--r--          62 2009/06/23 14:03:05 Al/EQATOMS.OUT
+-rw-r--r--         124 2009/06/23 14:04:06 Al/EVALCORE.OUT
+-rw-r--r--        1120 2009/06/23 14:04:06 Al/EVALFV.OUT
+-rw-r--r--        1080 2009/06/23 14:04:06 Al/EVALSV.OUT
+-rw-r--r--      145960 2009/06/23 14:04:06 Al/EVECFV.OUT
+-rw-r--r--       16280 2009/06/23 14:04:06 Al/EVECSV.OUT
+-rw-r--r--         323 2009/06/23 14:04:07 Al/FERMIDOS.OUT
+-rw-r--r--         480 2009/06/23 14:03:05 Al/GEOMETRY.OUT
+-rw-r--r--          96 2009/06/23 14:03:05 Al/IADIST.OUT
+-rw-r--r--       28121 2009/06/23 14:04:07 Al/INFO.OUT
+-rw-r--r--         916 2009/06/23 14:03:05 Al/KPOINTS.OUT
+-rw-r--r--        1464 2009/06/23 14:03:05 Al/LATTICE.OUT
+-rw-r--r--         933 2009/06/23 14:04:05 Al/LINENGY.OUT
+-rw-r--r--        1080 2009/06/23 14:04:06 Al/OCCSV.OUT
+-rw-r--r--         285 2009/06/23 14:04:01 Al/RMSDVEFF.OUT
+-rw-r--r--     1308716 2009/06/23 14:04:07 Al/STATE.OUT
+-rw-r--r--       10889 2009/06/23 14:03:05 Al/SYMCRYS.OUT
+-rw-r--r--        2175 2009/06/23 14:03:05 Al/SYMLAT.OUT
+-rw-r--r--        7155 2009/06/23 14:03:05 Al/SYMSITE.OUT
+-rw-r--r--         391 2009/06/23 14:04:07 Al/TOTENERGY.OUT
+-rw-r--r--         706 2009/07/28 14:08:49 Al/exciting.in
+-rw-r--r--         532 2009/06/23 14:03:05 Al/geometry.OUT.xml
+-rw-r--r--       16063 2009/07/28 14:09:10 Al/info.xml
+-rw-r--r--       12749 2009/07/28 14:09:10 Al/info.xsl
+-rw-r--r--         678 2009/07/28 14:09:10 Al/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 AlAs-fatbands
+-rw-r--r--        2889 2009/06/23 00:05:30 AlAs-fatbands/AlAs.par
+-rw-r--r--         938 2009/06/23 00:05:30 AlAs-fatbands/exciting.in
+-rw-r--r--         986 2009/07/28 14:09:10 AlAs-fatbands/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Au
+-rw-r--r--         678 2009/06/23 00:05:30 Au/exciting.in
+-rw-r--r--        1030 2009/07/28 14:09:10 Au/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 B12
+-rw-r--r--        1350 2009/06/23 00:05:30 B12/exciting.in
+-rw-r--r--        1952 2009/07/28 14:09:10 B12/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 BN-ELF
+-rw-r--r--         494 2009/06/23 00:05:30 BN-ELF/exciting.in
+-rw-r--r--         815 2009/07/28 14:09:10 BN-ELF/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 BN-ELNES
+-rw-r--r--           5 2009/07/28 14:08:49 BN-ELNES/.gitignore
+-rw-r--r--        1328 2009/06/23 00:05:30 BN-ELNES/B.in
+-rw-r--r--        1518 2009/06/23 00:05:30 BN-ELNES/N.in
+-rw-r--r--         896 2009/06/23 00:05:30 BN-ELNES/exciting.in
+-rw-r--r--         769 2009/07/28 14:09:10 BN-ELNES/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 C60
+-rw-r--r--        5153 2009/06/23 00:05:30 C60/exciting.in
+-rw-r--r--        6529 2009/07/28 14:09:10 C60/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Cr-mono
+-rw-r--r--        1257 2009/06/23 00:05:30 Cr-mono/exciting.in
+-rw-r--r--         956 2009/07/28 14:09:10 Cr-mono/input.xml
+-rw-r--r--         187 2009/06/23 00:05:30 Cr-mono/mag2d.general
+-rw-r--r--        9291 2009/06/23 00:05:30 Cr-mono/mag2d.net
+drwxr-xr-x        4096 2009/07/28 14:09:10 Cu
+-rw-r--r--         802 2009/06/23 00:05:30 Cu/exciting.in
+-rw-r--r--         695 2009/07/28 14:09:10 Cu/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 CuFeS2
+-rw-r--r--        1668 2009/06/23 00:05:30 CuFeS2/exciting.in
+-rw-r--r--        1950 2009/07/28 14:09:10 CuFeS2/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Fe-AFM
+-rw-r--r--         652 2009/06/23 00:05:30 Fe-AFM/exciting.in
+-rw-r--r--         777 2009/07/28 14:09:10 Fe-AFM/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Fe-FSM-MT-AFM
+-rw-r--r--        1070 2009/06/23 00:05:30 Fe-FSM-MT-AFM/exciting.in
+-rw-r--r--         760 2009/07/28 14:09:10 Fe-FSM-MT-AFM/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Fe-FSM-MT-FM
+-rw-r--r--         694 2009/06/23 00:05:30 Fe-FSM-MT-FM/exciting.in
+-rw-r--r--         698 2009/07/28 14:09:10 Fe-FSM-MT-FM/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Fe-FSM
+-rw-r--r--         668 2009/06/23 00:05:30 Fe-FSM/exciting.in
+-rw-r--r--         772 2009/07/28 14:09:10 Fe-FSM/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Fe-spiral
+-rw-r--r--         740 2009/06/23 00:05:30 Fe-spiral/exciting.in
+-rw-r--r--         784 2009/07/28 14:09:10 Fe-spiral/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Fe
+-rw-r--r--         694 2009/06/23 00:05:30 Fe/exciting.in
+-rw-r--r--         731 2009/07/28 14:09:10 Fe/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 FeAl-LDA+U-AMF
+-rw-r--r--        1448 2009/06/23 00:05:30 FeAl-LDA+U-AMF/exciting.in
+-rw-r--r--         833 2009/07/28 14:09:10 FeAl-LDA+U-AMF/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 FeAl-LDA+U-INT
+-rw-r--r--        1386 2009/06/23 00:05:30 FeAl-LDA+U-INT/exciting.in
+-rw-r--r--         833 2009/07/28 14:09:10 FeAl-LDA+U-INT/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 FeAl-LDA
+-rw-r--r--         722 2009/06/23 00:05:30 FeAl-LDA/exciting.in
+-rw-r--r--         833 2009/07/28 14:09:10 FeAl-LDA/input.xml
+drwxr-xr-x        4096 2009/07/28 14:08:49 GaAs-xs
+-rw-r--r--        2494 2009/07/28 14:08:49 GaAs-xs/exciting.in_
+-rwxr-xr-x        1295 2009/07/28 14:08:49 GaAs-xs/runtest.sh
+drwxr-xr-x        4096 2009/07/28 14:08:49 GaAs-xs/_reference
+-rw-r--r--         645 2009/07/28 14:08:49 GaAs-xs/_reference/BSEDIAG.OUT_
+-rw-r--r--      212815 2009/07/28 14:08:49 GaAs-xs/_reference/DIELTENS_QMT001.OUT_
+-rw-r--r--         415 2009/07/28 14:08:49 GaAs-xs/_reference/DIELTENS_SCR.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 GaAs-xs/_reference/EFERMI.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 GaAs-xs/_reference/EFERMI_QMT000.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 GaAs-xs/_reference/EFERMI_QMT001.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 GaAs-xs/_reference/EFERMI_SCR.OUT_
+-rw-r--r--       60061 2009/07/28 14:08:49 GaAs-xs/_reference/EIGVAL_QMT000.OUT_
+-rw-r--r--       60061 2009/07/28 14:08:49 GaAs-xs/_reference/EIGVAL_QMT001.OUT_
+-rw-r--r--      393053 2009/07/28 14:08:49 GaAs-xs/_reference/EIGVAL_SCR.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       45955 2009/07/28 14:08:49 GaAs-xs/_reference/EPSILON_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--      100915 2009/07/28 14:08:49 GaAs-xs/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--      100915 2009/07/28 14:08:49 GaAs-xs/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--      100915 2009/07/28 14:08:49 GaAs-xs/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--      100919 2009/07/28 14:08:49 GaAs-xs/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--      100919 2009/07/28 14:08:49 GaAs-xs/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--      100919 2009/07/28 14:08:49 GaAs-xs/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--       82337 2009/07/28 14:08:49 GaAs-xs/_reference/FXC_BSE_HEAD_NAR_QMT001.OUT_
+-rw-r--r--        6834 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00001.OUT_
+-rw-r--r--        5770 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00002.OUT_
+-rw-r--r--        5371 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00003.OUT_
+-rw-r--r--        5770 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00004.OUT_
+-rw-r--r--        5770 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00005.OUT_
+-rw-r--r--        5504 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00006.OUT_
+-rw-r--r--        5637 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00007.OUT_
+-rw-r--r--        5371 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00008.OUT_
+-rw-r--r--        5504 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00009.OUT_
+-rw-r--r--        5903 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_Q00010.OUT_
+-rw-r--r--        6834 2009/07/28 14:08:49 GaAs-xs/_reference/GQPOINTS_QMT001.OUT_
+-rw-r--r--        1258 2009/07/28 14:08:49 GaAs-xs/_reference/KMAPKQ_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/LOSS_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/LOSS_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/LOSS_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/LOSS_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/LOSS_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/LOSS_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        6105 2009/07/28 14:08:49 GaAs-xs/_reference/PARAMS.OUT_
+-rw-r--r--        5198 2009/07/28 14:08:49 GaAs-xs/_reference/PARAMS_DEFAULT.OUT_
+-rw-r--r--         173 2009/07/28 14:08:49 GaAs-xs/_reference/QPOINTS.OUT_
+-rw-r--r--        1379 2009/07/28 14:08:49 GaAs-xs/_reference/QPOINTSR_SCI.OUT_
+-rw-r--r--        7922 2009/07/28 14:08:49 GaAs-xs/_reference/QPOINTS_SCI.OUT_
+-rw-r--r--        1280 2009/07/28 14:08:49 GaAs-xs/_reference/QPOINTS_SCR.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/SIGMA_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/SIGMA_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/SIGMA_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/SIGMA_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/SIGMA_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       35137 2009/07/28 14:08:49 GaAs-xs/_reference/SIGMA_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 GaAs-xs/_reference/SUMRULES_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 GaAs-xs/_reference/SUMRULES_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 GaAs-xs/_reference/SUMRULES_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 GaAs-xs/_reference/SUMRULES_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 GaAs-xs/_reference/SUMRULES_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 GaAs-xs/_reference/SUMRULES_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--         138 2009/07/28 14:08:49 GaAs-xs/_reference/TIME.OUT_
+-rw-r--r--        2490 2009/07/28 14:08:49 GaAs-xs/_reference/exciting.in_
+drwxr-xr-x        4096 2009/07/28 14:09:10 GaAs
+-rw-r--r--         709 2009/06/23 00:05:30 GaAs/exciting.in
+-rw-r--r--         819 2009/07/28 14:09:10 GaAs/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Ge
+-rw-r--r--         832 2009/06/23 00:05:30 Ge/exciting.in
+-rw-r--r--        1058 2009/07/28 14:09:10 Ge/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 H2O-iterative
+-rw-r--r--         867 2009/06/23 00:05:30 H2O-iterative/exciting.in
+-rw-r--r--         776 2009/07/28 14:09:10 H2O-iterative/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 HEG-HF
+-rw-r--r--         426 2009/06/23 00:05:30 HEG-HF/exciting.in
+-rw-r--r--         563 2009/07/28 14:09:10 HEG-HF/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 HEG-OEP
+-rw-r--r--         450 2009/06/23 00:05:30 HEG-OEP/exciting.in
+-rw-r--r--         573 2009/07/28 14:09:10 HEG-OEP/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 HfSiO4
+-rw-r--r--        2452 2009/06/23 00:05:30 HfSiO4/exciting.in
+-rw-r--r--        2046 2009/07/28 14:09:10 HfSiO4/input.xml
+-rw-r--r--         524 2009/06/23 00:05:30 HfSiO4/spacegroup.in
+drwxr-xr-x        4096 2009/07/28 14:08:49 LiF-xs-2
+-rw-r--r--        1537 2009/07/28 14:08:49 LiF-xs-2/F.in
+-rw-r--r--        1173 2009/07/28 14:08:49 LiF-xs-2/Li.in
+-rw-r--r--        1882 2009/07/28 14:08:49 LiF-xs-2/exciting.in_
+-rwxr-xr-x        1294 2009/07/28 14:08:49 LiF-xs-2/runtest.sh
+drwxr-xr-x        4096 2009/07/28 14:08:49 LiF-xs
+-rw-r--r--        1537 2009/07/28 14:08:49 LiF-xs/F.in
+-rw-r--r--        1173 2009/07/28 14:08:49 LiF-xs/Li.in
+-rw-r--r--        1954 2009/07/28 14:08:49 LiF-xs/exciting.in_
+-rwxr-xr-x        1295 2009/07/28 14:08:49 LiF-xs/runtest.sh
+drwxr-xr-x        4096 2009/07/28 14:08:49 LiF-xs/_reference
+-rw-r--r--         645 2009/07/28 14:08:49 LiF-xs/_reference/BSEDIAG.OUT_
+-rw-r--r--      424861 2009/07/28 14:08:49 LiF-xs/_reference/DIELTENS_QMT001.OUT_
+-rw-r--r--         415 2009/07/28 14:08:49 LiF-xs/_reference/DIELTENS_SCR.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 LiF-xs/_reference/EFERMI.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 LiF-xs/_reference/EFERMI_QMT000.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 LiF-xs/_reference/EFERMI_QMT001.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 LiF-xs/_reference/EFERMI_SCR.OUT_
+-rw-r--r--       38045 2009/07/28 14:08:49 LiF-xs/_reference/EIGVAL.OUT_
+-rw-r--r--       32541 2009/07/28 14:08:49 LiF-xs/_reference/EIGVAL_QMT000.OUT_
+-rw-r--r--       32541 2009/07/28 14:08:49 LiF-xs/_reference/EIGVAL_QMT001.OUT_
+-rw-r--r--      340765 2009/07/28 14:08:49 LiF-xs/_reference/EIGVAL_SCR.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       89682 2009/07/28 14:08:49 LiF-xs/_reference/EPSILON_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--         125 2009/07/28 14:08:49 LiF-xs/_reference/EQATOMS.OUT_
+-rw-r--r--         114 2009/07/28 14:08:49 LiF-xs/_reference/EVALCORE.OUT_
+-rw-r--r--       80755 2009/07/28 14:08:49 LiF-xs/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--       80755 2009/07/28 14:08:49 LiF-xs/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--       80755 2009/07/28 14:08:49 LiF-xs/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--       80759 2009/07/28 14:08:49 LiF-xs/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--       80759 2009/07/28 14:08:49 LiF-xs/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--       80759 2009/07/28 14:08:49 LiF-xs/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--        1537 2009/07/28 14:08:49 LiF-xs/_reference/F.in_
+-rw-r--r--         380 2009/07/28 14:08:49 LiF-xs/_reference/FERMIDOS.OUT_
+-rw-r--r--      164400 2009/07/28 14:08:49 LiF-xs/_reference/FXC_BSE_HEAD_NAR_QMT001.OUT_
+-rw-r--r--         686 2009/07/28 14:08:49 LiF-xs/_reference/GEOMETRY.OUT_
+-rw-r--r--        7898 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00001.OUT_
+-rw-r--r--        7366 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00002.OUT_
+-rw-r--r--        6967 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00003.OUT_
+-rw-r--r--        6967 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00004.OUT_
+-rw-r--r--        6701 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00005.OUT_
+-rw-r--r--        6568 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00006.OUT_
+-rw-r--r--        6435 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00007.OUT_
+-rw-r--r--        5903 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_Q00008.OUT_
+-rw-r--r--        7898 2009/07/28 14:08:49 LiF-xs/_reference/GQPOINTS_QMT001.OUT_
+-rw-r--r--         287 2009/07/28 14:08:49 LiF-xs/_reference/IADIST.OUT_
+-rw-r--r--       34498 2009/07/28 14:08:49 LiF-xs/_reference/INFO.OUT_
+-rw-r--r--        1258 2009/07/28 14:08:49 LiF-xs/_reference/KMAPKQ_QMT001.OUT_
+-rw-r--r--        5614 2009/07/28 14:08:49 LiF-xs/_reference/KPOINTS.OUT_
+-rw-r--r--        1475 2009/07/28 14:08:49 LiF-xs/_reference/LATTICE.OUT_
+-rw-r--r--        2088 2009/07/28 14:08:49 LiF-xs/_reference/LINENGY.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/LOSS_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/LOSS_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/LOSS_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/LOSS_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/LOSS_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/LOSS_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        1173 2009/07/28 14:08:49 LiF-xs/_reference/Li.in_
+-rw-r--r--        6092 2009/07/28 14:08:49 LiF-xs/_reference/PARAMS.OUT_
+-rw-r--r--        5198 2009/07/28 14:08:49 LiF-xs/_reference/PARAMS_DEFAULT.OUT_
+-rw-r--r--         173 2009/07/28 14:08:49 LiF-xs/_reference/QPOINTS.OUT_
+-rw-r--r--        1113 2009/07/28 14:08:49 LiF-xs/_reference/QPOINTSR_SCI.OUT_
+-rw-r--r--        7922 2009/07/28 14:08:49 LiF-xs/_reference/QPOINTS_SCI.OUT_
+-rw-r--r--        1034 2009/07/28 14:08:49 LiF-xs/_reference/QPOINTS_SCR.OUT_
+-rw-r--r--         342 2009/07/28 14:08:49 LiF-xs/_reference/RMSDVEFF.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/SIGMA_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/SIGMA_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/SIGMA_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/SIGMA_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/SIGMA_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       68082 2009/07/28 14:08:49 LiF-xs/_reference/SIGMA_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 LiF-xs/_reference/SUMRULES_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 LiF-xs/_reference/SUMRULES_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 LiF-xs/_reference/SUMRULES_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 LiF-xs/_reference/SUMRULES_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 LiF-xs/_reference/SUMRULES_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 LiF-xs/_reference/SUMRULES_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       10939 2009/07/28 14:08:49 LiF-xs/_reference/SYMCRYS.OUT_
+-rw-r--r--        2223 2009/07/28 14:08:49 LiF-xs/_reference/SYMLAT.OUT_
+-rw-r--r--       14362 2009/07/28 14:08:49 LiF-xs/_reference/SYMSITE.OUT_
+-rw-r--r--         138 2009/07/28 14:08:49 LiF-xs/_reference/TIME.OUT_
+-rw-r--r--         460 2009/07/28 14:08:49 LiF-xs/_reference/TOTENERGY.OUT_
+-rw-r--r--        1880 2009/07/28 14:08:49 LiF-xs/_reference/exciting.in_
+drwxr-xr-x        4096 2009/07/28 14:09:10 LiF
+-rw-r--r--         749 2009/06/23 00:05:30 LiF/exciting.in
+-rw-r--r--         838 2009/07/28 14:09:10 LiF/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 MgB2-Fermi-surface
+-rw-r--r--        1092 2009/06/23 00:05:30 MgB2-Fermi-surface/exciting.in
+-rw-r--r--         330 2009/06/23 00:05:30 MgB2-Fermi-surface/fermi.general
+-rw-r--r--        7318 2009/06/23 00:05:30 MgB2-Fermi-surface/fermi.net
+-rw-r--r--        1111 2009/07/28 14:09:10 MgB2-Fermi-surface/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 NaCl-monomer
+-rw-r--r--        1112 2009/06/23 00:05:30 NaCl-monomer/exciting.in
+-rw-r--r--         706 2009/07/28 14:09:10 NaCl-monomer/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Nb-superconductor
+-rw-r--r--       18500 2009/06/23 00:05:30 Nb-superconductor/ALPHA2F.OUT
+-rw-r--r--        4317 2009/06/23 00:05:30 Nb-superconductor/GAMMAQ.OUT
+-rw-r--r--          74 2009/06/23 00:05:30 Nb-superconductor/LAMBDA.OUT
+-rw-r--r--        4317 2009/06/23 00:05:30 Nb-superconductor/LAMBDAQ.OUT
+-rw-r--r--        1784 2009/06/23 00:05:30 Nb-superconductor/Nb.in
+-rw-r--r--       44418 2009/06/23 00:05:30 Nb-superconductor/PHDISP.OUT
+-rw-r--r--         720 2009/06/23 00:05:30 Nb-superconductor/PHDLINES.OUT
+-rw-r--r--       44418 2009/06/23 00:05:30 Nb-superconductor/PHLWIDTH.OUT
+-rw-r--r--         720 2009/06/23 00:05:30 Nb-superconductor/PHLWLINES.OUT
+-rw-r--r--         235 2009/06/23 00:05:30 Nb-superconductor/TC_MCMILLAN.OUT
+-rw-r--r--        3967 2009/06/23 00:05:30 Nb-superconductor/exciting.in
+-rw-r--r--         679 2009/07/28 14:09:10 Nb-superconductor/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:10 Ni-Fermi-surface
+-rw-r--r--         852 2009/06/23 00:05:30 Ni-Fermi-surface/exciting.in
+-rw-r--r--       15933 2009/06/23 00:05:30 Ni-Fermi-surface/fermi.net
+-rw-r--r--         197 2009/06/23 00:05:30 Ni-Fermi-surface/fermi_dn.general
+-rw-r--r--         197 2009/06/23 00:05:30 Ni-Fermi-surface/fermi_up.general
+-rw-r--r--         747 2009/07/28 14:09:10 Ni-Fermi-surface/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Ni-MOKE
+-rw-r--r--         641 2009/06/23 00:05:30 Ni-MOKE/exciting.in
+-rw-r--r--         725 2009/07/28 14:09:11 Ni-MOKE/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Ni
+-rw-r--r--         636 2009/06/23 00:05:30 Ni/exciting.in
+-rw-r--r--         716 2009/07/28 14:09:11 Ni/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 NiO-LDA+U-FLL
+-rw-r--r--        1524 2009/06/23 00:05:30 NiO-LDA+U-FLL/exciting.in
+-rw-r--r--         953 2009/07/28 14:09:11 NiO-LDA+U-FLL/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 NiO-LDA+U-INT
+-rw-r--r--        1628 2009/06/23 00:05:30 NiO-LDA+U-INT/exciting.in
+-rw-r--r--         953 2009/07/28 14:09:11 NiO-LDA+U-INT/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 NiO-LDA
+-rw-r--r--         896 2009/06/23 00:05:30 NiO-LDA/exciting.in
+-rw-r--r--         953 2009/07/28 14:09:11 NiO-LDA/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 PA
+-rw-r--r--        2319 2009/06/23 00:05:30 PA/exciting.in
+-rw-r--r--        1613 2009/07/28 14:09:11 PA/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Pb
+-rw-r--r--         660 2009/06/23 00:05:30 Pb/exciting.in
+-rw-r--r--        1081 2009/07/28 14:09:11 Pb/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Ru-ELF
+-rw-r--r--        2081 2009/06/23 00:05:30 Ru-ELF/Ru.in
+-rw-r--r--         848 2009/06/23 00:05:30 Ru-ELF/exciting.in
+-rw-r--r--         925 2009/07/28 14:09:11 Ru-ELF/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Si-Hartree-Fock
+-rw-r--r--         872 2009/06/23 00:05:30 Si-Hartree-Fock/exciting.in
+-rw-r--r--         736 2009/07/28 14:09:11 Si-Hartree-Fock/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Si-OEP
+-rw-r--r--        1141 2009/06/23 00:05:30 Si-OEP/exciting.in
+-rw-r--r--        1109 2009/07/28 14:09:11 Si-OEP/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Si-PBEsol
+-rw-r--r--         784 2009/06/23 00:05:30 Si-PBEsol/exciting.in
+-rw-r--r--        1118 2009/07/28 14:09:11 Si-PBEsol/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Si-phonon
+-rw-r--r--       44436 2009/06/23 00:05:30 Si-phonon/PHDISP.OUT
+-rw-r--r--         560 2009/06/23 00:05:30 Si-phonon/PHDLINES.OUT
+-rw-r--r--        1177 2009/06/23 00:05:30 Si-phonon/exciting.in
+-rw-r--r--         695 2009/07/28 14:09:11 Si-phonon/input.xml
+drwxr-xr-x        4096 2009/07/28 14:08:49 Si-speciestest
+-rw-r--r--         749 2009/07/28 14:08:49 Si-speciestest/exciting.in
+drwxr-xr-x        4096 2009/07/28 14:09:11 Si-str-opt
+-rw-r--r--         574 2009/06/23 00:05:30 Si-str-opt/exciting.in
+-rw-r--r--         782 2009/07/28 14:09:11 Si-str-opt/input.xml
+drwxr-xr-x        4096 2009/07/28 14:08:49 Si-xs-BSE
+-rw-r--r--        1585 2009/07/28 14:08:49 Si-xs-BSE/exciting.in_
+-rw-r--r--        2233 2009/07/28 14:08:49 Si-xs-BSE/input.xml
+-rwxr-xr-x        1294 2009/07/28 14:08:49 Si-xs-BSE/runtest.sh
+drwxr-xr-x        4096 2009/07/28 14:08:49 Si-xs-BSE/_reference
+-rw-r--r--       74060 2009/07/28 14:08:49 Si-xs-BSE/_reference/BAND.OUT_
+-rw-r--r--         560 2009/07/28 14:08:49 Si-xs-BSE/_reference/BANDLINES.OUT_
+-rw-r--r--         645 2009/07/28 14:08:49 Si-xs-BSE/_reference/BSEDIAG.OUT_
+-rw-r--r--         415 2009/07/28 14:08:49 Si-xs-BSE/_reference/DIELTENS0_NOSYM_QMT001.OUT_
+-rw-r--r--         415 2009/07/28 14:08:49 Si-xs-BSE/_reference/DIELTENS0_NOSYM_SCR.OUT_
+-rw-r--r--         415 2009/07/28 14:08:49 Si-xs-BSE/_reference/DIELTENS0_QMT001.OUT_
+-rw-r--r--         415 2009/07/28 14:08:49 Si-xs-BSE/_reference/DIELTENS0_SCR.OUT_
+-rw-r--r--         407 2009/07/28 14:08:49 Si-xs-BSE/_reference/DIELTENS_NOSYM_SCR.OUT_
+-rw-r--r--         407 2009/07/28 14:08:49 Si-xs-BSE/_reference/DIELTENS_SCR.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-BSE/_reference/EFERMI.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-BSE/_reference/EFERMI_QMT000.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-BSE/_reference/EFERMI_QMT001.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-BSE/_reference/EFERMI_SCR.OUT_
+-rw-r--r--       35293 2009/07/28 14:08:49 Si-xs-BSE/_reference/EIGVAL.OUT_
+-rw-r--r--        4437 2009/07/28 14:08:49 Si-xs-BSE/_reference/EIGVAL_QMT000.OUT_
+-rw-r--r--        4437 2009/07/28 14:08:49 Si-xs-BSE/_reference/EIGVAL_QMT001.OUT_
+-rw-r--r--       48125 2009/07/28 14:08:49 Si-xs-BSE/_reference/EIGVAL_SCR.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-BSE/_reference/EPSILON_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--         112 2009/07/28 14:08:49 Si-xs-BSE/_reference/EQATOMS.OUT_
+-rw-r--r--         430 2009/07/28 14:08:49 Si-xs-BSE/_reference/EVALCORE.OUT_
+-rw-r--r--       12211 2009/07/28 14:08:49 Si-xs-BSE/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--       12211 2009/07/28 14:08:49 Si-xs-BSE/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--       12211 2009/07/28 14:08:49 Si-xs-BSE/_reference/EXCITON_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--       12215 2009/07/28 14:08:49 Si-xs-BSE/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC11.OUT_
+-rw-r--r--       12215 2009/07/28 14:08:49 Si-xs-BSE/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC22.OUT_
+-rw-r--r--       12215 2009/07/28 14:08:49 Si-xs-BSE/_reference/EXCITON_SORTED_NAR_BSEsinglet_SCRfull_OC33.OUT_
+-rw-r--r--     1887062 2009/07/28 14:08:49 Si-xs-BSE/_reference/EXCLI_ASC.OUT_
+-rw-r--r--         285 2009/07/28 14:08:49 Si-xs-BSE/_reference/FERMIDOS.OUT_
+-rw-r--r--       41100 2009/07/28 14:08:49 Si-xs-BSE/_reference/FXC_BSE_HEAD_NAR_QMT001.OUT_
+-rw-r--r--         567 2009/07/28 14:08:49 Si-xs-BSE/_reference/GEOMETRY.OUT_
+-rw-r--r--       15080 2009/07/28 14:08:49 Si-xs-BSE/_reference/GQPOINTS_Q00001.OUT_
+-rw-r--r--       16011 2009/07/28 14:08:49 Si-xs-BSE/_reference/GQPOINTS_Q00002.OUT_
+-rw-r--r--       15479 2009/07/28 14:08:49 Si-xs-BSE/_reference/GQPOINTS_Q00003.OUT_
+-rw-r--r--       15080 2009/07/28 14:08:49 Si-xs-BSE/_reference/GQPOINTS_QMT001.OUT_
+-rw-r--r--         290 2009/07/28 14:08:49 Si-xs-BSE/_reference/IADIST.OUT_
+-rw-r--r--       26198 2009/07/28 14:08:49 Si-xs-BSE/_reference/INFO.OUT_
+-rw-r--r--       15605 2009/07/28 14:08:49 Si-xs-BSE/_reference/INFOXS.OUT_
+-rw-r--r--         194 2009/07/28 14:08:49 Si-xs-BSE/_reference/KMAPKQ_QMT001.OUT_
+-rw-r--r--        5614 2009/07/28 14:08:49 Si-xs-BSE/_reference/KPOINTS.OUT_
+-rw-r--r--        1475 2009/07/28 14:08:49 Si-xs-BSE/_reference/LATTICE.OUT_
+-rw-r--r--        2036 2009/07/28 14:08:49 Si-xs-BSE/_reference/LINENGY.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/LOSS_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/LOSS_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/LOSS_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/LOSS_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/LOSS_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/LOSS_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        6375 2009/07/28 14:08:49 Si-xs-BSE/_reference/PARAMS.OUT_
+-rw-r--r--        5198 2009/07/28 14:08:49 Si-xs-BSE/_reference/PARAMS_DEFAULT.OUT_
+-rw-r--r--         173 2009/07/28 14:08:49 Si-xs-BSE/_reference/QPOINTS.OUT_
+-rw-r--r--         448 2009/07/28 14:08:49 Si-xs-BSE/_reference/QPOINTSR_SCI.OUT_
+-rw-r--r--        1034 2009/07/28 14:08:49 Si-xs-BSE/_reference/QPOINTS_SCI.OUT_
+-rw-r--r--         419 2009/07/28 14:08:49 Si-xs-BSE/_reference/QPOINTS_SCR.OUT_
+-rw-r--r--         247 2009/07/28 14:08:49 Si-xs-BSE/_reference/RMSDVEFF.OUT_
+-rw-r--r--     2260328 2009/07/28 14:08:49 Si-xs-BSE/_reference/SCCLI_ASC.OUT_
+-rw-r--r--      941057 2009/07/28 14:08:49 Si-xs-BSE/_reference/SCREEN_Q00001.OUT_
+-rw-r--r--     1024482 2009/07/28 14:08:49 Si-xs-BSE/_reference/SCREEN_Q00002.OUT_
+-rw-r--r--      957458 2009/07/28 14:08:49 Si-xs-BSE/_reference/SCREEN_Q00003.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/SIGMA_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/SIGMA_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/SIGMA_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/SIGMA_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/SIGMA_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-BSE/_reference/SIGMA_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-BSE/_reference/SUMRULES_NAR_FXC08_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-BSE/_reference/SUMRULES_NAR_FXC08_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-BSE/_reference/SUMRULES_NAR_FXC08_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-BSE/_reference/SUMRULES_NAR_NLF_FXC08_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-BSE/_reference/SUMRULES_NAR_NLF_FXC08_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-BSE/_reference/SUMRULES_NAR_NLF_FXC08_OC33_QMT001.OUT_
+-rw-r--r--       10939 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMCRYS.OUT_
+-rw-r--r--        2614 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMGENR.OUT_
+-rw-r--r--       73360 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMINV.OUT_
+-rw-r--r--        2223 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMLAT.OUT_
+-rw-r--r--       55350 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMMULT.OUT_
+-rw-r--r--        7007 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMMULT_TABLE.OUT_
+-rw-r--r--        7259 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMSITE.OUT_
+-rw-r--r--        1229 2009/07/28 14:08:49 Si-xs-BSE/_reference/SYMT2.OUT_
+-rw-r--r--         138 2009/07/28 14:08:49 Si-xs-BSE/_reference/TIME.OUT_
+-rw-r--r--         345 2009/07/28 14:08:49 Si-xs-BSE/_reference/TOTENERGY.OUT_
+-rw-r--r--      908681 2009/07/28 14:08:49 Si-xs-BSE/_reference/W_SCREEN_Q00001.OUT_
+-rw-r--r--     1024482 2009/07/28 14:08:49 Si-xs-BSE/_reference/W_SCREEN_Q00002.OUT_
+-rw-r--r--      957458 2009/07/28 14:08:49 Si-xs-BSE/_reference/W_SCREEN_Q00003.OUT_
+-rw-r--r--        1580 2009/07/28 14:08:49 Si-xs-BSE/_reference/exciting.in_
+drwxr-xr-x        4096 2009/07/28 14:08:49 Si-xs-RPA
+-rw-r--r--        1484 2009/07/28 14:08:49 Si-xs-RPA/exciting.in_
+-rw-r--r--        1802 2009/07/28 14:08:49 Si-xs-RPA/input.xml
+-rwxr-xr-x        1294 2009/07/28 14:08:49 Si-xs-RPA/runtest.sh
+drwxr-xr-x        4096 2009/07/28 14:08:49 Si-xs-RPA/_reference
+-rw-r--r--      106261 2009/07/28 14:08:49 Si-xs-RPA/_reference/DIELTENS_QMT001.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-RPA/_reference/EFERMI.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-RPA/_reference/EFERMI_QMT000.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-RPA/_reference/EFERMI_QMT001.OUT_
+-rw-r--r--          19 2009/07/28 14:08:49 Si-xs-RPA/_reference/EFERMI_SCR.OUT_
+-rw-r--r--       35293 2009/07/28 14:08:49 Si-xs-RPA/_reference/EIGVAL.OUT_
+-rw-r--r--        4437 2009/07/28 14:08:49 Si-xs-RPA/_reference/EIGVAL_QMT000.OUT_
+-rw-r--r--        4437 2009/07/28 14:08:49 Si-xs-RPA/_reference/EIGVAL_QMT001.OUT_
+-rw-r--r--        4437 2009/07/28 14:08:49 Si-xs-RPA/_reference/EIGVAL_SCR.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_BSErpa_SCRfull_OC11.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_BSErpa_SCRfull_OC22.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_BSErpa_SCRfull_OC33.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_FXC00_OC11_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_FXC00_OC22_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_FXC00_OC33_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_NLF_FXC00_OC11_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_NLF_FXC00_OC22_QMT001.OUT_
+-rw-r--r--       23982 2009/07/28 14:08:49 Si-xs-RPA/_reference/EPSILON_NAR_NLF_FXC00_OC33_QMT001.OUT_
+-rw-r--r--         112 2009/07/28 14:08:49 Si-xs-RPA/_reference/EQATOMS.OUT_
+-rw-r--r--         430 2009/07/28 14:08:49 Si-xs-RPA/_reference/EVALCORE.OUT_
+-rw-r--r--       12211 2009/07/28 14:08:49 Si-xs-RPA/_reference/EXCITON_NAR_BSErpa_SCRfull_OC11.OUT_
+-rw-r--r--       12211 2009/07/28 14:08:49 Si-xs-RPA/_reference/EXCITON_NAR_BSErpa_SCRfull_OC22.OUT_
+-rw-r--r--       12211 2009/07/28 14:08:49 Si-xs-RPA/_reference/EXCITON_NAR_BSErpa_SCRfull_OC33.OUT_
+-rw-r--r--       12215 2009/07/28 14:08:49 Si-xs-RPA/_reference/EXCITON_SORTED_NAR_BSErpa_SCRfull_OC11.OUT_
+-rw-r--r--       12215 2009/07/28 14:08:49 Si-xs-RPA/_reference/EXCITON_SORTED_NAR_BSErpa_SCRfull_OC22.OUT_
+-rw-r--r--       12215 2009/07/28 14:08:49 Si-xs-RPA/_reference/EXCITON_SORTED_NAR_BSErpa_SCRfull_OC33.OUT_
+-rw-r--r--     1887062 2009/07/28 14:08:49 Si-xs-RPA/_reference/EXCLI_ASC.OUT_
+-rw-r--r--         285 2009/07/28 14:08:49 Si-xs-RPA/_reference/FERMIDOS.OUT_
+-rw-r--r--         567 2009/07/28 14:08:49 Si-xs-RPA/_reference/GEOMETRY.OUT_
+-rw-r--r--       15080 2009/07/28 14:08:49 Si-xs-RPA/_reference/GQPOINTS_QMT001.OUT_
+-rw-r--r--         290 2009/07/28 14:08:49 Si-xs-RPA/_reference/IADIST.OUT_
+-rw-r--r--       26198 2009/07/28 14:08:49 Si-xs-RPA/_reference/INFO.OUT_
+-rw-r--r--         194 2009/07/28 14:08:49 Si-xs-RPA/_reference/KMAPKQ_QMT001.OUT_
+-rw-r--r--        5614 2009/07/28 14:08:49 Si-xs-RPA/_reference/KPOINTS.OUT_
+-rw-r--r--        1475 2009/07/28 14:08:49 Si-xs-RPA/_reference/LATTICE.OUT_
+-rw-r--r--        2036 2009/07/28 14:08:49 Si-xs-RPA/_reference/LINENGY.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/LOSS_NAR_FXC00_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/LOSS_NAR_FXC00_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/LOSS_NAR_FXC00_OC33_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/LOSS_NAR_NLF_FXC00_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/LOSS_NAR_NLF_FXC00_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/LOSS_NAR_NLF_FXC00_OC33_QMT001.OUT_
+-rw-r--r--        6332 2009/07/28 14:08:49 Si-xs-RPA/_reference/PARAMS.OUT_
+-rw-r--r--        5198 2009/07/28 14:08:49 Si-xs-RPA/_reference/PARAMS_DEFAULT.OUT_
+-rw-r--r--         173 2009/07/28 14:08:49 Si-xs-RPA/_reference/QPOINTS.OUT_
+-rw-r--r--        1034 2009/07/28 14:08:49 Si-xs-RPA/_reference/QPOINTS_SCI.OUT_
+-rw-r--r--         419 2009/07/28 14:08:49 Si-xs-RPA/_reference/QPOINTS_SCR.OUT_
+-rw-r--r--         247 2009/07/28 14:08:49 Si-xs-RPA/_reference/RMSDVEFF.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/SIGMA_NAR_FXC00_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/SIGMA_NAR_FXC00_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/SIGMA_NAR_FXC00_OC33_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/SIGMA_NAR_NLF_FXC00_OC11_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/SIGMA_NAR_NLF_FXC00_OC22_QMT001.OUT_
+-rw-r--r--       18582 2009/07/28 14:08:49 Si-xs-RPA/_reference/SIGMA_NAR_NLF_FXC00_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-RPA/_reference/SUMRULES_NAR_FXC00_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-RPA/_reference/SUMRULES_NAR_FXC00_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-RPA/_reference/SUMRULES_NAR_FXC00_OC33_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-RPA/_reference/SUMRULES_NAR_NLF_FXC00_OC11_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-RPA/_reference/SUMRULES_NAR_NLF_FXC00_OC22_QMT001.OUT_
+-rw-r--r--        2343 2009/07/28 14:08:49 Si-xs-RPA/_reference/SUMRULES_NAR_NLF_FXC00_OC33_QMT001.OUT_
+-rw-r--r--       10939 2009/07/28 14:08:49 Si-xs-RPA/_reference/SYMCRYS.OUT_
+-rw-r--r--        2223 2009/07/28 14:08:49 Si-xs-RPA/_reference/SYMLAT.OUT_
+-rw-r--r--        7259 2009/07/28 14:08:49 Si-xs-RPA/_reference/SYMSITE.OUT_
+-rw-r--r--         138 2009/07/28 14:08:49 Si-xs-RPA/_reference/TIME.OUT_
+-rw-r--r--         345 2009/07/28 14:08:49 Si-xs-RPA/_reference/TOTENERGY.OUT_
+-rw-r--r--        1479 2009/07/28 14:08:49 Si-xs-RPA/_reference/exciting.in_
+drwxr-xr-x        4096 2009/07/28 14:08:49 Si-xs-xml
+-rw-r--r--        1038 2009/07/28 14:08:49 Si-xs-xml/input.xml
+-rw-r--r--          48 2009/07/28 14:08:49 Si-xs-xml/xs.error_g95
+drwxr-xr-x        4096 2009/07/28 14:08:49 Si
+-rw-r--r--         821 2009/06/23 00:05:30 Si/exciting.in
+-rw-r--r--         737 2009/07/28 14:08:49 Si/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 TiC-eg-t2g
+-rw-r--r--        1141 2009/06/23 00:05:30 TiC-eg-t2g/exciting.in
+-rw-r--r--         769 2009/07/28 14:09:11 TiC-eg-t2g/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 TiO2-linopt
+-rw-r--r--         822 2009/06/23 00:05:30 TiO2-linopt/exciting.in
+-rw-r--r--        1064 2009/07/28 14:09:11 TiO2-linopt/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 Ununhexium
+-rw-r--r--        2378 2009/06/23 00:05:30 Ununhexium/Uuh.in
+-rw-r--r--         714 2009/06/23 00:05:30 Ununhexium/exciting.in
+-rw-r--r--         664 2009/07/28 14:09:11 Ununhexium/input.xml
+-rw-r--r--         656 2009/06/23 00:05:30 Ununhexium/species.dat
+drwxr-xr-x        4096 2009/07/28 14:08:49 YBCO
+-rw-r--r--        1323 2009/06/23 00:05:30 YBCO/exciting.in
+-rw-r--r--        1583 2009/07/28 14:08:49 YBCO/input.xml
+drwxr-xr-x        4096 2009/07/28 14:09:11 diamond-rho3D
+-rw-r--r--         617 2009/06/23 00:05:30 diamond-rho3D/exciting.in
+-rw-r--r--         782 2009/07/28 14:09:11 diamond-rho3D/input.xml
+-rw-r--r--         188 2009/06/23 00:05:30 diamond-rho3D/rho3d.general
+-rw-r--r--       14658 2009/06/23 00:05:30 diamond-rho3D/rho3d.net
+total: matches=0  hash_hits=0  false_alarms=0 data=0
+
+sent 14506 bytes  received 76 bytes  29164.00 bytes/sec
+total size is 21415785  speedup is 1468.65 (DRY RUN)

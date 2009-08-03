@@ -1,0 +1,317 @@
+//
+// time: Wed Nov  5 14:14:42 2008
+//
+// version: 3.2.0 (format), 4.4.0 (DX)
+//
+//
+// MODULE main
+// workspace: width = 620, height = 624
+// layout: snap = 0, width = 50, height = 50, align = NN
+//
+macro main(
+) -> (
+) {
+    // 
+    // node Camera[1]: x = 404, y = 490, inputs = 9, label = Camera
+    // input[2]: defaulting = 0, visible = 1, type = 8, value = [1 1 1]
+    // input[3]: defaulting = 0, visible = 1, type = 5, value = 6.0
+    // input[4]: defaulting = 0, visible = 1, type = 1, value = 800
+    // input[5]: defaulting = 0, visible = 1, type = 5, value = 0.65
+    // input[9]: defaulting = 0, visible = 1, type = 32, value = "white"
+    //
+main_Camera_1_out_1 = 
+    Camera(
+    main_Camera_1_in_1,
+    main_Camera_1_in_2,
+    main_Camera_1_in_3,
+    main_Camera_1_in_4,
+    main_Camera_1_in_5,
+    main_Camera_1_in_6,
+    main_Camera_1_in_7,
+    main_Camera_1_in_8,
+    main_Camera_1_in_9
+    ) [instance: 1, cache: 1];
+    // 
+    // node Caption[1]: x = 46, y = 444, inputs = 9, label = Caption
+    // input[1]: defaulting = 0, visible = 1, type = 32, value = "Aluminium Fermi surface"
+    // input[6]: defaulting = 0, visible = 0, type = 1, value = 25
+    //
+main_Caption_1_out_1 = 
+    Caption(
+    main_Caption_1_in_1,
+    main_Caption_1_in_2,
+    main_Caption_1_in_3,
+    main_Caption_1_in_4,
+    main_Caption_1_in_5,
+    main_Caption_1_in_6,
+    main_Caption_1_in_7,
+    main_Caption_1_in_8,
+    main_Caption_1_in_9
+    ) [instance: 1, cache: 1];
+    // 
+    // node Color[6]: x = 141, y = 504, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "black"
+    //
+main_Color_6_out_1 = 
+    Color(
+    main_Caption_1_out_1,
+    main_Color_6_in_2,
+    main_Color_6_in_3,
+    main_Color_6_in_4,
+    main_Color_6_in_5
+    ) [instance: 6, cache: 1];
+    // 
+    // node Import[1]: x = 258, y = 10, inputs = 6, label = Import
+    // input[1]: defaulting = 0, visible = 1, type = 32, value = "fermi.general"
+    //
+main_Import_1_out_1 = 
+    Import(
+    main_Import_1_in_1,
+    main_Import_1_in_2,
+    main_Import_1_in_3,
+    main_Import_1_in_4,
+    main_Import_1_in_5,
+    main_Import_1_in_6
+    ) [instance: 1, cache: 1];
+    // 
+    // node Isosurface[3]: x = 57, y = 106, inputs = 6, label = Isosurface
+    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.0
+    //
+main_Isosurface_3_out_1 = 
+    Isosurface(
+    main_Import_1_out_1,
+    main_Isosurface_3_in_2,
+    main_Isosurface_3_in_3,
+    main_Isosurface_3_in_4,
+    main_Isosurface_3_in_5,
+    main_Isosurface_3_in_6
+    ) [instance: 3, cache: 1];
+    // 
+    // node Color[3]: x = 171, y = 194, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "yellow"
+    // input[4]: defaulting = 0, visible = 0, type = 32, value = "front colors"
+    //
+main_Color_3_out_1 = 
+    Color(
+    main_Isosurface_3_out_1,
+    main_Color_3_in_2,
+    main_Color_3_in_3,
+    main_Color_3_in_4,
+    main_Color_3_in_5
+    ) [instance: 3, cache: 1];
+    // 
+    // node Color[4]: x = 50, y = 286, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "blue"
+    // input[4]: defaulting = 0, visible = 0, type = 32, value = "back colors"
+    //
+main_Color_4_out_1 = 
+    Color(
+    main_Color_3_out_1,
+    main_Color_4_in_2,
+    main_Color_4_in_3,
+    main_Color_4_in_4,
+    main_Color_4_in_5
+    ) [instance: 4, cache: 1];
+    // 
+    // node Translate[2]: x = 166, y = 364, inputs = 2, label = Translate
+    // input[2]: defaulting = 0, visible = 1, type = 8, value = [0 1.2 2.0]
+    //
+main_Translate_2_out_1 = 
+    Translate(
+    main_Color_4_out_1,
+    main_Translate_2_in_2
+    ) [instance: 2, cache: 1];
+    // 
+    // node Refine[2]: x = 473, y = 83, inputs = 2, label = Refine
+    // input[2]: defaulting = 0, visible = 1, type = 1, value = 1
+    //
+main_Refine_2_out_1 = 
+    Refine(
+    main_Import_1_out_1,
+    main_Refine_2_in_2
+    ) [instance: 2, cache: 1];
+    // 
+    // node MapToPlane[1]: x = 317, y = 129, inputs = 3, label = MapToPlane
+    // input[2]: defaulting = 1, visible = 1, type = 8, value = [1,1,1]
+    // input[3]: defaulting = 0, visible = 1, type = 8, value = [1,1,1]
+    //
+main_MapToPlane_1_out_1 = 
+    MapToPlane(
+    main_Refine_2_out_1,
+    main_MapToPlane_1_in_2,
+    main_MapToPlane_1_in_3
+    ) [instance: 1, cache: 1];
+    // 
+    // node Isosurface[2]: x = 508, y = 170, inputs = 6, label = Isosurface
+    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.0
+    // input[3]: defaulting = 1, visible = 1, type = 1, value = 10
+    //
+main_Isosurface_2_out_1 = 
+    Isosurface(
+    main_MapToPlane_1_out_1,
+    main_Isosurface_2_in_2,
+    main_Isosurface_2_in_3,
+    main_Isosurface_2_in_4,
+    main_Isosurface_2_in_5,
+    main_Isosurface_2_in_6
+    ) [instance: 2, cache: 1];
+    // 
+    // node Color[5]: x = 324, y = 241, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "black"
+    //
+main_Color_5_out_1 = 
+    Color(
+    main_Isosurface_2_out_1,
+    main_Color_5_in_2,
+    main_Color_5_in_3,
+    main_Color_5_in_4,
+    main_Color_5_in_5
+    ) [instance: 5, cache: 1];
+    // 
+    // node Ribbon[1]: x = 500, y = 264, inputs = 2, label = Ribbon
+    // input[2]: defaulting = 0, visible = 1, type = 5, value = 0.01
+    //
+main_Ribbon_1_out_1 = 
+    Ribbon(
+    main_Color_5_out_1,
+    main_Ribbon_1_in_2
+    ) [instance: 1, cache: 1];
+    // 
+    // node Shade[1]: x = 492, y = 358, inputs = 8, label = Shade
+    // input[2]: defaulting = 0, visible = 1, type = 3, value = 0
+    //
+main_Shade_1_out_1 = 
+    Shade(
+    main_Ribbon_1_out_1,
+    main_Shade_1_in_2,
+    main_Shade_1_in_3,
+    main_Shade_1_in_4,
+    main_Shade_1_in_5,
+    main_Shade_1_in_6,
+    main_Shade_1_in_7,
+    main_Shade_1_in_8
+    ) [instance: 1, cache: 1];
+    // 
+    // node Translate[1]: x = 360, y = 360, inputs = 2, label = Translate
+    // input[2]: defaulting = 0, visible = 1, type = 8, value = [2.0 1.2 0]
+    //
+main_Translate_1_out_1 = 
+    Translate(
+    main_Shade_1_out_1,
+    main_Translate_1_in_2
+    ) [instance: 1, cache: 1];
+    // 
+    // node Collect[1]: x = 265, y = 458, inputs = 3, label = Collect
+    //
+main_Collect_1_out_1 = 
+    Collect(
+    main_Color_6_out_1,
+    main_Translate_2_out_1,
+    main_Translate_1_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node Display[2]: x = 254, y = 562, inputs = 8, label = Display
+    // depth: value = 24
+    // window: position = (0.0035,0.0267), size = 0.5653x0.6233, screen = 0
+    //
+main_Display_2_out_1[cache: 2] = 
+    Display(
+    main_Collect_1_out_1,
+    main_Camera_1_out_1,
+    main_Display_2_in_3,
+    main_Display_2_in_4,
+    main_Display_2_in_5,
+    main_Display_2_in_6,
+    main_Display_2_in_7,
+    main_Display_2_in_8
+    ) [instance: 2, cache: 1];
+// network: end of macro body
+}
+main_Camera_1_in_1 = NULL;
+main_Camera_1_in_2 = [1 1 1];
+main_Camera_1_in_3 = 6.0;
+main_Camera_1_in_4 = 800;
+main_Camera_1_in_5 = 0.65;
+main_Camera_1_in_6 = NULL;
+main_Camera_1_in_7 = NULL;
+main_Camera_1_in_8 = NULL;
+main_Camera_1_in_9 = "white";
+main_Camera_1_out_1 = NULL;
+main_Caption_1_in_1 = "Aluminium Fermi surface";
+main_Caption_1_in_2 = NULL;
+main_Caption_1_in_3 = NULL;
+main_Caption_1_in_4 = NULL;
+main_Caption_1_in_5 = NULL;
+main_Caption_1_in_6 = 25;
+main_Caption_1_in_7 = NULL;
+main_Caption_1_in_8 = NULL;
+main_Caption_1_in_9 = NULL;
+main_Caption_1_out_1 = NULL;
+main_Color_6_in_2 = "black";
+main_Color_6_in_3 = NULL;
+main_Color_6_in_4 = NULL;
+main_Color_6_in_5 = NULL;
+main_Color_6_out_1 = NULL;
+main_Import_1_in_1 = "fermi.general";
+main_Import_1_in_2 = NULL;
+main_Import_1_in_3 = NULL;
+main_Import_1_in_4 = NULL;
+main_Import_1_in_5 = NULL;
+main_Import_1_in_6 = NULL;
+main_Import_1_out_1 = NULL;
+main_Isosurface_3_in_2 = 0.0;
+main_Isosurface_3_in_3 = NULL;
+main_Isosurface_3_in_4 = NULL;
+main_Isosurface_3_in_5 = NULL;
+main_Isosurface_3_in_6 = NULL;
+main_Isosurface_3_out_1 = NULL;
+main_Color_3_in_2 = "yellow";
+main_Color_3_in_3 = NULL;
+main_Color_3_in_4 = "front colors";
+main_Color_3_in_5 = NULL;
+main_Color_3_out_1 = NULL;
+main_Color_4_in_2 = "blue";
+main_Color_4_in_3 = NULL;
+main_Color_4_in_4 = "back colors";
+main_Color_4_in_5 = NULL;
+main_Color_4_out_1 = NULL;
+main_Translate_2_in_2 = [0 1.2 2.0];
+main_Translate_2_out_1 = NULL;
+main_Refine_2_in_2 = 1;
+main_Refine_2_out_1 = NULL;
+main_MapToPlane_1_in_2 = NULL;
+main_MapToPlane_1_in_3 = [1,1,1];
+main_MapToPlane_1_out_1 = NULL;
+main_Isosurface_2_in_2 = 0.0;
+main_Isosurface_2_in_3 = NULL;
+main_Isosurface_2_in_4 = NULL;
+main_Isosurface_2_in_5 = NULL;
+main_Isosurface_2_in_6 = NULL;
+main_Isosurface_2_out_1 = NULL;
+main_Color_5_in_2 = "black";
+main_Color_5_in_3 = NULL;
+main_Color_5_in_4 = NULL;
+main_Color_5_in_5 = NULL;
+main_Color_5_out_1 = NULL;
+main_Ribbon_1_in_2 = 0.01;
+main_Ribbon_1_out_1 = NULL;
+main_Shade_1_in_2 = 0;
+main_Shade_1_in_3 = NULL;
+main_Shade_1_in_4 = NULL;
+main_Shade_1_in_5 = NULL;
+main_Shade_1_in_6 = NULL;
+main_Shade_1_in_7 = NULL;
+main_Shade_1_in_8 = NULL;
+main_Shade_1_out_1 = NULL;
+main_Translate_1_in_2 = [2.0 1.2 0];
+main_Translate_1_out_1 = NULL;
+main_Collect_1_out_1 = NULL;
+main_Display_2_in_3 = "X24,,";
+main_Display_2_in_4 = NULL;
+main_Display_2_in_5 = NULL;
+main_Display_2_in_6 = NULL;
+main_Display_2_in_7 = NULL;
+main_Display_2_in_8 = NULL;
+Executive("product version 4 4 0");
+$sync
+main();

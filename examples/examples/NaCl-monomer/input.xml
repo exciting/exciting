@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="../../species/" vacuum="8.0" molecule="true">
+<crystal></crystal>
+<species speciesfile="Na.xml">
+<atom coord="0.0000  0.0000  0.0000" bfcmt="0.0000  0.0000  0.0000"></atom>
+</species>
+<species speciesfile="Cl.xml">
+<atom coord="4.4121  0.0000  0.0000" bfcmt="0.0000  0.0000  0.0000"></atom>
+</species>
+</structure>
+<groundstate  rgkmax="6.0" swidth="0.05"></groundstate>
+<properties></properties>
+</input>

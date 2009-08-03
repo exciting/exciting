@@ -1,0 +1,44 @@
+
+! Density of states of TiC resolved into irreducible representations. When
+! lmirep is set to .true., the Y_lm basis is transformed into one in which the
+! site symmetries are block diagonal. The band characters determined from the
+! density matrix expressed in this basis correspond therefore to irreducible
+! representations (IR).
+
+! In this example, we want the e_g and t_2g resolved DOS for the Ti atom. The
+! ELMIREP.OUT file contains a set of eigenvalues, the degeneracies of which
+! allow for easy identification of the IR. For l = 2, the 3-fold degeneracy is
+! the t_2g IR, while the 2-fold is the e_g IR. Adding together curves 5, 6 and 7
+! in the file PDOS_S01_A0001.OUT will give the t_2g plot, and adding curves 8
+! and 9 will give the e_g plot.
+
+tasks
+  0
+  10
+
+lmirep
+ .true.
+
+avec
+  0.5 0.5 0.0
+  0.5 0.0 0.5
+  0.0 0.5 0.5
+
+scale
+  8.1787
+
+sppath
+  '../../species/'
+
+atoms
+  2                                 : nspecies
+ 'Ti.in'                            : spfname
+  1                                 : natoms
+  0.0 0.0 0.0      0.0 0.0 0.0      : atposl, bfcmt
+ 'C.in'
+  1
+  0.5 0.5 0.5      0.0 0.0 0.0
+
+ngridk
+  8  8  8
+

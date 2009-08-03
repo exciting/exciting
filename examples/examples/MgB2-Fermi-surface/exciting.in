@@ -1,0 +1,41 @@
+
+! Fermi surface of MgB2 plotted with OpenDX. In this example, the surfaces from
+! different bands are separated in the 3D plot.
+
+tasks
+ 0
+ 101
+
+! small smearing width for precise determination of Fermi energy
+swidth
+ 0.001
+
+ngridk
+  6  6  4
+
+! plot a 2x2x2 reciprocal space cell
+plot3d
+  0.0  0.0  0.0
+  2.0  0.0  0.0
+  0.0  2.0  0.0
+  0.0  0.0  2.0
+  24  24  16
+
+avec
+   5.831694400       0.000000000       0.000000000
+  -2.915847200       5.050395498       0.000000000
+   0.000000000       0.000000000       6.659394380
+
+sppath
+  '../../species/'
+
+atoms
+   2                                    : nspecies
+'Mg.in'                                 : spfname
+   1                                    : natoms; atposl, bfcmt below
+    0.00000000    0.00000000    0.00000000    0.00000000  0.00000000  0.00000000
+'B.in'                                  : spfname
+   2                                    : natoms; atposl, bfcmt below
+    0.33333333    0.66666667    0.50000000    0.00000000  0.00000000  0.00000000
+    0.66666667    0.33333333    0.50000000    0.00000000  0.00000000  0.00000000
+

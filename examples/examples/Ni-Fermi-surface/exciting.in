@@ -1,0 +1,47 @@
+
+! Ferromagnetic nickel Fermi surface. Note that the spin-up and -down surfaces
+! are separated into the files FERMISURF_UP.OUT and FERMISURF_DN.OUT.
+
+! Use OpenDX with the files in this directory to produce the 3D plot.
+
+tasks
+  0
+  100
+
+! define box corners and grid size for 3D plot, first point is the origin
+plot3d
+ 0.0  0.0  0.0      : vclp3d
+ 1.0  0.0  0.0
+ 0.0  1.0  0.0
+ 0.0  0.0  1.0
+ 40  40  40         : np3d
+
+spinpol
+ .true.
+
+bfieldc
+  0.0 0.0 0.01
+
+! small smearing width required for precise Fermi energy
+swidth
+ 0.001
+
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  3.33
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Ni.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+
+ngridk
+  8  8  8

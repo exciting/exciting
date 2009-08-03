@@ -1,0 +1,45 @@
+
+! FeAl in CsCl (B2) structure using LDA. Compare with LDA+U case.
+! Example Created by Fredrik Bultmark, Francesco Cricchio and Lars Nordstrom.
+
+tasks
+  0
+  10
+
+spinpol
+  .true.
+
+! small field along z to break symmetry
+bfieldc
+  0.0 0.0 -0.01
+
+scale
+  5.496
+
+avec
+  1.0  0.0  0.0
+  0.0  1.0  0.0
+  0.0  0.0  1.0
+
+atoms
+  2                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0     0.0  0.0 0.0      : atposl, bfcmt
+  'Al.in'
+  1
+  0.5  0.5  0.5     0.0  0.0 0.0      : atposl, bfcmt
+
+sppath
+  '../../species/'
+
+! automatic muffin tin radius
+autormt
+  .true.
+
+! fair number of empty states
+nempty
+  10
+
+ngridk
+  4  4  4

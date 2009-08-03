@@ -1,0 +1,31 @@
+
+! Silicon structural optimisation example. The equilibrium atomic positions are
+! found using tasks=2. Updated positions are written to GEOMETRY_OPT.OUT.
+
+tasks
+  2
+
+! use Pulay mixing of the potential
+mixtype
+  2
+
+avec
+  5.13 5.13 0.00
+  5.13 0.00 5.13
+  0.00 5.13 5.13
+
+sppath
+  '../../species/'
+
+atoms
+   1                                 : nspecies
+'Si.in'                              : spfname
+   2                                 : natoms
+   0.0 0.0 0.0      0.0 0.0 0.0      : atposl, bfcmt
+   0.27 0.27 0.27   0.0 0.0 0.0
+
+ngridk
+  2  2  2
+
+vkloff
+  0.5  0.5  0.5

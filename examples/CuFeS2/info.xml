@@ -1,0 +1,1601 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="../../../xml//info.xsl" type="text/xsl"?>
+<info>
+ <groundstate status="finished"><scl>
+  <iter iteration="1" rms="1.00000000000000000" rmslog10="0.00000000000" fermidos="332.731591300">
+   <energies totalEnergy="-7388.57364939482432" fermiEnergy="0.157178069947697646" sum-of-eigenvalues="-4268.35523690" electronic-kinetic="7529.18396678" core-electron-kinetic="6862.23013302" Coulomb="-14585.5022281" Coulomb-potential="-11357.8852316" nuclear-nuclear="-922.824668224" electron-nuclear="-15967.4698881" Hartree="2304.79232823" Madelung="-8906.55961226"/>
+   <charges core="84.0000000000" core_leakage="0.307845666549E-02" valence="90.0000000000" interstitial="15.6726967321" totalcharge="174.000000000" muffin-tin-total="158.327303268">
+    <atom species="Cu" muffin-tin="24.0273263995"/>
+    <atom species="Cu" muffin-tin="24.0273263995"/>
+    <atom species="Fe" muffin-tin="27.0846295006"/>
+    <atom species="Fe" muffin-tin="27.0846295006"/>
+    <atom species="S" muffin-tin="14.0258478669"/>
+    <atom species="S" muffin-tin="14.0258478669"/>
+    <atom species="S" muffin-tin="14.0258478669"/>
+    <atom species="S" muffin-tin="14.0258478669"/>
+    </charges>
+   <timing timetot="72.3600000000" timeinit="30.0600000000" timemat="8.39000000000" timefv="9.94000000000" timerho="13.3000000000" timepot="10.6700000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="2" rms="2.72968820673136481" rmslog10="0.436113043440" fermidos="59.6510702525">
+   <energies totalEnergy="-6875.93544048682543" fermiEnergy="0.471675810605719281" sum-of-eigenvalues="-4248.52477002" electronic-kinetic="7560.12394476" core-electron-kinetic="6919.74244697" Coulomb="-14130.2743551" Coulomb-potential="-11404.0780461" nuclear-nuclear="-922.824668224" electron-nuclear="-15010.8213278" Hartree="1803.37164084" Madelung="-8428.23533210"/>
+   <charges core="84.0000000000" core_leakage="0.168792255153E-02" valence="90.0000000000" interstitial="31.3574961255" totalcharge="174.000000000" muffin-tin-total="142.642503875">
+    <atom species="Cu" muffin-tin="23.9914133856"/>
+    <atom species="Cu" muffin-tin="23.9914133856"/>
+    <atom species="Fe" muffin-tin="17.5352247616"/>
+    <atom species="Fe" muffin-tin="17.5352247616"/>
+    <atom species="S" muffin-tin="14.8973068951"/>
+    <atom species="S" muffin-tin="14.8973068951"/>
+    <atom species="S" muffin-tin="14.8973068951"/>
+    <atom species="S" muffin-tin="14.8973068951"/>
+    </charges>
+   <timing itertime="59.5700000000" timetot="108.980000000" timeinit="30.0600000000" timemat="16.7800000000" timefv="19.8700000000" timerho="26.2600000000" timepot="16.0100000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="3" rms="1.28420777611564452" rmslog10="0.108635295322" fermidos="160.687675182">
+   <energies totalEnergy="-7064.74782441951902" fermiEnergy="0.482366178607515794" sum-of-eigenvalues="-4345.55564848" electronic-kinetic="7522.45545930" core-electron-kinetic="6904.03512481" Coulomb="-14276.2056909" Coulomb-potential="-11456.5238254" nuclear-nuclear="-922.824668224" electron-nuclear="-15250.2382199" Hartree="1896.85719726" Madelung="-8547.94377819"/>
+   <charges core="84.0000000000" core_leakage="0.162657848875E-02" valence="90.0000000000" interstitial="26.3851300900" totalcharge="174.000000000" muffin-tin-total="147.614869910">
+    <atom species="Cu" muffin-tin="23.8762336407"/>
+    <atom species="Cu" muffin-tin="23.8762336407"/>
+    <atom species="Fe" muffin-tin="21.0930018982"/>
+    <atom species="Fe" muffin-tin="21.0930018982"/>
+    <atom species="S" muffin-tin="14.4190997081"/>
+    <atom species="S" muffin-tin="14.4190997081"/>
+    <atom species="S" muffin-tin="14.4190997081"/>
+    <atom species="S" muffin-tin="14.4190997081"/>
+    </charges>
+   <timing itertime="58.4300000000" timetot="146.090000000" timeinit="30.0600000000" timemat="25.1600000000" timefv="29.8000000000" timerho="39.7500000000" timepot="21.3200000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="4" rms="1.42821525163230612" rmslog10="0.154793666510" fermidos="182.821562584">
+   <energies totalEnergy="-7376.57446798025831" fermiEnergy="0.292606465477438682" sum-of-eigenvalues="-4414.07027487" electronic-kinetic="7347.13958405" core-electron-kinetic="6879.40376980" Coulomb="-14399.7378346" Coulomb-potential="-11332.5302500" nuclear-nuclear="-922.824668224" electron-nuclear="-15621.2960827" Hartree="2144.38291640" Madelung="-8733.47270960"/>
+   <charges core="84.0000000000" core_leakage="0.158659355652E-02" valence="90.0000000000" interstitial="17.6577430076" totalcharge="174.000000000" muffin-tin-total="156.342256992">
+    <atom species="Cu" muffin-tin="23.9094831674"/>
+    <atom species="Cu" muffin-tin="23.9094831674"/>
+    <atom species="Fe" muffin-tin="28.1568615406"/>
+    <atom species="Fe" muffin-tin="28.1568615406"/>
+    <atom species="S" muffin-tin="13.0523918941"/>
+    <atom species="S" muffin-tin="13.0523918941"/>
+    <atom species="S" muffin-tin="13.0523918941"/>
+    <atom species="S" muffin-tin="13.0523918941"/>
+    </charges>
+   <timing itertime="58.9100000000" timetot="182.240000000" timeinit="30.0600000000" timemat="33.5600000000" timefv="39.7300000000" timerho="52.2600000000" timepot="26.6300000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="5" rms="0.725182845027753653" rmslog10="-0.139552478153" fermidos="345.227218466">
+   <energies totalEnergy="-7219.64367463819508" fermiEnergy="0.404409267752511292" sum-of-eigenvalues="-4418.61056462" electronic-kinetic="7453.82004803" core-electron-kinetic="6876.55403652" Coulomb="-14357.3358424" Coulomb-potential="-11454.1515495" nuclear-nuclear="-922.824668224" electron-nuclear="-15414.8707989" Hartree="1980.35962469" Madelung="-8630.26006766"/>
+   <charges core="84.0000000000" core_leakage="0.149921743605E-02" valence="90.0000000000" interstitial="20.3855150832" totalcharge="174.000000000" muffin-tin-total="153.614484917">
+    <atom species="Cu" muffin-tin="27.0467775862"/>
+    <atom species="Cu" muffin-tin="27.0467775862"/>
+    <atom species="Fe" muffin-tin="21.3388252347"/>
+    <atom species="Fe" muffin-tin="21.3388252347"/>
+    <atom species="S" muffin-tin="14.2108198187"/>
+    <atom species="S" muffin-tin="14.2108198187"/>
+    <atom species="S" muffin-tin="14.2108198187"/>
+    <atom species="S" muffin-tin="14.2108198187"/>
+    </charges>
+   <timing itertime="59.3100000000" timetot="219.400000000" timeinit="30.0600000000" timemat="41.9500000000" timefv="49.6900000000" timerho="65.7400000000" timepot="31.9600000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="6" rms="0.472277931268047013" rmslog10="-0.325802347780" fermidos="149.698184605">
+   <energies totalEnergy="-7329.22827205377143" fermiEnergy="0.289755306756042108" sum-of-eigenvalues="-4427.56541170" electronic-kinetic="7392.85275640" core-electron-kinetic="6879.07140837" Coulomb="-14400.8726755" Coulomb-potential="-11395.4092598" nuclear-nuclear="-922.824668224" electron-nuclear="-15560.6867548" Hartree="2082.63874746" Madelung="-8703.16804560"/>
+   <charges core="84.0000000000" core_leakage="0.150296979376E-02" valence="90.0000000000" interstitial="17.6401315443" totalcharge="174.000000000" muffin-tin-total="156.359868456">
+    <atom species="Cu" muffin-tin="25.7892748273"/>
+    <atom species="Cu" muffin-tin="25.7892748273"/>
+    <atom species="Fe" muffin-tin="25.9432582579"/>
+    <atom species="Fe" muffin-tin="25.9432582579"/>
+    <atom species="S" muffin-tin="13.2237005713"/>
+    <atom species="S" muffin-tin="13.2237005713"/>
+    <atom species="S" muffin-tin="13.2237005713"/>
+    <atom species="S" muffin-tin="13.2237005713"/>
+    </charges>
+   <timing itertime="59.3500000000" timetot="255.820000000" timeinit="30.0600000000" timemat="50.3300000000" timefv="59.6400000000" timerho="78.5200000000" timepot="37.2700000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="7" rms="0.136742494404127585" rmslog10="-0.864096502130" fermidos="241.619990616">
+   <energies totalEnergy="-7296.01756566796575" fermiEnergy="0.306696111103871294" sum-of-eigenvalues="-4434.07726736" electronic-kinetic="7415.22186654" core-electron-kinetic="6875.66781661" Coulomb="-14391.9494974" Coulomb-potential="-11426.8315554" nuclear-nuclear="-922.824668224" electron-nuclear="-15511.4181029" Hartree="2042.29327377" Madelung="-8678.53371969"/>
+   <charges core="84.0000000000" core_leakage="0.148419114352E-02" valence="90.0000000000" interstitial="18.4481777163" totalcharge="174.000000000" muffin-tin-total="155.551822284">
+    <atom species="Cu" muffin-tin="26.3943474292"/>
+    <atom species="Cu" muffin-tin="26.3943474292"/>
+    <atom species="Fe" muffin-tin="24.1977885685"/>
+    <atom species="Fe" muffin-tin="24.1977885685"/>
+    <atom species="S" muffin-tin="13.5918875721"/>
+    <atom species="S" muffin-tin="13.5918875721"/>
+    <atom species="S" muffin-tin="13.5918875721"/>
+    <atom species="S" muffin-tin="13.5918875721"/>
+    </charges>
+   <timing itertime="58.0300000000" timetot="292.360000000" timeinit="30.0600000000" timemat="58.7400000000" timefv="69.6000000000" timerho="91.4100000000" timepot="42.5500000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="8" rms="0.119613003600090487" rmslog10="-0.922221603920" fermidos="230.554324385">
+   <energies totalEnergy="-7301.54686428991863" fermiEnergy="0.303401605492567561" sum-of-eigenvalues="-4436.18291012" electronic-kinetic="7412.12201402" core-electron-kinetic="6876.07122022" Coulomb="-14394.2125988" Coulomb-potential="-11425.6167363" nuclear-nuclear="-922.824668224" electron-nuclear="-15517.1591248" Hartree="2045.77119424" Madelung="-8681.40423062"/>
+   <charges core="84.0000000000" core_leakage="0.147470378775E-02" valence="90.0000000000" interstitial="18.3877061528" totalcharge="174.000000000" muffin-tin-total="155.612293847">
+    <atom species="Cu" muffin-tin="26.2615128519"/>
+    <atom species="Cu" muffin-tin="26.2615128519"/>
+    <atom species="Fe" muffin-tin="24.3434369488"/>
+    <atom species="Fe" muffin-tin="24.3434369488"/>
+    <atom species="S" muffin-tin="13.6005985614"/>
+    <atom species="S" muffin-tin="13.6005985614"/>
+    <atom species="S" muffin-tin="13.6005985614"/>
+    <atom species="S" muffin-tin="13.6005985614"/>
+    </charges>
+   <timing itertime="58.3000000000" timetot="328.930000000" timeinit="30.0600000000" timemat="67.1500000000" timefv="79.5400000000" timerho="104.320000000" timepot="47.8600000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="9" rms="0.104405034072646882" rmslog10="-0.981278560555" fermidos="226.174001144">
+   <energies totalEnergy="-7304.44307472547825" fermiEnergy="0.301615993046743247" sum-of-eigenvalues="-4438.24191634" electronic-kinetic="7410.49332941" core-electron-kinetic="6876.22195994" Coulomb="-14395.4395157" Coulomb-potential="-11425.9930480" nuclear-nuclear="-922.824668224" electron-nuclear="-15519.2366469" Hartree="2046.62179948" Madelung="-8682.44299170"/>
+   <charges core="84.0000000000" core_leakage="0.146544405251E-02" valence="90.0000000000" interstitial="18.3795123508" totalcharge="174.000000000" muffin-tin-total="155.620487649">
+    <atom species="Cu" muffin-tin="26.1694497282"/>
+    <atom species="Cu" muffin-tin="26.1694497282"/>
+    <atom species="Fe" muffin-tin="24.3722447761"/>
+    <atom species="Fe" muffin-tin="24.3722447761"/>
+    <atom species="S" muffin-tin="13.6342746602"/>
+    <atom species="S" muffin-tin="13.6342746602"/>
+    <atom species="S" muffin-tin="13.6342746602"/>
+    <atom species="S" muffin-tin="13.6342746602"/>
+    </charges>
+   <timing itertime="59.6100000000" timetot="365.480000000" timeinit="30.0600000000" timemat="75.5400000000" timefv="89.4800000000" timerho="117.220000000" timepot="53.1800000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="10" rms="0.904711876065969062E-01" rmslog10="-1.04348970870" fermidos="223.281578070">
+   <energies totalEnergy="-7306.41099704962653" fermiEnergy="0.300354410812200490" sum-of-eigenvalues="-4439.98965492" electronic-kinetic="7409.36288577" core-electron-kinetic="6876.37388872" Coulomb="-14396.2678723" Coulomb-potential="-11426.5980717" nuclear-nuclear="-922.824668224" electron-nuclear="-15520.2883365" Hartree="2046.84513242" Madelung="-8682.96883649"/>
+   <charges core="84.0000000000" core_leakage="0.145708209128E-02" valence="90.0000000000" interstitial="18.3842896643" totalcharge="174.000000000" muffin-tin-total="155.615710336">
+    <atom species="Cu" muffin-tin="26.0858498381"/>
+    <atom species="Cu" muffin-tin="26.0858498381"/>
+    <atom species="Fe" muffin-tin="24.3798250683"/>
+    <atom species="Fe" muffin-tin="24.3798250683"/>
+    <atom species="S" muffin-tin="13.6710901308"/>
+    <atom species="S" muffin-tin="13.6710901308"/>
+    <atom species="S" muffin-tin="13.6710901308"/>
+    <atom species="S" muffin-tin="13.6710901308"/>
+    </charges>
+   <timing itertime="58.3600000000" timetot="402.020000000" timeinit="30.0600000000" timemat="83.9400000000" timefv="99.3900000000" timerho="130.120000000" timepot="58.5100000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="11" rms="0.776982409356032494E-01" rmslog10="-1.10958881338" fermidos="221.376270868">
+   <energies totalEnergy="-7307.87876520497593" fermiEnergy="0.299356532741079318" sum-of-eigenvalues="-4441.48947833" electronic-kinetic="7408.49389099" core-electron-kinetic="6876.51362149" Coulomb="-14396.8698762" Coulomb-potential="-11427.2330253" nuclear-nuclear="-922.824668224" electron-nuclear="-15520.8573907" Hartree="2046.81218270" Madelung="-8683.25336358"/>
+   <charges core="84.0000000000" core_leakage="0.144984133954E-02" valence="90.0000000000" interstitial="18.3911559611" totalcharge="174.000000000" muffin-tin-total="155.608844039">
+    <atom species="Cu" muffin-tin="26.0128697233"/>
+    <atom species="Cu" muffin-tin="26.0128697233"/>
+    <atom species="Fe" muffin-tin="24.3784802688"/>
+    <atom species="Fe" muffin-tin="24.3784802688"/>
+    <atom species="S" muffin-tin="13.7065360137"/>
+    <atom species="S" muffin-tin="13.7065360137"/>
+    <atom species="S" muffin-tin="13.7065360137"/>
+    <atom species="S" muffin-tin="13.7065360137"/>
+    </charges>
+   <timing itertime="58.6400000000" timetot="438.580000000" timeinit="30.0600000000" timemat="92.3400000000" timefv="109.340000000" timerho="143.000000000" timepot="63.8400000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="12" rms="0.658723796992302241E-01" rmslog10="-1.18129664699" fermidos="220.336821208">
+   <energies totalEnergy="-7309.04872592586889" fermiEnergy="0.298468736742293961" sum-of-eigenvalues="-4442.78140432" electronic-kinetic="7407.77900956" core-electron-kinetic="6876.61622463" Coulomb="-14397.3319158" Coulomb-potential="-11427.8191712" nuclear-nuclear="-922.824668224" electron-nuclear="-15521.1953240" Hartree="2046.68807640" Madelung="-8683.42233022"/>
+   <charges core="84.0000000000" core_leakage="0.144384679071E-02" valence="90.0000000000" interstitial="18.3951498659" totalcharge="174.000000000" muffin-tin-total="155.604850134">
+    <atom species="Cu" muffin-tin="25.9530847615"/>
+    <atom species="Cu" muffin-tin="25.9530847615"/>
+    <atom species="Fe" muffin-tin="24.3727779844"/>
+    <atom species="Fe" muffin-tin="24.3727779844"/>
+    <atom species="S" muffin-tin="13.7382811605"/>
+    <atom species="S" muffin-tin="13.7382811605"/>
+    <atom species="S" muffin-tin="13.7382811605"/>
+    <atom species="S" muffin-tin="13.7382811605"/>
+    </charges>
+   <timing itertime="59.7000000000" timetot="475.150000000" timeinit="30.0600000000" timemat="100.730000000" timefv="119.280000000" timerho="155.910000000" timepot="69.1700000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="13" rms="0.550229954571657826E-01" rmslog10="-1.25945577027" fermidos="219.876923629">
+   <energies totalEnergy="-7310.02813707410041" fermiEnergy="0.297600408598092614" sum-of-eigenvalues="-4443.87541332" electronic-kinetic="7407.16205595" core-electron-kinetic="6876.67967483" Coulomb="-14397.7003454" Coulomb-potential="-11428.3040525" nuclear-nuclear="-922.824668224" electron-nuclear="-15521.4473018" Hartree="2046.57162463" Madelung="-8683.54831912"/>
+   <charges core="84.0000000000" core_leakage="0.143910859444E-02" valence="90.0000000000" interstitial="18.3945350196" totalcharge="174.000000000" muffin-tin-total="155.605464980">
+    <atom species="Cu" muffin-tin="25.9064032389"/>
+    <atom species="Cu" muffin-tin="25.9064032389"/>
+    <atom species="Fe" muffin-tin="24.3663675065"/>
+    <atom species="Fe" muffin-tin="24.3663675065"/>
+    <atom species="S" muffin-tin="13.7649808724"/>
+    <atom species="S" muffin-tin="13.7649808724"/>
+    <atom species="S" muffin-tin="13.7649808724"/>
+    <atom species="S" muffin-tin="13.7649808724"/>
+    </charges>
+   <timing itertime="58.3400000000" timetot="511.710000000" timeinit="30.0600000000" timemat="109.120000000" timefv="129.220000000" timerho="168.830000000" timepot="74.4800000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="14" rms="0.451922541539052022E-01" rmslog10="-1.34493599586" fermidos="219.788790116">
+   <energies totalEnergy="-7310.85950732020683" fermiEnergy="0.296710933504469421" sum-of-eigenvalues="-4444.78021983" electronic-kinetic="7406.62212430" core-electron-kinetic="6876.70812376" Coulomb="-14397.9953838" Coulomb-potential="-11428.6736402" nuclear-nuclear="-922.824668224" electron-nuclear="-15521.6677909" Hartree="2046.49707537" Madelung="-8683.65856368"/>
+   <charges core="84.0000000000" core_leakage="0.143559220369E-02" valence="90.0000000000" interstitial="18.3897493394" totalcharge="174.000000000" muffin-tin-total="155.610250661">
+    <atom species="Cu" muffin-tin="25.8716799070"/>
+    <atom species="Cu" muffin-tin="25.8716799070"/>
+    <atom species="Fe" muffin-tin="24.3608889940"/>
+    <atom species="Fe" muffin-tin="24.3608889940"/>
+    <atom species="S" muffin-tin="13.7862782146"/>
+    <atom species="S" muffin-tin="13.7862782146"/>
+    <atom species="S" muffin-tin="13.7862782146"/>
+    <atom species="S" muffin-tin="13.7862782146"/>
+    </charges>
+   <timing itertime="58.1100000000" timetot="548.270000000" timeinit="30.0600000000" timemat="117.520000000" timefv="139.160000000" timerho="181.750000000" timepot="79.7800000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="15" rms="0.364638029563265700E-01" rmslog10="-1.43813803900" fermidos="219.910098741">
+   <energies totalEnergy="-7311.56176508024873" fermiEnergy="0.295792091828047277" sum-of-eigenvalues="-4445.50899313" electronic-kinetic="7406.15128231" core-electron-kinetic="6876.70980628" Coulomb="-14398.2280655" Coulomb-potential="-11428.9332158" nuclear-nuclear="-922.824668224" electron-nuclear="-15521.8735787" Hartree="2046.47018141" Madelung="-8683.76145756"/>
+   <charges core="84.0000000000" core_leakage="0.143316657191E-02" valence="90.0000000000" interstitial="18.3821315430" totalcharge="174.000000000" muffin-tin-total="155.617868457">
+    <atom species="Cu" muffin-tin="25.8470028818"/>
+    <atom species="Cu" muffin-tin="25.8470028818"/>
+    <atom species="Fe" muffin-tin="24.3570783844"/>
+    <atom species="Fe" muffin-tin="24.3570783844"/>
+    <atom species="S" muffin-tin="13.8024264811"/>
+    <atom species="S" muffin-tin="13.8024264811"/>
+    <atom species="S" muffin-tin="13.8024264811"/>
+    <atom species="S" muffin-tin="13.8024264811"/>
+    </charges>
+   <timing itertime="59.1600000000" timetot="584.860000000" timeinit="30.0600000000" timemat="125.920000000" timefv="149.110000000" timerho="194.660000000" timepot="85.1100000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="16" rms="0.289221269717947517E-01" rmslog10="-1.53876977161" fermidos="220.145135338">
+   <energies totalEnergy="-7312.14276973824417" fermiEnergy="0.294857254197256058" sum-of-eigenvalues="-4446.08166652" electronic-kinetic="7405.74725512" core-electron-kinetic="6876.69216635" Coulomb="-14398.4048100" Coulomb-potential="-11429.1015374" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.0587461" Hartree="2046.47860433" Madelung="-8683.85404125"/>
+   <charges core="84.0000000000" core_leakage="0.143168074257E-02" valence="90.0000000000" interstitial="18.3732981063" totalcharge="174.000000000" muffin-tin-total="155.626701894">
+    <atom species="Cu" muffin-tin="25.8302323313"/>
+    <atom species="Cu" muffin-tin="25.8302323313"/>
+    <atom species="Fe" muffin-tin="24.3549223967"/>
+    <atom species="Fe" muffin-tin="24.3549223967"/>
+    <atom species="S" muffin-tin="13.8140981094"/>
+    <atom species="S" muffin-tin="13.8140981094"/>
+    <atom species="S" muffin-tin="13.8140981094"/>
+    <atom species="S" muffin-tin="13.8140981094"/>
+    </charges>
+   <timing itertime="58.2100000000" timetot="621.400000000" timeinit="30.0600000000" timemat="134.320000000" timefv="159.040000000" timerho="207.560000000" timepot="90.4200000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="17" rms="0.226166078670380945E-01" rmslog10="-1.64557253182" fermidos="220.439347952">
+   <energies totalEnergy="-7312.61285763502747" fermiEnergy="0.293928342091670181" sum-of-eigenvalues="-4446.52226724" electronic-kinetic="7405.40769946" core-electron-kinetic="6876.65816321" Coulomb="-14398.5343885" Coulomb-potential="-11429.2013138" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.2181267" Hartree="2046.50840645" Madelung="-8683.93373158"/>
+   <charges core="84.0000000000" core_leakage="0.143094855768E-02" valence="90.0000000000" interstitial="18.3644983683" totalcharge="174.000000000" muffin-tin-total="155.635501632">
+    <atom species="Cu" muffin-tin="25.8193853714"/>
+    <atom species="Cu" muffin-tin="25.8193853714"/>
+    <atom species="Fe" muffin-tin="24.3540898527"/>
+    <atom species="Fe" muffin-tin="24.3540898527"/>
+    <atom species="S" muffin-tin="13.8221377959"/>
+    <atom species="S" muffin-tin="13.8221377959"/>
+    <atom species="S" muffin-tin="13.8221377959"/>
+    <atom species="S" muffin-tin="13.8221377959"/>
+    </charges>
+   <timing itertime="58.2000000000" timetot="657.930000000" timeinit="30.0600000000" timemat="142.720000000" timefv="168.980000000" timerho="220.450000000" timepot="95.7200000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="18" rms="0.176075356849816900E-01" rmslog10="-1.75430142276" fermidos="220.725319535">
+   <energies totalEnergy="-7312.98431797649573" fermiEnergy="0.293031994815836305" sum-of-eigenvalues="-4446.85263200" electronic-kinetic="7405.12763831" core-electron-kinetic="6876.61239853" Coulomb="-14398.6246705" Coulomb-potential="-11429.2501379" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.3498667" Hartree="2046.54986442" Madelung="-8683.99960159"/>
+   <charges core="84.0000000000" core_leakage="0.143076629081E-02" valence="90.0000000000" interstitial="18.3566613565" totalcharge="174.000000000" muffin-tin-total="155.643338643">
+    <atom species="Cu" muffin-tin="25.8124347122"/>
+    <atom species="Cu" muffin-tin="25.8124347122"/>
+    <atom species="Fe" muffin-tin="24.3544492122"/>
+    <atom species="Fe" muffin-tin="24.3544492122"/>
+    <atom species="S" muffin-tin="13.8273926986"/>
+    <atom species="S" muffin-tin="13.8273926986"/>
+    <atom species="S" muffin-tin="13.8273926986"/>
+    <atom species="S" muffin-tin="13.8273926986"/>
+    </charges>
+   <timing itertime="61.1100000000" timetot="694.510000000" timeinit="30.0600000000" timemat="151.130000000" timefv="178.930000000" timerho="233.360000000" timepot="101.030000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="19" rms="0.137836711177245184E-01" rmslog10="-1.86063509783" fermidos="221.033676054">
+   <energies totalEnergy="-7313.25942582255266" fermiEnergy="0.292197028339258147" sum-of-eigenvalues="-4447.09430324" electronic-kinetic="7404.90894781" core-electron-kinetic="6876.56081430" Coulomb="-14398.6807252" Coulomb-potential="-11429.2726404" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.4394736" Hartree="2046.58341660" Madelung="-8684.04440502"/>
+   <charges core="84.0000000000" core_leakage="0.143096606362E-02" valence="90.0000000000" interstitial="18.3505928233" totalcharge="174.000000000" muffin-tin-total="155.649407177">
+    <atom species="Cu" muffin-tin="25.8080647930"/>
+    <atom species="Cu" muffin-tin="25.8080647930"/>
+    <atom species="Fe" muffin-tin="24.3551911615"/>
+    <atom species="Fe" muffin-tin="24.3551911615"/>
+    <atom species="S" muffin-tin="13.8307238169"/>
+    <atom species="S" muffin-tin="13.8307238169"/>
+    <atom species="S" muffin-tin="13.8307238169"/>
+    <atom species="S" muffin-tin="13.8307238169"/>
+    </charges>
+   <timing itertime="61.8000000000" timetot="731.040000000" timeinit="30.0600000000" timemat="159.530000000" timefv="188.880000000" timerho="246.240000000" timepot="106.330000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="20" rms="0.110428564775436316E-01" rmslog10="-1.95691857226" fermidos="221.302552097">
+   <energies totalEnergy="-7313.46471497784478" fermiEnergy="0.291436714357172000" sum-of-eigenvalues="-4447.26926680" electronic-kinetic="7404.73948721" core-electron-kinetic="6876.50179801" Coulomb="-14398.7166341" Coulomb-potential="-11429.2782507" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5056809" Hartree="2046.61371509" Madelung="-8684.07750868"/>
+   <charges core="84.0000000000" core_leakage="0.143144101878E-02" valence="90.0000000000" interstitial="18.3463378803" totalcharge="174.000000000" muffin-tin-total="155.653662120">
+    <atom species="Cu" muffin-tin="25.8050062317"/>
+    <atom species="Cu" muffin-tin="25.8050062317"/>
+    <atom species="Fe" muffin-tin="24.3564245355"/>
+    <atom species="Fe" muffin-tin="24.3564245355"/>
+    <atom species="S" muffin-tin="13.8327001463"/>
+    <atom species="S" muffin-tin="13.8327001463"/>
+    <atom species="S" muffin-tin="13.8327001463"/>
+    <atom species="S" muffin-tin="13.8327001463"/>
+    </charges>
+   <timing itertime="58.3900000000" timetot="767.630000000" timeinit="30.0600000000" timemat="167.940000000" timefv="198.840000000" timerho="259.150000000" timepot="111.640000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="21" rms="0.908613776854996086E-02" rmslog10="-2.04162068248" fermidos="221.575688228">
+   <energies totalEnergy="-7313.60063284886201" fermiEnergy="0.290769649445719480" sum-of-eigenvalues="-4447.39149231" electronic-kinetic="7404.62201850" core-electron-kinetic="6876.43571593" Coulomb="-14398.7362033" Coulomb-potential="-11429.2844896" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5385807" Hartree="2046.62704556" Madelung="-8684.09395857"/>
+   <charges core="84.0000000000" core_leakage="0.143195278270E-02" valence="90.0000000000" interstitial="18.3442791712" totalcharge="174.000000000" muffin-tin-total="155.655720829">
+    <atom species="Cu" muffin-tin="25.8025994427"/>
+    <atom species="Cu" muffin-tin="25.8025994427"/>
+    <atom species="Fe" muffin-tin="24.3574436228"/>
+    <atom species="Fe" muffin-tin="24.3574436228"/>
+    <atom species="S" muffin-tin="13.8339086745"/>
+    <atom species="S" muffin-tin="13.8339086745"/>
+    <atom species="S" muffin-tin="13.8339086745"/>
+    <atom species="S" muffin-tin="13.8339086745"/>
+    </charges>
+   <timing itertime="61.5200000000" timetot="804.210000000" timeinit="30.0600000000" timemat="176.350000000" timefv="208.790000000" timerho="272.060000000" timepot="116.950000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="22" rms="0.765658868910232271E-02" rmslog10="-2.11596468252" fermidos="221.850019598">
+   <energies totalEnergy="-7313.68281461572133" fermiEnergy="0.290184779916255409" sum-of-eigenvalues="-4447.47241119" electronic-kinetic="7404.54576175" core-electron-kinetic="6876.36793924" Coulomb="-14398.7439465" Coulomb-potential="-11429.2915562" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5470003" Hartree="2046.62772205" Madelung="-8684.09816838"/>
+   <charges core="84.0000000000" core_leakage="0.143248028451E-02" valence="90.0000000000" interstitial="18.3438362534" totalcharge="174.000000000" muffin-tin-total="155.656163747">
+    <atom species="Cu" muffin-tin="25.8007605600"/>
+    <atom species="Cu" muffin-tin="25.8007605600"/>
+    <atom species="Fe" muffin-tin="24.3582134438"/>
+    <atom species="Fe" muffin-tin="24.3582134438"/>
+    <atom species="S" muffin-tin="13.8345539348"/>
+    <atom species="S" muffin-tin="13.8345539348"/>
+    <atom species="S" muffin-tin="13.8345539348"/>
+    <atom species="S" muffin-tin="13.8345539348"/>
+    </charges>
+   <timing itertime="63.2000000000" timetot="840.820000000" timeinit="30.0600000000" timemat="184.770000000" timefv="218.730000000" timerho="284.980000000" timepot="122.280000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="23" rms="0.656639242585456244E-02" rmslog10="-2.18267316619" fermidos="222.103475261">
+   <energies totalEnergy="-7313.73071075340340" fermiEnergy="0.289669221844702396" sum-of-eigenvalues="-4447.52393471" electronic-kinetic="7404.49679612" core-electron-kinetic="6876.29931834" Coulomb="-14398.7449202" Coulomb-potential="-11429.2968154" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5436885" Hartree="2046.62343654" Madelung="-8684.09651249"/>
+   <charges core="84.0000000000" core_leakage="0.143294370673E-02" valence="90.0000000000" interstitial="18.3443550411" totalcharge="174.000000000" muffin-tin-total="155.655644959">
+    <atom species="Cu" muffin-tin="25.7993549456"/>
+    <atom species="Cu" muffin-tin="25.7993549456"/>
+    <atom species="Fe" muffin-tin="24.3588820748"/>
+    <atom species="Fe" muffin-tin="24.3588820748"/>
+    <atom species="S" muffin-tin="13.8347927296"/>
+    <atom species="S" muffin-tin="13.8347927296"/>
+    <atom species="S" muffin-tin="13.8347927296"/>
+    <atom species="S" muffin-tin="13.8347927296"/>
+    </charges>
+   <timing itertime="61.0700000000" timetot="877.420000000" timeinit="30.0600000000" timemat="193.180000000" timefv="228.690000000" timerho="297.900000000" timepot="127.590000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="24" rms="0.565110112894937327E-02" rmslog10="-2.24786692074" fermidos="222.347066868">
+   <energies totalEnergy="-7313.74614594638479" fermiEnergy="0.289217186771310142" sum-of-eigenvalues="-4447.55318518" electronic-kinetic="7404.46666435" core-electron-kinetic="6876.23373534" Coulomb="-14398.7328236" Coulomb-potential="-11429.2993733" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5169375" Hartree="2046.60878209" Madelung="-8684.08313697"/>
+   <charges core="84.0000000000" core_leakage="0.143329373790E-02" valence="90.0000000000" interstitial="18.3454137743" totalcharge="174.000000000" muffin-tin-total="155.654586226">
+    <atom species="Cu" muffin-tin="25.7982825012"/>
+    <atom species="Cu" muffin-tin="25.7982825012"/>
+    <atom species="Fe" muffin-tin="24.3593116652"/>
+    <atom species="Fe" muffin-tin="24.3593116652"/>
+    <atom species="S" muffin-tin="13.8348494732"/>
+    <atom species="S" muffin-tin="13.8348494732"/>
+    <atom species="S" muffin-tin="13.8348494732"/>
+    <atom species="S" muffin-tin="13.8348494732"/>
+    </charges>
+   <timing itertime="59.7800000000" timetot="913.990000000" timeinit="30.0600000000" timemat="201.590000000" timefv="238.630000000" timerho="310.820000000" timepot="132.890000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="25" rms="0.492856917084866144E-02" rmslog10="-2.30727914389" fermidos="222.538267533">
+   <energies totalEnergy="-7313.69668947221999" fermiEnergy="0.288817064896207953" sum-of-eigenvalues="-4447.56771039" electronic-kinetic="7404.41472663" core-electron-kinetic="6876.18902083" Coulomb="-14398.6379180" Coulomb-potential="-11429.2705608" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.3559387" Hartree="2046.54268892" Madelung="-8684.00263757"/>
+   <charges core="84.0000000000" core_leakage="0.143347985590E-02" valence="90.0000000000" interstitial="18.3454274223" totalcharge="174.000000000" muffin-tin-total="155.654572578">
+    <atom species="Cu" muffin-tin="25.7972486146"/>
+    <atom species="Cu" muffin-tin="25.7972486146"/>
+    <atom species="Fe" muffin-tin="24.3598094141"/>
+    <atom species="Fe" muffin-tin="24.3598094141"/>
+    <atom species="S" muffin-tin="13.8351141301"/>
+    <atom species="S" muffin-tin="13.8351141301"/>
+    <atom species="S" muffin-tin="13.8351141301"/>
+    <atom species="S" muffin-tin="13.8351141301"/>
+    </charges>
+   <timing itertime="58.4100000000" timetot="950.590000000" timeinit="30.0600000000" timemat="210.000000000" timefv="248.590000000" timerho="323.740000000" timepot="138.200000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="26" rms="0.398693955416753922E-02" rmslog10="-2.39936034861" fermidos="222.902096405">
+   <energies totalEnergy="-7313.82195722154484" fermiEnergy="0.288454499890752558" sum-of-eigenvalues="-4447.59303977" electronic-kinetic="7404.49288580" core-electron-kinetic="6876.10197410" Coulomb="-14398.8334150" Coulomb-potential="-11429.3635135" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.6539800" Hartree="2046.64523326" Madelung="-8684.15165824"/>
+   <charges core="84.0000000000" core_leakage="0.143312907363E-02" valence="90.0000000000" interstitial="18.3494322476" totalcharge="174.000000000" muffin-tin-total="155.650567752">
+    <atom species="Cu" muffin-tin="25.7970167059"/>
+    <atom species="Cu" muffin-tin="25.7970167059"/>
+    <atom species="Fe" muffin-tin="24.3586199448"/>
+    <atom species="Fe" muffin-tin="24.3586199448"/>
+    <atom species="S" muffin-tin="13.8348236128"/>
+    <atom species="S" muffin-tin="13.8348236128"/>
+    <atom species="S" muffin-tin="13.8348236128"/>
+    <atom species="S" muffin-tin="13.8348236128"/>
+    </charges>
+   <timing itertime="59.7600000000" timetot="987.180000000" timeinit="30.0600000000" timemat="218.410000000" timefv="258.530000000" timerho="336.670000000" timepot="143.510000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="27" rms="0.480713452629788138E-02" rmslog10="-2.31811372409" fermidos="222.087774337">
+   <energies totalEnergy="-7313.95008412445804" fermiEnergy="0.288124422071013742" sum-of-eigenvalues="-4447.56807553" electronic-kinetic="7404.40654471" core-electron-kinetic="6876.08210837" Coulomb="-14398.8697841" Coulomb-potential="-11429.2450247" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.8452071" Hartree="2046.80009120" Madelung="-8684.24727176"/>
+   <charges core="84.0000000000" core_leakage="0.143365609675E-02" valence="90.0000000000" interstitial="18.3488896899" totalcharge="174.000000000" muffin-tin-total="155.651110310">
+    <atom species="Cu" muffin-tin="25.7934654104"/>
+    <atom species="Cu" muffin-tin="25.7934654104"/>
+    <atom species="Fe" muffin-tin="24.3671472894"/>
+    <atom species="Fe" muffin-tin="24.3671472894"/>
+    <atom species="S" muffin-tin="13.8324712276"/>
+    <atom species="S" muffin-tin="13.8324712276"/>
+    <atom species="S" muffin-tin="13.8324712276"/>
+    <atom species="S" muffin-tin="13.8324712276"/>
+    </charges>
+   <timing itertime="61.4300000000" timetot="1023.76000000" timeinit="30.0600000000" timemat="226.820000000" timefv="268.470000000" timerho="349.570000000" timepot="148.840000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="28" rms="0.347009392929263378E-02" rmslog10="-2.45965876947" fermidos="225.162134103">
+   <energies totalEnergy="-7313.47188179191471" fermiEnergy="0.288097479861326389" sum-of-eigenvalues="-4447.57436812" electronic-kinetic="7404.70660224" core-electron-kinetic="6875.98813831" Coulomb="-14398.7155099" Coulomb-potential="-11429.5830028" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.1986807" Hartree="2046.30783895" Madelung="-8683.92400855"/>
+   <charges core="84.0000000000" core_leakage="0.143399551389E-02" valence="90.0000000000" interstitial="18.3587180635" totalcharge="174.000000000" muffin-tin-total="155.641281936">
+    <atom species="Cu" muffin-tin="25.8056932471"/>
+    <atom species="Cu" muffin-tin="25.8056932471"/>
+    <atom species="Fe" muffin-tin="24.3425946998"/>
+    <atom species="Fe" muffin-tin="24.3425946998"/>
+    <atom species="S" muffin-tin="13.8361765107"/>
+    <atom species="S" muffin-tin="13.8361765107"/>
+    <atom species="S" muffin-tin="13.8361765107"/>
+    <atom species="S" muffin-tin="13.8361765107"/>
+    </charges>
+   <timing itertime="58.3500000000" timetot="1060.34000000" timeinit="30.0600000000" timemat="235.230000000" timefv="278.410000000" timerho="362.490000000" timepot="154.150000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="29" rms="0.742613477461134125E-02" rmslog10="-2.12923717316" fermidos="220.517010718">
+   <energies totalEnergy="-7314.06326114519743" fermiEnergy="0.287730971966646099" sum-of-eigenvalues="-4447.51808834" electronic-kinetic="7404.30313903" core-electron-kinetic="6876.04874906" Coulomb="-14398.8763890" Coulomb-potential="-11429.0874096" nuclear-nuclear="-922.824668224" electron-nuclear="-15523.0160320" Hartree="2046.96431119" Madelung="-8684.33268421"/>
+   <charges core="84.0000000000" core_leakage="0.143405619815E-02" valence="90.0000000000" interstitial="18.3544444152" totalcharge="174.000000000" muffin-tin-total="155.645555585">
+    <atom species="Cu" muffin-tin="25.7813957333"/>
+    <atom species="Cu" muffin-tin="25.7813957333"/>
+    <atom species="Fe" muffin-tin="24.3817128839"/>
+    <atom species="Fe" muffin-tin="24.3817128839"/>
+    <atom species="S" muffin-tin="13.8298345876"/>
+    <atom species="S" muffin-tin="13.8298345876"/>
+    <atom species="S" muffin-tin="13.8298345876"/>
+    <atom species="S" muffin-tin="13.8298345876"/>
+    </charges>
+   <timing itertime="58.8000000000" timetot="1096.93000000" timeinit="30.0600000000" timemat="243.610000000" timefv="288.360000000" timerho="375.410000000" timepot="159.490000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="30" rms="0.244428131625438333E-02" rmslog10="-2.61184881190" fermidos="224.533486739">
+   <energies totalEnergy="-7313.59684105308133" fermiEnergy="0.287789975765636807" sum-of-eigenvalues="-4447.56561528" electronic-kinetic="7404.66586682" core-electron-kinetic="6875.98066753" Coulomb="-14398.7950009" Coulomb-potential="-11429.5272246" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.4134407" Hartree="2046.44310802" Madelung="-8684.03138855"/>
+   <charges core="84.0000000000" core_leakage="0.143413200112E-02" valence="90.0000000000" interstitial="18.3611014269" totalcharge="174.000000000" muffin-tin-total="155.638898573">
+    <atom species="Cu" muffin-tin="25.8017476725"/>
+    <atom species="Cu" muffin-tin="25.8017476725"/>
+    <atom species="Fe" muffin-tin="24.3493449210"/>
+    <atom species="Fe" muffin-tin="24.3493449210"/>
+    <atom species="S" muffin-tin="13.8341783465"/>
+    <atom species="S" muffin-tin="13.8341783465"/>
+    <atom species="S" muffin-tin="13.8341783465"/>
+    <atom species="S" muffin-tin="13.8341783465"/>
+    </charges>
+   <timing itertime="58.3900000000" timetot="1133.49000000" timeinit="30.0600000000" timemat="252.010000000" timefv="298.290000000" timerho="388.330000000" timepot="164.800000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="31" rms="0.193012453769747863E-02" rmslog10="-2.71441466804" fermidos="223.506466853">
+   <energies totalEnergy="-7313.70481563252724" fermiEnergy="0.287689889493217665" sum-of-eigenvalues="-4447.54893020" electronic-kinetic="7404.58635915" core-electron-kinetic="6875.98193386" Coulomb="-14398.8187667" Coulomb-potential="-11429.4247933" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5634037" Hartree="2046.56930523" Madelung="-8684.10637009"/>
+   <charges core="84.0000000000" core_leakage="0.143415759305E-02" valence="90.0000000000" interstitial="18.3617859416" totalcharge="174.000000000" muffin-tin-total="155.638214058">
+    <atom species="Cu" muffin-tin="25.7955865515"/>
+    <atom species="Cu" muffin-tin="25.7955865515"/>
+    <atom species="Fe" muffin-tin="24.3578991675"/>
+    <atom species="Fe" muffin-tin="24.3578991675"/>
+    <atom species="S" muffin-tin="13.8328106551"/>
+    <atom species="S" muffin-tin="13.8328106551"/>
+    <atom species="S" muffin-tin="13.8328106551"/>
+    <atom species="S" muffin-tin="13.8328106551"/>
+    </charges>
+   <timing itertime="58.5100000000" timetot="1170.05000000" timeinit="30.0600000000" timemat="260.400000000" timefv="308.230000000" timerho="401.250000000" timepot="170.110000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="32" rms="0.193774295789553861E-02" rmslog10="-2.71270383274" fermidos="223.403739340">
+   <energies totalEnergy="-7313.70942886968896" fermiEnergy="0.287616868685195315" sum-of-eigenvalues="-4447.54577836" electronic-kinetic="7404.58512354" core-electron-kinetic="6875.97312135" Coulomb="-14398.8222951" Coulomb-potential="-11429.4206004" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5746534" Hartree="2046.57702650" Madelung="-8684.11199493"/>
+   <charges core="84.0000000000" core_leakage="0.143422110224E-02" valence="90.0000000000" interstitial="18.3631248742" totalcharge="174.000000000" muffin-tin-total="155.636875126">
+    <atom species="Cu" muffin-tin="25.7942685474"/>
+    <atom species="Cu" muffin-tin="25.7942685474"/>
+    <atom species="Fe" muffin-tin="24.3588397370"/>
+    <atom species="Fe" muffin-tin="24.3588397370"/>
+    <atom species="S" muffin-tin="13.8326646393"/>
+    <atom species="S" muffin-tin="13.8326646393"/>
+    <atom species="S" muffin-tin="13.8326646393"/>
+    <atom species="S" muffin-tin="13.8326646393"/>
+    </charges>
+   <timing itertime="58.6100000000" timetot="1206.62000000" timeinit="30.0600000000" timemat="268.800000000" timefv="318.170000000" timerho="414.170000000" timepot="175.420000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="33" rms="0.190284149124019778E-02" rmslog10="-2.72059738741" fermidos="223.364177011">
+   <energies totalEnergy="-7313.70754324279824" fermiEnergy="0.287550677896774132" sum-of-eigenvalues="-4447.54409809" electronic-kinetic="7404.58753092" core-electron-kinetic="6875.96439071" Coulomb="-14398.8232420" Coulomb-potential="-11429.4218868" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5752608" Hartree="2046.57668701" Madelung="-8684.11229863"/>
+   <charges core="84.0000000000" core_leakage="0.143428625753E-02" valence="90.0000000000" interstitial="18.3642916226" totalcharge="174.000000000" muffin-tin-total="155.635708377">
+    <atom species="Cu" muffin-tin="25.7933889589"/>
+    <atom species="Cu" muffin-tin="25.7933889589"/>
+    <atom species="Fe" muffin-tin="24.3592126370"/>
+    <atom species="Fe" muffin-tin="24.3592126370"/>
+    <atom species="S" muffin-tin="13.8326262964"/>
+    <atom species="S" muffin-tin="13.8326262964"/>
+    <atom species="S" muffin-tin="13.8326262964"/>
+    <atom species="S" muffin-tin="13.8326262964"/>
+    </charges>
+   <timing itertime="59.6300000000" timetot="1243.21000000" timeinit="30.0600000000" timemat="277.210000000" timefv="328.120000000" timerho="427.090000000" timepot="180.730000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="34" rms="0.186947071189530185E-02" rmslog10="-2.72828133434" fermidos="223.331351941">
+   <energies totalEnergy="-7313.70630615777736" fermiEnergy="0.287489272729021139" sum-of-eigenvalues="-4447.54315145" electronic-kinetic="7404.58825939" core-electron-kinetic="6875.95636005" Coulomb="-14398.8230948" Coulomb-potential="-11429.4221444" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5747088" Hartree="2046.57628216" Madelung="-8684.11202261"/>
+   <charges core="84.0000000000" core_leakage="0.143433981671E-02" valence="90.0000000000" interstitial="18.3652077297" totalcharge="174.000000000" muffin-tin-total="155.634792270">
+    <atom species="Cu" muffin-tin="25.7926962956"/>
+    <atom species="Cu" muffin-tin="25.7926962956"/>
+    <atom species="Fe" muffin-tin="24.3595000717"/>
+    <atom species="Fe" muffin-tin="24.3595000717"/>
+    <atom species="S" muffin-tin="13.8325998839"/>
+    <atom species="S" muffin-tin="13.8325998839"/>
+    <atom species="S" muffin-tin="13.8325998839"/>
+    <atom species="S" muffin-tin="13.8325998839"/>
+    </charges>
+   <timing itertime="60.6800000000" timetot="1279.78000000" timeinit="30.0600000000" timemat="285.620000000" timefv="338.050000000" timerho="440.000000000" timepot="186.050000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="35" rms="0.183839977464184470E-02" rmslog10="-2.73556004189" fermidos="223.302192407">
+   <energies totalEnergy="-7313.70662762899974" fermiEnergy="0.287432546516758425" sum-of-eigenvalues="-4447.54285572" electronic-kinetic="7404.58719362" core-electron-kinetic="6875.94892783" Coulomb="-14398.8225999" Coulomb-potential="-11429.4211112" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5747522" Hartree="2046.57682049" Madelung="-8684.11204433"/>
+   <charges core="84.0000000000" core_leakage="0.143438588680E-02" valence="90.0000000000" interstitial="18.3658706448" totalcharge="174.000000000" muffin-tin-total="155.634129355">
+    <atom species="Cu" muffin-tin="25.7921781041"/>
+    <atom species="Cu" muffin-tin="25.7921781041"/>
+    <atom species="Fe" muffin-tin="24.3597432675"/>
+    <atom species="Fe" muffin-tin="24.3597432675"/>
+    <atom species="S" muffin-tin="13.8325716530"/>
+    <atom species="S" muffin-tin="13.8325716530"/>
+    <atom species="S" muffin-tin="13.8325716530"/>
+    <atom species="S" muffin-tin="13.8325716530"/>
+    </charges>
+   <timing itertime="62.2500000000" timetot="1316.37000000" timeinit="30.0600000000" timemat="294.030000000" timefv="347.990000000" timerho="452.930000000" timepot="191.360000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="36" rms="0.180716662463226803E-02" rmslog10="-2.74300180271" fermidos="223.277398535">
+   <energies totalEnergy="-7313.70851612574097" fermiEnergy="0.287380432422050691" sum-of-eigenvalues="-4447.54309005" electronic-kinetic="7404.58450192" core-electron-kinetic="6875.94193852" Coulomb="-14398.8219339" Coulomb-potential="-11429.4188341" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5756971" Hartree="2046.57843150" Madelung="-8684.11251679"/>
+   <charges core="84.0000000000" core_leakage="0.143442110328E-02" valence="90.0000000000" interstitial="18.3662951417" totalcharge="174.000000000" muffin-tin-total="155.633704858">
+    <atom species="Cu" muffin-tin="25.7918276653"/>
+    <atom species="Cu" muffin-tin="25.7918276653"/>
+    <atom species="Fe" muffin-tin="24.3599464578"/>
+    <atom species="Fe" muffin-tin="24.3599464578"/>
+    <atom species="S" muffin-tin="13.8325391530"/>
+    <atom species="S" muffin-tin="13.8325391530"/>
+    <atom species="S" muffin-tin="13.8325391530"/>
+    <atom species="S" muffin-tin="13.8325391530"/>
+    </charges>
+   <timing itertime="60.2000000000" timetot="1352.96000000" timeinit="30.0600000000" timemat="302.430000000" timefv="357.960000000" timerho="465.820000000" timepot="196.690000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="37" rms="0.177351580045812299E-02" rmslog10="-2.75116493799" fermidos="223.257158978">
+   <energies totalEnergy="-7313.71181095552765" fermiEnergy="0.287332843458018794" sum-of-eigenvalues="-4447.54366346" electronic-kinetic="7404.58060809" core-electron-kinetic="6875.93526344" Coulomb="-14398.8213616" Coulomb-potential="-11429.4155484" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5778383" Hartree="2046.58114496" Madelung="-8684.11358738"/>
+   <charges core="84.0000000000" core_leakage="0.143444221081E-02" valence="90.0000000000" interstitial="18.3665067324" totalcharge="174.000000000" muffin-tin-total="155.633493268">
+    <atom species="Cu" muffin-tin="25.7916241198"/>
+    <atom species="Cu" muffin-tin="25.7916241198"/>
+    <atom species="Fe" muffin-tin="24.3601183005"/>
+    <atom species="Fe" muffin-tin="24.3601183005"/>
+    <atom species="S" muffin-tin="13.8325021068"/>
+    <atom species="S" muffin-tin="13.8325021068"/>
+    <atom species="S" muffin-tin="13.8325021068"/>
+    <atom species="S" muffin-tin="13.8325021068"/>
+    </charges>
+   <timing itertime="59.7700000000" timetot="1389.51000000" timeinit="30.0600000000" timemat="310.820000000" timefv="367.930000000" timerho="478.720000000" timepot="201.980000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="38" rms="0.173650827578250349E-02" rmslog10="-2.76032314260" fermidos="223.240856046">
+   <energies totalEnergy="-7313.71618255224166" fermiEnergy="0.287289751714507324" sum-of-eigenvalues="-4447.54435506" electronic-kinetic="7404.57578141" core-electron-kinetic="6875.92880340" Coulomb="-14398.8208389" Coulomb-potential="-11429.4113236" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5810178" Hartree="2046.58484711" Madelung="-8684.11517713"/>
+   <charges core="84.0000000000" core_leakage="0.143445297788E-02" valence="90.0000000000" interstitial="18.3665400135" totalcharge="174.000000000" muffin-tin-total="155.633459986">
+    <atom species="Cu" muffin-tin="25.7915366820"/>
+    <atom species="Cu" muffin-tin="25.7915366820"/>
+    <atom species="Fe" muffin-tin="24.3602680312"/>
+    <atom species="Fe" muffin-tin="24.3602680312"/>
+    <atom species="S" muffin-tin="13.8324626401"/>
+    <atom species="S" muffin-tin="13.8324626401"/>
+    <atom species="S" muffin-tin="13.8324626401"/>
+    <atom species="S" muffin-tin="13.8324626401"/>
+    </charges>
+   <timing itertime="59.2600000000" timetot="1426.12000000" timeinit="30.0600000000" timemat="319.230000000" timefv="377.880000000" timerho="491.630000000" timepot="207.320000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="39" rms="0.169326007515341911E-02" rmslog10="-2.77127633160" fermidos="223.229075761">
+   <energies totalEnergy="-7313.72097603920793" fermiEnergy="0.287251105151281827" sum-of-eigenvalues="-4447.54496910" electronic-kinetic="7404.57044516" core-electron-kinetic="6875.92247136" Coulomb="-14398.8201670" Coulomb-potential="-11429.4064305" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5845670" Hartree="2046.58906828" Madelung="-8684.11695174"/>
+   <charges core="84.0000000000" core_leakage="0.143445968646E-02" valence="90.0000000000" interstitial="18.3664343618" totalcharge="174.000000000" muffin-tin-total="155.633565638">
+    <atom species="Cu" muffin-tin="25.7915401982"/>
+    <atom species="Cu" muffin-tin="25.7915401982"/>
+    <atom species="Fe" muffin-tin="24.3603929198"/>
+    <atom species="Fe" muffin-tin="24.3603929198"/>
+    <atom species="S" muffin-tin="13.8324248506"/>
+    <atom species="S" muffin-tin="13.8324248506"/>
+    <atom species="S" muffin-tin="13.8324248506"/>
+    <atom species="S" muffin-tin="13.8324248506"/>
+    </charges>
+   <timing itertime="61.7200000000" timetot="1462.72000000" timeinit="30.0600000000" timemat="327.630000000" timefv="387.840000000" timerho="504.540000000" timepot="212.650000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="40" rms="0.164471341753214114E-02" rmslog10="-2.78390976460" fermidos="223.220734922">
+   <energies totalEnergy="-7313.72591145502611" fermiEnergy="0.287216811460734300" sum-of-eigenvalues="-4447.54533386" electronic-kinetic="7404.56489159" core-electron-kinetic="6875.91624116" Coulomb="-14398.8193716" Coulomb-potential="-11429.4010074" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5883993" Hartree="2046.59369595" Madelung="-8684.11886789"/>
+   <charges core="84.0000000000" core_leakage="0.143445277355E-02" valence="90.0000000000" interstitial="18.3662244975" totalcharge="174.000000000" muffin-tin-total="155.633775502">
+    <atom species="Cu" muffin-tin="25.7916041251"/>
+    <atom species="Cu" muffin-tin="25.7916041251"/>
+    <atom species="Fe" muffin-tin="24.3605020203"/>
+    <atom species="Fe" muffin-tin="24.3605020203"/>
+    <atom species="S" muffin-tin="13.8323908029"/>
+    <atom species="S" muffin-tin="13.8323908029"/>
+    <atom species="S" muffin-tin="13.8323908029"/>
+    <atom species="S" muffin-tin="13.8323908029"/>
+    </charges>
+   <timing itertime="60.6100000000" timetot="1499.29000000" timeinit="30.0600000000" timemat="336.020000000" timefv="397.810000000" timerho="517.440000000" timepot="217.960000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="41" rms="0.158840680802171496E-02" rmslog10="-2.79903826019" fermidos="223.215576679">
+   <energies totalEnergy="-7313.73047041826612" fermiEnergy="0.287186823047236806" sum-of-eigenvalues="-4447.54533979" electronic-kinetic="7404.55946007" core-electron-kinetic="6875.91011035" Coulomb="-14398.8183015" Coulomb-potential="-11429.3953210" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5919457" Hartree="2046.59831234" Madelung="-8684.12064106"/>
+   <charges core="84.0000000000" core_leakage="0.143444615286E-02" valence="90.0000000000" interstitial="18.3659539113" totalcharge="174.000000000" muffin-tin-total="155.634046089">
+    <atom species="Cu" muffin-tin="25.7917062195"/>
+    <atom species="Cu" muffin-tin="25.7917062195"/>
+    <atom species="Fe" muffin-tin="24.3605918847"/>
+    <atom species="Fe" muffin-tin="24.3605918847"/>
+    <atom species="S" muffin-tin="13.8323624700"/>
+    <atom species="S" muffin-tin="13.8323624700"/>
+    <atom species="S" muffin-tin="13.8323624700"/>
+    <atom species="S" muffin-tin="13.8323624700"/>
+    </charges>
+   <timing itertime="58.4400000000" timetot="1535.86000000" timeinit="30.0600000000" timemat="344.400000000" timefv="407.780000000" timerho="530.350000000" timepot="223.270000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="42" rms="0.152593539291705693E-02" rmslog10="-2.81646385373" fermidos="223.212561336">
+   <energies totalEnergy="-7313.73454200783999" fermiEnergy="0.287160946651670579" sum-of-eigenvalues="-4447.54493306" electronic-kinetic="7404.55427172" core-electron-kinetic="6875.90404315" Coulomb="-14398.8169793" Coulomb-potential="-11429.3894546" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5951676" Hartree="2046.60285649" Madelung="-8684.12225200"/>
+   <charges core="84.0000000000" core_leakage="0.143442806782E-02" valence="90.0000000000" interstitial="18.3656499009" totalcharge="174.000000000" muffin-tin-total="155.634350099">
+    <atom species="Cu" muffin-tin="25.7918277062"/>
+    <atom species="Cu" muffin-tin="25.7918277062"/>
+    <atom species="Fe" muffin-tin="24.3606693179"/>
+    <atom species="Fe" muffin-tin="24.3606693179"/>
+    <atom species="S" muffin-tin="13.8323390127"/>
+    <atom species="S" muffin-tin="13.8323390127"/>
+    <atom species="S" muffin-tin="13.8323390127"/>
+    <atom species="S" muffin-tin="13.8323390127"/>
+    </charges>
+   <timing itertime="58.4100000000" timetot="1572.43000000" timeinit="30.0600000000" timemat="352.790000000" timefv="417.730000000" timerho="543.270000000" timepot="228.580000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="43" rms="0.145662743551755935E-02" rmslog10="-2.83665151439" fermidos="223.210767549">
+   <energies totalEnergy="-7313.73776104121680" fermiEnergy="0.287139097852961322" sum-of-eigenvalues="-4447.54407102" electronic-kinetic="7404.54959550" core-electron-kinetic="6875.89815571" Coulomb="-14398.8153281" Coulomb-potential="-11429.3836603" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5976595" Hartree="2046.60699962" Madelung="-8684.12349798"/>
+   <charges core="84.0000000000" core_leakage="0.143440360311E-02" valence="90.0000000000" interstitial="18.3653486639" totalcharge="174.000000000" muffin-tin-total="155.634651336">
+    <atom species="Cu" muffin-tin="25.7919472871"/>
+    <atom species="Cu" muffin-tin="25.7919472871"/>
+    <atom species="Fe" muffin-tin="24.3607355098"/>
+    <atom species="Fe" muffin-tin="24.3607355098"/>
+    <atom species="S" muffin-tin="13.8323214356"/>
+    <atom species="S" muffin-tin="13.8323214356"/>
+    <atom species="S" muffin-tin="13.8323214356"/>
+    <atom species="S" muffin-tin="13.8323214356"/>
+    </charges>
+   <timing itertime="59.7800000000" timetot="1609.04000000" timeinit="30.0600000000" timemat="361.210000000" timefv="427.680000000" timerho="556.180000000" timepot="233.910000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="44" rms="0.137995876422083259E-02" rmslog10="-2.86013389095" fermidos="223.210161156">
+   <energies totalEnergy="-7313.73991891424066" fermiEnergy="0.287120975396341793" sum-of-eigenvalues="-4447.54284209" electronic-kinetic="7404.54540006" core-electron-kinetic="6875.89245634" Coulomb="-14398.8131317" Coulomb-potential="-11429.3780265" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5989005" Hartree="2046.61043704" Madelung="-8684.12411849"/>
+   <charges core="84.0000000000" core_leakage="0.143437352976E-02" valence="90.0000000000" interstitial="18.3650705835" totalcharge="174.000000000" muffin-tin-total="155.634929416">
+    <atom species="Cu" muffin-tin="25.7920603144"/>
+    <atom species="Cu" muffin-tin="25.7920603144"/>
+    <atom species="Fe" muffin-tin="24.3607881671"/>
+    <atom species="Fe" muffin-tin="24.3607881671"/>
+    <atom species="S" muffin-tin="13.8323081134"/>
+    <atom species="S" muffin-tin="13.8323081134"/>
+    <atom species="S" muffin-tin="13.8323081134"/>
+    <atom species="S" muffin-tin="13.8323081134"/>
+    </charges>
+   <timing itertime="58.4700000000" timetot="1645.61000000" timeinit="30.0600000000" timemat="369.610000000" timefv="437.620000000" timerho="569.100000000" timepot="239.220000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="45" rms="0.129736449258873701E-02" rmslog10="-2.88693799240" fermidos="223.209697256">
+   <energies totalEnergy="-7313.74119514271842" fermiEnergy="0.287106091828594812" sum-of-eigenvalues="-4447.54133228" electronic-kinetic="7404.54166294" core-electron-kinetic="6875.88698578" Coulomb="-14398.8105427" Coulomb-potential="-11429.3726108" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5991383" Hartree="2046.61326375" Madelung="-8684.12423735"/>
+   <charges core="84.0000000000" core_leakage="0.143434116389E-02" valence="90.0000000000" interstitial="18.3648229739" totalcharge="174.000000000" muffin-tin-total="155.635177026">
+    <atom species="Cu" muffin-tin="25.7921591280"/>
+    <atom species="Cu" muffin-tin="25.7921591280"/>
+    <atom species="Fe" muffin-tin="24.3608326731"/>
+    <atom species="Fe" muffin-tin="24.3608326731"/>
+    <atom species="S" muffin-tin="13.8322983560"/>
+    <atom species="S" muffin-tin="13.8322983560"/>
+    <atom species="S" muffin-tin="13.8322983560"/>
+    <atom species="S" muffin-tin="13.8322983560"/>
+    </charges>
+   <timing itertime="58.4900000000" timetot="1682.16000000" timeinit="30.0600000000" timemat="378.010000000" timefv="447.560000000" timerho="582.000000000" timepot="244.530000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="46" rms="0.120824578019644558E-02" rmslog10="-2.91784471296" fermidos="223.210048479">
+   <energies totalEnergy="-7313.74165641555373" fermiEnergy="0.287094030297511460" sum-of-eigenvalues="-4447.53965627" electronic-kinetic="7404.53837514" core-electron-kinetic="6875.88168878" Coulomb="-14398.8076222" Coulomb-potential="-11429.3675233" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5983846" Hartree="2046.61543067" Madelung="-8684.12386053"/>
+   <charges core="84.0000000000" core_leakage="0.143430255514E-02" valence="90.0000000000" interstitial="18.3646090113" totalcharge="174.000000000" muffin-tin-total="155.635390989">
+    <atom species="Cu" muffin-tin="25.7922472590"/>
+    <atom species="Cu" muffin-tin="25.7922472590"/>
+    <atom species="Fe" muffin-tin="24.3608633772"/>
+    <atom species="Fe" muffin-tin="24.3608633772"/>
+    <atom species="S" muffin-tin="13.8322924290"/>
+    <atom species="S" muffin-tin="13.8322924290"/>
+    <atom species="S" muffin-tin="13.8322924290"/>
+    <atom species="S" muffin-tin="13.8322924290"/>
+    </charges>
+   <timing itertime="60.0300000000" timetot="1718.68000000" timeinit="30.0600000000" timemat="386.400000000" timefv="457.490000000" timerho="594.890000000" timepot="249.840000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="47" rms="0.111718937218184045E-02" rmslog10="-2.95187320439" fermidos="223.208796150">
+   <energies totalEnergy="-7313.74174123276043" fermiEnergy="0.287084277929873788" sum-of-eigenvalues="-4447.53784510" electronic-kinetic="7404.53533926" core-electron-kinetic="6875.87663056" Coulomb="-14398.8045927" Coulomb-potential="-11429.3625732" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5972758" Hartree="2046.61735128" Madelung="-8684.12330612"/>
+   <charges core="84.0000000000" core_leakage="0.143425891534E-02" valence="90.0000000000" interstitial="18.3644261128" totalcharge="174.000000000" muffin-tin-total="155.635573887">
+    <atom species="Cu" muffin-tin="25.7923136863"/>
+    <atom species="Cu" muffin-tin="25.7923136863"/>
+    <atom species="Fe" muffin-tin="24.3608989137"/>
+    <atom species="Fe" muffin-tin="24.3608989137"/>
+    <atom species="S" muffin-tin="13.8322871718"/>
+    <atom species="S" muffin-tin="13.8322871718"/>
+    <atom species="S" muffin-tin="13.8322871718"/>
+    <atom species="S" muffin-tin="13.8322871718"/>
+    </charges>
+   <timing itertime="58.5100000000" timetot="1755.23000000" timeinit="30.0600000000" timemat="394.790000000" timefv="467.420000000" timerho="607.810000000" timepot="255.150000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="48" rms="0.101713018566714896E-02" rmslog10="-2.99262345681" fermidos="223.210887592">
+   <energies totalEnergy="-7313.74088910523096" fermiEnergy="0.287076595338491058" sum-of-eigenvalues="-4447.53601049" electronic-kinetic="7404.53301020" core-electron-kinetic="6875.87159723" Coulomb="-14398.8013771" Coulomb-potential="-11429.3583647" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5950531" Hartree="2046.61834419" Madelung="-8684.12219475"/>
+   <charges core="84.0000000000" core_leakage="0.143422141608E-02" valence="90.0000000000" interstitial="18.3642842642" totalcharge="174.000000000" muffin-tin-total="155.635715736">
+    <atom species="Cu" muffin-tin="25.7923806884"/>
+    <atom species="Cu" muffin-tin="25.7923806884"/>
+    <atom species="Fe" muffin-tin="24.3608992611"/>
+    <atom species="Fe" muffin-tin="24.3608992611"/>
+    <atom species="S" muffin-tin="13.8322889592"/>
+    <atom species="S" muffin-tin="13.8322889592"/>
+    <atom species="S" muffin-tin="13.8322889592"/>
+    <atom species="S" muffin-tin="13.8322889592"/>
+    </charges>
+   <timing itertime="60.0200000000" timetot="1791.74000000" timeinit="30.0600000000" timemat="403.180000000" timefv="477.320000000" timerho="620.720000000" timepot="260.460000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="49" rms="0.931392718288894580E-03" rmslog10="-3.03086716174" fermidos="223.203024960">
+   <energies totalEnergy="-7313.74087220054207" fermiEnergy="0.287070163353942587" sum-of-eigenvalues="-4447.53400511" electronic-kinetic="7404.53004945" core-electron-kinetic="6875.86725444" Coulomb="-14398.7983275" Coulomb-potential="-11429.3533039" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5940146" Hartree="2046.62035535" Madelung="-8684.12167553"/>
+   <charges core="84.0000000000" core_leakage="0.143418416067E-02" valence="90.0000000000" interstitial="18.3641503357" totalcharge="174.000000000" muffin-tin-total="155.635849664">
+    <atom species="Cu" muffin-tin="25.7923936450"/>
+    <atom species="Cu" muffin-tin="25.7923936450"/>
+    <atom species="Fe" muffin-tin="24.3609777994"/>
+    <atom species="Fe" muffin-tin="24.3609777994"/>
+    <atom species="S" muffin-tin="13.8322766939"/>
+    <atom species="S" muffin-tin="13.8322766939"/>
+    <atom species="S" muffin-tin="13.8322766939"/>
+    <atom species="S" muffin-tin="13.8322766939"/>
+    </charges>
+   <timing itertime="58.6000000000" timetot="1828.31000000" timeinit="30.0600000000" timemat="411.570000000" timefv="487.280000000" timerho="633.630000000" timepot="265.770000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="50" rms="0.798730199714941624E-03" rmslog10="-3.09759989473" fermidos="223.222736579">
+   <energies totalEnergy="-7313.73726093911318" fermiEnergy="0.287066007508393173" sum-of-eigenvalues="-4447.53245804" electronic-kinetic="7404.52980387" core-electron-kinetic="6875.86141336" Coulomb="-14398.7945754" Coulomb-potential="-11429.3516508" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5881636" Hartree="2046.61825638" Madelung="-8684.11875002"/>
+   <charges core="84.0000000000" core_leakage="0.143413645526E-02" valence="90.0000000000" interstitial="18.3640794370" totalcharge="174.000000000" muffin-tin-total="155.635920563">
+    <atom species="Cu" muffin-tin="25.7925245565"/>
+    <atom species="Cu" muffin-tin="25.7925245565"/>
+    <atom species="Fe" muffin-tin="24.3608184900"/>
+    <atom species="Fe" muffin-tin="24.3608184900"/>
+    <atom species="S" muffin-tin="13.8323086175"/>
+    <atom species="S" muffin-tin="13.8323086175"/>
+    <atom species="S" muffin-tin="13.8323086175"/>
+    <atom species="S" muffin-tin="13.8323086175"/>
+    </charges>
+   <timing itertime="58.5400000000" timetot="1864.92000000" timeinit="30.0600000000" timemat="419.980000000" timefv="497.250000000" timerho="646.540000000" timepot="271.090000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="51" rms="0.797002929854137153E-03" rmslog10="-3.09854008210" fermidos="223.166806896">
+   <energies totalEnergy="-7313.74258025257041" fermiEnergy="0.287060014296591115" sum-of-eigenvalues="-4447.52939310" electronic-kinetic="7404.52345580" core-electron-kinetic="6875.85968563" Coulomb="-14398.7932017" Coulomb-potential="-11429.3417810" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5952858" Hartree="2046.62675239" Madelung="-8684.12231114"/>
+   <charges core="84.0000000000" core_leakage="0.143409623790E-02" valence="90.0000000000" interstitial="18.3639222378" totalcharge="174.000000000" muffin-tin-total="155.636077762">
+    <atom species="Cu" muffin-tin="25.7922726682"/>
+    <atom species="Cu" muffin-tin="25.7922726682"/>
+    <atom species="Fe" muffin-tin="24.3612888400"/>
+    <atom species="Fe" muffin-tin="24.3612888400"/>
+    <atom species="S" muffin-tin="13.8322386865"/>
+    <atom species="S" muffin-tin="13.8322386865"/>
+    <atom species="S" muffin-tin="13.8322386865"/>
+    <atom species="S" muffin-tin="13.8322386865"/>
+    </charges>
+   <timing itertime="58.5700000000" timetot="1901.48000000" timeinit="30.0600000000" timemat="428.360000000" timefv="507.180000000" timerho="659.460000000" timepot="276.420000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="52" rms="0.555713369827982038E-03" rmslog10="-3.25514915446" fermidos="223.249366869">
+   <energies totalEnergy="-7313.73182015102429" fermiEnergy="0.287060626308439371" sum-of-eigenvalues="-4447.52952829" electronic-kinetic="7404.52852760" core-electron-kinetic="6875.85326050" Coulomb="-14398.7879983" Coulomb-potential="-11429.3476315" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5790287" Hartree="2046.61569858" Madelung="-8684.11418255"/>
+   <charges core="84.0000000000" core_leakage="0.143405093569E-02" valence="90.0000000000" interstitial="18.3639511970" totalcharge="174.000000000" muffin-tin-total="155.636048803">
+    <atom species="Cu" muffin-tin="25.7927296737"/>
+    <atom species="Cu" muffin-tin="25.7927296737"/>
+    <atom species="Fe" muffin-tin="24.3605955864"/>
+    <atom species="Fe" muffin-tin="24.3605955864"/>
+    <atom species="S" muffin-tin="13.8323495707"/>
+    <atom species="S" muffin-tin="13.8323495707"/>
+    <atom species="S" muffin-tin="13.8323495707"/>
+    <atom species="S" muffin-tin="13.8323495707"/>
+    </charges>
+   <timing itertime="60.9500000000" timetot="1938.08000000" timeinit="30.0600000000" timemat="436.770000000" timefv="517.120000000" timerho="672.370000000" timepot="281.760000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="53" rms="0.585109556857361978E-03" rmslog10="-3.23276280830" fermidos="223.180758461">
+   <energies totalEnergy="-7313.73932067198348" fermiEnergy="0.287054817945678220" sum-of-eigenvalues="-4447.52691962" electronic-kinetic="7404.52079394" core-electron-kinetic="6875.85077233" Coulomb="-14398.7873381" Coulomb-potential="-11429.3367235" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5886161" Hartree="2046.62594629" Madelung="-8684.11897629"/>
+   <charges core="84.0000000000" core_leakage="0.143401435076E-02" valence="90.0000000000" interstitial="18.3637727696" totalcharge="174.000000000" muffin-tin-total="155.636227230">
+    <atom species="Cu" muffin-tin="25.7924179564"/>
+    <atom species="Cu" muffin-tin="25.7924179564"/>
+    <atom species="Fe" muffin-tin="24.3611687326"/>
+    <atom species="Fe" muffin-tin="24.3611687326"/>
+    <atom species="S" muffin-tin="13.8322634631"/>
+    <atom species="S" muffin-tin="13.8322634631"/>
+    <atom species="S" muffin-tin="13.8322634631"/>
+    <atom species="S" muffin-tin="13.8322634631"/>
+    </charges>
+   <timing itertime="60.1500000000" timetot="1974.67000000" timeinit="30.0600000000" timemat="445.180000000" timefv="527.070000000" timerho="685.290000000" timepot="287.070000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="54" rms="0.466014170019215829E-03" rmslog10="-3.33160087759" fermidos="223.194953292">
+   <energies totalEnergy="-7313.73674537322131" fermiEnergy="0.287053117788053591" sum-of-eigenvalues="-4447.52575275" electronic-kinetic="7404.52027360" core-electron-kinetic="6875.84708808" Coulomb="-14398.7843128" Coulomb-potential="-11429.3351301" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5841589" Hartree="2046.62451439" Madelung="-8684.11674769"/>
+   <charges core="84.0000000000" core_leakage="0.143397352778E-02" valence="90.0000000000" interstitial="18.3637144900" totalcharge="174.000000000" muffin-tin-total="155.636285510">
+    <atom species="Cu" muffin-tin="25.7925258905"/>
+    <atom species="Cu" muffin-tin="25.7925258905"/>
+    <atom species="Fe" muffin-tin="24.3610472379"/>
+    <atom species="Fe" muffin-tin="24.3610472379"/>
+    <atom species="S" muffin-tin="13.8322848133"/>
+    <atom species="S" muffin-tin="13.8322848133"/>
+    <atom species="S" muffin-tin="13.8322848133"/>
+    <atom species="S" muffin-tin="13.8322848133"/>
+    </charges>
+   <timing itertime="58.5800000000" timetot="2011.18000000" timeinit="30.0600000000" timemat="453.580000000" timefv="536.980000000" timerho="698.180000000" timepot="292.380000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="55" rms="0.387522014041374733E-03" rmslog10="-3.41170362140" fermidos="223.192338994">
+   <energies totalEnergy="-7313.73630010030411" fermiEnergy="0.287050855126929516" sum-of-eigenvalues="-4447.52456340" electronic-kinetic="7404.51829659" core-electron-kinetic="6875.84379326" Coulomb="-14398.7818706" Coulomb-potential="-11429.3319379" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5824668" Hartree="2046.62526443" Madelung="-8684.11590163"/>
+   <charges core="84.0000000000" core_leakage="0.143394378364E-02" valence="90.0000000000" interstitial="18.3636432787" totalcharge="174.000000000" muffin-tin-total="155.636356721">
+    <atom species="Cu" muffin-tin="25.7925410121"/>
+    <atom species="Cu" muffin-tin="25.7925410121"/>
+    <atom species="Fe" muffin-tin="24.3610656169"/>
+    <atom species="Fe" muffin-tin="24.3610656169"/>
+    <atom species="S" muffin-tin="13.8322858658"/>
+    <atom species="S" muffin-tin="13.8322858658"/>
+    <atom species="S" muffin-tin="13.8322858658"/>
+    <atom species="S" muffin-tin="13.8322858658"/>
+    </charges>
+   <timing itertime="58.5700000000" timetot="2047.72000000" timeinit="30.0600000000" timemat="461.970000000" timefv="546.910000000" timerho="711.090000000" timepot="297.690000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="56" rms="0.316682983559775334E-03" rmslog10="-3.49937527210" fermidos="223.189379628">
+   <energies totalEnergy="-7313.73580685245634" fermiEnergy="0.287048918377810103" sum-of-eigenvalues="-4447.52342186" electronic-kinetic="7404.51647307" core-electron-kinetic="6875.84073290" Coulomb="-14398.7795386" Coulomb-potential="-11429.3289531" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5807876" Hartree="2046.62591724" Madelung="-8684.11506203"/>
+   <charges core="84.0000000000" core_leakage="0.143390738289E-02" valence="90.0000000000" interstitial="18.3635862372" totalcharge="174.000000000" muffin-tin-total="155.636413763">
+    <atom species="Cu" muffin-tin="25.7925457046"/>
+    <atom species="Cu" muffin-tin="25.7925457046"/>
+    <atom species="Fe" muffin-tin="24.3610863115"/>
+    <atom species="Fe" muffin-tin="24.3610863115"/>
+    <atom species="S" muffin-tin="13.8322874326"/>
+    <atom species="S" muffin-tin="13.8322874326"/>
+    <atom species="S" muffin-tin="13.8322874326"/>
+    <atom species="S" muffin-tin="13.8322874326"/>
+    </charges>
+   <timing itertime="58.9700000000" timetot="2084.27000000" timeinit="30.0600000000" timemat="470.370000000" timefv="556.830000000" timerho="724.010000000" timepot="303.000000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="57" rms="0.253424586675032155E-03" rmslog10="-3.59615125315" fermidos="223.186978003">
+   <energies totalEnergy="-7313.73527430743343" fermiEnergy="0.287047361775497056" sum-of-eigenvalues="-4447.52235253" electronic-kinetic="7404.51489042" core-electron-kinetic="6875.83793095" Coulomb="-14398.7774128" Coulomb-potential="-11429.3262875" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5792017" Hartree="2046.62645709" Madelung="-8684.11426908"/>
+   <charges core="84.0000000000" core_leakage="0.143388131278E-02" valence="90.0000000000" interstitial="18.3635435073" totalcharge="174.000000000" muffin-tin-total="155.636456493">
+    <atom species="Cu" muffin-tin="25.7925460924"/>
+    <atom species="Cu" muffin-tin="25.7925460924"/>
+    <atom species="Fe" muffin-tin="24.3611020284"/>
+    <atom species="Fe" muffin-tin="24.3611020284"/>
+    <atom species="S" muffin-tin="13.8322900628"/>
+    <atom species="S" muffin-tin="13.8322900628"/>
+    <atom species="S" muffin-tin="13.8322900628"/>
+    <atom species="S" muffin-tin="13.8322900628"/>
+    </charges>
+   <timing itertime="58.5500000000" timetot="2120.79000000" timeinit="30.0600000000" timemat="478.760000000" timefv="566.750000000" timerho="736.900000000" timepot="308.320000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="58" rms="0.197068278839940074E-03" rmslog10="-3.70538327645" fermidos="223.185406489">
+   <energies totalEnergy="-7313.73448695377192" fermiEnergy="0.287046152441472524" sum-of-eigenvalues="-4447.52137554" electronic-kinetic="7404.51352546" core-electron-kinetic="6875.83544100" Coulomb="-14398.7752691" Coulomb-potential="-11429.3239573" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5772445" Hartree="2046.62664361" Madelung="-8684.11329046"/>
+   <charges core="84.0000000000" core_leakage="0.143385257756E-02" valence="90.0000000000" interstitial="18.3635158989" totalcharge="174.000000000" muffin-tin-total="155.636484101">
+    <atom species="Cu" muffin-tin="25.7925442764"/>
+    <atom species="Cu" muffin-tin="25.7925442764"/>
+    <atom species="Fe" muffin-tin="24.3611107909"/>
+    <atom species="Fe" muffin-tin="24.3611107909"/>
+    <atom species="S" muffin-tin="13.8322934916"/>
+    <atom species="S" muffin-tin="13.8322934916"/>
+    <atom species="S" muffin-tin="13.8322934916"/>
+    <atom species="S" muffin-tin="13.8322934916"/>
+    </charges>
+   <timing itertime="58.6300000000" timetot="2157.37000000" timeinit="30.0600000000" timemat="487.170000000" timefv="576.700000000" timerho="749.810000000" timepot="313.630000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="59" rms="0.149357472276196259E-03" rmslog10="-3.82577304499" fermidos="223.184133545">
+   <energies totalEnergy="-7313.73375524700259" fermiEnergy="0.287045255194161519" sum-of-eigenvalues="-4447.52053684" electronic-kinetic="7404.51232720" core-electron-kinetic="6875.83328349" Coulomb="-14398.7733503" Coulomb-potential="-11429.3219354" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5754287" Hartree="2046.62674669" Madelung="-8684.11238260"/>
+   <charges core="84.0000000000" core_leakage="0.143384062440E-02" valence="90.0000000000" interstitial="18.3634973134" totalcharge="174.000000000" muffin-tin-total="155.636502687">
+    <atom species="Cu" muffin-tin="25.7925409066"/>
+    <atom species="Cu" muffin-tin="25.7925409066"/>
+    <atom species="Fe" muffin-tin="24.3611171694"/>
+    <atom species="Fe" muffin-tin="24.3611171694"/>
+    <atom species="S" muffin-tin="13.8322966336"/>
+    <atom species="S" muffin-tin="13.8322966336"/>
+    <atom species="S" muffin-tin="13.8322966336"/>
+    <atom species="S" muffin-tin="13.8322966336"/>
+    </charges>
+   <timing itertime="58.6900000000" timetot="2193.92000000" timeinit="30.0600000000" timemat="495.580000000" timefv="586.630000000" timerho="762.710000000" timepot="318.940000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="60" rms="0.110592493031907416E-03" rmslog10="-3.95627435174" fermidos="223.183535865">
+   <energies totalEnergy="-7313.73311717155229" fermiEnergy="0.287044637625440635" sum-of-eigenvalues="-4447.51985049" electronic-kinetic="7404.51137922" core-electron-kinetic="6875.83145418" Coulomb="-14398.7717754" Coulomb-potential="-11429.3203161" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5738983" Hartree="2046.62679111" Madelung="-8684.11161738"/>
+   <charges core="84.0000000000" core_leakage="0.143381455240E-02" valence="90.0000000000" interstitial="18.3634881161" totalcharge="174.000000000" muffin-tin-total="155.636511884">
+    <atom species="Cu" muffin-tin="25.7925377360"/>
+    <atom species="Cu" muffin-tin="25.7925377360"/>
+    <atom species="Fe" muffin-tin="24.3611188052"/>
+    <atom species="Fe" muffin-tin="24.3611188052"/>
+    <atom species="S" muffin-tin="13.8322997004"/>
+    <atom species="S" muffin-tin="13.8322997004"/>
+    <atom species="S" muffin-tin="13.8322997004"/>
+    <atom species="S" muffin-tin="13.8322997004"/>
+    </charges>
+   <timing itertime="58.7100000000" timetot="2230.51000000" timeinit="30.0600000000" timemat="503.980000000" timefv="596.570000000" timerho="775.620000000" timepot="324.280000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="61" rms="0.795257060189719995E-04" rmslog10="-4.09949246659" fermidos="223.183457801">
+   <energies totalEnergy="-7313.73246992451186" fermiEnergy="0.287044264600186616" sum-of-eigenvalues="-4447.51931678" electronic-kinetic="7404.51057760" core-electron-kinetic="6875.82996515" Coulomb="-14398.7703453" Coulomb-potential="-11429.3190057" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5723484" Hartree="2046.62667132" Madelung="-8684.11084240"/>
+   <charges core="84.0000000000" core_leakage="0.143380466508E-02" valence="90.0000000000" interstitial="18.3634874916" totalcharge="174.000000000" muffin-tin-total="155.636512508">
+    <atom species="Cu" muffin-tin="25.7925347683"/>
+    <atom species="Cu" muffin-tin="25.7925347683"/>
+    <atom species="Fe" muffin-tin="24.3611163845"/>
+    <atom species="Fe" muffin-tin="24.3611163845"/>
+    <atom species="S" muffin-tin="13.8323025507"/>
+    <atom species="S" muffin-tin="13.8323025507"/>
+    <atom species="S" muffin-tin="13.8323025507"/>
+    <atom species="S" muffin-tin="13.8323025507"/>
+    </charges>
+   <timing itertime="58.7100000000" timetot="2267.06000000" timeinit="30.0600000000" timemat="512.390000000" timefv="606.490000000" timerho="788.530000000" timepot="329.590000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="62" rms="0.573635058009788859E-04" rmslog10="-4.24136431439" fermidos="223.183605168">
+   <energies totalEnergy="-7313.73204805719797" fermiEnergy="0.287044074507335545" sum-of-eigenvalues="-4447.51894873" electronic-kinetic="7404.50994859" core-electron-kinetic="6875.82878641" Coulomb="-14398.7693065" Coulomb-potential="-11429.3180248" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5712517" Hartree="2046.62661345" Madelung="-8684.11029408"/>
+   <charges core="84.0000000000" core_leakage="0.143379990949E-02" valence="90.0000000000" interstitial="18.3634911017" totalcharge="174.000000000" muffin-tin-total="155.636508898">
+    <atom species="Cu" muffin-tin="25.7925315558"/>
+    <atom species="Cu" muffin-tin="25.7925315558"/>
+    <atom species="Fe" muffin-tin="24.3611133316"/>
+    <atom species="Fe" muffin-tin="24.3611133316"/>
+    <atom species="S" muffin-tin="13.8323047809"/>
+    <atom species="S" muffin-tin="13.8323047809"/>
+    <atom species="S" muffin-tin="13.8323047809"/>
+    <atom species="S" muffin-tin="13.8323047809"/>
+    </charges>
+   <timing itertime="58.7200000000" timetot="2303.60000000" timeinit="30.0600000000" timemat="520.770000000" timefv="616.420000000" timerho="801.420000000" timepot="334.930000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="63" rms="0.413452518263105146E-04" rmslog10="-4.38357435852" fermidos="223.184360067">
+   <energies totalEnergy="-7313.73162270699413" fermiEnergy="0.287044083659168781" sum-of-eigenvalues="-4447.51871794" electronic-kinetic="7404.50946549" core-electron-kinetic="6875.82790020" Coulomb="-14398.7684157" Coulomb-potential="-11429.3173345" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5701606" Hartree="2046.62641305" Madelung="-8684.10974851"/>
+   <charges core="84.0000000000" core_leakage="0.143379077721E-02" valence="90.0000000000" interstitial="18.3635002800" totalcharge="174.000000000" muffin-tin-total="155.636499720">
+    <atom species="Cu" muffin-tin="25.7925301165"/>
+    <atom species="Cu" muffin-tin="25.7925301165"/>
+    <atom species="Fe" muffin-tin="24.3611055236"/>
+    <atom species="Fe" muffin-tin="24.3611055236"/>
+    <atom species="S" muffin-tin="13.8323071099"/>
+    <atom species="S" muffin-tin="13.8323071099"/>
+    <atom species="S" muffin-tin="13.8323071099"/>
+    <atom species="S" muffin-tin="13.8323071099"/>
+    </charges>
+   <timing itertime="58.8100000000" timetot="2340.17000000" timeinit="30.0600000000" timemat="529.180000000" timefv="626.360000000" timerho="814.310000000" timepot="340.260000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="64" rms="0.318935575484818309E-04" rmslog10="-4.49629703493" fermidos="223.184959495">
+   <energies totalEnergy="-7313.73144209209204" fermiEnergy="0.287044171968092454" sum-of-eigenvalues="-4447.51862636" electronic-kinetic="7404.50909724" core-electron-kinetic="6875.82725411" Coulomb="-14398.7678763" Coulomb-potential="-11429.3168871" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5695290" Hartree="2046.62632093" Madelung="-8684.10943272"/>
+   <charges core="84.0000000000" core_leakage="0.143378411853E-02" valence="90.0000000000" interstitial="18.3635121322" totalcharge="174.000000000" muffin-tin-total="155.636487868">
+    <atom species="Cu" muffin-tin="25.7925272786"/>
+    <atom species="Cu" muffin-tin="25.7925272786"/>
+    <atom species="Fe" muffin-tin="24.3610997911"/>
+    <atom species="Fe" muffin-tin="24.3610997911"/>
+    <atom species="S" muffin-tin="13.8323084321"/>
+    <atom species="S" muffin-tin="13.8323084321"/>
+    <atom species="S" muffin-tin="13.8323084321"/>
+    <atom species="S" muffin-tin="13.8323084321"/>
+    </charges>
+   <timing itertime="59.0900000000" timetot="2376.75000000" timeinit="30.0600000000" timemat="537.600000000" timefv="636.300000000" timerho="827.200000000" timepot="345.590000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="65" rms="0.254423557125033078E-04" rmslog10="-4.59444267975" fermidos="223.186344582">
+   <energies totalEnergy="-7313.73118817468003" fermiEnergy="0.287044418438048399" sum-of-eigenvalues="-4447.51862847" electronic-kinetic="7404.50884467" core-electron-kinetic="6875.82682466" Coulomb="-14398.7673865" Coulomb-potential="-11429.3166588" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5687777" Hartree="2046.62605946" Madelung="-8684.10905709"/>
+   <charges core="84.0000000000" core_leakage="0.143378211119E-02" valence="90.0000000000" interstitial="18.3635270555" totalcharge="174.000000000" muffin-tin-total="155.636472945">
+    <atom species="Cu" muffin-tin="25.7925277514"/>
+    <atom species="Cu" muffin-tin="25.7925277514"/>
+    <atom species="Fe" muffin-tin="24.3610880419"/>
+    <atom species="Fe" muffin-tin="24.3610880419"/>
+    <atom species="S" muffin-tin="13.8323103395"/>
+    <atom species="S" muffin-tin="13.8323103395"/>
+    <atom species="S" muffin-tin="13.8323103395"/>
+    <atom species="S" muffin-tin="13.8323103395"/>
+    </charges>
+   <timing itertime="58.9900000000" timetot="2413.31000000" timeinit="30.0600000000" timemat="546.000000000" timefv="646.230000000" timerho="840.110000000" timepot="350.910000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="66" rms="0.217304577281296440E-04" rmslog10="-4.66293112565" fermidos="223.186752978">
+   <energies totalEnergy="-7313.73124100816767" fermiEnergy="0.287044635724753250" sum-of-eigenvalues="-4447.51872954" electronic-kinetic="7404.50859437" core-electron-kinetic="6875.82654581" Coulomb="-14398.7671932" Coulomb-potential="-11429.3165151" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5685349" Hartree="2046.62600989" Madelung="-8684.10893566"/>
+   <charges core="84.0000000000" core_leakage="0.143377825694E-02" valence="90.0000000000" interstitial="18.3635405003" totalcharge="174.000000000" muffin-tin-total="155.636459500">
+    <atom species="Cu" muffin-tin="25.7925239063"/>
+    <atom species="Cu" muffin-tin="25.7925239063"/>
+    <atom species="Fe" muffin-tin="24.3610849076"/>
+    <atom species="Fe" muffin-tin="24.3610849076"/>
+    <atom species="S" muffin-tin="13.8323104680"/>
+    <atom species="S" muffin-tin="13.8323104680"/>
+    <atom species="S" muffin-tin="13.8323104680"/>
+    <atom species="S" muffin-tin="13.8323104680"/>
+    </charges>
+   <timing itertime="58.8400000000" timetot="2449.90000000" timeinit="30.0600000000" timemat="554.410000000" timefv="656.170000000" timerho="853.020000000" timepot="356.240000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="67" rms="0.186219447933202087E-04" rmslog10="-4.72997496520" fermidos="223.188942789">
+   <energies totalEnergy="-7313.73103094144426" fermiEnergy="0.287045044341332822" sum-of-eigenvalues="-4447.51886174" electronic-kinetic="7404.50857206" core-electron-kinetic="6875.82636296" Coulomb="-14398.7669779" Coulomb-potential="-11429.3166476" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5679718" Hartree="2046.62566208" Madelung="-8684.10865412"/>
+   <charges core="84.0000000000" core_leakage="0.143377703162E-02" valence="90.0000000000" interstitial="18.3635590097" totalcharge="174.000000000" muffin-tin-total="155.636440990">
+    <atom species="Cu" muffin-tin="25.7925281508"/>
+    <atom species="Cu" muffin-tin="25.7925281508"/>
+    <atom species="Fe" muffin-tin="24.3610664893"/>
+    <atom species="Fe" muffin-tin="24.3610664893"/>
+    <atom species="S" muffin-tin="13.8323129275"/>
+    <atom species="S" muffin-tin="13.8323129275"/>
+    <atom species="S" muffin-tin="13.8323129275"/>
+    <atom species="S" muffin-tin="13.8323129275"/>
+    </charges>
+   <timing itertime="60.3800000000" timetot="2486.46000000" timeinit="30.0600000000" timemat="562.790000000" timefv="666.130000000" timerho="865.910000000" timepot="361.570000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="68" rms="0.158948740330900212E-04" rmslog10="-4.79874290952" fermidos="223.187843893">
+   <energies totalEnergy="-7313.73142605826251" fermiEnergy="0.287045195238700424" sum-of-eigenvalues="-4447.51902744" electronic-kinetic="7404.50824221" core-electron-kinetic="6875.82622860" Coulomb="-14398.7670327" Coulomb-potential="-11429.3164695" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5682595" Hartree="2046.62589496" Madelung="-8684.10879795"/>
+   <charges core="84.0000000000" core_leakage="0.143377824764E-02" valence="90.0000000000" interstitial="18.3635669028" totalcharge="174.000000000" muffin-tin-total="155.636433097">
+    <atom species="Cu" muffin-tin="25.7925189975"/>
+    <atom species="Cu" muffin-tin="25.7925189975"/>
+    <atom species="Fe" muffin-tin="24.3610768751"/>
+    <atom species="Fe" muffin-tin="24.3610768751"/>
+    <atom species="S" muffin-tin="13.8323103380"/>
+    <atom species="S" muffin-tin="13.8323103380"/>
+    <atom species="S" muffin-tin="13.8323103380"/>
+    <atom species="S" muffin-tin="13.8323103380"/>
+    </charges>
+   <timing itertime="60.3600000000" timetot="2523.04000000" timeinit="30.0600000000" timemat="571.200000000" timefv="676.060000000" timerho="878.820000000" timepot="366.900000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="69" rms="0.157355821538976835E-04" rmslog10="-4.80311718529" fermidos="223.193222446">
+   <energies totalEnergy="-7313.73063549566996" fermiEnergy="0.287045931909698737" sum-of-eigenvalues="-4447.51916013" electronic-kinetic="7404.50866422" core-electron-kinetic="6875.82615039" Coulomb="-14398.7667083" Coulomb-potential="-11429.3170827" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669975" Hartree="2046.62495740" Madelung="-8684.10816695"/>
+   <charges core="84.0000000000" core_leakage="0.143377664722E-02" valence="90.0000000000" interstitial="18.3635964949" totalcharge="174.000000000" muffin-tin-total="155.636403505">
+    <atom species="Cu" muffin-tin="25.7925358524"/>
+    <atom species="Cu" muffin-tin="25.7925358524"/>
+    <atom species="Fe" muffin-tin="24.3610313461"/>
+    <atom species="Fe" muffin-tin="24.3610313461"/>
+    <atom species="S" muffin-tin="13.8323172770"/>
+    <atom species="S" muffin-tin="13.8323172770"/>
+    <atom species="S" muffin-tin="13.8323172770"/>
+    <atom species="S" muffin-tin="13.8323172770"/>
+    </charges>
+   <timing itertime="60.4700000000" timetot="2559.60000000" timeinit="30.0600000000" timemat="579.630000000" timefv="685.970000000" timerho="891.710000000" timepot="372.230000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="70" rms="0.131906149361436360E-04" rmslog10="-4.87973495751" fermidos="223.186493957">
+   <energies totalEnergy="-7313.73203487976207" fermiEnergy="0.287045487165912105" sum-of-eigenvalues="-4447.51932923" electronic-kinetic="7404.50764394" core-electron-kinetic="6875.82592514" Coulomb="-14398.7670306" Coulomb-potential="-11429.3161562" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5685685" Hartree="2046.62620616" Madelung="-8684.10895249"/>
+   <charges core="84.0000000000" core_leakage="0.143377775798E-02" valence="90.0000000000" interstitial="18.3635807735" totalcharge="174.000000000" muffin-tin-total="155.636419226">
+    <atom species="Cu" muffin-tin="25.7925089573"/>
+    <atom species="Cu" muffin-tin="25.7925089573"/>
+    <atom species="Fe" muffin-tin="24.3610905165"/>
+    <atom species="Fe" muffin-tin="24.3610905165"/>
+    <atom species="S" muffin-tin="13.8323050697"/>
+    <atom species="S" muffin-tin="13.8323050697"/>
+    <atom species="S" muffin-tin="13.8323050697"/>
+    <atom species="S" muffin-tin="13.8323050697"/>
+    </charges>
+   <timing itertime="58.8500000000" timetot="2596.17000000" timeinit="30.0600000000" timemat="588.060000000" timefv="695.890000000" timerho="904.600000000" timepot="377.560000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="71" rms="0.162677314090516496E-04" rmslog10="-4.78867300670" fermidos="223.196611492">
+   <energies totalEnergy="-7313.73025801945823" fermiEnergy="0.287046687164652536" sum-of-eigenvalues="-4447.51938876" electronic-kinetic="7404.50881196" core-electron-kinetic="6875.82601752" Coulomb="-14398.7665081" Coulomb-potential="-11429.3174981" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5661816" Hartree="2046.62434177" Madelung="-8684.10775902"/>
+   <charges core="84.0000000000" core_leakage="0.143377466732E-02" valence="90.0000000000" interstitial="18.3636287280" totalcharge="174.000000000" muffin-tin-total="155.636371272">
+    <atom species="Cu" muffin-tin="25.7925402363"/>
+    <atom species="Cu" muffin-tin="25.7925402363"/>
+    <atom species="Fe" muffin-tin="24.3610031903"/>
+    <atom species="Fe" muffin-tin="24.3610031903"/>
+    <atom species="S" muffin-tin="13.8323211047"/>
+    <atom species="S" muffin-tin="13.8323211047"/>
+    <atom species="S" muffin-tin="13.8323211047"/>
+    <atom species="S" muffin-tin="13.8323211047"/>
+    </charges>
+   <timing itertime="60.1300000000" timetot="2632.69000000" timeinit="30.0600000000" timemat="596.480000000" timefv="705.810000000" timerho="917.490000000" timepot="382.850000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="72" rms="0.756779856917388992E-05" rmslog10="-5.12103043600" fermidos="223.190895856">
+   <energies totalEnergy="-7313.73151632380086" fermiEnergy="0.287046150500193553" sum-of-eigenvalues="-4447.51953177" electronic-kinetic="7404.50792085" core-electron-kinetic="6875.82582327" Coulomb="-14398.7668224" Coulomb-potential="-11429.3166800" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5676285" Hartree="2046.62547423" Madelung="-8684.10848245"/>
+   <charges core="84.0000000000" core_leakage="0.143377365104E-02" valence="90.0000000000" interstitial="18.3636086141" totalcharge="174.000000000" muffin-tin-total="155.636391386">
+    <atom species="Cu" muffin-tin="25.7925202859"/>
+    <atom species="Cu" muffin-tin="25.7925202859"/>
+    <atom species="Fe" muffin-tin="24.3610534712"/>
+    <atom species="Fe" muffin-tin="24.3610534712"/>
+    <atom species="S" muffin-tin="13.8323109679"/>
+    <atom species="S" muffin-tin="13.8323109679"/>
+    <atom species="S" muffin-tin="13.8323109679"/>
+    <atom species="S" muffin-tin="13.8323109679"/>
+    </charges>
+   <timing itertime="58.8900000000" timetot="2669.24000000" timeinit="30.0600000000" timemat="604.890000000" timefv="715.740000000" timerho="930.390000000" timepot="388.160000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="73" rms="0.115101005350207854E-04" rmslog10="-4.93892088301" fermidos="223.195688328">
+   <energies totalEnergy="-7313.73067915645152" fermiEnergy="0.287046844785215860" sum-of-eigenvalues="-4447.51958197" electronic-kinetic="7404.50848281" core-electron-kinetic="6875.82586968" Coulomb="-14398.7665894" Coulomb-potential="-11429.3173480" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5664944" Hartree="2046.62457321" Madelung="-8684.10791541"/>
+   <charges core="84.0000000000" core_leakage="0.143377240046E-02" valence="90.0000000000" interstitial="18.3636365082" totalcharge="174.000000000" muffin-tin-total="155.636363492">
+    <atom species="Cu" muffin-tin="25.7925333859"/>
+    <atom species="Cu" muffin-tin="25.7925333859"/>
+    <atom species="Fe" muffin-tin="24.3610122609"/>
+    <atom species="Fe" muffin-tin="24.3610122609"/>
+    <atom species="S" muffin-tin="13.8323180495"/>
+    <atom species="S" muffin-tin="13.8323180495"/>
+    <atom species="S" muffin-tin="13.8323180495"/>
+    <atom species="S" muffin-tin="13.8323180495"/>
+    </charges>
+   <timing itertime="58.9400000000" timetot="2705.80000000" timeinit="30.0600000000" timemat="613.300000000" timefv="725.670000000" timerho="943.310000000" timepot="393.460000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="74" rms="0.720359967445525081E-05" rmslog10="-5.14245043022" fermidos="223.193698371">
+   <energies totalEnergy="-7313.73113775176807" fermiEnergy="0.287046767781706902" sum-of-eigenvalues="-4447.51967119" electronic-kinetic="7404.50812620" core-electron-kinetic="6875.82576634" Coulomb="-14398.7666747" Coulomb-potential="-11429.3170585" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669545" Hartree="2046.62494800" Madelung="-8684.10814548"/>
+   <charges core="84.0000000000" core_leakage="0.143377254047E-02" valence="90.0000000000" interstitial="18.3636330758" totalcharge="174.000000000" muffin-tin-total="155.636366924">
+    <atom species="Cu" muffin-tin="25.7925265521"/>
+    <atom species="Cu" muffin-tin="25.7925265521"/>
+    <atom species="Fe" muffin-tin="24.3610294493"/>
+    <atom species="Fe" muffin-tin="24.3610294493"/>
+    <atom species="S" muffin-tin="13.8323137304"/>
+    <atom species="S" muffin-tin="13.8323137304"/>
+    <atom species="S" muffin-tin="13.8323137304"/>
+    <atom species="S" muffin-tin="13.8323137304"/>
+    </charges>
+   <timing itertime="59.1900000000" timetot="2742.35000000" timeinit="30.0600000000" timemat="621.710000000" timefv="735.590000000" timerho="956.220000000" timepot="398.770000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="75" rms="0.100515035168265770E-04" rmslog10="-4.99776897106" fermidos="223.196132491">
+   <energies totalEnergy="-7313.73071594292924" fermiEnergy="0.287047176547534533" sum-of-eigenvalues="-4447.51971696" electronic-kinetic="7404.50840659" core-electron-kinetic="6875.82578677" Coulomb="-14398.7665562" Coulomb-potential="-11429.3174149" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5663610" Hartree="2046.62447302" Madelung="-8684.10784871"/>
+   <charges core="84.0000000000" core_leakage="0.143377299895E-02" valence="90.0000000000" interstitial="18.3636513090" totalcharge="174.000000000" muffin-tin-total="155.636348691">
+    <atom species="Cu" muffin-tin="25.7925321657"/>
+    <atom species="Cu" muffin-tin="25.7925321657"/>
+    <atom species="Fe" muffin-tin="24.3610087722"/>
+    <atom species="Fe" muffin-tin="24.3610087722"/>
+    <atom species="S" muffin-tin="13.8323167038"/>
+    <atom species="S" muffin-tin="13.8323167038"/>
+    <atom species="S" muffin-tin="13.8323167038"/>
+    <atom species="S" muffin-tin="13.8323167038"/>
+    </charges>
+   <timing itertime="60.1600000000" timetot="2778.93000000" timeinit="30.0600000000" timemat="630.110000000" timefv="745.540000000" timerho="969.140000000" timepot="404.080000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="76" rms="0.655299145747507835E-05" rmslog10="-5.18356039819" fermidos="223.194660216">
+   <energies totalEnergy="-7313.73103117860137" fermiEnergy="0.287047140551234314" sum-of-eigenvalues="-4447.51978384" electronic-kinetic="7404.50814595" core-electron-kinetic="6875.82572377" Coulomb="-14398.7665999" Coulomb-potential="-11429.3172068" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5666566" Hartree="2046.62472491" Madelung="-8684.10799654"/>
+   <charges core="84.0000000000" core_leakage="0.143377441944E-02" valence="90.0000000000" interstitial="18.3636497193" totalcharge="174.000000000" muffin-tin-total="155.636350281">
+    <atom species="Cu" muffin-tin="25.7925266579"/>
+    <atom species="Cu" muffin-tin="25.7925266579"/>
+    <atom species="Fe" muffin-tin="24.3610221284"/>
+    <atom species="Fe" muffin-tin="24.3610221284"/>
+    <atom species="S" muffin-tin="13.8323131770"/>
+    <atom species="S" muffin-tin="13.8323131770"/>
+    <atom species="S" muffin-tin="13.8323131770"/>
+    <atom species="S" muffin-tin="13.8323131770"/>
+    </charges>
+   <timing itertime="60.4200000000" timetot="2815.51000000" timeinit="30.0600000000" timemat="638.530000000" timefv="755.470000000" timerho="982.050000000" timepot="409.400000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="77" rms="0.950215220381368674E-05" rmslog10="-5.02217801741" fermidos="223.196813260">
+   <energies totalEnergy="-7313.73063785087834" fermiEnergy="0.287047543467487731" sum-of-eigenvalues="-4447.51981447" electronic-kinetic="7404.50842230" core-electron-kinetic="6875.82576230" Coulomb="-14398.7665035" Coulomb-potential="-11429.3175410" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5661296" Hartree="2046.62429431" Madelung="-8684.10773301"/>
+   <charges core="84.0000000000" core_leakage="0.143376987387E-02" valence="90.0000000000" interstitial="18.3636642515" totalcharge="174.000000000" muffin-tin-total="155.636335749">
+    <atom species="Cu" muffin-tin="25.7925320832"/>
+    <atom species="Cu" muffin-tin="25.7925320832"/>
+    <atom species="Fe" muffin-tin="24.3610034388"/>
+    <atom species="Fe" muffin-tin="24.3610034388"/>
+    <atom species="S" muffin-tin="13.8323161761"/>
+    <atom species="S" muffin-tin="13.8323161761"/>
+    <atom species="S" muffin-tin="13.8323161761"/>
+    <atom species="S" muffin-tin="13.8323161761"/>
+    </charges>
+   <timing itertime="59.0300000000" timetot="2852.11000000" timeinit="30.0600000000" timemat="646.930000000" timefv="765.420000000" timerho="994.960000000" timepot="414.740000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="78" rms="0.604912703604710737E-05" rmslog10="-5.21830729490" fermidos="223.195329468">
+   <energies totalEnergy="-7313.73093848037115" fermiEnergy="0.287047484830088018" sum-of-eigenvalues="-4447.51987228" electronic-kinetic="7404.50820498" core-electron-kinetic="6875.82573928" Coulomb="-14398.7665762" Coulomb-potential="-11429.3173674" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5664486" Hartree="2046.62454058" Madelung="-8684.10789251"/>
+   <charges core="84.0000000000" core_leakage="0.143377541313E-02" valence="90.0000000000" interstitial="18.3636633622" totalcharge="174.000000000" muffin-tin-total="155.636336638">
+    <atom species="Cu" muffin-tin="25.7925262670"/>
+    <atom species="Cu" muffin-tin="25.7925262670"/>
+    <atom species="Fe" muffin-tin="24.3610165802"/>
+    <atom species="Fe" muffin-tin="24.3610165802"/>
+    <atom species="S" muffin-tin="13.8323127359"/>
+    <atom species="S" muffin-tin="13.8323127359"/>
+    <atom species="S" muffin-tin="13.8323127359"/>
+    <atom species="S" muffin-tin="13.8323127359"/>
+    </charges>
+   <timing itertime="60.5200000000" timetot="2888.72000000" timeinit="30.0600000000" timemat="655.340000000" timefv="775.380000000" timerho="1007.86000000" timepot="420.080000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="79" rms="0.798910745729358981E-05" rmslog10="-5.09750173733" fermidos="223.196911925">
+   <energies totalEnergy="-7313.73066231583289" fermiEnergy="0.287047767972072654" sum-of-eigenvalues="-4447.51989620" electronic-kinetic="7404.50839078" core-electron-kinetic="6875.82576495" Coulomb="-14398.7665007" Coulomb-potential="-11429.3175968" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5660682" Hartree="2046.62423568" Madelung="-8684.10770231"/>
+   <charges core="84.0000000000" core_leakage="0.143376802413E-02" valence="90.0000000000" interstitial="18.3636738221" totalcharge="174.000000000" muffin-tin-total="155.636326178">
+    <atom species="Cu" muffin-tin="25.7925297274"/>
+    <atom species="Cu" muffin-tin="25.7925297274"/>
+    <atom species="Fe" muffin-tin="24.3610035288"/>
+    <atom species="Fe" muffin-tin="24.3610035288"/>
+    <atom species="S" muffin-tin="13.8323149164"/>
+    <atom species="S" muffin-tin="13.8323149164"/>
+    <atom species="S" muffin-tin="13.8323149164"/>
+    <atom species="S" muffin-tin="13.8323149164"/>
+    </charges>
+   <timing itertime="59.0000000000" timetot="2925.32000000" timeinit="30.0600000000" timemat="663.740000000" timefv="785.330000000" timerho="1020.77000000" timepot="425.420000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="80" rms="0.507627655287834486E-05" rmslog10="-5.29445472580" fermidos="223.195672714">
+   <energies totalEnergy="-7313.73091980881418" fermiEnergy="0.287047728067253871" sum-of-eigenvalues="-4447.51994123" electronic-kinetic="7404.50822231" core-electron-kinetic="6875.82575205" Coulomb="-14398.7665801" Coulomb-potential="-11429.3174606" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5663632" Hartree="2046.62445128" Madelung="-8684.10784980"/>
+   <charges core="84.0000000000" core_leakage="0.143377285677E-02" valence="90.0000000000" interstitial="18.3636718839" totalcharge="174.000000000" muffin-tin-total="155.636328116">
+    <atom species="Cu" muffin-tin="25.7925251267"/>
+    <atom species="Cu" muffin-tin="25.7925251267"/>
+    <atom species="Fe" muffin-tin="24.3610143296"/>
+    <atom species="Fe" muffin-tin="24.3610143296"/>
+    <atom species="S" muffin-tin="13.8323123009"/>
+    <atom species="S" muffin-tin="13.8323123009"/>
+    <atom species="S" muffin-tin="13.8323123009"/>
+    <atom species="S" muffin-tin="13.8323123009"/>
+    </charges>
+   <timing itertime="60.5800000000" timetot="2961.90000000" timeinit="30.0600000000" timemat="672.150000000" timefv="795.270000000" timerho="1033.67000000" timepot="430.750000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="81" rms="0.695660053982868787E-05" rmslog10="-5.15760293388" fermidos="223.197227683">
+   <energies totalEnergy="-7313.73063973241369" fermiEnergy="0.287047968198160697" sum-of-eigenvalues="-4447.51995695" electronic-kinetic="7404.50842005" core-electron-kinetic="6875.82578832" Coulomb="-14398.7665124" Coulomb-potential="-11429.3176934" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5659949" Hartree="2046.62415076" Madelung="-8684.10766567"/>
+   <charges core="84.0000000000" core_leakage="0.143376627338E-02" valence="90.0000000000" interstitial="18.3636822787" totalcharge="174.000000000" muffin-tin-total="155.636317721">
+    <atom species="Cu" muffin-tin="25.7925284346"/>
+    <atom species="Cu" muffin-tin="25.7925284346"/>
+    <atom species="Fe" muffin-tin="24.3610012726"/>
+    <atom species="Fe" muffin-tin="24.3610012726"/>
+    <atom species="S" muffin-tin="13.8323145767"/>
+    <atom species="S" muffin-tin="13.8323145767"/>
+    <atom species="S" muffin-tin="13.8323145767"/>
+    <atom species="S" muffin-tin="13.8323145767"/>
+    </charges>
+   <timing itertime="59.0400000000" timetot="2998.46000000" timeinit="30.0600000000" timemat="680.570000000" timefv="805.200000000" timerho="1046.57000000" timepot="436.060000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="82" rms="0.360393883995031494E-05" rmslog10="-5.44322258775" fermidos="223.195642018">
+   <energies totalEnergy="-7313.73098515176025" fermiEnergy="0.287047848041769416" sum-of-eigenvalues="-4447.52000426" electronic-kinetic="7404.50820495" core-electron-kinetic="6875.82576596" Coulomb="-14398.7666286" Coulomb-potential="-11429.3175069" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5664138" Hartree="2046.62445346" Madelung="-8684.10787512"/>
+   <charges core="84.0000000000" core_leakage="0.143376777272E-02" valence="90.0000000000" interstitial="18.3636769836" totalcharge="174.000000000" muffin-tin-total="155.636323016">
+    <atom species="Cu" muffin-tin="25.7925226787"/>
+    <atom species="Cu" muffin-tin="25.7925226787"/>
+    <atom species="Fe" muffin-tin="24.3610154905"/>
+    <atom species="Fe" muffin-tin="24.3610154905"/>
+    <atom species="S" muffin-tin="13.8323116695"/>
+    <atom species="S" muffin-tin="13.8323116695"/>
+    <atom species="S" muffin-tin="13.8323116695"/>
+    <atom species="S" muffin-tin="13.8323116695"/>
+    </charges>
+   <timing itertime="59.2100000000" timetot="3035.02000000" timeinit="30.0600000000" timemat="688.990000000" timefv="815.120000000" timerho="1059.46000000" timepot="441.390000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="83" rms="0.590411068817205670E-05" rmslog10="-5.22884550911" fermidos="223.197551788">
+   <energies totalEnergy="-7313.73064587578392" fermiEnergy="0.287048115127544246" sum-of-eigenvalues="-4447.52000364" electronic-kinetic="7404.50846267" core-electron-kinetic="6875.82581810" Coulomb="-14398.7665632" Coulomb-potential="-11429.3177853" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5660045" Hartree="2046.62410958" Madelung="-8684.10767048"/>
+   <charges core="84.0000000000" core_leakage="0.143376793422E-02" valence="90.0000000000" interstitial="18.3636877072" totalcharge="174.000000000" muffin-tin-total="155.636312293">
+    <atom species="Cu" muffin-tin="25.7925276009"/>
+    <atom species="Cu" muffin-tin="25.7925276009"/>
+    <atom species="Fe" muffin-tin="24.3609992527"/>
+    <atom species="Fe" muffin-tin="24.3609992527"/>
+    <atom species="S" muffin-tin="13.8323146464"/>
+    <atom species="S" muffin-tin="13.8323146464"/>
+    <atom species="S" muffin-tin="13.8323146464"/>
+    <atom species="S" muffin-tin="13.8323146464"/>
+    </charges>
+   <timing itertime="59.2200000000" timetot="3071.57000000" timeinit="30.0600000000" timemat="697.410000000" timefv="825.060000000" timerho="1072.35000000" timepot="446.690000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="84" rms="0.281901938753572944E-05" rmslog10="-5.54990193730" fermidos="223.195978229">
+   <energies totalEnergy="-7313.73099571288913" fermiEnergy="0.287047936190889696" sum-of-eigenvalues="-4447.52005255" electronic-kinetic="7404.50826527" core-electron-kinetic="6875.82581494" Coulomb="-14398.7667008" Coulomb-potential="-11429.3176173" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5664479" Hartree="2046.62441532" Madelung="-8684.10789217"/>
+   <charges core="84.0000000000" core_leakage="0.143376373588E-02" valence="90.0000000000" interstitial="18.3636819075" totalcharge="174.000000000" muffin-tin-total="155.636318092">
+    <atom species="Cu" muffin-tin="25.7925218519"/>
+    <atom species="Cu" muffin-tin="25.7925218519"/>
+    <atom species="Fe" muffin-tin="24.3610130606"/>
+    <atom species="Fe" muffin-tin="24.3610130606"/>
+    <atom species="S" muffin-tin="13.8323120669"/>
+    <atom species="S" muffin-tin="13.8323120669"/>
+    <atom species="S" muffin-tin="13.8323120669"/>
+    <atom species="S" muffin-tin="13.8323120669"/>
+    </charges>
+   <timing itertime="59.1800000000" timetot="3108.13000000" timeinit="30.0600000000" timemat="705.820000000" timefv="835.000000000" timerho="1085.26000000" timepot="451.990000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="85" rms="0.312506620052282362E-05" rmslog10="-5.50514077825" fermidos="223.196771152">
+   <energies totalEnergy="-7313.73090082360704" fermiEnergy="0.287048045677275487" sum-of-eigenvalues="-4447.52005511" electronic-kinetic="7404.50836584" core-electron-kinetic="6875.82584264" Coulomb="-14398.7667106" Coulomb-potential="-11429.3177259" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5663590" Hartree="2046.62431654" Madelung="-8684.10784770"/>
+   <charges core="84.0000000000" core_leakage="0.143377191813E-02" valence="90.0000000000" interstitial="18.3636851916" totalcharge="174.000000000" muffin-tin-total="155.636314808">
+    <atom species="Cu" muffin-tin="25.7925237659"/>
+    <atom species="Cu" muffin-tin="25.7925237659"/>
+    <atom species="Fe" muffin-tin="24.3610073160"/>
+    <atom species="Fe" muffin-tin="24.3610073160"/>
+    <atom species="S" muffin-tin="13.8323131611"/>
+    <atom species="S" muffin-tin="13.8323131611"/>
+    <atom species="S" muffin-tin="13.8323131611"/>
+    <atom species="S" muffin-tin="13.8323131611"/>
+    </charges>
+   <timing itertime="59.1800000000" timetot="3144.73000000" timeinit="30.0600000000" timemat="714.250000000" timefv="844.940000000" timerho="1098.18000000" timepot="457.300000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="86" rms="0.243055988169281294E-05" rmslog10="-5.61429367475" fermidos="223.196462628">
+   <energies totalEnergy="-7313.73097937246075" fermiEnergy="0.287048008166801538" sum-of-eigenvalues="-4447.52007550" electronic-kinetic="7404.50834392" core-electron-kinetic="6875.82585604" Coulomb="-14398.7667642" Coulomb-potential="-11429.3177203" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5664717" Hartree="2046.62437569" Madelung="-8684.10790406"/>
+   <charges core="84.0000000000" core_leakage="0.143377051180E-02" valence="90.0000000000" interstitial="18.3636853765" totalcharge="174.000000000" muffin-tin-total="155.636314623">
+    <atom species="Cu" muffin-tin="25.7925223555"/>
+    <atom species="Cu" muffin-tin="25.7925223555"/>
+    <atom species="Fe" muffin-tin="24.3610096873"/>
+    <atom species="Fe" muffin-tin="24.3610096873"/>
+    <atom species="S" muffin-tin="13.8323126344"/>
+    <atom species="S" muffin-tin="13.8323126344"/>
+    <atom species="S" muffin-tin="13.8323126344"/>
+    <atom species="S" muffin-tin="13.8323126344"/>
+    </charges>
+   <timing itertime="59.1500000000" timetot="3181.33000000" timeinit="30.0600000000" timemat="722.660000000" timefv="854.900000000" timerho="1111.07000000" timepot="462.640000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="87" rms="0.218161230989719940E-05" rmslog10="-5.66122242452" fermidos="223.196601109">
+   <energies totalEnergy="-7313.73100600359248" fermiEnergy="0.287048027443562725" sum-of-eigenvalues="-4447.52008460" electronic-kinetic="7404.50835972" core-electron-kinetic="6875.82586892" Coulomb="-14398.7668053" Coulomb-potential="-11429.3177434" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5665308" Hartree="2046.62439366" Madelung="-8684.10793360"/>
+   <charges core="84.0000000000" core_leakage="0.143376525820E-02" valence="90.0000000000" interstitial="18.3636854399" totalcharge="174.000000000" muffin-tin-total="155.636314560">
+    <atom species="Cu" muffin-tin="25.7925223971"/>
+    <atom species="Cu" muffin-tin="25.7925223971"/>
+    <atom species="Fe" muffin-tin="24.3610094564"/>
+    <atom species="Fe" muffin-tin="24.3610094564"/>
+    <atom species="S" muffin-tin="13.8323127133"/>
+    <atom species="S" muffin-tin="13.8323127133"/>
+    <atom species="S" muffin-tin="13.8323127133"/>
+    <atom species="S" muffin-tin="13.8323127133"/>
+    </charges>
+   <timing itertime="59.3400000000" timetot="3217.90000000" timeinit="30.0600000000" timemat="731.070000000" timefv="864.860000000" timerho="1123.96000000" timepot="467.950000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="88" rms="0.201099064242624819E-05" rmslog10="-5.69658995026" fermidos="223.196590771">
+   <energies totalEnergy="-7313.73103256378272" fermiEnergy="0.287048018131858429" sum-of-eigenvalues="-4447.52009378" electronic-kinetic="7404.50836752" core-electron-kinetic="6875.82587868" Coulomb="-14398.7668386" Coulomb-potential="-11429.3177590" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5665818" Hartree="2046.62441139" Madelung="-8684.10795911"/>
+   <charges core="84.0000000000" core_leakage="0.143376740034E-02" valence="90.0000000000" interstitial="18.3636861194" totalcharge="174.000000000" muffin-tin-total="155.636313881">
+    <atom species="Cu" muffin-tin="25.7925220098"/>
+    <atom species="Cu" muffin-tin="25.7925220098"/>
+    <atom species="Fe" muffin-tin="24.3610098142"/>
+    <atom species="Fe" muffin-tin="24.3610098142"/>
+    <atom species="S" muffin-tin="13.8323125581"/>
+    <atom species="S" muffin-tin="13.8323125581"/>
+    <atom species="S" muffin-tin="13.8323125581"/>
+    <atom species="S" muffin-tin="13.8323125581"/>
+    </charges>
+   <timing itertime="59.1500000000" timetot="3254.47000000" timeinit="30.0600000000" timemat="739.500000000" timefv="874.800000000" timerho="1136.85000000" timepot="473.260000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="89" rms="0.190894041317661485E-05" rmslog10="-5.71920762773" fermidos="223.196579612">
+   <energies totalEnergy="-7313.73107478016937" fermiEnergy="0.287048014176583433" sum-of-eigenvalues="-4447.52009967" electronic-kinetic="7404.50836577" core-electron-kinetic="6875.82588221" Coulomb="-14398.7668769" Coulomb-potential="-11429.3177603" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5666571" Hartree="2046.62444841" Madelung="-8684.10799679"/>
+   <charges core="84.0000000000" core_leakage="0.143377150205E-02" valence="90.0000000000" interstitial="18.3636854190" totalcharge="174.000000000" muffin-tin-total="155.636314581">
+    <atom species="Cu" muffin-tin="25.7925218145"/>
+    <atom species="Cu" muffin-tin="25.7925218145"/>
+    <atom species="Fe" muffin-tin="24.3610106261"/>
+    <atom species="Fe" muffin-tin="24.3610106261"/>
+    <atom species="S" muffin-tin="13.8323124250"/>
+    <atom species="S" muffin-tin="13.8323124250"/>
+    <atom species="S" muffin-tin="13.8323124250"/>
+    <atom species="S" muffin-tin="13.8323124250"/>
+    </charges>
+   <timing itertime="59.5500000000" timetot="3291.04000000" timeinit="30.0600000000" timemat="747.920000000" timefv="884.750000000" timerho="1149.74000000" timepot="478.570000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="90" rms="0.184984826621357197E-05" rmslog10="-5.73286389314" fermidos="223.196668243">
+   <energies totalEnergy="-7313.73107880049338" fermiEnergy="0.287048018704112229" sum-of-eigenvalues="-4447.52010129" electronic-kinetic="7404.50837910" core-electron-kinetic="6875.82588305" Coulomb="-14398.7668940" Coulomb-potential="-11429.3177749" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5666767" Hartree="2046.62445090" Madelung="-8684.10800658"/>
+   <charges core="84.0000000000" core_leakage="0.143376289181E-02" valence="90.0000000000" interstitial="18.3636859734" totalcharge="174.000000000" muffin-tin-total="155.636314027">
+    <atom species="Cu" muffin-tin="25.7925218957"/>
+    <atom species="Cu" muffin-tin="25.7925218957"/>
+    <atom species="Fe" muffin-tin="24.3610102741"/>
+    <atom species="Fe" muffin-tin="24.3610102741"/>
+    <atom species="S" muffin-tin="13.8323124217"/>
+    <atom species="S" muffin-tin="13.8323124217"/>
+    <atom species="S" muffin-tin="13.8323124217"/>
+    <atom species="S" muffin-tin="13.8323124217"/>
+    </charges>
+   <timing itertime="59.1700000000" timetot="3327.58000000" timeinit="30.0600000000" timemat="756.330000000" timefv="894.680000000" timerho="1162.63000000" timepot="483.880000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="91" rms="0.189729673992427743E-05" rmslog10="-5.72186473952" fermidos="223.196523996">
+   <energies totalEnergy="-7313.73112565104111" fermiEnergy="0.287047997895592877" sum-of-eigenvalues="-4447.52010398" electronic-kinetic="7404.50836694" core-electron-kinetic="6875.82588103" Coulomb="-14398.7669264" Coulomb-potential="-11429.3177623" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5667540" Hartree="2046.62449584" Madelung="-8684.10804522"/>
+   <charges core="84.0000000000" core_leakage="0.143376775280E-02" valence="90.0000000000" interstitial="18.3636850019" totalcharge="174.000000000" muffin-tin-total="155.636314998">
+    <atom species="Cu" muffin-tin="25.7925214857"/>
+    <atom species="Cu" muffin-tin="25.7925214857"/>
+    <atom species="Fe" muffin-tin="24.3610117259"/>
+    <atom species="Fe" muffin-tin="24.3610117259"/>
+    <atom species="S" muffin-tin="13.8323121438"/>
+    <atom species="S" muffin-tin="13.8323121438"/>
+    <atom species="S" muffin-tin="13.8323121438"/>
+    <atom species="S" muffin-tin="13.8323121438"/>
+    </charges>
+   <timing itertime="59.2300000000" timetot="3364.17000000" timeinit="30.0600000000" timemat="764.750000000" timefv="904.650000000" timerho="1175.53000000" timepot="489.180000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="92" rms="0.175514752849503842E-05" rmslog10="-5.75568637315" fermidos="223.196724931">
+   <energies totalEnergy="-7313.73109245552587" fermiEnergy="0.287048011020756388" sum-of-eigenvalues="-4447.52010067" electronic-kinetic="7404.50839977" core-electron-kinetic="6875.82588299" Coulomb="-14398.7669275" Coulomb-potential="-11429.3177938" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5667247" Hartree="2046.62446548" Madelung="-8684.10803059"/>
+   <charges core="84.0000000000" core_leakage="0.143376590449E-02" valence="90.0000000000" interstitial="18.3636864826" totalcharge="174.000000000" muffin-tin-total="155.636313517">
+    <atom species="Cu" muffin-tin="25.7925219978"/>
+    <atom species="Cu" muffin-tin="25.7925219978"/>
+    <atom species="Fe" muffin-tin="24.3610101105"/>
+    <atom species="Fe" muffin-tin="24.3610101105"/>
+    <atom species="S" muffin-tin="13.8323123252"/>
+    <atom species="S" muffin-tin="13.8323123252"/>
+    <atom species="S" muffin-tin="13.8323123252"/>
+    <atom species="S" muffin-tin="13.8323123252"/>
+    </charges>
+   <timing itertime="59.4100000000" timetot="3400.76000000" timeinit="30.0600000000" timemat="773.180000000" timefv="914.600000000" timerho="1188.41000000" timepot="494.510000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="93" rms="0.211059371502918063E-05" rmslog10="-5.67559535945" fermidos="223.196306986">
+   <energies totalEnergy="-7313.73119004660839" fermiEnergy="0.287047951312261573" sum-of-eigenvalues="-4447.52010523" electronic-kinetic="7404.50834833" core-electron-kinetic="6875.82587283" Coulomb="-14398.7669690" Coulomb-potential="-11429.3177407" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5668608" Hartree="2046.62456002" Madelung="-8684.10809860"/>
+   <charges core="84.0000000000" core_leakage="0.143377052333E-02" valence="90.0000000000" interstitial="18.3636839198" totalcharge="174.000000000" muffin-tin-total="155.636316080">
+    <atom species="Cu" muffin-tin="25.7925208183"/>
+    <atom species="Cu" muffin-tin="25.7925208183"/>
+    <atom species="Fe" muffin-tin="24.3610139796"/>
+    <atom species="Fe" muffin-tin="24.3610139796"/>
+    <atom species="S" muffin-tin="13.8323116211"/>
+    <atom species="S" muffin-tin="13.8323116211"/>
+    <atom species="S" muffin-tin="13.8323116211"/>
+    <atom species="S" muffin-tin="13.8323116211"/>
+    </charges>
+   <timing itertime="62.1000000000" timetot="3437.34000000" timeinit="30.0600000000" timemat="781.590000000" timefv="924.560000000" timerho="1201.29000000" timepot="499.840000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="94" rms="0.160570499433906776E-05" rmslog10="-5.79433424181" fermidos="223.196991022">
+   <energies totalEnergy="-7313.73106811338494" fermiEnergy="0.287048036005855045" sum-of-eigenvalues="-4447.52009307" electronic-kinetic="7404.50843891" core-electron-kinetic="6875.82588233" Coulomb="-14398.7669429" Coulomb-potential="-11429.3178261" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5667232" Hartree="2046.62444855" Madelung="-8684.10802981"/>
+   <charges core="84.0000000000" core_leakage="0.143376632889E-02" valence="90.0000000000" interstitial="18.3636869963" totalcharge="174.000000000" muffin-tin-total="155.636313004">
+    <atom species="Cu" muffin-tin="25.7925227992"/>
+    <atom species="Cu" muffin-tin="25.7925227992"/>
+    <atom species="Fe" muffin-tin="24.3610085809"/>
+    <atom species="Fe" muffin-tin="24.3610085809"/>
+    <atom species="S" muffin-tin="13.8323125609"/>
+    <atom species="S" muffin-tin="13.8323125609"/>
+    <atom species="S" muffin-tin="13.8323125609"/>
+    <atom species="S" muffin-tin="13.8323125609"/>
+    </charges>
+   <timing itertime="59.3000000000" timetot="3473.92000000" timeinit="30.0600000000" timemat="790.020000000" timefv="934.500000000" timerho="1214.18000000" timepot="505.160000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="95" rms="0.259624097539444832E-05" rmslog10="-5.58565500007" fermidos="223.195954827">
+   <energies totalEnergy="-7313.73128086164252" fermiEnergy="0.287047892261310666" sum-of-eigenvalues="-4447.52010636" electronic-kinetic="7404.50830943" core-electron-kinetic="6875.82586772" Coulomb="-14398.7670163" Coulomb-potential="-11429.3176969" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669993" Hartree="2046.62465120" Madelung="-8684.10816786"/>
+   <charges core="84.0000000000" core_leakage="0.143376852088E-02" valence="90.0000000000" interstitial="18.3636816276" totalcharge="174.000000000" muffin-tin-total="155.636318372">
+    <atom species="Cu" muffin-tin="25.7925198801"/>
+    <atom species="Cu" muffin-tin="25.7925198801"/>
+    <atom species="Fe" muffin-tin="24.3610173775"/>
+    <atom species="Fe" muffin-tin="24.3610173775"/>
+    <atom species="S" muffin-tin="13.8323109643"/>
+    <atom species="S" muffin-tin="13.8323109643"/>
+    <atom species="S" muffin-tin="13.8323109643"/>
+    <atom species="S" muffin-tin="13.8323109643"/>
+    </charges>
+   <timing itertime="59.3000000000" timetot="3510.53000000" timeinit="30.0600000000" timemat="798.430000000" timefv="944.470000000" timerho="1227.10000000" timepot="510.470000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="96" rms="0.156224401070892870E-05" rmslog10="-5.80625113164" fermidos="223.197141615">
+   <energies totalEnergy="-7313.73103891544906" fermiEnergy="0.287048041236154738" sum-of-eigenvalues="-4447.52009126" electronic-kinetic="7404.50847130" core-electron-kinetic="6875.82588430" Coulomb="-14398.7669475" Coulomb-potential="-11429.3178585" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5666999" Hartree="2046.62442071" Madelung="-8684.10801820"/>
+   <charges core="84.0000000000" core_leakage="0.143377161790E-02" valence="90.0000000000" interstitial="18.3636880991" totalcharge="174.000000000" muffin-tin-total="155.636311901">
+    <atom species="Cu" muffin-tin="25.7925232689"/>
+    <atom species="Cu" muffin-tin="25.7925232689"/>
+    <atom species="Fe" muffin-tin="24.3610074039"/>
+    <atom species="Fe" muffin-tin="24.3610074039"/>
+    <atom species="S" muffin-tin="13.8323126389"/>
+    <atom species="S" muffin-tin="13.8323126389"/>
+    <atom species="S" muffin-tin="13.8323126389"/>
+    <atom species="S" muffin-tin="13.8323126389"/>
+    </charges>
+   <timing itertime="59.3400000000" timetot="3547.09000000" timeinit="30.0600000000" timemat="806.860000000" timefv="954.410000000" timerho="1239.98000000" timepot="515.780000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="97" rms="0.267159595790249330E-05" rmslog10="-5.57322922229" fermidos="223.195904425">
+   <energies totalEnergy="-7313.73129625911042" fermiEnergy="0.287047856883341890" sum-of-eigenvalues="-4447.52010653" electronic-kinetic="7404.50831528" core-electron-kinetic="6875.82587188" Coulomb="-14398.7670369" Coulomb-potential="-11429.3177020" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5670353" Hartree="2046.62466666" Madelung="-8684.10818587"/>
+   <charges core="84.0000000000" core_leakage="0.143376387840E-02" valence="90.0000000000" interstitial="18.3636819138" totalcharge="174.000000000" muffin-tin-total="155.636318086">
+    <atom species="Cu" muffin-tin="25.7925196605"/>
+    <atom species="Cu" muffin-tin="25.7925196605"/>
+    <atom species="Fe" muffin-tin="24.3610180176"/>
+    <atom species="Fe" muffin-tin="24.3610180176"/>
+    <atom species="S" muffin-tin="13.8323106825"/>
+    <atom species="S" muffin-tin="13.8323106825"/>
+    <atom species="S" muffin-tin="13.8323106825"/>
+    <atom species="S" muffin-tin="13.8323106825"/>
+    </charges>
+   <timing itertime="59.5000000000" timetot="3583.70000000" timeinit="30.0600000000" timemat="815.280000000" timefv="964.380000000" timerho="1252.89000000" timepot="521.090000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="98" rms="0.174172611767527962E-05" rmslog10="-5.75902013574" fermidos="223.196512140">
+   <energies totalEnergy="-7313.73117134140830" fermiEnergy="0.287047945515862213" sum-of-eigenvalues="-4447.52009776" electronic-kinetic="7404.50839922" core-electron-kinetic="6875.82588074" Coulomb="-14398.7670016" Coulomb-potential="-11429.3177847" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5668820" Hartree="2046.62454866" Madelung="-8684.10810923"/>
+   <charges core="84.0000000000" core_leakage="0.143377186723E-02" valence="90.0000000000" interstitial="18.3636845693" totalcharge="174.000000000" muffin-tin-total="155.636315431">
+    <atom species="Cu" muffin-tin="25.7925216007"/>
+    <atom species="Cu" muffin-tin="25.7925216007"/>
+    <atom species="Fe" muffin-tin="24.3610129200"/>
+    <atom species="Fe" muffin-tin="24.3610129200"/>
+    <atom species="S" muffin-tin="13.8323115973"/>
+    <atom species="S" muffin-tin="13.8323115973"/>
+    <atom species="S" muffin-tin="13.8323115973"/>
+    <atom species="S" muffin-tin="13.8323115973"/>
+    </charges>
+   <timing itertime="61.2500000000" timetot="3620.28000000" timeinit="30.0600000000" timemat="823.720000000" timefv="974.320000000" timerho="1265.78000000" timepot="526.400000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="99" rms="0.186815734036717185E-05" rmslog10="-5.72858654932" fermidos="223.196335932">
+   <energies totalEnergy="-7313.73119828152358" fermiEnergy="0.287047919802423668" sum-of-eigenvalues="-4447.52009970" electronic-kinetic="7404.50838688" core-electron-kinetic="6875.82588172" Coulomb="-14398.7670150" Coulomb-potential="-11429.3177727" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669208" Hartree="2046.62457404" Madelung="-8684.10812861"/>
+   <charges core="84.0000000000" core_leakage="0.143376814613E-02" valence="90.0000000000" interstitial="18.3636840500" totalcharge="174.000000000" muffin-tin-total="155.636315950">
+    <atom species="Cu" muffin-tin="25.7925212463"/>
+    <atom species="Cu" muffin-tin="25.7925212463"/>
+    <atom species="Fe" muffin-tin="24.3610140550"/>
+    <atom species="Fe" muffin-tin="24.3610140550"/>
+    <atom species="S" muffin-tin="13.8323113368"/>
+    <atom species="S" muffin-tin="13.8323113368"/>
+    <atom species="S" muffin-tin="13.8323113368"/>
+    <atom species="S" muffin-tin="13.8323113368"/>
+    </charges>
+   <timing itertime="60.6400000000" timetot="3656.87000000" timeinit="30.0600000000" timemat="832.150000000" timefv="984.260000000" timerho="1278.69000000" timepot="531.710000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="100" rms="0.174236178016108205E-05" rmslog10="-5.75886166402" fermidos="223.196405101">
+   <energies totalEnergy="-7313.73117950426422" fermiEnergy="0.287047918935057711" sum-of-eigenvalues="-4447.52009944" electronic-kinetic="7404.50840200" core-electron-kinetic="6875.82588463" Coulomb="-14398.7670123" Coulomb-potential="-11429.3177889" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5668993" Hartree="2046.62455520" Madelung="-8684.10811787"/>
+   <charges core="84.0000000000" core_leakage="0.143376667511E-02" valence="90.0000000000" interstitial="18.3636848934" totalcharge="174.000000000" muffin-tin-total="155.636315107">
+    <atom species="Cu" muffin-tin="25.7925214623"/>
+    <atom species="Cu" muffin-tin="25.7925214623"/>
+    <atom species="Fe" muffin-tin="24.3610133756"/>
+    <atom species="Fe" muffin-tin="24.3610133756"/>
+    <atom species="S" muffin-tin="13.8323113577"/>
+    <atom species="S" muffin-tin="13.8323113577"/>
+    <atom species="S" muffin-tin="13.8323113577"/>
+    <atom species="S" muffin-tin="13.8323113577"/>
+    </charges>
+   <timing itertime="59.3900000000" timetot="3693.46000000" timeinit="30.0600000000" timemat="840.570000000" timefv="994.240000000" timerho="1291.57000000" timepot="537.020000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="101" rms="0.180246057690349895E-05" rmslog10="-5.74413422532" fermidos="223.196321348">
+   <energies totalEnergy="-7313.73120987232778" fermiEnergy="0.287047919355466308" sum-of-eigenvalues="-4447.52009966" electronic-kinetic="7404.50839133" core-electron-kinetic="6875.82588480" Coulomb="-14398.7670303" Coulomb-potential="-11429.3177762" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669480" Hartree="2046.62458591" Madelung="-8684.10814222"/>
+   <charges core="84.0000000000" core_leakage="0.143376787949E-02" valence="90.0000000000" interstitial="18.3636833336" totalcharge="174.000000000" muffin-tin-total="155.636316666">
+    <atom species="Cu" muffin-tin="25.7925214802"/>
+    <atom species="Cu" muffin-tin="25.7925214802"/>
+    <atom species="Fe" muffin-tin="24.3610143189"/>
+    <atom species="Fe" muffin-tin="24.3610143189"/>
+    <atom species="S" muffin-tin="13.8323112670"/>
+    <atom species="S" muffin-tin="13.8323112670"/>
+    <atom species="S" muffin-tin="13.8323112670"/>
+    <atom species="S" muffin-tin="13.8323112670"/>
+    </charges>
+   <timing itertime="59.3600000000" timetot="3730.12000000" timeinit="30.0600000000" timemat="849.030000000" timefv="1004.21000000" timerho="1304.49000000" timepot="542.330000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="102" rms="0.156799282005675678E-05" rmslog10="-5.80465593031" fermidos="223.196502730">
+   <energies totalEnergy="-7313.73117984890087" fermiEnergy="0.287047934935743765" sum-of-eigenvalues="-4447.52009813" electronic-kinetic="7404.50841573" core-electron-kinetic="6875.82589007" Coulomb="-14398.7670261" Coulomb-potential="-11429.3178009" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669148" Hartree="2046.62455696" Madelung="-8684.10812564"/>
+   <charges core="84.0000000000" core_leakage="0.143376953483E-02" valence="90.0000000000" interstitial="18.3636840613" totalcharge="174.000000000" muffin-tin-total="155.636315939">
+    <atom species="Cu" muffin-tin="25.7925220008"/>
+    <atom species="Cu" muffin-tin="25.7925220008"/>
+    <atom species="Fe" muffin-tin="24.3610130618"/>
+    <atom species="Fe" muffin-tin="24.3610130618"/>
+    <atom species="S" muffin-tin="13.8323114534"/>
+    <atom species="S" muffin-tin="13.8323114534"/>
+    <atom species="S" muffin-tin="13.8323114534"/>
+    <atom species="S" muffin-tin="13.8323114534"/>
+    </charges>
+   <timing itertime="62.1200000000" timetot="3766.73000000" timeinit="30.0600000000" timemat="857.470000000" timefv="1014.18000000" timerho="1317.38000000" timepot="547.640000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="103" rms="0.163587166333884547E-05" rmslog10="-5.78625077040" fermidos="223.196391291">
+   <energies totalEnergy="-7313.73118853920187" fermiEnergy="0.287047901863328292" sum-of-eigenvalues="-4447.52010107" electronic-kinetic="7404.50841131" core-electron-kinetic="6875.82589098" Coulomb="-14398.7670303" Coulomb-potential="-11429.3177993" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669248" Hartree="2046.62456274" Madelung="-8684.10813062"/>
+   <charges core="84.0000000000" core_leakage="0.143376642214E-02" valence="90.0000000000" interstitial="18.3636847032" totalcharge="174.000000000" muffin-tin-total="155.636315297">
+    <atom species="Cu" muffin-tin="25.7925216513"/>
+    <atom species="Cu" muffin-tin="25.7925216513"/>
+    <atom species="Fe" muffin-tin="24.3610136072"/>
+    <atom species="Fe" muffin-tin="24.3610136072"/>
+    <atom species="S" muffin-tin="13.8323111950"/>
+    <atom species="S" muffin-tin="13.8323111950"/>
+    <atom species="S" muffin-tin="13.8323111950"/>
+    <atom species="S" muffin-tin="13.8323111950"/>
+    </charges>
+   <timing itertime="59.6900000000" timetot="3803.34000000" timeinit="30.0600000000" timemat="865.910000000" timefv="1024.13000000" timerho="1330.29000000" timepot="552.950000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="104" rms="0.154484494838312551E-05" rmslog10="-5.81111510293" fermidos="223.196420438">
+   <energies totalEnergy="-7313.73118704301669" fermiEnergy="0.287047907301705818" sum-of-eigenvalues="-4447.52010113" electronic-kinetic="7404.50841729" core-electron-kinetic="6875.82589287" Coulomb="-14398.7670347" Coulomb-potential="-11429.3178053" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669277" Hartree="2046.62456119" Madelung="-8684.10813208"/>
+   <charges core="84.0000000000" core_leakage="0.143377152905E-02" valence="90.0000000000" interstitial="18.3636844644" totalcharge="174.000000000" muffin-tin-total="155.636315536">
+    <atom species="Cu" muffin-tin="25.7925218892"/>
+    <atom species="Cu" muffin-tin="25.7925218892"/>
+    <atom species="Fe" muffin-tin="24.3610134011"/>
+    <atom species="Fe" muffin-tin="24.3610134011"/>
+    <atom species="S" muffin-tin="13.8323112388"/>
+    <atom species="S" muffin-tin="13.8323112388"/>
+    <atom species="S" muffin-tin="13.8323112388"/>
+    <atom species="S" muffin-tin="13.8323112388"/>
+    </charges>
+   <timing itertime="59.5000000000" timetot="3839.96000000" timeinit="30.0600000000" timemat="874.330000000" timefv="1034.10000000" timerho="1343.20000000" timepot="558.270000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="105" rms="0.151685601283954574E-05" rmslog10="-5.81905564255" fermidos="223.196402976">
+   <energies totalEnergy="-7313.73119820962620" fermiEnergy="0.287047907272293901" sum-of-eigenvalues="-4447.52010184" electronic-kinetic="7404.50841529" core-electron-kinetic="6875.82589320" Coulomb="-14398.7670433" Coulomb-potential="-11429.3178032" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669469" Hartree="2046.62457184" Madelung="-8684.10814168"/>
+   <charges core="84.0000000000" core_leakage="0.143377235233E-02" valence="90.0000000000" interstitial="18.3636838346" totalcharge="174.000000000" muffin-tin-total="155.636316165">
+    <atom species="Cu" muffin-tin="25.7925219974"/>
+    <atom species="Cu" muffin-tin="25.7925219974"/>
+    <atom species="Fe" muffin-tin="24.3610136641"/>
+    <atom species="Fe" muffin-tin="24.3610136641"/>
+    <atom species="S" muffin-tin="13.8323112106"/>
+    <atom species="S" muffin-tin="13.8323112106"/>
+    <atom species="S" muffin-tin="13.8323112106"/>
+    <atom species="S" muffin-tin="13.8323112106"/>
+    </charges>
+   <timing itertime="59.4800000000" timetot="3876.59000000" timeinit="30.0600000000" timemat="882.760000000" timefv="1044.07000000" timerho="1356.12000000" timepot="563.580000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="106" rms="0.135975715492243910E-05" rmslog10="-5.86653864729" fermidos="223.196473742">
+   <energies totalEnergy="-7313.73117885480315" fermiEnergy="0.287047914432258244" sum-of-eigenvalues="-4447.52010191" electronic-kinetic="7404.50843015" core-electron-kinetic="6875.82589683" Coulomb="-14398.7670398" Coulomb-potential="-11429.3178194" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669236" Hartree="2046.62455210" Madelung="-8684.10813004"/>
+   <charges core="84.0000000000" core_leakage="0.143377009927E-02" valence="90.0000000000" interstitial="18.3636844366" totalcharge="174.000000000" muffin-tin-total="155.636315563">
+    <atom species="Cu" muffin-tin="25.7925222961"/>
+    <atom species="Cu" muffin-tin="25.7925222961"/>
+    <atom species="Fe" muffin-tin="24.3610128729"/>
+    <atom species="Fe" muffin-tin="24.3610128729"/>
+    <atom species="S" muffin-tin="13.8323113063"/>
+    <atom species="S" muffin-tin="13.8323113063"/>
+    <atom species="S" muffin-tin="13.8323113063"/>
+    <atom species="S" muffin-tin="13.8323113063"/>
+    </charges>
+   <timing itertime="59.4900000000" timetot="3913.24000000" timeinit="30.0600000000" timemat="891.210000000" timefv="1054.06000000" timerho="1369.01000000" timepot="568.900000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="107" rms="0.150854722472432628E-05" rmslog10="-5.82144108979" fermidos="223.196338183">
+   <energies totalEnergy="-7313.73121903431274" fermiEnergy="0.287047886603562952" sum-of-eigenvalues="-4447.52010494" electronic-kinetic="7404.50840965" core-electron-kinetic="6875.82589537" Coulomb="-14398.7670575" Coulomb-potential="-11429.3177994" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669792" Hartree="2046.62458987" Madelung="-8684.10815782"/>
+   <charges core="84.0000000000" core_leakage="0.143377035040E-02" valence="90.0000000000" interstitial="18.3636832635" totalcharge="174.000000000" muffin-tin-total="155.636316737">
+    <atom species="Cu" muffin-tin="25.7925219462"/>
+    <atom species="Cu" muffin-tin="25.7925219462"/>
+    <atom species="Fe" muffin-tin="24.3610143297"/>
+    <atom species="Fe" muffin-tin="24.3610143297"/>
+    <atom species="S" muffin-tin="13.8323110462"/>
+    <atom species="S" muffin-tin="13.8323110462"/>
+    <atom species="S" muffin-tin="13.8323110462"/>
+    <atom species="S" muffin-tin="13.8323110462"/>
+    </charges>
+   <timing itertime="59.4500000000" timetot="3949.88000000" timeinit="30.0600000000" timemat="899.650000000" timefv="1064.03000000" timerho="1381.90000000" timepot="574.240000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="108" rms="0.110856799424214746E-05" rmslog10="-5.95523766419" fermidos="223.196610932">
+   <energies totalEnergy="-7313.73115071054781" fermiEnergy="0.287047930456621248" sum-of-eigenvalues="-4447.52010194" electronic-kinetic="7404.50845486" core-electron-kinetic="6875.82590249" Coulomb="-14398.7670377" Coulomb-potential="-11429.3178459" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5668929" Hartree="2046.62452351" Madelung="-8684.10811469"/>
+   <charges core="84.0000000000" core_leakage="0.143376602507E-02" valence="90.0000000000" interstitial="18.3636848935" totalcharge="174.000000000" muffin-tin-total="155.636315106">
+    <atom species="Cu" muffin-tin="25.7925229834"/>
+    <atom species="Cu" muffin-tin="25.7925229834"/>
+    <atom species="Fe" muffin-tin="24.3610115110"/>
+    <atom species="Fe" muffin-tin="24.3610115110"/>
+    <atom species="S" muffin-tin="13.8323115294"/>
+    <atom species="S" muffin-tin="13.8323115294"/>
+    <atom species="S" muffin-tin="13.8323115294"/>
+    <atom species="S" muffin-tin="13.8323115294"/>
+    </charges>
+   <timing itertime="61.1700000000" timetot="3986.57000000" timeinit="30.0600000000" timemat="908.100000000" timefv="1074.01000000" timerho="1394.82000000" timepot="579.580000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="109" rms="0.148551550195848302E-05" rmslog10="-5.82812281180" fermidos="223.196221588">
+   <energies totalEnergy="-7313.73124008945160" fermiEnergy="0.287047877915610816" sum-of-eigenvalues="-4447.52010785" electronic-kinetic="7404.50840134" core-electron-kinetic="6875.82589801" Coulomb="-14398.7670693" Coulomb-potential="-11429.3177928" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5670094" Hartree="2046.62460833" Madelung="-8684.10817294"/>
+   <charges core="84.0000000000" core_leakage="0.143376483395E-02" valence="90.0000000000" interstitial="18.3636822342" totalcharge="174.000000000" muffin-tin-total="155.636317766">
+    <atom species="Cu" muffin-tin="25.7925219813"/>
+    <atom species="Cu" muffin-tin="25.7925219813"/>
+    <atom species="Fe" muffin-tin="24.3610150357"/>
+    <atom species="Fe" muffin-tin="24.3610150357"/>
+    <atom species="S" muffin-tin="13.8323109329"/>
+    <atom species="S" muffin-tin="13.8323109329"/>
+    <atom species="S" muffin-tin="13.8323109329"/>
+    <atom species="S" muffin-tin="13.8323109329"/>
+    </charges>
+   <timing itertime="59.6900000000" timetot="4023.21000000" timeinit="30.0600000000" timemat="916.530000000" timefv="1084.00000000" timerho="1407.73000000" timepot="584.890000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="110" rms="0.107966791460481295E-05" rmslog10="-5.96670980473" fermidos="223.196485069">
+   <energies totalEnergy="-7313.73117519765128" fermiEnergy="0.287047902893951656" sum-of-eigenvalues="-4447.52010650" electronic-kinetic="7404.50843961" core-electron-kinetic="6875.82590188" Coulomb="-14398.7670459" Coulomb-potential="-11429.3178340" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669215" Hartree="2046.62454374" Madelung="-8684.10812895"/>
+   <charges core="84.0000000000" core_leakage="0.143376684602E-02" valence="90.0000000000" interstitial="18.3636843064" totalcharge="174.000000000" muffin-tin-total="155.636315694">
+    <atom species="Cu" muffin-tin="25.7925227690"/>
+    <atom species="Cu" muffin-tin="25.7925227690"/>
+    <atom species="Fe" muffin-tin="24.3610124861"/>
+    <atom species="Fe" muffin-tin="24.3610124861"/>
+    <atom species="S" muffin-tin="13.8323112958"/>
+    <atom species="S" muffin-tin="13.8323112958"/>
+    <atom species="S" muffin-tin="13.8323112958"/>
+    <atom species="S" muffin-tin="13.8323112958"/>
+    </charges>
+   <timing itertime="59.5100000000" timetot="4059.83000000" timeinit="30.0600000000" timemat="924.950000000" timefv="1093.98000000" timerho="1420.63000000" timepot="590.210000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="111" rms="0.114666162165554143E-05" rmslog10="-5.94056472293" fermidos="223.196345071">
+   <energies totalEnergy="-7313.73121154741875" fermiEnergy="0.287047889799698919" sum-of-eigenvalues="-4447.52010929" electronic-kinetic="7404.50842009" core-electron-kinetic="6875.82590038" Coulomb="-14398.7670610" Coulomb-potential="-11429.3178149" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669707" Hartree="2046.62457787" Madelung="-8684.10815355"/>
+   <charges core="84.0000000000" core_leakage="0.143376740542E-02" valence="90.0000000000" interstitial="18.3636829718" totalcharge="174.000000000" muffin-tin-total="155.636317028">
+    <atom species="Cu" muffin-tin="25.7925225592"/>
+    <atom species="Cu" muffin-tin="25.7925225592"/>
+    <atom species="Fe" muffin-tin="24.3610136919"/>
+    <atom species="Fe" muffin-tin="24.3610136919"/>
+    <atom species="S" muffin-tin="13.8323111315"/>
+    <atom species="S" muffin-tin="13.8323111315"/>
+    <atom species="S" muffin-tin="13.8323111315"/>
+    <atom species="S" muffin-tin="13.8323111315"/>
+    </charges>
+   <timing itertime="59.5700000000" timetot="4096.45000000" timeinit="30.0600000000" timemat="933.380000000" timefv="1103.95000000" timerho="1433.54000000" timepot="595.520000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="112" rms="0.102730736047169095E-05" rmslog10="-5.98829960023" fermidos="223.196420198">
+   <energies totalEnergy="-7313.73120936353462" fermiEnergy="0.287047892488329515" sum-of-eigenvalues="-4447.52011030" electronic-kinetic="7404.50842369" core-electron-kinetic="6875.82590145" Coulomb="-14398.7670625" Coulomb-potential="-11429.3178196" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669689" Hartree="2046.62457465" Madelung="-8684.10815269"/>
+   <charges core="84.0000000000" core_leakage="0.143376319983E-02" valence="90.0000000000" interstitial="18.3636827615" totalcharge="174.000000000" muffin-tin-total="155.636317239">
+    <atom species="Cu" muffin-tin="25.7925228189"/>
+    <atom species="Cu" muffin-tin="25.7925228189"/>
+    <atom species="Fe" muffin-tin="24.3610133887"/>
+    <atom species="Fe" muffin-tin="24.3610133887"/>
+    <atom species="S" muffin-tin="13.8323112058"/>
+    <atom species="S" muffin-tin="13.8323112058"/>
+    <atom species="S" muffin-tin="13.8323112058"/>
+    <atom species="S" muffin-tin="13.8323112058"/>
+    </charges>
+   <timing itertime="61.1700000000" timetot="4133.11000000" timeinit="30.0600000000" timemat="941.820000000" timefv="1113.95000000" timerho="1446.42000000" timepot="600.860000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="113" rms="0.957232689133692308E-06" rmslog10="-6.01898247881" fermidos="223.196433783">
+   <energies totalEnergy="-7313.73121319971415" fermiEnergy="0.287047891482155815" sum-of-eigenvalues="-4447.52011193" electronic-kinetic="7404.50842190" core-electron-kinetic="6875.82590093" Coulomb="-14398.7670644" Coulomb-potential="-11429.3178193" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669731" Hartree="2046.62457690" Madelung="-8684.10815476"/>
+   <charges core="84.0000000000" core_leakage="0.143376609566E-02" valence="90.0000000000" interstitial="18.3636824884" totalcharge="174.000000000" muffin-tin-total="155.636317512">
+    <atom species="Cu" muffin-tin="25.7925229399"/>
+    <atom species="Cu" muffin-tin="25.7925229399"/>
+    <atom species="Fe" muffin-tin="24.3610133904"/>
+    <atom species="Fe" muffin-tin="24.3610133904"/>
+    <atom species="S" muffin-tin="13.8323112127"/>
+    <atom species="S" muffin-tin="13.8323112127"/>
+    <atom species="S" muffin-tin="13.8323112127"/>
+    <atom species="S" muffin-tin="13.8323112127"/>
+    </charges>
+   <timing itertime="59.6200000000" timetot="4169.77000000" timeinit="30.0600000000" timemat="950.250000000" timefv="1123.94000000" timerho="1459.33000000" timepot="606.190000000" timefor="0.00000000000"/>
+   </iter>
+  <iter iteration="114" rms="0.885157209566144653E-06" rmslog10="-6.05297958898" fermidos="223.196421822">
+   <energies totalEnergy="-7313.73121161006748" fermiEnergy="0.287047888336367740" sum-of-eigenvalues="-4447.52011391" electronic-kinetic="7404.50842343" core-electron-kinetic="6875.82590196" Coulomb="-14398.7670645" Coulomb-potential="-11429.3178230" nuclear-nuclear="-922.824668224" electron-nuclear="-15522.5669696" Hartree="2046.62457327" Madelung="-8684.10815301"/>
+   <charges core="84.0000000000" core_leakage="0.143376796760E-02" valence="90.0000000000" interstitial="18.3636826134" totalcharge="174.000000000" muffin-tin-total="155.636317387">
+    <atom species="Cu" muffin-tin="25.7925230204"/>
+    <atom species="Cu" muffin-tin="25.7925230204"/>
+    <atom species="Fe" muffin-tin="24.3610132455"/>
+    <atom species="Fe" muffin-tin="24.3610132455"/>
+    <atom species="S" muffin-tin="13.8323112137"/>
+    <atom species="S" muffin-tin="13.8323112137"/>
+    <atom species="S" muffin-tin="13.8323112137"/>
+    <atom species="S" muffin-tin="13.8323112137"/>
+    </charges>
+   <timing itertime="59.6200000000" timetot="4206.44000000" timeinit="30.0600000000" timemat="958.700000000" timefv="1133.94000000" timerho="1472.24000000" timepot="611.500000000" timefor="0.00000000000"/>
+   </iter></scl></groundstate>
+ </info>

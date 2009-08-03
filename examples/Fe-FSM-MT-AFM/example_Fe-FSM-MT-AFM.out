@@ -1,0 +1,7 @@
+ open ../../species//Fe.xml
+ 
+Error(gensymcmut): error in multiplication table in row
+ row number    :      1
+ column number :      1
+ multiple occurrence :      2
+ 

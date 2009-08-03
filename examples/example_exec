@@ -1,0 +1,99 @@
+
+
+# @ job_type = parallel
+
+# @ class = lessthour
+# @ node           = 1
+# @ tasks_per_node = 1
+# @ arguments= 
+# @ executable = /home/tde/exciting/bin/excitingdebug
+
+
+# @ initialdir = /home/tde/exciting/examples/Al
+
+# @ job_name  = example_Al
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/Al-Fermi-surface
+
+# @ job_name  = example_Al-Fermi-surface
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/Al-phonon
+
+# @ job_name  = example_Al-phonon
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/Fe-AFM
+
+# @ job_name  = example_Fe-AFM
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/Fe-FSM
+
+# @ job_name  = example_Fe-FSM
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/Fe-FSM-MT-AFM
+
+# @ job_name  = example_Fe-FSM-MT-AFM
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/Fe-FSM-MT-FM
+
+# @ job_name  = example_Fe-FSM-MT-FM
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/Fe-spiral
+
+# @ job_name  = example_Fe-spiral
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+
+
+
+# @ initialdir = /home/tde/exciting/examples/YBCO
+
+# @ job_name  = example_YBCO
+# @ output = $(job_name).out
+# @ error = $(job_name).err
+# @ resources = ConsumableCpus(1)
+# @ queue
+

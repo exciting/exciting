@@ -1,0 +1,38 @@
+
+! Hartree-Fock calculation of silicon. Note that this is still an experimental
+! feature in EXCITING. It is also quite slow and is best run using OpenMP on a
+! multi-processor machine.
+
+! Important: the exact exchange energy is only calculated on the last iteration.
+! All previously calculated exchange energies are approximate.
+
+tasks
+  0
+  5
+
+! Hartree-Fock is treated as a second-variational correction to the Kohn-Sham
+! problem. Thus a large number of empty states are required for convergence.
+nempty
+  10
+
+avec
+  5.13 5.13 0.00
+  5.13 0.00 5.13
+  0.00 5.13 5.13
+
+sppath
+  '../../species/'
+
+atoms
+  1                                 : nspecies
+ 'Si.in'                            : spfname
+  2                                 : natoms
+  0.0 0.0 0.0      0.0 0.0 0.0      : atposl, bfcmt
+  0.25 0.25 0.25   0.0 0.0 0.0
+
+ngridk
+  2  2  2
+
+vkloff
+  0.25  0.25  0.25
+

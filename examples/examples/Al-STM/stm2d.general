@@ -1,0 +1,11 @@
+file = ./STM2D.OUT
+grid = 200 x 200
+format = ascii
+interleaving = field
+majority = column
+header = lines 1
+field = locations, field0
+structure = 2-vector, scalar
+type = float, float
+
+end

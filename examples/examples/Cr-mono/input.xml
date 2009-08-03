@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="../../species/">
+<crystal>
+<basevect>1.5  0.86602540378  0.0</basevect>
+<basevect>  1.5 -0.86602540378  0.0</basevect>
+<basevect>  0.0  0.0  1.0</basevect>
+</crystal>
+<species speciesfile="Cr.xml">
+<atom coord="0.0             0.0             0.0" bfcmt="0.0             0.1   0.0"></atom>
+<atom coord="0.333333333333  0.333333333333  0.0" bfcmt="-0.086602540378 -0.05  0.0"></atom>
+<atom coord="0.666666666667  0.666666666667  0.0" bfcmt="0.086602540378 -0.05  0.0"></atom>
+</species>
+</structure>
+<groundstate  vkloff="0.5  0.5  0.0" nempty="10" ngkgrid="2  2  1">
+<spin></spin>
+</groundstate>
+<properties>
+<mvecfield></mvecfield>
+</properties>
+</input>

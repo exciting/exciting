@@ -1,0 +1,4 @@
+ open ../../species//Fe.xml
+ 
+Info(writegeom):
+ EXCITING lattice vectors and atomic positions written to geometry.xml

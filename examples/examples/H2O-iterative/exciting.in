@@ -1,0 +1,51 @@
+
+! Water molecule in a box. This example uses iterative diagonalisation which may
+! be used for fine-grained parallelism.
+
+! Remember to set
+!   export OMP_NUM_THREADS=n
+!   export OMP_NESTED=true
+! where n is the number of available processors.
+
+tasks
+  0
+
+! solve the secular equation iteratively
+tseqit
+ .true.
+
+! small step size required for convergence
+tauseq
+ 0.05
+
+! molecule calculation
+molecule
+ .true.
+
+vacuum
+  6.0
+
+! automatic determination of muffin-tin radii
+autormt
+ .true.
+
+rgkmax
+ 6.0
+
+gmaxvr
+ 17.0
+
+sppath
+  '../../species/'
+
+atoms
+  2                                     : nspecies
+ 'O.in'                                 : spfname
+  1                                     : natoms
+  0.0   0.0   0.0    0.0  0.0  0.0      : atpos, bfcmt
+ 'H.in'
+  2
+  1.811        0.0          0.0    0.0  0.0  0.0
+ -0.451907959  1.753710409  0.0    0.0  0.0  0.0
+
+

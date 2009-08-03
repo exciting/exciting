@@ -1,0 +1,43 @@
+
+! Linear optical spectrum of lithium fluoride.
+
+tasks
+  0
+  120
+  121
+
+! the inverse lifetime is determined by swidth
+swidth
+  0.005
+
+nempty
+  10
+
+lradstp
+  2
+
+dos
+  200 100 0 : nwdos, ngrdos, nsmdos
+  0.0 1.5   : wintdos
+
+avec
+  3.80402   3.80402   0.00000
+  3.80402   0.00000   3.80402
+  0.00000   3.80402   3.80402
+
+sppath
+  '../../species/'
+
+atoms
+  2                                       : nspecies
+  'Li.in'                                 : spfname
+  1                                       : natoms
+  0.0000  0.0000  0.0000    0.0 0.0 0.0   : atposl, bfcmt
+  'F.in'                                  : spfname
+  1                                       : natoms
+  0.5000  0.5000  0.5000    0.0 0.0 0.0   : atposl, bfcmt
+
+ngridk
+  10 10 10
+
+

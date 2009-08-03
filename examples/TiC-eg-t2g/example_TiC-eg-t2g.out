@@ -1,0 +1,23 @@
+ open ../../species//Ti.xml
+ open ../../species//C.xml
+ 
+Info(writegeom):
+ EXCITING lattice vectors and atomic positions written to geometry.xml
+ 
+Info(dos):
+ Total density of states written to TDOS.OUT
+ 
+ Partial density of states written to PDOS_Sss_Aaaaa.OUT
+ for all species and atoms
+ 
+ Eigenvalues of a random matrix in the (l, m) basis symmetrised
+ with the site symmetries written to ELMIREP.OUT for all
+ species and atoms. Degenerate eigenvalues correspond to
+ irreducible representations of each site symmetry group
+ 
+ Interstitial density of states written to IDOS.OUT
+ 
+ Fermi energy is at zero in plot
+ 
+ DOS units are states/Hartree/unit cell
+ 

@@ -1,0 +1,46 @@
+
+! Band structure of AlAs which produces a band-structure with line thickness
+! proportional to the atomic character. You can produce the plot by running
+!
+! xmgrace -settype xydy BAND_S02_A0001.OUT -settype xy BANDLINES.OUT -param AlAs.par
+!
+! You can change the graph appearance either in xmgrace or by editing AlAs.par
+
+tasks
+   0
+  21
+
+nempty
+  10
+
+plot1d
+  3 200                                 : nvp1d, npp1d
+  0.5   0.0   0.0                       : vlvp1d
+  0.0   0.0   0.0
+  0.5   0.5   0.0
+
+avec
+  0.5  0.5  0.0
+  0.5  0.0  0.5
+  0.0  0.5  0.5
+
+scale
+  10.53
+
+sppath
+  '../../species/'
+
+atoms
+  2                                 : nspecies
+  'Al.in'                           : spfname
+  1                                 : natoms
+  0.0 0.0 0.0      0.0 0.0 0.0      : atposl, bfieldc
+  'As.in'                           : spfname
+  1                                 : natoms
+  0.25 0.25 0.25   0.0 0.0 0.0
+
+ngridk
+  4  4  4
+
+
+

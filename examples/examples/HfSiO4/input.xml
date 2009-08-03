@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="../../species/" autormt="true">
+<crystal>
+<basevect>6.210112000       6.210112000       5.634407000    </basevect>
+<basevect>   6.210112000       6.210112000      -5.634407000    </basevect>
+<basevect>   6.210112000      -6.210112000       5.634407000    </basevect>
+</crystal>
+<species speciesfile="Hf.xml">
+<atom coord="0.87500000    0.87500000    0.25000000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.12500000    0.12500000    0.75000000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+</species>
+<species speciesfile="Si.xml">
+<atom coord="0.37500000    0.37500000    0.25000000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.62500000    0.62500000    0.75000000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+</species>
+<species speciesfile="O.xml">
+<atom coord="0.26030000    0.80520000    0.93450000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.73970000    0.19480000    0.06550000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.19480000    0.73970000    0.43450000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.80520000    0.26030000    0.56550000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.62930000    0.80520000    0.56550000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.37070000    0.19480000    0.43450000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.19480000    0.37070000    0.06550000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.80520000    0.62930000    0.93450000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+</species>
+</structure>
+<groundstate  ngkgrid="2  2  2"></groundstate>
+<properties></properties>
+</input>

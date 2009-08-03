@@ -1,0 +1,46 @@
+
+! NiO in AFMII structure with LDA for comparison with LDA+U case.
+! Example by Fredrik Bultmark, Francesco Cricchio and Lars Nordstrom.
+
+tasks
+  0
+  10
+
+spinpol
+  .true.
+
+scale
+  3.946694500
+
+avec
+  -1.0  1.0  0.0
+  -1.0  0.0  1.0
+   1.0  1.0  2.0
+
+atoms
+   2                                    : nspecies
+ 'Ni.in'                                : spfname
+   2                                    : natoms; atpos, bfcmt below
+    0.0    0.0    0.0   0.0  0.0  0.1
+    0.5    0.0    0.5   0.0  0.0 -0.1
+ 'O.in'                                 : spfname
+   2                                    : natoms; atpos, bfcmt below
+    0.75   0.5    0.25  0.0  0.0  0.0
+    0.25   0.5    0.75  0.0  0.0  0.0
+
+
+! automatic muffin-tin radius
+autormt
+  .true.
+
+! fairly high number of empty states
+nempty
+  10
+
+sppath
+  '../../species/'
+
+! this grid is too small for accurate magnetic moment
+ngridk
+  4  4  4
+

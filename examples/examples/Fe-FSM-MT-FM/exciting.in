@@ -1,0 +1,43 @@
+
+! Ferromagnetic bcc iron example with  fixed spin moment in muffin-tin.
+! Run by Fredrik Bultmark, Francesco Cricchio, Lars Nordstrom.
+
+tasks
+  0
+
+! ferromagnetic local fixed spin moment calculation
+fixspin
+  2
+
+mommtfix
+ 1 1   0.0 0.0 1.0     : ia, is, mommtfix 
+
+autormt
+ .true.
+
+lmaxapw
+ 10
+
+! fairly large number of empty states required for magnetic cases
+nempty
+ 10
+
+avec
+  1.0  1.0 -1.0
+  1.0 -1.0  1.0
+ -1.0  1.0  1.0
+
+scale
+  2.708
+
+atoms
+  1                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0   0.0      : atposl, bfcmt
+
+sppath
+  '../../species/'
+
+ngridk
+  6  6  6 

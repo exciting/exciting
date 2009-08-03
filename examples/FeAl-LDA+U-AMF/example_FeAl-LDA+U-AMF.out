@@ -1,0 +1,18 @@
+ open ../../species//Fe.xml
+ open ../../species//Al.xml
+ 
+Info(writegeom):
+ EXCITING lattice vectors and atomic positions written to geometry.xml
+ 
+Info(dos):
+ Total density of states written to TDOS.OUT
+ 
+ Partial density of states written to PDOS_Sss_Aaaaa.OUT
+ for all species and atoms
+ 
+ Interstitial density of states written to IDOS.OUT
+ 
+ Fermi energy is at zero in plot
+ 
+ DOS units are states/Hartree/unit cell
+ 

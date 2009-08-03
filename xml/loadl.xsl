@@ -11,10 +11,10 @@
 # @ node           = 1
 # @ tasks_per_node = 1
 # @ arguments= 
-# @ executable = /EXCITING/ 
+# @ executable = /home/tde/exciting/bin/excitingdebug 
 <xsl:for-each select = "//file[@name='input.xml']">
 
-# @ initialdir = /home/tde/git/exciting<xsl:value-of select="../path"/>
+# @ initialdir = /home/tde/exciting/examples<xsl:value-of select="../path"/>
 
 # @ job_name  = example_<xsl:value-of select="../@name"/>
 # @ output = $(job_name).out

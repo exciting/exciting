@@ -1,0 +1,33 @@
+
+! GaAs using the Perdew-Burke-Ernzerhof GGA functional. Try calculating the
+! effective mass tensor at the Gamma-point using task=25. Repeat this with
+! spin-orbit coupling switched on.
+
+tasks
+  0
+
+xctype
+  20
+
+avec
+  5.3435 5.3435 0.0000
+  5.3435 0.0000 5.3435
+  0.0000 5.3435 5.3435
+
+sppath
+  '../../species/'
+
+atoms
+  2                                   : nspecies
+  'Ga.in'                             : spfname
+  1                                   : natoms
+  0.00 0.00 0.00  0.0 0.0 0.0         : atposl, bfcmt
+  'As.in'                             : spfname
+  1                                   : natoms
+  0.25 0.25 0.25  0.0 0.0 0.0         : atposl, bfcmt
+
+ngridk
+  4  4  4
+
+vkloff
+  0.5  0.5  0.5

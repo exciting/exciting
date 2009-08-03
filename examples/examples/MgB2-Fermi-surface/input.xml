@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
+
+<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title></title>
+<structure speciespath="../../species/">
+<crystal>
+<basevect>5.831694400       0.000000000       0.000000000</basevect>
+<basevect>  -2.915847200       5.050395498       0.000000000</basevect>
+<basevect>   0.000000000       0.000000000       6.659394380</basevect>
+</crystal>
+<species speciesfile="Mg.xml">
+<atom coord="0.00000000    0.00000000    0.00000000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+</species>
+<species speciesfile="B.xml">
+<atom coord="0.33333333    0.66666667    0.50000000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+<atom coord="0.66666667    0.33333333    0.50000000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
+</species>
+</structure>
+<groundstate  swidth="0.001" ngkgrid="6  6  4"></groundstate>
+<properties>
+<fermisurfaceplot separate="true"></fermisurfaceplot>
+</properties>
+</input>

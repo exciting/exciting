@@ -1,0 +1,12 @@
+ open ../../species//Cu.xml
+ open ../../species//Fe.xml
+ open ../../species//S.xml
+ 
+Info(writegeom):
+ EXCITING lattice vectors and atomic positions written to geometry.xml
+ 
+Warning(occupy): not enough empty states for k-point      3
+ 
+Warning(occupy): not enough empty states for k-point      4
+ 
+Warning(occupy): not enough empty states for k-point      3

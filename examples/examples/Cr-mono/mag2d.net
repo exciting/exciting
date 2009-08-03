@@ -1,0 +1,292 @@
+//
+// time: Sat Jun 16 15:49:00 2007
+//
+// version: 3.2.0 (format), 4.4.0 (DX)
+//
+//
+// MODULE main
+// workspace: width = 565, height = 623
+// layout: snap = 0, width = 50, height = 50, align = NN
+//
+macro main(
+) -> (
+) {
+    // 
+    // node Import[1]: x = 47, y = 39, inputs = 6, label = Import
+    // input[1]: defaulting = 0, visible = 1, type = 32, value = "mag2d.general"
+    //
+main_Import_1_out_1 = 
+    Import(
+    main_Import_1_in_1,
+    main_Import_1_in_2,
+    main_Import_1_in_3,
+    main_Import_1_in_4,
+    main_Import_1_in_5,
+    main_Import_1_in_6
+    ) [instance: 1, cache: 1];
+    // 
+    // node Sample[1]: x = 216, y = 66, inputs = 2, label = Sample
+    // input[2]: defaulting = 0, visible = 1, type = 1, value = 2000
+    //
+main_Sample_1_out_1 = 
+    Sample(
+    main_Import_1_out_1,
+    main_Sample_1_in_2
+    ) [instance: 1, cache: 1];
+    // 
+    // node Compute[1]: x = 84, y = 147, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$0/mag($0)"
+    // expression: value = a/mag(a)
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+main_Compute_1_out_1 = 
+    Compute(
+    main_Compute_1_in_1,
+    main_Sample_1_out_1,
+    main_Compute_1_in_3
+    ) [instance: 1, cache: 1];
+    // 
+    // node AutoGlyph[1]: x = 44, y = 254, inputs = 7, label = AutoGlyph
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "rocket2D"
+    // input[3]: defaulting = 0, visible = 1, type = 5, value = 7.0
+    // input[4]: defaulting = 0, visible = 1, type = 5, value = 0.25
+    // input[5]: defaulting = 0, visible = 1, type = 5, value = 0.05
+    //
+main_AutoGlyph_1_out_1 = 
+    AutoGlyph(
+    main_Compute_1_out_1,
+    main_AutoGlyph_1_in_2,
+    main_AutoGlyph_1_in_3,
+    main_AutoGlyph_1_in_4,
+    main_AutoGlyph_1_in_5,
+    main_AutoGlyph_1_in_6,
+    main_AutoGlyph_1_in_7
+    ) [instance: 1, cache: 1];
+    // 
+    // node Color[1]: x = 108, y = 341, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "black"
+    //
+main_Color_1_out_1 = 
+    Color(
+    main_AutoGlyph_1_out_1,
+    main_Color_1_in_2,
+    main_Color_1_in_3,
+    main_Color_1_in_4,
+    main_Color_1_in_5
+    ) [instance: 1, cache: 1];
+    // 
+    // node Compute[2]: x = 348, y = 66, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "mag($0)"
+    // expression: value = mag(a)
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+main_Compute_2_out_1 = 
+    Compute(
+    main_Compute_2_in_1,
+    main_Import_1_out_1,
+    main_Compute_2_in_3
+    ) [instance: 2, cache: 1];
+    // 
+    // node RubberSheet[1]: x = 467, y = 146, inputs = 4, label = RubberSheet
+    //
+main_RubberSheet_1_out_1 = 
+    RubberSheet(
+    main_Compute_2_out_1,
+    main_RubberSheet_1_in_2,
+    main_RubberSheet_1_in_3,
+    main_RubberSheet_1_in_4
+    ) [instance: 1, cache: 1];
+    // 
+    // node Translate[1]: x = 283, y = 189, inputs = 2, label = Translate
+    // input[2]: defaulting = 0, visible = 1, type = 8, value = [0 0 -3]
+    //
+main_Translate_1_out_1 = 
+    Translate(
+    main_RubberSheet_1_out_1,
+    main_Translate_1_in_2
+    ) [instance: 1, cache: 1];
+    // 
+    // node Colormap[2]: x = 479, y = 260, inputs = 19, label = Colormap
+    // input[1]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 0.66315789] [0.60691824 0.0] }
+    // input[2]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 1.0] [1.0 1.0] }
+    // input[3]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 1.0] [1.0 1.0] }
+    // input[4]: defaulting = 0, visible = 0, type = 16777224, value = { [0.0 1.0] [1.0 1.0] }
+    // input[5]: defaulting = 0, visible = 0, type = 32, value = "Colormap_2"
+    // input[7]: defaulting = 1, visible = 0, type = 5, value = 9.2432623e-05
+    // input[8]: defaulting = 1, visible = 0, type = 5, value = 0.9849546
+    // input[9]: defaulting = 1, visible = 0, type = 1, value = 20
+    // input[12]: defaulting = 0, visible = 0, type = 16777221, value = { 9.2432623e-05 0.9849546 }
+    // input[17]: defaulting = 0, visible = 0, type = 5, value = 9.2432623e-05
+    // input[18]: defaulting = 0, visible = 0, type = 5, value = 0.9849546
+    // window: position = (0.2998,0.0000), size = 0.6348x0.5859
+    //
+main_Colormap_2_out_1[cache: 2],
+main_Colormap_2_out_2[cache: 2] = 
+    Colormap(
+    main_Colormap_2_in_1,
+    main_Colormap_2_in_2,
+    main_Colormap_2_in_3,
+    main_Colormap_2_in_4,
+    main_Colormap_2_in_5,
+    main_Translate_1_out_1,
+    main_Colormap_2_in_7,
+    main_Colormap_2_in_8,
+    main_Colormap_2_in_9,
+    main_Colormap_2_in_10,
+    main_Colormap_2_in_11,
+    main_Colormap_2_in_12,
+    main_Colormap_2_in_13,
+    main_Colormap_2_in_14,
+    main_Colormap_2_in_15,
+    main_Colormap_2_in_16,
+    main_Colormap_2_in_17,
+    main_Colormap_2_in_18,
+    main_Colormap_2_in_19
+    ) [instance: 2, cache: 1];
+    // 
+    // node Color[3]: x = 339, y = 334, inputs = 5, label = Color
+    //
+main_Color_3_out_1 = 
+    Color(
+    main_Translate_1_out_1,
+    main_Colormap_2_out_1,
+    main_Color_3_in_3,
+    main_Color_3_in_4,
+    main_Color_3_in_5
+    ) [instance: 3, cache: 1];
+    // 
+    // node Collect[1]: x = 214, y = 419, inputs = 2, label = Collect
+    //
+main_Collect_1_out_1 = 
+    Collect(
+    main_Color_1_out_1,
+    main_Color_3_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node AutoCamera[1]: x = 363, y = 493, inputs = 9, label = AutoCamera
+    // input[3]: defaulting = 0, visible = 0, type = 5, value = 15.0
+    // input[4]: defaulting = 0, visible = 0, type = 1, value = 800
+    // input[5]: defaulting = 0, visible = 0, type = 5, value = 0.6
+    // input[7]: defaulting = 0, visible = 0, type = 3, value = 0
+    // input[8]: defaulting = 1, visible = 0, type = 5, value = 20.0
+    // input[9]: defaulting = 0, visible = 0, type = 32, value = "white"
+    //
+main_AutoCamera_1_out_1 = 
+    AutoCamera(
+    main_Collect_1_out_1,
+    main_AutoCamera_1_in_2,
+    main_AutoCamera_1_in_3,
+    main_AutoCamera_1_in_4,
+    main_AutoCamera_1_in_5,
+    main_AutoCamera_1_in_6,
+    main_AutoCamera_1_in_7,
+    main_AutoCamera_1_in_8,
+    main_AutoCamera_1_in_9
+    ) [instance: 1, cache: 1];
+    // 
+    // node Render[1]: x = 252, y = 561, inputs = 3, label = Render
+    //
+main_Render_1_out_1 = 
+    Render(
+    main_Collect_1_out_1,
+    main_AutoCamera_1_out_1,
+    main_Render_1_in_3
+    ) [instance: 1, cache: 1];
+    // 
+    // node Display[2]: x = 139, y = 557, inputs = 8, label = Display
+    // depth: value = 24
+    // window: position = (0.0869,0.1107), size = 0.7949x0.6797
+    //
+main_Display_2_out_1[cache: 2] = 
+    Display(
+    main_Render_1_out_1,
+    main_Display_2_in_2,
+    main_Display_2_in_3,
+    main_Display_2_in_4,
+    main_Display_2_in_5,
+    main_Display_2_in_6,
+    main_Display_2_in_7,
+    main_Display_2_in_8
+    ) [instance: 2, cache: 1];
+// network: end of macro body
+}
+main_Import_1_in_1 = "mag2d.general";
+main_Import_1_in_2 = NULL;
+main_Import_1_in_3 = NULL;
+main_Import_1_in_4 = NULL;
+main_Import_1_in_5 = NULL;
+main_Import_1_in_6 = NULL;
+main_Import_1_out_1 = NULL;
+main_Sample_1_in_2 = 2000;
+main_Sample_1_out_1 = NULL;
+main_Compute_1_in_1 = "$0/mag($0)";
+main_Compute_1_in_3 = NULL;
+main_Compute_1_out_1 = NULL;
+main_AutoGlyph_1_in_2 = "rocket2D";
+main_AutoGlyph_1_in_3 = 7.0;
+main_AutoGlyph_1_in_4 = 0.25;
+main_AutoGlyph_1_in_5 = 0.05;
+main_AutoGlyph_1_in_6 = NULL;
+main_AutoGlyph_1_in_7 = NULL;
+main_AutoGlyph_1_out_1 = NULL;
+main_Color_1_in_2 = "black";
+main_Color_1_in_3 = NULL;
+main_Color_1_in_4 = NULL;
+main_Color_1_in_5 = NULL;
+main_Color_1_out_1 = NULL;
+main_Compute_2_in_1 = "mag($0)";
+main_Compute_2_in_3 = NULL;
+main_Compute_2_out_1 = NULL;
+main_RubberSheet_1_in_2 = NULL;
+main_RubberSheet_1_in_3 = NULL;
+main_RubberSheet_1_in_4 = NULL;
+main_RubberSheet_1_out_1 = NULL;
+main_Translate_1_in_2 = [0 0 -3];
+main_Translate_1_out_1 = NULL;
+main_Colormap_2_in_1 = { [0.0 0.66315789] [0.60691824 0.0] };
+main_Colormap_2_in_2 = { [0.0 1.0] [1.0 1.0] };
+main_Colormap_2_in_3 = { [0.0 1.0] [1.0 1.0] };
+main_Colormap_2_in_4 = { [0.0 1.0] [1.0 1.0] };
+main_Colormap_2_in_5 = "Colormap_2";
+main_Colormap_2_in_7 = NULL;
+main_Colormap_2_in_8 = NULL;
+main_Colormap_2_in_9 = NULL;
+main_Colormap_2_in_10 = NULL;
+main_Colormap_2_in_11 = NULL;
+main_Colormap_2_in_12 = { 9.2432623e-05 0.9849546 };
+main_Colormap_2_in_13 = NULL;
+main_Colormap_2_in_14 = NULL;
+main_Colormap_2_in_15 = NULL;
+main_Colormap_2_in_16 = NULL;
+main_Colormap_2_in_17 = 9.2432623e-05;
+main_Colormap_2_in_18 = 0.9849546;
+main_Colormap_2_in_19 = NULL;
+main_Colormap_2_out_1 = NULL;
+main_Color_3_in_3 = NULL;
+main_Color_3_in_4 = NULL;
+main_Color_3_in_5 = NULL;
+main_Color_3_out_1 = NULL;
+main_Collect_1_out_1 = NULL;
+main_AutoCamera_1_in_2 = NULL;
+main_AutoCamera_1_in_3 = 15.0;
+main_AutoCamera_1_in_4 = 800;
+main_AutoCamera_1_in_5 = 0.6;
+main_AutoCamera_1_in_6 = NULL;
+main_AutoCamera_1_in_7 = 0;
+main_AutoCamera_1_in_8 = NULL;
+main_AutoCamera_1_in_9 = "white";
+main_AutoCamera_1_out_1 = NULL;
+main_Render_1_in_3 = NULL;
+main_Render_1_out_1 = NULL;
+main_Display_2_in_2 = NULL;
+main_Display_2_in_3 = "X24,,";
+main_Display_2_in_4 = NULL;
+main_Display_2_in_5 = NULL;
+main_Display_2_in_6 = NULL;
+main_Display_2_in_7 = NULL;
+main_Display_2_in_8 = NULL;
+Executive("product version 4 4 0");
+$sync
+main();

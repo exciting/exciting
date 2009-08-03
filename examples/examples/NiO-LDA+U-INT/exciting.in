@@ -1,0 +1,61 @@
+
+! NiO in AFMII structure with LDA+U and double counting interpolation
+! between FLL and AMF. Values of  U and J for Ni are taken from literature.
+! Analyze total and partial DOS (t2g and eg states) and compare with bare LDA.
+! Look at the file ALPHALU.OUT where the interpolation factor is printed out.
+! ( see PRB 67, 153106 (2003) ). Such a factor is about 0.5 for NiO.
+! Comapre the value of the interpolation factor withthe example Fe-LDA+U-INT
+! (weakly correlated system).
+! Example by Fredrik Bultmark, Francesco Cricchio and Lars Nordstrom.
+
+tasks
+  0
+  10
+
+! lda+u block
+! here an interpolation between AMF and FLL double counting is used.
+! llu(is) represents the l-shell we would like to apply LDA+U
+! ujlu(1,is) is U in htr
+! ujlu(2,is) is J in htr
+lda+u
+  3                                 : ldapu
+  1 2 0.2939944288 0.0349118384     : is, llu(is), ujlu(1,is),ujlu(2,is)
+
+spinpol
+  .true.
+
+scale
+  3.946694500
+
+avec
+  -1.0  1.0  0.0
+  -1.0  0.0  1.0
+   1.0  1.0  2.0
+
+atoms
+   2                                    : nspecies
+  'Ni.in'                               : spfname
+   2                                    : natoms; atpos, bfcmt below
+    0.0    0.0    0.0   0.0  0.0  0.1
+    0.5    0.0    0.5   0.0  0.0 -0.1
+  'O.in'                                : spfname
+   2                                    : natoms; atpos, bfcmt below
+    0.75   0.5    0.25  0.0  0.0  0.0
+    0.25   0.5    0.75  0.0  0.0  0.0
+
+
+! automatic muffin-tin radius
+autormt
+  .true.
+
+! fairly high number of empty states
+nempty
+  10
+
+sppath
+  '../../species/'
+
+! this grid is too small for accurate magnetic moment
+ngridk
+  4  4  4
+

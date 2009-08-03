@@ -1,0 +1,11 @@
+file = RHO3D.OUT
+grid = 80 x 80 x 80
+format = ascii
+interleaving = field
+majority = column
+header = lines 1
+field = locations, field0
+structure = 3-vector, scalar
+type = float, float
+
+end

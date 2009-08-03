@@ -1,0 +1,439 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="../../../xml//info.xsl" type="text/xsl"?>
+<info>
+ <groundstate status="finished"><scl>
+  <iter iteration="1" rms="1.00000000000000000" rmslog10="0.00000000000" fermidos="79.7266489175">
+   <energies totalEnergy="-1518.99839237378887" fermiEnergy="0.272788334528234921" sum-of-eigenvalues="-871.693200360" electronic-kinetic="1541.06935191" core-electron-kinetic="1382.52132121" Coulomb="-2998.95211522" Coulomb-potential="-2331.84980460" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.86989818" Hartree="447.510046788" Madelung="-1833.02721292"/>
+   <charges core="12.0000000000" core_leakage="0.236872735973E-02" valence="16.0000000000" interstitial="1.64482913955" totalcharge="28.0000000000" muffin-tin-total="26.3551708604">
+    <atom species="Ni" muffin-tin="26.3551708604"/>
+    </charges>
+   <timing timetot="30.0000000000" timeinit="9.97000000000" timemat="0.320000000000" timefv="0.899999999965E-01" timerho="6.78000000001" timepot="1.05000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.165539137227E-20" y="-0.215052323737E-20" z="-0.110881845592E-03"/>
+     <mommttot x="0.501434056639E-19" y="-0.504307698799E-19" z="-0.279842002473E-02"/>
+     <momtot x="0.517987970362E-19" y="-0.525812931172E-19" z="-0.290930187032E-02"/>
+     <atom species="Ni"><mommt x="0.501434056639E-19" y="-0.504307698799E-19" z="-0.279842002473E-02"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="2" rms="0.162533703343870871E-01" rmslog10="-1.78905656909" fermidos="81.6310272442">
+   <energies totalEnergy="-1516.87038548030182" fermiEnergy="0.299990718948493662" sum-of-eigenvalues="-871.078407158" electronic-kinetic="1542.39120755" core-electron-kinetic="1383.07809557" Coulomb="-2998.23863149" Coulomb-potential="-2332.67963253" nuclear-nuclear="-219.592263828" electron-nuclear="-3224.61310278" Hartree="445.966735126" Madelung="-1831.89881522"/>
+   <charges core="12.0000000000" core_leakage="0.239517526374E-02" valence="16.0000000000" interstitial="1.70226817649" totalcharge="28.0000000000" muffin-tin-total="26.2977318235">
+    <atom species="Ni" muffin-tin="26.2977318235"/>
+    </charges>
+   <timing itertime="27.5400000000" timetot="49.6600000000" timeinit="9.97000000000" timemat="0.670000000020" timefv="0.259999999973" timerho="13.6000000000" timepot="1.58000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.219738065753E-20" y="-0.207872354837E-20" z="-0.131064866585E-03"/>
+     <mommttot x="0.126851736790E-18" y="-0.126860648534E-18" z="-0.709131712581E-02"/>
+     <momtot x="0.129049117447E-18" y="-0.128939372083E-18" z="-0.722238199240E-02"/>
+     <atom species="Ni"><mommt x="0.126851736790E-18" y="-0.126860648534E-18" z="-0.709131712581E-02"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="3" rms="0.573019656794557068E-02" rmslog10="-2.24183047979" fermidos="80.6566969912">
+   <energies totalEnergy="-1518.76466069372236" fermiEnergy="0.290258703556291520" sum-of-eigenvalues="-871.441840541" electronic-kinetic="1541.60371816" core-electron-kinetic="1382.87828753" Coulomb="-2999.25039751" Coulomb-potential="-2332.12963051" nuclear-nuclear="-219.592263828" electron-nuclear="-3227.18663686" Hartree="447.528503179" Madelung="-1833.18558226"/>
+   <charges core="12.0000000000" core_leakage="0.236743246414E-02" valence="16.0000000000" interstitial="1.65581859607" totalcharge="28.0000000000" muffin-tin-total="26.3441814039">
+    <atom species="Ni" muffin-tin="26.3441814039"/>
+    </charges>
+   <timing itertime="28.3100000000" timetot="69.1900000000" timeinit="9.97000000000" timemat="1.00000000004" timefv="0.399999999958" timerho="20.4000000000" timepot="2.11000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.201094974961E-20" y="-0.182123352970E-20" z="-0.126000222247E-03"/>
+     <mommttot x="0.153348841014E-18" y="-0.153355580450E-18" z="-0.857336182243E-02"/>
+     <momtot x="0.155359790764E-18" y="-0.155176813980E-18" z="-0.869936204468E-02"/>
+     <atom species="Ni"><mommt x="0.153348841014E-18" y="-0.153355580450E-18" z="-0.857336182243E-02"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="4" rms="0.261031032980941742E-02" rmslog10="-2.58330785798" fermidos="80.7835778789">
+   <energies totalEnergy="-1518.51925181768161" fermiEnergy="0.291392810290271975" sum-of-eigenvalues="-871.386900919" electronic-kinetic="1541.69743847" core-electron-kinetic="1382.88168379" Coulomb="-2999.11060809" Coulomb-potential="-2332.18418627" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.85250225" Hartree="447.334157989" Madelung="-1833.01851495"/>
+   <charges core="12.0000000000" core_leakage="0.237092410084E-02" valence="16.0000000000" interstitial="1.66107410471" totalcharge="28.0000000000" muffin-tin-total="26.3389258953">
+    <atom species="Ni" muffin-tin="26.3389258953"/>
+    </charges>
+   <timing itertime="26.8400000000" timetot="88.7600000001" timeinit="9.97000000000" timemat="1.38000000003" timefv="0.489999999947" timerho="27.1800000001" timepot="2.65000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.201008185543E-20" y="-0.213093082480E-20" z="-0.120992824992E-03"/>
+     <mommttot x="0.187612834057E-18" y="-0.187616316985E-18" z="-0.104894867630E-01"/>
+     <momtot x="0.189622915913E-18" y="-0.189747247810E-18" z="-0.106104795880E-01"/>
+     <atom species="Ni"><mommt x="0.187612834057E-18" y="-0.187616316985E-18" z="-0.104894867630E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="5" rms="0.144887102794741935E-02" rmslog10="-2.83897027177" fermidos="80.8069615272">
+   <energies totalEnergy="-1518.43770149147076" fermiEnergy="0.291716393274075891" sum-of-eigenvalues="-871.365365416" electronic-kinetic="1541.72497844" core-electron-kinetic="1382.87930154" Coulomb="-2999.06037718" Coulomb-potential="-2332.19520271" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.74102400" Hartree="447.272910645" Madelung="-1832.96277583"/>
+   <charges core="12.0000000000" core_leakage="0.237205201799E-02" valence="16.0000000000" interstitial="1.66251675529" totalcharge="28.0000000000" muffin-tin-total="26.3374832447">
+    <atom species="Ni" muffin-tin="26.3374832447"/>
+    </charges>
+   <timing itertime="26.8500000000" timetot="108.300000000" timeinit="9.97000000000" timemat="1.74000000003" timefv="0.609999999950" timerho="33.9700000001" timepot="3.19000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.164924896711E-20" y="-0.157926668496E-20" z="-0.113847783335E-03"/>
+     <mommttot x="0.230380309295E-18" y="-0.230356487283E-18" z="-0.128820133206E-01"/>
+     <momtot x="0.232029558262E-18" y="-0.231935753968E-18" z="-0.129958611039E-01"/>
+     <atom species="Ni"><mommt x="0.230380309295E-18" y="-0.230356487283E-18" z="-0.128820133206E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="6" rms="0.960063504442960100E-03" rmslog10="-3.01770003913" fermidos="80.8005287619">
+   <energies totalEnergy="-1518.41096274522351" fermiEnergy="0.291784991206272215" sum-of-eigenvalues="-871.355590485" electronic-kinetic="1541.73154818" core-electron-kinetic="1382.87536386" Coulomb="-2999.04130418" Coulomb-potential="-2332.19345211" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.70462861" Hartree="447.255588249" Madelung="-1832.94457813"/>
+   <charges core="12.0000000000" core_leakage="0.237237257946E-02" valence="16.0000000000" interstitial="1.66278205349" totalcharge="28.0000000000" muffin-tin-total="26.3372179465">
+    <atom species="Ni" muffin-tin="26.3372179465"/>
+    </charges>
+   <timing itertime="28.6600000000" timetot="127.810000000" timeinit="9.97000000000" timemat="2.08000000005" timefv="0.769999999953" timerho="40.7700000001" timepot="3.73000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.165492486056E-20" y="-0.162537997020E-20" z="-0.104208788327E-03"/>
+     <mommttot x="0.284606838922E-18" y="-0.284628089362E-18" z="-0.159112402739E-01"/>
+     <momtot x="0.286261763783E-18" y="-0.286253469332E-18" z="-0.160154490622E-01"/>
+     <atom species="Ni"><mommt x="0.284606838922E-18" y="-0.284628089362E-18" z="-0.159112402739E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="7" rms="0.684355326869673570E-03" rmslog10="-3.16471834794" fermidos="80.7845520418">
+   <energies totalEnergy="-1518.40011119918040" fermiEnergy="0.291787644835511895" sum-of-eigenvalues="-871.349759497" electronic-kinetic="1541.73252851" core-electron-kinetic="1382.87154270" Coulomb="-2999.03177951" Coulomb-potential="-2332.18906242" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.68996894" Hartree="447.250453262" Madelung="-1832.93724830"/>
+   <charges core="12.0000000000" core_leakage="0.237248136061E-02" valence="16.0000000000" interstitial="1.66274296384" totalcharge="28.0000000000" muffin-tin-total="26.3372570362">
+    <atom species="Ni" muffin-tin="26.3372570362"/>
+    </charges>
+   <timing itertime="29.8400000000" timetot="147.300000000" timeinit="9.97000000000" timemat="2.43000000001" timefv="0.879999999954" timerho="47.5500000002" timepot="4.26000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.205112904091E-20" y="-0.159767802503E-20" z="-0.913773916172E-04"/>
+     <mommttot x="0.354081282546E-18" y="-0.354087339695E-18" z="-0.197988924782E-01"/>
+     <momtot x="0.356132411586E-18" y="-0.355685017720E-18" z="-0.198902698699E-01"/>
+     <atom species="Ni"><mommt x="0.354081282546E-18" y="-0.354087339695E-18" z="-0.197988924782E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="8" rms="0.493723338440534118E-03" rmslog10="-3.30651634307" fermidos="80.7618814625">
+   <energies totalEnergy="-1518.39446127843212" fermiEnergy="0.291772681262154998" sum-of-eigenvalues="-871.345634670" electronic-kinetic="1541.73190809" core-electron-kinetic="1382.86827017" Coulomb="-2999.02563093" Coulomb-potential="-2332.18448020" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.68225400" Hartree="447.248886899" Madelung="-1832.93339083"/>
+   <charges core="12.0000000000" core_leakage="0.237252798493E-02" valence="16.0000000000" interstitial="1.66262541013" totalcharge="28.0000000000" muffin-tin-total="26.3373745899">
+    <atom species="Ni" muffin-tin="26.3373745899"/>
+    </charges>
+   <timing itertime="28.7500000000" timetot="166.970000000" timeinit="9.97000000000" timemat="2.81000000002" timefv="1.09999999998" timerho="54.3500000002" timepot="4.80000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.140066946080E-20" y="-0.684371038483E-21" z="-0.742687630865E-04"/>
+     <mommttot x="0.444591893505E-18" y="-0.444578956120E-18" z="-0.248595871027E-01"/>
+     <momtot x="0.445992562966E-18" y="-0.445263327158E-18" z="-0.249338558658E-01"/>
+     <atom species="Ni"><mommt x="0.444591893505E-18" y="-0.444578956120E-18" z="-0.248595871027E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="9" rms="0.350554154884319229E-03" rmslog10="-3.45524488112" fermidos="80.7295654730">
+   <energies totalEnergy="-1518.39089202080686" fermiEnergy="0.291754563835374570" sum-of-eigenvalues="-871.342502480" electronic-kinetic="1541.73089510" core-electron-kinetic="1382.86564501" Coulomb="-2999.02109517" Coulomb-potential="-2332.18039841" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.67726427" Hartree="447.248432928" Madelung="-1832.93089596"/>
+   <charges core="12.0000000000" core_leakage="0.237255479363E-02" valence="16.0000000000" interstitial="1.66249701144" totalcharge="28.0000000000" muffin-tin-total="26.3375029886">
+    <atom species="Ni" muffin-tin="26.3375029886"/>
+    </charges>
+   <timing itertime="27.7800000000" timetot="186.560000000" timeinit="9.97000000000" timemat="3.16000000003" timefv="1.18999999999" timerho="61.1500000001" timepot="5.33000000001" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.133778041133E-20" y="-0.472133981609E-21" z="-0.512698838550E-04"/>
+     <mommttot x="0.564307103302E-18" y="-0.564318528556E-18" z="-0.315482798575E-01"/>
+     <momtot x="0.565644883713E-18" y="-0.564790662538E-18" z="-0.315995497414E-01"/>
+     <atom species="Ni"><mommt x="0.564307103302E-18" y="-0.564318528556E-18" z="-0.315482798575E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="10" rms="0.241369711434725976E-03" rmslog10="-3.61731722878" fermidos="80.6798195286">
+   <energies totalEnergy="-1518.38833894992263" fermiEnergy="0.291738385605612549" sum-of-eigenvalues="-871.340093932" electronic-kinetic="1541.72991058" core-electron-kinetic="1382.86366127" Coulomb="-2999.01757744" Coulomb-potential="-2332.17703376" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.67359347" Hartree="447.248279853" Madelung="-1832.92906056"/>
+   <charges core="12.0000000000" core_leakage="0.237257429315E-02" valence="16.0000000000" interstitial="1.66238060193" totalcharge="28.0000000000" muffin-tin-total="26.3376193981">
+    <atom species="Ni" muffin-tin="26.3376193981"/>
+    </charges>
+   <timing itertime="27.2800000000" timetot="206.140000000" timeinit="9.97000000000" timemat="3.52000000004" timefv="1.30000000000" timerho="67.9900000002" timepot="5.88000000001" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.196048111700E-20" y="0.822991074267E-21" z="-0.199475982277E-04"/>
+     <mommttot x="0.725126727421E-18" y="-0.725079573976E-18" z="-0.405338957478E-01"/>
+     <momtot x="0.727087208538E-18" y="-0.724256582902E-18" z="-0.405538433460E-01"/>
+     <atom species="Ni"><mommt x="0.725126727421E-18" y="-0.725079573976E-18" z="-0.405338957478E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="11" rms="0.160159836149013685E-03" rmslog10="-3.79544638417" fermidos="80.5970667798">
+   <energies totalEnergy="-1518.38639662317382" fermiEnergy="0.291726047185907333" sum-of-eigenvalues="-871.338292016" electronic-kinetic="1541.72906298" core-electron-kinetic="1382.86226187" Coulomb="-2999.01479715" Coulomb-potential="-2332.17439966" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.67066700" Hartree="447.248133670" Madelung="-1832.92759733"/>
+   <charges core="12.0000000000" core_leakage="0.237259015010E-02" valence="16.0000000000" interstitial="1.66228368384" totalcharge="28.0000000000" muffin-tin-total="26.3377163162">
+    <atom species="Ni" muffin-tin="26.3377163162"/>
+    </charges>
+   <timing itertime="27.6800000000" timetot="225.700000000" timeinit="9.97000000000" timemat="3.87000000005" timefv="1.39000000000" timerho="74.8100000001" timepot="6.41000000001" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.811204740472E-22" y="0.152872517313E-20" z="0.234704687108E-04"/>
+     <mommttot x="0.944749113493E-18" y="-0.944645325752E-18" z="-0.528159474809E-01"/>
+     <momtot x="0.944830233967E-18" y="-0.943116600578E-18" z="-0.527924770122E-01"/>
+     <atom species="Ni"><mommt x="0.944749113493E-18" y="-0.944645325752E-18" z="-0.528159474809E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="12" rms="0.105845211815060785E-03" rmslog10="-3.97532878365" fermidos="80.4503119272">
+   <energies totalEnergy="-1518.38497962624547" fermiEnergy="0.291718648784441759" sum-of-eigenvalues="-871.337034449" electronic-kinetic="1541.72836608" core-electron-kinetic="1382.86134614" Coulomb="-2999.01268050" Coulomb-potential="-2332.17244500" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.66838834" Hartree="447.247971670" Madelung="-1832.92645800"/>
+   <charges core="12.0000000000" core_leakage="0.237260173481E-02" valence="16.0000000000" interstitial="1.66220881667" totalcharge="28.0000000000" muffin-tin-total="26.3377911833">
+    <atom species="Ni" muffin-tin="26.3377911833"/>
+    </charges>
+   <timing itertime="28.8500000000" timetot="245.260000000" timeinit="9.97000000000" timemat="4.23000000008" timefv="1.48000000000" timerho="81.5900000002" timepot="6.94000000001" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="0.152514173302E-20" y="0.310514002409E-20" z="0.850610680637E-04"/>
+     <mommttot x="0.125025193225E-17" y="-0.125037809421E-17" z="-0.699102709205E-01"/>
+     <momtot x="0.125177707399E-17" y="-0.124727295418E-17" z="-0.698252098525E-01"/>
+     <atom species="Ni"><mommt x="0.125025193225E-17" y="-0.125037809421E-17" z="-0.699102709205E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="13" rms="0.791887798676668518E-04" rmslog10="-4.10133634855" fermidos="80.1761186094">
+   <energies totalEnergy="-1518.38387188818319" fermiEnergy="0.291718594537161535" sum-of-eigenvalues="-871.336252278" electronic-kinetic="1541.72787593" core-electron-kinetic="1382.86083566" Coulomb="-2999.01106795" Coulomb-potential="-2332.17115770" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.66645054" Hartree="447.247646420" Madelung="-1832.92548910"/>
+   <charges core="12.0000000000" core_leakage="0.237261038471E-02" valence="16.0000000000" interstitial="1.66216044149" totalcharge="28.0000000000" muffin-tin-total="26.3378395585">
+    <atom species="Ni" muffin-tin="26.3378395585"/>
+    </charges>
+   <timing itertime="29.0000000000" timetot="264.970000000" timeinit="9.97000000000" timemat="4.61000000004" timefv="1.60999999999" timerho="88.3900000002" timepot="7.48000000001" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.355222559671E-20" y="0.543238156788E-20" z="0.175158929640E-03"/>
+     <mommttot x="0.168360970475E-17" y="-0.168339424499E-17" z="-0.941418521200E-01"/>
+     <momtot x="0.168005747916E-17" y="-0.167796186342E-17" z="-0.939666931903E-01"/>
+     <atom species="Ni"><mommt x="0.168360970475E-17" y="-0.168339424499E-17" z="-0.941418521200E-01"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="14" rms="0.819831342766641735E-04" rmslog10="-4.08627548230" fermidos="79.6405552518">
+   <energies totalEnergy="-1518.38299021826447" fermiEnergy="0.291730658642898266" sum-of-eigenvalues="-871.335921210" electronic-kinetic="1541.72764574" core-electron-kinetic="1382.86063584" Coulomb="-2999.00991445" Coulomb-potential="-2332.17054605" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.66475520" Hartree="447.247104577" Madelung="-1832.92464143"/>
+   <charges core="12.0000000000" core_leakage="0.237261177538E-02" valence="16.0000000000" interstitial="1.66214643124" totalcharge="28.0000000000" muffin-tin-total="26.3378535688">
+    <atom species="Ni" muffin-tin="26.3378535688"/>
+    </charges>
+   <timing itertime="28.8600000000" timetot="284.510000000" timeinit="9.97000000000" timemat="4.98000000003" timefv="1.72999999997" timerho="95.2000000002" timepot="8.01000000001" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.784575898175E-21" y="0.640540822911E-20" z="0.312755662887E-03"/>
+     <mommttot x="0.230890020837E-17" y="-0.230906426407E-17" z="-0.129084714266"/>
+     <momtot x="0.230811563247E-17" y="-0.230265885584E-17" z="-0.128771958603"/>
+     <atom species="Ni"><mommt x="0.230890020837E-17" y="-0.230906426407E-17" z="-0.129084714266"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="15" rms="0.106413508345587900E-03" rmslog10="-3.97300323832" fermidos="78.5554033381">
+   <energies totalEnergy="-1518.38191394837759" fermiEnergy="0.291767078473801289" sum-of-eigenvalues="-871.336046940" electronic-kinetic="1541.72783888" core-electron-kinetic="1382.86068597" Coulomb="-2999.00894818" Coulomb-potential="-2332.17075610" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.66261261" Hartree="447.245928257" Madelung="-1832.92357013"/>
+   <charges core="12.0000000000" core_leakage="0.237260239984E-02" valence="16.0000000000" interstitial="1.66218951023" totalcharge="28.0000000000" muffin-tin-total="26.3378104898">
+    <atom species="Ni" muffin-tin="26.3378104898"/>
+    </charges>
+   <timing itertime="30.1900000000" timetot="304.000000000" timeinit="9.97000000000" timemat="5.32000000001" timefv="1.87000000000" timerho="101.980000000" timepot="8.54000000002" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.525739842243E-20" y="0.109507842625E-19" z="0.536730269802E-03"/>
+     <mommttot x="0.322191859025E-17" y="-0.322177585253E-17" z="-0.180121794555"/>
+     <momtot x="0.321666119183E-17" y="-0.321082506826E-17" z="-0.179585064285"/>
+     <atom species="Ni"><mommt x="0.322191859025E-17" y="-0.322177585253E-17" z="-0.180121794555"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="16" rms="0.148194677260861282E-03" rmslog10="-3.82916739472" fermidos="76.3064353652">
+   <energies totalEnergy="-1518.37979224093237" fermiEnergy="0.291858074348736340" sum-of-eigenvalues="-871.336745549" electronic-kinetic="1541.72892186" core-electron-kinetic="1382.86101590" Coulomb="-2999.00775696" Coulomb-potential="-2332.17231988" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.65866639" Hartree="447.243173259" Madelung="-1832.92159702"/>
+   <charges core="12.0000000000" core_leakage="0.237257471962E-02" valence="16.0000000000" interstitial="1.66234254843" totalcharge="28.0000000000" muffin-tin-total="26.3376574516">
+    <atom species="Ni" muffin-tin="26.3376574516"/>
+    </charges>
+   <timing itertime="27.6000000000" timetot="323.540000000" timeinit="9.97000000000" timemat="5.70000000002" timefv="1.99000000001" timerho="108.760000000" timepot="9.08000000002" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.989553676341E-20" y="0.163313267570E-19" z="0.938058634300E-03"/>
+     <mommttot x="0.455538447069E-17" y="-0.455534105833E-17" z="-0.254715339090"/>
+     <momtot x="0.454548893393E-17" y="-0.453900973157E-17" z="-0.253777280456"/>
+     <atom species="Ni"><mommt x="0.455538447069E-17" y="-0.455534105833E-17" z="-0.254715339090"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="17" rms="0.209724269681403267E-03" rmslog10="-3.67835130926" fermidos="71.7021523727">
+   <energies totalEnergy="-1518.37543094481452" fermiEnergy="0.292080027001734688" sum-of-eigenvalues="-871.338407298" electronic-kinetic="1541.73159820" core-electron-kinetic="1382.86194384" Coulomb="-2999.00578635" Coulomb-potential="-2332.17621060" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.65083446" Hartree="447.237311932" Madelung="-1832.91768106"/>
+   <charges core="12.0000000000" core_leakage="0.237250367717E-02" valence="16.0000000000" interstitial="1.66270400603" totalcharge="28.0000000000" muffin-tin-total="26.3372959940">
+    <atom species="Ni" muffin-tin="26.3372959940"/>
+    </charges>
+   <timing itertime="28.0400000000" timetot="343.040000000" timeinit="9.97000000000" timemat="6.05999999998" timefv="2.14000000003" timerho="115.550000000" timepot="9.62000000002" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.161578711791E-19" y="0.360323779965E-19" z="0.175851260257E-02"/>
+     <mommttot x="0.644674601874E-17" y="-0.644658742628E-17" z="-0.360426800594"/>
+     <momtot x="0.643058814756E-17" y="-0.641055504828E-17" z="-0.358668287992"/>
+     <atom species="Ni"><mommt x="0.644674601874E-17" y="-0.644658742628E-17" z="-0.360426800594"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="18" rms="0.282242819496694014E-03" rmslog10="-3.54937709809" fermidos="63.2249401620">
+   <energies totalEnergy="-1518.36839576116950" fermiEnergy="0.292627561905747569" sum-of-eigenvalues="-871.342103064" electronic-kinetic="1541.73618273" core-electron-kinetic="1382.86381224" Coulomb="-2999.00284506" Coulomb-potential="-2332.18378925" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.63737321" Hartree="447.226791981" Madelung="-1832.91095043"/>
+   <charges core="12.0000000000" core_leakage="0.237233323522E-02" valence="16.0000000000" interstitial="1.66339773879" totalcharge="28.0000000000" muffin-tin-total="26.3366022612">
+    <atom species="Ni" muffin-tin="26.3366022612"/>
+    </charges>
+   <timing itertime="28.3400000000" timetot="362.560000000" timeinit="9.97000000000" timemat="6.40999999998" timefv="2.27000000003" timerho="122.350000000" timepot="10.1500000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.500354248783E-19" y="0.593933976772E-19" z="0.366489709495E-02"/>
+     <mommttot x="0.883619660034E-17" y="-0.883602399082E-17" z="-0.494027326270"/>
+     <momtot x="0.878616117547E-17" y="-0.877663059314E-17" z="-0.490362429176"/>
+     <atom species="Ni"><mommt x="0.883619660034E-17" y="-0.883602399082E-17" z="-0.494027326270"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="19" rms="0.278621810143007368E-03" rmslog10="-3.55498489059" fermidos="52.9532090292">
+   <energies totalEnergy="-1518.36658792628054" fermiEnergy="0.293716015874214920" sum-of-eigenvalues="-871.348915294" electronic-kinetic="1541.73863890" core-electron-kinetic="1382.86523975" Coulomb="-2999.00272799" Coulomb-potential="-2332.19198662" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.62894172" Hartree="447.218477549" Madelung="-1832.90673469"/>
+   <charges core="12.0000000000" core_leakage="0.237197046191E-02" valence="16.0000000000" interstitial="1.66415190790" totalcharge="28.0000000000" muffin-tin-total="26.3358480921">
+    <atom species="Ni" muffin-tin="26.3358480921"/>
+    </charges>
+   <timing itertime="30.5700000000" timetot="382.070000000" timeinit="9.97000000000" timemat="6.77000000002" timefv="2.43000000001" timerho="129.140000000" timepot="10.6900000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.105904728120E-18" y="0.130642967955E-18" z="0.759132337958E-02"/>
+     <mommttot x="0.108960790591E-16" y="-0.108959021020E-16" z="-0.609224992304"/>
+     <momtot x="0.107901743310E-16" y="-0.107652591340E-16" z="-0.601633668925"/>
+     <atom species="Ni"><mommt x="0.108960790591E-16" y="-0.108959021020E-16" z="-0.609224992304"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="20" rms="0.152095160597030859E-03" rmslog10="-3.81788460422" fermidos="46.4230121197">
+   <energies totalEnergy="-1518.37733185518869" fermiEnergy="0.295102412690401383" sum-of-eigenvalues="-871.356856427" electronic-kinetic="1541.73458814" core-electron-kinetic="1382.86390081" Coulomb="-2999.00846139" Coulomb-potential="-2332.19457112" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.63782400" Hartree="447.221626439" Madelung="-1832.91117583"/>
+   <charges core="12.0000000000" core_leakage="0.237149030406E-02" valence="16.0000000000" interstitial="1.66442521016" totalcharge="28.0000000000" muffin-tin-total="26.3355747898">
+    <atom species="Ni" muffin-tin="26.3355747898"/>
+    </charges>
+   <timing itertime="29.4900000000" timetot="401.590000000" timeinit="9.97000000000" timemat="7.13999999998" timefv="2.55000000000" timerho="135.910000000" timepot="11.2300000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.182332407515E-18" y="0.222600937286E-18" z="0.130516286460E-01"/>
+     <mommttot x="0.119400565675E-16" y="-0.119404244739E-16" z="-0.667631346012"/>
+     <momtot x="0.117577241600E-16" y="-0.117178235366E-16" z="-0.654579717366"/>
+     <atom species="Ni"><mommt x="0.119400565675E-16" y="-0.119404244739E-16" z="-0.667631346012"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="21" rms="0.845623174380915948E-04" rmslog10="-4.07282312366" fermidos="44.3501106747">
+   <energies totalEnergy="-1518.38624614745299" fermiEnergy="0.295963821000759464" sum-of-eigenvalues="-871.360746293" electronic-kinetic="1541.73044296" core-electron-kinetic="1382.86214873" Coulomb="-2999.01264827" Coulomb-potential="-2332.19353249" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64723640" Hartree="447.226851952" Madelung="-1832.91588203"/>
+   <charges core="12.0000000000" core_leakage="0.237121130310E-02" valence="16.0000000000" interstitial="1.66439163267" totalcharge="28.0000000000" muffin-tin-total="26.3356083673">
+    <atom species="Ni" muffin-tin="26.3356083673"/>
+    </charges>
+   <timing itertime="28.9000000000" timetot="421.210000000" timeinit="9.97000000000" timemat="7.52999999999" timefv="2.60000000000" timerho="142.710000000" timepot="11.7700000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.252344426320E-18" y="0.253678944089E-18" z="0.169695806903E-01"/>
+     <mommttot x="0.122622686330E-16" y="-0.122632237940E-16" z="-0.685617402597"/>
+     <momtot x="0.120099242066E-16" y="-0.120095448500E-16" z="-0.668647821906"/>
+     <atom species="Ni"><mommt x="0.122622686330E-16" y="-0.122632237940E-16" z="-0.685617402597"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="22" rms="0.494301602180016188E-04" rmslog10="-4.30600798186" fermidos="43.8642428413">
+   <energies totalEnergy="-1518.38653727743417" fermiEnergy="0.296269616076550113" sum-of-eigenvalues="-871.361051743" electronic-kinetic="1541.73002454" core-electron-kinetic="1382.86188951" Coulomb="-2999.01244525" Coulomb-potential="-2332.19331594" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64704690" Hartree="447.226865479" Madelung="-1832.91578728"/>
+   <charges core="12.0000000000" core_leakage="0.237115695792E-02" valence="16.0000000000" interstitial="1.66440400801" totalcharge="28.0000000000" muffin-tin-total="26.3355959920">
+    <atom species="Ni" muffin-tin="26.3355959920"/>
+    </charges>
+   <timing itertime="28.0800000000" timetot="440.770000000" timeinit="9.97000000000" timemat="7.88999999995" timefv="2.70000000000" timerho="149.470000000" timepot="12.3000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.261170931688E-18" y="0.272952047983E-18" z="0.186633791346E-01"/>
+     <mommttot x="0.123463413696E-16" y="-0.123448678884E-16" z="-0.690383481706"/>
+     <momtot x="0.120851704379E-16" y="-0.120719158404E-16" z="-0.671720102572"/>
+     <atom species="Ni"><mommt x="0.123463413696E-16" y="-0.123448678884E-16" z="-0.690383481706"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="23" rms="0.361310645855782356E-04" rmslog10="-4.44211924195" fermidos="43.7470681399">
+   <energies totalEnergy="-1518.38768197038848" fermiEnergy="0.296349592109775628" sum-of-eigenvalues="-871.361073212" electronic-kinetic="1541.72936887" core-electron-kinetic="1382.86152188" Coulomb="-2999.01284311" Coulomb-potential="-2332.19256016" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64859841" Hartree="447.228019126" Madelung="-1832.91656303"/>
+   <charges core="12.0000000000" core_leakage="0.237112274471E-02" valence="16.0000000000" interstitial="1.66436115774" totalcharge="28.0000000000" muffin-tin-total="26.3356388423">
+    <atom species="Ni" muffin-tin="26.3356388423"/>
+    </charges>
+   <timing itertime="29.0400000000" timetot="460.300000000" timeinit="9.97000000000" timemat="8.21999999996" timefv="2.80000000001" timerho="156.260000000" timepot="12.8300000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.267161713107E-18" y="0.298930292190E-18" z="0.192741162651E-01"/>
+     <mommttot x="0.123732156032E-16" y="-0.123738813431E-16" z="-0.691718369896"/>
+     <momtot x="0.121060538901E-16" y="-0.120749510509E-16" z="-0.672444253631"/>
+     <atom species="Ni"><mommt x="0.123732156032E-16" y="-0.123738813431E-16" z="-0.691718369896"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="24" rms="0.180867256351903011E-04" rmslog10="-4.74264004935" fermidos="43.7155607607">
+   <energies totalEnergy="-1518.38678618973313" fermiEnergy="0.296379878277923559" sum-of-eigenvalues="-871.360673515" electronic-kinetic="1541.72971989" core-electron-kinetic="1382.86152481" Coulomb="-2999.01232313" Coulomb-potential="-2332.19254417" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64757443" Hartree="447.227515129" Madelung="-1832.91605104"/>
+   <charges core="12.0000000000" core_leakage="0.237112624608E-02" valence="16.0000000000" interstitial="1.66437083420" totalcharge="28.0000000000" muffin-tin-total="26.3356291658">
+    <atom species="Ni" muffin-tin="26.3356291658"/>
+    </charges>
+   <timing itertime="29.2400000000" timetot="479.860000000" timeinit="9.97000000000" timemat="8.56999999998" timefv="2.90999999998" timerho="163.040000000" timepot="13.3700000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.291405693942E-18" y="0.307336619096E-18" z="0.194852257050E-01"/>
+     <mommttot x="0.123787406098E-16" y="-0.123771555444E-16" z="-0.692124206640"/>
+     <momtot x="0.120873349159E-16" y="-0.120698189253E-16" z="-0.672638980935"/>
+     <atom species="Ni"><mommt x="0.123787406098E-16" y="-0.123771555444E-16" z="-0.692124206640"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="25" rms="0.130531255740635074E-04" rmslog10="-4.88428548395" fermidos="43.7061611031">
+   <energies totalEnergy="-1518.38685281907419" fermiEnergy="0.296388136543263903" sum-of-eigenvalues="-871.360510671" electronic-kinetic="1541.72969518" core-electron-kinetic="1382.86143044" Coulomb="-2999.01234934" Coulomb-potential="-2332.19233577" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64783525" Hartree="447.227749738" Madelung="-1832.91618145"/>
+   <charges core="12.0000000000" core_leakage="0.237112025249E-02" valence="16.0000000000" interstitial="1.66436073098" totalcharge="28.0000000000" muffin-tin-total="26.3356392690">
+    <atom species="Ni" muffin-tin="26.3356392690"/>
+    </charges>
+   <timing itertime="28.6300000000" timetot="499.490000000" timeinit="9.97000000000" timemat="8.94999999997" timefv="3.04000000001" timerho="169.810000000" timepot="13.9100000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.285987456182E-18" y="0.309483905883E-18" z="0.195534048714E-01"/>
+     <mommttot x="0.123816554455E-16" y="-0.123827427117E-16" z="-0.692249892106"/>
+     <momtot x="0.120956679893E-16" y="-0.120732588058E-16" z="-0.672696487235"/>
+     <atom species="Ni"><mommt x="0.123816554455E-16" y="-0.123827427117E-16" z="-0.692249892106"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="26" rms="0.658472871108181777E-05" rmslog10="-5.18146211314" fermidos="43.7031618137">
+   <energies totalEnergy="-1518.38652867719611" fermiEnergy="0.296392441757990233" sum-of-eigenvalues="-871.360324108" electronic-kinetic="1541.72982823" core-electron-kinetic="1382.86144008" Coulomb="-2999.01216670" Coulomb-potential="-2332.19229347" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64751228" Hartree="447.227609406" Madelung="-1832.91601997"/>
+   <charges core="12.0000000000" core_leakage="0.237111978196E-02" valence="16.0000000000" interstitial="1.66436339327" totalcharge="28.0000000000" muffin-tin-total="26.3356366067">
+    <atom species="Ni" muffin-tin="26.3356366067"/>
+    </charges>
+   <timing itertime="30.4600000000" timetot="519.090000000" timeinit="9.97000000000" timemat="9.27999999994" timefv="3.16000000001" timerho="176.610000000" timepot="14.4500000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.271890486365E-18" y="0.327910546196E-18" z="0.195743239529E-01"/>
+     <mommttot x="0.123819269972E-16" y="-0.123831163304E-16" z="-0.692289078818"/>
+     <momtot x="0.121100365108E-16" y="-0.120552057842E-16" z="-0.672714754865"/>
+     <atom species="Ni"><mommt x="0.123819269972E-16" y="-0.123831163304E-16" z="-0.692289078818"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="27" rms="0.506835010095971488E-05" rmslog10="-5.29513339346" fermidos="43.7022077487">
+   <energies totalEnergy="-1518.38655857650065" fermiEnergy="0.296393282051525431" sum-of-eigenvalues="-871.360247981" electronic-kinetic="1541.72983931" core-electron-kinetic="1382.86140827" Coulomb="-2999.01220123" Coulomb-potential="-2332.19221986" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64765493" Hartree="447.227717535" Madelung="-1832.91609129"/>
+   <charges core="12.0000000000" core_leakage="0.237111612422E-02" valence="16.0000000000" interstitial="1.66436051130" totalcharge="28.0000000000" muffin-tin-total="26.3356394887">
+    <atom species="Ni" muffin-tin="26.3356394887"/>
+    </charges>
+   <timing itertime="27.4800000000" timetot="538.660000000" timeinit="9.97000000000" timemat="9.64999999994" timefv="3.21000000001" timerho="183.410000000" timepot="14.9900000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.266302732823E-18" y="0.306943904166E-18" z="0.195803369671E-01"/>
+     <mommttot x="0.123854986650E-16" y="-0.123853810395E-16" z="-0.692300765678"/>
+     <momtot x="0.121191959321E-16" y="-0.120784371353E-16" z="-0.672720428711"/>
+     <atom species="Ni"><mommt x="0.123854986650E-16" y="-0.123853810395E-16" z="-0.692300765678"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="28" rms="0.262610576351642877E-05" rmslog10="-5.58068778716" fermidos="43.7018870342">
+   <energies totalEnergy="-1518.38643223461463" fermiEnergy="0.296394160341309609" sum-of-eigenvalues="-871.360164132" electronic-kinetic="1541.72991018" core-electron-kinetic="1382.86142407" Coulomb="-2999.01214860" Coulomb-potential="-2332.19221066" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64755889" Hartree="447.227674116" Madelung="-1832.91604327"/>
+   <charges core="12.0000000000" core_leakage="0.237111502258E-02" valence="16.0000000000" interstitial="1.66436239673" totalcharge="28.0000000000" muffin-tin-total="26.3356376033">
+    <atom species="Ni" muffin-tin="26.3356376033"/>
+    </charges>
+   <timing itertime="28.9400000000" timetot="558.230000000" timeinit="9.97000000000" timemat="10.0399999999" timefv="3.24000000001" timerho="190.190000000" timepot="15.5300000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.240585540691E-18" y="0.266907895947E-18" z="0.195821338431E-01"/>
+     <mommttot x="0.123860307493E-16" y="-0.123865092100E-16" z="-0.692304153233"/>
+     <momtot x="0.121454452086E-16" y="-0.121196013141E-16" z="-0.672722019390"/>
+     <atom species="Ni"><mommt x="0.123860307493E-16" y="-0.123865092100E-16" z="-0.692304153233"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="29" rms="0.249796002727857601E-05" rmslog10="-5.60241451555" fermidos="43.7018008915">
+   <energies totalEnergy="-1518.38650129697726" fermiEnergy="0.296393943976280272" sum-of-eigenvalues="-871.360136243" electronic-kinetic="1541.72991033" core-electron-kinetic="1382.86140140" Coulomb="-2999.01221192" Coulomb-potential="-2332.19217511" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64772108" Hartree="447.227772988" Madelung="-1832.91612437"/>
+   <charges core="12.0000000000" core_leakage="0.237111143443E-02" valence="16.0000000000" interstitial="1.66436053316" totalcharge="28.0000000000" muffin-tin-total="26.3356394668">
+    <atom species="Ni" muffin-tin="26.3356394668"/>
+    </charges>
+   <timing itertime="29.1600000000" timetot="577.760000000" timeinit="9.97000000000" timemat="10.3800000000" timefv="3.33999999997" timerho="196.980000000" timepot="16.0700000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.284614857758E-18" y="0.272865419184E-18" z="0.195825848429E-01"/>
+     <mommttot x="0.123864171953E-16" y="-0.123859645375E-16" z="-0.692305092146"/>
+     <momtot x="0.121018023375E-16" y="-0.121130991183E-16" z="-0.672722507304"/>
+     <atom species="Ni"><mommt x="0.123864171953E-16" y="-0.123859645375E-16" z="-0.692305092146"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="30" rms="0.967373517343268373E-06" rmslog10="-6.01440580596" fermidos="43.7017547153">
+   <energies totalEnergy="-1518.38638810564794" fermiEnergy="0.296394481438349233" sum-of-eigenvalues="-871.360081036" electronic-kinetic="1541.72997328" core-electron-kinetic="1382.86143163" Coulomb="-2999.01216543" Coulomb-potential="-2332.19218782" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64761539" Hartree="447.227713782" Madelung="-1832.91607152"/>
+   <charges core="12.0000000000" core_leakage="0.237111155348E-02" valence="16.0000000000" interstitial="1.66436292285" totalcharge="28.0000000000" muffin-tin-total="26.3356370771">
+    <atom species="Ni" muffin-tin="26.3356370771"/>
+    </charges>
+   <timing itertime="27.9100000000" timetot="597.370000000" timeinit="9.97000000000" timemat="10.7000000000" timefv="3.45999999998" timerho="203.790000000" timepot="16.6000000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.291562225030E-18" y="0.309869025699E-18" z="0.195827910358E-01"/>
+     <mommttot x="0.123848906876E-16" y="-0.123854268372E-16" z="-0.692305623143"/>
+     <momtot x="0.120933284625E-16" y="-0.120755578115E-16" z="-0.672722832108"/>
+     <atom species="Ni"><mommt x="0.123848906876E-16" y="-0.123854268372E-16" z="-0.692305623143"/></atom>
+    </moments>
+  </iter>
+ 
+  <iter iteration="31" rms="0.177754532540368734E-05" rmslog10="-5.75017931644" fermidos="43.7017549492">
+   <energies totalEnergy="-1518.38651952480336" fermiEnergy="0.296393867845288650" sum-of-eigenvalues="-871.360086589" electronic-kinetic="1541.72994533" core-electron-kinetic="1382.86138986" Coulomb="-2999.01226113" Coulomb-potential="-2332.19215512" nuclear-nuclear="-219.592263828" electron-nuclear="-3226.64783949" Hartree="447.227842181" Madelung="-1832.91618357"/>
+   <charges core="12.0000000000" core_leakage="0.237110786839E-02" valence="16.0000000000" interstitial="1.66436023245" totalcharge="28.0000000000" muffin-tin-total="26.3356397675">
+    <atom species="Ni" muffin-tin="26.3356397675"/>
+    </charges>
+   <timing itertime="28.3200000000" timetot="616.920000000" timeinit="9.97000000000" timemat="11.0499999999" timefv="3.55000000000" timerho="210.590000000" timepot="17.1300000000" timefor="0.00000000000"/>
+   <moments>
+     <interstitial x="-0.287097768096E-18" y="0.310843267488E-18" z="0.195827794001E-01"/>
+     <mommttot x="0.123856010466E-16" y="-0.123850080657E-16" z="-0.692305693488"/>
+     <momtot x="0.120985032785E-16" y="-0.120741647982E-16" z="-0.672722914088"/>
+     <atom species="Ni"><mommt x="0.123856010466E-16" y="-0.123850080657E-16" z="-0.692305693488"/></atom>
+    </moments>
+  </iter>
+ </scl></groundstate>
+ </info>

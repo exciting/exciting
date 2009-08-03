@@ -1,0 +1,8 @@
+ open ../../species//Si.xml
+ 
+Info(writegeom):
+ EXCITING lattice vectors and atomic positions written to geometry.xml
+ 
+Error(findkpt): equivalent k-point not in set
+ Requested k-point :               NaNQ              NaNQ              NaNQ
+ 
