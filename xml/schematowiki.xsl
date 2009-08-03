@@ -57,7 +57,7 @@
         <xsl:value-of select="./@name" />
         <xsl:value-of select="./@ref" />
         <xsl:text>** 
-[[size smaller]]([[span style="color:#44FF88"]] </xsl:text>
+[[size small]]([[span style="color:#669999"]]</xsl:text>
         <xsl:call-template name="genxpath" />
         <xsl:text>[[/span]])[[/size]]
 </xsl:text>

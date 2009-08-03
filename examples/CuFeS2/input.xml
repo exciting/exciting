@@ -9,19 +9,19 @@
 <basevect>  0.00000  9.99476  0.00000</basevect>
 <basevect>  0.00000  0.00000  19.6966</basevect>
 </crystal>
-<species speciesfile="Cu.xml">
+<species speciesfile="Cu.xml" chemicalSymbol="Cu">
 <atom coord="0.0000  0.0000  0.0000" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.0000  0.5000  0.2500" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.5000  0.0000  0.7500" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.5000  0.5000  0.5000" bfcmt="0.0000  0.0000  0.0000"></atom>
 </species>
-<species speciesfile="Fe.xml">
+<species speciesfile="Fe.xml" chemicalSymbol="Fe">
 <atom coord="0.0000  0.0000  0.5000" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.0000  0.5000  0.7500" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.5000  0.0000  0.2500" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.5000  0.5000  0.0000" bfcmt="0.0000  0.0000  0.0000"></atom>
 </species>
-<species speciesfile="S.xml">
+<species speciesfile="S.xml" chemicalSymbol="S">
 <atom coord="0.2574  0.2500  0.1250" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.7426  0.7500  0.1250" bfcmt="0.0000  0.0000  0.0000"></atom>
 <atom coord="0.2500  0.7426  0.8750" bfcmt="0.0000  0.0000  0.0000"></atom>
