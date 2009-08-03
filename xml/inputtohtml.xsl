@@ -138,13 +138,13 @@ http://exciting-code.org/input-reference#<xsl:value-of
           </td>
         </tr>
       </xsl:for-each>
-      <xsl:if test="*">
+      <xsl:for-each select="*">
         <tr>
           <td>
             <xsl:call-template name="attributestotable" />
           </td>
         </tr>
-      </xsl:if>
+      </xsl:for-each>
     </table>
   </xsl:template>
 
