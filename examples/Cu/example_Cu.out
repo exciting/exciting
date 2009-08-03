@@ -1,9 +1,0 @@
- open ../../species//Cu.xml
- 
-Error(checkmt): muffin-tin tins overlap for
-	   species    1 atom    1
- and species    1 atom    1
- 
-Sum of muffin-tin radii :    4.000000000    
-Distance between atoms  :    1.662768775    
- 

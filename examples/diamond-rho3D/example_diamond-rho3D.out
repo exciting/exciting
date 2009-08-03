@@ -1,9 +1,0 @@
- open ../../species//C.xml
- 
-Info(writegeom):
- EXCITING lattice vectors and atomic positions written to geometry.xml
- 
-Warning(charge): total charge density incorrect for s.c. loop     0
- Calculated :    11.98580400    
- Required   :    12.00000000    
- 
