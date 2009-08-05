@@ -51,6 +51,7 @@ call xml_AddAttribute(xf, "speciesfile", &
 &trim(adjustl(input%structure%speciesarray(is)%species%speciesfile)))
  write(buffer,*) int(-1.0 * speziesdeflist(is)%sp%z)
  call xml_AddAttribute(xf, "atomicNumber",trim(adjustl(buffer)))
+ call xml_AddAttribute(xf, "chemicalSymbol",trim(adjustl(speziesdeflist(is)%sp%chemicalSymbol)))
   do ia=1, natoms(is)
      call xml_NewElement(xf, "atom")
      write(buffer, '(3G18.10)')input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord

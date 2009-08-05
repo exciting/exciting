@@ -8,6 +8,7 @@ module scl_xml_out_Module
      use mod_timing
      use mod_force
      use mod_spin
+     use modmpi ,only:rank
 
      use modinput
 implicit none
@@ -19,7 +20,7 @@ type(Node),  pointer :: sclDoc, root, np,npatt,energies,niter,nnewline,charges,a
 contains
 
   subroutine scl_xml_out_create
-
+ if(rank.eq.0) then
     ! Create a new document and get a pointer to the root element, this gives you the minimum empty dom
     sclDoc => createDocument(getImplementation(), "", "info", null())
     configo => getDomConfig(scldoc)
@@ -36,12 +37,14 @@ contains
     dummy => appendChild(ngroundstate, nscl)
      nnewline =>createTextNode(scldoc, newline//" " )
     dummy => appendChild(root, nnewline)
+    endif
   end subroutine scl_xml_out_create
   subroutine scl_iter_xmlout()
 
      implicit none
      integer::is,ia,ias
  real(8)::scltime
+  if(rank.eq.0) then
  nnewline =>createTextNode(scldoc,  newline//"  ")
 	 dummy => appendChild(nscl, nnewline)
      niter => createElementNS(sclDoc, "", "iter")
@@ -142,13 +145,14 @@ contains
       nnewline =>createTextNode(scldoc,  newline//"   ")
 	  dummy => appendChild(niter, nnewline)
 
-
+endif
   end subroutine scl_iter_xmlout
   subroutine structure_xmlout
 
      implicit none
      integer::is,ia,ias
      type(Node),  pointer :: structure,crystal,basevect,species,atom,forces,text,force
+    if(rank.eq.0) then
      structure => createElementNS(sclDoc, "", "structure")
 	 dummy => appendChild(nscl, structure)
 	crystal => createElementNS(sclDoc, "", "crystal")
@@ -204,6 +208,7 @@ contains
 	  dummy => appendChild(structure, nnewline)
       nscl => createElementNS(sclDoc, "", "scl")
      dummy => appendChild(root, nscl)
+     endif
   end subroutine
   subroutine setcoord(elementnode,coord)
   	type(node),pointer,intent(in)::elementnode
@@ -236,7 +241,7 @@ contains
 
 type(Node),pointer:: moments,moment
 integer::is,ia,ias
-
+ if(rank.eq.0) then
      moments => createElementNS(sclDoc, "", "moments")
 	 dummy => appendChild(niter, moments)
 	  nnewline =>createTextNode(scldoc,  newline//"     ")
@@ -276,18 +281,26 @@ integer::is,ia,ias
 	     dummy => appendChild(niter, nnewline)
 	      nnewline =>createTextNode(scldoc,  newline//" ")
 	     dummy => appendChild(nscl, nnewline)
+	     endif
   end subroutine
   subroutine scl_xml_out_close()!
+   if(rank.eq.0) then
     call destroy(sclDoc)
+    endif
   end subroutine scl_xml_out_close
 
   subroutine scl_xml_setGndstateStatus(status)
+
   character(len=*)::status
+     if(rank.eq.0) then
   call setAttribute(ngroundstate, "status", status)
+  endif
   end subroutine
 
   subroutine scl_xml_out_write()
+   if(rank.eq.0) then
    call serialize(sclDoc,"info.xml")
+   endif
    end subroutine
 
 end module scl_xml_out_Module
