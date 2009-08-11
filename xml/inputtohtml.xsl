@@ -7,13 +7,11 @@
         <title>
           <xsl:value-of select="//title" />
         </title>
-        <script src="http://jmol.sourceforge.net/jmol/Jmol.js" />
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"/>
+        <script src="http://static.exciting-code.org/Jmol.js" />
       </head>
       <body>
-        <script>
-          jmolInitialize("http://jmol.sourceforge.net/jmol");
-          jmolCheckBrowser("popup", "http://jmol.sourceforge.net/browsercheck", "onClick");
-                </script>
+      
         <table border="0">
 
           <tr>
@@ -22,7 +20,13 @@
                 <xsl:value-of select="//title" />
               </h2>
               <script>
-                <xsl:text>
+               <xsl:text>
+        
+         
+          jmolInitialize("http://jmol.sourceforge.net/jmol");
+          jmolCheckBrowser("popup", "http://jmol.sourceforge.net/browsercheck", "onClick");
+                   
+    
 function trim(str, chars) {
 	return ltrim(rtrim(str, chars), chars);
 }
@@ -95,7 +99,10 @@ structure=structure+"|testing|";
                 </xsl:for-each>
 
                 <xsl:text>
-jmolAppletInline(400, structure, "background white;", "");
+    
+  jmolAppletInline(400, structure, "background white;", "");
+
+
 </xsl:text>
 
               </script>
