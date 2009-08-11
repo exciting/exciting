@@ -15,6 +15,9 @@
 				<xsl:with-param name="size" select="'600x300'" />
 				</xsl:call-template>
 				    </xsl:attribute>
+				    <xsl:attribute name="target">
+           				<xsl:text>_blank</xsl:text>
+           			</xsl:attribute>
               <xsl:value-of select="name(.)" />
             </xsl:element>
           </xsl:element>
@@ -194,6 +197,9 @@
 				<xsl:with-param name="size" select="'600x300'" />
 				</xsl:call-template>
            </xsl:attribute>
+           <xsl:attribute name="target">
+           	<xsl:text>_blank</xsl:text>
+           </xsl:attribute>
 					force magnitude  
           </xsl:element>
           </td>
@@ -221,6 +227,9 @@
 				<xsl:with-param name="size" select="'600x300'" />
 				</xsl:call-template>
 					</xsl:attribute>
+					<xsl:attribute name="target">
+           				<xsl:text>_blank</xsl:text>
+           			</xsl:attribute>
 					<xsl:value-of select="name(.)"/>
 					</xsl:element>
 					<xsl:text>=</xsl:text>
@@ -247,6 +256,9 @@
 				<xsl:with-param name="size" select="'600x300'" />
 				</xsl:call-template>
 					</xsl:attribute>
+					<xsl:attribute name="target">
+           				<xsl:text>_blank</xsl:text>
+           			</xsl:attribute>
 					<xsl:value-of select="name(.)"/>
 					</xsl:element>
 					<xsl:text>=</xsl:text>
@@ -284,6 +296,9 @@
         <xsl:with-param name="size" select="'600x300'" />
         </xsl:call-template>
            </xsl:attribute>
+           <xsl:attribute name="target">
+           	<xsl:text>_blank</xsl:text>
+           </xsl:attribute>
           <xsl:value-of select="name(.)"/>
           </xsl:element>
           <xsl:text>=</xsl:text>
@@ -319,6 +334,9 @@
         </xsl:with-param>
         <xsl:with-param name="size" select="'600x300'" />
         </xsl:call-template>
+           </xsl:attribute>
+           <xsl:attribute name="target">
+           	<xsl:text>_blank</xsl:text>
            </xsl:attribute>
           <xsl:value-of select="name(.)"/>
           </xsl:element>
