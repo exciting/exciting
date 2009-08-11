@@ -1506,11 +1506,11 @@ switch ($1) {
 	case [0,1,2,3]{
 	  if($1==0||$1==2)
 	    {
-	    $atthashgroundstate{"fromscratch"}="true";
+	    $atthashgroundstate{"do"}="fromscratch";
 	    }
 	  if($1==1||$1==3)
 	    {
-	    $atthashgroundstate{"fromscratch"}="false";
+	    $atthashgroundstate{"do"}="fromfile";
 	    }
     
 
