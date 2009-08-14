@@ -1639,7 +1639,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"mixer")
-getstructgroundstate%mixer= "lin"
+getstructgroundstate%mixer= "msec"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mixer",getstructgroundstate%mixer)
        call removeAttribute(thisnode,"mixer")      

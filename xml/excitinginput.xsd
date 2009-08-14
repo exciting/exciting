@@ -1401,7 +1401,7 @@
                 </xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="mixer" default="lin">
+						<xs:attribute name="mixer" default="msec">
 							<xs:annotation>
 								<xs:documentation>select the mixing (relaxation)
 									scheme for
