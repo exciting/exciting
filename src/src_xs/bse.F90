@@ -86,6 +86,7 @@ use modinput
   implicit none
   ! local variables
   integer, parameter :: iqmt=0
+  integer, parameter :: noptcmp=3
   real(8), parameter :: epsortho=1.d-12
   character(256) :: fnexc, fnexcs
   integer :: iknr, jknr, iqr, iq, iw, iv2(3), s1, s2, hamsiz, nexc, ne
@@ -115,6 +116,8 @@ use modinput
   ! read Fermi energy from file
   call readfermi
   ! initialize states below and above the Fermi energy
+  nbfbse=input%xs%BSE%nstlbse(1)
+  nafbse=input%xs%BSE%nstlbse(2)
   call initocc(nbfbse, nafbse)
   ! use eigenvector files from screening-calculation
   call genfilname(dotext='_SCR.OUT', setfilext=.true.)
@@ -122,6 +125,7 @@ use modinput
   nvdif=nstocc0-nbfbse
   ncdif=nstunocc0-nafbse
 
+write(*, *) 'nbfbse, nafbse', nbfbse, nafbse
 write(*, *) 'nvdif, ncdif', nvdif, ncdif
 
   ! ****************************************************
@@ -257,7 +261,7 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
   allocate(oszs(nexc), oszsa(nexc), sor(nexc), pmat(hamsiz))
   allocate(w(input%xs%dosWindow%points), spectr(input%xs%dosWindow%points))
   call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_real=w)
-  do oct=1, noptcomp
+  do oct=1, noptcmp
      oszs(:)=zzero
      call genfilname(basename = 'EPSILON', tq0 = .true., oc1 = oct, oc2 = oct, &
 	bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&

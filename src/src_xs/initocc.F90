@@ -27,11 +27,11 @@ use modinput
   ! number of states above Fermi energy
   if (naf.eq.0) then
      ! if "naf" is not specified define it using "nempty"
-     naf=input%groundstate%nempty+1
+     naf=input%xs%nempty+1
   else
      ! check if number is too large
-     if (naf.gt.(input%groundstate%nempty+1)) then
-	naf=input%groundstate%nempty+1
+     if (naf.gt.(input%xs%nempty+1)) then
+	naf=input%xs%nempty+1
 	write(unitout, '("Warning(", a, "): number of states above Fermi energy &
 	&too large - adjusting using number of empty states")') trim(thisnam)
      end if
