@@ -55,7 +55,9 @@ subroutine freearraysmixermsec()
 	character(256)::filetag
 	filetag="BROYDEN"
  deallocate(residual, last_outputp)
- deallocate(PWHIST, FHIST, CLMHIST)
+ if (allocated(work2)) deallocate(work2)
+ if (allocated(work3)) deallocate(work3)
+ deallocate(PWHIST, FHIST, CLMHIST, yhist)
  open(23, file=outfilenamestring(filetag, 1))
  close(23, STATUS='DELETE')
 end subroutine
