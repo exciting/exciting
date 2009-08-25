@@ -10,7 +10,7 @@
 ! !INTERFACE:
 
 
-subroutine findband(l, k, np, nr, r, vr, de0, e)
+subroutine findband(findlinentype,l, k, np, nr, r, vr, de0, e)
 ! !INPUT/OUTPUT PARAMETERS:
 !   l   : angular momentum quantum number (in,integer)
 !   k   : quantum number k, zero if Dirac eqn. is not to be used (in,integer)
@@ -36,6 +36,7 @@ subroutine findband(l, k, np, nr, r, vr, de0, e)
 !BOC
 implicit none
 ! arguments
+character(*), intent(in) :: findlinentype
 integer, intent(in) :: l
 integer, intent(in) :: k
 integer, intent(in) :: np
@@ -53,6 +54,17 @@ real(8), parameter :: eps=1.d-5
 real(8)::de, et, eb, t, tp
 ! automatic arrays
 real(8)::p0(nr), p1(nr), q0(nr), q1(nr)
+
+
+character*4, parameter ::        EMAIN='CONT'
+
+real(8)   DDNOLD, DNOLD, DU, DUDN, DUPOLD, DUTST, DUUP
+real(8)   E1, E2, EIDN, EIUP, U, UDN, UPOLD, UTST
+real(8)   UUP
+
+select case(trim(findlinentype))
+case('simple')
+
 tp=0.d0
 ! find the top of the band
 de=abs(de0)
@@ -91,6 +103,96 @@ goto 30
 ! set the band energy to the mid-point
 e=(et+eb)/2.d0
 30 continue
-return
+
+case('advanced')
+ de=de0
+      call rschroddme(0,l,k,E,np,nr,r,vr,nn,p0,p1,q0,q1)
+      U=p0(nr)
+      DU=p1(nr)
+      EIUP = E
+      EIDN = E
+      E1 = -100.0D+0
+      E2 = -100.0D+0
+      UPOLD = U
+      DUPOLD = DU
+      DNOLD = U
+      DDNOLD = DU
+   101 CONTINUE
+      EIUP = EIUP + DE
+      call rschroddme(0,l,k,EIUP,np,nr,r,vr,nn,p0,p1,q0,q1)
+      UUP=p0(nr)
+      DUUP=p1(nr)
+      UTST = UPOLD*UUP
+      DUTST = DUPOLD*DUUP
+      UPOLD = UUP
+      DUPOLD = DUUP
+      IF (UTST .LT. 0.0D+0) THEN
+         E2 = EIUP
+         IF (E1 .GT. -30.0D+0) GOTO 301
+      ENDIF
+      IF (DUTST .LT. 0.0D+0) THEN
+         E1 = EIUP
+         IF (E2 .GT. -30.0D+0) GOTO 301
+      ENDIF
+      IF ((E1 .LT. -30.0D+0) .AND. (EIUP .LT. 2.5D+0)) THEN
+   201    CONTINUE
+         EIDN = EIDN - DE
+         call rschroddme(0,l,k,EIDN,np,nr,r,vr,nn,p0,p1,q0,q1)
+         UDN=p0(nr)
+         DUDN=p1(nr)
+         UTST = DNOLD*UDN
+         DUTST = DDNOLD*DUDN
+         DNOLD = UDN
+         DDNOLD = DUDN
+         IF (UTST .LT. 0.0D+0) THEN
+            E2 = EIDN
+            IF (E1 .GT. -30.0D+0) GOTO 301
+         ENDIF
+         IF (DUTST .LT. 0.) THEN
+            E1 = EIDN
+            IF (E2 .GT. -30.0D+0) GOTO 301
+         ENDIF
+         IF (E2 .LT. -30.0D+0) THEN
+            GOTO 101
+         ELSEIF (EIDN .GT. (E - 3.0D+0)) THEN
+            GOTO 201
+         ENDIF
+      ELSEIF (EIUP .LT. 0.5D+0) THEN
+         GOTO 101
+      ENDIF
+   301 CONTINUE
+      IF ((E1 .LT. -30.0D+0) .AND. (E2 .LT. -30.0D+0)) THEN
+         IF (EMAIN .EQ. 'STOP') THEN
+            GOTO 900
+         ELSE
+            E = 1.0D+0
+            write(*,*) 'l,ei,e1,e2', l, E, E1, E2
+         ENDIF
+      ELSEIF (E2 .LT. -30.0D+0) THEN
+         IF (EMAIN .EQ. 'STOP') THEN
+            GOTO 900
+         ELSE
+            E = MAX(E1,E)
+            write(*,*) 'l,ei,e1,e2', l, E, E1, E2
+         ENDIF
+      ELSEIF (E1 .LT. -30.0D+0) THEN
+         GOTO 900
+      ELSE
+         E = (E1+E2)*0.5D+0
+         write(*,*) 'l,ei,e1,e2', l, E, E1, E2
+      ENDIF
+      RETURN
+  900 continue
+      write(*,'("no energy limits found for L=",i2)') l
+      write(*,'("E-bottom ",g18.10,3x,"E-top ",g18.10)') e1,e2
+
+case default
+  write(*,*)
+  write(*,'("Error(findband): No such method for search of linearization energies: ",a)') &
+    trim(findlinentype)
+  write(*,*)
+  stop
+end select
+
 end subroutine
 !EOC

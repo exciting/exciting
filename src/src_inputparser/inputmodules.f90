@@ -150,6 +150,8 @@ type groundstate_type
  real(8)::swidth
  character(512)::stype
  integer::stypenumber
+ character(512)::findlinentype
+ integer::findlinentypenumber
  integer::isgkmax
  real(8)::gmaxvr
  integer::nempty
@@ -1508,6 +1510,15 @@ if(associated(np)) then
        call removeAttribute(thisnode,"stype")      
 endif
 getstructgroundstate%stypenumber=stringtonumberstype(getstructgroundstate%stype)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"findlinentype")
+getstructgroundstate%findlinentype= "simple"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"findlinentype",getstructgroundstate%findlinentype)
+       call removeAttribute(thisnode,"findlinentype")      
+endif
+getstructgroundstate%findlinentypenumber=stringtonumberfindlinentype(getstructgroundstate%findlinentype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"isgkmax")
@@ -4230,6 +4241,22 @@ case('')
  stringtonumberstype=0
 case default
 write(*,*) "'", string,"' is not valid selection forstype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberfindlinentype(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('simple')
+ stringtonumberfindlinentype=-1
+case('advanced')
+ stringtonumberfindlinentype=-1
+case('')
+ stringtonumberfindlinentype=0
+case default
+write(*,*) "'", string,"' is not valid selection forfindlinentype "
 stop 
 end select
 end function

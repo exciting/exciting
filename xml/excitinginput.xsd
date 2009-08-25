@@ -1176,6 +1176,20 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
+            <xs:attribute name="findlinentype" default="simple">
+              <xs:annotation>
+                <xs:documentation>
+                  Method to determine the linearization energies
+                  Currently implemented are
+                </xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="simple"/>
+                  <xs:enumeration value="advanced"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
 						<xs:attribute name="isgkmax" type="xs:integer"
 							default="-1">
 							<xs:annotation>
