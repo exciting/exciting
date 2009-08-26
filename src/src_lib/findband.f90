@@ -46,6 +46,13 @@ subroutine findband(findlinentype,l, k, np, nr, r, vr, de0, e)
   ! maximum number of steps
   integer, parameter :: maxstp=1000
   character*4, parameter :: emain='continue'
+  real(8), parameter :: etoolow=-1000.d0
+  real(8), parameter :: ecutlow=-30.d0
+  real(8), parameter :: efermibands=0.5d0
+  real(8), parameter :: erangebands=2.d0
+  real(8), parameter :: ediffusebands=efermibands+erangebands
+  real(8), parameter :: erange1=3.d0
+  real(8), parameter :: edefault1=1.d0
   integer::ie, nn
   ! energy search tolerance
   real(8), parameter :: eps=1.d-5
@@ -97,82 +104,70 @@ subroutine findband(findlinentype,l, k, np, nr, r, vr, de0, e)
   case('advanced')
      de=de0
      call rschroddme(0,l,k,e,np,nr,r,vr,nn,p0,p1,q0,q1)
-     u=p0(nr)
-     du=p1(nr)
-     eiup=e
-     eidn=e
-     e1=-1000.0d0
-     e2=-1000.0d0
-     upold=u
-     dupold=du
-     dnold=u
-     ddnold=du
-101  continue
+     u=p0(nr); du=p1(nr)
+     eiup=e; eidn=e
+     e1=etoolow; e2=etoolow
+     upold=u; dupold=du; dnold=u; ddnold=du
+11  continue
      eiup=eiup+de
      call rschroddme(0,l,k,eiup,np,nr,r,vr,nn,p0,p1,q0,q1)
-     uup=p0(nr)
-     duup=p1(nr)
-     utst=upold*uup
-     dutst=dupold*duup
-     upold=uup
-     dupold=duup
+     uup=p0(nr); duup=p1(nr)
+     utst=upold*uup; dutst=dupold*duup
+     upold=uup; dupold=duup
      if (utst.lt.0.d0) then
         e2=eiup
-        if (e1.gt.-30.d0) goto 301
+        if (e1.gt.ecutlow) goto 31
      end if
      if (dutst.lt.0.d0) then
         e1=eiup
-        if (e2.gt.-30.d0) goto 301
+        if (e2.gt.ecutlow) goto 31
      end if
-     if ((e1.lt.-30.d0).and.(eiup.lt.2.5d0)) then
-201     continue
+     if ((e1 .lt. ecutlow).and.(eiup .lt. ediffusebands)) then
+21     continue
         eidn=eidn-de
         call rschroddme(0,l,k,eidn,np,nr,r,vr,nn,p0,p1,q0,q1)
-        udn=p0(nr)
-        dudn=p1(nr)
-        utst=dnold*udn
-        dutst=ddnold*dudn
-        dnold=udn
-        ddnold=dudn
+        udn=p0(nr); dudn=p1(nr)
+        utst=dnold*udn; dutst=ddnold*dudn
+        dnold=udn; ddnold=dudn
         if (utst.lt.0.d0) then
            e2=eidn
-           if (e1 .gt. -30.d0) goto 301
+           if (e1 .gt. ecutlow) goto 31
         end if
         if (dutst .lt. 0.d0) then
            e1=eidn
-           if (e2 .gt. -30.d0) goto 301
+           if (e2 .gt. ecutlow) goto 31
         end if
-        if (e2 .lt. -30.d0) then
-           goto 101
-        else if (eidn .gt. (e-3.d0)) then
-           goto 201
+        if (e2 .lt. ecutlow) then
+           goto 11
+        else if (eidn .gt. (e-erange1)) then
+           goto 21
         end if
-     else if (eiup .lt. 0.5d0) then
-        goto 101
+     else if (eiup .lt. efermibands) then
+        goto 11
      end if
-301  continue
-     if ((e1 .lt. -30.d0) .and. (e2 .lt. -30.d0)) then
+31  continue
+     if ((e1 .lt. ecutlow) .and. (e2 .lt. ecutlow)) then
         if (emain .eq. 'stop') then
-           goto 900
+           goto 40
         else
-           e=1.d0
+           e=edefault1
            write(*,*) 'l,ei,e1,e2', l, e, e1, e2
         end if
-     else if (e2 .lt. -30.d0) then
+     else if (e2 .lt. ecutlow) then
         if (emain .eq. 'stop') then
-           goto 900
+           goto 40
         else
            e=max(e1,e)
            write(*,*) 'l,ei,e1,e2', l, e, e1, e2
         end if
-     else if (e1 .lt. -30.d0) then
-        goto 900
+     else if (e1 .lt. ecutlow) then
+        goto 40
      else
         e=(e1+e2)*0.5d0
         write(*,*) 'l,ei,e1,e2', l, e, e1, e2
      end if
      return
-900  continue
+40  continue
      write(*,*)
      write(*,'("Error(findband): no energy limits found for l=",i2)') l
      write(*,'("E-bottom ",g18.10,4x,"E-top ",g18.10)') e1,e2
