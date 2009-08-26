@@ -50,7 +50,7 @@ case(2)
   if (mode .eq. -1) then
     call initmixermsec(n)
 	mode =0
-	 write(60, *)"Using Muttisecant Broyden potential mixing (2)"
+	 write(60, *)"Using Multisecant Broyden potential mixing (2)"
     return
    end if
     if (mode .eq. -2) then
