@@ -146,6 +146,12 @@ use scl_xml_out_Module
    if (rank.eq.0) call flushifc(60)
      ! generate the core wavefunctions and densities
   call gencore
+  select case(trim(input%groundstate%findlinentype))
+  case('simple')
+  case('advanced')
+  write(60,*)
+  write(60,'("Using advanced method for search of linearization energies")')
+  end select
      ! find the new linearisation energies
   call linengy
      ! write out the linearisation energies

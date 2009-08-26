@@ -10,12 +10,12 @@ use inputdom
 
 implicit none
 
-  if(associated(input%groundstate).and. .not. input%groundstate%do .eq. "skipp") then
+  if(associated(input%groundstate)) then
   	if(.not.(associated(input%groundstate%solver)))then
   		! set the default values if solver element not present
   		input%groundstate%solver=>getstructsolver(emptynode)
   	endif
-   	 if(input%groundstate%do.eq."fromscratch") then
+   	if(input%groundstate%do.eq."fromscratch") then
 	    if(associated(input%structureoptimization)) then
 	        task=2
 	 	else
@@ -28,7 +28,7 @@ implicit none
 	   		task=1
 	   	endif
     endif
-  	call gndstate
+  	if (input%groundstate%do .ne. "skipp") call gndstate
   endif
 
 
