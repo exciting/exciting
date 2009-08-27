@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Si" name="silicon" z="-14.0000" mass="51196.73454">
-    <muffinTin rmin="5.34522E-7" radius="2." rinf="39.5679" radialmeshPoints="400"/>
+    <muffinTin rmin="5.345224838248488E-7" radius="2." rinf="36.67710106834567" radialmeshPoints="400"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -27,10 +27,10 @@
     <lorb l="0">
       <wf matchingOrder="0" trialEnergy="0.15" searchE="false"/>
       <wf matchingOrder="1" trialEnergy="0.15" searchE="false"/>
-      <wf matchingOrder="0" trialEnergy="-0.3246" searchE="true"/>
+      <wf matchingOrder="0" trialEnergy="-0.3246444702991193" searchE="true"/>
     </lorb>
     <!-- Exciting code version : 0.9.224-->
     <!-- Description of  method-->
-    <!--APW+lo-Kay-->
+    <!--APW+lo-Legacy-->
   </sp>
 </spdb>

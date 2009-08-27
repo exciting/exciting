@@ -1,13 +1,14 @@
 
 !----------------------------------------------------------!
-!   Kay's original approach, no search for lin. energies   !
+!   Original approach by J. K. Dewhurst                    !
+!   No search for lin. energies                            !
 !   APW+lo (semicore-local orbitals and small lo)          !
 !----------------------------------------------------------!
 apwdescr
-  'APW+lo-Kay'
+  'APW+lo-Legacy'
 
 suffix
-  'APWloKay'
+  'APWloLegacy'
 
 apw
   1
