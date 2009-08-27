@@ -11,18 +11,27 @@
     <atomicState n="3" l="1" kappa="2" occ="1.00000" core="false"/>
     <basis order="1">
       <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
+      <exception l="0">
+        <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="true"/>
+      </exception>
+      <exception l="1">
+        <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="true"/>
+      </exception>
+      <exception l="2">
+        <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="true"/>
+      </exception>
     </basis>
     <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="true"/>
+      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="true"/>
     </lorb>
     <lorb l="1">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="true"/>
+      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="true"/>
     </lorb>
     <lorb l="2">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="true"/>
+      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="true"/>
     </lorb>
     <lorb l="0">
       <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
@@ -31,6 +40,6 @@
     </lorb>
     <!-- Exciting code version : 0.9.224-->
     <!-- Description of  method-->
-    <!--APW+lo-Legacy-->
+    <!--APW+lo-->
   </sp>
 </spdb>

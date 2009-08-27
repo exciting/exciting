@@ -116,6 +116,8 @@ endif
      call xml_endElement (xf, "lorb")
   end do
  endif
+ buffer2="false"
+ if (fullsearchlocorbsc) buffer2="true"
  if(locorbsc) then
   do ist=1,spnst
      if (.not.spcore(ist)) then
@@ -128,13 +130,13 @@ endif
               call xml_AddAttribute(xf, "matchingOrder", "0")!!loop
               write(buffer,*)boe
               call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-              call xml_AddAttribute(xf, "searchE", "true")
+              call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
               call xml_endElement (xf, "wf")
               call xml_NewElement (xf, "wf")
               call xml_AddAttribute(xf, "matchingOrder", "1")
               write(buffer,*)boe
               call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
-              call xml_AddAttribute(xf, "searchE", "true")
+              call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
               call xml_endElement (xf, "wf")
               call xml_NewElement (xf, "wf")
               call xml_AddAttribute(xf, "matchingOrder", "0")

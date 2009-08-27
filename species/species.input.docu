@@ -1,29 +1,13 @@
 
-!---------------------------------------------------!
-!   APW+lo (semicore-local orbitals and small lo)   !
-!---------------------------------------------------!
-apwdescr
-  'APW+lo'
 
-suffix
-  'APWlo'
 
-apw
-  1
-  0	.false.
 
-apwx
-  1
-  0	.true.
 
-locorb
-  .true.
+! Put the input parameters from the templates here and rename file to
+                          "species.input"
 
-locorbsc
-  .true.
 
-searchlocorb
-  .true.
+
 
 
 !------------------------------------------------------------------------------!
@@ -51,7 +35,7 @@ searchlocorb
 
 ! string contained in filename appended after the species symbol string
 !suffix
-!  'SLAPW4-test'
+!  '_SLAPW4-test'
 
 ! APW-block
 ! dm ........ matching order
@@ -83,6 +67,11 @@ searchlocorb
 ! to be searched during the SCF cycle for local orbitals (lo)
 !searchlocorb
 !  .true.
+
+! .true. if also the first linearization energy (E_l) is to be searched for
+! u and u_dot. in any case the linearization energy (E_lo) is searched
+!fullsearchlocorbsc
+!  .false.
 
 ! energy convergence tolerance for Dirac equation solver
 !epsedirac

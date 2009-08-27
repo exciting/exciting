@@ -6,7 +6,7 @@ apwdescr
   'LAPW+LO'
 
 suffix
-  'LAPWLO'
+  '_LAPWLO'
 
 apw
   2
@@ -26,3 +26,6 @@ locorbsc
 
 searchlocorb
   .true.
+
+!fullsearchlocorbsc
+!  .true.

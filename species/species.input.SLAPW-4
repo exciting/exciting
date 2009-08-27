@@ -6,7 +6,7 @@ apwdescr
   'SAPW-4'
 
 suffix
-  'SLAPW4'
+  '_SLAPW4'
 
 apw
   2
@@ -28,3 +28,6 @@ locorbsc
 
 searchlocorb
   .true.
+
+!fullsearchlocorbsc
+!  .true.

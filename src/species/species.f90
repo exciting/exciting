@@ -28,6 +28,7 @@ apwve(:)=.false.
 locorb=.true.
 locorbsc=.true.
 searchlocorb=.false.
+fullsearchlocorbsc=.false.
 
 ! get generation strategy from input file 'species.input'
 open(50,file='species.input',action='READ',status='OLD',form='FORMATTED', &
@@ -69,7 +70,6 @@ case('apwdescr')
   read(50,*,err=200) apwdescr
 case('suffix')
   read(50,*,err=200) suffix
-  suffix='_'//trim(suffix)
 case('apw')
   read(50,*,err=200) apword
   if ((apword.lt.1).or.(apword.gt.maxapword)) then
@@ -124,6 +124,8 @@ case('locorbsc')
   read(50,*,err=200) locorbsc
 case('searchlocorb')
   read(50,*,err=200) searchlocorb
+case('fullsearchlocorbsc')
+  read(50,*,err=200) fullsearchlocorbsc
 case('')
   goto 100
 case default
@@ -333,8 +335,8 @@ if (locorbsc) then
         if (eval(ist).lt.esccut) then
           write(50,'(2I4,T45,": lorbl, lorbord")') spl(ist),3
           write(50,'(F8.4,I4,"  ",L1,T45,": lorbe0, lorbdm, lorbve")') boe,0, &
-           .true.
-          write(50,'(F8.4,I4,"  ",L1)') boe,1,.true.
+           fullsearchlocorbsc
+          write(50,'(F8.4,I4,"  ",L1)') boe,1,fullsearchlocorbsc
           write(50,'(F8.4,I4,"  ",L1)') eval(ist)+0.5d0*boe,0,.true.
         end if
       end if

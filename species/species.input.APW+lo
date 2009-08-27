@@ -1,10 +1,4 @@
 
-inspecies
-  'Si'
-
-
-
-
 !---------------------------------------------!
 !   APW+lo (semicore-local orbitals and lo)   !
 !---------------------------------------------!
@@ -33,4 +27,3 @@ searchlocorb
 
 !fullsearchlocorbsc
 !  .true.
-

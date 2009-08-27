@@ -7,6 +7,7 @@ character(256) :: bname,str,apwdescr,apwtype,suffix,inspecies
 integer :: apword,apwdm(maxapword),nlorbsc
 integer :: apwordx,apwdmx(maxapword)
 logical :: locorb,locorbsc,searchlocorb,apwvex(maxapword),apwve(maxapword)
+logical :: fullsearchlocorbsc
 
 ! order of predictor-corrector polynomial
 integer, parameter :: np=4
