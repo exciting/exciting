@@ -15,14 +15,14 @@ subroutine  writexmlspecies
   call xml_AddAttribute(xf, "name", trim(adjustl(spname)) )
   write(buffer,'(G14.6)')spzn
   call xml_AddAttribute(xf, "z", trim(adjustl(buffer)))
-  write(buffer,*)spmass
+  write(buffer,'(G18.10)')spmass
   call xml_AddAttribute(xf, "mass", trim(adjustl(buffer)))
   call xml_NewElement (xf, "muffinTin")
-  write(buffer,*)sprmin
+  write(buffer,'(G14.6)')sprmin
   call xml_AddAttribute(xf, "rmin", trim(adjustl(buffer)))
-  write(buffer,*)rmt
+  write(buffer,'(F10.4)')rmt
   call xml_AddAttribute(xf, "radius", trim(adjustl(buffer)))
-  write(buffer,*)sprmax
+  write(buffer,'(F10.4)')sprmax
   call xml_AddAttribute(xf, "rinf", trim(adjustl(buffer)))
   write(buffer,*)nrmt
   call xml_AddAttribute(xf, "radialmeshPoints", trim(adjustl(buffer)))
@@ -56,7 +56,7 @@ subroutine  writexmlspecies
   	call xml_NewElement (xf, "wf")
     write(buffer,*)apwdm(io)
    	call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))!!loop
-   	write(buffer,*)boe
+   	write(buffer,'(F8.4)')boe
    	call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
    	if(apwve(io)) then
   		call xml_AddAttribute(xf, "searchE", "true")
@@ -77,7 +77,7 @@ subroutine  writexmlspecies
         	call xml_NewElement (xf, "wf")
           	write(buffer,*)apwdmx(io)
         	call xml_AddAttribute(xf, "matchingOrder", "0")!!loop
-        	write(buffer,*)boe
+        	write(buffer,'(F8.4)')boe
         	call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
         	if(apwvex(io)) then
         	call xml_AddAttribute(xf, "searchE", "true")
@@ -103,13 +103,13 @@ endif
      call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
      call xml_NewElement (xf, "wf")
      call xml_AddAttribute(xf, "matchingOrder", "0")
-     write(buffer,*)boe
+     write(buffer,'(F8.4)')boe
      call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
      call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
      call xml_endElement (xf, "wf")
      call xml_NewElement (xf, "wf")
      call xml_AddAttribute(xf, "matchingOrder", "1")
-     write(buffer,*)boe
+     write(buffer,'(F8.4)')boe
      call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
      call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
      call xml_endElement (xf, "wf")
@@ -128,19 +128,19 @@ endif
               call xml_AddAttribute(xf, "l", trim(adjustl(buffer)))
               call xml_NewElement (xf, "wf")
               call xml_AddAttribute(xf, "matchingOrder", "0")!!loop
-              write(buffer,*)boe
+              write(buffer,'(F8.4)')boe
               call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
               call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
               call xml_endElement (xf, "wf")
               call xml_NewElement (xf, "wf")
               call xml_AddAttribute(xf, "matchingOrder", "1")
-              write(buffer,*)boe
+              write(buffer,'(F8.4)')boe
               call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
               call xml_AddAttribute(xf, "searchE", trim(adjustl(buffer2)))
               call xml_endElement (xf, "wf")
               call xml_NewElement (xf, "wf")
               call xml_AddAttribute(xf, "matchingOrder", "0")
-              write(buffer,*) eval(ist)+0.5d0*boe
+              write(buffer,'(F8.4)') eval(ist)+0.5d0*boe
               call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
               call xml_AddAttribute(xf, "searchE", "true")
               call xml_endElement (xf, "wf")
