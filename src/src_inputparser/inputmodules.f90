@@ -4213,7 +4213,7 @@ case('fromscratch')
  stringtonumberdo=-1
 case('fromfile')
  stringtonumberdo=-1
-case('skipp')
+case('skip')
  stringtonumberdo=-1
 case('')
  stringtonumberdo=0

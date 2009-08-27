@@ -1063,7 +1063,7 @@
             <xs:restriction base="xs:string">
             <xs:enumeration value="fromscratch"></xs:enumeration>
             <xs:enumeration value="fromfile"></xs:enumeration>
-            <xs:enumeration value="skipp"></xs:enumeration>
+            <xs:enumeration value="skip"></xs:enumeration>
             </xs:restriction>
             </xs:simpleType>
             </xs:attribute>

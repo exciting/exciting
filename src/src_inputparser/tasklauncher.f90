@@ -28,7 +28,7 @@ implicit none
 	   		task=1
 	   	endif
     endif
-  	if (input%groundstate%do .ne. "skipp") call gndstate
+  	if (input%groundstate%do .ne. "skip") call gndstate
   endif
 
 

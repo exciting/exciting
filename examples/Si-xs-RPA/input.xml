@@ -20,7 +20,7 @@
 		</species>
 	</structure>
 
-	<groundstate do="skipp"
+	<groundstate do="skip"
 		vkloff="0.033333333333333  0.100000000000000  0.166666666666667"
 		rgkmax="6.0"
 		lmaxapw="10"
