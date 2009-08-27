@@ -41,11 +41,11 @@ call init0
 call init1
 call init2
 ! check k-point grid is commensurate with q-point grid
-iv(:)=mod(input%groundstate%ngkgrid(:), ngridq(:))
+iv(:)=mod(input%groundstate%ngridk(:), ngridq(:))
 if ((iv(1).ne.0).or.(iv(2).ne.0).or.(iv(3).ne.0)) then
   write(*, *)
   write(*, '("Error(epcouple): k-point grid incommensurate with q-point grid")')
-  write(*, '(" ngridk : ", 3I6)') input%groundstate%ngkgrid
+  write(*, '(" ngridk : ", 3I6)') input%groundstate%ngridk
   write(*, '(" ngridq : ", 3I6)') ngridq
   write(*, *)
   stop

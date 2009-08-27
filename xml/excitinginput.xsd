@@ -1067,7 +1067,7 @@
             </xs:restriction>
             </xs:simpleType>
             </xs:attribute>
-						<xs:attribute name="ngkgrid" type="integertriple"
+						<xs:attribute name="ngridk" type="integertriple"
 							use="required">
 							<xs:annotation>
 								<xs:appinfo>

@@ -16,7 +16,7 @@
 <atom coord="0.25 0.25 0.25" bfcmt="0.0 0.0 0.0"></atom>
 </species>
 </structure>
-<groundstate  lmaxvr="8" vkloff="0.25 0.5 0.625" ngkgrid="2  2  2"></groundstate>
+<groundstate  lmaxvr="8" vkloff="0.25 0.5 0.625" ngridk="2  2  2"></groundstate>
 <properties>
 <elfplot></elfplot>
 </properties>

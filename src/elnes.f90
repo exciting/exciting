@@ -55,10 +55,10 @@ do ik=1, nkpt
   end do
 end do
 ! number of subdivisions used for interpolation
-nsk(:)=max(input%properties%dos%ngrdos/input%groundstate%ngkgrid(:), 1)
+nsk(:)=max(input%properties%dos%ngrdos/input%groundstate%ngridk(:), 1)
 n=nstsv*nstsv
 ! integrate over the Brillouin zone
-call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos, wdos, n, n,&
+call brzint(input%properties%dos%nsmdos, input%groundstate%ngridk, nsk, ikmap, input%properties%dos%nwdos, wdos, n, n,&
    &e, f, eps2)
 ! q-vector in Cartesian coordinates
 call r3mv(bvec, input%properties%elnes%vecql, vecqc)

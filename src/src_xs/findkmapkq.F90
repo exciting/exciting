@@ -21,7 +21,7 @@ use modinput
   do ik=1, nkpt
      vkq(:)=vkl(:, ik)+vq(:)
      call r3frac(input%structure%epslat, vkq, ivt)
-     iv(:)=nint(vkq(:)*input%groundstate%ngkgrid(:)-voff(:))
+     iv(:)=nint(vkq(:)*input%groundstate%ngridk(:)-voff(:))
      map(ik)=ikmap(iv(1), iv(2), iv(3))
   end do
 end subroutine findkmapkq

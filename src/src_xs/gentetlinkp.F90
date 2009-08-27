@@ -27,7 +27,7 @@ use modinput
   real(8), intent(in) :: vpl(3)
   integer, intent(in) :: tqw
   ! call to interface routine
-  call gentetlink(vpl, tqw, input%structure%epslat, bvec, input%groundstate%ngkgrid, input%groundstate%vkloff, nkpt, &
+  call gentetlink(vpl, tqw, input%structure%epslat, bvec, input%groundstate%ngridk, input%groundstate%vkloff, nkpt, &
     &nkptnr, vklnr, &
        ikmapnr)
 end subroutine gentetlinkp

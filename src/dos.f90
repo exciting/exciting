@@ -187,7 +187,7 @@ do iw=1, input%properties%dos%nwdos
   w(iw)=dw*dble(iw-1)+wdos(1)
 end do
 ! number of subdivisions used for interpolation
-nsk(:)=max(input%properties%dos%ngrdos/input%groundstate%ngkgrid(:), 1)
+nsk(:)=max(input%properties%dos%ngrdos/input%groundstate%ngridk(:), 1)
 !--------------------------!
 !     output total DOS     !
 !--------------------------!
@@ -219,7 +219,7 @@ call xml_AddAttribute(xf, "type","totaldos")
       f(ist, ik)=dble(sdmat(ispn, ispn, ist, ik))
     end do
   end do
-  call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos, wdos, &
+  call brzint(input%properties%dos%nsmdos, input%groundstate%ngridk, nsk, ikmap, input%properties%dos%nwdos, wdos, &
     &nstsv, nstsv, e(:, :, ispn), f, &
    g(:, ispn))
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
@@ -278,7 +278,7 @@ do is=1, nspecies
 	      f(ist, ik)=bc(lm, ispn, ias, ist, ik)
 	    end do
 	  end do
-	  call brzint(input%properties%dos%nsmdos, input%groundstate%ngkgrid, nsk, ikmap, input%properties%dos%nwdos, &
+	  call brzint(input%properties%dos%nsmdos, input%groundstate%ngridk, nsk, ikmap, input%properties%dos%nwdos, &
     &wdos, nstsv, nstsv, &
 	   e(:, :, ispn), f, gp)
 	  gp(:)=occmax*gp(:)

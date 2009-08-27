@@ -67,12 +67,12 @@ if (t1.lt.input%structure%epslat) then
   return
 end if
 ! check q-vector is commensurate with k-point grid
-v1(:)=dble(input%groundstate%ngkgrid(:))*input%properties%elnes%vecql(:)
+v1(:)=dble(input%groundstate%ngridk(:))*input%properties%elnes%vecql(:)
 v2(:)=abs(v1(:)-nint(v1(:)))
 if ((v2(1).gt.input%structure%epslat).or.(v2(2).gt.input%structure%epslat).or.(v2(3).gt.input%structure%epslat)) then
   write(*, *)
   write(*, '("Error(genexpiqr): q-vector incommensurate with k-point grid")')
-  write(*, '(" ngridk : ", 3I6)') input%groundstate%ngkgrid
+  write(*, '(" ngridk : ", 3I6)') input%groundstate%ngridk
   write(*, '(" vecql : ", 3G18.10)') input%properties%elnes%vecql
   write(*, *)
   stop

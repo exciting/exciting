@@ -196,7 +196,7 @@ write(*, *) 'nvdif, ncdif', nvdif, ncdif
      do jknr=iknr, nkptnr
 	ikkp=ikkp+1
 	iv2(:)=ivknr(:, jknr)-ivknr(:, iknr)
-	iv2(:)=modulo(iv2(:), input%groundstate%ngkgrid(:))
+	iv2(:)=modulo(iv2(:), input%groundstate%ngridk(:))
         ! q-point (reduced)
 	iqr=iqmapr(iv2(1), iv2(2), iv2(3))
         ! q-point (non-reduced)

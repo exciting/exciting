@@ -124,8 +124,8 @@ do l=1, noptcomp
       wd(1)=efermi-input%groundstate%swidth
       wd(2)=efermi+input%groundstate%swidth
 ! number of subdivisions used for interpolation
-      nsk(:)=max(input%properties%dos%ngrdos/input%groundstate%ngkgrid(:), 1)
-      call brzint(0, input%groundstate%ngkgrid, nsk, ikmap, 1, wd, nstsv, nstsv, evalsv, f, wplas)
+      nsk(:)=max(input%properties%dos%ngrdos/input%groundstate%ngridk(:), 1)
+      call brzint(0, input%groundstate%ngridk, nsk, ikmap, 1, wd, nstsv, nstsv, evalsv, f, wplas)
       wplas=abs(wplas)*occmax*4.d0*pi/omega
       wplas=sqrt(wplas)
 ! write the plasma frequency to file

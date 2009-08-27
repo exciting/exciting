@@ -14,7 +14,7 @@
 <atom coord="0.6666666667  0.3333333333  0.75" bfcmt="0.0  0.0  0.0"></atom>
 </species>
 </structure>
-<groundstate  rgkmax="11" gmaxvr="22" lmaxapw="12" ngkgrid="2  2  1" lmaxvr="12" lmaxmat="10" vkloff="0.5 0.5 0.5" lradstep="1"></groundstate>
+<groundstate  rgkmax="11" gmaxvr="22" lmaxapw="12" ngridk="2  2  1" lmaxvr="12" lmaxmat="10" vkloff="0.5 0.5 0.5" lradstep="1"></groundstate>
 <properties>
 <chargedesityplot></chargedesityplot>
 <elfplot></elfplot>

@@ -28,6 +28,6 @@
 <atom coord="0.80520000    0.62930000    0.93450000" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
 </species>
 </structure>
-<groundstate  ngkgrid="2  2  2"></groundstate>
+<groundstate  ngridk="2  2  2"></groundstate>
 <properties></properties>
 </input>

@@ -166,7 +166,7 @@ use modinput
   !---------------------!
   !     k-point set     !
   !---------------------!
-  if (any(input%xs%screening%ngridk.eq.0)) input%xs%screening%ngridk(:)=input%groundstate%ngkgrid(:)
+  if (any(input%xs%screening%ngridk.eq.0)) input%xs%screening%ngridk(:)=input%groundstate%ngridk(:)
   if (any(input%xs%screening%vkloff.eq. - 1.d0)) input%xs%screening%vkloff(:) = input%groundstate%vkloff(:)
   if (any(input%xs%BSE%vkloff.eq.-1.d0)) input%xs%BSE%vkloff(:)=input%groundstate%vkloff(:)
 
@@ -248,7 +248,7 @@ endif
      input%groundstate%reducek=input%xs%screening%reducek
      input%groundstate%rgkmax=input%xs%screening%rgkmax
      input%groundstate%nempty=input%xs%screening%nempty
-     input%groundstate%ngkgrid(:)=input%xs%screening%ngridk(:)
+     input%groundstate%ngridk(:)=input%xs%screening%ngridk(:)
      input%groundstate%vkloff(:)=input%xs%screening%vkloff(:)
      write(unitout, *)
      write(unitout, '("Info(xsinit): mapping screening-specific parameters")')
@@ -274,11 +274,11 @@ endif
      write(unitout, *)
      write(unitout, '("Info(xsinit): mapping BSE-specific parameters")')
      write(unitout, *)
-     if (any(input%groundstate%ngkgrid.ne.ngridq)) then
+     if (any(input%groundstate%ngridk.ne.ngridq)) then
 	write(unitout, *)
 	write(unitout, '("Error(xsinit): ngridk must be equal ngridq for the &
 	     &BSE-Hamiltonian")')
-	write(unitout, '(" ngridk : ", 3i6)') input%groundstate%ngkgrid
+	write(unitout, '(" ngridk : ", 3i6)') input%groundstate%ngridk
 	write(unitout, '(" ngridq : ", 3i6)') ngridq
 	write(unitout, *)
 	call terminate

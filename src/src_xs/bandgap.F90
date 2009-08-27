@@ -88,9 +88,9 @@ use modinput
      open(50, file = 'BANDGAP_GRID.OUT', form = 'formatted', action = 'write', &
 	  status = 'replace')
      write(50, '(a)') 'Band gaps determined from energies on grid'
-     write(50, '(a, 3i6)') ' k-point grid:', input%groundstate%ngkgrid
+     write(50, '(a, 3i6)') ' k-point grid:', input%groundstate%ngridk
      write(50, '(a, 3f12.6)') ' k-point offset:', input%groundstate%vkloff
-     write(50, '(a, 3f12.6)') ' k - point shift :', input%groundstate%vkloff/dble(input%groundstate%ngkgrid)
+     write(50, '(a, 3f12.6)') ' k - point shift :', input%groundstate%vkloff/dble(input%groundstate%ngridk)
   else if (task == 20) then
      open(50, file = 'BANDGAP.OUT', form = 'formatted', action = 'write', &
 	  status = 'replace')

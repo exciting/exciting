@@ -22,6 +22,6 @@
 <atom coord="0.56821720    0.47477150    0.23940900" bfcmt="0.00000000  0.00000000  0.00000000"></atom>
 </species>
 </structure>
-<groundstate  rgkmax="3.0" gmaxvr="14.0" lmaxapw="10" swidth="0.001" nempty="5" ngkgrid="2 2 2 "></groundstate>
+<groundstate  rgkmax="3.0" gmaxvr="14.0" lmaxapw="10" swidth="0.001" nempty="5" ngridk="2 2 2 "></groundstate>
 <properties></properties>
 </input>

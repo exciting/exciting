@@ -23,7 +23,7 @@
 <atom coord="0.6542035477397619  0.0101012160171194  0.0101012160171194"  ></atom>
 </species>
 </structure>
-<groundstate  rgkmax="6.0" ngkgrid="2  2  2"></groundstate>
+<groundstate  rgkmax="6.0" ngridk="2  2  2"></groundstate>
 <properties>
 <dos></dos>
 </properties>

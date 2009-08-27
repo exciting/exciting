@@ -143,7 +143,7 @@ end type
 type groundstate_type
  character(512)::do
  integer::donumber
- integer::ngkgrid(3)
+ integer::ngridk(3)
  real(8)::rgkmax
  real(8)::epspot
  real(8)::rmtapm(2)
@@ -1464,10 +1464,10 @@ endif
 getstructgroundstate%donumber=stringtonumberdo(getstructgroundstate%do)
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"ngkgrid")
+np=>getAttributeNode(thisnode,"ngridk")
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngkgrid",getstructgroundstate%ngkgrid)
-       call removeAttribute(thisnode,"ngkgrid")      
+       call extractDataAttribute(thisnode,"ngridk",getstructgroundstate%ngridk)
+       call removeAttribute(thisnode,"ngridk")      
 endif
 
 nullify(np)  

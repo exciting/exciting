@@ -79,7 +79,7 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
   allocate(pmt(nstfv,nstfv))
   allocate(evecfvt1(nstfv,ngkk),evecfvt2(ngkkp,nstfv))
   ! check if q-point is commensurate with k-mesh
-  if (any(abs(vpl * input%groundstate%ngkgrid-nint(vpl * input%groundstate%ngkgrid)).gt.input%structure%epslat)) then
+  if (any(abs(vpl * input%groundstate%ngridk-nint(vpl * input%groundstate%ngridk)).gt.input%structure%epslat)) then
      write(*,*)
      write(*,'("Error(genpwmat): q-point not commensurate with k-mesh : ",&
           &3g18.10)') vpl

@@ -46,19 +46,19 @@ call timesec(ts0)
 !---------------------!
 ! check if the system is an isolated molecule
 if (input%structure%molecule) then
-  input%groundstate%ngkgrid(:)=1
+  input%groundstate%ngridk(:)=1
   input%groundstate%vkloff(:)=0.d0
   input%groundstate%autokpt=.false.
 end if
 ! setup the default k-point box
-boxl(:, 1)=input%groundstate%vkloff(:)/dble(input%groundstate%ngkgrid(:))
+boxl(:, 1)=input%groundstate%vkloff(:)/dble(input%groundstate%ngridk(:))
 boxl(:, 2)=boxl(:, 1); boxl(:, 3)=boxl(:, 1); boxl(:, 4)=boxl(:, 1)
 boxl(1, 2)=boxl(1, 2)+1.d0
 boxl(2, 3)=boxl(2, 3)+1.d0
 boxl(3, 4)=boxl(3, 4)+1.d0
 ! k-point set and box for Fermi surface plots
 if ((task.eq.100).or.(task.eq.101)) then
-  input%groundstate%ngkgrid(:)=np3d(:)
+  input%groundstate%ngridk(:)=np3d(:)
   boxl(:, :)=vclp3d(:, :)
 end if
 if ((task.eq.20).or.(task.eq.21)) then
@@ -110,26 +110,26 @@ else if (task.eq.25) then
 else
 ! determine the k-point grid automatically from radkpt if required
   if (input%groundstate%autokpt) then
-    input%groundstate%ngkgrid(:) = int(input%groundstate%radkpt/sqrt(input%structure%crystal%basevect(1, :) ** 2 +&
+    input%groundstate%ngridk(:) = int(input%groundstate%radkpt/sqrt(input%structure%crystal%basevect(1, :) ** 2 +&
     &input%structure%crystal%basevect(2, :) ** 2 + input%structure%crystal%basevect(3, :) ** 2)) + 1
   end if
 ! allocate the reduced k-point set arrays
   if (allocated(ivk)) deallocate(ivk)
-  allocate(ivk(3, input%groundstate%ngkgrid(1) * input%groundstate%ngkgrid(2) * input%groundstate%ngkgrid(3)))
+  allocate(ivk(3, input%groundstate%ngridk(1) * input%groundstate%ngridk(2) * input%groundstate%ngridk(3)))
   if (allocated(vkl)) deallocate(vkl)
-  allocate(vkl(3, input%groundstate%ngkgrid(1) * input%groundstate%ngkgrid(2) * input%groundstate%ngkgrid(3)))
+  allocate(vkl(3, input%groundstate%ngridk(1) * input%groundstate%ngridk(2) * input%groundstate%ngridk(3)))
   if (allocated(vkc)) deallocate(vkc)
-  allocate(vkc(3, input%groundstate%ngkgrid(1) * input%groundstate%ngkgrid(2) * input%groundstate%ngkgrid(3)))
+  allocate(vkc(3, input%groundstate%ngridk(1) * input%groundstate%ngridk(2) * input%groundstate%ngridk(3)))
   if (allocated(wkpt)) deallocate(wkpt)
-  allocate(wkpt(input%groundstate%ngkgrid(1) * input%groundstate%ngkgrid(2) * input%groundstate%ngkgrid(3)))
+  allocate(wkpt(input%groundstate%ngridk(1) * input%groundstate%ngridk(2) * input%groundstate%ngridk(3)))
   if (allocated(ikmap)) deallocate(ikmap)
-  allocate(ikmap(0:input%groundstate%ngkgrid(1) - 1, 0:input%groundstate%ngkgrid(2) - 1, &
-    &0:input%groundstate%ngkgrid(3)&
+  allocate(ikmap(0:input%groundstate%ngridk(1) - 1, 0:input%groundstate%ngridk(2) - 1, &
+    &0:input%groundstate%ngridk(3)&
     &- 1))
 ! generate the reduced k-point set
-  call genppts(input%groundstate%reducek, .false., input%groundstate%ngkgrid, boxl, nkpt, ikmap, ivk, vkl, vkc, wkpt)
+  call genppts(input%groundstate%reducek, .false., input%groundstate%ngridk, boxl, nkpt, ikmap, ivk, vkl, vkc, wkpt)
 ! allocate the non-reduced k-point set arrays
-  nkptnr=input%groundstate%ngkgrid(1)*input%groundstate%ngkgrid(2)*input%groundstate%ngkgrid(3)
+  nkptnr=input%groundstate%ngridk(1)*input%groundstate%ngridk(2)*input%groundstate%ngridk(3)
   if (allocated(ivknr)) deallocate(ivknr)
   allocate(ivknr(3, nkptnr))
   if (allocated(vklnr)) deallocate(vklnr)
@@ -139,10 +139,10 @@ else
   if (allocated(wkptnr)) deallocate(wkptnr)
   allocate(wkptnr(nkptnr))
   if (allocated(ikmapnr)) deallocate(ikmapnr)
-  allocate(ikmapnr(0:input%groundstate%ngkgrid(1) - 1, 0:input%groundstate%ngkgrid(2) - 1, &
-    &0:input%groundstate%ngkgrid(3) - 1))
+  allocate(ikmapnr(0:input%groundstate%ngridk(1) - 1, 0:input%groundstate%ngridk(2) - 1, &
+    &0:input%groundstate%ngridk(3) - 1))
 ! generate the non-reduced k-point set
-  call genppts(.false., .false., input%groundstate%ngkgrid, boxl, nkptnr, ikmapnr, ivknr, vklnr, vkcnr, &
+  call genppts(.false., .false., input%groundstate%ngridk, boxl, nkptnr, ikmapnr, ivknr, vklnr, vkcnr, &
    wkptnr)
 #ifdef TETRA
   ! call to module routine
@@ -150,7 +150,7 @@ else
   if(associated(input%xs%tetra)) then
  	 if (input%xs%tetra%tetraocc.or.tetraopt.or.input%xs%tetra%tetradf)then
  	  call genkpts_tet(filext, input%structure%epslat, bvec, &
-       maxsymcrys, nsymcrys, lsplsymc, symlat, input%groundstate%reducek, input%groundstate%ngkgrid, &
+       maxsymcrys, nsymcrys, lsplsymc, symlat, input%groundstate%reducek, input%groundstate%ngridk, &
        input%groundstate%vkloff, nkpt, ikmap,  vkl, wkpt)
      endif
   endif

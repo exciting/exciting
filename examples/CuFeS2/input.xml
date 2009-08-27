@@ -32,5 +32,5 @@
 <atom coord="0.2500  0.7574  0.3750" bfcmt="0.0000  0.0000  0.0000"></atom>
 </species>
 </structure>
-<groundstate  ngkgrid="2  2  2"></groundstate>
+<groundstate  ngridk="2  2  2"></groundstate>
 </input>

@@ -28,7 +28,7 @@ call timesec(ts0)
 if (input%structure%molecule) ngridq(:)=1
 ! OEP, Hartree-Fock or RDMFT
 if ((input%groundstate%xctypenumber.lt.0).or.(task.eq.5).or.(task.eq.6).or.(task.eq.300)) then
-  ngridq(:)=input%groundstate%ngkgrid(:)
+  ngridq(:)=input%groundstate%ngridk(:)
   input%phonons%reduceq=.false.
 end if
 #ifdef XS

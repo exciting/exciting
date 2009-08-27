@@ -17,24 +17,24 @@ use modinput
   ! local variables
   real(8) :: v1(3)
   integer :: iv(3)
-  if (any(input%groundstate%vkloff/dble(input%groundstate%ngkgrid)+vq.ge.1.d0)) then
+  if (any(input%groundstate%vkloff/dble(input%groundstate%ngridk)+vq.ge.1.d0)) then
      ! vector is outside Brillouine zone
-     v1=input%groundstate%vkloff/dble(input%groundstate%ngkgrid)+vq
+     v1=input%groundstate%vkloff/dble(input%groundstate%ngridk)+vq
      call mapkto01(v1)
-     voff=v1*dble(input%groundstate%ngkgrid)
-     if (any(v1*dble(input%groundstate%ngkgrid).ge.1.d0)) then
-	v1=v1*dble(input%groundstate%ngkgrid)
+     voff=v1*dble(input%groundstate%ngridk)
+     if (any(v1*dble(input%groundstate%ngridk).ge.1.d0)) then
+	v1=v1*dble(input%groundstate%ngridk)
 	call mapkto01(v1)
 	voff=v1
      end if
-  else if (any(input%groundstate%vkloff+vq*dble(input%groundstate%ngkgrid).ge.1.d0)) then
+  else if (any(input%groundstate%vkloff+vq*dble(input%groundstate%ngridk).ge.1.d0)) then
      ! vector is inside Brillouine zone but outside k-point spacing
-     v1=input%groundstate%vkloff+vq*dble(input%groundstate%ngkgrid)
+     v1=input%groundstate%vkloff+vq*dble(input%groundstate%ngridk)
      call mapkto01(v1)
      voff=v1
   else
      ! vector is inside k-point spacing
-     voff=input%groundstate%vkloff+vq*input%groundstate%ngkgrid
+     voff=input%groundstate%vkloff+vq*input%groundstate%ngridk
   end if
   ! treatment of values close to zero or one
   call r3frac(input%structure%epslat, voff, iv)

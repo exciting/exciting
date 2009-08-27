@@ -14,7 +14,7 @@ use modinput
   nempty_b=input%groundstate%nempty
   rgkmax_b=input%groundstate%rgkmax
   reducek_b=input%groundstate%reducek
-  ngridk_b(:)=input%groundstate%ngkgrid(:)
+  ngridk_b(:)=input%groundstate%ngridk(:)
   vkloff_b(:)=input%groundstate%vkloff(:)
   emattype_b=input%xs%emattype
 end subroutine backup1

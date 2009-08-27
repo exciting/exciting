@@ -15,7 +15,7 @@ use modinput
   input%groundstate%nempty=nempty_b
   input%groundstate%rgkmax=rgkmax_b
   input%groundstate%reducek=reducek_b
-  input%groundstate%ngkgrid(:)=ngridk_b(:)
+  input%groundstate%ngridk(:)=ngridk_b(:)
   input%groundstate%vkloff(:)=vkloff_b(:)
   input%xs%emattype=emattype_b
 end subroutine restore1

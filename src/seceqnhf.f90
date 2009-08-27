@@ -148,7 +148,7 @@ do ik=1, nkptnr
   call match(ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm)
 ! determine q-vector
   iv(:)=ivk(:, ikp)-ivknr(:, ik)
-  iv(:)=modulo(iv(:), input%groundstate%ngkgrid(:))
+  iv(:)=modulo(iv(:), input%groundstate%ngridk(:))
   iq=iqmap(iv(1), iv(2), iv(3))
   v(:)=vkc(:, ikp)-vkcnr(:, ik)
   do ig=1, ngvec

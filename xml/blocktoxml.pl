@@ -418,7 +418,7 @@ if(getvalue("nonreplace"))
    
 if(getvalue("ngridk"))
   {
-   $atthashgroundstate{"ngkgrid"}=getvalue("ngridk");
+   $atthashgroundstate{"ngridk"}=getvalue("ngridk");
  
     }
    

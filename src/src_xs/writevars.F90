@@ -58,7 +58,7 @@ subroutine writevars(un, iq, iqmt)
     write(un, '(a, f12.6)') '# input%groundstate%gmaxvr 	   :', input%groundstate%gmaxvr
     write(un, '(a, f12.6)') '# input%groundstate%rgkmax 	   :', input%groundstate%rgkmax
     write(un, '(a, f12.6)') '# gkmax		 :', gkmax
-    write(un, '(a, 3i8)') '# input%groundstate%ngkgrid		  :', input%groundstate%ngkgrid
+    write(un, '(a, 3i8)') '# input%groundstate%ngridk		  :', input%groundstate%ngridk
     write(un, '(a, 3f12.6)') '# input%groundstate%vkloff	    :', input%groundstate%vkloff
     write(un, '(a, l8)') '# input%groundstate%reducek		:', input%groundstate%reducek
     write(un, '(a, i8)') '# nmatmax	      :', nmatmax

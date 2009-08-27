@@ -68,7 +68,7 @@ do iq=1, nqpt
   do ip=1, np
 ! subdivision vectors in lattice coordinates
     do i=1, 3
-      d(i)=1.d0/(dble(input%groundstate%ngkgrid(i)*2*ns))
+      d(i)=1.d0/(dble(input%groundstate%ngridk(i)*2*ns))
     end do
 ! smallest volume element
     dv=((twopi**3)/omega)*d(1)*d(2)*d(3)

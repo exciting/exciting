@@ -76,7 +76,7 @@ use modinput
   write(77, *) input%groundstate%autokpt
   write(77, *)
   write(77, '("ngridk")')
-  write(77, *) input%groundstate%ngkgrid(1), input%groundstate%ngkgrid(2), input%groundstate%ngkgrid(3)
+  write(77, *) input%groundstate%ngridk(1), input%groundstate%ngridk(2), input%groundstate%ngridk(3)
   write(77, *)
   write(77, '("vkloff")')
   write(77, *) input%groundstate%vkloff(1), input%groundstate%vkloff(2), input%groundstate%vkloff(3)

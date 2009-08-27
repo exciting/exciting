@@ -184,7 +184,7 @@ if (input%groundstate%autokpt) then
   write(fnum, '("radius of sphere used to determine k-point grid density : ", &
    &G18.10)') input%groundstate%radkpt
 end if
-write(fnum, '("k-point grid : ", 3I6)') input%groundstate%ngkgrid
+write(fnum, '("k-point grid : ", 3I6)') input%groundstate%ngridk
 write(fnum, '("k-point offset : ", 3G18.10)') input%groundstate%vkloff
 if (input%groundstate%reducek) then
   write(fnum, '("k-point set is reduced with crystal symmetries")')

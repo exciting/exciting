@@ -121,7 +121,7 @@ use modinput
 	  &associated(input%xs%BSE) - Hamiltonian')
      call kkpmap(ikkp,nkptnr,iknr,jknr)
      iv(:)=ivknr(:,jknr)-ivknr(:,iknr)
-     iv(:)=modulo(iv(:), input%groundstate%ngkgrid(:))
+     iv(:)=modulo(iv(:), input%groundstate%ngridk(:))
      ! q-point (reduced)
      iqr=iqmapr(iv(1),iv(2),iv(3))
      ! q-point (non-reduced)

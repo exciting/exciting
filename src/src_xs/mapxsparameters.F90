@@ -11,7 +11,7 @@ use modinput
 	use modxs
 	implicit none
 	input%groundstate%nosym=input%xs%nosym
-	input%groundstate%ngkgrid(:)=input%xs%ngridk(:)
+	input%groundstate%ngridk(:)=input%xs%ngridk(:)
 	input%groundstate%reducek=input%xs%reducek
 	input%groundstate%vkloff(:)=input%xs%vkloff(:)
 	ngridq(:)=input%xs%ngridq(:)

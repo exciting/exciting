@@ -14,7 +14,7 @@
 <atom coord="0.5  0.5  0.5" bfcmt="0.0  0.0 -0.1"></atom>
 </species>
 </structure>
-<groundstate  vkloff="0.5  0.5  0.5" epspot="1e-7" nempty="10" ngkgrid="2  2  2">
+<groundstate  vkloff="0.5  0.5  0.5" epspot="1e-7" nempty="10" ngridk="2  2  2">
 <spin></spin>
 </groundstate>
 <properties></properties>

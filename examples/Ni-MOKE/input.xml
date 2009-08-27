@@ -13,7 +13,7 @@
 <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
 </species>
 </structure>
-<groundstate  swidth="0.01" ngkgrid="10  10  10">
+<groundstate  swidth="0.01" ngridk="10  10  10">
 <spin spinorb="true" bfieldc="0.0 0.0 0.01"></spin>
 </groundstate>
 <properties></properties>

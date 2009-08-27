@@ -13,6 +13,6 @@
 <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
 </species>
 </structure>
-<groundstate  ngkgrid="8  8  8"></groundstate>
+<groundstate  ngridk="8  8  8"></groundstate>
 <properties></properties>
 </input>
