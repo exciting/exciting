@@ -2,7 +2,7 @@
  'molybdenum'                               : spname
   -42.0000                                  : spzn
    174887.9212                              : spmass
-  0.308607E-06    2.0000   41.1422   600    : sprmin, rmt, sprmax, nrmt
+  0.308607E-06    2.0000   38.0340   600    : sprmin, rmt, sprmax, nrmt
   15                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

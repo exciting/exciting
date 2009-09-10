@@ -2,7 +2,7 @@
  'xenon'                                    : spname
   -54.0000                                  : spzn
    239327.0292                              : spmass
-  0.272166E-06    2.0000   29.0348   600    : sprmin, rmt, sprmax, nrmt
+  0.272166E-06    2.0000   26.8245   600    : sprmin, rmt, sprmax, nrmt
   17                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

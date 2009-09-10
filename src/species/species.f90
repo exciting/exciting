@@ -177,7 +177,8 @@ end do
 read(40,*)
 if ((adjustl(trim(inspecies)).ne.'').and.(adjustl(trim(inspecies)).ne. &
 	adjustl(trim(spsymb)))) goto 10
-write(*,'("Info(species): running Z = ",I4,", (",A,")")') nz,trim(spname)
+write(*,'("Info(species): method: ",a,"; running Z = ",I4,", (",A,")")') trim(apwdescr),nz, &
+  trim(spname)
 ! nuclear charge in units of e
 spzn=-dble(nz)
 ! minimum radial mesh point proportional to 1/sqrt(Z)

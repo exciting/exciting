@@ -2,7 +2,7 @@
  'dysprosium'                               : spname
   -66.0000                                  : spzn
    296219.3788                              : spmass
-  0.246183E-06    2.2000   42.8836   700    : sprmin, rmt, sprmax, nrmt
+  0.246183E-06    2.2000   49.1992   700    : sprmin, rmt, sprmax, nrmt
   20                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T
@@ -26,20 +26,28 @@
    6   0   1   2.00000    F
    1                                        : apword
   0.1500   0  F                             : apwe0, apwdm, apwve
-   0                                        : nlx
+   4                                        : nlx
+   0   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   1   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   2   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   3   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
    6                                        : nlorb
    0   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    1   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    2   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    3   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    0   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
@@ -48,5 +56,6 @@
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
  -0.9837   0  T
-
+ 
 # Exciting code version : 0.9.224
+# Description of method : APW+lo (default)

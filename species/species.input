@@ -1,14 +1,10 @@
 
-inspecies
-  'Si'
-
-
-
 !---------------------------------------------------------!
 !   Default is: APW+lo (semicore-local orbitals and lo)   !
 !---------------------------------------------------------!
+
 apwdescr
-  'APW+lo'
+  'APW+lo (default)'
 
 apw
   1
@@ -29,4 +25,3 @@ searchlocorb
 
 !fullsearchlocorbsc
 !  .true.
-

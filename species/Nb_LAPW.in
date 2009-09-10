@@ -2,7 +2,7 @@
  'niobium'                                  : spname
   -41.0000                                  : spzn
    169357.9703                              : spmass
-  0.312348E-06    2.0000   44.4122   600    : sprmin, rmt, sprmax, nrmt
+  0.312348E-06    2.0000   39.9992   600    : sprmin, rmt, sprmax, nrmt
   15                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

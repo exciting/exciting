@@ -4,7 +4,6 @@
 
 
 subroutine xsinit
-#include "../version.inc"
 use modinput
   use modmain
   use modmpi
@@ -55,11 +54,6 @@ use modinput
      write(unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, " (eXcited &
 	  &States ", I1.1, ".", I3.3, ") started  |")') version, versionxs
 	  !"
-     write(unitout, '("| git hash id : ", a20, "		       |")') GITHASH
-#ifdef LOCALCHG
-     write(unitout, '("| Warning     : source codes deviates from the git hash &
-	  &id |")')
-#endif
 #ifdef MPI
      write(unitout, '("| compiled for MPI execution			       &
 	  &   |")')
@@ -167,7 +161,7 @@ use modinput
   !     k-point set     !
   !---------------------!
   if (any(input%xs%screening%ngridk.eq.0)) input%xs%screening%ngridk(:)=input%groundstate%ngridk(:)
-  if (any(input%xs%screening%vkloff.eq. - 1.d0)) input%xs%screening%vkloff(:) = input%groundstate%vkloff(:)
+  if (any(input%xs%screening%vkloff.eq. -1.d0)) input%xs%screening%vkloff(:) = input%groundstate%vkloff(:)
   if (any(input%xs%BSE%vkloff.eq.-1.d0)) input%xs%BSE%vkloff(:)=input%groundstate%vkloff(:)
 
   !---------------------!

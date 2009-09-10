@@ -23,20 +23,28 @@
    5   1   2   2.00000    F
    1                                        : apword
   0.1500   0  F                             : apwe0, apwdm, apwve
-   0                                        : nlx
+   4                                        : nlx
+   0   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   1   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   2   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+   3   1                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
    6                                        : nlorb
    0   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    1   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    2   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    3   2                                    : lorbl, lorbord
-  0.1500   0  F                             : lorbe0, lorbdm, lorbve
-  0.1500   1  F
+  0.1500   0  T                             : lorbe0, lorbdm, lorbve
+  0.1500   1  T
    2   3                                    : lorbl, lorbord
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
@@ -45,5 +53,6 @@
   0.1500   0  F                             : lorbe0, lorbdm, lorbve
   0.1500   1  F
  -0.4844   0  T
-
+ 
 # Exciting code version : 0.9.224
+# Description of method : APW+lo (default)

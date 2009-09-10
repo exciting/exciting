@@ -2,7 +2,7 @@
  'thorium'                                  : spname
   -90.0000                                  : spzn
    422979.5806                              : spmass
-  0.210819E-06    2.2000   38.9204   800    : sprmin, rmt, sprmax, nrmt
+  0.210819E-06    2.2000   40.5271   800    : sprmin, rmt, sprmax, nrmt
   26                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

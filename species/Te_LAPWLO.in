@@ -1,0 +1,51 @@
+ 'Te'                                       : spsymb
+ 'tellurium'                                : spname
+  -52.0000                                  : spzn
+   232600.5707                              : spmass
+  0.277350E-06    2.0000   33.0360   600    : sprmin, rmt, sprmax, nrmt
+  17                                        : spnst
+   1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
+   2   0   1   2.00000    T
+   2   1   1   2.00000    T
+   2   1   2   4.00000    T
+   3   0   1   2.00000    T
+   3   1   1   2.00000    T
+   3   1   2   4.00000    T
+   3   2   2   4.00000    T
+   3   2   3   6.00000    T
+   4   0   1   2.00000    T
+   4   1   1   2.00000    T
+   4   1   2   4.00000    T
+   4   2   2   4.00000    F
+   4   2   3   6.00000    F
+   5   0   1   2.00000    F
+   5   1   1   2.00000    F
+   5   1   2   2.00000    F
+   2                                        : apword
+  0.1500   0  F                             : apwe0, apwdm, apwve
+  0.1500   1  F                             : apwe0, apwdm, apwve
+   4                                        : nlx
+   0   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   1   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   2   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   3   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   2                                        : nlorb
+   2   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -1.4814   0  T
+   0   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -0.4844   0  T
+ 
+# Exciting code version : 0.9.224
+# Description of method : LAPW+LO

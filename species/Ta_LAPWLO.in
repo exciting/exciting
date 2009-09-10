@@ -1,0 +1,59 @@
+ 'Ta'                                       : spsymb
+ 'tantalum'                                 : spname
+  -73.0000                                  : spzn
+   329847.8433                              : spmass
+  0.234082E-06    2.0000   38.7056   700    : sprmin, rmt, sprmax, nrmt
+  21                                        : spnst
+   1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
+   2   0   1   2.00000    T
+   2   1   1   2.00000    T
+   2   1   2   4.00000    T
+   3   0   1   2.00000    T
+   3   1   1   2.00000    T
+   3   1   2   4.00000    T
+   3   2   2   4.00000    T
+   3   2   3   6.00000    T
+   4   0   1   2.00000    T
+   4   1   1   2.00000    T
+   4   1   2   4.00000    T
+   4   2   2   4.00000    T
+   4   2   3   6.00000    T
+   4   3   3   6.00000    F
+   4   3   4   8.00000    F
+   5   0   1   2.00000    F
+   5   1   1   2.00000    F
+   5   1   2   4.00000    F
+   5   2   2   3.00000    F
+   6   0   1   2.00000    F
+   2                                        : apword
+  0.1500   0  F                             : apwe0, apwdm, apwve
+  0.1500   1  F                             : apwe0, apwdm, apwve
+   4                                        : nlx
+   0   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   1   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   2   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   3   2                                    : lorbl, lorbord
+  0.1500   0  T                             : apwe0, apwdm, apwve
+  0.1500   1  T
+   3                                        : nlorb
+   3   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -0.8635   0  T
+   0   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -2.5940   0  T
+   1   3                                    : lorbl, lorbord
+  0.1500   0  F                             : lorbe0, lorbdm, lorbve
+  0.1500   1  F
+ -1.5988   0  T
+ 
+# Exciting code version : 0.9.224
+# Description of method : LAPW+LO

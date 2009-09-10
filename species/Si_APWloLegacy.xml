@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <sp chemicalSymbol="Si" name="silicon" z="-14.0000" mass="51196.7345400000">
-    <muffinTin rmin="5.345224838248488E-007" radius="2.00000000000000" rinf="39.5678717489373" radialmeshPoints="400"/>
+  <sp chemicalSymbol="Si" name="silicon" z="-14.0000" mass="51196.73454">
+    <muffinTin rmin="0.534522E-06" radius="2.0000" rinf="39.5679" radialmeshPoints="400"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -10,27 +10,27 @@
     <atomicState n="3" l="1" kappa="1" occ="1.00000" core="false"/>
     <atomicState n="3" l="1" kappa="2" occ="1.00000" core="false"/>
     <basis order="1">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
     </basis>
     <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
+      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
     </lorb>
     <lorb l="1">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
+      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
     </lorb>
     <lorb l="2">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
+      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
     </lorb>
     <lorb l="0">
-      <wf matchingOrder="0" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="1" trialEnergy="0.150000000000000" searchE="false"/>
-      <wf matchingOrder="0" trialEnergy="-0.324644469867858" searchE="true"/>
+      <wf matchingOrder="0" trialEnergy="0.1500" searchE="false"/>
+      <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
+      <wf matchingOrder="0" trialEnergy="-0.3246" searchE="true"/>
     </lorb>
     <!-- Exciting code version : 0.9.224-->
-    <!-- Description of  method-->
-    <!--APW+lo-Legacy-->
+    <!-- Description of method:-->
+    <!-- APW+lo-Legacy -->
   </sp>
 </spdb>

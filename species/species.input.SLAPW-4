@@ -2,8 +2,9 @@
 !-------------!
 !   SLAPW-4   !
 !-------------!
+
 apwdescr
-  'SAPW-4'
+  'SLAPW-4 (experimental)'
 
 suffix
   '_SLAPW4'

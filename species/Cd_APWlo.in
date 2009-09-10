@@ -2,7 +2,7 @@
  'cadmium'                                  : spname
   -48.0000                                  : spzn
    204912.7175                              : spmass
-  0.288675E-06    2.0000   31.1535   600    : sprmin, rmt, sprmax, nrmt
+  0.288675E-06    2.0000   31.9836   600    : sprmin, rmt, sprmax, nrmt
   15                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

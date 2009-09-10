@@ -6,8 +6,8 @@ subroutine  writexmlspecies
   implicit none
   type(xmlf_t), save::xf
   character(100)::buffer,buffer2
-     call xml_OpenFile (trim(spsymb)//trim(suffix)//'.xml', xf, replace=.true.,pretty_print=.true.)
-    call xml_NewElement (xf, "spdb")
+  call xml_OpenFile (trim(spsymb)//trim(suffix)//'.xml', xf, replace=.true.,pretty_print=.true.)
+  call xml_NewElement (xf, "spdb")
   call xml_DeclareNamespace(xf, "http://www.w3.org/2001/XMLSchema-instance", "xsi")
   call xml_AddAttribute(xf, "xsi:noNamespaceSchemaLocation", "../../xml/species.xsd" )
   call xml_NewElement (xf, "sp")
@@ -68,7 +68,6 @@ subroutine  writexmlspecies
 
   if (apwordx.gt.0) then
      ! write the exceptions
-
      do l=0,maxl
         call xml_NewElement (xf, "exception")
         write(buffer,*)l
@@ -153,8 +152,8 @@ endif
 
 
   call xml_AddComment(xf," Exciting code version : "//version)
-  call xml_AddComment(xf," Description of  method")
-  call xml_AddComment(xf,trim(apwdescr))
+  call xml_AddComment(xf," Description of method:")
+  call xml_AddComment(xf," "//trim(apwdescr)//" ")
   call xml_Close(xf)
 
 end subroutine writexmlspecies

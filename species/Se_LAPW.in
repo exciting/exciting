@@ -2,7 +2,7 @@
  'selenium'                                 : spname
   -34.0000                                  : spzn
    143935.2748                              : spmass
-  0.342997E-06    2.0000   32.1791   500    : sprmin, rmt, sprmax, nrmt
+  0.342997E-06    2.0000   31.1900   500    : sprmin, rmt, sprmax, nrmt
   12                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

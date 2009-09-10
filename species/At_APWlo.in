@@ -2,7 +2,7 @@
  'astatine'                                 : spname
   -85.0000                                  : spzn
    382806.5818                              : spmass
-  0.216930E-06    2.0000   31.1480   700    : sprmin, rmt, sprmax, nrmt
+  0.216930E-06    2.0000   32.6106   700    : sprmin, rmt, sprmax, nrmt
   24                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

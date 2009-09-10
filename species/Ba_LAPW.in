@@ -2,7 +2,7 @@
  'barium'                                   : spname
   -56.0000                                  : spzn
    250331.8070                              : spmass
-  0.267261E-06    2.2000   43.2980   700    : sprmin, rmt, sprmax, nrmt
+  0.267261E-06    2.2000   45.3164   700    : sprmin, rmt, sprmax, nrmt
   18                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

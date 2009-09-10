@@ -2,7 +2,7 @@
  'nickel'                                   : spname
   -28.0000                                  : spzn
    106991.5230                              : spmass
-  0.377964E-06    2.0000   32.7060   500    : sprmin, rmt, sprmax, nrmt
+  0.377964E-06    2.0000   31.7069   500    : sprmin, rmt, sprmax, nrmt
   10                                        : spnst
    1   0   1   2.00000    T                 : spn, spl, spk, spocc, spcore
    2   0   1   2.00000    T

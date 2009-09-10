@@ -1,9 +1,10 @@
 
-!----------------------------------------------------------!
-!   Original approach by J. K. Dewhurst                    !
-!   No search for lin. energies                            !
-!   APW+lo (semicore-local orbitals and small lo)          !
-!----------------------------------------------------------!
+!---------------------------------------------------------------------!
+!   Original approach by J. K. Dewhurst                               !
+!   APW+lo (semicore local orbitals and small lo)                     !
+!   No search for lin. energies except for semicore local orbitals    !
+!---------------------------------------------------------------------!
+
 apwdescr
   'APW+lo-Legacy'
 
