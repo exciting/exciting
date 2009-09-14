@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:str="http://exslt.org/strings"
+  >
 	<xsl:output method="text" />
 	<xsl:variable name="newline">
 		<xsl:text>
@@ -73,7 +75,7 @@
 \begin{itemize}
 </xsl:text>
 <xsl:for-each select="./xs:simpleType/xs:restriction/xs:enumeration/@value  ">
-<xsl:text>\item </xsl:text><xsl:value-of select="."/>
+<xsl:text>\item </xsl:text><xsl:value-of select="str:replace(.,'_','\_')"/>
 </xsl:for-each>
 <xsl:text> \end{itemize}</xsl:text>
 </xsl:if>
