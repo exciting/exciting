@@ -46,7 +46,7 @@ while($selected==0){
 	print "\nIf you have mpi installed you can build exciting with k-point parallelization support.\n\n";
 	print "build MPI binary (yes/No)\n";
 	$MPI=<>;
-	if($MPI=~m/yes/){
+	if($MPI=~m/yes/i){
 		$selected=1;
 		system("echo \"BUILDMPI=true\">>build/make.inc");
 print "select the mecanism to include mpi interface variables\n";
@@ -58,7 +58,7 @@ if($mpiinclude==1) {$includefile="mpiconf.inc.module";}
 if($mpiinclude==2) {$includefile="mpiconf.inc.include";}
 system(("cp", "build/platforms/$includefile", "build/mpiconf.inc"));
 
-	}elsif($MPI=~m/no/) {
+	}elsif($MPI=~m/no/i) {
 		system("echo \"BUILDMPI=false\">>build/make.inc");
 		$selected=1;
 	}else{
@@ -72,10 +72,10 @@ while($selected==0){
 print "\nIf you have multithreaded BLAS/LAPACK installed you can build exciting with smp support.\n\n";
 print "build SMP lib binary (yes/No)\n";
 $SMP=<>;
-if($SMP=~m/yes/){
+if($SMP=~m/yes/i){
 	system("echo \"BUILDSMP=true\">>build/make.inc");
 		$selected=1;
-}elsif ($SMP=~m/no/)
+}elsif ($SMP=~m/no/i)
 {
 	system("echo \"BUILDSMP=false\" >>build/make.inc");
 		$selected=1;
