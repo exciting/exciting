@@ -53,10 +53,13 @@ integer::k, j
       DMIX=DMIXM
        qmx=dmixm
 	if(noldstepsmax .lt. 10)then
+#ifdef DEBUG
 	write(*, 8001)MUSE, noldstepsmax, MSECINFO(1:4)
 8001	format(':DIRM :  MEMORY ', i1, '/', i1, ' RESCALE ', F6.3, ' RED ', F6.3, ' PRED ', F6.3, ' NEXT ', F6.3)
 	else
 	write(*, 8002)MUSE, noldstepsmax, MSECINFO(1:4)
 8002	format(':DIRM :  MEMORY ', i2, '/', i2, ' RESCALE ', F6.3, ' RED ', F6.3, ' PRED ', F6.3, ' NEXT ', F6.3)
+#endif
 	endif
+
 end subroutine
