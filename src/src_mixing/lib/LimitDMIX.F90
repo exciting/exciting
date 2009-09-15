@@ -58,8 +58,10 @@
 #endif
         RedPred = PM1
 !
-        write(*,221)RedGot,RedOld, RedPred,AllBetter
-221     format(':INFO :  Reduction ',F8.4,' Expected ',F8.4,' Next ',F8.4,' All ',F8.4)
+#ifdef DEBUG
+     write(*,221)RedGot,RedOld, RedPred,AllBetter
+     format(':INFO :  Reduction ',F8.4,' Expected ',F8.4,' Next ',F8.4,' All ',F8.4)
+#endif
         MSECINFO(2)=RedGot
         MSECINFO(3)=RedOld
         MSECINFO(4)=RedPred
@@ -109,7 +111,9 @@
 !
         dmixout(1)=min(dmix,rtrap/max(PM1,0.001D0))
 !
+#ifdef DEBUG
         write(*,21)':INFO :  Bounds       ',qlimit1,qlimit2,rtrap/max(PM1,0.001D0),dmixout(1)
+#endif
 	do N=1,1
                 t=max(dmixout(N),Dbase)
 		dmixout(N)=t
