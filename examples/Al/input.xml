@@ -1,22 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
-
-<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
-<title></title>
-<structure speciespath="../../species/">
-<crystal scale="3.75">
-<basevect>1.0  1.0  0.0</basevect>
-<basevect>  1.0  0.0  1.0</basevect>
-<basevect>  0.0  1.0  1.0</basevect>
-</crystal>
-<species speciesfile="Al.xml">
-<atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
-</species>
-</structure>
-<groundstate  vkloff="0.5  0.5  0.5" ngridk="4  4  4"
-mixer="msec"
-></groundstate>
-<properties>
-<dos/>
-</properties>
+<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/"
+  scratchpath="/tmp/chm/1">
+  <title></title>
+  <structure speciespath="../../species/">
+    <crystal scale="3.75">
+      <basevect>1.0 1.0 0.0</basevect>
+      <basevect>1.0 0.0 1.0</basevect>
+      <basevect>0.0 1.0 1.0</basevect>
+    </crystal>
+    <species speciesfile="Al.xml">
+      <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
+    </species>
+  </structure>
+  <groundstate vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="msec"></groundstate>
+  <properties>
+    <bandstructure>
+      <plot1d>
+        <path steps="100">
+          <point coord=" 0.75000   0.50000   0.25000" label="W" />
+          <point coord=" 0.50000   0.50000   0.50000" label="L" />
+          <point coord=" 0.00000   0.00000   0.00000" label="GAMMA" />
+          <point coord=" 0.50000   0.50000   0.00000" label="X" />
+          <point coord=" 0.75000   0.50000   0.25000" label="W" />
+          <point coord=" 0.75000   0.37500   0.37500" label="K" />
+        </path>
+      </plot1d>
+    </bandstructure>
+  </properties>
 </input>
