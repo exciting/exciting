@@ -21,7 +21,8 @@
   </structure>
   
   <groundstate lmaxvr="8" vkloff="0.05 0.15 0.25" lradstep="2"
-  	lmaxapw="10" swidth="0.0001" ngridk="4  4  4" mixer="msec">
+  	lmaxapw="10" swidth="0.0001" ngridk="4  4  4" mixer="msec"
+  	do="skip">
   	<solver evaltol="1e-300" type="Lapack" />
   </groundstate>
 
@@ -32,14 +33,14 @@
    ngridk="4 4 4"
    vkloff="0.05 0.15 0.25"
    nempty="3"
-   lmaxapw="10" lmaxapwwf="4" lmaxemat="4" 
+   lmaxapw="10" lmaxapwwf="3" lmaxemat="3" 
    swidth="0.0001"
    gqmax="3"
    emaxdf="7.5"
    broad="0.0073499"
    tevout="true">
    
-    <dosWindow intv="0 1" points="100" />
+    <dosWindow intv="0.0 1.0" points="1200" />
    
     <screening screentype="full" nempty="115" />
     
@@ -50,34 +51,7 @@
     <qpointset>
       <qpoint>0.0  0.0  0.0</qpoint>
     </qpointset>
-    
-    <plan>
-      <!--
-301
-320
-330
-401
-420
-430
-440
-441
-445
-450
-340
-350 -->
-      <doonly task="xsgeneigvec" />
-      <doonly task="writepmatxs" />
-      <doonly task="writeemat" />
-      <doonly task="scrgeneigvec" />
-      <doonly task="scrwritepmat" />
-      <doonly task="screen" />
-      <doonly task="scrcoulint" />
-      <doonly task="exccoulint" />
-      <doonly task="BSE" />
-      <doonly task="kernxc_bse" />
-      <doonly task="df" />
-      <doonly task="idf" />
-    </plan>
+
     
   </xs>
   

@@ -37,6 +37,7 @@ echo
 echo "Running test..."
 echo
 
+###../../../exciting_master.gfortran/bin/excitingser
 ../../bin/excitingser
 
 \rm -fr $rundir
