@@ -2356,18 +2356,42 @@
 					            </xs:complexType>
 					          </xs:element>
 					        </xs:all>
-					        <xs:attribute name="intraband" type="xs:boolean" default="false" />
+					        <xs:attribute name="intraband" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>intraband is .true. if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="torddf" type="xs:boolean" default="false" />
 					        <xs:attribute name="tordfxc" type="xs:boolean" default="false" />
-					        <xs:attribute name="aresdf" type="xs:boolean" default="true" />
-					        <xs:attribute name="aresfxc" type="xs:boolean" default="true" />
-					        <xs:attribute name="fxcbsesplit" type="fortrandouble" default="1d-5" />
-					        <xs:attribute name="acont" type="xs:boolean" default="false" />
-					        <xs:attribute name="nwacont" type="xs:integer" default="0" />
-					        <xs:attribute name="lindhard" type="xs:boolean" default="false" />
-					        <xs:attribute name="epsdfde" type="fortrandouble" default="1.0d-8" />
+					        <xs:attribute name="aresdf" type="xs:boolean" default="true" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if to consider the anti-resonant part for the dielectric function</xs:documentation></xs:annotation></xs:attribute>
+					        <xs:attribute name="aresfxc" type="xs:boolean" default="true" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if to consider the anti-resonant part for the BSE-derived xc-kernels</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="fxcbsesplit" type="fortrandouble" default="1d-5" >
+					        	<xs:annotation>
+					        		<xs:documentation>split parameter for degeneracy in energy differences of BSE-derived kernel</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="acont" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if analytic continuation from the imaginary axis to the real axis is to be performed</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="nwacont" type="xs:integer" default="0" >
+					        	<xs:annotation>
+					        		<xs:documentation>number of energy intervals (on imaginary axis) for analytic continuation</xs:documentation></xs:annotation></xs:attribute>
+					        <xs:attribute name="lindhard" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if Lindhard like function is calculated (trivial matrix elements)</xs:documentation></xs:annotation></xs:attribute>
+					        <xs:attribute name="epsdfde" type="fortrandouble" default="1.0d-8" >
+					        	<xs:annotation>
+					        		<xs:documentation>smallest energy difference for which the square of its inverse will be considered in the Kohn-Sham response function</xs:documentation>
+					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="kerndiag" type="xs:boolean" default="false" />
-					        <xs:attribute name="lmaxalda" type="xs:integer" default="3" />
+					        <xs:attribute name="lmaxalda" type="xs:integer" default="3" >
+					        	<xs:annotation>
+					        		<xs:documentation>angular momentum cutoff for Rayleigh expansion of exponential factor for ALDA-kernel</xs:documentation>
+					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="alphalrc" type="fortrandouble" default="0" />
 					        <xs:attribute name="alphalrcdyn" type="fortrandouble" default="0" />
 					        <xs:attribute name="betalrcdyn" type="fortrandouble" fixed="0" />
@@ -2968,8 +2992,14 @@
 					      </xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
-					  <xs:attribute name="dfoffdiag" type="xs:boolean" default="false" />
-					  <xs:attribute name="lmaxapwwf" type="xs:integer" default="-1" />
+					  <xs:attribute name="dfoffdiag" type="xs:boolean" default="false" >
+					  	<xs:annotation>
+					  		<xs:documentation>true if also off-diagonal tensor elements for the interacting response function are to be calculated</xs:documentation>
+					  	</xs:annotation></xs:attribute>
+					  <xs:attribute name="lmaxapwwf" type="xs:integer" default="-1" >
+					  	<xs:annotation>
+					  		<xs:documentation>maximum angular momentum for APW functions for q-dependent matrix elements</xs:documentation>
+					  	</xs:annotation></xs:attribute>
 					  <xs:attribute name="lmaxemat" type="xs:integer" default="3">
 					    <xs:annotation>
 					      <xs:documentation>
@@ -2979,11 +3009,23 @@
 					      </xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
-					  <xs:attribute name="emaxdf" type="fortrandouble" default="1d10" />
-					  <xs:attribute name="broad" type="fortrandouble" default="0.01d0" />
-					  <xs:attribute name="tevout" type="xs:boolean" default="false" />
+					  <xs:attribute name="emaxdf" type="fortrandouble" default="1d10" >
+					  	<xs:annotation>
+					  		<xs:documentation>energy cutoff for the unoccupied states in the Kohn-Sahm response function and screening</xs:documentation>
+					  	</xs:annotation></xs:attribute>
+					  <xs:attribute name="broad" type="fortrandouble" default="0.01d0" >
+					  	<xs:annotation>
+					  		<xs:documentation>Lorentzian broadening for all spectra</xs:documentation>
+					  	</xs:annotation></xs:attribute>
+					  <xs:attribute name="tevout" type="xs:boolean" default="false" >
+					  	<xs:annotation>
+					  		<xs:documentation>true if energy outputs are in eV</xs:documentation>
+					  	</xs:annotation></xs:attribute>
 					  <xs:attribute name="xstype" use="required">
-					    <xs:simpleType>
+                            <xs:annotation>
+                            	<xs:documentation>Should TDDFT be used or BSE</xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
 					      <xs:restriction base="xs:string">
 					        <xs:enumeration value="TDDFT" />
 					        <xs:enumeration value="BSE" />
@@ -3021,89 +3063,104 @@
 					  <xs:attribute name="usegdft" type="xs:boolean" default="false">
 					    <!-- used from src_optics/mod_DOS_optics_response.F90 -->
 					  </xs:attribute>
-					  <xs:attribute name="gqmax" type="fortrandouble" default="0" />
+					  <xs:attribute name="gqmax" type="fortrandouble" default="0" >
+					  	<xs:annotation>
+					  		<xs:documentation>|G+q| cutoff for Kohn-Sham response function, screening and for expansion of Coulomb potential</xs:documentation>
+					  	</xs:annotation></xs:attribute>
 					  <!--
 					    section of parameters from groundstate which are allowed to be
 					    different from the ones of the ground state run
 					  -->
 					  <xs:attribute name="nosym" type="xs:boolean" default="false">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>nosymxs</oldname>
-					      </xs:appinfo>
-					    </xs:annotation>
+					    	<xs:appinfo>
+					    		<oldname>nosymxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>nosym is .true. if no symmetry information should be used</xs:documentation></xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="ngridk" type="integertriple" default="1 1 1">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>ngridkxs</oldname>
-					      </xs:appinfo>
-					    </xs:annotation>
+					    	<xs:appinfo>
+					    		<oldname>ngridkxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>k-point grid sizes</xs:documentation></xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="vkloff" type="vect3d" default="0 0 0 ">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>vkloffxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>vkloffxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>k-point offset</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="reducek" type="xs:boolean" default="true">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>reducekxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>reducekxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>reducek is .true. if k-points are to be reduced (with crystal symmetries)</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="ngridq" type="integertriple" default="1 1 1">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>ngridqxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>ngridqxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>q-point grid sizes</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="reduceq" type="xs:boolean" default="true">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>reduceqxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>reduceqxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>reducek is .true. if q-points are to be reduced (with crystal symmetries)</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="rgkmax" type="fortrandouble" default="7">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>rgkmaxxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>rgkmaxxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="swidth" type="fortrandouble" default="0.01d0">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>swidthxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>swidthxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>width of the smooth approximation to the Dirac delta function</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="lmaxapw" type="xs:integer" default="8">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>lmaxapwxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>lmaxapwxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>angular momentum cut-off for the APW functions</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="lmaxmat" type="xs:integer" default="5">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>lmaxmatxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>lmaxmatxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>angular momentum cut-off for the outer-most loop in the hamiltonian and overlap matrix setup</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="nempty" type="xs:integer" default="5">
 					    <xs:annotation>
-					      <xs:appinfo>
-					        <oldname>nemptyxs</oldname>
-					      </xs:appinfo>
+					    	<xs:appinfo>
+					    		<oldname>nemptyxs</oldname>
+					    	</xs:appinfo>
+					    	<xs:documentation>number of empty states</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
-					  <xs:attribute ref="scissor"/>
+					  <xs:attribute ref="scissor">
+					  	<xs:annotation>
+					  		<xs:documentation>scissors correction</xs:documentation>
+					  	</xs:annotation></xs:attribute>
 					</xs:complexType>
 				</xs:element>
 			</xs:all>
