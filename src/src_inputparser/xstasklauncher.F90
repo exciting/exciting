@@ -94,7 +94,7 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
     
     task=350
     call xsinit
-    call df
+    call idf
     call xsfinit
     
 else if(trim(input%xs%xstype).eq."BSE")then
