@@ -71,15 +71,17 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
     	    call xsfinit
     	endif
 	
-    	task=430
-    	call xsinit
-    	call screen
-    	call xsfinit
+	if (input%xs%screening%run.eq."fromscratch") then
+	    	task=430
+	    	call xsinit
+	    	call screen
+	    	call xsfinit
 	
-    	task=440
-    	call xsinit
-    	call scrcoulint
-    	call xsfinit
+	    	task=440
+	    	call xsinit
+	    	call scrcoulint
+	    	call xsfinit
+	end if
 	
     	task=450
     	call xsinit
@@ -116,15 +118,17 @@ else if(trim(input%xs%xstype).eq."BSE")then
     call scrwritepmat
     call xsfinit
     
-    task=430
-    call xsinit
-    call screen
-    call xsfinit
+    if (input%xs%screening%run.eq."fromscratch") then
+	    task=430
+	    call xsinit
+	    call screen
+	    call xsfinit
     
-    task=440
-    call xsinit
-    call scrcoulint
-    call xsfinit
+	    task=440
+	    call xsinit
+	    call scrcoulint
+	    call xsfinit
+    end if
     
     task=441
     call xsinit

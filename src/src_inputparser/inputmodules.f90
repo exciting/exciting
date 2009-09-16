@@ -434,6 +434,8 @@ type dftrans_type
  integer,pointer::trans(:,:)
 end type
 type screening_type
+ character(512)::run
+ integer::runnumber
  logical::nosym
  integer::ngridk(3)
  logical::reducek
@@ -3701,6 +3703,15 @@ allocate(getstructscreening)
 #endif
       
 nullify(np)  
+np=>getAttributeNode(thisnode,"run")
+getstructscreening%run= "fromscratch"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"run",getstructscreening%run)
+       call removeAttribute(thisnode,"run")      
+endif
+getstructscreening%runnumber=stringtonumberrun(getstructscreening%run)
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"nosym")
 getstructscreening%nosym= .false.
 if(associated(np)) then
@@ -4337,6 +4348,22 @@ case('')
  stringtonumberfxctype=0
 case default
 write(*,*) "'", string,"' is not valid selection forfxctype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberrun(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumberrun=-1
+case('skip')
+ stringtonumberrun=-1
+case('')
+ stringtonumberrun=0
+case default
+write(*,*) "'", string,"' is not valid selection forrun "
 stop 
 end select
 end function

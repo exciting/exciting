@@ -2490,6 +2490,19 @@
 					    </xs:element>
 					    <xs:element name="screening" minOccurs="0" maxOccurs="1">
 					      <xs:complexType>
+					      <xs:attribute name="run" default="fromscratch" >
+             <xs:annotation>
+             <xs:appinfo>
+             <oldname>nonreplace</oldname>
+             </xs:appinfo>
+             </xs:annotation>
+            <xs:simpleType>
+            <xs:restriction base="xs:string">
+            <xs:enumeration value="fromscratch"></xs:enumeration>
+            <xs:enumeration value="skip"></xs:enumeration>
+            </xs:restriction>
+            </xs:simpleType>
+            </xs:attribute>
 					        <xs:attribute name="nosym" type="xs:boolean" default="false">
 					          <xs:annotation>
 					          	<xs:appinfo>

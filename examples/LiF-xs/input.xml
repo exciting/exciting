@@ -21,13 +21,12 @@
   </structure>
   
   <groundstate lmaxvr="8" vkloff="0.05 0.15 0.25" lradstep="2"
-  	lmaxapw="10" swidth="0.0001" ngridk="4  4  4" mixer="msec"
-  	do="skip">
+  	lmaxapw="10" swidth="0.0001" ngridk="4  4  4" mixer="msec" do="skip">
   	<solver evaltol="1e-300" type="Lapack" />
   </groundstate>
 
   <!--Here are the excited-states parameters, defined in the "xs"-element-->
-  <xs xstype="TDDFT"
+  <xs xstype="BSE"
    nosym="true"
    ngridq="4 4 4"
    ngridk="4 4 4"
@@ -42,7 +41,7 @@
    
     <dosWindow intv="0.0 1.0" points="1200" />
    
-    <screening screentype="full" nempty="115" />
+    <screening run="skip" screentype="full" nempty="115" />
     
     <tddft aresdf="false" aresfxc="false" fxctype="MB1" />
     
@@ -51,8 +50,10 @@
     <qpointset>
       <qpoint>0.0  0.0  0.0</qpoint>
     </qpointset>
+    <plan>
+    	<doonly task="idf" ></doonly></plan>
 
-    
+
   </xs>
   
 </input>
