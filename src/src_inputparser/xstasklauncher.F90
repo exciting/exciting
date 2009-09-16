@@ -101,6 +101,16 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
     
 else if(trim(input%xs%xstype).eq."BSE")then
 
+    task=301
+    call xsinit
+    call xsgeneigvec
+    call xsfinit
+
+    task=320
+    call xsinit
+    call writepmatxs
+    call xsfinit
+
     task=401
     call xsinit
     call scrgeneigvec

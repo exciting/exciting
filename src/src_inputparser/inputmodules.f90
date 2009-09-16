@@ -1498,7 +1498,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"swidth")
-getstructgroundstate%swidth=0.01d0
+getstructgroundstate%swidth=0.001d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"swidth",getstructgroundstate%swidth)
        call removeAttribute(thisnode,"swidth")      
@@ -1604,7 +1604,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxapw")
-getstructgroundstate%lmaxapw=8
+getstructgroundstate%lmaxapw=10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxapw",getstructgroundstate%lmaxapw)
        call removeAttribute(thisnode,"lmaxapw")      
@@ -1718,7 +1718,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxvr")
-getstructgroundstate%lmaxvr=7
+getstructgroundstate%lmaxvr=6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxvr",getstructgroundstate%lmaxvr)
        call removeAttribute(thisnode,"lmaxvr")      
@@ -1742,7 +1742,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxmat")
-getstructgroundstate%lmaxmat=5
+getstructgroundstate%lmaxmat=4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructgroundstate%lmaxmat)
        call removeAttribute(thisnode,"lmaxmat")      
@@ -3401,7 +3401,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"swidth")
-getstructxs%swidth=0.01d0
+getstructxs%swidth=0.001d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"swidth",getstructxs%swidth)
        call removeAttribute(thisnode,"swidth")      
@@ -3409,7 +3409,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxapw")
-getstructxs%lmaxapw=8
+getstructxs%lmaxapw=10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxapw",getstructxs%lmaxapw)
        call removeAttribute(thisnode,"lmaxapw")      
@@ -3417,7 +3417,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxmat")
-getstructxs%lmaxmat=5
+getstructxs%lmaxmat=4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructxs%lmaxmat)
        call removeAttribute(thisnode,"lmaxmat")      
