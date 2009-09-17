@@ -151,20 +151,17 @@ subroutine findband(findlinentype,l, k, np, nr, r, vr, de0, e)
            goto 40
         else
            e=edefault1
-           write(*,*) 'l,ei,e1,e2', l, e, e1, e2
         end if
      else if (e2 .lt. ecutlow) then
         if (emain .eq. 'stop') then
            goto 40
         else
            e=max(e1,e)
-           write(*,*) 'l,ei,e1,e2', l, e, e1, e2
         end if
      else if (e1 .lt. ecutlow) then
         goto 40
      else
         e=(e1+e2)*0.5d0
-        write(*,*) 'l,ei,e1,e2', l, e, e1, e2
      end if
      return
 40  continue
