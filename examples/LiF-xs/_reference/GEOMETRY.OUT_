@@ -18,9 +18,9 @@ avec
  
 atoms
    2                                    : nspecies
- 'Li.in'                                : spfname
+ 'Li.xml'                               : spfname
    1                                    : natoms; atpos, bfcmt below
     0.00000000    0.00000000    0.00000000    0.00000000  0.00000000  0.00000000
- 'F.in'                                 : spfname
+ 'F.xml'                                : spfname
    1                                    : natoms; atpos, bfcmt below
     0.50000000    0.50000000    0.50000000    0.00000000  0.00000000  0.00000000

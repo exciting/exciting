@@ -71,15 +71,17 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
     	    call xsfinit
     	endif
 	
-    	task=430
-    	call xsinit
-    	call screen
-    	call xsfinit
+	if (input%xs%screening%run.eq."fromscratch") then
+	    	task=430
+	    	call xsinit
+	    	call screen
+	    	call xsfinit
 	
-    	task=440
-    	call xsinit
-    	call scrcoulint
-    	call xsfinit
+	    	task=440
+	    	call xsinit
+	    	call scrcoulint
+	    	call xsfinit
+	end if
 	
     	task=450
     	call xsinit
@@ -94,10 +96,20 @@ else if(trim(input%xs%xstype).eq."TDDFT") then
     
     task=350
     call xsinit
-    call df
+    call idf
     call xsfinit
     
 else if(trim(input%xs%xstype).eq."BSE")then
+
+    task=301
+    call xsinit
+    call xsgeneigvec
+    call xsfinit
+
+    task=320
+    call xsinit
+    call writepmatxs
+    call xsfinit
 
     task=401
     call xsinit
@@ -116,15 +128,17 @@ else if(trim(input%xs%xstype).eq."BSE")then
     call scrwritepmat
     call xsfinit
     
-    task=430
-    call xsinit
-    call screen
-    call xsfinit
+    if (input%xs%screening%run.eq."fromscratch") then
+	    task=430
+	    call xsinit
+	    call screen
+	    call xsfinit
     
-    task=440
-    call xsinit
-    call scrcoulint
-    call xsfinit
+	    task=440
+	    call xsinit
+	    call scrcoulint
+	    call xsfinit
+    end if
     
     task=441
     call xsinit
