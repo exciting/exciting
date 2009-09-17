@@ -16,15 +16,8 @@
  
   <!-- Define path here -->
   <xsl:variable name="path">
-      <xsl:text>./</xsl:text>
-      <xsl:for-each select="./@*">
-        <xsl:variable name="attr"><xsl:value-of select="name()"/></xsl:variable>
-        <xsl:if test="$attr!='id'">
-          <xsl:value-of select="name()"/><xsl:text>_</xsl:text>
-          <xsl:value-of select="."/>
+          <xsl:value-of select="@path"/>
           <xsl:text>/</xsl:text>
-        </xsl:if>
-      </xsl:for-each>
   </xsl:variable>
  
  <!-- Write document at Path $path -->
