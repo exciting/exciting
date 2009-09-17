@@ -1515,7 +1515,7 @@ getstructgroundstate%stypenumber=stringtonumberstype(getstructgroundstate%stype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"findlinentype")
-getstructgroundstate%findlinentype= "simple"
+getstructgroundstate%findlinentype= "advanced"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"findlinentype",getstructgroundstate%findlinentype)
        call removeAttribute(thisnode,"findlinentype")      
