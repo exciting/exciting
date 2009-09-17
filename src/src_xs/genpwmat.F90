@@ -94,10 +94,10 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
      write(*,*)
      write(*,'("Error(genpwmat): q-point not commensurate with k-point and &
           &kp-point")')
-     write(*,'(" k-point         : ")') vklk
-     write(*,'(" q-point         : ")') vpl
-     write(*,'(" kp-point        : ")') vklkp
-     write(*,'(" umklapp G-vector: ")') ivu
+     write(*,'(" k-point         : ",3g18.10)') vklk
+     write(*,'(" q-point         : ",3g18.10)') vpl
+     write(*,'(" kp-point        : ",3g18.10)') vklkp
+     write(*,'(" umklapp G-vector: ",3i8)') ivu
      write(*,*)
      stop
   end if
