@@ -77,3 +77,6 @@ clean:
 	rm docs/spacegroup/*
 	rm -r debian/debian/usr
 
+tgz::
+	tar  --exclude-from=".gitignore" -C"../" -c -v -z -f ../exciting.tgz  ./exciting
+

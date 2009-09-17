@@ -1,4 +1,5 @@
 *.deb
+.git*
 src/species/species
 debian/debian/usr
 test02/runlapackmpi/startmpirun
@@ -12,7 +13,7 @@ version.inc
 *.mod
 *.a
 *.old
-exciting
+bin/*
 excitingmpi
 excitingsmp
 exciting_debug
@@ -20,8 +21,6 @@ exciting_gfortran
 exciting_interfaces
 *.OUT
 *.OUT.*
-output.*
-outerr.*
 .cdtproject
 .cproject
 .project
