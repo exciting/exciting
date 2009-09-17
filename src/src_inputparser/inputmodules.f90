@@ -1742,7 +1742,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxmat")
-getstructgroundstate%lmaxmat=4
+getstructgroundstate%lmaxmat=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructgroundstate%lmaxmat)
        call removeAttribute(thisnode,"lmaxmat")      
@@ -3417,7 +3417,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxmat")
-getstructxs%lmaxmat=4
+getstructxs%lmaxmat=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructxs%lmaxmat)
        call removeAttribute(thisnode,"lmaxmat")      

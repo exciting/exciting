@@ -1673,7 +1673,7 @@
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="lmaxmat" type="xs:integer"
-							default="4">
+							default="5">
 							<xs:annotation>
 								<xs:documentation>angular momentum cut-off for
 									the
@@ -3212,7 +3212,7 @@
 					    	<xs:documentation>angular momentum cut-off for the APW functions</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
-					  <xs:attribute name="lmaxmat" type="xs:integer" default="4">
+					  <xs:attribute name="lmaxmat" type="xs:integer" default="5">
 					    <xs:annotation>
 					    	<xs:appinfo>
 					    		<oldname>lmaxmatxs</oldname>
