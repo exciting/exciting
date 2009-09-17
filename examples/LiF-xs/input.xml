@@ -21,7 +21,7 @@
   </structure>
   
   <groundstate do="skip" lmaxmat="5" lmaxvr="8" vkloff="0.05 0.15 0.25" lradstep="2"
-  	lmaxapw="10" ngridk="4  4  4">
+  	lmaxapw="10" ngridk="4  4  4" findlinentype="advanced">
   	<solver evaltol="1e-300" type="Lapack" />
   </groundstate>
 

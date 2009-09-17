@@ -22,7 +22,7 @@ subroutine propertylauncher
   if(associated(input%properties%masstensor) .and. rank .eq. 0) then
      call effmass
   endif
-  if(associated(input%properties%chargedesityplot ).and. rank .eq. 0) then
+  if(associated(input%properties%chargedensityplot ).and. rank .eq. 0) then
      call rhoplot
   endif
 

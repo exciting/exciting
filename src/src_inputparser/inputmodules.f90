@@ -243,7 +243,7 @@ type properties_type
   type(dos_type),pointer::dos
   type(LSJ_type),pointer::LSJ
   type(masstensor_type),pointer::masstensor
-  type(chargedesityplot_type),pointer::chargedesityplot
+  type(chargedensityplot_type),pointer::chargedensityplot
   type(exccplot_type),pointer::exccplot
   type(elfplot_type),pointer::elfplot
   type(mvecfield_type),pointer::mvecfield
@@ -291,7 +291,7 @@ type masstensor_type
  integer::ndspem
  real(8)::vklem(3)
 end type
-type chargedesityplot_type
+type chargedensityplot_type
   type(plot1d_type),pointer::plot1d
   type(plot2d_type),pointer::plot2d
   type(plot3d_type),pointer::plot3d
@@ -1742,7 +1742,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxmat")
-getstructgroundstate%lmaxmat=4
+getstructgroundstate%lmaxmat=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructgroundstate%lmaxmat)
        call removeAttribute(thisnode,"lmaxmat")      
@@ -2238,12 +2238,12 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "masstensor"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"chargedesityplot")
-getstructproperties%chargedesityplot=>null()
+            len= countChildEmentsWithName(thisnode,"chargedensityplot")
+getstructproperties%chargedensityplot=>null()
 Do i=0,len-1
-getstructproperties%chargedesityplot=>getstructchargedesityplot(&
+getstructproperties%chargedensityplot=>getstructchargedensityplot(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"chargedesityplot"),0)) ) 
+"chargedensityplot"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"exccplot")
@@ -2630,38 +2630,38 @@ endif
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructchargedesityplot(thisnode)
+function getstructchargedensityplot(thisnode)
 
 implicit none
 type(Node),pointer::thisnode
-type(chargedesityplot_type),pointer::getstructchargedesityplot
+type(chargedensityplot_type),pointer::getstructchargedensityplot
 		
 integer::len=1,i=0
-allocate(getstructchargedesityplot)  
+allocate(getstructchargedensityplot)  
 #ifdef INPUTDEBUG      
-      write(*,*)"we are at chargedesityplot"
+      write(*,*)"we are at chargedensityplot"
 #endif
       
             len= countChildEmentsWithName(thisnode,"plot1d")
-getstructchargedesityplot%plot1d=>null()
+getstructchargedensityplot%plot1d=>null()
 Do i=0,len-1
-getstructchargedesityplot%plot1d=>getstructplot1d(&
+getstructchargedensityplot%plot1d=>getstructplot1d(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot1d"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"plot2d")
-getstructchargedesityplot%plot2d=>null()
+getstructchargedensityplot%plot2d=>null()
 Do i=0,len-1
-getstructchargedesityplot%plot2d=>getstructplot2d(&
+getstructchargedensityplot%plot2d=>getstructplot2d(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot2d"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"plot3d")
-getstructchargedesityplot%plot3d=>null()
+getstructchargedensityplot%plot3d=>null()
 Do i=0,len-1
-getstructchargedesityplot%plot3d=>getstructplot3d(&
+getstructchargedensityplot%plot3d=>getstructplot3d(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot3d"),0)) ) 
 enddo
@@ -3417,7 +3417,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxmat")
-getstructxs%lmaxmat=4
+getstructxs%lmaxmat=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructxs%lmaxmat)
        call removeAttribute(thisnode,"lmaxmat")      

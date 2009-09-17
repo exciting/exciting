@@ -23,6 +23,7 @@
         </xsl:variable>
         <point>
           <xsl:attribute name="volume">
+          <!-- to calculate the volume we  -->
 <xsl:value-of
             select="math:power(document($inputpath)//crystal/@scale,3) * math:power(math:sqrt(2.0),3)"></xsl:value-of>
  </xsl:attribute>
