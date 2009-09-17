@@ -17,18 +17,17 @@
 			<atom coord="0.0  0.0  0.0" />
 		</species>
 	</structure>
-	
-	<groundstate do="skip" ngridk="10  10  10" />
 
-	<xs xstype="TDDFT" nosym="true" ngridk="6  6  6" vkloff="0.05 0.15 0.25"
+	<groundstate ngridk="10  10  10" />
+
+	<xs xstype="TDDFT" nosym="true" ngridk="10  10  10" vkloff="0.05 0.15 0.25"
 		nempty="60" lmaxapwwf="5" lmaxemat="5" gqmax="0.0" broad="0.004"
 		tevout="true">
-		<dosWindow intv="0.0 2.5" points="1200" />
-		<tddft fxctype="RPA" />
+		<dosWindow intv="0.0 2.5" points="500" />
+		<tddft fxctype="RPA"/>
 		<qpointset>
-			<qpoint>0.1 0.1 0.0</qpoint>
+			<qpoint>0.0 0.0 0.1</qpoint>
 		</qpointset>
 	</xs>
-
 
 </input>

@@ -11,7 +11,8 @@ contains
 
 
 subroutine writeloss(iq, w, loss, fn)
-
+    use FoX_wxml
+    use modmain, only: version
     use mod_lattice
     use mod_constants
     use mod_charge_and_moment
@@ -26,6 +27,8 @@ subroutine writeloss(iq, w, loss, fn)
     character(*), intent(in) :: fn
     ! local variables
     character(*), parameter :: thisnam='writeloss'
+    type(xmlf_t), save::xf
+    character(256)::buffer,buffer2
     integer :: n1(1), n, iw, igmt
     if (any(shape(w).ne.shape(loss))) then
        write(unitout, '(a)') 'Error('//thisnam//'): input arrays have &
@@ -44,6 +47,39 @@ subroutine writeloss(iq, w, loss, fn)
     ! write relevant parameters to file
     call writevars(unit1, iq, iq)
     close(unit1)
+
+        ! write to XML file
+    call xml_OpenFile (trim(fn)//'.xml', xf, replace=.true.,pretty_print=.true.)
+    call xml_NewElement (xf, "loss")
+    call xml_DeclareNamespace(xf, "http://www.w3.org/2001/XMLSchema-instance", "xsi")
+    call xml_AddAttribute(xf, "xsi:noNamespaceSchemaLocation", "../../xml/species.xsd" )
+    call xml_NewElement (xf, "mapdef")
+    call xml_NewElement (xf, "variable1")
+    call xml_AddAttribute(xf, "name", "energy")
+    call xml_endElement (xf, "variable1")
+    call xml_NewElement (xf, "function1")
+    call xml_AddAttribute(xf, "name", "loss function")
+    call xml_endElement (xf, "function1")
+    call xml_NewElement (xf, "function2")
+    call xml_AddAttribute(xf, "name", "dynamical structure factor")
+    call xml_endElement (xf, "function2")
+    call xml_endElement (xf, "mapdef")
+    do iw=1,n
+      call xml_NewElement (xf, "map")
+      write(buffer,'(4g18.10)') w(iw)*escale
+      call xml_AddAttribute(xf, "variable1", trim(buffer))
+      write(buffer,'(4g18.10)') loss(iw)
+      call xml_AddAttribute(xf, "function1", trim(buffer))
+      write(buffer,'(4g18.10)') loss(iw)* &
+     (gqc(igmt, iq) ** 2/(4.d0 * pi ** 2 * chgval/omega))
+      call xml_AddAttribute(xf, "function2", trim(buffer))
+      call xml_endElement (xf, "map")
+    end do
+    write(buffer, '(I1.1, ".", I1.1, ".", I3.3)') version
+    call xml_AddComment(xf," Exciting code version : "//trim(buffer))
+    call xml_endElement (xf, "loss")
+    call xml_Close(xf)
+
   end subroutine writeloss
 
 end module m_writeloss
