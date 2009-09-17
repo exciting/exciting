@@ -33,8 +33,7 @@
 <!-- /// The input file begins here /////////////////////////////////////////-->
 <!-- ////////////////////////////////////////////////////////////////////////-->
 <input xsi:noNamespaceSchemaLocation="excitinginput.xsd"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/"
-  scratchpath="/tmp/chm/1">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/">
   <title>Ag Energy-Volume</title>
   <structure speciespath="../../../species/">
     <crystal >

@@ -20,7 +20,7 @@
 @     line on
 @     line loctype world
 @     line g0
-@     line 0, 0, 1e-05, 0
+@     line 0, 0,</xsl:text> <xsl:value-of select="//point[last()]/@distance"></xsl:value-of> <xsl:text>, 0
 @     line linewidth 2.0
 @     line linestyle 3
 @ line def
@@ -28,7 +28,7 @@
 @     string on
 @     string loctype world
 @     string g0
-@     string 0.05001, -0.2
+@     string </xsl:text> <xsl:value-of select="//point[last()]/@distance*1.01 "></xsl:value-of> <xsl:text>, -0.2
 @     string font 4
 @     string char size 1.650000
 @     string def "E\sF"
@@ -45,7 +45,7 @@
 </xsl:if>
 <xsl:text>"  
 @     world 0, -8, 1e-05, 8  
-@     yaxis  label "Energy (eV)"
+@     yaxis  label "Energy (Hartree)"
 @     yaxis  label char size 1.800000
 @     yaxis  ticklabel char size 1.50000
 @     xaxis  ticklabel char size 1.65000
