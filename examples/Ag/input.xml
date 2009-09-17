@@ -12,7 +12,7 @@
       <basevect>0.0 1.0 1.0</basevect>
     </crystal>
     <species speciesfile="Ag.xml">
-      <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
+      <atom coord="0.0  0.0  0.0" />
     </species>
   </structure>
   <groundstate ngridk="4  4  4"></groundstate>

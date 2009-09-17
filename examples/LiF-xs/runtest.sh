@@ -5,7 +5,7 @@
 # files to compare for the test
 
 files="\
-	*.in \
+	*.xml \
 	EFERMI.OUT EIGVAL.OUT EQATOMS.OUT EVALCORE.OUT FERMIDOS.OUT GEOMETRY.OUT \
 	IADIST.OUT INFO.OUT KPOINTS.OUT LATTICE.OUT LINENGY.OUT RMSDVEFF.OUT \
 	SYMCRYS.OUT SYMLAT.OUT SYMSITE.OUT TOTENERGY.OUT \
@@ -25,7 +25,7 @@ files="\
 files_large="\
 	SCREEN_*.OUT W_SCREEN_*.OUT EXCLI_ASC.OUT SCCLI_ASC.OUT
 "
-#files="$files $files_large"
+files="$files $files_large"
 
 ################################################################################
 
@@ -36,8 +36,6 @@ diffdir="_diff.reference_current"
 echo
 echo "Running test..."
 echo
-
-\cp -f exciting.in_ exciting.in
 
 ../../bin/excitingser
 

@@ -1,64 +1,64 @@
-zeroth frequency moment sumrule (num. val. el.):  0.8121359545    (   5.000000000    )
-first frequency moment sumrule  (num. val. el.):  0.2606187848    (   5.000000000    )
-pi half sumrule                 (target)       :  0.8071388174    (   1.570796327    )
+zeroth frequency moment sumrule (num. val. el.):  0.8153222614    (   5.000000000    )
+first frequency moment sumrule  (num. val. el.):  0.2129230705    (   5.000000000    )
+pi half sumrule		       (target)	 :  0.7170603696    (   1.570796327    )
  
-## Date (YYYY-MM-DD): 2009-07-13
-## Time (hh:mm:ss)  : 15:45:14
-# version           : 0.9.224
+## Date (YYYY-MM-DD): 2009-09-14
+## Time (hh:mm:ss)  : 12:23:13
+# version	     : 0.9.224
 # version (xs)      : 0.091
-# efermi (H,eV)     :   -0.090488   -2.462294
-# vgqlmt            :    0.000000    0.000000    0.000000
-# ivgmt             :       0       0       0
-# vql               :    0.000000    0.000000    0.000000
-# fxctype           :       8
-# alphalrc          :    0.000000
-# alphalrcdyn       :    0.000000
-# betalrcdyn        :    0.000000
-# intraband         :       F
-# aresdf            :       F
-# aresfxc           :       F
-# torddf            :       F
-# tordfxc           :       F
-# acont             :       F
-# nwacont           :    1200
-# broad (H,eV)      :    0.007350    0.200001
-# scissor (H,eV)    :    0.000000    0.000000
-# nwdos             :    1200
-# ngq               :      59
-# gqmax             :    3.000000
-# gmaxvr            :   12.000000
-# rgkmax            :    7.000000
-# gkmax             :    3.888889
-# ngridk            :       4       4       4
-# vkloff            :    0.050000    0.150000    0.250000
-# reducek           :       T
-# nmatmax           :     132
-# ngkmax            :     114
-# nlotot            :      18
-# nlomax            :       5
-# nst1              :       5
-# nst2              :       4
-# nstlbse           :       5       4
-# nstsv             :       9
-# evlmincut (H,eV)  :   -1.547127  -42.099482
-# evlmaxcut (H,eV)  :    0.589525   16.041798
-# evlmin (H,eV)     :   -1.550163  -42.182105
-# evlmax (H,eV)     :    0.761828   20.730399
-# evlhpo (H,eV)     :    5   -0.091016   -2.476683
-# evllpu (H,eV)     :    6    0.237617    6.465901
-# ksgap             :       T
-# lmaxapw           :      10
-# lmaxapwwf         :       4
-# lmaxmat           :       5
-# lmaxvr            :       8
-# lmaxinr           :       2
-# lolmax            :       2
-# lmaxemat          :       4
-# lmaxalda          :       3
-# lradstp           :       2
-# tevout            :       T
-# fastpmat          :       T
-# fastemat          :       T
-# nosym             :       T
-# dfoffdiag         :       F
+# efermi (H, eV)	   :   -0.048296   -1.314204
+# vgqlmt		  :    0.000000    0.000000    0.000000
+# ivgmt	       :       0       0       0
+# vql		  :    0.000000    0.000000    0.000000
+# input%xs%tddft%fxctypenumber	   :       8
+# input%xs%tddft%alphalrc		:    0.000000
+# input%xs%tddft%alphalrcdyn	:    0.000000
+# input%xs%tddft%betalrcdyn	:    0.000000
+# input%xs%tddft%intraband	     :       F
+# input%xs%tddft%aresdf	     :       F
+# input%xs%tddft%aresfxc	     :       F
+# input%xs%tddft%torddf	     :       F
+# input%xs%tddft%tordfxc	     :       F
+# input%xs%tddft%acont	     :       F
+# input%xs%tddft%nwacont	     :       0
+# input%xs%broad (H, eV)	    :    0.007350    0.200001
+# scissor (H, eV)	  :    0.000000    0.000000
+# input%xs%dosWindow%points		   :     100
+# ngq 	      :      59
+# input%xs%gqmax		  :    3.000000
+# input%groundstate%gmaxvr 	   :   12.000000
+# input%groundstate%rgkmax 	   :    7.000000
+# gkmax		 :    4.827586
+# input%groundstate%ngridk		  :       4       4       4
+# input%groundstate%vkloff	    :    0.050000    0.150000    0.250000
+# input%groundstate%reducek		:       T
+# nmatmax	      :     233
+# ngkmax	      :     215
+# nlotot	      :      18
+# nlomax	      :       5
+# nst1	      :       5
+# nst2	      :       4
+# nstlbse	       :       5
+# nstsv	      :       9
+# evlmincut (H, eV)  :   -1.506750  -41.000771
+# evlmaxcut (H, eV)  :    0.631943   17.196050
+# evlmin (H, eV)	   :   -1.509899  -41.086465
+# evlmax (H, eV)	   :    0.801789   21.817810
+# evlhpo (H, eV)     :    5   -0.048825   -1.328593
+# evllpu (H, eV)     :    6    0.278637    7.582107
+# ksgap	      :       T
+# input%groundstate%lmaxapw		:      10
+# input%xs%lmaxapwwf	       :       4
+# input%groundstate%lmaxmat		:       5
+# input%groundstate%lmaxvr		:       8
+# input%groundstate%lmaxinr		:       2
+# lolmax	      :       2
+# input%xs%lmaxemat	       :       4
+# input%xs%tddft%lmaxalda	     :       3
+# input%groundstate%lradstep		 :       2
+# input%xs%tevout	       :       T
+# input%xs%fastpmat	       :       T
+# input%xs%fastemat	       :       T
+# input%groundstate%nosym		:       T
+# input%xs%dfoffdiag	       :       F
  
