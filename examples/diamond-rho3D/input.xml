@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
 
-<input xsi:noNamespaceSchemaLocation="excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
-<title></title>
+<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/" scratchpath="/tmp/chm/1">
+<title>Diamond Charge Density</title>
 <structure speciespath="../../species/">
 <crystal>
 <basevect>3.3637 3.3637 0.0000</basevect>
@@ -16,6 +16,15 @@
 </structure>
 <groundstate  vkloff="0.25  0.5  0.625" ngridk="2  2  2"></groundstate>
 <properties>
-<chargedesityplot></chargedesityplot>
+<chargedensityplot>
+<plot3d>
+<box grid="80 80 80">
+<origin coord="0 0 0"/>
+<point coord="2 0 0 "/>
+<point coord="0 2 0 "/>
+<point coord="0 0 2"/>
+</box>
+</plot3d>
+</chargedensityplot>
 </properties>
 </input>
