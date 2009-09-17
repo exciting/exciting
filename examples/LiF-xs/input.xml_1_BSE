@@ -20,8 +20,7 @@
     </species>
   </structure>
   
-  <groundstate lmaxmat="5" lmaxvr="8" vkloff="0.05 0.15 0.25" lradstep="2"
-  	lmaxapw="10" ngridk="4  4  4">
+  <groundstate lradstep="2" lmaxvr="8" ngridk="4  4  4" vkloff="0.05 0.15 0.25">
   	<solver evaltol="1e-300" type="Lapack" />
   </groundstate>
 
@@ -30,12 +29,12 @@
    "screening" element -->
   <!-- scissors correction 5.7eV = 0.20947H -->
   <xs xstype="BSE" nosym="true" ngridq="4 4 4" ngridk="4 4 4"
-  	vkloff="0.05 0.15 0.25" nempty="3" lmaxmat="5" lmaxapwwf="3"
+  	vkloff="0.05 0.15 0.25" nempty="3" lmaxapwwf="3"
   	lmaxemat="3" gqmax="3" broad="0.0073499"
   	tevout="true" scissor="0.20947">
   	<dosWindow intv="0.0 1.0" points="1200" ></dosWindow>
   	<screening screentype="full" nempty="115" />
-  	<tddft aresdf="false" aresfxc="false" fxctype="MB1" />
+  	<tddft fxctype="MB1" aresdf="false" aresfxc="false" />
   	<BSE bsetype="singlet" nstlbse="5 4" />
   	<qpointset>
   		<qpoint>0.0 0.0 0.0</qpoint>

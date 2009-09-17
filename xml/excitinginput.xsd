@@ -1176,7 +1176,7 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
-            <xs:attribute name="findlinentype" default="simple">
+            <xs:attribute name="findlinentype" default="advanced">
               <xs:annotation>
                 <xs:documentation>
                   Method to determine the linearization energies
