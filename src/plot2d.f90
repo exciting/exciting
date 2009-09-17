@@ -55,9 +55,7 @@ buffer=fname//"2D.OUT"
 open(fnum, file=trim(buffer), action='WRITE', form='FORMATTED')
 call xml_OpenFile (fname//"2d.xml", xf, replace=.true.,pretty_print=.true.)
 call xml_NewElement(xf,"plot2d")
-call xml_NewElement(xf,"title")
-call xml_AddCharacters(xf,trim(input%title))
-call xml_endElement(xf,"title")
+
 if ((nf.lt.1).or.(nf.gt.4)) then
   write(*, *)
   write(*, '("Error(plot2d): invalid number of functions : ", I8)') nf
@@ -100,7 +98,9 @@ end do
 write(fnum, '(2I6, " : grid size")') plotdef%parallelogram%grid(:)
   write(buffer,'(2I6)') plotdef%parallelogram%grid(:)
    call xml_AddAttribute(xf, "grid", trim(adjustl(buffer)))
-
+call xml_NewElement(xf,"title")
+call xml_AddCharacters(xf,trim(input%title))
+call xml_endElement(xf,"title")
 ip=0
 do ip2=0, plotdef%parallelogram%grid(2)-1
   do ip1=0, plotdef%parallelogram%grid(1)-1

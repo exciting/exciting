@@ -25,6 +25,13 @@
 <point coord="0 0 2"/>
 </box>
 </plot3d>
+<plot2d>
+<parallelogram grid="20 20">
+<origin coord="0 0 0 "/>
+<point coord="2 0 0"/>
+<point coord="0 2 0"/>
+</parallelogram>
+</plot2d>
 </chargedensityplot>
 </properties>
 </input>
