@@ -55,9 +55,7 @@ buffer=fname//"3D.OUT"
 open(fnum, file=trim(buffer), action='WRITE', form='FORMATTED')
 call xml_OpenFile (fname//"3d.xml", xf, replace=.true.,pretty_print=.true.)
 call xml_NewElement(xf,"plot3d")
-call xml_NewElement(xf,"title")
-call xml_AddCharacters(xf,trim(input%title))
-call xml_endElement(xf,"title")
+
 if ((nf.lt.1).or.(nf.gt.4)) then
   write(*, *)
   write(*, '("Error(plot3d): invalid number of functions : ", I8)') nf
@@ -91,7 +89,10 @@ end do
 ! write functions to file
   write(fnum, '(3I6, " : grid size")') plotdef%box%grid(:)
   write(buffer,'(3I6)') plotdef%box%grid(:)
-   call xml_AddAttribute(xf, "grid", trim(adjustl(buffer)))
+  call xml_AddAttribute(xf, "grid", trim(adjustl(buffer)))
+  call xml_NewElement(xf,"title")
+  call xml_AddCharacters(xf,trim(input%title))
+  call xml_endElement(xf,"title")
 do ip=1, np
   call r3mv(input%structure%crystal%basevect, vpl(:, ip), v1)
   write(fnum, '(7G18.10)') v1(:), (fp(ip, i), i=1, nf)

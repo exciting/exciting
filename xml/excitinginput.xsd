@@ -2057,7 +2057,7 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="chargedesityplot" maxOccurs="1"
+							<xs:element name="chargedensityplot" maxOccurs="1"
 								minOccurs="0">
 								<xs:annotation>
 									<xs:documentation> Plot the charge density
