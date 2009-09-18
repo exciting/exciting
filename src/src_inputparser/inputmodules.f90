@@ -428,6 +428,7 @@ type tddft_type
  integer::mdfqtype
  character(512)::fxctype
  integer::fxctypenumber
+ logical::resumefromkernel
   type(dftrans_type),pointer::dftrans
 end type
 type dftrans_type
@@ -3648,6 +3649,14 @@ if(associated(np)) then
        call removeAttribute(thisnode,"fxctype")      
 endif
 getstructtddft%fxctypenumber=stringtonumberfxctype(getstructtddft%fxctype)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"resumefromkernel")
+getstructtddft%resumefromkernel= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"resumefromkernel",getstructtddft%resumefromkernel)
+       call removeAttribute(thisnode,"resumefromkernel")      
+endif
 
             len= countChildEmentsWithName(thisnode,"dftrans")
 getstructtddft%dftrans=>null()
