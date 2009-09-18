@@ -159,7 +159,7 @@
 @g0 fixedpoint format general general
 @g0 fixedpoint prec 6, 6
 @with g0
-@    world 10, 0, 25, 12
+@    world 10, 0, 24, 12
 @    stack world 0, 0, 0, 0
 @    znorm 1
 @    view 0.230000, 0.150000, 1.200000, 0.850000
@@ -182,7 +182,7 @@
 @    xaxis  bar color 1
 @    xaxis  bar linestyle 1
 @    xaxis  bar linewidth 1.0
-@    xaxis  label "energy [eV]"
+@    xaxis  label "Energy [eV]"
 @    xaxis  label layout para
 @    xaxis  label place auto
 @    xaxis  label char size 1.500000
@@ -190,7 +190,7 @@
 @    xaxis  label color 1
 @    xaxis  label place normal
 @    xaxis  tick on
-@    xaxis  tick major 5
+@    xaxis  tick major 2
 @    xaxis  tick minor ticks 1
 @    xaxis  tick default 6
 @    xaxis  tick place rounded true
