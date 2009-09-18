@@ -2486,6 +2486,15 @@
 					            </xs:restriction>
 					          </xs:simpleType>
 					        </xs:attribute>
+									<xs:attribute name="resumefromkernel" type="xs:boolean"
+										default="false">
+										<xs:annotation>
+											<xs:documentation>
+											  true if the TDDFT calculation is to be resumed starting
+											  from a new xc kernel.
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 					      </xs:complexType>
 					    </xs:element>
 					    <xs:element name="screening" minOccurs="0" maxOccurs="1">
