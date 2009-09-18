@@ -3,9 +3,9 @@
 
 <input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
-  <title></title>
+  <title>Ag</title>
   <structure speciespath="../../species/">
-    <crystal scale="3.86">
+    <crystal scale="3.817">
       <basevect>1.0 1.0 0.0</basevect>
       <basevect>1.0 0.0 1.0</basevect>
       <basevect>0.0 1.0 1.0</basevect>
@@ -28,5 +28,6 @@
         </path>
       </plot1d>
     </bandstructure>
+    <dos/>
   </properties>
 </input>
