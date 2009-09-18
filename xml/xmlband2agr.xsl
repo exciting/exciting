@@ -5,17 +5,18 @@
   <xsl:param name="data"/>
   <xsl:param name="l" select="false"/>
     <xsl:text>
-@ default font 4
+@version 50122
+@ default font 12
 @ default linewidth 2.0
 @ page resize 600, 600
-@ string font 4
-@ title font 4
-@ subtitle font 4
-@ xaxis  label font 4
-@ xaxis  ticklabel font 4
-@ yaxis  label font 4
-@ yaxis  ticklabel font 4
-@ legend font 4
+@ string font 12
+@ title font 12
+@ subtitle font 12
+@ xaxis  label font 12
+@ xaxis  ticklabel font 12
+@ yaxis  label font 12
+@ yaxis  ticklabel font 12
+@ legend font 12
 @ with line
 @     line on
 @     line loctype world
@@ -29,12 +30,12 @@
 @     string loctype world
 @     string g0
 @     string </xsl:text> <xsl:value-of select="//point[last()]/@distance*1.01 "></xsl:value-of> <xsl:text>, -0.2
-@     string font 4
+@     string font 12
 @     string char size 1.650000
 @     string def "E\sF"
 @ r0 off
 @ with g0
-@     view 0.150000, 0.120000, 0.850000, .85
+@     view 0.160000, 0.120000, 0.850000, .85
 @     title "</xsl:text>
 <xsl:value-of select="/bandstructure/title"/>
 <xsl:if test="$l">
@@ -44,8 +45,8 @@
 <xsl:value-of select="$l"/>
 </xsl:if>
 <xsl:text>"  
-@     world 0, -8, 1e-05, 8  
-@     yaxis  label "Energy (Hartree)"
+@     world 0, -8, </xsl:text> <xsl:value-of select="//point[last()]/@distance"></xsl:value-of> <xsl:text>, 8  
+@     yaxis  label "Energy (eV)"
 @     yaxis  label char size 1.800000
 @     yaxis  ticklabel char size 1.50000
 @     xaxis  ticklabel char size 1.65000
@@ -110,7 +111,7 @@
 <xsl:if test="point/bc">
 <xsl:for-each select="point">
 <xsl:variable name="x" select="@distance"/>
-<xsl:variable name="y" select="@eval"/>
+<xsl:variable name="y" select="@eval*27.211"/>
 <xsl:variable name="n" select="position()"/>
 <xsl:for-each select="bc">
 <xsl:if test="@character>0.1 and $n mod 2=@l mod 2">
@@ -121,7 +122,7 @@
 @    string <xsl:value-of select="$x"/> , <xsl:value-of select="$y"/>
 @    string color <xsl:value-of select="@l"/>
 @    string rot 40
-@    string font 4
+@    string font 12
 @    string just 0
 @    string char size <xsl:value-of select="@character*2"/>
 @    string def "<xsl:value-of select="$species"/> l=<xsl:value-of select="@l"/>"
@@ -151,7 +152,7 @@
       <xsl:for-each select="./point">
         <xsl:value-of select="@distance" />
         <xsl:text>  </xsl:text>
-        <xsl:value-of select="@eval" />
+        <xsl:value-of select="@eval*27.211" />
         <xsl:if test="$l">
           <xsl:text>  </xsl:text>
         <xsl:value-of select="bc[@l=$l]/@character*2" />
