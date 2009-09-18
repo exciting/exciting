@@ -1,5 +1,0 @@
-#!/bin/bash
-
-$(cd /home/tom/git/exciting/xml)
-$(xsltproc examples_status.xsl filelist.xml > test.html)
-$(firefox /home/tom/git/exciting/xml/test.html)
