@@ -28,5 +28,6 @@ plt.annotate('minimum Volume '+str(min[0]), xy=(min,curve(min)), xycoords='data'
 print 'minimum Volume '+str(min[0])
 
 plt.savefig('EV.png')
-
+plt.savefig('EV.pdf')
+print 'plot saved as EV.png'
 plt.show()

@@ -163,7 +163,7 @@
 @    stack world 0, 0, 0, 0
 @    znorm 1
 @    view 0.230000, 0.150000, 1.200000, 0.850000
-@    title "Loss function of LiF"
+@    title "Loss function of Ag"
 @    title font 4
 @    title size 1.500000
 @    title color 1
