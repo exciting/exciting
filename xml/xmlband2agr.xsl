@@ -71,28 +71,55 @@
         <xsl:when test="@label='GAMMA'">
           <xsl:text>\xG\f{}</xsl:text>
         </xsl:when>
+        <xsl:when test="@label='Gamma'">
+          <xsl:text>\xG\f{}</xsl:text>
+        </xsl:when>
         <xsl:when test="@label='DELTA'">
+          <xsl:text>\xD\f{}</xsl:text>
+        </xsl:when>
+        <xsl:when test="@label='Delta'">
           <xsl:text>\xD\f{}</xsl:text>
         </xsl:when>
         <xsl:when test="@label='THETA'">
           <xsl:text>\xQ\f{}</xsl:text>
         </xsl:when>
+        <xsl:when test="@label='Theta'">
+          <xsl:text>\xQ\f{}</xsl:text>
+        </xsl:when>
         <xsl:when test="@label='XI'">
+          <xsl:text>\xX\f{}</xsl:text>
+        </xsl:when>
+        <xsl:when test="@label='Xi'">
           <xsl:text>\xX\f{}</xsl:text>
         </xsl:when>
         <xsl:when test="@label='PI'">
           <xsl:text>\xP\f{}</xsl:text>
         </xsl:when>
+        <xsl:when test="@label='Pi'">
+          <xsl:text>\xP\f{}</xsl:text>
+        </xsl:when>
         <xsl:when test="@label='SIGMA'">
+          <xsl:text>\xS\f{}</xsl:text>
+        </xsl:when>
+        <xsl:when test="@label='Sigma'">
           <xsl:text>\xS\f{}</xsl:text>
         </xsl:when>
         <xsl:when test="@label='PHI'">
           <xsl:text>\xF\f{}</xsl:text>
         </xsl:when>
+        <xsl:when test="@label='Phi'">
+          <xsl:text>\xF\f{}</xsl:text>
+        </xsl:when>
         <xsl:when test="@label='PSI'">
           <xsl:text>\xY\f{}</xsl:text>
         </xsl:when>
+        <xsl:when test="@label='Psi'">
+          <xsl:text>\xY\f{}</xsl:text>
+        </xsl:when>
         <xsl:when test="@label='OMEGA'">
+          <xsl:text>\xW\f{}</xsl:text>
+        </xsl:when>
+        <xsl:when test="@label='Omega'">
           <xsl:text>\xW\f{}</xsl:text>
         </xsl:when>
         <xsl:otherwise>
