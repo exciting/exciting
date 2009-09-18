@@ -18,13 +18,13 @@
 		</species>
 	</structure>
 
-	<groundstate ngridk="10  10  10" />
+	<groundstate do="skip" ngridk="10  10  10" />
 
 	<xs xstype="TDDFT" nosym="true" ngridk="10  10  10" vkloff="0.05 0.15 0.25"
 		nempty="60" lmaxapwwf="5" lmaxemat="5" gqmax="2.0" broad="0.004"
 		tevout="true">
 		<dosWindow intv="0.0 2.5" points="500" />
-		<tddft fxctype="RPA"/>
+		<tddft resumefromkernel="true" fxctype="ALDA" />
 		<qpointset>
 			<qpoint>0.0 0.0 0.1</qpoint>
 		</qpointset>

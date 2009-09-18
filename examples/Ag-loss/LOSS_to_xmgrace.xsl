@@ -399,7 +399,7 @@
 @    s1 errorbar riser clip off
 @    s1 errorbar riser clip length 0.100000
 @    s1 comment "Cols 1:3"
-@    s1 legend  "Im"
+@    s1 legend  ""
 @    s2 hidden false
 @    s2 type xy
 @    s2 symbol 0
