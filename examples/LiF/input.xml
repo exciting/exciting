@@ -17,5 +17,18 @@
 </species>
 </structure>
 <groundstate  lradstep="2" swidth="0.005" nempty="10" ngridk="10 10 10"></groundstate>
-<properties></properties>
+  <properties>
+    <bandstructure>
+      <plot1d>
+        <path steps="100">
+                  <point coord="0.75000   0.50000   0.25000" label="W"    ></point>
+                  <point coord="0.50000   0.50000   0.50000" label="L"    ></point>
+                  <point coord="0.00000   0.00000   0.00000" label="GAMMA"></point>
+                  <point coord="0.50000   0.50000   0.00000" label="X"    ></point>
+                  <point coord="0.75000   0.50000   0.25000" label="W"   ></point>
+                  <point coord="0.75000   0.37500   0.37500" label="K"    ></point>
+        </path>
+      </plot1d>
+    </bandstructure>
+  </properties>
 </input>

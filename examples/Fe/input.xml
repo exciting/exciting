@@ -13,8 +13,22 @@
 <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
 </species>
 </structure>
-<groundstate  vkloff="0.5  0.5  0.5" nempty="10" ngridk="4  4  4">
+<groundstate vkloff="0.5  0.5  0.5" nempty="10" ngridk="10 10 10" mixer="lin">
 <spin bfieldc="0.0  0.0  0.01"></spin>
 </groundstate>
-<properties></properties>
+<properties>
+  <bandstructure>
+    <plot1d>
+      <path steps="200">
+        <point coord="0.00000   0.00000   0.00000" label="GAMMA"></point>   
+        <point coord="0.50000   0.50000  -0.50000" label="H"></point>       
+        <point coord="0.50000   0.00000   0.00000" label="N"></point>           
+        <point coord="0.00000   0.00000   0.00000" label="GAMMA"></point>   
+        <point coord="0.25000   0.25000   0.25000" label="P"></point>        
+      </path>
+    </plot1d>
+  </bandstructure>
+</properties>
 </input>
+
+
