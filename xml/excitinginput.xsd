@@ -1115,7 +1115,7 @@
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="swidth" type="fortrandouble"
-							default="0.01d0">
+							default="0.001d0">
 							<xs:annotation>
 								<xs:documentation>width of the smooth approximation
 									to the
@@ -1176,7 +1176,7 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
-            <xs:attribute name="findlinentype" default="simple">
+            <xs:attribute name="findlinentype" default="advanced">
               <xs:annotation>
                 <xs:documentation>
                   Method to determine the linearization energies
@@ -1328,7 +1328,7 @@
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="lmaxapw" type="xs:integer"
-							default="8">
+							default="10">
 							<xs:annotation>
 								<xs:documentation>angular momentum cut-off for
 									the APW
@@ -1640,7 +1640,7 @@
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="lmaxvr" type="xs:integer"
-							default="7">
+							default="6">
 							<xs:annotation>
 								<xs:documentation>angular momentum cut-off for
 									the
@@ -2057,7 +2057,7 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="chargedesityplot" maxOccurs="1"
+							<xs:element name="chargedensityplot" maxOccurs="1"
 								minOccurs="0">
 								<xs:annotation>
 									<xs:documentation> Plot the charge density
@@ -2392,9 +2392,18 @@
 					        	<xs:annotation>
 					        		<xs:documentation>angular momentum cutoff for Rayleigh expansion of exponential factor for ALDA-kernel</xs:documentation>
 					        	</xs:annotation></xs:attribute>
-					        <xs:attribute name="alphalrc" type="fortrandouble" default="0" />
-					        <xs:attribute name="alphalrcdyn" type="fortrandouble" default="0" />
-					        <xs:attribute name="betalrcdyn" type="fortrandouble" fixed="0" />
+					        <xs:attribute name="alphalrc" type="fortrandouble" default="0" >
+					        	<xs:annotation>
+					        		<xs:documentation>alpha-parameter for the static long range contribution (LRC) model xc kernel</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="alphalrcdyn" type="fortrandouble" default="0" >
+					        	<xs:annotation>
+					        		<xs:documentation>alpha-parameter for the dynamical long range contribution (LRC) model xc kernel</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="betalrcdyn" type="fortrandouble" fixed="0" >
+					        	<xs:annotation>
+					        		<xs:documentation>beta-parameter for the dynamical long range contribution (LRC) model xc kernel</xs:documentation>
+					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="mdfqtype" type="xs:integer" default="0">
 					          <xs:annotation>
 					            <xs:documentation>
@@ -2413,7 +2422,10 @@
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="fxctype" default="RPA">
-					          <xs:simpleType>
+                                        <xs:annotation>
+                                        	<xs:documentation>defines which xc kernel is to be used</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
 					            <xs:restriction base="xs:string">
 					              <xs:enumeration value="RPA">
 					                <xs:annotation>
@@ -2478,50 +2490,72 @@
 					    </xs:element>
 					    <xs:element name="screening" minOccurs="0" maxOccurs="1">
 					      <xs:complexType>
+					      <xs:attribute name="run" default="fromscratch" >
+             <xs:annotation>
+             <xs:appinfo>
+             <oldname>nonreplace</oldname>
+             </xs:appinfo>
+             </xs:annotation>
+            <xs:simpleType>
+            <xs:restriction base="xs:string">
+            <xs:enumeration value="fromscratch"></xs:enumeration>
+            <xs:enumeration value="skip"></xs:enumeration>
+            </xs:restriction>
+            </xs:simpleType>
+            </xs:attribute>
 					        <xs:attribute name="nosym" type="xs:boolean" default="false">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>nosymscr</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>nosymscr</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>nosym is .true. if no symmetry information should be used</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="ngridk" type="integertriple" default="0 0 0">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>ngridkscr</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>ngridkscr</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>k-point grid sizes</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="reducek" type="xs:boolean" default="false">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>reducekscr</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>reducekscr</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>reducek is .true. if k-points are to be reduced (with crystal symmetries)</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>vkloffscr</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>vkloffscr</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>k-point offset</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="rgkmax" type="fortrandouble" default="0">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>rgkmaxscr</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>rgkmaxscr</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="nempty" type="xs:integer" default="0">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>nemptyscr</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>nemptyscr</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>number of empty states</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="screentype" default="full">
-					          <xs:simpleType>
+                                        <xs:annotation>
+                                        	<xs:documentation>defines which screening is used</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
 					            <xs:restriction base="xs:string">
 					              <xs:enumeration value="full" />
 					              <xs:enumeration value="diag" />
@@ -2543,29 +2577,35 @@
 					        </xs:attribute>
 					        <xs:attribute name="reducek" type="xs:boolean" default="false">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>reducekbse</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>reducekbse</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>reducek is .true. if k-points are to be reduced (with crystal symmetries)</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>vkloffbse</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>vkloffbse</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>k-point offset</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="rgkmax" type="fortrandouble" default="0">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>rgkmaxbse</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>rgkmaxbse</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="scrherm" type="xs:integer" default="0" />
 					        <xs:attribute name="fbzq" type="xs:boolean" default="false" />
 					        <xs:attribute name="sciavtype" default="spherical">
-					          <xs:simpleType>
+                                        <xs:annotation>
+                                        	<xs:documentation>defines how the screened Coulomb interaction matrix is to be averaged (important for the singular terms)</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
 					            <xs:restriction base="xs:string">
 					              <xs:enumeration value="spherical" />
 					              <xs:enumeration value="screendiag" />
@@ -2573,19 +2613,38 @@
 					            </xs:restriction>
 					          </xs:simpleType>
 					        </xs:attribute>
-					        <xs:attribute name="sciavbd" type="xs:boolean" default="false" />
-					        <xs:attribute name="sciavqhd" type="xs:boolean" default="false" />
-					        <xs:attribute name="sciavqwg" type="xs:boolean" default="false" />
-					        <xs:attribute name="sciavqbd" type="xs:boolean" default="false" />
+					        <xs:attribute name="sciavbd" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if the body of the screened Coulomb interaction is to be averaged (q=0)</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="sciavqhd" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if the head of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="sciavqwg" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if the wings of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="sciavqbd" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if the body of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
+					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="bsedirsing" type="xs:boolean" default="false" />
-					        <xs:attribute name="lmaxdielt" type="xs:integer" default="14" />
-					        <xs:attribute name="nleblaik" type="xs:integer" default="5810" />
+					        <xs:attribute name="lmaxdielt" type="xs:integer" default="14" >
+					        	<xs:annotation>
+					        		<xs:documentation>angular momentum cutoff of the spherical harmonics expansion of the dielectric matrix</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="nleblaik" type="xs:integer" default="5810" >
+					        	<xs:annotation>
+					        		<xs:documentation>number of points used for the Lebedev-Laikov grids (must be selected according to Ref.LebLaik)</xs:documentation>
+					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="nexcitmax" type="xs:integer" default="100" />
 					        <xs:attribute name="nstlbse" type="integerpair" default="0 0">
 					          <xs:annotation>
-					            <xs:appinfo>
-					              <oldname>nbfbse,nafbse</oldname>
-					            </xs:appinfo>
+					          	<xs:appinfo>
+					          		<oldname>nbfbse,nafbse</oldname>
+					          	</xs:appinfo>
+					          	<xs:documentation>number of states below and above the Fermi level</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="nstlce" type="integerpair" default="0 0">
@@ -2596,7 +2655,10 @@
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="bsetype" default="singlet">
-					          <xs:simpleType>
+                                        <xs:annotation>
+                                        	<xs:documentation>defines which parts of the BSE Hamiltonian are to be considered</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
 					            <xs:restriction base="xs:string">
 					              <xs:enumeration value="ip" />
 					              <xs:enumeration value="rpa" />
@@ -2622,7 +2684,10 @@
 					    <xs:element name="tetra" maxOccurs="1" minOccurs="0">
 					      <xs:complexType>
 					        <xs:attribute name="tetraocc" type="xs:boolean" default="false" />
-					        <xs:attribute name="tetradf" type="xs:boolean" default="false" />
+					        <xs:attribute name="tetradf" type="xs:boolean" default="false" >
+					        	<xs:annotation>
+					        		<xs:documentation>true if tetrahedron method is used for the k-space integration in the Kohn-Sham response function</xs:documentation>
+					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="kordexc" type="xs:boolean" default="false">
 					          <xs:annotation>
 					            <xs:appinfo>
@@ -2648,8 +2713,14 @@
 					    </xs:element>
 					    <xs:element name="dosWindow" maxOccurs="1" minOccurs="1">
 					      <xs:complexType>
-					        <xs:attribute name="points" type="xs:integer" default="500" />
-					        <xs:attribute name="intv" type="vect2d" default="-0.5 0.5"></xs:attribute>
+					        <xs:attribute name="points" type="xs:integer" default="500" >
+					        	<xs:annotation>
+					        		<xs:documentation>number of points to be sampled linearly inside the energy interval</xs:documentation>
+					        	</xs:annotation></xs:attribute>
+					        <xs:attribute name="intv" type="vect2d" default="-0.5 0.5">
+					        	<xs:annotation>
+					        		<xs:documentation>energy interval for the density of states</xs:documentation>
+					        	</xs:annotation></xs:attribute>
                   <xs:attribute name="nsmdos" type="xs:integer" default="0">
                   <xs:annotation>
                   <xs:appinfo>
@@ -3125,7 +3196,7 @@
 					    	<xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
-					  <xs:attribute name="swidth" type="fortrandouble" default="0.01d0">
+					  <xs:attribute name="swidth" type="fortrandouble" default="0.001d0">
 					    <xs:annotation>
 					    	<xs:appinfo>
 					    		<oldname>swidthxs</oldname>
@@ -3133,7 +3204,7 @@
 					    	<xs:documentation>width of the smooth approximation to the Dirac delta function</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
-					  <xs:attribute name="lmaxapw" type="xs:integer" default="8">
+					  <xs:attribute name="lmaxapw" type="xs:integer" default="10">
 					    <xs:annotation>
 					    	<xs:appinfo>
 					    		<oldname>lmaxapwxs</oldname>
@@ -3206,8 +3277,7 @@
 				<xs:element name="qpoint" type="vect3d" minOccurs="1"
 					maxOccurs="unbounded">
 					<xs:annotation>
-						<xs:documentation> a q-point is given in reciprocal space
-							coordinates</xs:documentation>
+						<xs:documentation> a q-point is given in reciprocal space coordinates</xs:documentation>
 					</xs:annotation>
 				</xs:element>
 			</xs:sequence>

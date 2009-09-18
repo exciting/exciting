@@ -70,7 +70,7 @@ while (<INFO>) {
 	if (m/Iteration number :\s*(\d+)/) {
 		$iterations = $1;
 	}
-	if (m/Using Muttisecant Broyden potential mixing/) {
+	if (m/Using Multisecant Broyden potential mixing (2)/) {
 		$rightmixer = passed;
 	}
 }

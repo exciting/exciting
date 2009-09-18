@@ -35,7 +35,8 @@ excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
 	
 spacegroupdoc::
-	cd src/spacegroup; $(MAKE) doc
+	cd src/spacegroup; $(MAKE) doc;\
+	mv spacegroup.pdf ../../docs/spacegroup
  
 inputdoc::
 	cd docs/exciting/;\
@@ -75,4 +76,7 @@ clean:
 	rm docs/exciting/*
 	rm docs/spacegroup/*
 	rm -r debian/debian/usr
+
+tgz::
+	tar  --exclude-from=".gitignore" -C"../" -c -v -z -f ../exciting.tgz  ./exciting
 

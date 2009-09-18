@@ -243,7 +243,7 @@ type properties_type
   type(dos_type),pointer::dos
   type(LSJ_type),pointer::LSJ
   type(masstensor_type),pointer::masstensor
-  type(chargedesityplot_type),pointer::chargedesityplot
+  type(chargedensityplot_type),pointer::chargedensityplot
   type(exccplot_type),pointer::exccplot
   type(elfplot_type),pointer::elfplot
   type(mvecfield_type),pointer::mvecfield
@@ -291,7 +291,7 @@ type masstensor_type
  integer::ndspem
  real(8)::vklem(3)
 end type
-type chargedesityplot_type
+type chargedensityplot_type
   type(plot1d_type),pointer::plot1d
   type(plot2d_type),pointer::plot2d
   type(plot3d_type),pointer::plot3d
@@ -434,6 +434,8 @@ type dftrans_type
  integer,pointer::trans(:,:)
 end type
 type screening_type
+ character(512)::run
+ integer::runnumber
  logical::nosym
  integer::ngridk(3)
  logical::reducek
@@ -1496,7 +1498,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"swidth")
-getstructgroundstate%swidth=0.01d0
+getstructgroundstate%swidth=0.001d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"swidth",getstructgroundstate%swidth)
        call removeAttribute(thisnode,"swidth")      
@@ -1513,7 +1515,7 @@ getstructgroundstate%stypenumber=stringtonumberstype(getstructgroundstate%stype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"findlinentype")
-getstructgroundstate%findlinentype= "simple"
+getstructgroundstate%findlinentype= "advanced"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"findlinentype",getstructgroundstate%findlinentype)
        call removeAttribute(thisnode,"findlinentype")      
@@ -1602,7 +1604,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxapw")
-getstructgroundstate%lmaxapw=8
+getstructgroundstate%lmaxapw=10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxapw",getstructgroundstate%lmaxapw)
        call removeAttribute(thisnode,"lmaxapw")      
@@ -1716,7 +1718,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxvr")
-getstructgroundstate%lmaxvr=7
+getstructgroundstate%lmaxvr=6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxvr",getstructgroundstate%lmaxvr)
        call removeAttribute(thisnode,"lmaxvr")      
@@ -2236,12 +2238,12 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "masstensor"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"chargedesityplot")
-getstructproperties%chargedesityplot=>null()
+            len= countChildEmentsWithName(thisnode,"chargedensityplot")
+getstructproperties%chargedensityplot=>null()
 Do i=0,len-1
-getstructproperties%chargedesityplot=>getstructchargedesityplot(&
+getstructproperties%chargedensityplot=>getstructchargedensityplot(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"chargedesityplot"),0)) ) 
+"chargedensityplot"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"exccplot")
@@ -2628,38 +2630,38 @@ endif
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructchargedesityplot(thisnode)
+function getstructchargedensityplot(thisnode)
 
 implicit none
 type(Node),pointer::thisnode
-type(chargedesityplot_type),pointer::getstructchargedesityplot
+type(chargedensityplot_type),pointer::getstructchargedensityplot
 		
 integer::len=1,i=0
-allocate(getstructchargedesityplot)  
+allocate(getstructchargedensityplot)  
 #ifdef INPUTDEBUG      
-      write(*,*)"we are at chargedesityplot"
+      write(*,*)"we are at chargedensityplot"
 #endif
       
             len= countChildEmentsWithName(thisnode,"plot1d")
-getstructchargedesityplot%plot1d=>null()
+getstructchargedensityplot%plot1d=>null()
 Do i=0,len-1
-getstructchargedesityplot%plot1d=>getstructplot1d(&
+getstructchargedensityplot%plot1d=>getstructplot1d(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot1d"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"plot2d")
-getstructchargedesityplot%plot2d=>null()
+getstructchargedensityplot%plot2d=>null()
 Do i=0,len-1
-getstructchargedesityplot%plot2d=>getstructplot2d(&
+getstructchargedensityplot%plot2d=>getstructplot2d(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot2d"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"plot3d")
-getstructchargedesityplot%plot3d=>null()
+getstructchargedensityplot%plot3d=>null()
 Do i=0,len-1
-getstructchargedesityplot%plot3d=>getstructplot3d(&
+getstructchargedensityplot%plot3d=>getstructplot3d(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot3d"),0)) ) 
 enddo
@@ -3399,7 +3401,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"swidth")
-getstructxs%swidth=0.01d0
+getstructxs%swidth=0.001d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"swidth",getstructxs%swidth)
        call removeAttribute(thisnode,"swidth")      
@@ -3407,7 +3409,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxapw")
-getstructxs%lmaxapw=8
+getstructxs%lmaxapw=10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxapw",getstructxs%lmaxapw)
        call removeAttribute(thisnode,"lmaxapw")      
@@ -3700,6 +3702,15 @@ allocate(getstructscreening)
       write(*,*)"we are at screening"
 #endif
       
+nullify(np)  
+np=>getAttributeNode(thisnode,"run")
+getstructscreening%run= "fromscratch"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"run",getstructscreening%run)
+       call removeAttribute(thisnode,"run")      
+endif
+getstructscreening%runnumber=stringtonumberrun(getstructscreening%run)
+
 nullify(np)  
 np=>getAttributeNode(thisnode,"nosym")
 getstructscreening%nosym= .false.
@@ -4337,6 +4348,22 @@ case('')
  stringtonumberfxctype=0
 case default
 write(*,*) "'", string,"' is not valid selection forfxctype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberrun(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumberrun=-1
+case('skip')
+ stringtonumberrun=-1
+case('')
+ stringtonumberrun=0
+case default
+write(*,*) "'", string,"' is not valid selection forrun "
 stop 
 end select
 end function
