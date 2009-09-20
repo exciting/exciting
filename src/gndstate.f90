@@ -549,9 +549,9 @@ use scl_xml_out_Module
 	timetot=timeinit+timemat+timefv+timesv+timerho+timepot+timefor
 	write(60, '(" total", T40, ": ", F12.2)') timetot
 	write(60, *)
-	write(60, '("+----------------------------------+")')
-	write(60, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, " stopped |")') version
-	write(60, '("+----------------------------------+")')
+	write(60, '("+---------------------------+")')
+	write(60, '("| EXCITING hydrogen stopped |")')
+	write(60, '("+---------------------------+")')
         ! close the INFO.OUT file
 	close(60)
         ! close the TOTENERGY.OUT file
