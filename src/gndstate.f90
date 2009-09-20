@@ -550,7 +550,7 @@ use scl_xml_out_Module
 	write(60, '(" total", T40, ": ", F12.2)') timetot
 	write(60, *)
 	write(60, '("+----------------------------------+")')
-	write(60, '("| EXCITING Hydrogen        stopped |")') version
+	write(60, '("| EXCITING Hydrogen        stopped |")') 
 	write(60, '("+----------------------------------+")')
         ! close the INFO.OUT file
 	close(60)
