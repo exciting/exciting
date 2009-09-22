@@ -20,16 +20,19 @@ See the file COPYING for license details.
     along with EXCITING; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-Other Licences
+Other Licenses
 	
 	The code is packaged with libraries that are distributed under different
-	licences then the GPL. Ther are:
+	licenses then the GPL. They are:
 	
 	FoX XML library (BSD like license)
 	http://www.uszla.me.uk/FoX/DoX/Licensing.html
 	
 	BLAS LAPACK
 	http://www.netlib.org/lapack/LICENSE
+	
+	ARPACK
+	http://www.caam.rice.edu/software/ARPACK/RiceBSD.txt#LICENSE
 
 
 The code can be compiled  by running the setup script
