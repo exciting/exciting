@@ -264,22 +264,26 @@
 			</xs:annotation>
 			<xs:all>
 				<xs:element name="title" type="xs:string" minOccurs="1"
-					maxOccurs="1" />
+					maxOccurs="1" >
+				  <xs:annotation>
+				    <xs:documentation>Title of the input file.</xs:documentation>
+				  </xs:annotation></xs:element>
 				<xs:element name="structure" maxOccurs="1" minOccurs="1">
 					<xs:annotation>
-						<xs:documentation> The structure element contains all
-							structural
-							information such as atoms atom positions and
-							symmetries.
+					  <xs:documentation> The structure element contains all
+structural information such as atoms atom positions and symmetries.
 						</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:sequence>
 							<xs:element name="symmetries" maxOccurs="1" minOccurs="0">
               <xs:annotation>
-              <xs:appinfo ><notindocu/></xs:appinfo>
+                <xs:appinfo>
+                  <notindocu />
+                </xs:appinfo>
+                <xs:documentation>This element is only used by the spacegroup tool</xs:documentation>
               </xs:annotation>
-								<xs:complexType>
+              <xs:complexType>
 									<xs:annotation>
 										<xs:documentation>The symmetries element is
 											output from the
@@ -376,8 +380,7 @@
 							</xs:element>
 							<xs:element name="crystal" minOccurs="0" maxOccurs="1">
 								<xs:annotation>
-									<xs:documentation>defines the unit cell of the
-										simulation
+								  <xs:documentation>defines the unit cell of the calculation.
 									</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
@@ -392,52 +395,36 @@
 										<xs:element name="basevect" minOccurs="3"
 											maxOccurs="3" type="vect3d">
 											<xs:annotation>
-												<xs:documentation>basevectors or
-													lattice vectors
-													in Bohr
-												</xs:documentation>
-												<xs:appinfo>
-													<oldname>avec</oldname>
-												</xs:appinfo>
+											  <xs:documentation>are the basis vectors or lattice vectors in Bohr.</xs:documentation>
+											  <xs:appinfo>
+											    <oldname>avec</oldname>
+											  </xs:appinfo>
 											</xs:annotation>
 										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="scale" type="fortrandouble"
 										default="1">
 										<xs:annotation>
-											<xs:documentation> gives a scaling factor for the
-												unit cell.
-												it scales the lattice vectors. This
-												is useful for varying the
-												volume.
-                      </xs:documentation>
-											<xs:appinfo>
-												<oldname>scale</oldname>
-											</xs:appinfo>
+										  <xs:documentation>    scales all the lattice vectors. This is useful for varying the volume.</xs:documentation>
+										  <xs:appinfo>
+										    <oldname>scale</oldname>
+										  </xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="stretch" type="vect3d"
 										default="1.0d0   1.0d0 1.0d0 ">
 										<xs:annotation>
-											<xs:documentation>separate scaling for
-												each lattice
-												vector 1 1
-												1 is no scaling
-                      </xs:documentation>
-											<xs:appinfo>
-												<oldname>(sc1|sc2|sc3)</oldname>
-											</xs:appinfo>
+										  <xs:documentation>   allows for a separate scaling of each lattice vector. 1 1 1 means no scaling.</xs:documentation>
+										  <xs:appinfo>
+										    <oldname>(sc1|sc2|sc3)</oldname>
+										  </xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="species" minOccurs="0" maxOccurs="unbounded">
 								<xs:annotation>
-									<xs:documentation>for each atom type (species) a
-										species
-										element
-										is defined containing all the atom
-										positions
+								  <xs:documentation>for each atom type (species) a 	species element is defined containing all the atom positions
 									</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
@@ -508,16 +495,10 @@
 									<xs:attribute name="speciesfile" type="xs:anyURI"
 										use="required">
 										<xs:annotation>
-											<xs:documentation> species file from which species
-												definition
-												is read. It is looked up in the
-												species directory specified
-												by the species
-												path
-                      </xs:documentation>
-											<xs:appinfo>
-												<oldname>spfname</oldname>
-											</xs:appinfo>
+										  <xs:documentation> defines the file from which the species definition is read. It is looked up in the species directory specified by the species path.</xs:documentation>
+										  <xs:appinfo>
+										    <oldname>spfname</oldname>
+										  </xs:appinfo>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="chemicalSymbol" type="xs:string"
@@ -575,21 +556,22 @@
 						<xs:attribute name="molecule" type="xs:boolean"
 							default="false">
 							<xs:annotation>
-								<xs:documentation> true if the system is an isolated
-									molecule
-								</xs:documentation>
+							  <xs:documentation> has to be set to true if one wants to calculate an isolated molecule.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="epslat" type="fortrandouble"
 							default="1e-6">
 							<xs:annotation>
-								<xs:documentation> vectors with lengths less than this
+							  <xs:documentation> vectors with lengths less than this
 									are
-									considered zero</xs:documentation>
+									considered zero.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="autormt" type="xs:boolean"
-							default="false" />
+							default="false" >
+						  <xs:annotation>
+						    <xs:documentation>If thrue automatic determination of the muffin tin radii is allowed</xs:documentation>
+						  </xs:annotation></xs:attribute>
 
 						<xs:attribute name="vacuum" type="fortrandouble"
 							default="10" />
@@ -597,14 +579,14 @@
 						<xs:attribute name="primcell" type="xs:boolean"
 							default="false">
 							<xs:annotation>
-								<xs:documentation> Allows the primitive unit cell to be
+							  <xs:documentation> allows the primitive unit cell to be
 									determined automatically from the conventional cell.
 									This is
 									done by searching for
 									lattice vectors among all
 									those which
 									connect atomic sites, and using the three
-									shortest which produce
+									shortest ones which produce
 									a unit cell with non-zero
 									volume.
                 </xs:documentation>
@@ -615,17 +597,15 @@
 							default="true">
 							<!-- sag -->
 							<xs:annotation>
-								<xs:documentation> Set to "true" if the crystal can be shifted
-									so that the atom closest to the origin is exactly at the
-									origin.
-                </xs:documentation>
+							  <xs:documentation> Set to  it to "true" if the crystal can be shifted  such that the atom closest to the origin is exactly at the origin.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="groundstate" maxOccurs="1" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation />
+					  <xs:documentation>The groundstate element is required for anny calculation. 
+Its attributes are the parameters and methods used to calculate the groundstate density.</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:all>
@@ -1055,11 +1035,12 @@
 						</xs:all>
              <xs:attribute name="do" default="fromscratch" >
              <xs:annotation>
-             <xs:appinfo>
-             <oldname>nonreplace</oldname>
-             </xs:appinfo>
+               <xs:appinfo>
+                 <oldname>nonreplace</oldname>
+               </xs:appinfo>
+               <xs:documentation>Decides if the groundstate is read from file or recalculated </xs:documentation>
              </xs:annotation>
-            <xs:simpleType>
+             <xs:simpleType>
             <xs:restriction base="xs:string">
             <xs:enumeration value="fromscratch"></xs:enumeration>
             <xs:enumeration value="fromfile"></xs:enumeration>
@@ -1070,9 +1051,10 @@
 						<xs:attribute name="ngridk" type="integertriple"
 							use="required">
 							<xs:annotation>
-								<xs:appinfo>
-									<oldname>ngridk</oldname>
-								</xs:appinfo>
+							  <xs:appinfo>
+							    <oldname>ngridk</oldname>
+							  </xs:appinfo>
+							  <xs:documentation>Number of k grid points along the basis vector directions.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="rgkmax" type="fortrandouble"
@@ -1757,10 +1739,7 @@
 				</xs:element>
 				<xs:element name="structureoptimization" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation> The structure optimization element
-							requires a
-							groundstate element to be present
-            </xs:documentation>
+					  <xs:documentation> The structure optimization element triggers if present a geometry relaxation.</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:annotation>
@@ -1830,10 +1809,9 @@
 				</xs:element>
 				<xs:element name="properties" maxOccurs="1" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation> Properties listed in this element can be
-							calculated from the groundstate. It works also from a
-							saved state
-							from a previous run.
+					  <xs:documentation>Properties listed in this element can be
+calculated from the groundstate. It works also from a
+saved state from a previous run.
             </xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
@@ -2242,15 +2220,9 @@
 				</xs:element>
 				<xs:element name="phonons" maxOccurs="1" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation>
-							The phonon element requires a groundstate element to be
-							present.
-							<p />
-							Phonon frequencies and eigen vectors for an arbitrary
-							q-point.
+					  <xs:documentation>Phonon frequencies and eigen vectors for an arbitrary q-point.
 						</xs:documentation>
 					</xs:annotation>
-
 					<xs:complexType>
 						<xs:annotation>
 							<xs:documentation> The phonon element must contain one or
@@ -2329,8 +2301,7 @@
 				</xs:element>
 				<xs:element name="xs" minOccurs="0" maxOccurs="1">
 					<xs:annotation>
-						<xs:documentation>If this element is present with valid
-							configuration, the macroscopic dielectric function and related
+					  <xs:documentation>If this element is present with valid configuration, the macroscopic dielectric function and related
 							spectroscopic
 							quantities in the linear regime are calculated
 							through either time-dependent
@@ -3247,22 +3218,21 @@
 			<xs:attribute name="xsltpath" type="xs:anyURI" default="../../xml" />
 			<xs:attribute name="scratchpath" type="xs:anyURI" use="optional">
 				<xs:annotation>
-					<xs:documentation>This is the path to scratch space where
+				  <xs:documentation>This is the path to scratch space where
 						the
 						eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be
 						written. If the
 						local directory is accessed via a network then
 						scrpath can be set to a directory
-						on
+						on a local disk
 					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="id" type="xs:ID">
 				<xs:annotation>
-					<xs:documentation>The id is a unique identifier in an input
-						set.
-						If the input element is part of an input set the id
-						must be set.
+				  <xs:documentation>The id is a unique identifier in an input
+set. The inputset element is currently not used by the exciting code.
+
 					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
@@ -3271,11 +3241,8 @@
 					<xs:simpleType> <xs:list itemType="xs:IDREF"/> </xs:simpleType>
 				-->
 				<xs:annotation>
-					<xs:documentation>the depends attribute can be used to
-						specify a
-						dependence from another simulation in the same
-						input set.
-					</xs:documentation>
+				  <xs:documentation>The depends attribute can be used to specify a dependence from another simulation in the same input set.
+The inputset element is currently not used by the exciting code.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
