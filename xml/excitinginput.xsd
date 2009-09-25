@@ -281,7 +281,7 @@ structural information such as atoms atom positions and symmetries.
                 <xs:appinfo>
                   <notindocu />
                 </xs:appinfo>
-                <xs:documentation>This element is only used by the spacegroup tool</xs:documentation>
+                <xs:documentation>This element is used by the spacegroup tool to generate structures and supercells</xs:documentation>
               </xs:annotation>
               <xs:complexType>
 									<xs:annotation>
@@ -294,7 +294,10 @@ structural information such as atoms atom positions and symmetries.
 									</xs:annotation>
 									<xs:sequence>
 										<xs:element name="lattice" maxOccurs="1" minOccurs="1">
-											<xs:complexType>
+                                            <xs:annotation>
+                                              <xs:documentation>defines lattice from a,b,c, and angles</xs:documentation>
+                                            </xs:annotation>
+                                            <xs:complexType>
 												<xs:attribute name="a" type="fortrandouble"
 													use="required" >
                           <xs:annotation>
@@ -330,7 +333,10 @@ structural information such as atoms atom positions and symmetries.
 													use="required" />
 
 												<xs:attribute name="ncell" type="integertriple"
-													use="optional" default="1 1 1" />
+													use="optional" default="1 1 1" >
+												  <xs:annotation>
+												    <xs:documentation>number of repeated cells in each direction</xs:documentation>
+												  </xs:annotation></xs:attribute>
 
 											</xs:complexType>
 										</xs:element>
@@ -340,7 +346,10 @@ structural information such as atoms atom positions and symmetries.
 												<xs:sequence>
 													<xs:element name="wspecies" maxOccurs="unbounded"
 														minOccurs="0">
-														<xs:complexType>
+                                                        <xs:annotation>
+                                                          <xs:documentation></xs:documentation>
+                                                        </xs:annotation>
+                                                        <xs:complexType>
 															<xs:sequence>
 																<xs:element name="wpos" maxOccurs="unbounded"
 																	minOccurs="0">
@@ -556,10 +565,22 @@ structural information such as atoms atom positions and symmetries.
 						<xs:attribute name="molecule" type="xs:boolean"
 							default="false">
 							<xs:annotation>
-							  <xs:documentation> has to be set to true if one wants to calculate an isolated molecule.</xs:documentation>
+							  <xs:documentation> has to be set to true if one wants to calculate an isolated molecule.is <pre> true</pre>, then the atomic positions, <inlinemath>{\bf a}</inlinemath>,
+   are assumed to be in Cartesian coordinates.
+  The lattice vectors are also set up automatically with the $i$th lattice
+  vector given by <displaymath>  {\bf A}^i=A_i\hat{\bf e}^i, </displaymath>  where
+<displaymath>  A_i=\max_{\alpha,\beta}\left|{\bf a}^{\alpha}_i-{\bf a}^{\beta}_i\right|
+  +d_{\rm vac} </displaymath>
+   with <inlinemath>\alpha</inlinemath> and <inlinemath>\beta </inlinemath>labeling atoms, and <inlinemath>d_{\rm vac}</inlinemath> determines the
+ size of the vacuum around the molecule. The last variable is set by the
+    attribute <pre>vacuum</pre>.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="epslat" type="fortrandouble"
+                        <xs:attribute name="vacuum" type="fortrandouble" default="10">
+						  <xs:annotation>
+						    <xs:documentation>determines the size of the vacuum around the molecule.</xs:documentation>
+						  </xs:annotation></xs:attribute>
+                        <xs:attribute name="epslat" type="fortrandouble"
 							default="1e-6">
 							<xs:annotation>
 							  <xs:documentation> vectors with lengths less than this
@@ -570,11 +591,9 @@ structural information such as atoms atom positions and symmetries.
 						<xs:attribute name="autormt" type="xs:boolean"
 							default="false" >
 						  <xs:annotation>
-						    <xs:documentation>If thrue automatic determination of the muffin tin radii is allowed</xs:documentation>
+						    <xs:documentation>If thrue automatic determination of the muffin tin radii is allowed.</xs:documentation>
 						  </xs:annotation></xs:attribute>
 
-						<xs:attribute name="vacuum" type="fortrandouble"
-							default="10" />
 
 						<xs:attribute name="primcell" type="xs:boolean"
 							default="false">
@@ -624,8 +643,17 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 									</xs:appinfo>
 								</xs:annotation>
 								<xs:complexType>
-									<xs:attribute name="bfieldc" type="vect3d"
-										default="0 0 0 ">
+									<xs:attribute name="momfix" type="vect3d" default="0 0 0">
+										<xs:annotation>
+											<xs:documentation>
+												the desired total moment
+												for a FSM
+												calculation
+											</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
+                                    <xs:attribute name="bfieldc" type="vect3d" default="0 0 0 ">
 										<xs:annotation>
 											<xs:documentation>
 												alows to apply a
@@ -694,17 +722,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="momfix" type="vect3d" default="0 0 0">
-										<xs:annotation>
-											<xs:documentation>
-												the desired total moment
-												for a FSM
-												calculation
-											</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
-									<xs:attribute name="spinorb" type="xs:boolean">
+                                    <xs:attribute name="spinorb" type="xs:boolean">
 										<xs:annotation>
 											<xs:documentation>
 												if a spin-orbit coupling
@@ -874,6 +892,9 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							<xs:element name="HartreeFock" minOccurs="0"
 								maxOccurs="1">
 								<!-- sag -->
+								<xs:annotation>
+								  <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
+								</xs:annotation>
 								<xs:complexType>
 									<xs:attribute name="epsengy" type="fortrandouble"
 										use="optional" default="1e-7">
@@ -886,7 +907,10 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="solver" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
+                                <xs:annotation>
+                                  <xs:documentation>Optional configuration options for eigenvector solver.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
 									<xs:attribute name="type" default="Lapack">
 										<xs:annotation>
 								      <xs:appinfo>
@@ -920,18 +944,27 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-								  <xs:attribute name="packedmatrixstorage" type="xs:boolean" use="optional" default="true" />
-								  <xs:attribute name="epsarpack" type="fortrandouble" default="1.0e-8"/>
-								  <xs:attribute name="evaltol" type="fortrandouble" default="1e-8">
+								  <xs:attribute name="packedmatrixstorage" type="xs:boolean" use="optional" default="true" >
+								    <xs:annotation>
+								      <xs:documentation>In the default calculation the matrix is sored in packed form. When using multithreaded BLAS setting this parmeter to false increases efficiency.</xs:documentation>
+								    </xs:annotation></xs:attribute>
+                                    <xs:attribute name="epsarpack" type="fortrandouble" default="1.0e-8">
+								    <xs:annotation>
+								      <xs:documentation>Tolerance parameter for the ARPACK  shift invert solver</xs:documentation>
+								    </xs:annotation></xs:attribute>
+                                    <xs:attribute name="evaltol" type="fortrandouble" default="1e-8">
 										<!-- sag -->
 										<xs:annotation>
-								      <xs:documentation>error tolerance for the first-variational eigenvalues</xs:documentation>
+										  <xs:documentation>error tolerance for the first-variational eigenvalues using the LAPACK Solver</xs:documentation>
 										</xs:annotation>
-									</xs:attribute>
+								  </xs:attribute>
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="OEP" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
+                                <xs:annotation>
+                                  <xs:documentation>If present exact exchange calculation is triggered. (experimental)</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
 									<xs:attribute name="maxitoep" type="xs:integer"
 										default="120">
 										<xs:annotation>
@@ -962,70 +995,73 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 								</xs:complexType>
 							</xs:element>
 							<xs:element name="RDMFT" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
+                                <xs:annotation>
+                                  <xs:documentation>If present Reduced Density Matrix Funcional Theory calculation is triggered</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
 									<xs:attribute name="rdmxctype" type="xs:integer"
 										default="2">
 										<xs:annotation>
-											<xs:documentation>
-												xc functional
+										  <xs:documentation>
+												xc functional.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="rdmmaxscl" type="xs:integer"
 										default="1">
 										<xs:annotation>
-											<xs:documentation>
-												maximum number of self-consistent loops
+										  <xs:documentation>
+												maximum number of self-consistent loops.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="maxitn" type="xs:integer"
 										default="250">
 										<xs:annotation>
-											<xs:documentation>
+										  <xs:documentation>
 												maximum number of iteration for occupation
-												number optimisation
+												number optimisation.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="maxitc" type="xs:integer"
 										default="10">
 										<xs:annotation>
-											<xs:documentation>
+										  <xs:documentation>
 												maximum number of iteration for natural
-												orbital optimisation
+												orbital optimisation.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="taurdmn" type="fortrandouble"
 										default="1.0">
 										<xs:annotation>
-											<xs:documentation>
-												step size for occupation numbers
+										  <xs:documentation>
+												step size for occupation numbers.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="taurdmc" type="fortrandouble"
 										default="0.5">
 										<xs:annotation>
-											<xs:documentation>
-												step size for natural orbital coefficients
+										  <xs:documentation>
+												step size for natural orbital coefficients.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="rdmalpha" type="fortrandouble"
 										default="0.7">
 										<xs:annotation>
-											<xs:documentation>
-												exponent for the functional
+										  <xs:documentation>
+												exponent for the functional.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="rdmtemp" type="fortrandouble"
 										default="0.0">
 										<xs:annotation>
-											<xs:documentation>
-												temperature
+										  <xs:documentation>
+												temperature.
 				</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
@@ -1089,11 +1125,16 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						</xs:attribute>
 						<xs:attribute name="rmtapm" type="vect2d" default="0.25d0  0.95d0">
 							<xs:annotation>
-								<xs:documentation>parameters governing the
+							  <xs:documentation>parameters governing the
 									automatic
 									generation
-									of the muffin-tin radii
-                </xs:documentation>
+									of the muffin-tin radii.
+                When @autormt is set to true, the muffin-tin radii are found
+  automatically from the formula
+ <displaymath> R_i\propto 1+\zeta|Z_i|^{1/3}, </displaymath>
+   where <inlinemath>Z_i</inlinemath> is the atomic number of the $i$th species, <inlinemath>\zeta</inlinemath> is stored in
+   @rmtapm(1)  and the value which governs the distance between the
+   muffin-tins is stored in @rmtapm(2). When @rmtapm(2) =1, the closest muffin-tins will touch.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="swidth" type="fortrandouble"
@@ -1107,7 +1148,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						</xs:attribute>
 						<xs:attribute name="stype" default="Gaussian">
 							<xs:annotation>
-								<xs:documentation>
+							  <xs:documentation>
 									A smooth approximation to the Dirac delta function is
 									needed to
 									compute the occupancies of the Kohn-Sham
@@ -1115,7 +1156,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 									<pre>swidth</pre>
 									determines the width of the approximate delta
 									function.
-									Currently implemented are
+									
 								</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
@@ -1162,7 +1203,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
               <xs:annotation>
                 <xs:documentation>
                   Method to determine the linearization energies
-                  Currently implemented are
+               
                 </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
@@ -1235,13 +1276,13 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="frozencore" type="xs:boolean"
 							default="false">
 							<xs:annotation>
-								<xs:documentation>
+							  <xs:documentation>
 									when set to
 									<pre>.true.</pre>
 									the frozen core approximation is applied, i.e., the
 									core states
 									are fixed to the atomic states
-								</xs:documentation>
+		</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="autokpt" type="xs:boolean"
@@ -1306,7 +1347,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						</xs:attribute>
 						<xs:attribute ref="tforce" default="false">
 							<xs:annotation>
-								<xs:documentation />
+							  <xs:documentation>if the force should be calculated at the   end of the self-consistent cycle</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="lmaxapw" type="xs:integer"
@@ -1379,21 +1420,21 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="epschg" type="fortrandouble"
 							default="1.0d-3">
 							<xs:annotation>
-								<xs:documentation>maximum allowed error in the
+							  <xs:documentation>maximum allowed error in the
 									calculated
 									total
 									charge beyond which a warning message
-									will be issued
+									will be issued.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="epsocc" type="fortrandouble"
 							default="1e-8">
 							<xs:annotation>
-								<xs:documentation>smallest occupancy for which a
+							  <xs:documentation>smallest occupancy for which a
 									state
 									will
-									contribute to the density
+									contribute to the density.
                 </xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1437,7 +1478,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							default="0.4">
 							<!-- sag -->
 							<xs:annotation>
-								<xs:documentation>initial value for mixing parameter
+							  <xs:documentation>initial value for mixing parameter. Used in linear mixing.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1445,7 +1486,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							default="1.1">
 							<!-- sag -->
 							<xs:annotation>
-								<xs:documentation>mixing parameter increase
+							  <xs:documentation>mixing parameter increase. Used in linear mixing.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1453,7 +1494,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							default="0.6">
 							<!-- sag -->
 							<xs:annotation>
-								<xs:documentation>mixing parameter decrease
+							  <xs:documentation>mixing parameter decrease. Used in linear mixing.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1624,21 +1665,21 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="lmaxvr" type="xs:integer"
 							default="6">
 							<xs:annotation>
-								<xs:documentation>angular momentum cut-off for
+							  <xs:documentation>angular momentum cut-off for
 									the
 									muffin-tin
-									density and potential
+									density and potential.
                 </xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="fracinr" type="fortrandouble"
 							default="0.25d0">
 							<xs:annotation>
-								<xs:documentation>fraction of the muffin-tin
+							  <xs:documentation>fraction of the muffin-tin
 									radius up to
 									which
 									lmaxinr is used as the angular
-									momentum cut-off
+									momentum cut-off.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1657,16 +1698,13 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="lmaxmat" type="xs:integer"
 							default="5">
 							<xs:annotation>
-								<xs:documentation>angular momentum cut-off for
-									the
+							  <xs:documentation>angular momentum cut-off for the
 									outer-most
 									loop in the hamiltonian and overlap
-									matrix setup
+									matrix setup.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="kdotpgrid" type="integertriple"
-							use="optional" />
 						<xs:attribute name="vkloff" type="vect3d" default="0 0 0">
 							<xs:annotation>
 								<xs:documentation>the k-point offset vector in
@@ -1689,11 +1727,11 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							default="false">
 							<!-- sag -->
 							<xs:annotation>
-								<xs:documentation>
+							  <xs:documentation>
 									when set to .true., source fields are
 									projected out of the
 									exchange-correlation magnetic field.
-									experimental feature
+									experimental feature.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1818,7 +1856,10 @@ saved state from a previous run.
 						<xs:all>
 							<xs:element name="bandstructure" maxOccurs="1"
 								minOccurs="0">
-								<xs:complexType>
+                                <xs:annotation>
+                                  <xs:documentation>If present a banstructure is calculated.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
 									<xs:annotation>
 										<xs:documentation> create a bandstructure
                     </xs:documentation>
@@ -1847,7 +1888,7 @@ saved state from a previous run.
 							</xs:element>
 							<xs:element name="wfplot" maxOccurs="1" minOccurs="0">
 								<xs:annotation>
-									<xs:documentation> wavefunction plot
+								  <xs:documentation> wavefunction plot.
                   </xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
@@ -1866,7 +1907,7 @@ saved state from a previous run.
 							</xs:element>
 							<xs:element name="dos" maxOccurs="1" minOccurs="0">
 								<xs:annotation>
-									<xs:documentation>
+								  <xs:documentation>If present a DOS calculation is started.<p></p>
 										DOS and optics plots require integrals of the kind
 										<displaymath>
 											g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ}
@@ -1975,8 +2016,7 @@ saved state from a previous run.
 							</xs:element>
 							<xs:element name="LSJ" maxOccurs="1" minOccurs="0">
 								<xs:annotation>
-									<xs:documentation> Output L, S and J expectation
-										values
+								  <xs:documentation> Output L, S and J expectation 	values.
 									</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
@@ -1996,10 +2036,10 @@ saved state from a previous run.
 							</xs:element>
 							<xs:element name="masstensor" maxOccurs="1" minOccurs="0">
 								<xs:annotation>
-									<xs:documentation>
+								  <xs:documentation>
 										Compute the effective mass tensor at the
 										<bf>k</bf>
-										-point given by vklem
+										-point given by vklem.
 									</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
@@ -2105,7 +2145,10 @@ saved state from a previous run.
 							</xs:element>
 							<xs:element name="electricfield" minOccurs="0"
 								maxOccurs="1">
-								<xs:complexType>
+                                <xs:annotation>
+                                  <xs:documentation>writes the elsectric  field to file.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
 									<xs:all>
 										<xs:element ref="plot2d" minOccurs="0" />
 										<xs:element ref="plot3d" minOccurs="0" />
@@ -2129,7 +2172,10 @@ saved state from a previous run.
 							</xs:element>
 							<xs:element name="fermisurfaceplot" maxOccurs="1"
 								minOccurs="0">
-								<xs:complexType>
+                                <xs:annotation>
+                                  <xs:documentation>writes fermisurface data to file.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
 									<xs:attribute name="nstfsp" type="xs:integer"
 										default="6">
 										<xs:annotation>
@@ -2145,9 +2191,7 @@ saved state from a previous run.
 							</xs:element>
 							<xs:element name="EFG" maxOccurs="1" minOccurs="0">
 								<xs:annotation>
-									<xs:documentation> Calculation of electric field
-										gradient (EFG),
-										contact charge</xs:documentation>
+								  <xs:documentation> Calculation of electric field 	gradient (EFG), contact charge</xs:documentation>
 								</xs:annotation>
 								<xs:complexType />
 							</xs:element>
