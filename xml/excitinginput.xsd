@@ -226,7 +226,10 @@
 	</xs:element>
 	<!-- root element starts here -->
 	<xs:element name="input">
-		<xs:complexType>
+        <xs:annotation>
+          <xs:documentation>The input element Is the root element of the exciting input file. XML may contain only one root element. The Input element must contain one structure element and one groundstate element.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
 			<xs:annotation>
 				<xs:appinfo>
 					<oldname>noname</oldname>
@@ -276,7 +279,7 @@ structural information such as atoms atom positions and symmetries.
 					</xs:annotation>
 					<xs:complexType>
 						<xs:sequence>
-							<xs:element name="symmetries" maxOccurs="1" minOccurs="0">
+                            <xs:element name="symmetries" maxOccurs="1" minOccurs="0">
               <xs:annotation>
                 <xs:appinfo>
                   <notindocu />
@@ -298,8 +301,7 @@ structural information such as atoms atom positions and symmetries.
                                               <xs:documentation>defines lattice from a,b,c, and angles</xs:documentation>
                                             </xs:annotation>
                                             <xs:complexType>
-												<xs:attribute name="a" type="fortrandouble"
-													use="required" >
+												<xs:attribute name="a" type="fortrandouble" use="required">
                           <xs:annotation>
                           <xs:appinfo>
                           <oldname>noreplace</oldname>
@@ -307,52 +309,43 @@ structural information such as atoms atom positions and symmetries.
                           </xs:annotation>
                           </xs:attribute>
 
-												<xs:attribute name="b" type="fortrandouble"
-													use="required" > <xs:annotation>
+												<xs:attribute name="b" type="fortrandouble" use="required"> <xs:annotation>
                           <xs:appinfo>
                           <oldname>noreplace</oldname>
                           </xs:appinfo>
                           </xs:annotation>
                           </xs:attribute>
 
-												<xs:attribute name="c" type="fortrandouble"
-													use="required" > <xs:annotation>
+												<xs:attribute name="c" type="fortrandouble" use="required"> <xs:annotation>
                           <xs:appinfo>
                           <oldname>noreplace</oldname>
                           </xs:appinfo>
                           </xs:annotation>
                           </xs:attribute>
 
-												<xs:attribute name="ab" type="fortrandouble"
-													use="required" />
+												<xs:attribute name="ab" type="fortrandouble" use="required" />
 
-												<xs:attribute name="ac" type="fortrandouble"
-													use="required" />
+												<xs:attribute name="ac" type="fortrandouble" use="required" />
 
-												<xs:attribute name="bc" type="fortrandouble"
-													use="required" />
+												<xs:attribute name="bc" type="fortrandouble" use="required" />
 
-												<xs:attribute name="ncell" type="integertriple"
-													use="optional" default="1 1 1" >
+												<xs:attribute name="ncell" type="integertriple" use="optional" default="1 1 1">
 												  <xs:annotation>
 												    <xs:documentation>number of repeated cells in each direction</xs:documentation>
 												  </xs:annotation></xs:attribute>
 
 											</xs:complexType>
 										</xs:element>
-										<xs:element name="WyckoffPositions" maxOccurs="1"
-											minOccurs="0">
+										<xs:element name="WyckoffPositions" maxOccurs="1" minOccurs="0">
 											<xs:complexType>
 												<xs:sequence>
-													<xs:element name="wspecies" maxOccurs="unbounded"
-														minOccurs="0">
+													<xs:element name="wspecies" maxOccurs="unbounded" minOccurs="0">
                                                         <xs:annotation>
                                                           <xs:documentation></xs:documentation>
                                                         </xs:annotation>
                                                         <xs:complexType>
 															<xs:sequence>
-																<xs:element name="wpos" maxOccurs="unbounded"
-																	minOccurs="0">
+																<xs:element name="wpos" maxOccurs="unbounded" minOccurs="0">
 																	<xs:complexType>
 																		<xs:attribute name="coord" type="vect3d" />
 
@@ -367,8 +360,7 @@ structural information such as atoms atom positions and symmetries.
 											</xs:complexType>
 										</xs:element>
 									</xs:sequence>
-									<xs:attribute name="HermannMauguinSymbol" type="xs:string"
-										use="required">
+									<xs:attribute name="HermannMauguinSymbol" type="xs:string" use="required">
 										<xs:annotation>
 											<xs:documentation>Herman Mauguin sympol
 												giving the
@@ -387,7 +379,7 @@ structural information such as atoms atom positions and symmetries.
 
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="crystal" minOccurs="0" maxOccurs="1">
+                            <xs:element name="crystal" minOccurs="0" maxOccurs="1">
 								<xs:annotation>
 								  <xs:documentation>defines the unit cell of the calculation.
 									</xs:documentation>
@@ -567,7 +559,7 @@ structural information such as atoms atom positions and symmetries.
 							<xs:annotation>
 							  <xs:documentation> has to be set to true if one wants to calculate an isolated molecule.is <pre> true</pre>, then the atomic positions, <inlinemath>{\bf a}</inlinemath>,
    are assumed to be in Cartesian coordinates.
-  The lattice vectors are also set up automatically with the $i$th lattice
+  The lattice vectors are also set up automatically with the  i-th lattice
   vector given by <displaymath>  {\bf A}^i=A_i\hat{\bf e}^i, </displaymath>  where
 <displaymath>  A_i=\max_{\alpha,\beta}\left|{\bf a}^{\alpha}_i-{\bf a}^{\beta}_i\right|
   +d_{\rm vac} </displaymath>
@@ -591,7 +583,7 @@ structural information such as atoms atom positions and symmetries.
 						<xs:attribute name="autormt" type="xs:boolean"
 							default="false" >
 						  <xs:annotation>
-						    <xs:documentation>If thrue automatic determination of the muffin tin radii is allowed.</xs:documentation>
+						    <xs:documentation>If true automatic determination of the muffin tin radii is allowed.</xs:documentation>
 						  </xs:annotation></xs:attribute>
 
 
@@ -645,10 +637,10 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 								<xs:complexType>
 									<xs:attribute name="momfix" type="vect3d" default="0 0 0">
 										<xs:annotation>
-											<xs:documentation>
+										  <xs:documentation>
 												the desired total moment
 												for a FSM
-												calculation
+												calculation.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
@@ -743,7 +735,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="spinsprl" type="xs:boolean">
+                                    <xs:attribute name="spinsprl" type="xs:boolean">
 										<xs:annotation>
 											<xs:documentation>
 												set to
@@ -1074,7 +1066,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
                <xs:appinfo>
                  <oldname>nonreplace</oldname>
                </xs:appinfo>
-               <xs:documentation>Decides if the groundstate is read from file or recalculated </xs:documentation>
+               <xs:documentation>Decides if the groundstate is read from file or recalculated or continued from file.</xs:documentation>
              </xs:annotation>
              <xs:simpleType>
             <xs:restriction base="xs:string">
@@ -1140,10 +1132,9 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="swidth" type="fortrandouble"
 							default="0.001d0">
 							<xs:annotation>
-								<xs:documentation>width of the smooth approximation
-									to the
+							  <xs:documentation>width of the smooth approximation to the
 									Dirac
-									delta function</xs:documentation>
+									delta function.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="stype" default="Gaussian">
@@ -1202,7 +1193,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
             <xs:attribute name="findlinentype" default="advanced">
               <xs:annotation>
                 <xs:documentation>
-                  Method to determine the linearization energies
+               select   method to determine the linearization energies.
                
                 </xs:documentation>
               </xs:annotation>
@@ -1216,19 +1207,19 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="isgkmax" type="xs:integer"
 							default="-1">
 							<xs:annotation>
-								<xs:documentation>species for which the
+							  <xs:documentation>species for which the
 									muffin-tin radius
 									will be
-									used for calculating gkmax
+									used for calculating gkmax.
                 </xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="gmaxvr" type="fortrandouble"
 							default="12">
 							<xs:annotation>
-								<xs:documentation>maximum length of |G| for
+							  <xs:documentation>maximum length of |G| for
 									expanding the
-									interstitial density and potential
+									interstitial density and potential.
                 </xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1264,12 +1255,12 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						</xs:attribute>
 						<xs:attribute name="nosym" type="xs:boolean" default="false">
 							<xs:annotation>
-								<xs:documentation>
+							  <xs:documentation>
 									when set to
 									<pre>.true.</pre>
 									no symmetries, apart from the identity, are used
 									anywhere in the
-									code
+									code.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1278,10 +1269,10 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							<xs:annotation>
 							  <xs:documentation>
 									when set to
-									<pre>.true.</pre>
+									<pre>true</pre>
 									the frozen core approximation is applied, i.e., the
 									core states
-									are fixed to the atomic states
+									are fixed to the atomic states.
 		</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1304,7 +1295,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 									-point mesh. If
 									<pre>autokpt</pre>
 									is set to
-									<pre>.true.</pre>
+									<pre>true</pre>
 									then the mesh sizes will be determined by
 									<inlinemath>n_i=\lambda/|{ \bf A}_i|+1
 									</inlinemath>
@@ -1315,16 +1306,16 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="reducek" type="xs:boolean"
 							default="true">
 							<xs:annotation>
-								<xs:documentation>
+							  <xs:documentation>
 									<pre>reducek</pre>
 									set to
-									<pre>.true.</pre>
+									<pre>true</pre>
 									if the
 									<inlinemath>
 										<bf>k</bf>
 									</inlinemath>
 									-point set is to be reduced with the crystal
-									symmetries
+									symmetries.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1347,23 +1338,23 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						</xs:attribute>
 						<xs:attribute ref="tforce" default="false">
 							<xs:annotation>
-							  <xs:documentation>if the force should be calculated at the   end of the self-consistent cycle</xs:documentation>
+							  <xs:documentation>if the force should be calculated at the   end of the self-consistent cycle.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="lmaxapw" type="xs:integer"
 							default="10">
 							<xs:annotation>
-								<xs:documentation>angular momentum cut-off for
+							  <xs:documentation>angular momentum cut-off for
 									the APW
-									functions
+									functions.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="maxscl" type="xs:integer"
 							default="200">
 							<xs:annotation>
-								<xs:documentation>upper limit for te
-									selfconsistency loop
+							  <xs:documentation>upper limit for te
+									selfconsistency loop.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1523,10 +1514,10 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						</xs:attribute>
 						<xs:attribute name="nprad" type="xs:integer" default="4">
 							<xs:annotation>
-								<xs:documentation>smallest occupancy for which a
+							  <xs:documentation>smallest occupancy for which a
 									state
 									will
-									contribute to the density
+									contribute to the density.
                 </xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1707,9 +1698,9 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						</xs:attribute>
 						<xs:attribute name="vkloff" type="vect3d" default="0 0 0">
 							<xs:annotation>
-								<xs:documentation>the k-point offset vector in
+							  <xs:documentation>the k-point offset vector in
 									lattice
-									coordinates</xs:documentation>
+									coordinates.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="npsden" type="xs:integer"
@@ -1718,8 +1709,8 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							default="0">
 							<!-- sag -->
 							<xs:annotation>
-								<xs:documentation>damping coefficient for characteristic
-									function
+							  <xs:documentation>damping coefficient for characteristic
+									function.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1728,7 +1719,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							<!-- sag -->
 							<xs:annotation>
 							  <xs:documentation>
-									when set to .true., source fields are
+									when set to true, source fields are
 									projected out of the
 									exchange-correlation magnetic field.
 									experimental feature.
@@ -1740,7 +1731,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							<!-- sag -->
 							<xs:annotation>
 								<xs:documentation>
-									tevecsv is .true. if second-variational
+									tevecsv is true if second-variational
 									eigenvectors are calculated
 								</xs:documentation>
 							</xs:annotation>
@@ -1765,11 +1756,11 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 							default="true">
 							<!-- sag -->
 							<xs:annotation>
-								<xs:documentation>
-									ptnucl is .true. if the nuclei are to be
+							  <xs:documentation>
+									ptnucl is true if the nuclei are to be
 									treated as point charges, if .false.
 									! the nuclei have a finite
-									spherical distribution
+									spherical distribution.
 								</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1792,9 +1783,9 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:attribute name="epsforce" type="fortrandouble"
 							default="5e-5">
 							<xs:annotation>
-								<xs:documentation> convergence tolerance for the forces
+							  <xs:documentation> convergence tolerance for the forces
 									during a
-									structural optimisation run
+									structural optimisation run.
                 </xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
@@ -1861,13 +1852,16 @@ saved state from a previous run.
                                 </xs:annotation>
                                 <xs:complexType>
 									<xs:annotation>
-										<xs:documentation> create a bandstructure
+									  <xs:documentation> Create a bandstructure. Must contain plot1d element for bandstructure path.
                     </xs:documentation>
 									</xs:annotation>
 									<xs:all>
 										<xs:element ref="plot1d" />
 									</xs:all>
-									<xs:attribute ref="scissor" default="0d0" />
+									<xs:attribute ref="scissor" default="0d0" >
+									  <xs:annotation>
+									    <xs:documentation>value to shift bandgap.</xs:documentation>
+									  </xs:annotation></xs:attribute>
 									<xs:attribute name="character" type="xs:boolean"
 										default="false">
 										<xs:annotation>
@@ -1898,7 +1892,10 @@ saved state from a previous run.
 										</xs:documentation>
 									</xs:annotation>
 									<xs:all>
-										<xs:element ref="kstlist" minOccurs="0" />
+										<xs:element ref="kstlist" minOccurs="0" >
+										  <xs:annotation>
+										    <xs:documentation>List of kpoints of which the wave functions should be plotted.</xs:documentation>
+										  </xs:annotation></xs:element>
 										<xs:element ref="plot1d" minOccurs="0" />
 										<xs:element ref="plot2d" minOccurs="0" />
 										<xs:element ref="plot3d" minOccurs="0" />
@@ -1942,8 +1939,7 @@ saved state from a previous run.
 									</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
-									<xs:attribute name="sqados" default="0.0  0.0  1.0"
-										type="vect3d">
+                                    <xs:attribute name="sqados" default="0.0  0.0  1.0" type="vect3d">
 										<xs:annotation>
 											<xs:documentation>
 												spin-quantisation axis in Cartesian
@@ -1954,10 +1950,10 @@ saved state from a previous run.
 											</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="lmirep" type="xs:boolean"
+                                    <xs:attribute name="lmirep" type="xs:boolean"
 										default="false">
 										<xs:annotation>
-											<xs:documentation> When lmirep is set to .true.,
+											<xs:documentation> When lmirep is set to true,
 												the spherical
 												harmonic basis is transformed into
 												one in which the site
@@ -1978,18 +1974,18 @@ saved state from a previous run.
 									<xs:attribute name="nwdos" type="xs:integer"
 										default="500">
 										<xs:annotation>
-											<xs:documentation> number of frequency/energy
+										  <xs:documentation> number of frequency/energy
 												points in the
-												DOS or op- integer 500 tics plot
+												DOS 
                       </xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="ngrdos" type="xs:integer"
 										default="100">
 										<xs:annotation>
-											<xs:documentation> effective k-point mesh size to
+										  <xs:documentation> effective k-point mesh size to
 												be used for
-												Brillouin zone integer
+												Brillouin zone integration.
                       </xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
@@ -2046,31 +2042,31 @@ saved state from a previous run.
 									<xs:attribute name="deltaem" type="fortrandouble"
 										default="0.025d0">
 										<xs:annotation>
-											<xs:documentation> The size of the k-vector
+										  <xs:documentation> The size of the k-vector
 												displacement used
 												when calculating numerical
 												derivatives for the effective mass
-												tensor
+												tensor.
                       </xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="ndspem" type="xs:integer"
 										default="1">
 										<xs:annotation>
-											<xs:documentation> the number of k-vector
+										  <xs:documentation> the number of k-vector
 												displacements in
 												each direction around vklem
 												when computing the numerical
 												derivatives for the
-												effective mass tensor</xs:documentation>
+												effective mass tensor.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="vklem" type="vect3d" default="0 0 0">
 										<xs:annotation>
-											<xs:documentation> the k-point in lattice
+										  <xs:documentation> the k-point in lattice
 												coordinates at which
 												to compute the effective
-												mass tensors</xs:documentation>
+												mass tensors.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
@@ -2311,7 +2307,7 @@ saved state from a previous run.
 								<xs:documentation>
 									<pre>reduceq</pre>
 									set to
-									<pre>.true.</pre>
+									<pre>true</pre>
 									if the
 									<inlinemath>
 										<bf>q</bf>
@@ -2373,7 +2369,7 @@ saved state from a previous run.
 					        </xs:all>
 					        <xs:attribute name="intraband" type="xs:boolean" default="false" >
 					        	<xs:annotation>
-					        		<xs:documentation>intraband is .true. if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+					        		<xs:documentation>intraband is true if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
 					        	</xs:annotation></xs:attribute>
 					        <xs:attribute name="torddf" type="xs:boolean" default="false" />
 					        <xs:attribute name="tordfxc" type="xs:boolean" default="false" />
@@ -2532,7 +2528,7 @@ saved state from a previous run.
 					          	<xs:appinfo>
 					          		<oldname>nosymscr</oldname>
 					          	</xs:appinfo>
-					          	<xs:documentation>nosym is .true. if no symmetry information should be used</xs:documentation>
+					          	<xs:documentation>nosym is true if no symmetry information should be used</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="ngridk" type="integertriple" default="0 0 0">
@@ -2548,7 +2544,7 @@ saved state from a previous run.
 					          	<xs:appinfo>
 					          		<oldname>reducekscr</oldname>
 					          	</xs:appinfo>
-					          	<xs:documentation>reducek is .true. if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+					          	<xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
@@ -2604,7 +2600,7 @@ saved state from a previous run.
 					          	<xs:appinfo>
 					          		<oldname>reducekbse</oldname>
 					          	</xs:appinfo>
-					          	<xs:documentation>reducek is .true. if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+					          	<xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
 					          </xs:annotation>
 					        </xs:attribute>
 					        <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
@@ -3171,7 +3167,7 @@ saved state from a previous run.
 					    	<xs:appinfo>
 					    		<oldname>nosymxs</oldname>
 					    	</xs:appinfo>
-					    	<xs:documentation>nosym is .true. if no symmetry information should be used</xs:documentation></xs:annotation>
+					    	<xs:documentation>nosym is true if no symmetry information should be used</xs:documentation></xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="ngridk" type="integertriple" default="1 1 1">
 					    <xs:annotation>
@@ -3193,7 +3189,7 @@ saved state from a previous run.
 					    	<xs:appinfo>
 					    		<oldname>reducekxs</oldname>
 					    	</xs:appinfo>
-					    	<xs:documentation>reducek is .true. if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+					    	<xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="ngridq" type="integertriple" default="1 1 1">
@@ -3209,7 +3205,7 @@ saved state from a previous run.
 					    	<xs:appinfo>
 					    		<oldname>reduceqxs</oldname>
 					    	</xs:appinfo>
-					    	<xs:documentation>reducek is .true. if q-points are to be reduced (with crystal symmetries)</xs:documentation>
+					    	<xs:documentation>reducek is true if q-points are to be reduced (with crystal symmetries)</xs:documentation>
 					    </xs:annotation>
 					  </xs:attribute>
 					  <xs:attribute name="rgkmax" type="fortrandouble" default="7">
