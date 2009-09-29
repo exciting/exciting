@@ -175,9 +175,11 @@
     <xsl:text />
     <xsl:text>
 [[f>toc]]
-+ &lt;Root&gt;  </xsl:text>
+The reference is automatically generated from the schema. Edits of this page will be overwritten eventually.
 
-		<xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/root"/>
++ Root &lt;</xsl:text>
+
+		<xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/root"/>&gt;
 		<xsl:text>
 [[# input]]</xsl:text>
 

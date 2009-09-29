@@ -203,14 +203,11 @@
 	</xs:element>
 	<xs:element name="inputset">
 		<xs:annotation>
-			<xs:documentation>The inputset element can be used to store a
-				set
-				of
-				input elements, this may be useful for simulations rows.
+		  <xs:documentation>The inputset element can be used to store a set of 	input elements. It is not used by exciting now but will be usefull eventually.
 			</xs:documentation>
-			<xs:appinfo>
-				<oldname>noname</oldname>
-			</xs:appinfo>
+		  <xs:appinfo>
+		    <oldname>noname</oldname>
+		  </xs:appinfo>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
@@ -227,7 +224,7 @@
 	<!-- root element starts here -->
 	<xs:element name="input">
         <xs:annotation>
-          <xs:documentation>The input element Is the root element of the exciting input file. XML may contain only one root element. The Input element must contain one structure element and one groundstate element.</xs:documentation>
+          <xs:documentation>The input element Is the root element of the exciting input file. XML may contain only one root element. The input element must contain one structure element and one groundstate element.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
 			<xs:annotation>
