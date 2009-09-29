@@ -65,9 +65,9 @@ type(input_type),pointer::input
     type structure_type
  character(1024)::speciespath
  logical::molecule
+ real(8)::vacuum
  real(8)::epslat
  logical::autormt
- real(8)::vacuum
  logical::primcell
  logical::tshift
   type(symmetries_type),pointer::symmetries
@@ -182,7 +182,6 @@ type groundstate_type
  real(8)::fracinr
  integer::lmaxinr
  integer::lmaxmat
- integer::kdotpgrid(3)
  real(8)::vkloff(3)
  integer::npsden
  real(8)::cfdamp
@@ -197,8 +196,8 @@ type groundstate_type
   type(RDMFT_type),pointer::RDMFT
 end type
 type spin_type
- real(8)::bfieldc(3)
  real(8)::momfix(3)
+ real(8)::bfieldc(3)
  logical::spinorb
  logical::spinsprl
  real(8)::vqlss(3)
@@ -961,6 +960,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"vacuum")
+getstructstructure%vacuum=10
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"vacuum",getstructstructure%vacuum)
+       call removeAttribute(thisnode,"vacuum")      
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"epslat")
 getstructstructure%epslat=1e-6
 if(associated(np)) then
@@ -974,14 +981,6 @@ getstructstructure%autormt= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"autormt",getstructstructure%autormt)
        call removeAttribute(thisnode,"autormt")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vacuum")
-getstructstructure%vacuum=10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vacuum",getstructstructure%vacuum)
-       call removeAttribute(thisnode,"vacuum")      
 endif
 
 nullify(np)  
@@ -1750,13 +1749,6 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"kdotpgrid")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"kdotpgrid",getstructgroundstate%kdotpgrid)
-       call removeAttribute(thisnode,"kdotpgrid")      
-endif
-
-nullify(np)  
 np=>getAttributeNode(thisnode,"vkloff")
 getstructgroundstate%vkloff=(/0,0,0/)
 if(associated(np)) then
@@ -1872,19 +1864,19 @@ allocate(getstructspin)
 #endif
       
 nullify(np)  
-np=>getAttributeNode(thisnode,"bfieldc")
-getstructspin%bfieldc=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bfieldc",getstructspin%bfieldc)
-       call removeAttribute(thisnode,"bfieldc")      
-endif
-
-nullify(np)  
 np=>getAttributeNode(thisnode,"momfix")
 getstructspin%momfix=(/0,0,0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"momfix",getstructspin%momfix)
        call removeAttribute(thisnode,"momfix")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"bfieldc")
+getstructspin%bfieldc=(/0,0,0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"bfieldc",getstructspin%bfieldc)
+       call removeAttribute(thisnode,"bfieldc")      
 endif
 
 nullify(np)  

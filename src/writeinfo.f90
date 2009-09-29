@@ -32,6 +32,7 @@ implicit none
 integer::fnum
 ! local variables
 integer::i, is, ia
+
 character(10)::dat, tim
 write(fnum, '(" +---------------------------+")')
 write(fnum, '(" | EXCITING hydrogen started |")')

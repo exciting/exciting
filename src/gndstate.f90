@@ -450,7 +450,7 @@ use scl_xml_out_Module
 	   if(rank.eq.0) then
               ! output forces to INFO.OUT
   call writeforce(60)
-  call structure_xmlout()
+
 
               ! write maximum force magnitude to FORCEMAX.OUT
   write(64, '(G18.10)') forcemax
@@ -528,8 +528,10 @@ use scl_xml_out_Module
 	call MPI_Bcast(engynn, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 
 #endif
+
 	if(redoscl)  goto 10
      end if
+      if(rank.eq.0)  call structure_xmlout()
 30 continue
      ! output timing information
      if(rank.eq.0)then
