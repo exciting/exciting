@@ -9,10 +9,10 @@ ctxt = eVdoc.xpathNewContext()
 Volume=nm.array(map(float,map(xmlAttr.getContent,ctxt.xpathEval("//@volume"))))
 totalEnergy=nm.array(map(float,map(xmlAttr.getContent,ctxt.xpathEval("//@totalEnergy"))))
 # make quadratic fit
-p=nm.polyfit(Volume,totalEnergy,3)
+p=nm.polyfit(Volume,totalEnergy,2)
 curve=nm.poly1d(p)
 # find root of derivative to get minimum
-minv=nm.roots(nm.polyder(p))[1]
+minv=nm.roots(nm.polyder(p))
 print 'minimum Volume '+str(minv)
 print 'minimum energy at scale '+str(pow(minv/2,1./3.))
 # x values for plotting polynomial
