@@ -227,8 +227,10 @@ contains
                 dummy => appendChild(forces, nnewline)
              endif
           end do
-          write(buffer,'(G22.12)')forcemax
-          call setAttribute(structure, "forceMax", trim(adjustl(buffer)))
+          if (input%groundstate%tforce) then
+             write(buffer,'(G22.12)')forcemax
+             call setAttribute(structure, "forceMax", trim(adjustl(buffer)))
+          endif
           nnewline =>createTextNode(scldoc,  newline//"      ")
           dummy => appendChild(species, nnewline)
        end do
