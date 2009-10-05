@@ -1,12 +1,13 @@
 include ../make.inc
 
 FC = $(F90MT) $(CPP_ON_OPT) -Ifinclude
-F90=$(FC)
+
 F77=$(F77MT)
 ### default
 FFLAGS = $(SMPF90_OPTS) 
 LD = $(FC)
-LDFLAGS = $(SMPF90_OPTS)  $(SMP_LIBS) leblaiklib.a libmsec.a -Llib -lFoX_common	-lFoX_dom	-lFoX_fsys	-lFoX_sax	-lFoX_utils	-lFoX_wcml	-lFoX_wxml
+LDFLAGS = $(SMPF90_OPTS)  $(SMP_LIBS) libmsec.a leblaiklib.a -L./lib -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
 F77_OPTS =$(SMPF77_OPTS)
 TMPFILES = *.mod
 SUFFIX=smp
+

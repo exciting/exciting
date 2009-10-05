@@ -10,7 +10,7 @@
 
 <!-- Loop over all elements named "set" from reference xml-file -->
 <xsl:for-each select = "/experiment/set">
-<xsl:variable name="path">
+<xsl:variable name="path"> 
 <xsl:value-of select="@path"/>
 <xsl:text>/</xsl:text>
 <xsl:value-of select="$inputfilename"></xsl:value-of>
