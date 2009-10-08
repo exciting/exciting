@@ -18,7 +18,7 @@ subroutine loadinputDOM()
   call setParameter(config, "validate-if-schema", .true.)
   doc => parseFile("input.xml",config)
   inputnp=>getDocumentElement(doc)
-  nullnode =>getattributenode(inputnp,"schouldneverexist")
+  nullnode =>getattributenode(inputnp,"shouldneverexist")
   parseerror=.false.
    dummy => createDocument(getImplementation(), "", "info", null())
    emptynode=>createElementNS(dummy, "", "empty")

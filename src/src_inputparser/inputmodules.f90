@@ -4547,7 +4547,7 @@ function countChildEmentsWithName(nodep,name)
 
 end function  
     
-! this are some transient helper functions to simplify the port (schouldnt be used)
+! these are some transient helper functions to simplify the port (should not be used)
 function isspinorb()
 logical::isspinorb
 isspinorb=.false.
