@@ -78,5 +78,9 @@ clean:
 	rm -r debian/debian/usr
 
 tgz::
-	tar  --exclude-from=".gitignore" -C"../" -c -v -z -f ../exciting.tgz  ./exciting
+	tar  --exclude-from=".gitignore" -C"../" -c -v  -f ../exciting.tar  ./exciting
+	tar   -C"../" -r -v  -f ../exciting.tar   ./exciting/.git/HEAD  ./exciting/.git/refs
+	gzip  -f ../exciting.tar 
+	
+	
 

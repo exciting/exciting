@@ -16,3 +16,6 @@ close HEAD;
 open VERISIONINC,">", "../../src/version.inc";
 print VERISIONINC "\#define GITHASH \"$hash\"\n";
 close VERISIONINC;
+open DEBH,">", "../../debian/version";
+print DEBH "Package: exciting\nVersion: $hash\n";
+close DEBH;

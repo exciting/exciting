@@ -13,7 +13,9 @@ version.inc
 *.mod
 *.a
 *.old
+.deps
 bin/*
+*.arg
 excitingmpi
 excitingsmp
 exciting_debug
@@ -21,6 +23,8 @@ exciting_gfortran
 exciting_interfaces
 *.OUT
 *.OUT.*
+.out.xml
+build/*/exciting
 .cdtproject
 .cproject
 .project

@@ -1,3 +1,4 @@
+#include "../version.inc"
 module scl_xml_out_Module
   use FoX_dom
   use mod_energy
@@ -46,6 +47,8 @@ contains
        write(buffer, '( A2, ":", A2, ":", A2)') tim(1:2), tim(3:4), &
             tim(5:6)
        call setAttribute(root, "time", trim(adjustl(buffer)))
+       buffer=GITHASH
+        call setAttribute(root, "versionhash", trim(adjustl(buffer)))
 
 
     endif

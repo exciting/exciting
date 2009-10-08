@@ -1,10 +1,10 @@
 include ../make.inc
-
+include ../libraries.inc
 FC = $(MPIF90) 
 ### default
 FFLAGS = $(MPIF90_OPTS) -Ifinclude
 ### debug
 LD = $(FC)
-LDFLAGS =$(MPI_OPTS) $(LIBS) libmsec.a leblaiklib.a   -L./lib -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
+LDFLAGS =$(MPI_OPTS) $(LIBS) $(INTERNALLIBS)
 TMPFILES = *.mod
 SUFFIX=mpi

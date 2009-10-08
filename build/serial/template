@@ -1,9 +1,10 @@
 include ../make.inc
+include ../libraries.inc
 
 FC = $(F90)
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPT) -I./finclude
 LD = $(FC)
-LDFLAGS = $(F90_OPTS) $(LIBS) libmsec.a leblaiklib.a -L./lib -lFoX_dom -lFoX_sax -lFoX_utils -lFoX_wcml -lFoX_wxml -lFoX_fsys  -lFoX_common
+LDFLAGS = $(F90_OPTS) $(LIBS) $(INTERNALLIBS)
 AR = ar
 ARFLAGS = -rc
 F77=$(F77) $(F77_OPTS)
