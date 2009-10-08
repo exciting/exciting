@@ -17,13 +17,13 @@ F77_DEBUGOPTS=-g
 
 #Ignore if you don't have MPI or smplibs
  
-MPIF90=mpxlf90
+MPIF90=mpxlf95
 MPIF90_OPTS=$(F90_OPTS)$(CPP_ON_OPT) -WF,-DMPI,-DMPIRHO,-DMPISEC
 
 F77MT=xlf_r
-F90MT=xlf90_r
+F90MT=xlf95_r
 SMP_LIBS= liblapack.a -lesslsmp $(LIB_FFT) $(LIB_BZINT) $(LIB_ARP)
 SMPF90_OPTS=$(F90_OPTS) -qsmp=noomp:noauto 
 SMPF77_OPTS=$(SMPF90_OPTS) 
 MPISMPF90_OPTS=$(SMPF90_OPTS)  -WF,-DMPI,-DMPIRHO,-DMPISEC
-MPIF90MT=mpxlf90_r
+MPIF90MT=mpxlf95_r
