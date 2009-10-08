@@ -1,11 +1,19 @@
-#! /bin/sh
+#! /bin/bash
 
 rm -r ./debian/usr
 mkdir -p ./debian/usr
 mkdir -p ./debian/usr/share
 mkdir -p ./debian/usr/share/exciting/doc
 mkdir -p ./debian/usr/bin
-cat version control.part2 >./debian/DEBIAN/control
+
+dpkg-architecture>plattform
+source  ./plattform 
+cat version >./debian/DEBIAN/control
+echo "Section: science" >>./debian/DEBIAN/control
+echo "Priority: optional"  >>./debian/DEBIAN/control
+echo "Architecture:" $DEB_BUILD_ARCH  >>./debian/DEBIAN/control
+cat control.part2 >>./debian/DEBIAN/control
+
 
 cp ../docs/exciting/excitinginput.pdf 	\
 ../docs/spacegroup/spacegroup.pdf \
