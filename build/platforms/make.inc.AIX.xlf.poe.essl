@@ -1,5 +1,5 @@
-F90=xlf90
-F90_OPTS =-O3 
+F90=xlf95
+F90_OPTS = -O3 -qstrict 
 CPP_ON_OPT = -qsuffix=cpp=f90  -WF,-DxlC,-DXS,-DISO,-DTETRA
 F77 =xlf
 F77_OPTS = -O3 
