@@ -1,6 +1,6 @@
 Depends: libxml2,libxslt
 Recommends:
-Maintainer: Stephan Sagmeister <stephan.sagmeister@gmail.com>
+Maintainer: Christian Meisenbichler <christian.meisenbichler@mu-leoben.at>
 Description: Full-potential linearised augmented-plane wave (FP-LAPW) code
  A full-potential linearised augmented-plane wave (FP-LAPW) code with many
  advanced features. Written mainly at Karl-Franzens-Universität Graz as a 
