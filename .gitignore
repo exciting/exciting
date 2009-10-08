@@ -16,6 +16,7 @@ version.inc
 .deps
 bin/*
 *.arg
+info.xml
 excitingmpi
 excitingsmp
 exciting_debug

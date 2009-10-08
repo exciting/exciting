@@ -32,13 +32,12 @@ implicit none
 integer::fnum
 ! local variables
 integer::i, is, ia
-
+#include "version.inc"s
 character(10)::dat, tim
-write(fnum, '(" +---------------------------+")')
-write(fnum, '(" | EXCITING hydrogen started |")')
-#include "version.inc"
-write(fnum, *)"| git hash id ", GITHASH, " |"
-write(fnum, '(" +---------------------------+")')
+write(fnum, '(" +-----------------------------------+")')
+write(fnum, '(" | EXCITING hydrogen"I2"."I2"."I2" started |")')version
+write(fnum, *)"| git hash id ", GITHASH, "  |"
+write(fnum, '(" +-----------------------------------+")')
 if (notelns.gt.0) then
   write(fnum, *)
   write(fnum, '("Notes :")')

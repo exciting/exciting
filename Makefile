@@ -80,7 +80,8 @@ clean:
 tgz::
 	tar  --exclude-from=".gitignore" -C"../" -c -v  -f ../exciting.tar  ./exciting
 	tar   -C"../" -r -v  -f ../exciting.tar   ./exciting/.git/HEAD  ./exciting/.git/refs
-	gzip  -f ../exciting.tar 
+	gzip  -f --best ../exciting.tar 
+	du -h ../exciting.tar.gz 
 	
 	
 

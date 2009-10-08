@@ -1,8 +1,11 @@
+#include "../../../src/version.inc"
 program test
 use inputdom
 use modinput
 use scl_xml_out_Module
+use mod_misc
 implicit none
+ version= (VERSIONFROMDATE)
 call loadinputDOM()
 call setdefault
 input=getstructinput(inputnp)
