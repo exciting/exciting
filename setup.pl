@@ -24,7 +24,7 @@ foreach $file (@makeincfiles){
 	   }
 	}
 }
-print "\n enter the number of the platform that suites your system best:\n\n";
+print "\nEnter the number of the platform that suites your system best:  ";
 $sel=<>;
 
 if ($sel>$count-1 || $sel<1 || $sel=~m/^$/ || $sel!~m/^\d+$/) {
@@ -32,8 +32,8 @@ if ($sel>$count-1 || $sel<1 || $sel=~m/^$/ || $sel!~m/^\d+$/) {
 	exit;
 }else{
 
-print "\nyou use the makefile from:\n\n build/platforms/" . @fileslist[$sel];
-print "\n\nif it doesnt compile, edit build/make.inc and type make again"
+print "\nYou use the makefile from:\n\n build/platforms/" . @fileslist[$sel];
+print "\n\nIf it doesnt compile, edit build/make.inc and type make again"
 }
 
 $filename="build/platforms/" . @fileslist[$sel];
@@ -43,13 +43,13 @@ $return= system(@args);
 
 $selected=0;
 while($selected==0){
-	print "\nif you have MPI installed you can build exciting with k-point parallelization support\n\n";
-	print "build MPI binary (yes/No)\n";
+	print "\nIf you have MPI installed you can build exciting with k-point parallelization support.\n\n";
+	print "build MPI binary ? (yes/No)  ";
 	$MPI=<>;
 	if($MPI=~m/yes/i){
 		$selected=1;
 		system("echo \"BUILDMPI=true\">>build/make.inc");
-print "select the mechanism to include MPI interface variables\n";
+print "Select the mechanism to include MPI interface variables\n";
 print "    1 use MPI module (f90 interfaces) recommended if available\n";
 print "    2 use #include <mpif.h> required by some MPI implementations 
 (edit path in build mpiconf.inc if mpif.h is not in your includepath)\n";
@@ -69,8 +69,8 @@ system(("cp", "build/platforms/$includefile", "build/mpiconf.inc"));
 
 $selected=0;
 while($selected==0){
-print "\nif you have multithreaded BLAS/LAPACK installed you can build exciting with SMP support\n\n";
-print "build SMP lib binary (yes/No)\n";
+print "\nIf you have multithreaded BLAS/LAPACK installed you can build exciting with SMP support.\n\n";
+print "build SMP lib binary (yes/No)  ";
 $SMP=<>;
 if($SMP=~m/yes/i){
 	system("echo \"BUILDSMP=true\">>build/make.inc");
