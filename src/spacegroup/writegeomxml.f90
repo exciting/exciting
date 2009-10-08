@@ -7,7 +7,7 @@ implicit none
 integer::is, ia, ip, i
 character(128)::buffer
  type(xmlf_t), save::xf
-call xml_OpenFile ("geometry.xml", xf, replace=.true., pretty_print=.true.)
+call xml_OpenFile ("geometry.out.xml", xf, replace=.true., pretty_print=.true.)
 call xml_NewElement(xf, "input")
 call xml_NewElement(xf, "structure")
 if(input%structure%primcell) buffer="true"
@@ -74,7 +74,7 @@ end do
 write(*, *)
 write(*, '("Info(writegeom):")')
 write(*, '(" EXCITING lattice vectors and atomic positions written to &
- &geometry.xml")')
+ &geometry.out.xml")')
  call xml_close(xf)
 return
 end subroutine

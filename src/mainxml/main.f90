@@ -1,10 +1,12 @@
+#include "version.inc"
 program main
 use inputdom
 use modinput
 use scl_xml_out_Module
 use modmpi
-
+use mod_misc
 implicit none
+ version= (VERSIONFROMDATE)
  call initMPI()
 call loadinputDOM()
 call setdefault

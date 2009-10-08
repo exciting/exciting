@@ -8,7 +8,7 @@ use modinput
 !---------------------------------!
 ! code version
 integer::version(3)
-data version / 0, 9, 224 /
+
 ! maximum number of tasks
 integer, parameter :: maxtasks=40
 ! number of tasks
