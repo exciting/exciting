@@ -8,7 +8,8 @@ mkdir -p ./debian/usr/bin
 
 dpkg-architecture>plattform
 source  ./plattform 
-cat version >./debian/DEBIAN/control
+echo "Package: exciting" >./debian/DEBIAN/control
+date  "+Version: %y.%m.%d" >>./debian/DEBIAN/control
 echo "Section: science" >>./debian/DEBIAN/control
 echo "Priority: optional"  >>./debian/DEBIAN/control
 echo "Architecture:" $DEB_BUILD_ARCH  >>./debian/DEBIAN/control
