@@ -14,7 +14,7 @@
 </species>
 </structure>
 <groundstate vkloff="0.5  0.5  0.5" nempty="10" ngridk="10 10 10" mixer="lin">
-<spin bfieldc="0.0  0.0  0.01"></spin>
+<spin bfieldc="0.0  0.0  0.01" spinorb="false"></spin>
 </groundstate>
 <properties>
   <bandstructure>

@@ -4,7 +4,7 @@
   scratchpath="/tmp/chm/1">
   <title></title>
   <structure speciespath="../../species/">
-    <crystal scale="3.75">
+    <crystal scale="3.75" >
       <basevect>1.0 1.0 0.0</basevect>
       <basevect>1.0 0.0 1.0</basevect>
       <basevect>0.0 1.0 1.0</basevect>
