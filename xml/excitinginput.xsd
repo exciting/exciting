@@ -439,7 +439,7 @@ structural information such as atoms atom positions and symmetries.
 												</xs:appinfo>
 											</xs:annotation>
 											<xs:complexType>
-												<xs:attribute name="coord" type="vect3d">
+												<xs:attribute name="coord" type="vect3d" use="required">
 													<xs:annotation>
 											      <xs:documentation>position in lattice coordinates</xs:documentation>
 														<xs:appinfo>
@@ -447,12 +447,12 @@ structural information such as atoms atom positions and symmetries.
 														</xs:appinfo>
 													</xs:annotation>
 												</xs:attribute>
-											  <xs:attribute name="bfcmt" type="vect3d" default="0 0 0">
+											  <xs:attribute name="bfcmt" type="vect3d" default="0 0 0" use="optional">
 													<xs:annotation>
 											      <xs:documentation>muffin-tin external magnetic field in Cartesian coordinates for atom</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
-											  <xs:attribute name="mommtfix" type="vect3d"></xs:attribute>
+											  <xs:attribute name="mommtfix" type="vect3d" use="optional"></xs:attribute>
 											</xs:complexType>
 										</xs:element>
 										<xs:element name="LDAplusu" minOccurs="0">

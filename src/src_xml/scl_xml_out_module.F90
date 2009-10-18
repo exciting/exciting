@@ -49,7 +49,7 @@ contains
        call setAttribute(root, "time", trim(adjustl(buffer)))
        buffer=GITHASH
         call setAttribute(root, "versionhash", trim(adjustl(buffer)))
-
+		call setAttribute(root, "title", trim(adjustl(input%title)))
 
     endif
 

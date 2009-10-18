@@ -23,7 +23,7 @@
  <!-- Write document at Path $path -->
 <xsl:text>cd </xsl:text> <xsl:value-of select="$path"/>
 <xsl:text> 
-../../../bin/excitingser
+excitingser
 cd -
 </xsl:text>
 </xsl:for-each>

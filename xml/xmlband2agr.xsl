@@ -6,17 +6,8 @@
   <xsl:param name="l" select="false"/>
     <xsl:text>
 @version 50122
-@ default font 12
 @ default linewidth 2.0
 @ page resize 600, 600
-@ string font 12
-@ title font 12
-@ subtitle font 12
-@ xaxis  label font 12
-@ xaxis  ticklabel font 12
-@ yaxis  label font 12
-@ yaxis  ticklabel font 12
-@ legend font 12
 @ with line
 @     line on
 @     line loctype world
