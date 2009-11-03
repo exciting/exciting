@@ -7,7 +7,7 @@
 	<!--  global type definitions -->
 	<xs:simpleType name="fortrandouble">
 		<xs:restriction base="xs:token">
-			<xs:pattern value="[-]?[0-9]*\.?[0-9]+([eEdDqQ][-+]?[0-9]+)?" />
+			<xs:pattern value="\-?[0-9]*\.?[0-9]+([eEdDqQ][\-+]?[0-9]+)?" />
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:annotation>
@@ -619,17 +619,12 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 						<xs:all>
 							<xs:element name="spin" minOccurs="0" maxOccurs="1">
 								<xs:annotation>
-									<xs:documentation>
-										If present calculation is done
-										with spin
-										polarization it may be
-										switched of with the spinpol
-										attribute
-										set to false
-									</xs:documentation>
-									<xs:appinfo>
-										<oldname>spinpol</oldname>
-									</xs:appinfo>
+								  <xs:documentation>
+										If the <spin/> element is present calculation is done
+										with spin polarization.</xs:documentation>
+								  <xs:appinfo>
+								    <oldname>spinpol</oldname>
+								  </xs:appinfo>
 								</xs:annotation>
 								<xs:complexType>
 									<xs:attribute name="momfix" type="vect3d" default="0 0 0">
@@ -713,7 +708,7 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 									</xs:attribute>
                                     <xs:attribute name="spinorb" type="xs:boolean">
 										<xs:annotation>
-											<xs:documentation>
+										  <xs:documentation>
 												if a spin-orbit coupling
 												is required If
 												<pre>spinorb</pre>
@@ -726,12 +721,11 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 												</inlinemath>
 												term is added to the
 												second-variational
-												Hamiltonian. See
-												<pre>spinpol</pre>
+												Hamiltonian. 
 												.
 											</xs:documentation>
 										</xs:annotation>
-									</xs:attribute>
+                                    </xs:attribute>
                                     <xs:attribute name="spinsprl" type="xs:boolean">
 										<xs:annotation>
 											<xs:documentation>

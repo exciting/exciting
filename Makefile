@@ -57,7 +57,7 @@ libs:
 	cd build/serial; $(MAKE) libs
 
 debian:all doc
-	cd debian &&  sh makepackage.sh
+	cd debian &&   bash makepackage.sh
 
 clean:
 
