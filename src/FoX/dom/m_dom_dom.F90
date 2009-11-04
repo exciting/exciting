@@ -87,7 +87,7 @@ module m_dom_dom
 !!$    .true.,  & ! discard-default-content
 !!$    .false., & ! format-pretty-print
 !!$    .true.  /) ! xml-declaration
-  integer, parameter :: paramSettable = 127956694
+  integer, parameter :: paramSettable = ibset(127956694,22)
 
 !!$  logical, parameter :: paramDefaults(26) = (/ &
 !!$    .false., & ! canonical-form
@@ -157,7 +157,7 @@ module m_dom_dom
   type ListNode
     private
     type(Node), pointer :: this => null()
-  end type ListNode 
+  end type ListNode
 
   type NodeList
     private
@@ -214,7 +214,7 @@ module m_dom_dom
   end type elementOrAttributeExtras
 
   type docTypeExtras
-    character, pointer :: publicId(:) => null() ! doctype, entity, notation 
+    character, pointer :: publicId(:) => null() ! doctype, entity, notation
     character, pointer :: systemId(:) => null() ! doctype, entity, notation
     character, pointer :: notationName(:) => null() ! entity
     logical :: illFormed = .false. ! entity
@@ -277,7 +277,7 @@ module m_dom_dom
   public :: destroyAllNodesRecursively
 
 
-  
+
   public :: getNodeName
   public :: getNodeValue
   public :: setNodeValue
@@ -295,7 +295,7 @@ module m_dom_dom
   public :: removeChild
   public :: appendChild
   public :: hasChildNodes
-  public :: cloneNode  
+  public :: cloneNode
   public :: normalize
   public :: isSupported
   public :: getNamespaceURI
@@ -327,11 +327,11 @@ module m_dom_dom
   public :: pop_nl
   public :: remove_nl
   public :: destroyNodeList
-  
+
   interface append
     module procedure append_nl
   end interface
-  
+
   interface item
     module procedure item_nl
   end interface
@@ -383,7 +383,7 @@ module m_dom_dom
   public :: getImplementation
   public :: getDocumentElement
   public :: setDocumentElement
-  
+
   public :: createElement
   public :: createDocumentFragment
   public :: createTextNode
@@ -433,7 +433,7 @@ module m_dom_dom
   public :: getInternalSubset
 
 
-  
+
   public :: getTagName
   public :: getAttribute
   public :: setAttribute
@@ -490,7 +490,7 @@ module m_dom_dom
   end interface
 
 
-  
+
   public :: getNotationName
 
   public :: getIllFormed
@@ -500,7 +500,7 @@ module m_dom_dom
 
   public :: getTarget
 
-  
+
   public :: splitText
   public :: getIsElementContentWhitespace
   public :: setIsElementContentWhitespace
@@ -515,7 +515,7 @@ module m_dom_dom
   public :: getSystemId
 
 
-  
+
   public :: normalizeDocument
 
   public :: getNamespaceNodes
@@ -652,7 +652,7 @@ endif
 
   end subroutine setParameter
 
-  recursive function getParameter(domConfig, name, ex)result(value) 
+  recursive function getParameter(domConfig, name, ex)result(value)
     type(DOMException), intent(out), optional :: ex
     type(DOMConfiguration), pointer :: domConfig
     character(len=*), intent(in) :: name
@@ -696,7 +696,7 @@ endif
 
   end function getParameter
 
-  function canSetParameter_log(domConfig, name, value, ex)result(p) 
+  function canSetParameter_log(domConfig, name, value, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     type(DOMConfiguration), pointer :: domConfig
     character(len=*), intent(in) :: name
@@ -724,7 +724,7 @@ endif
 
   end function canSetParameter_log
 
-  function canSetParameter_ch(domConfig, name, value, ex)result(p) 
+  function canSetParameter_ch(domConfig, name, value, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     type(DOMConfiguration), pointer :: domConfig
     character(len=*), intent(in) :: name
@@ -738,7 +738,7 @@ endif
 
   end function canSetParameter_ch
 
-  function getParameterNames(domConfig, ex)result(s) 
+  function getParameterNames(domConfig, ex)result(s)
     type(DOMException), intent(out), optional :: ex
     type(DOMConfiguration), pointer :: domConfig
     character(len=configParamLen) :: s(size(configParams))
@@ -765,7 +765,7 @@ endif
 
 
 
-  function createNode(arg, nodeType, nodeName, nodeValue, ex)result(np) 
+  function createNode(arg, nodeType, nodeName, nodeValue, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     integer, intent(in) :: nodeType
@@ -904,7 +904,7 @@ endif
     ! Only recurses once into destroyDocumentType
     type(Node), pointer :: arg
     logical, intent(in), optional :: except
-    
+
     type(Node), pointer :: this, deadNode, treeroot
     logical :: doneChildren, doneAttributes
     integer :: i_tree
@@ -988,7 +988,7 @@ endif
 
   subroutine destroyNodeContents(np)
     type(Node), intent(inout) :: np
-    
+
     if (associated(np%nodeName)) deallocate(np%nodeName)
     if (associated(np%nodeValue)) deallocate(np%nodeValue)
 
@@ -1010,7 +1010,7 @@ endif
       n = 0
     endif
   end function getnodeName_len
-function getnodeName(np, ex)result(c) 
+function getnodeName(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -1043,7 +1043,7 @@ endif
     logical, intent(in) :: p
     integer :: n
 
-    n = 0 
+    n = 0
     if (.not.p) return
 
     select case(np%nodeType)
@@ -1055,7 +1055,7 @@ endif
 
   end function getNodeValue_len
 
-  function getNodeValue(np, ex)result(c) 
+  function getNodeValue(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -1084,7 +1084,7 @@ endif
     case default
       c = ""
     end select
-    
+
   end function getNodeValue
 
   subroutine setNodeValue(arg, nodeValue, ex)
@@ -1127,7 +1127,7 @@ endif
 
   end subroutine setNodeValue
 
-function getnodeType(np, ex)result(c) 
+function getnodeType(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     integer :: c
@@ -1151,7 +1151,7 @@ endif
   end function getnodeType
 
 
-function getparentNode(np, ex)result(c) 
+function getparentNode(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -1175,7 +1175,7 @@ endif
   end function getparentNode
 
 
-function getchildNodes(np, ex)result(c) 
+function getchildNodes(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(NodeList), pointer :: c
@@ -1199,7 +1199,7 @@ endif
   end function getchildNodes
 
 
-function getfirstChild(np, ex)result(c) 
+function getfirstChild(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -1223,7 +1223,7 @@ endif
   end function getfirstChild
 
 
-function getlastChild(np, ex)result(c) 
+function getlastChild(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -1247,7 +1247,7 @@ endif
   end function getlastChild
 
 
-function getpreviousSibling(np, ex)result(c) 
+function getpreviousSibling(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -1271,7 +1271,7 @@ endif
   end function getpreviousSibling
 
 
-function getnextSibling(np, ex)result(c) 
+function getnextSibling(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -1295,7 +1295,7 @@ endif
   end function getnextSibling
 
 
-  function getAttributes(arg, ex)result(nnm) 
+  function getAttributes(arg, ex)result(nnm)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(NamedNodeMap), pointer :: nnm
@@ -1319,7 +1319,7 @@ endif
     endif
   end function getAttributes
 
-  function getOwnerDocument(arg, ex)result(np) 
+  function getOwnerDocument(arg, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: np
@@ -1335,7 +1335,7 @@ endif
 endif
 
     endif
-    
+
     if (arg%nodeType==DOCUMENT_NODE) then
       np => null()
     else
@@ -1379,7 +1379,7 @@ endif
   end subroutine setownerDocument
 
 
-  function insertBefore(arg, newChild, refChild, ex)result(np) 
+  function insertBefore(arg, newChild, refChild, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: newChild
@@ -1788,10 +1788,10 @@ endif
       ! Nothing to do
     endif
     if (associated(getParentNode(newChild))) then
-      np => removeChild(getParentNode(newChild), newChild, ex) 
+      np => removeChild(getParentNode(newChild), newChild, ex)
       newChild => np
     endif
-    
+
     if (arg%childNodes%length==0) then
       if (getFoX_checks().or.NOT_FOUND_ERR<200) then
   call throw_exception(NOT_FOUND_ERR, "insertBefore", ex)
@@ -1829,7 +1829,7 @@ endif
         if (i==1) then
           arg%firstChild => temp_nl(1)%this
           !temp_nl(1)%this%previousSibling => null() ! This is a no-op
-        else 
+        else
           temp_nl(i-1)%this%nextSibling => temp_nl(i)%this
           temp_nl(i)%this%previousSibling => temp_nl(i-1)%this
         endif
@@ -1867,7 +1867,7 @@ endif
         ! If newChild was originally in document, it was removed above so must be re-added
         ! Ideally we would avoid the cost of removal & readding to hanging nodelist
       endif
-      ! If arg was not in the document, then newChildren were either 
+      ! If arg was not in the document, then newChildren were either
       ! a) removed above in call to removeChild or
       ! b) in a document fragment and therefore not part of doc either
     endif
@@ -1889,7 +1889,7 @@ endif
   end function insertBefore
 
 
-  function replaceChild(arg, newChild, oldChild, ex)result(np) 
+  function replaceChild(arg, newChild, oldChild, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: newChild
@@ -2291,7 +2291,7 @@ endif
     endif
 
     if (associated(getParentNode(newChild))) &
-      newChild => removeChild(getParentNode(newChild), newChild, ex) 
+      newChild => removeChild(getParentNode(newChild), newChild, ex)
 
     if (arg%childNodes%length==0) then
       if (getFoX_checks().or.NOT_FOUND_ERR<200) then
@@ -2330,7 +2330,7 @@ endif
         if (i==1) then
           arg%firstChild => temp_nl(1)%this
           !temp_nl(1)%this%previousSibling => null() ! This is a no-op
-        else 
+        else
           temp_nl(i-1)%this%nextSibling => temp_nl(i)%this
           temp_nl(i)%this%previousSibling => temp_nl(i-1)%this
         endif
@@ -2377,7 +2377,7 @@ endif
         ! If newChild was originally in document, it was removed above so must be re-added
         ! Ideally we would avoid the cost of removing & re-adding to hangingnodelist
       endif
-      ! If arg was not in the document, then newChildren were either 
+      ! If arg was not in the document, then newChildren were either
       ! a) removed above in call to removeChild or
       ! b) in a document fragment and therefore not part of doc either
     endif
@@ -2398,7 +2398,7 @@ endif
   end function replaceChild
 
 
-  function removeChild(arg, oldChild, ex)result(np) 
+  function removeChild(arg, oldChild, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: oldChild
@@ -2434,7 +2434,7 @@ endif
     allocate(temp_nl(size(arg%childNodes%nodes)-1))
     i_t = 1
     do i = 1, size(arg%childNodes%nodes)
-      if (associated(arg%childNodes%nodes(i)%this, oldChild)) then 
+      if (associated(arg%childNodes%nodes(i)%this, oldChild)) then
         if (associated(arg%firstChild, arg%lastChild)) then
           ! There is only one child, we are removing it.
           arg%firstChild => null()
@@ -2455,7 +2455,7 @@ endif
       else
         if (i_t==size(arg%childNodes%nodes)) exit ! We have failed to find the child
         temp_nl(i_t)%this => arg%childNodes%nodes(i)%this
-        i_t = i_t + 1     
+        i_t = i_t + 1
       endif
     enddo
 
@@ -2494,12 +2494,12 @@ endif
   end function removeChild
 
 
-  function appendChild(arg, newChild, ex)result(np) 
+  function appendChild(arg, newChild, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: newChild
     type(Node), pointer :: np
-    
+
     type(Node), pointer :: testChild, testParent, treeroot, this
     type(ListNode), pointer :: temp_nl(:)
     integer :: i, i_t, i_tree
@@ -2898,7 +2898,7 @@ endif
     endif
 
     if (associated(getParentNode(newChild))) &
-      newChild => removeChild(getParentNode(newChild), newChild, ex) 
+      newChild => removeChild(getParentNode(newChild), newChild, ex)
 
     if (newChild%nodeType==DOCUMENT_FRAGMENT_NODE) then
       allocate(temp_nl(arg%childNodes%length+newChild%childNodes%length))
@@ -2909,7 +2909,7 @@ endif
     do i = 1, arg%childNodes%length
       temp_nl(i)%this => arg%childNodes%nodes(i)%this
     enddo
-    
+
     if (newChild%nodeType==DOCUMENT_FRAGMENT_NODE) then
       i_t = arg%childNodes%length
       do i = 1, newChild%childNodes%length
@@ -2939,7 +2939,7 @@ endif
         newChild%previousSibling => null()
       else
         temp_nl(i-1)%this%nextSibling => newChild
-        newChild%previousSibling => temp_nl(i-1)%this     
+        newChild%previousSibling => temp_nl(i-1)%this
       endif
       if (getGCstate(arg%ownerDocument)) then
         if (arg%inDocument.and..not.newChild%inDocument) then
@@ -2965,11 +2965,11 @@ endif
   end function appendChild
 
 
-  function hasChildNodes(arg, ex) 
+  function hasChildNodes(arg, ex)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     logical :: hasChildNodes
-    
+
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "hasChildNodes", ex)
@@ -2983,10 +2983,10 @@ endif
     endif
 
     hasChildNodes = associated(arg%firstChild)
-    
+
   end function hasChildNodes
 
-  recursive function cloneNode(arg, deep, ex)result(np) 
+  recursive function cloneNode(arg, deep, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     ! Needs to be recursive in case of entity-references within each other.
     type(Node), pointer :: arg
@@ -3103,7 +3103,7 @@ endif
           readonly = .false.
       endif
       this%readonly = readonly
-      
+
 
         endif
       endif
@@ -3176,8 +3176,8 @@ endif
 
   end function cloneNode
 
-  
-  function hasAttributes(arg, ex) 
+
+  function hasAttributes(arg, ex)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     logical :: hasAttributes
@@ -3193,13 +3193,13 @@ endif
 endif
 
     endif
-    
+
     if (arg%nodeType == ELEMENT_NODE) then
       hasAttributes = (getLength(getAttributes(arg)) > 0)
     else
       hasAttributes = .false.
     endif
-    
+
   end function hasAttributes
 
 !  function getBaseURI FIXME
@@ -3322,7 +3322,7 @@ endif
 
   end subroutine normalize
 
-  function isSupported(arg, feature, version, ex)result(p) 
+  function isSupported(arg, feature, version, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: feature
@@ -3360,7 +3360,7 @@ endif
 
   end function getNamespaceURI_len
 
-  function getNamespaceURI(arg, ex)result(c) 
+  function getNamespaceURI(arg, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -3442,7 +3442,7 @@ endif
 
   end function getPrefix_len
 
-  function getPrefix(arg, ex)result(c) 
+  function getPrefix(arg, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -3471,7 +3471,7 @@ endif
     endif
 
   end function getPrefix
-  
+
   subroutine setPrefix(arg, prefix, ex)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
@@ -3602,7 +3602,7 @@ endif
 
   end function getLocalName_len
 
-  function getLocalName(arg, ex)result(c) 
+  function getLocalName(arg, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -3632,7 +3632,7 @@ endif
 
   end function getLocalName
 
-  recursive function isEqualNode(arg, other, ex)result(p) 
+  recursive function isEqualNode(arg, other, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     ! We only have one level of recursion, in case of element attributes
     type(Node), pointer :: arg
@@ -3799,7 +3799,7 @@ endif
   end function isEqualNode
 
 
-  function isSameNode(arg, other, ex) 
+  function isSameNode(arg, other, ex)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: other
@@ -3830,7 +3830,7 @@ endif
   ! a pure function, we cant do the recursive walk we need to.
   ! (although isDefaultNamespace could be fixed easily enough)
 
-  function isDefaultNamespace(np, namespaceURI, ex)result(p) 
+  function isDefaultNamespace(np, namespaceURI, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     character(len=*), intent(in) :: namespaceURI
@@ -3921,7 +3921,7 @@ endif
 
   end function lookupNamespaceURI_len
 
-  function lookupNamespaceURI(np, prefix, ex)result(c) 
+  function lookupNamespaceURI(np, prefix, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     character(len=*), intent(in) :: prefix
@@ -3985,7 +3985,7 @@ endif
     if (np%nodeType/=ELEMENT_NODE &
       .and. np%nodeType/=ATTRIBUTE_NODE &
       .and. np%nodeType/=DOCUMENT_NODE) return
-    
+
     if (namespaceURI=="" &
       .or. namespaceURI=="http://www.w3.org/XML/1998/namespace" &
       .or. namespaceURI=="http://www.w3.org/2000/xmlns/") then
@@ -4022,7 +4022,7 @@ endif
 
   end function lookupPrefix_len
 
-  function lookupPrefix(np, namespaceURI, ex)result(c) 
+  function lookupPrefix(np, namespaceURI, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     character(len=*), intent(in) :: namespaceURI
@@ -4082,7 +4082,7 @@ endif
 
     type(Node), pointer :: this
 
-    if (n/=0) then      
+    if (n/=0) then
       this => np
       do while (associated(this))
         this%textContentLength = this%textContentLength + n
@@ -4106,7 +4106,7 @@ endif
     endif
   end function getTextContent_len
 
-  function getTextContent(arg, ex)result(c) 
+  function getTextContent(arg, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -4130,7 +4130,7 @@ endif
 endif
 
     endif
-    
+
     if (len(c) == 0) then
       c = ""
       return
@@ -4138,7 +4138,7 @@ endif
 
     i = 1
     treeroot => arg
-    
+
     i_tree = 0
     doneChildren = .false.
     doneAttributes = .false.
@@ -4286,7 +4286,7 @@ endif
     end select
   end subroutine setTextContent
 
-  function getBaseURI(arg, ex)result(baseURI) 
+  function getBaseURI(arg, ex)result(baseURI)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=200) :: baseURI
@@ -4362,7 +4362,7 @@ endif
       case default
         exit
       end select
-      el => getParentNode(el) 
+      el => getParentNode(el)
     end do
 
     if (isAbsoluteURI(URIref)) then
@@ -4374,12 +4374,12 @@ endif
 
   end function getBaseURI
 
-  recursive function getNodePath(arg, ex)result(c) 
+  recursive function getNodePath(arg, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     ! recursive only for atts and text
     type(Node), pointer :: arg
     character(len=100) :: c
-    
+
     type(Node), pointer :: this, this2
     character(len=len(c)) :: c2
     integer :: n
@@ -4767,7 +4767,7 @@ endif
 
   end subroutine setReadOnlyNode
 
-function getreadonly(np, ex)result(c) 
+function getreadonly(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -4793,7 +4793,7 @@ endif
 
 
 
-  function item_nl(list, index, ex)result(np) 
+  function item_nl(list, index, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NodeList), pointer :: list
     integer, intent(in) :: index
@@ -4840,10 +4840,10 @@ endif
       list%nodes(size(list%nodes))%this => arg
       list%length = size(list%nodes)
     endif
-    
+
   end subroutine append_nl
 
-  function pop_nl(list, ex)result(np) 
+  function pop_nl(list, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NodeList), pointer :: list
     type(Node), pointer :: np
@@ -4877,11 +4877,11 @@ endif
       deallocate(temp_nl)
       list%length = size(list%nodes)
     endif
-    
+
   end function pop_nl
 
 
-  function remove_nl(nl, index, ex)result(np) 
+  function remove_nl(nl, index, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NodeList), intent(inout) :: nl
     integer, intent(in) :: index
@@ -4906,7 +4906,7 @@ endif
     np => nl%nodes(index)%this
     temp_nl => nl%nodes
     allocate(nl%nodes(size(temp_nl)-1))
-    nl%length = nl%length - 1 
+    nl%length = nl%length - 1
     do i = 1, index - 1
       nl%nodes(i)%this => temp_nl(i)%this
     enddo
@@ -4932,7 +4932,7 @@ endif
   end subroutine remove_node_nl
 
 
-  function getLength_nl(nl, ex)result(n) 
+  function getLength_nl(nl, ex)result(n)
     type(DOMException), intent(out), optional :: ex
     type(NodeList), pointer :: nl
     integer :: n
@@ -4954,7 +4954,7 @@ endif
 
   subroutine destroyNodeList(nl)
     type(NodeList), pointer :: nl
-    
+
     if (associated(nl%nodes)) deallocate(nl%nodes)
     if (associated(nl%nodeName)) deallocate(nl%nodeName)
     if (associated(nl%localName)) deallocate(nl%localName)
@@ -4974,7 +4974,7 @@ endif
     if (.not.doc%docExtras%liveNodeLists) return
     if (.not.associated(doc%docExtras%nodelists)) return
 
-    ! We point the old list of nodelists to temp_nll, then recalculate 
+    ! We point the old list of nodelists to temp_nll, then recalculate
     ! them all (which repopulates nodelists)
     temp_nll => doc%docExtras%nodelists
     i_t = size(temp_nll)
@@ -4986,10 +4986,10 @@ endif
       ! we should only do the appropriate sort of search for this
       ! list - according to namespaces or not.
       !
-      if (associated(nl_orig%nodeName)) then 
+      if (associated(nl_orig%nodeName)) then
         ! this was made by getElementsByTagName
         nl => getElementsByTagName(nl_orig%element, str_vs(nl_orig%nodeName))
-      elseif (associated(nl_orig%namespaceURI)) then 
+      elseif (associated(nl_orig%namespaceURI)) then
         ! this was made by getElementsByTagNameNS
         nl => getElementsByTagNameNS(nl_orig%element, &
           str_vs(nl_orig%localName), str_vs(nl_orig%namespaceURI))
@@ -4998,13 +4998,13 @@ endif
     ! We dont care about the nodelists weve calculated now
     nullify(nl)
 
-    deallocate(temp_nll)    
+    deallocate(temp_nll)
 
   end subroutine updateNodeLists
 
 
 
-  function getNamedItem(map, name, ex)result(np) 
+  function getNamedItem(map, name, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NamedNodeMap), pointer :: map
     character(len=*), intent(in) :: name
@@ -5036,7 +5036,7 @@ endif
   end function getNamedItem
 
 
-  function setNamedItem(map, arg, ex)result(np) 
+  function setNamedItem(map, arg, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NamedNodeMap), pointer :: map
     type(Node), pointer :: arg
@@ -5117,7 +5117,7 @@ endif
     endif
   endif
 endif
-    
+
       endif
       arg%elExtras%ownerElement => map%ownerElement
     endif
@@ -5159,7 +5159,7 @@ endif
   end function setNamedItem
 
 
-  function removeNamedItem(map, name, ex)result(np) 
+  function removeNamedItem(map, name, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NamedNodeMap), pointer :: map
     character(len=*), intent(in) :: name
@@ -5255,12 +5255,12 @@ endif
   end function removeNamedItem
 
 
-  function item_nnm(map, index, ex)result(np) 
+  function item_nnm(map, index, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NamedNodeMap), pointer :: map
     integer, intent(in) :: index
     type(Node), pointer :: np
-    
+
     if (.not.associated(map)) then
       if (getFoX_checks().or.FoX_MAP_IS_NULL<200) then
   call throw_exception(FoX_MAP_IS_NULL, "item_nnm", ex)
@@ -5281,7 +5281,7 @@ endif
 
    end function item_nnm
 
-  function getLength_nnm(map, ex)result(n) 
+  function getLength_nnm(map, ex)result(n)
     type(DOMException), intent(out), optional :: ex
     type(namedNodeMap), pointer :: map
     integer :: n
@@ -5299,11 +5299,11 @@ endif
     endif
 
     n = map%length
-    
+
   end function getLength_nnm
 
 
-  function getNamedItemNS(map, namespaceURI, localName, ex)result(np) 
+  function getNamedItemNS(map, namespaceURI, localName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NamedNodeMap), pointer :: map
     character(len=*), intent(in) :: namespaceURI
@@ -5339,7 +5339,7 @@ endif
   end function getNamedItemNS
 
 
-  function setNamedItemNS(map, arg, ex)result(np) 
+  function setNamedItemNS(map, arg, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NamedNodeMap), pointer :: map
     type(Node), pointer :: arg
@@ -5420,7 +5420,7 @@ endif
     endif
   endif
 endif
-    
+
       endif
       arg%elExtras%ownerElement => map%ownerElement
     endif
@@ -5429,7 +5429,7 @@ endif
       np => item(map, i)
       if ((getLocalName(arg)==getLocalName(np) &
         .and.getNamespaceURI(arg)==getNamespaceURI(np)) &
-        ! Additional case to catch adding of specified attributeNS over 
+        ! Additional case to catch adding of specified attributeNS over
         ! default (NS but unspecified URI) attribute
         .or.(getNamespaceURI(arg)=="".and.getName(arg)==getName(np))) then
         map%nodes(i+1)%this => arg
@@ -5466,7 +5466,7 @@ endif
   end function setNamedItemNS
 
 
-  function removeNamedItemNS(map, namespaceURI, localName, ex)result(np) 
+  function removeNamedItemNS(map, namespaceURI, localName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(NamedNodeMap), pointer :: map
     character(len=*), intent(in) :: namespaceURI
@@ -5600,7 +5600,7 @@ endif
 
 
 
-  function hasFeature(impl, feature, version, ex)result(p) 
+  function hasFeature(impl, feature, version, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     type(DOMImplementation), pointer :: impl
     character(len=*), intent(in) :: feature
@@ -5627,7 +5627,7 @@ endif
 
   end function hasFeature
 
-  function createDocumentType(impl, qualifiedName, publicId, systemId, ex)result(dt) 
+  function createDocumentType(impl, qualifiedName, publicId, systemId, ex)result(dt)
     type(DOMException), intent(out), optional :: ex
     type(DOMImplementation), pointer :: impl
     character(len=*), intent(in) :: qualifiedName
@@ -5710,7 +5710,7 @@ endif
   end function createDocumentType
 
 
-  function createDocument(impl, namespaceURI, qualifiedName, docType, ex)result(doc) 
+  function createDocument(impl, namespaceURI, qualifiedName, docType, ex)result(doc)
     type(DOMException), intent(out), optional :: ex
     type(DOMImplementation), pointer :: impl
     character(len=*), intent(in), optional :: namespaceURI
@@ -5730,7 +5730,7 @@ endif
   endif
 endif
 
-    elseif (associated(docType)) then 
+    elseif (associated(docType)) then
       if (associated(getOwnerDocument(docType))) then
         if (getFoX_checks().or.WRONG_DOCUMENT_ERR<200) then
   call throw_exception(WRONG_DOCUMENT_ERR, "createDocument", ex)
@@ -5824,7 +5824,7 @@ endif
       dt%ownerDocument => doc
       doc%docExtras%docType => appendChild(doc, dt, ex)
     endif
-    
+
     if (qualifiedName/="") then
       ! NB It is impossible to create a non-namespaced document.
       ! since createDocument doesnt exist in DOM Core 1
@@ -5859,7 +5859,7 @@ endif
   subroutine destroyDocument(arg, ex)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
-    
+
     integer :: i
 
     if (.not.associated(arg)) then
@@ -5926,7 +5926,7 @@ endif
   function getFoX_checks() result(FoX_checks)
     logical :: FoX_checks
 
-    FoX_checks = FoX_DOM%FoX_checks 
+    FoX_checks = FoX_DOM%FoX_checks
   end function getFoX_checks
 
   subroutine setFoX_checks(FoX_checks)
@@ -5938,7 +5938,7 @@ endif
 
 
 
-function getdocType(np, ex)result(c) 
+function getdocType(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -5978,7 +5978,7 @@ endif
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: np
- 
+
     if (.not.associated(arg)) then
       if (getFoX_checks().or.FoX_NODE_IS_NULL<200) then
   call throw_exception(FoX_NODE_IS_NULL, "setDocType", ex)
@@ -5990,7 +5990,7 @@ endif
 endif
 
     endif
-    
+
     if (arg%nodeType/=DOCUMENT_NODE) then
       if (getFoX_checks().or.FoX_INVALID_NODE<200) then
   call throw_exception(FoX_INVALID_NODE, "setDocType", ex)
@@ -6002,13 +6002,13 @@ endif
 endif
 
     endif
-    
+
     arg%docExtras%docType => np
 !NB special case in order to set ownerDocument
     np%ownerDocument => arg
   end subroutine setDocType
 
-function getdocumentElement(np, ex)result(c) 
+function getdocumentElement(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -6079,7 +6079,7 @@ endif
 
   end subroutine setXds
 
-  function getImplementation(arg, ex)result(imp) 
+  function getImplementation(arg, ex)result(imp)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer, optional :: arg
     type(DOMImplementation), pointer :: imp
@@ -6099,7 +6099,7 @@ endif
 endif
 
       endif
-      
+
       if (arg%nodeType/=DOCUMENT_NODE) then
         if (getFoX_checks().or.FoX_INVALID_NODE<200) then
   call throw_exception(FoX_INVALID_NODE, "getImplementation", ex)
@@ -6111,7 +6111,7 @@ endif
 endif
 
       endif
-      
+
       imp => arg%docExtras%implementation
     else
       imp => FoX_DOM
@@ -6170,14 +6170,14 @@ endif
 endif
 
     endif
-    
+
     arg%docExtras%documentElement => np
 
   end subroutine setDocumentElement
 
   ! Methods
 
-  function createElement(arg, tagName, ex)result(np) 
+  function createElement(arg, tagName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: tagName
@@ -6257,7 +6257,7 @@ endif
 
   end function createElement
 
-  function createEmptyElement(arg, tagName, ex)result(np) 
+  function createEmptyElement(arg, tagName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: tagName
@@ -6283,8 +6283,8 @@ endif
       np%inDocument = .true.
     endif
   end function createEmptyElement
-    
-  function createDocumentFragment(arg, ex)result(np) 
+
+  function createDocumentFragment(arg, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: np
@@ -6312,7 +6312,7 @@ endif
 endif
 
     endif
-    
+
     np => createNode(arg, DOCUMENT_FRAGMENT_NODE, "#document-fragment", "")
     if (getGCstate(arg)) then
       np%inDocument = .false.
@@ -6323,7 +6323,7 @@ endif
 
   end function createDocumentFragment
 
-  function createTextNode(arg, data, ex)result(np) 
+  function createTextNode(arg, data, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: data
@@ -6372,10 +6372,10 @@ endif
     else
       np%inDocument = .true.
     endif
-   
+
   end function createTextNode
 
-  function createComment(arg, data, ex)result(np) 
+  function createComment(arg, data, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: data
@@ -6413,7 +6413,7 @@ endif
   endif
 endif
 
-    elseif (index(data,"--")>0) then   
+    elseif (index(data,"--")>0) then
       if (getFoX_checks().or.FoX_INVALID_COMMENT<200) then
   call throw_exception(FoX_INVALID_COMMENT, "createComment", ex)
   if (present(ex)) then
@@ -6424,7 +6424,7 @@ endif
 endif
 
     endif
-  
+
     np => createNode(arg, COMMENT_NODE, "#comment", data)
     np%textContentLength = len(data)
 
@@ -6437,7 +6437,7 @@ endif
 
   end function createComment
 
-  function createCdataSection(arg, data, ex)result(np) 
+  function createCdataSection(arg, data, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: data
@@ -6475,7 +6475,7 @@ endif
   endif
 endif
 
-    elseif (index(data,"]]>")>0) then   
+    elseif (index(data,"]]>")>0) then
       if (getFoX_checks().or.FoX_INVALID_CDATA_SECTION<200) then
   call throw_exception(FoX_INVALID_CDATA_SECTION, "createCdataSection", ex)
   if (present(ex)) then
@@ -6486,7 +6486,7 @@ endif
 endif
 
     endif
-  
+
     np => createNode(arg, CDATA_SECTION_NODE, "#cdata-section", data)
     np%textContentLength = len(data)
 
@@ -6496,10 +6496,10 @@ endif
     else
       np%inDocument = .true.
     endif
-  
+
   end function createCdataSection
 
-  function createProcessingInstruction(arg, target, data, ex)result(np) 
+  function createProcessingInstruction(arg, target, data, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: target
@@ -6548,7 +6548,7 @@ endif
   endif
 endif
 
-    elseif (index(data,"?>")>0) then   
+    elseif (index(data,"?>")>0) then
       if (getFoX_checks().or.FoX_INVALID_PI_DATA<200) then
   call throw_exception(FoX_INVALID_PI_DATA, "createProcessingInstruction", ex)
   if (present(ex)) then
@@ -6572,7 +6572,7 @@ endif
 
   end function createProcessingInstruction
 
-  function createAttribute(arg, name, ex)result(np) 
+  function createAttribute(arg, name, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: name
@@ -6611,7 +6611,7 @@ endif
 endif
 
     endif
-  
+
     np => createNode(arg, ATTRIBUTE_NODE, name, "")
     allocate(np%elExtras)
     np%elExtras%dom1 = .true.
@@ -6625,11 +6625,11 @@ endif
     else
       np%inDocument = .true.
     endif
-  
+
   end function createAttribute
 
 
-  recursive function createEntityReference(arg, name, ex)result(np) 
+  recursive function createEntityReference(arg, name, ex)result(np)
     type(DOMException), intent(out), optional :: ex
   ! Needs to be recursive in case of entity-references within each other.
     type(Node), pointer :: arg
@@ -6737,7 +6737,7 @@ endif
 
   end function createEntityReference
 
-  function createEmptyEntityReference(arg, name, ex)result(np) 
+  function createEmptyEntityReference(arg, name, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: name
@@ -6787,7 +6787,7 @@ endif
 
   end function createEmptyEntityReference
 
-  function getElementsByTagName(doc, tagName, name, ex)result(list) 
+  function getElementsByTagName(doc, tagName, name, ex)result(list)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: doc
     character(len=*), intent(in), optional :: tagName, name
@@ -6834,7 +6834,7 @@ endif
 endif
 
       endif
-    else      
+    else
       if (getFoX_checks().or.FoX_INVALID_NODE<200) then
   call throw_exception(FoX_INVALID_NODE, "getElementsByTagName", ex)
   if (present(ex)) then
@@ -6947,7 +6947,7 @@ endif
 
   end function getElementsByTagName
 
-  function importNode(doc , arg, deep , ex)result(np) 
+  function importNode(doc , arg, deep , ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: doc
     type(Node), pointer :: arg
@@ -7000,7 +7000,7 @@ endif
     xds => getXds(doc)
     thatParent => null()
     treeroot => arg
-    
+
     i_tree = 0
     doneChildren = .false.
     doneAttributes = .false.
@@ -7042,13 +7042,13 @@ endif
             if (attribute_has_default(att)) then
               ! Create the new default:
               if (getParameter(getDomConfig(doc, ex), "namespaces", ex)) then
-                ! We create a namespaced attribute. Of course, its 
+                ! We create a namespaced attribute. Of course, its
                 ! namespaceURI remains empty for the moment unless we know it ...
                 if (prefixOfQName(getName(this, ex))=="xml") then
                   new => createAttributeNS(doc, &
                     "http://www.w3.org/XML/1998/namespace", &
                     getName(this, ex), ex)
-                elseif (getName(this, ex)=="xmlns" & 
+                elseif (getName(this, ex)=="xmlns" &
                   .or. prefixOfQName(getName(this, ex))=="xmlns") then
                   new => createAttributeNS(doc, &
                     "http://www.w3.org/2000/xmlns/", &
@@ -7110,7 +7110,7 @@ endif
           new => createNotation(doc, getNodeName(this, ex), &
             getPublicId(this, ex), getSystemId(this, ex), ex)
         end select
- 
+
         if (.not.associated(thatParent)) then
           thatParent => new
         elseif (associated(new)) then
@@ -7207,7 +7207,7 @@ endif
 
   end function importNode
 
-  function createElementNS(arg, namespaceURI, qualifiedName, ex)result(np) 
+  function createElementNS(arg, namespaceURI, qualifiedName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: namespaceURI, qualifiedName
@@ -7335,7 +7335,7 @@ endif
               call setAttributeNS(np, &
                 "http://www.w3.org/XML/1998/namespace", &
                 str_vs(att%name), str_vs(att%default), ex)
-            elseif (str_vs(att%name)=="xmlns" & 
+            elseif (str_vs(att%name)=="xmlns" &
               .or. prefixOfQName(str_vs(att%name))=="xmlns") then
               call setAttributeNS(np, &
                 "http://www.w3.org/2000/xmlns/", &
@@ -7357,7 +7357,7 @@ endif
 
   end function createElementNS
 
-  function createEmptyElementNS(arg, namespaceURI, qualifiedName, ex)result(np) 
+  function createEmptyElementNS(arg, namespaceURI, qualifiedName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: namespaceURI, qualifiedName
@@ -7381,8 +7381,8 @@ endif
       np%inDocument = .true.
     endif
   end function createEmptyElementNS
-  
-  function createAttributeNS(arg, namespaceURI, qualifiedname, ex)result(np) 
+
+  function createAttributeNS(arg, namespaceURI, qualifiedname, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: namespaceURI, qualifiedName
@@ -7481,7 +7481,7 @@ endif
     endif
     call destroyURI(URIref)
 
-  
+
     np => createNode(arg, ATTRIBUTE_NODE, qualifiedName, "")
     allocate(np%elExtras)
     np%elExtras%namespaceURI => vs_str_alloc(namespaceURI)
@@ -7497,7 +7497,7 @@ endif
 
   end function createAttributeNS
 
-  function getElementsByTagNameNS(doc, namespaceURI, localName, ex)result(list) 
+  function getElementsByTagNameNS(doc, namespaceURI, localName, ex)result(list)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: doc
     character(len=*), intent(in) :: namespaceURI, localName
@@ -7644,7 +7644,7 @@ endif
   end function getElementsByTagNameNS
 
 
-  function getElementById(arg, elementId, ex)result(np) 
+  function getElementById(arg, elementId, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: elementId
@@ -7749,7 +7749,7 @@ endif
 
   end function getElementById
 
-function getxmlStandalone(np, ex)result(c) 
+function getxmlStandalone(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -7821,7 +7821,7 @@ endif
 
 ! FIXME additional check on setting - do we have any undefined entrefs present?
 
-  function getXmlVersion(arg, ex)result(s) 
+  function getXmlVersion(arg, ex)result(s)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=3) :: s
@@ -7919,7 +7919,7 @@ endif
       n = size(arg%docExtras%xds%encoding)
   end function getXmlEncoding_len
 
-  function getXmlEncoding(arg, ex)result(s) 
+  function getXmlEncoding(arg, ex)result(s)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -7969,7 +7969,7 @@ endif
       n = size(arg%docExtras%xds%inputEncoding)
   end function getInputEncoding_len
 
-  function getInputEncoding(arg, ex)result(s) 
+  function getInputEncoding(arg, ex)result(s)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -7991,7 +7991,7 @@ endif
     endif
 
     if (arg%nodeType==DOCUMENT_NODE) then
-      s = str_vs(arg%docExtras%xds%inputEncoding)    
+      s = str_vs(arg%docExtras%xds%inputEncoding)
     elseif (arg%nodeType==ENTITY_NODE) then
       s = "" !FIXME revisit when we have working external entities
     else
@@ -8022,7 +8022,7 @@ endif
       n = 0
     endif
   end function getdocumentURI_len
-function getdocumentURI(np, ex)result(c) 
+function getdocumentURI(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -8098,7 +8098,7 @@ endif
   end subroutine setdocumentURI
 
 
-function getstrictErrorChecking(np, ex)result(c) 
+function getstrictErrorChecking(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -8169,7 +8169,7 @@ endif
   end subroutine setstrictErrorChecking
 
 
-  function adoptNode(doc , arg , ex)result(np) 
+  function adoptNode(doc , arg , ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: doc
     type(Node), pointer :: arg
@@ -8242,7 +8242,7 @@ endif
 
     thatParent => null()
     treeroot => np
-    
+
     i_tree = 0
     doneChildren = .false.
     doneAttributes = .false.
@@ -8271,13 +8271,13 @@ endif
             if (attribute_has_default(att)) then
               ! Create the new default:
               if (getParameter(getDomConfig(doc), "namespaces")) then
-                ! We create a namespaced attribute. Of course, its 
+                ! We create a namespaced attribute. Of course, its
                 ! namespaceURI remains empty for the moment unless we know it ...
                 if (prefixOfQName(getName(this))=="xml") then
                   new => createAttributeNS(np, &
                     "http://www.w3.org/XML/1998/namespace", &
                     getName(this))
-                elseif (getName(this)=="xmlns" & 
+                elseif (getName(this)=="xmlns" &
                   .or. prefixOfQName(getName(this))=="xmlns") then
                   new => createAttributeNS(np, &
                     "http://www.w3.org/2000/xmlns/", &
@@ -8422,7 +8422,7 @@ endif
 
   end function adoptNode
 
-function getdomConfig(np, ex)result(c) 
+function getdomConfig(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(DOMConfiguration), pointer :: c
@@ -8494,14 +8494,14 @@ endif
 
 
 
-  function renameNode(arg, n, namespaceURI, qualifiedName, ex)result(np) 
+  function renameNode(arg, n, namespaceURI, qualifiedName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: n
     character(len=*), intent(in) :: namespaceURI
     character(len=*), intent(in) :: qualifiedName
     type(Node), pointer :: np
-    
+
     type(Node), pointer :: attNode
     integer :: i
     logical :: brokenNS
@@ -8657,7 +8657,7 @@ endif
               call setAttributeNS(np, &
                 "http://www.w3.org/XML/1998/namespace", &
                 str_vs(att%name), str_vs(att%default))
-            elseif (str_vs(att%name)=="xmlns" & 
+            elseif (str_vs(att%name)=="xmlns" &
               .or. prefixOfQName(str_vs(att%name))=="xmlns") then
               call setAttributeNS(np, &
                 "http://www.w3.org/2000/xmlns/", &
@@ -8678,10 +8678,10 @@ endif
     np => n
 
   end function renameNode
-      
+
   ! Internal function, not part of API
 
-  function createNamespaceNode(arg, prefix, URI, specified, ex)result(np) 
+  function createNamespaceNode(arg, prefix, URI, specified, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: prefix
@@ -8721,7 +8721,7 @@ endif
 
   end function createNamespaceNode
 
-  function createEntity(arg, name, publicId, systemId, notationName, ex)result(np) 
+  function createEntity(arg, name, publicId, systemId, notationName, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: name
@@ -8769,7 +8769,7 @@ endif
 
   end function createEntity
 
-  function createNotation(arg, name, publicId, systemId, ex)result(np) 
+  function createNotation(arg, name, publicId, systemId, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: name
@@ -8805,7 +8805,7 @@ endif
     allocate(np%dtdExtras)
     np%dtdExtras%publicId => vs_str_alloc(publicId)
     np%dtdExtras%systemId => vs_str_alloc(systemId)
-    
+
     if (getGCstate(arg)) then
       np%inDocument = .false.
       call append(arg%docExtras%hangingnodes, np)
@@ -8815,7 +8815,7 @@ endif
 
   end function createNotation
 
-  function getXmlVersionEnum(arg, ex)result(n) 
+  function getXmlVersionEnum(arg, ex)result(n)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     integer :: n
@@ -8836,7 +8836,7 @@ endif
 
   end function getXmlVersionEnum
 
-  function getXds(arg, ex)result(xds) 
+  function getXds(arg, ex)result(xds)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(xml_doc_state), pointer :: xds
@@ -8858,7 +8858,7 @@ endif
   end function getXds
 
 
-function getGCstate(np, ex)result(c) 
+function getGCstate(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -8929,7 +8929,7 @@ endif
   end subroutine setGCstate
 
 
-function getliveNodeLists(np, ex)result(c) 
+function getliveNodeLists(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -9004,7 +9004,7 @@ endif
 
 !  function getName(docType) result(c) See m_dom_common
 
-  function getEntities(arg, ex)result(nnp) 
+  function getEntities(arg, ex)result(nnp)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(NamedNodeMap), pointer :: nnp
@@ -9036,7 +9036,7 @@ endif
     nnp => arg%dtdExtras%entities
   end function getEntities
 
-  function getNotations(arg, ex)result(nnp) 
+  function getNotations(arg, ex)result(nnp)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(NamedNodeMap), pointer :: nnp
@@ -9089,7 +9089,7 @@ endif
     endif
   end function getInternalSubset_len
 
-  function getInternalSubset(arg, ex)result(s) 
+  function getInternalSubset(arg, ex)result(s)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -9145,7 +9145,7 @@ endif
       n = 0
     endif
   end function gettagName_len
-function gettagName(np, ex)result(c) 
+function gettagName(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -9190,9 +9190,9 @@ endif
     logical, intent(in) :: p
     character(len=*), intent(in) :: name
     integer :: n
-    
+
     integer :: i
-    
+
     n = 0
     if (.not.p) return
     if (arg%nodeType/=ELEMENT_NODE) return
@@ -9206,7 +9206,7 @@ endif
 
   end function getAttribute_len
 
-  function getAttribute(arg, name, ex)result(c) 
+  function getAttribute(arg, name, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: name
@@ -9252,7 +9252,7 @@ endif
     else
       c = ""
     endif
-        
+
   end function getAttribute
 
 
@@ -9331,7 +9331,7 @@ endif
     dummy => setNamedItem(getAttributes(arg), nn)
     if (associated(dummy)) then
       if (getGCstate(getOwnerDocument(arg)).and..not.dummy%inDocument) &
-        call putNodesInDocument(getOwnerDocument(arg), dummy) 
+        call putNodesInDocument(getOwnerDocument(arg), dummy)
       ! ... so that dummy & children are removed from hangingNodes list.
       call destroyAllNodesRecursively(dummy)
     endif
@@ -9383,7 +9383,7 @@ endif
 endif
 
     endif
-    
+
     if (arg%inDocument) &
       call setGCstate(getOwnerDocument(arg), .false.)
 
@@ -9410,14 +9410,14 @@ endif
       endif
       call destroyAllNodesRecursively(dummy)
     endif
-      
+
     if (arg%inDocument) &
       call setGCstate(arg%ownerDocument, .true.)
 
   end subroutine removeAttribute
 
 
-  function getAttributeNode(arg, name, ex)result(attr) 
+  function getAttributeNode(arg, name, ex)result(attr)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: name
@@ -9450,9 +9450,9 @@ endif
     attr => getNamedItem(getAttributes(arg), name)
 
   end function getAttributeNode
-  
 
-  function setAttributeNode(arg, newattr, ex)result(attr) 
+
+  function setAttributeNode(arg, newattr, ex)result(attr)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: newattr
@@ -9528,7 +9528,7 @@ endif
   end function setAttributeNode
 
 
-  function removeAttributeNode(arg, oldattr, ex)result(attr) 
+  function removeAttributeNode(arg, oldattr, ex)result(attr)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: oldattr
@@ -9585,9 +9585,9 @@ endif
     character(len=*), intent(in) :: localname
     character(len=*), intent(in) :: namespaceURI
     integer :: n
-    
+
     integer :: i
-    
+
     n = 0
     if (.not.p) return
     if (arg%nodeType/=ELEMENT_NODE) return
@@ -9603,7 +9603,7 @@ endif
 
   end function getAttributesNS_len
 
-  function getAttributeNS(arg, namespaceURI, localName, ex)result(c) 
+  function getAttributeNS(arg, namespaceURI, localName, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: namespaceURI
@@ -9731,7 +9731,7 @@ endif
   endif
 endif
 
-      elseif (prefixOfQName(qualifiedName)=="xml" .neqv. & 
+      elseif (prefixOfQName(qualifiedName)=="xml" .neqv. &
         namespaceURI=="http://www.w3.org/XML/1998/namespace") then
         if (getFoX_checks().or.NAMESPACE_ERR<200) then
   call throw_exception(NAMESPACE_ERR, "setAttributeNS", ex)
@@ -9771,7 +9771,7 @@ endif
 
     if (associated(dummy)) then
       if (getGCstate(getOwnerDocument(arg)).and..not.dummy%inDocument) &
-        call putNodesInDocument(getOwnerDocument(arg), dummy) 
+        call putNodesInDocument(getOwnerDocument(arg), dummy)
       ! ... so that dummy & children are removed from hangingNodes list.
       call destroyAllNodesRecursively(dummy)
     endif
@@ -9852,14 +9852,14 @@ endif
       endif
       call destroyAllNodesRecursively(dummy)
     endif
-      
+
     if (arg%inDocument) &
       call setGCstate(arg%ownerDocument, .true.)
 
   end subroutine removeAttributeNS
 
 
-  function getAttributeNodeNS(arg, namespaceURI, localName, ex)result(attr) 
+  function getAttributeNodeNS(arg, namespaceURI, localName, ex)result(attr)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: namespaceURI
@@ -9893,9 +9893,9 @@ endif
     attr => null()     ! as per specs, if not found
     attr => getNamedItemNS(getAttributes(arg), namespaceURI, localname)
   end function getAttributeNodeNS
-  
 
-  function setAttributeNodeNS(arg, newattr, ex)result(attr) 
+
+  function setAttributeNodeNS(arg, newattr, ex)result(attr)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: newattr
@@ -9971,7 +9971,7 @@ endif
   end function setAttributeNodeNS
 
 
-  function removeAttributeNodeNS(arg, oldattr, ex)result(attr) 
+  function removeAttributeNodeNS(arg, oldattr, ex)result(attr)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     type(Node), pointer :: oldattr
@@ -10022,7 +10022,7 @@ endif
 !  function getElementsByTagNameNS - see m_dom_document
 
 
-  function hasAttribute(arg, name, ex)result(p) 
+  function hasAttribute(arg, name, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: name
@@ -10042,7 +10042,7 @@ endif
 endif
 
     endif
- 
+
    if (arg%nodeType /= ELEMENT_NODE) then
       if (getFoX_checks().or.FoX_INVALID_NODE<200) then
   call throw_exception(FoX_INVALID_NODE, "hasAttribute", ex)
@@ -10067,7 +10067,7 @@ endif
   end function hasAttribute
 
 
-  function hasAttributeNS(arg, namespaceURI, localName, ex)result(p) 
+  function hasAttributeNS(arg, namespaceURI, localName, ex)result(p)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: namespaceURI
@@ -10088,7 +10088,7 @@ endif
 endif
 
     endif
- 
+
    if (arg%nodeType /= ELEMENT_NODE) then
       if (getFoX_checks().or.FoX_INVALID_NODE<200) then
   call throw_exception(FoX_INVALID_NODE, "hasAttributeNS", ex)
@@ -10221,7 +10221,7 @@ endif
   end subroutine setIdAttributeNode
 
 
-  
+
   ! function getName(attribute) result(c) See m_dom_common
 
 ! NB All functions manipulating attributes play with the nodelist
@@ -10229,7 +10229,7 @@ endif
 ! This is so that getValue_length can be pure,  and the nodeList
 ! can be explicitly kept up to dat.
 
-function getspecified(np, ex)result(c) 
+function getspecified(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -10301,7 +10301,7 @@ endif
   end subroutine setspecified
 
 
-function getisId_DOM(np, ex)result(c) 
+function getisId_DOM(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -10373,7 +10373,7 @@ endif
   end subroutine setisId_DOM
 
 
-function getownerElement(np, ex)result(c) 
+function getownerElement(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(Node), pointer :: c
@@ -10409,13 +10409,13 @@ endif
   end function getownerElement
 
 
-  function getValue_DOM(arg, ex)result(c) 
+  function getValue_DOM(arg, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
 #ifdef RESTRICTED_ASSOCIATED_BUG
-    character(len=getTextContent_len(arg, .true.)) :: c 
+    character(len=getTextContent_len(arg, .true.)) :: c
 #else
-    character(len=getTextContent_len(arg, associated(arg))) :: c 
+    character(len=getTextContent_len(arg, associated(arg))) :: c
 #endif
 
     if (.not.associated(arg)) then
@@ -10461,7 +10461,7 @@ endif
   endif
 endif
 
-    endif   
+    endif
 
     if (getNodeType(arg)/=ATTRIBUTE_NODE) then
       if (getFoX_checks().or.FoX_INVALID_NODE<200) then
@@ -10491,7 +10491,7 @@ endif
   end function isCharData
 
 
-  function getLength_characterdata(arg, ex)result(n) 
+  function getLength_characterdata(arg, ex)result(n)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     integer :: n
@@ -10507,7 +10507,7 @@ endif
 endif
 
     endif
-    
+
     if (.not.isCharData(arg%nodeType)) then
       if (getFoX_checks().or.FoX_INVALID_NODE<200) then
   call throw_exception(FoX_INVALID_NODE, "getLength_characterdata", ex)
@@ -10521,11 +10521,11 @@ endif
     endif
 
     n = size(arg%nodeValue)
-    
+
   end function getLength_characterdata
 
 
-  function subStringData(arg, offset, count, ex)result(c) 
+  function subStringData(arg, offset, count, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     integer, intent(in) :: offset
@@ -10579,7 +10579,7 @@ endif
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*), intent(in) :: data
-    
+
     character, pointer :: tmp(:)
 
     if (.not.associated(arg)) then
@@ -10627,7 +10627,7 @@ endif
 endif
 
     endif
-    
+
     tmp => arg%nodeValue
     arg%nodeValue => vs_str_alloc(str_vs(tmp)//data)
     deallocate(tmp)
@@ -10661,7 +10661,7 @@ endif
       call updateTextContentLength(arg, len(data))
 
   end subroutine appendData
-  
+
 
   subroutine insertData(arg, offset, data, ex)
     type(DOMException), intent(out), optional :: ex
@@ -10820,7 +10820,7 @@ endif
     else
       n = count
     endif
-    
+
     tmp => arg%nodeValue
     arg%nodeValue => vs_str_alloc(str_vs(tmp(:offset))//str_vs(tmp(offset+count+1:)))
     deallocate(tmp)
@@ -10838,7 +10838,7 @@ endif
     integer, intent(in) :: offset
     integer, intent(in) :: count
     character(len=*), intent(in) :: data
-    
+
     character, pointer :: tmp(:)
     integer :: n
 
@@ -10941,10 +10941,10 @@ endif
       call updateTextContentLength(arg, n)
 
   end subroutine replaceData
- 
 
 
-  
+
+
   pure function getnotationName_len(np, p) result(n)
     type(Node), intent(in) :: np
     logical, intent(in) :: p
@@ -10958,7 +10958,7 @@ endif
       n = 0
     endif
   end function getnotationName_len
-function getnotationName(np, ex)result(c) 
+function getnotationName(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -11000,7 +11000,7 @@ endif
 
 !Internally-used getters/setters:
 
-  function getillFormed(np, ex)result(c) 
+  function getillFormed(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -11071,7 +11071,7 @@ endif
   end subroutine setillFormed
 
 
-  
+
   pure function getstringValue_len(np, p) result(n)
     type(Node), intent(in) :: np
     logical, intent(in) :: p
@@ -11085,7 +11085,7 @@ endif
       n = 0
     endif
   end function getstringValue_len
-function getstringValue(np, ex)result(c) 
+function getstringValue(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -11177,7 +11177,7 @@ endif
       n = 0
     endif
   end function getTarget_len
-function getTarget(np, ex)result(c) 
+function getTarget(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -11219,7 +11219,7 @@ endif
 
 
 
-  function splitText(arg, offset, ex)result(np) 
+  function splitText(arg, offset, ex)result(np)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     integer, intent(in) :: offset
@@ -11278,7 +11278,7 @@ endif
     elseif (arg%nodeType==CDATA_SECTION_NODE) then
       np => createCdataSection(arg%ownerDocument, str_vs(tmp(offset+1:)))
     endif
-    arg%nodeValue => vs_str_alloc(str_vs(tmp(:offset)))     
+    arg%nodeValue => vs_str_alloc(str_vs(tmp(:offset)))
     deallocate(tmp)
     if (associated(arg%parentNode)) then
       if (associated(arg%nextSibling)) then
@@ -11290,7 +11290,7 @@ endif
 
   end function splitText
 
-function getisElementContentWhitespace(np, ex)result(c) 
+function getisElementContentWhitespace(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     logical :: c
@@ -11350,7 +11350,7 @@ endif
 
 
 
-  
+
   pure function getdata_len(np, p) result(n)
     type(Node), intent(in) :: np
     logical, intent(in) :: p
@@ -11367,7 +11367,7 @@ endif
       n = 0
     endif
   end function getdata_len
-function getdata(np, ex)result(c) 
+function getdata(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -11414,7 +11414,7 @@ endif
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: arg
     character(len=*) :: data
-    
+
     integer :: n
 
     if (.not.associated(arg)) then
@@ -11428,7 +11428,7 @@ endif
 endif
 
     endif
-    
+
 !NB special case in order to check readonly correctly
     if (arg%nodeType==TEXT_NODE .or. &
       arg%nodeType==COMMENT_NODE .or. &
@@ -11506,8 +11506,8 @@ endif
     endif
 
   end subroutine setData
-  
-  
+
+
   pure function getname_len(np, p) result(n)
     type(Node), intent(in) :: np
     logical, intent(in) :: p
@@ -11522,7 +11522,7 @@ endif
       n = 0
     endif
   end function getname_len
-function getname(np, ex)result(c) 
+function getname(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -11563,7 +11563,7 @@ endif
   end function getname
 
 
-  
+
   pure function getpublicId_len(np, p) result(n)
     type(Node), intent(in) :: np
     logical, intent(in) :: p
@@ -11579,7 +11579,7 @@ endif
       n = 0
     endif
   end function getpublicId_len
-function getpublicId(np, ex)result(c) 
+function getpublicId(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -11621,7 +11621,7 @@ endif
   end function getpublicId
 
 
-  
+
   pure function getsystemId_len(np, p) result(n)
     type(Node), intent(in) :: np
     logical, intent(in) :: p
@@ -11637,7 +11637,7 @@ endif
       n = 0
     endif
   end function getsystemId_len
-function getsystemId(np, ex)result(c) 
+function getsystemId(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
 #ifdef RESTRICTED_ASSOCIATED_BUG
@@ -11681,7 +11681,7 @@ endif
 
 
 
-  function getnamespaceNodes(np, ex)result(c) 
+  function getnamespaceNodes(np, ex)result(c)
     type(DOMException), intent(out), optional :: ex
     type(Node), pointer :: np
     type(NodeList), pointer :: c
@@ -11740,7 +11740,7 @@ endif
 endif
 
     endif
-    
+
     if (np%nodeType /= ELEMENT_NODE) then
       if (getFoX_checks().or.FoX_INVALID_NODE<200) then
   call throw_exception(FoX_INVALID_NODE, "appendNSNode", ex)
@@ -11828,7 +11828,7 @@ endif
     ! of the DOM calls below. This is because all of
     ! these should succeed - if they dont then there
     ! is a problem so we need to terminate immediately
-    
+
     i_tree = 0
     doneChildren = .false.
     doneAttributes = .false.
@@ -11840,14 +11840,14 @@ endif
       select case (getNodeType(this))
       case (ELEMENT_NODE)
         if (ns) then
-          
+
       ! Clear all current namespace nodes:
       nsnodes => getNamespaceNodes(this)
       do i = 1, getLength(nsNodes)
         call destroyNode(nsNodes%nodes(i)%this)
       enddo
       deallocate(nsNodes%nodes)
-      
+
       parent => getParentNode(this)
       do while (associated(parent))
         ! Go up (through perhaps multiple entref nodes)
@@ -11986,7 +11986,7 @@ endif
               endif
             endif
           endif
-        else 
+        else
           ! attribute has no namespace URI
           if (getLocalName(this)=="") then
             ! DOM level 1 node ... report error
@@ -12096,7 +12096,7 @@ endif
           call destroy(dummy)
           this => old
         endif
-        
+
       case (DOCUMENT_TYPE_NODE)
         if (getParameter(dc, "canonical-form")) then
           old => getPreviousSibling(this)
@@ -12181,14 +12181,14 @@ endif
     endif
 
     if (this%nodeType==ELEMENT_NODE) then
-      
+
       ! Clear all current namespace nodes:
       nsnodes => getNamespaceNodes(this)
       do i = 1, getLength(nsNodes)
         call destroyNode(nsNodes%nodes(i)%this)
       enddo
       deallocate(nsNodes%nodes)
-      
+
       parent => getParentNode(this)
       do while (associated(parent))
         ! Go up (through perhaps multiple entref nodes)
@@ -12327,7 +12327,7 @@ endif
               endif
             endif
           endif
-        else 
+        else
           ! attribute has no namespace URI
           if (getLocalName(this)=="") then
             ! DOM level 1 node ... report error

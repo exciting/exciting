@@ -13,11 +13,11 @@ module scl_xml_out_Module
 
   use modinput
   implicit none
-  type(Node),  pointer :: sclDoc, root, np,npatt,energies,niter,nnewline,charges,atom,xst,timing,nscl,ngroundstate
+  type(Node),  pointer :: sclDoc, root, np,npatt,energies,niter,charges,atom,xst,timing,nscl,ngroundstate
   type(DOMConfiguration),pointer :: configo
   real(8)::scltime0=0
   character(512)::buffer
-  character::newline
+
 contains
 
   subroutine scl_xml_out_create
@@ -26,19 +26,16 @@ contains
        ! Create a new document and get a pointer to the root element, this gives you the minimum empty dom
        sclDoc => createDocument(getImplementation(), "", "info", null())
        configo => getDomConfig(scldoc)
+       call setParameter(getDomConfig(scldoc), "format-pretty-print", .true.) 
        root => getDocumentElement(sclDoc)
        xst=>createProcessingInstruction(scldoc, "xml-stylesheet",&
             'href="'//trim(input%xsltpath)//'/info.xsl" type="text/xsl"')
        dummy => insertBefore(scldoc, xst, root)
-       newline=ACHAR(10)
-       nnewline =>createTextNode(scldoc, newline//" " )
-       dummy => appendChild(root, nnewline)
+      
        ngroundstate => createElementNS(sclDoc, "", "groundstate")
        dummy => appendChild(root, ngroundstate)
        nscl => createElementNS(sclDoc, "", "scl")
        dummy => appendChild(ngroundstate, nscl)
-       nnewline =>createTextNode(scldoc, newline//" " )
-       dummy => appendChild(root, nnewline)
        call date_and_time(date=dat, time=tim)
 
        write(buffer, '(A4, "-", A2, "-", A2)') dat(1:4), dat(5:6), &
@@ -60,8 +57,6 @@ contains
     integer::is,ia,ias
     real(8)::scltime
     if(rank.eq.0) then
-       nnewline =>createTextNode(scldoc,  newline//"  ")
-       dummy => appendChild(nscl, nnewline)
        niter => createElementNS(sclDoc, "", "iter")
        dummy => appendChild(nscl, niter)
        write(buffer,*)iscl
@@ -73,8 +68,6 @@ contains
        write(buffer,'(G22.12)') fermidos
        call setAttribute(niter, "fermidos", trim(adjustl(buffer)))
        write(buffer,'(G22.12)')efermi
-       nnewline =>createTextNode(scldoc,  newline//"   ")
-       dummy => appendChild(niter, nnewline)
        energies => createElementNS(sclDoc, "", "energies")
        dummy => appendChild(niter, energies)
        write(buffer,*)engytot
@@ -99,8 +92,6 @@ contains
        call setAttribute(energies, "Hartree", trim(adjustl(buffer)))
        write(buffer,'(G22.12)')engymad
        call setAttribute(energies, "Madelung", trim(adjustl(buffer)))
-       nnewline =>createTextNode(scldoc,  newline//"   ")
-       dummy => appendChild(niter, nnewline)
        charges => createElementNS(sclDoc, "", "charges")
        dummy => appendChild(niter, charges)
        write(buffer,'(G22.12)')chgcr
@@ -121,8 +112,6 @@ contains
        end if
        do is=1, nspecies
           do ia=1, natoms(is)
-             nnewline =>createTextNode(scldoc,  newline//"    ")
-	     dummy => appendChild(charges, nnewline)
              atom => createElementNS(sclDoc, "", "atom")
 	     dummy => appendChild(charges, atom)
              ias=idxas(ia, is)
@@ -133,8 +122,6 @@ contains
           end do
        end do
 
-       nnewline =>createTextNode(scldoc,  newline//"   ")
-       dummy => appendChild(niter, nnewline)
        timing => createElementNS(sclDoc, "", "timing")
        dummy => appendChild(niter, timing)
        call timesec(scltime)
@@ -155,10 +142,6 @@ contains
        call setAttribute(timing, "timepot", trim(adjustl(buffer)))
        write(buffer,'(G22.12)')timefor
        call setAttribute(timing, "timefor", trim(adjustl(buffer)))
-       nnewline =>createTextNode(scldoc,  newline//"    ")
-       dummy => appendChild(charges, nnewline)
-       nnewline =>createTextNode(scldoc,  newline//"   ")
-       dummy => appendChild(niter, nnewline)
 
     endif
   end subroutine scl_iter_xmlout
@@ -184,8 +167,6 @@ contains
           text=>createTextNode(scldoc, trim(adjustl(buffer)))
           dummy => appendChild(nbasevect,text)
        end do
-         nnewline =>createTextNode(scldoc,  newline//"     ")
-             dummy => appendChild(crystal, nnewline)
         do i=1,3
            nreziprvect => createElementNS(sclDoc, "", "reziprvect")
            write(buffer, '(3G18.10)') bvec(:, i)
@@ -196,15 +177,11 @@ contains
        do is=1,nspecies
           species => createElementNS(sclDoc, "", "species")
           dummy => appendChild(structure, species)
-	      nnewline =>createTextNode(scldoc,  newline//"    ")
-          dummy => appendChild(structure, nnewline)
 	  write(buffer,*)trim(input%structure%speciesarray(is)%species%chemicalSymbol)
 	  call setAttribute(species, "chemicalSymbol", trim(adjustl(buffer)))
           do ia=1,natoms(is)
              atom => createElementNS(sclDoc, "", "atom")
              dummy => appendChild(species, atom)
-             nnewline =>createTextNode(scldoc,  newline//"     ")
-             dummy => appendChild(species, nnewline)
              call setcoord(atom,input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord)
              if (input%groundstate%tforce) then
                 forces=> createElementNS(sclDoc, "", "forces")
@@ -224,21 +201,13 @@ contains
                 call setcoord(force,forcetot(:, ias))
                 write(buffer,'(G22.12)')sqrt(forcetot(1, ias)**2+forcetot(2, ias)**2+forcetot(3, ias)**2)
                 call setAttribute(forces, "Magnitude", trim(adjustl(buffer)))
-                nnewline =>createTextNode(scldoc,  newline//"       ")
-                dummy => appendChild(atom, nnewline)
-                nnewline =>createTextNode(scldoc,  newline//"        ")
-                dummy => appendChild(forces, nnewline)
              endif
           end do
           if (input%groundstate%tforce) then
              write(buffer,'(G22.12)')forcemax
              call setAttribute(structure, "forceMax", trim(adjustl(buffer)))
           endif
-          nnewline =>createTextNode(scldoc,  newline//"      ")
-          dummy => appendChild(species, nnewline)
        end do
-       nnewline =>createTextNode(scldoc,  newline//"    ")
-       dummy => appendChild(structure, nnewline)
     endif
   end subroutine structure_xmlout
   subroutine setcoord(elementnode,coord)
@@ -276,25 +245,17 @@ contains
     if(rank.eq.0) then
        moments => createElementNS(sclDoc, "", "moments")
        dummy => appendChild(niter, moments)
-       nnewline =>createTextNode(scldoc,  newline//"     ")
-       dummy => appendChild(moments, nnewline)
        moment=>createElementNS(sclDoc, "", "interstitial")
        dummy => appendChild(moments, moment)
        call setcoorddim(moment,momir(1:ndmag),ndmag)
-       nnewline =>createTextNode(scldoc,  newline//"     ")
-       dummy => appendChild(moments, nnewline)
 
        moment=>createElementNS(sclDoc, "", "mommttot")
        dummy => appendChild(moments, moment)
        call setcoorddim(moment,mommttot(1:ndmag),ndmag)
-       nnewline =>createTextNode(scldoc,  newline//"     ")
-       dummy => appendChild(moments, nnewline)
 
        moment=>createElementNS(sclDoc, "", "momtot")
        dummy => appendChild(moments, moment)
        call setcoorddim(moment,momtot(1:ndmag),ndmag)
-       nnewline =>createTextNode(scldoc,  newline//"     ")
-       dummy => appendChild(moments, nnewline)
        do is=1, nspecies
           do ia=1, natoms(is)
              ias=idxas(ia, is)
@@ -306,13 +267,7 @@ contains
              write(buffer,*)spsymb(is)
              call setAttribute(atom, "species", trim(adjustl(buffer)))
           end do
-          nnewline =>createTextNode(scldoc,  newline//"    ")
-          dummy => appendChild(moments, nnewline)
        end do
-       nnewline =>createTextNode(scldoc,  newline//"  ")
-       dummy => appendChild(niter, nnewline)
-       nnewline =>createTextNode(scldoc,  newline//" ")
-       dummy => appendChild(nscl, nnewline)
     endif
   end subroutine scl_xml_write_moments
   subroutine scl_xml_out_close()!
@@ -331,6 +286,7 @@ contains
 
   subroutine scl_xml_out_write()
     if(rank.eq.0) then
+       call normalizeDocument(sclDoc)
        call serialize(sclDoc,"info.xml")
     endif
   end subroutine scl_xml_out_write
