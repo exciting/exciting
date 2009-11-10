@@ -2,6 +2,7 @@
 module scl_xml_out_Module
   use FoX_dom
   use mod_energy
+  use mod_LDA_LU
   use mod_convergence
   use mod_eigenvalue_occupancy
   use mod_charge_and_moment
@@ -26,12 +27,12 @@ contains
        ! Create a new document and get a pointer to the root element, this gives you the minimum empty dom
        sclDoc => createDocument(getImplementation(), "", "info", null())
        configo => getDomConfig(scldoc)
-       call setParameter(getDomConfig(scldoc), "format-pretty-print", .true.) 
+       call setParameter(getDomConfig(scldoc), "format-pretty-print", .true.)
        root => getDocumentElement(sclDoc)
        xst=>createProcessingInstruction(scldoc, "xml-stylesheet",&
             'href="'//trim(input%xsltpath)//'/info.xsl" type="text/xsl"')
        dummy => insertBefore(scldoc, xst, root)
-      
+
        ngroundstate => createElementNS(sclDoc, "", "groundstate")
        dummy => appendChild(root, ngroundstate)
        nscl => createElementNS(sclDoc, "", "scl")
@@ -70,9 +71,9 @@ contains
        write(buffer,'(G22.12)')efermi
        energies => createElementNS(sclDoc, "", "energies")
        dummy => appendChild(niter, energies)
-       write(buffer,*)engytot
+       write(buffer,'(G22.12)')engytot
        call setAttribute(energies, "totalEnergy", trim(adjustl(buffer)))
-       write(buffer,*)efermi
+       write(buffer,'(G22.12)')efermi
        call setAttribute(energies, "fermiEnergy", trim(adjustl(buffer)))
        write(buffer,'(G22.12)')evalsum
        call setAttribute(energies, "sum-of-eigenvalues", trim(adjustl(buffer)))
@@ -92,6 +93,26 @@ contains
        call setAttribute(energies, "Hartree", trim(adjustl(buffer)))
        write(buffer,'(G22.12)')engymad
        call setAttribute(energies, "Madelung", trim(adjustl(buffer)))
+       if (input%groundstate%chgexs.ne.0.d0) then
+         write(buffer,'(G22.12)')engycbc
+         call setAttribute(energies, "comp.-background-charge", trim(adjustl(buffer)))
+       end if
+       write(buffer,'(G22.12)')engyvxc
+       call setAttribute(energies, "xc-potential", trim(adjustl(buffer)))
+       if (associated(input%groundstate%spin)) then
+         write(buffer,'(G22.12)')engybxc
+         call setAttribute(energies, "xc-effective-B-field", trim(adjustl(buffer)))
+         write(buffer,'(G22.12)')engybext
+         call setAttribute(energies, "external-B-field", trim(adjustl(buffer)))
+       end if
+       write(buffer,'(G22.12)')engyx
+       call setAttribute(energies, "exchange", trim(adjustl(buffer)))
+       write(buffer,'(G22.12)')engyc
+       call setAttribute(energies, "correlation", trim(adjustl(buffer)))
+       if (ldapu.ne.0) then
+         write(buffer,'(G22.12)')engylu
+         call setAttribute(energies, "LDA+U", trim(adjustl(buffer)))
+       end if
        charges => createElementNS(sclDoc, "", "charges")
        dummy => appendChild(niter, charges)
        write(buffer,'(G22.12)')chgcr
