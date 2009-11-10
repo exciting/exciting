@@ -26,12 +26,12 @@ contains
        ! Create a new document and get a pointer to the root element, this gives you the minimum empty dom
        sclDoc => createDocument(getImplementation(), "", "info", null())
        configo => getDomConfig(scldoc)
-       call setParameter(getDomConfig(scldoc), "format-pretty-print", .true.) 
+       call setParameter(getDomConfig(scldoc), "format-pretty-print", .true.)
        root => getDocumentElement(sclDoc)
        xst=>createProcessingInstruction(scldoc, "xml-stylesheet",&
             'href="'//trim(input%xsltpath)//'/info.xsl" type="text/xsl"')
        dummy => insertBefore(scldoc, xst, root)
-      
+
        ngroundstate => createElementNS(sclDoc, "", "groundstate")
        dummy => appendChild(root, ngroundstate)
        nscl => createElementNS(sclDoc, "", "scl")
