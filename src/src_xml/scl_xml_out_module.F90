@@ -115,22 +115,18 @@ contains
        end if
        charges => createElementNS(sclDoc, "", "charges")
        dummy => appendChild(niter, charges)
-       write(buffer,'(G22.12)')chgcr
-       call setAttribute(charges, "core", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')chgcrlk
-       call setAttribute(charges, "core_leakage", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')chgval
-       call setAttribute(charges, "valence", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')chgir
-       call setAttribute(charges, "interstitial", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')chgcalc
+       write(buffer,'(G18.10)')chgcalc
        call setAttribute(charges, "totalcharge", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)') chgmttot
+       write(buffer,'(G18.10)')chgcr
+       call setAttribute(charges, "core", trim(adjustl(buffer)))
+       write(buffer,'(G18.10)')chgcrlk
+       call setAttribute(charges, "core_leakage", trim(adjustl(buffer)))
+       write(buffer,'(G18.10)')chgval
+       call setAttribute(charges, "valence", trim(adjustl(buffer)))
+       write(buffer,'(G18.10)')chgir
+       call setAttribute(charges, "interstitial", trim(adjustl(buffer)))
+       write(buffer,'(G18.10)') chgmttot
        call setAttribute(charges, "muffin-tin-total", trim(adjustl(buffer)))
-       if (input%groundstate%chgexs.ne.0.d0) then
-          write(buffer,'(G22.12)') input%groundstate%chgexs
-          call setAttribute(charges, "excess", trim(adjustl(buffer)))
-       end if
        do is=1, nspecies
           do ia=1, natoms(is)
              atom => createElementNS(sclDoc, "", "atom")
@@ -138,10 +134,14 @@ contains
              ias=idxas(ia, is)
              write(buffer,*)spsymb(is)
              call setAttribute(atom, "species", trim(adjustl(buffer)) )
-             write(buffer,'(G22.12)')chgmt(ias)
+             write(buffer,'(G18.10)')chgmt(ias)
              call setAttribute(atom, "muffin-tin", trim(adjustl(buffer)))
           end do
        end do
+       if (input%groundstate%chgexs.ne.0.d0) then
+          write(buffer,'(G18.10)') input%groundstate%chgexs
+          call setAttribute(charges, "excess", trim(adjustl(buffer)))
+       end if
 
        timing => createElementNS(sclDoc, "", "timing")
        dummy => appendChild(niter, timing)
@@ -189,7 +189,7 @@ contains
           dummy => appendChild(nbasevect,text)
        end do
         do i=1,3
-           nreziprvect => createElementNS(sclDoc, "", "reziprvect")
+           nreziprvect => createElementNS(sclDoc, "", "reciprvect")
            write(buffer, '(3G18.10)') bvec(:, i)
            text=>createTextNode(scldoc, trim(adjustl(buffer)) )
            dummy => appendChild(nreziprvect, text)
@@ -266,6 +266,11 @@ contains
     if(rank.eq.0) then
        moments => createElementNS(sclDoc, "", "moments")
        dummy => appendChild(niter, moments)
+
+       moment=>createElementNS(sclDoc, "", "momtot")
+       dummy => appendChild(moments, moment)
+       call setcoorddim(moment,momtot(1:ndmag),ndmag)
+
        moment=>createElementNS(sclDoc, "", "interstitial")
        dummy => appendChild(moments, moment)
        call setcoorddim(moment,momir(1:ndmag),ndmag)
@@ -274,9 +279,6 @@ contains
        dummy => appendChild(moments, moment)
        call setcoorddim(moment,mommttot(1:ndmag),ndmag)
 
-       moment=>createElementNS(sclDoc, "", "momtot")
-       dummy => appendChild(moments, moment)
-       call setcoorddim(moment,momtot(1:ndmag),ndmag)
        do is=1, nspecies
           do ia=1, natoms(is)
              ias=idxas(ia, is)

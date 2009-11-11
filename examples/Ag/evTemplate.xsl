@@ -38,7 +38,7 @@
   <structure speciespath="../../../species/">
     <crystal >
     <xsl:attribute name="scale">
-    <xsl:value-of select="3.86*@unicellscaling"/>
+    <xsl:value-of select="3.86*@unitcellscaling"/>
     </xsl:attribute>
 
       <basevect>1.0 1.0 0.0</basevect>
