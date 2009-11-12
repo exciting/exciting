@@ -111,7 +111,7 @@ contains
        call setAttribute(energies, "correlation", trim(adjustl(buffer)))
        if (ldapu.ne.0) then
          write(buffer,'(G22.12)')engylu
-         call setAttribute(energies, "LDA+U", trim(adjustl(buffer)))
+         call setAttribute(energies, "LDApU", trim(adjustl(buffer)))
        end if
        charges => createElementNS(sclDoc, "", "charges")
        dummy => appendChild(niter, charges)
