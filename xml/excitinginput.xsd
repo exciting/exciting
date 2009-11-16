@@ -1694,8 +1694,12 @@ Its attributes are the parameters and methods used to calculate the groundstate 
 									coordinates.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="npsden" type="xs:integer"
-							default="9" />
+						<xs:attribute name="npsden" type="xs:integer" default="9">
+							<xs:annotation>
+							  <xs:documentation>
+							order of polynomial for pseudocharge density.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="cfdamp" type="fortrandouble"
 							default="0">
 							<!-- sag -->
