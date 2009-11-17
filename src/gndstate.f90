@@ -85,7 +85,7 @@ subroutine gndstate
      ! initialise or read the charge density and potentials from file
   end if
   iscl=0
-  write(60, *)
+  if (rank.eq.0) write(60, *)
   if ((task.eq.1).or.(task.eq.3)) then
      call readstate
      if(rank.eq.0) write(60, '("Potential read in from STATE.OUT")')
@@ -98,7 +98,7 @@ subroutine gndstate
      call genveffig
      if(rank.eq.0)  write(60, '("Density and potential initialised from atomic data")')
   end if
-  call flushifc(60)
+  if (rank.eq.0) call flushifc(60)
   ! size of mixing vector
   n=lmmaxvr*nrmtmax*natmtot+ngrtot
   if (associated(input%groundstate%spin)) n=n*(1+ndmag)
@@ -109,7 +109,7 @@ subroutine gndstate
   nwork=-1
   !and call interfacepe
 
-  call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
+  if (rank.eq.0) call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
 
   ! set stop flag
   tstop=.false.
@@ -149,8 +149,10 @@ subroutine gndstate
      select case(trim(input%groundstate%findlinentype))
      case('simple')
      case('advanced')
+       if (rank.eq.0) then
         write(60,*)
         write(60,'("Using advanced method for search of linearization energies")')
+       end if
      end select
      ! find the new linearisation energies
      call linengy
@@ -554,8 +556,6 @@ subroutine gndstate
 	write(60, '("+---------------------------+")')
 	write(60, '("| EXCITING hydrogen stopped |")')
 	write(60, '("+---------------------------+")')
- ! close the INFO.OUT file
-	close(60)
  ! close the TOTENERGY.OUT file
 	close(61)
  ! close the FERMIDOS.OUT file
@@ -569,11 +569,12 @@ subroutine gndstate
         call	scl_xml_setGndstateStatus("finished")
         call scl_xml_out_write()
      endif
-
      !set nwork to -2 to tell interface to call the deallocation functions
-     call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
+     if (rank.eq.0) call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
      deallocate(v)
      call mpiresumeevecfiles()
-     return
-   end subroutine gndstate
-   !EOC
+ ! close the INFO.OUT file
+	if (rank.eq.0) close(60)
+    return
+end subroutine gndstate
+!EOC

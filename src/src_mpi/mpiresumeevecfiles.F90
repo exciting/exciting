@@ -12,10 +12,10 @@
 
 subroutine    mpiresumeevecfiles
   use modmain
-#ifdef MPI  
+#ifdef MPI
   use modmpi
   ! !DESCRIPTION:
-  !  Routine reads the lokal EIGVECk1-k2.OUT files that were created to 
+  !  Routine reads the lokal EIGVECk1-k2.OUT files that were created to
   !  avoid file system inconsistencies. And writes them into the standard
   !  EIGVEC.OUT File
   !
@@ -28,7 +28,7 @@ subroutine    mpiresumeevecfiles
   integer:: ik, proc, nmatmax_, nstfv_, nspnfv_, nstsv_, recl, token
   integer::recvstatus(MPI_STATUS_SIZE)
   character(256)::filetag
-  complex(8) :: evecfv(nmatmax, nstfv, nspnfv) 
+  complex(8) :: evecfv(nmatmax, nstfv, nspnfv)
   complex(8) :: evecsv (nstsv, nstsv)
   real(8):: evalfv(nstfv, nspnfv), vkl_(3), evalsvp(nstsv), occsvp(nstsv)
   character(256), external:: outfilenamestring
@@ -38,7 +38,7 @@ subroutine    mpiresumeevecfiles
 
 
 
-     filetag='EVECFV' 
+     filetag='EVECFV'
      inquire(iolength=recl) vkl_, nmatmax_, nstfv_, nspnfv_, evecfv
      open(71, file = trim(filetag)//trim(filext)  , action = 'WRITE', &
 	  form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
@@ -51,7 +51,7 @@ subroutine    mpiresumeevecfiles
      end do
      close(77, status='DELETE')
 	 write(*, *)trim(outfilenamestring(filetag, firstk(proc))), " deleted"
-     close(71) 
+     close(71)
 
      filetag='EVECSV'
      inquire(iolength=recl) vkl_, nstsv_, evecsv
@@ -66,7 +66,7 @@ subroutine    mpiresumeevecfiles
      end do
      close(77, status='DELETE')
 	 write(*, *)trim(outfilenamestring(filetag, firstk(proc))), " deleted"
-     close(71) 
+     close(71)
 
 
 
@@ -117,12 +117,13 @@ subroutine    mpiresumeevecfiles
 
      close(71)
      CALL SYSTEM("sync")
-     if(rank.eq.0) write(60, *)"resumed splitt files"
-     call flushifc(60)
-
+     if (rank.eq.0) then
+       write(60, *)"resumed splitt files"
+       call flushifc(60)
+     end if
      if(rank.ne.(procs-1))call mpi_send(token, 1, MPI_INTEGER, rank+1, 1, MPI_COMM_WORLD, ierr)
   endif
-  if(procs.gt.1) call MPI_barrier(MPI_COMM_WORLD, ierr)
+  if (procs.gt.1) call MPI_barrier(MPI_COMM_WORLD, ierr)
   CALL SYSTEM("sync")
    splittfile=.false.
 #endif
