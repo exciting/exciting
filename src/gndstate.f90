@@ -66,7 +66,6 @@ subroutine gndstate
      call writegeom(.false.)
      call writegeometryxml(.false.)
      ! open INFO.OUT file
-
      open(60, file='INFO'//trim(filext), action='WRITE', form='FORMATTED')
      ! open TOTENERGY.OUT
      open(61, file='TOTENERGY'//trim(filext), action='WRITE', form='FORMATTED')
