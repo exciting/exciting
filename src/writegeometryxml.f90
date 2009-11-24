@@ -1,5 +1,5 @@
 !BOP
-! !ROUTINE: writegeom
+! !ROUTINE: writegeometryxml
 ! !INTERFACE:
 
 subroutine writegeometryxml(topt)
@@ -60,10 +60,6 @@ call xml_AddAttribute(xf, "speciesfile", &
   end do
   call xml_endElement(xf, "species")
 end do
-write(*, *)
-write(*, '("Info(writegeom):")')
-write(*, '(" EXCITING lattice vectors and atomic positions written to &
- &geometry.xml")')
  call xml_close(xf)
 return
 end subroutine
