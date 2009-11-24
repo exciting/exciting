@@ -62,7 +62,7 @@ end subroutine
 subroutine ifparseerrorstop()
 if(parseerror) then
 write(*,*)"Stopping because of parse error"
-stop
+stop 1
 endif
 end subroutine
 
