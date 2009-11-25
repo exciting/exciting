@@ -39,6 +39,8 @@ doc::
 	perl ../../utilities/scripts/genprotexdoc.pl ../../src/mainxml/  $(SOURCEDIRS)  ;\
 	mv doc.pdf excitingsubroutines.pdf
 
+tidy::
+	perl ../../utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
 ifeq ($(USE_SYS_LAPACK),true)
 libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a
@@ -48,7 +50,7 @@ ifeq ($(USE_SYS_LAPACK),)
 libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a
 endif
 
-libblas.a::
+libblas.a:: 
 	../../utilities/mkmf -t ./template.f77 -f -m Makefile.blas -p libblas.a \
 	../../src/BLAS\
 	&& $(MAKE) -f Makefile.blas libblas.a 
