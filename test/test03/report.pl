@@ -14,7 +14,7 @@ $status     = failed;
 $iterations = 0;
 $rightmixer = failed;
 while (<INFO>) {
-	if (m/\| EXCITING version.+stopped/) {
+	if (m/\| EXCITING.+stopped/) {
 		$status = "passed";
 	}
 	if (m/Iteration number :\s*(\d+)/) {
@@ -45,7 +45,7 @@ Test::writetestreport(
 	$writer
 );
 
-$iterationsref = 17;
+$iterationsref = 18;
 if   ( $iterations == $iterationsref ) { $status = passed; }
 else                                   { $status = "failed"; }
 
@@ -64,13 +64,13 @@ $status     = failed;
 $iterations = 0;
 $rightmixer = failed;
 while (<INFO>) {
-	if (m/\| EXCITING version.+stopped/) {
+	if (m/\| EXCITING .+stopped/) {
 		$status = "passed";
 	}
 	if (m/Iteration number :\s*(\d+)/) {
 		$iterations = $1;
 	}
-	if (m/Using Multisecant Broyden potential mixing (2)/) {
+	if (m/Using Multisecant Broyden/) {
 		$rightmixer = passed;
 	}
 }
@@ -114,14 +114,14 @@ $status     = failed;
 $iterations = 0;
 $rightmixer = failed;
 while (<INFO>) {
-	if (m/\| EXCITING version.+stopped/) {
+	if (m/\| EXCITING .+stopped/) {
 		$status = "passed";
 	}
 	if (m/Iteration number :\s*(\d+)/) {
 		$iterations = $1;
 	}
 
-	if (m/Using Pulay potential mixing/) {
+	if (m/Using Pulay potential/) {
 		$rightmixer = passed;
 	}
 }
