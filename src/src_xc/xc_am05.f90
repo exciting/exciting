@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004, 2005 Rickard Armiento
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: xc_am05
 ! !INTERFACE:
-
-
-subroutine xc_am05(n, rho, grho, g2rho, g3rho, ex, ec, vx, vc)
+!
+!
+Subroutine xc_am05 (n, rho, grho, g2rho, g3rho, ex, ec, vx, vc)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : number of density points (in,integer)
 !   rho   : charge density (in,real(n))
@@ -29,63 +29,64 @@ subroutine xc_am05(n, rho, grho, g2rho, g3rho, ex, ec, vx, vc)
 !   Created April 2005 (RAR); based on xc_pbe
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: n
-real(8), intent(in) :: rho(n)
-real(8), intent(in) :: grho(n)
-real(8), intent(in) :: g2rho(n)
-real(8), intent(in) :: g3rho(n)
-real(8), intent(out) :: ex(n)
-real(8), intent(out) :: ec(n)
-real(8), intent(out) :: vx(n)
-real(8), intent(out) :: vc(n)
+      Integer, Intent (In) :: n
+      Real (8), Intent (In) :: rho (n)
+      Real (8), Intent (In) :: grho (n)
+      Real (8), Intent (In) :: g2rho (n)
+      Real (8), Intent (In) :: g3rho (n)
+      Real (8), Intent (Out) :: ex (n)
+      Real (8), Intent (Out) :: ec (n)
+      Real (8), Intent (Out) :: vx (n)
+      Real (8), Intent (Out) :: vc (n)
 ! local variables
-integer::i
-real(8), parameter :: pi=3.1415926535897932385d0
+      Integer :: i
+      Real (8), Parameter :: pi = 3.1415926535897932385d0
 ! maximum allowed |grad rho|
-real(8), parameter :: gmax=1.d6
+      Real (8), Parameter :: gmax = 1.d6
 ! maximum allowed grad^2 rho
-real(8), parameter :: g2max=1.d12
+      Real (8), Parameter :: g2max = 1.d12
 ! maximum allowed (grad rho).(grad |grad rho|)
-real(8), parameter :: g3max=1.d14
-real(8)::r, kf, s, v, u
-real(8)::grho_, g2rho_, g3rho_
-do i=1, n
-  if (rho(i).gt.1.d-12) then
-    grho_=grho(i)
-    g2rho_=g2rho(i)
-    g3rho_=g3rho(i)
+      Real (8), Parameter :: g3max = 1.d14
+      Real (8) :: r, kf, s, v, u
+      Real (8) :: grho_, g2rho_, g3rho_
+      Do i = 1, n
+         If (rho(i) .Gt. 1.d-12) Then
+            grho_ = grho (i)
+            g2rho_ = g2rho (i)
+            g3rho_ = g3rho (i)
 ! check gradients are within range
-    if (grho_.gt.gmax) grho_=gmax
-    if (abs(g2rho_).gt.g2max) g2rho_=sign(g2max, g2rho_)
-    if (abs(g3rho_).gt.g3max) g3rho_=sign(g3max, g3rho_)
+            If (grho_ .Gt. gmax) grho_ = gmax
+            If (Abs(g2rho_) .Gt. g2max) g2rho_ = sign (g2max, g2rho_)
+            If (Abs(g3rho_) .Gt. g3max) g3rho_ = sign (g3max, g3rho_)
 ! exchange energy density and potential
-    r=rho(i)
-    kf=(r*3.d0*pi**2)**(1.d0/3.d0)
-    s=grho_/(2.d0*kf*r)
-    v=g2rho_/(r*(2.d0*kf)**2)
-    u=g3rho_/((r**2)*(2.d0*kf)**3)
-    call xc_am05_point(r, s, u, v, ex(i), ec(i), vx(i), vc(i), 1)
-  else
-    ex(i)=0.d0
-    ec(i)=0.d0
-    vx(i)=0.d0
-    vc(i)=0.d0
-  end if
-end do
-return
-end subroutine
+            r = rho (i)
+            kf = (r*3.d0*pi**2) ** (1.d0/3.d0)
+            s = grho_ / (2.d0*kf*r)
+            v = g2rho_ / (r*(2.d0*kf)**2)
+            u = g3rho_ / ((r**2)*(2.d0*kf)**3)
+            Call xc_am05_point (r, s, u, v, ex(i), ec(i), vx(i), vc(i), &
+           & 1)
+         Else
+            ex (i) = 0.d0
+            ec (i) = 0.d0
+            vx (i) = 0.d0
+            vc (i) = 0.d0
+         End If
+      End Do
+      Return
+End Subroutine
 !EOC
-
+!
 !BOP
 ! !ROUTINE: xc_am05_point
 ! !INTERFACE:
-
-
-subroutine xc_am05_point(rho, s, u, v, ex, ec, vx, vc, pot)
+!
+!
+Subroutine xc_am05_point (rho, s, u, v, ex, ec, vx, vc, pot)
 ! !INPUT/OUTPUT PARAMETERS:
-use modinput
+      Use modinput
 !   rho : electron density (in,real)
 !   s   : gradient of n / (2 kF n)
 !   u   : grad n * grad | grad n | / (n**2 (2 kF)**3)
@@ -102,123 +103,120 @@ use modinput
 !   Created April 2005 (RAR)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: rho, s, u, v
-integer, intent(in) :: pot
-real(8), intent(out) :: ex, ec, vx, vc
+      Real (8), Intent (In) :: rho, s, u, v
+      Integer, Intent (In) :: pot
+      Real (8), Intent (Out) :: ex, ec, vx, vc
 ! constants
-real(8), parameter :: pi=3.1415926535897932385d0
-real(8), parameter :: g = 0.8098d0
-real(8), parameter :: a = 2.804d0
-real(8), parameter :: c = 0.7168d0
+      Real (8), Parameter :: pi = 3.1415926535897932385d0
+      Real (8), Parameter :: g = 0.8098d0
+      Real (8), Parameter :: a = 2.804d0
+      Real (8), Parameter :: c = 0.7168d0
 ! local variables
-real(8)::s2, exlda, vxlda, eclda, vclda, X, xs, Xss
-real(8)::F, Fs, Fss, Hx, Hxs, Hxss, Hc, Hcs, Hcss
-real(8)::zb, zbs, zbss, w
-real(8)::n0b, n0bs, n0bss
-real(8)::ln0b, ln0bs, ln0bss
-real(8)::zbb, zbbc, zbbs, zbbss
-real(8)::fxb, fxbs, fxbss
+      Real (8) :: s2, exlda, vxlda, eclda, vclda, X, xs, Xss
+      Real (8) :: F, Fs, Fss, Hx, Hxs, Hxss, Hc, Hcs, Hcss
+      Real (8) :: zb, zbs, zbss, w
+      Real (8) :: n0b, n0bs, n0bss
+      Real (8) :: ln0b, ln0bs, ln0bss
+      Real (8) :: zbb, zbbc, zbbs, zbbss
+      Real (8) :: fxb, fxbs, fxbss
 ! cutoff
-if((rho .le. 1.0d-16)) then
-   ex = 0.0d0
-   ec = 0.0d0
-   vx = 0.0d0
-   vc = 0.0d0
-   return
-endif
-s2 = s**2
+      If ((rho .Le. 1.0d-16)) Then
+         ex = 0.0d0
+         ec = 0.0d0
+         vx = 0.0d0
+         vc = 0.0d0
+         Return
+      End If
+      s2 = s ** 2
 ! LDA correlation
-call xc_am05_ldapwc(rho, eclda, vclda)
+      Call xc_am05_ldapwc (rho, eclda, vclda)
 ! LDA exchange
-call xc_am05_ldax(rho, exlda, vxlda)
+      Call xc_am05_ldax (rho, exlda, vxlda)
 !------------------!
 !     exchange     !
 !------------------!
 ! interpolation index
-X = 1.0d0 - a*s2/(1.0d0 + a*s2)
+      X = 1.0d0 - a * s2 / (1.0d0+a*s2)
 ! Airy LAA refinement function
-call xc_am05_labertw(s**(3.0d0/2.0d0)/sqrt(24.0d0), w)
-zb = (3.0d0/2.0d0*w)**(2.0d0/3.0d0)
-n0b = w/(2.0d0*pi**2*s**3)
-ln0b = -3.0d0/(2.0d0*pi)*(3.0d0*pi**2*n0b)**(1.0d0/3.0d0)
-zbbc = ((4.0d0/3.0d0)**(1.0d0/3.0d0)*2.0d0*pi/3.0d0)**4
-zbb = (zbbc*zb**2 + zb**4)**(1.0d0/4.0d0)
-Fxb = -1.0d0/(ln0b*2.0d0*zbb)
-F = (c*s2 + 1.0d0)/(c*s2/Fxb + 1.0d0)
+      Call xc_am05_labertw (s**(3.0d0/2.0d0)/Sqrt(24.0d0), w)
+      zb = (3.0d0/2.0d0*w) ** (2.0d0/3.0d0)
+      n0b = w / (2.0d0*pi**2*s**3)
+      ln0b = - 3.0d0 / (2.0d0*pi) * (3.0d0*pi**2*n0b) ** (1.0d0/3.0d0)
+      zbbc = ((4.0d0/3.0d0)**(1.0d0/3.0d0)*2.0d0*pi/3.0d0) ** 4
+      zbb = (zbbc*zb**2+zb**4) ** (1.0d0/4.0d0)
+      fxb = - 1.0d0 / (ln0b*2.0d0*zbb)
+      F = (c*s2+1.0d0) / (c*s2/fxb+1.0d0)
 ! exchange refinement function
-Hx = X + (1.0d0 - X)*F
+      Hx = X + (1.0d0-X) * F
 ! exchange energy per particle, Ex = Integrate[n*ex]
-ex = exlda*Hx
+      ex = exlda * Hx
 !---------------------!
 !     correlation     !
 !---------------------!
 ! correlation refinement function
-Hc = X + g*(1.0d0 - X)
+      Hc = X + g * (1.0d0-X)
 ! correlation energy per particle, Ec = Integrate[rho*ec]
-ec = eclda*Hc
-if (pot .eq. 0) return
+      ec = eclda * Hc
+      If (pot .Eq. 0) Return
 !----------------------------!
 !     exchange potential     !
 !----------------------------!
 ! interpolation index derivatives, dX/ds
-xs = -2.0d0*a*s/(1.0d0 + a*s2)**2
-Xss = 2.0d0*a*(3.0d0*a*s2-1.0d0)/(1.0d0+a*s2)**3
+      xs = - 2.0d0 * a * s / (1.0d0+a*s2) ** 2
+      Xss = 2.0d0 * a * (3.0d0*a*s2-1.0d0) / (1.0d0+a*s2) ** 3
 ! airy LAA refinement function derivatives, dF/ds
-zbs = zb/(s + s*w)
-zbss = - zb*w*(5.0d0+2.0d0*w)/(2.0d0*s2*(1.0d0+w)**3)
-n0bs = sqrt(zb)*(-2.0d0*zb+s*zbs)/(2.0d0*pi**2*s2**2)
-n0bss = (16.0d0 * zb ** 2 + s ** 2 * zbs ** 2 + 2.0d0 * s * zb * ( - 6.0d0* &
-     zbs + s * zbss))/(4.0d0 * pi ** 2 * s ** 5 * sqrt(zb))
-ln0bs = -(3.0d0/pi)**(1.0d0/3.0d0)*n0bs/ &
-     (2.0d0*n0b**(2.0d0/3.0d0))
-ln0bss = (2.0d0 * n0bs ** 2 - 3.0d0 * n0b * n0bss)/(2.0d0* &
-     3.0d0 ** (2.0d0/3.0d0) * pi ** (1.0d0/3.0d0) * n0b ** (5.0d0/3.0d0))
-zbbs = zb*(zbbc+2*zb**2)*zbs/ &
-     (2.0d0*(zb**2*(zbbc+zb**2))**(3.0d0/4.0d0))
-zbbss = zb ** 2 * ( - zbbc * (zbbc - 2.0d0 * zb ** 2) * zbs ** 2+ &
-     2.0d0 * zb * (zbbc + zb ** 2) * (zbbc + 2.0d0 * zb ** 2) * zbss)/ &
-     (4.0d0 * (zb ** 2 * (zbbc + zb ** 2)) ** (7.0d0/4.0d0))
-Fxbs = (zbb*ln0bs+ln0b*zbbs)/(2.0d0*ln0b**2*zbb**2)
-Fxbss = ( - 2.0d0 * ln0b ** 2 * zbbs ** 2 + zbb ** 2 * ( - 2.0d0 * ln0bs ** 2 + &
-     ln0b * ln0bss) + ln0b * zbb * ( - 2.0d0 * ln0bs * zbbs + ln0b * zbbss))/ &
-     (2.0d0 * ln0b ** 3 * zbb ** 3)
-Fs = (c*s*(2.0d0*(Fxb-1.0d0)*Fxb + s*(1.0d0+c*s2)*Fxbs))/ &
-     (c*s2 + Fxb)**2
-Fss = (c * ( - 2.0d0 * (3.0d0 * c * s2 - Fxb) * (Fxb - 1.0d0) * Fxb+ &
-     4.0d0 * s * ( - c * s2 + Fxb + 2.0d0 * c * s2 * Fxb) * Fxbs - &
-     2.0d0 * s2 * (1.0d0 + c * s2) * Fxbs ** 2 + s2 * (1.0d0 + c * s2)* &
-     (c * s2 + Fxb) * Fxbss))/(c * s2 + Fxb) ** 3
+      zbs = zb / (s+s*w)
+      zbss = - zb * w * (5.0d0+2.0d0*w) / (2.0d0*s2*(1.0d0+w)**3)
+      n0bs = Sqrt (zb) * (-2.0d0*zb+s*zbs) / (2.0d0*pi**2*s2**2)
+      n0bss = (16.0d0*zb**2+s**2*zbs**2+2.0d0*s*zb*(-6.0d0*zbs+s*zbss)) &
+     & / (4.0d0*pi**2*s**5*Sqrt(zb))
+      ln0bs = - (3.0d0/pi) ** (1.0d0/3.0d0) * n0bs / &
+     & (2.0d0*n0b**(2.0d0/3.0d0))
+      ln0bss = (2.0d0*n0bs**2-3.0d0*n0b*n0bss) / (2.0d0*3.0d0**(2.0d0/&
+     & 3.0d0)*pi**(1.0d0/3.0d0)*n0b**(5.0d0/3.0d0))
+      zbbs = zb * (zbbc+2*zb**2) * zbs / &
+     & (2.0d0*(zb**2*(zbbc+zb**2))**(3.0d0/4.0d0))
+      zbbss = zb ** 2 * (-zbbc*(zbbc-2.0d0*zb**2)*zbs**2+2.0d0*zb*(zbbc+&
+     & zb**2)*(zbbc+2.0d0*zb**2)*zbss) / (4.0d0*(zb**2*(zbbc+&
+     & zb**2))**(7.0d0/4.0d0))
+      fxbs = (zbb*ln0bs+ln0b*zbbs) / (2.0d0*ln0b**2*zbb**2)
+      fxbss = (-2.0d0*ln0b**2*zbbs**2+zbb**2*(-2.0d0*ln0bs**2+&
+     & ln0b*ln0bss)+ln0b*zbb*(-2.0d0*ln0bs*zbbs+ln0b*zbbss)) / &
+     & (2.0d0*ln0b**3*zbb**3)
+      Fs = (c*s*(2.0d0*(fxb-1.0d0)*fxb+s*(1.0d0+c*s2)*fxbs)) / &
+     & (c*s2+fxb) ** 2
+      Fss = (c*(-2.0d0*(3.0d0*c*s2-fxb)*(fxb-1.0d0)*fxb+4.0d0*s*(-c*s2+&
+     & fxb+2.0d0*c*s2*fxb)*fxbs-2.0d0*s2*(1.0d0+c*s2)*fxbs**2+s2*(1.0d0+&
+     & c*s2)*(c*s2+fxb)*fxbss)) / (c*s2+fxb) ** 3
 ! GGA refinement function derivatives, dF/ds
-Hxs = - (X - 1.0d0)*Fs - (F - 1.0d0)*xs
-Hxss = - 2.0d0*Fs*xs - (X - 1.0d0)*Fss - (F - 1.0d0)*Xss
+      Hxs = - (X-1.0d0) * Fs - (F-1.0d0) * xs
+      Hxss = - 2.0d0 * Fs * xs - (X-1.0d0) * Fss - (F-1.0d0) * Xss
 ! vx formula for gradient dependent functional,
 ! generalized form of Eq. (24) in PRB 33, 8800 (1986)
-vx = vxlda * (Hx - s * Hxs) + &
-     exlda * ((4.0d0/3.0d0 * s - v/s) * Hxs - &
-     (u - 4.0d0/3.0d0 * s ** 3) * (Hxss/s - Hxs/s2))
+      vx = vxlda * (Hx-s*Hxs) + exlda * &
+     & ((4.0d0/3.0d0*s-v/s)*Hxs-(u-4.0d0/3.0d0*s**3)*(Hxss/s-Hxs/s2))
 !-------------------------------!
 !     correlation potential     !
 !-------------------------------!
 ! correlation refinement function derivatives, dF/ds
-Hcs = xs - g*xs
-Hcss = Xss - g*Xss
+      Hcs = xs - g * xs
+      Hcss = Xss - g * Xss
 ! vc formula for gradient dependent functional,
 ! generalized form of Eq. (24) in Phys. Rev. B 33, 8800 (1986)
-vc = vclda * (Hc - s * Hcs) + &
-     eclda * ((4.0d0/3.0d0 * s - v/s) * Hcs - &
-     (u - 4.0d0/3.0d0 * s ** 3) * (Hcss/s - Hcs/s2))
-return
-end subroutine
+      vc = vclda * (Hc-s*Hcs) + eclda * &
+     & ((4.0d0/3.0d0*s-v/s)*Hcs-(u-4.0d0/3.0d0*s**3)*(Hcss/s-Hcs/s2))
+      Return
+End Subroutine
 !EOC
-
+!
 !BOP
 ! !ROUTINE: xc_am05_ldax
 ! !INTERFACE:
-
-
-subroutine xc_am05_ldax(n, ex, vx)
+!
+!
+Subroutine xc_am05_ldax (n, ex, vx)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n  : electron density (in,real)
 !   ex : exchange energy per electron (out,real)
@@ -230,25 +228,25 @@ subroutine xc_am05_ldax(n, ex, vx)
 !   Created April 2005 (RAR)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: n
-real(8), intent(out) :: ex
-real(8), intent(out) :: vx
+      Real (8), Intent (In) :: n
+      Real (8), Intent (Out) :: ex
+      Real (8), Intent (Out) :: vx
 ! constants
-real(8), parameter :: pi=3.1415926535897932385d0
-vx=-(3.d0*n/pi)**(1.d0/3.d0)
-ex=(3.d0/4.d0)*vx
-return
-end subroutine
+      Real (8), Parameter :: pi = 3.1415926535897932385d0
+      vx = - (3.d0*n/pi) ** (1.d0/3.d0)
+      ex = (3.d0/4.d0) * vx
+      Return
+End Subroutine
 !EOC
-
+!
 !BOP
 ! !ROUTINE: xc_am05_ldapwc
 ! !INTERFACE:
-
-
-subroutine xc_am05_ldapwc(n, ec, vc)
+!
+!
+Subroutine xc_am05_ldapwc (n, ec, vc)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n  : electron density (in,real)
 !   ec : correlation energy per electron (out,real)
@@ -263,43 +261,43 @@ subroutine xc_am05_ldapwc(n, ec, vc)
 !   Created April 2005 (RAR)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: n
-real(8), intent(out) :: ec
-real(8), intent(out) :: vc
+      Real (8), Intent (In) :: n
+      Real (8), Intent (Out) :: ec
+      Real (8), Intent (Out) :: vc
 ! constants
-real(8), parameter :: pi=3.1415926535897932385d0
-real(8), parameter :: a01 = 0.21370d0
-real(8), parameter :: b01 = 7.5957d0
-real(8), parameter :: b02 = 3.5876d0
-real(8), parameter :: b03 = 1.6382d0
-real(8), parameter :: b04 = 0.49294d0
+      Real (8), Parameter :: pi = 3.1415926535897932385d0
+      Real (8), Parameter :: a01 = 0.21370d0
+      Real (8), Parameter :: b01 = 7.5957d0
+      Real (8), Parameter :: b02 = 3.5876d0
+      Real (8), Parameter :: b03 = 1.6382d0
+      Real (8), Parameter :: b04 = 0.49294d0
 ! paper actually use this:
 ! real(8), parameter (A0 = 0.031091d0)
 ! but routines now "defacto standard" was distributed using:
-real(8), parameter :: A0 = 0.0310907d0
+      Real (8), Parameter :: A0 = 0.0310907d0
 ! local variables
-real(8)::rsq
-real(8)::Q0, Q1, Q1p, ecrs
-rsq = (3.0d0/(4.0d0*pi*n))**(1.0d0/6.0d0)
-ec = -2.0d0 * A0 * (1.0d0 + a01 * rsq ** 2)* &
-     log(1.0d0 + 1.0d0/ &
-	  (2.0d0 * A0 * rsq * (b01 + rsq * (b02 + rsq * (b03 + b04 * rsq)))))
-Q0 = -2.0d0*A0*(1.0d0 + a01*rsq**2)
-Q1 = 2.0d0*A0*rsq*(b01 + rsq*(b02 + rsq*(b03 + b04*rsq)))
-Q1p = A0*(b01/rsq+2.0d0*b02+3.0d0*b03*rsq+4.0d0*b04*rsq**2)
-ecrs = -2.0d0*A0*a01*log(1.0d0 + 1.0d0/Q1)-Q0*Q1p/(Q1**2+Q1)
-vc = ec - rsq**2/3.0d0*ecrs
-end subroutine
+      Real (8) :: rsq
+      Real (8) :: Q0, Q1, Q1p, ecrs
+      rsq = (3.0d0/(4.0d0*pi*n)) ** (1.0d0/6.0d0)
+      ec = - 2.0d0 * A0 * (1.0d0+a01*rsq**2) * Log &
+     & (1.0d0+1.0d0/(2.0d0*A0*rsq*(b01+rsq*(b02+rsq*(b03+b04*rsq)))))
+      Q0 = - 2.0d0 * A0 * (1.0d0+a01*rsq**2)
+      Q1 = 2.0d0 * A0 * rsq * (b01+rsq*(b02+rsq*(b03+b04*rsq)))
+      Q1p = A0 * (b01/rsq+2.0d0*b02+3.0d0*b03*rsq+4.0d0*b04*rsq**2)
+      ecrs = - 2.0d0 * A0 * a01 * Log (1.0d0+1.0d0/Q1) - Q0 * Q1p / &
+     & (Q1**2+Q1)
+      vc = ec - rsq ** 2 / 3.0d0 * ecrs
+End Subroutine
 !EOC
-
+!
 !BOP
 ! !ROUTINE: xc_am05_labertw
 ! !INTERFACE:
-
-
-subroutine xc_am05_labertw(z, val)
+!
+!
+Subroutine xc_am05_labertw (z, val)
 ! !INPUT/OUTPUT PARAMETERS:
 !   z   : function argument (in,real)
 !   val : value of lambert W function of z (out,real)
@@ -313,45 +311,46 @@ subroutine xc_am05_labertw(z, val)
 !   Created April 2005 (RAR)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: z
-real(8), intent(out) :: val
+      Real (8), Intent (In) :: z
+      Real (8), Intent (Out) :: val
 ! local variables
-real(8)::e, t, p
-integer::i
+      Real (8) :: e, t, p
+      Integer :: i
 ! if z too low, go with the first term of the power expansion, z
-if (z.lt.1.d-20) then
-  val=z
-  return
-end if
-e=exp(1.d0)
+      If (z .Lt. 1.d-20) Then
+         val = z
+         Return
+      End If
+      e = Exp (1.d0)
 ! inital guess
-if (abs(z+1.d0/e).gt.1.45d0) then
+      If (Abs(z+1.d0/e) .Gt. 1.45d0) Then
 ! asymptotic expansion at 0 and Inf
-  val=log(z)
-  val=val-log(val)
-else
+         val = Log (z)
+         val = val - Log (val)
+      Else
 ! series expansion about -1/e to first order
-  val=1.d0*sqrt(2.d0*e*z+2.d0)-1.d0
-end if
+         val = 1.d0 * Sqrt (2.d0*e*z+2.d0) - 1.d0
+      End If
 ! find val through iteration
-do i=1, 10
-  p=exp(val)
-  t=val*p-z
-  if (val.ne.-1.d0) then
-    t=t/(p*(val+1.d0)-0.5d0*(val+2.d0)*t/(val+1.d0))
-   else
-    t=0.d0
-   end if
-   val=val-t
-   if (abs(t).lt.(2.48d0*1.d-14)*(1.d0+abs(val))) return
-end do
+      Do i = 1, 10
+         p = Exp (val)
+         t = val * p - z
+         If (val .Ne.-1.d0) Then
+            t = t / (p*(val+1.d0)-0.5d0*(val+2.d0)*t/(val+1.d0))
+         Else
+            t = 0.d0
+         End If
+         val = val - t
+         If (Abs(t) .Lt. (2.48d0*1.d-14)*(1.d0+Abs(val))) Return
+      End Do
 ! this should never happen!
-write(*, *)
-write(*, '("Error(xc_am05_labertw): iteration limit reached")')
-write(*, '(" Likely cause: improper numbers (INFs, NaNs) in density")')
-write(*, *)
-stop
-end subroutine
+      Write (*,*)
+      Write (*, '("Error(xc_am05_labertw): iteration limit reached")')
+      Write (*, '(" Likely cause: improper numbers (INFs, NaNs) in dens&
+     &ity")')
+      Write (*,*)
+      Stop
+End Subroutine
 !EOC

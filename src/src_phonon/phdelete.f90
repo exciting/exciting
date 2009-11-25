@@ -1,26 +1,26 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine phdelete
-use modmain
-implicit none
+!
+!
+Subroutine phdelete
+      Use modmain
+      Implicit None
 ! delete the eigenvector files
-call delevec
+      Call delevec
 ! delete the eigenvalue files
-open(70, file=trim(scrpath)//'EVALFV'//trim(filext))
-close(70, status='DELETE')
-open(70, file=trim(scrpath)//'EVALSV'//trim(filext))
-close(70, status='DELETE')
+      Open (70, File=trim(scrpath)//'EVALFV'//trim(filext))
+      Close (70, Status='DELETE')
+      Open (70, File=trim(scrpath)//'EVALSV'//trim(filext))
+      Close (70, Status='DELETE')
 ! delete the occupancy file
-open(70, file=trim(scrpath)//'OCCSV'//trim(filext))
-close(70, status='DELETE')
+      Open (70, File=trim(scrpath)//'OCCSV'//trim(filext))
+      Close (70, Status='DELETE')
 ! delete the STATE.OUT file
-open(50, file='STATE'//trim(filext))
-close(50, status='DELETE')
-return
-end subroutine
+      Open (50, File='STATE'//trim(filext))
+      Close (50, Status='DELETE')
+      Return
+End Subroutine

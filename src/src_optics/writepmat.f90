@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: writepmat
 ! !INTERFACE:
-
-
-subroutine writepmat
+!
+!
+Subroutine writepmat
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
 !   writes them to direct access file {\tt PMAT.OUT}.
@@ -22,82 +22,91 @@ use modmain
 !   Created November 2003 (Sharma)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! local variables
-integer::ik, recl
-complex(8), allocatable :: apwalm(:, :, :, :)
-complex(8), allocatable :: evecfv(:, :)
-complex(8), allocatable :: evecsv(:, :)
-complex(8), allocatable :: pmat(:, :, :)
+      Integer :: ik, recl
+      Complex (8), Allocatable :: apwalm (:, :, :, :)
+      Complex (8), Allocatable :: evecfv (:, :)
+      Complex (8), Allocatable :: evecsv (:, :)
+      Complex (8), Allocatable :: pmat (:, :, :)
 !<sag> -------------------------------------------------------------------------
-complex(8), allocatable :: apwcmt(:, :, :, :)
-complex(8), allocatable :: locmt(:, :, :, :)
-real(8), allocatable :: ripaa(:, :, :, :, :, :)
-real(8), allocatable :: ripalo(:, :, :, :, :, :)
-real(8), allocatable :: riploa(:, :, :, :, :, :)
-real(8), allocatable :: riplolo(:, :, :, :, :, :)
+      Complex (8), Allocatable :: apwcmt (:, :, :, :)
+      Complex (8), Allocatable :: locmt (:, :, :, :)
+      Real (8), Allocatable :: ripaa (:, :, :, :, :, :)
+      Real (8), Allocatable :: ripalo (:, :, :, :, :, :)
+      Real (8), Allocatable :: riploa (:, :, :, :, :, :)
+      Real (8), Allocatable :: riplolo (:, :, :, :, :, :)
 !</sag> ------------------------------------------------------------------------
 ! initialise universal variables
-call init0
-call init1
-allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
-allocate(evecfv(nmatmax, nstfv))
-allocate(evecsv(nstsv, nstsv))
+      Call init0
+      Call init1
+      Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
+      Allocate (evecfv(nmatmax, nstfv))
+      Allocate (evecsv(nstsv, nstsv))
 ! allocate the momentum matrix elements array
-allocate(pmat(3, nstsv, nstsv))
+      Allocate (pmat(3, nstsv, nstsv))
 ! read in the density and potentials from file
-call readstate
+      Call readstate
 ! find the new linearisation energies
-call linengy
+      Call linengy
 ! generate the APW radial functions
-call genapwfr
+      Call genapwfr
 ! generate the local-orbital radial functions
-call genlofr
+      Call genlofr
 !<sag> -------------------------------------------------------------------------
-allocate(ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw, natmtot, 3))
-allocate(apwcmt(nstsv, apwordmax, lmmaxapw, natmtot))
-if (nlotot.gt.0) then
-   allocate(ripalo(apwordmax, lmmaxapw, nlomax, -lolmax:lolmax, natmtot, 3))
-   allocate(riploa(nlomax, -lolmax:lolmax, apwordmax, lmmaxapw, natmtot, 3))
-   allocate(riplolo(nlomax, -lolmax:lolmax, nlomax, -lolmax:lolmax, natmtot, 3))
-   allocate(locmt(nstsv, nlomax, -lolmax:lolmax, natmtot))
-end if
+      Allocate (ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw, &
+     & natmtot, 3))
+      Allocate (apwcmt(nstsv, apwordmax, lmmaxapw, natmtot))
+      If (nlotot .Gt. 0) Then
+         Allocate (ripalo(apwordmax, lmmaxapw, nlomax,-lolmax:lolmax, &
+        & natmtot, 3))
+         Allocate (riploa(nlomax,-lolmax:lolmax, apwordmax, lmmaxapw, &
+        & natmtot, 3))
+         Allocate (riplolo(nlomax,-lolmax:lolmax, &
+        & nlomax,-lolmax:lolmax, natmtot, 3))
+         Allocate (locmt(nstsv, nlomax,-lolmax:lolmax, natmtot))
+      End If
 ! calculate gradient of radial functions times spherical harmonics
-call pmatrad(ripaa, ripalo, riploa, riplolo)
+      Call pmatrad (ripaa, ripalo, riploa, riplolo)
 !</sag> ------------------------------------------------------------------------
 ! find the record length
-inquire(iolength=recl) pmat
-open(50, file = 'PMAT.OUT', action = 'WRITE', form = 'UNFORMATTED', access = 'DIRECT', &
- status = 'REPLACE', recl = recl)
-do ik=1, nkpt
+      Inquire (IoLength=Recl) pmat
+      Open (50, File='PMAT.OUT', Action='WRITE', Form='UNFORMATTED', &
+     & Access='DIRECT', Status='REPLACE', Recl=Recl)
+      Do ik = 1, nkpt
 ! get the eigenvectors from file
-  call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-  call getevecsv(vkl(:, ik), evecsv)
+         Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+         Call getevecsv (vkl(:, ik), evecsv)
 ! find the matching coefficients
-  call match(ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), sfacgk(:, :, 1, ik), apwalm)
+         Call match (ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), &
+        & sfacgk(:, :, 1, ik), apwalm)
 !<sag> -------------------------------------------------------------------------
 ! generate APW expansion coefficients for muffin-tin
-  call genapwcmt(input%groundstate%lmaxapw, ngk(1, ik), 1, nstfv, apwalm, evecfv, apwcmt)
+         Call genapwcmt (input%groundstate%lmaxapw, ngk(1, ik), 1, &
+        & nstfv, apwalm, evecfv, apwcmt)
 ! generate local orbital expansion coefficients for muffin-tin
-  if (nlotot.gt.0) call genlocmt(ngk(1, ik), 1, nstfv, evecfv, locmt)
+         If (nlotot .Gt. 0) Call genlocmt (ngk(1, ik), 1, nstfv, &
+        & evecfv, locmt)
 ! calculate the momentum matrix elements
-  call genpmat2(ngk(1, ik), igkig(:, 1, ik), vgkc(:, :, 1, ik), ripaa, ripalo, &
-       riploa, riplolo, apwcmt, locmt, evecfv, evecsv, pmat)
+         Call genpmat2 (ngk(1, ik), igkig(:, 1, ik), vgkc(:, :, 1, ik), &
+        & ripaa, ripalo, riploa, riplolo, apwcmt, locmt, evecfv, &
+        & evecsv, pmat)
 !</sag> ------------------------------------------------------------------------
 ! calculate the momentum matrix elements
 !!$  call genpmat(ngk(1,ik),igkig(:,1,ik),vgkc(:,:,1,ik),apwalm,evecfv,evecsv,pmat)
 ! write the matrix elements to direct-access file
-  write(50, rec=ik) pmat
-end do
-close(50)
-write(*, *)
-write(*, '("Info(writepmat):")')
-write(*, '(" momentum matrix elements written to file PMAT.OUT")')
-write(*, *)
-deallocate(apwalm, evecfv, evecsv, pmat)
+         Write (50, Rec=ik) pmat
+      End Do
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(writepmat):")')
+      Write (*, '(" momentum matrix elements written to file PMAT.OUT")&
+     &')
+      Write (*,*)
+      Deallocate (apwalm, evecfv, evecsv, pmat)
 !<sag> -------------------------------------------------------------------------
-deallocate(ripaa, apwcmt)
-if (nlotot.gt.0) deallocate(ripalo, riploa, riplolo, locmt)
+      Deallocate (ripaa, apwcmt)
+      If (nlotot .Gt. 0) deallocate (ripalo, riploa, riplolo, locmt)
 !</sag> ------------------------------------------------------------------------
-end subroutine
+End Subroutine
 !EOC

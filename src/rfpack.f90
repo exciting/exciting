@@ -1,57 +1,57 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine rfpack(tpack, n, lrstp, rfmt, rfir, nu)
-use modmain
-implicit none
+!
+!
+Subroutine rfpack (tpack, n, lrstp, rfmt, rfir, nu)
+      Use modmain
+      Implicit None
 ! arguments
-logical, intent(in) :: tpack
-integer, intent(inout) :: n
-integer, intent(in) :: lrstp
-real(8), intent(inout) :: rfmt(lmmaxvr, nrmtmax, natmtot)
-real(8), intent(inout) :: rfir(ngrtot)
-real(8), intent(out) :: nu(*)
+      Logical, Intent (In) :: tpack
+      Integer, Intent (Inout) :: n
+      Integer, Intent (In) :: lrstp
+      Real (8), Intent (Inout) :: rfmt (lmmaxvr, nrmtmax, natmtot)
+      Real (8), Intent (Inout) :: rfir (ngrtot)
+      Real (8), Intent (Out) :: nu (*)
 ! local variables
-integer::is, ia, ias, ir, lm
-if (tpack) then
+      Integer :: is, ia, ias, ir, lm
+      If (tpack) Then
 ! pack the function
-  do is=1, nspecies
-    do ia=1, natoms(is)
-      ias=idxas(ia, is)
-      do ir=1, nrmt(is), lrstp
-	do lm=1, lmmaxvr
-	  n=n+1
-	  nu(n)=rfmt(lm, ir, ias)
-	end do
-      end do
-    end do
-  end do
-  do ir=1, ngrtot
-    n=n+1
-    nu(n)=rfir(ir)
-  end do
-else
+         Do is = 1, nspecies
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
+               Do ir = 1, nrmt (is), lrstp
+                  Do lm = 1, lmmaxvr
+                     n = n + 1
+                     nu (n) = rfmt (lm, ir, ias)
+                  End Do
+               End Do
+            End Do
+         End Do
+         Do ir = 1, ngrtot
+            n = n + 1
+            nu (n) = rfir (ir)
+         End Do
+      Else
 ! unpack the function
-  do is=1, nspecies
-    do ia=1, natoms(is)
-      ias=idxas(ia, is)
-      do ir=1, nrmt(is), lrstp
-	do lm=1, lmmaxvr
-	  n=n+1
-	  rfmt(lm, ir, ias)=nu(n)
-	end do
-      end do
-    end do
-  end do
-  do ir=1, ngrtot
-    n=n+1
-    rfir(ir)=nu(n)
-  end do
-end if
-return
-end subroutine
+         Do is = 1, nspecies
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
+               Do ir = 1, nrmt (is), lrstp
+                  Do lm = 1, lmmaxvr
+                     n = n + 1
+                     rfmt (lm, ir, ias) = nu (n)
+                  End Do
+               End Do
+            End Do
+         End Do
+         Do ir = 1, ngrtot
+            n = n + 1
+            rfir (ir) = nu (n)
+         End Do
+      End If
+      Return
+End Subroutine

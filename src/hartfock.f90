@@ -1,268 +1,279 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine hartfock
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine hartfock
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-logical::exist
-integer::ik, is, ia, idm
-real(8)::etp, de
+      Logical :: exist
+      Integer :: ik, is, ia, idm
+      Real (8) :: etp, de
 ! allocatable arrays
-complex(8), allocatable :: evecfv(:, :, :)
-complex(8), allocatable :: evecsv(:, :)
+      Complex (8), Allocatable :: evecfv (:, :, :)
+      Complex (8), Allocatable :: evecsv (:, :)
 ! initialise universal variables
-call init0
-call init1
-call init2
+      Call init0
+      Call init1
+      Call init2
 ! open INFO.OUT file
-open(60, file='INFO'//trim(filext), action='WRITE', form='FORMATTED')
+      Open (60, File='INFO'//trim(filext), Action='WRITE', Form='FORMAT&
+     &TED')
 ! open TOTENERGY.OUT
-open(61, file='TOTENERGY'//trim(filext), action='WRITE', form='FORMATTED')
+      Open (61, File='TOTENERGY'//trim(filext), Action='WRITE', Form='F&
+     &ORMATTED')
 ! open FERMIDOS.OUT
-open(62, file='FERMIDOS'//trim(filext), action='WRITE', form='FORMATTED')
+      Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', Form='FO&
+     &RMATTED')
 ! open MOMENT.OUT if required
-if (associated(input%groundstate%spin)) open(63, file = 'MOMENT'//trim(filext), action = 'WRITE', &
- form = 'FORMATTED')
+      If (associated(input%groundstate%spin)) open (63, file='MOMENT'//&
+     & trim(filext), action='WRITE', form='FORMATTED')
 ! open FORCEMAX.OUT if required
-if (input%groundstate%tforce) open(64, file = 'FORCEMAX'//trim(filext), action = 'WRITE', &
- form = 'FORMATTED')
+      If (input%groundstate%tforce) open (64, file='FORCEMAX'//&
+     & trim(filext), action='WRITE', form='FORMATTED')
 ! open DENERGY.OUT
-open(65, file='DENERGY'//trim(filext), action='WRITE', form='FORMATTED')
+      Open (65, File='DENERGY'//trim(filext), Action='WRITE', Form='FOR&
+     &MATTED')
 ! write out general information to INFO.OUT
-call writeinfo(60)
+      Call writeinfo (60)
 ! read the charge density and potentials from file
-call readstate
+      Call readstate
 ! compute the effective potential
-call poteff
+      Call poteff
 ! Fourier transform effective potential to G-space
-call genveffig
+      Call genveffig
 ! generate the core wavefunctions and densities
-call gencore
+      Call gencore
 ! find the new linearisation energies
-call linengy
+      Call linengy
 ! generate the APW radial functions
-call genapwfr
+      Call genapwfr
 ! generate the local-orbital radial functions
-call genlofr
+      Call genlofr
 ! compute the overlap radial integrals
-call olprad
+      Call olprad
 ! compute the Hamiltonian radial integrals
-call hmlrad
+      Call hmlrad
 ! generate the kinetic matrix elements
-call genkinmat
+      Call genkinmat
 ! find the occupation numbers and Fermi energy
-call occupy
-10 continue
+      Call occupy
+10    Continue
 ! set last iteration flag
-tlast=.false.
-etp=0.d0
+      tlast = .False.
+      etp = 0.d0
 ! begin the self-consistent loop
-write(60, *)
-write(60, '("+------------------------------+")')
-write(60, '("| Self-consistent loop started |")')
-write(60, '("+------------------------------+")')
-do iscl=1, input%groundstate%maxscl
-  write(60, *)
-  write(60, '("+-------------------------+")')
-  write(60, '("| Iteration number : ", I4, " |")') iscl
-  write(60, '("+-------------------------+")')
-  call flushifc(60)
-  if (iscl.ge.input%groundstate%maxscl) then
-    write(60, *)
-    write(60, '("Reached self-consistent loops maximum")')
-    tlast=.true.
-  end if
+      Write (60,*)
+      Write (60, '("+------------------------------+")')
+      Write (60, '("| Self-consistent loop started |")')
+      Write (60, '("+------------------------------+")')
+      Do iscl = 1, input%groundstate%maxscl
+         Write (60,*)
+         Write (60, '("+-------------------------+")')
+         Write (60, '("| Iteration number : ", I4, " |")') iscl
+         Write (60, '("+-------------------------+")')
+         Call flushifc (60)
+         If (iscl .Ge. input%groundstate%maxscl) Then
+            Write (60,*)
+            Write (60, '("Reached self-consistent loops maximum")')
+            tlast = .True.
+         End If
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(evecsv)
 !$OMP DO
-  do ik=1, nkpt
-    allocate(evecsv(nstsv, nstsv))
-    call getevecsv(vkl(:, ik), evecsv)
+         Do ik = 1, nkpt
+            Allocate (evecsv(nstsv, nstsv))
+            Call getevecsv (vkl(:, ik), evecsv)
 ! solve the Hartree-Fock secular equation
-    call seceqnhf(ik, evecsv)
+            Call seceqnhf (ik, evecsv)
 ! write the eigenvalues/vectors to file
-    call putevalsv(ik, evalsv(:, ik))
-    call putevecsv(ik, evecsv)
-    deallocate(evecsv)
-  end do
+            Call putevalsv (ik, evalsv(:, ik))
+            Call putevecsv (ik, evecsv)
+            Deallocate (evecsv)
+         End Do
 !$OMP END DO
 !$OMP END PARALLEL
 ! find the occupation numbers and Fermi energy
-  call occupy
+         Call occupy
 ! write out the eigenvalues and occupation numbers
-  call writeeval
+         Call writeeval
 ! write the Fermi energy to file
-  call writefermi
+         Call writefermi
 ! set the charge density and magnetisation to zero
-  rhomt(:, :, :)=0.d0
-  rhoir(:)=0.d0
-  if (associated(input%groundstate%spin)) then
-    magmt(:, :, :, :)=0.d0
-    magir(:, :)=0.d0
-  end if
+         rhomt (:, :, :) = 0.d0
+         rhoir (:) = 0.d0
+         If (associated(input%groundstate%spin)) Then
+            magmt (:, :, :, :) = 0.d0
+            magir (:, :) = 0.d0
+         End If
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(evecfv,evecsv)
 !$OMP DO
-  do ik=1, nkpt
-    allocate(evecfv(nmatmax, nstfv, nspnfv))
-    allocate(evecsv(nstsv, nstsv))
+         Do ik = 1, nkpt
+            Allocate (evecfv(nmatmax, nstfv, nspnfv))
+            Allocate (evecsv(nstsv, nstsv))
 ! write the occupancies to file
-    call putoccsv(ik, occsv(:, ik))
+            Call putoccsv (ik, occsv(:, ik))
 ! get the eigenvectors from file
-    call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-    call getevecsv(vkl(:, ik), evecsv)
+            Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+            Call getevecsv (vkl(:, ik), evecsv)
 ! add to the density and magnetisation
-    call rhovalk(ik, evecfv, evecsv)
-    deallocate(evecfv, evecsv)
-  end do
+            Call rhovalk (ik, evecfv, evecsv)
+            Deallocate (evecfv, evecsv)
+         End Do
 !$OMP END DO
 !$OMP END PARALLEL
 ! symmetrise the density
-  call symrf(input%groundstate%lradstep, rhomt, rhoir)
+         Call symrf (input%groundstate%lradstep, rhomt, rhoir)
 ! symmetrise the magnetisation
-  if (associated(input%groundstate%spin)) call symrvf(input%groundstate%lradstep, magmt, magir)
+         If (associated(input%groundstate%spin)) Call symrvf &
+        & (input%groundstate%lradstep, magmt, magir)
 ! convert the density from a coarse to a fine radial mesh
-  call rfmtctof(rhomt)
+         Call rfmtctof (rhomt)
 ! convert the magnetisation from a coarse to a fine radial mesh
-  do idm=1, ndmag
-    call rfmtctof(magmt(:, :, :, idm))
-  end do
+         Do idm = 1, ndmag
+            Call rfmtctof (magmt(:, :, :, idm))
+         End Do
 ! add the core density to the total density
-  call addrhocr
+         Call addrhocr
 ! calculate the charges
-  call charge
+         Call charge
 ! calculate the moments
-  if (associated(input%groundstate%spin)) call moment
+         If (associated(input%groundstate%spin)) Call moment
 ! normalise the density
-  call rhonorm
+         Call rhonorm
 ! compute the Coulomb potential
-  call potcoul
+         Call potcoul
 ! compute the energy components
-  call energy
+         Call energy
 ! output energy components
-  call writeengy(60)
-  write(60, *)
-  write(60, '("Density of states at Fermi energy : ", G18.10)') fermidos
-  write(60, '(" (states/Hartree/unit cell)")')
+         Call writeengy (60)
+         Write (60,*)
+         Write (60, '("Density of states at Fermi energy : ", G18.10)') &
+        & fermidos
+         Write (60, '(" (states/Hartree/unit cell)")')
 ! write total energy to TOTENERGY.OUT and flush
-  write(61, '(G22.12)') engytot
-  call flushifc(61)
+         Write (61, '(G22.12)') engytot
+         Call flushifc (61)
 ! write DOS at Fermi energy to FERMIDOS.OUT and flush
-  write(62, '(G18.10)') fermidos
-  call flushifc(62)
+         Write (62, '(G18.10)') fermidos
+         Call flushifc (62)
 ! output charges and moments
-  call writechg(60)
+         Call writechg (60)
 ! write total moment to MOMENT.OUT and flush
-  if (associated(input%groundstate%spin)) then
-    write(63, '(3G18.10)') momtot(1:ndmag)
-    call flushifc(63)
-  end if
-  if (tlast) goto 20
+         If (associated(input%groundstate%spin)) Then
+            Write (63, '(3G18.10)') momtot (1:ndmag)
+            Call flushifc (63)
+         End If
+         If (tlast) Go To 20
 ! compute the change in total energy and check for convergence
-  if (iscl.ge.2) then
-    de=abs(engytot-etp)/(abs(engytot)+1.d0)
-    write(60, *)
-    write(60, '("Relative change in total energy (target) : ", G18.10, &
-     &" (", G18.10, ")")') de, input%groundstate%HartreeFock%epsengy
-    if (de.lt.input%groundstate%HartreeFock%epsengy) then
-      write(60, *)
-      write(60, '("Energy convergence target achieved")')
-      tlast=.true.
-    end if
-    write(65, '(G18.10)') de
-    call flushifc(65)
-  end if
-  etp=engytot
+         If (iscl .Ge. 2) Then
+            de = Abs (engytot-etp) / (Abs(engytot)+1.d0)
+            Write (60,*)
+            Write (60, '("Relative change in total energy (target) : ",&
+           & G18.10, " (", G18.10, ")")') de, &
+           & input%groundstate%HartreeFock%epsengy
+            If (de .Lt. input%groundstate%HartreeFock%epsengy) Then
+               Write (60,*)
+               Write (60, '("Energy convergence target achieved")')
+               tlast = .True.
+            End If
+            Write (65, '(G18.10)') de
+            Call flushifc (65)
+         End If
+         etp = engytot
 ! check for STOP file
-  inquire(file='STOP', exist=exist)
-  if (exist) then
-    write(60, *)
-    write(60, '("STOP file exists - stopping self-consistent loop")')
-    tlast=.true.
-    open(50, file='STOP')
-    close(50, status='DELETE')
-  end if
-end do
-20 continue
-write(60, *)
-write(60, '("+------------------------------+")')
-write(60, '("| Self-consistent loop stopped |")')
-write(60, '("+------------------------------+")')
-if (input%groundstate%maxscl.gt.1) then
-  call writestate
-  write(60, *)
-  write(60, '("Wrote STATE.OUT")')
-end if
+         Inquire (File='STOP', Exist=Exist)
+         If (exist) Then
+            Write (60,*)
+            Write (60, '("STOP file exists - stopping self-consistent l&
+           &oop")')
+            tlast = .True.
+            Open (50, File='STOP')
+            Close (50, Status='DELETE')
+         End If
+      End Do
+20    Continue
+      Write (60,*)
+      Write (60, '("+------------------------------+")')
+      Write (60, '("| Self-consistent loop stopped |")')
+      Write (60, '("+------------------------------+")')
+      If (input%groundstate%maxscl .Gt. 1) Then
+         Call writestate
+         Write (60,*)
+         Write (60, '("Wrote STATE.OUT")')
+      End If
 !-----------------------!
 !     compute forces    !
 !-----------------------!
-if ((.not.tstop).and.(input%groundstate%tforce)) then
-  call force
+      If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
+         Call force
 ! output forces to INFO.OUT
-  call writeforce(60)
+         Call writeforce (60)
 ! write maximum force magnitude to FORCEMAX.OUT
-  write(64, '(G18.10)') forcemax
-  call flushifc(64)
-end if
+         Write (64, '(G18.10)') forcemax
+         Call flushifc (64)
+      End If
 !---------------------------------------!
 !     perform structural relaxation     !
 !---------------------------------------!
-if ((.not.tstop).and.(task.eq.6)) then
-  write(60, *)
-  write(60, '("Maximum force magnitude (target) : ", G18.10, " (", G18.10, ")")') &
-   forcemax, input%structureoptimization%epsforce
-  call flushifc(60)
+      If (( .Not. tstop) .And. (task .Eq. 6)) Then
+         Write (60,*)
+         Write (60, '("Maximum force magnitude (target) : ", G18.10, " &
+        &(", G18.10, ")")') forcemax, &
+        & input%structureoptimization%epsforce
+         Call flushifc (60)
 ! check force convergence
-  if (forcemax.le.input%structureoptimization%epsforce) then
-    write(60, *)
-    write(60, '("Force convergence target achieved")')
-    goto 30
-  end if
+         If (forcemax .Le. input%structureoptimization%epsforce) Then
+            Write (60,*)
+            Write (60, '("Force convergence target achieved")')
+            Go To 30
+         End If
 ! update the atomic positions if forces are not converged
-  call updatpos
-  write(60, *)
-  write(60, '("+--------------------------+")')
-  write(60, '("| Updated atomic positions |")')
-  write(60, '("+--------------------------+")')
-  do is=1, nspecies
-    write(60, *)
-    write(60, '("Species : ", I4, " (", A, ")")') is, trim(input%structure%speciesarray(is)%species%chemicalSymbol)
-    write(60, '(" atomic positions (lattice) :")')
-    do ia=1, natoms(is)
-      write(60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-    end do
-  end do
+         Call updatpos
+         Write (60,*)
+         Write (60, '("+--------------------------+")')
+         Write (60, '("| Updated atomic positions |")')
+         Write (60, '("+--------------------------+")')
+         Do is = 1, nspecies
+            Write (60,*)
+            Write (60, '("Species : ", I4, " (", A, ")")') is, trim &
+           & (input%structure%speciesarray(is)%species%chemicalSymbol)
+            Write (60, '(" atomic positions (lattice) :")')
+            Do ia = 1, natoms (is)
+               Write (60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+            End Do
+         End Do
 ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and DENERGY.OUT
-  write(61, *)
-  write(62, *)
-  if (associated(input%groundstate%spin)) write (63, *)
-  write(65, *)
+         Write (61,*)
+         Write (62,*)
+         If (associated(input%groundstate%spin)) write (63,*)
+         Write (65,*)
 ! begin new self-consistent loop with updated positions
-  goto 10
-end if
-30 continue
-write(60, *)
-write(60, '("+----------------------------------+")')
-write(60, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, " stopped |")') version
-write(60, '("+----------------------------------+")')
+         Go To 10
+      End If
+30    Continue
+      Write (60,*)
+      Write (60, '("+----------------------------------+")')
+      Write (60, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, "&
+     & stopped |")') version
+      Write (60, '("+----------------------------------+")')
 ! close the INFO.OUT file
-close(60)
+      Close (60)
 ! close the TOTENERGY.OUT file
-close(61)
+      Close (61)
 ! close the FERMIDOS.OUT file
-close(62)
+      Close (62)
 ! close the MOMENT.OUT file
-if (associated(input%groundstate%spin)) close(63)
+      If (associated(input%groundstate%spin)) close (63)
 ! close the FORCEMAX.OUT file
-if (input%groundstate%tforce) close(64)
+      If (input%groundstate%tforce) close (64)
 ! close the DENERGY.OUT file
-close(65)
-return
-end subroutine
+      Close (65)
+      Return
+End Subroutine

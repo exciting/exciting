@@ -1,147 +1,153 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine tetcalccwq(iq)
-  use modmain
-use modinput
-  use modxs
-  use modtetra
-  use modmpi
-  use m_genwgrid
-  use m_puttetcw
-  use m_getunit
-  use m_filedel
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine tetcalccwq (iq)
+      Use modmain
+      Use modinput
+      Use modxs
+      Use modtetra
+      Use modmpi
+      Use m_genwgrid
+      Use m_puttetcw
+      Use m_getunit
+      Use m_filedel
+      Use m_genfilname
+      Implicit None
   ! arguments
-  integer, intent(in) :: iq
+      Integer, Intent (In) :: iq
   ! local variables
-  character(*), parameter :: thisnam='tetcalccwq'
-  character(256) :: filnam, filnamt
-  complex(8), allocatable :: w(:)
-  real(8), parameter :: epstetra=1.d-8
-  real(8), allocatable :: eb(:, :)
-  real(8), allocatable :: wreal(:)
-  real(8), allocatable :: cwsurft2(:, :), cwt2(:, :), cwat2(:, :)
-  real(8), allocatable :: cwsurft1(:), cwt1(:), cwat1(:)
-  real(8), allocatable :: cwsurf(:, :, :), cw(:, :, :), cwa(:, :, :)
-  real(8) :: wt
-  integer :: ik, ist1, ist2
-  integer :: iw, wi, wf, nwdfp, un, recl, irec
+      Character (*), Parameter :: thisnam = 'tetcalccwq'
+      Character (256) :: filnam, filnamt
+      Complex (8), Allocatable :: w (:)
+      Real (8), Parameter :: epstetra = 1.d-8
+      Real (8), Allocatable :: eb (:, :)
+      Real (8), Allocatable :: wreal (:)
+      Real (8), Allocatable :: cwsurft2 (:, :), cwt2 (:, :), cwat2 (:, &
+     & :)
+      Real (8), Allocatable :: cwsurft1 (:), cwt1 (:), cwat1 (:)
+      Real (8), Allocatable :: cwsurf (:, :, :), cw (:, :, :), cwa (:, &
+     & :, :)
+      Real (8) :: wt
+      Integer :: ik, ist1, ist2
+      Integer :: iw, wi, wf, nwdfp, un, recl, irec
   ! calculate k+q and G+k+q related variables
-  call init1offs(qvkloff(1, iq))
+      Call init1offs (qvkloff(1, iq))
   ! generate link array for tetrahedra
-  call gentetlinkp(vql(1, iq), input%xs%tetra%qweights)
+      Call gentetlinkp (vql(1, iq), input%xs%tetra%qweights)
   ! initial and final w-point
-  wi=wpari
-  wf=wparf
-  nwdfp=wf-wi+1
-  if (tscreen) then
+      wi = wpari
+      wf = wparf
+      nwdfp = wf - wi + 1
+      If (tscreen) Then
      ! generate filenames
-     call genfilname(basename = 'TETW', iq = iq, rank = rank, procs = procs, &
-	  appfilext = .true., filnam = filnam)
-     call genfilname(basename = 'TETWT', iq = iq, rank = rank, procs = procs, &
-	  appfilext = .true., filnam = filnamt)
-  else
+         Call genfilname (basename='TETW', iq=iq, rank=rank, &
+        & procs=procs, appfilext=.True., filnam=filnam)
+         Call genfilname (basename='TETWT', iq=iq, rank=rank, &
+        & procs=procs, appfilext=.True., filnam=filnamt)
+      Else
      ! set q-dependent file extension
-     call genfilname(iqmt=iq, setfilext=.true.)
+         Call genfilname (iqmt=iq, setfilext=.True.)
      ! generate filenames
-     call genfilname(basename = 'TETW', iqmt = iq, rank = rank, procs = procs, &
-	  filnam = filnam)
-     call genfilname(basename = 'TETWT', iqmt = iq, rank = rank, procs = procs, &
-	  filnam = filnamt)
-  end if
+         Call genfilname (basename='TETW', iqmt=iq, rank=rank, &
+        & procs=procs, filnam=filnam)
+         Call genfilname (basename='TETWT', iqmt=iq, rank=rank, &
+        & procs=procs, filnam=filnamt)
+      End If
   ! find highest (partially) occupied and lowest (partially) unoccupied states
-  call findocclims(iq, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
+      Call findocclims (iq, istocc0, istocc, istunocc0, istunocc, &
+     & isto0, isto, istu0, istu)
   ! find band combinations
-  call ematbdcmbs(input%xs%emattype)
+      Call ematbdcmbs (input%xs%emattype)
   ! allocate arrays
-  allocate(eb(nstsv, nkpt))
-  allocate(cw(nstsv, nstsv, nkpt))
-  allocate(cwa(nstsv, nstsv, nkpt))
-  allocate(cwsurf(nstsv, nstsv, nkpt))
-  allocate(cwt2(nst1, nst2), cwat2(nst1, nst2), cwsurft2(nst1, nst2))
-  allocate(w(nwdf))
-  allocate(wreal(nwdfp))
+      Allocate (eb(nstsv, nkpt))
+      Allocate (cw(nstsv, nstsv, nkpt))
+      Allocate (cwa(nstsv, nstsv, nkpt))
+      Allocate (cwsurf(nstsv, nstsv, nkpt))
+      Allocate (cwt2(nst1, nst2), cwat2(nst1, nst2), cwsurft2(nst1, &
+     & nst2))
+      Allocate (w(nwdf))
+      Allocate (wreal(nwdfp))
   ! get the eigenvalues from file
-  do ik=1, nkpt
-     call getevalsv(vkl(1, ik), evalsv(1, ik))
-  end do
-  eb(:, :)=evalsv(:, :)
+      Do ik = 1, nkpt
+         Call getevalsv (vkl(1, ik), evalsv(1, ik))
+      End Do
+      eb (:, :) = evalsv (:, :)
   ! scissors shift
-  where (eb.gt.efermi) eb=eb+input%xs%scissor
+      Where (eb .Gt. efermi) eb = eb + input%xs%scissor
   ! generate complex energy grid
-  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
-  wreal(:)=dble(w(wi:wf))
+      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+     & input%xs%tddft%acont, 0.d0, w_cmplx=w)
+      wreal (:) = dble (w(wi:wf))
   ! TODO: replace zero frequency by very small number *** check if needed
-  if (wreal(1).lt.epstetra) wreal(1)=epstetra
-  call getunit(un)
-  inquire(iolength=recl) cwt2, cwat2, cwsurft2
+      If (wreal(1) .Lt. epstetra) wreal (1) = epstetra
+      Call getunit (un)
+      Inquire (IoLength=Recl) cwt2, cwat2, cwsurft2
   ! open temporary file for writing
-  open(un, file = trim(filnamt), form = 'unformatted', &
-       action = 'write', status = 'replace', access = 'direct', recl = recl)
+      Open (un, File=trim(filnamt), Form='unformatted', Action='write', &
+     & Status='replace', Access='direct', Recl=Recl)
   ! calculate weights
-  do iw=1, nwdfp
-     if ((modulo(iw, max(nwdfp/10, 1)).eq.0).or.(iw.eq.nwdfp)) &
-	  write( * , '("Info(tetcalccwq): tetrahedron weights for ", I6, " of ", &
-	  &I6, " w-points")') iw, nwdfp
-     wt=wreal(iw)
+      Do iw = 1, nwdfp
+         If ((modulo(iw, Max(nwdfp/10, 1)) .Eq. 0) .Or. (iw .Eq. &
+        & nwdfp)) write (*, '("Info(tetcalccwq): tetrahedron weights fo&
+        &r ", I6, " of ", I6, " w-points")') iw, nwdfp
+         wt = wreal (iw)
      ! switch 2 below in tetcw defines bulk integration for real part
      ! resonant contribution
-     call tetcwifc(nkpt, nstsv, eb, efermi, wt, 2, cw)
+         Call tetcwifc (nkpt, nstsv, eb, efermi, wt, 2, cw)
      ! anti-resonant contribution
-     call tetcwifc(nkpt, nstsv, eb, efermi, -wt, 2, cwa)
+         Call tetcwifc (nkpt, nstsv, eb, efermi,-wt, 2, cwa)
      ! switch 4 below in tetcw defines surface integration for imag. part
-     call tetcwifc(nkpt, nstsv, eb, efermi, wt, 4, cwsurf)
-     do ik=1, nkpt
-	irec=(ik-1)*nwdfp+iw
-	cwsurft2(:, :)=cwsurf(istl1:istu1, istl2:istu2, ik)
-	cwt2(:, :)=cw(istl1:istu1, istl2:istu2, ik)
-	cwat2(:, :)=cwa(istl1:istu1, istl2:istu2, ik)
-	write(un, rec=irec) cwt2, cwat2, cwsurft2
-     end do
+         Call tetcwifc (nkpt, nstsv, eb, efermi, wt, 4, cwsurf)
+         Do ik = 1, nkpt
+            irec = (ik-1) * nwdfp + iw
+            cwsurft2 (:, :) = cwsurf (istl1:istu1, istl2:istu2, ik)
+            cwt2 (:, :) = cw (istl1:istu1, istl2:istu2, ik)
+            cwat2 (:, :) = cwa (istl1:istu1, istl2:istu2, ik)
+            Write (un, Rec=irec) cwt2, cwat2, cwsurft2
+         End Do
      ! synchronize for common number of w-points to all processes
-     if (iw <= nwdf/procs) call barrier
-  end do
-  close(un)
-  deallocate(cw, cwa, cwsurf)
-  allocate(cw(nwdfp, nst1, nst2))
-  allocate(cwa(nwdfp, nst1, nst2))
-  allocate(cwsurf(nwdfp, nst1, nst2))
-  allocate(cwsurft1(nwdfp), cwt1(nwdfp), cwat1(nwdfp))
+         If (iw <= nwdf/procs) Call barrier
+      End Do
+      Close (un)
+      Deallocate (cw, cwa, cwsurf)
+      Allocate (cw(nwdfp, nst1, nst2))
+      Allocate (cwa(nwdfp, nst1, nst2))
+      Allocate (cwsurf(nwdfp, nst1, nst2))
+      Allocate (cwsurft1(nwdfp), cwt1(nwdfp), cwat1(nwdfp))
   ! open temporary file for reading
-  open(un, file = trim(filnamt), form = 'unformatted', action = 'read', &
-       status = 'old', access = 'direct', recl = recl)
-  irec=0
-  do ik=1, nkpt
-     do iw=1, nwdfp
-	irec=irec+1
-	read(un, rec=irec) cwt2, cwat2, cwsurft2
-	cw(iw, :, :)=cwt2(:, :)
-	cwa(iw, :, :)=cwat2(:, :)
-	cwsurf(iw, :, :)=cwsurft2(:, :)
-     end do
-     do ist1=1, nst1
-	do ist2=1, nst2
-	   cwsurft1(:)=cwsurf(:, ist1, ist2)
-	   cwt1(:)=cw(:, ist1, ist2)
-	   cwat1(:)=cwa(:, ist1, ist2)
+      Open (un, File=trim(filnamt), Form='unformatted', Action='read', &
+     & Status='old', Access='direct', Recl=Recl)
+      irec = 0
+      Do ik = 1, nkpt
+         Do iw = 1, nwdfp
+            irec = irec + 1
+            Read (un, Rec=irec) cwt2, cwat2, cwsurft2
+            cw (iw, :, :) = cwt2 (:, :)
+            cwa (iw, :, :) = cwat2 (:, :)
+            cwsurf (iw, :, :) = cwsurft2 (:, :)
+         End Do
+         Do ist1 = 1, nst1
+            Do ist2 = 1, nst2
+               cwsurft1 (:) = cwsurf (:, ist1, ist2)
+               cwt1 (:) = cw (:, ist1, ist2)
+               cwat1 (:) = cwa (:, ist1, ist2)
            ! routine cares for record position
-	   call puttetcw(iq, ik, ist1, ist2, nst1, nst2, filnam, cwt1, cwat1, cwsurft1)
-	end do
-     end do
-  end do
-  close(un)
-  call filedel(trim(filnamt))
-  deallocate(cwt2, cwat2, cwsurft2)
-  deallocate(cw, cwa, cwsurf, eb)
-  deallocate(cwt1, cwat1, cwsurft1)
-  deallocate(w, wreal)
-  write(unitout, '(a)') 'Info('//trim(thisnam)//'): weights for tetrahedron &
-       &method finished.'
-end subroutine tetcalccwq
+               Call puttetcw (iq, ik, ist1, ist2, nst1, nst2, filnam, &
+              & cwt1, cwat1, cwsurft1)
+            End Do
+         End Do
+      End Do
+      Close (un)
+      Call filedel (trim(filnamt))
+      Deallocate (cwt2, cwat2, cwsurft2)
+      Deallocate (cw, cwa, cwsurf, eb)
+      Deallocate (cwt1, cwat1, cwsurft1)
+      Deallocate (w, wreal)
+      Write (unitout, '(a)') 'Info(' // trim (thisnam) // '): weights f&
+     &or tetrahedron method finished.'
+End Subroutine tetcalccwq

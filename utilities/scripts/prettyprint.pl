@@ -13,9 +13,15 @@ foreach $sourcedir (@ARGV) {
 print @fileslist;
 
 foreach $file (@fileslist) {
-	
+	$return=-1;
 	$command=  "f90ppr < $file > ./tmp.f90";
 	print $command ,"\n";
-	sleep(1);
-	system  $command
+	$return= system  $command;
+	print "return value ",$return,"\n";
+	if ($return==0){
+		$mvcommand="mv ./tmp.f90 $file";
+		print $mvcommand ,"\n";
+		system $mvcommand;
+		
+	}
 }

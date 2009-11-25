@@ -1,24 +1,24 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine rdmdkdc
+!
+!
+Subroutine rdmdkdc
 ! calculates the derivative of kinetic energy w.r.t. evecsv
-use modmain
-implicit none
+      Use modmain
+      Implicit None
 ! allocatable arrays
-complex(8), allocatable :: evecsv(:, :)
-integer::ik
-allocate(evecsv(nstsv, nstsv))
-do ik=1, nkpt
-  call getevecsv(vkl(:, ik), evecsv)
-  call zgemm('N', 'N', nstsv, nstsv, nstsv, zone, kinmatc(:, :, ik), nstsv, evecsv, &
-   nstsv, zzero, dkdc(:, :, ik), nstsv)
-end do
-deallocate(evecsv)
-return
-end subroutine
+      Complex (8), Allocatable :: evecsv (:, :)
+      Integer :: ik
+      Allocate (evecsv(nstsv, nstsv))
+      Do ik = 1, nkpt
+         Call getevecsv (vkl(:, ik), evecsv)
+         Call zgemm ('N', 'N', nstsv, nstsv, nstsv, zone, kinmatc(:, :, &
+        & ik), nstsv, evecsv, nstsv, zzero, dkdc(:, :, ik), nstsv)
+      End Do
+      Deallocate (evecsv)
+      Return
+End Subroutine

@@ -1,20 +1,21 @@
-
-
+!
+!
 !check parameterd for validity
-
-
-subroutine check_msecparameters()
- use  modmixermsec
- implicit none
- logical::usererror
- usererror=.false.
- if(qmx_input .ge. 0.6)then
-		write(60, *)':WARNING: Mixing parameter may be too large and greedy'
-		usererror=.true.
-	else if(qmx_input .le. 0.025)then
-		write(60, *)':WARNING: Mixing parameter may be too small'
-		usererror=.true.
-	endif
+!
+!
+Subroutine check_msecparameters ()
+      Use modmixermsec
+      Implicit None
+      Logical :: usererror
+      usererror = .False.
+      If (qmx_input .Ge. 0.6) Then
+         Write (60,*) ':WARNING: Mixing parameter may be too large and &
+        &greedy'
+         usererror = .True.
+      Else If (qmx_input .Le. 0.025) Then
+         Write (60,*) ':WARNING: Mixing parameter may be too small'
+         usererror = .True.
+      End If
 !
 !        if(noldstepsmax .lt. 1)then
 !                write(60,*)':WARNING: Number of memory steps too small, using 8'
@@ -24,5 +25,5 @@ subroutine check_msecparameters()
 !                write(60,*)':WARNING: Number of memory steps many be too small'
 !                usererror=.true.
 !        endif
-
- end subroutine
+!
+End Subroutine

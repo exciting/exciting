@@ -1,19 +1,19 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_corestate
-
+Module mod_corestate
+!
 !------------------------------!
 !     core state variables     !
 !------------------------------!
 ! eigenvalues for core states
-real(8), allocatable :: evalcr(:, :)
+      Real (8), Allocatable :: evalcr (:, :)
 ! radial wavefunctions for core states
-real(8), allocatable :: rwfcr(:, :, :, :)
+      Real (8), Allocatable :: rwfcr (:, :, :, :)
 ! radial charge density for core states
-real(8), allocatable :: rhocr(:, :)
+      Real (8), Allocatable :: rhocr (:, :)
 ! true for a frozen-core calculation (core state wavefunctions, densities and
 ! energies calculated only in the first iteration)
 !replaced by inputstructurelogical :: frozencore
-end module
-
+End Module
+!

@@ -1,20 +1,20 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: gentetlinkp
 ! !INTERFACE:
-
-
-subroutine gentetlinkp(vpl, tqw)
+!
+!
+Subroutine gentetlinkp (vpl, tqw)
   ! !USES:
-use modinput
-  use modmain
-  use modtetra
+      Use modinput
+      Use modmain
+      Use modtetra
 ! !DESCRIPTION:
 !  Interface to the {\tt gentetlink} routine.
 !
@@ -22,13 +22,13 @@ use modinput
 !   Created July 2008 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! arguments
-  real(8), intent(in) :: vpl(3)
-  integer, intent(in) :: tqw
+      Real (8), Intent (In) :: vpl (3)
+      Integer, Intent (In) :: tqw
   ! call to interface routine
-  call gentetlink(vpl, tqw, input%structure%epslat, bvec, input%groundstate%ngridk, input%groundstate%vkloff, nkpt, &
-    &nkptnr, vklnr, &
-       ikmapnr)
-end subroutine gentetlinkp
+      Call gentetlink (vpl, tqw, input%structure%epslat, bvec, &
+     & input%groundstate%ngridk, input%groundstate%vkloff, nkpt, &
+     & nkptnr, vklnr, ikmapnr)
+End Subroutine gentetlinkp
 !EOC

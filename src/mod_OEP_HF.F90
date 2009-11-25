@@ -1,24 +1,24 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_OEP_HF
+Module mod_OEP_HF
 !----------------------------------------!
 !     OEP and Hartree-Fock variables     !
 !----------------------------------------!
 ! maximum number of core states over all species
-integer::ncrmax
+      Integer :: ncrmax
 ! maximum number of OEP iterations
 !replaced by inputstructureinteger::maxitoep
 ! initial value and scaling factors for OEP step size
 !replaced by inputstructurereal(8)::tauoep(3)
 ! magnitude of the OEP residual
-real(8)::resoep
+      Real (8) :: resoep
 ! kinetic matrix elements
-complex(8), allocatable :: kinmatc(:, :, :)
+      Complex (8), Allocatable :: kinmatc (:, :, :)
 ! complex versions of the exchange potential and field
-complex(8), allocatable :: zvxmt(:, :, :)
-complex(8), allocatable :: zvxir(:)
-complex(8), allocatable :: zbxmt(:, :, :, :)
-complex(8), allocatable :: zbxir(:, :)
-end module
-
+      Complex (8), Allocatable :: zvxmt (:, :, :)
+      Complex (8), Allocatable :: zvxir (:)
+      Complex (8), Allocatable :: zbxmt (:, :, :, :)
+      Complex (8), Allocatable :: zbxir (:, :)
+End Module
+!

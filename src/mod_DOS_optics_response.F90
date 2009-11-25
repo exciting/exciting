@@ -1,7 +1,7 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_DOS_optics_response
+Module mod_DOS_optics_response
 !----------------------------------------------------------!
 !     density of states, optics and response variables     !
 !----------------------------------------------------------!
@@ -12,11 +12,11 @@ module mod_DOS_optics_response
 ! smoothing level for DOS/optics function
 !replaced by inputstructureinteger::nsmdos
 ! energy interval for DOS/optics function
-real(8)::wdos(2)
+      Real (8) :: wdos (2)
 ! scissors correction
 !replaced by inputstructure!replaced by inputstructure!replaced by inputstructurereal(8)::scissor
 ! number of optical matrix components required
-integer::noptcomp
+      Integer :: noptcomp
 ! required optical matrix components
 !replaced by inputstructureinteger::optcomp(3, 27)
 ! usegdft is .true. if the generalised DFT correction is to be used
@@ -27,9 +27,9 @@ integer::noptcomp
 ! irreducible representations of the site symmetries
 !<sag>
 ! Lorentzian lineshape in optics
-logical :: optltz
+      Logical :: optltz
 ! broadening for Lorentzian lineshape
-real(8) :: optswidth
+      Real (8) :: optswidth
 !</sag>
 !replaced by inputstructurelogical::lmirep
 ! spin-quantisation axis in Cartesian coordinates used when plotting the
@@ -38,5 +38,5 @@ real(8) :: optswidth
 ! q-vector in lattice coordinates for calculating the matrix elements
 ! < i,k+q | exp(iq.r) | j,k >
 !replaced by inputstructurereal(8)::vecql(3)
-end module
-
+End Module
+!

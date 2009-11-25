@@ -1,20 +1,20 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: gengqvec
 ! !INTERFACE:
-
-
-subroutine gengqvec(iq,vpl,vpc,ngp,igpig,vgpl,vgpc,gpc,tpgpc)
+!
+!
+Subroutine gengqvec (iq, vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc)
 ! !USES:
-use modinput
-  use modmain
-  use modxs
+      Use modinput
+      Use modmain
+      Use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   vpl   : p-point vector in lattice coordinates (in,real(3))
 !   vpc   : p-point vector in Cartesian coordinates (in,real(3))
@@ -34,80 +34,83 @@ use modinput
 !   Created October 2006 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! arguments
-  integer, intent(in) :: iq
-  real(8), intent(in) :: vpl(3)
-  real(8), intent(in) :: vpc(3)
-  integer, intent(out) :: ngp
-  integer, intent(out) :: igpig(ngqmax)
-  real(8), intent(out) :: vgpl(3,ngqmax)
-  real(8), intent(out) :: vgpc(3,ngqmax)
-  real(8), intent(out) :: gpc(ngqmax)
-  real(8), intent(out) :: tpgpc(2,ngqmax)
+      Integer, Intent (In) :: iq
+      Real (8), Intent (In) :: vpl (3)
+      Real (8), Intent (In) :: vpc (3)
+      Integer, Intent (Out) :: ngp
+      Integer, Intent (Out) :: igpig (ngqmax)
+      Real (8), Intent (Out) :: vgpl (3, ngqmax)
+      Real (8), Intent (Out) :: vgpc (3, ngqmax)
+      Real (8), Intent (Out) :: gpc (ngqmax)
+      Real (8), Intent (Out) :: tpgpc (2, ngqmax)
   ! local variables
-  integer::ig, igp
-  real(8)::v(3), t1, t2
-
-  integer :: isym,lspl,igpt,ivlt(3)
-  real(8) :: vl(3),vc(3),vlt(3),vct(3),vctl(3),s(3,3),c(3,3)
-
-  if (input%xs%gqmax.lt.input%structure%epslat) then
-     igp=1
-     igpig(igp)=igp
-     vgpl(:,igp)=vpl(:)
-     vgpc(:,igp)=vpc(:)
-     call sphcrd(vgpc(1,igp),gpc(igp),tpgpc(1,igp))
-     ivgigq(0,0,0,iq)=igp
-     ngp=1
-     return
-  end if
-  t1=input%xs%gqmax**2
-  ivgigq(:,:,:,iq)=0
-  igp=0
-  do ig=1,ngvec
-     v(:)=vgc(:,ig)+vpc(:)
-     t2=v(1)**2+v(2)**2+v(3)**2
-     if (t2.lt.t1) then
-        igp=igp+1
-        if (igp.gt.ngqmax) then
-           write(*,*)
-           write(*,'("Error(gengpvec): number of G+p-vectors exceeds ngqmax")')
-           write(*,*)
-           stop
-        end if
+      Integer :: ig, igp
+      Real (8) :: v (3), t1, t2
+!
+      Integer :: isym, lspl, igpt, ivlt (3)
+      Real (8) :: vl (3), vc (3), vlt (3), vct (3), vctl (3), s (3, 3), &
+     & c (3, 3)
+!
+      If (input%xs%gqmax .Lt. input%structure%epslat) Then
+         igp = 1
+         igpig (igp) = igp
+         vgpl (:, igp) = vpl (:)
+         vgpc (:, igp) = vpc (:)
+         Call sphcrd (vgpc(1, igp), gpc(igp), tpgpc(1, igp))
+         ivgigq (0, 0, 0, iq) = igp
+         ngp = 1
+         Return
+      End If
+      t1 = input%xs%gqmax ** 2
+      ivgigq (:, :, :, iq) = 0
+      igp = 0
+      Do ig = 1, ngvec
+         v (:) = vgc (:, ig) + vpc (:)
+         t2 = v (1) ** 2 + v (2) ** 2 + v (3) ** 2
+         If (t2 .Lt. t1) Then
+            igp = igp + 1
+            If (igp .Gt. ngqmax) Then
+               Write (*,*)
+               Write (*, '("Error(gengpvec): number of G+p-vectors exce&
+              &eds ngqmax")')
+               Write (*,*)
+               Stop
+            End If
         ! index to G-vector
-        igpig(igp)=ig
+            igpig (igp) = ig
         ! G+p-vector in lattice coordinates
-        vgpl(:,igp)=dble(ivg(:,ig))+vpl(:)
+            vgpl (:, igp) = dble (ivg(:, ig)) + vpl (:)
         ! G+p-vector in Cartesian coordinates
-        vgpc(:,igp)=v(:)
+            vgpc (:, igp) = v (:)
         ! G+p-vector length and (theta, phi) coordinates
-        call sphcrd(vgpc(1,igp),gpc(igp),tpgpc(1,igp))
+            Call sphcrd (vgpc(1, igp), gpc(igp), tpgpc(1, igp))
         ! map from grid to G+p-vector
-        ivgigq(ivg(1,ig),ivg(2,ig),ivg(3,ig),iq)=igp
-     end if
-  end do
-  ngp=igp
-  if (input%xs%dbglev.gt.1) then
-     write(*,'(a)') 'Debug(gengqvec): igp,isym,lspl,vl,vlt'
-     do igp=1,ngp
-        vl(:)=dble(ivg(:,igpig(igp)))
-        vc=matmul(bvec,vl)
-        do isym=1,nsymcrys
-           lspl=lsplsymc(isym)
-           c(:,:)=symlatc(:,:,lspl)
-           s(:,:)=dble(symlat(:,:,lspl))
-           vlt=matmul(vl,s)
-           ivlt=nint(vlt)
-           vct=matmul(vc,c)
-           vctl=matmul(binv,vct)
-           igpt=ivgigq(ivlt(1),ivlt(2),ivlt(3),iq)
-           write(*,'(3i6,5x,3i5,3x,3i5)') igp,isym,lspl,nint(vl),nint(vlt)
-        end do
-     end do
-     write(*,*)
-  end if
-  return
-end subroutine gengqvec
+            ivgigq (ivg(1, ig), ivg(2, ig), ivg(3, ig), iq) = igp
+         End If
+      End Do
+      ngp = igp
+      If (input%xs%dbglev .Gt. 1) Then
+         Write (*, '(a)') 'Debug(gengqvec): igp,isym,lspl,vl,vlt'
+         Do igp = 1, ngp
+            vl (:) = dble (ivg(:, igpig(igp)))
+            vc = matmul (bvec, vl)
+            Do isym = 1, nsymcrys
+               lspl = lsplsymc (isym)
+               c (:, :) = symlatc (:, :, lspl)
+               s (:, :) = dble (symlat(:, :, lspl))
+               vlt = matmul (vl, s)
+               ivlt = Nint (vlt)
+               vct = matmul (vc, c)
+               vctl = matmul (binv, vct)
+               igpt = ivgigq (ivlt(1), ivlt(2), ivlt(3), iq)
+               Write (*, '(3i6,5x,3i5,3x,3i5)') igp, isym, lspl, Nint &
+              & (vl), Nint (vlt)
+            End Do
+         End Do
+         Write (*,*)
+      End If
+      Return
+End Subroutine gengqvec
 !EOC

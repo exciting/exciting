@@ -1,25 +1,26 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_genfilname
-  implicit none
-contains
-
+!
+Module m_genfilname
+      Implicit None
+Contains
+!
 !BOP
 ! !ROUTINE: genfilname
 ! !INTERFACE:
-
-
-  subroutine genfilname(nodotpar,basename,etype,asc,bzsampl,acont,&
-       nar,tord,nlf,fxctype,scrtype,bsetype,markfxcbse,tq0,oc1,oc2,iq,iqmt,procs,rank,dotext, &
-       setfilext,revertfilext,appfilext,filnam,fileext)
+!
+!
+      Subroutine genfilname (nodotpar, basename, etype, asc, bzsampl, &
+     & acont, nar, tord, nlf, fxctype, scrtype, bsetype, markfxcbse, &
+     & tq0, oc1, oc2, iq, iqmt, procs, rank, dotext, setfilext, &
+     & revertfilext, appfilext, filnam, fileext)
 ! !USES:
-    use modmain, only: filext
-    use modxs, only: filextrevert
+         Use modmain, Only: filext
+         Use modxs, Only: filextrevert
 ! !DESCRIPTION:
 !   Generates file name and extension according to optional input parameters (
 !   see routine).
@@ -30,176 +31,181 @@ contains
 !   Created October 2007 (Sagmeister)
 !EOP
 !BOC
-    implicit none
+         Implicit None
     ! arguments
-    integer, optional, intent(in) :: bzsampl,fxctype,oc1,oc2,iq,iqmt,procs,rank
-    integer, optional, intent(in) :: etype
-    logical, optional, intent(in) :: nodotpar,asc,acont,nar,tord,nlf,tq0,markfxcbse
-    logical, optional, intent(in) :: revertfilext,setfilext,appfilext
-    character(*), optional, intent(in) :: basename,dotext,scrtype,bsetype
-    character(256), optional, intent(out) :: filnam,fileext
+         Integer, Optional, Intent (In) :: bzsampl, fxctype, oc1, oc2, &
+        & iq, iqmt, procs, rank
+         Integer, Optional, Intent (In) :: etype
+         Logical, Optional, Intent (In) :: nodotpar, asc, acont, nar, &
+        & tord, nlf, tq0, markfxcbse
+         Logical, Optional, Intent (In) :: revertfilext, setfilext, &
+        & appfilext
+         Character (*), Optional, Intent (In) :: basename, dotext, &
+        & scrtype, bsetype
+         Character (256), Optional, Intent (Out) :: filnam, fileext
     ! local variables
-    logical :: nodot0,revert,setfxt,appfxt,dotxt,oct,lnar
-    character(*), parameter :: thisnam = 'genfilname'
-    character(256) :: s,s1
+         Logical :: nodot0, revert, setfxt, appfxt, dotxt, oct, lnar
+         Character (*), Parameter :: thisnam = 'genfilname'
+         Character (256) :: s, s1
     ! if file extension in "modmain" is to be reset to last value: reset
     ! else store current file extension
-    revert=.false.
-    setfxt=.false.
-    if (present(revertfilext)) revert=revertfilext
-    if (present(setfilext)) setfxt=setfilext
-    if (revert) then
-       filext=trim(filextrevert)
-    else if (setfxt) then
-       filextrevert=filext
-    end if
-    appfxt=.false.
-    if (present(appfilext)) appfxt=appfilext
-    dotxt=.false.
-    if (present(dotext)) dotxt=.true.
-    if ((appfxt.and.setfxt).or.(appfxt.and.dotxt)) then
-       write(*,'(a)') 'Error('//trim(thisnam)//'): specified appfxt together &
-            &with setfilext or dotext'
-       call terminate
-    end if
-    oct=present(oc1).and.present(oc2)
+         revert = .False.
+         setfxt = .False.
+         If (present(revertfilext)) revert = revertfilext
+         If (present(setfilext)) setfxt = setfilext
+         If (revert) Then
+            filext = trim (filextrevert)
+         Else If (setfxt) Then
+            filextrevert = filext
+         End If
+         appfxt = .False.
+         If (present(appfilext)) appfxt = appfilext
+         dotxt = .False.
+         If (present(dotext)) dotxt = .True.
+         If ((appfxt .And. setfxt) .Or. (appfxt .And. dotxt)) Then
+            Write (*, '(a)') 'Error(' // trim (thisnam) // '): specifie&
+           &d appfxt together with setfilext or dotext'
+            Call terminate
+         End If
+         oct = present (oc1) .And. present (oc2)
     ! dot in front of filename in parallel output for rank eq. zero
-    nodot0=.false.
-    if (present(nodotpar)) nodot0=nodotpar
+         nodot0 = .False.
+         If (present(nodotpar)) nodot0 = nodotpar
     ! start with empty string
-    s=''
+         s = ''
     ! type of band combinations for plane wave matrix elements
-    if (present(etype)) then
-       select case(etype)
-       case(0)
+         If (present(etype)) Then
+            Select Case (etype)
+            Case (0)
           ! all band combinations
-          s=trim(s)//'_FULL'
-       case(1)
+               s = trim (s) // '_FULL'
+            Case (1)
           ! v-c anc c-v combinations for response function
-       case(2)
+            Case (2)
           ! v-v and c-c combinations for screened interaction
-          s=trim(s)//'_SCRI'
-       case default
-          write(*,'(a)') 'Error('//trim(thisnam)//'): unknown etype: ', &
-               etype
-          call terminate
-       end select
-    end if
+               s = trim (s) // '_SCRI'
+            Case Default
+               Write (*, '(a)') 'Error(' // trim (thisnam) // '): unkno&
+              &wn etype: ', etype
+               Call terminate
+            End Select
+         End If
     ! ascii output identifier
-    if (present(asc)) then
-       if (asc) then
-          s=trim(s)//'_ASC'
-       end if
-    end if
+         If (present(asc)) Then
+            If (asc) Then
+               s = trim (s) // '_ASC'
+            End If
+         End If
     ! sampling of Brillouine zone
-    if (present(bzsampl)) then
-       select case(bzsampl)
-       case(0)
+         If (present(bzsampl)) Then
+            Select Case (bzsampl)
+            Case (0)
           ! do nothing (Lorentzian broadening)
-       case(1)
+            Case (1)
           ! tetrahedron method
-          s=trim(s)//'_TET'
-       case default
-          write(*,'(a)') 'Error('//trim(thisnam)//'): unknown bzsampl: ', &
-               bzsampl
-          call terminate
-       end select
-    end if
+               s = trim (s) // '_TET'
+            Case Default
+               Write (*, '(a)') 'Error(' // trim (thisnam) // '): unkno&
+              &wn bzsampl: ', bzsampl
+               Call terminate
+            End Select
+         End If
     ! analytic continuation
-    if (present(acont)) then
-       if (acont) then
-          s=trim(s)//'_AC'
-       end if
-    end if
+         If (present(acont)) Then
+            If (acont) Then
+               s = trim (s) // '_AC'
+            End If
+         End If
     ! exclusion of anti-resonant part
-    lnar=.false.
-    if (present(nar)) then
-       if (nar) then
-          lnar=.true.
-          s=trim(s)//'_NAR'
-       end if
-    end if
+         lnar = .False.
+         If (present(nar)) Then
+            If (nar) Then
+               lnar = .True.
+               s = trim (s) // '_NAR'
+            End If
+         End If
     ! time-ordering
-    if (present(tord)) then
-       if (tord.and.(.not.lnar)) then
-          s=trim(s)//'_TORD'
-       end if
-    end if
+         If (present(tord)) Then
+            If (tord .And. ( .Not. lnar)) Then
+               s = trim (s) // '_TORD'
+            End If
+         End If
     ! no local field effects
-    if (present(nlf)) then
-       if (nlf) then
-          s=trim(s)//'_NLF'
-       end if
-    end if
+         If (present(nlf)) Then
+            If (nlf) Then
+               s = trim (s) // '_NLF'
+            End If
+         End If
     ! xc-kernel type
-    if (present(fxctype)) then
-       write(s1,'("_FXC",i2.2)') fxctype
-       s=trim(s)//trim(s1)
-    end if
+         If (present(fxctype)) Then
+            Write (s1, '("_FXC",i2.2)') fxctype
+            s = trim (s) // trim (s1)
+         End If
     ! BSE effective Hamiltonian type
-    if (present(bsetype)) then
-       write(s1,'("_BSE",a)') trim(adjustl(bsetype))
-       s=trim(s)//trim(s1)
-    end if
+         If (present(bsetype)) Then
+            Write (s1, '("_BSE",a)') trim (adjustl(bsetype))
+            s = trim (s) // trim (s1)
+         End If
     ! screening type in screened Coulomb interaction
-    if (present(scrtype)) then
-       write(s1,'("_SCR",a)') trim(adjustl(scrtype))
-       s=trim(s)//trim(s1)
-    end if
+         If (present(scrtype)) Then
+            Write (s1, '("_SCR",a)') trim (adjustl(scrtype))
+            s = trim (s) // trim (s1)
+         End If
     ! optical components
-    if (present(tq0).and.oct) then
-       if (tq0) then
-          write(s1,'("_OC",2i1.1)') oc1,oc2
-          s=trim(s)//trim(s1)
-       end if
-    end if
+         If (present(tq0) .And. oct) Then
+            If (tq0) Then
+               Write (s1, '("_OC",2i1.1)') oc1, oc2
+               s = trim (s) // trim (s1)
+            End If
+         End If
     ! mark file if it is generated in combination with fxc-BSE
-    if (present(markfxcbse)) then
-       if (markfxcbse) then
-         s=trim(s)//"_FXCBSE"
-       end if
-    end if
+         If (present(markfxcbse)) Then
+            If (markfxcbse) Then
+               s = trim (s) // "_FXCBSE"
+            End If
+         End If
     ! Q-point (finite momentum transfer)
-    if (present(iqmt)) then
-       write(s1,'("_QMT",i3.3)') iqmt
-       s=trim(s)//trim(s1)
-    end if
+         If (present(iqmt)) Then
+            Write (s1, '("_QMT",i3.3)') iqmt
+            s = trim (s) // trim (s1)
+         End If
     ! q-point
-    if (present(iq)) then
-       write(s1,'("_Q",i5.5)') iq
-       s=trim(s)//trim(s1)
-    end if
+         If (present(iq)) Then
+            Write (s1, '("_Q",i5.5)') iq
+            s = trim (s) // trim (s1)
+         End If
     ! parallelization
-    if (present(rank).and.present(procs)) then
-       if ((procs > 1).and.((nodot0.and.(rank > 0)).or.(.not.nodot0))) then
+         If (present(rank) .And. present(procs)) Then
+            If ((procs > 1) .And. ((nodot0 .And. (rank > 0)) .Or. ( &
+           & .Not. nodot0))) Then
           ! tag for rank
-          write(s1,'("_par",i3.3)') rank+1
-          s=trim(s)//trim(s1)
-       end if
-    end if
+               Write (s1, '("_par",i3.3)') rank + 1
+               s = trim (s) // trim (s1)
+            End If
+         End If
     ! extension (including the dot)
-    if (present(dotext)) then
-       s=trim(s)//trim(dotext)
-    else if (appfxt) then
-       s=trim(s)//trim(filext)
-    else
-       s=trim(s)//'.OUT'
-    end if
+         If (present(dotext)) Then
+            s = trim (s) // trim (dotext)
+         Else If (appfxt) Then
+            s = trim (s) // trim (filext)
+         Else
+            s = trim (s) // '.OUT'
+         End If
     ! assign file extension if required
-    if (present(fileext)) fileext=trim(s)
+         If (present(fileext)) fileext = trim (s)
     ! assign global file extension if required
-    if (setfxt) filext=trim(s)
+         If (setfxt) filext = trim (s)
     ! basename
-    if (present(basename)) s=trim(basename)//trim(s)
+         If (present(basename)) s = trim (basename) // trim (s)
     ! dot in front of filename determined by procs, rank and nodotpar
-    if (present(rank).and.present(procs)) then
-       if (((procs > 1).and.(rank > 0)).or. &
-            ((.not.nodot0).and.(procs > 1).and.(rank == 0))) then
-          s='.'//trim(s)
-       end if
-    end if
-    if (present(filnam)) filnam=trim(s)
-  end subroutine genfilname
+         If (present(rank) .And. present(procs)) Then
+            If (((procs > 1) .And. (rank > 0)) .Or. (( .Not. nodot0) &
+           & .And. (procs > 1) .And. (rank == 0))) Then
+               s = '.' // trim (s)
+            End If
+         End If
+         If (present(filnam)) filnam = trim (s)
+      End Subroutine genfilname
 !EOC
-
-end module m_genfilname
+!
+End Module m_genfilname

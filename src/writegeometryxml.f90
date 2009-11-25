@@ -1,14 +1,14 @@
 !BOP
 ! !ROUTINE: writegeometryxml
 ! !INTERFACE:
-
-subroutine writegeometryxml(topt)
+!
+Subroutine writegeometryxml (topt)
 ! !USES:
-use modmain
-use modinput
-use modsp
-use  modspdb
-use FoX_wxml
+      Use modmain
+      Use modinput
+      Use modsp
+      Use modspdb
+      Use FoX_wxml
 ! !INPUT/OUTPUT PARAMETERS:
 !   topt : if .true. then the filename will be {\ttgeometry_opt.xml}, otherwise
 !          {\tt geometry.xml} (in,logical)
@@ -20,46 +20,51 @@ use FoX_wxml
 !   Created January 2004 (JKD)
 !EOP
 !BOC
-implicit none
-logical, intent(in) :: topt
+      Implicit None
+      Logical, Intent (In) :: topt
 ! local variables
-integer::is, ia, ip, i
-character(128)::buffer
- type(xmlf_t), save::xf
-if(topt)then
-call xml_OpenFile ("geometry_opt"//trim(filext)//".xml", xf, replace=.true., pretty_print=.true.)
-else
-call xml_OpenFile ("geometry"//trim(filext)//".xml", xf, replace=.true., pretty_print=.true.)
-endif
-call xml_NewElement(xf, "input")
-call xml_NewElement(xf, "structure")
-if(input%structure%primcell) buffer="true"
-if (.not. input%structure%primcell)buffer="false"
-call xml_AddAttribute(xf, "primcell", trim(adjustl(buffer)))
-call xml_AddAttribute(xf, "speciespath", trim(adjustl(input%structure%speciespath)))
-call xml_NewElement(xf, "crystal")
-do i=1, 3
-call xml_newElement(xf, "basevect")
-write(buffer, '(3G18.10)') input%structure%crystal%basevect(:,i)
-call  xml_AddCharacters(xf, trim(buffer))
-call xml_endElement(xf, "basevect")
-enddo
-call xml_endElement(xf, "crystal")
-do is=1, nspecies
-call xml_NewElement(xf, "species")
-call xml_AddAttribute(xf, "speciesfile", &
-&trim(adjustl(input%structure%speciesarray(is)%species%speciesfile)))
- write(buffer,*) int(-1.0 * speziesdeflist(is)%sp%z)
- call xml_AddAttribute(xf, "atomicNumber",trim(adjustl(buffer)))
- call xml_AddAttribute(xf, "chemicalSymbol",trim(adjustl(speziesdeflist(is)%sp%chemicalSymbol)))
-  do ia=1, natoms(is)
-     call xml_NewElement(xf, "atom")
-     write(buffer, '(3G18.10)')input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord
-     call xml_AddAttribute(xf, "coord", trim(adjustl(buffer)))
-     call xml_endElement(xf, "atom")
-  end do
-  call xml_endElement(xf, "species")
-end do
- call xml_close(xf)
-return
-end subroutine
+      Integer :: is, ia, ip, i
+      Character (128) :: buffer
+      Type (xmlf_t), Save :: xf
+      If (topt) Then
+         Call xml_OpenFile ("geometry_opt"//trim(filext)//".xml", xf, &
+        & replace=.True., pretty_print=.True.)
+      Else
+         Call xml_OpenFile ("geometry"//trim(filext)//".xml", xf, &
+        & replace=.True., pretty_print=.True.)
+      End If
+      Call xml_NewElement (xf, "input")
+      Call xml_NewElement (xf, "structure")
+      If (input%structure%primcell) buffer = "true"
+      If ( .Not. input%structure%primcell) buffer = "false"
+      Call xml_AddAttribute (xf, "primcell", trim(adjustl(buffer)))
+      Call xml_AddAttribute (xf, "speciespath", &
+     & trim(adjustl(input%structure%speciespath)))
+      Call xml_NewElement (xf, "crystal")
+      Do i = 1, 3
+         Call xml_NewElement (xf, "basevect")
+         Write (buffer, '(3G18.10)') &
+        & input%structure%crystal%basevect(:, i)
+         Call xml_AddCharacters (xf, trim(buffer))
+         Call xml_endElement (xf, "basevect")
+      End Do
+      Call xml_endElement (xf, "crystal")
+      Do is = 1, nspecies
+         Call xml_NewElement (xf, "species")
+         Call xml_AddAttribute (xf, "speciesfile", trim(adjustl(input%structure%speciesarray(is)%species%speciesfile)))
+         Write (buffer,*) Int (-1.0*speziesdeflist(is)%sp%z)
+         Call xml_AddAttribute (xf, "atomicNumber", &
+        & trim(adjustl(buffer)))
+         Call xml_AddAttribute (xf, "chemicalSymbol", &
+        & trim(adjustl(speziesdeflist(is)%sp%chemicalSymbol)))
+         Do ia = 1, natoms (is)
+            Call xml_NewElement (xf, "atom")
+            Write (buffer, '(3G18.10)') input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord
+            Call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))
+            Call xml_endElement (xf, "atom")
+         End Do
+         Call xml_endElement (xf, "species")
+      End Do
+      Call xml_close (xf)
+      Return
+End Subroutine

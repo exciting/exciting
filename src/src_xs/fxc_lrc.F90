@@ -1,24 +1,24 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_fxc_lrc
-  implicit none
-
-contains
-
+!
+Module m_fxc_lrc
+      Implicit None
+!
+Contains
+!
 !BOP
 ! !ROUTINE: fxc_lrc
 ! !INTERFACE:
-
-
-subroutine fxc_lrc(msiz, sw, alpha, fxc)
+!
+!
+      Subroutine fxc_lrc (msiz, sw, alpha, fxc)
 ! !USES:
-    use mod_constants,only:fourpi
-    use modxs,only:unitout
+         Use mod_constants, Only: fourpi
+         Use modxs, Only: unitout
 ! !INPUT/OUTPUT PARAMETERS:
 !   msiz  : matrix size of local field effects (in,integer)
 !   sw    : true for inclusion of local field effects (in,logical)
@@ -39,32 +39,33 @@ subroutine fxc_lrc(msiz, sw, alpha, fxc)
 !   Created March 2006 (Sagmeister)
 !EOP
 !BOC
-    implicit none
+         Implicit None
     ! arguments
-    integer, intent(in) :: msiz
+         Integer, Intent (In) :: msiz
     ! true if all G-components of fxc are to be considered
-    logical, intent(in) :: sw
-    real(8), intent(in) :: alpha
-    complex(8), intent(out) :: fxc(:, :)
+         Logical, Intent (In) :: sw
+         Real (8), Intent (In) :: alpha
+         Complex (8), Intent (Out) :: fxc (:, :)
     ! local variables
-    character(*), parameter :: thisnam = 'fxc_lrc'
-    real(8) :: t1
-    integer :: sh(2), ig
-    sh=shape(fxc)
-    if ((sh(1).lt.msiz).or.(sh(2).lt.msiz)) then
-       write(unitout, '(a, 2i9, a, i9, a)') 'Error('//trim(thisnam)//'): size of &
-	    &fxc is to small (required)', sh, '(', msiz, ')'
-       call terminate
-    end if
-    fxc(:, :)=(0.d0, 0.d0)
-    t1=-alpha/fourpi
-    if (.not.sw) then
-       fxc(1, 1)=t1
-    else
-       do ig=1, msiz
-	  fxc(ig, ig)=t1
-       end do
-    end if
-  end subroutine fxc_lrc
-end module m_fxc_lrc
+         Character (*), Parameter :: thisnam = 'fxc_lrc'
+         Real (8) :: t1
+         Integer :: sh (2), ig
+         sh = shape (fxc)
+         If ((sh(1) .Lt. msiz) .Or. (sh(2) .Lt. msiz)) Then
+            Write (unitout, '(a, 2i9, a, i9, a)') 'Error(' // trim &
+           & (thisnam) // '): size of fxc is to small (required)', sh, &
+           & '(', msiz, ')'
+            Call terminate
+         End If
+         fxc (:, :) = (0.d0, 0.d0)
+         t1 = - alpha / fourpi
+         If ( .Not. sw) Then
+            fxc (1, 1) = t1
+         Else
+            Do ig = 1, msiz
+               fxc (ig, ig) = t1
+            End Do
+         End If
+      End Subroutine fxc_lrc
+End Module m_fxc_lrc
 !EOC

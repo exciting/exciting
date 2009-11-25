@@ -1,30 +1,30 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_genloss
-  implicit none
-contains
-
-
-subroutine genloss(eps, loss)
-    use modxs
-    implicit none
+!
+Module m_genloss
+      Implicit None
+Contains
+!
+!
+      Subroutine genloss (eps, loss)
+         Use modxs
+         Implicit None
     ! arguments
-    complex(8), intent(in) :: eps(:)
-    real(8), intent(out) :: loss(:)
+         Complex (8), Intent (In) :: eps (:)
+         Real (8), Intent (Out) :: loss (:)
     ! local variables
-    character(*), parameter :: thisnam = 'genloss'
-    if (any(shape(eps).ne.shape(loss))) then
-       write(unitout, '(a)') 'Error('//thisnam//'): input and output arrays &
-	    &have diffenrent shape'
-       call terminate
-    end if
+         Character (*), Parameter :: thisnam = 'genloss'
+         If (any(shape(eps) .Ne. shape(loss))) Then
+            Write (unitout, '(a)') 'Error(' // thisnam // '): input and&
+           & output arrays have diffenrent shape'
+            Call terminate
+         End If
     ! loss function
-    loss(:) = - aimag(1/eps(:))
-  end subroutine genloss
-
-end module m_genloss
+         loss (:) = - aimag (1/eps(:))
+      End Subroutine genloss
+!
+End Module m_genloss

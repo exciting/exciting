@@ -1,82 +1,82 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
-
-subroutine rdmft
+!
+!
+Subroutine rdmft
 ! 1-reduced density matrix functional theory
-use modinput
-use modmain
-implicit none
+      Use modinput
+      Use modmain
+      Implicit None
 ! local variables
-integer::ik
-call init0
-call init1
+      Integer :: ik
+      Call init0
+      Call init1
 ! generate q-point set and wiq2 array
-call init2
+      Call init2
 ! read density and potentials from file
-call readstate
+      Call readstate
 ! generate the core wavefunctions and densities
-call gencore
+      Call gencore
 ! find the new linearisation energies
-call linengy
+      Call linengy
 ! generate the APW radial functions
-call genapwfr
+      Call genapwfr
 ! generate the local-orbital radial functions
-call genlofr
+      Call genlofr
 ! compute the overlap radial integrals
-call olprad
+      Call olprad
 ! compute the Hamiltonian radial integrals
-call hmlrad
+      Call hmlrad
 ! compute the kinetic energy of the core
-call energykncr
+      Call energykncr
 ! generate the kinetic matrix elements
-call genkinmat
+      Call genkinmat
 ! read in the occupancies
-do ik=1, nkpt
-  call getoccsv(vkl(:, ik), occsv(:, ik))
-end do
+      Do ik = 1, nkpt
+         Call getoccsv (vkl(:, ik), occsv(:, ik))
+      End Do
 ! calculate Coulomb potential matrix elements
-call genvmat(vclmt, vclir, vclmat)
+      Call genvmat (vclmt, vclir, vclmat)
 ! derivative of kinetic energy w.r.t. evecsv
-call rdmdkdc
+      Call rdmdkdc
 ! open information files
-open(60, file='RDM_INFO.OUT', action='WRITE', form='FORMATTED')
+      Open (60, File='RDM_INFO.OUT', Action='WRITE', Form='FORMATTED')
 ! write out general information to RDM_INFO.OUT
-call writeinfo(60)
+      Call writeinfo (60)
 ! begin main self-consistent loop
-do iscl=1, input%groundstate%RDMFT%rdmmaxscl
-  write(60, *)
-  write(60, '("+-------------------------+")')
-  write(60, '("| Iteration number : ", I4, " |")') iscl
-  write(60, '("+-------------------------+")')
-  call flushifc(60)
+      Do iscl = 1, input%groundstate%rdmft%rdmmaxscl
+         Write (60,*)
+         Write (60, '("+-------------------------+")')
+         Write (60, '("| Iteration number : ", I4, " |")') iscl
+         Write (60, '("+-------------------------+")')
+         Call flushifc (60)
 ! minimisation over natural orbitals
-  if (input%groundstate%RDMFT%maxitc.ge.1) then
-    call rdmminc
-    write(60, *)
-    write(60, '("Natural orbital minimisation done")')
-    call rdmwriteengy(60)
-  end if
+         If (input%groundstate%rdmft%maxitc .Ge. 1) Then
+            Call rdmminc
+            Write (60,*)
+            Write (60, '("Natural orbital minimisation done")')
+            Call rdmwriteengy (60)
+         End If
 ! minimisation over occupation number
-  if (input%groundstate%RDMFT%maxitn.ge.1) then
-    call rdmminn
-    write(60, *)
-    write(60, '("Occupation number minimisation done")')
-    call rdmwriteengy(60)
-  end if
+         If (input%groundstate%rdmft%maxitn .Ge. 1) Then
+            Call rdmminn
+            Write (60,*)
+            Write (60, '("Occupation number minimisation done")')
+            Call rdmwriteengy (60)
+         End If
 ! end loop over iscl
-end do
+      End Do
 ! write density to STATE.OUT
-call writestate
+      Call writestate
 ! write occupation numbers for restart
-do ik=1, nkpt
-  call putoccsv(ik, occsv(:, ik))
-end do
+      Do ik = 1, nkpt
+         Call putoccsv (ik, occsv(:, ik))
+      End Do
 ! close RDM_INFO.OUT file
-close(60)
-return
-end subroutine
+      Close (60)
+      Return
+End Subroutine

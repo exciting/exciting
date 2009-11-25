@@ -1,107 +1,109 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_putemat
-  implicit none
-contains
-
-
-subroutine putemat(iq, ik, tarec, filnam, l1, h1, l2, h2, x12, l3, h3, l4, h4, x34)
-    use modmain
-    use modmpi
-    use modxs
-    use m_getunit
-    implicit none
+!
+Module m_putemat
+      Implicit None
+Contains
+!
+!
+      Subroutine putemat (iq, ik, tarec, filnam, l1, h1, l2, h2, x12, &
+     & l3, h3, l4, h4, x34)
+         Use modmain
+         Use modmpi
+         Use modxs
+         Use m_getunit
+         Implicit None
     ! arguments
-    integer, intent(in) :: iq, ik
-    logical :: tarec
-    character(*), intent(in) :: filnam
-    integer, intent(in) :: l1, h1, l2, h2
-    complex(8), intent(in) :: x12(:, :, :)
-    integer, optional, intent(in) :: l3, h3, l4, h4
-    complex(8), optional, intent(in) :: x34(:, :, :)
+         Integer, Intent (In) :: iq, ik
+         Logical :: tarec
+         Character (*), Intent (In) :: filnam
+         Integer, Intent (In) :: l1, h1, l2, h2
+         Complex (8), Intent (In) :: x12 (:, :, :)
+         Integer, Optional, Intent (In) :: l3, h3, l4, h4
+         Complex (8), Optional, Intent (In) :: x34 (:, :, :)
     ! local variables
-    integer :: un, recl, ikr
-    logical :: tarec_
+         Integer :: un, recl, ikr
+         Logical :: tarec_
 #ifdef MPI
-    integer :: iproc, tag1, tag2, status(MPI_STATUS_SIZE)
+         Integer :: iproc, tag1, tag2, status (MPI_STATUS_SIZE)
 #endif
     ! check if all optional variables are present if any is present
-    if ((present(l3).or.present(h3).or.present(l4).or.present(h4).or. &
-	 present(x34)).and.(.not.( &
-	 present(l3).and.present(h3).and.present(l4).and.present(h4).and. &
-	 present(x34)))) then
-       write(*, *)
-       write(*, '("Error(putemat): optional parameters not complete - check &
-	    &routine")')
-       write(*, *)
-       call terminate
-    end if
+         If ((present(l3) .Or. present(h3) .Or. present(l4) .Or. &
+        & present(h4) .Or. present(x34)) .And. ( .Not. (present(l3) &
+        & .And. present(h3) .And. present(l4) .And. present(h4) .And. &
+        & present(x34)))) Then
+            Write (*,*)
+            Write (*, '("Error(putemat): optional parameters not comple&
+           &te - check routine")')
+            Write (*,*)
+            Call terminate
+         End If
     !TODO: use "tarec"
-    tarec_=tarec
-    ikr=ik
-    call getunit(un)
-    if (present(x34)) then
+         tarec_ = tarec
+         ikr = ik
+         Call getunit (un)
+         If (present(x34)) Then
 #ifdef MPI
-       tag1=77
-       tag2=78
-       if (rank.ne.0) call mpi_send(x12, size(x12), MPI_DOUBLE_COMPLEX, 0, tag1, &
-	    MPI_COMM_WORLD, ierr)
-       if (rank.ne.0) call mpi_send(x34, size(x34), MPI_DOUBLE_COMPLEX, 0, tag2, &
-	    MPI_COMM_WORLD, ierr)
-       if (rank.eq.0) then
-	  do iproc=0, lastproc(ik, nkpt)
-	     ikr=firstofset(iproc, nkpt)-1+ik
-	     if (iproc.ne.0) then
+            tag1 = 77
+            tag2 = 78
+            If (rank .Ne. 0) Call mpi_send (x12, size(x12), &
+           & MPI_DOUBLE_COMPLEX, 0, tag1, MPI_COMM_WORLD, ierr)
+            If (rank .Ne. 0) Call mpi_send (x34, size(x34), &
+           & MPI_DOUBLE_COMPLEX, 0, tag2, MPI_COMM_WORLD, ierr)
+            If (rank .Eq. 0) Then
+               Do iproc = 0, lastproc (ik, nkpt)
+                  ikr = firstofset (iproc, nkpt) - 1 + ik
+                  If (iproc .Ne. 0) Then
                 ! receive data from slaves
-		call mpi_recv(x12, size(x12), MPI_DOUBLE_COMPLEX, iproc, tag1, &
-		     MPI_COMM_WORLD, status, ierr)
-		call mpi_recv(x34, size(x34), MPI_DOUBLE_COMPLEX, iproc, tag2, &
-		     MPI_COMM_WORLD, status, ierr)
-	     end if
+                     Call mpi_recv (x12, size(x12), MPI_DOUBLE_COMPLEX, &
+                    & iproc, tag1, MPI_COMM_WORLD, status, ierr)
+                     Call mpi_recv (x34, size(x34), MPI_DOUBLE_COMPLEX, &
+                    & iproc, tag2, MPI_COMM_WORLD, status, ierr)
+                  End If
 #endif
              ! I/O record length
-	     inquire(iolength = recl) vql(:, iq), vkl(:, ikr), nstsv, ngq(iq), &
-		  l1, h1, l2, h2, l3, h3, l4, h4, x12, x34
-	     open(unit = un, file = trim(filnam), form = 'unformatted', &
-		  action = 'write', access = 'direct', recl = recl)
-	     write(un, rec = ikr) vql(:, iq), vkl(:, ikr), nstsv, ngq(iq), &
-		  l1, h1, l2, h2, l3, h3, l4, h4, x12, x34
+                  Inquire (IoLength=Recl) vql (:, iq), vkl (:, ikr), &
+                 & nstsv, ngq (iq), l1, h1, l2, h2, l3, h3, l4, h4, &
+                 & x12, x34
+                  Open (Unit=un, File=trim(filnam), Form='unformatted', &
+                 & Action='write', Access='direct', Recl=Recl)
+                  Write (un, Rec=ikr) vql (:, iq), vkl (:, ikr), nstsv, &
+                 & ngq (iq), l1, h1, l2, h2, l3, h3, l4, h4, x12, x34
 #ifdef MPI
-	  end do
-       end if
+               End Do
+            End If
 #endif
-    else
+         Else
 #ifdef MPI
-       tag1=77
-       if (rank.ne.0) call mpi_send(x12, size(x12), MPI_DOUBLE_COMPLEX, 0, tag1, &
-	    MPI_COMM_WORLD, ierr)
-       if (rank.eq.0) then
-	  do iproc=0, lastproc(ik, nkpt)
-	     ikr=firstofset(iproc, nkpt)-1+ik
-	     if (iproc.ne.0) then
+            tag1 = 77
+            If (rank .Ne. 0) Call mpi_send (x12, size(x12), &
+           & MPI_DOUBLE_COMPLEX, 0, tag1, MPI_COMM_WORLD, ierr)
+            If (rank .Eq. 0) Then
+               Do iproc = 0, lastproc (ik, nkpt)
+                  ikr = firstofset (iproc, nkpt) - 1 + ik
+                  If (iproc .Ne. 0) Then
                 ! receive data from slaves
-		call mpi_recv(x12, size(x12), MPI_DOUBLE_COMPLEX, iproc, tag1, &
-		     MPI_COMM_WORLD, status, ierr)
-	     end if
+                     Call mpi_recv (x12, size(x12), MPI_DOUBLE_COMPLEX, &
+                    & iproc, tag1, MPI_COMM_WORLD, status, ierr)
+                  End If
 #endif
              ! I/O record length
-	     inquire(iolength = recl) vql(:, iq), vkl(:, ikr), nstsv, ngq(iq), &
-		  l1, h1, l2, h2, x12
-	     open(unit = un, file = trim(filnam), form = 'unformatted', &
-		  action = 'write', access = 'direct', recl = recl)
-	     write(un, rec = ikr) vql(:, iq), vkl(:, ikr), nstsv, ngq(iq), &
-		  l1, h1, l2, h2, x12
+                  Inquire (IoLength=Recl) vql (:, iq), vkl (:, ikr), &
+                 & nstsv, ngq (iq), l1, h1, l2, h2, x12
+                  Open (Unit=un, File=trim(filnam), Form='unformatted', &
+                 & Action='write', Access='direct', Recl=Recl)
+                  Write (un, Rec=ikr) vql (:, iq), vkl (:, ikr), nstsv, &
+                 & ngq (iq), l1, h1, l2, h2, x12
 #ifdef MPI
-	  end do
-       end if
+               End Do
+            End If
 #endif
-    end if
-    close(un)
-  end subroutine putemat
-
-end module m_putemat
+         End If
+         Close (un)
+      End Subroutine putemat
+!
+End Module m_putemat

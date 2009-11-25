@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: rschrodint
 ! !INTERFACE:
-
-
-subroutine rschrodint(m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
+!
+!
+Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   l   : angular momentum quantum number (in,integer)
@@ -52,83 +52,88 @@ subroutine rschrodint(m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
 !   Created October 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: m
-integer, intent(in) :: l
-real(8), intent(in) :: e
-integer, intent(in) :: np
-integer, intent(in) :: nr
-real(8), intent(in) :: r(nr)
-real(8), intent(in) :: vr(nr)
-integer, intent(out) :: nn
-real(8), intent(in) :: p0p(nr)
-real(8), intent(out) :: p0(nr)
-real(8), intent(out) :: p1(nr)
-real(8), intent(out) :: q0(nr)
-real(8), intent(out) :: q1(nr)
+      Integer, Intent (In) :: m
+      Integer, Intent (In) :: l
+      Real (8), Intent (In) :: e
+      Integer, Intent (In) :: np
+      Integer, Intent (In) :: nr
+      Real (8), Intent (In) :: r (nr)
+      Real (8), Intent (In) :: vr (nr)
+      Integer, Intent (Out) :: nn
+      Real (8), Intent (In) :: p0p (nr)
+      Real (8), Intent (Out) :: p0 (nr)
+      Real (8), Intent (Out) :: p1 (nr)
+      Real (8), Intent (Out) :: q0 (nr)
+      Real (8), Intent (Out) :: q1 (nr)
 ! local variables
-integer::ir, ir0, npl
+      Integer :: ir, ir0, npl
 ! fine-structure constant
-real(8), parameter :: alpha=1.d0/137.03599911d0
-real(8)::rm, ri, t1, t2
+      Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
+      Real (8) :: rm, ri, t1, t2
 ! automatic arrays
-real(8)::c(np)
+      Real (8) :: c (np)
 ! external functions
-real(8)::polynom
-external polynom
+      Real (8) :: polynom
+      External polynom
 ! estimate r -> 0 boundary values
-q0(1)=0.d0
-p1(1)=1.d0
-q1(1)=0.d0
-rm=1.d0-0.5d0*(alpha**2)*vr(1)
-t1=dble(l*(l+1))/(2.d0*rm*r(1)**2)
-p0(1)=r(1)*(p1(1)-2.d0*rm*q0(1))
-q0(1)=r(1)*((t1+vr(1)-e)*p0(1)-q1(1))
-if (m.ne.0) then
-  q1(1)=q1(1)-dble(m)*p0p(1)
-end if
-nn=0
-do ir=2, nr
-  rm=1.d0-0.5d0*(alpha**2)*vr(ir)
-  ri=1.d0/r(ir)
-  t1=dble(l*(l+1))/(2.d0*rm*r(ir)**2)
-  t2=t1+vr(ir)-e
+      q0 (1) = 0.d0
+      p1 (1) = 1.d0
+      q1 (1) = 0.d0
+      rm = 1.d0 - 0.5d0 * (alpha**2) * vr (1)
+      t1 = dble (l*(l+1)) / (2.d0*rm*r(1)**2)
+      p0 (1) = r (1) * (p1(1)-2.d0*rm*q0(1))
+      q0 (1) = r (1) * ((t1+vr(1)-e)*p0(1)-q1(1))
+      If (m .Ne. 0) Then
+         q1 (1) = q1 (1) - dble (m) * p0p (1)
+      End If
+      nn = 0
+      Do ir = 2, nr
+         rm = 1.d0 - 0.5d0 * (alpha**2) * vr (ir)
+         ri = 1.d0 / r (ir)
+         t1 = dble (l*(l+1)) / (2.d0*rm*r(ir)**2)
+         t2 = t1 + vr (ir) - e
 ! predictor-corrector order
-  npl=min(ir, np)
-  ir0=ir-npl+1
-  p1(ir)=polynom(0, npl-1, r(ir0), p1(ir0), c, r(ir))
-  q1(ir)=polynom(0, npl-1, r(ir0), q1(ir0), c, r(ir))
+         npl = Min (ir, np)
+         ir0 = ir - npl + 1
+         p1 (ir) = polynom (0, npl-1, r(ir0), p1(ir0), c, r(ir))
+         q1 (ir) = polynom (0, npl-1, r(ir0), q1(ir0), c, r(ir))
 ! integrate to find wavefunction
-  p0(ir)=polynom(-1, npl, r(ir0), p1(ir0), c, r(ir))+p0(ir0)
-  q0(ir)=polynom(-1, npl, r(ir0), q1(ir0), c, r(ir))+q0(ir0)
+         p0 (ir) = polynom (-1, npl, r(ir0), p1(ir0), c, r(ir)) + p0 &
+        & (ir0)
+         q0 (ir) = polynom (-1, npl, r(ir0), q1(ir0), c, r(ir)) + q0 &
+        & (ir0)
 ! compute the derivatives
-  p1(ir)=2.d0*rm*q0(ir)+p0(ir)*ri
-  q1(ir)=t2*p0(ir)-q0(ir)*ri
-  if (m.ne.0) then
-    q1(ir)=q1(ir)-dble(m)*p0p(ir)
-  end if
+         p1 (ir) = 2.d0 * rm * q0 (ir) + p0 (ir) * ri
+         q1 (ir) = t2 * p0 (ir) - q0 (ir) * ri
+         If (m .Ne. 0) Then
+            q1 (ir) = q1 (ir) - dble (m) * p0p (ir)
+         End If
 ! integrate for correction
-  p0(ir)=polynom(-1, npl, r(ir0), p1(ir0), c, r(ir))+p0(ir0)
-  q0(ir)=polynom(-1, npl, r(ir0), q1(ir0), c, r(ir))+q0(ir0)
+         p0 (ir) = polynom (-1, npl, r(ir0), p1(ir0), c, r(ir)) + p0 &
+        & (ir0)
+         q0 (ir) = polynom (-1, npl, r(ir0), q1(ir0), c, r(ir)) + q0 &
+        & (ir0)
 ! compute the derivatives again
-  p1(ir)=2.d0*rm*q0(ir)+p0(ir)*ri
-  q1(ir)=t2*p0(ir)-q0(ir)*ri
-  if (m.ne.0) then
-    q1(ir)=q1(ir)-dble(m)*p0p(ir)
-  end if
+         p1 (ir) = 2.d0 * rm * q0 (ir) + p0 (ir) * ri
+         q1 (ir) = t2 * p0 (ir) - q0 (ir) * ri
+         If (m .Ne. 0) Then
+            q1 (ir) = q1 (ir) - dble (m) * p0p (ir)
+         End If
 ! check for overflow
-  if ((abs(p0(ir)).gt.1.d100).or.(abs(p1(ir)).gt.1.d100).or. &
-      (abs(q0(ir)).gt.1.d100).or.(abs(q1(ir)).gt.1.d100)) then
-    p0(ir:nr)=p0(ir)
-    p1(ir:nr)=p1(ir)
-    q0(ir:nr)=q0(ir)
-    q1(ir:nr)=q1(ir)
-    return
-  end if
+         If ((Abs(p0(ir)) .Gt. 1.d100) .Or. (Abs(p1(ir)) .Gt. 1.d100) &
+        & .Or. (Abs(q0(ir)) .Gt. 1.d100) .Or. (Abs(q1(ir)) .Gt. &
+        & 1.d100)) Then
+            p0 (ir:nr) = p0 (ir)
+            p1 (ir:nr) = p1 (ir)
+            q0 (ir:nr) = q0 (ir)
+            q1 (ir:nr) = q1 (ir)
+            Return
+         End If
 ! check for node
-  if (p0(ir-1)*p0(ir).lt.0.d0) nn=nn+1
-end do
-return
-end subroutine
+         If (p0(ir-1)*p0(ir) .Lt. 0.d0) nn = nn + 1
+      End Do
+      Return
+End Subroutine
 !EOC

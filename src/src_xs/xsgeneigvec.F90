@@ -1,91 +1,94 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine xsgeneigvec
-  use modmain
-use modinput
-  use modmpi
-  use modxs
-  use m_writegqpts
-  use m_filedel
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine xsgeneigvec
+      Use modmain
+      Use modinput
+      Use modmpi
+      Use modxs
+      Use m_writegqpts
+      Use m_filedel
+      Use m_genfilname
+      Implicit None
   ! local variables
-  character(*), parameter :: thisnam='xsgeneigvec'
-  logical, parameter :: tq0ev=.true.
-  real(8) :: vqlt(3)
-  integer :: iq, qi, qf
-  logical, external :: tqgamma
+      Character (*), Parameter :: thisnam = 'xsgeneigvec'
+      Logical, Parameter :: tq0ev = .True.
+      Real (8) :: vqlt (3)
+      Integer :: iq, qi, qf
+      Logical, External :: tqgamma
   ! initialize universal variables
-  call init0
-  call init1
-  call init2
+      Call init0
+      Call init1
+      Call init2
   ! SCF allready parallelized for k-point set
-  qi=1
-  qf=nqpt
+      qi = 1
+      qf = nqpt
   ! add extra q-point for if files for q=0 are to be calculated
-  if (tq0ev) qi=0
+      If (tq0ev) qi = 0
   ! if first Q-point is Gamma-point we copy files
-  if (tqgamma(1)) qi=1
-  if (tscreen) then
-     qi=0
-     qf=0
-  end if
+      If (tqgamma(1)) qi = 1
+      If (tscreen) Then
+         qi = 0
+         qf = 0
+      End If
   ! write q-points
-  if (rank.eq.0) call writeqpts
+      If (rank .Eq. 0) Call writeqpts
   ! calculate eigenvectors for each q-point (k+q point set)
-  do iq=qi, qf
-     if (.not.tscreen) &
-	  call genfilname(iqmt=max(0, iq), setfilext=.true.)
-     vqlt(:)=0.d0
-     if ((iq.ne.0).and.(rank.eq.0)) then
-	vqlt(:)=vql(:, iq)
-	call writegqpts(iq, filext)
-     end if
+      Do iq = qi, qf
+         If ( .Not. tscreen) Call genfilname (iqmt=Max(0, iq), &
+        & setfilext=.True.)
+         vqlt (:) = 0.d0
+         If ((iq .Ne. 0) .And. (rank .Eq. 0)) Then
+            vqlt (:) = vql (:, iq)
+            Call writegqpts (iq, filext)
+         End If
      ! write eigenvectors, -values, occupancies and contracted MT coefficients
-     call writeevec(vqlt, qvkloff(1, iq), filext)
-     if (.not.tscreen) then
-	write(unitout, '("Info(", a, "): eigenvectors generated for Q-point (iq, vql below)")') thisnam
-	write(unitout, '(i6, 3g18.10)') iq, vqlt(:)
-     else
-	write(unitout, '(a)') 'Info('//thisnam//'): eigenvectors &
-	     &generated for associated(input%xs%screening)/screened interaction:'
-     end if
-     if (rank.eq.0) then
+         Call writeevec (vqlt, qvkloff(1, iq), filext)
+         If ( .Not. tscreen) Then
+            Write (unitout, '("Info(", a, "): eigenvectors generated fo&
+           &r Q-point (iq, vql below)")') thisnam
+            Write (unitout, '(i6, 3g18.10)') iq, vqlt (:)
+         Else
+            Write (unitout, '(a)') 'Info(' // thisnam // '): eigenvecto&
+           &rs generated for associated(input%xs%screening)/screened in&
+           &teraction:'
+         End If
+         If (rank .Eq. 0) Then
         ! safely remove unnecessary files
-	call filedel('EQATOMS'//trim(filext))
-	call filedel('EVALCORE'//trim(filext))
-	call filedel('FERMIDOS'//trim(filext))
-	call filedel('GEOMETRY'//trim(filext))
-	call filedel('LATTICE'//trim(filext))
-	call filedel('IADIST'//trim(filext))
-	call filedel('LINENGY'//trim(filext))
-	call filedel('SYMCRYS'//trim(filext))
-	call filedel('SYMLAT'//trim(filext))
-	call filedel('SYMSITE'//trim(filext))
-	call filedel('TOTENERGY'//trim(filext))
-	call filedel('EVALFV'//trim(filext))
-	call filedel('RMSDVEFF'//trim(filext))
-	call filedel('SYMGENR'//trim(filext))
-	call filedel('SYMINV'//trim(filext))
-	call filedel('SYMMULT'//trim(filext))
-	call filedel('SYMMULT_TABLE'//trim(filext))
-	call filedel('SYMT2'//trim(filext))
-     end if
+            Call filedel ('EQATOMS'//trim(filext))
+            Call filedel ('EVALCORE'//trim(filext))
+            Call filedel ('FERMIDOS'//trim(filext))
+            Call filedel ('GEOMETRY'//trim(filext))
+            Call filedel ('LATTICE'//trim(filext))
+            Call filedel ('IADIST'//trim(filext))
+            Call filedel ('LINENGY'//trim(filext))
+            Call filedel ('SYMCRYS'//trim(filext))
+            Call filedel ('SYMLAT'//trim(filext))
+            Call filedel ('SYMSITE'//trim(filext))
+            Call filedel ('TOTENERGY'//trim(filext))
+            Call filedel ('EVALFV'//trim(filext))
+            Call filedel ('RMSDVEFF'//trim(filext))
+            Call filedel ('SYMGENR'//trim(filext))
+            Call filedel ('SYMINV'//trim(filext))
+            Call filedel ('SYMMULT'//trim(filext))
+            Call filedel ('SYMMULT_TABLE'//trim(filext))
+            Call filedel ('SYMT2'//trim(filext))
+         End If
      ! end loop over q-points
-  end do
-  if ((rank.eq.0).and.tqgamma(1).and.(.not.tscreen)) then
-     write(unitout, '("Info(", a, "): first Q-point is Gamma-point - copying &
-       &relevant files")') thisnam
+      End Do
+      If ((rank .Eq. 0) .And. tqgamma(1) .And. ( .Not. tscreen)) Then
+         Write (unitout, '("Info(", a, "): first Q-point is Gamma-point&
+        & - copying relevant files")') thisnam
      ! write files again one by one
-     call copyfilesq0
-  end if
-  call barrier
-  write(unitout, '("Info(", a, "): generation of eigenvectors finished")') thisnam
-  call genfilname(setfilext=.true.)
-end subroutine xsgeneigvec
+         Call copyfilesq0
+      End If
+      Call barrier
+      Write (unitout, '("Info(", a, "): generation of eigenvectors fini&
+     &shed")') thisnam
+      Call genfilname (setfilext=.True.)
+End Subroutine xsgeneigvec

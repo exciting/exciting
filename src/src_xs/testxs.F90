@@ -1,45 +1,46 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine testxs
-  implicit none
-  call test_invert
-end subroutine testxs
-
-
-subroutine test_genscclieff
-  use modmain
-  implicit none
-  call init0
-  call init1
-  call genscclieff
-end subroutine test_genscclieff
-
-
-subroutine test_invert
-  use invert
-  implicit none
-  integer :: siz
-  real(8) :: ts0, ts1
-  real(8), allocatable :: r(:, :)
-  complex(8), allocatable :: a(:, :), b(:, :)
-  write(*, *) 'give matrix size:'
-  read(*, *) siz
-  allocate(r(siz, siz), a(siz, siz), b(siz, siz))
-  a=0.d0
-  b=0.d0
-  call random_number(r)
-  a=a+r
-  call random_number(r)
-  a=a+(0.d0, 1.d0)*r
-  call timesec(ts0)
-  call zinvert_lapack(a, b)
-  call timesec(ts1)
-  write(*, *) 'time for inversion of complex matrix using zgetrf/zgetri:', ts1-ts0
-  deallocate(r, a, b)
-end subroutine test_invert
+!
+!
+Subroutine testxs
+      Implicit None
+      Call test_invert
+End Subroutine testxs
+!
+!
+Subroutine test_genscclieff
+      Use modmain
+      Implicit None
+      Call init0
+      Call init1
+      Call genscclieff
+End Subroutine test_genscclieff
+!
+!
+Subroutine test_invert
+      Use invert
+      Implicit None
+      Integer :: siz
+      Real (8) :: ts0, ts1
+      Real (8), Allocatable :: r (:, :)
+      Complex (8), Allocatable :: a (:, :), b (:, :)
+      Write (*,*) 'give matrix size:'
+      Read (*,*) siz
+      Allocate (r(siz, siz), a(siz, siz), b(siz, siz))
+      a = 0.d0
+      b = 0.d0
+      Call random_number (r)
+      a = a + r
+      Call random_number (r)
+      a = a + (0.d0, 1.d0) * r
+      Call timesec (ts0)
+      Call zinvert_lapack (a, b)
+      Call timesec (ts1)
+      Write (*,*) 'time for inversion of complex matrix using zgetrf/zg&
+     &etri:', ts1 - ts0
+      Deallocate (r, a, b)
+End Subroutine test_invert

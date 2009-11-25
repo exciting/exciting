@@ -1,18 +1,18 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: hmlistl
 ! !INTERFACE:
-
-
-subroutine hmlistl(tapp, ngp, igpig, vgpc, v, h)
+!
+!
+Subroutine hmlistl (tapp, ngp, igpig, vgpc, v, h)
 ! !USES:
-use modmain
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   tapp  : .true. if the Hamiltonian is to be applied to the input vector,
 !           .false. if the full matrix is to be calculated (in,logical)
@@ -36,43 +36,43 @@ use modmain
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: tapp
-integer, intent(in) :: ngp
-integer, intent(in) :: igpig(ngkmax)
-real(8), intent(in) :: vgpc(3, ngkmax)
-complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: h(*)
+      Logical, Intent (In) :: tapp
+      Integer, Intent (In) :: ngp
+      Integer, Intent (In) :: igpig (ngkmax)
+      Real (8), Intent (In) :: vgpc (3, ngkmax)
+      Complex (8), Intent (In) :: v (nmatmax)
+      Complex (8), Intent (Inout) :: h (*)
 ! local variables
-integer::i, j, k, ig, iv(3)
-real(8)::t1
-complex(8) zt1
-if (tapp) then
+      Integer :: i, j, k, ig, iv (3)
+      Real (8) :: t1
+      Complex (8) zt1
+      If (tapp) Then
 ! apply the Hamiltonian operator to v
-  do i=1, ngp
-    do j=i, ngp
-      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
-      ig=ivgig(iv(1), iv(2), iv(3))
-      t1=0.5d0*dot_product(vgpc(:, i), vgpc(:, j))
-      zt1=veffig(ig)+t1*cfunig(ig)
-      h(i)=h(i)+zt1*v(j)
-      if (i.ne.j) h(j)=h(j)+conjg(zt1)*v(i)
-    end do
-  end do
-else
+         Do i = 1, ngp
+            Do j = i, ngp
+               iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
+               ig = ivgig (iv(1), iv(2), iv(3))
+               t1 = 0.5d0 * dot_product (vgpc(:, i), vgpc(:, j))
+               zt1 = veffig (ig) + t1 * cfunig (ig)
+               h (i) = h (i) + zt1 * v (j)
+               If (i .Ne. j) h (j) = h (j) + conjg (zt1) * v (i)
+            End Do
+         End Do
+      Else
 ! calculate the matrix elements
-  k=0
-  do j=1, ngp
-    do i=1, j
-      k=k+1
-      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
-      ig=ivgig(iv(1), iv(2), iv(3))
-      t1=0.5d0*dot_product(vgpc(:, i), vgpc(:, j))
-      h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
-    end do
-  end do
-end if
-return
-end subroutine
+         k = 0
+         Do j = 1, ngp
+            Do i = 1, j
+               k = k + 1
+               iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
+               ig = ivgig (iv(1), iv(2), iv(3))
+               t1 = 0.5d0 * dot_product (vgpc(:, i), vgpc(:, j))
+               h (k) = h (k) + veffig (ig) + t1 * cfunig (ig)
+            End Do
+         End Do
+      End If
+      Return
+End Subroutine
 !EOC

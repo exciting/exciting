@@ -1,18 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: atom
 ! !INTERFACE:
-
-
-subroutine atom(ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, r, eval, rho, vr, rwf)
+!
+!
+Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
+& r, eval, rho, vr, rwf)
 ! !USES:
-use modxcifc
+      Use modxcifc
 ! !INPUT/OUTPUT PARAMETERS:
 !   ptnucl : .true. if the nucleus is a point particle (in,logical)
 !   zn     : nuclear charge (in,real)
@@ -46,168 +47,173 @@ use modxcifc
 !
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: ptnucl
-real(8), intent(in) :: zn
-integer, intent(in) :: nst
-integer, intent(in) :: n(nst)
-integer, intent(in) :: l(nst)
-integer, intent(in) :: k(nst)
-real(8), intent(inout) :: occ(nst)
-integer, intent(in) :: xctype
-integer, intent(in) :: xcgrad
-integer, intent(in) :: np
-integer, intent(in) :: nr
-real(8), intent(in) :: r(nr)
-real(8), intent(out) :: eval(nst)
-real(8), intent(out) :: rho(nr)
-real(8), intent(out) :: vr(nr)
-real(8), intent(out) :: rwf(nr, 2, nst)
-integer, parameter :: maxscl=200
-integer::ir, ist, iscl
-real(8), parameter :: fourpi=12.566370614359172954d0
+      Logical, Intent (In) :: ptnucl
+      Real (8), Intent (In) :: zn
+      Integer, Intent (In) :: nst
+      Integer, Intent (In) :: n (nst)
+      Integer, Intent (In) :: l (nst)
+      Integer, Intent (In) :: k (nst)
+      Real (8), Intent (Inout) :: occ (nst)
+      Integer, Intent (In) :: xctype
+      Integer, Intent (In) :: xcgrad
+      Integer, Intent (In) :: np
+      Integer, Intent (In) :: nr
+      Real (8), Intent (In) :: r (nr)
+      Real (8), Intent (Out) :: eval (nst)
+      Real (8), Intent (Out) :: rho (nr)
+      Real (8), Intent (Out) :: vr (nr)
+      Real (8), Intent (Out) :: rwf (nr, 2, nst)
+      Integer, Parameter :: maxscl = 200
+      Integer :: ir, ist, iscl
+      Real (8), Parameter :: fourpi = 12.566370614359172954d0
 ! fine-structure constant
-real(8), parameter :: alpha=1.d0/137.03599911d0
+      Real (8), Parameter :: alpha = 1.d0 / 137.03599911d0
 ! potential convergence tolerance
-real(8), parameter :: eps=1.d-6
-real(8)::sum, dv, dvp, ze, beta, t1
+      Real (8), Parameter :: eps = 1.d-6
+      Real (8) :: sum, dv, dvp, ze, beta, t1
 ! allocatable arrays
-real(8), allocatable :: vn(:), vh(:), ex(:), ec(:), vx(:), vc(:), vrp(:)
-real(8), allocatable :: ri(:), fr1(:), fr2(:), gr1(:), gr2(:), cf(:, :)
-real(8), allocatable :: grho(:), g2rho(:), g3rho(:)
-if (nst.le.0) then
-  write(*, *)
-  write(*, '("Error(atom): invalid nst : ", I8)') nst
-  write(*, *)
-  stop
-end if
-if (np.lt.2) then
-  write(*, *)
-  write(*, '("Error(atom): np < 2 : ", I8)') np
-  write(*, *)
-  stop
-end if
-if (nr.lt.np) then
-  write(*, *)
-  write(*, '("Error(atom): nr < np : ", 2I8)') nr, np
-  write(*, *)
-  stop
-end if
+      Real (8), Allocatable :: vn (:), vh (:), ex (:), ec (:), vx (:), &
+     & vc (:), vrp (:)
+      Real (8), Allocatable :: ri (:), fr1 (:), fr2 (:), gr1 (:), gr2 &
+     & (:), cf (:, :)
+      Real (8), Allocatable :: grho (:), g2rho (:), g3rho (:)
+      If (nst .Le. 0) Then
+         Write (*,*)
+         Write (*, '("Error(atom): invalid nst : ", I8)') nst
+         Write (*,*)
+         Stop
+      End If
+      If (np .Lt. 2) Then
+         Write (*,*)
+         Write (*, '("Error(atom): np < 2 : ", I8)') np
+         Write (*,*)
+         Stop
+      End If
+      If (nr .Lt. np) Then
+         Write (*,*)
+         Write (*, '("Error(atom): nr < np : ", 2I8)') nr, np
+         Write (*,*)
+         Stop
+      End If
 ! allocate local arrays
-allocate(vn(nr), vh(nr), ex(nr), ec(nr), vx(nr), vc(nr), vrp(nr))
-allocate(ri(nr), fr1(nr), fr2(nr), gr1(nr), gr2(nr), cf(3, nr))
-if (xcgrad.eq.1) then
-  allocate(grho(nr), g2rho(nr), g3rho(nr))
-end if
+      Allocate (vn(nr), vh(nr), ex(nr), ec(nr), vx(nr), vc(nr), &
+     & vrp(nr))
+      Allocate (ri(nr), fr1(nr), fr2(nr), gr1(nr), gr2(nr), cf(3, nr))
+      If (xcgrad .Eq. 1) Then
+         Allocate (grho(nr), g2rho(nr), g3rho(nr))
+      End If
 ! find total electronic charge
-ze=0.d0
-do ist=1, nst
-  ze=ze+occ(ist)
-end do
+      ze = 0.d0
+      Do ist = 1, nst
+         ze = ze + occ (ist)
+      End Do
 ! set up nuclear potential
-call potnucl(ptnucl, nr, r, zn, vn)
-do ir=1, nr
-  ri(ir)=1.d0/r(ir)
+      Call potnucl (ptnucl, nr, r, zn, vn)
+      Do ir = 1, nr
+         ri (ir) = 1.d0 / r (ir)
 ! initialise the effective potential to the nuclear potential
-  vr(ir)=vn(ir)
-end do
-dvp=0.d0
-vrp(:)=0.d0
+         vr (ir) = vn (ir)
+      End Do
+      dvp = 0.d0
+      vrp (:) = 0.d0
 ! initialise mixing parameter
-beta=0.5d0
+      beta = 0.5d0
 ! initialise eigenvalues to relativistic values (minus the rest mass energy)
-do ist=1, nst
-  t1=sqrt(dble(k(ist)**2)-(zn*alpha)**2)
-  t1=(dble(n(ist)-abs(k(ist)))+t1)**2
-  t1=1.d0+((zn*alpha)**2)/t1
-  eval(ist)=(1.d0/alpha**2)/sqrt(t1)-1.d0/alpha**2
-end do
+      Do ist = 1, nst
+         t1 = Sqrt (dble(k(ist)**2)-(zn*alpha)**2)
+         t1 = (dble(n(ist)-Abs(k(ist)))+t1) ** 2
+         t1 = 1.d0 + ((zn*alpha)**2) / t1
+         eval (ist) = (1.d0/alpha**2) / Sqrt (t1) - 1.d0 / alpha ** 2
+      End Do
 ! start of self-consistent loop
-do iscl=1, maxscl
+      Do iscl = 1, maxscl
 ! solve the Dirac equation for each state
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
-  do ist=1, nst
-    call rdirac(n(ist), l(ist), k(ist), np, nr, r, vr, eval(ist), rwf(:, 1, ist), &
-     rwf(:, 2, ist))
-  end do
+         Do ist = 1, nst
+            Call rdirac (n(ist), l(ist), k(ist), np, nr, r, vr, &
+           & eval(ist), rwf(:, 1, ist), rwf(:, 2, ist))
+         End Do
 !$OMP END DO
 !$OMP END PARALLEL
 ! compute the charge density
-  do ir=1, nr
-    sum=0.d0
-    do ist=1, nst
-      sum=sum+occ(ist)*(rwf(ir, 1, ist)**2+rwf(ir, 2, ist)**2)
-    end do
-    fr1(ir)=sum
-    fr2(ir)=sum*ri(ir)
-    rho(ir)=(1.d0/fourpi)*sum*ri(ir)**2
-  end do
-  call fderiv(-1, nr, r, fr1, gr1, cf)
-  call fderiv(-1, nr, r, fr2, gr2, cf)
+         Do ir = 1, nr
+            sum = 0.d0
+            Do ist = 1, nst
+               sum = sum + occ (ist) * (rwf(ir, 1, ist)**2+rwf(ir, 2, &
+              & ist)**2)
+            End Do
+            fr1 (ir) = sum
+            fr2 (ir) = sum * ri (ir)
+            rho (ir) = (1.d0/fourpi) * sum * ri (ir) ** 2
+         End Do
+         Call fderiv (-1, nr, r, fr1, gr1, cf)
+         Call fderiv (-1, nr, r, fr2, gr2, cf)
 ! find the Hartree potential
-  t1=gr2(nr)
-  do ir=1, nr
-    vh(ir)=gr1(ir)*ri(ir)+t1-gr2(ir)
-  end do
+         t1 = gr2 (nr)
+         Do ir = 1, nr
+            vh (ir) = gr1 (ir) * ri (ir) + t1 - gr2 (ir)
+         End Do
 ! normalise charge density and potential
-  t1=ze/gr1(nr)
-  rho(:)=t1*rho(:)
-  vh(:)=t1*vh(:)
+         t1 = ze / gr1 (nr)
+         rho (:) = t1 * rho (:)
+         vh (:) = t1 * vh (:)
 ! compute the exchange-correlation energy and potential
-  if (xcgrad.eq.1) then
+         If (xcgrad .Eq. 1) Then
 ! GGA functional
 ! |grad rho|
-    call fderiv(1, nr, r, rho, grho, cf)
+            Call fderiv (1, nr, r, rho, grho, cf)
 ! grad^2 rho
-    call fderiv(2, nr, r, rho, g2rho, cf)
-    do ir=1, nr
-      g2rho(ir)=g2rho(ir)+2.d0*ri(ir)*grho(ir)
-    end do
+            Call fderiv (2, nr, r, rho, g2rho, cf)
+            Do ir = 1, nr
+               g2rho (ir) = g2rho (ir) + 2.d0 * ri (ir) * grho (ir)
+            End Do
 ! approximate (grad rho).(grad |grad rho|)
-    do ir=1, nr
-      g3rho(ir)=grho(ir)*g2rho(ir)
-    end do
-    call xcifc(xctype, n = nr, rho = rho, grho = grho, g2rho = g2rho, g3rho = g3rho, ex = ex, &
-     ec = ec, vx = vx, vc = vc)
-  else
+            Do ir = 1, nr
+               g3rho (ir) = grho (ir) * g2rho (ir)
+            End Do
+            Call xcifc (xctype, n=nr, rho=rho, grho=grho, g2rho=g2rho, &
+           & g3rho=g3rho, ex=ex, ec=ec, vx=vx, vc=vc)
+         Else
 ! LDA functional
-    call xcifc(xctype, n=nr, rho=rho, ex=ex, ec=ec, vx=vx, vc=vc)
-  end if
+            Call xcifc (xctype, n=nr, rho=rho, ex=ex, ec=ec, vx=vx, &
+           & vc=vc)
+         End If
 ! self-consistent potential
-  vr(:)=vh(:)+vx(:)+vc(:)
+         vr (:) = vh (:) + vx (:) + vc (:)
 ! determine change in potential
-  sum=0.d0
-  do ir=1, nr
-    sum=sum+(vr(ir)-vrp(ir))**2
-  end do
-  dv=sqrt(sum)/dble(nr)
-  if (iscl.gt.2) then
+         sum = 0.d0
+         Do ir = 1, nr
+            sum = sum + (vr(ir)-vrp(ir)) ** 2
+         End Do
+         dv = Sqrt (sum) / dble (nr)
+         If (iscl .Gt. 2) Then
 ! reduce beta if change in potential is diverging
-    if (dv.gt.dvp) beta=beta*0.8d0
-    beta=max(beta, 0.01d0)
-  end if
-  dvp=dv
-  do ir=1, nr
+            If (dv .Gt. dvp) beta = beta * 0.8d0
+            beta = Max (beta, 0.01d0)
+         End If
+         dvp = dv
+         Do ir = 1, nr
 ! mix old and new potentials
-    vr(ir)=(1.d0-beta)*vrp(ir)+beta*vr(ir)
-    vrp(ir)=vr(ir)
+            vr (ir) = (1.d0-beta) * vrp (ir) + beta * vr (ir)
+            vrp (ir) = vr (ir)
 ! add nuclear potential
-    vr(ir)=vr(ir)+vn(ir)
-  end do
+            vr (ir) = vr (ir) + vn (ir)
+         End Do
 ! check for convergence
-  if ((iscl.gt.2).and.(dv.lt.eps)) goto 10
+         If ((iscl .Gt. 2) .And. (dv .Lt. eps)) Go To 10
 ! end self-consistent loop
-end do
-write(*, *)
-write(*, '("Warning(atom): maximum iterations exceeded")')
-10 continue
-deallocate(vn, vh, ex, ec, vx, vc, vrp)
-deallocate(ri, fr1, fr2, gr1, gr2, cf)
-if (xcgrad.eq.1) then
-  deallocate(grho, g2rho, g3rho)
-end if
-return
-end subroutine
+      End Do
+      Write (*,*)
+      Write (*, '("Warning(atom): maximum iterations exceeded")')
+10    Continue
+      Deallocate (vn, vh, ex, ec, vx, vc, vrp)
+      Deallocate (ri, fr1, fr2, gr1, gr2, cf)
+      If (xcgrad .Eq. 1) Then
+         Deallocate (grho, g2rho, g3rho)
+      End If
+      Return
+End Subroutine
 !EOC

@@ -1,265 +1,277 @@
-
-
+!
+!
 ! Module for setting up the eigensystem
 ! it is designed in a way that all other subroutines
 ! dealing with setting up and solving the system can acsess the
 ! data transparently allowing to choose from different datatypes
 ! more easily
-module modfvsystem
-  implicit none
-
-  type HermiteanMatrix
-
-     integer:: rank
-     logical:: packed, ludecomposed
-     integer, pointer::ipiv(:)
-     complex(8), pointer:: za(:, :), zap(:)
-  end type HermiteanMatrix
-
-  type evsystem
-     type (HermiteanMatrix) ::hamilton, overlap
-  end type evsystem
-
-contains
-
-
-subroutine newmatrix(self, packed, rank)
-    type (HermiteanMatrix), intent(inout)::self
-    logical, intent(in)::packed
-    integer, intent(in)::rank
-    self%rank=rank
-    self%packed=packed
-    self%ludecomposed=.false.
-    if(packed.eqv..true.) then
-       allocate(self%zap(rank*(rank+1)/2))
-       self%zap=0.0
-    else
-       allocate(self%za(rank, rank))
-       self%za=0.0
-    endif
-  end subroutine newmatrix
-
-
-subroutine deletematrix(self)
-    type (HermiteanMatrix), intent(inout)::self
-    if(self%packed.eqv..true.) then
-       deallocate(self%zap)
-    else
-       deallocate(self%za)
-    endif
-    if(self%ludecomposed) deallocate(self%ipiv)
-  end subroutine deletematrix
-
-
-subroutine newsystem(self, packed, rank)
-    type (evsystem), intent(out)::self
-    logical, intent(in)::packed
-    integer, intent(in)::rank
-    call newmatrix(self%hamilton, packed, rank)
-    call newmatrix(self%overlap, packed, rank)
-  end subroutine newsystem
-
-
-subroutine deleteystem(self)
-    type(evsystem), intent(inout)::self
-    call deletematrix(self%hamilton)
-    call deletematrix(self%overlap)
-  end subroutine deleteystem
-
-
-subroutine Hermiteanmatrix_rank2update(self, n, alpha, x, y)
-    type (HermiteanMatrix), intent(inout)::self
-    integer, intent(in)::n
-    complex(8), intent(in)::alpha, x(:), y(:)
-
-    if(self%packed) then
-       call ZHPR2 ( 'U', n, alpha, x, 1, y, 1, self%zap )
-    else
-       call ZHER2 ( 'U', n, alpha, x, 1, y, 1, self%za, self%rank)
-    endif
-  end subroutine Hermiteanmatrix_rank2update
-
-
-subroutine Hermiteanmatrix_indexedupdate(self, i, j, z)
-    type (HermiteanMatrix), intent(inout)::self
-    integer::i, j
-    complex(8)::z
-    integer::ipx
-    if(self%packed.eqv..true.)then
-       ipx=((i-1)*i)/2 + j
-       self%zap(ipx)=self%zap(ipx)+z
-    else
-       if(j.le.i)then
-	  self%za(j, i)=self%za(j, i)+z
-       else
-	  write(*, *)"warning lower part of hamilton updated"
-       endif
-    endif
-    return
-  end subroutine Hermiteanmatrix_indexedupdate
-
-
-subroutine Hermiteanmatrixvector(self, alpha, vin, beta, vout)
-    implicit none
-    type (HermiteanMatrix), intent(inout)::self
-    complex(8), intent(in)::alpha, beta
-    complex(8), intent(inout)::vin(:)
-    complex(8), intent(inout)::vout(:)
-
-    if(self%packed.eqv..true.)then
-       call zhpmv("U", self%rank, alpha, self%zap, vin, 1, beta, vout, 1)
-    else
-       call zhemv("U", self%rank, alpha, self%za, self%rank, vin, 1, beta, vout, 1)
-    endif
-  end subroutine Hermiteanmatrixvector
-
-
-function ispacked(self)
-    logical::ispacked
-    type(HermiteanMatrix)::self
-    ispacked=self%packed
-  end function ispacked
-
-
-function getrank(self)
-    integer:: getrank
-    type(HermiteanMatrix)::self
-    getrank=self%rank
-  end function getrank
-
-
-subroutine HermiteanmatrixLU(self)
-    type(HermiteanMatrix)::self
-    integer::info
-    if(.not.self%ludecomposed) allocate(self%ipiv(self%rank))
-
-    if(.not.self%ludecomposed)then
-       if(.not.ispacked(self))then
-	  call ZGETRF( self%rank, self%rank, self%za, self%rank, self%IPIV, INFO )
-       else
-	  call ZHPTRF('U', self%rank, self%zap, self%IPIV, INFO )
-       endif
-       if (info.ne.0)then
-	  write(*, *)"error in iterativearpacksecequn  HermiteanmatrixLU ", info
-	  stop
-       endif
-       self%ludecomposed=.true.
-    endif
-  end subroutine HermiteanmatrixLU
-
-
-subroutine Hermiteanmatrixlinsolve(self, b)
-    type(HermiteanMatrix)::self
-    complex(8), intent(inout)::b(:)
-    integer::info
-    if(self%ludecomposed) then
-       if(.not.ispacked(self))then
-	  call ZGETRS( 'N', self%rank, 1, self%za, self%rank, self%IPIV, &
-	       b , self%rank, INFO)
-       else
-	  call ZHPTRS( 'U', self%rank, 1, self%zap, self%IPIV, b, self%rank, INFO )
-       endif
-       if (info.ne.0)then
-	  write(*, *)"error in iterativearpacksecequn Hermiteanmatrixlinsolve ", info
-	  stop
-       endif
-    endif
-  end subroutine Hermiteanmatrixlinsolve
-
-
-subroutine HermiteanMatrixAXPY(alpha, x, y)
-    complex(8)::alpha
-    type(HermiteanMatrix)::x, y
-    integer:: mysize
-    if (ispacked(x)) then 
-       mysize=(x%rank*(x%rank+1))/2
-       call zaxpy(mysize, alpha, x%zap, 1, y%zap, 1)
-    else
-       mysize=x%rank*(x%rank)
-       call zaxpy(mysize, alpha, x%za, 1, y%za, 1)
-    endif
-  end subroutine HermiteanMatrixAXPY
-
-
-subroutine HermiteanMatrixcopy(x, y)
-    complex(8)::alpha
-    type(HermiteanMatrix)::x, y
-    integer:: mysize
-    if (ispacked(x)) then 
-       mysize=(x%rank*(x%rank+1))/2
-       call zcopy(mysize, x%zap, 1, y%zap, 1)
-    else
-       mysize=x%rank*(x%rank)
-       call zcopy(mysize, x%za, 1, y%za, 1)
-    endif
-  end subroutine HermiteanMatrixcopy
-
-
-subroutine HermiteanMatrixToFiles(self, prefix)
-    implicit none
-    type(HermiteanMatrix), intent(in)::self
-    character(256), intent(in)::prefix
-    character(256)::filename
-    if(ispacked(self)) then
-       filename=trim(prefix)//".packed.real.OUT"
-       open(888, file=filename)
-       write(888, *)dble(self%zap)
-    else
-       filename=trim(prefix)//".real.OUT"
-       open(888, file=filename)
-       write(888, *)dble(self%za)
-    endif
-    close (888)
-
-    if(ispacked(self)) then
-       filename=trim(prefix)//".packed.imag.OUT"
-       open(888, file=filename)
-       write(888, *)aimag(self%zap)
-    else
-       filename=trim(prefix)//".imag.OUT"
-       open(888, file=filename)
-       write(888, *)aimag(self%za)
-    endif
-    close (888)
-  end subroutine HermiteanMatrixToFiles
-
-
-subroutine HermiteanMatrixTruncate(self, threshold)  
-    implicit none
-    type(HermiteanMatrix), intent(inout)::self
-    real(8), intent(in)::threshold
-    integer ::n, i, j
-    n= self%rank
-    if(ispacked(self)) then 
-       do i=1, n*(n+1)/2
-	  if(abs(dble(self%zap(i))).lt.threshold) self%zap(i) = self%zap(i) - dcmplx(dble(self%zap(i)), 0)
-	  if(abs(aimag(self%zap(i))).lt.threshold) self%zap(i) = self%zap(i) - dcmplx(0, aimag(self%zap(i)))
-       end do
-    else 
-       do j=1, n
-	  do i=1, n
-	     if(abs(dble(self%za(i, j))).lt.threshold) self%za(i, j) = self%za(i, j) - dcmplx(dble(self%za(i, j)), 0)
-	     if(abs(aimag(self%za(i, j))).lt.threshold) self%za(i, j) = self%za(i, j) - dcmplx(0, aimag(self%za(i, j)))
-	  end do
-       end do
-	endif
-  end subroutine  
-
-
-subroutine HermiteanMatrixdiagonal(self, d)
-   implicit none
-   type(HermiteanMatrix), intent(in)::self
-   complex(8), intent(out)::d(self%rank)
- integer::i
-    if(ispacked(self)) then 
-	do i=1, self%rank
-		d(i)=self%zap((i*(i+1))/2)
-	end do
-     else
-	do i=1, self%rank
-		d(i)=self%za(i, i)
-	end do
-     endif
-   end subroutine
-
-end module modfvsystem
+Module modfvsystem
+      Implicit None
+!
+      Type HermiteanMatrix
+!
+         Integer :: rank
+         Logical :: packed, ludecomposed
+         Integer, Pointer :: ipiv (:)
+         Complex (8), Pointer :: za (:, :), zap (:)
+      End Type HermiteanMatrix
+!
+      Type evsystem
+         Type (HermiteanMatrix) :: hamilton, overlap
+      End Type evsystem
+!
+Contains
+!
+!
+      Subroutine newmatrix (self, packed, rank)
+         Type (HermiteanMatrix), Intent (Inout) :: self
+         Logical, Intent (In) :: packed
+         Integer, Intent (In) :: rank
+         self%rank = rank
+         self%packed = packed
+         self%ludecomposed = .False.
+         If (packed .Eqv. .True.) Then
+            Allocate (self%zap(rank*(rank+1)/2))
+            self%zap = 0.0
+         Else
+            Allocate (self%za(rank, rank))
+            self%za = 0.0
+         End If
+      End Subroutine newmatrix
+!
+!
+      Subroutine deletematrix (self)
+         Type (HermiteanMatrix), Intent (Inout) :: self
+         If (self%packed .Eqv. .True.) Then
+            Deallocate (self%zap)
+         Else
+            Deallocate (self%za)
+         End If
+         If (self%ludecomposed) deallocate (self%ipiv)
+      End Subroutine deletematrix
+!
+!
+      Subroutine newsystem (self, packed, rank)
+         Type (evsystem), Intent (Out) :: self
+         Logical, Intent (In) :: packed
+         Integer, Intent (In) :: rank
+         Call newmatrix (self%hamilton, packed, rank)
+         Call newmatrix (self%overlap, packed, rank)
+      End Subroutine newsystem
+!
+!
+      Subroutine deleteystem (self)
+         Type (evsystem), Intent (Inout) :: self
+         Call deletematrix (self%hamilton)
+         Call deletematrix (self%overlap)
+      End Subroutine deleteystem
+!
+!
+      Subroutine Hermiteanmatrix_rank2update (self, n, alpha, x, y)
+         Type (HermiteanMatrix), Intent (Inout) :: self
+         Integer, Intent (In) :: n
+         Complex (8), Intent (In) :: alpha, x (:), y (:)
+!
+         If (self%packed) Then
+            Call ZHPR2 ('U', n, alpha, x, 1, y, 1, self%zap)
+         Else
+            Call ZHER2 ('U', n, alpha, x, 1, y, 1, self%za, self%rank)
+         End If
+      End Subroutine Hermiteanmatrix_rank2update
+!
+!
+      Subroutine Hermiteanmatrix_indexedupdate (self, i, j, z)
+         Type (HermiteanMatrix), Intent (Inout) :: self
+         Integer :: i, j
+         Complex (8) :: z
+         Integer :: ipx
+         If (self%packed .Eqv. .True.) Then
+            ipx = ((i-1)*i) / 2 + j
+            self%zap (ipx) = self%zap(ipx) + z
+         Else
+            If (j .Le. i) Then
+               self%za (j, i) = self%za(j, i) + z
+            Else
+               Write (*,*) "warning lower part of hamilton updated"
+            End If
+         End If
+         Return
+      End Subroutine Hermiteanmatrix_indexedupdate
+!
+!
+      Subroutine Hermiteanmatrixvector (self, alpha, vin, beta, vout)
+         Implicit None
+         Type (HermiteanMatrix), Intent (Inout) :: self
+         Complex (8), Intent (In) :: alpha, beta
+         Complex (8), Intent (Inout) :: vin (:)
+         Complex (8), Intent (Inout) :: vout (:)
+!
+         If (self%packed .Eqv. .True.) Then
+            Call zhpmv ("U", self%rank, alpha, self%zap, vin, 1, beta, &
+           & vout, 1)
+         Else
+            Call zhemv ("U", self%rank, alpha, self%za, self%rank, vin, &
+           & 1, beta, vout, 1)
+         End If
+      End Subroutine Hermiteanmatrixvector
+!
+!
+      Function ispacked (self)
+         Logical :: ispacked
+         Type (HermiteanMatrix) :: self
+         ispacked = self%packed
+      End Function ispacked
+!
+!
+      Function getrank (self)
+         Integer :: getrank
+         Type (HermiteanMatrix) :: self
+         getrank = self%rank
+      End Function getrank
+!
+!
+      Subroutine HermiteanmatrixLU (self)
+         Type (HermiteanMatrix) :: self
+         Integer :: info
+         If ( .Not. self%ludecomposed) allocate (self%ipiv(self%rank))
+!
+         If ( .Not. self%ludecomposed) Then
+            If ( .Not. ispacked(self)) Then
+               Call ZGETRF (self%rank, self%rank, self%za, self%rank, &
+              & self%ipiv, info)
+            Else
+               Call ZHPTRF ('U', self%rank, self%zap, self%ipiv, info)
+            End If
+            If (info .Ne. 0) Then
+               Write (*,*) "error in iterativearpacksecequn  Hermiteanm&
+              &atrixLU ", info
+               Stop
+            End If
+            self%ludecomposed = .True.
+         End If
+      End Subroutine HermiteanmatrixLU
+!
+!
+      Subroutine Hermiteanmatrixlinsolve (self, b)
+         Type (HermiteanMatrix) :: self
+         Complex (8), Intent (Inout) :: b (:)
+         Integer :: info
+         If (self%ludecomposed) Then
+            If ( .Not. ispacked(self)) Then
+               Call ZGETRS ('N', self%rank, 1, self%za, self%rank, &
+              & self%ipiv, b, self%rank, info)
+            Else
+               Call ZHPTRS ('U', self%rank, 1, self%zap, self%ipiv, b, &
+              & self%rank, info)
+            End If
+            If (info .Ne. 0) Then
+               Write (*,*) "error in iterativearpacksecequn Hermiteanma&
+              &trixlinsolve ", info
+               Stop
+            End If
+         End If
+      End Subroutine Hermiteanmatrixlinsolve
+!
+!
+      Subroutine HermiteanMatrixAXPY (alpha, x, y)
+         Complex (8) :: alpha
+         Type (HermiteanMatrix) :: x, y
+         Integer :: mysize
+         If (ispacked(x)) Then
+            mysize = (x%rank*(x%rank+1)) / 2
+            Call zaxpy (mysize, alpha, x%zap, 1, y%zap, 1)
+         Else
+            mysize = x%rank * (x%rank)
+            Call zaxpy (mysize, alpha, x%za, 1, y%za, 1)
+         End If
+      End Subroutine HermiteanMatrixAXPY
+!
+!
+      Subroutine HermiteanMatrixcopy (x, y)
+         Complex (8) :: alpha
+         Type (HermiteanMatrix) :: x, y
+         Integer :: mysize
+         If (ispacked(x)) Then
+            mysize = (x%rank*(x%rank+1)) / 2
+            Call zcopy (mysize, x%zap, 1, y%zap, 1)
+         Else
+            mysize = x%rank * (x%rank)
+            Call zcopy (mysize, x%za, 1, y%za, 1)
+         End If
+      End Subroutine HermiteanMatrixcopy
+!
+!
+      Subroutine HermiteanMatrixToFiles (self, prefix)
+         Implicit None
+         Type (HermiteanMatrix), Intent (In) :: self
+         Character (256), Intent (In) :: prefix
+         Character (256) :: filename
+         If (ispacked(self)) Then
+            filename = trim (prefix) // ".packed.real.OUT"
+            Open (888, File=filename)
+            Write (888,*) dble (self%zap)
+         Else
+            filename = trim (prefix) // ".real.OUT"
+            Open (888, File=filename)
+            Write (888,*) dble (self%za)
+         End If
+         Close (888)
+!
+         If (ispacked(self)) Then
+            filename = trim (prefix) // ".packed.imag.OUT"
+            Open (888, File=filename)
+            Write (888,*) aimag (self%zap)
+         Else
+            filename = trim (prefix) // ".imag.OUT"
+            Open (888, File=filename)
+            Write (888,*) aimag (self%za)
+         End If
+         Close (888)
+      End Subroutine HermiteanMatrixToFiles
+!
+!
+      Subroutine HermiteanMatrixTruncate (self, threshold)
+         Implicit None
+         Type (HermiteanMatrix), Intent (Inout) :: self
+         Real (8), Intent (In) :: threshold
+         Integer :: n, i, j
+         n = self%rank
+         If (ispacked(self)) Then
+            Do i = 1, n * (n+1) / 2
+               If (Abs(dble(self%zap(i))) .Lt. threshold) self%zap(i) = &
+              & self%zap(i) - dcmplx (dble(self%zap(i)), 0)
+               If (Abs(aimag(self%zap(i))) .Lt. threshold) self%zap(i) &
+              & = self%zap(i) - dcmplx (0, aimag(self%zap(i)))
+            End Do
+         Else
+            Do j = 1, n
+               Do i = 1, n
+                  If (Abs(dble(self%za(i, j))) .Lt. threshold) &
+                 & self%za(i, j) = self%za(i, j) - dcmplx &
+                 & (dble(self%za(i, j)), 0)
+                  If (Abs(aimag(self%za(i, j))) .Lt. threshold) &
+                 & self%za(i, j) = self%za(i, j) - dcmplx (0, &
+                 & aimag(self%za(i, j)))
+               End Do
+            End Do
+         End If
+      End Subroutine
+!
+!
+      Subroutine HermiteanMatrixdiagonal (self, d)
+         Implicit None
+         Type (HermiteanMatrix), Intent (In) :: self
+         Complex (8), Intent (Out) :: d (self%rank)
+         Integer :: i
+         If (ispacked(self)) Then
+            Do i = 1, self%rank
+               d (i) = self%zap((i*(i+1))/2)
+            End Do
+         Else
+            Do i = 1, self%rank
+               d (i) = self%za(i, i)
+            End Do
+         End If
+      End Subroutine
+!
+End Module modfvsystem

@@ -1,64 +1,64 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_potential_and_density
-use modinput
+Module mod_potential_and_density
+      Use modinput
 !-----------------------------------------!
 !     potential and density variables     !
 !-----------------------------------------!
 ! exchange-correlation functional type
 !replaced by inputstructureinteger::xctype
 ! exchange-correlation functional description
-character(256)::xcdescr
+      Character (256) :: xcdescr
 ! exchange-correlation functional spin treatment
-integer::xcspin
+      Integer :: xcspin
 ! exchange-correlation functional density gradient treatment
-integer::xcgrad
-
-integer::maxncv
+      Integer :: xcgrad
+!
+      Integer :: maxncv
 ! muffin-tin charge density
-real(8), allocatable :: rhomt(:, :, :)
+      Real (8), Allocatable :: rhomt (:, :, :)
 ! interstitial real-space charge density
-real(8), allocatable :: rhoir(:)
+      Real (8), Allocatable :: rhoir (:)
 ! muffin-tin magnetisation vector field
-real(8), allocatable :: magmt(:, :, :, :)
+      Real (8), Allocatable :: magmt (:, :, :, :)
 ! interstitial magnetisation vector field
-real(8), allocatable :: magir(:, :)
+      Real (8), Allocatable :: magir (:, :)
 ! muffin-tin Coulomb potential
-real(8), allocatable :: vclmt(:, :, :)
+      Real (8), Allocatable :: vclmt (:, :, :)
 ! interstitial real-space Coulomb potential
-real(8), allocatable :: vclir(:)
+      Real (8), Allocatable :: vclir (:)
 ! order of polynomial for pseudocharge density
 !replaced by inputstructureinteger::npsden
 ! muffin-tin exchange-correlation potential
-real(8), allocatable :: vxcmt(:, :, :)
+      Real (8), Allocatable :: vxcmt (:, :, :)
 ! interstitial real-space exchange-correlation potential
-real(8), allocatable :: vxcir(:)
+      Real (8), Allocatable :: vxcir (:)
 ! muffin-tin exchange-correlation magnetic field
-real(8), allocatable :: bxcmt(:, :, :, :)
+      Real (8), Allocatable :: bxcmt (:, :, :, :)
 ! interstitial exchange-correlation magnetic field
-real(8), allocatable :: bxcir(:, :)
+      Real (8), Allocatable :: bxcir (:, :)
 ! nosource is .true. if the field is to be made source-free
 !replaced by inputstructurelogical::nosource
 ! muffin-tin effective potential
-real(8), allocatable :: veffmt(:, :, :)
+      Real (8), Allocatable :: veffmt (:, :, :)
 ! interstitial effective potential
-real(8), allocatable :: veffir(:)
+      Real (8), Allocatable :: veffir (:)
 ! G-space interstitial effective potential
-complex(8), allocatable :: veffig(:)
+      Complex (8), Allocatable :: veffig (:)
 ! muffin-tin exchange energy density
-real(8), allocatable :: exmt(:, :, :)
+      Real (8), Allocatable :: exmt (:, :, :)
 ! interstitial real-space exchange energy density
-real(8), allocatable :: exir(:)
+      Real (8), Allocatable :: exir (:)
 ! muffin-tin correlation energy density
-real(8), allocatable :: ecmt(:, :, :)
+      Real (8), Allocatable :: ecmt (:, :, :)
 ! interstitial real-space correlation energy density
-real(8), allocatable :: ecir(:)
+      Real (8), Allocatable :: ecir (:)
 ! type of mixing to use for the potential
 !replaced by inputstructureinteger::mixtype
 ! adaptive mixing parameters
 !replaced by inputstructurereal(8)::beta0
 !replaced by inputstructurereal(8)::betainc
 !replaced by inputstructurereal(8)::betadec
-end module
-
+End Module
+!

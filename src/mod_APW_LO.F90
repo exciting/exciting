@@ -1,57 +1,57 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_APW_LO
+Module mod_APW_LO
 !-----------------------------------------!
 !     APW and local-orbital variables     !
 !-----------------------------------------!
 ! maximum allowable APW order
-integer, parameter :: maxapword=4
+      Integer, Parameter :: maxapword = 4
 ! APW order
-integer::apword(0:_MAXLAPW_, _MAXSPECIES_)
+      Integer :: apword (0:_MAXLAPW_, _MAXSPECIES_)
 ! maximum of apword over all angular momenta and species
-integer::apwordmax
+      Integer :: apwordmax
 ! APW initial linearisation energies
-real(8)::apwe0(maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
+      Real (8) :: apwe0 (maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
 ! APW linearisation energies
-real(8), allocatable :: apwe(:, :, :)
+      Real (8), Allocatable :: apwe (:, :, :)
 ! APW derivative order
-integer::apwdm(maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
+      Integer :: apwdm (maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
 ! apwve is .true. if the linearisation energies are allowed to vary
-logical::apwve(maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
+      Logical :: apwve (maxapword, 0:_MAXLAPW_, _MAXSPECIES_)
 ! APW radial functions
-real(8), allocatable :: apwfr(:, :, :, :, :)
+      Real (8), Allocatable :: apwfr (:, :, :, :, :)
 ! derivate of radial functions at the muffin-tin surface
-real(8), allocatable :: apwdfr(:, :, :)
+      Real (8), Allocatable :: apwdfr (:, :, :)
 ! maximum number of local-orbitals
-integer, parameter :: maxlorb=20
+      Integer, Parameter :: maxlorb = 20
 ! maximum allowable local-orbital order
-integer, parameter :: maxlorbord=4
+      Integer, Parameter :: maxlorbord = 4
 ! number of local-orbitals
-integer::nlorb(_MAXSPECIES_)
+      Integer :: nlorb (_MAXSPECIES_)
 ! maximum nlorb over all species
-integer::nlomax
+      Integer :: nlomax
 ! total number of local-orbitals
-integer::nlotot
+      Integer :: nlotot
 ! local-orbital order
-integer::lorbord(maxlorb, _MAXSPECIES_)
+      Integer :: lorbord (maxlorb, _MAXSPECIES_)
 ! local-orbital angular momentum
-integer::lorbl(maxlorb, _MAXSPECIES_)
+      Integer :: lorbl (maxlorb, _MAXSPECIES_)
 ! maximum lorbl over all species
-integer::lolmax
+      Integer :: lolmax
 ! (lolmax+1)^2
-integer::lolmmax
+      Integer :: lolmmax
 ! local-orbital initial energies
-real(8)::lorbe0(maxlorbord, maxlorb, _MAXSPECIES_)
+      Real (8) :: lorbe0 (maxlorbord, maxlorb, _MAXSPECIES_)
 ! local-orbital energies
-real(8), allocatable :: lorbe(:, :, :)
+      Real (8), Allocatable :: lorbe (:, :, :)
 ! local-orbital derivative order
-integer::lorbdm(maxlorbord, maxlorb, _MAXSPECIES_)
+      Integer :: lorbdm (maxlorbord, maxlorb, _MAXSPECIES_)
 ! lorbve is .true. if the linearisation energies are allowed to vary
-logical::lorbve(maxlorbord, maxlorb, _MAXSPECIES_)
+      Logical :: lorbve (maxlorbord, maxlorb, _MAXSPECIES_)
 ! local-orbital radial functions
-real(8), allocatable :: lofr(:, :, :, :)
+      Real (8), Allocatable :: lofr (:, :, :, :)
 ! energy step size for locating the band energy
 !replaced by inputstructurereal(8)::deband
-end module
-
+End Module
+!

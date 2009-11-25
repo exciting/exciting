@@ -1,12 +1,12 @@
-
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: stheta
 ! !INTERFACE:
-real(8) function stheta(stype,x)
+Real (8) Function stheta (stype, x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   stype : smearing type (in,integer)
 !   x     : real argument (in,real)
@@ -20,34 +20,34 @@ real(8) function stheta(stype,x)
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: stype
-real(8), intent(in) :: x
+      Integer, Intent (In) :: stype
+      Real (8), Intent (In) :: x
 ! external functions
-real(8) stheta_mp,stheta_fd,stheta_sq
-external stheta_mp,stheta_fd,stheta_sq
-stheta=0.d0
-select case(stype)
-case(0)
-  stheta=stheta_mp(0,x)
-  return
-case(1)
-  stheta=stheta_mp(1,x)
-  return
-case(2)
-  stheta=stheta_mp(2,x)
-  return
-case(3)
-  stheta=stheta_fd(x)
-  return
-case(4)
-  stheta=stheta_sq(x)
-case default
-  write(*,*)
-  write(*,'("Error(stheta): sytpe not defined : ",I8)') stype
-  write(*,*)
-  stop
-end select
-end function
+      Real (8) stheta_mp, stheta_fd, stheta_sq
+      External stheta_mp, stheta_fd, stheta_sq
+      stheta = 0.d0
+      Select Case (stype)
+      Case (0)
+         stheta = stheta_mp (0, x)
+         Return
+      Case (1)
+         stheta = stheta_mp (1, x)
+         Return
+      Case (2)
+         stheta = stheta_mp (2, x)
+         Return
+      Case (3)
+         stheta = stheta_fd (x)
+         Return
+      Case (4)
+         stheta = stheta_sq (x)
+      Case Default
+         Write (*,*)
+         Write (*, '("Error(stheta): sytpe not defined : ",I8)') stype
+         Write (*,*)
+         Stop
+      End Select
+End Function
 !EOC

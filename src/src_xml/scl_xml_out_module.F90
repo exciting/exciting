@@ -1,317 +1,373 @@
 #include "../version.inc"
-module scl_xml_out_Module
-  use FoX_dom
-  use mod_energy
-  use mod_LDA_LU
-  use mod_convergence
-  use mod_eigenvalue_occupancy
-  use mod_charge_and_moment
-  use mod_atoms
-  use mod_timing
-  use mod_force
-  use mod_spin
-  use modmpi ,only:rank
-
-  use modinput
-  implicit none
-  type(Node),  pointer :: sclDoc, root, np,npatt,energies,niter,charges,atom,xst,timing,nscl,ngroundstate
-  type(DOMConfiguration),pointer :: configo
-  real(8)::scltime0=0
-  character(512)::buffer
-
-contains
-
-  subroutine scl_xml_out_create
-    character(10)::dat, tim
-    if(rank.eq.0) then
+Module scl_xml_out_Module
+      Use FoX_dom
+      Use mod_energy
+      Use mod_LDA_LU
+      Use mod_convergence
+      Use mod_eigenvalue_occupancy
+      Use mod_charge_and_moment
+      Use mod_atoms
+      Use mod_timing
+      Use mod_force
+      Use mod_spin
+      Use modmpi, Only: rank
+!
+      Use modinput
+      Implicit None
+      Type (Node), Pointer :: sclDoc, root, np, npatt, energies, niter, &
+     & charges, atom, xst, timing, nscl, ngroundstate
+      Type (DOMConfiguration), Pointer :: configo
+      Real (8) :: scltime0 = 0
+      Character (512) :: buffer
+!
+Contains
+!
+      Subroutine scl_xml_out_create
+         Character (10) :: dat, tim
+         If (rank .Eq. 0) Then
        ! Create a new document and get a pointer to the root element, this gives you the minimum empty dom
-       sclDoc => createDocument(getImplementation(), "", "info", null())
-       configo => getDomConfig(scldoc)
-       call setParameter(getDomConfig(scldoc), "format-pretty-print", .true.)
-       root => getDocumentElement(sclDoc)
-       xst=>createProcessingInstruction(scldoc, "xml-stylesheet",&
-            'href="'//trim(input%xsltpath)//'/info.xsl" type="text/xsl"')
-       dummy => insertBefore(scldoc, xst, root)
-
-       ngroundstate => createElementNS(sclDoc, "", "groundstate")
-       dummy => appendChild(root, ngroundstate)
-       nscl => createElementNS(sclDoc, "", "scl")
-       dummy => appendChild(ngroundstate, nscl)
-       call date_and_time(date=dat, time=tim)
-
-       write(buffer, '(A4, "-", A2, "-", A2)') dat(1:4), dat(5:6), &
-            dat(7:8)
-       call setAttribute(root, "date", trim(adjustl(buffer)))
-       write(buffer, '( A2, ":", A2, ":", A2)') tim(1:2), tim(3:4), &
-            tim(5:6)
-       call setAttribute(root, "time", trim(adjustl(buffer)))
-       buffer=GITHASH
-        call setAttribute(root, "versionhash", trim(adjustl(buffer)))
-		call setAttribute(root, "title", trim(adjustl(input%title)))
-
-    endif
-
-  end subroutine scl_xml_out_create
-  subroutine scl_iter_xmlout()
-
-    implicit none
-    integer::is,ia,ias
-    real(8)::scltime
-    if(rank.eq.0) then
-       niter => createElementNS(sclDoc, "", "iter")
-       dummy => appendChild(nscl, niter)
-       write(buffer,*)iscl
-       call setAttribute(niter, "iteration", trim(adjustl(buffer)))
-       write(buffer,*)currentconvergence
-       call setAttribute(niter, "rms", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')log10(currentconvergence)
-       call setAttribute(niter, "rmslog10", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)') fermidos
-       call setAttribute(niter, "fermidos", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')efermi
-       energies => createElementNS(sclDoc, "", "energies")
-       dummy => appendChild(niter, energies)
-       write(buffer,'(G22.12)')engytot
-       call setAttribute(energies, "totalEnergy", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')efermi
-       call setAttribute(energies, "fermiEnergy", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')evalsum
-       call setAttribute(energies, "sum-of-eigenvalues", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engykn
-       call setAttribute(energies, "electronic-kinetic", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engykncr
-       call setAttribute(energies, "core-electron-kinetic", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engycl
-       call setAttribute(energies, "Coulomb", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engyvcl
-       call setAttribute(energies, "Coulomb-potential", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engynn
-       call setAttribute(energies, "nuclear-nuclear", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engyen
-       call setAttribute(energies, "electron-nuclear", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engyhar
-       call setAttribute(energies, "Hartree", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engymad
-       call setAttribute(energies, "Madelung", trim(adjustl(buffer)))
-       if (input%groundstate%chgexs.ne.0.d0) then
-         write(buffer,'(G22.12)')engycbc
-         call setAttribute(energies, "comp.-background-charge", trim(adjustl(buffer)))
-       end if
-       write(buffer,'(G22.12)')engyvxc
-       call setAttribute(energies, "xc-potential", trim(adjustl(buffer)))
-       if (associated(input%groundstate%spin)) then
-         write(buffer,'(G22.12)')engybxc
-         call setAttribute(energies, "xc-effective-B-field", trim(adjustl(buffer)))
-         write(buffer,'(G22.12)')engybext
-         call setAttribute(energies, "external-B-field", trim(adjustl(buffer)))
-       end if
-       write(buffer,'(G22.12)')engyx
-       call setAttribute(energies, "exchange", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')engyc
-       call setAttribute(energies, "correlation", trim(adjustl(buffer)))
-       if (ldapu.ne.0) then
-         write(buffer,'(G22.12)')engylu
-         call setAttribute(energies, "LDApU", trim(adjustl(buffer)))
-       end if
-       charges => createElementNS(sclDoc, "", "charges")
-       dummy => appendChild(niter, charges)
-       write(buffer,'(G18.10)')chgcalc
-       call setAttribute(charges, "totalcharge", trim(adjustl(buffer)))
-       write(buffer,'(G18.10)')chgcr
-       call setAttribute(charges, "core", trim(adjustl(buffer)))
-       write(buffer,'(G18.10)')chgcrlk
-       call setAttribute(charges, "core_leakage", trim(adjustl(buffer)))
-       write(buffer,'(G18.10)')chgval
-       call setAttribute(charges, "valence", trim(adjustl(buffer)))
-       write(buffer,'(G18.10)')chgir
-       call setAttribute(charges, "interstitial", trim(adjustl(buffer)))
-       write(buffer,'(G18.10)') chgmttot
-       call setAttribute(charges, "muffin-tin-total", trim(adjustl(buffer)))
-       do is=1, nspecies
-          do ia=1, natoms(is)
-             atom => createElementNS(sclDoc, "", "atom")
-	     dummy => appendChild(charges, atom)
-             ias=idxas(ia, is)
-             write(buffer,*)spsymb(is)
-             call setAttribute(atom, "species", trim(adjustl(buffer)) )
-             write(buffer,'(G18.10)')chgmt(ias)
-             call setAttribute(atom, "muffin-tin", trim(adjustl(buffer)))
-          end do
-       end do
-       if (input%groundstate%chgexs.ne.0.d0) then
-          write(buffer,'(G18.10)') input%groundstate%chgexs
-          call setAttribute(charges, "excess", trim(adjustl(buffer)))
-       end if
-
-       timing => createElementNS(sclDoc, "", "timing")
-       dummy => appendChild(niter, timing)
-       call timesec(scltime)
-       write(buffer,'(G22.12)')scltime-scltime0
-       scltime0= scltime
-       if(iscl .ge. 2)call setAttribute(timing, "itertime", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')timeinit+timemat+timefv+timesv+timerho+timepot+timefor
-       call setAttribute(timing, "timetot", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')timeinit
-       call setAttribute(timing, "timeinit", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')timemat
-       call setAttribute(timing, "timemat", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')timefv
-       call setAttribute(timing, "timefv", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')timerho
-       call setAttribute(timing, "timerho", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')timepot
-       call setAttribute(timing, "timepot", trim(adjustl(buffer)))
-       write(buffer,'(G22.12)')timefor
-       call setAttribute(timing, "timefor", trim(adjustl(buffer)))
-
-    endif
-  end subroutine scl_iter_xmlout
-  subroutine structure_xmlout
-    use mod_lattice
-    use mod_constants
-    implicit none
-    integer::is,ia,ias,i
-    type(Node),  pointer :: structure,crystal,nbasevect,nreziprvect,species,atom,forces,text,force
-    if(rank.eq.0) then
-       structure => createElementNS(sclDoc, "", "structure")
-       dummy => appendChild(nscl, structure)
-       crystal => createElementNS(sclDoc, "", "crystal")
-       dummy => appendChild(structure, crystal)
-       write(buffer,'(G18.10)')omega
-       call setAttribute(crystal, "unitCellVolume", trim(adjustl(buffer)))
-       write(buffer,'(G18.10)')(twopi**3)/omega
-      call setAttribute(crystal, "BrillouinZoneVolume", trim(adjustl(buffer)))
-       do i=1,3
-          nbasevect => createElementNS(sclDoc, "", "basevect")
-          dummy => appendChild( crystal,nbasevect)
-          write(buffer,'(3G18.10)')input%structure%crystal%basevect(:,i)
-          text=>createTextNode(scldoc, trim(adjustl(buffer)))
-          dummy => appendChild(nbasevect,text)
-       end do
-        do i=1,3
-           nreziprvect => createElementNS(sclDoc, "", "reciprvect")
-           write(buffer, '(3G18.10)') bvec(:, i)
-           text=>createTextNode(scldoc, trim(adjustl(buffer)) )
-           dummy => appendChild(nreziprvect, text)
-           dummy => appendChild(crystal, nreziprvect)
-        end do
-       do is=1,nspecies
-          species => createElementNS(sclDoc, "", "species")
-          dummy => appendChild(structure, species)
-	  write(buffer,*)trim(input%structure%speciesarray(is)%species%chemicalSymbol)
-	  call setAttribute(species, "chemicalSymbol", trim(adjustl(buffer)))
-          do ia=1,natoms(is)
-             atom => createElementNS(sclDoc, "", "atom")
-             dummy => appendChild(species, atom)
-             call setcoord(atom,input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord)
-             if (input%groundstate%tforce) then
-                forces=> createElementNS(sclDoc, "", "forces")
-                dummy => appendChild( atom,forces)
-                ias=idxas(ia, is)
-                force=> createElementNS(sclDoc, "", "Hellmann-Feynman")
-                dummy => appendChild(forces,force)
-                call setcoord(force,forcehf(:, ias))
-                force=> createElementNS(sclDoc, "", "core-correction")
-                dummy => appendChild(forces,force)
-                call setcoord(force,forcecr(:, ias))
-                force=> createElementNS(sclDoc, "", "IBS")
-                dummy => appendChild(forces,force)
-                call setcoord(force,forceibs(:, ias))
-                force=> createElementNS(sclDoc, "", "totalforce")
-                dummy => appendChild(forces,force)
-                call setcoord(force,forcetot(:, ias))
-                write(buffer,'(G22.12)')sqrt(forcetot(1, ias)**2+forcetot(2, ias)**2+forcetot(3, ias)**2)
-                call setAttribute(forces, "Magnitude", trim(adjustl(buffer)))
-             endif
-          end do
-          if (input%groundstate%tforce) then
-             write(buffer,'(G22.12)')forcemax
-             call setAttribute(structure, "forceMax", trim(adjustl(buffer)))
-          endif
-       end do
-    endif
-  end subroutine structure_xmlout
-  subroutine setcoord(elementnode,coord)
-    type(node),pointer,intent(in)::elementnode
-    real(8),intent(in)::coord(3)
-    write(buffer,'(G22.12)')coord(1)
-    call setAttribute(elementnode, "x", trim(adjustl(buffer)))
-    write(buffer,'(G22.12)')coord(2)
-    call setAttribute(elementnode, "y", trim(adjustl(buffer)))
-    write(buffer,'(G22.12)')coord(3)
-    call setAttribute(elementnode, "z", trim(adjustl(buffer)))
-  end subroutine setcoord
-  subroutine setcoorddim(elementnode,coord,dim)
-    implicit none
-    type(node),pointer,intent(in)::elementnode
-    real(8),intent(in)::coord(3)
-    integer,intent(in)::dim
-    if(dim.gt.0) then
-       write(buffer,'(G22.12)')coord(1)
-       call setAttribute(elementnode, "x", trim(adjustl(buffer)))
-       if(dim.gt.1) then
-          write(buffer,'(G22.12)')coord(2)
-          call setAttribute(elementnode, "y", trim(adjustl(buffer)))
-          if(dim.gt.2) then
-             write(buffer,'(G22.12)')coord(3)
-             call setAttribute(elementnode, "z", trim(adjustl(buffer)))
-          endif
-       endif
-    endif
-  end subroutine setcoorddim
-  subroutine scl_xml_write_moments()
-
-    type(Node),pointer:: moments,moment
-    integer::is,ia,ias
-    if(rank.eq.0) then
-       moments => createElementNS(sclDoc, "", "moments")
-       dummy => appendChild(niter, moments)
-
-       moment=>createElementNS(sclDoc, "", "momtot")
-       dummy => appendChild(moments, moment)
-       call setcoorddim(moment,momtot(1:ndmag),ndmag)
-
-       moment=>createElementNS(sclDoc, "", "interstitial")
-       dummy => appendChild(moments, moment)
-       call setcoorddim(moment,momir(1:ndmag),ndmag)
-
-       moment=>createElementNS(sclDoc, "", "mommttot")
-       dummy => appendChild(moments, moment)
-       call setcoorddim(moment,mommttot(1:ndmag),ndmag)
-
-       do is=1, nspecies
-          do ia=1, natoms(is)
-             ias=idxas(ia, is)
-             atom  => createElementNS(sclDoc, "", "atom")
-	     dummy => appendChild(moments, atom)
-	     moment=> createElementNS(sclDoc, "", "mommt")
-             dummy => appendChild(atom, moment)
-	     call setcoorddim(moment,mommt(1:ndmag,ias),ndmag)
-             write(buffer,*)spsymb(is)
-             call setAttribute(atom, "species", trim(adjustl(buffer)))
-          end do
-       end do
-    endif
-  end subroutine scl_xml_write_moments
-  subroutine scl_xml_out_close()!
-    if(rank.eq.0) then
-       call destroy(sclDoc)
-    endif
-  end subroutine scl_xml_out_close
-
-  subroutine scl_xml_setGndstateStatus(status)
-
-    character(len=*)::status
-    if(rank.eq.0) then
-       call setAttribute(ngroundstate, "status", status)
-    endif
-  end subroutine scl_xml_setGndstateStatus
-
-  subroutine scl_xml_out_write()
-    if(rank.eq.0) then
-       call normalizeDocument(sclDoc)
-       call serialize(sclDoc,"info.xml")
-    endif
-  end subroutine scl_xml_out_write
-
-end module scl_xml_out_Module
+            sclDoc => createDocument (getImplementation(), "", "info", &
+           & null())
+            configo => getDomConfig (sclDoc)
+            Call setParameter (getDomConfig(sclDoc), "format-pretty-pri&
+           &nt", .True.)
+            root => getDocumentElement (sclDoc)
+            xst => createProcessingInstruction (sclDoc, "xml-stylesheet&
+           &", 'href="'//trim(input%xsltpath)//'/info.xsl" type="text/x&
+           &sl"')
+            dummy => insertBefore (sclDoc, xst, root)
+!
+            ngroundstate => createElementNS (sclDoc, "", "groundstate")
+            dummy => appendChild (root, ngroundstate)
+            nscl => createElementNS (sclDoc, "", "scl")
+            dummy => appendChild (ngroundstate, nscl)
+            Call date_and_time (date=dat, time=tim)
+!
+            Write (buffer, '(A4, "-", A2, "-", A2)') dat (1:4), dat &
+           & (5:6), dat (7:8)
+            Call setAttribute (root, "date", trim(adjustl(buffer)))
+            Write (buffer, '( A2, ":", A2, ":", A2)') tim (1:2), tim &
+           & (3:4), tim (5:6)
+            Call setAttribute (root, "time", trim(adjustl(buffer)))
+            buffer = GITHASH
+            Call setAttribute (root, "versionhash", &
+           & trim(adjustl(buffer)))
+            Call setAttribute (root, "title", &
+           & trim(adjustl(input%title)))
+!
+         End If
+!
+      End Subroutine scl_xml_out_create
+      Subroutine scl_iter_xmlout ()
+!
+         Implicit None
+         Integer :: is, ia, ias
+         Real (8) :: scltime
+         If (rank .Eq. 0) Then
+            niter => createElementNS (sclDoc, "", "iter")
+            dummy => appendChild (nscl, niter)
+            Write (buffer,*) iscl
+            Call setAttribute (niter, "iteration", &
+           & trim(adjustl(buffer)))
+            Write (buffer,*) currentconvergence
+            Call setAttribute (niter, "rms", trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') Log10 (currentconvergence)
+            Call setAttribute (niter, "rmslog10", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') fermidos
+            Call setAttribute (niter, "fermidos", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') efermi
+            energies => createElementNS (sclDoc, "", "energies")
+            dummy => appendChild (niter, energies)
+            Write (buffer, '(G22.12)') engytot
+            Call setAttribute (energies, "totalEnergy", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') efermi
+            Call setAttribute (energies, "fermiEnergy", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') evalsum
+            Call setAttribute (energies, "sum-of-eigenvalues", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engykn
+            Call setAttribute (energies, "electronic-kinetic", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engykncr
+            Call setAttribute (energies, "core-electron-kinetic", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engycl
+            Call setAttribute (energies, "Coulomb", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engyvcl
+            Call setAttribute (energies, "Coulomb-potential", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engynn
+            Call setAttribute (energies, "nuclear-nuclear", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engyen
+            Call setAttribute (energies, "electron-nuclear", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engyhar
+            Call setAttribute (energies, "Hartree", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engymad
+            Call setAttribute (energies, "Madelung", &
+           & trim(adjustl(buffer)))
+            If (input%groundstate%chgexs .Ne. 0.d0) Then
+               Write (buffer, '(G22.12)') engycbc
+               Call setAttribute (energies, "comp.-background-charge", &
+              & trim(adjustl(buffer)))
+            End If
+            Write (buffer, '(G22.12)') engyvxc
+            Call setAttribute (energies, "xc-potential", &
+           & trim(adjustl(buffer)))
+            If (associated(input%groundstate%spin)) Then
+               Write (buffer, '(G22.12)') engybxc
+               Call setAttribute (energies, "xc-effective-B-field", &
+              & trim(adjustl(buffer)))
+               Write (buffer, '(G22.12)') engybext
+               Call setAttribute (energies, "external-B-field", &
+              & trim(adjustl(buffer)))
+            End If
+            Write (buffer, '(G22.12)') engyx
+            Call setAttribute (energies, "exchange", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') engyc
+            Call setAttribute (energies, "correlation", &
+           & trim(adjustl(buffer)))
+            If (ldapu .Ne. 0) Then
+               Write (buffer, '(G22.12)') engylu
+               Call setAttribute (energies, "LDApU", &
+              & trim(adjustl(buffer)))
+            End If
+            charges => createElementNS (sclDoc, "", "charges")
+            dummy => appendChild (niter, charges)
+            Write (buffer, '(G18.10)') chgcalc
+            Call setAttribute (charges, "totalcharge", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G18.10)') chgcr
+            Call setAttribute (charges, "core", trim(adjustl(buffer)))
+            Write (buffer, '(G18.10)') chgcrlk
+            Call setAttribute (charges, "core_leakage", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G18.10)') chgval
+            Call setAttribute (charges, "valence", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G18.10)') chgir
+            Call setAttribute (charges, "interstitial", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G18.10)') chgmttot
+            Call setAttribute (charges, "muffin-tin-total", &
+           & trim(adjustl(buffer)))
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  atom => createElementNS (sclDoc, "", "atom")
+                  dummy => appendChild (charges, atom)
+                  ias = idxas (ia, is)
+                  Write (buffer,*) spsymb (is)
+                  Call setAttribute (atom, "species", &
+                 & trim(adjustl(buffer)))
+                  Write (buffer, '(G18.10)') chgmt (ias)
+                  Call setAttribute (atom, "muffin-tin", &
+                 & trim(adjustl(buffer)))
+               End Do
+            End Do
+            If (input%groundstate%chgexs .Ne. 0.d0) Then
+               Write (buffer, '(G18.10)') input%groundstate%chgexs
+               Call setAttribute (charges, "excess", &
+              & trim(adjustl(buffer)))
+            End If
+!
+            timing => createElementNS (sclDoc, "", "timing")
+            dummy => appendChild (niter, timing)
+            Call timesec (scltime)
+            Write (buffer, '(G22.12)') scltime - scltime0
+            scltime0 = scltime
+            If (iscl .Ge. 2) Call setAttribute (timing, "itertime", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timeinit + timemat + timefv + &
+           & timesv + timerho + timepot + timefor
+            Call setAttribute (timing, "timetot", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timeinit
+            Call setAttribute (timing, "timeinit", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timemat
+            Call setAttribute (timing, "timemat", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timefv
+            Call setAttribute (timing, "timefv", trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timerho
+            Call setAttribute (timing, "timerho", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timepot
+            Call setAttribute (timing, "timepot", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timefor
+            Call setAttribute (timing, "timefor", &
+           & trim(adjustl(buffer)))
+!
+         End If
+      End Subroutine scl_iter_xmlout
+      Subroutine structure_xmlout
+         Use mod_lattice
+         Use mod_constants
+         Implicit None
+         Integer :: is, ia, ias, i
+         Type (Node), Pointer :: structure, crystal, nbasevect, &
+        & nreziprvect, species, atom, forces, text, force
+         If (rank .Eq. 0) Then
+            structure => createElementNS (sclDoc, "", "structure")
+            dummy => appendChild (nscl, structure)
+            crystal => createElementNS (sclDoc, "", "crystal")
+            dummy => appendChild (structure, crystal)
+            Write (buffer, '(G18.10)') omega
+            Call setAttribute (crystal, "unitCellVolume", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G18.10)') (twopi**3) / omega
+            Call setAttribute (crystal, "BrillouinZoneVolume", &
+           & trim(adjustl(buffer)))
+            Do i = 1, 3
+               nbasevect => createElementNS (sclDoc, "", "basevect")
+               dummy => appendChild (crystal, nbasevect)
+               Write (buffer, '(3G18.10)') &
+              & input%structure%crystal%basevect(:, i)
+               text => createTextNode (sclDoc, trim(adjustl(buffer)))
+               dummy => appendChild (nbasevect, text)
+            End Do
+            Do i = 1, 3
+               nreziprvect => createElementNS (sclDoc, "", "reciprvect")
+               Write (buffer, '(3G18.10)') bvec (:, i)
+               text => createTextNode (sclDoc, trim(adjustl(buffer)))
+               dummy => appendChild (nreziprvect, text)
+               dummy => appendChild (crystal, nreziprvect)
+            End Do
+            Do is = 1, nspecies
+               species => createElementNS (sclDoc, "", "species")
+               dummy => appendChild (structure, species)
+               Write (buffer,*) trim (input%structure%speciesarray(is)%species%chemicalSymbol)
+               Call setAttribute (species, "chemicalSymbol", &
+              & trim(adjustl(buffer)))
+               Do ia = 1, natoms (is)
+                  atom => createElementNS (sclDoc, "", "atom")
+                  dummy => appendChild (species, atom)
+                  Call setcoord (atom, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord)
+                  If (input%groundstate%tforce) Then
+                     forces => createElementNS (sclDoc, "", "forces")
+                     dummy => appendChild (atom, forces)
+                     ias = idxas (ia, is)
+                     force => createElementNS (sclDoc, "", "Hellmann-Fe&
+                    &ynman")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forcehf(:, ias))
+                     force => createElementNS (sclDoc, "", "core-correc&
+                    &tion")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forcecr(:, ias))
+                     force => createElementNS (sclDoc, "", "IBS")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forceibs(:, ias))
+                     force => createElementNS (sclDoc, "", "totalforce")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forcetot(:, ias))
+                     Write (buffer, '(G22.12)') Sqrt (forcetot(1, &
+                    & ias)**2+forcetot(2, ias)**2+forcetot(3, ias)**2)
+                     Call setAttribute (forces, "Magnitude", &
+                    & trim(adjustl(buffer)))
+                  End If
+               End Do
+               If (input%groundstate%tforce) Then
+                  Write (buffer, '(G22.12)') forcemax
+                  Call setAttribute (structure, "forceMax", &
+                 & trim(adjustl(buffer)))
+               End If
+            End Do
+         End If
+      End Subroutine structure_xmlout
+      Subroutine setcoord (elementnode, coord)
+         Type (Node), Pointer, Intent (In) :: elementnode
+         Real (8), Intent (In) :: coord (3)
+         Write (buffer, '(G22.12)') coord (1)
+         Call setAttribute (elementnode, "x", trim(adjustl(buffer)))
+         Write (buffer, '(G22.12)') coord (2)
+         Call setAttribute (elementnode, "y", trim(adjustl(buffer)))
+         Write (buffer, '(G22.12)') coord (3)
+         Call setAttribute (elementnode, "z", trim(adjustl(buffer)))
+      End Subroutine setcoord
+      Subroutine setcoorddim (elementnode, coord, dim)
+         Implicit None
+         Type (Node), Pointer, Intent (In) :: elementnode
+         Real (8), Intent (In) :: coord (3)
+         Integer, Intent (In) :: dim
+         If (dim .Gt. 0) Then
+            Write (buffer, '(G22.12)') coord (1)
+            Call setAttribute (elementnode, "x", trim(adjustl(buffer)))
+            If (dim .Gt. 1) Then
+               Write (buffer, '(G22.12)') coord (2)
+               Call setAttribute (elementnode, "y", &
+              & trim(adjustl(buffer)))
+               If (dim .Gt. 2) Then
+                  Write (buffer, '(G22.12)') coord (3)
+                  Call setAttribute (elementnode, "z", &
+                 & trim(adjustl(buffer)))
+               End If
+            End If
+         End If
+      End Subroutine setcoorddim
+      Subroutine scl_xml_write_moments ()
+!
+         Type (Node), Pointer :: moments, moment
+         Integer :: is, ia, ias
+         If (rank .Eq. 0) Then
+            moments => createElementNS (sclDoc, "", "moments")
+            dummy => appendChild (niter, moments)
+!
+            moment => createElementNS (sclDoc, "", "momtot")
+            dummy => appendChild (moments, moment)
+            Call setcoorddim (moment, momtot(1:ndmag), ndmag)
+!
+            moment => createElementNS (sclDoc, "", "interstitial")
+            dummy => appendChild (moments, moment)
+            Call setcoorddim (moment, momir(1:ndmag), ndmag)
+!
+            moment => createElementNS (sclDoc, "", "mommttot")
+            dummy => appendChild (moments, moment)
+            Call setcoorddim (moment, mommttot(1:ndmag), ndmag)
+!
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
+                  atom => createElementNS (sclDoc, "", "atom")
+                  dummy => appendChild (moments, atom)
+                  moment => createElementNS (sclDoc, "", "mommt")
+                  dummy => appendChild (atom, moment)
+                  Call setcoorddim (moment, mommt(1:ndmag, ias), ndmag)
+                  Write (buffer,*) spsymb (is)
+                  Call setAttribute (atom, "species", &
+                 & trim(adjustl(buffer)))
+               End Do
+            End Do
+         End If
+      End Subroutine scl_xml_write_moments
+      Subroutine scl_xml_out_close ()!
+         If (rank .Eq. 0) Then
+            Call destroy (sclDoc)
+         End If
+      End Subroutine scl_xml_out_close
+!
+      Subroutine scl_xml_setGndstateStatus (status)
+!
+         Character (Len=*) :: status
+         If (rank .Eq. 0) Then
+            Call setAttribute (ngroundstate, "status", status)
+         End If
+      End Subroutine scl_xml_setGndstateStatus
+!
+      Subroutine scl_xml_out_write ()
+         If (rank .Eq. 0) Then
+            Call normalizeDocument (sclDoc)
+            Call serialize (sclDoc, "info.xml")
+         End If
+      End Subroutine scl_xml_out_write
+!
+End Module scl_xml_out_Module

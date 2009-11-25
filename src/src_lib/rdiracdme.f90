@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: rdiracdme
 ! !INTERFACE:
-
-
-subroutine rdiracdme(m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
+!
+!
+Subroutine rdiracdme (m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m   : order of energy derivative (in,integer)
 !   kpa : quantum number kappa (in,integer)
@@ -34,45 +34,47 @@ subroutine rdiracdme(m, kpa, e, np, nr, r, vr, nn, g0, g1, f0, f1)
 !   Created March 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: m
-integer, intent(in) :: kpa
-real(8), intent(in) :: e
-integer, intent(in) :: np
-integer, intent(in) :: nr
-real(8), intent(in) :: r(nr)
-real(8), intent(in) :: vr(nr)
-integer, intent(out) :: nn
-real(8), intent(out) :: g0(nr)
-real(8), intent(out) :: g1(nr)
-real(8), intent(out) :: f0(nr)
-real(8), intent(out) :: f1(nr)
+      Integer, Intent (In) :: m
+      Integer, Intent (In) :: kpa
+      Real (8), Intent (In) :: e
+      Integer, Intent (In) :: np
+      Integer, Intent (In) :: nr
+      Real (8), Intent (In) :: r (nr)
+      Real (8), Intent (In) :: vr (nr)
+      Integer, Intent (Out) :: nn
+      Real (8), Intent (Out) :: g0 (nr)
+      Real (8), Intent (Out) :: g1 (nr)
+      Real (8), Intent (Out) :: f0 (nr)
+      Real (8), Intent (Out) :: f1 (nr)
 ! local variables
-integer::im
+      Integer :: im
 ! automatic arrays
-real(8)::g0p(nr), f0p(nr)
-if (nr.le.0) then
-  write(*, *)
-  write(*, '("Error(rdiracdme): invalid nr : ", I8)') nr
-  write(*, *)
-  stop
-end if
-if ((m.lt.0).or.(m.gt.6)) then
-  write(*, *)
-  write(*, '("Error(rdiracdme): m out of range : ", I8)') m
-  write(*, *)
-  stop
-end if
-if (m.eq.0) then
-  call rdiracint(m, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, g1, f0, f1)
-else
-  do im=0, m
-    call rdiracint(im, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, g1, f0, f1)
-    g0p(:)=g0(:)
-    f0p(:)=f0(:)
-  end do
-end if
-return
-end subroutine
+      Real (8) :: g0p (nr), f0p (nr)
+      If (nr .Le. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rdiracdme): invalid nr : ", I8)') nr
+         Write (*,*)
+         Stop
+      End If
+      If ((m .Lt. 0) .Or. (m .Gt. 6)) Then
+         Write (*,*)
+         Write (*, '("Error(rdiracdme): m out of range : ", I8)') m
+         Write (*,*)
+         Stop
+      End If
+      If (m .Eq. 0) Then
+         Call rdiracint (m, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, &
+        & g1, f0, f1)
+      Else
+         Do im = 0, m
+            Call rdiracint (im, kpa, e, np, nr, r, vr, nn, g0p, f0p, &
+           & g0, g1, f0, f1)
+            g0p (:) = g0 (:)
+            f0p (:) = f0 (:)
+         End Do
+      End If
+      Return
+End Subroutine
 !EOC

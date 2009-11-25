@@ -1,226 +1,239 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006 J. K. Dewhurst and S. Sharma.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine seceqnhf(ikp, evecsvp)
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine seceqnhf (ikp, evecsvp)
+      Use modmain
+      Use modinput
+      Implicit None
 ! arguments
-integer, intent(in) :: ikp
-complex(8), intent(inout) :: evecsvp(nstsv, nstsv)
+      Integer, Intent (In) :: ikp
+      Complex (8), Intent (Inout) :: evecsvp (nstsv, nstsv)
 ! local variables
-integer::is, ia, ias, ir, irc
-integer::ngknr, ik, jk, ist1, ist2, ist3
-integer::iq, ig, iv(3), igq0
-integer::lmax, lwork, info
-real(8)::cfq, v(3), t1
-complex(8) zrho01, zrho02, zt1, zt2
+      Integer :: is, ia, ias, ir, irc
+      Integer :: ngknr, ik, jk, ist1, ist2, ist3
+      Integer :: iq, ig, iv (3), igq0
+      Integer :: lmax, lwork, info
+      Real (8) :: cfq, v (3), t1
+      Complex (8) zrho01, zrho02, zt1, zt2
 ! automatic arrays
-real(8)::zn(nspecies)
-complex(8) sfacgq0(natmtot)
+      Real (8) :: zn (nspecies)
+      Complex (8) sfacgq0 (natmtot)
 ! allocatable arrays
-integer, allocatable :: igkignr(:)
-real(8), allocatable :: vgklnr(:, :)
-real(8), allocatable :: vgkcnr(:, :)
-real(8), allocatable :: gkcnr(:)
-real(8), allocatable :: tpgkcnr(:, :)
-real(8), allocatable :: vgqc(:, :)
-real(8), allocatable :: tpgqc(:, :)
-real(8), allocatable :: gqc(:)
-real(8), allocatable :: jlgqr(:, :, :)
-real(8), allocatable :: jlgq0r(:, :, :)
-real(8), allocatable :: evalsvp(:)
-real(8), allocatable :: evalsvnr(:)
-real(8), allocatable :: rwork(:)
-real(8), allocatable :: rfmt(:, :, :)
-complex(8), allocatable :: h(:, :)
-complex(8), allocatable :: vmat(:, :)
-complex(8), allocatable :: apwalm(:, :, :, :)
-complex(8), allocatable :: evecfv(:, :)
-complex(8), allocatable :: evecsv(:, :)
-complex(8), allocatable :: sfacgknr(:, :)
-complex(8), allocatable :: ylmgq(:, :)
-complex(8), allocatable :: sfacgq(:, :)
-complex(8), allocatable :: wfmt1(:, :, :, :, :)
-complex(8), allocatable :: wfmt2(:, :, :, :, :)
-complex(8), allocatable :: wfir1(:, :, :)
-complex(8), allocatable :: wfir2(:, :, :)
-complex(8), allocatable :: zrhomt(:, :, :)
-complex(8), allocatable :: zrhoir(:)
-complex(8), allocatable :: zvclmt(:, :, :)
-complex(8), allocatable :: zvclir(:)
-complex(8), allocatable :: zfmt(:, :)
-complex(8), allocatable :: work(:)
+      Integer, Allocatable :: igkignr (:)
+      Real (8), Allocatable :: vgklnr (:, :)
+      Real (8), Allocatable :: vgkcnr (:, :)
+      Real (8), Allocatable :: gkcnr (:)
+      Real (8), Allocatable :: tpgkcnr (:, :)
+      Real (8), Allocatable :: vgqc (:, :)
+      Real (8), Allocatable :: tpgqc (:, :)
+      Real (8), Allocatable :: gqc (:)
+      Real (8), Allocatable :: jlgqr (:, :, :)
+      Real (8), Allocatable :: jlgq0r (:, :, :)
+      Real (8), Allocatable :: evalsvp (:)
+      Real (8), Allocatable :: evalsvnr (:)
+      Real (8), Allocatable :: rwork (:)
+      Real (8), Allocatable :: rfmt (:, :, :)
+      Complex (8), Allocatable :: h (:, :)
+      Complex (8), Allocatable :: vmat (:, :)
+      Complex (8), Allocatable :: apwalm (:, :, :, :)
+      Complex (8), Allocatable :: evecfv (:, :)
+      Complex (8), Allocatable :: evecsv (:, :)
+      Complex (8), Allocatable :: sfacgknr (:, :)
+      Complex (8), Allocatable :: ylmgq (:, :)
+      Complex (8), Allocatable :: sfacgq (:, :)
+      Complex (8), Allocatable :: wfmt1 (:, :, :, :, :)
+      Complex (8), Allocatable :: wfmt2 (:, :, :, :, :)
+      Complex (8), Allocatable :: wfir1 (:, :, :)
+      Complex (8), Allocatable :: wfir2 (:, :, :)
+      Complex (8), Allocatable :: zrhomt (:, :, :)
+      Complex (8), Allocatable :: zrhoir (:)
+      Complex (8), Allocatable :: zvclmt (:, :, :)
+      Complex (8), Allocatable :: zvclir (:)
+      Complex (8), Allocatable :: zfmt (:, :)
+      Complex (8), Allocatable :: work (:)
 ! external functions
-complex(8) zfinp
-external zfinp
+      Complex (8) zfinp
+      External zfinp
 !$OMP CRITICAL
-write(*, '("Info(seceqnhf): ", I6, " of ", I6, " k-points")') ikp, nkpt
+      Write (*, '("Info(seceqnhf): ", I6, " of ", I6, " k-points")') &
+     & ikp, nkpt
 !$OMP END CRITICAL
 ! allocate local arrays
-allocate(igkignr(ngkmax))
-allocate(vgklnr(3, ngkmax))
-allocate(vgkcnr(3, ngkmax))
-allocate(gkcnr(ngkmax))
-allocate(tpgkcnr(2, ngkmax))
-allocate(vgqc(3, ngvec))
-allocate(tpgqc(2, ngvec))
-allocate(gqc(ngvec))
-allocate(jlgqr(0:input%groundstate%lmaxvr+input%groundstate%npsden+1, ngvec, nspecies))
-allocate(jlgq0r(0:input%groundstate%lmaxvr, nrcmtmax, nspecies))
-allocate(evalsvp(nstsv))
-allocate(evalsvnr(nstsv))
-allocate(rwork(3*nstsv))
-allocate(h(nstsv, nstsv))
-allocate(vmat(nstsv, nstsv))
-allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
-allocate(evecfv(nmatmax, nstfv))
-allocate(evecsv(nstsv, nstsv))
-allocate(sfacgknr(ngkmax, natmtot))
-allocate(ylmgq(lmmaxvr, ngvec))
-allocate(sfacgq(ngvec, natmtot))
-allocate(wfmt1(lmmaxvr, nrcmtmax, natmtot, nspinor, nstsv))
-allocate(wfmt2(lmmaxvr, nrcmtmax, natmtot, nspinor, nstsv))
-allocate(wfir1(ngrtot, nspinor, nstsv))
-allocate(wfir2(ngrtot, nspinor, nstsv))
-allocate(zrhomt(lmmaxvr, nrcmtmax, natmtot))
-allocate(zrhoir(ngrtot))
-allocate(zvclmt(lmmaxvr, nrcmtmax, natmtot))
-allocate(zvclir(ngrtot))
-allocate(zfmt(lmmaxvr, nrcmtmax))
-lwork=2*nstsv
-allocate(work(lwork))
-allocate(rfmt(lmmaxvr, nrcmtmax, natmtot))
+      Allocate (igkignr(ngkmax))
+      Allocate (vgklnr(3, ngkmax))
+      Allocate (vgkcnr(3, ngkmax))
+      Allocate (gkcnr(ngkmax))
+      Allocate (tpgkcnr(2, ngkmax))
+      Allocate (vgqc(3, ngvec))
+      Allocate (tpgqc(2, ngvec))
+      Allocate (gqc(ngvec))
+      Allocate &
+     & (jlgqr(0:input%groundstate%lmaxvr+input%groundstate%npsden+1, &
+     & ngvec, nspecies))
+      Allocate (jlgq0r(0:input%groundstate%lmaxvr, nrcmtmax, nspecies))
+      Allocate (evalsvp(nstsv))
+      Allocate (evalsvnr(nstsv))
+      Allocate (rwork(3*nstsv))
+      Allocate (h(nstsv, nstsv))
+      Allocate (vmat(nstsv, nstsv))
+      Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot))
+      Allocate (evecfv(nmatmax, nstfv))
+      Allocate (evecsv(nstsv, nstsv))
+      Allocate (sfacgknr(ngkmax, natmtot))
+      Allocate (ylmgq(lmmaxvr, ngvec))
+      Allocate (sfacgq(ngvec, natmtot))
+      Allocate (wfmt1(lmmaxvr, nrcmtmax, natmtot, nspinor, nstsv))
+      Allocate (wfmt2(lmmaxvr, nrcmtmax, natmtot, nspinor, nstsv))
+      Allocate (wfir1(ngrtot, nspinor, nstsv))
+      Allocate (wfir2(ngrtot, nspinor, nstsv))
+      Allocate (zrhomt(lmmaxvr, nrcmtmax, natmtot))
+      Allocate (zrhoir(ngrtot))
+      Allocate (zvclmt(lmmaxvr, nrcmtmax, natmtot))
+      Allocate (zvclir(ngrtot))
+      Allocate (zfmt(lmmaxvr, nrcmtmax))
+      lwork = 2 * nstsv
+      Allocate (work(lwork))
+      Allocate (rfmt(lmmaxvr, nrcmtmax, natmtot))
 ! coefficient of long-range term
-cfq=0.5d0*(omega/pi)**2
+      cfq = 0.5d0 * (omega/pi) ** 2
 ! set the point charges to zero
-zn(:)=0.d0
+      zn (:) = 0.d0
 ! get the eigenvalues/vectors from file for input k-point
-call getevalsv(vkl(:, ikp), evalsvp)
-call getevecfv(vkl(:, ikp), vgkl(:, :, :, ikp), evecfv)
+      Call getevalsv (vkl(:, ikp), evalsvp)
+      Call getevecfv (vkl(:, ikp), vgkl(:, :, :, ikp), evecfv)
 ! find the matching coefficients
-call match(ngk(1, ikp), gkc(:, 1, ikp), tpgkc(:, :, 1, ikp), sfacgk(:, :, 1, ikp), apwalm)
+      Call match (ngk(1, ikp), gkc(:, 1, ikp), tpgkc(:, :, 1, ikp), &
+     & sfacgk(:, :, 1, ikp), apwalm)
 ! calculate the wavefunctions for all states for the input k-point
-call genwfsv(.false., ngk(1, ikp), igkig(:, 1, ikp), evalsvp, apwalm, evecfv, evecsvp, &
- wfmt1, wfir1)
+      Call genwfsv (.False., ngk(1, ikp), igkig(:, 1, ikp), evalsvp, &
+     & apwalm, evecfv, evecsvp, wfmt1, wfir1)
 ! compute the new kinetic matrix elements
-call zgemm('N', 'N', nstsv, nstsv, nstsv, zone, kinmatc(:, :, ikp), nstsv, evecsvp, &
- nstsv, zzero, vmat, nstsv)
-call zgemm('C', 'N', nstsv, nstsv, nstsv, zone, evecsvp, nstsv, vmat, nstsv, zzero, h, &
- nstsv)
+      Call zgemm ('N', 'N', nstsv, nstsv, nstsv, zone, kinmatc(:, :, &
+     & ikp), nstsv, evecsvp, nstsv, zzero, vmat, nstsv)
+      Call zgemm ('C', 'N', nstsv, nstsv, nstsv, zone, evecsvp, nstsv, &
+     & vmat, nstsv, zzero, h, nstsv)
 ! convert muffin-tin Coulomb potential to spherical coordinates
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    irc=0
-    do ir=1, nrmt(is), input%groundstate%lradstep
-      irc=irc+1
-      call dgemv('N', lmmaxvr, lmmaxvr, 1.d0, rbshtvr, lmmaxvr, vclmt(:, ir, ias), 1, &
-       0.d0, rfmt(:, irc, ias), 1)
-    end do
-  end do
-end do
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            irc = 0
+            Do ir = 1, nrmt (is), input%groundstate%lradstep
+               irc = irc + 1
+               Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, rbshtvr, &
+              & lmmaxvr, vclmt(:, ir, ias), 1, 0.d0, rfmt(:, irc, ias), &
+              & 1)
+            End Do
+         End Do
+      End Do
 ! compute the Coulomb matrix elements and add
-call genvmatk(rfmt, vclir, wfmt1, wfir1, vmat)
-h(:, :)=h(:, :)+vmat(:, :)
+      Call genvmatk (rfmt, vclir, wfmt1, wfir1, vmat)
+      h (:, :) = h (:, :) + vmat (:, :)
 ! zero the non-local matrix elements for passed k-point
-vmat(:, :)=0.d0
+      vmat (:, :) = 0.d0
 ! start loop over non-reduced k-point set
-do ik=1, nkptnr
+      Do ik = 1, nkptnr
 ! find the equivalent reduced k-point
-  iv(:)=ivknr(:, ik)
-  jk=ikmap(iv(1), iv(2), iv(3))
+         iv (:) = ivknr (:, ik)
+         jk = ikmap (iv(1), iv(2), iv(3))
 ! generate the G+k vectors
-  call gengpvec(vklnr(:, ik), vkcnr(:, ik), ngknr, igkignr, vgklnr, vgkcnr, gkcnr, &
-   tpgkcnr)
+         Call gengpvec (vklnr(:, ik), vkcnr(:, ik), ngknr, igkignr, &
+        & vgklnr, vgkcnr, gkcnr, tpgkcnr)
 ! get the eigenvalues/vectors from file for non-reduced k-point
-  call getevalsv(vklnr(:, ik), evalsvnr)
-  call getevecfv(vklnr(:, ik), vgklnr, evecfv)
-  call getevecsv(vklnr(:, ik), evecsv)
+         Call getevalsv (vklnr(:, ik), evalsvnr)
+         Call getevecfv (vklnr(:, ik), vgklnr, evecfv)
+         Call getevecsv (vklnr(:, ik), evecsv)
 ! generate the structure factors
-  call gensfacgp(ngknr, vgkcnr, ngkmax, sfacgknr)
+         Call gensfacgp (ngknr, vgkcnr, ngkmax, sfacgknr)
 ! find the matching coefficients
-  call match(ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm)
+         Call match (ngknr, gkcnr, tpgkcnr, sfacgknr, apwalm)
 ! determine q-vector
-  iv(:)=ivk(:, ikp)-ivknr(:, ik)
-  iv(:)=modulo(iv(:), input%groundstate%ngridk(:))
-  iq=iqmap(iv(1), iv(2), iv(3))
-  v(:)=vkc(:, ikp)-vkcnr(:, ik)
-  do ig=1, ngvec
+         iv (:) = ivk (:, ikp) - ivknr (:, ik)
+         iv (:) = modulo (iv(:), input%groundstate%ngridk(:))
+         iq = iqmap (iv(1), iv(2), iv(3))
+         v (:) = vkc (:, ikp) - vkcnr (:, ik)
+         Do ig = 1, ngvec
 ! determine G+q vectors
-    vgqc(:, ig)=vgc(:, ig)+v(:)
+            vgqc (:, ig) = vgc (:, ig) + v (:)
 ! G+q-vector length and (theta, phi) coordinates
-    call sphcrd(vgqc(:, ig), gqc(ig), tpgqc(:, ig))
+            Call sphcrd (vgqc(:, ig), gqc(ig), tpgqc(:, ig))
 ! spherical harmonics for G+q-vector
-    call genylm(input%groundstate%lmaxvr, tpgqc(:, ig), ylmgq(:, ig))
-  end do
+            Call genylm (input%groundstate%lmaxvr, tpgqc(:, ig), &
+           & ylmgq(:, ig))
+         End Do
 ! structure factors for G+q
-  call gensfacgp(ngvec, vgqc, ngvec, sfacgq)
+         Call gensfacgp (ngvec, vgqc, ngvec, sfacgq)
 ! find the shortest G+q-vector
-  call findigp0(ngvec, gqc, igq0)
-  sfacgq0(:)=sfacgq(igq0, :)
+         Call findigp0 (ngvec, gqc, igq0)
+         sfacgq0 (:) = sfacgq (igq0, :)
 ! compute the required spherical Bessel functions
-  lmax=input%groundstate%lmaxvr+input%groundstate%npsden+1
-  call genjlgpr(lmax, gqc, jlgqr)
-  call genjlgq0r(gqc(igq0), jlgq0r)
+         lmax = input%groundstate%lmaxvr + input%groundstate%npsden + 1
+         Call genjlgpr (lmax, gqc, jlgqr)
+         Call genjlgq0r (gqc(igq0), jlgq0r)
 ! calculate the wavefunctions for all states
-  call genwfsv(.false., ngknr, igkignr, evalsvnr, apwalm, evecfv, evecsv, wfmt2, wfir2)
-  do ist3=1, nstsv
-    if (occsv(ist3, jk).gt.input%groundstate%epsocc) then
-      do ist2=1, nstsv
+         Call genwfsv (.False., ngknr, igkignr, evalsvnr, apwalm, &
+        & evecfv, evecsv, wfmt2, wfir2)
+         Do ist3 = 1, nstsv
+            If (occsv(ist3, jk) .Gt. input%groundstate%epsocc) Then
+               Do ist2 = 1, nstsv
 ! calculate the complex overlap density
-	call vnlrho(.true., wfmt2(:, :, :, :, ist3), wfmt1(:, :, :, :, ist2), &
-	 wfir2(:, :, ist3), wfir1(:, :, ist2), zrhomt, zrhoir)
+                  Call vnlrho (.True., wfmt2(:, :, :, :, ist3), &
+                 & wfmt1(:, :, :, :, ist2), wfir2(:, :, ist3), wfir1(:, &
+                 & :, ist2), zrhomt, zrhoir)
 ! calculate the Coulomb potential
-	call zpotcoul(nrcmt, nrcmtmax, nrcmtmax, rcmt, igq0, gqc, jlgqr, ylmgq, &
-	 sfacgq, zn, zrhomt, zrhoir, zvclmt, zvclir, zrho02)
+                  Call zpotcoul (nrcmt, nrcmtmax, nrcmtmax, rcmt, igq0, &
+                 & gqc, jlgqr, ylmgq, sfacgq, zn, zrhomt, zrhoir, &
+                 & zvclmt, zvclir, zrho02)
 !----------------------------------------------!
 !     valence-valence-valence contribution     !
 !----------------------------------------------!
-	do ist1=1, ist2
+                  Do ist1 = 1, ist2
 ! calculate the complex overlap density
-	  call vnlrho(.true., wfmt2(:, :, :, :, ist3), wfmt1(:, :, :, :, ist1), &
-	   wfir2(:, :, ist3), wfir1(:, :, ist1), zrhomt, zrhoir)
-	  zt1=zfinp(.true., zrhomt, zvclmt, zrhoir, zvclir)
+                     Call vnlrho (.True., wfmt2(:, :, :, :, ist3), &
+                    & wfmt1(:, :, :, :, ist1), wfir2(:, :, ist3), &
+                    & wfir1(:, :, ist1), zrhomt, zrhoir)
+                     zt1 = zfinp (.True., zrhomt, zvclmt, zrhoir, &
+                    & zvclir)
 ! compute the density coefficient of the smallest G+q-vector
-	  call zrhogp(gqc(igq0), jlgq0r, ylmgq(:, igq0), sfacgq0, zrhomt, zrhoir, &
-	   zrho01)
-	  zt2=cfq*wiq2(iq)*(conjg(zrho01)*zrho02)
-	  t1=occsv(ist3, jk)/occmax
-	  vmat(ist1, ist2)=vmat(ist1, ist2)-t1*(wkptnr(ik)*zt1+zt2)
-	end do
-      end do
-    end if
-  end do
+                     Call zrhogp (gqc(igq0), jlgq0r, ylmgq(:, igq0), &
+                    & sfacgq0, zrhomt, zrhoir, zrho01)
+                     zt2 = cfq * wiq2 (iq) * (conjg(zrho01)*zrho02)
+                     t1 = occsv (ist3, jk) / occmax
+                     vmat (ist1, ist2) = vmat (ist1, ist2) - t1 * &
+                    & (wkptnr(ik)*zt1+zt2)
+                  End Do
+               End Do
+            End If
+         End Do
 ! end loop over non-reduced k-point set
-end do
+      End Do
 ! add the non-local matrix elements to Hamiltonian
-h(:, :)=h(:, :)+vmat(:, :)
+      h (:, :) = h (:, :) + vmat (:, :)
 ! diagonalise the Hartree-Fock Hamiltonian (eigenvalues in global array)
-call zheev('V', 'U', nstsv, h, nstsv, evalsv(:, ikp), work, lwork, rwork, info)
-if (info.ne.0) then
-  write(*, *)
-  write(*, '("Error(seceqnhf): diagonalisation of the Hartree-Fock Hamiltonian &
-   &failed")')
-  write(*, '(" for k-point ", I8)') ikp
-  write(*, '(" ZHEEV returned INFO = ", I8)') info
-  write(*, *)
-  stop
-end if
+      Call zheev ('V', 'U', nstsv, h, nstsv, evalsv(:, ikp), work, &
+     & lwork, rwork, info)
+      If (info .Ne. 0) Then
+         Write (*,*)
+         Write (*, '("Error(seceqnhf): diagonalisation of the Hartree-F&
+        &ock Hamiltonian failed")')
+         Write (*, '(" for k-point ", I8)') ikp
+         Write (*, '(" ZHEEV returned INFO = ", I8)') info
+         Write (*,*)
+         Stop
+      End If
 ! apply unitary transformation to second-variational states
-evecsv(:, :)=evecsvp(:, :)
-call zgemm('N', 'N', nstsv, nstsv, nstsv, zone, evecsv, nstsv, h, nstsv, zzero, evecsvp, &
- nstsv)
-deallocate(igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
-deallocate(vgqc, tpgqc, gqc, jlgqr, jlgq0r)
-deallocate(evalsvp, evalsvnr, evecfv, evecsv, rwork)
-deallocate(h, vmat, apwalm, sfacgknr, ylmgq, sfacgq)
-deallocate(wfmt1, wfmt2, wfir1, wfir2)
-deallocate(zrhomt, zrhoir, zvclmt, zvclir, zfmt, work, rfmt)
-return
-end subroutine
+      evecsv (:, :) = evecsvp (:, :)
+      Call zgemm ('N', 'N', nstsv, nstsv, nstsv, zone, evecsv, nstsv, &
+     & h, nstsv, zzero, evecsvp, nstsv)
+      Deallocate (igkignr, vgklnr, vgkcnr, gkcnr, tpgkcnr)
+      Deallocate (vgqc, tpgqc, gqc, jlgqr, jlgq0r)
+      Deallocate (evalsvp, evalsvnr, evecfv, evecsv, rwork)
+      Deallocate (h, vmat, apwalm, sfacgknr, ylmgq, sfacgq)
+      Deallocate (wfmt1, wfmt2, wfir1, wfir2)
+      Deallocate (zrhomt, zrhoir, zvclmt, zvclir, zfmt, work, rfmt)
+      Return
+End Subroutine

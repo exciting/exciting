@@ -1,210 +1,230 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_getemat
-  implicit none
-contains
-
-
-subroutine getemat(iq, ik, tarec, filnam, ngp, l1, h1, l2, h2, x12, l3, h3, l4, h4, x34)
-    use modmain
-use modinput
-    use modxs
-    use modmpi
-    use m_getunit
-    implicit none
+!
+Module m_getemat
+      Implicit None
+Contains
+!
+!
+      Subroutine getemat (iq, ik, tarec, filnam, ngp, l1, h1, l2, h2, &
+     & x12, l3, h3, l4, h4, x34)
+         Use modmain
+         Use modinput
+         Use modxs
+         Use modmpi
+         Use m_getunit
+         Implicit None
     ! arguments
-    integer, intent(in) :: iq, ik, ngp
-    logical :: tarec
-    character(*) :: filnam
-    integer, intent(in) :: l1, h1, l2, h2
-    complex(8), intent(out) :: x12(:, :, :)
-    integer, optional, intent(in) :: l3, h3, l4, h4
-    complex(8), optional, intent(out) :: x34(:, :, :)
+         Integer, Intent (In) :: iq, ik, ngp
+         Logical :: tarec
+         Character (*) :: filnam
+         Integer, Intent (In) :: l1, h1, l2, h2
+         Complex (8), Intent (Out) :: x12 (:, :, :)
+         Integer, Optional, Intent (In) :: l3, h3, l4, h4
+         Complex (8), Optional, Intent (Out) :: x34 (:, :, :)
     ! local variables
-    character(*), parameter :: thisnam = 'getemat'
-    integer :: recl, un, ikr, n1, n2, n3, n4, nstsv_, ngq_, err
-    integer :: l1_, h1_, l2_, h2_, l3_, h3_, l4_, h4_, n1_, n2_, n3_, n4_
-    real(8) :: vql_(3), vkl_(3)
-    logical :: existent, lerr
-    complex(8), allocatable :: x12t(:, :, :), x34t(:, :, :)
+         Character (*), Parameter :: thisnam = 'getemat'
+         Integer :: recl, un, ikr, n1, n2, n3, n4, nstsv_, ngq_, err
+         Integer :: l1_, h1_, l2_, h2_, l3_, h3_, l4_, h4_, n1_, n2_, &
+        & n3_, n4_
+         Real (8) :: vql_ (3), vkl_ (3)
+         Logical :: existent, lerr
+         Complex (8), Allocatable :: x12t (:, :, :), x34t (:, :, :)
     ! functions
-    real(8) :: r3dist
-    external :: r3dist
+         Real (8) :: r3dist
+         External :: r3dist
     ! check if all optional variables are present if any is present
-    if ((present(l3).or.present(h3).or.present(l4).or.present(h4).or. &
-	 present(x34)).and.(.not.( &
-	 present(l3).and.present(h3).and.present(l4).and.present(h4).and. &
-	 present(x34)))) then
-       write(*, *)
-       write(*, '("Error(getemat): optional parameters not complete - check &
-	    &calling routines")')
-       write(*, *)
-       call terminate
-    end if
+         If ((present(l3) .Or. present(h3) .Or. present(l4) .Or. &
+        & present(h4) .Or. present(x34)) .And. ( .Not. (present(l3) &
+        & .And. present(h3) .And. present(l4) .And. present(h4) .And. &
+        & present(x34)))) Then
+            Write (*,*)
+            Write (*, '("Error(getemat): optional parameters not comple&
+           &te - check calling routines")')
+            Write (*,*)
+            Call terminate
+         End If
     ! check if file exists
-    inquire(file=trim(filnam), exist=existent)
-    if (.not.existent) then
-       write(unitout, '(a)') 'Error('//thisnam//'): file does not exist: '// &
-	    trim(filnam)
-       call terminate
-    end if
+         Inquire (File=trim(filnam), Exist=existent)
+         If ( .Not. existent) Then
+            Write (unitout, '(a)') 'Error(' // thisnam // '): file does&
+           & not exist: ' // trim (filnam)
+            Call terminate
+         End If
     ! record position for k-point
-    ikr=ik
-    if (.not.tarec) call getridx(procs, nkpt, ik, ikr)
+         ikr = ik
+         If ( .Not. tarec) Call getridx (procs, nkpt, ik, ikr)
     ! check limits for states
-    lerr = (l1.lt.1).or.(l1.gt.nstsv).or.(h1.lt.1).or.(h1.gt.nstsv).or. &
-	 (l2.lt.1).or.(l2.gt.nstsv).or.(h2.lt.1).or.(h2.gt.nstsv).or. &
-	 (l1.ge.h1).or.(l2.ge.h2)
-    if (present(x34)) &
-	 lerr = lerr.or.(l3.lt.1).or.(l3.gt.nstsv).or.(h3.lt.1).or.(h3.gt.nstsv) &
-	 .or.(l4.lt.1).or.(l4.gt.nstsv).or.(h4.lt.1).or.(h4.gt.nstsv).or. &
-	 (l3.ge.h3).or.(l4.ge.h4)
-    err=0
-    if (lerr) then
-       write(unitout, *)
-       write(unitout, '("Error(", a, "): inconsistent requested limits for &
-	    &states:")') thisnam
-       if (present(x34)) then
-	  write(unitout, '(" requested state limits (lo, hi): ", 4(2i6, 2x))') &
-	       l1, h1, l2, h2, l3, h3, l4, h4
-       else
-	  write(unitout, '(" requested state limits (lo, hi): ", 2(2i6, 2x))') &
-	       l1, h1, l2, h2
-       end if
-       write(unitout, '(" maximum value 		: ", i6)') nstsv
-       write(unitout, *)
-       call flushifc(unitout)
-       err=err+1
-    end if
-    n1=h1-l1+1
-    n2=h2-l2+1
-    if (present(x34)) then
-       n3=h3-l3+1
-       n4=h4-l4+1
-    end if
+         lerr = (l1 .Lt. 1) .Or. (l1 .Gt. nstsv) .Or. (h1 .Lt. 1) .Or. &
+        & (h1 .Gt. nstsv) .Or. (l2 .Lt. 1) .Or. (l2 .Gt. nstsv) .Or. &
+        & (h2 .Lt. 1) .Or. (h2 .Gt. nstsv) .Or. (l1 .Ge. h1) .Or. (l2 &
+        & .Ge. h2)
+         If (present(x34)) lerr = lerr .Or. (l3 .Lt. 1) .Or. (l3 .Gt. &
+        & nstsv) .Or. (h3 .Lt. 1) .Or. (h3 .Gt. nstsv) .Or. (l4 .Lt. 1) &
+        & .Or. (l4 .Gt. nstsv) .Or. (h4 .Lt. 1) .Or. (h4 .Gt. nstsv) &
+        & .Or. (l3 .Ge. h3) .Or. (l4 .Ge. h4)
+         err = 0
+         If (lerr) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(", a, "): inconsistent requested l&
+           &imits for states:")') thisnam
+            If (present(x34)) Then
+               Write (unitout, '(" requested state limits (lo, hi): ", &
+              &4(2i6, 2x))') l1, h1, l2, h2, l3, h3, l4, h4
+            Else
+               Write (unitout, '(" requested state limits (lo, hi): ", &
+              &2(2i6, 2x))') l1, h1, l2, h2
+            End If
+            Write (unitout, '(" maximum value 		: ", i6)') nstsv
+            Write (unitout,*)
+            Call flushifc (unitout)
+            err = err + 1
+         End If
+         n1 = h1 - l1 + 1
+         n2 = h2 - l2 + 1
+         If (present(x34)) Then
+            n3 = h3 - l3 + 1
+            n4 = h4 - l4 + 1
+         End If
     ! check block sizes against array
-    lerr = (size(x12, 1).ne.n1).or.(size(x12, 2).ne.n2).or.(ngp.gt.ngq(iq)) &
-	 .or.(size(x12, 3).ne.ngp)
-    if (present(x34)) lerr = lerr.or.(size(x34, 1).ne.n3).or.(size(x34, 2).ne.n4) &
-	 .or.(size(x34, 3).ne.ngp)
-    if (lerr) then
-       write(unitout, *)
-       write(unitout, '("Error(", a, "): output array does not match for &
-	    &states:")') thisnam
-       write(unitout, '(" requested number of G+q vectors : ", i6)') ngp
-       write(unitout, '(" current number of G+q vectors   : ", i6)') ngq(iq)
-       if (present(x34)) then
-	  write(unitout, '(" array sizes for G+q vectors     : ", 2i6)') &
-	       size(x12, 3), size(x34, 3)
-	  write(unitout, '(" block sizes : ", 4i6)') n1, n2, n3, n4
-	  write(unitout, '(" array sizes : ", 4i6)') size(x12, 1), size(x12, 2), &
-	       size(x34, 1), size(x34, 2)
-       else
-	  write(unitout, '(" array size for G+q vectors      : ", i6)') &
-	       size(x12, 3)
-	  write(unitout, '(" block sizes : ", 2i6)') n1, n2
-	  write(unitout, '(" array sizes : ", 2i6)') size(x12, 1), size(x12, 2)
-       end if
-       write(unitout, *)
-       call flushifc(unitout)
-       err=err+1
-    end if
-    if (err.gt.0) call terminate
+         lerr = (size(x12, 1) .Ne. n1) .Or. (size(x12, 2) .Ne. n2) .Or. &
+        & (ngp .Gt. ngq(iq)) .Or. (size(x12, 3) .Ne. ngp)
+         If (present(x34)) lerr = lerr .Or. (size(x34, 1) .Ne. n3) .Or. &
+        & (size(x34, 2) .Ne. n4) .Or. (size(x34, 3) .Ne. ngp)
+         If (lerr) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(", a, "): output array does not ma&
+           &tch for states:")') thisnam
+            Write (unitout, '(" requested number of G+q vectors : ", i6&
+           &)') ngp
+            Write (unitout, '(" current number of G+q vectors   : ", i6&
+           &)') ngq (iq)
+            If (present(x34)) Then
+               Write (unitout, '(" array sizes for G+q vectors     : ",&
+              & 2i6)') size (x12, 3), size (x34, 3)
+               Write (unitout, '(" block sizes : ", 4i6)') n1, n2, n3, &
+              & n4
+               Write (unitout, '(" array sizes : ", 4i6)') size (x12, &
+              & 1), size (x12, 2), size (x34, 1), size (x34, 2)
+            Else
+               Write (unitout, '(" array size for G+q vectors      : ",&
+              & i6)') size (x12, 3)
+               Write (unitout, '(" block sizes : ", 2i6)') n1, n2
+               Write (unitout, '(" array sizes : ", 2i6)') size (x12, &
+              & 1), size (x12, 2)
+            End If
+            Write (unitout,*)
+            Call flushifc (unitout)
+            err = err + 1
+         End If
+         If (err .Gt. 0) Call terminate
     !------------------------!
     !     get parameters     !
     !------------------------!
-    call getunit(un)
-    if (present(x34)) then
+         Call getunit (un)
+         If (present(x34)) Then
        ! I/O record length
-       inquire(iolength = recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_, l3_, h3_, &
-	    l4_, h4_
-       open(unit = un, file = trim(filnam), form = 'unformatted', action = 'read', &
-	    access = 'direct', recl = recl)
-       read(un, rec=1) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_, l3_, h3_, l4_, h4_
-       close(un)
-    else
+            Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
+           & l2_, h2_, l3_, h3_, l4_, h4_
+            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+           & Action='read', Access='direct', Recl=Recl)
+            Read (un, Rec=1) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
+           & h2_, l3_, h3_, l4_, h4_
+            Close (un)
+         Else
        ! I/O record length
-       inquire(iolength=recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_
-       open(unit = un, file = trim(filnam), form = 'unformatted', action = 'read', &
-	    access = 'direct', recl = recl)
-       read(un, rec=1) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_
-       close(un)
-    end if
-    err=0
+            Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
+           & l2_, h2_
+            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+           & Action='read', Access='direct', Recl=Recl)
+            Read (un, Rec=1) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
+           & h2_
+            Close (un)
+         End If
+         err = 0
     ! check block sizes
-    lerr=(l1.lt.l1_).or.(h1.gt.h1_).or.(l2.lt.l2_).or.(h2.gt.h2_)
-    if (present(x34)) lerr = lerr.or.(l3.lt.l3_).or.(h3.gt.h3_).or. &
-	 (l4.lt.l4_).or.(h4.gt.h4_)
-    if (lerr) then
-       write(unitout, *)
-       write(unitout, '("Error(", a, "): limits for states out of range in &
-	    &file:")') thisnam
-       if (present(x34)) then
-	  write(unitout, '(" requested state limits (lo, hi): ", 4(2i6, 2x))') &
-	       l1, h1, l2, h2, l3, h3, l4, h4
-	  write(unitout, '(" state limits from file (lo, hi): ", 4(2i6, 2x))') &
-	       l1_, h1_, l2_, h2_, l3_, h3_, l4_, h4_
-       else
-	  write(unitout, '(" requested state limits (lo, hi): ", 2(2i6, 2x))') &
-	       l1, h1, l2, h2
-	  write(unitout, '(" state limits from file (lo, hi): ", 2(2i6, 2x))') &
-	       l1_, h1_, l2_, h2_
-	  write(unitout, '(" file			   : ", a)') trim(filnam)
-       end if
-       write(unitout, *)
-       call flushifc(unitout)
-       err=err+1 
-    end if
-    if (err.gt.0) call terminate
+         lerr = (l1 .Lt. l1_) .Or. (h1 .Gt. h1_) .Or. (l2 .Lt. l2_) &
+        & .Or. (h2 .Gt. h2_)
+         If (present(x34)) lerr = lerr .Or. (l3 .Lt. l3_) .Or. (h3 .Gt. &
+        & h3_) .Or. (l4 .Lt. l4_) .Or. (h4 .Gt. h4_)
+         If (lerr) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(", a, "): limits for states out of&
+           & range in file:")') thisnam
+            If (present(x34)) Then
+               Write (unitout, '(" requested state limits (lo, hi): ", &
+              &4(2i6, 2x))') l1, h1, l2, h2, l3, h3, l4, h4
+               Write (unitout, '(" state limits from file (lo, hi): ", &
+              &4(2i6, 2x))') l1_, h1_, l2_, h2_, l3_, h3_, l4_, h4_
+            Else
+               Write (unitout, '(" requested state limits (lo, hi): ", &
+              &2(2i6, 2x))') l1, h1, l2, h2
+               Write (unitout, '(" state limits from file (lo, hi): ", &
+              &2(2i6, 2x))') l1_, h1_, l2_, h2_
+               Write (unitout, '(" file			   : ", a)') trim (filnam)
+            End If
+            Write (unitout,*)
+            Call flushifc (unitout)
+            err = err + 1
+         End If
+         If (err .Gt. 0) Call terminate
     !------------------!
     !     get data     !
     !------------------!
-    n1_=h1_-l1_+1; n2_=h2_-l2_+1
-    if (present(x34)) then
-       n3_=h3_-l3_+1; n4_=h4_-l4_+1
-    end if
-    allocate(x12t(n1_, n2_, ngq_))
-    if (present(x34)) allocate(x34t(n3_, n4_, ngq_))
-    call getunit(un)
-    if (present(x34)) then
+         n1_ = h1_ - l1_ + 1
+         n2_ = h2_ - l2_ + 1
+         If (present(x34)) Then
+            n3_ = h3_ - l3_ + 1
+            n4_ = h4_ - l4_ + 1
+         End If
+         Allocate (x12t(n1_, n2_, ngq_))
+         If (present(x34)) allocate (x34t(n3_, n4_, ngq_))
+         Call getunit (un)
+         If (present(x34)) Then
        ! I/O record length
-       inquire(iolength = recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_, l3_, h3_, &
-	    l4_, h4_, x12t, x34t
-       open(unit = un, file = trim(filnam), form = 'unformatted', action = 'read', &
-	    access = 'direct', recl = recl)
-       read(un, rec = ikr) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_, l3_, h3_, l4_, h4_, &
-	    x12t, x34t
-    else
+            Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
+           & l2_, h2_, l3_, h3_, l4_, h4_, x12t, x34t
+            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+           & Action='read', Access='direct', Recl=Recl)
+            Read (un, Rec=ikr) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
+           & h2_, l3_, h3_, l4_, h4_, x12t, x34t
+         Else
        ! I/O record length
-       inquire(iolength=recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_, x12t
-       open(unit = un, file = trim(filnam), form = 'unformatted', action = 'read', &
-	    access = 'direct', recl = recl)
-       read(un, rec=ikr) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, h2_, x12t
-    end if
-    close(un)
+            Inquire (IoLength=Recl) vql_, vkl_, nstsv_, ngq_, l1_, h1_, &
+           & l2_, h2_, x12t
+            Open (Unit=un, File=trim(filnam), Form='unformatted', &
+           & Action='read', Access='direct', Recl=Recl)
+            Read (un, Rec=ikr) vql_, vkl_, nstsv_, ngq_, l1_, h1_, l2_, &
+           & h2_, x12t
+         End If
+         Close (un)
     ! check q-point and k-point
-    if ((r3dist(vql_, vql(1, iq)).gt.input%structure%epslat).or. &
-	 (r3dist(vkl_, vkl(1, ik)).gt.input%structure%epslat)) then
-       write(unitout, *)
-       write(unitout, '(a)') 'Error('//thisnam//'): differring parameters for &
-	    &matrix elements (current/file): '
-       write(unitout, '(a, 3f12.6, a, 3f12.6)') ' vql :', vql(:, iq), ', ', vql_
-       write(unitout, '(a, 3f12.6, a, 3f12.6)') ' vkl :', vkl(:, ik), ', ', vkl_
-       write(unitout, '(a)') ' file: ', trim(filnam)
-       write(unitout, *)
-       call flushifc(unitout)
-       call terminate
-    end if
+         If ((r3dist(vql_, vql(1, iq)) .Gt. input%structure%epslat) &
+        & .Or. (r3dist(vkl_, vkl(1, ik)) .Gt. input%structure%epslat)) &
+        & Then
+            Write (unitout,*)
+            Write (unitout, '(a)') 'Error(' // thisnam // '): differrin&
+           &g parameters for matrix elements (current/file): '
+            Write (unitout, '(a, 3f12.6, a, 3f12.6)') ' vql :', vql (:, &
+           & iq), ', ', vql_
+            Write (unitout, '(a, 3f12.6, a, 3f12.6)') ' vkl :', vkl (:, &
+           & ik), ', ', vkl_
+            Write (unitout, '(a)') ' file: ', trim (filnam)
+            Write (unitout,*)
+            Call flushifc (unitout)
+            Call terminate
+         End If
     ! retrieve data within cutoff
-    x12(:, :, :)=x12t(l1-l1_+1:h1-l1_+1, l2-l2_+1:h2-l2_+1, :ngp)
-    deallocate(x12t)
-    if (present(x34)) x34(:, :, :)=x34t(l3-l3_+1:h3-l3_+1, l4-l4_+1:h4-l4_+1, :ngp)
-    if (present(x34)) deallocate(x34t)
-  end subroutine getemat
-
-end module m_getemat
+         x12 (:, :, :) = x12t (l1-l1_+1:h1-l1_+1, l2-l2_+1:h2-l2_+1, &
+        & :ngp)
+         Deallocate (x12t)
+         If (present(x34)) x34 (:, :, :) = x34t (l3-l3_+1:h3-l3_+1, &
+        & l4-l4_+1:h4-l4_+1, :ngp)
+         If (present(x34)) deallocate (x34t)
+      End Subroutine getemat
+!
+End Module m_getemat

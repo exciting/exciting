@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: rtozflm
 ! !INTERFACE:
-
-
-subroutine rtozflm(lmax, rflm, zflm)
+!
+!
+Subroutine rtozflm (lmax, rflm, zflm)
 ! !INPUT/OUTPUT PARAMETERS:
 !   lmax : maximum angular momentum (in,integer)
 !   rflm : coefficients of real spherical harmonic expansion
@@ -29,44 +29,44 @@ subroutine rtozflm(lmax, rflm, zflm)
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: lmax
-real(8), intent(in) :: rflm(*)
-complex(8), intent(out) :: zflm(*)
+      Integer, Intent (In) :: lmax
+      Real (8), Intent (In) :: rflm (*)
+      Complex (8), Intent (Out) :: zflm (*)
 ! local variables
-integer::l, m, lm1, lm2
+      Integer :: l, m, lm1, lm2
 ! real constant 1/sqrt(2)
-real(8), parameter :: c1=0.7071067811865475244d0
-if (lmax.lt.0) then
-  write(*, *)
-  write(*, '("Error(rtozflm): lmax < 0 : ", I8)') lmax
-  write(*, *)
-  stop
-end if
-lm1=0
-do l=0, lmax
-  lm2=lm1+2*(l+1)
-  do m=-l, l
-    lm1=lm1+1
-    lm2=lm2-1
-    if (m.gt.0) then
-      if (mod(m, 2).ne.0) then
-	zflm(lm1)=c1*cmplx(rflm(lm1), -rflm(lm2), 8)
-      else
-	zflm(lm1)=c1*cmplx(rflm(lm1), rflm(lm2), 8)
-      end if
-    else if (m.lt.0) then
-      if (mod(m, 2).ne.0) then
-	zflm(lm1)=c1*cmplx(-rflm(lm2), -rflm(lm1), 8)
-      else
-	zflm(lm1)=c1*cmplx(rflm(lm2), -rflm(lm1), 8)
-      end if
-    else
-      zflm(lm1)=rflm(lm1)
-    end if
-  end do
-end do
-return
-end subroutine
+      Real (8), Parameter :: c1 = 0.7071067811865475244d0
+      If (lmax .Lt. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rtozflm): lmax < 0 : ", I8)') lmax
+         Write (*,*)
+         Stop
+      End If
+      lm1 = 0
+      Do l = 0, lmax
+         lm2 = lm1 + 2 * (l+1)
+         Do m = - l, l
+            lm1 = lm1 + 1
+            lm2 = lm2 - 1
+            If (m .Gt. 0) Then
+               If (Mod(m, 2) .Ne. 0) Then
+                  zflm (lm1) = c1 * cmplx (rflm(lm1),-rflm(lm2), 8)
+               Else
+                  zflm (lm1) = c1 * cmplx (rflm(lm1), rflm(lm2), 8)
+               End If
+            Else If (m .Lt. 0) Then
+               If (Mod(m, 2) .Ne. 0) Then
+                  zflm (lm1) = c1 * cmplx (-rflm(lm2),-rflm(lm1), 8)
+               Else
+                  zflm (lm1) = c1 * cmplx (rflm(lm2),-rflm(lm1), 8)
+               End If
+            Else
+               zflm (lm1) = rflm (lm1)
+            End If
+         End Do
+      End Do
+      Return
+End Subroutine
 !EOC

@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: rotzflm
 ! !INTERFACE:
-
-
-subroutine rotzflm(rot, lmax, n, ld, zflm1, zflm2)
+!
+!
+Subroutine rotzflm (rot, lmax, n, ld, zflm1, zflm2)
 ! !INPUT/OUTPUT PARAMETERS:
 !   rot   : rotation matrix (in,real(3,3))
 !   lmax  : maximum angular momentum (in,integer)
@@ -46,100 +46,104 @@ subroutine rotzflm(rot, lmax, n, ld, zflm1, zflm2)
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: rot(3, 3)
-integer, intent(in) :: lmax
-integer, intent(in) :: n
-integer, intent(in) :: ld
-complex(8), intent(in) :: zflm1(ld, n)
-complex(8), intent(out) :: zflm2(ld, n)
+      Real (8), Intent (In) :: rot (3, 3)
+      Integer, Intent (In) :: lmax
+      Integer, Intent (In) :: n
+      Integer, Intent (In) :: ld
+      Complex (8), Intent (In) :: zflm1 (ld, n)
+      Complex (8), Intent (Out) :: zflm2 (ld, n)
 ! local variables
-integer::lmmax, l, m1, m2, lm1, lm2
-integer::i, j, nm, p
-real(8)::det, roti(3, 3), ang(3)
-real(8)::cb, sb, sum, t1, t2, t3
-complex(8), parameter :: zzero=(0.d0, 0.d0)
-complex(8), parameter :: zone=(1.d0, 0.d0)
+      Integer :: lmmax, l, m1, m2, lm1, lm2
+      Integer :: i, j, nm, p
+      Real (8) :: det, roti (3, 3), ang (3)
+      Real (8) :: cb, sb, sum, t1, t2, t3
+      Complex (8), Parameter :: zzero = (0.d0, 0.d0)
+      Complex (8), Parameter :: zone = (1.d0, 0.d0)
 ! allocatable arrays
-complex(8), allocatable :: d(:, :)
+      Complex (8), Allocatable :: d (:, :)
 ! external functions
-real(8)::factnm
-external factnm
-if (lmax.lt.0) then
-  write(*, *)
-  write(*, '("Error(rotzflm): lmax < 0 : ", I8)') lmax
-  write(*, *)
-  stop
-end if
-if (n.eq.0) return
-if (n.lt.0) then
-  write(*, *)
-  write(*, '("Error(rotzflm): n < 0 : ", I8)') n
-  write(*, *)
-  stop
-end if
-lmmax=(lmax+1)**2
-allocate(d(lmmax, lmmax))
+      Real (8) :: factnm
+      External factnm
+      If (lmax .Lt. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rotzflm): lmax < 0 : ", I8)') lmax
+         Write (*,*)
+         Stop
+      End If
+      If (n .Eq. 0) Return
+      If (n .Lt. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rotzflm): n < 0 : ", I8)') n
+         Write (*,*)
+         Stop
+      End If
+      lmmax = (lmax+1) ** 2
+      Allocate (d(lmmax, lmmax))
 ! find the determinant
-det = rot(1, 2) * rot(2, 3) * rot(3, 1) - rot(1, 3) * rot(2, 2) * rot(3, 1) &
-   +rot(1, 3) * rot(2, 1) * rot(3, 2) - rot(1, 1) * rot(2, 3) * rot(3, 2) &
-   +rot(1, 1) * rot(2, 2) * rot(3, 3) - rot(1, 2) * rot(2, 1) * rot(3, 3)
+      det = rot (1, 2) * rot (2, 3) * rot (3, 1) - rot (1, 3) * rot (2, &
+     & 2) * rot (3, 1) + rot (1, 3) * rot (2, 1) * rot (3, 2) - rot (1, &
+     & 1) * rot (2, 3) * rot (3, 2) + rot (1, 1) * rot (2, 2) * rot (3, &
+     & 3) - rot (1, 2) * rot (2, 1) * rot (3, 3)
 ! invert rot because the function is to be rotated and not the coordinate system
-call r3minv(rot, roti)
+      Call r3minv (rot, roti)
 ! make inverse rotation proper
-if (det.gt.0.d0) then
-  p=1
-else
-  p=-1
-  roti(:, :)=-roti(:, :)
-end if
+      If (det .Gt. 0.d0) Then
+         p = 1
+      Else
+         p = - 1
+         roti (:, :) = - roti (:, :)
+      End If
 ! compute Euler angles of rotation matrix
-call euler(roti, ang)
-cb=cos(ang(2)/2.d0)
-sb=sin(ang(2)/2.d0)
-lm1=0
-do l=0, lmax
+      Call euler (roti, ang)
+      cb = Cos (ang(2)/2.d0)
+      sb = Sin (ang(2)/2.d0)
+      lm1 = 0
+      Do l = 0, lmax
 ! generate rotation operator for m-components of current l
-  do m1=-l, l
-    lm1=lm1+1
-    lm2=l**2
-    do m2=-l, l
-      lm2=lm2+1
-      sum=0.d0
-      do i=0, min(l+m1, l-m2)
-	if (((l+m1-i).ge.0).and.((l-m2-i).ge.0).and.((i+m2-m1).ge.0)) then
-	  j=2*l+m1-m2-2*i
-	  if (j.eq.0) then
-	    t1=1.d0
-	  else
-	    t1=cb**j
-	  end if
-	  j=2*i+m2-m1
-	  if (j.eq.0) then
-	    t2=1.d0
-	  else
-	    t2=sb**j
-	  end if
-	  t3 = t1 * t2/(factnm(l + m1 - i, 1) * factnm(l - m2 - i, 1) * factnm(i, 1) &
-	   *factnm(i + m2 - m1, 1))
-	  if (mod(i, 2).ne.0) t3=-t3
-	  sum=sum+t3
-	end if
-      end do
-      t1=sqrt(factnm(l+m1, 1)*factnm(l-m1, 1)*factnm(l+m2, 1)*factnm(l-m2, 1))
-      t2=-dble(m1)*ang(1)-dble(m2)*ang(3)
-      d(lm1, lm2)=sum*t1*cmplx(cos(t2), sin(t2), 8)
-      if ((p.eq.-1).and.(mod(l, 2).ne.0)) d(lm1, lm2)=-d(lm1, lm2)
-    end do
-  end do
+         Do m1 = - l, l
+            lm1 = lm1 + 1
+            lm2 = l ** 2
+            Do m2 = - l, l
+               lm2 = lm2 + 1
+               sum = 0.d0
+               Do i = 0, Min (l+m1, l-m2)
+                  If (((l+m1-i) .Ge. 0) .And. ((l-m2-i) .Ge. 0) .And. &
+                 & ((i+m2-m1) .Ge. 0)) Then
+                     j = 2 * l + m1 - m2 - 2 * i
+                     If (j .Eq. 0) Then
+                        t1 = 1.d0
+                     Else
+                        t1 = cb ** j
+                     End If
+                     j = 2 * i + m2 - m1
+                     If (j .Eq. 0) Then
+                        t2 = 1.d0
+                     Else
+                        t2 = sb ** j
+                     End If
+                     t3 = t1 * t2 / (factnm(l+m1-i, 1)*factnm(l-m2-i, &
+                    & 1)*factnm(i, 1)*factnm(i+m2-m1, 1))
+                     If (Mod(i, 2) .Ne. 0) t3 = - t3
+                     sum = sum + t3
+                  End If
+               End Do
+               t1 = Sqrt (factnm(l+m1, 1)*factnm(l-m1, 1)*factnm(l+m2, &
+              & 1)*factnm(l-m2, 1))
+               t2 = - dble (m1) * ang (1) - dble (m2) * ang (3)
+               d (lm1, lm2) = sum * t1 * cmplx (Cos(t2), Sin(t2), 8)
+               If ((p .Eq.-1) .And. (Mod(l, 2) .Ne. 0)) d (lm1, lm2) = &
+              & - d (lm1, lm2)
+            End Do
+         End Do
 ! apply rotation operator
-  nm=2*l+1
-  lm2=l**2+1
-  call zgemm('N', 'N', nm, n, nm, zone, d(lm2, lm2), lmmax, zflm1(lm2, 1), ld, zzero, &
-   zflm2(lm2, 1), ld)
-end do
-deallocate(d)
-return
-end subroutine
+         nm = 2 * l + 1
+         lm2 = l ** 2 + 1
+         Call zgemm ('N', 'N', nm, n, nm, zone, d(lm2, lm2), lmmax, &
+        & zflm1(lm2, 1), ld, zzero, zflm2(lm2, 1), ld)
+      End Do
+      Deallocate (d)
+      Return
+End Subroutine
 !EOC

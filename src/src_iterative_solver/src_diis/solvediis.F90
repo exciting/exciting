@@ -1,44 +1,46 @@
-
-
-
-
-subroutine solvediis(m, Pmatrix, Qmatrix, c)
-  use diisinterfaces
-  implicit none
-  integer, intent(in)::m
-
-  real(8), intent(inout)::Pmatrix(m+1, m+1), Qmatrix(m+1, m+1)
-  real(8), intent(out)::c(m+1)
-  real(8):: work(8*m)
-  real(8):: rwork(7*m), abstol, v
-  integer:: iwork(5*m), ifail(m), info, mfound, lwork, i
-
-  abstol=2.d0*dlamch('S')
-  lwork =8*m
-  i=1	
-  call dsygvx(1, 'V', 'I', 'U', m, Pmatrix, m + 1, Qmatrix, m + 1, &
-       v, v, i, i, abstol, mfound, v, c, m + 1, work, lwork, &
-       iwork, ifail, info)
-
-  if (info.ne.0) then
-     write(*, *)
-     write(*, '("Error(solvediis): diagonalisation failed")')
-     write(*, '(" ZHEGVX returned INFO = ", I8)') info
-     if (info.gt.m) then
-	i=info-m
-	write(*, '(" The leading minor of the overlap matrix of order ", I8)') i
-	write(*, '("  is not positive definite")')
-	write(*, '(" Order of overlap matrix : ", I8)') m
-	write(*, *) 
-#ifdef DEBUG		   
-	write(775, *)(Pmatrix)
-	write(776, *)(Qmatrix)
-	stop
+!
+!
+!
+!
+Subroutine solvediis (m, Pmatrix, Qmatrix, c)
+      Use diisinterfaces
+      Implicit None
+      Integer, Intent (In) :: m
+!
+      Real (8), Intent (Inout) :: Pmatrix (m+1, m+1), Qmatrix (m+1, &
+     & m+1)
+      Real (8), Intent (Out) :: c (m+1)
+      Real (8) :: work (8*m)
+      Real (8) :: rwork (7*m), abstol, v
+      Integer :: iwork (5*m), ifail (m), info, mfound, lwork, i
+!
+      abstol = 2.d0 * dlamch ('S')
+      lwork = 8 * m
+      i = 1
+      Call dsygvx (1, 'V', 'I', 'U', m, Pmatrix, m+1, Qmatrix, m+1, v, &
+     & v, i, i, abstol, mfound, v, c, m+1, work, lwork, iwork, ifail, &
+     & info)
+!
+      If (info .Ne. 0) Then
+         Write (*,*)
+         Write (*, '("Error(solvediis): diagonalisation failed")')
+         Write (*, '(" ZHEGVX returned INFO = ", I8)') info
+         If (info .Gt. m) Then
+            i = info - m
+            Write (*, '(" The leading minor of the overlap matrix of or&
+           &der ", I8)') i
+            Write (*, '("  is not positive definite")')
+            Write (*, '(" Order of overlap matrix : ", I8)') m
+            Write (*,*)
+#ifdef DEBUG		
+            Write (775,*) (Pmatrix)
+            Write (776,*) (Qmatrix)
+            Stop
 #endif
-	c=0.0
-	c(m)=1.0
-     end if
-
-  end if
-
-end subroutine solvediis
+            c = 0.0
+            c (m) = 1.0
+         End If
+!
+      End If
+!
+End Subroutine solvediis

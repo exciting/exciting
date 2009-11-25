@@ -1,161 +1,176 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine xslinopt(iq)
-  use modmain
-use modinput
-  use modxs
-  use modtetra
-  use modmpi
-  use m_genwgrid
-  use m_pade
-  use m_genloss
-  use m_gensigma
-  use m_gensumrls
-  use m_writeeps
-  use m_writeloss
-  use m_writesigma
-  use m_writesumrls
-  use m_getunit
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine xslinopt (iq)
+      Use modmain
+      Use modinput
+      Use modxs
+      Use modtetra
+      Use modmpi
+      Use m_genwgrid
+      Use m_pade
+      Use m_genloss
+      Use m_gensigma
+      Use m_gensumrls
+      Use m_writeeps
+      Use m_writeloss
+      Use m_writesigma
+      Use m_writesumrls
+      Use m_getunit
+      Use m_genfilname
+      Implicit None
   ! arguments
-  integer, intent(in) :: iq
+      Integer, Intent (In) :: iq
   ! local variables
-  character(*), parameter :: thisnam='xslinopt'
-  character(256) :: filnam
-  complex(8),allocatable :: mdf(:), mdf1(:),mdf2(:,:,:),w(:),wr(:),sigma(:)
-  real(8),allocatable :: wplot(:),loss(:)
-  real(8),allocatable :: eps1(:),eps2(:),cf(:,:)
-  real(8) :: sumrls(3),brd
-  integer :: n,m,recl,iw,wi,wf,nwdfp,nc,oct1,oct2,octl,octu,optcompt(3),i,j
-  logical :: tq0
-  logical, external :: tqgamma
-  tq0=tqgamma(iq)
+      Character (*), Parameter :: thisnam = 'xslinopt'
+      Character (256) :: filnam
+      Complex (8), Allocatable :: mdf (:), mdf1 (:), mdf2 (:, :, :), w &
+     & (:), wr (:), sigma (:)
+      Real (8), Allocatable :: wplot (:), loss (:)
+      Real (8), Allocatable :: eps1 (:), eps2 (:), cf (:, :)
+      Real (8) :: sumrls (3), brd
+      Integer :: n, m, recl, iw, wi, wf, nwdfp, nc, oct1, oct2, octl, &
+     & octu, optcompt (3), i, j
+      Logical :: tq0
+      Logical, External :: tqgamma
+      tq0 = tqgamma (iq)
   ! number of components (3 for q=0)
-  nc=1
-  if (tq0) nc=3
+      nc = 1
+      If (tq0) nc = 3
   ! limits for w-points
-  wi=wpari
-  wf=wparf
-  nwdfp=wparf-wpari+1
+      wi = wpari
+      wf = wparf
+      nwdfp = wparf - wpari + 1
   ! matrix size for local field effects
-  n=ngq(iq)
-  allocate(mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), wr(input%xs%dosWindow%points), wplot(input%xs%dosWindow%points), &
-    &mdf(input%xs%dosWindow%points), &
-       loss(input%xs%dosWindow%points), sigma(input%xs%dosWindow%points), cf(3, input%xs%dosWindow%points))
-  allocate(eps1(input%xs%dosWindow%points), eps2(input%xs%dosWindow%points))
-  mdf2(:,:,:)=zzero
+      n = ngq (iq)
+      Allocate (mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), &
+     & wr(input%xs%dosWindow%points), wplot(input%xs%dosWindow%points), &
+     & mdf(input%xs%dosWindow%points), loss(input%xs%dosWindow%points), &
+     & sigma(input%xs%dosWindow%points), cf(3, &
+     & input%xs%dosWindow%points))
+      Allocate (eps1(input%xs%dosWindow%points), &
+     & eps2(input%xs%dosWindow%points))
+      mdf2 (:, :, :) = zzero
   ! generate energy grids
-  brd=0.d0
-  if (input%xs%tddft%acont) brd=input%xs%broad
-  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_cmplx=w)
-  call genwgrid(input%xs%dosWindow%points, input%xs%dosWindow%intv, .false., brd, w_cmplx=wr)
-  wplot=dble(wr)
+      brd = 0.d0
+      If (input%xs%tddft%acont) brd = input%xs%broad
+      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+     & input%xs%tddft%acont, 0.d0, w_cmplx=w)
+      Call genwgrid (input%xs%dosWindow%points, &
+     & input%xs%dosWindow%intv, .False., brd, w_cmplx=wr)
+      wplot = dble (wr)
   ! record length
-  inquire(iolength=recl) mdf1(1)
-  call getunit(unit1)
+      Inquire (IoLength=Recl) mdf1 (1)
+      Call getunit (unit1)
   ! neglect/include local field effects
-  do m=1,n,max(n-1,1)
+      Do m = 1, n, Max (n-1, 1)
      ! loop over longitudinal components for optics
-     do oct1=1,nc
-	if (input%xs%dfoffdiag) then
-           octl=1
-           octu=nc
-        else
-           octl=oct1
-           octu=oct1
-        end if
-        do oct2=octl,octu
+         Do oct1 = 1, nc
+            If (input%xs%dfoffdiag) Then
+               octl = 1
+               octu = nc
+            Else
+               octl = oct1
+               octu = oct1
+            End If
+            Do oct2 = octl, octu
            ! file name for inverse of dielectric function
-           call genfilname(basename='IDF',asc=.false.,bzsampl=bzsampl,&
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
-		&fxctype =input%xs%tddft%fxctypenumber, &
-                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=filnam)
+               Call genfilname (basename='IDF', asc=.False., &
+              & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
+              & oc1=oct1, oc2=oct2, iqmt=iq, filnam=filnam)
            ! read macroscopic dielectric function (original frequencies)
-           open(unit1,file=trim(filnam),form='unformatted', &
-                action='read',status='old',access='direct',recl=recl)
-           do iw=1,nwdf
-              read(unit1,rec=iw) mdf1(iw)
-           end do
-           close(unit1)
+               Open (unit1, File=trim(filnam), Form='unformatted', &
+              & Action='read', Status='old', Access='direct', &
+              & Recl=Recl)
+               Do iw = 1, nwdf
+                  Read (unit1, Rec=iw) mdf1 (iw)
+               End Do
+               Close (unit1)
            ! analytic continuation
-	   if (input%xs%tddft%acont) then
-	      call pade(input%xs%dosWindow%points, wr, nwdf, w, mdf1, mdf)
-           else
-              mdf(:)=mdf1(:)
-           end if
-           mdf2(oct1,oct2,:)=mdf(:)
-        end do
-     end do
-     do oct1=1,nc
-	if (input%xs%dfoffdiag) then
-           octl=1
-           octu=nc
-        else
-           octl=oct1
-           octu=oct1
-        end if
-        do oct2=octl,octu
-           optcompt(:)=(/oct1,oct2,0/)
+               If (input%xs%tddft%acont) Then
+                  Call pade (input%xs%dosWindow%points, wr, nwdf, w, &
+                 & mdf1, mdf)
+               Else
+                  mdf (:) = mdf1 (:)
+               End If
+               mdf2 (oct1, oct2, :) = mdf (:)
+            End Do
+         End Do
+         Do oct1 = 1, nc
+            If (input%xs%dfoffdiag) Then
+               octl = 1
+               octu = nc
+            Else
+               octl = oct1
+               octu = oct1
+            End If
+            Do oct2 = octl, octu
+               optcompt (:) = (/ oct1, oct2, 0 /)
            ! symmetrize the macroscopic dielectric function tensor
-           call symt2app(oct1,oct2,nwdf,symt2,mdf2, mdf)
+               Call symt2app (oct1, oct2, nwdf, symt2, mdf2, mdf)
            ! file names for spectra
-           call genfilname(basename='EPSILON',asc=.false.,bzsampl=bzsampl,&
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
-        fxctype=input%xs%tddft%fxctypenumber, &
-                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fneps)
-           call genfilname(basename='LOSS',asc=.false.,bzsampl=bzsampl,&
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
-        fxctype =input%xs%tddft%fxctypenumber, &
-                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnloss)
-           call genfilname(basename='SIGMA',asc=.false.,bzsampl=bzsampl,&
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
-       fxctype =input%xs%tddft%fxctypenumber, &
-                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsigma)
-           call genfilname(basename='SUMRULES',asc=.false.,bzsampl=bzsampl,&
-		acont = input%xs%tddft%acont, nar = .not.input%xs%tddft%aresdf, nlf = (m == 1),&
-        fxctype=input%xs%tddft%fxctypenumber, &
-                tq0=tq0,oc1=oct1,oc2=oct2,iqmt=iq,filnam=fnsumrules)
+               Call genfilname (basename='EPSILON', asc=.False., &
+              & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
+              & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fneps)
+               Call genfilname (basename='LOSS', asc=.False., &
+              & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
+              & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnloss)
+               Call genfilname (basename='SIGMA', asc=.False., &
+              & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
+              & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnsigma)
+               Call genfilname (basename='SUMRULES', asc=.False., &
+              & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
+              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
+              & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnsumrules)
            ! generate optical functions
-           call genloss(mdf,loss)
-           call gensigma(dble(wr),mdf,optcompt,sigma)
-           call gensumrls(dble(wr),mdf,sumrls)
+               Call genloss (mdf, loss)
+               Call gensigma (dble(wr), mdf, optcompt, sigma)
+               Call gensumrls (dble(wr), mdf, sumrls)
            ! write optical functions to file
-           call writeeps(iq,oct1,oct2,wplot,mdf,trim(fneps))
-           call writeloss(iq,wplot,loss,trim(fnloss))
-           call writesigma(iq,wplot,sigma,trim(fnsigma))
-           call writesumrls(iq,sumrls,trim(fnsumrules))
+               Call writeeps (iq, oct1, oct2, wplot, mdf, trim(fneps))
+               Call writeloss (iq, wplot, loss, trim(fnloss))
+               Call writesigma (iq, wplot, sigma, trim(fnsigma))
+               Call writesumrls (iq, sumrls, trim(fnsumrules))
            ! end loop over optical components
-        end do
-     end do
-  end do ! m
+            End Do
+         End Do
+      End Do ! m
   ! deallocate
-  deallocate(mdf,mdf1,mdf2,w,wr,wplot,loss,sigma)
-  deallocate(eps1,eps2,cf)
-end subroutine xslinopt
-
+      Deallocate (mdf, mdf1, mdf2, w, wr, wplot, loss, sigma)
+      Deallocate (eps1, eps2, cf)
+End Subroutine xslinopt
+!
 !///////////////////////////////////////////////////////////////////////////////
-
-subroutine symt2app(oct1,oct2,n,symt2,t,tsym)
-  implicit none
+!
+Subroutine symt2app (oct1, oct2, n, symt2, t, tsym)
+      Implicit None
   ! arguments
-  integer, intent(in) :: oct1,oct2,n
-  real(8), intent(in) :: symt2(3,3,3,3)
-  complex(8), intent(in) :: t(3,3,n)
-  complex(8), intent(out) :: tsym(n)
+      Integer, Intent (In) :: oct1, oct2, n
+      Real (8), Intent (In) :: symt2 (3, 3, 3, 3)
+      Complex (8), Intent (In) :: t (3, 3, n)
+      Complex (8), Intent (Out) :: tsym (n)
   ! local variables
-  integer :: i,j
+      Integer :: i, j
   ! symmetrize the macroscopic dielectric function tensor
-  tsym(:)=(0.d0,0.d0)
-  do i=1,3
-     do j=1,3
-        tsym(:)=tsym(:)+symt2(oct1,oct2,i,j)*t(i,j,:)
-     end do
-  end do
-end subroutine
+      tsym (:) = (0.d0, 0.d0)
+      Do i = 1, 3
+         Do j = 1, 3
+            tsym (:) = tsym (:) + symt2 (oct1, oct2, i, j) * t (i, j, &
+           & :)
+         End Do
+      End Do
+End Subroutine

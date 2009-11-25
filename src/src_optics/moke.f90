@@ -1,96 +1,98 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 S. Sharma, J. K. Dewhurst and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine moke
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine moke
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-integer::iw, iostat
-complex(8) zt1, zt2, zt3
+      Integer :: iw, iostat
+      Complex (8) zt1, zt2, zt3
 ! allocatable arrays
-real(8), allocatable :: w(:)
-real(8), allocatable :: sig1(:, :)
-real(8), allocatable :: sig2(:, :)
-complex(8), allocatable :: kerr(:)
+      Real (8), Allocatable :: w (:)
+      Real (8), Allocatable :: sig1 (:, :)
+      Real (8), Allocatable :: sig2 (:, :)
+      Complex (8), Allocatable :: kerr (:)
 ! calculate dielectric function for the 11 and 12 components
-noptcomp=2
-input%properties%linresponsetensor%optcomp(1, 1)=1
-input%properties%linresponsetensor%optcomp(2, 1)=1
-input%properties%linresponsetensor%optcomp(1, 2)=1
-input%properties%linresponsetensor%optcomp(2, 2)=2
-call dielectric
+      noptcomp = 2
+      input%properties%linresponsetensor%optcomp(1, 1) = 1
+      input%properties%linresponsetensor%optcomp(2, 1) = 1
+      input%properties%linresponsetensor%optcomp(1, 2) = 1
+      input%properties%linresponsetensor%optcomp(2, 2) = 2
+      Call dielectric
 ! allocate local arrays
-allocate(w(input%properties%dos%nwdos))
-allocate(sig1(input%properties%dos%nwdos, 2), sig2(input%properties%dos%nwdos, 2))
-allocate(kerr(input%properties%dos%nwdos))
+      Allocate (w(input%properties%dos%nwdos))
+      Allocate (sig1(input%properties%dos%nwdos, 2), &
+     & sig2(input%properties%dos%nwdos, 2))
+      Allocate (kerr(input%properties%dos%nwdos))
 ! read diagonal contribution to optical conductivity
-open(50, file = 'SIGMA_11.OUT', action = 'READ', status = 'OLD', &
- form = 'FORMATTED', iostat = iostat)
-if (iostat.ne.0) then
-  write(*, *)
-  write(*, '("Error(moke): error opening SIGMA_11.OUT")')
-  write(*, *)
-  stop
-end if
-do iw=1, input%properties%dos%nwdos
-  read(50, '(2G18.10)') w(iw), sig1(iw, 1)
-end do
-read(50, *)
-do iw=1, input%properties%dos%nwdos
-  read(50, '(2G18.10)') w(iw), sig2(iw, 1)
-end do
-close(50)
+      Open (50, File='SIGMA_11.OUT', Action='READ', Status='OLD', &
+     & Form='FORMATTED', IoStat=IoStat)
+      If (iostat .Ne. 0) Then
+         Write (*,*)
+         Write (*, '("Error(moke): error opening SIGMA_11.OUT")')
+         Write (*,*)
+         Stop
+      End If
+      Do iw = 1, input%properties%dos%nwdos
+         Read (50, '(2G18.10)') w (iw), sig1 (iw, 1)
+      End Do
+      Read (50,*)
+      Do iw = 1, input%properties%dos%nwdos
+         Read (50, '(2G18.10)') w (iw), sig2 (iw, 1)
+      End Do
+      Close (50)
 ! read off-diagonal contribution to optical conductivity
-open(50, file = 'SIGMA_12.OUT', action = 'READ', status = 'OLD', &
- form = 'FORMATTED', iostat = iostat)
-if (iostat.ne.0) then
-  write(*, *)
-  write(*, '("Error(moke): error opening SIGMA_12.OUT")')
-  write(*, *)
-  stop
-end if
-do iw=1, input%properties%dos%nwdos
-  read(50, '(2G18.10)') w(iw), sig1(iw, 2)
-end do
-read(50, *)
-do iw=1, input%properties%dos%nwdos
-  read(50, '(2G18.10)') w(iw), sig2(iw, 2)
-end do
-close(50)
+      Open (50, File='SIGMA_12.OUT', Action='READ', Status='OLD', &
+     & Form='FORMATTED', IoStat=IoStat)
+      If (iostat .Ne. 0) Then
+         Write (*,*)
+         Write (*, '("Error(moke): error opening SIGMA_12.OUT")')
+         Write (*,*)
+         Stop
+      End If
+      Do iw = 1, input%properties%dos%nwdos
+         Read (50, '(2G18.10)') w (iw), sig1 (iw, 2)
+      End Do
+      Read (50,*)
+      Do iw = 1, input%properties%dos%nwdos
+         Read (50, '(2G18.10)') w (iw), sig2 (iw, 2)
+      End Do
+      Close (50)
 ! calculate the complex Kerr angle
-do iw=1, input%properties%dos%nwdos
-  if (w(iw).gt.0.d0) then
-    zt1=cmplx(sig1(iw, 1), sig2(iw, 1), 8)
-    zt2=cmplx(sig1(iw, 2), sig2(iw, 2), 8)
-    zt3=zt1*sqrt(1.d0+fourpi*zi*zt1/w(iw))
-    if (abs(zt3).gt.1.d-8) then
-      kerr(iw)=-zt2/zt3
-    else
-      kerr(iw)=0.d0
-    end if
-  else
-    kerr(iw)=0.d0
-  end if
-end do
-open(50, file='KERR.OUT', action='WRITE', form='FORMATTED')
-do iw=1, input%properties%dos%nwdos
-  write(50, '(2G18.10)') w(iw), dble(kerr(iw))*180.d0/pi
-end do
-write(50, '("	  ")')
-do iw=1, input%properties%dos%nwdos
-  write(50, '(2G18.10)') w(iw), aimag(kerr(iw))*180.d0/pi
-end do
-close(50)
-write(*, *)
-write(*, '("Info(moke):")')
-write(*, '(" complex Kerr angle in degrees written to KERR.OUT")')
-write(*, *)
-deallocate(w, sig1, sig2, kerr)
-return
-end subroutine
+      Do iw = 1, input%properties%dos%nwdos
+         If (w(iw) .Gt. 0.d0) Then
+            zt1 = cmplx (sig1(iw, 1), sig2(iw, 1), 8)
+            zt2 = cmplx (sig1(iw, 2), sig2(iw, 2), 8)
+            zt3 = zt1 * Sqrt (1.d0+fourpi*zi*zt1/w(iw))
+            If (Abs(zt3) .Gt. 1.d-8) Then
+               kerr (iw) = - zt2 / zt3
+            Else
+               kerr (iw) = 0.d0
+            End If
+         Else
+            kerr (iw) = 0.d0
+         End If
+      End Do
+      Open (50, File='KERR.OUT', Action='WRITE', Form='FORMATTED')
+      Do iw = 1, input%properties%dos%nwdos
+         Write (50, '(2G18.10)') w (iw), dble (kerr(iw)) * 180.d0 / pi
+      End Do
+      Write (50, '("	  ")')
+      Do iw = 1, input%properties%dos%nwdos
+         Write (50, '(2G18.10)') w (iw), aimag (kerr(iw)) * 180.d0 / pi
+      End Do
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(moke):")')
+      Write (*, '(" complex Kerr angle in degrees written to KERR.OUT")&
+     &')
+      Write (*,*)
+      Deallocate (w, sig1, sig2, kerr)
+      Return
+End Subroutine

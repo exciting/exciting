@@ -1,54 +1,55 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine tetcalccw
-  use modmain
-use modinput
-  use modxs
-  use modmpi
-  use modtetra
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine tetcalccw
+      Use modmain
+      Use modinput
+      Use modxs
+      Use modmpi
+      Use modtetra
+      Use m_genfilname
+      Implicit None
   ! local variables
-  character(*), parameter :: thisnam='tetcalccw'
-  integer :: iq
-  logical :: tet
-  call init0
+      Character (*), Parameter :: thisnam = 'tetcalccw'
+      Integer :: iq
+      Logical :: tet
+      Call init0
   ! initialise universal variables
-  tet=input%xs%tetra%tetradf
-  input%xs%tetra%tetradf=.true.
-  call init1
+      tet = input%xs%tetra%tetradf
+      input%xs%tetra%tetradf = .True.
+      Call init1
   ! save Gamma-point variables
-  call xssave0
+      Call xssave0
   ! initialize q-point set
-  call init2
+      Call init2
   ! read Fermi energy
-  call readfermi
+      Call readfermi
   ! w-point interval for process
-  if (tscreen) then
-     nwdf=1
-     call genparidxran('q', nqpt)
-  else
-     call genparidxran('w', nwdf)
-  end if
+      If (tscreen) Then
+         nwdf = 1
+         Call genparidxran ('q', nqpt)
+      Else
+         Call genparidxran ('w', nwdf)
+      End If
   ! loop over q-points
-  do iq=qpari, qparf
+      Do iq = qpari, qparf
      ! call for q-point
-     call tetcalccwq(iq)
-     write(unitout, '(a, i8)') 'Info('//thisnam//'): weights for tetrahedron &
-	  &method finished for q - point:', iq
-  end do
+         Call tetcalccwq (iq)
+         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): weights f&
+        &or tetrahedron method finished for q - point:', iq
+      End Do
   ! synchronize
-  call barrier
-  if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call tetgather
-  call barrier
-  input%xs%tetra%tetradf=tet
-  write(unitout, '(a)') "Info("//trim(thisnam)//"): weights for tetrahedron &
-       &method finished"
-  call genfilname(setfilext=.true.)
-end subroutine tetcalccw
+      Call barrier
+      If ((procs .Gt. 1) .And. (rank .Eq. 0) .And. ( .Not. tscreen)) &
+     & Call tetgather
+      Call barrier
+      input%xs%tetra%tetradf = tet
+      Write (unitout, '(a)') "Info(" // trim (thisnam) // "): weights f&
+     &or tetrahedron method finished"
+      Call genfilname (setfilext=.True.)
+End Subroutine tetcalccw

@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2003-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: rfmtinp
 ! !INTERFACE:
-real(8) function rfmtinp(lrstp, lmax, nr, r, ld, rfmt1, rfmt2)
+Real (8) Function rfmtinp (lrstp, lmax, nr, r, ld, rfmt1, rfmt2)
 ! !INPUT/OUTPUT PARAMETERS:
 !   lrstp : radial step length (in,integer)
 !   lmax  : maximum angular momentum (in,integer)
@@ -32,49 +32,50 @@ real(8) function rfmtinp(lrstp, lmax, nr, r, ld, rfmt1, rfmt2)
 !   Created November 2003 (Sharma)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: lrstp
-integer, intent(in) :: lmax
-integer, intent(in) :: nr
-real(8), intent(in) :: r(nr)
-integer, intent(in) :: ld
-real(8), intent(in) :: rfmt1(ld, nr)
-real(8), intent(in) :: rfmt2(ld, nr)
+      Integer, Intent (In) :: lrstp
+      Integer, Intent (In) :: lmax
+      Integer, Intent (In) :: nr
+      Real (8), Intent (In) :: r (nr)
+      Integer, Intent (In) :: ld
+      Real (8), Intent (In) :: rfmt1 (ld, nr)
+      Real (8), Intent (In) :: rfmt2 (ld, nr)
 ! local variables
-integer::lmmax, ir, irc
+      Integer :: lmmax, ir, irc
 ! automatic arrays
-real(8)::rc(nr), fr(nr), gr(nr), cf(3, nr)
+      Real (8) :: rc (nr), fr (nr), gr (nr), cf (3, nr)
 ! external functions
-real(8)::ddot
-external ddot
-if (lrstp.le.0) then
-  write(*, *)
-  write(*, '("Error(rfmtinp): lrstp <= 0 : ", I8)') lrstp
-  write(*, *)
-  stop
-end if
-if (lmax.lt.0) then
-  write(*, *)
-  write(*, '("Error(rfmtinp): lmax < 0 : ", I8)') lmax
-  write(*, *)
-  stop
-end if
-if (nr.le.0) then
-  write(*, *)
-  write(*, '("Error(rfmtinp): nr <= 0 : ", I8)') nr
-  write(*, *)
-  stop
-end if
-lmmax=(lmax+1)**2
-irc=0
-do ir=1, nr, lrstp
-  irc=irc+1
-  rc(irc)=r(ir)
-  fr(irc)=ddot(lmmax, rfmt1(:, ir), 1, rfmt2(:, ir), 1)*(r(ir)**2)
-end do
-call fderiv(-1, irc, rc, fr, gr, cf)
-rfmtinp=gr(irc)
-return
-end function
+      Real (8) :: ddot
+      External ddot
+      If (lrstp .Le. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rfmtinp): lrstp <= 0 : ", I8)') lrstp
+         Write (*,*)
+         Stop
+      End If
+      If (lmax .Lt. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rfmtinp): lmax < 0 : ", I8)') lmax
+         Write (*,*)
+         Stop
+      End If
+      If (nr .Le. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rfmtinp): nr <= 0 : ", I8)') nr
+         Write (*,*)
+         Stop
+      End If
+      lmmax = (lmax+1) ** 2
+      irc = 0
+      Do ir = 1, nr, lrstp
+         irc = irc + 1
+         rc (irc) = r (ir)
+         fr (irc) = ddot (lmmax, rfmt1(:, ir), 1, rfmt2(:, ir), 1) * &
+        & (r(ir)**2)
+      End Do
+      Call fderiv (-1, irc, rc, fr, gr, cf)
+      rfmtinp = gr (irc)
+      Return
+End Function
 !EOC

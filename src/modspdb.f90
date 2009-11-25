@@ -1,4 +1,4 @@
-module modspdb
-use  modsp
-type(sp_type_array), allocatable ::speziesdeflist(:)
-end module
+Module modspdb
+      Use modsp
+      Type (sp_type_array), Allocatable :: speziesdeflist (:)
+End Module

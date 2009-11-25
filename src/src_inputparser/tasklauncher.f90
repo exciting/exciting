@@ -2,45 +2,45 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 ! main routine for the EXCITING code
-
-subroutine tasklauncher
-use modinput
-use modmain,only:task
-use inputdom
-
-implicit none
-
-  if(associated(input%groundstate)) then
-  	if(.not.(associated(input%groundstate%solver)))then
+!
+Subroutine tasklauncher
+      Use modinput
+      Use modmain, Only: task
+      Use inputdom
+!
+      Implicit None
+!
+      If (associated(input%groundstate)) Then
+         If ( .Not. (associated(input%groundstate%solver))) Then
   		! set the default values if solver element not present
-  		input%groundstate%solver=>getstructsolver(emptynode)
-  	endif
-   	if(input%groundstate%do.eq."fromscratch") then
-	    if(associated(input%structureoptimization)) then
-	        task=2
-	 	else
-	        task=0
-	   	endif
-  	else
-	    if(associated(input%structureoptimization)) then
-	 	    task=3
-	    else
-	   		task=1
-	   	endif
-    endif
-  	if (input%groundstate%do .ne. "skip") call gndstate
-  endif
-
-
-if(associated(input%properties)) then
-   	call propertylauncher
-endif
-
-if(associated(input%phonons)) then
-	call phonon
-endif
-
-if(associated(input%xs)) then
-	call xstasklauncher()
-endif
-end subroutine
+            input%groundstate%solver => getstructsolver (emptynode)
+         End If
+         If (input%groundstate%do .Eq. "fromscratch") Then
+            If (associated(input%structureoptimization)) Then
+               task = 2
+            Else
+               task = 0
+            End If
+         Else
+            If (associated(input%structureoptimization)) Then
+               task = 3
+            Else
+               task = 1
+            End If
+         End If
+         If (input%groundstate%do .Ne. "skip") Call gndstate
+      End If
+!
+!
+      If (associated(input%properties)) Then
+         Call propertylauncher
+      End If
+!
+      If (associated(input%phonons)) Then
+         Call phonon
+      End If
+!
+      If (associated(input%xs)) Then
+         Call xstasklauncher ()
+      End If
+End Subroutine

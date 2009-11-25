@@ -1,58 +1,65 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine writeemat
-  use modmain
-use modinput
-  use modxs
-  use modmpi
-  use m_xsgauntgen
-  use m_findgntn0
-  use m_filedel
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine writeemat
+      Use modmain
+      Use modinput
+      Use modxs
+      Use modmpi
+      Use m_xsgauntgen
+      Use m_findgntn0
+      Use m_filedel
+      Use m_genfilname
+      Implicit None
   ! local variables
-  character(*), parameter :: thisnam='writeemat'
-  integer :: iq
+      Character (*), Parameter :: thisnam = 'writeemat'
+      Integer :: iq
   ! initialise universal variables
-  call init0
-  call init1
-  call init2
+      Call init0
+      Call init1
+      Call init2
   ! k-point parallelization for TDDFT
-  if ((task.ge.300).and.(task.le.399)) call genparidxran('k', nkpt)
+      If ((task .Ge. 300) .And. (task .Le. 399)) Call genparidxran ('k',&
+     &  nkpt)
   ! q-point parallelization for screening
-  if ((task.ge.400).and.(task.le.499)) call genparidxran('q', nqpt)
+      If ((task .Ge. 400) .And. (task .Le. 499)) Call genparidxran ('q',&
+     &  nqpt)
    ! write q-point set
-  if (rank.eq.0) call writeqpts
+      If (rank .Eq. 0) Call writeqpts
   ! read Fermi energy from file
-  call readfermi
+      Call readfermi
   ! save variables for the Gamma q-point
-  call xssave0
+      Call xssave0
   ! generate Gaunt coefficients
-  call xsgauntgen(max(input%groundstate%lmaxapw, lolmax), input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
+      Call xsgauntgen (Max(input%groundstate%lmaxapw, lolmax), &
+     & input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
   ! find indices for non-zero Gaunt coefficients
-  call findgntn0(max(input%xs%lmaxapwwf, lolmax), max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
-  write(unitout, '(a, 3i8)') 'Info('//thisnam//'): Gaunt coefficients generated &
-       &within lmax values:', input%groundstate%lmaxapw, input%xs%lmaxemat, input%groundstate%lmaxapw
-  write(unitout, '(a, i6)') 'Info('//thisnam//'): number of q-points: ', nqpt
-  call flushifc(unitout)
+      Call findgntn0 (Max(input%xs%lmaxapwwf, lolmax), &
+     & Max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
+      Write (unitout, '(a, 3i8)') 'Info(' // thisnam // '): Gaunt coeff&
+     &icients generated within lmax values:', &
+     & input%groundstate%lmaxapw, input%xs%lmaxemat, &
+     & input%groundstate%lmaxapw
+      Write (unitout, '(a, i6)') 'Info(' // thisnam // '): number of q-&
+     &points: ', nqpt
+      Call flushifc (unitout)
   ! loop over q-points
-  do iq=1, nqpt
+      Do iq = 1, nqpt
      ! call for q-point
-     call ematq(iq)
-     write(unitout, '(a, i8)') 'Info('//thisnam//'): matrix elements of the &
-	  &exponentials finished for q - point:', iq
-     call flushifc(unitout)
-  end do
+         Call ematq (iq)
+         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): matrix el&
+        &ements of the exponentials finished for q - point:', iq
+         Call flushifc (unitout)
+      End Do
   ! synchronize
-  call barrier
-  write(unitout, '(a)') "Info("//trim(thisnam)//"): matrix elements of &
-       &exponential expression finished"
-  call findgntn0_clear
-  call genfilname(setfilext=.true.)
-end subroutine writeemat
+      Call barrier
+      Write (unitout, '(a)') "Info(" // trim (thisnam) // "): matrix el&
+     &ements of exponential expression finished"
+      Call findgntn0_clear
+      Call genfilname (setfilext=.True.)
+End Subroutine writeemat

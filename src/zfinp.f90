@@ -1,19 +1,19 @@
-
-
-
-
+!
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
-
+!
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: zfinp
 ! !INTERFACE:
-complex(8) function zfinp(tsh, zfmt1, zfmt2, zfir1, zfir2)
+Complex (8) Function zfinp (tsh, zfmt1, zfmt2, zfir1, zfir2)
 ! !USES:
-use modmain
-use modinput
+      Use modmain
+      Use modinput
 ! !INPUT/OUTPUT PARAMETERS:
 !   tsh   : .true. if the muffin-tin functions are in spherical harmonics
 !           (in,logical)
@@ -37,34 +37,35 @@ use modinput
 !   Created July 2004 (Sharma)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: tsh
-complex(8), intent(in) :: zfmt1(lmmaxvr, nrcmtmax, natmtot)
-complex(8), intent(in) :: zfmt2(lmmaxvr, nrcmtmax, natmtot)
-complex(8), intent(in) :: zfir1(ngrtot)
-complex(8), intent(in) :: zfir2(ngrtot)
+      Logical, Intent (In) :: tsh
+      Complex (8), Intent (In) :: zfmt1 (lmmaxvr, nrcmtmax, natmtot)
+      Complex (8), Intent (In) :: zfmt2 (lmmaxvr, nrcmtmax, natmtot)
+      Complex (8), Intent (In) :: zfir1 (ngrtot)
+      Complex (8), Intent (In) :: zfir2 (ngrtot)
 ! local variables
-integer::is, ia, ias, ir
-complex(8) zsum
+      Integer :: is, ia, ias, ir
+      Complex (8) zsum
 ! external functions
-complex(8) zfmtinp
-external zfmtinp
-zsum=0.d0
+      Complex (8) zfmtinp
+      External zfmtinp
+      zsum = 0.d0
 ! interstitial contribution
-do ir=1, ngrtot
-  zsum=zsum+cfunir(ir)*conjg(zfir1(ir))*zfir2(ir)
-end do
-zsum=zsum*omega/dble(ngrtot)
+      Do ir = 1, ngrtot
+         zsum = zsum + cfunir (ir) * conjg (zfir1(ir)) * zfir2 (ir)
+      End Do
+      zsum = zsum * omega / dble (ngrtot)
 ! muffin-tin contribution
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    zsum = zsum + zfmtinp(tsh, input%groundstate%lmaxvr, nrcmt(is), rcmt(:, is), lmmaxvr, zfmt1(:, :, ias), &
-     zfmt2(:, :, ias))
-  end do
-end do
-zfinp=zsum
-return
-end function
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            zsum = zsum + zfmtinp (tsh, input%groundstate%lmaxvr, &
+           & nrcmt(is), rcmt(:, is), lmmaxvr, zfmt1(:, :, ias), &
+           & zfmt2(:, :, ias))
+         End Do
+      End Do
+      zfinp = zsum
+      Return
+End Function
 !EOC

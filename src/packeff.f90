@@ -1,18 +1,18 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: packeff
 ! !INTERFACE:
-
-
-subroutine packeff(tpack, n, nu)
+!
+!
+Subroutine packeff (tpack, n, nu)
 ! !USES:
-use modmain
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   tpack : .true. for packing, .false. for unpacking (in,logical)
 !   n     : total number of real values stored (out,integer)
@@ -26,41 +26,45 @@ use modmain
 !   Created June 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: tpack
-integer, intent(out) :: n
-real(8), intent(inout) :: nu(*)
+      Logical, Intent (In) :: tpack
+      Integer, Intent (Out) :: n
+      Real (8), Intent (Inout) :: nu (*)
 ! local variables
-integer::idm, ias, lm1, lm2
-integer::ispn, jspn
-n=0
-call rfpack(tpack, n, 1, veffmt, veffir, nu)
-do idm=1, ndmag
-  call rfpack(tpack, n, 1, bxcmt(:, :, :, idm), bxcir(:, idm), nu)
-end do
+      Integer :: idm, ias, lm1, lm2
+      Integer :: ispn, jspn
+      n = 0
+      Call rfpack (tpack, n, 1, veffmt, veffir, nu)
+      Do idm = 1, ndmag
+         Call rfpack (tpack, n, 1, bxcmt(:, :, :, idm), bxcir(:, idm), &
+        & nu)
+      End Do
 ! pack the LDA+U potential if required
-if (ldapu.ne.0) then
-  do ias=1, natmtot
-    do ispn=1, nspinor
-      do jspn=1, nspinor
-	do lm1=1, lmmaxlu
-	  do lm2=1, lmmaxlu
-	    n=n+1
-	    if (tpack) then
-	      nu(n)=dble(vmatlu(lm1, lm2, ispn, jspn, ias))
-	      n=n+1
-	      nu(n)=aimag(vmatlu(lm1, lm2, ispn, jspn, ias))
-	    else
-	      vmatlu(lm1, lm2, ispn, jspn, ias)=cmplx(nu(n), nu(n+1), 8)
-	      n=n+1
-	    end if
-	  end do
-	end do
-      end do
-    end do
-  end do
-end if
-return
-end subroutine
+      If (ldapu .Ne. 0) Then
+         Do ias = 1, natmtot
+            Do ispn = 1, nspinor
+               Do jspn = 1, nspinor
+                  Do lm1 = 1, lmmaxlu
+                     Do lm2 = 1, lmmaxlu
+                        n = n + 1
+                        If (tpack) Then
+                           nu (n) = dble (vmatlu(lm1, lm2, ispn, jspn, &
+                          & ias))
+                           n = n + 1
+                           nu (n) = aimag (vmatlu(lm1, lm2, ispn, jspn, &
+                          & ias))
+                        Else
+                           vmatlu (lm1, lm2, ispn, jspn, ias) = cmplx &
+                          & (nu(n), nu(n+1), 8)
+                           n = n + 1
+                        End If
+                     End Do
+                  End Do
+               End Do
+            End Do
+         End Do
+      End If
+      Return
+End Subroutine
 !EOC

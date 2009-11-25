@@ -1,106 +1,105 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module invert
-  implicit none
-contains
-
-
-subroutine zinvert_lapack(m, mi)
-    implicit none
+!
+Module invert
+      Implicit None
+Contains
+!
+!
+      Subroutine zinvert_lapack (m, mi)
+         Implicit None
     ! arguments
-    complex(8), intent(in) :: m(:, :)
-    complex(8), intent(out) :: mi(:, :)
+         Complex (8), Intent (In) :: m (:, :)
+         Complex (8), Intent (Out) :: mi (:, :)
     ! local variables
-    character(*), parameter :: thisnam='zinvert_lapack'
-    complex(8), allocatable :: zwork(:)
-    integer, allocatable :: ipiv(:)
-    integer :: lwork, info, sh(2), n
-    sh=shape(m)
-    n=sh(1)
-    allocate(ipiv(n))
-    lwork=2*n
-    allocate(zwork(lwork))
-    mi(:, :)=m(:, :)
-    call zgetrf(n, n, mi, n, ipiv, info)
-    if (info.ne.0) then
-       write(*, *)
-       write(*, '("Error(", a, "): zgetrf returned non-zero info : ", I8)') &
-	    thisnam, info
-       write(*, *)
-       call terminate
-    end if
-    call zgetri(n, mi, n, ipiv, zwork, lwork, info)
-    if (info.ne.0) then
-       write(*, *)
-       write(*, '("Error(", a, "): zgetri returned non-zero info : ", I8)') &
-	    thisnam, info
-       write(*, *)
-       call terminate
-    end if
-    deallocate(ipiv, zwork)
-  end subroutine zinvert_lapack
-
-
-subroutine zinvert_hermitian(flag, m, mi)
-    implicit none
+         Character (*), Parameter :: thisnam = 'zinvert_lapack'
+         Complex (8), Allocatable :: zwork (:)
+         Integer, Allocatable :: ipiv (:)
+         Integer :: lwork, info, sh (2), n
+         sh = shape (m)
+         n = sh (1)
+         Allocate (ipiv(n))
+         lwork = 2 * n
+         Allocate (zwork(lwork))
+         mi (:, :) = m (:, :)
+         Call zgetrf (n, n, mi, n, ipiv, info)
+         If (info .Ne. 0) Then
+            Write (*,*)
+            Write (*, '("Error(", a, "): zgetrf returned non-zero info : ", I8)') thisnam, info
+            Write (*,*)
+            Call terminate
+         End If
+         Call zgetri (n, mi, n, ipiv, zwork, lwork, info)
+         If (info .Ne. 0) Then
+            Write (*,*)
+            Write (*, '("Error(", a, "): zgetri returned non-zero info : ", I8)') thisnam, info
+            Write (*,*)
+            Call terminate
+         End If
+         Deallocate (ipiv, zwork)
+      End Subroutine zinvert_lapack
+!
+!
+      Subroutine zinvert_hermitian (flag, m, mi)
+         Implicit None
     ! arguments
-    integer, intent(in) :: flag
-    complex(8), intent(in) :: m(:, :)
-    complex(8), intent(out) :: mi(:, :)
+         Integer, Intent (In) :: flag
+         Complex (8), Intent (In) :: m (:, :)
+         Complex (8), Intent (Out) :: mi (:, :)
     ! local variables
-    character(*), parameter :: thisnam='zinvert_hermitian'
-    character(1) :: uplo
-    integer :: info, n, j, sh(2)
-    complex(8), allocatable :: tm(:, :)
+         Character (*), Parameter :: thisnam = 'zinvert_hermitian'
+         Character (1) :: uplo
+         Integer :: info, n, j, sh (2)
+         Complex (8), Allocatable :: tm (:, :)
     ! we do not check if both arguments have same shapes and are square matrices
-    sh=shape(m)
-    n=sh(1)
-    allocate(tm(sh(1), sh(2)))
-    tm(:, :)=m(:, :)
-    info=0
-    select case(flag)
-    case(0)
+         sh = shape (m)
+         n = sh (1)
+         Allocate (tm(sh(1), sh(2)))
+         tm (:, :) = m (:, :)
+         info = 0
+         Select Case (flag)
+         Case (0)
        ! invert full matrix (matrix is allowed to be not strictly Hermitian)
-       call zinvert_lapack(tm, mi)
-    case(1)
+            Call zinvert_lapack (tm, mi)
+         Case (1)
        ! Hermitian average matrix
-       tm=0.5d0*(tm+conjg(transpose(tm)))
-       uplo='u'
-    case(2)
+            tm = 0.5d0 * (tm+conjg(transpose(tm)))
+            uplo = 'u'
+         Case (2)
        ! assume Hermitian and use upper triangle for inversion
-       uplo='u'
-    case(3)
+            uplo = 'u'
+         Case (3)
        ! assume Hermitian and use lower triangle for inversion
-       uplo='l'
-    case default
-       write(*, *)
-       write(*, '("Error(", a, "): not a valid flag:", i6)') trim(thisnam), flag
-       write(*, *)
-       call terminate
-    end select
-    select case(flag)
-    case(1, 2, 3)
+            uplo = 'l'
+         Case Default
+            Write (*,*)
+            Write (*, '("Error(", a, "): not a valid flag:", i6)') trim &
+           & (thisnam), flag
+            Write (*,*)
+            Call terminate
+         End Select
+         Select Case (flag)
+         Case (1, 2, 3)
        ! set up unity matrix for zposv
-       mi(:, :)=(0.d0, 0.d0)
-       forall(j=1:n)
-	  mi(j, j)=(1.d0, 0.d0)
-       end forall
+            mi (:, :) = (0.d0, 0.d0)
+            Forall (j=1:n)
+               mi (j, j) = (1.d0, 0.d0)
+            End Forall
        ! invert using upper/lower triangle of matrix
-       call zposv(uplo, n, n, tm, n, mi, n, info)
-    end select
-    if (info.ne.0) then
-       write(*, *)
-       write(*, '("Error(", a, "): zposv returned non-zero info : ", I8)') &
-	    trim(thisnam), info
-       write(*, *)
-       call terminate
-    end if
-    deallocate(tm)
-  end subroutine zinvert_hermitian
-
-end module invert
+            Call zposv (uplo, n, n, tm, n, mi, n, info)
+         End Select
+         If (info .Ne. 0) Then
+            Write (*,*)
+            Write (*, '("Error(", a, "): zposv returned non-zero info :&
+           & ", I8)') trim (thisnam), info
+            Write (*,*)
+            Call terminate
+         End If
+         Deallocate (tm)
+      End Subroutine zinvert_hermitian
+!
+End Module invert

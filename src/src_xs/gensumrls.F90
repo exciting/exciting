@@ -1,22 +1,22 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_gensumrls
-  implicit none
-contains
-
+!
+Module m_gensumrls
+      Implicit None
+Contains
+!
 !BOP
 ! !ROUTINE: gensumrls
 ! !INTERFACE:
-
-
-subroutine gensumrls(w, eps, sumrls)
+!
+!
+      Subroutine gensumrls (w, eps, sumrls)
 ! !USES:
-    use modxs
+         Use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   w      : frequency grid (in,real(:))
 !   eps    : dielectric function tensor component (in,complex(:))
@@ -29,45 +29,45 @@ subroutine gensumrls(w, eps, sumrls)
 !   Created March 2006 (Sagmeister)
 !EOP
 !BOC
-    implicit none
+         Implicit None
     ! arguments
-    real(8), intent(in) :: w(:)
-    complex(8), intent(in) :: eps(:)
-    real(8), intent(out) :: sumrls(3)
+         Real (8), Intent (In) :: w (:)
+         Complex (8), Intent (In) :: eps (:)
+         Real (8), Intent (Out) :: sumrls (3)
     ! local variables
-    character(*), parameter :: thisnam = 'gensumrls'
-    real(8), allocatable :: f(:), cf(:, :), g(:)
-    integer :: n1(1), n
-
-    if (any(shape(w).ne.shape(eps))) then
-       write(unitout, '(a)') 'Error('//thisnam//'): input arrays have &
-	    &diffenrent shape'
-       call terminate
-    end if
-
-    n1=shape(w)
-    n=n1(1)
-    allocate(f(n), g(n), cf(3, n))
-
+         Character (*), Parameter :: thisnam = 'gensumrls'
+         Real (8), Allocatable :: f (:), cf (:, :), g (:)
+         Integer :: n1 (1), n
+!
+         If (any(shape(w) .Ne. shape(eps))) Then
+            Write (unitout, '(a)') 'Error(' // thisnam // '): input arr&
+           &ays have diffenrent shape'
+            Call terminate
+         End If
+!
+         n1 = shape (w)
+         n = n1 (1)
+         Allocate (f(n), g(n), cf(3, n))
+!
     ! zeroth frequency moment sumrule
-    f(:)=aimag(eps(:))
-    call fderiv(-1, n, w, f, g, cf)
-    sumrls(1)=g(n)
-
+         f (:) = aimag (eps(:))
+         Call fderiv (-1, n, w, f, g, cf)
+         sumrls (1) = g (n)
+!
     ! first frequency moment sumrule
-    f(:)=aimag(-1/eps(:))*w(:)
-    call fderiv(-1, n, w, f, g, cf)
-    sumrls(2)=g(n)
-
+         f (:) = aimag (-1/eps(:)) * w (:)
+         Call fderiv (-1, n, w, f, g, cf)
+         sumrls (2) = g (n)
+!
     ! one over frequency sumrule (pi half sumrule)
-    f(1)=0.d0
-    if (n.gt.1) f(2:)=aimag(-1/eps(2:))/w(2:)
-    call fderiv(-1, n, w, f, g, cf)
-    sumrls(3)=g(n)
-
-    deallocate(f, g, cf)
-
-  end subroutine gensumrls
+         f (1) = 0.d0
+         If (n .Gt. 1) f (2:) = aimag (-1/eps(2:)) / w (2:)
+         Call fderiv (-1, n, w, f, g, cf)
+         sumrls (3) = g (n)
+!
+         Deallocate (f, g, cf)
+!
+      End Subroutine gensumrls
 !EOC
-
-end module m_gensumrls
+!
+End Module m_gensumrls

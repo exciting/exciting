@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: hmlistl
 ! !INTERFACE:
-
-
-subroutine hmlistln(hamilton, ngp, igpig, vgpc)
+!
+!
+Subroutine hmlistln (hamilton, ngp, igpig, vgpc)
 ! !USES:
-use modmain
-use modfvsystem
+      Use modmain
+      Use modfvsystem
 ! !INPUT/OUTPUT PARAMETERS:
 !   tapp  : .true. if the Hamiltonian is to be applied to the input vector,
 !           .false. if the full matrix is to be calculated (in,logical)
@@ -37,43 +37,43 @@ use modfvsystem
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-type(HermiteanMatrix), intent(inout)::hamilton
-integer, intent(in) :: ngp
-integer, intent(in) :: igpig(ngkmax)
-real(8), intent(in) :: vgpc(3, ngkmax)
-
-
-complex(8)::zt
+      Type (HermiteanMatrix), Intent (Inout) :: hamilton
+      Integer, Intent (In) :: ngp
+      Integer, Intent (In) :: igpig (ngkmax)
+      Real (8), Intent (In) :: vgpc (3, ngkmax)
+!
+!
+      Complex (8) :: zt
 ! local variables
-integer::i, j, k, ig, iv(3)
-real(8)::t1
-complex(8) zt1
-
+      Integer :: i, j, k, ig, iv (3)
+      Real (8) :: t1
+      Complex (8) zt1
+!
 ! calculate the matrix elements
-!#$omp parallel default(shared) & 
+!#$omp parallel default(shared) &
 !#$omp shared(h) private(iv,ig,t1,i,j)
 !#$omp do
-  do j=1, ngp
+      Do j = 1, ngp
     !k=((j-1)*j)/2
-    do i=1, j
+         Do i = 1, j
       !k=k+1
-      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
-      ig=ivgig(iv(1), iv(2), iv(3))
-      if ((ig.gt.0).and.(ig.le.ngvec)) then
-	t1=0.5d0*dot_product(vgpc(:, i), vgpc(:, j))
+            iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
+            ig = ivgig (iv(1), iv(2), iv(3))
+            If ((ig .Gt. 0) .And. (ig .Le. ngvec)) Then
+               t1 = 0.5d0 * dot_product (vgpc(:, i), vgpc(:, j))
        !h(k)=h(k)+veffig(ig)+t1*cfunig(ig)
-	  zt=veffig(ig)+t1*cfunig(ig)
+               zt = veffig (ig) + t1 * cfunig (ig)
          !  h(k)=h(k)+zt
-
-	 call Hermiteanmatrix_indexedupdate(hamilton, j, i, zt)
-      end if
-    end do
-  end do
-!#$omp end do 
+!
+               Call Hermiteanmatrix_indexedupdate (hamilton, j, i, zt)
+            End If
+         End Do
+      End Do
+!#$omp end do
 !#$omp end parallel
-
-return
-end subroutine
+!
+      Return
+End Subroutine
 !EOC

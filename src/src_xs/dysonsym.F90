@@ -1,23 +1,23 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_dysonsym
-  implicit none
-contains
-
+!
+Module m_dysonsym
+      Implicit None
+Contains
+!
 !BOP
 ! !ROUTINE: dysonsym
 ! !INTERFACE:
-
-
-subroutine dysonsym(n, s0, k, s)
+!
+!
+      Subroutine dysonsym (n, s0, k, s)
 ! !USES:
-    use invert
-    use modxs
+         Use invert
+         Use modxs
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : matrix size of local field effects (in,integer)
 !   s0    : S0 matrix (in,complex(:,:))
@@ -35,146 +35,151 @@ subroutine dysonsym(n, s0, k, s)
 !   Created October 2008 (Sagmeister)
 !EOP
 !BOC
-    implicit none
+         Implicit None
     ! arguments
-    integer, intent(in) :: n
-    complex(8), intent(in) :: s0(:, :), k(:, :)
-    complex(8), intent(out) :: s(:, :)
+         Integer, Intent (In) :: n
+         Complex (8), Intent (In) :: s0 (:, :), k (:, :)
+         Complex (8), Intent (Out) :: s (:, :)
     ! local variables
-    character(*), parameter :: thisnam='dysonsym'
-    complex(8), parameter :: zone=(1.d0, 0.d0), zzero=(0.d0, 0.d0)
-    complex(8), allocatable :: mt(:, :), mt2(:, :)
-    integer :: shs0(2), shk(2), shs(2), nmin, nmax, i, j
-
-  complex(8), allocatable :: solv(:), s0row(:), s0col(:), u(:, :), vh(:, :), work(:)
-  real(8), allocatable :: singv(:), rwork(:)
-  integer, allocatable :: ipiv(:)
-  integer :: info, lwork
-  real(8) :: eps
-
-  complex(8), external :: zdotu
-
-
+         Character (*), Parameter :: thisnam = 'dysonsym'
+         Complex (8), Parameter :: zone = (1.d0, 0.d0), zzero = (0.d0, &
+        & 0.d0)
+         Complex (8), Allocatable :: mt (:, :), mt2 (:, :)
+         Integer :: shs0 (2), shk (2), shs (2), nmin, nmax, i, j
+!
+         Complex (8), Allocatable :: solv (:), s0row (:), s0col (:), u &
+        & (:, :), vh (:, :), work (:)
+         Real (8), Allocatable :: singv (:), rwork (:)
+         Integer, Allocatable :: ipiv (:)
+         Integer :: info, lwork
+         Real (8) :: eps
+!
+         Complex (8), External :: zdotu
+!
+!
     ! check matrix sizes
-    shs0=shape(s0)
-    shk=shape(k)
-    shs=shape(s)
-    nmin=minval((/shs0, shk, shs/))
-    nmax=maxval((/shs0, shk, shs/))
-    if ((nmin.ne.nmax).or.(nmin.lt.n)) then
-       write(*, '("Error(", a, "): inconsistent matrix sizes")') trim(thisnam)
-       write(*, '("  n :", i9)') n
-       write(*, '("  S0:", 2i9)') shs0
-       write(*, '("  K :", 2i9)') shk
-       write(*, '("  S :", 2i9)') shs
-       call terminate
-    end if
-
+         shs0 = shape (s0)
+         shk = shape (k)
+         shs = shape (s)
+         nmin = minval ( (/ shs0, shk, shs /))
+         nmax = maxval ( (/ shs0, shk, shs /))
+         If ((nmin .Ne. nmax) .Or. (nmin .Lt. n)) Then
+            Write (*, '("Error(", a, "): inconsistent matrix sizes")') &
+           & trim (thisnam)
+            Write (*, '("  n :", i9)') n
+            Write (*, '("  S0:", 2i9)') shs0
+            Write (*, '("  K :", 2i9)') shk
+            Write (*, '("  S :", 2i9)') shs
+            Call terminate
+         End If
+!
     ! allocate
-    allocate(mt(n, n), mt2(n, n))
-
+         Allocate (mt(n, n), mt2(n, n))
+!
     ! calculate matrix 1-S0
-    mt(:, :)=zzero
-    forall(j=1:n) mt(j, j)=1.d0
-    mt(:, :)=mt(:, :)-s0(:, :)
-
+         mt (:, :) = zzero
+         Forall (j=1:n) mt (j, j) = 1.d0
+         mt (:, :) = mt (:, :) - s0 (:, :)
+!
     ! calculate S0(1-S0)
-    call zgemm('n', 'n', n, n, n, zone, s0, n, mt, n, zzero, mt2, n )
-
+         Call zgemm ('n', 'n', n, n, n, zone, s0, n, mt, n, zzero, mt2, &
+        & n)
+!
     ! calculate X := S0(1-S0) - K
-    mt2(:, :)=mt2(:, :)-k(:, :)
-
+         mt2 (:, :) = mt2 (:, :) - k (:, :)
+!
 !    ! calculate [S0(1-S0) - K]^-1 =: Y = X^-1
 !    call zinvert_lapack(mt2,mt)
-
+!
 !    ! calculate S0 Y
 !    call zgemm('n','n', n, n, n, zone, s0, n, mt, n, zzero, mt2, n )
-
+!
 !    ! calculate solution S = S0 Y S0 = S0 [S0(1-S0) - K]^(-1) S0
 !    call zgemm('n','n', n, n, n, zone, mt2, n, s0, n, zzero, s, n )
-
-
-
+!
+!
+!
 !!!goto 100
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+!
     ! F. Sottile, PhD thesis, p. 167 (Appendix E)
     ! solve linear system of equations instead of direct inversion
-
+!
     ! first column of S0 is RHS of system of equations
-    allocate(solv(n), s0row(n), s0col(n))
-    s0row(:)=s0(1, :)
-    s0col(:)=s0(:, 1)
-    solv(:)=s0col(:)
-
+         Allocate (solv(n), s0row(n), s0col(n))
+         s0row (:) = s0 (1, :)
+         s0col (:) = s0 (:, 1)
+         solv (:) = s0col (:)
+!
     !------------------------------------ solve linear system of equations
-    allocate(ipiv(n))
-    call zgetrf(n, n, mt2, n, ipiv, info)
-    if (info.ne.0) then
-       write(*, *)
-       write(*, '("Error(", a, "): zgetrf returned non-zero info : ", I8)') &
-	    thisnam, info
-       write(*, *)
-       call terminate
-    end if
-    call zgetrs('n', n, 1, mt2, n, ipiv, solv, n, info )
-    if (info.ne.0) then
-       write(*, *)
-       write(*, '("Error(", a, "): zgetrs returned non-zero info : ", I8)') &
-	    thisnam, info
-       write(*, *)
-       call terminate
-    end if
-    deallocate(ipiv)
+         Allocate (ipiv(n))
+         Call zgetrf (n, n, mt2, n, ipiv, info)
+         If (info .Ne. 0) Then
+            Write (*,*)
+            Write (*, '("Error(", a, "): zgetrf returned non-zero info : ", I8)') thisnam, info
+            Write (*,*)
+            Call terminate
+         End If
+         Call zgetrs ('n', n, 1, mt2, n, ipiv, solv, n, info)
+         If (info .Ne. 0) Then
+            Write (*,*)
+            Write (*, '("Error(", a, "): zgetrs returned non-zero info : ", I8)') thisnam, info
+            Write (*,*)
+            Call terminate
+         End If
+         Deallocate (ipiv)
     !------------------------------------
-
+!
     ! calculate S_00 = S0 * Solv
-    s(1, 1)=zdotu(n, solv, 1, s0row, 1)
-    deallocate(solv, s0row, s0col)
+         s (1, 1) = zdotu (n, solv, 1, s0row, 1)
+         Deallocate (solv, s0row, s0col)
 !!!100 continue
-goto 200
+         Go To 200
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-    lwork=3*n
-    allocate(singv(n), u(n, n), vh(n, n), work(lwork), rwork(5*n))
-
+!
+!
+         lwork = 3 * n
+         Allocate (singv(n), u(n, n), vh(n, n), work(lwork), &
+        & rwork(5*n))
+!
     ! try SVD for inversion of matrix X = S0(1 - S0) - K
-    call ZGESVD( 'a', 'a', n, n, mt2, n, singv, u, n, vh, n, work, lwork, rwork, info )
-    if (info.ne.0) then
-       write(*, *)
-       write(*, '("Error(", a, "): zgesvd returned non-zero info : ", I8)') &
-	    thisnam, info
-       write(*, *)
-       call terminate
-    end if
-
+         Call ZGESVD ('a', 'a', n, n, mt2, n, singv, u, n, vh, n, work, &
+        & lwork, rwork, info)
+         If (info .Ne. 0) Then
+            Write (*,*)
+            Write (*, '("Error(", a, "): zgesvd returned non-zero info : ", I8)') thisnam, info
+            Write (*,*)
+            Call terminate
+         End If
+!
    ! invert singular values above cutoff
-   eps=1.d-3
-    do j=1, n
-	if (singv(j).lt.eps) then
-	   singv(j)=0.d0
-	else
-	   singv(j)=1.d0/singv(j)
-	end if
+         eps = 1.d-3
+         Do j = 1, n
+            If (singv(j) .Lt. eps) Then
+               singv (j) = 0.d0
+            Else
+               singv (j) = 1.d0 / singv (j)
+            End If
 	! multiply singular values with U-matrix
-	u(:, j)=u(:, j)*singv(j)
-    end do
+            u (:, j) = u (:, j) * singv (j)
+         End Do
     ! inverse of matrix X^+:
-    call zgemm('n', 'n', n, n, n, zone, u, n, vh, n, zzero, s, n )
-    s=conjg(transpose(s))
-
+         Call zgemm ('n', 'n', n, n, n, zone, u, n, vh, n, zzero, s, n)
+         s = conjg (transpose(s))
+!
     ! left and right multiply with S0
     ! calculate S0 Y
-    call zgemm('n', 'n', n, n, n, zone, s0, n, s, n, zzero, mt2, n )
-
+         Call zgemm ('n', 'n', n, n, n, zone, s0, n, s, n, zzero, mt2, &
+        & n)
+!
     ! calculate solution S = S0 Y S0 = S0 [S0(1-S0) - K]^(-1) S0
-    call zgemm('n', 'n', n, n, n, zone, mt2, n, s0, n, zzero, s, n )
-
-
-    deallocate(mt, mt2, singv, u, vh, work, rwork)
-200 continue
-  end subroutine dysonsym
+         Call zgemm ('n', 'n', n, n, n, zone, mt2, n, s0, n, zzero, s, &
+        & n)
+!
+!
+         Deallocate (mt, mt2, singv, u, vh, work, rwork)
+200      Continue
+      End Subroutine dysonsym
 !EOC
-
-end module m_dysonsym
+!
+End Module m_dysonsym

@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: zfmtinp
 ! !INTERFACE:
-complex(8) function zfmtinp(tsh, lmax, nr, r, ld, zfmt1, zfmt2)
+Complex (8) Function zfmtinp (tsh, lmax, nr, r, ld, zfmt1, zfmt2)
 ! !INPUT/OUTPUT PARAMETERS:
 !   tsh   : .true. if the functions are in spherical harmonics (in,logical)
 !   lmax  : maximum angular momentum
@@ -35,38 +35,38 @@ complex(8) function zfmtinp(tsh, lmax, nr, r, ld, zfmt1, zfmt2)
 !   Created November 2003 (Sharma)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: tsh
-integer, intent(in) :: lmax
-integer, intent(in) :: nr
-real(8), intent(in) :: r(nr)
-integer, intent(in) :: ld
-complex(8), intent(in) :: zfmt1(ld, nr)
-complex(8), intent(in) :: zfmt2(ld, nr)
+      Logical, Intent (In) :: tsh
+      Integer, Intent (In) :: lmax
+      Integer, Intent (In) :: nr
+      Real (8), Intent (In) :: r (nr)
+      Integer, Intent (In) :: ld
+      Complex (8), Intent (In) :: zfmt1 (ld, nr)
+      Complex (8), Intent (In) :: zfmt2 (ld, nr)
 ! local variables
-integer::lmmax, ir
-real(8), parameter :: fourpi=12.566370614359172954d0
-real(8)::t1, t2
-complex(8) zt1
+      Integer :: lmmax, ir
+      Real (8), Parameter :: fourpi = 12.566370614359172954d0
+      Real (8) :: t1, t2
+      Complex (8) zt1
 ! automatic arrays
-real(8)::fr1(nr), fr2(nr), gr(nr), cf(3, nr)
+      Real (8) :: fr1 (nr), fr2 (nr), gr (nr), cf (3, nr)
 ! external functions
-complex(8) zdotc
-external zdotc
-lmmax=(lmax+1)**2
-do ir=1, nr
-  t1=r(ir)**2
-  zt1=zdotc(lmmax, zfmt1(:, ir), 1, zfmt2(:, ir), 1)
-  fr1(ir)=t1*dble(zt1)
-  fr2(ir)=t1*aimag(zt1)
-end do
-call fderiv(-1, nr, r, fr1, gr, cf)
-t1=gr(nr)
-call fderiv(-1, nr, r, fr2, gr, cf)
-t2=gr(nr)
-zfmtinp=cmplx(t1, t2, 8)
-if (.not.tsh) zfmtinp=zfmtinp*fourpi/dble(lmmax)
-return
-end function
+      Complex (8) zdotc
+      External zdotc
+      lmmax = (lmax+1) ** 2
+      Do ir = 1, nr
+         t1 = r (ir) ** 2
+         zt1 = zdotc (lmmax, zfmt1(:, ir), 1, zfmt2(:, ir), 1)
+         fr1 (ir) = t1 * dble (zt1)
+         fr2 (ir) = t1 * aimag (zt1)
+      End Do
+      Call fderiv (-1, nr, r, fr1, gr, cf)
+      t1 = gr (nr)
+      Call fderiv (-1, nr, r, fr2, gr, cf)
+      t2 = gr (nr)
+      zfmtinp = cmplx (t1, t2, 8)
+      If ( .Not. tsh) zfmtinp = zfmtinp * fourpi / dble (lmmax)
+      Return
+End Function
 !EOC

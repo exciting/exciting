@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: findprim
 ! !INTERFACE:
-
-
-subroutine findprim
+!
+!
+Subroutine findprim
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !DESCRIPTION:
 !   This routine finds the smallest primitive cell which produces the same
 !   crystal structure as the conventional cell. This is done by searching
@@ -25,137 +25,142 @@ use modmain
 !   Created April 2007 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! local variables
-integer::is, js, ia, ja, ka
-integer::i1, i2, i3, iv(3)
-integer::i, j, n, na
-real(8)::v1(3), v2(3), v3(3)
-real(8)::t1, t2
-real(8)::apl(3, maxatoms)
+      Integer :: is, js, ia, ja, ka
+      Integer :: i1, i2, i3, iv (3)
+      Integer :: i, j, n, na
+      Real (8) :: v1 (3), v2 (3), v3 (3)
+      Real (8) :: t1, t2
+      Real (8) :: apl (3, maxatoms)
 ! allocatable arrays
-real(8), allocatable :: dp(:)
-real(8), allocatable :: vp(:, :)
+      Real (8), Allocatable :: dp (:)
+      Real (8), Allocatable :: vp (:, :)
 ! external functions
-real(8)::r3taxi
-external r3taxi
-do is=1, nspecies
-  do ia=1, natoms(is)
+      Real (8) :: r3taxi
+      External r3taxi
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
 ! make sure all atomic coordinates are in [0,1)
-    call r3frac(input%structure%epslat, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), iv)
+            Call r3frac (input%structure%epslat, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), iv)
 ! determine atomic Cartesian coordinates
-    call r3mv(input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
-    &atposc(:, ia, is))
-  end do
-end do
+            Call r3mv (input%structure%crystal%basevect, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:), &
+           & atposc(:, ia, is))
+         End Do
+      End Do
 ! find the smallest set of atoms
-is=1
-do js=1, nspecies
+      is = 1
+      Do js = 1, nspecies
 ! if a species has only one atom the cell must be primitive
-  if (natoms(js).eq.1) return
-  if (natoms(js).lt.natoms(is)) is=js
-end do
-n=27*natoms(is)
-allocate(dp(n), vp(3, n))
+         If (natoms(js) .Eq. 1) Return
+         If (natoms(js) .Lt. natoms(is)) is = js
+      End Do
+      n = 27 * natoms (is)
+      Allocate (dp(n), vp(3, n))
 ! generate set of possible lattice vectors
-n=0
-do ia=1, natoms(is)
-  v1(:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:) -&
-    &input%structure%speciesarray(is)%species%atomarray(1)%atom%coord(:)
-  do i1=-1, 1
-    v2(1)=v1(1)+dble(i1)
-    do i2=-1, 1
-      v2(2)=v1(2)+dble(i2)
-      do i3=-1, 1
-	v2(3)=v1(3)+dble(i3)
-	t1=sqrt(v2(1)**2+v2(2)**2+v2(3)**2)
-	if (t1.lt.input%structure%epslat) goto 20
+      n = 0
+      Do ia = 1, natoms (is)
+         v1 (:) = input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:) - &
+        & input%structure%speciesarray(is)%species%atomarray(1)%atom%coord(:)
+         Do i1 = - 1, 1
+            v2 (1) = v1 (1) + dble (i1)
+            Do i2 = - 1, 1
+               v2 (2) = v1 (2) + dble (i2)
+               Do i3 = - 1, 1
+                  v2 (3) = v1 (3) + dble (i3)
+                  t1 = Sqrt (v2(1)**2+v2(2)**2+v2(3)**2)
+                  If (t1 .Lt. input%structure%epslat) Go To 20
 ! check if vector v2 leaves conventional cell invariant
-	do js=1, nspecies
-	  do ja=1, natoms(js)
-	    v3(:)=input%structure%speciesarray(js)%species%atomarray(ja)%atom%coord(:)+v2(:)
-	    call r3frac(input%structure%epslat, v3, iv)
-	    do ka=1, natoms(js)
+                  Do js = 1, nspecies
+                     Do ja = 1, natoms (js)
+                        v3 (:) = input%structure%speciesarray(js)%species%atomarray(ja)%atom%coord(:) + v2 (:)
+                        Call r3frac (input%structure%epslat, v3, iv)
+                        Do ka = 1, natoms (js)
 ! check both positions and magnetic fields
-	      t1=r3taxi(input%structure%speciesarray(js)%species%atomarray(ka)%atom%coord(:), v3)
-	      t2 = r3taxi(input%structure%speciesarray(js)%species%atomarray(ja)%atom%bfcmt(:), &
-    &input%structure%speciesarray(js)%species%atomarray(ka)%atom%bfcmt(:))
-	      if ((t1.lt.input%structure%epslat).and.(t2.lt.input%structure%epslat)) goto 10
-	    end do
+                           t1 = r3taxi (input%structure%speciesarray(js)%species%atomarray(ka)%atom%coord(:), v3)
+                           t2 = r3taxi (input%structure%speciesarray(js)%species%atomarray(ja)%atom%bfcmt(:), &
+                          & input%structure%speciesarray(js)%species%atomarray(ka)%atom%bfcmt(:))
+                           If ((t1 .Lt. input%structure%epslat) .And. &
+                          & (t2 .Lt. input%structure%epslat)) Go To 10
+                        End Do
 ! atom ja has no equivalent under translation by v2
-	    goto 20
-10 continue
-	  end do
-	end do
+                        Go To 20
+10                      Continue
+                     End Do
+                  End Do
 ! cell invariant under translation by v2, so add to list
-	n=n+1
-	call r3mv(input%structure%crystal%basevect, v2, vp(:, n))
-	dp(n)=sqrt(vp(1, n)**2+vp(2, n)**2+vp(3, n)**2)
-20 continue
-      end do
-    end do
-  end do
-end do
+                  n = n + 1
+                  Call r3mv (input%structure%crystal%basevect, v2, &
+                 & vp(:, n))
+                  dp (n) = Sqrt (vp(1, n)**2+vp(2, n)**2+vp(3, n)**2)
+20                Continue
+               End Do
+            End Do
+         End Do
+      End Do
 ! find the shortest lattice vector
-j=1
-t1=1.d8
-do i=1, n
-  if (dp(i).lt.t1+input%structure%epslat) then
-    j=i
-    t1=dp(i)
-  end if
-end do
-input%structure%crystal%basevect(:, 1)=vp(:, j)
+      j = 1
+      t1 = 1.d8
+      Do i = 1, n
+         If (dp(i) .Lt. t1+input%structure%epslat) Then
+            j = i
+            t1 = dp (i)
+         End If
+      End Do
+      input%structure%crystal%basevect(:, 1) = vp (:, j)
 ! find the next shortest lattice vector not parallel to the first
-j=1
-t1=1.d8
-do i=1, n
-  call r3cross(input%structure%crystal%basevect(:, 1), vp(:, i), v1)
-  t2=sqrt(v1(1)**2+v1(2)**2+v1(3)**2)
-  if (t2.gt.input%structure%epslat) then
-    if (dp(i).lt.t1+input%structure%epslat) then
-      j=i
-      t1=dp(i)
-    end if
-  end if
-end do
-input%structure%crystal%basevect(:, 2)=vp(:, j)
+      j = 1
+      t1 = 1.d8
+      Do i = 1, n
+         Call r3cross (input%structure%crystal%basevect(:, 1), vp(:, &
+        & i), v1)
+         t2 = Sqrt (v1(1)**2+v1(2)**2+v1(3)**2)
+         If (t2 .Gt. input%structure%epslat) Then
+            If (dp(i) .Lt. t1+input%structure%epslat) Then
+               j = i
+               t1 = dp (i)
+            End If
+         End If
+      End Do
+      input%structure%crystal%basevect(:, 2) = vp (:, j)
 ! find the next shortest lattice vector which gives non-zero unit cell volume
-call r3cross(input%structure%crystal%basevect(:, 1), input%structure%crystal%basevect(:, 2), v1)
-j=1
-t1=1.d8
-do i=1, n
-  t2=dot_product(vp(:, i), v1(:))
-  if (abs(t2).gt.input%structure%epslat) then
-    if (dp(i).lt.t1+input%structure%epslat) then
-      j=i
-      t1=dp(i)
-    end if
-  end if
-end do
-input%structure%crystal%basevect(:, 3)=vp(:, j)
-call r3minv(input%structure%crystal%basevect, ainv)
+      Call r3cross (input%structure%crystal%basevect(:, 1), &
+     & input%structure%crystal%basevect(:, 2), v1)
+      j = 1
+      t1 = 1.d8
+      Do i = 1, n
+         t2 = dot_product (vp(:, i), v1(:))
+         If (Abs(t2) .Gt. input%structure%epslat) Then
+            If (dp(i) .Lt. t1+input%structure%epslat) Then
+               j = i
+               t1 = dp (i)
+            End If
+         End If
+      End Do
+      input%structure%crystal%basevect(:, 3) = vp (:, j)
+      Call r3minv (input%structure%crystal%basevect, ainv)
 ! remove redundant atoms
-do is=1, nspecies
-  na=0
-  do ia=1, natoms(is)
-    call r3mv(ainv, atposc(:, ia, is), v1)
-    call r3frac(input%structure%epslat, v1, iv)
-    do ja=1, na
-      t1=r3taxi(apl(:, ja), v1)
-      if (t1.lt.input%structure%epslat) goto 30
-    end do
-    na=na+1
-    apl(:, na)=v1(:)
-30 continue
-  end do
-  do ia=1, na
-    input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)=apl(:, ia)
-    call r3mv(input%structure%crystal%basevect, apl(:, ia), atposc(:, ia, is))
-  end do
-  natoms(is)=na
-end do
-deallocate(dp, vp)
-return
-end subroutine
+      Do is = 1, nspecies
+         na = 0
+         Do ia = 1, natoms (is)
+            Call r3mv (ainv, atposc(:, ia, is), v1)
+            Call r3frac (input%structure%epslat, v1, iv)
+            Do ja = 1, na
+               t1 = r3taxi (apl(:, ja), v1)
+               If (t1 .Lt. input%structure%epslat) Go To 30
+            End Do
+            na = na + 1
+            apl (:, na) = v1 (:)
+30          Continue
+         End Do
+         Do ia = 1, na
+            input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:) = apl (:, ia)
+            Call r3mv (input%structure%crystal%basevect, apl(:, ia), &
+           & atposc(:, ia, is))
+         End Do
+         natoms (is) = na
+      End Do
+      Deallocate (dp, vp)
+      Return
+End Subroutine
 !EOC

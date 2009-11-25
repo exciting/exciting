@@ -1,27 +1,27 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine setupsym
-  use modmain
-use modinput
-  use modsym
-  implicit none
-  if (allocated(sgmut)) deallocate(sgmut)
-  allocate(sgmut(nsymcrys, nsymcrys))
+!
+!
+Subroutine setupsym
+      Use modmain
+      Use modinput
+      Use modsym
+      Implicit None
+      If (allocated(sgmut)) deallocate (sgmut)
+      Allocate (sgmut(nsymcrys, nsymcrys))
   ! generate multiplication table
-  call gensymcmut(input%structure%epslat, maxsymcrys, nsymcrys, symlat, lsplsymc, vtlsymc, sgmut, &
-     abelsg)
-  if (allocated(negenr)) deallocate(negenr)
-  allocate(negenr(nsymcrys))
-  if (allocated(genr)) deallocate(genr)
-  allocate(genr(nsymcrys))
-  if (allocated(orbgenr)) deallocate(orbgenr)
-  allocate(orbgenr(nsymcrys, nsymcrys))
-  ! find generators   
-  call findsymgenr(nsymcrys, sgmut, ngenr, negenr, genr, orbgenr)
-end subroutine setupsym
+      Call gensymcmut (input%structure%epslat, maxsymcrys, nsymcrys, &
+     & symlat, lsplsymc, vtlsymc, sgmut, abelsg)
+      If (allocated(negenr)) deallocate (negenr)
+      Allocate (negenr(nsymcrys))
+      If (allocated(genr)) deallocate (genr)
+      Allocate (genr(nsymcrys))
+      If (allocated(orbgenr)) deallocate (orbgenr)
+      Allocate (orbgenr(nsymcrys, nsymcrys))
+  ! find generators
+      Call findsymgenr (nsymcrys, sgmut, ngenr, negenr, genr, orbgenr)
+End Subroutine setupsym

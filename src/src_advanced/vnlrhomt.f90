@@ -1,18 +1,18 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: vnlrhomt
 ! !INTERFACE:
-
-
-subroutine vnlrhomt(tsh, is, wfmt1, wfmt2, zrhomt)
+!
+!
+Subroutine vnlrhomt (tsh, is, wfmt1, wfmt2, zrhomt)
 ! !USES:
-use modmain
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   tsh    : .true. if the density is to be in spherical harmonics (in,logical)
 !   is     : species number (in,integer)
@@ -32,32 +32,32 @@ use modmain
 !   Created November 2004 (Sharma)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: tsh
-integer, intent(in) :: is
-complex(8), intent(in) :: wfmt1(lmmaxvr, nrcmtmax)
-complex(8), intent(in) :: wfmt2(lmmaxvr, nrcmtmax)
-complex(8), intent(out) :: zrhomt(lmmaxvr, nrcmtmax)
+      Logical, Intent (In) :: tsh
+      Integer, Intent (In) :: is
+      Complex (8), Intent (In) :: wfmt1 (lmmaxvr, nrcmtmax)
+      Complex (8), Intent (In) :: wfmt2 (lmmaxvr, nrcmtmax)
+      Complex (8), Intent (Out) :: zrhomt (lmmaxvr, nrcmtmax)
 ! local variables
-integer::irc
+      Integer :: irc
 ! allocatable arrays
-complex(8), allocatable :: zfmt(:, :)
-if (tsh) then
+      Complex (8), Allocatable :: zfmt (:, :)
+      If (tsh) Then
 ! output density in spherical harmonics
-  allocate(zfmt(lmmaxvr, nrcmtmax))
-  do irc=1, nrcmt(is)
-    zfmt(:, irc)=conjg(wfmt1(:, irc))*wfmt2(:, irc)
-  end do
-  call zgemm('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, zfshtvr, lmmaxvr, zfmt, &
-   lmmaxvr, zzero, zrhomt, lmmaxvr)
-  deallocate(zfmt)
-else
+         Allocate (zfmt(lmmaxvr, nrcmtmax))
+         Do irc = 1, nrcmt (is)
+            zfmt (:, irc) = conjg (wfmt1(:, irc)) * wfmt2 (:, irc)
+         End Do
+         Call zgemm ('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, &
+        & zfshtvr, lmmaxvr, zfmt, lmmaxvr, zzero, zrhomt, lmmaxvr)
+         Deallocate (zfmt)
+      Else
 ! output density in spherical coordinates
-  do irc=1, nrcmt(is)
-    zrhomt(:, irc)=conjg(wfmt1(:, irc))*wfmt2(:, irc)
-  end do
-end if
-return
-end subroutine
+         Do irc = 1, nrcmt (is)
+            zrhomt (:, irc) = conjg (wfmt1(:, irc)) * wfmt2 (:, irc)
+         End Do
+      End If
+      Return
+End Subroutine
 !EOC

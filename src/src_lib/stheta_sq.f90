@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: stheta_sq
 ! !INTERFACE:
-real(8) function stheta_sq(x)
+Real (8) Function stheta_sq (x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   x : real argument (in,real)
 ! !DESCRIPTION:
@@ -23,18 +23,18 @@ real(8) function stheta_sq(x)
 !   Created July 2008 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: x
-if (x.le.-0.5d0) then
-  stheta_sq=0.d0
-  return
-end if
-if (x.lt.0.5d0) then
-  stheta_sq=x+0.5d0
-else
-  stheta_sq=1.d0
-end if
-return
-end function
+      Real (8), Intent (In) :: x
+      If (x .Le.-0.5d0) Then
+         stheta_sq = 0.d0
+         Return
+      End If
+      If (x .Lt. 0.5d0) Then
+         stheta_sq = x + 0.5d0
+      Else
+         stheta_sq = 1.d0
+      End If
+      Return
+End Function
 !EOC

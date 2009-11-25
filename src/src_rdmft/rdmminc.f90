@@ -1,97 +1,100 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine rdmminc
+!
+!
+Subroutine rdmminc
 ! minimises the total energy w.r.t. evecsv using steepest descent
-use modinput
-use modmain
-implicit none
-integer::it, ik, idm
-real(8)::sum, sp, ds
+      Use modinput
+      Use modmain
+      Implicit None
+      Integer :: it, ik, idm
+      Real (8) :: sum, sp, ds
 ! parameter to check energy convergence
-real(8), parameter :: eps=1.d-10
+      Real (8), Parameter :: eps = 1.d-10
 ! allocatable arrays
-complex(8), allocatable :: evecfv(:, :)
-complex(8), allocatable :: evecsv(:, :)
+      Complex (8), Allocatable :: evecfv (:, :)
+      Complex (8), Allocatable :: evecsv (:, :)
 ! allocate arrays
-allocate(evecfv(nmatmax, nstfv))
-allocate(evecsv(nstsv, nstsv))
-sp=0.d0
-ds=0.d0
-open(61, file='RDMC_ENERGY.OUT', action='WRITE', form='FORMATTED')
-if (associated(input%groundstate%spin)) then
-  open(62, file='RDMC_MOMENT.OUT', action='WRITE', form='FORMATTED')
-end if
-write(*, *)
+      Allocate (evecfv(nmatmax, nstfv))
+      Allocate (evecsv(nstsv, nstsv))
+      sp = 0.d0
+      ds = 0.d0
+      Open (61, File='RDMC_ENERGY.OUT', Action='WRITE', Form='FORMATTED&
+     &')
+      If (associated(input%groundstate%spin)) Then
+         Open (62, File='RDMC_MOMENT.OUT', Action='WRITE', Form='FORMAT&
+        &TED')
+      End If
+      Write (*,*)
 ! begin iteration loop
-do it=1, input%groundstate%RDMFT%maxitc
-  write(*, '("Info(rdmminc): iteration ", I4, " of ", I4)') it, input%groundstate%RDMFT%maxitc
+      Do it = 1, input%groundstate%RDMFT%maxitc
+         Write (*, '("Info(rdmminc): iteration ", I4, " of ", I4)') it, &
+        & input%groundstate%RDMFT%maxitc
 ! vary evecsv and orthogonalise it
-  call rdmvaryc(sum)
+         Call rdmvaryc (sum)
 ! zero the density
-  rhomt(:, :, :)=0.d0
-  rhoir(:)=0.d0
+         rhomt (:, :, :) = 0.d0
+         rhoir (:) = 0.d0
 ! zero the magnetisation
-  if (associated(input%groundstate%spin)) then
-    magmt(:, :, :, :)=0.d0
-    magir(:, :)=0.d0
-  end if
-  do ik=1, nkpt
+         If (associated(input%groundstate%spin)) Then
+            magmt (:, :, :, :) = 0.d0
+            magir (:, :) = 0.d0
+         End If
+         Do ik = 1, nkpt
 ! get the eigenvectors and values from file
-    call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-    call getevecsv(vkl(:, ik), evecsv)
+            Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+            Call getevecsv (vkl(:, ik), evecsv)
 ! calculate the density
-    call rhovalk(ik, evecfv, evecsv)
-  end do
+            Call rhovalk (ik, evecfv, evecsv)
+         End Do
 ! symmetrise the density
-  call symrf(input%groundstate%lradstep, rhomt, rhoir)
+         Call symrf (input%groundstate%lradstep, rhomt, rhoir)
 ! convert the muffin-tin density from coarse to a fine grid
-  call rfmtctof(rhomt)
-  if (associated(input%groundstate%spin)) then
+         Call rfmtctof (rhomt)
+         If (associated(input%groundstate%spin)) Then
 ! symmetrise the magnetisation
-    call symrvf(input%groundstate%lradstep, magmt, magir)
+            Call symrvf (input%groundstate%lradstep, magmt, magir)
 ! convert the magnetisation from a coarse to a fine radial mesh
-    do idm=1, ndmag
-      call rfmtctof(magmt(:, :, :, idm))
-    end do
-  end if
+            Do idm = 1, ndmag
+               Call rfmtctof (magmt(:, :, :, idm))
+            End Do
+         End If
 ! add core density to the valence density
-  call addrhocr
+         Call addrhocr
 ! calculate the charges
-  call charge
+         Call charge
 ! calculate the magnetic moment
-  if (associated(input%groundstate%spin)) then
-    call moment
-    write(62, '(I6, 3G18.10)') it, momtot(1:ndmag)
-    call flushifc(62)
-  end if
+         If (associated(input%groundstate%spin)) Then
+            Call moment
+            Write (62, '(I6, 3G18.10)') it, momtot (1:ndmag)
+            Call flushifc (62)
+         End If
 ! normalise the density
-  call rhonorm
+         Call rhonorm
 ! calculate the Coulomb potential
-  call potcoul
+         Call potcoul
 ! calculate Coulomb matrix elements
-  call genvmat(vclmt, vclir, vclmat)
+         Call genvmat (vclmt, vclir, vclmat)
 ! calculate derivative of kinetic energy w.r.t. evecsv
-  call rdmdkdc
+         Call rdmdkdc
 ! calculate the energy
-  call rdmenergy
+         Call rdmenergy
 ! check for convergence of derivative of energy w.r.t. evecsv
-  if (it.gt.1) then
-    ds=sp-sum
-    sp=sum
-  end if
+         If (it .Gt. 1) Then
+            ds = sp - sum
+            sp = sum
+         End If
 ! write energy and convergence factor to a file
-  write(61, '(I6, 2G18.10)') it, engytot, ds
-  call flushifc(61)
+         Write (61, '(I6, 2G18.10)') it, engytot, ds
+         Call flushifc (61)
 ! end iteration loop
-end do
-close(61)
-close(62)
-deallocate(evecfv, evecsv)
-return
-end subroutine
+      End Do
+      Close (61)
+      Close (62)
+      Deallocate (evecfv, evecsv)
+      Return
+End Subroutine

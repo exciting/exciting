@@ -1,5 +1,5 @@
-
-
-module modmixadapt
-real(8), allocatable::work(:)
-end module
+!
+!
+Module modmixadapt
+      Real (8), Allocatable :: work (:)
+End Module

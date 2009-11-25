@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: r3frac
 ! !INTERFACE:
-
-
-subroutine r3frac(eps, v, iv)
+!
+!
+Subroutine r3frac (eps, v, iv)
 ! !INPUT/OUTPUT PARAMETERS:
 !   eps : zero component tolerance (in,real)
 !   v   : input vector (inout,real(3))
@@ -25,28 +25,28 @@ subroutine r3frac(eps, v, iv)
 !   Created January 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: eps
-real(8), intent(inout) :: v(3)
-integer, intent(out) :: iv(3)
+      Real (8), Intent (In) :: eps
+      Real (8), Intent (Inout) :: v (3)
+      Integer, Intent (Out) :: iv (3)
 ! local variables
-integer::i
-do i=1, 3
-  iv(i)=int(v(i))
-  v(i)=v(i)-dble(iv(i))
-  if (v(i).lt.0.d0) then
-    v(i)=v(i)+1.d0
-    iv(i)=iv(i)-1
-  end if
-  if (1.d0-v(i).lt.eps) then
-    v(i)=0.d0
-    iv(i)=iv(i)+1
-  end if
-  if (v(i).lt.eps) then
-    v(i)=0.d0
-  end if
-end do
-return
-end subroutine
+      Integer :: i
+      Do i = 1, 3
+         iv (i) = Int (v(i))
+         v (i) = v (i) - dble (iv(i))
+         If (v(i) .Lt. 0.d0) Then
+            v (i) = v (i) + 1.d0
+            iv (i) = iv (i) - 1
+         End If
+         If (1.d0-v(i) .Lt. eps) Then
+            v (i) = 0.d0
+            iv (i) = iv (i) + 1
+         End If
+         If (v(i) .Lt. eps) Then
+            v (i) = 0.d0
+         End If
+      End Do
+      Return
+End Subroutine
 !EOC

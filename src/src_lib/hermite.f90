@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: hermite
 ! !INTERFACE:
-real(8) function hermite(n, x)
+Real (8) Function hermite (n, x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n : order of Hermite polynomial (in,integer)
 !   x : real argument (in,real)
@@ -22,47 +22,47 @@ real(8) function hermite(n, x)
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: n
-real(8), intent(in) :: x
+      Integer, Intent (In) :: n
+      Real (8), Intent (In) :: x
 ! local variables
-integer::i
-real(8)::h1, h2, ht
-if (n.lt.0) then
-  write(*, *)
-  write(*, '("Error(hermite): n < 0 : ", I8)') n
-  write(*, *)
-  stop
-end if
-if (n.gt.20) then
-  write(*, *)
-  write(*, '("Error(hermite): n out of range : ", I8)') n
-  write(*, *)
-  stop
-end if
-if (abs(x).gt.1.d15) then
-  write(*, *)
-  write(*, '("Error(hermite): x out of range : ", G18.10)') x
-  write(*, *)
-  stop
-end if
-if (n.eq.0) then
-  hermite=1.d0
-  return
-end if
-if (n.eq.1) then
-  hermite=2.d0*x
-  return
-end if
-h1=2.d0*x
-h2=1.d0
-do i=2, n
-  ht=2.d0*x*h1-2.d0*dble(i-1)*h2
-  h2=h1
-  h1=ht
-end do
-hermite=h1
-return
-end function
+      Integer :: i
+      Real (8) :: h1, h2, ht
+      If (n .Lt. 0) Then
+         Write (*,*)
+         Write (*, '("Error(hermite): n < 0 : ", I8)') n
+         Write (*,*)
+         Stop
+      End If
+      If (n .Gt. 20) Then
+         Write (*,*)
+         Write (*, '("Error(hermite): n out of range : ", I8)') n
+         Write (*,*)
+         Stop
+      End If
+      If (Abs(x) .Gt. 1.d15) Then
+         Write (*,*)
+         Write (*, '("Error(hermite): x out of range : ", G18.10)') x
+         Write (*,*)
+         Stop
+      End If
+      If (n .Eq. 0) Then
+         hermite = 1.d0
+         Return
+      End If
+      If (n .Eq. 1) Then
+         hermite = 2.d0 * x
+         Return
+      End If
+      h1 = 2.d0 * x
+      h2 = 1.d0
+      Do i = 2, n
+         ht = 2.d0 * x * h1 - 2.d0 * dble (i-1) * h2
+         h2 = h1
+         h1 = ht
+      End Do
+      hermite = h1
+      Return
+End Function
 !EOC

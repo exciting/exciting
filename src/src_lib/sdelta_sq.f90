@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: sdelta_sq
 ! !INTERFACE:
-real(8) function sdelta_sq(x)
+Real (8) Function sdelta_sq (x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   x : real argument (in,real)
 ! !DESCRIPTION:
@@ -21,14 +21,14 @@ real(8) function sdelta_sq(x)
 !   Created July 2008 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: x
-if (abs(x).le.0.5d0) then
-  sdelta_sq=1.d0
-else
-  sdelta_sq=0.d0
-end if
-return
-end function
+      Real (8), Intent (In) :: x
+      If (Abs(x) .Le. 0.5d0) Then
+         sdelta_sq = 1.d0
+      Else
+         sdelta_sq = 0.d0
+      End If
+      Return
+End Function
 !EOC

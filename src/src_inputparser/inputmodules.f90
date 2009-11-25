@@ -1,4591 +1,4841 @@
-
-module modinput
-use inputdom
-implicit none
-type origin_type
- real(8)::coord(3)
-end type
-type point_type
- real(8)::coord(3)
- character(512)::label
-end type
-
-type point_type_array
-type(point_type),pointer::point
- end type
-    type plot1d_type
-  type(path_type),pointer::path
-end type
-type path_type
- integer::steps
- character(512)::outfileprefix
-  type(point_type_array),pointer::pointarray(:)
-end type
-type plot2d_type
-  type(parallelogram_type),pointer::parallelogram
-end type
-type parallelogram_type
- integer::grid(2)
- character(512)::outfileprefix
-  type(origin_type),pointer::origin
-  type(point_type_array),pointer::pointarray(:)
-end type
-type plot3d_type
-  type(box_type),pointer::box
-end type
-type box_type
- integer::grid(3)
- character(512)::outfileprefix
-  type(origin_type),pointer::origin
-  type(point_type_array),pointer::pointarray(:)
-end type
-type kstlist_type
- integer,pointer::pointstatepair(:,:)
-end type
-type inputset_type
-  type(input_type_array),pointer::inputarray(:)
-end type
-type input_type
- character(1024)::xsltpath
- character(1024)::scratchpath
- character(1024)::id
- character(1024)::depends
- character(512)::title
-  type(structure_type),pointer::structure
-  type(groundstate_type),pointer::groundstate
-  type(structureoptimization_type),pointer::structureoptimization
-  type(properties_type),pointer::properties
-  type(phonons_type),pointer::phonons
-  type(xs_type),pointer::xs
-end type
-
-type input_type_array
-type(input_type),pointer::input
- end type
-    type structure_type
- character(1024)::speciespath
- logical::molecule
- real(8)::vacuum
- real(8)::epslat
- logical::autormt
- logical::primcell
- logical::tshift
-  type(symmetries_type),pointer::symmetries
-  type(crystal_type),pointer::crystal
-  type(species_type_array),pointer::speciesarray(:)
-end type
-type symmetries_type
- character(512)::HermannMauguinSymbol
- character(512)::HallSymbol
- character(512)::SchoenfliesSymbol
- character(512)::spaceGroupNumber
-  type(lattice_type),pointer::lattice
-  type(WyckoffPositions_type),pointer::WyckoffPositions
-end type
-type lattice_type
- real(8)::a
- real(8)::b
- real(8)::c
- real(8)::ab
- real(8)::ac
- real(8)::bc
- integer::ncell(3)
-end type
-type WyckoffPositions_type
-  type(wspecies_type_array),pointer::wspeciesarray(:)
-end type
-type wspecies_type
- character(512)::speciesfile
-  type(wpos_type_array),pointer::wposarray(:)
-end type
-
-type wspecies_type_array
-type(wspecies_type),pointer::wspecies
- end type
-    type wpos_type
- real(8)::coord(3)
-end type
-
-type wpos_type_array
-type(wpos_type),pointer::wpos
- end type
-    type crystal_type
- real(8)::scale
- real(8)::stretch(3)
- real(8),pointer::basevect(:,:)
-end type
-type species_type
- character(1024)::speciesfile
- character(512)::chemicalSymbol
- integer::atomicNumber
- real(8)::rmt
-  type(atom_type_array),pointer::atomarray(:)
-  type(LDAplusu_type),pointer::LDAplusu
-end type
-
-type species_type_array
-type(species_type),pointer::species
- end type
-    type atom_type
- real(8)::coord(3)
- real(8)::bfcmt(3)
- real(8)::mommtfix(3)
-end type
-
-type atom_type_array
-type(atom_type),pointer::atom
- end type
-    type LDAplusu_type
- real(8)::L
- real(8)::U
- real(8)::J
-end type
-type groundstate_type
- character(512)::do
- integer::donumber
- integer::ngridk(3)
- real(8)::rgkmax
- real(8)::epspot
- real(8)::rmtapm(2)
- real(8)::swidth
- character(512)::stype
- integer::stypenumber
- character(512)::findlinentype
- integer::findlinentypenumber
- integer::isgkmax
- real(8)::gmaxvr
- integer::nempty
- logical::nosym
- logical::frozencore
- logical::autokpt
- real(8)::radkpt
- logical::reducek
- logical::tfibs
- logical::tforce
- integer::lmaxapw
- integer::maxscl
- real(8)::chgexs
- real(8)::deband
- real(8)::epschg
- real(8)::epsocc
- character(512)::mixer
- integer::mixernumber
- real(8)::beta0
- real(8)::betainc
- real(8)::betadec
- integer::lradstep
- integer::nprad
- character(512)::xctype
- integer::xctypenumber
- real(8)::evalmin
- integer::lmaxvr
- real(8)::fracinr
- integer::lmaxinr
- integer::lmaxmat
- real(8)::vkloff(3)
- integer::npsden
- real(8)::cfdamp
- logical::nosource
- logical::tevecsv
- integer::nwrite
- logical::ptnucl
-  type(spin_type),pointer::spin
-  type(HartreeFock_type),pointer::HartreeFock
-  type(solver_type),pointer::solver
-  type(OEP_type),pointer::OEP
-  type(RDMFT_type),pointer::RDMFT
-end type
-type spin_type
- real(8)::momfix(3)
- real(8)::bfieldc(3)
- logical::spinorb
- logical::spinsprl
- real(8)::vqlss(3)
- real(8)::taufsm
- real(8)::reducebf
- character(512)::fixspin
- integer::fixspinnumber
-end type
-type HartreeFock_type
- real(8)::epsengy
-end type
-type solver_type
- character(512)::type
- integer::typenumber
- logical::packedmatrixstorage
- real(8)::epsarpack
- real(8)::evaltol
-end type
-type OEP_type
- integer::maxitoep
- real(8)::tauoep(3)
-end type
-type RDMFT_type
- integer::rdmxctype
- integer::rdmmaxscl
- integer::maxitn
- integer::maxitc
- real(8)::taurdmn
- real(8)::taurdmc
- real(8)::rdmalpha
- real(8)::rdmtemp
-end type
-type structureoptimization_type
- real(8)::epsforce
- real(8)::tau0atm
- logical::resume
-end type
-type properties_type
-  type(bandstructure_type),pointer::bandstructure
-  type(STM_type),pointer::STM
-  type(wfplot_type),pointer::wfplot
-  type(dos_type),pointer::dos
-  type(LSJ_type),pointer::LSJ
-  type(masstensor_type),pointer::masstensor
-  type(chargedensityplot_type),pointer::chargedensityplot
-  type(exccplot_type),pointer::exccplot
-  type(elfplot_type),pointer::elfplot
-  type(mvecfield_type),pointer::mvecfield
-  type(xcmvecfield_type),pointer::xcmvecfield
-  type(electricfield_type),pointer::electricfield
-  type(gradmvecfield_type),pointer::gradmvecfield
-  type(fermisurfaceplot_type),pointer::fermisurfaceplot
-  type(EFG_type),pointer::EFG
-  type(momentummatrix_type),pointer::momentummatrix
-  type(linresponsetensor_type),pointer::linresponsetensor
-  type(mossbauer_type),pointer::mossbauer
-  type(dielectric_type),pointer::dielectric
-  type(expiqr_type),pointer::expiqr
-  type(elnes_type),pointer::elnes
-  type(eliashberg_type),pointer::eliashberg
-end type
-type bandstructure_type
- real(8)::scissor
- logical::character
-  type(plot1d_type),pointer::plot1d
-end type
-type STM_type
-  type(plot2d_type),pointer::plot2d
-end type
-type wfplot_type
-  type(kstlist_type),pointer::kstlist
-  type(plot1d_type),pointer::plot1d
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type dos_type
- real(8)::sqados(3)
- logical::lmirep
- integer::nwdos
- integer::ngrdos
- real(8)::scissor
- integer::nsmdos
- real(8)::winddos(2)
-end type
-type LSJ_type
-  type(kstlist_type),pointer::kstlist
-end type
-type masstensor_type
- real(8)::deltaem
- integer::ndspem
- real(8)::vklem(3)
-end type
-type chargedensityplot_type
-  type(plot1d_type),pointer::plot1d
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type exccplot_type
-  type(plot1d_type),pointer::plot1d
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type elfplot_type
-  type(plot1d_type),pointer::plot1d
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type mvecfield_type
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type xcmvecfield_type
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type electricfield_type
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type gradmvecfield_type
-  type(plot1d_type),pointer::plot1d
-  type(plot2d_type),pointer::plot2d
-  type(plot3d_type),pointer::plot3d
-end type
-type fermisurfaceplot_type
- integer::nstfsp
- logical::separate
-end type
-
-type EFG_type
-logical::exists
- end type
-    
-type momentummatrix_type
-logical::exists
- end type
-    type linresponsetensor_type
- real(8)::scissor
- integer,pointer::optcomp(:,:)
-end type
-
-type mossbauer_type
-logical::exists
- end type
-    
-type dielectric_type
-logical::exists
- end type
-    
-type expiqr_type
-logical::exists
- end type
-    type elnes_type
- real(8)::vecql(3)
-end type
-type eliashberg_type
- real(8)::mustar
-end type
-type phonons_type
- logical::reduceq
- real(8)::deltaph
-  type(qpointset_type),pointer::qpointset
-  type(phonondos_type),pointer::phonondos
-  type(phonondispplot_type),pointer::phonondispplot
-end type
-
-type phonondos_type
-logical::exists
- end type
-    type phonondispplot_type
-  type(plot1d_type),pointer::plot1d
-end type
-type xs_type
- integer::emattype
- logical::dfoffdiag
- integer::lmaxapwwf
- integer::lmaxemat
- real(8)::emaxdf
- real(8)::broad
- logical::tevout
- character(512)::xstype
- integer::xstypenumber
- logical::symmorph
- logical::fastpmat
- logical::fastemat
- logical::gather
- logical::tappinfo
- integer::dbglev
- logical::usegdft
- real(8)::gqmax
- logical::nosym
- integer::ngridk(3)
- real(8)::vkloff(3)
- logical::reducek
- integer::ngridq(3)
- logical::reduceq
- real(8)::rgkmax
- real(8)::swidth
- integer::lmaxapw
- integer::lmaxmat
- integer::nempty
- real(8)::scissor
-  type(tddft_type),pointer::tddft
-  type(screening_type),pointer::screening
-  type(BSE_type),pointer::BSE
-  type(qpointset_type),pointer::qpointset
-  type(tetra_type),pointer::tetra
-  type(dosWindow_type),pointer::dosWindow
-  type(plan_type),pointer::plan
-end type
-type tddft_type
- logical::intraband
- logical::torddf
- logical::tordfxc
- logical::aresdf
- logical::aresfxc
- real(8)::fxcbsesplit
- logical::acont
- integer::nwacont
- logical::lindhard
- real(8)::epsdfde
- logical::kerndiag
- integer::lmaxalda
- real(8)::alphalrc
- real(8)::alphalrcdyn
- real(8)::betalrcdyn
- integer::mdfqtype
- character(512)::fxctype
- integer::fxctypenumber
- logical::resumefromkernel
-  type(dftrans_type),pointer::dftrans
-end type
-type dftrans_type
- integer,pointer::trans(:,:)
-end type
-type screening_type
- character(512)::run
- integer::runnumber
- logical::nosym
- integer::ngridk(3)
- logical::reducek
- real(8)::vkloff(3)
- real(8)::rgkmax
- integer::nempty
- character(512)::screentype
- integer::screentypenumber
-end type
-type BSE_type
- logical::nosym
- logical::reducek
- real(8)::vkloff(3)
- real(8)::rgkmax
- integer::scrherm
- logical::fbzq
- character(512)::sciavtype
- integer::sciavtypenumber
- logical::sciavbd
- logical::sciavqhd
- logical::sciavqwg
- logical::sciavqbd
- logical::bsedirsing
- integer::lmaxdielt
- integer::nleblaik
- integer::nexcitmax
- integer::nstlbse(2)
- integer::nstlce(2)
- character(512)::bsetype
- integer::bsetypenumber
-end type
-type tetra_type
- logical::tetraocc
- logical::tetradf
- logical::kordexc
- logical::cw1k
- integer::qweights
-end type
-type dosWindow_type
- integer::points
- real(8)::intv(2)
- integer::nsmdos
-end type
-type plan_type
-  type(doonly_type_array),pointer::doonlyarray(:)
-end type
-type doonly_type
- character(512)::task
- integer::tasknumber
-end type
-
-type doonly_type_array
-type(doonly_type),pointer::doonly
- end type
-    type qpointset_type
- real(8),pointer::qpoint(:,:)
-end type
-
-   type(input_type)::input
-contains
-
-function getstructorigin(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(origin_type),pointer::getstructorigin
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructorigin)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at origin"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"coord")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"coord",getstructorigin%coord)
-       call removeAttribute(thisnode,"coord")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructpoint(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(point_type),pointer::getstructpoint
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructpoint)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at point"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"coord")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"coord",getstructpoint%coord)
-       call removeAttribute(thisnode,"coord")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"label")
-getstructpoint%label= ""
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"label",getstructpoint%label)
-       call removeAttribute(thisnode,"label")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructplot1d(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(plot1d_type),pointer::getstructplot1d
-		
-integer::len=1,i=0
-allocate(getstructplot1d)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at plot1d"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"path")
-getstructplot1d%path=>null()
-Do i=0,len-1
-getstructplot1d%path=>getstructpath(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"path"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructpath(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(path_type),pointer::getstructpath
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructpath)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at path"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"steps")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"steps",getstructpath%steps)
-       call removeAttribute(thisnode,"steps")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"outfileprefix")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"outfileprefix",getstructpath%outfileprefix)
-       call removeAttribute(thisnode,"outfileprefix")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"point")
-     
-allocate(getstructpath%pointarray(len))
-Do i=0,len-1
-getstructpath%pointarray(i+1)%point=>getstructpoint(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"point"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructplot2d(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(plot2d_type),pointer::getstructplot2d
-		
-integer::len=1,i=0
-allocate(getstructplot2d)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at plot2d"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"parallelogram")
-getstructplot2d%parallelogram=>null()
-Do i=0,len-1
-getstructplot2d%parallelogram=>getstructparallelogram(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"parallelogram"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructparallelogram(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(parallelogram_type),pointer::getstructparallelogram
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructparallelogram)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at parallelogram"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"grid")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"grid",getstructparallelogram%grid)
-       call removeAttribute(thisnode,"grid")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"outfileprefix")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"outfileprefix",getstructparallelogram%outfileprefix)
-       call removeAttribute(thisnode,"outfileprefix")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"origin")
-getstructparallelogram%origin=>null()
-Do i=0,len-1
-getstructparallelogram%origin=>getstructorigin(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"origin"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"point")
-     
-allocate(getstructparallelogram%pointarray(len))
-Do i=0,len-1
-getstructparallelogram%pointarray(i+1)%point=>getstructpoint(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"point"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructplot3d(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(plot3d_type),pointer::getstructplot3d
-		
-integer::len=1,i=0
-allocate(getstructplot3d)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at plot3d"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"box")
-getstructplot3d%box=>null()
-Do i=0,len-1
-getstructplot3d%box=>getstructbox(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"box"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructbox(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(box_type),pointer::getstructbox
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructbox)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at box"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"grid")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"grid",getstructbox%grid)
-       call removeAttribute(thisnode,"grid")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"outfileprefix")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"outfileprefix",getstructbox%outfileprefix)
-       call removeAttribute(thisnode,"outfileprefix")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"origin")
-getstructbox%origin=>null()
-Do i=0,len-1
-getstructbox%origin=>getstructorigin(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"origin"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"point")
-     
-allocate(getstructbox%pointarray(len))
-Do i=0,len-1
-getstructbox%pointarray(i+1)%point=>getstructpoint(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"point"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructkstlist(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(kstlist_type),pointer::getstructkstlist
-		
-integer::len=1,i=0
-allocate(getstructkstlist)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at kstlist"
-#endif
-      
-      len= countChildEmentsWithName (thisnode,"pointstatepair")           
-allocate(getstructkstlist%pointstatepair(2,len))
-Do i=1,len
-
-		getstructkstlist%pointstatepair(:,i)=getvalueofpointstatepair(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "pointstatepair"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructinputset(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(inputset_type),pointer::getstructinputset
-		
-integer::len=1,i=0
-allocate(getstructinputset)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at inputset"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"input")
-     
-allocate(getstructinputset%inputarray(len))
-Do i=0,len-1
-getstructinputset%inputarray(i+1)%input=>getstructinput(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"input"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructinput(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(input_type),pointer::getstructinput
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructinput)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at input"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"xsltpath")
-getstructinput%xsltpath= "../../xml"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"xsltpath",getstructinput%xsltpath)
-       call removeAttribute(thisnode,"xsltpath")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"scratchpath")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scratchpath",getstructinput%scratchpath)
-       call removeAttribute(thisnode,"scratchpath")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"id")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"id",getstructinput%id)
-       call removeAttribute(thisnode,"id")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"depends")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"depends",getstructinput%depends)
-       call removeAttribute(thisnode,"depends")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"structure")
-getstructinput%structure=>null()
-Do i=0,len-1
-getstructinput%structure=>getstructstructure(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"structure"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"groundstate")
-getstructinput%groundstate=>null()
-Do i=0,len-1
-getstructinput%groundstate=>getstructgroundstate(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"groundstate"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"structureoptimization")
-getstructinput%structureoptimization=>null()
-Do i=0,len-1
-getstructinput%structureoptimization=>getstructstructureoptimization(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"structureoptimization"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"properties")
-getstructinput%properties=>null()
-Do i=0,len-1
-getstructinput%properties=>getstructproperties(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"properties"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"phonons")
-getstructinput%phonons=>null()
-Do i=0,len-1
-getstructinput%phonons=>getstructphonons(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"phonons"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"xs")
-getstructinput%xs=>null()
-Do i=0,len-1
-getstructinput%xs=>getstructxs(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"xs"),0)) ) 
-enddo
-
-      len= countChildEmentsWithName (thisnode,"title")
-Do i=1,len
-
-		getstructinput%title=getvalueoftitle(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "title"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructstructure(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(structure_type),pointer::getstructstructure
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructstructure)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at structure"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"speciespath")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"speciespath",getstructstructure%speciespath)
-       call removeAttribute(thisnode,"speciespath")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"molecule")
-getstructstructure%molecule= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"molecule",getstructstructure%molecule)
-       call removeAttribute(thisnode,"molecule")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vacuum")
-getstructstructure%vacuum=10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vacuum",getstructstructure%vacuum)
-       call removeAttribute(thisnode,"vacuum")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"epslat")
-getstructstructure%epslat=1e-6
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epslat",getstructstructure%epslat)
-       call removeAttribute(thisnode,"epslat")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"autormt")
-getstructstructure%autormt= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"autormt",getstructstructure%autormt)
-       call removeAttribute(thisnode,"autormt")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"primcell")
-getstructstructure%primcell= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"primcell",getstructstructure%primcell)
-       call removeAttribute(thisnode,"primcell")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tshift")
-getstructstructure%tshift= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tshift",getstructstructure%tshift)
-       call removeAttribute(thisnode,"tshift")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"symmetries")
-getstructstructure%symmetries=>null()
-Do i=0,len-1
-getstructstructure%symmetries=>getstructsymmetries(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"symmetries"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"crystal")
-getstructstructure%crystal=>null()
-Do i=0,len-1
-getstructstructure%crystal=>getstructcrystal(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"crystal"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"species")
-     
-allocate(getstructstructure%speciesarray(len))
-Do i=0,len-1
-getstructstructure%speciesarray(i+1)%species=>getstructspecies(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"species"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructsymmetries(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(symmetries_type),pointer::getstructsymmetries
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructsymmetries)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at symmetries"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"HermannMauguinSymbol")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"HermannMauguinSymbol",getstructsymmetries%HermannMauguinSymbol)
-       call removeAttribute(thisnode,"HermannMauguinSymbol")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"HallSymbol")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"HallSymbol",getstructsymmetries%HallSymbol)
-       call removeAttribute(thisnode,"HallSymbol")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"SchoenfliesSymbol")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"SchoenfliesSymbol",getstructsymmetries%SchoenfliesSymbol)
-       call removeAttribute(thisnode,"SchoenfliesSymbol")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"spaceGroupNumber")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"spaceGroupNumber",getstructsymmetries%spaceGroupNumber)
-       call removeAttribute(thisnode,"spaceGroupNumber")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"lattice")
-getstructsymmetries%lattice=>null()
-Do i=0,len-1
-getstructsymmetries%lattice=>getstructlattice(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"lattice"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"WyckoffPositions")
-getstructsymmetries%WyckoffPositions=>null()
-Do i=0,len-1
-getstructsymmetries%WyckoffPositions=>getstructWyckoffPositions(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"WyckoffPositions"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructlattice(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(lattice_type),pointer::getstructlattice
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructlattice)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at lattice"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"a")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"a",getstructlattice%a)
-       call removeAttribute(thisnode,"a")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"b")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"b",getstructlattice%b)
-       call removeAttribute(thisnode,"b")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"c")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"c",getstructlattice%c)
-       call removeAttribute(thisnode,"c")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ab")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ab",getstructlattice%ab)
-       call removeAttribute(thisnode,"ab")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ac")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ac",getstructlattice%ac)
-       call removeAttribute(thisnode,"ac")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"bc")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bc",getstructlattice%bc)
-       call removeAttribute(thisnode,"bc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ncell")
-getstructlattice%ncell=(/1,1,1/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ncell",getstructlattice%ncell)
-       call removeAttribute(thisnode,"ncell")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructWyckoffPositions(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(WyckoffPositions_type),pointer::getstructWyckoffPositions
-		
-integer::len=1,i=0
-allocate(getstructWyckoffPositions)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at WyckoffPositions"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"wspecies")
-     
-allocate(getstructWyckoffPositions%wspeciesarray(len))
-Do i=0,len-1
-getstructWyckoffPositions%wspeciesarray(i+1)%wspecies=>getstructwspecies(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"wspecies"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructwspecies(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(wspecies_type),pointer::getstructwspecies
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructwspecies)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at wspecies"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"speciesfile")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"speciesfile",getstructwspecies%speciesfile)
-       call removeAttribute(thisnode,"speciesfile")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"wpos")
-     
-allocate(getstructwspecies%wposarray(len))
-Do i=0,len-1
-getstructwspecies%wposarray(i+1)%wpos=>getstructwpos(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"wpos"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructwpos(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(wpos_type),pointer::getstructwpos
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructwpos)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at wpos"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"coord")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"coord",getstructwpos%coord)
-       call removeAttribute(thisnode,"coord")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructcrystal(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(crystal_type),pointer::getstructcrystal
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructcrystal)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at crystal"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"scale")
-getstructcrystal%scale=1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scale",getstructcrystal%scale)
-       call removeAttribute(thisnode,"scale")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"stretch")
-getstructcrystal%stretch=(/1.0d0,1.0d0,1.0d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"stretch",getstructcrystal%stretch)
-       call removeAttribute(thisnode,"stretch")      
-endif
-
-      len= countChildEmentsWithName (thisnode,"basevect")           
-allocate(getstructcrystal%basevect(3,len))
-Do i=1,len
-
-		getstructcrystal%basevect(:,i)=getvalueofbasevect(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "basevect"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructspecies(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(species_type),pointer::getstructspecies
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructspecies)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at species"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"speciesfile")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"speciesfile",getstructspecies%speciesfile)
-       call removeAttribute(thisnode,"speciesfile")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"chemicalSymbol")
-getstructspecies%chemicalSymbol= ""
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"chemicalSymbol",getstructspecies%chemicalSymbol)
-       call removeAttribute(thisnode,"chemicalSymbol")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"atomicNumber")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"atomicNumber",getstructspecies%atomicNumber)
-       call removeAttribute(thisnode,"atomicNumber")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rmt")
-getstructspecies%rmt=-1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rmt",getstructspecies%rmt)
-       call removeAttribute(thisnode,"rmt")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"atom")
-     
-allocate(getstructspecies%atomarray(len))
-Do i=0,len-1
-getstructspecies%atomarray(i+1)%atom=>getstructatom(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"atom"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"LDAplusu")
-getstructspecies%LDAplusu=>null()
-Do i=0,len-1
-getstructspecies%LDAplusu=>getstructLDAplusu(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"LDAplusu"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructatom(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(atom_type),pointer::getstructatom
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructatom)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at atom"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"coord")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"coord",getstructatom%coord)
-       call removeAttribute(thisnode,"coord")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"bfcmt")
-getstructatom%bfcmt=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bfcmt",getstructatom%bfcmt)
-       call removeAttribute(thisnode,"bfcmt")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"mommtfix")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"mommtfix",getstructatom%mommtfix)
-       call removeAttribute(thisnode,"mommtfix")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructLDAplusu(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(LDAplusu_type),pointer::getstructLDAplusu
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructLDAplusu)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at LDAplusu"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"L")
-getstructLDAplusu%L=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"L",getstructLDAplusu%L)
-       call removeAttribute(thisnode,"L")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"U")
-getstructLDAplusu%U=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"U",getstructLDAplusu%U)
-       call removeAttribute(thisnode,"U")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"J")
-getstructLDAplusu%J=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"J",getstructLDAplusu%J)
-       call removeAttribute(thisnode,"J")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructgroundstate(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(groundstate_type),pointer::getstructgroundstate
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructgroundstate)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at groundstate"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"do")
-getstructgroundstate%do= "fromscratch"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"do",getstructgroundstate%do)
-       call removeAttribute(thisnode,"do")      
-endif
-getstructgroundstate%donumber=stringtonumberdo(getstructgroundstate%do)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngridk")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngridk",getstructgroundstate%ngridk)
-       call removeAttribute(thisnode,"ngridk")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rgkmax")
-getstructgroundstate%rgkmax=7
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rgkmax",getstructgroundstate%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"epspot")
-getstructgroundstate%epspot=1e-6
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epspot",getstructgroundstate%epspot)
-       call removeAttribute(thisnode,"epspot")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rmtapm")
-getstructgroundstate%rmtapm=(/0.25d0,0.95d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rmtapm",getstructgroundstate%rmtapm)
-       call removeAttribute(thisnode,"rmtapm")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"swidth")
-getstructgroundstate%swidth=0.001d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"swidth",getstructgroundstate%swidth)
-       call removeAttribute(thisnode,"swidth")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"stype")
-getstructgroundstate%stype= "Gaussian"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"stype",getstructgroundstate%stype)
-       call removeAttribute(thisnode,"stype")      
-endif
-getstructgroundstate%stypenumber=stringtonumberstype(getstructgroundstate%stype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"findlinentype")
-getstructgroundstate%findlinentype= "advanced"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"findlinentype",getstructgroundstate%findlinentype)
-       call removeAttribute(thisnode,"findlinentype")      
-endif
-getstructgroundstate%findlinentypenumber=stringtonumberfindlinentype(getstructgroundstate%findlinentype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"isgkmax")
-getstructgroundstate%isgkmax=-1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"isgkmax",getstructgroundstate%isgkmax)
-       call removeAttribute(thisnode,"isgkmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"gmaxvr")
-getstructgroundstate%gmaxvr=12
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"gmaxvr",getstructgroundstate%gmaxvr)
-       call removeAttribute(thisnode,"gmaxvr")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nempty")
-getstructgroundstate%nempty=5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nempty",getstructgroundstate%nempty)
-       call removeAttribute(thisnode,"nempty")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nosym")
-getstructgroundstate%nosym= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nosym",getstructgroundstate%nosym)
-       call removeAttribute(thisnode,"nosym")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"frozencore")
-getstructgroundstate%frozencore= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"frozencore",getstructgroundstate%frozencore)
-       call removeAttribute(thisnode,"frozencore")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"autokpt")
-getstructgroundstate%autokpt= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"autokpt",getstructgroundstate%autokpt)
-       call removeAttribute(thisnode,"autokpt")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"radkpt")
-getstructgroundstate%radkpt=40
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"radkpt",getstructgroundstate%radkpt)
-       call removeAttribute(thisnode,"radkpt")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"reducek")
-getstructgroundstate%reducek= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reducek",getstructgroundstate%reducek)
-       call removeAttribute(thisnode,"reducek")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tfibs")
-getstructgroundstate%tfibs= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tfibs",getstructgroundstate%tfibs)
-       call removeAttribute(thisnode,"tfibs")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tforce")
-getstructgroundstate%tforce= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tforce",getstructgroundstate%tforce)
-       call removeAttribute(thisnode,"tforce")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxapw")
-getstructgroundstate%lmaxapw=10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxapw",getstructgroundstate%lmaxapw)
-       call removeAttribute(thisnode,"lmaxapw")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"maxscl")
-getstructgroundstate%maxscl=200
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"maxscl",getstructgroundstate%maxscl)
-       call removeAttribute(thisnode,"maxscl")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"chgexs")
-getstructgroundstate%chgexs=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"chgexs",getstructgroundstate%chgexs)
-       call removeAttribute(thisnode,"chgexs")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"deband")
-getstructgroundstate%deband=0.0025d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"deband",getstructgroundstate%deband)
-       call removeAttribute(thisnode,"deband")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"epschg")
-getstructgroundstate%epschg=1.0d-3
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epschg",getstructgroundstate%epschg)
-       call removeAttribute(thisnode,"epschg")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"epsocc")
-getstructgroundstate%epsocc=1e-8
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epsocc",getstructgroundstate%epsocc)
-       call removeAttribute(thisnode,"epsocc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"mixer")
-getstructgroundstate%mixer= "msec"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"mixer",getstructgroundstate%mixer)
-       call removeAttribute(thisnode,"mixer")      
-endif
-getstructgroundstate%mixernumber=stringtonumbermixer(getstructgroundstate%mixer)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"beta0")
-getstructgroundstate%beta0=0.4
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"beta0",getstructgroundstate%beta0)
-       call removeAttribute(thisnode,"beta0")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"betainc")
-getstructgroundstate%betainc=1.1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"betainc",getstructgroundstate%betainc)
-       call removeAttribute(thisnode,"betainc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"betadec")
-getstructgroundstate%betadec=0.6
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"betadec",getstructgroundstate%betadec)
-       call removeAttribute(thisnode,"betadec")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lradstep")
-getstructgroundstate%lradstep=4
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lradstep",getstructgroundstate%lradstep)
-       call removeAttribute(thisnode,"lradstep")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nprad")
-getstructgroundstate%nprad=4
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nprad",getstructgroundstate%nprad)
-       call removeAttribute(thisnode,"nprad")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"xctype")
-getstructgroundstate%xctype= "LSDAPerdew-Wang"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"xctype",getstructgroundstate%xctype)
-       call removeAttribute(thisnode,"xctype")      
-endif
-getstructgroundstate%xctypenumber=stringtonumberxctype(getstructgroundstate%xctype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"evalmin")
-getstructgroundstate%evalmin=-4.5d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"evalmin",getstructgroundstate%evalmin)
-       call removeAttribute(thisnode,"evalmin")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxvr")
-getstructgroundstate%lmaxvr=6
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxvr",getstructgroundstate%lmaxvr)
-       call removeAttribute(thisnode,"lmaxvr")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fracinr")
-getstructgroundstate%fracinr=0.25d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fracinr",getstructgroundstate%fracinr)
-       call removeAttribute(thisnode,"fracinr")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxinr")
-getstructgroundstate%lmaxinr=2
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxinr",getstructgroundstate%lmaxinr)
-       call removeAttribute(thisnode,"lmaxinr")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxmat")
-getstructgroundstate%lmaxmat=5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxmat",getstructgroundstate%lmaxmat)
-       call removeAttribute(thisnode,"lmaxmat")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vkloff")
-getstructgroundstate%vkloff=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vkloff",getstructgroundstate%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"npsden")
-getstructgroundstate%npsden=9
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"npsden",getstructgroundstate%npsden)
-       call removeAttribute(thisnode,"npsden")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"cfdamp")
-getstructgroundstate%cfdamp=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"cfdamp",getstructgroundstate%cfdamp)
-       call removeAttribute(thisnode,"cfdamp")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nosource")
-getstructgroundstate%nosource= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nosource",getstructgroundstate%nosource)
-       call removeAttribute(thisnode,"nosource")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tevecsv")
-getstructgroundstate%tevecsv= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tevecsv",getstructgroundstate%tevecsv)
-       call removeAttribute(thisnode,"tevecsv")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nwrite")
-getstructgroundstate%nwrite=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nwrite",getstructgroundstate%nwrite)
-       call removeAttribute(thisnode,"nwrite")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ptnucl")
-getstructgroundstate%ptnucl= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ptnucl",getstructgroundstate%ptnucl)
-       call removeAttribute(thisnode,"ptnucl")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"spin")
-getstructgroundstate%spin=>null()
-Do i=0,len-1
-getstructgroundstate%spin=>getstructspin(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"spin"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"HartreeFock")
-getstructgroundstate%HartreeFock=>null()
-Do i=0,len-1
-getstructgroundstate%HartreeFock=>getstructHartreeFock(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"HartreeFock"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"solver")
-getstructgroundstate%solver=>null()
-Do i=0,len-1
-getstructgroundstate%solver=>getstructsolver(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"solver"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"OEP")
-getstructgroundstate%OEP=>null()
-Do i=0,len-1
-getstructgroundstate%OEP=>getstructOEP(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"OEP"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"RDMFT")
-getstructgroundstate%RDMFT=>null()
-Do i=0,len-1
-getstructgroundstate%RDMFT=>getstructRDMFT(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"RDMFT"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructspin(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(spin_type),pointer::getstructspin
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructspin)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at spin"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"momfix")
-getstructspin%momfix=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"momfix",getstructspin%momfix)
-       call removeAttribute(thisnode,"momfix")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"bfieldc")
-getstructspin%bfieldc=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bfieldc",getstructspin%bfieldc)
-       call removeAttribute(thisnode,"bfieldc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"spinorb")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"spinorb",getstructspin%spinorb)
-       call removeAttribute(thisnode,"spinorb")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"spinsprl")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"spinsprl",getstructspin%spinsprl)
-       call removeAttribute(thisnode,"spinsprl")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vqlss")
-getstructspin%vqlss=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vqlss",getstructspin%vqlss)
-       call removeAttribute(thisnode,"vqlss")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"taufsm")
-getstructspin%taufsm=0.01d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"taufsm",getstructspin%taufsm)
-       call removeAttribute(thisnode,"taufsm")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"reducebf")
-getstructspin%reducebf=1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reducebf",getstructspin%reducebf)
-       call removeAttribute(thisnode,"reducebf")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fixspin")
-getstructspin%fixspin= "none"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fixspin",getstructspin%fixspin)
-       call removeAttribute(thisnode,"fixspin")      
-endif
-getstructspin%fixspinnumber=stringtonumberfixspin(getstructspin%fixspin)
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructHartreeFock(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(HartreeFock_type),pointer::getstructHartreeFock
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructHartreeFock)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at HartreeFock"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"epsengy")
-getstructHartreeFock%epsengy=1e-7
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epsengy",getstructHartreeFock%epsengy)
-       call removeAttribute(thisnode,"epsengy")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructsolver(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(solver_type),pointer::getstructsolver
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructsolver)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at solver"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"type")
-getstructsolver%type= "Lapack"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"type",getstructsolver%type)
-       call removeAttribute(thisnode,"type")      
-endif
-getstructsolver%typenumber=stringtonumbertype(getstructsolver%type)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"packedmatrixstorage")
-getstructsolver%packedmatrixstorage= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"packedmatrixstorage",getstructsolver%packedmatrixstorage)
-       call removeAttribute(thisnode,"packedmatrixstorage")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"epsarpack")
-getstructsolver%epsarpack=1.0e-8
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epsarpack",getstructsolver%epsarpack)
-       call removeAttribute(thisnode,"epsarpack")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"evaltol")
-getstructsolver%evaltol=1e-8
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"evaltol",getstructsolver%evaltol)
-       call removeAttribute(thisnode,"evaltol")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructOEP(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(OEP_type),pointer::getstructOEP
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructOEP)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at OEP"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"maxitoep")
-getstructOEP%maxitoep=120
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"maxitoep",getstructOEP%maxitoep)
-       call removeAttribute(thisnode,"maxitoep")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tauoep")
-getstructOEP%tauoep=(/1.0,0.2,1.5/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tauoep",getstructOEP%tauoep)
-       call removeAttribute(thisnode,"tauoep")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructRDMFT(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(RDMFT_type),pointer::getstructRDMFT
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructRDMFT)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at RDMFT"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"rdmxctype")
-getstructRDMFT%rdmxctype=2
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rdmxctype",getstructRDMFT%rdmxctype)
-       call removeAttribute(thisnode,"rdmxctype")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rdmmaxscl")
-getstructRDMFT%rdmmaxscl=1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rdmmaxscl",getstructRDMFT%rdmmaxscl)
-       call removeAttribute(thisnode,"rdmmaxscl")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"maxitn")
-getstructRDMFT%maxitn=250
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"maxitn",getstructRDMFT%maxitn)
-       call removeAttribute(thisnode,"maxitn")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"maxitc")
-getstructRDMFT%maxitc=10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"maxitc",getstructRDMFT%maxitc)
-       call removeAttribute(thisnode,"maxitc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"taurdmn")
-getstructRDMFT%taurdmn=1.0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"taurdmn",getstructRDMFT%taurdmn)
-       call removeAttribute(thisnode,"taurdmn")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"taurdmc")
-getstructRDMFT%taurdmc=0.5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"taurdmc",getstructRDMFT%taurdmc)
-       call removeAttribute(thisnode,"taurdmc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rdmalpha")
-getstructRDMFT%rdmalpha=0.7
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rdmalpha",getstructRDMFT%rdmalpha)
-       call removeAttribute(thisnode,"rdmalpha")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rdmtemp")
-getstructRDMFT%rdmtemp=0.0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rdmtemp",getstructRDMFT%rdmtemp)
-       call removeAttribute(thisnode,"rdmtemp")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructstructureoptimization(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(structureoptimization_type),pointer::getstructstructureoptimization
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructstructureoptimization)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at structureoptimization"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"epsforce")
-getstructstructureoptimization%epsforce=5e-5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epsforce",getstructstructureoptimization%epsforce)
-       call removeAttribute(thisnode,"epsforce")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tau0atm")
-getstructstructureoptimization%tau0atm=0.2d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tau0atm",getstructstructureoptimization%tau0atm)
-       call removeAttribute(thisnode,"tau0atm")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"resume")
-getstructstructureoptimization%resume= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"resume",getstructstructureoptimization%resume)
-       call removeAttribute(thisnode,"resume")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructproperties(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(properties_type),pointer::getstructproperties
-		
-integer::len=1,i=0
-allocate(getstructproperties)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at properties"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"bandstructure")
-getstructproperties%bandstructure=>null()
-Do i=0,len-1
-getstructproperties%bandstructure=>getstructbandstructure(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"bandstructure"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"STM")
-getstructproperties%STM=>null()
-Do i=0,len-1
-getstructproperties%STM=>getstructSTM(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"STM"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"wfplot")
-getstructproperties%wfplot=>null()
-Do i=0,len-1
-getstructproperties%wfplot=>getstructwfplot(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"wfplot"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"dos")
-getstructproperties%dos=>null()
-Do i=0,len-1
-getstructproperties%dos=>getstructdos(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dos"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"LSJ")
-getstructproperties%LSJ=>null()
-Do i=0,len-1
-getstructproperties%LSJ=>getstructLSJ(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"LSJ"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"masstensor")
-getstructproperties%masstensor=>null()
-Do i=0,len-1
-getstructproperties%masstensor=>getstructmasstensor(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"masstensor"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"chargedensityplot")
-getstructproperties%chargedensityplot=>null()
-Do i=0,len-1
-getstructproperties%chargedensityplot=>getstructchargedensityplot(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"chargedensityplot"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"exccplot")
-getstructproperties%exccplot=>null()
-Do i=0,len-1
-getstructproperties%exccplot=>getstructexccplot(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"exccplot"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"elfplot")
-getstructproperties%elfplot=>null()
-Do i=0,len-1
-getstructproperties%elfplot=>getstructelfplot(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"elfplot"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"mvecfield")
-getstructproperties%mvecfield=>null()
-Do i=0,len-1
-getstructproperties%mvecfield=>getstructmvecfield(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"mvecfield"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"xcmvecfield")
-getstructproperties%xcmvecfield=>null()
-Do i=0,len-1
-getstructproperties%xcmvecfield=>getstructxcmvecfield(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"xcmvecfield"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"electricfield")
-getstructproperties%electricfield=>null()
-Do i=0,len-1
-getstructproperties%electricfield=>getstructelectricfield(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"electricfield"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"gradmvecfield")
-getstructproperties%gradmvecfield=>null()
-Do i=0,len-1
-getstructproperties%gradmvecfield=>getstructgradmvecfield(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"gradmvecfield"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"fermisurfaceplot")
-getstructproperties%fermisurfaceplot=>null()
-Do i=0,len-1
-getstructproperties%fermisurfaceplot=>getstructfermisurfaceplot(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"fermisurfaceplot"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"EFG")
-getstructproperties%EFG=>null()
-Do i=0,len-1
-getstructproperties%EFG=>getstructEFG(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"EFG"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"momentummatrix")
-getstructproperties%momentummatrix=>null()
-Do i=0,len-1
-getstructproperties%momentummatrix=>getstructmomentummatrix(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"momentummatrix"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"linresponsetensor")
-getstructproperties%linresponsetensor=>null()
-Do i=0,len-1
-getstructproperties%linresponsetensor=>getstructlinresponsetensor(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"linresponsetensor"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"mossbauer")
-getstructproperties%mossbauer=>null()
-Do i=0,len-1
-getstructproperties%mossbauer=>getstructmossbauer(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"mossbauer"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"dielectric")
-getstructproperties%dielectric=>null()
-Do i=0,len-1
-getstructproperties%dielectric=>getstructdielectric(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dielectric"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"expiqr")
-getstructproperties%expiqr=>null()
-Do i=0,len-1
-getstructproperties%expiqr=>getstructexpiqr(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"expiqr"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"elnes")
-getstructproperties%elnes=>null()
-Do i=0,len-1
-getstructproperties%elnes=>getstructelnes(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"elnes"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"eliashberg")
-getstructproperties%eliashberg=>null()
-Do i=0,len-1
-getstructproperties%eliashberg=>getstructeliashberg(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"eliashberg"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructbandstructure(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(bandstructure_type),pointer::getstructbandstructure
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructbandstructure)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at bandstructure"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-getstructbandstructure%scissor=0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructbandstructure%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"character")
-getstructbandstructure%character= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"character",getstructbandstructure%character)
-       call removeAttribute(thisnode,"character")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructbandstructure%plot1d=>null()
-Do i=0,len-1
-getstructbandstructure%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructSTM(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(STM_type),pointer::getstructSTM
-		
-integer::len=1,i=0
-allocate(getstructSTM)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at STM"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructSTM%plot2d=>null()
-Do i=0,len-1
-getstructSTM%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructwfplot(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(wfplot_type),pointer::getstructwfplot
-		
-integer::len=1,i=0
-allocate(getstructwfplot)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at wfplot"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"kstlist")
-getstructwfplot%kstlist=>null()
-Do i=0,len-1
-getstructwfplot%kstlist=>getstructkstlist(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"kstlist"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructwfplot%plot1d=>null()
-Do i=0,len-1
-getstructwfplot%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructwfplot%plot2d=>null()
-Do i=0,len-1
-getstructwfplot%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructwfplot%plot3d=>null()
-Do i=0,len-1
-getstructwfplot%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdos(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dos_type),pointer::getstructdos
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructdos)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at dos"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"sqados")
-getstructdos%sqados=(/0.0,0.0,1.0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"sqados",getstructdos%sqados)
-       call removeAttribute(thisnode,"sqados")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmirep")
-getstructdos%lmirep= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmirep",getstructdos%lmirep)
-       call removeAttribute(thisnode,"lmirep")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nwdos")
-getstructdos%nwdos=500
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nwdos",getstructdos%nwdos)
-       call removeAttribute(thisnode,"nwdos")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngrdos")
-getstructdos%ngrdos=100
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngrdos",getstructdos%ngrdos)
-       call removeAttribute(thisnode,"ngrdos")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructdos%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nsmdos")
-getstructdos%nsmdos=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nsmdos",getstructdos%nsmdos)
-       call removeAttribute(thisnode,"nsmdos")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"winddos")
-getstructdos%winddos=(/.5,.5/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"winddos",getstructdos%winddos)
-       call removeAttribute(thisnode,"winddos")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructLSJ(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(LSJ_type),pointer::getstructLSJ
-		
-integer::len=1,i=0
-allocate(getstructLSJ)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at LSJ"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"kstlist")
-getstructLSJ%kstlist=>null()
-Do i=0,len-1
-getstructLSJ%kstlist=>getstructkstlist(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"kstlist"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructmasstensor(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(masstensor_type),pointer::getstructmasstensor
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructmasstensor)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at masstensor"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"deltaem")
-getstructmasstensor%deltaem=0.025d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"deltaem",getstructmasstensor%deltaem)
-       call removeAttribute(thisnode,"deltaem")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ndspem")
-getstructmasstensor%ndspem=1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ndspem",getstructmasstensor%ndspem)
-       call removeAttribute(thisnode,"ndspem")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vklem")
-getstructmasstensor%vklem=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vklem",getstructmasstensor%vklem)
-       call removeAttribute(thisnode,"vklem")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructchargedensityplot(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(chargedensityplot_type),pointer::getstructchargedensityplot
-		
-integer::len=1,i=0
-allocate(getstructchargedensityplot)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at chargedensityplot"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructchargedensityplot%plot1d=>null()
-Do i=0,len-1
-getstructchargedensityplot%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructchargedensityplot%plot2d=>null()
-Do i=0,len-1
-getstructchargedensityplot%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructchargedensityplot%plot3d=>null()
-Do i=0,len-1
-getstructchargedensityplot%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructexccplot(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(exccplot_type),pointer::getstructexccplot
-		
-integer::len=1,i=0
-allocate(getstructexccplot)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at exccplot"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructexccplot%plot1d=>null()
-Do i=0,len-1
-getstructexccplot%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructexccplot%plot2d=>null()
-Do i=0,len-1
-getstructexccplot%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructexccplot%plot3d=>null()
-Do i=0,len-1
-getstructexccplot%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructelfplot(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(elfplot_type),pointer::getstructelfplot
-		
-integer::len=1,i=0
-allocate(getstructelfplot)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at elfplot"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructelfplot%plot1d=>null()
-Do i=0,len-1
-getstructelfplot%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructelfplot%plot2d=>null()
-Do i=0,len-1
-getstructelfplot%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructelfplot%plot3d=>null()
-Do i=0,len-1
-getstructelfplot%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructmvecfield(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(mvecfield_type),pointer::getstructmvecfield
-		
-integer::len=1,i=0
-allocate(getstructmvecfield)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at mvecfield"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructmvecfield%plot2d=>null()
-Do i=0,len-1
-getstructmvecfield%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructmvecfield%plot3d=>null()
-Do i=0,len-1
-getstructmvecfield%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructxcmvecfield(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(xcmvecfield_type),pointer::getstructxcmvecfield
-		
-integer::len=1,i=0
-allocate(getstructxcmvecfield)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at xcmvecfield"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructxcmvecfield%plot2d=>null()
-Do i=0,len-1
-getstructxcmvecfield%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructxcmvecfield%plot3d=>null()
-Do i=0,len-1
-getstructxcmvecfield%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructelectricfield(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(electricfield_type),pointer::getstructelectricfield
-		
-integer::len=1,i=0
-allocate(getstructelectricfield)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at electricfield"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructelectricfield%plot2d=>null()
-Do i=0,len-1
-getstructelectricfield%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructelectricfield%plot3d=>null()
-Do i=0,len-1
-getstructelectricfield%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructgradmvecfield(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(gradmvecfield_type),pointer::getstructgradmvecfield
-		
-integer::len=1,i=0
-allocate(getstructgradmvecfield)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at gradmvecfield"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructgradmvecfield%plot1d=>null()
-Do i=0,len-1
-getstructgradmvecfield%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot2d")
-getstructgradmvecfield%plot2d=>null()
-Do i=0,len-1
-getstructgradmvecfield%plot2d=>getstructplot2d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot2d"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plot3d")
-getstructgradmvecfield%plot3d=>null()
-Do i=0,len-1
-getstructgradmvecfield%plot3d=>getstructplot3d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot3d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructfermisurfaceplot(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(fermisurfaceplot_type),pointer::getstructfermisurfaceplot
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructfermisurfaceplot)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at fermisurfaceplot"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"nstfsp")
-getstructfermisurfaceplot%nstfsp=6
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nstfsp",getstructfermisurfaceplot%nstfsp)
-       call removeAttribute(thisnode,"nstfsp")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"separate")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"separate",getstructfermisurfaceplot%separate)
-       call removeAttribute(thisnode,"separate")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructEFG(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(EFG_type),pointer::getstructEFG
-		
-integer::len=1,i=0
-allocate(getstructEFG)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at EFG"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructmomentummatrix(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(momentummatrix_type),pointer::getstructmomentummatrix
-		
-integer::len=1,i=0
-allocate(getstructmomentummatrix)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at momentummatrix"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructlinresponsetensor(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(linresponsetensor_type),pointer::getstructlinresponsetensor
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructlinresponsetensor)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at linresponsetensor"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructlinresponsetensor%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-      len= countChildEmentsWithName (thisnode,"optcomp")           
-allocate(getstructlinresponsetensor%optcomp(3,len))
-Do i=1,len
-
-		getstructlinresponsetensor%optcomp(:,i)=getvalueofoptcomp(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "optcomp"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructmossbauer(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(mossbauer_type),pointer::getstructmossbauer
-		
-integer::len=1,i=0
-allocate(getstructmossbauer)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at mossbauer"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdielectric(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dielectric_type),pointer::getstructdielectric
-		
-integer::len=1,i=0
-allocate(getstructdielectric)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at dielectric"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructexpiqr(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(expiqr_type),pointer::getstructexpiqr
-		
-integer::len=1,i=0
-allocate(getstructexpiqr)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at expiqr"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructelnes(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(elnes_type),pointer::getstructelnes
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructelnes)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at elnes"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"vecql")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vecql",getstructelnes%vecql)
-       call removeAttribute(thisnode,"vecql")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructeliashberg(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(eliashberg_type),pointer::getstructeliashberg
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructeliashberg)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at eliashberg"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"mustar")
-getstructeliashberg%mustar=0.15
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"mustar",getstructeliashberg%mustar)
-       call removeAttribute(thisnode,"mustar")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructphonons(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(phonons_type),pointer::getstructphonons
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructphonons)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at phonons"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"reduceq")
-getstructphonons%reduceq= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reduceq",getstructphonons%reduceq)
-       call removeAttribute(thisnode,"reduceq")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"deltaph")
-getstructphonons%deltaph=0.03
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"deltaph",getstructphonons%deltaph)
-       call removeAttribute(thisnode,"deltaph")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"qpointset")
-getstructphonons%qpointset=>null()
-Do i=0,len-1
-getstructphonons%qpointset=>getstructqpointset(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"qpointset"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"phonondos")
-getstructphonons%phonondos=>null()
-Do i=0,len-1
-getstructphonons%phonondos=>getstructphonondos(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"phonondos"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"phonondispplot")
-getstructphonons%phonondispplot=>null()
-Do i=0,len-1
-getstructphonons%phonondispplot=>getstructphonondispplot(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"phonondispplot"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructphonondos(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(phonondos_type),pointer::getstructphonondos
-		
-integer::len=1,i=0
-allocate(getstructphonondos)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at phonondos"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructphonondispplot(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(phonondispplot_type),pointer::getstructphonondispplot
-		
-integer::len=1,i=0
-allocate(getstructphonondispplot)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at phonondispplot"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructphonondispplot%plot1d=>null()
-Do i=0,len-1
-getstructphonondispplot%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructxs(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(xs_type),pointer::getstructxs
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructxs)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at xs"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"emattype")
-getstructxs%emattype=1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"emattype",getstructxs%emattype)
-       call removeAttribute(thisnode,"emattype")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"dfoffdiag")
-getstructxs%dfoffdiag= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"dfoffdiag",getstructxs%dfoffdiag)
-       call removeAttribute(thisnode,"dfoffdiag")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxapwwf")
-getstructxs%lmaxapwwf=-1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxapwwf",getstructxs%lmaxapwwf)
-       call removeAttribute(thisnode,"lmaxapwwf")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxemat")
-getstructxs%lmaxemat=3
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxemat",getstructxs%lmaxemat)
-       call removeAttribute(thisnode,"lmaxemat")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"emaxdf")
-getstructxs%emaxdf=1d10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"emaxdf",getstructxs%emaxdf)
-       call removeAttribute(thisnode,"emaxdf")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"broad")
-getstructxs%broad=0.01d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"broad",getstructxs%broad)
-       call removeAttribute(thisnode,"broad")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tevout")
-getstructxs%tevout= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tevout",getstructxs%tevout)
-       call removeAttribute(thisnode,"tevout")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"xstype")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"xstype",getstructxs%xstype)
-       call removeAttribute(thisnode,"xstype")      
-endif
-getstructxs%xstypenumber=stringtonumberxstype(getstructxs%xstype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"symmorph")
-getstructxs%symmorph= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"symmorph",getstructxs%symmorph)
-       call removeAttribute(thisnode,"symmorph")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fastpmat")
-getstructxs%fastpmat= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fastpmat",getstructxs%fastpmat)
-       call removeAttribute(thisnode,"fastpmat")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fastemat")
-getstructxs%fastemat= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fastemat",getstructxs%fastemat)
-       call removeAttribute(thisnode,"fastemat")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"gather")
-getstructxs%gather= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"gather",getstructxs%gather)
-       call removeAttribute(thisnode,"gather")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tappinfo")
-getstructxs%tappinfo= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tappinfo",getstructxs%tappinfo)
-       call removeAttribute(thisnode,"tappinfo")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"dbglev")
-getstructxs%dbglev=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"dbglev",getstructxs%dbglev)
-       call removeAttribute(thisnode,"dbglev")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"usegdft")
-getstructxs%usegdft= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"usegdft",getstructxs%usegdft)
-       call removeAttribute(thisnode,"usegdft")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"gqmax")
-getstructxs%gqmax=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"gqmax",getstructxs%gqmax)
-       call removeAttribute(thisnode,"gqmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nosym")
-getstructxs%nosym= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nosym",getstructxs%nosym)
-       call removeAttribute(thisnode,"nosym")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngridk")
-getstructxs%ngridk=(/1,1,1/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngridk",getstructxs%ngridk)
-       call removeAttribute(thisnode,"ngridk")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vkloff")
-getstructxs%vkloff=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vkloff",getstructxs%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"reducek")
-getstructxs%reducek= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reducek",getstructxs%reducek)
-       call removeAttribute(thisnode,"reducek")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngridq")
-getstructxs%ngridq=(/1,1,1/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngridq",getstructxs%ngridq)
-       call removeAttribute(thisnode,"ngridq")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"reduceq")
-getstructxs%reduceq= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reduceq",getstructxs%reduceq)
-       call removeAttribute(thisnode,"reduceq")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rgkmax")
-getstructxs%rgkmax=7
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rgkmax",getstructxs%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"swidth")
-getstructxs%swidth=0.001d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"swidth",getstructxs%swidth)
-       call removeAttribute(thisnode,"swidth")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxapw")
-getstructxs%lmaxapw=10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxapw",getstructxs%lmaxapw)
-       call removeAttribute(thisnode,"lmaxapw")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxmat")
-getstructxs%lmaxmat=5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxmat",getstructxs%lmaxmat)
-       call removeAttribute(thisnode,"lmaxmat")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nempty")
-getstructxs%nempty=5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nempty",getstructxs%nempty)
-       call removeAttribute(thisnode,"nempty")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructxs%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"tddft")
-getstructxs%tddft=>null()
-Do i=0,len-1
-getstructxs%tddft=>getstructtddft(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"tddft"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"screening")
-getstructxs%screening=>null()
-Do i=0,len-1
-getstructxs%screening=>getstructscreening(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"screening"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"BSE")
-getstructxs%BSE=>null()
-Do i=0,len-1
-getstructxs%BSE=>getstructBSE(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"BSE"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"qpointset")
-getstructxs%qpointset=>null()
-Do i=0,len-1
-getstructxs%qpointset=>getstructqpointset(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"qpointset"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"tetra")
-getstructxs%tetra=>null()
-Do i=0,len-1
-getstructxs%tetra=>getstructtetra(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"tetra"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"dosWindow")
-getstructxs%dosWindow=>null()
-Do i=0,len-1
-getstructxs%dosWindow=>getstructdosWindow(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dosWindow"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"plan")
-getstructxs%plan=>null()
-Do i=0,len-1
-getstructxs%plan=>getstructplan(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plan"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructtddft(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(tddft_type),pointer::getstructtddft
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructtddft)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at tddft"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"intraband")
-getstructtddft%intraband= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"intraband",getstructtddft%intraband)
-       call removeAttribute(thisnode,"intraband")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"torddf")
-getstructtddft%torddf= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"torddf",getstructtddft%torddf)
-       call removeAttribute(thisnode,"torddf")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tordfxc")
-getstructtddft%tordfxc= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tordfxc",getstructtddft%tordfxc)
-       call removeAttribute(thisnode,"tordfxc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"aresdf")
-getstructtddft%aresdf= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"aresdf",getstructtddft%aresdf)
-       call removeAttribute(thisnode,"aresdf")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"aresfxc")
-getstructtddft%aresfxc= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"aresfxc",getstructtddft%aresfxc)
-       call removeAttribute(thisnode,"aresfxc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fxcbsesplit")
-getstructtddft%fxcbsesplit=1d-5
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fxcbsesplit",getstructtddft%fxcbsesplit)
-       call removeAttribute(thisnode,"fxcbsesplit")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"acont")
-getstructtddft%acont= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"acont",getstructtddft%acont)
-       call removeAttribute(thisnode,"acont")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nwacont")
-getstructtddft%nwacont=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nwacont",getstructtddft%nwacont)
-       call removeAttribute(thisnode,"nwacont")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lindhard")
-getstructtddft%lindhard= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lindhard",getstructtddft%lindhard)
-       call removeAttribute(thisnode,"lindhard")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"epsdfde")
-getstructtddft%epsdfde=1.0d-8
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epsdfde",getstructtddft%epsdfde)
-       call removeAttribute(thisnode,"epsdfde")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"kerndiag")
-getstructtddft%kerndiag= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"kerndiag",getstructtddft%kerndiag)
-       call removeAttribute(thisnode,"kerndiag")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxalda")
-getstructtddft%lmaxalda=3
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxalda",getstructtddft%lmaxalda)
-       call removeAttribute(thisnode,"lmaxalda")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"alphalrc")
-getstructtddft%alphalrc=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"alphalrc",getstructtddft%alphalrc)
-       call removeAttribute(thisnode,"alphalrc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"alphalrcdyn")
-getstructtddft%alphalrcdyn=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"alphalrcdyn",getstructtddft%alphalrcdyn)
-       call removeAttribute(thisnode,"alphalrcdyn")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"betalrcdyn")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"betalrcdyn",getstructtddft%betalrcdyn)
-       call removeAttribute(thisnode,"betalrcdyn")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"mdfqtype")
-getstructtddft%mdfqtype=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"mdfqtype",getstructtddft%mdfqtype)
-       call removeAttribute(thisnode,"mdfqtype")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fxctype")
-getstructtddft%fxctype= "RPA"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fxctype",getstructtddft%fxctype)
-       call removeAttribute(thisnode,"fxctype")      
-endif
-getstructtddft%fxctypenumber=stringtonumberfxctype(getstructtddft%fxctype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"resumefromkernel")
-getstructtddft%resumefromkernel= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"resumefromkernel",getstructtddft%resumefromkernel)
-       call removeAttribute(thisnode,"resumefromkernel")      
-endif
-
-            len= countChildEmentsWithName(thisnode,"dftrans")
-getstructtddft%dftrans=>null()
-Do i=0,len-1
-getstructtddft%dftrans=>getstructdftrans(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dftrans"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdftrans(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dftrans_type),pointer::getstructdftrans
-		
-integer::len=1,i=0
-allocate(getstructdftrans)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at dftrans"
-#endif
-      
-      len= countChildEmentsWithName (thisnode,"trans")           
-allocate(getstructdftrans%trans(3,len))
-Do i=1,len
-
-		getstructdftrans%trans(:,i)=getvalueoftrans(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "trans"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructscreening(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(screening_type),pointer::getstructscreening
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructscreening)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at screening"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"run")
-getstructscreening%run= "fromscratch"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"run",getstructscreening%run)
-       call removeAttribute(thisnode,"run")      
-endif
-getstructscreening%runnumber=stringtonumberrun(getstructscreening%run)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nosym")
-getstructscreening%nosym= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nosym",getstructscreening%nosym)
-       call removeAttribute(thisnode,"nosym")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngridk")
-getstructscreening%ngridk=(/0,0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngridk",getstructscreening%ngridk)
-       call removeAttribute(thisnode,"ngridk")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"reducek")
-getstructscreening%reducek= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reducek",getstructscreening%reducek)
-       call removeAttribute(thisnode,"reducek")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vkloff")
-getstructscreening%vkloff=(/-1,-1,-1/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vkloff",getstructscreening%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rgkmax")
-getstructscreening%rgkmax=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rgkmax",getstructscreening%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nempty")
-getstructscreening%nempty=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nempty",getstructscreening%nempty)
-       call removeAttribute(thisnode,"nempty")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"screentype")
-getstructscreening%screentype= "full"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"screentype",getstructscreening%screentype)
-       call removeAttribute(thisnode,"screentype")      
-endif
-getstructscreening%screentypenumber=stringtonumberscreentype(getstructscreening%screentype)
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructBSE(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(BSE_type),pointer::getstructBSE
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructBSE)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at BSE"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"nosym")
-getstructBSE%nosym= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nosym",getstructBSE%nosym)
-       call removeAttribute(thisnode,"nosym")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"reducek")
-getstructBSE%reducek= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reducek",getstructBSE%reducek)
-       call removeAttribute(thisnode,"reducek")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vkloff")
-getstructBSE%vkloff=(/-1,-1,-1/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vkloff",getstructBSE%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rgkmax")
-getstructBSE%rgkmax=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rgkmax",getstructBSE%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"scrherm")
-getstructBSE%scrherm=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scrherm",getstructBSE%scrherm)
-       call removeAttribute(thisnode,"scrherm")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"fbzq")
-getstructBSE%fbzq= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"fbzq",getstructBSE%fbzq)
-       call removeAttribute(thisnode,"fbzq")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"sciavtype")
-getstructBSE%sciavtype= "spherical"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"sciavtype",getstructBSE%sciavtype)
-       call removeAttribute(thisnode,"sciavtype")      
-endif
-getstructBSE%sciavtypenumber=stringtonumbersciavtype(getstructBSE%sciavtype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"sciavbd")
-getstructBSE%sciavbd= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"sciavbd",getstructBSE%sciavbd)
-       call removeAttribute(thisnode,"sciavbd")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"sciavqhd")
-getstructBSE%sciavqhd= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"sciavqhd",getstructBSE%sciavqhd)
-       call removeAttribute(thisnode,"sciavqhd")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"sciavqwg")
-getstructBSE%sciavqwg= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"sciavqwg",getstructBSE%sciavqwg)
-       call removeAttribute(thisnode,"sciavqwg")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"sciavqbd")
-getstructBSE%sciavqbd= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"sciavqbd",getstructBSE%sciavqbd)
-       call removeAttribute(thisnode,"sciavqbd")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"bsedirsing")
-getstructBSE%bsedirsing= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bsedirsing",getstructBSE%bsedirsing)
-       call removeAttribute(thisnode,"bsedirsing")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"lmaxdielt")
-getstructBSE%lmaxdielt=14
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"lmaxdielt",getstructBSE%lmaxdielt)
-       call removeAttribute(thisnode,"lmaxdielt")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nleblaik")
-getstructBSE%nleblaik=5810
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nleblaik",getstructBSE%nleblaik)
-       call removeAttribute(thisnode,"nleblaik")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nexcitmax")
-getstructBSE%nexcitmax=100
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nexcitmax",getstructBSE%nexcitmax)
-       call removeAttribute(thisnode,"nexcitmax")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nstlbse")
-getstructBSE%nstlbse=(/0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nstlbse",getstructBSE%nstlbse)
-       call removeAttribute(thisnode,"nstlbse")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nstlce")
-getstructBSE%nstlce=(/0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nstlce",getstructBSE%nstlce)
-       call removeAttribute(thisnode,"nstlce")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"bsetype")
-getstructBSE%bsetype= "singlet"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"bsetype",getstructBSE%bsetype)
-       call removeAttribute(thisnode,"bsetype")      
-endif
-getstructBSE%bsetypenumber=stringtonumberbsetype(getstructBSE%bsetype)
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructtetra(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(tetra_type),pointer::getstructtetra
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructtetra)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at tetra"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"tetraocc")
-getstructtetra%tetraocc= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tetraocc",getstructtetra%tetraocc)
-       call removeAttribute(thisnode,"tetraocc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"tetradf")
-getstructtetra%tetradf= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"tetradf",getstructtetra%tetradf)
-       call removeAttribute(thisnode,"tetradf")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"kordexc")
-getstructtetra%kordexc= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"kordexc",getstructtetra%kordexc)
-       call removeAttribute(thisnode,"kordexc")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"cw1k")
-getstructtetra%cw1k= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"cw1k",getstructtetra%cw1k)
-       call removeAttribute(thisnode,"cw1k")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"qweights")
-getstructtetra%qweights=1
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"qweights",getstructtetra%qweights)
-       call removeAttribute(thisnode,"qweights")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdosWindow(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dosWindow_type),pointer::getstructdosWindow
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructdosWindow)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at dosWindow"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"points")
-getstructdosWindow%points=500
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"points",getstructdosWindow%points)
-       call removeAttribute(thisnode,"points")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"intv")
-getstructdosWindow%intv=(/-0.5,0.5/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"intv",getstructdosWindow%intv)
-       call removeAttribute(thisnode,"intv")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nsmdos")
-getstructdosWindow%nsmdos=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nsmdos",getstructdosWindow%nsmdos)
-       call removeAttribute(thisnode,"nsmdos")      
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructplan(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(plan_type),pointer::getstructplan
-		
-integer::len=1,i=0
-allocate(getstructplan)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at plan"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"doonly")
-     
-allocate(getstructplan%doonlyarray(len))
-Do i=0,len-1
-getstructplan%doonlyarray(i+1)%doonly=>getstructdoonly(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"doonly"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdoonly(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(doonly_type),pointer::getstructdoonly
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructdoonly)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at doonly"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"task")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"task",getstructdoonly%task)
-       call removeAttribute(thisnode,"task")      
-endif
-getstructdoonly%tasknumber=stringtonumbertask(getstructdoonly%task)
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructqpointset(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(qpointset_type),pointer::getstructqpointset
-		
-integer::len=1,i=0
-allocate(getstructqpointset)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at qpointset"
-#endif
-      
-      len= countChildEmentsWithName (thisnode,"qpoint")           
-allocate(getstructqpointset%qpoint(3,len))
-Do i=1,len
-
-		getstructqpointset%qpoint(:,i)=getvalueofqpoint(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "qpoint"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
- 
-function getvalueofpointstatepair(thisnode)
-implicit none
-type(Node),pointer::thisnode
- integer::getvalueofpointstatepair(2)
-
+!
+Module modinput
+      Use inputdom
+      Implicit None
+      Type origin_type
+         Real (8) :: coord (3)
+      End Type
+      Type point_type
+         Real (8) :: coord (3)
+         Character (512) :: label
+      End Type
+!
+      Type point_type_array
+         Type (point_type), Pointer :: point
+      End Type
+      Type plot1d_type
+         Type (path_type), Pointer :: path
+      End Type
+      Type path_type
+         Integer :: steps
+         Character (512) :: outfileprefix
+         Type (point_type_array), Pointer :: pointarray (:)
+      End Type
+      Type plot2d_type
+         Type (parallelogram_type), Pointer :: parallelogram
+      End Type
+      Type parallelogram_type
+         Integer :: grid (2)
+         Character (512) :: outfileprefix
+         Type (origin_type), Pointer :: origin
+         Type (point_type_array), Pointer :: pointarray (:)
+      End Type
+      Type plot3d_type
+         Type (box_type), Pointer :: box
+      End Type
+      Type box_type
+         Integer :: grid (3)
+         Character (512) :: outfileprefix
+         Type (origin_type), Pointer :: origin
+         Type (point_type_array), Pointer :: pointarray (:)
+      End Type
+      Type kstlist_type
+         Integer, Pointer :: pointstatepair (:, :)
+      End Type
+      Type inputset_type
+         Type (input_type_array), Pointer :: inputarray (:)
+      End Type
+      Type input_type
+         Character (1024) :: xsltpath
+         Character (1024) :: scratchpath
+         Character (1024) :: id
+         Character (1024) :: depends
+         Character (512) :: title
+         Type (structure_type), Pointer :: structure
+         Type (groundstate_type), Pointer :: groundstate
+         Type (structureoptimization_type), Pointer :: &
+        & structureoptimization
+         Type (properties_type), Pointer :: properties
+         Type (phonons_type), Pointer :: phonons
+         Type (xs_type), Pointer :: xs
+      End Type
+!
+      Type input_type_array
+         Type (input_type), Pointer :: input
+      End Type
+      Type structure_type
+         Character (1024) :: speciespath
+         Logical :: molecule
+         Real (8) :: vacuum
+         Real (8) :: epslat
+         Logical :: autormt
+         Logical :: primcell
+         Logical :: tshift
+         Type (symmetries_type), Pointer :: symmetries
+         Type (crystal_type), Pointer :: crystal
+         Type (species_type_array), Pointer :: speciesarray (:)
+      End Type
+      Type symmetries_type
+         Character (512) :: HermannMauguinSymbol
+         Character (512) :: HallSymbol
+         Character (512) :: SchoenfliesSymbol
+         Character (512) :: spaceGroupNumber
+         Type (lattice_type), Pointer :: lattice
+         Type (WyckoffPositions_type), Pointer :: WyckoffPositions
+      End Type
+      Type lattice_type
+         Real (8) :: a
+         Real (8) :: b
+         Real (8) :: c
+         Real (8) :: ab
+         Real (8) :: ac
+         Real (8) :: bc
+         Integer :: ncell (3)
+      End Type
+      Type WyckoffPositions_type
+         Type (wspecies_type_array), Pointer :: wspeciesarray (:)
+      End Type
+      Type wspecies_type
+         Character (512) :: speciesfile
+         Type (wpos_type_array), Pointer :: wposarray (:)
+      End Type
+!
+      Type wspecies_type_array
+         Type (wspecies_type), Pointer :: wspecies
+      End Type
+      Type wpos_type
+         Real (8) :: coord (3)
+      End Type
+!
+      Type wpos_type_array
+         Type (wpos_type), Pointer :: wpos
+      End Type
+      Type crystal_type
+         Real (8) :: scale
+         Real (8) :: stretch (3)
+         Real (8), Pointer :: basevect (:, :)
+      End Type
+      Type species_type
+         Character (1024) :: speciesfile
+         Character (512) :: chemicalSymbol
+         Integer :: atomicNumber
+         Real (8) :: rmt
+         Type (atom_type_array), Pointer :: atomarray (:)
+         Type (LDAplusu_type), Pointer :: LDAplusu
+      End Type
+!
+      Type species_type_array
+         Type (species_type), Pointer :: species
+      End Type
+      Type atom_type
+         Real (8) :: coord (3)
+         Real (8) :: bfcmt (3)
+         Real (8) :: mommtfix (3)
+      End Type
+!
+      Type atom_type_array
+         Type (atom_type), Pointer :: atom
+      End Type
+      Type LDAplusu_type
+         Real (8) :: L
+         Real (8) :: U
+         Real (8) :: J
+      End Type
+      Type groundstate_type
+         Character (512) :: do
+         Integer :: donumber
+         Integer :: ngridk (3)
+         Real (8) :: rgkmax
+         Real (8) :: epspot
+         Real (8) :: rmtapm (2)
+         Real (8) :: swidth
+         Character (512) :: stype
+         Integer :: stypenumber
+         Character (512) :: findlinentype
+         Integer :: findlinentypenumber
+         Integer :: isgkmax
+         Real (8) :: gmaxvr
+         Integer :: nempty
+         Logical :: nosym
+         Logical :: frozencore
+         Logical :: autokpt
+         Real (8) :: radkpt
+         Logical :: reducek
+         Logical :: tfibs
+         Logical :: tforce
+         Integer :: lmaxapw
+         Integer :: maxscl
+         Real (8) :: chgexs
+         Real (8) :: deband
+         Real (8) :: epschg
+         Real (8) :: epsocc
+         Character (512) :: mixer
+         Integer :: mixernumber
+         Real (8) :: beta0
+         Real (8) :: betainc
+         Real (8) :: betadec
+         Integer :: lradstep
+         Integer :: nprad
+         Character (512) :: xctype
+         Integer :: xctypenumber
+         Real (8) :: evalmin
+         Integer :: lmaxvr
+         Real (8) :: fracinr
+         Integer :: lmaxinr
+         Integer :: lmaxmat
+         Real (8) :: vkloff (3)
+         Integer :: npsden
+         Real (8) :: cfdamp
+         Logical :: nosource
+         Logical :: tevecsv
+         Integer :: nwrite
+         Logical :: ptnucl
+         Type (spin_type), Pointer :: spin
+         Type (HartreeFock_type), Pointer :: HartreeFock
+         Type (solver_type), Pointer :: solver
+         Type (OEP_type), Pointer :: OEP
+         Type (RDMFT_type), Pointer :: RDMFT
+      End Type
+      Type spin_type
+         Real (8) :: momfix (3)
+         Real (8) :: bfieldc (3)
+         Logical :: spinorb
+         Logical :: spinsprl
+         Real (8) :: vqlss (3)
+         Real (8) :: taufsm
+         Real (8) :: reducebf
+         Character (512) :: fixspin
+         Integer :: fixspinnumber
+      End Type
+      Type HartreeFock_type
+         Real (8) :: epsengy
+      End Type
+      Type solver_type
+         Character (512) :: Type
+         Integer :: typenumber
+         Logical :: packedmatrixstorage
+         Real (8) :: epsarpack
+         Real (8) :: evaltol
+      End Type
+      Type OEP_type
+         Integer :: maxitoep
+         Real (8) :: tauoep (3)
+      End Type
+      Type RDMFT_type
+         Integer :: rdmxctype
+         Integer :: rdmmaxscl
+         Integer :: maxitn
+         Integer :: maxitc
+         Real (8) :: taurdmn
+         Real (8) :: taurdmc
+         Real (8) :: rdmalpha
+         Real (8) :: rdmtemp
+      End Type
+      Type structureoptimization_type
+         Real (8) :: epsforce
+         Real (8) :: tau0atm
+         Logical :: resume
+      End Type
+      Type properties_type
+         Type (bandstructure_type), Pointer :: bandstructure
+         Type (STM_type), Pointer :: STM
+         Type (wfplot_type), Pointer :: wfplot
+         Type (dos_type), Pointer :: dos
+         Type (LSJ_type), Pointer :: LSJ
+         Type (masstensor_type), Pointer :: masstensor
+         Type (chargedensityplot_type), Pointer :: chargedensityplot
+         Type (exccplot_type), Pointer :: exccplot
+         Type (elfplot_type), Pointer :: elfplot
+         Type (mvecfield_type), Pointer :: mvecfield
+         Type (xcmvecfield_type), Pointer :: xcmvecfield
+         Type (electricfield_type), Pointer :: electricfield
+         Type (gradmvecfield_type), Pointer :: gradmvecfield
+         Type (fermisurfaceplot_type), Pointer :: fermisurfaceplot
+         Type (EFG_type), Pointer :: EFG
+         Type (momentummatrix_type), Pointer :: momentummatrix
+         Type (linresponsetensor_type), Pointer :: linresponsetensor
+         Type (mossbauer_type), Pointer :: mossbauer
+         Type (dielectric_type), Pointer :: dielectric
+         Type (expiqr_type), Pointer :: expiqr
+         Type (elnes_type), Pointer :: elnes
+         Type (eliashberg_type), Pointer :: eliashberg
+      End Type
+      Type bandstructure_type
+         Real (8) :: scissor
+         Logical :: Character
+         Type (plot1d_type), Pointer :: plot1d
+      End Type
+      Type STM_type
+         Type (plot2d_type), Pointer :: plot2d
+      End Type
+      Type wfplot_type
+         Type (kstlist_type), Pointer :: kstlist
+         Type (plot1d_type), Pointer :: plot1d
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type dos_type
+         Real (8) :: sqados (3)
+         Logical :: lmirep
+         Integer :: nwdos
+         Integer :: ngrdos
+         Real (8) :: scissor
+         Integer :: nsmdos
+         Real (8) :: winddos (2)
+      End Type
+      Type LSJ_type
+         Type (kstlist_type), Pointer :: kstlist
+      End Type
+      Type masstensor_type
+         Real (8) :: deltaem
+         Integer :: ndspem
+         Real (8) :: vklem (3)
+      End Type
+      Type chargedensityplot_type
+         Type (plot1d_type), Pointer :: plot1d
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type exccplot_type
+         Type (plot1d_type), Pointer :: plot1d
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type elfplot_type
+         Type (plot1d_type), Pointer :: plot1d
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type mvecfield_type
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type xcmvecfield_type
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type electricfield_type
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type gradmvecfield_type
+         Type (plot1d_type), Pointer :: plot1d
+         Type (plot2d_type), Pointer :: plot2d
+         Type (plot3d_type), Pointer :: plot3d
+      End Type
+      Type fermisurfaceplot_type
+         Integer :: nstfsp
+         Logical :: separate
+      End Type
+!
+      Type EFG_type
+         Logical :: exists
+      End Type
+!
+      Type momentummatrix_type
+         Logical :: exists
+      End Type
+      Type linresponsetensor_type
+         Real (8) :: scissor
+         Integer, Pointer :: optcomp (:, :)
+      End Type
+!
+      Type mossbauer_type
+         Logical :: exists
+      End Type
+!
+      Type dielectric_type
+         Logical :: exists
+      End Type
+!
+      Type expiqr_type
+         Logical :: exists
+      End Type
+      Type elnes_type
+         Real (8) :: vecql (3)
+      End Type
+      Type eliashberg_type
+         Real (8) :: mustar
+      End Type
+      Type phonons_type
+         Logical :: reduceq
+         Real (8) :: deltaph
+         Type (qpointset_type), Pointer :: qpointset
+         Type (phonondos_type), Pointer :: phonondos
+         Type (phonondispplot_type), Pointer :: phonondispplot
+      End Type
+!
+      Type phonondos_type
+         Logical :: exists
+      End Type
+      Type phonondispplot_type
+         Type (plot1d_type), Pointer :: plot1d
+      End Type
+      Type xs_type
+         Integer :: emattype
+         Logical :: dfoffdiag
+         Integer :: lmaxapwwf
+         Integer :: lmaxemat
+         Real (8) :: emaxdf
+         Real (8) :: broad
+         Logical :: tevout
+         Character (512) :: xstype
+         Integer :: xstypenumber
+         Logical :: symmorph
+         Logical :: fastpmat
+         Logical :: fastemat
+         Logical :: gather
+         Logical :: tappinfo
+         Integer :: dbglev
+         Logical :: usegdft
+         Real (8) :: gqmax
+         Logical :: nosym
+         Integer :: ngridk (3)
+         Real (8) :: vkloff (3)
+         Logical :: reducek
+         Integer :: ngridq (3)
+         Logical :: reduceq
+         Real (8) :: rgkmax
+         Real (8) :: swidth
+         Integer :: lmaxapw
+         Integer :: lmaxmat
+         Integer :: nempty
+         Real (8) :: scissor
+         Type (tddft_type), Pointer :: tddft
+         Type (screening_type), Pointer :: screening
+         Type (BSE_type), Pointer :: BSE
+         Type (qpointset_type), Pointer :: qpointset
+         Type (tetra_type), Pointer :: tetra
+         Type (dosWindow_type), Pointer :: dosWindow
+         Type (plan_type), Pointer :: plan
+      End Type
+      Type tddft_type
+         Logical :: intraband
+         Logical :: torddf
+         Logical :: tordfxc
+         Logical :: aresdf
+         Logical :: aresfxc
+         Real (8) :: fxcbsesplit
+         Logical :: acont
+         Integer :: nwacont
+         Logical :: lindhard
+         Real (8) :: epsdfde
+         Logical :: kerndiag
+         Integer :: lmaxalda
+         Real (8) :: alphalrc
+         Real (8) :: alphalrcdyn
+         Real (8) :: betalrcdyn
+         Integer :: mdfqtype
+         Character (512) :: fxctype
+         Integer :: fxctypenumber
+         Logical :: resumefromkernel
+         Type (dftrans_type), Pointer :: dftrans
+      End Type
+      Type dftrans_type
+         Integer, Pointer :: trans (:, :)
+      End Type
+      Type screening_type
+         Character (512) :: run
+         Integer :: runnumber
+         Logical :: nosym
+         Integer :: ngridk (3)
+         Logical :: reducek
+         Real (8) :: vkloff (3)
+         Real (8) :: rgkmax
+         Integer :: nempty
+         Character (512) :: screentype
+         Integer :: screentypenumber
+      End Type
+      Type BSE_type
+         Logical :: nosym
+         Logical :: reducek
+         Real (8) :: vkloff (3)
+         Real (8) :: rgkmax
+         Integer :: scrherm
+         Logical :: fbzq
+         Character (512) :: sciavtype
+         Integer :: sciavtypenumber
+         Logical :: sciavbd
+         Logical :: sciavqhd
+         Logical :: sciavqwg
+         Logical :: sciavqbd
+         Logical :: bsedirsing
+         Integer :: lmaxdielt
+         Integer :: nleblaik
+         Integer :: nexcitmax
+         Integer :: nstlbse (2)
+         Integer :: nstlce (2)
+         Character (512) :: bsetype
+         Integer :: bsetypenumber
+      End Type
+      Type tetra_type
+         Logical :: tetraocc
+         Logical :: tetradf
+         Logical :: kordexc
+         Logical :: cw1k
+         Integer :: qweights
+      End Type
+      Type dosWindow_type
+         Integer :: points
+         Real (8) :: intv (2)
+         Integer :: nsmdos
+      End Type
+      Type plan_type
+         Type (doonly_type_array), Pointer :: doonlyarray (:)
+      End Type
+      Type doonly_type
+         Character (512) :: task
+         Integer :: tasknumber
+      End Type
+!
+      Type doonly_type_array
+         Type (doonly_type), Pointer :: doonly
+      End Type
+      Type qpointset_type
+         Real (8), Pointer :: qpoint (:, :)
+      End Type
+!
+      Type (input_type) :: input
+Contains
+!
+      Function getstructorigin (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (origin_type), Pointer :: getstructorigin
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructorigin)
 #ifdef INPUTDEBUG
-  write(*,*)"we are at pointstatepair"
-#endif  
-   call extractDataContent(thisnode,  getvalueofpointstatepair)
-end function 
-function getvalueoftitle(thisnode)
-implicit none
-type(Node),pointer::thisnode
- character(512)::getvalueoftitle
-
+         Write (*,*) "we are at origin"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "coord")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "coord", &
+           & getstructorigin%coord)
+            Call removeAttribute (thisnode, "coord")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructpoint (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (point_type), Pointer :: getstructpoint
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructpoint)
 #ifdef INPUTDEBUG
-  write(*,*)"we are at title"
-#endif  
-   call extractDataContent(thisnode,  getvalueoftitle)
-end function 
-function getvalueofbasevect(thisnode)
-implicit none
-type(Node),pointer::thisnode
- real(8)::getvalueofbasevect(3)
-
+         Write (*,*) "we are at point"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "coord")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "coord", &
+           & getstructpoint%coord)
+            Call removeAttribute (thisnode, "coord")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "label")
+         getstructpoint%label = ""
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "label", &
+           & getstructpoint%label)
+            Call removeAttribute (thisnode, "label")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructplot1d (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (plot1d_type), Pointer :: getstructplot1d
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructplot1d)
 #ifdef INPUTDEBUG
-  write(*,*)"we are at basevect"
-#endif  
-   call extractDataContent(thisnode,  getvalueofbasevect)
-end function 
-function getvalueofoptcomp(thisnode)
-implicit none
-type(Node),pointer::thisnode
- integer::getvalueofoptcomp(3)
-
+         Write (*,*) "we are at plot1d"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "path")
+         getstructplot1d%path => null ()
+         Do i = 0, len - 1
+            getstructplot1d%path => getstructpath &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "path"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructpath (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (path_type), Pointer :: getstructpath
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructpath)
 #ifdef INPUTDEBUG
-  write(*,*)"we are at optcomp"
-#endif  
-   call extractDataContent(thisnode,  getvalueofoptcomp)
-end function 
-function getvalueoftrans(thisnode)
-implicit none
-type(Node),pointer::thisnode
- integer::getvalueoftrans(3)
-
+         Write (*,*) "we are at path"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "steps")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "steps", &
+           & getstructpath%steps)
+            Call removeAttribute (thisnode, "steps")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "outfileprefix")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "outfileprefix", &
+           & getstructpath%outfileprefix)
+            Call removeAttribute (thisnode, "outfileprefix")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "point")
+!
+         Allocate (getstructpath%pointarray(len))
+         Do i = 0, len - 1
+            getstructpath%pointarray(i+1)%point => getstructpoint &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "point"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructplot2d (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (plot2d_type), Pointer :: getstructplot2d
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructplot2d)
 #ifdef INPUTDEBUG
-  write(*,*)"we are at trans"
-#endif  
-   call extractDataContent(thisnode,  getvalueoftrans)
-end function 
-function getvalueofqpoint(thisnode)
-implicit none
-type(Node),pointer::thisnode
- real(8)::getvalueofqpoint(3)
-
+         Write (*,*) "we are at plot2d"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "parallelogram")
+         getstructplot2d%parallelogram => null ()
+         Do i = 0, len - 1
+            getstructplot2d%parallelogram => getstructparallelogram &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "parallelogram"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructparallelogram (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (parallelogram_type), Pointer :: getstructparallelogram
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructparallelogram)
 #ifdef INPUTDEBUG
-  write(*,*)"we are at qpoint"
-#endif  
-   call extractDataContent(thisnode,  getvalueofqpoint)
-end function
- integer function  stringtonumberfixspin(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('none')
- stringtonumberfixspin=0
-case('total FSM')
- stringtonumberfixspin=1
-case('localmt FSM')
- stringtonumberfixspin=2
-case('both')
- stringtonumberfixspin=3
-case('')
- stringtonumberfixspin=0
-case default
-write(*,*) "'", string,"' is not valid selection forfixspin "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumbertype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('Lapack')
- stringtonumbertype=1
-case('Arpack')
- stringtonumbertype=2
-case('DIIS')
- stringtonumbertype=3
-case('')
- stringtonumbertype=0
-case default
-write(*,*) "'", string,"' is not valid selection fortype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberdo(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('fromscratch')
- stringtonumberdo=-1
-case('fromfile')
- stringtonumberdo=-1
-case('skip')
- stringtonumberdo=-1
-case('')
- stringtonumberdo=0
-case default
-write(*,*) "'", string,"' is not valid selection fordo "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberstype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('Gaussian')
- stringtonumberstype=0
-case('Methfessel-Paxton 1')
- stringtonumberstype=1
-case('Methfessel-Paxton 2')
- stringtonumberstype=2
-case('Fermi Dirac')
- stringtonumberstype=3
-case('Square-wave impulse')
- stringtonumberstype=4
-case('')
- stringtonumberstype=0
-case default
-write(*,*) "'", string,"' is not valid selection forstype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberfindlinentype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('simple')
- stringtonumberfindlinentype=-1
-case('advanced')
- stringtonumberfindlinentype=-1
-case('')
- stringtonumberfindlinentype=0
-case default
-write(*,*) "'", string,"' is not valid selection forfindlinentype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumbermixer(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('lin')
- stringtonumbermixer=1
-case('msec')
- stringtonumbermixer=2
-case('pulay')
- stringtonumbermixer=3
-case('')
- stringtonumbermixer=0
-case default
-write(*,*) "'", string,"' is not valid selection formixer "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberxctype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('LDAPerdew-Zunger')
- stringtonumberxctype=2
-case('LSDAPerdew-Wang')
- stringtonumberxctype=3
-case('LDA-X-alpha')
- stringtonumberxctype=4
-case('LSDA-Barth-Hedin')
- stringtonumberxctype=5
-case('GGAPerdew-Burke-Ernzerhof')
- stringtonumberxctype=20
-case('GGArevPBE')
- stringtonumberxctype=21
-case('GGAPBEsol')
- stringtonumberxctype=22
-case('GGA-Wu-Cohen')
- stringtonumberxctype=26
-case('GGAArmiento-Mattsson')
- stringtonumberxctype=30
-case('EXX')
- stringtonumberxctype=-2
-case('none')
- stringtonumberxctype=0
-case('')
- stringtonumberxctype=0
-case default
-write(*,*) "'", string,"' is not valid selection forxctype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberfxctype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('RPA')
- stringtonumberfxctype=0
-case('LRCstatic_NLF')
- stringtonumberfxctype=1
-case('LRCstatic')
- stringtonumberfxctype=2
-case('LRCdyn_NLF')
- stringtonumberfxctype=3
-case('LRCdyn')
- stringtonumberfxctype=4
-case('ALDA')
- stringtonumberfxctype=5
-case('MB1_NLF')
- stringtonumberfxctype=7
-case('MB1')
- stringtonumberfxctype=8
-case('')
- stringtonumberfxctype=0
-case default
-write(*,*) "'", string,"' is not valid selection forfxctype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberrun(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('fromscratch')
- stringtonumberrun=-1
-case('skip')
- stringtonumberrun=-1
-case('')
- stringtonumberrun=0
-case default
-write(*,*) "'", string,"' is not valid selection forrun "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberscreentype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('full')
- stringtonumberscreentype=-1
-case('diag')
- stringtonumberscreentype=-1
-case('noinvdiag')
- stringtonumberscreentype=-1
-case('longrange')
- stringtonumberscreentype=-1
-case('')
- stringtonumberscreentype=0
-case default
-write(*,*) "'", string,"' is not valid selection forscreentype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumbersciavtype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('spherical')
- stringtonumbersciavtype=-1
-case('screendiag')
- stringtonumbersciavtype=-1
-case('invscreendiag')
- stringtonumbersciavtype=-1
-case('')
- stringtonumbersciavtype=0
-case default
-write(*,*) "'", string,"' is not valid selection forsciavtype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberbsetype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('ip')
- stringtonumberbsetype=-1
-case('rpa')
- stringtonumberbsetype=-1
-case('singlet')
- stringtonumberbsetype=-1
-case('triplet')
- stringtonumberbsetype=-1
-case('')
- stringtonumberbsetype=0
-case default
-write(*,*) "'", string,"' is not valid selection forbsetype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumbertask(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('xsgeneigvec')
- stringtonumbertask=301
-case('tetcalccw')
- stringtonumbertask=310
-case('writepmatxs')
- stringtonumbertask=320
-case('writeemat')
- stringtonumbertask=330
-case('df')
- stringtonumbertask=340
-case('df2')
- stringtonumbertask=345
-case('idf')
- stringtonumbertask=350
-case('scrgeneigvec')
- stringtonumbertask=401
-case('scrtetcalccw')
- stringtonumbertask=410
-case('scrwritepmat')
- stringtonumbertask=420
-case('screen')
- stringtonumbertask=430
-case('scrcoulint')
- stringtonumbertask=440
-case('exccoulint')
- stringtonumbertask=441
-case('BSE')
- stringtonumbertask=445
-case('kernxc_bse')
- stringtonumbertask=450
-case('writebandgapgrid')
- stringtonumbertask=23
-case('writepmat')
- stringtonumbertask=120
-case('dielectric')
- stringtonumbertask=121
-case('writepmatasc')
- stringtonumbertask=321
-case('pmatxs2orig')
- stringtonumbertask=322
-case('writeematasc')
- stringtonumbertask=331
-case('writepwmat')
- stringtonumbertask=335
-case('emattest')
- stringtonumbertask=339
-case('x0toasc')
- stringtonumbertask=341
-case('x0tobin')
- stringtonumbertask=342
-case('epsconv')
- stringtonumbertask=396
-case('fxc_alda_check')
- stringtonumbertask=398
-case('kernxc_bse3')
- stringtonumbertask=451
-case('testxs')
- stringtonumbertask=499
-case('xsestimate')
- stringtonumbertask=700
-case('xstiming')
- stringtonumbertask=701
-case('testmain')
- stringtonumbertask=999
-case('portstate(1)')
- stringtonumbertask=900
-case('portstate(2)')
- stringtonumbertask=901
-case('portstate(-1)')
- stringtonumbertask=910
-case('portstate(-2)')
- stringtonumbertask=911
-case('')
- stringtonumbertask=0
-case default
-write(*,*) "'", string,"' is not valid selection fortask "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberxstype(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('TDDFT')
- stringtonumberxstype=-1
-case('BSE')
- stringtonumberxstype=-1
-case('')
- stringtonumberxstype=0
-case default
-write(*,*) "'", string,"' is not valid selection forxstype "
-stop 
-end select
-end function
-
- 
-
-function countChildEmentsWithName(nodep,name)
-  implicit none
-  integer::countChildEmentsWithName
-  type(Node),pointer,intent(in) ::nodep
-  character(len=*),intent(in)::name
-  type(NodeList),pointer::children
-  type(Node),pointer::child
-  
-  integer::i
-  children=>getChildNodes(nodep)
-  countChildEmentsWithName=0
-  do i=0,getlength(children)-1
-    child=>item(children,i)
-    if(name.eq.getNodeName(child)) countChildEmentsWithName=countChildEmentsWithName+1
-  end do
-
-end function  
-    
+         Write (*,*) "we are at parallelogram"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "grid")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "grid", &
+           & getstructparallelogram%grid)
+            Call removeAttribute (thisnode, "grid")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "outfileprefix")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "outfileprefix", &
+           & getstructparallelogram%outfileprefix)
+            Call removeAttribute (thisnode, "outfileprefix")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "origin")
+         getstructparallelogram%origin => null ()
+         Do i = 0, len - 1
+            getstructparallelogram%origin => getstructorigin &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "origin"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "point")
+!
+         Allocate (getstructparallelogram%pointarray(len))
+         Do i = 0, len - 1
+            getstructparallelogram%pointarray(i+1)%point => &
+           & getstructpoint (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "point"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructplot3d (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (plot3d_type), Pointer :: getstructplot3d
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructplot3d)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at plot3d"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "box")
+         getstructplot3d%box => null ()
+         Do i = 0, len - 1
+            getstructplot3d%box => getstructbox (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "box"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructbox (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (box_type), Pointer :: getstructbox
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructbox)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at box"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "grid")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "grid", &
+           & getstructbox%grid)
+            Call removeAttribute (thisnode, "grid")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "outfileprefix")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "outfileprefix", &
+           & getstructbox%outfileprefix)
+            Call removeAttribute (thisnode, "outfileprefix")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "origin")
+         getstructbox%origin => null ()
+         Do i = 0, len - 1
+            getstructbox%origin => getstructorigin &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "origin"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "point")
+!
+         Allocate (getstructbox%pointarray(len))
+         Do i = 0, len - 1
+            getstructbox%pointarray(i+1)%point => getstructpoint &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "point"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructkstlist (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (kstlist_type), Pointer :: getstructkstlist
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructkstlist)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at kstlist"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "pointstatepair")
+         Allocate (getstructkstlist%pointstatepair(2, len))
+         Do i = 1, len
+!
+            getstructkstlist%pointstatepair (:, i) = &
+           & getvalueofpointstatepair (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "pointstatepair"), &
+           & 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructinputset (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (inputset_type), Pointer :: getstructinputset
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructinputset)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at inputset"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "input")
+!
+         Allocate (getstructinputset%inputarray(len))
+         Do i = 0, len - 1
+            getstructinputset%inputarray(i+1)%input => getstructinput &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "input"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructinput (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (input_type), Pointer :: getstructinput
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructinput)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at input"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "xsltpath")
+         getstructinput%xsltpath = "../../xml"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "xsltpath", &
+           & getstructinput%xsltpath)
+            Call removeAttribute (thisnode, "xsltpath")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "scratchpath")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "scratchpath", &
+           & getstructinput%scratchpath)
+            Call removeAttribute (thisnode, "scratchpath")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "id")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "id", &
+           & getstructinput%id)
+            Call removeAttribute (thisnode, "id")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "depends")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "depends", &
+           & getstructinput%depends)
+            Call removeAttribute (thisnode, "depends")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "structure")
+         getstructinput%structure => null ()
+         Do i = 0, len - 1
+            getstructinput%structure => getstructstructure &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "structure"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "groundstate")
+         getstructinput%groundstate => null ()
+         Do i = 0, len - 1
+            getstructinput%groundstate => getstructgroundstate &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "groundstate"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "structureoptimizati&
+        &on")
+         getstructinput%structureoptimization => null ()
+         Do i = 0, len - 1
+            getstructinput%structureoptimization => &
+           & getstructstructureoptimization (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "structureoptimization&
+           &"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "properties")
+         getstructinput%properties => null ()
+         Do i = 0, len - 1
+            getstructinput%properties => getstructproperties &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "properties"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "phonons")
+         getstructinput%phonons => null ()
+         Do i = 0, len - 1
+            getstructinput%phonons => getstructphonons &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "phonons"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "xs")
+         getstructinput%xs => null ()
+         Do i = 0, len - 1
+            getstructinput%xs => getstructxs (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "xs"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "title")
+         Do i = 1, len
+!
+            getstructinput%title = getvalueoftitle &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "title"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructstructure (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (structure_type), Pointer :: getstructstructure
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructstructure)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at structure"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "speciespath")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "speciespath", &
+           & getstructstructure%speciespath)
+            Call removeAttribute (thisnode, "speciespath")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "molecule")
+         getstructstructure%molecule = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "molecule", &
+           & getstructstructure%molecule)
+            Call removeAttribute (thisnode, "molecule")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vacuum")
+         getstructstructure%vacuum = 10
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vacuum", &
+           & getstructstructure%vacuum)
+            Call removeAttribute (thisnode, "vacuum")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epslat")
+         getstructstructure%epslat = 1e-6
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epslat", &
+           & getstructstructure%epslat)
+            Call removeAttribute (thisnode, "epslat")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "autormt")
+         getstructstructure%autormt = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "autormt", &
+           & getstructstructure%autormt)
+            Call removeAttribute (thisnode, "autormt")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "primcell")
+         getstructstructure%primcell = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "primcell", &
+           & getstructstructure%primcell)
+            Call removeAttribute (thisnode, "primcell")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tshift")
+         getstructstructure%tshift = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tshift", &
+           & getstructstructure%tshift)
+            Call removeAttribute (thisnode, "tshift")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "symmetries")
+         getstructstructure%symmetries => null ()
+         Do i = 0, len - 1
+            getstructstructure%symmetries => getstructsymmetries &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "symmetries"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "crystal")
+         getstructstructure%crystal => null ()
+         Do i = 0, len - 1
+            getstructstructure%crystal => getstructcrystal &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "crystal"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "species")
+!
+         Allocate (getstructstructure%speciesarray(len))
+         Do i = 0, len - 1
+            getstructstructure%speciesarray(i+1)%species => &
+           & getstructspecies (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "species"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructsymmetries (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (symmetries_type), Pointer :: getstructsymmetries
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructsymmetries)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at symmetries"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "HermannMauguinSymbol")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "HermannMauguinSymbol",&
+           &  getstructsymmetries%HermannMauguinSymbol)
+            Call removeAttribute (thisnode, "HermannMauguinSymbol")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "HallSymbol")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "HallSymbol", &
+           & getstructsymmetries%HallSymbol)
+            Call removeAttribute (thisnode, "HallSymbol")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "SchoenfliesSymbol")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "SchoenfliesSymbol", &
+           & getstructsymmetries%SchoenfliesSymbol)
+            Call removeAttribute (thisnode, "SchoenfliesSymbol")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "spaceGroupNumber")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "spaceGroupNumber", &
+           & getstructsymmetries%spaceGroupNumber)
+            Call removeAttribute (thisnode, "spaceGroupNumber")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "lattice")
+         getstructsymmetries%lattice => null ()
+         Do i = 0, len - 1
+            getstructsymmetries%lattice => getstructlattice &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "lattice"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "WyckoffPositions")
+         getstructsymmetries%WyckoffPositions => null ()
+         Do i = 0, len - 1
+            getstructsymmetries%WyckoffPositions => &
+           & getstructWyckoffPositions (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "WyckoffPositions"), &
+           & 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructlattice (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (lattice_type), Pointer :: getstructlattice
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructlattice)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at lattice"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "a")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "a", &
+           & getstructlattice%a)
+            Call removeAttribute (thisnode, "a")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "b")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "b", &
+           & getstructlattice%b)
+            Call removeAttribute (thisnode, "b")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "c")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "c", &
+           & getstructlattice%c)
+            Call removeAttribute (thisnode, "c")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ab")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ab", &
+           & getstructlattice%ab)
+            Call removeAttribute (thisnode, "ab")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ac")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ac", &
+           & getstructlattice%ac)
+            Call removeAttribute (thisnode, "ac")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "bc")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "bc", &
+           & getstructlattice%bc)
+            Call removeAttribute (thisnode, "bc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ncell")
+         getstructlattice%ncell = (/ 1, 1, 1 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ncell", &
+           & getstructlattice%ncell)
+            Call removeAttribute (thisnode, "ncell")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructWyckoffPositions (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (WyckoffPositions_type), Pointer :: &
+        & getstructWyckoffPositions
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructWyckoffPositions)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at WyckoffPositions"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "wspecies")
+!
+         Allocate (getstructWyckoffPositions%wspeciesarray(len))
+         Do i = 0, len - 1
+            getstructWyckoffPositions%wspeciesarray(i+1)%wspecies => &
+           & getstructwspecies (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "wspecies"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructwspecies (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (wspecies_type), Pointer :: getstructwspecies
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructwspecies)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at wspecies"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "speciesfile")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "speciesfile", &
+           & getstructwspecies%speciesfile)
+            Call removeAttribute (thisnode, "speciesfile")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "wpos")
+!
+         Allocate (getstructwspecies%wposarray(len))
+         Do i = 0, len - 1
+            getstructwspecies%wposarray(i+1)%wpos => getstructwpos &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "wpos"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructwpos (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (wpos_type), Pointer :: getstructwpos
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructwpos)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at wpos"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "coord")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "coord", &
+           & getstructwpos%coord)
+            Call removeAttribute (thisnode, "coord")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructcrystal (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (crystal_type), Pointer :: getstructcrystal
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructcrystal)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at crystal"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "scale")
+         getstructcrystal%scale = 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "scale", &
+           & getstructcrystal%scale)
+            Call removeAttribute (thisnode, "scale")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "stretch")
+         getstructcrystal%stretch = (/ 1.0d0, 1.0d0, 1.0d0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "stretch", &
+           & getstructcrystal%stretch)
+            Call removeAttribute (thisnode, "stretch")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "basevect")
+         Allocate (getstructcrystal%basevect(3, len))
+         Do i = 1, len
+!
+            getstructcrystal%basevect (:, i) = getvalueofbasevect &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "basevect"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructspecies (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (species_type), Pointer :: getstructspecies
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructspecies)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at species"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "speciesfile")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "speciesfile", &
+           & getstructspecies%speciesfile)
+            Call removeAttribute (thisnode, "speciesfile")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "chemicalSymbol")
+         getstructspecies%chemicalSymbol = ""
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "chemicalSymbol", &
+           & getstructspecies%chemicalSymbol)
+            Call removeAttribute (thisnode, "chemicalSymbol")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "atomicNumber")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "atomicNumber", &
+           & getstructspecies%atomicNumber)
+            Call removeAttribute (thisnode, "atomicNumber")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rmt")
+         getstructspecies%rmt = - 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rmt", &
+           & getstructspecies%rmt)
+            Call removeAttribute (thisnode, "rmt")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "atom")
+!
+         Allocate (getstructspecies%atomarray(len))
+         Do i = 0, len - 1
+            getstructspecies%atomarray(i+1)%atom => getstructatom &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "atom"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "LDAplusu")
+         getstructspecies%LDAplusu => null ()
+         Do i = 0, len - 1
+            getstructspecies%LDAplusu => getstructLDAplusu &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "LDAplusu"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructatom (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (atom_type), Pointer :: getstructatom
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructatom)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at atom"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "coord")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "coord", &
+           & getstructatom%coord)
+            Call removeAttribute (thisnode, "coord")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "bfcmt")
+         getstructatom%bfcmt = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "bfcmt", &
+           & getstructatom%bfcmt)
+            Call removeAttribute (thisnode, "bfcmt")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "mommtfix")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "mommtfix", &
+           & getstructatom%mommtfix)
+            Call removeAttribute (thisnode, "mommtfix")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructLDAplusu (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (LDAplusu_type), Pointer :: getstructLDAplusu
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructLDAplusu)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at LDAplusu"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "L")
+         getstructLDAplusu%L = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "L", &
+           & getstructLDAplusu%L)
+            Call removeAttribute (thisnode, "L")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "U")
+         getstructLDAplusu%U = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "U", &
+           & getstructLDAplusu%U)
+            Call removeAttribute (thisnode, "U")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "J")
+         getstructLDAplusu%J = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "J", &
+           & getstructLDAplusu%J)
+            Call removeAttribute (thisnode, "J")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructgroundstate (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (groundstate_type), Pointer :: getstructgroundstate
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructgroundstate)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at groundstate"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "do")
+         getstructgroundstate%do = "fromscratch"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "do", &
+           & getstructgroundstate%do)
+            Call removeAttribute (thisnode, "do")
+         End If
+         getstructgroundstate%donumber = stringtonumberdo &
+        & (getstructgroundstate%do)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ngridk")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ngridk", &
+           & getstructgroundstate%ngridk)
+            Call removeAttribute (thisnode, "ngridk")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rgkmax")
+         getstructgroundstate%rgkmax = 7
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rgkmax", &
+           & getstructgroundstate%rgkmax)
+            Call removeAttribute (thisnode, "rgkmax")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epspot")
+         getstructgroundstate%epspot = 1e-6
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epspot", &
+           & getstructgroundstate%epspot)
+            Call removeAttribute (thisnode, "epspot")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rmtapm")
+         getstructgroundstate%rmtapm = (/ 0.25d0, 0.95d0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rmtapm", &
+           & getstructgroundstate%rmtapm)
+            Call removeAttribute (thisnode, "rmtapm")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "swidth")
+         getstructgroundstate%swidth = 0.001d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "swidth", &
+           & getstructgroundstate%swidth)
+            Call removeAttribute (thisnode, "swidth")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "stype")
+         getstructgroundstate%stype = "Gaussian"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "stype", &
+           & getstructgroundstate%stype)
+            Call removeAttribute (thisnode, "stype")
+         End If
+         getstructgroundstate%stypenumber = stringtonumberstype &
+        & (getstructgroundstate%stype)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "findlinentype")
+         getstructgroundstate%findlinentype = "advanced"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "findlinentype", &
+           & getstructgroundstate%findlinentype)
+            Call removeAttribute (thisnode, "findlinentype")
+         End If
+         getstructgroundstate%findlinentypenumber = &
+        & stringtonumberfindlinentype &
+        & (getstructgroundstate%findlinentype)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "isgkmax")
+         getstructgroundstate%isgkmax = - 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "isgkmax", &
+           & getstructgroundstate%isgkmax)
+            Call removeAttribute (thisnode, "isgkmax")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "gmaxvr")
+         getstructgroundstate%gmaxvr = 12
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "gmaxvr", &
+           & getstructgroundstate%gmaxvr)
+            Call removeAttribute (thisnode, "gmaxvr")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nempty")
+         getstructgroundstate%nempty = 5
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nempty", &
+           & getstructgroundstate%nempty)
+            Call removeAttribute (thisnode, "nempty")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nosym")
+         getstructgroundstate%nosym = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nosym", &
+           & getstructgroundstate%nosym)
+            Call removeAttribute (thisnode, "nosym")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "frozencore")
+         getstructgroundstate%frozencore = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "frozencore", &
+           & getstructgroundstate%frozencore)
+            Call removeAttribute (thisnode, "frozencore")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "autokpt")
+         getstructgroundstate%autokpt = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "autokpt", &
+           & getstructgroundstate%autokpt)
+            Call removeAttribute (thisnode, "autokpt")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "radkpt")
+         getstructgroundstate%radkpt = 40
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "radkpt", &
+           & getstructgroundstate%radkpt)
+            Call removeAttribute (thisnode, "radkpt")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "reducek")
+         getstructgroundstate%reducek = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "reducek", &
+           & getstructgroundstate%reducek)
+            Call removeAttribute (thisnode, "reducek")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tfibs")
+         getstructgroundstate%tfibs = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tfibs", &
+           & getstructgroundstate%tfibs)
+            Call removeAttribute (thisnode, "tfibs")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tforce")
+         getstructgroundstate%tforce = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tforce", &
+           & getstructgroundstate%tforce)
+            Call removeAttribute (thisnode, "tforce")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxapw")
+         getstructgroundstate%lmaxapw = 10
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxapw", &
+           & getstructgroundstate%lmaxapw)
+            Call removeAttribute (thisnode, "lmaxapw")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "maxscl")
+         getstructgroundstate%maxscl = 200
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "maxscl", &
+           & getstructgroundstate%maxscl)
+            Call removeAttribute (thisnode, "maxscl")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "chgexs")
+         getstructgroundstate%chgexs = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "chgexs", &
+           & getstructgroundstate%chgexs)
+            Call removeAttribute (thisnode, "chgexs")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "deband")
+         getstructgroundstate%deband = 0.0025d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "deband", &
+           & getstructgroundstate%deband)
+            Call removeAttribute (thisnode, "deband")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epschg")
+         getstructgroundstate%epschg = 1.0d-3
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epschg", &
+           & getstructgroundstate%epschg)
+            Call removeAttribute (thisnode, "epschg")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epsocc")
+         getstructgroundstate%epsocc = 1e-8
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epsocc", &
+           & getstructgroundstate%epsocc)
+            Call removeAttribute (thisnode, "epsocc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "mixer")
+         getstructgroundstate%mixer = "msec"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "mixer", &
+           & getstructgroundstate%mixer)
+            Call removeAttribute (thisnode, "mixer")
+         End If
+         getstructgroundstate%mixernumber = stringtonumbermixer &
+        & (getstructgroundstate%mixer)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "beta0")
+         getstructgroundstate%beta0 = 0.4
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "beta0", &
+           & getstructgroundstate%beta0)
+            Call removeAttribute (thisnode, "beta0")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "betainc")
+         getstructgroundstate%betainc = 1.1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "betainc", &
+           & getstructgroundstate%betainc)
+            Call removeAttribute (thisnode, "betainc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "betadec")
+         getstructgroundstate%betadec = 0.6
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "betadec", &
+           & getstructgroundstate%betadec)
+            Call removeAttribute (thisnode, "betadec")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lradstep")
+         getstructgroundstate%lradstep = 4
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lradstep", &
+           & getstructgroundstate%lradstep)
+            Call removeAttribute (thisnode, "lradstep")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nprad")
+         getstructgroundstate%nprad = 4
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nprad", &
+           & getstructgroundstate%nprad)
+            Call removeAttribute (thisnode, "nprad")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "xctype")
+         getstructgroundstate%xctype = "LSDAPerdew-Wang"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "xctype", &
+           & getstructgroundstate%xctype)
+            Call removeAttribute (thisnode, "xctype")
+         End If
+         getstructgroundstate%xctypenumber = stringtonumberxctype &
+        & (getstructgroundstate%xctype)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "evalmin")
+         getstructgroundstate%evalmin = - 4.5d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "evalmin", &
+           & getstructgroundstate%evalmin)
+            Call removeAttribute (thisnode, "evalmin")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxvr")
+         getstructgroundstate%lmaxvr = 6
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxvr", &
+           & getstructgroundstate%lmaxvr)
+            Call removeAttribute (thisnode, "lmaxvr")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "fracinr")
+         getstructgroundstate%fracinr = 0.25d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "fracinr", &
+           & getstructgroundstate%fracinr)
+            Call removeAttribute (thisnode, "fracinr")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxinr")
+         getstructgroundstate%lmaxinr = 2
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxinr", &
+           & getstructgroundstate%lmaxinr)
+            Call removeAttribute (thisnode, "lmaxinr")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxmat")
+         getstructgroundstate%lmaxmat = 5
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxmat", &
+           & getstructgroundstate%lmaxmat)
+            Call removeAttribute (thisnode, "lmaxmat")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vkloff")
+         getstructgroundstate%vkloff = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vkloff", &
+           & getstructgroundstate%vkloff)
+            Call removeAttribute (thisnode, "vkloff")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "npsden")
+         getstructgroundstate%npsden = 9
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "npsden", &
+           & getstructgroundstate%npsden)
+            Call removeAttribute (thisnode, "npsden")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "cfdamp")
+         getstructgroundstate%cfdamp = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "cfdamp", &
+           & getstructgroundstate%cfdamp)
+            Call removeAttribute (thisnode, "cfdamp")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nosource")
+         getstructgroundstate%nosource = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nosource", &
+           & getstructgroundstate%nosource)
+            Call removeAttribute (thisnode, "nosource")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tevecsv")
+         getstructgroundstate%tevecsv = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tevecsv", &
+           & getstructgroundstate%tevecsv)
+            Call removeAttribute (thisnode, "tevecsv")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nwrite")
+         getstructgroundstate%nwrite = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nwrite", &
+           & getstructgroundstate%nwrite)
+            Call removeAttribute (thisnode, "nwrite")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ptnucl")
+         getstructgroundstate%ptnucl = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ptnucl", &
+           & getstructgroundstate%ptnucl)
+            Call removeAttribute (thisnode, "ptnucl")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "spin")
+         getstructgroundstate%spin => null ()
+         Do i = 0, len - 1
+            getstructgroundstate%spin => getstructspin &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "spin"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "HartreeFock")
+         getstructgroundstate%HartreeFock => null ()
+         Do i = 0, len - 1
+            getstructgroundstate%HartreeFock => getstructHartreeFock &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "HartreeFock"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "solver")
+         getstructgroundstate%solver => null ()
+         Do i = 0, len - 1
+            getstructgroundstate%solver => getstructsolver &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "solver"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "OEP")
+         getstructgroundstate%OEP => null ()
+         Do i = 0, len - 1
+            getstructgroundstate%OEP => getstructOEP &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "OEP"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "RDMFT")
+         getstructgroundstate%RDMFT => null ()
+         Do i = 0, len - 1
+            getstructgroundstate%RDMFT => getstructRDMFT &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "RDMFT"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructspin (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (spin_type), Pointer :: getstructspin
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructspin)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at spin"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "momfix")
+         getstructspin%momfix = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "momfix", &
+           & getstructspin%momfix)
+            Call removeAttribute (thisnode, "momfix")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "bfieldc")
+         getstructspin%bfieldc = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "bfieldc", &
+           & getstructspin%bfieldc)
+            Call removeAttribute (thisnode, "bfieldc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "spinorb")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "spinorb", &
+           & getstructspin%spinorb)
+            Call removeAttribute (thisnode, "spinorb")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "spinsprl")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "spinsprl", &
+           & getstructspin%spinsprl)
+            Call removeAttribute (thisnode, "spinsprl")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vqlss")
+         getstructspin%vqlss = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vqlss", &
+           & getstructspin%vqlss)
+            Call removeAttribute (thisnode, "vqlss")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "taufsm")
+         getstructspin%taufsm = 0.01d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "taufsm", &
+           & getstructspin%taufsm)
+            Call removeAttribute (thisnode, "taufsm")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "reducebf")
+         getstructspin%reducebf = 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "reducebf", &
+           & getstructspin%reducebf)
+            Call removeAttribute (thisnode, "reducebf")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "fixspin")
+         getstructspin%fixspin = "none"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "fixspin", &
+           & getstructspin%fixspin)
+            Call removeAttribute (thisnode, "fixspin")
+         End If
+         getstructspin%fixspinnumber = stringtonumberfixspin &
+        & (getstructspin%fixspin)
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructHartreeFock (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (HartreeFock_type), Pointer :: getstructHartreeFock
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructHartreeFock)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at HartreeFock"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epsengy")
+         getstructHartreeFock%epsengy = 1e-7
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epsengy", &
+           & getstructHartreeFock%epsengy)
+            Call removeAttribute (thisnode, "epsengy")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructsolver (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (solver_type), Pointer :: getstructsolver
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructsolver)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at solver"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "type")
+         getstructsolver%type = "Lapack"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "type", &
+           & getstructsolver%type)
+            Call removeAttribute (thisnode, "type")
+         End If
+         getstructsolver%typenumber = stringtonumbertype &
+        & (getstructsolver%type)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "packedmatrixstorage")
+         getstructsolver%packedmatrixstorage = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "packedmatrixstorage", &
+           & getstructsolver%packedmatrixstorage)
+            Call removeAttribute (thisnode, "packedmatrixstorage")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epsarpack")
+         getstructsolver%epsarpack = 1.0e-8
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epsarpack", &
+           & getstructsolver%epsarpack)
+            Call removeAttribute (thisnode, "epsarpack")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "evaltol")
+         getstructsolver%evaltol = 1e-8
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "evaltol", &
+           & getstructsolver%evaltol)
+            Call removeAttribute (thisnode, "evaltol")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructOEP (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (OEP_type), Pointer :: getstructOEP
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructOEP)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at OEP"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "maxitoep")
+         getstructOEP%maxitoep = 120
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "maxitoep", &
+           & getstructOEP%maxitoep)
+            Call removeAttribute (thisnode, "maxitoep")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tauoep")
+         getstructOEP%tauoep = (/ 1.0, 0.2, 1.5 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tauoep", &
+           & getstructOEP%tauoep)
+            Call removeAttribute (thisnode, "tauoep")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructRDMFT (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (RDMFT_type), Pointer :: getstructRDMFT
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructRDMFT)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at RDMFT"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rdmxctype")
+         getstructRDMFT%rdmxctype = 2
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rdmxctype", &
+           & getstructRDMFT%rdmxctype)
+            Call removeAttribute (thisnode, "rdmxctype")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rdmmaxscl")
+         getstructRDMFT%rdmmaxscl = 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rdmmaxscl", &
+           & getstructRDMFT%rdmmaxscl)
+            Call removeAttribute (thisnode, "rdmmaxscl")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "maxitn")
+         getstructRDMFT%maxitn = 250
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "maxitn", &
+           & getstructRDMFT%maxitn)
+            Call removeAttribute (thisnode, "maxitn")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "maxitc")
+         getstructRDMFT%maxitc = 10
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "maxitc", &
+           & getstructRDMFT%maxitc)
+            Call removeAttribute (thisnode, "maxitc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "taurdmn")
+         getstructRDMFT%taurdmn = 1.0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "taurdmn", &
+           & getstructRDMFT%taurdmn)
+            Call removeAttribute (thisnode, "taurdmn")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "taurdmc")
+         getstructRDMFT%taurdmc = 0.5
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "taurdmc", &
+           & getstructRDMFT%taurdmc)
+            Call removeAttribute (thisnode, "taurdmc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rdmalpha")
+         getstructRDMFT%rdmalpha = 0.7
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rdmalpha", &
+           & getstructRDMFT%rdmalpha)
+            Call removeAttribute (thisnode, "rdmalpha")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rdmtemp")
+         getstructRDMFT%rdmtemp = 0.0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rdmtemp", &
+           & getstructRDMFT%rdmtemp)
+            Call removeAttribute (thisnode, "rdmtemp")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructstructureoptimization (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (structureoptimization_type), Pointer :: &
+        & getstructstructureoptimization
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructstructureoptimization)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at structureoptimization"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epsforce")
+         getstructstructureoptimization%epsforce = 5e-5
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epsforce", &
+           & getstructstructureoptimization%epsforce)
+            Call removeAttribute (thisnode, "epsforce")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tau0atm")
+         getstructstructureoptimization%tau0atm = 0.2d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tau0atm", &
+           & getstructstructureoptimization%tau0atm)
+            Call removeAttribute (thisnode, "tau0atm")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "resume")
+         getstructstructureoptimization%resume = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "resume", &
+           & getstructstructureoptimization%resume)
+            Call removeAttribute (thisnode, "resume")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructproperties (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (properties_type), Pointer :: getstructproperties
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructproperties)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at properties"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "bandstructure")
+         getstructproperties%bandstructure => null ()
+         Do i = 0, len - 1
+            getstructproperties%bandstructure => getstructbandstructure &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "bandstructure"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "STM")
+         getstructproperties%STM => null ()
+         Do i = 0, len - 1
+            getstructproperties%STM => getstructSTM &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "STM"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "wfplot")
+         getstructproperties%wfplot => null ()
+         Do i = 0, len - 1
+            getstructproperties%wfplot => getstructwfplot &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "wfplot"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "dos")
+         getstructproperties%dos => null ()
+         Do i = 0, len - 1
+            getstructproperties%dos => getstructdos &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "dos"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "LSJ")
+         getstructproperties%LSJ => null ()
+         Do i = 0, len - 1
+            getstructproperties%LSJ => getstructLSJ &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "LSJ"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "masstensor")
+         getstructproperties%masstensor => null ()
+         Do i = 0, len - 1
+            getstructproperties%masstensor => getstructmasstensor &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "masstensor"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "chargedensityplot")
+         getstructproperties%chargedensityplot => null ()
+         Do i = 0, len - 1
+            getstructproperties%chargedensityplot => &
+           & getstructchargedensityplot (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "chargedensityplot"), &
+           & 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "exccplot")
+         getstructproperties%exccplot => null ()
+         Do i = 0, len - 1
+            getstructproperties%exccplot => getstructexccplot &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "exccplot"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "elfplot")
+         getstructproperties%elfplot => null ()
+         Do i = 0, len - 1
+            getstructproperties%elfplot => getstructelfplot &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "elfplot"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "mvecfield")
+         getstructproperties%mvecfield => null ()
+         Do i = 0, len - 1
+            getstructproperties%mvecfield => getstructmvecfield &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "mvecfield"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "xcmvecfield")
+         getstructproperties%xcmvecfield => null ()
+         Do i = 0, len - 1
+            getstructproperties%xcmvecfield => getstructxcmvecfield &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "xcmvecfield"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "electricfield")
+         getstructproperties%electricfield => null ()
+         Do i = 0, len - 1
+            getstructproperties%electricfield => getstructelectricfield &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "electricfield"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "gradmvecfield")
+         getstructproperties%gradmvecfield => null ()
+         Do i = 0, len - 1
+            getstructproperties%gradmvecfield => getstructgradmvecfield &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "gradmvecfield"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "fermisurfaceplot")
+         getstructproperties%fermisurfaceplot => null ()
+         Do i = 0, len - 1
+            getstructproperties%fermisurfaceplot => &
+           & getstructfermisurfaceplot (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "fermisurfaceplot"), &
+           & 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "EFG")
+         getstructproperties%EFG => null ()
+         Do i = 0, len - 1
+            getstructproperties%EFG => getstructEFG &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "EFG"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "momentummatrix")
+         getstructproperties%momentummatrix => null ()
+         Do i = 0, len - 1
+            getstructproperties%momentummatrix => &
+           & getstructmomentummatrix (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "momentummatrix"), &
+           & 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "linresponsetensor")
+         getstructproperties%linresponsetensor => null ()
+         Do i = 0, len - 1
+            getstructproperties%linresponsetensor => &
+           & getstructlinresponsetensor (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "linresponsetensor"), &
+           & 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "mossbauer")
+         getstructproperties%mossbauer => null ()
+         Do i = 0, len - 1
+            getstructproperties%mossbauer => getstructmossbauer &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "mossbauer"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "dielectric")
+         getstructproperties%dielectric => null ()
+         Do i = 0, len - 1
+            getstructproperties%dielectric => getstructdielectric &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "dielectric"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "expiqr")
+         getstructproperties%expiqr => null ()
+         Do i = 0, len - 1
+            getstructproperties%expiqr => getstructexpiqr &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "expiqr"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "elnes")
+         getstructproperties%elnes => null ()
+         Do i = 0, len - 1
+            getstructproperties%elnes => getstructelnes &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "elnes"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "eliashberg")
+         getstructproperties%eliashberg => null ()
+         Do i = 0, len - 1
+            getstructproperties%eliashberg => getstructeliashberg &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "eliashberg"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructbandstructure (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (bandstructure_type), Pointer :: getstructbandstructure
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructbandstructure)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at bandstructure"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "scissor")
+         getstructbandstructure%scissor = 0d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "scissor", &
+           & getstructbandstructure%scissor)
+            Call removeAttribute (thisnode, "scissor")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "character")
+         getstructbandstructure%character = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "character", &
+           & getstructbandstructure%character)
+            Call removeAttribute (thisnode, "character")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "plot1d")
+         getstructbandstructure%plot1d => null ()
+         Do i = 0, len - 1
+            getstructbandstructure%plot1d => getstructplot1d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot1d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructSTM (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (STM_type), Pointer :: getstructSTM
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructSTM)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at STM"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructSTM%plot2d => null ()
+         Do i = 0, len - 1
+            getstructSTM%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructwfplot (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (wfplot_type), Pointer :: getstructwfplot
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructwfplot)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at wfplot"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "kstlist")
+         getstructwfplot%kstlist => null ()
+         Do i = 0, len - 1
+            getstructwfplot%kstlist => getstructkstlist &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "kstlist"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot1d")
+         getstructwfplot%plot1d => null ()
+         Do i = 0, len - 1
+            getstructwfplot%plot1d => getstructplot1d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot1d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructwfplot%plot2d => null ()
+         Do i = 0, len - 1
+            getstructwfplot%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructwfplot%plot3d => null ()
+         Do i = 0, len - 1
+            getstructwfplot%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructdos (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (dos_type), Pointer :: getstructdos
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructdos)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at dos"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "sqados")
+         getstructdos%sqados = (/ 0.0, 0.0, 1.0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "sqados", &
+           & getstructdos%sqados)
+            Call removeAttribute (thisnode, "sqados")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmirep")
+         getstructdos%lmirep = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmirep", &
+           & getstructdos%lmirep)
+            Call removeAttribute (thisnode, "lmirep")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nwdos")
+         getstructdos%nwdos = 500
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nwdos", &
+           & getstructdos%nwdos)
+            Call removeAttribute (thisnode, "nwdos")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ngrdos")
+         getstructdos%ngrdos = 100
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ngrdos", &
+           & getstructdos%ngrdos)
+            Call removeAttribute (thisnode, "ngrdos")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "scissor")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "scissor", &
+           & getstructdos%scissor)
+            Call removeAttribute (thisnode, "scissor")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nsmdos")
+         getstructdos%nsmdos = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nsmdos", &
+           & getstructdos%nsmdos)
+            Call removeAttribute (thisnode, "nsmdos")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "winddos")
+         getstructdos%winddos = (/ .5, .5 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "winddos", &
+           & getstructdos%winddos)
+            Call removeAttribute (thisnode, "winddos")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructLSJ (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (LSJ_type), Pointer :: getstructLSJ
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructLSJ)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at LSJ"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "kstlist")
+         getstructLSJ%kstlist => null ()
+         Do i = 0, len - 1
+            getstructLSJ%kstlist => getstructkstlist &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "kstlist"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructmasstensor (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (masstensor_type), Pointer :: getstructmasstensor
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructmasstensor)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at masstensor"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "deltaem")
+         getstructmasstensor%deltaem = 0.025d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "deltaem", &
+           & getstructmasstensor%deltaem)
+            Call removeAttribute (thisnode, "deltaem")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ndspem")
+         getstructmasstensor%ndspem = 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ndspem", &
+           & getstructmasstensor%ndspem)
+            Call removeAttribute (thisnode, "ndspem")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vklem")
+         getstructmasstensor%vklem = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vklem", &
+           & getstructmasstensor%vklem)
+            Call removeAttribute (thisnode, "vklem")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructchargedensityplot (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (chargedensityplot_type), Pointer :: &
+        & getstructchargedensityplot
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructchargedensityplot)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at chargedensityplot"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot1d")
+         getstructchargedensityplot%plot1d => null ()
+         Do i = 0, len - 1
+            getstructchargedensityplot%plot1d => getstructplot1d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot1d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructchargedensityplot%plot2d => null ()
+         Do i = 0, len - 1
+            getstructchargedensityplot%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructchargedensityplot%plot3d => null ()
+         Do i = 0, len - 1
+            getstructchargedensityplot%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructexccplot (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (exccplot_type), Pointer :: getstructexccplot
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructexccplot)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at exccplot"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot1d")
+         getstructexccplot%plot1d => null ()
+         Do i = 0, len - 1
+            getstructexccplot%plot1d => getstructplot1d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot1d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructexccplot%plot2d => null ()
+         Do i = 0, len - 1
+            getstructexccplot%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructexccplot%plot3d => null ()
+         Do i = 0, len - 1
+            getstructexccplot%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructelfplot (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (elfplot_type), Pointer :: getstructelfplot
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructelfplot)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at elfplot"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot1d")
+         getstructelfplot%plot1d => null ()
+         Do i = 0, len - 1
+            getstructelfplot%plot1d => getstructplot1d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot1d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructelfplot%plot2d => null ()
+         Do i = 0, len - 1
+            getstructelfplot%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructelfplot%plot3d => null ()
+         Do i = 0, len - 1
+            getstructelfplot%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructmvecfield (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (mvecfield_type), Pointer :: getstructmvecfield
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructmvecfield)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at mvecfield"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructmvecfield%plot2d => null ()
+         Do i = 0, len - 1
+            getstructmvecfield%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructmvecfield%plot3d => null ()
+         Do i = 0, len - 1
+            getstructmvecfield%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructxcmvecfield (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (xcmvecfield_type), Pointer :: getstructxcmvecfield
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructxcmvecfield)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at xcmvecfield"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructxcmvecfield%plot2d => null ()
+         Do i = 0, len - 1
+            getstructxcmvecfield%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructxcmvecfield%plot3d => null ()
+         Do i = 0, len - 1
+            getstructxcmvecfield%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructelectricfield (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (electricfield_type), Pointer :: getstructelectricfield
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructelectricfield)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at electricfield"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructelectricfield%plot2d => null ()
+         Do i = 0, len - 1
+            getstructelectricfield%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructelectricfield%plot3d => null ()
+         Do i = 0, len - 1
+            getstructelectricfield%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructgradmvecfield (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (gradmvecfield_type), Pointer :: getstructgradmvecfield
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructgradmvecfield)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at gradmvecfield"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot1d")
+         getstructgradmvecfield%plot1d => null ()
+         Do i = 0, len - 1
+            getstructgradmvecfield%plot1d => getstructplot1d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot1d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot2d")
+         getstructgradmvecfield%plot2d => null ()
+         Do i = 0, len - 1
+            getstructgradmvecfield%plot2d => getstructplot2d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot2d"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plot3d")
+         getstructgradmvecfield%plot3d => null ()
+         Do i = 0, len - 1
+            getstructgradmvecfield%plot3d => getstructplot3d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot3d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructfermisurfaceplot (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (fermisurfaceplot_type), Pointer :: &
+        & getstructfermisurfaceplot
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructfermisurfaceplot)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at fermisurfaceplot"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nstfsp")
+         getstructfermisurfaceplot%nstfsp = 6
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nstfsp", &
+           & getstructfermisurfaceplot%nstfsp)
+            Call removeAttribute (thisnode, "nstfsp")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "separate")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "separate", &
+           & getstructfermisurfaceplot%separate)
+            Call removeAttribute (thisnode, "separate")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructEFG (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (EFG_type), Pointer :: getstructEFG
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructEFG)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at EFG"
+#endif
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructmomentummatrix (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (momentummatrix_type), Pointer :: getstructmomentummatrix
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructmomentummatrix)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at momentummatrix"
+#endif
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructlinresponsetensor (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (linresponsetensor_type), Pointer :: &
+        & getstructlinresponsetensor
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructlinresponsetensor)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at linresponsetensor"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "scissor")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "scissor", &
+           & getstructlinresponsetensor%scissor)
+            Call removeAttribute (thisnode, "scissor")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "optcomp")
+         Allocate (getstructlinresponsetensor%optcomp(3, len))
+         Do i = 1, len
+!
+            getstructlinresponsetensor%optcomp (:, i) = &
+           & getvalueofoptcomp (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "optcomp"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructmossbauer (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (mossbauer_type), Pointer :: getstructmossbauer
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructmossbauer)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at mossbauer"
+#endif
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructdielectric (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (dielectric_type), Pointer :: getstructdielectric
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructdielectric)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at dielectric"
+#endif
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructexpiqr (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (expiqr_type), Pointer :: getstructexpiqr
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructexpiqr)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at expiqr"
+#endif
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructelnes (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (elnes_type), Pointer :: getstructelnes
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructelnes)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at elnes"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vecql")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vecql", &
+           & getstructelnes%vecql)
+            Call removeAttribute (thisnode, "vecql")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructeliashberg (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (eliashberg_type), Pointer :: getstructeliashberg
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructeliashberg)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at eliashberg"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "mustar")
+         getstructeliashberg%mustar = 0.15
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "mustar", &
+           & getstructeliashberg%mustar)
+            Call removeAttribute (thisnode, "mustar")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructphonons (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (phonons_type), Pointer :: getstructphonons
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructphonons)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at phonons"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "reduceq")
+         getstructphonons%reduceq = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "reduceq", &
+           & getstructphonons%reduceq)
+            Call removeAttribute (thisnode, "reduceq")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "deltaph")
+         getstructphonons%deltaph = 0.03
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "deltaph", &
+           & getstructphonons%deltaph)
+            Call removeAttribute (thisnode, "deltaph")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "qpointset")
+         getstructphonons%qpointset => null ()
+         Do i = 0, len - 1
+            getstructphonons%qpointset => getstructqpointset &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "qpointset"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "phonondos")
+         getstructphonons%phonondos => null ()
+         Do i = 0, len - 1
+            getstructphonons%phonondos => getstructphonondos &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "phonondos"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "phonondispplot")
+         getstructphonons%phonondispplot => null ()
+         Do i = 0, len - 1
+            getstructphonons%phonondispplot => getstructphonondispplot &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "phonondispplot"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructphonondos (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (phonondos_type), Pointer :: getstructphonondos
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructphonondos)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at phonondos"
+#endif
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructphonondispplot (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (phonondispplot_type), Pointer :: getstructphonondispplot
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructphonondispplot)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at phonondispplot"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "plot1d")
+         getstructphonondispplot%plot1d => null ()
+         Do i = 0, len - 1
+            getstructphonondispplot%plot1d => getstructplot1d &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "plot1d"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructxs (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (xs_type), Pointer :: getstructxs
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructxs)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at xs"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "emattype")
+         getstructxs%emattype = 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "emattype", &
+           & getstructxs%emattype)
+            Call removeAttribute (thisnode, "emattype")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "dfoffdiag")
+         getstructxs%dfoffdiag = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "dfoffdiag", &
+           & getstructxs%dfoffdiag)
+            Call removeAttribute (thisnode, "dfoffdiag")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxapwwf")
+         getstructxs%lmaxapwwf = - 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxapwwf", &
+           & getstructxs%lmaxapwwf)
+            Call removeAttribute (thisnode, "lmaxapwwf")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxemat")
+         getstructxs%lmaxemat = 3
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxemat", &
+           & getstructxs%lmaxemat)
+            Call removeAttribute (thisnode, "lmaxemat")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "emaxdf")
+         getstructxs%emaxdf = 1d10
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "emaxdf", &
+           & getstructxs%emaxdf)
+            Call removeAttribute (thisnode, "emaxdf")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "broad")
+         getstructxs%broad = 0.01d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "broad", &
+           & getstructxs%broad)
+            Call removeAttribute (thisnode, "broad")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tevout")
+         getstructxs%tevout = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tevout", &
+           & getstructxs%tevout)
+            Call removeAttribute (thisnode, "tevout")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "xstype")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "xstype", &
+           & getstructxs%xstype)
+            Call removeAttribute (thisnode, "xstype")
+         End If
+         getstructxs%xstypenumber = stringtonumberxstype &
+        & (getstructxs%xstype)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "symmorph")
+         getstructxs%symmorph = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "symmorph", &
+           & getstructxs%symmorph)
+            Call removeAttribute (thisnode, "symmorph")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "fastpmat")
+         getstructxs%fastpmat = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "fastpmat", &
+           & getstructxs%fastpmat)
+            Call removeAttribute (thisnode, "fastpmat")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "fastemat")
+         getstructxs%fastemat = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "fastemat", &
+           & getstructxs%fastemat)
+            Call removeAttribute (thisnode, "fastemat")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "gather")
+         getstructxs%gather = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "gather", &
+           & getstructxs%gather)
+            Call removeAttribute (thisnode, "gather")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tappinfo")
+         getstructxs%tappinfo = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tappinfo", &
+           & getstructxs%tappinfo)
+            Call removeAttribute (thisnode, "tappinfo")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "dbglev")
+         getstructxs%dbglev = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "dbglev", &
+           & getstructxs%dbglev)
+            Call removeAttribute (thisnode, "dbglev")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "usegdft")
+         getstructxs%usegdft = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "usegdft", &
+           & getstructxs%usegdft)
+            Call removeAttribute (thisnode, "usegdft")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "gqmax")
+         getstructxs%gqmax = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "gqmax", &
+           & getstructxs%gqmax)
+            Call removeAttribute (thisnode, "gqmax")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nosym")
+         getstructxs%nosym = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nosym", &
+           & getstructxs%nosym)
+            Call removeAttribute (thisnode, "nosym")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ngridk")
+         getstructxs%ngridk = (/ 1, 1, 1 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ngridk", &
+           & getstructxs%ngridk)
+            Call removeAttribute (thisnode, "ngridk")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vkloff")
+         getstructxs%vkloff = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vkloff", &
+           & getstructxs%vkloff)
+            Call removeAttribute (thisnode, "vkloff")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "reducek")
+         getstructxs%reducek = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "reducek", &
+           & getstructxs%reducek)
+            Call removeAttribute (thisnode, "reducek")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ngridq")
+         getstructxs%ngridq = (/ 1, 1, 1 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ngridq", &
+           & getstructxs%ngridq)
+            Call removeAttribute (thisnode, "ngridq")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "reduceq")
+         getstructxs%reduceq = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "reduceq", &
+           & getstructxs%reduceq)
+            Call removeAttribute (thisnode, "reduceq")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rgkmax")
+         getstructxs%rgkmax = 7
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rgkmax", &
+           & getstructxs%rgkmax)
+            Call removeAttribute (thisnode, "rgkmax")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "swidth")
+         getstructxs%swidth = 0.001d0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "swidth", &
+           & getstructxs%swidth)
+            Call removeAttribute (thisnode, "swidth")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxapw")
+         getstructxs%lmaxapw = 10
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxapw", &
+           & getstructxs%lmaxapw)
+            Call removeAttribute (thisnode, "lmaxapw")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxmat")
+         getstructxs%lmaxmat = 5
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxmat", &
+           & getstructxs%lmaxmat)
+            Call removeAttribute (thisnode, "lmaxmat")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nempty")
+         getstructxs%nempty = 5
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nempty", &
+           & getstructxs%nempty)
+            Call removeAttribute (thisnode, "nempty")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "scissor")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "scissor", &
+           & getstructxs%scissor)
+            Call removeAttribute (thisnode, "scissor")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "tddft")
+         getstructxs%tddft => null ()
+         Do i = 0, len - 1
+            getstructxs%tddft => getstructtddft (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "tddft"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "screening")
+         getstructxs%screening => null ()
+         Do i = 0, len - 1
+            getstructxs%screening => getstructscreening &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "screening"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "BSE")
+         getstructxs%BSE => null ()
+         Do i = 0, len - 1
+            getstructxs%BSE => getstructBSE (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "BSE"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "qpointset")
+         getstructxs%qpointset => null ()
+         Do i = 0, len - 1
+            getstructxs%qpointset => getstructqpointset &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "qpointset"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "tetra")
+         getstructxs%tetra => null ()
+         Do i = 0, len - 1
+            getstructxs%tetra => getstructtetra (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "tetra"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "dosWindow")
+         getstructxs%dosWindow => null ()
+         Do i = 0, len - 1
+            getstructxs%dosWindow => getstructdosWindow &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "dosWindow"), 0)))
+         End Do
+!
+         Len = countChildEmentsWithName (thisnode, "plan")
+         getstructxs%plan => null ()
+         Do i = 0, len - 1
+            getstructxs%plan => getstructplan (removeChild(thisnode, &
+           & item(getElementsByTagname(thisnode, "plan"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructtddft (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (tddft_type), Pointer :: getstructtddft
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructtddft)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at tddft"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "intraband")
+         getstructtddft%intraband = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "intraband", &
+           & getstructtddft%intraband)
+            Call removeAttribute (thisnode, "intraband")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "torddf")
+         getstructtddft%torddf = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "torddf", &
+           & getstructtddft%torddf)
+            Call removeAttribute (thisnode, "torddf")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tordfxc")
+         getstructtddft%tordfxc = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tordfxc", &
+           & getstructtddft%tordfxc)
+            Call removeAttribute (thisnode, "tordfxc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "aresdf")
+         getstructtddft%aresdf = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "aresdf", &
+           & getstructtddft%aresdf)
+            Call removeAttribute (thisnode, "aresdf")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "aresfxc")
+         getstructtddft%aresfxc = .True.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "aresfxc", &
+           & getstructtddft%aresfxc)
+            Call removeAttribute (thisnode, "aresfxc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "fxcbsesplit")
+         getstructtddft%fxcbsesplit = 1d-5
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "fxcbsesplit", &
+           & getstructtddft%fxcbsesplit)
+            Call removeAttribute (thisnode, "fxcbsesplit")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "acont")
+         getstructtddft%acont = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "acont", &
+           & getstructtddft%acont)
+            Call removeAttribute (thisnode, "acont")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nwacont")
+         getstructtddft%nwacont = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nwacont", &
+           & getstructtddft%nwacont)
+            Call removeAttribute (thisnode, "nwacont")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lindhard")
+         getstructtddft%lindhard = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lindhard", &
+           & getstructtddft%lindhard)
+            Call removeAttribute (thisnode, "lindhard")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "epsdfde")
+         getstructtddft%epsdfde = 1.0d-8
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "epsdfde", &
+           & getstructtddft%epsdfde)
+            Call removeAttribute (thisnode, "epsdfde")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "kerndiag")
+         getstructtddft%kerndiag = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "kerndiag", &
+           & getstructtddft%kerndiag)
+            Call removeAttribute (thisnode, "kerndiag")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxalda")
+         getstructtddft%lmaxalda = 3
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxalda", &
+           & getstructtddft%lmaxalda)
+            Call removeAttribute (thisnode, "lmaxalda")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "alphalrc")
+         getstructtddft%alphalrc = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "alphalrc", &
+           & getstructtddft%alphalrc)
+            Call removeAttribute (thisnode, "alphalrc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "alphalrcdyn")
+         getstructtddft%alphalrcdyn = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "alphalrcdyn", &
+           & getstructtddft%alphalrcdyn)
+            Call removeAttribute (thisnode, "alphalrcdyn")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "betalrcdyn")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "betalrcdyn", &
+           & getstructtddft%betalrcdyn)
+            Call removeAttribute (thisnode, "betalrcdyn")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "mdfqtype")
+         getstructtddft%mdfqtype = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "mdfqtype", &
+           & getstructtddft%mdfqtype)
+            Call removeAttribute (thisnode, "mdfqtype")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "fxctype")
+         getstructtddft%fxctype = "RPA"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "fxctype", &
+           & getstructtddft%fxctype)
+            Call removeAttribute (thisnode, "fxctype")
+         End If
+         getstructtddft%fxctypenumber = stringtonumberfxctype &
+        & (getstructtddft%fxctype)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "resumefromkernel")
+         getstructtddft%resumefromkernel = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "resumefromkernel", &
+           & getstructtddft%resumefromkernel)
+            Call removeAttribute (thisnode, "resumefromkernel")
+         End If
+!
+         Len = countChildEmentsWithName (thisnode, "dftrans")
+         getstructtddft%dftrans => null ()
+         Do i = 0, len - 1
+            getstructtddft%dftrans => getstructdftrans &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "dftrans"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructdftrans (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (dftrans_type), Pointer :: getstructdftrans
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructdftrans)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at dftrans"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "trans")
+         Allocate (getstructdftrans%trans(3, len))
+         Do i = 1, len
+!
+            getstructdftrans%trans (:, i) = getvalueoftrans &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "trans"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructscreening (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (screening_type), Pointer :: getstructscreening
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructscreening)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at screening"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "run")
+         getstructscreening%run = "fromscratch"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "run", &
+           & getstructscreening%run)
+            Call removeAttribute (thisnode, "run")
+         End If
+         getstructscreening%runnumber = stringtonumberrun &
+        & (getstructscreening%run)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nosym")
+         getstructscreening%nosym = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nosym", &
+           & getstructscreening%nosym)
+            Call removeAttribute (thisnode, "nosym")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "ngridk")
+         getstructscreening%ngridk = (/ 0, 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "ngridk", &
+           & getstructscreening%ngridk)
+            Call removeAttribute (thisnode, "ngridk")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "reducek")
+         getstructscreening%reducek = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "reducek", &
+           & getstructscreening%reducek)
+            Call removeAttribute (thisnode, "reducek")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vkloff")
+         getstructscreening%vkloff = (/ - 1, - 1, - 1 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vkloff", &
+           & getstructscreening%vkloff)
+            Call removeAttribute (thisnode, "vkloff")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rgkmax")
+         getstructscreening%rgkmax = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rgkmax", &
+           & getstructscreening%rgkmax)
+            Call removeAttribute (thisnode, "rgkmax")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nempty")
+         getstructscreening%nempty = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nempty", &
+           & getstructscreening%nempty)
+            Call removeAttribute (thisnode, "nempty")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "screentype")
+         getstructscreening%screentype = "full"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "screentype", &
+           & getstructscreening%screentype)
+            Call removeAttribute (thisnode, "screentype")
+         End If
+         getstructscreening%screentypenumber = stringtonumberscreentype &
+        & (getstructscreening%screentype)
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructBSE (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (BSE_type), Pointer :: getstructBSE
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructBSE)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at BSE"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nosym")
+         getstructBSE%nosym = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nosym", &
+           & getstructBSE%nosym)
+            Call removeAttribute (thisnode, "nosym")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "reducek")
+         getstructBSE%reducek = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "reducek", &
+           & getstructBSE%reducek)
+            Call removeAttribute (thisnode, "reducek")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "vkloff")
+         getstructBSE%vkloff = (/ - 1, - 1, - 1 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "vkloff", &
+           & getstructBSE%vkloff)
+            Call removeAttribute (thisnode, "vkloff")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "rgkmax")
+         getstructBSE%rgkmax = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "rgkmax", &
+           & getstructBSE%rgkmax)
+            Call removeAttribute (thisnode, "rgkmax")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "scrherm")
+         getstructBSE%scrherm = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "scrherm", &
+           & getstructBSE%scrherm)
+            Call removeAttribute (thisnode, "scrherm")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "fbzq")
+         getstructBSE%fbzq = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "fbzq", &
+           & getstructBSE%fbzq)
+            Call removeAttribute (thisnode, "fbzq")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "sciavtype")
+         getstructBSE%sciavtype = "spherical"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "sciavtype", &
+           & getstructBSE%sciavtype)
+            Call removeAttribute (thisnode, "sciavtype")
+         End If
+         getstructBSE%sciavtypenumber = stringtonumbersciavtype &
+        & (getstructBSE%sciavtype)
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "sciavbd")
+         getstructBSE%sciavbd = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "sciavbd", &
+           & getstructBSE%sciavbd)
+            Call removeAttribute (thisnode, "sciavbd")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "sciavqhd")
+         getstructBSE%sciavqhd = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "sciavqhd", &
+           & getstructBSE%sciavqhd)
+            Call removeAttribute (thisnode, "sciavqhd")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "sciavqwg")
+         getstructBSE%sciavqwg = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "sciavqwg", &
+           & getstructBSE%sciavqwg)
+            Call removeAttribute (thisnode, "sciavqwg")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "sciavqbd")
+         getstructBSE%sciavqbd = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "sciavqbd", &
+           & getstructBSE%sciavqbd)
+            Call removeAttribute (thisnode, "sciavqbd")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "bsedirsing")
+         getstructBSE%bsedirsing = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "bsedirsing", &
+           & getstructBSE%bsedirsing)
+            Call removeAttribute (thisnode, "bsedirsing")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "lmaxdielt")
+         getstructBSE%lmaxdielt = 14
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "lmaxdielt", &
+           & getstructBSE%lmaxdielt)
+            Call removeAttribute (thisnode, "lmaxdielt")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nleblaik")
+         getstructBSE%nleblaik = 5810
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nleblaik", &
+           & getstructBSE%nleblaik)
+            Call removeAttribute (thisnode, "nleblaik")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nexcitmax")
+         getstructBSE%nexcitmax = 100
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nexcitmax", &
+           & getstructBSE%nexcitmax)
+            Call removeAttribute (thisnode, "nexcitmax")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nstlbse")
+         getstructBSE%nstlbse = (/ 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nstlbse", &
+           & getstructBSE%nstlbse)
+            Call removeAttribute (thisnode, "nstlbse")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nstlce")
+         getstructBSE%nstlce = (/ 0, 0 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nstlce", &
+           & getstructBSE%nstlce)
+            Call removeAttribute (thisnode, "nstlce")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "bsetype")
+         getstructBSE%bsetype = "singlet"
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "bsetype", &
+           & getstructBSE%bsetype)
+            Call removeAttribute (thisnode, "bsetype")
+         End If
+         getstructBSE%bsetypenumber = stringtonumberbsetype &
+        & (getstructBSE%bsetype)
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructtetra (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (tetra_type), Pointer :: getstructtetra
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructtetra)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at tetra"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tetraocc")
+         getstructtetra%tetraocc = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tetraocc", &
+           & getstructtetra%tetraocc)
+            Call removeAttribute (thisnode, "tetraocc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "tetradf")
+         getstructtetra%tetradf = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "tetradf", &
+           & getstructtetra%tetradf)
+            Call removeAttribute (thisnode, "tetradf")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "kordexc")
+         getstructtetra%kordexc = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "kordexc", &
+           & getstructtetra%kordexc)
+            Call removeAttribute (thisnode, "kordexc")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "cw1k")
+         getstructtetra%cw1k = .False.
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "cw1k", &
+           & getstructtetra%cw1k)
+            Call removeAttribute (thisnode, "cw1k")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "qweights")
+         getstructtetra%qweights = 1
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "qweights", &
+           & getstructtetra%qweights)
+            Call removeAttribute (thisnode, "qweights")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructdosWindow (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (dosWindow_type), Pointer :: getstructdosWindow
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructdosWindow)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at dosWindow"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "points")
+         getstructdosWindow%points = 500
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "points", &
+           & getstructdosWindow%points)
+            Call removeAttribute (thisnode, "points")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "intv")
+         getstructdosWindow%intv = (/ - 0.5, 0.5 /)
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "intv", &
+           & getstructdosWindow%intv)
+            Call removeAttribute (thisnode, "intv")
+         End If
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "nsmdos")
+         getstructdosWindow%nsmdos = 0
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "nsmdos", &
+           & getstructdosWindow%nsmdos)
+            Call removeAttribute (thisnode, "nsmdos")
+         End If
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructplan (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (plan_type), Pointer :: getstructplan
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructplan)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at plan"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "doonly")
+!
+         Allocate (getstructplan%doonlyarray(len))
+         Do i = 0, len - 1
+            getstructplan%doonlyarray(i+1)%doonly => getstructdoonly &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "doonly"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructdoonly (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (doonly_type), Pointer :: getstructdoonly
+         Type (Node), Pointer :: np
+!
+!
+         Integer :: Len = 1, i = 0
+         Allocate (getstructdoonly)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at doonly"
+#endif
+!
+         Nullify (np)
+         np => getAttributeNode (thisnode, "task")
+         If (associated(np)) Then
+            Call extractDataAttribute (thisnode, "task", &
+           & getstructdoonly%task)
+            Call removeAttribute (thisnode, "task")
+         End If
+         getstructdoonly%tasknumber = stringtonumbertask &
+        & (getstructdoonly%task)
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getstructqpointset (thisnode)
+!
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Type (qpointset_type), Pointer :: getstructqpointset
+		
+         Integer :: Len = 1, i = 0
+         Allocate (getstructqpointset)
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at qpointset"
+#endif
+!
+         Len = countChildEmentsWithName (thisnode, "qpoint")
+         Allocate (getstructqpointset%qpoint(3, len))
+         Do i = 1, len
+!
+            getstructqpointset%qpoint (:, i) = getvalueofqpoint &
+           & (removeChild(thisnode, item(getElementsByTagname(thisnode, &
+           & "qpoint"), 0)))
+         End Do
+!
+         i = 0
+         Len = 0
+         Call handleunknownnodes (thisnode)
+      End Function
+!
+      Function getvalueofpointstatepair (thisnode)
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Integer :: getvalueofpointstatepair (2)
+!
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at pointstatepair"
+#endif
+         Call extractDataContent (thisnode, getvalueofpointstatepair)
+      End Function
+      Function getvalueoftitle (thisnode)
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Character (512) :: getvalueoftitle
+!
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at title"
+#endif
+         Call extractDataContent (thisnode, getvalueoftitle)
+      End Function
+      Function getvalueofbasevect (thisnode)
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Real (8) :: getvalueofbasevect (3)
+!
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at basevect"
+#endif
+         Call extractDataContent (thisnode, getvalueofbasevect)
+      End Function
+      Function getvalueofoptcomp (thisnode)
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Integer :: getvalueofoptcomp (3)
+!
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at optcomp"
+#endif
+         Call extractDataContent (thisnode, getvalueofoptcomp)
+      End Function
+      Function getvalueoftrans (thisnode)
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Integer :: getvalueoftrans (3)
+!
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at trans"
+#endif
+         Call extractDataContent (thisnode, getvalueoftrans)
+      End Function
+      Function getvalueofqpoint (thisnode)
+         Implicit None
+         Type (Node), Pointer :: thisnode
+         Real (8) :: getvalueofqpoint (3)
+!
+#ifdef INPUTDEBUG
+         Write (*,*) "we are at qpoint"
+#endif
+         Call extractDataContent (thisnode, getvalueofqpoint)
+      End Function
+      Integer Function stringtonumberfixspin (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('none')
+            stringtonumberfixspin = 0
+         Case ('total FSM')
+            stringtonumberfixspin = 1
+         Case ('localmt FSM')
+            stringtonumberfixspin = 2
+         Case ('both')
+            stringtonumberfixspin = 3
+         Case ('')
+            stringtonumberfixspin = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forfixsp&
+           &in "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumbertype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('Lapack')
+            stringtonumbertype = 1
+         Case ('Arpack')
+            stringtonumbertype = 2
+         Case ('DIIS')
+            stringtonumbertype = 3
+         Case ('')
+            stringtonumbertype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection fortype &
+           &"
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberdo (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('fromscratch')
+            stringtonumberdo = - 1
+         Case ('fromfile')
+            stringtonumberdo = - 1
+         Case ('skip')
+            stringtonumberdo = - 1
+         Case ('')
+            stringtonumberdo = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection fordo "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberstype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('Gaussian')
+            stringtonumberstype = 0
+         Case ('Methfessel-Paxton 1')
+            stringtonumberstype = 1
+         Case ('Methfessel-Paxton 2')
+            stringtonumberstype = 2
+         Case ('Fermi Dirac')
+            stringtonumberstype = 3
+         Case ('Square-wave impulse')
+            stringtonumberstype = 4
+         Case ('')
+            stringtonumberstype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forstype&
+           & "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberfindlinentype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('simple')
+            stringtonumberfindlinentype = - 1
+         Case ('advanced')
+            stringtonumberfindlinentype = - 1
+         Case ('')
+            stringtonumberfindlinentype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forfindl&
+           &inentype "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumbermixer (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('lin')
+            stringtonumbermixer = 1
+         Case ('msec')
+            stringtonumbermixer = 2
+         Case ('pulay')
+            stringtonumbermixer = 3
+         Case ('')
+            stringtonumbermixer = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection formixer&
+           & "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberxctype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('LDAPerdew-Zunger')
+            stringtonumberxctype = 2
+         Case ('LSDAPerdew-Wang')
+            stringtonumberxctype = 3
+         Case ('LDA-X-alpha')
+            stringtonumberxctype = 4
+         Case ('LSDA-Barth-Hedin')
+            stringtonumberxctype = 5
+         Case ('GGAPerdew-Burke-Ernzerhof')
+            stringtonumberxctype = 20
+         Case ('GGArevPBE')
+            stringtonumberxctype = 21
+         Case ('GGAPBEsol')
+            stringtonumberxctype = 22
+         Case ('GGA-Wu-Cohen')
+            stringtonumberxctype = 26
+         Case ('GGAArmiento-Mattsson')
+            stringtonumberxctype = 30
+         Case ('EXX')
+            stringtonumberxctype = - 2
+         Case ('none')
+            stringtonumberxctype = 0
+         Case ('')
+            stringtonumberxctype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forxctyp&
+           &e "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberfxctype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('RPA')
+            stringtonumberfxctype = 0
+         Case ('LRCstatic_NLF')
+            stringtonumberfxctype = 1
+         Case ('LRCstatic')
+            stringtonumberfxctype = 2
+         Case ('LRCdyn_NLF')
+            stringtonumberfxctype = 3
+         Case ('LRCdyn')
+            stringtonumberfxctype = 4
+         Case ('ALDA')
+            stringtonumberfxctype = 5
+         Case ('MB1_NLF')
+            stringtonumberfxctype = 7
+         Case ('MB1')
+            stringtonumberfxctype = 8
+         Case ('')
+            stringtonumberfxctype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forfxcty&
+           &pe "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberrun (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('fromscratch')
+            stringtonumberrun = - 1
+         Case ('skip')
+            stringtonumberrun = - 1
+         Case ('')
+            stringtonumberrun = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forrun "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberscreentype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('full')
+            stringtonumberscreentype = - 1
+         Case ('diag')
+            stringtonumberscreentype = - 1
+         Case ('noinvdiag')
+            stringtonumberscreentype = - 1
+         Case ('longrange')
+            stringtonumberscreentype = - 1
+         Case ('')
+            stringtonumberscreentype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forscree&
+           &ntype "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumbersciavtype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('spherical')
+            stringtonumbersciavtype = - 1
+         Case ('screendiag')
+            stringtonumbersciavtype = - 1
+         Case ('invscreendiag')
+            stringtonumbersciavtype = - 1
+         Case ('')
+            stringtonumbersciavtype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forsciav&
+           &type "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberbsetype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('ip')
+            stringtonumberbsetype = - 1
+         Case ('rpa')
+            stringtonumberbsetype = - 1
+         Case ('singlet')
+            stringtonumberbsetype = - 1
+         Case ('triplet')
+            stringtonumberbsetype = - 1
+         Case ('')
+            stringtonumberbsetype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forbsety&
+           &pe "
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumbertask (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('xsgeneigvec')
+            stringtonumbertask = 301
+         Case ('tetcalccw')
+            stringtonumbertask = 310
+         Case ('writepmatxs')
+            stringtonumbertask = 320
+         Case ('writeemat')
+            stringtonumbertask = 330
+         Case ('df')
+            stringtonumbertask = 340
+         Case ('df2')
+            stringtonumbertask = 345
+         Case ('idf')
+            stringtonumbertask = 350
+         Case ('scrgeneigvec')
+            stringtonumbertask = 401
+         Case ('scrtetcalccw')
+            stringtonumbertask = 410
+         Case ('scrwritepmat')
+            stringtonumbertask = 420
+         Case ('screen')
+            stringtonumbertask = 430
+         Case ('scrcoulint')
+            stringtonumbertask = 440
+         Case ('exccoulint')
+            stringtonumbertask = 441
+         Case ('BSE')
+            stringtonumbertask = 445
+         Case ('kernxc_bse')
+            stringtonumbertask = 450
+         Case ('writebandgapgrid')
+            stringtonumbertask = 23
+         Case ('writepmat')
+            stringtonumbertask = 120
+         Case ('dielectric')
+            stringtonumbertask = 121
+         Case ('writepmatasc')
+            stringtonumbertask = 321
+         Case ('pmatxs2orig')
+            stringtonumbertask = 322
+         Case ('writeematasc')
+            stringtonumbertask = 331
+         Case ('writepwmat')
+            stringtonumbertask = 335
+         Case ('emattest')
+            stringtonumbertask = 339
+         Case ('x0toasc')
+            stringtonumbertask = 341
+         Case ('x0tobin')
+            stringtonumbertask = 342
+         Case ('epsconv')
+            stringtonumbertask = 396
+         Case ('fxc_alda_check')
+            stringtonumbertask = 398
+         Case ('kernxc_bse3')
+            stringtonumbertask = 451
+         Case ('testxs')
+            stringtonumbertask = 499
+         Case ('xsestimate')
+            stringtonumbertask = 700
+         Case ('xstiming')
+            stringtonumbertask = 701
+         Case ('testmain')
+            stringtonumbertask = 999
+         Case ('portstate(1)')
+            stringtonumbertask = 900
+         Case ('portstate(2)')
+            stringtonumbertask = 901
+         Case ('portstate(-1)')
+            stringtonumbertask = 910
+         Case ('portstate(-2)')
+            stringtonumbertask = 911
+         Case ('')
+            stringtonumbertask = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection fortask &
+           &"
+            Stop
+         End Select
+      End Function
+!
+!
+      Integer Function stringtonumberxstype (string)
+         Character (80), Intent (In) :: string
+         Select Case (trim(adjustl(string)))
+         Case ('TDDFT')
+            stringtonumberxstype = - 1
+         Case ('BSE')
+            stringtonumberxstype = - 1
+         Case ('')
+            stringtonumberxstype = 0
+         Case Default
+            Write (*,*) "'", string, "' is not valid selection forxstyp&
+           &e "
+            Stop
+         End Select
+      End Function
+!
+!
+!
+      Function countChildEmentsWithName (nodep, name)
+         Implicit None
+         Integer :: countChildEmentsWithName
+         Type (Node), Pointer, Intent (In) :: nodep
+         Character (Len=*), Intent (In) :: name
+         Type (NodeList), Pointer :: children
+         Type (Node), Pointer :: child
+!
+         Integer :: i
+         children => getChildNodes (nodep)
+         countChildEmentsWithName = 0
+         Do i = 0, getlength (children) - 1
+            child => item (children, i)
+            If (name .Eq. getNodeName(child)) countChildEmentsWithName &
+           & = countChildEmentsWithName + 1
+         End Do
+!
+      End Function
+!
 ! these are some transient helper functions to simplify the port (should not be used)
-function isspinorb()
-logical::isspinorb
-isspinorb=.false.
-if(associated(input%groundstate%spin))then
-if (input%groundstate%spin%spinorb) then
-isspinorb=.true.
-endif
-endif
-end function
-function isspinspiral() 
-logical::isspinspiral
-isspinspiral=.false.
-if(associated(input%groundstate%spin))then
-if (input%groundstate%spin%spinsprl) then
-isspinspiral=.true.
-endif
-endif
-end function
-
-function getfixspinnumber()
-implicit none
-integer::getfixspinnumber
-getfixspinnumber=0
-if(associated(input%groundstate%spin))then
-getfixspinnumber=input%groundstate%spin%fixspinnumber
-endif
-end function
-
-function istetraocc()
-  implicit none
-  logical ::istetraocc
-  istetraocc =.false.
-  if(associated(input%xs)) then
-    if(associated(input%xs%tetra)) then
-      istetraocc=input%xs%tetra%tetraocc
-    endif
-  endif
-end function
-
-end module
-
+      Function isspinorb ()
+         Logical :: isspinorb
+         isspinorb = .False.
+         If (associated(input%groundstate%spin)) Then
+            If (input%groundstate%spin%spinorb) Then
+               isspinorb = .True.
+            End If
+         End If
+      End Function
+      Function isspinspiral ()
+         Logical :: isspinspiral
+         isspinspiral = .False.
+         If (associated(input%groundstate%spin)) Then
+            If (input%groundstate%spin%spinsprl) Then
+               isspinspiral = .True.
+            End If
+         End If
+      End Function
+!
+      Function getfixspinnumber ()
+         Implicit None
+         Integer :: getfixspinnumber
+         getfixspinnumber = 0
+         If (associated(input%groundstate%spin)) Then
+            getfixspinnumber = input%groundstate%spin%fixspinnumber
+         End If
+      End Function
+!
+      Function istetraocc ()
+         Implicit None
+         Logical :: istetraocc
+         istetraocc = .False.
+         If (associated(input%xs)) Then
+            If (associated(input%xs%tetra)) Then
+               istetraocc = input%xs%tetra%tetraocc
+            End If
+         End If
+      End Function
+!
+End Module
+!

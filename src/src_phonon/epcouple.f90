@@ -1,209 +1,222 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine epcouple
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine epcouple
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-integer::is, ia, ias, ip
-integer::js, ja, jas
-integer::i, j, n, iv(3), isym
-integer::iq, ik, jk, ikq
-integer::ist, jst, ir, irc
-real(8)::vkql(3), x
-real(8)::t1, t2, t3, t4
-complex(8) zt1
+      Integer :: is, ia, ias, ip
+      Integer :: js, ja, jas
+      Integer :: i, j, n, iv (3), isym
+      Integer :: iq, ik, jk, ikq
+      Integer :: ist, jst, ir, irc
+      Real (8) :: vkql (3), x
+      Real (8) :: t1, t2, t3, t4
+      Complex (8) zt1
 ! allocatable arrays
-real(8), allocatable :: wq(:, :)
-real(8), allocatable :: gq(:, :)
-complex(8), allocatable :: dynq(:, :, :)
-complex(8), allocatable :: ev(:, :)
-complex(8), allocatable :: dveffmt(:, :, :, :)
-complex(8), allocatable :: dveffir(:, :)
-complex(8), allocatable :: zfmt(:, :, :)
-complex(8), allocatable :: gzfmt(:, :, :, :)
-complex(8), allocatable :: zflm(:)
-complex(8), allocatable :: zfir(:)
-complex(8), allocatable :: epmat(:, :, :)
-complex(8), allocatable :: gmq(:, :, :)
-complex(8), allocatable :: b(:, :)
+      Real (8), Allocatable :: wq (:, :)
+      Real (8), Allocatable :: gq (:, :)
+      Complex (8), Allocatable :: dynq (:, :, :)
+      Complex (8), Allocatable :: ev (:, :)
+      Complex (8), Allocatable :: dveffmt (:, :, :, :)
+      Complex (8), Allocatable :: dveffir (:, :)
+      Complex (8), Allocatable :: zfmt (:, :, :)
+      Complex (8), Allocatable :: gzfmt (:, :, :, :)
+      Complex (8), Allocatable :: zflm (:)
+      Complex (8), Allocatable :: zfir (:)
+      Complex (8), Allocatable :: epmat (:, :, :)
+      Complex (8), Allocatable :: gmq (:, :, :)
+      Complex (8), Allocatable :: b (:, :)
 ! external functions
-real(8)::sdelta, gaunt
-external sdelta, gaunt
+      Real (8) :: sdelta, gaunt
+      External sdelta, gaunt
 ! initialise universal variables
-call init0
-call init1
-call init2
+      Call init0
+      Call init1
+      Call init2
 ! check k-point grid is commensurate with q-point grid
-iv(:)=mod(input%groundstate%ngridk(:), ngridq(:))
-if ((iv(1).ne.0).or.(iv(2).ne.0).or.(iv(3).ne.0)) then
-  write(*, *)
-  write(*, '("Error(epcouple): k-point grid incommensurate with q-point grid")')
-  write(*, '(" ngridk : ", 3I6)') input%groundstate%ngridk
-  write(*, '(" ngridq : ", 3I6)') ngridq
-  write(*, *)
-  stop
-end if
-n=3*natmtot
+      iv (:) = Mod (input%groundstate%ngridk(:), ngridq(:))
+      If ((iv(1) .Ne. 0) .Or. (iv(2) .Ne. 0) .Or. (iv(3) .Ne. 0)) Then
+         Write (*,*)
+         Write (*, '("Error(epcouple): k-point grid incommensurate with&
+        & q-point grid")')
+         Write (*, '(" ngridk : ", 3I6)') input%groundstate%ngridk
+         Write (*, '(" ngridq : ", 3I6)') ngridq
+         Write (*,*)
+         Stop
+      End If
+      n = 3 * natmtot
 ! allocate local arrays
-allocate(wq(n, nqpt))
-allocate(gq(n, nqpt))
-allocate(dynq(n, n, nqpt))
-allocate(ev(n, n))
-allocate(dveffmt(lmmaxapw, nrcmtmax, natmtot, n))
-allocate(dveffir(ngrtot, n))
-allocate(zfmt(lmmaxvr, nrcmtmax, natmtot))
-allocate(gzfmt(lmmaxvr, nrcmtmax, 3, natmtot))
-allocate(zflm(lmmaxapw))
-allocate(zfir(ngrtot))
-allocate(gmq(n, n, nqpt))
-allocate(b(n, n))
+      Allocate (wq(n, nqpt))
+      Allocate (gq(n, nqpt))
+      Allocate (dynq(n, n, nqpt))
+      Allocate (ev(n, n))
+      Allocate (dveffmt(lmmaxapw, nrcmtmax, natmtot, n))
+      Allocate (dveffir(ngrtot, n))
+      Allocate (zfmt(lmmaxvr, nrcmtmax, natmtot))
+      Allocate (gzfmt(lmmaxvr, nrcmtmax, 3, natmtot))
+      Allocate (zflm(lmmaxapw))
+      Allocate (zfir(ngrtot))
+      Allocate (gmq(n, n, nqpt))
+      Allocate (b(n, n))
 ! read in the density and potentials from file
-call readstate
+      Call readstate
 ! read Fermi energy from file
-call readfermi
+      Call readfermi
 ! find the new linearisation energies
-call linengy
+      Call linengy
 ! generate the APW radial functions
-call genapwfr
+      Call genapwfr
 ! generate the local-orbital radial functions
-call genlofr
+      Call genlofr
 ! get the eigenvalues from file
-do ik=1, nkpt
-  call getevalsv(vkl(:, ik), evalsv(:, ik))
-end do
+      Do ik = 1, nkpt
+         Call getevalsv (vkl(:, ik), evalsv(:, ik))
+      End Do
 ! compute the occupancies and density of states at the Fermi energy
-call occupy
+      Call occupy
 ! read in the dynamical matrices
-call readdyn(dynq)
+      Call readdyn (dynq)
 ! apply the acoustic sum rule
-call sumrule(dynq)
+      Call sumrule (dynq)
 ! compute the gradients of the effective potential for the rigid-ion term
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
 ! convert potential to complex spherical harmonic expansion
-    irc=0
-    do ir=1, nrmt(is), input%groundstate%lradstep
-      irc=irc+1
-      call rtozflm(input%groundstate%lmaxvr, veffmt(:, ir, ias), zfmt(:, irc, ias))
-    end do
-    call gradzfmt(input%groundstate%lmaxvr, nrcmt(is), rcmt(:, is), lmmaxvr, nrcmtmax, zfmt(:, :, ias), &
-     gzfmt(:, :, :, ias))
-  end do
-end do
+            irc = 0
+            Do ir = 1, nrmt (is), input%groundstate%lradstep
+               irc = irc + 1
+               Call rtozflm (input%groundstate%lmaxvr, veffmt(:, ir, &
+              & ias), zfmt(:, irc, ias))
+            End Do
+            Call gradzfmt (input%groundstate%lmaxvr, nrcmt(is), rcmt(:, &
+           & is), lmmaxvr, nrcmtmax, zfmt(:, :, ias), gzfmt(:, :, :, &
+           & ias))
+         End Do
+      End Do
 ! loop over phonon q-points
-do iq=1, nqpt
-  write(*, '("Info(epcouple): ", I6, " of ", I6, " q-points")') iq, nqpt
+      Do iq = 1, nqpt
+         Write (*, '("Info(epcouple): ", I6, " of ", I6, " q-points")') &
+        & iq, nqpt
 ! diagonalise the dynamical matrix
-  call dyndiag(dynq(:, :, iq), wq(:, iq), ev)
+         Call dyndiag (dynq(:, :, iq), wq(:, iq), ev)
 ! loop over phonon branches
-  do j=1, n
+         Do j = 1, n
 ! find change effective potential for mode j
-    dveffmt(:, :, :, j)=0.d0
-    dveffir(:, j)=0.d0
-    i=0
-    do is=1, nspecies
+            dveffmt (:, :, :, j) = 0.d0
+            dveffir (:, j) = 0.d0
+            i = 0
+            Do is = 1, nspecies
 ! prefactor
-      t1=2.d0*spmass(is)*wq(j, iq)
-      if (t1.gt.1.d-8) then
-	t1=1.d0/sqrt(t1)
-      else
-	t1=0.d0
-      end if
-      do ia=1, natoms(is)
-	ias=idxas(ia, is)
-	do ip=1, 3
-	  i=i+1
+               t1 = 2.d0 * spmass (is) * wq (j, iq)
+               If (t1 .Gt. 1.d-8) Then
+                  t1 = 1.d0 / Sqrt (t1)
+               Else
+                  t1 = 0.d0
+               End If
+               Do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
+                  Do ip = 1, 3
+                     i = i + 1
 ! read in the Cartesian change in effective potential
-	  call readdveff(iq, is, ia, ip, zfmt, zfir)
+                     Call readdveff (iq, is, ia, ip, zfmt, zfir)
 ! add the rigid-ion term
-	  do irc=1, nrcmt(is)
-	    zfmt(:, irc, ias)=zfmt(:, irc, ias)-gzfmt(:, irc, ip, ias)
-	  end do
+                     Do irc = 1, nrcmt (is)
+                        zfmt (:, irc, ias) = zfmt (:, irc, ias) - gzfmt &
+                       & (:, irc, ip, ias)
+                     End Do
 ! multiply with eigenvector component and add to total
-	  zt1=t1*ev(i, j)
-	  do js=1, nspecies
-	    do ja=1, natoms(js)
-	      jas=idxas(ja, js)
-	      do irc=1, nrcmt(js)
-		dveffmt(1:lmmaxvr, irc, jas, j) = dveffmt(1:lmmaxvr, irc, jas, j) &
-		 +zt1 * zfmt(1:lmmaxvr, irc, jas)
-	      end do
-	    end do
-	  end do
-	  dveffir(:, j)=dveffir(:, j)+zt1*zfir(:)
-	end do
-      end do
-    end do
+                     zt1 = t1 * ev (i, j)
+                     Do js = 1, nspecies
+                        Do ja = 1, natoms (js)
+                           jas = idxas (ja, js)
+                           Do irc = 1, nrcmt (js)
+                              dveffmt (1:lmmaxvr, irc, jas, j) = &
+                             & dveffmt (1:lmmaxvr, irc, jas, j) + zt1 * &
+                             & zfmt (1:lmmaxvr, irc, jas)
+                           End Do
+                        End Do
+                     End Do
+                     dveffir (:, j) = dveffir (:, j) + zt1 * zfir (:)
+                  End Do
+               End Do
+            End Do
 ! multiply the interstitial potential with the characteristic function
-    dveffir(:, j)=dveffir(:, j)*cfunir(:)
+            dveffir (:, j) = dveffir (:, j) * cfunir (:)
 ! convert muffin-tin potential to spherical coordinates on the lmaxapw covering
-    zflm(:)=0.d0
-    do is=1, nspecies
-      do ia=1, natoms(is)
-	ias=idxas(ia, is)
-	do irc=1, nrcmt(is)
-	  zflm(1:lmmaxvr)=dveffmt(1:lmmaxvr, irc, ias, j)
-	  call zgemv('N', lmmaxapw, lmmaxapw, zone, zbshtapw, lmmaxapw, zflm, 1, &
-	   zzero, dveffmt(:, irc, ias, j), 1)
-	end do
-      end do
-    end do
-  end do
+            zflm (:) = 0.d0
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
+                  Do irc = 1, nrcmt (is)
+                     zflm (1:lmmaxvr) = dveffmt (1:lmmaxvr, irc, ias, &
+                    & j)
+                     Call zgemv ('N', lmmaxapw, lmmaxapw, zone, &
+                    & zbshtapw, lmmaxapw, zflm, 1, zzero, dveffmt(:, &
+                    & irc, ias, j), 1)
+                  End Do
+               End Do
+            End Do
+         End Do
 ! zero the phonon linewidths array
-  gq(:, iq)=0.d0
+         gq (:, iq) = 0.d0
 ! begin parallel loop over non-reduced k-points
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(epmat,jk,vkql,isym) &
 !$OMP PRIVATE(ikq,ist,jst,i) &
 !$OMP PRIVATE(x,t1,t2,t3,t4)
 !$OMP DO
-  do ik=1, nkptnr
-    allocate(epmat(nstsv, nstsv, n))
+         Do ik = 1, nkptnr
+            Allocate (epmat(nstsv, nstsv, n))
 ! equivalent reduced k-point
-    jk=ikmap(ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
+            jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
 ! compute the electron-phonon coupling matrix elements
-    call genepmat(iq, vklnr(:, ik), dveffmt, dveffir, epmat)
+            Call genepmat (iq, vklnr(:, ik), dveffmt, dveffir, epmat)
 ! k+q-vector in lattice coordinates
-    vkql(:)=vklnr(:, ik)+vql(:, iq)
+            vkql (:) = vklnr (:, ik) + vql (:, iq)
 ! index to k+q-vector
-    call findkpt(vkql, isym, ikq)
-    t1=twopi*wkptnr(ik)*(occmax/2.d0)
+            Call findkpt (vkql, isym, ikq)
+            t1 = twopi * wkptnr (ik) * (occmax/2.d0)
 ! loop over second-variational states
-    do ist=1, nstsv
-      x=(evalsv(ist, ikq)-efermi)/input%groundstate%swidth
-      t2=sdelta(input%groundstate%stypenumber, x)/input%groundstate%swidth
+            Do ist = 1, nstsv
+               x = (evalsv(ist, ikq)-efermi) / input%groundstate%swidth
+               t2 = sdelta (input%groundstate%stypenumber, x) / &
+              & input%groundstate%swidth
 ! loop over phonon branches
-      do i=1, n
-	do jst=1, nstsv
-	  x=(evalsv(jst, jk)-efermi)/input%groundstate%swidth
-	  t3=sdelta(input%groundstate%stypenumber, x)/input%groundstate%swidth
-	  t4=dble(epmat(ist, jst, i))**2+aimag(epmat(ist, jst, i))**2
+               Do i = 1, n
+                  Do jst = 1, nstsv
+                     x = (evalsv(jst, jk)-efermi) / &
+                    & input%groundstate%swidth
+                     t3 = sdelta (input%groundstate%stypenumber, x) / &
+                    & input%groundstate%swidth
+                     t4 = dble (epmat(ist, jst, i)) ** 2 + aimag &
+                    & (epmat(ist, jst, i)) ** 2
 !$OMP CRITICAL
-	  gq(i, iq)=gq(i, iq)+wq(i, iq)*t1*t2*t3*t4
+                     gq (i, iq) = gq (i, iq) + wq (i, iq) * t1 * t2 * &
+                    & t3 * t4
 !$OMP END CRITICAL
-	end do
-      end do
-    end do
-    deallocate(epmat)
+                  End Do
+               End Do
+            End Do
+            Deallocate (epmat)
 ! end loop over k-points
-  end do
+         End Do
 !$OMP END DO
 !$OMP END PARALLEL
 ! end loop over phonon q-points
-end do
+      End Do
 ! write the phonon linewidths to file
-call writegamma(gq)
+      Call writegamma (gq)
 ! write electron-phonon coupling constants to file
-call writelambda(wq, gq)
-deallocate(wq, gq, dynq, ev, dveffmt, dveffir)
-deallocate(zfmt, gzfmt, zflm, zfir, gmq, b)
-return
-end subroutine
+      Call writelambda (wq, gq)
+      Deallocate (wq, gq, dynq, ev, dveffmt, dveffir)
+      Deallocate (zfmt, gzfmt, zflm, zfir, gmq, b)
+      Return
+End Subroutine

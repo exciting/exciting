@@ -1,28 +1,30 @@
-
-
-
-
-subroutine minenergy(sigma)
-use modmain
-implicit none
-complex(8), intent(out)::sigma
-
-real(8)::lorbearray(maxlorbord*maxlorb*maxspecies)
-integer::en, i, j, k, m
-integer, external::idamax
-real(8), parameter::one=1
- m=1
-  lorbearray=0
- en =maxlorbord*maxlorb*maxspecies
- do i=1, maxlorbord
- do j=1, maxlorb
- do k=1, maxspecies
- if (abs (lorbe0(i, j, k)).lt.20)  lorbearray(m)=lorbe0(i, j, k)
- m=m+1
- enddo
- enddo
- enddo
-call dscal(en, -one, lorbearray, 1)
-sigma=dcmplx( min( -abs(lorbearray(idamax(en, lorbearray, 1)))	, -1.d0))
+!
+!
+!
+!
+Subroutine minenergy (sigma)
+      Use modmain
+      Implicit None
+      Complex (8), Intent (Out) :: sigma
+!
+      Real (8) :: lorbearray (maxlorbord*maxlorb*maxspecies)
+      Integer :: en, i, j, k, m
+      Integer, External :: idamax
+      Real (8), Parameter :: one = 1
+      m = 1
+      lorbearray = 0
+      en = maxlorbord * maxlorb * maxspecies
+      Do i = 1, maxlorbord
+         Do j = 1, maxlorb
+            Do k = 1, maxspecies
+               If (Abs(lorbe0(i, j, k)) .Lt. 20) lorbearray (m) = &
+              & lorbe0 (i, j, k)
+               m = m + 1
+            End Do
+         End Do
+      End Do
+      Call dscal (en,-one, lorbearray, 1)
+      sigma = dcmplx (Min(-Abs(lorbearray(idamax(en, lorbearray, &
+     & 1))),-1.d0))
 !write(*,*)sigma
-end subroutine
+End Subroutine

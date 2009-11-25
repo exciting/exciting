@@ -1,19 +1,19 @@
-
-
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: dumpparams_xs
 ! !INTERFACE:
-
-
-subroutine dumpparams_xs(string, comment)
+!
+!
+Subroutine dumpparams_xs (string, comment)
 ! !USES:
-use modinput
-  use modmain
-  use modxs
+      Use modinput
+      Use modmain
+      Use modxs
 ! !DESCRIPTION:
 !   Writes out all input parameters which can be specified in the input file
 !   {\tt exciting.in}.
@@ -26,153 +26,156 @@ use modinput
 !   Created July 2008 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! arguments
-  character(*), intent(in) :: string, comment
+      Character (*), Intent (In) :: string, comment
   ! local variables
-  integer :: i
-  call xssetversion
-  open(unit=77, file=trim(string), action='write', position='append')
-  write(77, *)
-  write(77, '("! EXCITING version ", I1.1, ".", I1.1, ".", I3.3)') version
-  write(77, '("! xs (eXited States) version ", I1.1, ".", I3.3)') versionxs
-  write(77, '(a)') trim(comment)
-  write(77, *)
-  write(77, '("vgqlmt")')
-  write(77, *)size(input%xs%qpointset%qpoint,2)
-  do i=1,size(input%xs%qpointset%qpoint,2)
-    write(77, *) input%xs%qpointset%qpoint(:, i)
-  end do
-  write(77, *)
-  write(77, '("mdfqtype")')
-  write(77, *) input%xs%tddft%mdfqtype
-  write(77, *)
-  write(77, '("gqmax")')
-  write(77, *) input%xs%gqmax
-  write(77, *)
-  write(77, '("lmaxapwwf")')
-  write(77, *) input%xs%lmaxapwwf
-  write(77, *)
-  write(77, '("fastpmat")')
-  write(77, *) input%xs%fastpmat
-  write(77, *)
-  write(77, '("fastemat")')
-  write(77, *) input%xs%fastemat
-  write(77, *)
-  write(77, '("emattype")')
-  write(77, *) input%xs%emattype
-  write(77, *)
-  write(77, '("lmaxemat")')
-  write(77, *) input%xs%lmaxemat
-  write(77, *)
-  write(77, '("torddf")')
-  write(77, *) input%xs%tddft%torddf
-  write(77, *)
-  write(77, '("tordfxc")')
-  write(77, *) input%xs%tddft%tordfxc
-  write(77, *)
-  write(77, '("acont")')
-  write(77, *) input%xs%tddft%acont
-  write(77, *)
-  write(77, '("nwacont")')
-  write(77, *) input%xs%tddft%nwacont
-  write(77, *)
-  write(77, '("broad")')
-  write(77, *) input%xs%broad
-  write(77, *)
-  write(77, '("aresdf")')
-  write(77, *) input%xs%tddft%aresdf
-  write(77, *)
-  write(77, '("epsdfde")')
-  write(77, *) input%xs%tddft%epsdfde
-  write(77, *)
-  write(77, '("emaxdf")')
-  write(77, *) input%xs%emaxdf
-  write(77, *)
-  write(77, '("dfoffdiag")')
-  write(77, *) input%xs%dfoffdiag
-  write(77, *)
-  write(77, '("tetradf")')
-  write(77, *) input%xs%tetra%tetradf
-  write(77, *)
-  write(77, '("kerndiag")')
-  write(77, *) input%xs%tddft%kerndiag
-  write(77, *)
-  write(77, '("fxctype")')
-  write(77, *) input%xs%tddft%fxctypenumber
-  write(77, *)
-  write(77, '("nexcitmax")')
-  write(77, *) input%xs%BSE%nexcitmax
-  write(77, *)
-  write(77, '("alphalrc")')
-  write(77, *) input%xs%tddft%alphalrc
-  write(77, *)
-  write(77, '("alphalrcdyn")')
-  write(77, *) input%xs%tddft%alphalrcdyn
-  write(77, *)
-  write(77, '("betalrcdyn")')
-  write(77, *) input%xs%tddft%betalrcdyn
-  write(77, *)
-  write(77, '("dftrans")')
-  write(77, *) ndftrans
-  do i=1, ndftrans
-     write(77, *) dftrans(:, i)
-  end do
-  write(77, *)
-  write(77, '("gather")')
-  write(77, *) input%xs%gather
-  write(77, *)
-  write(77, '("symmorph")')
-  write(77, *) input%xs%symmorph
-  write(77, *)
-  write(77, '("tevout")')
-  write(77, *) input%xs%tevout
-  write(77, *)
-  write(77, '("appinfo")')
-  write(77, *) input%xs%tappinfo
-  write(77, *)
-  write(77, '("dbglev")')
-  write(77, *) input%xs%dbglev
-  write(77, *)
-  write(77, '("screentype")')
-  write(77, *) "'"//trim(input%xs%screening%screentype)//"'"
-  write(77, *)
-  write(77, '("nosymscr")')
-  write(77, *) input%xs%screening%nosym
-  write(77, *)
-  write(77, '("reducekscr")')
-  write(77, *) input%xs%screening%reducek
-  write(77, *)
-  write(77, '("ngridkscr")')
-  write(77, *) input%xs%screening%ngridk
-  write(77, *)
-  write(77, '("vkloffscr")')
-  write(77, *) input%xs%screening%vkloff
-  write(77, *)
-  write(77, '("rgkmaxscr")')
-  write(77, *) input%xs%screening%rgkmax
-  write(77, *)
-  write(77, '("nemptyscr")')
-  write(77, *) input%xs%screening%nempty
-  write(77, *)
-  write(77, '("scrherm")')
-  write(77, *) input%xs%BSE%scrherm
-  write(77, *)
-  write(77, '("bsetype")')
-  write(77, *) "'"//trim(input%xs%BSE%bsetype)//"'"
-  write(77, *)
-
-  write(77, *)
-
-  write(77, *)
-
-
-  write(77, *)
-  write(77, '("nstlce")')
-  write(77, *) nbfce, nafce
-  write(77, *)
-  write(77, '("nstlbse")')
-  write(77, *) nbfbse, nafbse
-  close(77)
-end subroutine dumpparams_xs
+      Integer :: i
+      Call xssetversion
+      Open (Unit=77, File=trim(string), Action='write', Position='appen&
+     &d')
+      Write (77,*)
+      Write (77, '("! EXCITING version ", I1.1, ".", I1.1, ".", I3.3)') &
+     & version
+      Write (77, '("! xs (eXited States) version ", I1.1, ".", I3.3)') &
+     & versionxs
+      Write (77, '(a)') trim (comment)
+      Write (77,*)
+      Write (77, '("vgqlmt")')
+      Write (77,*) size (input%xs%qpointset%qpoint, 2)
+      Do i = 1, size (input%xs%qpointset%qpoint, 2)
+         Write (77,*) input%xs%qpointset%qpoint(:, i)
+      End Do
+      Write (77,*)
+      Write (77, '("mdfqtype")')
+      Write (77,*) input%xs%tddft%mdfqtype
+      Write (77,*)
+      Write (77, '("gqmax")')
+      Write (77,*) input%xs%gqmax
+      Write (77,*)
+      Write (77, '("lmaxapwwf")')
+      Write (77,*) input%xs%lmaxapwwf
+      Write (77,*)
+      Write (77, '("fastpmat")')
+      Write (77,*) input%xs%fastpmat
+      Write (77,*)
+      Write (77, '("fastemat")')
+      Write (77,*) input%xs%fastemat
+      Write (77,*)
+      Write (77, '("emattype")')
+      Write (77,*) input%xs%emattype
+      Write (77,*)
+      Write (77, '("lmaxemat")')
+      Write (77,*) input%xs%lmaxemat
+      Write (77,*)
+      Write (77, '("torddf")')
+      Write (77,*) input%xs%tddft%torddf
+      Write (77,*)
+      Write (77, '("tordfxc")')
+      Write (77,*) input%xs%tddft%tordfxc
+      Write (77,*)
+      Write (77, '("acont")')
+      Write (77,*) input%xs%tddft%acont
+      Write (77,*)
+      Write (77, '("nwacont")')
+      Write (77,*) input%xs%tddft%nwacont
+      Write (77,*)
+      Write (77, '("broad")')
+      Write (77,*) input%xs%broad
+      Write (77,*)
+      Write (77, '("aresdf")')
+      Write (77,*) input%xs%tddft%aresdf
+      Write (77,*)
+      Write (77, '("epsdfde")')
+      Write (77,*) input%xs%tddft%epsdfde
+      Write (77,*)
+      Write (77, '("emaxdf")')
+      Write (77,*) input%xs%emaxdf
+      Write (77,*)
+      Write (77, '("dfoffdiag")')
+      Write (77,*) input%xs%dfoffdiag
+      Write (77,*)
+      Write (77, '("tetradf")')
+      Write (77,*) input%xs%tetra%tetradf
+      Write (77,*)
+      Write (77, '("kerndiag")')
+      Write (77,*) input%xs%tddft%kerndiag
+      Write (77,*)
+      Write (77, '("fxctype")')
+      Write (77,*) input%xs%tddft%fxctypenumber
+      Write (77,*)
+      Write (77, '("nexcitmax")')
+      Write (77,*) input%xs%BSE%nexcitmax
+      Write (77,*)
+      Write (77, '("alphalrc")')
+      Write (77,*) input%xs%tddft%alphalrc
+      Write (77,*)
+      Write (77, '("alphalrcdyn")')
+      Write (77,*) input%xs%tddft%alphalrcdyn
+      Write (77,*)
+      Write (77, '("betalrcdyn")')
+      Write (77,*) input%xs%tddft%betalrcdyn
+      Write (77,*)
+      Write (77, '("dftrans")')
+      Write (77,*) ndftrans
+      Do i = 1, ndftrans
+         Write (77,*) dftrans (:, i)
+      End Do
+      Write (77,*)
+      Write (77, '("gather")')
+      Write (77,*) input%xs%gather
+      Write (77,*)
+      Write (77, '("symmorph")')
+      Write (77,*) input%xs%symmorph
+      Write (77,*)
+      Write (77, '("tevout")')
+      Write (77,*) input%xs%tevout
+      Write (77,*)
+      Write (77, '("appinfo")')
+      Write (77,*) input%xs%tappinfo
+      Write (77,*)
+      Write (77, '("dbglev")')
+      Write (77,*) input%xs%dbglev
+      Write (77,*)
+      Write (77, '("screentype")')
+      Write (77,*) "'" // trim (input%xs%screening%screentype) // "'"
+      Write (77,*)
+      Write (77, '("nosymscr")')
+      Write (77,*) input%xs%screening%nosym
+      Write (77,*)
+      Write (77, '("reducekscr")')
+      Write (77,*) input%xs%screening%reducek
+      Write (77,*)
+      Write (77, '("ngridkscr")')
+      Write (77,*) input%xs%screening%ngridk
+      Write (77,*)
+      Write (77, '("vkloffscr")')
+      Write (77,*) input%xs%screening%vkloff
+      Write (77,*)
+      Write (77, '("rgkmaxscr")')
+      Write (77,*) input%xs%screening%rgkmax
+      Write (77,*)
+      Write (77, '("nemptyscr")')
+      Write (77,*) input%xs%screening%nempty
+      Write (77,*)
+      Write (77, '("scrherm")')
+      Write (77,*) input%xs%BSE%scrherm
+      Write (77,*)
+      Write (77, '("bsetype")')
+      Write (77,*) "'" // trim (input%xs%BSE%bsetype) // "'"
+      Write (77,*)
+!
+      Write (77,*)
+!
+      Write (77,*)
+!
+!
+      Write (77,*)
+      Write (77, '("nstlce")')
+      Write (77,*) nbfce, nafce
+      Write (77,*)
+      Write (77, '("nstlbse")')
+      Write (77,*) nbfbse, nafbse
+      Close (77)
+End Subroutine dumpparams_xs
 !EOC

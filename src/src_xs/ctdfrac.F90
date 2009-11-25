@@ -1,20 +1,20 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_ctdfrac
-  implicit none
-contains
-
+!
+Module m_ctdfrac
+      Implicit None
+Contains
+!
 !BOP
 ! !ROUTINE: ctdfrac
 ! !INTERFACE:
-
-
-subroutine ctdfrac(n, a, b, f)
+!
+!
+      Subroutine ctdfrac (n, a, b, f)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n     : depth of continued fraction (in,integer)
 !   a     : a-coefficients (in,complex(n))
@@ -30,18 +30,18 @@ subroutine ctdfrac(n, a, b, f)
 !   Created March 2006 (Sagmeister)
 !EOP
 !BOC
-    implicit none
+         Implicit None
     ! arguments
-    integer, intent(in) :: n
-    complex(8), intent(in) :: a(n), b(0:n)
-    complex(8), intent(out) :: f  
+         Integer, Intent (In) :: n
+         Complex (8), Intent (In) :: a (n), b (0:n)
+         Complex (8), Intent (Out) :: f
     ! local variables
-    integer :: j
-    f=b(n)
-    do j=n, 1, -1
-      f=b(j-1)+a(j)/f
-    end do
-  end subroutine
-
-end module
+         Integer :: j
+         f = b (n)
+         Do j = n, 1, - 1
+            f = b (j-1) + a (j) / f
+         End Do
+      End Subroutine
+!
+End Module
 !EOC

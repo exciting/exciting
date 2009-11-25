@@ -1,16 +1,16 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_RDMFT
+Module mod_RDMFT
 !-------------------------------------------------------------!
 !     reduced density matrix functional (RDMFT) variables     !
 !-------------------------------------------------------------!
 ! non-local matrix elements for varying occupation numbers
-real(8), allocatable :: vnlrdm(:, :, :, :)
+      Real (8), Allocatable :: vnlrdm (:, :, :, :)
 ! Coulomb potential matrix elements
-complex(8), allocatable :: vclmat(:, :, :)
+      Complex (8), Allocatable :: vclmat (:, :, :)
 ! derivative of kinetic energy w.r.t. natural orbital coefficients
-complex(8), allocatable :: dkdc(:, :, :)
+      Complex (8), Allocatable :: dkdc (:, :, :)
 ! step size for occupation numbers
 !replaced by inputstructurereal(8)::taurdmn
 ! step size for natural orbital coefficients
@@ -28,6 +28,6 @@ complex(8), allocatable :: dkdc(:, :, :)
 ! temperature
 !replaced by inputstructurereal(8)::rdmtemp
 ! entropy
-real(8)::rdmentrpy
-end module
-
+      Real (8) :: rdmentrpy
+End Module
+!

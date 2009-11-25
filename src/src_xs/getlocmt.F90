@@ -1,136 +1,146 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_getlocmt
-  implicit none
-contains
-
+!
+Module m_getlocmt
+      Implicit None
+Contains
+!
   ! local orbitals functions
-
-
-subroutine getlocmt(iq, ik, isti, istf, lolm)
-    use modmain
-use modinput
-    use modxs
-    use m_getunit
-    implicit none
+!
+!
+      Subroutine getlocmt (iq, ik, isti, istf, lolm)
+         Use modmain
+         Use modinput
+         Use modxs
+         Use m_getunit
+         Implicit None
     ! arguments
-    integer, intent(in) :: iq, ik, isti, istf
-    complex(8), intent(out) :: lolm(:, :, :, :)
+         Integer, Intent (In) :: iq, ik, isti, istf
+         Complex (8), Intent (Out) :: lolm (:, :, :, :)
     ! local variables
-    character(*), parameter :: thisnam='getlocmt'
-    character(256) :: filextt
-    integer :: un, recl, err, nstfv_, nlomax_, lolmax_
-    real(8) :: vql_(3), vkl_(3), vklt(3), vqlt(3)
-    complex(8), allocatable :: lolmt(:, :, :, :)
-    real(8), external :: r3dist
-    err=0
+         Character (*), Parameter :: thisnam = 'getlocmt'
+         Character (256) :: filextt
+         Integer :: un, recl, err, nstfv_, nlomax_, lolmax_
+         Real (8) :: vql_ (3), vkl_ (3), vklt (3), vqlt (3)
+         Complex (8), Allocatable :: lolmt (:, :, :, :)
+         Real (8), External :: r3dist
+         err = 0
     ! check band range
-    if ((isti.lt.1).or.(istf.gt.nstfv).or.(istf.le.isti)) then
-       write(unitout, *)
-       write(unitout, '("Error(getlocmt): inconsistent limits for bands:")')
-       write(unitout, '(" band limits  : ", 2i6)') isti, istf
-       write(unitout, '(" maximum value: ", i6)') nstfv
-       write(unitout, *)
-       call flushifc(unitout)
-       err=err+1
-    end if
-    if (size(lolm, 1).ne.(istf-isti+1)) then
-       write(unitout, *)
-       write(unitout, '("Error(getlocmt): output array does not match for &
-	    &bands:")')
-       write(unitout, '(" band limits		   : ", 2i6)') isti, istf
-       write(unitout, '(" requested number of bands: ", i6)') istf-isti+1
-       write(unitout, '(" array size		   : ", i6)') size(lolm, 1)
-       write(unitout, *)
-       call flushifc(unitout)
-       err=err+1
-    end if
-    if (err.gt.0) call terminate
+         If ((isti .Lt. 1) .Or. (istf .Gt. nstfv) .Or. (istf .Le. &
+        & isti)) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(getlocmt): inconsistent limits for&
+           & bands:")')
+            Write (unitout, '(" band limits  : ", 2i6)') isti, istf
+            Write (unitout, '(" maximum value: ", i6)') nstfv
+            Write (unitout,*)
+            Call flushifc (unitout)
+            err = err + 1
+         End If
+         If (size(lolm, 1) .Ne. (istf-isti+1)) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(getlocmt): output array does not m&
+           &atch for bands:")')
+            Write (unitout, '(" band limits		   : ", 2i6)') isti, istf
+            Write (unitout, '(" requested number of bands: ", i6)') &
+           & istf - isti + 1
+            Write (unitout, '(" array size		   : ", i6)') size (lolm, &
+           & 1)
+            Write (unitout,*)
+            Call flushifc (unitout)
+            err = err + 1
+         End If
+         If (err .Gt. 0) Call terminate
     ! set file extension
-    filextt=filext
-    if (iq.eq.0) call genfilextread(task)
+         filextt = filext
+         If (iq .Eq. 0) Call genfilextread (task)
     !------------------------!
     !     get parameters     !
     !------------------------!
-    inquire(iolength=recl) vql_, vkl_, nstfv_, nlomax_, lolmax_
-    call getunit(un)
-    open(un, file = 'LOCMT'//trim(filext), action = 'read', form = 'unformatted', &
-	 status = 'old', access = 'direct', recl = recl)
-    read(un, rec=1) vql_, vkl_, nstfv_, nlomax_, lolmax
-    close(un)
-    err=0
+         Inquire (IoLength=Recl) vql_, vkl_, nstfv_, nlomax_, lolmax_
+         Call getunit (un)
+         Open (un, File='LOCMT'//trim(filext), Action='read', Form='unf&
+        &ormatted', Status='old', Access='direct', Recl=Recl)
+         Read (un, Rec=1) vql_, vkl_, nstfv_, nlomax_, lolmax
+         Close (un)
+         err = 0
     ! check number of bands
-    if (nstfv.gt.nstfv_) then
-       write(unitout, *)
-       write(unitout, '("Error(", a, "): invalid nstfv for k-point ", I8)') &
-	    thisnam, ik
-       write(unitout, '(" q-point    : ", I8)') iq
-       write(unitout, '(" current    : ", I8)') nstfv
-       write(unitout, '(" FILE	     : ", I8)') nstfv_
-       write(unitout, '(" filename   : ", a )') 'LOCMT'//trim(filext)
-       write(unitout, *)
-       call flushifc(unitout)
-       err=err+1
-    end if
+         If (nstfv .Gt. nstfv_) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(", a, "): invalid nstfv for k-poin&
+           &t ", I8)') thisnam, ik
+            Write (unitout, '(" q-point    : ", I8)') iq
+            Write (unitout, '(" current    : ", I8)') nstfv
+            Write (unitout, '(" FILE	     : ", I8)') nstfv_
+            Write (unitout, '(" filename   : ", a )') 'LOCMT' // trim &
+           & (filext)
+            Write (unitout,*)
+            Call flushifc (unitout)
+            err = err + 1
+         End If
     ! check number of local orbitals
-    if (nlomax.ne.nlomax_) then
-       write(unitout, *)
-       write(unitout, '("Error(", a, "): invalid nlomax for k-point ", I8)') &
-	    thisnam, ik
-       write(unitout, '(" q-point    : ", I8)') iq
-       write(unitout, '(" current    : ", I8)') nlomax
-       write(unitout, '(" FILE	     : ", I8)') nlomax_
-       write(unitout, '(" filename   : ", a )') 'LOCMT'//trim(filext)
-       write(unitout, *)
-       call flushifc(unitout)
-       err=err+1
-    end if
-    if (err.gt.0) call terminate
+         If (nlomax .Ne. nlomax_) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(", a, "): invalid nlomax for k-poi&
+           &nt ", I8)') thisnam, ik
+            Write (unitout, '(" q-point    : ", I8)') iq
+            Write (unitout, '(" current    : ", I8)') nlomax
+            Write (unitout, '(" FILE	     : ", I8)') nlomax_
+            Write (unitout, '(" filename   : ", a )') 'LOCMT' // trim &
+           & (filext)
+            Write (unitout,*)
+            Call flushifc (unitout)
+            err = err + 1
+         End If
+         If (err .Gt. 0) Call terminate
     !------------------!
     !     get data     !
     !------------------!
     ! assign to output array and apply cutoff
-    allocate(lolmt(nstfv_, nlomax, -lolmax:lolmax, natmtot))
+         Allocate (lolmt(nstfv_, nlomax,-lolmax:lolmax, natmtot))
     ! read data from file
-    inquire(iolength=recl) vql_, vkl_, nstfv_, nlomax_, lolmax_, lolmt
-    call getunit(un)
-    open(un, file = 'LOCMT'//trim(filext), action = 'read', form = 'unformatted', &
-	 status = 'old', access = 'direct', recl = recl)
-    read(un, rec=ik) vql_, vkl_, nstfv_, nlomax_, lolmax_, lolmt
-    close(un)
+         Inquire (IoLength=Recl) vql_, vkl_, nstfv_, nlomax_, lolmax_, &
+        & lolmt
+         Call getunit (un)
+         Open (un, File='LOCMT'//trim(filext), Action='read', Form='unf&
+        &ormatted', Status='old', Access='direct', Recl=Recl)
+         Read (un, Rec=ik) vql_, vkl_, nstfv_, nlomax_, lolmax_, lolmt
+         Close (un)
     ! check q-point and k-point
-    if (iq.eq.0) then
+         If (iq .Eq. 0) Then
        ! Gamma Q-point
-       vklt(:)=vkl0(:, ik)
-       vqlt(:)=0.d0
-    else
-       vklt(:)=vkl(:, ik)
-       vqlt(:)=vql(:, iq)
-    end if
-    if ((r3dist(vkl_, vklt).gt.input%structure%epslat).or.((r3dist(vql_, &
-    &vqlt).gt.input%structure%epslat).and.(.not.tscreen))) then
-       write(unitout, *)
-       write(unitout, '(a)') 'Error('//thisnam//'): differring parameters for &
-	    &LO MT coefficients (current/file): '
-       write(unitout, '(a, i6)') ' q-point index  :', iq
-       write(unitout, '(a, i6)') ' k-point index  :', ik
-       write(unitout, '(a, 3f12.6, a, 3f12.6)') ' vql		 :', vqlt, ', ', vql_
-       write(unitout, '(a, 3f12.6, a, 3f12.6)') ' vkl		 :', vklt, ', ', vkl_
-       write(unitout, '(a)')	' file		 : LOCMT'//trim(filext)
-       write(unitout, *)
-       call flushifc(unitout)
-       call terminate
-    end if
+            vklt (:) = vkl0 (:, ik)
+            vqlt (:) = 0.d0
+         Else
+            vklt (:) = vkl (:, ik)
+            vqlt (:) = vql (:, iq)
+         End If
+         If ((r3dist(vkl_, vklt) .Gt. input%structure%epslat) .Or. &
+        & ((r3dist(vql_, vqlt) .Gt. input%structure%epslat) .And. ( &
+        & .Not. tscreen))) Then
+            Write (unitout,*)
+            Write (unitout, '(a)') 'Error(' // thisnam // '): differrin&
+           &g parameters for LO MT coefficients (current/file): '
+            Write (unitout, '(a, i6)') ' q-point index  :', iq
+            Write (unitout, '(a, i6)') ' k-point index  :', ik
+            Write (unitout, '(a, 3f12.6, a, 3f12.6)') ' vql		 :', vqlt, &
+           & ', ', vql_
+            Write (unitout, '(a, 3f12.6, a, 3f12.6)') ' vkl		 :', vklt, &
+           & ', ', vkl_
+            Write (unitout, '(a)') ' file		 : LOCMT' // trim (filext)
+            Write (unitout,*)
+            Call flushifc (unitout)
+            Call terminate
+         End If
     ! retrieve data within cutoffs
-    lolm(:, :, :, :)=lolmt(isti:istf, :, :, :)
-    deallocate(lolmt)
+         lolm (:, :, :, :) = lolmt (isti:istf, :, :, :)
+         Deallocate (lolmt)
     ! restore file extension
-    filext=filextt
-  end subroutine getlocmt
-
-end module m_getlocmt
+         filext = filextt
+      End Subroutine getlocmt
+!
+End Module m_getlocmt

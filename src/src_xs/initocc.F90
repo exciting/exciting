@@ -1,39 +1,41 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine initocc(nbf, naf)
-  use modmain
-use modinput
-  use modxs
-  implicit none
+!
+!
+Subroutine initocc (nbf, naf)
+      Use modmain
+      Use modinput
+      Use modxs
+      Implicit None
   ! arguments
-  integer :: nbf, naf
+      Integer :: nbf, naf
   ! local variables
-  character(*), parameter :: thisnam='initocc'
-  integer :: nvalel
+      Character (*), Parameter :: thisnam = 'initocc'
+      Integer :: nvalel
   ! number of valence electrons
-  nvalel=nint(chgval/2.d0)
+      nvalel = Nint (chgval/2.d0)
   ! number of states below Fermi energy
-  if (nbf.eq.0) nbf=nvalel
-  if (nbf.gt.nvalel) then
-     write(unitout, '("Warning(", a, "): number of states below Fermi energy too &
-     &large - adjusting to number of valence states")') trim(thisnam)
-  end if
+      If (nbf .Eq. 0) nbf = nvalel
+      If (nbf .Gt. nvalel) Then
+         Write (unitout, '("Warning(", a, "): number of states below Fe&
+        &rmi energy too large - adjusting to number of valence states")&
+        &') trim (thisnam)
+      End If
   ! number of states above Fermi energy
-  if (naf.eq.0) then
+      If (naf .Eq. 0) Then
      ! if "naf" is not specified define it using "nempty"
-     naf=input%xs%nempty+1
-  else
+         naf = input%xs%nempty + 1
+      Else
      ! check if number is too large
-     if (naf.gt.(input%xs%nempty+1)) then
-	naf=input%xs%nempty+1
-	write(unitout, '("Warning(", a, "): number of states above Fermi energy &
-	&too large - adjusting using number of empty states")') trim(thisnam)
-     end if
-  end if
-end subroutine initocc
+         If (naf .Gt. (input%xs%nempty+1)) Then
+            naf = input%xs%nempty + 1
+            Write (unitout, '("Warning(", a, "): number of states above&
+           & Fermi energy too large - adjusting using number of empty s&
+           &tates")') trim (thisnam)
+         End If
+      End If
+End Subroutine initocc

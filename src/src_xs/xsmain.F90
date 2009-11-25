@@ -1,9 +1,9 @@
-
-
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOI
 ! !TITLE: The XS/EXCITING Code (eXited States) Manual \\ Version 0.9
 ! !AUTHORS: S. Sagmeister and C. Ambrosch-Draxl
@@ -18,125 +18,125 @@
 !   Leoben, August 2008
 !
 !EOI
-
-module modxsmain
-use mod_misc
-implicit none
-integer :: nxstasks
-character(256) :: xstasks(maxtasks)
-end module
-
-
-subroutine xsmain(plan)
-  use modmain
-use modinput
-  use modmpi
-  use modtetra
-  use modxs
-  implicit none
-  type(plan_type)::plan
-  integer::i
+!
+Module modxsmain
+      Use mod_misc
+      Implicit None
+      Integer :: nxstasks
+      Character (256) :: xstasks (maxtasks)
+End Module
+!
+!
+Subroutine xsmain (plan)
+      Use modmain
+      Use modinput
+      Use modmpi
+      Use modtetra
+      Use modxs
+      Implicit None
+      Type (plan_type) :: plan
+      Integer :: i
   ! initialization
-
+!
   ! task selection
-  do i=1,size(plan%doonlyarray)
-  task=plan%doonlyarray(i)%doonly%tasknumber
-  	call xsinit
-  select case(task)
-  case(23)
+      Do i = 1, size (plan%doonlyarray)
+         task = plan%doonlyarray(i)%doonly%tasknumber
+         Call xsinit
+         Select Case (task)
+         Case (23)
      ! estimate bandgap from regular grid
-     call writebandgapgrid
-  case(700)
+            Call writebandgapgrid
+         Case (700)
      ! estimate disk-space, cpu-time and memory
-     call xsestimate
-  case(701)
+            Call xsestimate
+         Case (701)
      ! test timing
-     call xstiming
-  case(301)
+            Call xstiming
+         Case (301)
      ! generate eigenvectors, eigenvalues, occupancies and MT-coefficients
      ! for q-point set
-     call xsgeneigvec
-  case(310)
+            Call xsgeneigvec
+         Case (310)
      ! calculate weights for tetrahedron method
-     call tetcalccw
-  case(320)
+            Call tetcalccw
+         Case (320)
      ! parallel version of momentum matrix elements
-     call writepmatxs
-  case(321)
+            Call writepmatxs
+         Case (321)
      ! ASCII output of momentum matrix elements
-     call writepmatasc
-  case(322)
+            Call writepmatasc
+         Case (322)
      ! convert momentum matrix elements file to old format
-     call pmatxs2orig
-  case(330)
+            Call pmatxs2orig
+         Case (330)
      ! calculate matrix elements of exponential expression (band combs)
-     call writeemat
-  case(331)
+            Call writeemat
+         Case (331)
      ! ASCII output of matrix elements of exponential expression
-     call writeematasc
-  case(335)
+            Call writeematasc
+         Case (335)
      ! calculate matrix elements of the plane wave (simple version for checking)
-     call writepwmat
-  case(339)
+            Call writepwmat
+         Case (339)
      ! check relation between matr. el. of exp. and mom. matr. el.
-     call emattest
-  case(340)
+            Call emattest
+         Case (340)
      ! Kohn Sham response function
-     call df
-  case(341)
+            Call df
+         Case (341)
      ! ASCII output of Kohn Sham response function
-     call x0toasc
-  case(342)
+            Call x0toasc
+         Case (342)
      ! binary output of Kohn Sham response function
-     call x0tobin
-  case(350)
+            Call x0tobin
+         Case (350)
      ! inverse of dielectric function - solve Dyson equation for xc-kernel
-     call idf
-  case(396)
+            Call idf
+         Case (396)
      ! convolute dielectric function from tetrahedron method with Lorentzian
-     call epsconv
-  case(398)
+            Call epsconv
+         Case (398)
      ! check ALDA kernel
-     call fxc_alda_check
-  case(401)
+            Call fxc_alda_check
+         Case (401)
      ! generate eigenvectors, eigenvalues, occupancies and APW MT coefficients
      ! for screening and BSE(-kernel)
-     call scrgeneigvec
-  case(410)
+            Call scrgeneigvec
+         Case (410)
      ! calculate weights for tetrahedron method (screening)
-     call scrtetcalccw
-  case(420)
+            Call scrtetcalccw
+         Case (420)
      ! momentum matrix elements for screening
-     call scrwritepmat
-  case(430)
+            Call scrwritepmat
+         Case (430)
      ! RPA screening
-     call screen
-  case(440)
+            Call screen
+         Case (440)
      ! screened Coulomb interaction
-     call scrcoulint
-  case(441)
+            Call scrcoulint
+         Case (441)
      ! exchange Coulomb interaction
-     call exccoulint
-  case(445)
+            Call exccoulint
+         Case (445)
      ! Bethe-Salpeter equation
-     call BSE
-  case(450)
+            Call BSE
+         Case (450)
      ! BSE-kernel
-     call kernxc_bse
-  case(451)
+            Call kernxc_bse
+         Case (451)
      ! BSE-kernel, simple version, very slow
-     call kernxc_bse3
-  case(499)
+            Call kernxc_bse3
+         Case (499)
      ! call to test xs-routine
-     call testxs
-  case default
-     write(*, *)
-     write(*, *) 'Error(xsmain): task not defined:', task
-     write(*, *)
-     call terminate
-  end select
-   call xsfinit
-  enddo
+            Call testxs
+         Case Default
+            Write (*,*)
+            Write (*,*) 'Error(xsmain): task not defined:', task
+            Write (*,*)
+            Call terminate
+         End Select
+         Call xsfinit
+      End Do
   ! summarize information on run
-
-end subroutine xsmain
+!
+End Subroutine xsmain

@@ -1,39 +1,40 @@
-
-
+!
+!
 ! function to compose filename for parallel execution
 ! REMARK: never call with stringconstat allways call by reference to filetag
-
-
-character(256) function outfilenamestring(filetag, ik)
-use modmpi, only:procs, lastk, firstk, procofk, splittfile
-use modmain, only:scrpath, filext, task
-use modinput
-implicit none
+!
+!
+Character (256) Function outfilenamestring (filetag, ik)
+      Use modmpi, Only: procs, lastk, firstk, procofk, splittfile
+      Use modmain, Only: scrpath, filext, task
+      Use modinput
+      Implicit None
 !external lastk,firstk
-
+!
 !character(256):: outfilenamestring
-character(256), intent(in) :: filetag
-integer, intent(in)::ik
-character(256):: tmp, tmp2, krange, scrpathtmp
- krange=''
- tmp=''
- tmp2=''
- scrpathtmp=''
- outfilenamestring=''
+      Character (256), Intent (In) :: filetag
+      Integer, Intent (In) :: ik
+      Character (256) :: tmp, tmp2, krange, scrpathtmp
+      krange = ''
+      tmp = ''
+      tmp2 = ''
+      scrpathtmp = ''
+      outfilenamestring = ''
 #ifdef MPI
-
+!
 !<sag>
-if ((task.eq.0).or.(task.eq.1)) then
+      If ((task .Eq. 0) .Or. (task .Eq. 1)) Then
 !</sag>
- if ((procs.gt.1).and.splittfile) then
-     write(tmp, '(I5)')firstk(procofk(ik))
-     write(tmp2, '(I5)')lastk(procofk(ik))
-     krange=trim(adjustl(tmp))//'-'//trim(adjustl(tmp2))
-     scrpathtmp=scrpath
-  endif
+         If ((procs .Gt. 1) .And. splittfile) Then
+            Write (tmp, '(I5)') firstk (procofk(ik))
+            Write (tmp2, '(I5)') lastk (procofk(ik))
+            krange = trim (adjustl(tmp)) // '-' // trim (adjustl(tmp2))
+            scrpathtmp = scrpath
+         End If
 !<sag>
-end if
+      End If
 !</sag>
 #endif
-outfilenamestring=trim(scrpathtmp)//trim(filetag)//trim(krange)//trim(filext)
-end function outfilenamestring
+      outfilenamestring = trim (scrpathtmp) // trim (filetag) // trim &
+     & (krange) // trim (filext)
+End Function outfilenamestring

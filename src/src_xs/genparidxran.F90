@@ -1,62 +1,62 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine genparidxran(typ, n)
-  use modmain
-  use modmpi
-  use modxs
-  implicit none
+!
+!
+Subroutine genparidxran (typ, n)
+      Use modmain
+      Use modmpi
+      Use modxs
+      Implicit None
   ! arguments
-  character(1), intent(in) :: typ
-  integer, intent(in) :: n
+      Character (1), Intent (In) :: typ
+      Integer, Intent (In) :: n
   ! local variables
-  integer :: np
+      Integer :: np
   ! check if number of processors is greater than set
-  if (procs.gt.n) then
-     write(*, *)
-     write(*, '("Error(genparidxran): number of processors exceeds size of &
-	&set")')
-     write(*, '(" parallelization type : ", a)') typ
-     write(*, '(" size of set	       : ", i6)') n
-     write(*, '(" number of processors : ", i6)') procs
-     write(*, *)
-     call terminate
-  end if
+      If (procs .Gt. n) Then
+         Write (*,*)
+         Write (*, '("Error(genparidxran): number of processors exceeds&
+        & size of set")')
+         Write (*, '(" parallelization type : ", a)') typ
+         Write (*, '(" size of set	       : ", i6)') n
+         Write (*, '(" number of processors : ", i6)') procs
+         Write (*,*)
+         Call terminate
+      End If
   ! default values
-  wpari=1
-  wparf=nwdf
-  qpari=1
-  qparf=nqpt
-  kpari=1
-  kparf=nkpt
+      wpari = 1
+      wparf = nwdf
+      qpari = 1
+      qparf = nqpt
+      kpari = 1
+      kparf = nkpt
   ! number of (k,kp) pairs
-  np=nkpt*(nkpt+1)/2
-  ppari=1
-  pparf=np
-  select case (typ)
-     case('w')
-	wpari=firstofset(rank, n)
-	wparf=lastofset(rank, n)
-     case('q')
-	qpari=firstofset(rank, n)
-	qparf=lastofset(rank, n)	
-     case('k')
-	kpari=firstofset(rank, n)
-	kparf=lastofset(rank, n)
-     case('p')
-	ppari=firstofset(rank, n)
-	pparf=lastofset(rank, n)
-     case default
-	write(*, *)
-	write(*, '("Error(genparidxran): unknown parallelization type: ", a)') &
-	     typ
-	write(*, *)
-	call terminate
-  end select
-  partype=typ
-end subroutine genparidxran
+      np = nkpt * (nkpt+1) / 2
+      ppari = 1
+      pparf = np
+      Select Case (typ)
+      Case ('w')
+         wpari = firstofset (rank, n)
+         wparf = lastofset (rank, n)
+      Case ('q')
+         qpari = firstofset (rank, n)
+         qparf = lastofset (rank, n)
+      Case ('k')
+         kpari = firstofset (rank, n)
+         kparf = lastofset (rank, n)
+      Case ('p')
+         ppari = firstofset (rank, n)
+         pparf = lastofset (rank, n)
+      Case Default
+         Write (*,*)
+         Write (*, '("Error(genparidxran): unknown parallelization type&
+        &: ", a)') typ
+         Write (*,*)
+         Call terminate
+      End Select
+      partype = typ
+End Subroutine genparidxran
