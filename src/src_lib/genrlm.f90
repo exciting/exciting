@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genrlm
 ! !INTERFACE:
-
-
-subroutine genrlm(lmax, tp, rlm)
+!
+!
+Subroutine genrlm (lmax, tp, rlm)
 ! !INPUT/OUTPUT PARAMETERS:
 !   lmax : maximum angular momentum (in,integer)
 !   tp   : (theta, phi) coordinates (in,real(2))
@@ -34,41 +34,41 @@ subroutine genrlm(lmax, tp, rlm)
 !   Created March 2004 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: lmax
-real(8), intent(in) :: tp(2)
-real(8), intent(out) :: rlm(*)
+      Integer, Intent (In) :: lmax
+      Real (8), Intent (In) :: tp (2)
+      Real (8), Intent (Out) :: rlm (*)
 ! local variables
-integer::lmmax, l, m, lm
-real(8), parameter :: sqtwo=1.4142135623730950488d0
+      Integer :: lmmax, l, m, lm
+      Real (8), Parameter :: sqtwo = 1.4142135623730950488d0
 ! allocatable arrays
-complex(8), allocatable :: ylm(:)
-if ((lmax.lt.0).or.(lmax.gt.50)) then
-  write(*, *)
-  write(*, '("Error(genrlm): lmax out of range : ", I8)') lmax
-  write(*, *)
-  stop
-end if
-lmmax=(lmax+1)**2
-allocate(ylm(lmmax))
+      Complex (8), Allocatable :: ylm (:)
+      If ((lmax .Lt. 0) .Or. (lmax .Gt. 50)) Then
+         Write (*,*)
+         Write (*, '("Error(genrlm): lmax out of range : ", I8)') lmax
+         Write (*,*)
+         Stop
+      End If
+      lmmax = (lmax+1) ** 2
+      Allocate (ylm(lmmax))
 ! generate complex spherical harmonics
-call genylm(lmax, tp, ylm)
+      Call genylm (lmax, tp, ylm)
 ! convert to real spherical harmonics
-lm=0
-do l=0, lmax
-  do m=-l, -1
-    lm=lm+1
-    rlm(lm)=sqtwo*aimag(ylm(lm))
-  end do
-  lm=lm+1
-  rlm(lm)=dble(ylm(lm))
-  do m=1, l
-    lm=lm+1
-    rlm(lm)=sqtwo*dble(ylm(lm))
-  end do
-end do
-deallocate(ylm)
-return
-end subroutine
+      lm = 0
+      Do l = 0, lmax
+         Do m = - l, - 1
+            lm = lm + 1
+            rlm (lm) = sqtwo * aimag (ylm(lm))
+         End Do
+         lm = lm + 1
+         rlm (lm) = dble (ylm(lm))
+         Do m = 1, l
+            lm = lm + 1
+            rlm (lm) = sqtwo * dble (ylm(lm))
+         End Do
+      End Do
+      Deallocate (ylm)
+      Return
+End Subroutine
 !EOC

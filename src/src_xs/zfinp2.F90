@@ -1,16 +1,17 @@
-
+!
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
-
+!
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: zfinp2
 ! !INTERFACE:
-complex(8) function zfinp2(ngp1,ngp2,igpig,zfmt1,zfmt2,zfir1,zfir2)
+Complex (8) Function zfinp2 (ngp1, ngp2, igpig, zfmt1, zfmt2, zfir1, &
+& zfir2)
 ! !USES:
-use modinput
-  use modmain
+      Use modinput
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   zfmt1 : first complex function in spherical harmonics for all muffin-tins
 !           (in,complex(lmmaxvr,nrcmtmax,natmtot))
@@ -33,35 +34,36 @@ use modinput
 !   Created January 2007 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! arguments
-  integer, intent(in) :: ngp1,ngp2,igpig(ngkmax)
-  complex(8), intent(in) :: zfmt1(lmmaxvr,nrcmtmax,natmtot)
-  complex(8), intent(in) :: zfmt2(lmmaxvr,nrcmtmax,natmtot)
-  complex(8), intent(in) :: zfir1(ngp1)
-  complex(8), intent(in) :: zfir2(ngp2)
+      Integer, Intent (In) :: ngp1, ngp2, igpig (ngkmax)
+      Complex (8), Intent (In) :: zfmt1 (lmmaxvr, nrcmtmax, natmtot)
+      Complex (8), Intent (In) :: zfmt2 (lmmaxvr, nrcmtmax, natmtot)
+      Complex (8), Intent (In) :: zfir1 (ngp1)
+      Complex (8), Intent (In) :: zfir2 (ngp2)
   ! local variables
-  integer is,ia,ias,ig,igp1,igp2,iv(3)
-  complex(8) zsum
+      Integer is, ia, ias, ig, igp1, igp2, iv (3)
+      Complex (8) zsum
   ! external functions
-  complex(8) zfmtinp
-  external zfmtinp
+      Complex (8) zfmtinp
+      External zfmtinp
   ! interstitial contribution
-  do igp1=1,ngp1
-     do igp2=1,ngp2
-        iv(:) = ivg(:,igpig(igp1)) - ivg(:,igpig(igp2))
-        ig = ivgig(iv(1),iv(2),iv(3))
-        zsum=zsum+cfunig(ig)*conjg(zfir1(igp1))*zfir2(igp2)
-     end do
-  end do
+      Do igp1 = 1, ngp1
+         Do igp2 = 1, ngp2
+            iv (:) = ivg (:, igpig(igp1)) - ivg (:, igpig(igp2))
+            ig = ivgig (iv(1), iv(2), iv(3))
+            zsum = zsum + cfunig (ig) * conjg (zfir1(igp1)) * zfir2 &
+           & (igp2)
+         End Do
+      End Do
   ! muffin-tin contribution
-  do is=1,nspecies
-     do ia=1,natoms(is)
-        ias=idxas(ia,is)
-	zsum = zsum + zfmtinp(input%groundstate%lmaxvr, nrcmt(is), rcmt(1, is), lmmaxvr, zfmt1(1, 1, ias), &
-             zfmt2(1,1,ias))
-     end do
-  end do
-  zfinp2=zsum
-end function zfinp2
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            zsum = zsum + zfmtinp (input%groundstate%lmaxvr, nrcmt(is), &
+           & rcmt(1, is), lmmaxvr, zfmt1(1, 1, ias), zfmt2(1, 1, ias))
+         End Do
+      End Do
+      zfinp2 = zsum
+End Function zfinp2
 !EOC
