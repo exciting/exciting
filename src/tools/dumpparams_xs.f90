@@ -31,14 +31,11 @@ Subroutine dumpparams_xs (string, comment)
       Character (*), Intent (In) :: string, comment
   ! local variables
       Integer :: i
-      Call xssetversion
       Open (Unit=77, File=trim(string), Action='write', Position='appen&
      &d')
       Write (77,*)
       Write (77, '("! EXCITING version ", I1.1, ".", I1.1, ".", I3.3)') &
      & version
-      Write (77, '("! xs (eXited States) version ", I1.1, ".", I3.3)') &
-     & versionxs
       Write (77, '(a)') trim (comment)
       Write (77,*)
       Write (77, '("vgqlmt")')
