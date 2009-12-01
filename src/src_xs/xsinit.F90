@@ -34,8 +34,6 @@ Subroutine xsinit
   !---------------------!
   !     output file     !
   !---------------------!
-  ! set version of XS part
-      Call xssetversion
   ! name of output file
       Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, &
      & rank=rank, filnam=xsfileout)
@@ -54,8 +52,7 @@ Subroutine xsinit
          Write (unitout, '("+------------------------------------------&
         &----------------+")')
          Write (unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".",&
-        & I3.3, " (eXcited States ", I1.1, ".", I3.3, ") started  |")') &
-        & version, versionxs
+        & I3.3, " started  |")') version
 	  !"
 #ifdef MPI
          Write (unitout, '("| compiled for MPI execution			          |"&

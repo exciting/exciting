@@ -33,8 +33,6 @@ Contains
          Write (un, '("## Time (hh:mm:ss)  : ", a2, ":", a2, ":", a2)') &
         & tim (1:2), tim (3:4), tim (5:6)
          Write (un, '("# version	     : ", i1.1, ".", i1.1, ".", i3.3)') version
-         Write (un, '("# version (xs)      : ", i1.1, ".", i3.3)') &
-        & versionxs
          Write (un, '(a, 2f12.6)') '# efermi (H, eV)	   :', efermi, &
         & h2ev * efermi
          Write (un, '(a, 3f12.6)') '# vgqlmt		  :', &

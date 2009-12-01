@@ -561,8 +561,6 @@ Module modxs
       Real (8), Allocatable :: sphcov (:, :)
   ! spherical covering set in tetha/phi angles
       Real (8), Allocatable :: sphcovtp (:, :)
-  ! xs code version
-      Integer :: versionxs (2)
   ! true if energies output in eV
 !replaced by inputstructure  logical :: tevout
   ! scaling factor for writing energies
