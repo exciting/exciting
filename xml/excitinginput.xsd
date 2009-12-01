@@ -2,8 +2,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
  <!--
   This schema defines the input file format. It should be the central place for parameter and task specification and documentation
- -->
- <!--  global type definitions -->
+ --> <!-- global type definitions -->
  <xs:simpleType name="fortrandouble">
   <xs:restriction base="xs:token">
    <xs:pattern value="\-?[0-9]*\.?[0-9]+([eEdDqQ][\-+]?[0-9]+)?" />
@@ -41,8 +40,7 @@
   <xs:restriction base="integerlist">
    <xs:length value="2" />
   </xs:restriction>
- </xs:simpleType>
- <!-- global attribute definitions -->
+ </xs:simpleType> <!-- global attribute definitions -->
  <xs:attribute name="outfileprefix" type="xs:string">
   <xs:annotation>
    <xs:documentation>a prefix to be prepended to the output files
@@ -52,14 +50,12 @@
  <xs:attribute name="tfibs" type="xs:boolean" default="true">
   <xs:annotation>
    <xs:documentation>
-    if the IBS correction to the force should be calculated Because
-    calculation of the incomplete basis set (IBS) correction to the
-    force is fairly time-consuming, it can be switched off by setting
+    if the IBS correction to the force should be calculated Because calculation of the incomplete basis set (IBS) correction to
+    the force is fairly time-consuming, it can be switched off by setting
     <pre> tfibs</pre>
     to
     <pre> .false.</pre>
-    This correction can then be included only when necessary, i.e.
-    when the atoms are close to equilibrium in a structural
+    This correction can then be included only when necessary, i.e. when the atoms are close to equilibrium in a structural
     relaxation run.
    </xs:documentation>
   </xs:annotation>
@@ -69,9 +65,7 @@
    <xs:documentation>
     set to
     <pre> .true.</pre>
-    if the force should be calculated at the end of the
-    self-consistent
-    cycle This variable is automatically set to
+    if the force should be calculated at the end of the self-consistent cycle This variable is automatically set to
     <pre> .true.</pre>
     pre when performing structural optimization.
    </xs:documentation>
@@ -79,12 +73,10 @@
  </xs:attribute>
  <xs:attribute name="scissor" type="fortrandouble" default="0">
   <xs:annotation>
-   <xs:documentation>the scissors correction This is the scissors shift
-    applied to states above the Fermi energy. Affects DOS,
+   <xs:documentation>the scissors correction This is the scissors shift applied to states above the Fermi energy. Affects DOS,
     optics and band structure plots.</xs:documentation>
   </xs:annotation>
- </xs:attribute>
- <!-- global element definitions -->
+ </xs:attribute> <!-- global element definitions -->
  <xs:element name="origin">
   <xs:complexType>
    <xs:attribute name="coord" type="vect3d" />
@@ -98,8 +90,7 @@
  </xs:element>
  <xs:element name="plot1d">
   <xs:annotation>
-   <xs:documentation> plot1d specifies sample points along a path.
-    The coordinate space is chosen in the context of the parent
+   <xs:documentation> plot1d specifies sample points along a path. The coordinate space is chosen in the context of the parent
    </xs:documentation>
   </xs:annotation>
   <xs:complexType>
@@ -108,9 +99,7 @@
      <xs:complexType>
       <xs:sequence>
        <xs:annotation>
-        <xs:documentation>A path consists of at least two
-         points and a
-         number of divisions.</xs:documentation>
+        <xs:documentation>A path consists of at least two points and a number of divisions.</xs:documentation>
        </xs:annotation>
        <xs:element ref="point" minOccurs="2" maxOccurs="unbounded" />
       </xs:sequence>
@@ -123,8 +112,7 @@
  </xs:element>
  <xs:element name="plot2d">
   <xs:annotation>
-   <xs:documentation>defines a 2d plot domain
-      </xs:documentation>
+   <xs:documentation>defines a 2d plot domain </xs:documentation>
   </xs:annotation>
   <xs:complexType>
    <xs:all>
@@ -143,8 +131,7 @@
  </xs:element>
  <xs:element name="plot3d">
   <xs:annotation>
-   <xs:documentation>defines a 3d plot domain
-      </xs:documentation>
+   <xs:documentation>defines a 3d plot domain </xs:documentation>
   </xs:annotation>
   <xs:complexType>
    <xs:all>
@@ -172,12 +159,9 @@
  <xs:element name="kstlist">
   <xs:annotation>
    <xs:documentation>
-    kstlist is used in the LSJ and wavefunction plot element This is
-    a
-    user-defined list of
+    kstlist is used in the LSJ and wavefunction plot element This is a user-defined list of
     <inlinemath>{ \bf k}</inlinemath>
-    -point and state index pairs which are those used for plotting
-    wavefunctions and writing
+    -point and state index pairs which are those used for plotting wavefunctions and writing
     <inlinemath>{ \bf L}</inlinemath>
     ,
     <inlinemath>{ \bf S}</inlinemath>
@@ -189,7 +173,6 @@
   <xs:complexType>
    <xs:sequence>
     <xs:element ref="pointstatepair" minOccurs="1" maxOccurs="unbounded" />
-
    </xs:sequence>
   </xs:complexType>
  </xs:element>
@@ -213,8 +196,7 @@
     </xs:element>
    </xs:sequence>
   </xs:complexType>
- </xs:element>
- <!-- root element starts here -->
+ </xs:element> <!-- root element starts here -->
  <xs:element name="input">
   <xs:annotation>
    <xs:documentation>The input element Is the root element of the exciting input file. XML may contain only one root element.
@@ -226,13 +208,9 @@
      <oldname>noname</oldname>
     </xs:appinfo>
     <xs:documentation>
-     Every input file must contain a structure element to specify
-     the
-     domain and the atoms.
+     Every input file must contain a structure element to specify the domain and the atoms.
      <p />
-     Unless explicitly stated otherwise, EXCITING uses atomic
-     units. In
-     this system
+     Unless explicitly stated otherwise, EXCITING uses atomic units. In this system
      <inlinemath>\hbar=1</inlinemath>
      , the electron mass
      <inlinemath>m=1</inlinemath>
@@ -240,20 +218,11 @@
      <inlinemath>a_0=1</inlinemath>
      and the electron charge
      <inlinemath>e=1</inlinemath>
-     (note that the electron charge is positive, so that the atomic
-     numbers
+     (note that the electron charge is positive, so that the atomic numbers
      <inlinemath>Z</inlinemath>
-     are negative). Thus, the atomic unit of length is
-     0.52917720859(36)
-     \AA, and the atomic unit of energy is the
-     Hartree which
-     equals
-     27.21138386(68) eV.
-     The unit of the
-     external magnetic fields is
-     defined such that one unit of
-     magnetic field in
-     <pre>\tt exciting.in</pre>
+     are negative). Thus, the atomic unit of length is 0.52917720859(36) \AA, and the atomic unit of energy is the Hartree which
+     equals 27.21138386(68) eV. The unit of the external magnetic fields is defined such that one unit of magnetic field in
+     <pre>exciting.in</pre>
      equals 1717.2445320376 Tesla.
     </xs:documentation>
    </xs:annotation>
@@ -265,8 +234,7 @@
     </xs:element>
     <xs:element name="structure" maxOccurs="1" minOccurs="1">
      <xs:annotation>
-      <xs:documentation> The structure element contains all
-       structural information such as atoms atom positions and symmetries.
+      <xs:documentation> The structure element contains all structural information such as atoms atom positions and symmetries.
       </xs:documentation>
      </xs:annotation>
      <xs:complexType>
@@ -281,12 +249,8 @@
         </xs:annotation>
         <xs:complexType>
          <xs:annotation>
-          <xs:documentation>The symmetries element is
-           output from the
-           spacegroup program the values are
-           currently not used in the
-           exciting program
-                    </xs:documentation>
+          <xs:documentation>The symmetries element is output from the spacegroup program the values are currently not used in
+           the exciting program </xs:documentation>
          </xs:annotation>
          <xs:sequence>
           <xs:element name="lattice" maxOccurs="1" minOccurs="1">
@@ -301,7 +265,6 @@
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-
             <xs:attribute name="b" type="fortrandouble" use="required">
              <xs:annotation>
               <xs:appinfo>
@@ -309,7 +272,6 @@
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-
             <xs:attribute name="c" type="fortrandouble" use="required">
              <xs:annotation>
               <xs:appinfo>
@@ -317,19 +279,14 @@
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-
             <xs:attribute name="ab" type="fortrandouble" use="required" />
-
             <xs:attribute name="ac" type="fortrandouble" use="required" />
-
             <xs:attribute name="bc" type="fortrandouble" use="required" />
-
             <xs:attribute name="ncell" type="integertriple" use="optional" default="1 1 1">
              <xs:annotation>
               <xs:documentation>number of repeated cells in each direction</xs:documentation>
              </xs:annotation>
             </xs:attribute>
-
            </xs:complexType>
           </xs:element>
           <xs:element name="WyckoffPositions" maxOccurs="1" minOccurs="0">
@@ -344,12 +301,10 @@
                 <xs:element name="wpos" maxOccurs="unbounded" minOccurs="0">
                  <xs:complexType>
                   <xs:attribute name="coord" type="vect3d" />
-
                  </xs:complexType>
                 </xs:element>
                </xs:sequence>
                <xs:attribute name="speciesfile" type="xs:string" />
-
               </xs:complexType>
              </xs:element>
             </xs:sequence>
@@ -358,9 +313,7 @@
          </xs:sequence>
          <xs:attribute name="HermannMauguinSymbol" type="xs:string" use="required">
           <xs:annotation>
-           <xs:documentation>Herman Mauguin sympol
-            giving the
-            spacegroup
+           <xs:documentation>Herman Mauguin sympol giving the spacegroup
 </xs:documentation>
            <xs:appinfo>
             <oldname>hrmg</oldname>
@@ -368,11 +321,8 @@
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="HallSymbol" type="xs:string" />
-
          <xs:attribute name="SchoenfliesSymbol" type="xs:string" />
-
          <xs:attribute name="spaceGroupNumber" type="xs:string" />
-
         </xs:complexType>
        </xs:element>
        <xs:element name="crystal" minOccurs="0" maxOccurs="1">
@@ -382,11 +332,7 @@
         </xs:annotation>
         <xs:complexType>
          <xs:annotation>
-          <xs:documentation>unit cell is spanned by 3
-           basevectors
-           that
-           define the lattice coordinates.
-                    </xs:documentation>
+          <xs:documentation>unit cell is spanned by 3 basevectors that define the lattice coordinates. </xs:documentation>
          </xs:annotation>
          <xs:sequence>
           <xs:element name="basevect" minOccurs="3" maxOccurs="3" type="vect3d">
@@ -406,7 +352,7 @@
            </xs:appinfo>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="stretch" type="vect3d" default="1.0d0   1.0d0 1.0d0 ">
+         <xs:attribute name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
           <xs:annotation>
            <xs:documentation> allows for a separate scaling of each lattice vector. 1 1 1 means no scaling.</xs:documentation>
            <xs:appinfo>
@@ -425,11 +371,7 @@
          <xs:sequence>
           <xs:element name="atom" minOccurs="1" maxOccurs="unbounded">
            <xs:annotation>
-            <xs:documentation>atomic position in
-             lattice
-             coordinates for
-             atom
-                        </xs:documentation>
+            <xs:documentation>atomic position in lattice coordinates for atom </xs:documentation>
             <xs:appinfo>
              <oldname>noname</oldname>
             </xs:appinfo>
@@ -453,10 +395,7 @@
           </xs:element>
           <xs:element name="LDAplusu" minOccurs="0">
            <xs:annotation>
-            <xs:documentation>If present defines ldaplusU
-             parameters
-             for
-             species</xs:documentation>
+            <xs:documentation>If present defines ldaplusU parameters for species</xs:documentation>
            </xs:annotation>
            <xs:complexType>
             <xs:attribute name="L" type="fortrandouble" default="0">
@@ -494,11 +433,7 @@
          </xs:attribute>
          <xs:attribute name="chemicalSymbol" type="xs:string" use="optional" default="">
           <xs:annotation>
-           <xs:documentation>can be given to simplify
-            visualisation
-            and
-            converters. is ignored by
-            exciting</xs:documentation>
+           <xs:documentation>can be given to simplify visualisation and converters. is ignored by exciting</xs:documentation>
            <xs:appinfo>
             <oldname>spsymb</oldname>
            </xs:appinfo>
@@ -515,13 +450,8 @@
            <xs:appinfo>
             <oldname>noreplace></oldname>
            </xs:appinfo>
-           <xs:documentation>muffin tin radius this
-            optional
-            parameter
-            allows to override
-            speciesfile or automatic
-            tetemination
-           </xs:documentation>
+           <xs:documentation>muffin tin radius this optional parameter allows to override speciesfile or automatic
+            tetemination </xs:documentation>
           </xs:annotation>
          </xs:attribute>
         </xs:complexType>
@@ -529,9 +459,7 @@
       </xs:sequence>
       <xs:attribute name="speciespath" type="xs:anyURI" use="required">
        <xs:annotation>
-        <xs:documentation> gives the path to the directory
-         containing the
-         species files</xs:documentation>
+        <xs:documentation> gives the path to the directory containing the species files</xs:documentation>
         <xs:appinfo>
          <oldname>sppath</oldname>
         </xs:appinfo>
@@ -540,16 +468,22 @@
       <xs:attribute name="molecule" type="xs:boolean" default="false">
        <xs:annotation>
         <xs:documentation>
-         has to be set to true if one wants to calculate an isolated molecule. is         <pre> true</pre>         , then the atomic positions,         <inlinemath>{\bf a}</inlinemath>         , are assumed to be in Cartesian coordinates. The lattice vectors are also set up automatically with the i-th lattice         vector given by
+         has to be set to true if one wants to calculate an isolated molecule. is
+         <pre> true</pre>
+         , then the atomic positions,
+         <inlinemath>{\bf a}</inlinemath>
+         , are assumed to be in Cartesian coordinates. The lattice vectors are also set up automatically with the i-th lattice
+         vector given by
          <displaymath> {\bf A}^i=A_i\hat{\bf e}^i, </displaymath>
          where
-         <displaymath> A_i=\max_{\alpha,\beta}\left|{\bf a}^{\alpha}_i-{\bf a}^{\beta}_i\right|
-          +d_{\rm vac} </displaymath>
+         <displaymath> A_i=\max_{\alpha,\beta}\left|{\bf a}^{\alpha}_i-{\bf a}^{\beta}_i\right| +d_{\rm vac} </displaymath>
          with
          <inlinemath>\alpha</inlinemath>
          and
          <inlinemath>\beta </inlinemath>
-         labeling atoms, and         <inlinemath>d_{\rm vac}</inlinemath>         determines the size of the vacuum around the molecule. The last variable is set by the attribute
+         labeling atoms, and
+         <inlinemath>d_{\rm vac}</inlinemath>
+         determines the size of the vacuum around the molecule. The last variable is set by the attribute
          <pre>vacuum</pre>
          .
         </xs:documentation>
@@ -562,9 +496,7 @@
       </xs:attribute>
       <xs:attribute name="epslat" type="fortrandouble" default="1e-6">
        <xs:annotation>
-        <xs:documentation> vectors with lengths less than this
-         are
-         considered zero.</xs:documentation>
+        <xs:documentation> vectors with lengths less than this are considered zero.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="autormt" type="xs:boolean" default="false">
@@ -572,28 +504,14 @@
         <xs:documentation>If true automatic determination of the muffin tin radii is allowed.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
-
-
       <xs:attribute name="primcell" type="xs:boolean" default="false">
        <xs:annotation>
-        <xs:documentation> allows the primitive unit cell to be
-         determined automatically from the conventional cell.
-         This is
-         done by
-         searching for
-         lattice vectors among all
-         those which
-         connect atomic sites, and using the three
-         shortest ones which produce
-         a
-         unit cell with non-zero
-         volume.
-                </xs:documentation>
+        <xs:documentation> allows the primitive unit cell to be determined automatically from the conventional cell. This is done
+         by searching for lattice vectors among all those which connect atomic sites, and using the three shortest ones which
+         produce a unit cell with non-zero volume. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-
-      <xs:attribute name="tshift" type="xs:boolean" default="true">
-       <!-- sag -->
+      <xs:attribute name="tshift" type="xs:boolean" default="true"> <!-- sag -->
        <xs:annotation>
         <xs:documentation> Set to it to "true" if the crystal can be shifted such that the atom closest to the origin is exactly
          at the origin.</xs:documentation>
@@ -603,8 +521,7 @@
     </xs:element>
     <xs:element name="groundstate" maxOccurs="1" minOccurs="0">
      <xs:annotation>
-      <xs:documentation>The groundstate element is required for anny calculation.
-       Its attributes are the parameters and methods
+      <xs:documentation>The groundstate element is required for anny calculation. Its attributes are the parameters and methods
        used to calculate the groundstate density.</xs:documentation>
      </xs:annotation>
      <xs:complexType>
@@ -614,8 +531,7 @@
          <xs:documentation>
           If the
           <spin />
-          element is present calculation is done
-          with spin polarization.
+          element is present calculation is done with spin polarization.
          </xs:documentation>
          <xs:appinfo>
           <oldname>spinpol</oldname>
@@ -624,80 +540,35 @@
         <xs:complexType>
          <xs:attribute name="momfix" type="vect3d" default="0 0 0">
           <xs:annotation>
-           <xs:documentation>
-            the desired total moment
-            for a FSM
-            calculation.
+           <xs:documentation> the desired total moment for a FSM calculation.
 </xs:documentation>
           </xs:annotation>
-         </xs:attribute>
-         <!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
+         </xs:attribute> <!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
          <xs:attribute name="bfieldc" type="vect3d" default="0 0 0 ">
           <xs:annotation>
            <xs:documentation>
-            alows to apply a
-            constant B field This is
-            a constant magnetic
-            field applied throughout
-            the entire unit cell and
-            enters the
-            second-variational
-            Hamiltonian as
-            <displaymath>
-             \frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf
-             B}_{\rm ext},
+            alows to apply a constant B field This is a constant magnetic field applied throughout the entire unit cell and enters
+            the second-variational Hamiltonian as
+            <displaymath> \frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm ext},
 </displaymath>
             where
-            <inlinemath>
-             g_e
-</inlinemath>
+            <inlinemath> g_e</inlinemath>
             is the electron
-            <inlinemath>
-             g
+            <inlinemath> g</inlinemath>
+            -factor (2.0023193043718). This field is normally used to break spin symmetry for spin-polarised calculations and
+            considered to be infinitesimal with no direct contribution to the total energy. In cases where the magnetic field is
+            finite (for example when computing magnetic response) the external
+            <inlinemath> { \bf B}
 </inlinemath>
-            -factor
-            (2.0023193043718). This
-            field is normally used
-            to break
-            spin symmetry
-            for spin-polarised
-            calculations and
-            considered
-            to
-            be
-            infinitesimal with no
-            direct contribution to
-            the total
-            energy. In
-            cases where the magnetic
-            field is finite (for
-            example
-            when computing
-            magnetic response) the
-            external
-            <inlinemath>
-             { \bf B}
-</inlinemath>
-            -field energy reported
-            in
+            -field energy reported in
             <pre>INFO.OUT</pre>
-            should be added to the
-            total by hand. This
-            field is applied
-            throughout the entire
-            unit cell. To apply
-            magnetic fields in
-            particular muffin-tins
-            use the
+            should be added to the total by hand. This field is applied throughout the entire unit cell. To apply magnetic fields
+            in particular muffin-tins use the
             <pre>bfcmt</pre>
             vect ors in the
             <pre>atoms</pre>
-            block. Collinear
-            calculations are more
-            efficient if the field
-            is applied in the
-            <inlinemath>
-             z
+            block. Collinear calculations are more efficient if the field is applied in the
+            <inlinemath> z
 </inlinemath>
             -direction.
            </xs:documentation>
@@ -706,20 +577,14 @@
          <xs:attribute name="spinorb" type="xs:boolean">
           <xs:annotation>
            <xs:documentation>
-            if a spin-orbit coupling
-            is required If
+            if a spin-orbit coupling is required If
             <pre>spinorb</pre>
             is
             <pre>.true.</pre>
             , then a
-            <inlinemath>
-             \boldsymbol
-             \sigma\cdot{ \bf L}
+            <inlinemath> \boldsymbol \sigma\cdot{ \bf L}
 </inlinemath>
-            term is added to the
-            second-variational
-            Hamiltonian.
-            .
+            term is added to the second-variational Hamiltonian. .
            </xs:documentation>
           </xs:annotation>
          </xs:attribute>
@@ -728,12 +593,7 @@
            <xs:documentation>
             set to
             <pre>.true.</pre>
-            if a spin-spiral
-            calculation is require
-            Experimental feature
-            for
-            the calculation of
-            spin-spiral states. See
+            if a spin-spiral calculation is require Experimental feature for the calculation of spin-spiral states. See
             <pre>vqlss</pre>
             for details.
            </xs:documentation>
@@ -743,64 +603,22 @@
           <xs:annotation>
            <xs:documentation>
             the
-            <inlinemath>
-             { \bf q}
-</inlinemath>
-            -vector of the
-            spin-spiral state in
-            lattice coordinates
-            Spin-spirals arise from
-            spinor states assumed to
-            be of the
+            <inlinemath>{ \bf q}</inlinemath>
+            -vector of the spin-spiral state in lattice coordinates Spin-spirals arise from spinor states assumed to be of the
             form
-            <displaymath>
-             \Psi^{ \bf q}_{ \bf
-             k}({ \bf r})= \left(
-             \begin{array}{c}
-             U^{{\bf
-             q}\uparrow}_{ \bf
-             k}({\bf r})e^{i({
-             \bf
-             k+q/2})\cdot{
-             \bf r}} \\ U^{{ \bf
-             q}\downarrow}_{\bf
-             k}({
-             \bf
-             r})e^{i({\bf
-             k-q/2})\cdot{ \bf
-             r}} \\ \end{array}
-             \right).
-</displaymath>
-            These are determined
-            using a
-            second-variational
-            approach, and
-            give rise
-            to a magnetisation
-            density of the form
-            <displaymath>
-             {\bf m}^{ \bf q}({
-             \bf r})=(m_x({\bf
-             r})\cos({
-             \bf q
-             \cdot r}), m_y({\bf
-             r})\sin({ \bf q
-             \cdot r}),m_z({\bf
-             r})),
-</displaymath>
+            <displaymath> \Psi^{ \bf q}_{ \bf k}({ \bf r})= \left( \begin{array}{c} U^{{\bf q}\uparrow}_{ \bf k}({\bf r})e^{i({
+             \bf k+q/2})\cdot{ \bf r}} \\ U^{{ \bf q}\downarrow}_{\bf k}({ \bf r})e^{i({\bf k-q/2})\cdot{ \bf r}} \\ \end{array}
+             \right).</displaymath>
+            These are determined using a second-variational approach, and give rise to a magnetisation density of the form
+            <displaymath> {\bf m}^{ \bf q}({ \bf r})=(m_x({\bf r})\cos({ \bf q \cdot r}), m_y({\bf r})\sin({ \bf q \cdot
+             r}),m_z({\bf r})),</displaymath>
             where
-            <inlinemath>
-             m_x
-</inlinemath>
+            <inlinemath> m_x</inlinemath>
             ,
-            <inlinemath>
-             m_y
-</inlinemath>
+            <inlinemath> m_y</inlinemath>
             and
-            <inlinemath>
-             m_z </inlinemath>
-            are lattice periodic.
-            See also
+            <inlinemath> m_z </inlinemath>
+            are lattice periodic. See also
             <pre>spinprl</pre>
             .
            </xs:documentation>
@@ -809,25 +627,9 @@
          <xs:attribute name="taufsm" type="fortrandouble" default="0.01d0" />
          <xs:attribute name="reducebf" type="fortrandouble" default="1">
           <xs:annotation>
-           <xs:documentation>
-            After each iteration the
-            external magnetic
-            fields
-            are multiplied with
-            reducebf. This al- lows
-            for a large
-            external
-            magnetic field at the
-            start of the
-            self-consistent
-            loop to
-            break spin symmetry,
-            while at the end of the
-            loop the
-            field will be
-            effectively zero, i.e.
-            infinitesimal. See
-            bfieldc and atoms.
+           <xs:documentation> After each iteration the external magnetic fields are multiplied with reducebf. This al- lows for a
+            large external magnetic field at the start of the self-consistent loop to break spin symmetry, while at the end of the
+            loop the field will be effectively zero, i.e. infinitesimal. See bfieldc and atoms.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
@@ -867,16 +669,14 @@
          </xs:attribute>
         </xs:complexType>
        </xs:element>
-       <xs:element name="HartreeFock" minOccurs="0" maxOccurs="1">
-        <!-- sag -->
+       <xs:element name="HartreeFock" minOccurs="0" maxOccurs="1"> <!-- sag -->
         <xs:annotation>
          <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
          <xs:attribute name="epsengy" type="fortrandouble" use="optional" default="1e-7">
           <xs:annotation>
-           <xs:documentation>
-            energy convergence tolerance
+           <xs:documentation> energy convergence tolerance
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
@@ -931,8 +731,7 @@
            <xs:documentation>Tolerance parameter for the ARPACK shift invert solver</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="evaltol" type="fortrandouble" default="1e-8">
-          <!-- sag -->
+         <xs:attribute name="evaltol" type="fortrandouble" default="1e-8"> <!-- sag -->
           <xs:annotation>
            <xs:documentation>error tolerance for the first-variational eigenvalues using the LAPACK Solver</xs:documentation>
           </xs:annotation>
@@ -946,30 +745,16 @@
         <xs:complexType>
          <xs:attribute name="maxitoep" type="xs:integer" default="120">
           <xs:annotation>
-           <xs:documentation>maximum number of iterations when
-            solving the exact exchange integral equations
+           <xs:documentation>maximum number of iterations when solving the exact exchange integral equations
            </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="tauoep" type="vect3d" default="1.0  0.2  1.5">
+         <xs:attribute name="tauoep" type="vect3d" default="1.0 0.2 1.5">
           <xs:annotation>
-           <xs:documentation>
-            The optimised effective potential is
-            determined using an
-            interative method. [Phys. Rev.
-            Lett. 98,
-            196405
-            (2007)]. At the first iteration the step length
-            is set
-            to tauoep(1). Dur-
-            ing subsequent iterations, the step length
-            is
-            scaled by
-            tauoep(2) or tauoep(3), when the
-            residual is
-            increasing or decreasing, respectively. See also
-            maxitoep.
-           </xs:documentation>
+           <xs:documentation> The optimised effective potential is determined using an interative method. [Phys. Rev. Lett. 98,
+            196405 (2007)]. At the first iteration the step length is set to tauoep(1). Dur- ing subsequent iterations, the step
+            length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or decreasing, respectively. See also
+            maxitoep. </xs:documentation>
           </xs:annotation>
          </xs:attribute>
         </xs:complexType>
@@ -981,64 +766,53 @@
         <xs:complexType>
          <xs:attribute name="rdmxctype" type="xs:integer" default="2">
           <xs:annotation>
-           <xs:documentation>
-            xc functional.
+           <xs:documentation> xc functional.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="rdmmaxscl" type="xs:integer" default="1">
           <xs:annotation>
-           <xs:documentation>
-            maximum number of self-consistent loops.
+           <xs:documentation> maximum number of self-consistent loops.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="maxitn" type="xs:integer" default="250">
           <xs:annotation>
-           <xs:documentation>
-            maximum number of iteration for occupation
-            number optimisation.
+           <xs:documentation> maximum number of iteration for occupation number optimisation.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="maxitc" type="xs:integer" default="10">
           <xs:annotation>
-           <xs:documentation>
-            maximum number of iteration for natural
-            orbital optimisation.
+           <xs:documentation> maximum number of iteration for natural orbital optimisation.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="taurdmn" type="fortrandouble" default="1.0">
           <xs:annotation>
-           <xs:documentation>
-            step size for occupation numbers.
+           <xs:documentation> step size for occupation numbers.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="taurdmc" type="fortrandouble" default="0.5">
           <xs:annotation>
-           <xs:documentation>
-            step size for natural orbital coefficients.
+           <xs:documentation> step size for natural orbital coefficients.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="rdmalpha" type="fortrandouble" default="0.7">
           <xs:annotation>
-           <xs:documentation>
-            exponent for the functional.
+           <xs:documentation> exponent for the functional.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="rdmtemp" type="fortrandouble" default="0.0">
           <xs:annotation>
-           <xs:documentation>
-            temperature.
+           <xs:documentation> temperature.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
         </xs:complexType>
-
        </xs:element>
       </xs:all>
       <xs:attribute name="do" default="fromscratch">
@@ -1078,62 +852,39 @@
       </xs:attribute>
       <xs:attribute name="epspot" type="fortrandouble" use="optional" default="1e-6">
        <xs:annotation>
-        <xs:documentation>
-         If the RMS change in the effective potential
-         and magnetic field is smaller than epspot,
-         then the
-         self-consistent loop is considered converged and exited.
-         For
-         structural optimisa-
-         tion runs this results in the forces being
-         calculated, the atomic
-         positions updated and the
-         loop restarted.
-         See also maxscl.
+        <xs:documentation> If the RMS change in the effective potential and magnetic field is smaller than epspot, then the
+         self-consistent loop is considered converged and exited. For structural optimisation runs this results in the forces
+         being calculated, the atomic positions updated and the loop restarted. See also maxscl.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="rmtapm" type="vect2d" default="0.25d0  0.95d0">
+      <xs:attribute name="rmtapm" type="vect2d" default="0.25d0 0.95d0">
        <xs:annotation>
         <xs:documentation>
-         parameters governing the
-         automatic
-         generation
-         of the muffin-tin radii.
-         When @autormt is set to true, the muffin-tin radii are
-         found
-         automatically from the formula
+         parameters governing the automatic generation of the muffin-tin radii. When @autormt is set to true, the muffin-tin radii
+         are found automatically from the formula
          <displaymath> R_i\propto 1+\zeta|Z_i|^{1/3}, </displaymath>
          where
          <inlinemath>Z_i</inlinemath>
          is the atomic number of the $i$th species,
          <inlinemath>\zeta</inlinemath>
-         is stored in
-         @rmtapm(1) and the value which governs the distance between the
-         muffin-tins is stored in @rmtapm(2). When
+         is stored in @rmtapm(1) and the value which governs the distance between the muffin-tins is stored in @rmtapm(2). When
          @rmtapm(2) =1, the closest muffin-tins will touch.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="swidth" type="fortrandouble" default="0.001d0">
        <xs:annotation>
-        <xs:documentation>width of the smooth approximation to the
-         Dirac
-         delta function.</xs:documentation>
+        <xs:documentation>width of the smooth approximation to the Dirac delta function.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="stype" default="Gaussian">
        <xs:annotation>
         <xs:documentation>
-         A smooth approximation to the Dirac delta function is
-         needed to
-         compute the occupancies of the Kohn-Sham
-         states. The
+         A smooth approximation to the Dirac delta function is needed to compute the occupancies of the Kohn-Sham states. The
          variable
          <pre>swidth</pre>
-         determines the width of the approximate delta
-         function.
-
+         determines the width of the approximate delta function.
         </xs:documentation>
        </xs:annotation>
        <xs:simpleType>
@@ -1178,10 +929,7 @@
       </xs:attribute>
       <xs:attribute name="findlinentype" default="advanced">
        <xs:annotation>
-        <xs:documentation>
-         select method to determine the linearization energies.
-               
-                </xs:documentation>
+        <xs:documentation> select method to determine the linearization energies. </xs:documentation>
        </xs:annotation>
        <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -1192,47 +940,27 @@
       </xs:attribute>
       <xs:attribute name="isgkmax" type="xs:integer" default="-1">
        <xs:annotation>
-        <xs:documentation>species for which the
-         muffin-tin radius
-         will be
-         used for calculating gkmax.
-                </xs:documentation>
+        <xs:documentation>species for which the muffin-tin radius will be used for calculating gkmax. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="gmaxvr" type="fortrandouble" default="12">
        <xs:annotation>
-        <xs:documentation>maximum length of |G| for
-         expanding the
-         interstitial density and potential.
-                </xs:documentation>
+        <xs:documentation>maximum length of |G| for expanding the interstitial density and potential. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="nempty" type="xs:integer" default="5">
        <xs:annotation>
         <xs:documentation>
-         Defines the number of eigenstates beyond that required
-         for
-         charge neutrality. When running metals it is not
-         known
+         Defines the number of eigenstates beyond that required for charge neutrality. When running metals it is not known
          <it>a priori</it>
-         how many states will be below the Fermi energy for
-         each
+         how many states will be below the Fermi energy for each
          <bf>k</bf>
          -point. Setting
          <pre>nempty</pre>
-         greater than zero allows the additional states to act
-         as a
-         buffer in such cases. Furthermore, magnetic
-         calculations use the
-         first-variational
-         eigenstates as a
-         basis for setting up the
-         second-variational
-         Hamiltonian, and thus
+         greater than zero allows the additional states to act as a buffer in such cases. Furthermore, magnetic calculations use
+         the first-variational eigenstates as a basis for setting up the second-variational Hamiltonian, and thus
          <pre>nempty</pre>
-         will determine the size of this basis set. Convergence
-         with
-         respect to this quantity should be checked.
+         will determine the size of this basis set. Convergence with respect to this quantity should be checked.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
@@ -1241,9 +969,7 @@
         <xs:documentation>
          when set to
          <pre>.true.</pre>
-         no symmetries, apart from the identity, are used
-         anywhere in the
-         code.
+         no symmetries, apart from the identity, are used anywhere in the code.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
@@ -1252,9 +978,7 @@
         <xs:documentation>
          when set to
          <pre>true</pre>
-         the frozen core approximation is applied, i.e., the
-         core states
-         are fixed to the atomic states.
+         the frozen core approximation is applied, i.e., the core states are fixed to the atomic states.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
@@ -1293,26 +1017,15 @@
          <inlinemath>
           <bf>k</bf>
          </inlinemath>
-         -point set is to be reduced with the crystal
-         symmetries.
+         -point set is to be reduced with the crystal symmetries.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute ref="tfibs" default="true">
        <xs:annotation>
-        <xs:documentation>
-         Because calculation of the incomplete basis
-         set (IBS) correction to
-         the force is fairly time-
-         consuming, it
-         can be switched off by setting tfibs to .false. This
-         correction
-         can then be
-         included only when necessary, i.e. when the
-         atoms
-         are close to
-         equilibrium in a structural
-         relaxation run.
+        <xs:documentation> Because calculation of the incomplete basis set (IBS) correction to the force is fairly time-
+         consuming, it can be switched off by setting tfibs to .false. This correction can then be included only when necessary,
+         i.e. when the atoms are close to equilibrium in a structural relaxation run.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
@@ -1323,93 +1036,57 @@
       </xs:attribute>
       <xs:attribute name="lmaxapw" type="xs:integer" default="10">
        <xs:annotation>
-        <xs:documentation>angular momentum cut-off for
-         the APW
-         functions.
+        <xs:documentation>angular momentum cut-off for the APW functions.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="maxscl" type="xs:integer" default="200">
        <xs:annotation>
-        <xs:documentation>upper limit for te
-         selfconsistency loop.
+        <xs:documentation>upper limit for te selfconsistency loop.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="chgexs" type="fortrandouble" default="0">
        <xs:annotation>
-        <xs:documentation> This controls the amount of charge in
-         the unit
-         cell beyond that required to maintain
-         neu-trality. It can
-         be set
-         positive or
-         negative
-         depending on whether electron or hole doping
-         is
-         required.</xs:documentation>
+        <xs:documentation> This controls the amount of charge in the unit cell beyond that required to maintain neu-trality. It
+         can be set positive or negative depending on whether electron or hole doping is required.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="deband" type="fortrandouble" default="0.0025d0">
        <xs:annotation>
         <xs:documentation>
-         initial band energy step size The initial step length
-         used when
-         searching for the band energy, which is used
-         as the APW
-         linearisation energy.
-         This is done by first
-         searching upwards in
-         energy until the radial
-         wavefunction at the muffin-tin
-         radius is
-         zero. This is
-         the energy at the
-         top of the band, denoted
+         initial band energy step size The initial step length used when searching for the band energy, which is used as the APW
+         linearisation energy. This is done by first searching upwards in energy until the radial wavefunction at the muffin-tin
+         radius is zero. This is the energy at the top of the band, denoted
          <inlinemath>E_{\rm t}</inlinemath>
          . A downward search is now performed from
          <inlinemath>E_{\rm t}</inlinemath>
-         until the slope of the radial wavefunction at the
-         muffin-tin
-         radius is zero. This energy,
+         until the slope of the radial wavefunction at the muffin-tin radius is zero. This energy,
          <inlinemath>E_{\rm b}</inlinemath>
-         , is at the bottom of the band. The band energy is
-         taken as
+         , is at the bottom of the band. The band energy is taken as
          <inlinemath>(E_{\rm t}+E_{\rm b})/2</inlinemath>
          . If either
          <inlinemath>E_{\rm t}</inlinemath>
          or
          <inlinemath>E_{\rm b}</inlinemath>
-         cannot be found then the band energy is set to the
-         default
-         value.
+         cannot be found then the band energy is set to the default value.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="epschg" type="fortrandouble" default="1.0d-3">
        <xs:annotation>
-        <xs:documentation>maximum allowed error in the
-         calculated
-         total
-         charge beyond which a warning message
-         will be issued.
-        </xs:documentation>
+        <xs:documentation>maximum allowed error in the calculated total charge beyond which a warning message will be
+         issued. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="epsocc" type="fortrandouble" default="1e-8">
        <xs:annotation>
-        <xs:documentation>smallest occupancy for which a
-         state
-         will
-         contribute to the density.
-                </xs:documentation>
+        <xs:documentation>smallest occupancy for which a state will contribute to the density. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="mixer" default="msec">
        <xs:annotation>
-        <xs:documentation>select the mixing (relaxation)
-         scheme for
-         SCF
+        <xs:documentation>select the mixing (relaxation) scheme for SCF
 </xs:documentation>
         <xs:appinfo>
          <oldname>mixtype</oldname>
@@ -1441,44 +1118,29 @@
         </xs:restriction>
        </xs:simpleType>
       </xs:attribute>
-      <xs:attribute name="beta0" type="fortrandouble" default="0.4">
-       <!-- sag -->
+      <xs:attribute name="beta0" type="fortrandouble" default="0.4"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>initial value for mixing parameter. Used in linear mixing.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="betainc" type="fortrandouble" default="1.1">
-       <!-- sag -->
+      <xs:attribute name="betainc" type="fortrandouble" default="1.1"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>mixing parameter increase. Used in linear mixing.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="betadec" type="fortrandouble" default="0.6">
-       <!-- sag -->
+      <xs:attribute name="betadec" type="fortrandouble" default="0.6"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>mixing parameter decrease. Used in linear mixing.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-
       <xs:attribute name="lradstep" type="xs:integer" default="4">
        <xs:annotation>
-        <xs:documentation> Some muffin-tin functions (such as
-         the
-         density) are calculated on a coarse radial mesh
-         and then
-         interpolated onto a fine
-         mesh. This is done
-         for the sake of
-         efficiency. lradstp defines the step
-         size in going from the fine
-         to the coarse radial mesh.
-         If it is too
-         large, loss of precision
-         may occur.
-                </xs:documentation>
+        <xs:documentation> Some muffin-tin functions (such as the density) are calculated on a coarse radial mesh and then
+         interpolated onto a fine mesh. This is done for the sake of efficiency. lradstp defines the step size in going from the
+         fine to the coarse radial mesh. If it is too large, loss of precision may occur. </xs:documentation>
         <xs:appinfo>
          <oldname>lradstp</oldname>
         </xs:appinfo>
@@ -1486,28 +1148,20 @@
       </xs:attribute>
       <xs:attribute name="nprad" type="xs:integer" default="4">
        <xs:annotation>
-        <xs:documentation>smallest occupancy for which a
-         state
-         will
-         contribute to the density.
-                </xs:documentation>
+        <xs:documentation>smallest occupancy for which a state will contribute to the density. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="xctype" default="LSDAPerdew-Wang">
        <xs:annotation>
         <xs:documentation>
-         type of exchange-correlation functional to be used
-         \begin{itemize} \item No exchange-correlation
-         funtional (
+         type of exchange-correlation functional to be used \begin{itemize} \item No exchange-correlation funtional (
          <inlinemath>E_{\rm xc}\equiv 0</inlinemath>
-         ) \item LDA, Perdew-Zunger/Ceperley-Alder, {\it Phys.
-         Rev. B}
+         ) \item LDA, Perdew-Zunger/Ceperley-Alder, {\it Phys. Rev. B}
          <bf>23</bf>
          , 5048 (1981) \item LSDA, Perdew-Wang/Ceperley-Alder,
          <it>Phys. Rev. B</it>
          <bf>45</bf>
-         , 13244 (1992) \item LDA, X-alpha approximation, J. C.
-         Slater,
+         , 13244 (1992) \item LDA, X-alpha approximation, J. C. Slater,
          <it>Phys. Rev.</it>
          <bf>81</bf>
          , 385 (1951) \item LSDA, von Barth-Hedin,
@@ -1516,18 +1170,12 @@
          , 1629 (1972) \\ \item GGA, Perdew-Burke-Ernzerhof,
          <it>Phys. Rev. Lett.</it>
          <bf>77</bf>
-         , 3865 (1996) \item GGA, Revised PBE, Zhang-Yang, {\it
-         Phys.
-         Rev. Lett.}
+         , 3865 (1996) \item GGA, Revised PBE, Zhang-Yang, {\it Phys. Rev. Lett.}
          <bf>80</bf>
-         , 890 (1998) \item GGA, PBEsol, arXiv:0707.2088v1
-         (2007) \item
-         GGA, Wu-Cohen exchange (WC06) with PBE
-         correlation,
+         , 890 (1998) \item GGA, PBEsol, arXiv:0707.2088v1 (2007) \item GGA, Wu-Cohen exchange (WC06) with PBE correlation,
          <it>Phys. Rev. B</it>
          <bf>73</bf>
-         , 235116 (2006) \item GGA, Armiento-Mattsson (AM05)
-         spin-unpolarised functional, {\it Phys. Rev. B}
+         , 235116 (2006) \item GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, {\it Phys. Rev. B}
          <bf>72</bf>
          , 085108 (2005) \end{itemize}
         </xs:documentation>
@@ -1599,8 +1247,7 @@
          </xs:enumeration>
          <xs:enumeration value="EXX">
           <xs:annotation>
-           <xs:appinfo>
-            <!-- set to "-2" or lower for EXX -->
+           <xs:appinfo> <!-- set to "-2" or lower for EXX -->
             <oldnr>-2</oldnr>
            </xs:appinfo>
           </xs:annotation>
@@ -1617,117 +1264,73 @@
       </xs:attribute>
       <xs:attribute name="evalmin" type="fortrandouble" default="-4.5d0">
        <xs:annotation>
-        <xs:documentation>Any valence states with eigenvalues
-         below
-         evalmin are not occupied and a warning message
-         is issued.
+        <xs:documentation>Any valence states with eigenvalues below evalmin are not occupied and a warning message is issued.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="lmaxvr" type="xs:integer" default="6">
        <xs:annotation>
-        <xs:documentation>angular momentum cut-off for
-         the
-         muffin-tin
-         density and potential.
-                </xs:documentation>
+        <xs:documentation>angular momentum cut-off for the muffin-tin density and potential. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="fracinr" type="fortrandouble" default="0.25d0">
        <xs:annotation>
-        <xs:documentation>fraction of the muffin-tin
-         radius up to
-         which
-         lmaxinr is used as the angular
-         momentum cut-off.
+        <xs:documentation>fraction of the muffin-tin radius up to which lmaxinr is used as the angular momentum cut-off.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="lmaxinr" type="xs:integer" default="2">
        <xs:annotation>
-        <xs:documentation> Close to the nucleus, the density and
-         potential is almost spherical and therefore the
-         spherical
-         harmonic
-         expansion can be
-         truncated a low
-         angular momentum. See
-         also fracinr.</xs:documentation>
+        <xs:documentation> Close to the nucleus, the density and potential is almost spherical and therefore the spherical
+         harmonic expansion can be truncated a low angular momentum. See also fracinr.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="lmaxmat" type="xs:integer" default="5">
        <xs:annotation>
-        <xs:documentation>angular momentum cut-off for the
-         outer-most
-         loop in the hamiltonian and overlap
-         matrix setup.
+        <xs:documentation>angular momentum cut-off for the outer-most loop in the hamiltonian and overlap matrix setup.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="vkloff" type="vect3d" default="0 0 0">
        <xs:annotation>
-        <xs:documentation>the k-point offset vector in
-         lattice
-         coordinates.</xs:documentation>
+        <xs:documentation>the k-point offset vector in lattice coordinates.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="npsden" type="xs:integer" default="9">
        <xs:annotation>
-        <xs:documentation>
-         order of polynomial for pseudocharge density.</xs:documentation>
+        <xs:documentation> order of polynomial for pseudocharge density.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="cfdamp" type="fortrandouble" default="0">
-       <!-- sag -->
+      <xs:attribute name="cfdamp" type="fortrandouble" default="0"> <!-- sag -->
        <xs:annotation>
-        <xs:documentation>damping coefficient for characteristic
-         function.
+        <xs:documentation>damping coefficient for characteristic function.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="nosource" type="xs:boolean" default="false">
-       <!-- sag -->
+      <xs:attribute name="nosource" type="xs:boolean" default="false"> <!-- sag -->
        <xs:annotation>
-        <xs:documentation>
-         when set to true, source fields are
-         projected out of the
-         exchange-correlation magnetic field.
-         experimental
-         feature.
+        <xs:documentation> when set to true, source fields are projected out of the exchange-correlation magnetic field.
+         experimental feature.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="tevecsv" type="xs:boolean" default="false">
-       <!-- sag -->
+      <xs:attribute name="tevecsv" type="xs:boolean" default="false"> <!-- sag -->
        <xs:annotation>
-        <xs:documentation>
-         tevecsv is true if second-variational
-         eigenvectors are calculated
+        <xs:documentation> tevecsv is true if second-variational eigenvectors are calculated
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="nwrite" type="xs:integer" default="0">
-       <!-- sag -->
+      <xs:attribute name="nwrite" type="xs:integer" default="0"> <!-- sag -->
        <xs:annotation>
-        <xs:documentation>
-         Normally, the density and potentials are
-         written to the file STATE.OUT only after com-
-         pletion of the
-         self-consistent loop. By setting nwrite to a positive
-         integer
-         the file will be
-         written during the loop every nwrite
+        <xs:documentation> Normally, the density and potentials are written to the file STATE.OUT only after com- pletion of the
+         self-consistent loop. By setting nwrite to a positive integer the file will be written during the loop every nwrite
          iterations.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="ptnucl" type="xs:boolean" default="true">
-       <!-- sag -->
+      <xs:attribute name="ptnucl" type="xs:boolean" default="true"> <!-- sag -->
        <xs:annotation>
-        <xs:documentation>
-         ptnucl is true if the nuclei are to be
-         treated as point charges, if .false.
-         ! the nuclei have a finite
+        <xs:documentation> ptnucl is true if the nuclei are to be treated as point charges, if .false. ! the nuclei have a finite
          spherical distribution.
 </xs:documentation>
        </xs:annotation>
@@ -1741,19 +1344,14 @@
      <xs:complexType>
       <xs:annotation>
        <xs:documentation>
-        tructural optimisation run starting from the atomic
-        densities,
-        with atomic positions written to
+        tructural optimisation run starting from the atomic densities, with atomic positions written to
         <pre>GEOMETRY.OUT</pre>
         .
        </xs:documentation>
       </xs:annotation>
       <xs:attribute name="epsforce" type="fortrandouble" default="5e-5">
        <xs:annotation>
-        <xs:documentation> convergence tolerance for the forces
-         during a
-         structural optimisation run.
-                </xs:documentation>
+        <xs:documentation> convergence tolerance for the forces during a structural optimisation run. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="tau0atm" type="fortrandouble" default="0.2d0">
@@ -1766,9 +1364,7 @@
          is updated on step
          <inlinemath>m</inlinemath>
          of a structural optimisation run using
-         <displaymath> {\bf r}_{\alpha}^{m+1}={\bf
-          r}_{\alpha}^m+\tau_{\alpha}^m \left({ \bf
-          F}_{\alpha}^m+{ \bf
+         <displaymath> {\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m \left({ \bf F}_{\alpha}^m+{ \bf
           F}_{\alpha}^{m-1}\right), </displaymath>
          where
          <inlinemath>\tau_{\alpha}</inlinemath>
@@ -1776,10 +1372,7 @@
          <pre>tau0atm</pre>
          for
          <inlinemath>m=0</inlinemath>
-         , and incremented by the same amount if the atom is
-         moving in
-         the same direction between steps. If the
-         direction changes
+         , and incremented by the same amount if the atom is moving in the same direction between steps. If the direction changes
          then
          <inlinemath>\tau_{\alpha}</inlinemath>
          is reset to
@@ -1791,8 +1384,7 @@
       <xs:attribute name="resume" type="xs:boolean" default="false">
        <xs:annotation>
         <xs:documentation>
-         Resumption of structural optimisation run using
-         density in
+         Resumption of structural optimisation run using density in
          <pre>STATE.OUT</pre>
          but with positions from
          <pre>exciting.in</pre>
@@ -1804,10 +1396,8 @@
     </xs:element>
     <xs:element name="properties" maxOccurs="1" minOccurs="0">
      <xs:annotation>
-      <xs:documentation>Properties listed in this element can be
-       calculated from the groundstate. It works also from a
-       saved state from a previous run.
-            </xs:documentation>
+      <xs:documentation>Properties listed in this element can be calculated from the groundstate. It works also from a
+       saved state from a previous run. </xs:documentation>
      </xs:annotation>
      <xs:complexType>
       <xs:all>
@@ -1817,8 +1407,7 @@
         </xs:annotation>
         <xs:complexType>
          <xs:annotation>
-          <xs:documentation> Create a bandstructure. Must contain plot1d element for bandstructure path.
-                    </xs:documentation>
+          <xs:documentation> Create a bandstructure. Must contain plot1d element for bandstructure path. </xs:documentation>
          </xs:annotation>
          <xs:all>
           <xs:element ref="plot1d" />
@@ -1830,10 +1419,7 @@
          </xs:attribute>
          <xs:attribute name="character" type="xs:boolean" default="false">
           <xs:annotation>
-           <xs:documentation> Band structure plot which
-            includes angular
-            momentum characters for every
-            atom.</xs:documentation>
+           <xs:documentation> Band structure plot which includes angular momentum characters for every atom.</xs:documentation>
           </xs:annotation>
          </xs:attribute>
         </xs:complexType>
@@ -1847,13 +1433,11 @@
        </xs:element>
        <xs:element name="wfplot" maxOccurs="1" minOccurs="0">
         <xs:annotation>
-         <xs:documentation> wavefunction plot.
-                  </xs:documentation>
+         <xs:documentation> wavefunction plot. </xs:documentation>
         </xs:annotation>
         <xs:complexType>
          <xs:annotation>
-          <xs:documentation> Plot the wave function at a set
-           of kpoints
+          <xs:documentation> Plot the wave function at a set of kpoints
 </xs:documentation>
          </xs:annotation>
          <xs:all>
@@ -1871,101 +1455,65 @@
        <xs:element name="dos" maxOccurs="1" minOccurs="0">
         <xs:annotation>
          <xs:documentation>
-          If present a DOS calculation is started.          <p />          DOS and optics plots require integrals of the kind
-          <displaymath>
-           g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ}
-           f({ \bf k}) \delta(\omega_i-e({\bf k}))d{ \bf k}.
+          If present a DOS calculation is started.
+          <p />
+          DOS and optics plots require integrals of the kind
+          <displaymath> g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ} f({ \bf k}) \delta(\omega_i-e({\bf k}))d{ \bf k}.
 </displaymath>
-          These are calculated by first interpolating the
-          functions
+          These are calculated by first interpolating the functions
           <inlinemath>e({ \bf k})</inlinemath>
           and
           <inlinemath>f({ \bf k})</inlinemath>
-          with the trilinear method on a much finer mesh whose
-          size is
-          determined by
+          with the trilinear method on a much finer mesh whose size is determined by
           <pre>ngrdos</pre>
           . Then the
           <inlinemath>\omega</inlinemath>
-          -dependent histogram of the integrand is accumulated
-          over the
-          fine mesh. If the output function is noisy
-          then either
+          -dependent histogram of the integrand is accumulated over the fine mesh. If the output function is noisy then either
           <pre>ngrdos</pre>
           should be increased or
           <pre>nwdos</pre>
-          decreased. Alternatively, the output function can be
-          artificially smoothed up to a level given by
+          decreased. Alternatively, the output function can be artificially smoothed up to a level given by
           <pre>nsmdos</pre>
-          . This is the number of successive 3-point averages
-          to be
-          applied to the function
+          . This is the number of successive 3-point averages to be applied to the function
           <inlinemath>g</inlinemath>
           .
          </xs:documentation>
         </xs:annotation>
         <xs:complexType>
-         <xs:attribute name="sqados" default="0.0  0.0  1.0" type="vect3d">
+         <xs:attribute name="sqados" default="0.0 0.0 1.0" type="vect3d">
           <xs:annotation>
-           <xs:documentation>
-            spin-quantisation axis in Cartesian
-            coordinates
-            used when plotting the spin-resolved DOS
-            (z-axis
-            by
+           <xs:documentation> spin-quantisation axis in Cartesian coordinates used when plotting the spin-resolved DOS (z-axis by
             default)
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="lmirep" type="xs:boolean" default="false">
           <xs:annotation>
-           <xs:documentation> When lmirep is set to true,
-            the spherical
-            harmonic basis is transformed into
-            one in which the site
-            symmetries are
-            block
-            diagonal. Band characters determined from
-            the
-            density ma- trix expressed in this basis
-            correspond to
-            irreducible representations,
-            and
-            allow the partial DOS to be
-            resolved into
-            physically relevant contributions, for example
-            eg and t2g .</xs:documentation>
+           <xs:documentation> When lmirep is set to true, the spherical harmonic basis is transformed into one in which the site
+            symmetries are block diagonal. Band characters determined from the density ma- trix expressed in this basis correspond
+            to irreducible representations, and allow the partial DOS to be resolved into physically relevant contributions, for
+            example eg and t2g .</xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="nwdos" type="xs:integer" default="500">
           <xs:annotation>
-           <xs:documentation> number of frequency/energy
-            points in the
-            DOS 
-                      </xs:documentation>
+           <xs:documentation> number of frequency/energy points in the DOS </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="ngrdos" type="xs:integer" default="100">
           <xs:annotation>
-           <xs:documentation> effective k-point mesh size to
-            be used for
-            Brillouin zone integration.
-                      </xs:documentation>
+           <xs:documentation> effective k-point mesh size to be used for Brillouin zone integration. </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute ref="scissor" />
          <xs:attribute name="nsmdos" type="xs:integer" default="0">
           <xs:annotation>
-           <xs:documentation> level of smoothing applied to
-            DOS/optics
-            output integer 0</xs:documentation>
+           <xs:documentation> level of smoothing applied to DOS/optics output integer 0</xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="winddos" default=".5 .5" type="vect2d">
           <xs:annotation>
-           <xs:documentation> frequency/energy window for the
-            DOS or
-            optics plot</xs:documentation>
+           <xs:documentation> frequency/energy window for the DOS or optics plot</xs:documentation>
            <xs:appinfo>
             <oldname>wdos</oldname>
            </xs:appinfo>
@@ -2004,39 +1552,27 @@
         <xs:complexType>
          <xs:attribute name="deltaem" type="fortrandouble" default="0.025d0">
           <xs:annotation>
-           <xs:documentation> The size of the k-vector
-            displacement used
-            when calculating numerical
-            derivatives for the effective
-            mass
-            tensor.
-                      </xs:documentation>
+           <xs:documentation> The size of the k-vector displacement used when calculating numerical derivatives for the effective
+            mass tensor. </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="ndspem" type="xs:integer" default="1">
           <xs:annotation>
-           <xs:documentation> the number of k-vector
-            displacements in
-            each direction around vklem
-            when computing the numerical
-            derivatives for the
-            effective mass tensor.</xs:documentation>
+           <xs:documentation> the number of k-vector displacements in each direction around vklem when computing the numerical
+            derivatives for the effective mass tensor.</xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="vklem" type="vect3d" default="0 0 0">
           <xs:annotation>
-           <xs:documentation> the k-point in lattice
-            coordinates at which
-            to compute the effective
-            mass tensors.</xs:documentation>
+           <xs:documentation> the k-point in lattice coordinates at which to compute the effective mass tensors.
+           </xs:documentation>
           </xs:annotation>
          </xs:attribute>
         </xs:complexType>
        </xs:element>
        <xs:element name="chargedensityplot" maxOccurs="1" minOccurs="0">
         <xs:annotation>
-         <xs:documentation> Plot the charge density
-                  </xs:documentation>
+         <xs:documentation> Plot the charge density </xs:documentation>
         </xs:annotation>
         <xs:complexType>
          <xs:all>
@@ -2048,9 +1584,7 @@
        </xs:element>
        <xs:element name="exccplot" maxOccurs="1" minOccurs="0">
         <xs:annotation>
-         <xs:documentation> exchange-correlation and Coulomb
-          potential
-          plots.</xs:documentation>
+         <xs:documentation> exchange-correlation and Coulomb potential plots.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
          <xs:all>
@@ -2062,8 +1596,7 @@
        </xs:element>
        <xs:element name="elfplot" maxOccurs="1" minOccurs="0">
         <xs:annotation>
-         <xs:documentation> electron localisation function
-          (ELF)
+         <xs:documentation> electron localisation function (ELF)
 </xs:documentation>
         </xs:annotation>
         <xs:complexType>
@@ -2088,9 +1621,7 @@
        </xs:element>
        <xs:element name="xcmvecfield" maxOccurs="1" minOccurs="0">
         <xs:annotation>
-         <xs:documentation> plot of exchange-correlation
-          magnetic vector
-          field</xs:documentation>
+         <xs:documentation> plot of exchange-correlation magnetic vector field</xs:documentation>
         </xs:annotation>
         <xs:complexType>
          <xs:all>
@@ -2112,9 +1643,7 @@
        </xs:element>
        <xs:element name="gradmvecfield" maxOccurs="1" minOccurs="0">
         <xs:annotation>
-         <xs:documentation> plot of he gradient of the magnetic
-          vector
-          field.</xs:documentation>
+         <xs:documentation> plot of he gradient of the magnetic vector field.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
          <xs:all>
@@ -2131,14 +1660,10 @@
         <xs:complexType>
          <xs:attribute name="nstfsp" type="xs:integer" default="6">
           <xs:annotation>
-           <xs:documentation> number of states to be included
-            in the
-            Fermi surface plot file
-                      </xs:documentation>
+           <xs:documentation> number of states to be included in the Fermi surface plot file </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="separate" type="xs:boolean" />
-
         </xs:complexType>
        </xs:element>
        <xs:element name="EFG" maxOccurs="1" minOccurs="0">
@@ -2159,10 +1684,7 @@
          <xs:sequence>
           <xs:element name="optcomp" type="integertriple" default="1 1 1" maxOccurs="27">
            <xs:annotation>
-            <xs:documentation> the components of the first-
-             or
-             second-order optical tensor to be
-             calculated
+            <xs:documentation> the components of the first- or second-order optical tensor to be calculated
 </xs:documentation>
            </xs:annotation>
           </xs:element>
@@ -2188,8 +1710,7 @@
         <xs:complexType>
          <xs:attribute name="vecql" type="vect3d">
           <xs:annotation>
-           <xs:documentation>q-vector in lattice coordinates for
-            calculating ELNES
+           <xs:documentation>q-vector in lattice coordinates for calculating ELNES
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
@@ -2199,9 +1720,7 @@
         <xs:complexType>
          <xs:attribute name="mustar" type="fortrandouble" default="0.15">
           <xs:annotation>
-           <xs:documentation> Coulomb pseudopotential, μ*,
-            used in the
-            McMillan-Allen-Dynes equation
+           <xs:documentation> Coulomb pseudopotential, μ*, used in the McMillan-Allen-Dynes equation
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
@@ -2217,15 +1736,11 @@
      </xs:annotation>
      <xs:complexType>
       <xs:annotation>
-       <xs:documentation> The phonon element must contain one or
-        more
-        q-point elements</xs:documentation>
+       <xs:documentation> The phonon element must contain one or more q-point elements</xs:documentation>
       </xs:annotation>
       <xs:all>
-       <xs:element ref="qpointset" minOccurs="1" maxOccurs="1">
-        <!-- sag: should be mapped to "ngridq" for phonon calc. -->
+       <xs:element ref="qpointset" minOccurs="1" maxOccurs="1"> <!-- sag: should be mapped to "ngridq" for phonon calc. -->
        </xs:element>
-
        <xs:element name="phonondos" maxOccurs="1" minOccurs="0">
         <xs:annotation>
          <xs:documentation>
@@ -2237,8 +1752,7 @@
        </xs:element>
        <xs:element name="phonondispplot" maxOccurs="1" minOccurs="0">
         <xs:annotation>
-         <xs:documentation> Phonon dispersion plot.
-                  </xs:documentation>
+         <xs:documentation> Phonon dispersion plot. </xs:documentation>
         </xs:annotation>
         <xs:complexType>
          <xs:sequence>
@@ -2246,13 +1760,11 @@
          </xs:sequence>
         </xs:complexType>
        </xs:element>
-      </xs:all>
-      <!--
+      </xs:all> <!--
 sag: phwrite-block: allocate(vqlwrt(3,nphwrt)); another q-point
 list
 -->
-      <xs:attribute name="reduceq" type="xs:boolean" default="true">
-       <!-- sag -->
+      <xs:attribute name="reduceq" type="xs:boolean" default="true"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>
          <pre>reduceq</pre>
@@ -2262,27 +1774,18 @@ list
          <inlinemath>
           <bf>q</bf>
          </inlinemath>
-         -point set is to be reduced with the crystal
-         symmetries.
+         -point set is to be reduced with the crystal symmetries.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="deltaph" type="fortrandouble" default="0.03">
-       <!-- sag -->
+      <xs:attribute name="deltaph" type="fortrandouble" default="0.03"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>
-         Phonon calculations are performed by constructing a supercell
-         corresponding to a particular
+         Phonon calculations are performed by constructing a supercell corresponding to a particular
          <inlinemath>{\bf q}</inlinemath>
-         -vector and making a small
-         periodic displacement of the atoms.
-         The magnitude of
-         this displacement is given by deltaph. This
-         should not be made too large,
-         as anharmonic terms could then
-         become significant, neither should it be too small
-         as this can
-         introduce numerical error.
+         -vector and making a small periodic displacement of the atoms. The magnitude of this displacement is given by deltaph.
+         This should not be made too large, as anharmonic terms could then become significant, neither should it be too small as
+         this can introduce numerical error.
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
@@ -2291,12 +1794,8 @@ list
     <xs:element name="xs" minOccurs="0" maxOccurs="1">
      <xs:annotation>
       <xs:documentation>If this element is present with valid configuration, the macroscopic dielectric function and related
-       spectroscopic
-       quantities in the linear regime are calculated
-       through either time-dependent
-       DFT (TDDFT) or the Bethe-Salpeter
-       equation (BSE). 
-            </xs:documentation>
+       spectroscopic quantities in the linear regime are calculated through either time-dependent DFT (TDDFT) or the
+       Bethe-Salpeter equation (BSE). </xs:documentation>
      </xs:annotation>
      <xs:complexType>
       <xs:all>
@@ -2470,9 +1969,7 @@ list
          </xs:attribute>
          <xs:attribute name="resumefromkernel" type="xs:boolean" default="false">
           <xs:annotation>
-           <xs:documentation>
-            true if the TDDFT calculation is to be resumed starting
-            from a new xc kernel.
+           <xs:documentation> true if the TDDFT calculation is to be resumed starting from a new xc kernel.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
@@ -2745,8 +2242,7 @@ list
               </xs:appinfo>
              </xs:annotation>
              <xs:simpleType>
-              <xs:restriction base="xs:string">
-               <!-- required workflow tasks below-->
+              <xs:restriction base="xs:string"> <!-- required workflow tasks below-->
                <xs:enumeration value="xsgeneigvec">
                 <xs:annotation>
                  <xs:appinfo>
@@ -2760,8 +2256,7 @@ list
                  <xs:appinfo>
                   <oldnr>310</oldnr>
                  </xs:appinfo>
-                 <xs:documentation>
-                  Calculate frequency-dependent weights for convolutions using the linear tetrahedron method
+                 <xs:documentation> Calculate frequency-dependent weights for convolutions using the linear tetrahedron method
                  </xs:documentation>
                 </xs:annotation>
                </xs:enumeration>
@@ -2794,11 +2289,8 @@ list
                  <xs:appinfo>
                   <oldnr>345</oldnr>
                  </xs:appinfo>
-                 <xs:documentation>
-                  Calculate the Kohn-Sham response function taking into account the rigid shift of the BSE
-                  diagonal. This is not a
-                  duplicate task, as the task-Nr. is referenced. checked in the code !
-                        </xs:documentation>
+                 <xs:documentation> Calculate the Kohn-Sham response function taking into account the rigid shift of the BSE
+                  diagonal. This is not a duplicate task, as the task-Nr. is referenced. checked in the code ! </xs:documentation>
                 </xs:annotation>
                </xs:enumeration>
                <xs:enumeration value="idf">
@@ -2806,11 +2298,8 @@ list
                  <xs:appinfo>
                   <oldnr>350</oldnr>
                  </xs:appinfo>
-                 <xs:documentation>
-                  Set up simple xc-kernels, solve Dyson's equation for the full polarizability and determine the
-                  macroscopic
-                  dielectric function and other spectroscopic quantities.
-                        </xs:documentation>
+                 <xs:documentation> Set up simple xc-kernels, solve Dyson's equation for the full polarizability and determine the
+                  macroscopic dielectric function and other spectroscopic quantities. </xs:documentation>
                 </xs:annotation>
                </xs:enumeration>
                <xs:enumeration value="scrgeneigvec">
@@ -2826,10 +2315,8 @@ list
                  <xs:appinfo>
                   <oldnr>410</oldnr>
                  </xs:appinfo>
-                 <xs:documentation>
-                  Calculate frequency-dependent weights for convolutions using the linear tetrahedron method for
-                  screening
-                 </xs:documentation>
+                 <xs:documentation> Calculate frequency-dependent weights for convolutions using the linear tetrahedron method for
+                  screening </xs:documentation>
                 </xs:annotation>
                </xs:enumeration>
                <xs:enumeration value="scrwritepmat">
@@ -2877,12 +2364,10 @@ list
                  <xs:appinfo>
                   <oldnr>450</oldnr>
                  </xs:appinfo>
-                 <xs:documentation>
-                  Calculate frequency dependent xc-kernel drived from the Bethe-Salpeter equation in first order
+                 <xs:documentation> Calculate frequency dependent xc-kernel drived from the Bethe-Salpeter equation in first order
                  </xs:documentation>
                 </xs:annotation>
-               </xs:enumeration>
-               <!-- experimental and debugging tasks below-->
+               </xs:enumeration> <!-- experimental and debugging tasks below-->
                <xs:enumeration value="writebandgapgrid">
                 <xs:annotation>
                  <xs:appinfo>
@@ -3012,8 +2497,7 @@ list
                  </xs:appinfo>
                  <xs:documentation>test timing</xs:documentation>
                 </xs:annotation>
-               </xs:enumeration>
-               <!-- debugging main part-->
+               </xs:enumeration> <!-- debugging main part-->
                <xs:enumeration value="testmain">
                 <xs:annotation>
                  <xs:appinfo>
@@ -3021,8 +2505,7 @@ list
                  </xs:appinfo>
                  <xs:documentation>debug routine main part of code</xs:documentation>
                 </xs:annotation>
-               </xs:enumeration>
-               <!-- import/export tasks below-->
+               </xs:enumeration> <!-- import/export tasks below-->
                <xs:enumeration value="portstate(1)">
                 <xs:annotation>
                  <xs:appinfo>
@@ -3066,10 +2549,8 @@ list
       </xs:all>
       <xs:attribute name="emattype" type="xs:integer" default="1">
        <xs:annotation>
-        <xs:documentation>
-         Type of matrix element generation (band-combinations). Should only be referenced for experimental
-         features.
-        </xs:documentation>
+        <xs:documentation> Type of matrix element generation (band-combinations). Should only be referenced for experimental
+         features. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="dfoffdiag" type="xs:boolean" default="false">
@@ -3118,25 +2599,17 @@ list
          <xs:enumeration value="BSE" />
         </xs:restriction>
        </xs:simpleType>
-      </xs:attribute>
-      <!-- Here are experimental parameters -->
+      </xs:attribute> <!-- Here are experimental parameters -->
       <xs:attribute name="symmorph" type="xs:boolean" default="false">
        <xs:annotation>
-        <xs:documentation>
-         True if only symmorphic space-group operations are to be considered, i.e. only symmetries without
-         non-primitive translations
-         are
-         allowed.
-      </xs:documentation>
+        <xs:documentation> True if only symmorphic space-group operations are to be considered, i.e. only symmetries without
+         non-primitive translations are allowed. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="fastpmat" type="xs:boolean" default="true">
        <xs:annotation>
-        <xs:documentation>
-         if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in
-         the muffin-tin is
-         used.
-      </xs:documentation>
+        <xs:documentation> if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in
+         the muffin-tin is used. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="fastemat" type="xs:boolean" default="true">
@@ -3151,18 +2624,14 @@ list
       <xs:attribute name="gather" type="xs:boolean" default="false" />
       <xs:attribute name="tappinfo" type="xs:boolean" default="false" />
       <xs:attribute name="dbglev" type="xs:integer" default="0" />
-      <xs:attribute name="usegdft" type="xs:boolean" default="false">
-       <!-- used from src_optics/mod_DOS_optics_response.F90 -->
+      <xs:attribute name="usegdft" type="xs:boolean" default="false"> <!-- used from src_optics/mod_DOS_optics_response.F90 -->
       </xs:attribute>
       <xs:attribute name="gqmax" type="fortrandouble" default="0">
        <xs:annotation>
         <xs:documentation>|G+q| cutoff for Kohn-Sham response function, screening and for expansion of Coulomb potential
         </xs:documentation>
        </xs:annotation>
-      </xs:attribute>
-      <!--
-       section of parameters from groundstate which are allowed to be different from the ones of the ground state run
-      -->
+      </xs:attribute> <!-- section of parameters from groundstate which are allowed to be different from the ones of the ground state run -->
       <xs:attribute name="nosym" type="xs:boolean" default="false">
        <xs:annotation>
         <xs:appinfo>
@@ -3263,28 +2732,18 @@ list
    <xs:attribute name="xsltpath" type="xs:anyURI" default="../../xml" />
    <xs:attribute name="scratchpath" type="xs:anyURI" use="optional">
     <xs:annotation>
-     <xs:documentation>This is the path to scratch space where
-      the
-      eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will
-      be
-      written. If the
-      local directory is accessed via a network then
-      scrpath can be set to a directory
-      on a local disk
+     <xs:documentation>This is the path to scratch space where the eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will
+      be written. If the local directory is accessed via a network then scrpath can be set to a directory on a local disk
      </xs:documentation>
     </xs:annotation>
    </xs:attribute>
    <xs:attribute name="id" type="xs:ID">
     <xs:annotation>
-     <xs:documentation>The id is a unique identifier in an input
-      set. The inputset element is currently not used by the exciting
-      code.
-
-</xs:documentation>
+     <xs:documentation>The id is a unique identifier in an input set. The inputset element is currently not used by the
+      exciting code.</xs:documentation>
     </xs:annotation>
    </xs:attribute>
-   <xs:attribute name="depends" type="xs:IDREFS">
-    <!--
+   <xs:attribute name="depends" type="xs:IDREFS"> <!--
 <xs:simpleType> <xs:list itemType="xs:IDREF"/> </xs:simpleType>
 -->
     <xs:annotation>
