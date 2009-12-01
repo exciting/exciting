@@ -1255,7 +1255,7 @@
          <xs:enumeration value="none">
           <xs:annotation>
            <xs:appinfo>
-            <oldnr>0</oldnr>
+            <oldnr>1</oldnr>
            </xs:appinfo>
           </xs:annotation>
          </xs:enumeration>
