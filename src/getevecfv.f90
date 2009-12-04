@@ -5,11 +5,48 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 !
+!BOP
+! !ROUTINE: getevecfv
+! !INTERFACE:
 !
 Subroutine getevecfv (vpl, vgpl, evecfv)
+! !USES:
       Use modmain
       Use modinput
       Use modmpi
+! !DESCRIPTION:
+!   The file where the (first-variational) eigenvectors are stored is {\tt EVECFV.OUT}.
+!   It is a direct-access binary file, the record length of which can be determined
+!   with the help of the array sizes and data type information.
+!   One record of this file corresponds to one k-point in the irreducible
+!   Brillouin zone and has the following structure
+!
+!   \begin{tabular}{|l|l|l|l|l|}
+!   \hline
+!   $k_{\rm lat}$ & $N_{\rm mat}$ & $N_{\rm stfv}$ & $N_{\rm spfv}$ & $\Phi$ \\
+!   \hline
+!   \end{tabular}\newline\newline
+!   The following table explains the parts of the record in more detail
+!
+!   \begin{tabular}{|l|l|l|l|}
+!   \hline
+!   name & type & shape & description\\
+!   \hline \hline
+!   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
+!   $N_{\rm mat}$ & integer & 1 & (L)APW basis size including local orbitals \\
+!    &  &  & (maximum over k-points) \\ \hline
+!   $N_{\rm stfv}$ & integer & 1 & number of (first-variational) states \\
+!    &  &  & (without core states) \\ \hline
+!   $N_{\rm spfv}$ & integer & 1 & first-variational spins (always equals 1) \\ \hline
+!   $\Phi$ & complex(8) & $N_{\rm mat}\times N_{\rm stfv}\times N_{\rm spfv}$ &
+!         eigenvector array \\
+!   \hline
+!   \end{tabular}\newline\newline
+!
+! !REVISION HISTORY:
+!   Documentation added, Dec 2009 (SAG)
+!EOP
+!BOC
       Implicit None
   ! arguments
       Real (8), Intent (In) :: vpl (3)
@@ -226,6 +263,9 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       Deallocate (evecfvt)
       Return
 End Subroutine getevecfv
+!EOC
+
+
 !
 Module m_getevecfvr
       Implicit None

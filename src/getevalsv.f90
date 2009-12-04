@@ -6,10 +6,43 @@
 ! See the file COPYING for license details.
 !
 !
+!BOP
+! !ROUTINE: getevalsv
+! !INTERFACE:
+!
 Subroutine getevalsv (vpl, evalsvp)
+! !USES:
       Use modmain
       Use modinput
       Use modmpi
+! !DESCRIPTION:
+!   The file where the (second-variational) eigenvalues are stored is {\tt EVALSV.OUT}.
+!   It is a direct-access binary file, the record length of which can be determined
+!   with the help of the array sizes and data type information.
+!   One record of this file has the following structure
+!
+!   \begin{tabular}{|l|l|l|}
+!   \hline
+!   $k_{\rm lat}$ & $N_{\rm stsv}$ & $E$ \\
+!   \hline
+!   \end{tabular}\newline\newline
+!   The following table explains the parts of the record in more detail
+!
+!   \begin{tabular}{|l|l|l|l|}
+!   \hline
+!   name & type & shape & description\\
+!   \hline \hline
+!   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
+!   $N_{\rm stsv}$ & integer & 1 & number of (second-variational) states \\
+!    &  &  & (without core states) \\ \hline
+!   $E$ & real(8) & $N_{\rm stsv}$ & eigenvalue array \\
+!   \hline
+!   \end{tabular}\newline\newline
+!
+! !REVISION HISTORY:
+!   Documentation added, Dec 2009 (SAG)
+!EOP
+!BOC
       Implicit None
   ! arguments
       Real (8), Intent (In) :: vpl (3)
@@ -111,7 +144,8 @@ Subroutine getevalsv (vpl, evalsvp)
 #endif
       Return
 End Subroutine getevalsv
-!
+!EOC
+
 Module m_getevalsvr
       Implicit None
 Contains

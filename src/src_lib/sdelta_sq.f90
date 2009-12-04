@@ -14,7 +14,7 @@ Real (8) Function sdelta_sq (x)
 ! !DESCRIPTION:
 !   Returns the square-wave pulse approximation to the Dirac delta function
 !   $$ \tilde\delta(x)=\left\{\begin{array}{ll}
-!    1 & \quad |x|\le 1/2 \&
+!    1 & \quad |x|\le 1/2 \\
 !    0 & \quad |x|>1/2 \end{array}\right. $$
 !
 ! !REVISION HISTORY:

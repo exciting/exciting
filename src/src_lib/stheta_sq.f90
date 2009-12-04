@@ -15,8 +15,8 @@ Real (8) Function stheta_sq (x)
 !   Returns the Heaviside step function corresponding to the square-wave pulse
 !   approximation to the Dirac delta function
 !   $$ \tilde\Theta(x)=\left\{\begin{array}{ll}
-!    0 & \quad x \le -1/2 \&
-!    x+1/2 & \quad -1/2 < x < 1/2 \&
+!    0 & \quad x \le -1/2 \\
+!    x+1/2 & \quad -1/2 < x < 1/2 \\
 !    1 & \quad x\ge 1 \end{array}\right. $$
 !
 ! !REVISION HISTORY:

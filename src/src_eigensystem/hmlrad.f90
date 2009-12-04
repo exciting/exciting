@@ -19,7 +19,7 @@ Subroutine hmlrad
 !   basis functions. In other words, for spin $\sigma$ and atom $j$ of species
 !   $i$, it computes integrals of the form
 !   $$ h^{\sigma;ij}_{qq';ll'l''m''}=\begin{cases}
-!    \int_0^{R_i}u^{\sigma;ij}_{q;l}(r)Hu^{\sigma;ij}_{q';l'}(r)r^2dr & l''=0 \&
+!    \int_0^{R_i}u^{\sigma;ij}_{q;l}(r)Hu^{\sigma;ij}_{q';l'}(r)r^2dr & l''=0 \\
 !    \int_0^{R_i}u^{\sigma;ij}_{q;l}(r)V^{\sigma;ij}_{l''m''}(r)
 !    u^{\sigma;ij}_{q';l'}(r)r^2dr & l''>0 \end{cases}, $$
 !   where $u^{\sigma;ij}_{q;l}$ is the $q$th APW radial function for angular

@@ -20,8 +20,8 @@ Subroutine ztorflm (lmax, zflm, rflm)
 ! !DESCRIPTION:
 !   Converts a real function, $z_{lm}$, expanded in terms of complex spherical
 !   harmonics into a real spherical harmonic expansion, $r_{lm}$:
-!   $$ r_{lm}=\begin{cases}\frac{1}{\sqrt{2}}\Re(z_{lm}+(-1)^m z_{l-m}) & m>0 \&
-!    \frac{1}{\sqrt{2}}\Im(-z_{lm}+(-1)^m z_{l-m}) & m<0 \&
+!   $$ r_{lm}=\begin{cases}\frac{1}{\sqrt{2}}\Re(z_{lm}+(-1)^m z_{l-m}) & m>0 \\
+!    \frac{1}{\sqrt{2}}\Im(-z_{lm}+(-1)^m z_{l-m}) & m<0 \\
 !    \Re(z_{lm}) & m=0 \end{cases}\;. $$
 !   See routine {\tt genrlm}.
 !

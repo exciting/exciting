@@ -67,7 +67,7 @@ Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
 !    \rho_{ij;lm}^{\rm P}\exp(-i{\bf G}\cdot{\bf r}_{ij})Y_{lm}(\hat{\bf G}) $$
 !   which may be used for solving Poisson's equation directly
 !   $$ V^{\rm P}({\bf G})=\begin{cases}
-!     4\pi\frac{\rho^{\rm P}({\bf G})}{G^2} & G>0 \&
+!     4\pi\frac{\rho^{\rm P}({\bf G})}{G^2} & G>0 \\
 !     0 & G=0 \end{cases}\;. $$
 !   The usual Green's function approach is then employed to determine the
 !   potential in the muffin-tin sphere due to charge in the sphere. In other

@@ -21,8 +21,8 @@ Subroutine genrlm (lmax, tp, rlm)
 !   array {\tt rlm} indexed with $j=l(l+1)+m+1$. Real spherical harmonics are
 !   defined by
 !   $$ R_{lm}(\theta,\phi)= \begin{cases}
-!     \sqrt{2}\,\Re\{Y_{lm}(\theta,\phi)\} & m>0 \&
-!     \sqrt{2}\,\Im\{Y_{lm}(\theta,\phi)\} & m<0 \&
+!     \sqrt{2}\,\Re\{Y_{lm}(\theta,\phi)\} & m>0 \\
+!     \sqrt{2}\,\Im\{Y_{lm}(\theta,\phi)\} & m<0 \\
 !     \Re\{Y_{lm}(\theta,\phi)\} & m=0
 !    \end{cases}, $$
 !   where $Y_{lm}$ are the complex spherical harmonics. These functions are

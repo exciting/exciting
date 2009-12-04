@@ -32,7 +32,7 @@ Subroutine rotzflm (rot, lmax, n, ld, zflm1, zflm2)
 !   matrix $D$ is given explicitly by
 !   \begin{align*}
 !    D^l_{mm'}(\alpha,\beta,\gamma)=&\sum_i\frac{(-1)^i\sqrt{(l+m)!(l-m)!(l+m')!
-!    (l-m')!}}{(l-m'-i)!(l+m-i)!i!(i+m'-m)!}\&
+!    (l-m')!}}{(l-m'-i)!(l+m-i)!i!(i+m'-m)!}\\
 !    &\times\left(\cos\frac{\beta}{2}\right)^{2l+m-m'-2i}\left(\sin\frac{\beta}
 !    {2}\right)^{2i+m'-m}e^{-i(m\alpha+m'\gamma)},
 !   \end{align*}

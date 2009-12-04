@@ -8,6 +8,7 @@
 !BOP
 !
 !
+! !INTERFACE:
 Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
 & vtlsymc, scmut, tabel)
 ! !DESCRIPTION:
