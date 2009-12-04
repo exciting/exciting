@@ -6,10 +6,46 @@
 ! See the file COPYING for license details.
 !
 !
+!BOP
+! !ROUTINE: getevecsv
+! !INTERFACE:
+!
 Subroutine getevecsv (vpl, evecsv)
+! !USES:
       Use modmain
       Use modinput
       Use modmpi
+! !DESCRIPTION:
+!   The file where the (second-variational) eigenvectors are stored is
+!   {\tt EVECSV.OUT}.
+!   It is a direct-access binary file, the record length of which can be
+!   determined
+!   with the help of the array sizes and data type information.
+!   One record of this file has the following structure
+!
+!   \begin{tabular}{|l|l|l|}
+!   \hline
+!   $k_{\rm lat}$ & $N_{\rm stsv}$ & $\Phi$ \\
+!   \hline
+!   \end{tabular}\newline\newline
+!   The following table explains the parts of the record in more detail
+!
+!   \begin{tabular}{|l|l|l|l|}
+!   \hline
+!   name & type & shape & description\\
+!   \hline \hline
+!   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
+!   $N_{\rm stsv}$ & integer & 1 & number of (second-variational) states \\
+!    &  &  & (without core states) \\ \hline
+!   $\Phi$ & complex(8) & $N_{\rm stsv}\times N_{\rm stsv}$ &
+!         (second-variational) eigenvector array \\
+!   \hline
+!   \end{tabular}\newline\newline
+!
+! !REVISION HISTORY:
+!   Documentation added, Dec 2009 (SAG)
+!EOP
+!BOC
       Implicit None
 ! arguments
       Real (8), Intent (In) :: vpl (3)
@@ -133,7 +169,8 @@ Subroutine getevecsv (vpl, evecsv)
       End Do
       Return
 End Subroutine
-!
+!EOC
+
 Module m_getevecsvr
       Implicit None
 Contains

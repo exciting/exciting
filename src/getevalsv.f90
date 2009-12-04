@@ -16,8 +16,10 @@ Subroutine getevalsv (vpl, evalsvp)
       Use modinput
       Use modmpi
 ! !DESCRIPTION:
-!   The file where the (second-variational) eigenvalues are stored is {\tt EVALSV.OUT}.
-!   It is a direct-access binary file, the record length of which can be determined
+!   The file where the (second-variational) eigenvalues are stored is
+!    {\tt EVALSV.OUT}.
+!   It is a direct-access binary file, the record length of which can be
+!   determined
 !   with the help of the array sizes and data type information.
 !   One record of this file has the following structure
 !
@@ -35,7 +37,7 @@ Subroutine getevalsv (vpl, evalsvp)
 !   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
 !   $N_{\rm stsv}$ & integer & 1 & number of (second-variational) states \\
 !    &  &  & (without core states) \\ \hline
-!   $E$ & real(8) & $N_{\rm stsv}$ & eigenvalue array \\
+!   $E$ & real(8) & $N_{\rm stsv}$ & (second-variational) eigenvalue array \\
 !   \hline
 !   \end{tabular}\newline\newline
 !

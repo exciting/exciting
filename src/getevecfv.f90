@@ -15,8 +15,10 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       Use modinput
       Use modmpi
 ! !DESCRIPTION:
-!   The file where the (first-variational) eigenvectors are stored is {\tt EVECFV.OUT}.
-!   It is a direct-access binary file, the record length of which can be determined
+!   The file where the (first-variational) eigenvectors are stored is
+!   {\tt EVECFV.OUT}.
+!   It is a direct-access binary file, the record length of which can be
+!   determined
 !   with the help of the array sizes and data type information.
 !   One record of this file corresponds to one k-point in the irreducible
 !   Brillouin zone and has the following structure
@@ -37,9 +39,10 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !    &  &  & (maximum over k-points) \\ \hline
 !   $N_{\rm stfv}$ & integer & 1 & number of (first-variational) states \\
 !    &  &  & (without core states) \\ \hline
-!   $N_{\rm spfv}$ & integer & 1 & first-variational spins (always equals 1) \\ \hline
+!   $N_{\rm spfv}$ & integer & 1 & first-variational spins (always equals 1)
+!         \\ \hline
 !   $\Phi$ & complex(8) & $N_{\rm mat}\times N_{\rm stfv}\times N_{\rm spfv}$ &
-!         eigenvector array \\
+!        (first-variational) eigenvector array \\
 !   \hline
 !   \end{tabular}\newline\newline
 !

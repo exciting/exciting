@@ -6,10 +6,48 @@
 ! See the file COPYING for license details.
 !
 !
+!BOP
+! !ROUTINE: getevalfv
+! !INTERFACE:
+!
 Subroutine getevalfv (vpl, evalfv)
+! !USES:
       Use modmain
       Use modinput
       Use modmpi
+! !DESCRIPTION:
+!   The file where the (first-variational) eigenvalues are stored is
+!   {\tt EVALFV.OUT}.
+!   It is a direct-access binary file, the record length of which can be
+!   determined
+!   with the help of the array sizes and data type information.
+!   One record of this file has the following structure
+!
+!   \begin{tabular}{|l|l|l|l|}
+!   \hline
+!   $k_{\rm lat}$ & $N_{\rm stfv}$ & $N_{\rm spfv}$ & $E$ \\
+!   \hline
+!   \end{tabular}\newline\newline
+!   The following table explains the parts of the record in more detail
+!
+!   \begin{tabular}{|l|l|l|l|}
+!   \hline
+!   name & type & shape & description\\
+!   \hline \hline
+!   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
+!   $N_{\rm stfv}$ & integer & 1 & number of (first-variational) states \\
+!    &  &  & (without core states) \\ \hline
+!   $N_{\rm spfv}$ & integer & 1 & first-variational spins (always equals 1)
+!       \\ \hline
+!   $E$ & real(8) & $N_{\rm stfv}\times N_{\rm spfv}$ & (first-variational)
+!    eigenvalue array \\
+!   \hline
+!   \end{tabular}\newline\newline
+!
+! !REVISION HISTORY:
+!   Documentation added, Dec 2009 (SAG)
+!EOP
+!BOC
       Implicit None
 ! arguments
       Real (8), Intent (In) :: vpl (3)
@@ -128,7 +166,8 @@ Subroutine getevalfv (vpl, evalfv)
       End If
       Return
 End Subroutine
-!
+!EOC
+
 Module m_getevalfvr
       Implicit None
 Contains
