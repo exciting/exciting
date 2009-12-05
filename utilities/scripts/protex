@@ -206,7 +206,7 @@ ARG:
 #    Determine the type of code, set corresponding search strings
 #    ------------------------------------------------------------
 #    if ( $opt_F ) {            # FORTRAN
-        $comment_string = '!';  # -------
+        $comment_string = '\s*!';  # -------
         $boi_string = '!BOI';
         $eoi_string = '!EOI';
         $bop_string = '!BOP';
