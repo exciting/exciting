@@ -6,10 +6,48 @@
 ! See the file COPYING for license details.
 !
 !
+!BOP
+! !ROUTINE: getoccsv
+! !INTERFACE:
+!
 Subroutine getoccsv (vpl, occsvp)
+! !USES:
       Use modmain
       Use modinput
       Use modmpi
+! !DESCRIPTION:
+!   The file where the (second-variational) occupation numbers are stored is
+!    {\tt OCCSV.OUT}.
+!   The maximum occupancies for spin-unpolarized systems is $2$, whereas for
+!   spin-polarized systems it is $1$.
+!   It is a direct-access binary file, the record length of which can be
+!   determined
+!   with the help of the array sizes and data type information.
+!   One record of this file has the following structure
+!
+!   \begin{tabular}{|l|l|l|}
+!   \hline
+!   $k_{\rm lat}$ & $N_{\rm stsv}$ & $o$ \\
+!   \hline
+!   \end{tabular}\newline\newline
+!   The following table explains the parts of the record in more detail
+!
+!   \begin{tabular}{|l|l|l|l|}
+!   \hline
+!   name & type & shape & description\\
+!   \hline \hline
+!   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
+!   $N_{\rm stsv}$ & integer & 1 & number of (second-variational) states \\
+!    &  &  & (without core states) \\ \hline
+!   $o$ & real(8) & $N_{\rm stsv}$ & (second-variational) occupation number
+!    array \\
+!   \hline
+!   \end{tabular}\newline\newline
+!
+! !REVISION HISTORY:
+!   Documentation added, Dec 2009 (SAG)
+!EOP
+!BOC
       Implicit None
   ! arguments
       Real (8), Intent (In) :: vpl (3)
@@ -110,7 +148,8 @@ Subroutine getoccsv (vpl, occsvp)
 #endif
       Return
 End Subroutine getoccsv
-!
+!EOC
+
 Module m_getoccsvr
       Implicit None
 Contains
