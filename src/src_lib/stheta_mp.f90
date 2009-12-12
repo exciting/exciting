@@ -20,7 +20,7 @@ Real (8) Function stheta_mp (n, x)
 !   where
 !   \begin{align*}
 !    S_N(x)&=S_0(x)+\sum_{i=1}^N \frac{(-1)^i}{i!4^n\sqrt\pi} H_{2i-1}(x)
-!     e^{-x^2},\&
+!     e^{-x^2},\\
 !    S_0(x)&=\frac{1}{2}(1-{\rm erf}(x))
 !   \end{align*}
 !   and $H_j$ is the $j$th-order Hermite polynomial. This procedure is numerically

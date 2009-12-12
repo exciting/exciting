@@ -23,10 +23,10 @@ Subroutine rotaxang (eps, rot, det, v, th)
 !     \left(\begin{matrix}
 !     \cos\theta+x^2(1-\cos\theta) &
 !     xy(1-\cos\theta)+z\sin\theta &
-!     xz(1-\cos\theta)-y\sin\theta \&
+!     xz(1-\cos\theta)-y\sin\theta \\
 !     xy(1-\cos\theta)-z\sin\theta &
 !     \cos\theta+y^2(1-\cos\theta) &
-!     yz(1-\cos\theta)+x\sin\theta \&
+!     yz(1-\cos\theta)+x\sin\theta \\
 !     xz(1-\cos\theta)+y\sin\theta &
 !     yz(1-\cos\theta)-x\sin\theta &
 !     \cos\theta+z^2(1-\cos\theta)

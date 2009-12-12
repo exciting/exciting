@@ -31,7 +31,7 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
 !   predictor-corrector method to solve the coupled first-order equations (in
 !   atomic units)
 !   \begin{align*}
-!    \frac{d}{dr}P^{(m)}_l&=2MQ^{(m)}_l+\frac{1}{r}P^{(m)}_l\&
+!    \frac{d}{dr}P^{(m)}_l&=2MQ^{(m)}_l+\frac{1}{r}P^{(m)}_l\\
 !    \frac{d}{dr}Q^{(m)}_l&=-\frac{1}{r}Q^{(m)}_l+\left[\frac{l(l+1)}{2Mr^2}
 !    +(V-E)\right]P^{(m)}_l-mP^{(m-1)}_l,
 !   \end{align*}
@@ -40,7 +40,7 @@ Subroutine rschrodint (m, l, e, np, nr, r, vr, nn, p0p, p0, p1, q0, q1)
 !   C: Solid State Phys.} {\bf 10}, 3107 (1977), the functions $P_l$ and $Q_l$
 !   are defined by
 !   \begin{align*}
-!    P_l&=rg_l\&
+!    P_l&=rg_l\\
 !    Q_l&=\frac{r}{2M}\frac{dg_l}{dr},
 !   \end{align*}
 !   where $g_l$ is the major component of the Dirac equation (see the routine

@@ -41,8 +41,8 @@ Subroutine genppts (reducep, tfbz, ngridp, boxl, nppt, ipmap, ivp, vpl, &
 !   are referred to as $p$-points. If {\tt reducep} is {\tt .true.} the set is
 !   reduced with the spatial part of the crystal symmetries. In lattice
 !   coordinates, the ${\bf p}$ vectors are given by
-!   $$ {\bf p}=\left(\begin{matrix} & & \&
-!     {\bf B}_2-{\bf B}_1 & {\bf B}_3-{\bf B}_1 & {\bf B}_4-{\bf B}_1 \&
+!   $$ {\bf p}=\left(\begin{matrix} & & \\
+!     {\bf B}_2-{\bf B}_1 & {\bf B}_3-{\bf B}_1 & {\bf B}_4-{\bf B}_1 \\
 !       & & \end{matrix}\right)
 !     \left(\begin{matrix}i_1/n_1 \\ i_2/n_2 \\ i_3/n_3 \end{matrix}\right)
 !     +{\bf B}_1 $$

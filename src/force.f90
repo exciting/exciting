@@ -36,7 +36,7 @@ Subroutine force
 !    \delta H_{\bf G,G'}^{\alpha}&=i({\bf G-G'})
 !    \left(H^{\alpha}_{\bf G+k,G'+k}-\frac{1}{2}({\bf G+k})\cdot({\bf G'+k})
 !    \tilde{\Theta}_{\alpha}({\bf G-G'})e^{-i({\bf G-G'})\cdot{\bf r}_{\alpha}}
-!    \right)\&
+!    \right)\\
 !    \delta O_{\bf G,G'}^{\alpha}&=i({\bf G-G'})\left(O^{\alpha}_{\bf G+k,G'+k}
 !    -\tilde{\Theta}_{\alpha}({\bf G-G'})e^{-i({\bf G-G'})\cdot{\bf r}_{\alpha}}
 !    \right)
@@ -47,7 +47,7 @@ Subroutine force
 !   Hamiltonian and overlap matrices, respectively. The APW-local-orbital part
 !   is given by
 !   \begin{align*}
-!    \delta H_{\bf G,G'}^{\alpha}&=i({\bf G+k})H^{\alpha}_{\bf G+k,G'+k}\&
+!    \delta H_{\bf G,G'}^{\alpha}&=i({\bf G+k})H^{\alpha}_{\bf G+k,G'+k}\\
 !    \delta O_{\bf G,G'}^{\alpha}&=i({\bf G+k})O^{\alpha}_{\bf G+k,G'+k}
 !   \end{align*}
 !   where ${\bf G}$ runs over the APW indices and ${\bf G'}$ runs over the

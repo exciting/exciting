@@ -37,7 +37,7 @@ Subroutine rdiracint (m, kpa, e, np, nr, r, vr, nn, g0p, f0p, g0, g1, &
 !   the coupled first-order equations (in atomic units)
 !   \begin{align*}
 !    \left(\frac{d}{dr}+\frac{\kappa}{r}\right)G^{(m)}_\kappa&=\frac{1}{c}
-!    \{2E_0+E-V\}F^{(m)}_\kappa+\frac{m}{c}F^{(m-1)}_\kappa\&
+!    \{2E_0+E-V\}F^{(m)}_\kappa+\frac{m}{c}F^{(m-1)}_\kappa\\
 !    \left(\frac{d}{dr}-\frac{\kappa}{r}\right)F^{(m)}_\kappa&=
 !    -\frac{1}{c}\{E-V\}G^{(m)}_\kappa-\frac{m}{c}G^{(m-1)}_\kappa,
 !   \end{align*}

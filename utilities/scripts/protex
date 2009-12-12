@@ -645,7 +645,7 @@ KEY:       foreach $key ( @keys ) {
 			 $initem = 0;
 			 next LINE;
 		     } else {
-			 printf "{\\bf %s}\n", substr($k, 2, $ln - 1); } # italics
+			 printf "\n{\\bf %s}\n", substr($k, 2, $ln - 1); } # italics
 }#                   end if
 		 else {
 		     if( /USES/ || /INPUT/ || /OUTPUT/ || /PARAMETERS/ || 

@@ -17,14 +17,14 @@ Subroutine euler (rot, ang)
 ! !DESCRIPTION:
 !   Given a rotation matrix
 !   \begin{align*}
-!    &R(\alpha,\beta,\gamma)=\&
+!    &R(\alpha,\beta,\gamma)=\\
 !    &\left(\begin{matrix}
 !     \cos\gamma\cos\beta\cos\alpha-\sin\gamma\sin\alpha &
 !     \cos\gamma\cos\beta\sin\alpha+\sin\gamma\cos\alpha &
-!    -\cos\gamma\sin\beta \&
+!    -\cos\gamma\sin\beta \\
 !    -\sin\gamma\cos\beta\cos\alpha-\cos\gamma\sin\alpha &
 !    -\sin\gamma\cos\beta\sin\alpha+\cos\gamma\cos\alpha &
-!     \sin\gamma\sin\beta \&
+!     \sin\gamma\sin\beta \\
 !     \sin\beta\cos\alpha &
 !     \sin\beta\sin\alpha &
 !     \cos\beta

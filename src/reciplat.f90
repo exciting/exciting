@@ -17,8 +17,8 @@ Subroutine reciplat
 ! !DESCRIPTION:
 !   Generates the reciprocal lattice vectors from the real-space lattice vectors
 !   \begin{align*}
-!     {\bf b}_1&=\frac{2\pi}{s}({\bf a}_2\times{\bf a}_3)\&
-!     {\bf b}_2&=\frac{2\pi}{s}({\bf a}_3\times{\bf a}_1)\&
+!     {\bf b}_1&=\frac{2\pi}{s}({\bf a}_2\times{\bf a}_3)\\
+!     {\bf b}_2&=\frac{2\pi}{s}({\bf a}_3\times{\bf a}_1)\\
 !     {\bf b}_3&=\frac{2\pi}{s}({\bf a}_1\times{\bf a}_2)
 !   \end{align*}
 !   and finds the unit cell volume $\Omega=|s|$, where

@@ -21,7 +21,7 @@ Subroutine sbesseldm (m, lmax, x, djl)
 !   kind, $j_l(x)$, for argument $x$ and $l=0,1,\ldots,l_{\rm max}$. For
 !   $x\ge 1$ this is done by repeatedly using the relations
 !   \begin{align*}
-!    \frac{d}{dx}j_l(x)&=\frac{l}{x}j_l(x)-j_{l+1}(x) \&
+!    \frac{d}{dx}j_l(x)&=\frac{l}{x}j_l(x)-j_{l+1}(x) \\
 !    j_{l+1}(x)&=\frac{2l+1}{x}j_l(x)-j_{l-1}(x).
 !   \end{align*}
 !   While for $x<1$ the series expansion of the Bessel function is used

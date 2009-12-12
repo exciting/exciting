@@ -22,8 +22,8 @@ Subroutine lopzflm (lmax, zflm, ld, zlflm)
 !   Applies the angular momentum operator ${\bf L}$ to a function expanded in
 !   terms of complex spherical harmonics. This makes use of the identities
 !   \begin{align*}
-!    (L_x+iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l-m)(l+m+1)}Y_{lm+1}(\theta,\phi)\&
-!    (L_x-iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l+m)(l-m+1)}Y_{lm-1}(\theta,\phi)\&
+!    (L_x+iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l-m)(l+m+1)}Y_{lm+1}(\theta,\phi)\\
+!    (L_x-iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l+m)(l-m+1)}Y_{lm-1}(\theta,\phi)\\
 !    L_zY_{lm}(\theta,\phi)&=mY_{lm}(\theta,\phi).
 !   \end{align*}
 !

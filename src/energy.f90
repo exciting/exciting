@@ -28,7 +28,7 @@ Subroutine energy
 !   magnetic field. The Hartree, electron-nuclear and nuclear-nuclear
 !   electrostatic energies are combined into the Coulomb energy:
 !   \begin{align*}
-!    E_{\rm C}&=E_{\rm H}+E_{\rm en}+E_{\rm nn} \&
+!    E_{\rm C}&=E_{\rm H}+E_{\rm en}+E_{\rm nn} \\
 !             &=\frac{1}{2}V_{\rm C}+E_{\rm Mad},
 !   \end{align*}
 !   where

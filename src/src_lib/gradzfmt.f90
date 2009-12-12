@@ -28,7 +28,7 @@ Subroutine gradzfmt (lmax, nr, r, ld1, ld2, zfmt, gzfmt)
 !   \begin{align*}
 !    \nabla\left[f_{lm}(r)Y_{lm}(\hat{\bf r})\right]=&-\left[\frac{l+1}{2l+1}
 !    \right]^{1/2}\left[\frac{d}{dr}-\frac{l}{r}\right]f_{lm}(r)
-!    {\bf Y}_{ll+1m}(\hat{\bf r})\&
+!    {\bf Y}_{ll+1m}(\hat{\bf r})\\
 !    &+\left[\frac{l}{2l+1}\right]^{1/2}\left[\frac{d}{dr}+\frac{l+1}{r}\right]
 !    f_{lm}(r){\bf Y}_{ll-1m}(\hat{\bf r}),
 !   \end{align*}

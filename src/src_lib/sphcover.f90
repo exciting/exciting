@@ -20,7 +20,7 @@ Subroutine sphcover (n, tp)
 !   formula
 !   \begin{align*}
 !    \theta_k&=\arccos(h_k), \qquad h_k=\frac{2(k-1)}{N-1}-1, \qquad
-!    1\le k \le N \&
+!    1\le k \le N \\
 !    \phi_k&=\left(\phi_{k-1}+C/\sqrt{N(1-h_k^2)}\right)({\rm mod}\;2\pi),
 !    \qquad 2\le k\le N-1, \qquad \phi_1=\phi_N=0,
 !   \end{align*}

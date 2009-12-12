@@ -17,11 +17,11 @@ Real (8) Function wigner3j (j1, j2, j3, m1, m2, m3)
 !   the $3j$-symbols, the following provides high accuracy for $j\le 50$
 !   \begin{align*}
 !    &\begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}=(-1)^
-!    {j1+j2+m3}\&
+!    {j1+j2+m3}\\
 !    &\times\sqrt{\frac{(j_1+m_1)!(j_2+m_2)!(j_3+m_3)!(j_3-m_3)!(j_1-m_1)!
 !    (j_2-m_2)!}{(j_2-j_1+j_3)!(j_1-j_2+j_3)!(j_1+j_2-j_3)!(1+j_1+j_2+j_3)!}}
 !    \times\sum_{\max(0,j_2-j_3-m_1,j_1-j_3+m_2)}^
-!    {\min(j_1+j_2-j_3,j_1-m_1,j_2+m_2)}\&
+!    {\min(j_1+j_2-j_3,j_1-m_1,j_2+m_2)}\\
 !    &(-1)^k\frac{(j_2-j_1+j_3)!(j_1-j_2+j_3)!(j_1+j_2-j_3)!}
 !    {(j_3-j_1-m_2+k)!(j_3-j_2+m_1+k)!(j_1+j_2-j_3-k)!k!(j_1-m_1-k)!
 !    (j_2+m_2-k)}.
