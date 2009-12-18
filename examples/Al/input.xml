@@ -13,9 +13,9 @@
       <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
     </species>
   </structure>
-  <groundstate vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="msec"></groundstate>
+  <groundstate vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="msec" nosource="true" do="skip"></groundstate>
   <properties>
-    <bandstructure>
+    <bandstructure character="true">
       <plot1d>
         <path steps="100">
           <point coord=" 0.75000   0.50000   0.25000" label="W" />

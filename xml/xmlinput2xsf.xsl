@@ -68,6 +68,33 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
       <xsl:text>
    </xsl:text>
     </xsl:for-each>
+    <xsl:variable name="a1" select=
+      "str:tokenize(/input/structure/crystal/basevect[1])[1]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[1]" />
+    <xsl:variable name="a2" select=
+      "str:tokenize(/input/structure/crystal/basevect[1])[2]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[1]" />
+    <xsl:variable name="a3" select=
+      "str:tokenize(/input/structure/crystal/basevect[1])[3]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[1]" />
+    <xsl:variable name="b1" select=
+      "str:tokenize(/input/structure/crystal/basevect[2])[1]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[2]" />
+    <xsl:variable name="b2" select=
+      "str:tokenize(/input/structure/crystal/basevect[2])[2]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[2]" />
+    <xsl:variable name="b3" select=
+      "str:tokenize(/input/structure/crystal/basevect[2])[3]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[2]" />
+    <xsl:variable name="c1" select=
+      "str:tokenize(/input/structure/crystal/basevect[3])[1]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[3]" />
+    <xsl:variable name="c2" select=
+      "str:tokenize(/input/structure/crystal/basevect[3])[2]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[3]" />
+    <xsl:variable name="c3" select=
+      "str:tokenize(/input/structure/crystal/basevect[3])[3]*
+      $bohr2angstr*$scale*str:tokenize($stretch)[3]" />
     <xsl:text>  
  PRIMCOORD
     </xsl:text>
@@ -90,11 +117,11 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
         </xsl:otherwise>
       </xsl:choose>
       <xsl:text>   </xsl:text>
-      <xsl:value-of select="str:tokenize(@coord)[1]*$a" />
+      <xsl:value-of select="str:tokenize(@coord)[1]*$a1 + str:tokenize(@coord)[2]*$b1  + str:tokenize(@coord)[3]*$c1" />
       <xsl:text>  </xsl:text>
-      <xsl:value-of select="str:tokenize(@coord)[2]*$b" />
+      <xsl:value-of select="str:tokenize(@coord)[1]*$a2 + str:tokenize(@coord)[2]*$b2  + str:tokenize(@coord)[3]*$c2" />
       <xsl:text>  </xsl:text>
-      <xsl:value-of select="str:tokenize(@coord)[3]*$c" />
+      <xsl:value-of select="str:tokenize(@coord)[1]*$a3 + str:tokenize(@coord)[2]*$b3  + str:tokenize(@coord)[3]*$c3" />
       <xsl:text>  </xsl:text>
     </xsl:for-each>
     <xsl:text>
