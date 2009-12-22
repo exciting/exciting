@@ -1,82 +1,85 @@
-
-
-
-
-subroutine writeexpiqr
-use modmain
-use modinput
-implicit none
+!
+!
+!
+!
+Subroutine writeexpiqr
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-integer::nk, ik, jk, i, j
-real(8)::vecqc(3), a, b
+      Integer :: nk, ik, jk, i, j
+      Real (8) :: vecqc (3), a, b
 ! allocatable arrays
-complex(8), allocatable :: emat(:,:)
+      Complex (8), Allocatable :: emat (:, :)
 ! initialise universal variables
-call init0
-call init1
+      Call init0
+      Call init1
 ! allocate the matrix elements array for < i,k+G+q | exp(iq.r) | j,k >
-allocate(emat(nstsv,nstsv))
+      Allocate (emat(nstsv, nstsv))
 ! read in the density and potentials from file
-call readstate
+      Call readstate
 ! find the new linearisation energies
-call linengy
+      Call linengy
 ! generate the APW radial functions
-call genapwfr
+      Call genapwfr
 ! generate the local-orbital radial functions
-call genlofr
+      Call genlofr
 ! number of k-points to write out
-if (kstlist(1,1).le.0) then
-  nk=nkpt
-else
-  nk=nkstlist
-end if
-open(50,file='EXPIQR.OUT',action='WRITE',form='FORMATTED')
-write(50,*)
-write(50,'("q-vector (lattice coordinates) :")')
-write(50, '(3G18.10)') input%properties%elnes%vecql
-write(50,'("q-vector (Cartesian coordinates) :")')
-call r3mv(bvec, input%properties%elnes%vecql, vecqc)
-write(50,'(3G18.10)') vecqc
-write(50,*)
-write(50,'(I8," : number of k-points")') nk
-write(50,'(I6," : number of states per k-point")') nstsv
-do jk=1,nk
-  if (kstlist(1,1).le.0) then
-    ik=jk
-  else
-    ik=kstlist(1,jk)
-  end if
-  if ((ik.le.0).or.(ik.gt.nkpt)) then
-    write(*,*)
-    write(*,'("Error(writeexpiqr): k-point out of range : ",I8)') ik
-    write(*,*)
-    stop
-  end if
-  write(50,*)
-  write(50,'(" k-point (lattice coordinates) :")')
-  write(50,'(3G18.10)') vkl(:,ik)
-  write(50,*)
-  write(50,'(" k-point (Cartesian coordinates) :")')
-  write(50,'(3G18.10)') vkc(:,ik)
-  call genexpiqr(ik,emat)
-  do i=1,nstsv
-    write(50,*)
-    write(50,'(I6," : state i; state j, <...>, |<...>|^2 below")') i
-    do j=1,nstsv
-      a=dble(emat(i,j))
-      b=aimag(emat(i,j))
-      write(50,'(I6,3G18.10)') j,a,b,a**2+b**2
-    end do
-  end do
+      If (kstlist(1, 1) .Le. 0) Then
+         nk = nkpt
+      Else
+         nk = nkstlist
+      End If
+      Open (50, File='EXPIQR.OUT', Action='WRITE', Form='FORMATTED')
+      Write (50,*)
+      Write (50, '("q-vector (lattice coordinates) :")')
+      Write (50, '(3G18.10)') input%properties%elnes%vecql
+      Write (50, '("q-vector (Cartesian coordinates) :")')
+      Call r3mv (bvec, input%properties%elnes%vecql, vecqc)
+      Write (50, '(3G18.10)') vecqc
+      Write (50,*)
+      Write (50, '(I8," : number of k-points")') nk
+      Write (50, '(I6," : number of states per k-point")') nstsv
+      Do jk = 1, nk
+         If (kstlist(1, 1) .Le. 0) Then
+            ik = jk
+         Else
+            ik = kstlist (1, jk)
+         End If
+         If ((ik .Le. 0) .Or. (ik .Gt. nkpt)) Then
+            Write (*,*)
+            Write (*, '("Error(writeexpiqr): k-point out of range : ",I&
+           &8)') ik
+            Write (*,*)
+            Stop
+         End If
+         Write (50,*)
+         Write (50, '(" k-point (lattice coordinates) :")')
+         Write (50, '(3G18.10)') vkl (:, ik)
+         Write (50,*)
+         Write (50, '(" k-point (Cartesian coordinates) :")')
+         Write (50, '(3G18.10)') vkc (:, ik)
+         Call genexpiqr (ik, emat)
+         Do i = 1, nstsv
+            Write (50,*)
+            Write (50, '(I6," : state i; state j, <...>, |<...>|^2 belo&
+           &w")') i
+            Do j = 1, nstsv
+               a = dble (emat(i, j))
+               b = aimag (emat(i, j))
+               Write (50, '(I6,3G18.10)') j, a, b, a ** 2 + b ** 2
+            End Do
+         End Do
 ! end loop over k-points
-end do
-close(50)
-write(*,*)
-write(*,'("Info(writeexpiqr)")')
-write(*,'(" < i,k+q | exp(iq.r) | j,k > matrix elements written to&
- & EXPIQR.OUT")')
-write(*,'(" for the q-vector in vecql and all k-points in kstlist")')
-write(*,*)
-deallocate(emat)
-return
-end subroutine
+      End Do
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(writeexpiqr)")')
+      Write (*, '(" < i,k+q | exp(iq.r) | j,k > matrix elements written&
+     & to EXPIQR.OUT")')
+      Write (*, '(" for the q-vector in vecql and all k-points in kstli&
+     &st")')
+      Write (*,*)
+      Deallocate (emat)
+      Return
+End Subroutine

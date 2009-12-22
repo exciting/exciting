@@ -1,21 +1,22 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine xschkstop
-  use modxs
-  use m_filedel
-  implicit none
+!
+!
+Subroutine xschkstop
+      Use modxs
+      Use m_filedel
+      Implicit None
   ! local variables
-  logical :: exist
-  inquire(file='STOP', exist=exist)
-  if (exist) then
-     write(unitout, '("STOP file exists - stopping with message: ", a)') trim(msg)
-     call filedel('STOP')
-     call terminate
-  end if
-end subroutine xschkstop
+      Logical :: exist
+      Inquire (File='STOP', Exist=Exist)
+      If (exist) Then
+         Write (unitout, '("STOP file exists - stopping with message: "&
+        &, a)') trim (msg)
+         Call filedel ('STOP')
+         Call terminate
+      End If
+End Subroutine xschkstop

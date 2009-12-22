@@ -1,40 +1,40 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine putevalfv(ik, evalfv)
-  use modmain
-  use modmpi
-  implicit none
+!
+!
+Subroutine putevalfv (ik, evalfv)
+      Use modmain
+      Use modmpi
+      Implicit None
   ! arguments
-  integer, intent(in) :: ik
-  real(8), intent(in) :: evalfv(nstfv, nspnfv)
-
+      Integer, Intent (In) :: ik
+      Real (8), Intent (In) :: evalfv (nstfv, nspnfv)
+!
   ! local variables
-  integer::recl, koffset   
-   character(256) ::filetag
-   character(256), external:: outfilenamestring
-
+      Integer :: recl, koffset
+      Character (256) :: filetag
+      Character (256), External :: outfilenamestring
+!
   !find the record length
-  inquire(iolength=recl) vkl(:, ik), nstfv, nspnfv, evalfv
+      Inquire (IoLength=Recl) vkl (:, ik), nstfv, nspnfv, evalfv
 !$OMP CRITICAL
-filetag='EVALFV'
-if (splittfile.or.(rank.eq.0)) then
-  open(70, file = outfilenamestring(filetag, ik), action = 'WRITE', &
-       form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
- if (splittfile) then
- koffset=ik-firstk(procofk(ik))+1
- else
- koffset =ik
- endif
-write(70, rec=koffset)vkl(:, ik), nstfv, nspnfv, evalfv
-  close(70)
-
-endif
+      filetag = 'EVALFV'
+      If (splittfile .Or. (rank .Eq. 0)) Then
+         Open (70, File=outfilenamestring(filetag, ik), Action='WRITE', &
+        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         If (splittfile) Then
+            koffset = ik - firstk (procofk(ik)) + 1
+         Else
+            koffset = ik
+         End If
+         Write (70, Rec=koffset) vkl (:, ik), nstfv, nspnfv, evalfv
+         Close (70)
+!
+      End If
 !$OMP END CRITICAL
-  return
-end subroutine putevalfv
+      Return
+End Subroutine putevalfv

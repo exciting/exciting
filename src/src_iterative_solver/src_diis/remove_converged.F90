@@ -1,47 +1,56 @@
-
-
-
-
-subroutine remove_converged(evecmap, iunconverged, rnorms, n, r, h, s, eigenvector, eigenvalue, trialvecs)
-  use sclcontroll, only:diismax, epsresid, maxdiisspace
-  use modmain, only:nstfv
-  implicit none
-  integer, intent(in)::n
-  integer, intent(inout) ::evecmap(nstfv), iunconverged
-  complex(8), intent(inout)::r(n, nstfv), h(n, nstfv, diismax), s(n, nstfv, diismax)
-  complex(8), intent(inout)::eigenvector(n, nstfv), trialvecs(n, nstfv, diismax)
-  real(8), intent(inout)::eigenvalue(nstfv, diismax), rnorms(nstfv)
-  integer::i, skipp, idiis, oldindex, newindex
-  skipp=0
-  do i=1, nstfv
-     if (evecmap(i).gt.0) then
-	if(rnorms(evecmap(i)).lt.epsresid)then
-	   evecmap(i)=0 
-	   skipp=skipp+1
-	else
-	   if (skipp.gt.0) then
-	      oldindex=evecmap(i)
-	      newindex=evecmap(i)-skipp 
-	      call zcopy(n, eigenvector(1, oldindex), 1, eigenvector(1, newindex), 1)
-	      call zcopy(n, r(1, oldindex), 1, r(1, newindex), 1)
-
-	      rnorms(newindex)=rnorms(oldindex)
-	      do idiis=1, maxdiisspace
-	       eigenvalue(newindex, idiis)=eigenvalue(oldindex, idiis)
-		 call zcopy(n, h(1, oldindex, idiis), 1, h(1, newindex, idiis), 1)
-		 call zcopy(n, s(1, oldindex, idiis), 1, s(1, newindex, idiis), 1)
-		 call zcopy(n, trialvecs(1, oldindex, idiis), 1, trialvecs(1, newindex, idiis), 1)
-	      end do
-	      evecmap(i)=newindex
-	   endif
-	endif
-     endif
-  end do
-  iunconverged=0
-  do i=1, nstfv
-     if (evecmap(i).gt.0) then
-	iunconverged=iunconverged+1
-     endif
-  end do
+!
+!
+!
+!
+Subroutine remove_converged (evecmap, iunconverged, rnorms, n, r, h, s, &
+& eigenvector, eigenvalue, trialvecs)
+      Use sclcontroll, Only: diismax, epsresid, maxdiisspace
+      Use modmain, Only: nstfv
+      Implicit None
+      Integer, Intent (In) :: n
+      Integer, Intent (Inout) :: evecmap (nstfv), iunconverged
+      Complex (8), Intent (Inout) :: r (n, nstfv), h (n, nstfv, &
+     & diismax), s (n, nstfv, diismax)
+      Complex (8), Intent (Inout) :: eigenvector (n, nstfv), trialvecs &
+     & (n, nstfv, diismax)
+      Real (8), Intent (Inout) :: eigenvalue (nstfv, diismax), rnorms &
+     & (nstfv)
+      Integer :: i, skipp, idiis, oldindex, newindex
+      skipp = 0
+      Do i = 1, nstfv
+         If (evecmap(i) .Gt. 0) Then
+            If (rnorms(evecmap(i)) .Lt. epsresid) Then
+               evecmap (i) = 0
+               skipp = skipp + 1
+            Else
+               If (skipp .Gt. 0) Then
+                  oldindex = evecmap (i)
+                  newindex = evecmap (i) - skipp
+                  Call zcopy (n, eigenvector(1, oldindex), 1, &
+                 & eigenvector(1, newindex), 1)
+                  Call zcopy (n, r(1, oldindex), 1, r(1, newindex), 1)
+!
+                  rnorms (newindex) = rnorms (oldindex)
+                  Do idiis = 1, maxdiisspace
+                     eigenvalue (newindex, idiis) = eigenvalue &
+                    & (oldindex, idiis)
+                     Call zcopy (n, h(1, oldindex, idiis), 1, h(1, &
+                    & newindex, idiis), 1)
+                     Call zcopy (n, s(1, oldindex, idiis), 1, s(1, &
+                    & newindex, idiis), 1)
+                     Call zcopy (n, trialvecs(1, oldindex, idiis), 1, &
+                    & trialvecs(1, newindex, idiis), 1)
+                  End Do
+                  evecmap (i) = newindex
+               End If
+            End If
+         End If
+      End Do
+      iunconverged = 0
+      Do i = 1, nstfv
+         If (evecmap(i) .Gt. 0) Then
+            iunconverged = iunconverged + 1
+         End If
+      End Do
  ! write(*,*)iunconverged,"map",evecmap
-end subroutine remove_converged
+End Subroutine remove_converged

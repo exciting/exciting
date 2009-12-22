@@ -13,7 +13,7 @@ $status=failed;
 $didarpack=failed;
 while(<INFO>)
 	{
-	if (m/\| EXCITING version.+stopped/){
+	if (m/\| EXCITING .+stopped/){
 		$status="passed";
 	}
 		if (m/ARPACK iterations/){
@@ -41,7 +41,7 @@ close INFO;
 $status=failed;
 while(<INFO>)
 	{
-	if (m/\| EXCITING version.+stopped/){
+	if (m/\| EXCITING .+stopped/){
 		$status="passed";
 	}
 }
@@ -59,7 +59,7 @@ close INFO;
 
 
 #compare total energies
-$tol=1e-7;
+$tol=1e-6;
 open TOTEARP, "runarp/TOTENERGY.OUT";
 open TOTELAP, "runlapack/TOTENERGY.OUT";
 $status="failed";

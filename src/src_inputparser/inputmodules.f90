@@ -4316,7 +4316,7 @@ case('GGAArmiento-Mattsson')
 case('EXX')
  stringtonumberxctype=-2
 case('none')
- stringtonumberxctype=0
+ stringtonumberxctype=1
 case('')
  stringtonumberxctype=0
 case default

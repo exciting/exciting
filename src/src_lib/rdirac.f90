@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: rdirac
 ! !INTERFACE:
-
-
-subroutine rdirac(n, l, k, np, nr, r, vr, eval, g0, f0)
+!
+!
+Subroutine rdirac (n, l, k, np, nr, r, vr, eval, g0, f0)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n    : principal quantum number (in,integer)
 !   l    : quantum number l (in,integer)
@@ -34,112 +34,117 @@ subroutine rdirac(n, l, k, np, nr, r, vr, eval, g0, f0)
 !   Created September 2002 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: n
-integer, intent(in) :: l
-integer, intent(in) :: k
-integer, intent(in) :: np
-integer, intent(in) :: nr
-real(8), intent(in) :: r(nr)
-real(8), intent(in) :: vr(nr)
-real(8), intent(inout) :: eval
-real(8), intent(out) :: g0(nr)
-real(8), intent(out) :: f0(nr)
+      Integer, Intent (In) :: n
+      Integer, Intent (In) :: l
+      Integer, Intent (In) :: k
+      Integer, Intent (In) :: np
+      Integer, Intent (In) :: nr
+      Real (8), Intent (In) :: r (nr)
+      Real (8), Intent (In) :: vr (nr)
+      Real (8), Intent (Inout) :: eval
+      Real (8), Intent (Out) :: g0 (nr)
+      Real (8), Intent (Out) :: f0 (nr)
 ! local variables
-integer, parameter :: maxit=2000
-integer::kpa, it, nn, ir, irm, nnd, nndp
+      Integer, Parameter :: maxit = 2000
+      Integer :: kpa, it, nn, ir, irm, nnd, nndp
 ! energy convergence tolerance
-real(8), parameter :: eps=1.d-11
-real(8)::t1, de
+      Real (8), Parameter :: eps = 1.d-11
+      Real (8) :: t1, de
 ! automatic arrays
-real(8)::g1(nr), f1(nr), fr(nr), gr(nr), cf(3, nr)
-if (k.le.0) then
-  write(*, *)
-  write(*, '("Error(rdirac): k <= 0 : ", I8)') k
-  write(*, *)
-  stop
-end if
-if (k.gt.n) then
-  write(*, *)
-  write(*, '("Error(rdirac): incompatible n and k : ", 2I8)') n, k
-  write(*, *)
-  stop
-end if
-if ((k.eq.n).and.(l.ne.k-1)) then
-  write(*, *)
-  write(*, '("Error(rdirac): incompatible n, k and l : ", 3I8)') n, k, l
-  write(*, *)
-  stop
-end if
-if (k.eq.l) then
-  kpa=k
-else if (k.eq.l+1) then
-  kpa=-k
-else
-  write(*, *)
-  write(*, '("Error(rdirac): incompatible l and k : ", 2I8)') l, k
-  write(*, *)
-  stop
-end if
-de=1.d0
-nndp=0
-do it=1, maxit
+      Real (8) :: g1 (nr), f1 (nr), fr (nr), gr (nr), cf (3, nr)
+      If (k .Le. 0) Then
+         Write (*,*)
+         Write (*, '("Error(rdirac): k <= 0 : ", I8)') k
+         Write (*,*)
+         Stop
+      End If
+      If (k .Gt. n) Then
+         Write (*,*)
+         Write (*, '("Error(rdirac): incompatible n and k : ", 2I8)') &
+        & n, k
+         Write (*,*)
+         Stop
+      End If
+      If ((k .Eq. n) .And. (l .Ne. k-1)) Then
+         Write (*,*)
+         Write (*, '("Error(rdirac): incompatible n, k and l : ", 3I8)') n, k, l
+         Write (*,*)
+         Stop
+      End If
+      If (k .Eq. l) Then
+         kpa = k
+      Else If (k .Eq. l+1) Then
+         kpa = - k
+      Else
+         Write (*,*)
+         Write (*, '("Error(rdirac): incompatible l and k : ", 2I8)') &
+        & l, k
+         Write (*,*)
+         Stop
+      End If
+      de = 1.d0
+      nndp = 0
+      Do it = 1, maxit
 ! integrate the Dirac equation
-  call rdiracdme(0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, f1)
+         Call rdiracdme (0, kpa, eval, np, nr, r, vr, nn, g0, g1, f0, &
+        & f1)
 ! check the number of nodes
-  nnd=nn-(n-l-1)
-  if (nnd.gt.0) then
-    eval=eval-de
-  else
-    eval=eval+de
-  end if
-  if (it.gt.1) then
-    if ((nnd.ne.0).or.(nndp.ne.0)) then
-      if (nnd*nndp.le.0) then
-	de=de*0.5d0
-      else
-	de=de*1.1d0
-      end if
-    end if
-  end if
-  nndp=nnd
-  if (de.lt.eps*(abs(eval)+1.d0)) goto 20
-end do
-write(*, *)
-write(*, '("Error(rdirac): maximum iterations exceeded")')
-write(*, *)
-stop
-20 continue
+         nnd = nn - (n-l-1)
+         If (nnd .Gt. 0) Then
+            eval = eval - de
+         Else
+            eval = eval + de
+         End If
+         If (it .Gt. 1) Then
+            If ((nnd .Ne. 0) .Or. (nndp .Ne. 0)) Then
+               If (nnd*nndp .Le. 0) Then
+                  de = de * 0.5d0
+               Else
+                  de = de * 1.1d0
+               End If
+            End If
+         End If
+         nndp = nnd
+         If (de .Lt. eps*(Abs(eval)+1.d0)) Go To 20
+      End Do
+      Write (*,*)
+      Write (*, '("Error(rdirac): maximum iterations exceeded")')
+      Write (*,*)
+      Stop
+20    Continue
 ! find effective infinity and set wavefunction to zero after that point
 ! major component
-irm=nr
-do ir=2, nr
-  if ((g0(ir-1)*g0(ir).lt.0.d0).or.(g1(ir-1)*g1(ir).lt.0.d0)) irm=ir
-end do
-g0(irm:nr)=0.d0
+      irm = nr
+      Do ir = 2, nr
+         If ((g0(ir-1)*g0(ir) .Lt. 0.d0) .Or. (g1(ir-1)*g1(ir) .Lt. &
+        & 0.d0)) irm = ir
+      End Do
+      g0 (irm:nr) = 0.d0
 ! minor component
-irm=nr
-do ir=2, nr
-  if ((f0(ir-1)*f0(ir).lt.0.d0).or.(f1(ir-1)*f1(ir).lt.0.d0)) irm=ir
-end do
-f0(irm:nr)=0.d0
+      irm = nr
+      Do ir = 2, nr
+         If ((f0(ir-1)*f0(ir) .Lt. 0.d0) .Or. (f1(ir-1)*f1(ir) .Lt. &
+        & 0.d0)) irm = ir
+      End Do
+      f0 (irm:nr) = 0.d0
 ! normalise
-do ir=1, nr
-  fr(ir)=g0(ir)**2+f0(ir)**2
-end do
-call fderiv(-1, nr, r, fr, gr, cf)
-t1=sqrt(abs(gr(nr)))
-if (t1.gt.0.d0) then
-  t1=1.d0/t1
-else
-  write(*, *)
-  write(*, '("Error(rdirac): zero wavefunction")')
-  write(*, *)
-  stop
-end if
-g0(:)=t1*g0(:)
-f0(:)=t1*f0(:)
-return
-end subroutine
+      Do ir = 1, nr
+         fr (ir) = g0 (ir) ** 2 + f0 (ir) ** 2
+      End Do
+      Call fderiv (-1, nr, r, fr, gr, cf)
+      t1 = Sqrt (Abs(gr(nr)))
+      If (t1 .Gt. 0.d0) Then
+         t1 = 1.d0 / t1
+      Else
+         Write (*,*)
+         Write (*, '("Error(rdirac): zero wavefunction")')
+         Write (*,*)
+         Stop
+      End If
+      g0 (:) = t1 * g0 (:)
+      f0 (:) = t1 * f0 (:)
+      Return
+End Subroutine
 !EOC

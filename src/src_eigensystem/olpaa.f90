@@ -1,33 +1,35 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine olpaa(tapp, is, ia, ngp, apwalm, v, o)
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine olpaa (tapp, is, ia, ngp, apwalm, v, o)
+      Use modmain
+      Use modinput
+      Implicit None
 ! arguments
-logical, intent(in) :: tapp
-integer, intent(in) :: is
-integer, intent(in) :: ia
-integer, intent(in) :: ngp
-complex(8), intent(in) :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
-complex(8), intent(in) :: v(nmatmax)
-complex(8), intent(inout) :: o(*)
+      Logical, Intent (In) :: tapp
+      Integer, Intent (In) :: is
+      Integer, Intent (In) :: ia
+      Integer, Intent (In) :: ngp
+      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+     & natmtot)
+      Complex (8), Intent (In) :: v (nmatmax)
+      Complex (8), Intent (Inout) :: o (*)
 ! local variables
-integer::ias, l, m, lm, io
-ias=idxas(ia, is)
-do l=0, input%groundstate%lmaxmat
-  do m=-l, l
-    lm=idxlm(l, m)
-    do io=1, apword(l, is)
-      call zmatinp(tapp, ngp, zhalf, apwalm(:, io, lm, ias), apwalm(:, io, lm, ias), v, o)
-    end do
-  end do
-end do
-return
-end subroutine
+      Integer :: ias, l, m, lm, io
+      ias = idxas (ia, is)
+      Do l = 0, input%groundstate%lmaxmat
+         Do m = - l, l
+            lm = idxlm (l, m)
+            Do io = 1, apword (l, is)
+               Call zmatinp (tapp, ngp, zhalf, apwalm(:, io, lm, ias), &
+              & apwalm(:, io, lm, ias), v, o)
+            End Do
+         End Do
+      End Do
+      Return
+End Subroutine

@@ -1,19 +1,19 @@
 ! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: gndstate
 ! !INTERFACE:
-
-
-subroutine gndstate
+!
+!
+Subroutine gndstate
   ! !USES:
-  use modinput
-  use modmain
-  use modmpi
-  use scl_xml_out_Module
-
+      Use modinput
+      Use modmain
+      Use modmpi
+      Use scl_xml_out_Module
+!
   ! !DESCRIPTION:
   !   Computes the self-consistent Kohn-Sham ground-state. General information is
   !   written to the file {\tt INFO.OUT}. First- and second-variational
@@ -25,243 +25,260 @@ subroutine gndstate
   !   Created October 2002 (JKD)
   !EOP
   !BOC
-  implicit none
+      Implicit None
   ! local variables
-  logical::exist
-  integer::ik, is, ia, idm
-  integer::n, nwork
-  real(8)::timetot
+      Logical :: exist
+      Integer :: ik, is, ia, idm
+      Integer :: n, nwork
+      Real (8) :: timetot
   ! allocatable arrays
-  real(8), allocatable :: v(:)
-
-  real(8), allocatable :: evalfv(:, :)
-  complex(8), allocatable :: evecfv(:, :, :)
-  complex(8), allocatable :: evecsv(:, :)
-  logical::force_converged, redoscl
+      Real (8), Allocatable :: v (:)
+!
+      Real (8), Allocatable :: evalfv (:, :)
+      Complex (8), Allocatable :: evecfv (:, :, :)
+      Complex (8), Allocatable :: evecsv (:, :)
+      Logical :: force_converged, redoscl
   ! require forces for structural optimisation
-  if ((task.eq.2).or.(task.eq.3)) input%groundstate%tforce=.true.
+      If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = &
+     & .True.
   ! initialise global variables
-  call init0
-  call init1
+      Call init0
+      Call init1
   ! initialise OEP variables if required
-  if (input%groundstate%xctypenumber.lt.0) call init2
-  if(rank.eq.0) then
+      If (input%groundstate%xctypenumber .Lt. 0) Call init2
+      If (rank .Eq. 0) Then
      ! write the real and reciprocal lattice vectors to file
-     call writelat
+         Call writelat
      ! write interatomic distances to file
-     call writeiad(.false.)
+         Call writeiad (.False.)
      ! write symmetry matrices to file
-     call writesym
+         Call writesym
 #ifdef XS
      ! write realtion to inverse symmetries
-     call writesymi
+         Call writesymi
      ! write advanced information on symmetry group
-     call writesym2
+         Call writesym2
      ! write out symmetrization matrix for rank 2 tensors
-     call writesymt2
+         Call writesymt2
 #endif
      ! output the k-point set to file
-     call writekpts
+         Call writekpts
      ! write lattice vectors and atomic positions to file
-     call writegeom(.false.)
-     call writegeometryxml(.false.)
+         Call writegeom (.False.)
+         Call writegeometryxml (.False.)
      ! open INFO.OUT file
-
-     open(60, file='INFO'//trim(filext), action='WRITE', form='FORMATTED')
+         Open (60, File='INFO'//trim(filext), Action='WRITE', Form='FOR&
+        &MATTED')
      ! open TOTENERGY.OUT
-     open(61, file='TOTENERGY'//trim(filext), action='WRITE', form='FORMATTED')
+         Open (61, File='TOTENERGY'//trim(filext), Action='WRITE', &
+        & Form='FORMATTED')
      ! open FERMIDOS.OUT
-     open(62, file='FERMIDOS'//trim(filext), action='WRITE', form='FORMATTED')
+         Open (62, File='FERMIDOS'//trim(filext), Action='WRITE', &
+        & Form='FORMATTED')
      ! open MOMENT.OUT if required
-     if (associated(input%groundstate%spin)) open(63, file = 'MOMENT'//trim(filext), action = 'WRITE', &
-          form = 'FORMATTED')
+         If (associated(input%groundstate%spin)) open (63, file='MOMENT&
+        &'//trim(filext), action='WRITE', form='FORMATTED')
      ! open FORCEMAX.OUT if required
-     if (input%groundstate%tforce) open(64, file = 'FORCEMAX'//trim(filext), action = 'WRITE', &
-          form = 'FORMATTED')
+         If (input%groundstate%tforce) open (64, file='FORCEMAX'//&
+        & trim(filext), action='WRITE', form='FORMATTED')
      ! open RMSDVEFF.OUT
-     open(65, file='RMSDVEFF'//trim(filext), action='WRITE', form='FORMATTED')
+         Open (65, File='RMSDVEFF'//trim(filext), Action='WRITE', &
+        & Form='FORMATTED')
      ! write out general information to INFO.OUT
-     call writeinfo(60)
+         Call writeinfo (60)
      ! initialise or read the charge density and potentials from file
-  end if
-  iscl=0
-  write(60, *)
-  if ((task.eq.1).or.(task.eq.3)) then
-     call readstate
-     if(rank.eq.0) write(60, '("Potential read in from STATE.OUT")')
-  else if (task.eq.200) then
-     call phveff
-     if(rank.eq.0) write(60, '("Supercell potential constructed from STATE.OUT")')
-  else
-     call rhoinit
-     call poteff
-     call genveffig
-     if(rank.eq.0)  write(60, '("Density and potential initialised from atomic data")')
-  end if
-  call flushifc(60)
+      End If
+      iscl = 0
+      If (rank .Eq. 0) write (60,*)
+      If ((task .Eq. 1) .Or. (task .Eq. 3)) Then
+         Call readstate
+         If (rank .Eq. 0) write (60, '("Potential read in from STATE.OU&
+        &T")')
+      Else If (task .Eq. 200) Then
+         Call phveff
+         If (rank .Eq. 0) write (60, '("Supercell potential constructed&
+        & from STATE.OUT")')
+      Else
+         Call rhoinit
+         Call poteff
+         Call genveffig
+         If (rank .Eq. 0) write (60, '("Density and potential initialis&
+        &ed from atomic data")')
+      End If
+      If (rank .Eq. 0) Call flushifc (60)
   ! size of mixing vector
-  n=lmmaxvr*nrmtmax*natmtot+ngrtot
-  if (associated(input%groundstate%spin)) n=n*(1+ndmag)
-  if (ldapu.ne.0) n=n+2*lmmaxlu*lmmaxlu*nspinor*nspinor*natmtot
+      n = lmmaxvr * nrmtmax * natmtot + ngrtot
+      If (associated(input%groundstate%spin)) n = n * (1+ndmag)
+      If (ldapu .Ne. 0) n = n + 2 * lmmaxlu * lmmaxlu * nspinor * &
+     & nspinor * natmtot
   ! allocate mixing arrays
-  allocate(v(n))
+      Allocate (v(n))
   !call mixing array allocation functions by setting
-  nwork=-1
+      nwork = - 1
   !and call interfacepe
-
-  call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
-
+!
+      If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, &
+     & v, currentconvergence, nwork)
+!
   ! set stop flag
-  tstop=.false.
-10 continue
+      tstop = .False.
+10    Continue
   ! set last iteration flag
-  tlast=.false.
+      tlast = .False.
   ! delete any existing eigenvector files
-  if((splittfile.or.rank.eq.0).and.(task.eq.0).or.(task.eq.2)) call delevec
+      If ((splittfile .Or. rank .Eq. 0) .And. (task .Eq. 0) .Or. (task &
+     & .Eq. 2)) Call delevec
   ! begin the self-consistent loop
-  if(rank.eq.0) then
-     write(60, *)
-     write(60, '("+------------------------------+")')
-     write(60, '("| Self-consistent loop started |")')
-     write(60, '("+------------------------------+")')
-  endif
-  do iscl=1, input%groundstate%maxscl
-     if(rank.eq.0) then
-        write(60, *)
-        write(60, '("+-------------------------+")')
-        write(60, '("| Iteration number : ", I4, " |")') iscl
-        write(60, '("+-------------------------+")')
-     endif
-     if (iscl.ge.input%groundstate%maxscl) then
-	if(rank.eq.0) then
-           write(60, *)
-           write(60, '("Reached self-consistent loops maximum")')
-	endif
-        tlast=.true.
+      If (rank .Eq. 0) Then
+         Write (60,*)
+         Write (60, '("+------------------------------+")')
+         Write (60, '("| Self-consistent loop started |")')
+         Write (60, '("+------------------------------+")')
+      End If
+      Do iscl = 1, input%groundstate%maxscl
+         If (rank .Eq. 0) Then
+            Write (60,*)
+            Write (60, '("+-------------------------+")')
+            Write (60, '("| Iteration number : ", I4, " |")') iscl
+            Write (60, '("+-------------------------+")')
+         End If
+         If (iscl .Ge. input%groundstate%maxscl) Then
+            If (rank .Eq. 0) Then
+               Write (60,*)
+               Write (60, '("Reached self-consistent loops maximum")')
+            End If
+            tlast = .True.
 #ifdef MPI
-	call MPI_bcast(tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
+           & ierr)
 #endif
-
-     end if
-     if (rank.eq.0) call flushifc(60)
+!
+         End If
+         If (rank .Eq. 0) Call flushifc (60)
      ! generate the core wavefunctions and densities
-     call gencore
-     select case(trim(input%groundstate%findlinentype))
-     case('simple')
-     case('advanced')
-        write(60,*)
-        write(60,'("Using advanced method for search of linearization energies")')
-     end select
+         Call gencore
+         Select Case (trim(input%groundstate%findlinentype))
+         Case ('simple')
+         Case ('advanced')
+            If (rank .Eq. 0) Then
+               Write (60,*)
+               Write (60, '("Using advanced method for search of linear&
+              &ization energies")')
+            End If
+         End Select
      ! find the new linearisation energies
-     call linengy
+         Call linengy
      ! write out the linearisation energies
-     call writelinen
+         Call writelinen
      ! generate the APW radial functions
-     call genapwfr
+         Call genapwfr
      ! generate the local-orbital radial functions
-     call genlofr
+         Call genlofr
      ! compute the overlap radial integrals
-     call olprad
+         Call olprad
      ! compute the Hamiltonian radial integrals
-     call hmlrad
-
+         Call hmlrad
+!
 #ifdef MPI
-     call MPI_barrier(MPI_COMM_WORLD, ierr)
-     if (rank.eq.0) call delevec()
+         Call MPI_barrier (MPI_COMM_WORLD, ierr)
+         If (rank .Eq. 0) Call delevec ()
 #endif
 #ifdef MPISEC
-     splittfile=.true.
-     do ik=firstk(rank), lastk(rank)
-
+         splittfile = .True.
+         Do ik = firstk (rank), lastk (rank)
+!
 #endif
 #ifdef NEVERDEFINED
-     end do
+         End Do
 #endif
 #ifndef MPISEC
-     splittfile=.false.
+         splittfile = .False.
      ! begin parallel loop over k-points
 #ifdef KSMP
      !$OMP PARALLEL DEFAULT(SHARED) &
      !$OMP PRIVATE(evalfv,evecfv,evecsv)
      !$OMP DO
 #endif
-     do ik=1, nkpt
+         Do ik = 1, nkpt
 #endif
         ! every thread should allocate its own arrays
-        allocate(evalfv(nstfv, nspnfv))
-        allocate(evecfv(nmatmax, nstfv, nspnfv))
-        allocate(evecsv(nstsv, nstsv))
+            Allocate (evalfv(nstfv, nspnfv))
+            Allocate (evecfv(nmatmax, nstfv, nspnfv))
+            Allocate (evecsv(nstsv, nstsv))
         ! solve the first- and second-variational secular equations
-        call seceqn(ik, evalfv, evecfv, evecsv)
+            Call seceqn (ik, evalfv, evecfv, evecsv)
         ! write the eigenvalues/vectors to file
-        call putevalfv(ik, evalfv)
-        call putevalsv(ik, evalsv(:, ik))
-        call putevecfv(ik, evecfv)
-        call putevecsv(ik, evecsv)
-        deallocate(evalfv, evecfv, evecsv)
-     end do
+            Call putevalfv (ik, evalfv)
+            Call putevalsv (ik, evalsv(:, ik))
+            Call putevecfv (ik, evecfv)
+            Call putevecsv (ik, evecsv)
+            Deallocate (evalfv, evecfv, evecsv)
+         End Do
 #ifdef KSMP
      !$OMP END DO
      !$OMP END PARALLEL
 #endif
 #ifdef MPISEC
-     call mpisync_evalsv_spnchr
+         Call mpisync_evalsv_spnchr
 #endif
      ! find the occupation numbers and Fermi energy
-     call occupy
+         Call occupy
 #ifdef MPISEC
-     call MPI_BCAST(occsv, nstsv*nkpt, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-     call MPI_BCAST(fermidos, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-     call MPI_BCAST(efermi, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+         Call MPI_bcast (occsv, nstsv*nkpt, MPI_DOUBLE_PRECISION, 0, &
+        & MPI_COMM_WORLD, ierr)
+         Call MPI_bcast (fermidos, 1, MPI_DOUBLE_PRECISION, 0, &
+        & MPI_COMM_WORLD, ierr)
+         Call MPI_bcast (efermi, 1, MPI_DOUBLE_PRECISION, 0, &
+        & MPI_COMM_WORLD, ierr)
 #endif
-     if (rank.eq.0) then
+         If (rank .Eq. 0) Then
         ! write out the eigenvalues and occupation numbers
-        call writeeval
+            Call writeeval
         ! write the Fermi energy to file
-        call writefermi
-     endif
+            Call writefermi
+         End If
      ! set the charge density and magnetisation to zero
-     rhomt(:, :, :)=0.d0
-     rhoir(:)=0.d0
-     if (associated(input%groundstate%spin)) then
-        magmt(:, :, :, :)=0.d0
-        magir(:, :)=0.d0
-     end if
-
+         rhomt (:, :, :) = 0.d0
+         rhoir (:) = 0.d0
+         If (associated(input%groundstate%spin)) Then
+            magmt (:, :, :, :) = 0.d0
+            magir (:, :) = 0.d0
+         End If
+!
 #ifdef MPIRHO
-
-     do ik=firstk(rank), lastk(rank)
+!
+         Do ik = firstk (rank), lastk (rank)
         !write the occupancies to file
-	call putoccsv(ik, occsv(:, ik))
-     end do
-     do ik=firstk(rank), lastk(rank)
+            Call putoccsv (ik, occsv(:, ik))
+         End Do
+         Do ik = firstk (rank), lastk (rank)
 #endif
-
+!
 #ifndef MPIRHO
-	if (rank.eq.0)then
-           do ik=1, nkpt
+            If (rank .Eq. 0) Then
+               Do ik = 1, nkpt
               !write the occupancies to file
-	      call putoccsv(ik, occsv(:, ik))
-	   end do
-	endif
+                  Call putoccsv (ik, occsv(:, ik))
+               End Do
+            End If
 #ifdef KSMP
  ! begin parallel loop over k-points
  !$OMP PARALLEL DEFAULT(SHARED) &
  !$OMP PRIVATE(evecfv,evecsv)
  !$OMP DO
 #endif
-	do ik=1, nkpt
+            Do ik = 1, nkpt
 #endif
-           allocate(evecfv(nmatmax, nstfv, nspnfv))
-           allocate(evecsv(nstsv, nstsv))
+               Allocate (evecfv(nmatmax, nstfv, nspnfv))
+               Allocate (evecsv(nstsv, nstsv))
            !
            ! get the eigenvectors from file
-           call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-           call getevecsv(vkl(:, ik), evecsv)
+               Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+               Call getevecsv (vkl(:, ik), evecsv)
            ! add to the density and magnetisation
-           call rhovalk(ik, evecfv, evecsv)
-           deallocate(evecfv, evecsv)
-        end do
+               Call rhovalk (ik, evecfv, evecsv)
+               Deallocate (evecfv, evecsv)
+            End Do
 #ifndef MPIRHO
 #ifdef KSMP
         !$OMP END DO
@@ -269,311 +286,352 @@ subroutine gndstate
 #endif
 #endif
 #ifdef MPIRHO
-	call mpisumrhoandmag
+            Call mpisumrhoandmag
 #endif
 #ifdef MPI
-	if(input%groundstate%xctypenumber.lt.0) call mpiresumeevecfiles()
+            If (input%groundstate%xctypenumber .Lt. 0) Call &
+           & mpiresumeevecfiles ()
 #endif
  ! symmetrise the density
-        call symrf(input%groundstate%lradstep, rhomt, rhoir)
+            Call symrf (input%groundstate%lradstep, rhomt, rhoir)
         ! symmetrise the magnetisation
-        if (associated(input%groundstate%spin)) call symrvf(input%groundstate%lradstep, magmt, magir)
+            If (associated(input%groundstate%spin)) Call symrvf &
+           & (input%groundstate%lradstep, magmt, magir)
         ! convert the density from a coarse to a fine radial mesh
-        call rfmtctof(rhomt)
+            Call rfmtctof (rhomt)
         ! convert the magnetisation from a coarse to a fine radial mesh
-        do idm=1, ndmag
-           call rfmtctof(magmt(:, :, :, idm))
-        end do
+            Do idm = 1, ndmag
+               Call rfmtctof (magmt(:, :, :, idm))
+            End Do
         ! add the core density to the total density
-        call addrhocr
+            Call addrhocr
         ! calculate the charges
-        call charge
+            Call charge
         ! calculate the moments
-        if (associated(input%groundstate%spin)) call moment
+            If (associated(input%groundstate%spin)) Call moment
         ! normalise the density
-        call rhonorm
+            Call rhonorm
         ! LDA+U
-        if (ldapu.ne.0) then
+            If (ldapu .Ne. 0) Then
            ! generate the LDA+U density matrix
-           call gendmatlu
+               Call gendmatlu
            ! generate the LDA+U potential matrix
-           call genvmatlu
+               Call genvmatlu
            ! write the LDA+U matrices to file
-           call writeldapu
-        end if
+               Call writeldapu
+            End If
         ! compute the effective potential
-        call poteff
+            Call poteff
         ! pack interstitial and muffin-tin effective potential and field into one array
-        call packeff(.true., n, v)
+            Call packeff (.True., n, v)
         ! mix in the old potential and field with the new
-
-	if(rank.eq.0) call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, nwork)
-
+!
+            If (rank .Eq. 0) Call mixerifc &
+           & (input%groundstate%mixernumber, n, v, currentconvergence, &
+           & nwork)
+!
 #ifdef MPI
-	call  MPI_BCAST(v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
  !    call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
  !     call  MPI_BCAST(work(1), nwork, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-
-
+!
+!
  !	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
  !        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
  !        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
  !        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 #endif
  ! unpack potential and field
-        call packeff(.false., n, v)
+            Call packeff (.False., n, v)
         ! add the fixed spin moment effect field
-        if (getfixspinnumber().ne.0) call fsmfield
+            If (getfixspinnumber() .Ne. 0) Call fsmfield
         ! Fourier transform effective potential to G-space
-        call genveffig
+            Call genveffig
         ! reduce the external magnetic fields if required
-        if(associated(input%groundstate%spin))then
-           if (input%groundstate%spin%reducebf.lt.1.d0) then
-              input%groundstate%spin%bfieldc(:) = input%groundstate%spin%bfieldc(:) * input%groundstate%spin%reducebf
-              do is=1, nspecies
-                 do ia=1, natoms(is)
-                    input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:) =&
-                         &input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:) * input%groundstate%spin%reducebf
-                 end do
-              end do
-           end if
-        endif
+            If (associated(input%groundstate%spin)) Then
+               If (input%groundstate%spin%reducebf .Lt. 1.d0) Then
+                  input%groundstate%spin%bfieldc(:) = &
+                 & input%groundstate%spin%bfieldc(:) * &
+                 & input%groundstate%spin%reducebf
+                  Do is = 1, nspecies
+                     Do ia = 1, natoms (is)
+                        input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:) = &
+                       & input%structure%speciesarray(is)%species%atomarray(ia)%atom%bfcmt(:) * input%groundstate%spin%reducebf
+                     End Do
+                  End Do
+               End If
+            End If
         ! compute the energy components
-        call energy
+            Call energy
         ! output energy components
-	if(rank.eq.0) then
-           call writeengy(60)
-           write(60, *)
-           write(60, '("Density of states at Fermi energy : ", G18.10)') fermidos
-           write(60, '(" (states/Hartree/unit cell)")')
+            If (rank .Eq. 0) Then
+               Call writeengy (60)
+               Write (60,*)
+               Write (60, '("Density of states at Fermi energy : ", G18&
+              &.10)') fermidos
+               Write (60, '(" (states/Hartree/unit cell)")')
            ! write total energy to TOTENERGY.OUT and flush
-           write(61, '(G22.12)') engytot
-           call flushifc(61)
+               Write (61, '(G22.12)') engytot
+               Call flushifc (61)
            ! write DOS at Fermi energy to FERMIDOS.OUT and flush
-           write(62, '(G18.10)') fermidos
-           call flushifc(62)
+               Write (62, '(G18.10)') fermidos
+               Call flushifc (62)
            ! output charges and moments
-           call writechg(60)
+               Call writechg (60)
            ! write total moment to MOMENT.OUT and flush
-           if (associated(input%groundstate%spin)) then
-              write(63, '(3G18.10)') momtot(1:ndmag)
-
-              call flushifc(63)
-           end if
+               If (associated(input%groundstate%spin)) Then
+                  Write (63, '(3G18.10)') momtot (1:ndmag)
+!
+                  Call flushifc (63)
+               End If
            ! output effective fields for fixed spin moment calculations
-           if (getfixspinnumber().ne.0) call writefsm(60)
+               If (getfixspinnumber() .Ne. 0) Call writefsm (60)
            ! check for WRITE file
-           inquire(file='WRITE', exist=exist)
-           if (exist) then
-              write(60, *)
-              write(60, '("WRITE file exists - writing STATE.OUT")')
-              call writestate
-              open(50, file='WRITE')
-              close(50, status='DELETE')
-           end if
+               Inquire (File='WRITE', Exist=Exist)
+               If (exist) Then
+                  Write (60,*)
+                  Write (60, '("WRITE file exists - writing STATE.OUT")&
+                 &')
+                  Call writestate
+                  Open (50, File='WRITE')
+                  Close (50, Status='DELETE')
+               End If
            ! write STATE.OUT file if required
-           if (input%groundstate%nwrite.ge.1) then
-              if (mod(iscl, input%groundstate%nwrite).eq.0) then
-                 call writestate
-                 write(60, *)
-                 write(60, '("Wrote STATE.OUT")')
-              end if
-           end if
-           call  scl_iter_xmlout()
-           if(associated(input%groundstate%spin)) call scl_xml_write_moments()
-           call scl_xml_out_write()
-
-	endif
+               If (input%groundstate%nwrite .Ge. 1) Then
+                  If (Mod(iscl, input%groundstate%nwrite) .Eq. 0) Then
+                     Call writestate
+                     Write (60,*)
+                     Write (60, '("Wrote STATE.OUT")')
+                  End If
+               End If
+               Call scl_iter_xmlout ()
+               If (associated(input%groundstate%spin)) Call &
+              & scl_xml_write_moments ()
+               Call scl_xml_out_write ()
+!
+            End If
  ! exit self-consistent loop if last iteration is complete
-        if (tlast) goto 20
-	if(rank.eq.0)then
+            If (tlast) Go To 20
+            If (rank .Eq. 0) Then
     ! check for convergence
-           if (iscl.ge.2) then
-              write(60, *)
-              write(60, '("RMS change in effective potential (target) : ", G18.10, &
-		   &" (", G18.10, ")")') currentconvergence, input%groundstate%epspot
-	      if (currentconvergence.lt.input%groundstate%epspot) then
-                 write(60, *)
-                 write(60, '("Potential convergence target achieved")')
-                 tlast=.true.
-              end if
-	      write(65, '(G18.10)') currentconvergence
-              call flushifc(65)
-           end if
-           if (input%groundstate%xctypenumber.lt.0) then
-              write(60, *)
-              write(60, '("Magnitude of OEP residual : ", G18.10)') resoep
-           end if
-
+               If (iscl .Ge. 2) Then
+                  Write (60,*)
+                  Write (60, '("RMS change in effective potential (targ&
+                 &et) : ", G18.10, " (", G18.10, ")")') &
+                 & currentconvergence, input%groundstate%epspot
+                  If (currentconvergence .Lt. input%groundstate%epspot) &
+                 & Then
+                     Write (60,*)
+                     Write (60, '("Potential convergence target achieve&
+                    &d")')
+                     tlast = .True.
+                  End If
+                  Write (65, '(G18.10)') currentconvergence
+                  Call flushifc (65)
+               End If
+               If (input%groundstate%xctypenumber .Lt. 0) Then
+                  Write (60,*)
+                  Write (60, '("Magnitude of OEP residual : ", G18.10)') resoep
+               End If
+!
            ! check for STOP file
-           inquire(file='STOP', exist=exist)
-           if (exist) then
-              write(60, *)
-              write(60, '("STOP file exists - stopping self-consistent loop")')
-              tstop=.true.
-              tlast=.true.
-              open(50, file='STOP')
-              close(50, status='DELETE')
-           end if
+               Inquire (File='STOP', Exist=Exist)
+               If (exist) Then
+                  Write (60,*)
+                  Write (60, '("STOP file exists - stopping self-consis&
+                 &tent loop")')
+                  tstop = .True.
+                  tlast = .True.
+                  Open (50, File='STOP')
+                  Close (50, Status='DELETE')
+               End If
            ! output the current total CPU time
-           timetot=timeinit+timemat+timefv+timesv+timerho+timepot+timefor
-           write(60, *)
-           write(60, '("Time (CPU seconds) : ", F12.2)') timetot
+               timetot = timeinit + timemat + timefv + timesv + timerho &
+              & + timepot + timefor
+               Write (60,*)
+               Write (60, '("Time (CPU seconds) : ", F12.2)') timetot
            ! end the self-consistent loop
-	endif
+            End If
 #ifdef MPI
-	call MPI_bcast(tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-	call MPI_bcast(tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
+           & ierr)
+            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
+           & ierr)
 #endif
-
-     end do
-
-
-20   continue
-     if (rank.eq.0)then
-	redoscl=.false.
-	write(60, *)
-	write(60, '("+------------------------------+")')
-	write(60, '("| Self-consistent loop stopped |")')
-	write(60, '("+------------------------------+")')
+!
+         End Do
+!
+!
+20       Continue
+         If (rank .Eq. 0) Then
+            redoscl = .False.
+            Write (60,*)
+            Write (60, '("+------------------------------+")')
+            Write (60, '("| Self-consistent loop stopped |")')
+            Write (60, '("+------------------------------+")')
  ! write density and potentials to file only if maxscl > 1
-	if (input%groundstate%maxscl.gt.1) then
-           call writestate
-           write(60, *)
-           write(60, '("Wrote STATE.OUT")')
-	end if
+            If (input%groundstate%maxscl .Gt. 1) Then
+               Call writestate
+               Write (60,*)
+               Write (60, '("Wrote STATE.OUT")')
+            End If
  !-----------------------!
  !     compute forces    !
  !-----------------------!
-	if ((.not.tstop).and.(input%groundstate%tforce)) then
-           call force
-	   if(rank.eq.0) then
+            If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
+               Call force
+               If (rank .Eq. 0) Then
        ! output forces to INFO.OUT
-              call writeforce(60)
-              call structure_xmlout()
+                  Call writeforce (60)
+                  Call structure_xmlout ()
               ! write maximum force magnitude to FORCEMAX.OUT
-              write(64, '(G18.10)') forcemax
-              call flushifc(64)
-	   endif
-	end if
-     endif
+                  Write (64, '(G18.10)') forcemax
+                  Call flushifc (64)
+               End If
+            End If
+         End If
      !---------------------------------------!
      !     perform structural relaxation     !
      !---------------------------------------!
-     if ((.not.tstop).and.((task.eq.2).or.(task.eq.3))) then
-	if(rank.eq.0) then
-           write(60, *)
-           write(60, '("Maximum force magnitude (target) : ", G18.10, " (", G18.10, ")")') &
-                forcemax, input%structureoptimization%epsforce
-           call flushifc(60)
-	endif
+         If (( .Not. tstop) .And. ((task .Eq. 2) .Or. (task .Eq. 3))) &
+        & Then
+            If (rank .Eq. 0) Then
+               Write (60,*)
+               Write (60, '("Maximum force magnitude (target) : ", G18.&
+              &10, " (", G18.10, ")")') forcemax, &
+              & input%structureoptimization%epsforce
+               Call flushifc (60)
+            End If
  ! check force convergence
-	if(rank.eq.0)	then
-	   force_converged=.false.
-           if (forcemax.le.input%structureoptimization%epsforce) then
-              write(60, *)
-              write(60, '("Force convergence target achieved")')
-	      force_converged=.true.
-           end if
-	endif
+            If (rank .Eq. 0) Then
+               force_converged = .False.
+               If (forcemax .Le. input%structureoptimization%epsforce) &
+              & Then
+                  Write (60,*)
+                  Write (60, '("Force convergence target achieved")')
+                  force_converged = .True.
+               End If
+            End If
 #ifdef MPI
-	call mpi_bcast(force_converged, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (force_converged, 1, MPI_LOGICAL, 0, &
+           & MPI_COMM_WORLD, ierr)
 #endif
-	if(force_converged) goto 30
+            If (force_converged) Go To 30
  ! update the atomic positions if forces are not converged
-        call updatpos
-	if(rank.eq.0)	then
-           write(60, *)
-           write(60, '("+--------------------------+")')
-           write(60, '("| Updated atomic positions |")')
-           write(60, '("+--------------------------+")')
-           do is=1, nspecies
-              write(60, *)
-              write(60, '("Species : ", I4, " (", A, ")")') is, trim(input%structure%speciesarray(is)%species%chemicalSymbol)
-              write(60, '(" atomic positions (lattice) :")')
-              do ia=1, natoms(is)
-                 write(60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
-              end do
-           end do
+            Call updatpos
+            If (rank .Eq. 0) Then
+               Write (60,*)
+               Write (60, '("+--------------------------+")')
+               Write (60, '("| Updated atomic positions |")')
+               Write (60, '("+--------------------------+")')
+               Do is = 1, nspecies
+                  Write (60,*)
+                  Write (60, '("Species : ", I4, " (", A, ")")') is, trim (input%structure%speciesarray(is)%species%chemicalSymbol)
+                  Write (60, '(" atomic positions (lattice) :")')
+                  Do ia = 1, natoms (is)
+                     Write (60, '(I4, " : ", 3F14.8)') ia, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:)
+                  End Do
+               End Do
            ! add blank line to TOTENERGY.OUT, FERMIDOS.OUT, MOMENT.OUT and RMSDVEFF.OUT
-           write(61, *)
-           write(62, *)
-           if (associated(input%groundstate%spin)) write (63, *)
-           write(65, *)
+               Write (61,*)
+               Write (62,*)
+               If (associated(input%groundstate%spin)) write (63,*)
+               Write (65,*)
            ! begin new self-consistent loop with updated positions
-	   redoscl=.true.
-	endif
-
+               redoscl = .True.
+            End If
+!
 #ifdef MPI
-	call MPI_bcast(redoscl, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-
-	call MPI_Bcast(forcemax, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(atposc, size(atposc), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	do is=1, nspecies
-           do ia=1, natoms(is)
-              call MPI_Bcast(input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord, &
-                   &size(input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord), MPI_DOUBLE_PRECISION, 0, &
-                   &MPI_COMM_WORLD, ierr)
-           enddo
-	enddo
-	call MPI_Bcast(vkl, size(vkl), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(vkc, size(vkc), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(ngvec, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(sfacg, size(sfacg), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(ngk, size(ngk), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(vgkc, size(vgkc), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(sfacgk, size(sfacgk), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(ngkmax, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-	call MPI_Bcast(engynn, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-
+            Call MPI_bcast (redoscl, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
+           & ierr)
+!
+            Call MPI_bcast (forcemax, 1, MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (atposc, size(atposc), MPI_DOUBLE_PRECISION, &
+           & 0, MPI_COMM_WORLD, ierr)
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  Call MPI_bcast (input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord, &
+                 & size(input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord), MPI_DOUBLE_PRECISION, 0, &
+                 & MPI_COMM_WORLD, ierr)
+               End Do
+            End Do
+            Call MPI_bcast (vkl, size(vkl), MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (vkc, size(vkc), MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (ngvec, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, &
+           & ierr)
+            Call MPI_bcast (sfacg, size(sfacg), MPI_DOUBLE_PRECISION, &
+           & 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (ngk, size(ngk), MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (vgkc, size(vgkc), MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (sfacgk, size(sfacgk), MPI_DOUBLE_PRECISION, &
+           & 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (ngkmax, 1, MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (engynn, 1, MPI_DOUBLE_PRECISION, 0, &
+           & MPI_COMM_WORLD, ierr)
+!
 #endif
-
-	if(redoscl)  goto 10
-     end if
-
-30   continue
+!
+            If (redoscl) Go To 10
+         End If
+!
+30       Continue
      ! output timing information
-     if(rank.eq.0)then
-        if(.not. input%groundstate%tforce) call structure_xmlout()
-	write(60, *)
-	write(60, '("Timings (CPU seconds) :")')
-	write(60, '(" initialisation", T40, ": ", F12.2)') timeinit
-	write(60, '(" Hamiltonian and overlap matrix set up", T40, ": ", F12.2)') timemat
-	write(60, '(" first-variational secular equation", T40, ": ", F12.2)') timefv
-	if (associated(input%groundstate%spin)) then
-           write(60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
-	end if
-	write(60, '(" charge density calculation", T40, ": ", F12.2)') timerho
-	write(60, '(" potential calculation", T40, ": ", F12.2)') timepot
-	if (input%groundstate%tforce) then
-           write(60, '(" force calculation", T40, ": ", F12.2)') timefor
-	end if
-	timetot=timeinit+timemat+timefv+timesv+timerho+timepot+timefor
-	write(60, '(" total", T40, ": ", F12.2)') timetot
-	write(60, *)
-	write(60, '("+---------------------------+")')
-	write(60, '("| EXCITING hydrogen stopped |")')
-	write(60, '("+---------------------------+")')
- ! close the INFO.OUT file
-	close(60)
+         If (rank .Eq. 0) Then
+            If ( .Not. input%groundstate%tforce) Call structure_xmlout &
+           & ()
+            Write (60,*)
+            Write (60, '("Timings (CPU seconds) :")')
+            Write (60, '(" initialisation", T40, ": ", F12.2)') &
+           & timeinit
+            Write (60, '(" Hamiltonian and overlap matrix set up", T40,&
+           & ": ", F12.2)') timemat
+            Write (60, '(" first-variational secular equation", T40, ":&
+           & ", F12.2)') timefv
+            If (associated(input%groundstate%spin)) Then
+               Write (60, '(" second-variational calculation", T40, ": ", F12.2)') timesv
+            End If
+            Write (60, '(" charge density calculation", T40, ": ", F12.&
+           &2)') timerho
+            Write (60, '(" potential calculation", T40, ": ", F12.2)') &
+           & timepot
+            If (input%groundstate%tforce) Then
+               Write (60, '(" force calculation", T40, ": ", F12.2)') &
+              & timefor
+            End If
+            timetot = timeinit + timemat + timefv + timesv + timerho + &
+           & timepot + timefor
+            Write (60, '(" total", T40, ": ", F12.2)') timetot
+            Write (60,*)
+            Write (60, '("+---------------------------+")')
+            Write (60, '("| EXCITING hydrogen stopped |")')
+            Write (60, '("+---------------------------+")')
  ! close the TOTENERGY.OUT file
-	close(61)
+            Close (61)
  ! close the FERMIDOS.OUT file
-	close(62)
+            Close (62)
  ! close the MOMENT.OUT file
-	if (associated(input%groundstate%spin)) close(63)
+            If (associated(input%groundstate%spin)) close (63)
  ! close the FORCEMAX.OUT file
-	if (input%groundstate%tforce) close(64)
+            If (input%groundstate%tforce) close (64)
  ! close the RMSDVEFF.OUT file
-	close(65)
-        call	scl_xml_setGndstateStatus("finished")
-        call scl_xml_out_write()
-     endif
-
+            Close (65)
+            Call scl_xml_setGndstateStatus ("finished")
+            Call scl_xml_out_write ()
+         End If
      !set nwork to -2 to tell interface to call the deallocation functions
-     call mixerifc(input%groundstate%mixernumber, n, v, currentconvergence, -2)
-     deallocate(v)
-     call mpiresumeevecfiles()
-     return
-   end subroutine gndstate
-   !EOC
+         If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, &
+        & n, v, currentconvergence,-2)
+         Deallocate (v)
+         Call mpiresumeevecfiles ()
+ ! close the INFO.OUT file
+         If (rank .Eq. 0) close (60)
+         Return
+   End Subroutine gndstate
+!EOC

@@ -1,27 +1,28 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine getbsediag
-  use modxs
-  use m_getunit
-  implicit none
+!
+!
+Subroutine getbsediag
+      Use modxs
+      Use m_getunit
+      Implicit None
   ! local variables
-  integer :: un
-  real(8) :: re, im
-  call getunit(un)
-  open(un, file='BSEDIAG.OUT', action='read', form='formatted', status='old')
-  read(un, *) re, im
-  bsed=cmplx(re, im, 8)
-  read(un, *) re, im
-  bsedl=cmplx(re, im, 8)
-  read(un, *) re, im
-  bsedu=cmplx(re, im, 8)
-  read(un, *) re, im
-  bsedd=cmplx(re, im, 8)
-  close(un)
-end subroutine getbsediag
+      Integer :: un
+      Real (8) :: re, im
+      Call getunit (un)
+      Open (un, File='BSEDIAG.OUT', Action='read', Form='formatted', &
+     & Status='old')
+      Read (un,*) re, im
+      bsed = cmplx (re, im, 8)
+      Read (un,*) re, im
+      bsedl = cmplx (re, im, 8)
+      Read (un,*) re, im
+      bsedu = cmplx (re, im, 8)
+      Read (un,*) re, im
+      bsedd = cmplx (re, im, 8)
+      Close (un)
+End Subroutine getbsediag

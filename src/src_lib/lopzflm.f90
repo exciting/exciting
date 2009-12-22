@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: lopzflm
 ! !INTERFACE:
-
-
-subroutine lopzflm(lmax, zflm, ld, zlflm)
+!
+!
+Subroutine lopzflm (lmax, zflm, ld, zlflm)
 ! !INPUT/OUTPUT PARAMETERS:
 !   lmax  : maximum angular momentum (in,integer)
 !   zflm  : coefficients of input spherical harmonic expansion
@@ -22,8 +22,8 @@ subroutine lopzflm(lmax, zflm, ld, zlflm)
 !   Applies the angular momentum operator ${\bf L}$ to a function expanded in
 !   terms of complex spherical harmonics. This makes use of the identities
 !   \begin{align*}
-!    (L_x+iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l-m)(l+m+1)}Y_{lm+1}(\theta,\phi)\&
-!    (L_x-iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l+m)(l-m+1)}Y_{lm-1}(\theta,\phi)\&
+!    (L_x+iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l-m)(l+m+1)}Y_{lm+1}(\theta,\phi)\\
+!    (L_x-iL_y)Y_{lm}(\theta,\phi)&=\sqrt{(l+m)(l-m+1)}Y_{lm-1}(\theta,\phi)\\
 !    L_zY_{lm}(\theta,\phi)&=mY_{lm}(\theta,\phi).
 !   \end{align*}
 !
@@ -31,49 +31,50 @@ subroutine lopzflm(lmax, zflm, ld, zlflm)
 !   Created March 2004 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: lmax
-complex(8), intent(in) :: zflm(*)
-integer, intent(in) :: ld
-complex(8), intent(out) :: zlflm(ld, 3)
+      Integer, Intent (In) :: lmax
+      Complex (8), Intent (In) :: zflm (*)
+      Integer, Intent (In) :: ld
+      Complex (8), Intent (Out) :: zlflm (ld, 3)
 ! local variables
-integer::l, m, lm
-real(8)::t1
-complex(8) zt1
-if (lmax.lt.0) then
-  write(*, *)
-  write(*, '("Error(lopzflm): lmax < 0 : ", I8)') lmax
-  write(*, *)
-  stop
-end if
-lm=0
-do l=0, lmax
-  do m=-l, l
-    lm=lm+1
-    if (m.eq.-l) then
-      zlflm(lm, 1)=0.d0
-      zlflm(lm, 2)=0.d0
-    end if
-    if (m.lt.l) then
-      t1=0.5d0*sqrt(dble((l-m)*(l+m+1)))
-      zt1=t1*zflm(lm)
-      zlflm(lm+1, 1)=zt1
-      zlflm(lm+1, 2)=cmplx(aimag(zt1), -dble(zt1), 8)
-    end if
-    if (m.gt.-l) then
-      t1=0.5d0*sqrt(dble((l+m)*(l-m+1)))
-      zt1=t1*zflm(lm)
-      zlflm(lm-1, 1)=zlflm(lm-1, 1)+zt1
-      zlflm(lm-1, 2)=zlflm(lm-1, 2)+cmplx(-aimag(zt1), dble(zt1), 8)
-    end if
-    if (m.ne.0) then
-      zlflm(lm, 3)=dble(m)*zflm(lm)
-    else
-      zlflm(lm, 3)=0.d0
-    end if
-  end do
-end do
-return
-end subroutine
+      Integer :: l, m, lm
+      Real (8) :: t1
+      Complex (8) zt1
+      If (lmax .Lt. 0) Then
+         Write (*,*)
+         Write (*, '("Error(lopzflm): lmax < 0 : ", I8)') lmax
+         Write (*,*)
+         Stop
+      End If
+      lm = 0
+      Do l = 0, lmax
+         Do m = - l, l
+            lm = lm + 1
+            If (m .Eq.-l) Then
+               zlflm (lm, 1) = 0.d0
+               zlflm (lm, 2) = 0.d0
+            End If
+            If (m .Lt. l) Then
+               t1 = 0.5d0 * Sqrt (dble((l-m)*(l+m+1)))
+               zt1 = t1 * zflm (lm)
+               zlflm (lm+1, 1) = zt1
+               zlflm (lm+1, 2) = cmplx (aimag(zt1),-dble(zt1), 8)
+            End If
+            If (m .Gt.-l) Then
+               t1 = 0.5d0 * Sqrt (dble((l+m)*(l-m+1)))
+               zt1 = t1 * zflm (lm)
+               zlflm (lm-1, 1) = zlflm (lm-1, 1) + zt1
+               zlflm (lm-1, 2) = zlflm (lm-1, 2) + cmplx (-aimag(zt1), &
+              & dble(zt1), 8)
+            End If
+            If (m .Ne. 0) Then
+               zlflm (lm, 3) = dble (m) * zflm (lm)
+            Else
+               zlflm (lm, 3) = 0.d0
+            End If
+         End Do
+      End Do
+      Return
+End Subroutine
 !EOC

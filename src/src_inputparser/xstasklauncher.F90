@@ -1,163 +1,164 @@
-subroutine xstasklauncher
-use modinput
-use modmain,only:task
-use inputdom
-
-if(.not.(associated(input%xs%tddft)))then
+Subroutine xstasklauncher
+      Use modinput
+      Use modmain, Only: task
+      Use inputdom
+!
+      If ( .Not. (associated(input%xs%tddft))) Then
   ! set the default values if solver element not present
-  input%xs%tddft=>getstructtddft(emptynode)
-endif
-
-if(.not.(associated(input%xs%screening)))then
+         input%xs%tddft => getstructtddft (emptynode)
+      End If
+!
+      If ( .Not. (associated(input%xs%screening))) Then
   ! set the default values if solver element not present
-  input%xs%screening=>getstructscreening(emptynode)
-endif
-
-if(.not.(associated(input%xs%BSE)))then
+         input%xs%screening => getstructscreening (emptynode)
+      End If
+!
+      If ( .Not. (associated(input%xs%BSE))) Then
   ! set the default values if solver element not present
-	input%xs%BSE=>getstructBSE(emptynode)
-endif
-
-if(.not.(associated(input%xs%tetra)))then
+         input%xs%BSE => getstructBSE (emptynode)
+      End If
+!
+      If ( .Not. (associated(input%xs%tetra))) Then
   ! set the default values if solver element not present
-	input%xs%tetra=>getstructtetra(emptynode)
-endif
-
-call backup0
-call backup1
-call backup2
-
-if(associated(input%xs%plan)) then
-	call xsmain(input%xs%plan)
-else if(trim(input%xs%xstype).eq."TDDFT") then
-
-    if (input%xs%tddft%resumefromkernel) goto 10
-
-    task=301
-    call xsinit
-    call xsgeneigvec
-    call xsfinit
-
-    if((input%xs%tetra%tetradf)) then
-	task=310
-	call xsinit
-	call tetcalccw
-	call xsfinit
-    endif
-
-    task=320
-    call xsinit
-    call writepmatxs
-    call xsfinit
-
-    task=330
-    call xsinit
-    call writeemat
-    call xsfinit
-
-    if(input%xs%tddft%fxctypenumber.eq.7 .or. input%xs%tddft%fxctypenumber.eq.8) then
-    	task=401
-    	call xsinit
-    	call scrgeneigvec
-    	call xsfinit
-
-    	task=420
-    	call xsinit
-    	call scrwritepmat
-    	call xsfinit
-
-    	if((input%xs%tetra%tetradf)) then
-    	    task=410
-    	    call xsinit
-    	    call scrtetcalccw
-    	    call xsfinit
-    	endif
-
-	if (input%xs%screening%run.eq."fromscratch") then
-	    	task=430
-	    	call xsinit
-	    	call screen
-	    	call xsfinit
-
-	    	task=440
-	    	call xsinit
-	    	call scrcoulint
-	    	call xsfinit
-	end if
-
-    	task=450
-    	call xsinit
-    	call kernxc_bse
-    	call xsfinit
-    endif
-
-    task=340
-    call xsinit
-    call df
-    call xsfinit
-
-10  continue
-
-    task=350
-    call xsinit
-    call idf
-    call xsfinit
-
-else if(trim(input%xs%xstype).eq."BSE")then
-
-    task=301
-    call xsinit
-    call xsgeneigvec
-    call xsfinit
-
-    task=320
-    call xsinit
-    call writepmatxs
-    call xsfinit
-
-    task=401
-    call xsinit
-    call scrgeneigvec
-    call xsfinit
-
-    if((input%xs%tetra%tetradf)) then
-    	    task=410
-    	    call xsinit
-    	    call scrtetcalccw
-            call xsfinit
-    endif
-
-    task=420
-    call xsinit
-    call scrwritepmat
-    call xsfinit
-
-    if (input%xs%screening%run.eq."fromscratch") then
-	    task=430
-	    call xsinit
-	    call screen
-	    call xsfinit
-
-	    task=440
-	    call xsinit
-	    call scrcoulint
-	    call xsfinit
-    end if
-
-    task=441
-    call xsinit
-    call exccoulint
-    call xsfinit
-
-    task=445
-    call xsinit
-    call bse
-    call xsfinit
-else
-  write(*,*)"error xstasklauncher"
-  write(*,*)trim(input%xs%xstype),"no valid xstype"
-  stop
-endif
-
-
-end subroutine
+         input%xs%tetra => getstructtetra (emptynode)
+      End If
+!
+      Call backup0
+      Call backup1
+      Call backup2
+!
+      If (associated(input%xs%plan)) Then
+         Call xsmain (input%xs%plan)
+      Else If (trim(input%xs%xstype) .Eq. "TDDFT") Then
+!
+         If (input%xs%tddft%resumefromkernel) Go To 10
+!
+         task = 301
+         Call xsinit
+         Call xsgeneigvec
+         Call xsfinit
+!
+         If ((input%xs%tetra%tetradf)) Then
+            task = 310
+            Call xsinit
+            Call tetcalccw
+            Call xsfinit
+         End If
+!
+         task = 320
+         Call xsinit
+         Call writepmatxs
+         Call xsfinit
+!
+         task = 330
+         Call xsinit
+         Call writeemat
+         Call xsfinit
+!
+         If (input%xs%tddft%fxctypenumber .Eq. 7 .Or. &
+        & input%xs%tddft%fxctypenumber .Eq. 8) Then
+            task = 401
+            Call xsinit
+            Call scrgeneigvec
+            Call xsfinit
+!
+            task = 420
+            Call xsinit
+            Call scrwritepmat
+            Call xsfinit
+!
+            If ((input%xs%tetra%tetradf)) Then
+               task = 410
+               Call xsinit
+               Call scrtetcalccw
+               Call xsfinit
+            End If
+!
+            If (input%xs%screening%run .Eq. "fromscratch") Then
+               task = 430
+               Call xsinit
+               Call screen
+               Call xsfinit
+!
+               task = 440
+               Call xsinit
+               Call scrcoulint
+               Call xsfinit
+            End If
+!
+            task = 450
+            Call xsinit
+            Call kernxc_bse
+            Call xsfinit
+         End If
+!
+         task = 340
+         Call xsinit
+         Call df
+         Call xsfinit
+!
+10       Continue
+!
+         task = 350
+         Call xsinit
+         Call idf
+         Call xsfinit
+!
+      Else If (trim(input%xs%xstype) .Eq. "BSE") Then
+!
+         task = 301
+         Call xsinit
+         Call xsgeneigvec
+         Call xsfinit
+!
+         task = 320
+         Call xsinit
+         Call writepmatxs
+         Call xsfinit
+!
+         task = 401
+         Call xsinit
+         Call scrgeneigvec
+         Call xsfinit
+!
+         If ((input%xs%tetra%tetradf)) Then
+            task = 410
+            Call xsinit
+            Call scrtetcalccw
+            Call xsfinit
+         End If
+!
+         task = 420
+         Call xsinit
+         Call scrwritepmat
+         Call xsfinit
+!
+         If (input%xs%screening%run .Eq. "fromscratch") Then
+            task = 430
+            Call xsinit
+            Call screen
+            Call xsfinit
+!
+            task = 440
+            Call xsinit
+            Call scrcoulint
+            Call xsfinit
+         End If
+!
+         task = 441
+         Call xsinit
+         Call exccoulint
+         Call xsfinit
+!
+         task = 445
+         Call xsinit
+         Call BSE
+         Call xsfinit
+      Else
+         Write (*,*) "error xstasklauncher"
+         Write (*,*) trim (input%xs%xstype), "no valid xstype"
+         Stop
+      End If
+!
+!
+End Subroutine

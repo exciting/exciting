@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genylm
 ! !INTERFACE:
-
-
-subroutine genylm(lmax, tp, ylm)
+!
+!
+Subroutine genylm (lmax, tp, ylm)
 ! !INPUT/OUTPUT PARAMETERS:
 !   lmax : maximum angular momentum (in,integer)
 !   tp   : (theta, phi) coordinates (in,real(2))
@@ -28,67 +28,67 @@ subroutine genylm(lmax, tp, ylm)
 !   Improved stability, December 2005 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: lmax
-real(8), intent(in) :: tp(2)
-complex(8), intent(out) :: ylm(*)
+      Integer, Intent (In) :: lmax
+      Real (8), Intent (In) :: tp (2)
+      Complex (8), Intent (Out) :: ylm (*)
 ! local variables
-integer::l, m, lm1, lm2
-real(8), parameter :: fourpi=12.566370614359172954d0
-real(8)::sn, cs, dx, sum, t1
+      Integer :: l, m, lm1, lm2
+      Real (8), Parameter :: fourpi = 12.566370614359172954d0
+      Real (8) :: sn, cs, dx, sum, t1
 ! automatic arrays
-real(8)::x(0:lmax)
-complex(8) z(lmax)
-if ((lmax.lt.0).or.(lmax.gt.50)) then
-  write(*, *)
-  write(*, '("Error(genylm): lmax out of range : ", I8)') lmax
-  write(*, *)
-  stop
-end if
-ylm(1)=0.28209479177387814347d0
-if (lmax.eq.0) return
-sn=sin(tp(1))
-cs=cos(tp(1))
+      Real (8) :: x (0:lmax)
+      Complex (8) z (lmax)
+      If ((lmax .Lt. 0) .Or. (lmax .Gt. 50)) Then
+         Write (*,*)
+         Write (*, '("Error(genylm): lmax out of range : ", I8)') lmax
+         Write (*,*)
+         Stop
+      End If
+      ylm (1) = 0.28209479177387814347d0
+      If (lmax .Eq. 0) Return
+      sn = Sin (tp(1))
+      cs = Cos (tp(1))
 ! phase factors exp(i*m*phi)
-do m=1, lmax
-  t1=dble(m)*tp(2)
-  z(m)=cmplx(cos(t1), sin(t1), 8)
-end do
-do l=1, lmax
-  if (mod(l, 2).eq.0) then
-    x(l)=1.d0
-  else
-    x(l)=-1.d0
-  end if
+      Do m = 1, lmax
+         t1 = dble (m) * tp (2)
+         z (m) = cmplx (Cos(t1), Sin(t1), 8)
+      End Do
+      Do l = 1, lmax
+         If (Mod(l, 2) .Eq. 0) Then
+            x (l) = 1.d0
+         Else
+            x (l) = - 1.d0
+         End If
 ! recursion loop
-  dx=0.d0
-  do m=l, 1, -1
-    t1=sqrt(dble((l+m)*(l-m+1)))
-    x(m-1)=-(sn*dx+dble(2*m)*cs*x(m))/t1
-    dx=sn*x(m)*t1
-  end do
+         dx = 0.d0
+         Do m = l, 1, - 1
+            t1 = Sqrt (dble((l+m)*(l-m+1)))
+            x (m-1) = - (sn*dx+dble(2*m)*cs*x(m)) / t1
+            dx = sn * x (m) * t1
+         End Do
 ! rescale values and multiply with phase factors
-  t1=sn
-  sum=0.d0
-  do m=1, l
-    x(m)=t1*x(m)
-    sum=sum+x(m)**2
-    t1=t1*sn
-  end do
-  sum=2.d0*sum+x(0)**2
-  t1=sqrt(dble(2*l+1)/(fourpi*sum))
-  lm1=l*(l+1)+1
-  lm2=lm1
-  ylm(lm1)=t1*x(0)
-  do m=1, l
-    lm1=lm1+1
-    lm2=lm2-1
-    ylm(lm1)=t1*x(m)*z(m)
-    ylm(lm2)=conjg(ylm(lm1))
-    if (mod(m, 2).ne.0) ylm(lm2)=-ylm(lm2)
-  end do
-end do
-return
-end subroutine
+         t1 = sn
+         sum = 0.d0
+         Do m = 1, l
+            x (m) = t1 * x (m)
+            sum = sum + x (m) ** 2
+            t1 = t1 * sn
+         End Do
+         sum = 2.d0 * sum + x (0) ** 2
+         t1 = Sqrt (dble(2*l+1)/(fourpi*sum))
+         lm1 = l * (l+1) + 1
+         lm2 = lm1
+         ylm (lm1) = t1 * x (0)
+         Do m = 1, l
+            lm1 = lm1 + 1
+            lm2 = lm2 - 1
+            ylm (lm1) = t1 * x (m) * z (m)
+            ylm (lm2) = conjg (ylm(lm1))
+            If (Mod(m, 2) .Ne. 0) ylm (lm2) = - ylm (lm2)
+         End Do
+      End Do
+      Return
+End Subroutine
 !EOC

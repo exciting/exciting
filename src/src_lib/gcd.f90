@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: gcd
 ! !INTERFACE:
-integer function gcd(x, y)
+Integer Function gcd (x, y)
 ! !INPUT/OUTPUT PARAMETERS:
 !   x : first integer (in,integer)
 !   y : second integer (in,integer)
@@ -20,37 +20,37 @@ integer function gcd(x, y)
 !   Created September 2004 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: x
-integer, intent(in) :: y
+      Integer, Intent (In) :: x
+      Integer, Intent (In) :: y
 ! local variables
-integer::a, b, c
-if (x.le.0) then
-  write(*, *)
-  write(*, '("Error(gcd): x <= 0 : ", I8)') x
-  write(*, *)
-  stop
-end if
-if (y.le.0) then
-  write(*, *)
-  write(*, '("Error(gcd): y <= 0 : ", I8)') y
-  write(*, *)
-  stop
-end if
-if (x.ge.y) then
-  a=x
-  b=y
-else
-  a=y
-  b=x
-end if
-10 continue
-c=mod(a, b)
-a=b
-b=c
-if (c.gt.0) goto 10
-gcd=a
-return
-end function
+      Integer :: a, b, c
+      If (x .Le. 0) Then
+         Write (*,*)
+         Write (*, '("Error(gcd): x <= 0 : ", I8)') x
+         Write (*,*)
+         Stop
+      End If
+      If (y .Le. 0) Then
+         Write (*,*)
+         Write (*, '("Error(gcd): y <= 0 : ", I8)') y
+         Write (*,*)
+         Stop
+      End If
+      If (x .Ge. y) Then
+         a = x
+         b = y
+      Else
+         a = y
+         b = x
+      End If
+10    Continue
+      c = Mod (a, b)
+      a = b
+      b = c
+      If (c .Gt. 0) Go To 10
+      gcd = a
+      Return
+End Function
 !EOC

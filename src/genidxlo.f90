@@ -1,18 +1,18 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genidxlo
 ! !INTERFACE:
-
-
-subroutine genidxlo
+!
+!
+Subroutine genidxlo
 ! !USES:
-use modmain
+      Use modmain
 ! !DESCRIPTION:
 !   Generates an index array which maps the local-orbitals in each atom to their
 !   locations in the overlap or Hamiltonian matrices. Also finds the total
@@ -22,27 +22,27 @@ use modmain
 !   Created June 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! local variables
-integer::is, ia, ias, i, ilo, l, m, lm
+      Integer :: is, ia, ias, i, ilo, l, m, lm
 ! allocate global local-orbital index
-if (allocated(idxlo)) deallocate(idxlo)
-allocate(idxlo(lolmmax, nlomax, natmtot))
-i=0
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    do ilo=1, nlorb(is)
-      l=lorbl(ilo, is)
-      do m=-l, l
-	i=i+1
-	lm=idxlm(l, m)
-	idxlo(lm, ilo, ias)=i
-      end do
-    end do
-  end do
-end do
-nlotot=i
-return
-end subroutine
+      If (allocated(idxlo)) deallocate (idxlo)
+      Allocate (idxlo(lolmmax, nlomax, natmtot))
+      i = 0
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            Do ilo = 1, nlorb (is)
+               l = lorbl (ilo, is)
+               Do m = - l, l
+                  i = i + 1
+                  lm = idxlm (l, m)
+                  idxlo (lm, ilo, ias) = i
+               End Do
+            End Do
+         End Do
+      End Do
+      nlotot = i
+      Return
+End Subroutine
 !EOC

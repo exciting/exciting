@@ -1,21 +1,21 @@
-
-
-
-
+!
+!
+!
+!
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: plot3d
 ! !INTERFACE:
-
-
-subroutine plot3d(fname, nf, lmax, ld, rfmt, rfir,plotdef)
+!
+!
+Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !USES:
-use modinput
-use modmain
-use FoX_wxml
+      Use modinput
+      Use modmain
+      Use FoX_wxml
 ! !INPUT/OUTPUT PARAMETERS:
 !   fnum : plot file number (in,integer)
 !   nf   : number of functions (in,integer)
@@ -33,87 +33,98 @@ use FoX_wxml
 !   Modified, October 2008 (F. Bultmark, F. Cricchio, L. Nordstrom)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-character(len=*), intent(in)  :: fname
-integer, intent(in) :: nf
-integer, intent(in) :: lmax
-integer, intent(in) :: ld
-real(8), intent(in) :: rfmt(ld, nrmtmax, natmtot, nf)
-real(8), intent(in) :: rfir(ngrtot, nf)
-type(plot3d_type),intent(in)::plotdef
+      Character (Len=*), Intent (In) :: fname
+      Integer, Intent (In) :: nf
+      Integer, Intent (In) :: lmax
+      Integer, Intent (In) :: ld
+      Real (8), Intent (In) :: rfmt (ld, nrmtmax, natmtot, nf)
+      Real (8), Intent (In) :: rfir (ngrtot, nf)
+      Type (plot3d_type), Intent (In) :: plotdef
 ! local variables
-integer::np, ip, ip1, ip2, ip3, i,fnum=50
-real(8)::v1(3), v2(3), v3(3)
-real(8)::t1, t2, t3
-character(512)::buffer,buffer1
-  type(xmlf_t), save::xf
+      Integer :: np, ip, ip1, ip2, ip3, i, fnum = 50
+      Real (8) :: v1 (3), v2 (3), v3 (3)
+      Real (8) :: t1, t2, t3
+      Character (512) :: buffer, buffer1
+      Type (xmlf_t), Save :: xf
 ! allocatable arrays
-real(8), allocatable :: vpl(:, :)
-real(8), allocatable :: fp(:, :)
-buffer=fname//"3D.OUT"
-open(fnum, file=trim(buffer), action='WRITE', form='FORMATTED')
-call xml_OpenFile (fname//"3d.xml", xf, replace=.true.,pretty_print=.true.)
-call xml_NewElement(xf,"plot3d")
-
-if ((nf.lt.1).or.(nf.gt.4)) then
-  write(*, *)
-  write(*, '("Error(plot3d): invalid number of functions : ", I8)') nf
-  write(*, *)
-  stop
-end if
+      Real (8), Allocatable :: vpl (:, :)
+      Real (8), Allocatable :: fp (:, :)
+      buffer = fname // "3D.OUT"
+      Open (fnum, File=trim(buffer), Action='WRITE', Form='FORMATTED')
+      Call xml_OpenFile (fname//"3d.xml", xf, replace=.True., &
+     & pretty_print=.True.)
+      Call xml_NewElement (xf, "plot3d")
+!
+      If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
+         Write (*,*)
+         Write (*, '("Error(plot3d): invalid number of functions : ", I&
+        &8)') nf
+         Write (*,*)
+         Stop
+      End If
 ! allocate local arrays
-allocate(vpl(3, plotdef%box%grid(1)*plotdef%box%grid(2)*plotdef%box%grid(3)))
-allocate(fp(plotdef%box%grid(1)*plotdef%box%grid(2)*plotdef%box%grid(3), nf))
+      Allocate (vpl(3, &
+     & plotdef%box%grid(1)*plotdef%box%grid(2)*plotdef%box%grid(3)))
+      Allocate &
+     & (fp(plotdef%box%grid(1)*plotdef%box%grid(2)*plotdef%box%grid(3), &
+     & nf))
 ! generate 3D grid
-v1(:)=plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord
-v2(:)=plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord
-v3(:)=plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord
-ip=0
-do ip3=0, plotdef%box%grid(3)-1
-  t3=dble(ip3)/dble(plotdef%box%grid(3))
-  do ip2=0, plotdef%box%grid(2)-1
-    t2=dble(ip2)/dble(plotdef%box%grid(2))
-    do ip1=0, plotdef%box%grid(1)-1
-      t1=dble(ip1)/dble(plotdef%box%grid(1))
-      ip=ip+1
-      vpl(:, ip)=t1*v1(:)+t2*v2(:)+t3*v3(:)+plotdef%box%origin%coord
-    end do
-  end do
-end do
-np=ip
+      v1 (:) = plotdef%box%pointarray(1)%point%coord - &
+     & plotdef%box%origin%coord
+      v2 (:) = plotdef%box%pointarray(2)%point%coord - &
+     & plotdef%box%origin%coord
+      v3 (:) = plotdef%box%pointarray(3)%point%coord - &
+     & plotdef%box%origin%coord
+      ip = 0
+      Do ip3 = 0, plotdef%box%grid(3) - 1
+         t3 = dble (ip3) / dble (plotdef%box%grid(3))
+         Do ip2 = 0, plotdef%box%grid(2) - 1
+            t2 = dble (ip2) / dble (plotdef%box%grid(2))
+            Do ip1 = 0, plotdef%box%grid(1) - 1
+               t1 = dble (ip1) / dble (plotdef%box%grid(1))
+               ip = ip + 1
+               vpl (:, ip) = t1 * v1 (:) + t2 * v2 (:) + t3 * v3 (:) + &
+              & plotdef%box%origin%coord
+            End Do
+         End Do
+      End Do
+      np = ip
 ! evaluate the functions at the grid points
-do i=1, nf
-  call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, fp(:, i))
-end do
+      Do i = 1, nf
+         Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, &
+        & fp(:, i))
+      End Do
 ! write functions to file
-  write(fnum, '(3I6, " : grid size")') plotdef%box%grid(:)
-  write(buffer,'(3I6)') plotdef%box%grid(:)
-  call xml_AddAttribute(xf, "grid", trim(adjustl(buffer)))
-  call xml_NewElement(xf,"title")
-  call xml_AddCharacters(xf,trim(input%title))
-  call xml_endElement(xf,"title")
-do ip=1, np
-  call r3mv(input%structure%crystal%basevect, vpl(:, ip), v1)
-  write(fnum, '(7G18.10)') v1(:), (fp(ip, i), i=1, nf)
-    call xml_newElement(xf,"point")
-    write(buffer,'(G18.10)') v1(1)
-    call xml_AddAttribute(xf, "x", trim(adjustl(buffer)))
-    write(buffer,'(G18.10)') v1(2)
-    call xml_AddAttribute(xf, "y", trim(adjustl(buffer)))
-    write(buffer,'(G18.10)') v1(3)
-    call xml_AddAttribute(xf, "z", trim(adjustl(buffer)))
-    do i=1,nf
-       write(buffer,'(G18.10)')fp(ip, i)
-       write(buffer1,*)i
-       call xml_AddAttribute(xf, "function"//trim(adjustl(buffer1)), trim(adjustl(buffer)))
-    end do
-    call xml_endElement(xf,"point")
-
-end do
-deallocate(vpl, fp)
-call xml_Close(xf)
-close(fnum)
-return
-end subroutine
+      Write (fnum, '(3I6, " : grid size")') plotdef%box%grid(:)
+      Write (buffer, '(3I6)') plotdef%box%grid(:)
+      Call xml_AddAttribute (xf, "grid", trim(adjustl(buffer)))
+      Call xml_NewElement (xf, "title")
+      Call xml_AddCharacters (xf, trim(input%title))
+      Call xml_endElement (xf, "title")
+      Do ip = 1, np
+         Call r3mv (input%structure%crystal%basevect, vpl(:, ip), v1)
+         Write (fnum, '(7G18.10)') v1 (:), (fp(ip, i), i=1, nf)
+         Call xml_NewElement (xf, "point")
+         Write (buffer, '(G18.10)') v1 (1)
+         Call xml_AddAttribute (xf, "x", trim(adjustl(buffer)))
+         Write (buffer, '(G18.10)') v1 (2)
+         Call xml_AddAttribute (xf, "y", trim(adjustl(buffer)))
+         Write (buffer, '(G18.10)') v1 (3)
+         Call xml_AddAttribute (xf, "z", trim(adjustl(buffer)))
+         Do i = 1, nf
+            Write (buffer, '(G18.10)') fp (ip, i)
+            Write (buffer1,*) i
+            Call xml_AddAttribute (xf, "function"//&
+           & trim(adjustl(buffer1)), trim(adjustl(buffer)))
+         End Do
+         Call xml_endElement (xf, "point")
+!
+      End Do
+      Deallocate (vpl, fp)
+      Call xml_Close (xf)
+      Close (fnum)
+      Return
+End Subroutine
 !EOC

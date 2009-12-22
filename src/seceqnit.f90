@@ -1,142 +1,156 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine seceqnit(nmatp, ngp, igpig, vpl, vgpl, vgpc, apwalm, evalfv, evecfv)
-use modmain
-implicit none
+!
+!
+Subroutine seceqnit (nmatp, ngp, igpig, vpl, vgpl, vgpc, apwalm, &
+& evalfv, evecfv)
+      Use modmain
+      Implicit None
 ! arguments
-integer, intent(in) :: nmatp
-integer, intent(in) :: ngp
-integer, intent(in) :: igpig(ngkmax)
-real(8), intent(in) :: vpl(3)
-real(8), intent(in) :: vgpl(3, ngkmax)
-real(8), intent(in) :: vgpc(3, ngkmax)
-complex(8), intent(in) :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
-real(8), intent(out) :: evalfv(nstfv)
-complex(8), intent(out) :: evecfv(nmatmax, nstfv)
+      Integer, Intent (In) :: nmatp
+      Integer, Intent (In) :: ngp
+      Integer, Intent (In) :: igpig (ngkmax)
+      Real (8), Intent (In) :: vpl (3)
+      Real (8), Intent (In) :: vgpl (3, ngkmax)
+      Real (8), Intent (In) :: vgpc (3, ngkmax)
+      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+     & natmtot)
+      Real (8), Intent (Out) :: evalfv (nstfv)
+      Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv)
 ! local variables
-integer::is, ia, it, i
-integer::ist, jst
-real(8)::ts1, ts0
-real(8)::t1
-complex(8) zt1
+      Integer :: is, ia, it, i
+      Integer :: ist, jst
+      Real (8) :: ts1, ts0
+      Real (8) :: t1
+      Complex (8) zt1
 ! allocatable arrays
-complex(8), allocatable :: h(:)
-complex(8), allocatable :: o(:, :)
+      Complex (8), Allocatable :: h (:)
+      Complex (8), Allocatable :: o (:, :)
 ! external functions
-complex(8) zdotc
-external zdotc
-call timesec(ts0)
-allocate(o(nmatp, nstfv))
-if ((iscl.ge.2).or.(task.eq.1).or.(task.eq.3)) then
+      Complex (8) zdotc
+      External zdotc
+      Call timesec (ts0)
+      Allocate (o(nmatp, nstfv))
+      If ((iscl .Ge. 2) .Or. (task .Eq. 1) .Or. (task .Eq. 3)) Then
 ! read in the eigenvalues/vectors from file
-  call getevalfv(vpl, evalfv)
-  call getevecfv(vpl, vgpl, evecfv)
-else
+         Call getevalfv (vpl, evalfv)
+         Call getevecfv (vpl, vgpl, evecfv)
+      Else
 ! initialise the eigenvectors to canonical basis vectors
-  evecfv(:, :)=0.d0
-  do ist=1, nstfv
-    evecfv(ist, ist)=1.d0
-  end do
-end if
+         evecfv (:, :) = 0.d0
+         Do ist = 1, nstfv
+            evecfv (ist, ist) = 1.d0
+         End Do
+      End If
 ! start iteration loop
-do it=1, nseqit
+      Do it = 1, nseqit
 ! begin parallel loop over states
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(h,is,ia,t1,i)
 !$OMP DO
-  do ist=1, nstfv
-    allocate(h(nmatp))
+         Do ist = 1, nstfv
+            Allocate (h(nmatp))
 ! operate with H and O on the current vector
-    h(:)=0.d0
-    o(:, ist)=0.d0
-    do is=1, nspecies
-      do ia=1, natoms(is)
-	call hmlaa(.true., is, ia, ngp, apwalm, evecfv(:, ist), h)
-	call hmlalo(.true., is, ia, ngp, apwalm, evecfv(:, ist), h)
-	call hmllolo(.true., is, ia, ngp, evecfv(:, ist), h)
-	call olpaa(.true., is, ia, ngp, apwalm, evecfv(:, ist), o(:, ist))
-	call olpalo(.true., is, ia, ngp, apwalm, evecfv(:, ist), o(:, ist))
-	call olplolo(.true., is, ia, ngp, evecfv(:, ist), o(:, ist))
-      end do
-    end do
-    call hmlistl(.true., ngp, igpig, vgpc, evecfv(:, ist), h)
-    call olpistl(.true., ngp, igpig, evecfv(:, ist), o(:, ist))
+            h (:) = 0.d0
+            o (:, ist) = 0.d0
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  Call hmlaa (.True., is, ia, ngp, apwalm, evecfv(:, &
+                 & ist), h)
+                  Call hmlalo (.True., is, ia, ngp, apwalm, evecfv(:, &
+                 & ist), h)
+                  Call hmllolo (.True., is, ia, ngp, evecfv(:, ist), h)
+                  Call olpaa (.True., is, ia, ngp, apwalm, evecfv(:, &
+                 & ist), o(:, ist))
+                  Call olpalo (.True., is, ia, ngp, apwalm, evecfv(:, &
+                 & ist), o(:, ist))
+                  Call olplolo (.True., is, ia, ngp, evecfv(:, ist), &
+                 & o(:, ist))
+               End Do
+            End Do
+            Call hmlistl (.True., ngp, igpig, vgpc, evecfv(:, ist), h)
+            Call olpistl (.True., ngp, igpig, evecfv(:, ist), o(:, &
+           & ist))
 ! normalise
-    t1=dble(zdotc(nmatp, evecfv(:, ist), 1, o(:, ist), 1))
-    if (t1.gt.0.d0) then
-      t1=1.d0/sqrt(t1)
-      do i=1, nmatp
-	evecfv(i, ist)=t1*evecfv(i, ist)
-	h(i)=t1*h(i)
-	o(i, ist)=t1*o(i, ist)
-      end do
-    end if
+            t1 = dble (zdotc(nmatp, evecfv(:, ist), 1, o(:, ist), 1))
+            If (t1 .Gt. 0.d0) Then
+               t1 = 1.d0 / Sqrt (t1)
+               Do i = 1, nmatp
+                  evecfv (i, ist) = t1 * evecfv (i, ist)
+                  h (i) = t1 * h (i)
+                  o (i, ist) = t1 * o (i, ist)
+               End Do
+            End If
 ! estimate the eigenvalue
-    evalfv(ist)=dble(zdotc(nmatp, evecfv(:, ist), 1, h, 1))
+            evalfv (ist) = dble (zdotc(nmatp, evecfv(:, ist), 1, h, 1))
 ! subtract the gradient of the Rayleigh quotient from the eigenvector
-    t1=evalfv(ist)
-    do i=1, nmatp
-      evecfv(i, ist)=evecfv(i, ist)-tauseq*(h(i)-t1*o(i, ist))
-    end do
+            t1 = evalfv (ist)
+            Do i = 1, nmatp
+               evecfv (i, ist) = evecfv (i, ist) - tauseq * &
+              & (h(i)-t1*o(i, ist))
+            End Do
 ! normalise
-    o(:, ist)=0.d0
-    do is=1, nspecies
-      do ia=1, natoms(is)
-	call olpaa(.true., is, ia, ngp, apwalm, evecfv(:, ist), o(:, ist))
-	call olpalo(.true., is, ia, ngp, apwalm, evecfv(:, ist), o(:, ist))
-	call olplolo(.true., is, ia, ngp, evecfv(:, ist), o(:, ist))
-      end do
-    end do
-    call olpistl(.true., ngp, igpig, evecfv(:, ist), o(:, ist))
-    t1=dble(zdotc(nmatp, evecfv(:, ist), 1, o(:, ist), 1))
-    if (t1.gt.0.d0) then
-      t1=1.d0/sqrt(t1)
-      do i=1, nmatp
-	evecfv(i, ist)=t1*evecfv(i, ist)
-	o(i, ist)=t1*o(i, ist)
-      end do
-    end if
-    deallocate(h)
+            o (:, ist) = 0.d0
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  Call olpaa (.True., is, ia, ngp, apwalm, evecfv(:, &
+                 & ist), o(:, ist))
+                  Call olpalo (.True., is, ia, ngp, apwalm, evecfv(:, &
+                 & ist), o(:, ist))
+                  Call olplolo (.True., is, ia, ngp, evecfv(:, ist), &
+                 & o(:, ist))
+               End Do
+            End Do
+            Call olpistl (.True., ngp, igpig, evecfv(:, ist), o(:, &
+           & ist))
+            t1 = dble (zdotc(nmatp, evecfv(:, ist), 1, o(:, ist), 1))
+            If (t1 .Gt. 0.d0) Then
+               t1 = 1.d0 / Sqrt (t1)
+               Do i = 1, nmatp
+                  evecfv (i, ist) = t1 * evecfv (i, ist)
+                  o (i, ist) = t1 * o (i, ist)
+               End Do
+            End If
+            Deallocate (h)
 ! end parallel loop over states
-  end do
+         End Do
 !$OMP END DO
 !$OMP END PARALLEL
 ! perform Gram-Schmidt orthonormalisation
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(jst,zt1,t1,i)
 !$OMP DO ORDERED
-  do ist=1, nstfv
+         Do ist = 1, nstfv
 !$OMP ORDERED
-    do jst=1, ist-1
-      zt1=-zdotc(nmatp, evecfv(:, jst), 1, o(:, ist), 1)
-      call zaxpy(nmatp, zt1, evecfv(:, jst), 1, evecfv(:, ist), 1)
-      call zaxpy(nmatp, zt1, o(:, jst), 1, o(:, ist), 1)
-    end do
+            Do jst = 1, ist - 1
+               zt1 = - zdotc (nmatp, evecfv(:, jst), 1, o(:, ist), 1)
+               Call zaxpy (nmatp, zt1, evecfv(:, jst), 1, evecfv(:, &
+              & ist), 1)
+               Call zaxpy (nmatp, zt1, o(:, jst), 1, o(:, ist), 1)
+            End Do
 !$OMP END ORDERED
 ! normalise
-    t1=dble(zdotc(nmatp, evecfv(:, ist), 1, o(:, ist), 1))
-    if (t1.gt.0.d0) then
-      t1=1.d0/sqrt(t1)
-      do i=1, nmatp
-	evecfv(i, ist)=t1*evecfv(i, ist)
-	o(i, ist)=t1*o(i, ist)
-      end do
-    end if
-  end do
+            t1 = dble (zdotc(nmatp, evecfv(:, ist), 1, o(:, ist), 1))
+            If (t1 .Gt. 0.d0) Then
+               t1 = 1.d0 / Sqrt (t1)
+               Do i = 1, nmatp
+                  evecfv (i, ist) = t1 * evecfv (i, ist)
+                  o (i, ist) = t1 * o (i, ist)
+               End Do
+            End If
+         End Do
 !$OMP END DO
 !$OMP END PARALLEL
 ! end iteration loop
-end do
-deallocate(o)
-call timesec(ts1)
+      End Do
+      Deallocate (o)
+      Call timesec (ts1)
 !$OMP CRITICAL
-timefv=timefv+ts1-ts0
+      timefv = timefv + ts1 - ts0
 !$OMP END CRITICAL
-return
-end subroutine
+      Return
+End Subroutine

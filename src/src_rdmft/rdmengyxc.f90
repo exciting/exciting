@@ -1,71 +1,74 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
-
-subroutine rdmengyxc
+!
+!
+Subroutine rdmengyxc
 ! calculate the RDMFT exchange-correlation energy
-use modinput
-use modmain
-implicit none
+      Use modinput
+      Use modmain
+      Implicit None
 ! local variables
-integer::ik1, ik2, ik3
-integer::ist1, ist2, iv(3)
-real(8)::t1, t2, t3
+      Integer :: ik1, ik2, ik3
+      Integer :: ist1, ist2, iv (3)
+      Real (8) :: t1, t2, t3
 ! external functions
-real(8)::r3taxi, rfmtinp
-external r3taxi, rfmtinp
+      Real (8) :: r3taxi, rfmtinp
+      External r3taxi, rfmtinp
 ! calculate the prefactor
-if (input%groundstate%RDMFT%rdmxctype.eq.0) then
-  engyx=0.d0
-  return
-else if (input%groundstate%RDMFT%rdmxctype.eq.1) then
-  t1=0.5d0/occmax
-else if (input%groundstate%RDMFT%rdmxctype.eq.2) then
-  if (associated(input%groundstate%spin)) then
-    t1=0.5d0
-  else
-    t1=(0.25d0)**input%groundstate%RDMFT%rdmalpha
-  end if
-else
-  write(*, *)
-  write(*, '("Error(rdmengyxc): rdmxctype not defined : ", I8)') input%groundstate%RDMFT%rdmxctype
-  write(*, *)
-  stop
-end if
+      If (input%groundstate%RDMFT%rdmxctype .Eq. 0) Then
+         engyx = 0.d0
+         Return
+      Else If (input%groundstate%RDMFT%rdmxctype .Eq. 1) Then
+         t1 = 0.5d0 / occmax
+      Else If (input%groundstate%RDMFT%rdmxctype .Eq. 2) Then
+         If (associated(input%groundstate%spin)) Then
+            t1 = 0.5d0
+         Else
+            t1 = (0.25d0) ** input%groundstate%RDMFT%rdmalpha
+         End If
+      Else
+         Write (*,*)
+         Write (*, '("Error(rdmengyxc): rdmxctype not defined : ", I8)') input%groundstate%RDMFT%rdmxctype
+         Write (*,*)
+         Stop
+      End If
 ! exchange-correlation energy
-engyx=0.d0
-do ik1=1, nkpt
-  do ist1=1, nstsv
-    do ik2=1, nkptnr
+      engyx = 0.d0
+      Do ik1 = 1, nkpt
+         Do ist1 = 1, nstsv
+            Do ik2 = 1, nkptnr
 ! find the equivalent reduced k-point
-      iv(:)=ivknr(:, ik2)
-      ik3=ikmap(iv(1), iv(2), iv(3))
-      do ist2=1, nstsv
+               iv (:) = ivknr (:, ik2)
+               ik3 = ikmap (iv(1), iv(2), iv(3))
+               Do ist2 = 1, nstsv
 ! Hartree-Fock functional
-	if (input%groundstate%RDMFT%rdmxctype.eq.1) then
-	  t2=t1*wkpt(ik1)*occsv(ist1, ik1)*occsv(ist2, ik3)
+                  If (input%groundstate%RDMFT%rdmxctype .Eq. 1) Then
+                     t2 = t1 * wkpt (ik1) * occsv (ist1, ik1) * occsv &
+                    & (ist2, ik3)
 ! SDLG functional
-	else if (input%groundstate%RDMFT%rdmxctype.eq.2) then
-	  t3=occsv(ist1, ik1)*occsv(ist2, ik3)
-	  if ((ist1.eq.ist2).and. &
-	   (r3taxi(vkl(1, ik1), vklnr(1, ik2)).lt.input%structure%epslat)) then
-	    t2=(0.5d0/occmax)*wkpt(ik1)*t3
-	  else
-	    if (t3.gt.0.d0) then
-	      t2=t1*wkpt(ik1)*t3**input%groundstate%RDMFT%rdmalpha
-	    else
-	      t2=0.d0
-	    end if
-	  end if
-	end if
-	engyx=engyx-t2*vnlrdm(ist1, ik1, ist2, ik2)
-      end do
-    end do
-  end do
-end do
-return
-end subroutine
+                  Else If (input%groundstate%RDMFT%rdmxctype .Eq. 2) &
+                 & Then
+                     t3 = occsv (ist1, ik1) * occsv (ist2, ik3)
+                     If ((ist1 .Eq. ist2) .And. (r3taxi(vkl(1, ik1), &
+                    & vklnr(1, ik2)) .Lt. input%structure%epslat)) Then
+                        t2 = (0.5d0/occmax) * wkpt (ik1) * t3
+                     Else
+                        If (t3 .Gt. 0.d0) Then
+                           t2 = t1 * wkpt (ik1) * t3 ** &
+                          & input%groundstate%RDMFT%rdmalpha
+                        Else
+                           t2 = 0.d0
+                        End If
+                     End If
+                  End If
+                  engyx = engyx - t2 * vnlrdm (ist1, ik1, ist2, ik2)
+               End Do
+            End Do
+         End Do
+      End Do
+      Return
+End Subroutine

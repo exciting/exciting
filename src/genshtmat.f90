@@ -1,21 +1,21 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genshtmat
 ! !INTERFACE:
-
-
-subroutine genshtmat
+!
+!
+Subroutine genshtmat
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 #ifdef XS
-use modxs
+      Use modxs
 #endif
 ! !DESCRIPTION:
 !   Generates the forward and backward spherical harmonic transformation (SHT)
@@ -28,104 +28,106 @@ use modxs
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! local variables
-integer::itp, lwork, info
+      Integer :: itp, lwork, info
 ! allocatable arrays
-integer, allocatable :: ipiv(:)
-real(8), allocatable :: tp(:, :)
-real(8), allocatable :: rlm(:)
-real(8), allocatable :: work(:)
-complex(8), allocatable :: ylm(:)
-complex(8), allocatable :: zwork(:)
-allocate(tp(2, lmmaxapw))
-allocate(rlm(lmmaxapw))
-allocate(ylm(lmmaxapw))
-allocate(ipiv(lmmaxapw))
-lwork=2*lmmaxapw
-allocate(work(lwork))
-allocate(zwork(lwork))
+      Integer, Allocatable :: ipiv (:)
+      Real (8), Allocatable :: tp (:, :)
+      Real (8), Allocatable :: rlm (:)
+      Real (8), Allocatable :: work (:)
+      Complex (8), Allocatable :: ylm (:)
+      Complex (8), Allocatable :: zwork (:)
+      Allocate (tp(2, lmmaxapw))
+      Allocate (rlm(lmmaxapw))
+      Allocate (ylm(lmmaxapw))
+      Allocate (ipiv(lmmaxapw))
+      lwork = 2 * lmmaxapw
+      Allocate (work(lwork))
+      Allocate (zwork(lwork))
 ! allocate real SHT matrices for lmaxapw
-if (allocated(rbshtapw)) deallocate(rbshtapw)
-allocate(rbshtapw(lmmaxapw, lmmaxapw))
-if (allocated(rfshtapw)) deallocate(rfshtapw)
-allocate(rfshtapw(lmmaxapw, lmmaxapw))
+      If (allocated(rbshtapw)) deallocate (rbshtapw)
+      Allocate (rbshtapw(lmmaxapw, lmmaxapw))
+      If (allocated(rfshtapw)) deallocate (rfshtapw)
+      Allocate (rfshtapw(lmmaxapw, lmmaxapw))
 ! allocate real SHT matrices for lmaxvr
-if (allocated(rbshtvr)) deallocate(rbshtvr)
-allocate(rbshtvr(lmmaxvr, lmmaxvr))
-if (allocated(rfshtvr)) deallocate(rfshtvr)
-allocate(rfshtvr(lmmaxvr, lmmaxvr))
+      If (allocated(rbshtvr)) deallocate (rbshtvr)
+      Allocate (rbshtvr(lmmaxvr, lmmaxvr))
+      If (allocated(rfshtvr)) deallocate (rfshtvr)
+      Allocate (rfshtvr(lmmaxvr, lmmaxvr))
 ! allocate complex SHT matrices for lmaxapw
-if (allocated(zbshtapw)) deallocate(zbshtapw)
-allocate(zbshtapw(lmmaxapw, lmmaxapw))
-if (allocated(zfshtapw)) deallocate(zfshtapw)
-allocate(zfshtapw(lmmaxapw, lmmaxapw))
+      If (allocated(zbshtapw)) deallocate (zbshtapw)
+      Allocate (zbshtapw(lmmaxapw, lmmaxapw))
+      If (allocated(zfshtapw)) deallocate (zfshtapw)
+      Allocate (zfshtapw(lmmaxapw, lmmaxapw))
 ! allocate complex SHT matrices for lmaxvr
-if (allocated(zbshtvr)) deallocate(zbshtvr)
-allocate(zbshtvr(lmmaxvr, lmmaxvr))
-if (allocated(zfshtvr)) deallocate(zfshtvr)
-allocate(zfshtvr(lmmaxvr, lmmaxvr))
+      If (allocated(zbshtvr)) deallocate (zbshtvr)
+      Allocate (zbshtvr(lmmaxvr, lmmaxvr))
+      If (allocated(zfshtvr)) deallocate (zfshtvr)
+      Allocate (zfshtvr(lmmaxvr, lmmaxvr))
 ! generate spherical covering set for lmaxapw
-call sphcover(lmmaxapw, tp)
+      Call sphcover (lmmaxapw, tp)
 ! generate real and complex spherical harmonics and set the backward SHT arrays
-do itp=1, lmmaxapw
-  call genrlm(input%groundstate%lmaxapw, tp(:, itp), rlm)
-  rbshtapw(itp, 1:lmmaxapw)=rlm(1:lmmaxapw)
-  call genylm(input%groundstate%lmaxapw, tp(:, itp), ylm)
-  zbshtapw(itp, 1:lmmaxapw)=ylm(1:lmmaxapw)
-end do
+      Do itp = 1, lmmaxapw
+         Call genrlm (input%groundstate%lmaxapw, tp(:, itp), rlm)
+         rbshtapw (itp, 1:lmmaxapw) = rlm (1:lmmaxapw)
+         Call genylm (input%groundstate%lmaxapw, tp(:, itp), ylm)
+         zbshtapw (itp, 1:lmmaxapw) = ylm (1:lmmaxapw)
+      End Do
 ! generate spherical covering set for lmaxvr
-call sphcover(lmmaxvr, tp)
+      Call sphcover (lmmaxvr, tp)
 #ifdef XS
-if (allocated(sphcov)) deallocate(sphcov)
-allocate(sphcov(3, lmmaxapw))
-if (allocated(sphcovtp)) deallocate(sphcovtp)
-allocate(sphcovtp(2, lmmaxapw))
-sphcovtp(:, :)=tp(:, :)
-sphcov(1, :)=sin(tp(1, :))*cos(tp(2, :))
-sphcov(2, :)=sin(tp(1, :))*sin(tp(2, :))
-sphcov(3, :)=cos(tp(1, :))
+      If (allocated(sphcov)) deallocate (sphcov)
+      Allocate (sphcov(3, lmmaxapw))
+      If (allocated(sphcovtp)) deallocate (sphcovtp)
+      Allocate (sphcovtp(2, lmmaxapw))
+      sphcovtp (:, :) = tp (:, :)
+      sphcov (1, :) = Sin (tp(1, :)) * Cos (tp(2, :))
+      sphcov (2, :) = Sin (tp(1, :)) * Sin (tp(2, :))
+      sphcov (3, :) = Cos (tp(1, :))
 #endif
 ! generate real and complex spherical harmonics and set the backward SHT arrays
-do itp=1, lmmaxvr
-  call genrlm(input%groundstate%lmaxvr, tp(:, itp), rlm)
-  rbshtvr(itp, 1:lmmaxvr)=rlm(1:lmmaxvr)
-  call genylm(input%groundstate%lmaxvr, tp(:, itp), ylm)
-  zbshtvr(itp, 1:lmmaxvr)=ylm(1:lmmaxvr)
-end do
+      Do itp = 1, lmmaxvr
+         Call genrlm (input%groundstate%lmaxvr, tp(:, itp), rlm)
+         rbshtvr (itp, 1:lmmaxvr) = rlm (1:lmmaxvr)
+         Call genylm (input%groundstate%lmaxvr, tp(:, itp), ylm)
+         zbshtvr (itp, 1:lmmaxvr) = ylm (1:lmmaxvr)
+      End Do
 ! find the forward SHT arrays
 ! real, lmaxapw
-rfshtapw(:, :)=rbshtapw(:, :)
-call dgetrf(lmmaxapw, lmmaxapw, rfshtapw, lmmaxapw, ipiv, info)
-if (info.ne.0) goto 10
-call dgetri(lmmaxapw, rfshtapw, lmmaxapw, ipiv, work, lwork, info)
-if (info.ne.0) goto 10
+      rfshtapw (:, :) = rbshtapw (:, :)
+      Call dgetrf (lmmaxapw, lmmaxapw, rfshtapw, lmmaxapw, ipiv, info)
+      If (info .Ne. 0) Go To 10
+      Call dgetri (lmmaxapw, rfshtapw, lmmaxapw, ipiv, work, lwork, &
+     & info)
+      If (info .Ne. 0) Go To 10
 ! real, lmaxvr
-rfshtvr(:, :)=rbshtvr(:, :)
-call dgetrf(lmmaxvr, lmmaxvr, rfshtvr, lmmaxvr, ipiv, info)
-if (info.ne.0) goto 10
-call dgetri(lmmaxvr, rfshtvr, lmmaxvr, ipiv, work, lwork, info)
-if (info.ne.0) goto 10
+      rfshtvr (:, :) = rbshtvr (:, :)
+      Call dgetrf (lmmaxvr, lmmaxvr, rfshtvr, lmmaxvr, ipiv, info)
+      If (info .Ne. 0) Go To 10
+      Call dgetri (lmmaxvr, rfshtvr, lmmaxvr, ipiv, work, lwork, info)
+      If (info .Ne. 0) Go To 10
 ! complex, lmaxapw
-zfshtapw(:, :)=zbshtapw(:, :)
-call zgetrf(lmmaxapw, lmmaxapw, zfshtapw, lmmaxapw, ipiv, info)
-if (info.ne.0) goto 10
-call zgetri(lmmaxapw, zfshtapw, lmmaxapw, ipiv, zwork, lwork, info)
-if (info.ne.0) goto 10
+      zfshtapw (:, :) = zbshtapw (:, :)
+      Call zgetrf (lmmaxapw, lmmaxapw, zfshtapw, lmmaxapw, ipiv, info)
+      If (info .Ne. 0) Go To 10
+      Call zgetri (lmmaxapw, zfshtapw, lmmaxapw, ipiv, zwork, lwork, &
+     & info)
+      If (info .Ne. 0) Go To 10
 ! complex, lmaxvr
-zfshtvr(:, :)=zbshtvr(:, :)
-call zgetrf(lmmaxvr, lmmaxvr, zfshtvr, lmmaxvr, ipiv, info)
-if (info.ne.0) goto 10
-call zgetri(lmmaxvr, zfshtvr, lmmaxvr, ipiv, zwork, lwork, info)
-if (info.ne.0) goto 10
-deallocate(tp, rlm, ylm, ipiv, work, zwork)
-return
-10 continue
-write(*, *)
-write(*, '("Error(genshtmat): unable to find inverse spherical harmonic &
- &transform")')
-write(*, '(" => improper spherical covering")')
-write(*, *)
-stop
-end subroutine
+      zfshtvr (:, :) = zbshtvr (:, :)
+      Call zgetrf (lmmaxvr, lmmaxvr, zfshtvr, lmmaxvr, ipiv, info)
+      If (info .Ne. 0) Go To 10
+      Call zgetri (lmmaxvr, zfshtvr, lmmaxvr, ipiv, zwork, lwork, info)
+      If (info .Ne. 0) Go To 10
+      Deallocate (tp, rlm, ylm, ipiv, work, zwork)
+      Return
+10    Continue
+      Write (*,*)
+      Write (*, '("Error(genshtmat): unable to find inverse spherical h&
+     &armonic transform")')
+      Write (*, '(" => improper spherical covering")')
+      Write (*,*)
+      Stop
+End Subroutine
 !EOC

@@ -1,205 +1,218 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine alpha2f
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine alpha2f
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-integer::n, ik, iq, i, j
-integer::i1, i2, i3, iw
-integer::lwork, info
-real(8)::wmin, wmax, wd, dw, wlog
-real(8)::v(3), lambda, tc, t1
+      Integer :: n, ik, iq, i, j
+      Integer :: i1, i2, i3, iw
+      Integer :: lwork, info
+      Real (8) :: wmin, wmax, wd, dw, wlog
+      Real (8) :: v (3), lambda, tc, t1
 ! allocatable arrays
-real(8), allocatable :: wq(:, :)
-real(8), allocatable :: wp(:)
-real(8), allocatable :: gq(:, :)
-real(8), allocatable :: a2fp(:)
-real(8), allocatable :: w(:)
-real(8), allocatable :: a2f(:)
-real(8), allocatable :: f(:), g(:), cf(:, :)
-real(8), allocatable :: rwork(:)
-complex(8), allocatable :: dynq(:, :, :)
-complex(8), allocatable :: dynp(:, :)
-complex(8), allocatable :: dynr(:, :, :)
-complex(8), allocatable :: ev(:, :), b(:, :)
-complex(8), allocatable :: a2fmq(:, :, :)
-complex(8), allocatable :: a2fmr(:, :, :)
-complex(8), allocatable :: a2fmp(:, :)
-complex(8), allocatable :: work(:)
+      Real (8), Allocatable :: wq (:, :)
+      Real (8), Allocatable :: wp (:)
+      Real (8), Allocatable :: gq (:, :)
+      Real (8), Allocatable :: a2fp (:)
+      Real (8), Allocatable :: w (:)
+      Real (8), Allocatable :: a2f (:)
+      Real (8), Allocatable :: f (:), g (:), cf (:, :)
+      Real (8), Allocatable :: rwork (:)
+      Complex (8), Allocatable :: dynq (:, :, :)
+      Complex (8), Allocatable :: dynp (:, :)
+      Complex (8), Allocatable :: dynr (:, :, :)
+      Complex (8), Allocatable :: ev (:, :), b (:, :)
+      Complex (8), Allocatable :: a2fmq (:, :, :)
+      Complex (8), Allocatable :: a2fmr (:, :, :)
+      Complex (8), Allocatable :: a2fmp (:, :)
+      Complex (8), Allocatable :: work (:)
 ! initialise universal variables
-call init0
-call init1
-call init2
-n=3*natmtot
-allocate(wq(n, nqpt))
-allocate(wp(n))
-allocate(gq(n, nqpt))
-allocate(a2fp(n))
-allocate(w(input%properties%dos%nwdos))
-allocate(a2f(input%properties%dos%nwdos))
-allocate(f(input%properties%dos%nwdos), g(input%properties%dos%nwdos), cf(3, input%properties%dos%nwdos))
-allocate(rwork(3*n))
-allocate(dynq(n, n, nqpt))
-allocate(dynp(n, n))
-allocate(dynr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
-allocate(ev(n, n), b(n, n))
-allocate(a2fmq(n, n, nqpt))
-allocate(a2fmr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
-allocate(a2fmp(n, n))
-lwork=2*n
-allocate(work(lwork))
+      Call init0
+      Call init1
+      Call init2
+      n = 3 * natmtot
+      Allocate (wq(n, nqpt))
+      Allocate (wp(n))
+      Allocate (gq(n, nqpt))
+      Allocate (a2fp(n))
+      Allocate (w(input%properties%dos%nwdos))
+      Allocate (a2f(input%properties%dos%nwdos))
+      Allocate (f(input%properties%dos%nwdos), &
+     & g(input%properties%dos%nwdos), cf(3, &
+     & input%properties%dos%nwdos))
+      Allocate (rwork(3*n))
+      Allocate (dynq(n, n, nqpt))
+      Allocate (dynp(n, n))
+      Allocate (dynr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
+      Allocate (ev(n, n), b(n, n))
+      Allocate (a2fmq(n, n, nqpt))
+      Allocate (a2fmr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
+      Allocate (a2fmp(n, n))
+      lwork = 2 * n
+      Allocate (work(lwork))
 ! get the eigenvalues and occupancies from file
-do ik=1, nkpt
-  call getevalsv(vkl(:, ik), evalsv(:, ik))
-  call getoccsv(vkl(:, ik), occsv(:, ik))
-end do
+      Do ik = 1, nkpt
+         Call getevalsv (vkl(:, ik), evalsv(:, ik))
+         Call getoccsv (vkl(:, ik), occsv(:, ik))
+      End Do
 ! compute the density of states at the Fermi energy
-call occupy
+      Call occupy
 ! read in the dynamical matrices
-call readdyn(dynq)
+      Call readdyn (dynq)
 ! apply the acoustic sum rule
-call sumrule(dynq)
+      Call sumrule (dynq)
 ! Fourier transform the dynamical matrices to real-space
-call dynqtor(dynq, dynr)
+      Call dynqtor (dynq, dynr)
 ! read in the phonon linewidths for each q-point
-call readgamma(gq)
+      Call readgamma (gq)
 ! loop over phonon q-points
-do iq=1, nqpt
+      Do iq = 1, nqpt
 ! diagonalise the dynamical matrix
-  call dyndiag(dynq(:, :, iq), wq(:, iq), ev)
+         Call dyndiag (dynq(:, :, iq), wq(:, iq), ev)
 ! construct a complex matrix from the phonon eigenvectors such that its
 ! eigenvalues are the phonon linewidths divided by the frequency
-  do i=1, n
-    if (wq(i, iq).gt.1.d-8) then
-      t1=gq(i, iq)/wq(i, iq)
-    else
-      t1=0.d0
-    end if
-    do j=1, n
-      b(i, j)=t1*conjg(ev(j, i))
-    end do
-  end do
-  call zgemm('N', 'N', n, n, n, zone, ev, n, b, n, zzero, a2fmq(:, :, iq), n)
-end do
+         Do i = 1, n
+            If (wq(i, iq) .Gt. 1.d-8) Then
+               t1 = gq (i, iq) / wq (i, iq)
+            Else
+               t1 = 0.d0
+            End If
+            Do j = 1, n
+               b (i, j) = t1 * conjg (ev(j, i))
+            End Do
+         End Do
+         Call zgemm ('N', 'N', n, n, n, zone, ev, n, b, n, zzero, &
+        & a2fmq(:, :, iq), n)
+      End Do
 ! Fourier transform the matrices to real-space
-call dynqtor(a2fmq, a2fmr)
+      Call dynqtor (a2fmq, a2fmr)
 ! find the minimum and maximum frequencies
-wmin=0.d0
-wmax=0.d0
-do iq=1, nqpt
-  wmin=min(wmin, wq(1, iq))
-  wmax=max(wmax, wq(n, iq))
-end do
-wmax=wmax+(wmax-wmin)*0.1d0
-wmin=wmin-(wmax-wmin)*0.1d0
-wd=wmax-wmin
-if (wd.lt.1.d-8) wd=1.d0
-dw=wd/dble(input%properties%dos%nwdos)
+      wmin = 0.d0
+      wmax = 0.d0
+      Do iq = 1, nqpt
+         wmin = Min (wmin, wq(1, iq))
+         wmax = Max (wmax, wq(n, iq))
+      End Do
+      wmax = wmax + (wmax-wmin) * 0.1d0
+      wmin = wmin - (wmax-wmin) * 0.1d0
+      wd = wmax - wmin
+      If (wd .Lt. 1.d-8) wd = 1.d0
+      dw = wd / dble (input%properties%dos%nwdos)
 ! generate energy grid
-do iw=1, input%properties%dos%nwdos
-  w(iw)=dw*dble(iw-1)+wmin
-end do
-a2f(:)=0.d0
-do i1=0, input%properties%dos%ngrdos-1
-  v(1)=dble(i1)/dble(input%properties%dos%ngrdos)
-  do i2=0, input%properties%dos%ngrdos-1
-    v(2)=dble(i2)/dble(input%properties%dos%ngrdos)
-    do i3=0, input%properties%dos%ngrdos-1
-      v(3)=dble(i3)/dble(input%properties%dos%ngrdos)
+      Do iw = 1, input%properties%dos%nwdos
+         w (iw) = dw * dble (iw-1) + wmin
+      End Do
+      a2f (:) = 0.d0
+      Do i1 = 0, input%properties%dos%ngrdos - 1
+         v (1) = dble (i1) / dble (input%properties%dos%ngrdos)
+         Do i2 = 0, input%properties%dos%ngrdos - 1
+            v (2) = dble (i2) / dble (input%properties%dos%ngrdos)
+            Do i3 = 0, input%properties%dos%ngrdos - 1
+               v (3) = dble (i3) / dble (input%properties%dos%ngrdos)
 ! compute the dynamical matrix at this particular q-point
-      call dynrtoq(v, dynr, dynp)
+               Call dynrtoq (v, dynr, dynp)
 ! find the phonon frequencies
-      call dyndiag(dynp, wp, ev)
+               Call dyndiag (dynp, wp, ev)
 ! compute the alpha^2F matrix at this particular q-point
-      call dynrtoq(v, a2fmr, a2fmp)
+               Call dynrtoq (v, a2fmr, a2fmp)
 ! diagonlise the alpha^2F matrix
-      call zheev('N', 'U', n, a2fmp, n, a2fp, work, lwork, rwork, info)
-      do i=1, n
-	t1=(wp(i)-wmin)/dw+1.d0
-	iw=nint(t1)
-	if ((iw.ge.1).and.(iw.le.input%properties%dos%nwdos)) then
-	  a2f(iw)=a2f(iw)+a2fp(i)
-	end if
-      end do
-    end do
-  end do
-end do
-t1=twopi*(fermidos/2.d0)*dw*dble(input%properties%dos%ngrdos)**3
-if (t1.gt.1.d-8) then
-  t1=1.d0/t1
-else
-  t1=0.d0
-end if
-a2f(:)=t1*a2f(:)
+               Call zheev ('N', 'U', n, a2fmp, n, a2fp, work, lwork, &
+              & rwork, info)
+               Do i = 1, n
+                  t1 = (wp(i)-wmin) / dw + 1.d0
+                  iw = Nint (t1)
+                  If ((iw .Ge. 1) .And. (iw .Le. &
+                 & input%properties%dos%nwdos)) Then
+                     a2f (iw) = a2f (iw) + a2fp (i)
+                  End If
+               End Do
+            End Do
+         End Do
+      End Do
+      t1 = twopi * (fermidos/2.d0) * dw * dble &
+     & (input%properties%dos%ngrdos) ** 3
+      If (t1 .Gt. 1.d-8) Then
+         t1 = 1.d0 / t1
+      Else
+         t1 = 0.d0
+      End If
+      a2f (:) = t1 * a2f (:)
 ! smooth Eliashberg function if required
-if (input%properties%dos%nsmdos.gt.0) call fsmooth(input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, a2f)
+      If (input%properties%dos%nsmdos .Gt. 0) Call fsmooth &
+     & (input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, &
+     & a2f)
 ! write Eliashberg function to file
-open(50, file='ALPHA2F.OUT', action='WRITE', form='FORMATTED')
-do iw=1, input%properties%dos%nwdos
-  write(50, '(2G18.10)') w(iw), a2f(iw)
-end do
-close(50)
-write(*, *)
-write(*, '("Info(alpha2f):")')
-write(*, '(" Eliashberg function written to ALPHA2F.OUT")')
+      Open (50, File='ALPHA2F.OUT', Action='WRITE', Form='FORMATTED')
+      Do iw = 1, input%properties%dos%nwdos
+         Write (50, '(2G18.10)') w (iw), a2f (iw)
+      End Do
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(alpha2f):")')
+      Write (*, '(" Eliashberg function written to ALPHA2F.OUT")')
 ! compute the total lambda
-do iw=1, input%properties%dos%nwdos
-  if (w(iw).gt.1.d-8) then
-    f(iw)=a2f(iw)/w(iw)
-  else
-    f(iw)=0.d0
-  end if
-end do
-call fderiv(-1, input%properties%dos%nwdos, w, f, g, cf)
-lambda=2.d0*g(input%properties%dos%nwdos)
-open(50, file='LAMBDA.OUT', action='WRITE', form='FORMATTED')
-write(50, *)
-write(50, '("Electron-phonon mass enhancement parameter, lambda : ", G18.10)') &
- lambda
-close(50)
-write(*, *)
-write(*, '("Info(alpha2f):")')
-write(*, '(" Electron-phonon mass enhancement parameter, lambda, written to&
- & LAMBDA.OUT")')
+      Do iw = 1, input%properties%dos%nwdos
+         If (w(iw) .Gt. 1.d-8) Then
+            f (iw) = a2f (iw) / w (iw)
+         Else
+            f (iw) = 0.d0
+         End If
+      End Do
+      Call fderiv (-1, input%properties%dos%nwdos, w, f, g, cf)
+      lambda = 2.d0 * g (input%properties%dos%nwdos)
+      Open (50, File='LAMBDA.OUT', Action='WRITE', Form='FORMATTED')
+      Write (50,*)
+      Write (50, '("Electron-phonon mass enhancement parameter, lambda &
+     &: ", G18.10)') lambda
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(alpha2f):")')
+      Write (*, '(" Electron-phonon mass enhancement parameter, lambda,&
+     & written to LAMBDA.OUT")')
 ! compute the logarithmic average frequency
-do iw=1, input%properties%dos%nwdos
-  if (w(iw).gt.1.d-8) then
-    f(iw)=a2f(iw)*log(w(iw))/w(iw)
-  else
-    f(iw)=0.d0
-  end if
-end do
-call fderiv(-1, input%properties%dos%nwdos, w, f, g, cf)
-t1=(2.d0/lambda)*g(input%properties%dos%nwdos)
-wlog=exp(t1)
+      Do iw = 1, input%properties%dos%nwdos
+         If (w(iw) .Gt. 1.d-8) Then
+            f (iw) = a2f (iw) * Log (w(iw)) / w (iw)
+         Else
+            f (iw) = 0.d0
+         End If
+      End Do
+      Call fderiv (-1, input%properties%dos%nwdos, w, f, g, cf)
+      t1 = (2.d0/lambda) * g (input%properties%dos%nwdos)
+      wlog = Exp (t1)
 ! compute McMillan-Allen-Dynes superconducting critical temperature
-t1 = ( - 1.04d0 * (1.d0 + lambda))/(lambda - input%properties%eliashberg%mustar - 0.62d0 * lambda *&
-    &input%properties%eliashberg%mustar)
-tc=(wlog/(1.2d0*kboltz))*exp(t1)
-open(50, file='TC_MCMILLAN.OUT', action='WRITE', form='FORMATTED')
-write(50, *)
-write(50, '("Logarithmic average frequency : ", G18.10)') wlog
-write(50, *)
-write(50, '("Coulomb pseudopotential, mu* : ", G18.10)') input%properties%eliashberg%mustar
-write(50, *)
-write(50, '("McMillan-Allen-Dynes superconducting critical temperature")')
-write(50, '("[Eq. 34, Phys. Rev. B 12, 905 (1975)] (kelvin) : ", G18.10)') tc
-write(50, *)
-close(50)
-write(*, *)
-write(*, '("Info(alpha2f):")')
-write(*, '(" McMillan-Allen-Dynes superconducting critical temperature, T_c, &
- & written to TC_MCMILLAN.OUT")')
-write(*, *)
-deallocate(wq, wp, gq, a2fp, w, a2f, f, g, cf)
-deallocate(rwork, dynq, dynp, dynr, ev, b)
-deallocate(a2fmq, a2fmr, a2fmp, work)
-return
-end subroutine
+      t1 = (-1.04d0*(1.d0+lambda)) / (lambda-&
+     & input%properties%eliashberg%mustar-&
+     & 0.62d0*lambda*input%properties%eliashberg%mustar)
+      tc = (wlog/(1.2d0*kboltz)) * Exp (t1)
+      Open (50, File='TC_MCMILLAN.OUT', Action='WRITE', Form='FORMATTED&
+     &')
+      Write (50,*)
+      Write (50, '("Logarithmic average frequency : ", G18.10)') wlog
+      Write (50,*)
+      Write (50, '("Coulomb pseudopotential, mu* : ", G18.10)') &
+     & input%properties%eliashberg%mustar
+      Write (50,*)
+      Write (50, '("McMillan-Allen-Dynes superconducting critical tempe&
+     &rature")')
+      Write (50, '("[Eq. 34, Phys. Rev. B 12, 905 (1975)] (kelvin) : ",&
+     & G18.10)') tc
+      Write (50,*)
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(alpha2f):")')
+      Write (*, '(" McMillan-Allen-Dynes superconducting critical tempe&
+     &rature, T_c,  written to TC_MCMILLAN.OUT")')
+      Write (*,*)
+      Deallocate (wq, wp, gq, a2fp, w, a2f, f, g, cf)
+      Deallocate (rwork, dynq, dynp, dynr, ev, b)
+      Deallocate (a2fmq, a2fmr, a2fmp, work)
+      Return
+End Subroutine

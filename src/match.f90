@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: match
 ! !INTERFACE:
-
-
-subroutine match(ngp, gpc, tpgpc, sfacgp, apwalm)
+!
+!
+Subroutine match (ngp, gpc, tpgpc, sfacgp, apwalm)
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp    : number of G+p-vectors (in,integer)
 !   gpc    : length of G+p-vectors (in,real(ngkmax))
@@ -50,119 +50,125 @@ use modmain
 !   Fixed documentation, June 2006 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: ngp
-real(8), intent(in) :: gpc(ngkmax)
-real(8), intent(in) :: tpgpc(2, ngkmax)
-complex(8), intent(in) :: sfacgp(ngkmax, natmtot)
-complex(8), intent(out) :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
+      Integer, Intent (In) :: ngp
+      Real (8), Intent (In) :: gpc (ngkmax)
+      Real (8), Intent (In) :: tpgpc (2, ngkmax)
+      Complex (8), Intent (In) :: sfacgp (ngkmax, natmtot)
+      Complex (8), Intent (Out) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+     & natmtot)
 ! local variables
-integer::np, is, ia, ias, omax
-integer::l, m, lm, io1, io2
-integer::i, ir, igp, info
-real(8)::fpso, t1
-complex(8) zt1, zt2
+      Integer :: np, is, ia, ias, omax
+      Integer :: l, m, lm, io1, io2
+      Integer :: i, ir, igp, info
+      Real (8) :: fpso, t1
+      Complex (8) zt1, zt2
 ! allocatable arrays
-integer, allocatable :: ipiv(:)
-real(8), allocatable :: c(:)
-real(8), allocatable :: djl(:, :, :)
-complex(8), allocatable :: ylmgp(:, :)
-complex(8), allocatable :: zd(:, :)
-complex(8), allocatable :: zb(:, :)
+      Integer, Allocatable :: ipiv (:)
+      Real (8), Allocatable :: c (:)
+      Real (8), Allocatable :: djl (:, :, :)
+      Complex (8), Allocatable :: ylmgp (:, :)
+      Complex (8), Allocatable :: zd (:, :)
+      Complex (8), Allocatable :: zb (:, :)
 ! external functions
-real(8)::polynom
-external polynom
-fpso=fourpi/sqrt(omega)
+      Real (8) :: polynom
+      External polynom
+      fpso = fourpi / Sqrt (omega)
 ! polynomial order
-np=max(apwordmax+1, 4)
-allocate(ipiv(np))
-allocate(c(np))
-allocate(djl(0:input%groundstate%lmaxapw, apwordmax, ngp))
-allocate(ylmgp(lmmaxapw, ngp))
-allocate(zd(apwordmax, apwordmax))
-allocate(zb(apwordmax, ngp*(2*input%groundstate%lmaxapw+1)))
+      np = Max (apwordmax+1, 4)
+      Allocate (ipiv(np))
+      Allocate (c(np))
+      Allocate (djl(0:input%groundstate%lmaxapw, apwordmax, ngp))
+      Allocate (ylmgp(lmmaxapw, ngp))
+      Allocate (zd(apwordmax, apwordmax))
+      Allocate (zb(apwordmax, ngp*(2*input%groundstate%lmaxapw+1)))
 ! compute the spherical harmonics of the G+p-vectors
-do igp=1, ngp
-  call genylm(input%groundstate%lmaxapw, tpgpc(:, igp), ylmgp(:, igp))
-end do
+      Do igp = 1, ngp
+         Call genylm (input%groundstate%lmaxapw, tpgpc(:, igp), &
+        & ylmgp(:, igp))
+      End Do
 ! begin loops over atoms and species
-do is=1, nspecies
+      Do is = 1, nspecies
 ! evaluate the spherical Bessel function derivatives for all G+p-vectors
-  omax=0
-  do l=0, input%groundstate%lmaxapw
-    omax=max(omax, apword(l, is))
-  end do
-
-  do igp=1, ngp
-    t1=gpc(igp)*rmt(is)
-    do io1=1, omax
-      call sbesseldm(io1-1, input%groundstate%lmaxapw, t1, djl(:, io1, igp))
-    end do
-    t1=1.d0
-    do io1=2, omax
-      t1=t1*gpc(igp)
-      djl(:, io1, igp)=t1*djl(:, io1, igp)
-    end do
-  end do
-
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
+         omax = 0
+         Do l = 0, input%groundstate%lmaxapw
+            omax = Max (omax, apword(l, is))
+         End Do
+!
+         Do igp = 1, ngp
+            t1 = gpc (igp) * rmt (is)
+            Do io1 = 1, omax
+               Call sbesseldm (io1-1, input%groundstate%lmaxapw, t1, &
+              & djl(:, io1, igp))
+            End Do
+            t1 = 1.d0
+            Do io1 = 2, omax
+               t1 = t1 * gpc (igp)
+               djl (:, io1, igp) = t1 * djl (:, io1, igp)
+            End Do
+         End Do
+!
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
 ! begin loop over l
-    do l=0, input%groundstate%lmaxapw
-      zt1=fpso*zil(l)
+            Do l = 0, input%groundstate%lmaxapw
+               zt1 = fpso * zil (l)
 ! set up matrix of derivatives
-
-      do io2=1, apword(l, is)
-	ir=nrmt(is)-np+1
-	do io1=1, apword(l, is)
-
-	  zd(io1, io2) = polynom(io1 - 1, np, spr(ir, is), apwfr(ir, 1, io2, l, ias), c, &
-	   rmt(is))
-	end do
-      end do
-
-      i=0
-      do igp=1, ngp
-	zt2=zt1*sfacgp(igp, ias)
-	do m=-l, l
-	  lm=idxlm(l, m)
-	  i=i+1
-	  do io1=1, apword(l, is)
-	    zb(io1, i)=djl(l, io1, igp)*zt2*conjg(ylmgp(lm, igp))
-	  end do
-	end do
-      end do
+!
+               Do io2 = 1, apword (l, is)
+                  ir = nrmt (is) - np + 1
+                  Do io1 = 1, apword (l, is)
+!
+                     zd (io1, io2) = polynom (io1-1, np, spr(ir, is), &
+                    & apwfr(ir, 1, io2, l, ias), c, rmt(is))
+                  End Do
+               End Do
+!
+               i = 0
+               Do igp = 1, ngp
+                  zt2 = zt1 * sfacgp (igp, ias)
+                  Do m = - l, l
+                     lm = idxlm (l, m)
+                     i = i + 1
+                     Do io1 = 1, apword (l, is)
+                        zb (io1, i) = djl (l, io1, igp) * zt2 * conjg &
+                       & (ylmgp(lm, igp))
+                     End Do
+                  End Do
+               End Do
 ! solve the general complex linear systems
-
-      call zgesv(apword(l, is), i, zd, apwordmax, ipiv, zb, apwordmax, info)
-
-      if (info.ne.0) then
-	write(*, *)
-	write(*, '("Error(match): could not find APW matching coefficients")')
-	write(*, '(" for species ", I4)') is
-	write(*, '(" and atom ", I4)') ia
-	write(*, '(" ZGESV returned INFO = ", I8)') info
-	write(*, *)
+!
+               Call zgesv (apword(l, is), i, zd, apwordmax, ipiv, zb, &
+              & apwordmax, info)
+!
+               If (info .Ne. 0) Then
+                  Write (*,*)
+                  Write (*, '("Error(match): could not find APW matchin&
+                 &g coefficients")')
+                  Write (*, '(" for species ", I4)') is
+                  Write (*, '(" and atom ", I4)') ia
+                  Write (*, '(" ZGESV returned INFO = ", I8)') info
+                  Write (*,*)
        ! stop
-      end if
-      i=0
-      do igp=1, ngp
-	do m=-l, l
-	  lm=idxlm(l, m)
-	  i=i+1
-	  do io1=1, apword(l, is)
-	    apwalm(igp, io1, lm, ias)=zb(io1, i)
-	  end do
-	end do
-      end do
+               End If
+               i = 0
+               Do igp = 1, ngp
+                  Do m = - l, l
+                     lm = idxlm (l, m)
+                     i = i + 1
+                     Do io1 = 1, apword (l, is)
+                        apwalm (igp, io1, lm, ias) = zb (io1, i)
+                     End Do
+                  End Do
+               End Do
 ! end loop over l
-    end do
+            End Do
 ! end loops over atoms and species
-  end do
-
-end do
-deallocate(ipiv, c, djl, ylmgp, zd, zb)
-return
-end subroutine
+         End Do
+!
+      End Do
+      Deallocate (ipiv, c, djl, ylmgp, zd, zb)
+      Return
+End Subroutine
 !EOC

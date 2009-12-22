@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: sdelta_mp
 ! !INTERFACE:
-real(8) function sdelta_mp(n, x)
+Real (8) Function sdelta_mp (n, x)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n : order (in,integer)
 !   x : real argument (in,real)
@@ -28,40 +28,40 @@ real(8) function sdelta_mp(n, x)
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: n
-real(8), intent(in) :: x
+      Integer, Intent (In) :: n
+      Real (8), Intent (In) :: x
 ! local variables
-integer::i
-real(8), parameter :: sqpi=1.7724538509055160273d0
-real(8)::sum, t1
+      Integer :: i
+      Real (8), Parameter :: sqpi = 1.7724538509055160273d0
+      Real (8) :: sum, t1
 ! external functions
-real(8)::factnm, hermite
-external factnm, hermite
-if (n.lt.0) then
-  write(*, *)
-  write(*, '("Error(sdelta_mp): n < 0 : ", I8)') n
-  write(*, *)
-  stop
-end if
-if (n.gt.10) then
-  write(*, *)
-  write(*, '("Error(sdelta_mp): n out of range : ", I8)') n
-  write(*, *)
-  stop
-end if
-if (abs(x).gt.12.d0) then
-  sdelta_mp=0.d0
-  return
-end if
-sum=0.d0
-do i=0, n
-  t1=1.d0/(factnm(i, 1)*dble(4**i)*sqpi)
-  if (mod(i, 2).ne.0) t1=-t1
-  sum=sum+t1*hermite(2*i, x)*exp(-x**2)
-end do
-sdelta_mp=sum
-return
-end function
+      Real (8) :: factnm, hermite
+      External factnm, hermite
+      If (n .Lt. 0) Then
+         Write (*,*)
+         Write (*, '("Error(sdelta_mp): n < 0 : ", I8)') n
+         Write (*,*)
+         Stop
+      End If
+      If (n .Gt. 10) Then
+         Write (*,*)
+         Write (*, '("Error(sdelta_mp): n out of range : ", I8)') n
+         Write (*,*)
+         Stop
+      End If
+      If (Abs(x) .Gt. 12.d0) Then
+         sdelta_mp = 0.d0
+         Return
+      End If
+      sum = 0.d0
+      Do i = 0, n
+         t1 = 1.d0 / (factnm(i, 1)*dble(4**i)*sqpi)
+         If (Mod(i, 2) .Ne. 0) t1 = - t1
+         sum = sum + t1 * hermite (2*i, x) * Exp (-x**2)
+      End Do
+      sdelta_mp = sum
+      Return
+End Function
 !EOC

@@ -1,55 +1,59 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine ematq(iq)
-  use modmain
-use modinput
-  use modxs
-  use modmpi
-  use m_writegqpts
-  use m_filedel
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine ematq (iq)
+      Use modmain
+      Use modinput
+      Use modxs
+      Use modmpi
+      Use m_writegqpts
+      Use m_filedel
+      Use m_genfilname
+      Implicit None
   ! arguments
-  integer, intent(in) :: iq
+      Integer, Intent (In) :: iq
   ! local variables
-  character(*), parameter :: thisnam='ematq'
-  integer :: ik
+      Character (*), Parameter :: thisnam = 'ematq'
+      Integer :: ik
   ! filenames
-  call genfilname(basename='EMAT', iqmt=iq, etype=input%xs%emattype, filnam=fnemat)
-  call genfilname(basename = 'EMAT', iqmt = iq, etype = input%xs%emattype, procs = procs, rank = rank, &
-       filnam = fnemat_t)
-  call genfilname(nodotpar = .true., basename = 'EMAT_TIMING', iqmt = iq, &
-       etype = input%xs%emattype, procs = procs, rank = rank, filnam = fnetim)
+      Call genfilname (basename='EMAT', iqmt=iq, &
+     & etype=input%xs%emattype, filnam=fnemat)
+      Call genfilname (basename='EMAT', iqmt=iq, &
+     & etype=input%xs%emattype, procs=procs, rank=rank, &
+     & filnam=fnemat_t)
+      Call genfilname (nodotpar=.True., basename='EMAT_TIMING', &
+     & iqmt=iq, etype=input%xs%emattype, procs=procs, rank=rank, &
+     & filnam=fnetim)
   ! file extension for q-point
-  call genfilname(iqmt=iq, setfilext=.true.)
+      Call genfilname (iqmt=iq, setfilext=.True.)
   ! calculate k+q and G+k+q related variables
-  call init1offs(qvkloff(1, iq))
+      Call init1offs (qvkloff(1, iq))
   ! write G+q-vectors
-  if (rank.eq.0) then
-     call writegqpts(iq, filext)
-     call writekmapkq(iq)
-  end if
+      If (rank .Eq. 0) Then
+         Call writegqpts (iq, filext)
+         Call writekmapkq (iq)
+      End If
   ! find highest (partially) occupied and lowest (partially) unoccupied states
-  call findocclims(iq, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
-  call ematbdlims(1, nst1, istl1, istu1, nst2, istl2, istu2)
+      Call findocclims (iq, istocc0, istocc, istunocc0, istunocc, &
+     & isto0, isto, istu0, istu)
+      Call ematbdlims (1, nst1, istl1, istu1, nst2, istl2, istu2)
   ! generate radial integrals wrt. sph. Bessel functions
-  call ematrad(iq)
+      Call ematrad (iq)
   ! delete timing information of previous runs
-  call filedel(trim(fnetim))
+      Call filedel (trim(fnetim))
   ! write information
-  write(unitout, '(a, i6)') 'Info('//thisnam//'): number of G+q vectors:', &
-       ngq(iq)
-  call ematqalloc
+      Write (unitout, '(a, i6)') 'Info(' // thisnam // '): number of G+&
+     &q vectors:', ngq (iq)
+      Call ematqalloc
   ! loop over k-points
-  do ik=kpari, kparf
-     call ematqk1(iq, ik)
-  end do
-  call ematqdealloc
-  call barrier
-end subroutine ematq
+      Do ik = kpari, kparf
+         Call ematqk1 (iq, ik)
+      End Do
+      Call ematqdealloc
+      Call barrier
+End Subroutine ematq

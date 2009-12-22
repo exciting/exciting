@@ -1,22 +1,22 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine getridx(procs, set, i, ir)
+!
+!
+Subroutine getridx (procs, set, i, ir)
   ! Get index ir relative to partition determined by overall index i.
-  use modmpi, only: firstofset, procofindex
-  implicit none
+      Use modmpi, Only: firstofset, procofindex
+      Implicit None
   ! arguments
-  integer :: procs
-  integer, intent(in) :: set, i
-  integer, intent(out) :: ir
+      Integer :: procs
+      Integer, Intent (In) :: set, i
+      Integer, Intent (Out) :: ir
   ! local variables
-  integer :: procst
+      Integer :: procst
   ! executable statements begin
-  procst=procs
-  ir=i-firstofset(procofindex(i, set), set)+1
-end subroutine getridx
+      procst = procs
+      ir = i - firstofset (procofindex(i, set), set) + 1
+End Subroutine getridx

@@ -1,23 +1,24 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine chkptchk
-  use modxs
-  implicit none
+!
+!
+Subroutine chkptchk
+      Use modxs
+      Implicit None
   ! local variables
-  logical :: exis
-  inquire(file=trim(fnresume), exist=exis)
-  if (exis) then
-     write(*, *)
-     write(*, '("Error(chkptchk): stale checkpoint file found.")')
-     write(*, '(" Either your previous calculation crashed or another")')
-     write(*, '(" instance of exciting is already running")')
-     write(*, *)
-     call terminate
-  end if
-end subroutine chkptchk
+      Logical :: exis
+      Inquire (File=trim(fnresume), Exist=exis)
+      If (exis) Then
+         Write (*,*)
+         Write (*, '("Error(chkptchk): stale checkpoint file found.")')
+         Write (*, '(" Either your previous calculation crashed or anot&
+        &her")')
+         Write (*, '(" instance of exciting is already running")')
+         Write (*,*)
+         Call terminate
+      End If
+End Subroutine chkptchk

@@ -1,14 +1,14 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: gauntyry
 ! !INTERFACE:
-complex(8) function gauntyry(l1, l2, l3, m1, m2, m3)
+Complex (8) Function gauntyry (l1, l2, l3, m1, m2, m3)
 ! !INPUT/OUTPUT PARAMETERS:
 !   l1, l2, l3 : angular momentum quantum numbers (in,integer)
 !   m1, m2, m3 : magnetic quantum numbers (in,integer)
@@ -22,40 +22,42 @@ complex(8) function gauntyry(l1, l2, l3, m1, m2, m3)
 !   Created November 2002 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: l1
-integer, intent(in) :: l2
-integer, intent(in) :: l3
-integer, intent(in) :: m1
-integer, intent(in) :: m2
-integer, intent(in) :: m3
+      Integer, Intent (In) :: l1
+      Integer, Intent (In) :: l2
+      Integer, Intent (In) :: l3
+      Integer, Intent (In) :: m1
+      Integer, Intent (In) :: m2
+      Integer, Intent (In) :: m3
 ! local variables
 ! real constant sqrt(2)/2
-real(8), parameter :: c1=0.7071067811865475244d0
-real(8)::t1, t2
+      Real (8), Parameter :: c1 = 0.7071067811865475244d0
+      Real (8) :: t1, t2
 ! external functions
-real(8)::gaunt
-external gaunt
-if (m2.gt.0) then
-  if (mod(m2, 2).eq.0) then
-    t1=1.d0
-  else
-    t1=-1.d0
-  end if
-  t2=c1*(gaunt(l1, l2, l3, m1, m2, m3)+t1*gaunt(l1, l2, l3, m1, -m2, m3))
-  gauntyry=cmplx(t2, 0.d0, 8)
-else if (m2.lt.0) then
-  if (mod(m2, 2).eq.0) then
-    t1=1.d0
-  else
-    t1=-1.d0
-  end if
-  t2=c1*(gaunt(l1, l2, l3, m1, m2, m3)-t1*gaunt(l1, l2, l3, m1, -m2, m3))
-  gauntyry=cmplx(0.d0, -t2, 8)
-else
-  gauntyry=cmplx(gaunt(l1, l2, l3, m1, m2, m3), 0.d0, 8)
-end if
-return
-end function
+      Real (8) :: gaunt
+      External gaunt
+      If (m2 .Gt. 0) Then
+         If (Mod(m2, 2) .Eq. 0) Then
+            t1 = 1.d0
+         Else
+            t1 = - 1.d0
+         End If
+         t2 = c1 * (gaunt(l1, l2, l3, m1, m2, m3)+t1*gaunt(l1, l2, l3, &
+        & m1,-m2, m3))
+         gauntyry = cmplx (t2, 0.d0, 8)
+      Else If (m2 .Lt. 0) Then
+         If (Mod(m2, 2) .Eq. 0) Then
+            t1 = 1.d0
+         Else
+            t1 = - 1.d0
+         End If
+         t2 = c1 * (gaunt(l1, l2, l3, m1, m2, m3)-t1*gaunt(l1, l2, l3, &
+        & m1,-m2, m3))
+         gauntyry = cmplx (0.d0,-t2, 8)
+      Else
+         gauntyry = cmplx (gaunt(l1, l2, l3, m1, m2, m3), 0.d0, 8)
+      End If
+      Return
+End Function
 !EOC

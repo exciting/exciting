@@ -1,49 +1,57 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine writesym2
-  use modmain
-  use modsym
-  implicit none
+!
+!
+Subroutine writesym2
+      Use modmain
+      Use modsym
+      Implicit None
   ! local varaibles
-  integer :: isym, jsym, igenr
-  character(32) :: str1
+      Integer :: isym, jsym, igenr
+      Character (32) :: str1
   ! write out multiplication table
-  open(50, file='SYMMULT'//trim(filext), action='WRITE', form='FORMATTED')
-  write(50, *)
-  if (abelsg) write(50, '("The symmetry group is Abelian (commutative)")')
-  write(50, '(" (first and second group element and product below)")')
-  do isym=1, nsymcrys
-     do jsym=1, nsymcrys
-	write(50, '(2i6, 5x, i6)') isym, jsym, sgmut(isym, jsym)
-     end do
-  end do
-  close(50)
-  open(50, file='SYMMULT_TABLE'//trim(filext), action='WRITE', form='FORMATTED')
-  write(str1, *) maxsymcrys
-  write(50, *)
-  write(50, '(" (symmetry group multiplication table below)")')
-  do isym=1, nsymcrys
-     write(50, '('//trim(str1)//'i3.2)') sgmut(isym, :)
-  end do
-  close(50)
+      Open (50, File='SYMMULT'//trim(filext), Action='WRITE', Form='FOR&
+     &MATTED')
+      Write (50,*)
+      If (abelsg) write (50, '("The symmetry group is Abelian (commutat&
+     &ive)")')
+      Write (50, '(" (first and second group element and product below)&
+     &")')
+      Do isym = 1, nsymcrys
+         Do jsym = 1, nsymcrys
+            Write (50, '(2i6, 5x, i6)') isym, jsym, sgmut (isym, jsym)
+         End Do
+      End Do
+      Close (50)
+      Open (50, File='SYMMULT_TABLE'//trim(filext), Action='WRITE', &
+     & Form='FORMATTED')
+      Write (str1,*) maxsymcrys
+      Write (50,*)
+      Write (50, '(" (symmetry group multiplication table below)")')
+      Do isym = 1, nsymcrys
+         Write (50, '('//trim(str1)//'i3.2)') sgmut (isym, :)
+      End Do
+      Close (50)
   ! write out generators
-  open(50, file='SYMGENR'//trim(filext), action='WRITE', form='FORMATTED')
-  write(50, *)
-  write(50, '("Number of elements in symmetry group    : ", i6)') nsymcrys
-  write(50, '("Number of generators for symmetry group : ", i6)') ngenr
-  write(50, *)
-  do igenr=1, ngenr
-     write(50, '("generating element:", i4, " , number of elemnts in orbit:", i4)')&
-       genr(igenr), negenr(igenr)
-     write(50, '(" (orbit of generator below)")')
-     write(50, '('//trim(str1)//'i4)') orbgenr(igenr, :negenr(igenr))
-     write(50, *)
-  end do
-  close(50)
-end subroutine writesym2
+      Open (50, File='SYMGENR'//trim(filext), Action='WRITE', Form='FOR&
+     &MATTED')
+      Write (50,*)
+      Write (50, '("Number of elements in symmetry group    : ", i6)') &
+     & nsymcrys
+      Write (50, '("Number of generators for symmetry group : ", i6)') &
+     & ngenr
+      Write (50,*)
+      Do igenr = 1, ngenr
+         Write (50, '("generating element:", i4, " , number of elemnts &
+        &in orbit:", i4)') genr (igenr), negenr (igenr)
+         Write (50, '(" (orbit of generator below)")')
+         Write (50, '('//trim(str1)//'i4)') orbgenr (igenr, &
+        & :negenr(igenr))
+         Write (50,*)
+      End Do
+      Close (50)
+End Subroutine writesym2

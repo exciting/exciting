@@ -1,22 +1,22 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genpwmat
 ! !INTERFACE:
-
-
-subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
-     igkigk,apwalmk,evecfvk,evecsvk,vklkp,ngkkp,igkigkp,apwalmkp,evecfvkp, &
-     evecsvkp,pwmat)
+!
+!
+Subroutine genpwmat (vpl, ngpmax, ngp, vgpc, gpc, igpig, ylmgp, sfacgp, &
+& vklk, ngkk, igkigk, apwalmk, evecfvk, evecsvk, vklkp, ngkkp, igkigkp, &
+& apwalmkp, evecfvkp, evecsvkp, pwmat)
 ! !USES:
-  use modmain
-  use modxs
-  use modinput
+      Use modmain
+      Use modxs
+      Use modinput
 ! !INPUT/OUTPUT PARAMETERS:
 ! !DESCRIPTION:
 !   Calculates the matrix elements of the plane wave
@@ -28,130 +28,140 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
 !   Created November 2007 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! arguments
-  real(8), intent(in) :: vpl(3)
-  integer, intent(in) :: ngpmax
-  integer, intent(in) :: ngp
-  real(8), intent(in) :: vgpc(3,ngpmax)
-  real(8), intent(in) :: gpc(ngpmax)
-  integer, intent(in) :: igpig(ngpmax)
-  complex(8), intent(in) :: ylmgp(lmmaxapw,ngpmax)
-  complex(8), intent(in) :: sfacgp(ngpmax,natmtot)
-  real(8), intent(in) :: vklk(3)
-  integer, intent(in) :: ngkk
-  integer, intent(in) :: igkigk(ngkmax)
-  complex(8), intent(in) :: apwalmk(ngkmax,apwordmax,lmmaxapw,natmtot)
-  complex(8), intent(in) :: evecfvk(nmatmax,nstfv)
-  complex(8), intent(in) :: evecsvk(nstsv,nstsv)
-  real(8), intent(in) :: vklkp(3)
-  integer, intent(in) :: ngkkp
-  integer, intent(in) :: igkigkp(ngkmax)
-  complex(8), intent(in) :: apwalmkp(ngkmax,apwordmax,lmmaxapw,natmtot)
-  complex(8), intent(in) :: evecfvkp(nmatmax,nstfv)
-  complex(8), intent(in) :: evecsvkp(nstsv,nstsv)
-  complex(8), intent(out) :: pwmat(ngp,nstsv,nstsv)
+      Real (8), Intent (In) :: vpl (3)
+      Integer, Intent (In) :: ngpmax
+      Integer, Intent (In) :: ngp
+      Real (8), Intent (In) :: vgpc (3, ngpmax)
+      Real (8), Intent (In) :: gpc (ngpmax)
+      Integer, Intent (In) :: igpig (ngpmax)
+      Complex (8), Intent (In) :: ylmgp (lmmaxapw, ngpmax)
+      Complex (8), Intent (In) :: sfacgp (ngpmax, natmtot)
+      Real (8), Intent (In) :: vklk (3)
+      Integer, Intent (In) :: ngkk
+      Integer, Intent (In) :: igkigk (ngkmax)
+      Complex (8), Intent (In) :: apwalmk (ngkmax, apwordmax, lmmaxapw, &
+     & natmtot)
+      Complex (8), Intent (In) :: evecfvk (nmatmax, nstfv)
+      Complex (8), Intent (In) :: evecsvk (nstsv, nstsv)
+      Real (8), Intent (In) :: vklkp (3)
+      Integer, Intent (In) :: ngkkp
+      Integer, Intent (In) :: igkigkp (ngkmax)
+      Complex (8), Intent (In) :: apwalmkp (ngkmax, apwordmax, &
+     & lmmaxapw, natmtot)
+      Complex (8), Intent (In) :: evecfvkp (nmatmax, nstfv)
+      Complex (8), Intent (In) :: evecsvkp (nstsv, nstsv)
+      Complex (8), Intent (Out) :: pwmat (ngp, nstsv, nstsv)
   ! local variables
-  integer::i, j, k, l, m, lm, irc, igp, ig, ir, iv(3), ivu(3), ispn, is, ia, ias, ist, jst
-  integer :: igp1,igp2,ig1,ig2,iv1(3)
-  real(8) :: v1(3),t1
-  complex(8) zt1,zt2
+      Integer :: i, j, k, l, m, lm, irc, igp, ig, ir, iv (3), ivu (3), &
+     & ispn, is, ia, ias, ist, jst
+      Integer :: igp1, igp2, ig1, ig2, iv1 (3)
+      Real (8) :: v1 (3), t1
+      Complex (8) zt1, zt2
   ! allocatable arrays
-  real(8), allocatable :: jlgpr(:,:)
-  complex(8), allocatable :: wfmtk(:,:,:)
-  complex(8), allocatable :: wfmtkp(:,:,:)
-  complex(8), allocatable :: wfmt1(:,:)
-  complex(8), allocatable :: wfmt2(:,:)
-  complex(8), allocatable :: zfmt(:,:)
-  complex(8), allocatable :: pwfmt(:,:)
-  complex(8), allocatable :: wfirk(:,:)
-  complex(8), allocatable :: wfirkp(:,:)
-  complex(8), allocatable :: pm(:,:,:)
-  complex(8), allocatable :: cfunt(:,:), h(:,:), pmt(:,:)
-  complex(8), allocatable :: evecfvt1(:,:), evecfvt2(:,:)
+      Real (8), Allocatable :: jlgpr (:, :)
+      Complex (8), Allocatable :: wfmtk (:, :, :)
+      Complex (8), Allocatable :: wfmtkp (:, :, :)
+      Complex (8), Allocatable :: wfmt1 (:, :)
+      Complex (8), Allocatable :: wfmt2 (:, :)
+      Complex (8), Allocatable :: zfmt (:, :)
+      Complex (8), Allocatable :: pwfmt (:, :)
+      Complex (8), Allocatable :: wfirk (:, :)
+      Complex (8), Allocatable :: wfirkp (:, :)
+      Complex (8), Allocatable :: pm (:, :, :)
+      Complex (8), Allocatable :: cfunt (:, :), h (:, :), pmt (:, :)
+      Complex (8), Allocatable :: evecfvt1 (:, :), evecfvt2 (:, :)
   ! external functions
-  real(8), external :: r3taxi
-  complex(8), external :: zfmtinp
-  t1=vgpc(1,1) ! for convenience:)
+      Real (8), External :: r3taxi
+      Complex (8), External :: zfmtinp
+      t1 = vgpc (1, 1)! for convenience:)
   ! allocate arrays
-  allocate(cfunt(ngkk,ngkkp))
-  allocate(h(ngkk,nstfv))
-  allocate(pmt(nstfv,nstfv))
-  allocate(evecfvt1(nstfv,ngkk),evecfvt2(ngkkp,nstfv))
+      Allocate (cfunt(ngkk, ngkkp))
+      Allocate (h(ngkk, nstfv))
+      Allocate (pmt(nstfv, nstfv))
+      Allocate (evecfvt1(nstfv, ngkk), evecfvt2(ngkkp, nstfv))
   ! check if q-point is commensurate with k-mesh
-  if (any(abs(vpl * input%groundstate%ngridk-nint(vpl * input%groundstate%ngridk)).gt.input%structure%epslat)) then
-     write(*,*)
-     write(*,'("Error(genpwmat): q-point not commensurate with k-mesh : ",&
-          &3g18.10)') vpl
-     write(*,*)
-     stop
-  end if
+      If (any(Abs(vpl*input%groundstate%ngridk-&
+     & Nint(vpl*input%groundstate%ngridk)) .Gt. &
+     & input%structure%epslat)) Then
+         Write (*,*)
+         Write (*, '("Error(genpwmat): q-point not commensurate with k-&
+        &mesh : ",3g18.10)') vpl
+         Write (*,*)
+         Stop
+      End If
   ! kp-point umklapp G-vector
-  v1(:)=vpl(:)+vklk(:)
-  call r3frac(input%structure%epslat, v1, ivu)
+      v1 (:) = vpl (:) + vklk (:)
+      Call r3frac (input%structure%epslat, v1, ivu)
   ! check k+q=kp+Gw
-  if (r3taxi(v1, vklkp).gt.input%structure%epslat) then
-     write(*,*)
-     write(*,'("Error(genpwmat): q-point not commensurate with k-point and &
-          &kp-point")')
-     write(*,'(" k-point         : ",3g18.10)') vklk
-     write(*,'(" q-point         : ",3g18.10)') vpl
-     write(*,'(" kp-point        : ",3g18.10)') vklkp
-     write(*,'(" umklapp G-vector: ",3i8)') ivu
-     write(*,*)
-     stop
-  end if
-  allocate(wfmtk(lmmaxapw,nrcmtmax,nstfv))
-  allocate(wfmtkp(lmmaxapw,nrcmtmax,nstfv))
-  allocate(wfmt1(lmmaxapw,nrcmtmax))
-  allocate(wfmt2(lmmaxapw,nrcmtmax))
-  allocate(zfmt(lmmaxapw,nrcmtmax))
-  allocate(pwfmt(lmmaxapw,nrcmtmax))
-  allocate(wfirk(ngrtot,nstfv))
-  allocate(wfirkp(ngrtot,nstfv))
-  allocate(pm(ngp,nstfv,nstfv))
-  allocate(jlgpr(0:input%groundstate%lmaxapw, nrcmtmax))
+      If (r3taxi(v1, vklkp) .Gt. input%structure%epslat) Then
+         Write (*,*)
+         Write (*, '("Error(genpwmat): q-point not commensurate with k-&
+        &point and kp-point")')
+         Write (*, '(" k-point         : ",3g18.10)') vklk
+         Write (*, '(" q-point         : ",3g18.10)') vpl
+         Write (*, '(" kp-point        : ",3g18.10)') vklkp
+         Write (*, '(" umklapp G-vector: ",3i8)') ivu
+         Write (*,*)
+         Stop
+      End If
+      Allocate (wfmtk(lmmaxapw, nrcmtmax, nstfv))
+      Allocate (wfmtkp(lmmaxapw, nrcmtmax, nstfv))
+      Allocate (wfmt1(lmmaxapw, nrcmtmax))
+      Allocate (wfmt2(lmmaxapw, nrcmtmax))
+      Allocate (zfmt(lmmaxapw, nrcmtmax))
+      Allocate (pwfmt(lmmaxapw, nrcmtmax))
+      Allocate (wfirk(ngrtot, nstfv))
+      Allocate (wfirkp(ngrtot, nstfv))
+      Allocate (pm(ngp, nstfv, nstfv))
+      Allocate (jlgpr(0:input%groundstate%lmaxapw, nrcmtmax))
   ! zero arrays
-  wfmtk(:,:,:)=zzero
-  wfmtkp(:,:,:)=zzero
-  wfmt1(:,:)=zzero
-  wfmt2(:,:)=zzero
-  zfmt(:,:)=zzero
-  pwfmt(:,:)=zzero
-  pm(:,:,:)=zzero
+      wfmtk (:, :, :) = zzero
+      wfmtkp (:, :, :) = zzero
+      wfmt1 (:, :) = zzero
+      wfmt2 (:, :) = zzero
+      zfmt (:, :) = zzero
+      pwfmt (:, :) = zzero
+      pm (:, :, :) = zzero
   ! loop over G+p vectors
-  do igp=1,ngp
-     write(*,*) 'Info(genpwmat): igp: ',igp
+      Do igp = 1, ngp
+         Write (*,*) 'Info(genpwmat): igp: ', igp
      ! calculate matrix elements of the plane wave in the muffin-tin
-     do is=1,nspecies
+         Do is = 1, nspecies
         ! calculate bessel functions j_l(|G+q||r|)
-        irc=0
-	do ir=1, nrmt(is), input%groundstate%lradstep
-           irc=irc+1
-	   call sbessel(input%groundstate%lmaxapw, gpc(igp)*spr(ir, is), jlgpr(0, irc))
+            irc = 0
+            Do ir = 1, nrmt (is), input%groundstate%lradstep
+               irc = irc + 1
+               Call sbessel (input%groundstate%lmaxapw, &
+              & gpc(igp)*spr(ir, is), jlgpr(0, irc))
            ! set up plane wave factor from Rayleigh formula
-	   do l=0, input%xs%lmaxemat
-              do m=-l,l
-                 lm=idxlm(l,m)
-                 pwfmt(lm,irc)=fourpi*conjg(zil(l))*jlgpr(l,irc)* &
-                      conjg(ylmgp(lm,igp))
-              end do
-           end do
-        end do
-        do ia=1,natoms(is)
-           ias=idxas(ia,is)
-           do ist=1,nstfv
+               Do l = 0, input%xs%lmaxemat
+                  Do m = - l, l
+                     lm = idxlm (l, m)
+                     pwfmt (lm, irc) = fourpi * conjg (zil(l)) * jlgpr &
+                    & (l, irc) * conjg (ylmgp(lm, igp))
+                  End Do
+               End Do
+            End Do
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
+               Do ist = 1, nstfv
               ! calculate the wavefunction for k-point
-	      call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxapw, is, ia, ngkk, apwalmk, &
-                   evecfvk(1,ist),lmmaxapw,wfmtk(1,1,ist))
+                  Call wavefmt (input%groundstate%lradstep, &
+                 & input%groundstate%lmaxapw, is, ia, ngkk, apwalmk, &
+                 & evecfvk(1, ist), lmmaxapw, wfmtk(1, 1, ist))
               ! calculate the wavefunction for kp-point
-	      call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxapw, is, ia, ngkkp, apwalmkp, &
-                   evecfvkp(1,ist),lmmaxapw,wfmtkp(1,1,ist))
+                  Call wavefmt (input%groundstate%lradstep, &
+                 & input%groundstate%lmaxapw, is, ia, ngkkp, apwalmkp, &
+                 & evecfvkp(1, ist), lmmaxapw, wfmtkp(1, 1, ist))
               ! convert wavefunction and plane wave to spherical coordinates
-              call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zbshtapw, &
-                   lmmaxapw,wfmtkp(1,1,ist),lmmaxapw,zzero,wfmt1,lmmaxapw)
-              call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zbshtapw, &
-                   lmmaxapw,pwfmt,lmmaxapw,zzero,wfmt2,lmmaxapw)
+                  Call zgemm ('N', 'N', lmmaxapw, nrcmt(is), lmmaxapw, &
+                 & zone, zbshtapw, lmmaxapw, wfmtkp(1, 1, ist), &
+                 & lmmaxapw, zzero, wfmt1, lmmaxapw)
+                  Call zgemm ('N', 'N', lmmaxapw, nrcmt(is), lmmaxapw, &
+                 & zone, zbshtapw, lmmaxapw, pwfmt, lmmaxapw, zzero, &
+                 & wfmt2, lmmaxapw)
               ! direct evaluation of exp(-i(G+q)r) on spherical grid
               ! note that the Rayleigh expansion seems to be more precise
               !do l=0,lmaxapw
@@ -168,73 +178,79 @@ subroutine genpwmat(vpl,ngpmax,ngp,vgpc,gpc,igpig,ylmgp,sfacgp,vklk,ngkk, &
               !   end do
               !end do
               ! calculate product in muffin-tin in real space
-              do irc=1,nrcmt(is)
-                 zfmt(:,irc)=wfmt1(:,irc)*wfmt2(:,irc)
-              end do
+                  Do irc = 1, nrcmt (is)
+                     zfmt (:, irc) = wfmt1 (:, irc) * wfmt2 (:, irc)
+                  End Do
               ! convert to spherical harmonics
-              call zgemm('N','N',lmmaxapw,nrcmt(is),lmmaxapw,zone,zfshtapw, &
-                   lmmaxapw,zfmt,lmmaxapw,zzero,wfmtkp(1,1,ist),lmmaxapw)
-           end do
+                  Call zgemm ('N', 'N', lmmaxapw, nrcmt(is), lmmaxapw, &
+                 & zone, zfshtapw, lmmaxapw, zfmt, lmmaxapw, zzero, &
+                 & wfmtkp(1, 1, ist), lmmaxapw)
+               End Do
            ! structure factor for G+p vector
-           zt2=conjg(sfacgp(igp,ias))
-           do ist=1,nstfv
-              do jst=1,nstfv
-		 zt1 = zfmtinp(.true., input%groundstate%lmaxapw, nrcmt(is), rcmt(1, is), lmmaxapw, &
-                      wfmtk(1,1,ist),wfmtkp(1,1,jst))
-                 pm(igp,ist,jst)=pm(igp,ist,jst)+zt1*zt2
-              end do
-           end do
+               zt2 = conjg (sfacgp(igp, ias))
+               Do ist = 1, nstfv
+                  Do jst = 1, nstfv
+                     zt1 = zfmtinp (.True., input%groundstate%lmaxapw, &
+                    & nrcmt(is), rcmt(1, is), lmmaxapw, wfmtk(1, 1, &
+                    & ist), wfmtkp(1, 1, jst))
+                     pm (igp, ist, jst) = pm (igp, ist, jst) + zt1 * &
+                    & zt2
+                  End Do
+               End Do
            ! end loops over atoms and species
-        end do
-     end do
+            End Do
+         End Do
      ! calculate matrix elements of the plane wave in the interstitial region
-     forall (ist=1:nstfv)
-        evecfvt1(ist,:)=conjg(evecfvk(1:ngkk,ist))
-     end forall
-     evecfvt2(:,:)=evecfvkp(1:ngkkp,:)
-     do igp1=1,ngkk
-        ig1=igkigk(igp1)
-        iv1(:)=ivg(:,ig1)
-        do igp2=1,ngkkp
-           ig2=igkigkp(igp2)
-           iv(:)=iv1(:)-ivg(:,ig2)+ivg(:,igpig(igp))+ivu(:)
-           ig=ivgig(iv(1),iv(2),iv(3))
-           cfunt(igp1,igp2)=cfunig(ig)
-        end do
-     end do
+         Forall (ist=1:nstfv)
+            evecfvt1 (ist, :) = conjg (evecfvk(1:ngkk, ist))
+         End Forall
+         evecfvt2 (:, :) = evecfvkp (1:ngkkp, :)
+         Do igp1 = 1, ngkk
+            ig1 = igkigk (igp1)
+            iv1 (:) = ivg (:, ig1)
+            Do igp2 = 1, ngkkp
+               ig2 = igkigkp (igp2)
+               iv (:) = iv1 (:) - ivg (:, ig2) + ivg (:, igpig(igp)) + &
+              & ivu (:)
+               ig = ivgig (iv(1), iv(2), iv(3))
+               cfunt (igp1, igp2) = cfunig (ig)
+            End Do
+         End Do
 	 ! h = cfunt*evecfvt2
-     call zgemm('n','n', ngkk, nstfv, ngkkp, zone, cfunt, &
-          ngkk, evecfvt2, ngkkp, zzero, h, ngkk)
+         Call zgemm ('n', 'n', ngkk, nstfv, ngkkp, zone, cfunt, ngkk, &
+        & evecfvt2, ngkkp, zzero, h, ngkk)
      ! pmt = evecfvt2*h
-     call zgemm('n','n', nstfv, nstfv, ngkk, zone, evecfvt1, &
-          nstfv, h, ngkk, zzero, pmt, nstfv)
-     pm(igp,:,:)=pm(igp,:,:)+pmt(:,:)
+         Call zgemm ('n', 'n', nstfv, nstfv, ngkk, zone, evecfvt1, &
+        & nstfv, h, ngkk, zzero, pmt, nstfv)
+         pm (igp, :, :) = pm (igp, :, :) + pmt (:, :)
      ! compute the second-variational matrix elements of the plane wave
-     if (input%groundstate%tevecsv) then
-        do i=1,nstsv
-           do j=1,nstsv
-              zt1=0.d0
-              k=0
-              do ispn=1,nspinor
-                 do ist=1,nstfv
-                    k=k+1
-                    l=(ispn-1)*nstfv
-                    do jst=1,nstfv
-                       l=l+1
-                       zt1=conjg(evecsvk(k,i))*evecsvkp(l,j)
-                       zt1=zt1+zt1*pm(igp,ist,jst)
-                    end do
-                 end do
-              end do
-              pwmat(igp,i,j)=zt1
-           end do
-        end do
-     else
-        pwmat(:,:,:)=pm(:,:,:)
-     end if
+         If (input%groundstate%tevecsv) Then
+            Do i = 1, nstsv
+               Do j = 1, nstsv
+                  zt1 = 0.d0
+                  k = 0
+                  Do ispn = 1, nspinor
+                     Do ist = 1, nstfv
+                        k = k + 1
+                        l = (ispn-1) * nstfv
+                        Do jst = 1, nstfv
+                           l = l + 1
+                           zt1 = conjg (evecsvk(k, i)) * evecsvkp (l, &
+                          & j)
+                           zt1 = zt1 + zt1 * pm (igp, ist, jst)
+                        End Do
+                     End Do
+                  End Do
+                  pwmat (igp, i, j) = zt1
+               End Do
+            End Do
+         Else
+            pwmat (:, :, :) = pm (:, :, :)
+         End If
      ! end loop over G+p vectors
-  end do
-  deallocate(wfmtk,wfmtkp,wfmt1,wfmt2,zfmt,pwfmt,wfirk,wfirkp,pm,jlgpr)
-  deallocate(cfunt,h,pmt,evecfvt1,evecfvt2)
-end subroutine genpwmat
+      End Do
+      Deallocate (wfmtk, wfmtkp, wfmt1, wfmt2, zfmt, pwfmt, wfirk, &
+     & wfirkp, pm, jlgpr)
+      Deallocate (cfunt, h, pmt, evecfvt1, evecfvt2)
+End Subroutine genpwmat
 !EOC

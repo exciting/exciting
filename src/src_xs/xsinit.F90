@@ -1,302 +1,321 @@
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine xsinit
-use modinput
-  use modmain
-  use modmpi
-  use modxs
-  use modfxcifc
-  use m_getunit
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine xsinit
+      Use modinput
+      Use modmain
+      Use modmpi
+      Use modxs
+      Use modfxcifc
+      Use m_getunit
+      Use m_genfilname
+      Implicit None
   ! local variables
-  character(10)::dat, tim
-  integer :: i
-  real(8) :: tv(3)
-
+      Character (10) :: dat, tim
+      Integer :: i
+      Real (8) :: tv (3)
+!
   !---------------------------!
   !     initialize timing     !
   !---------------------------!
   ! remember how often this routine is called
-  calledxs=calledxs+1
+      calledxs = calledxs + 1
   ! only recalculate symmetries in init0
-  if (calledxs.gt.1) init0symonly=.true.
+      If (calledxs .Gt. 1) init0symonly = .True.
   ! initialize global counters
-  call cpu_time(cputim0i)
-  call system_clock(COUNT_RATE=cntrate)
-  call system_clock(COUNT=systim0i)
-  call date_and_time(date=dat, time=tim)
-  if (calledxs.eq.1) call system_clock(COUNT=systimcum)
-
+      Call cpu_time (cputim0i)
+      Call system_clock (COUNT_RATE=cntrate)
+      Call system_clock (COUNT=systim0i)
+      Call date_and_time (date=dat, time=tim)
+      If (calledxs .Eq. 1) Call system_clock (COUNT=systimcum)
+!
   !---------------------!
   !     output file     !
   !---------------------!
-  ! set version of XS part
-  call xssetversion
   ! name of output file
-  call genfilname(nodotpar = .true., basename = 'INFOXS', procs = procs, rank = rank, &
-       filnam = xsfileout)
+      Call genfilname (nodotpar=.True., basename='INFOXS', procs=procs, &
+     & rank=rank, filnam=xsfileout)
   ! reset or append to output file
-  call getunit(unitout)
-  if (input%xs%tappinfo.or.(calledxs.gt.1)) then
-     open(unitout, file=trim(xsfileout), action='write', position='append')
-  else
-     open(unitout, file=trim(xsfileout), action='write', status='replace')
-  end if
+      Call getunit (unitout)
+      If (input%xs%tappinfo .Or. (calledxs .Gt. 1)) Then
+         Open (unitout, File=trim(xsfileout), Action='write', &
+        & Position='append')
+      Else
+         Open (unitout, File=trim(xsfileout), Action='write', Status='r&
+        &eplace')
+      End If
   ! write to info file
-  if (calledxs.eq.1) then
-     write(unitout, *)
-     write(unitout, '("+-------------------------------------------------------&
-	  &---+")')
-     write(unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".", I3.3, " (eXcited &
-	  &States ", I1.1, ".", I3.3, ") started  |")') version, versionxs
+      If (calledxs .Eq. 1) Then
+         Write (unitout,*)
+         Write (unitout, '("+------------------------------------------&
+        &----------------+")')
+         Write (unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".",&
+        & I3.3, " started  |")') version
 	  !"
 #ifdef MPI
-     write(unitout, '("| compiled for MPI execution			       &
-	  &   |")')
+         Write (unitout, '("| compiled for MPI execution			          |"&
+        &)')
 #endif
 #ifndef MPI
-     write(unitout, '("| compiled for serial execution			       &
-	  &   |")')
+         Write (unitout, '("| compiled for serial execution			         &
+        & |")')
 #endif
-     write(unitout, '("+ ------------------------------------------------------&
-	  &---+")')
-     if ((procs.gt.1).and.(rank.eq.0)) write(unitout, '("(parallel) master, &
-	&rank/number of processes:", 2i8)') rank, procs
-     if ((procs.gt.1).and.(rank.ne.0)) write(unitout, '("(parallel) slave,  &
-	&rank/number of processes:", 2i8)') rank, procs
-     if (notelns.gt.0) then
-	write(unitout, *)
-	write(unitout, '("Notes :")')
-	do i=1, notelns
-	   write(unitout, '(A)') notes(i)
-	end do
-     end if
-  end if
-  write(unitout, *)
-  write(unitout, '("Date (YYYY-MM-DD) : ", A4, "-", A2, "-", A2)') dat(1:4), &
-	dat(5:6), dat(7:8)
-  write(unitout, '("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') tim(1:2), &
-	tim(3:4), tim(5:6)
-  write(unitout, '("Info(xsinit): task Nr.", i6, " started")') task
-  call flushifc(unitout)
-
+         Write (unitout, '("+ -----------------------------------------&
+        &----------------+")')
+         If ((procs .Gt. 1) .And. (rank .Eq. 0)) write (unitout, '("(pa&
+        &rallel) master, rank/number of processes:", 2i8)') rank, procs
+         If ((procs .Gt. 1) .And. (rank .Ne. 0)) write (unitout, '("(pa&
+        &rallel) slave,  rank/number of processes:", 2i8)') rank, procs
+         If (notelns .Gt. 0) Then
+            Write (unitout,*)
+            Write (unitout, '("Notes :")')
+            Do i = 1, notelns
+               Write (unitout, '(A)') notes (i)
+            End Do
+         End If
+      End If
+      Write (unitout,*)
+      Write (unitout, '("Date (YYYY-MM-DD) : ", A4, "-", A2, "-", A2)') &
+     & dat (1:4), dat (5:6), dat (7:8)
+      Write (unitout, '("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') &
+     & tim (1:2), tim (3:4), tim (5:6)
+      Write (unitout, '("Info(xsinit): task Nr.", i6, " started")') &
+     & task
+      Call flushifc (unitout)
+!
   !--------------------------------------------!
   !     map xs parameters associated to GS     !
   !--------------------------------------------!
-  call mapxsparameters
-
-
+      Call mapxsparameters
+!
+!
   !-----------------------------------!
   !     parallelization variables     !
   !-----------------------------------!
-  if ((procs.lt.1).or.(procs.gt.maxproc)) then
-     write(unitout, *)
-     write(unitout, '("Error(xsinit): Error in parallel initialization: number &
-     &of processes out of range: ", i6)') procs
-     write(unitout, *)
-     call terminate
-  end if
-  if ((rank.gt.procs).or.(rank.lt.0)) then
-     write(unitout, *)
-     write(unitout, '("Error(xsinit): Error in parallel initialization: rank &
-     &out of range: ", i6)') rank
-     write(unitout, *)
-     call terminate
-  end if
-
+      If ((procs .Lt. 1) .Or. (procs .Gt. maxproc)) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(xsinit): Error in parallel initializa&
+        &tion: number of processes out of range: ", i6)') procs
+         Write (unitout,*)
+         Call terminate
+      End If
+      If ((rank .Gt. procs) .Or. (rank .Lt. 0)) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(xsinit): Error in parallel initializa&
+        &tion: rank out of range: ", i6)') rank
+         Write (unitout,*)
+         Call terminate
+      End If
+!
   !------------------------!
   !     spin variables     !
   !------------------------!
   ! warn for spin polarized calculations
-  if (associated(input%groundstate%spin)) then
-     write(unitout, *)
-     write(unitout, '("Warning(xsinit): calculation is spin-polarized - &
-     &formalism may be incomplete")')
-     write(unitout, *)
-  end if
+      If (associated(input%groundstate%spin)) Then
+         Write (unitout,*)
+         Write (unitout, '("Warning(xsinit): calculation is spin-polari&
+        &zed - formalism may be incomplete")')
+         Write (unitout,*)
+      End If
   ! no spin-spirals
-  if (isspinspiral()) then
-     write(unitout, *)
-     write(unitout, '("Error(xsinit): xs-part not working for spin-spirals")')
-     write(unitout, *)
-     call terminate
-  end if
-
+      If (isspinspiral()) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(xsinit): xs-part not working for spin&
+        &-spirals")')
+         Write (unitout,*)
+         Call terminate
+      End If
+!
   !------------------------------------!
   !     angular momentum variables     !
   !------------------------------------!
-  if (input%xs%lmaxapwwf.eq.-1) input%xs%lmaxapwwf=input%groundstate%lmaxmat
-  lmmaxapwwf=(input%xs%lmaxapwwf+1)**2
-  lmmaxemat=(input%xs%lmaxemat+1)**2
-  lmmaxdielt=(input%xs%BSE%lmaxdielt+1)**2
-  if (input%xs%lmaxapwwf.gt.input%groundstate%lmaxapw) then
-     write(unitout, *)
-     write(unitout, '("Error(xsinit): lmaxapwwf > lmaxapw: ", i6)') input%xs%lmaxapwwf
-     write(unitout, *)
-     call terminate
-  end if
-  if (input%xs%lmaxemat.gt.input%groundstate%lmaxapw) then
-     write(unitout, *)
-     write(unitout, '("Error(xsinit): lmaxemat > lmaxapw: ", i6)') input%xs%lmaxemat
-     write(unitout, *)
-     call terminate
-  end if
-  if (input%xs%tddft%lmaxalda.gt.input%groundstate%lmaxapw) then
-     write(unitout, *)
-     write(unitout, '("Error(xsinit): lmaxalda > lmaxapw: ", i6)') input%xs%tddft%lmaxalda
-     write(unitout, *)
-     call terminate
-  end if
-  if (input%xs%lmaxemat.gt.input%xs%lmaxapwwf) then
-     write(unitout, *)
-     write(unitout, '("Warning(xsinit): lmaxemat > lmaxapwwf: ", i6)') input%xs%lmaxemat
-     write(unitout, *)
-  end if
-
+      If (input%xs%lmaxapwwf .Eq.-1) input%xs%lmaxapwwf = &
+     & input%groundstate%lmaxmat
+      lmmaxapwwf = (input%xs%lmaxapwwf+1) ** 2
+      lmmaxemat = (input%xs%lmaxemat+1) ** 2
+      lmmaxdielt = (input%xs%BSE%lmaxdielt+1) ** 2
+      If (input%xs%lmaxapwwf .Gt. input%groundstate%lmaxapw) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(xsinit): lmaxapwwf > lmaxapw: ", i6)') input%xs%lmaxapwwf
+         Write (unitout,*)
+         Call terminate
+      End If
+      If (input%xs%lmaxemat .Gt. input%groundstate%lmaxapw) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(xsinit): lmaxemat > lmaxapw: ", i6)') &
+        & input%xs%lmaxemat
+         Write (unitout,*)
+         Call terminate
+      End If
+      If (input%xs%tddft%lmaxalda .Gt. input%groundstate%lmaxapw) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(xsinit): lmaxalda > lmaxapw: ", i6)') &
+        & input%xs%tddft%lmaxalda
+         Write (unitout,*)
+         Call terminate
+      End If
+      If (input%xs%lmaxemat .Gt. input%xs%lmaxapwwf) Then
+         Write (unitout,*)
+         Write (unitout, '("Warning(xsinit): lmaxemat > lmaxapwwf: ", i&
+        &6)') input%xs%lmaxemat
+         Write (unitout,*)
+      End If
+!
   !---------------------!
   !     k-point set     !
   !---------------------!
-  if (any(input%xs%screening%ngridk.eq.0)) input%xs%screening%ngridk(:)=input%groundstate%ngridk(:)
-  if (any(input%xs%screening%vkloff.eq. -1.d0)) input%xs%screening%vkloff(:) = input%groundstate%vkloff(:)
-  if (any(input%xs%BSE%vkloff.eq.-1.d0)) input%xs%BSE%vkloff(:)=input%groundstate%vkloff(:)
-
+      If (any(input%xs%screening%ngridk .Eq. 0)) &
+     & input%xs%screening%ngridk(:) = input%groundstate%ngridk(:)
+      If (any(input%xs%screening%vkloff .Eq.-1.d0)) &
+     & input%xs%screening%vkloff(:) = input%groundstate%vkloff(:)
+      If (any(input%xs%BSE%vkloff .Eq.-1.d0)) input%xs%BSE%vkloff(:) = &
+     & input%groundstate%vkloff(:)
+!
   !---------------------!
   !     G+k vectors     !
   !---------------------!
-  if (input%xs%screening%rgkmax.eq.0.d0) input%xs%screening%rgkmax=input%groundstate%rgkmax
-  if (input%xs%BSE%rgkmax.eq.0.d0) input%xs%BSE%rgkmax=input%groundstate%rgkmax
-
+      If (input%xs%screening%rgkmax .Eq. 0.d0) &
+     & input%xs%screening%rgkmax = input%groundstate%rgkmax
+      If (input%xs%BSE%rgkmax .Eq. 0.d0) input%xs%BSE%rgkmax = &
+     & input%groundstate%rgkmax
+!
   !------------------------------------!
   !     secular equation variables     !
   !------------------------------------!
-  if (input%xs%screening%nempty.eq.0) input%xs%screening%nempty=input%groundstate%nempty
+      If (input%xs%screening%nempty .Eq. 0) input%xs%screening%nempty = &
+     & input%groundstate%nempty
   ! set splittfile parameter for splitting of eigenvector files in
   ! parallelization of SCF cycle
-  if ((task.ne.301).and.(task.ne.401)) splittfile=.false.
-
+      If ((task .Ne. 301) .And. (task .Ne. 401)) splittfile = .False.
+!
   !----------------------------!
   !     response functions     !
   !----------------------------!
   ! set time-ordering
-  tordf=1.d0
-  if (input%xs%tddft%torddf) tordf=-1.d0
-  tscreen=.false.
-  if ((task.ge.400).and.(task.le.499)) tscreen=.true.
+      tordf = 1.d0
+      If (input%xs%tddft%torddf) tordf = - 1.d0
+      tscreen = .False.
+      If ((task .Ge. 400) .And. (task .Le. 499)) tscreen = .True.
   ! tetrahedron method not implemented for analytic continuation
-  if (input%xs%tetra%tetradf.and.input%xs%tddft%acont) then
-     write(unitout, *)
-     write(unitout, '("Error(xsinit): tetrahedron method does not work in &
-	& combination with analytic continuation")')
-     write(unitout, *)
-     call terminate
-  end if
+      If (input%xs%tetra%tetradf .And. input%xs%tddft%acont) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(xsinit): tetrahedron method does not &
+        &work in  combination with analytic continuation")')
+         Write (unitout,*)
+         Call terminate
+      End If
   ! if imaginary frequencies intervals are not specified
  ! if (input%xs%tddft%nwacont.eq.0) input%xs%tddft%nwacont=input%xs%dosWindow%points
  ! nwdf=input%xs%dosWindow%points
-
-  if (input%xs%tddft%acont)then
-  nwdf=input%xs%tddft%nwacont
-  else
-   nwdf=input%xs%dosWindow%points
-endif
+!
+      If (input%xs%tddft%acont) Then
+         nwdf = input%xs%tddft%nwacont
+      Else
+         nwdf = input%xs%dosWindow%points
+      End If
   ! get exchange-correlation kernel functional data
-  call getfxcdata(input%xs%tddft%fxctypenumber, fxcdescr, fxcspin)
-
+      Call getfxcdata (input%xs%tddft%fxctypenumber, fxcdescr, fxcspin)
+!
   !-----------------------------!
   !     xc-kernel variables     !
   !-----------------------------!
   ! set time-ordering
-  torfxc=1.d0
-  if (input%xs%tddft%tordfxc) torfxc=-1.d0
-
+      torfxc = 1.d0
+      If (input%xs%tddft%tordfxc) torfxc = - 1.d0
+!
   !-----------------------!
   !     miscellaneous     !
   !-----------------------!
   ! scaling factor for output of energies
-  escale=1.d0
-  if (input%xs%tevout) escale=27.2114d0
-  tleblaik=.true.
-  if (input%xs%BSE%nleblaik.eq.0) tleblaik=.false.
-
+      escale = 1.d0
+      If (input%xs%tevout) escale = 27.2114d0
+      tleblaik = .True.
+      If (input%xs%BSE%nleblaik .Eq. 0) tleblaik = .False.
+!
   !----------------------------------!
   !     task dependent variables     !
   !----------------------------------!
-  tfxcbse=.false.
-  if (input%xs%tddft%fxctypenumber.eq.5) then
-     if (input%groundstate%gmaxvr.lt.2.d0*input%xs%gqmax) then
-	write(unitout, *)
-	write(unitout, '("Error(xsinit): 2*gqmax > gmaxvr", 2g18.10)') 2.d0* &
-	  input%xs%gqmax, input%groundstate%gmaxvr
-	write(unitout, *)
-	call terminate
-     end if
-  end if
-  if ((input%xs%tddft%fxctypenumber.eq.7).or.(input%xs%tddft%fxctypenumber.eq.8)) tfxcbse=.true.
-  if ((task.ge.401).and.(task.le.439)) then
+      tfxcbse = .False.
+      If (input%xs%tddft%fxctypenumber .Eq. 5) Then
+         If (input%groundstate%gmaxvr .Lt. 2.d0*input%xs%gqmax) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(xsinit): 2*gqmax > gmaxvr", 2g18.1&
+           &0)') 2.d0 * input%xs%gqmax, input%groundstate%gmaxvr
+            Write (unitout,*)
+            Call terminate
+         End If
+      End If
+      If ((input%xs%tddft%fxctypenumber .Eq. 7) .Or. &
+     & (input%xs%tddft%fxctypenumber .Eq. 8)) tfxcbse = .True.
+      If ((task .Ge. 401) .And. (task .Le. 439)) Then
      ! screening
-     input%groundstate%nosym=input%xs%screening%nosym
-     input%groundstate%reducek=input%xs%screening%reducek
-     input%groundstate%rgkmax=input%xs%screening%rgkmax
-     input%groundstate%nempty=input%xs%screening%nempty
-     input%groundstate%ngridk(:)=input%xs%screening%ngridk(:)
-     input%groundstate%vkloff(:)=input%xs%screening%vkloff(:)
-     write(unitout, *)
-     write(unitout, '("Info(xsinit): mapping screening-specific parameters")')
-     write(unitout, *)
-     tv(:)=dble(input%xs%screening%ngridk(:))/dble(ngridq(:))
-     tv(:)=tv(:)-int(tv(:))
-     if (sum(tv).gt.input%structure%epslat) then
-	write(unitout, *)
-	write(unitout, '("Error(xsinit): ngridkscr must be an integer multiple &
-	     &of ngridq")')
-	write(unitout, '(" ngridkscr : ", 3i6)') input%xs%screening%ngridk
-	write(unitout, '(" ngridq    : ", 3i6)') ngridq
-	write(unitout, *)
-	call terminate
-     end if
-  else if ((task.ge.440).and.(task.le.459)) then
+         input%groundstate%nosym = input%xs%screening%nosym
+         input%groundstate%reducek = input%xs%screening%reducek
+         input%groundstate%rgkmax = input%xs%screening%rgkmax
+         input%groundstate%nempty = input%xs%screening%nempty
+         input%groundstate%ngridk (:) = input%xs%screening%ngridk(:)
+         input%groundstate%vkloff (:) = input%xs%screening%vkloff(:)
+         Write (unitout,*)
+         Write (unitout, '("Info(xsinit): mapping screening-specific pa&
+        &rameters")')
+         Write (unitout,*)
+         tv (:) = dble (input%xs%screening%ngridk(:)) / dble &
+        & (ngridq(:))
+         tv (:) = tv (:) - Int (tv(:))
+         If (sum(tv) .Gt. input%structure%epslat) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(xsinit): ngridkscr must be an inte&
+           &ger multiple of ngridq")')
+            Write (unitout, '(" ngridkscr : ", 3i6)') &
+           & input%xs%screening%ngridk
+            Write (unitout, '(" ngridq    : ", 3i6)') ngridq
+            Write (unitout,*)
+            Call terminate
+         End If
+      Else If ((task .Ge. 440) .And. (task .Le. 459)) Then
      ! BSE
-     input%groundstate%nosym=input%xs%BSE%nosym
-     input%groundstate%reducek=input%xs%BSE%reducek
-     input%groundstate%rgkmax=input%xs%BSE%rgkmax
-     input%groundstate%vkloff(:)=input%xs%BSE%vkloff(:)
-      ngridq(:)=input%xs%ngridq(:)
-     write(unitout, *)
-     write(unitout, '("Info(xsinit): mapping BSE-specific parameters")')
-     write(unitout, *)
-     if (any(input%groundstate%ngridk.ne.ngridq)) then
-	write(unitout, *)
-	write(unitout, '("Error(xsinit): ngridk must be equal ngridq for the &
-	     &BSE-Hamiltonian")')
-	write(unitout, '(" ngridk : ", 3i6)') input%groundstate%ngridk
-	write(unitout, '(" ngridq : ", 3i6)') ngridq
-	write(unitout, *)
-	call terminate
-     end if
-  end if
-
+         input%groundstate%nosym = input%xs%BSE%nosym
+         input%groundstate%reducek = input%xs%BSE%reducek
+         input%groundstate%rgkmax = input%xs%BSE%rgkmax
+         input%groundstate%vkloff (:) = input%xs%BSE%vkloff(:)
+         ngridq (:) = input%xs%ngridq(:)
+         Write (unitout,*)
+         Write (unitout, '("Info(xsinit): mapping BSE-specific paramete&
+        &rs")')
+         Write (unitout,*)
+         If (any(input%groundstate%ngridk .Ne. ngridq)) Then
+            Write (unitout,*)
+            Write (unitout, '("Error(xsinit): ngridk must be equal ngri&
+           &dq for the BSE-Hamiltonian")')
+            Write (unitout, '(" ngridk : ", 3i6)') &
+           & input%groundstate%ngridk
+            Write (unitout, '(" ngridq : ", 3i6)') ngridq
+            Write (unitout,*)
+            Call terminate
+         End If
+      End If
+!
   !--------------------!
   !     file names     !
   !--------------------!
   ! revert file names to default
-  call revert_names
-
+      Call revert_names
+!
   !---------------------!
   !     checkpoints     !
   !---------------------!
-  if (procs.gt.1) then
-     call genfilname(basename = 'resume', rank = rank, procs = procs, dotext = '', &
-	  filnam = fnresume)
-  else
-     call genfilname(basename='resume', dotext='', filnam=fnresume)
-  end if
+      If (procs .Gt. 1) Then
+         Call genfilname (basename='resume', rank=rank, procs=procs, &
+        & dotext='', filnam=fnresume)
+      Else
+         Call genfilname (basename='resume', dotext='', &
+        & filnam=fnresume)
+      End If
   ! check for stale checkpoint file
-  call chkptchk
-
+      Call chkptchk
+!
   ! define checkpoint
-  call chkpt(1, (/task/), 'passed xsinit')
-end subroutine xsinit
+      Call chkpt (1, (/ task /), 'passed xsinit')
+End Subroutine xsinit

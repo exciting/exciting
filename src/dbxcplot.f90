@@ -1,91 +1,97 @@
-
-
-
-
+!
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine dbxcplot
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine dbxcplot
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-integer::idm, is, ia, ias, ir
+      Integer :: idm, is, ia, ias, ir
 ! allocatable arrays
-real(8), allocatable :: rvfmt(:, :, :, :)
-real(8), allocatable :: rvfir(:, :)
-real(8), allocatable :: rfmt(:, :, :)
-real(8), allocatable :: rfir(:)
-real(8), allocatable :: grfmt(:, :, :, :)
-real(8), allocatable :: grfir(:, :)
-if (.not.associated(input%groundstate%spin)) then
-  write(*, *)
-  write(*, '("Error(dbxcplot): spin-unpolarised field is zero")')
-  write(*, *)
-  stop
-end if
+      Real (8), Allocatable :: rvfmt (:, :, :, :)
+      Real (8), Allocatable :: rvfir (:, :)
+      Real (8), Allocatable :: rfmt (:, :, :)
+      Real (8), Allocatable :: rfir (:)
+      Real (8), Allocatable :: grfmt (:, :, :, :)
+      Real (8), Allocatable :: grfir (:, :)
+      If ( .Not. associated(input%groundstate%spin)) Then
+         Write (*,*)
+         Write (*, '("Error(dbxcplot): spin-unpolarised field is zero")&
+        &')
+         Write (*,*)
+         Stop
+      End If
 ! initialise universal variables
-call init0
+      Call init0
 ! read magnetisation from file
-call readstate
-allocate(rvfmt(lmmaxvr, nrmtmax, natmtot, 3))
-allocate(rvfir(ngrtot, 3))
-allocate(rfmt(lmmaxvr, nrmtmax, natmtot))
-allocate(rfir(ngrtot))
-allocate(grfmt(lmmaxvr, nrmtmax, natmtot, 3))
-allocate(grfir(ngrtot, 3))
-if (ncmag) then
+      Call readstate
+      Allocate (rvfmt(lmmaxvr, nrmtmax, natmtot, 3))
+      Allocate (rvfir(ngrtot, 3))
+      Allocate (rfmt(lmmaxvr, nrmtmax, natmtot))
+      Allocate (rfir(ngrtot))
+      Allocate (grfmt(lmmaxvr, nrmtmax, natmtot, 3))
+      Allocate (grfir(ngrtot, 3))
+      If (ncmag) Then
 ! non-collinear
-  rvfmt(:, :, :, :)=bxcmt(:, :, :, :)
-  rvfir(:, :)=bxcir(:, :)
-else
+         rvfmt (:, :, :, :) = bxcmt (:, :, :, :)
+         rvfir (:, :) = bxcir (:, :)
+      Else
 ! collinear
-  rvfmt(:, :, :, 1:2)=0.d0
-  rvfir(:, 1:2)=0.d0
-  rvfmt(:, :, :, 3)=bxcmt(:, :, :, 1)
-  rvfir(:, 3)=bxcir(:, 1)
-end if
-rfmt(:, :, :)=0.d0
-rfir(:)=0.d0
-do idm=1, 3
-  call gradrf(rvfmt(:, :, :, idm), rvfir(:, idm), grfmt, grfir)
-  do is=1, nspecies
-    do ia=1, natoms(is)
-      ias=idxas(ia, is)
-      do ir=1, nrmt(is)
-	rfmt(:, ir, ias)=rfmt(:, ir, ias)+grfmt(:, ir, ias, idm)
-      end do
-    end do
-  end do
-  rfir(:)=rfir(:)+grfir(:, idm)
-end do
-   if(associated(input%properties%gradmvecfield%plot1d)) then
-
-  call plot1d("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir,input%properties%gradmvecfield%plot1d)
-
-  write(*, *)
-  write(*, '("Info(dbxcplot):")')
-  write(*, '(" 1D divergence of exchange-correlation field written to &
-   &DBXC1D.OUT")')
-  write(*, '(" vertex location lines written to DBXCLINES.OUT")')
-endif
-if(associated(input%properties%gradmvecfield%plot2d)) then
-
-  call plot2d("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir,input%properties%gradmvecfield%plot2d)
-
-  write(*, '("Info(dbxcplot):")')
-  write(*, '(" 2D divergence of exchange-correlation field written to &
-   &DBXC2D.OUT")')
-endif
-if(associated(input%properties%gradmvecfield%plot3d)) then
-  call plot3d("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, rfmt, rfir,input%properties%gradmvecfield%plot3d)
-  write(*, '("Info(dbxcplot):")')
-  write(*, '(" 3D divergence of exchange-correlation field written to &
-   &DBXC3D.OUT")')
-endif
-write(*, *)
-deallocate(rvfmt, rvfir, rfmt, rfir, grfmt, grfir)
-return
-end subroutine
+         rvfmt (:, :, :, 1:2) = 0.d0
+         rvfir (:, 1:2) = 0.d0
+         rvfmt (:, :, :, 3) = bxcmt (:, :, :, 1)
+         rvfir (:, 3) = bxcir (:, 1)
+      End If
+      rfmt (:, :, :) = 0.d0
+      rfir (:) = 0.d0
+      Do idm = 1, 3
+         Call gradrf (rvfmt(:, :, :, idm), rvfir(:, idm), grfmt, grfir)
+         Do is = 1, nspecies
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
+               Do ir = 1, nrmt (is)
+                  rfmt (:, ir, ias) = rfmt (:, ir, ias) + grfmt (:, ir, &
+                 & ias, idm)
+               End Do
+            End Do
+         End Do
+         rfir (:) = rfir (:) + grfir (:, idm)
+      End Do
+      If (associated(input%properties%gradmvecfield%plot1d)) Then
+!
+         Call plot1d ("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, &
+        & rfmt, rfir, input%properties%gradmvecfield%plot1d)
+!
+         Write (*,*)
+         Write (*, '("Info(dbxcplot):")')
+         Write (*, '(" 1D divergence of exchange-correlation field writ&
+        &ten to DBXC1D.OUT")')
+         Write (*, '(" vertex location lines written to DBXCLINES.OUT")&
+        &')
+      End If
+      If (associated(input%properties%gradmvecfield%plot2d)) Then
+!
+         Call plot2d ("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, &
+        & rfmt, rfir, input%properties%gradmvecfield%plot2d)
+!
+         Write (*, '("Info(dbxcplot):")')
+         Write (*, '(" 2D divergence of exchange-correlation field writ&
+        &ten to DBXC2D.OUT")')
+      End If
+      If (associated(input%properties%gradmvecfield%plot3d)) Then
+         Call plot3d ("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, &
+        & rfmt, rfir, input%properties%gradmvecfield%plot3d)
+         Write (*, '("Info(dbxcplot):")')
+         Write (*, '(" 3D divergence of exchange-correlation field writ&
+        &ten to DBXC3D.OUT")')
+      End If
+      Write (*,*)
+      Deallocate (rvfmt, rvfir, rfmt, rfir, grfmt, grfir)
+      Return
+End Subroutine

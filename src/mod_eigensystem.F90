@@ -1,36 +1,36 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_eigensystem
+Module mod_eigensystem
 !-------------------------------------------!
 !     overlap and Hamiltonian variables     !
 !-------------------------------------------!
 ! order of overlap and Hamiltonian matrices for each k-point
-integer, allocatable :: nmat(:, :)
+      Integer, Allocatable :: nmat (:, :)
 ! maximum nmat over all k-points
-integer::nmatmax
+      Integer :: nmatmax
 ! size of packed matrices
-integer, allocatable :: npmat(:, :)
+      Integer, Allocatable :: npmat (:, :)
 ! index to the position of the local-orbitals in the H and O matrices
-integer, allocatable :: idxlo(:, :, :)
+      Integer, Allocatable :: idxlo (:, :, :)
 ! APW-local-orbital overlap integrals
-real(8), allocatable :: oalo(:, :, :)
+      Real (8), Allocatable :: oalo (:, :, :)
 ! local-orbital-local-orbital overlap integrals
-real(8), allocatable :: ololo(:, :, :)
+      Real (8), Allocatable :: ololo (:, :, :)
 ! APW-APW Hamiltonian integrals
-real(8), allocatable :: haa(:, :, :, :, :, :)
+      Real (8), Allocatable :: haa (:, :, :, :, :, :)
 ! local-orbital-APW Hamiltonian integrals
-real(8), allocatable :: hloa(:, :, :, :, :)
+      Real (8), Allocatable :: hloa (:, :, :, :, :)
 ! local-orbital-local-orbital Hamiltonian integrals
-real(8), allocatable :: hlolo(:, :, :, :)
+      Real (8), Allocatable :: hlolo (:, :, :, :)
 ! complex Gaunt coefficient array
-complex(8), allocatable :: gntyry(:, :, :)
+      Complex (8), Allocatable :: gntyry (:, :, :)
 ! tseqit is .true. if the first-variational secular equation is to be solved
 ! iteratively
-logical::tseqit
+      Logical :: tseqit
 ! number of secular equation iterations per self-consistent loop
-integer::nseqit
+      Integer :: nseqit
 ! iterative solver step length
-real(8)::tauseq
-end module
-
+      Real (8) :: tauseq
+End Module
+!

@@ -1,41 +1,41 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_charge_and_moment
+Module mod_charge_and_moment
 !-------------------------------------!
 !     charge and moment variables     !
 !-------------------------------------!
 ! tolerance for error in total charge
 !replaced by inputstructurereal(8)::epschg
 ! total nuclear charge
-real(8)::chgzn
+      Real (8) :: chgzn
 ! total core charge
-real(8)::chgcr
+      Real (8) :: chgcr
 ! core leakage charge
-real(8)::chgcrlk
+      Real (8) :: chgcrlk
 ! total valence charge
-real(8)::chgval
+      Real (8) :: chgval
 ! excess charge
 !replaced by inputstructurereal(8)::chgexs
 ! total charge
-real(8)::chgtot
+      Real (8) :: chgtot
 ! calculated total charge
-real(8)::chgcalc
+      Real (8) :: chgcalc
 ! interstitial region charge
-real(8)::chgir
+      Real (8) :: chgir
 ! muffin-tin charges
-real(8), allocatable :: chgmt(:)
+      Real (8), Allocatable :: chgmt (:)
 ! total muffin-tin charge
-real(8)::chgmttot
+      Real (8) :: chgmttot
 ! effective Wigner radius
-real(8)::rwigner
+      Real (8) :: rwigner
 ! total moment
-real(8)::momtot(3)
+      Real (8) :: momtot (3)
 ! interstitial region moment
-real(8)::momir(3)
+      Real (8) :: momir (3)
 ! muffin-tin moments
-real(8), allocatable :: mommt(:, :)
+      Real (8), Allocatable :: mommt (:, :)
 ! total muffin-tin moment
-real(8)::mommttot(3)
-end module
-
+      Real (8) :: mommttot (3)
+End Module
+!

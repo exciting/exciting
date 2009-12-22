@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genylmgq
 ! !INTERFACE:
-
-
-subroutine genylmgq(iq, lmax)
+!
+!
+Subroutine genylmgq (iq, lmax)
 ! !USES:
-use modmain
-use modxs
+      Use modmain
+      Use modxs
 ! !DESCRIPTION:
 !   Generates a set of spherical harmonics, $Y_{lm}(\widehat{{\bf G}+{\bf q}})$,
 !   with angular
@@ -24,16 +24,16 @@ use modxs
 !   Created October 2006 (Sagmeister)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: iq, lmax
+      Integer, Intent (In) :: iq, lmax
 ! local variables
-integer::igq
-real(8)::r, tp(2)
-do igq=1, ngq(iq)
-  call sphcrd(vgqc(1, igq, iq), r, tp)
-  call genylm(lmax, tp, ylmgq(1, igq, iq))
-end do
-return
-end subroutine genylmgq
+      Integer :: igq
+      Real (8) :: r, tp (2)
+      Do igq = 1, ngq (iq)
+         Call sphcrd (vgqc(1, igq, iq), r, tp)
+         Call genylm (lmax, tp, ylmgq(1, igq, iq))
+      End Do
+      Return
+End Subroutine genylmgq
 !EOC

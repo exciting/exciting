@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: gridsize
 ! !INTERFACE:
-
-
-subroutine gridsize
+!
+!
+Subroutine gridsize
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !DESCRIPTION:
 !   Finds the ${\bf G}$-vector grid which completely contains the vectors with
 !   $G<G_{\rm max}$ and is compatible with the FFT routine. The optimal sizes
@@ -25,25 +25,28 @@ use modmain
 !   Created July 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! find optimal grid size for potential and density
-ngrid(:) = int(input%groundstate%gmaxvr * sqrt(input%structure%crystal%basevect(1, :) ** 2 +&
-    &input%structure%crystal%basevect(2, :) ** 2 + input%structure%crystal%basevect(3, :) ** 2)/pi) + 1
+      ngrid (:) = Int (input%groundstate%gmaxvr*&
+     & Sqrt(input%structure%crystal%basevect(1, :)**2+&
+     & input%structure%crystal%basevect(2, :)**2+&
+     & input%structure%crystal%basevect(3, :)**2)/pi) + 1
 ! find next largest FFT-compatible grid size
-call nfftifc(ngrid(1))
-call nfftifc(ngrid(2))
-call nfftifc(ngrid(3))
-if ((ngrid(1).le.0).or.(ngrid(2).le.0).or.(ngrid(3).le.0)) then
-  write(*, *)
-  write(*, '("Error(gridsize): invalid ngrid : ", 3I8)') ngrid
-  write(*, *)
-  stop
-end if
+      Call nfftifc (ngrid(1))
+      Call nfftifc (ngrid(2))
+      Call nfftifc (ngrid(3))
+      If ((ngrid(1) .Le. 0) .Or. (ngrid(2) .Le. 0) .Or. (ngrid(3) .Le. &
+     & 0)) Then
+         Write (*,*)
+         Write (*, '("Error(gridsize): invalid ngrid : ", 3I8)') ngrid
+         Write (*,*)
+         Stop
+      End If
 ! total number of points in grid
-ngrtot=ngrid(1)*ngrid(2)*ngrid(3)
+      ngrtot = ngrid (1) * ngrid (2) * ngrid (3)
 ! determine integer ranges for grid
-intgv(:, 1)=ngrid(:)/2-ngrid(:)+1
-intgv(:, 2)=ngrid(:)/2
-return
-end subroutine
+      intgv (:, 1) = ngrid (:) / 2 - ngrid (:) + 1
+      intgv (:, 2) = ngrid (:) / 2
+      Return
+End Subroutine
 !EOC

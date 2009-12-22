@@ -1,39 +1,39 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_Gvector
+Module mod_Gvector
 !--------------------------------!
 !     G-vector set variables     !
 !--------------------------------!
 ! G-vector cut-off for interstitial potential and density
 !replaced by inputstructurereal(8)::gmaxvr
 ! G-vector grid sizes
-integer::ngrid(3)
+      Integer :: ngrid (3)
 ! total number of G-vectors
-integer::ngrtot
+      Integer :: ngrtot
 ! integer grid intervals for each direction
-integer::intgv(3, 2)
+      Integer :: intgv (3, 2)
 ! number of G-vectors with G < gmaxvr
-integer::ngvec
+      Integer :: ngvec
 ! G-vector integer coordinates
-integer, allocatable :: ivg(:, :)
+      Integer, Allocatable :: ivg (:, :)
 ! map from integer grid to G-vector array
-integer, allocatable :: ivgig(:, :, :)
+      Integer, Allocatable :: ivgig (:, :, :)
 ! map from G-vector array to FFT array
-integer, allocatable :: igfft(:)
+      Integer, Allocatable :: igfft (:)
 ! G-vectors in Cartesian coordinates
-real(8), allocatable :: vgc(:, :)
+      Real (8), Allocatable :: vgc (:, :)
 ! length of G-vectors
-real(8), allocatable :: gc(:)
+      Real (8), Allocatable :: gc (:)
 ! spherical harmonics of the G-vectors
-complex(8), allocatable :: ylmg(:, :)
+      Complex (8), Allocatable :: ylmg (:, :)
 ! structure factor for the G-vectors
-complex(8), allocatable :: sfacg(:, :)
+      Complex (8), Allocatable :: sfacg (:, :)
 ! G-space characteristic function: 0 inside the muffin-tins and 1 outside
-complex(8), allocatable :: cfunig(:)
+      Complex (8), Allocatable :: cfunig (:)
 ! real-space characteristic function: 0 inside the muffin-tins and 1 outside
-real(8), allocatable :: cfunir(:)
+      Real (8), Allocatable :: cfunir (:)
 ! damping coefficient for characteristic function
 !replaced by inputstructurereal(8)::cfdamp
-end module
-
+End Module
+!

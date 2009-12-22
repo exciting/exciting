@@ -1,19 +1,20 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genwfsv
 ! !INTERFACE:
-
-
-subroutine genwfsv(tocc, ngp, igpig, evalsvp, apwalm, evecfv, evecsv, wfmt, wfir)
+!
+!
+Subroutine genwfsv (tocc, ngp, igpig, evalsvp, apwalm, evecfv, evecsv, &
+& wfmt, wfir)
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   tocc    : .true. if only occupied wavefunctions are required (in,logical)
 !   ngp     : number of G+p-vectors (in,integer)
@@ -39,116 +40,129 @@ use modmain
 !   Created November 2004 (Sharma)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: tocc
-integer, intent(in) :: ngp
-integer, intent(in) :: igpig(ngkmax)
-real(8), intent(in) :: evalsvp(nstsv)
-complex(8), intent(in) :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
-complex(8), intent(in) :: evecfv(nmatmax, nstfv)
-complex(8), intent(in) :: evecsv(nstsv, nstsv)
-complex(8), intent(out) :: wfmt(lmmaxvr, nrcmtmax, natmtot, nspinor, nstsv)
-complex(8), intent(out) :: wfir(ngrtot, nspinor, nstsv)
+      Logical, Intent (In) :: tocc
+      Integer, Intent (In) :: ngp
+      Integer, Intent (In) :: igpig (ngkmax)
+      Real (8), Intent (In) :: evalsvp (nstsv)
+      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+     & natmtot)
+      Complex (8), Intent (In) :: evecfv (nmatmax, nstfv)
+      Complex (8), Intent (In) :: evecsv (nstsv, nstsv)
+      Complex (8), Intent (Out) :: wfmt (lmmaxvr, nrcmtmax, natmtot, &
+     & nspinor, nstsv)
+      Complex (8), Intent (Out) :: wfir (ngrtot, nspinor, nstsv)
 ! local variables
-integer::ispn, is, ia, ias
-integer::i, j, n, ist, igp, ifg
-real(8)::t1
-complex(8) zt1
+      Integer :: ispn, is, ia, ias
+      Integer :: i, j, n, ist, igp, ifg
+      Real (8) :: t1
+      Complex (8) zt1
 ! allocatable arrays
-logical, allocatable :: done(:)
-complex(8), allocatable :: wfmt1(:, :)
-complex(8), allocatable :: wfmt2(:, :, :)
-allocate(done(nstfv))
-allocate(wfmt1(lmmaxvr, nrcmtmax))
-allocate(wfmt2(lmmaxvr, nrcmtmax, nstfv))
+      Logical, Allocatable :: done (:)
+      Complex (8), Allocatable :: wfmt1 (:, :)
+      Complex (8), Allocatable :: wfmt2 (:, :, :)
+      Allocate (done(nstfv))
+      Allocate (wfmt1(lmmaxvr, nrcmtmax))
+      Allocate (wfmt2(lmmaxvr, nrcmtmax, nstfv))
 !--------------------------------!
 !     muffin-tin wavefunction    !
 !--------------------------------!
-do is=1, nspecies
-  n=lmmaxvr*nrcmt(is)
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    done(:)=.false.
-    do j=1, nstsv
-      if ((.not.tocc).or.((tocc).and.(evalsvp(j).lt.efermi))) then
-	if (input%groundstate%tevecsv) then
+      Do is = 1, nspecies
+         n = lmmaxvr * nrcmt (is)
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            done (:) = .False.
+            Do j = 1, nstsv
+               If (( .Not. tocc) .Or. ((tocc) .And. (evalsvp(j) .Lt. &
+              & efermi))) Then
+                  If (input%groundstate%tevecsv) Then
 ! generate spinor wavefunction from second-variational eigenvectors
-	  wfmt(:, :, ias, :, j)=0.d0
-	  i=0
-	  do ispn=1, nspinor
-	    do ist=1, nstfv
-	      i=i+1
-	      zt1=evecsv(i, j)
-	      if (abs(dble(zt1))+abs(aimag(zt1)).gt.input%groundstate%epsocc) then
-		if (.not.done(ist)) then
-		  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngp, apwalm, evecfv(:, &
-    &ist), &
-		   lmmaxvr, wfmt1)
+                     wfmt (:, :, ias, :, j) = 0.d0
+                     i = 0
+                     Do ispn = 1, nspinor
+                        Do ist = 1, nstfv
+                           i = i + 1
+                           zt1 = evecsv (i, j)
+                           If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
+                          & input%groundstate%epsocc) Then
+                              If ( .Not. done(ist)) Then
+                                 Call wavefmt &
+                                & (input%groundstate%lradstep, &
+                                & input%groundstate%lmaxvr, is, ia, &
+                                & ngp, apwalm, evecfv(:, ist), lmmaxvr, &
+                                & wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-		  call zgemm('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, zbshtvr, &
-		   lmmaxvr, wfmt1, lmmaxvr, zzero, wfmt2(:, :, ist), lmmaxvr)
-		  done(ist)=.true.
-		end if
+                                 Call zgemm ('N', 'N', lmmaxvr, &
+                                & nrcmt(is), lmmaxvr, zone, zbshtvr, &
+                                & lmmaxvr, wfmt1, lmmaxvr, zzero, &
+                                & wfmt2(:, :, ist), lmmaxvr)
+                                 done (ist) = .True.
+                              End If
 ! add to spinor wavefunction
-		call zaxpy(n, zt1, wfmt2(:, :, ist), 1, wfmt(:, :, ias, ispn, j), 1)
-	      end if
+                              Call zaxpy (n, zt1, wfmt2(:, :, ist), 1, &
+                             & wfmt(:, :, ias, ispn, j), 1)
+                           End If
 ! end loop over first-variational states
-	    end do
+                        End Do
 ! end loop over spin
-	  end do
-	else
+                     End Do
+                  Else
 ! spin-unpolarised wavefunction
-	  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngp, apwalm, evecfv(:, j), &
-    &lmmaxvr, &
-	   wfmt1)
+                     Call wavefmt (input%groundstate%lradstep, &
+                    & input%groundstate%lmaxvr, is, ia, ngp, apwalm, &
+                    & evecfv(:, j), lmmaxvr, wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-	  call zgemm('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, zbshtvr, lmmaxvr, &
-	   wfmt1, lmmaxvr, zzero, wfmt(:, :, ias, 1, j), lmmaxvr)
-	end if
-      end if
+                     Call zgemm ('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, &
+                    & zone, zbshtvr, lmmaxvr, wfmt1, lmmaxvr, zzero, &
+                    & wfmt(:, :, ias, 1, j), lmmaxvr)
+                  End If
+               End If
 ! end loop over second-variational states
-    end do
+            End Do
 ! end loops over atoms and species
-  end do
-end do
+         End Do
+      End Do
 !-----------------------------------!
 !     interstitial wavefunction     !
 !-----------------------------------!
-t1=1.d0/sqrt(omega)
-do j=1, nstsv
-  wfir(:, :, j)=0.d0
-  if ((.not.tocc).or.((tocc).and.(evalsvp(j).lt.efermi))) then
-    if (input%groundstate%tevecsv) then
+      t1 = 1.d0 / Sqrt (omega)
+      Do j = 1, nstsv
+         wfir (:, :, j) = 0.d0
+         If (( .Not. tocc) .Or. ((tocc) .And. (evalsvp(j) .Lt. &
+        & efermi))) Then
+            If (input%groundstate%tevecsv) Then
 ! generate spinor wavefunction from second-variational eigenvectors
-      i=0
-      do ispn=1, nspinor
-	do ist=1, nstfv
-	  i=i+1
-	  zt1=evecsv(i, j)
-	  if (abs(dble(zt1))+abs(aimag(zt1)).gt.input%groundstate%epsocc) then
-	    zt1=t1*zt1
-	    do igp=1, ngp
-	      ifg=igfft(igpig(igp))
-	      wfir(ifg, ispn, j)=wfir(ifg, ispn, j)+zt1*evecfv(igp, ist)
-	    end do
-	  end if
-	end do
-      end do
-    else
+               i = 0
+               Do ispn = 1, nspinor
+                  Do ist = 1, nstfv
+                     i = i + 1
+                     zt1 = evecsv (i, j)
+                     If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
+                    & input%groundstate%epsocc) Then
+                        zt1 = t1 * zt1
+                        Do igp = 1, ngp
+                           ifg = igfft (igpig(igp))
+                           wfir (ifg, ispn, j) = wfir (ifg, ispn, j) + &
+                          & zt1 * evecfv (igp, ist)
+                        End Do
+                     End If
+                  End Do
+               End Do
+            Else
 ! spin-unpolarised wavefunction
-      do igp=1, ngp
-	ifg=igfft(igpig(igp))
-	wfir(ifg, 1, j)=t1*evecfv(igp, j)
-      end do
-    end if
+               Do igp = 1, ngp
+                  ifg = igfft (igpig(igp))
+                  wfir (ifg, 1, j) = t1 * evecfv (igp, j)
+               End Do
+            End If
 ! Fourier transform wavefunction to real-space
-    do ispn=1, nspinor
-      call zfftifc(3, ngrid, 1, wfir(:, ispn, j))
-    end do
-  end if
-end do
-deallocate(done, wfmt1, wfmt2)
-return
-end subroutine
+            Do ispn = 1, nspinor
+               Call zfftifc (3, ngrid, 1, wfir(:, ispn, j))
+            End Do
+         End If
+      End Do
+      Deallocate (done, wfmt1, wfmt2)
+      Return
+End Subroutine
 !EOC

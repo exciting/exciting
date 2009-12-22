@@ -1,188 +1,209 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2007 J. K. Dewhurst, S. Sharma, C. Ambrosch-Draxl and
 ! F. Cricchio. This file is distributed under the terms of the GNU General
 ! Public License. See the file COPYING for license details.
-
-
-subroutine writelsj
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine writelsj
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-integer::kst, ik, ist, lm
-integer::ispn, is, ia, ias
-real(8)::xl(3), xs(3), t1
+      Integer :: kst, ik, ist, lm
+      Integer :: ispn, is, ia, ias
+      Real (8) :: xl (3), xs (3), t1
 ! allocatable arrays
-complex(8), allocatable :: apwalm(:, :, :, :, :)
-complex(8), allocatable :: evecfv(:, :, :)
-complex(8), allocatable :: evecsv(:, :)
-complex(8), allocatable :: dmat1(:, :, :, :, :)
-complex(8), allocatable :: dmat2(:, :, :, :, :)
-complex(8), allocatable :: zlflm(:, :)
+      Complex (8), Allocatable :: apwalm (:, :, :, :, :)
+      Complex (8), Allocatable :: evecfv (:, :, :)
+      Complex (8), Allocatable :: evecsv (:, :)
+      Complex (8), Allocatable :: dmat1 (:, :, :, :, :)
+      Complex (8), Allocatable :: dmat2 (:, :, :, :, :)
+      Complex (8), Allocatable :: zlflm (:, :)
 ! initialise universal variables
-call init0
-call init1
-allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-allocate(evecfv(nmatmax, nstfv, nspnfv))
-allocate(evecsv(nstsv, nstsv))
-allocate(dmat1(lmmaxapw, lmmaxapw, nspinor, nspinor, natmtot))
-allocate(dmat2(lmmaxapw, lmmaxapw, nspinor, nspinor, nstsv))
-allocate(zlflm(lmmaxapw, 3))
+      Call init0
+      Call init1
+      Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      Allocate (evecfv(nmatmax, nstfv, nspnfv))
+      Allocate (evecsv(nstsv, nstsv))
+      Allocate (dmat1(lmmaxapw, lmmaxapw, nspinor, nspinor, natmtot))
+      Allocate (dmat2(lmmaxapw, lmmaxapw, nspinor, nspinor, nstsv))
+      Allocate (zlflm(lmmaxapw, 3))
 ! read density and potentials from file
-call readstate
+      Call readstate
 ! find the new linearisation energies
-call linengy
+      Call linengy
 ! generate the APW radial functions
-call genapwfr
+      Call genapwfr
 ! generate the local-orbital radial functions
-call genlofr
-if (task.eq.15) then
+      Call genlofr
+      If (task .Eq. 15) Then
 ! compute total L, S and J
-  dmat1(:, :, :, :, :)=0.d0
-  do ik=1, nkpt
+         dmat1 (:, :, :, :, :) = 0.d0
+         Do ik = 1, nkpt
 ! get the eigenvectors and occupancies from file
-    call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-    call getevecsv(vkl(:, ik), evecsv)
-    call getoccsv(vkl(:, ik), occsv(:, ik))
+            Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+            Call getevecsv (vkl(:, ik), evecsv)
+            Call getoccsv (vkl(:, ik), occsv(:, ik))
 ! find the matching coefficients
-    do ispn=1, nspnfv
-      call match(ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, ik), &
-       sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, ispn))
-    end do
+            Do ispn = 1, nspnfv
+               Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, &
+              & ispn, ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, &
+              & ispn))
+            End Do
 ! loop over species and atoms
-    do is=1, nspecies
-      do ia=1, natoms(is)
-	ias=idxas(ia, is)
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
 ! generate the density matrix
-	call gendmat(.false., .false., 0, input%groundstate%lmaxapw, is, ia, ngk(:, ik), apwalm, evecfv, &
-	 evecsv, lmmaxapw, dmat2)
-	do ist=1, nstsv
-	  t1=wkpt(ik)*occsv(ist, ik)
-	  dmat1(:, :, :, :, ias)=dmat1(:, :, :, :, ias)+t1*dmat2(:, :, :, :, ist)
-	end do
-      end do
-    end do
+                  Call gendmat (.False., .False., 0, &
+                 & input%groundstate%lmaxapw, is, ia, ngk(:, ik), &
+                 & apwalm, evecfv, evecsv, lmmaxapw, dmat2)
+                  Do ist = 1, nstsv
+                     t1 = wkpt (ik) * occsv (ist, ik)
+                     dmat1 (:, :, :, :, ias) = dmat1 (:, :, :, :, ias) &
+                    & + t1 * dmat2 (:, :, :, :, ist)
+                  End Do
+               End Do
+            End Do
 ! end loop over k-points
-  end do
+         End Do
 ! symmetrise the density matrix
-  call symdmat(input%groundstate%lmaxapw, lmmaxapw, dmat1)
-  open(50, file='LSJ.OUT', action='WRITE', form='FORMATTED')
-  write(50, *)
-  write(50, '("Expectation values are computed only over the muffin-tin")')
+         Call symdmat (input%groundstate%lmaxapw, lmmaxapw, dmat1)
+         Open (50, File='LSJ.OUT', Action='WRITE', Form='FORMATTED')
+         Write (50,*)
+         Write (50, '("Expectation values are computed only over the mu&
+        &ffin-tin")')
 ! loop over species and atoms
-  do is=1, nspecies
-    write(50, *)
-    write(50, '("Species : ", I4, " (", A, ")")') is, trim(input%structure%speciesarray(is)%species%chemicalSymbol)
-    do ia=1, natoms(is)
-      ias=idxas(ia, is)
+         Do is = 1, nspecies
+            Write (50,*)
+            Write (50, '("Species : ", I4, " (", A, ")")') is, trim &
+           & (input%structure%speciesarray(is)%species%chemicalSymbol)
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
 ! compute tr(LD)
-      xl(:)=0.d0
-      do ispn=1, nspinor
-	do lm=1, lmmaxapw
-	  call lopzflm(input%groundstate%lmaxapw, dmat1(:, lm, ispn, ispn, ias), lmmaxapw, zlflm)
-	  xl(:)=xl(:)+dble(zlflm(lm, :))
-	end do
-      end do
+               xl (:) = 0.d0
+               Do ispn = 1, nspinor
+                  Do lm = 1, lmmaxapw
+                     Call lopzflm (input%groundstate%lmaxapw, dmat1(:, &
+                    & lm, ispn, ispn, ias), lmmaxapw, zlflm)
+                     xl (:) = xl (:) + dble (zlflm(lm, :))
+                  End Do
+               End Do
 ! compute tr(sigma D)
-      xs(:)=0.d0
-      if (associated(input%groundstate%spin)) then
-	do lm=1, lmmaxapw
-	  xs(1)=xs(1)+dble(dmat1(lm, lm, 2, 1, ias)+dmat1(lm, lm, 1, 2, ias))
-	  xs(2)=xs(2)+dble(-zi*dmat1(lm, lm, 2, 1, ias)+zi*dmat1(lm, lm, 1, 2, ias))
-	  xs(3)=xs(3)+dble(dmat1(lm, lm, 1, 1, ias)-dmat1(lm, lm, 2, 2, ias))
-	end do
-      end if
+               xs (:) = 0.d0
+               If (associated(input%groundstate%spin)) Then
+                  Do lm = 1, lmmaxapw
+                     xs (1) = xs (1) + dble (dmat1(lm, lm, 2, 1, &
+                    & ias)+dmat1(lm, lm, 1, 2, ias))
+                     xs (2) = xs (2) + dble (-zi*dmat1(lm, lm, 2, 1, &
+                    & ias)+zi*dmat1(lm, lm, 1, 2, ias))
+                     xs (3) = xs (3) + dble (dmat1(lm, lm, 1, 1, &
+                    & ias)-dmat1(lm, lm, 2, 2, ias))
+                  End Do
+               End If
 ! S = 1/2 sigma
-      xs(:)=0.5d0*xs(:)
-      write(50, '(" atom : ", I4)') ia
-      write(50, '("  L : ", 3G18.10)') xl(:)
-      write(50, '("  S : ", 3G18.10)') xs(:)
-      write(50, '("  J : ", 3G18.10)') xl(:)+xs(:)
+               xs (:) = 0.5d0 * xs (:)
+               Write (50, '(" atom : ", I4)') ia
+               Write (50, '("  L : ", 3G18.10)') xl (:)
+               Write (50, '("  S : ", 3G18.10)') xs (:)
+               Write (50, '("  J : ", 3G18.10)') xl (:) + xs (:)
 ! end loop over atoms and species
-    end do
-  end do
-  close(50)
-  write(*, *)
-  write(*, '("Info(writelsj):")')
-  write(*, '(" total L, S and J expectation values written to LSJ.OUT")')
-  write(*, *)
-else
+            End Do
+         End Do
+         Close (50)
+         Write (*,*)
+         Write (*, '("Info(writelsj):")')
+         Write (*, '(" total L, S and J expectation values written to LSJ.OUT")')
+         Write (*,*)
+      Else
 ! compute L, S and J for all states in kstlist
-  open(50, file='LSJ_KST.OUT', action='WRITE', form='FORMATTED')
-  write(50, *)
-  write(50, '("Expectation values are computed only over the muffin-tin")')
-  do kst=1, nkstlist
-    ik=kstlist(1, kst)
-    ist=kstlist(2, kst)
-    if ((ik.le.0).or.(ik.gt.nkpt)) then
-      write(*, *)
-      write(*, '("Error(writelsj): k-point out of range : ", I8)') ik
-      write(*, *)
-      stop
-    end if
-    if ((ist.le.0).or.(ist.gt.nstsv)) then
-      write(*, *)
-      write(*, '("Error(writelsj): state out of range : ", I8)') ist
-      write(*, *)
-      stop
-    end if
+         Open (50, File='LSJ_KST.OUT', Action='WRITE', Form='FORMATTED')
+         Write (50,*)
+         Write (50, '("Expectation values are computed only over the mu&
+        &ffin-tin")')
+         Do kst = 1, nkstlist
+            ik = kstlist (1, kst)
+            ist = kstlist (2, kst)
+            If ((ik .Le. 0) .Or. (ik .Gt. nkpt)) Then
+               Write (*,*)
+               Write (*, '("Error(writelsj): k-point out of range : ", &
+              &I8)') ik
+               Write (*,*)
+               Stop
+            End If
+            If ((ist .Le. 0) .Or. (ist .Gt. nstsv)) Then
+               Write (*,*)
+               Write (*, '("Error(writelsj): state out of range : ", I8&
+              &)') ist
+               Write (*,*)
+               Stop
+            End If
 ! get the eigenvectors and occupancies from file
-    call getevecfv(vkl(:, ik), vgkl(:, :, :, ik), evecfv)
-    call getevecsv(vkl(:, ik), evecsv)
-    call getoccsv(vkl(:, ik), occsv(:, ik))
+            Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
+            Call getevecsv (vkl(:, ik), evecsv)
+            Call getoccsv (vkl(:, ik), occsv(:, ik))
 ! find the matching coefficients
-    do ispn=1, nspnfv
-      call match(ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, ik), &
-       sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, ispn))
-    end do
+            Do ispn = 1, nspnfv
+               Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, &
+              & ispn, ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, &
+              & ispn))
+            End Do
 ! loop over species and atoms
-    do is=1, nspecies
-      do ia=1, natoms(is)
-	ias=idxas(ia, is)
+            Do is = 1, nspecies
+               Do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
 ! generate the density matrix
-	call gendmat(.false., .false., 0, input%groundstate%lmaxapw, is, ia, ngk(:, ik), apwalm, evecfv, &
-	 evecsv, lmmaxapw, dmat2)
+                  Call gendmat (.False., .False., 0, &
+                 & input%groundstate%lmaxapw, is, ia, ngk(:, ik), &
+                 & apwalm, evecfv, evecsv, lmmaxapw, dmat2)
 ! compute tr(LD)
-	xl(:)=0.d0
-	do ispn=1, nspinor
-	  do lm=1, lmmaxapw
-	    call lopzflm(input%groundstate%lmaxapw, dmat2(:, lm, ispn, ispn, ist), lmmaxapw, zlflm)
-	    xl(:)=xl(:)+dble(zlflm(lm, :))
-	  end do
-	end do
+                  xl (:) = 0.d0
+                  Do ispn = 1, nspinor
+                     Do lm = 1, lmmaxapw
+                        Call lopzflm (input%groundstate%lmaxapw, &
+                       & dmat2(:, lm, ispn, ispn, ist), lmmaxapw, &
+                       & zlflm)
+                        xl (:) = xl (:) + dble (zlflm(lm, :))
+                     End Do
+                  End Do
 ! compute tr(sigma D)
-	xs(:)=0.d0
-	if (associated(input%groundstate%spin)) then
-	  do lm=1, lmmaxapw
-	    xs(1)=xs(1)+dble(dmat2(lm, lm, 2, 1, ist)+dmat2(lm, lm, 1, 2, ist))
-	    xs(2)=xs(2)+dble(-zi*dmat2(lm, lm, 2, 1, ist)+zi*dmat2(lm, lm, 1, 2, ist))
-	    xs(3)=xs(3)+dble(dmat2(lm, lm, 1, 1, ist)-dmat2(lm, lm, 2, 2, ist))
-	  end do
-	else
-	  xs(3)=1.d0
-	end if
+                  xs (:) = 0.d0
+                  If (associated(input%groundstate%spin)) Then
+                     Do lm = 1, lmmaxapw
+                        xs (1) = xs (1) + dble (dmat2(lm, lm, 2, 1, &
+                       & ist)+dmat2(lm, lm, 1, 2, ist))
+                        xs (2) = xs (2) + dble (-zi*dmat2(lm, lm, 2, 1, &
+                       & ist)+zi*dmat2(lm, lm, 1, 2, ist))
+                        xs (3) = xs (3) + dble (dmat2(lm, lm, 1, 1, &
+                       & ist)-dmat2(lm, lm, 2, 2, ist))
+                     End Do
+                  Else
+                     xs (3) = 1.d0
+                  End If
 ! S = 1/2 sigma
-	xs(:)=0.5d0*xs(:)
-	write(50, *)
-	write(50, '("k-point : ", I6, 3G18.10)') ik, vkl(:, ik)
-	write(50, '("state : ", I6)') ist
-	write(50, '("species : ", I4, " (", A, "), atom : ", I4)') is, &
-	 trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
-	write(50, '(" L : ", 3G18.10)') xl(:)
-	write(50, '(" S : ", 3G18.10)') xs(:)
-	write(50, '(" J : ", 3G18.10)') xl(:)+xs(:)
-      end do
-    end do
-  end do
-  close(50)
-  write(*, *)
-  write(*, '("Info(writelsj):")')
-  write(*, '(" L, S and J expectation values for each k-point and state")')
-  write(*, '("	in kstlist written to LSJ_KST.OUT")')
-  write(*, *)
-end if
-deallocate(apwalm, evecfv, evecsv, dmat1, dmat2, zlflm)
-return
-end subroutine
+                  xs (:) = 0.5d0 * xs (:)
+                  Write (50,*)
+                  Write (50, '("k-point : ", I6, 3G18.10)') ik, vkl (:, &
+                 & ik)
+                  Write (50, '("state : ", I6)') ist
+                  Write (50, '("species : ", I4, " (", A, "), atom : ", I4)') is, trim &
+                 & (input%structure%speciesarray(is)%species%chemicalSymbol), ia
+                  Write (50, '(" L : ", 3G18.10)') xl (:)
+                  Write (50, '(" S : ", 3G18.10)') xs (:)
+                  Write (50, '(" J : ", 3G18.10)') xl (:) + xs (:)
+               End Do
+            End Do
+         End Do
+         Close (50)
+         Write (*,*)
+         Write (*, '("Info(writelsj):")')
+         Write (*, '(" L, S and J expectation values for each k-point a&
+        &nd state")')
+         Write (*, '("	in kstlist written to LSJ_KST.OUT")')
+         Write (*,*)
+      End If
+      Deallocate (apwalm, evecfv, evecsv, dmat1, dmat2, zlflm)
+      Return
+End Subroutine

@@ -1,51 +1,51 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module modsym
-  implicit none
-
+!
+Module modsym
+      Implicit None
+!
   !---------------------------!
   !     general variables     !
   !---------------------------!
   ! maximum allowed number of symmetry operations (private to this module)
-  integer, private, parameter :: maxsymcrs=192
+      Integer, Private, Parameter :: maxsymcrs = 192
   ! true if symmetry group is abelian
-  logical :: abelsg
+      Logical :: abelsg
   ! symmetry group multiplication table
-  integer, allocatable :: sgmut(:, :)
-
+      Integer, Allocatable :: sgmut (:, :)
+!
   !--------------------!
   !     generators     !
   !--------------------!
   ! number of generators
-  integer :: ngenr
+      Integer :: ngenr
   ! number of elements in orbits of generators
-  integer, allocatable :: negenr(:)
+      Integer, Allocatable :: negenr (:)
   ! generators
-  integer, allocatable :: genr(:)
+      Integer, Allocatable :: genr (:)
   ! orbits of generators
-  integer, allocatable :: orbgenr(:, :)
-
+      Integer, Allocatable :: orbgenr (:, :)
+!
   !-------------------!
   !     subgroups     !
   !-------------------!
   ! number of subgroups of space group
-  integer :: nsubsymc
+      Integer :: nsubsymc
   ! space group subgroups
-  integer :: subsymc(maxsymcrs, maxsymcrs)
-
+      Integer :: subsymc (maxsymcrs, maxsymcrs)
+!
   !---------------------------!
   !     conjugacy classes     !
   !---------------------------!
   ! number of classes of conjugated elements of spacegroup
-  integer :: nsymccocl
+      Integer :: nsymccocl
   ! classes of conjugated elements of spacegroup
-  integer :: symccocl(maxsymcrs, maxsymcrs)
+      Integer :: symccocl (maxsymcrs, maxsymcrs)
   ! conjugacy relation between crystal symmetries
-  logical :: tsymcocl(maxsymcrs, maxsymcrs)
-
-end module
+      Logical :: tsymcocl (maxsymcrs, maxsymcrs)
+!
+End Module

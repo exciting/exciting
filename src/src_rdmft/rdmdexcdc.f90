@@ -1,83 +1,87 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 J. K. Dewhurst, S. Sharma and E. K. U. Gross.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine rdmdexcdc(ikp, evecsv, dedc)
+!
+!
+Subroutine rdmdexcdc (ikp, evecsv, dedc)
 ! calculate the derivative of exchange-correlation energy w.r.t. evecsv
-use modinput
-use modmain
-implicit none
+      Use modinput
+      Use modmain
+      Implicit None
 ! arguments
-integer, intent(in) :: ikp
-complex(8), intent(in) :: evecsv(nstsv, nstsv)
-complex(8), intent(inout) :: dedc(nstsv, nstsv)
+      Integer, Intent (In) :: ikp
+      Complex (8), Intent (In) :: evecsv (nstsv, nstsv)
+      Complex (8), Intent (Inout) :: dedc (nstsv, nstsv)
 ! local variables
-integer::ik, jk, iv(3)
-integer::ist1, ist2, ist3, ist4
-real(8)::t1, t2
+      Integer :: ik, jk, iv (3)
+      Integer :: ist1, ist2, ist3, ist4
+      Real (8) :: t1, t2
 ! allocatable arrays
-complex(8), allocatable :: vnl(:, :, :, :)
+      Complex (8), Allocatable :: vnl (:, :, :, :)
 ! external functions
-real(8)::r3taxi
-external r3taxi
-if (input%groundstate%RDMFT%rdmxctype.eq.0) return
+      Real (8) :: r3taxi
+      External r3taxi
+      If (input%groundstate%RDMFT%rdmxctype .Eq. 0) Return
 ! calculate the prefactor
-if (input%groundstate%RDMFT%rdmxctype.eq.1) then
-  t1=1.d0/occmax
-else if (input%groundstate%RDMFT%rdmxctype.eq.2) then
-  if (associated(input%groundstate%spin)) then
-    t1=1.d0
-  else
-    t1=2.d0*(0.25d0)**input%groundstate%RDMFT%rdmalpha
-  end if
-else
-  write(*, *)
-  write(*, '("Error(rdmdexcdc): rdmxctype not defined : ", I8)') input%groundstate%RDMFT%rdmxctype
-  write(*, *)
-  stop
-end if
-allocate(vnl(nstsv, nstsv, nstsv, nkptnr))
+      If (input%groundstate%RDMFT%rdmxctype .Eq. 1) Then
+         t1 = 1.d0 / occmax
+      Else If (input%groundstate%RDMFT%rdmxctype .Eq. 2) Then
+         If (associated(input%groundstate%spin)) Then
+            t1 = 1.d0
+         Else
+            t1 = 2.d0 * (0.25d0) ** input%groundstate%RDMFT%rdmalpha
+         End If
+      Else
+         Write (*,*)
+         Write (*, '("Error(rdmdexcdc): rdmxctype not defined : ", I8)') input%groundstate%RDMFT%rdmxctype
+         Write (*,*)
+         Stop
+      End If
+      Allocate (vnl(nstsv, nstsv, nstsv, nkptnr))
 ! calculate non-local matrix elements of the type (l-jj-k)
-call rdmvnlc(ikp, vnl)
+      Call rdmvnlc (ikp, vnl)
 ! start loop over non-reduced k-points
-do ik=1, nkptnr
+      Do ik = 1, nkptnr
 ! copy the matrix elements of the type i-jj-i to vnlrdm
-  do ist1=1, nstsv
-    do ist2=1, nstsv
-      vnlrdm(ist1, ikp, ist2, ik)=dble(vnl(ist1, ist1, ist2, ik))
-    end do
-  end do
+         Do ist1 = 1, nstsv
+            Do ist2 = 1, nstsv
+               vnlrdm (ist1, ikp, ist2, ik) = dble (vnl(ist1, ist1, &
+              & ist2, ik))
+            End Do
+         End Do
 ! find the equivalent reduced k-point
-  iv(:)=ivknr(:, ik)
-  jk=ikmap(iv(1), iv(2), iv(3))
-  do ist1=1, nstsv
-    do ist2=1, nstsv
-      do ist3=1, nstsv
-	do ist4=1, nstsv
-	  if (input%groundstate%RDMFT%rdmxctype.eq.1) then
+         iv (:) = ivknr (:, ik)
+         jk = ikmap (iv(1), iv(2), iv(3))
+         Do ist1 = 1, nstsv
+            Do ist2 = 1, nstsv
+               Do ist3 = 1, nstsv
+                  Do ist4 = 1, nstsv
+                     If (input%groundstate%RDMFT%rdmxctype .Eq. 1) Then
 ! Hartree-Fock functional
-	    t2=t1*occsv(ist3, ikp)*occsv(ist4, jk)
-	  else if (input%groundstate%RDMFT%rdmxctype.eq.2) then
+                        t2 = t1 * occsv (ist3, ikp) * occsv (ist4, jk)
+                     Else If (input%groundstate%RDMFT%rdmxctype .Eq. 2) &
+                    & Then
 ! SDLG functional
-	    if ((ist3.eq.ist4).and. &
-	      (r3taxi(vkl(1, ikp), vklnr(1, jk)).lt.input%structure%epslat)) then
-	      t2=(1.d0/occmax)*occsv(ist4, jk)**2
-	    else
-	      t2=t1*(occsv(ist3, ikp)*occsv(ist4, jk))**input%groundstate%RDMFT%rdmalpha
-	    end if
-	  end if
-	  dedc(ist2, ist3) = dedc(ist2, ist3) - t2 * evecsv(ist2, ist1)* &
-	   vnl(ist1, ist3, ist4, ik)
-	end do
-      end do
-    end do
-  end do
+                        If ((ist3 .Eq. ist4) .And. (r3taxi(vkl(1, ikp), &
+                       & vklnr(1, jk)) .Lt. input%structure%epslat)) &
+                       & Then
+                           t2 = (1.d0/occmax) * occsv (ist4, jk) ** 2
+                        Else
+                           t2 = t1 * (occsv(ist3, ikp)*occsv(ist4, jk)) &
+                          & ** input%groundstate%RDMFT%rdmalpha
+                        End If
+                     End If
+                     dedc (ist2, ist3) = dedc (ist2, ist3) - t2 * &
+                    & evecsv (ist2, ist1) * vnl (ist1, ist3, ist4, ik)
+                  End Do
+               End Do
+            End Do
+         End Do
 ! end loop over non-reduced k-points
-end do
-deallocate(vnl)
-return
-end subroutine
+      End Do
+      Deallocate (vnl)
+      Return
+End Subroutine

@@ -1,16 +1,17 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: mixadapt
 ! !INTERFACE:
-
-
-subroutine mixadapt(iscl, beta0, betainc, betadec, n, nu, mu, beta, f, d)
+!
+!
+Subroutine mixadapt (iscl, beta0, betainc, betadec, n, nu, mu, beta, f, &
+& d)
 ! !INPUT/OUTPUT PARAMETERS:
 !   iscl    : self-consistent loop number (in,integer)
 !   beta0   : initial value for mixing parameter (in,real)
@@ -44,49 +45,49 @@ subroutine mixadapt(iscl, beta0, betainc, betadec, n, nu, mu, beta, f, d)
 !   Modified, September 2008 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: iscl
-real(8), intent(in) :: beta0
-real(8), intent(in) :: betainc
-real(8), intent(in) :: betadec
-integer, intent(in) :: n
-real(8), intent(inout) :: nu(n)
-real(8), intent(inout) :: mu(n)
-real(8), intent(inout) :: beta(n)
-real(8), intent(inout) :: f(n)
-real(8), intent(out) :: d
+      Integer, Intent (In) :: iscl
+      Real (8), Intent (In) :: beta0
+      Real (8), Intent (In) :: betainc
+      Real (8), Intent (In) :: betadec
+      Integer, Intent (In) :: n
+      Real (8), Intent (Inout) :: nu (n)
+      Real (8), Intent (Inout) :: mu (n)
+      Real (8), Intent (Inout) :: beta (n)
+      Real (8), Intent (Inout) :: f (n)
+      Real (8), Intent (Out) :: d
 ! local variables
-integer::i
-real(8)::t1
-
-d=0.d0
-do i=1, n
-  d=d+(nu(i)-mu(i))**2
-end do
-d=sqrt(d/dble(n))
-
-
-if (iscl.le.1) then
-  mu(:)=nu(:)
-  f(:)=0.d0
-  beta(:)=beta0
-  d=1.d0
-  return
-end if
-do i=1, n
-  t1=nu(i)-mu(i)
-  if (t1*f(i).gt.0.d0) then
-    beta(i)=beta(i)*betainc
-    if (beta(i).gt.1.d0) beta(i)=1.d0
-  else
-    beta(i)=beta(i)*betadec
-  end if
-  f(i)=t1
-end do
-nu(:)=beta(:)*nu(:)+(1.d0-beta(:))*mu(:)
-
-mu(:)=nu(:)
-return
-end subroutine
+      Integer :: i
+      Real (8) :: t1
+!
+      d = 0.d0
+      Do i = 1, n
+         d = d + (nu(i)-mu(i)) ** 2
+      End Do
+      d = Sqrt (d/dble(n))
+!
+!
+      If (iscl .Le. 1) Then
+         mu (:) = nu (:)
+         f (:) = 0.d0
+         beta (:) = beta0
+         d = 1.d0
+         Return
+      End If
+      Do i = 1, n
+         t1 = nu (i) - mu (i)
+         If (t1*f(i) .Gt. 0.d0) Then
+            beta (i) = beta (i) * betainc
+            If (beta(i) .Gt. 1.d0) beta (i) = 1.d0
+         Else
+            beta (i) = beta (i) * betadec
+         End If
+         f (i) = t1
+      End Do
+      nu (:) = beta (:) * nu (:) + (1.d0-beta(:)) * mu (:)
+!
+      mu (:) = nu (:)
+      Return
+End Subroutine
 !EOC

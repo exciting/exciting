@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: writeefg
 ! !INTERFACE:
-
-
-subroutine writeefg
+!
+!
+Subroutine writeefg
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !DESCRIPTION:
 !   Computes the electric field gradient (EFG) tensor for each atom, $\alpha$,
 !   and writes it to the file {\tt EFG.OUT} along with its eigenvalues. The EFG
@@ -29,74 +29,79 @@ use modmain
 !   Fixed serious problem, November 2006 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! local variables
-integer, parameter :: lwork=10
-integer::is, ia, ias, ir, i, j, info
-real(8)::efg(3, 3), a(3, 3)
-real(8)::w(3), work(lwork)
+      Integer, Parameter :: lwork = 10
+      Integer :: is, ia, ias, ir, i, j, info
+      Real (8) :: efg (3, 3), a (3, 3)
+      Real (8) :: w (3), work (lwork)
 ! allocatable arrays
-real(8), allocatable :: rfmt(:, :)
-real(8), allocatable :: grfmt1(:, :, :)
-real(8), allocatable :: grfmt2(:, :, :)
+      Real (8), Allocatable :: rfmt (:, :)
+      Real (8), Allocatable :: grfmt1 (:, :, :)
+      Real (8), Allocatable :: grfmt2 (:, :, :)
 ! initialise universal variables
-call init0
+      Call init0
 ! read density and potentials from file
-call readstate
+      Call readstate
 ! allocate local arrays
-allocate(rfmt(lmmaxvr, nrmtmax))
-allocate(grfmt1(lmmaxvr, nrmtmax, 3))
-allocate(grfmt2(lmmaxvr, nrmtmax, 3))
-open(50, file='EFG.OUT', action='WRITE', form='FORMATTED')
-write(50, *)
-write(50, '("(electric field gradient tensor is in Cartesian coordinates)")')
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    write(50, *)
-    write(50, *)
-    write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, &
-    &trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
+      Allocate (rfmt(lmmaxvr, nrmtmax))
+      Allocate (grfmt1(lmmaxvr, nrmtmax, 3))
+      Allocate (grfmt2(lmmaxvr, nrmtmax, 3))
+      Open (50, File='EFG.OUT', Action='WRITE', Form='FORMATTED')
+      Write (50,*)
+      Write (50, '("(electric field gradient tensor is in Cartesian coo&
+     &rdinates)")')
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            Write (50,*)
+            Write (50,*)
+            Write (50, '("Species : ", I4, " (", A, "), atom : ", I4)') &
+           & is, trim &
+           & (input%structure%speciesarray(is)%species%chemicalSymbol), &
+           & ia
 ! remove the l=m=0 part of the potential
-    do ir=1, nrmt(is)
-      rfmt(1, ir)=0.d0
-      rfmt(2:lmmaxvr, ir)=vclmt(2:lmmaxvr, ir, ias)
-    end do
+            Do ir = 1, nrmt (is)
+               rfmt (1, ir) = 0.d0
+               rfmt (2:lmmaxvr, ir) = vclmt (2:lmmaxvr, ir, ias)
+            End Do
 ! compute the gradient of the Coulomb potential
-    call gradrfmt(input%groundstate%lmaxvr, nrmt(is), spr(:, is), lmmaxvr, nrmtmax, rfmt, grfmt1)
-    do i=1, 3
+            Call gradrfmt (input%groundstate%lmaxvr, nrmt(is), spr(:, &
+           & is), lmmaxvr, nrmtmax, rfmt, grfmt1)
+            Do i = 1, 3
 ! compute the gradient of the gradient
-      call gradrfmt(input%groundstate%lmaxvr, nrmt(is), spr(:, is), lmmaxvr, nrmtmax, grfmt1(:, :, i), &
-       grfmt2)
-      do j=1, 3
-	efg(i, j)=grfmt2(1, 1, j)*y00
-      end do
-    end do
+               Call gradrfmt (input%groundstate%lmaxvr, nrmt(is), &
+              & spr(:, is), lmmaxvr, nrmtmax, grfmt1(:, :, i), grfmt2)
+               Do j = 1, 3
+                  efg (i, j) = grfmt2 (1, 1, j) * y00
+               End Do
+            End Do
 ! symmetrise the EFG
-    do i=1, 3
-      do j=i+1, 3
-	efg(i, j)=0.5d0*(efg(i, j)+efg(j, i))
-	efg(j, i)=efg(i, j)
-      end do
-    end do
-    write(50, *)
-    write(50, '(" EFG tensor :")')
-    do i=1, 3
-      write(50, '(3G18.10)') (efg(i, j), j=1, 3)
-    end do
-    write(50, '(" trace : ", G18.10)') efg(1, 1)+efg(2, 2)+efg(3, 3)
+            Do i = 1, 3
+               Do j = i + 1, 3
+                  efg (i, j) = 0.5d0 * (efg(i, j)+efg(j, i))
+                  efg (j, i) = efg (i, j)
+               End Do
+            End Do
+            Write (50,*)
+            Write (50, '(" EFG tensor :")')
+            Do i = 1, 3
+               Write (50, '(3G18.10)') (efg(i, j), j=1, 3)
+            End Do
+            Write (50, '(" trace : ", G18.10)') efg (1, 1) + efg (2, 2) &
+           & + efg (3, 3)
 ! diagonalise the EFG
-    a(:, :)=efg(:, :)
-    call dsyev('N', 'U', 3, a, 3, w, work, lwork, info)
-    write(50, '(" eigenvalues :")')
-    write(50, '(3G18.10)') w
-  end do
-end do
-close(50)
-write(*, *)
-write(*, '("Info(writeefg): electric field gradient written to EFG.OUT")')
-write(*, *)
-deallocate(rfmt, grfmt1, grfmt2)
-return
-end subroutine
+            a (:, :) = efg (:, :)
+            Call dsyev ('N', 'U', 3, a, 3, w, work, lwork, info)
+            Write (50, '(" eigenvalues :")')
+            Write (50, '(3G18.10)') w
+         End Do
+      End Do
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(writeefg): electric field gradient written to EFG.OUT")')
+      Write (*,*)
+      Deallocate (rfmt, grfmt1, grfmt2)
+      Return
+End Subroutine
 !EOC

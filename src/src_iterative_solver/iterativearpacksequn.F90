@@ -1,25 +1,26 @@
-
-
-
-
-subroutine iterativearpacksecequn(ik, ispn, apwalm, vgpc, evalfv, evecfv)
-
-use modinput
+!
+!
+!
+!
+Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
+& evecfv)
+!
+      Use modinput
   !USES:
-  use modfvsystem
-  use modmpi
-  use mod_eigensystem
-  use mod_timing
-  use mod_Gkvector
-  use mod_potential_and_density
-  use mod_muffin_tin
-  use mod_atoms, only:natmtot
-
-  use mod_spin, only:nspnfv
-  use mod_APW_LO, only:apwordmax
-  use mod_eigenvalue_occupancy, only:nstfv
-  use sclcontroll
-
+      Use modfvsystem
+      Use modmpi
+      Use mod_eigensystem
+      Use mod_timing
+      Use mod_Gkvector
+      Use mod_potential_and_density
+      Use mod_muffin_tin
+      Use mod_atoms, Only: natmtot
+!
+      Use mod_spin, Only: nspnfv
+      Use mod_APW_LO, Only: apwordmax
+      Use mod_eigenvalue_occupancy, Only: nstfv
+      Use sclcontroll
+!
   ! !INPUT/OUTPUT PARAMETERS:
   !   ik     : k-point number (in,integer)
   !   ispn   : first-variational spin index (in,integer)
@@ -30,217 +31,221 @@ use modinput
   !   evecfv : first-variational eigenvectors (out,complex(nmatmax,nstfv))
   ! !DESCRIPTION:
   ! This routine will perform several ARPACK iterations
-
+!
   !BOC
-  implicit none
+      Implicit None
 #ifdef DEBUG
   !include declarations for timing output of ARPACK
 #include "./debugf90.h"
 #endif
   ! arguments
-  integer, intent(in)	    :: ik
-  integer, intent(in)	    :: ispn
-  real(8), intent(in)	    :: vgpc(3, ngkmax)
-  complex(8), intent(in)    :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
-  real(8), intent(inout)    :: evalfv(nstfv, nspnfv)
-  complex(8), intent(inout) :: evecfv(nmatmax, nstfv, nspnfv)
-
+      Integer, Intent (In) :: ik
+      Integer, Intent (In) :: ispn
+      Real (8), Intent (In) :: vgpc (3, ngkmax)
+      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+     & natmtot)
+      Real (8), Intent (Inout) :: evalfv (nstfv, nspnfv)
+      Complex (8), Intent (Inout) :: evecfv (nmatmax, nstfv, nspnfv)
+!
   ! local variables
-  logical::packed
-type (evsystem)::system
-
-  integer ::n
-  real:: cpu0, cpu1, cpu2
-  Complex(8)::		       zero, one
-  parameter	    (zero = (0.0D+0, 0.0D+0) , one = (1.0D+0, 0.0D+0) )
+      Logical :: packed
+      Type (evsystem) :: system
+!
+      Integer :: n
+      Real :: cpu0, cpu1, cpu2
+      Complex (8) :: zero, one
+      Parameter (zero=(0.0D+0, 0.0D+0), one=(1.0D+0, 0.0D+0))
   !IO vars
-  integer::koffset, recl
-  character(256):: outfilenamestring, filetag
-  external outfilenamestring
-
+      Integer :: koffset, recl
+      Character (256) :: outfilenamestring, filetag
+      External outfilenamestring
+!
   !ARPACK Interface vars
-  integer:: ido, nev, ncv, lworkl, info, infoznaupd, info2, j, i
-  integer :: nevmax, ncvmax, nmax
-  integer:: nconv, maxitr, ishfts, mode, ldv
-  integer::iparam(11), ipntr(14)
-  complex(8), allocatable::resid(:), v(:, :), workev(:), workl(:), d(:)
-  complex(8), pointer::workd(:)
-  real(8), allocatable:: rwork(:), rd(:)
-  integer, allocatable::idx(:)
-  complex(8)::sigma
-  character:: bmat*1, which*2
-  real(8):: tol
-  logical::rvec
-  logical:: select(nmat(ispn, ik))
-  complex(8), pointer::vin(:), vout(:)
-
+      Integer :: ido, nev, ncv, lworkl, info, infoznaupd, info2, j, i
+      Integer :: nevmax, ncvmax, nmax
+      Integer :: nconv, maxitr, ishfts, mode, ldv
+      Integer :: iparam (11), ipntr (14)
+      Complex (8), Allocatable :: resid (:), v (:, :), workev (:), &
+     & workl (:), d (:)
+      Complex (8), Pointer :: workd (:)
+      Real (8), Allocatable :: rwork (:), rd (:)
+      Integer, Allocatable :: idx (:)
+      Complex (8) :: sigma
+      Character :: bmat * 1, which * 2
+      Real (8) :: tol
+      Logical :: rvec
+      Logical :: select (nmat(ispn, ik))
+      Complex (8), Pointer :: vin (:), vout (:)
+!
 #ifdef DEBUG
-  ndigit = -3
-  logfil = 6
-  mngets = 1
-  mnaitr = 1
-  mnapps = 1
-  mnaupd = 1
-  mnaup2 = 1
-  mneigh = 1
-  mneupd = 1
-  open (logfil, file="ARPACK.OUT", action="WRITE")
+      ndigit = - 3
+      logfil = 6
+      mngets = 1
+      mnaitr = 1
+      mnapps = 1
+      mnaupd = 1
+      mnaup2 = 1
+      mneigh = 1
+      mneupd = 1
+      Open (logfil, File="ARPACK.OUT", Action="WRITE")
 #endif
-
-
+!
+!
   !##################
   !ARPACK parameters
   !##################
-  nev=nstfv
-  ncv=2*nev
-  ncv=min(2*nev, maxncv)
-  ncv=max(ncv, nev+2)
-  nevmax=nev
-  ncvmax= ncv
-  nmax=nmatmax
-  n=nmat(ispn, ik)
-  ldv=n
-  lworkl =3*ncvmax*ncvmax+5*ncvmax
-  allocate(workd(3*nmax))
-  allocate(resid(nmax))
-  allocate(v(ldv, ncvmax))
-  allocate(workev(2*ncvmax))
-  allocate(workl(lworkl))
-  allocate(d(ncvmax))
-  allocate(rwork(ncvmax))
-  allocate(rd(ncvmax), idx(ncvmax))
-  bmat	= 'G'
-  which = 'LM'
- if(lowesteval.eq.-1.d0) then
-  call minenergy(sigma)
- else
- sigma=dcmplx(lowesteval, 0)
- endif
-
-  resid(:)=0.0
-  tol	 = input%groundstate%solver%epsarpack
-  ido	 = 0
-  info	 = 0
-  ishfts = 1
-  maxitr = 40*nstfv
-  mode= 3
-  iparam(1) = ishfts
-  iparam(3) = maxitr
-  iparam(7) = mode
+      nev = nstfv
+      ncv = 2 * nev
+      ncv = Min (2*nev, maxncv)
+      ncv = Max (ncv, nev+2)
+      nevmax = nev
+      ncvmax = ncv
+      nmax = nmatmax
+      n = nmat (ispn, ik)
+      ldv = n
+      lworkl = 3 * ncvmax * ncvmax + 5 * ncvmax
+      Allocate (workd(3*nmax))
+      Allocate (resid(nmax))
+      Allocate (v(ldv, ncvmax))
+      Allocate (workev(2*ncvmax))
+      Allocate (workl(lworkl))
+      Allocate (d(ncvmax))
+      Allocate (rwork(ncvmax))
+      Allocate (rd(ncvmax), idx(ncvmax))
+      bmat = 'G'
+      which = 'LM'
+      If (lowesteval .Eq.-1.d0) Then
+         Call minenergy (sigma)
+      Else
+         sigma = dcmplx (lowesteval, 0)
+      End If
+!
+      resid (:) = 0.0
+      tol = input%groundstate%solver%epsarpack
+      ido = 0
+      info = 0
+      ishfts = 1
+      maxitr = 40 * nstfv
+      mode = 3
+      iparam (1) = ishfts
+      iparam (3) = maxitr
+      iparam (7) = mode
   !################################
   !open file with previous residual
   !################################
-  inquire(iolength=recl)resid
-  koffset=ik-firstk(procofk(ik))+1
-  infoznaupd=0
-
+      Inquire (IoLength=Recl) resid
+      koffset = ik - firstk (procofk(ik)) + 1
+      infoznaupd = 0
+!
   !##################
   !setup hamiltonian#
   !##################
-
-
-if(associated(input%groundstate%solver))then
-packed=input%groundstate%solver%packedmatrixstorage
-else
-packed=.true.
-endif
-
- call newsystem(system, packed, n)
- call hamiltonandoverlapsetup(system, ngk(ispn, ik), apwalm, igkig(1, ispn, ik), vgpc)
-
-
-  call cpu_time(cpu0)
+!
+!
+      If (associated(input%groundstate%solver)) Then
+         packed = input%groundstate%solver%packedmatrixstorage
+      Else
+         packed = .True.
+      End If
+!
+      Call newsystem (system, packed, n)
+      Call hamiltonandoverlapsetup (system, ngk(ispn, ik), apwalm, &
+     & igkig(1, ispn, ik), vgpc)
+!
+!
+      Call cpu_time (cpu0)
   !#######################################################################
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
-
-  call HermiteanMatrixAXPY(-sigma, system%overlap, system%hamilton)
-  call HermiteanMatrixLU(system%hamilton)
-  call cpu_time(cpu1)
+!
+      Call HermiteanMatrixAXPY (-sigma, system%overlap, &
+     & system%hamilton)
+      Call HermiteanMatrixLU (system%hamilton)
+      Call cpu_time (cpu1)
   !################################################
   !# reverse comunication loop of arpack library: #
   !################################################
-
-  do i=1, maxitr
-     call znaupd  &
-	  ( ido, bmat, n, which, nev, tol, resid, ncv, v, ldv, iparam,	&
-	  ipntr, workd, workl, lworkl, rwork, infoznaupd)
-	 vin=>workd(ipntr(1):ipntr(1)+n-1)
-	 vout=>workd(ipntr(2):ipntr(2)+n-1)
-
-     if (ido .eq. -1 .or. ido .eq. 1) then
-
-	call Hermiteanmatrixvector(system%overlap, one, vin, &
-	zero, vout)
-	call  Hermiteanmatrixlinsolve(system%hamilton, vout)
-     else if(ido .eq.1) then
-	call zcopy (n, workd(ipntr(3)), 1, vout, 1)
-	call  Hermiteanmatrixlinsolve(system%hamilton, vout)
-     else if (ido .eq. 2) then
-     call Hermiteanmatrixvector(system%overlap, one, vin, &
-	zero, vout )
-
-     else
-	exit
-     endif
-  end do
+!
+      Do i = 1, maxitr
+         Call znaupd (ido, bmat, n, which, nev, tol, resid, ncv, v, &
+        & ldv, iparam, ipntr, workd, workl, lworkl, rwork, infoznaupd)
+         vin => workd (ipntr(1) :ipntr(1)+n-1)
+         vout => workd (ipntr(2) :ipntr(2)+n-1)
+!
+         If (ido .Eq.-1 .Or. ido .Eq. 1) Then
+!
+            Call Hermiteanmatrixvector (system%overlap, one, vin, zero, &
+           & vout)
+            Call Hermiteanmatrixlinsolve (system%hamilton, vout)
+         Else If (ido .Eq. 1) Then
+            Call zcopy (n, workd(ipntr(3)), 1, vout, 1)
+            Call Hermiteanmatrixlinsolve (system%hamilton, vout)
+         Else If (ido .Eq. 2) Then
+            Call Hermiteanmatrixvector (system%overlap, one, vin, zero, &
+           & vout)
+!
+         Else
+            Exit
+         End If
+      End Do
   !###############
   ! errorhandling
   !###############
-  if ( infoznaupd .ne. 0 ) then
-     print *, ' '
-     print *, ' Error with znaupd, info = ', infoznaupd
-     print *, ' Check the documentation of znaupd'
-     print *, ' '
-     stop
-  else
-
-     if (i.gt.maxitr) then
-     write(*, *)"Error reached maximum iteration count in arpack."
-     stop
-	endif
+      If (infoznaupd .Ne. 0) Then
+         Print *, ' '
+         Print *, ' Error with znaupd, info = ', infoznaupd
+         Print *, ' Check the documentation of znaupd'
+         Print *, ' '
+         Stop
+      Else
+!
+         If (i .Gt. maxitr) Then
+            Write (*,*) "Error reached maximum iteration count in arpac&
+           &k."
+            Stop
+         End If
      !########################
      !post processing of evec
      !########################
-     rvec = .true.
-     select=.true.
-     call zneupd  (rvec, 'A', select, d, v, n, sigma, &
-	  workev, bmat, n, which, nev, tol, resid, ncv, v, &
-	  n, iparam, ipntr, workd, workl, lworkl, rwork, &
-	  info2 )
-     if ( info2 .ne. 0 ) then
-	print *, ' '
-	print *, ' Error with zneupd, info = ', info2
-	print *, ' Check the documentation of zneupd'
-	print *, ' '
-	write(*, *)"eval", d(1:nev)
-	write(*, *)"iter", i
-	stop
-     endif
-
-  endif
-  call cpu_time(cpu2)
-  timefv=timefv+cpu2-cpu0
+         rvec = .True.
+         select = .True.
+         Call zneupd (rvec, 'A', select, d, v, n, sigma, workev, bmat, &
+        & n, which, nev, tol, resid, ncv, v, n, iparam, ipntr, workd, &
+        & workl, lworkl, rwork, info2)
+         If (info2 .Ne. 0) Then
+            Print *, ' '
+            Print *, ' Error with zneupd, info = ', info2
+            Print *, ' Check the documentation of zneupd'
+            Print *, ' '
+            Write (*,*) "eval", d (1:nev)
+            Write (*,*) "iter", i
+            Stop
+         End If
+!
+      End If
+      Call cpu_time (cpu2)
+      timefv = timefv + cpu2 - cpu0
 #ifdef DEBUG
-  close(logfil)
+      Close (logfil)
 #endif
-  if(rank.eq.0)write(60, *)"k=", ik, "ARPACK iterations", i
-  if(rank.eq.0)write(60, * )"matrixsize", n&
-       , "time LU", cpu1 - cpu0, "iterations", cpu2 - cpu1
-  if(rank.eq.0)write(60, *)"minenergy (inversioncenter)", dble(sigma)
-
+      If (rank .Eq. 0) write (60,*) "k=", ik, "ARPACK iterations", i
+      If (rank .Eq. 0) write (60,*) "matrixsize", n, "time LU", cpu1 - &
+     & cpu0, "iterations", cpu2 - cpu1
+      If (rank .Eq. 0) write (60,*) "minenergy (inversioncenter)", dble &
+     & (sigma)
+!
   !##########################
   !sort and copy eigenvectors
   !##########################
-  rd=real(d)
-  call sortidx (nstfv, rd(:), idx(:))
-  do j=1, nstfv
-     evecfv(1:n, j, ispn)=v(1:n, idx(j))
-     evalfv(j, ispn)=rd(idx(j))
-  end do
-    call deleteystem(system)
-  deallocate(workd, resid, v, workev, workl, d)
-  deallocate(rwork, rd, idx)
-  return
-end subroutine iterativearpacksecequn
+      rd = real (d)
+      Call sortidx (nstfv, rd(:), idx(:))
+      Do j = 1, nstfv
+         evecfv (1:n, j, ispn) = v (1:n, idx(j))
+         evalfv (j, ispn) = rd (idx(j))
+      End Do
+      Call deleteystem (system)
+      Deallocate (workd, resid, v, workev, workl, d)
+      Deallocate (rwork, rd, idx)
+      Return
+End Subroutine iterativearpacksecequn
 !EOC

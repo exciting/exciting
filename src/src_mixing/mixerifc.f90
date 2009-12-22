@@ -1,87 +1,90 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine mixerifc(mtype, n, v, dv, mode)
+!
+!
+Subroutine mixerifc (mtype, n, v, dv, mode)
 !use modmain
-use modinput
-use mod_potential_and_density, only:
-use mod_spin, only:
-use mod_convergence, only:iscl
-use modmixermsec
-use modmixadapt
-implicit none
+      Use modinput
+      Use mod_potential_and_density, Only:
+      Use mod_spin, Only:
+      Use mod_convergence, Only: iscl
+      Use modmixermsec
+      Use modmixadapt
+      Implicit None
 ! arguments
-integer, intent(in) :: mtype
-integer, intent(in) :: n
-real(8), intent(inout) :: v(n)
-real(8), intent(out) :: dv
-integer, intent(inout) :: mode
+      Integer, Intent (In) :: mtype
+      Integer, Intent (In) :: n
+      Real (8), Intent (Inout) :: v (n)
+      Real (8), Intent (Out) :: dv
+      Integer, Intent (Inout) :: mode
 !mode: 	-1 call initialisation routines,
 !		-2:call destructor
 !		else ignore
-integer, parameter :: maxsd=3
-select case(mtype)
-case(1)
+      Integer, Parameter :: maxsd = 3
+      Select Case (mtype)
+      Case (1)
 ! adaptive linear mixing
 ! calculate memmory requirement if mode negative
-  if (mode .eq. -1) then
-    mode=0
-    write(60, *)"Using Adaptive step size linear potential mixing (1)"
-    if(allocated(work))deallocate(work)
-    allocate(work(3*n))
-    return
-  end if
-    if (mode .eq. -2) then
-    deallocate(work)
-    return
-  end if
+         If (mode .Eq.-1) Then
+            mode = 0
+            Write (60,*) "Using Adaptive step size linear potential mix&
+           &ing (1)"
+            If (allocated(work)) deallocate (work)
+            Allocate (work(3*n))
+            Return
+         End If
+         If (mode .Eq.-2) Then
+            Deallocate (work)
+            Return
+         End If
 !--
-  call mixadapt(iscl, input%groundstate%beta0, input%groundstate%betainc, input%groundstate%betadec, n, v, work,&
-    &work(n&
-    &+ 1), work(2 * n + 1), dv)
-
-case(2)
+         Call mixadapt (iscl, input%groundstate%beta0, &
+        & input%groundstate%betainc, input%groundstate%betadec, n, v, &
+        & work, work(n+1), work(2*n+1), dv)
+!
+      Case (2)
  ! multicecant broyden
-  if (mode .eq. -1) then
-    call initmixermsec(n)
-	mode =0
-	 write(60, *)"Using Multisecant Broyden potential mixing (2)"
-    return
-   end if
-    if (mode .eq. -2) then
-    call freearraysmixermsec()
-     return
-  end if
- call  mixmsec(iscl, v, dv, n)
- case(3)
+         If (mode .Eq.-1) Then
+            Call initmixermsec (n)
+            mode = 0
+            Write (60,*) "Using Multisecant Broyden potential mixing (2&
+           &)"
+            Return
+         End If
+         If (mode .Eq.-2) Then
+            Call freearraysmixermsec ()
+            Return
+         End If
+         Call mixmsec (iscl, v, dv, n)
+      Case (3)
  ! Pulay mixing
-   if (associated(input%groundstate%spin)) then
-     write(*, *)
-     write(*, '("Warning(mixerifc): Pulay mixing problematic with spin-polarised&
-      & calculations")')
-   end if
-   if (mode.eq.-1) then
- write(60, *)"Using Pulay potential mixing (3)"
-     allocate(work(2*n*maxsd))
-	mode=0
-     return
-   end if
-      if (mode.eq.-2) then
-     deallocate(work)
-
-     return
-   end if
-   call mixpulay(iscl, n, maxsd, v, work, work(n*maxsd+1), dv)
-case default
-  write(*, *)
-  write(*, '("Error(mixerifc): mtype not defined : ", I8)') mtype
-  write(*, *)
-  stop
-end select
-return
-end subroutine
+         If (associated(input%groundstate%spin)) Then
+            Write (*,*)
+            Write (*, '("Warning(mixerifc): Pulay mixing problematic wi&
+           &th spin-polarised calculations")')
+         End If
+         If (mode .Eq.-1) Then
+            Write (60,*) "Using Pulay potential mixing (3)"
+            Allocate (work(2*n*maxsd))
+            mode = 0
+            Return
+         End If
+         If (mode .Eq.-2) Then
+            Deallocate (work)
+!
+            Return
+         End If
+         Call mixpulay (iscl, n, maxsd, v, work, work(n*maxsd+1), dv)
+      Case Default
+         Write (*,*)
+         Write (*, '("Error(mixerifc): mtype not defined : ", I8)') &
+        & mtype
+         Write (*,*)
+         Stop
+      End Select
+      Return
+End Subroutine

@@ -1,42 +1,42 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_filedel
-  implicit none
-contains
-
-
-subroutine filedel(fnam)
-    use m_getunit
-    implicit none
+!
+Module m_filedel
+      Implicit None
+Contains
+!
+!
+      Subroutine filedel (fnam)
+         Use m_getunit
+         Implicit None
     ! arguments
-    character(*), intent(in) :: fnam
+         Character (*), Intent (In) :: fnam
     ! local variables
-    integer, parameter :: verb=0
-    integer :: un
-    logical :: existent, opened
+         Integer, Parameter :: verb = 0
+         Integer :: un
+         Logical :: existent, opened
     ! check if file exists
-    inquire(file=trim(fnam), exist=existent)
-    if ((verb.gt.0).and.(.not.existent)) then
-       write(*, '("Warning(filedel): attempted to delete non-existent file: ", &
-	    &a)') trim(fnam)
-       return
-    end if
+         Inquire (File=trim(fnam), Exist=existent)
+         If ((verb .Gt. 0) .And. ( .Not. existent)) Then
+            Write (*, '("Warning(filedel): attempted to delete non-exis&
+           &tent file: ", a)') trim (fnam)
+            Return
+         End If
     ! check if file is opened
-    inquire(file=trim(fnam), opened=opened, number=un)
+         Inquire (File=trim(fnam), Opened=Opened, Number=un)
     ! close file if opened
-    if (opened) then
-       close(un)
-    end if
+         If (opened) Then
+            Close (un)
+         End If
     ! open file for writing
-    call getunit(un)
-    open(un, file=trim(fnam), action='write')
+         Call getunit (un)
+         Open (un, File=trim(fnam), Action='write')
     ! delete file
-    close(un, status='delete')
-  end subroutine filedel
-
-end module m_filedel
+         Close (un, Status='delete')
+      End Subroutine filedel
+!
+End Module m_filedel

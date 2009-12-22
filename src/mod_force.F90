@@ -1,7 +1,7 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_force
+Module mod_force
 !-------------------------!
 !     force variables     !
 !-------------------------!
@@ -10,20 +10,20 @@ module mod_force
 ! tfibs is .true. if the IBS contribution to the force is to be calculated
 !replaced by inputstructurelogical::tfibs
 ! Hellmann-Feynman force on each atom
-real(8), allocatable :: forcehf(:, :)
+      Real (8), Allocatable :: forcehf (:, :)
 ! core correction to force on each atom
-real(8), allocatable :: forcecr(:, :)
+      Real (8), Allocatable :: forcecr (:, :)
 ! IBS core force on each atom
-real(8), allocatable :: forceibs(:, :)
+      Real (8), Allocatable :: forceibs (:, :)
 ! total force on each atom
-real(8), allocatable :: forcetot(:, :)
+      Real (8), Allocatable :: forcetot (:, :)
 ! previous total force on each atom
-real(8), allocatable :: forcetp(:, :)
+      Real (8), Allocatable :: forcetp (:, :)
 ! maximum force magnitude over all atoms
-real(8)::forcemax
+      Real (8) :: forcemax
 ! default step size parameter for structural optimisation
 !replaced by inputstructurereal(8)::tau0atm
 ! step size parameters for each atom
-real(8), allocatable :: tauatm(:)
-end module
-
+      Real (8), Allocatable :: tauatm (:)
+End Module
+!

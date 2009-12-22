@@ -1,134 +1,136 @@
-
-
-
-
+!
+!
+!
+!
 ! module to switch the different scl solver modes
-
-module sclcontroll
-use modmain, only:iscl, currentconvergence
-use modinput
-implicit none
+!
+Module sclcontroll
+      Use modmain, Only: iscl, currentconvergence
+      Use modinput
+      Implicit None
  !scl index
-  integer::diiscounter !! counter for DIIS iterations
-  logical::packedmatrixstorage
-  logical::tarpack, tlapack, tdiis, tjdqz
-  integer::diisfirstscl
-  integer, parameter:: diismax=35, maxdiisspace=15
-  integer :: iseed(4)=1
-  real(8)::lowesteval
-  real(8)::epsarpack
-  real(8)::epsresid
-
-  real(8) , parameter::diisthreshould=1
-  real(8) ::lastresnorm
-  integer , parameter::jacofidavidsonfirstscl=1
-integer::idamax
-  external idamax
- logical::recalculate_preconditioner
-contains
-
-
-function calculate_preconditioner()
-    logical::calculate_preconditioner
-    calculate_preconditioner=.false.
-    if(diiscounter.eq.1) then
-       calculate_preconditioner =.true.
-
-  write(*, *)"precond"
-    else if (mod(diiscounter, 5).eq.0)then
-    if(currentconvergence.gt.5.0e-4) then
-       calculate_preconditioner =.true.
-    endif
-  write(*, *)"precon"
-    endif
-  end function calculate_preconditioner
-
-
-function doDIIScycle()
-    logical::doDIIScycle
-    doDIIScycle=.false.
-    if(tdiis) then
+      Integer :: diiscounter !! counter for DIIS iterations
+      Logical :: packedmatrixstorage
+      Logical :: tarpack, tlapack, tdiis, tjdqz
+      Integer :: diisfirstscl
+      Integer, Parameter :: diismax = 35, maxdiisspace = 15
+      Integer :: iseed (4) = 1
+      Real (8) :: lowesteval
+      Real (8) :: epsarpack
+      Real (8) :: epsresid
+!
+      Real (8), Parameter :: diisthreshould = 1
+      Real (8) :: lastresnorm
+      Integer, Parameter :: jacofidavidsonfirstscl = 1
+      Integer :: idamax
+      External idamax
+      Logical :: recalculate_preconditioner
+Contains
+!
+!
+      Function calculate_preconditioner ()
+         Logical :: calculate_preconditioner
+         calculate_preconditioner = .False.
+         If (diiscounter .Eq. 1) Then
+            calculate_preconditioner = .True.
+!
+            Write (*,*) "precond"
+         Else If (Mod(diiscounter, 5) .Eq. 0) Then
+            If (currentconvergence .Gt. 5.0e-4) Then
+               calculate_preconditioner = .True.
+            End If
+            Write (*,*) "precon"
+         End If
+      End Function calculate_preconditioner
+!
+!
+      Function doDIIScycle ()
+         Logical :: doDIIScycle
+         doDIIScycle = .False.
+         If (tdiis) Then
        !this may get more advanced:
-       if(iscl.ge.diisfirstscl) doDIIScycle=.true.
-       if(currentconvergence.gt.1.0)doDIIScycle=.false.
-      if(doDIIScycle) write(*, *)"DIIS"
-    endif
-    lastresnorm=1.e10
-  end function doDIIScycle
-
-
-function doprerotate_preconditioner()
-    logical::doprerotate_preconditioner
-    doprerotate_preconditioner=.false.
-    if(diiscounter.ge.3) doprerotate_preconditioner=.true.
-  end function doprerotate_preconditioner
-
-
-function doARPACKiteration()
-    logical::doARPACKiteration
-    doARPACKiteration=.false.
-    if(associated(input%groundstate%solver))then
-    if (input%groundstate%solver%typenumber.eq.2) then
-       doARPACKiteration=.true.
+            If (iscl .Ge. diisfirstscl) doDIIScycle = .True.
+            If (currentconvergence .Gt. 1.0) doDIIScycle = .False.
+            If (doDIIScycle) write (*,*) "DIIS"
+         End If
+         lastresnorm = 1.e10
+      End Function doDIIScycle
+!
+!
+      Function doprerotate_preconditioner ()
+         Logical :: doprerotate_preconditioner
+         doprerotate_preconditioner = .False.
+         If (diiscounter .Ge. 3) doprerotate_preconditioner = .True.
+      End Function doprerotate_preconditioner
+!
+!
+      Function doARPACKiteration ()
+         Logical :: doARPACKiteration
+         doARPACKiteration = .False.
+         If (associated(input%groundstate%solver)) Then
+            If (input%groundstate%solver%typenumber .Eq. 2) Then
+               doARPACKiteration = .True.
      ! write(*,*)"ARPACK"
-       diiscounter=1
-    endif
-    endif
-
-  end function doARPACKiteration
-
-
-function doLAPACKsolver()
-    logical::doLAPACKsolver
-    doLAPACKsolver=.false.
-    if(associated(input%groundstate%solver))then
-    if ((input%groundstate%solver%typenumber.eq.1)) then
-       doLAPACKsolver=.true.
+               diiscounter = 1
+            End If
+         End If
+!
+      End Function doARPACKiteration
+!
+!
+      Function doLAPACKsolver ()
+         Logical :: doLAPACKsolver
+         doLAPACKsolver = .False.
+         If (associated(input%groundstate%solver)) Then
+            If ((input%groundstate%solver%typenumber .Eq. 1)) Then
+               doLAPACKsolver = .True.
 !!!       write(*,*)"LAPACK hevx"
-       diiscounter=1
-    endif
-    else
-    doLAPACKsolver=.true.
-    endif
-
-  end function doLAPACKsolver
-
-
-function allconverged(n, rnorms)
-    logical::allconverged
-    integer, intent(in)::n
-    real(8), intent(in):: rnorms(n)
-	real(8)::rnormmax
-	rnormmax=rnorms(idamax(n, rnorms, 1))
-    if (rnormmax.lt.epsresid) then
-       allconverged=.true.
-	 write(*, *)" converged", rnorms(idamax(n, rnorms, 1))
-    else
-       allconverged=.false.
-	write(*, *)"not converged", rnorms(idamax(n, rnorms, 1)) , idamax(n, rnorms, 1)
-    endif
-
-	if(rnormmax/lastresnorm.gt.1.1)then
+               diiscounter = 1
+            End If
+         Else
+            doLAPACKsolver = .True.
+         End If
+!
+      End Function doLAPACKsolver
+!
+!
+      Function allconverged (n, rnorms)
+         Logical :: allconverged
+         Integer, Intent (In) :: n
+         Real (8), Intent (In) :: rnorms (n)
+         Real (8) :: rnormmax
+         rnormmax = rnorms (idamax(n, rnorms, 1))
+         If (rnormmax .Lt. epsresid) Then
+            allconverged = .True.
+            Write (*,*) " converged", rnorms (idamax(n, rnorms, 1))
+         Else
+            allconverged = .False.
+            Write (*,*) "not converged", rnorms (idamax(n, rnorms, 1)), &
+           & idamax (n, rnorms, 1)
+         End If
+!
+         If (rnormmax/lastresnorm .Gt. 1.1) Then
  		!allconverged=.true.
-	write(*, *)"warning: error is gettig larger again", rnorms(idamax(n, rnorms, 1))
-	if (rnormmax.gt. .5e-6)then
-	allconverged=.false.
-	else
-	write(*, *)"error:error is gettig larger again"
+            Write (*,*) "warning: error is gettig larger again", rnorms &
+           & (idamax(n, rnorms, 1))
+            If (rnormmax .Gt. .5e-6) Then
+               allconverged = .False.
+            Else
+               Write (*,*) "error:error is gettig larger again"
       !  stop
-	endif
-
-    endif
-    lastresnorm=rnormmax
-  end function allconverged
-
-
-function dojacobdavidson()
-  logical::dojacobdavidson
-  dojacobdavidson=.false.
-if(tjdqz) then
-dojacobdavidson=.true.
-write(*, *)"JDQZ"
-endif
-  end function
-end module sclcontroll
+            End If
+!
+         End If
+         lastresnorm = rnormmax
+      End Function allconverged
+!
+!
+      Function dojacobdavidson ()
+         Logical :: dojacobdavidson
+         dojacobdavidson = .False.
+         If (tjdqz) Then
+            dojacobdavidson = .True.
+            Write (*,*) "JDQZ"
+         End If
+      End Function
+End Module sclcontroll

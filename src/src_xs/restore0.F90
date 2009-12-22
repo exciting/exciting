@@ -1,18 +1,18 @@
-
-
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine restore0
-  use modmain
-use modinput
-  use modxs
-  implicit none
-  filext=trim(filext_b)
-  input%groundstate%nosym=nosym_b
-  input%groundstate%swidth=swidth_b
-  input%groundstate%lmaxapw=lmaxapw_b
-  input%groundstate%lmaxmat=lmaxmat_b
-end subroutine restore0
+!
+!
+Subroutine restore0
+      Use modmain
+      Use modinput
+      Use modxs
+      Implicit None
+      filext = trim (filext_b)
+      input%groundstate%nosym = nosym_b
+      input%groundstate%swidth = swidth_b
+      input%groundstate%lmaxapw = lmaxapw_b
+      input%groundstate%lmaxmat = lmaxmat_b
+End Subroutine restore0

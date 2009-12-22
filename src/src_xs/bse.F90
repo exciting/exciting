@@ -1,25 +1,25 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: bse
 ! !INTERFACE:
-
-
-subroutine bse
+!
+!
+Subroutine bse
 ! !USES:
-use modinput
-  use modmain
-  use modxs
-  use m_genwgrid
-  use m_getpmat
-  use m_genfilname
-  use m_getunit
-  use m_writeeps
+      Use modinput
+      Use modmain
+      Use modxs
+      Use m_genwgrid
+      Use m_getpmat
+      Use m_genfilname
+      Use m_getunit
+      Use m_writeeps
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation (BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem (thanks to the spectral theorem that can
@@ -83,22 +83,26 @@ use modinput
 !   Created June 2008 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! local variables
-  integer, parameter :: iqmt=0
-  integer, parameter :: noptcmp=3
-  real(8), parameter :: epsortho=1.d-12
-  character(256) :: fnexc, fnexcs
-  integer :: iknr, jknr, iqr, iq, iw, iv2(3), s1, s2, hamsiz, nexc, ne
-  integer :: unexc, ist1, ist2, ist3, ist4, ikkp, oct, iv, ic, nvdif, ncdif
-  real(8) :: de, egap, ts0, ts1
+      Integer, Parameter :: iqmt = 0
+      Integer, Parameter :: noptcmp = 3
+      Real (8), Parameter :: epsortho = 1.d-12
+      Character (256) :: fnexc, fnexcs
+      Integer :: iknr, jknr, iqr, iq, iw, iv2 (3), s1, s2, hamsiz, &
+     & nexc, ne
+      Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, oct, iv, ic, &
+     & nvdif, ncdif
+      Real (8) :: de, egap, ts0, ts1
   ! allocatable arrays
-  integer, allocatable :: sor(:)
-  real(8), allocatable :: beval(:), w(:), oszsa(:)
-  complex(8), allocatable :: excli(:, :, :, :), sccli(:, :, :, :), ham(:, :)
-  complex(8), allocatable :: bevec(:, :), pm(:, :, :), pmat(:), oszs(:), spectr(:)
+      Integer, Allocatable :: sor (:)
+      Real (8), Allocatable :: beval (:), w (:), oszsa (:)
+      Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
+     & :), ham (:, :)
+      Complex (8), Allocatable :: bevec (:, :), pm (:, :, :), pmat (:), &
+     & oszs (:), spectr (:)
   ! external functions
-  integer, external :: l2int
+      Integer, External :: l2int
   ! *** TODO: symmetrize head of DM for spectrum
   !---------------------------!
   !     exciton variables     !   USE this ****************************
@@ -109,240 +113,268 @@ use modinput
   !!if (allocated(excito)) deallocate(excito)
   !!allocate(excito(nexcitmax,3))
   !!excito(:,:)=0.d0
-  call init0
-  call init1
-  call init2
-  call xssave0
+      Call init0
+      Call init1
+      Call init2
+      Call xssave0
   ! read Fermi energy from file
-  call readfermi
+      Call readfermi
   ! initialize states below and above the Fermi energy
-  nbfbse=input%xs%BSE%nstlbse(1)
-  nafbse=input%xs%BSE%nstlbse(2)
-  call initocc(nbfbse, nafbse)
+      nbfbse = input%xs%bse%nstlbse(1)
+      nafbse = input%xs%bse%nstlbse(2)
+      Call initocc (nbfbse, nafbse)
   ! use eigenvector files from screening-calculation
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
-  call findocclims(iqmt, istocc0, istocc, istunocc0, istunocc, isto0, isto, istu0, istu)
-  nvdif=nstocc0-nbfbse
-  ncdif=nstunocc0-nafbse
-
-write(*, *) 'nbfbse, nafbse', nbfbse, nafbse
-write(*, *) 'nvdif, ncdif', nvdif, ncdif
-
+      Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
+      Call findocclims (iqmt, istocc0, istocc, istunocc0, istunocc, &
+     & isto0, isto, istu0, istu)
+      nvdif = nstocc0 - nbfbse
+      ncdif = nstunocc0 - nafbse
+!
+      Write (*,*) 'nbfbse, nafbse', nbfbse, nafbse
+      Write (*,*) 'nvdif, ncdif', nvdif, ncdif
+!
   ! ****************************************************
-  input%xs%emattype=2
-  call ematbdcmbs(input%xs%emattype)
-  write(unitout, *)
-  write(unitout, '("Info(bse): information on number of states:")')
-  write(unitout, '(" number of states below Fermi energy in Hamiltonian:", i6)') &
-       nbfbse
-  write(unitout, '(" number of states above Fermi energy in Hamiltonian:", i6)') &
-       nafbse
-  write(unitout, '(" ranges of states according to BSE matrix:")')
-  write(unitout, '("  range of first index and number  :", 2i6, 3x, i6)') &
-       istl1, istu1, nst1
-  write(unitout, '("  range of second index and number :", 2i6, 3x, i6)') &
-       istl2, istu2, nst2
-  write(unitout, '("  range of third index and number  :", 2i6, 3x, i6)') &
-       istl3, istu3, nst3
-  write(unitout, '("  range of fourth index and number :", 2i6, 3x, i6)') &
-       istl4, istu4, nst4
-  if ((nvdif.lt.0).or.(ncdif.lt.0)) then
-     write(unitout, *)
-     write(unitout, '("Error(bse): inconsistency in ranges of states - check &
-	  & routine for nvdif, ncdif")')
-     write(unitout, *)
-     call terminate
-  end if
+      input%xs%emattype = 2
+      Call ematbdcmbs (input%xs%emattype)
+      Write (unitout,*)
+      Write (unitout, '("Info(bse): information on number of states:")')
+      Write (unitout, '(" number of states below Fermi energy in Hamilt&
+     &onian:", i6)') nbfbse
+      Write (unitout, '(" number of states above Fermi energy in Hamilt&
+     &onian:", i6)') nafbse
+      Write (unitout, '(" ranges of states according to BSE matrix:")')
+      Write (unitout, '("  range of first index and number  :", 2i6, 3x&
+     &, i6)') istl1, istu1, nst1
+      Write (unitout, '("  range of second index and number :", 2i6, 3x&
+     &, i6)') istl2, istu2, nst2
+      Write (unitout, '("  range of third index and number  :", 2i6, 3x&
+     &, i6)') istl3, istu3, nst3
+      Write (unitout, '("  range of fourth index and number :", 2i6, 3x&
+     &, i6)') istl4, istu4, nst4
+      If ((nvdif .Lt. 0) .Or. (ncdif .Lt. 0)) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(bse): inconsistency in ranges of stat&
+        &es - check  routine for nvdif, ncdif")')
+         Write (unitout,*)
+         Call terminate
+      End If
   ! size of BSE-Hamiltonian
-  hamsiz=nbfbse*nafbse*nkptnr
+      hamsiz = nbfbse * nafbse * nkptnr
   ! allocate arrays for Coulomb interactons
-  allocate(sccli(nst1, nst3, nst2, nst4))
-  allocate(excli(nst1, nst3, nst2, nst4))
+      Allocate (sccli(nst1, nst3, nst2, nst4))
+      Allocate (excli(nst1, nst3, nst2, nst4))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
-  allocate(ham(hamsiz, hamsiz))
-  ham(:, :)=zzero
+      Allocate (ham(hamsiz, hamsiz))
+      ham (:, :) = zzero
   ! read in energies
-  do iknr=1, nkptnr
-     call getevalsv(vkl(1, iknr), evalsv(1, iknr))
-  end do
+      Do iknr = 1, nkptnr
+         Call getevalsv (vkl(1, iknr), evalsv(1, iknr))
+      End Do
   ! read mean value of diagonal of direct term
-  bsed=0.d0
-  if ((trim(input%xs%BSE%bsetype).eq.'singlet').or.(trim(input%xs%BSE%bsetype).eq.'triplet')) then
-    if (input%xs%BSE%bsedirsing) then
-      call getbsediag
-      write(unitout, '("Info(bse): read diagonal of BSE kernel")')
-      write(unitout, '(" mean value : ", 2g18.10)') bsed
-    end if
-  end if
+      bsed = 0.d0
+      If ((trim(input%xs%bse%bsetype) .Eq. 'singlet') .Or. &
+     & (trim(input%xs%bse%bsetype) .Eq. 'triplet')) Then
+         If (input%xs%bse%bsedirsing) Then
+            Call getbsediag
+            Write (unitout, '("Info(bse): read diagonal of BSE kernel")&
+           &')
+            Write (unitout, '(" mean value : ", 2g18.10)') bsed
+         End If
+      End If
   ! determine gap
-  egap=1.d8
-  do iknr=1, nkptnr
-     do ist1=1+nvdif, nst1
-	do ist3=1, nst3-ncdif
-	   egap = min(egap, evalsv(ist3 + istocc, iknr) - evalsv(ist1, iknr) + input%xs%scissor)
-	end do
-      end do
-  end do
-  write(unitout, '("Info(bse): gap:", g18.10)') egap
-  if (egap.lt.input%groundstate%epspot) then
-     write(unitout, *)
-     write(unitout, '("Error(bse): BSE needs system with gap")')
-     write(unitout, *)
-     call terminate
-  end if
+      egap = 1.d8
+      Do iknr = 1, nkptnr
+         Do ist1 = 1 + nvdif, nst1
+            Do ist3 = 1, nst3 - ncdif
+               egap = Min (egap, evalsv(ist3+istocc, iknr)-evalsv(ist1, &
+              & iknr)+input%xs%scissor)
+            End Do
+         End Do
+      End Do
+      Write (unitout, '("Info(bse): gap:", g18.10)') egap
+      If (egap .Lt. input%groundstate%epspot) Then
+         Write (unitout,*)
+         Write (unitout, '("Error(bse): BSE needs system with gap")')
+         Write (unitout,*)
+         Call terminate
+      End If
   ! set up BSE-Hamiltonian
-  ikkp=0
-  do iknr=1, nkptnr
-     do jknr=iknr, nkptnr
-	ikkp=ikkp+1
-	iv2(:)=ivknr(:, jknr)-ivknr(:, iknr)
-	iv2(:)=modulo(iv2(:), input%groundstate%ngridk(:))
+      ikkp = 0
+      Do iknr = 1, nkptnr
+         Do jknr = iknr, nkptnr
+            ikkp = ikkp + 1
+            iv2 (:) = ivknr (:, jknr) - ivknr (:, iknr)
+            iv2 (:) = modulo (iv2(:), input%groundstate%ngridk(:))
         ! q-point (reduced)
-	iqr=iqmapr(iv2(1), iv2(2), iv2(3))
+            iqr = iqmapr (iv2(1), iv2(2), iv2(3))
         ! q-point (non-reduced)
-	iq=iqmap(iv2(1), iv2(2), iv2(3))
-	select case(trim(input%xs%BSE%bsetype))
-	case('singlet', 'triplet')
+            iq = iqmap (iv2(1), iv2(2), iv2(3))
+            Select Case (trim(input%xs%bse%bsetype))
+            Case ('singlet', 'triplet')
            ! read screened Coulomb interaction
-	   call getbsemat('SCCLI.OUT', ikkp, nst1, nst3, sccli)
-	end select
+               Call getbsemat ('SCCLI.OUT', ikkp, nst1, nst3, sccli)
+            End Select
         ! read exchange Coulomb interaction
-	select case(trim(input%xs%BSE%bsetype))
-	case('rpa', 'singlet')
-	   call getbsemat('EXCLI.OUT', ikkp, nst1, nst3, excli)
-	end select
+            Select Case (trim(input%xs%bse%bsetype))
+            Case ('rpa', 'singlet')
+               Call getbsemat ('EXCLI.OUT', ikkp, nst1, nst3, excli)
+            End Select
         ! set up matrix
-	do ist1=1+nvdif, nst1
-	   do ist3=1, nst3-ncdif
-	      do ist2=1+nvdif, nst2
-		 do ist4=1, nst4-ncdif
-		    s1=hamidx(ist1-nvdif, ist3, iknr, nbfbse, nafbse)
-		    s2=hamidx(ist2-nvdif, ist4, jknr, nbfbse, nafbse)
+            Do ist1 = 1 + nvdif, nst1
+               Do ist3 = 1, nst3 - ncdif
+                  Do ist2 = 1 + nvdif, nst2
+                     Do ist4 = 1, nst4 - ncdif
+                        s1 = hamidx (ist1-nvdif, ist3, iknr, nbfbse, &
+                       & nafbse)
+                        s2 = hamidx (ist2-nvdif, ist4, jknr, nbfbse, &
+                       & nafbse)
                     ! add diagonal term
-		    if (s1.eq.s2) then
-		       de = evalsv(ist3 + istocc, iknr) - evalsv(ist1, iknr) + input%xs%scissor
-		       ham(s1, s2)=ham(s1, s2)+de-egap+bsed
-		    end if
+                        If (s1 .Eq. s2) Then
+                           de = evalsv (ist3+istocc, iknr) - evalsv &
+                          & (ist1, iknr) + input%xs%scissor
+                           ham (s1, s2) = ham (s1, s2) + de - egap + &
+                          & bsed
+                        End If
                     ! add exchange term
-		    select case(trim(input%xs%BSE%bsetype))
-		    case('rpa', 'singlet')
-		       ham(s1, s2)=ham(s1, s2)+2.0d0*excli(ist1, ist3, ist2, ist4)
-		    end select
+                        Select Case (trim(input%xs%bse%bsetype))
+                        Case ('rpa', 'singlet')
+                           ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
+                          & (ist1, ist3, ist2, ist4)
+                        End Select
                     ! add correlation term
-		    select case(trim(input%xs%BSE%bsetype))
-		    case('singlet', 'triplet')
-		       ham(s1, s2)=ham(s1, s2)-sccli(ist1, ist3, ist2, ist4)
-		    end select
-		 end do
-	      end do
-	   end do
-	end do
+                        Select Case (trim(input%xs%bse%bsetype))
+                        Case ('singlet', 'triplet')
+                           ham (s1, s2) = ham (s1, s2) - sccli (ist1, &
+                          & ist3, ist2, ist4)
+                        End Select
+                     End Do
+                  End Do
+               End Do
+            End Do
         ! end loop over (k,kp)-pairs
-     end do
-  end do
-  deallocate(excli, sccli)
-  write(unitout, *)
-  write(unitout, '("Info(bse): invoking Lapack routine ZHEEVX")')
-  write(unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
-  write(unitout, '(" number of requested solutions : ", i8)') input%xs%BSE%nexcitmax
+         End Do
+      End Do
+      Deallocate (excli, sccli)
+      Write (unitout,*)
+      Write (unitout, '("Info(bse): invoking Lapack routine ZHEEVX")')
+      Write (unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
+      Write (unitout, '(" number of requested solutions : ", i8)') &
+     & input%xs%bse%nexcitmax
   ! allocate eigenvector and eigenvalue arrays
-  allocate(beval(hamsiz), bevec(hamsiz, hamsiz))
+      Allocate (beval(hamsiz), bevec(hamsiz, hamsiz))
   ! set number of excitons
-  ne=hamsiz
-  call timesec(ts0)
+      ne = hamsiz
+      Call timesec (ts0)
   ! diagonalize Hamiltonian
-  call bsesoldiag(hamsiz, ne, ham, beval, bevec)
-  call timesec(ts1)
+      Call bsesoldiag (hamsiz, ne, ham, beval, bevec)
+      Call timesec (ts1)
   ! deallocate BSE-Hamiltonian
-  deallocate(ham)
-  write(unitout, '(" timing (in seconds)	   :", f12.3)') ts1-ts0
+      Deallocate (ham)
+      Write (unitout, '(" timing (in seconds)	   :", f12.3)') ts1 - ts0
   ! number of excitons to consider
-  nexc=hamsiz
-  allocate(oszs(nexc), oszsa(nexc), sor(nexc), pmat(hamsiz))
-  allocate(w(input%xs%dosWindow%points), spectr(input%xs%dosWindow%points))
-  call genwgrid(nwdf, input%xs%dosWindow%intv, input%xs%tddft%acont, 0.d0, w_real=w)
-  do oct=1, noptcmp
-     oszs(:)=zzero
-     call genfilname(basename = 'EPSILON', tq0 = .true., oc1 = oct, oc2 = oct, &
-	bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
-    &.not.input%xs%tddft%aresdf, filnam = fneps)
-     call genfilname(basename = 'EXCITON', tq0 = .true., oc1 = oct, oc2 = oct, &
-	  bsetype= input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
-    &.not.input%xs%tddft%aresdf, filnam = fnexc)
-     call genfilname(basename = 'EXCITON_SORTED', tq0 = .true., oc1 = oct, oc2 = oct, &
-	 bsetype = input%xs%BSE%bsetype, scrtype = input%xs%screening%screentype, nar =&
-    &.not.input%xs%tddft%aresdf, filnam = fnexcs)
+      nexc = hamsiz
+      Allocate (oszs(nexc), oszsa(nexc), sor(nexc), pmat(hamsiz))
+      Allocate (w(input%xs%dosWindow%points), &
+     & spectr(input%xs%dosWindow%points))
+      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+     & input%xs%tddft%acont, 0.d0, w_real=w)
+      Do oct = 1, noptcmp
+         oszs (:) = zzero
+         Call genfilname (basename='EPSILON', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fneps)
+         Call genfilname (basename='EXCITON', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnexc)
+         Call genfilname (basename='EXCITON_SORTED', tq0=.True., &
+        & oc1=oct, oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnexcs)
      ! read momentum matrix elements
-     allocate(pm(3, nstsv, nstsv))
-     do iknr=1, nkptnr
-	call getpmat(iknr, vkl, 1, nstsv, 1, nstsv, .true., 'PMAT_XS.OUT', pm)
-	do ist1=1+nvdif, nstsv-nstunocc0
-	   do ist2=nstocc0+1, nstsv-ncdif
-	      s1=hamidx(ist1-nvdif, ist2-nstocc0, iknr, nbfbse, nafbse)
-	      pmat(s1)=pm(oct, ist1, ist2)
-	   end do
-	end do
-     end do
-     deallocate(pm)
+         Allocate (pm(3, nstsv, nstsv))
+         Do iknr = 1, nkptnr
+            Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., 'PMAT_&
+           &XS.OUT', pm)
+            Do ist1 = 1 + nvdif, nstsv - nstunocc0
+               Do ist2 = nstocc0 + 1, nstsv - ncdif
+                  s1 = hamidx (ist1-nvdif, ist2-nstocc0, iknr, nbfbse, &
+                 & nafbse)
+                  pmat (s1) = pm (oct, ist1, ist2)
+               End Do
+            End Do
+         End Do
+         Deallocate (pm)
      ! calculate oscillators for spectrum
-     do s1=1, nexc
-	do iknr=1, nkptnr
-	   do iv=1, nbfbse
-	      do ic=1, nafbse
-		 s2=hamidx(iv, ic, iknr, nbfbse, nafbse)
-		 oszs(s1) = oszs(s1) + bevec(s2, s1) * pmat(s2)/ &
-		      (evalsv(ic + istocc, iknr) - evalsv(iv + nvdif, iknr))
-	      end do
-	   end do
-	end do
-     end do
-     spectr(:)=zzero
-     do iw=1, input%xs%dosWindow%points
-	do s1=1, nexc
+         Do s1 = 1, nexc
+            Do iknr = 1, nkptnr
+               Do iv = 1, nbfbse
+                  Do ic = 1, nafbse
+                     s2 = hamidx (iv, ic, iknr, nbfbse, nafbse)
+                     oszs (s1) = oszs (s1) + bevec (s2, s1) * pmat (s2) &
+                    & / (evalsv(ic+istocc, iknr)-evalsv(iv+nvdif, &
+                    & iknr))
+                  End Do
+               End Do
+            End Do
+         End Do
+         spectr (:) = zzero
+         Do iw = 1, input%xs%dosWindow%points
+            Do s1 = 1, nexc
            ! Lorentzian lineshape
-	   spectr(iw) = spectr(iw) + abs(oszs(s1)) ** 2 * ( &
-		1.d0/( w(iw) - (beval(s1) + egap - bsed) + zi * input%xs%broad) )
-	   if (input%xs%tddft%aresdf) spectr(iw) = spectr(iw) + abs(oszs(s1)) ** 2 * ( &
-		1.d0/( - w(iw) - (beval(s1) + egap - bsed) - zi * input%xs%broad) )
-	end do
-     end do
-     spectr(:)=l2int(oct.eq.oct)*1.d0-spectr(:)*8.d0*pi/omega/nkptnr
+               spectr (iw) = spectr (iw) + Abs (oszs(s1)) ** 2 * &
+              & (1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*input%xs%broad))
+               If (input%xs%tddft%aresdf) spectr (iw) = spectr (iw) + &
+              & Abs (oszs(s1)) ** 2 * &
+              & (1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*input%xs%broad))
+            End Do
+         End Do
+         spectr (:) = l2int (oct .Eq. oct) * 1.d0 - spectr (:) * 8.d0 * &
+        & pi / omega / nkptnr
      ! write BSE spectrum
-     call writeeps(iqmt, oct, oct, w, spectr, fneps)
+         Call writeeps (iqmt, oct, oct, w, spectr, fneps)
      ! oscillator strengths
-     call getunit(unexc)
-     open(unexc, file=fnexc, form='formatted', action='write', status='replace')
-     do s2=1, hamsiz
-	write(unexc, '(i8, 5g18.10)') s2, (beval(s2) + egap - dble(bsed)) * escale, &
-	     (beval(s2) + dble(bsed)) * escale, abs(oszs(s2))
-     end do
-     write(unexc, '("# Nr.  E		      E - E_gap        |Osc.Str.|")')
-     write(unexc, '("# E_gap : ", g18.10)') egap*escale
-     if (input%xs%tevout) write(unexc, '("# energies are in electron volts")')
-     close(unexc)
+         Call getunit (unexc)
+         Open (unexc, File=fnexc, Form='formatted', Action='write', &
+        & Status='replace')
+         Do s2 = 1, hamsiz
+            Write (unexc, '(i8, 5g18.10)') s2, &
+           & (beval(s2)+egap-dble(bsed)) * escale, &
+           & (beval(s2)+dble(bsed)) * escale, Abs (oszs(s2))
+         End Do
+         Write (unexc, '("# Nr.  E		      E - E_gap        |Osc.Str.|")&
+        &')
+         Write (unexc, '("# E_gap : ", g18.10)') egap * escale
+         If (input%xs%tevout) write (unexc, '("# energies are in electr&
+        &on volts")')
+         Close (unexc)
      ! oscillator strengths sorted
-     oszsa=abs(oszs)
-     call sortidx(hamsiz, oszsa, sor)
-     sor=sor(hamsiz:1:-1)
-     open(unexc, file=fnexcs, form='formatted', action='write', status='replace')
-     do s1=1, hamsiz
-	s2=sor(s1)
-	write(unexc, '(i8, 4g18.10)') s1, (beval(s2) + egap - dble(bsed)) * escale, &
-	     (beval(s2) + dble(bsed)) * escale, abs(oszs(s2))
-     end do
-     write(unexc, '("#	  Nr.	E		  E - E_gap	   |Osc.Str.|")')
-     write(unexc, '("# E_gap : ", g18.10)') egap*escale
-     if (input%xs%tevout) write(unexc, '("# energies are in electron volts")')
-     close(unexc)
+         oszsa = Abs (oszs)
+         Call sortidx (hamsiz, oszsa, sor)
+         sor = sor (hamsiz:1:-1)
+         Open (unexc, File=fnexcs, Form='formatted', Action='write', &
+        & Status='replace')
+         Do s1 = 1, hamsiz
+            s2 = sor (s1)
+            Write (unexc, '(i8, 4g18.10)') s1, &
+           & (beval(s2)+egap-dble(bsed)) * escale, &
+           & (beval(s2)+dble(bsed)) * escale, Abs (oszs(s2))
+         End Do
+         Write (unexc, '("#	  Nr.	E		  E - E_gap	   |Osc.Str.|")')
+         Write (unexc, '("# E_gap : ", g18.10)') egap * escale
+         If (input%xs%tevout) write (unexc, '("# energies are in electr&
+        &on volts")')
+         Close (unexc)
      ! end loop over optical components
-  end do
-contains
-
-  integer function hamidx(i1, i2, ik, n1, n2)
-    implicit none
-    integer, intent(in) :: i1, i2, ik, n1, n2
-    hamidx=i2+n2*(i1-1)+n1*n2*(ik-1)
-  end function hamidx
-
-end subroutine bse
+      End Do
+Contains
+!
+      Integer Function hamidx (i1, i2, ik, n1, n2)
+         Implicit None
+         Integer, Intent (In) :: i1, i2, ik, n1, n2
+         hamidx = i2 + n2 * (i1-1) + n1 * n2 * (ik-1)
+      End Function hamidx
+!
+End Subroutine bse
 !EOC

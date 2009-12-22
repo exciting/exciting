@@ -1,27 +1,27 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine terminateqry(str)
-  use m_getunit
-  implicit none
+!
+!
+Subroutine terminateqry (str)
+      Use m_getunit
+      Implicit None
   ! arguments
-  character(*) :: str
+      Character (*) :: str
   ! local variables
-  logical :: exis
-  integer :: un
+      Logical :: exis
+      Integer :: un
   ! check for terminating
-  inquire(file='TERMINATE', exist=exis)
-  if (exis) then
-     write( * , '(a)') 'Error: user termination of program in routine: '// &
-	  trim(str)
-     call getunit(un)
-     open(un, file='TERMINATE', action='write')
-     close(un, status='delete')
-     call terminate
-  end if
-end subroutine terminateqry
+      Inquire (File='TERMINATE', Exist=exis)
+      If (exis) Then
+         Write (*, '(a)') 'Error: user termination of program in routin&
+        &e: ' // trim (str)
+         Call getunit (un)
+         Open (un, File='TERMINATE', Action='write')
+         Close (un, Status='delete')
+         Call terminate
+      End If
+End Subroutine terminateqry

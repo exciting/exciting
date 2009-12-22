@@ -1,8 +1,8 @@
-subroutine gettasks()
-
-end subroutine
-
-function dotask(taskname)
-
-
-end function
+Subroutine gettasks ()
+!
+End Subroutine
+!
+Function dotask (taskname)
+!
+!
+End Function

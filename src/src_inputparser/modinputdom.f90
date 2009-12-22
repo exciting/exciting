@@ -1,75 +1,79 @@
-module inputdom
-	use FoX_dom
-
-  	implicit none
- 	type(Node), pointer :: doc,inputnp,nullnode,emptynode,dummy
-    type(DOMConfiguration),pointer :: config
-    logical::parseerror
+Module inputdom
+      Use FoX_dom
+!
+      Implicit None
+      Type (Node), Pointer :: doc, inputnp, nullnode, emptynode, dummy
+      Type (DOMConfiguration), Pointer :: config
+      Logical :: parseerror
 ! Request full canonicalization
 ! ie convert CDATA sections to text sections, remove all entity references etc.
-
-
-
-contains
-
-subroutine loadinputDOM()
-  config => newDOMConfig()
-  parseerror=.false.
-  call setParameter(config, "validate-if-schema", .true.)
-  doc => parseFile("input.xml",config)
-  inputnp=>getDocumentElement(doc)
-  nullnode =>getattributenode(inputnp,"shouldneverexist")
-  parseerror=.false.
-   dummy => createDocument(getImplementation(), "", "info", null())
-   emptynode=>createElementNS(dummy, "", "empty")
-end subroutine
-
-subroutine handleunknownnodes(np)
-	type(Node),pointer::np,unknownnode
-	type(NodeList),pointer::nl
-	type( NamedNodeMap),pointer::nnm
-	integer:: len,i
-	len=0
-	nnm=>getAttributes(np)
-	len=getLength(nnm)
-	if(.not. getNodeName(np) .eq. "input")then
-	if(len.gt.0) then
-		Do i=0, len-1
-				unknownnode=>item(nnm,i)
-				write(*,*) ">>>>> unrecognized attribute:"
-				write(*,*) 	"      ",getName(unknownnode),'="',getValue(unknownnode),'" in element ',getNodeName(np)
-				parseerror=.true.
-		end do
-	endif
-	endif
-	nl=>getChildNodes(np)
-	len=getLength(nl)
-	if(len.gt.0) then
-
-		Do i=0, len-1
-			unknownnode=>item(nl,i)
-			select case(getnodetype(unknownnode))
-			case(ELEMENT_NODE)
-			write(*,*) ">>>>> unrecognized element:"
-			write(*,*) 	"     <",getNodeName(unknownnode),"> in element <",getNodeName(np),">"
-			parseerror=.true.
-			case(TEXT_NODE)
-			end select
-		end do
-	endif
-end subroutine
-
-subroutine ifparseerrorstop()
-if(parseerror) then
-write(*,*)"Stopping because of parse error"
-stop
-endif
-end subroutine
-
-
-subroutine destroyDOM()
- call destroy(doc)
- call destroy(config)
-end subroutine
-
-end module
+!
+!
+!
+Contains
+!
+      Subroutine loadinputDOM ()
+         config => newDOMConfig ()
+         parseerror = .False.
+         Call setParameter (config, "validate-if-schema", .True.)
+         doc => parseFile ("input.xml", config)
+         inputnp => getDocumentElement (doc)
+         nullnode => getattributenode (inputnp, "shouldneverexist")
+         parseerror = .False.
+         dummy => createDocument (getImplementation(), "", "info", &
+        & null())
+         emptynode => createElementNS (dummy, "", "empty")
+      End Subroutine
+!
+      Subroutine handleunknownnodes (np)
+         Type (Node), Pointer :: np, unknownnode
+         Type (NodeList), Pointer :: nl
+         Type (NamedNodeMap), Pointer :: nnm
+         Integer :: Len, i
+         Len = 0
+         nnm => getAttributes (np)
+         Len = getLength (nnm)
+         If ( .Not. getNodeName(np) .Eq. "input") Then
+            If (len .Gt. 0) Then
+               Do i = 0, len - 1
+                  unknownnode => item (nnm, i)
+                  Write (*,*) ">>>>> unrecognized attribute:"
+                  Write (*,*) "      ", getName (unknownnode), '="', &
+                 & getValue (unknownnode), '" in element ', getNodeName &
+                 & (np)
+                  parseerror = .True.
+               End Do
+            End If
+         End If
+         nl => getChildNodes (np)
+         Len = getLength (nl)
+         If (len .Gt. 0) Then
+!
+            Do i = 0, len - 1
+               unknownnode => item (nl, i)
+               Select Case (getnodetype(unknownnode))
+               Case (ELEMENT_NODE)
+                  Write (*,*) ">>>>> unrecognized element:"
+                  Write (*,*) "     <", getNodeName (unknownnode), "> i&
+                 &n element <", getNodeName (np), ">"
+                  parseerror = .True.
+               Case (TEXT_NODE)
+               End Select
+            End Do
+         End If
+      End Subroutine
+!
+      Subroutine ifparseerrorstop ()
+         If (parseerror) Then
+            Write (*,*) "Stopping because of parse error"
+            Stop 1
+         End If
+      End Subroutine
+!
+!
+      Subroutine destroyDOM ()
+         Call destroy (doc)
+         Call destroy (config)
+      End Subroutine
+!
+End Module

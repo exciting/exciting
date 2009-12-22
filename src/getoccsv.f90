@@ -1,154 +1,204 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine getoccsv(vpl, occsvp)
-  use modmain
-use modinput
-  use modmpi
-  implicit none
+!
+!
+!BOP
+! !ROUTINE: getoccsv
+! !INTERFACE:
+!
+Subroutine getoccsv (vpl, occsvp)
+! !USES:
+      Use modmain
+      Use modinput
+      Use modmpi
+! !DESCRIPTION:
+!   The file where the (second-variational) occupation numbers are stored is
+!    {\tt OCCSV.OUT}.
+!   The maximum occupancies for spin-unpolarized systems is $2$, whereas for
+!   spin-polarized systems it is $1$.
+!   It is a direct-access binary file, the record length of which can be
+!   determined
+!   with the help of the array sizes and data type information.
+!   One record of this file has the following structure
+!
+!   \begin{tabular}{|l|l|l|}
+!   \hline
+!   $k_{\rm lat}$ & $N_{\rm stsv}$ & $o$ \\
+!   \hline
+!   \end{tabular}\newline\newline
+!   The following table explains the parts of the record in more detail
+!
+!   \begin{tabular}{|l|l|l|l|}
+!   \hline
+!   name & type & shape & description\\
+!   \hline \hline
+!   $k_{\rm lat}$ & real(8) & 3 & k-point in lattice coordinates \\ \hline
+!   $N_{\rm stsv}$ & integer & 1 & number of (second-variational) states \\
+!    &  &  & (without core states) \\ \hline
+!   $o$ & real(8) & $N_{\rm stsv}$ & (second-variational) occupation number
+!    array \\
+!   \hline
+!   \end{tabular}\newline\newline
+!
+! !REVISION HISTORY:
+!   Documentation added, Dec 2009 (SAG)
+!EOP
+!BOC
+      Implicit None
   ! arguments
-  real(8), intent(in) :: vpl(3)
-  real(8), intent(out) :: occsvp(nstsv)
+      Real (8), Intent (In) :: vpl (3)
+      Real (8), Intent (Out) :: occsvp (nstsv)
   ! local variables
-  logical::exist
-  integer::isym, ik, koffset, i
-  integer::recl, nstsv_
-  real(8)::vkl_(3), t1
-  character(256) ::filetag
-  character(256), external:: outfilenamestring
+      Logical :: exist
+      Integer :: isym, ik, koffset, i
+      Integer :: recl, nstsv_
+      Real (8) :: vkl_ (3), t1
+      Character (256) :: filetag
+      Character (256), External :: outfilenamestring
 #ifdef XS
   ! added feature to access arrays for only a subset of bands
-  real(8), allocatable :: occsv_(:)
+      Real (8), Allocatable :: occsv_ (:)
 #endif
   ! find the k-point number
-  call findkpt(vpl, isym, ik)
+      Call findkpt (vpl, isym, ik)
   ! find the record length
-
+!
 #ifdef XS
-  inquire(iolength=recl) vkl_, nstsv_
+      Inquire (IoLength=Recl) vkl_, nstsv_
 #endif
 #ifndef XS
-  inquire(iolength=recl) vkl_, nstsv_, occsvp
+      Inquire (IoLength=Recl) vkl_, nstsv_, occsvp
 #endif
-  filetag=trim(filetag_occsv)
- do i=1, 100
-inquire(file=outfilenamestring(filetag, ik), exist=exist)
- if (exist) then
-open(70, file = outfilenamestring(filetag, ik), action = 'READ', &
- form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
-exit
-else 
-call system('sync')
-write( * , *) "Waiting for other process to write"//":getoccsv:"// &
-     trim(outfilenamestring(filetag, ik))
-call sleep(5)
-endif
-enddo
-  if (splittfile) then
- koffset=ik-firstk(procofk(ik))+1
- else
- koffset =ik
- endif
+      filetag = trim (filetag_occsv)
+      Do i = 1, 100
+         Inquire (File=outfilenamestring(filetag, ik), Exist=Exist)
+         If (exist) Then
+            Open (70, File=outfilenamestring(filetag, ik), Action='READ&
+           &', Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+            Exit
+         Else
+            Call system ('sync')
+            Write (*,*) "Waiting for other process to write" // ":getoc&
+           &csv:" // trim (outfilenamestring(filetag, ik))
+            Call sleep (5)
+         End If
+      End Do
+      If (splittfile) Then
+         koffset = ik - firstk (procofk(ik)) + 1
+      Else
+         koffset = ik
+      End If
 #ifdef XS
-  read(70, rec=1) vkl_, nstsv_
-  close(70)
-  if (nstsv.gt.nstsv_) then
-     write(*, *)
-     write(*, '("Error(getoccsv): invalid nstsv for k-point ", I8)') ik
-     write(*, '(" current    : ", I8)') nstsv
-     write(*, '(" OCCSV.OUT  : ", I8)') nstsv_
-     write(*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
-     write(*, *)
-     stop
-  end if
-  allocate(occsv_(nstsv_))
-  inquire(iolength=recl) vkl_, nstsv_, occsv_
-  open(70, file = outfilenamestring(filetag, ik), action = 'READ', &
-       form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
-  read(70, rec=koffset) vkl_, nstsv_, occsv_
+      Read (70, Rec=1) vkl_, nstsv_
+      Close (70)
+      If (nstsv .Gt. nstsv_) Then
+         Write (*,*)
+         Write (*, '("Error(getoccsv): invalid nstsv for k-point ", I8)&
+        &') ik
+         Write (*, '(" current    : ", I8)') nstsv
+         Write (*, '(" OCCSV.OUT  : ", I8)') nstsv_
+         Write (*, '(" file	     : ", a	 )') trim &
+        & (outfilenamestring(filetag, ik))
+         Write (*,*)
+         Stop
+      End If
+      Allocate (occsv_(nstsv_))
+      Inquire (IoLength=Recl) vkl_, nstsv_, occsv_
+      Open (70, File=outfilenamestring(filetag, ik), Action='READ', &
+     & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+      Read (70, Rec=koffset) vkl_, nstsv_, occsv_
   ! retreive subset
-  occsvp(:)=occsv_(:nstsv)
-  deallocate(occsv_)
+      occsvp (:) = occsv_ (:nstsv)
+      Deallocate (occsv_)
 #endif
 #ifndef XS
-read(70, rec=koffset) vkl_, nstsv_, occsvp
+      Read (70, Rec=koffset) vkl_, nstsv_, occsvp
 #endif
-  close(70)
-
-t1=abs(vkl(1, ik)-vkl_(1))+abs(vkl(2, ik)-vkl_(2))+abs(vkl(3, ik)-vkl_(3))
-  if (t1.gt.input%structure%epslat) then
-     write(*, *)
-     write(*, '("Error(getoccsv): differing vectors for k-point ", I8)') ik
-     write(*, '(" current    : ", 3G18.10)') vkl(:, ik)
-     write(*, '(" OCCSV.OUT  : ", 3G18.10)') vkl_
-     write(*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
-     write(*, *)
-     stop
-  end if
+      Close (70)
+!
+      t1 = Abs (vkl(1, ik)-vkl_(1)) + Abs (vkl(2, ik)-vkl_(2)) + Abs &
+     & (vkl(3, ik)-vkl_(3))
+      If (t1 .Gt. input%structure%epslat) Then
+         Write (*,*)
+         Write (*, '("Error(getoccsv): differing vectors for k-point ",&
+        & I8)') ik
+         Write (*, '(" current    : ", 3G18.10)') vkl (:, ik)
+         Write (*, '(" OCCSV.OUT  : ", 3G18.10)') vkl_
+         Write (*, '(" file	     : ", a	 )') trim &
+        & (outfilenamestring(filetag, ik))
+         Write (*,*)
+         Stop
+      End If
 #ifndef XS
-  if (nstsv.ne.nstsv_) then
-     write(*, *)
-     write(*, '("Error(getoccsv): differing nstsv for k-point ", I8)') ik
-     write(*, '(" current    : ", I8)') nstsv
-     write(*, '(" OCCSV.OUT  : ", I8)') nstsv_
-     write(*, '(" file	     : ", a	 )') trim(outfilenamestring(filetag, ik))
-     write(*, *)
-     stop
-  end if
+      If (nstsv .Ne. nstsv_) Then
+         Write (*,*)
+         Write (*, '("Error(getoccsv): differing nstsv for k-point ", I&
+        &8)') ik
+         Write (*, '(" current    : ", I8)') nstsv
+         Write (*, '(" OCCSV.OUT  : ", I8)') nstsv_
+         Write (*, '(" file	     : ", a	 )') trim &
+        & (outfilenamestring(filetag, ik))
+         Write (*,*)
+         Stop
+      End If
 #endif
-  return
-end subroutine getoccsv
+      Return
+End Subroutine getoccsv
+!EOC
 
-module m_getoccsvr
-  implicit none
-contains
-
-
-subroutine getoccsvr(fname, isti, istf, vpl, occsvp)
-    use modmain
-    implicit none
+Module m_getoccsvr
+      Implicit None
+Contains
+!
+!
+      Subroutine getoccsvr (fname, isti, istf, vpl, occsvp)
+         Use modmain
+         Implicit None
     ! arguments
-    character(*), intent(in) :: fname
-    integer, intent(in) :: isti, istf
-    real(8), intent(in) :: vpl(3)
-    real(8), intent(out) :: occsvp(:)
+         Character (*), Intent (In) :: fname
+         Integer, Intent (In) :: isti, istf
+         Real (8), Intent (In) :: vpl (3)
+         Real (8), Intent (Out) :: occsvp (:)
     ! local variables
-    integer :: err
-    real(8), allocatable :: occsvt(:)
-    character(256) :: strtmp
+         Integer :: err
+         Real (8), Allocatable :: occsvt (:)
+         Character (256) :: strtmp
     ! check correct shapes
-    err=0
-    if ((isti.lt.1).or.(istf.gt.nstsv).or.(istf.le.isti)) then
-       write(*, *)
-       write(*, '("Error(getoccsvr): inconsistent limits for bands:")')
-       write(*, '(" band limits  : ", 2i6)') isti, istf
-       write(*, '(" maximum value: ", i6)') nstsv
-       write(*, *)
-       err=err+1
-    end if
-    if (size(occsvp, 1).ne.(istf-isti+1)) then
-       write(*, *)
-       write(*, '("Error(getoccsvr): output array does not match for bands:")')
-       write(*, '(" band limits 	     : ", 2i6)') isti, istf
-       write(*, '(" requested number of bands: ", i6)') istf-isti+1
-       write(*, '(" array size		     : ", i6)') size(occsvp, 1)
-       write(*, *)
-       err=err+1
-    end if
-    if (err.ne.0) stop
-    allocate(occsvt(nstsv))
-    filetag_occsv=trim(fname)
-    strtmp=trim(filext)
-    filext=''
-    call getoccsv(vpl, occsvt)
-    filetag_occsv='OCCSV'
-    filext=trim(strtmp)
-    occsvp(:)=occsvt(isti:istf)
-    deallocate(occsvt)
-  end subroutine getoccsvr
-end module m_getoccsvr
+         err = 0
+         If ((isti .Lt. 1) .Or. (istf .Gt. nstsv) .Or. (istf .Le. &
+        & isti)) Then
+            Write (*,*)
+            Write (*, '("Error(getoccsvr): inconsistent limits for band&
+           &s:")')
+            Write (*, '(" band limits  : ", 2i6)') isti, istf
+            Write (*, '(" maximum value: ", i6)') nstsv
+            Write (*,*)
+            err = err + 1
+         End If
+         If (size(occsvp, 1) .Ne. (istf-isti+1)) Then
+            Write (*,*)
+            Write (*, '("Error(getoccsvr): output array does not match &
+           &for bands:")')
+            Write (*, '(" band limits 	     : ", 2i6)') isti, istf
+            Write (*, '(" requested number of bands: ", i6)') istf - &
+           & isti + 1
+            Write (*, '(" array size		     : ", i6)') size (occsvp, 1)
+            Write (*,*)
+            err = err + 1
+         End If
+         If (err .Ne. 0) Stop
+         Allocate (occsvt(nstsv))
+         filetag_occsv = trim (fname)
+         strtmp = trim (filext)
+         filext = ''
+         Call getoccsv (vpl, occsvt)
+         filetag_occsv = 'OCCSV'
+         filext = trim (strtmp)
+         occsvp (:) = occsvt (isti:istf)
+         Deallocate (occsvt)
+      End Subroutine getoccsvr
+End Module m_getoccsvr

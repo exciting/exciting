@@ -57,7 +57,7 @@ libs:
 	cd build/serial; $(MAKE) libs
 
 debian:all doc
-	cd debian &&  sh makepackage.sh
+	cd debian &&   bash makepackage.sh
 
 clean:
 
@@ -83,5 +83,7 @@ tgz::
 	gzip  -f --best ../exciting.tar 
 	du -h ../exciting.tar.gz 
 	
-	
+tidy:
+	cd build/serial;\
+	$(MAKE) -f ../Make.common tidy 
 

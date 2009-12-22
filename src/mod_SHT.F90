@@ -1,25 +1,25 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_SHT
+Module mod_SHT
 !-----------------------------------------------------!
 !     spherical harmonic transform (SHT) matrices     !
 !-----------------------------------------------------!
 ! real backward SHT matrix for lmaxapw
-real(8), allocatable :: rbshtapw(:, :)
+      Real (8), Allocatable :: rbshtapw (:, :)
 ! real forward SHT matrix for lmmaxapw
-real(8), allocatable :: rfshtapw(:, :)
+      Real (8), Allocatable :: rfshtapw (:, :)
 ! real backward SHT matrix for lmaxvr
-real(8), allocatable :: rbshtvr(:, :)
+      Real (8), Allocatable :: rbshtvr (:, :)
 ! real forward SHT matrix for lmaxvr
-real(8), allocatable :: rfshtvr(:, :)
+      Real (8), Allocatable :: rfshtvr (:, :)
 ! complex backward SHT matrix for lmaxapw
-complex(8), allocatable :: zbshtapw(:, :)
+      Complex (8), Allocatable :: zbshtapw (:, :)
 ! complex forward SHT matrix for lmaxapw
-complex(8), allocatable :: zfshtapw(:, :)
+      Complex (8), Allocatable :: zfshtapw (:, :)
 ! complex backward SHT matrix for lmaxvr
-complex(8), allocatable :: zbshtvr(:, :)
+      Complex (8), Allocatable :: zbshtvr (:, :)
 ! complex forward SHT matrix for lmaxvr
-complex(8), allocatable :: zfshtvr(:, :)
-end module
-
+      Complex (8), Allocatable :: zfshtvr (:, :)
+End Module
+!

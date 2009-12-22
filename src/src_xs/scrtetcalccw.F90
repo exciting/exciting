@@ -1,23 +1,23 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine scrtetcalccw
-  use modxs
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine scrtetcalccw
+      Use modxs
+      Use m_genfilname
+      Implicit None
   ! local variables
-  integer :: nwdft
-  nwdft=nwdf
+      Integer :: nwdft
+      nwdft = nwdf
   ! only one frequency w=0
-  nwdf=1
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
+      nwdf = 1
+      Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
   ! calculate tetrahedron weights with only one frequency point
-  call tetcalccw
-  nwdf=nwdft
-  call genfilname(dotext='_SCR.OUT', setfilext=.true.)
-end subroutine scrtetcalccw
+      Call tetcalccw
+      nwdf = nwdft
+      Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
+End Subroutine scrtetcalccw

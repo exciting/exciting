@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: writesymt2
 ! !INTERFACE:
-
-
-subroutine writesymt2
+!
+!
+Subroutine writesymt2
 ! !USES:
-  use modmain
-  use modxs
+      Use modmain
+      Use modxs
 ! !DESCRIPTION:
 !   Outputs the symmetrization matrices for the tensor components of a rank-2
 !   tensor. The tensor(-field) $t_{ij}$ in reciprocal space must be invariant under
@@ -33,20 +33,22 @@ subroutine writesymt2
 !   Created October 2008 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! local variables
-  integer :: iop1, iop2, i
+      Integer :: iop1, iop2, i
   ! output the symmetrization matrices
-  open(50, file='SYMT2'//trim(filext), action='WRITE', form='FORMATTED')
-  write(50, *)
-  write(50, '("(symmetrization matrices are in Cartesian coordinates)")')
-  write(50, *)
-  do iop1=1, 3
-     do iop2=1, 3
-	write(50, '("(", i1, ", ", i2, ")-component")') iop1, iop2
-	write(50, '(3f12.8)') (symt2(iop1, iop2, i, :), i=1, 3)
-	write(50, *)
-     end do
-  end do
-  close(50)
-end subroutine writesymt2
+      Open (50, File='SYMT2'//trim(filext), Action='WRITE', Form='FORMA&
+     &TTED')
+      Write (50,*)
+      Write (50, '("(symmetrization matrices are in Cartesian coordinat&
+     &es)")')
+      Write (50,*)
+      Do iop1 = 1, 3
+         Do iop2 = 1, 3
+            Write (50, '("(", i1, ", ", i2, ")-component")') iop1, iop2
+            Write (50, '(3f12.8)') (symt2(iop1, iop2, i, :), i=1, 3)
+            Write (50,*)
+         End Do
+      End Do
+      Close (50)
+End Subroutine writesymt2

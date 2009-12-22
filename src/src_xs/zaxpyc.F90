@@ -1,23 +1,23 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_zaxpyc
-  implicit none
-contains
-
-
-subroutine zaxpyc(n, za, zx, incx, zy, incy)
-    complex(8), intent(in) :: zx(:), za
-    complex(8), intent(inout) :: zy(:)
-    integer, intent(in) :: incx, incy, n
+!
+Module m_zaxpyc
+      Implicit None
+Contains
+!
+!
+      Subroutine zaxpyc (n, za, zx, incx, zy, incy)
+         Complex (8), Intent (In) :: zx (:), za
+         Complex (8), Intent (Inout) :: zy (:)
+         Integer, Intent (In) :: incx, incy, n
     ! automatic arrays
-    complex(8) :: zt(size(zx))
-    zt(:)=conjg(zx(:))
-    call zaxpy(n, za, zt, incx, zy, incy)
-  end subroutine zaxpyc
-
-end module m_zaxpyc
+         Complex (8) :: zt (size(zx))
+         zt (:) = conjg (zx(:))
+         Call zaxpy (n, za, zt, incx, zy, incy)
+      End Subroutine zaxpyc
+!
+End Module m_zaxpyc

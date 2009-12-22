@@ -1,25 +1,25 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: df
 ! !INTERFACE:
-
-
-subroutine df
+!
+!
+Subroutine df
 ! !USES:
-use modinput
-  use modmain
-  use modxs
-  use modmpi
-  use m_writegqpts
-  use m_xsgauntgen
-  use m_findgntn0
-  use m_genfilname
+      Use modinput
+      Use modmain
+      Use modxs
+      Use modmpi
+      Use m_writegqpts
+      Use m_xsgauntgen
+      Use m_findgntn0
+      Use m_genfilname
 ! !DESCRIPTION:
 !   Control routine for setting up the Kohn-Sham response function or the
 !   microscopic dielectric function/matrix for all specified ${\bf q}$-points.
@@ -29,60 +29,63 @@ use modinput
 !   Created March 2006 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! local variables
-  character(*), parameter :: thisnam='df'
-  character(256) :: filex
-  integer :: iq
-  if (.not.tscreen) call genfilname(setfilext=.true.)
-  call init0
+      Character (*), Parameter :: thisnam = 'df'
+      Character (256) :: filex
+      Integer :: iq
+      If ( .Not. tscreen) Call genfilname (setfilext=.True.)
+      Call init0
   ! initialise universal variables
-  call init1
+      Call init1
   ! save Gamma-point variables
-  call xssave0
+      Call xssave0
   ! initialize q-point set
-  call init2
-  if (tscreen) then
+      Call init2
+      If (tscreen) Then
      ! generate Gaunt coefficients
-     call xsgauntgen(max(input%groundstate%lmaxapw, lolmax), input%xs%lmaxemat, max(input%groundstate%lmaxapw, lolmax))
+         Call xsgauntgen (Max(input%groundstate%lmaxapw, lolmax), &
+        & input%xs%lmaxemat, Max(input%groundstate%lmaxapw, lolmax))
      ! find indices for non-zero Gaunt coefficients
-     call findgntn0(max(input%xs%lmaxapwwf, lolmax), max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
-  end if
+         Call findgntn0 (Max(input%xs%lmaxapwwf, lolmax), &
+        & Max(input%xs%lmaxapwwf, lolmax), input%xs%lmaxemat, xsgnt)
+      End If
   ! read Fermi energy
-  call readfermi
+      Call readfermi
   ! w-point parallelization for dielectric function
-  if (tscreen) then
-     nwdf=1
-     call genparidxran('q', nqpt)
-  else
-     call genparidxran('w', nwdf)
-  end if
+      If (tscreen) Then
+         nwdf = 1
+         Call genparidxran ('q', nqpt)
+      Else
+         Call genparidxran ('w', nwdf)
+      End If
   ! set type of band combinations: ({v,x},{x,c})- and ({x,c},{v,x})-combiantions
-  input%xs%emattype=1
+      input%xs%emattype = 1
   ! write out q-points
-  call writeqpts
+      Call writeqpts
   ! loop over q-points
-  do iq=qpari, qparf
-     call genfilname(iq=iq, fileext=filex)
+      Do iq = qpari, qparf
+         Call genfilname (iq=iq, fileext=filex)
      ! call for q-point
-     if (.not.input%xs%gather) call dfq(iq)
-     if (tscreen) call writegqpts(iq, filex)
-     write(unitout, '(a, i8)') 'Info('//thisnam//'): Kohn Sahm response &
-	  &function finished for q - point:', iq
-  end do
+         If ( .Not. input%xs%gather) Call dfq (iq)
+         If (tscreen) Call writegqpts (iq, filex)
+         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sahm&
+        & response function finished for q - point:', iq
+      End Do
   ! synchronize
-  if (.not.input%xs%gather) call barrier
-  if ((procs.gt.1).and.(rank.eq.0).and.(.not.tscreen)) call dfgather
-  if (.not.input%xs%gather) call barrier
-  write(unitout, '(a)') "Info("//trim(thisnam)//"): Kohn-Sham response &
-       &function finished"
-  if (input%xs%gather) then
-     write(unitout, '(a)') "Info("//trim(thisnam)//"): gather option: &
-	  &exiting program"
-     call xsfinit
-     call terminate
-  end if
-  if (.not.tscreen) call genfilname(setfilext=.true.)
-  if (tscreen) call findgntn0_clear
-end subroutine df
+      If ( .Not. input%xs%gather) Call barrier
+      If ((procs .Gt. 1) .And. (rank .Eq. 0) .And. ( .Not. tscreen)) &
+     & Call dfgather
+      If ( .Not. input%xs%gather) Call barrier
+      Write (unitout, '(a)') "Info(" // trim (thisnam) // "): Kohn-Sham&
+     & response function finished"
+      If (input%xs%gather) Then
+         Write (unitout, '(a)') "Info(" // trim (thisnam) // "): gather&
+        & option: exiting program"
+         Call xsfinit
+         Call terminate
+      End If
+      If ( .Not. tscreen) Call genfilname (setfilext=.True.)
+      If (tscreen) Call findgntn0_clear
+End Subroutine df
 !EOC

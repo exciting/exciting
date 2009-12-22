@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: spline
 ! !INTERFACE:
-
-
-subroutine spline(n, x, ld, f, cf)
+!
+!
+Subroutine spline (n, x, ld, f, cf)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n  : number of points (in,integer)
 !   x  : abscissa array (in,real(n))
@@ -35,62 +35,63 @@ subroutine spline(n, x, ld, f, cf)
 !   Optimisations and improved end-point coefficients, February 2008 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: n
-real(8), intent(in) :: x(n)
-integer, intent(in) :: ld
-real(8), intent(in) :: f(ld, n)
-real(8), intent(out) :: cf(3, n)
+      Integer, Intent (In) :: n
+      Real (8), Intent (In) :: x (n)
+      Integer, Intent (In) :: ld
+      Real (8), Intent (In) :: f (ld, n)
+      Real (8), Intent (Out) :: cf (3, n)
 ! local variables
-integer::i
-real(8)::t1, t2, t3, t4
+      Integer :: i
+      Real (8) :: t1, t2, t3, t4
 ! automatic arrays
-real(8)::w(n)
-do i=1, n-1
-  w(i)=1.d0/(x(i+1)-x(i))
-  cf(1, i)=w(i)*(f(1, i+1)-f(1, i))
-end do
-cf(2, 1)=1.d0
+      Real (8) :: w (n)
+      Do i = 1, n - 1
+         w (i) = 1.d0 / (x(i+1)-x(i))
+         cf (1, i) = w (i) * (f(1, i+1)-f(1, i))
+      End Do
+      cf (2, 1) = 1.d0
 ! estimate second derivative at the first point
-cf(3, 1)=(cf(1, 2)-cf(1, 1))/(x(3)-x(1))
+      cf (3, 1) = (cf(1, 2)-cf(1, 1)) / (x(3)-x(1))
 ! use Gaussian elimination to solve tridiagonal system
-t1=(x(2)-x(1))*w(2)
-t2=t1*cf(2, 1)
-t3=1.d0/(2.d0*(t1+1.d0))
-cf(2, 2)=t3
-t4=3.d0*(cf(1, 2)-cf(1, 1))*w(2)-t2*cf(3, 1)
-cf(3, 2)=t4
-do i=3, n-1
-  t1=(x(i)-x(i-1))*w(i)
-  t2=t1*t3
-  t3=1.d0/(2.d0*t1+2.d0-t2)
-  cf(2, i)=t3
-  t4=3.d0*(cf(1, i)-cf(1, i-1))*w(i)-t2*t4
-  cf(3, i)=t4
-end do
-cf(2, n)=1.d0
+      t1 = (x(2)-x(1)) * w (2)
+      t2 = t1 * cf (2, 1)
+      t3 = 1.d0 / (2.d0*(t1+1.d0))
+      cf (2, 2) = t3
+      t4 = 3.d0 * (cf(1, 2)-cf(1, 1)) * w (2) - t2 * cf (3, 1)
+      cf (3, 2) = t4
+      Do i = 3, n - 1
+         t1 = (x(i)-x(i-1)) * w (i)
+         t2 = t1 * t3
+         t3 = 1.d0 / (2.d0*t1+2.d0-t2)
+         cf (2, i) = t3
+         t4 = 3.d0 * (cf(1, i)-cf(1, i-1)) * w (i) - t2 * t4
+         cf (3, i) = t4
+      End Do
+      cf (2, n) = 1.d0
 ! estimate second derivative at the last point
-t1=(cf(1, n-1)-cf(1, n-2))/(x(n)-x(n-2))
-cf(3, n)=t1
-do i=n-1, 2, -1
-  t1=cf(3, i)-t1*cf(2, i+1)
-  cf(3, i)=t1
-end do
+      t1 = (cf(1, n-1)-cf(1, n-2)) / (x(n)-x(n-2))
+      cf (3, n) = t1
+      Do i = n - 1, 2, - 1
+         t1 = cf (3, i) - t1 * cf (2, i+1)
+         cf (3, i) = t1
+      End Do
 ! compute coefficients
-do i=1, n
-  cf(2, i)=cf(2, i)*cf(3, i)
-end do
-do i=1, n-1
-  t1=0.3333333333333333333d0*(cf(2, i+1)-cf(2, i))*w(i)
-  cf(3, i)=t1
-  t2=x(i+1)-x(i)
-  cf(1, i)=cf(1, i)-(cf(2, i)+t1*t2)*t2
-end do
+      Do i = 1, n
+         cf (2, i) = cf (2, i) * cf (3, i)
+      End Do
+      Do i = 1, n - 1
+         t1 = 0.3333333333333333333d0 * (cf(2, i+1)-cf(2, i)) * w (i)
+         cf (3, i) = t1
+         t2 = x (i+1) - x (i)
+         cf (1, i) = cf (1, i) - (cf(2, i)+t1*t2) * t2
+      End Do
 ! determine end-point coefficients
-t1=x(n)-x(n-1)
-cf(1, n)=cf(1, n-1)+(2.d0*cf(2, n-1)+3.d0*cf(3, n-1)*t1)*t1
-cf(3, n)=cf(3, n-1)
-return
-end subroutine
+      t1 = x (n) - x (n-1)
+      cf (1, n) = cf (1, n-1) + (2.d0*cf(2, n-1)+3.d0*cf(3, n-1)*t1) * &
+     & t1
+      cf (3, n) = cf (3, n-1)
+      Return
+End Subroutine
 !EOC

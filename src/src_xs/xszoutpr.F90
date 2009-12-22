@@ -1,20 +1,20 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
-module m_xszoutpr
-  implicit none
-contains
-
+!
+Module m_xszoutpr
+      Implicit None
+Contains
+!
 !BOP
 ! !ROUTINE: xszoutpr
 ! !INTERFACE:
-
-
-subroutine xszoutpr(n1, n2, alpha, x, y, a)
+!
+!
+      Subroutine xszoutpr (n1, n2, alpha, x, y, a)
 ! !INPUT/OUTPUT PARAMETERS:
 !   n1,n2 : size of vectors and matrix, respectively (in,integer)
 !   alpha : complex constant (in,complex)
@@ -29,22 +29,22 @@ subroutine xszoutpr(n1, n2, alpha, x, y, a)
 !   Created March 2008 (Sagmeister)
 !EOP
 !BOC
-    implicit none
+         Implicit None
     ! arguments
-    integer, intent(in) :: n1, n2
-    complex(8), intent(in) :: alpha, x(:), y(:)
-    complex(8), intent(inout) :: a(:, :)
+         Integer, Intent (In) :: n1, n2
+         Complex (8), Intent (In) :: alpha, x (:), y (:)
+         Complex (8), Intent (Inout) :: a (:, :)
     ! local variables
-    integer :: i2
+         Integer :: i2
     ! allocatable arrays
-    complex(8), allocatable :: h(:)
-    allocate(h(size(x)))
-    h=conjg(x)
-    do i2=1, n2
-       call zaxpy(n1, alpha*y(i2), h, 1, a(1, i2), 1)
-    end do
-    deallocate(h)
-  end subroutine xszoutpr
+         Complex (8), Allocatable :: h (:)
+         Allocate (h(size(x)))
+         h = conjg (x)
+         Do i2 = 1, n2
+            Call zaxpy (n1, alpha*y(i2), h, 1, a(1, i2), 1)
+         End Do
+         Deallocate (h)
+      End Subroutine xszoutpr
 !EOC
-
-end module m_xszoutpr
+!
+End Module m_xszoutpr

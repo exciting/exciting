@@ -1,21 +1,22 @@
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module modfxcifc
-  implicit none
-contains
-
+!
+Module modfxcifc
+      Implicit None
+Contains
+!
 !BOP
 ! !ROUTINE: fxcifc
 ! !INTERFACE:
-
-
-subroutine fxcifc(fxctype, w, iw, iq, ng, oct, alrc, alrcd, blrcd, fxcg)
-    use m_fxc_lrc,only:fxc_lrc
-    use m_fxc_lrcd,only:fxc_lrcd
-    use m_fxc_alda,only:fxc_alda
-    use m_fxc_bse_ma03,only:fxc_bse_ma03
+!
+!
+      Subroutine fxcifc (fxctype, w, iw, iq, ng, oct, alrc, alrcd, &
+     & blrcd, fxcg)
+         Use m_fxc_lrc, Only: fxc_lrc
+         Use m_fxc_lrcd, Only: fxc_lrcd
+         Use m_fxc_alda, Only: fxc_alda
+         Use m_fxc_bse_ma03, Only: fxc_bse_ma03
 ! !INPUT/OUTPUT PARAMETERS:
 !   fxctype : type of exchange-correlation functional (in,integer)
 ! !DESCRIPTION:
@@ -28,113 +29,118 @@ subroutine fxcifc(fxctype, w, iw, iq, ng, oct, alrc, alrcd, blrcd, fxcg)
 !   Created October 2007 (Sagmeister)
 !EOP
 !BOC
-    implicit none
+         Implicit None
     ! mandatory arguments
-    integer, intent(in) :: fxctype
+         Integer, Intent (In) :: fxctype
     ! optional arguments
-    complex(8), optional, intent(in) :: w
-    integer, optional, intent(in) :: iw
-    integer, optional, intent(in) :: iq
-    integer, optional, intent(in) :: ng
-    integer, optional, intent(in) :: oct
-    real(8), optional, intent(in) :: alrc
-    real(8), optional, intent(in) :: alrcd
-    real(8), optional, intent(in) :: blrcd
-    complex(8), optional, intent(out) :: fxcg(:, :)
+         Complex (8), Optional, Intent (In) :: w
+         Integer, Optional, Intent (In) :: iw
+         Integer, Optional, Intent (In) :: iq
+         Integer, Optional, Intent (In) :: ng
+         Integer, Optional, Intent (In) :: oct
+         Real (8), Optional, Intent (In) :: alrc
+         Real (8), Optional, Intent (In) :: alrcd
+         Real (8), Optional, Intent (In) :: blrcd
+         Complex (8), Optional, Intent (Out) :: fxcg (:, :)
     ! local variables
     ! automatic arrays
-    select case(abs(fxctype))
-    case(0)
+         Select Case (Abs(fxctype))
+         Case (0)
        ! RPA case fxc is zero
-       if (present(fxcg).and.present(ng)) then
-	  fxcg=(0.d0, 0.d0)
-       else
-	  goto 10
-       end if
-    case(1)
+            If (present(fxcg) .And. present(ng)) Then
+               fxcg = (0.d0, 0.d0)
+            Else
+               Go To 10
+            End If
+         Case (1)
        ! static long-range kernel without local field effects
        ! L. Reining, Phys. Rev. Lett. 88, 06404 (2002)
-       if (present(fxcg).and.present(ng).and.present(alrc)) then
-	  call fxc_lrc(ng, .false., alrc, fxcg)
-       else
-	  goto 10
-       end if
-    case(2)
+            If (present(fxcg) .And. present(ng) .And. present(alrc)) &
+           & Then
+               Call fxc_lrc (ng, .False., alrc, fxcg)
+            Else
+               Go To 10
+            End If
+         Case (2)
        ! static long-range kernel including local field effects
        ! L. Reining, Phys. Rev. Lett. 88, 06404 (2002)
-       if (present(fxcg).and.present(ng).and.present(alrc)) then
-	  call fxc_lrc(ng, .true., alrc, fxcg)
-       else
-	  goto 10
-       end if
-    case(3)
+            If (present(fxcg) .And. present(ng) .And. present(alrc)) &
+           & Then
+               Call fxc_lrc (ng, .True., alrc, fxcg)
+            Else
+               Go To 10
+            End If
+         Case (3)
        ! dynamical long-range kernel without local field effects
        ! L. Reining, Phys. Rev. B 72, 125203 (2005)
-       if (present(fxcg).and.present(ng).and.present(alrcd) &
-	    .and.present(w).and.present(blrcd)) then
-	  call fxc_lrcd(ng, .false., alrcd, blrcd, w, fxcg)
-       else
-	  goto 10
-       end if
-    case(4)
+            If (present(fxcg) .And. present(ng) .And. present(alrcd) &
+           & .And. present(w) .And. present(blrcd)) Then
+               Call fxc_lrcd (ng, .False., alrcd, blrcd, w, fxcg)
+            Else
+               Go To 10
+            End If
+         Case (4)
        ! static long-range kernel including local field effects
        ! L. Reining, Phys. Rev. B 72, 125203 (2005)
-       if (present(fxcg).and.present(ng).and.present(alrcd) &
-	    .and.present(w).and.present(blrcd)) then
-	  call fxc_lrcd(ng, .true., alrcd, blrcd, w, fxcg)
-       else
-	  goto 10
-       end if
-    case(5)
+            If (present(fxcg) .And. present(ng) .And. present(alrcd) &
+           & .And. present(w) .And. present(blrcd)) Then
+               Call fxc_lrcd (ng, .True., alrcd, blrcd, w, fxcg)
+            Else
+               Go To 10
+            End If
+         Case (5)
        ! ALDA kernel, [Reference]
-       if (present(fxcg).and.present(ng).and.present(iq)) then
-	  call fxc_alda(iq, ng, fxcg)
-       else
-	  goto 10
-       end if
-    case(7)
+            If (present(fxcg) .And. present(ng) .And. present(iq)) Then
+               Call fxc_alda (iq, ng, fxcg)
+            Else
+               Go To 10
+            End If
+         Case (7)
        ! xc-kernel derived from the Bethe-Salpeter equation
        ! no local field effects
        ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-       if (present(fxcg).and.present(oct).and.present(ng).and.present(iw)) then
-	  call fxc_bse_ma03(ng, oct, .false., iw, fxcg)
-       else
-	  goto 10
-       end if
-    case(8)
+            If (present(fxcg) .And. present(oct) .And. present(ng) &
+           & .And. present(iw)) Then
+               Call fxc_bse_ma03 (ng, oct, .False., iw, fxcg)
+            Else
+               Go To 10
+            End If
+         Case (8)
        ! xc-kernel derived from the Bethe-Salpeter equation
        ! inclusion of local field effects
        ! A. Marini, Phys. Rev. Lett. 91, 256402 (2003)
-       if (present(fxcg).and.present(ng).and.present(oct).and.present(iw)) then
-	  call fxc_bse_ma03(ng, oct, .true., iw, fxcg)
-       else
-	  goto 10
-       end if
-    case default
-       write(*, *)
-       write(*, '("Error(fxcifc): fxctype not defined : ", I8)') fxctype
-       write(*, *)
-       stop
-    end select
-    return
+            If (present(fxcg) .And. present(ng) .And. present(oct) &
+           & .And. present(iw)) Then
+               Call fxc_bse_ma03 (ng, oct, .True., iw, fxcg)
+            Else
+               Go To 10
+            End If
+         Case Default
+            Write (*,*)
+            Write (*, '("Error(fxcifc): fxctype not defined : ", I8)') &
+           & fxctype
+            Write (*,*)
+            Stop
+         End Select
+         Return
     ! error treatment
-10  continue
-    write(*, *)
-    write(*, '("Error(fxcifc): missing arguments for exchange-correlation &
-	 &kernel type ", I5)') fxctype
-    write(*, *)
-    stop
-  end subroutine fxcifc
+10       Continue
+         Write (*,*)
+         Write (*, '("Error(fxcifc): missing arguments for exchange-cor&
+        &relation kernel type ", I5)') fxctype
+         Write (*,*)
+         Stop
+      End Subroutine fxcifc
 !EOC
-
+!
 !BOP
 ! !ROUTINE: getfxcdata
 ! !INTERFACE:
-
-
-subroutine getfxcdata(fxctype, fxcdescr, fxcspin)
+!
+!
+      Subroutine getfxcdata (fxctype, fxcdescr, fxcspin)
 ! !INPUT/OUTPUT PARAMETERS:
-    use modinput
+         Use modinput
 !   fxctype  : type of exchange-correlation functional (in,integer)
 !   fxcdescr : description of functional (out,character(256))
 !   fxcspin  : spin treatment (out,integer)
@@ -152,60 +158,64 @@ subroutine getfxcdata(fxctype, fxcdescr, fxcspin)
 !   Created October 2007 (Sagmeister)
 !EOP
 !BOC
-    implicit none
-    integer, intent(in) :: fxctype
-    character(256), intent(out) :: fxcdescr
-    integer, intent(out) :: fxcspin
-    select case(abs(fxctype))
-    case(0)
-       fxcdescr='xc-kernel set to zero (RPA case)'
+         Implicit None
+         Integer, Intent (In) :: fxctype
+         Character (256), Intent (Out) :: fxcdescr
+         Integer, Intent (Out) :: fxcspin
+         Select Case (Abs(fxctype))
+         Case (0)
+            fxcdescr = 'xc-kernel set to zero (RPA case)'
        ! spin-polarisation not required
-       fxcspin=-1
-       return
-    case(1)
-       fxcdescr='long-range xc-kernel, no local field effects'
+            fxcspin = - 1
+            Return
+         Case (1)
+            fxcdescr = 'long-range xc-kernel, no local field effects'
        ! spin-polarisation not required
-       fxcspin=-1
-       return
-    case(2)
-       fxcdescr='long-range xc-kernel, including local field effects'
+            fxcspin = - 1
+            Return
+         Case (2)
+            fxcdescr = 'long-range xc-kernel, including local field eff&
+           &ects'
        ! spin-polarisation not required
-       fxcspin=0
-       return
-    case(3)
-       fxcdescr='dynamical long-range xc-kernel, no local field effects'
+            fxcspin = 0
+            Return
+         Case (3)
+            fxcdescr = 'dynamical long-range xc-kernel, no local field &
+           &effects'
        ! spin-polarisation not required
-       fxcspin=-1
-       return
-    case(4)
-       fxcdescr='dynamical long-range xc-kernel, including local field effects'
+            fxcspin = - 1
+            Return
+         Case (4)
+            fxcdescr = 'dynamical long-range xc-kernel, including local&
+           & field effects'
        ! spin-polarisation not required
-       fxcspin=0
-       return
-    case(5)
-       fxcdescr='ALDA kernel, including local field effects'
+            fxcspin = 0
+            Return
+         Case (5)
+            fxcdescr = 'ALDA kernel, including local field effects'
        ! spin-polarisation not required
-       fxcspin=0
-       return
-    case(7)
-       fxcdescr = 'BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
-	    &no local field effects'
+            fxcspin = 0
+            Return
+         Case (7)
+            fxcdescr = 'BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256&
+           &402 (2003), no local field effects'
        ! spin-polarisation not required
-       fxcspin=0
-       return
-    case(8)
-       fxcdescr = 'BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256402 (2003), &
-	    &including local field effects'
+            fxcspin = 0
+            Return
+         Case (8)
+            fxcdescr = 'BSE kernel, A. Marini, Phys. Rev. Lett. 91, 256&
+           &402 (2003), including local field effects'
        ! spin-polarisation not required
-       fxcspin=0
-       return
-    case default
-       write(*, *)
-       write(*, '("Error(getfxcdata): fxctype not defined : ", I8)') fxctype
-       write(*, *)
-       stop
-    end select
-  end subroutine getfxcdata
+            fxcspin = 0
+            Return
+         Case Default
+            Write (*,*)
+            Write (*, '("Error(getfxcdata): fxctype not defined : ", I8&
+           &)') fxctype
+            Write (*,*)
+            Stop
+         End Select
+      End Subroutine getfxcdata
 !EOC
-
-end module modfxcifc
+!
+End Module modfxcifc

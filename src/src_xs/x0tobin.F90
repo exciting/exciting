@@ -1,70 +1,75 @@
-
-
-
-
+!
+!
+!
+!
 ! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine x0tobin
-  use modmain
-use modinput
-  use modxs
-  use m_getx0
-  use m_putx0
-  use m_getunit
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine x0tobin
+      Use modmain
+      Use modinput
+      Use modxs
+      Use m_getx0
+      Use m_putx0
+      Use m_getunit
+      Use m_genfilname
+      Implicit None
   ! local variables
-  character(*), parameter :: thisnam='x0tobin'
-  character(256) :: filnam, filnama
-  integer :: n, iq, iw, un
-  complex(8), allocatable :: chi0(:, :), chi0wg(:, :, :), chi0hd(:, :)
-  logical :: tq0
-  logical, external :: tqgamma
-  call init0
+      Character (*), Parameter :: thisnam = 'x0tobin'
+      Character (256) :: filnam, filnama
+      Integer :: n, iq, iw, un
+      Complex (8), Allocatable :: chi0 (:, :), chi0wg (:, :, :), chi0hd &
+     & (:, :)
+      Logical :: tq0
+      Logical, External :: tqgamma
+      Call init0
   ! initialise universal variables
-  call init1
+      Call init1
   ! save Gamma-point variables
-  call xssave0
+      Call xssave0
   ! initialize q-point set
-  call init2
+      Call init2
   ! loop over q-points
-  do iq=1, nqpt
-     tq0=tqgamma(iq)
+      Do iq = 1, nqpt
+         tq0 = tqgamma (iq)
      ! calculate k+q and G+k+q related variables
-     call init1offs(qvkloff(1, iq))
+         Call init1offs (qvkloff(1, iq))
      ! size of local field effects
-     n=ngq(iq)
+         n = ngq (iq)
      ! allocate
-     allocate(chi0(n, n), chi0wg(n, 2, 3), chi0hd(3, 3))
+         Allocate (chi0(n, n), chi0wg(n, 2, 3), chi0hd(3, 3))
      ! filenames
-     call genfilname(asc = .true., basename = 'X0', bzsampl = bzsampl, acont = input%xs%tddft%acont, &
-	  nar = .not.input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, markfxcbse = tfxcbse, iqmt = iq, filnam =&
-    &filnama)
-     call genfilname(basename = 'X0', bzsampl = bzsampl, acont = input%xs%tddft%acont, &
-	  nar = .not.input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, markfxcbse = tfxcbse, iqmt = iq, filnam =&
-    &filnam)
+         Call genfilname (asc=.True., basename='X0', bzsampl=bzsampl, &
+        & acont=input%xs%tddft%acont, nar= .Not. input%xs%tddft%aresdf, &
+        & tord=input%xs%tddft%torddf, markfxcbse=tfxcbse, iqmt=iq, &
+        & filnam=filnama)
+         Call genfilname (basename='X0', bzsampl=bzsampl, &
+        & acont=input%xs%tddft%acont, nar= .Not. input%xs%tddft%aresdf, &
+        & tord=input%xs%tddft%torddf, markfxcbse=tfxcbse, iqmt=iq, &
+        & filnam=filnam)
      ! open file to read ASCI
-     call getunit(un)
-     open(unit = un, file = trim(filnama), form = 'formatted', action = 'read', &
-	  status = 'old')
-     do iw=1, nwdf
+         Call getunit (un)
+         Open (Unit=un, File=trim(filnama), Form='formatted', Action='r&
+        &ead', Status='old')
+         Do iw = 1, nwdf
         ! read from ASCII file
-	if (tq0) then
-	   read(un, *) ngq(iq), vql(:, iq), chi0, chi0wg, chi0hd
-	else
-	   read(un, *) ngq(iq), vql(:, iq), chi0
-	end if
+            If (tq0) Then
+               Read (un,*) ngq (iq), vql (:, iq), chi0, chi0wg, chi0hd
+            Else
+               Read (un,*) ngq (iq), vql (:, iq), chi0
+            End If
         ! write to binary file
-	call putx0(tq0, iq, iw, trim(filnam), '', chi0, chi0wg, chi0hd)
-     end do
+            Call putx0 (tq0, iq, iw, trim(filnam), '', chi0, chi0wg, &
+           & chi0hd)
+         End Do
      ! close file
-     close(un)
-     deallocate(chi0, chi0wg, chi0hd)
-     write(unitout, '(a, i8)') 'Info('//thisnam//'): Kohn Sham response &
-	  &function converted to binary file for q - point:', iq
-  end do
-  call genfilname(setfilext=.true.)
-end subroutine x0tobin
+         Close (un)
+         Deallocate (chi0, chi0wg, chi0hd)
+         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
+        & response function converted to binary file for q - point:', &
+        & iq
+      End Do
+      Call genfilname (setfilext=.True.)
+End Subroutine x0tobin

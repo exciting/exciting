@@ -1,79 +1,80 @@
-
-
-
-
-subroutine hamiltonandoverlapsetup(system, ngp, apwalm, igpig, vgpc)
-use modfvsystem
-use modinput
-use mod_eigensystem
-use mod_atoms
-use mod_timing
-use mod_muffin_tin
-use mod_APW_LO
-use mod_gkvector
-
-implicit none
-type(evsystem)::system
-integer, intent(in)::ngp
-complex(8), intent(in) :: apwalm(ngkmax, apwordmax, lmmaxapw, natmtot)
-integer, intent(in) :: igpig(ngkmax)
-real(8), intent(in) :: vgpc(3, ngkmax)
-integer ::n
-character(256)::prefix
+!
+!
+!
+!
+Subroutine hamiltonandoverlapsetup (system, ngp, apwalm, igpig, vgpc)
+      Use modfvsystem
+      Use modinput
+      Use mod_eigensystem
+      Use mod_atoms
+      Use mod_timing
+      Use mod_muffin_tin
+      Use mod_APW_LO
+      Use mod_gkvector
+!
+      Implicit None
+      Type (evsystem) :: system
+      Integer, Intent (In) :: ngp
+      Complex (8), Intent (In) :: apwalm (ngkmax, apwordmax, lmmaxapw, &
+     & natmtot)
+      Integer, Intent (In) :: igpig (ngkmax)
+      Real (8), Intent (In) :: vgpc (3, ngkmax)
+      Integer :: n
+      Character (256) :: prefix
 !local variables
-integer, save::ikc
-real(8), save :: cputot
-real(8):: cpuaa, cpualo, cpulolo, cpui, cpu00, cpu01
-integer::i, is, ia
-complex(8) v(1)
-real(8):: cpu0, cpu1
-real(8)::threshold
+      Integer, Save :: ikc
+      Real (8), Save :: cputot
+      Real (8) :: cpuaa, cpualo, cpulolo, cpui, cpu00, cpu01
+      Integer :: i, is, ia
+      Complex (8) v (1)
+      Real (8) :: cpu0, cpu1
+      Real (8) :: threshold
 !----------------------------------------!
 !     Hamiltonian and overlap set up     !
 !----------------------------------------!
-
-
-call timesec(cpu0)
+!
+!
+      Call timesec (cpu0)
 ! set the matrices to zero
-
+!
 ! muffin-tin contributions
-do is=1, nspecies
-  do ia=1, natoms(is)
-    call hmlaan(system%hamilton, is, ia, ngp, apwalm)
-    call hmlalon(system%hamilton, is, ia, ngp, apwalm)
-    call hmllolon(system%hamilton, is, ia, ngp)
-    call olpaan(system%overlap, is, ia, ngp, apwalm)
-    call olpalon(system%overlap, is, ia, ngp, apwalm)
-    call olplolon(system%overlap, is, ia, ngp)
-  end do
-end do
-
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            Call hmlaan (system%hamilton, is, ia, ngp, apwalm)
+            Call hmlalon (system%hamilton, is, ia, ngp, apwalm)
+            Call hmllolon (system%hamilton, is, ia, ngp)
+            Call olpaan (system%overlap, is, ia, ngp, apwalm)
+            Call olpalon (system%overlap, is, ia, ngp, apwalm)
+            Call olplolon (system%overlap, is, ia, ngp)
+         End Do
+      End Do
+!
 ! interstitial contributions
-call hmlistln(system%hamilton, ngp, igpig, vgpc)
-call olpistln(system%overlap, ngp, igpig)
-threshold=1e-16
+      Call hmlistln (system%hamilton, ngp, igpig, vgpc)
+      Call olpistln (system%overlap, ngp, igpig)
+      threshold = 1e-16
 !call HermiteanMatrixTruncate(system%hamilton,threshold)
 !call HermiteanMatrixTruncate(system%overlap,threshold)
-
 !
-
-if(.not.ispacked(system%hamilton))then
-	call hamiltonoverlapocopy_UL(system)
-endif
+!
+!
+      If ( .Not. ispacked(system%hamilton)) Then
+         Call hamiltonoverlapocopy_UL (system)
+      End If
 #ifdef DEBUGHO
-write(*, *)"apwalm", apwalm
-prefix="H"
- call HermiteanMatrixToFiles(system%hamilton, prefix)
-prefix="O"
- call HermiteanMatrixToFiles(system%overlap, prefix)
-	write(*, *)"wrote"
-	stop
+      Write (*,*) "apwalm", apwalm
+      prefix = "H"
+      Call HermiteanMatrixToFiles (system%hamilton, prefix)
+      prefix = "O"
+      Call HermiteanMatrixToFiles (system%overlap, prefix)
+      Write (*,*) "wrote"
+      Stop
 #endif
-
-call timesec(cpu1)
- timemat= timemat+cpu1-cpu0
-
-
+!
+      Call timesec (cpu1)
+      timemat = timemat + cpu1 - cpu0
+!
+!
 !write(60,*)
 !write(60,'("Muffin-tin Hamiltonian setup; Timings (CPU seconds) :")')
 !write(60,'(" k-point",T40,": ",I8)') ikc
@@ -85,7 +86,7 @@ call timesec(cpu1)
 !cputot=cputot+cpuaa+cpualo+cpulolo+cpui
 !write(60,'(" cumulative total",T40,": ",F12.2)') cputot
 !write(60,*)
-
-
-
-end subroutine
+!
+!
+!
+End Subroutine

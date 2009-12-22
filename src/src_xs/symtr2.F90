@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: symtr2
 ! !INTERFACE:
-
-
-subroutine symtr2(t2)
+!
+!
+Subroutine symtr2 (t2)
 ! !USES:
-  use modmain
-  use modxs
+      Use modmain
+      Use modxs
 ! !DESCRIPTION:
 !   Symmetrizes a rank-2 tensor wrt.the rotational part of the crystal
 !   symmetries:
@@ -24,21 +24,22 @@ subroutine symtr2(t2)
 !   Created October 2008 (Sagmeister)
 !EOP
 !BOC
-  implicit none
+      Implicit None
   ! arguments
-  real(8), intent(inout) :: t2(3, 3)
+      Real (8), Intent (Inout) :: t2 (3, 3)
   ! local variables
-  integer :: iop1, iop2, i, j
-  real(8) :: s2(3, 3)
-  s2(:, :)=0.d0
-  do iop1=1, 3
-     do iop2=1, 3
-	do i=1, 3
-	   do j=1, 3
-	      s2(iop1, iop2)=s2(iop1, iop2)+symt2(iop1, iop2, i, j)*t2(i, j)
-	   end do
-	end do
-     end do
-  end do
-  t2(:, :)=s2(:, :)
-end subroutine symtr2
+      Integer :: iop1, iop2, i, j
+      Real (8) :: s2 (3, 3)
+      s2 (:, :) = 0.d0
+      Do iop1 = 1, 3
+         Do iop2 = 1, 3
+            Do i = 1, 3
+               Do j = 1, 3
+                  s2 (iop1, iop2) = s2 (iop1, iop2) + symt2 (iop1, &
+                 & iop2, i, j) * t2 (i, j)
+               End Do
+            End Do
+         End Do
+      End Do
+      t2 (:, :) = s2 (:, :)
+End Subroutine symtr2

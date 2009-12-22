@@ -1,88 +1,95 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007 F. Bultmark, F. Cricchio and L. Nordstrom.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
-
-subroutine writeldapu
-use modmain
-use modinput
-implicit none
+!
+!
+Subroutine writeldapu
+      Use modmain
+      Use modinput
+      Implicit None
 ! local variables
-integer::is, ia, ias, ispn, jspn
-integer::l, m1, m2, lm1, lm2
-open(50, file='DMATLU'//trim(filext), action='WRITE', form='FORMATTED')
-do is=1, nspecies
-  l=llu(is)
-  if (l.ge.0) then
-    do ia=1, natoms(is)
-      ias=idxas(ia, is)
-      write(50, *)
-      write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, &
-       trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
-      write(50, '(" l = ", I2)') l
-      do ispn=1, nspinor
-	do jspn=1, nspinor
-	  write(50, '(" ispn = ", I1, ", jspn = ", I1)') ispn, jspn
-	  do m1=-l, l
-	    lm1=idxlm(l, m1)
-	    do m2=-l, l
-	      lm2=idxlm(l, m2)
-	      write(50, '("  m1 = ", I2, ", m2 = ", I2, " : ", 2G18.10)') m1, m2, &
-	       dmatlu(lm1, lm2, ispn, jspn, ias)
-	    end do
-	  end do
-	end do
-      end do
-    end do
-  end if
-end do
-close(50)
-open(50, file='VMATLU'//trim(filext), action='WRITE', form='FORMATTED')
-do is=1, nspecies
-  l=llu(is)
-  if (l.ge.0) then
-    do ia=1, natoms(is)
-      ias=idxas(ia, is)
-      write(50, *)
-      write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, &
-       trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
-      write(50, '(" l = ", I2)') l
-      do ispn=1, nspinor
-	do jspn=1, nspinor
-	  write(50, '(" ispn = ", I1, ", jspn = ", I1)') ispn, jspn
-	  do m1=-l, l
-	    lm1=idxlm(l, m1)
-	    do m2=-l, l
-	      lm2=idxlm(l, m2)
-	      write(50, '("  m1 = ", I2, ", m2 = ", I2, " : ", 2G18.10)') m1, m2, &
-	       vmatlu(lm1, lm2, ispn, jspn, ias)
-	    end do
-	  end do
-	end do
-      end do
-    end do
-  end if
-end do
-close(50)
-if (ldapu.eq.3) then
-  open(50, file='ALPHALU'//trim(filext), action='WRITE', form='FORMATTED')
-  do is=1, nspecies
-    l=llu(is)
-    if (l.ge.0) then
-      do ia=1, natoms(is)
-	ias=idxas(ia, is)
-	write(50, *)
-	write(50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, &
-	 trim(input%structure%speciesarray(is)%species%chemicalSymbol), ia
-	write(50, '(" l = ", I2)') l
-	write(50, '(" alpha = ", G18.10)') alphalu(ias)
-      end do
-    end if
-  end do
-  close(50)
-end if
-return
-end subroutine
+      Integer :: is, ia, ias, ispn, jspn
+      Integer :: l, m1, m2, lm1, lm2
+      Open (50, File='DMATLU'//trim(filext), Action='WRITE', Form='FORM&
+     &ATTED')
+      Do is = 1, nspecies
+         l = llu (is)
+         If (l .Ge. 0) Then
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
+               Write (50,*)
+               Write (50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, trim &
+              & (input%structure%speciesarray(is)%species%chemicalSymbol), ia
+               Write (50, '(" l = ", I2)') l
+               Do ispn = 1, nspinor
+                  Do jspn = 1, nspinor
+                     Write (50, '(" ispn = ", I1, ", jspn = ", I1)') &
+                    & ispn, jspn
+                     Do m1 = - l, l
+                        lm1 = idxlm (l, m1)
+                        Do m2 = - l, l
+                           lm2 = idxlm (l, m2)
+                           Write (50, '("  m1 = ", I2, ", m2 = ", I2, "&
+                          & : ", 2G18.10)') m1, m2, dmatlu (lm1, lm2, &
+                          & ispn, jspn, ias)
+                        End Do
+                     End Do
+                  End Do
+               End Do
+            End Do
+         End If
+      End Do
+      Close (50)
+      Open (50, File='VMATLU'//trim(filext), Action='WRITE', Form='FORM&
+     &ATTED')
+      Do is = 1, nspecies
+         l = llu (is)
+         If (l .Ge. 0) Then
+            Do ia = 1, natoms (is)
+               ias = idxas (ia, is)
+               Write (50,*)
+               Write (50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, trim &
+              & (input%structure%speciesarray(is)%species%chemicalSymbol), ia
+               Write (50, '(" l = ", I2)') l
+               Do ispn = 1, nspinor
+                  Do jspn = 1, nspinor
+                     Write (50, '(" ispn = ", I1, ", jspn = ", I1)') &
+                    & ispn, jspn
+                     Do m1 = - l, l
+                        lm1 = idxlm (l, m1)
+                        Do m2 = - l, l
+                           lm2 = idxlm (l, m2)
+                           Write (50, '("  m1 = ", I2, ", m2 = ", I2, "&
+                          & : ", 2G18.10)') m1, m2, vmatlu (lm1, lm2, &
+                          & ispn, jspn, ias)
+                        End Do
+                     End Do
+                  End Do
+               End Do
+            End Do
+         End If
+      End Do
+      Close (50)
+      If (ldapu .Eq. 3) Then
+         Open (50, File='ALPHALU'//trim(filext), Action='WRITE', Form='&
+        &FORMATTED')
+         Do is = 1, nspecies
+            l = llu (is)
+            If (l .Ge. 0) Then
+               Do ia = 1, natoms (is)
+                  ias = idxas (ia, is)
+                  Write (50,*)
+                  Write (50, '("Species : ", I4, " (", A, "), atom : ", I4)') is, trim &
+                 & (input%structure%speciesarray(is)%species%chemicalSymbol), ia
+                  Write (50, '(" l = ", I2)') l
+                  Write (50, '(" alpha = ", G18.10)') alphalu (ias)
+               End Do
+            End If
+         End Do
+         Close (50)
+      End If
+      Return
+End Subroutine

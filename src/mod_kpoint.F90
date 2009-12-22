@@ -1,7 +1,7 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_kpoint
+Module mod_kpoint
 !-------------------------------!
 !     k-point set variables     !
 !-------------------------------!
@@ -12,38 +12,38 @@ module mod_kpoint
 ! k-point grid sizes
 !replaced by inputstructureinteger::ngridk(3)
 ! total number of k-points
-integer::nkpt
+      Integer :: nkpt
 ! k-point offset
 !replaced by inputstructurereal(8)::vkloff(3)
 ! reducek is .true. if k-points are to be reduced (with crystal symmetries)
 !replaced by inputstructurelogical::reducek
 ! locations of k-points on integer grid
-integer, allocatable :: ivk(:, :)
+      Integer, Allocatable :: ivk (:, :)
 ! k-points in lattice coordinates
-real(8), allocatable :: vkl(:, :)
+      Real (8), Allocatable :: vkl (:, :)
 ! k-points in Cartesian coordinates
-real(8), allocatable :: vkc(:, :)
+      Real (8), Allocatable :: vkc (:, :)
 ! k-point weights
-real(8), allocatable :: wkpt(:)
+      Real (8), Allocatable :: wkpt (:)
 ! map from non-reduced grid to reduced set
-integer, allocatable :: ikmap(:, :, :)
+      Integer, Allocatable :: ikmap (:, :, :)
 ! total number of non-reduced k-points
-integer::nkptnr
+      Integer :: nkptnr
 ! locations of non-reduced k-points on integer grid
-integer, allocatable :: ivknr(:, :)
+      Integer, Allocatable :: ivknr (:, :)
 ! non-reduced k-points in lattice coordinates
-real(8), allocatable :: vklnr(:, :)
+      Real (8), Allocatable :: vklnr (:, :)
 ! non-reduced k-points in Cartesian coordinates
-real(8), allocatable :: vkcnr(:, :)
+      Real (8), Allocatable :: vkcnr (:, :)
 ! non-reduced k-point weights
-real(8), allocatable :: wkptnr(:)
+      Real (8), Allocatable :: wkptnr (:)
 ! map from non-reduced grid to non-reduced set
-integer, allocatable :: ikmapnr(:, :, :)
+      Integer, Allocatable :: ikmapnr (:, :, :)
 ! k-point at which to determine effective mass tensor
 !replaced by inputstructurereal(8)::vklem(3)
 ! displacement size for computing the effective mass tensor
 !replaced by inputstructurereal(8)::deltaem
 ! number of displacements in each direction
 !replaced by inputstructureinteger::ndspem
-end module
-
+End Module
+!

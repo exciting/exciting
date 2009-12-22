@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 S. Sagmeister and Claudia Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-logical function tqgamma(iq)
-  use modmain
+!
+Logical Function tqgamma (iq)
+      Use modmain
   ! arguments
-  integer, intent(in) :: iq
+      Integer, Intent (In) :: iq
   ! local variables
-  real(8) :: epsg=1.d-12
-  tqgamma=.false.
-  if (sum(abs(vqc(:, iq))).lt.epsg) tqgamma=.true.
-end function tqgamma
+      Real (8) :: epsg = 1.d-12
+      tqgamma = .False.
+      If (sum(Abs(vqc(:, iq))) .Lt. epsg) tqgamma = .True.
+End Function tqgamma

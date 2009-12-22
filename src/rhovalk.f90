@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: rhovalk
 ! !INTERFACE:
-
-
-subroutine rhovalk(ik, evecfv, evecsv)
+!
+!
+Subroutine rhovalk (ik, evecfv, evecsv)
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   ik     : k-point number (in,integer)
 !   evecfv : first-variational eigenvectors (in,complex(nmatmax,nstfv,nspnfv))
@@ -35,242 +35,268 @@ use modmain
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: ik
-complex(8), intent(in) :: evecfv(nmatmax, nstfv, nspnfv)
-complex(8), intent(in) :: evecsv(nstsv, nstsv)
+      Integer, Intent (In) :: ik
+      Complex (8), Intent (In) :: evecfv (nmatmax, nstfv, nspnfv)
+      Complex (8), Intent (In) :: evecsv (nstsv, nstsv)
 ! local variables
-integer::nsd, ispn, jspn, is, ia, ias, ist
-integer::ir, irc, itp, igk, ifg, i, j, n
-real(8)::t1, t2, t3, t4
-real(8)::ts0, ts1
-complex(8) zt1, zt2, zt3
+      Integer :: nsd, ispn, jspn, is, ia, ias, ist
+      Integer :: ir, irc, itp, igk, ifg, i, j, n
+      Real (8) :: t1, t2, t3, t4
+      Real (8) :: ts0, ts1
+      Complex (8) zt1, zt2, zt3
 ! allocatable arrays
-logical, allocatable :: done(:, :)
-real(8), allocatable :: rflm(:, :)
-real(8), allocatable :: rfmt(:, :, :)
-complex(8), allocatable :: apwalm(:, :, :, :, :)
-complex(8), allocatable :: wfmt1(:, :)
-complex(8), allocatable :: wfmt2(:, :, :, :)
-complex(8), allocatable :: wfmt3(:, :, :)
-complex(8), allocatable :: zfft(:, :)
-!addidional arrays to make truncationerrors predictable 
-  real(8):: rhoir_k(ngrtot)
-  real(8):: magir_k(ngrtot, ndmag)
-  real(8):: rhomt_k(lmmaxvr, nrmtmax, natmtot)
-  real(8):: magmt_k(lmmaxvr, nrmtmax, natmtot, ndmag)
- rhoir_k(:)=0
- magir_k(:, :)=0
- rhomt_k(:, :, :)=0
- magmt_k(:, :, :, :)=0 
-call timesec(ts0)
-if (associated(input%groundstate%spin)) then
-  if (ncmag) then
-    nsd=4
-  else
-    nsd=2
-  end if
-else
-  nsd=1
-end if
-allocate(done(nstfv, nspnfv))
-allocate(rflm(lmmaxvr, nsd))
-allocate(rfmt(lmmaxvr, nrcmtmax, nsd))
-allocate(apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
-allocate(wfmt1(lmmaxvr, nrcmtmax))
-if (input%groundstate%tevecsv) allocate(wfmt2(lmmaxvr, nrcmtmax, nstfv, nspnfv))
-allocate(wfmt3(lmmaxvr, nrcmtmax, nspinor))
-allocate(zfft(ngrtot, nspinor))
+      Logical, Allocatable :: done (:, :)
+      Real (8), Allocatable :: rflm (:, :)
+      Real (8), Allocatable :: rfmt (:, :, :)
+      Complex (8), Allocatable :: apwalm (:, :, :, :, :)
+      Complex (8), Allocatable :: wfmt1 (:, :)
+      Complex (8), Allocatable :: wfmt2 (:, :, :, :)
+      Complex (8), Allocatable :: wfmt3 (:, :, :)
+      Complex (8), Allocatable :: zfft (:, :)
+!addidional arrays to make truncationerrors predictable
+      Real (8) :: rhoir_k (ngrtot)
+      Real (8) :: magir_k (ngrtot, ndmag)
+      Real (8) :: rhomt_k (lmmaxvr, nrmtmax, natmtot)
+      Real (8) :: magmt_k (lmmaxvr, nrmtmax, natmtot, ndmag)
+      rhoir_k (:) = 0
+      magir_k (:, :) = 0
+      rhomt_k (:, :, :) = 0
+      magmt_k (:, :, :, :) = 0
+      Call timesec (ts0)
+      If (associated(input%groundstate%spin)) Then
+         If (ncmag) Then
+            nsd = 4
+         Else
+            nsd = 2
+         End If
+      Else
+         nsd = 1
+      End If
+      Allocate (done(nstfv, nspnfv))
+      Allocate (rflm(lmmaxvr, nsd))
+      Allocate (rfmt(lmmaxvr, nrcmtmax, nsd))
+      Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+      Allocate (wfmt1(lmmaxvr, nrcmtmax))
+      If (input%groundstate%tevecsv) allocate (wfmt2(lmmaxvr, nrcmtmax, &
+     & nstfv, nspnfv))
+      Allocate (wfmt3(lmmaxvr, nrcmtmax, nspinor))
+      Allocate (zfft(ngrtot, nspinor))
 ! find the matching coefficients
-do ispn=1, nspnfv
-  call match(ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, ik), &
-   sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, ispn))
-end do
+      Do ispn = 1, nspnfv
+         Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, ispn, &
+        & ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, ispn))
+      End Do
 !----------------------------!
 !     muffin-tin density     !
 !----------------------------!
-do is=1, nspecies
-  n=lmmaxvr*nrcmt(is)
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    done(:, :)=.false.
-    rfmt(:, :, :)=0.d0
-    do j=1, nstsv
-      t1=wkpt(ik)*occsv(j, ik)
-      if (abs(t1).gt.input%groundstate%epsocc) then
-	if (input%groundstate%tevecsv) then
+      Do is = 1, nspecies
+         n = lmmaxvr * nrcmt (is)
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            done (:, :) = .False.
+            rfmt (:, :, :) = 0.d0
+            Do j = 1, nstsv
+               t1 = wkpt (ik) * occsv (j, ik)
+               If (Abs(t1) .Gt. input%groundstate%epsocc) Then
+                  If (input%groundstate%tevecsv) Then
 ! generate spinor wavefunction from second-variational eigenvectors
-	  wfmt3(:, :, :)=0.d0
-	  i=0
-	  do ispn=1, nspinor
-	    if (isspinspiral()) then
-	      jspn=ispn
-	    else
-	      jspn=1
-	    end if
-	    do ist=1, nstfv
-	      i=i+1
-	      zt1=evecsv(i, j)
-	      if (abs(dble(zt1))+abs(aimag(zt1)).gt.input%groundstate%epsocc) then
-		if (.not.done(ist, jspn)) then
-		  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngk(jspn, ik), &
-		   apwalm(:, :, :, :, jspn), evecfv(:, ist, jspn), lmmaxvr, wfmt1)
+                     wfmt3 (:, :, :) = 0.d0
+                     i = 0
+                     Do ispn = 1, nspinor
+                        If (isspinspiral()) Then
+                           jspn = ispn
+                        Else
+                           jspn = 1
+                        End If
+                        Do ist = 1, nstfv
+                           i = i + 1
+                           zt1 = evecsv (i, j)
+                           If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
+                          & input%groundstate%epsocc) Then
+                              If ( .Not. done(ist, jspn)) Then
+                                 Call wavefmt &
+                                & (input%groundstate%lradstep, &
+                                & input%groundstate%lmaxvr, is, ia, &
+                                & ngk(jspn, ik), apwalm(:, :, :, :, &
+                                & jspn), evecfv(:, ist, jspn), lmmaxvr, &
+                                & wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-		  call zgemm('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, zbshtvr, &
-		   lmmaxvr, wfmt1, lmmaxvr, zzero, wfmt2(:, :, ist, jspn), lmmaxvr)
-		  done(ist, jspn)=.true.
-		end if
+                                 Call zgemm ('N', 'N', lmmaxvr, &
+                                & nrcmt(is), lmmaxvr, zone, zbshtvr, &
+                                & lmmaxvr, wfmt1, lmmaxvr, zzero, &
+                                & wfmt2(:, :, ist, jspn), lmmaxvr)
+                                 done (ist, jspn) = .True.
+                              End If
 ! add to spinor wavefunction
-		call zaxpy(n, zt1, wfmt2(:, :, ist, jspn), 1, wfmt3(:, :, ispn), 1)
-	      end if
-	    end do
-	  end do
-	else
+                              Call zaxpy (n, zt1, wfmt2(:, :, ist, &
+                             & jspn), 1, wfmt3(:, :, ispn), 1)
+                           End If
+                        End Do
+                     End Do
+                  Else
 ! spin-unpolarised wavefunction
-	  call wavefmt(input%groundstate%lradstep, input%groundstate%lmaxvr, is, ia, ngk(1, ik), apwalm, evecfv(:, j, &
-    &1), &
-	   lmmaxvr, wfmt1)
+                     Call wavefmt (input%groundstate%lradstep, &
+                    & input%groundstate%lmaxvr, is, ia, ngk(1, ik), &
+                    & apwalm, evecfv(:, j, 1), lmmaxvr, wfmt1)
 ! convert from spherical harmonics to spherical coordinates
-	  call zgemm('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, zone, zbshtvr, lmmaxvr, &
-	   wfmt1, lmmaxvr, zzero, wfmt3, lmmaxvr)
-	end if
+                     Call zgemm ('N', 'N', lmmaxvr, nrcmt(is), lmmaxvr, &
+                    & zone, zbshtvr, lmmaxvr, wfmt1, lmmaxvr, zzero, &
+                    & wfmt3, lmmaxvr)
+                  End If
 ! add to the spin density matrix
-	if (associated(input%groundstate%spin)) then
+                  If (associated(input%groundstate%spin)) Then
 ! spin-polarised
-	  do irc=1, nrcmt(is)
-	    do itp=1, lmmaxvr
-	      zt1=wfmt3(itp, irc, 1)
-	      zt2=wfmt3(itp, irc, 2)
-	      zt3=zt1*conjg(zt2)
-	      rfmt(itp, irc, 1)=rfmt(itp, irc, 1)+t1*(dble(zt1)**2+aimag(zt1)**2)
-	      rfmt(itp, irc, 2)=rfmt(itp, irc, 2)+t1*(dble(zt2)**2+aimag(zt2)**2)
-	      if (ncmag) then
-		rfmt(itp, irc, 3)=rfmt(itp, irc, 3)+t1*dble(zt3)
-		rfmt(itp, irc, 4)=rfmt(itp, irc, 4)+t1*aimag(zt3)
-	      end if
-	    end do
-	  end do
-	else
+                     Do irc = 1, nrcmt (is)
+                        Do itp = 1, lmmaxvr
+                           zt1 = wfmt3 (itp, irc, 1)
+                           zt2 = wfmt3 (itp, irc, 2)
+                           zt3 = zt1 * conjg (zt2)
+                           rfmt (itp, irc, 1) = rfmt (itp, irc, 1) + t1 &
+                          & * (dble(zt1)**2+aimag(zt1)**2)
+                           rfmt (itp, irc, 2) = rfmt (itp, irc, 2) + t1 &
+                          & * (dble(zt2)**2+aimag(zt2)**2)
+                           If (ncmag) Then
+                              rfmt (itp, irc, 3) = rfmt (itp, irc, 3) + &
+                             & t1 * dble (zt3)
+                              rfmt (itp, irc, 4) = rfmt (itp, irc, 4) + &
+                             & t1 * aimag (zt3)
+                           End If
+                        End Do
+                     End Do
+                  Else
 ! spin-unpolarised
-	  do irc=1, nrcmt(is)
-	    do itp=1, lmmaxvr
-	      zt1=wfmt3(itp, irc, 1)
-	      rfmt(itp, irc, 1)=rfmt(itp, irc, 1)+t1*(dble(zt1)**2+aimag(zt1)**2)
-	    end do
-	  end do
-	end if
-      end if
-    end do
+                     Do irc = 1, nrcmt (is)
+                        Do itp = 1, lmmaxvr
+                           zt1 = wfmt3 (itp, irc, 1)
+                           rfmt (itp, irc, 1) = rfmt (itp, irc, 1) + t1 &
+                          & * (dble(zt1)**2+aimag(zt1)**2)
+                        End Do
+                     End Do
+                  End If
+               End If
+            End Do
 ! convert to spherical harmonics and add to rhomt_k and magmt_k
-
-    irc=0
-    do ir=1, nrmt(is), input%groundstate%lradstep
-      irc=irc+1
-      do i=1, nsd
-	call dgemv('N', lmmaxvr, lmmaxvr, 1.d0, rfshtvr, lmmaxvr, rfmt(:, irc, i), 1, &
-	 0.d0, rflm(:, i), 1)
-	call dgemv('N', lmmaxvr, lmmaxvr, 1.d0, rfshtvr, lmmaxvr, rfmt(1, irc, i), 1, &
-	 0.d0, rflm(1, i), 1)
-      end do
-      if (associated(input%groundstate%spin)) then
+!
+            irc = 0
+            Do ir = 1, nrmt (is), input%groundstate%lradstep
+               irc = irc + 1
+               Do i = 1, nsd
+                  Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, rfshtvr, &
+                 & lmmaxvr, rfmt(:, irc, i), 1, 0.d0, rflm(:, i), 1)
+                  Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, rfshtvr, &
+                 & lmmaxvr, rfmt(1, irc, i), 1, 0.d0, rflm(1, i), 1)
+               End Do
+               If (associated(input%groundstate%spin)) Then
 ! spin-polarised
-	if (ncmag) then
-	  magmt_k(:, ir, ias, 1)=magmt_k(:, ir, ias, 1)+2.d0*rflm(:, 3)
-	  magmt_k(:, ir, ias, 2)=magmt_k(:, ir, ias, 2)-2.d0*rflm(:, 4)
-	  magmt_k(:, ir, ias, 3)=magmt_k(:, ir, ias, 3)+rflm(:, 1)-rflm(:, 2)
-	else
-	  magmt_k(:, ir, ias, 1)=magmt_k(:, ir, ias, 1)+rflm(:, 1)-rflm(:, 2)
-	end if
-	rhomt_k(:, ir, ias)=rhomt_k(:, ir, ias)+rflm(:, 1)+rflm(:, 2)
-      else
+                  If (ncmag) Then
+                     magmt_k (:, ir, ias, 1) = magmt_k (:, ir, ias, 1) &
+                    & + 2.d0 * rflm (:, 3)
+                     magmt_k (:, ir, ias, 2) = magmt_k (:, ir, ias, 2) &
+                    & - 2.d0 * rflm (:, 4)
+                     magmt_k (:, ir, ias, 3) = magmt_k (:, ir, ias, 3) &
+                    & + rflm (:, 1) - rflm (:, 2)
+                  Else
+                     magmt_k (:, ir, ias, 1) = magmt_k (:, ir, ias, 1) &
+                    & + rflm (:, 1) - rflm (:, 2)
+                  End If
+                  rhomt_k (:, ir, ias) = rhomt_k (:, ir, ias) + rflm &
+                 & (:, 1) + rflm (:, 2)
+               Else
 ! spin-unpolarised
-	rhomt_k(:, ir, ias)=rhomt_k(:, ir, ias)+rflm(:, 1)
-      end if
-    end do
-
-  end do
-end do
+                  rhomt_k (:, ir, ias) = rhomt_k (:, ir, ias) + rflm &
+                 & (:, 1)
+               End If
+            End Do
+!
+         End Do
+      End Do
 !------------------------------!
 !     interstitial density     !
 !------------------------------!
-do j=1, nstsv
-  t1=wkpt(ik)*occsv(j, ik)
-  if (abs(t1).gt.input%groundstate%epsocc) then
-    t2=t1/omega
-    zfft(:, :)=0.d0
-    if (input%groundstate%tevecsv) then
+      Do j = 1, nstsv
+         t1 = wkpt (ik) * occsv (j, ik)
+         If (Abs(t1) .Gt. input%groundstate%epsocc) Then
+            t2 = t1 / omega
+            zfft (:, :) = 0.d0
+            If (input%groundstate%tevecsv) Then
 ! generate spinor wavefunction from second-variational eigenvectors
-      i=0
-      do ispn=1, nspinor
-	if (isspinspiral()) then
-	  jspn=ispn
-	else
-	  jspn=1
-	end if
-	do ist=1, nstfv
-	  i=i+1
-	  zt1=evecsv(i, j)
-	  if (abs(dble(zt1))+abs(aimag(zt1)).gt.input%groundstate%epsocc) then
-	    do igk=1, ngk(jspn, ik)
-	      ifg=igfft(igkig(igk, jspn, ik))
-	      zfft(ifg, ispn)=zfft(ifg, ispn)+zt1*evecfv(igk, ist, jspn)
-	    end do
-	  end if
-	end do
-      end do
-    else
+               i = 0
+               Do ispn = 1, nspinor
+                  If (isspinspiral()) Then
+                     jspn = ispn
+                  Else
+                     jspn = 1
+                  End If
+                  Do ist = 1, nstfv
+                     i = i + 1
+                     zt1 = evecsv (i, j)
+                     If (Abs(dble(zt1))+Abs(aimag(zt1)) .Gt. &
+                    & input%groundstate%epsocc) Then
+                        Do igk = 1, ngk (jspn, ik)
+                           ifg = igfft (igkig(igk, jspn, ik))
+                           zfft (ifg, ispn) = zfft (ifg, ispn) + zt1 * &
+                          & evecfv (igk, ist, jspn)
+                        End Do
+                     End If
+                  End Do
+               End Do
+            Else
 ! spin-unpolarised wavefunction
-      do igk=1, ngk(1, ik)
-	ifg=igfft(igkig(igk, 1, ik))
-	zfft(ifg, 1)=evecfv(igk, j, 1)
-      end do
-    end if
+               Do igk = 1, ngk (1, ik)
+                  ifg = igfft (igkig(igk, 1, ik))
+                  zfft (ifg, 1) = evecfv (igk, j, 1)
+               End Do
+            End If
 ! Fourier transform wavefunction to real-space
-    do ispn=1, nspinor
-      call zfftifc(3, ngrid, 1, zfft(:, ispn))
-    end do
-
-    if (associated(input%groundstate%spin)) then
+            Do ispn = 1, nspinor
+               Call zfftifc (3, ngrid, 1, zfft(:, ispn))
+            End Do
+!
+            If (associated(input%groundstate%spin)) Then
 ! spin-polarised
-      do ir=1, ngrtot
-	zt1=zfft(ir, 1)
-	zt2=zfft(ir, 2)
-	zt3=zt1*conjg(zt2)
-	t3=dble(zt1)**2+aimag(zt1)**2
-	t4=dble(zt2)**2+aimag(zt2)**2
-	rhoir_k(ir)=rhoir_k(ir)+t2*(t3+t4)
-	if (ncmag) then
-	  magir_k(ir, 1)=magir_k(ir, 1)+2.d0*t2*dble(zt3)
-	  magir_k(ir, 2)=magir_k(ir, 2)-2.d0*t2*aimag(zt3)
-	  magir_k(ir, 3)=magir_k(ir, 3)+t2*(t3-t4)
-	else
-	  magir_k(ir, 1)=magir_k(ir, 1)+t2*(t3-t4)
-	end if
-      end do
-    else
+               Do ir = 1, ngrtot
+                  zt1 = zfft (ir, 1)
+                  zt2 = zfft (ir, 2)
+                  zt3 = zt1 * conjg (zt2)
+                  t3 = dble (zt1) ** 2 + aimag (zt1) ** 2
+                  t4 = dble (zt2) ** 2 + aimag (zt2) ** 2
+                  rhoir_k (ir) = rhoir_k (ir) + t2 * (t3+t4)
+                  If (ncmag) Then
+                     magir_k (ir, 1) = magir_k (ir, 1) + 2.d0 * t2 * &
+                    & dble (zt3)
+                     magir_k (ir, 2) = magir_k (ir, 2) - 2.d0 * t2 * &
+                    & aimag (zt3)
+                     magir_k (ir, 3) = magir_k (ir, 3) + t2 * (t3-t4)
+                  Else
+                     magir_k (ir, 1) = magir_k (ir, 1) + t2 * (t3-t4)
+                  End If
+               End Do
+            Else
 ! spin-unpolarised
-      do ir=1, ngrtot
-	zt1=zfft(ir, 1)
-	rhoir_k(ir)=rhoir_k(ir)+t2*(dble(zt1)**2+aimag(zt1)**2)
-      end do
-    end if
-
-  end if
-end do
-deallocate(done, rflm, rfmt, apwalm, wfmt1, wfmt3, zfft)
-if (input%groundstate%tevecsv) deallocate(wfmt2)
-call timesec(ts1)
+               Do ir = 1, ngrtot
+                  zt1 = zfft (ir, 1)
+                  rhoir_k (ir) = rhoir_k (ir) + t2 * &
+                 & (dble(zt1)**2+aimag(zt1)**2)
+               End Do
+            End If
+!
+         End If
+      End Do
+      Deallocate (done, rflm, rfmt, apwalm, wfmt1, wfmt3, zfft)
+      If (input%groundstate%tevecsv) deallocate (wfmt2)
+      Call timesec (ts1)
 !$OMP CRITICAL
- rhoir(:)=rhoir(:)+rhoir_k(:)
-
- rhomt(:, :, :)=rhomt(:, :, :)+rhomt_k(:, :, :)
-	if(associated(input%groundstate%spin))then
-	magmt(:, :, :, :)=magmt(:, :, :, :)+magmt_k(:, :, :, :)
-	magir(:, :)=magir(:, :)+magir_k(:, :)
-	endif	
-timerho=timerho+ts1-ts0
+      rhoir (:) = rhoir (:) + rhoir_k (:)
+!
+      rhomt (:, :, :) = rhomt (:, :, :) + rhomt_k (:, :, :)
+      If (associated(input%groundstate%spin)) Then
+         magmt (:, :, :, :) = magmt (:, :, :, :) + magmt_k (:, :, :, :)
+         magir (:, :) = magir (:, :) + magir_k (:, :)
+      End If
+      timerho = timerho + ts1 - ts0
 !$OMP END CRITICAL
-return
-end subroutine
+      Return
+End Subroutine
 !EOC

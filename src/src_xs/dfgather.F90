@@ -1,57 +1,61 @@
-
-
-
-
+!
+!
+!
+!
 ! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine dfgather
-  use modmain
-use modinput
-  use modxs
-  use modmpi
-  use m_filedel
-  use m_getx0
-  use m_putx0
-  use m_genfilname
-  implicit none
+!
+!
+Subroutine dfgather
+      Use modmain
+      Use modinput
+      Use modxs
+      Use modmpi
+      Use m_filedel
+      Use m_getx0
+      Use m_putx0
+      Use m_genfilname
+      Implicit None
   ! local variables
-  character(*), parameter :: thisnam='dfgather'
-  integer :: n, iq, iw, iproc
-  complex(8), allocatable :: chi0(:, :), chi0wg(:, :, :), chi0hd(:, :)
-  logical :: tq0
-  logical, external :: tqgamma
+      Character (*), Parameter :: thisnam = 'dfgather'
+      Integer :: n, iq, iw, iproc
+      Complex (8), Allocatable :: chi0 (:, :), chi0wg (:, :, :), chi0hd &
+     & (:, :)
+      Logical :: tq0
+      Logical, External :: tqgamma
   ! loop over q-points
-  do iq=1, nqpt
-     tq0=tqgamma(iq)
+      Do iq = 1, nqpt
+         tq0 = tqgamma (iq)
      ! calculate k+q and G+k+q related variables
-     call init1offs(qvkloff(1, iq))
+         Call init1offs (qvkloff(1, iq))
      ! size of local field effects
-     n=ngq(iq)
+         n = ngq (iq)
      ! allocate
-     allocate(chi0(n, n), chi0wg(n, 2, 3), chi0hd(3, 3))
+         Allocate (chi0(n, n), chi0wg(n, 2, 3), chi0hd(3, 3))
      ! file extension for q-point
-     do iproc=0, procs-1
-	call genfilname(basename = 'X0', bzsampl = bzsampl, acont = input%xs%tddft%acont, &
-	     nar = .not.input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, markfxcbse = tfxcbse, iqmt = iq, procs =&
-    &procs, rank = iproc, filnam = fnchi0_t)
-	wpari=firstofset(iproc, nwdf)
-	wparf=lastofset(iproc, nwdf)
-	do iw=wpari, wparf
+         Do iproc = 0, procs - 1
+            Call genfilname (basename='X0', bzsampl=bzsampl, &
+           & acont=input%xs%tddft%acont, nar= .Not. &
+           & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, &
+           & markfxcbse=tfxcbse, iqmt=iq, procs=procs, rank=iproc, &
+           & filnam=fnchi0_t)
+            wpari = firstofset (iproc, nwdf)
+            wparf = lastofset (iproc, nwdf)
+            Do iw = wpari, wparf
            ! exponential factor matrix elements
-	   call getx0(tq0, iq, iw - wpari + 1, trim(fnchi0_t), '', chi0, &
-		chi0wg, chi0hd)
-	   call putx0(tq0, iq, iw, trim(fnchi0), '', chi0, chi0wg, chi0hd)
-	end do
-     end do
-     do iproc=0, procs-1
-	call genfilname(basename = 'X0', iqmt = iq, procs = procs, rank = iproc, &
-	     filnam = fnchi0_t)
-     end do
-     deallocate(chi0, chi0wg, chi0hd)
-     write(unitout, '(a, i8)') 'Info('//thisnam//'): Kohn Sham response &
-	  &function gathered for q - point:', iq
-  end do
-end subroutine dfgather
+               Call getx0 (tq0, iq, iw-wpari+1, trim(fnchi0_t), '', &
+              & chi0, chi0wg, chi0hd)
+               Call putx0 (tq0, iq, iw, trim(fnchi0), '', chi0, chi0wg, &
+              & chi0hd)
+            End Do
+         End Do
+         Do iproc = 0, procs - 1
+            Call genfilname (basename='X0', iqmt=iq, procs=procs, &
+           & rank=iproc, filnam=fnchi0_t)
+         End Do
+         Deallocate (chi0, chi0wg, chi0hd)
+         Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sham&
+        & response function gathered for q - point:', iq
+      End Do
+End Subroutine dfgather

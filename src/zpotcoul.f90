@@ -1,20 +1,20 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: zpotcoul
 ! !INTERFACE:
-
-
-subroutine zpotcoul(nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, zn, zrhomt, &
- zrhoir, zvclmt, zvclir, zrho0)
-use modinput
+!
+!
+Subroutine zpotcoul (nr, nrmax, ld, r, igp0, gpc, jlgpr, ylmgp, sfacgp, &
+& zn, zrhomt, zrhoir, zvclmt, zvclir, zrho0)
+      Use modinput
 ! !USES:
-use modmain
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   nr     : number of radial points for each species (in,integer(nspecies))
 !   nrmax  : maximum nr over all species (in,integer)
@@ -67,7 +67,7 @@ use modmain
 !    \rho_{ij;lm}^{\rm P}\exp(-i{\bf G}\cdot{\bf r}_{ij})Y_{lm}(\hat{\bf G}) $$
 !   which may be used for solving Poisson's equation directly
 !   $$ V^{\rm P}({\bf G})=\begin{cases}
-!     4\pi\frac{\rho^{\rm P}({\bf G})}{G^2} & G>0 \&
+!     4\pi\frac{\rho^{\rm P}({\bf G})}{G^2} & G>0 \\
 !     0 & G=0 \end{cases}\;. $$
 !   The usual Green's function approach is then employed to determine the
 !   potential in the muffin-tin sphere due to charge in the sphere. In other
@@ -93,198 +93,207 @@ use modmain
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: nr(nspecies)
-integer, intent(in) :: nrmax
-integer, intent(in) :: ld
-real(8), intent(in) :: r(ld, nspecies)
-integer, intent(in) :: igp0
-real(8), intent(in) :: gpc(ngvec)
-real(8), intent(in) :: jlgpr(0:input%groundstate%lmaxvr+input%groundstate%npsden+1, ngvec, nspecies)
-complex(8), intent(in) :: ylmgp(lmmaxvr, ngvec)
-complex(8), intent(in) :: sfacgp(ngvec, natmtot)
-real(8), intent(in) :: zn(nspecies)
-complex(8), intent(in) :: zrhomt(lmmaxvr, nrmax, natmtot)
-complex(8), intent(in) :: zrhoir(ngrtot)
-complex(8), intent(out) :: zvclmt(lmmaxvr, nrmax, natmtot)
-complex(8), intent(out) :: zvclir(ngrtot)
-complex(8), intent(out) :: zrho0
+      Integer, Intent (In) :: nr (nspecies)
+      Integer, Intent (In) :: nrmax
+      Integer, Intent (In) :: ld
+      Real (8), Intent (In) :: r (ld, nspecies)
+      Integer, Intent (In) :: igp0
+      Real (8), Intent (In) :: gpc (ngvec)
+      Real (8), Intent (In) :: jlgpr &
+     & (0:input%groundstate%lmaxvr+input%groundstate%npsden+1, ngvec, &
+     & nspecies)
+      Complex (8), Intent (In) :: ylmgp (lmmaxvr, ngvec)
+      Complex (8), Intent (In) :: sfacgp (ngvec, natmtot)
+      Real (8), Intent (In) :: zn (nspecies)
+      Complex (8), Intent (In) :: zrhomt (lmmaxvr, nrmax, natmtot)
+      Complex (8), Intent (In) :: zrhoir (ngrtot)
+      Complex (8), Intent (Out) :: zvclmt (lmmaxvr, nrmax, natmtot)
+      Complex (8), Intent (Out) :: zvclir (ngrtot)
+      Complex (8), Intent (Out) :: zrho0
 ! local variables
-integer::is, ia, ias, l, m, lm
-integer::ir, ig, ifg
-real(8)::fpo, t1, t2, t3
-complex(8) zsum, zt1, zt2
+      Integer :: is, ia, ias, l, m, lm
+      Integer :: ir, ig, ifg
+      Real (8) :: fpo, t1, t2, t3
+      Complex (8) zsum, zt1, zt2
 ! automatic arrays
-real(8)::rmtl(0:input%groundstate%lmaxvr+3, nspecies)
-real(8)::rl(nrmax, 0:input%groundstate%lmaxvr)
-complex(8) vilm(lmmaxvr)
-complex(8) qmt(lmmaxvr, natmtot)
-complex(8) qi(lmmaxvr, natmtot)
-complex(8) zrp(lmmaxvr)
+      Real (8) :: rmtl (0:input%groundstate%lmaxvr+3, nspecies)
+      Real (8) :: rl (nrmax, 0:input%groundstate%lmaxvr)
+      Complex (8) vilm (lmmaxvr)
+      Complex (8) qmt (lmmaxvr, natmtot)
+      Complex (8) qi (lmmaxvr, natmtot)
+      Complex (8) zrp (lmmaxvr)
 ! external functions
-real(8)::factnm
-external factnm
-fpo=fourpi/omega
+      Real (8) :: factnm
+      External factnm
+      fpo = fourpi / omega
 ! solve Poisson's equation for the isolated charge in the muffin-tin
-do is=1, nspecies
+      Do is = 1, nspecies
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE(ias)
 !$OMP DO
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    call zpotclmt(input%groundstate%ptnucl, input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), lmmaxvr, zrhomt(:, :, &
-    &ias), &
-     zvclmt(:, :, ias))
-  end do
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            Call zpotclmt (input%groundstate%ptnucl, &
+           & input%groundstate%lmaxvr, nr(is), r(:, is), zn(is), &
+           & lmmaxvr, zrhomt(:, :, ias), zvclmt(:, :, ias))
+         End Do
 !$OMP END DO
 !$OMP END PARALLEL
-end do
+      End Do
 ! compute (R_mt)^l
-do is=1, nspecies
-  rmtl(0, is)=1.d0
-  do l=1, input%groundstate%lmaxvr+3
-    rmtl(l, is)=rmtl(l-1, is)*rmt(is)
-  end do
-end do
+      Do is = 1, nspecies
+         rmtl (0, is) = 1.d0
+         Do l = 1, input%groundstate%lmaxvr + 3
+            rmtl (l, is) = rmtl (l-1, is) * rmt (is)
+         End Do
+      End Do
 ! compute the multipole moments from the muffin-tin potentials
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    lm=0
-    do l=0, input%groundstate%lmaxvr
-      t1=dble(2*l+1)*rmtl(l+1, is)/fourpi
-      do m=-l, l
-	lm=lm+1
-	qmt(lm, ias)=t1*zvclmt(lm, nr(is), ias)
-      end do
-    end do
-  end do
-end do
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            lm = 0
+            Do l = 0, input%groundstate%lmaxvr
+               t1 = dble (2*l+1) * rmtl (l+1, is) / fourpi
+               Do m = - l, l
+                  lm = lm + 1
+                  qmt (lm, ias) = t1 * zvclmt (lm, nr(is), ias)
+               End Do
+            End Do
+         End Do
+      End Do
 ! Fourier transform density to G-space and store in zvclir
-zvclir(:)=zrhoir(:)
-call zfftifc(3, ngrid, -1, zvclir)
+      zvclir (:) = zrhoir (:)
+      Call zfftifc (3, ngrid,-1, zvclir)
 ! find the multipole moments of the interstitial charge density
-qi(:, :)=0.d0
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    do ig=1, ngvec
-      ifg=igfft(ig)
-      if (gpc(ig).gt.input%structure%epslat) then
-	zt1=fourpi*zvclir(ifg)*sfacgp(ig, ias)
-	t1=1.d0/(gpc(ig)*rmt(is))
-	lm=0
-	do l=0, input%groundstate%lmaxvr
-	  t2=t1*rmtl(l+3, is)*jlgpr(l+1, ig, is)
-	  zt2=t2*zt1*zil(l)
-	  do m=-l, l
-	    lm=lm+1
-	    qi(lm, ias)=qi(lm, ias)+zt2*conjg(ylmgp(lm, ig))
-	  end do
-	end do
-      else
-	t1=fourpi*y00*rmtl(3, is)/3.d0
-	qi(1, ias)=qi(1, ias)+t1*zvclir(ifg)
-      end if
-    end do
-  end do
-end do
+      qi (:, :) = 0.d0
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            Do ig = 1, ngvec
+               ifg = igfft (ig)
+               If (gpc(ig) .Gt. input%structure%epslat) Then
+                  zt1 = fourpi * zvclir (ifg) * sfacgp (ig, ias)
+                  t1 = 1.d0 / (gpc(ig)*rmt(is))
+                  lm = 0
+                  Do l = 0, input%groundstate%lmaxvr
+                     t2 = t1 * rmtl (l+3, is) * jlgpr (l+1, ig, is)
+                     zt2 = t2 * zt1 * zil (l)
+                     Do m = - l, l
+                        lm = lm + 1
+                        qi (lm, ias) = qi (lm, ias) + zt2 * conjg &
+                       & (ylmgp(lm, ig))
+                     End Do
+                  End Do
+               Else
+                  t1 = fourpi * y00 * rmtl (3, is) / 3.d0
+                  qi (1, ias) = qi (1, ias) + t1 * zvclir (ifg)
+               End If
+            End Do
+         End Do
+      End Do
 ! find the smooth pseudocharge within the muffin-tin whose multipoles are the
 ! difference between the real muffin-tin and interstitial multipoles
-do is=1, nspecies
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    lm=0
-    do l=0, input%groundstate%lmaxvr
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            lm = 0
+            Do l = 0, input%groundstate%lmaxvr
 ! note the factor 2^N*N! is omitted because of reciprocal term in the
 ! form-factor
-      t1=factnm(2*(l+input%groundstate%npsden)+3, 2)/factnm(2*l+1, 2)
-      do m=-l, l
-	lm=lm+1
-	zrp(lm)=(qmt(lm, ias)-qi(lm, ias))*t1
-      end do
-    end do
+               t1 = factnm (2*(l+input%groundstate%npsden)+3, 2) / &
+              & factnm (2*l+1, 2)
+               Do m = - l, l
+                  lm = lm + 1
+                  zrp (lm) = (qmt(lm, ias)-qi(lm, ias)) * t1
+               End Do
+            End Do
 ! add the pseudocharge and real interstitial densities in G-space
-    do ig=1, ngvec
-      ifg=igfft(ig)
-      if (gpc(ig).gt.input%structure%epslat) then
-	zt1=fpo*conjg(sfacgp(ig, ias))
-	t1=gpc(ig)*rmt(is)
-	t2=t1**(input%groundstate%npsden+1)
-	lm=0
-	do l=0, input%groundstate%lmaxvr
-	  lm=lm+1
-	  zsum=zrp(lm)*ylmgp(lm, ig)
-	  do m=-l+1, l
-	    lm=lm+1
-	    zsum=zsum+zrp(lm)*ylmgp(lm, ig)
-	  end do
-	  t3=jlgpr(input%groundstate%npsden+l+1, ig, is)/(t2*rmtl(l, is))
-	  zvclir(ifg)=zvclir(ifg)+t3*zt1*zsum*conjg(zil(l))
-	end do
-      else
-	t1=fpo*y00/factnm(2*input%groundstate%npsden+3, 2)
-	zvclir(ifg)=zvclir(ifg)+t1*zrp(1)
-      end if
-    end do
-  end do
-end do
+            Do ig = 1, ngvec
+               ifg = igfft (ig)
+               If (gpc(ig) .Gt. input%structure%epslat) Then
+                  zt1 = fpo * conjg (sfacgp(ig, ias))
+                  t1 = gpc (ig) * rmt (is)
+                  t2 = t1 ** (input%groundstate%npsden+1)
+                  lm = 0
+                  Do l = 0, input%groundstate%lmaxvr
+                     lm = lm + 1
+                     zsum = zrp (lm) * ylmgp (lm, ig)
+                     Do m = - l + 1, l
+                        lm = lm + 1
+                        zsum = zsum + zrp (lm) * ylmgp (lm, ig)
+                     End Do
+                     t3 = jlgpr (input%groundstate%npsden+l+1, ig, is) &
+                    & / (t2*rmtl(l, is))
+                     zvclir (ifg) = zvclir (ifg) + t3 * zt1 * zsum * &
+                    & conjg (zil(l))
+                  End Do
+               Else
+                  t1 = fpo * y00 / factnm &
+                 & (2*input%groundstate%npsden+3, 2)
+                  zvclir (ifg) = zvclir (ifg) + t1 * zrp (1)
+               End If
+            End Do
+         End Do
+      End Do
 ! set zrho0 (pseudocharge density coefficient of the smallest G+p vector)
-ifg=igfft(igp0)
-zrho0=zvclir(ifg)
-zvclir(ifg)=0.d0
+      ifg = igfft (igp0)
+      zrho0 = zvclir (ifg)
+      zvclir (ifg) = 0.d0
 ! solve Poissons's equation in G-space for the pseudocharge
-do ig=1, ngvec
-  ifg=igfft(ig)
-  if (gpc(ig).gt.input%structure%epslat) then
-    zvclir(ifg)=fourpi*zvclir(ifg)/(gpc(ig)**2)
-  else
-    zvclir(ifg)=0.d0
-  end if
-end do
+      Do ig = 1, ngvec
+         ifg = igfft (ig)
+         If (gpc(ig) .Gt. input%structure%epslat) Then
+            zvclir (ifg) = fourpi * zvclir (ifg) / (gpc(ig)**2)
+         Else
+            zvclir (ifg) = 0.d0
+         End If
+      End Do
 ! match potentials at muffin-tin boundary by adding homogeneous solution
-do is=1, nspecies
+      Do is = 1, nspecies
 ! compute (r/R_mt)^l
-  do ir=1, nr(is)
-    t1=r(ir, is)/rmt(is)
-    rl(ir, 0)=1.d0
-    do l=1, input%groundstate%lmaxvr
-      rl(ir, l)=rl(ir, l-1)*t1
-    end do
-  end do
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
+         Do ir = 1, nr (is)
+            t1 = r (ir, is) / rmt (is)
+            rl (ir, 0) = 1.d0
+            Do l = 1, input%groundstate%lmaxvr
+               rl (ir, l) = rl (ir, l-1) * t1
+            End Do
+         End Do
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
 ! find the spherical harmonic expansion of the interstitial potential at the
 ! muffin-tin radius
-    vilm(:)=0.d0
-    do ig=1, ngvec
-      ifg=igfft(ig)
-      zt1=fourpi*zvclir(ifg)*sfacgp(ig, ias)
-      lm=0
-      do l=0, input%groundstate%lmaxvr
-	zt2=jlgpr(l, ig, is)*zt1*zil(l)
-	do m=-l, l
-	  lm=lm+1
-	  vilm(lm)=vilm(lm)+zt2*conjg(ylmgp(lm, ig))
-	end do
-      end do
-    end do
+            vilm (:) = 0.d0
+            Do ig = 1, ngvec
+               ifg = igfft (ig)
+               zt1 = fourpi * zvclir (ifg) * sfacgp (ig, ias)
+               lm = 0
+               Do l = 0, input%groundstate%lmaxvr
+                  zt2 = jlgpr (l, ig, is) * zt1 * zil (l)
+                  Do m = - l, l
+                     lm = lm + 1
+                     vilm (lm) = vilm (lm) + zt2 * conjg (ylmgp(lm, &
+                    & ig))
+                  End Do
+               End Do
+            End Do
 ! add homogenous solution
-    lm=0
-    do l=0, input%groundstate%lmaxvr
-      do m=-l, l
-	lm=lm+1
-	zt1=vilm(lm)-zvclmt(lm, nr(is), ias)
-	do ir=1, nr(is)
-	  zvclmt(lm, ir, ias)=zvclmt(lm, ir, ias)+zt1*rl(ir, l)
-	end do
-      end do
-    end do
-  end do
-end do
+            lm = 0
+            Do l = 0, input%groundstate%lmaxvr
+               Do m = - l, l
+                  lm = lm + 1
+                  zt1 = vilm (lm) - zvclmt (lm, nr(is), ias)
+                  Do ir = 1, nr (is)
+                     zvclmt (lm, ir, ias) = zvclmt (lm, ir, ias) + zt1 &
+                    & * rl (ir, l)
+                  End Do
+               End Do
+            End Do
+         End Do
+      End Do
 ! Fourier transform interstitial potential to real-space
-call zfftifc(3, ngrid, 1, zvclir)
-return
-end subroutine
+      Call zfftifc (3, ngrid, 1, zvclir)
+      Return
+End Subroutine
 !EOC

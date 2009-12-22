@@ -1,18 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: ggair
 ! !INTERFACE:
-
-
-subroutine ggair(grhoir, gupir, gdnir, g2upir, g2dnir, g3rhoir, g3upir, g3dnir)
+!
+!
+Subroutine ggair (grhoir, gupir, gdnir, g2upir, g2dnir, g3rhoir, &
+& g3upir, g3dnir)
 ! !INPUT/OUTPUT PARAMETERS:
-use modinput
+      Use modinput
 !   grhoir  : |grad rho| (out,real(ngrtot))
 !   gupir   : |grad rhoup| (out,real(ngrtot))
 !   gdnir   : |grad rhodn| (out,real(ngrtot))
@@ -39,135 +40,140 @@ use modinput
 !   Created October 2004 (JKD)
 !EOP
 !BOC
-use modmain
-implicit none
+      Use modmain
+      Implicit None
 ! arguments
-real(8), intent(out) :: grhoir(ngrtot)
-real(8), intent(out) :: gupir(ngrtot)
-real(8), intent(out) :: gdnir(ngrtot)
-real(8), intent(out) :: g2upir(ngrtot)
-real(8), intent(out) :: g2dnir(ngrtot)
-real(8), intent(out) :: g3rhoir(ngrtot)
-real(8), intent(out) :: g3upir(ngrtot)
-real(8), intent(out) :: g3dnir(ngrtot)
+      Real (8), Intent (Out) :: grhoir (ngrtot)
+      Real (8), Intent (Out) :: gupir (ngrtot)
+      Real (8), Intent (Out) :: gdnir (ngrtot)
+      Real (8), Intent (Out) :: g2upir (ngrtot)
+      Real (8), Intent (Out) :: g2dnir (ngrtot)
+      Real (8), Intent (Out) :: g3rhoir (ngrtot)
+      Real (8), Intent (Out) :: g3upir (ngrtot)
+      Real (8), Intent (Out) :: g3dnir (ngrtot)
 ! local variables
-integer::i, ig, ifg, ir
+      Integer :: i, ig, ifg, ir
 ! allocatable arrays
-real(8), allocatable :: rfir1(:, :)
-real(8), allocatable :: rfir2(:, :)
-complex(8), allocatable :: zfft1(:)
-complex(8), allocatable :: zfft2(:)
-allocate(rfir1(ngrtot, 3))
-allocate(rfir2(ngrtot, 3))
-allocate(zfft1(ngrtot))
-allocate(zfft2(ngrtot))
-if (associated(input%groundstate%spin)) then
+      Real (8), Allocatable :: rfir1 (:, :)
+      Real (8), Allocatable :: rfir2 (:, :)
+      Complex (8), Allocatable :: zfft1 (:)
+      Complex (8), Allocatable :: zfft2 (:)
+      Allocate (rfir1(ngrtot, 3))
+      Allocate (rfir2(ngrtot, 3))
+      Allocate (zfft1(ngrtot))
+      Allocate (zfft2(ngrtot))
+      If (associated(input%groundstate%spin)) Then
 ! rhoup for spin-polarised case
-  zfft1(:)=0.5d0*(rhoir(:)+magir(:, ndmag))
-else
+         zfft1 (:) = 0.5d0 * (rhoir(:)+magir(:, ndmag))
+      Else
 ! rho for spin-unpolarised case
-  zfft1(:)=rhoir(:)
-end if
-call zfftifc(3, ngrid, -1, zfft1)
+         zfft1 (:) = rhoir (:)
+      End If
+      Call zfftifc (3, ngrid,-1, zfft1)
 ! |grad rhoup|
-do i=1, 3
-  zfft2(:)=0.d0
-  do ig=1, ngvec
-    ifg=igfft(ig)
-    zfft2(ifg)=zi*vgc(i, ig)*zfft1(ifg)
-  end do
-  call zfftifc(3, ngrid, 1, zfft2)
-  rfir1(:, i)=dble(zfft2(:))
-end do
-do ir=1, ngrtot
-  gupir(ir)=sqrt(rfir1(ir, 1)**2+rfir1(ir, 2)**2+rfir1(ir, 3)**2)
-end do
+      Do i = 1, 3
+         zfft2 (:) = 0.d0
+         Do ig = 1, ngvec
+            ifg = igfft (ig)
+            zfft2 (ifg) = zi * vgc (i, ig) * zfft1 (ifg)
+         End Do
+         Call zfftifc (3, ngrid, 1, zfft2)
+         rfir1 (:, i) = dble (zfft2(:))
+      End Do
+      Do ir = 1, ngrtot
+         gupir (ir) = Sqrt (rfir1(ir, 1)**2+rfir1(ir, 2)**2+rfir1(ir, &
+        & 3)**2)
+      End Do
 ! grad^2 rhoup
-zfft2(:)=0.d0
-do ig=1, ngvec
-  ifg=igfft(ig)
-  zfft2(ifg)=-(gc(ig)**2)*zfft1(ifg)
-end do
-call zfftifc(3, ngrid, 1, zfft2)
-g2upir(:)=dble(zfft2(:))
+      zfft2 (:) = 0.d0
+      Do ig = 1, ngvec
+         ifg = igfft (ig)
+         zfft2 (ifg) = - (gc(ig)**2) * zfft1 (ifg)
+      End Do
+      Call zfftifc (3, ngrid, 1, zfft2)
+      g2upir (:) = dble (zfft2(:))
 ! (grad rhoup).(grad |grad rhoup|)
-zfft1(:)=gupir(:)
-call zfftifc(3, ngrid, -1, zfft1)
-g3upir(:)=0.d0
-do i=1, 3
-  zfft2(:)=0.d0
-  do ig=1, ngvec
-    ifg=igfft(ig)
-    zfft2(ifg)=zi*vgc(i, ig)*zfft1(ifg)
-  end do
-  call zfftifc(3, ngrid, 1, zfft2)
-  do ir=1, ngrtot
-    g3upir(ir)=g3upir(ir)+rfir1(ir, i)*dble(zfft2(ir))
-  end do
-end do
-if (associated(input%groundstate%spin)) then
+      zfft1 (:) = gupir (:)
+      Call zfftifc (3, ngrid,-1, zfft1)
+      g3upir (:) = 0.d0
+      Do i = 1, 3
+         zfft2 (:) = 0.d0
+         Do ig = 1, ngvec
+            ifg = igfft (ig)
+            zfft2 (ifg) = zi * vgc (i, ig) * zfft1 (ifg)
+         End Do
+         Call zfftifc (3, ngrid, 1, zfft2)
+         Do ir = 1, ngrtot
+            g3upir (ir) = g3upir (ir) + rfir1 (ir, i) * dble &
+           & (zfft2(ir))
+         End Do
+      End Do
+      If (associated(input%groundstate%spin)) Then
 ! rhodn
-  zfft1(:)=0.5d0*(rhoir(:)-magir(:, ndmag))
-  call zfftifc(3, ngrid, -1, zfft1)
+         zfft1 (:) = 0.5d0 * (rhoir(:)-magir(:, ndmag))
+         Call zfftifc (3, ngrid,-1, zfft1)
 ! |grad rhodn|
-  do i=1, 3
-    zfft2(:)=0.d0
-    do ig=1, ngvec
-      ifg=igfft(ig)
-      zfft2(ifg)=zi*vgc(i, ig)*zfft1(ifg)
-    end do
-    call zfftifc(3, ngrid, 1, zfft2)
-    rfir2(:, i)=dble(zfft2(:))
-  end do
-  do ir=1, ngrtot
-    gdnir(ir)=sqrt(rfir2(ir, 1)**2+rfir2(ir, 2)**2+rfir2(ir, 3)**2)
-  end do
+         Do i = 1, 3
+            zfft2 (:) = 0.d0
+            Do ig = 1, ngvec
+               ifg = igfft (ig)
+               zfft2 (ifg) = zi * vgc (i, ig) * zfft1 (ifg)
+            End Do
+            Call zfftifc (3, ngrid, 1, zfft2)
+            rfir2 (:, i) = dble (zfft2(:))
+         End Do
+         Do ir = 1, ngrtot
+            gdnir (ir) = Sqrt (rfir2(ir, 1)**2+rfir2(ir, &
+           & 2)**2+rfir2(ir, 3)**2)
+         End Do
 ! grad^2 rhodn
-  zfft2(:)=0.d0
-  do ig=1, ngvec
-    ifg=igfft(ig)
-    zfft2(ifg)=-(gc(ig)**2)*zfft1(ifg)
-  end do
-  call zfftifc(3, ngrid, 1, zfft2)
-  g2dnir(:)=dble(zfft2(:))
+         zfft2 (:) = 0.d0
+         Do ig = 1, ngvec
+            ifg = igfft (ig)
+            zfft2 (ifg) = - (gc(ig)**2) * zfft1 (ifg)
+         End Do
+         Call zfftifc (3, ngrid, 1, zfft2)
+         g2dnir (:) = dble (zfft2(:))
 ! (grad rhodn).(grad |grad rhodn|)
-  zfft1(:)=gdnir(:)
-  call zfftifc(3, ngrid, -1, zfft1)
-  g3dnir(:)=0.d0
-  do i=1, 3
-    zfft2(:)=0.d0
-    do ig=1, ngvec
-      ifg=igfft(ig)
-      zfft2(ifg)=zi*vgc(i, ig)*zfft1(ifg)
-    end do
-    call zfftifc(3, ngrid, 1, zfft2)
-    do ir=1, ngrtot
-      g3dnir(ir)=g3dnir(ir)+rfir2(ir, i)*dble(zfft2(ir))
-    end do
-  end do
+         zfft1 (:) = gdnir (:)
+         Call zfftifc (3, ngrid,-1, zfft1)
+         g3dnir (:) = 0.d0
+         Do i = 1, 3
+            zfft2 (:) = 0.d0
+            Do ig = 1, ngvec
+               ifg = igfft (ig)
+               zfft2 (ifg) = zi * vgc (i, ig) * zfft1 (ifg)
+            End Do
+            Call zfftifc (3, ngrid, 1, zfft2)
+            Do ir = 1, ngrtot
+               g3dnir (ir) = g3dnir (ir) + rfir2 (ir, i) * dble &
+              & (zfft2(ir))
+            End Do
+         End Do
 ! |grad rho|
-  do ir=1, ngrtot
-    grhoir(ir) = sqrt((rfir1(ir, 1) + rfir2(ir, 1)) ** 2 &
-		   +(rfir1(ir, 2) + rfir2(ir, 2)) ** 2 &
-		   +(rfir1(ir, 3) + rfir2(ir, 3)) ** 2)
-  end do
+         Do ir = 1, ngrtot
+            grhoir (ir) = Sqrt ((rfir1(ir, 1)+rfir2(ir, &
+           & 1))**2+(rfir1(ir, 2)+rfir2(ir, 2))**2+(rfir1(ir, &
+           & 3)+rfir2(ir, 3))**2)
+         End Do
 ! (grad rho).(grad |grad rho|)
-  zfft1(:)=grhoir(:)
-  call zfftifc(3, ngrid, -1, zfft1)
-  g3rhoir(:)=0.d0
-  do i=1, 3
-    zfft2(:)=0.d0
-    do ig=1, ngvec
-      ifg=igfft(ig)
-      zfft2(ifg)=zi*vgc(i, ig)*zfft1(ifg)
-    end do
-    call zfftifc(3, ngrid, 1, zfft2)
-    do ir=1, ngrtot
-      g3rhoir(ir)=g3rhoir(ir)+(rfir1(ir, i)+rfir2(ir, i))*dble(zfft2(ir))
-    end do
-  end do
-end if
-deallocate(rfir1, rfir2, zfft1, zfft2)
-return
-end subroutine
+         zfft1 (:) = grhoir (:)
+         Call zfftifc (3, ngrid,-1, zfft1)
+         g3rhoir (:) = 0.d0
+         Do i = 1, 3
+            zfft2 (:) = 0.d0
+            Do ig = 1, ngvec
+               ifg = igfft (ig)
+               zfft2 (ifg) = zi * vgc (i, ig) * zfft1 (ifg)
+            End Do
+            Call zfftifc (3, ngrid, 1, zfft2)
+            Do ir = 1, ngrtot
+               g3rhoir (ir) = g3rhoir (ir) + (rfir1(ir, i)+rfir2(ir, &
+              & i)) * dble (zfft2(ir))
+            End Do
+         End Do
+      End If
+      Deallocate (rfir1, rfir2, zfft1, zfft2)
+      Return
+End Subroutine
 !EOC

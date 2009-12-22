@@ -1,33 +1,35 @@
-
-
-
-
-subroutine projectedsecequn(m, hp, op, evecp, evalp)
-
-use modmain
-implicit none
+!
+!
+!
+!
+Subroutine projectedsecequn (m, hp, op, evecp, evalp)
+!
+      Use modmain
+      Implicit None
 !update evecfv,eval  acording to sv
-integer, intent(in)::m
-complex(8), intent(in)::hp(2*m*(2*m+1)/2), op(2*m*(2*m+1)/2)
-complex(8), intent(out)::evecp(2*m, m)
-real(8), intent(out)::evalp(m)
-complex(8)::work(2*2*m)
-real(8):: abstol, rwork(7*2*m), vl, vu
-integer::nfound, iwork(5*2*m), ifail(2*m), info
-real(8)::dlamch
-external dlamch
-
-abstol=20.d0*dlamch('S')
-
-call zhpgvx(1, 'V', 'I', 'U', 2 * m, hp, op, vl, vu, 1, m, abstol, nfound, evalp, evecp, 2 * m, work, &
- rwork, iwork, ifail, info)
+      Integer, Intent (In) :: m
+      Complex (8), Intent (In) :: hp (2*m*(2*m+1)/2), op &
+     & (2*m*(2*m+1)/2)
+      Complex (8), Intent (Out) :: evecp (2*m, m)
+      Real (8), Intent (Out) :: evalp (m)
+      Complex (8) :: work (2*2*m)
+      Real (8) :: abstol, rwork (7*2*m), vl, vu
+      Integer :: nfound, iwork (5*2*m), ifail (2*m), info
+      Real (8) :: dlamch
+      External dlamch
+!
+      abstol = 20.d0 * dlamch ('S')
+!
+      Call zhpgvx (1, 'V', 'I', 'U', 2*m, hp, op, vl, vu, 1, m, abstol, &
+     & nfound, evalp, evecp, 2*m, work, rwork, iwork, ifail, info)
 #ifndef DEBUG2
-	if(info.gt.0)then
+      If (info .Gt. 0) Then
 #endif	
-		write(*, *) "ifail: ", ifail, "\ninfo: ", info, "\nnfound: ", nfound
-
+         Write (*,*) "ifail: ", ifail, "\ninfo: ", info, "\nnfound: ", &
+        & nfound
+!
 #ifndef DEBUG2	
-	stop	
-	end if
+         Stop
+      End If
 #endif
-end  subroutine
+End Subroutine

@@ -1,21 +1,21 @@
-
-
-
-
+!
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: plot1d
 ! !INTERFACE:
-
-
-subroutine plot1d(fname,  nf, lmax, ld, rfmt, rfir,plotdef)
+!
+!
+Subroutine plot1d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !USES:
-use modinput
-use modmain
-use FoX_wxml
+      Use modinput
+      Use modmain
+      Use FoX_wxml
 ! !INPUT/OUTPUT PARAMETERS:
 !   fnum1 : plot file name (character*)
 !   nf    : number of functions (in,integer)
@@ -33,100 +33,109 @@ use FoX_wxml
 !   Created June 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-character(len=*), intent(in) :: fname
-integer, intent(in) :: nf
-integer, intent(in) :: lmax
-integer, intent(in) :: ld
-real(8), intent(in) :: rfmt(ld, nrmtmax, natmtot, nf)
-real(8), intent(in) :: rfir(ngrtot, nf)
-type(plot1d_type)::plotdef
+      Character (Len=*), Intent (In) :: fname
+      Integer, Intent (In) :: nf
+      Integer, Intent (In) :: lmax
+      Integer, Intent (In) :: ld
+      Real (8), Intent (In) :: rfmt (ld, nrmtmax, natmtot, nf)
+      Real (8), Intent (In) :: rfir (ngrtot, nf)
+      Type (plot1d_type) :: plotdef
 ! local variables
-integer::i, ip, iv,fnum1=50,fnum2=51
-real(8)::fmin, fmax, t1
-character(128)::buffer,buffer1
-  type(xmlf_t), save::xf
+      Integer :: i, ip, iv, fnum1 = 50, fnum2 = 51
+      Real (8) :: fmin, fmax, t1
+      Character (128) :: buffer, buffer1
+      Type (xmlf_t), Save :: xf
 ! allocatable arrays
-real(8), allocatable :: fp(:, :)
-if ((nf.lt.1).or.(nf.gt.4)) then
-  write(*, *)
-  write(*, '("Error(plot1d): invalid number of functions : ", I8)') nf
-  write(*, *)
-  stop
-end if
-buffer=fname//"1D.OUT"
-open(fnum1, file=trim(buffer), action='WRITE', form='FORMATTED')
-buffer=fname//"LINES.OUT"
-open(fnum2, file=trim(buffer), action='WRITE', form='FORMATTED')
-call xml_OpenFile (fname//"1d.xml", xf, replace=.true.,pretty_print=.true.)
-call xml_NewElement(xf,"plot1d")
-call xml_NewElement(xf,"title")
-call xml_AddCharacters(xf,trim(input%title))
-call xml_endElement(xf,"title")
+      Real (8), Allocatable :: fp (:, :)
+      If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
+         Write (*,*)
+         Write (*, '("Error(plot1d): invalid number of functions : ", I&
+        &8)') nf
+         Write (*,*)
+         Stop
+      End If
+      buffer = fname // "1D.OUT"
+      Open (fnum1, File=trim(buffer), Action='WRITE', Form='FORMATTED')
+      buffer = fname // "LINES.OUT"
+      Open (fnum2, File=trim(buffer), Action='WRITE', Form='FORMATTED')
+      Call xml_OpenFile (fname//"1d.xml", xf, replace=.True., &
+     & pretty_print=.True.)
+      Call xml_NewElement (xf, "plot1d")
+      Call xml_NewElement (xf, "title")
+      Call xml_AddCharacters (xf, trim(input%title))
+      Call xml_endElement (xf, "title")
 ! connect the plotting vertices
-  nvp1d=size(plotdef%path%pointarray)
-  npp1d=plotdef%path%steps
-  allocate(fp(npp1d, nf))
-  if (allocated(dvp1d)) deallocate(dvp1d)
-  allocate(dvp1d(nvp1d))
-  if (allocated(vplp1d)) deallocate(vplp1d)
-  allocate(vplp1d(3, npp1d))
-  if (allocated(dpp1d)) deallocate(dpp1d)
-  allocate(dpp1d(npp1d))
-call connect(input%structure%crystal%basevect, plotdef, &
-size(plotdef%path%pointarray),plotdef%path%steps,vplp1d, dvp1d, dpp1d)
-do i=1, nf
+      nvp1d = size (plotdef%path%pointarray)
+      npp1d = plotdef%path%steps
+      Allocate (fp(npp1d, nf))
+      If (allocated(dvp1d)) deallocate (dvp1d)
+      Allocate (dvp1d(nvp1d))
+      If (allocated(vplp1d)) deallocate (vplp1d)
+      Allocate (vplp1d(3, npp1d))
+      If (allocated(dpp1d)) deallocate (dpp1d)
+      Allocate (dpp1d(npp1d))
+      Call connect (input%structure%crystal%basevect, plotdef, &
+     & size(plotdef%path%pointarray), plotdef%path%steps, vplp1d, &
+     & dvp1d, dpp1d)
+      Do i = 1, nf
 ! evaluate function at each point
-  call rfarray(lmax, ld, rfmt(:, :, :, i), rfir(:, i), npp1d, vplp1d, fp(:, i))
-end do
-fmin=fp(1, 1)
-fmax=fp(1, 1)
-do ip=1, npp1d
-  do i=1, nf
-    fmin=min(fmin, fp(ip, i))
-    fmax=max(fmax, fp(ip, i))
-  end do
+         Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), npp1d, &
+        & vplp1d, fp(:, i))
+      End Do
+      fmin = fp (1, 1)
+      fmax = fp (1, 1)
+      Do ip = 1, npp1d
+         Do i = 1, nf
+            fmin = Min (fmin, fp(ip, i))
+            fmax = Max (fmax, fp(ip, i))
+         End Do
 ! write the point distances and function to file
-  write(fnum1, '(5G18.10)') dpp1d(ip), (fp(ip, i), i=1, nf)
-  call xml_NewElement(xf,"point")
-  write(buffer,'(5G18.10)')dpp1d(ip)
-   call xml_AddAttribute(xf, "distance", trim(adjustl(buffer)))
-   do i=1,nf
-    write(buffer,'(5G18.10)')fp(ip, i)
-     write(buffer1,*)i
-  call xml_AddAttribute(xf, "function"//trim(adjustl(buffer1)), trim(adjustl(buffer)))
-   end do
-   call xml_endElement(xf,"point")
-end do
+         Write (fnum1, '(5G18.10)') dpp1d (ip), (fp(ip, i), i=1, nf)
+         Call xml_NewElement (xf, "point")
+         Write (buffer, '(5G18.10)') dpp1d (ip)
+         Call xml_AddAttribute (xf, "distance", trim(adjustl(buffer)))
+         Do i = 1, nf
+            Write (buffer, '(5G18.10)') fp (ip, i)
+            Write (buffer1,*) i
+            Call xml_AddAttribute (xf, "function"//&
+           & trim(adjustl(buffer1)), trim(adjustl(buffer)))
+         End Do
+         Call xml_endElement (xf, "point")
+      End Do
 ! write the vertex location lines
-t1=0.5d0*(fmax-fmin)
-do iv=1, nvp1d
-  write(fnum2, '(2G18.10)') dvp1d(iv), fmax+t1
-  write(fnum2, '(2G18.10)') dvp1d(iv), fmin-t1
-  write(fnum2, '("     ")')
-end do
-do iv=1,size(plotdef%path%pointarray)
-call xml_NewElement(xf,"vertex")
-
- write(buffer,'(5G18.10)')dvp1d(iv)
-call xml_addAttribute(xf,"distance",trim(adjustl(buffer)))
- write(buffer,'(5G18.10)')fmax+t1
-call xml_addAttribute(xf,"upperboundary",trim(adjustl(buffer)))
- write(buffer,'(5G18.10)')fmin-t1
-call xml_addAttribute(xf,"lowerboundary",trim(adjustl(buffer)))
-call xml_addAttribute(xf,"label",trim(adjustl(plotdef%path%pointarray(iv)%point%label)))
- write(buffer,'(5G18.10)')plotdef%path%pointarray(iv)%point%coord
-call xml_addAttribute(xf,"coord",trim(adjustl(buffer)))
-call xml_endElement(xf,"vertex")
-end do
-call xml_close(xf)
-close(fnum1)
-close(fnum2)
-deallocate(fp)
-deallocate(dvp1d)
-deallocate(vplp1d)
-deallocate(dpp1d)
-return
-end subroutine
+      t1 = 0.5d0 * (fmax-fmin)
+      Do iv = 1, nvp1d
+         Write (fnum2, '(2G18.10)') dvp1d (iv), fmax + t1
+         Write (fnum2, '(2G18.10)') dvp1d (iv), fmin - t1
+         Write (fnum2, '("     ")')
+      End Do
+      Do iv = 1, size (plotdef%path%pointarray)
+         Call xml_NewElement (xf, "vertex")
+!
+         Write (buffer, '(5G18.10)') dvp1d (iv)
+         Call xml_AddAttribute (xf, "distance", trim(adjustl(buffer)))
+         Write (buffer, '(5G18.10)') fmax + t1
+         Call xml_AddAttribute (xf, "upperboundary", &
+        & trim(adjustl(buffer)))
+         Write (buffer, '(5G18.10)') fmin - t1
+         Call xml_AddAttribute (xf, "lowerboundary", &
+        & trim(adjustl(buffer)))
+         Call xml_AddAttribute (xf, "label", &
+        & trim(adjustl(plotdef%path%pointarray(iv)%point%label)))
+         Write (buffer, '(5G18.10)') &
+        & plotdef%path%pointarray(iv)%point%coord
+         Call xml_AddAttribute (xf, "coord", trim(adjustl(buffer)))
+         Call xml_endElement (xf, "vertex")
+      End Do
+      Call xml_close (xf)
+      Close (fnum1)
+      Close (fnum2)
+      Deallocate (fp)
+      Deallocate (dvp1d)
+      Deallocate (vplp1d)
+      Deallocate (dpp1d)
+      Return
+End Subroutine
 !EOC

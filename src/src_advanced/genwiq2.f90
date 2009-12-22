@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2006 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: genwiq2
 ! !INTERFACE:
-
-
-subroutine genwiq2
+!
+!
+Subroutine genwiq2
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !DESCRIPTION:
 !   The Fock matrix elements
 !   $$ V^{\rm NL}_{ij{\bf k}}\equiv\sum_{l{\bf k'}}\int
@@ -41,64 +41,64 @@ use modmain
 !   Created August 2004 (JKD,SS)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! local variables
-integer, parameter :: np=5
-integer, parameter :: ns0=10, nss=20
-integer::ns, iq, i1, i2, i3, i, ip
-real(8)::d(3), dv, sum, t1, t2
-real(8)::v1(3), v2(3), v3(3)
-real(8)::xa(np), ya(np), c(np)
+      Integer, Parameter :: np = 5
+      Integer, Parameter :: ns0 = 10, nss = 20
+      Integer :: ns, iq, i1, i2, i3, i, ip
+      Real (8) :: d (3), dv, sum, t1, t2
+      Real (8) :: v1 (3), v2 (3), v3 (3)
+      Real (8) :: xa (np), ya (np), c (np)
 ! external functions
-real(8)::polynom
-external polynom
+      Real (8) :: polynom
+      External polynom
 ! allocate global wiq2 array
-if (allocated(wiq2)) deallocate(wiq2)
-allocate(wiq2(ngridq(1)*ngridq(2)*ngridq(3)))
+      If (allocated(wiq2)) deallocate (wiq2)
+      Allocate (wiq2(ngridq(1)*ngridq(2)*ngridq(3)))
 ! if system is a molecule wiq2 should be zero
-if (input%structure%molecule) then
-  wiq2(:)=0
-  return
-end if
+      If (input%structure%molecule) Then
+         wiq2 (:) = 0
+         Return
+      End If
 ! begin loop over q-points, note that the vectors vqc are assumed to be in the
 ! first Brillouin zone
-do iq=1, nqpt
+      Do iq = 1, nqpt
 ! loop over different subdivisions
-  ns=ns0
-  do ip=1, np
+         ns = ns0
+         Do ip = 1, np
 ! subdivision vectors in lattice coordinates
-    do i=1, 3
-      d(i)=1.d0/(dble(input%groundstate%ngridk(i)*2*ns))
-    end do
+            Do i = 1, 3
+               d (i) = 1.d0 / (dble(input%groundstate%ngridk(i)*2*ns))
+            End Do
 ! smallest volume element
-    dv=((twopi**3)/omega)*d(1)*d(2)*d(3)
+            dv = ((twopi**3)/omega) * d (1) * d (2) * d (3)
 ! compute the integral of 1/q^2
-    sum=0.d0
-    do i1=-ns, ns-1
-      t1=dble(i1)*d(1)
-      v1(:)=vqc(:, iq)+t1*bvec(:, 1)
-      do i2=-ns, ns-1
-	t1=dble(i2)*d(2)
-	v2(:)=v1(:)+t1*bvec(:, 2)
-	do i3=-ns, ns-1
-	  t1=dble(i3)*d(3)
-	  v3(:)=v2(:)+t1*bvec(:, 3)
-	  t2=v3(1)**2+v3(2)**2+v3(3)**2
-	  if (t2.gt.1.d-14) then
-	    sum=sum+1.d0/t2
-	  end if
-	end do
-      end do
-    end do
-    sum=sum*dv
-    xa(ip)=dv**(1.d0/3.d0)
-    ya(ip)=sum
+            sum = 0.d0
+            Do i1 = - ns, ns - 1
+               t1 = dble (i1) * d (1)
+               v1 (:) = vqc (:, iq) + t1 * bvec (:, 1)
+               Do i2 = - ns, ns - 1
+                  t1 = dble (i2) * d (2)
+                  v2 (:) = v1 (:) + t1 * bvec (:, 2)
+                  Do i3 = - ns, ns - 1
+                     t1 = dble (i3) * d (3)
+                     v3 (:) = v2 (:) + t1 * bvec (:, 3)
+                     t2 = v3 (1) ** 2 + v3 (2) ** 2 + v3 (3) ** 2
+                     If (t2 .Gt. 1.d-14) Then
+                        sum = sum + 1.d0 / t2
+                     End If
+                  End Do
+               End Do
+            End Do
+            sum = sum * dv
+            xa (ip) = dv ** (1.d0/3.d0)
+            ya (ip) = sum
 ! increment number of subdivisions
-    ns=ns+nss
-  end do
+            ns = ns + nss
+         End Do
 ! extrapolate the volume element to zero with a polynomial
-  wiq2(iq)=polynom(0, np, xa, ya, c, 0.d0)
-end do
-return
-end subroutine
+         wiq2 (iq) = polynom (0, np, xa, ya, c, 0.d0)
+      End Do
+      Return
+End Subroutine
 !EOC

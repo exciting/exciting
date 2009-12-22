@@ -1,32 +1,32 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_constants
+Module mod_constants
 !-----------------------------!
 !     numerical constants     !
 !-----------------------------!
-real(8), parameter :: pi=3.1415926535897932385d0
-real(8), parameter :: twopi=6.2831853071795864769d0
-real(8), parameter :: fourpi=12.566370614359172954d0
+      Real (8), Parameter :: pi = 3.1415926535897932385d0
+      Real (8), Parameter :: twopi = 6.2831853071795864769d0
+      Real (8), Parameter :: fourpi = 12.566370614359172954d0
 ! square root of two
-real(8), parameter :: sqtwo=1.4142135623730950488d0
+      Real (8), Parameter :: sqtwo = 1.4142135623730950488d0
 ! spherical harmonic for l=m=0
-real(8), parameter :: y00=0.28209479177387814347d0
+      Real (8), Parameter :: y00 = 0.28209479177387814347d0
 ! complex constants
-complex(8), parameter :: zzero=(0.d0, 0.d0)
-complex(8), parameter :: zhalf=(0.5d0, 0.d0)
-complex(8), parameter :: zone=(1.d0, 0.d0)
-complex(8), parameter :: zi=(0.d0, 1.d0)
+      Complex (8), Parameter :: zzero = (0.d0, 0.d0)
+      Complex (8), Parameter :: zhalf = (0.5d0, 0.d0)
+      Complex (8), Parameter :: zone = (1.d0, 0.d0)
+      Complex (8), Parameter :: zi = (0.d0, 1.d0)
 ! array of i**l values
-complex(8), allocatable :: zil(:)
+      Complex (8), Allocatable :: zil (:)
 ! Pauli spin matrices:
 ! sigma_x = ( 0  1 )   sigma_y = ( 0 -i )   sigma_z = ( 1  0 )
 !           ( 1  0 )             ( i  0 )             ( 0 -1 )
-complex(8) sigmat(2, 2, 3)
-data sigmat / (0.d0, 0.d0), (1.d0, 0.d0), (1.d0, 0.d0), (0.d0, 0.d0), &
-	      (0.d0, 0.d0), (0.d0, 1.d0), (0.d0, - 1.d0), (0.d0, 0.d0), &
-	      (1.d0, 0.d0), (0.d0, 0.d0), (0.d0, 0.d0), ( - 1.d0, 0.d0) /
+      Complex (8) sigmat (2, 2, 3)
+      Data sigmat / (0.d0, 0.d0), (1.d0, 0.d0), (1.d0, 0.d0), (0.d0, &
+     & 0.d0), (0.d0, 0.d0), (0.d0, 1.d0), (0.d0,-1.d0), (0.d0, 0.d0), &
+     & (1.d0, 0.d0), (0.d0, 0.d0), (0.d0, 0.d0), (-1.d0, 0.d0) /
 ! Boltzmann constant in Hartree/kelvin (CODATA 2006)
-real(8), parameter :: kboltz=3.166815343d-6
-end module
-
+      Real (8), Parameter :: kboltz = 3.166815343d-6
+End Module
+!

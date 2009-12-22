@@ -1,103 +1,111 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2006-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-module m_ftfun
-  implicit none
-contains
-
-
-subroutine ftfun(ng, lmax, tir, tmt, gir, gmt, ftg)
-    use modmain
-    use modxs
-    implicit none
+!
+Module m_ftfun
+      Implicit None
+Contains
+!
+!
+      Subroutine ftfun (ng, lmax, tir, tmt, gir, gmt, ftg)
+         Use modmain
+         Use modxs
+         Implicit None
     ! arguments
-    integer, intent(in) :: ng
-    integer, intent(in) :: lmax
-    logical, intent(in) :: tir
-    logical, intent(in) :: tmt
-    complex(8), intent(in) :: gir(:)
-    complex(8), intent(in) :: gmt(:, :, :)
-    complex(8), intent(out) :: ftg(:)
+         Integer, Intent (In) :: ng
+         Integer, Intent (In) :: lmax
+         Logical, Intent (In) :: tir
+         Logical, Intent (In) :: tmt
+         Complex (8), Intent (In) :: gir (:)
+         Complex (8), Intent (In) :: gmt (:, :, :)
+         Complex (8), Intent (Out) :: ftg (:)
     ! local variales
-    complex(8), allocatable :: zfft(:)
-    complex(8) :: zt1, zt2
-    real(8), allocatable :: jbesslh(:), jbessl(:, :)
-    real(8), allocatable :: r1(:), r2(:), fr(:), fr2(:), gr(:), cf(:, :)
-    integer :: ig, ifg, is, ia, ias, ir, nr, l, m, lm
-
+         Complex (8), Allocatable :: zfft (:)
+         Complex (8) :: zt1, zt2
+         Real (8), Allocatable :: jbesslh (:), jbessl (:, :)
+         Real (8), Allocatable :: r1 (:), r2 (:), fr (:), fr2 (:), gr &
+        & (:), cf (:, :)
+         Integer :: ig, ifg, is, ia, ias, ir, nr, l, m, lm
+!
     ! interstitial part
-    ftg(:)=zzero
-    if (tir) then
-       allocate(zfft(ngrtot))
+         ftg (:) = zzero
+         If (tir) Then
+            Allocate (zfft(ngrtot))
        ! multiply effective potential with smooth characteristic function
-       zfft(:)=gir(:)*cfunir(:)
+            zfft (:) = gir (:) * cfunir (:)
        ! Fourier transform to G-space
-       call zfftifc(3, ngrid, -1, zfft)
-       do ig=1, ng
-	  ifg=igfft(ig)
-	  ftg(ig)=ftg(ig)+zfft(ifg)
-       end do
-       deallocate(zfft)
-    end if
-
+            Call zfftifc (3, ngrid,-1, zfft)
+            Do ig = 1, ng
+               ifg = igfft (ig)
+               ftg (ig) = ftg (ig) + zfft (ifg)
+            End Do
+            Deallocate (zfft)
+         End If
+!
     ! muffin-tin part
-    if (tmt) then
+         If (tmt) Then
        ! allocate array for Bessel functions
-       allocate(jbessl(0:lmax, nrmtmax))
-       allocate(jbesslh(0:lmax))
-       allocate(r1(nrmtmax), r2(nrmtmax), fr(nrmtmax), fr2(nrmtmax), gr(nrmtmax), &
-	    cf(3, nrmtmax))
+            Allocate (jbessl(0:lmax, nrmtmax))
+            Allocate (jbesslh(0:lmax))
+            Allocate (r1(nrmtmax), r2(nrmtmax), fr(nrmtmax), &
+           & fr2(nrmtmax), gr(nrmtmax), cf(3, nrmtmax))
        ! loop over G vectors
-       do ig=1, ng
+            Do ig = 1, ng
           ! loop over species
-	  do is=1, nspecies
-	     nr=nrmt(is)
-	     do ir=1, nr
-		r1(ir)=spr(ir, is)
-		r2(ir)=r1(ir)**2
-	     end do
+               Do is = 1, nspecies
+                  nr = nrmt (is)
+                  Do ir = 1, nr
+                     r1 (ir) = spr (ir, is)
+                     r2 (ir) = r1 (ir) ** 2
+                  End Do
              ! calculate bessel functions j_l(|G||r|)
-	     do ir=1, nr
-		call sbessel(lmax, gc(ig)*r1(ir), jbesslh)
-		jbessl(:, ir)=jbesslh(:)
-	     end do
+                  Do ir = 1, nr
+                     Call sbessel (lmax, gc(ig)*r1(ir), jbesslh)
+                     jbessl (:, ir) = jbesslh (:)
+                  End Do
              ! loop over atoms
-	     do ia=1, natoms(is)
-		ias=idxas(ia, is)
-		zt1=zzero
-		zt2=zzero
-		do l=0, lmax
-		   do m=-l, l
-		      lm=idxlm(l, m)
-		      do ir=1, nr
+                  Do ia = 1, natoms (is)
+                     ias = idxas (ia, is)
+                     zt1 = zzero
+                     zt2 = zzero
+                     Do l = 0, lmax
+                        Do m = - l, l
+                           lm = idxlm (l, m)
+                           Do ir = 1, nr
                          ! integrand
-			 fr(ir)= r2(ir)*jbessl(l, ir)*dble(gmt(lm, ir, ias))
-			 fr2(ir)= r2(ir)*jbessl(l, ir)*aimag(gmt(lm, ir, ias))
-		      end do
-		      if (any(fr.ne.0.d0)) then
+                              fr (ir) = r2 (ir) * jbessl (l, ir) * dble &
+                             & (gmt(lm, ir, ias))
+                              fr2 (ir) = r2 (ir) * jbessl (l, ir) * &
+                             & aimag (gmt(lm, ir, ias))
+                           End Do
+                           If (any(fr .Ne. 0.d0)) Then
                          ! integration
-			 call fderiv(-1, nr, spr(1, is), fr, gr, cf)
-			 zt1=zt1+gr(nr)*conjg(zil(l))*ylmg(lm, ig)
-		      end if
-		      if (any(fr2.ne.0.d0)) then
+                              Call fderiv (-1, nr, spr(1, is), fr, gr, &
+                             & cf)
+                              zt1 = zt1 + gr (nr) * conjg (zil(l)) * &
+                             & ylmg (lm, ig)
+                           End If
+                           If (any(fr2 .Ne. 0.d0)) Then
                          ! integration
-			 call fderiv(-1, nr, spr(1, is), fr2, gr, cf)
-			 zt2=zt2+gr(nr)*conjg(zil(l))*ylmg(lm, ig)
-		      end if
-		   end do ! m
-		end do ! l
+                              Call fderiv (-1, nr, spr(1, is), fr2, gr, &
+                             & cf)
+                              zt2 = zt2 + gr (nr) * conjg (zil(l)) * &
+                             & ylmg (lm, ig)
+                           End If
+                        End Do ! m
+                     End Do ! l
                 ! form factor summation
-		ftg(ig)=ftg(ig)+(fourpi/omega)*conjg(sfacg(ig, ias))*(zt1+zi*zt2)
-	     end do ! ia
-	  end do ! is
-       end do ! ig
-       deallocate(jbessl, jbesslh, r1, r2, fr, fr2, gr, cf)
-    end if
-
-  end subroutine ftfun
-
-end module m_ftfun
+                     ftg (ig) = ftg (ig) + (fourpi/omega) * conjg &
+                    & (sfacg(ig, ias)) * (zt1+zi*zt2)
+                  End Do ! ia
+               End Do ! is
+            End Do ! ig
+            Deallocate (jbessl, jbesslh, r1, r2, fr, fr2, gr, cf)
+         End If
+!
+      End Subroutine ftfun
+!
+End Module m_ftfun

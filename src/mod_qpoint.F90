@@ -1,27 +1,27 @@
-
-
+!
+!
 #include "maxdefinitions.inc"
-module mod_qpoint
+Module mod_qpoint
 !-------------------------------!
 !     q-point set variables     !
 !-------------------------------!
 ! q-point grid sizes
-integer::ngridq(3)
+      Integer :: ngridq (3)
 ! total number of q-points
-integer::nqpt
+      Integer :: nqpt
 ! reduceq is .true. if q-points are to be reduced (with crystal symmetries)
 !replaced by inputstructurelogical::reduceq
 ! locations of q-points on integer grid
-integer, allocatable :: ivq(:, :)
+      Integer, Allocatable :: ivq (:, :)
 ! map from non-reduced grid to reduced set
-integer, allocatable :: iqmap(:, :, :)
+      Integer, Allocatable :: iqmap (:, :, :)
 ! q-points in lattice coordinates
-real(8), allocatable :: vql(:, :)
+      Real (8), Allocatable :: vql (:, :)
 ! q-points in Cartesian coordinates
-real(8), allocatable :: vqc(:, :)
+      Real (8), Allocatable :: vqc (:, :)
 ! q-point weights
-real(8), allocatable :: wqpt(:)
+      Real (8), Allocatable :: wqpt (:)
 ! weights associated with the integral of 1/q^2
-real(8), allocatable :: wiq2(:)
-end module
-
+      Real (8), Allocatable :: wiq2 (:)
+End Module
+!

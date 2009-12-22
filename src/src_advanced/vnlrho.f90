@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: vnlrho
 ! !INTERFACE:
-
-
-subroutine vnlrho(tsh, wfmt1, wfmt2, wfir1, wfir2, zrhomt, zrhoir)
+!
+!
+Subroutine vnlrho (tsh, wfmt1, wfmt2, wfir1, wfir2, zrhomt, zrhoir)
 ! !USES:
-use modinput
-use modmain
+      Use modinput
+      Use modmain
 ! !INPUT/OUTPUT PARAMETERS:
 !   tsh    : .true. if the muffin-tin density is to be in spherical harmonics
 !            (in,logical)
@@ -38,46 +38,53 @@ use modmain
 !   Created November 2004 (Sharma)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-logical, intent(in) :: tsh
-complex(8), intent(in) ::  wfmt1(lmmaxvr, nrcmtmax, natmtot, nspinor)
-complex(8), intent(in) ::  wfmt2(lmmaxvr, nrcmtmax, natmtot, nspinor)
-complex(8), intent(in) ::  wfir1(ngrtot, nspinor)
-complex(8), intent(in) ::  wfir2(ngrtot, nspinor)
-complex(8), intent(out) :: zrhomt(lmmaxvr, nrcmtmax, natmtot)
-complex(8), intent(out) :: zrhoir(ngrtot)
+      Logical, Intent (In) :: tsh
+      Complex (8), Intent (In) :: wfmt1 (lmmaxvr, nrcmtmax, natmtot, &
+     & nspinor)
+      Complex (8), Intent (In) :: wfmt2 (lmmaxvr, nrcmtmax, natmtot, &
+     & nspinor)
+      Complex (8), Intent (In) :: wfir1 (ngrtot, nspinor)
+      Complex (8), Intent (In) :: wfir2 (ngrtot, nspinor)
+      Complex (8), Intent (Out) :: zrhomt (lmmaxvr, nrcmtmax, natmtot)
+      Complex (8), Intent (Out) :: zrhoir (ngrtot)
 ! local variables
-integer::is, ia, ias, nrc, ir
+      Integer :: is, ia, ias, nrc, ir
 ! allocatable arrays
-complex(8), allocatable :: zfmt(:, :)
-if (associated(input%groundstate%spin)) allocate(zfmt(lmmaxvr, nrcmtmax))
+      Complex (8), Allocatable :: zfmt (:, :)
+      If (associated(input%groundstate%spin)) allocate (zfmt(lmmaxvr, &
+     & nrcmtmax))
 ! muffin-tin part
-do is=1, nspecies
-  nrc=nrcmt(is)
-  do ia=1, natoms(is)
-    ias=idxas(ia, is)
-    call vnlrhomt(tsh, is, wfmt1(:, :, ias, 1), wfmt2(:, :, ias, 1), zrhomt(:, :, ias))
-    if (associated(input%groundstate%spin)) then
+      Do is = 1, nspecies
+         nrc = nrcmt (is)
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            Call vnlrhomt (tsh, is, wfmt1(:, :, ias, 1), wfmt2(:, :, &
+           & ias, 1), zrhomt(:, :, ias))
+            If (associated(input%groundstate%spin)) Then
 ! spin-polarised
-      call vnlrhomt(tsh, is, wfmt1(:, :, ias, 2), wfmt2(:, :, ias, 2), zfmt)
-      zrhomt(:, 1:nrc, ias)=zrhomt(:, 1:nrc, ias)+zfmt(:, 1:nrc)
-    end if
-  end do
-end do
+               Call vnlrhomt (tsh, is, wfmt1(:, :, ias, 2), wfmt2(:, :, &
+              & ias, 2), zfmt)
+               zrhomt (:, 1:nrc, ias) = zrhomt (:, 1:nrc, ias) + zfmt &
+              & (:, 1:nrc)
+            End If
+         End Do
+      End Do
 ! interstitial part
-if (associated(input%groundstate%spin)) then
+      If (associated(input%groundstate%spin)) Then
 ! spin-polarised
-  do ir=1, ngrtot
-    zrhoir(ir)=conjg(wfir1(ir, 1))*wfir2(ir, 1)+conjg(wfir1(ir, 2))*wfir2(ir, 2)
-  end do
-else
+         Do ir = 1, ngrtot
+            zrhoir (ir) = conjg (wfir1(ir, 1)) * wfir2 (ir, 1) + conjg &
+           & (wfir1(ir, 2)) * wfir2 (ir, 2)
+         End Do
+      Else
 ! spin-unpolarised
-  do ir=1, ngrtot
-    zrhoir(ir)=conjg(wfir1(ir, 1))*wfir2(ir, 1)
-  end do
-end if
-if (associated(input%groundstate%spin)) deallocate(zfmt)
-return
-end subroutine
+         Do ir = 1, ngrtot
+            zrhoir (ir) = conjg (wfir1(ir, 1)) * wfir2 (ir, 1)
+         End Do
+      End If
+      If (associated(input%groundstate%spin)) deallocate (zfmt)
+      Return
+End Subroutine
 !EOC

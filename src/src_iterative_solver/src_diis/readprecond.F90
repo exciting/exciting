@@ -1,33 +1,33 @@
-
-
-
-
-subroutine	 readprecond(ik, n, X, w)
-  use modmain
-use modmpi	
-  integer, intent(in)::n, ik
-  complex(8), intent(out)::X(nmatmax, nmatmax)
-   real(8), intent(out)::w(nmatmax)
+!
+!
+!
+!
+Subroutine readprecond (ik, n, X, w)
+      Use modmain
+      Use modmpi
+      Integer, Intent (In) :: n, ik
+      Complex (8), Intent (Out) :: X (nmatmax, nmatmax)
+      Real (8), Intent (Out) :: w (nmatmax)
   !local variables
-  character(256) ::filetag
-  character(256), external:: outfilenamestring
-  integer::recl, koffset
-  inquire(iolength=recl)X, w
-  filetag="PRECONDMATRIX"
-  if (splittfile.or.(rank.eq.0)) then
-     open(70, file = outfilenamestring(filetag, ik), action = 'READ', &
-	  form = 'UNFORMATTED', access = 'DIRECT', recl = recl)
-     if (splittfile) then
-	koffset=ik-firstk(procofk(ik))+1
-     else
-	koffset =ik
-     endif
-     X=0
-     w=0
-     read(70, rec=koffset)X, w
-     close(70)
-  else
-     write(*, *)"Error"
-     stop
-  endif
-end subroutine readprecond
+      Character (256) :: filetag
+      Character (256), External :: outfilenamestring
+      Integer :: recl, koffset
+      Inquire (IoLength=Recl) X, w
+      filetag = "PRECONDMATRIX"
+      If (splittfile .Or. (rank .Eq. 0)) Then
+         Open (70, File=outfilenamestring(filetag, ik), Action='READ', &
+        & Form='UNFORMATTED', Access='DIRECT', Recl=Recl)
+         If (splittfile) Then
+            koffset = ik - firstk (procofk(ik)) + 1
+         Else
+            koffset = ik
+         End If
+         X = 0
+         w = 0
+         Read (70, Rec=koffset) X, w
+         Close (70)
+      Else
+         Write (*,*) "Error"
+         Stop
+      End If
+End Subroutine readprecond

@@ -1,45 +1,46 @@
-
-
-
-
-subroutine solvediislin(m, Pmatrix, Qmatrix, c)
-  use diisinterfaces
-  use sclcontroll, only:recalculate_preconditioner
-  implicit none
-
-  integer, intent(in)::m
-
-  real(8), intent(inout)::Pmatrix(m+1, m+1), Qmatrix(m+1, m+1)
-  real(8), intent(out)::c(m+1)
-  integer:: ipiv(m+1), info=0, i, RANK, lwork=-1
-  real(8), allocatable ::WORK (:)
-  real(8)::tmp(1)
-  Pmatrix(m+1, m+1)=0.0
-  c(m+1)=-1
-  do i=1, m
-     Pmatrix(i, m+1)=-1.0
-     Pmatrix(m+1, i)=-1.0
-     c(i)=0
-  end do
-  call	DGESV( m+1, 1, Pmatrix , m+1, IPIV, c, m+1, INFO )
+!
+!
+!
+!
+Subroutine solvediislin (m, Pmatrix, Qmatrix, c)
+      Use diisinterfaces
+      Use sclcontroll, Only: recalculate_preconditioner
+      Implicit None
+!
+      Integer, Intent (In) :: m
+!
+      Real (8), Intent (Inout) :: Pmatrix (m+1, m+1), Qmatrix (m+1, &
+     & m+1)
+      Real (8), Intent (Out) :: c (m+1)
+      Integer :: ipiv (m+1), info = 0, i, RANK, lwork = - 1
+      Real (8), Allocatable :: WORK (:)
+      Real (8) :: tmp (1)
+      Pmatrix (m+1, m+1) = 0.0
+      c (m+1) = - 1
+      Do i = 1, m
+         Pmatrix (i, m+1) = - 1.0
+         Pmatrix (m+1, i) = - 1.0
+         c (i) = 0
+      End Do
+      Call DGESV (m+1, 1, Pmatrix, m+1, ipiv, c, m+1, info)
  ! call DGELSY( m+1, m+1, 1, Pmatrix, m+1, c, m+1, IPIV,.10, RANK,&
  !           tmp, LWORK, INFO )
  !   LWORK=tmp(1)
  !   allocate(WORK(LWORK))
  !   INFO=1
  ! call DGELSY( m+1, m+1, 1, Pmatrix, m+1, c, m+1, IPIV,.10, RANK,&
-        !        WORK, LWORK, INFO )            
-
-  if (info.ne.0) then
-     write(*, *)
-     write(*, '("Error(solvediis):  failed")')
-     write(*, '(" DGESV returned INFO = ", I8)') info
-#ifdef DEBUG		   
-     write(775, *)(Pmatrix)
-     write(776, *)(Qmatrix)
+        !        WORK, LWORK, INFO )
+!
+      If (info .Ne. 0) Then
+         Write (*,*)
+         Write (*, '("Error(solvediis):  failed")')
+         Write (*, '(" DGESV returned INFO = ", I8)') info
+#ifdef DEBUG		
+         Write (775,*) (Pmatrix)
+         Write (776,*) (Qmatrix)
      ! stop
-     recalculate_preconditioner=.true.
+         recalculate_preconditioner = .True.
 #endif
-  end if
-
-end subroutine solvediislin
+      End If
+!
+End Subroutine solvediislin

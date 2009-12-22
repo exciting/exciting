@@ -12,7 +12,7 @@ open INFO, "runlapackmpi/INFO.OUT";
 $status=failed;
 while(<INFO>)
 	{
-	if (m/\| EXCITING version.+stopped/){
+	if (m/\| EXCITING.+stopped/){
 		$status="passed";
 	}
 }

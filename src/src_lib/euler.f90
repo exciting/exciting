@@ -1,30 +1,30 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: euler
 ! !INTERFACE:
-
-
-subroutine euler(rot, ang)
+!
+!
+Subroutine euler (rot, ang)
 ! !INPUT/OUTPUT PARAMETERS:
 !   rot : rotation matrix (in,real(3,3))
 !   ang : euler angles (alpha, beta, gamma) (out,real(3))
 ! !DESCRIPTION:
 !   Given a rotation matrix
 !   \begin{align*}
-!    &R(\alpha,\beta,\gamma)=\&
+!    &R(\alpha,\beta,\gamma)=\\
 !    &\left(\begin{matrix}
 !     \cos\gamma\cos\beta\cos\alpha-\sin\gamma\sin\alpha &
 !     \cos\gamma\cos\beta\sin\alpha+\sin\gamma\cos\alpha &
-!    -\cos\gamma\sin\beta \&
+!    -\cos\gamma\sin\beta \\
 !    -\sin\gamma\cos\beta\cos\alpha-\cos\gamma\sin\alpha &
 !    -\sin\gamma\cos\beta\sin\alpha+\cos\gamma\cos\alpha &
-!     \sin\gamma\sin\beta \&
+!     \sin\gamma\sin\beta \\
 !     \sin\beta\cos\alpha &
 !     \sin\beta\sin\alpha &
 !     \cos\beta
@@ -48,47 +48,49 @@ subroutine euler(rot, ang)
 !   Created May 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-real(8), intent(in) :: rot(3, 3)
-real(8), intent(out) :: ang(3)
+      Real (8), Intent (In) :: rot (3, 3)
+      Real (8), Intent (Out) :: ang (3)
 ! local variables
-real(8), parameter :: eps=1.d-10
-real(8), parameter :: pi=3.1415926535897932385d0
-real(8), parameter :: twopi=6.2831853071795864769d0
-real(8)::det
+      Real (8), Parameter :: eps = 1.d-10
+      Real (8), Parameter :: pi = 3.1415926535897932385d0
+      Real (8), Parameter :: twopi = 6.2831853071795864769d0
+      Real (8) :: det
 ! find the determinant
-det = rot(1, 2) * rot(2, 3) * rot(3, 1) - rot(1, 3) * rot(2, 2) * rot(3, 1) &
-   +rot(1, 3) * rot(2, 1) * rot(3, 2) - rot(1, 1) * rot(2, 3) * rot(3, 2) &
-   +rot(1, 1) * rot(2, 2) * rot(3, 3) - rot(1, 2) * rot(2, 1) * rot(3, 3)
-if ((det.lt.1.d0-eps).or.(det.gt.1.d0+eps)) then
-  write(*, *)
-  write(*, '("Error(euler): matrix improper or not unitary")')
-  write(*, '(" Determinant : ", G18.10)') det
-  write(*, *)
-  stop
-end if
-if ((abs(rot(3, 1)).gt.eps).or.(abs(rot(3, 2)).gt.eps)) then
-  ang(1)=atan2(rot(3, 2), rot(3, 1))
-  if (ang(1).lt.0.d0) ang(1)=ang(1)+twopi
-  if (abs(rot(3, 1)).gt.abs(rot(3, 2))) then
-    ang(2)=atan2(rot(3, 1)/cos(ang(1)), rot(3, 3))
-  else
-    ang(2)=atan2(rot(3, 2)/sin(ang(1)), rot(3, 3))
-  end if
-  ang(3)=atan2(rot(2, 3), -rot(1, 3))
-  if (ang(3).lt.0.d0) ang(3)=ang(3)+twopi
-else
-  ang(1)=atan2(rot(1, 2), rot(1, 1))
-  if (ang(1).lt.0.d0) ang(1)=ang(1)+twopi
-  if (rot(3, 3).gt.0.d0) then
-    ang(2)=0.d0
-    ang(3)=0.d0
-  else
-    ang(2)=pi
-    ang(3)=pi
-  end if
-end if
-return
-end subroutine
+      det = rot (1, 2) * rot (2, 3) * rot (3, 1) - rot (1, 3) * rot (2, &
+     & 2) * rot (3, 1) + rot (1, 3) * rot (2, 1) * rot (3, 2) - rot (1, &
+     & 1) * rot (2, 3) * rot (3, 2) + rot (1, 1) * rot (2, 2) * rot (3, &
+     & 3) - rot (1, 2) * rot (2, 1) * rot (3, 3)
+      If ((det .Lt. 1.d0-eps) .Or. (det .Gt. 1.d0+eps)) Then
+         Write (*,*)
+         Write (*, '("Error(euler): matrix improper or not unitary")')
+         Write (*, '(" Determinant : ", G18.10)') det
+         Write (*,*)
+         Stop
+      End If
+      If ((Abs(rot(3, 1)) .Gt. eps) .Or. (Abs(rot(3, 2)) .Gt. eps)) &
+     & Then
+         ang (1) = Atan2 (rot(3, 2), rot(3, 1))
+         If (ang(1) .Lt. 0.d0) ang (1) = ang (1) + twopi
+         If (Abs(rot(3, 1)) .Gt. Abs(rot(3, 2))) Then
+            ang (2) = Atan2 (rot(3, 1)/Cos(ang(1)), rot(3, 3))
+         Else
+            ang (2) = Atan2 (rot(3, 2)/Sin(ang(1)), rot(3, 3))
+         End If
+         ang (3) = Atan2 (rot(2, 3),-rot(1, 3))
+         If (ang(3) .Lt. 0.d0) ang (3) = ang (3) + twopi
+      Else
+         ang (1) = Atan2 (rot(1, 2), rot(1, 1))
+         If (ang(1) .Lt. 0.d0) ang (1) = ang (1) + twopi
+         If (rot(3, 3) .Gt. 0.d0) Then
+            ang (2) = 0.d0
+            ang (3) = 0.d0
+         Else
+            ang (2) = pi
+            ang (3) = pi
+         End If
+      End If
+      Return
+End Subroutine
 !EOC

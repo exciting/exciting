@@ -1,103 +1,106 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
-
-subroutine phlwidth
-use modmain
-implicit none
+!
+!
+Subroutine phlwidth
+      Use modmain
+      Implicit None
 ! local variables
-integer::n, i, j, iq, iv
-integer::lwork, info
-real(8)::gmin, gmax
+      Integer :: n, i, j, iq, iv
+      Integer :: lwork, info
+      Real (8) :: gmin, gmax
 ! allocatable arrays
-real(8), allocatable :: wq(:)
-real(8), allocatable :: gq(:, :)
-real(8), allocatable :: gp(:, :)
-real(8), allocatable :: rwork(:)
-complex(8), allocatable :: dynq(:, :, :)
-complex(8), allocatable :: ev(:, :), b(:, :)
-complex(8), allocatable :: gmq(:, :, :)
-complex(8), allocatable :: gmr(:, :, :)
-complex(8), allocatable :: gmp(:, :)
-complex(8), allocatable :: work(:)
+      Real (8), Allocatable :: wq (:)
+      Real (8), Allocatable :: gq (:, :)
+      Real (8), Allocatable :: gp (:, :)
+      Real (8), Allocatable :: rwork (:)
+      Complex (8), Allocatable :: dynq (:, :, :)
+      Complex (8), Allocatable :: ev (:, :), b (:, :)
+      Complex (8), Allocatable :: gmq (:, :, :)
+      Complex (8), Allocatable :: gmr (:, :, :)
+      Complex (8), Allocatable :: gmp (:, :)
+      Complex (8), Allocatable :: work (:)
 ! initialise universal variables
-call init0
-call init2
-n=3*natmtot
-allocate(wq(n))
-allocate(gq(n, nqpt))
-allocate(gp(n, npp1d))
-allocate(rwork(3*n))
-allocate(dynq(n, n, nqpt))
-allocate(ev(n, n), b(n, n))
-allocate(gmq(n, n, nqpt))
-allocate(gmr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
-allocate(gmp(n, n))
-lwork=2*n
-allocate(work(lwork))
+      Call init0
+      Call init2
+      n = 3 * natmtot
+      Allocate (wq(n))
+      Allocate (gq(n, nqpt))
+      Allocate (gp(n, npp1d))
+      Allocate (rwork(3*n))
+      Allocate (dynq(n, n, nqpt))
+      Allocate (ev(n, n), b(n, n))
+      Allocate (gmq(n, n, nqpt))
+      Allocate (gmr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
+      Allocate (gmp(n, n))
+      lwork = 2 * n
+      Allocate (work(lwork))
 ! read in the dynamical matrices
-call readdyn(dynq)
+      Call readdyn (dynq)
 ! apply the acoustic sum rule
-call sumrule(dynq)
+      Call sumrule (dynq)
 ! read in the phonon linewidths for each q-point
-call readgamma(gq)
+      Call readgamma (gq)
 ! loop over phonon q-points
-do iq=1, nqpt
+      Do iq = 1, nqpt
 ! diagonalise the dynamical matrix
-  call dyndiag(dynq(:, :, iq), wq, ev)
+         Call dyndiag (dynq(:, :, iq), wq, ev)
 ! construct a complex matrix from the phonon eigenvectors such that its
 ! eigenvalues are the phonon linewidths
-  do i=1, n
-    do j=1, n
-      b(i, j)=gq(i, iq)*conjg(ev(j, i))
-    end do
-  end do
-  call zgemm('N', 'N', n, n, n, zone, ev, n, b, n, zzero, gmq(:, :, iq), n)
-end do
+         Do i = 1, n
+            Do j = 1, n
+               b (i, j) = gq (i, iq) * conjg (ev(j, i))
+            End Do
+         End Do
+         Call zgemm ('N', 'N', n, n, n, zone, ev, n, b, n, zzero, &
+        & gmq(:, :, iq), n)
+      End Do
 ! Fourier transform the gamma matrices to real-space
-call dynqtor(gmq, gmr)
+      Call dynqtor (gmq, gmr)
 ! generate a set of q-point vectors along a path in the Brillouin zone
-call connect(bvec, nvp1d, npp1d, vvlp1d, vplp1d, dvp1d, dpp1d)
-gmin=1.d8
-gmax=0.d0
+      Call connect (bvec, nvp1d, npp1d, vvlp1d, vplp1d, dvp1d, dpp1d)
+      gmin = 1.d8
+      gmax = 0.d0
 ! compute the linewidths along the path
-do iq=1, npp1d
+      Do iq = 1, npp1d
 ! compute the gamma matrix at this particular q-point
-  call dynrtoq(vplp1d(:, iq), gmr, gmp)
+         Call dynrtoq (vplp1d(:, iq), gmr, gmp)
 ! diagonalise the gamma matrix
-  call zheev('N', 'U', n, gmp, n, gp(:, iq), work, lwork, rwork, info)
-  gmin=min(gmin, gp(1, iq))
-  gmax=max(gmax, gp(n, iq))
-end do
-gmax=gmax+(gmax-gmin)*0.5d0
-gmin=gmin-(gmax-gmin)*0.5d0
+         Call zheev ('N', 'U', n, gmp, n, gp(:, iq), work, lwork, &
+        & rwork, info)
+         gmin = Min (gmin, gp(1, iq))
+         gmax = Max (gmax, gp(n, iq))
+      End Do
+      gmax = gmax + (gmax-gmin) * 0.5d0
+      gmin = gmin - (gmax-gmin) * 0.5d0
 ! output the vertex location lines
-open(50, file='PHLWLINES.OUT', action='WRITE', form='FORMATTED')
-do iv=1, nvp1d
-  write(50, '(2G18.10)') dvp1d(iv), gmin
-  write(50, '(2G18.10)') dvp1d(iv), gmax
-  write(50, '("     ")')
-end do
-close(50)
+      Open (50, File='PHLWLINES.OUT', Action='WRITE', Form='FORMATTED')
+      Do iv = 1, nvp1d
+         Write (50, '(2G18.10)') dvp1d (iv), gmin
+         Write (50, '(2G18.10)') dvp1d (iv), gmax
+         Write (50, '("     ")')
+      End Do
+      Close (50)
 ! output the phonon linewidth dispersion
-open(50, file='PHLWIDTH.OUT', action='WRITE', form='FORMATTED')
-do i=1, n
-  do iq=1, npp1d
-    write(50, '(2G18.10)') dpp1d(iq), gp(i, iq)
-  end do
-  write(50, '("     ")')
-end do
-close(50)
-write(*, *)
-write(*, '("Info(phlwidth):")')
-write(*, '(" phonon linewidth dispersion written to PHLWIDTH.OUT")')
-write(*, '(" vertex location lines written to PHLWLINES.OUT")')
-write(*, *)
-deallocate(wq, gq, gp, rwork, dynq)
-deallocate(ev, b, gmq, gmr, gmp, work)
-return
-end subroutine
+      Open (50, File='PHLWIDTH.OUT', Action='WRITE', Form='FORMATTED')
+      Do i = 1, n
+         Do iq = 1, npp1d
+            Write (50, '(2G18.10)') dpp1d (iq), gp (i, iq)
+         End Do
+         Write (50, '("     ")')
+      End Do
+      Close (50)
+      Write (*,*)
+      Write (*, '("Info(phlwidth):")')
+      Write (*, '(" phonon linewidth dispersion written to PHLWIDTH.OUT&
+     &")')
+      Write (*, '(" vertex location lines written to PHLWLINES.OUT")')
+      Write (*,*)
+      Deallocate (wq, gq, gp, rwork, dynq)
+      Deallocate (ev, b, gmq, gmr, gmp, work)
+      Return
+End Subroutine

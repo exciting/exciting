@@ -1,15 +1,15 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst and S. Sharma.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: fsmooth
-
-
-subroutine fsmooth(m, n, ld, f)
+!
+!
+Subroutine fsmooth (m, n, ld, f)
 ! !INPUT/OUTPUT PARAMETERS:
 !   m  : number of 3-point running averages to perform (in,integer)
 !   n  : number of point (in,integer)
@@ -23,22 +23,23 @@ subroutine fsmooth(m, n, ld, f)
 !   Created December 2005 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: m
-integer, intent(in) :: n
-integer, intent(in) :: ld
-real(8), intent(inout) :: f(ld, n)
+      Integer, Intent (In) :: m
+      Integer, Intent (In) :: n
+      Integer, Intent (In) :: ld
+      Real (8), Intent (Inout) :: f (ld, n)
 ! local variables
-integer::i, j
+      Integer :: i, j
 ! automatic arrays
-real(8)::g(n)
-do i=1, m
-  do j=2, n-1
-    g(j)=0.3333333333333333333d0*(f(1, j-1)+f(1, j)+f(1, j+1))
-  end do
-  f(1, 2:n-1)=g(2:n-1)
-end do
-return
-end subroutine
+      Real (8) :: g (n)
+      Do i = 1, m
+         Do j = 2, n - 1
+            g (j) = 0.3333333333333333333d0 * (f(1, j-1)+f(1, j)+f(1, &
+           & j+1))
+         End Do
+         f (1, 2:n-1) = g (2:n-1)
+      End Do
+      Return
+End Subroutine
 !EOC

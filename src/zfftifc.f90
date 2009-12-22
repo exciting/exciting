@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: zfftifc
 ! !INTERFACE:
-
-
-subroutine zfftifc(nd, n, sgn, z)
+!
+!
+Subroutine zfftifc (nd, n, sgn, z)
 ! !INPUT/OUTPUT PARAMETERS:
 !   nd   : number of dimensions (in,integer)
 !   n    : grid sizes (in,integer(nd))
@@ -25,13 +25,13 @@ subroutine zfftifc(nd, n, sgn, z)
 !   Created October 2002 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-integer, intent(in) :: nd
-integer, intent(in) :: sgn
-integer, intent(in) :: n(nd)
-complex(8), intent(inout) :: z(*)
-
+      Integer, Intent (In) :: nd
+      Integer, Intent (In) :: sgn
+      Integer, Intent (In) :: n (nd)
+      Complex (8), Intent (Inout) :: z (*)
+!
 !-------------------------------------!
 !     interface to HP MLIB Z3DFFT     !
 !-------------------------------------!
@@ -39,7 +39,7 @@ complex(8), intent(inout) :: z(*)
 !if (nd.eq.3) then
 !  call z3dfft(z,n(1),n(2),n(3),n(1),n(2),sgn,ier)
 !end if
-
+!
 !-------------------------------------!
 !     interface to FFTW version 3     !
 !-------------------------------------!
@@ -62,7 +62,7 @@ complex(8), intent(inout) :: z(*)
 !  t1=1.d0/dble(p)
 !  call zdscal(p,t1,z,1)
 !end if
-
+!
 !----------------------------------!
 !     interface to MKL 8.1/9.1     !
 !----------------------------------!
@@ -85,12 +85,12 @@ complex(8), intent(inout) :: z(*)
 !  dftistatus=DftiComputeBackward(handle,z)
 !end if
 !dftistatus=DftiFreeDescriptor(handle)
-
+!
 !----------------------------------------!
 !     interface to modified FFTPACK5     !
 !----------------------------------------!
-call cfftnd(nd, n, sgn, z)
-
-return
-end subroutine
+      Call cfftnd (nd, n, sgn, z)
+!
+      Return
+End Subroutine
 !EOC

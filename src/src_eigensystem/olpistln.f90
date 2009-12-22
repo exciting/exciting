@@ -1,19 +1,19 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: olpistl
 ! !INTERFACE:
-
-
-subroutine olpistln(overlap, ngp, igpig)
+!
+!
+Subroutine olpistln (overlap, ngp, igpig)
 ! !USES:
-use modmain
-use modfvsystem
+      Use modmain
+      Use modfvsystem
 ! !INPUT/OUTPUT PARAMETERS:
 !   ngp   : number of G+p-vectors (in,integer)
 !   igpig : index from G+p-vectors to G-vectors (in,integer(ngkmax))
@@ -32,35 +32,36 @@ use modfvsystem
 !   Created April 2003 (JKD)
 !EOP
 !BOC
-implicit none
+      Implicit None
 ! arguments
-type(HermiteanMatrix), intent(inout)::overlap
-integer, intent(in) :: ngp
-integer, intent(in) :: igpig(ngkmax)
-
-
+      Type (HermiteanMatrix), Intent (Inout) :: overlap
+      Integer, Intent (In) :: ngp
+      Integer, Intent (In) :: igpig (ngkmax)
+!
+!
 ! local variables
-integer::i, j, k, iv(3), ig
-complex(8) zt1
-
+      Integer :: i, j, k, iv (3), ig
+      Complex (8) zt1
+!
 ! calculate the matrix elements
-!$omp parallel default(shared) & 
+!$omp parallel default(shared) &
 !$omp  private(iv,ig,i,j)
 !$omp do
-  do j=1, ngp
+      Do j = 1, ngp
     !k=((j-1)*j)/2
-    do i=1, j
+         Do i = 1, j
       !k=k+1
-      iv(:)=ivg(:, igpig(i))-ivg(:, igpig(j))
-      ig=ivgig(iv(1), iv(2), iv(3))
-      if ((ig.gt.0).and.(ig.le.ngvec)) then
-	  call Hermiteanmatrix_indexedupdate(overlap, j, i, cfunig(ig))
-      end if
-    end do
-  end do
-!$omp end do 
+            iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
+            ig = ivgig (iv(1), iv(2), iv(3))
+            If ((ig .Gt. 0) .And. (ig .Le. ngvec)) Then
+               Call Hermiteanmatrix_indexedupdate (overlap, j, i, &
+              & cfunig(ig))
+            End If
+         End Do
+      End Do
+!$omp end do
 !$omp end parallel
-
-return
-end subroutine
+!
+      Return
+End Subroutine
 !EOC

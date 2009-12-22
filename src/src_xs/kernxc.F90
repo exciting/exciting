@@ -1,16 +1,16 @@
-
-
-
+!
+!
+!
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-
+!
 !BOP
 ! !ROUTINE: kernxc
 ! !INTERFACE:
-
-
-subroutine kernxc
+!
+!
+Subroutine kernxc
 ! !DESCRIPTION:
 !   Computes the ALDA exchange-correlation kernel. In the
 !   muffin-tin, the density is transformed from spherical harmonic coefficients
@@ -23,62 +23,63 @@ subroutine kernxc
 !   Created March 2007 (Sagmeister)
 !EOP
 !BOC
-  use modmain
-  use modxs
-  implicit none
+      Use modmain
+      Use modxs
+      Implicit None
   ! local variables
-  real(8), allocatable :: dvx(:, :), dvc(:, :), rftp(:, :)
-  real(8), allocatable :: f1ir(:), f2ir(:), f1mt(:, :, :), f2mt(:, :, :)
-  complex(8), allocatable :: zftp(:, :)
-  integer :: m, is, ia, ias, ir, itp
-  allocate(rftp(lmmaxvr, 1), zftp(lmmaxvr, 1))
-  m=max(lmmaxvr, ngrtot)
-  allocate(dvx(m, 1), dvc(m, 1))
+      Real (8), Allocatable :: dvx (:, :), dvc (:, :), rftp (:, :)
+      Real (8), Allocatable :: f1ir (:), f2ir (:), f1mt (:, :, :), f2mt &
+     & (:, :, :)
+      Complex (8), Allocatable :: zftp (:, :)
+      Integer :: m, is, ia, ias, ir, itp
+      Allocate (rftp(lmmaxvr, 1), zftp(lmmaxvr, 1))
+      m = Max (lmmaxvr, ngrtot)
+      Allocate (dvx(m, 1), dvc(m, 1))
   !-----------------------------!
   !     muffin-tin potential    !
   !-----------------------------!
-  do is=1, nspecies
-     do ia=1, natoms(is)
-	ias=idxas(ia, is)
-	do ir=1, nrmt(is)
+      Do is = 1, nspecies
+         Do ia = 1, natoms (is)
+            ias = idxas (ia, is)
+            Do ir = 1, nrmt (is)
            !--------------------------!
            !     spin-unpolarised     !
            !--------------------------!
            ! convert density to real space
-	   call dgemv('N', lmmaxvr, lmmaxvr, 1.d0, rbshtvr, lmmaxvr, &
-		rhomt(1, ir, ias), 1, 0.d0, rftp, 1)
-	   call xcd_pwca(lmmaxvr, rftp, dvx, dvc)
-	   do itp=1, lmmaxvr
-	      rftp(itp, 1)=dvx(itp, 1)+dvc(itp, 1)
-	   end do
+               Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, rbshtvr, &
+              & lmmaxvr, rhomt(1, ir, ias), 1, 0.d0, rftp, 1)
+               Call xcd_pwca (lmmaxvr, rftp, dvx, dvc)
+               Do itp = 1, lmmaxvr
+                  rftp (itp, 1) = dvx (itp, 1) + dvc (itp, 1)
+               End Do
            ! convert kernel to spherical-harmonics expansion
-	   zftp(:, :)=rftp(:, :)
-	   call zgemv('N', lmmaxvr, lmmaxvr, zone, zfshtvr, lmmaxvr, zftp, 1, zzero, &
-		fxcmt(1, ir, ias), 1)
-	end do
-     end do
-  end do
+               zftp (:, :) = rftp (:, :)
+               Call zgemv ('N', lmmaxvr, lmmaxvr, zone, zfshtvr, &
+              & lmmaxvr, zftp, 1, zzero, fxcmt(1, ir, ias), 1)
+            End Do
+         End Do
+      End Do
   !--------------------------------!
   !     interstitial potential     !
   !--------------------------------!
   !--------------------------!
   !     spin-unpolarised     !
   !--------------------------!
-  call xcd_pwca(ngrtot, rhoir, dvx, dvc)
-  fxcir(1:ngrtot)=dvx(1:ngrtot, 1)+dvc(1:ngrtot, 1)
-  allocate(f1ir(ngrtot), f1mt(lmmaxvr, nrmtmax, natmtot))
-  allocate(f2ir(ngrtot), f2mt(lmmaxvr, nrmtmax, natmtot))
-  f1ir(:)=dble(fxcir(:))
-  f1mt(:, :, :)=dble(fxcmt(:, :, :))
-  f2ir(:)=aimag(fxcir(:))
-  f2mt(:, :, :)=aimag(fxcmt(:, :, :))
+      Call xcd_pwca (ngrtot, rhoir, dvx, dvc)
+      fxcir (1:ngrtot) = dvx (1:ngrtot, 1) + dvc (1:ngrtot, 1)
+      Allocate (f1ir(ngrtot), f1mt(lmmaxvr, nrmtmax, natmtot))
+      Allocate (f2ir(ngrtot), f2mt(lmmaxvr, nrmtmax, natmtot))
+      f1ir (:) = dble (fxcir(:))
+      f1mt (:, :, :) = dble (fxcmt(:, :, :))
+      f2ir (:) = aimag (fxcir(:))
+      f2mt (:, :, :) = aimag (fxcmt(:, :, :))
   ! symmetrise the exchange-correlation kernel
-  call symrf(1, f1mt, f1ir)
-  call symrf(1, f2mt, f2ir)
+      Call symrf (1, f1mt, f1ir)
+      Call symrf (1, f2mt, f2ir)
   ! back-substitute
-  fxcir(:)=f1ir(:)+zi*f2ir(:)
-  fxcmt(:, :, :)=f1mt(:, :, :)+zi*f2mt(:, :, :)
-  deallocate(f1ir, f2ir, f1mt, f2mt)
-  deallocate(rftp, zftp, dvx, dvc)
-end subroutine kernxc
+      fxcir (:) = f1ir (:) + zi * f2ir (:)
+      fxcmt (:, :, :) = f1mt (:, :, :) + zi * f2mt (:, :, :)
+      Deallocate (f1ir, f2ir, f1mt, f2mt)
+      Deallocate (rftp, zftp, dvx, dvc)
+End Subroutine kernxc
 !EOC
