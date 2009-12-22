@@ -14,7 +14,7 @@
       <atom coord="0.0  0.0  0.0" />
     </species>
   </structure>
-  <groundstate ngridk="4  4  4"></groundstate>
+  <groundstate ngridk="8  8  8"></groundstate>
   <properties>
     <bandstructure>
       <plot1d>

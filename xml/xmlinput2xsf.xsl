@@ -59,6 +59,9 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
            3           1
  PRIMVEC
  </xsl:text>
+    <!-- Convert vectors "basevect" into Angstrom, and multiply with 
+         scale and corresponing stretch to get the actual basevectors,
+         which are written to the xsf file. -->
     <xsl:for-each select="/input/structure/crystal/basevect">
     <xsl:variable name="basevn" select="position()"/>
       <xsl:for-each select="str:tokenize(.)">
@@ -68,6 +71,10 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
       <xsl:text>
    </xsl:text>
     </xsl:for-each>
+    <!-- Once again: Convert vectors "basevect" into Angstrom, and 
+         multiply with scale and corresponing stretch to get the 
+         actual basevectors, which are now saved in the variables 
+         (a1,a2,a3), (b1,b2,b3), (c1,c2,c3) -->
     <xsl:variable name="a1" select=
       "str:tokenize(/input/structure/crystal/basevect[1])[1]*
       $bohr2angstr*$scale*str:tokenize($stretch)[1]" />
@@ -95,6 +102,8 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
     <xsl:variable name="c3" select=
       "str:tokenize(/input/structure/crystal/basevect[3])[3]*
       $bohr2angstr*$scale*str:tokenize($stretch)[3]" />
+    <!--  Write out coordinates of atoms in the primitive cell;
+          coordinates are in Cartesian coordinates and in Angstrom -->
     <xsl:text>  
  PRIMCOORD
     </xsl:text>
