@@ -71,11 +71,12 @@ clean:
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
-	rm bin/exciting?*
-	rm interfaces/*
-	rm docs/exciting/*
-	rm docs/spacegroup/*
-	rm -r debian/debian/usr
+	rm -f bin/exciting?*
+	rm -f interfaces/*
+	rm -f docs/exciting/*
+	rm -f docs/spacegroup/*
+	rm -rf debian/debian/usr
+	rm -f src/leblaiklib/*.o src/leblaiklib/*.a
 
 tgz::
 	tar  --exclude-from=".gitignore" -C"../" -c -v  -f ../exciting.tar  ./exciting
