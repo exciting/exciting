@@ -71,7 +71,7 @@
    </xs:documentation>
   </xs:annotation>
  </xs:attribute>
- <xs:attribute name="scissor" type="fortrandouble" default="0">
+ <xs:attribute name="scissor" type="fortrandouble" default="0.0d0">
   <xs:annotation>
    <xs:documentation>the scissors correction This is the scissors shift applied to states above the Fermi energy. Affects DOS,
     optics and band structure plots.</xs:documentation>
@@ -344,7 +344,7 @@
            </xs:annotation>
           </xs:element>
          </xs:sequence>
-         <xs:attribute name="scale" type="fortrandouble" default="1">
+         <xs:attribute name="scale" type="fortrandouble" default="1.0d0">
           <xs:annotation>
            <xs:documentation> scales all the lattice vectors. This is useful for varying the volume.</xs:documentation>
            <xs:appinfo>
@@ -385,7 +385,7 @@
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="bfcmt" type="vect3d" default="0 0 0" use="optional">
+            <xs:attribute name="bfcmt" type="vect3d" default="0.0d0 0.0d0 0.0d0" use="optional">
              <xs:annotation>
               <xs:documentation>muffin-tin external magnetic field in Cartesian coordinates for atom</xs:documentation>
              </xs:annotation>
@@ -405,14 +405,14 @@
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="U" type="fortrandouble" default="0.0">
+            <xs:attribute name="U" type="fortrandouble" default="0.0d0">
              <xs:annotation>
               <xs:appinfo>
                <oldname>notaname</oldname>
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="J" type="fortrandouble" default="0.0">
+            <xs:attribute name="J" type="fortrandouble" default="0.0d0">
              <xs:annotation>
               <xs:appinfo>
                <oldname>notaname</oldname>
@@ -445,7 +445,7 @@
             exciting</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="rmt" type="fortrandouble" default="-1" use="optional">
+         <xs:attribute name="rmt" type="fortrandouble" default="-1.0d0" use="optional">
           <xs:annotation>
            <xs:appinfo>
             <oldname>noreplace></oldname>
@@ -489,12 +489,12 @@
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="vacuum" type="fortrandouble" default="10">
+      <xs:attribute name="vacuum" type="fortrandouble" default="10.0d0">
        <xs:annotation>
         <xs:documentation>determines the size of the vacuum around the molecule.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="epslat" type="fortrandouble" default="1e-6">
+      <xs:attribute name="epslat" type="fortrandouble" default="1.0d-6">
        <xs:annotation>
         <xs:documentation> vectors with lengths less than this are considered zero.</xs:documentation>
        </xs:annotation>
@@ -538,13 +538,13 @@
          </xs:appinfo>
         </xs:annotation>
         <xs:complexType>
-         <xs:attribute name="momfix" type="vect3d" default="0 0 0">
+         <xs:attribute name="momfix" type="vect3d" default="0.0d0 0.0d0 0.0d0">
           <xs:annotation>
            <xs:documentation> the desired total moment for a FSM calculation.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute> <!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
-         <xs:attribute name="bfieldc" type="vect3d" default="0 0 0 ">
+         <xs:attribute name="bfieldc" type="vect3d" default="0.0d0 0.0d0 0.0d0 ">
           <xs:annotation>
            <xs:documentation>
             alows to apply a constant B field This is a constant magnetic field applied throughout the entire unit cell and enters
@@ -599,7 +599,7 @@
            </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="vqlss" type="vect3d" default="0 0 0">
+         <xs:attribute name="vqlss" type="vect3d" default="0.0d0 0.0d0 0.0d0">
           <xs:annotation>
            <xs:documentation>
             the
@@ -625,7 +625,7 @@
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="taufsm" type="fortrandouble" default="0.01d0" />
-         <xs:attribute name="reducebf" type="fortrandouble" default="1">
+         <xs:attribute name="reducebf" type="fortrandouble" default="1.0d0">
           <xs:annotation>
            <xs:documentation> After each iteration the external magnetic fields are multiplied with reducebf. This al- lows for a
             large external magnetic field at the start of the self-consistent loop to break spin symmetry, while at the end of the
@@ -674,7 +674,7 @@
          <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
-         <xs:attribute name="epsengy" type="fortrandouble" use="optional" default="1e-7">
+         <xs:attribute name="epsengy" type="fortrandouble" use="optional" default="1.0d-7">
           <xs:annotation>
            <xs:documentation> energy convergence tolerance
 </xs:documentation>
@@ -726,12 +726,12 @@
             setting this parmeter to false increases efficiency.</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="epsarpack" type="fortrandouble" default="1.0e-8">
+         <xs:attribute name="epsarpack" type="fortrandouble" default="1.0d-8">
           <xs:annotation>
            <xs:documentation>Tolerance parameter for the ARPACK shift invert solver</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="evaltol" type="fortrandouble" default="1e-8"> <!-- sag -->
+         <xs:attribute name="evaltol" type="fortrandouble" default="1.0d-8"> <!-- sag -->
           <xs:annotation>
            <xs:documentation>error tolerance for the first-variational eigenvalues using the LAPACK Solver</xs:documentation>
           </xs:annotation>
@@ -749,7 +749,7 @@
            </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="tauoep" type="vect3d" default="1.0 0.2 1.5">
+         <xs:attribute name="tauoep" type="vect3d" default="1.0d0 0.2d0 1.5d0">
           <xs:annotation>
            <xs:documentation> The optimised effective potential is determined using an interative method. [Phys. Rev. Lett. 98,
             196405 (2007)]. At the first iteration the step length is set to tauoep(1). Dur- ing subsequent iterations, the step
@@ -788,25 +788,25 @@
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="taurdmn" type="fortrandouble" default="1.0">
+         <xs:attribute name="taurdmn" type="fortrandouble" default="1.0d0">
           <xs:annotation>
            <xs:documentation> step size for occupation numbers.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="taurdmc" type="fortrandouble" default="0.5">
+         <xs:attribute name="taurdmc" type="fortrandouble" default="0.5d0">
           <xs:annotation>
            <xs:documentation> step size for natural orbital coefficients.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="rdmalpha" type="fortrandouble" default="0.7">
+         <xs:attribute name="rdmalpha" type="fortrandouble" default="0.7d0">
           <xs:annotation>
            <xs:documentation> exponent for the functional.
 </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="rdmtemp" type="fortrandouble" default="0.0">
+         <xs:attribute name="rdmtemp" type="fortrandouble" default="0.0d0">
           <xs:annotation>
            <xs:documentation> temperature.
 </xs:documentation>
@@ -839,7 +839,7 @@
         <xs:documentation>Number of k grid points along the basis vector directions.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="rgkmax" type="fortrandouble" default="7">
+      <xs:attribute name="rgkmax" type="fortrandouble" default="7.0d0">
        <xs:annotation>
         <xs:documentation>
          This sets the maximum length for the
@@ -850,7 +850,7 @@
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="epspot" type="fortrandouble" use="optional" default="1e-6">
+      <xs:attribute name="epspot" type="fortrandouble" use="optional" default="1.0d-6">
        <xs:annotation>
         <xs:documentation> If the RMS change in the effective potential and magnetic field is smaller than epspot, then the
          self-consistent loop is considered converged and exited. For structural optimisation runs this results in the forces
@@ -943,7 +943,7 @@
         <xs:documentation>species for which the muffin-tin radius will be used for calculating gkmax. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="gmaxvr" type="fortrandouble" default="12">
+      <xs:attribute name="gmaxvr" type="fortrandouble" default="12.0d0">
        <xs:annotation>
         <xs:documentation>maximum length of |G| for expanding the interstitial density and potential. </xs:documentation>
        </xs:annotation>
@@ -991,7 +991,7 @@
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="radkpt" type="fortrandouble" default="40">
+      <xs:attribute name="radkpt" type="fortrandouble" default="40.0d0">
        <xs:annotation>
         <xs:documentation>
          Used for the automatic determination of the
@@ -1046,7 +1046,7 @@
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="chgexs" type="fortrandouble" default="0">
+      <xs:attribute name="chgexs" type="fortrandouble" default="0.0d0">
        <xs:annotation>
         <xs:documentation> This controls the amount of charge in the unit cell beyond that required to maintain neu-trality. It
          can be set positive or negative depending on whether electron or hole doping is required.</xs:documentation>
@@ -1079,7 +1079,7 @@
          issued. </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="epsocc" type="fortrandouble" default="1e-8">
+      <xs:attribute name="epsocc" type="fortrandouble" default="1.0d-8">
        <xs:annotation>
         <xs:documentation>smallest occupancy for which a state will contribute to the density. </xs:documentation>
        </xs:annotation>
@@ -1118,19 +1118,19 @@
         </xs:restriction>
        </xs:simpleType>
       </xs:attribute>
-      <xs:attribute name="beta0" type="fortrandouble" default="0.4"> <!-- sag -->
+      <xs:attribute name="beta0" type="fortrandouble" default="0.4d0"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>initial value for mixing parameter. Used in linear mixing.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="betainc" type="fortrandouble" default="1.1"> <!-- sag -->
+      <xs:attribute name="betainc" type="fortrandouble" default="1.1d0"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>mixing parameter increase. Used in linear mixing.
 </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="betadec" type="fortrandouble" default="0.6"> <!-- sag -->
+      <xs:attribute name="betadec" type="fortrandouble" default="0.6d0"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>mixing parameter decrease. Used in linear mixing.
 </xs:documentation>
@@ -1330,7 +1330,7 @@
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="vkloff" type="vect3d" default="0 0 0">
+      <xs:attribute name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
        <xs:annotation>
         <xs:documentation>the k-point offset vector in lattice coordinates.</xs:documentation>
        </xs:annotation>
@@ -1340,7 +1340,7 @@
         <xs:documentation> order of polynomial for pseudocharge density.</xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="cfdamp" type="fortrandouble" default="0"> <!-- sag -->
+      <xs:attribute name="cfdamp" type="fortrandouble" default="0.0d0"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>damping coefficient for characteristic function.
 </xs:documentation>
@@ -1388,7 +1388,8 @@
         .
        </xs:documentation>
       </xs:annotation>
-      <xs:attribute name="epsforce" type="fortrandouble" default="5e-5">
+      <xs:attribute name="epsforce" type="fortrandouble" default="5.0d-5"> 
+                           <!-- sag: 0.9.224: epsforce=5.d-4 -->
        <xs:annotation>
         <xs:documentation> convergence tolerance for the forces during a structural optimisation run. </xs:documentation>
        </xs:annotation>
@@ -1451,7 +1452,7 @@
          <xs:all>
           <xs:element ref="plot1d" />
          </xs:all>
-         <xs:attribute ref="scissor" default="0d0">
+         <xs:attribute ref="scissor" default="0.0d0">
           <xs:annotation>
            <xs:documentation>value to shift bandgap.</xs:documentation>
           </xs:annotation>
@@ -1519,7 +1520,7 @@
          </xs:documentation>
         </xs:annotation>
         <xs:complexType>
-         <xs:attribute name="sqados" default="0.0 0.0 1.0" type="vect3d">
+         <xs:attribute name="sqados" default="0.0d0 0.0d0 1.0d0" type="vect3d">
           <xs:annotation>
            <xs:documentation> spin-quantisation axis in Cartesian coordinates used when plotting the spin-resolved DOS (z-axis by
             default)
@@ -1550,7 +1551,7 @@
            <xs:documentation> level of smoothing applied to DOS/optics output integer 0</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="winddos" default="0.0 0.5" type="vect2d">
+         <xs:attribute name="winddos" default="0.0d0 0.5d0" type="vect2d">
           <xs:annotation>
            <xs:documentation> frequency/energy window for the DOS or optics plot</xs:documentation>
            <xs:appinfo>
@@ -1601,7 +1602,7 @@
             derivatives for the effective mass tensor.</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="vklem" type="vect3d" default="0 0 0">
+         <xs:attribute name="vklem" type="vect3d" default="0.0d0 0.0d0 0.0d0">
           <xs:annotation>
            <xs:documentation> the k-point in lattice coordinates at which to compute the effective mass tensors.
            </xs:documentation>
@@ -1757,7 +1758,7 @@
        </xs:element>
        <xs:element name="eliashberg" minOccurs="0">
         <xs:complexType>
-         <xs:attribute name="mustar" type="fortrandouble" default="0.15">
+         <xs:attribute name="mustar" type="fortrandouble" default="0.15d0">
           <xs:annotation>
            <xs:documentation> Coulomb pseudopotential, μ*, used in the McMillan-Allen-Dynes equation
 </xs:documentation>
@@ -1842,7 +1843,7 @@ list
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="deltaph" type="fortrandouble" default="0.03"> <!-- sag -->
+      <xs:attribute name="deltaph" type="fortrandouble" default="0.03d0"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>
          Phonon calculations are performed by constructing a supercell corresponding to a particular
@@ -1897,7 +1898,7 @@ list
            <xs:documentation>true if to consider the anti-resonant part for the BSE-derived xc-kernels</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="fxcbsesplit" type="fortrandouble" default="1d-5">
+         <xs:attribute name="fxcbsesplit" type="fortrandouble" default="1.0d-5">
           <xs:annotation>
            <xs:documentation>split parameter for degeneracy in energy differences of BSE-derived kernel</xs:documentation>
           </xs:annotation>
@@ -1931,19 +1932,19 @@ list
            </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="alphalrc" type="fortrandouble" default="0">
+         <xs:attribute name="alphalrc" type="fortrandouble" default="0.0d0">
           <xs:annotation>
            <xs:documentation>alpha-parameter for the static long range contribution (LRC) model xc kernel
            </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="alphalrcdyn" type="fortrandouble" default="0">
+         <xs:attribute name="alphalrcdyn" type="fortrandouble" default="0.0d0">
           <xs:annotation>
            <xs:documentation>alpha-parameter for the dynamical long range contribution (LRC) model xc kernel
            </xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="betalrcdyn" type="fortrandouble" fixed="0">
+         <xs:attribute name="betalrcdyn" type="fortrandouble" fixed="0.0d0">
           <xs:annotation>
            <xs:documentation>beta-parameter for the dynamical long range contribution (LRC) model xc kernel
            </xs:documentation>
@@ -2078,7 +2079,7 @@ list
            <xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
+         <xs:attribute name="vkloff" type="vect3d" default="-1.0d0 -1.0d0 -1.0d0">
           <xs:annotation>
            <xs:appinfo>
             <oldname>vkloffscr</oldname>
@@ -2086,7 +2087,7 @@ list
            <xs:documentation>k-point offset</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="rgkmax" type="fortrandouble" default="0">
+         <xs:attribute name="rgkmax" type="fortrandouble" default="0.0d0">
           <xs:annotation>
            <xs:appinfo>
             <oldname>rgkmaxscr</oldname>
@@ -2134,7 +2135,7 @@ list
            <xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="vkloff" type="vect3d" default="-1 -1 -1">
+         <xs:attribute name="vkloff" type="vect3d" default="-1.0d0 -1.0d0 -1.0d0">
           <xs:annotation>
            <xs:appinfo>
             <oldname>vkloffbse</oldname>
@@ -2142,7 +2143,7 @@ list
            <xs:documentation>k-point offset</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="rgkmax" type="fortrandouble" default="0">
+         <xs:attribute name="rgkmax" type="fortrandouble" default="0.0d0">
           <xs:annotation>
            <xs:appinfo>
             <oldname>rgkmaxbse</oldname>
@@ -2280,7 +2281,7 @@ list
            <xs:documentation>number of points to be sampled linearly inside the energy interval</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="intv" type="vect2d" default="-0.5 0.5">
+         <xs:attribute name="intv" type="vect2d" default="-0.5d0 0.5d0">
           <xs:annotation>
            <xs:documentation>energy interval for the density of states</xs:documentation>
           </xs:annotation>
@@ -2637,7 +2638,7 @@ list
         </xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="emaxdf" type="fortrandouble" default="1d10">
+      <xs:attribute name="emaxdf" type="fortrandouble" default="1.0d10">
        <xs:annotation>
         <xs:documentation>energy cutoff for the unoccupied states in the Kohn-Sahm response function and screening
         </xs:documentation>
@@ -2690,7 +2691,7 @@ list
       <xs:attribute name="dbglev" type="xs:integer" default="0" />
       <xs:attribute name="usegdft" type="xs:boolean" default="false"> <!-- used from src_optics/mod_DOS_optics_response.F90 -->
       </xs:attribute>
-      <xs:attribute name="gqmax" type="fortrandouble" default="0">
+      <xs:attribute name="gqmax" type="fortrandouble" default="0.0d0">
        <xs:annotation>
         <xs:documentation>|G+q| cutoff for Kohn-Sham response function, screening and for expansion of Coulomb potential
         </xs:documentation>
@@ -2712,7 +2713,7 @@ list
         <xs:documentation>k-point grid sizes</xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="vkloff" type="vect3d" default="0 0 0 ">
+      <xs:attribute name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0 ">
        <xs:annotation>
         <xs:appinfo>
          <oldname>vkloffxs</oldname>
@@ -2744,7 +2745,7 @@ list
         <xs:documentation>reducek is true if q-points are to be reduced (with crystal symmetries)</xs:documentation>
        </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="rgkmax" type="fortrandouble" default="7">
+      <xs:attribute name="rgkmax" type="fortrandouble" default="7.0d0">
        <xs:annotation>
         <xs:appinfo>
          <oldname>rgkmaxxs</oldname>
