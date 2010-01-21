@@ -37,7 +37,24 @@ Subroutine tasklauncher
       End If
 !
       If (associated(input%phonons)) Then
-         Call phonon
+         If (input%phonons%dophonon .Eq. "fromscratch") Then
+            task=200
+         Else
+			task=201
+         End If
+         If (input%phonons%dophonon .Ne. "skip") Call phonon
+         if (associated(input%phonons%phonondos)) then
+         	task=210
+         	call phdos
+         end if
+         if (associated(input%phonons%phonondispplot)) then
+         	task=220
+         	call phdisp
+         end if
+         if (associated(input%phonons%qpointset)) then
+         	task=230
+         	call writephn
+         end if
       End If
 !
       If (associated(input%xs)) Then

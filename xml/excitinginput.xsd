@@ -393,26 +393,26 @@
             <xs:attribute name="mommtfix" type="vect3d" use="optional" />
            </xs:complexType>
           </xs:element>
-          <xs:element name="LDAplusu" minOccurs="0">
+          <xs:element name="LDAplusU" minOccurs="0">
            <xs:annotation>
             <xs:documentation>If present defines ldaplusU parameters for species</xs:documentation>
            </xs:annotation>
            <xs:complexType>
-            <xs:attribute name="L" type="fortrandouble" default="0">
+            <xs:attribute name="l" type="xs:integer" default="-1">
              <xs:annotation>
               <xs:appinfo>
                <oldname>notaname</oldname>
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="U" type="fortrandouble" default="0">
+            <xs:attribute name="U" type="fortrandouble" default="0.0">
              <xs:annotation>
               <xs:appinfo>
                <oldname>notaname</oldname>
               </xs:appinfo>
              </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="J" type="fortrandouble" default="0">
+            <xs:attribute name="J" type="fortrandouble" default="0.0">
              <xs:annotation>
               <xs:appinfo>
                <oldname>notaname</oldname>
@@ -820,7 +820,7 @@
         <xs:appinfo>
          <oldname>nonreplace</oldname>
         </xs:appinfo>
-        <xs:documentation>Decides if the groundstate is read from file or recalculated or continued from file.
+        <xs:documentation>Decides if the groundstate is skipped or recalculated or continued from file.
         </xs:documentation>
        </xs:annotation>
        <xs:simpleType>
@@ -1262,6 +1262,45 @@
         </xs:restriction>
        </xs:simpleType>
       </xs:attribute>
+      <xs:attribute name="ldapu" default="none">
+       <xs:annotation>
+        <xs:documentation>
+         type of LDA+U method to be used.
+        </xs:documentation>
+       </xs:annotation>
+       <xs:simpleType>
+        <xs:restriction base="xs:string">
+         <xs:enumeration value="none">
+          <xs:annotation>
+           <xs:appinfo>
+            <oldnr>0</oldnr>
+           </xs:appinfo>
+          </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="FullyLocalisedLimit">
+          <xs:annotation>
+           <xs:appinfo>
+            <oldnr>1</oldnr>
+           </xs:appinfo>
+          </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="AroundMeanField">
+          <xs:annotation>
+           <xs:appinfo>
+            <oldnr>2</oldnr>
+           </xs:appinfo>
+          </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="FFL-AMF-interpolation">
+          <xs:annotation>
+           <xs:appinfo>
+            <oldnr>3</oldnr>
+           </xs:appinfo>
+          </xs:annotation>
+         </xs:enumeration>
+        </xs:restriction>
+       </xs:simpleType>
+      </xs:attribute>
       <xs:attribute name="evalmin" type="fortrandouble" default="-4.5d0">
        <xs:annotation>
         <xs:documentation>Any valence states with eigenvalues below evalmin are not occupied and a warning message is issued.
@@ -1511,7 +1550,7 @@
            <xs:documentation> level of smoothing applied to DOS/optics output integer 0</xs:documentation>
           </xs:annotation>
          </xs:attribute>
-         <xs:attribute name="winddos" default=".5 .5" type="vect2d">
+         <xs:attribute name="winddos" default="0.0 0.5" type="vect2d">
           <xs:annotation>
            <xs:documentation> frequency/energy window for the DOS or optics plot</xs:documentation>
            <xs:appinfo>
@@ -1739,7 +1778,7 @@
        <xs:documentation> The phonon element must contain one or more q-point elements</xs:documentation>
       </xs:annotation>
       <xs:all>
-       <xs:element ref="qpointset" minOccurs="1" maxOccurs="1"> <!-- sag: should be mapped to "ngridq" for phonon calc. -->
+       <xs:element ref="qpointset" minOccurs="1" maxOccurs="1">
        </xs:element>
        <xs:element name="phonondos" maxOccurs="1" minOccurs="0">
         <xs:annotation>
@@ -1764,6 +1803,31 @@
 sag: phwrite-block: allocate(vqlwrt(3,nphwrt)); another q-point
 list
 -->
+      <xs:attribute name="dophonon" default="fromscratch">
+       <xs:annotation>
+        <xs:appinfo>
+         <oldname>nonreplace</oldname>
+        </xs:appinfo>
+        <xs:documentation>Decides if the phonon calculation is skipped
+         or recalculated or continued from file.
+        </xs:documentation>
+       </xs:annotation>
+       <xs:simpleType>
+        <xs:restriction base="xs:string">
+         <xs:enumeration value="fromscratch" />
+         <xs:enumeration value="fromfile" />
+         <xs:enumeration value="skip" />
+        </xs:restriction>
+       </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="ngridq" type="integertriple" use="required">
+       <xs:annotation>
+        <xs:appinfo>
+         <oldname>ngridq</oldname>
+        </xs:appinfo>
+        <xs:documentation>Number of q grid points along the basis vector directions.</xs:documentation>
+       </xs:annotation>
+      </xs:attribute>
       <xs:attribute name="reduceq" type="xs:boolean" default="true"> <!-- sag -->
        <xs:annotation>
         <xs:documentation>

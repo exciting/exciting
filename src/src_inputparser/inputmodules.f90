@@ -120,7 +120,7 @@ type species_type
  integer::atomicNumber
  real(8)::rmt
   type(atom_type_array),pointer::atomarray(:)
-  type(LDAplusu_type),pointer::LDAplusu
+  type(LDAplusU_type),pointer::LDAplusU
 end type
 
 type species_type_array
@@ -135,8 +135,8 @@ end type
 type atom_type_array
 type(atom_type),pointer::atom
  end type
-    type LDAplusu_type
- real(8)::L
+    type LDAplusU_type
+ integer::l
  real(8)::U
  real(8)::J
 end type
@@ -177,6 +177,8 @@ type groundstate_type
  integer::nprad
  character(512)::xctype
  integer::xctypenumber
+ character(512)::ldapu
+ integer::ldapunumber
  real(8)::evalmin
  integer::lmaxvr
  real(8)::fracinr
@@ -357,6 +359,9 @@ type eliashberg_type
  real(8)::mustar
 end type
 type phonons_type
+ character(512)::dophonon
+ integer::dophononnumber
+ integer::ngridq(3)
  logical::reduceq
  real(8)::deltaph
   type(qpointset_type),pointer::qpointset
@@ -1345,12 +1350,12 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "atom"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"LDAplusu")
-getstructspecies%LDAplusu=>null()
+            len= countChildEmentsWithName(thisnode,"LDAplusU")
+getstructspecies%LDAplusU=>null()
 Do i=0,len-1
-getstructspecies%LDAplusu=>getstructLDAplusu(&
+getstructspecies%LDAplusU=>getstructLDAplusU(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"LDAplusu"),0)) ) 
+"LDAplusU"),0)) ) 
 enddo
 
       i=0
@@ -1399,41 +1404,41 @@ endif
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructLDAplusu(thisnode)
+function getstructLDAplusU(thisnode)
 
 implicit none
 type(Node),pointer::thisnode
-type(LDAplusu_type),pointer::getstructLDAplusu
+type(LDAplusU_type),pointer::getstructLDAplusU
 		type(Node),pointer::np
 
 
 integer::len=1,i=0
-allocate(getstructLDAplusu)  
+allocate(getstructLDAplusU)  
 #ifdef INPUTDEBUG      
-      write(*,*)"we are at LDAplusu"
+      write(*,*)"we are at LDAplusU"
 #endif
       
 nullify(np)  
-np=>getAttributeNode(thisnode,"L")
-getstructLDAplusu%L=0
+np=>getAttributeNode(thisnode,"l")
+getstructLDAplusU%l=-1
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"L",getstructLDAplusu%L)
-       call removeAttribute(thisnode,"L")      
+       call extractDataAttribute(thisnode,"l",getstructLDAplusU%l)
+       call removeAttribute(thisnode,"l")      
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"U")
-getstructLDAplusu%U=0
+getstructLDAplusU%U=0.0
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"U",getstructLDAplusu%U)
+       call extractDataAttribute(thisnode,"U",getstructLDAplusU%U)
        call removeAttribute(thisnode,"U")      
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"J")
-getstructLDAplusu%J=0
+getstructLDAplusU%J=0.0
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"J",getstructLDAplusu%J)
+       call extractDataAttribute(thisnode,"J",getstructLDAplusU%J)
        call removeAttribute(thisnode,"J")      
 endif
 
@@ -1707,6 +1712,15 @@ if(associated(np)) then
        call removeAttribute(thisnode,"xctype")      
 endif
 getstructgroundstate%xctypenumber=stringtonumberxctype(getstructgroundstate%xctype)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ldapu")
+getstructgroundstate%ldapu= "none"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ldapu",getstructgroundstate%ldapu)
+       call removeAttribute(thisnode,"ldapu")      
+endif
+getstructgroundstate%ldapunumber=stringtonumberldapu(getstructgroundstate%ldapu)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"evalmin")
@@ -2544,7 +2558,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"winddos")
-getstructdos%winddos=(/.5,.5/)
+getstructdos%winddos=(/0.0,0.5/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"winddos",getstructdos%winddos)
        call removeAttribute(thisnode,"winddos")      
@@ -3107,6 +3121,22 @@ allocate(getstructphonons)
       write(*,*)"we are at phonons"
 #endif
       
+nullify(np)  
+np=>getAttributeNode(thisnode,"dophonon")
+getstructphonons%dophonon= "fromscratch"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"dophonon",getstructphonons%dophonon)
+       call removeAttribute(thisnode,"dophonon")      
+endif
+getstructphonons%dophononnumber=stringtonumberdophonon(getstructphonons%dophonon)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ngridq")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ngridq",getstructphonons%ngridq)
+       call removeAttribute(thisnode,"ngridq")      
+endif
+
 nullify(np)  
 np=>getAttributeNode(thisnode,"reduceq")
 getstructphonons%reduceq= .true.
@@ -4321,6 +4351,44 @@ case('')
  stringtonumberxctype=0
 case default
 write(*,*) "'", string,"' is not valid selection forxctype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberldapu(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('none')
+ stringtonumberldapu=0
+case('FullyLocalisedLimit')
+ stringtonumberldapu=1
+case('AroundMeanField')
+ stringtonumberldapu=2
+case('FFL-AMF-interpolation')
+ stringtonumberldapu=3
+case('')
+ stringtonumberldapu=0
+case default
+write(*,*) "'", string,"' is not valid selection forldapu "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberdophonon(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumberdophonon=-1
+case('fromfile')
+ stringtonumberdophonon=-1
+case('skip')
+ stringtonumberdophonon=-1
+case('')
+ stringtonumberdophonon=0
+case default
+write(*,*) "'", string,"' is not valid selection fordophonon "
 stop 
 end select
 end function
