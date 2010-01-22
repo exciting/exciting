@@ -6,7 +6,7 @@
 ! See the file COPYING for license details.
 !
 !
-Subroutine dyntask (fnum, iq, is, ia, ip)
+Subroutine dyntask (fnum, iq, is, ia, ip, status)
       Use modmain
       Implicit None
 ! arguments
@@ -15,12 +15,14 @@ Subroutine dyntask (fnum, iq, is, ia, ip)
       Integer, Intent (Out) :: is
       Integer, Intent (Out) :: ia
       Integer, Intent (Out) :: ip
+      character(*), intent(out) :: status
 ! local variables
       Logical :: exist
       ip = 1
       is = 1
       ia = 1
       iq = 1
+      status="unfinished"
       Do ip = 1, 3
          Do is = 1, nspecies
             Do ia = 1, natoms (is)
@@ -39,6 +41,5 @@ Subroutine dyntask (fnum, iq, is, ia, ip)
       Write (*,*)
       Write (*, '("Info(dyntask): Nothing more to do")')
       Write (*,*)
-      Stop
-      Return
+      status="finished"
 End Subroutine
