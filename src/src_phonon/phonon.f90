@@ -72,6 +72,7 @@ Subroutine phonon
       natoms (1:nspecies) = natoms0 (1:nspecies)
 ! find a dynamical matrix to calculate
       Call dyntask (80, iq, is, ia, ip, status)
+      if (status .eq. "finished") goto 20
 ! phonon dry run
       If (task .Eq. 201) Go To 10
 ! check to see if mass is considered infinite
