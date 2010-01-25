@@ -1816,7 +1816,6 @@ list
        <xs:simpleType>
         <xs:restriction base="xs:string">
          <xs:enumeration value="fromscratch" />
-         <xs:enumeration value="fromfile" />
          <xs:enumeration value="skip" />
         </xs:restriction>
        </xs:simpleType>

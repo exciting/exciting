@@ -4381,8 +4381,6 @@ end function
  select case(trim(adjustl(string)))
 case('fromscratch')
  stringtonumberdophonon=-1
-case('fromfile')
- stringtonumberdophonon=-1
 case('skip')
  stringtonumberdophonon=-1
 case('')
