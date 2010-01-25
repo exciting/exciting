@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
 
-<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
+<input xsi:noNamespaceSchemaLocation="http://xml.exciting-code.org/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
   <title>Ag</title>
-  <structure speciespath="../../species/">
+  <structure speciespath="http://xml.exciting-code.org/snopecies/">
     <crystal scale="3.817">
       <basevect>1.0 1.0 0.0</basevect>
       <basevect>1.0 0.0 1.0</basevect>
       <basevect>0.0 1.0 1.0</basevect>
     </crystal>
-    <species speciesfile="Ag.xml">
+    <species speciesfile="Ag.xml" href="http://xml.exciting-code.org/species/Ag_APWlo.xml">
       <atom coord="0.0  0.0  0.0" />
     </species>
   </structure>

@@ -119,6 +119,7 @@ type species_type
  character(512)::chemicalSymbol
  integer::atomicNumber
  real(8)::rmt
+ character(1024)::href
   type(atom_type_array),pointer::atomarray(:)
   type(LDAplusU_type),pointer::LDAplusU
 end type
@@ -1339,6 +1340,14 @@ getstructspecies%rmt=-1.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rmt",getstructspecies%rmt)
        call removeAttribute(thisnode,"rmt")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"href")
+getstructspecies%href= ""
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"href",getstructspecies%href)
+       call removeAttribute(thisnode,"href")      
 endif
 
             len= countChildEmentsWithName(thisnode,"atom")

@@ -371,7 +371,7 @@
          <xs:sequence>
           <xs:element name="atom" minOccurs="1" maxOccurs="unbounded">
            <xs:annotation>
-            <xs:documentation>atomic position in lattice coordinates for atom </xs:documentation>
+            <xs:documentation>atomic position in lattice coordinates for atom</xs:documentation>
             <xs:appinfo>
              <oldname>noname</oldname>
             </xs:appinfo>
@@ -424,8 +424,10 @@
          </xs:sequence>
          <xs:attribute name="speciesfile" type="xs:anyURI" use="required">
           <xs:annotation>
-           <xs:documentation> defines the file from which the species definition is read. It is looked up in the species directory
-            specified by the species path.</xs:documentation>
+           <xs:documentation>
+            defines the file from which the species definition is read. It is looked up in the species directory specified by the
+            species path.
+           </xs:documentation>
            <xs:appinfo>
             <oldname>spfname</oldname>
            </xs:appinfo>
@@ -441,8 +443,9 @@
          </xs:attribute>
          <xs:attribute name="atomicNumber" type="xs:integer" use="optional">
           <xs:annotation>
-           <xs:documentation> Is an optional attribute can be given to simplify visualisation and converters. It is not used by
-            exciting</xs:documentation>
+           <xs:documentation>
+            Is an optional attribute can be given to simplify visualisation and converters. It is not used by exciting
+           </xs:documentation>
           </xs:annotation>
          </xs:attribute>
          <xs:attribute name="rmt" type="fortrandouble" default="-1.0d0" use="optional">
@@ -450,10 +453,12 @@
            <xs:appinfo>
             <oldname>noreplace></oldname>
            </xs:appinfo>
-           <xs:documentation>muffin tin radius this optional parameter allows to override speciesfile or automatic
-            tetemination </xs:documentation>
+           <xs:documentation>
+            muffin tin radius this optional parameter allows to override speciesfile or automatic tetemination
+           </xs:documentation>
           </xs:annotation>
          </xs:attribute>
+         <xs:attribute name="href" type="xs:anyURI" default=""></xs:attribute>
         </xs:complexType>
        </xs:element>
       </xs:sequence>

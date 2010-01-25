@@ -12,26 +12,44 @@ Subroutine readspeciesxml
       Implicit None
 ! local variables
       Integer :: is, ist, iostat
-      Integer :: io, nlx, ilx, lx, ilo
+      Integer :: io, nlx, ilx, lx, ilo,slash
       Type (Node), Pointer :: speciesnp, speciesdbnp
+      character(2048)::command
+      character(256)::spfile_string
 !
       Allocate (speziesdeflist(nspecies))
       config => newDOMConfig ()
       parseerror = .False.
 ! parse xml and create derived type for species definitions  speziesdeflist
       Do is = 1, nspecies
-         If (trim(input%structure%speciesarray(is)%species%speciesfile) &
-        & .Eq. "") Then
-            input%structure%speciesarray(is)%species%speciesfile = trim &
-           & (input%structure%speciesarray(is)%species%chemicalSymbol) &
-           & // ".xml"
-         End If
-         Write (*,*) "open ", trim (input%structure%speciespath) // "/" &
-        & // trim &
-        & (input%structure%speciesarray(is)%species%speciesfile)
-         doc => parseFile (trim(input%structure%speciespath)//"/"//&
-        & trim(input%structure%speciesarray(is)%species%speciesfile), &
-        & config)
+      spfile_string=""
+
+         if (index(input%structure%speciespath,"http://").ge.1) then
+         write(*,*) "index ",index(input%structure%speciespath,"http://")
+             If(trim(input%structure%speciesarray(is)%species%href).eq."")then
+                 write(input%structure%speciesarray(is)%species%href,*) trim(input%structure%speciespath),&
+                 &trim(input%structure%speciesarray(is)%species%speciesfile)
+             endif
+         endif
+
+         If(trim(input%structure%speciesarray(is)%species%href).ne."") then
+             slash=index(input%structure%speciesarray(is)%species%href,"/",.true.)
+             write(spfile_string,*)trim(input%structure%speciesarray(is)%species%href(slash+1:))
+#ifdef CURL
+             write(command,*)"curl ",trim(input%structure%speciesarray(is)%species%href)," > ",trim(spfile_string)
+#endif
+#ifndef CURL
+             write(command,*)"wget ",trim(input%structure%speciesarray(is)%species%href)
+#endif
+!
+             call system(command)
+         else
+             Write (spfile_string,*)trim (input%structure%speciespath) // "/" &
+            & // trim (input%structure%speciesarray(is)%species%speciesfile)
+	     endif
+         Write (*,*) "open ", spfile_string
+
+         doc => parseFile (ADJUSTL(trim(spfile_string)),config)
          speciesdbnp => getDocumentElement (doc)
          speciesnp => item (getElementsByTagname(speciesdbnp, "sp"), 0)
          parseerror = .False.

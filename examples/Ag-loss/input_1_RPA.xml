@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
 
-<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
+<input xsi:noNamespaceSchemaLocation="http://xml.exciting-code.org/excitninginput.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/"
 	scratchpath="/tmp/chm/1">
 
