@@ -11,6 +11,7 @@ Subroutine init2
 #endif
       Implicit None
 ! local variables
+	  logical :: redq
       Integer :: is, ia, ist, ic, m
       Real (8) :: ts0, ts1
       Real (8) :: boxl (3, 4)
@@ -24,13 +25,26 @@ Subroutine init2
 !---------------------!
 !     q-point set     !
 !---------------------!
+      redq=.true.
+! phonons
+      if ((task .ge. 200).and.(task .le. 299)) then
+      	redq=input%phonons%reduceq
+      end if
+      if (task .eq. 230) then
+          nphwrt = size (input%phonons%qpointset%qpoint, 2)
+      	  if (allocated(vqlwrt)) deallocate(vqlwrt)
+          allocate(vqlwrt(3,nphwrt))
+          Do iq = 1, nphwrt
+            vqlwrt(:,iq) = input%phonons%qpointset%qpoint(:, iq)
+          end do
+      end if
 ! check if the system is an isolated molecule
       If (input%structure%molecule) ngridq (:) = 1
 ! OEP, Hartree-Fock or RDMFT
       If ((input%groundstate%xctypenumber .Lt. 0) .Or. (task .Eq. 5) &
      & .Or. (task .Eq. 6) .Or. (task .Eq. 300)) Then
          ngridq (:) = input%groundstate%ngridk(:)
-         input%phonons%reduceq = .False.
+         redq = .False.
       End If
 #ifdef XS
       If (task .Le. 300) Then
@@ -53,7 +67,7 @@ Subroutine init2
          boxl (3, 4) = 0.d0
 ! generate the q-point set, note that the vectors vql and vqc are mapped to the
 ! first Brillouin zone
-         Call genppts (input%phonons%reduceq, .True., ngridq, boxl, &
+         Call genppts (redq, .True., ngridq, boxl, &
         & nqpt, iqmap, ivq, vql, vqc, wqpt)
 #ifdef XS
       End If
@@ -91,7 +105,7 @@ Subroutine init2
             vqc (:, iq) = vql (1, iq) * bvec (:, 1) + vql (2, iq) * &
            & bvec (:, 2) + vql (3, iq) * bvec (:, 3)
          End Do
-      Else
+      Else if (task .ge. 400) then
    ! determine only integer-part of Q-points
          If (allocated(ivgmt)) deallocate (ivgmt)
          Allocate (ivgmt(3, size(input%xs%qpointset%qpoint, 2)))
@@ -162,9 +176,11 @@ Subroutine init2
 !   call findgroupq(fbzq,vql(1,iq),epslat,bvec,symlat,nsymcrys,lsplsymc,&
 !	nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
 !end do
-!
+
+  if (task .ge. 301) then
+
 !-----------------------!
-!     k+q-point set	!
+!     k+q-point set	    !
 !-----------------------!
       If (allocated(qvkloff)) deallocate (qvkloff)
       Allocate (qvkloff(3, 0:nqpt))
@@ -253,6 +269,8 @@ Subroutine init2
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
+  ! end for task >= 301 case
+  end if
 #endif
 !
 !-----------------------------------------------!

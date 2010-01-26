@@ -17,6 +17,7 @@ Subroutine phonon
       Real (8) :: ftp (3, maxatoms, maxspecies)
       Complex (8) zt1, zt2
       Complex (8) dyn (3, maxatoms, maxspecies)
+      character(256) :: status
 ! allocatable arrays
       Real (8), Allocatable :: veffmtp (:, :, :)
       Real (8), Allocatable :: veffirp (:)
@@ -49,7 +50,8 @@ Subroutine phonon
 ! no shifting of atomic basis allowed
       input%structure%tshift = .False.
 ! determine k-point grid size from radkpt
-      input%groundstate%autokpt = .True.
+      ! let the user decide wether to use an automatic k-point grid or not
+      !input%groundstate%autokpt = .True.
 ! store original parameters
       natoms0 (1:nspecies) = natoms (1:nspecies)
       natmtot0 = natmtot
@@ -69,7 +71,8 @@ Subroutine phonon
 10    Continue
       natoms (1:nspecies) = natoms0 (1:nspecies)
 ! find a dynamical matrix to calculate
-      Call dyntask (80, iq, is, ia, ip)
+      Call dyntask (80, iq, is, ia, ip, status)
+      if (status .eq. "finished") goto 20
 ! phonon dry run
       If (task .Eq. 201) Go To 10
 ! check to see if mass is considered infinite
@@ -169,4 +172,5 @@ Subroutine phonon
 ! delete the non-essential files
       Call phdelete
       Go To 10
+20 continue
 End Subroutine

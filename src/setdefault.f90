@@ -73,7 +73,7 @@ Subroutine setdefault
 !autokpt=.false.
 !radkpt=40.0
 !reducek=.true.
-      ngridq (:) = 3
+      ngridq (:) = 1
 !reduceq=.true.
 !rgkmax=7.d0
 !gmaxvr=12.d0

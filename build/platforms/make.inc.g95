@@ -10,8 +10,8 @@ LIB_BZINT= libbzint.a
 
 LIBS= $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT) 
 
-F90_DEBUGOPTS=-g -ftrace=full
-F77_DEBUGOPTS=-g -ftrace=full
+F90_DEBUGOPTS=-g -ftrace=full -fbounds-check
+F77_DEBUGOPTS=-g -ftrace=full -fbounds-check
 
 
 #Ignore if you don't have MPI or smplibs
