@@ -47,7 +47,7 @@
 </xs:documentation>
   </xs:annotation>
  </xs:attribute>
-  <xs:attribute name="do" default="fromscratch">
+  <xs:attribute name="do"  default="fromscratch">
        <xs:annotation>
         <xs:appinfo>
          <oldname>nonreplace</oldname>
@@ -55,13 +55,13 @@
         <xs:documentation>Decides if the groundstate is read from file or recalculated or continued from file.
         </xs:documentation>
        </xs:annotation>
-       <xs:simpleType>
+     <xs:simpleType>
         <xs:restriction base="xs:string">
          <xs:enumeration value="fromscratch" />
          <xs:enumeration value="fromfile" />
          <xs:enumeration value="skip" />
         </xs:restriction>
-       </xs:simpleType>
+       </xs:simpleType>  
       </xs:attribute>
  <xs:attribute name="tfibs" type="xs:boolean" default="true">
   <xs:annotation>
@@ -1813,7 +1813,7 @@
 sag: phwrite-block: allocate(vqlwrt(3,nphwrt)); another q-point
 list
 -->
-      <xs:attribute name="dophonon" default="fromscratch">
+      <xs:attribute ref="do" >
        <xs:annotation>
         <xs:appinfo>
          <oldname>nonreplace</oldname>
@@ -1821,13 +1821,7 @@ list
         <xs:documentation>Decides if the phonon calculation is skipped
          or recalculated or continued from file.
         </xs:documentation>
-       </xs:annotation>
-       <xs:simpleType>
-        <xs:restriction base="xs:string">
-         <xs:enumeration value="fromscratch" />
-         <xs:enumeration value="skip" />
-        </xs:restriction>
-       </xs:simpleType>
+        </xs:annotation>
       </xs:attribute>
       <xs:attribute name="ngridq" type="integertriple" use="required">
        <xs:annotation>

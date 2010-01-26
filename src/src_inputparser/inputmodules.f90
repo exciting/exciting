@@ -142,7 +142,6 @@ type(atom_type),pointer::atom
 end type
 type groundstate_type
  character(512)::do
- integer::donumber
  integer::ngridk(3)
  real(8)::rgkmax
  real(8)::epspot
@@ -359,8 +358,7 @@ type eliashberg_type
  real(8)::mustar
 end type
 type phonons_type
- character(512)::dophonon
- integer::dophononnumber
+ character(512)::do
  integer::ngridq(3)
  logical::reduceq
  real(8)::deltaph
@@ -1463,12 +1461,10 @@ allocate(getstructgroundstate)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"do")
-getstructgroundstate%do= "fromscratch"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructgroundstate%do)
        call removeAttribute(thisnode,"do")      
 endif
-getstructgroundstate%donumber=stringtonumberdo(getstructgroundstate%do)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridk")
@@ -3122,13 +3118,11 @@ allocate(getstructphonons)
 #endif
       
 nullify(np)  
-np=>getAttributeNode(thisnode,"dophonon")
-getstructphonons%dophonon= "fromscratch"
+np=>getAttributeNode(thisnode,"do")
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"dophonon",getstructphonons%dophonon)
-       call removeAttribute(thisnode,"dophonon")      
+       call extractDataAttribute(thisnode,"do",getstructphonons%do)
+       call removeAttribute(thisnode,"do")      
 endif
-getstructphonons%dophononnumber=stringtonumberdophonon(getstructphonons%dophonon)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridq")
@@ -4210,6 +4204,24 @@ type(Node),pointer::thisnode
 #endif  
    call extractDataContent(thisnode,  getvalueofqpoint)
 end function
+ integer function  stringtonumberdo(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumberdo=-1
+case('fromfile')
+ stringtonumberdo=-1
+case('skip')
+ stringtonumberdo=-1
+case('')
+ stringtonumberdo=0
+case default
+write(*,*) "'", string,"' is not valid selection fordo "
+stop 
+end select
+end function
+
+ 
  integer function  stringtonumberfixspin(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
@@ -4243,24 +4255,6 @@ case('')
  stringtonumbertype=0
 case default
 write(*,*) "'", string,"' is not valid selection fortype "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberdo(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('fromscratch')
- stringtonumberdo=-1
-case('fromfile')
- stringtonumberdo=-1
-case('skip')
- stringtonumberdo=-1
-case('')
- stringtonumberdo=0
-case default
-write(*,*) "'", string,"' is not valid selection fordo "
 stop 
 end select
 end function
@@ -4371,22 +4365,6 @@ case('')
  stringtonumberldapu=0
 case default
 write(*,*) "'", string,"' is not valid selection forldapu "
-stop 
-end select
-end function
-
- 
- integer function  stringtonumberdophonon(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('fromscratch')
- stringtonumberdophonon=-1
-case('skip')
- stringtonumberdophonon=-1
-case('')
- stringtonumberdophonon=0
-case default
-write(*,*) "'", string,"' is not valid selection fordophonon "
 stop 
 end select
 end function

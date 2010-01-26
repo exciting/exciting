@@ -16,7 +16,7 @@
     </species>
   </structure>
   <groundstate do="fromscratch" ngridk="2 2 2" vkloff="0.0 0.0 0.0" mixer="lin" tforce="true"></groundstate>
-  <phonons dophonon="fromscratch" ngridq="2 2 2">
+  <phonons do="fromscratch" ngridq="2 2 2">
     <qpointset>
       <qpoint>0.00 0.00 0.00</qpoint>
       <qpoint>0.05 0.07 0.10</qpoint>
