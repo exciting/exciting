@@ -47,6 +47,22 @@
 </xs:documentation>
   </xs:annotation>
  </xs:attribute>
+  <xs:attribute name="do" default="fromscratch">
+       <xs:annotation>
+        <xs:appinfo>
+         <oldname>nonreplace</oldname>
+        </xs:appinfo>
+        <xs:documentation>Decides if the groundstate is read from file or recalculated or continued from file.
+        </xs:documentation>
+       </xs:annotation>
+       <xs:simpleType>
+        <xs:restriction base="xs:string">
+         <xs:enumeration value="fromscratch" />
+         <xs:enumeration value="fromfile" />
+         <xs:enumeration value="skip" />
+        </xs:restriction>
+       </xs:simpleType>
+      </xs:attribute>
  <xs:attribute name="tfibs" type="xs:boolean" default="true">
   <xs:annotation>
    <xs:documentation>
@@ -815,7 +831,7 @@
         </xs:complexType>
        </xs:element>
       </xs:all>
-      <xs:attribute name="do" default="fromscratch">
+      <xs:attribute ref="do">
        <xs:annotation>
         <xs:appinfo>
          <oldname>nonreplace</oldname>
@@ -823,13 +839,6 @@
         <xs:documentation>Decides if the groundstate is read from file or recalculated or continued from file.
         </xs:documentation>
        </xs:annotation>
-       <xs:simpleType>
-        <xs:restriction base="xs:string">
-         <xs:enumeration value="fromscratch" />
-         <xs:enumeration value="fromfile" />
-         <xs:enumeration value="skip" />
-        </xs:restriction>
-       </xs:simpleType>
       </xs:attribute>
       <xs:attribute name="ngridk" type="integertriple" use="required">
        <xs:annotation>
