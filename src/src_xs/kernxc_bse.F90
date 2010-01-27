@@ -457,7 +457,7 @@ Subroutine kernxc_bse
       End Do
 !
   ! filename for xc-kernel (ASCII)
-      Call genfilname (basename='FXC_BSE', asc=.True., bzsampl=bzsampl, &
+      Call genfilname (basename='KERNXC_BSE', asc=.True., bzsampl=bzsampl, &
      & acont=input%xs%tddft%acont, nar= .Not. input%xs%tddft%aresfxc, &
      & tord=input%xs%tddft%tordfxc, iqmt=iqmt, filnam=filnam2)
       Call getunit (un)
