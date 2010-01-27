@@ -2,9 +2,13 @@
 <xsl:stylesheet version="1.0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:str="http://exslt.org/strings"
+     xmlns:ex="inputschemaextentions.xsd"
   >
 	<xsl:output method="text" />
-	<xsl:variable name="newline">
+	<xsl:variable name="statuslevels">
+  <xsl:text>essential</xsl:text>
+  </xsl:variable>
+  <xsl:variable name="newline">
 		<xsl:text>
 		</xsl:text>
 	</xsl:variable>
@@ -35,9 +39,12 @@
 <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it"/>
   </xsl:template>
 	<xsl:template name="atributdescriptions" match="none">
-		<xsl:apply-templates select="./xs:annotation/xs:documentation" />
-	<xsl:apply-templates select="./xs:complexType/xs:annotation/xs:documentation" />
-
+  <xsl:if test="./@ex:status and contains($statuslevels,./@ex:status)">
+	<!-- <xsl:apply-templates select=" contains($statuslevels,xs:status) and ./xs:annotation/xs:documentation" />
+	<xsl:apply-templates select="contains($statuslevels,xs:status) and ./xs:complexType/xs:annotation/xs:documentation" />
+ -->
+ <xsl:apply-templates select="./xs:annotation/xs:documentation" />
+  <xsl:apply-templates select="./xs:complexType/xs:annotation/xs:documentation" />
 		<xsl:value-of select="$newline" />
 		<xsl:if test="./xs:complexType/xs:attribute|./xs:attribute">
 			\paragraph{Attributes:}
@@ -107,6 +114,7 @@
 			<xsl:text>\end{description}
 		</xsl:text>
 		</xsl:if>
+    </xsl:if>
 	</xsl:template>
 
 
