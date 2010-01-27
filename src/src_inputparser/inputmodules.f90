@@ -1461,6 +1461,7 @@ allocate(getstructgroundstate)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"do")
+getstructgroundstate%do= "fromscratch"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructgroundstate%do)
        call removeAttribute(thisnode,"do")      
@@ -3119,6 +3120,7 @@ allocate(getstructphonons)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"do")
+getstructphonons%do= "fromscratch"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructphonons%do)
        call removeAttribute(thisnode,"do")      
