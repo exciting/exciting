@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+targetNamespace="inputschemaextentions.xsd"
+ >
+ 
+  <xs:attribute name="status">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="essential"></xs:enumeration>
+        <xs:enumeration value="expert"></xs:enumeration>
+        <xs:enumeration value="experimental"></xs:enumeration>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  
+  <xs:attribute name="unit">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="Bohr"></xs:enumeration>
+        <xs:enumeration value="Hartree"></xs:enumeration>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  
+  <xs:element name="pinfo">
+    <xs:complexType>
+      <xs:attribute ref="status"></xs:attribute>
+      <xs:attribute ref="unit"></xs:attribute>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

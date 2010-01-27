@@ -3,7 +3,7 @@
 
 <input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
-  <title></title>
+  <title> </title>
   <structure speciespath="../../species/">
     <crystal scale="10.21">
       <basevect>0.5 0.5 0.0 </basevect>
@@ -15,7 +15,8 @@
       <atom coord="0.25 0.25 0.25" />     
     </species>
   </structure>
-  <groundstate do="fromscratch" ngridk="2 2 2" vkloff="0.0 0.0 0.0" mixer="lin" tforce="true"></groundstate>
+  <groundstate do="fromscratch" ngridk="2 2 2" vkloff="0.0 0.0 0.0" mixer="lin" tforce="true">
+  </groundstate>
   <phonons do="fromscratch" ngridq="2 2 2">
     <qpointset>
       <qpoint>0.00 0.00 0.00</qpoint>
