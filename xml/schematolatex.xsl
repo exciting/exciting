@@ -123,7 +123,7 @@
   <xsl:template name="attributetolatex">
     <xsl:param name="myattribute"></xsl:param>
     <xsl:param name="level"></xsl:param>
-    <xsl:text>\paragraph{   @</xsl:text>
+    <xsl:text>\subsection{@</xsl:text>
     <xsl:value-of select="$myattribute/@name |$myattribute/@ref" />
     <xsl:text>}  
     </xsl:text>
@@ -147,7 +147,7 @@
 </xsl:text>
  </xsl:when>
  <xsl:when test="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-<xsl:text> enumeration  \\
+<xsl:text> \bf{enumeration:}  \\
 </xsl:text>
  <xsl:for-each select="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
 <xsl:text> &amp; </xsl:text>
@@ -217,13 +217,13 @@ See: \ref{</xsl:text>
             <xsl:if test="name($node)='xs:attribute'">
               <xsl:text>@</xsl:text>
             </xsl:if>
-            <xsl:value-of select="$node/@name" />
+            <xsl:value-of select="$node/@name|$node/@ref" />
           </xsl:if>
           <xsl:value-of select="$xpath" />
     </xsl:variable>
-    <xsl:for-each  select="$node">
+    <xsl:for-each  select="$node[last()]">
     <xsl:choose>
-    <xsl:when test="parent::node()">
+    <xsl:when test="parent::node() ">
     <xsl:for-each select="parent::node()">
       <xsl:call-template name="genxpath">
       <xsl:with-param name="node" select="."/>
@@ -233,7 +233,11 @@ See: \ref{</xsl:text>
       </xsl:call-template>
     </xsl:for-each>
          </xsl:when>
+         <xsl:when test="contains($xpath,'input')">
+         <xsl:value-of select="$xpath"/>
+         </xsl:when>
          <xsl:otherwise>
+         <xsl:text>/</xsl:text>
          <xsl:value-of select="$xpath"/>
          </xsl:otherwise>
          </xsl:choose>
