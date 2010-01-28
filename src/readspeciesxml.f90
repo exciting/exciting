@@ -39,7 +39,7 @@ Subroutine readspeciesxml
              write(command,*)"curl ",trim(input%structure%speciesarray(is)%species%href)," > ",trim(spfile_string)
 #endif
 #ifndef CURL
-             write(command,*)"wget ",trim(input%structure%speciesarray(is)%species%href)
+             write(command,*)"wget -c ",trim(input%structure%speciesarray(is)%species%href)
 #endif
 !
              call system(command)

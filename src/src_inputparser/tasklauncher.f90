@@ -37,12 +37,9 @@ Subroutine tasklauncher
       End If
 !
       If (associated(input%phonons)) Then
-         If (input%phonons%dophonon .Eq. "fromscratch") Then
-            task=200
-         Else
-			task=201
-         End If
-         If (input%phonons%dophonon .Ne. "skip") Call phonon
+         task=200
+         ! task 201 is only a dry-run
+         If (input%phonons%do .Ne. "skip") Call phonon
          if (associated(input%phonons%phonondos)) then
          	task=210
          	call phdos

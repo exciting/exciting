@@ -145,7 +145,7 @@
             <xsl:choose>
               <xsl:when test="@ref">
                 <xsl:variable name="ref" select="./@ref"/>
-                <xsl:value-of select="//xs:attribute[@name=$ref]/@type"/>
+                <xsl:value-of select="//xs:attribute[@name=$ref]/@type|//xs:attribute[@name=$ref]/*/xs:restriction/@base"/>
               </xsl:when>
               <xsl:when test="./*/*/xs:extension/@base">
                 <xsl:variable name="name" select="./@name"/>
@@ -344,6 +344,7 @@ np=>getAttributeNode(thisnode,"</xsl:text>
 <xsl:variable name="ref" select="@ref"/>
 <xsl:value-of select="@type"/>
 <xsl:value-of select="//xs:attribute[@name=$ref]/@type"/>
+<xsl:value-of select="//xs:attribute[@name=$ref]/*/xs:restriction/@base"/>
 <xsl:value-of select="./*/xs:restriction/@base"/>
 </xsl:with-param>
 </xsl:call-template>

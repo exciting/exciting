@@ -4,7 +4,7 @@
 <input xsi:noNamespaceSchemaLocation="http://xml.exciting-code.org/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
   <title>Ag</title>
-  <structure speciespath="http://xml.exciting-code.org/snopecies/">
+  <structure speciespath="http://xml.exciting-code.org/species/">
     <crystal scale="3.817">
       <basevect>1.0 1.0 0.0</basevect>
       <basevect>1.0 0.0 1.0</basevect>
