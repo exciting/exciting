@@ -44,7 +44,7 @@
       <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
       <xsl:with-param name="level" select="0" />
     </xsl:call-template>
-       <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($statuslevels,@ex:status)]">
+       <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($statuslevels,@ex:importance)]">
        <xsl:call-template name="elementToLatex">
       <xsl:with-param name="myelement" select="." />
       <xsl:with-param name="level" select="0" />
@@ -107,14 +107,14 @@
    <xsl:call-template name="TypeToDoc">
       <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref]" />
     </xsl:call-template>
-    <xsl:for-each select="$myelement/*/xs:attribute[contains($statuslevels,@ex:status)]">
+    <xsl:for-each select="$myelement/*/xs:attribute[contains($statuslevels,@ex:importance)]">
     <xsl:sort select="@name|@ref"></xsl:sort>
       <xsl:call-template name="attributetolatex">
         <xsl:with-param name="myattribute" select="." />
         <xsl:with-param name="level" select="$level" />
       </xsl:call-template>
     </xsl:for-each>
-    <xsl:for-each select="$myelement/*/*/xs:element[contains($statuslevels,@ex:status)and @name]">
+    <xsl:for-each select="$myelement/*/*/xs:element[contains($statuslevels,@ex:importance)and @name]">
       <xsl:call-template name="elementToLatex">
         <xsl:with-param name="myelement" select="." />
         <xsl:with-param name="level" select="$level+1" />
@@ -162,17 +162,31 @@
  <xsl:text>\bf{contains: }</xsl:text> 
  <xsl:text>  \\
 </xsl:text>
- <xsl:for-each select="$contentnode/xs:complexType/*/xs:element[contains($statuslevels,@ex:status)]">
+ <xsl:for-each select="$contentnode/xs:complexType/*/xs:element[contains($statuslevels,@ex:importance)]">
  <xsl:text> &amp; </xsl:text>
  <xsl:value-of select="./@name|@ref"/>
 <xsl:if test="@minOccurs=0">
-<xsl:text>(optional)</xsl:text>
+<xsl:choose>
+<xsl:when test="@maxOccurs='unbounded'">
+<xsl:text> (zero or more)</xsl:text>
+
+</xsl:when>
+<xsl:otherwise>
+<xsl:text> (optional)</xsl:text>
+</xsl:otherwise>
+</xsl:choose>
 </xsl:if>
+
 <xsl:if test="@minOccurs&gt;0">
 <xsl:text> (</xsl:text>
 <xsl:value-of select="@minOccurs"></xsl:value-of>
-<xsl:text> times) </xsl:text>
+<xsl:text> times</xsl:text>
+<xsl:if test="@maxOccurs='unbounded'">
+<xsl:text> or more</xsl:text>
 </xsl:if>
+<xsl:text>) </xsl:text>
+</xsl:if>
+
 <xsl:text>
 See: \ref{</xsl:text>
  <xsl:value-of select="./@name|@ref"/>

@@ -4,7 +4,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 targetNamespace="inputschemaextentions.xsd"
  >
  
-  <xs:attribute name="status">
+  <xs:attribute name="importance">
     <xs:simpleType>
       <xs:restriction base="xs:string">
         <xs:enumeration value="essential"></xs:enumeration>
