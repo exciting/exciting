@@ -13,41 +13,7 @@
   <xsl:text>essential</xsl:text>
  </xsl:variable>
  <xsl:template match="/">
-  <xsl:text>
-
-    \documentclass{article}
-
-
-
-\usepackage{amsmath}
-
-\bibliographystyle {plain}
-\errorstopmode
-\usepackage{hyperref}
-\hypersetup{colorlinks=false}
-\begin{document}
-\newcommand{\exciting}{EXC!T!`NG }
-\title{</xsl:text>
-  <xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/title" />
-  <xsl:text>} 
-\author{exciting devteam}
-
-
-\maketitle \newpage \tableofcontents
-
-\newcommand{\vect}[1]{\mathbf{ #1}} 
-\newcommand{\op}[1]{\mathbf {#1}}
-\newcommand{\bra}[1]{\ensuremath{\left\langle #1\right|}}
-\newcommand{\ket}[1]{\ensuremath{\left|#1\right\rangle}}
-\newcommand{\braket}[2]{\ensuremath{\left\langle #1\vphantom{#2}\right.\left|\vphantom{#1}#2\right\rangle}}
-\newcommand{\scalapack}{SCALAPACK }
-\newcommand{\blas}[0]{BLAS }
-\newcommand{\lapack}{LAPACK }
-\newcommand{\arpack}{ARPACK }
-\newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
-\newpage
-    </xsl:text>
-  <xsl:call-template name="elementToLatex">
+ <xsl:call-template name="elementToLatex">
    <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
    <xsl:with-param name="level" select="0" />
   </xsl:call-template>
@@ -57,59 +23,57 @@
     <xsl:with-param name="level" select="0" />
    </xsl:call-template>
   </xsl:for-each>
-  <xsl:text>
-    \end{document}
-    </xsl:text>
- </xsl:template>
+  
+   </xsl:template>
  <xsl:template match="displaymath">
-  <xsl:text> 
-\begin{equation}
+    <xsl:text> 
+[[math label]] 
 </xsl:text>
-  <xsl:value-of select="normalize-space(.)" />
-  <xsl:text>
-\end{equation}
+    <xsl:value-of select="." />
+    <xsl:text>
+[[/math]]
 </xsl:text>
- </xsl:template>
- <xsl:template match="inlinemath">
-  <xsl:text> $ </xsl:text>
-  <xsl:value-of select="normalize-space(.)" />
-  <xsl:text> $</xsl:text>
- </xsl:template>
- <xsl:template match="pre">
-  <xsl:text> {\tt </xsl:text>
-  <xsl:value-of select="normalize-space(.)" />
-  <xsl:text> }</xsl:text>
- </xsl:template>
- <xsl:template match="it">
-  <xsl:text> {\it </xsl:text>
-  <xsl:value-of select="normalize-space(.)" />
-  <xsl:text> }</xsl:text>
- </xsl:template>
- <xsl:template match="bf">
-  <xsl:text> {\bf</xsl:text>
-  <xsl:value-of select="normalize-space(.)" />
-  <xsl:text>} </xsl:text>
- </xsl:template>
- <xsl:template match="text()">
-  <xsl:value-of select="normalize-space(.)" />
- </xsl:template>
- <xsl:template match="xs:documentation">
-  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it" />
- </xsl:template>
+  </xsl:template>
+  <xsl:template match="inlinemath">
+    <xsl:text> [[$ </xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text> $]]</xsl:text>
+  </xsl:template>
+  <xsl:template match="pre">
+    <xsl:text> {{ </xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text> }}</xsl:text>
+  </xsl:template>
+  <xsl:template match="it">
+    <xsl:text> // </xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text> //</xsl:text>
+  </xsl:template>
+  <xsl:template match="bf">
+    <xsl:text> **</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>** </xsl:text>
+  </xsl:template>
+  <xsl:template match="text()">
+    <xsl:value-of select="normalize-space(.)" />
+  </xsl:template>
+  <xsl:template match="xs:documentation">
+    <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it" />
+  </xsl:template>
  <xsl:template name="elementToLatex">
   <xsl:param name="myelement" />
   <xsl:param name="level" />
-
-  <xsl:text>\</xsl:text>
-  <xsl:value-of select="str:padding(0,'sub')" />
-  <xsl:text>section{ Element:</xsl:text>
-  <xsl:text />
-  <xsl:value-of select="$myelement/@name " />
-  <xsl:text>}
-     \label{</xsl:text>
+<xsl:text>
+[[# </xsl:text>
   <xsl:value-of select="$myelement/@name" />
-  <xsl:text>}
+  <xsl:text>]]
+</xsl:text>
+  <xsl:text>+ Element: </xsl:text>
+  <xsl:value-of select="$myelement/@name " />
+  <xsl:text>
+  
   </xsl:text>
+  
 
   <xsl:apply-templates select="$myelement/xs:annotation/xs:documentation" />
   <xsl:call-template name="TypeToDoc">
@@ -132,9 +96,10 @@
  <xsl:template name="attributetolatex">
   <xsl:param name="myattribute" />
   <xsl:param name="level" />
-  <xsl:text>\subsection{@</xsl:text>
+  <xsl:text>
+++ Attribute: </xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref" />
-  <xsl:text>}  
+  <xsl:text>  
     </xsl:text>
   <xsl:apply-templates select="$myattribute/xs:annotation/xs:documentation" />
   <xsl:call-template name="TypeToDoc">
@@ -145,34 +110,34 @@
   <xsl:param name="contentnode" />
   <xsl:text>
 
-  \begin{center}
-\begin{tabular*}{\textwidth}{ll}
-
- \bf{Type:} &amp; </xsl:text>
+[[table ]]
+[[row]]
+[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]</xsl:text>
  <xsl:choose>
  <xsl:when test="$contentnode/@type">
  <xsl:value-of select="$contentnode/@type"/>
- <xsl:text>\\
+ <xsl:text>
 </xsl:text>
  </xsl:when>
  <xsl:when test="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-<xsl:text> \bf{enumeration:}  \\
+<xsl:text> **choose from:**  
 </xsl:text>
  <xsl:for-each select="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-<xsl:text> &amp; </xsl:text>
+<xsl:text> </xsl:text>
 <xsl:value-of select="@value"/><xsl:text/> 
-<xsl:text>  \\
+<xsl:text>  
 </xsl:text>
  </xsl:for-each>
  <xsl:text/> 
  </xsl:when>
  <xsl:when test="$contentnode/xs:complexType/*[xs:element] ">
- <xsl:text>\bf{contains: }</xsl:text> 
- <xsl:text>  \\
+ <xsl:text> **contains:** </xsl:text> 
+ <xsl:text>  
 </xsl:text>
  <xsl:for-each select="$contentnode/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
- <xsl:text> &amp; </xsl:text>
- <xsl:value-of select="./@name|@ref"/>
+ <xsl:text>  [#</xsl:text>
+<xsl:value-of select="./@name|@ref"/><xsl:text>   </xsl:text>
+<xsl:value-of select="./@name|@ref"/><xsl:text>]</xsl:text>
 <xsl:if test="@minOccurs=0">
 <xsl:choose>
 <xsl:when test="@maxOccurs='unbounded'">
@@ -195,40 +160,37 @@
 <xsl:text>) </xsl:text>
 </xsl:if>
 
-<xsl:text>
-See: \ref{</xsl:text>
- <xsl:value-of select="./@name|@ref"/>
-<xsl:text>}</xsl:text>
- <xsl:text>  \\
+ <xsl:text>  
 </xsl:text>
  </xsl:for-each>
  </xsl:when>
  <xsl:otherwise>
- <xsl:text> no content \\
+ <xsl:text> no content 
 </xsl:text>
  </xsl:otherwise>
  </xsl:choose>
-
+ <xsl:text> [[/cell]][[/row]]</xsl:text>
  <xsl:choose>
+ 
+
  <xsl:when test="$contentnode/@ex:unit!=''">
  <xsl:text>
- \bf{Unit:}&amp;</xsl:text>
+[[row]] [[cell]] **Unit:** [[/cell]][[cell]]</xsl:text>
  <xsl:value-of select="$contentnode/@ex:unit"/>
-  <xsl:text>  \\
+  <xsl:text>  [[/cell]] [[/row]]
   </xsl:text>
  </xsl:when>
  </xsl:choose>
 
- <xsl:text>\bf{XPath:}&amp; \verb|</xsl:text>
+ <xsl:text>[[row]] [[cell]] **XPath:** [[/cell]][[cell]] {{</xsl:text>
    <xsl:call-template name="genxpath" >
   <xsl:with-param name="node" select="$contentnode"/>
   <xsl:with-param name="xpath" select="''"/>
   </xsl:call-template>
-  <xsl:text>| \\
+  <xsl:text> }}[[/cell]] [[/row]]
   
 
-\end{tabular*}
-\end{center}
+[[/table]]
   </xsl:text>
   </xsl:template>
    <xsl:template name="genxpath">
