@@ -217,7 +217,7 @@
  <xs:element ex:status="essential" ex:unit="" name="input" >
    <xs:annotation>
      <xs:documentation>
-       The input element Is the root element of the exciting input file. XML may contain only one root element. The input element must contain one structure
+       The input element is the root element of the exciting input file. XML may contain only one root element. The input element must contain one structure
        element and one groundstate element.
      </xs:documentation>
      <xs:appinfo>

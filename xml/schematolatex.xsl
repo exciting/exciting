@@ -108,6 +108,7 @@
       <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref]" />
     </xsl:call-template>
     <xsl:for-each select="$myelement/*/xs:attribute[contains($statuslevels,@ex:status)]">
+    <xsl:sort select="@name|@ref"></xsl:sort>
       <xsl:call-template name="attributetolatex">
         <xsl:with-param name="myattribute" select="." />
         <xsl:with-param name="level" select="$level" />
@@ -168,7 +169,7 @@
 <xsl:text>(optional)</xsl:text>
 </xsl:if>
 <xsl:if test="@minOccurs&gt;0">
-<xsl:text>(min </xsl:text>
+<xsl:text> (</xsl:text>
 <xsl:value-of select="@minOccurs"></xsl:value-of>
 <xsl:text> times) </xsl:text>
 </xsl:if>
@@ -196,12 +197,12 @@ See: \ref{</xsl:text>
  </xsl:when>
  </xsl:choose>
 
- <xsl:text>\bf{XPath:}&amp;</xsl:text>
+ <xsl:text>\bf{XPath:}&amp; \verb|</xsl:text>
    <xsl:call-template name="genxpath" >
   <xsl:with-param name="node" select="$contentnode"/>
   <xsl:with-param name="xpath" select="''"/>
   </xsl:call-template>
-  <xsl:text>\\
+  <xsl:text>| \\
   
 
 \end{tabular*}
@@ -237,7 +238,7 @@ See: \ref{</xsl:text>
          <xsl:value-of select="$xpath"/>
          </xsl:when>
          <xsl:otherwise>
-         <xsl:text>/</xsl:text>
+         <xsl:text>.</xsl:text>
          <xsl:value-of select="$xpath"/>
          </xsl:otherwise>
          </xsl:choose>
