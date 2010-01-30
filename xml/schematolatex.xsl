@@ -33,7 +33,7 @@
 \author{exciting devteam}
 
 
-\maketitle \newpage \tableofcontents
+\maketitle 
 
 \newcommand{\vect}[1]{\mathbf{ #1}} 
 \newcommand{\op}[1]{\mathbf {#1}}
@@ -46,16 +46,31 @@
 \newcommand{\arpack}{ARPACK }
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
 \newpage
+\section*{About this Document}
     </xsl:text>
+    <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation" />
   <xsl:call-template name="elementToLatex">
    <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
    <xsl:with-param name="level" select="0" />
   </xsl:call-template>
+  <xsl:text>\section*{Reused Elements}
+  The following elements can occur more than once in the input file. There for they are listed separately.
+  </xsl:text>
   <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
    <xsl:call-template name="elementToLatex">
     <xsl:with-param name="myelement" select="." />
     <xsl:with-param name="level" select="0" />
    </xsl:call-template>
+  </xsl:for-each>
+  
+  <xsl:text>\section*{Data Types}
+ 
+ The Input definition uses derived data types. These are described here.
+  </xsl:text>
+  <xsl:for-each select="/*/xs:simpleType">
+  <xsl:call-template name="typetoDoc">
+  <xsl:with-param name="typenode" select="."/>
+  </xsl:call-template>
   </xsl:for-each>
   <xsl:text>
     \end{document}
@@ -93,8 +108,14 @@
  <xsl:template match="text()">
   <xsl:value-of select="normalize-space(.)" />
  </xsl:template>
+  <xsl:template match="p">
+  <xsl:text>
+  
+  </xsl:text>
+  <xsl:apply-templates select="./*|text()" />
+ </xsl:template>
  <xsl:template match="xs:documentation">
-  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it" />
+  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p" />
  </xsl:template>
  <xsl:template name="elementToLatex">
   <xsl:param name="myelement" />
@@ -102,7 +123,7 @@
 
   <xsl:text>\</xsl:text>
   <xsl:value-of select="str:padding(0,'sub')" />
-  <xsl:text>section{ Element:</xsl:text>
+  <xsl:text>section{ Element: </xsl:text>
   <xsl:text />
   <xsl:value-of select="$myelement/@name " />
   <xsl:text>}
@@ -115,6 +136,9 @@
   <xsl:call-template name="TypeToDoc">
    <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref]" />
   </xsl:call-template>
+  <xsl:if test="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
+  This element allows for specification of the following attributes:
+  </xsl:if>
   <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
    <xsl:sort select="@name|@ref" />
    <xsl:call-template name="attributetolatex">
@@ -132,7 +156,7 @@
  <xsl:template name="attributetolatex">
   <xsl:param name="myattribute" />
   <xsl:param name="level" />
-  <xsl:text>\subsection{@</xsl:text>
+  <xsl:text>\subsection{Attribute: </xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref" />
   <xsl:text>}  
     </xsl:text>
@@ -148,15 +172,18 @@
   \begin{center}
 \begin{tabular*}{\textwidth}{ll}
 
- \bf{Type:} &amp; </xsl:text>
+ </xsl:text>
  <xsl:choose>
  <xsl:when test="$contentnode/@type">
- <xsl:value-of select="$contentnode/@type"/>
- <xsl:text>\\
+<xsl:text> \bf{Type:} &amp; </xsl:text><xsl:value-of select="$contentnode/@type"/>
+<xsl:if test="not(contains($contentnode/@type,'xs:'))">
+ <xsl:text> See:\ref{</xsl:text><xsl:value-of select="$contentnode/@type"/><xsl:text>} 
 </xsl:text>
+</xsl:if>
+<xsl:text>\\</xsl:text>
  </xsl:when>
  <xsl:when test="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-<xsl:text> \bf{enumeration:}  \\
+<xsl:text> \bf{Type:} &amp; \bf{enumeration:}  \\
 </xsl:text>
  <xsl:for-each select="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
 <xsl:text> &amp; </xsl:text>
@@ -167,9 +194,8 @@
  <xsl:text/> 
  </xsl:when>
  <xsl:when test="$contentnode/xs:complexType/*[xs:element] ">
- <xsl:text>\bf{contains: }</xsl:text> 
- <xsl:text>  \\
-</xsl:text>
+ <xsl:text>\bf{Contains: }  </xsl:text> 
+ <xsl:text>  </xsl:text>
  <xsl:for-each select="$contentnode/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
  <xsl:text> &amp; </xsl:text>
  <xsl:value-of select="./@name|@ref"/>
@@ -204,13 +230,25 @@ See: \ref{</xsl:text>
  </xsl:for-each>
  </xsl:when>
  <xsl:otherwise>
- <xsl:text> no content \\
+ <xsl:text> \bf{Type:} &amp; no content \\
 </xsl:text>
  </xsl:otherwise>
  </xsl:choose>
-
+<xsl:if test="$contentnode/@default">
+ <xsl:text>
+ \bf{Default:} &amp; ''\verb|</xsl:text> <xsl:value-of select="$contentnode/@default"/>
+ <xsl:text>|''\\
+ </xsl:text>
+ </xsl:if>
+ <xsl:if test="$contentnode/@use">
+ <xsl:text>
+ \bf{Use:} &amp; </xsl:text> <xsl:value-of select="$contentnode/@use"/>
+ <xsl:text> \\
+ </xsl:text>
+ </xsl:if>
  <xsl:choose>
  <xsl:when test="$contentnode/@ex:unit!=''">
+ 
  <xsl:text>
  \bf{Unit:}&amp;</xsl:text>
  <xsl:value-of select="$contentnode/@ex:unit"/>
@@ -266,4 +304,17 @@ See: \ref{</xsl:text>
    </xsl:choose>
   </xsl:for-each>
  </xsl:template>
+ <xsl:template name="typetoDoc">
+  <xsl:param name="typenode"/>
+  <xsl:text>
+  \subsection{Type   </xsl:text>
+  <xsl:value-of select="$typenode/@name"/>
+  <xsl:text>
+  } 
+  \label{</xsl:text>
+    <xsl:value-of select="$typenode/@name"/>
+  <xsl:text>}
+  </xsl:text>
+<xsl:apply-templates select="xs:annotation/xs:documentation"/>
+  </xsl:template>
 </xsl:stylesheet>

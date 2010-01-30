@@ -3,41 +3,91 @@
  xmlns:ex="inputschemaextentions.xsd">
  <!--
   This schema defines the input file format. It should be the central place for parameter and task specification and documentation
- --> <!-- global type definitions -->
+ --> 
+ <!-- global type definitions -->
  <xs:simpleType name="fortrandouble">
+ <xs:annotation>
+ <xs:documentation>
+ Fortran double allows to use the letters <pre>"eEdDqQ"</pre> for exponent operators. This allows to specify in what precision the number is parsed.
+ </xs:documentation>
+ </xs:annotation>
   <xs:restriction base="xs:token">
    <xs:pattern value="\-?[0-9]*\.?[0-9]+([eEdDqQ][\-+]?[0-9]+)?" />
   </xs:restriction>
  </xs:simpleType>
  <xs:annotation>
-  <xs:documentation>input schema</xs:documentation>
+  <xs:documentation>This input reference lists the elements and attributes available to define an input for an exciting calculation. The input file is named <pre>input.xml</pre> 
+  it must be a valid XML file. It must contain the root element <pre>input</pre>.
+  </xs:documentation>
   <xs:appinfo>
    <title>\exciting input reference</title>
    <root>input</root>
   </xs:appinfo>
  </xs:annotation>
  <xs:simpleType name="vector">
+ <xs:annotation>
+ <xs:documentation>
+ A vector is a space separated list of floating point numbers.
+<p>
+ Example:<pre> "1.3 2.3e4 3 90"</pre>
+ </p> 
+ </xs:documentation>
+ </xs:annotation>
   <xs:list itemType="fortrandouble" />
  </xs:simpleType>
  <xs:simpleType name="integerlist">
+ <xs:annotation>
+ <xs:documentation>
+ List of space separated integers.
+ </xs:documentation>
+ </xs:annotation>
   <xs:list itemType="xs:integer" />
  </xs:simpleType>
  <xs:simpleType name="vect3d">
+ <xs:annotation>
+ <xs:documentation>
+ Three dimensional vector as three space separated floating point numbers.
+ </xs:documentation>
+ </xs:annotation>
   <xs:restriction base="vector">
    <xs:length value="3" />
   </xs:restriction>
  </xs:simpleType>
  <xs:simpleType name="vect2d">
+ <xs:annotation>
+ <xs:documentation>
+ Three dimensional vector as three space separated floating point numbers.
+ </xs:documentation>
+ </xs:annotation>
   <xs:restriction base="vector">
    <xs:length value="2" />
   </xs:restriction>
  </xs:simpleType>
  <xs:simpleType name="integertriple">
+  <xs:annotation>
+ <xs:documentation>
+ Space separated list of three integers.
+<p>
+Example:  <pre>
+  "1 2 3"
+  </pre>
+ </p>
+ </xs:documentation>
+ </xs:annotation>
   <xs:restriction base="integerlist">
    <xs:length value="3" />
   </xs:restriction>
  </xs:simpleType>
  <xs:simpleType name="integerpair">
+ <xs:annotation>
+  <xs:documentation>
+ Space separated list of two integers
+ <p>
+ Example:
+ <pre> "1 2" </pre>
+ </p>
+ </xs:documentation>
+ </xs:annotation>
   <xs:restriction base="integerlist">
    <xs:length value="2" />
   </xs:restriction>
@@ -101,7 +151,7 @@
  </xs:element>
  <xs:element ex:importance="essential" ex:unit="" name="point">
   <xs:complexType>
-   <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" />
+   <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" use="required" />
    <xs:attribute ex:importance="essential" ex:unit="" name="label" type="xs:string" default="" />
   </xs:complexType>
  </xs:element>
@@ -190,27 +240,6 @@
   <xs:complexType>
    <xs:sequence>
     <xs:element ex:importance="essential" ex:unit="" ref="pointstatepair" minOccurs="1" maxOccurs="unbounded" />
-   </xs:sequence>
-  </xs:complexType>
- </xs:element>
- <xs:element ex:importance="essential" ex:unit="" name="inputset">
-  <xs:annotation>
-   <xs:documentation>The inputset element can be used to store a set of input elements. It is not used by exciting now but will
-    be usefull eventually.
-</xs:documentation>
-   <xs:appinfo>
-    <oldname>noname</oldname>
-   </xs:appinfo>
-  </xs:annotation>
-  <xs:complexType>
-   <xs:sequence>
-    <xs:element ex:importance="essential" ex:unit="" ref="input" minOccurs="1" maxOccurs="unbounded">
-     <xs:annotation>
-      <xs:appinfo>
-       <oldname>noname</oldname>
-      </xs:appinfo>
-     </xs:annotation>
-    </xs:element>
    </xs:sequence>
   </xs:complexType>
  </xs:element> <!-- root element starts here -->
@@ -1772,7 +1801,7 @@
                <xs:annotation>
                  <xs:documentation>
                    Phonon density of states.
-                   <p>no special blocks required</p>
+                   <p> fno special blocks required</p>
                  </xs:documentation>
                </xs:annotation>
                <xs:complexType />
