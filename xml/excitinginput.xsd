@@ -8,7 +8,7 @@
  <xs:simpleType name="fortrandouble">
  <xs:annotation>
  <xs:documentation>
- Fortran double allows to use the letters <pre>"eEdDqQ"</pre> for exponent operators. This allows to specify in what precision the number is parsed.
+ The Type <pre>fortrandouble</pre> allows to use the letters <pre>"eEdDqQ"</pre> for exponent operators. This alters in what precision the number is parsed.
  </xs:documentation>
  </xs:annotation>
   <xs:restriction base="xs:token">
@@ -16,11 +16,27 @@
   </xs:restriction>
  </xs:simpleType>
  <xs:annotation>
-  <xs:documentation>This input reference lists the elements and attributes available to define an input for an exciting calculation. The input file is named <pre>input.xml</pre> 
-  it must be a valid XML file. It must contain the root element <pre>input</pre>.
+  <xs:documentation>This input reference lists the elements and attributes available to define an input for an <exciting>exciting</exciting> calculation. The input file is named <pre>input.xml</pre> 
+  it must be a valid XML file and  it must contain the root element <pre>input</pre>.
+  <p>
+  
+  Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units. In this system
+         <inlinemath>\hbar=1</inlinemath>
+         , the electron mass
+         <inlinemath>m=1</inlinemath>
+         , the Bohr radius
+         <inlinemath>a_0=1</inlinemath>
+         and the electron charge
+         <inlinemath>e=1</inlinemath>
+         (note that the electron charge is positive, so that the atomic numbers
+         <inlinemath>Z</inlinemath>
+         are negative). Thus, the atomic unit of length is 0.52917720859(36) \AA, and the atomic unit of energy is the Hartree which equals 27.21138386(68) eV.
+         The unit of the external magnetic fields is defined such that one unit of magnetic field 
+         equals 1717.2445320376 Tesla.
+         </p>
   </xs:documentation>
   <xs:appinfo>
-   <title>\exciting input reference</title>
+   <title>\<exciting>exciting</exciting> input reference</title>
    <root>input</root>
   </xs:appinfo>
  </xs:annotation>
@@ -92,9 +108,9 @@ Example:  <pre>
    <xs:length value="2" />
   </xs:restriction>
  </xs:simpleType> <!-- global attribute definitions -->
- <xs:attribute ex:importance="expert" ex:unit="" name="outfileprefix" type="xs:string" >
+ <xs:attribute ex:importance="experimental" ex:unit="" name="outfileprefix" type="xs:string" >
   <xs:annotation>
-   <xs:documentation>a prefix to be prepended to the output files
+   <xs:documentation>A prefix to be prepended to the output files.
 </xs:documentation>
   </xs:annotation>
  </xs:attribute>
@@ -103,7 +119,7 @@ Example:  <pre>
         <xs:appinfo>
          <oldname>nonreplace</oldname>
         </xs:appinfo>
-        <xs:documentation>Decides if the groundstate is read from file or recalculated or continued from file.
+        <xs:documentation>Decides if the ground state is read from file or recalculated or continued from file.
         </xs:documentation>
        </xs:annotation>
      <xs:simpleType>
@@ -117,7 +133,7 @@ Example:  <pre>
  <xs:attribute ex:importance="expert" ex:unit="" name="tfibs" type="xs:boolean" default="true">
   <xs:annotation>
    <xs:documentation>
-    if the IBS correction to the force should be calculated Because calculation of the incomplete basis set (IBS) correction to
+    If the IBS correction to the force should be calculated Because calculation of the incomplete basis set (IBS) correction to
     the force is fairly time-consuming, it can be switched off by setting
     <pre> tfibs</pre>
     to
@@ -130,17 +146,17 @@ Example:  <pre>
  <xs:attribute ex:importance="expert" ex:unit="" name="tforce" type="xs:boolean" default="false">
   <xs:annotation>
    <xs:documentation>
-    set to
+    The attribute is set to
     <pre> .true.</pre>
     if the force should be calculated at the end of the self-consistent cycle This variable is automatically set to
     <pre> .true.</pre>
-    pre when performing structural optimization.
+     when performing structural optimization.
    </xs:documentation>
   </xs:annotation>
  </xs:attribute>
  <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
   <xs:annotation>
-   <xs:documentation>the scissors correction This is the scissors shift applied to states above the Fermi energy. Affects DOS,
+   <xs:documentation> This is the scissors shift applied to states above the Fermi energy. Affects DOS,
     optics and band structure plots.</xs:documentation>
   </xs:annotation>
  </xs:attribute> <!-- global element definitions -->
@@ -157,7 +173,7 @@ Example:  <pre>
  </xs:element>
  <xs:element ex:importance="essential" ex:unit="" name="plot1d">
   <xs:annotation>
-   <xs:documentation> plot1d specifies sample points along a path. The coordinate space is chosen in the context of the parent
+   <xs:documentation> The element plot1d specifies sample points along a path. The coordinate space (lattice or cartesian)is chosen in the context of the parent.
    </xs:documentation>
   </xs:annotation>
   <xs:complexType>
@@ -179,7 +195,7 @@ Example:  <pre>
  </xs:element>
  <xs:element ex:importance="essential" ex:unit="" name="plot2d">
   <xs:annotation>
-   <xs:documentation>defines a 2d plot domain </xs:documentation>
+   <xs:documentation>Defines a 2d plot domain. </xs:documentation>
   </xs:annotation>
   <xs:complexType>
    <xs:all>
@@ -218,15 +234,16 @@ Example:  <pre>
  <xs:element ex:importance="essential" ex:unit="" name="pointstatepair" type="integerpair">
   <xs:annotation>
    <xs:documentation>
+   The element <pre>pointstatepair</pre> defines a
     <inlinemath>{ \bf k}</inlinemath>
-    -point and state index pair
+    -point and state index pair.
    </xs:documentation>
   </xs:annotation>
  </xs:element>
  <xs:element ex:importance="essential" ex:unit="" name="kstlist">
   <xs:annotation>
    <xs:documentation>
-    kstlist is used in the LSJ and wavefunction plot element This is a user-defined list of
+    The kstlist element is used in the LSJ and wavefunction plot element This is a user-defined list of
     <inlinemath>{ \bf k}</inlinemath>
     -point and state index pairs which are those used for plotting wavefunctions and writing
     <inlinemath>{ \bf L}</inlinemath>
@@ -246,37 +263,17 @@ Example:  <pre>
  <xs:element ex:importance="essential" ex:unit="" name="input" >
    <xs:annotation>
      <xs:documentation>
-       The input element is the root element of the exciting input file. XML may contain only one root element. The input element must contain one structure
+       The input element is the root element of the <exciting>exciting</exciting> input file. The input element must contain one structure
        element and one groundstate element.
+       <p>
+        <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file instance described here.</a>
+       </p>
      </xs:documentation>
      <xs:appinfo>
       
      </xs:appinfo>
    </xs:annotation>
    <xs:complexType>
-     <xs:annotation>
-       <xs:appinfo>
-         <oldname>noname</oldname>
-       </xs:appinfo>
-       <xs:documentation>
-         Every input file must contain a structure element to specify the domain and the atoms.
-         <p />
-         Unless explicitly stated otherwise, EXCITING uses atomic units. In this system
-         <inlinemath>\hbar=1</inlinemath>
-         , the electron mass
-         <inlinemath>m=1</inlinemath>
-         , the Bohr radius
-         <inlinemath>a_0=1</inlinemath>
-         and the electron charge
-         <inlinemath>e=1</inlinemath>
-         (note that the electron charge is positive, so that the atomic numbers
-         <inlinemath>Z</inlinemath>
-         are negative). Thus, the atomic unit of length is 0.52917720859(36) \AA, and the atomic unit of energy is the Hartree which equals 27.21138386(68) eV.
-         The unit of the external magnetic fields is defined such that one unit of magnetic field in
-         <pre>exciting.in</pre>
-         equals 1717.2445320376 Tesla.
-       </xs:documentation>
-     </xs:annotation>
      <xs:all>
        <xs:element ex:importance="essential" ex:unit="" name="title" type="xs:string" minOccurs="1" maxOccurs="1">
          <xs:annotation>
@@ -285,7 +282,7 @@ Example:  <pre>
        </xs:element>
        <xs:element ex:importance="essential" ex:unit="" name="structure" maxOccurs="1" minOccurs="1">
          <xs:annotation>
-           <xs:documentation>The structure element contains all structural information such as atoms atom positions and symmetries.</xs:documentation>
+           <xs:documentation>The structure element contains all structural information such as unit cell and atom positions.</xs:documentation>
          </xs:annotation>
          <xs:complexType>
            <xs:sequence>
@@ -299,13 +296,13 @@ Example:  <pre>
                <xs:complexType>
                  <xs:annotation>
                    <xs:documentation>
-                     The symmetries element is output from the spacegroup program the values are currently not used in the exciting program
+                     The symmetries element is output from the spacegroup program the values are currently not used in the <exciting>exciting</exciting> program
                    </xs:documentation>
                  </xs:annotation>
                  <xs:sequence>
                    <xs:element ex:importance="expert" ex:unit="" name="lattice" maxOccurs="1" minOccurs="1">
                      <xs:annotation>
-                       <xs:documentation>defines lattice from a,b,c, and angles</xs:documentation>
+                       <xs:documentation>The lattice element defines lattice from a,b,c, and angles.</xs:documentation>
                      </xs:annotation>
                      <xs:complexType>
                        <xs:attribute ex:importance="expert" ex:unit="" name="a" type="fortrandouble" use="required">
@@ -334,7 +331,7 @@ Example:  <pre>
                        <xs:attribute ex:importance="expert" ex:unit="" name="bc" type="fortrandouble" use="required" />
                        <xs:attribute ex:importance="expert" ex:unit="" name="ncell" type="integertriple" use="optional" default="1 1 1">
                          <xs:annotation>
-                           <xs:documentation>number of repeated cells in each direction</xs:documentation>
+                           <xs:documentation>Number of repeated cells in each direction.</xs:documentation>
                          </xs:annotation>
                        </xs:attribute>
                      </xs:complexType>
@@ -376,16 +373,16 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="essential" ex:unit="" name="crystal" minOccurs="1" maxOccurs="1">
                <xs:annotation>
-                 <xs:documentation>defines the unit cell of the calculation.</xs:documentation>
+                 <xs:documentation>The crystal element defines the unit cell of the calculation.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:annotation>
-                   <xs:documentation>unit cell is spanned by 3 basevectors that define the lattice coordinates.</xs:documentation>
+                   <xs:documentation>The unit cell is spanned by 3 base vectors that define the lattice coordinates.</xs:documentation>
                  </xs:annotation>
                  <xs:sequence>
                    <xs:element ex:importance="essential" ex:unit="Bohr" name="basevect" minOccurs="3" maxOccurs="3" type="vect3d">
                      <xs:annotation>
-                       <xs:documentation>are the basis vectors or lattice vectors in Bohr.</xs:documentation>
+                       <xs:documentation>The basevect element defines one basis vector.</xs:documentation>
                        <xs:appinfo>
                          <oldname>avec</oldname>
                        </xs:appinfo>
@@ -394,7 +391,7 @@ Example:  <pre>
                  </xs:sequence>
                  <xs:attribute ex:importance="essential" ex:unit="" name="scale" type="fortrandouble" default="1.0d0">
                    <xs:annotation>
-                     <xs:documentation>scales all the lattice vectors. This is useful for varying the volume.</xs:documentation>
+                     <xs:documentation>The attribute <pre>scale</pre> scales all the lattice vectors. This is useful for varying the volume.</xs:documentation>
                      <xs:appinfo>
                        <oldname>scale</oldname>
                      </xs:appinfo>
@@ -402,7 +399,7 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="essential" ex:unit="" name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
                    <xs:annotation>
-                     <xs:documentation>allows for a separate scaling of each lattice vector. 1 1 1 means no scaling.</xs:documentation>
+                     <xs:documentation>Allows for a separate scaling of each lattice vector. <pre>"1 1 1"</pre> means no scaling.</xs:documentation>
                      <xs:appinfo>
                        <oldname>(sc1|sc2|sc3)</oldname>
                      </xs:appinfo>
@@ -412,13 +409,13 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="essential" ex:unit="" name="species" minOccurs="0" maxOccurs="unbounded">
                <xs:annotation>
-                 <xs:documentation>for each atom type (species) a species element is defined containing all the atom positions</xs:documentation>
+                 <xs:documentation>The <pre>species</pre> element defines the atom species. It contains a atom element for each atom of the species.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:sequence>
                    <xs:element ex:importance="essential" ex:unit="" name="atom" minOccurs="1" maxOccurs="unbounded">
                      <xs:annotation>
-                       <xs:documentation>atomic position in lattice coordinates for atom</xs:documentation>
+                       <xs:documentation>The <pre>atom</pre> element carries all the attributes of a single atom in the unit cell. The position is given by the <pre>coord </pre> attribute</xs:documentation>
                        <xs:appinfo>
                          <oldname>noname</oldname>
                        </xs:appinfo>
@@ -426,7 +423,7 @@ Example:  <pre>
                      <xs:complexType>
                        <xs:attribute ex:importance="essential" ex:unit="lattice coordinates" name="coord" type="vect3d" use="required">
                          <xs:annotation>
-                           <xs:documentation>position in lattice coordinates</xs:documentation>
+                           <xs:documentation>Position in lattice coordinates.</xs:documentation>
                            <xs:appinfo>
                              <oldname>atposl</oldname>
                            </xs:appinfo>
@@ -434,7 +431,7 @@ Example:  <pre>
                        </xs:attribute>
                        <xs:attribute ex:importance="expert" ex:unit="" name="bfcmt" type="vect3d" default="0.0d0 0.0d0 0.0d0" use="optional">
                          <xs:annotation>
-                           <xs:documentation>muffin-tin external magnetic field in Cartesian coordinates for atom</xs:documentation>
+                           <xs:documentation>Muffin-tin external magnetic field in Cartesian coordinates for atom.</xs:documentation>
                          </xs:annotation>
                        </xs:attribute>
                        <xs:attribute ex:importance="expert" ex:unit="" name="mommtfix" type="vect3d" use="optional" />
@@ -442,7 +439,7 @@ Example:  <pre>
                    </xs:element>
                    <xs:element ex:importance="expert" ex:unit="" name="LDAplusU" minOccurs="0">
                      <xs:annotation>
-                       <xs:documentation>If present defines ldaplusU parameters for species</xs:documentation>
+                       <xs:documentation>If present defines LDA plus U parameters for species</xs:documentation>
                      </xs:annotation>
                      <xs:complexType>
                        <xs:attribute ex:importance="expert" ex:unit="" name="l" type="xs:integer" default="-1">
@@ -472,7 +469,7 @@ Example:  <pre>
                  <xs:attribute ex:importance="essential" ex:unit="" name="speciesfile" type="xs:anyURI" use="required">
                    <xs:annotation>
                      <xs:documentation>
-                       defines the file from which the species definition is read. It is looked up in the species directory specified by the species path.
+                       Defines the file from which the species definition is read. It is looked up in the species directory specified by the species path.
                      </xs:documentation>
                      <xs:appinfo>
                        <oldname>spfname</oldname>
@@ -481,7 +478,7 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="chemicalSymbol" type="xs:string" use="optional" default="">
                    <xs:annotation>
-                     <xs:documentation>can be given to simplify visualisation and converters. is ignored by exciting</xs:documentation>
+                     <xs:documentation>Can be given to simplify visualization and converters. It is ignored by <exciting>exciting</exciting></xs:documentation>
                      <xs:appinfo>
                        <oldname>spsymb</oldname>
                      </xs:appinfo>
@@ -490,7 +487,7 @@ Example:  <pre>
                  <xs:attribute ex:importance="expert" ex:unit="" name="atomicNumber" type="xs:integer" use="optional">
                    <xs:annotation>
                      <xs:documentation>
-                       Is an optional attribute can be given to simplify visualisation and converters. It is not used by exciting
+                       Is an optional attribute can be given to simplify visualisation and converters. It is not used by <exciting>exciting</exciting>
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
@@ -499,7 +496,7 @@ Example:  <pre>
                      <xs:appinfo>
                        <oldname>noreplace></oldname>
                      </xs:appinfo>
-                     <xs:documentation>muffin tin radius this optional parameter allows to override speciesfile or automatic tetemination</xs:documentation>
+                     <xs:documentation>Muffin tin radius this optional parameter allows to override species file or automatic determination</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
          <xs:attribute name="href" type="xs:anyURI" default=""></xs:attribute>
@@ -508,7 +505,7 @@ Example:  <pre>
            </xs:sequence>
            <xs:attribute ex:importance="essential" ex:unit="" name="speciespath" type="xs:anyURI" use="required">
              <xs:annotation>
-               <xs:documentation>gives the path to the directory containing the species files</xs:documentation>
+               <xs:documentation>Gives the path to the directory containing the species files. It can be an HTTP URL too (needs <pre>wget</pre>).</xs:documentation>
                <xs:appinfo>
                  <oldname>sppath</oldname>
                </xs:appinfo>
@@ -517,7 +514,7 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 has to be set to true if one wants to calculate an isolated molecule. is
+                 Has to be set to <pre>true</pre> if one wants to calculate an isolated molecule. If it is
                  <pre>true</pre>
                  , then the atomic positions,
                  <inlinemath>{\bf a}</inlinemath>
@@ -539,12 +536,12 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="vacuum" type="fortrandouble" default="10.0d0">
              <xs:annotation>
-               <xs:documentation>determines the size of the vacuum around the molecule.</xs:documentation>
+               <xs:documentation>Determines the size of the vacuum around the molecule.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="epslat" type="fortrandouble" default="1.0d-6">
              <xs:annotation>
-               <xs:documentation>vectors with lengths less than this are considered zero.</xs:documentation>
+               <xs:documentation>Vectors with lengths less than this are considered zero.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="autormt" type="xs:boolean" default="false">
@@ -555,8 +552,10 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="primcell" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 allows the primitive unit cell to be determined automatically from the conventional cell. This is done by searching for lattice vectors among
-                 all those which connect atomic sites, and using the three shortest ones which produce a unit cell with non-zero volume.
+                 Allows the primitive unit cell to be determined automatically from the conventional cell. 
+                 This is done by searching for lattice vectors among
+                 all those which connect atomic sites, and using the three shortest 
+                 ones which produce a unit cell with non-zero volume.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
@@ -581,7 +580,7 @@ Example:  <pre>
                <xs:annotation>
                  <xs:documentation>
                    If the
-                   <spin />
+                   <pre>spin</pre> 
                    element is present calculation is done with spin polarization.
                  </xs:documentation>
                  <xs:appinfo>
@@ -591,13 +590,13 @@ Example:  <pre>
                <xs:complexType>
                  <xs:attribute ex:importance="essential" ex:unit="" name="momfix" type="vect3d" default="0.0d0 0.0d0 0.0d0">
                    <xs:annotation>
-                     <xs:documentation>the desired total moment for a FSM calculation.</xs:documentation>
+                     <xs:documentation>The desired total moment for a FSM calculation.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute><!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
                  <xs:attribute ex:importance="essential" ex:unit="" name="bfieldc" type="vect3d" default="0.0d0 0.0d0 0.0d0 ">
                    <xs:annotation>
                      <xs:documentation>
-                       alows to apply a constant B field This is a constant magnetic field applied throughout the entire unit cell and enters the
+                       Alows to apply a constant B field This is a constant magnetic field applied throughout the entire unit cell and enters the
                        second-variational Hamiltonian as
                        <displaymath>\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm ext},</displaymath>
                        where
@@ -624,22 +623,22 @@ Example:  <pre>
                  <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean">
                    <xs:annotation>
                      <xs:documentation>
-                       if a spin-orbit coupling is required If
+                        If
                        <pre>spinorb</pre>
                        is
                        <pre>.true.</pre>
                        , then a
                        <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath>
-                       term is added to the second-variational Hamiltonian. .
+                       term is added to the second-variational Hamiltonian.  
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="spinsprl" type="xs:boolean">
                    <xs:annotation>
                      <xs:documentation>
-                       set to
+                       Set to
                        <pre>.true.</pre>
-                       if a spin-spiral calculation is require Experimental feature for the calculation of spin-spiral states. See
+                       if a spin-spiral calculation is required. Experimental feature for the calculation of spin-spiral states. See
                        <pre>vqlss</pre>
                        for details.
                      </xs:documentation>
@@ -648,9 +647,9 @@ Example:  <pre>
                  <xs:attribute ex:importance="expert" ex:unit="" name="vqlss" type="vect3d" default="0.0d0 0.0d0 0.0d0">
                    <xs:annotation>
                      <xs:documentation>
-                       the
+                       Is the
                        <inlinemath>{ \bf q}</inlinemath>
-                       -vector of the spin-spiral state in lattice coordinates Spin-spirals arise from spinor states assumed to be of the form
+                       -vector of the spin-spiral state in lattice coordinates. Spin-spirals arise from spinor states assumed to be of the form
                        <displaymath>
                          \Psi^{ \bf q}_{ \bf k}({ \bf r})= \left( \begin{array}{c} U^{{\bf q}\uparrow}_{ \bf k}({\bf r})e^{i({ \bf k+q/2})\cdot{ \bf r}} \\ U^{{
                          \bf q}\downarrow}_{\bf k}({ \bf r})e^{i({\bf k-q/2})\cdot{ \bf r}} \\ \end{array} \right).
@@ -666,8 +665,7 @@ Example:  <pre>
                        and
                        <inlinemath>m_z</inlinemath>
                        are lattice periodic. See also
-                       <pre>spinprl</pre>
-                       .
+                       <pre>spinprl</pre>.
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
@@ -717,14 +715,14 @@ Example:  <pre>
                  </xs:attribute>
                </xs:complexType>
              </xs:element>
-             <xs:element ex:importance="expert" ex:unit="" name="HartreeFock" minOccurs="0" maxOccurs="1"><!-- sag -->
+             <xs:element ex:importance="experimental" ex:unit="" name="HartreeFock" minOccurs="0" maxOccurs="1"><!-- sag -->
                <xs:annotation>
                  <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:attribute ex:importance="expert" ex:unit="" name="epsengy" type="fortrandouble" use="optional" default="1.0d-7">
                    <xs:annotation>
-                     <xs:documentation>energy convergence tolerance</xs:documentation>
+                     <xs:documentation>Energy convergence tolerance.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                </xs:complexType>
@@ -739,7 +737,7 @@ Example:  <pre>
                      <xs:appinfo>
                        <oldname>solvertype</oldname>
                      </xs:appinfo>
-                     <xs:documentation>select the eigenvalue solver for the first variational equation</xs:documentation>
+                     <xs:documentation>Selects the eigenvalue solver for the first variational equation</xs:documentation>
                    </xs:annotation>
                    <xs:simpleType>
                      <xs:restriction base="xs:string">
@@ -782,19 +780,19 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="evaltol" type="fortrandouble" default="1.0d-8"><!-- sag -->
                    <xs:annotation>
-                     <xs:documentation>error tolerance for the first-variational eigenvalues using the LAPACK Solver</xs:documentation>
+                     <xs:documentation>Error tolerance for the first-variational eigenvalues using the LAPACK Solver</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                </xs:complexType>
              </xs:element>
-             <xs:element ex:importance="expert" ex:unit="" name="OEP" minOccurs="0" maxOccurs="1">
+             <xs:element ex:importance="experimental" ex:unit="" name="OEP" minOccurs="0" maxOccurs="1">
                <xs:annotation>
                  <xs:documentation>If present exact exchange calculation is triggered. (experimental)</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:attribute ex:importance="expert" ex:unit="" name="maxitoep" type="xs:integer" default="120">
                    <xs:annotation>
-                     <xs:documentation>maximum number of iterations when solving the exact exchange integral equations</xs:documentation>
+                     <xs:documentation>Maximum number of iterations when solving the exact exchange integral equations.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="tauoep" type="vect3d" default="1.0d0 0.2d0 1.5d0">
@@ -808,14 +806,14 @@ Example:  <pre>
                  </xs:attribute>
                </xs:complexType>
              </xs:element>
-             <xs:element ex:importance="expert" ex:unit="" name="RDMFT" minOccurs="0" maxOccurs="1">
+             <xs:element ex:importance="experimental" ex:unit="" name="RDMFT" minOccurs="0" maxOccurs="1">
                <xs:annotation>
                  <xs:documentation>If present Reduced Density Matrix Funcional Theory calculation is triggered</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:attribute ex:importance="expert" ex:unit="" name="rdmxctype" type="xs:integer" default="2">
                    <xs:annotation>
-                     <xs:documentation>xc functional.</xs:documentation>
+                     <xs:documentation>XC functional.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="rdmmaxscl" type="xs:integer" default="1">
@@ -883,12 +881,12 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="epspot" type="fortrandouble" use="optional" default="1.0d-6">
+           <xs:attribute ex:importance="essential" ex:unit="" name="epspot" type="fortrandouble" use="optional" default="1.0d-6">
              <xs:annotation>
                <xs:documentation>
-                 If the RMS change in the effective potential and magnetic field is smaller than epspot, then the self-consistent loop is considered converged
-                 and exited. For structural optimisation runs this results in the forces being calculated, the atomic positions updated and the loop restarted.
-                 See also maxscl.
+                 If the RMS change in the effective potential and magnetic field is smaller than <pre>epspot</pre>, then the self-consistent loop is considered converged
+                 and exited. For structural optimization runs this results in the forces being calculated, the atomic positions updated and the loop restarted.
+                 See also <pre>maxscl</pre>.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
@@ -907,15 +905,15 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.001d0">
+           <xs:attribute ex:importance="essential" ex:unit="" name="swidth" type="fortrandouble" default="0.001d0">
              <xs:annotation>
                <xs:documentation>width of the smooth approximation to the Dirac delta function.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="stype" default="Gaussian">
+           <xs:attribute ex:importance="essential" ex:unit="" name="stype" default="Gaussian">
              <xs:annotation>
                <xs:documentation>
-                 A smooth approximation to the Dirac delta function is needed to compute the occupancies of the Kohn-Sham states. The variable
+                 A smooth approximation to the Dirac delta function is needed to compute the occupancies of the Kohn-Sham states. The attribute
                  <pre>swidth</pre>
                  determines the width of the approximate delta function.
                </xs:documentation>
@@ -2811,7 +2809,7 @@ Example:  <pre>
      </xs:attribute>
      <xs:attribute ex:importance="expert" ex:unit="" name="id" type="xs:ID">
        <xs:annotation>
-         <xs:documentation>The id is a unique identifier in an input set. The inputset element is currently not used by the exciting code.</xs:documentation>
+         <xs:documentation>The id is a unique identifier in an input set. The inputset element is currently not used by the <exciting>exciting</exciting> code.</xs:documentation>
        </xs:annotation>
      </xs:attribute>
      <xs:attribute ex:importance="expert" ex:unit="" name="depends" type="xs:IDREFS">
@@ -2821,7 +2819,7 @@ Example:  <pre>
        <xs:annotation>
          <xs:documentation>
            The depends attribute can be used to specify a dependence from another simulation in the same input set. The inputset element is currently not used
-           by the exciting code.
+           by the <exciting>exciting</exciting> code.
          </xs:documentation>
        </xs:annotation>
      </xs:attribute>

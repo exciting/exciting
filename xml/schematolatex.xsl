@@ -30,7 +30,7 @@
 \title{</xsl:text>
   <xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/title" />
   <xsl:text>} 
-\author{exciting devteam}
+\author{\exciting devteam}
 
 
 \maketitle 
@@ -115,7 +115,19 @@
   <xsl:apply-templates select="./*|text()" />
  </xsl:template>
  <xsl:template match="xs:documentation">
-  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p" />
+  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a" />
+ </xsl:template>
+
+ <xsl:template match="a">
+ <xsl:text> </xsl:text>
+ <xsl:value-of select="."/>
+ 
+ <xsl:text> (\url{</xsl:text>
+ <xsl:value-of select="@href"/>
+ <xsl:text>})</xsl:text>>
+ </xsl:template>
+ <xsl:template match="exciting">
+ <xsl:text> \exciting </xsl:text>
  </xsl:template>
  <xsl:template name="elementToLatex">
   <xsl:param name="myelement" />
@@ -175,7 +187,7 @@
  </xsl:text>
  <xsl:choose>
  <xsl:when test="$contentnode/@type">
-<xsl:text> \bf{Type:} &amp; </xsl:text><xsl:value-of select="$contentnode/@type"/>
+<xsl:text> \bf{Type:} &amp; </xsl:text><xsl:value-of select="str:replace(($contentnode/@type),'xs:','')"/>
 <xsl:if test="not(contains($contentnode/@type,'xs:'))">
  <xsl:text> See:\ref{</xsl:text><xsl:value-of select="$contentnode/@type"/><xsl:text>} 
 </xsl:text>
