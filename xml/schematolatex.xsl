@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema"
  xmlns:str="http://exslt.org/strings" xmlns:ex="inputschemaextentions.xsd">
- <xsl:output method="text" />
- <xsl:variable name="importancelevels">
- <!-- In order to select the importance levels that should be included list them in the variable "importancelevels". 
- example:
- <xsl:text>essential</xsl:text>
- or
- <xsl:text>essential,expert</xsl:text>
+  <xsl:output method="text" />
  
- -->
-  <xsl:text>essential</xsl:text>
- </xsl:variable>
+ <xsl:param name="importancelevels" >
+ <xsl:text>essential</xsl:text>
+ <xs:annotation>
+ <xs:documentation>
+   In order to select the importance levels that should be included list them in the parameter "importancelevels". example:
+   xsltproc --stringparam importancelevels "essential expert" schematolatex.xsl excitinginput.xsd >doc.tex 
+ </xs:documentation>
+ </xs:annotation>
+ </xsl:param>
+
  <xsl:template match="/">
   <xsl:text>
 
@@ -48,7 +49,7 @@
 \newpage
 \section*{About this Document}
     </xsl:text>
-    <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation" />
+  <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation" />
   <xsl:call-template name="elementToLatex">
    <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
    <xsl:with-param name="level" select="0" />
@@ -62,15 +63,15 @@
     <xsl:with-param name="level" select="0" />
    </xsl:call-template>
   </xsl:for-each>
-  
+
   <xsl:text>\section*{Data Types}
  
  The Input definition uses derived data types. These are described here.
   </xsl:text>
   <xsl:for-each select="/*/xs:simpleType">
-  <xsl:call-template name="typetoDoc">
-  <xsl:with-param name="typenode" select="."/>
-  </xsl:call-template>
+   <xsl:call-template name="typetoDoc">
+    <xsl:with-param name="typenode" select="." />
+   </xsl:call-template>
   </xsl:for-each>
   <xsl:text>
     \end{document}
@@ -108,7 +109,7 @@
  <xsl:template match="text()">
   <xsl:value-of select="normalize-space(.)" />
  </xsl:template>
-  <xsl:template match="p">
+ <xsl:template match="p">
   <xsl:text>
   
   </xsl:text>
@@ -119,12 +120,13 @@
  </xsl:template>
 
  <xsl:template match="a">
- <xsl:text> </xsl:text>
- <xsl:value-of select="."/>
- 
- <xsl:text> (\url{</xsl:text>
- <xsl:value-of select="@href"/>
- <xsl:text>})</xsl:text>>
+  <xsl:text> </xsl:text>
+  <xsl:value-of select="." />
+
+  <xsl:text> (\url{</xsl:text>
+  <xsl:value-of select="@href" />
+  <xsl:text>})</xsl:text>
+  
  </xsl:template>
  <xsl:template match="exciting">
  <xsl:text> \exciting </xsl:text>
@@ -195,11 +197,12 @@
 <xsl:text>\\</xsl:text>
  </xsl:when>
  <xsl:when test="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-<xsl:text> \bf{Type:} &amp; \bf{enumeration:}  \\
+<xsl:text> \bf{Type:} &amp; \bf{chose from:}  \\
 </xsl:text>
- <xsl:for-each select="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
+ <xsl:for-each select="
+ $contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
 <xsl:text> &amp; </xsl:text>
-<xsl:value-of select="@value"/><xsl:text/> 
+<xsl:value-of select="str:replace(@value, '_','\_')"/><xsl:text/> 
 <xsl:text>  \\
 </xsl:text>
  </xsl:for-each>
@@ -252,9 +255,12 @@ See: \ref{</xsl:text>
  <xsl:text>|''\\
  </xsl:text>
  </xsl:if>
- <xsl:if test="$contentnode/@use">
+ <xsl:if test="$contentnode/@use or local-name($contentnode)='attribute'">
  <xsl:text>
  \bf{Use:} &amp; </xsl:text> <xsl:value-of select="$contentnode/@use"/>
+ <xsl:if test="not($contentnode/@use) and local-name($contentnode)='attribute'">
+<xsl:text>optional</xsl:text>
+</xsl:if>
  <xsl:text> \\
  </xsl:text>
  </xsl:if>

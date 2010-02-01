@@ -2,25 +2,41 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema"
  xmlns:str="http://exslt.org/strings" xmlns:ex="inputschemaextentions.xsd">
  <xsl:output method="text" />
- <xsl:variable name="importancelevels">
- <!-- In order to select the importance levels that should be included list them in the variable "importancelevels". 
- example:
+  
+ <xsl:param name="importancelevels" >
  <xsl:text>essential</xsl:text>
- or
- <xsl:text>essential,expert</xsl:text>
- 
- -->
-  <xsl:text>essential</xsl:text>
- </xsl:variable>
+ <xs:annotation>
+ <xs:documentation>
+   In order to select the importance levels that should be included list them in the parameter "importancelevels". example:
+   xsltproc --stringparam importancelevels "essential expert" schematolatex.xsl excitinginput.xsd >doc.tex 
+ </xs:documentation>
+ </xs:annotation>
+ </xsl:param>
+
  <xsl:template match="/">
+   <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation" />
  <xsl:call-template name="elementToLatex">
    <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
    <xsl:with-param name="level" select="0" />
   </xsl:call-template>
+ <xsl:text>+ Reused Elements
+  The following elements can occur more than once in the input file. There for they are listed separately.
+  </xsl:text>
   <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
    <xsl:call-template name="elementToLatex">
     <xsl:with-param name="myelement" select="." />
     <xsl:with-param name="level" select="0" />
+   </xsl:call-template>
+  </xsl:for-each>
+  
+  <xsl:text>
++ Data Types
+ 
+ The Input definition uses derived data types. These are described here.
+  </xsl:text>
+  <xsl:for-each select="/*/xs:simpleType">
+   <xsl:call-template name="typetoDoc">
+    <xsl:with-param name="typenode" select="." />
    </xsl:call-template>
   </xsl:for-each>
   
@@ -58,8 +74,24 @@
     <xsl:value-of select="normalize-space(.)" />
   </xsl:template>
   <xsl:template match="xs:documentation">
-    <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it" />
+    <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a" />
   </xsl:template>
+  <xsl:template match="p">
+  <xsl:text>
+  
+  </xsl:text>
+  <xsl:apply-templates select="./*|text()" />
+ </xsl:template>
+ <xsl:template match="a">
+  <xsl:text> [</xsl:text>
+  <xsl:value-of select="@href" />
+  <xsl:text>  </xsl:text>
+    <xsl:value-of select="." />
+  <xsl:text>]</xsl:text>
+ </xsl:template>
+ <xsl:template match="exciting">
+ <xsl:text> {{**exciting**}} </xsl:text>
+ </xsl:template>
  <xsl:template name="elementToLatex">
   <xsl:param name="myelement" />
   <xsl:param name="level" />
@@ -112,15 +144,23 @@
 
 [[table ]]
 [[row]]
-[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]</xsl:text>
+</xsl:text>
  <xsl:choose>
  <xsl:when test="$contentnode/@type">
- <xsl:value-of select="$contentnode/@type"/>
+ <xsl:text>[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]</xsl:text>
+<xsl:if test="not(contains($contentnode/@type,'xs:'))">
+<xsl:text>[#</xsl:text><xsl:value-of select="$contentnode/@type"/> <xsl:text> </xsl:text>
+</xsl:if>
+ <xsl:value-of select="str:replace(($contentnode/@type),'xs:','')"/>
+ <xsl:if test="not(contains($contentnode/@type,'xs:'))">
+ <xsl:text>]
+ </xsl:text>
+ </xsl:if>
  <xsl:text>
 </xsl:text>
  </xsl:when>
  <xsl:when test="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-<xsl:text> **choose from:**  
+<xsl:text> [[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]] **choose from:**  
 </xsl:text>
  <xsl:for-each select="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
 <xsl:text> </xsl:text>
@@ -131,7 +171,7 @@
  <xsl:text/> 
  </xsl:when>
  <xsl:when test="$contentnode/xs:complexType/*[xs:element] ">
- <xsl:text> **contains:** </xsl:text> 
+ <xsl:text> [[cell style=" vertical-align:top;" ]] **contains:** [[/cell]] [[cell]]</xsl:text> 
  <xsl:text>  
 </xsl:text>
  <xsl:for-each select="$contentnode/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
@@ -165,14 +205,29 @@
  </xsl:for-each>
  </xsl:when>
  <xsl:otherwise>
- <xsl:text> no content 
+ <xsl:text>[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]] no  content  
 </xsl:text>
  </xsl:otherwise>
  </xsl:choose>
  <xsl:text> [[/cell]][[/row]]</xsl:text>
- <xsl:choose>
  
-
+<xsl:if test="$contentnode/@default">
+ <xsl:text>
+[[row]] [[cell]] **Default:** [[/cell]][[cell]] "{{</xsl:text> <xsl:value-of select="$contentnode/@default"/>
+ <xsl:text>}}" [[/cell]][[/row]]
+ </xsl:text>
+ </xsl:if>
+ <xsl:if test="$contentnode/@use or local-name($contentnode)='attribute'">
+ <xsl:text>
+[[row]] [[cell]] **Use:** [[/cell]][[cell]]  </xsl:text> <xsl:value-of select="$contentnode/@use"/>
+<xsl:if test="not($contentnode/@use) and local-name($contentnode)='attribute'">
+<xsl:text>optional</xsl:text>
+</xsl:if>
+ <xsl:text> [[/cell]][[/row]]
+ </xsl:text>
+ </xsl:if>
+ 
+ <xsl:choose>
  <xsl:when test="$contentnode/@ex:unit!=''">
  <xsl:text>
 [[row]] [[cell]] **Unit:** [[/cell]][[cell]]</xsl:text>
@@ -228,4 +283,15 @@
    </xsl:choose>
   </xsl:for-each>
  </xsl:template>
+ <xsl:template name="typetoDoc">
+  <xsl:param name="typenode"/>
+  <xsl:text>
+  [[# </xsl:text>   <xsl:value-of select="$typenode/@name"/><xsl:text>]]
+++ Type   </xsl:text>
+  <xsl:value-of select="$typenode/@name"/>
+  <xsl:text>
+  
+  </xsl:text>
+<xsl:apply-templates select="xs:annotation/xs:documentation"/>
+  </xsl:template>
 </xsl:stylesheet>

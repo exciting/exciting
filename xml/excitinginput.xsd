@@ -30,7 +30,7 @@
          <inlinemath>e=1</inlinemath>
          (note that the electron charge is positive, so that the atomic numbers
          <inlinemath>Z</inlinemath>
-         are negative). Thus, the atomic unit of length is 0.52917720859(36) \AA, and the atomic unit of energy is the Hartree which equals 27.21138386(68) eV.
+         are negative). Thus, the atomic unit of length is 0.52917720859(36) <inlinemath>{\buildrel _{\circ} \over {\mathrm{A}}}</inlinemath>, and the atomic unit of energy is the Hartree which equals 27.21138386(68) eV.
          The unit of the external magnetic fields is defined such that one unit of magnetic field 
          equals 1717.2445320376 Tesla.
          </p>
@@ -286,7 +286,7 @@ Example:  <pre>
          </xs:annotation>
          <xs:complexType>
            <xs:sequence>
-             <xs:element ex:importance="expert" ex:unit="" name="symmetries" maxOccurs="1" minOccurs="0">
+             <xs:element ex:importance="spacegroup" ex:unit="" name="symmetries" maxOccurs="1" minOccurs="0">
                <xs:annotation>
                  <xs:appinfo>
                    <notindocu />
