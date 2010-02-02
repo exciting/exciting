@@ -111,6 +111,11 @@
   <xsl:call-template name="TypeToDoc">
    <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref]" />
   </xsl:call-template>
+   <xsl:if test="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
+  <xsl:text>
+This element allows for specification of the following attributes:  
+</xsl:text>
+  </xsl:if>
   <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
    <xsl:sort select="@name|@ref" />
    <xsl:call-template name="attributetolatex">
@@ -129,6 +134,9 @@
   <xsl:param name="myattribute" />
   <xsl:param name="level" />
   <xsl:text>
+  [[# att</xsl:text>  <xsl:value-of select="$myattribute/@name |$myattribute/@ref" />
+  <xsl:text>]]
+  
 ++ Attribute: </xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref" />
   <xsl:text>  
@@ -254,14 +262,23 @@
     <xsl:variable name="current_name">
      <xsl:if test="$node/@name">
        <xsl:text>/</xsl:text>
-            <xsl:if test="name($node)='xs:attribute'">
-              <xsl:text>@</xsl:text>
-            </xsl:if>
+       <xsl:choose>
+            <xsl:when test="name($node)='xs:attribute'">
+              <xsl:text>@</xsl:text><xsl:value-of select="$node/@name|$node/@ref" />
+            </xsl:when>
+            <xsl:otherwise>
+            <xsl:text>[#</xsl:text>
             <xsl:value-of select="$node/@name|$node/@ref" />
+            <xsl:text> </xsl:text>
+                <xsl:value-of select="$node/@name|$node/@ref" />
+            <xsl:text>]</xsl:text>
+            </xsl:otherwise>
+            </xsl:choose>
           </xsl:if>
           <xsl:value-of select="$xpath" />
     </xsl:variable>
     <xsl:for-each  select="$node[last()]">
+    
     <xsl:choose>
      <xsl:when test="parent::node() ">
       <xsl:for-each select="parent::node()">
@@ -281,6 +298,7 @@
       <xsl:value-of select="$xpath"/>
     </xsl:otherwise>
    </xsl:choose>
+   <xsl:if test="not(last())"><xsl:text>, </xsl:text></xsl:if>
   </xsl:for-each>
  </xsl:template>
  <xsl:template name="typetoDoc">
