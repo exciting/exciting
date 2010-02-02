@@ -3,7 +3,7 @@
 
 <input xsi:noNamespaceSchemaLocation="http://xml.exciting-code.org/excitninginput.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/"
-	scratchpath="/tmp/chm/1">
+	>
 
 	<title>Loss function of Ag</title>
 

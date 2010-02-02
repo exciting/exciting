@@ -67,19 +67,6 @@
 	<xsl:template match="/">
 		<html>
 		<head>
-		
-	 <xsl:element name="META">
-		<xsl:attribute name="HTTP-EQUIV">REFRESH</xsl:attribute>
-		<xsl:attribute name="CONTENT"><xsl:choose> 
-		<xsl:when test="/info/groundstate/scl/iter/timing/@itertime">
-		<xsl:value-of select="ceiling(/info/groundstate/scl/iter/timing/@itertime[last()])"/>
-		</xsl:when>
-		<xsl:otherwise>
-		<xsl:text>10</xsl:text>
-		</xsl:otherwise>
-		 </xsl:choose>
-		</xsl:attribute>
-		</xsl:element> 
 		<xsl:element name="title">
 		<xsl:value-of select="groundstate/scl/iter/charges/atom/@species"/> scl i=<xsl:value-of 
         select="count(groundstate/scl[last()]/iter)"/>

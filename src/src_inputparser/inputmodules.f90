@@ -42,9 +42,6 @@ end type
 type kstlist_type
  integer,pointer::pointstatepair(:,:)
 end type
-type inputset_type
-  type(input_type_array),pointer::inputarray(:)
-end type
 type input_type
  character(1024)::xsltpath
  character(1024)::scratchpath
@@ -58,11 +55,7 @@ type input_type
   type(phonons_type),pointer::phonons
   type(xs_type),pointer::xs
 end type
-
-type input_type_array
-type(input_type),pointer::input
- end type
-    type structure_type
+type structure_type
  character(1024)::speciespath
  logical::molecule
  real(8)::vacuum
@@ -804,32 +797,6 @@ end do
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructinputset(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(inputset_type),pointer::getstructinputset
-		
-integer::len=1,i=0
-allocate(getstructinputset)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at inputset"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"input")
-     
-allocate(getstructinputset%inputarray(len))
-Do i=0,len-1
-getstructinputset%inputarray(i+1)%input=>getstructinput(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"input"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
 function getstructinput(thisnode)
 
 implicit none
@@ -846,7 +813,7 @@ allocate(getstructinput)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"xsltpath")
-getstructinput%xsltpath= "../../xml"
+getstructinput%xsltpath= "http://xml.exciting-code.org"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"xsltpath",getstructinput%xsltpath)
        call removeAttribute(thisnode,"xsltpath")      

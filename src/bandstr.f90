@@ -149,8 +149,11 @@ Subroutine bandstr
       Call xml_OpenFile ("bandstructure.xml", xf, replace=.True., &
      & pretty_print=.True.)
 !
+Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
+      &'/visualizationtemplates/bandstructure2html.xsl" type="text/xsl"')
       If ( .Not. input%properties%bandstructure%character) Then
          Open (50, File='BAND.OUT', Action='WRITE', Form='FORMATTED')
+
          Call xml_NewElement (xf, "bandstructure")
          Call xml_NewElement (xf, "title")
          Call xml_AddCharacters (xf, trim(input%title))

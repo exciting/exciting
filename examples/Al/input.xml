@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet href="inputtohtml.xsl" type="text/xsl"?>
-<input xsi:noNamespaceSchemaLocation="http://static.exciting-code.org/hydrogen/excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../../xml/"
-  scratchpath="/tmp/chm/1">
+<?xml-stylesheet href="http://xml.exciting-code.org/inputfileconverter/inputtohtml.xsl" type="text/xsl"?>
+<input xsi:noNamespaceSchemaLocation="http://static.exciting-code.org/hydrogen/excitinginput.xsd" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  >
   <title></title>
   <structure speciespath="../../species/">
     <crystal scale="3.75" >
@@ -13,7 +14,7 @@
       <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
     </species>
   </structure>
-  <groundstate vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="msec" nosource="true" do="skip"></groundstate>
+  <groundstate vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="msec" nosource="true" ></groundstate>
   <properties>
     <bandstructure character="true">
       <plot1d>

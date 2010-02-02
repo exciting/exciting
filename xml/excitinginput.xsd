@@ -154,7 +154,7 @@ Example:  <pre>
    </xs:documentation>
   </xs:annotation>
  </xs:attribute>
- <xs:attribute ex:importance="expert" ex:unit="" name="scissor" type="fortrandouble" default="0.0d0">
+ <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble" default="0.0d0">
   <xs:annotation>
    <xs:documentation> This is the scissors shift applied to states above the Fermi energy. Affects DOS,
     optics and band structure plots.</xs:documentation>
@@ -305,30 +305,30 @@ Example:  <pre>
                        <xs:documentation>The lattice element defines lattice from a,b,c, and angles.</xs:documentation>
                      </xs:annotation>
                      <xs:complexType>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="a" type="fortrandouble" use="required">
+                       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="a" type="fortrandouble" use="required">
                          <xs:annotation>
                            <xs:appinfo>
                              <oldname>noreplace</oldname>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="b" type="fortrandouble" use="required">
+                       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="b" type="fortrandouble" use="required">
                          <xs:annotation>
                            <xs:appinfo>
                              <oldname>noreplace</oldname>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="c" type="fortrandouble" use="required">
+                       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="c" type="fortrandouble" use="required">
                          <xs:annotation>
                            <xs:appinfo>
                              <oldname>noreplace</oldname>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:attribute>
-                       <xs:attribute ex:importance="expert" ex:unit="" name="ab" type="fortrandouble" use="required" />
-                       <xs:attribute ex:importance="expert" ex:unit="" name="ac" type="fortrandouble" use="required" />
-                       <xs:attribute ex:importance="expert" ex:unit="" name="bc" type="fortrandouble" use="required" />
+                       <xs:attribute ex:importance="expert" ex:unit="Degree" name="ab" type="fortrandouble" use="required" />
+                       <xs:attribute ex:importance="expert" ex:unit="Degree" name="ac" type="fortrandouble" use="required" />
+                       <xs:attribute ex:importance="expert" ex:unit="Degree" name="bc" type="fortrandouble" use="required" />
                        <xs:attribute ex:importance="expert" ex:unit="" name="ncell" type="integertriple" use="optional" default="1 1 1">
                          <xs:annotation>
                            <xs:documentation>Number of repeated cells in each direction.</xs:documentation>
@@ -389,7 +389,7 @@ Example:  <pre>
                      </xs:annotation>
                    </xs:element>
                  </xs:sequence>
-                 <xs:attribute ex:importance="essential" ex:unit="" name="scale" type="fortrandouble" default="1.0d0">
+                 <xs:attribute ex:importance="essential" ex:unit="1" name="scale" type="fortrandouble" default="1.0d0">
                    <xs:annotation>
                      <xs:documentation>The attribute <pre>scale</pre> scales all the lattice vectors. This is useful for varying the volume.</xs:documentation>
                      <xs:appinfo>
@@ -491,7 +491,7 @@ Example:  <pre>
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="rmt" type="fortrandouble" default="-1.0d0" use="optional">
+                 <xs:attribute ex:importance="expert" ex:unit="Bohr" name="rmt" type="fortrandouble" default="-1.0d0" use="optional">
                    <xs:annotation>
                      <xs:appinfo>
                        <oldname>noreplace></oldname>
@@ -534,12 +534,12 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="vacuum" type="fortrandouble" default="10.0d0">
+           <xs:attribute ex:importance="expert" ex:unit="Bohr" name="vacuum" type="fortrandouble" default="10.0d0">
              <xs:annotation>
                <xs:documentation>Determines the size of the vacuum around the molecule.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="epslat" type="fortrandouble" default="1.0d-6">
+           <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble" default="1.0d-6">
              <xs:annotation>
                <xs:documentation>Vectors with lengths less than this are considered zero.</xs:documentation>
              </xs:annotation>
@@ -720,7 +720,7 @@ Example:  <pre>
                  <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="epsengy" type="fortrandouble" use="optional" default="1.0d-7">
+                 <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble" use="optional" default="1.0d-7">
                    <xs:annotation>
                      <xs:documentation>Energy convergence tolerance.</xs:documentation>
                    </xs:annotation>
@@ -778,7 +778,7 @@ Example:  <pre>
                      <xs:documentation>Tolerance parameter for the ARPACK shift invert solver</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="evaltol" type="fortrandouble" default="1.0d-8"><!-- sag -->
+                 <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol" type="fortrandouble" default="1.0d-8"><!-- sag -->
                    <xs:annotation>
                      <xs:documentation>Error tolerance for the first-variational eigenvalues using the LAPACK Solver</xs:documentation>
                    </xs:annotation>
@@ -838,7 +838,7 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="taurdmc" type="fortrandouble" default="0.5d0">
                    <xs:annotation>
-                     <xs:documentation>step size for natural orbital coefficients.</xs:documentation>
+                     <xs:documentation>Step size for natural orbital coefficients.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="rdmalpha" type="fortrandouble" default="0.7d0">
@@ -2793,10 +2793,9 @@ Example:  <pre>
          </xs:complexType>
        </xs:element>
      </xs:all>
-     <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI" default="../../xml" >
+     <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI" default="http://xml.exciting-code.org" >
        <xs:annotation>
-         <xs:appinfo>
-           
+         <xs:appinfo> 
          </xs:appinfo>
        </xs:annotation>
      </xs:attribute>

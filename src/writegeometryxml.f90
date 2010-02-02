@@ -33,6 +33,8 @@ Subroutine writegeometryxml (topt)
          Call xml_OpenFile ("geometry"//trim(filext)//".xml", xf, &
         & replace=.True., pretty_print=.True.)
       End If
+      Call xml_AddXMLPI(xf,"xml-stylesheet", 'href="'//trim(input%xsltpath)//&
+      &'/inputfileconverter/inputtohtml.xsl" type="text/xsl"')
       Call xml_NewElement (xf, "input")
       Call xml_NewElement (xf, "structure")
       If (input%structure%primcell) buffer = "true"
