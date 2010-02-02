@@ -116,9 +116,27 @@
   <xsl:apply-templates select="./*|text()" />
  </xsl:template>
  <xsl:template match="xs:documentation">
-  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a" />
+  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a|list|li|attref" />
  </xsl:template>
-
+ <xsl:template match="attref">
+ <xsl:text> </xsl:text>
+  <xsl:value-of select="."/>
+ </xsl:template>
+<xsl:template match="list">
+  <xsl:text>
+  \begin{itemize}
+</xsl:text>
+  <xsl:apply-templates select="./*|text()" />
+    <xsl:text>
+  \end{itemize}
+</xsl:text>
+ </xsl:template>
+  <xsl:template match="li">
+  <xsl:text>\item </xsl:text>
+  <xsl:apply-templates select="./*|text()" />
+  <xsl:text>
+</xsl:text>
+ </xsl:template>
  <xsl:template match="a">
   <xsl:text> </xsl:text>
   <xsl:value-of select="." />

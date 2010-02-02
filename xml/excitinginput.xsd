@@ -137,7 +137,7 @@ Example:  <pre>
     the force is fairly time-consuming, it can be switched off by setting
     <pre> tfibs</pre>
     to
-    <pre> .false.</pre>
+    <pre> "false"</pre>
     This correction can then be included only when necessary, i.e. when the atoms are close to equilibrium in a structural
     relaxation run.
    </xs:documentation>
@@ -147,9 +147,9 @@ Example:  <pre>
   <xs:annotation>
    <xs:documentation>
     The attribute is set to
-    <pre> .true.</pre>
+    <pre> "true"</pre>
     if the force should be calculated at the end of the self-consistent cycle This variable is automatically set to
-    <pre> .true.</pre>
+    <pre> "true"</pre>
      when performing structural optimization.
    </xs:documentation>
   </xs:annotation>
@@ -214,7 +214,7 @@ Example:  <pre>
  </xs:element>
  <xs:element ex:importance="essential" ex:unit="" name="plot3d">
   <xs:annotation>
-   <xs:documentation>defines a 3d plot domain </xs:documentation>
+   <xs:documentation>Defines a 3d plot domain. </xs:documentation>
   </xs:annotation>
   <xs:complexType>
    <xs:all>
@@ -487,7 +487,7 @@ Example:  <pre>
                  <xs:attribute ex:importance="expert" ex:unit="" name="atomicNumber" type="xs:integer" use="optional">
                    <xs:annotation>
                      <xs:documentation>
-                       Is an optional attribute can be given to simplify visualisation and converters. It is not used by <exciting>exciting</exciting>
+                       Is an optional attribute can be given to simplify visualization and converters. It is not used by <exciting>exciting</exciting>
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
@@ -514,8 +514,8 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 Has to be set to <pre>true</pre> if one wants to calculate an isolated molecule. If it is
-                 <pre>true</pre>
+                 Has to be set to <pre>"true"</pre> if one wants to calculate an isolated molecule. If it is
+                 <pre>"true"</pre>
                  , then the atomic positions,
                  <inlinemath>{\bf a}</inlinemath>
                  , are assumed to be in Cartesian coordinates. The lattice vectors are also set up automatically with the i-th lattice vector given by
@@ -546,7 +546,7 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="autormt" type="xs:boolean" default="false">
              <xs:annotation>
-               <xs:documentation>If true automatic determination of the muffin tin radii is allowed.</xs:documentation>
+               <xs:documentation>If <pre>"true"</pre> automatic determination of the muffin tin radii is allowed.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="primcell" type="xs:boolean" default="false">
@@ -562,7 +562,7 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="tshift" type="xs:boolean" default="true"><!-- sag -->
              <xs:annotation>
                <xs:documentation>
-                 Set to it to "true" if the crystal can be shifted such that the atom closest to the origin is exactly at the origin.
+                 Set to it to <pre>"true"</pre> if the crystal can be shifted such that the atom closest to the origin is exactly at the origin.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
@@ -626,7 +626,7 @@ Example:  <pre>
                         If
                        <pre>spinorb</pre>
                        is
-                       <pre>.true.</pre>
+                       <pre>"true"</pre>
                        , then a
                        <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath>
                        term is added to the second-variational Hamiltonian.  
@@ -637,9 +637,9 @@ Example:  <pre>
                    <xs:annotation>
                      <xs:documentation>
                        Set to
-                       <pre>.true.</pre>
+                       <pre>"true"</pre>
                        if a spin-spiral calculation is required. Experimental feature for the calculation of spin-spiral states. See
-                       <pre>vqlss</pre>
+                       <attref>vqlss</attref>
                        for details.
                      </xs:documentation>
                    </xs:annotation>
@@ -654,7 +654,7 @@ Example:  <pre>
                          \Psi^{ \bf q}_{ \bf k}({ \bf r})= \left( \begin{array}{c} U^{{\bf q}\uparrow}_{ \bf k}({\bf r})e^{i({ \bf k+q/2})\cdot{ \bf r}} \\ U^{{
                          \bf q}\downarrow}_{\bf k}({ \bf r})e^{i({\bf k-q/2})\cdot{ \bf r}} \\ \end{array} \right).
                        </displaymath>
-                       These are determined using a second-variational approach, and give rise to a magnetisation density of the form
+                       These are determined using a second-variational approach, and give rise to a magnetization density of the form
                        <displaymath>
                          {\bf m}^{ \bf q}({ \bf r})=(m_x({\bf r})\cos({ \bf q \cdot r}), m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf r})),
                        </displaymath>
@@ -665,7 +665,7 @@ Example:  <pre>
                        and
                        <inlinemath>m_z</inlinemath>
                        are lattice periodic. See also
-                       <pre>spinprl</pre>.
+                       <attref>spinprl</attref>.
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
@@ -675,7 +675,7 @@ Example:  <pre>
                      <xs:documentation>
                        After each iteration the external magnetic fields are multiplied with reducebf. This al- lows for a large external magnetic field at the
                        start of the self-consistent loop to break spin symmetry, while at the end of the loop the field will be effectively zero, i.e.
-                       infinitesimal. See bfieldc and atoms.
+                       infinitesimal. See <attref>bfieldc</attref> and atom element.
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
@@ -768,7 +768,7 @@ Example:  <pre>
                  <xs:attribute ex:importance="expert" ex:unit="" name="packedmatrixstorage" type="xs:boolean" use="optional" default="true">
                    <xs:annotation>
                      <xs:documentation>
-                       In the default calculation the matrix is sored in packed form. When using multithreaded BLAS setting this parmeter to false increases
+                       In the default calculation the matrix is sored in packed form. When using multithreaded BLAS setting this parmeter to <pre>"false"</pre> increases
                        efficiency.
                      </xs:documentation>
                    </xs:annotation>
@@ -800,7 +800,7 @@ Example:  <pre>
                      <xs:documentation>
                        The optimised effective potential is determined using an interative method. [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration
                        the step length is set to tauoep(1). Dur- ing subsequent iterations, the step length is scaled by tauoep(2) or tauoep(3), when the
-                       residual is increasing or decreasing, respectively. See also maxitoep.
+                       residual is increasing or decreasing, respectively. See also <attref>maxitoep</attref>.
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
@@ -823,12 +823,12 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="maxitn" type="xs:integer" default="250">
                    <xs:annotation>
-                     <xs:documentation>maximum number of iteration for occupation number optimisation.</xs:documentation>
+                     <xs:documentation>maximum number of iteration for occupation number optimization.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="maxitc" type="xs:integer" default="10">
                    <xs:annotation>
-                     <xs:documentation>maximum number of iteration for natural orbital optimisation.</xs:documentation>
+                     <xs:documentation>maximum number of iteration for natural orbital optimization.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="taurdmn" type="fortrandouble" default="1.0d0">
@@ -886,28 +886,28 @@ Example:  <pre>
                <xs:documentation>
                  If the RMS change in the effective potential and magnetic field is smaller than <pre>epspot</pre>, then the self-consistent loop is considered converged
                  and exited. For structural optimization runs this results in the forces being calculated, the atomic positions updated and the loop restarted.
-                 See also <pre>maxscl</pre>.
+                 See also <attref>maxscl</attref>.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d" default="0.25d0 0.95d0">
              <xs:annotation>
                <xs:documentation>
-                 parameters governing the automatic generation of the muffin-tin radii. When @autormt is set to true, the muffin-tin radii are found
+                 Parameters governing the automatic generation of the muffin-tin radii. When <attref>autormt</attref> is set to <pre>"true"</pre>, the muffin-tin radii are found
                  automatically from the formula
                  <displaymath>R_i\propto 1+\zeta|Z_i|^{1/3},</displaymath>
                  where
                  <inlinemath>Z_i</inlinemath>
                  is the atomic number of the $i$th species,
                  <inlinemath>\zeta</inlinemath>
-                 is stored in @rmtapm(1) and the value which governs the distance between the muffin-tins is stored in @rmtapm(2). When @rmtapm(2) =1, the
+                 is stored in <attref>rmtapm</attref>(1) and the value which governs the distance between the muffin-tins is stored in <attref>rmtapm</attref>(2). When <attref>rmtapm</attref>(2) =1, the
                  closest muffin-tins will touch.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="essential" ex:unit="" name="swidth" type="fortrandouble" default="0.001d0">
              <xs:annotation>
-               <xs:documentation>width of the smooth approximation to the Dirac delta function.</xs:documentation>
+               <xs:documentation>Width of the smooth approximation to the Dirac delta function.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="essential" ex:unit="" name="stype" default="Gaussian">
@@ -960,7 +960,7 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype" default="advanced">
              <xs:annotation>
-               <xs:documentation>select method to determine the linearization energies.</xs:documentation>
+               <xs:documentation>Select method to determine the linearization energies.</xs:documentation>
              </xs:annotation>
              <xs:simpleType>
                <xs:restriction base="xs:string">
@@ -971,12 +971,12 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="isgkmax" type="xs:integer" default="-1">
              <xs:annotation>
-               <xs:documentation>species for which the muffin-tin radius will be used for calculating gkmax.</xs:documentation>
+               <xs:documentation>Species for which the muffin-tin radius will be used for calculating gkmax.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="gmaxvr" type="fortrandouble" default="12.0d0">
              <xs:annotation>
-               <xs:documentation>maximum length of |G| for expanding the interstitial density and potential.</xs:documentation>
+               <xs:documentation>Maximum length of |G| for expanding the interstitial density and potential.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer" default="5">
@@ -998,8 +998,8 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="nosym" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 when set to
-                 <pre>.true.</pre>
+                 When set to
+                 <pre>"true"</pre>
                  no symmetries, apart from the identity, are used anywhere in the code.
                </xs:documentation>
              </xs:annotation>
@@ -1007,8 +1007,8 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="frozencore" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 when set to
-                 <pre>true</pre>
+                 When set to
+                 <pre>"true"</pre>
                  the frozen core approximation is applied, i.e., the core states are fixed to the atomic states.
                </xs:documentation>
              </xs:annotation>
@@ -1016,7 +1016,7 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="autokpt" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 if the
+                 Decides if the
                  <bf>k</bf>
                  -point set is to be determined automatically
                </xs:documentation>
@@ -1030,7 +1030,7 @@ Example:  <pre>
                  -point mesh. If
                  <pre>autokpt</pre>
                  is set to
-                 <pre>true</pre>
+                 <pre>"true"</pre>
                  then the mesh sizes will be determined by
                  <inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath>
                  .
@@ -1040,14 +1040,13 @@ Example:  <pre>
            <xs:attribute ex:importance="essential" ex:unit="" name="reducek" type="xs:boolean" default="true">
              <xs:annotation>
                <xs:documentation>
-                 <pre>reducek</pre>
-                 set to
-                 <pre>true</pre>
-                 if the
+                If the attribute <pre>reducek</pre> is 
+                 <pre>"true"</pre>
+                  the
                  <inlinemath>
                    <bf>k</bf>
                  </inlinemath>
-                 -point set is to be reduced with the crystal symmetries.
+                 -point set is reduced with the crystal symmetries.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
@@ -1055,24 +1054,24 @@ Example:  <pre>
              <xs:annotation>
                <xs:documentation>
                  Because calculation of the incomplete basis set (IBS) correction to the force is fairly time- consuming, it can be switched off by setting
-                 tfibs to .false. This correction can then be included only when necessary, i.e. when the atoms are close to equilibrium in a structural
+                 tfibs to <pre>"false"</pre> This correction can then be included only when necessary, i.e. when the atoms are close to equilibrium in a structural
                  relaxation run.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="essential" ex:unit="" ref="tforce" default="false">
              <xs:annotation>
-               <xs:documentation>if the force should be calculated at the end of the self-consistent cycle.</xs:documentation>
+               <xs:documentation>Decides if the force should be calculated at the end of the self-consistent cycle.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw" type="xs:integer" default="10">
              <xs:annotation>
-               <xs:documentation>angular momentum cut-off for the APW functions.</xs:documentation>
+               <xs:documentation>Angular momentum cut-off for the APW functions.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer" default="200">
              <xs:annotation>
-               <xs:documentation>upper limit for te selfconsistency loop.</xs:documentation>
+               <xs:documentation>Upper limit for te selfconsistency loop.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="chgexs" type="fortrandouble" default="0.0d0">
@@ -1086,7 +1085,7 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="deband" type="fortrandouble" default="0.0025d0">
              <xs:annotation>
                <xs:documentation>
-                 initial band energy step size The initial step length used when searching for the band energy, which is used as the APW linearisation energy.
+                 Initial band energy step size The initial step length used when searching for the band energy, which is used as the APW linearization energy.
                  This is done by first searching upwards in energy until the radial wavefunction at the muffin-tin radius is zero. This is the energy at the top
                  of the band, denoted
                  <inlinemath>E_{\rm t}</inlinemath>
@@ -1106,7 +1105,7 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-3">
              <xs:annotation>
-               <xs:documentation>maximum allowed error in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
+               <xs:documentation>Maximum allowed error in the calculated total charge beyond which a warning message will be issued.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="epsocc" type="fortrandouble" default="1.0d-8">
@@ -1149,17 +1148,17 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble" default="0.4d0"><!-- sag -->
              <xs:annotation>
-               <xs:documentation>initial value for mixing parameter. Used in linear mixing.</xs:documentation>
+               <xs:documentation>Initial value for mixing parameter. Used in linear mixing.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="betainc" type="fortrandouble" default="1.1d0"><!-- sag -->
              <xs:annotation>
-               <xs:documentation>mixing parameter increase. Used in linear mixing.</xs:documentation>
+               <xs:documentation>Mixing parameter increase. Used in linear mixing.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="betadec" type="fortrandouble" default="0.6d0"><!-- sag -->
              <xs:annotation>
-               <xs:documentation>mixing parameter decrease. Used in linear mixing.</xs:documentation>
+               <xs:documentation>Mixing parameter decrease. Used in linear mixing.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="lradstep" type="xs:integer" default="4">
@@ -1176,36 +1175,41 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="nprad" type="xs:integer" default="4">
              <xs:annotation>
-               <xs:documentation>smallest occupancy for which a state will contribute to the density.</xs:documentation>
+               <xs:documentation>Smallest occupancy for which a state will contribute to the density.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="essential" ex:unit="" name="xctype" default="LSDAPerdew-Wang">
              <xs:annotation>
                <xs:documentation>
-                 type of exchange-correlation functional to be used \begin{itemize} \item No exchange-correlation funtional (
+                 Type of exchange-correlation functional to be used 
+                 
+                 <list>
+                 <li> No exchange-correlation funtional (
                  <inlinemath>E_{\rm xc}\equiv 0</inlinemath>
-                 ) \item LDA, Perdew-Zunger/Ceperley-Alder, {\it Phys. Rev. B}
+                 )</li><li>
+                  LDA, Perdew-Zunger/Ceperley-Alder, <it> Phys. Rev. B</it>
                  <bf>23</bf>
-                 , 5048 (1981) \item LSDA, Perdew-Wang/Ceperley-Alder,
+                 , 5048 (1981) </li><li> LSDA, Perdew-Wang/Ceperley-Alder,
                  <it>Phys. Rev. B</it>
                  <bf>45</bf>
-                 , 13244 (1992) \item LDA, X-alpha approximation, J. C. Slater,
+                 , 13244 (1992) </li><li> LDA, X-alpha approximation, J. C. Slater,
                  <it>Phys. Rev.</it>
                  <bf>81</bf>
-                 , 385 (1951) \item LSDA, von Barth-Hedin,
+                 , 385 (1951) </li><li> LSDA, von Barth-Hedin,
                  <it>J. Phys. C</it>
                  <bf>5</bf>
-                 , 1629 (1972) \\ \item GGA, Perdew-Burke-Ernzerhof,
+                 , 1629 (1972)  </li><li> GGA, Perdew-Burke-Ernzerhof,
                  <it>Phys. Rev. Lett.</it>
                  <bf>77</bf>
-                 , 3865 (1996) \item GGA, Revised PBE, Zhang-Yang, {\it Phys. Rev. Lett.}
+                 , 3865 (1996) </li><li> GGA, Revised PBE, Zhang-Yang, <it> Phys. Rev. Lett.</it>
                  <bf>80</bf>
-                 , 890 (1998) \item GGA, PBEsol, arXiv:0707.2088v1 (2007) \item GGA, Wu-Cohen exchange (WC06) with PBE correlation,
+                 , 890 (1998) </li><li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li><li> GGA, Wu-Cohen exchange (WC06) with PBE correlation,
                  <it>Phys. Rev. B</it>
                  <bf>73</bf>
-                 , 235116 (2006) \item GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, {\it Phys. Rev. B}
+                 , 235116 (2006) </li><li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it> Phys. Rev. B</it>
                  <bf>72</bf>
-                 , 085108 (2005) \end{itemize}
+                 , 085108 (2005) </li>
+                 </list>
                </xs:documentation>
              </xs:annotation>
              <xs:simpleType>
@@ -1292,7 +1296,7 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="ldapu" default="none">
              <xs:annotation>
-               <xs:documentation>type of LDA+U method to be used.</xs:documentation>
+               <xs:documentation>Type of LDA+U method to be used.</xs:documentation>
              </xs:annotation>
              <xs:simpleType>
                <xs:restriction base="xs:string">
@@ -1334,52 +1338,52 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxvr" type="xs:integer" default="6">
              <xs:annotation>
-               <xs:documentation>angular momentum cut-off for the muffin-tin density and potential.</xs:documentation>
+               <xs:documentation>Angular momentum cut-off for the muffin-tin density and potential.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="fracinr" type="fortrandouble" default="0.25d0">
              <xs:annotation>
-               <xs:documentation>fraction of the muffin-tin radius up to which lmaxinr is used as the angular momentum cut-off.</xs:documentation>
+               <xs:documentation>Fraction of the muffin-tin radius up to which lmaxinr is used as the angular momentum cut-off.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxinr" type="xs:integer" default="2">
              <xs:annotation>
                <xs:documentation>
                  Close to the nucleus, the density and potential is almost spherical and therefore the spherical harmonic expansion can be truncated a low
-                 angular momentum. See also fracinr.
+                 angular momentum. See also <attref>fracinr</attref>.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxmat" type="xs:integer" default="5">
              <xs:annotation>
-               <xs:documentation>angular momentum cut-off for the outer-most loop in the hamiltonian and overlap matrix setup.</xs:documentation>
+               <xs:documentation>Angular momentum cut-off for the outer-most loop in the hamiltonian and overlap matrix setup.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="0.0d0 0.0d0 0.0d0">
              <xs:annotation>
-               <xs:documentation>the k-point offset vector in lattice coordinates.</xs:documentation>
+               <xs:documentation>The k-point offset vector in lattice coordinates.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="npsden" type="xs:integer" default="9">
              <xs:annotation>
-               <xs:documentation>order of polynomial for pseudocharge density.</xs:documentation>
+               <xs:documentation>oOrder of polynomial for pseudocharge density.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="cfdamp" type="fortrandouble" default="0.0d0"><!-- sag -->
              <xs:annotation>
-               <xs:documentation>damping coefficient for characteristic function.</xs:documentation>
+               <xs:documentation>Damping coefficient for characteristic function.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="nosource" type="xs:boolean" default="false"><!-- sag -->
              <xs:annotation>
                <xs:documentation>
-                 when set to true, source fields are projected out of the exchange-correlation magnetic field. experimental feature.
+                 When set to <pre>"true"</pre>, source fields are projected out of the exchange-correlation magnetic field. experimental feature.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="tevecsv" type="xs:boolean" default="false"><!-- sag -->
              <xs:annotation>
-               <xs:documentation>tevecsv is true if second-variational eigenvectors are calculated</xs:documentation>
+               <xs:documentation>The attribute tevecsv is <pre>"true"</pre> if second-variational eigenvectors are calculated.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0"><!-- sag -->
@@ -1393,7 +1397,7 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="ptnucl" type="xs:boolean" default="true"><!-- sag -->
              <xs:annotation>
                <xs:documentation>
-                 ptnucl is true if the nuclei are to be treated as point charges, if .false. ! the nuclei have a finite spherical distribution.
+                 The attrubute ptnucl is <pre>"true"</pre> if the nuclei are to be treated as point charges, if <pre>"false"</pre> the nuclei have a finite spherical distribution.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
@@ -1406,27 +1410,26 @@ Example:  <pre>
          <xs:complexType>
            <xs:annotation>
              <xs:documentation>
-               tructural optimisation run starting from the atomic densities, with atomic positions written to
-               <pre>GEOMETRY.OUT</pre>
-               .
+               Structural optimization run. Atomic positions written to
+               <pre>geometry.xml</pre>.
              </xs:documentation>
            </xs:annotation>
            <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble" default="5.0d-5">
              <!-- sag: 0.9.224: epsforce=5.d-4 -->
              <xs:annotation>
-               <xs:documentation>convergence tolerance for the forces during a structural optimisation run.</xs:documentation>
+               <xs:documentation>Convergence tolerance for the forces during a structural optimization run.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="tau0atm" type="fortrandouble" default="0.2d0">
              <xs:annotation>
                <xs:documentation>
-                 the step size to be used for structural optimisation
+                  The step size to be used for structural optimization
                  <p />
                  The position of atom
                  <inlinemath>\alpha</inlinemath>
                  is updated on step
                  <inlinemath>m</inlinemath>
-                 of a structural optimisation run using
+                 of a structural optimization run using
                  <displaymath>{\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m \left({ \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),</displaymath>
                  where
                  <inlinemath>\tau_{\alpha}</inlinemath>
@@ -1445,10 +1448,10 @@ Example:  <pre>
            <xs:attribute ex:importance="essential" ex:unit="" name="resume" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 Resumption of structural optimisation run using density in
+                 Resumption of structural optimization run using density in
                  <pre>STATE.OUT</pre>
                  but with positions from
-                 <pre>exciting.in</pre>
+                 <pre>input.xml</pre>
                  .
                </xs:documentation>
              </xs:annotation>
@@ -1476,7 +1479,7 @@ Example:  <pre>
                  </xs:all>
                  <xs:attribute ex:importance="essential" ex:unit="" ref="scissor" default="0.0d0">
                    <xs:annotation>
-                     <xs:documentation>value to shift bandgap.</xs:documentation>
+                     <xs:documentation>Value to shift bandgap.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="character" type="xs:boolean" default="false">
@@ -1495,7 +1498,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="wfplot" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>wavefunction plot.</xs:documentation>
+                 <xs:documentation>Wavefunction plot.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:annotation>
@@ -1543,38 +1546,38 @@ Example:  <pre>
                  <xs:attribute ex:importance="expert" ex:unit="" name="sqados" default="0.0d0 0.0d0 1.0d0" type="vect3d">
                    <xs:annotation>
                      <xs:documentation>
-                       spin-quantisation axis in Cartesian coordinates used when plotting the spin-resolved DOS (z-axis by default)
+                       Spin-quantization axis in Cartesian coordinates used when plotting the spin-resolved DOS (z-axis by default).
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="lmirep" type="xs:boolean" default="false">
                    <xs:annotation>
                      <xs:documentation>
-                       When lmirep is set to true, the spherical harmonic basis is transformed into one in which the site symmetries are block diagonal. Band
+                       When lmirep is set to <pre>"true"</pre>, the spherical harmonic basis is transformed into one in which the site symmetries are block diagonal. Band
                        characters determined from the density ma- trix expressed in this basis correspond to irreducible representations, and allow the partial
-                       DOS to be resolved into physically relevant contributions, for example eg and t2g .
+                       DOS to be resolved into physically relevant contributions, for example eg and t2g.
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="essential" ex:unit="" name="nwdos" type="xs:integer" default="500">
                    <xs:annotation>
-                     <xs:documentation>number of frequency/energy points in the DOS</xs:documentation>
+                     <xs:documentation>Number of frequency/energy points in the DOS</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="essential" ex:unit="" name="ngrdos" type="xs:integer" default="100">
                    <xs:annotation>
-                     <xs:documentation>effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
+                     <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="essential" ex:unit="" ref="scissor" />
                  <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
                    <xs:annotation>
-                     <xs:documentation>level of smoothing applied to DOS/optics output integer 0</xs:documentation>
+                     <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="winddos" default="0.0d0 0.5d0" type="vect2d">
                    <xs:annotation>
-                     <xs:documentation>frequency/energy window for the DOS or optics plot</xs:documentation>
+                     <xs:documentation>Frequency/energy window for the DOS or optics plot.</xs:documentation>
                      <xs:appinfo>
                        <oldname>wdos</oldname>
                      </xs:appinfo>
@@ -1591,10 +1594,9 @@ Example:  <pre>
                    <xs:element ex:importance="expert" ex:unit="" ref="kstlist">
                      <xs:annotation>
                        <xs:documentation>
-                         <inlinemath>i</inlinemath>
-                         th
-                         <inlinemath>{ \bf k}</inlinemath>
-                         -point and state pair
+                       List of
+                       <inlinemath>{ \bf k}</inlinemath>
+                         -point and state pairs. Referenced by their index.
                        </xs:documentation>
                      </xs:annotation>
                    </xs:element>
@@ -1620,14 +1622,14 @@ Example:  <pre>
                  <xs:attribute ex:importance="expert" ex:unit="" name="ndspem" type="xs:integer" default="1">
                    <xs:annotation>
                      <xs:documentation>
-                       the number of k-vector displacements in each direction around vklem when computing the numerical derivatives for the effective mass
+                       The number of k-vector displacements in each direction around vklem when computing the numerical derivatives for the effective mass
                        tensor.
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="vklem" type="vect3d" default="0.0d0 0.0d0 0.0d0">
                    <xs:annotation>
-                     <xs:documentation>the k-point in lattice coordinates at which to compute the effective mass tensors.</xs:documentation>
+                     <xs:documentation>The k-point in lattice coordinates at which to compute the effective mass tensors.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                </xs:complexType>
@@ -1646,7 +1648,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="exccplot" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>exchange-correlation and Coulomb potential plots.</xs:documentation>
+                 <xs:documentation>Exchange-correlation and Coulomb potential plots.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:all>
@@ -1658,7 +1660,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="elfplot" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>electron localisation function (ELF)</xs:documentation>
+                 <xs:documentation>Electron localization function (ELF).</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:all>
@@ -1670,7 +1672,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="mvecfield" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>plot of magnetisation vector field</xs:documentation>
+                 <xs:documentation>Plot of magnetization vector field.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:all>
@@ -1681,7 +1683,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="xcmvecfield" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>plot of exchange-correlation magnetic vector field</xs:documentation>
+                 <xs:documentation>Plot of exchange-correlation magnetic vector field.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:all>
@@ -1692,7 +1694,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="electricfield" minOccurs="0" maxOccurs="1">
                <xs:annotation>
-                 <xs:documentation>writes the elsectric field to file.</xs:documentation>
+                 <xs:documentation>Writes the electric field to file.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:all>
@@ -1703,7 +1705,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="gradmvecfield" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>plot of he gradient of the magnetic vector field.</xs:documentation>
+                 <xs:documentation>Plot of he gradient of the magnetic vector field.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:all>
@@ -1715,12 +1717,12 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="essential" ex:unit="" name="fermisurfaceplot" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>writes fermisurface data to file.</xs:documentation>
+                 <xs:documentation>Writes Fermi surface data to file.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
                  <xs:attribute ex:importance="expert" ex:unit="" name="nstfsp" type="xs:integer" default="6">
                    <xs:annotation>
-                     <xs:documentation>number of states to be included in the Fermi surface plot file</xs:documentation>
+                     <xs:documentation>Number of states to be included in the Fermi surface plot file.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="separate" type="xs:boolean" />
@@ -1728,7 +1730,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="EFG" maxOccurs="1" minOccurs="0">
                <xs:annotation>
-                 <xs:documentation>Calculation of electric field gradient (EFG), contact charge</xs:documentation>
+                 <xs:documentation>Calculation of electric field gradient (EFG), contact charge.</xs:documentation>
                </xs:annotation>
                <xs:complexType />
              </xs:element>
@@ -1743,7 +1745,7 @@ Example:  <pre>
                  <xs:sequence>
                    <xs:element ex:importance="expert" ex:unit="" name="optcomp" type="integertriple" default="1 1 1" maxOccurs="27">
                      <xs:annotation>
-                       <xs:documentation>the components of the first- or second-order optical tensor to be calculated</xs:documentation>
+                       <xs:documentation>The components of the first- or second-order optical tensor to be calculated.</xs:documentation>
                      </xs:annotation>
                    </xs:element>
                  </xs:sequence>
@@ -1768,7 +1770,7 @@ Example:  <pre>
                <xs:complexType>
                  <xs:attribute ex:importance="expert" ex:unit="" name="vecql" type="vect3d">
                    <xs:annotation>
-                     <xs:documentation>q-vector in lattice coordinates for calculating ELNES</xs:documentation>
+                     <xs:documentation>Gives the q-vector in lattice coordinates for calculating ELNES.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                </xs:complexType>
@@ -1777,7 +1779,7 @@ Example:  <pre>
                <xs:complexType>
                  <xs:attribute ex:importance="expert" ex:unit="" name="mustar" type="fortrandouble" default="0.15d0">
                    <xs:annotation>
-                     <xs:documentation>Coulomb pseudopotential, μ*, used in the McMillan-Allen-Dynes equation</xs:documentation>
+                     <xs:documentation>Coulomb pseudopotential, μ*, used in the McMillan-Allen-Dynes equation.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                </xs:complexType>
@@ -1791,7 +1793,7 @@ Example:  <pre>
          </xs:annotation>
          <xs:complexType>
            <xs:annotation>
-             <xs:documentation>The phonon element must contain one or more q-point elements</xs:documentation>
+             <xs:documentation>The phonon element must contain one or more q-point elements.</xs:documentation>
            </xs:annotation>
            <xs:all>
              <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="1" maxOccurs="1"></xs:element>
@@ -1799,7 +1801,6 @@ Example:  <pre>
                <xs:annotation>
                  <xs:documentation>
                    Phonon density of states.
-                   <p> fno special blocks required</p>
                  </xs:documentation>
                </xs:annotation>
                <xs:complexType />
@@ -1838,9 +1839,9 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true"><!-- sag -->
              <xs:annotation>
                <xs:documentation>
-                 <pre>reduceq</pre>
+                 The attribute <pre>reduceq</pre> is
                  set to
-                 <pre>true</pre>
+                 <pre>"true"</pre>
                  if the
                  <inlinemath>
                    <bf>q</bf>
@@ -1888,24 +1889,24 @@ Example:  <pre>
                  </xs:all>
                  <xs:attribute ex:importance="expert" ex:unit="" name="intraband" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>intraband is true if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+                     <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="torddf" type="xs:boolean" default="false" />
                  <xs:attribute ex:importance="expert" ex:unit="" name="tordfxc" type="xs:boolean" default="false" />
                  <xs:attribute ex:importance="expert" ex:unit="" name="aresdf" type="xs:boolean" default="true">
                    <xs:annotation>
-                     <xs:documentation>true if to consider the anti-resonant part for the dielectric function</xs:documentation>
+                     <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the dielectric function</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="aresfxc" type="xs:boolean" default="true">
                    <xs:annotation>
-                     <xs:documentation>true if to consider the anti-resonant part for the BSE-derived xc-kernels</xs:documentation>
+                     <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the BSE-derived xc-kernels</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="fxcbsesplit" type="fortrandouble" default="1.0d-5">
                    <xs:annotation>
-                     <xs:documentation>split parameter for degeneracy in energy differences of BSE-derived kernel</xs:documentation>
+                     <xs:documentation>Split parameter for degeneracy in energy differences of BSE-derived kernel</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="acont" type="xs:boolean" default="false">
@@ -1920,7 +1921,7 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="lindhard" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>true if Lindhard like function is calculated (trivial matrix elements)</xs:documentation>
+                     <xs:documentation><pre>"true"</pre> if Lindhard like function is calculated (trivial matrix elements)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="epsdfde" type="fortrandouble" default="1.0d-8">
@@ -2035,7 +2036,7 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="resumefromkernel" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>true if the TDDFT calculation is to be resumed starting from a new xc kernel.</xs:documentation>
+                     <xs:documentation><pre>"true"</pre> if the TDDFT calculation is to be resumed starting from a new xc kernel.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                </xs:complexType>
@@ -2060,7 +2061,7 @@ Example:  <pre>
                      <xs:appinfo>
                        <oldname>nosymscr</oldname>
                      </xs:appinfo>
-                     <xs:documentation>nosym is true if no symmetry information should be used</xs:documentation>
+                     <xs:documentation>nosym is <pre>"true"</pre> if no symmetry information should be used</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="ngridk" type="integertriple" default="0 0 0">
@@ -2076,7 +2077,7 @@ Example:  <pre>
                      <xs:appinfo>
                        <oldname>reducekscr</oldname>
                      </xs:appinfo>
-                     <xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+                     <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="-1.0d0 -1.0d0 -1.0d0">
@@ -2132,7 +2133,7 @@ Example:  <pre>
                      <xs:appinfo>
                        <oldname>reducekbse</oldname>
                      </xs:appinfo>
-                     <xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+                     <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d" default="-1.0d0 -1.0d0 -1.0d0">
@@ -2169,22 +2170,22 @@ Example:  <pre>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="sciavbd" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>true if the body of the screened Coulomb interaction is to be averaged (q=0)</xs:documentation>
+                     <xs:documentation><pre>"true"</pre> if the body of the screened Coulomb interaction is to be averaged (q=0)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="sciavqhd" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>true if the head of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
+                     <xs:documentation><pre>"true"</pre> if the head of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="sciavqwg" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>true if the wings of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
+                     <xs:documentation><pre>"true"</pre> if the wings of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="sciavqbd" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>true if the body of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
+                     <xs:documentation><pre>"true"</pre> if the body of the screened Coulomb interaction is to be averaged (q!=0)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="bsedirsing" type="xs:boolean" default="false" />
@@ -2246,7 +2247,7 @@ Example:  <pre>
                  <xs:attribute ex:importance="expert" ex:unit="" name="tetraocc" type="xs:boolean" default="false" />
                  <xs:attribute ex:importance="expert" ex:unit="" name="tetradf" type="xs:boolean" default="false">
                    <xs:annotation>
-                     <xs:documentation>true if tetrahedron method is used for the k-space integration in the Kohn-Sham response function</xs:documentation>
+                     <xs:documentation><pre>"true"</pre> if tetrahedron method is used for the k-space integration in the Kohn-Sham response function</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
                  <xs:attribute ex:importance="expert" ex:unit="" name="kordexc" type="xs:boolean" default="false">
@@ -2620,7 +2621,7 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="dfoffdiag" type="xs:boolean" default="false">
              <xs:annotation>
-               <xs:documentation>true if also off-diagonal tensor elements for the interacting response function are to be calculated</xs:documentation>
+               <xs:documentation><pre>"true"</pre> if also off-diagonal tensor elements for the interacting response function are to be calculated</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapwwf" type="xs:integer" default="-1">
@@ -2649,7 +2650,7 @@ Example:  <pre>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean" default="false">
              <xs:annotation>
-               <xs:documentation>true if energy outputs are in eV</xs:documentation>
+               <xs:documentation><pre>"true"</pre> if energy outputs are in eV</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="xstype" use="required">
@@ -2666,21 +2667,21 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="symmorph" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
-                 True if only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are allowed.
+                 <pre>"true"</pre> if only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are allowed.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat" type="xs:boolean" default="true">
              <xs:annotation>
                <xs:documentation>
-                 if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
+                 if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="fastemat" type="xs:boolean" default="true">
              <xs:annotation>
                <xs:documentation>
-                 if true, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the
+                 if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the
                  <inlinemath>{\bf q}</inlinemath>
                  -dependent matrix elements in the muffin-tin is used.
                </xs:documentation>
@@ -2701,7 +2702,7 @@ Example:  <pre>
                <xs:appinfo>
                  <oldname>nosymxs</oldname>
                </xs:appinfo>
-               <xs:documentation>nosym is true if no symmetry information should be used</xs:documentation>
+               <xs:documentation>nosym is <pre>"true"</pre> if no symmetry information should be used</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="ngridk" type="integertriple" default="1 1 1">
@@ -2725,7 +2726,7 @@ Example:  <pre>
                <xs:appinfo>
                  <oldname>reducekxs</oldname>
                </xs:appinfo>
-               <xs:documentation>reducek is true if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+               <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries)</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple" default="1 1 1">
@@ -2741,7 +2742,7 @@ Example:  <pre>
                <xs:appinfo>
                  <oldname>reduceqxs</oldname>
                </xs:appinfo>
-               <xs:documentation>reducek is true if q-points are to be reduced (with crystal symmetries)</xs:documentation>
+               <xs:documentation>reducek is <pre>"true"</pre> if q-points are to be reduced (with crystal symmetries)</xs:documentation>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble" default="7.0d0">

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema"
- xmlns:str="http://exslt.org/strings" xmlns:ex="inputschemaextentions.xsd">
+ xmlns:str="http://exslt.org/strings" 
+  xmlns:regex="http://www.exslt.org/regexp"
+ xmlns:ex="inputschemaextentions.xsd">
  <xsl:output method="text" />
   
  <xsl:param name="importancelevels" >
@@ -61,9 +63,9 @@
     <xsl:text> }}</xsl:text>
   </xsl:template>
   <xsl:template match="it">
-    <xsl:text> // </xsl:text>
-    <xsl:value-of select="normalize-space(.)" />
     <xsl:text> //</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>//</xsl:text>
   </xsl:template>
   <xsl:template match="bf">
     <xsl:text> **</xsl:text>
@@ -74,8 +76,26 @@
     <xsl:value-of select="normalize-space(.)" />
   </xsl:template>
   <xsl:template match="xs:documentation">
-    <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a" />
+    <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a|list|li|attref" />
   </xsl:template>
+  <xsl:template match="attref">
+  <xsl:text> [#att</xsl:text>
+  <xsl:value-of select="."/>
+  <xsl:text> </xsl:text>
+  <xsl:value-of select="."/>
+  <xsl:text>]</xsl:text>
+ </xsl:template>
+   <xsl:template match="list">
+  <xsl:text>
+</xsl:text>
+  <xsl:apply-templates select="./*|text()" />
+ </xsl:template>
+  <xsl:template match="li">
+  <xsl:text>* </xsl:text>
+  <xsl:apply-templates select="./*|text()" />
+  <xsl:text>
+</xsl:text>
+ </xsl:template>
   <xsl:template match="p">
   <xsl:text>
   
