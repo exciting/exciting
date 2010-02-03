@@ -1720,12 +1720,12 @@ Example:  <pre>
                  <xs:documentation>Writes Fermi surface data to file.</xs:documentation>
                </xs:annotation>
                <xs:complexType>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="nstfsp" type="xs:integer" default="6">
+                 <xs:attribute ex:importance="essential" ex:unit="" name="nstfsp" type="xs:integer" default="6">
                    <xs:annotation>
                      <xs:documentation>Number of states to be included in the Fermi surface plot file.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="separate" type="xs:boolean" />
+                 <xs:attribute ex:importance="essential" ex:unit="" name="separate" type="xs:boolean" />
                </xs:complexType>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="EFG" maxOccurs="1" minOccurs="0">
@@ -2804,22 +2804,6 @@ Example:  <pre>
          <xs:documentation>
            This is the path to scratch space where the eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be written. If the local directory is
            accessed via a network then scrpath can be set to a directory on a local disk
-         </xs:documentation>
-       </xs:annotation>
-     </xs:attribute>
-     <xs:attribute ex:importance="expert" ex:unit="" name="id" type="xs:ID">
-       <xs:annotation>
-         <xs:documentation>The id is a unique identifier in an input set. The inputset element is currently not used by the <exciting>exciting</exciting> code.</xs:documentation>
-       </xs:annotation>
-     </xs:attribute>
-     <xs:attribute ex:importance="expert" ex:unit="" name="depends" type="xs:IDREFS">
-       <!--
-         <xs:simpleType> <xs:list itemType="xs:IDREF"/> </xs:simpleType>
-       -->
-       <xs:annotation>
-         <xs:documentation>
-           The depends attribute can be used to specify a dependence from another simulation in the same input set. The inputset element is currently not used
-           by the <exciting>exciting</exciting> code.
          </xs:documentation>
        </xs:annotation>
      </xs:attribute>

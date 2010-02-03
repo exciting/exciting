@@ -45,8 +45,6 @@ end type
 type input_type
  character(1024)::xsltpath
  character(1024)::scratchpath
- character(1024)::id
- character(1024)::depends
  character(512)::title
   type(structure_type),pointer::structure
   type(groundstate_type),pointer::groundstate
@@ -824,20 +822,6 @@ np=>getAttributeNode(thisnode,"scratchpath")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scratchpath",getstructinput%scratchpath)
        call removeAttribute(thisnode,"scratchpath")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"id")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"id",getstructinput%id)
-       call removeAttribute(thisnode,"id")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"depends")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"depends",getstructinput%depends)
-       call removeAttribute(thisnode,"depends")      
 endif
 
             len= countChildEmentsWithName(thisnode,"structure")
