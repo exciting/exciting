@@ -14,17 +14,14 @@
     <xsl:text>
    [[collapsible show="+ Show index" hide="- Hide index"]]
    The @ sign indicates an attribute.
-[[table ]]
+
 
 </xsl:text>
     <xsl:for-each
       select="//xs:attribute[@name and contains($importancelevels,@ex:importance)]
         |//xs:element[@name and contains($importancelevels,@ex:importance)]">
       <xsl:sort select="@name" />
-      <xsl:text> 
-[[row]]
-[[cell]]
-[#</xsl:text>
+      <xsl:text>|| [#</xsl:text>
       <xsl:if test="name(.)='xs:attribute'">
         <xsl:text>att</xsl:text>
       </xsl:if>
@@ -34,32 +31,24 @@
       <xsl:text>]</xsl:text>
 <xsl:choose>
 <xsl:when test="name(.)='xs:attribute'">
-<xsl:text>[[/cell]][[cell]]
-(@)</xsl:text>
+<xsl:text>||@</xsl:text>
 </xsl:when>
 <xsl:otherwise>
-<xsl:text>[[/cell]] [[cell]]</xsl:text>
+<xsl:text>|| </xsl:text>
 
 </xsl:otherwise>
 </xsl:choose>
-<xsl:text>
-[[/cell]]
-[[cell]]
-</xsl:text>
+<xsl:text>||</xsl:text>
 
  <xsl:call-template name="genxpath">
     <xsl:with-param name="node" select="." />
 </xsl:call-template>
-<xsl:text>
-[[/cell]]
-[[/row]]
+<xsl:text>||
 </xsl:text>
     </xsl:for-each>
     <xsl:text>
-
- [[/table]]
 [[/collapsible]]
-   </xsl:text>
+</xsl:text>
     <xsl:call-template name="elementToLatex">
       <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
       <xsl:with-param name="level" select="0" />
@@ -73,7 +62,7 @@
         <xsl:with-param name="level" select="0" />
       </xsl:call-template>
     </xsl:for-each>
-    <xsl:text>
+<xsl:text>
 + Data Types
  
  The Input definition uses derived data types. These are described here.
@@ -161,7 +150,7 @@
     <xsl:value-of select="$myelement/@name" />
     <xsl:text>]]
 </xsl:text>
-    <xsl:text>+ [[span style="color:blue"]]Element:[[/span]] </xsl:text>
+    <xsl:text>+ ##blue|Element:## </xsl:text>
     <xsl:value-of select="$myelement/@name " />
     <xsl:text>
   
@@ -197,7 +186,7 @@ This element allows for specification of the following attributes:
     <xsl:value-of select="$myattribute/@name |$myattribute/@ref" />
     <xsl:text>]]
   
-++ [[span style="color:green"]]Attribute:[[/span]] </xsl:text>
+++ ##green|Attribute:## </xsl:text>
     <xsl:value-of select="$myattribute/@name |$myattribute/@ref" />
     <xsl:text>  
     </xsl:text>

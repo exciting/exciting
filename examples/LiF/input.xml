@@ -15,7 +15,7 @@
 <atom coord="0.5000  0.5000  0.5000" bfcmt="0.0 0.0 0.0"></atom>
 </species>
 </structure>
-<groundstate  lradstep="2" swidth="0.005" nempty="10" ngridk="10 10 10" tforce="true" do="skip"></groundstate>
+<groundstate  lradstep="2" swidth="0.005" nempty="10" ngridk="10 10 10" tforce="true" ></groundstate>
   <properties>
     <bandstructure character="true">
       <plot1d>
