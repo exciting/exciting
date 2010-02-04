@@ -114,6 +114,9 @@ structure=structure+"|testing|";
             </tr>
           </xsl:for-each>
         </table>
+        
+        <a href="?_xsl=no">get xml</a>
+        
       </body>
     </html>
   </xsl:template>
