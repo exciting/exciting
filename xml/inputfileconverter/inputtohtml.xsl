@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<xsl:stylesheet version="1.0"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+>
   <xsl:template match="/">
     <html>
       <head>
         <title>
           <xsl:value-of select="//title" />
         </title>
-      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"/>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js" />
         <script src="http://static.exciting-code.org/Jmol.js" />
       </head>
       <body>
-      
         <table border="0">
-
           <tr>
             <td>
               <h2>
                 <xsl:value-of select="//title" />
               </h2>
               <script>
-               <xsl:text>
+                <xsl:text>
         
          
           jmolInitialize("http://jmol.sourceforge.net/jmol");
@@ -49,17 +47,17 @@ var sep= new RegExp(" +");
 
 </xsl:text>
                 <xsl:for-each select="//basevect">
-                   <xsl:text>tmp="</xsl:text>
+                  <xsl:text>tmp="</xsl:text>
                   <xsl:value-of select="." />
-                   <xsl:text>";
+                  <xsl:text>";
 </xsl:text>
-                   <xsl:text>basevect[</xsl:text>
+                  <xsl:text>basevect[</xsl:text>
                   <xsl:value-of select="position()-1" />
                   <xsl:text>]=new Array(3);
 </xsl:text>
-                   <xsl:text>basevect[</xsl:text>
+                  <xsl:text>basevect[</xsl:text>
                   <xsl:value-of select="position()-1" />
-                   <xsl:text>]=trim(tmp).split(sep);
+                  <xsl:text>]=trim(tmp).split(sep);
 </xsl:text>
                 </xsl:for-each>
                 <xsl:text>
@@ -76,15 +74,17 @@ var structure="</xsl:text>
 structure=structure+"|testing|";
 </xsl:text>
                 <xsl:for-each select="//species">
-
                   <xsl:variable name="symbol">
                     <xsl:choose>
-
                       <xsl:when test="@chemicalSymbol">
                         <xsl:value-of select="@chemicalSymbol" />
                       </xsl:when>
                       <xsl:otherwise>
-                        <xsl:value-of select="'X'" />
+                        <xsl:variable name="speciesfile">
+                          <xsl:text>http://xml.exciting-code.org/species/</xsl:text>
+                          <xsl:value-of select="@speciesfile" />
+                        </xsl:variable>
+                        <xsl:value-of select="document($speciesfile)/spdb/sp/@chemicalSymbol" />
                       </xsl:otherwise>
                     </xsl:choose>
                   </xsl:variable>
@@ -97,28 +97,21 @@ structure=structure+"|testing|";
 </xsl:text>
                   </xsl:for-each>
                 </xsl:for-each>
-
                 <xsl:text>
     
   jmolAppletInline(400, structure, "background white;", "");
 
 
 </xsl:text>
-
               </script>
-
             </td>
           </tr>
-          <xsl:for-each
-            select="/input/*[name()!='structure' and name()!='title']">
+          <xsl:for-each select="/input/*[name()!='structure' and name()!='title']">
             <tr>
               <td>
-
                 <xsl:call-template name="attributestotable" />
-
               </td>
             </tr>
-
           </xsl:for-each>
         </table>
       </body>
@@ -133,9 +126,10 @@ structure=structure+"|testing|";
         <tr>
           <td>
             <xsl:element name="a">
+            <xsl:attribute name="target">_blank</xsl:attribute>
               <xsl:attribute name="href">
-http://exciting-code.org/input-reference#<xsl:value-of
-                select="name(.)" />
+              <xsl:text>http://exciting-code.org/input-reference-essential-expert#att</xsl:text>
+              <xsl:value-of select="name(.)" />
 	</xsl:attribute>
               <xsl:value-of select="name(.)" />
             </xsl:element>
@@ -154,5 +148,4 @@ http://exciting-code.org/input-reference#<xsl:value-of
       </xsl:for-each>
     </table>
   </xsl:template>
-
 </xsl:stylesheet>

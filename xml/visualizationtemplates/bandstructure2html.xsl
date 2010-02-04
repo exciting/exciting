@@ -1,53 +1,62 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="xml" />
+  <xsl:output method="text" />
   <xsl:template match="/">
-<html>
-  <head>
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <xsl:text>
-    </xsl:text>
-    <script type="text/javascript"> <xsl:text>
-      google.load("visualization", "1", {packages:["linechart","scatterchart"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('number', 'distance');
-       </xsl:text>
-        <xsl:for-each select="//band">
-        <xsl:text>data.addColumn('number', 'band </xsl:text><xsl:value-of select="position()"/> 
-        <xsl:text>');
-</xsl:text>
-        </xsl:for-each>
-        
-         <xsl:text>
-        data.addRows( </xsl:text><xsl:value-of select="count(//band[1]/point)"/> <xsl:text>); 
-</xsl:text>
-   
-          <xsl:for-each select="//band">
-               <xsl:variable name="bandnr" select="position()"/>
-               <xsl:for-each select="point">
-               <xsl:if test="$bandnr=1">
-               <xsl:text>data.setValue(</xsl:text> <xsl:value-of select="position()-1"></xsl:value-of>, <xsl:value-of select="0"/>,<xsl:value-of select="@distance"/>);
-</xsl:if>
-            <xsl:text>data.setValue(</xsl:text>
-             <xsl:value-of select="position()-1"/>,<xsl:value-of select="$bandnr"/>, <xsl:value-of select="@eval"/> 
-            <xsl:text>);
-</xsl:text>
-          </xsl:for-each>
-          </xsl:for-each>
-        <xsl:text>
-     
-      var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
-        chart.draw(data, {width: 400, height: 600, titleX: 'distance', titleY: 'Energy', legend: 'none', pointSize: 1,lineSize:2}); }
-</xsl:text>
-</script>
-  </head>
+<html> 
+ <head> 
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+    <title>Bandstructure <xsl:value-of select="//title"/> </title> 
+    <!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.min.js"></script><![endif]--> 
+ 
+    <script language="javascript" type="text/javascript" src="http://static.exciting-code.org/flot/jquery.js"></script> 
+    <script language="javascript" type="text/javascript" src="http://static.exciting-code.org/flot/jquery.flot.js"></script> 
+ </head> 
+    <body> 
+    <h1>Bandstructure <xsl:value-of select="//title"/></h1> 
+ 
+    <div id="placeholder" style="width:500px;height:600px"></div> 
+ 
+    
+<script id="source" language="javascript" type="text/javascript"> 
 
-  <body>
-    <div id="chart_div"></div>
-  
-  </body>
-</html>
+$(function () {
+
+ <xsl:for-each select="//band">
+ <xsl:variable name="bandnr" select="position()"></xsl:variable>
+  var d<xsl:value-of select="$bandnr"/>= [];
+ <xsl:for-each select="point">
+   d<xsl:value-of select="$bandnr"/>.push([<xsl:value-of select="@distance"/>,<xsl:value-of select="@eval"/>]);
+</xsl:for-each>  
+</xsl:for-each> 
+   
+ 
+    
+    $.plot($("#placeholder"), [
+    <xsl:for-each select="//band">
+        {  data: d<xsl:value-of select="position()"/>}<xsl:if test="not(position()=count(//band))">,</xsl:if>
+        </xsl:for-each>
+    ], {
+        series: {
+            lines: { show: true },
+            points: { show: false }
+        },
+        xaxis: {
+            ticks: [   <xsl:for-each select="//vertex">[<xsl:value-of select="@distance"/>, "<xsl:value-of select="@label"/>"]<xsl:if test="not(position()=count(//vertex))">,</xsl:if>
+            </xsl:for-each>]
+        },
+        yaxis: {
+            ticks:[[10,10],[0,"Fermi energy"]]
+        },
+        grid: { grid: { hoverable: true, clickable: true },
+            backgroundColor: { colors: ["#fff", "#eee"] }
+        }
+    });
+});
+
+
+</script> 
+ 
+ </body> 
+</html> 
 </xsl:template>
-</xsl:stylesheet> 
+</xsl:stylesheet>

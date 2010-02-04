@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="http://xml.exciting-code.org/inputfileconverter/inputtohtml.xsl" type="text/xsl"?>
 <input xsi:noNamespaceSchemaLocation="http://static.exciting-code.org/hydrogen/excitinginput.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  >
-<title></title>
+<title>LiF</title>
 <structure speciespath="../../species/">
 <crystal>
 <basevect>3.80402   3.80402   0.00000</basevect>
 <basevect>  3.80402   0.00000   3.80402</basevect>
 <basevect>  0.00000   3.80402   3.80402</basevect>
 </crystal>
-<species speciesfile="Li.xml">
+<species speciesfile="Li.xml" >
 <atom coord="0.0000  0.0000  0.0000" bfcmt="0.0 0.0 0.0"></atom>
 </species>
 <species speciesfile="F.xml">
