@@ -126,7 +126,20 @@ structure=structure+"|testing|";
   </xsl:template>
   <xsl:template name="attributestotable">
     <h2>
+    <xsl:choose>
+    <xsl:when test="name(..)='properties'">
+    <xsl:element name="a">
+    <xsl:attribute name="href">
+    <xsl:text>./</xsl:text>      <xsl:value-of select="name(.)" />
+    <xsl:text>.xml</xsl:text>
+    </xsl:attribute>
       <xsl:value-of select="name(.)" />
+    </xsl:element>
+    </xsl:when>
+    <xsl:otherwise>
+          <xsl:value-of select="name(.)" />
+    </xsl:otherwise>
+    </xsl:choose>
     </h2>
     <table>
       <xsl:for-each select="@*">
@@ -134,7 +147,7 @@ structure=structure+"|testing|";
           <td>
             <xsl:element name="a">
               <xsl:attribute name="href">
-http://exciting-code.org/input-reference#<xsl:value-of
+http://exciting-code.org/input-reference-essential-expert#att<xsl:value-of
                 select="name(.)" />
 	</xsl:attribute>
               <xsl:value-of select="name(.)" />
