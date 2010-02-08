@@ -2,7 +2,7 @@
 <?xml-stylesheet href="http://xml.exciting-code.org/inputfileconverter/inputtohtml.xsl" type="text/xsl"?>
 <input xsi:noNamespaceSchemaLocation="http://static.exciting-code.org/hydrogen/excitinginput.xsd"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  >
-<title></title>
+<title>Au</title>
 <structure speciespath="../../species/">
 <crystal scale="3.85">
 <basevect>1.0  1.0  0.0</basevect>

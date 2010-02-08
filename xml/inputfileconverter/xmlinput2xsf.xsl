@@ -117,9 +117,8 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
           <xsl:value-of select="../@atomicNumber" />
         </xsl:when>
         <xsl:otherwise>
-          <xsl:variable name="speciesfile">
-            <xsl:value-of select="/input/structure/@speciespath" />
-            <xsl:text>/</xsl:text>
+          <xsl:variable name="speciesfile">        
+            <xsl:text>http://xml.exciting-code.org/species/</xsl:text>
             <xsl:value-of select="../@speciesfile" />
           </xsl:variable>
           <xsl:value-of select="-1*document($speciesfile)/spdb/sp/@z" />

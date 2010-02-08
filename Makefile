@@ -40,7 +40,7 @@ spacegroupdoc::
  
 inputdoc::
 	cd docs/exciting/;\
-	xsltproc ../../xml/schematodoc.xsl ../../xml/excitinginput.xsd >excitinginput.tex;\
+	xsltproc --stringparam importancelevels "essential expert" ../../xml/schematolatex.xsl ../../xml/excitinginput.xsd >excitinginput.tex;\
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
 	

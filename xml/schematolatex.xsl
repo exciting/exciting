@@ -27,7 +27,7 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks=false}
 \begin{document}
-\newcommand{\exciting}{EXC!T!`NG }
+\newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
 \title{</xsl:text>
   <xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/title" />
   <xsl:text>} 
