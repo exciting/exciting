@@ -116,7 +116,7 @@ structure=structure+"|testing|";
         </table>
         
         <a href="?_xsl=no">get xml</a>
-        
+            <a href="info.xml?_xsl=http://xml.exciting-code.org/info.xsl">Results (infoxml)</a>
       </body>
     </html>
   </xsl:template>
