@@ -3,11 +3,10 @@ use XML::eXistDB::RPC;
 use XML::Simple;
 use Data::Dumper;
 use Digest::MD5 qw(md5 md5_hex md5_base64);
+use Term::ReadPassword;
 print "Enter DB user: ";
 $user = <STDIN>;
-print "Enter password: ";
-$password = <STDIN>;
-$password =~s/\n//;
+$password = read_password('password: ');
 $user  =~s/\n//;
 my ($db) = XML::eXistDB::RPC->new(
 	user        => $user,
@@ -33,7 +32,7 @@ foreach my $set ( @{ $doc->{set} } ) {
 
 	open( FILE, $dir . "input.xml" );
 
-	#print $dir. "input.xml\n";
+	print $dir. "input.xml\n";
 	local $/ = undef;
 	my ($data) = <FILE>;
 	close(FILE);
@@ -47,7 +46,7 @@ foreach my $set ( @{ $doc->{set} } ) {
 	for my $eachFile (@filelist) {
 		if ( $eachFile =~ m/.*.xml/ ) {
 
-			#print $eachFile. "\n";
+			print $eachFile. "\n";
 			if ( ( -s $dir . $eachFile ) < 5000000 ) {
 				open( FILE, $dir . $eachFile );
 				local $/ = undef;

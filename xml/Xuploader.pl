@@ -1,11 +1,12 @@
 use XML::eXistDB;
 use XML::eXistDB::RPC;
+use Term::ReadPassword;
 use Digest::MD5 qw(md5 md5_hex md5_base64);
 print "Enter DB user: ";
-$user= <STDIN>;
-print "Enter password: ";
-$password= <STDIN>;
-
+$user = <STDIN>;
+$password = read_password('password: ');
+$password =~s/\n//;
+$user  =~s/\n//;
 my ($db) = XML::eXistDB::RPC->new(
 	user        => $user,
 	password    => $password,
@@ -13,6 +14,7 @@ my ($db) = XML::eXistDB::RPC->new(
 	,chunk_size  => 1000000
 );
 my ( $rc, $exists ) = $db->hasCollection("calculations");
+$rc == 0 or die "ERROR:cannot connect': $exists ($rc)\n";
 
 use strict;
 my @inputs;
@@ -58,13 +60,14 @@ foreach (@calcdir) {
 	
 
 	my ( $rc, my $ok ) = $db->createCollection( "calculations/" . $digest );
+		print $dir. "\n";
 	opendir( DIR, "$dir" ) || die("Cannot open directory $!\n");
 	my (@filelist) = readdir(DIR);
 	closedir DIR;
 	for my $eachFile (@filelist) {
 		if ( $eachFile =~ m/.*.xml/ ) {
 
-			#print $eachFile. "\n";
+			print $eachFile. "\n";
 			if ( (-s $dir . $eachFile )< 5000000 ) {
 				open( FILE, $dir . $eachFile );
 				local $/ = undef;
