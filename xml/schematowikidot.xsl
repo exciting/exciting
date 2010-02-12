@@ -5,8 +5,9 @@
   <xsl:param name="importancelevels">
     <xsl:text>essential</xsl:text>
     <xs:annotation>
-      <xs:documentation> In order to select the importance levels that should be included list them in the parameter "importancelevels". example: xsltproc
-        --stringparam importancelevels "essential expert" schematolatex.xsl excitinginput.xsd >doc.tex</xs:documentation>
+      <xs:documentation> In order to select the importance levels that should be included list them in the parameter "importancelevels". 
+      example: xsltproc --stringparam importancelevels "essential expert" schematowikidot.xsl excitinginput.xsd >iref.txt
+      </xs:documentation>
     </xs:annotation>
   </xsl:param>
   <xsl:template match="/">
@@ -21,30 +22,35 @@
       select="//xs:attribute[@name and contains($importancelevels,@ex:importance)]
         |//xs:element[@name and contains($importancelevels,@ex:importance)]">
       <xsl:sort select="@name" />
-      <xsl:text>|| [#</xsl:text>
-      <xsl:if test="name(.)='xs:attribute'">
-        <xsl:text>att</xsl:text>
-      </xsl:if>
-      <xsl:value-of select="@name" />
-      <xsl:text> </xsl:text>
-      <xsl:value-of select="@name" />
-      <xsl:text>]</xsl:text>
-<xsl:choose>
-<xsl:when test="name(.)='xs:attribute'">
-<xsl:text>||@</xsl:text>
-</xsl:when>
-<xsl:otherwise>
-<xsl:text>|| </xsl:text>
-
-</xsl:otherwise>
-</xsl:choose>
-<xsl:text>||</xsl:text>
-
- <xsl:call-template name="genxpath">
-    <xsl:with-param name="node" select="." />
-</xsl:call-template>
-<xsl:text>||
+      <xsl:variable name="plevel">
+        <xsl:call-template name="isincluded">
+          <xsl:with-param name="node" select="." />
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:if test="$plevel='include'">
+        <xsl:text>|| [#</xsl:text>
+        <xsl:if test="name(.)='xs:attribute'">
+          <xsl:text>att</xsl:text>
+        </xsl:if>
+        <xsl:value-of select="@name" />
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="@name" />
+        <xsl:text>]</xsl:text>
+        <xsl:choose>
+          <xsl:when test="name(.)='xs:attribute'">
+            <xsl:text>||@</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>|| </xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>||</xsl:text>
+        <xsl:call-template name="genxpath">
+          <xsl:with-param name="node" select="." />
+        </xsl:call-template>
+        <xsl:text>||
 </xsl:text>
+      </xsl:if>
     </xsl:for-each>
     <xsl:text>
 [[/collapsible]]
@@ -62,7 +68,7 @@
         <xsl:with-param name="level" select="0" />
       </xsl:call-template>
     </xsl:for-each>
-<xsl:text>
+    <xsl:text>
 + Data Types
  
  The Input definition uses derived data types. These are described here.
@@ -381,5 +387,27 @@ This element allows for specification of the following attributes:
   
   </xsl:text>
     <xsl:apply-templates select="xs:annotation/xs:documentation" />
+  </xsl:template>
+  <xsl:template name="isincluded">
+    <xsl:param name="node" />
+    <xsl:for-each select="$node">
+      <xsl:choose>
+        <xsl:when test="contains($importancelevels,@ex:importance) or not(@ex:importance)">
+          <xsl:choose>
+            <xsl:when test="parent::node()">
+              <xsl:call-template name="isincluded">
+                <xsl:with-param name="node" select="parent::node()" />
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>include</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>not</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>

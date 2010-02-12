@@ -29,9 +29,11 @@
   </xsl:variable>
  <set>
  <xsl:for-each select="./@*">
+ <xsl:if test="name(.)!='path'">
  <xsl:attribute name="{name(.)}">
  <xsl:value-of select="."/>
  </xsl:attribute>
+ </xsl:if>
  </xsl:for-each>
  <xsl:attribute name="path">
  <xsl:value-of select="$path"/>
