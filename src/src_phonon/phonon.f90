@@ -50,7 +50,7 @@ Subroutine phonon
 ! no shifting of atomic basis allowed
       input%structure%tshift = .False.
 ! determine k-point grid size from radkpt
-      ! let the user decide wether to use an automatic k-point grid or not
+      ! let the user decide whether to use an automatic k-point grid or not
       !input%groundstate%autokpt = .True.
 ! store original parameters
       natoms0 (1:nspecies) = natoms (1:nspecies)

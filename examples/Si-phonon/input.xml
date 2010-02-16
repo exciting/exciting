@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="http://xml.exciting-code.org/inputfileconverter/inputtohtml.xsl" type="text/xsl"?>
-<input xsi:noNamespaceSchemaLocation="http://xml.exciting-code.org/excitinginput.xsd"
+<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
   <title>Si phonon</title>
   <structure speciespath="../../species/">
@@ -14,7 +14,7 @@
       <atom coord="0.25 0.25 0.25" />     
     </species>
   </structure>
-  <groundstate do="fromscratch" ngridk="2 2 2" vkloff="0.0 0.0 0.0" mixer="lin" tforce="true">
+  <groundstate do="fromscratch" ngridk="2 2 2" mixer="lin">
   </groundstate>
   <phonons do="fromscratch" ngridq="2 2 2">
     <qpointset>

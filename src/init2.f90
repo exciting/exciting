@@ -63,8 +63,8 @@ Subroutine init2
 ! setup the q-point box (offset should always be zero)
          boxl (:, :) = 0.d0
          boxl (1, 2) = 1.d0
-         boxl (2, 3) = 0.d0
-         boxl (3, 4) = 0.d0
+         boxl (2, 3) = 1.d0
+         boxl (3, 4) = 1.d0
 ! generate the q-point set, note that the vectors vql and vqc are mapped to the
 ! first Brillouin zone
          Call genppts (redq, .True., ngridq, boxl, &
