@@ -26,10 +26,14 @@ Subroutine init2
 !     q-point set     !
 !---------------------!
       redq=.true.
-! phonons
-      if ((task .ge. 200).and.(task .le. 299)) then
+      ! phonons
+      if ((task .eq. 200).or.(task .eq. 201).or. &
+        (task .eq. 210).or.(task .eq. 220).or.(task .eq. 230).or. &
+        (task .eq. 240).or.(task .eq. 245).or.(task .eq. 250)) then
+        ngridq(:)=input%phonons%ngridq(:)
       	redq=input%phonons%reduceq
       end if
+      ! phonons for q-points from list
       if (task .eq. 230) then
           nphwrt = size (input%phonons%qpointset%qpoint, 2)
       	  if (allocated(vqlwrt)) deallocate(vqlwrt)

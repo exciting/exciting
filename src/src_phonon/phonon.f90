@@ -34,6 +34,14 @@ Subroutine phonon
       Call init0
 ! initialise q-point dependent variables
       Call init2
+! write q-points to file
+      Open (50, File='QPOINTS_PHONON.OUT', Action='WRITE', Form='FORMATTED')
+      Write (50, '(I6, " : nqpt; q-point, vql, wqpt below")') &
+     & nqpt
+      Do iq = 1, nqpt
+         Write (50, '(I6, 4G18.10, 2I8)') iq, vql (:, iq), wqpt (iq)
+      End Do
+      Close (50)
 ! read original effective potential from file and store in global arrays
       Call readstate
       If (allocated(veffmt0)) deallocate (veffmt0)
