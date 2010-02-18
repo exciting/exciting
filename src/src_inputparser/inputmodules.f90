@@ -1859,6 +1859,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"spinsprl")
+getstructspin%spinsprl= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"spinsprl",getstructspin%spinsprl)
        call removeAttribute(thisnode,"spinsprl")      
@@ -2500,6 +2501,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"scissor")
+getstructdos%scissor=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scissor",getstructdos%scissor)
        call removeAttribute(thisnode,"scissor")      
@@ -3027,6 +3029,7 @@ allocate(getstructelnes)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"vecql")
+getstructelnes%vecql=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vecql",getstructelnes%vecql)
        call removeAttribute(thisnode,"vecql")      

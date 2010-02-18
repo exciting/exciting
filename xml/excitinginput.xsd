@@ -633,7 +633,7 @@ Example:  <pre>
                      </xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="spinsprl" type="xs:boolean">
+                 <xs:attribute ex:importance="expert" ex:unit="" name="spinsprl" type="xs:boolean" default="false">
                    <xs:annotation>
                      <xs:documentation>
                        Set to
@@ -905,7 +905,7 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="essential" ex:unit="" name="swidth" type="fortrandouble" default="0.001d0">
+           <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth" type="fortrandouble" default="0.001d0">
              <xs:annotation>
                <xs:documentation>Width of the smooth approximation to the Dirac delta function.</xs:documentation>
              </xs:annotation>
@@ -1082,7 +1082,7 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="deband" type="fortrandouble" default="0.0025d0">
+           <xs:attribute ex:importance="expert" ex:unit="Hartree" name="deband" type="fortrandouble" default="0.0025d0">
              <xs:annotation>
                <xs:documentation>
                  Initial band energy step size The initial step length used when searching for the band energy, which is used as the APW linearization energy.
@@ -1331,7 +1331,7 @@ Example:  <pre>
                </xs:restriction>
              </xs:simpleType>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="evalmin" type="fortrandouble" default="-4.5d0">
+           <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evalmin" type="fortrandouble" default="-4.5d0">
              <xs:annotation>
                <xs:documentation>Any valence states with eigenvalues below evalmin are not occupied and a warning message is issued.</xs:documentation>
              </xs:annotation>
@@ -1477,7 +1477,7 @@ Example:  <pre>
                  <xs:all>
                    <xs:element ex:importance="essential" ex:unit="" ref="plot1d" />
                  </xs:all>
-                 <xs:attribute ex:importance="essential" ex:unit="" ref="scissor" default="0.0d0">
+                 <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0">
                    <xs:annotation>
                      <xs:documentation>Value to shift bandgap.</xs:documentation>
                    </xs:annotation>
@@ -1569,13 +1569,13 @@ Example:  <pre>
                      <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="essential" ex:unit="" ref="scissor" />
+                 <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
                  <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
                    <xs:annotation>
                      <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="winddos" default="0.0d0 0.5d0" type="vect2d">
+                 <xs:attribute ex:importance="expert" ex:unit="Hartree" name="winddos" default="0.0d0 0.5d0" type="vect2d">
                    <xs:annotation>
                      <xs:documentation>Frequency/energy window for the DOS or optics plot.</xs:documentation>
                      <xs:appinfo>
@@ -1749,7 +1749,7 @@ Example:  <pre>
                      </xs:annotation>
                    </xs:element>
                  </xs:sequence>
-                 <xs:attribute ex:importance="expert" ex:unit="" ref="scissor" />
+                 <xs:attribute ex:importance="expert" ex:unit="Hartree" ref="scissor" />
                </xs:complexType>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="mossbauer" minOccurs="0">
@@ -1768,7 +1768,7 @@ Example:  <pre>
              </xs:element>
              <xs:element ex:importance="expert" ex:unit="" name="elnes" minOccurs="0">
                <xs:complexType>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="vecql" type="vect3d">
+                 <xs:attribute ex:importance="expert" ex:unit="" name="vecql" type="vect3d" default="0.0d0 0.0d0 0.0d0">
                    <xs:annotation>
                      <xs:documentation>Gives the q-vector in lattice coordinates for calculating ELNES.</xs:documentation>
                    </xs:annotation>
@@ -1816,10 +1816,6 @@ Example:  <pre>
                </xs:complexType>
              </xs:element>
            </xs:all>
-           <!--
-             sag: phwrite-block: allocate(vqlwrt(3,nphwrt)); another q-point
-             list
-           -->
            <xs:attribute ex:importance="expert" ex:unit="" ref="do" default="fromscratch">
              <xs:annotation>
                <xs:appinfo>
@@ -1904,7 +1900,7 @@ Example:  <pre>
                      <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the BSE-derived xc-kernels</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="fxcbsesplit" type="fortrandouble" default="1.0d-5">
+                 <xs:attribute ex:importance="expert" ex:unit="Hartree" name="fxcbsesplit" type="fortrandouble" default="1.0d-5">
                    <xs:annotation>
                      <xs:documentation>Split parameter for degeneracy in energy differences of BSE-derived kernel</xs:documentation>
                    </xs:annotation>
@@ -1924,7 +1920,7 @@ Example:  <pre>
                      <xs:documentation><pre>"true"</pre> if Lindhard like function is calculated (trivial matrix elements)</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="" name="epsdfde" type="fortrandouble" default="1.0d-8">
+                 <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdfde" type="fortrandouble" default="1.0d-8">
                    <xs:annotation>
                      <xs:documentation>
                        smallest energy difference for which the square of its inverse will be considered in the Kohn-Sham response function
@@ -2643,7 +2639,7 @@ Example:  <pre>
                <xs:documentation>energy cutoff for the unoccupied states in the Kohn-Sahm response function and screening</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="broad" type="fortrandouble" default="0.01d0">
+           <xs:attribute ex:importance="expert" ex:unit="Hartree" name="broad" type="fortrandouble" default="0.01d0">
              <xs:annotation>
                <xs:documentation>Lorentzian broadening for all spectra</xs:documentation>
              </xs:annotation>
@@ -2753,7 +2749,7 @@ Example:  <pre>
                <xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="swidth" type="fortrandouble" default="0.001d0">
+           <xs:attribute ex:importance="expert" ex:unit="Hartree" name="swidth" type="fortrandouble" default="0.001d0">
              <xs:annotation>
                <xs:appinfo>
                  <oldname>swidthxs</oldname>

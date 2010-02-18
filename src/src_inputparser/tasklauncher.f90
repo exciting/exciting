@@ -38,7 +38,7 @@ Subroutine tasklauncher
 !
       If (associated(input%phonons)) Then
          task=200
-         ! task 201 is only a dry-run
+         ! task 201 is only a dry-run and will not be considered here
          If (input%phonons%do .Ne. "skip") Call phonon
          if (associated(input%phonons%phonondos)) then
          	task=210
