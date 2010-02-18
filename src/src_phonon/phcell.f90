@@ -161,6 +161,17 @@ Subroutine phcell (iph, dph, iq, is, ia, ip)
       Write (*,*)
       Stop
 30    Continue
+! set up the supercell with a size of nphcell*natoms(js) atoms for each species js
+      do js=1, nspecies
+        do ja=1,natoms(js)
+            deallocate(input%structure%speciesarray(js)%species%atomarray(ja)%atom)
+        end do
+        deallocate(input%structure%speciesarray(js)%species%atomarray)
+        allocate(input%structure%speciesarray(js)%species%atomarray(nphcell*natoms(js)))
+        do ja=1,nphcell*natoms(js)
+            allocate(input%structure%speciesarray(js)%species%atomarray(ja)%atom)
+        end do
+      end do
 ! set up new atomic positions
       Do js = 1, nspecies
          na = 0
