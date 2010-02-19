@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <groundstate swidth="0.01d0" findlinentype="simple" lmaxapw="8" mixer="lin" lmaxvr="7"/>
+  <structureoptimization epsforce="5.0d-4"/>
+  <xs swidth="0.01d0" lmaxapw="8"/>
+</input>

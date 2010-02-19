@@ -559,7 +559,7 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="tshift" type="xs:boolean" default="true"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="tshift" type="xs:boolean" default="true">
              <xs:annotation>
                <xs:documentation>
                  Set to it to <pre>"true"</pre> if the crystal can be shifted such that the atom closest to the origin is exactly at the origin.
@@ -715,7 +715,7 @@ Example:  <pre>
                  </xs:attribute>
                </xs:complexType>
              </xs:element>
-             <xs:element ex:importance="experimental" ex:unit="" name="HartreeFock" minOccurs="0" maxOccurs="1"><!-- sag -->
+             <xs:element ex:importance="experimental" ex:unit="" name="HartreeFock" minOccurs="0" maxOccurs="1">
                <xs:annotation>
                  <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
                </xs:annotation>
@@ -778,7 +778,7 @@ Example:  <pre>
                      <xs:documentation>Tolerance parameter for the ARPACK shift invert solver</xs:documentation>
                    </xs:annotation>
                  </xs:attribute>
-                 <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol" type="fortrandouble" default="1.0d-8"><!-- sag -->
+                 <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evaltol" type="fortrandouble" default="1.0d-8">
                    <xs:annotation>
                      <xs:documentation>Error tolerance for the first-variational eigenvalues using the LAPACK Solver</xs:documentation>
                    </xs:annotation>
@@ -908,6 +908,9 @@ Example:  <pre>
            <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth" type="fortrandouble" default="0.001d0">
              <xs:annotation>
                <xs:documentation>Width of the smooth approximation to the Dirac delta function.</xs:documentation>
+               <xs:appinfo>
+                 <olddefault default="0.01d0"/>                 
+               </xs:appinfo>               
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="essential" ex:unit="" name="stype" default="Gaussian">
@@ -961,6 +964,9 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype" default="advanced">
              <xs:annotation>
                <xs:documentation>Select method to determine the linearization energies.</xs:documentation>
+               <xs:appinfo>
+               <olddefault default="simple"/>
+               </xs:appinfo>
              </xs:annotation>
              <xs:simpleType>
                <xs:restriction base="xs:string">
@@ -1067,6 +1073,9 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw" type="xs:integer" default="10">
              <xs:annotation>
                <xs:documentation>Angular momentum cut-off for the APW functions.</xs:documentation>
+               <xs:appinfo>
+                 <olddefault default="8"/>               
+               </xs:appinfo>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="essential" ex:unit="" name="maxscl" type="xs:integer" default="200">
@@ -1118,6 +1127,7 @@ Example:  <pre>
                <xs:documentation>select the mixing (relaxation) scheme for SCF</xs:documentation>
                <xs:appinfo>
                  <oldname>mixtype</oldname>
+                 <olddefault default="lin"/>
                </xs:appinfo>
              </xs:annotation>
              <xs:simpleType>
@@ -1146,17 +1156,17 @@ Example:  <pre>
                </xs:restriction>
              </xs:simpleType>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble" default="0.4d0"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="beta0" type="fortrandouble" default="0.4d0">
              <xs:annotation>
                <xs:documentation>Initial value for mixing parameter. Used in linear mixing.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="betainc" type="fortrandouble" default="1.1d0"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="betainc" type="fortrandouble" default="1.1d0">
              <xs:annotation>
                <xs:documentation>Mixing parameter increase. Used in linear mixing.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="betadec" type="fortrandouble" default="0.6d0"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="betadec" type="fortrandouble" default="0.6d0">
              <xs:annotation>
                <xs:documentation>Mixing parameter decrease. Used in linear mixing.</xs:documentation>
              </xs:annotation>
@@ -1339,6 +1349,9 @@ Example:  <pre>
            <xs:attribute ex:importance="expert" ex:unit="" name="lmaxvr" type="xs:integer" default="6">
              <xs:annotation>
                <xs:documentation>Angular momentum cut-off for the muffin-tin density and potential.</xs:documentation>
+               <xs:appinfo>
+                 <olddefault default="7"/>
+               </xs:appinfo>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="fracinr" type="fortrandouble" default="0.25d0">
@@ -1369,24 +1382,24 @@ Example:  <pre>
                <xs:documentation>oOrder of polynomial for pseudocharge density.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="cfdamp" type="fortrandouble" default="0.0d0"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="cfdamp" type="fortrandouble" default="0.0d0">
              <xs:annotation>
                <xs:documentation>Damping coefficient for characteristic function.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="nosource" type="xs:boolean" default="false"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="nosource" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>
                  When set to <pre>"true"</pre>, source fields are projected out of the exchange-correlation magnetic field. experimental feature.
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="tevecsv" type="xs:boolean" default="false"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="tevecsv" type="xs:boolean" default="false">
              <xs:annotation>
                <xs:documentation>The attribute tevecsv is <pre>"true"</pre> if second-variational eigenvectors are calculated.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="nwrite" type="xs:integer" default="0">
              <xs:annotation>
                <xs:documentation>
                  Normally, the density and potentials are written to the file STATE.OUT only after com- pletion of the self-consistent loop. By setting nwrite
@@ -1394,7 +1407,7 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="ptnucl" type="xs:boolean" default="true"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="ptnucl" type="xs:boolean" default="true">
              <xs:annotation>
                <xs:documentation>
                  The attrubute ptnucl is <pre>"true"</pre> if the nuclei are to be treated as point charges, if <pre>"false"</pre> the nuclei have a finite spherical distribution.
@@ -1415,9 +1428,11 @@ Example:  <pre>
              </xs:documentation>
            </xs:annotation>
            <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble" default="5.0d-5">
-             <!-- sag: 0.9.224: epsforce=5.d-4 -->
              <xs:annotation>
                <xs:documentation>Convergence tolerance for the forces during a structural optimization run.</xs:documentation>
+               <xs:appinfo>
+                 <olddefault default="5.0d-4"/>                 
+               </xs:appinfo>
              </xs:annotation>
            </xs:attribute>
            <xs:attribute ex:importance="expert" ex:unit="" name="tau0atm" type="fortrandouble" default="0.2d0">
@@ -1832,7 +1847,7 @@ Example:  <pre>
                <xs:documentation>Number of q grid points along the basis vector directions.</xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean" default="true">
              <xs:annotation>
                <xs:documentation>
                  The attribute <pre>reduceq</pre> is
@@ -1846,7 +1861,7 @@ Example:  <pre>
                </xs:documentation>
              </xs:annotation>
            </xs:attribute>
-           <xs:attribute ex:importance="expert" ex:unit="" name="deltaph" type="fortrandouble" default="0.03d0"><!-- sag -->
+           <xs:attribute ex:importance="expert" ex:unit="" name="deltaph" type="fortrandouble" default="0.03d0">
              <xs:annotation>
                <xs:documentation>
                  Phonon calculations are performed by constructing a supercell corresponding to a particular
@@ -2753,6 +2768,7 @@ Example:  <pre>
              <xs:annotation>
                <xs:appinfo>
                  <oldname>swidthxs</oldname>
+                 <olddefault default="0.01d0"/>                 
                </xs:appinfo>
                <xs:documentation>width of the smooth approximation to the Dirac delta function</xs:documentation>
              </xs:annotation>
@@ -2761,6 +2777,7 @@ Example:  <pre>
              <xs:annotation>
                <xs:appinfo>
                  <oldname>lmaxapwxs</oldname>
+                 <olddefault default="8"/>                 
                </xs:appinfo>
                <xs:documentation>angular momentum cut-off for the APW functions</xs:documentation>
              </xs:annotation>
