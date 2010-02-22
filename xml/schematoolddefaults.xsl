@@ -8,6 +8,10 @@
 	<xsl:template match="/">
 
 		<input>
+		  <xsl:comment>
+Use the "species.input.APW+lo-Legacy" input file, located in the "species" directory, for
+generating the species files related to the old default settings.
+		  </xsl:comment>
 			<xsl:value-of select="$newline" />
 			<xsl:for-each
 				select="//xs:element[*/xs:attribute/xs:annotation/xs:appinfo/olddefault]">
