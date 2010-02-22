@@ -129,7 +129,7 @@
 <xsl:if test="point/bc">
 <xsl:for-each select="point">
 <xsl:variable name="x" select="@distance"/>
-<xsl:variable name="y" select="@eval*27.211"/>
+<xsl:variable name="y" select="@eval*27.21138386"/>
 <xsl:variable name="n" select="position()"/>
 <xsl:for-each select="bc">
 <xsl:if test="@character>0.1 and $n mod 2=@l mod 2">
@@ -170,7 +170,7 @@
       <xsl:for-each select="./point">
         <xsl:value-of select="@distance" />
         <xsl:text>  </xsl:text>
-        <xsl:value-of select="@eval*27.211" />
+        <xsl:value-of select="@eval*27.21138386" />
         <xsl:if test="$l">
           <xsl:text>  </xsl:text>
         <xsl:value-of select="bc[@l=$l]/@character*2" />
