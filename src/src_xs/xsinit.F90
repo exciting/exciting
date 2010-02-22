@@ -230,7 +230,7 @@ Subroutine xsinit
   !-----------------------!
   ! scaling factor for output of energies
       escale = 1.d0
-      If (input%xs%tevout) escale = 27.2114d0
+      If (input%xs%tevout) escale = h2ev
       tleblaik = .True.
       If (input%xs%BSE%nleblaik .Eq. 0) tleblaik = .False.
 !

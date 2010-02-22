@@ -28,5 +28,17 @@ Module mod_constants
      & (1.d0, 0.d0), (0.d0, 0.d0), (0.d0, 0.d0), (-1.d0, 0.d0) /
 ! Boltzmann constant in Hartree/kelvin (CODATA 2006)
       Real (8), Parameter :: kboltz = 3.166815343d-6
+  ! Kronecker delta
+      Integer, Parameter :: krondelta (3, 3) = reshape ( (/ 1, 0, 0, 0, &
+     & 1, 0, 0, 0, 1 /), (/ 3, 3 /))
+! conversion from Hartrees to electron volts (CODATA 2006):
+! 1 Hartree = 27.211 383 86(68) eV
+      real(8), parameter :: h2ev = 27.21138386d0
+! conversion from Hartrees to cm^{-1} (CODATA 2006):
+! 1 Hartree / (hc) = 2.194 746 313 705(15) * 10^7 m^{-1}
+      real(8), parameter :: h2cm1 = 2.194746313705d5
+! conversion from Hartrees to THz (CODATA 2006):
+! 1 Hartree / h = 6.579 683 920 722(44) * 10^{15} Hz
+      real(8), parameter :: h2thz = 6.579683920722d3
 End Module
 !
