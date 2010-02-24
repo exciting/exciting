@@ -42,7 +42,7 @@ Subroutine phdos
       Allocate (dynp(n, n))
       Allocate (ev(n, n))
 ! read in the dynamical matrices
-      Call readdyn (dynq)
+      Call readdyn (.true.,dynq)
 ! apply the acoustic sum rule
       Call sumrule (dynq)
 ! Fourier transform the dynamical matrices to real-space

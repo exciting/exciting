@@ -65,7 +65,7 @@ Subroutine alpha2f
 ! compute the density of states at the Fermi energy
       Call occupy
 ! read in the dynamical matrices
-      Call readdyn (dynq)
+      Call readdyn (.true.,dynq)
 ! apply the acoustic sum rule
       Call sumrule (dynq)
 ! Fourier transform the dynamical matrices to real-space

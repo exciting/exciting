@@ -40,7 +40,7 @@ Subroutine phlwidth
       lwork = 2 * n
       Allocate (work(lwork))
 ! read in the dynamical matrices
-      Call readdyn (dynq)
+      Call readdyn (.true.,dynq)
 ! apply the acoustic sum rule
       Call sumrule (dynq)
 ! read in the phonon linewidths for each q-point

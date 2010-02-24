@@ -1829,7 +1829,8 @@ Example:  <pre>
                    <xs:element ex:importance="expert" ex:unit="" ref="plot1d" />
                  </xs:sequence>
                </xs:complexType>
-             </xs:element>
+             </xs:element>             
+             <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0" maxOccurs="1"/>
            </xs:all>
            <xs:attribute ex:importance="expert" ex:unit="" ref="do" default="fromscratch">
              <xs:annotation>
@@ -2833,4 +2834,25 @@ Example:  <pre>
    </xs:sequence>
   </xs:complexType>
  </xs:element>
+ <xs:element ex:importance="expert" ex:unit="" name="parts">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element ex:importance="expert" ex:unit="" name="dopart"
+        minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute ex:importance="expert" ex:unit="" name="id"
+            type="xs:string" use="required">
+            <xs:annotation>
+              <xs:documentation>
+              This attribute is used to trigger lower-level tasks and is mainly
+                 used for testing, debugging, and the testing of new features. Do not
+                 use it unless you know what you are doing.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+ </xs:element>    
 </xs:schema>

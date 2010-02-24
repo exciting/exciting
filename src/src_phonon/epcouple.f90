@@ -82,7 +82,7 @@ Subroutine epcouple
 ! compute the occupancies and density of states at the Fermi energy
       Call occupy
 ! read in the dynamical matrices
-      Call readdyn (dynq)
+      Call readdyn (.true.,dynq)
 ! apply the acoustic sum rule
       Call sumrule (dynq)
 ! compute the gradients of the effective potential for the rigid-ion term

@@ -357,6 +357,7 @@ type phonons_type
   type(qpointset_type),pointer::qpointset
   type(phonondos_type),pointer::phonondos
   type(phonondispplot_type),pointer::phonondispplot
+  type(parts_type),pointer::parts
 end type
 
 type phonondos_type
@@ -488,7 +489,17 @@ type(doonly_type),pointer::doonly
     type qpointset_type
  real(8),pointer::qpoint(:,:)
 end type
+type parts_type
+  type(dopart_type_array),pointer::dopartarray(:)
+end type
+type dopart_type
+ character(512)::id
+end type
 
+type dopart_type_array
+type(dopart_type),pointer::dopart
+ end type
+    
    type(input_type)::input
 contains
 
@@ -3136,6 +3147,14 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "phonondispplot"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"parts")
+getstructphonons%parts=>null()
+Do i=0,len-1
+getstructphonons%parts=>getstructparts(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"parts"),0)) ) 
+enddo
+
       i=0
       len=0
       call  handleunknownnodes(thisnode)
@@ -4103,6 +4122,58 @@ Do i=1,len
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "qpoint"),0)))
 end do
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructparts(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(parts_type),pointer::getstructparts
+		
+integer::len=1,i=0
+allocate(getstructparts)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at parts"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"dopart")
+     
+allocate(getstructparts%dopartarray(len))
+Do i=0,len-1
+getstructparts%dopartarray(i+1)%dopart=>getstructdopart(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"dopart"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructdopart(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(dopart_type),pointer::getstructdopart
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructdopart)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at dopart"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"id")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"id",getstructdopart%id)
+       call removeAttribute(thisnode,"id")      
+endif
 
       i=0
       len=0
