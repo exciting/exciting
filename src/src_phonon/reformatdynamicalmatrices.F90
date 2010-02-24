@@ -91,7 +91,7 @@ use mod_constants
 !BOC
       Implicit None
 ! arguments
-      character(256) :: fname
+      character(*), intent(in) :: fname
       complex(8), intent(in) :: dynmq(3,3,natmmax,nspecies,natmmax,nspecies,nqpt)
 ! local variables
       integer :: ip,ia,is,ias,ja,js,jas,iq
