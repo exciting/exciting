@@ -6,7 +6,6 @@
 ! See the file COPYING for license details.
 !
 Character (256) Function stringtim (sec, hrs, d, h, m, s)
-      Use modmain, Only: filext
       Implicit None
   ! arguments
       Real (8), Intent (In) :: sec, hrs

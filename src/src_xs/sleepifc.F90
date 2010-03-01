@@ -31,7 +31,8 @@ Contains
          Integer, Intent (In) :: c
     ! local variables
          Integer :: i
-         Complex (8) :: m (10, 10), n (10, 10)
+         Real (8) :: m (10, 10), n (10, 10)
+         call random_number(m)
          Do i = 1, c
             n = matmul (m, m)
          End Do

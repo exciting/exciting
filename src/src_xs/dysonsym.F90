@@ -45,7 +45,7 @@ Contains
          Complex (8), Parameter :: zone = (1.d0, 0.d0), zzero = (0.d0, &
         & 0.d0)
          Complex (8), Allocatable :: mt (:, :), mt2 (:, :)
-         Integer :: shs0 (2), shk (2), shs (2), nmin, nmax, i, j
+         Integer :: shs0 (2), shk (2), shs (2), nmin, nmax, j
 !
          Complex (8), Allocatable :: solv (:), s0row (:), s0col (:), u &
         & (:, :), vh (:, :), work (:)

@@ -10,8 +10,6 @@
 !
 !
 Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
-! !USES:
-      Use modmain, Only: idxlm
 ! !INPUT/OUTPUT PARAMETERS:
 !   lmax  : maximum angular momentum (in,integer)
 !   nr    : number of radial mesh points (in,integer)
@@ -43,7 +41,7 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
       Real (8), Intent (In) :: fmt (nr)
       Real (8), Intent (Out) :: gfmt (ld1, ld2, 3)
   ! local variables
-      Integer :: ir, lm1, l2, m2, lm2
+      Integer :: ir, l2, m2, lm2
   ! square root of two
       Real (8), Parameter :: sqtwo = 1.4142135623730950488d0
       Real (8) :: t1, t2, t3, t4, t5
@@ -62,7 +60,6 @@ Subroutine gradzfmtr (lmax, nr, r, l1, m1, ld1, ld2, fmt, gfmt)
       Do ir = 1, nr
          gfmt (:, ir, :) = 0.d0
       End Do
-      lm1 = idxlm (l1, m1)
   ! compute the radial derivatives
       f (1:nr) = fmt (1:nr)
       Call fderiv (1, nr, r, f, g1, cf)

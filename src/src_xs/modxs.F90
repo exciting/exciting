@@ -545,15 +545,6 @@ Module modxs
       Real (8) :: cmt0, cmt1, cmt2, cmt3, cmt4
       Real (8) :: cpumtaa, cpumtalo, cpumtloa, cpumtlolo
 !
-  !-----------------------------!
-  !     numerical constants     !
-  !-----------------------------!
-  ! Kronecker delta
-      Integer, Parameter :: krondelta (3, 3) = reshape ( (/ 1, 0, 0, 0, &
-     & 1, 0, 0, 0, 1 /), (/ 3, 3 /))
-  ! conversion from hartree to electron volt
-      Real (8), Parameter :: h2ev = 27.2114d0
-!
   !---------------------------------!
   !     miscellaneous variables     !
   !---------------------------------!

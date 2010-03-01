@@ -6,11 +6,12 @@
 ! See the file COPYING for license details.
 !
 !
-Subroutine readdyn (dynq)
+Subroutine readdyn (tsym,dynq)
       Use modmain
       Use modinput
       Implicit None
 ! arguments
+      logical, intent(in) :: tsym
       Complex (8), Intent (Out) :: dynq (3*natmtot, 3*natmtot, nqpt)
 ! local variables
       Logical :: exist
@@ -54,7 +55,7 @@ Subroutine readdyn (dynq)
             End Do
          End Do
 ! symmetrise the dynamical matrix
-         Call dynsym (vql(:, iq), dynq(:, :, iq))
+         if (tsym) Call dynsym (vql(:, iq), dynq(:, :, iq))
 ! end loop over q-vectors
       End Do
       Return

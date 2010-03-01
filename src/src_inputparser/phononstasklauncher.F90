@@ -1,0 +1,51 @@
+! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+! main routine for the EXCITING code
+!
+Subroutine phononstasklauncher
+      Use modinput
+      Use modmain, Only: task
+      Use inputdom
+!
+      Implicit None
+      character(512) :: part
+      integer :: i
+
+      If (associated(input%phonons%parts)) then
+       Do i = 1, size (input%phonons%parts%dopartarray)
+         part = trim(adjustl(input%phonons%parts%dopartarray(i)%dopart%id))
+         write(*,'("Info(phononstasklauncher): executing part Nr. ",i6," : ",a)') i, trim(part)
+         Select Case (trim(part))
+         Case ('reformat_dynamical_matrices')
+            task=200
+            call reformatdynamicalmatrices()
+         case ('debug')
+            task=200
+            call phonondebug()
+         case default
+            Write (*,*)
+            Write (*,*) 'Error(phononstasklauncher): id not defined: ', trim(part)
+            Write (*,*)
+            stop
+         end select
+       end do
+      else
+        task=200
+        ! task 201 is only a dry-run and will not be considered here
+        If (input%phonons%do .Ne. "skip") Call phonon
+        if (associated(input%phonons%phonondos)) then
+        	task=210
+        	call phdos
+        end if
+        if (associated(input%phonons%phonondispplot)) then
+        	task=220
+        	call phdisp
+        end if
+        if (associated(input%phonons%qpointset)) then
+        	task=230
+        	call writephn
+        end if
+      end if
+
+End Subroutine

@@ -27,7 +27,7 @@ Subroutine writephn
       Allocate (dynp(n, n))
       Allocate (dynr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
 ! read in the dynamical matrices
-      Call readdyn (dynq)
+      Call readdyn (.true.,dynq)
 ! apply the acoustic sum rule
       Call sumrule (dynq)
 ! Fourier transform the dynamical matrices to real-space

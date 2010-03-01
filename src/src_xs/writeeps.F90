@@ -24,7 +24,7 @@ Contains
          Character (*), Intent (In) :: fn
     ! local variables
          Type (xmlf_t), Save :: xf
-         Character (256) :: buffer, buffer2
+         Character (256) :: buffer
          Character (*), Parameter :: thisnam = 'writeeps'
          Integer :: n1 (1), n, iw
          Real (8), Allocatable :: imeps (:), kkeps (:)

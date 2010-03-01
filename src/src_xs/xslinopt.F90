@@ -34,18 +34,14 @@ Subroutine xslinopt (iq)
       Real (8), Allocatable :: wplot (:), loss (:)
       Real (8), Allocatable :: eps1 (:), eps2 (:), cf (:, :)
       Real (8) :: sumrls (3), brd
-      Integer :: n, m, recl, iw, wi, wf, nwdfp, nc, oct1, oct2, octl, &
-     & octu, optcompt (3), i, j
+      Integer :: n, m, recl, iw, nc, oct1, oct2, octl, &
+     & octu, optcompt (3)
       Logical :: tq0
       Logical, External :: tqgamma
       tq0 = tqgamma (iq)
   ! number of components (3 for q=0)
       nc = 1
       If (tq0) nc = 3
-  ! limits for w-points
-      wi = wpari
-      wf = wparf
-      nwdfp = wparf - wpari + 1
   ! matrix size for local field effects
       n = ngq (iq)
       Allocate (mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), &

@@ -28,7 +28,7 @@ Contains
     ! local variables
          Character (*), Parameter :: thisnam = 'writeloss'
          Type (xmlf_t), Save :: xf
-         Character (256) :: buffer, buffer2
+         Character (256) :: buffer
          Integer :: n1 (1), n, iw, igmt
          If (any(shape(w) .Ne. shape(loss))) Then
             Write (unitout, '(a)') 'Error(' // thisnam // '): input arr&

@@ -4,7 +4,7 @@
 ! See the file COPYING for license details.
 !
 Subroutine putscreen (un, tq0, n, chi0, chi0h, chi0w)
-      Use modxs, Only: krondelta
+      Use mod_constants, Only: krondelta
       Implicit None
   ! input parameters
       Logical, Intent (In) :: tq0

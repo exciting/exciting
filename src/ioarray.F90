@@ -76,7 +76,7 @@ Contains
          Integer :: npr, unt, ndim
          Integer :: i1, i2, i3, i4, i5, i6, i7
          Integer :: j1, j2, j3, j4, j5, j6, j7
-         Integer :: sh (7), lb (7), ub (7)
+         Integer :: lb (7), ub (7)
          Character (1) :: iot
          Character (fmtlen) :: frmt, str
          Logical :: tpr (28), twrite, tparent, tfmtidx
@@ -149,7 +149,6 @@ Contains
        !---------------------!
             Select Case (iot)
             Case ('l')
-               sh (1:1) = shape (arr1dl)
                lb (1:1) = lbound (arr1dl)
                ub (1:1) = ubound (arr1dl)
                str = '(' // fmtdi // ', ' // trim (frmt) // ')'
@@ -165,7 +164,6 @@ Contains
                   End If
                End Do
             Case ('i')
-               sh (1:1) = shape (arr1di)
                lb (1:1) = lbound (arr1di)
                ub (1:1) = ubound (arr1di)
                str = '(' // fmtdi // ', ' // trim (frmt) // ')'
@@ -181,7 +179,6 @@ Contains
                   End If
                End Do
             Case ('r')
-               sh (1:1) = shape (arr1dr)
                lb (1:1) = lbound (arr1dr)
                ub (1:1) = ubound (arr1dr)
                str = '(' // fmtdi // ', " ", ' // trim (frmt) // ')'
@@ -197,7 +194,6 @@ Contains
                   End If
                End Do
             Case ('c')
-               sh (1:1) = shape (arr1dc)
                lb (1:1) = lbound (arr1dc)
                ub (1:1) = ubound (arr1dc)
                str = '(' // fmtdi // ', " ", ' // trim (frmt) // ', " "&
@@ -226,7 +222,6 @@ Contains
        !----------------------!
             Select Case (iot)
             Case ('l')
-               sh (1:2) = shape (arr2dl)
                lb (1:2) = lbound (arr2dl)
                ub (1:2) = ubound (arr2dl)
                str = '(2' // fmtdi // ', ' // trim (frmt) // ')'
@@ -244,7 +239,6 @@ Contains
                   End Do
                End Do
             Case ('i')
-               sh (1:2) = shape (arr2di)
                lb (1:2) = lbound (arr2di)
                ub (1:2) = ubound (arr2di)
                str = '(2' // fmtdi // ', ' // trim (frmt) // ')'
@@ -262,7 +256,6 @@ Contains
                   End Do
                End Do
             Case ('r')
-               sh (1:2) = shape (arr2dr)
                lb (1:2) = lbound (arr2dr)
                ub (1:2) = ubound (arr2dr)
                str = '(2' // fmtdi // ', " ", ' // trim (frmt) // ')'
@@ -280,7 +273,6 @@ Contains
                   End Do
                End Do
             Case ('c')
-               sh (1:2) = shape (arr2dc)
                lb (1:2) = lbound (arr2dc)
                ub (1:2) = ubound (arr2dc)
                str = '(2' // fmtdi // ', " ", ' // trim (frmt) // ', " &
@@ -316,7 +308,6 @@ Contains
        !----------------------!
             Select Case (iot)
             Case ('l')
-               sh (1:3) = shape (arr3dl)
                lb (1:3) = lbound (arr3dl)
                ub (1:3) = ubound (arr3dl)
                str = '(3' // fmtdi // ', ' // trim (frmt) // ')'
@@ -337,7 +328,6 @@ Contains
                   End Do
                End Do
             Case ('i')
-               sh (1:3) = shape (arr3di)
                lb (1:3) = lbound (arr3di)
                ub (1:3) = ubound (arr3di)
                str = '(3' // fmtdi // ', ' // trim (frmt) // ')'
@@ -358,7 +348,6 @@ Contains
                   End Do
                End Do
             Case ('r')
-               sh (1:3) = shape (arr3dr)
                lb (1:3) = lbound (arr3dr)
                ub (1:3) = ubound (arr3dr)
                str = '(3' // fmtdi // ', " ", ' // trim (frmt) // ')'
@@ -379,7 +368,6 @@ Contains
                   End Do
                End Do
             Case ('c')
-               sh (1:3) = shape (arr3dc)
                lb (1:3) = lbound (arr3dc)
                ub (1:3) = ubound (arr3dc)
                str = '(3' // fmtdi // ', " ", ' // trim (frmt) // ', " &
@@ -413,7 +401,6 @@ Contains
        !----------------------!
             Select Case (iot)
             Case ('l')
-               sh (1:4) = shape (arr4dl)
                lb (1:4) = lbound (arr4dl)
                ub (1:4) = ubound (arr4dl)
                str = '(4' // fmtdi // ', ' // trim (frmt) // ')'
@@ -436,7 +423,6 @@ Contains
                   End Do
                End Do
             Case ('i')
-               sh (1:4) = shape (arr4di)
                lb (1:4) = lbound (arr4di)
                ub (1:4) = ubound (arr4di)
                str = '(4' // fmtdi // ', ' // trim (frmt) // ')'
@@ -459,7 +445,6 @@ Contains
                   End Do
                End Do
             Case ('r')
-               sh (1:4) = shape (arr4dr)
                lb (1:4) = lbound (arr4dr)
                ub (1:4) = ubound (arr4dr)
                str = '(4' // fmtdi // ', " ", ' // trim (frmt) // ')'
@@ -482,7 +467,6 @@ Contains
                   End Do
                End Do
             Case ('c')
-               sh (1:4) = shape (arr4dc)
                lb (1:4) = lbound (arr4dc)
                ub (1:4) = ubound (arr4dc)
                str = '(4' // fmtdi // ', " ", ' // trim (frmt) // ', " &
@@ -518,7 +502,6 @@ Contains
        !----------------------!
             Select Case (iot)
             Case ('l')
-               sh (1:5) = shape (arr5dl)
                lb (1:5) = lbound (arr5dl)
                ub (1:5) = ubound (arr5dl)
                str = '(5' // fmtdi // ', ' // trim (frmt) // ')'
@@ -544,7 +527,6 @@ Contains
                   End Do
                End Do
             Case ('i')
-               sh (1:5) = shape (arr5di)
                lb (1:5) = lbound (arr5di)
                ub (1:5) = ubound (arr5di)
                If (tfmtidx) str = '(' // fmtidx // ', ' // trim (frmt) &
@@ -570,7 +552,6 @@ Contains
                   End Do
                End Do
             Case ('r')
-               sh (1:5) = shape (arr5dr)
                lb (1:5) = lbound (arr5dr)
                ub (1:5) = ubound (arr5dr)
                str = '(5' // fmtdi // ', " ", ' // trim (frmt) // ')'
@@ -596,7 +577,6 @@ Contains
                   End Do
                End Do
             Case ('c')
-               sh (1:5) = shape (arr5dc)
                lb (1:5) = lbound (arr5dc)
                ub (1:5) = ubound (arr5dc)
                str = '(5' // fmtdi // ', " ", ' // trim (frmt) // ', " &
@@ -635,7 +615,6 @@ Contains
        !----------------------!
             Select Case (iot)
             Case ('l')
-               sh (1:6) = shape (arr6dl)
                lb (1:6) = lbound (arr6dl)
                ub (1:6) = ubound (arr6dl)
                str = '(6' // fmtdi // ', ' // trim (frmt) // ')'
@@ -665,7 +644,6 @@ Contains
                   End Do
                End Do
             Case ('i')
-               sh (1:6) = shape (arr6di)
                lb (1:6) = lbound (arr6di)
                ub (1:6) = ubound (arr6di)
                str = '(6' // fmtdi // ', ' // trim (frmt) // ')'
@@ -695,7 +673,6 @@ Contains
                   End Do
                End Do
             Case ('r')
-               sh (1:6) = shape (arr6dr)
                lb (1:6) = lbound (arr6dr)
                ub (1:6) = ubound (arr6dr)
                str = '(6' // fmtdi // ', " ", ' // trim (frmt) // ')'
@@ -725,7 +702,6 @@ Contains
                   End Do
                End Do
             Case ('c')
-               sh (1:6) = shape (arr6dc)
                lb (1:6) = lbound (arr6dc)
                ub (1:6) = ubound (arr6dc)
                str = '(6' // fmtdi // ', " ", ' // trim (frmt) // ', " &
@@ -768,7 +744,6 @@ Contains
        !----------------------!
             Select Case (iot)
             Case ('l')
-               sh (1:7) = shape (arr7dl)
                lb (1:7) = lbound (arr7dl)
                ub (1:7) = ubound (arr7dl)
                str = '(7' // fmtdi // ', ' // trim (frmt) // ')'
@@ -800,7 +775,6 @@ Contains
                   End Do
                End Do
             Case ('i')
-               sh (1:7) = shape (arr7di)
                lb (1:7) = lbound (arr7di)
                ub (1:7) = ubound (arr7di)
                str = '(7' // fmtdi // ', ' // trim (frmt) // ')'
@@ -832,7 +806,6 @@ Contains
                   End Do
                End Do
             Case ('r')
-               sh (1:7) = shape (arr7dr)
                lb (1:7) = lbound (arr7dr)
                ub (1:7) = ubound (arr7dr)
                str = '(7' // fmtdi // ', " ", ' // trim (frmt) // ')'
@@ -864,7 +837,6 @@ Contains
                   End Do
                End Do
             Case ('c')
-               sh (1:7) = shape (arr7dc)
                lb (1:7) = lbound (arr7dc)
                ub (1:7) = ubound (arr7dc)
                str = '(7' // fmtdi // ', " ", ' // trim (frmt) // ', " &
@@ -908,6 +880,7 @@ Contains
 !
   ! determine IO (read/write) action
       Logical Function ioaction (ioa)
+         implicit none
          Character (*), Intent (In) :: ioa
          Select Case (trim(adjustl(ioa)))
          Case ('r', 'R', 'read', 'Read', 'READ')

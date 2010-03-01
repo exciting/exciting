@@ -6,7 +6,7 @@
 subroutine deldynmat
 		use modmain
         implicit none
-        integer :: ip,is,ia,iq,fnum
+        integer :: ip,is,ia,iq
         logical :: exist
         Do ip = 1, 3
          Do is = 1, nspecies
@@ -15,8 +15,8 @@ subroutine deldynmat
                   Call phfext (iq, is, ia, ip, filext)
                   Inquire (File='DYN'//trim(filext), Exist=Exist)
                   If ( exist) Then
-                     Open (fnum, File='DYN'//trim(filext))
-                     close(fnum, status='delete')
+                     Open (50, File='DYN'//trim(filext))
+                     close(50, status='delete')
                   End If
                End Do
             End Do

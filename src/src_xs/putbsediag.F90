@@ -9,6 +9,7 @@
 Subroutine putbsediag (fname)
       Use modxs
       Use m_getunit
+      use mod_constants, only: h2ev
       Implicit None
   ! arguments
       Character (*), Intent (In) :: fname

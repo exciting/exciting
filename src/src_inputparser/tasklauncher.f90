@@ -37,21 +37,7 @@ Subroutine tasklauncher
       End If
 !
       If (associated(input%phonons)) Then
-         task=200
-         ! task 201 is only a dry-run
-         If (input%phonons%do .Ne. "skip") Call phonon
-         if (associated(input%phonons%phonondos)) then
-         	task=210
-         	call phdos
-         end if
-         if (associated(input%phonons%phonondispplot)) then
-         	task=220
-         	call phdisp
-         end if
-         if (associated(input%phonons%qpointset)) then
-         	task=230
-         	call writephn
-         end if
+         call phononstasklauncher()
       End If
 !
       If (associated(input%xs)) Then
