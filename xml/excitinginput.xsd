@@ -17,23 +17,29 @@
  </xs:simpleType>
  <xs:annotation>
   <xs:documentation>This input reference lists the elements and attributes available to define an input for an <exciting>exciting</exciting> calculation. The input file is named <pre>input.xml</pre> 
-  it must be a valid XML file and  it must contain the root element <pre>input</pre>.
-  <p>
-  
-  Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units. In this system
-         <inlinemath>\hbar=1</inlinemath>
-         , the electron mass
-         <inlinemath>m=1</inlinemath>
-         , the Bohr radius
-         <inlinemath>a_0=1</inlinemath>
-         and the electron charge
-         <inlinemath>e=1</inlinemath>
-         (note that the electron charge is positive, so that the atomic numbers
-         <inlinemath>Z</inlinemath>
-         are negative). Thus, the atomic unit of length is 0.52917720859(36) <inlinemath>{\buildrel _{\circ} \over {\mathrm{A}}}</inlinemath>, and the atomic unit of energy is the Hartree which equals 27.21138386(68) eV.
-         The unit of the external magnetic fields is defined such that one unit of magnetic field 
-         equals 1717.2445320376 Tesla.
-         </p>
+  it must be a valid XML file and  it must contain the root element {\tt input}.
+Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units  
+  (<inlinemath>\hbar = m_{e} = e = 1</inlinemath>):
+
+  <list>
+  <li> Energies are given in Hartree:
+    <p> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 <inlinemath>10^{-18}</inlinemath>\ J
+    </p>
+  </li>
+  <li> Lengths are given in Bohr: 
+    <p> 1 <inlinemath>a_{\rm Bohr}</inlinemath>\ = 0.52917720859(36) <inlinemath>{\buildrel _{\circ} \over {\mathrm{A}}}</inlinemath>\ = 0.52917720859(36) <inlinemath>10^{-10}</inlinemath>\ m</p>
+  </li>
+  <li> Magnetic fields are given in units of 
+    <p> 1 a.u. = <inlinemath>\displaystyle\frac{e}{a_{\rm Bohr}^2}</inlinemath>\ = 1717.2445320376 Tesla.
+    </p>
+  </li>
+
+  </list>
+    <p> \noindent Note: The electron charge is positive, so that the atomic numbers <inlinemath>Z</inlinemath>\ are negative.
+    </p> 
+
+         
+         
   </xs:documentation>
   <xs:appinfo>
    <title>\<exciting>exciting</exciting> input reference</title>
