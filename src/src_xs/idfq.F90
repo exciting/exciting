@@ -30,7 +30,7 @@ Subroutine idfq (iq)
      & mdf1 (:), w (:)
       Complex (8), Allocatable :: chi0hd (:), chi0wg (:, :, :), chi0h &
      & (:, :)
-      Integer :: n, m, recl, j, iw, wi, wf, nwdfp, nc, oct1, oct2, &
+      Integer :: n, m, recl, j, iw, wi, wf, nc, oct1, oct2, &
      & octl, octu, igmt
       Logical :: tq0
       Integer, External :: l2int
@@ -46,7 +46,6 @@ Subroutine idfq (iq)
   ! limits for w-points
       wi = wpari
       wf = wparf
-      nwdfp = wparf - wpari + 1
   ! matrix size for local field effects
       n = ngq (iq)
       Allocate (chi0(n, n), fxc(n, n), idf(n, n), w(nwdf), mdf1(nwdf), &

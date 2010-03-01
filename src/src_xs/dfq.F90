@@ -94,7 +94,7 @@ Subroutine dfq (iq)
       Integer, Intent (In) :: iq
   ! local variables
       Character (*), Parameter :: thisnam = 'dfq'
-      Character (256) :: fnscreen, stri
+      Character (256) :: fnscreen
       Real (8), Parameter :: epstetra = 1.d-8
       Complex (8), Allocatable :: w (:)
       Complex (8), Allocatable :: chi0 (:, :, :), hdg (:, :, :)
@@ -121,10 +121,8 @@ Subroutine dfq (iq)
          Write (*,*)
          Call terminate
       End If
-      stri = ''
       tfxcbse = ((input%xs%tddft%fxctypenumber .Eq. 7) .Or. &
      & (input%xs%tddft%fxctypenumber .Eq. 8)) .And. ( .Not. tscreen)
-      If (tfxcbse) stri = '_FXCBSE.OUT'
   ! sampling of Brillouin zone
       bzsampl = 0
       If (input%xs%tetra%tetradf) bzsampl = 1

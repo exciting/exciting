@@ -23,7 +23,7 @@ Subroutine writegeometryxml (topt)
       Implicit None
       Logical, Intent (In) :: topt
 ! local variables
-      Integer :: is, ia, ip, i
+      Integer :: is, ia, i
       Character (128) :: buffer
       Type (xmlf_t), Save :: xf
       If (topt) Then
