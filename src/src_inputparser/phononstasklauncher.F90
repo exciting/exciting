@@ -20,6 +20,9 @@ Subroutine phononstasklauncher
          Case ('reformat_dynamical_matrices')
             task=200
             call reformatdynamicalmatrices()
+         case ('debug')
+            task=200
+            call phonondebug()
          case default
             Write (*,*)
             Write (*,*) 'Error(phononstasklauncher): id not defined: ', trim(part)

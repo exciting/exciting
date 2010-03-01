@@ -21,9 +21,8 @@
 
 	<phonons do="fromscratch" ngridq="2 2 2">
 	  <parts>
-      <dopart id="id0"/>
-      <dopart id="id1"/>
-	    <dopart id="reformat_dynamical_matrices"/>
+	    <!-- dopart id="reformat_dynamical_matrices"/ -->
+	    <dopart id="debug"/>
 	  </parts>
 		<qpointset>
 			<qpoint>0.0 0.0 0.0</qpoint>
