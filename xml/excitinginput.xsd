@@ -23,19 +23,21 @@ Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic un
 
   <list>
   <li> Energies are given in Hartree:
-    <p> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 <inlinemath>10^{-18}</inlinemath>\ J
-    </p>
+    <displaymath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\  J</displaymath>
+    
   </li>
   <li> Lengths are given in Bohr: 
-    <p> 1 <inlinemath>a_{\rm Bohr}</inlinemath>\ = 0.52917720859(36) <inlinemath>{\buildrel _{\circ} \over {\mathrm{A}}}</inlinemath>\ = 0.52917720859(36) <inlinemath>10^{-10}</inlinemath>\ m</p>
+     <displaymath>  1 a_{\rm Bohr}\  = 0.52917720859(36)  {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36)  10^{-10} \ m</displaymath>
+     
   </li>
   <li> Magnetic fields are given in units of 
-    <p> 1 a.u. = <inlinemath>\displaystyle\frac{e}{a_{\rm Bohr}^2}</inlinemath>\ = 1717.2445320376 Tesla.
-    </p>
+      <displaymath>  1 a.u. =  \displaystyle\frac{e}{a_{\rm Bohr}^2}\    = 1717.2445320376\ Tesla.
+    </displaymath>
+    
   </li>
 
   </list>
-    <p> \noindent Note: The electron charge is positive, so that the atomic numbers <inlinemath>Z</inlinemath>\ are negative.
+    <p> Note: The electron charge is positive, so that the atomic numbers <inlinemath>Z\ </inlinemath> are negative.
     </p> 
 
          
