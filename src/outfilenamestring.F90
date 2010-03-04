@@ -1,3 +1,8 @@
+
+! Copyright (C) 2005-2010 C. Meisenbichler, S. Sagmeister and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
 !
 !
 ! function to compose filename for parallel execution
@@ -22,18 +27,14 @@ Character (256) Function outfilenamestring (filetag, ik)
       outfilenamestring = ''
 #ifdef MPI
 !
-!<sag>
-      If ((task .Eq. 0) .Or. (task .Eq. 1)) Then
-!</sag>
+      If ((task .Eq. 0) .Or. (task .Eq. 1)) Then !sag: what about structure optimization, take care of tasks 3,4,???
          If ((procs .Gt. 1) .And. splittfile) Then
             Write (tmp, '(I5)') firstk (procofk(ik))
             Write (tmp2, '(I5)') lastk (procofk(ik))
             krange = trim (adjustl(tmp)) // '-' // trim (adjustl(tmp2))
             scrpathtmp = scrpath
          End If
-!<sag>
       End If
-!</sag>
 #endif
       outfilenamestring = trim (scrpathtmp) // trim (filetag) // trim &
      & (krange) // trim (filext)
