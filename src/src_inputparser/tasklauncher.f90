@@ -1,8 +1,8 @@
-! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+
+! Copyright (C) 2009-2010 C. Meisenbichler, S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-! main routine for the EXCITING code
-!
+
 Subroutine tasklauncher
       Use modinput
       Use modmain, Only: task

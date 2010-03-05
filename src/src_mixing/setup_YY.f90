@@ -1,7 +1,8 @@
-!
-!
-!
-!
+
+! Copyright (C) 2005-2010 C. Meisenbichler and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU Lesser General Public
+! License. See the file COPYING for license details.
+
 Subroutine setup_YY (iscl, n, S, Y, YY)
       Use modmixermsec, Only: noldstepsmax, PWHIST, FHIST, CLMHIST, &
      & YHIST, qmx, RedPred, RedOld, PM1, qmx_input, noldsteps, MUSE, &

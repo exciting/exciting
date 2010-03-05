@@ -1,7 +1,8 @@
-!
-!
-!
-!
+
+! Copyright (C) 2005-2010 C. Meisenbichler and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU Lesser General Public
+! License. See the file COPYING for license details.
+
 Subroutine write_current_to_broyden_file (n, iscl, potential, residual)
       Use modmixermsec, Only: record_of_last_iter, noldstepsmax, &
      & noldstepsin_file

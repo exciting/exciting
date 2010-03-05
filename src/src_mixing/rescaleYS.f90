@@ -1,7 +1,8 @@
-!
-!
-!
-!
+
+! Copyright (C) 2005-2010 C. Meisenbichler and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU Lesser General Public
+! License. See the file COPYING for license details.
+
 Subroutine rescaleYS (noldsteps, n, S, Y, potential, residual)
       Use modmixermsec, Only: noldstepsmax, PWHIST, FHIST, CLMHIST, &
      & yhist, FHIST, icond, scl_plane, MSECINFO
