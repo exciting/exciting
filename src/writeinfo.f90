@@ -1,10 +1,8 @@
-!
-!
-!
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 !BOP
 ! !ROUTINE: writeinfo
 ! !INTERFACE:
@@ -33,6 +31,9 @@ Subroutine writeinfo (fnum)
 ! local variables
       Integer :: i, is, ia
 #include "version.inc"
+#ifdef TETRA
+      logical :: tetocc
+#endif
       Character (10) :: dat, tim
       Write (fnum, '(" +-----------------------------------+")')
       Write (fnum, '(" | EXCITING hydrogen",I2,".",I2,".",I2," started &
@@ -246,13 +247,13 @@ Subroutine writeinfo (fnum)
       Write (fnum, '("Total number of G-vectors : ", I8)') ngvec
       Write (fnum,*)
       Write (fnum, '("Maximum angular momentum used for")')
-      Write (fnum, '(" APW functions			  : ", I4)') &
+      Write (fnum, '(" APW functions                     : ", I4)') &
      & input%groundstate%lmaxapw
       Write (fnum, '(" computing H and O matrix elements : ", I4)') &
      & input%groundstate%lmaxmat
-      Write (fnum, '(" potential and density		  : ", I4)') &
+      Write (fnum, '(" potential and density             : ", I4)') &
      & input%groundstate%lmaxvr
-      Write (fnum, '(" inner part of muffin-tin	  : ", I4)') &
+      Write (fnum, '(" inner part of muffin-tin          : ", I4)') &
      & input%groundstate%lmaxinr
       Write (fnum,*)
       Write (fnum, '("Total nuclear charge    : ", G18.10)') chgzn
@@ -328,22 +329,24 @@ Subroutine writeinfo (fnum)
       End If
       Write (fnum,*)
       Write (fnum, '("Smearing scheme :")')
-#ifdef XS
+#ifdef TETRA
+      tetocc=.false.
       If (associated(input%xs)) Then
          If (associated(input%xs%tetra)) Then
-            If ( .Not. input%xs%tetra%tetraocc) Then
+            tetocc=input%xs%tetra%tetraocc
+         end if
+      end if
+      If ( .Not. tetocc) Then
 #endif
-               Write (fnum, '(" ", A)') trim (sdescr)
-               Write (fnum, '("Smearing width : ", G18.10)') &
-              & input%groundstate%swidth
-#ifdef XS
-            Else
-               Write (fnum, '(" ", A)') 'No smearing - using the linear&
-              & tetrahedron method'
-               Write (fnum, '(" ", A)') 'for occupation numbers and Fer&
-              &mi energy'
-            End If
-         End If
+         Write (fnum, '(" ", A)') trim (sdescr)
+         Write (fnum, '("Smearing width : ", G18.10)') &
+          & input%groundstate%swidth
+#ifdef TETRA
+      Else
+         Write (fnum, '(" ", A)') 'No smearing - using the linear&
+         & tetrahedron method'
+         Write (fnum, '(" ", A)') 'for occupation numbers and Fer&
+         &mi energy'
       End If
 #endif
       Write (fnum,*)
