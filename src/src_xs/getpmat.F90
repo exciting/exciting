@@ -20,8 +20,8 @@ Contains
     ! arguments
          Integer, Intent (In) :: ik, i1, f1, i2, f2
          Real (8), Intent (In) :: vklt (:, :)
-         Logical :: tarec
-         Character (*) :: filnam
+         Logical, intent(in) :: tarec
+         Character (*), intent(in) :: filnam
          Complex (8), Intent (Out) :: pm (:, :, :)
     ! local variables
          Character (*), Parameter :: thisnam = 'getpmat'

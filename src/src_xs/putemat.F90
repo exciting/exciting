@@ -19,7 +19,7 @@ Contains
          Implicit None
     ! arguments
          Integer, Intent (In) :: iq, ik
-         Logical :: tarec
+         Logical, Intent (In) :: tarec
          Character (*), Intent (In) :: filnam
          Integer, Intent (In) :: l1, h1, l2, h2
          Complex (8), Intent (In) :: x12 (:, :, :)

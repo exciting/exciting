@@ -295,8 +295,8 @@ Subroutine bse
      ! read momentum matrix elements
          Allocate (pm(3, nstsv, nstsv))
          Do iknr = 1, nkptnr
-            Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., 'PMAT_&
-           &XS.OUT', pm)
+            Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., 'PMAT_XS.OUT',&
+            & pm)
             Do ist1 = 1 + nvdif, nstsv - nstunocc0
                Do ist2 = nstocc0 + 1, nstsv - ncdif
                   s1 = hamidx (ist1-nvdif, ist2-nstocc0, iknr, nbfbse, &
