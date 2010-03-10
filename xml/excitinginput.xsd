@@ -1,4 +1,4 @@
-<xs:schema xmlns:ex="inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
  <!--
   This schema defines the input file format. It should be the central place for parameter and task specification and documentation
  --> 
@@ -299,75 +299,75 @@ Example:  <pre>
                    </xs:documentation>
                                     </xs:annotation>
                                     <xs:sequence>
-                                        <xs:element ex:importance="expert" ex:unit="" name="lattice" maxOccurs="1" minOccurs="1">
+                                        <xs:element ex:importance="spacegroup" ex:unit="" name="lattice" maxOccurs="1" minOccurs="1">
                                             <xs:annotation>
                                                 <xs:documentation>The lattice element defines lattice from a,b,c, and angles.</xs:documentation>
                                             </xs:annotation>
                                             <xs:complexType>
-                                                <xs:attribute ex:importance="expert" ex:unit="Bohr" name="a" type="fortrandouble" use="required">
+                                                <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="a" type="fortrandouble" use="required">
                                                     <xs:annotation>
                                                         <xs:appinfo>
                                                             <oldname>noreplace</oldname>
                                                         </xs:appinfo>
                                                     </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute ex:importance="expert" ex:unit="Bohr" name="b" type="fortrandouble" use="required">
+                                                <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="b" type="fortrandouble" use="required">
                                                     <xs:annotation>
                                                         <xs:appinfo>
                                                             <oldname>noreplace</oldname>
                                                         </xs:appinfo>
                                                     </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute ex:importance="expert" ex:unit="Bohr" name="c" type="fortrandouble" use="required">
+                                                <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="c" type="fortrandouble" use="required">
                                                     <xs:annotation>
                                                         <xs:appinfo>
                                                             <oldname>noreplace</oldname>
                                                         </xs:appinfo>
                                                     </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute ex:importance="expert" ex:unit="Degree" name="ab" type="fortrandouble" use="required"/>
-                                                <xs:attribute ex:importance="expert" ex:unit="Degree" name="ac" type="fortrandouble" use="required"/>
-                                                <xs:attribute ex:importance="expert" ex:unit="Degree" name="bc" type="fortrandouble" use="required"/>
-                                                <xs:attribute ex:importance="expert" ex:unit="" name="ncell" type="integertriple" use="optional" default="1 1 1">
+                                                <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="ab" type="fortrandouble" use="required"/>
+                                                <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="ac" type="fortrandouble" use="required"/>
+                                                <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="bc" type="fortrandouble" use="required"/>
+                                                <xs:attribute ex:importance="spacegroup" ex:unit="" name="ncell" type="integertriple" use="optional" default="1 1 1">
                                                     <xs:annotation>
                                                         <xs:documentation>Number of repeated cells in each direction.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
                                             </xs:complexType>
                                         </xs:element>
-                                        <xs:element ex:importance="expert" ex:unit="" name="WyckoffPositions" maxOccurs="1" minOccurs="0">
+                                        <xs:element ex:importance="spacegroup" ex:unit="" name="WyckoffPositions" maxOccurs="1" minOccurs="0">
                                             <xs:complexType>
                                                 <xs:sequence>
-                                                    <xs:element ex:importance="expert" ex:unit="" name="wspecies" maxOccurs="unbounded" minOccurs="0">
+                                                    <xs:element ex:importance="spacegroup" ex:unit="" name="wspecies" maxOccurs="unbounded" minOccurs="0">
                                                         <xs:annotation>
                                                             <xs:documentation/>
                                                         </xs:annotation>
                                                         <xs:complexType>
                                                             <xs:sequence>
-                                                                <xs:element ex:importance="expert" ex:unit="" name="wpos" maxOccurs="unbounded" minOccurs="0">
+                                                                <xs:element ex:importance="spacegroup" ex:unit="" name="wpos" maxOccurs="unbounded" minOccurs="0">
                                                                     <xs:complexType>
-                                                                        <xs:attribute ex:importance="expert" ex:unit="" name="coord" type="vect3d"/>
+                                                                        <xs:attribute ex:importance="spacegroup" ex:unit="" name="coord" type="vect3d"/>
                                                                     </xs:complexType>
                                                                 </xs:element>
                                                             </xs:sequence>
-                                                            <xs:attribute ex:importance="expert" ex:unit="" name="speciesfile" type="xs:string"/>
+                                                            <xs:attribute ex:importance="spacegroup" ex:unit="" name="speciesfile" type="xs:string"/>
                                                         </xs:complexType>
                                                     </xs:element>
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
                                     </xs:sequence>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="HermannMauguinSymbol" type="xs:string" use="required">
+                                    <xs:attribute ex:importance="spacegroup" ex:unit="" name="HermannMauguinSymbol" type="xs:string" use="required">
                                         <xs:annotation>
-                                            <xs:documentation>Herman Mauguin sympol giving the spacegroup</xs:documentation>
+                                            <xs:documentation>Herman Mauguin symbol giving the spacegroup</xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>hrmg</oldname>
                                             </xs:appinfo>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="HallSymbol" type="xs:string"/>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="SchoenfliesSymbol" type="xs:string"/>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="spaceGroupNumber" type="xs:string"/>
+                                    <xs:attribute ex:importance="spacegroup" ex:unit="" name="HallSymbol" type="xs:string"/>
+                                    <xs:attribute ex:importance="spacegroup" ex:unit="" name="SchoenfliesSymbol" type="xs:string"/>
+                                    <xs:attribute ex:importance="spacegroup" ex:unit="" name="spaceGroupNumber" type="xs:string"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="essential" ex:unit="" name="crystal" minOccurs="1" maxOccurs="1">
