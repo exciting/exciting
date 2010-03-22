@@ -890,6 +890,11 @@ Example:  <pre>
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble" use="optional" default="1.0d-7">
+                                        <xs:annotation>
+                                            <xs:documentation>Energy convergence tolerance.</xs:documentation>
+                                        </xs:annotation>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d" default="0.25d0 0.95d0">
                             <xs:annotation>
                                 <xs:documentation>
@@ -971,6 +976,7 @@ Example:  <pre>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:enumeration value="simple"/>
+                                    <xs:enumeration value="Fermi"/>
                                     <xs:enumeration value="advanced"/>
                                 </xs:restriction>
                             </xs:simpleType>
@@ -1108,6 +1114,22 @@ Example:  <pre>
                  <inlinemath>E_{\rm b}</inlinemath>
                  cannot be found then the band energy is set to the default value.
                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsband" type="fortrandouble" default="1.0d-6">
+                            <xs:annotation>
+                                <xs:documentation>Energy tolerance for search of linearization energies.
+                                </xs:documentation>
+                                <xs:appinfo>
+                                    <oldname>none</oldname>
+                                    <olddefault default="1.0d-5"/>
+                                </xs:appinfo>                                
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="dlinenfermi" type="fortrandouble" default="-0.1d0">
+                            <xs:annotation>
+                                <xs:documentation>Energy difference between linearisation and Fermi energy.
+                                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-3">
@@ -1347,11 +1369,6 @@ Example:  <pre>
                                     </xs:enumeration>
                                 </xs:restriction>
                             </xs:simpleType>
-                        </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evalmin" type="fortrandouble" default="-4.5d0">
-                            <xs:annotation>
-                                <xs:documentation>Any valence states with eigenvalues below evalmin are not occupied and a warning message is issued.</xs:documentation>
-                            </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="lmaxvr" type="xs:integer" default="6">
                             <xs:annotation>
@@ -2246,8 +2263,8 @@ Example:  <pre>
                                         </xs:annotation>
                                         <xs:simpleType>
                                             <xs:restriction base="xs:string">
-                                                <xs:enumeration value="ip"/>
-                                                <xs:enumeration value="rpa"/>
+                                                <xs:enumeration value="IP"/>
+                                                <xs:enumeration value="RPA"/>
                                                 <xs:enumeration value="singlet"/>
                                                 <xs:enumeration value="triplet"/>
                                             </xs:restriction>

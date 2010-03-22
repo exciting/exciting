@@ -43,15 +43,6 @@ Subroutine setdefault
 !real(8) vacuum,v(3),t1,t2
       Character (256) :: bname
 !
-#ifdef XS
-      Character (256) :: fname
-      Logical, Parameter :: dumpmain = .True.
-      Logical, Parameter :: dumpadd = .True.
-      Logical, Parameter :: dumptetra = .True.
-      Logical, Parameter :: dumpmpiiter = .True.
-      Logical, Parameter :: dumpxs = .True.
-#endif
-!
 !------------------------!
 !     default values     !
 !------------------------!
@@ -156,7 +147,6 @@ Subroutine setdefault
 !usegdft=.false.
 !intraband=.false.
 !evaltol=1.d-8
-!evalmin=-4.5d0
 !deband=0.0025d0
 !bfieldc(:)=0.d0
 !fixspin=0
@@ -283,19 +273,6 @@ Subroutine setdefault
       nafce = - 1
       nbfbse = - 1
       nafbse = - 1
-! dump default parameters
-!
-!if (rank.eq.0 ) then
-!   fname='PARAMS_DEFAULT.OUT'
-!   if (dumpmain) call dumpparams(trim(fname),  'main parameters:', input%structure%speciespath, &
-!    &input%structure%crystal%scale, input%structure%crystal%stretch, input%structure%crystal%stretch, &
-!    &input%structure%crystal%stretch, input%structure%vacuum)
-!   if (dumpadd) call dumpparams_add(trim(fname),       '! additional parameters:')
-!   if (dumpmpiiter) call dumpparams_mpiiter(trim(fname),	'! MPI parallelization and iterative&
-!    &input%groundstate%solvernumber parameters:')
-!   if (dumptetra) call dumpparams_tetra(trim(fname),	     '! tetrahedron method parameters:')
-!   if (dumpxs) call dumpparams_xs(trim(fname),	       '! excited states parameters:')
-!end if
 #endif
 !
 End Subroutine

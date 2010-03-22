@@ -137,6 +137,7 @@ type groundstate_type
  integer::ngridk(3)
  real(8)::rgkmax
  real(8)::epspot
+ real(8)::epsengy
  real(8)::rmtapm(2)
  real(8)::swidth
  character(512)::stype
@@ -157,6 +158,8 @@ type groundstate_type
  integer::maxscl
  real(8)::chgexs
  real(8)::deband
+ real(8)::epsband
+ real(8)::dlinenfermi
  real(8)::epschg
  real(8)::epsocc
  character(512)::mixer
@@ -170,7 +173,6 @@ type groundstate_type
  integer::xctypenumber
  character(512)::ldapu
  integer::ldapunumber
- real(8)::evalmin
  integer::lmaxvr
  real(8)::fracinr
  integer::lmaxinr
@@ -1462,6 +1464,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"epsengy")
+getstructgroundstate%epsengy=1.0d-7
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"epsengy",getstructgroundstate%epsengy)
+       call removeAttribute(thisnode,"epsengy")      
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"rmtapm")
 getstructgroundstate%rmtapm=(/0.25d0,0.95d0/)
 if(associated(np)) then
@@ -1608,6 +1618,22 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"epsband")
+getstructgroundstate%epsband=1.0d-6
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"epsband",getstructgroundstate%epsband)
+       call removeAttribute(thisnode,"epsband")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"dlinenfermi")
+getstructgroundstate%dlinenfermi=-0.1d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"dlinenfermi",getstructgroundstate%dlinenfermi)
+       call removeAttribute(thisnode,"dlinenfermi")      
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"epschg")
 getstructgroundstate%epschg=1.0d-3
 if(associated(np)) then
@@ -1689,14 +1715,6 @@ if(associated(np)) then
        call removeAttribute(thisnode,"ldapu")      
 endif
 getstructgroundstate%ldapunumber=stringtonumberldapu(getstructgroundstate%ldapu)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"evalmin")
-getstructgroundstate%evalmin=-4.5d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"evalmin",getstructgroundstate%evalmin)
-       call removeAttribute(thisnode,"evalmin")      
-endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxvr")
@@ -4323,6 +4341,8 @@ end function
  select case(trim(adjustl(string)))
 case('simple')
  stringtonumberfindlinentype=-1
+case('Fermi')
+ stringtonumberfindlinentype=-1
 case('advanced')
  stringtonumberfindlinentype=-1
 case('')
@@ -4491,9 +4511,9 @@ end function
  integer function  stringtonumberbsetype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('ip')
+case('IP')
  stringtonumberbsetype=-1
-case('rpa')
+case('RPA')
  stringtonumberbsetype=-1
 case('singlet')
  stringtonumberbsetype=-1

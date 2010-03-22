@@ -15,9 +15,7 @@ Subroutine occupy
       Use modinput
       Use modmain
 #ifdef TETRAOCC_DOESNTWORK
-!<rga>
       Use modtetra
-!</rga>
 #endif
 ! !DESCRIPTION:
 !   Finds the Fermi energy and sets the occupation numbers for the
@@ -27,11 +25,13 @@ Subroutine occupy
 !   Created February 2004 (JKD)
 !   Modifiactions for tetrahedron method, November 2007 (RGA alias
 !     Ricardo Gomez-Abal)
+!   Modifications for tetrahedron method, 2007-2010 (Sagmeister)
 !EOP
 !BOC
       Implicit None
 ! local variables
       Integer, Parameter :: maxit = 1000
+      real(8), parameter :: de0=1.d0
       Integer :: ik, ist, it
       Real (8) :: e0, e1, chg, x, t1
 ! external functions
@@ -46,15 +46,14 @@ Subroutine occupy
             e1 = Max (e1, evalsv(ist, ik))
          End Do
       End Do
-      If (e0 .Lt. input%groundstate%evalmin) Then
+      If (e0-mine0 .lt. -de0) Then
          Write (*,*)
-         Write (*, '("Warning(occupy): valence eigenvalues below evalmi&
-        &n for s.c. loop ", I5)') iscl !"
+         Write (*, '("Warning(occupy): smallest valence eigenvalue less than&
+         &minimum linearization energy : ",2g18.10)') e0, mine0
+         write(*,'("for s.c. loop ", i5)') iscl
       End If
 #ifdef TETRAOCC_DOESNTWORK
-!<rga>
       If ( .Not. istetraocc()) Then
-!</rga>
 #endif
          t1 = 1.d0 / input%groundstate%swidth
 ! determine the Fermi energy using the bisection method
@@ -63,15 +62,10 @@ Subroutine occupy
             chg = 0.d0
             Do ik = 1, nkpt
                Do ist = 1, nstsv
-                  If (evalsv(ist, ik) .Gt. input%groundstate%evalmin) &
-                 & Then
-                     x = (efermi-evalsv(ist, ik)) * t1
-                     occsv (ist, ik) = occmax * stheta &
-                    & (input%groundstate%stypenumber, x)
-                     chg = chg + wkpt (ik) * occsv (ist, ik)
-                  Else
-                     occsv (ist, ik) = 0.d0
-                  End If
+                  x = (efermi-evalsv(ist, ik)) * t1
+                  occsv (ist, ik) = occmax * stheta &
+                   & (input%groundstate%stypenumber, x)
+                  chg = chg + wkpt (ik) * occsv (ist, ik)
                End Do
             End Do
             If (chg .Lt. chgval) Then
@@ -91,11 +85,9 @@ Subroutine occupy
          fermidos = 0.d0
          Do ik = 1, nkpt
             Do ist = 1, nstsv
-               If (evalsv(ist, ik) .Gt. input%groundstate%evalmin) Then
-                  x = (evalsv(ist, ik)-efermi) * t1
-                  fermidos = fermidos + wkpt (ik) * sdelta &
+               x = (evalsv(ist, ik)-efermi) * t1
+               fermidos = fermidos + wkpt (ik) * sdelta &
                  & (input%groundstate%stypenumber, x) * t1
-               End If
             End Do
             If (occsv(nstsv, ik) .Gt. input%groundstate%epsocc) Then
                Write (*,*)
@@ -105,7 +97,6 @@ Subroutine occupy
          End Do
          fermidos = fermidos * occmax
 #ifdef TETRAOCC_DOESNTWORK
-!<rga>
       Else
   ! calculate the Fermi energy and the density of states at the Fermi energy
          Call fermitetifc (nkpt, nstsv, evalsv, chgval, &
@@ -120,7 +111,6 @@ Subroutine occupy
             End Do
          End Do
       End If
-!</rga>
 #endif
       Return
 End Subroutine

@@ -29,6 +29,7 @@ Subroutine linengy
 ! automatic arrays
       Logical :: done (natmmax)
       Real (8) :: vr (nrmtmax)
+      logical :: tfnd
 ! begin loops over atoms and species
       Do is = 1, nspecies
          done (:) = .False.
@@ -56,9 +57,20 @@ Subroutine linengy
 ! find the band energy starting from default
                         apwe (io1, l, ias) = apwe0 (io1, l, is)
                         Call findband (input%groundstate%findlinentype, &
-                       & l, 0, input%groundstate%nprad, nrmt(is), &
-                       & spr(:, is), vr, input%groundstate%deband, &
-                       & apwe(io1, l, ias))
+                         & l, 0, input%groundstate%nprad, nrmt(is), &
+                         & spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
+                         & apwe(io1, l, ias),tfnd)
+                        if (.not.tfnd) then
+                          write(*,*)
+                          write(*,'("Warning(linengy): linearisation energy not found")')
+                          write(*,'(" for species ",I4," and atom ",I4)') is, ia
+                          write(*,'(" APW angular momentum ",I4)') l
+                          write(*,'(" order ",I4)') io1
+                          write(*,'(" and s.c. loop ",I5)') iscl
+                        end if
+                     else
+                       if (trim(input%groundstate%findlinentype).eq."Fermi") &
+                        apwe(io1,l,ias)=efermi + input%groundstate%dlinenfermi
                      End If
 10                   Continue
                   End Do
@@ -84,9 +96,20 @@ Subroutine linengy
 ! find the band energy starting from default
                         lorbe (io1, ilo, ias) = lorbe0 (io1, ilo, is)
                         Call findband (input%groundstate%findlinentype, &
-                       & l, 0, input%groundstate%nprad, nrmt(is), &
-                       & spr(:, is), vr, input%groundstate%deband, &
-                       & lorbe(io1, ilo, ias))
+                         & l, 0, input%groundstate%nprad, nrmt(is), &
+                         & spr(:, is), vr, input%groundstate%deband, input%groundstate%epsband, &
+                         & lorbe(io1, ilo, ias),tfnd)
+                        if (.not.tfnd) then
+                          write(*,*)
+                          write(*,'("Warning(linengy): linearisation energy not found")')
+                          write(*,'(" for species ",I4," and atom ",I4)') is, ia
+                          write(*,'(" local-orbital ",I4)') ilo
+                          write(*,'(" order ",I4)') io1
+                          write(*,'(" and s.c. loop",I5)') iscl
+                        end if
+                     else
+                       if (trim(input%groundstate%findlinentype).eq."Fermi") &
+                        lorbe(io1,ilo,ias)=efermi + input%groundstate%dlinenfermi
                      End If
 20                   Continue
                   End Do
