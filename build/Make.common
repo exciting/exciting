@@ -20,7 +20,6 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_timing/ \
 	../../src/src_sym/ \
 	../../src/ \
-	../../src/tools/
 	
 GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
 
