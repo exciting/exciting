@@ -1465,7 +1465,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"epsengy")
-getstructgroundstate%epsengy=1.0d-7
+getstructgroundstate%epsengy=1.0d-4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsengy",getstructgroundstate%epsengy)
        call removeAttribute(thisnode,"epsengy")      
@@ -1948,7 +1948,7 @@ allocate(getstructHartreeFock)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"epsengy")
-getstructHartreeFock%epsengy=1.0d-7
+getstructHartreeFock%epsengy=1.0d-4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsengy",getstructHartreeFock%epsengy)
        call removeAttribute(thisnode,"epsengy")      

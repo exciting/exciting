@@ -30,7 +30,7 @@ Subroutine gndstate
       Logical :: exist
       Integer :: ik, is, ia, idm
       Integer :: n, nwork
-      Real (8) :: timetot
+      Real (8) :: timetot, deltae, et
   ! allocatable arrays
       Real (8), Allocatable :: v (:)
 !
@@ -84,6 +84,8 @@ Subroutine gndstate
      ! open RMSDVEFF.OUT
          Open (65, File='RMSDVEFF'//trim(filext), Action='WRITE', &
         & Form='FORMATTED')
+     ! open DTOTENERGY.OUT
+         open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
      ! initialise or read the charge density and potentials from file
@@ -123,6 +125,7 @@ Subroutine gndstate
   ! set stop flag
       tstop = .False.
 10    Continue
+      et = 0.d0
   ! set last iteration flag
       tlast = .False.
   ! delete any existing eigenvector files
@@ -420,16 +423,22 @@ Subroutine gndstate
                   Write (60, '("RMS change in effective potential (targ&
                  &et) : ", G18.10, " (", G18.10, ")")') &
                  & currentconvergence, input%groundstate%epspot
-                  If (currentconvergence .Lt. input%groundstate%epspot) &
-                 & Then
+                 deltae=abs(et-engytot)
+                  write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
+                  &G18.10,")")') deltae, input%groundstate%epsengy
+                  write(66,'(G18.10)') deltae
+                  call flushifc(66)                 
+                  Write (65, '(G18.10)') currentconvergence
+                  Call flushifc (65)
+                  If ((currentconvergence .Lt. input%groundstate%epspot).and. &
+                 & (deltae .lt. input%groundstate%epsengy)) Then
                      Write (60,*)
                      Write (60, '("Potential convergence target achieve&
                     &d")')
                      tlast = .True.
                   End If
-                  Write (65, '(G18.10)') currentconvergence
-                  Call flushifc (65)
                End If
+               et = engytot
                If (input%groundstate%xctypenumber .Lt. 0) Then
                   Write (60,*)
                   Write (60, '("Magnitude of OEP residual : ", G18.10)') resoep
@@ -622,6 +631,8 @@ Subroutine gndstate
             If (input%groundstate%tforce) close (64)
  ! close the RMSDVEFF.OUT file
             Close (65)
+ ! close the DTOTENERGY.OUT file
+            close(66)            
             Call scl_xml_setGndstateStatus ("finished")
             Call scl_xml_out_write ()
          End If
