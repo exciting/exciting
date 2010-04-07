@@ -4632,7 +4632,7 @@ end function
 function countChildEmentsWithName(nodep,name)
   implicit none
   integer::countChildEmentsWithName
-  type(Node),pointer,intent(in) ::nodep
+  type(Node),pointer ::nodep
   character(len=*),intent(in)::name
   type(NodeList),pointer::children
   type(Node),pointer::child
