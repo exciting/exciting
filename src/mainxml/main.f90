@@ -3,7 +3,6 @@
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
-#include "version.inc"
 program main
 use inputdom
 use modinput
@@ -11,8 +10,8 @@ use scl_xml_out_Module
 use modmpi
 use mod_misc
 implicit none
- version= (VERSIONFROMDATE)
- call initMPI()
+call versionfromdate()
+call initMPI()
 call loadinputDOM()
 call setdefault
 input=getstructinput(inputnp)
@@ -24,6 +23,5 @@ call readspeciesxml
 call scl_xml_out_create()
 call tasklauncher()
 call scl_xml_out_close()
- call finitMPI()
+call finitMPI()
 end program
-
