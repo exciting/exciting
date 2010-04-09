@@ -6,6 +6,7 @@
 <xsl:call-template name="stats2html"></xsl:call-template>
 </xsl:template>
 <xsl:template name="stats2html">
+<xsl:param name="urlpf"></xsl:param>
 <html xsl:version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns="http://www.w3.org/1999/xhtml">
 	<body style="font-family:Arial;font-size:12pt;background-color:#ffffff">
@@ -46,9 +47,9 @@
 		
 			</div>	
 		<div>
-		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="@name"/>passed.xml</xsl:attribute>passed</a>  </span>
-		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="@name"/>unspecified.xml</xsl:attribute>unspecified</a></span>
-		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="@name"/>failed.xml</xsl:attribute>failed</a></span>
+		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>passed.xml</xsl:attribute>passed</a>  </span>
+		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>unspecified.xml</xsl:attribute>unspecified</a></span>
+		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>failed.xml</xsl:attribute>failed</a></span>
 		
 		
 		</div>

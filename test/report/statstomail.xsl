@@ -9,7 +9,8 @@ Subject:exciting master <xsl:value-of select="statistics/run[1]/timestamp/@times
 <xsl:text> failed:</xsl:text>
 <xsl:value-of select="/statistics/run[1]/failed/@count "/>
 
-  <xsl:call-template name="stats2html"></xsl:call-template>
+  <xsl:call-template name="stats2html">
+  <xsl:with-param name="urlpf" >http://g44222/tests/master/</xsl:with-param></xsl:call-template>
   </xsl:template>
 
 
