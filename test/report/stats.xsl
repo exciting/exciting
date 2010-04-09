@@ -34,7 +34,8 @@
 				<xsl:text>|</xsl:text>
 				<xsl:value-of select="unspecified/@percent" />
 				<xsl:text>|</xsl:text><xsl:value-of select="failed/@percent" />
-				<xsl:text>&amp;chs=</xsl:text><xsl:value-of select="all/@count*20"/>x80&amp;chdl=passed|unspecified|failed&amp;chdlp=t&amp;chl=passed:
+				<xsl:text>&amp;chs=</xsl:text><xsl:value-of select="all/@count*20"/>
+                <xsl:text>x80&amp;chdl=passed|unspecified|failed&amp;chdlp=t&amp;chl=passed:</xsl:text>
 				<xsl:value-of select="passed/@count" />
 				<xsl:text>|unspecified:</xsl:text>
 				<xsl:value-of select="unspecified/@count" />
