@@ -3,7 +3,6 @@
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
 
-#include "../version.inc"
 Module scl_xml_out_Module
       Use FoX_dom
       Use mod_energy
@@ -15,6 +14,7 @@ Module scl_xml_out_Module
       Use mod_timing
       Use mod_force
       Use mod_spin
+      Use mod_misc, Only: githash
       Use modmpi, Only: rank
 !
       Use modinput
@@ -54,7 +54,7 @@ Contains
             Write (buffer, '( A2, ":", A2, ":", A2)') tim (1:2), tim &
            & (3:4), tim (5:6)
             Call setAttribute (root, "time", trim(adjustl(buffer)))
-            buffer = GITHASH
+            buffer = githash
             Call setAttribute (root, "versionhash", &
            & trim(adjustl(buffer)))
             Call setAttribute (root, "title", &

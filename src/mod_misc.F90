@@ -14,7 +14,8 @@ Module mod_misc
 !---------------------------------!
 ! code version
       Integer :: version (3)
-!
+! git hash value
+      character(40) :: githash
 ! maximum number of tasks
       Integer, Parameter :: maxtasks = 40
 ! number of tasks

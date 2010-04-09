@@ -30,16 +30,14 @@ Subroutine writeinfo (fnum)
       Integer :: fnum
 ! local variables
       Integer :: i, is, ia
-#include "version.inc"
 #ifdef TETRA
       logical :: tetocc
 #endif
       Character (10) :: dat, tim
-      Write (fnum, '(" +-----------------------------------+")')
-      Write (fnum, '(" | EXCITING hydrogen",I2,".",I2,".",I2," started &
-     &|")') version
-      Write (fnum,*) "| git hash id ", GITHASH, "  |"
-      Write (fnum, '(" +-----------------------------------+")')
+      Write (fnum, '(" +-------------------------------------------------------+")')
+      Write (fnum, '(" | EXCITING hydrogen (",I2,".",I2,".",I2,") started                  |")') version
+      Write (fnum, '(" | git hash id: ",a," |")') githash
+      Write (fnum, '(" +-------------------------------------------------------+")')
       If (notelns .Gt. 0) Then
          Write (fnum,*)
          Write (fnum, '("Notes :")')
