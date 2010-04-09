@@ -3,13 +3,17 @@
   version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xsl:import href="stats.xsl"/>
-    <xsl:output method="text"></xsl:output>
-  <xsl:template match ="/">
-From:tester@g44222@unileoben.ac.at
-To:christian.meisenbichler@mu-leoben.at 
+
+   <xsl:output  omit-xml-declaration="yes"></xsl:output>
+ <xsl:template match ="/">From:tester@g44222@unileoben.ac.at
+To:christian.meisenbichler@mu-leoben.at
 Subject:exciting master <xsl:value-of select="statistics/run[1]/timestamp/@timestring "/>
 <xsl:text> failed:</xsl:text>
 <xsl:value-of select="/statistics/run[1]/failed/@count "/>
+<xsl:text>
+MIME-Version: 1.0
+Content-Type: text/html; charset=ISO-8859-1
+</xsl:text>
 
   <xsl:call-template name="stats2html">
   <xsl:with-param name="urlpf" >http://g44222/tests/master/</xsl:with-param></xsl:call-template>
