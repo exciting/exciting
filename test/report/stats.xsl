@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-	<!-- Edited by XMLSpy® -->
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xsl:template match="/">
+<xsl:call-template name="stats2html"></xsl:call-template>
+</xsl:template>
+<xsl:template name="stats2html">
 <html xsl:version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns="http://www.w3.org/1999/xhtml">
 	<body style="font-family:Arial;font-size:12pt;background-color:#ffffff">
@@ -49,3 +55,5 @@
 		</xsl:for-each>
 		</body>
 </html>
+</xsl:template>
+</xsl:transform>
