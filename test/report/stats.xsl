@@ -29,19 +29,18 @@
 			
 				<img>
 				<xsl:attribute name="src">
-				http://chart.apis.google.com/
-				chart?cht=bhs&amp;chd=t:
+				<xsl:text>http://chart.apis.google.com/chart?cht=bhs&amp;chd=t:</xsl:text>
 				<xsl:value-of select="passed/@percent" />
-				|
+				<xsl:text>|</xsl:text>
 				<xsl:value-of select="unspecified/@percent" />
-				|<xsl:value-of select="failed/@percent" />
-				&amp;chs=<xsl:value-of select="all/@count*20"/>x80&amp;chdl=passed|unspecified|failed&amp;chdlp=t&amp;chl=passed:
+				<xsl:text>|</xsl:text><xsl:value-of select="failed/@percent" />
+				<xsl:text>&amp;chs=</xsl:text><xsl:value-of select="all/@count*20"/>x80&amp;chdl=passed|unspecified|failed&amp;chdlp=t&amp;chl=passed:
 				<xsl:value-of select="passed/@count" />
-				|unspecified:
+				<xsl:text>|unspecified:</xsl:text>
 				<xsl:value-of select="unspecified/@count" />
-				|failed:
+				<xsl:text>|failed:</xsl:text>
 				<xsl:value-of select="failed/@count" />
-				&amp;chco=006600,f0f000,cc0033
+				<xsl:text>&amp;chco=006600,f0f000,cc0033</xsl:text>
 				</xsl:attribute>
 				 </img>
 		
