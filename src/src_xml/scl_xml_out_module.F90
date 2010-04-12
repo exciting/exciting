@@ -22,7 +22,7 @@ Module scl_xml_out_Module
       Type (Node), Pointer :: sclDoc, root, np, npatt, energies, niter, &
      & charges, atom, xst, timing, nscl, ngroundstate
       Type (DOMConfiguration), Pointer :: configo
-      Real (8) :: scltime0 = 0
+      Real (8) :: scltime0 = 0.d0
       Character (512) :: buffer
 !
 Contains
@@ -63,8 +63,8 @@ Contains
          End If
 !
       End Subroutine scl_xml_out_create
+
       Subroutine scl_iter_xmlout ()
-!
          Implicit None
          Integer :: is, ia, ias
          Real (8) :: scltime
@@ -192,28 +192,24 @@ Contains
            & trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') timeinit + timemat + timefv + &
            & timesv + timerho + timepot + timefor
-            Call setAttribute (timing, "timetot", &
-           & trim(adjustl(buffer)))
+            Call setAttribute (timing, "timetot", trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') timeinit
-            Call setAttribute (timing, "timeinit", &
-           & trim(adjustl(buffer)))
+            Call setAttribute (timing, "timeinit", trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') timemat
-            Call setAttribute (timing, "timemat", &
-           & trim(adjustl(buffer)))
+            Call setAttribute (timing, "timemat", trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') timefv
             Call setAttribute (timing, "timefv", trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') timesv
+            Call setAttribute (timing, "timesv", trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') timerho
-            Call setAttribute (timing, "timerho", &
-           & trim(adjustl(buffer)))
+            Call setAttribute (timing, "timerho", trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') timepot
-            Call setAttribute (timing, "timepot", &
-           & trim(adjustl(buffer)))
+            Call setAttribute (timing, "timepot", trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') timefor
-            Call setAttribute (timing, "timefor", &
-           & trim(adjustl(buffer)))
-!
+            Call setAttribute (timing, "timefor", trim(adjustl(buffer)))
          End If
       End Subroutine scl_iter_xmlout
+
       Subroutine structure_xmlout
          Use mod_lattice
          Use mod_constants
@@ -289,6 +285,7 @@ Contains
             End Do
          End If
       End Subroutine structure_xmlout
+
       Subroutine setcoord (elementnode, coord)
          Type (Node), Pointer, Intent (In) :: elementnode
          Real (8), Intent (In) :: coord (3)
@@ -299,6 +296,7 @@ Contains
          Write (buffer, '(G22.12)') coord (3)
          Call setAttribute (elementnode, "z", trim(adjustl(buffer)))
       End Subroutine setcoord
+
       Subroutine setcoorddim (elementnode, coord, dim)
          Implicit None
          Type (Node), Pointer, Intent (In) :: elementnode
@@ -319,8 +317,8 @@ Contains
             End If
          End If
       End Subroutine setcoorddim
+
       Subroutine scl_xml_write_moments ()
-!
          Type (Node), Pointer :: moments, moment
          Integer :: is, ia, ias
          If (rank .Eq. 0) Then
@@ -354,6 +352,7 @@ Contains
             End Do
          End If
       End Subroutine scl_xml_write_moments
+
       Subroutine scl_xml_out_close ()!
          If (rank .Eq. 0) Then
             Call destroy (sclDoc)
@@ -361,7 +360,6 @@ Contains
       End Subroutine scl_xml_out_close
 !
       Subroutine scl_xml_setGndstateStatus (status)
-!
          Character (Len=*) :: status
          If (rank .Eq. 0) Then
             Call setAttribute (ngroundstate, "status", status)
