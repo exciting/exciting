@@ -47,9 +47,9 @@
 		
 			</div>	
 		<div>
-		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>passed.xml</xsl:attribute>passed</a>  </span>
-		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>unspecified.xml</xsl:attribute>unspecified</a></span>
-		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>failed.xml</xsl:attribute>failed</a></span>
+		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>passed.xml</xsl:attribute>passed   <xsl:value-of select="passed/@count" /></a>  </span>
+		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>unspecified.xml</xsl:attribute>unspecified   <xsl:value-of select="unspecified/@count" /></a></span>
+		    <span style="margin-right:1em"> <a><xsl:attribute name="href"><xsl:value-of select="$urlpf"/><xsl:value-of select="@name"/>failed.xml</xsl:attribute>failed   <xsl:value-of select="failed/@count" /></a></span>
 		
 		
 		</div>
