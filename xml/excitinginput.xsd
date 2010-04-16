@@ -1598,7 +1598,7 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>
                        When lmirep is set to <pre>"true"</pre>, the spherical harmonic basis is transformed into one in which the site symmetries are block diagonal. Band
-                       characters determined from the density ma- trix expressed in this basis correspond to irreducible representations, and allow the partial
+                       characters determined from the density matrix expressed in this basis correspond to irreducible representations, and allow the partial
                        DOS to be resolved into physically relevant contributions, for example eg and t2g.
                      </xs:documentation>
                                         </xs:annotation>
@@ -1613,7 +1613,6 @@ Example:  <pre>
                                             <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
                                         <xs:annotation>
                                             <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
@@ -1627,6 +1626,7 @@ Example:  <pre>
                                             </xs:appinfo>
                                         </xs:annotation>
                                     </xs:attribute>
+                                    <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="LSJ" maxOccurs="1" minOccurs="0">

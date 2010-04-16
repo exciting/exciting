@@ -273,9 +273,9 @@ type dos_type
  logical::lmirep
  integer::nwdos
  integer::ngrdos
- real(8)::scissor
  integer::nsmdos
  real(8)::winddos(2)
+ real(8)::scissor
 end type
 type LSJ_type
   type(kstlist_type),pointer::kstlist
@@ -2529,14 +2529,6 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-getstructdos%scissor=0.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructdos%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-nullify(np)  
 np=>getAttributeNode(thisnode,"nsmdos")
 getstructdos%nsmdos=0
 if(associated(np)) then
@@ -2550,6 +2542,14 @@ getstructdos%winddos=(/0.0d0,0.5d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"winddos",getstructdos%winddos)
        call removeAttribute(thisnode,"winddos")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"scissor")
+getstructdos%scissor=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scissor",getstructdos%scissor)
+       call removeAttribute(thisnode,"scissor")      
 endif
 
       i=0
