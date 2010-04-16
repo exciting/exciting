@@ -4,7 +4,7 @@
 
   <xsl:import href="stats.xsl"/>
 
-   <xsl:output  method="html" omit-xml-declaration="yes"></xsl:output>
+   <xsl:output  method="xml" omit-xml-declaration="yes"/>
  <xsl:template match ="/">From:tester@g44228@unileoben.ac.at
 To:christian.meisenbichler@mu-leoben.at,stephan.sagmeister@unileoben.ac.at
 Subject:exciting master <xsl:value-of select="statistics/run[1]/timestamp/@timestring "/>
