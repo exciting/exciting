@@ -80,16 +80,7 @@ $status="passed";
 
 #compare eigenvalues
 $tol=1e-5;
-%statuseigval=Test::assert_file_same_within( "runarp/EIGVAL.OUT",
-	"runlapack/EIGVAL.OUT",$tol);
- Test::writetestreport({
- 		"directory"=>"test02/ ",
- 		"name"=>"eigenvalue_comparison_LAPACK ARPACK ",
- 		"description"=>"The test is passed if the eigenvalues  differ
- 		 less than $tol between lapack and Arpack 
- 		 difference=" .  %statuseigval->{maxerror},
- 		"status"=> %statuseigval->{status}
- 		}, $writer);
+ 
 
 %statuseigvalr=Test::assert_file_same_within( "./reference/EIGVAL.OUT",
 	"runlapack/EIGVAL.OUT",$tol);
