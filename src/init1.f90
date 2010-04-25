@@ -394,6 +394,10 @@ Subroutine init1
       End Do
 #ifdef XS
 20    Continue
+! partial charges
+  if (allocated(chgpart)) deallocate(chgpart)
+  allocate(chgpart((min(3,input%groundstate%lmaxapw)+1)**2,natmtot,nstsv))
+  chgpart(:,:,:)=0.d0
 #endif
 !
       Call timesec (ts1)
