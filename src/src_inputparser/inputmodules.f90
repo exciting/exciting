@@ -46,12 +46,22 @@ type input_type
  character(1024)::xsltpath
  character(1024)::scratchpath
  character(512)::title
+  type(convert_type),pointer::convert
+  type(extract_type),pointer::extract
   type(structure_type),pointer::structure
   type(groundstate_type),pointer::groundstate
   type(structureoptimization_type),pointer::structureoptimization
   type(properties_type),pointer::properties
   type(phonons_type),pointer::phonons
   type(xs_type),pointer::xs
+end type
+type convert_type
+ character(512)::target
+ integer::targetnumber
+end type
+type extract_type
+ character(512)::source
+ integer::sourcenumber
 end type
 type structure_type
  character(1024)::speciespath
@@ -837,6 +847,22 @@ if(associated(np)) then
        call removeAttribute(thisnode,"scratchpath")      
 endif
 
+            len= countChildEmentsWithName(thisnode,"convert")
+getstructinput%convert=>null()
+Do i=0,len-1
+getstructinput%convert=>getstructconvert(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"convert"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"extract")
+getstructinput%extract=>null()
+Do i=0,len-1
+getstructinput%extract=>getstructextract(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"extract"),0)) ) 
+enddo
+
             len= countChildEmentsWithName(thisnode,"structure")
 getstructinput%structure=>null()
 Do i=0,len-1
@@ -892,6 +918,60 @@ Do i=1,len
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "title"),0)))
 end do
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructconvert(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(convert_type),pointer::getstructconvert
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructconvert)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at convert"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"target")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"target",getstructconvert%target)
+       call removeAttribute(thisnode,"target")      
+endif
+getstructconvert%targetnumber=stringtonumbertarget(getstructconvert%target)
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructextract(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(extract_type),pointer::getstructextract
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructextract)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at extract"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"source")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"source",getstructextract%source)
+       call removeAttribute(thisnode,"source")      
+endif
+getstructextract%sourcenumber=stringtonumbersource(getstructextract%source)
 
       i=0
       len=0
@@ -4271,6 +4351,38 @@ case('')
  stringtonumberdo=0
 case default
 write(*,*) "'", string,"' is not valid selection fordo "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbertarget(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('xml')
+ stringtonumbertarget=-1
+case('binary')
+ stringtonumbertarget=-1
+case('')
+ stringtonumbertarget=0
+case default
+write(*,*) "'", string,"' is not valid selection fortarget "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbersource(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('xml')
+ stringtonumbersource=-1
+case('binary')
+ stringtonumbersource=-1
+case('')
+ stringtonumbersource=0
+case default
+write(*,*) "'", string,"' is not valid selection forsource "
 stop 
 end select
 end function

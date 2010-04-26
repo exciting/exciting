@@ -258,7 +258,8 @@ Example:  <pre>
                 <xs:element ex:importance="essential" ex:unit="" ref="pointstatepair" minOccurs="1" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
-    </xs:element> <!-- root element starts here -->
+    </xs:element>
+    <!-- root element starts here -->
     <xs:element ex:importance="essential" ex:unit="" name="input">
         <xs:annotation>
             <xs:documentation>
@@ -269,7 +270,6 @@ Example:  <pre>
                 </p>
             </xs:documentation>
             <xs:appinfo>
-      
      </xs:appinfo>
         </xs:annotation>
         <xs:complexType>
@@ -278,6 +278,39 @@ Example:  <pre>
                     <xs:annotation>
                         <xs:documentation>Title of the input file.</xs:documentation>
                     </xs:annotation>
+                </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="convert" maxOccurs="1" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="target" use="required">
+                            <xs:annotation>
+                                <xs:documentation>Output format for conversion. Either the binary file
+                                {\tt STATE.OUT} is converted to the XML file {\tt STATE.xml} or vice versa.
+                                </xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="xml"/>
+                                    <xs:enumeration value="binary"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="extract" maxOccurs="1" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="source" use="required">
+                            <xs:annotation>
+                                <xs:documentation>Extract information from {\tt STATE.OUT} or {\tt STATE.xml} file.
+                                A skeleton input is created and written to {\tt STATE\_input.xml}.</xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="xml"/>
+                                    <xs:enumeration value="binary"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                    </xs:complexType>
                 </xs:element>
                 <xs:element ex:importance="essential" ex:unit="" name="structure" maxOccurs="1" minOccurs="1">
                     <xs:annotation>

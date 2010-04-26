@@ -1,22 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="http://xml.exciting-code.org/inputfileconverter/inputtohtml.xsl" type="text/xsl"?>
 
-<input xsi:noNamespaceSchemaLocation="http://xml.exciting-code.org/excitinginput.xsd"
+<input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
   <title>Ag</title>
-  <structure speciespath="http://xml.exciting-code.org/species/">
+  
+  <!-- extract source="binary"/-->
+  <!--convert target="xml"/-->
+  
+  <structure speciespath="../../../species/">
     <crystal scale="3.817">
       <basevect>1.0 1.0 0.0</basevect>
       <basevect>1.0 0.0 1.0</basevect>
       <basevect>0.0 1.0 1.0</basevect>
     </crystal>
-    <species speciesfile="Ag.xml" href="http://xml.exciting-code.org/species/Ag_APWlo.xml">
+    <species speciesfile="Ag.xml">
       <atom coord="0.0  0.0  0.0" />
     </species>
   </structure>
   <groundstate ngridk="8  8  8"></groundstate>
-  <properties>
-    <bandstructure>
+  <!--properties>
+    <bandstructure character="true">
       <plot1d>
         <path steps="100">
                   <point coord="0.75000   0.50000   0.25000" label="W"    ></point>
@@ -29,5 +33,5 @@
       </plot1d>
     </bandstructure>
     <dos/>
-  </properties>
+  </properties-->
 </input>

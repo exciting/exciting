@@ -216,6 +216,7 @@ Subroutine gndstate
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
             Deallocate (evalfv, evecfv, evecsv)
+            !(sag) calculate and write out partial charges here
          End Do
 #ifdef KSMP
      !$OMP END DO
@@ -427,7 +428,7 @@ Subroutine gndstate
                   write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
                   &G18.10,")")') deltae, input%groundstate%epsengy
                   write(66,'(G18.10)') deltae
-                  call flushifc(66)                 
+                  call flushifc(66)
                   Write (65, '(G18.10)') currentconvergence
                   Call flushifc (65)
                   If ((currentconvergence .Lt. input%groundstate%epspot).and. &
@@ -632,7 +633,7 @@ Subroutine gndstate
  ! close the RMSDVEFF.OUT file
             Close (65)
  ! close the DTOTENERGY.OUT file
-            close(66)            
+            close(66)
             Call scl_xml_setGndstateStatus ("finished")
             Call scl_xml_out_write ()
          End If

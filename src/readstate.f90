@@ -35,7 +35,9 @@ Subroutine readstate
       Integer :: natoms_, nrmt_ (maxspecies), nrmtmax_
       Integer :: ngrid_ (3), ngrtot_, ngvec_, ndmag_
       Integer :: nspinor_, ldapu_, lmmaxlu_
+      Character(40) :: githash_
       Real (8) :: t1
+      logical, external :: versions_gt
 ! allocatable arrays
       Integer, Allocatable :: mapir (:)
       Real (8), Allocatable :: spr_ (:, :)
@@ -81,6 +83,19 @@ Subroutine readstate
          Write (*, '(" STATE.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
         & version_
       End If
+! versions > 10.04.14 (April 14, 2010)
+      If (versions_gt(version_,refversion_gitstate)) Then
+         backspace(50)
+         Read (50) version_, githash_
+      Else
+         githash_ = ''
+      End If
+      if (githash_ .ne. githash) then
+        write(*,*)
+        write(*,'("Warning(readstate): different version hashes")')
+        Write(*, '(" current   : ", a40)') githash
+        Write(*, '(" STATE.OUT : ", a40)') githash_
+      end if
       Read (50) spinpol_
       Read (50) nspecies_
       If (nspecies .Ne. nspecies_) Then
