@@ -43,10 +43,11 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Intent (In) :: rfir (ngrtot, nf)
       Type (plot2d_type) :: plotdef
 ! local variables
-      Integer :: i, ip, ip1, ip2, fnum = 50
+      Integer :: i, ip, ip1, ip2, fnum = 50,ifunction
       Real (8) :: vl1 (3), vl2 (3), vc1 (3), vc2 (3)
       Real (8) :: d1, d2, d12, t1, t2, t3, t4
       Character (128) :: buffer, buffer1
+      character (20)::buffer20
       Type (xmlf_t), Save :: xf
 ! allocatable arrays
       Real (8), Allocatable :: vpl (:, :)
@@ -109,33 +110,45 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Write (fnum, '(2I6, " : grid size")') &
      & plotdef%parallelogram%grid(:)
       Write (buffer, '(2I6)') plotdef%parallelogram%grid(:)
-      Call xml_AddAttribute (xf, "grid", trim(adjustl(buffer)))
+
       Call xml_NewElement (xf, "title")
       Call xml_AddCharacters (xf, trim(input%title))
       Call xml_endElement (xf, "title")
-      ip = 0
-      Do ip2 = 0, plotdef%parallelogram%grid(2) - 1
-         Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
-            ip = ip + 1
-            t1 = dble (ip1) / dble (plotdef%parallelogram%grid(1))
-            t2 = dble (ip2) / dble (plotdef%parallelogram%grid(2))
-            t3 = t1 * d1 + t2 * d2 * d12
-            t4 = t2 * d2 * Sqrt (Abs(1.d0-d12**2))
-            Write (fnum, '(6G18.10)') t3, t4, (fp(ip, i), i=1, nf)
-            Call xml_NewElement (xf, "point")
-            Write (buffer, '(6G18.10)') t3
-            Call xml_AddAttribute (xf, "x", trim(adjustl(buffer)))
-            Write (buffer, '(6G18.10)') t4
-            Call xml_AddAttribute (xf, "y", trim(adjustl(buffer)))
-            Do i = 1, nf
-               Write (buffer, '(5G18.10)') fp (ip, i)
-               Write (buffer1,*) i
-               Call xml_AddAttribute (xf, "function"//&
-              & trim(adjustl(buffer1)), trim(adjustl(buffer)))
-            End Do
-            Call xml_endElement (xf, "point")
-         End Do
-      End Do
+
+      Call xml_NewElement (xf, "grid")
+       Call xml_AddAttribute (xf, "gridticks", trim(adjustl(buffer)))
+      Call xml_NewElement (xf, "axis")
+      call xml_AddAttribute (xf, "name", "x")
+
+
+       Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
+	        !inner loop
+	       write(buffer20, '(6G18.10)') dble (ip1) / dble (plotdef%parallelogram%grid(1))*d1
+	       call xml_AddCharacters(xf,buffer20)
+       end do
+       Call xml_endElement (xf, "axis")
+       Call xml_NewElement (xf, "axis")
+       call xml_AddAttribute (xf, "name", "y")
+       Do ip2 = 0, plotdef%parallelogram%grid(2) - 1
+	       !outerinner loop
+	       write(buffer20, '(6G18.10)') dble (ip2) / dble (plotdef%parallelogram%grid(2))*d2
+		   call xml_AddCharacters(xf,buffer20)
+       end do
+       Call xml_endElement (xf, "axis")
+       Call xml_endElement (xf, "grid")
+
+       Do ifunction = 1, nf
+         Call xml_NewElement (xf, "function")
+         call xml_AddAttribute (xf, "name", "")
+         Do ip2 = 0, plotdef%parallelogram%grid(2) - 1
+           Do ip1 = 0, plotdef%parallelogram%grid(1) - 1
+            write(buffer20, '(6G18.10)')  fp (ip, ifunction)
+            call xml_AddCharacters(xf,buffer20)
+           end do
+         end do
+         Call xml_endElement (xf, "function")
+      end do
+
       Close (fnum)
       Call xml_Close (xf)
       Deallocate (vpl, fp)
