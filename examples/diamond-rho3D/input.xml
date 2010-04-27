@@ -18,7 +18,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  >
 <properties>
 <chargedensityplot>
 <plot3d>
-<box grid="20 20 20">
+<box grid="40 40 40">
 <origin coord="0 0 0"/>
 <point coord="2 0 0 "/>
 <point coord="0 2 0 "/>
