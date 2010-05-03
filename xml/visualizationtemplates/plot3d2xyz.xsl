@@ -11,7 +11,7 @@
 <xsl:text>#grid </xsl:text><xsl:value-of select="/plot3d/grid/@gridticks" />
  <xsl:text>
 </xsl:text>   
-    <xsl:for-each select="/plot3d/function[1]/row">
+    <xsl:for-each select="/plot3d/function/row">
     <xsl:variable name="indexx" select="@index"/>
       <xsl:for-each select="row">
        <xsl:variable name="indexy" select="@index"/>
@@ -24,15 +24,12 @@
           <xsl:value-of select="$indexx*$da[3]+$indexy*$db[3]+position()*$dc[3]" />
           <xsl:text> </xsl:text>
           <xsl:value-of select="." />
-          
-          <xsl:for-each select="/plot3d/function[position()!=1]">
-            <xsl:text> </xsl:text>
-            <xsl:value-of select="str:tokenize(.)[($indexx-1)*$grid[2]*($indexy-1)*$grid[3]+$indexz" />
-          </xsl:for-each>
            <xsl:text>
 </xsl:text>
         </xsl:for-each>
       </xsl:for-each>
+                 <xsl:text>
+</xsl:text>
     </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>

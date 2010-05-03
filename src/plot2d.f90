@@ -44,7 +44,7 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Type (plot2d_type) :: plotdef
 ! local variables
       Integer :: i, ip, ip1, ip2, fnum = 50,ifunction
-      Real (8) :: vl1 (3), vl2 (3), vc1 (3), vc2 (3)
+      Real (8) :: vl1 (3), vl2 (3), vc1 (3), vc2 (3),delta(3)
       Real (8) :: d1, d2, d12, t1, t2, t3, t4
       Character (128) :: buffer, buffer1
       character (20)::buffer20
@@ -52,6 +52,9 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 ! allocatable arrays
       Real (8), Allocatable :: vpl (:, :)
       Real (8), Allocatable :: fp (:, :)
+!external functions
+      Real(8),external::DNRM2
+
       buffer = fname // "2D.OUT"
       Call xml_OpenFile (fname//"2d.xml", xf, replace=.True., &
      & pretty_print=.True.)
@@ -122,10 +125,14 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       call xml_AddAttribute (xf, "name", "a")
       write(buffer, '(6G18.10)') plotdef%parallelogram%pointarray(1)%point%coord
       call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-      write(buffer, '(6G18.10)') (plotdef%parallelogram%pointarray(1)%point%coord&
+      delta=(plotdef%parallelogram%pointarray(1)%point%coord&
       &-plotdef%parallelogram%origin%coord)&
       &/ plotdef%parallelogram%grid(1)
+      write(buffer, '(6G18.10)')  delta
       call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
+       write(buffer, '(6G18.10)')  DNRM2(3,delta,1)
+      call xml_AddAttribute (xf, "deltas", trim(adjustl(buffer)))
+
 
       Call xml_endElement (xf, "axis")
       !write y axis description
@@ -133,12 +140,12 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       call xml_AddAttribute (xf, "name", "b")
       write(buffer, '(6G18.10)') plotdef%parallelogram%pointarray(2)%point%coord
       call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-      write(buffer, '(6G18.10)') (plotdef%parallelogram%pointarray(2)%point%coord&
+      delta=(plotdef%parallelogram%pointarray(2)%point%coord&
       &-plotdef%parallelogram%origin%coord)&
       &/ plotdef%parallelogram%grid(2)
-      call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
-
-
+       call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
+       write(buffer, '(6G18.10)')  DNRM2(3,delta,1)
+       call xml_AddAttribute (xf, "deltas", trim(adjustl(buffer)))
        Call xml_endElement (xf, "axis")
        Call xml_endElement (xf, "grid")
        ip=0
