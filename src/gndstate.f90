@@ -86,6 +86,8 @@ Subroutine gndstate
         & Form='FORMATTED')
      ! open DTOTENERGY.OUT
          open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
+     ! open DTOTENERGY.OUT
+         open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
      ! initialise or read the charge density and potentials from file
@@ -196,6 +198,8 @@ Subroutine gndstate
 #endif
 #ifndef MPISEC
          splittfile = .False.
+         ! zero partial charges
+         chgpart(:,:,:)=0.d0
      ! begin parallel loop over k-points
 #ifdef KSMP
      !$OMP PARALLEL DEFAULT(SHARED) &
@@ -215,6 +219,10 @@ Subroutine gndstate
             Call putevalsv (ik, evalsv(:, ik))
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
+            
+            !(sag)
+            call genpchgs(ik,evecfv,evecsv)
+            
             Deallocate (evalfv, evecfv, evecsv)
          End Do
 #ifdef KSMP
@@ -224,6 +232,10 @@ Subroutine gndstate
 #ifdef MPISEC
          Call mpisync_evalsv_spnchr
 #endif
+
+     ! write out partial charges
+     call writepchgs(69)
+
      ! find the occupation numbers and Fermi energy
          Call occupy
 #ifdef MPISEC
@@ -632,7 +644,9 @@ Subroutine gndstate
  ! close the RMSDVEFF.OUT file
             Close (65)
  ! close the DTOTENERGY.OUT file
-            close(66)            
+            close(66)
+ ! close the PCHARGE.OUT file
+            close(69)                        
             Call scl_xml_setGndstateStatus ("finished")
             Call scl_xml_out_write ()
          End If
@@ -646,3 +660,128 @@ Subroutine gndstate
          Return
    End Subroutine gndstate
 !EOC
+
+
+
+
+
+
+! Copyright (C) 2010 S. Sagmeister and  C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
+!BOP
+! !ROUTINE: genpchgs
+! !INTERFACE:
+subroutine genpchgs(ik,evecfv,evecsv)
+! !USES:
+      use modinput
+      use modmain
+! !DESCRIPTION:
+!  Generate partial charges for each state $j$, atom $\alpha$ and for each
+!  $(lm)$ combination.
+!
+! !REVISION HISTORY:
+!   Created 2010 (Sagmeister)
+!EOP
+!BOC
+  implicit none
+  ! arguments
+  integer, intent(in) :: ik
+  complex(8), intent(in) :: evecfv(nmatmax, nstfv, nspnfv)
+  complex(8), intent(in) :: evecsv(nstsv, nstsv)
+  ! local variables
+  integer :: lmax,lmmax,ispn,is,ia,ias,ist,l,m,lm
+  real(8) :: t1
+  Complex (8), Allocatable :: dmat (:, :, :, :, :)
+  Complex (8), Allocatable :: apwalm (:, :, :, :, :)
+  ! maximum angular momentum for band character
+  lmax = Min (3, input%groundstate%lmaxapw)
+  lmmax = (lmax+1) ** 2
+  Allocate (dmat(lmmax, lmmax, nspinor, nspinor, nstsv))
+  Allocate (apwalm(ngkmax, apwordmax, lmmaxapw, natmtot, nspnfv))
+  ! find the matching coefficients
+  Do ispn = 1, nspnfv
+    Call match (ngk(ispn, ik), gkc(:, ispn, ik), tpgkc(:, :, &
+     & ispn, ik), sfacgk(:, :, ispn, ik), apwalm(:, :, :, :, ispn))
+  End Do
+  ! average band character over spin for all atoms
+  Do is = 1, nspecies
+    Do ia = 1, natoms (is)
+      ias = idxas (ia, is)
+      ! generate the diagonal of the density matrix
+      Call gendmat (.True., .True., 0, lmax, is, ia, ngk(:, &
+        & ik), apwalm, evecfv, evecsv, lmmax, dmat)
+      Do ist = 1, nstsv
+        Do l = 0, lmax
+          Do m = - l, l
+            t1 = 0.d0            
+            lm = idxlm (l, m)
+            Do ispn = 1, nspinor
+              t1 = t1 + dble (dmat(lm, lm, ispn, ispn, ist))
+            End Do
+            ! add for current k-point
+            chgpart (lm, ias, ist) = chgpart (lm, ias, ist) + dble(t1)
+          End Do
+        End Do
+      ! end loop over states  
+      End Do
+    End Do
+  End Do
+  Deallocate (dmat, apwalm)
+end subroutine
+!EOC
+
+
+
+! Copyright (C) 2010 S. Sagmeister and  C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU General Public License.
+! See the file COPYING for license details.
+
+!BOP
+! !ROUTINE: writepchgs
+! !INTERFACE:
+subroutine writepchgs(fnum)
+! !USES:
+      use modinput
+      use modmain
+! !DESCRIPTION:
+!  Write partial charges to file.
+!
+! !REVISION HISTORY:
+!   Created 2010 (Sagmeister)
+!EOP
+!BOC
+  implicit none
+  ! arguments
+  integer, intent(in) :: fnum
+  ! local variables
+  integer :: lmax,ist,is,ia,ias,l,m,lm
+  lmax=min(3,input%groundstate%lmaxapw)
+  Write (fnum, '(I6, " : nstsv")') nstsv
+  write(fnum,*)
+  write(fnum,'("iteration number: ",i6)') iscl
+  do ist=1,nstsv
+    Write (fnum, '(I6, " : state")') ist
+    write(fnum,'("  sum over atoms and lm : ",f12.6)') sum(chgpart(:,:,ist))
+    do is=1,nspecies
+      do ia=1,natoms(is)
+        ias=idxas(ia,is)
+        Write (fnum, '("  Species : ", I4, " (", A, "), atom : ", I4)') &
+          & is, trim &
+          & (input%structure%speciesarray(is)%species%chemicalSymbol), &
+          & ia          
+        write(fnum,'("  sum over lm : ",f12.6)') sum(chgpart(:,ias,ist))
+        do l=0,lmax
+          Write (fnum, '("   l-value : ", I4, " sum over m : ",f12.6," ; m-components below")') &
+            l, sum(chgpart(idxlm(l,-l):idxlm(l,l),ias,ist))
+          write(fnum,'(100f12.6)') chgpart(idxlm(l,-l):idxlm(l,l),ias,ist)
+        end do
+      end do
+    end do
+  end do
+end subroutine
+!EOC
+
+
+

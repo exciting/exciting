@@ -315,7 +315,7 @@ Subroutine init0
       End If
 ! effective Wigner radius
       rwigner = (3.d0/(fourpi*(chgtot/omega))) ** (1.d0/3.d0)
-!
+
 !-------------------------!
 !     G-vector arrays     !
 !-------------------------!
