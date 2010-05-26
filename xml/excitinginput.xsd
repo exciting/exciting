@@ -859,7 +859,7 @@ Example:  <pre>
                                 <xs:appinfo>
                                     <oldname>nonreplace</oldname>
                                 </xs:appinfo>
-                                <xs:documentation>Decides if the groundstate is skipped or recalculated or continued from file.</xs:documentation>
+                                <xs:documentation>Decides if the groundstate run is skipped, calculated from scratch, or continued from the file STATE.OUT.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="essential" ex:unit="" name="ngridk" type="integertriple" use="required">
@@ -873,11 +873,22 @@ Example:  <pre>
                         <xs:attribute ex:importance="essential" ex:unit="" name="rgkmax" type="fortrandouble" default="7.0d0">
                             <xs:annotation>
                                 <xs:documentation>
-                 This sets the maximum length for the
-                 <inlinemath>{ \bf G}+{ \bf k}</inlinemath>
-                 vectors, defined as
-                 <pre>rgkmax</pre>
-                 divided by the smallest muffin-tin radius.
+                 The parameter <pre>rgkmax</pre> implicitly determines the number of basis functions and 
+                 is one of the crucial parameters for the accuracy of the calculation.  
+                 It represents the product of two quantities: <inlinemath>R_{MT,\, Min}</inlinemath>, 
+                 the smallest of all muffin-tin radii, and 
+                 <inlinemath>|{ \bf G}+{ \bf k}|_{max}</inlinemath>,
+                 the maximum length for the <inlinemath>{ \bf G}+{ \bf k}</inlinemath>\ vectors.
+                 Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath>\ vector represents
+                 one basis function, <pre>rgkmax</pre> gives the number of basis functions 
+                 used for solving the Kohn-Sham equations. Typical values of <pre>rgkmax</pre> 
+                 are between 6 and 9. However, for systems with very short bond-lengths,
+                 significantly smaller values may be sufficient. This may especially be the case
+                 for materials containing carbon, where  <pre>rgkmax</pre> may be 
+                 4.5-5, or hydrogen, where even values between 3 and 4 may be sufficient.
+                 In any case, a convergence check is indispensible for a proper choice of this
+                 parameter for your system!
+                 
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
