@@ -11,11 +11,10 @@ test: cleantests  test02 test03 test04
 endif	
 
 
-test02::
-	-cd build;$(MAKE) libs  test02
-	-cd ./test02/runlapack ; ../../build/testprogram2
-	-cd ./test02/runarp; ../../build/testprogram2
-	-cd ./test02/runarpnpacked; ../../build/testprogram2
+test02::exciting
+	-cd ./test02/runlapack ;../../../build/debug/exciting
+	-cd ./test02/runarp; ../../../build/debug/exciting
+	-cd ./test02/runarpnpacked;../../../build/debug/exciting
 	-cd ./test02 ; perl assert.pl
 
 test04::

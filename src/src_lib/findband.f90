@@ -7,7 +7,7 @@
 ! !ROUTINE: findband
 ! !INTERFACE:
 !
-Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, e)
+Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, etol, e, tfnd)
 ! !INPUT/OUTPUT PARAMETERS:
 !   l   : angular momentum quantum number (in,integer)
 !   k   : quantum number k, zero if Dirac eqn. is not to be used (in,integer)
@@ -41,7 +41,9 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, e)
       Real (8), Intent (In) :: r (nr)
       Real (8), Intent (In) :: vr (nr)
       Real (8), Intent (In) :: de0
+      real(8), intent(in) :: etol
       Real (8), Intent (Inout) :: e
+      logical, intent(out) :: tfnd
   ! local variables
   ! maximum number of steps
       Integer, Parameter :: maxstp = 1000
@@ -54,14 +56,13 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, e)
       Real (8), Parameter :: erange1 = 3.d0
       Real (8), Parameter :: edefault1 = 1.d0
       Integer :: ie, nn
-  ! energy search tolerance
-      Real (8), Parameter :: eps = 1.d-5
       Real (8) :: de, et, eb, t, tp
       Real (8) :: u, uup, udn, upold, ddnold, dnold, du, dudn, dupold, &
      & duup, utst, dutst
       Real (8) :: e1, e2, eidn, eiup
   ! automatic arrays
       Real (8) :: p0 (nr), p1 (nr), q0 (nr), q1 (nr)
+      tfnd=.false.
       Select Case (trim(findlinentype))
       Case ('simple')
          tp = 0.d0
@@ -75,7 +76,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, e)
             t = p0 (nr)
             If (ie .Gt. 1) Then
                If (t*tp .Le. 0.d0) Then
-                  If (Abs(de) .Lt. eps) Go To 10
+                  If (Abs(de) .Lt. etol) Go To 10
                   de = - 0.5d0 * de
                End If
             End If
@@ -93,7 +94,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, e)
             t = p1 (nr)
             If (ie .Gt. 1) Then
                If (t*tp .Le. 0.d0) Then
-                  If (Abs(de) .Lt. eps) Go To 20
+                  If (Abs(de) .Lt. etol) Go To 20
                   de = - 0.5d0 * de
                End If
             End If
@@ -103,6 +104,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, e)
 20       Continue
      ! set the band energy to the mid-point
          e = (et+eb) / 2.d0
+         tfnd=.true.
 30       Continue
       Case ('advanced')
          de = de0
@@ -181,6 +183,7 @@ Subroutine findband (findlinentype, l, k, np, nr, r, vr, de0, e)
          Else
             e = (e1+e2) * 0.5d0
          End If
+         tfnd=.true.
          Return
 40       Continue
          Write (*,*)

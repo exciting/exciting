@@ -59,5 +59,9 @@ Module mod_APW_LO
       Real (8), Allocatable :: lofr (:, :, :, :)
 ! energy step size for locating the band energy
 !replaced by inputstructurereal(8)::deband
+! minimum of the default linearisation energy over all APW and local-orbitals
+! functions
+      real(8) :: mine0
+
 End Module
 !

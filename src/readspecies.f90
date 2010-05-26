@@ -13,6 +13,7 @@ Subroutine readspecies
 ! local variables
       Integer :: is, ist, iostat
       Integer :: io, nlx, ilx, lx, ilo
+      mine0=0.d0
       Do is = 1, nspecies
          Open (50, File=trim(input%structure%speciespath)//&
         & trim(input%structure%speciesarray(is)%species%speciesfile), &
@@ -157,6 +158,7 @@ Subroutine readspecies
            & is)
             apwve (io, 1:input%groundstate%lmaxapw, is) = apwve (io, 0, &
            & is)
+           mine0=min(apwe0(io,0,is),mine0)
          End Do
          Read (50,*) nlx
          If (nlx .Lt. 0) Then
@@ -219,6 +221,7 @@ Subroutine readspecies
                   Write (*,*)
                   Stop
                End If
+               mine0=min(apwe0(io,lx,is),mine0)
             End Do
          End Do
          Read (50,*) nlorb (is)
@@ -293,6 +296,7 @@ Subroutine readspecies
                   Write (*,*)
                   Stop
                End If
+               mine0=min(lorbe0(io,ilo,is),mine0)
             End Do
          End Do
          Close (50)

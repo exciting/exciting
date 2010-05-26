@@ -92,6 +92,9 @@
     <xsl:text> [[$ </xsl:text>
     <xsl:value-of select="normalize-space(.)" />
     <xsl:text> $]]</xsl:text>
+    <xsl:if test="@space">
+    <xsl:text> </xsl:text>
+    </xsl:if>
   </xsl:template>
   <xsl:template match="pre">
     <xsl:text> {{ </xsl:text>
@@ -144,9 +147,13 @@
     <xsl:text>  </xsl:text>
     <xsl:value-of select="." />
     <xsl:text>]</xsl:text>
+      <xsl:if test="@space">
+    <xsl:text> </xsl:text></xsl:if>
   </xsl:template>
   <xsl:template match="exciting">
     <xsl:text> {{**exciting**}} </xsl:text>
+      <xsl:if test="@space">
+    <xsl:text> </xsl:text></xsl:if>
   </xsl:template>
   <xsl:template name="elementToLatex">
     <xsl:param name="myelement" />

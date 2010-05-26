@@ -129,6 +129,8 @@ Subroutine xsmain (plan)
          Case (499)
      ! call to test xs-routine
             Call testxs
+         case (999)
+            call testmain
          Case Default
             Write (*,*)
             Write (*,*) 'Error(xsmain): task not defined:', task

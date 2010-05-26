@@ -1,4 +1,9 @@
-<xs:schema xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd"
+ >
  <!--
   This schema defines the input file format. It should be the central place for parameter and task specification and documentation
  --> 
@@ -720,7 +725,7 @@ Example:  <pre>
                                     <xs:documentation>If preset HartreeFock calculation is triggered.</xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
-                                    <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble" use="optional" default="1.0d-7">
+                                    <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble" use="optional" default="1.0d-4">
                                         <xs:annotation>
                                             <xs:documentation>Energy convergence tolerance.</xs:documentation>
                                         </xs:annotation>
@@ -901,6 +906,11 @@ Example:  <pre>
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble" use="optional" default="1.0d-4">
+                                        <xs:annotation>
+                                            <xs:documentation>Energy convergence tolerance.</xs:documentation>
+                                        </xs:annotation>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d" default="0.25d0 0.95d0">
                             <xs:annotation>
                                 <xs:documentation>
@@ -982,6 +992,7 @@ Example:  <pre>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:enumeration value="simple"/>
+                                    <xs:enumeration value="Fermi"/>
                                     <xs:enumeration value="advanced"/>
                                 </xs:restriction>
                             </xs:simpleType>
@@ -1119,6 +1130,22 @@ Example:  <pre>
                  <inlinemath>E_{\rm b}</inlinemath>
                  cannot be found then the band energy is set to the default value.
                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsband" type="fortrandouble" default="1.0d-6">
+                            <xs:annotation>
+                                <xs:documentation>Energy tolerance for search of linearization energies.
+                                </xs:documentation>
+                                <xs:appinfo>
+                                    <oldname>none</oldname>
+                                    <olddefault default="1.0d-5"/>
+                                </xs:appinfo>                                
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="dlinenfermi" type="fortrandouble" default="-0.1d0">
+                            <xs:annotation>
+                                <xs:documentation>Energy difference between linearisation and Fermi energy.
+                                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="epschg" type="fortrandouble" default="1.0d-3">
@@ -1359,11 +1386,6 @@ Example:  <pre>
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="evalmin" type="fortrandouble" default="-4.5d0">
-                            <xs:annotation>
-                                <xs:documentation>Any valence states with eigenvalues below evalmin are not occupied and a warning message is issued.</xs:documentation>
-                            </xs:annotation>
-                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="lmaxvr" type="xs:integer" default="6">
                             <xs:annotation>
                                 <xs:documentation>Angular momentum cut-off for the muffin-tin density and potential.</xs:documentation>
@@ -1587,7 +1609,7 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>
                        When lmirep is set to <pre>"true"</pre>, the spherical harmonic basis is transformed into one in which the site symmetries are block diagonal. Band
-                       characters determined from the density ma- trix expressed in this basis correspond to irreducible representations, and allow the partial
+                       characters determined from the density matrix expressed in this basis correspond to irreducible representations, and allow the partial
                        DOS to be resolved into physically relevant contributions, for example eg and t2g.
                      </xs:documentation>
                                         </xs:annotation>
@@ -1602,7 +1624,6 @@ Example:  <pre>
                                             <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
                                         <xs:annotation>
                                             <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
@@ -1616,6 +1637,7 @@ Example:  <pre>
                                             </xs:appinfo>
                                         </xs:annotation>
                                     </xs:attribute>
+                                    <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="LSJ" maxOccurs="1" minOccurs="0">
@@ -2257,8 +2279,8 @@ Example:  <pre>
                                         </xs:annotation>
                                         <xs:simpleType>
                                             <xs:restriction base="xs:string">
-                                                <xs:enumeration value="ip"/>
-                                                <xs:enumeration value="rpa"/>
+                                                <xs:enumeration value="IP"/>
+                                                <xs:enumeration value="RPA"/>
                                                 <xs:enumeration value="singlet"/>
                                                 <xs:enumeration value="triplet"/>
                                             </xs:restriction>

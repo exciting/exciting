@@ -16,7 +16,7 @@ Subroutine readspeciesxml
       Type (Node), Pointer :: speciesnp, speciesdbnp
       character(2048)::command
       character(256)::spfile_string
-!
+      mine0=0.d0
       Allocate (speziesdeflist(nspecies))
       config => newDOMConfig ()
       parseerror = .False.
@@ -208,7 +208,7 @@ Subroutine readspeciesxml
             apwve (io, 1:input%groundstate%lmaxapw, is) = apwve (io, 0, &
            & is)
          End Do
-!
+         mine0=min(apwe0(io,0,is),mine0)
          nlx = size (speziesdeflist(is)%sp%basis%exceptionarray)
          If (nlx .Lt. 0 .And. &
         & associated(speziesdeflist(is)%sp%basis%exceptionarray)) Then
@@ -274,6 +274,7 @@ Subroutine readspeciesxml
                   Write (*,*)
                   Stop
                End If
+               mine0=min(apwe0(io,lx,is),mine0)
             End Do
          End Do
          nlorb (is) = size (speziesdeflist(is)%sp%lorbarray)
@@ -352,6 +353,7 @@ Subroutine readspeciesxml
                   Write (*,*)
                   Stop
                End If
+               mine0=min(lorbe0(io,ilo,is),mine0)
             End Do
          End Do
          Close (50)

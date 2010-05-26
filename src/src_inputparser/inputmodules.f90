@@ -137,6 +137,7 @@ type groundstate_type
  integer::ngridk(3)
  real(8)::rgkmax
  real(8)::epspot
+ real(8)::epsengy
  real(8)::rmtapm(2)
  real(8)::swidth
  character(512)::stype
@@ -157,6 +158,8 @@ type groundstate_type
  integer::maxscl
  real(8)::chgexs
  real(8)::deband
+ real(8)::epsband
+ real(8)::dlinenfermi
  real(8)::epschg
  real(8)::epsocc
  character(512)::mixer
@@ -170,7 +173,6 @@ type groundstate_type
  integer::xctypenumber
  character(512)::ldapu
  integer::ldapunumber
- real(8)::evalmin
  integer::lmaxvr
  real(8)::fracinr
  integer::lmaxinr
@@ -271,9 +273,9 @@ type dos_type
  logical::lmirep
  integer::nwdos
  integer::ngrdos
- real(8)::scissor
  integer::nsmdos
  real(8)::winddos(2)
+ real(8)::scissor
 end type
 type LSJ_type
   type(kstlist_type),pointer::kstlist
@@ -1462,6 +1464,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"epsengy")
+getstructgroundstate%epsengy=1.0d-4
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"epsengy",getstructgroundstate%epsengy)
+       call removeAttribute(thisnode,"epsengy")      
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"rmtapm")
 getstructgroundstate%rmtapm=(/0.25d0,0.95d0/)
 if(associated(np)) then
@@ -1608,6 +1618,22 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"epsband")
+getstructgroundstate%epsband=1.0d-6
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"epsband",getstructgroundstate%epsband)
+       call removeAttribute(thisnode,"epsband")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"dlinenfermi")
+getstructgroundstate%dlinenfermi=-0.1d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"dlinenfermi",getstructgroundstate%dlinenfermi)
+       call removeAttribute(thisnode,"dlinenfermi")      
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"epschg")
 getstructgroundstate%epschg=1.0d-3
 if(associated(np)) then
@@ -1689,14 +1715,6 @@ if(associated(np)) then
        call removeAttribute(thisnode,"ldapu")      
 endif
 getstructgroundstate%ldapunumber=stringtonumberldapu(getstructgroundstate%ldapu)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"evalmin")
-getstructgroundstate%evalmin=-4.5d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"evalmin",getstructgroundstate%evalmin)
-       call removeAttribute(thisnode,"evalmin")      
-endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxvr")
@@ -1930,7 +1948,7 @@ allocate(getstructHartreeFock)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"epsengy")
-getstructHartreeFock%epsengy=1.0d-7
+getstructHartreeFock%epsengy=1.0d-4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsengy",getstructHartreeFock%epsengy)
        call removeAttribute(thisnode,"epsengy")      
@@ -2511,14 +2529,6 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-getstructdos%scissor=0.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructdos%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-nullify(np)  
 np=>getAttributeNode(thisnode,"nsmdos")
 getstructdos%nsmdos=0
 if(associated(np)) then
@@ -2532,6 +2542,14 @@ getstructdos%winddos=(/0.0d0,0.5d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"winddos",getstructdos%winddos)
        call removeAttribute(thisnode,"winddos")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"scissor")
+getstructdos%scissor=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scissor",getstructdos%scissor)
+       call removeAttribute(thisnode,"scissor")      
 endif
 
       i=0
@@ -4323,6 +4341,8 @@ end function
  select case(trim(adjustl(string)))
 case('simple')
  stringtonumberfindlinentype=-1
+case('Fermi')
+ stringtonumberfindlinentype=-1
 case('advanced')
  stringtonumberfindlinentype=-1
 case('')
@@ -4491,9 +4511,9 @@ end function
  integer function  stringtonumberbsetype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('ip')
+case('IP')
  stringtonumberbsetype=-1
-case('rpa')
+case('RPA')
  stringtonumberbsetype=-1
 case('singlet')
  stringtonumberbsetype=-1
@@ -4612,7 +4632,7 @@ end function
 function countChildEmentsWithName(nodep,name)
   implicit none
   integer::countChildEmentsWithName
-  type(Node),pointer,intent(in) ::nodep
+  type(Node),pointer ::nodep
   character(len=*),intent(in)::name
   type(NodeList),pointer::children
   type(Node),pointer::child

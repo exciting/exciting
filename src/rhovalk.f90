@@ -185,8 +185,6 @@ Subroutine rhovalk (ik, evecfv, evecsv)
                Do i = 1, nsd
                   Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, rfshtvr, &
                  & lmmaxvr, rfmt(:, irc, i), 1, 0.d0, rflm(:, i), 1)
-                  Call dgemv ('N', lmmaxvr, lmmaxvr, 1.d0, rfshtvr, &
-                 & lmmaxvr, rfmt(1, irc, i), 1, 0.d0, rflm(1, i), 1)
                End Do
                If (associated(input%groundstate%spin)) Then
 ! spin-polarised

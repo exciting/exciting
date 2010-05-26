@@ -30,16 +30,14 @@ Subroutine writeinfo (fnum)
       Integer :: fnum
 ! local variables
       Integer :: i, is, ia
-#include "version.inc"
 #ifdef TETRA
       logical :: tetocc
 #endif
       Character (10) :: dat, tim
-      Write (fnum, '(" +-----------------------------------+")')
-      Write (fnum, '(" | EXCITING hydrogen",I2,".",I2,".",I2," started &
-     &|")') version
-      Write (fnum,*) "| git hash id ", GITHASH, "  |"
-      Write (fnum, '(" +-----------------------------------+")')
+      Write (fnum, '(" +-------------------------------------------------------+")')
+      Write (fnum, '(" | EXCITING hydrogen (",I2,".",I2,".",I2,") started                  |")') version
+      Write (fnum, '(" | git hash id: ",a," |")') githash
+      Write (fnum, '(" +-------------------------------------------------------+")')
       If (notelns .Gt. 0) Then
          Write (fnum,*)
          Write (fnum, '("Notes :")')
@@ -51,7 +49,7 @@ Subroutine writeinfo (fnum)
       Write (fnum,*)
       Write (fnum, '("Date (YYYY-MM-DD) : ", A4, "-", A2, "-", A2)') &
      & dat (1:4), dat (5:6), dat (7:8)
-      Write (fnum, '("Time (hh:mm:ss)	 : ", A2, ":", A2, ":", A2)') tim &
+      Write (fnum, '("Time (hh:mm:ss)   : ", A2, ":", A2, ":", A2)') tim &
      & (1:2), tim (3:4), tim (5:6)
       Write (fnum,*)
       Write (fnum, '("All units are atomic (Hartree, Bohr, etc.)")')
