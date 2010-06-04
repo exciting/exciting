@@ -8,7 +8,7 @@
   <!-- extract source="binary"/-->
   <!--convert target="xml"/-->
   
-  <structure speciespath="../../../species/">
+  <structure speciespath="../../species/">
     <crystal scale="3.817">
       <basevect>1.0 1.0 0.0</basevect>
       <basevect>1.0 0.0 1.0</basevect>

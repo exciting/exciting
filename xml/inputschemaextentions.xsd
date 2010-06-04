@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema 
+<xs:schema xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
 xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-targetNamespace="inputschemaextentions.xsd"
+targetNamespace="http://xml.exciting-code.org/inputschemaextentions.xsd"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  >
  
   <xs:attribute name="importance">
@@ -23,10 +24,4 @@ targetNamespace="inputschemaextentions.xsd"
     </xs:simpleType>
   </xs:attribute>
   
-  <xs:element name="pinfo">
-    <xs:complexType>
-      <xs:attribute ref="status"></xs:attribute>
-      <xs:attribute ref="unit"></xs:attribute>
-    </xs:complexType>
-  </xs:element>
 </xs:schema>

@@ -1,4 +1,9 @@
-<xs:schema xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+ xmlns:xs="http://www.w3.org/2001/XMLSchema"
+ xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd"
+ >
  <!--
   This schema defines the input file format. It should be the central place for parameter and task specification and documentation
  --> 
