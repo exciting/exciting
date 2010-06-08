@@ -147,7 +147,7 @@
   
  </xsl:template>
  <xsl:template match="exciting">
- <xsl:text> \exciting </xsl:text>
+ <xsl:text> \exciting{} </xsl:text>
  </xsl:template>
  <xsl:template name="elementToLatex">
   <xsl:param name="myelement" />
