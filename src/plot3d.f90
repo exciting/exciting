@@ -43,19 +43,18 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Intent (In) :: rfir (ngrtot, nf)
       Type (plot3d_type), Intent (In) :: plotdef
 ! local variables
-      Integer :: np, ip, ip1, ip2, ip3, i, fnum = 50
+      Integer :: np, ip, ip1, ip2, ip3, i,ifunction, fnum = 50
       Real (8) :: v1 (3), v2 (3), v3 (3)
       Real (8) :: t1, t2, t3
       Character (512) :: buffer, buffer1
+      character (20)::buffer20
       Type (xmlf_t), Save :: xf
 ! allocatable arrays
       Real (8), Allocatable :: vpl (:, :)
       Real (8), Allocatable :: fp (:, :)
       buffer = fname // "3D.OUT"
       Open (fnum, File=trim(buffer), Action='WRITE', Form='FORMATTED')
-      Call xml_OpenFile (fname//"3d.xml", xf, replace=.True., &
-     & pretty_print=.True.)
-      Call xml_NewElement (xf, "plot3d")
+
 !
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
          Write (*,*)
@@ -78,12 +77,12 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       v3 (:) = plotdef%box%pointarray(3)%point%coord - &
      & plotdef%box%origin%coord
       ip = 0
-      Do ip3 = 0, plotdef%box%grid(3) - 1
-         t3 = dble (ip3) / dble (plotdef%box%grid(3))
+      Do ip1 = 0, plotdef%box%grid(1) - 1
+         t1 = dble (ip1) / dble (plotdef%box%grid(1))
          Do ip2 = 0, plotdef%box%grid(2) - 1
             t2 = dble (ip2) / dble (plotdef%box%grid(2))
-            Do ip1 = 0, plotdef%box%grid(1) - 1
-               t1 = dble (ip1) / dble (plotdef%box%grid(1))
+            Do ip3 = 0, plotdef%box%grid(3) - 1
+               t3 = dble (ip3) / dble (plotdef%box%grid(3))
                ip = ip + 1
                vpl (:, ip) = t1 * v1 (:) + t2 * v2 (:) + t3 * v3 (:) + &
               & plotdef%box%origin%coord
@@ -96,32 +95,86 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
          Call rfarray (lmax, ld, rfmt(:, :, :, i), rfir(:, i), np, vpl, &
         & fp(:, i))
       End Do
-! write functions to file
-      Write (fnum, '(3I6, " : grid size")') plotdef%box%grid(:)
-      Write (buffer, '(3I6)') plotdef%box%grid(:)
-      Call xml_AddAttribute (xf, "grid", trim(adjustl(buffer)))
+!write xml
+   Call xml_OpenFile (fname//"3d.xml", xf, replace=.True., &
+     & pretty_print=.True.)
+      Call xml_NewElement (xf, "plot3d")
       Call xml_NewElement (xf, "title")
       Call xml_AddCharacters (xf, trim(input%title))
       Call xml_endElement (xf, "title")
-      Do ip = 1, np
-         Call r3mv (input%structure%crystal%basevect, vpl(:, ip), v1)
-         Write (fnum, '(7G18.10)') v1 (:), (fp(ip, i), i=1, nf)
-         Call xml_NewElement (xf, "point")
-         Write (buffer, '(G18.10)') v1 (1)
-         Call xml_AddAttribute (xf, "x", trim(adjustl(buffer)))
-         Write (buffer, '(G18.10)') v1 (2)
-         Call xml_AddAttribute (xf, "y", trim(adjustl(buffer)))
-         Write (buffer, '(G18.10)') v1 (3)
-         Call xml_AddAttribute (xf, "z", trim(adjustl(buffer)))
-         Do i = 1, nf
-            Write (buffer, '(G18.10)') fp (ip, i)
-            Write (buffer1,*) i
-            Call xml_AddAttribute (xf, "function"//&
-           & trim(adjustl(buffer1)), trim(adjustl(buffer)))
-         End Do
-         Call xml_endElement (xf, "point")
+      Call xml_NewElement (xf, "grid")
+      Write (buffer, '(3I6)') plotdef%box%grid
+      Call xml_AddAttribute (xf, "gridticks", trim(adjustl(buffer)))
+      write(buffer, '(6G18.10)') plotdef%box%origin%coord
+      call xml_AddAttribute (xf, "origin",trim(adjustl(buffer)))
+      !write x axis description
+      Call xml_NewElement (xf, "axis")
+      call xml_AddAttribute (xf, "name", "a")
+      write(buffer, '(6G18.10)') plotdef%box%pointarray(1)%point%coord
+      call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
+      write(buffer, '(6G18.10)') (plotdef%box%pointarray(1)%point%coord&
+      &-plotdef%box%origin%coord)&
+      &/ plotdef%box%grid(1)
+      call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
+
+      Call xml_endElement (xf, "axis")
+      !write y axis description
+      Call xml_NewElement (xf, "axis")
+      call xml_AddAttribute (xf, "name", "b")
+      write(buffer, '(6G18.10)') plotdef%box%pointarray(2)%point%coord
+      call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
+      write(buffer, '(6G18.10)') (plotdef%box%pointarray(2)%point%coord&
+      &-plotdef%box%origin%coord)&
+      &/ plotdef%box%grid(2)
+      call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
+
+
+       Call xml_endElement (xf, "axis")
+            !write z axis description
+      Call xml_NewElement (xf, "axis")
+      call xml_AddAttribute (xf, "name", "c")
+      write(buffer, '(6G18.10)') plotdef%box%pointarray(3)%point%coord
+      call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
+      write(buffer, '(6G18.10)') (plotdef%box%pointarray(3)%point%coord&
+      &-plotdef%box%origin%coord)&
+      &/ plotdef%box%grid(3)
+      call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
+
+       Call xml_endElement (xf, "axis")
+       Call xml_endElement (xf, "grid")
+
+
+! write functions to file
+ip=0
+     Do ifunction = 1, nf
+       Call xml_NewElement (xf, "function")
+       write(buffer20, '(I14)')  np
+       call xml_AddAttribute (xf, "n",trim(adjustl(buffer20)))
+	      Do ip1 = 0, plotdef%box%grid(1) - 1
+	      Call xml_NewElement (xf, "row")
+          call xml_AddAttribute (xf, "const", "a")
+          write(buffer20, '(I14)')  ip1
+          call xml_AddAttribute (xf, "index", trim(adjustl(buffer20)))
+	         t3 = dble (ip3) / dble (plotdef%box%grid(3))
+	         Do ip2 = 0, plotdef%box%grid(2) - 1
+	         Call xml_NewElement (xf, "row")
+             call xml_AddAttribute (xf, "const", "b")
+             write(buffer20, '(I14)')  ip2
+             call xml_AddAttribute (xf, "index",trim(adjustl(buffer20)))
+	            Do ip3 = 0, plotdef%box%grid(3) - 1
+	            ip=ip+1
+	            write(buffer20, '(6G18.10)')  fp (ip, ifunction)
+                call xml_AddCharacters(xf,buffer20)
+	            End Do
+	        Call xml_endElement (xf, "row")
+	        End Do
+	     Call xml_endElement (xf, "row")
+	     End Do
+
+	  Call xml_NewElement (xf, "function")
+    End Do
+
 !
-      End Do
       Deallocate (vpl, fp)
       Call xml_Close (xf)
       Close (fnum)

@@ -30,9 +30,8 @@ Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
       Integer, Intent (Out) :: scmut (nsymcrys, nsymcrys)
       Logical, Intent (Out) :: tabel
   ! local variables
-      Integer, Parameter :: maxsymlat = 48
       Integer :: isym, jsym, asym, lspli, lsplj, lspla, iv (3)
-      Integer :: doner (maxsymlat), donec (maxsymlat)
+      Integer :: doner (maxsymcrys), donec (maxsymcrys)
       Real (8) :: c (3, 3), ct (3, 3), si (3, 3), sj (3, 3), sa (3, 3), &
      & vtt (3), vtl (3), vtla (3)
       scmut (:, :) = 0
