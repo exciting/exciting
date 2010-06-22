@@ -237,10 +237,10 @@ Subroutine dos
             Write (50, '(G18.10)') w (iw), t1 * g (iw, ispn)
             Call xml_NewElement (xf, "point")
             Write (buffer, '(G18.10)') w (iw)
-            Call xml_AddAttribute (xf, "distance", &
+            Call xml_AddAttribute (xf, "e", &
            & trim(adjustl(buffer)))
             Write (buffer, '(G18.10)') g (iw, ispn)
-            Call xml_AddAttribute (xf, "totaldensity", &
+            Call xml_AddAttribute (xf, "dos", &
            & trim(adjustl(buffer)))
 !
             Call xml_endElement (xf, "point")
@@ -274,11 +274,9 @@ Subroutine dos
            &')
 !
             Do ispn = 1, nspinor
-               Call xml_NewElement (xf, "diagram")
+
 !
-               Write (buffer,*) ispn
-               Call xml_AddAttribute (xf, "nspin", &
-              & trim(adjustl(buffer)))
+
                If (ispn .Eq. 1) Then
                   t1 = 1.d0
                Else
@@ -297,13 +295,24 @@ Subroutine dos
                     & input%properties%dos%nwdos, wdos, nstsv, nstsv, &
                     & e(:, :, ispn), f, gp)
                      gp (:) = occmax * gp (:)
+                     Call xml_NewElement (xf, "diagram")
+                       Write (buffer,*) ispn
+               Call xml_AddAttribute (xf, "nspin", &
+              & trim(adjustl(buffer)))
+                 	 Write (buffer,*) l
+            	     Call xml_AddAttribute (xf, "l", &
+             			 & trim(adjustl(buffer)))
+             			 Write (buffer,*) m
+            	     Call xml_AddAttribute (xf, "m", &
+             			 & trim(adjustl(buffer)))
+
                      Do iw = 1, input%properties%dos%nwdos
                         Call xml_NewElement (xf, "point")
                         Write (buffer, '(G18.10)') w (iw)
-                        Call xml_AddAttribute (xf, "distance", &
+                        Call xml_AddAttribute (xf, "e", &
                        & trim(adjustl(buffer)))
                         Write (buffer, '(G18.10)') gp (iw)
-                        Call xml_AddAttribute (xf, "partialdensity", &
+                        Call xml_AddAttribute (xf, "dos", &
                        & trim(adjustl(buffer)))
 !
                         Call xml_endElement (xf, "point")
@@ -312,9 +321,10 @@ Subroutine dos
                         g (iw, ispn) = g (iw, ispn) - gp (iw)
                      End Do
                      Write (50, '("     ")')
+                   Call xml_endElement (xf, "diagram")
                   End Do
                End Do
-               Call xml_endElement (xf, "diagram")
+
             End Do
             Close (50)
             Call xml_endElement (xf, "partialdos")
@@ -382,10 +392,10 @@ Subroutine dos
          Do iw = 1, input%properties%dos%nwdos
             Call xml_NewElement (xf, "point")
             Write (buffer, '(G18.10)') w (iw)
-            Call xml_AddAttribute (xf, "distance", &
+            Call xml_AddAttribute (xf, "e", &
            & trim(adjustl(buffer)))
             Write (buffer, '(G18.10)') g (iw, ispn)
-            Call xml_AddAttribute (xf, "interstitialdensity", &
+            Call xml_AddAttribute (xf, "dos", &
            & trim(adjustl(buffer)))
             Call xml_endElement (xf, "point")
             Write (50, '(2G18.10)') w (iw), t1 * g (iw, ispn)

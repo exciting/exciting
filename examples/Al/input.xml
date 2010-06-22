@@ -28,5 +28,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         </path>
       </plot1d>
     </bandstructure>
+    <dos lmirep="true">
+    </dos>
   </properties>
 </input>
