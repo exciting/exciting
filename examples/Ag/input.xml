@@ -18,7 +18,7 @@
       <atom coord="0.0  0.0  0.0" />
     </species>
   </structure>
-  <groundstate ngridk="8  8  8"></groundstate>
+  <groundstate ngridk="8  8  8" tforce="true"></groundstate>
   <!--properties>
     <bandstructure character="true">
       <plot1d>

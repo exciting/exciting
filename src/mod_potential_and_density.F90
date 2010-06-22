@@ -26,6 +26,10 @@ Module mod_potential_and_density
       Real (8), Allocatable :: rhomt (:, :, :)
 ! interstitial real-space charge density
       Real (8), Allocatable :: rhoir (:)
+! muffin-tin charge density (reference)
+      Real (8), Allocatable :: rhomtref (:, :, :)
+! interstitial real-space charge density (reference)
+      Real (8), Allocatable :: rhoirref (:)
 ! muffin-tin magnetisation vector field
       Real (8), Allocatable :: magmt (:, :, :, :)
 ! interstitial magnetisation vector field
