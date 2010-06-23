@@ -11,7 +11,7 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
     <xs:simpleType name="fortrandouble">
         <xs:annotation>
             <xs:documentation>
- The Type <pre>fortrandouble</pre> allows to use the letters <pre>"eEdDqQ"</pre> for exponent operators. This alters in what precision the number is parsed.
+ The type <pre>fortrandouble</pre> allows to use the letters <pre>"eEdDqQ"</pre> for exponent operators. This alters in what precision the number is parsed.
  </xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:token">
@@ -19,10 +19,18 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
         </xs:restriction>
     </xs:simpleType>
     <xs:annotation>
-        <xs:documentation>This input reference lists the elements and attributes available to define an input for an <exciting>exciting</exciting> calculation. The input file is named <pre>input.xml</pre> 
-  it must be a valid XML file and  it must contain the root element <pre> input</pre>.
-Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units  
-  (<inlinemath>\hbar = m_{e} = e = 1</inlinemath>):
+        <xs:documentation>
+        <p>This web page lists all <blue>elements</blue> and <green>attributes</green> that can be used in the input file of an <exciting>exciting</exciting> calculation: </p>
+
+<p>* <blue>elements</blue> are defined according to the general XML conventions PutLinkHere.  <it>Example:</it> The element <pre-bf>groundstate</pre-bf> is used to set up a self-consistent calculation of the ground-state energy.</p>
+<p>* <green>attributes</green>  are defined according to the general XML conventions PutLinkHere. An attribute is always connected to an element. In <exciting>exciting</exciting> an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element. //Example:// The attribute {{**xctype**}} of the element {{**groundstate**}} defines which exchange-correlation potential is used in the self-consistent calculation.
+</p>
+
+<p>The input file of an  <exciting>exciting</exciting> calculation is named <filename>input.xml</filename>. It must be a valid XML file, and it must contain the root element <pre-bf>input</pre-bf>.</p>
+        
+        
+        <p>Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units
+  (<inlinemath>\hbar = m_{e} = e = 1</inlinemath>):</p>
 
   <list>
                 <li> Energies are given in Hartree:
@@ -36,7 +44,7 @@ Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic un
     </displaymath>
                 </li>
             </list>
-            <p> Note: The electron charge is positive, so that the atomic numbers <inlinemath>Z\ </inlinemath> are negative.
+            <p> Note: The electron charge is positive, so that the atomic numbers <inlinemath>Z</inlinemath> are negative.
     </p>
         </xs:documentation>
         <xs:appinfo>
@@ -139,7 +147,7 @@ Example:  <pre>
             <xs:documentation>
     If the IBS correction to the force should be calculated Because calculation of the incomplete basis set (IBS) correction to
     the force is fairly time-consuming, it can be switched off by setting
-    <pre> tfibs</pre>
+    <pre> tfibs </pre>
     to
     <pre> "false"</pre>
     This correction can then be included only when necessary, i.e. when the atoms are close to equilibrium in a structural
@@ -267,8 +275,7 @@ Example:  <pre>
     <xs:element ex:importance="essential" ex:unit="" name="input">
         <xs:annotation>
             <xs:documentation>
-       The input element is the root element of the <exciting>exciting</exciting> input file. The input element must contain one structure
-       element and one groundstate element.
+       The xml element <pre> input</pre> is the root element of the <exciting>exciting</exciting> input file. It must contain one <pre>structure </pre> element and one <pre>groundstate </pre> element.
        <p>
                     <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file instance described here.</a>
                 </p>
@@ -576,7 +583,7 @@ Example:  <pre>
                 <xs:element ex:importance="essential" ex:unit="" name="groundstate" maxOccurs="1" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>
-             The groundstate element is required for anny calculation. Its attributes are the parameters and methods used to calculate the groundstate density.
+             The groundstate element is required for any calculation. Its attributes are the parameters and methods used to calculate the groundstate density.
            </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
@@ -1011,8 +1018,7 @@ Example:  <pre>
                             <xs:annotation>
                                 <xs:documentation>
                  Defines the number of eigenstates beyond that required for charge neutrality. When running metals it is not known
-                 <it>a priori</it>
-                 how many states will be below the Fermi energy for each
+                 <it>a priori</it> how many states will be below the Fermi energy for each
                  <bf>k</bf>
                  -point. Setting
                  <pre>nempty</pre>
@@ -1464,7 +1470,7 @@ Example:  <pre>
                         <xs:annotation>
                             <xs:documentation>
                Structural optimization run. Atomic positions written to
-               <pre>geometry.xml</pre>.
+               <pre_ns>geometry.xml</pre_ns>.
              </xs:documentation>
                         </xs:annotation>
                         <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble" default="5.0d-5">
