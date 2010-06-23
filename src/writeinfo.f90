@@ -34,10 +34,10 @@ Subroutine writeinfo (fnum)
       logical :: tetocc
 #endif
       Character (10) :: dat, tim
-      Write (fnum, '(" +-------------------------------------------------------+")')
-      Write (fnum, '(" | EXCITING hydrogen (",I2,".",I2,".",I2,") started                  |")') version
-      Write (fnum, '(" | git hash id: ",a," |")') githash
-      Write (fnum, '(" +-------------------------------------------------------+")')
+      Write (fnum, '(" +-----------------------------------------------------------+")')
+      Write (fnum, '(" | EXCITING hydrogen (",I2,".",I2,".",I2,") started                      |")') version
+      Write (fnum, '(" | version hash id: ",a," |")') githash
+      Write (fnum, '(" +-----------------------------------------------------------+")')
       If (notelns .Gt. 0) Then
          Write (fnum,*)
          Write (fnum, '("Notes :")')

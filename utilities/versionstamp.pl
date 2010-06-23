@@ -21,4 +21,4 @@ open VERISIONINC,">", "../../src/version.inc";
 print VERISIONINC "\#define GITHASH \"$hash1\"\n";
 print VERISIONINC "\#define GITHASH2 \"$hash2\"\n";
 
-print VERISIONINC "\#define VERSIONFROMDATE ", `date "+/%y,%m,0/"`
+print VERISIONINC "\#define VERSIONFROMDATE ", `date "+/%y,%m,%d/"`

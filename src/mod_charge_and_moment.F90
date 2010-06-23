@@ -35,6 +35,8 @@ Module mod_charge_and_moment
       Real (8) :: chgmttot
 ! partial charges
       real(8), allocatable :: chgpart(:,:,:)
+! charge distance
+      real(8) :: chgdst
 ! effective Wigner radius
       Real (8) :: rwigner
 ! total moment

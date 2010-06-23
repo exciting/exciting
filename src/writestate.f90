@@ -28,7 +28,7 @@ Subroutine writestate
       Integer :: is
       Open (50, File='STATE'//trim(filext), Action='WRITE', Form='UNFOR&
      &MATTED')
-      Write (50) version
+      Write (50) version, githash
       Write (50) associated (input%groundstate%spin)
       Write (50) nspecies
       Write (50) lmmaxvr

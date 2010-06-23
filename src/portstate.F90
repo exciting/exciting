@@ -15,6 +15,7 @@ Subroutine portstate (act)
 ! !USES:
       Use modinput
       Use ioarray
+      use mod_misc
 ! !DESCRIPTION:
 !   Toggle file format of {\tt STATE.OUT}. If tb2a is true an ASCII
 !   file with the name {\tt STATE.xml} is generated and the data
@@ -30,11 +31,13 @@ Subroutine portstate (act)
   ! arguments
       Integer, Intent (In) :: act
   ! local variables
-      Logical :: tb2a, exist, spinpol_
+      Logical :: tb2a, exist, spinpol_, tgithash
       Integer :: natmtot, is
       Integer :: version_ (3), nspecies_, lmmaxvr_, nrmtmax_
       Integer :: natoms_ (10000), ngrid_ (3)
       Integer :: ngrtot_, ngvec_, ndmag_, nspinor_, ldapu_, lmmaxlu_
+      logical, external :: versions_gt
+      Character(40) :: githash_
   ! allocatable arrays
       Integer, Allocatable :: nrmt_ (:)
       Real (8), Allocatable :: spr_ (:, :)
@@ -80,10 +83,19 @@ Subroutine portstate (act)
          If (act .Eq. 1) open (51, file='STATE.xml', action='WRITE', &
         & form='FORMATTED', status='replace')
          Read (50) version_
+         ! versions >= 10.4 (after April 2010)
+         if (versions_gt(version_,refversion_gitstate)) then
+            backspace(50)
+            read(50) version_, githash_
+         else
+            githash_=''
+         end if
          If (act .Eq.-1) Then
             Write (*, '("version:", 3i8)') version_
+            if (versions_gt(version_,refversion_gitstate)) &
+              Write (*, '("versionhash: ", a40)') githash_
             Write (*,*)
-            Return
+            return
          End If
          Read (50) spinpol_
          Read (50) nspecies_
@@ -95,6 +107,12 @@ Subroutine portstate (act)
         &ension = "1" shape = "3">'
          Call ioarr (un=51, ioa='write', arr1di=version_)
          Write (51, '(a)') '</data>'
+         if (versions_gt(version_,refversion_gitstate)) then
+           Write (51, '(a)') '<data name = "versionhash" type = "character(40)" &
+             &dimension = "1" shape = "1">'
+           Write (51, *) githash_
+           Write (51, '(a)') '</data>'
+         end if
          Write (51, '(a)') '<data name = "spinpol" type = "logical" dim&
         &ension = "1" shape = "1">'
          Write (51,*) spinpol_
@@ -133,8 +151,15 @@ Subroutine portstate (act)
          Read (50,*)
          Read (50,*)
          Call ioarr (un=50, ioa='read', arr1di=version_)
+         if (versions_gt(version_,refversion_gitstate)) then
+           read (50, *)
+           read (50, *)
+           read (50, *) githash_
+         end if
          If (act .Eq.-2) Then
             Write (*, '("version:", 3i8)') version_
+            if (versions_gt(version_,refversion_gitstate)) &
+              Write (*, '("versionhash: ", a40)') githash_
             Write (*,*)
             Return
          End If
@@ -151,7 +176,11 @@ Subroutine portstate (act)
          Read (50,*)
          Read (50,*) nrmtmax_
          Read (50,*)
-         Write (51) version_
+         if (versions_gt(version_,refversion_gitstate)) then
+           Write (51) version_, githash_
+         else
+           Write (51) version_
+         end if
          Write (51) spinpol_
          Write (51) nspecies_
          Write (51) lmmaxvr_
@@ -457,13 +486,11 @@ Subroutine portstate (act)
       If (spinpol_) deallocate (magmt_, magir_, bxcmt_, bxcir_)
       If (tb2a) Then
          Write (*,*)
-         Write (*, '("Info(portstate): generated portable ASCII file ST&
-        &ATE.xml from STATE.OUT file")')
+         Write (*, '("Info(portstate): generated STATE.xml file from STATE.OUT file")')
          Write (*,*)
       Else
          Write (*,*)
-         Write (*, '("Info(portstate): generated STATE.OUT file from po&
-        &rtable ASCII file STATE.xml")')
+         Write (*, '("Info(portstate): generated STATE.OUT file from STATE.xml file")')
          Write (*,*)
       End If
 Contains
