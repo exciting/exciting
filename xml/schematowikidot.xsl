@@ -89,7 +89,7 @@
 </xsl:text>
   </xsl:template>
   <xsl:template match="inlinemath">
-    <xsl:text> [[$ </xsl:text>
+    <xsl:text>[[$ </xsl:text>
     <xsl:value-of select="normalize-space(.)" />
     <xsl:text> $]]</xsl:text>
     <xsl:if test="@space">
@@ -97,19 +97,44 @@
     </xsl:if>
   </xsl:template>
   <xsl:template match="pre">
-    <xsl:text> {{ </xsl:text>
+    <xsl:text> {{</xsl:text>
     <xsl:value-of select="normalize-space(.)" />
-    <xsl:text> }}</xsl:text>
+    <xsl:text>}} </xsl:text>
+  </xsl:template>
+  <xsl:template match="pre_ns">
+    <xsl:text> {{</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>}}</xsl:text>
   </xsl:template>
   <xsl:template match="it">
     <xsl:text> //</xsl:text>
     <xsl:value-of select="normalize-space(.)" />
-    <xsl:text>//</xsl:text>
+    <xsl:text>// </xsl:text>
   </xsl:template>
   <xsl:template match="bf">
     <xsl:text> **</xsl:text>
     <xsl:value-of select="normalize-space(.)" />
     <xsl:text>** </xsl:text>
+  </xsl:template>
+  <xsl:template match="pre-bf">
+    <xsl:text> {{**</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>**}} </xsl:text>
+  </xsl:template>
+  <xsl:template match="filename">
+    <xsl:text> {{**//</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>//**}} </xsl:text>
+  </xsl:template>
+  <xsl:template match="green">
+    <xsl:text> ##green|</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>## </xsl:text>
+  </xsl:template>
+  <xsl:template match="blue">
+    <xsl:text> ##blue|</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>## </xsl:text>
   </xsl:template>
   <xsl:template match="text()">
     <xsl:value-of select="normalize-space(.)" />
