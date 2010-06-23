@@ -458,7 +458,7 @@ Subroutine gndstate
                   write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
                   &G18.10,")")') deltae, input%groundstate%epsengy
                   write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&
-                  &G18.10,")")') dforcemax, input%structureoptimization%epsforce
+                  &G18.10,")")') dforcemax, input%groundstate%epsforce
                   write(60,'("Charge distance (target)                   : ",G18.10," (",&
                   &G18.10,")")') chgdst, input%groundstate%epschg
                   write(66,'(G18.10)') deltae
@@ -472,7 +472,7 @@ Subroutine gndstate
                   If ((currentconvergence .Lt. input%groundstate%epspot).and. &
                  & (deltae .lt. input%groundstate%epsengy).and. &
                  & (chgdst .lt. input%groundstate%epschg).and. &
-                 & (dforcemax .lt. input%structureoptimization%epsforce)) Then
+                 & (dforcemax .lt. input%groundstate%epsforce)) Then
                      Write (60,*)
                      Write (60, '("Convergence targets achieved")')
                      tlast = .True.

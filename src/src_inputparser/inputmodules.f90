@@ -148,6 +148,7 @@ type groundstate_type
  real(8)::rgkmax
  real(8)::epspot
  real(8)::epsengy
+ real(8)::epsforce
  real(8)::rmtapm(2)
  real(8)::swidth
  character(512)::stype
@@ -1549,6 +1550,14 @@ getstructgroundstate%epsengy=1.0d-4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsengy",getstructgroundstate%epsengy)
        call removeAttribute(thisnode,"epsengy")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"epsforce")
+getstructgroundstate%epsforce=5.0d-5
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"epsforce",getstructgroundstate%epsforce)
+       call removeAttribute(thisnode,"epsforce")      
 endif
 
 nullify(np)  

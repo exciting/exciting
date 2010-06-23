@@ -23,7 +23,7 @@
 !       Mode 2 can be better, but may also blowup so is not recommended. Mode 3 is similar.
 !
 	implicit real*8 (a-h,o-z)
-	dimension FHIST(MEMALL),PWHIST(MEMALL),CLMHIST(MEMALL)
+	dimension FHIST(MEMORY),PWHIST(MEMORY),CLMHIST(MEMORY)
         dimension Y(MAXMIX,MEMORY),YY(MEMORY,MEMORY),F(MAXMIX),S(MAXMIX,MEMORY)
 	dimension dmixout(4), YHIST(*)
         real*8 LowerBound, MSECINFO(*)
