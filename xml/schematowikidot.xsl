@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:str="http://exslt.org/strings"
-  xmlns:regex="http://www.exslt.org/regexp" xmlns:ex="inputschemaextentions.xsd">
+<xsl:stylesheet version="1.0" 
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+xmlns:str="http://exslt.org/strings"
+xmlns:regex="http://www.exslt.org/regexp" 
+xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xsl:output method="text" />
-  <xsl:param name="importancelevels">
-    <xsl:text>essential</xsl:text>
-    <xs:annotation>
+  <xsl:param name="importancelevels"><xsl:text>essential</xsl:text> <xs:annotation>
       <xs:documentation> In order to select the importance levels that should be included list them in the parameter "importancelevels". 
       example: xsltproc --stringparam importancelevels "essential expert" schematowikidot.xsl excitinginput.xsd >iref.txt
       </xs:documentation>

@@ -17,14 +17,20 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
         <xs:restriction base="xs:token">
             <xs:pattern value="\-?[0-9]*\.?[0-9]+([eEdDqQ][\-+]?[0-9]+)?"/>
         </xs:restriction>
+        
     </xs:simpleType>
     <xs:annotation>
         <xs:documentation>
         <p>This web page lists all <blue>elements</blue> and <green>attributes</green> that can be used in the input file of an <exciting>exciting</exciting> calculation: </p>
 
-<p>* <blue>elements</blue> are defined according to the general XML conventions PutLinkHere.  <it>Example:</it> The element <pre-bf>groundstate</pre-bf> is used to set up a self-consistent calculation of the ground-state energy.</p>
-<p>* <green>attributes</green>  are defined according to the general XML conventions PutLinkHere. An attribute is always connected to an element. In <exciting>exciting</exciting> an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element. //Example:// The attribute {{**xctype**}} of the element {{**groundstate**}} defines which exchange-correlation potential is used in the self-consistent calculation.
-</p>
+ <list>
+ <li><blue>elements</blue> are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>.  <it>Example:</it> The element <pre-bf>groundstate</pre-bf> is used to set up a self-consistent calculation of the ground-state energy.
+ </li>
+ <li>
+  <green>attributes</green>  are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>. An attribute is always connected to an element. In <exciting>exciting</exciting> an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element.
+ <it>Example</it> The attribute <pre-bf>xctype</pre-bf> of the element <pre-bf>groundstate</pre-bf> defines which exchange-correlation potential is used in the self-consistent calculation.
+</li>
+</list>
 
 <p>The input file of an  <exciting>exciting</exciting> calculation is named <filename>input.xml</filename>. It must be a valid XML file, and it must contain the root element <pre-bf>input</pre-bf>.</p>
         
@@ -32,7 +38,7 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
         <p>Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units
   (<inlinemath>\hbar = m_{e} = e = 1</inlinemath>):</p>
 
-  <list>
+     <list>
                 <li> Energies are given in Hartree:
     <displaymath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\  J</displaymath>
                 </li>
@@ -299,7 +305,7 @@ Example:  <pre>
                         <xs:attribute ex:importance="expert" ex:unit="" name="target" use="required">
                             <xs:annotation>
                                 <xs:documentation>Output format for conversion. Either the binary file
-                                {\tt STATE.OUT} is converted to the XML file {\tt STATE.xml} or vice versa.
+                                <pre> STATE.OUT</pre> is converted to the XML file <pre> STATE.xml</pre> or vice versa.
                                 </xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -315,8 +321,8 @@ Example:  <pre>
                     <xs:complexType>
                         <xs:attribute ex:importance="expert" ex:unit="" name="source" use="required">
                             <xs:annotation>
-                                <xs:documentation>Extract information from {\tt STATE.OUT} or {\tt STATE.xml} file.
-                                A skeleton input is created and written to {\tt STATE\_input.xml}.</xs:documentation>
+                                <xs:documentation>Extract information from <pre> STATE.OUT</pre> or <pre> STATE.xml </pre> file.
+                                A skeleton input is created and written to <pre> STATE_input.xml</pre>.</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
@@ -1970,7 +1976,7 @@ Example:  <pre>
                     </xs:annotation>
                     <xs:complexType>
                         <xs:all>
-                            <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0">
+                            <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0" maxOccurs="1">
                                 <xs:complexType>
                                     <xs:all>
                                         <xs:element ex:importance="expert" ex:unit="" name="dftrans" maxOccurs="1" minOccurs="0">
