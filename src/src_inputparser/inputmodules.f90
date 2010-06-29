@@ -54,6 +54,7 @@ type input_type
   type(properties_type),pointer::properties
   type(phonons_type),pointer::phonons
   type(xs_type),pointer::xs
+ character(512)::keywords
 end type
 type convert_type
  character(512)::target
@@ -918,6 +919,14 @@ Do i=1,len
 		getstructinput%title=getvalueoftitle(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "title"),0)))
+end do
+
+      len= countChildEmentsWithName (thisnode,"keywords")
+Do i=1,len
+
+		getstructinput%keywords=getvalueofkeywords(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "keywords"),0)))
 end do
 
       i=0
@@ -4336,6 +4345,16 @@ type(Node),pointer::thisnode
   write(*,*)"we are at trans"
 #endif  
    call extractDataContent(thisnode,  getvalueoftrans)
+end function 
+function getvalueofkeywords(thisnode)
+implicit none
+type(Node),pointer::thisnode
+ character(512)::getvalueofkeywords
+
+#ifdef INPUTDEBUG
+  write(*,*)"we are at keywords"
+#endif  
+   call extractDataContent(thisnode,  getvalueofkeywords)
 end function 
 function getvalueofqpoint(thisnode)
 implicit none

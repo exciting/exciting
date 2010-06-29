@@ -95,6 +95,8 @@ Subroutine gndstate
          open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
      ! open DTOTENERGY.OUT
          open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
+     ! open PCHARGE.OUT
+         open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
      ! initialise or read the charge density and potentials from file
@@ -209,6 +211,8 @@ Subroutine gndstate
 #endif
 #ifndef MPISEC
          splittfile = .False.
+     ! zero partial charges
+         chgpart(:,:,:)=0.d0
      ! begin parallel loop over k-points
 #ifdef KSMP
      !$OMP PARALLEL DEFAULT(SHARED) &
@@ -228,6 +232,8 @@ Subroutine gndstate
             Call putevalsv (ik, evalsv(:, ik))
             Call putevecfv (ik, evecfv)
             Call putevecsv (ik, evecsv)
+        ! calculate partial charges
+            call genpchgs(ik,evecfv,evecsv)
             Deallocate (evalfv, evecfv, evecsv)
          End Do
 #ifdef KSMP
@@ -237,6 +243,11 @@ Subroutine gndstate
 #ifdef MPISEC
          Call mpisync_evalsv_spnchr
 #endif
+         If (rank .Eq. 0) Then
+        ! write out partial charges
+            call writepchgs(69,input%groundstate%lmaxvr)
+            call flushifc(69)
+         end if
      ! find the occupation numbers and Fermi energy
          Call occupy
 #ifdef MPISEC
@@ -674,6 +685,8 @@ Subroutine gndstate
             close(67)
  ! close the CHGDIST.OUT file
             close(68)
+ ! close the PCHARGE.OUT file
+            close(69)
             Call scl_xml_setGndstateStatus ("finished")
             Call scl_xml_out_write ()
          End If
