@@ -4,7 +4,7 @@
 ! License. See the file COPYING for license details.
 
 Module modmixermsec
-!
+
       Real (8), Allocatable :: residual (:), last_outputp (:), work2 &
      & (:), work3 (:)
       Real (8), Allocatable :: PWHIST (:), FHIST (:), CLMHIST (:), &
@@ -18,18 +18,29 @@ Module modmixermsec
       Real (8) :: MSECINFO (20), rtrap, SCHARGE, TCharge, splane, &
      & tplane, qtot
       Real (8) :: dmix
+
 Contains
-!
-!
+
       Subroutine initmixermsec (n)
          Use modmain, Only: CHGIR, CHGMTTOT
          Integer, Intent (In) :: n
-!
          Integer :: niter
-         Allocate (residual(n), last_outputp(n), work2(n), work3(n))
-!
-         Allocate (PWHIST(noldstepsmax), FHIST(noldstepsmax), &
-        & CLMHIST(noldstepsmax), yhist(noldstepsmax))
+         if (allocated(residual)) deallocate(residual)
+         allocate(residual(n))
+         if (allocated(last_outputp)) deallocate(last_outputp)
+         allocate(last_outputp(n))
+         if (allocated(work2)) deallocate(work2)
+         allocate(work2(n))
+         if (allocated(work3)) deallocate(work3)
+         allocate(work3(n))
+         if (allocated(PWHIST)) deallocate(PWHIST)
+         allocate(PWHIST(noldstepsmax))
+         if (allocated(FHIST)) deallocate(FHIST)
+         allocate(FHIST(noldstepsmax))
+         if (allocated(CLMHIST)) deallocate(CLMHIST)
+         allocate(CLMHIST(noldstepsmax))
+         if (allocated(yhist)) deallocate(yhist)
+         allocate(yhist(noldstepsmax))
          record_of_last_iter = 0
          residual = 0
          last_outputp = 0
@@ -55,21 +66,24 @@ Contains
          splane = .000001
          tplane = .000001
          MSECINFO = 1
-!
          dmix = .5
       End Subroutine
-!
-!
+
+
       Subroutine freearraysmixermsec ()
          Character (256), External :: outfilenamestring
          Character (256) :: filetag
          filetag = "BROYDEN"
-         Deallocate (residual, last_outputp)
+         if (allocated(residual)) deallocate(residual)
+         if (allocated(last_outputp)) deallocate(last_outputp)
          If (allocated(work2)) deallocate (work2)
          If (allocated(work3)) deallocate (work3)
-         Deallocate (PWHIST, FHIST, CLMHIST, yhist)
+         if (allocated(PWHIST)) deallocate(PWHIST)
+         if (allocated(FHIST)) deallocate(FHIST)
+         if (allocated(CLMHIST)) deallocate(CLMHIST)
+         if (allocated(yhist)) deallocate(yhist)
          Open (23, File=outfilenamestring(filetag, 1))
          Close (23, Status='DELETE')
       End Subroutine
-!
+
 End Module

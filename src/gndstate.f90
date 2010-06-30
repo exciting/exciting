@@ -129,16 +129,14 @@ Subroutine gndstate
      & nspinor * natmtot
   ! allocate mixing arrays
       Allocate (v(n))
-  !call mixing array allocation functions by setting
-      nwork = - 1
-  !and call interfacepe
-!
-      If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, &
-     & v, currentconvergence, nwork)
-!
   ! set stop flag
       tstop = .False.
 10    Continue
+  !call mixing array allocation functions by setting
+      nwork = - 1
+  !and call interface
+      If (rank .Eq. 0) Call mixerifc (input%groundstate%mixernumber, n, &
+     & v, currentconvergence, nwork)
       et = 0.d0
       fm = 0.d0
   ! set last iteration flag
@@ -595,6 +593,11 @@ Subroutine gndstate
                Write (62,*)
                If (associated(input%groundstate%spin)) write (63,*)
                Write (65,*)
+           ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
+               Write (66,*)
+               Write (67,*)
+               Write (68,*)
+               Write (69,*)
            ! begin new self-consistent loop with updated positions
                redoscl = .True.
             End If
