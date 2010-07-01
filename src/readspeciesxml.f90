@@ -11,7 +11,7 @@ Subroutine readspeciesxml
       Use modspdb
       Implicit None
 ! local variables
-      Integer :: is, ist, iostat
+      Integer :: is, ist
       Integer :: io, nlx, ilx, lx, ilo,slash
       Type (Node), Pointer :: speciesnp, speciesdbnp
       character(2048)::command
@@ -47,8 +47,6 @@ Subroutine readspeciesxml
              Write (spfile_string,*)trim (input%structure%speciespath) // "/" &
             & // trim (input%structure%speciesarray(is)%species%speciesfile)
 	     endif
-         Write (*,*) "open ", spfile_string
-
          doc => parseFile (ADJUSTL(trim(spfile_string)),config)
          speciesdbnp => getDocumentElement (doc)
          speciesnp => item (getElementsByTagname(speciesdbnp, "sp"), 0)
