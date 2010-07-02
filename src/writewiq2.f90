@@ -50,12 +50,6 @@ Subroutine writewiq2
                End Do
             End Do
          End Do
-  !<sag action="modification">
-         Write (50, '(I6, 4G18.10, 3x, 2g18.10)') iq, v0, wiq2 (iq), &
-        & wiq2 (iq) * fourpi * product (ngridq) * omega / (twopi**3), &
-        & 1.d0 / sum (v2**2) / dble (product(ngridq))
-!  write(50,'(I6,4G18.10)') iq,v0,wiq2(iq)
-  !</sag>
       End Do
       Close (50)
       Return

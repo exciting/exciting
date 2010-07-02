@@ -396,7 +396,7 @@ Subroutine init1
 20    Continue
 ! partial charges
   if (allocated(chgpart)) deallocate(chgpart)
-  allocate(chgpart((max(3,input%groundstate%lmaxvr)+1)**2,natmtot,nstsv))
+  allocate(chgpart(lmmaxvr,natmtot,nstsv))
   chgpart(:,:,:)=0.d0
 #endif
 !

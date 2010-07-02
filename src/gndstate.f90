@@ -113,7 +113,7 @@ Subroutine gndstate
         & from STATE.OUT")')
       Else
          Call rhoinit
-!(sag) store density to reference
+  ! store density to reference
          rhoirref(:)=rhoir(:)
          rhomtref(:,:,:)=rhomt(:,:,:)
          Call poteff
@@ -345,9 +345,9 @@ Subroutine gndstate
            ! write the LDA+U matrices to file
                Call writeldapu
             End If
-!(sag) generate charge distance
+        ! generate charge distance
             call chgdist
-!(sag) store density to reference
+        ! store density to reference
             rhoirref(:)=rhoir(:)
             rhomtref(:,:,:)=rhomt(:,:,:)
         ! compute the effective potential

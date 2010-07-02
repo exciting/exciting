@@ -29,14 +29,12 @@ Subroutine writepmat
       Complex (8), Allocatable :: evecfv (:, :)
       Complex (8), Allocatable :: evecsv (:, :)
       Complex (8), Allocatable :: pmat (:, :, :)
-!<sag> -------------------------------------------------------------------------
       Complex (8), Allocatable :: apwcmt (:, :, :, :)
       Complex (8), Allocatable :: locmt (:, :, :, :)
       Real (8), Allocatable :: ripaa (:, :, :, :, :, :)
       Real (8), Allocatable :: ripalo (:, :, :, :, :, :)
       Real (8), Allocatable :: riploa (:, :, :, :, :, :)
       Real (8), Allocatable :: riplolo (:, :, :, :, :, :)
-!</sag> ------------------------------------------------------------------------
 ! initialise universal variables
       Call init0
       Call init1
@@ -53,7 +51,6 @@ Subroutine writepmat
       Call genapwfr
 ! generate the local-orbital radial functions
       Call genlofr
-!<sag> -------------------------------------------------------------------------
       Allocate (ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw, &
      & natmtot, 3))
       Allocate (apwcmt(nstsv, apwordmax, lmmaxapw, natmtot))
@@ -68,7 +65,6 @@ Subroutine writepmat
       End If
 ! calculate gradient of radial functions times spherical harmonics
       Call pmatrad (ripaa, ripalo, riploa, riplolo)
-!</sag> ------------------------------------------------------------------------
 ! find the record length
       Inquire (IoLength=Recl) pmat
       Open (50, File='PMAT.OUT', Action='WRITE', Form='UNFORMATTED', &
@@ -80,7 +76,6 @@ Subroutine writepmat
 ! find the matching coefficients
          Call match (ngk(1, ik), gkc(:, 1, ik), tpgkc(:, :, 1, ik), &
         & sfacgk(:, :, 1, ik), apwalm)
-!<sag> -------------------------------------------------------------------------
 ! generate APW expansion coefficients for muffin-tin
          Call genapwcmt (input%groundstate%lmaxapw, ngk(1, ik), 1, &
         & nstfv, apwalm, evecfv, apwcmt)
@@ -91,7 +86,6 @@ Subroutine writepmat
          Call genpmat2 (ngk(1, ik), igkig(:, 1, ik), vgkc(:, :, 1, ik), &
         & ripaa, ripalo, riploa, riplolo, apwcmt, locmt, evecfv, &
         & evecsv, pmat)
-!</sag> ------------------------------------------------------------------------
 ! calculate the momentum matrix elements
 !!$  call genpmat(ngk(1,ik),igkig(:,1,ik),vgkc(:,:,1,ik),apwalm,evecfv,evecsv,pmat)
 ! write the matrix elements to direct-access file
@@ -104,9 +98,7 @@ Subroutine writepmat
      &')
       Write (*,*)
       Deallocate (apwalm, evecfv, evecsv, pmat)
-!<sag> -------------------------------------------------------------------------
       Deallocate (ripaa, apwcmt)
       If (nlotot .Gt. 0) deallocate (ripalo, riploa, riplolo, locmt)
-!</sag> ------------------------------------------------------------------------
 End Subroutine
 !EOC

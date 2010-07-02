@@ -31,12 +31,10 @@ Module mod_DOS_optics_response
 !replaced by inputstructurelogical::intraband
 ! lmirep is .true. if the (l,m) band characters should correspond to the
 ! irreducible representations of the site symmetries
-!<sag>
 ! Lorentzian lineshape in optics
       Logical :: optltz
 ! broadening for Lorentzian lineshape
       Real (8) :: optswidth
-!</sag>
 !replaced by inputstructurelogical::lmirep
 ! spin-quantisation axis in Cartesian coordinates used when plotting the
 ! spin-resolved DOS (z-axis by default)

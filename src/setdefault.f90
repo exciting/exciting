@@ -141,9 +141,7 @@ Subroutine setdefault
 !!!scissor=0.d0
 !noptcomp=1
 !optcomp(:,1)=1
-!<sag>
 !optswidth=0.d0
-!</sag>
 !usegdft=.false.
 !intraband=.false.
 !evaltol=1.d-8

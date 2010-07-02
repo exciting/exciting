@@ -37,14 +37,13 @@ Subroutine rotaxang (eps, rot, det, v, th)
 !
 ! !REVISION HISTORY:
 !   Created Decmeber 2006 (JKD)
+!   Changed "intent(inout)" to "intent(in)" for argument "rot", 2009 (Sagmeister)
 !EOP
 !BOC
       Implicit None
 ! arguments
       Real (8), Intent (In) :: eps
-!<sag comment="removed out-attribute">
       Real (8), Intent (In) :: rot (3, 3)
-!</sag>
       Real (8), Intent (Out) :: det
       Real (8), Intent (Out) :: v (3)
       Real (8), Intent (Out) :: th

@@ -723,7 +723,6 @@ Example:  <pre>
                                             <xs:documentation>The desired total moment for a FSM calculation.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <!-- sag: parameter "mommtfix" for muffin tins, possibly missing? -->
                                     <xs:attribute ex:importance="essential" ex:unit=""
                                         name="bfieldc" type="vect3d" default="0.0d0 0.0d0 0.0d0 ">
                                         <xs:annotation>
