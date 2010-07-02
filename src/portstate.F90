@@ -1,16 +1,12 @@
-!
-!
-!
+
 ! Copyright (C) 2002-2007 S. Sagmeister J. K. Dewhurst, S. Sharma and
 ! C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 !BOP
 ! !ROUTINE: portstate
 ! !INTERFACE:
-!
-!
 Subroutine portstate (act)
 ! !USES:
       Use modinput
@@ -31,7 +27,7 @@ Subroutine portstate (act)
   ! arguments
       Integer, Intent (In) :: act
   ! local variables
-      Logical :: tb2a, exist, spinpol_, tgithash
+      Logical :: tb2a, exist, spinpol_
       Integer :: natmtot, is
       Integer :: version_ (3), nspecies_, lmmaxvr_, nrmtmax_
       Integer :: natoms_ (10000), ngrid_ (3)
@@ -90,45 +86,49 @@ Subroutine portstate (act)
          else
             githash_=''
          end if
-         If (act .Eq.-1) Then
-            Write (*, '("version:", 3i8)') version_
-            if (versions_gt(version_,refversion_gitstate)) &
-              Write (*, '("versionhash: ", a40)') githash_
-            Write (*,*)
-            return
-         End If
          Read (50) spinpol_
          Read (50) nspecies_
          Read (50) lmmaxvr_
          Read (50) nrmtmax_
-         Write (51, '(a)') '<?xml version="1.0"?>'
-         Write (51, '(a)') '<state>'
-         Write (51, '(a)') '<data name = "version" type = "integer" dim&
-        &ension = "1" shape = "3">'
-         Call ioarr (un=51, ioa='write', arr1di=version_)
-         Write (51, '(a)') '</data>'
-         if (versions_gt(version_,refversion_gitstate)) then
-           Write (51, '(a)') '<data name = "versionhash" type = "character(40)" &
-             &dimension = "1" shape = "1">'
-           Write (51, *) githash_
-           Write (51, '(a)') '</data>'
+         If (act .Eq.-1) Then
+            Write (*, '("version     :", 3i8)') version_
+            if (versions_gt(version_,refversion_gitstate)) &
+              Write (*, '("versionhash : ", a40)') githash_
+            Write (*, '("spinpol     :", l8)') spinpol_
+            Write (*, '("nspecies    :", i8)') nspecies_
+            Write (*, '("lmaxvr      :", i8)') nint(sqrt(dble(lmmaxvr_)))-1
+            Write (*, '("nrmtmax     :", 3i8)') nrmtmax_
+         End If
+         If (act .Eq. 1) then
+            Write (51, '(a)') '<?xml version="1.0"?>'
+            Write (51, '(a)') '<state>'
+            Write (51, '(a)') '<data name = "version" type = "integer" dim&
+           &ension = "1" shape = "3">'
+            Call ioarr (un=51, ioa='write', arr1di=version_)
+            Write (51, '(a)') '</data>'
+            if (versions_gt(version_,refversion_gitstate)) then
+              Write (51, '(a)') '<data name = "versionhash" type = "character(40)" &
+                &dimension = "1" shape = "1">'
+              Write (51, *) githash_
+              Write (51, '(a)') '</data>'
+            end if
+            Write (51, '(a)') '<data name = "spinpol" type = "logical" dim&
+           &vension = "1" shape = "1">'
+            Write (51,*) spinpol_
+            Write (51, '(a)') '</data>'
+            Write (51, '(a)') '<data name = "nspecies" type = "integer" di&
+           &mension = "1" shape = "1">'
+            Write (51,*) nspecies_
+            Write (51, '(a)') '</data>'
+            Write (51, '(a)') '<data name = "lmmaxvr" type = "integer" dim&
+           &ension = "1" shape = "1">'
+            Write (51,*) lmmaxvr_
+            Write (51, '(a)') '</data>'
+            Write (51, '(a)') '<data name = "nrmtmax" type = "integer" dim&
+           &ension = "1" shape = "1">'
+            Write (51,*) nrmtmax_
+            Write (51, '(a)') '</data>'
          end if
-         Write (51, '(a)') '<data name = "spinpol" type = "logical" dim&
-        &ension = "1" shape = "1">'
-         Write (51,*) spinpol_
-         Write (51, '(a)') '</data>'
-         Write (51, '(a)') '<data name = "nspecies" type = "integer" di&
-        &mension = "1" shape = "1">'
-         Write (51,*) nspecies_
-         Write (51, '(a)') '</data>'
-         Write (51, '(a)') '<data name = "lmmaxvr" type = "integer" dim&
-        &ension = "1" shape = "1">'
-         Write (51,*) lmmaxvr_
-         Write (51, '(a)') '</data>'
-         Write (51, '(a)') '<data name = "nrmtmax" type = "integer" dim&
-        &ension = "1" shape = "1">'
-         Write (51,*) nrmtmax_
-         Write (51, '(a)') '</data>'
       Else
          Open (50, File='STATE.xml', Action='READ', Form='FORMATTED', &
         & Status='OLD')
@@ -156,13 +156,6 @@ Subroutine portstate (act)
            read (50, *)
            read (50, *) githash_
          end if
-         If (act .Eq.-2) Then
-            Write (*, '("version:", 3i8)') version_
-            if (versions_gt(version_,refversion_gitstate)) &
-              Write (*, '("versionhash: ", a40)') githash_
-            Write (*,*)
-            Return
-         End If
          Read (50,*)
          Read (50,*)
          Read (50,*) spinpol_
@@ -176,15 +169,26 @@ Subroutine portstate (act)
          Read (50,*)
          Read (50,*) nrmtmax_
          Read (50,*)
-         if (versions_gt(version_,refversion_gitstate)) then
-           Write (51) version_, githash_
-         else
-           Write (51) version_
+         If (act .Eq.-2) Then
+            Write (*, '("version     :", 3i8)') version_
+            if (versions_gt(version_,refversion_gitstate)) &
+            Write (*, '("versionhash : ", a40)') githash_
+            Write (*, '("spinpol     :", l8)') spinpol_
+            Write (*, '("nspecies    :", i8)') nspecies_
+            Write (*, '("lmaxvr      :", i8)') nint(sqrt(dble(lmmaxvr_)))-1
+            Write (*, '("nrmtmax     :", i8)') nrmtmax_
+         End If
+         if (act .eq. 2) then
+            if (versions_gt(version_,refversion_gitstate)) then
+              Write (51) version_, githash_
+            else
+              Write (51) version_
+            end if
+            Write (51) spinpol_
+            Write (51) nspecies_
+            Write (51) lmmaxvr_
+            Write (51) nrmtmax_
          end if
-         Write (51) spinpol_
-         Write (51) nspecies_
-         Write (51) lmmaxvr_
-         Write (51) nrmtmax_
       End If
       Allocate (spr_(nrmtmax_, nspecies_))
       Allocate (nrmt_(nspecies_))
@@ -194,22 +198,24 @@ Subroutine portstate (act)
             Read (50) natoms_ (is)
             Read (50) nrmt_ (is)
             Read (50) spr_ (1:nrmt_(is), is)
-            Write (51, '(a)') '<data name = "natoms" type = "integer" d&
-           &imension = "1" shape = "1" index = "species" indexval = "' &
-           & // trim (i2str(is)) // '">'
-            Write (51,*) natoms_ (is)
-            Write (51, '(a)') '</data>'
-            Write (51, '(a)') '<data name = "nrmt" type = "integer" dim&
-           &ension = "1" shape = "1" index = "species" indexval = "' // &
-           & trim (i2str(is)) // '">'
-            Write (51,*) nrmt_ (is)
-            Write (51, '(a)') '</data>'
-            Write (51, '(a)') '<data name = "spr" type = "real(8)" dime&
-           &nsion = "1" shape = "' // trim (i2str(nrmt_(is))) // '" ind&
-           &ex = "species" indexval = "' // trim (i2str(is)) // '">'
-            Call ioarr (un=51, ioa='write', arr1dr=spr_(1:nrmt_(is), &
-           & is))
-            Write (51, '(a)') '</data>'
+            if (act .eq. 1) then
+               Write (51, '(a)') '<data name = "natoms" type = "integer" d&
+              &imension = "1" shape = "1" index = "species" indexval = "' &
+              & // trim (i2str(is)) // '">'
+               Write (51,*) natoms_ (is)
+               Write (51, '(a)') '</data>'
+               Write (51, '(a)') '<data name = "nrmt" type = "integer" dim&
+              &ension = "1" shape = "1" index = "species" indexval = "' // &
+              & trim (i2str(is)) // '">'
+               Write (51,*) nrmt_ (is)
+               Write (51, '(a)') '</data>'
+               Write (51, '(a)') '<data name = "spr" type = "real(8)" dime&
+              &nsion = "1" shape = "' // trim (i2str(nrmt_(is))) // '" ind&
+              &ex = "species" indexval = "' // trim (i2str(is)) // '">'
+               Call ioarr (un=51, ioa='write', arr1dr=spr_(1:nrmt_(is), &
+              & is))
+               Write (51, '(a)') '</data>'
+            end if
             natmtot = natmtot + natoms_ (is)
          End Do
          Read (50) ngrid_
@@ -226,6 +232,17 @@ Subroutine portstate (act)
             If (spinpol_) nspinor_ = 2
             ldapu_ = 0
             lmmaxlu_ = 0
+         End If
+         If (act .Eq.-1) Then
+            Write (*, '("ngrid       :", 3i8)') ngrid_
+            Write (*, '("ngvec       :", i8)') ngvec_
+            Write (*, '("ndmag       :", i8)') ndmag_
+            Write (*, '("nspinor     :", i8)') nspinor_
+            Write (*, '("ldapu       :", i8)') ldapu_
+            Write (*, '("lmaxlu      :", i8)') nint(sqrt(dble(lmmaxlu_)))-1
+            Write (*,*)
+            ! return here if in extracting mode (act=-1,-2)
+            return
          End If
          Write (51, '(a)') '<data name = "ngrid" type = "integer" dimen&
         &sion = "1" shape = "3">'
@@ -264,9 +281,11 @@ Subroutine portstate (act)
             Call ioarr (un=50, ioa='read', arr1dr=spr_(1:nrmt_(is), &
            & is))
             Read (50,*)
-            Write (51) natoms_ (is)
-            Write (51) nrmt_ (is)
-            Write (51) spr_ (1:nrmt_(is), is)
+            if (act .eq. 2) then
+               Write (51) natoms_ (is)
+               Write (51) nrmt_ (is)
+               Write (51) spr_ (1:nrmt_(is), is)
+            end if
             natmtot = natmtot + natoms_ (is)
          End Do
          Read (50,*)
@@ -287,6 +306,17 @@ Subroutine portstate (act)
          Read (50,*)
          Read (50,*) lmmaxlu_
          Read (50,*)
+         If (act .Eq.-2) Then
+            Write (*, '("ngrid       :", 3i8)') ngrid_
+            Write (*, '("ngvec       :", i8)') ngvec_
+            Write (*, '("ndmag       :", i8)') ndmag_
+            Write (*, '("nspinor     :", i8)') nspinor_
+            Write (*, '("ldapu       :", i8)') ldapu_
+            Write (*, '("lmaxlu      :", i8)') nint(sqrt(dble(lmmaxlu_)))-1
+            Write (*,*)
+            ! return here if in extracting mode (act=-1,-2)
+            return
+         End If
          Write (51) ngrid_
          Write (51) ngvec_
          Write (51) ndmag_
@@ -490,7 +520,14 @@ Subroutine portstate (act)
          Write (*,*)
       Else
          Write (*,*)
-         Write (*, '("Info(portstate): generated STATE.OUT file from STATE.xml file")')
+         Write (*, '("Info(portstate): generated STATE.OUT file from STATE.xml file.")')
+         Write (*, '(" There is currently no strict XML parsing implemented. Therefore,")')
+         Write (*, '(" if you convert a modified XML file or an XML file, not created")')
+         Write (*, '(" by this utility, beware that currently there is a particular.")')
+         Write (*, '(" sequence of XML-elements assumed, as well as no blank lines")')
+         Write (*, '(" and comments are allowed.")')
+         Write (*, '(" The numbers, however, are parsed in a free (Fortran) format.")')
+         Write (*, '(" Use the resulting STATE.OUT file at your own risk.")')
          Write (*,*)
       End If
 Contains

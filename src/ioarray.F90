@@ -1,10 +1,8 @@
-!
-!
-!
-! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
+
+! Copyright (C) 2007-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU Lesser General Public
 ! License. See the file COPYING for license details.
-!
+
 Module ioarray
       Implicit None
       Integer, Parameter :: kndi = 4
@@ -20,9 +18,9 @@ Module ioarray
       Private :: kndi, kndr, kndc, fmtlen, und
       Private :: fmtdl, fmtdi, fmtdr, fmtdc
       Private :: ioaction
+
 Contains
-!
-!
+
       Subroutine ioarr (arr1dl, arr1di, arr1dr, arr1dc, arr2dl, arr2di, &
      & arr2dr, arr2dc, arr3dl, arr3di, arr3dr, arr3dc, arr4dl, arr4di, &
      & arr4dr, arr4dc, arr5dl, arr5di, arr5dr, arr5dc, arr6dl, arr6di, &
@@ -877,7 +875,7 @@ Contains
             End Select
          End Select
       End Subroutine ioarr
-!
+
   ! determine IO (read/write) action
       Logical Function ioaction (ioa)
          implicit none
