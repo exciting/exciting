@@ -543,7 +543,8 @@ Example:  <pre>
                                                   </xs:annotation>
                                                 </xs:attribute>
                                                 <xs:attribute ex:importance="expert" ex:unit=""
-                                                  name="mommtfix" type="vect3d" use="optional"/>
+                                                  name="mommtfix" type="vect3d"
+                                                  default="0.0d0 0.0d0 0.0d0" use="optional"/>
                                             </xs:complexType>
                                         </xs:element>
                                         <xs:element ex:importance="expert" ex:unit=""

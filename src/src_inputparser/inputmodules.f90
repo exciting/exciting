@@ -1455,6 +1455,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"mommtfix")
+getstructatom%mommtfix=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mommtfix",getstructatom%mommtfix)
        call removeAttribute(thisnode,"mommtfix")      
