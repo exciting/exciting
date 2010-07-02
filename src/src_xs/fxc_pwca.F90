@@ -15,7 +15,6 @@ Contains
         & ngrtot, ngvec, ivgig
          Use modinput
          Use modxs, Only: unitout, fxcmt, gqc, fxcir, igqig
-         Use modtimer2
          Use m_ftfun, Only: ftfun
          Implicit None
     ! arguments
