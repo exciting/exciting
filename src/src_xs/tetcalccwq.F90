@@ -83,7 +83,6 @@ Subroutine tetcalccwq (iq)
       Call genwgrid (nwdf, input%xs%dosWindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
       wreal (:) = dble (w(wi:wf))
-  ! TODO: replace zero frequency by very small number *** check if needed
       If (wreal(1) .Lt. epstetra) wreal (1) = epstetra
       Call getunit (un)
       Inquire (IoLength=Recl) cwt2, cwat2, cwsurft2
