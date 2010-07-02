@@ -32,12 +32,19 @@ Real (8) Function ptclg (cuttype, vgpc, gpc)
       Character (*), Intent (In) :: cuttype
       Real (8), Intent (In) :: vgpc (3), gpc
   ! local variables
+      real(8), parameter :: eps=1.d-8
       Real (8) :: t1
       Select Case (cuttype)
       Case ('nocutoff')
      ! set up the square root of the Coulomb potential from analytical
      ! expression (no cutoff)
-         ptclg = Sqrt (fourpi) / gpc
+         ptclg = 0.d0
+         if (gpc .gt. eps) then
+           ptclg = Sqrt (fourpi) / gpc
+         else
+           ! set sqrt of Coulomb potential to zero for |G+q| = 0
+           ptclg = 0.d0
+         end if
       Case ('0d')
      ! 0D spherical cutoff
          t1 = vgpc (1)
