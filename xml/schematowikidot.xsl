@@ -123,10 +123,20 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
     <xsl:value-of select="normalize-space(.)" />
     <xsl:text>**}} </xsl:text>
   </xsl:template>
+  <xsl:template match="pre-bf_ns">
+    <xsl:text> {{**</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>**}}</xsl:text>
+  </xsl:template>
   <xsl:template match="filename">
     <xsl:text> {{**//</xsl:text>
     <xsl:value-of select="normalize-space(.)" />
     <xsl:text>//**}} </xsl:text>
+  </xsl:template>
+  <xsl:template match="filename_ns">
+    <xsl:text> {{**//</xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text>//**}}</xsl:text>
   </xsl:template>
   <xsl:template match="green">
     <xsl:text> ##green|</xsl:text>

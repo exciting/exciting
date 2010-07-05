@@ -26,11 +26,11 @@
  </li>
  <li>
   <green>attributes</green>  are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>. An attribute is always connected to an element. In <exciting>exciting</exciting> an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element.
- <it>Example</it> The attribute <pre-bf>xctype</pre-bf> of the element <pre-bf>groundstate</pre-bf> defines which exchange-correlation potential is used in the self-consistent calculation.
+ <it>Example:</it> The attribute <pre-bf>xctype</pre-bf> of the element <pre-bf>groundstate</pre-bf> defines which exchange-correlation potential is used in the self-consistent calculation.
 </li>
 </list>
 
-<p>The input file of an  <exciting>exciting</exciting> calculation is named <filename>input.xml</filename>. It must be a valid XML file, and it must contain the root element <pre-bf>input</pre-bf>.</p>
+<p>The input file of an  <exciting>exciting</exciting> calculation is named <filename_ns>input.xml</filenamens>. It must be a valid XML file, and it must contain the root element <pre-bf_ns>input</pre-bf_ns>.</p>
         
         
         <p>Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units
@@ -299,7 +299,7 @@ Example:  <pre>
     <xs:element ex:importance="essential" ex:unit="" name="input">
         <xs:annotation>
             <xs:documentation>
-       The xml element <pre> input</pre> is the root element of the <exciting>exciting</exciting> input file. It must contain one <pre>structure </pre> element and one <pre>groundstate </pre> element.
+       The xml element <pre> input</pre> is the root element of the <exciting>exciting</exciting> input file. It must contain one element <pre>structure </pre> and the element <pre>groundstate </pre>.
        <p>
                     <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file instance described here.</a>
                 </p>
