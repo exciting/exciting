@@ -1,18 +1,14 @@
-!
-!
-!
-!
-! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
+
+! Copyright (C) 2005-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 !BOP
 ! !ROUTINE: dfq
 ! !INTERFACE:
-!
-!
 Subroutine dfq (iq)
 ! !USES:
+use ioarray
       Use modinput
       Use mod_constants
       Use mod_eigenvalue_occupancy
@@ -108,6 +104,7 @@ Subroutine dfq (iq)
       Real (8), Allocatable :: cwt (:, :), cw1k (:, :, :), cwa1k (:, :, &
      & :), cwsurf1k (:, :, :)
       Real (8), Allocatable :: scis12 (:, :), scis21 (:, :)
+      Complex(8) :: zt1
       Real (8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot
       Integer :: n, j, i1, i2, j1, j2, ik, ikq, igq, iw, wi, wf, ist1, &
      & ist2, nwdfp
@@ -426,12 +423,16 @@ Subroutine dfq (iq)
                   End If
                Else
               ! include occupation number differences
-                  wou (wi:wf) = docc12 (ist1, ist2) * wkpt (ik) / omega &
-                 & / (w(wi:wf)+deou(ist1, ist2)+scis12(ist1, &
-                 & ist2)+zi*brd)
-                  wuo (wi:wf) = docc21 (ist2, ist1) * wkpt (ik) / omega &
-                 & / (w(wi:wf)+deuo(ist2, ist1)+scis21(ist2, &
-                 & ist1)+tordf*zi*brd)
+                  do iw=wi,wf
+                     ! check for vanishing denominators in case of screening
+                     ! (no broadening)
+                     zt1=w(iw)+deou(ist1, ist2)+scis12(ist1,ist2)+zi*brd
+                     if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
+                     wou (iw) = docc12 (ist1, ist2) * wkpt (ik) / omega / zt1
+                     zt1=w(iw)+deuo(ist2, ist1)+scis21(ist2,ist1)+tordf*zi*brd
+                     if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
+                     wuo (iw) = docc21 (ist2, ist1) * wkpt (ik) / omega / zt1
+                  end do
                   wouw (wi:wf) = wou (wi:wf)
                   wuow (wi:wf) = wuo (wi:wf)
                   wouh (wi:wf) = wou (wi:wf)
@@ -532,7 +533,6 @@ Subroutine dfq (iq)
             Call barrier
          End Do
       End If
-!
       Deallocate (chi0, chi0h, chi0w)
       Deallocate (docc12, docc21, scis12, scis21)
       Deallocate (deou, deuo, wou, wuo, wouw, wuow, wouh, wuoh, zvou, &

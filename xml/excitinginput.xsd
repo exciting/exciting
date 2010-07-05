@@ -2269,14 +2269,6 @@ Example:  <pre>
                                                 <pre>"true"</pre> if Lindhard like function is calculated (trivial matrix elements)</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit="Hartree"
-                                        name="epsdfde" type="fortrandouble" default="1.0d-8">
-                                        <xs:annotation>
-                                            <xs:documentation>
-                       smallest energy difference for which the square of its inverse will be considered in the Kohn-Sham response function
-                     </xs:documentation>
-                                        </xs:annotation>
-                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="kerndiag"
                                         type="xs:boolean" default="false"/>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="lmaxalda"
@@ -3061,6 +3053,14 @@ Example:  <pre>
                                 <xs:documentation>Lorentzian broadening for all spectra</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree"
+                            name="epsdfde" type="fortrandouble" default="1.0d-8">
+                            <xs:annotation>
+                                <xs:documentation>
+                       smallest energy difference for which the square of its inverse will be considered in the Kohn-Sham response function
+                     </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>                        
                         <xs:attribute ex:importance="expert" ex:unit="" name="tevout"
                             type="xs:boolean" default="false">
                             <xs:annotation>

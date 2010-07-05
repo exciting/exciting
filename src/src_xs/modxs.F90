@@ -1,9 +1,8 @@
-!
-!
-! Copyright (C) 2004-2008 S. Sagmeister and C. Ambrosch-Draxl.
+
+! Copyright (C) 2004-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 Module modxs
 ! !DESCRIPTION:
 !   Global variables for the {\tt XS} (eXcited States) implementation
@@ -13,7 +12,7 @@ Module modxs
 !
 !  Created June 2004 (Sagmeister)
       Implicit None
-!
+
   !----------------------------!
   !     symmetry variables     !
   !----------------------------!
@@ -24,7 +23,7 @@ Module modxs
 !replaced by inputstructure  logical :: symmorph
   ! map to inverse crystal symmetry
       Integer :: scimap (maxsymcrs)
-!
+
   !------------------------------!
   !     q-point set variables    !
   !------------------------------!
@@ -54,7 +53,6 @@ Module modxs
   ! index of current q-point
       Integer :: iqcu
       Data iqcu / 0 /
-!
   ! number of crystal symmetries for the little group of q
       Integer, Allocatable :: nsymcrysq (:)
   ! map from little group of q to spacegroup
@@ -91,7 +89,7 @@ Module modxs
       Complex (8), Allocatable :: sfacgq (:, :, :)
   ! spherical harmonics of the G-vectors
       Complex (8), Allocatable :: ylmgq (:, :, :)
-!
+
   !---------------------------------!
   !     k-point set  variables      !
   !---------------------------------!
@@ -99,7 +97,6 @@ Module modxs
       Integer :: nkpt0
   ! k-points in lattice coordinates for q=0
       Real (8), Allocatable :: vkl0 (:, :)
-!
   ! maximum number of space group operations in stars over all k
       Integer :: nsymcrysstrmax
   ! number of space group operations for stars
@@ -112,8 +109,7 @@ Module modxs
       Integer, Allocatable :: strmap (:)
   ! map from non-reduced k-point set to associated symmetry in star
       Integer, Allocatable :: strmapsymc (:)
-!
-!
+
   !-------------------------!
   !     k+q-point set       !
   !-------------------------!
@@ -121,7 +117,7 @@ Module modxs
       Real (8), Allocatable :: qvkloff (:, :)
   ! map from k-point index to k+q point index for same k
       Integer, Allocatable :: ikmapikq (:, :)
-!
+
   !-----------------------------------------!
   !     G+k-vector set  variables (q=0)     !
   !-----------------------------------------!
@@ -141,7 +137,7 @@ Module modxs
       Real (8), Allocatable :: tpgkc0 (:, :, :, :)
   ! structure factor for the G+k-vectors
       Complex (8), Allocatable :: sfacgk0 (:, :, :, :)
-!
+
   !-----------------------------------------!
   !     potential and density variables     !
   !-----------------------------------------!
@@ -173,7 +169,7 @@ Module modxs
       Complex (8), Allocatable :: locmt (:, :, :, :)
   ! expansion coefficients of local orbitals functions (q=0)
       Complex (8), Allocatable :: locmt0 (:, :, :, :)
-!
+
   !--------------------------------------------!
   !     eigenvalue and occupancy variables     !
   !--------------------------------------------!
@@ -211,7 +207,7 @@ Module modxs
       Real (8) :: evlmin, evlmax, evlmincut, evlmaxcut
   ! true if system has a Kohn-Sham gap
       Logical :: ksgap
-!
+
   !--------------------------------------------------!
   !     matrix elements of exponential expression    !
   !--------------------------------------------------!
@@ -255,7 +251,7 @@ Module modxs
       Complex (8), Allocatable :: xiou (:, :, :)
   ! matrix elements array (anti-resonant part)
       Complex (8), Allocatable :: xiuo (:, :, :)
-!
+
   !---------------------------------!
   !     momentum matrix elements    !
   !---------------------------------!
@@ -273,7 +269,7 @@ Module modxs
       Complex (8), Allocatable :: pmou (:, :, :)
   ! momentum matrix elements (anti-resonant part)
       Complex (8), Allocatable :: pmuo (:, :, :)
-!
+
   !------------------------------------------!
   !     response and dielectric functions    !
   !------------------------------------------!
@@ -310,11 +306,11 @@ Module modxs
       Integer :: ndftrans
   ! k-point and band combination analysis
       Integer, Allocatable :: dftrans (:, :)
-  ! smallest energy difference for which the inverse square will be considered
+  ! smallest energy difference for which the inverse (square) will be considered
 !replaced by inputstructure  real(8) :: epsdfde
   ! cutoff energy for dielectric function
 !replaced by inputstructure  real(8) :: emaxdf
-!
+
   !----------------------------!
   !     xc-kernel variables    !
   !----------------------------!
@@ -348,7 +344,7 @@ Module modxs
 !replaced by inputstructure  real(8) :: betalrcdyn
   ! split parameter for degeneracy in energy differences of BSE-kernel
 !replaced by inputstructure  real(8) :: fxcbsesplit
-!
+
   !---------------------------!
   !     exciton variables     !
   !---------------------------!
@@ -360,7 +356,7 @@ Module modxs
       Real (8), Allocatable :: excite (:, :)
   ! exciton oscillator strengths
       Real (8), Allocatable :: excito (:, :)
-!
+
   !-----------------------------!
   !     screening variables     !
   !-----------------------------!
@@ -403,7 +399,7 @@ Module modxs
 !replaced by inputstructure  integer :: nleblaik
   ! true if Lebedev Laikov meshes are to be used
       Logical :: tleblaik
-!
+
   !------------------------------------------!
   !     Bethe-Salpeter (kernel) variables    !
   !------------------------------------------!
@@ -430,7 +426,7 @@ Module modxs
       Integer :: nafbse
   ! diagonal of BSE kernel (mean value, lower, upper limit and range)
       Complex (8) :: bsed, bsedl, bsedu, bsedd
-!
+
   !-----------------------!
   !     I/O variables     !
   !-----------------------!
@@ -465,8 +461,7 @@ Module modxs
       Character (256) :: fnsigma
   ! sumrules for optics
       Character (256) :: fnsumrules
-!
-!
+
   !------------------------------------------!
   !     xs-parameters related to GS ones     !
   !------------------------------------------!
@@ -509,7 +504,7 @@ Module modxs
       Real (8) :: swidth_b
       Integer :: lmaxapw_b
       Integer :: lmaxmat_b
-!
+
   !------------------------------!
   !     parallel environment     !
   !------------------------------!
@@ -533,7 +528,7 @@ Module modxs
       Integer :: wpari
   ! current final w-point index
       Integer :: wparf
-!
+
   !--------------------------!
   !     Timing variables     !
   !--------------------------!
@@ -544,7 +539,7 @@ Module modxs
   ! muffin-tin timings
       Real (8) :: cmt0, cmt1, cmt2, cmt3, cmt4
       Real (8) :: cpumtaa, cpumtalo, cpumtloa, cpumtlolo
-!
+
   !---------------------------------!
   !     miscellaneous variables     !
   !---------------------------------!
@@ -579,6 +574,5 @@ Module modxs
   ! STATE.OUT file (no other file extension allowed)
       Logical :: isreadstate0
       Data isreadstate0 / .False. /
-!
+
 End Module modxs
-!

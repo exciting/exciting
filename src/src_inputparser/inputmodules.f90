@@ -387,6 +387,7 @@ type xs_type
  integer::lmaxemat
  real(8)::emaxdf
  real(8)::broad
+ real(8)::epsdfde
  logical::tevout
  character(512)::xstype
  integer::xstypenumber
@@ -428,7 +429,6 @@ type tddft_type
  logical::acont
  integer::nwacont
  logical::lindhard
- real(8)::epsdfde
  logical::kerndiag
  integer::lmaxalda
  real(8)::alphalrc
@@ -3382,6 +3382,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"epsdfde")
+getstructxs%epsdfde=1.0d-8
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"epsdfde",getstructxs%epsdfde)
+       call removeAttribute(thisnode,"epsdfde")      
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"tevout")
 getstructxs%tevout= .false.
 if(associated(np)) then
@@ -3701,14 +3709,6 @@ getstructtddft%lindhard= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lindhard",getstructtddft%lindhard)
        call removeAttribute(thisnode,"lindhard")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"epsdfde")
-getstructtddft%epsdfde=1.0d-8
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"epsdfde",getstructtddft%epsdfde)
-       call removeAttribute(thisnode,"epsdfde")      
 endif
 
 nullify(np)  

@@ -28,7 +28,6 @@ Contains
         & :, :)
     ! local variables
          Character (*), Parameter :: thisnam = 'getpemat'
-         Real (8), Parameter :: eps = 1.d-8
          Real (8) :: fourpisqt
          Integer :: n, igq, j, i1, i2
          Logical :: tq0
@@ -56,7 +55,7 @@ Contains
             Do j = 1, 3
                Do i1 = 1, nst1
                   Do i2 = 1, nst2
-                     If (Abs(deou(i1, i2)) .Ge. input%xs%tddft%epsdfde) &
+                     If (Abs(deou(i1, i2)) .Ge. input%xs%epsdfde) &
                     & Then
                         p12 (j, i1, i2) = - p12 (j, i1, i2) / deou (i1, &
                        & i2) * fourpisqt
@@ -73,7 +72,7 @@ Contains
                      End If
                      If (present(p34)) Then
                         If (Abs(deuo(i2, i1)) .Ge. &
-                       & input%xs%tddft%epsdfde) Then
+                       & input%xs%epsdfde) Then
                            p34 (j, i2, i1) = - p34 (j, i2, i1) / deuo &
                           & (i2, i1) * fourpisqt
                         Else

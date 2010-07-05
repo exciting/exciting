@@ -78,7 +78,7 @@ Subroutine readstate
      & version_(2)) .Or. (version(3) .Ne. version_(3))) Then
          Write (*,*)
          Write (*, '("Warning(readstate): different versions")')
-         Write (*, '(" current	 : ", I3.3, ".", I3.3, ".", I3.3)') &
+         Write (*, '(" current   : ", I3.3, ".", I3.3, ".", I3.3)') &
         & version
          Write (*, '(" STATE.OUT : ", I3.3, ".", I3.3, ".", I3.3)') &
         & version_
