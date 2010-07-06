@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<xsl:stylesheet version="1.0" 
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-xmlns:str="http://exslt.org/strings"
-xmlns:regex="http://www.exslt.org/regexp" 
-xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:str="http://exslt.org/strings"
+  xmlns:regex="http://www.exslt.org/regexp" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xsl:output method="text" />
-  <xsl:param name="importancelevels"><xsl:text>essential</xsl:text> <xs:annotation>
-      <xs:documentation> In order to select the importance levels that should be included list them in the parameter "importancelevels". 
-      example: xsltproc --stringparam importancelevels "essential expert" schematowikidot.xsl excitinginput.xsd >iref.txt
-      </xs:documentation>
+  <xsl:param name="importancelevels">
+  
+    <xsl:text>essential</xsl:text>
+    <xs:annotation>
+      <xs:documentation> In order to select the importance levels that should be included list them in the parameter "importancelevels". example: xsltproc
+        --stringparam importancelevels "essential expert" schematowikidot.xsl excitinginput.xsd >iref.txt</xs:documentation>
     </xs:annotation>
   </xsl:param>
+  <xsl:param name="tabs" select="false"/>
   <xsl:template match="/">
     <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation" />
     <xsl:text>
-   [[collapsible show="+ Show index" hide="- Hide index"]]
+   [[collapsible show="+ Show alphabetical index" hide="- Hide alphabetical index"]]
    The @ sign indicates an attribute.
 
 
@@ -95,7 +94,7 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
     <xsl:value-of select="normalize-space(.)" />
     <xsl:text> $]]</xsl:text>
     <xsl:if test="@space">
-    <xsl:text> </xsl:text>
+      <xsl:text> </xsl:text>
     </xsl:if>
   </xsl:template>
   <xsl:template match="pre">
@@ -184,13 +183,15 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
     <xsl:text>  </xsl:text>
     <xsl:value-of select="." />
     <xsl:text>]</xsl:text>
-      <xsl:if test="@space">
-    <xsl:text> </xsl:text></xsl:if>
+    <xsl:if test="@space">
+      <xsl:text> </xsl:text>
+    </xsl:if>
   </xsl:template>
   <xsl:template match="exciting">
     <xsl:text> {{**exciting**}} </xsl:text>
-      <xsl:if test="@space">
-    <xsl:text> </xsl:text></xsl:if>
+    <xsl:if test="@space">
+      <xsl:text> </xsl:text>
+    </xsl:if>
   </xsl:template>
   <xsl:template name="elementToLatex">
     <xsl:param name="myelement" />
@@ -205,14 +206,42 @@ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
     <xsl:text>
   
   </xsl:text>
+  <xsl:if test="$tabs">
+<xsl:text>
+[[tabview]]
+[[tab Description]]
+</xsl:text>
+  </xsl:if>
     <xsl:apply-templates select="$myelement/xs:annotation/xs:documentation" />
+   <xsl:if test="$tabs">
+ 
+   </xsl:if> 
     <xsl:call-template name="TypeToDoc">
       <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref]" />
     </xsl:call-template>
     <xsl:if test="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
+     
+      <xsl:choose>
+      <xsl:when test="$tabs">
       <xsl:text>
-This element allows for specification of the following attributes:  
-</xsl:text>
+      **List of attributes:** </xsl:text>
+    <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
+    <xsl:text>##green|</xsl:text>
+    <xsl:value-of select="@name|@ref"/> 
+    <xsl:text>##</xsl:text>
+<xsl:if test="not(position()=last())"><xsl:text>, </xsl:text></xsl:if>
+</xsl:for-each>
+<xsl:text>
+      [[/tab]]
+   [[tab Attributes]]
+   </xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+       <xsl:text>
+This element allows for specification of the following attributes:  </xsl:text>
+</xsl:otherwise>
+</xsl:choose>
+
     </xsl:if>
     <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
       <xsl:sort select="@name|@ref" />
@@ -221,6 +250,12 @@ This element allows for specification of the following attributes:
         <xsl:with-param name="level" select="$level" />
       </xsl:call-template>
     </xsl:for-each>
+    <xsl:if test="$tabs">
+   <xsl:text> 
+   [[/tab]]
+    [[/tabview]]
+    </xsl:text>
+    </xsl:if>
     <xsl:for-each select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance)and @name]">
       <xsl:call-template name="elementToLatex">
         <xsl:with-param name="myelement" select="." />

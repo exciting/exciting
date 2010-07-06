@@ -30,7 +30,7 @@
 </li>
 </list>
 
-<p>The input file of an  <exciting>exciting</exciting> calculation is named <filename_ns>input.xml</filenamens>. It must be a valid XML file, and it must contain the root element <pre-bf_ns>input</pre-bf_ns>.</p>
+<p>The input file of an  <exciting>exciting</exciting> calculation is named <filenamens>input.xml</filenamens>. It must be a valid XML file, and it must contain the root element <pre-bf_ns>input</pre-bf_ns>.</p>
         
         
         <p>Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units
@@ -38,14 +38,15 @@
 
      <list>
                 <li> Energies are given in Hartree:
-    <displaymath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\  J</displaymath>
+                <p>
+    <inlinemath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\  J</inlinemath></p>
                 </li>
-                <li> Lengths are given in Bohr: 
-     <displaymath>  1 a_{\rm Bohr}\  = 0.52917720859(36)  {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36)  10^{-10} \ m</displaymath>
+                <li> Lengths are given in Bohr: <p>
+     <inlinemath>  1 a_{\rm Bohr}\  = 0.52917720859(36)  {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36)  10^{-10} \ m</inlinemath></p>
                 </li>
-                <li> Magnetic fields are given in units of 
-      <displaymath>  1 a.u. =  \displaystyle\frac{e}{a_{\rm Bohr}^2}\    = 1717.2445320376\ Tesla.
-    </displaymath>
+                <li> Magnetic fields are given in units of <p>
+     <inlinemath> 1 a.u. =  \displaystyle\frac{e}{a_{\rm Bohr}^2}\    = 1717.2445320376\ Tesla.
+   </inlinemath></p>
                 </li>
             </list>
             <p> Note: The electron charge is positive, so that the atomic numbers <inlinemath>Z</inlinemath> are negative.
