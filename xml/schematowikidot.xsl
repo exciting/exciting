@@ -7,7 +7,10 @@
     <xsl:text>essential</xsl:text>
     <xs:annotation>
       <xs:documentation> In order to select the importance levels that should be included list them in the parameter "importancelevels". example: xsltproc
-        --stringparam importancelevels "essential expert" schematowikidot.xsl excitinginput.xsd >iref.txt</xs:documentation>
+        --stringparam importancelevels "essential expert" schematowikidot.xsl excitinginput.xsd >iref.txt
+        
+        --stringparam tabs "true" :activates the use of tabs in the element descriptions.
+        </xs:documentation>
     </xs:annotation>
   </xsl:param>
   <xsl:param name="tabs" select="false"/>
@@ -226,9 +229,12 @@
       <xsl:text>
       **List of attributes:** </xsl:text>
     <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
-    <xsl:text>##green|</xsl:text>
+   
+    <xsl:text>[[# att</xsl:text>
+    <xsl:value-of select="@name|@ref"></xsl:value-of>
+    <xsl:text>]] ##green|</xsl:text>
     <xsl:value-of select="@name|@ref"/> 
-    <xsl:text>##</xsl:text>
+    <xsl:text>## </xsl:text>  
 <xsl:if test="not(position()=last())"><xsl:text>, </xsl:text></xsl:if>
 </xsl:for-each>
 <xsl:text>
