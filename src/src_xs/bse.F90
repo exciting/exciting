@@ -93,6 +93,10 @@ Subroutine bse
      & nexc, ne
       Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, oct, iv, ic, &
      & nvdif, ncdif
+      Integer :: rnst1, rnst2, rnst3, rnst4 !(wol)
+      Integer :: nrnst1, nrnst2, nrnst3, nrnst4 !(wol)
+      Integer :: sta1, sto1, sta2, sto2 !(wol)
+      Integer :: nsta1, nsto1, nsta2, nsto2 !(wol)
       Real (8) :: de, egap, ts0, ts1
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
@@ -120,18 +124,42 @@ Subroutine bse
   ! read Fermi energy from file
       Call readfermi
   ! initialize states below and above the Fermi energy
-      nbfbse = input%xs%bse%nstlbse(1)
-      nafbse = input%xs%bse%nstlbse(2)
-      Call initocc (nbfbse, nafbse)
+! initialize ranges for valence and conduction states !(wol)
+      sta1 = input%xs%bse%nstlbse(1)
+      sto1 = input%xs%bse%nstlbse(2)
+      sta2 = input%xs%bse%nstlbse(3)
+      sto2 = input%xs%bse%nstlbse(4)
+      nsta1 = input%xs%bse%nstlbse2(1)
+      nsto1 = input%xs%bse%nstlbse2(2)
+      nsta2 = input%xs%bse%nstlbse2(3)
+      nsto2 = input%xs%bse%nstlbse2(4)
+      rnst1 = sto1-sta1+1
+      rnst2 = sto1-sta1+1
+      rnst3 = sto2-sta2+1
+      rnst4 = sto2-sta2+1
+      nrnst1 = nsto1-nsta1+1
+      nrnst2 = nsto1-nsta1+1
+      nrnst3 = nsto2-nsta2+1
+      nrnst4 = nsto2-nsta2+1 
+!(wol)--------end---------------------- 
+!(wol)      nbfbse = input%xs%bse%nstlbse(1)
+!(wol)      nafbse = input%xs%bse%nstlbse(2)
+!(wol)- change this routine!      Call initocc (nbfbse, nafbse)
   ! use eigenvector files from screening-calculation
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
       Call findocclims (iqmt, istocc0, istocc, istunocc0, istunocc, &
      & isto0, isto, istu0, istu)
-      nvdif = nstocc0 - nbfbse
-      ncdif = nstunocc0 - nafbse
+!(wol)      nvdif = nstocc0 - nbfbse
+!(wol)      ncdif = nstunocc0 - nafbse
 !
-      Write (*,*) 'nbfbse, nafbse', nbfbse, nafbse
-      Write (*,*) 'nvdif, ncdif', nvdif, ncdif
+!(wol)      Write (*,*) 'nbfbse, nafbse', nbfbse, nafbse
+!(wol)      Write (*,*) 'nvdif, ncdif', nvdif, ncdif
+      Write (*,*) 'sta1, sto1, sta2, sto2', sta1, sto1, sta2, sto2 !(wol)
+      Write (*,*) 'nsta1, nsto1, nsta2, nsto2', nsta1, nsto1, nsta2, nsto2 !(wol)
+      Write (*,*) 'nkptnr', nkptnr
+!(wol)      Write (*,*) 'nst1, nst2, nst3, nst4', nst1, nst2, nst3, nst4 !(wol)
+!(wol)      Write (*,*) 'istocc0, istocc', istocc0, istocc !(wol)
+!(wol)      Write (*,*) 'istunocc0, istunocc', istunocc0, istunocc !(wol)
 !
   ! ****************************************************
       input%xs%emattype = 2
@@ -139,9 +167,11 @@ Subroutine bse
       Write (unitout,*)
       Write (unitout, '("Info(bse): information on number of states:")')
       Write (unitout, '(" number of states below Fermi energy in Hamilt&
-     &onian:", i6)') nbfbse
+     &onian:", i6)') nrnst1
+!(wol)     &onian:", i6)') nbfbse
       Write (unitout, '(" number of states above Fermi energy in Hamilt&
-     &onian:", i6)') nafbse
+     &onian:", i6)') nrnst3
+!(wol)     &onian:", i6)') nafbse
       Write (unitout, '(" ranges of states according to BSE matrix:")')
       Write (unitout, '("  range of first index and number  :", 2i6, 3x&
      &, i6)') istl1, istu1, nst1
@@ -151,18 +181,23 @@ Subroutine bse
      &, i6)') istl3, istu3, nst3
       Write (unitout, '("  range of fourth index and number :", 2i6, 3x&
      &, i6)') istl4, istu4, nst4
-      If ((nvdif .Lt. 0) .Or. (ncdif .Lt. 0)) Then
-         Write (unitout,*)
-         Write (unitout, '("Error(bse): inconsistency in ranges of stat&
-        &es - check  routine for nvdif, ncdif")')
-         Write (unitout,*)
-         Call terminate
-      End If
+!(wol)      If ((nvdif .Lt. 0) .Or. (ncdif .Lt. 0)) Then
+!(wol)         Write (unitout,*)
+!(wol)         Write (unitout, '("Error(bse): inconsistency in ranges of stat&
+!(wol)        &es - check  routine for nvdif, ncdif")')
+!(wol)         Write (unitout,*)
+!(wol)         Call terminate
+!(wol)      End If
+      Write (*,*) 'nst1, nst2, nst3, nst4', nst1, nst2, nst3, nst4 !(wol)
   ! size of BSE-Hamiltonian
-      hamsiz = nbfbse * nafbse * nkptnr
+!(wol)      hamsiz = nbfbse * nafbse * nkptnr
+      hamsiz = nrnst1 * nrnst3 * nkptnr
+      Write (*,*) 'hamsiz', hamsiz !(wol)
   ! allocate arrays for Coulomb interactons
-      Allocate (sccli(nst1, nst3, nst2, nst4))
-      Allocate (excli(nst1, nst3, nst2, nst4))
+!(wol)      Allocate (sccli(nst1, nst3, nst2, nst4))
+!(wol)      Allocate (excli(nst1, nst3, nst2, nst4))
+      Allocate (sccli(rnst1, rnst3, rnst2, rnst4))
+      Allocate (excli(rnst1, rnst3, rnst2, rnst4))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
@@ -184,8 +219,10 @@ Subroutine bse
   ! determine gap
       egap = 1.d8
       Do iknr = 1, nkptnr
-         Do ist1 = 1 + nvdif, nst1
-            Do ist3 = 1, nst3 - ncdif
+!(wol)         Do ist1 = 1 + nvdif, nst1
+         Do ist1 = nsta1, nsto1
+!(wol)            Do ist3 = 1, nst3 - ncdif
+            Do ist3 = nsta2, nsto2
                egap = Min (egap, evalsv(ist3+istocc, iknr)-evalsv(ist1, &
               & iknr)+input%xs%scissor)
             End Do
@@ -212,27 +249,48 @@ Subroutine bse
             Select Case (trim(input%xs%bse%bsetype))
             Case ('singlet', 'triplet')
            ! read screened Coulomb interaction
-               Call getbsemat ('SCCLI.OUT', ikkp, nst1, nst3, sccli)
+!(wol)               Call getbsemat ('SCCLI.OUT', ikkp, nst1, nst3, sccli)
+               Call getbsemat ('SCCLI.OUT', ikkp, rnst1, rnst3, sccli)
             End Select
         ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
             Case ('rpa', 'singlet')
-               Call getbsemat ('EXCLI.OUT', ikkp, nst1, nst3, excli)
+!(wol)               Call getbsemat ('EXCLI.OUT', ikkp, nst1, nst3, excli)
+               Call getbsemat ('EXCLI.OUT', ikkp, rnst1, rnst3, excli)
             End Select
+            !Write (*,*) 'nst1, nst2, nst3, nst4', nst1, nst2, nst3, nst4 !(wol)    
+            !Write (*,*) 'nstsv', nstsv !(wol) 
+            !Write (*,*) 'nstocc0, nstunocc0', nstocc0, nstunocc0 !(wol)       
         ! set up matrix
-            Do ist1 = 1 + nvdif, nst1
-               Do ist3 = 1, nst3 - ncdif
-                  Do ist2 = 1 + nvdif, nst2
-                     Do ist4 = 1, nst4 - ncdif
-                        s1 = hamidx (ist1-nvdif, ist3, iknr, nbfbse, &
-                       & nafbse)
-                        s2 = hamidx (ist2-nvdif, ist4, jknr, nbfbse, &
-                       & nafbse)
+!(wol)            Do ist1 = 1 + nvdif, nst1
+            Do ist1 = nsta1, nsto1
+!(wol)               Do ist3 = 1, nst3 - ncdif
+               Do ist3 = nsta2, nsto2
+!(wol)                  Do ist2 = 1 + nvdif, nst2
+                  Do ist2 = nsta1, nsto1
+!(wol)                     Do ist4 = 1, nst4 - ncdif
+                     Do ist4 = nsta2, nsto2
+!(wol)                        s1 = hamidx (ist1-nvdif, ist3, iknr, nbfbse, &
+!(wol)                       & nafbse)
+!(wol)                        s2 = hamidx (ist2-nvdif, ist4, jknr, nbfbse, &
+!(wol)                       & nafbse)
+                        s1 = hamidx (ist1-nsta1+1, ist3-nsta2+1, iknr, nrnst1, &
+                       & nrnst3)
+                        s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst1, &
+                       & nrnst3)
+                       !Write (*,*) 'iknr, jknr', iknr, jknr !(wol)
+                       !Write (*,*) 'ist1, ist2, ist3, ist4', ist1, ist2, ist3, ist4 !(wol)
+                       !Write (*,*) 's1, s2', s1, s2 !(wol)
                     ! add diagonal term
+!(wol)                        If (s1 .Eq. s2) Then
+!(wol)                           de = evalsv (ist3+istocc, iknr) - evalsv &
+!(wol)                          & (ist1, iknr) + input%xs%scissor
+!(wol)                           ham (s1, s2) = ham (s1, s2) + de - egap + &
+!(wol)                          & bsed
                         If (s1 .Eq. s2) Then
                            de = evalsv (ist3+istocc, iknr) - evalsv &
-                          & (ist1, iknr) + input%xs%scissor
-                           ham (s1, s2) = ham (s1, s2) + de - egap + &
+                          & (ist1, iknr) + input%xs%scissor                                                                                                       
+                            ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed
                         End If
                     ! add exchange term
@@ -247,6 +305,7 @@ Subroutine bse
                            ham (s1, s2) = ham (s1, s2) - sccli (ist1, &
                           & ist3, ist2, ist4)
                         End Select
+                     !Write (*,*) 'check' !(wol)
                      End Do
                   End Do
                End Do
@@ -297,10 +356,14 @@ Subroutine bse
          Do iknr = 1, nkptnr
             Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., 'PMAT_XS.OUT',&
             & pm)
-            Do ist1 = 1 + nvdif, nstsv - nstunocc0
-               Do ist2 = nstocc0 + 1, nstsv - ncdif
-                  s1 = hamidx (ist1-nvdif, ist2-nstocc0, iknr, nbfbse, &
-                 & nafbse)
+!(wol)            Do ist1 = 1 + nvdif, nstsv - nstunocc0
+            Do ist1 = nsta1, nsto1
+!(wol)               Do ist2 = nstocc0 + 1, nstsv - ncdif
+               Do ist2 = nstocc0 + nsta2, nstocc0 + nsto2
+!(wol)                  s1 = hamidx (ist1-nvdif, ist2-nstocc0, iknr, nbfbse, &
+!(wol)                 & nafbse)
+                  s1 = hamidx (ist1-nsta1+1, ist2-nstocc0-nsta2+1,&
+                 & iknr, nrnst1, nrnst3)
                   pmat (s1) = pm (oct, ist1, ist2)
                End Do
             End Do
@@ -309,11 +372,17 @@ Subroutine bse
      ! calculate oscillators for spectrum
          Do s1 = 1, nexc
             Do iknr = 1, nkptnr
-               Do iv = 1, nbfbse
-                  Do ic = 1, nafbse
-                     s2 = hamidx (iv, ic, iknr, nbfbse, nafbse)
+!(wol)               Do iv = 1, nbfbse
+               Do iv = 1, nrnst1
+!(wol)                  Do ic = 1, nafbse
+                  Do ic = 1, nrnst3
+!(wol)                     s2 = hamidx (iv, ic, iknr, nbfbse, nafbse)
+!(wol)                     oszs (s1) = oszs (s1) + bevec (s2, s1) * pmat (s2) &
+!(wol)                    & / (evalsv(ic+istocc, iknr)-evalsv(iv+nvdif, &
+!(wol)                    & iknr))
+                     s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      oszs (s1) = oszs (s1) + bevec (s2, s1) * pmat (s2) &
-                    & / (evalsv(ic+istocc, iknr)-evalsv(iv+nvdif, &
+                    & / (evalsv(ic+istocc, iknr)-evalsv(iv+nsta1-1, &
                     & iknr))
                   End Do
                End Do
