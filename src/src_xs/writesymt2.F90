@@ -32,7 +32,7 @@ Subroutine writesymt2
       Implicit None
   ! local variables
       real(8), parameter :: eps=1.d-8
-      character(256) :: str
+      character(256) :: strvar
       Integer :: iop1, iop2, i
       real(8) :: t1
   ! output the symmetrization matrices
@@ -43,9 +43,9 @@ Subroutine writesymt2
       Do iop1 = 1, 3
          Do iop2 = 1, 3
             t1=sum(abs(symt2(iop1,iop2,:,:)))
-            str=""
-            if (t1 .lt. eps) str='," ; zero contribution"'
-            Write (50, '("(", i1, ", ", i2, ")-component"'//trim(str)//')') iop1, iop2
+            strvar=""
+            if (t1 .lt. eps) strvar='," ; zero contribution"'
+            Write (50, '("(", i1, ", ", i2, ")-component"'//trim(strvar)//')') iop1, iop2
             Write (50, '(3f12.8)') (symt2(iop1, iop2, i, :), i=1, 3)
             Write (50,*)
          End Do
