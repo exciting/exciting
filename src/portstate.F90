@@ -9,9 +9,8 @@
 ! !INTERFACE:
 Subroutine portstate (act)
 ! !USES:
-      Use modinput
       Use ioarray
-      use mod_misc
+      use mod_misc, only: refversion_gitstate
 ! !DESCRIPTION:
 !   Toggle file format of {\tt STATE.OUT}. If tb2a is true an ASCII
 !   file with the name {\tt STATE.xml} is generated and the data

@@ -115,10 +115,13 @@ Subroutine findsymcrys
          Call findsym (aplt, apl, nsym, lspl, lspn, iea)
          Do isym = 1, nsym
 #ifdef XS
-     ! exclude non-zero translations
-            If (associated(input%xs)) Then
-               If (input%xs%symmorph .And. (sum(Abs(vtl(:, i))) .Gt. &
-              & input%structure%epslat)) Go To 20
+     ! exclude non-zero translations and check if spin-rotations is equal to spatial one
+            If (associated(input%groundstate)) Then
+               if (input%groundstate%symmorph) then
+                  if (sum(Abs(vtl(:, i))) .Gt. input%structure%epslat) Go To 20
+                  if (associated(input%groundstate%spin) .and. &
+                     (lspnsymc(isym) .ne. lsplsymc(isym))) goto 20
+               end if
             End If
 #endif
             nsymcrys = nsymcrys + 1

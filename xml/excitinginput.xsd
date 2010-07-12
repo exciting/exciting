@@ -172,6 +172,14 @@ Example:  <pre>
    </xs:documentation>
         </xs:annotation>
     </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit="" name="symmorph"
+        type="xs:boolean" default="false">
+        <xs:annotation>
+            <xs:documentation>
+               When set to <pre>"true"</pre> only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are used anywhere in the code.
+            </xs:documentation>
+        </xs:annotation>
+     </xs:attribute>
     <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble"
         default="0.0d0">
         <xs:annotation>
@@ -1201,6 +1209,14 @@ Example:  <pre>
                  When set to
                  <pre>"true"</pre>
                  no symmetries, apart from the identity, are used anywhere in the code.
+               </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="symmorph"
+                            default="false">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    When set to <pre>"true"</pre> only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are used anywhere in the code.
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -3081,14 +3097,6 @@ Example:  <pre>
                             </xs:simpleType>
                         </xs:attribute>
                         <!-- Here are experimental parameters -->
-                        <xs:attribute ex:importance="expert" ex:unit="" name="symmorph"
-                            type="xs:boolean" default="false">
-                            <xs:annotation>
-                                <xs:documentation>
-                                    <pre>"true"</pre> if only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are allowed.
-               </xs:documentation>
-                            </xs:annotation>
-                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat"
                             type="xs:boolean" default="true">
                             <xs:annotation>

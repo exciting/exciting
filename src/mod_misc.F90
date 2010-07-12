@@ -7,6 +7,7 @@
 !
 !
 #include "maxdefinitions.inc"
+#include "refversions.inc"
 Module mod_misc
       Use modinput
 !---------------------------------!
@@ -15,11 +16,11 @@ Module mod_misc
 ! code version
       Integer :: version (3)
 ! reference version for LDA+U
-      integer, parameter :: refversion_ldapu(3) = (/ 0, 9, 131 /)
+      integer, parameter :: refversion_ldapu(3) = _REFVERSION_LDAPU_
 ! reference version for new exciting
-      integer, parameter :: refversion_new(3) = (/ 0, 9, 224 /)
+      integer, parameter :: refversion_new(3) = _REFVERSION_NEW_
 ! reference version (date-based) for githash in STATE.OUT file
-      integer, parameter :: refversion_gitstate(3) = (/ 10, 4, 14 /)
+      integer, parameter :: refversion_gitstate(3) = _REFVERSION_GITSTATE_
 ! git hash value
       character(40) :: githash
 ! maximum number of tasks

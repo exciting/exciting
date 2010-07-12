@@ -8,7 +8,7 @@
 !
 ! !INTERFACE:
 Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
-& vtlsymc, scmut, tabel)
+& vtlsymc, scmut, tabel, tspainvsym)
 ! !DESCRIPTION:
 !   Sets up the group multiplication table. The table is checked for consistency
 !   in a way that it is required that every elements occurrs once and only once
@@ -29,15 +29,21 @@ Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
       Real (8), Intent (In) :: vtlsymc (3, maxsymcrys)
       Integer, Intent (Out) :: scmut (nsymcrys, nsymcrys)
       Logical, Intent (Out) :: tabel
+      Logical, Intent (Out) :: tspainvsym
   ! local variables
-      Integer :: isym, jsym, asym, lspli, lsplj, lspla, iv (3)
+      Integer :: isym, jsym, asym, lspli, lsplj, lspla, iv (3), nsis
       Integer :: doner (maxsymcrys), donec (maxsymcrys)
       Real (8) :: c (3, 3), ct (3, 3), si (3, 3), sj (3, 3), sa (3, 3), &
      & vtt (3), vtl (3), vtla (3)
       scmut (:, :) = 0
+      nsis=0
       Do isym = 1, nsymcrys
          lspli = lsplsymc (isym)
          si (:, :) = dble (symlat(:, :, lspli))
+         ! check for spatial inversion symmetry
+         sj(:,:)=si(:,:) - &
+         reshape((/-1.d0,0.d0,0.d0, 0.d0,-1.d0,0.d0, 0.d0,0.d0,-1.d0/), (/3,3/))
+         if ((sum(abs(sj)) .lt. eps)) nsis=nsis+1
          Do jsym = 1, nsymcrys
             lsplj = lsplsymc (jsym)
             sj (:, :) = dble (symlat(:, :, lsplj))
@@ -116,5 +122,8 @@ Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
   ! check if group is Abelian
       tabel = .False.
       If (all((scmut-transpose(scmut)) .Eq. 0)) tabel = .True.
+      tspainvsym=.false.
+      ! check for spatial inversion symmetry
+      if (nsis .gt. 0) tspainvsym=.true.
 End Subroutine gensymcmut
 !EOC

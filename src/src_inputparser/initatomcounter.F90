@@ -4,16 +4,12 @@
 ! See the file COPYING for license details.
 
 Subroutine initatomcounters
-!
       Use modinput
       Use mod_atoms
-      nspecies = size (input%structure%speciesarray)
-      Allocate (natoms(nspecies))
-!
+      nspecies = size(input%structure%speciesarray)
+      if (allocated(natoms)) deallocate(natoms)
+      Allocate(natoms(nspecies))
       Do is = 1, nspecies
-         natoms (is) = size &
-        & (input%structure%speciesarray(is)%species%atomarray)
+         natoms(is) = size(input%structure%speciesarray(is)%species%atomarray)
       End Do
-!
 End Subroutine
-!

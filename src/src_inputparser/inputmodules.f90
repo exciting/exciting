@@ -160,6 +160,7 @@ type groundstate_type
  real(8)::gmaxvr
  integer::nempty
  logical::nosym
+ logical::symmorph
  logical::frozencore
  logical::autokpt
  real(8)::radkpt
@@ -391,7 +392,6 @@ type xs_type
  logical::tevout
  character(512)::xstype
  integer::xstypenumber
- logical::symmorph
  logical::fastpmat
  logical::fastemat
  logical::gather
@@ -1634,6 +1634,14 @@ getstructgroundstate%nosym= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nosym",getstructgroundstate%nosym)
        call removeAttribute(thisnode,"nosym")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"symmorph")
+getstructgroundstate%symmorph= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"symmorph",getstructgroundstate%symmorph)
+       call removeAttribute(thisnode,"symmorph")      
 endif
 
 nullify(np)  
@@ -3404,14 +3412,6 @@ if(associated(np)) then
        call removeAttribute(thisnode,"xstype")      
 endif
 getstructxs%xstypenumber=stringtonumberxstype(getstructxs%xstype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"symmorph")
-getstructxs%symmorph= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"symmorph",getstructxs%symmorph)
-       call removeAttribute(thisnode,"symmorph")      
-endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"fastpmat")

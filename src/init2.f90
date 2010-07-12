@@ -1,8 +1,8 @@
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 Subroutine init2
       Use modmain
       Use modinput
@@ -16,12 +16,12 @@ Subroutine init2
       Real (8) :: ts0, ts1
       Real (8) :: boxl (3, 4)
 #ifdef XS
-      Real (8) :: v (3), t1
+      Real (8) :: v (3)
       Integer :: iq, iv (3)
 #endif
-!
+
       Call timesec (ts0)
-!
+
 !---------------------!
 !     q-point set     !
 !---------------------!
@@ -180,7 +180,6 @@ Subroutine init2
 !   call findgroupq(fbzq,vql(1,iq),epslat,bvec,symlat,nsymcrys,lsplsymc,&
 !	nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
 !end do
-
   if (task .ge. 301) then
 
 !-----------------------!
@@ -240,7 +239,7 @@ Subroutine init2
    ! spherical harmonics for G+q-vectors
          Call genylmgq (iq, input%groundstate%lmaxvr)
       End Do
-      t1 = maxval (gqc(1, :))
+!      t1 = maxval (gqc(1, :)) !(sag) include 3 G-vector combinations (Weine)
 !if ((task.ge.400).and.(task.le.499).and.(gqmax.lt.t1)) then
 !   write(*,*)
 !   write(*,'("Error(init2): gqmax too small:",g18.10)') gqmax
