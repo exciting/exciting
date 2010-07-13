@@ -480,7 +480,11 @@ Example:  <pre>
                             <xs:element ex:importance="essential" ex:unit="" name="crystal"
                                 minOccurs="1" maxOccurs="1">
                                 <xs:annotation>
-                                    <xs:documentation>The crystal element defines the unit cell of the calculation.</xs:documentation>
+                                    <xs:documentation>Defines the unit cell of the crystal via the three basis vectors
+                                    and, optionally, via the attributes <pre-bf>scale</pre-bf> and <pre-bf_ns>stretch</pre-bf_ns>. 
+                                    Find an example <a href="http://exciting-code.org/input-file-format-overview">here.</a>
+
+                                    </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:annotation>
@@ -491,7 +495,7 @@ Example:  <pre>
                                             name="basevect" minOccurs="3" maxOccurs="3"
                                             type="vect3d">
                                             <xs:annotation>
-                                                <xs:documentation>The basevect element defines one basis vector.</xs:documentation>
+                                                <xs:documentation>Each <pre-bf>basevect</pre-bf> element defines one basis vector.</xs:documentation>
                                                 <xs:appinfo>
                                                     <oldname>avec</oldname>
                                                 </xs:appinfo>
@@ -501,7 +505,7 @@ Example:  <pre>
                                     <xs:attribute ex:importance="essential" ex:unit="1" name="scale"
                                         type="fortrandouble" default="1.0d0">
                                         <xs:annotation>
-                                            <xs:documentation>The attribute <pre>scale</pre> scales all the lattice vectors. This is useful for varying the volume.</xs:documentation>
+                                            <xs:documentation>Scales all the lattice vectors simultaneously. This attribute is useful for varying the volume.</xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>scale</oldname>
                                             </xs:appinfo>
@@ -510,7 +514,7 @@ Example:  <pre>
                                     <xs:attribute ex:importance="essential" ex:unit=""
                                         name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
                                         <xs:annotation>
-                                            <xs:documentation>Allows for a separate scaling of each lattice vector. <pre>"1 1 1"</pre> means no scaling.</xs:documentation>
+                                            <xs:documentation>Scales each lattice vector separately. <pre>"1.0 1.0 1.0"</pre> means no scaling.</xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>(sc1|sc2|sc3)</oldname>
                                             </xs:appinfo>
@@ -1045,11 +1049,11 @@ Example:  <pre>
                                 <xs:documentation>
                  The parameter <pre>rgkmax</pre> implicitly determines the number of basis functions and 
                  is one of the crucial parameters for the accuracy of the calculation.  
-                 It represents the product of two quantities: <inlinemath>R_{MT,\, Min}</inlinemath>, 
+                 It represents the product of two quantities: <inlinemath_ns>R_{MT,\, Min}</inlinemath_ns>, 
                  the smallest of all muffin-tin radii, and 
-                 <inlinemath>|{ \bf G}+{ \bf k}|_{max}</inlinemath>,
-                 the maximum length for the <inlinemath>{ \bf G}+{ \bf k}</inlinemath>\ vectors.
-                 Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath>\ vector represents
+                 <inlinemath-ns>|{ \bf G}+{ \bf k}|_{max}</inlinemath-ns>,
+                 the maximum length for the <inlinemath>{ \bf G}+{ \bf k}</inlinemath> vectors.
+                 Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath> vector represents
                  one basis function, <pre>rgkmax</pre> gives the number of basis functions 
                  used for solving the Kohn-Sham equations. Typical values of <pre>rgkmax</pre> 
                  are between 6 and 9. However, for systems with very short bond-lengths,
