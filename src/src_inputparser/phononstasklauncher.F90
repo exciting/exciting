@@ -20,6 +20,9 @@ Subroutine phononstasklauncher
          Case ('reformat_dynamical_matrices')
             task=200
             call reformatdynamicalmatrices()
+         case ('writephn')
+            task=230
+            call writephn()
          case ('debug')
             task=200
             call phonondebug()

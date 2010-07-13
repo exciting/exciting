@@ -14,15 +14,15 @@
 # global definitions
 #
 
-# input files including all species files
-f_in="exciting.in Ac.in Ag.in Al.in Am.in Ar.in As.in At.in Au.in Ba.in Be.in Bi.in B.in Bk.in Br.in Ca.in Cd.in Ce.in Cf.in C.in Cl.in Cm.in Co.in Cr.in Cs.in Cu.in Dy.in Er.in Es.in Eu.in Fe.in F.in Fm.in Fr.in Ga.in Gd.in Ge.in He.in Hf.in Hg.in H.in Ho.in I.in In.in Ir.in K.in Kr.in La.in Li.in Lr.in Lu.in Md.in Mg.in Mn.in Mo.in Na.in Nb.in Nd.in Ne.in Ni.in N.in No.in Np.in O.in Os.in Pa.in Pb.in Pd.in P.in Pm.in Po.in Pr.in Pt.in Pu.in Ra.in Rb.in Re.in Rf.in Rh.in Rn.in Ru.in Sb.in Sc.in Se.in Si.in S.in Sm.in Sn.in Sr.in Ta.in Tb.in Tc.in Te.in Th.in Ti.in Tl.in Tm.in U.in V.in W.in Xe.in Yb.in Y.in Zn.in Zr.in"
+# input files (including all species files) and all XML files
+f_in="*.xml"
 
 # all default parameters and all actual parameters
-f_params="PARAMS_DEFAULT.OUT PARAMS.OUT "
+f_params=""
 
 # SCF calculation
 f_scf_bin="EVALFV.OUT EVALSV.OUT EVECFV.OUT EVECSV.OUT OCCSV.OUT STATE.OUT"
-f_scf_ascii="EFERMI.OUT EIGVAL.OUT EQATOMS.OUT EVALCORE.OUT FERMIDOS.OUT GEOMETRY.OUT IADIST.OUT INFO.OUT KPOINTS.OUT LATTICE.OUT LINENGY.OUT RMSDVEFF.OUT SYMCRYS.OUT SYMLAT.OUT SYMSITE.OUT TOTENERGY.OUT MOMENT.OUT"
+f_scf_ascii="CHGDIST.OUT DFORCEMAX.OUT DTOTENERGY.OUT EFERMI.OUT EIGVAL.OUT EQATOMS.OUT EVALCORE.OUT FERMIDOS.OUT GEOMETRY.OUT IADIST.OUT INFO.OUT KPOINTS.OUT LATTICE.OUT LINENGY.OUT RMSDVEFF.OUT SYMCRYS.OUT SYMGENR.OUT SYMINV.OUT SYMLAT.OUT SYMMULT.OUT SYMMULT_TABLE.OUT SYMT2.OUT SYMSITE.OUT TOTENERGY.OUT MOMENT.OUT"
 f_scf_save="$f_in $f_params $f_scf_ascii STATE.OUT"
 f_scf_all="$f_in $f_params $f_scf_ascii $f_scf_bin"
     
@@ -33,8 +33,6 @@ f_bandstr="$f_in $f_params BANDLINES.OUT BAND.OUT BAND_NF0.OUT BANDGAP.OUT BANDG
 f_optic="$f_in $f_params EPSILON_[1-3][1-3].OUT EPSILON_TET_[1-3][1-3].OUT EPSILON_LTZ_[1-3][1-3].OUT EPSINTRA_[1-3][1-3].OUT SIGMA_[1-3][1-3].OUT SIGMA_TET_[1-3][1-3].OUT SIGMA_LTZ_[1-3][1-3].OUT SIGINTRA_[1-3][1-3].OUT PLASMA_[1-3][1-3].OUT"
 
 # *** xs part
-# xs input files 
-f_xs_in="qpoints.in"
 # xs optics and important files from SCF calculation
 f_xs="$f_in $f_xs_in $f_params EFERMI_Q*.OUT EIGVAL_Q*.OUT EMAT_TIMING_Q*.OUT EPSILON*_Q*.OUT EPSILON_BSE*_SCR*_OC*.OUT GQPOINTS_Q*.OUT INFO_Q*.OUT KMAPKQ_Q*.OUT KPOINTS_Q*.OUT LOSS*_Q*.OUT QPOINTS.OUT SIGMA*_Q*.OUT SUMRULES*_Q*.OUT XSINFO.OUT X0_TIMING_Q*.OUT"
 
@@ -346,6 +344,20 @@ pids="`$cmd -x exciting*`"
 
 }
 
+
+VERYCLEAN ()
+{
+
+  rm='/bin/rm -f'
+  cp='/bin/cp -f'
+
+  $rm info*.xml
+  $rm geometry*.xml
+  $rm *.OUT 
+
+}
+
+
 #---------------#
 #   main part   #
 #---------------#
@@ -379,9 +391,12 @@ case "$1" in
     kill)
 	KILL
 	;;
+	  vclean|veryclean)
+	VERYCLEAN
+	;;
     *)
 	echo
-	echo $" Usage: `basename $0` {run|info|monscf|montd|dparam|param|kill|save}"
+	echo $" Usage: `basename $0` {run|info|monscf|montd|dparam|param|kill|veryclean|save}"
 	echo ""
 	exit 1
 esac

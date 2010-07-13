@@ -93,7 +93,12 @@
 </xsl:text>
   </xsl:template>
   <xsl:template match="inlinemath">
-    <xsl:text>[[$ </xsl:text>
+    <xsl:text> [[$ </xsl:text>
+    <xsl:value-of select="normalize-space(.)" />
+    <xsl:text> $]] </xsl:text>
+  </xsl:template>
+  <xsl:template match="inlinemath_ns">
+    <xsl:text> [[$ </xsl:text>
     <xsl:value-of select="normalize-space(.)" />
     <xsl:text> $]]</xsl:text>
     <xsl:if test="@space">
@@ -154,7 +159,7 @@
     <xsl:value-of select="normalize-space(.)" />
   </xsl:template>
   <xsl:template match="xs:documentation">
-    <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a|list|li|attref" />
+    <xsl:apply-templates select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre-bf|pre-bf_ns|it|p|exciting|a|list|li|attref" />
   </xsl:template>
   <xsl:template match="attref">
     <xsl:text> [#att</xsl:text>

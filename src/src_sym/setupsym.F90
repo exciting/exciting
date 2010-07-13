@@ -12,7 +12,7 @@ Subroutine setupsym
       Allocate (sgmut(nsymcrys, nsymcrys))
   ! generate multiplication table
       Call gensymcmut (input%structure%epslat, maxsymcrys, nsymcrys, &
-     & symlat, lsplsymc, vtlsymc, sgmut, abelsg)
+     & symlat, lsplsymc, vtlsymc, sgmut, abelsg, spainvsym)
       If (allocated(negenr)) deallocate (negenr)
       Allocate (negenr(nsymcrys))
       If (allocated(genr)) deallocate (genr)
