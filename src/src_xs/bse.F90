@@ -97,10 +97,12 @@ Subroutine bse
       Integer :: nrnst1, nrnst2, nrnst3, nrnst4 !(wol)
       Integer :: sta1, sto1, sta2, sto2 !(wol)
       Integer :: nsta1, nsto1, nsta2, nsto2 !(wol)
+      Integer :: ist, jst !(wol)
       Real (8) :: de, egap, ts0, ts1
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
       Real (8), Allocatable :: beval (:), w (:), oszsa (:)
+      Real (8), Allocatable :: docc(:,:), kdocc (:) !(wol)
       Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
      & :), ham (:, :)
       Complex (8), Allocatable :: bevec (:, :), pm (:, :, :), pmat (:), &
@@ -154,9 +156,9 @@ Subroutine bse
 !
 !(wol)      Write (*,*) 'nbfbse, nafbse', nbfbse, nafbse
 !(wol)      Write (*,*) 'nvdif, ncdif', nvdif, ncdif
-      Write (*,*) 'sta1, sto1, sta2, sto2', sta1, sto1, sta2, sto2 !(wol)
-      Write (*,*) 'nsta1, nsto1, nsta2, nsto2', nsta1, nsto1, nsta2, nsto2 !(wol)
-      Write (*,*) 'nkptnr', nkptnr
+!(wol)      Write (*,*) 'sta1, sto1, sta2, sto2', sta1, sto1, sta2, sto2 !(wol)
+!(wol)      Write (*,*) 'nsta1, nsto1, nsta2, nsto2', nsta1, nsto1, nsta2, nsto2 !(wol)
+!(wol)      Write (*,*) 'nkptnr', nkptnr
 !(wol)      Write (*,*) 'nst1, nst2, nst3, nst4', nst1, nst2, nst3, nst4 !(wol)
 !(wol)      Write (*,*) 'istocc0, istocc', istocc0, istocc !(wol)
 !(wol)      Write (*,*) 'istunocc0, istunocc', istunocc0, istunocc !(wol)
@@ -198,6 +200,10 @@ Subroutine bse
 !(wol)      Allocate (excli(nst1, nst3, nst2, nst4))
       Allocate (sccli(rnst1, rnst3, rnst2, rnst4))
       Allocate (excli(rnst1, rnst3, rnst2, rnst4))
+  ! allocate array for occupation number difference if needed !(wol) 
+      Write (*,*) 'istl3, nstocc0, nsta2', istl3, nstocc0, nsta2 !(wol)
+      	Allocate (docc (rnst1, rnst3))
+      	Allocate (kdocc (hamsiz))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
@@ -235,6 +241,10 @@ Subroutine bse
          Write (unitout,*)
          Call terminate
       End If
+!TEST!!!!!!!
+	  egap = 0.0 !(wol)
+	  bsed = 0.0
+!TEST!!!!!!!	  
   ! set up BSE-Hamiltonian
       ikkp = 0
       Do iknr = 1, nkptnr
@@ -260,7 +270,15 @@ Subroutine bse
             End Select
             !Write (*,*) 'nst1, nst2, nst3, nst4', nst1, nst2, nst3, nst4 !(wol)    
             !Write (*,*) 'nstsv', nstsv !(wol) 
-            !Write (*,*) 'nstocc0, nstunocc0', nstocc0, nstunocc0 !(wol)       
+            !Write (*,*) 'nstocc0, nstunocc0', nstocc0, nstunocc0 !(wol)   
+            !Write (*,*) 'istocc0, istocc, istunocc0, istunocc, isto0, isto,&
+            !& istu0, istu', istocc0, istocc, istunocc0, istunocc, isto0, isto,&
+            !& istu0, istu !(wol)
+            !If (istl3 - nsta2 + 1 .Le. nstocc0) Then !(wol)
+            !	Write (*,*) 'within range!' !(wol)
+            !End If !(wol)    			
+      		Call getdocc (iq, iknr, jknr, nsta1, nsto1, istl3+nsta2-1,& 
+      	   & istl3+nsto2-1, docc)
         ! set up matrix
 !(wol)            Do ist1 = 1 + nvdif, nst1
             Do ist1 = nsta1, nsto1
@@ -276,34 +294,48 @@ Subroutine bse
 !(wol)                       & nafbse)
                         s1 = hamidx (ist1-nsta1+1, ist3-nsta2+1, iknr, nrnst1, &
                        & nrnst3)
-                        s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst1, &
-                       & nrnst3)
+                        s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst2, &
+                       & nrnst4)
+					    kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1) !(wol)
+					   !Write (*,*) 'ist1, ist3, ist2, ist4, kdocc(s1)',&
+					   !& ist1, ist3, ist2, ist4, kdocc (s1)
                        !Write (*,*) 'iknr, jknr', iknr, jknr !(wol)
                        !Write (*,*) 'ist1, ist2, ist3, ist4', ist1, ist2, ist3, ist4 !(wol)
                        !Write (*,*) 's1, s2', s1, s2 !(wol)
-                    ! add diagonal term
+                     ! add diagonal term
 !(wol)                        If (s1 .Eq. s2) Then
 !(wol)                           de = evalsv (ist3+istocc, iknr) - evalsv &
 !(wol)                          & (ist1, iknr) + input%xs%scissor
 !(wol)                           ham (s1, s2) = ham (s1, s2) + de - egap + &
 !(wol)                          & bsed
                         If (s1 .Eq. s2) Then
-                           de = evalsv (ist3+istocc, iknr) - evalsv &
+                           de = evalsv (ist3+istl3-1, iknr) - evalsv &
                           & (ist1, iknr) + input%xs%scissor                                                                                                       
                             ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed
+!(wol)---partial-start-----------------------------------------------------
+!							If (kdocc (s1) .Eq. 0) Then
+!								ham (s1,s2) = 0
+!								Write (*,*) 'kdocc kill! > s1', s1
+!                       	    End If
+!(wol)---stop--------------------------------------------------------------
                         End If
+						If (kdocc (s1) .Gt. 0 .And. kdocc (s1) .Lt. 2) Then
+							Write (*,*) 'kdocc s1', kdocc(s1), s1
+						End If
                     ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('rpa', 'singlet')
-                           ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
-                          & (ist1, ist3, ist2, ist4)
+                        	ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
+                           & (ist1, ist3, ist2, ist4) * &
+                           & kdocc (s1) * 0.5
                         End Select
                     ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')
-                           ham (s1, s2) = ham (s1, s2) - sccli (ist1, &
-                          & ist3, ist2, ist4)
+                        	ham (s1, s2) = ham (s1, s2) - sccli (ist1, &
+                           & ist3, ist2, ist4) * &
+                           & kdocc (s1)	* 0.5						
                         End Select
                      !Write (*,*) 'check' !(wol)
                      End Do
@@ -313,7 +345,8 @@ Subroutine bse
         ! end loop over (k,kp)-pairs
          End Do
       End Do
-      Deallocate (excli, sccli)
+	  Write (*,*) 'ikkp, s1, s2', ikkp, s1, s2 !(wol)
+      Deallocate (excli, sccli, docc)
       Write (unitout,*)
       Write (unitout, '("Info(bse): invoking Lapack routine ZHEEVX")')
       Write (unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
@@ -351,6 +384,7 @@ Subroutine bse
         & oc1=oct, oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
         & input%xs%tddft%aresdf, filnam=fnexcs)
+		 Write (*,*) 'after Hmat' !(wol)
      ! read momentum matrix elements
          Allocate (pm(3, nstsv, nstsv))
          Do iknr = 1, nkptnr
@@ -359,16 +393,25 @@ Subroutine bse
 !(wol)            Do ist1 = 1 + nvdif, nstsv - nstunocc0
             Do ist1 = nsta1, nsto1
 !(wol)               Do ist2 = nstocc0 + 1, nstsv - ncdif
-               Do ist2 = nstocc0 + nsta2, nstocc0 + nsto2
+               Do ist2 = istl3 + nsta2 - 1, istl3 + nsto2 - 1
 !(wol)                  s1 = hamidx (ist1-nvdif, ist2-nstocc0, iknr, nbfbse, &
 !(wol)                 & nafbse)
-                  s1 = hamidx (ist1-nsta1+1, ist2-nstocc0-nsta2+1,&
+                  s1 = hamidx (ist1-nsta1+1, ist2-istl3-nsta2+2,&
                  & iknr, nrnst1, nrnst3)
-                  pmat (s1) = pm (oct, ist1, ist2)
+!(wol)---partial-start-----------------------------------------------------
+!				  If (istl3 - nsta2 + 1 .Le. nstocc0 &							
+!				 & .And. istl3 + ist2 - 1 .Le. nstocc0) Then
+!                  	pmat (s1) = pm (oct, ist1, ist2) * &
+!                   & docc (ist1, ist2-istl3-nsta2+2) * 0.5		
+!                  Else                 
+                  	pmat (s1) = pm (oct, ist1, ist2)
+!				  End If
                End Do
             End Do
          End Do
          Deallocate (pm)
+		 Write (*,*) 'after Hmat' !(wol)
+		 Write (*,*) 'nexc', nexc !(wol)
      ! calculate oscillators for spectrum
          Do s1 = 1, nexc
             Do iknr = 1, nkptnr
@@ -379,15 +422,17 @@ Subroutine bse
 !(wol)                     s2 = hamidx (iv, ic, iknr, nbfbse, nafbse)
 !(wol)                     oszs (s1) = oszs (s1) + bevec (s2, s1) * pmat (s2) &
 !(wol)                    & / (evalsv(ic+istocc, iknr)-evalsv(iv+nvdif, &
-!(wol)                    & iknr))
+!(wol)                    & iknr))					
                      s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      oszs (s1) = oszs (s1) + bevec (s2, s1) * pmat (s2) &
-                    & / (evalsv(ic+istocc, iknr)-evalsv(iv+nsta1-1, &
+                    & * kdocc (s2) * 0.5 & 
+                    & / (evalsv(ic+istl3+nsta2-1, iknr)-evalsv(iv+nsta1-1, &
                     & iknr))
                   End Do
                End Do
             End Do
          End Do
+		 Write (*,*) 'after Hmat2' !(wol)
          spectr (:) = zzero
          Do iw = 1, input%xs%dosWindow%points
             Do s1 = 1, nexc
