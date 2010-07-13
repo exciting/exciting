@@ -364,13 +364,12 @@ Example:  <pre>
                                     <xs:appinfo>
                                         <notindocu/>
                                     </xs:appinfo>
-                                    <xs:documentation>This element is used by the spacegroup tool to generate structures and supercells</xs:documentation>
+                                    <xs:documentation>This element is used by the spacegroup tool to generate structures and supercells
+                                         </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:annotation>
-                                        <xs:documentation>
-                     The symmetries element is output from the spacegroup program the values are currently not used in the <exciting>exciting</exciting> program
-                   </xs:documentation>
+                                   
                                     </xs:annotation>
                                     <xs:sequence>
                                         <xs:element ex:importance="spacegroup" ex:unit=""
@@ -475,9 +474,7 @@ Example:  <pre>
                                     <xs:documentation>The crystal element defines the unit cell of the calculation.</xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
-                                    <xs:annotation>
-                                        <xs:documentation>The unit cell is spanned by 3 base vectors that define the lattice coordinates.</xs:documentation>
-                                    </xs:annotation>
+                                    
                                     <xs:sequence>
                                         <xs:element ex:importance="essential" ex:unit="Bohr"
                                             name="basevect" minOccurs="3" maxOccurs="3"
@@ -1662,14 +1659,13 @@ Example:  <pre>
                 <xs:element ex:importance="essential" ex:unit="" name="structureoptimization"
                     maxOccurs="1" minOccurs="0">
                     <xs:annotation>
-                        <xs:documentation>The structure optimization element triggers if present a geometry relaxation.</xs:documentation>
+                        <xs:documentation>The structure optimization element triggers if present a geometry relaxation. The Atomic positions are written to
+                            <pre_ns>geometry.xml</pre_ns>.
+                        </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
                         <xs:annotation>
-                            <xs:documentation>
-               Structural optimization run. Atomic positions written to
-               <pre_ns>geometry.xml</pre_ns>.
-             </xs:documentation>
+                   
                         </xs:annotation>
                         <xs:attribute ex:importance="essential" ex:unit="" ref="epsforce"
                             default="5.0d-5">
@@ -1732,12 +1728,13 @@ Example:  <pre>
                             <xs:element ex:importance="essential" ex:unit="" name="bandstructure"
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>If present a banstructure is calculated.</xs:documentation>
+                                    <xs:documentation>If present a banstructure is calculated.
+                                    <p/>
+                                    Must contain plot1d element for bandstructure path
+                                    </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
-                                    <xs:annotation>
-                                        <xs:documentation>Create a bandstructure. Must contain plot1d element for bandstructure path.</xs:documentation>
-                                    </xs:annotation>
+                                   
                                     <xs:all>
                                         <xs:element ex:importance="essential" ex:unit=""
                                             ref="plot1d"/>
@@ -1768,11 +1765,11 @@ Example:  <pre>
                             <xs:element ex:importance="expert" ex:unit="" name="wfplot"
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Wavefunction plot.</xs:documentation>
+                                    <xs:documentation>Plot the wave function at a set of kpoints</xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:annotation>
-                                        <xs:documentation>Plot the wave function at a set of kpoints</xs:documentation>
+                                       
                                     </xs:annotation>
                                     <xs:all>
                                         <xs:element ex:importance="expert" ex:unit="" ref="kstlist"
@@ -2116,12 +2113,13 @@ Example:  <pre>
                 <xs:element ex:importance="expert" ex:unit="" name="phonons" maxOccurs="1"
                     minOccurs="0">
                     <xs:annotation>
-                        <xs:documentation>Phonon frequencies and eigen vectors for an arbitrary q-point.</xs:documentation>
+                        <xs:documentation>Phonon frequencies and eigen vectors for an arbitrary q-point.
+                        <p/>
+                            The phonon element must contain one or more q-point elements
+                        </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
-                        <xs:annotation>
-                            <xs:documentation>The phonon element must contain one or more q-point elements.</xs:documentation>
-                        </xs:annotation>
+                         
                         <xs:all>
                             <xs:element ex:importance="expert" ex:unit="" ref="qpointset"
                                 minOccurs="1" maxOccurs="1"/>
