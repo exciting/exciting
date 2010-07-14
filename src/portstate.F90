@@ -73,7 +73,7 @@ Subroutine portstate (act)
             Write (*, '("Error(portstate): not overwriting existent STA&
            &TE.xml file")')
             Write (*,*)
-            Stop
+            return
          End If
          If (act .Eq. 1) open (51, file='STATE.xml', action='WRITE', &
         & form='FORMATTED', status='replace')
@@ -142,7 +142,7 @@ Subroutine portstate (act)
             Write (*, '("Error(portstate): not overwriting existent STA&
            &TE.OUT file")')
             Write (*,*)
-            Stop
+            return
          End If
          If (act .Eq. 2) open (51, file='STATE.OUT', action='WRITE', &
         & form='UNFORMATTED', status='replace')

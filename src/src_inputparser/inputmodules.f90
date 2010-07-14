@@ -202,6 +202,7 @@ type groundstate_type
   type(solver_type),pointer::solver
   type(OEP_type),pointer::OEP
   type(RDMFT_type),pointer::RDMFT
+  type(output_type),pointer::output
 end type
 type spin_type
  real(8)::momfix(3)
@@ -237,6 +238,10 @@ type RDMFT_type
  real(8)::taurdmc
  real(8)::rdmalpha
  real(8)::rdmtemp
+end type
+type output_type
+ character(512)::state
+ integer::statenumber
 end type
 type structureoptimization_type
  real(8)::epsforce
@@ -1951,6 +1956,14 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "RDMFT"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"output")
+getstructgroundstate%output=>null()
+Do i=0,len-1
+getstructgroundstate%output=>getstructoutput(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"output"),0)) ) 
+enddo
+
       i=0
       len=0
       call  handleunknownnodes(thisnode)
@@ -2230,6 +2243,34 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"rdmtemp",getstructRDMFT%rdmtemp)
        call removeAttribute(thisnode,"rdmtemp")      
 endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructoutput(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(output_type),pointer::getstructoutput
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructoutput)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at output"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"state")
+getstructoutput%state= "binary"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"state",getstructoutput%state)
+       call removeAttribute(thisnode,"state")      
+endif
+getstructoutput%statenumber=stringtonumberstate(getstructoutput%state)
 
       i=0
       len=0
@@ -4450,6 +4491,22 @@ case('')
  stringtonumbertype=0
 case default
 write(*,*) "'", string,"' is not valid selection fortype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberstate(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('binary')
+ stringtonumberstate=-1
+case('XML')
+ stringtonumberstate=-1
+case('')
+ stringtonumberstate=0
+case default
+write(*,*) "'", string,"' is not valid selection forstate "
 stop 
 end select
 end function

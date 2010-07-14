@@ -1021,6 +1021,26 @@ Example:  <pre>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element ex:importance="expert" ex:unit="" name="output"
+                                minOccurs="0" maxOccurs="1">
+                                <xs:annotation>
+                                    <xs:documentation>Specifications on the file formats for output files.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="state"
+                                        default="binary">
+                                        <xs:annotation>
+                                            <xs:documentation>Selects the file format of the STATE file.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="binary"/>
+                                                <xs:enumeration value="XML"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
                         </xs:all>
                         <xs:attribute ex:importance="essential" ex:unit="" ref="do"
                             default="fromscratch">

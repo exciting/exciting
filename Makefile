@@ -4,7 +4,7 @@
 
 default: build/make.inc all
 
-all: serial mpi  smp mpiandsmp  eos spacegroup species
+all: serial mpi  smp mpiandsmp  eos spacegroup stateinfo stateconvert species
 
 build/make.inc:
 	perl ./setup.pl
@@ -49,6 +49,12 @@ eos::
 	
 spacegroup::
 	cd src/spacegroup; $(MAKE)
+
+stateinfo::
+	cd src/stateinfo; $(MAKE)
+  
+stateconvert::
+	cd src/stateconvert; $(MAKE)  
 	
 species::libs
 	cd src/species; $(MAKE)
