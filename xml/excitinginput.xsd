@@ -2635,19 +2635,41 @@ Example:  <pre>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="transitions" minOccurs="0"
                                 maxOccurs="1">
+                                <xs:annotation>
+                                    <xs:documentation>Describe transitions between Kohn-Sham states 
+                                    for the calculation of the Kohn-Sham response function (and screening) here.
+                                    Individual transitions can  be defined as well as a range (or a list) of initial
+                                    and final states can be defined.</xs:documentation>
+                                </xs:annotation>
                                 <xs:complexType>
                                    <xs:all>
                                       <xs:element ex:importance="expert" ex:unit="" name="individual" minOccurs="0"
                                 maxOccurs="1">
+                                         <xs:annotation>
+                                             <xs:documentation>A list of individual transitions consisting of an initial state
+                                             a final state and a k-point is given here. An empty list amounts to no transitions at all.
+                                             </xs:documentation>
+                                         </xs:annotation>
                                          <xs:complexType>
                                          <xs:sequence>
                                            <xs:element ex:importance="expert" ex:unit="" name="trans"
                                                minOccurs="0" maxOccurs="unbounded">
+                                               <xs:annotation>
+                                                   <xs:documentation>
+                                                   An individual transition consisting of an initial state
+                                             a final state and a k-point is given here.
+                                                    Values of zero correspond to the inclusion of all initial and final states and all k-points 
+                                                    and can be used as "wildcards" (default). Therefore, an empty element amounts to include all
+                                                    transitions.
+                                                   </xs:documentation>
+                                               </xs:annotation>
                                                <xs:complexType>
                                                    <xs:attribute ex:importance="expert" ex:unit=""
                                                      ref="action" use="optional" default="include">
                                                      <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states</xs:documentation>
+                                                         <xs:documentation>Select to include or exclude states. If a state is included as
+                                                         well as excluded several times the last definition (in the sequence of individual
+                                                         transitions) counts.</xs:documentation>
                                                      </xs:annotation>
                                                    </xs:attribute>
                                                    <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
@@ -2675,15 +2697,29 @@ Example:  <pre>
                                       </xs:element>
                                       <xs:element ex:importance="expert" ex:unit="" name="ranges" minOccurs="0"
                                 maxOccurs="1">
+                                         <xs:annotation>
+                                             <xs:documentation>A list of ranges of transitions (initial state as well as final state ranges)
+                                             and a k-point are given here. An empty list amounts to no transitions at all.</xs:documentation>
+                                         </xs:annotation>
                                          <xs:complexType>
                                          <xs:sequence>
                                            <xs:element ex:importance="expert" ex:unit="" name="range"
                                                minOccurs="0" maxOccurs="unbounded">
+                                               <xs:annotation>
+                                                   <xs:documentation>A range of transitions (for initial as well as final states)
+                                             is given here. A range consists of a "start" and a "stop" value as well as a k-point.
+                                                    Values of zero correspond to starting at the first state and stopping at the last
+                                                    state and considering all k-points. They can be used as "wildcards" (default). Therefore,
+                                                    an empty element corresponds to the full initial/final state range for all k-points.
+                                                   </xs:documentation>
+                                               </xs:annotation>
                                                <xs:complexType>
                                                    <xs:attribute ex:importance="expert" ex:unit=""
                                                      ref="action" use="optional" default="include">
                                                      <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states</xs:documentation>
+                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                         well as excluded several times the last definition (in the sequence of individual
+                                                         transitions) counts.</xs:documentation>
                                                      </xs:annotation>
                                                    </xs:attribute>
                                                    <xs:attribute ex:importance="expert" ex:unit=""
@@ -2701,13 +2737,13 @@ Example:  <pre>
                                                    <xs:attribute ex:importance="expert" ex:unit="" name="start"
                                                       type="xs:integer" default="0">
                                                       <xs:annotation>
-                                                        <xs:documentation>Start value for range. A value of zero (default) means to start from the first state.</xs:documentation>
+                                                        <xs:documentation>Start value (first state) for range. A value of zero (default) means to start from the first state.</xs:documentation>
                                                       </xs:annotation>
                                                    </xs:attribute>                                                                                                                                                                                                                                                           
                                                    <xs:attribute ex:importance="expert" ex:unit="" name="stop"
                                                       type="xs:integer" default="0">
                                                       <xs:annotation>
-                                                        <xs:documentation>Stop value for range. A value of zero (default) means to stop at the last state (no upper limit).</xs:documentation>
+                                                        <xs:documentation>Stop value (last state) for range. A value of zero (default) means to stop at the last state (no upper limit).</xs:documentation>
                                                       </xs:annotation>
                                                    </xs:attribute>                                                                                                                                                                                                                                                           
                                                </xs:complexType>
@@ -2717,21 +2753,34 @@ Example:  <pre>
                                       </xs:element>
                                       <xs:element ex:importance="expert" ex:unit="" name="lists" minOccurs="0"
                                 maxOccurs="1">
+                                         <xs:annotation>
+                                             <xs:documentation>A list of initial and final state entries to be considered for transitions.
+                                             An empty list amounts to no transitions at all.</xs:documentation>
+                                         </xs:annotation>
                                          <xs:complexType>
                                          <xs:sequence>
                                            <xs:element ex:importance="expert" ex:unit="" name="istate"
                                                minOccurs="0" maxOccurs="unbounded">
+                                               <xs:annotation>
+                                                   <xs:documentation>An initial or final state and corresponding k-point                                                   
+                                             is given here.
+                                                    Values of zero correspond to considering all initial/final states for all k-points. They can be used as "wildcards" (default). Therefore,
+                                                    an empty element corresponds to the full initial/final state set for all k-points.
+                                                   </xs:documentation>
+                                               </xs:annotation>
                                                <xs:complexType>
                                                    <xs:attribute ex:importance="expert" ex:unit=""
                                                      ref="action" use="optional" default="include">
                                                      <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states</xs:documentation>
+                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                         well as excluded several times the last definition (in the sequence of individual
+                                                         transitions) counts.</xs:documentation>
                                                      </xs:annotation>
                                                    </xs:attribute>
                                                    <xs:attribute ex:importance="expert" ex:unit=""
                                                      ref="statestype" use="required">
                                                      <xs:annotation>
-                                                         <xs:documentation>Select for initial or final state range</xs:documentation>
+                                                         <xs:documentation>Select for initial or final state list</xs:documentation>
                                                      </xs:annotation>
                                                    </xs:attribute>
                                                    <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
@@ -2743,7 +2792,7 @@ Example:  <pre>
                                                    <xs:attribute ex:importance="expert" ex:unit="" name="state"
                                                       type="xs:integer" default="0">
                                                       <xs:annotation>
-                                                        <xs:documentation>Set of states to consider. A value of zero (default) means to include all states.</xs:documentation>
+                                                        <xs:documentation>The state to be considered. A value of zero (default) means to include all states.</xs:documentation>
                                                       </xs:annotation>
                                                    </xs:attribute>
                                                </xs:complexType>
