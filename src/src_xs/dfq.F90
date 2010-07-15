@@ -269,7 +269,7 @@ use ioarray
   ! loop over k-points
       Do ik = 1, nkpt
      ! k-point analysis
-         If ( .Not. transik(ik, dftrans)) Cycle
+         If ( .Not. transik(ik)) Cycle
          Call chkpt (3, (/ task, iq, ik /), 'dfq: task, q-point index, &
         &k-point index')
          cpuosc = 0.d0
@@ -379,7 +379,7 @@ use ioarray
                i1 = ist1
                i2 = istunocc0 + ist2 - 1
            ! band analysis
-               If ( .Not. transijst(ik, i1, i2, dftrans)) Cycle
+               If ( .Not. transijst(ik, i1, i2)) Cycle
                Call cpu_time (cpu0)
            ! user request termination
                Call terminateqry ('dfq')

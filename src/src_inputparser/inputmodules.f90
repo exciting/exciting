@@ -419,6 +419,7 @@ type xs_type
   type(tddft_type),pointer::tddft
   type(screening_type),pointer::screening
   type(BSE_type),pointer::BSE
+  type(transitions_type),pointer::transitions
   type(qpointset_type),pointer::qpointset
   type(tetra_type),pointer::tetra
   type(dosWindow_type),pointer::dosWindow
@@ -443,10 +444,6 @@ type tddft_type
  character(512)::fxctype
  integer::fxctypenumber
  logical::resumefromkernel
-  type(dftrans_type),pointer::dftrans
-end type
-type dftrans_type
- integer,pointer::trans(:,:)
 end type
 type screening_type
  character(512)::run
@@ -482,7 +479,52 @@ type BSE_type
  character(512)::bsetype
  integer::bsetypenumber
 end type
-type tetra_type
+type transitions_type
+  type(individual_type),pointer::individual
+  type(ranges_type),pointer::ranges
+  type(lists_type),pointer::lists
+end type
+type individual_type
+  type(trans_type_array),pointer::transarray(:)
+end type
+type trans_type
+ character(512)::action
+ integer::kpointnumber
+ integer::initial
+ integer::final
+end type
+
+type trans_type_array
+type(trans_type),pointer::trans
+ end type
+    type ranges_type
+  type(range_type_array),pointer::rangearray(:)
+end type
+type range_type
+ character(512)::action
+ character(512)::statestype
+ integer::kpointnumber
+ integer::start
+ integer::stop
+end type
+
+type range_type_array
+type(range_type),pointer::range
+ end type
+    type lists_type
+  type(istate_type_array),pointer::istatearray(:)
+end type
+type istate_type
+ character(512)::action
+ character(512)::statestype
+ integer::kpointnumber
+ integer::state
+end type
+
+type istate_type_array
+type(istate_type),pointer::istate
+ end type
+    type tetra_type
  logical::tetraocc
  logical::tetradf
  logical::kordexc
@@ -3629,6 +3671,14 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "BSE"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"transitions")
+getstructxs%transitions=>null()
+Do i=0,len-1
+getstructxs%transitions=>getstructtransitions(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"transitions"),0)) ) 
+enddo
+
             len= countChildEmentsWithName(thisnode,"qpointset")
 getstructxs%qpointset=>null()
 Do i=0,len-1
@@ -3815,40 +3865,6 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"resumefromkernel",getstructtddft%resumefromkernel)
        call removeAttribute(thisnode,"resumefromkernel")      
 endif
-
-            len= countChildEmentsWithName(thisnode,"dftrans")
-getstructtddft%dftrans=>null()
-Do i=0,len-1
-getstructtddft%dftrans=>getstructdftrans(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dftrans"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdftrans(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dftrans_type),pointer::getstructdftrans
-		
-integer::len=1,i=0
-allocate(getstructdftrans)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at dftrans"
-#endif
-      
-      len= countChildEmentsWithName (thisnode,"trans")           
-allocate(getstructdftrans%trans(3,len))
-Do i=1,len
-
-		getstructdftrans%trans(:,i)=getvalueoftrans(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "trans"),0)))
-end do
 
       i=0
       len=0
@@ -4099,6 +4115,284 @@ if(associated(np)) then
        call removeAttribute(thisnode,"bsetype")      
 endif
 getstructBSE%bsetypenumber=stringtonumberbsetype(getstructBSE%bsetype)
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructtransitions(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(transitions_type),pointer::getstructtransitions
+		
+integer::len=1,i=0
+allocate(getstructtransitions)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at transitions"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"individual")
+getstructtransitions%individual=>null()
+Do i=0,len-1
+getstructtransitions%individual=>getstructindividual(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"individual"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"ranges")
+getstructtransitions%ranges=>null()
+Do i=0,len-1
+getstructtransitions%ranges=>getstructranges(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"ranges"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"lists")
+getstructtransitions%lists=>null()
+Do i=0,len-1
+getstructtransitions%lists=>getstructlists(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"lists"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructindividual(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(individual_type),pointer::getstructindividual
+		
+integer::len=1,i=0
+allocate(getstructindividual)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at individual"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"trans")
+     
+allocate(getstructindividual%transarray(len))
+Do i=0,len-1
+getstructindividual%transarray(i+1)%trans=>getstructtrans(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"trans"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructtrans(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(trans_type),pointer::getstructtrans
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructtrans)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at trans"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"action")
+getstructtrans%action= "include"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"action",getstructtrans%action)
+       call removeAttribute(thisnode,"action")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"kpointnumber")
+getstructtrans%kpointnumber=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"kpointnumber",getstructtrans%kpointnumber)
+       call removeAttribute(thisnode,"kpointnumber")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"initial")
+getstructtrans%initial=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"initial",getstructtrans%initial)
+       call removeAttribute(thisnode,"initial")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"final")
+getstructtrans%final=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"final",getstructtrans%final)
+       call removeAttribute(thisnode,"final")      
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructranges(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(ranges_type),pointer::getstructranges
+		
+integer::len=1,i=0
+allocate(getstructranges)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at ranges"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"range")
+     
+allocate(getstructranges%rangearray(len))
+Do i=0,len-1
+getstructranges%rangearray(i+1)%range=>getstructrange(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"range"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructrange(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(range_type),pointer::getstructrange
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructrange)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at range"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"action")
+getstructrange%action= "include"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"action",getstructrange%action)
+       call removeAttribute(thisnode,"action")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"statestype")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"statestype",getstructrange%statestype)
+       call removeAttribute(thisnode,"statestype")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"kpointnumber")
+getstructrange%kpointnumber=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"kpointnumber",getstructrange%kpointnumber)
+       call removeAttribute(thisnode,"kpointnumber")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"start")
+getstructrange%start=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"start",getstructrange%start)
+       call removeAttribute(thisnode,"start")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"stop")
+getstructrange%stop=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"stop",getstructrange%stop)
+       call removeAttribute(thisnode,"stop")      
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructlists(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(lists_type),pointer::getstructlists
+		
+integer::len=1,i=0
+allocate(getstructlists)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at lists"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"istate")
+     
+allocate(getstructlists%istatearray(len))
+Do i=0,len-1
+getstructlists%istatearray(i+1)%istate=>getstructistate(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"istate"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructistate(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(istate_type),pointer::getstructistate
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructistate)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at istate"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"action")
+getstructistate%action= "include"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"action",getstructistate%action)
+       call removeAttribute(thisnode,"action")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"statestype")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"statestype",getstructistate%statestype)
+       call removeAttribute(thisnode,"statestype")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"kpointnumber")
+getstructistate%kpointnumber=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"kpointnumber",getstructistate%kpointnumber)
+       call removeAttribute(thisnode,"kpointnumber")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"state")
+getstructistate%state=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"state",getstructistate%state)
+       call removeAttribute(thisnode,"state")      
+endif
 
       i=0
       len=0
@@ -4378,16 +4672,6 @@ type(Node),pointer::thisnode
 #endif  
    call extractDataContent(thisnode,  getvalueofoptcomp)
 end function 
-function getvalueoftrans(thisnode)
-implicit none
-type(Node),pointer::thisnode
- integer::getvalueoftrans(3)
-
-#ifdef INPUTDEBUG
-  write(*,*)"we are at trans"
-#endif  
-   call extractDataContent(thisnode,  getvalueoftrans)
-end function 
 function getvalueofkeywords(thisnode)
 implicit none
 type(Node),pointer::thisnode
@@ -4421,6 +4705,38 @@ case('')
  stringtonumberdo=0
 case default
 write(*,*) "'", string,"' is not valid selection fordo "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberaction(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('include')
+ stringtonumberaction=-1
+case('exclude')
+ stringtonumberaction=-1
+case('')
+ stringtonumberaction=0
+case default
+write(*,*) "'", string,"' is not valid selection foraction "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberstatestype(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('initialstates')
+ stringtonumberstatestype=-1
+case('finalstates')
+ stringtonumberstatestype=-1
+case('')
+ stringtonumberstatestype=0
+case default
+write(*,*) "'", string,"' is not valid selection forstatestype "
 stop 
 end select
 end function
