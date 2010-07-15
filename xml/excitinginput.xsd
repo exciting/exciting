@@ -348,41 +348,6 @@ Example:  <pre>
                         <xs:documentation>Title of the input file.</xs:documentation>
                     </xs:annotation>
                 </xs:element>
-                <xs:element ex:importance="expert" ex:unit="" name="convert" maxOccurs="1"
-                    minOccurs="0">
-                    <xs:complexType>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="target" use="required">
-                            <xs:annotation>
-                                <xs:documentation>Output format for conversion. Either the binary file
-                                <pre> STATE.OUT</pre> is converted to the XML file <pre> STATE.xml</pre> or vice versa.
-                                </xs:documentation>
-                            </xs:annotation>
-                            <xs:simpleType>
-                                <xs:restriction base="xs:string">
-                                    <xs:enumeration value="xml"/>
-                                    <xs:enumeration value="binary"/>
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                    </xs:complexType>
-                </xs:element>
-                <xs:element ex:importance="expert" ex:unit="" name="extract" maxOccurs="1"
-                    minOccurs="0">
-                    <xs:complexType>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="source" use="required">
-                            <xs:annotation>
-                                <xs:documentation>Extract information from <pre> STATE.OUT</pre> or <pre> STATE.xml </pre> file.
-                                A skeleton input is created and written to <pre> STATE_input.xml</pre>.</xs:documentation>
-                            </xs:annotation>
-                            <xs:simpleType>
-                                <xs:restriction base="xs:string">
-                                    <xs:enumeration value="xml"/>
-                                    <xs:enumeration value="binary"/>
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                    </xs:complexType>
-                </xs:element>
                 <xs:element ex:importance="essential" ex:unit="" name="structure" maxOccurs="1"
                     minOccurs="1">
                     <xs:annotation>
