@@ -1,11 +1,15 @@
 foreach $sourcedir (@ARGV) {
-	opendir( DIR, "$sourcedir" ) || die("Cannot open directory $!\n");
-	@filelist = readdir(DIR);
-	closedir DIR;
+	#if ( $sourcedir != "" ) 
+	{
+		opendir( DIR, "$sourcedir" )
+		  || die("Cannot open directory $sourcedir :$!\n");
+		@filelist = readdir(DIR);
+		closedir DIR;
 
-	foreach $file (@filelist) {
-		if ( $file =~ m/.+\.[fF]90/ ) {
-			push( @fileslist, "$sourcedir$file" );
+		foreach $file (@filelist) {
+			if ( $file =~ m/.+\.[fF]90/ ) {
+				push( @fileslist, "$sourcedir$file" );
+			}
 		}
 	}
 }
