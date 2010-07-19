@@ -29,7 +29,7 @@ mpiandsmp:
 test::
 	cd test/; $(MAKE) -i
 
-doc:  spacegroupdoc inputdoc excitingfuncdoc
+doc:  spacegroupdoc stateconvert stateinfo inputdoc excitingfuncdoc
 	
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
@@ -44,6 +44,14 @@ inputdoc::
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
 	
+stateconvert::
+	cd src/stateconvert; $(MAKE) doc;\
+	mv stateconvert.pdf ../../docs/stateconvert
+ 
+stateinfo::
+	cd src/stateinfo; $(MAKE) doc;\
+	mv stateinfo.pdf ../../docs/stateinfo
+ 
 eos::
 	cd src/eos; $(MAKE)
 	

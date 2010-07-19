@@ -18,7 +18,7 @@ Subroutine writeangmom (un)
 ! !INPUT/OUTPUT PARAMETERS:
 ! !DESCRIPTION:
 !   Outputs information about the angular momentum cutoffs to the file
-!   {\tt INFO\_XS.OUT}.
+!   {\tt INFOXS.OUT}.
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (Sagmeister)

@@ -25,7 +25,7 @@ Contains
 !   s     : S (solution) matrix (in,complex(:,:))
 ! !DESCRIPTION:
 !   Solve symmetric form of Dyson's equation
-!     $$   S = S_0 + S_0 (1 + S0^-1 K S0^-1) S  $$
+!     $$   S = S_0 + S_0 (1 + S_0^{-1} K S_0^{-1}) S  $$
 !   for $S$ by inversion;
 !     $$ S = S_0\left[ S_0(1-S0) - T\right]^{-1} S_0. $$
 !   The inversion is carried out using the LAPACK routines {\tt zgetrf} and
