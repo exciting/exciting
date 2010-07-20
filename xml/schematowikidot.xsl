@@ -3,8 +3,7 @@
   xmlns:regex="http://www.exslt.org/regexp" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xsl:output method="text" />
   <xsl:param name="importancelevels">
-  
-    <xsl:text>essential</xsl:text>
+  <xsl:text>essential</xsl:text>
     <xs:annotation>
       <xs:documentation> In order to select the importance levels that should be included list them in the parameter "importancelevels". example: xsltproc
         --stringparam importancelevels "essential expert" schematowikidot.xsl excitinginput.xsd >iref.txt
@@ -63,7 +62,9 @@
       <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
       <xsl:with-param name="level" select="0" />
     </xsl:call-template>
-    <xsl:text>+ Reused Elements
+    <xsl:text>
++ Reused Elements
+    
   The following elements can occur more than once in the input file. There for they are listed separately.
   </xsl:text>
     <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
