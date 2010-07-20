@@ -30,7 +30,7 @@ Subroutine gndstate
       Logical :: exist
       Integer :: ik, is, ia, idm
       Integer :: n, nwork
-      Real (8) :: timetot, deltae, dforcemax, et, fm
+      Real (8) :: timetot, et, fm
   ! allocatable arrays
       Real (8), Allocatable :: v (:)
 !
@@ -448,6 +448,9 @@ Subroutine gndstate
                      Write (60, '("Wrote STATE.OUT")')
                   End If
                End If
+               ! update convergence criteria
+               deltae=abs(et-engytot)
+               dforcemax=abs(fm-forcemax)
                Call scl_iter_xmlout ()
                If (associated(input%groundstate%spin)) Call &
               & scl_xml_write_moments ()
@@ -462,8 +465,6 @@ Subroutine gndstate
                   Write (60, '("RMS change in effective potential (targ&
                     &et) : ", G18.10, " (", G18.10, ")")') &
                     & currentconvergence, input%groundstate%epspot
-                  deltae=abs(et-engytot)
-                  dforcemax=abs(fm-forcemax)
                   write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
                   &G18.10,")")') deltae, input%groundstate%epsengy
                   write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&

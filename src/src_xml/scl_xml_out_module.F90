@@ -23,6 +23,7 @@ Module scl_xml_out_Module
      & charges, atom, xst, timing, nscl, ngroundstate
       Type (DOMConfiguration), Pointer :: configo
       Real (8) :: scltime0 = 0.d0
+      real(8) :: deltae, dforcemax
       Character (512) :: buffer
 !
 Contains
@@ -67,7 +68,7 @@ Contains
       Subroutine scl_iter_xmlout ()
          Implicit None
          Integer :: is, ia, ias
-         Real (8) :: scltime
+         Real (8) :: scltime, t1
          If (rank .Eq. 0) Then
             niter => createElementNS (sclDoc, "", "iter")
             dummy => appendChild (nscl, niter)
@@ -78,6 +79,28 @@ Contains
             Call setAttribute (niter, "rms", trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') Log10 (currentconvergence)
             Call setAttribute (niter, "rmslog10", &
+           & trim(adjustl(buffer)))
+            Write (buffer,*) deltae
+            Call setAttribute (niter, "deltae", trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') Log10 (deltae)
+            Call setAttribute (niter, "deltaelog10", &
+           & trim(adjustl(buffer)))
+            if (input%groundstate%tforce) then
+               Write (buffer,*) dforcemax
+               Call setAttribute (niter, "dforcemax", trim(adjustl(buffer)))
+               if (dforcemax .le. 0.d0) then
+                 t1=0.d0
+               else
+                 t1=Log10(dforcemax)
+               end if
+               Write (buffer, '(G22.12)') t1
+               Call setAttribute (niter, "dforcemaxlog10", &
+              & trim(adjustl(buffer)))
+            end if
+            Write (buffer,*) chgdst
+            Call setAttribute (niter, "chgdst", trim(adjustl(buffer)))
+            Write (buffer, '(G22.12)') Log10 (chgdst)
+            Call setAttribute (niter, "chgdstlog10", &
            & trim(adjustl(buffer)))
             Write (buffer, '(G22.12)') fermidos
             Call setAttribute (niter, "fermidos", &
