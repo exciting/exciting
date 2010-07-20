@@ -3401,7 +3401,10 @@ Example:  <pre>
                         </xs:attribute>
                     </xs:complexType>
                 </xs:element>
-                <xs:element minOccurs="0" name="keywords" type="xs:string"/>
+                <xs:element minOccurs="0" name="keywords" type="xs:string" maxOccurs="1">
+                  <xs:annotation>
+                    <xs:documentation>The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the <exciting>exciting</exciting> program.</xs:documentation>
+                  </xs:annotation></xs:element>
             </xs:all>
             <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI"
                 default="http://xml.exciting-code.org">
