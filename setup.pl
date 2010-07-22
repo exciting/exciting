@@ -33,7 +33,7 @@ if ($sel>$count-1 || $sel<1 || $sel=~m/^$/ || $sel!~m/^\d+$/) {
 }else{
 
 print "\nYou use the makefile from:\n\n build/platforms/" . @fileslist[$sel];
-print "\n\nIf it doesnt compile, edit build/make.inc and type make again"
+print "\n\nIf the compilation fails, edit \"build/make.inc\" and execute \"make\" again.\n"
 }
 
 $filename="build/platforms/" . @fileslist[$sel];
@@ -44,7 +44,7 @@ $return= system(@args);
 $selected=0;
 while($selected==0){
 	print "\nIf you have MPI installed you can build exciting with k-point parallelization support.\n\n";
-	print "build MPI binary ? (yes/No)  ";
+	print "Build MPI binary ? (yes/No)  ";
 	$MPI=<>;
 	if($MPI=~m/yes/i){
 		$selected=1;
@@ -70,7 +70,7 @@ system(("cp", "build/platforms/$includefile", "build/mpiconf.inc"));
 $selected=0;
 while($selected==0){
 print "\nIf you have multithreaded BLAS/LAPACK installed you can build exciting with SMP support.\n\n";
-print "build SMP lib binary (yes/No)  ";
+print "Build SMP lib binary (yes/No)  ";
 $SMP=<>;
 if($SMP=~m/yes/i){
 	system("echo \"BUILDSMP=true\">>build/make.inc");
