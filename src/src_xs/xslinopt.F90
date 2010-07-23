@@ -134,8 +134,8 @@ Subroutine xslinopt (iq)
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnsumrules)
            ! generate optical functions
                Call genloss (mdf, loss)
-               Call gensigma (dble(wr), mdf, optcompt, sigma)
-               Call gensumrls (dble(wr), mdf, sumrls)
+               Call gensigma (wplot, mdf, optcompt, sigma)
+               Call gensumrls (wplot, mdf, sumrls)
            ! write optical functions to file
                Call writeeps (iq, oct1, oct2, wplot, mdf, trim(fneps))
                Call writeloss (iq, wplot, loss, trim(fnloss))

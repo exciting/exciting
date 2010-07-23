@@ -2993,7 +2993,7 @@ Example:  <pre>
                                                   <xs:documentation>Calculate exchange term of BSE Hamiltonian</xs:documentation>
                                                   </xs:annotation>
                                                   </xs:enumeration>
-                                                  <xs:enumeration value="BSE">
+                                                  <xs:enumeration value="bse">
                                                   <xs:annotation>
                                                   <xs:appinfo>
                                                                         <oldnr>445</oldnr>

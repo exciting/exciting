@@ -4959,7 +4959,7 @@ case('scrcoulint')
  stringtonumbertask=440
 case('exccoulint')
  stringtonumbertask=441
-case('BSE')
+case('bse')
  stringtonumbertask=445
 case('kernxc_bse')
  stringtonumbertask=450

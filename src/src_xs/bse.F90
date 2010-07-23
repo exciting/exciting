@@ -19,7 +19,13 @@ Subroutine bse
       Use m_getpmat
       Use m_genfilname
       Use m_getunit
+      Use m_genloss
+      Use m_gensigma
+      Use m_gensumrls
       Use m_writeeps
+      Use m_writeloss
+      Use m_writesigma
+      Use m_writesumrls
 ! !DESCRIPTION:
 !   Solves the Bethe-Salpeter equation (BSE). The BSE is treated as equivalent
 !   effective eigenvalue problem (thanks to the spectral theorem that can
@@ -92,15 +98,15 @@ Subroutine bse
       Integer :: iknr, jknr, iqr, iq, iw, iv2 (3), s1, s2, hamsiz, &
      & nexc, ne
       Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, oct, iv, ic, &
-     & nvdif, ncdif
-      Real (8) :: de, egap, ts0, ts1
+     & nvdif, ncdif, optcompt(3)
+      Real (8) :: de, egap, ts0, ts1, sumrls(3)
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
-      Real (8), Allocatable :: beval (:), w (:), oszsa (:)
+      Real (8), Allocatable :: beval (:), w (:), oszsa (:), loss(:)
       Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
      & :), ham (:, :)
       Complex (8), Allocatable :: bevec (:, :), pm (:, :, :), pmat (:), &
-     & oszs (:), spectr (:)
+     & oszs (:), spectr (:), sigma(:)
   ! external functions
       Integer, External :: l2int
   ! *** TODO: symmetrize head of DM for spectrum
@@ -274,16 +280,29 @@ Subroutine bse
   ! number of excitons to consider
       nexc = hamsiz
       Allocate (oszs(nexc), oszsa(nexc), sor(nexc), pmat(hamsiz))
-      Allocate (w(input%xs%dosWindow%points), &
-     & spectr(input%xs%dosWindow%points))
+      Allocate (w(input%xs%dosWindow%points), spectr(input%xs%dosWindow%points))
+      Allocate (loss(input%xs%dosWindow%points), sigma(input%xs%dosWindow%points))
       Call genwgrid (nwdf, input%xs%dosWindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_real=w)
       Do oct = 1, noptcmp
+         optcompt = (/ oct, oct, 0 /)
          oszs (:) = zzero
          Call genfilname (basename='EPSILON', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
         & input%xs%tddft%aresdf, filnam=fneps)
+         Call genfilname (basename='LOSS', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnloss)
+         Call genfilname (basename='SIGMA', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnsigma)
+         Call genfilname (basename='SUMRULES', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnsumrules)
          Call genfilname (basename='EXCITON', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
@@ -334,6 +353,21 @@ Subroutine bse
         & pi / omega / nkptnr
      ! write BSE spectrum
          Call writeeps (iqmt, oct, oct, w, spectr, fneps)
+
+
+
+           ! generate optical functions
+               Call genloss (spectr, loss)
+               Call gensigma (w, spectr, optcompt, sigma)
+               Call gensumrls (w, spectr, sumrls)
+           ! write optical functions to file
+               Call writeeps (iq, oct, oct, w, spectr, trim(fneps))
+               Call writeloss (iq, w, loss, trim(fnloss))
+               Call writesigma (iq, w, sigma, trim(fnsigma))
+               Call writesumrls (iq, sumrls, trim(fnsumrules))
+
+
+
      ! oscillator strengths
          Call getunit (unexc)
          Open (unexc, File=fnexc, Form='formatted', Action='write', &
@@ -368,6 +402,7 @@ Subroutine bse
          Close (unexc)
      ! end loop over optical components
       End Do
+      deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma)
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
