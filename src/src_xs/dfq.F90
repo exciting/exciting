@@ -99,7 +99,7 @@ use ioarray
       Complex (8), Allocatable :: wou (:), wuo (:), wouw (:), wuow (:), &
      & wouh (:), wuoh (:)
       Complex (8), Allocatable :: zvou (:), zvuo (:), chi0hs (:, :, :), &
-     & bsedg (:, :)
+     & bsedg (:, :), scis12c (:, :), scis21c (:, :)
       Real (8), Allocatable :: wreal (:), cw (:), cwa (:), cwsurf (:)
       Real (8), Allocatable :: cwt (:, :), cw1k (:, :, :), cwa1k (:, :, &
      & :), cwsurf1k (:, :, :)
@@ -220,8 +220,8 @@ use ioarray
       Allocate (pmuo(3, nst3, nst4))
   ! allocate arrays
       Allocate (hdg(nst1, nst2, nkpt))
-      Allocate (scis12(nst1, nst2))
-      Allocate (scis21(nst2, nst1))
+      Allocate (scis12(nst1, nst2),scis12c(nst1, nst2))
+      Allocate (scis21(nst2, nst1),scis21c(nst2, nst1))
       Allocate (w(nwdf))
       Allocate (wreal(nwdfp))
       Allocate (chi0h(3, 3, nwdfp))
@@ -234,6 +234,7 @@ use ioarray
       Allocate (bsedg(nst1, nst2))
       scis12 (:, :) = 0.d0
       scis21 (:, :) = 0.d0
+      bsedg(:,:)=zzero
       If (input%xs%tetra%tetradf) Then
          Allocate (cw(nwdf), cwa(nwdf), cwsurf(nwdf))
          If (input%xs%tetra%cw1k) allocate (cwt(nstsv, nstsv), &
@@ -264,8 +265,8 @@ use ioarray
          Write (unitout, '("Info(", a, "): read diagonal of BSE kernel"&
         &)') trim (thisnam)
          Write (unitout, '(" mean value : ", 2g18.10)') bsed
+         bsedg (:, :) = bsed
       End If
-      bsedg (:, :) = bsed
   ! loop over k-points
       Do ik = 1, nkpt
      ! k-point analysis
@@ -280,11 +281,13 @@ use ioarray
         & deou, docc12, scis12)
          Call getdevaldoccsv (iq, ik, ikq, istl2, istu2, istl1, istu1, &
         & deuo, docc21, scis21)
+        scis12c(:,:)=scis12(:,:)
+        scis21c(:,:)=scis21(:,:)
          If (tscreen) Then
         ! do not use scissors correction for screening
             If (task .Eq. 430) Then
-               scis12 (:, :) = 0.d0
-               scis21 (:, :) = 0.d0
+               scis12c (:, :) = zzero
+               scis21c (:, :) = zzero
             End If
         ! for screening calculate matrix elements of plane wave on the fly
             Call ematqk1 (iq, ik)
@@ -292,10 +295,8 @@ use ioarray
             If ( .Not. allocated(pmuo)) allocate (pmuo(3, nst3, nst4))
          End If
      ! add BSE diagonal shift use with BSE-kernel
-         If (tfxcbse) Then
-            scis12 (:, :) = scis12 (:, :) + bsedg (:, :)
-            scis21 (:, :) = scis21 (:, :) + transpose (bsedg(:, :))
-         End If
+         scis12c (:, :) = scis12c (:, :) + bsedg (:, :)
+         scis21c (:, :) = scis21c (:, :) + transpose (bsedg(:, :))
      ! get matrix elements (exp. expr. or momentum op.)
          Call getpemat (iq, ik, trim(fnpmat), trim(fnemat), m12=xiou, &
         & m34=xiuo, p12=pmou, p34=pmuo)
@@ -337,7 +338,7 @@ use ioarray
             End Do
             deuo (:, :) = transpose (deou(:, :))
             docc21 (:, :) = transpose (docc12(:, :))
-            scis21 (:, :) = transpose (scis12(:, :))
+            scis21c (:, :) = transpose (scis12c(:, :))
          End If
      ! turn off antiresonant terms (type 2-1 band combiantions) for Kohn-Sham
      ! response function
@@ -408,28 +409,31 @@ use ioarray
                  & (cwa(wi:wf), 0.d0, 8) / omega
                   If (tq0) Then
                  ! rescale: use delta-function delta(e_nmk + scis_nmk - w)
+                 ! take real part of BSE diagonal (being contained in scis12c)
+                 ! since tetrahedron method formalism implemented does not allow
+                 ! otherwise
                      wouw (wi:wf) = cmplx (dble(wou(wi:wf)), &
                     & aimag(wou(wi:wf))*deou(ist1, &
-                    & ist2)/(-wreal(:)-scis12(ist1, ist2)))
+                    & ist2)/(-wreal(:)-dble(scis12c(ist1, ist2))))
                      wuow (wi:wf) = cmplx (dble(wuo(iw:wf)), &
                     & aimag(wuo(wi:wf))*deuo(ist2, &
-                    & ist1)/(-wreal(:)-scis21(ist2, ist1)))
+                    & ist1)/(-wreal(:)-dble(scis21c(ist2, ist1))))
                      wouh (wi:wf) = cmplx (dble(wou(wi:wf)), &
                     & aimag(wou(wi:wf))*deou(ist1, &
-                    & ist2)**2/(-wreal(:)-scis12(ist1, ist2))**2)
+                    & ist2)**2/(-wreal(:)-dble(scis12c(ist1, ist2)))**2)
                      wuoh (wi:wf) = cmplx (dble(wuo(wi:wf)), &
                     & aimag(wuo(wi:wf))*deuo(ist2, &
-                    & ist1)**2/(-wreal(:)-scis21(ist2, ist1))**2)
+                    & ist1)**2/(-wreal(:)-dble(scis21c(ist2, ist1)))**2)
                   End If
                Else
               ! include occupation number differences
                   do iw=wi,wf
                      ! check for vanishing denominators in case of screening
                      ! (no broadening)
-                     zt1=w(iw)+deou(ist1, ist2)+scis12(ist1,ist2)+zi*brd
+                     zt1=w(iw)+deou(ist1, ist2)+scis12c(ist1,ist2)+zi*brd
                      if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
                      wou (iw) = docc12 (ist1, ist2) * wkpt (ik) / omega / zt1
-                     zt1=w(iw)+deuo(ist2, ist1)+scis21(ist2,ist1)+tordf*zi*brd
+                     zt1=w(iw)+deuo(ist2, ist1)+scis21c(ist2,ist1)+tordf*zi*brd
                      if (abs(zt1).lt. input%xs%epsdfde) zt1=1.d0
                      wuo (iw) = docc21 (ist2, ist1) * wkpt (ik) / omega / zt1
                   end do
@@ -534,7 +538,7 @@ use ioarray
          End Do
       End If
       Deallocate (chi0, chi0h, chi0w)
-      Deallocate (docc12, docc21, scis12, scis21)
+      Deallocate (docc12, docc21, scis12, scis21, scis12c, scis21c)
       Deallocate (deou, deuo, wou, wuo, wouw, wuow, wouh, wuoh, zvou, &
      & zvuo)
       Deallocate (xiou, xiuo, pmou, pmuo)
