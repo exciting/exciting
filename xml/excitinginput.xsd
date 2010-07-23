@@ -3092,14 +3092,6 @@ Example:  <pre>
                                                   <xs:documentation>binary output of Kohn Sham response function</xs:documentation>
                                                   </xs:annotation>
                                                   </xs:enumeration>
-                                                  <xs:enumeration value="epsconv">
-                                                  <xs:annotation>
-                                                  <xs:appinfo>
-                                                                        <oldnr>396</oldnr>
-                                                                    </xs:appinfo>
-                                                  <xs:documentation>convolute dielectric function from tetrahedron method with Lorentzian</xs:documentation>
-                                                  </xs:annotation>
-                                                  </xs:enumeration>
                                                   <xs:enumeration value="fxc_alda_check">
                                                   <xs:annotation>
                                                   <xs:appinfo>

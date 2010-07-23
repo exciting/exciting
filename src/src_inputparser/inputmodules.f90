@@ -4983,8 +4983,6 @@ case('x0toasc')
  stringtonumbertask=341
 case('x0tobin')
  stringtonumbertask=342
-case('epsconv')
- stringtonumbertask=396
 case('fxc_alda_check')
  stringtonumbertask=398
 case('kernxc_bse3')

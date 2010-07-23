@@ -92,9 +92,6 @@ Subroutine xsmain (plan)
          Case (350)
      ! inverse of dielectric function - solve Dyson equation for xc-kernel
             Call idf
-         Case (396)
-     ! convolute dielectric function from tetrahedron method with Lorentzian
-            Call epsconv
          Case (398)
      ! check ALDA kernel
             Call fxc_alda_check
