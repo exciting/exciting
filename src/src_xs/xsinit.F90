@@ -49,20 +49,18 @@ Subroutine xsinit
   ! write to info file
       If (calledxs .Eq. 1) Then
          Write (unitout,*)
-         Write (unitout, '("+------------------------------------------&
+         Write (unitout, '("+-------------------&
         &----------------+")')
-         Write (unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".",&
-        & I3.3, " started  |")') version
+         Write (unitout, '("| EXCITING version ", I2.2, ".", I2.2, ".",&
+        & I2.2, " started |")') version
 	  !"
 #ifdef MPI
-         Write (unitout, '("| compiled for MPI execution			          |"&
-        &)')
+         Write (unitout, '("| compiled for MPI execution        |")')
 #endif
 #ifndef MPI
-         Write (unitout, '("| compiled for serial execution			         &
-        & |")')
+         Write (unitout, '("| compiled for serial execution	    |")')
 #endif
-         Write (unitout, '("+ -----------------------------------------&
+         Write (unitout, '("+ ------------------&
         &----------------+")')
          If ((procs .Gt. 1) .And. (rank .Eq. 0)) write (unitout, '("(pa&
         &rallel) master, rank/number of processes:", 2i8)') rank, procs

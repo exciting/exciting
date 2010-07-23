@@ -65,11 +65,11 @@ Subroutine xsfinit
         & trim (str2) // ' %'
       End If
       Write (unitout,*)
-      Write (unitout, '("+---------------------------------------------&
+      Write (unitout, '("+----------------------&
      &-------------+")')
-      Write (unitout, '("| EXCITING version ",I1.1,".",I1.1,".",I3.3,&
+      Write (unitout, '("| EXCITING version ",I2.2,".",I2.2,".",I2.2,&
       &" stopped |")') version
-      Write (unitout, '("+---------------------------------------------&
+      Write (unitout, '("+----------------------&
      &-------------+")')
       Write (unitout,*)
       Close (unitout)
