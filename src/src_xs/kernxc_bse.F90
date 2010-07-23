@@ -74,6 +74,15 @@ Subroutine kernxc_bse
   ! external functions
       Integer, External :: idxkkp, l2int
       Logical, External :: tqgamma
+  ! check that if Kohn-Sham response is time-ordered, so is the setting for the
+  ! kernel
+      if (input%xs%tddft%tordfxc .neqv. input%xs%tddft%torddf) then
+         write(*,*)
+         write(*,'("Error(kernxc_bse): Both, the Kohn-Sham response function")')
+         write(*,'(" and the BSE-derived xc kernel have to be either causal or time-ordered.")')
+         write(*,*)
+         call terminate
+      end if
       brd = input%xs%broad
       input%xs%emattype = 2
       Call init0

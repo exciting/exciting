@@ -78,7 +78,7 @@ Subroutine xslinopt (iq)
            ! file name for inverse of dielectric function
                Call genfilname (basename='IDF', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
-              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=filnam)
            ! read macroscopic dielectric function (original frequencies)
@@ -114,22 +114,22 @@ Subroutine xslinopt (iq)
            ! file names for spectra
                Call genfilname (basename='EPSILON', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
-              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fneps)
                Call genfilname (basename='LOSS', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
-              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnloss)
                Call genfilname (basename='SIGMA', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
-              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnsigma)
                Call genfilname (basename='SUMRULES', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
-              & input%xs%tddft%aresdf, nlf=(m == 1), &
+              & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnsumrules)
            ! generate optical functions

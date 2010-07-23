@@ -97,7 +97,7 @@ Subroutine idfq (iq)
            ! filename for output file
                Call genfilname (basename='IDF', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
-              & input%xs%tddft%aresdf, nlf=(m .Eq. 1), &
+              & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m .Eq. 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, procs=procs, rank=rank, &
               & filnam=filnam2)
