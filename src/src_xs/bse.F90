@@ -106,7 +106,7 @@ Subroutine bse
       Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
      & :), ham (:, :)
       Complex (8), Allocatable :: bevec (:, :), pm (:, :, :), pmat (:), &
-     & oszs (:), spectr (:), sigma(:)
+     & oszs (:), spectr (:), sigma(:), buf(:,:,:)
   ! external functions
       Integer, External :: l2int
   ! *** TODO: symmetrize head of DM for spectrum
@@ -135,11 +135,6 @@ Subroutine bse
      & isto0, isto, istu0, istu)
       nvdif = nstocc0 - nbfbse
       ncdif = nstunocc0 - nafbse
-!
-      Write (*,*) 'nbfbse, nafbse', nbfbse, nafbse
-      Write (*,*) 'nvdif, ncdif', nvdif, ncdif
-!
-  ! ****************************************************
       input%xs%emattype = 2
       Call ematbdcmbs (input%xs%emattype)
       Write (unitout,*)
@@ -281,28 +276,14 @@ Subroutine bse
       nexc = hamsiz
       Allocate (oszs(nexc), oszsa(nexc), sor(nexc), pmat(hamsiz))
       Allocate (w(input%xs%dosWindow%points), spectr(input%xs%dosWindow%points))
+      Allocate (buf(3,3,input%xs%dosWindow%points))
       Allocate (loss(input%xs%dosWindow%points), sigma(input%xs%dosWindow%points))
-      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+      Call genwgrid (input%xs%dosWindow%points, input%xs%dosWindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_real=w)
+     buf(:,:,:)=zzero
       Do oct = 1, noptcmp
          optcompt = (/ oct, oct, 0 /)
          oszs (:) = zzero
-         Call genfilname (basename='EPSILON', tq0=.True., oc1=oct, &
-        & oc2=oct, bsetype=input%xs%bse%bsetype, &
-        & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fneps)
-         Call genfilname (basename='LOSS', tq0=.True., oc1=oct, &
-        & oc2=oct, bsetype=input%xs%bse%bsetype, &
-        & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnloss)
-         Call genfilname (basename='SIGMA', tq0=.True., oc1=oct, &
-        & oc2=oct, bsetype=input%xs%bse%bsetype, &
-        & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnsigma)
-         Call genfilname (basename='SUMRULES', tq0=.True., oc1=oct, &
-        & oc2=oct, bsetype=input%xs%bse%bsetype, &
-        & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnsumrules)
          Call genfilname (basename='EXCITON', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
@@ -351,23 +332,7 @@ Subroutine bse
          End Do
          spectr (:) = l2int (oct .Eq. oct) * 1.d0 - spectr (:) * 8.d0 * &
         & pi / omega / nkptnr
-     ! write BSE spectrum
-         Call writeeps (iqmt, oct, oct, w, spectr, fneps)
-
-
-
-           ! generate optical functions
-               Call genloss (spectr, loss)
-               Call gensigma (w, spectr, optcompt, sigma)
-               Call gensumrls (w, spectr, sumrls)
-           ! write optical functions to file
-               Call writeeps (iq, oct, oct, w, spectr, trim(fneps))
-               Call writeloss (iq, w, loss, trim(fnloss))
-               Call writesigma (iq, w, sigma, trim(fnsigma))
-               Call writesumrls (iq, sumrls, trim(fnsumrules))
-
-
-
+         buf(oct,oct,:)=spectr(:)
      ! oscillator strengths
          Call getunit (unexc)
          Open (unexc, File=fnexc, Form='formatted', Action='write', &
@@ -402,7 +367,37 @@ Subroutine bse
          Close (unexc)
      ! end loop over optical components
       End Do
-      deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma)
+      Do oct = 1, noptcmp
+         optcompt = (/ oct, oct, 0 /)
+         Call genfilname (basename='EPSILON', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fneps)
+         Call genfilname (basename='LOSS', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnloss)
+         Call genfilname (basename='SIGMA', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnsigma)
+         Call genfilname (basename='SUMRULES', tq0=.True., oc1=oct, &
+        & oc2=oct, bsetype=input%xs%bse%bsetype, &
+        & scrtype=input%xs%screening%screentype, nar= .Not. &
+        & input%xs%tddft%aresdf, filnam=fnsumrules)
+     ! symmetrize the macroscopic dielectric function tensor
+         Call symt2app (oct, oct, input%xs%dosWindow%points, symt2, buf, spectr)
+     ! generate optical functions
+         Call genloss (spectr, loss)
+         Call gensigma (w, spectr, optcompt, sigma)
+         Call gensumrls (w, spectr, sumrls)
+     ! write optical functions to file
+         Call writeeps (iq, oct, oct, w, spectr, trim(fneps))
+         Call writeloss (iq, w, loss, trim(fnloss))
+         Call writesigma (iq, w, sigma, trim(fnsigma))
+         Call writesumrls (iq, sumrls, trim(fnsumrules))
+      end do
+      deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
