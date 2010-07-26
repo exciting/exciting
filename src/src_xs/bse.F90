@@ -109,7 +109,6 @@ Subroutine bse
      & oszs (:), spectr (:), sigma(:), buf(:,:,:)
   ! external functions
       Integer, External :: l2int
-  ! *** TODO: symmetrize head of DM for spectrum
   !---------------------------!
   !     exciton variables     !   USE this ****************************
   !---------------------------!

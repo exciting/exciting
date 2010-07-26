@@ -27,7 +27,7 @@ Character (256) Function outfilenamestring (filetag, ik)
       outfilenamestring = ''
 #ifdef MPI
 !
-      If ((task .Eq. 0) .Or. (task .Eq. 1)) Then !sag: what about structure optimization, take care of tasks 3,4,???
+      If ((task .Eq. 0) .Or. (task .Eq. 1)) Then
          If ((procs .Gt. 1) .And. splittfile) Then
             Write (tmp, '(I5)') firstk (procofk(ik))
             Write (tmp2, '(I5)') lastk (procofk(ik))

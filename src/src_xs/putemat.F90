@@ -42,7 +42,6 @@ Contains
             Write (*,*)
             Call terminate
          End If
-    !TODO: use "tarec"
          tarec_ = tarec
          ikr = ik
          Call getunit (un)

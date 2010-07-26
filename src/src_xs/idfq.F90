@@ -176,7 +176,6 @@ Subroutine idfq (iq)
                      Write (unitout,*)
                   End If
                   mdf1 (iw) = 1.d0 / idf (igmt, igmt)
-              ! TODO: check if this is possible at all
               ! ??? mimic zero Kronecker delta in case of off-diagonal tensor
               ! components ???
                   If ((m .Eq. 1) .And. (oct1 .Ne. oct2)) mdf1 (iw) = &
