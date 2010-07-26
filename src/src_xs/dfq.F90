@@ -442,6 +442,8 @@ use ioarray
                   wouh (wi:wf) = wou (wi:wf)
                   wuoh (wi:wf) = wuo (wi:wf)
                End If
+               call cpu_time(cpu1)
+               cpuosc=cpuosc+cpu1-cpu0
            !----------------------------------!
            !     update response function     !
            !----------------------------------!
