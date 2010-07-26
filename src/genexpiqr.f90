@@ -1,11 +1,8 @@
-!
-!
-!
+
 ! Copyright (C) 2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 Subroutine genexpiqr (ik, emat)
       Use modmain
       Use modinput
@@ -52,11 +49,6 @@ Subroutine genexpiqr (ik, emat)
       Real (8) :: gaunt
       Complex (8) zfmtinp, zdotc
       External gaunt, zfmtinp, zdotc
-!
-!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-      input%groundstate%lmaxvr = 3
-      lmmaxvr = 16
-!
 ! check if q-vector is zero
       t1 = input%properties%elnes%vecql(1) ** 2 + &
      & input%properties%elnes%vecql(2) ** 2 + &
@@ -280,21 +272,6 @@ Subroutine genexpiqr (ik, emat)
       Else
          emat (:, :) = em (:, :)
       End If
-!
-!
-      Do i = 1, nstsv
-         Do j = 1, nstsv
-            Write (8899, '(2i6, 3g18.10)') i, j, conjg (emat(j, i)), &
-           & Abs (conjg(emat(j, i))) ** 2
-         End Do
-      End Do
-      Write (8899, '("# Q=q+Gq point", 3g18.10)') &
-     & input%properties%elnes%vecql(:)
-      Write (8899, '("#     Gq point", 3i6)') iv (:)
-      Write (8899, '("# (k)	point", 3g18.10)') vkl (:, ik)
-      Write (8899, '("# (Q+k)	point", 3g18.10)') vkql (:)
-!
-!
       Deallocate (igkqig, gnt, jlqr, vgkql, vgkqc, gkqc, tpgkqc)
       Deallocate (sfacgkq, apwalm1, apwalm2, evecfv1, evecfv2)
       If (input%groundstate%tevecsv) deallocate (evecsv1, evecsv2)
