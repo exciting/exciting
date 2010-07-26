@@ -448,9 +448,10 @@ Subroutine kernxc_bse
               & ist3)-dek(ist1, ist3)+torfxc*zi*brd) ** 2
            ! update kernel
                Do iw = 1, nwdf
-              ! resonant and antiresonant contributions
+              ! resonant contributions
                   fxc (:, :, iw) = fxc (:, :, iw) + osca (:, :) * den1 &
                  & (iw) + oscb (:, :) * den2 (iw)
+              ! antiresonant contributions
                   If (input%xs%tddft%aresfxc) fxc (:, :, iw) = fxc (:, &
                  & :, iw) + oscaa (:, :) * den1a (iw) + oscba (:, :) * &
                  & den2a (iw)
