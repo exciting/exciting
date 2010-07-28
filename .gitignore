@@ -29,6 +29,7 @@ build/*/exciting
 .cdtproject
 .cproject
 .project
+.pydevproject
 .settings
 .metadata
 build/gfortran
