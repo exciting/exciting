@@ -1,7 +1,7 @@
 include ../make.inc
 
 FC = $(F77)
-FFLAGS = $(F77_OPTS) $(F77_DEBUGOPTS)
+FFLAGS = $(F77_DEBUGOPTS)
 LD = $(FC)
 LDFLAGS = $(F77_OPTS) $(LIBS)
 AR = ar
