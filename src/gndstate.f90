@@ -91,9 +91,9 @@ Subroutine gndstate
         & Form='FORMATTED')
      ! open DTOTENERGY.OUT
          open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
-     ! open DTOTENERGY.OUT
-         open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
-     ! open DTOTENERGY.OUT
+     ! open DFORCEMAX.OUT
+         if (input%groundstate%tforce) open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
+     ! open CHGDIST.OUT
          open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
      ! open PCHARGE.OUT
          open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
@@ -467,14 +467,18 @@ Subroutine gndstate
                     & currentconvergence, input%groundstate%epspot
                   write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
                   &G18.10,")")') deltae, input%groundstate%epsengy
-                  write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&
-                  &G18.10,")")') dforcemax, input%groundstate%epsforce
+                  if (input%groundstate%tforce) then
+                    write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&
+                    &G18.10,")")') dforcemax, input%groundstate%epsforce
+                  end if
                   write(60,'("Charge distance (target)                   : ",G18.10," (",&
                   &G18.10,")")') chgdst, input%groundstate%epschg
                   write(66,'(G18.10)') deltae
                   call flushifc(66)
-                  write(67,'(G18.10)') dforcemax
-                  call flushifc(67)
+                  if (input%groundstate%tforce) then
+                    write(67,'(G18.10)') dforcemax
+                    call flushifc(67)
+                  end if
                   write(68,'(G18.10)') chgdst
                   call flushifc(68)
                   Write (65, '(G18.10)') currentconvergence
@@ -596,7 +600,7 @@ Subroutine gndstate
                Write (65,*)
            ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
                Write (66,*)
-               Write (67,*)
+               if (input%groundstate%tforce) Write (67,*)
                Write (68,*)
                Write (69,*)
            ! begin new self-consistent loop with updated positions
@@ -686,7 +690,7 @@ Subroutine gndstate
  ! close the DTOTENERGY.OUT file
             close(66)
  ! close the DFORCEMAX.OUT file
-            close(67)
+            if (input%groundstate%tforce) close(67)
  ! close the CHGDIST.OUT file
             close(68)
  ! close the PCHARGE.OUT file
