@@ -510,7 +510,7 @@ Example:  <pre>
                             <xs:element ex:importance="essential" ex:unit="" name="species"
                                 minOccurs="0" maxOccurs="unbounded">
                                 <xs:annotation>
-                                    <xs:documentation>Defines the atomic species, i.e. the chemical element. The atomic coordinates and an optional magnetic fields are defined in the subelement(s) atom.  </xs:documentation>
+                                    <xs:documentation>Defines the atomic species, i.e. the chemical element. The atomic coordinates and, optionally, quantities relevant for magnetic calculations are defined in the subelement(s) atom.  </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:sequence>
@@ -586,7 +586,7 @@ Example:  <pre>
                                         name="speciesfile" type="xs:anyURI" use="required">
                                         <xs:annotation>
                                             <xs:documentation>
-                       Defines the file from which the species definition is read. It is looked up in the species directory specified by the species path.
+                       Defines the file that contains the species definition. It is looked up in the species directory specified by the species path. By default, the name of the file is <it_ns>element</it_ns>.<ns_pre_ns> xml</ns_pre_ns>, e.g. <pre_ns>Ag.xml</pre_ns>.
                      </xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>spfname</oldname>
@@ -597,7 +597,7 @@ Example:  <pre>
                                         name="chemicalSymbol" type="xs:string" use="optional"
                                         default="">
                                         <xs:annotation>
-                                            <xs:documentation>Can be given to simplify visualization and converters. It is ignored by <exciting>exciting</exciting>
+                                            <xs:documentation>Optional attribute that may be used in visualization and by converters. It is ignored by <exciting>exciting</exciting>
                                             </xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>spsymb</oldname>
@@ -608,7 +608,7 @@ Example:  <pre>
                                         name="atomicNumber" type="xs:integer" use="optional">
                                         <xs:annotation>
                                             <xs:documentation>
-                       Is an optional attribute can be given to simplify visualization and converters. It is not used by <exciting>exciting</exciting>
+                       Optional attribute that may be used in visualization and by converters. It is not used in <exciting>exciting</exciting>
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -618,10 +618,14 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>noreplace&gt;</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>Muffin tin radius this optional parameter allows to override species file or automatic determination</xs:documentation>
+                                            <xs:documentation>
+                                            Defines the muffin-tin radius; this optional parameter allows to override species file or automatic determination. The muffin-tin radius defines the region around the atomic nucleus where the wave function is expanded in terms of atomic-like functions. In contrast, the interstitial region (=region not belonging to any muffin-tin) is described by planewaves.
+                                            </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute name="href" type="xs:anyURI" default=""/>
+                                    <xs:attribute name="href" type="xs:anyURI" default="">
+                                    <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
