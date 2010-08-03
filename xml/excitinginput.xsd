@@ -624,7 +624,10 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute name="href" type="xs:anyURI" default="">
-                                    <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
+                                    <xs:annotation>
+                                        
+                                 <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
+                                   </xs:annotation>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
