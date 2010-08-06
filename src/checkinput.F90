@@ -588,12 +588,125 @@ subroutine checkinput
       write(*,*)
       stop
     end if
-    if (input%xs%lmaxapwwf.ge.maxlapw) then
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%tddft)) then
+      if ((input%xs%tddft%mdfqtype.lt.0).or.(input%xs%tddft%mdfqtype.gt.1)) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/tddft/@mdfqtype not in {0,1} : ",I8)') input%xs%tddft%mdfqtype
+        write(*,*)
+        stop
+      end if
+      if (input%xs%tddft%mdfqtype.eq.1) then
+        write(*,*)
+        write(*,'("Warning(checkinput): /input/xs/tddft/@mdfqtype=1; not compatible with idfq- &
+         &routine, if local fields are neglected, needs to project out special &
+         &G-vector - code limitation")')
+        write(*,*)
+      end if
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (input%xs%lmaxemat.lt.0) then
       write(*,*)
-      write(*,'("Error(checkinput): /input/xs/@lmaxapwwf too large : ",I8)') input%xs%lmaxapwwf
-      write(*,'("Adjust maxlapw in modmain and recompile code")')
+      write(*,'("Error(checkinput): /input/xs/@lmaxemat < 0 : ",I8)') input%xs%lmaxemat
       write(*,*)
       stop
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%tddft)) then
+      if (input%xs%tddft%lmaxalda.lt.0) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/tddft/@lmaxalda < 0 : ",I8)') input%xs%tddft%lmaxalda
+        write(*,*)
+        stop
+      end if
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%BSE)) then
+      if (input%xs%BSE%nleblaik.lt.0) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/BSE/@nleblaik < 0 : ",I8)') input%xs%BSE%nleblaik
+        write(*,*)
+        stop
+      end if
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%BSE)) then
+      if (input%xs%BSE%lmaxdielt.lt.0) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/BSE/@lmaxdielt < 0 : ",I8)') input%xs%BSE%lmaxdielt
+        write(*,*)
+        stop
+      end if
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%tddft)) then
+      if (input%xs%tddft%nwacont.le.0) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/tddft/@nwacont <= 0 : ",g18.10)') input%xs%tddft%nwacont
+        write(*,*)
+        stop
+      end if
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (input%xs%broad.le.0.d0) then
+      write(*,*)
+      write(*,'("Warning(checkinput): /input/xs/@broad <= 0 : ",g18.10)') input%xs%broad
+      write(*,*)
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (input%xs%epsdfde.le.0.d0) then
+      write(*,*)
+      write(*,'("Warning(checkinput): /input/xs/@epsdfde <= 0 : ",g18.10)') input%xs%epsdfde
+      write(*,*)
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%tddft)) then
+      if (input%xs%tddft%fxcbsesplit.le.0) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/tddft/@fxcbsesplit <= 0 : ",g18.10)') input%xs%tddft%fxcbsesplit
+        write(*,*)
+        stop
+      end if
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%BSE)) then
+      if ((input%xs%BSE%nstlbse(1).lt.0).or.(input%xs%BSE%nstlbse(2).lt.0)) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/BSE/@nstlbse(1) or /input/xs/BSE/@nstlbse(2) <= 0 : ",2I8)') input%xs%BSE%nstlbse
+        write(*,*)
+        stop
+      end if
+    end if
+  end if
+
+  if (associated(input%xs)) then
+    if (associated(input%xs%BSE)) then
+      if ((input%xs%BSE%nstlce(1).lt.0).or.(input%xs%BSE%nstlce(2).lt.0)) then
+        write(*,*)
+        write(*,'("Error(checkinput): /input/xs/BSE/@nstlce(1) or /input/xs/BSE/@nstlce(2) <= 0 : ",2I8)') input%xs%BSE%nstlce
+        write(*,*)
+        stop
+      end if
     end if
   end if
 
