@@ -1123,7 +1123,7 @@ Example:  <pre>
                         <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth"
                             type="fortrandouble" default="0.001d0">
                             <xs:annotation>
-                                <xs:documentation>Width of the smooth approximation to the Dirac delta function.</xs:documentation>
+                                <xs:documentation>Width of the smooth approximation to the Dirac delta function (must be greater than zero).</xs:documentation>
                                 <xs:appinfo>
                                     <olddefault default="0.01d0"/>
                                 </xs:appinfo>
@@ -3366,7 +3366,7 @@ Example:  <pre>
                                     <oldname>swidthxs</oldname>
                                     <olddefault default="0.01d0"/>
                                 </xs:appinfo>
-                                <xs:documentation>width of the smooth approximation to the Dirac delta function</xs:documentation>
+                                <xs:documentation>width of the smooth approximation to the Dirac delta function (must be greater than zero)</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw"

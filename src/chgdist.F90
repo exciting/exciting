@@ -25,7 +25,7 @@ use modmain
       implicit none
 ! local variables
       Integer :: is, ia, ias, ir
-      Real (8) :: sum, t1, chgdstmt,chgdstir
+      Real (8) :: sum,chgdstmt,chgdstir
 ! automatic arrays
       Real (8) :: fr (nrmtmax), gr (nrmtmax), hr1(lmmaxvr), hr2(lmmaxvr)
       real (8) :: cf (3, nrmtmax), sht00(lmmaxvr)

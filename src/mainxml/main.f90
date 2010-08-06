@@ -17,6 +17,7 @@ call setdefault
 input=getstructinput(inputnp)
 call ifparseerrorstop()
 call destroyDOM()
+call checkinput()
 call initatomcounters()
 call initlattice
 call readspeciesxml
