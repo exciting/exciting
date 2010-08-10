@@ -67,24 +67,18 @@ Subroutine df
       Do iq = qpari, qparf
          Call genfilname (iq=iq, fileext=filex)
      ! call for q-point
-         If ( .Not. input%xs%gather) Call dfq (iq)
+         Call dfq (iq)
          If (tscreen) Call writegqpts (iq, filex)
          Write (unitout, '(a, i8)') 'Info(' // thisnam // '): Kohn Sahm&
         & response function finished for q - point:', iq
       End Do
   ! synchronize
-      If ( .Not. input%xs%gather) Call barrier
+      Call barrier
       If ((procs .Gt. 1) .And. (rank .Eq. 0) .And. ( .Not. tscreen)) &
      & Call dfgather
-      If ( .Not. input%xs%gather) Call barrier
+      Call barrier
       Write (unitout, '(a)') "Info(" // trim (thisnam) // "): Kohn-Sham&
      & response function finished"
-      If (input%xs%gather) Then
-         Write (unitout, '(a)') "Info(" // trim (thisnam) // "): gather&
-        & option: exiting program"
-         Call xsfinit
-         Call terminate
-      End If
       If ( .Not. tscreen) Call genfilname (setfilext=.True.)
       If (tscreen) Call findgntn0_clear
 End Subroutine df

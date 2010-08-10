@@ -2105,7 +2105,7 @@ Example:  <pre>
                                         </xs:element>
                                     </xs:sequence>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
-                                        ref="scissor"/>
+                                        ref="scissor" default="0.d0"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="mossbauer"
@@ -3280,8 +3280,6 @@ Example:  <pre>
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="gather"
-                            type="xs:boolean" default="false"/>
                         <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo"
                             type="xs:boolean" default="false"/>
                         <xs:attribute ex:importance="expert" ex:unit="" name="dbglev"
@@ -3397,7 +3395,8 @@ Example:  <pre>
                                 <xs:documentation>number of empty states</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ref="scissor">
+                        <xs:attribute ex:importance="essential" ex:unit="Hartree"
+                                        ref="scissor" default="0.0d0">
                             <xs:annotation>
                                 <xs:documentation>scissors correction</xs:documentation>
                             </xs:annotation>

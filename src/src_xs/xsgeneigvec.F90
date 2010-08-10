@@ -17,7 +17,6 @@ Subroutine xsgeneigvec
       Implicit None
   ! local variables
       Character (*), Parameter :: thisnam = 'xsgeneigvec'
-      Logical, Parameter :: tq0ev = .True.
       Real (8) :: vqlt (3)
       Integer :: iq, qi, qf
       Logical, External :: tqgamma
@@ -26,12 +25,12 @@ Subroutine xsgeneigvec
       Call init1
       Call init2
   ! SCF allready parallelized for k-point set
-      qi = 1
+  ! add Gamma Q-point
+      qi = 0
       qf = nqpt
-  ! add extra q-point for if files for q=0 are to be calculated
-      If (tq0ev) qi = 0
   ! if first Q-point is Gamma-point we copy files
       If (tqgamma(1)) qi = 1
+  ! for screening there is just the Gamma q-point
       If (tscreen) Then
          qi = 0
          qf = 0
@@ -40,16 +39,15 @@ Subroutine xsgeneigvec
       If (rank .Eq. 0) Call writeqpts
   ! calculate eigenvectors for each q-point (k+q point set)
       Do iq = qi, qf
-         If ( .Not. tscreen) Call genfilname (iqmt=Max(0, iq), &
-        & setfilext=.True.)
+         If (.Not. tscreen) Call genfilname (iqmt=Max(0, iq), setfilext=.True.)
          vqlt (:) = 0.d0
-         If ((iq .Ne. 0) .And. (rank .Eq. 0)) Then
+         If (iq .Ne. 0) then
             vqlt (:) = vql (:, iq)
-            Call writegqpts (iq, filext)
+            If (rank .Eq. 0) Call writegqpts (iq, filext)
          End If
      ! write eigenvectors, -values, occupancies and contracted MT coefficients
          Call writeevec (vqlt, qvkloff(1, iq), filext)
-         If ( .Not. tscreen) Then
+         If (.Not. tscreen) Then
             Write (unitout, '("Info(", a, "): eigenvectors generated fo&
            &r Q-point (iq, vql below)")') thisnam
             Write (unitout, '(i6, 3g18.10)') iq, vqlt (:)

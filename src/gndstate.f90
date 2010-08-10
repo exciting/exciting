@@ -207,10 +207,10 @@ Subroutine gndstate
 #ifdef NEVERDEFINED
          End Do
 #endif
-#ifndef MPISEC
-         splittfile = .False.
      ! zero partial charges
          chgpart(:,:,:)=0.d0
+#ifndef MPISEC
+         splittfile = .False.
      ! begin parallel loop over k-points
 #ifdef KSMP
      !$OMP PARALLEL DEFAULT(SHARED) &
@@ -239,7 +239,7 @@ Subroutine gndstate
      !$OMP END PARALLEL
 #endif
 #ifdef MPISEC
-         Call mpisync_evalsv_spnchr
+         Call mpisync_evalsv
 #endif
          If (rank .Eq. 0) Then
         ! write out partial charges
@@ -249,12 +249,15 @@ Subroutine gndstate
      ! find the occupation numbers and Fermi energy
          Call occupy
 #ifdef MPISEC
-         Call MPI_bcast (occsv, nstsv*nkpt, MPI_DOUBLE_PRECISION, 0, &
-        & MPI_COMM_WORLD, ierr)
-         Call MPI_bcast (fermidos, 1, MPI_DOUBLE_PRECISION, 0, &
-        & MPI_COMM_WORLD, ierr)
-         Call MPI_bcast (efermi, 1, MPI_DOUBLE_PRECISION, 0, &
-        & MPI_COMM_WORLD, ierr)
+!         Call MPI_bcast (occsv, nstsv*nkpt, MPI_DOUBLE_PRECISION, 0, &
+!        & MPI_COMM_WORLD, ierr)
+!write(700+rank,*) 'MPI_bcast (occsv'; call flushifc(700+rank)
+!         Call MPI_bcast (fermidos, 1, MPI_DOUBLE_PRECISION, 0, &
+!        & MPI_COMM_WORLD, ierr)
+!write(700+rank,*) 'MPI_bcast (fermidos'; call flushifc(700+rank)
+!         Call MPI_bcast (efermi, 1, MPI_DOUBLE_PRECISION, 0, &
+!        & MPI_COMM_WORLD, ierr)
+!write(700+rank,*) 'bcast (efermi'; call flushifc(700+rank)
 #endif
          If (rank .Eq. 0) Then
         ! write out the eigenvalues and occupation numbers
@@ -269,16 +272,13 @@ Subroutine gndstate
             magmt (:, :, :, :) = 0.d0
             magir (:, :) = 0.d0
          End If
-!
 #ifdef MPIRHO
-!
          Do ik = firstk (rank), lastk (rank)
         !write the occupancies to file
             Call putoccsv (ik, occsv(:, ik))
          End Do
          Do ik = firstk (rank), lastk (rank)
 #endif
-!
 #ifndef MPIRHO
             If (rank .Eq. 0) Then
                Do ik = 1, nkpt
@@ -296,7 +296,6 @@ Subroutine gndstate
 #endif
                Allocate (evecfv(nmatmax, nstfv, nspnfv))
                Allocate (evecsv(nstsv, nstsv))
-           !
            ! get the eigenvectors from file
                Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
                Call getevecsv (vkl(:, ik), evecsv)
@@ -355,22 +354,11 @@ Subroutine gndstate
         ! pack interstitial and muffin-tin effective potential and field into one array
             Call packeff (.True., n, v)
         ! mix in the old potential and field with the new
-!
             If (rank .Eq. 0) Call mixerifc &
            & (input%groundstate%mixernumber, n, v, currentconvergence, &
            & nwork)
-!
 #ifdef MPI
-            Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
- !    call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !     call  MPI_BCAST(work(1), nwork, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-!
-!
- !	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+         Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 #endif
  ! unpack potential and field
             Call packeff (.False., n, v)
@@ -408,8 +396,8 @@ Subroutine gndstate
                   Call flushifc (64)
                end if
             end if
-        ! output energy components
             If (rank .Eq. 0) Then
+        ! output energy components
                Call writeengy (60)
                Write (60,*)
                Write (60, '("Density of states at Fermi energy : ", G18&
@@ -606,11 +594,9 @@ Subroutine gndstate
            ! begin new self-consistent loop with updated positions
                redoscl = .True.
             End If
-!
 #ifdef MPI
             Call MPI_bcast (redoscl, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
            & ierr)
-!
             Call MPI_bcast (forcemax, 1, MPI_DOUBLE_PRECISION, 0, &
            & MPI_COMM_WORLD, ierr)
             Call MPI_bcast (atposc, size(atposc), MPI_DOUBLE_PRECISION, &
@@ -622,30 +608,9 @@ Subroutine gndstate
                  & MPI_COMM_WORLD, ierr)
                End Do
             End Do
-            Call MPI_bcast (vkl, size(vkl), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (vkc, size(vkc), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (ngvec, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, &
-           & ierr)
-            Call MPI_bcast (sfacg, size(sfacg), MPI_DOUBLE_PRECISION, &
-           & 0, MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (ngk, size(ngk), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (vgkc, size(vgkc), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (sfacgk, size(sfacgk), MPI_DOUBLE_PRECISION, &
-           & 0, MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (ngkmax, 1, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (engynn, 1, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-!
 #endif
-!
             If (redoscl) Go To 10
          End If
-!
 30       Continue
      ! output timing information
          If (rank .Eq. 0) Then

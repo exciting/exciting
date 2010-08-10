@@ -26,8 +26,7 @@ Subroutine setdefault
 !
       Use sclcontroll
 ! !DESCRIPTION:
-!   Reads in the input parameters from the file {\tt exciting.in}. Also sets
-!   default values for the input parameters.
+!   Sets default values for the input parameters.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
@@ -214,7 +213,6 @@ Subroutine setdefault
 !input%xs%qpointset%qpoint(:, :)=0.d0
 !mdfqtype=0
 !vqloff(:)=0.d0
-!tq0ev=.true.
 !gqmax=0.d0
 !lmaxapwwf=-1
 !fastpmat=.true.

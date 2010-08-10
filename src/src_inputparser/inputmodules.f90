@@ -389,7 +389,6 @@ type xs_type
  integer::xstypenumber
  logical::fastpmat
  logical::fastemat
- logical::gather
  logical::tappinfo
  integer::dbglev
  logical::usegdft
@@ -3082,6 +3081,7 @@ allocate(getstructlinresponsetensor)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"scissor")
+getstructlinresponsetensor%scissor=0.d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scissor",getstructlinresponsetensor%scissor)
        call removeAttribute(thisnode,"scissor")      
@@ -3433,14 +3433,6 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"gather")
-getstructxs%gather= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"gather",getstructxs%gather)
-       call removeAttribute(thisnode,"gather")      
-endif
-
-nullify(np)  
 np=>getAttributeNode(thisnode,"tappinfo")
 getstructxs%tappinfo= .false.
 if(associated(np)) then
@@ -3562,6 +3554,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"scissor")
+getstructxs%scissor=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scissor",getstructxs%scissor)
        call removeAttribute(thisnode,"scissor")      

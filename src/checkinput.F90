@@ -8,14 +8,12 @@ subroutine checkinput
   use modinput
   implicit none
   integer :: is,i
-
   if (input%structure%epslat.le.0.d0) then
     write(*,*)
     write(*,'("Error(checkinput): /input/structure/@epslat <= 0 : ",G18.10)') input%structure%epslat
     write(*,*)
     stop
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%radkpt.le.0.d0) then
       write(*,*)
@@ -24,7 +22,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if ((input%groundstate%ngridk(1).le.0).or.(input%groundstate%ngridk(2).le.0).or.(input%groundstate%ngridk(3).le.0)) then
       write(*,*)
@@ -33,7 +30,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs)) then
     if ((input%xs%ngridk(1).le.0).or.(input%xs%ngridk(2).le.0).or.(input%xs%ngridk(3).le.0)) then
       write(*,*)
@@ -42,7 +38,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%screening)) then
       ! default: (0, 0, 0) (caught)
@@ -54,7 +49,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%phonons)) then
     if ((input%phonons%ngridq(1).le.0).or.(input%phonons%ngridq(2).le.0).or.(input%phonons%ngridq(3).le.0)) then
       write(*,*)
@@ -63,7 +57,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs))then
     if ((input%xs%ngridq(1).le.0).or.(input%xs%ngridq(2).le.0).or.(input%xs%ngridq(3).le.0)) then
       write(*,*)
@@ -72,7 +65,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%rgkmax.le.0.d0) then
       write(*,*)
@@ -81,7 +73,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs))then
     if (input%xs%rgkmax.le.0.d0) then
       write(*,*)
@@ -90,7 +81,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs))then
     if (associated(input%xs%screening))then
       ! default: 0.0 (caught)
@@ -102,7 +92,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs))then
     if (associated(input%xs%BSE))then
       ! default: 0.0 (caught)
@@ -114,7 +103,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%lmaxapw.lt.0) then
       write(*,*)
@@ -130,7 +118,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs))then
     if (input%xs%lmaxapw.lt.0) then
       write(*,*)
@@ -146,7 +133,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%lmaxvr.lt.3) then
       write(*,*)
@@ -155,7 +141,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%lmaxmat.lt.0) then
       write(*,*)
@@ -164,7 +149,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs))then
     if (input%xs%lmaxmat.lt.0) then
       write(*,*)
@@ -173,7 +157,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%lmaxinr.lt.0) then
       write(*,*)
@@ -182,7 +165,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%npsden.lt.2) then
       write(*,*)
@@ -191,7 +173,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%swidth.lt.1.d-9) then
       write(*,*)
@@ -201,7 +182,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs))then
     if (input%xs%swidth.lt.1.d-9) then
       write(*,*)
@@ -211,7 +191,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%epsocc.le.0.d0) then
       write(*,*)
@@ -220,7 +199,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%epschg.le.0.d0) then
       write(*,*)
@@ -229,7 +207,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%nempty.le.0) then
       write(*,*)
@@ -238,7 +215,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs))then
     if (input%xs%nempty.le.0) then
       write(*,*)
@@ -247,7 +223,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%screening)) then
       ! default: 0 (caught)
@@ -259,7 +234,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%beta0.lt.0.d0) then
       write(*,*)
@@ -268,7 +242,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%betainc.lt.1.d0) then
       write(*,*)
@@ -277,7 +250,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if ((input%groundstate%betadec.le.0.d0).or.(input%groundstate%betadec.gt.1.d0)) then
       write(*,*)
@@ -287,7 +259,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%maxscl.lt.0) then
       write(*,*)
@@ -296,7 +267,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate))then
     if (input%groundstate%cfdamp.lt.0.d0) then
       write(*,*)
@@ -305,14 +275,12 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (input%structure%vacuum.lt.0.d0) then
     write(*,*)
     write(*,'("Error(checkinput): /input/structure/@vacuum < 0 : ",G18.10)') input%structure%vacuum
     write(*,*)
     stop
   end if
-
   if (associated(input%structure%speciesarray)) then
     if (size(input%structure%speciesarray).gt.maxspecies) then ! (nspecies > maxspecies)
       write(*,*)
@@ -332,7 +300,6 @@ subroutine checkinput
       end if
     end do
   end if
-
   if (associated(input%properties)) then
     if (associated(input%properties%dos)) then
       if (input%properties%dos%nwdos.lt.2) then
@@ -362,7 +329,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%properties)) then
     if (associated(input%properties%fermisurfaceplot)) then
       if (input%properties%fermisurfaceplot%nstfsp.le.0) then
@@ -374,7 +340,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (input%groundstate%lradstep.le.0) then
       write(*,*)
@@ -383,7 +348,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (input%groundstate%nprad.lt.2) then
       write(*,*)
@@ -392,7 +356,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%properties)) then
     if (associated(input%properties%linresponsetensor)) then
       do i=1,size(input%properties%linresponsetensor%optcomp,2)
@@ -411,7 +374,6 @@ subroutine checkinput
       end do
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%solver)) then
       if (input%groundstate%solver%evaltol.le.0.d0) then
@@ -422,7 +384,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (input%groundstate%deband.lt.0.d0) then
       write(*,*)
@@ -431,7 +392,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%spin)) then
       if (input%groundstate%spin%taufsm.lt.0.d0) then
@@ -442,7 +402,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (input%groundstate%rmtapm(1).lt.0.d0) then
       write(*,*)
@@ -457,7 +416,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%OEP)) then
       if (input%groundstate%OEP%maxitoep.lt.1) then
@@ -468,7 +426,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%OEP)) then
       if ((input%groundstate%OEP%tauoep(1).lt.0.d0).or. &
@@ -481,7 +438,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%properties)) then
     if (associated(input%properties%masstensor)) then
       if ((input%properties%masstensor%ndspem.lt.1).or.(input%properties%masstensor%ndspem.gt.3)) then
@@ -493,7 +449,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%structure%speciesarray)) then
     do is=1,size(input%structure%speciesarray)
       if (associated(input%structure%speciesarray(is)%species%LDAplusU)) then
@@ -507,7 +462,6 @@ subroutine checkinput
       end if
     end do
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%RDMFT)) then
       if (input%groundstate%RDMFT%rdmmaxscl.lt.0) then
@@ -518,7 +472,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%RDMFT)) then
       if (input%groundstate%RDMFT%taurdmn.lt.0.d0) then
@@ -530,7 +483,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%RDMFT)) then
       if (input%groundstate%RDMFT%taurdmc.lt.0.d0) then
@@ -542,7 +494,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%RDMFT)) then
       if ((input%groundstate%RDMFT%rdmalpha.le.0.d0).or.(input%groundstate%RDMFT%rdmalpha.ge.1.d0)) then
@@ -554,7 +505,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
       if (associated(input%groundstate%RDMFT)) then
       if (input%groundstate%RDMFT%rdmtemp.lt.0.d0) then
@@ -566,7 +516,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%groundstate)) then
     if (associated(input%groundstate%spin)) then
       if ((input%groundstate%spin%reducebf.lt.0.d0).or.(input%groundstate%spin%reducebf.gt.1.d0)) then
@@ -578,8 +527,7 @@ subroutine checkinput
     end if
   end if
 
-! excited states attributes not already contained in remaining part
-
+! excited states elements and attributes not already contained in remaining part
   if (associated(input%xs))then
     ! default: -1 (caught)
     if (input%xs%lmaxapwwf.lt.-1) then
@@ -589,7 +537,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%tddft)) then
       if ((input%xs%tddft%mdfqtype.lt.0).or.(input%xs%tddft%mdfqtype.gt.1)) then
@@ -607,7 +554,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs)) then
     if (input%xs%lmaxemat.lt.0) then
       write(*,*)
@@ -616,7 +562,6 @@ subroutine checkinput
       stop
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%tddft)) then
       if (input%xs%tddft%lmaxalda.lt.0) then
@@ -627,7 +572,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%BSE)) then
       if (input%xs%BSE%nleblaik.lt.0) then
@@ -638,7 +582,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%BSE)) then
       if (input%xs%BSE%lmaxdielt.lt.0) then
@@ -649,10 +592,9 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%tddft)) then
-      if (input%xs%tddft%nwacont.le.0) then
+      if (input%xs%tddft%nwacont.lt.0) then
         write(*,*)
         write(*,'("Error(checkinput): /input/xs/tddft/@nwacont <= 0 : ",g18.10)') input%xs%tddft%nwacont
         write(*,*)
@@ -660,7 +602,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs)) then
     if (input%xs%broad.le.0.d0) then
       write(*,*)
@@ -668,7 +609,6 @@ subroutine checkinput
       write(*,*)
     end if
   end if
-
   if (associated(input%xs)) then
     if (input%xs%epsdfde.le.0.d0) then
       write(*,*)
@@ -676,7 +616,6 @@ subroutine checkinput
       write(*,*)
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%tddft)) then
       if (input%xs%tddft%fxcbsesplit.le.0) then
@@ -687,7 +626,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%BSE)) then
       if ((input%xs%BSE%nstlbse(1).lt.0).or.(input%xs%BSE%nstlbse(2).lt.0)) then
@@ -698,7 +636,6 @@ subroutine checkinput
       end if
     end if
   end if
-
   if (associated(input%xs)) then
     if (associated(input%xs%BSE)) then
       if ((input%xs%BSE%nstlce(1).lt.0).or.(input%xs%BSE%nstlce(2).lt.0)) then
@@ -709,5 +646,4 @@ subroutine checkinput
       end if
     end if
   end if
-
 end subroutine
