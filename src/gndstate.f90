@@ -524,19 +524,19 @@ Subroutine gndstate
                Write (60,*)
                Write (60, '("Wrote STATE.OUT")')
             End If
+         end if
  !-----------------------!
  !     compute forces    !
  !-----------------------!
-            If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
-               Call force
-               If (rank .Eq. 0) Then
+         Call force
+         If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
+            If (rank .Eq. 0) Then
        ! output forces to INFO.OUT
                   Call writeforce (60)
                   Call structure_xmlout ()
               ! write maximum force magnitude to FORCEMAX.OUT
                   Write (64, '(G18.10)') forcemax
                   Call flushifc (64)
-               End If
             End If
          End If
      !---------------------------------------!
