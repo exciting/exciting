@@ -37,7 +37,7 @@ Subroutine gndstate
       Real (8), Allocatable :: evalfv (:, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
-      Logical :: force_converged, redoscl, tibs
+      Logical :: force_converged, tibs
   ! require forces for structural optimisation
       If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = &
      & .True.
@@ -164,11 +164,6 @@ Subroutine gndstate
                Write (60, '("Reached self-consistent loops maximum")')
             End If
             tlast = .True.
-#ifdef MPI
-            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
-#endif
-!
          End If
          If (rank .Eq. 0) Call flushifc (60)
      ! generate the core wavefunctions and densities
@@ -248,17 +243,6 @@ Subroutine gndstate
          end if
      ! find the occupation numbers and Fermi energy
          Call occupy
-#ifdef MPISEC
-!         Call MPI_bcast (occsv, nstsv*nkpt, MPI_DOUBLE_PRECISION, 0, &
-!        & MPI_COMM_WORLD, ierr)
-!write(700+rank,*) 'MPI_bcast (occsv'; call flushifc(700+rank)
-!         Call MPI_bcast (fermidos, 1, MPI_DOUBLE_PRECISION, 0, &
-!        & MPI_COMM_WORLD, ierr)
-!write(700+rank,*) 'MPI_bcast (fermidos'; call flushifc(700+rank)
-!         Call MPI_bcast (efermi, 1, MPI_DOUBLE_PRECISION, 0, &
-!        & MPI_COMM_WORLD, ierr)
-!write(700+rank,*) 'bcast (efermi'; call flushifc(700+rank)
-#endif
          If (rank .Eq. 0) Then
         ! write out the eigenvalues and occupation numbers
             Call writeeval
@@ -505,15 +489,12 @@ Subroutine gndstate
            ! end the self-consistent loop
             End If
 #ifdef MPI
-            Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
-            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
+            Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
 #endif
          End Do
 20       Continue
          If (rank .Eq. 0) Then
-            redoscl = .False.
             Write (60,*)
             Write (60, '("+------------------------------+")')
             Write (60, '("| Self-consistent loop stopped |")')
@@ -552,19 +533,14 @@ Subroutine gndstate
                Call flushifc (60)
             End If
  ! check force convergence
-            If (rank .Eq. 0) Then
-               force_converged = .False.
-               If (forcemax .Le. input%structureoptimization%epsforce) &
-              & Then
+            force_converged = .False.
+            If (forcemax .Le. input%structureoptimization%epsforce) Then
+               If (rank .Eq. 0) Then
                   Write (60,*)
                   Write (60, '("Force convergence target achieved")')
-                  force_converged = .True.
                End If
+               force_converged = .True.
             End If
-#ifdef MPI
-            Call MPI_bcast (force_converged, 1, MPI_LOGICAL, 0, &
-           & MPI_COMM_WORLD, ierr)
-#endif
             If (force_converged) Go To 30
  ! update the atomic positions if forces are not converged
             Call updatpos
@@ -591,25 +567,9 @@ Subroutine gndstate
                if (input%groundstate%tforce) Write (67,*)
                Write (68,*)
                Write (69,*)
-           ! begin new self-consistent loop with updated positions
-               redoscl = .True.
             End If
-#ifdef MPI
-            Call MPI_bcast (redoscl, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
-            Call MPI_bcast (forcemax, 1, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (atposc, size(atposc), MPI_DOUBLE_PRECISION, &
-           & 0, MPI_COMM_WORLD, ierr)
-            Do is = 1, nspecies
-               Do ia = 1, natoms (is)
-                  Call MPI_bcast (input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord, &
-                 & size(input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord), MPI_DOUBLE_PRECISION, 0, &
-                 & MPI_COMM_WORLD, ierr)
-               End Do
-            End Do
-#endif
-            If (redoscl) Go To 10
+           ! begin new self-consistent loop with updated positions
+            Go To 10
          End If
 30       Continue
      ! output timing information
