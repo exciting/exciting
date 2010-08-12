@@ -137,14 +137,28 @@ Example:  <pre>
             <xs:appinfo>
                 <oldname>nonreplace</oldname>
             </xs:appinfo>
-            <xs:documentation>Decides if the ground state is read from file or recalculated or continued from file.
+            <xs:documentation>
+            Decides if the ground state is calculated starting from scratch, using
+            the densities from file or if it is skipped and only its associated input parameters
+            are read in. Also applies fo structural optimization run.
         </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:enumeration value="fromscratch"/>
+                  <xs:annotation>
+                    <xs:documentation>The calculation is started using atomic densities.</xs:documentation>
+                  </xs:annotation>
                 <xs:enumeration value="fromfile"/>
+                  <xs:annotation>
+                    <xs:documentation>The calculation is started using the density from STATE.OUT
+                    but positions from input.xml.</xs:documentation>
+                  </xs:annotation>
                 <xs:enumeration value="skip"/>
+                  <xs:annotation>
+                    <xs:documentation>No ground state calculation is performed and only the
+                     associated input parameters are read in.</xs:documentation>
+                  </xs:annotation>
             </xs:restriction>
         </xs:simpleType>
     </xs:attribute>
