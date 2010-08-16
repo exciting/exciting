@@ -146,19 +146,8 @@ Example:  <pre>
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:enumeration value="fromscratch"/>
-                  <xs:annotation>
-                    <xs:documentation>The calculation is started using atomic densities.</xs:documentation>
-                  </xs:annotation>
                 <xs:enumeration value="fromfile"/>
-                  <xs:annotation>
-                    <xs:documentation>The calculation is started using the density from STATE.OUT
-                    but positions from input.xml.</xs:documentation>
-                  </xs:annotation>
                 <xs:enumeration value="skip"/>
-                  <xs:annotation>
-                    <xs:documentation>No ground state calculation is performed and only the
-                     associated input parameters are read in.</xs:documentation>
-                  </xs:annotation>
             </xs:restriction>
         </xs:simpleType>
     </xs:attribute>
@@ -2119,7 +2108,7 @@ Example:  <pre>
                                         </xs:element>
                                     </xs:sequence>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
-                                        ref="scissor" default="0.d0"/>
+                                        ref="scissor" default="0.0d0"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="mossbauer"
@@ -2263,9 +2252,17 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="torddf"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the time-ordered version of the dielectric function</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="tordfxc"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the time-ordered version of xc kernel (MBPT derived kernels only)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="aresdf"
                                         type="xs:boolean" default="true">
                                         <xs:annotation>
@@ -2275,13 +2272,13 @@ Example:  <pre>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="aresfxc"
                                         type="xs:boolean" default="true">
                                         <xs:annotation>
-                                            <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the BSE-derived xc-kernels</xs:documentation>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the MBPT derived xc-kernels</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
                                         name="fxcbsesplit" type="fortrandouble" default="1.0d-5">
                                         <xs:annotation>
-                                            <xs:documentation>Split parameter for degeneracy in energy differences of BSE-derived kernel</xs:documentation>
+                                            <xs:documentation>Split parameter for degeneracy in energy differences of MBPT derived xc kernels</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="acont"
@@ -2304,7 +2301,11 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="kerndiag"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation><pre>"true"</pre> if only diagonal part of xc-kernel is used</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="lmaxalda"
                                         type="xs:integer" default="3">
                                         <xs:annotation>
@@ -2445,7 +2446,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>nosymscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>nosym is <pre>"true"</pre> if no symmetry information should be used</xs:documentation>
+                                            <xs:documentation>nosym is <pre>"true"</pre> if no symmetry information should be used for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="ngridk"
@@ -2454,7 +2455,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>ngridkscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>k-point grid sizes</xs:documentation>
+                                            <xs:documentation>k-point grid sizes for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
@@ -2463,7 +2464,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>reducekscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries) for screening.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="vkloff"
@@ -2472,7 +2473,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>vkloffscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>k-point offset</xs:documentation>
+                                            <xs:documentation>k-point offset for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax"
@@ -2481,7 +2482,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>rgkmaxscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
+                                            <xs:documentation>smallest muffin-tin radius times gkmax for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nempty"
@@ -2518,6 +2519,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>nosymbse</oldname>
                                             </xs:appinfo>
+                                            <xs:documentation>set to<pre>"true"</pre> if no symmetry information should be used for BSE.</xs:documentation>                                        
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
@@ -2526,7 +2528,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>reducekbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries) for BSE.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="vkloff"
@@ -2535,7 +2537,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>vkloffbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>k-point offset</xs:documentation>
+                                            <xs:documentation>k-point offset for BSE</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax"
@@ -2548,9 +2550,23 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="scrherm"
-                                        type="xs:integer" default="0"/>
+                                        type="xs:integer" default="0">
+                                        <xs:annotation>
+                                            <xs:documentation>
+                                            Method of how an almost Hermitian matrix is inverted.
+                                            A value of 0: invert full matrix (matrix is allowed to be not strictly Hermitian);
+                                            a value of 1: take the Hermitian average for inversion;
+                                            a value of 2: assume Hermitian and use the upper triangle;
+                                            a value of 3: assume Hermitian and use the lower triangle.
+                                            </xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="fbzq"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>true if q-point set is taken from first Brillouin zone</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>                                        
                                     <xs:attribute ex:importance="expert" ex:unit="" name="sciavtype"
                                         default="spherical">
                                         <xs:annotation>
@@ -2595,7 +2611,11 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit=""
-                                        name="bsedirsing" type="xs:boolean" default="false"/>
+                                        name="bsedirsing" type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>true if effective singular part of direct term of BSE Hamiltonian is to be used</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>                                        
                                     <xs:attribute ex:importance="expert" ex:unit="" name="lmaxdielt"
                                         type="xs:integer" default="14">
                                         <xs:annotation>
@@ -2609,7 +2629,11 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nexcitmax"
-                                        type="xs:integer" default="100"/>
+                                        type="xs:integer" default="100">
+                                        <xs:annotation>
+                                            <xs:documentation>maximum number of excitons to be considered in a BSE calculation</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>                                        
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse"
                                         type="integerpair" default="0 0">
                                         <xs:annotation>
@@ -2860,6 +2884,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>tetraqweights</oldname>
                                             </xs:appinfo>
+                                            <xs:documentation>choice of weights and nodes for tetrahedron method and non-zero Q-point</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                 </xs:complexType>
@@ -3295,12 +3320,21 @@ Example:  <pre>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo"
-                            type="xs:boolean" default="false"/>
+                            type="xs:boolean" default="false">
+                            <xs:annotation>
+                               <xs:documentation>true if to append info to output file</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="dbglev"
-                            type="xs:integer" default="0"/>
+                            type="xs:integer" default="0">
+                            <xs:annotation>
+                               <xs:documentation>debugging level</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
                             type="xs:boolean" default="false"
-                            ><!-- used from src_optics/mod_DOS_optics_response.F90 --></xs:attribute>
+                            ><!-- used from src_optics/mod_DOS_optics_response.F90 -->
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="gqmax"
                             type="fortrandouble" default="0.0d0">
                             <xs:annotation>

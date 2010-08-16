@@ -12,6 +12,7 @@ Subroutine writeinfo (fnum)
 ! !USES:
       Use modinput
       Use modmain
+      use modmpi, only: procs
 #ifdef TETRA
       Use modtetra
 #endif
@@ -37,6 +38,7 @@ Subroutine writeinfo (fnum)
       Write (fnum, '(" +-----------------------------------------------------------+")')
       Write (fnum, '(" | EXCITING hydrogen (",I2,".",I2,".",I2,") started                      |")') version
       Write (fnum, '(" | version hash id: ",a," |")') githash
+      if (procs .gt. 1) Write (fnum, '(" | MPI version using ",i6," processor(s)                     |")') procs
       Write (fnum, '(" +-----------------------------------------------------------+")')
       If (notelns .Gt. 0) Then
          Write (fnum,*)

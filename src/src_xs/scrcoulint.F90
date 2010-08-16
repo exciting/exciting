@@ -1,12 +1,8 @@
-!
-!
-!
-!
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 Subroutine scrcoulint
       Use modmain
       Use modinput
@@ -41,7 +37,6 @@ Subroutine scrcoulint
   ! external functions
       Integer, External :: idxkkp
       Logical, External :: tqgamma
-!
   !---------------!
   !   main part   !
   !---------------!
@@ -140,8 +135,7 @@ Subroutine scrcoulint
          Call putematrad (iqr, iqrnr)
       End Do
   ! communicate array-parts wrt. q-points
-      Call zalltoallv (scieffg, ngqmax**2, nqptr)
-!
+      call mpi_allgatherv_ifc(nqptr,ngqmax*ngqmax,zbuf=scieffg)
       Call barrier
 !
   ! information on size of output file
@@ -168,7 +162,7 @@ Subroutine scrcoulint
   ! loop over combinations of k-points
       Do ikkp = ppari, pparf
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; dir&
-        &ect term of associated(input%xs%BSE) - Hamiltonian')
+        &ect term of BSE Hamiltonian')
          Call kkpmap (ikkp, nkptnr, iknr, jknr)
      ! k-point difference
          iv (:) = ivknr (:, jknr) - ivknr (:, iknr)
@@ -213,7 +207,7 @@ Subroutine scrcoulint
          input%xs%emattype = 2
          Call ematbdcmbs (input%xs%emattype)
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; dir&
-        &ect term of associated(input%xs%BSE) - Hamiltonian')
+        &ect term of BSE Hamiltonian')
 !
      ! select screening level
          tm (:, :) = zzero
@@ -313,11 +307,9 @@ Subroutine scrcoulint
      &ist4,    Re(W),            Im(W),             |W|^2,           an&
      &g/pi")')
       If (rank .Eq. 0) close (un)
-!
       Call barrier
-!
   ! communicate array-parts wrt. q-points
-      Call zalltoallv (bsedt, 3, procs)
+      call mpi_allgatherv_ifc(procs,3,zbuf=bsedt)
   ! BSE kernel diagonal parameters
       bsedl = minval (dble(bsedt(1, :)))
       bsedu = maxval (dble(bsedt(2, :)))

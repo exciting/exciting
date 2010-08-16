@@ -189,7 +189,8 @@ Subroutine gndstate
          Call olprad
      ! compute the Hamiltonian radial integrals
          Call hmlrad
-!
+     ! zero partial charges
+         chgpart(:,:,:)=0.d0
 #ifdef MPI
          Call MPI_barrier (MPI_COMM_WORLD, ierr)
          If (rank .Eq. 0) Call delevec ()
@@ -202,8 +203,6 @@ Subroutine gndstate
 #ifdef NEVERDEFINED
          End Do
 #endif
-     ! zero partial charges
-         chgpart(:,:,:)=0.d0
 #ifndef MPISEC
          splittfile = .False.
      ! begin parallel loop over k-points
@@ -234,13 +233,9 @@ Subroutine gndstate
      !$OMP END PARALLEL
 #endif
 #ifdef MPISEC
-         Call mpisync_evalsv
+         call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+         Call MPI_barrier (MPI_COMM_WORLD, ierr)
 #endif
-         If (rank .Eq. 0) Then
-        ! write out partial charges
-            call writepchgs(69,input%groundstate%lmaxvr)
-            call flushifc(69)
-         end if
      ! find the occupation numbers and Fermi energy
          Call occupy
          If (rank .Eq. 0) Then
@@ -300,6 +295,11 @@ Subroutine gndstate
             If (input%groundstate%xctypenumber .Lt. 0) Call &
            & mpiresumeevecfiles ()
 #endif
+            If (rank .Eq. 0) Then
+        ! write out partial charges
+               call writepchgs(69,input%groundstate%lmaxvr)
+               call flushifc(69)
+            end if
  ! symmetrise the density
             Call symrf (input%groundstate%lradstep, rhomt, rhoir)
         ! symmetrise the magnetisation

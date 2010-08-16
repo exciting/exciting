@@ -3081,7 +3081,7 @@ allocate(getstructlinresponsetensor)
       
 nullify(np)  
 np=>getAttributeNode(thisnode,"scissor")
-getstructlinresponsetensor%scissor=0.d0
+getstructlinresponsetensor%scissor=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scissor",getstructlinresponsetensor%scissor)
        call removeAttribute(thisnode,"scissor")      
