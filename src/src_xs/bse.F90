@@ -14,6 +14,7 @@ Subroutine bse
 ! !USES:
       Use modinput
       Use modmain
+      use modmpi
       Use modxs
       Use m_genwgrid
       Use m_getpmat
@@ -109,6 +110,8 @@ Subroutine bse
      & oszs (:), spectr (:), sigma(:), buf(:,:,:)
   ! external functions
       Integer, External :: l2int
+  ! routine not yet parallelized
+  if (rank .ne. 0) goto 10
   !---------------------------!
   !     exciton variables     !   USE this ****************************
   !---------------------------!
@@ -397,6 +400,8 @@ Subroutine bse
          Call writesumrls (iq, sumrls, trim(fnsumrules))
       end do
       deallocate(beval,bevec,oszs,oszsa,sor,pmat,w,spectr,loss,sigma,buf)
+10 continue
+      call barrier      
 Contains
 !
       Integer Function hamidx (i1, i2, ik, n1, n2)
