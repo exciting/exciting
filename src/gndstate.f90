@@ -180,7 +180,7 @@ Subroutine gndstate
      ! find the new linearisation energies
          Call linengy
      ! write out the linearisation energies
-         Call writelinen
+         if (rank .eq. 0) Call writelinen
      ! generate the APW radial functions
          Call genapwfr
      ! generate the local-orbital radial functions
@@ -326,7 +326,7 @@ Subroutine gndstate
            ! generate the LDA+U potential matrix
                Call genvmatlu
            ! write the LDA+U matrices to file
-               Call writeldapu
+               if (rank .eq. 0) Call writeldapu
             End If
         ! generate charge distance
             call chgdist
