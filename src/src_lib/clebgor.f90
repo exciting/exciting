@@ -13,7 +13,7 @@ Real (8) Function clebgor (j1, j2, j3, m1, m2, m3)
 !   j1, j2, j3 : angular momentum quantum numbers (in,integer)
 !   m1, m2, m3 : magnetic quantum numbers (in,integer)
 ! !DESCRIPTION:
-!   Returns the Clebsch-Gordon coefficients using the Wigner $3j$-symbols
+!   Returns the Clebsch-Gordan coefficients using the Wigner $3j$-symbols
 !   $$ C(J_1 J_2 J_3 | m_1 m_2 m_3)=(-1)^{J_1-J_2+m_3}\sqrt{2J_3+1}
 !    \begin{pmatrix} J_1 & J_2 & J_3 \\ m_1 & m_2 & -m_3 \end{pmatrix}. $$
 !   Suitable for $J_i\le 50$.
