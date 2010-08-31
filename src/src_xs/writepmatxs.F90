@@ -1,44 +1,41 @@
-!
-!
-!
-! Copyright (C) 2005-2008 S. Sagmeister and C. Ambrosch-Draxl.
+
+! Copyright (C) 2005-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 !BOP
 ! !ROUTINE: writepmatxs
 ! !INTERFACE:
-!
-!
 Subroutine writepmatxs
 ! !USES:
       Use modinput
       Use modmain, Only: nkpt, ngkmax, apwordmax, lmmaxapw, natmtot, &
      & nmatmax, nstfv, nstsv, nlotot, nlomax, lolmax, task, vkl, vgkl, &
-     & ngk, gkc, tpgkc, sfacgk, igkig, vgkc
+     & ngk, gkc, tpgkc, sfacgk, igkig, vgkc, filext
       Use modmpi
       Use modxs
       Use m_putpmat
       Use m_genfilname
 ! !DESCRIPTION:
 !   Calculates the momentum matrix elements using routine {\tt genpmat} and
-!   writes them to direct access file {\tt PMAT\_XS.OUT}. Derived from
-!   the routine {\tt writepmat}.
+!   writes them to direct access file {\tt PMAT.OUT}, {\tt PMAT\_XS.OUT} or
+!   {\tt PMAT\_SCR.OUT} depending on the context of the execution.
 !
 ! !REVISION HISTORY:
-!   Created 2006 (Sagmeister)
+!   Created 2006 (S. Sagmeister)
+!   Modifications, August 2010 (S. Sagmeister)
 !EOP
 !BOC
       Implicit None
   ! local variables
-      Character (*), Parameter :: thisnam = 'writepmatxs'
-      Integer :: ik
+      Integer :: ik,recl
       Character (32) :: fnam
       Complex (8), Allocatable :: apwalmt (:, :, :, :)
       Complex (8), Allocatable :: evecfvt (:, :)
       Complex (8), Allocatable :: evecsvt (:, :)
       Complex (8), Allocatable :: pmat (:, :, :)
-      If (tscreen) Then
+      tscreen=(task .Ge. 400) .And. (task .Le. 499)
+      If ((task .eq. 120).or. tscreen) Then
          fnam = 'PMAT'
          Call genfilname (basename=trim(fnam), appfilext=.True., &
         & filnam=fnpmat)
@@ -53,7 +50,7 @@ Subroutine writepmatxs
   ! initialise universal variables
       Call init0
       Call init1
-      Call init2
+      if (task .ne. 120) Call init2
   ! generate index ranges for parallel execution
       Call genparidxran ('k', nkpt)
   ! k-point interval for process
@@ -64,34 +61,48 @@ Subroutine writepmatxs
       Allocate (evecsvt(nstsv, nstsv))
   ! allocate the momentum matrix elements array
       Allocate (pmat(3, nstsv, nstsv))
+      if (task .eq. 120) then
+  ! read in the density and potentials from file
+        call readstate
+  ! find the new linearisation energies
+        call linengy
+  ! generate the APW radial functions
+        call genapwfr
+  ! generate the local-orbital radial functions
+        call genlofr
+  ! find the record length
+        inquire(iolength=recl) pmat
+        open(50,file='PMAT.OUT',action='WRITE',form='UNFORMATTED',access='DIRECT', &
+         status='REPLACE',recl=recl)
+      end if
   ! get eigenvectors for q=0
-      If ( .Not. tscreen) Call genfilname (iqmt=0, setfilext=.True.)
+      If ((.Not. tscreen) .and. (task .ne. 120)) Call genfilname (iqmt=0, setfilext=.True.)
   ! generate band combinations
-      Call ematbdcmbs (1)
-      If (input%xs%fastpmat) Then
+      if (task .eq. 120) then
+        call ematbdcmbs(0)
+      else
+        Call ematbdcmbs(1)
+      end if
+      If (input%properties%momentummatrix%fastpmat) Then
          If (allocated(apwcmt)) deallocate (apwcmt)
          Allocate (apwcmt(nstsv, apwordmax, lmmaxapw, natmtot))
          If (allocated(ripaa)) deallocate (ripaa)
-         Allocate (ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw, &
-        & natmtot, 3))
+         Allocate (ripaa(apwordmax, lmmaxapw, apwordmax, lmmaxapw,natmtot, 3))
          If (nlotot .Gt. 0) Then
             If (allocated(locmt)) deallocate (locmt)
             Allocate (locmt(nstsv, nlomax,-lolmax:lolmax, natmtot))
             If (allocated(ripalo)) deallocate (ripalo)
-            Allocate (ripalo(apwordmax, lmmaxapw, &
-           & nlomax,-lolmax:lolmax, natmtot, 3))
+            Allocate (ripalo(apwordmax, lmmaxapw, nlomax,-lolmax:lolmax, natmtot, 3))
             If (allocated(riploa)) deallocate (riploa)
-            Allocate (riploa(nlomax,-lolmax:lolmax, apwordmax, &
-           & lmmaxapw, natmtot, 3))
+            Allocate (riploa(nlomax,-lolmax:lolmax, apwordmax, lmmaxapw, natmtot, 3))
             If (allocated(riplolo)) deallocate (riplolo)
-            Allocate (riplolo(nlomax,-lolmax:lolmax, &
-           & nlomax,-lolmax:lolmax, natmtot, 3))
+            Allocate (riplolo(nlomax,-lolmax:lolmax, nlomax,-lolmax:lolmax, natmtot, 3))
          End If
      ! calculate gradient of radial functions times spherical harmonics
          Call pmatrad
       End If
       Do ik = kpari, kparf
-         Call chkpt (2, (/ task, ik /), 'ematqk: task, k - point index;&
+         if (task .ne. 120) Call chkpt (2, (/ task, ik /), 'ematqk: task, k - point index;&
         & momentum matrix elements')
      ! get the eigenvectors and values from file
          Call getevecfv (vkl(1, ik), vgkl(1, 1, 1, ik), evecfvt)
@@ -99,7 +110,7 @@ Subroutine writepmatxs
      ! find the matching coefficients
          Call match (ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik), &
         & sfacgk(1, 1, 1, ik), apwalmt)
-         If (input%xs%fastpmat) Then
+         If (input%properties%momentummatrix%fastpmat) Then
         ! generate APW expansion coefficients for muffin-tin
             Call genapwcmt (input%groundstate%lmaxapw, ngk(1, ik), 1, &
            & nstfv, apwalmt, evecfvt, apwcmt)
@@ -107,28 +118,41 @@ Subroutine writepmatxs
             If (nlotot .Gt. 0) Call genlocmt (ngk(1, ik), 1, nstfv, &
            & evecfvt, locmt)
         ! calculate the momentum matrix elements
-            Call genpmat2 (ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, &
+            Call genpmatxs (ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, &
            & ik), evecfvt, evecsvt, pmat)
          Else
         ! calculate the momentum matrix elements
             Call genpmat (ngk(1, ik), igkig(1, 1, ik), vgkc(1, 1, 1, &
            & ik), apwalmt, evecfvt, evecsvt, pmat)
          End If
+         if (task .eq. 120) then
+     ! write the matrix elements to direct-access file
+           write(50,rec=ik) pmat
+         else
      ! parallel write
-         Call putpmat (ik, .True., trim(fnpmat), pmat)
+           Call putpmat (ik, .True., trim(fnpmat), pmat)
+         end if
       End Do
       Call barrier
       Deallocate (apwalmt, evecfvt, evecsvt, pmat)
-      If (input%xs%fastpmat) Then
+      If (input%properties%momentummatrix%fastpmat) Then
          Deallocate (apwcmt)
+         Deallocate (ripaa)
          If (nlotot .Gt. 0) Then
             Deallocate (locmt)
-            Deallocate (ripaa, ripalo, riploa, riplolo)
+            Deallocate (ripalo, riploa, riplolo)
          End If
       End If
       Call barrier
-      Write (unitout, '(a)') "Info(" // trim (thisnam) // "): momentum &
-     &matrix elements finished"
+      if (task .eq. 120) then
+        close(50)
+        Write (*,*)
+        Write (*, '("Info(writepmatxs):")')
+        Write (*, '(" momentum matrix elements written to file PMAT.OUT")')
+        Write (*,*)
+      else
+        Write (unitout, '(a)') "Info(writepmatxs): momentum matrix elements finished"
+      end if
   ! reset global file extension to default
       Call genfilname (setfilext=.True.)
 End Subroutine writepmatxs

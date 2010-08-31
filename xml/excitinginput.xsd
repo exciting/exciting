@@ -190,6 +190,20 @@ Example:  <pre>
     optics and band structure plots.</xs:documentation>
         </xs:annotation>
     </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat"
+       type="xs:boolean" default="true">
+       <xs:annotation>
+       <xs:documentation>
+        if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
+       </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit="" name="intraband"
+        type="xs:boolean" default="false">
+       <xs:annotation>
+           <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+       </xs:annotation>
+    </xs:attribute>
     <xs:attribute ex:importance="expert" ex:unit=""
     name="action" default="include">
     <xs:annotation>
@@ -2089,14 +2103,34 @@ Example:  <pre>
                                 </xs:annotation>
                                 <xs:complexType/>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="momentummatrix"
-                                maxOccurs="1" minOccurs="0">
+                            <xs:element ex:importance="expert" ex:unit="" name="mossbauer"
+                                minOccurs="0">
                                 <xs:complexType/>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="linresponsetensor"
+                            <xs:element ex:importance="expert" ex:unit="" name="momentummatrix"
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Linear optical response tensor.</xs:documentation>
+                                    <xs:documentation>Matrix elements of the momentum operator (legacy version, required by dielectric-element).</xs:documentation>
+                                    <xs:appinfo>
+                                        <oldname>noname</oldname>
+                                    </xs:appinfo>
+                                </xs:annotation>
+                                <xs:complexType>
+                                <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
+                                   default="false">
+                                  <xs:annotation>
+                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                  </xs:annotation>                                     
+                                  </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element ex:importance="expert" ex:unit="" name="dielectric"
+                                minOccurs="0" maxOccurs="1">
+                                <xs:annotation>
+                                    <xs:documentation>Linear optical response (without local field effects, legacy version).</xs:documentation>
+                                    <xs:appinfo>
+                                        <oldname>noname</oldname>
+                                    </xs:appinfo>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:sequence>
@@ -2109,19 +2143,22 @@ Example:  <pre>
                                     </xs:sequence>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
                                         ref="scissor" default="0.0d0"/>
-                                </xs:complexType>
+                                <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
+                                    default="false">
+                                   <xs:annotation>
+                                       <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+                                   </xs:annotation>
+                                </xs:attribute>
+                                <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
+                                   type="xs:boolean" default="false">
+                                  <xs:annotation>
+                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                  </xs:annotation>   
+                                  </xs:attribute>
+                               </xs:complexType>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="mossbauer"
+                            <xs:element ex:importance="expert" ex:unit="" name="moke"
                                 minOccurs="0">
-                                <xs:complexType/>
-                            </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="dielectric"
-                                minOccurs="0">
-                                <xs:annotation>
-                                    <xs:appinfo>
-                                        <oldname>noname</oldname>
-                                    </xs:appinfo>
-                                </xs:annotation>
                                 <xs:complexType/>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="expiqr"
@@ -2245,8 +2282,8 @@ Example:  <pre>
                             <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0"
                                 maxOccurs="1">
                                 <xs:complexType>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="intraband"
-                                        type="xs:boolean" default="false">
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
+                                        default="false">
                                         <xs:annotation>
                                             <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
                                         </xs:annotation>
@@ -3301,8 +3338,8 @@ Example:  <pre>
                             </xs:simpleType>
                         </xs:attribute>
                         <!-- Here are experimental parameters -->
-                        <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat"
-                            type="xs:boolean" default="true">
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
+                            default="true">
                             <xs:annotation>
                                 <xs:documentation>
                  if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
@@ -3330,10 +3367,6 @@ Example:  <pre>
                             <xs:annotation>
                                <xs:documentation>debugging level</xs:documentation>
                             </xs:annotation>
-                        </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
-                            type="xs:boolean" default="false"
-                            ><!-- used from src_optics/mod_DOS_optics_response.F90 -->
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="gqmax"
                             type="fortrandouble" default="0.0d0">

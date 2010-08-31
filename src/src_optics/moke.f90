@@ -20,10 +20,13 @@ Subroutine moke
       Complex (8), Allocatable :: kerr (:)
 ! calculate dielectric function for the 11 and 12 components
       noptcomp = 2
-      input%properties%linresponsetensor%optcomp(1, 1) = 1
-      input%properties%linresponsetensor%optcomp(2, 1) = 1
-      input%properties%linresponsetensor%optcomp(1, 2) = 1
-      input%properties%linresponsetensor%optcomp(2, 2) = 2
+      if (associated(input%properties%dielectric%optcomp)) &
+        deallocate(input%properties%dielectric%optcomp)
+      allocate(input%properties%dielectric%optcomp(3,noptcomp))
+      input%properties%dielectric%optcomp(1, 1) = 1
+      input%properties%dielectric%optcomp(2, 1) = 1
+      input%properties%dielectric%optcomp(1, 2) = 1
+      input%properties%dielectric%optcomp(2, 2) = 2
       Call dielectric
 ! allocate local arrays
       Allocate (w(input%properties%dos%nwdos))

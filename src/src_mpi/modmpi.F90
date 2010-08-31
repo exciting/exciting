@@ -170,6 +170,14 @@ Contains
         real(8), intent(inout), optional :: rbuf(*)
         complex(8), intent(inout), optional :: zbuf(*)
         ! local variables
+#ifndef MPI1
+#define BUFFER mpi_in_place
+#endif
+#ifdef MPI1
+        complex(8), allocatable :: bufz(:)
+        real(8), allocatable :: bufr(:)
+        integer, allocatable :: bufi(:)
+#endif
         integer, allocatable :: buf_n(:),buf_dspls(:)
         integer :: j
         logical :: ti,tr,tz
@@ -184,11 +192,16 @@ Contains
         allocate(buf_n(procs),buf_dspls(procs))
         ! displacements within receive buffer (flattened array)
         buf_dspls=(/(rlen*(firstofset(j,set)-1),j=0,procs-1)/)
-        ! number of elements in send buffer  (flattened array)
+        ! number of elements in send buffer (flattened array)
         buf_n=(/(rlen*nofset(j,set),j=0,procs-1)/)
         ! use recieve buffer as sendbuffer by specifying mpi_in_place
         if (ti) then
-          call mpi_allgatherv(mpi_in_place, &
+#ifdef MPI1
+#define BUFFER bufi
+          allocate(bufi(buf_n(rank+1)))
+          bufi(:)=ibuf(buf_dspls(rank+1)+1:buf_dspls(rank+1)+buf_n(rank+1))
+#endif
+          call mpi_allgatherv(BUFFER, &
             buf_n(rank+1), &
             mpi_int, &
             ibuf, &
@@ -197,9 +210,18 @@ Contains
             mpi_int, &
             mpi_comm_world, &
             ierr)
+#ifdef MPI1
+          deallocate(bufi)
+#undef BUFFER
+#endif
         end if
         if (tr) then
-          call mpi_allgatherv(mpi_in_place, &
+#ifdef MPI1
+#define BUFFER bufr
+          allocate(bufr(buf_n(rank+1)))
+          bufr(:)=rbuf(buf_dspls(rank+1)+1:buf_dspls(rank+1)+buf_n(rank+1))
+#endif
+          call mpi_allgatherv(BUFFER, &
             buf_n(rank+1), &
             mpi_double_precision, &
             rbuf, &
@@ -208,9 +230,18 @@ Contains
             mpi_double_precision, &
             mpi_comm_world, &
             ierr)
+#ifdef MPI1
+          deallocate(bufr)
+#undef BUFFER
+#endif
         end if
         if (tz) then
-          call mpi_allgatherv(mpi_in_place, &
+#ifdef MPI1
+#define BUFFER bufz
+          allocate(bufz(buf_n(rank+1)))
+          bufz(:)=zbuf(buf_dspls(rank+1)+1:buf_dspls(rank+1)+buf_n(rank+1))
+#endif
+          call mpi_allgatherv(BUFFER, &
             buf_n(rank+1), &
             mpi_double_complex, &
             zbuf, &
@@ -219,6 +250,10 @@ Contains
             mpi_double_complex, &
             mpi_comm_world, &
             ierr)
+#ifdef MPI1
+          deallocate(bufz)
+#undef BUFFER
+#endif
         end if
         deallocate(buf_n,buf_dspls)
 #endif

@@ -254,10 +254,10 @@ type properties_type
   type(gradmvecfield_type),pointer::gradmvecfield
   type(fermisurfaceplot_type),pointer::fermisurfaceplot
   type(EFG_type),pointer::EFG
-  type(momentummatrix_type),pointer::momentummatrix
-  type(linresponsetensor_type),pointer::linresponsetensor
   type(mossbauer_type),pointer::mossbauer
+  type(momentummatrix_type),pointer::momentummatrix
   type(dielectric_type),pointer::dielectric
+  type(moke_type),pointer::moke
   type(expiqr_type),pointer::expiqr
   type(elnes_type),pointer::elnes
   type(eliashberg_type),pointer::eliashberg
@@ -334,19 +334,20 @@ type EFG_type
 logical::exists
  end type
     
-type momentummatrix_type
-logical::exists
- end type
-    type linresponsetensor_type
- real(8)::scissor
- integer,pointer::optcomp(:,:)
-end type
-
 type mossbauer_type
 logical::exists
  end type
-    
+    type momentummatrix_type
+ logical::fastpmat
+end type
 type dielectric_type
+ real(8)::scissor
+ logical::intraband
+ logical::usegdft
+ integer,pointer::optcomp(:,:)
+end type
+
+type moke_type
 logical::exists
  end type
     
@@ -391,7 +392,6 @@ type xs_type
  logical::fastemat
  logical::tappinfo
  integer::dbglev
- logical::usegdft
  real(8)::gqmax
  logical::nosym
  integer::ngridk(3)
@@ -2413,22 +2413,6 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "EFG"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"momentummatrix")
-getstructproperties%momentummatrix=>null()
-Do i=0,len-1
-getstructproperties%momentummatrix=>getstructmomentummatrix(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"momentummatrix"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"linresponsetensor")
-getstructproperties%linresponsetensor=>null()
-Do i=0,len-1
-getstructproperties%linresponsetensor=>getstructlinresponsetensor(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"linresponsetensor"),0)) ) 
-enddo
-
             len= countChildEmentsWithName(thisnode,"mossbauer")
 getstructproperties%mossbauer=>null()
 Do i=0,len-1
@@ -2437,12 +2421,28 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "mossbauer"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"momentummatrix")
+getstructproperties%momentummatrix=>null()
+Do i=0,len-1
+getstructproperties%momentummatrix=>getstructmomentummatrix(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"momentummatrix"),0)) ) 
+enddo
+
             len= countChildEmentsWithName(thisnode,"dielectric")
 getstructproperties%dielectric=>null()
 Do i=0,len-1
 getstructproperties%dielectric=>getstructdielectric(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "dielectric"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"moke")
+getstructproperties%moke=>null()
+Do i=0,len-1
+getstructproperties%moke=>getstructmoke(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"moke"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"expiqr")
@@ -3048,59 +3048,6 @@ allocate(getstructEFG)
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructmomentummatrix(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(momentummatrix_type),pointer::getstructmomentummatrix
-		
-integer::len=1,i=0
-allocate(getstructmomentummatrix)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at momentummatrix"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructlinresponsetensor(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(linresponsetensor_type),pointer::getstructlinresponsetensor
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructlinresponsetensor)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at linresponsetensor"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-getstructlinresponsetensor%scissor=0.0d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructlinresponsetensor%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-      len= countChildEmentsWithName (thisnode,"optcomp")           
-allocate(getstructlinresponsetensor%optcomp(3,len))
-Do i=1,len
-
-		getstructlinresponsetensor%optcomp(:,i)=getvalueofoptcomp(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "optcomp"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
 function getstructmossbauer(thisnode)
 
 implicit none
@@ -3118,16 +3065,95 @@ allocate(getstructmossbauer)
       call  handleunknownnodes(thisnode)
 end function
 
+function getstructmomentummatrix(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(momentummatrix_type),pointer::getstructmomentummatrix
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructmomentummatrix)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at momentummatrix"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"fastpmat")
+getstructmomentummatrix%fastpmat= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"fastpmat",getstructmomentummatrix%fastpmat)
+       call removeAttribute(thisnode,"fastpmat")      
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
 function getstructdielectric(thisnode)
 
 implicit none
 type(Node),pointer::thisnode
 type(dielectric_type),pointer::getstructdielectric
-		
+		type(Node),pointer::np
+
+
 integer::len=1,i=0
 allocate(getstructdielectric)  
 #ifdef INPUTDEBUG      
       write(*,*)"we are at dielectric"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"scissor")
+getstructdielectric%scissor=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scissor",getstructdielectric%scissor)
+       call removeAttribute(thisnode,"scissor")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"intraband")
+getstructdielectric%intraband= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"intraband",getstructdielectric%intraband)
+       call removeAttribute(thisnode,"intraband")      
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"usegdft")
+getstructdielectric%usegdft= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"usegdft",getstructdielectric%usegdft)
+       call removeAttribute(thisnode,"usegdft")      
+endif
+
+      len= countChildEmentsWithName (thisnode,"optcomp")           
+allocate(getstructdielectric%optcomp(3,len))
+Do i=1,len
+
+		getstructdielectric%optcomp(:,i)=getvalueofoptcomp(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "optcomp"),0)))
+end do
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructmoke(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(moke_type),pointer::getstructmoke
+		
+integer::len=1,i=0
+allocate(getstructmoke)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at moke"
 #endif
       
       i=0
@@ -3446,14 +3472,6 @@ getstructxs%dbglev=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"dbglev",getstructxs%dbglev)
        call removeAttribute(thisnode,"dbglev")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"usegdft")
-getstructxs%usegdft= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"usegdft",getstructxs%usegdft)
-       call removeAttribute(thisnode,"usegdft")      
 endif
 
 nullify(np)  

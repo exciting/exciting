@@ -357,17 +357,17 @@ subroutine checkinput
     end if
   end if
   if (associated(input%properties)) then
-    if (associated(input%properties%linresponsetensor)) then
-      do i=1,size(input%properties%linresponsetensor%optcomp,2)
-        if ((input%properties%linresponsetensor%optcomp(1,i).lt.1).or. &
-         (input%properties%linresponsetensor%optcomp(1,i).gt.3).or. &
-         (input%properties%linresponsetensor%optcomp(2,i).lt.1).or. &
-         (input%properties%linresponsetensor%optcomp(2,i).gt.3).or. &
-         (input%properties%linresponsetensor%optcomp(3,i).lt.1).or. &
-         (input%properties%linresponsetensor%optcomp(3,i).gt.3)) then
+    if (associated(input%properties%dielectric)) then
+      do i=1,size(input%properties%dielectric%optcomp,2)
+        if ((input%properties%dielectric%optcomp(1,i).lt.1).or. &
+         (input%properties%dielectric%optcomp(1,i).gt.3).or. &
+         (input%properties%dielectric%optcomp(2,i).lt.1).or. &
+         (input%properties%dielectric%optcomp(2,i).gt.3).or. &
+         (input%properties%dielectric%optcomp(3,i).lt.1).or. &
+         (input%properties%dielectric%optcomp(3,i).gt.3)) then
          write(*,*)
          write(*,'("Error(checkinput): invalid /input/properties/linresponsetensor/optcomp : ",3I8)') &
-           input%properties%linresponsetensor%optcomp(:,i)
+           input%properties%dielectric%optcomp(:,i)
          write(*,*)
          stop
         end if
