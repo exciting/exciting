@@ -34,6 +34,8 @@ Subroutine writepmatxs
       Complex (8), Allocatable :: evecfvt (:, :)
       Complex (8), Allocatable :: evecsvt (:, :)
       Complex (8), Allocatable :: pmat (:, :, :)
+      Logical, External :: tqgamma
+      if (.not.tqgamma(1)) return
       tscreen=(task .Ge. 400) .And. (task .Le. 499)
       If ((task .eq. 120).or. tscreen) Then
          fnam = 'PMAT'

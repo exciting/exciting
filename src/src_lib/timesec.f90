@@ -14,5 +14,6 @@ Subroutine timesec (ts)
       Integer :: count, count_rate
       Call system_clock (count=count, count_rate=count_rate)
       ts = dble (count) / dble (count_rate)
+write(*,*) count_rate, count
       Return
 End Subroutine

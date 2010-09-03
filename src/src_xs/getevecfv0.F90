@@ -1,11 +1,8 @@
-!
-!
-!
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 Subroutine getevecfv0 (vpl, vgpl, evecfvt)
       Use modmain
       Use modxs
@@ -31,6 +28,9 @@ Subroutine getevecfv0 (vpl, vgpl, evecfvt)
       vklt (:, :) = vkl (:, :)
       vkl (:, :) = vkl0 (:, :)
       vgklt (:, :, :, :) = vgkl (:, :, :, :)
+      ! re-allocate array
+      deallocate(vgkl)
+      allocate(vgkl(3, ngkmax0, nspnfv, nkpt))
       vgkl (:, :, :, :) = vgkl0 (:, :, :, :)
       filextt = filext
   ! call to getevecfv with changed (G+)k-point sets / matrix size
@@ -41,6 +41,9 @@ Subroutine getevecfv0 (vpl, vgpl, evecfvt)
       ngkmax = ngkmaxt
       ngk (:, :) = ngkt (:, :)
       vkl (:, :) = vklt (:, :)
+      ! re-allocate array
+      deallocate(vgkl)
+      allocate(vgkl(3, ngkmax, nspnfv, nkpt))
       vgkl (:, :, :, :) = vgklt (:, :, :, :)
       filext = filextt
       Deallocate (ngkt, vklt, vgklt)

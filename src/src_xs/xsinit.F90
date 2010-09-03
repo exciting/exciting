@@ -49,17 +49,18 @@ Subroutine xsinit
   ! write to info file
       If (calledxs .Eq. 1) Then
          Write (unitout,*)
-         Write (unitout, '("+--------------------------------------------------+")')
-         Write (unitout, '("| EXCITING version ", I2.2, ".", I2.2, ".",&
-        & I2.2, " started                |")') version
+         Write (unitout, '("+-----------------------------------------------------------+")')
+         Write (unitout, '("| EXCITING hydrogen (",I2.2,".",I2.2,".",I2.2,") started                      |")') version
+         Write (unitout, '("| version hash id: ",a," |")') githash
 #ifdef MPI
-         Write (unitout, '("| MPI version using ",i6," processor(s)            |")') procs
-         if (rank .ne. 0) Write (unitout, '("|  rank of current processor: ",i6,"               |")') rank
+         Write (unitout, '("| MPI version using ",i6," processor(s)                     |")') procs
+         if (rank .ne. 0) &
+         Write (unitout, '("|  rank of current processor: ",i6,"                        |")') rank
 #ifndef MPI1
-         Write (unitout, '("|  using ''MPI_IN_PLACE'' for send/receive buffers |")')
+         Write (unitout, '("|  using MPI-2 features                                     |")')
 #endif
 #endif
-         Write (unitout, '("+ -------------------------------------------------+")')
+         Write (unitout, '("+ ----------------------------------------------------------+")')
          If (notelns .Gt. 0) Then
             Write (unitout,*)
             Write (unitout, '("Notes :")')

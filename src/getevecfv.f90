@@ -47,7 +47,7 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !   \end{tabular}\newline\newline
 !
 ! !REVISION HISTORY:
-!   Documentation added, Dec 2009 (SAG)
+!   Documentation added, Dec 2009 (S. Sagmeister)
 !EOP
 !BOC
       Implicit None

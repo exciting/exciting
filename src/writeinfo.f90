@@ -35,16 +35,16 @@ Subroutine writeinfo (fnum)
       logical :: tetocc
 #endif
       Character (10) :: dat, tim
-      Write (fnum, '(" +-----------------------------------------------------------+")')
-      Write (fnum, '(" | EXCITING hydrogen (",I2,".",I2,".",I2,") started                      |")') version
-      Write (fnum, '(" | version hash id: ",a," |")') githash
+      Write (fnum, '("+-----------------------------------------------------------+")')
+      Write (fnum, '("| EXCITING hydrogen (",I2.2,".",I2.2,".",I2.2,") started                      |")') version
+      Write (fnum, '("| version hash id: ",a," |")') githash
 #ifdef MPI
-      Write (fnum, '(" | MPI version using ",i6," processor(s)                     |")') procs
+      Write (fnum, '("| MPI version using ",i6," processor(s)                     |")') procs
 #ifndef MPI1
-      Write (fnum, '(" |  using ''MPI_IN_PLACE'' for send/receive buffers          |")')
+      Write (fnum, '("|  using MPI-2 features                                     |")')
 #endif
 #endif
-      Write (fnum, '(" +-----------------------------------------------------------+")')
+      Write (fnum, '("+-----------------------------------------------------------+")')
       If (notelns .Gt. 0) Then
          Write (fnum,*)
          Write (fnum, '("Notes :")')
