@@ -4,7 +4,7 @@
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
   >
   <title>Al</title>
-  <structure speciespath="/../../species/">
+  <structure speciespath="../../species/">
     <crystal scale="3.75" >
       <basevect>1.0 1.0 0.0</basevect>
       <basevect>1.0 0.0 1.0</basevect>
