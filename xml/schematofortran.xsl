@@ -387,6 +387,28 @@ endif
             <xsl:value-of select="@name|@ref"/>
             <xsl:text>")
 </xsl:text>
+   <xsl:if test="@minOccurs>=1">
+        <xsl:text>
+        if(len.eq.0) then
+        write(*,*)"the </xsl:text><xsl:value-of select="../../../@name"/>
+        <xsl:text> element must contain at least </xsl:text>
+        <xsl:value-of select="@minOccurs"/><xsl:text> </xsl:text>
+      
+        <xsl:if test="@maxOccurs>1">
+        <xsl:text> and maximum </xsl:text>
+        <xsl:value-of select="@maxOccurs"/>
+         <xsl:text> </xsl:text>
+        </xsl:if>
+        <xsl:value-of select="@name|@ref"/>
+       
+        <xsl:text> element</xsl:text>
+                <xsl:if test="@maxOccurs>1"><xsl:text>s</xsl:text></xsl:if>
+        
+        <xsl:text>"
+        endif
+        </xsl:text>
+        </xsl:if>
+
             <xsl:if test="@maxOccurs='unbounded' or @maxOccurs&gt;1">
               <xsl:text>     
 allocate(</xsl:text>

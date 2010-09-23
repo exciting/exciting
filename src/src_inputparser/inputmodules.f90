@@ -626,7 +626,11 @@ allocate(getstructplot1d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"path")
-getstructplot1d%path=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the plot1d element must contain at least 1 path element"
+        endif
+        getstructplot1d%path=>null()
 Do i=0,len-1
 getstructplot1d%path=>getstructpath(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -667,7 +671,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the path element must contain at least 2 point element"
+        endif
+             
 allocate(getstructpath%pointarray(len))
 Do i=0,len-1
 getstructpath%pointarray(i+1)%point=>getstructpoint(&
@@ -693,7 +701,11 @@ allocate(getstructplot2d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"parallelogram")
-getstructplot2d%parallelogram=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the plot2d element must contain at least 1 parallelogram element"
+        endif
+        getstructplot2d%parallelogram=>null()
 Do i=0,len-1
 getstructplot2d%parallelogram=>getstructparallelogram(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -734,7 +746,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-getstructparallelogram%origin=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the parallelogram element must contain at least 1 origin element"
+        endif
+        getstructparallelogram%origin=>null()
 Do i=0,len-1
 getstructparallelogram%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -742,7 +758,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the parallelogram element must contain at least 2  and maximum 2 point elements"
+        endif
+             
 allocate(getstructparallelogram%pointarray(len))
 Do i=0,len-1
 getstructparallelogram%pointarray(i+1)%point=>getstructpoint(&
@@ -768,7 +788,11 @@ allocate(getstructplot3d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"box")
-getstructplot3d%box=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the plot3d element must contain at least 1 box element"
+        endif
+        getstructplot3d%box=>null()
 Do i=0,len-1
 getstructplot3d%box=>getstructbox(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -809,7 +833,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-getstructbox%origin=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the box element must contain at least 1 origin element"
+        endif
+        getstructbox%origin=>null()
 Do i=0,len-1
 getstructbox%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -817,7 +845,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the box element must contain at least 3  and maximum 3 point elements"
+        endif
+             
 allocate(getstructbox%pointarray(len))
 Do i=0,len-1
 getstructbox%pointarray(i+1)%point=>getstructpoint(&
@@ -886,7 +918,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"structure")
-getstructinput%structure=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the input element must contain at least 1 structure element"
+        endif
+        getstructinput%structure=>null()
 Do i=0,len-1
 getstructinput%structure=>getstructstructure(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1032,7 +1068,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"crystal")
-getstructstructure%crystal=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the structure element must contain at least 1 crystal element"
+        endif
+        getstructstructure%crystal=>null()
 Do i=0,len-1
 getstructstructure%crystal=>getstructcrystal(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1096,7 +1136,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"lattice")
-getstructsymmetries%lattice=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the symmetries element must contain at least 1 lattice element"
+        endif
+        getstructsymmetries%lattice=>null()
 Do i=0,len-1
 getstructsymmetries%lattice=>getstructlattice(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1369,7 +1413,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"atom")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the species element must contain at least 1 atom element"
+        endif
+             
 allocate(getstructspecies%atomarray(len))
 Do i=0,len-1
 getstructspecies%atomarray(i+1)%atom=>getstructatom(&
@@ -3278,7 +3326,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"qpointset")
-getstructphonons%qpointset=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the phonons element must contain at least 1 qpointset element"
+        endif
+        getstructphonons%qpointset=>null()
 Do i=0,len-1
 getstructphonons%qpointset=>getstructqpointset(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3611,7 +3663,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"qpointset")
-getstructxs%qpointset=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the xs element must contain at least 1 qpointset element"
+        endif
+        getstructxs%qpointset=>null()
 Do i=0,len-1
 getstructxs%qpointset=>getstructqpointset(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3627,7 +3683,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"dosWindow")
-getstructxs%dosWindow=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the xs element must contain at least 1 dosWindow element"
+        endif
+        getstructxs%dosWindow=>null()
 Do i=0,len-1
 getstructxs%dosWindow=>getstructdosWindow(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&

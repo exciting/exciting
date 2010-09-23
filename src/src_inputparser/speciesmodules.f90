@@ -153,7 +153,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"muffinTin")
-getstructsp%muffinTin=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the sp element must contain at least 1 muffinTin element"
+        endif
+        getstructsp%muffinTin=>null()
 Do i=0,len-1
 getstructsp%muffinTin=>getstructmuffinTin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -161,7 +165,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"atomicState")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the sp element must contain at least 1 atomicState element"
+        endif
+             
 allocate(getstructsp%atomicStatearray(len))
 Do i=0,len-1
 getstructsp%atomicStatearray(i+1)%atomicState=>getstructatomicState(&
@@ -170,7 +178,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"basis")
-getstructsp%basis=>null()
+
+        if(len.eq.0) then
+        write(*,*)"the sp element must contain at least 1 basis element"
+        endif
+        getstructsp%basis=>null()
 Do i=0,len-1
 getstructsp%basis=>getstructbasis(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -314,7 +326,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"wf")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the basis element must contain at least 1 wf element"
+        endif
+             
 allocate(getstructbasis%wfarray(len))
 Do i=0,len-1
 getstructbasis%wfarray(i+1)%wf=>getstructwf(&
@@ -358,7 +374,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"wf")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the exception element must contain at least 1 wf element"
+        endif
+             
 allocate(getstructexception%wfarray(len))
 Do i=0,len-1
 getstructexception%wfarray(i+1)%wf=>getstructwf(&
@@ -393,7 +413,11 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"wf")
-     
+
+        if(len.eq.0) then
+        write(*,*)"the lorb element must contain at least 1 wf element"
+        endif
+             
 allocate(getstructlorb%wfarray(len))
 Do i=0,len-1
 getstructlorb%wfarray(i+1)%wf=>getstructwf(&
