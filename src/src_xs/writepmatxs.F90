@@ -34,6 +34,7 @@ Subroutine writepmatxs
       Complex (8), Allocatable :: evecfvt (:, :)
       Complex (8), Allocatable :: evecsvt (:, :)
       Complex (8), Allocatable :: pmat (:, :, :)
+      logical :: fast
       Logical, External :: tqgamma
       fast=(task.ne.120).or.((task.eq.120).and.input%properties%momentummatrix%fastpmat)
       if (task .ne. 120) then
