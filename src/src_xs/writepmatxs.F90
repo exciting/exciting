@@ -34,8 +34,12 @@ Subroutine writepmatxs
       Complex (8), Allocatable :: evecfvt (:, :)
       Complex (8), Allocatable :: evecsvt (:, :)
       Complex (8), Allocatable :: pmat (:, :, :)
+      logical :: fast
       Logical, External :: tqgamma
-      if (.not.tqgamma(1)) return
+      fast=(task.ne.120).or.((task.eq.120).and.input%properties%momentummatrix%fastpmat)
+      if (task .ne. 120) then
+        if (.not.tqgamma(1)) return
+      end if
       tscreen=(task .Ge. 400) .And. (task .Le. 499)
       If ((task .eq. 120).or. tscreen) Then
          fnam = 'PMAT'
@@ -85,7 +89,7 @@ Subroutine writepmatxs
       else
         Call ematbdcmbs(1)
       end if
-      If (input%properties%momentummatrix%fastpmat) Then
+      if (fast) then
          If (allocated(apwcmt)) deallocate (apwcmt)
          Allocate (apwcmt(nstsv, apwordmax, lmmaxapw, natmtot))
          If (allocated(ripaa)) deallocate (ripaa)
@@ -112,7 +116,7 @@ Subroutine writepmatxs
      ! find the matching coefficients
          Call match (ngk(1, ik), gkc(1, 1, ik), tpgkc(1, 1, 1, ik), &
         & sfacgk(1, 1, 1, ik), apwalmt)
-         If (input%properties%momentummatrix%fastpmat) Then
+         If (fast) Then
         ! generate APW expansion coefficients for muffin-tin
             Call genapwcmt (input%groundstate%lmaxapw, ngk(1, ik), 1, &
            & nstfv, apwalmt, evecfvt, apwcmt)
@@ -137,7 +141,7 @@ Subroutine writepmatxs
       End Do
       Call barrier
       Deallocate (apwalmt, evecfvt, evecsvt, pmat)
-      If (input%properties%momentummatrix%fastpmat) Then
+      If (fast) Then
          Deallocate (apwcmt)
          Deallocate (ripaa)
          If (nlotot .Gt. 0) Then

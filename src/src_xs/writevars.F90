@@ -121,8 +121,6 @@ Contains
         & input%groundstate%lradstep
          Write (un, '(a, l8)') '# input%xs%tevout	       :', &
         & input%xs%tevout
-         Write (un, '(a, l8)') '# input%xs%fastpmat	       :', &
-        & input%xs%fastemat
          Write (un, '(a, l8)') '# input%xs%fastemat	       :', &
         & input%xs%fastemat
          Write (un, '(a, l8)') '# input%groundstate%nosym		:', &
