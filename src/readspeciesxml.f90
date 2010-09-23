@@ -12,7 +12,7 @@ Subroutine readspeciesxml
       Implicit None
 ! local variables
       Integer :: is, ist
-      Integer :: io, nlx, ilx, lx, ilo,slash
+      Integer :: io, nlx, ilx, lx, ilo,slash,errorcode
       Type (Node), Pointer :: speciesnp, speciesdbnp
       character(2048)::command
       character(256)::spfile_string
@@ -47,7 +47,13 @@ Subroutine readspeciesxml
              Write (spfile_string,*)trim (input%structure%speciespath) // "/" &
             & // trim (input%structure%speciesarray(is)%species%speciesfile)
 	     endif
-         doc => parseFile (ADJUSTL(trim(spfile_string)),config)
+         doc => parseFile (ADJUSTL(trim(spfile_string)),config,iostat=errorcode)
+          if(errorcode.ne.0) then
+        	 write(*,*) "### Could not open ", ADJUSTL(trim(spfile_string))
+      		 write(*,*) "### Check if file exists and if it is well-formed XML."
+
+       	     stop
+         endif
          speciesdbnp => getDocumentElement (doc)
          speciesnp => item (getElementsByTagname(speciesdbnp, "sp"), 0)
          parseerror = .False.
