@@ -237,13 +237,16 @@ Subroutine bse
       Write (unitout, '("Info(bse): gap:", g18.10)') egap
       If (egap .Lt. input%groundstate%epspot) Then
          Write (unitout,*)
-         Write (unitout, '("Error(bse): BSE needs system with gap")')
+!(wol)         Write (unitout, '("Error(bse): BSE needs system with gap")')
+         Write (unitout, '("Warning(bse): system has no gap")')
          Write (unitout,*)
-         Call terminate
+!(wol)         Call terminate
       End If
 !TEST!!!!!!!
-	  egap = 0.0 !(wol)
-	  bsed = 0.0
+!	  If (istl3 - nsta2 + 1 .Le. nstocc0) Then
+!	  egap = 0.0 !(wol)
+!	  bsed = 0.0 !(wol)
+!	  End If
 !TEST!!!!!!!	  
   ! set up BSE-Hamiltonian
       ikkp = 0
@@ -446,6 +449,7 @@ Subroutine bse
          End Do
          spectr (:) = l2int (oct .Eq. oct) * 1.d0 - spectr (:) * 8.d0 * &
         & pi / omega / nkptnr
+		write (*,*) 'omega, nkptnr, egap, bsed', omega, nkptnr,egap, bsed !(wol)
      ! write BSE spectrum
          Call writeeps (iqmt, oct, oct, w, spectr, fneps)
      ! oscillator strengths
