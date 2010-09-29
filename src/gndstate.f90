@@ -30,14 +30,14 @@ Subroutine gndstate
       Logical :: exist
       Integer :: ik, is, ia, idm
       Integer :: n, nwork
-      Real (8) :: timetot, deltae, dforcemax, et, fm
+      Real (8) :: timetot, et, fm
   ! allocatable arrays
       Real (8), Allocatable :: v (:)
 !
       Real (8), Allocatable :: evalfv (:, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
-      Logical :: force_converged, redoscl, tibs
+      Logical :: force_converged, tibs
   ! require forces for structural optimisation
       If ((task .Eq. 2) .Or. (task .Eq. 3)) input%groundstate%tforce = &
      & .True.
@@ -91,9 +91,9 @@ Subroutine gndstate
         & Form='FORMATTED')
      ! open DTOTENERGY.OUT
          open(66,file='DTOTENERGY'//trim(filext),action='WRITE',form='FORMATTED')
-     ! open DTOTENERGY.OUT
-         open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
-     ! open DTOTENERGY.OUT
+     ! open DFORCEMAX.OUT
+         if (input%groundstate%tforce) open(67,file='DFORCEMAX'//trim(filext),action='WRITE',form='FORMATTED')
+     ! open CHGDIST.OUT
          open(68,file='CHGDIST'//trim(filext),action='WRITE',form='FORMATTED')
      ! open PCHARGE.OUT
          open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
@@ -164,11 +164,6 @@ Subroutine gndstate
                Write (60, '("Reached self-consistent loops maximum")')
             End If
             tlast = .True.
-#ifdef MPI
-            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
-#endif
-!
          End If
          If (rank .Eq. 0) Call flushifc (60)
      ! generate the core wavefunctions and densities
@@ -185,7 +180,7 @@ Subroutine gndstate
      ! find the new linearisation energies
          Call linengy
      ! write out the linearisation energies
-         Call writelinen
+         if (rank .eq. 0) Call writelinen
      ! generate the APW radial functions
          Call genapwfr
      ! generate the local-orbital radial functions
@@ -194,7 +189,8 @@ Subroutine gndstate
          Call olprad
      ! compute the Hamiltonian radial integrals
          Call hmlrad
-!
+     ! zero partial charges
+         chgpart(:,:,:)=0.d0
 #ifdef MPI
          Call MPI_barrier (MPI_COMM_WORLD, ierr)
          If (rank .Eq. 0) Call delevec ()
@@ -209,8 +205,6 @@ Subroutine gndstate
 #endif
 #ifndef MPISEC
          splittfile = .False.
-     ! zero partial charges
-         chgpart(:,:,:)=0.d0
      ! begin parallel loop over k-points
 #ifdef KSMP
      !$OMP PARALLEL DEFAULT(SHARED) &
@@ -239,23 +233,11 @@ Subroutine gndstate
      !$OMP END PARALLEL
 #endif
 #ifdef MPISEC
-         Call mpisync_evalsv_spnchr
+         call mpi_allgatherv_ifc(nkpt,nstsv,rbuf=evalsv)
+         Call MPI_barrier (MPI_COMM_WORLD, ierr)
 #endif
-         If (rank .Eq. 0) Then
-        ! write out partial charges
-            call writepchgs(69,input%groundstate%lmaxvr)
-            call flushifc(69)
-         end if
      ! find the occupation numbers and Fermi energy
          Call occupy
-#ifdef MPISEC
-         Call MPI_bcast (occsv, nstsv*nkpt, MPI_DOUBLE_PRECISION, 0, &
-        & MPI_COMM_WORLD, ierr)
-         Call MPI_bcast (fermidos, 1, MPI_DOUBLE_PRECISION, 0, &
-        & MPI_COMM_WORLD, ierr)
-         Call MPI_bcast (efermi, 1, MPI_DOUBLE_PRECISION, 0, &
-        & MPI_COMM_WORLD, ierr)
-#endif
          If (rank .Eq. 0) Then
         ! write out the eigenvalues and occupation numbers
             Call writeeval
@@ -269,16 +251,13 @@ Subroutine gndstate
             magmt (:, :, :, :) = 0.d0
             magir (:, :) = 0.d0
          End If
-!
 #ifdef MPIRHO
-!
          Do ik = firstk (rank), lastk (rank)
         !write the occupancies to file
             Call putoccsv (ik, occsv(:, ik))
          End Do
          Do ik = firstk (rank), lastk (rank)
 #endif
-!
 #ifndef MPIRHO
             If (rank .Eq. 0) Then
                Do ik = 1, nkpt
@@ -296,7 +275,6 @@ Subroutine gndstate
 #endif
                Allocate (evecfv(nmatmax, nstfv, nspnfv))
                Allocate (evecsv(nstsv, nstsv))
-           !
            ! get the eigenvectors from file
                Call getevecfv (vkl(:, ik), vgkl(:, :, :, ik), evecfv)
                Call getevecsv (vkl(:, ik), evecsv)
@@ -317,6 +295,11 @@ Subroutine gndstate
             If (input%groundstate%xctypenumber .Lt. 0) Call &
            & mpiresumeevecfiles ()
 #endif
+            If (rank .Eq. 0) Then
+        ! write out partial charges
+               call writepchgs(69,input%groundstate%lmaxvr)
+               call flushifc(69)
+            end if
  ! symmetrise the density
             Call symrf (input%groundstate%lradstep, rhomt, rhoir)
         ! symmetrise the magnetisation
@@ -343,7 +326,7 @@ Subroutine gndstate
            ! generate the LDA+U potential matrix
                Call genvmatlu
            ! write the LDA+U matrices to file
-               Call writeldapu
+               if (rank .eq. 0) Call writeldapu
             End If
         ! generate charge distance
             call chgdist
@@ -355,22 +338,11 @@ Subroutine gndstate
         ! pack interstitial and muffin-tin effective potential and field into one array
             Call packeff (.True., n, v)
         ! mix in the old potential and field with the new
-!
             If (rank .Eq. 0) Call mixerifc &
            & (input%groundstate%mixernumber, n, v, currentconvergence, &
            & nwork)
-!
 #ifdef MPI
-            Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
- !    call  MPI_BCAST(nwork, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !     call  MPI_BCAST(work(1), nwork, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-!
-!
- !	call  MPI_BCAST(nu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !        call  MPI_BCAST(mu(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !        call  MPI_BCAST(f(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
- !        call  MPI_BCAST(beta(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+         Call MPI_bcast (v(1), n, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
 #endif
  ! unpack potential and field
             Call packeff (.False., n, v)
@@ -408,8 +380,8 @@ Subroutine gndstate
                   Call flushifc (64)
                end if
             end if
-        ! output energy components
             If (rank .Eq. 0) Then
+        ! output energy components
                Call writeengy (60)
                Write (60,*)
                Write (60, '("Density of states at Fermi energy : ", G18&
@@ -448,6 +420,9 @@ Subroutine gndstate
                      Write (60, '("Wrote STATE.OUT")')
                   End If
                End If
+               ! update convergence criteria
+               deltae=abs(et-engytot)
+               dforcemax=abs(fm-forcemax)
                Call scl_iter_xmlout ()
                If (associated(input%groundstate%spin)) Call &
               & scl_xml_write_moments ()
@@ -462,18 +437,20 @@ Subroutine gndstate
                   Write (60, '("RMS change in effective potential (targ&
                     &et) : ", G18.10, " (", G18.10, ")")') &
                     & currentconvergence, input%groundstate%epspot
-                  deltae=abs(et-engytot)
-                  dforcemax=abs(fm-forcemax)
                   write(60,'("Absolute change in total energy (target)   : ",G18.10," (",&
                   &G18.10,")")') deltae, input%groundstate%epsengy
-                  write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&
-                  &G18.10,")")') dforcemax, input%groundstate%epsforce
+                  if (input%groundstate%tforce) then
+                    write(60,'("Absolute change in |max. force| (target)   : ",G18.10," (",&
+                    &G18.10,")")') dforcemax, input%groundstate%epsforce
+                  end if
                   write(60,'("Charge distance (target)                   : ",G18.10," (",&
                   &G18.10,")")') chgdst, input%groundstate%epschg
                   write(66,'(G18.10)') deltae
                   call flushifc(66)
-                  write(67,'(G18.10)') dforcemax
-                  call flushifc(67)
+                  if (input%groundstate%tforce) then
+                    write(67,'(G18.10)') dforcemax
+                    call flushifc(67)
+                  end if
                   write(68,'(G18.10)') chgdst
                   call flushifc(68)
                   Write (65, '(G18.10)') currentconvergence
@@ -512,15 +489,12 @@ Subroutine gndstate
            ! end the self-consistent loop
             End If
 #ifdef MPI
-            Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
-            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
+            Call MPI_bcast (tstop, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+            Call MPI_bcast (tlast, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
 #endif
          End Do
 20       Continue
          If (rank .Eq. 0) Then
-            redoscl = .False.
             Write (60,*)
             Write (60, '("+------------------------------+")')
             Write (60, '("| Self-consistent loop stopped |")')
@@ -531,19 +505,19 @@ Subroutine gndstate
                Write (60,*)
                Write (60, '("Wrote STATE.OUT")')
             End If
+         end if
  !-----------------------!
  !     compute forces    !
  !-----------------------!
-            If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
-               Call force
-               If (rank .Eq. 0) Then
+         Call force
+         If (( .Not. tstop) .And. (input%groundstate%tforce)) Then
+            If (rank .Eq. 0) Then
        ! output forces to INFO.OUT
                   Call writeforce (60)
                   Call structure_xmlout ()
               ! write maximum force magnitude to FORCEMAX.OUT
                   Write (64, '(G18.10)') forcemax
                   Call flushifc (64)
-               End If
             End If
          End If
      !---------------------------------------!
@@ -559,19 +533,14 @@ Subroutine gndstate
                Call flushifc (60)
             End If
  ! check force convergence
-            If (rank .Eq. 0) Then
-               force_converged = .False.
-               If (forcemax .Le. input%structureoptimization%epsforce) &
-              & Then
+            force_converged = .False.
+            If (forcemax .Le. input%structureoptimization%epsforce) Then
+               If (rank .Eq. 0) Then
                   Write (60,*)
                   Write (60, '("Force convergence target achieved")')
-                  force_converged = .True.
                End If
+               force_converged = .True.
             End If
-#ifdef MPI
-            Call MPI_bcast (force_converged, 1, MPI_LOGICAL, 0, &
-           & MPI_COMM_WORLD, ierr)
-#endif
             If (force_converged) Go To 30
  ! update the atomic positions if forces are not converged
             Call updatpos
@@ -595,52 +564,13 @@ Subroutine gndstate
                Write (65,*)
            ! add blank line to DTOTENERGY.OUT, DFORCEMAX.OUT, CHGDIST.OUT and PCHARGE.OUT
                Write (66,*)
-               Write (67,*)
+               if (input%groundstate%tforce) Write (67,*)
                Write (68,*)
                Write (69,*)
-           ! begin new self-consistent loop with updated positions
-               redoscl = .True.
             End If
-!
-#ifdef MPI
-            Call MPI_bcast (redoscl, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, &
-           & ierr)
-!
-            Call MPI_bcast (forcemax, 1, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (atposc, size(atposc), MPI_DOUBLE_PRECISION, &
-           & 0, MPI_COMM_WORLD, ierr)
-            Do is = 1, nspecies
-               Do ia = 1, natoms (is)
-                  Call MPI_bcast (input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord, &
-                 & size(input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord), MPI_DOUBLE_PRECISION, 0, &
-                 & MPI_COMM_WORLD, ierr)
-               End Do
-            End Do
-            Call MPI_bcast (vkl, size(vkl), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (vkc, size(vkc), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (ngvec, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, &
-           & ierr)
-            Call MPI_bcast (sfacg, size(sfacg), MPI_DOUBLE_PRECISION, &
-           & 0, MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (ngk, size(ngk), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (vgkc, size(vgkc), MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (sfacgk, size(sfacgk), MPI_DOUBLE_PRECISION, &
-           & 0, MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (ngkmax, 1, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-            Call MPI_bcast (engynn, 1, MPI_DOUBLE_PRECISION, 0, &
-           & MPI_COMM_WORLD, ierr)
-!
-#endif
-!
-            If (redoscl) Go To 10
+           ! begin new self-consistent loop with updated positions
+            Go To 10
          End If
-!
 30       Continue
      ! output timing information
          If (rank .Eq. 0) Then
@@ -685,7 +615,7 @@ Subroutine gndstate
  ! close the DTOTENERGY.OUT file
             close(66)
  ! close the DFORCEMAX.OUT file
-            close(67)
+            if (input%groundstate%tforce) close(67)
  ! close the CHGDIST.OUT file
             close(68)
  ! close the PCHARGE.OUT file

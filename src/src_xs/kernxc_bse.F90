@@ -74,6 +74,15 @@ Subroutine kernxc_bse
   ! external functions
       Integer, External :: idxkkp, l2int
       Logical, External :: tqgamma
+  ! check that if Kohn-Sham response is time-ordered, so is the setting for the
+  ! kernel
+      if (input%xs%tddft%tordfxc .neqv. input%xs%tddft%torddf) then
+         write(*,*)
+         write(*,'("Error(kernxc_bse): Both, the Kohn-Sham response function")')
+         write(*,'(" and the BSE-derived xc kernel have to be either causal or time-ordered.")')
+         write(*,*)
+         call terminate
+      end if
       brd = input%xs%broad
       input%xs%emattype = 2
       Call init0
@@ -439,12 +448,10 @@ Subroutine kernxc_bse
               & ist3)-dek(ist1, ist3)+torfxc*zi*brd) ** 2
            ! update kernel
                Do iw = 1, nwdf
-!
-           		! TODO: speed up this summation, as in "dfq"
-!
-              ! resonant and antiresonant contributions
+              ! resonant contributions
                   fxc (:, :, iw) = fxc (:, :, iw) + osca (:, :) * den1 &
                  & (iw) + oscb (:, :) * den2 (iw)
+              ! antiresonant contributions
                   If (input%xs%tddft%aresfxc) fxc (:, :, iw) = fxc (:, &
                  & :, iw) + oscaa (:, :) * den1a (iw) + oscba (:, :) * &
                  & den2a (iw)

@@ -15,10 +15,13 @@ Subroutine symtr2 (t2)
       Use modmain
       Use modxs
 ! !DESCRIPTION:
-!   Symmetrizes a rank-2 tensor wrt.the rotational part of the crystal
+!   Symmetrizes a rank-2 tensor with respect to the rotational part of the crystal
 !   symmetries:
-!   $$ t_{ij}^{\rm sym} = \frac{1}{N_{\alpha}}\sum_{\alpha} \sum_{k,l}
+!   $$ t_{ij}^{\rm sym} = \frac{1}{N_{\alpha}}\sum_{\alpha} \sum_{k,l=1}^3
 !     \alpha_{ik} \alpha_{jl} t_{kl}. $$
+!   Here, $t_{ij}$ are the components of the rank-2 tensor, $\alpha_{ij}$
+!   denotes the rotational part of the crystal symmetries and $N_{\alpha}$ stands
+!   for the total number of crystal symmetries.
 !
 ! !REVISION HISTORY:
 !   Created October 2008 (Sagmeister)

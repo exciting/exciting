@@ -19,7 +19,8 @@
     </species>
   </structure>
   
-  <groundstate lradstep="2" lmaxvr="8" ngridk="4  4  4" vkloff="0.05 0.15 0.25">
+  <groundstate lradstep="2" lmaxvr="8" ngridk="4  4  4" vkloff="0.05 0.15 0.25"
+        gmaxvr="14.0">
   	<solver evaltol="1e-300" type="Lapack" />
   </groundstate>
 

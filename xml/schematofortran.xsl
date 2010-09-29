@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
  xmlns:str="http://exslt.org/strings">
   <xsl:output method="text"/>
   <xsl:variable name="newline">
@@ -361,7 +362,19 @@ np=>getAttributeNode(thisnode,"</xsl:text>
         <xsl:text>)
        call removeAttribute(thisnode,"</xsl:text>
         <xsl:value-of select="@name|@ref"/>
-        <xsl:text>")      
+        <xsl:text>")  </xsl:text>
+        <xsl:if test="@use='required'">
+        <xsl:text>
+        else
+        write(*,*)"Parser ERROR: The element '</xsl:text>
+        <xsl:value-of select="../../@name"/>
+        <xsl:text>' requires the attribute '</xsl:text>
+        <xsl:value-of select="@name|@ref"/> 
+        <xsl:text>' to be defined."</xsl:text>
+        write(*,*)"stopped"
+        stop
+        </xsl:if>    
+<xsl:text>
 endif
 </xsl:text>
 <xsl:if test="./*/xs:restriction/xs:enumeration"> 
@@ -386,6 +399,28 @@ endif
             <xsl:value-of select="@name|@ref"/>
             <xsl:text>")
 </xsl:text>
+   <xsl:if test="@minOccurs>=1">
+        <xsl:text>
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The </xsl:text><xsl:value-of select="../../../@name"/>
+        <xsl:text> element must contain at least </xsl:text>
+        <xsl:value-of select="@minOccurs"/><xsl:text> </xsl:text>
+      
+        <xsl:if test="@maxOccurs>1">
+        <xsl:text> and maximum </xsl:text>
+        <xsl:value-of select="@maxOccurs"/>
+         <xsl:text> </xsl:text>
+        </xsl:if>
+        <xsl:value-of select="@name|@ref"/>
+       
+        <xsl:text> element</xsl:text>
+                <xsl:if test="@maxOccurs>1"><xsl:text>s</xsl:text></xsl:if>
+        
+        <xsl:text>"
+        endif
+        </xsl:text>
+        </xsl:if>
+
             <xsl:if test="@maxOccurs='unbounded' or @maxOccurs&gt;1">
               <xsl:text>     
 allocate(</xsl:text>
@@ -526,7 +561,7 @@ end function</xsl:text>
 <xsl:value-of select="../../@name"/>
 <xsl:text>=0
 case default
-write(*,*) "'", string,"' is not valid selection for</xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection for</xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
 stop 
 end select
 end function

@@ -28,7 +28,7 @@ subroutine writepchgs(fnum,lmax)
   Write (fnum, '(I6, " : nstsv")') nstsv
   Write (fnum, '(f12.6, " : muffin-tin charge")') sum(chgpart)
   do ist=1,nstsv
-    t1 = maxval(wkpt(:) * occsv(ist,:))
+    t1 = maxval(wkpt(:nkpt) * occsv(ist,:))
     if (abs(t1) .gt. input%groundstate%epsocc) Then
       Write (fnum, '(I6, " : state")') ist
       write(fnum,'("  sum over atoms and lm : ",f12.6)') sum(chgpart(:,:,ist))

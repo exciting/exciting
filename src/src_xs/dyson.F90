@@ -70,7 +70,9 @@ Contains
         & n)
 !
     ! calculate matrix T=[1 - S0*K]
-         Forall (j=1:n) mt (j, j) = mt (j, j) + 1.d0
+         Forall (j=1:n)
+           mt (j, j) = mt (j, j) + 1.d0
+         end forall
 !
     ! invert matrix T
          Call zinvert_lapack (mt, mt)

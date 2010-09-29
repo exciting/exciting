@@ -33,8 +33,8 @@ Contains
         &ment sumrule  (num. val. el.):', s (2), '(', chgval / 2.d0, ')&
         &'
     ! one over frequency sumrule
-         Write (unit1, '(a, g18.10, a, g18.10, a)') 'pi half sumrule		 &
-        &      (target)	 :', s (3), '(', pi / 2.d0, ')'
+         Write (unit1, '(a, g18.10, a, g18.10, a)') 'pi half sumrule   &
+        &                     (target):', s (3), '(', pi / 2.d0, ')'
     ! write parameters as header to file
          Call writevars (unit1, iq, iq)
     ! close file

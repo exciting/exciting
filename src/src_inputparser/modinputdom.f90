@@ -18,10 +18,16 @@ Module inputdom
 Contains
 !
       Subroutine loadinputDOM ()
+      integer errorcode
          config => newDOMConfig ()
          parseerror = .False.
          Call setParameter (config, "validate-if-schema", .True.)
-         doc => parseFile ("input.xml", config)
+         doc => parseFile ("input.xml", config,iostat=errorcode)
+         if(errorcode.ne.0) then
+        	 write(*,*) "### Could not open input.xml file."
+      		 write(*,*) "### Check if file exists and if it is valid XML."
+       	     stop
+         endif
          inputnp => getDocumentElement (doc)
          nullnode => getattributenode (inputnp, "shouldneverexist")
          parseerror = .False.

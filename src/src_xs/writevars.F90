@@ -32,7 +32,7 @@ Contains
         & dat (1:4), dat (5:6), dat (7:8)
          Write (un, '("## Time (hh:mm:ss)  : ", a2, ":", a2, ":", a2)') &
         & tim (1:2), tim (3:4), tim (5:6)
-         Write (un, '("# version	     : ", i1.1, ".", i1.1, ".", i3.3)') version
+         Write (un, '("# version	    : ", i2.2, ".", i2.2, ".", i2.2)') version
          Write (un, '(a, 2f12.6)') '# efermi (H, eV)	   :', efermi, &
         & h2ev * efermi
          Write (un, '(a, 3f12.6)') '# vgqlmt		  :', &
@@ -121,8 +121,6 @@ Contains
         & input%groundstate%lradstep
          Write (un, '(a, l8)') '# input%xs%tevout	       :', &
         & input%xs%tevout
-         Write (un, '(a, l8)') '# input%xs%fastpmat	       :', &
-        & input%xs%fastemat
          Write (un, '(a, l8)') '# input%xs%fastemat	       :', &
         & input%xs%fastemat
          Write (un, '(a, l8)') '# input%groundstate%nosym		:', &

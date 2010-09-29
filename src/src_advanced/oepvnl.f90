@@ -14,10 +14,7 @@ Subroutine oepvnl (vnlcv, vnlvv)
       Complex (8), Intent (Out) :: vnlcv (ncrmax, natmtot, nstsv, nkpt)
       Complex (8), Intent (Out) :: vnlvv (nstsv, nstsv, nkpt)
 ! local variables
-      Integer :: ik, i
-      Integer :: mpireccnts (procs), mpirecdispls (procs), mpisndcnts &
-     & (procs), mpisnddispls (procs), kgatherdispls (procs), &
-     & kgatherrecvcnts (procs)
+      Integer :: ik
 !$OMP PARALLEL DEFAULT(SHARED)
 !$OMP DO
 #ifdef MPIEXX
@@ -35,25 +32,8 @@ Subroutine oepvnl (vnlcv, vnlvv)
 !$OMP END PARALLEL
 !
 #ifdef MPIEXX
-         Do i = 0, procs - 1
-            kgatherdispls (i+1) = firstk (i) - 1
-            kgatherrecvcnts (i+1) = nofk (i)
-         End Do
-         mpireccnts = kgatherrecvcnts * ncrmax * natmtot * nstsv
-         mpirecdispls = kgatherdispls * ncrmax * natmtot * nstsv
-         mpisndcnts (:) = nofk (rank) * ncrmax * natmtot * nstsv
-         mpisnddispls (:) = (firstk(rank)-1) * ncrmax * natmtot * nstsv
-         Call MPI_Alltoallv (vnlcv, mpisndcnts, mpisnddispls, &
-        & MPI_DOUBLE_COMPLEX, vnlcv, mpireccnts, mpirecdispls, &
-        & MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, ierr)
-         mpireccnts = kgatherrecvcnts * nstsv * nstsv
-         mpirecdispls = kgatherdispls * nstsv * nstsv
-         mpisndcnts (:) = nofk (rank) * nstsv * nstsv
-         mpisnddispls (:) = (firstk(rank)-1) * nstsv * nstsv
-         Call MPI_Alltoallv (vnlvv, mpisndcnts, mpisnddispls, &
-        & MPI_DOUBLE_COMPLEX, vnlvv, mpireccnts, mpirecdispls, &
-        & MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, ierr)
+        call mpi_allgatherv_ifc(nkpt,ncrmax*natmtot*nstsv,zbuf=vnlcv)
+        call mpi_allgatherv_ifc(nkpt,nstsv*nstsv,zbuf=vnlvv)
 #endif
-!
          Return
    End Subroutine

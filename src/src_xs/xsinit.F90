@@ -49,25 +49,18 @@ Subroutine xsinit
   ! write to info file
       If (calledxs .Eq. 1) Then
          Write (unitout,*)
-         Write (unitout, '("+------------------------------------------&
-        &----------------+")')
-         Write (unitout, '("| EXCITING version ", I1.1, ".", I1.1, ".",&
-        & I3.3, " started  |")') version
-	  !"
+         Write (unitout, '("+-----------------------------------------------------------+")')
+         Write (unitout, '("| EXCITING hydrogen (",I2.2,".",I2.2,".",I2.2,") started                      |")') version
+         Write (unitout, '("| version hash id: ",a," |")') githash
 #ifdef MPI
-         Write (unitout, '("| compiled for MPI execution			          |"&
-        &)')
+         Write (unitout, '("| MPI version using ",i6," processor(s)                     |")') procs
+         if (rank .ne. 0) &
+         Write (unitout, '("|  rank of current processor: ",i6,"                        |")') rank
+#ifndef MPI1
+         Write (unitout, '("|  using MPI-2 features                                     |")')
 #endif
-#ifndef MPI
-         Write (unitout, '("| compiled for serial execution			         &
-        & |")')
 #endif
-         Write (unitout, '("+ -----------------------------------------&
-        &----------------+")')
-         If ((procs .Gt. 1) .And. (rank .Eq. 0)) write (unitout, '("(pa&
-        &rallel) master, rank/number of processes:", 2i8)') rank, procs
-         If ((procs .Gt. 1) .And. (rank .Ne. 0)) write (unitout, '("(pa&
-        &rallel) slave,  rank/number of processes:", 2i8)') rank, procs
+         Write (unitout, '("+ ----------------------------------------------------------+")')
          If (notelns .Gt. 0) Then
             Write (unitout,*)
             Write (unitout, '("Notes :")')

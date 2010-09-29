@@ -2,7 +2,7 @@
 <?xml-stylesheet href="http://xml.exciting-code.org/inputfileconverter/inputtohtml.xsl" type="text/xsl"?>
 <input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
-	
+
 	<title>Si phonon</title>
 
 	<structure speciespath="../../species/">
@@ -20,10 +20,10 @@
 	<groundstate do="skip" ngridk="2 2 2" mixer="lin" />
 
 	<phonons do="fromscratch" ngridq="2 2 2">
-	  <parts>
-	    <!-- dopart id="reformat_dynamical_matrices"/ -->
-	    <dopart id="debug"/>
-	  </parts>
+		<parts>
+			<!-- dopart id="reformat_dynamical_matrices"/ -->
+			<dopart id="debug" />
+		</parts>
 		<qpointset>
 			<qpoint>0.0 0.0 0.0</qpoint>
 			<qpoint>0.5 0.0 0.5</qpoint>
@@ -31,18 +31,11 @@
 		</qpointset>
 	</phonons>
 
-  <!-- 
-	<xs xstype="TDDFT">
-		<tddft />
-		<dosWindow />
-		<qpointset>
-			<qpoint>0 0 0</qpoint>
-		</qpointset>
-		<plan>
-			<doonly task="xsgeneigvec" />
-		</plan>
-	</xs>
- -->
+	<!--
+		<xs xstype="TDDFT"> <tddft /> <dosWindow /> <qpointset> <qpoint>0 0
+		0</qpoint> </qpointset> <plan> <doonly task="xsgeneigvec" /> </plan>
+		</xs>
+	-->
 
 </input>
 

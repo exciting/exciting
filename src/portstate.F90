@@ -9,9 +9,8 @@
 ! !INTERFACE:
 Subroutine portstate (act)
 ! !USES:
-      Use modinput
       Use ioarray
-      use mod_misc
+      use mod_misc, only: refversion_gitstate
 ! !DESCRIPTION:
 !   Toggle file format of {\tt STATE.OUT}. If tb2a is true an ASCII
 !   file with the name {\tt STATE.xml} is generated and the data
@@ -74,7 +73,7 @@ Subroutine portstate (act)
             Write (*, '("Error(portstate): not overwriting existent STA&
            &TE.xml file")')
             Write (*,*)
-            Stop
+            return
          End If
          If (act .Eq. 1) open (51, file='STATE.xml', action='WRITE', &
         & form='FORMATTED', status='replace')
@@ -143,7 +142,7 @@ Subroutine portstate (act)
             Write (*, '("Error(portstate): not overwriting existent STA&
            &TE.OUT file")')
             Write (*,*)
-            Stop
+            return
          End If
          If (act .Eq. 2) open (51, file='STATE.OUT', action='WRITE', &
         & form='UNFORMATTED', status='replace')

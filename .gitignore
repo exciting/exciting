@@ -29,11 +29,14 @@ build/*/exciting
 .cdtproject
 .cproject
 .project
+.pydevproject
 .settings
 .metadata
 build/gfortran
 src/eos/eos
 src/spacegroup/spacegroup
+src/stateconvert/stateconvert
+src/stateinfo/stateinfo
 src/species/species
 src/src_try
 src/tools/atkp

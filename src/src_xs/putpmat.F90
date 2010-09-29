@@ -27,7 +27,6 @@ Contains
 #ifdef MPI
          Integer :: iproc, tag, status (MPI_STATUS_SIZE)
 #endif
-    ! TODO: use "tarec"
          tarect = tarec
          ikr = ik
          Inquire (IoLength=Recl) vkl (:, ik), nstsv, pm

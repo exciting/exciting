@@ -1,11 +1,8 @@
-!
-!
-!
+
 ! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 Subroutine exccoulint
       Use modmain
       Use modinput
@@ -130,7 +127,7 @@ Subroutine exccoulint
          Deallocate (xiou, xiuo)
       End Do
   ! communicate array-parts wrt. k-points
-      Call zalltoallv (emat12k, nst1*nst2*n, nkptnr)
+      call mpi_allgatherv_ifc(nkptnr,nst1*nst2*n,zbuf=emat12k)
       input%xs%emattype = 1
       Call ematbdcmbs (input%xs%emattype)
   !-------------------------------!
@@ -145,7 +142,7 @@ Subroutine exccoulint
 !
       Do ikkp = ppari, pparf
          Call chkpt (3, (/ task, 2, ikkp /), 'task,sub,(k,kp)-pair; exc&
-        &hange term of associated(input%xs%BSE) - Hamiltonian')
+        &hange term of BSE Hamiltonian')
          Call kkpmap (ikkp, nkptnr, iknr, jknr)
          iv (:) = ivknr (:, jknr) - ivknr (:, iknr)
          iv (:) = modulo (iv(:), input%groundstate%ngridk(:))

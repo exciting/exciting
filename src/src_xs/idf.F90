@@ -48,9 +48,8 @@ Subroutine idf
          Do iq = 1, nqpt
         ! call for q-point
             Call xslinopt (iq)
-            Write (unitout, '(a, i8)') 'Info(' // thisnam // '): associ&
-           &ated(input%xs%tddft) linear optics finished for q - point:'&
-           & , iq
+            Write (unitout, '(a, i8)') 'Info(' // thisnam // '): &
+            &TDDFT linear optics finished for q - point:', iq
          End Do
       End If
       Call barrier

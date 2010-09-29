@@ -138,7 +138,7 @@ Subroutine angavsc0 (n, nmax, scrnh, scrnw, scrn, scieff)
          plat = matmul (binv, spc)
      ! distances to subcell cell boundaries in reciprocal space
          Do itp = 1, ntpsph
-            p (itp:) = 1.d0 / (2.d0*maxval(Abs(ngridq(:)*plat(:, itp)), &
+            p (itp) = 1.d0 / (2.d0*maxval(Abs(ngridq(:)*plat(:, itp)), &
            & 1))
          End Do
      ! calculate function on covering set

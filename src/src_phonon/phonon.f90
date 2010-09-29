@@ -1,14 +1,12 @@
-!
-!
-!
+
 ! Copyright (C) 2002-2008 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 Subroutine phonon
       Use modmain
       Use modinput
+      Use inputdom
       Implicit None
 ! local variables
       Integer :: is, js, ia, ja, ka, jas, kas
@@ -183,4 +181,12 @@ Subroutine phonon
       Call phdelete
       Go To 10
 20 continue
+! read in input again to reset atomic positions and lattice vectors in particular
+      call loadinputDOM()
+      call setdefault
+      input=getstructinput(inputnp)
+      call ifparseerrorstop()
+      call destroyDOM()
+      call initatomcounters
+      call initlattice
 End Subroutine

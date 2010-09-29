@@ -6,11 +6,11 @@
 ! See the file COPYING for license details.
 !
 !BOP
-! !ROUTINE: genpmat2
+! !ROUTINE: genpmatxs
 ! !INTERFACE:
 !
 !
-Subroutine genpmat2 (ngp, igpig, vgpc, evecfv, evecsv, pmat)
+Subroutine genpmatxs (ngp, igpig, vgpc, evecfv, evecsv, pmat)
 ! !USES:
       Use modinput
       Use modmain
@@ -232,5 +232,5 @@ Subroutine genpmat2 (ngp, igpig, vgpc, evecfv, evecsv, pmat)
          End Do
       End If
       Deallocate (wfmt, gwfmt, pm, cfunt, h, pmt, evecfv1, evecfv2)
-End Subroutine genpmat2
+End Subroutine genpmatxs
 !EOC

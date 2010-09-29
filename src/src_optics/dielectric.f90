@@ -38,12 +38,12 @@ Subroutine dielectric
 ! allocate local arrays
       Allocate (lspl(nkptnr))
       Allocate (w(input%properties%dos%nwdos))
-      If (input%xs%tddft%intraband) allocate (f(nstsv, nkpt))
-      If (input%xs%usegdft) allocate (delta(nstsv, nstsv, nkpt))
+      If (input%properties%dielectric%intraband) allocate (f(nstsv, nkpt))
+      If (input%properties%dielectric%usegdft) allocate (delta(nstsv, nstsv, nkpt))
       Allocate (pmat(3, nstsv, nstsv))
       Allocate (sigma(input%properties%dos%nwdos))
 ! compute generalised DFT correction
-      If (input%xs%usegdft) Then
+      If (input%properties%dielectric%usegdft) Then
          Call readstate
          Call poteff
          Call linengy
@@ -72,11 +72,11 @@ Subroutine dielectric
 ! i divided by the complex relaxation time
       eta = cmplx (0.d0, input%groundstate%swidth)
 ! loop over dielectric tensor components
-      Do l = 1, noptcomp
-         i = input%properties%linresponsetensor%optcomp(1, l)
-         j = input%properties%linresponsetensor%optcomp(2, l)
+      Do l = 1, size(input%properties%dielectric%optcomp,2)
+         i = input%properties%dielectric%optcomp(1, l)
+         j = input%properties%dielectric%optcomp(2, l)
          sigma (:) = 0.d0
-         If (input%xs%tddft%intraband) f (:, :) = 0.d0
+         If (input%properties%dielectric%intraband) f (:, :) = 0.d0
 ! loop over non-reduced k-points
          Do ik = 1, nkptnr
 ! equivalent reduced k-point
@@ -98,8 +98,8 @@ Subroutine dielectric
                         zv (:) = cmplx (v2(:), v3(:), 8)
                         zt1 = occmax * zv (i) * conjg (zv(j))
                         eji = evalsv (jst, jk) - evalsv (ist, jk) + &
-                       & input%properties%bandstructure%scissor
-                        If (input%xs%usegdft) eji = eji + delta (jst, &
+                       & input%properties%dielectric%scissor
+                        If (input%properties%dielectric%usegdft) eji = eji + delta (jst, &
                        & ist, jk)
                         t1 = 1.d0 / (eji+input%groundstate%swidth)
                         Do iw = 1, input%properties%dos%nwdos
@@ -114,7 +114,7 @@ Subroutine dielectric
          zt1 = zi / (omega*dble(nkptnr))
          sigma (:) = zt1 * sigma (:)
 ! intraband contribution
-         If (input%xs%tddft%intraband) Then
+         If (input%properties%dielectric%intraband) Then
             If (i .Eq. j) Then
 ! compute plasma frequency
                Do ik = 1, nkpt
@@ -183,17 +183,17 @@ Subroutine dielectric
       Write (*, '("Info(dielectric):")')
       Write (*, '(" dielectric tensor written to EPSILON_ij.OUT")')
       Write (*, '(" optical conductivity written to SIGMA_ij.OUT")')
-      If (input%xs%tddft%intraband) Then
+      If (input%properties%dielectric%intraband) Then
          Write (*, '(" plasma frequency written to PLASMA_ij.OUT")')
       End If
       Write (*, '(" for components")')
-      Do l = 1, noptcomp
+      Do l = 1, size(input%properties%dielectric%optcomp,2)
          Write (*, '("  i = ", I1, ", j = ", I1)') &
-        & input%properties%linresponsetensor%optcomp(1:2, l)
+        & input%properties%dielectric%optcomp(1:2, l)
       End Do
       Write (*,*)
       Deallocate (lspl, w, pmat, sigma)
-      If (input%xs%tddft%intraband) deallocate (f)
-      If (input%xs%usegdft) deallocate (delta)
+      If (input%properties%dielectric%intraband) deallocate (f)
+      If (input%properties%dielectric%usegdft) deallocate (delta)
       Return
 End Subroutine

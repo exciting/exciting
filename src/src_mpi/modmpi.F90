@@ -12,7 +12,8 @@
 !
 ! !REVISION HISTORY:
 !   Created October 2006 (CHM)
-!   Added wrapper routines, 2007-2008 (Sagmeister)
+!   Added wrapper routines, 2007-2008 (S. Sagmeister)
+!   Added allgatherv interface, August 2010 (S. Sagmeister)
 !
 !
 !
@@ -128,7 +129,6 @@ Contains
          Implicit None
          Integer :: lastproc
          Integer, Intent (In) :: row, set
-         Integer :: iproc
          If (row .Ne. nofset(0, set)) Then
             lastproc = procs
          Else
@@ -150,63 +150,113 @@ Contains
          Call MPI_barrier (mpi_comm_world, ierr)
 #endif
       End Subroutine barrier
-!
-!
+
+
       Subroutine endloopbarrier (set, mult)
          Implicit None
          Integer, Intent (In) :: set, mult
-         Integer :: i, im
+         Integer :: i
          Do i = 1, (nofset(0, set)-nofset(rank, set)) * mult
             Call barrier
          End Do
       End Subroutine endloopbarrier
 !
 !------------------wrappers for MPI communication
-!
-!
-      Subroutine zalltoallv (zarr, rlen, set)
-         Implicit None
-  ! arguments
-         Complex (8), Intent (Inout) :: zarr (*)
-         Integer, Intent (In) :: rlen, set
-#ifdef MPI
-  ! local variables
-         Integer :: mpireccnts (procs), mpirecdispls (procs)
-         Integer :: mpisndcnts (procs), mpisnddispls (procs)
-         Integer :: proc
-         mpisndcnts (:) = nofset (rank, set) * rlen
-         mpisnddispls (:) = (firstofset(rank, set)-1) * rlen
-         Do proc = 0, procs - 1
-            mpireccnts (proc+1) = nofset (proc, set) * rlen
-            mpirecdispls (proc+1) = (firstofset(proc, set)-1) * rlen
-         End Do
-         Call MPI_Alltoallv (zarr, mpisndcnts, mpisnddispls, &
-        & MPI_DOUBLE_COMPLEX, zarr, mpireccnts, mpirecdispls, &
-        & MPI_DOUBLE_COMPLEX, mpi_comm_world, ierr)
+
+      subroutine mpi_allgatherv_ifc(set,rlen,ibuf,rbuf,zbuf)
+        implicit none
+        integer, intent(in) :: set,rlen
+        integer, intent(inout), optional :: ibuf(*)
+        real(8), intent(inout), optional :: rbuf(*)
+        complex(8), intent(inout), optional :: zbuf(*)
+        ! local variables
+#ifndef MPI1
+#define BUFFER mpi_in_place
 #endif
-      End Subroutine zalltoallv
-!
-!
-      Subroutine ralltoallv (rarr, rlen, set)
-         Implicit None
-  ! arguments
-         Real (8), Intent (Inout) :: rarr (*)
-         Integer, Intent (In) :: rlen, set
-#ifdef MPI
-  ! local variables
-         Integer :: mpireccnts (procs), mpirecdispls (procs)
-         Integer :: mpisndcnts (procs), mpisnddispls (procs)
-         Integer :: proc
-         mpisndcnts (:) = nofset (rank, set) * rlen
-         mpisnddispls (:) = (firstofset(rank, set)-1) * rlen
-         Do proc = 0, procs - 1
-            mpireccnts (proc+1) = nofset (proc, set) * rlen
-            mpirecdispls (proc+1) = (firstofset(proc, set)-1) * rlen
-         End Do
-         Call MPI_Alltoallv (rarr, mpisndcnts, mpisnddispls, &
-        & MPI_DOUBLE_PRECISION, rarr, mpireccnts, mpirecdispls, &
-        & MPI_DOUBLE_PRECISION, mpi_comm_world, ierr)
+#ifdef MPI1
+        complex(8), allocatable :: bufz(:)
+        real(8), allocatable :: bufr(:)
+        integer, allocatable :: bufi(:)
 #endif
-      End Subroutine ralltoallv
-!
+        integer, allocatable :: buf_n(:),buf_dspls(:)
+        integer :: j
+        logical :: ti,tr,tz
+        ti=present(ibuf); tr=present(rbuf); tz=present(zbuf)
+        if (count((/ti,tr,tz/)).ne.1) then
+          write(*,*)
+          write(*,'("Error(mpi_allgatherv_ifc): exactly one array must be defined.")')
+          write(*,*)
+          stop
+        end if
+#ifdef MPI
+        allocate(buf_n(procs),buf_dspls(procs))
+        ! displacements within receive buffer (flattened array)
+        buf_dspls=(/(rlen*(firstofset(j,set)-1),j=0,procs-1)/)
+        ! number of elements in send buffer (flattened array)
+        buf_n=(/(rlen*nofset(j,set),j=0,procs-1)/)
+        ! use recieve buffer as sendbuffer by specifying mpi_in_place
+        if (ti) then
+#ifdef MPI1
+#define BUFFER bufi
+          allocate(bufi(buf_n(rank+1)))
+          bufi(:)=ibuf(buf_dspls(rank+1)+1:buf_dspls(rank+1)+buf_n(rank+1))
+#endif
+          call mpi_allgatherv(BUFFER, &
+            buf_n(rank+1), &
+            mpi_int, &
+            ibuf, &
+            buf_n, &
+            buf_dspls, &
+            mpi_int, &
+            mpi_comm_world, &
+            ierr)
+#ifdef MPI1
+          deallocate(bufi)
+#undef BUFFER
+#endif
+        end if
+        if (tr) then
+#ifdef MPI1
+#define BUFFER bufr
+          allocate(bufr(buf_n(rank+1)))
+          bufr(:)=rbuf(buf_dspls(rank+1)+1:buf_dspls(rank+1)+buf_n(rank+1))
+#endif
+          call mpi_allgatherv(BUFFER, &
+            buf_n(rank+1), &
+            mpi_double_precision, &
+            rbuf, &
+            buf_n, &
+            buf_dspls, &
+            mpi_double_precision, &
+            mpi_comm_world, &
+            ierr)
+#ifdef MPI1
+          deallocate(bufr)
+#undef BUFFER
+#endif
+        end if
+        if (tz) then
+#ifdef MPI1
+#define BUFFER bufz
+          allocate(bufz(buf_n(rank+1)))
+          bufz(:)=zbuf(buf_dspls(rank+1)+1:buf_dspls(rank+1)+buf_n(rank+1))
+#endif
+          call mpi_allgatherv(BUFFER, &
+            buf_n(rank+1), &
+            mpi_double_complex, &
+            zbuf, &
+            buf_n, &
+            buf_dspls, &
+            mpi_double_complex, &
+            mpi_comm_world, &
+            ierr)
+#ifdef MPI1
+          deallocate(bufz)
+#undef BUFFER
+#endif
+        end if
+        deallocate(buf_n,buf_dspls)
+#endif
+      end subroutine
+
 End Module modmpi

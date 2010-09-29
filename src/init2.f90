@@ -1,8 +1,8 @@
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
+
 Subroutine init2
       Use modmain
       Use modinput
@@ -16,12 +16,12 @@ Subroutine init2
       Real (8) :: ts0, ts1
       Real (8) :: boxl (3, 4)
 #ifdef XS
-      Real (8) :: v (3), t1
+      Real (8) :: v (3)
       Integer :: iq, iv (3)
 #endif
-!
+
       Call timesec (ts0)
-!
+
 !---------------------!
 !     q-point set     !
 !---------------------!
@@ -180,7 +180,6 @@ Subroutine init2
 !   call findgroupq(fbzq,vql(1,iq),epslat,bvec,symlat,nsymcrys,lsplsymc,&
 !	nsymcrysq(iq),scqmap(1,iq),ivscwrapq(1,1,iq))
 !end do
-
   if (task .ge. 301) then
 
 !-----------------------!
@@ -206,9 +205,21 @@ Subroutine init2
          Write (*, '(a, 2g18.10)') 'Warning(init2/xs): input%xs%gqmax >&
         &= gkmax: ', input%xs%gqmax, gkmax
       End If
+      if (input%groundstate%gmaxvr .lt. 2*gkmax + input%xs%gqmax) then
+         write(*,*)
+         write(*,'("Error(init2): gmaxvr < 2 gkmax + gqmax : ",2g18.10)') &
+           & input%groundstate%gmaxvr, 2*gkmax+input%xs%gqmax
+         write(*,'(" gmaxvr : ",g18.10)') input%groundstate%gmaxvr
+         write(*,'(" gkmax  : ",g18.10)') gkmax
+         write(*,'(" gqmax  : ",g18.10)') input%xs%gqmax
+         write(*,'(" maximum value for gqmax    : ",g18.10)') &
+           & input%groundstate%gmaxvr - 2*gkmax
+         write(*,'(" Increase gmaxvr and re-do SCF calculation or decrease gqmax or rgkmax.")')
+         write(*,*)
+         call terminate
+      end if
 ! maximum number of G+q vectors for all q
       Call getngqmax
-!
 ! allocate the G+q-vector arrays
       If (allocated(ngq)) deallocate (ngq)
       Allocate (ngq(nqpt))
@@ -240,14 +251,6 @@ Subroutine init2
    ! spherical harmonics for G+q-vectors
          Call genylmgq (iq, input%groundstate%lmaxvr)
       End Do
-      t1 = maxval (gqc(1, :))
-!if ((task.ge.400).and.(task.le.499).and.(gqmax.lt.t1)) then
-!   write(*,*)
-!   write(*,'("Error(init2): gqmax too small:",g18.10)') gqmax
-!   write(*,'(" smalles possible value:",g18.10)') t1
-!   write(*,*)
-!   call terminate
-!end if
 !
 !---------------------------!
 !     Coulomb potential     !

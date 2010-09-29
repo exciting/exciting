@@ -33,7 +33,7 @@ if ($sel>$count-1 || $sel<1 || $sel=~m/^$/ || $sel!~m/^\d+$/) {
 }else{
 
 print "\nYou use the makefile from:\n\n build/platforms/" . @fileslist[$sel];
-print "\n\nIf it doesnt compile, edit build/make.inc and type make again"
+print "\n\nIf the compilation fails, edit \"build/make.inc\" and execute \"make\" again.\n"
 }
 
 $filename="build/platforms/" . @fileslist[$sel];
@@ -44,7 +44,7 @@ $return= system(@args);
 $selected=0;
 while($selected==0){
 	print "\nIf you have MPI installed you can build exciting with k-point parallelization support.\n\n";
-	print "build MPI binary ? (yes/No)  ";
+	print "Build MPI binary ? (yes/No)  ";
 	$MPI=<>;
 	if($MPI=~m/yes/i){
 		$selected=1;
@@ -52,7 +52,10 @@ while($selected==0){
 print "Select the mechanism to include MPI interface variables\n";
 print "    1 use MPI module (f90 interfaces) recommended if available\n";
 print "    2 use #include <mpif.h> required by some MPI implementations 
-(edit path in build mpiconf.inc if mpif.h is not in your includepath)\n";
+     (edit path in build mpiconf.inc if mpif.h is not in your includepath)\n";
+print "    Note: if you do not have istalled MPI-2 include '-DMPI1'
+    in your compiler options (MPIF90_OPTS) in the
+    'build/make.inc' file after finishing this setup script.\n";
 $mpiinclude=<>;
 if($mpiinclude==1) {$includefile="mpiconf.inc.module";}
 if($mpiinclude==2) {$includefile="mpiconf.inc.include";}
@@ -70,7 +73,7 @@ system(("cp", "build/platforms/$includefile", "build/mpiconf.inc"));
 $selected=0;
 while($selected==0){
 print "\nIf you have multithreaded BLAS/LAPACK installed you can build exciting with SMP support.\n\n";
-print "build SMP lib binary (yes/No)  ";
+print "Build SMP lib binary (yes/No)  ";
 $SMP=<>;
 if($SMP=~m/yes/i){
 	system("echo \"BUILDSMP=true\">>build/make.inc");

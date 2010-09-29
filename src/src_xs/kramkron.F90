@@ -19,6 +19,8 @@ Subroutine kramkron (i1, i2, eps, n, w, im, re)
 !   im    : imaginary part of dielectric function tensor component (in,real(n))
 !   re    : real part of dielectric function tensor component (out,real(n))
 ! !DESCRIPTION:
+!   Performs a Kramers-Kronig transformation from the imaginary part to the
+!   real part of the dielectric function.
 !   Algorithm taken from routine {\tt linopt}.
 !
 ! !REVISION HISTORY:

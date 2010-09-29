@@ -4,7 +4,7 @@
 
 default: build/make.inc all
 
-all: serial mpi  smp mpiandsmp  eos spacegroup species
+all: serial mpi  smp mpiandsmp  eos spacegroup stateinfo stateconvert species
 
 build/make.inc:
 	perl ./setup.pl
@@ -29,7 +29,7 @@ mpiandsmp:
 test::
 	cd test/; $(MAKE) -i
 
-doc:  spacegroupdoc inputdoc excitingfuncdoc
+doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc
 	
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
@@ -44,11 +44,25 @@ inputdoc::
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
 	
+stateconvertdoc::
+	cd src/stateconvert; $(MAKE) doc;\
+	mv stateconvert.pdf ../../docs/stateconvert
+ 
+stateinfodoc::
+	cd src/stateinfo; $(MAKE) doc;\
+	mv stateinfo.pdf ../../docs/stateinfo
+ 
 eos::
 	cd src/eos; $(MAKE)
 	
 spacegroup::
 	cd src/spacegroup; $(MAKE)
+
+stateinfo::
+	cd src/stateinfo; $(MAKE)
+  
+stateconvert::
+	cd src/stateconvert; $(MAKE)  
 	
 species::libs
 	cd src/species; $(MAKE)

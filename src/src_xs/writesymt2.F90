@@ -1,15 +1,11 @@
-!
-!
-!
-! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
+
+! Copyright (C) 2008-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 !BOP
 ! !ROUTINE: writesymt2
 ! !INTERFACE:
-!
-!
 Subroutine writesymt2
 ! !USES:
       Use modmain
@@ -35,17 +31,21 @@ Subroutine writesymt2
 !BOC
       Implicit None
   ! local variables
+      real(8), parameter :: eps=1.d-8
+      character(256) :: strvar
       Integer :: iop1, iop2, i
+      real(8) :: t1
   ! output the symmetrization matrices
-      Open (50, File='SYMT2'//trim(filext), Action='WRITE', Form='FORMA&
-     &TTED')
+      Open (50, File='SYMT2'//trim(filext), Action='WRITE', Form='FORMATTED')
       Write (50,*)
-      Write (50, '("(symmetrization matrices are in Cartesian coordinat&
-     &es)")')
+      Write (50, '("(symmetrization matrices are in Cartesian coordinates)")')
       Write (50,*)
       Do iop1 = 1, 3
          Do iop2 = 1, 3
-            Write (50, '("(", i1, ", ", i2, ")-component")') iop1, iop2
+            t1=sum(abs(symt2(iop1,iop2,:,:)))
+            strvar=""
+            if (t1 .lt. eps) strvar='," ; zero contribution"'
+            Write (50, '("(", i1, ", ", i2, ")-component"'//trim(strvar)//')') iop1, iop2
             Write (50, '(3f12.8)') (symt2(iop1, iop2, i, :), i=1, 3)
             Write (50,*)
          End Do

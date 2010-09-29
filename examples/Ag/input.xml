@@ -19,8 +19,8 @@
     </species>
   </structure>
   <groundstate ngridk="8  8  8" tforce="true"></groundstate>
-  <!--properties>
-    <bandstructure character="true">
+ <properties>
+    <bandstructure>
       <plot1d>
         <path steps="100">
                   <point coord="0.75000   0.50000   0.25000" label="W"    ></point>
@@ -33,5 +33,5 @@
       </plot1d>
     </bandstructure>
     <dos/>
-  </properties-->
+  </properties>
 </input>

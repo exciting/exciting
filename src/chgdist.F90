@@ -10,10 +10,11 @@ Subroutine chgdist
 ! !USES:
 use modmain
 ! !DESCRIPTION:
-!   Calculated the charge distance between two charge densities according to
+!   Calculated the charge distance between two charge densities of the current
+!   and of the last iteration according to
 !   the expression
 !   $$
-!     \Delta Q = \int_{\Omega} [\rho^(n)({\bf r}) - \rho^(n-1)({\bf r})].
+!     \Delta Q = \int_{\Omega} [\rho^{(n)}({\bf r}) - \rho^{(n-1)}({\bf r})].
 !   $$
 !   Based on the routine {\tt charge}.
 !
@@ -24,7 +25,7 @@ use modmain
       implicit none
 ! local variables
       Integer :: is, ia, ias, ir
-      Real (8) :: sum, t1, chgdstmt,chgdstir
+      Real (8) :: sum,chgdstmt,chgdstir
 ! automatic arrays
       Real (8) :: fr (nrmtmax), gr (nrmtmax), hr1(lmmaxvr), hr2(lmmaxvr)
       real (8) :: cf (3, nrmtmax), sht00(lmmaxvr)

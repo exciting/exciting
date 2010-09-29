@@ -74,15 +74,14 @@ Subroutine fermisurf
       End Do
       Call xml_endElement (xf, "runitcell")
       If (ndmag .Eq. 1) Then
-         Call xml_addAttribute (xf, "ndmag", "1")
+
      ! special case of collinear magnetism
          Open (50, File='FERMISURF_UP.OUT', Action='WRITE', Form='FORMA&
         &TTED')
          Open (51, File='FERMISURF_DN.OUT', Action='WRITE', Form='FORMA&
         &TTED')
          If (task .Eq. 100) Then
-            Call xml_addAttribute (xf, "mode", "write product of eigens&
-           &tates  minus the Fermi energy")
+
         ! write product of eigenstates minus the Fermi energy
             Write (50, '(3I6, " : grid size")') np3d (:)
             Write (51, '(3I6, " : grid size")') np3d (:)
@@ -113,8 +112,7 @@ Subroutine fermisurf
             End Do
          Else
         ! write the eigenvalues minus the Fermi energy separately
-            Call xml_addAttribute (xf, "mode", "write the eigenvalues m&
-           &inus the Fermi energy separately")
+
 !
             ist = nstfv - input%groundstate%nempty
             ist0 = Max (ist-input%properties%fermisurfaceplot%nstfsp/2, &
@@ -127,9 +125,7 @@ Subroutine fermisurf
             Write (51, '(4I6, " : grid size, number of states")') np3d &
            & (:), nst
 !
-            Write (buffer, '(3I6)') nst
-            Call xml_addAttribute (xf, "numberOfStates", &
-           & trim(adjustl(buffer)))
+
             Do ik = 1, nkptnr
                jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
                Write (50, '(G18.10)', Advance='NO') vkcnr (:, ik)

@@ -16,8 +16,7 @@ Subroutine symt2app (oct1, oct2, n, symt2, t, tsym)
       tsym (:) = (0.d0, 0.d0)
       Do i = 1, 3
          Do j = 1, 3
-            tsym (:) = tsym (:) + symt2 (oct1, oct2, i, j) * t (i, j, &
-           & :)
+            tsym (:) = tsym (:) + symt2 (oct1, oct2, i, j) * t (i, j, :)
          End Do
       End Do
 End Subroutine

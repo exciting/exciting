@@ -16,7 +16,7 @@ Subroutine xssave0
       Use modxs
 ! !DESCRIPTION:
 !   This routine should be called after init0, init1 and init2 in order to save
-!   variables realted to the k-point set for q=0.
+!   variables related to the k-point set for ${\bf q}=0$.
 !
 ! !REVISION HISTORY:
 !   Created March 2005 (Sagmeister)

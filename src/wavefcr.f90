@@ -30,7 +30,7 @@ Subroutine wavefcr (lrstp, is, ia, ist, m, ld, wfcr)
          irc = irc + 1
          wfcr (:, irc, :) = 0.d0
       End Do
-! calculate the Clebsch-Gordon coefficients
+! calculate the Clebsch-Gordan coefficients
       If (k .Eq. l+1) Then
          cg1 = Sqrt (dble(l+m+1)/dble(2*l+1))
          cg2 = - Sqrt (dble(l-m)/dble(2*l+1))

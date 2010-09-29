@@ -22,7 +22,7 @@ Contains
 !   eps    : dielectric function tensor component (in,complex(:))
 !   sumrls : values of three different sumrules (out,real(3))
 ! !DESCRIPTION:
-!   Expressions for the sumrules taken from Ambrosch-Draxl,
+!   Expressions for the sumrules taken from C. Ambrosch-Draxl,
 !   CPC 175 (2006) 1-14, p5, Eq. 26.
 !
 ! !REVISION HISTORY:

@@ -46,8 +46,6 @@ type input_type
  character(1024)::xsltpath
  character(1024)::scratchpath
  character(512)::title
-  type(convert_type),pointer::convert
-  type(extract_type),pointer::extract
   type(structure_type),pointer::structure
   type(groundstate_type),pointer::groundstate
   type(structureoptimization_type),pointer::structureoptimization
@@ -55,14 +53,6 @@ type input_type
   type(phonons_type),pointer::phonons
   type(xs_type),pointer::xs
  character(512)::keywords
-end type
-type convert_type
- character(512)::target
- integer::targetnumber
-end type
-type extract_type
- character(512)::source
- integer::sourcenumber
 end type
 type structure_type
  character(1024)::speciespath
@@ -160,6 +150,7 @@ type groundstate_type
  real(8)::gmaxvr
  integer::nempty
  logical::nosym
+ logical::symmorph
  logical::frozencore
  logical::autokpt
  real(8)::radkpt
@@ -201,6 +192,7 @@ type groundstate_type
   type(solver_type),pointer::solver
   type(OEP_type),pointer::OEP
   type(RDMFT_type),pointer::RDMFT
+  type(output_type),pointer::output
 end type
 type spin_type
  real(8)::momfix(3)
@@ -237,6 +229,10 @@ type RDMFT_type
  real(8)::rdmalpha
  real(8)::rdmtemp
 end type
+type output_type
+ character(512)::state
+ integer::statenumber
+end type
 type structureoptimization_type
  real(8)::epsforce
  real(8)::tau0atm
@@ -258,10 +254,10 @@ type properties_type
   type(gradmvecfield_type),pointer::gradmvecfield
   type(fermisurfaceplot_type),pointer::fermisurfaceplot
   type(EFG_type),pointer::EFG
-  type(momentummatrix_type),pointer::momentummatrix
-  type(linresponsetensor_type),pointer::linresponsetensor
   type(mossbauer_type),pointer::mossbauer
+  type(momentummatrix_type),pointer::momentummatrix
   type(dielectric_type),pointer::dielectric
+  type(moke_type),pointer::moke
   type(expiqr_type),pointer::expiqr
   type(elnes_type),pointer::elnes
   type(eliashberg_type),pointer::eliashberg
@@ -338,19 +334,20 @@ type EFG_type
 logical::exists
  end type
     
-type momentummatrix_type
-logical::exists
- end type
-    type linresponsetensor_type
- real(8)::scissor
- integer,pointer::optcomp(:,:)
-end type
-
 type mossbauer_type
 logical::exists
  end type
-    
+    type momentummatrix_type
+ logical::fastpmat
+end type
 type dielectric_type
+ real(8)::scissor
+ logical::intraband
+ logical::usegdft
+ integer,pointer::optcomp(:,:)
+end type
+
+type moke_type
 logical::exists
  end type
     
@@ -391,13 +388,10 @@ type xs_type
  logical::tevout
  character(512)::xstype
  integer::xstypenumber
- logical::symmorph
  logical::fastpmat
  logical::fastemat
- logical::gather
  logical::tappinfo
  integer::dbglev
- logical::usegdft
  real(8)::gqmax
  logical::nosym
  integer::ngridk(3)
@@ -414,6 +408,7 @@ type xs_type
   type(tddft_type),pointer::tddft
   type(screening_type),pointer::screening
   type(BSE_type),pointer::BSE
+  type(transitions_type),pointer::transitions
   type(qpointset_type),pointer::qpointset
   type(tetra_type),pointer::tetra
   type(dosWindow_type),pointer::dosWindow
@@ -438,10 +433,6 @@ type tddft_type
  character(512)::fxctype
  integer::fxctypenumber
  logical::resumefromkernel
-  type(dftrans_type),pointer::dftrans
-end type
-type dftrans_type
- integer,pointer::trans(:,:)
 end type
 type screening_type
  character(512)::run
@@ -479,7 +470,52 @@ type BSE_type
  character(512)::bsetype
  integer::bsetypenumber
 end type
-type tetra_type
+type transitions_type
+  type(individual_type),pointer::individual
+  type(ranges_type),pointer::ranges
+  type(lists_type),pointer::lists
+end type
+type individual_type
+  type(trans_type_array),pointer::transarray(:)
+end type
+type trans_type
+ character(512)::action
+ integer::kpointnumber
+ integer::initial
+ integer::final
+end type
+
+type trans_type_array
+type(trans_type),pointer::trans
+ end type
+    type ranges_type
+  type(range_type_array),pointer::rangearray(:)
+end type
+type range_type
+ character(512)::action
+ character(512)::statestype
+ integer::kpointnumber
+ integer::start
+ integer::stop
+end type
+
+type range_type_array
+type(range_type),pointer::range
+ end type
+    type lists_type
+  type(istate_type_array),pointer::istatearray(:)
+end type
+type istate_type
+ character(512)::action
+ character(512)::statestype
+ integer::kpointnumber
+ integer::state
+end type
+
+type istate_type_array
+type(istate_type),pointer::istate
+ end type
+    type tetra_type
  logical::tetraocc
  logical::tetradf
  logical::kordexc
@@ -537,7 +573,7 @@ nullify(np)
 np=>getAttributeNode(thisnode,"coord")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"coord",getstructorigin%coord)
-       call removeAttribute(thisnode,"coord")      
+       call removeAttribute(thisnode,"coord")  
 endif
 
       i=0
@@ -563,7 +599,12 @@ nullify(np)
 np=>getAttributeNode(thisnode,"coord")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"coord",getstructpoint%coord)
-       call removeAttribute(thisnode,"coord")      
+       call removeAttribute(thisnode,"coord")  
+        else
+        write(*,*)"Parser ERROR: The element 'point' requires the attribute 'coord' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
@@ -571,7 +612,7 @@ np=>getAttributeNode(thisnode,"label")
 getstructpoint%label= ""
 if(associated(np)) then
        call extractDataAttribute(thisnode,"label",getstructpoint%label)
-       call removeAttribute(thisnode,"label")      
+       call removeAttribute(thisnode,"label")  
 endif
 
       i=0
@@ -592,7 +633,11 @@ allocate(getstructplot1d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"path")
-getstructplot1d%path=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The plot1d element must contain at least 1 path element"
+        endif
+        getstructplot1d%path=>null()
 Do i=0,len-1
 getstructplot1d%path=>getstructpath(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -622,18 +667,27 @@ nullify(np)
 np=>getAttributeNode(thisnode,"steps")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"steps",getstructpath%steps)
-       call removeAttribute(thisnode,"steps")      
+       call removeAttribute(thisnode,"steps")  
+        else
+        write(*,*)"Parser ERROR: The element 'path' requires the attribute 'steps' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"outfileprefix")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"outfileprefix",getstructpath%outfileprefix)
-       call removeAttribute(thisnode,"outfileprefix")      
+       call removeAttribute(thisnode,"outfileprefix")  
 endif
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The path element must contain at least 2 point element"
+        endif
+             
 allocate(getstructpath%pointarray(len))
 Do i=0,len-1
 getstructpath%pointarray(i+1)%point=>getstructpoint(&
@@ -659,7 +713,11 @@ allocate(getstructplot2d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"parallelogram")
-getstructplot2d%parallelogram=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The plot2d element must contain at least 1 parallelogram element"
+        endif
+        getstructplot2d%parallelogram=>null()
 Do i=0,len-1
 getstructplot2d%parallelogram=>getstructparallelogram(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -689,18 +747,27 @@ nullify(np)
 np=>getAttributeNode(thisnode,"grid")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"grid",getstructparallelogram%grid)
-       call removeAttribute(thisnode,"grid")      
+       call removeAttribute(thisnode,"grid")  
+        else
+        write(*,*)"Parser ERROR: The element 'parallelogram' requires the attribute 'grid' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"outfileprefix")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"outfileprefix",getstructparallelogram%outfileprefix)
-       call removeAttribute(thisnode,"outfileprefix")      
+       call removeAttribute(thisnode,"outfileprefix")  
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-getstructparallelogram%origin=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The parallelogram element must contain at least 1 origin element"
+        endif
+        getstructparallelogram%origin=>null()
 Do i=0,len-1
 getstructparallelogram%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -708,7 +775,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The parallelogram element must contain at least 2  and maximum 2 point elements"
+        endif
+             
 allocate(getstructparallelogram%pointarray(len))
 Do i=0,len-1
 getstructparallelogram%pointarray(i+1)%point=>getstructpoint(&
@@ -734,7 +805,11 @@ allocate(getstructplot3d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"box")
-getstructplot3d%box=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The plot3d element must contain at least 1 box element"
+        endif
+        getstructplot3d%box=>null()
 Do i=0,len-1
 getstructplot3d%box=>getstructbox(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -764,18 +839,27 @@ nullify(np)
 np=>getAttributeNode(thisnode,"grid")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"grid",getstructbox%grid)
-       call removeAttribute(thisnode,"grid")      
+       call removeAttribute(thisnode,"grid")  
+        else
+        write(*,*)"Parser ERROR: The element 'box' requires the attribute 'grid' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"outfileprefix")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"outfileprefix",getstructbox%outfileprefix)
-       call removeAttribute(thisnode,"outfileprefix")      
+       call removeAttribute(thisnode,"outfileprefix")  
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-getstructbox%origin=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The box element must contain at least 1 origin element"
+        endif
+        getstructbox%origin=>null()
 Do i=0,len-1
 getstructbox%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -783,7 +867,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The box element must contain at least 3  and maximum 3 point elements"
+        endif
+             
 allocate(getstructbox%pointarray(len))
 Do i=0,len-1
 getstructbox%pointarray(i+1)%point=>getstructpoint(&
@@ -841,34 +929,22 @@ np=>getAttributeNode(thisnode,"xsltpath")
 getstructinput%xsltpath= "http://xml.exciting-code.org"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"xsltpath",getstructinput%xsltpath)
-       call removeAttribute(thisnode,"xsltpath")      
+       call removeAttribute(thisnode,"xsltpath")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"scratchpath")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scratchpath",getstructinput%scratchpath)
-       call removeAttribute(thisnode,"scratchpath")      
+       call removeAttribute(thisnode,"scratchpath")  
 endif
 
-            len= countChildEmentsWithName(thisnode,"convert")
-getstructinput%convert=>null()
-Do i=0,len-1
-getstructinput%convert=>getstructconvert(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"convert"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"extract")
-getstructinput%extract=>null()
-Do i=0,len-1
-getstructinput%extract=>getstructextract(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"extract"),0)) ) 
-enddo
-
             len= countChildEmentsWithName(thisnode,"structure")
-getstructinput%structure=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The input element must contain at least 1 structure element"
+        endif
+        getstructinput%structure=>null()
 Do i=0,len-1
 getstructinput%structure=>getstructstructure(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -936,60 +1012,6 @@ end do
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructconvert(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(convert_type),pointer::getstructconvert
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructconvert)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at convert"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"target")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"target",getstructconvert%target)
-       call removeAttribute(thisnode,"target")      
-endif
-getstructconvert%targetnumber=stringtonumbertarget(getstructconvert%target)
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructextract(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(extract_type),pointer::getstructextract
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructextract)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at extract"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"source")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"source",getstructextract%source)
-       call removeAttribute(thisnode,"source")      
-endif
-getstructextract%sourcenumber=stringtonumbersource(getstructextract%source)
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
 function getstructstructure(thisnode)
 
 implicit none
@@ -1008,7 +1030,12 @@ nullify(np)
 np=>getAttributeNode(thisnode,"speciespath")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"speciespath",getstructstructure%speciespath)
-       call removeAttribute(thisnode,"speciespath")      
+       call removeAttribute(thisnode,"speciespath")  
+        else
+        write(*,*)"Parser ERROR: The element 'structure' requires the attribute 'speciespath' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
@@ -1016,7 +1043,7 @@ np=>getAttributeNode(thisnode,"molecule")
 getstructstructure%molecule= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"molecule",getstructstructure%molecule)
-       call removeAttribute(thisnode,"molecule")      
+       call removeAttribute(thisnode,"molecule")  
 endif
 
 nullify(np)  
@@ -1024,7 +1051,7 @@ np=>getAttributeNode(thisnode,"vacuum")
 getstructstructure%vacuum=10.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vacuum",getstructstructure%vacuum)
-       call removeAttribute(thisnode,"vacuum")      
+       call removeAttribute(thisnode,"vacuum")  
 endif
 
 nullify(np)  
@@ -1032,7 +1059,7 @@ np=>getAttributeNode(thisnode,"epslat")
 getstructstructure%epslat=1.0d-6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epslat",getstructstructure%epslat)
-       call removeAttribute(thisnode,"epslat")      
+       call removeAttribute(thisnode,"epslat")  
 endif
 
 nullify(np)  
@@ -1040,7 +1067,7 @@ np=>getAttributeNode(thisnode,"autormt")
 getstructstructure%autormt= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"autormt",getstructstructure%autormt)
-       call removeAttribute(thisnode,"autormt")      
+       call removeAttribute(thisnode,"autormt")  
 endif
 
 nullify(np)  
@@ -1048,7 +1075,7 @@ np=>getAttributeNode(thisnode,"primcell")
 getstructstructure%primcell= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"primcell",getstructstructure%primcell)
-       call removeAttribute(thisnode,"primcell")      
+       call removeAttribute(thisnode,"primcell")  
 endif
 
 nullify(np)  
@@ -1056,7 +1083,7 @@ np=>getAttributeNode(thisnode,"tshift")
 getstructstructure%tshift= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tshift",getstructstructure%tshift)
-       call removeAttribute(thisnode,"tshift")      
+       call removeAttribute(thisnode,"tshift")  
 endif
 
             len= countChildEmentsWithName(thisnode,"symmetries")
@@ -1068,7 +1095,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"crystal")
-getstructstructure%crystal=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The structure element must contain at least 1 crystal element"
+        endif
+        getstructstructure%crystal=>null()
 Do i=0,len-1
 getstructstructure%crystal=>getstructcrystal(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1107,32 +1138,41 @@ nullify(np)
 np=>getAttributeNode(thisnode,"HermannMauguinSymbol")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"HermannMauguinSymbol",getstructsymmetries%HermannMauguinSymbol)
-       call removeAttribute(thisnode,"HermannMauguinSymbol")      
+       call removeAttribute(thisnode,"HermannMauguinSymbol")  
+        else
+        write(*,*)"Parser ERROR: The element 'symmetries' requires the attribute 'HermannMauguinSymbol' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"HallSymbol")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"HallSymbol",getstructsymmetries%HallSymbol)
-       call removeAttribute(thisnode,"HallSymbol")      
+       call removeAttribute(thisnode,"HallSymbol")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"SchoenfliesSymbol")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"SchoenfliesSymbol",getstructsymmetries%SchoenfliesSymbol)
-       call removeAttribute(thisnode,"SchoenfliesSymbol")      
+       call removeAttribute(thisnode,"SchoenfliesSymbol")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"spaceGroupNumber")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"spaceGroupNumber",getstructsymmetries%spaceGroupNumber)
-       call removeAttribute(thisnode,"spaceGroupNumber")      
+       call removeAttribute(thisnode,"spaceGroupNumber")  
 endif
 
             len= countChildEmentsWithName(thisnode,"lattice")
-getstructsymmetries%lattice=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The symmetries element must contain at least 1 lattice element"
+        endif
+        getstructsymmetries%lattice=>null()
 Do i=0,len-1
 getstructsymmetries%lattice=>getstructlattice(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1170,42 +1210,72 @@ nullify(np)
 np=>getAttributeNode(thisnode,"a")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"a",getstructlattice%a)
-       call removeAttribute(thisnode,"a")      
+       call removeAttribute(thisnode,"a")  
+        else
+        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'a' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"b")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"b",getstructlattice%b)
-       call removeAttribute(thisnode,"b")      
+       call removeAttribute(thisnode,"b")  
+        else
+        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'b' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"c")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"c",getstructlattice%c)
-       call removeAttribute(thisnode,"c")      
+       call removeAttribute(thisnode,"c")  
+        else
+        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'c' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ab")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ab",getstructlattice%ab)
-       call removeAttribute(thisnode,"ab")      
+       call removeAttribute(thisnode,"ab")  
+        else
+        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'ab' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ac")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ac",getstructlattice%ac)
-       call removeAttribute(thisnode,"ac")      
+       call removeAttribute(thisnode,"ac")  
+        else
+        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'ac' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"bc")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"bc",getstructlattice%bc)
-       call removeAttribute(thisnode,"bc")      
+       call removeAttribute(thisnode,"bc")  
+        else
+        write(*,*)"Parser ERROR: The element 'lattice' requires the attribute 'bc' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
@@ -1213,7 +1283,7 @@ np=>getAttributeNode(thisnode,"ncell")
 getstructlattice%ncell=(/1,1,1/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ncell",getstructlattice%ncell)
-       call removeAttribute(thisnode,"ncell")      
+       call removeAttribute(thisnode,"ncell")  
 endif
 
       i=0
@@ -1265,7 +1335,7 @@ nullify(np)
 np=>getAttributeNode(thisnode,"speciesfile")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"speciesfile",getstructwspecies%speciesfile)
-       call removeAttribute(thisnode,"speciesfile")      
+       call removeAttribute(thisnode,"speciesfile")  
 endif
 
             len= countChildEmentsWithName(thisnode,"wpos")
@@ -1300,7 +1370,7 @@ nullify(np)
 np=>getAttributeNode(thisnode,"coord")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"coord",getstructwpos%coord)
-       call removeAttribute(thisnode,"coord")      
+       call removeAttribute(thisnode,"coord")  
 endif
 
       i=0
@@ -1327,7 +1397,7 @@ np=>getAttributeNode(thisnode,"scale")
 getstructcrystal%scale=1.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scale",getstructcrystal%scale)
-       call removeAttribute(thisnode,"scale")      
+       call removeAttribute(thisnode,"scale")  
 endif
 
 nullify(np)  
@@ -1335,7 +1405,7 @@ np=>getAttributeNode(thisnode,"stretch")
 getstructcrystal%stretch=(/1.0d0,1.0d0,1.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"stretch",getstructcrystal%stretch)
-       call removeAttribute(thisnode,"stretch")      
+       call removeAttribute(thisnode,"stretch")  
 endif
 
       len= countChildEmentsWithName (thisnode,"basevect")           
@@ -1370,7 +1440,12 @@ nullify(np)
 np=>getAttributeNode(thisnode,"speciesfile")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"speciesfile",getstructspecies%speciesfile)
-       call removeAttribute(thisnode,"speciesfile")      
+       call removeAttribute(thisnode,"speciesfile")  
+        else
+        write(*,*)"Parser ERROR: The element 'species' requires the attribute 'speciesfile' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
@@ -1378,14 +1453,14 @@ np=>getAttributeNode(thisnode,"chemicalSymbol")
 getstructspecies%chemicalSymbol= ""
 if(associated(np)) then
        call extractDataAttribute(thisnode,"chemicalSymbol",getstructspecies%chemicalSymbol)
-       call removeAttribute(thisnode,"chemicalSymbol")      
+       call removeAttribute(thisnode,"chemicalSymbol")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"atomicNumber")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"atomicNumber",getstructspecies%atomicNumber)
-       call removeAttribute(thisnode,"atomicNumber")      
+       call removeAttribute(thisnode,"atomicNumber")  
 endif
 
 nullify(np)  
@@ -1393,7 +1468,7 @@ np=>getAttributeNode(thisnode,"rmt")
 getstructspecies%rmt=-1.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rmt",getstructspecies%rmt)
-       call removeAttribute(thisnode,"rmt")      
+       call removeAttribute(thisnode,"rmt")  
 endif
 
 nullify(np)  
@@ -1401,11 +1476,15 @@ np=>getAttributeNode(thisnode,"href")
 getstructspecies%href= ""
 if(associated(np)) then
        call extractDataAttribute(thisnode,"href",getstructspecies%href)
-       call removeAttribute(thisnode,"href")      
+       call removeAttribute(thisnode,"href")  
 endif
 
             len= countChildEmentsWithName(thisnode,"atom")
-     
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The species element must contain at least 1 atom element"
+        endif
+             
 allocate(getstructspecies%atomarray(len))
 Do i=0,len-1
 getstructspecies%atomarray(i+1)%atom=>getstructatom(&
@@ -1444,7 +1523,12 @@ nullify(np)
 np=>getAttributeNode(thisnode,"coord")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"coord",getstructatom%coord)
-       call removeAttribute(thisnode,"coord")      
+       call removeAttribute(thisnode,"coord")  
+        else
+        write(*,*)"Parser ERROR: The element 'atom' requires the attribute 'coord' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
@@ -1452,7 +1536,7 @@ np=>getAttributeNode(thisnode,"bfcmt")
 getstructatom%bfcmt=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"bfcmt",getstructatom%bfcmt)
-       call removeAttribute(thisnode,"bfcmt")      
+       call removeAttribute(thisnode,"bfcmt")  
 endif
 
 nullify(np)  
@@ -1460,7 +1544,7 @@ np=>getAttributeNode(thisnode,"mommtfix")
 getstructatom%mommtfix=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mommtfix",getstructatom%mommtfix)
-       call removeAttribute(thisnode,"mommtfix")      
+       call removeAttribute(thisnode,"mommtfix")  
 endif
 
       i=0
@@ -1487,7 +1571,7 @@ np=>getAttributeNode(thisnode,"l")
 getstructLDAplusU%l=-1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"l",getstructLDAplusU%l)
-       call removeAttribute(thisnode,"l")      
+       call removeAttribute(thisnode,"l")  
 endif
 
 nullify(np)  
@@ -1495,7 +1579,7 @@ np=>getAttributeNode(thisnode,"U")
 getstructLDAplusU%U=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"U",getstructLDAplusU%U)
-       call removeAttribute(thisnode,"U")      
+       call removeAttribute(thisnode,"U")  
 endif
 
 nullify(np)  
@@ -1503,7 +1587,7 @@ np=>getAttributeNode(thisnode,"J")
 getstructLDAplusU%J=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"J",getstructLDAplusU%J)
-       call removeAttribute(thisnode,"J")      
+       call removeAttribute(thisnode,"J")  
 endif
 
       i=0
@@ -1530,14 +1614,19 @@ np=>getAttributeNode(thisnode,"do")
 getstructgroundstate%do= "fromscratch"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructgroundstate%do)
-       call removeAttribute(thisnode,"do")      
+       call removeAttribute(thisnode,"do")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridk")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridk",getstructgroundstate%ngridk)
-       call removeAttribute(thisnode,"ngridk")      
+       call removeAttribute(thisnode,"ngridk")  
+        else
+        write(*,*)"Parser ERROR: The element 'groundstate' requires the attribute 'ngridk' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
@@ -1545,7 +1634,7 @@ np=>getAttributeNode(thisnode,"rgkmax")
 getstructgroundstate%rgkmax=7.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rgkmax",getstructgroundstate%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
+       call removeAttribute(thisnode,"rgkmax")  
 endif
 
 nullify(np)  
@@ -1553,7 +1642,7 @@ np=>getAttributeNode(thisnode,"epspot")
 getstructgroundstate%epspot=1.0d-6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epspot",getstructgroundstate%epspot)
-       call removeAttribute(thisnode,"epspot")      
+       call removeAttribute(thisnode,"epspot")  
 endif
 
 nullify(np)  
@@ -1561,7 +1650,7 @@ np=>getAttributeNode(thisnode,"epsengy")
 getstructgroundstate%epsengy=1.0d-4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsengy",getstructgroundstate%epsengy)
-       call removeAttribute(thisnode,"epsengy")      
+       call removeAttribute(thisnode,"epsengy")  
 endif
 
 nullify(np)  
@@ -1569,7 +1658,7 @@ np=>getAttributeNode(thisnode,"epsforce")
 getstructgroundstate%epsforce=5.0d-5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsforce",getstructgroundstate%epsforce)
-       call removeAttribute(thisnode,"epsforce")      
+       call removeAttribute(thisnode,"epsforce")  
 endif
 
 nullify(np)  
@@ -1577,7 +1666,7 @@ np=>getAttributeNode(thisnode,"rmtapm")
 getstructgroundstate%rmtapm=(/0.25d0,0.95d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rmtapm",getstructgroundstate%rmtapm)
-       call removeAttribute(thisnode,"rmtapm")      
+       call removeAttribute(thisnode,"rmtapm")  
 endif
 
 nullify(np)  
@@ -1585,7 +1674,7 @@ np=>getAttributeNode(thisnode,"swidth")
 getstructgroundstate%swidth=0.001d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"swidth",getstructgroundstate%swidth)
-       call removeAttribute(thisnode,"swidth")      
+       call removeAttribute(thisnode,"swidth")  
 endif
 
 nullify(np)  
@@ -1593,7 +1682,7 @@ np=>getAttributeNode(thisnode,"stype")
 getstructgroundstate%stype= "Gaussian"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"stype",getstructgroundstate%stype)
-       call removeAttribute(thisnode,"stype")      
+       call removeAttribute(thisnode,"stype")  
 endif
 getstructgroundstate%stypenumber=stringtonumberstype(getstructgroundstate%stype)
 
@@ -1602,7 +1691,7 @@ np=>getAttributeNode(thisnode,"findlinentype")
 getstructgroundstate%findlinentype= "advanced"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"findlinentype",getstructgroundstate%findlinentype)
-       call removeAttribute(thisnode,"findlinentype")      
+       call removeAttribute(thisnode,"findlinentype")  
 endif
 getstructgroundstate%findlinentypenumber=stringtonumberfindlinentype(getstructgroundstate%findlinentype)
 
@@ -1611,7 +1700,7 @@ np=>getAttributeNode(thisnode,"isgkmax")
 getstructgroundstate%isgkmax=-1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"isgkmax",getstructgroundstate%isgkmax)
-       call removeAttribute(thisnode,"isgkmax")      
+       call removeAttribute(thisnode,"isgkmax")  
 endif
 
 nullify(np)  
@@ -1619,7 +1708,7 @@ np=>getAttributeNode(thisnode,"gmaxvr")
 getstructgroundstate%gmaxvr=12.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"gmaxvr",getstructgroundstate%gmaxvr)
-       call removeAttribute(thisnode,"gmaxvr")      
+       call removeAttribute(thisnode,"gmaxvr")  
 endif
 
 nullify(np)  
@@ -1627,7 +1716,7 @@ np=>getAttributeNode(thisnode,"nempty")
 getstructgroundstate%nempty=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nempty",getstructgroundstate%nempty)
-       call removeAttribute(thisnode,"nempty")      
+       call removeAttribute(thisnode,"nempty")  
 endif
 
 nullify(np)  
@@ -1635,7 +1724,15 @@ np=>getAttributeNode(thisnode,"nosym")
 getstructgroundstate%nosym= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nosym",getstructgroundstate%nosym)
-       call removeAttribute(thisnode,"nosym")      
+       call removeAttribute(thisnode,"nosym")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"symmorph")
+getstructgroundstate%symmorph= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"symmorph",getstructgroundstate%symmorph)
+       call removeAttribute(thisnode,"symmorph")  
 endif
 
 nullify(np)  
@@ -1643,7 +1740,7 @@ np=>getAttributeNode(thisnode,"frozencore")
 getstructgroundstate%frozencore= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"frozencore",getstructgroundstate%frozencore)
-       call removeAttribute(thisnode,"frozencore")      
+       call removeAttribute(thisnode,"frozencore")  
 endif
 
 nullify(np)  
@@ -1651,7 +1748,7 @@ np=>getAttributeNode(thisnode,"autokpt")
 getstructgroundstate%autokpt= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"autokpt",getstructgroundstate%autokpt)
-       call removeAttribute(thisnode,"autokpt")      
+       call removeAttribute(thisnode,"autokpt")  
 endif
 
 nullify(np)  
@@ -1659,7 +1756,7 @@ np=>getAttributeNode(thisnode,"radkpt")
 getstructgroundstate%radkpt=40.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"radkpt",getstructgroundstate%radkpt)
-       call removeAttribute(thisnode,"radkpt")      
+       call removeAttribute(thisnode,"radkpt")  
 endif
 
 nullify(np)  
@@ -1667,7 +1764,7 @@ np=>getAttributeNode(thisnode,"reducek")
 getstructgroundstate%reducek= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reducek",getstructgroundstate%reducek)
-       call removeAttribute(thisnode,"reducek")      
+       call removeAttribute(thisnode,"reducek")  
 endif
 
 nullify(np)  
@@ -1675,7 +1772,7 @@ np=>getAttributeNode(thisnode,"tfibs")
 getstructgroundstate%tfibs= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tfibs",getstructgroundstate%tfibs)
-       call removeAttribute(thisnode,"tfibs")      
+       call removeAttribute(thisnode,"tfibs")  
 endif
 
 nullify(np)  
@@ -1683,7 +1780,7 @@ np=>getAttributeNode(thisnode,"tforce")
 getstructgroundstate%tforce= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tforce",getstructgroundstate%tforce)
-       call removeAttribute(thisnode,"tforce")      
+       call removeAttribute(thisnode,"tforce")  
 endif
 
 nullify(np)  
@@ -1691,7 +1788,7 @@ np=>getAttributeNode(thisnode,"lmaxapw")
 getstructgroundstate%lmaxapw=10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxapw",getstructgroundstate%lmaxapw)
-       call removeAttribute(thisnode,"lmaxapw")      
+       call removeAttribute(thisnode,"lmaxapw")  
 endif
 
 nullify(np)  
@@ -1699,7 +1796,7 @@ np=>getAttributeNode(thisnode,"maxscl")
 getstructgroundstate%maxscl=200
 if(associated(np)) then
        call extractDataAttribute(thisnode,"maxscl",getstructgroundstate%maxscl)
-       call removeAttribute(thisnode,"maxscl")      
+       call removeAttribute(thisnode,"maxscl")  
 endif
 
 nullify(np)  
@@ -1707,7 +1804,7 @@ np=>getAttributeNode(thisnode,"chgexs")
 getstructgroundstate%chgexs=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"chgexs",getstructgroundstate%chgexs)
-       call removeAttribute(thisnode,"chgexs")      
+       call removeAttribute(thisnode,"chgexs")  
 endif
 
 nullify(np)  
@@ -1715,7 +1812,7 @@ np=>getAttributeNode(thisnode,"deband")
 getstructgroundstate%deband=0.0025d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"deband",getstructgroundstate%deband)
-       call removeAttribute(thisnode,"deband")      
+       call removeAttribute(thisnode,"deband")  
 endif
 
 nullify(np)  
@@ -1723,7 +1820,7 @@ np=>getAttributeNode(thisnode,"epsband")
 getstructgroundstate%epsband=1.0d-6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsband",getstructgroundstate%epsband)
-       call removeAttribute(thisnode,"epsband")      
+       call removeAttribute(thisnode,"epsband")  
 endif
 
 nullify(np)  
@@ -1731,7 +1828,7 @@ np=>getAttributeNode(thisnode,"dlinenfermi")
 getstructgroundstate%dlinenfermi=-0.1d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"dlinenfermi",getstructgroundstate%dlinenfermi)
-       call removeAttribute(thisnode,"dlinenfermi")      
+       call removeAttribute(thisnode,"dlinenfermi")  
 endif
 
 nullify(np)  
@@ -1739,7 +1836,7 @@ np=>getAttributeNode(thisnode,"epschg")
 getstructgroundstate%epschg=1.0d-3
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epschg",getstructgroundstate%epschg)
-       call removeAttribute(thisnode,"epschg")      
+       call removeAttribute(thisnode,"epschg")  
 endif
 
 nullify(np)  
@@ -1747,7 +1844,7 @@ np=>getAttributeNode(thisnode,"epsocc")
 getstructgroundstate%epsocc=1.0d-8
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsocc",getstructgroundstate%epsocc)
-       call removeAttribute(thisnode,"epsocc")      
+       call removeAttribute(thisnode,"epsocc")  
 endif
 
 nullify(np)  
@@ -1755,7 +1852,7 @@ np=>getAttributeNode(thisnode,"mixer")
 getstructgroundstate%mixer= "msec"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mixer",getstructgroundstate%mixer)
-       call removeAttribute(thisnode,"mixer")      
+       call removeAttribute(thisnode,"mixer")  
 endif
 getstructgroundstate%mixernumber=stringtonumbermixer(getstructgroundstate%mixer)
 
@@ -1764,7 +1861,7 @@ np=>getAttributeNode(thisnode,"beta0")
 getstructgroundstate%beta0=0.4d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"beta0",getstructgroundstate%beta0)
-       call removeAttribute(thisnode,"beta0")      
+       call removeAttribute(thisnode,"beta0")  
 endif
 
 nullify(np)  
@@ -1772,7 +1869,7 @@ np=>getAttributeNode(thisnode,"betainc")
 getstructgroundstate%betainc=1.1d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"betainc",getstructgroundstate%betainc)
-       call removeAttribute(thisnode,"betainc")      
+       call removeAttribute(thisnode,"betainc")  
 endif
 
 nullify(np)  
@@ -1780,7 +1877,7 @@ np=>getAttributeNode(thisnode,"betadec")
 getstructgroundstate%betadec=0.6d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"betadec",getstructgroundstate%betadec)
-       call removeAttribute(thisnode,"betadec")      
+       call removeAttribute(thisnode,"betadec")  
 endif
 
 nullify(np)  
@@ -1788,7 +1885,7 @@ np=>getAttributeNode(thisnode,"lradstep")
 getstructgroundstate%lradstep=4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lradstep",getstructgroundstate%lradstep)
-       call removeAttribute(thisnode,"lradstep")      
+       call removeAttribute(thisnode,"lradstep")  
 endif
 
 nullify(np)  
@@ -1796,7 +1893,7 @@ np=>getAttributeNode(thisnode,"nprad")
 getstructgroundstate%nprad=4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nprad",getstructgroundstate%nprad)
-       call removeAttribute(thisnode,"nprad")      
+       call removeAttribute(thisnode,"nprad")  
 endif
 
 nullify(np)  
@@ -1804,7 +1901,7 @@ np=>getAttributeNode(thisnode,"xctype")
 getstructgroundstate%xctype= "LSDAPerdew-Wang"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"xctype",getstructgroundstate%xctype)
-       call removeAttribute(thisnode,"xctype")      
+       call removeAttribute(thisnode,"xctype")  
 endif
 getstructgroundstate%xctypenumber=stringtonumberxctype(getstructgroundstate%xctype)
 
@@ -1813,7 +1910,7 @@ np=>getAttributeNode(thisnode,"ldapu")
 getstructgroundstate%ldapu= "none"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ldapu",getstructgroundstate%ldapu)
-       call removeAttribute(thisnode,"ldapu")      
+       call removeAttribute(thisnode,"ldapu")  
 endif
 getstructgroundstate%ldapunumber=stringtonumberldapu(getstructgroundstate%ldapu)
 
@@ -1822,7 +1919,7 @@ np=>getAttributeNode(thisnode,"lmaxvr")
 getstructgroundstate%lmaxvr=6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxvr",getstructgroundstate%lmaxvr)
-       call removeAttribute(thisnode,"lmaxvr")      
+       call removeAttribute(thisnode,"lmaxvr")  
 endif
 
 nullify(np)  
@@ -1830,7 +1927,7 @@ np=>getAttributeNode(thisnode,"fracinr")
 getstructgroundstate%fracinr=0.25d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"fracinr",getstructgroundstate%fracinr)
-       call removeAttribute(thisnode,"fracinr")      
+       call removeAttribute(thisnode,"fracinr")  
 endif
 
 nullify(np)  
@@ -1838,7 +1935,7 @@ np=>getAttributeNode(thisnode,"lmaxinr")
 getstructgroundstate%lmaxinr=2
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxinr",getstructgroundstate%lmaxinr)
-       call removeAttribute(thisnode,"lmaxinr")      
+       call removeAttribute(thisnode,"lmaxinr")  
 endif
 
 nullify(np)  
@@ -1846,7 +1943,7 @@ np=>getAttributeNode(thisnode,"lmaxmat")
 getstructgroundstate%lmaxmat=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructgroundstate%lmaxmat)
-       call removeAttribute(thisnode,"lmaxmat")      
+       call removeAttribute(thisnode,"lmaxmat")  
 endif
 
 nullify(np)  
@@ -1854,7 +1951,7 @@ np=>getAttributeNode(thisnode,"vkloff")
 getstructgroundstate%vkloff=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vkloff",getstructgroundstate%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
+       call removeAttribute(thisnode,"vkloff")  
 endif
 
 nullify(np)  
@@ -1862,7 +1959,7 @@ np=>getAttributeNode(thisnode,"npsden")
 getstructgroundstate%npsden=9
 if(associated(np)) then
        call extractDataAttribute(thisnode,"npsden",getstructgroundstate%npsden)
-       call removeAttribute(thisnode,"npsden")      
+       call removeAttribute(thisnode,"npsden")  
 endif
 
 nullify(np)  
@@ -1870,7 +1967,7 @@ np=>getAttributeNode(thisnode,"cfdamp")
 getstructgroundstate%cfdamp=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"cfdamp",getstructgroundstate%cfdamp)
-       call removeAttribute(thisnode,"cfdamp")      
+       call removeAttribute(thisnode,"cfdamp")  
 endif
 
 nullify(np)  
@@ -1878,7 +1975,7 @@ np=>getAttributeNode(thisnode,"nosource")
 getstructgroundstate%nosource= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nosource",getstructgroundstate%nosource)
-       call removeAttribute(thisnode,"nosource")      
+       call removeAttribute(thisnode,"nosource")  
 endif
 
 nullify(np)  
@@ -1886,7 +1983,7 @@ np=>getAttributeNode(thisnode,"tevecsv")
 getstructgroundstate%tevecsv= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tevecsv",getstructgroundstate%tevecsv)
-       call removeAttribute(thisnode,"tevecsv")      
+       call removeAttribute(thisnode,"tevecsv")  
 endif
 
 nullify(np)  
@@ -1894,7 +1991,7 @@ np=>getAttributeNode(thisnode,"nwrite")
 getstructgroundstate%nwrite=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nwrite",getstructgroundstate%nwrite)
-       call removeAttribute(thisnode,"nwrite")      
+       call removeAttribute(thisnode,"nwrite")  
 endif
 
 nullify(np)  
@@ -1902,7 +1999,7 @@ np=>getAttributeNode(thisnode,"ptnucl")
 getstructgroundstate%ptnucl= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ptnucl",getstructgroundstate%ptnucl)
-       call removeAttribute(thisnode,"ptnucl")      
+       call removeAttribute(thisnode,"ptnucl")  
 endif
 
             len= countChildEmentsWithName(thisnode,"spin")
@@ -1945,6 +2042,14 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "RDMFT"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"output")
+getstructgroundstate%output=>null()
+Do i=0,len-1
+getstructgroundstate%output=>getstructoutput(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"output"),0)) ) 
+enddo
+
       i=0
       len=0
       call  handleunknownnodes(thisnode)
@@ -1969,7 +2074,7 @@ np=>getAttributeNode(thisnode,"momfix")
 getstructspin%momfix=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"momfix",getstructspin%momfix)
-       call removeAttribute(thisnode,"momfix")      
+       call removeAttribute(thisnode,"momfix")  
 endif
 
 nullify(np)  
@@ -1977,14 +2082,14 @@ np=>getAttributeNode(thisnode,"bfieldc")
 getstructspin%bfieldc=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"bfieldc",getstructspin%bfieldc)
-       call removeAttribute(thisnode,"bfieldc")      
+       call removeAttribute(thisnode,"bfieldc")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"spinorb")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"spinorb",getstructspin%spinorb)
-       call removeAttribute(thisnode,"spinorb")      
+       call removeAttribute(thisnode,"spinorb")  
 endif
 
 nullify(np)  
@@ -1992,7 +2097,7 @@ np=>getAttributeNode(thisnode,"spinsprl")
 getstructspin%spinsprl= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"spinsprl",getstructspin%spinsprl)
-       call removeAttribute(thisnode,"spinsprl")      
+       call removeAttribute(thisnode,"spinsprl")  
 endif
 
 nullify(np)  
@@ -2000,7 +2105,7 @@ np=>getAttributeNode(thisnode,"vqlss")
 getstructspin%vqlss=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vqlss",getstructspin%vqlss)
-       call removeAttribute(thisnode,"vqlss")      
+       call removeAttribute(thisnode,"vqlss")  
 endif
 
 nullify(np)  
@@ -2008,7 +2113,7 @@ np=>getAttributeNode(thisnode,"taufsm")
 getstructspin%taufsm=0.01d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"taufsm",getstructspin%taufsm)
-       call removeAttribute(thisnode,"taufsm")      
+       call removeAttribute(thisnode,"taufsm")  
 endif
 
 nullify(np)  
@@ -2016,7 +2121,7 @@ np=>getAttributeNode(thisnode,"reducebf")
 getstructspin%reducebf=1.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reducebf",getstructspin%reducebf)
-       call removeAttribute(thisnode,"reducebf")      
+       call removeAttribute(thisnode,"reducebf")  
 endif
 
 nullify(np)  
@@ -2024,7 +2129,7 @@ np=>getAttributeNode(thisnode,"fixspin")
 getstructspin%fixspin= "none"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"fixspin",getstructspin%fixspin)
-       call removeAttribute(thisnode,"fixspin")      
+       call removeAttribute(thisnode,"fixspin")  
 endif
 getstructspin%fixspinnumber=stringtonumberfixspin(getstructspin%fixspin)
 
@@ -2052,7 +2157,7 @@ np=>getAttributeNode(thisnode,"epsengy")
 getstructHartreeFock%epsengy=1.0d-4
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsengy",getstructHartreeFock%epsengy)
-       call removeAttribute(thisnode,"epsengy")      
+       call removeAttribute(thisnode,"epsengy")  
 endif
 
       i=0
@@ -2079,7 +2184,7 @@ np=>getAttributeNode(thisnode,"type")
 getstructsolver%type= "Lapack"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"type",getstructsolver%type)
-       call removeAttribute(thisnode,"type")      
+       call removeAttribute(thisnode,"type")  
 endif
 getstructsolver%typenumber=stringtonumbertype(getstructsolver%type)
 
@@ -2088,7 +2193,7 @@ np=>getAttributeNode(thisnode,"packedmatrixstorage")
 getstructsolver%packedmatrixstorage= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"packedmatrixstorage",getstructsolver%packedmatrixstorage)
-       call removeAttribute(thisnode,"packedmatrixstorage")      
+       call removeAttribute(thisnode,"packedmatrixstorage")  
 endif
 
 nullify(np)  
@@ -2096,7 +2201,7 @@ np=>getAttributeNode(thisnode,"epsarpack")
 getstructsolver%epsarpack=1.0d-8
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsarpack",getstructsolver%epsarpack)
-       call removeAttribute(thisnode,"epsarpack")      
+       call removeAttribute(thisnode,"epsarpack")  
 endif
 
 nullify(np)  
@@ -2104,7 +2209,7 @@ np=>getAttributeNode(thisnode,"evaltol")
 getstructsolver%evaltol=1.0d-8
 if(associated(np)) then
        call extractDataAttribute(thisnode,"evaltol",getstructsolver%evaltol)
-       call removeAttribute(thisnode,"evaltol")      
+       call removeAttribute(thisnode,"evaltol")  
 endif
 
       i=0
@@ -2131,7 +2236,7 @@ np=>getAttributeNode(thisnode,"maxitoep")
 getstructOEP%maxitoep=120
 if(associated(np)) then
        call extractDataAttribute(thisnode,"maxitoep",getstructOEP%maxitoep)
-       call removeAttribute(thisnode,"maxitoep")      
+       call removeAttribute(thisnode,"maxitoep")  
 endif
 
 nullify(np)  
@@ -2139,7 +2244,7 @@ np=>getAttributeNode(thisnode,"tauoep")
 getstructOEP%tauoep=(/1.0d0,0.2d0,1.5d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tauoep",getstructOEP%tauoep)
-       call removeAttribute(thisnode,"tauoep")      
+       call removeAttribute(thisnode,"tauoep")  
 endif
 
       i=0
@@ -2166,7 +2271,7 @@ np=>getAttributeNode(thisnode,"rdmxctype")
 getstructRDMFT%rdmxctype=2
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rdmxctype",getstructRDMFT%rdmxctype)
-       call removeAttribute(thisnode,"rdmxctype")      
+       call removeAttribute(thisnode,"rdmxctype")  
 endif
 
 nullify(np)  
@@ -2174,7 +2279,7 @@ np=>getAttributeNode(thisnode,"rdmmaxscl")
 getstructRDMFT%rdmmaxscl=1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rdmmaxscl",getstructRDMFT%rdmmaxscl)
-       call removeAttribute(thisnode,"rdmmaxscl")      
+       call removeAttribute(thisnode,"rdmmaxscl")  
 endif
 
 nullify(np)  
@@ -2182,7 +2287,7 @@ np=>getAttributeNode(thisnode,"maxitn")
 getstructRDMFT%maxitn=250
 if(associated(np)) then
        call extractDataAttribute(thisnode,"maxitn",getstructRDMFT%maxitn)
-       call removeAttribute(thisnode,"maxitn")      
+       call removeAttribute(thisnode,"maxitn")  
 endif
 
 nullify(np)  
@@ -2190,7 +2295,7 @@ np=>getAttributeNode(thisnode,"maxitc")
 getstructRDMFT%maxitc=10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"maxitc",getstructRDMFT%maxitc)
-       call removeAttribute(thisnode,"maxitc")      
+       call removeAttribute(thisnode,"maxitc")  
 endif
 
 nullify(np)  
@@ -2198,7 +2303,7 @@ np=>getAttributeNode(thisnode,"taurdmn")
 getstructRDMFT%taurdmn=1.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"taurdmn",getstructRDMFT%taurdmn)
-       call removeAttribute(thisnode,"taurdmn")      
+       call removeAttribute(thisnode,"taurdmn")  
 endif
 
 nullify(np)  
@@ -2206,7 +2311,7 @@ np=>getAttributeNode(thisnode,"taurdmc")
 getstructRDMFT%taurdmc=0.5d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"taurdmc",getstructRDMFT%taurdmc)
-       call removeAttribute(thisnode,"taurdmc")      
+       call removeAttribute(thisnode,"taurdmc")  
 endif
 
 nullify(np)  
@@ -2214,7 +2319,7 @@ np=>getAttributeNode(thisnode,"rdmalpha")
 getstructRDMFT%rdmalpha=0.7d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rdmalpha",getstructRDMFT%rdmalpha)
-       call removeAttribute(thisnode,"rdmalpha")      
+       call removeAttribute(thisnode,"rdmalpha")  
 endif
 
 nullify(np)  
@@ -2222,8 +2327,36 @@ np=>getAttributeNode(thisnode,"rdmtemp")
 getstructRDMFT%rdmtemp=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rdmtemp",getstructRDMFT%rdmtemp)
-       call removeAttribute(thisnode,"rdmtemp")      
+       call removeAttribute(thisnode,"rdmtemp")  
 endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructoutput(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(output_type),pointer::getstructoutput
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructoutput)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at output"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"state")
+getstructoutput%state= "binary"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"state",getstructoutput%state)
+       call removeAttribute(thisnode,"state")  
+endif
+getstructoutput%statenumber=stringtonumberstate(getstructoutput%state)
 
       i=0
       len=0
@@ -2249,7 +2382,7 @@ np=>getAttributeNode(thisnode,"epsforce")
 getstructstructureoptimization%epsforce=5.0d-5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsforce",getstructstructureoptimization%epsforce)
-       call removeAttribute(thisnode,"epsforce")      
+       call removeAttribute(thisnode,"epsforce")  
 endif
 
 nullify(np)  
@@ -2257,7 +2390,7 @@ np=>getAttributeNode(thisnode,"tau0atm")
 getstructstructureoptimization%tau0atm=0.2d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tau0atm",getstructstructureoptimization%tau0atm)
-       call removeAttribute(thisnode,"tau0atm")      
+       call removeAttribute(thisnode,"tau0atm")  
 endif
 
 nullify(np)  
@@ -2265,7 +2398,7 @@ np=>getAttributeNode(thisnode,"resume")
 getstructstructureoptimization%resume= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"resume",getstructstructureoptimization%resume)
-       call removeAttribute(thisnode,"resume")      
+       call removeAttribute(thisnode,"resume")  
 endif
 
       i=0
@@ -2405,22 +2538,6 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "EFG"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"momentummatrix")
-getstructproperties%momentummatrix=>null()
-Do i=0,len-1
-getstructproperties%momentummatrix=>getstructmomentummatrix(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"momentummatrix"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"linresponsetensor")
-getstructproperties%linresponsetensor=>null()
-Do i=0,len-1
-getstructproperties%linresponsetensor=>getstructlinresponsetensor(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"linresponsetensor"),0)) ) 
-enddo
-
             len= countChildEmentsWithName(thisnode,"mossbauer")
 getstructproperties%mossbauer=>null()
 Do i=0,len-1
@@ -2429,12 +2546,28 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "mossbauer"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"momentummatrix")
+getstructproperties%momentummatrix=>null()
+Do i=0,len-1
+getstructproperties%momentummatrix=>getstructmomentummatrix(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"momentummatrix"),0)) ) 
+enddo
+
             len= countChildEmentsWithName(thisnode,"dielectric")
 getstructproperties%dielectric=>null()
 Do i=0,len-1
 getstructproperties%dielectric=>getstructdielectric(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "dielectric"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"moke")
+getstructproperties%moke=>null()
+Do i=0,len-1
+getstructproperties%moke=>getstructmoke(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"moke"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"expiqr")
@@ -2485,7 +2618,7 @@ np=>getAttributeNode(thisnode,"scissor")
 getstructbandstructure%scissor=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scissor",getstructbandstructure%scissor)
-       call removeAttribute(thisnode,"scissor")      
+       call removeAttribute(thisnode,"scissor")  
 endif
 
 nullify(np)  
@@ -2493,7 +2626,7 @@ np=>getAttributeNode(thisnode,"character")
 getstructbandstructure%character= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"character",getstructbandstructure%character)
-       call removeAttribute(thisnode,"character")      
+       call removeAttribute(thisnode,"character")  
 endif
 
             len= countChildEmentsWithName(thisnode,"plot1d")
@@ -2602,7 +2735,7 @@ np=>getAttributeNode(thisnode,"sqados")
 getstructdos%sqados=(/0.0d0,0.0d0,1.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"sqados",getstructdos%sqados)
-       call removeAttribute(thisnode,"sqados")      
+       call removeAttribute(thisnode,"sqados")  
 endif
 
 nullify(np)  
@@ -2610,7 +2743,7 @@ np=>getAttributeNode(thisnode,"lmirep")
 getstructdos%lmirep= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmirep",getstructdos%lmirep)
-       call removeAttribute(thisnode,"lmirep")      
+       call removeAttribute(thisnode,"lmirep")  
 endif
 
 nullify(np)  
@@ -2618,7 +2751,7 @@ np=>getAttributeNode(thisnode,"nwdos")
 getstructdos%nwdos=500
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nwdos",getstructdos%nwdos)
-       call removeAttribute(thisnode,"nwdos")      
+       call removeAttribute(thisnode,"nwdos")  
 endif
 
 nullify(np)  
@@ -2626,7 +2759,7 @@ np=>getAttributeNode(thisnode,"ngrdos")
 getstructdos%ngrdos=100
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngrdos",getstructdos%ngrdos)
-       call removeAttribute(thisnode,"ngrdos")      
+       call removeAttribute(thisnode,"ngrdos")  
 endif
 
 nullify(np)  
@@ -2634,7 +2767,7 @@ np=>getAttributeNode(thisnode,"nsmdos")
 getstructdos%nsmdos=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nsmdos",getstructdos%nsmdos)
-       call removeAttribute(thisnode,"nsmdos")      
+       call removeAttribute(thisnode,"nsmdos")  
 endif
 
 nullify(np)  
@@ -2642,7 +2775,7 @@ np=>getAttributeNode(thisnode,"winddos")
 getstructdos%winddos=(/0.0d0,0.5d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"winddos",getstructdos%winddos)
-       call removeAttribute(thisnode,"winddos")      
+       call removeAttribute(thisnode,"winddos")  
 endif
 
 nullify(np)  
@@ -2650,7 +2783,7 @@ np=>getAttributeNode(thisnode,"scissor")
 getstructdos%scissor=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scissor",getstructdos%scissor)
-       call removeAttribute(thisnode,"scissor")      
+       call removeAttribute(thisnode,"scissor")  
 endif
 
       i=0
@@ -2702,7 +2835,7 @@ np=>getAttributeNode(thisnode,"deltaem")
 getstructmasstensor%deltaem=0.025d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"deltaem",getstructmasstensor%deltaem)
-       call removeAttribute(thisnode,"deltaem")      
+       call removeAttribute(thisnode,"deltaem")  
 endif
 
 nullify(np)  
@@ -2710,7 +2843,7 @@ np=>getAttributeNode(thisnode,"ndspem")
 getstructmasstensor%ndspem=1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ndspem",getstructmasstensor%ndspem)
-       call removeAttribute(thisnode,"ndspem")      
+       call removeAttribute(thisnode,"ndspem")  
 endif
 
 nullify(np)  
@@ -2718,7 +2851,7 @@ np=>getAttributeNode(thisnode,"vklem")
 getstructmasstensor%vklem=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vklem",getstructmasstensor%vklem)
-       call removeAttribute(thisnode,"vklem")      
+       call removeAttribute(thisnode,"vklem")  
 endif
 
       i=0
@@ -3008,14 +3141,14 @@ np=>getAttributeNode(thisnode,"nstfsp")
 getstructfermisurfaceplot%nstfsp=6
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nstfsp",getstructfermisurfaceplot%nstfsp)
-       call removeAttribute(thisnode,"nstfsp")      
+       call removeAttribute(thisnode,"nstfsp")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"separate")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"separate",getstructfermisurfaceplot%separate)
-       call removeAttribute(thisnode,"separate")      
+       call removeAttribute(thisnode,"separate")  
 endif
 
       i=0
@@ -3040,58 +3173,6 @@ allocate(getstructEFG)
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructmomentummatrix(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(momentummatrix_type),pointer::getstructmomentummatrix
-		
-integer::len=1,i=0
-allocate(getstructmomentummatrix)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at momentummatrix"
-#endif
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructlinresponsetensor(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(linresponsetensor_type),pointer::getstructlinresponsetensor
-		type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructlinresponsetensor)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at linresponsetensor"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"scissor")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scissor",getstructlinresponsetensor%scissor)
-       call removeAttribute(thisnode,"scissor")      
-endif
-
-      len= countChildEmentsWithName (thisnode,"optcomp")           
-allocate(getstructlinresponsetensor%optcomp(3,len))
-Do i=1,len
-
-		getstructlinresponsetensor%optcomp(:,i)=getvalueofoptcomp(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "optcomp"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
 function getstructmossbauer(thisnode)
 
 implicit none
@@ -3109,16 +3190,95 @@ allocate(getstructmossbauer)
       call  handleunknownnodes(thisnode)
 end function
 
+function getstructmomentummatrix(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(momentummatrix_type),pointer::getstructmomentummatrix
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructmomentummatrix)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at momentummatrix"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"fastpmat")
+getstructmomentummatrix%fastpmat= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"fastpmat",getstructmomentummatrix%fastpmat)
+       call removeAttribute(thisnode,"fastpmat")  
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
 function getstructdielectric(thisnode)
 
 implicit none
 type(Node),pointer::thisnode
 type(dielectric_type),pointer::getstructdielectric
-		
+		type(Node),pointer::np
+
+
 integer::len=1,i=0
 allocate(getstructdielectric)  
 #ifdef INPUTDEBUG      
       write(*,*)"we are at dielectric"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"scissor")
+getstructdielectric%scissor=0.0d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scissor",getstructdielectric%scissor)
+       call removeAttribute(thisnode,"scissor")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"intraband")
+getstructdielectric%intraband= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"intraband",getstructdielectric%intraband)
+       call removeAttribute(thisnode,"intraband")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"usegdft")
+getstructdielectric%usegdft= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"usegdft",getstructdielectric%usegdft)
+       call removeAttribute(thisnode,"usegdft")  
+endif
+
+      len= countChildEmentsWithName (thisnode,"optcomp")           
+allocate(getstructdielectric%optcomp(3,len))
+Do i=1,len
+
+		getstructdielectric%optcomp(:,i)=getvalueofoptcomp(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "optcomp"),0)))
+end do
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructmoke(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(moke_type),pointer::getstructmoke
+		
+integer::len=1,i=0
+allocate(getstructmoke)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at moke"
 #endif
       
       i=0
@@ -3162,7 +3322,7 @@ np=>getAttributeNode(thisnode,"vecql")
 getstructelnes%vecql=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vecql",getstructelnes%vecql)
-       call removeAttribute(thisnode,"vecql")      
+       call removeAttribute(thisnode,"vecql")  
 endif
 
       i=0
@@ -3189,7 +3349,7 @@ np=>getAttributeNode(thisnode,"mustar")
 getstructeliashberg%mustar=0.15d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mustar",getstructeliashberg%mustar)
-       call removeAttribute(thisnode,"mustar")      
+       call removeAttribute(thisnode,"mustar")  
 endif
 
       i=0
@@ -3216,14 +3376,19 @@ np=>getAttributeNode(thisnode,"do")
 getstructphonons%do= "fromscratch"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructphonons%do)
-       call removeAttribute(thisnode,"do")      
+       call removeAttribute(thisnode,"do")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridq")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridq",getstructphonons%ngridq)
-       call removeAttribute(thisnode,"ngridq")      
+       call removeAttribute(thisnode,"ngridq")  
+        else
+        write(*,*)"Parser ERROR: The element 'phonons' requires the attribute 'ngridq' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
@@ -3231,7 +3396,7 @@ np=>getAttributeNode(thisnode,"reduceq")
 getstructphonons%reduceq= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reduceq",getstructphonons%reduceq)
-       call removeAttribute(thisnode,"reduceq")      
+       call removeAttribute(thisnode,"reduceq")  
 endif
 
 nullify(np)  
@@ -3239,11 +3404,15 @@ np=>getAttributeNode(thisnode,"deltaph")
 getstructphonons%deltaph=0.03d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"deltaph",getstructphonons%deltaph)
-       call removeAttribute(thisnode,"deltaph")      
+       call removeAttribute(thisnode,"deltaph")  
 endif
 
             len= countChildEmentsWithName(thisnode,"qpointset")
-getstructphonons%qpointset=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The phonons element must contain at least 1 qpointset element"
+        endif
+        getstructphonons%qpointset=>null()
 Do i=0,len-1
 getstructphonons%qpointset=>getstructqpointset(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3340,7 +3509,7 @@ np=>getAttributeNode(thisnode,"emattype")
 getstructxs%emattype=1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"emattype",getstructxs%emattype)
-       call removeAttribute(thisnode,"emattype")      
+       call removeAttribute(thisnode,"emattype")  
 endif
 
 nullify(np)  
@@ -3348,7 +3517,7 @@ np=>getAttributeNode(thisnode,"dfoffdiag")
 getstructxs%dfoffdiag= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"dfoffdiag",getstructxs%dfoffdiag)
-       call removeAttribute(thisnode,"dfoffdiag")      
+       call removeAttribute(thisnode,"dfoffdiag")  
 endif
 
 nullify(np)  
@@ -3356,7 +3525,7 @@ np=>getAttributeNode(thisnode,"lmaxapwwf")
 getstructxs%lmaxapwwf=-1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxapwwf",getstructxs%lmaxapwwf)
-       call removeAttribute(thisnode,"lmaxapwwf")      
+       call removeAttribute(thisnode,"lmaxapwwf")  
 endif
 
 nullify(np)  
@@ -3364,7 +3533,7 @@ np=>getAttributeNode(thisnode,"lmaxemat")
 getstructxs%lmaxemat=3
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxemat",getstructxs%lmaxemat)
-       call removeAttribute(thisnode,"lmaxemat")      
+       call removeAttribute(thisnode,"lmaxemat")  
 endif
 
 nullify(np)  
@@ -3372,7 +3541,7 @@ np=>getAttributeNode(thisnode,"emaxdf")
 getstructxs%emaxdf=1.0d10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"emaxdf",getstructxs%emaxdf)
-       call removeAttribute(thisnode,"emaxdf")      
+       call removeAttribute(thisnode,"emaxdf")  
 endif
 
 nullify(np)  
@@ -3380,7 +3549,7 @@ np=>getAttributeNode(thisnode,"broad")
 getstructxs%broad=0.01d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"broad",getstructxs%broad)
-       call removeAttribute(thisnode,"broad")      
+       call removeAttribute(thisnode,"broad")  
 endif
 
 nullify(np)  
@@ -3388,7 +3557,7 @@ np=>getAttributeNode(thisnode,"epsdfde")
 getstructxs%epsdfde=1.0d-8
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsdfde",getstructxs%epsdfde)
-       call removeAttribute(thisnode,"epsdfde")      
+       call removeAttribute(thisnode,"epsdfde")  
 endif
 
 nullify(np)  
@@ -3396,31 +3565,28 @@ np=>getAttributeNode(thisnode,"tevout")
 getstructxs%tevout= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tevout",getstructxs%tevout)
-       call removeAttribute(thisnode,"tevout")      
+       call removeAttribute(thisnode,"tevout")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"xstype")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"xstype",getstructxs%xstype)
-       call removeAttribute(thisnode,"xstype")      
+       call removeAttribute(thisnode,"xstype")  
+        else
+        write(*,*)"Parser ERROR: The element 'xs' requires the attribute 'xstype' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 getstructxs%xstypenumber=stringtonumberxstype(getstructxs%xstype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"symmorph")
-getstructxs%symmorph= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"symmorph",getstructxs%symmorph)
-       call removeAttribute(thisnode,"symmorph")      
-endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"fastpmat")
 getstructxs%fastpmat= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"fastpmat",getstructxs%fastpmat)
-       call removeAttribute(thisnode,"fastpmat")      
+       call removeAttribute(thisnode,"fastpmat")  
 endif
 
 nullify(np)  
@@ -3428,15 +3594,7 @@ np=>getAttributeNode(thisnode,"fastemat")
 getstructxs%fastemat= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"fastemat",getstructxs%fastemat)
-       call removeAttribute(thisnode,"fastemat")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"gather")
-getstructxs%gather= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"gather",getstructxs%gather)
-       call removeAttribute(thisnode,"gather")      
+       call removeAttribute(thisnode,"fastemat")  
 endif
 
 nullify(np)  
@@ -3444,7 +3602,7 @@ np=>getAttributeNode(thisnode,"tappinfo")
 getstructxs%tappinfo= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tappinfo",getstructxs%tappinfo)
-       call removeAttribute(thisnode,"tappinfo")      
+       call removeAttribute(thisnode,"tappinfo")  
 endif
 
 nullify(np)  
@@ -3452,15 +3610,7 @@ np=>getAttributeNode(thisnode,"dbglev")
 getstructxs%dbglev=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"dbglev",getstructxs%dbglev)
-       call removeAttribute(thisnode,"dbglev")      
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"usegdft")
-getstructxs%usegdft= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"usegdft",getstructxs%usegdft)
-       call removeAttribute(thisnode,"usegdft")      
+       call removeAttribute(thisnode,"dbglev")  
 endif
 
 nullify(np)  
@@ -3468,7 +3618,7 @@ np=>getAttributeNode(thisnode,"gqmax")
 getstructxs%gqmax=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"gqmax",getstructxs%gqmax)
-       call removeAttribute(thisnode,"gqmax")      
+       call removeAttribute(thisnode,"gqmax")  
 endif
 
 nullify(np)  
@@ -3476,7 +3626,7 @@ np=>getAttributeNode(thisnode,"nosym")
 getstructxs%nosym= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nosym",getstructxs%nosym)
-       call removeAttribute(thisnode,"nosym")      
+       call removeAttribute(thisnode,"nosym")  
 endif
 
 nullify(np)  
@@ -3484,7 +3634,7 @@ np=>getAttributeNode(thisnode,"ngridk")
 getstructxs%ngridk=(/1,1,1/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridk",getstructxs%ngridk)
-       call removeAttribute(thisnode,"ngridk")      
+       call removeAttribute(thisnode,"ngridk")  
 endif
 
 nullify(np)  
@@ -3492,7 +3642,7 @@ np=>getAttributeNode(thisnode,"vkloff")
 getstructxs%vkloff=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vkloff",getstructxs%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
+       call removeAttribute(thisnode,"vkloff")  
 endif
 
 nullify(np)  
@@ -3500,7 +3650,7 @@ np=>getAttributeNode(thisnode,"reducek")
 getstructxs%reducek= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reducek",getstructxs%reducek)
-       call removeAttribute(thisnode,"reducek")      
+       call removeAttribute(thisnode,"reducek")  
 endif
 
 nullify(np)  
@@ -3508,7 +3658,7 @@ np=>getAttributeNode(thisnode,"ngridq")
 getstructxs%ngridq=(/1,1,1/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridq",getstructxs%ngridq)
-       call removeAttribute(thisnode,"ngridq")      
+       call removeAttribute(thisnode,"ngridq")  
 endif
 
 nullify(np)  
@@ -3516,7 +3666,7 @@ np=>getAttributeNode(thisnode,"reduceq")
 getstructxs%reduceq= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reduceq",getstructxs%reduceq)
-       call removeAttribute(thisnode,"reduceq")      
+       call removeAttribute(thisnode,"reduceq")  
 endif
 
 nullify(np)  
@@ -3524,7 +3674,7 @@ np=>getAttributeNode(thisnode,"rgkmax")
 getstructxs%rgkmax=7.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rgkmax",getstructxs%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
+       call removeAttribute(thisnode,"rgkmax")  
 endif
 
 nullify(np)  
@@ -3532,7 +3682,7 @@ np=>getAttributeNode(thisnode,"swidth")
 getstructxs%swidth=0.001d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"swidth",getstructxs%swidth)
-       call removeAttribute(thisnode,"swidth")      
+       call removeAttribute(thisnode,"swidth")  
 endif
 
 nullify(np)  
@@ -3540,7 +3690,7 @@ np=>getAttributeNode(thisnode,"lmaxapw")
 getstructxs%lmaxapw=10
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxapw",getstructxs%lmaxapw)
-       call removeAttribute(thisnode,"lmaxapw")      
+       call removeAttribute(thisnode,"lmaxapw")  
 endif
 
 nullify(np)  
@@ -3548,7 +3698,7 @@ np=>getAttributeNode(thisnode,"lmaxmat")
 getstructxs%lmaxmat=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxmat",getstructxs%lmaxmat)
-       call removeAttribute(thisnode,"lmaxmat")      
+       call removeAttribute(thisnode,"lmaxmat")  
 endif
 
 nullify(np)  
@@ -3556,14 +3706,15 @@ np=>getAttributeNode(thisnode,"nempty")
 getstructxs%nempty=5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nempty",getstructxs%nempty)
-       call removeAttribute(thisnode,"nempty")      
+       call removeAttribute(thisnode,"nempty")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"scissor")
+getstructxs%scissor=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scissor",getstructxs%scissor)
-       call removeAttribute(thisnode,"scissor")      
+       call removeAttribute(thisnode,"scissor")  
 endif
 
             len= countChildEmentsWithName(thisnode,"tddft")
@@ -3590,8 +3741,20 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "BSE"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"transitions")
+getstructxs%transitions=>null()
+Do i=0,len-1
+getstructxs%transitions=>getstructtransitions(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"transitions"),0)) ) 
+enddo
+
             len= countChildEmentsWithName(thisnode,"qpointset")
-getstructxs%qpointset=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The xs element must contain at least 1 qpointset element"
+        endif
+        getstructxs%qpointset=>null()
 Do i=0,len-1
 getstructxs%qpointset=>getstructqpointset(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3607,7 +3770,11 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"dosWindow")
-getstructxs%dosWindow=>null()
+
+        if(len.eq.0) then
+        write(*,*)"Parser ERROR: The xs element must contain at least 1 dosWindow element"
+        endif
+        getstructxs%dosWindow=>null()
 Do i=0,len-1
 getstructxs%dosWindow=>getstructdosWindow(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3646,7 +3813,7 @@ np=>getAttributeNode(thisnode,"intraband")
 getstructtddft%intraband= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"intraband",getstructtddft%intraband)
-       call removeAttribute(thisnode,"intraband")      
+       call removeAttribute(thisnode,"intraband")  
 endif
 
 nullify(np)  
@@ -3654,7 +3821,7 @@ np=>getAttributeNode(thisnode,"torddf")
 getstructtddft%torddf= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"torddf",getstructtddft%torddf)
-       call removeAttribute(thisnode,"torddf")      
+       call removeAttribute(thisnode,"torddf")  
 endif
 
 nullify(np)  
@@ -3662,7 +3829,7 @@ np=>getAttributeNode(thisnode,"tordfxc")
 getstructtddft%tordfxc= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tordfxc",getstructtddft%tordfxc)
-       call removeAttribute(thisnode,"tordfxc")      
+       call removeAttribute(thisnode,"tordfxc")  
 endif
 
 nullify(np)  
@@ -3670,7 +3837,7 @@ np=>getAttributeNode(thisnode,"aresdf")
 getstructtddft%aresdf= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"aresdf",getstructtddft%aresdf)
-       call removeAttribute(thisnode,"aresdf")      
+       call removeAttribute(thisnode,"aresdf")  
 endif
 
 nullify(np)  
@@ -3678,7 +3845,7 @@ np=>getAttributeNode(thisnode,"aresfxc")
 getstructtddft%aresfxc= .true.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"aresfxc",getstructtddft%aresfxc)
-       call removeAttribute(thisnode,"aresfxc")      
+       call removeAttribute(thisnode,"aresfxc")  
 endif
 
 nullify(np)  
@@ -3686,7 +3853,7 @@ np=>getAttributeNode(thisnode,"fxcbsesplit")
 getstructtddft%fxcbsesplit=1.0d-5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"fxcbsesplit",getstructtddft%fxcbsesplit)
-       call removeAttribute(thisnode,"fxcbsesplit")      
+       call removeAttribute(thisnode,"fxcbsesplit")  
 endif
 
 nullify(np)  
@@ -3694,7 +3861,7 @@ np=>getAttributeNode(thisnode,"acont")
 getstructtddft%acont= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"acont",getstructtddft%acont)
-       call removeAttribute(thisnode,"acont")      
+       call removeAttribute(thisnode,"acont")  
 endif
 
 nullify(np)  
@@ -3702,7 +3869,7 @@ np=>getAttributeNode(thisnode,"nwacont")
 getstructtddft%nwacont=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nwacont",getstructtddft%nwacont)
-       call removeAttribute(thisnode,"nwacont")      
+       call removeAttribute(thisnode,"nwacont")  
 endif
 
 nullify(np)  
@@ -3710,7 +3877,7 @@ np=>getAttributeNode(thisnode,"lindhard")
 getstructtddft%lindhard= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lindhard",getstructtddft%lindhard)
-       call removeAttribute(thisnode,"lindhard")      
+       call removeAttribute(thisnode,"lindhard")  
 endif
 
 nullify(np)  
@@ -3718,7 +3885,7 @@ np=>getAttributeNode(thisnode,"kerndiag")
 getstructtddft%kerndiag= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"kerndiag",getstructtddft%kerndiag)
-       call removeAttribute(thisnode,"kerndiag")      
+       call removeAttribute(thisnode,"kerndiag")  
 endif
 
 nullify(np)  
@@ -3726,7 +3893,7 @@ np=>getAttributeNode(thisnode,"lmaxalda")
 getstructtddft%lmaxalda=3
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxalda",getstructtddft%lmaxalda)
-       call removeAttribute(thisnode,"lmaxalda")      
+       call removeAttribute(thisnode,"lmaxalda")  
 endif
 
 nullify(np)  
@@ -3734,7 +3901,7 @@ np=>getAttributeNode(thisnode,"alphalrc")
 getstructtddft%alphalrc=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"alphalrc",getstructtddft%alphalrc)
-       call removeAttribute(thisnode,"alphalrc")      
+       call removeAttribute(thisnode,"alphalrc")  
 endif
 
 nullify(np)  
@@ -3742,14 +3909,14 @@ np=>getAttributeNode(thisnode,"alphalrcdyn")
 getstructtddft%alphalrcdyn=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"alphalrcdyn",getstructtddft%alphalrcdyn)
-       call removeAttribute(thisnode,"alphalrcdyn")      
+       call removeAttribute(thisnode,"alphalrcdyn")  
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"betalrcdyn")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"betalrcdyn",getstructtddft%betalrcdyn)
-       call removeAttribute(thisnode,"betalrcdyn")      
+       call removeAttribute(thisnode,"betalrcdyn")  
 endif
 
 nullify(np)  
@@ -3757,7 +3924,7 @@ np=>getAttributeNode(thisnode,"mdfqtype")
 getstructtddft%mdfqtype=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mdfqtype",getstructtddft%mdfqtype)
-       call removeAttribute(thisnode,"mdfqtype")      
+       call removeAttribute(thisnode,"mdfqtype")  
 endif
 
 nullify(np)  
@@ -3765,7 +3932,7 @@ np=>getAttributeNode(thisnode,"fxctype")
 getstructtddft%fxctype= "RPA"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"fxctype",getstructtddft%fxctype)
-       call removeAttribute(thisnode,"fxctype")      
+       call removeAttribute(thisnode,"fxctype")  
 endif
 getstructtddft%fxctypenumber=stringtonumberfxctype(getstructtddft%fxctype)
 
@@ -3774,42 +3941,8 @@ np=>getAttributeNode(thisnode,"resumefromkernel")
 getstructtddft%resumefromkernel= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"resumefromkernel",getstructtddft%resumefromkernel)
-       call removeAttribute(thisnode,"resumefromkernel")      
+       call removeAttribute(thisnode,"resumefromkernel")  
 endif
-
-            len= countChildEmentsWithName(thisnode,"dftrans")
-getstructtddft%dftrans=>null()
-Do i=0,len-1
-getstructtddft%dftrans=>getstructdftrans(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dftrans"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdftrans(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dftrans_type),pointer::getstructdftrans
-		
-integer::len=1,i=0
-allocate(getstructdftrans)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at dftrans"
-#endif
-      
-      len= countChildEmentsWithName (thisnode,"trans")           
-allocate(getstructdftrans%trans(3,len))
-Do i=1,len
-
-		getstructdftrans%trans(:,i)=getvalueoftrans(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "trans"),0)))
-end do
 
       i=0
       len=0
@@ -3835,7 +3968,7 @@ np=>getAttributeNode(thisnode,"run")
 getstructscreening%run= "fromscratch"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"run",getstructscreening%run)
-       call removeAttribute(thisnode,"run")      
+       call removeAttribute(thisnode,"run")  
 endif
 getstructscreening%runnumber=stringtonumberrun(getstructscreening%run)
 
@@ -3844,7 +3977,7 @@ np=>getAttributeNode(thisnode,"nosym")
 getstructscreening%nosym= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nosym",getstructscreening%nosym)
-       call removeAttribute(thisnode,"nosym")      
+       call removeAttribute(thisnode,"nosym")  
 endif
 
 nullify(np)  
@@ -3852,7 +3985,7 @@ np=>getAttributeNode(thisnode,"ngridk")
 getstructscreening%ngridk=(/0,0,0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ngridk",getstructscreening%ngridk)
-       call removeAttribute(thisnode,"ngridk")      
+       call removeAttribute(thisnode,"ngridk")  
 endif
 
 nullify(np)  
@@ -3860,7 +3993,7 @@ np=>getAttributeNode(thisnode,"reducek")
 getstructscreening%reducek= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reducek",getstructscreening%reducek)
-       call removeAttribute(thisnode,"reducek")      
+       call removeAttribute(thisnode,"reducek")  
 endif
 
 nullify(np)  
@@ -3868,7 +4001,7 @@ np=>getAttributeNode(thisnode,"vkloff")
 getstructscreening%vkloff=(/-1.0d0,-1.0d0,-1.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vkloff",getstructscreening%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
+       call removeAttribute(thisnode,"vkloff")  
 endif
 
 nullify(np)  
@@ -3876,7 +4009,7 @@ np=>getAttributeNode(thisnode,"rgkmax")
 getstructscreening%rgkmax=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rgkmax",getstructscreening%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
+       call removeAttribute(thisnode,"rgkmax")  
 endif
 
 nullify(np)  
@@ -3884,7 +4017,7 @@ np=>getAttributeNode(thisnode,"nempty")
 getstructscreening%nempty=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nempty",getstructscreening%nempty)
-       call removeAttribute(thisnode,"nempty")      
+       call removeAttribute(thisnode,"nempty")  
 endif
 
 nullify(np)  
@@ -3892,7 +4025,7 @@ np=>getAttributeNode(thisnode,"screentype")
 getstructscreening%screentype= "full"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"screentype",getstructscreening%screentype)
-       call removeAttribute(thisnode,"screentype")      
+       call removeAttribute(thisnode,"screentype")  
 endif
 getstructscreening%screentypenumber=stringtonumberscreentype(getstructscreening%screentype)
 
@@ -3920,7 +4053,7 @@ np=>getAttributeNode(thisnode,"nosym")
 getstructBSE%nosym= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nosym",getstructBSE%nosym)
-       call removeAttribute(thisnode,"nosym")      
+       call removeAttribute(thisnode,"nosym")  
 endif
 
 nullify(np)  
@@ -3928,7 +4061,7 @@ np=>getAttributeNode(thisnode,"reducek")
 getstructBSE%reducek= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reducek",getstructBSE%reducek)
-       call removeAttribute(thisnode,"reducek")      
+       call removeAttribute(thisnode,"reducek")  
 endif
 
 nullify(np)  
@@ -3936,7 +4069,7 @@ np=>getAttributeNode(thisnode,"vkloff")
 getstructBSE%vkloff=(/-1.0d0,-1.0d0,-1.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vkloff",getstructBSE%vkloff)
-       call removeAttribute(thisnode,"vkloff")      
+       call removeAttribute(thisnode,"vkloff")  
 endif
 
 nullify(np)  
@@ -3944,7 +4077,7 @@ np=>getAttributeNode(thisnode,"rgkmax")
 getstructBSE%rgkmax=0.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rgkmax",getstructBSE%rgkmax)
-       call removeAttribute(thisnode,"rgkmax")      
+       call removeAttribute(thisnode,"rgkmax")  
 endif
 
 nullify(np)  
@@ -3952,7 +4085,7 @@ np=>getAttributeNode(thisnode,"scrherm")
 getstructBSE%scrherm=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scrherm",getstructBSE%scrherm)
-       call removeAttribute(thisnode,"scrherm")      
+       call removeAttribute(thisnode,"scrherm")  
 endif
 
 nullify(np)  
@@ -3960,7 +4093,7 @@ np=>getAttributeNode(thisnode,"fbzq")
 getstructBSE%fbzq= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"fbzq",getstructBSE%fbzq)
-       call removeAttribute(thisnode,"fbzq")      
+       call removeAttribute(thisnode,"fbzq")  
 endif
 
 nullify(np)  
@@ -3968,7 +4101,7 @@ np=>getAttributeNode(thisnode,"sciavtype")
 getstructBSE%sciavtype= "spherical"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"sciavtype",getstructBSE%sciavtype)
-       call removeAttribute(thisnode,"sciavtype")      
+       call removeAttribute(thisnode,"sciavtype")  
 endif
 getstructBSE%sciavtypenumber=stringtonumbersciavtype(getstructBSE%sciavtype)
 
@@ -3977,7 +4110,7 @@ np=>getAttributeNode(thisnode,"sciavbd")
 getstructBSE%sciavbd= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"sciavbd",getstructBSE%sciavbd)
-       call removeAttribute(thisnode,"sciavbd")      
+       call removeAttribute(thisnode,"sciavbd")  
 endif
 
 nullify(np)  
@@ -3985,7 +4118,7 @@ np=>getAttributeNode(thisnode,"sciavqhd")
 getstructBSE%sciavqhd= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"sciavqhd",getstructBSE%sciavqhd)
-       call removeAttribute(thisnode,"sciavqhd")      
+       call removeAttribute(thisnode,"sciavqhd")  
 endif
 
 nullify(np)  
@@ -3993,7 +4126,7 @@ np=>getAttributeNode(thisnode,"sciavqwg")
 getstructBSE%sciavqwg= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"sciavqwg",getstructBSE%sciavqwg)
-       call removeAttribute(thisnode,"sciavqwg")      
+       call removeAttribute(thisnode,"sciavqwg")  
 endif
 
 nullify(np)  
@@ -4001,7 +4134,7 @@ np=>getAttributeNode(thisnode,"sciavqbd")
 getstructBSE%sciavqbd= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"sciavqbd",getstructBSE%sciavqbd)
-       call removeAttribute(thisnode,"sciavqbd")      
+       call removeAttribute(thisnode,"sciavqbd")  
 endif
 
 nullify(np)  
@@ -4009,7 +4142,7 @@ np=>getAttributeNode(thisnode,"bsedirsing")
 getstructBSE%bsedirsing= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"bsedirsing",getstructBSE%bsedirsing)
-       call removeAttribute(thisnode,"bsedirsing")      
+       call removeAttribute(thisnode,"bsedirsing")  
 endif
 
 nullify(np)  
@@ -4017,7 +4150,7 @@ np=>getAttributeNode(thisnode,"lmaxdielt")
 getstructBSE%lmaxdielt=14
 if(associated(np)) then
        call extractDataAttribute(thisnode,"lmaxdielt",getstructBSE%lmaxdielt)
-       call removeAttribute(thisnode,"lmaxdielt")      
+       call removeAttribute(thisnode,"lmaxdielt")  
 endif
 
 nullify(np)  
@@ -4025,7 +4158,7 @@ np=>getAttributeNode(thisnode,"nleblaik")
 getstructBSE%nleblaik=5810
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nleblaik",getstructBSE%nleblaik)
-       call removeAttribute(thisnode,"nleblaik")      
+       call removeAttribute(thisnode,"nleblaik")  
 endif
 
 nullify(np)  
@@ -4033,7 +4166,7 @@ np=>getAttributeNode(thisnode,"nexcitmax")
 getstructBSE%nexcitmax=100
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nexcitmax",getstructBSE%nexcitmax)
-       call removeAttribute(thisnode,"nexcitmax")      
+       call removeAttribute(thisnode,"nexcitmax")  
 endif
 
 nullify(np)  
@@ -4042,7 +4175,7 @@ np=>getAttributeNode(thisnode,"nstlbse")
 getstructBSE%nstlbse=(/0,0,0,0/) !(wol)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nstlbse",getstructBSE%nstlbse)
-       call removeAttribute(thisnode,"nstlbse")      
+       call removeAttribute(thisnode,"nstlbse")  
 endif
 
 !(wol)----start----------------------------------
@@ -4060,7 +4193,7 @@ np=>getAttributeNode(thisnode,"nstlce")
 getstructBSE%nstlce=(/0,0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nstlce",getstructBSE%nstlce)
-       call removeAttribute(thisnode,"nstlce")      
+       call removeAttribute(thisnode,"nstlce")  
 endif
 
 nullify(np)  
@@ -4068,9 +4201,297 @@ np=>getAttributeNode(thisnode,"bsetype")
 getstructBSE%bsetype= "singlet"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"bsetype",getstructBSE%bsetype)
-       call removeAttribute(thisnode,"bsetype")      
+       call removeAttribute(thisnode,"bsetype")  
 endif
 getstructBSE%bsetypenumber=stringtonumberbsetype(getstructBSE%bsetype)
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructtransitions(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(transitions_type),pointer::getstructtransitions
+		
+integer::len=1,i=0
+allocate(getstructtransitions)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at transitions"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"individual")
+getstructtransitions%individual=>null()
+Do i=0,len-1
+getstructtransitions%individual=>getstructindividual(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"individual"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"ranges")
+getstructtransitions%ranges=>null()
+Do i=0,len-1
+getstructtransitions%ranges=>getstructranges(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"ranges"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"lists")
+getstructtransitions%lists=>null()
+Do i=0,len-1
+getstructtransitions%lists=>getstructlists(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"lists"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructindividual(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(individual_type),pointer::getstructindividual
+		
+integer::len=1,i=0
+allocate(getstructindividual)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at individual"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"trans")
+     
+allocate(getstructindividual%transarray(len))
+Do i=0,len-1
+getstructindividual%transarray(i+1)%trans=>getstructtrans(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"trans"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructtrans(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(trans_type),pointer::getstructtrans
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructtrans)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at trans"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"action")
+getstructtrans%action= "include"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"action",getstructtrans%action)
+       call removeAttribute(thisnode,"action")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"kpointnumber")
+getstructtrans%kpointnumber=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"kpointnumber",getstructtrans%kpointnumber)
+       call removeAttribute(thisnode,"kpointnumber")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"initial")
+getstructtrans%initial=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"initial",getstructtrans%initial)
+       call removeAttribute(thisnode,"initial")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"final")
+getstructtrans%final=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"final",getstructtrans%final)
+       call removeAttribute(thisnode,"final")  
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructranges(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(ranges_type),pointer::getstructranges
+		
+integer::len=1,i=0
+allocate(getstructranges)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at ranges"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"range")
+     
+allocate(getstructranges%rangearray(len))
+Do i=0,len-1
+getstructranges%rangearray(i+1)%range=>getstructrange(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"range"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructrange(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(range_type),pointer::getstructrange
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructrange)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at range"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"action")
+getstructrange%action= "include"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"action",getstructrange%action)
+       call removeAttribute(thisnode,"action")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"statestype")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"statestype",getstructrange%statestype)
+       call removeAttribute(thisnode,"statestype")  
+        else
+        write(*,*)"Parser ERROR: The element 'range' requires the attribute 'statestype' to be defined."
+        write(*,*)"stopped"
+        stop
+        
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"kpointnumber")
+getstructrange%kpointnumber=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"kpointnumber",getstructrange%kpointnumber)
+       call removeAttribute(thisnode,"kpointnumber")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"start")
+getstructrange%start=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"start",getstructrange%start)
+       call removeAttribute(thisnode,"start")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"stop")
+getstructrange%stop=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"stop",getstructrange%stop)
+       call removeAttribute(thisnode,"stop")  
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructlists(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(lists_type),pointer::getstructlists
+		
+integer::len=1,i=0
+allocate(getstructlists)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at lists"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"istate")
+     
+allocate(getstructlists%istatearray(len))
+Do i=0,len-1
+getstructlists%istatearray(i+1)%istate=>getstructistate(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"istate"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructistate(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(istate_type),pointer::getstructistate
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructistate)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at istate"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"action")
+getstructistate%action= "include"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"action",getstructistate%action)
+       call removeAttribute(thisnode,"action")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"statestype")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"statestype",getstructistate%statestype)
+       call removeAttribute(thisnode,"statestype")  
+        else
+        write(*,*)"Parser ERROR: The element 'istate' requires the attribute 'statestype' to be defined."
+        write(*,*)"stopped"
+        stop
+        
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"kpointnumber")
+getstructistate%kpointnumber=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"kpointnumber",getstructistate%kpointnumber)
+       call removeAttribute(thisnode,"kpointnumber")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"state")
+getstructistate%state=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"state",getstructistate%state)
+       call removeAttribute(thisnode,"state")  
+endif
 
       i=0
       len=0
@@ -4096,7 +4517,7 @@ np=>getAttributeNode(thisnode,"tetraocc")
 getstructtetra%tetraocc= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tetraocc",getstructtetra%tetraocc)
-       call removeAttribute(thisnode,"tetraocc")      
+       call removeAttribute(thisnode,"tetraocc")  
 endif
 
 nullify(np)  
@@ -4104,7 +4525,7 @@ np=>getAttributeNode(thisnode,"tetradf")
 getstructtetra%tetradf= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"tetradf",getstructtetra%tetradf)
-       call removeAttribute(thisnode,"tetradf")      
+       call removeAttribute(thisnode,"tetradf")  
 endif
 
 nullify(np)  
@@ -4112,7 +4533,7 @@ np=>getAttributeNode(thisnode,"kordexc")
 getstructtetra%kordexc= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"kordexc",getstructtetra%kordexc)
-       call removeAttribute(thisnode,"kordexc")      
+       call removeAttribute(thisnode,"kordexc")  
 endif
 
 nullify(np)  
@@ -4120,7 +4541,7 @@ np=>getAttributeNode(thisnode,"cw1k")
 getstructtetra%cw1k= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"cw1k",getstructtetra%cw1k)
-       call removeAttribute(thisnode,"cw1k")      
+       call removeAttribute(thisnode,"cw1k")  
 endif
 
 nullify(np)  
@@ -4128,7 +4549,7 @@ np=>getAttributeNode(thisnode,"qweights")
 getstructtetra%qweights=1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"qweights",getstructtetra%qweights)
-       call removeAttribute(thisnode,"qweights")      
+       call removeAttribute(thisnode,"qweights")  
 endif
 
       i=0
@@ -4155,7 +4576,7 @@ np=>getAttributeNode(thisnode,"points")
 getstructdosWindow%points=500
 if(associated(np)) then
        call extractDataAttribute(thisnode,"points",getstructdosWindow%points)
-       call removeAttribute(thisnode,"points")      
+       call removeAttribute(thisnode,"points")  
 endif
 
 nullify(np)  
@@ -4163,7 +4584,7 @@ np=>getAttributeNode(thisnode,"intv")
 getstructdosWindow%intv=(/-0.5d0,0.5d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"intv",getstructdosWindow%intv)
-       call removeAttribute(thisnode,"intv")      
+       call removeAttribute(thisnode,"intv")  
 endif
 
 nullify(np)  
@@ -4171,7 +4592,7 @@ np=>getAttributeNode(thisnode,"nsmdos")
 getstructdosWindow%nsmdos=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nsmdos",getstructdosWindow%nsmdos)
-       call removeAttribute(thisnode,"nsmdos")      
+       call removeAttribute(thisnode,"nsmdos")  
 endif
 
       i=0
@@ -4223,7 +4644,12 @@ nullify(np)
 np=>getAttributeNode(thisnode,"task")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"task",getstructdoonly%task)
-       call removeAttribute(thisnode,"task")      
+       call removeAttribute(thisnode,"task")  
+        else
+        write(*,*)"Parser ERROR: The element 'doonly' requires the attribute 'task' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 getstructdoonly%tasknumber=stringtonumbertask(getstructdoonly%task)
 
@@ -4302,7 +4728,12 @@ nullify(np)
 np=>getAttributeNode(thisnode,"id")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"id",getstructdopart%id)
-       call removeAttribute(thisnode,"id")      
+       call removeAttribute(thisnode,"id")  
+        else
+        write(*,*)"Parser ERROR: The element 'dopart' requires the attribute 'id' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
       i=0
@@ -4350,16 +4781,6 @@ type(Node),pointer::thisnode
 #endif  
    call extractDataContent(thisnode,  getvalueofoptcomp)
 end function 
-function getvalueoftrans(thisnode)
-implicit none
-type(Node),pointer::thisnode
- integer::getvalueoftrans(3)
-
-#ifdef INPUTDEBUG
-  write(*,*)"we are at trans"
-#endif  
-   call extractDataContent(thisnode,  getvalueoftrans)
-end function 
 function getvalueofkeywords(thisnode)
 implicit none
 type(Node),pointer::thisnode
@@ -4392,39 +4813,39 @@ case('skip')
 case('')
  stringtonumberdo=0
 case default
-write(*,*) "'", string,"' is not valid selection fordo "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
 stop 
 end select
 end function
 
  
- integer function  stringtonumbertarget(string) 
+ integer function  stringtonumberaction(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('xml')
- stringtonumbertarget=-1
-case('binary')
- stringtonumbertarget=-1
+case('include')
+ stringtonumberaction=-1
+case('exclude')
+ stringtonumberaction=-1
 case('')
- stringtonumbertarget=0
+ stringtonumberaction=0
 case default
-write(*,*) "'", string,"' is not valid selection fortarget "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection foraction "
 stop 
 end select
 end function
 
  
- integer function  stringtonumbersource(string) 
+ integer function  stringtonumberstatestype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
-case('xml')
- stringtonumbersource=-1
-case('binary')
- stringtonumbersource=-1
+case('initialstates')
+ stringtonumberstatestype=-1
+case('finalstates')
+ stringtonumberstatestype=-1
 case('')
- stringtonumbersource=0
+ stringtonumberstatestype=0
 case default
-write(*,*) "'", string,"' is not valid selection forsource "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forstatestype "
 stop 
 end select
 end function
@@ -4444,7 +4865,7 @@ case('both')
 case('')
  stringtonumberfixspin=0
 case default
-write(*,*) "'", string,"' is not valid selection forfixspin "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forfixspin "
 stop 
 end select
 end function
@@ -4462,7 +4883,23 @@ case('DIIS')
 case('')
  stringtonumbertype=0
 case default
-write(*,*) "'", string,"' is not valid selection fortype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fortype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberstate(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('binary')
+ stringtonumberstate=-1
+case('XML')
+ stringtonumberstate=-1
+case('')
+ stringtonumberstate=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forstate "
 stop 
 end select
 end function
@@ -4484,7 +4921,7 @@ case('Square-wave impulse')
 case('')
  stringtonumberstype=0
 case default
-write(*,*) "'", string,"' is not valid selection forstype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forstype "
 stop 
 end select
 end function
@@ -4502,7 +4939,7 @@ case('advanced')
 case('')
  stringtonumberfindlinentype=0
 case default
-write(*,*) "'", string,"' is not valid selection forfindlinentype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forfindlinentype "
 stop 
 end select
 end function
@@ -4520,7 +4957,7 @@ case('pulay')
 case('')
  stringtonumbermixer=0
 case default
-write(*,*) "'", string,"' is not valid selection formixer "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection formixer "
 stop 
 end select
 end function
@@ -4554,7 +4991,7 @@ case('none')
 case('')
  stringtonumberxctype=0
 case default
-write(*,*) "'", string,"' is not valid selection forxctype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forxctype "
 stop 
 end select
 end function
@@ -4574,7 +5011,7 @@ case('FFL-AMF-interpolation')
 case('')
  stringtonumberldapu=0
 case default
-write(*,*) "'", string,"' is not valid selection forldapu "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forldapu "
 stop 
 end select
 end function
@@ -4602,7 +5039,7 @@ case('MB1')
 case('')
  stringtonumberfxctype=0
 case default
-write(*,*) "'", string,"' is not valid selection forfxctype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forfxctype "
 stop 
 end select
 end function
@@ -4618,7 +5055,7 @@ case('skip')
 case('')
  stringtonumberrun=0
 case default
-write(*,*) "'", string,"' is not valid selection forrun "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forrun "
 stop 
 end select
 end function
@@ -4638,7 +5075,7 @@ case('longrange')
 case('')
  stringtonumberscreentype=0
 case default
-write(*,*) "'", string,"' is not valid selection forscreentype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forscreentype "
 stop 
 end select
 end function
@@ -4656,7 +5093,7 @@ case('invscreendiag')
 case('')
  stringtonumbersciavtype=0
 case default
-write(*,*) "'", string,"' is not valid selection forsciavtype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forsciavtype "
 stop 
 end select
 end function
@@ -4676,7 +5113,7 @@ case('triplet')
 case('')
  stringtonumberbsetype=0
 case default
-write(*,*) "'", string,"' is not valid selection forbsetype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forbsetype "
 stop 
 end select
 end function
@@ -4711,7 +5148,7 @@ case('scrcoulint')
  stringtonumbertask=440
 case('exccoulint')
  stringtonumbertask=441
-case('BSE')
+case('bse')
  stringtonumbertask=445
 case('kernxc_bse')
  stringtonumbertask=450
@@ -4735,8 +5172,6 @@ case('x0toasc')
  stringtonumbertask=341
 case('x0tobin')
  stringtonumbertask=342
-case('epsconv')
- stringtonumbertask=396
 case('fxc_alda_check')
  stringtonumbertask=398
 case('kernxc_bse3')
@@ -4760,7 +5195,7 @@ case('portstate(-2)')
 case('')
  stringtonumbertask=0
 case default
-write(*,*) "'", string,"' is not valid selection fortask "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fortask "
 stop 
 end select
 end function
@@ -4776,7 +5211,7 @@ case('BSE')
 case('')
  stringtonumberxstype=0
 case default
-write(*,*) "'", string,"' is not valid selection forxstype "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forxstype "
 stop 
 end select
 end function

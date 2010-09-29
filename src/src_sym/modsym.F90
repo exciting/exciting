@@ -13,6 +13,8 @@ Module modsym
       Integer, Private, Parameter :: maxsymcrs = 192
   ! true if symmetry group is abelian
       Logical :: abelsg
+  ! true if symmetry group contains spatial inversion symmetry
+      Logical :: spainvsym
   ! symmetry group multiplication table
       Integer, Allocatable :: sgmut (:, :)
 !

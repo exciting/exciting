@@ -17,7 +17,6 @@ SOURCEDIRS=	../../src/  \
 	../../src/src_xc/ \
 	../../src/src_xml/ \
 	../../src/src_inputparser/ \
-	../../src/src_timing/ \
 	../../src/src_sym/ \
 	../../src/ \
 	

@@ -19,6 +19,7 @@ Subroutine writesym2
       Write (50,*)
       If (abelsg) write (50, '("The symmetry group is Abelian (commutat&
      &ive)")')
+      If (spainvsym) write (50, '("The symmetry group contains spatial inversion symmetry")')
       Write (50, '(" (first and second group element and product below)&
      &")')
       Do isym = 1, nsymcrys

@@ -1,15 +1,11 @@
-!
-!
-!
+
 ! Copyright (C) 2007-2008 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 Module m_gndstateq
       Implicit None
 Contains
-!
-!
       Subroutine gndstateq (voff, filxt)
          Use modmain
          Use modinput
@@ -39,5 +35,4 @@ Contains
          task = task_save
          input%groundstate%maxscl = maxscl_save
       End Subroutine gndstateq
-!
 End Module m_gndstateq

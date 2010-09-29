@@ -102,20 +102,7 @@ Subroutine findocclims (iq, iocc0, iocc, iunocc0, iunocc, io0, io, iu0, &
       End If
   ! determine if system has a gap in energy
       ksgap = evlhpo .Lt. efermi
-  ! check consistency with Fermi energy
-!SAG: remove at some point !  if (ksgap.and.((evlhpo.gt.efermi).or.(evllpu.lt.efermi))) then
-!     write(*,*)
-!     write(*,'("Error(findocclims): inconsistent Fermi energy for system&
-!          & with gap in energy:")')
-!     write(*,'(" Fermi energy            :",f12.6)') efermi
-!     write(*,'(" highest part. occ state :",f12.6)') evlhpo
-!     write(*,'(" lowest part. unocc state:",f12.6)') evllpu
-!     write(*,'(" recalculate Fermi energy or eigenvalues with reduced swidth")')
-!     write(*,'(" or use a denser k-point sampling")')
-!     write(*,*)
-!     call terminate
-!  end if
-  ! *** assign nstocc0 and nstunocc0 ***
+  ! assign nstocc0 and nstunocc0
       nstocc0 = iocc0
       nstunocc0 = nstsv - nstocc0
       If ((iocc0 .Ge. iunocc) .Or. (iocc .Ge. iunocc0)) Then

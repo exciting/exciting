@@ -26,11 +26,11 @@
  </li>
  <li>
   <green>attributes</green>  are defined according to the <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>. An attribute is always connected to an element. In <exciting>exciting</exciting> an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element.
- <it>Example</it> The attribute <pre-bf>xctype</pre-bf> of the element <pre-bf>groundstate</pre-bf> defines which exchange-correlation potential is used in the self-consistent calculation.
+ <it>Example:</it> The attribute <pre-bf>xctype</pre-bf> of the element <pre-bf>groundstate</pre-bf> defines which exchange-correlation potential is used in the self-consistent calculation.
 </li>
 </list>
 
-<p>The input file of an  <exciting>exciting</exciting> calculation is named <filename>input.xml</filename>. It must be a valid XML file, and it must contain the root element <pre-bf>input</pre-bf>.</p>
+<p>The input file of an  <exciting>exciting</exciting> calculation is named <filenamens>input.xml</filenamens>. It must be a valid XML file, and it must contain the root element <pre-bf_ns>input</pre-bf_ns>.</p>
         
         
         <p>Unless explicitly stated otherwise, <exciting>exciting</exciting> uses atomic units
@@ -38,14 +38,15 @@
 
      <list>
                 <li> Energies are given in Hartree:
-    <displaymath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\  J</displaymath>
+                <p>
+    <inlinemath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\  J</inlinemath></p>
                 </li>
-                <li> Lengths are given in Bohr: 
-     <displaymath>  1 a_{\rm Bohr}\  = 0.52917720859(36)  {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36)  10^{-10} \ m</displaymath>
+                <li> Lengths are given in Bohr: <p>
+     <inlinemath>  1 a_{\rm Bohr}\  = 0.52917720859(36)  {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36)  10^{-10} \ m</inlinemath></p>
                 </li>
-                <li> Magnetic fields are given in units of 
-      <displaymath>  1 a.u. =  \displaystyle\frac{e}{a_{\rm Bohr}^2}\    = 1717.2445320376\ Tesla.
-    </displaymath>
+                <li> Magnetic fields are given in units of <p>
+     <inlinemath> 1 a.u. =  \displaystyle\frac{e}{a_{\rm Bohr}^2}\    = 1717.2445320376\ Tesla.
+   </inlinemath></p>
                 </li>
             </list>
             <p> Note: The electron charge is positive, so that the atomic numbers <inlinemath>Z</inlinemath> are negative.
@@ -136,7 +137,10 @@ Example:  <pre>
             <xs:appinfo>
                 <oldname>nonreplace</oldname>
             </xs:appinfo>
-            <xs:documentation>Decides if the ground state is read from file or recalculated or continued from file.
+            <xs:documentation>
+            Decides if the ground state is calculated starting from scratch, using
+            the densities from file or if it is skipped and only its associated input parameters
+            are read in. Also applies fo structural optimization run.
         </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
@@ -171,6 +175,14 @@ Example:  <pre>
    </xs:documentation>
         </xs:annotation>
     </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit="" name="symmorph"
+        type="xs:boolean" default="false">
+        <xs:annotation>
+            <xs:documentation>
+               When set to <pre>"true"</pre> only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are used anywhere in the code.
+            </xs:documentation>
+        </xs:annotation>
+     </xs:attribute>
     <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble"
         default="0.0d0">
         <xs:annotation>
@@ -178,6 +190,44 @@ Example:  <pre>
     optics and band structure plots.</xs:documentation>
         </xs:annotation>
     </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat"
+       type="xs:boolean" default="true">
+       <xs:annotation>
+       <xs:documentation>
+        if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
+       </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit="" name="intraband"
+        type="xs:boolean" default="false">
+       <xs:annotation>
+           <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+       </xs:annotation>
+    </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit=""
+    name="action" default="include">
+    <xs:annotation>
+        <xs:documentation>Select to include or exclude states</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="include"/>
+            <xs:enumeration value="exclude"/>
+        </xs:restriction>
+    </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit=""
+    name="statestype" >
+    <xs:annotation>
+        <xs:documentation>Select for initial or final state range</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="initialstates"/>
+            <xs:enumeration value="finalstates"/>
+        </xs:restriction>
+    </xs:simpleType>
+    </xs:attribute>                                                     
     <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble"
         default="5.0d-5"> </xs:attribute>
     <!-- global element definitions -->
@@ -299,7 +349,7 @@ Example:  <pre>
     <xs:element ex:importance="essential" ex:unit="" name="input">
         <xs:annotation>
             <xs:documentation>
-       The xml element <pre> input</pre> is the root element of the <exciting>exciting</exciting> input file. It must contain one <pre>structure </pre> element and one <pre>groundstate </pre> element.
+       The xml element <pre> input</pre> is the root element of the <exciting>exciting</exciting> input file. It must contain one element <pre>structure </pre> and the element <pre>groundstate </pre>.
        <p>
                     <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file instance described here.</a>
                 </p>
@@ -314,41 +364,6 @@ Example:  <pre>
                     <xs:annotation>
                         <xs:documentation>Title of the input file.</xs:documentation>
                     </xs:annotation>
-                </xs:element>
-                <xs:element ex:importance="expert" ex:unit="" name="convert" maxOccurs="1"
-                    minOccurs="0">
-                    <xs:complexType>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="target" use="required">
-                            <xs:annotation>
-                                <xs:documentation>Output format for conversion. Either the binary file
-                                <pre> STATE.OUT</pre> is converted to the XML file <pre> STATE.xml</pre> or vice versa.
-                                </xs:documentation>
-                            </xs:annotation>
-                            <xs:simpleType>
-                                <xs:restriction base="xs:string">
-                                    <xs:enumeration value="xml"/>
-                                    <xs:enumeration value="binary"/>
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                    </xs:complexType>
-                </xs:element>
-                <xs:element ex:importance="expert" ex:unit="" name="extract" maxOccurs="1"
-                    minOccurs="0">
-                    <xs:complexType>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="source" use="required">
-                            <xs:annotation>
-                                <xs:documentation>Extract information from <pre> STATE.OUT</pre> or <pre> STATE.xml </pre> file.
-                                A skeleton input is created and written to <pre> STATE_input.xml</pre>.</xs:documentation>
-                            </xs:annotation>
-                            <xs:simpleType>
-                                <xs:restriction base="xs:string">
-                                    <xs:enumeration value="xml"/>
-                                    <xs:enumeration value="binary"/>
-                                </xs:restriction>
-                            </xs:simpleType>
-                        </xs:attribute>
-                    </xs:complexType>
                 </xs:element>
                 <xs:element ex:importance="essential" ex:unit="" name="structure" maxOccurs="1"
                     minOccurs="1">
@@ -471,7 +486,7 @@ Example:  <pre>
                             <xs:element ex:importance="essential" ex:unit="" name="crystal"
                                 minOccurs="1" maxOccurs="1">
                                 <xs:annotation>
-                                    <xs:documentation>The crystal element defines the unit cell of the calculation.</xs:documentation>
+                                    <xs:documentation>Defines the unit cell of the crystal via the 3 basis vectors.  </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:annotation>
@@ -482,7 +497,7 @@ Example:  <pre>
                                             name="basevect" minOccurs="3" maxOccurs="3"
                                             type="vect3d">
                                             <xs:annotation>
-                                                <xs:documentation>The basevect element defines one basis vector.</xs:documentation>
+                                                <xs:documentation>Defines one basis vector in Cartesian coordinates.</xs:documentation>
                                                 <xs:appinfo>
                                                     <oldname>avec</oldname>
                                                 </xs:appinfo>
@@ -492,7 +507,7 @@ Example:  <pre>
                                     <xs:attribute ex:importance="essential" ex:unit="1" name="scale"
                                         type="fortrandouble" default="1.0d0">
                                         <xs:annotation>
-                                            <xs:documentation>The attribute <pre>scale</pre> scales all the lattice vectors. This is useful for varying the volume.</xs:documentation>
+                                            <xs:documentation>Scales all the lattice vectors by the same factor. This is useful for varying the volume.</xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>scale</oldname>
                                             </xs:appinfo>
@@ -501,7 +516,7 @@ Example:  <pre>
                                     <xs:attribute ex:importance="essential" ex:unit=""
                                         name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
                                         <xs:annotation>
-                                            <xs:documentation>Allows for a separate scaling of each lattice vector. <pre>"1 1 1"</pre> means no scaling.</xs:documentation>
+                                            <xs:documentation>Allows for an individual scaling of each lattice vector separately. <pre>"1 1 1"</pre> means no scaling.</xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>(sc1|sc2|sc3)</oldname>
                                             </xs:appinfo>
@@ -512,14 +527,14 @@ Example:  <pre>
                             <xs:element ex:importance="essential" ex:unit="" name="species"
                                 minOccurs="0" maxOccurs="unbounded">
                                 <xs:annotation>
-                                    <xs:documentation>The <pre>species</pre> element defines the atom species. It contains a atom element for each atom of the species.</xs:documentation>
+                                    <xs:documentation>Defines the atomic species, i.e. the chemical element. The atomic coordinates and, optionally, quantities relevant for magnetic calculations are defined in the subelement(s) atom.  </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:sequence>
                                         <xs:element ex:importance="essential" ex:unit="" name="atom"
                                             minOccurs="1" maxOccurs="unbounded">
                                             <xs:annotation>
-                                                <xs:documentation>The <pre>atom</pre> element carries all the attributes of a single atom in the unit cell. The position is given by the <pre>coord </pre> attribute</xs:documentation>
+                                                <xs:documentation>Defines the position and other attributes of one atom in the unit cell.</xs:documentation>
                                                 <xs:appinfo>
                                                     <oldname>noname</oldname>
                                                 </xs:appinfo>
@@ -539,12 +554,16 @@ Example:  <pre>
                                                   name="bfcmt" type="vect3d"
                                                   default="0.0d0 0.0d0 0.0d0" use="optional">
                                                   <xs:annotation>
-                                                  <xs:documentation>Muffin-tin external magnetic field in Cartesian coordinates for atom.</xs:documentation>
+                                                  <xs:documentation>Muffin-tin external magnetic field in Cartesian coordinates.</xs:documentation>
                                                   </xs:annotation>
                                                 </xs:attribute>
                                                 <xs:attribute ex:importance="expert" ex:unit=""
                                                   name="mommtfix" type="vect3d"
-                                                  default="0.0d0 0.0d0 0.0d0" use="optional"/>
+                                                  default="0.0d0 0.0d0 0.0d0" use="optional">
+                                                  <xs:annotation>
+                                                  <xs:documentation>The desired muffin-tin moment for a Fixed Spin Moment (FSM) calculation.</xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:attribute>
                                             </xs:complexType>
                                         </xs:element>
                                         <xs:element ex:importance="expert" ex:unit=""
@@ -584,7 +603,7 @@ Example:  <pre>
                                         name="speciesfile" type="xs:anyURI" use="required">
                                         <xs:annotation>
                                             <xs:documentation>
-                       Defines the file from which the species definition is read. It is looked up in the species directory specified by the species path.
+                       Defines the file that contains the species definition. It is looked up in the species directory specified by the species path. By default, the name of the file is <it_ns>element</it_ns>.<ns_pre_ns> xml</ns_pre_ns>, e.g. <pre_ns>Ag.xml</pre_ns>.
                      </xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>spfname</oldname>
@@ -595,7 +614,7 @@ Example:  <pre>
                                         name="chemicalSymbol" type="xs:string" use="optional"
                                         default="">
                                         <xs:annotation>
-                                            <xs:documentation>Can be given to simplify visualization and converters. It is ignored by <exciting>exciting</exciting>
+                                            <xs:documentation>Optional attribute that may be used in visualization and by converters. It is ignored by <exciting>exciting</exciting>
                                             </xs:documentation>
                                             <xs:appinfo>
                                                 <oldname>spsymb</oldname>
@@ -606,7 +625,7 @@ Example:  <pre>
                                         name="atomicNumber" type="xs:integer" use="optional">
                                         <xs:annotation>
                                             <xs:documentation>
-                       Is an optional attribute can be given to simplify visualization and converters. It is not used by <exciting>exciting</exciting>
+                       Optional attribute that may be used in visualization and by converters. It is not used in <exciting>exciting</exciting>
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -616,10 +635,17 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>noreplace&gt;</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>Muffin tin radius this optional parameter allows to override species file or automatic determination</xs:documentation>
+                                            <xs:documentation>
+                                            Defines the muffin-tin radius; this optional parameter allows to override species file or automatic determination. The muffin-tin radius defines the region around the atomic nucleus where the wave function is expanded in terms of atomic-like functions. In contrast, the interstitial region (=region not belonging to any muffin-tin) is described by planewaves.
+                                            </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute name="href" type="xs:anyURI" default=""/>
+                                    <xs:attribute name="href" type="xs:anyURI" default="">
+                                    <xs:annotation>
+                                        
+                                 <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
+                                   </xs:annotation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
@@ -1011,6 +1037,26 @@ Example:  <pre>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element ex:importance="expert" ex:unit="" name="output"
+                                minOccurs="0" maxOccurs="1">
+                                <xs:annotation>
+                                    <xs:documentation>Specifications on the file formats for output files.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="state"
+                                        default="binary">
+                                        <xs:annotation>
+                                            <xs:documentation>Selects the file format of the STATE file.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="binary"/>
+                                                <xs:enumeration value="XML"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
                         </xs:all>
                         <xs:attribute ex:importance="essential" ex:unit="" ref="do"
                             default="fromscratch">
@@ -1094,7 +1140,7 @@ Example:  <pre>
                         <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth"
                             type="fortrandouble" default="0.001d0">
                             <xs:annotation>
-                                <xs:documentation>Width of the smooth approximation to the Dirac delta function.</xs:documentation>
+                                <xs:documentation>Width of the smooth approximation to the Dirac delta function (must be greater than zero).</xs:documentation>
                                 <xs:appinfo>
                                     <olddefault default="0.01d0"/>
                                 </xs:appinfo>
@@ -1200,6 +1246,14 @@ Example:  <pre>
                  When set to
                  <pre>"true"</pre>
                  no symmetries, apart from the identity, are used anywhere in the code.
+               </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="symmorph"
+                            default="false">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    When set to <pre>"true"</pre> only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are used anywhere in the code.
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -2049,14 +2103,34 @@ Example:  <pre>
                                 </xs:annotation>
                                 <xs:complexType/>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="momentummatrix"
-                                maxOccurs="1" minOccurs="0">
+                            <xs:element ex:importance="expert" ex:unit="" name="mossbauer"
+                                minOccurs="0">
                                 <xs:complexType/>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="linresponsetensor"
+                            <xs:element ex:importance="expert" ex:unit="" name="momentummatrix"
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Linear optical response tensor.</xs:documentation>
+                                    <xs:documentation>Matrix elements of the momentum operator (legacy version, required by dielectric-element).</xs:documentation>
+                                    <xs:appinfo>
+                                        <oldname>noname</oldname>
+                                    </xs:appinfo>
+                                </xs:annotation>
+                                <xs:complexType>
+                                <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
+                                   default="false">
+                                  <xs:annotation>
+                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                  </xs:annotation>                                     
+                                  </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element ex:importance="expert" ex:unit="" name="dielectric"
+                                minOccurs="0" maxOccurs="1">
+                                <xs:annotation>
+                                    <xs:documentation>Linear optical response (without local field effects, legacy version).</xs:documentation>
+                                    <xs:appinfo>
+                                        <oldname>noname</oldname>
+                                    </xs:appinfo>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:sequence>
@@ -2068,20 +2142,23 @@ Example:  <pre>
                                         </xs:element>
                                     </xs:sequence>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
-                                        ref="scissor"/>
-                                </xs:complexType>
+                                        ref="scissor" default="0.0d0"/>
+                                <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
+                                    default="false">
+                                   <xs:annotation>
+                                       <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+                                   </xs:annotation>
+                                </xs:attribute>
+                                <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
+                                   type="xs:boolean" default="false">
+                                  <xs:annotation>
+                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                  </xs:annotation>   
+                                  </xs:attribute>
+                               </xs:complexType>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="mossbauer"
+                            <xs:element ex:importance="expert" ex:unit="" name="moke"
                                 minOccurs="0">
-                                <xs:complexType/>
-                            </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="dielectric"
-                                minOccurs="0">
-                                <xs:annotation>
-                                    <xs:appinfo>
-                                        <oldname>noname</oldname>
-                                    </xs:appinfo>
-                                </xs:annotation>
                                 <xs:complexType/>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="expiqr"
@@ -2205,33 +2282,24 @@ Example:  <pre>
                             <xs:element ex:importance="expert" ex:unit="" name="tddft" minOccurs="0"
                                 maxOccurs="1">
                                 <xs:complexType>
-                                    <xs:all>
-                                        <xs:element ex:importance="expert" ex:unit="" name="dftrans"
-                                            maxOccurs="1" minOccurs="0">
-                                            <xs:annotation>
-                                                <xs:appinfo>
-                                                    <oldname>dftrans,ndftrans</oldname>
-                                                </xs:appinfo>
-                                            </xs:annotation>
-                                            <xs:complexType>
-                                                <xs:sequence>
-                                                  <xs:element ex:importance="expert" ex:unit=""
-                                                  name="trans" type="integertriple"
-                                                  maxOccurs="unbounded" minOccurs="1"/>
-                                                </xs:sequence>
-                                            </xs:complexType>
-                                        </xs:element>
-                                    </xs:all>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="intraband"
-                                        type="xs:boolean" default="false">
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
+                                        default="false">
                                         <xs:annotation>
                                             <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="torddf"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the time-ordered version of the dielectric function</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="tordfxc"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the time-ordered version of xc kernel (MBPT derived kernels only)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="aresdf"
                                         type="xs:boolean" default="true">
                                         <xs:annotation>
@@ -2241,13 +2309,13 @@ Example:  <pre>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="aresfxc"
                                         type="xs:boolean" default="true">
                                         <xs:annotation>
-                                            <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the BSE-derived xc-kernels</xs:documentation>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the MBPT derived xc-kernels</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
                                         name="fxcbsesplit" type="fortrandouble" default="1.0d-5">
                                         <xs:annotation>
-                                            <xs:documentation>Split parameter for degeneracy in energy differences of BSE-derived kernel</xs:documentation>
+                                            <xs:documentation>Split parameter for degeneracy in energy differences of MBPT derived xc kernels</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="acont"
@@ -2270,7 +2338,11 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="kerndiag"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation><pre>"true"</pre> if only diagonal part of xc-kernel is used</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="lmaxalda"
                                         type="xs:integer" default="3">
                                         <xs:annotation>
@@ -2411,7 +2483,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>nosymscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>nosym is <pre>"true"</pre> if no symmetry information should be used</xs:documentation>
+                                            <xs:documentation>nosym is <pre>"true"</pre> if no symmetry information should be used for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="ngridk"
@@ -2420,7 +2492,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>ngridkscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>k-point grid sizes</xs:documentation>
+                                            <xs:documentation>k-point grid sizes for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
@@ -2429,7 +2501,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>reducekscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries) for screening.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="vkloff"
@@ -2438,7 +2510,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>vkloffscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>k-point offset</xs:documentation>
+                                            <xs:documentation>k-point offset for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax"
@@ -2447,7 +2519,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>rgkmaxscr</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
+                                            <xs:documentation>smallest muffin-tin radius times gkmax for screening</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nempty"
@@ -2484,6 +2556,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>nosymbse</oldname>
                                             </xs:appinfo>
+                                            <xs:documentation>set to<pre>"true"</pre> if no symmetry information should be used for BSE.</xs:documentation>                                        
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
@@ -2492,7 +2565,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>reducekbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries)</xs:documentation>
+                                            <xs:documentation>reducek is <pre>"true"</pre> if k-points are to be reduced (with crystal symmetries) for BSE.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="vkloff"
@@ -2501,7 +2574,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>vkloffbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>k-point offset</xs:documentation>
+                                            <xs:documentation>k-point offset for BSE</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax"
@@ -2514,9 +2587,23 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="scrherm"
-                                        type="xs:integer" default="0"/>
+                                        type="xs:integer" default="0">
+                                        <xs:annotation>
+                                            <xs:documentation>
+                                            Method of how an almost Hermitian matrix is inverted.
+                                            A value of 0: invert full matrix (matrix is allowed to be not strictly Hermitian);
+                                            a value of 1: take the Hermitian average for inversion;
+                                            a value of 2: assume Hermitian and use the upper triangle;
+                                            a value of 3: assume Hermitian and use the lower triangle.
+                                            </xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="fbzq"
-                                        type="xs:boolean" default="false"/>
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>true if q-point set is taken from first Brillouin zone</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>                                        
                                     <xs:attribute ex:importance="expert" ex:unit="" name="sciavtype"
                                         default="spherical">
                                         <xs:annotation>
@@ -2561,7 +2648,11 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit=""
-                                        name="bsedirsing" type="xs:boolean" default="false"/>
+                                        name="bsedirsing" type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>true if effective singular part of direct term of BSE Hamiltonian is to be used</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>                                        
                                     <xs:attribute ex:importance="expert" ex:unit="" name="lmaxdielt"
                                         type="xs:integer" default="14">
                                         <xs:annotation>
@@ -2575,7 +2666,11 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nexcitmax"
-                                        type="xs:integer" default="100"/>
+                                        type="xs:integer" default="100">
+                                        <xs:annotation>
+                                            <xs:documentation>maximum number of excitons to be considered in a BSE calculation</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>                                        
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse"
                                         type="integerpair" default="0 0">
                                         <xs:annotation>
@@ -2607,6 +2702,176 @@ Example:  <pre>
                                             </xs:restriction>
                                         </xs:simpleType>
                                     </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element ex:importance="expert" ex:unit="" name="transitions" minOccurs="0"
+                                maxOccurs="1">
+                                <xs:annotation>
+                                    <xs:documentation>Describe transitions between Kohn-Sham states 
+                                    for the calculation of the Kohn-Sham response function (and screening) here.
+                                    Individual transitions can  be defined as well as a range (or a list) of initial
+                                    and final states can be defined.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+                                   <xs:all>
+                                      <xs:element ex:importance="expert" ex:unit="" name="individual" minOccurs="0"
+                                maxOccurs="1">
+                                         <xs:annotation>
+                                             <xs:documentation>A list of individual transitions consisting of an initial state
+                                             a final state and a k-point is given here. An empty list amounts to no transitions at all.
+                                             </xs:documentation>
+                                         </xs:annotation>
+                                         <xs:complexType>
+                                         <xs:sequence>
+                                           <xs:element ex:importance="expert" ex:unit="" name="trans"
+                                               minOccurs="0" maxOccurs="unbounded">
+                                               <xs:annotation>
+                                                   <xs:documentation>
+                                                   An individual transition consisting of an initial state
+                                             a final state and a k-point is given here.
+                                                    Values of zero correspond to the inclusion of all initial and final states and all k-points 
+                                                    and can be used as "wildcards" (default). Therefore, an empty element amounts to include all
+                                                    transitions.
+                                                   </xs:documentation>
+                                               </xs:annotation>
+                                               <xs:complexType>
+                                                   <xs:attribute ex:importance="expert" ex:unit=""
+                                                     ref="action" use="optional" default="include">
+                                                     <xs:annotation>
+                                                         <xs:documentation>Select to include or exclude states. If a state is included as
+                                                         well as excluded several times the last definition (in the sequence of individual
+                                                         transitions) counts.</xs:documentation>
+                                                     </xs:annotation>
+                                                   </xs:attribute>
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-points.</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>                                                                                                    
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="initial"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>Initial state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>                                                                                                                                                                                                                                                           
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="final"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>Final state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>                                                                                                                                                                                                                                                           
+                                               </xs:complexType>
+                                           </xs:element>
+                                         </xs:sequence>
+                                         </xs:complexType>
+                                      </xs:element>
+                                      <xs:element ex:importance="expert" ex:unit="" name="ranges" minOccurs="0"
+                                maxOccurs="1">
+                                         <xs:annotation>
+                                             <xs:documentation>A list of ranges of transitions (initial state as well as final state ranges)
+                                             and a k-point are given here. An empty list amounts to no transitions at all.</xs:documentation>
+                                         </xs:annotation>
+                                         <xs:complexType>
+                                         <xs:sequence>
+                                           <xs:element ex:importance="expert" ex:unit="" name="range"
+                                               minOccurs="0" maxOccurs="unbounded">
+                                               <xs:annotation>
+                                                   <xs:documentation>A range of transitions (for initial as well as final states)
+                                             is given here. A range consists of a "start" and a "stop" value as well as a k-point.
+                                                    Values of zero correspond to starting at the first state and stopping at the last
+                                                    state and considering all k-points. They can be used as "wildcards" (default). Therefore,
+                                                    an empty element corresponds to the full initial/final state range for all k-points.
+                                                   </xs:documentation>
+                                               </xs:annotation>
+                                               <xs:complexType>
+                                                   <xs:attribute ex:importance="expert" ex:unit=""
+                                                     ref="action" use="optional" default="include">
+                                                     <xs:annotation>
+                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                         well as excluded several times the last definition (in the sequence of individual
+                                                         transitions) counts.</xs:documentation>
+                                                     </xs:annotation>
+                                                   </xs:attribute>
+                                                   <xs:attribute ex:importance="expert" ex:unit=""
+                                                     ref="statestype" use="required">
+                                                     <xs:annotation>
+                                                         <xs:documentation>Select for initial or final state range</xs:documentation>
+                                                     </xs:annotation>
+                                                   </xs:attribute>
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="start"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>Start value (first state) for range. A value of zero (default) means to start from the first state.</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>                                                                                                                                                                                                                                                           
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="stop"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>Stop value (last state) for range. A value of zero (default) means to stop at the last state (no upper limit).</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>                                                                                                                                                                                                                                                           
+                                               </xs:complexType>
+                                           </xs:element>
+                                         </xs:sequence>
+                                         </xs:complexType>                                        
+                                      </xs:element>
+                                      <xs:element ex:importance="expert" ex:unit="" name="lists" minOccurs="0"
+                                maxOccurs="1">
+                                         <xs:annotation>
+                                             <xs:documentation>A list of initial and final state entries to be considered for transitions.
+                                             An empty list amounts to no transitions at all.</xs:documentation>
+                                         </xs:annotation>
+                                         <xs:complexType>
+                                         <xs:sequence>
+                                           <xs:element ex:importance="expert" ex:unit="" name="istate"
+                                               minOccurs="0" maxOccurs="unbounded">
+                                               <xs:annotation>
+                                                   <xs:documentation>An initial or final state and corresponding k-point                                                   
+                                             is given here.
+                                                    Values of zero correspond to considering all initial/final states for all k-points. They can be used as "wildcards" (default). Therefore,
+                                                    an empty element corresponds to the full initial/final state set for all k-points.
+                                                   </xs:documentation>
+                                               </xs:annotation>
+                                               <xs:complexType>
+                                                   <xs:attribute ex:importance="expert" ex:unit=""
+                                                     ref="action" use="optional" default="include">
+                                                     <xs:annotation>
+                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                         well as excluded several times the last definition (in the sequence of individual
+                                                         transitions) counts.</xs:documentation>
+                                                     </xs:annotation>
+                                                   </xs:attribute>
+                                                   <xs:attribute ex:importance="expert" ex:unit=""
+                                                     ref="statestype" use="required">
+                                                     <xs:annotation>
+                                                         <xs:documentation>Select for initial or final state list</xs:documentation>
+                                                     </xs:annotation>
+                                                   </xs:attribute>
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>                                                                                                    
+                                                   <xs:attribute ex:importance="expert" ex:unit="" name="state"
+                                                      type="xs:integer" default="0">
+                                                      <xs:annotation>
+                                                        <xs:documentation>The state to be considered. A value of zero (default) means to include all states.</xs:documentation>
+                                                      </xs:annotation>
+                                                   </xs:attribute>
+                                               </xs:complexType>
+                                           </xs:element>
+                                         </xs:sequence>
+                                         </xs:complexType>                                        
+                                      </xs:element>
+                                    </xs:all>                                      
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" ref="qpointset"
@@ -2656,6 +2921,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>tetraqweights</oldname>
                                             </xs:appinfo>
+                                            <xs:documentation>choice of weights and nodes for tetrahedron method and non-zero Q-point</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                 </xs:complexType>
@@ -2814,7 +3080,7 @@ Example:  <pre>
                                                   <xs:documentation>Calculate exchange term of BSE Hamiltonian</xs:documentation>
                                                   </xs:annotation>
                                                   </xs:enumeration>
-                                                  <xs:enumeration value="BSE">
+                                                  <xs:enumeration value="bse">
                                                   <xs:annotation>
                                                   <xs:appinfo>
                                                                         <oldnr>445</oldnr>
@@ -2911,14 +3177,6 @@ Example:  <pre>
                                                                         <oldnr>342</oldnr>
                                                                     </xs:appinfo>
                                                   <xs:documentation>binary output of Kohn Sham response function</xs:documentation>
-                                                  </xs:annotation>
-                                                  </xs:enumeration>
-                                                  <xs:enumeration value="epsconv">
-                                                  <xs:annotation>
-                                                  <xs:appinfo>
-                                                                        <oldnr>396</oldnr>
-                                                                    </xs:appinfo>
-                                                  <xs:documentation>convolute dielectric function from tetrahedron method with Lorentzian</xs:documentation>
                                                   </xs:annotation>
                                                   </xs:enumeration>
                                                   <xs:enumeration value="fxc_alda_check">
@@ -3080,16 +3338,8 @@ Example:  <pre>
                             </xs:simpleType>
                         </xs:attribute>
                         <!-- Here are experimental parameters -->
-                        <xs:attribute ex:importance="expert" ex:unit="" name="symmorph"
-                            type="xs:boolean" default="false">
-                            <xs:annotation>
-                                <xs:documentation>
-                                    <pre>"true"</pre> if only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are allowed.
-               </xs:documentation>
-                            </xs:annotation>
-                        </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat"
-                            type="xs:boolean" default="true">
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
+                            default="true">
                             <xs:annotation>
                                 <xs:documentation>
                  if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
@@ -3106,15 +3356,18 @@ Example:  <pre>
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="gather"
-                            type="xs:boolean" default="false"/>
                         <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo"
-                            type="xs:boolean" default="false"/>
+                            type="xs:boolean" default="false">
+                            <xs:annotation>
+                               <xs:documentation>true if to append info to output file</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="dbglev"
-                            type="xs:integer" default="0"/>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
-                            type="xs:boolean" default="false"
-                            ><!-- used from src_optics/mod_DOS_optics_response.F90 --></xs:attribute>
+                            type="xs:integer" default="0">
+                            <xs:annotation>
+                               <xs:documentation>debugging level</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="gqmax"
                             type="fortrandouble" default="0.0d0">
                             <xs:annotation>
@@ -3192,7 +3445,7 @@ Example:  <pre>
                                     <oldname>swidthxs</oldname>
                                     <olddefault default="0.01d0"/>
                                 </xs:appinfo>
-                                <xs:documentation>width of the smooth approximation to the Dirac delta function</xs:documentation>
+                                <xs:documentation>width of the smooth approximation to the Dirac delta function (must be greater than zero)</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw"
@@ -3223,14 +3476,18 @@ Example:  <pre>
                                 <xs:documentation>number of empty states</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ref="scissor">
+                        <xs:attribute ex:importance="essential" ex:unit="Hartree"
+                                        ref="scissor" default="0.0d0">
                             <xs:annotation>
                                 <xs:documentation>scissors correction</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                     </xs:complexType>
                 </xs:element>
-                <xs:element minOccurs="0" name="keywords" type="xs:string"/>
+                <xs:element minOccurs="0" name="keywords" type="xs:string" maxOccurs="1">
+                  <xs:annotation>
+                    <xs:documentation>The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the <exciting>exciting</exciting> program.</xs:documentation>
+                  </xs:annotation></xs:element>
             </xs:all>
             <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI"
                 default="http://xml.exciting-code.org">
