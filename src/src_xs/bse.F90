@@ -159,9 +159,8 @@ Subroutine bse
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
       Call findocclims (iqmt, istocc0, istocc, istunocc0, istunocc, &
      & isto0, isto, istu0, istu)
-<<<<<<< HEAD
-!(wol)      nvdif = nstocc0 - nbfbse
-!(wol)      ncdif = nstunocc0 - nafbse
+      nvdif = nstocc0 - nbfbse
+      ncdif = nstunocc0 - nafbse
 !
 !(wol)      Write (*,*) 'nbfbse, nafbse', nbfbse, nafbse
 !(wol)      Write (*,*) 'nvdif, ncdif', nvdif, ncdif
@@ -172,11 +171,7 @@ Subroutine bse
 !(wol)      Write (*,*) 'istocc0, istocc', istocc0, istocc !(wol)
 !(wol)      Write (*,*) 'istunocc0, istunocc', istunocc0, istunocc !(wol)
 !
-  ! ****************************************************
-=======
-      nvdif = nstocc0 - nbfbse
-      ncdif = nstunocc0 - nafbse
->>>>>>> 072fbe980eb2cba90d758e2ed90fa9c9456c881f
+! ****************************************************
       input%xs%emattype = 2
       Call ematbdcmbs (input%xs%emattype)
       Write (unitout,*)
@@ -461,13 +456,10 @@ Subroutine bse
          End Do
          spectr (:) = l2int (oct .Eq. oct) * 1.d0 - spectr (:) * 8.d0 * &
         & pi / omega / nkptnr
-<<<<<<< HEAD
 		write (*,*) 'omega, nkptnr, egap, bsed', omega, nkptnr,egap, bsed !(wol)
      ! write BSE spectrum
          Call writeeps (iqmt, oct, oct, w, spectr, fneps)
-=======
          buf(oct,oct,:)=spectr(:)
->>>>>>> 072fbe980eb2cba90d758e2ed90fa9c9456c881f
      ! oscillator strengths
          Call getunit (unexc)
          Open (unexc, File=fnexc, Form='formatted', Action='write', &
