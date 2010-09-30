@@ -88,21 +88,36 @@ nullify(np)
 np=>getAttributeNode(thisnode,"trialEnergy")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"trialEnergy",getstructwf%trialEnergy)
-       call removeAttribute(thisnode,"trialEnergy")      
+       call removeAttribute(thisnode,"trialEnergy")  
+        else
+        write(*,*)"Parser ERROR: The element 'wf' requires the attribute 'trialEnergy' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"matchingOrder")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"matchingOrder",getstructwf%matchingOrder)
-       call removeAttribute(thisnode,"matchingOrder")      
+       call removeAttribute(thisnode,"matchingOrder")  
+        else
+        write(*,*)"Parser ERROR: The element 'wf' requires the attribute 'matchingOrder' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"searchE")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"searchE",getstructwf%searchE)
-       call removeAttribute(thisnode,"searchE")      
+       call removeAttribute(thisnode,"searchE")  
+        else
+        write(*,*)"Parser ERROR: The element 'wf' requires the attribute 'searchE' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
       i=0
@@ -128,34 +143,49 @@ nullify(np)
 np=>getAttributeNode(thisnode,"chemicalSymbol")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"chemicalSymbol",getstructsp%chemicalSymbol)
-       call removeAttribute(thisnode,"chemicalSymbol")      
+       call removeAttribute(thisnode,"chemicalSymbol")  
+        else
+        write(*,*)"Parser ERROR: The element 'sp' requires the attribute 'chemicalSymbol' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"z")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"z",getstructsp%z)
-       call removeAttribute(thisnode,"z")      
+       call removeAttribute(thisnode,"z")  
+        else
+        write(*,*)"Parser ERROR: The element 'sp' requires the attribute 'z' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"mass")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mass",getstructsp%mass)
-       call removeAttribute(thisnode,"mass")      
+       call removeAttribute(thisnode,"mass")  
+        else
+        write(*,*)"Parser ERROR: The element 'sp' requires the attribute 'mass' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"name")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"name",getstructsp%name)
-       call removeAttribute(thisnode,"name")      
+       call removeAttribute(thisnode,"name")  
 endif
 
             len= countChildEmentsWithName(thisnode,"muffinTin")
 
         if(len.eq.0) then
-        write(*,*)"the sp element must contain at least 1 muffinTin element"
+        write(*,*)"Parser ERROR: The sp element must contain at least 1 muffinTin element"
         endif
         getstructsp%muffinTin=>null()
 Do i=0,len-1
@@ -167,7 +197,7 @@ enddo
             len= countChildEmentsWithName(thisnode,"atomicState")
 
         if(len.eq.0) then
-        write(*,*)"the sp element must contain at least 1 atomicState element"
+        write(*,*)"Parser ERROR: The sp element must contain at least 1 atomicState element"
         endif
              
 allocate(getstructsp%atomicStatearray(len))
@@ -180,7 +210,7 @@ enddo
             len= countChildEmentsWithName(thisnode,"basis")
 
         if(len.eq.0) then
-        write(*,*)"the sp element must contain at least 1 basis element"
+        write(*,*)"Parser ERROR: The sp element must contain at least 1 basis element"
         endif
         getstructsp%basis=>null()
 Do i=0,len-1
@@ -221,28 +251,48 @@ nullify(np)
 np=>getAttributeNode(thisnode,"rmin")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rmin",getstructmuffinTin%rmin)
-       call removeAttribute(thisnode,"rmin")      
+       call removeAttribute(thisnode,"rmin")  
+        else
+        write(*,*)"Parser ERROR: The element 'muffinTin' requires the attribute 'rmin' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"rinf")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"rinf",getstructmuffinTin%rinf)
-       call removeAttribute(thisnode,"rinf")      
+       call removeAttribute(thisnode,"rinf")  
+        else
+        write(*,*)"Parser ERROR: The element 'muffinTin' requires the attribute 'rinf' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"radius")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"radius",getstructmuffinTin%radius)
-       call removeAttribute(thisnode,"radius")      
+       call removeAttribute(thisnode,"radius")  
+        else
+        write(*,*)"Parser ERROR: The element 'muffinTin' requires the attribute 'radius' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"radialmeshPoints")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"radialmeshPoints",getstructmuffinTin%radialmeshPoints)
-       call removeAttribute(thisnode,"radialmeshPoints")      
+       call removeAttribute(thisnode,"radialmeshPoints")  
+        else
+        write(*,*)"Parser ERROR: The element 'muffinTin' requires the attribute 'radialmeshPoints' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
       i=0
@@ -268,35 +318,60 @@ nullify(np)
 np=>getAttributeNode(thisnode,"n")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"n",getstructatomicState%n)
-       call removeAttribute(thisnode,"n")      
+       call removeAttribute(thisnode,"n")  
+        else
+        write(*,*)"Parser ERROR: The element 'atomicState' requires the attribute 'n' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"l")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"l",getstructatomicState%l)
-       call removeAttribute(thisnode,"l")      
+       call removeAttribute(thisnode,"l")  
+        else
+        write(*,*)"Parser ERROR: The element 'atomicState' requires the attribute 'l' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"kappa")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"kappa",getstructatomicState%kappa)
-       call removeAttribute(thisnode,"kappa")      
+       call removeAttribute(thisnode,"kappa")  
+        else
+        write(*,*)"Parser ERROR: The element 'atomicState' requires the attribute 'kappa' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"occ")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"occ",getstructatomicState%occ)
-       call removeAttribute(thisnode,"occ")      
+       call removeAttribute(thisnode,"occ")  
+        else
+        write(*,*)"Parser ERROR: The element 'atomicState' requires the attribute 'occ' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"core")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"core",getstructatomicState%core)
-       call removeAttribute(thisnode,"core")      
+       call removeAttribute(thisnode,"core")  
+        else
+        write(*,*)"Parser ERROR: The element 'atomicState' requires the attribute 'core' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
       i=0
@@ -322,13 +397,18 @@ nullify(np)
 np=>getAttributeNode(thisnode,"order")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"order",getstructbasis%order)
-       call removeAttribute(thisnode,"order")      
+       call removeAttribute(thisnode,"order")  
+        else
+        write(*,*)"Parser ERROR: The element 'basis' requires the attribute 'order' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
             len= countChildEmentsWithName(thisnode,"wf")
 
         if(len.eq.0) then
-        write(*,*)"the basis element must contain at least 1 wf element"
+        write(*,*)"Parser ERROR: The basis element must contain at least 1 wf element"
         endif
              
 allocate(getstructbasis%wfarray(len))
@@ -370,13 +450,13 @@ nullify(np)
 np=>getAttributeNode(thisnode,"l")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"l",getstructexception%l)
-       call removeAttribute(thisnode,"l")      
+       call removeAttribute(thisnode,"l")  
 endif
 
             len= countChildEmentsWithName(thisnode,"wf")
 
         if(len.eq.0) then
-        write(*,*)"the exception element must contain at least 1 wf element"
+        write(*,*)"Parser ERROR: The exception element must contain at least 1 wf element"
         endif
              
 allocate(getstructexception%wfarray(len))
@@ -409,13 +489,18 @@ nullify(np)
 np=>getAttributeNode(thisnode,"l")
 if(associated(np)) then
        call extractDataAttribute(thisnode,"l",getstructlorb%l)
-       call removeAttribute(thisnode,"l")      
+       call removeAttribute(thisnode,"l")  
+        else
+        write(*,*)"Parser ERROR: The element 'lorb' requires the attribute 'l' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
 
             len= countChildEmentsWithName(thisnode,"wf")
 
         if(len.eq.0) then
-        write(*,*)"the lorb element must contain at least 1 wf element"
+        write(*,*)"Parser ERROR: The lorb element must contain at least 1 wf element"
         endif
              
 allocate(getstructlorb%wfarray(len))

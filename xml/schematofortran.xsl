@@ -362,7 +362,19 @@ np=>getAttributeNode(thisnode,"</xsl:text>
         <xsl:text>)
        call removeAttribute(thisnode,"</xsl:text>
         <xsl:value-of select="@name|@ref"/>
-        <xsl:text>")      
+        <xsl:text>")  </xsl:text>
+        <xsl:if test="@use='required'">
+        <xsl:text>
+        else
+        write(*,*)"Parser ERROR: The element '</xsl:text>
+        <xsl:value-of select="../../@name"/>
+        <xsl:text>' requires the attribute '</xsl:text>
+        <xsl:value-of select="@name|@ref"/> 
+        <xsl:text>' to be defined."</xsl:text>
+        write(*,*)"stopped"
+        stop
+        </xsl:if>    
+<xsl:text>
 endif
 </xsl:text>
 <xsl:if test="./*/xs:restriction/xs:enumeration"> 
@@ -390,7 +402,7 @@ endif
    <xsl:if test="@minOccurs>=1">
         <xsl:text>
         if(len.eq.0) then
-        write(*,*)"the </xsl:text><xsl:value-of select="../../../@name"/>
+        write(*,*)"Parser ERROR: The </xsl:text><xsl:value-of select="../../../@name"/>
         <xsl:text> element must contain at least </xsl:text>
         <xsl:value-of select="@minOccurs"/><xsl:text> </xsl:text>
       
@@ -549,7 +561,7 @@ end function</xsl:text>
 <xsl:value-of select="../../@name"/>
 <xsl:text>=0
 case default
-write(*,*) "'", string,"' is not valid selection for</xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection for</xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "
 stop 
 end select
 end function
