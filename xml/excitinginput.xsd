@@ -111,6 +111,21 @@ Example:  <pre>
             <xs:length value="3"/>
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="integerquadrupel">
+        <xs:annotation>
+            <xs:documentation>
+                Space separated list of three integers.
+                <p>
+                    Example:  <pre>
+  "1 2 3 4"
+  </pre>
+                </p>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="integerlist">
+            <xs:length value="4"/>
+        </xs:restriction>
+    </xs:simpleType>
     <xs:simpleType name="integerpair">
         <xs:annotation>
             <xs:documentation>
@@ -175,14 +190,14 @@ Example:  <pre>
    </xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="symmorph"
-        type="xs:boolean" default="false">
+    <xs:attribute ex:importance="expert" ex:unit="" name="symmorph" type="xs:boolean"
+        default="false">
         <xs:annotation>
             <xs:documentation>
                When set to <pre>"true"</pre> only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are used anywhere in the code.
             </xs:documentation>
         </xs:annotation>
-     </xs:attribute>
+    </xs:attribute>
     <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble"
         default="0.0d0">
         <xs:annotation>
@@ -190,44 +205,41 @@ Example:  <pre>
     optics and band structure plots.</xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat"
-       type="xs:boolean" default="true">
-       <xs:annotation>
-       <xs:documentation>
+    <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat" type="xs:boolean" default="true">
+        <xs:annotation>
+            <xs:documentation>
         if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
        </xs:documentation>
-      </xs:annotation>
+        </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="intraband"
-        type="xs:boolean" default="false">
-       <xs:annotation>
-           <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
-       </xs:annotation>
+    <xs:attribute ex:importance="expert" ex:unit="" name="intraband" type="xs:boolean"
+        default="false">
+        <xs:annotation>
+            <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+        </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit=""
-    name="action" default="include">
-    <xs:annotation>
-        <xs:documentation>Select to include or exclude states</xs:documentation>
-    </xs:annotation>
-    <xs:simpleType>
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="include"/>
-            <xs:enumeration value="exclude"/>
-        </xs:restriction>
-    </xs:simpleType>
+    <xs:attribute ex:importance="expert" ex:unit="" name="action" default="include">
+        <xs:annotation>
+            <xs:documentation>Select to include or exclude states</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="include"/>
+                <xs:enumeration value="exclude"/>
+            </xs:restriction>
+        </xs:simpleType>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit=""
-    name="statestype" >
-    <xs:annotation>
-        <xs:documentation>Select for initial or final state range</xs:documentation>
-    </xs:annotation>
-    <xs:simpleType>
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="initialstates"/>
-            <xs:enumeration value="finalstates"/>
-        </xs:restriction>
-    </xs:simpleType>
-    </xs:attribute>                                                     
+    <xs:attribute ex:importance="expert" ex:unit="" name="statestype">
+        <xs:annotation>
+            <xs:documentation>Select for initial or final state range</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="initialstates"/>
+                <xs:enumeration value="finalstates"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
     <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble"
         default="5.0d-5"> </xs:attribute>
     <!-- global element definitions -->
@@ -641,10 +653,10 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute name="href" type="xs:anyURI" default="">
-                                    <xs:annotation>
-                                        
-                                 <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
-                                   </xs:annotation>
+                                        <xs:annotation>
+
+                                            <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
+                                        </xs:annotation>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
@@ -2116,12 +2128,12 @@ Example:  <pre>
                                     </xs:appinfo>
                                 </xs:annotation>
                                 <xs:complexType>
-                                <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
-                                   default="false">
-                                  <xs:annotation>
-                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
-                                  </xs:annotation>                                     
-                                  </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
+                                        default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="dielectric"
@@ -2143,22 +2155,21 @@ Example:  <pre>
                                     </xs:sequence>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
                                         ref="scissor" default="0.0d0"/>
-                                <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
-                                    default="false">
-                                   <xs:annotation>
-                                       <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
-                                   </xs:annotation>
-                                </xs:attribute>
-                                <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
-                                   type="xs:boolean" default="false">
-                                  <xs:annotation>
-                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
-                                  </xs:annotation>   
-                                  </xs:attribute>
-                               </xs:complexType>
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
+                                        default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                </xs:complexType>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="moke"
-                                minOccurs="0">
+                            <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0">
                                 <xs:complexType/>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="expiqr"
@@ -2556,7 +2567,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>nosymbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>set to<pre>"true"</pre> if no symmetry information should be used for BSE.</xs:documentation>                                        
+                                            <xs:documentation>set to<pre>"true"</pre> if no symmetry information should be used for BSE.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
@@ -2603,7 +2614,7 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>true if q-point set is taken from first Brillouin zone</xs:documentation>
                                         </xs:annotation>
-                                    </xs:attribute>                                        
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="sciavtype"
                                         default="spherical">
                                         <xs:annotation>
@@ -2652,7 +2663,7 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>true if effective singular part of direct term of BSE Hamiltonian is to be used</xs:documentation>
                                         </xs:annotation>
-                                    </xs:attribute>                                        
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="lmaxdielt"
                                         type="xs:integer" default="14">
                                         <xs:annotation>
@@ -2670,9 +2681,18 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>maximum number of excitons to be considered in a BSE calculation</xs:documentation>
                                         </xs:annotation>
-                                    </xs:attribute>                                        
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse"
-                                        type="integerpair" default="0 0">
+                                        type="integerquadrupel" default="0 0 0 0">
+                                        <xs:annotation>
+                                            <xs:appinfo>
+                                                <oldname>nbfbse,nafbse</oldname>
+                                            </xs:appinfo>
+                                            <xs:documentation>number of states below and above the Fermi level</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse2"
+                                        type="integerquadrupel" default="0 0 0 0">
                                         <xs:annotation>
                                             <xs:appinfo>
                                                 <oldname>nbfbse,nafbse</oldname>
@@ -2704,8 +2724,8 @@ Example:  <pre>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="transitions" minOccurs="0"
-                                maxOccurs="1">
+                            <xs:element ex:importance="expert" ex:unit="" name="transitions"
+                                minOccurs="0" maxOccurs="1">
                                 <xs:annotation>
                                     <xs:documentation>Describe transitions between Kohn-Sham states 
                                     for the calculation of the Kohn-Sham response function (and screening) here.
@@ -2713,165 +2733,165 @@ Example:  <pre>
                                     and final states can be defined.</xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
-                                   <xs:all>
-                                      <xs:element ex:importance="expert" ex:unit="" name="individual" minOccurs="0"
-                                maxOccurs="1">
-                                         <xs:annotation>
-                                             <xs:documentation>A list of individual transitions consisting of an initial state
+                                    <xs:all>
+                                        <xs:element ex:importance="expert" ex:unit=""
+                                            name="individual" minOccurs="0" maxOccurs="1">
+                                            <xs:annotation>
+                                                <xs:documentation>A list of individual transitions consisting of an initial state
                                              a final state and a k-point is given here. An empty list amounts to no transitions at all.
                                              </xs:documentation>
-                                         </xs:annotation>
-                                         <xs:complexType>
-                                         <xs:sequence>
-                                           <xs:element ex:importance="expert" ex:unit="" name="trans"
-                                               minOccurs="0" maxOccurs="unbounded">
-                                               <xs:annotation>
-                                                   <xs:documentation>
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                  <xs:element ex:importance="expert" ex:unit=""
+                                                  name="trans" minOccurs="0" maxOccurs="unbounded">
+                                                  <xs:annotation>
+                                                  <xs:documentation>
                                                    An individual transition consisting of an initial state
                                              a final state and a k-point is given here.
                                                     Values of zero correspond to the inclusion of all initial and final states and all k-points 
                                                     and can be used as "wildcards" (default). Therefore, an empty element amounts to include all
                                                     transitions.
                                                    </xs:documentation>
-                                               </xs:annotation>
-                                               <xs:complexType>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="action" use="optional" default="include">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states. If a state is included as
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="action" use="optional" default="include">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select to include or exclude states. If a state is included as
                                                          well as excluded several times the last definition (in the sequence of individual
                                                          transitions) counts.</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-points.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                    
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="initial"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Initial state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="final"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Final state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                               </xs:complexType>
-                                           </xs:element>
-                                         </xs:sequence>
-                                         </xs:complexType>
-                                      </xs:element>
-                                      <xs:element ex:importance="expert" ex:unit="" name="ranges" minOccurs="0"
-                                maxOccurs="1">
-                                         <xs:annotation>
-                                             <xs:documentation>A list of ranges of transitions (initial state as well as final state ranges)
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="kpointnumber" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-points.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="initial" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Initial state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="final" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Final state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element ex:importance="expert" ex:unit="" name="ranges"
+                                            minOccurs="0" maxOccurs="1">
+                                            <xs:annotation>
+                                                <xs:documentation>A list of ranges of transitions (initial state as well as final state ranges)
                                              and a k-point are given here. An empty list amounts to no transitions at all.</xs:documentation>
-                                         </xs:annotation>
-                                         <xs:complexType>
-                                         <xs:sequence>
-                                           <xs:element ex:importance="expert" ex:unit="" name="range"
-                                               minOccurs="0" maxOccurs="unbounded">
-                                               <xs:annotation>
-                                                   <xs:documentation>A range of transitions (for initial as well as final states)
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                  <xs:element ex:importance="expert" ex:unit=""
+                                                  name="range" minOccurs="0" maxOccurs="unbounded">
+                                                  <xs:annotation>
+                                                  <xs:documentation>A range of transitions (for initial as well as final states)
                                              is given here. A range consists of a "start" and a "stop" value as well as a k-point.
                                                     Values of zero correspond to starting at the first state and stopping at the last
                                                     state and considering all k-points. They can be used as "wildcards" (default). Therefore,
                                                     an empty element corresponds to the full initial/final state range for all k-points.
                                                    </xs:documentation>
-                                               </xs:annotation>
-                                               <xs:complexType>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="action" use="optional" default="include">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="action" use="optional" default="include">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select to include or exclude states.  If a state is included as
                                                          well as excluded several times the last definition (in the sequence of individual
                                                          transitions) counts.</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="statestype" use="required">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select for initial or final state range</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="start"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Start value (first state) for range. A value of zero (default) means to start from the first state.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="stop"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Stop value (last state) for range. A value of zero (default) means to stop at the last state (no upper limit).</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                               </xs:complexType>
-                                           </xs:element>
-                                         </xs:sequence>
-                                         </xs:complexType>                                        
-                                      </xs:element>
-                                      <xs:element ex:importance="expert" ex:unit="" name="lists" minOccurs="0"
-                                maxOccurs="1">
-                                         <xs:annotation>
-                                             <xs:documentation>A list of initial and final state entries to be considered for transitions.
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="statestype" use="required">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select for initial or final state range</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="kpointnumber" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="start" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Start value (first state) for range. A value of zero (default) means to start from the first state.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="stop" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Stop value (last state) for range. A value of zero (default) means to stop at the last state (no upper limit).</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element ex:importance="expert" ex:unit="" name="lists"
+                                            minOccurs="0" maxOccurs="1">
+                                            <xs:annotation>
+                                                <xs:documentation>A list of initial and final state entries to be considered for transitions.
                                              An empty list amounts to no transitions at all.</xs:documentation>
-                                         </xs:annotation>
-                                         <xs:complexType>
-                                         <xs:sequence>
-                                           <xs:element ex:importance="expert" ex:unit="" name="istate"
-                                               minOccurs="0" maxOccurs="unbounded">
-                                               <xs:annotation>
-                                                   <xs:documentation>An initial or final state and corresponding k-point                                                   
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                  <xs:element ex:importance="expert" ex:unit=""
+                                                  name="istate" minOccurs="0" maxOccurs="unbounded">
+                                                  <xs:annotation>
+                                                  <xs:documentation>An initial or final state and corresponding k-point                                                   
                                              is given here.
                                                     Values of zero correspond to considering all initial/final states for all k-points. They can be used as "wildcards" (default). Therefore,
                                                     an empty element corresponds to the full initial/final state set for all k-points.
                                                    </xs:documentation>
-                                               </xs:annotation>
-                                               <xs:complexType>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="action" use="optional" default="include">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="action" use="optional" default="include">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select to include or exclude states.  If a state is included as
                                                          well as excluded several times the last definition (in the sequence of individual
                                                          transitions) counts.</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="statestype" use="required">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select for initial or final state list</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                    
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="state"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>The state to be considered. A value of zero (default) means to include all states.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>
-                                               </xs:complexType>
-                                           </xs:element>
-                                         </xs:sequence>
-                                         </xs:complexType>                                        
-                                      </xs:element>
-                                    </xs:all>                                      
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="statestype" use="required">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select for initial or final state list</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="kpointnumber" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="state" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>The state to be considered. A value of zero (default) means to include all states.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:all>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" ref="qpointset"
@@ -3311,14 +3331,14 @@ Example:  <pre>
                                 <xs:documentation>Lorentzian broadening for all spectra</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="Hartree"
-                            name="epsdfde" type="fortrandouble" default="1.0d-8">
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdfde"
+                            type="fortrandouble" default="1.0d-8">
                             <xs:annotation>
                                 <xs:documentation>
                        smallest energy difference for which the square of its inverse will be considered in the Kohn-Sham response function
                      </xs:documentation>
                             </xs:annotation>
-                        </xs:attribute>                        
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="tevout"
                             type="xs:boolean" default="false">
                             <xs:annotation>
@@ -3359,13 +3379,13 @@ Example:  <pre>
                         <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo"
                             type="xs:boolean" default="false">
                             <xs:annotation>
-                               <xs:documentation>true if to append info to output file</xs:documentation>
+                                <xs:documentation>true if to append info to output file</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="dbglev"
                             type="xs:integer" default="0">
                             <xs:annotation>
-                               <xs:documentation>debugging level</xs:documentation>
+                                <xs:documentation>debugging level</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="gqmax"
@@ -3476,8 +3496,8 @@ Example:  <pre>
                                 <xs:documentation>number of empty states</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="essential" ex:unit="Hartree"
-                                        ref="scissor" default="0.0d0">
+                        <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor"
+                            default="0.0d0">
                             <xs:annotation>
                                 <xs:documentation>scissors correction</xs:documentation>
                             </xs:annotation>
@@ -3485,9 +3505,10 @@ Example:  <pre>
                     </xs:complexType>
                 </xs:element>
                 <xs:element minOccurs="0" name="keywords" type="xs:string" maxOccurs="1">
-                  <xs:annotation>
-                    <xs:documentation>The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the <exciting>exciting</exciting> program.</xs:documentation>
-                  </xs:annotation></xs:element>
+                    <xs:annotation>
+                        <xs:documentation>The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the <exciting>exciting</exciting> program.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
             </xs:all>
             <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI"
                 default="http://xml.exciting-code.org">

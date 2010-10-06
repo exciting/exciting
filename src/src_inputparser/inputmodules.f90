@@ -463,9 +463,8 @@ type BSE_type
  integer::lmaxdielt
  integer::nleblaik
  integer::nexcitmax
-!(wol) integer::nstlbse(2) 
- integer::nstlbse(4) !(wol)
- integer::nstlbse2(4) !(wol)
+ integer::nstlbse(4)
+ integer::nstlbse2(4)
  integer::nstlce(2)
  character(512)::bsetype
  integer::bsetypenumber
@@ -4170,23 +4169,20 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"nstlbse") 
-!(wol) getstructBSE%nstlbse=(/0,0/)
-getstructBSE%nstlbse=(/0,0,0,0/) !(wol)
+np=>getAttributeNode(thisnode,"nstlbse")
+getstructBSE%nstlbse=(/0,0,0,0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nstlbse",getstructBSE%nstlbse)
        call removeAttribute(thisnode,"nstlbse")  
 endif
 
-!(wol)----start----------------------------------
 nullify(np)  
-np=>getAttributeNode(thisnode,"nstlbse2") 
+np=>getAttributeNode(thisnode,"nstlbse2")
 getstructBSE%nstlbse2=(/0,0,0,0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nstlbse2",getstructBSE%nstlbse2)
-       call removeAttribute(thisnode,"nstlbse2")      
+       call removeAttribute(thisnode,"nstlbse2")  
 endif
-!(wol)----stop----------------------------------
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"nstlce")
