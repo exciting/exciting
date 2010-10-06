@@ -547,7 +547,7 @@ subroutine checkinput
       end if
       if (input%xs%tddft%mdfqtype.eq.1) then
         write(*,*)
-        write(*,'("Warning(checkinput): /input/xs/tddft/@mdfqtype=1; not compatible with idfq- &
+        write(*,'("Warning(checkinput): /input/xs/tddft/@mdfqtype=1; not compatible with idfq-&
          &routine, if local fields are neglected, needs to project out special &
          &G-vector - code limitation")')
         write(*,*)
