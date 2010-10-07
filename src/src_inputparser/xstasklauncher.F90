@@ -9,22 +9,22 @@ Subroutine xstasklauncher
       Use inputdom
 !
       If ( .Not. (associated(input%xs%tddft))) Then
-  ! set the default values if solver element not present
+  ! set the default values if tddft element not present
          input%xs%tddft => getstructtddft (emptynode)
       End If
 !
       If ( .Not. (associated(input%xs%screening))) Then
-  ! set the default values if solver element not present
+  ! set the default values if screening element not present
          input%xs%screening => getstructscreening (emptynode)
       End If
 !
       If ( .Not. (associated(input%xs%BSE))) Then
-  ! set the default values if solver element not present
+  ! set the default values if BSE element not present
          input%xs%BSE => getstructBSE (emptynode)
       End If
 !
       If ( .Not. (associated(input%xs%tetra))) Then
-  ! set the default values if solver element not present
+  ! set the default values if tetra element not present
          input%xs%tetra => getstructtetra (emptynode)
       End If
 !

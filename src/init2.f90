@@ -109,7 +109,10 @@ Subroutine init2
             vqc (:, iq) = vql (1, iq) * bvec (:, 1) + vql (2, iq) * &
            & bvec (:, 2) + vql (3, iq) * bvec (:, 3)
       ! check consistency of Q-point with gqmax
-              t1=sqrt(vqc(1,iq)**2+vqc(2,iq)**2+vqc(3,iq)**2)
+              v(:)=input%xs%qpointset%qpoint(1,iq)*bvec(:,1)+ &
+                input%xs%qpointset%qpoint(2,iq)*bvec(:,2)+ &
+                input%xs%qpointset%qpoint(3,iq)*bvec(:,3)
+              t1=sqrt(v(1)**2+v(2)**2+v(3)**2)
              if ((input%xs%gqmax.ne.0.d0).and.(t1.gt.input%xs%gqmax)) then
                write(*,*)
                write(*,'("Info(init2): Q-point exceeds gqmax")')
@@ -117,9 +120,36 @@ Subroutine init2
                write(*,'(" Q-point (latt. coords.): ",3g18.10)') vql(:,iq)
                write(*,'(" Q-point length         : ",3g18.10)') t1
                write(*,'(" gqmax                  : ",g18.10)') input%xs%gqmax
-               write(*,'(" increase gqmax or set it to zero (neglecting local fields)")')
+               write(*,*)
+               if (input%xs%gqmaxtype .eq. "|G+q|") then
+                 write(*,'("Error(init2): gqmaxtype = ""|G+q|"" and Q-point exceeds gqmax")')
+                 write(*,'(" set gqmaxtype to ""|G|""")')
+                 write(*,*)
+                 stop
+               end if
+             end if
+             if (input%xs%tddft%mdfqtype .eq. 1) then
+               write(*,'("Error(init2): mdfqtype = 1 and Q-point exceeds gqmax")')
+               write(*,'(" set mdfqtype to 0")')
                write(*,*)
                stop
+             end if
+             ! check if required tasks can be managed for non-zero Q-point
+             if (t1.ne.0.d0) then
+               if (input%xs%xstype.eq."TDDFT") then
+                 if ((input%xs%xstype.eq."MB1").or.(input%xs%xstype.eq."MB1_NLF")) then
+                   write(*,*)
+                   write(*,'("Error(init2): BSE derived xc kernel only works for optics (Q=0) - code limitation")')
+                   write(*,*)
+                   stop
+                 end if
+               end if
+               if (input%xs%xstype.eq."BSE") then
+                 write(*,*)
+                 write(*,'("Error(init2): BSE only works for optics (Q=0) - code limitation")')
+                 write(*,*)
+                 stop
+               end if
              end if
          End Do
       Else if (task .ge. 400) then

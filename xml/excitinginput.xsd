@@ -3368,6 +3368,25 @@ Example:  <pre>
                                <xs:documentation>debugging level</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="gqmaxtype" default="|G+q|">
+                          <xs:annotation>
+                            <xs:documentation>Defines the way the gqmax cutoff is applied for the selection of the G-vectors</xs:documentation>
+                          </xs:annotation>
+                          <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:enumeration value="|G+q|">
+                              <xs:annotation>
+                                <xs:documentation>G vectors are selected such that <inlinemath>{\bf G+q}</inlinemath> lies within the <pre>gqmax</pre> cutoff</xs:documentation>
+                              </xs:annotation>
+                            </xs:enumeration>
+                            <xs:enumeration value="|G|">
+                              <xs:annotation>
+                                <xs:documentation>G vectors are selected such that <inlinemath>{\bf G}</inlinemath> lies within the <pre>gqmax</pre> cutoff</xs:documentation>
+                              </xs:annotation>
+                            </xs:enumeration>
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="gqmax"
                             type="fortrandouble" default="0.0d0">
                             <xs:annotation>

@@ -230,6 +230,8 @@ Subroutine xsinit
   !----------------------------------!
   !     task dependent variables     !
   !----------------------------------!
+      tgqmaxg=.false.
+      if ((input%xs%xstype.eq."TDDFT").and.(input%xs%gqmaxtype.eq."|G|")) tgqmaxg=.true.
       tfxcbse = .False.
       If (input%xs%tddft%fxctypenumber .Eq. 5) Then
          If (input%groundstate%gmaxvr .Lt. 2.d0*input%xs%gqmax) Then

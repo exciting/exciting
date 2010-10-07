@@ -54,6 +54,8 @@ Module modxs
   !----------------------------------!
   !     G+q-vector set variables     !
   !----------------------------------!
+  ! true if |G| cutoff is used in place of |G+q| cutoff for momentum transfer calculations
+      logical :: tgqmaxg
   ! G-vector grid sizes of (G+q)-vectors
       Integer :: ngridgq (3)
   ! integer grid intervals for each direction for G-vectors

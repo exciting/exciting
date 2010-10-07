@@ -392,6 +392,8 @@ type xs_type
  logical::fastemat
  logical::tappinfo
  integer::dbglev
+ character(512)::gqmaxtype
+ integer::gqmaxtypenumber
  real(8)::gqmax
  logical::nosym
  integer::ngridk(3)
@@ -3612,6 +3614,15 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"gqmaxtype")
+getstructxs%gqmaxtype= "|G+q|"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"gqmaxtype",getstructxs%gqmaxtype)
+       call removeAttribute(thisnode,"gqmaxtype")  
+endif
+getstructxs%gqmaxtypenumber=stringtonumbergqmaxtype(getstructxs%gqmaxtype)
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"gqmax")
 getstructxs%gqmax=0.0d0
 if(associated(np)) then
@@ -5199,6 +5210,22 @@ case('')
  stringtonumberxstype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forxstype "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbergqmaxtype(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('|G+q|')
+ stringtonumbergqmaxtype=-1
+case('|G|')
+ stringtonumbergqmaxtype=-1
+case('')
+ stringtonumbergqmaxtype=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forgqmaxtype "
 stop 
 end select
 end function

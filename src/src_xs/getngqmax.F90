@@ -43,7 +43,12 @@ Subroutine getngqmax
          i = 0
          Do ig = 1, ngvec
             v2 (:) = vgc (:, ig) + v1 (:)
-            t2 = v2 (1) ** 2 + v2 (2) ** 2 + v2 (3) ** 2
+            ! cutoff type for G-vectors
+            if (tgqmaxg) then
+              t2 = vgc(1,ig) ** 2 + vgc(2,ig) ** 2 + vgc(3,ig) ** 2
+            else
+              t2 = v2 (1) ** 2 + v2 (2) ** 2 + v2 (3) ** 2
+            end if
             If (t2 .Lt. t1) Then
                i = i + 1
                Do j = 1, 3
@@ -61,6 +66,7 @@ Subroutine getngqmax
          Write (*, '(2i6)') intgqv (1, 1), intgqv (1, 2)
          Write (*, '(2i6)') intgqv (2, 1), intgqv (2, 2)
          Write (*, '(2i6)') intgqv (3, 1), intgqv (3, 2)
+         Write (*, '(i8)') ngqmax
          Write (*,*)
       End If
       If (ngqmax .Lt. 1) Then

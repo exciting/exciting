@@ -68,12 +68,17 @@ Subroutine gengqvec (iq, vpl, vpc, ngp, igpig, vgpl, vgpc, gpc, tpgpc)
       igp = 0
       Do ig = 1, ngvec
          v (:) = vgc (:, ig) + vpc (:)
-         t2 = v (1) ** 2 + v (2) ** 2 + v (3) ** 2
+         ! cutoff type for G-vectors
+         if (tgqmaxg) then
+           t2 = vgc(1,ig) ** 2 + vgc(2,ig) ** 2 + vgc(3,ig) ** 2
+         else
+           t2 = v (1) ** 2 + v (2) ** 2 + v (3) ** 2
+         end if
          If (t2 .Lt. t1) Then
             igp = igp + 1
             If (igp .Gt. ngqmax) Then
                Write (*,*)
-               Write (*, '("Error(gengpvec): number of G+p-vectors exce&
+               Write (*, '("Error(gengqvec): number of G+p-vectors exce&
               &eds ngqmax")')
                Write (*,*)
                Stop

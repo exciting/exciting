@@ -34,14 +34,17 @@ Contains
          Character (*), Intent (In) :: filex
     ! local variables
          Integer :: igq
+         real(8) :: v(3)
          Call getunit (unit1)
          Open (unit1, File='GQPOINTS'//trim(filex), Action='WRITE', &
         & Form='FORMATTED')
-         Write (unit1, '(I6, " : ngq; G+q-point, vql, vqc, wqpt, ngq be&
+         Write (unit1, '(I6, " : ngq; G+q-point, vgql, vgqc, gqc, |G| be&
         &low")') ngq (iq)
          Do igq = 1, ngq (iq)
-            Write (unit1, '(I6, 7G18.10)') igq, vgql (:, igq, iq), vgqc &
-           & (:, igq, iq), gqc (igq, iq)
+            v(:)=vgqc(:,igq,iq)-vqc(:,iq)
+            Write (unit1, '(I6, 3G18.10,2x,3G18.10,2x,2G18.10)') igq, &
+            vgql (:, igq, iq), vgqc(:, igq, iq), gqc (igq, iq), &
+            sqrt(v(1)**2+v(2)**2+v(3)**2)
          End Do
          Close (unit1)
       End Subroutine writegqpts

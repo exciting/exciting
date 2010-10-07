@@ -175,9 +175,9 @@ Subroutine idfq (iq)
                   End Select
               ! symmetrized inverse dielectric function (add one)
                   if (m.eq.1) then
-                    fxc (igmt, igmt) = fxc (igmt, igmt) + 1.d0
+                    idf (igmt, igmt) = idf (igmt, igmt) + 1.d0
                   else
-                    forall (j=1:m) fxc (j,j) = fxc(j,j) + 1.d0
+                    forall (j=1:m) idf (j,j) = idf(j,j) + 1.d0
                   end if
               ! Adler-Wiser treatment of macroscopic dielectric function
                   mdf1 (iw) = 1.d0 / idf (igmt, igmt)
