@@ -36,10 +36,19 @@ Subroutine writepmatxs
       Complex (8), Allocatable :: pmat (:, :, :)
       logical :: fast
       Logical, External :: tqgamma
-      fast=(task.ne.120).or.((task.eq.120).and.input%properties%momentummatrix%fastpmat)
+      ! check if fast (default) version of matrix elements is used
+      fast=.false.
+      if (associated(input%properties)) then
+        if (associated(input%properties%momentummatrix)) then
+	  if (input%properties%momentummatrix%fastpmat) fast=.true.
+	end if
+      end if	
+      fast=(task.ne.120).or.((task.eq.120).and.fast)
+      ! check if Q-point is Gamma point
       if (task .ne. 120) then
         if (.not.tqgamma(1)) return
       end if
+      ! check if this routine is called for the screening
       tscreen=(task .Ge. 400) .And. (task .Le. 499)
       If ((task .eq. 120).or. tscreen) Then
          fnam = 'PMAT'
