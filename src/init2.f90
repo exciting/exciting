@@ -16,7 +16,7 @@ Subroutine init2
       Real (8) :: ts0, ts1
       Real (8) :: boxl (3, 4)
 #ifdef XS
-      Real (8) :: v (3)
+      Real (8) :: v (3), t1
       Integer :: iq, iv (3)
 #endif
 
@@ -108,6 +108,19 @@ Subroutine init2
             vql (:, iq) = vqlmt (:, iq)
             vqc (:, iq) = vql (1, iq) * bvec (:, 1) + vql (2, iq) * &
            & bvec (:, 2) + vql (3, iq) * bvec (:, 3)
+      ! check consistency of Q-point with gqmax
+              t1=sqrt(vqc(1,iq)**2+vqc(2,iq)**2+vqc(3,iq)**2)
+             if ((input%xs%gqmax.ne.0.d0).and.(t1.gt.input%xs%gqmax)) then
+               write(*,*)
+               write(*,'("Info(init2): Q-point exceeds gqmax")')
+               write(*,'(" Q-point number         : ",i6)') iq
+               write(*,'(" Q-point (latt. coords.): ",3g18.10)') vql(:,iq)
+               write(*,'(" Q-point length         : ",3g18.10)') t1
+               write(*,'(" gqmax                  : ",g18.10)') input%xs%gqmax
+               write(*,'(" increase gqmax or set it to zero (neglecting local fields)")')
+               write(*,*)
+               stop
+             end if
          End Do
       Else if (task .ge. 400) then
    ! determine only integer-part of Q-points
@@ -200,11 +213,12 @@ Subroutine init2
 !---------------------!
 !     G+q-point set   !
 !---------------------!
-! checking
+! warning for small gqmax
       If (input%xs%gqmax .Ge. gkmax) Then
          Write (*, '(a, 2g18.10)') 'Warning(init2/xs): input%xs%gqmax >&
         &= gkmax: ', input%xs%gqmax, gkmax
       End If
+! check consistency with FFT G-vector array
       if (input%groundstate%gmaxvr .lt. 2*gkmax + input%xs%gqmax) then
          write(*,*)
          write(*,'("Error(init2): gmaxvr < 2 gkmax + gqmax : ",2g18.10)') &

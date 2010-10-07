@@ -71,6 +71,24 @@ Subroutine idfq (iq)
       Inquire (IoLength=Recl) mdf1 (1)
       Call getunit (unit1)
       Call getunit (unit2)
+      igmt = ivgigq (ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, iq), iq)
+      If (igmt .Gt. n) Then
+         Write (*,*)
+         Write (*, '("Error(", a, "): G-vector index for mo&
+        &mentum transfer out of range: ", i8)') trim &
+        & (thisnam), igmt
+         Write (*,*)
+         Call terminate
+      End If
+      If ((igmt .Ne. 1).and.(iw.eq.wi)) Then
+         Write (unitout,*)
+         Write (unitout, '("Info(", a, "): non-zero G-vecto&
+        &r Fourier component for momentum transfer:")') &
+        & trim (thisnam)
+         Write (unitout, '(" G-vector number         :", i8)') igmt
+         Write (unitout, '(" G-vector (latt. coords.):", 3i8)') ivgmt (:, iq)
+         Write (unitout,*)
+      End If
   ! neglect/include local field effects
       Do m = 1, n, Max (n-1, 1)
          Select Case (input%xs%tddft%fxctypenumber)
@@ -80,9 +98,11 @@ Subroutine idfq (iq)
             Call fxcifc (input%xs%tddft%fxctypenumber, iq=iq, ng=m, &
            & fxcg=fxc)
         ! add symmetrized Coulomb potential (is equal to unity matrix)
-            Forall (j=1:m)
-               fxc (j, j) = fxc (j, j) + 1.d0
-            End Forall
+            if (m.eq.1) then
+               fxc (igmt, igmt) = fxc (igmt, igmt) + 1.d0
+            else
+               forall (j=1:m) fxc (j,j) = fxc(j,j) + 1.d0
+            end if
          End Select
      ! loop over longitudinal components for optics
          Do oct1 = 1, nc
@@ -138,9 +158,11 @@ Subroutine idfq (iq)
                   Select Case (input%xs%tddft%fxctypenumber)
                   Case (0, 1, 2, 3, 4)
                  ! add symmetrized Coulomb potential (is equal to unity matrix)
-                     Forall (j=1:m)
-                        fxc (j, j) = fxc (j, j) + 1.d0
-                     End Forall
+                     if (m.eq.1) then
+                       fxc (igmt, igmt) = fxc (igmt, igmt) + 1.d0
+                     else
+                       forall (j=1:m) fxc (j,j) = fxc(j,j) + 1.d0
+                     end if
                      Call dyson (n, chi0, fxc, idf)
                   Case (5)
                      Call dyson (n, chi0, fxc, idf)
@@ -152,32 +174,15 @@ Subroutine idfq (iq)
                      Call dysonsym (n, chi0, fxc, idf)
                   End Select
               ! symmetrized inverse dielectric function (add one)
-                  Forall (j=1:m)
-                     idf (j, j) = idf (j, j) + 1.d0
-                  End Forall
+                  if (m.eq.1) then
+                    fxc (igmt, igmt) = fxc (igmt, igmt) + 1.d0
+                  else
+                    forall (j=1:m) fxc (j,j) = fxc(j,j) + 1.d0
+                  end if
               ! Adler-Wiser treatment of macroscopic dielectric function
-                  igmt = ivgigq (ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, &
-                 & iq), iq)
-                  If (igmt .Gt. n) Then
-                     Write (*,*)
-                     Write (*, '("Error(", a, "): G-vector index for mo&
-                    &mentum transfer out of range: ", i8)') trim &
-                    & (thisnam), igmt
-                     Write (*,*)
-                     Call terminate
-                  End If
-                  If (igmt .Ne. 1) Then
-                     Write (unitout,*)
-                     Write (unitout, '("Info(", a, "): non-zero G-vecto&
-                    &r Fourier component for momentum transfer:")') &
-                    & trim (thisnam)
-                     Write (unitout, '(" index and G-vector:", i8, 3g18&
-                    &.10)') igmt, ivgmt (:, iq)
-                     Write (unitout,*)
-                  End If
                   mdf1 (iw) = 1.d0 / idf (igmt, igmt)
-              ! ??? mimic zero Kronecker delta in case of off-diagonal tensor
-              ! components ???
+              ! mimic zero Kronecker delta in case of off-diagonal tensor
+              ! components (?)
                   If ((m .Eq. 1) .And. (oct1 .Ne. oct2)) mdf1 (iw) = &
                  & mdf1 (iw) - 1.d0
               ! write macroscopic dielectric function to file
