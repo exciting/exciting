@@ -75,7 +75,7 @@ function getstructwf(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(wf_type),pointer::getstructwf
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -130,7 +130,7 @@ function getstructsp(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(sp_type),pointer::getstructsp
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -238,7 +238,7 @@ function getstructmuffinTin(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(muffinTin_type),pointer::getstructmuffinTin
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -305,7 +305,7 @@ function getstructatomicState(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(atomicState_type),pointer::getstructatomicState
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -384,7 +384,7 @@ function getstructbasis(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(basis_type),pointer::getstructbasis
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -437,7 +437,7 @@ function getstructexception(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(exception_type),pointer::getstructexception
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -476,7 +476,7 @@ function getstructlorb(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(lorb_type),pointer::getstructlorb
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -520,7 +520,7 @@ function getstructspdb(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(spdb_type),pointer::getstructspdb
-		
+
 integer::len=1,i=0
 allocate(getstructspdb)  
 #ifdef INPUTDEBUG      

@@ -4,8 +4,8 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
  xmlns:str="http://exslt.org/strings">
   <xsl:output method="text"/>
   <xsl:variable name="newline">
-    <xsl:text>
-		</xsl:text>
+<xsl:text>
+</xsl:text>
   </xsl:variable> 
   <xsl:variable name="root" select="/xs:schema/xs:annotation/xs:appinfo/root"></xsl:variable>
   <xsl:template name="xstypetofortrantype">
@@ -380,7 +380,7 @@ endif
 <xsl:if test="./*/xs:restriction/xs:enumeration"> 
 <xsl:text>getstruct</xsl:text><xsl:value-of select="../../@name"/>
 <xsl:text>%</xsl:text><xsl:value-of select="@name|@ref"/><xsl:text>number=stringtonumber</xsl:text>
-<xsl:value-of select="@name|@ref"/>
+<xsl:value-of select="../../@name"/><xsl:value-of select="@name|@ref"/>
 <xsl:text>(getstruct</xsl:text><xsl:value-of select="../../@name"/>
 <xsl:text>%</xsl:text>
 <xsl:value-of select="@name|@ref"/>)
@@ -532,7 +532,7 @@ end function</xsl:text>
  <xsl:for-each select="//xs:restriction[xs:enumeration]">
  <xsl:text>
  integer function  stringtonumber</xsl:text>
-<xsl:value-of select="../../@name"/>
+<xsl:value-of select="../../../../@name"/><xsl:value-of select="../../@name"/>
 <xsl:text>(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
@@ -542,7 +542,7 @@ end function</xsl:text>
 <xsl:value-of select="@value"/>
 <xsl:text>')
  stringtonumber</xsl:text>
-<xsl:value-of select="../../../@name"/>
+<xsl:value-of select="../../../../../@name"/><xsl:value-of select="../../../@name"/>
 <xsl:text>=</xsl:text>
 <xsl:choose>
 <xsl:when test="xs:annotation/xs:appinfo/oldnr">
@@ -558,7 +558,7 @@ end function</xsl:text>
 
 <xsl:text>case('')
  stringtonumber</xsl:text>
-<xsl:value-of select="../../@name"/>
+<xsl:value-of select="../../../../@name"/><xsl:value-of select="../../@name"/>
 <xsl:text>=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection for</xsl:text> <xsl:value-of select="../../../@name|../../@name"/> <xsl:text> "

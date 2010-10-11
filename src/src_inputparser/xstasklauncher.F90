@@ -36,7 +36,7 @@ Subroutine xstasklauncher
          Call xsmain (input%xs%plan)
       Else If (trim(input%xs%xstype) .Eq. "TDDFT") Then
 !
-         If (input%xs%tddft%resumefromkernel) Go To 10
+         If (input%xs%tddft%do .eq. "fromkernel") Go To 10
 !
          task = 301
          Call xsinit
@@ -79,7 +79,7 @@ Subroutine xstasklauncher
                Call xsfinit
             End If
 !
-            If (input%xs%screening%run .Eq. "fromscratch") Then
+            If (input%xs%screening%do .Eq. "fromscratch") Then
                task = 430
                Call xsinit
                Call screen
@@ -138,7 +138,7 @@ Subroutine xstasklauncher
          Call scrwritepmat
          Call xsfinit
 !
-         If (input%xs%screening%run .Eq. "fromscratch") Then
+         If (input%xs%screening%do .Eq. "fromscratch") Then
             task = 430
             Call xsinit
             Call screen

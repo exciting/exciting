@@ -2224,15 +2224,22 @@ Example:  <pre>
                             <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0"
                                 maxOccurs="1"/>
                         </xs:all>
-                        <xs:attribute ex:importance="expert" ex:unit="" ref="do"
-                            default="fromscratch">
-                            <xs:annotation>
-                                <xs:appinfo>
-                                    <oldname>nonreplace</oldname>
-                                </xs:appinfo>
-                                <xs:documentation>Decides if the phonon calculation is skipped or recalculated or continued from file.</xs:documentation>
-                            </xs:annotation>
-                        </xs:attribute>
+   						   <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
+						        <xs:annotation>
+							            <xs:appinfo>
+							                <oldname>nonreplace</oldname>
+							            </xs:appinfo>
+							            <xs:documentation>
+							            Decides if the phonon calculation is skipped or recalculated or continued from file.
+							        </xs:documentation>
+							        </xs:annotation>
+							        <xs:simpleType>
+							            <xs:restriction base="xs:string">
+							                <xs:enumeration value="fromscratch"/>
+							                <xs:enumeration value="skip"/>
+							            </xs:restriction>
+							        </xs:simpleType>
+							   </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="ngridq"
                             type="integertriple" use="required">
                             <xs:annotation>
@@ -2451,32 +2458,43 @@ Example:  <pre>
                                             </xs:restriction>
                                         </xs:simpleType>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit=""
-                                        name="resumefromkernel" type="xs:boolean" default="false">
-                                        <xs:annotation>
-                                            <xs:documentation>
-                                                <pre>"true"</pre> if the TDDFT calculation is to be resumed starting from a new xc kernel.</xs:documentation>
-                                        </xs:annotation>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
+                                      <xs:annotation>
+                                             <xs:appinfo>
+                                                 <oldname>nonreplace</oldname>
+                                             </xs:appinfo>
+                                             <xs:documentation>
+                                             Decides if the TDDFT calculation is to be resumed starting from a new xc kernel or is to be skipped.
+                                         </xs:documentation>
+                                         </xs:annotation>
+                                         <xs:simpleType>
+                                             <xs:restriction base="xs:string">
+                                                 <xs:enumeration value="fromscratch"/>
+                                                 <xs:enumeration value="fromkernel"/>
+                                             </xs:restriction>
+                                         </xs:simpleType>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="screening"
                                 minOccurs="0" maxOccurs="1">
                                 <xs:complexType>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="run"
-                                        default="fromscratch">
-                                        <xs:annotation>
-                                            <xs:appinfo>
-                                                <oldname>nonreplace</oldname>
-                                            </xs:appinfo>
-                                        </xs:annotation>
-                                        <xs:simpleType>
-                                            <xs:restriction base="xs:string">
-                                                <xs:enumeration value="fromscratch"/>
-                                                <xs:enumeration value="skip"/>
-                                            </xs:restriction>
-                                        </xs:simpleType>
-                                    </xs:attribute>
+				                        <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
+				                          <xs:annotation>
+				                                 <xs:appinfo>
+				                                     <oldname>nonreplace</oldname>
+				                                 </xs:appinfo>
+				                                 <xs:documentation>
+				                                 Decides if the calculation of the screening is done from scratch or is to be skipped.
+				                             </xs:documentation>
+				                             </xs:annotation>
+				                             <xs:simpleType>
+				                                 <xs:restriction base="xs:string">
+				                                     <xs:enumeration value="fromscratch"/>
+				                                     <xs:enumeration value="skip"/>
+				                                 </xs:restriction>
+				                             </xs:simpleType>
+				                        </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nosym"
                                         type="xs:boolean" default="false">
                                         <xs:annotation>

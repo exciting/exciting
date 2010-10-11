@@ -39,8 +39,8 @@ Contains
         & input%xs%qpointset%qpoint(:, iqmtt)
          Write (un, '(a, 3i8)') '# ivgmt	       :', ivgmt (:, iqmtt)
          Write (un, '(a, 3f12.6)') '# vql		  :', vql (:, iqmtt)
-         Write (un, '(a, i8)') '# input%xs%tddft%fxctypenumber	   :', &
-        & input%xs%tddft%fxctypenumber
+         Write (un, '(a, a)') '# input%xs%tddft%fxctype	   :', &
+        & trim(input%xs%tddft%fxctype)
          Write (un, '(a, f12.6)') '# input%xs%tddft%alphalrc		:', &
         & input%xs%tddft%alphalrc
          Write (un, '(a, f12.6)') '# input%xs%tddft%alphalrcdyn	:', &

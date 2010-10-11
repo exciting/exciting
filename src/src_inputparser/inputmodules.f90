@@ -362,6 +362,7 @@ type eliashberg_type
 end type
 type phonons_type
  character(512)::do
+ integer::donumber
  integer::ngridq(3)
  logical::reduceq
  real(8)::deltaph
@@ -434,11 +435,12 @@ type tddft_type
  integer::mdfqtype
  character(512)::fxctype
  integer::fxctypenumber
- logical::resumefromkernel
+ character(512)::do
+ integer::donumber
 end type
 type screening_type
- character(512)::run
- integer::runnumber
+ character(512)::do
+ integer::donumber
  logical::nosym
  integer::ngridk(3)
  logical::reducek
@@ -560,7 +562,7 @@ function getstructorigin(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(origin_type),pointer::getstructorigin
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -586,7 +588,7 @@ function getstructpoint(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(point_type),pointer::getstructpoint
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -625,7 +627,7 @@ function getstructplot1d(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(plot1d_type),pointer::getstructplot1d
-		
+
 integer::len=1,i=0
 allocate(getstructplot1d)  
 #ifdef INPUTDEBUG      
@@ -654,7 +656,7 @@ function getstructpath(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(path_type),pointer::getstructpath
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -705,7 +707,7 @@ function getstructplot2d(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(plot2d_type),pointer::getstructplot2d
-		
+
 integer::len=1,i=0
 allocate(getstructplot2d)  
 #ifdef INPUTDEBUG      
@@ -734,7 +736,7 @@ function getstructparallelogram(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(parallelogram_type),pointer::getstructparallelogram
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -797,7 +799,7 @@ function getstructplot3d(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(plot3d_type),pointer::getstructplot3d
-		
+
 integer::len=1,i=0
 allocate(getstructplot3d)  
 #ifdef INPUTDEBUG      
@@ -826,7 +828,7 @@ function getstructbox(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(box_type),pointer::getstructbox
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -889,7 +891,7 @@ function getstructkstlist(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(kstlist_type),pointer::getstructkstlist
-		
+
 integer::len=1,i=0
 allocate(getstructkstlist)  
 #ifdef INPUTDEBUG      
@@ -900,7 +902,7 @@ allocate(getstructkstlist)
 allocate(getstructkstlist%pointstatepair(2,len))
 Do i=1,len
 
-		getstructkstlist%pointstatepair(:,i)=getvalueofpointstatepair(&
+getstructkstlist%pointstatepair(:,i)=getvalueofpointstatepair(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "pointstatepair"),0)))
 end do
@@ -915,7 +917,7 @@ function getstructinput(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(input_type),pointer::getstructinput
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -994,7 +996,7 @@ enddo
       len= countChildEmentsWithName (thisnode,"title")
 Do i=1,len
 
-		getstructinput%title=getvalueoftitle(&
+getstructinput%title=getvalueoftitle(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "title"),0)))
 end do
@@ -1002,7 +1004,7 @@ end do
       len= countChildEmentsWithName (thisnode,"keywords")
 Do i=1,len
 
-		getstructinput%keywords=getvalueofkeywords(&
+getstructinput%keywords=getvalueofkeywords(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "keywords"),0)))
 end do
@@ -1017,7 +1019,7 @@ function getstructstructure(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(structure_type),pointer::getstructstructure
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1125,7 +1127,7 @@ function getstructsymmetries(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(symmetries_type),pointer::getstructsymmetries
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1197,7 +1199,7 @@ function getstructlattice(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(lattice_type),pointer::getstructlattice
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1296,7 +1298,7 @@ function getstructWyckoffPositions(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(WyckoffPositions_type),pointer::getstructWyckoffPositions
-		
+
 integer::len=1,i=0
 allocate(getstructWyckoffPositions)  
 #ifdef INPUTDEBUG      
@@ -1322,7 +1324,7 @@ function getstructwspecies(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(wspecies_type),pointer::getstructwspecies
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1357,7 +1359,7 @@ function getstructwpos(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(wpos_type),pointer::getstructwpos
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1383,7 +1385,7 @@ function getstructcrystal(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(crystal_type),pointer::getstructcrystal
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1412,7 +1414,7 @@ endif
 allocate(getstructcrystal%basevect(3,len))
 Do i=1,len
 
-		getstructcrystal%basevect(:,i)=getvalueofbasevect(&
+getstructcrystal%basevect(:,i)=getvalueofbasevect(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "basevect"),0)))
 end do
@@ -1427,7 +1429,7 @@ function getstructspecies(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(species_type),pointer::getstructspecies
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1510,7 +1512,7 @@ function getstructatom(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(atom_type),pointer::getstructatom
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1557,7 +1559,7 @@ function getstructLDAplusU(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(LDAplusU_type),pointer::getstructLDAplusU
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1600,7 +1602,7 @@ function getstructgroundstate(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(groundstate_type),pointer::getstructgroundstate
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -1684,7 +1686,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"stype",getstructgroundstate%stype)
        call removeAttribute(thisnode,"stype")  
 endif
-getstructgroundstate%stypenumber=stringtonumberstype(getstructgroundstate%stype)
+getstructgroundstate%stypenumber=stringtonumbergroundstatestype(getstructgroundstate%stype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"findlinentype")
@@ -1693,7 +1695,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"findlinentype",getstructgroundstate%findlinentype)
        call removeAttribute(thisnode,"findlinentype")  
 endif
-getstructgroundstate%findlinentypenumber=stringtonumberfindlinentype(getstructgroundstate%findlinentype)
+getstructgroundstate%findlinentypenumber=stringtonumbergroundstatefindlinentype(getstructgroundstate%findlinentype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"isgkmax")
@@ -1854,7 +1856,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"mixer",getstructgroundstate%mixer)
        call removeAttribute(thisnode,"mixer")  
 endif
-getstructgroundstate%mixernumber=stringtonumbermixer(getstructgroundstate%mixer)
+getstructgroundstate%mixernumber=stringtonumbergroundstatemixer(getstructgroundstate%mixer)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"beta0")
@@ -1903,7 +1905,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"xctype",getstructgroundstate%xctype)
        call removeAttribute(thisnode,"xctype")  
 endif
-getstructgroundstate%xctypenumber=stringtonumberxctype(getstructgroundstate%xctype)
+getstructgroundstate%xctypenumber=stringtonumbergroundstatexctype(getstructgroundstate%xctype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ldapu")
@@ -1912,7 +1914,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"ldapu",getstructgroundstate%ldapu)
        call removeAttribute(thisnode,"ldapu")  
 endif
-getstructgroundstate%ldapunumber=stringtonumberldapu(getstructgroundstate%ldapu)
+getstructgroundstate%ldapunumber=stringtonumbergroundstateldapu(getstructgroundstate%ldapu)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"lmaxvr")
@@ -2060,7 +2062,7 @@ function getstructspin(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(spin_type),pointer::getstructspin
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2131,7 +2133,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"fixspin",getstructspin%fixspin)
        call removeAttribute(thisnode,"fixspin")  
 endif
-getstructspin%fixspinnumber=stringtonumberfixspin(getstructspin%fixspin)
+getstructspin%fixspinnumber=stringtonumberspinfixspin(getstructspin%fixspin)
 
       i=0
       len=0
@@ -2143,7 +2145,7 @@ function getstructHartreeFock(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(HartreeFock_type),pointer::getstructHartreeFock
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2170,7 +2172,7 @@ function getstructsolver(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(solver_type),pointer::getstructsolver
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2186,7 +2188,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"type",getstructsolver%type)
        call removeAttribute(thisnode,"type")  
 endif
-getstructsolver%typenumber=stringtonumbertype(getstructsolver%type)
+getstructsolver%typenumber=stringtonumbersolvertype(getstructsolver%type)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"packedmatrixstorage")
@@ -2222,7 +2224,7 @@ function getstructOEP(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(OEP_type),pointer::getstructOEP
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2257,7 +2259,7 @@ function getstructRDMFT(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(RDMFT_type),pointer::getstructRDMFT
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2340,7 +2342,7 @@ function getstructoutput(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(output_type),pointer::getstructoutput
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2356,7 +2358,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"state",getstructoutput%state)
        call removeAttribute(thisnode,"state")  
 endif
-getstructoutput%statenumber=stringtonumberstate(getstructoutput%state)
+getstructoutput%statenumber=stringtonumberoutputstate(getstructoutput%state)
 
       i=0
       len=0
@@ -2368,7 +2370,7 @@ function getstructstructureoptimization(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(structureoptimization_type),pointer::getstructstructureoptimization
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2411,7 +2413,7 @@ function getstructproperties(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(properties_type),pointer::getstructproperties
-		
+
 integer::len=1,i=0
 allocate(getstructproperties)  
 #ifdef INPUTDEBUG      
@@ -2604,7 +2606,7 @@ function getstructbandstructure(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(bandstructure_type),pointer::getstructbandstructure
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2647,7 +2649,7 @@ function getstructSTM(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(STM_type),pointer::getstructSTM
-		
+
 integer::len=1,i=0
 allocate(getstructSTM)  
 #ifdef INPUTDEBUG      
@@ -2672,7 +2674,7 @@ function getstructwfplot(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(wfplot_type),pointer::getstructwfplot
-		
+
 integer::len=1,i=0
 allocate(getstructwfplot)  
 #ifdef INPUTDEBUG      
@@ -2721,7 +2723,7 @@ function getstructdos(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(dos_type),pointer::getstructdos
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2796,7 +2798,7 @@ function getstructLSJ(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(LSJ_type),pointer::getstructLSJ
-		
+
 integer::len=1,i=0
 allocate(getstructLSJ)  
 #ifdef INPUTDEBUG      
@@ -2821,7 +2823,7 @@ function getstructmasstensor(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(masstensor_type),pointer::getstructmasstensor
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -2864,7 +2866,7 @@ function getstructchargedensityplot(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(chargedensityplot_type),pointer::getstructchargedensityplot
-		
+
 integer::len=1,i=0
 allocate(getstructchargedensityplot)  
 #ifdef INPUTDEBUG      
@@ -2905,7 +2907,7 @@ function getstructexccplot(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(exccplot_type),pointer::getstructexccplot
-		
+
 integer::len=1,i=0
 allocate(getstructexccplot)  
 #ifdef INPUTDEBUG      
@@ -2946,7 +2948,7 @@ function getstructelfplot(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(elfplot_type),pointer::getstructelfplot
-		
+
 integer::len=1,i=0
 allocate(getstructelfplot)  
 #ifdef INPUTDEBUG      
@@ -2987,7 +2989,7 @@ function getstructmvecfield(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(mvecfield_type),pointer::getstructmvecfield
-		
+
 integer::len=1,i=0
 allocate(getstructmvecfield)  
 #ifdef INPUTDEBUG      
@@ -3020,7 +3022,7 @@ function getstructxcmvecfield(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(xcmvecfield_type),pointer::getstructxcmvecfield
-		
+
 integer::len=1,i=0
 allocate(getstructxcmvecfield)  
 #ifdef INPUTDEBUG      
@@ -3053,7 +3055,7 @@ function getstructelectricfield(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(electricfield_type),pointer::getstructelectricfield
-		
+
 integer::len=1,i=0
 allocate(getstructelectricfield)  
 #ifdef INPUTDEBUG      
@@ -3086,7 +3088,7 @@ function getstructgradmvecfield(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(gradmvecfield_type),pointer::getstructgradmvecfield
-		
+
 integer::len=1,i=0
 allocate(getstructgradmvecfield)  
 #ifdef INPUTDEBUG      
@@ -3127,7 +3129,7 @@ function getstructfermisurfaceplot(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(fermisurfaceplot_type),pointer::getstructfermisurfaceplot
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3161,7 +3163,7 @@ function getstructEFG(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(EFG_type),pointer::getstructEFG
-		
+
 integer::len=1,i=0
 allocate(getstructEFG)  
 #ifdef INPUTDEBUG      
@@ -3178,7 +3180,7 @@ function getstructmossbauer(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(mossbauer_type),pointer::getstructmossbauer
-		
+
 integer::len=1,i=0
 allocate(getstructmossbauer)  
 #ifdef INPUTDEBUG      
@@ -3195,7 +3197,7 @@ function getstructmomentummatrix(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(momentummatrix_type),pointer::getstructmomentummatrix
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3222,7 +3224,7 @@ function getstructdielectric(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(dielectric_type),pointer::getstructdielectric
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3259,7 +3261,7 @@ endif
 allocate(getstructdielectric%optcomp(3,len))
 Do i=1,len
 
-		getstructdielectric%optcomp(:,i)=getvalueofoptcomp(&
+getstructdielectric%optcomp(:,i)=getvalueofoptcomp(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "optcomp"),0)))
 end do
@@ -3274,7 +3276,7 @@ function getstructmoke(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(moke_type),pointer::getstructmoke
-		
+
 integer::len=1,i=0
 allocate(getstructmoke)  
 #ifdef INPUTDEBUG      
@@ -3291,7 +3293,7 @@ function getstructexpiqr(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(expiqr_type),pointer::getstructexpiqr
-		
+
 integer::len=1,i=0
 allocate(getstructexpiqr)  
 #ifdef INPUTDEBUG      
@@ -3308,7 +3310,7 @@ function getstructelnes(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(elnes_type),pointer::getstructelnes
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3335,7 +3337,7 @@ function getstructeliashberg(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(eliashberg_type),pointer::getstructeliashberg
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3362,7 +3364,7 @@ function getstructphonons(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(phonons_type),pointer::getstructphonons
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3378,6 +3380,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructphonons%do)
        call removeAttribute(thisnode,"do")  
 endif
+getstructphonons%donumber=stringtonumberphononsdo(getstructphonons%do)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridq")
@@ -3453,7 +3456,7 @@ function getstructphonondos(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(phonondos_type),pointer::getstructphonondos
-		
+
 integer::len=1,i=0
 allocate(getstructphonondos)  
 #ifdef INPUTDEBUG      
@@ -3470,7 +3473,7 @@ function getstructphonondispplot(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(phonondispplot_type),pointer::getstructphonondispplot
-		
+
 integer::len=1,i=0
 allocate(getstructphonondispplot)  
 #ifdef INPUTDEBUG      
@@ -3495,7 +3498,7 @@ function getstructxs(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(xs_type),pointer::getstructxs
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3579,7 +3582,7 @@ if(associated(np)) then
         stop
         
 endif
-getstructxs%xstypenumber=stringtonumberxstype(getstructxs%xstype)
+getstructxs%xstypenumber=stringtonumberxsxstype(getstructxs%xstype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"fastpmat")
@@ -3620,7 +3623,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"gqmaxtype",getstructxs%gqmaxtype)
        call removeAttribute(thisnode,"gqmaxtype")  
 endif
-getstructxs%gqmaxtypenumber=stringtonumbergqmaxtype(getstructxs%gqmaxtype)
+getstructxs%gqmaxtypenumber=stringtonumberxsgqmaxtype(getstructxs%gqmaxtype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"gqmax")
@@ -3808,7 +3811,7 @@ function getstructtddft(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(tddft_type),pointer::getstructtddft
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3943,15 +3946,16 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"fxctype",getstructtddft%fxctype)
        call removeAttribute(thisnode,"fxctype")  
 endif
-getstructtddft%fxctypenumber=stringtonumberfxctype(getstructtddft%fxctype)
+getstructtddft%fxctypenumber=stringtonumbertddftfxctype(getstructtddft%fxctype)
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"resumefromkernel")
-getstructtddft%resumefromkernel= .false.
+np=>getAttributeNode(thisnode,"do")
+getstructtddft%do= "fromscratch"
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"resumefromkernel",getstructtddft%resumefromkernel)
-       call removeAttribute(thisnode,"resumefromkernel")  
+       call extractDataAttribute(thisnode,"do",getstructtddft%do)
+       call removeAttribute(thisnode,"do")  
 endif
+getstructtddft%donumber=stringtonumbertddftdo(getstructtddft%do)
 
       i=0
       len=0
@@ -3963,7 +3967,7 @@ function getstructscreening(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(screening_type),pointer::getstructscreening
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -3973,13 +3977,13 @@ allocate(getstructscreening)
 #endif
       
 nullify(np)  
-np=>getAttributeNode(thisnode,"run")
-getstructscreening%run= "fromscratch"
+np=>getAttributeNode(thisnode,"do")
+getstructscreening%do= "fromscratch"
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"run",getstructscreening%run)
-       call removeAttribute(thisnode,"run")  
+       call extractDataAttribute(thisnode,"do",getstructscreening%do)
+       call removeAttribute(thisnode,"do")  
 endif
-getstructscreening%runnumber=stringtonumberrun(getstructscreening%run)
+getstructscreening%donumber=stringtonumberscreeningdo(getstructscreening%do)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"nosym")
@@ -4036,7 +4040,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"screentype",getstructscreening%screentype)
        call removeAttribute(thisnode,"screentype")  
 endif
-getstructscreening%screentypenumber=stringtonumberscreentype(getstructscreening%screentype)
+getstructscreening%screentypenumber=stringtonumberscreeningscreentype(getstructscreening%screentype)
 
       i=0
       len=0
@@ -4048,7 +4052,7 @@ function getstructBSE(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(BSE_type),pointer::getstructBSE
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4112,7 +4116,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"sciavtype",getstructBSE%sciavtype)
        call removeAttribute(thisnode,"sciavtype")  
 endif
-getstructBSE%sciavtypenumber=stringtonumbersciavtype(getstructBSE%sciavtype)
+getstructBSE%sciavtypenumber=stringtonumberBSEsciavtype(getstructBSE%sciavtype)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"sciavbd")
@@ -4201,7 +4205,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"bsetype",getstructBSE%bsetype)
        call removeAttribute(thisnode,"bsetype")  
 endif
-getstructBSE%bsetypenumber=stringtonumberbsetype(getstructBSE%bsetype)
+getstructBSE%bsetypenumber=stringtonumberBSEbsetype(getstructBSE%bsetype)
 
       i=0
       len=0
@@ -4213,7 +4217,7 @@ function getstructtransitions(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(transitions_type),pointer::getstructtransitions
-		
+
 integer::len=1,i=0
 allocate(getstructtransitions)  
 #ifdef INPUTDEBUG      
@@ -4254,7 +4258,7 @@ function getstructindividual(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(individual_type),pointer::getstructindividual
-		
+
 integer::len=1,i=0
 allocate(getstructindividual)  
 #ifdef INPUTDEBUG      
@@ -4280,7 +4284,7 @@ function getstructtrans(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(trans_type),pointer::getstructtrans
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4331,7 +4335,7 @@ function getstructranges(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(ranges_type),pointer::getstructranges
-		
+
 integer::len=1,i=0
 allocate(getstructranges)  
 #ifdef INPUTDEBUG      
@@ -4357,7 +4361,7 @@ function getstructrange(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(range_type),pointer::getstructrange
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4420,7 +4424,7 @@ function getstructlists(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(lists_type),pointer::getstructlists
-		
+
 integer::len=1,i=0
 allocate(getstructlists)  
 #ifdef INPUTDEBUG      
@@ -4446,7 +4450,7 @@ function getstructistate(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(istate_type),pointer::getstructistate
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4501,7 +4505,7 @@ function getstructtetra(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(tetra_type),pointer::getstructtetra
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4560,7 +4564,7 @@ function getstructdosWindow(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(dosWindow_type),pointer::getstructdosWindow
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4603,7 +4607,7 @@ function getstructplan(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(plan_type),pointer::getstructplan
-		
+
 integer::len=1,i=0
 allocate(getstructplan)  
 #ifdef INPUTDEBUG      
@@ -4629,7 +4633,7 @@ function getstructdoonly(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(doonly_type),pointer::getstructdoonly
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4649,7 +4653,7 @@ if(associated(np)) then
         stop
         
 endif
-getstructdoonly%tasknumber=stringtonumbertask(getstructdoonly%task)
+getstructdoonly%tasknumber=stringtonumberdoonlytask(getstructdoonly%task)
 
       i=0
       len=0
@@ -4661,7 +4665,7 @@ function getstructqpointset(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(qpointset_type),pointer::getstructqpointset
-		
+
 integer::len=1,i=0
 allocate(getstructqpointset)  
 #ifdef INPUTDEBUG      
@@ -4672,7 +4676,7 @@ allocate(getstructqpointset)
 allocate(getstructqpointset%qpoint(3,len))
 Do i=1,len
 
-		getstructqpointset%qpoint(:,i)=getvalueofqpoint(&
+getstructqpointset%qpoint(:,i)=getvalueofqpoint(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "qpoint"),0)))
 end do
@@ -4687,7 +4691,7 @@ function getstructparts(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(parts_type),pointer::getstructparts
-		
+
 integer::len=1,i=0
 allocate(getstructparts)  
 #ifdef INPUTDEBUG      
@@ -4713,7 +4717,7 @@ function getstructdopart(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(dopart_type),pointer::getstructdopart
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0
@@ -4849,19 +4853,19 @@ end select
 end function
 
  
- integer function  stringtonumberfixspin(string) 
+ integer function  stringtonumberspinfixspin(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('none')
- stringtonumberfixspin=0
+ stringtonumberspinfixspin=0
 case('total FSM')
- stringtonumberfixspin=1
+ stringtonumberspinfixspin=1
 case('localmt FSM')
- stringtonumberfixspin=2
+ stringtonumberspinfixspin=2
 case('both')
- stringtonumberfixspin=3
+ stringtonumberspinfixspin=3
 case('')
- stringtonumberfixspin=0
+ stringtonumberspinfixspin=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forfixspin "
 stop 
@@ -4869,17 +4873,17 @@ end select
 end function
 
  
- integer function  stringtonumbertype(string) 
+ integer function  stringtonumbersolvertype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('Lapack')
- stringtonumbertype=1
+ stringtonumbersolvertype=1
 case('Arpack')
- stringtonumbertype=2
+ stringtonumbersolvertype=2
 case('DIIS')
- stringtonumbertype=3
+ stringtonumbersolvertype=3
 case('')
- stringtonumbertype=0
+ stringtonumbersolvertype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection fortype "
 stop 
@@ -4887,15 +4891,15 @@ end select
 end function
 
  
- integer function  stringtonumberstate(string) 
+ integer function  stringtonumberoutputstate(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('binary')
- stringtonumberstate=-1
+ stringtonumberoutputstate=-1
 case('XML')
- stringtonumberstate=-1
+ stringtonumberoutputstate=-1
 case('')
- stringtonumberstate=0
+ stringtonumberoutputstate=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forstate "
 stop 
@@ -4903,21 +4907,21 @@ end select
 end function
 
  
- integer function  stringtonumberstype(string) 
+ integer function  stringtonumbergroundstatestype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('Gaussian')
- stringtonumberstype=0
+ stringtonumbergroundstatestype=0
 case('Methfessel-Paxton 1')
- stringtonumberstype=1
+ stringtonumbergroundstatestype=1
 case('Methfessel-Paxton 2')
- stringtonumberstype=2
+ stringtonumbergroundstatestype=2
 case('Fermi Dirac')
- stringtonumberstype=3
+ stringtonumbergroundstatestype=3
 case('Square-wave impulse')
- stringtonumberstype=4
+ stringtonumbergroundstatestype=4
 case('')
- stringtonumberstype=0
+ stringtonumbergroundstatestype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forstype "
 stop 
@@ -4925,17 +4929,17 @@ end select
 end function
 
  
- integer function  stringtonumberfindlinentype(string) 
+ integer function  stringtonumbergroundstatefindlinentype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('simple')
- stringtonumberfindlinentype=-1
+ stringtonumbergroundstatefindlinentype=-1
 case('Fermi')
- stringtonumberfindlinentype=-1
+ stringtonumbergroundstatefindlinentype=-1
 case('advanced')
- stringtonumberfindlinentype=-1
+ stringtonumbergroundstatefindlinentype=-1
 case('')
- stringtonumberfindlinentype=0
+ stringtonumbergroundstatefindlinentype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forfindlinentype "
 stop 
@@ -4943,17 +4947,17 @@ end select
 end function
 
  
- integer function  stringtonumbermixer(string) 
+ integer function  stringtonumbergroundstatemixer(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('lin')
- stringtonumbermixer=1
+ stringtonumbergroundstatemixer=1
 case('msec')
- stringtonumbermixer=2
+ stringtonumbergroundstatemixer=2
 case('pulay')
- stringtonumbermixer=3
+ stringtonumbergroundstatemixer=3
 case('')
- stringtonumbermixer=0
+ stringtonumbergroundstatemixer=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection formixer "
 stop 
@@ -4961,33 +4965,33 @@ end select
 end function
 
  
- integer function  stringtonumberxctype(string) 
+ integer function  stringtonumbergroundstatexctype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('LDAPerdew-Zunger')
- stringtonumberxctype=2
+ stringtonumbergroundstatexctype=2
 case('LSDAPerdew-Wang')
- stringtonumberxctype=3
+ stringtonumbergroundstatexctype=3
 case('LDA-X-alpha')
- stringtonumberxctype=4
+ stringtonumbergroundstatexctype=4
 case('LSDA-Barth-Hedin')
- stringtonumberxctype=5
+ stringtonumbergroundstatexctype=5
 case('GGAPerdew-Burke-Ernzerhof')
- stringtonumberxctype=20
+ stringtonumbergroundstatexctype=20
 case('GGArevPBE')
- stringtonumberxctype=21
+ stringtonumbergroundstatexctype=21
 case('GGAPBEsol')
- stringtonumberxctype=22
+ stringtonumbergroundstatexctype=22
 case('GGA-Wu-Cohen')
- stringtonumberxctype=26
+ stringtonumbergroundstatexctype=26
 case('GGAArmiento-Mattsson')
- stringtonumberxctype=30
+ stringtonumbergroundstatexctype=30
 case('EXX')
- stringtonumberxctype=-2
+ stringtonumbergroundstatexctype=-2
 case('none')
- stringtonumberxctype=1
+ stringtonumbergroundstatexctype=1
 case('')
- stringtonumberxctype=0
+ stringtonumbergroundstatexctype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forxctype "
 stop 
@@ -4995,19 +4999,19 @@ end select
 end function
 
  
- integer function  stringtonumberldapu(string) 
+ integer function  stringtonumbergroundstateldapu(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('none')
- stringtonumberldapu=0
+ stringtonumbergroundstateldapu=0
 case('FullyLocalisedLimit')
- stringtonumberldapu=1
+ stringtonumbergroundstateldapu=1
 case('AroundMeanField')
- stringtonumberldapu=2
+ stringtonumbergroundstateldapu=2
 case('FFL-AMF-interpolation')
- stringtonumberldapu=3
+ stringtonumbergroundstateldapu=3
 case('')
- stringtonumberldapu=0
+ stringtonumbergroundstateldapu=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forldapu "
 stop 
@@ -5015,27 +5019,43 @@ end select
 end function
 
  
- integer function  stringtonumberfxctype(string) 
+ integer function  stringtonumberphononsdo(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumberphononsdo=-1
+case('skip')
+ stringtonumberphononsdo=-1
+case('')
+ stringtonumberphononsdo=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbertddftfxctype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('RPA')
- stringtonumberfxctype=0
+ stringtonumbertddftfxctype=0
 case('LRCstatic_NLF')
- stringtonumberfxctype=1
+ stringtonumbertddftfxctype=1
 case('LRCstatic')
- stringtonumberfxctype=2
+ stringtonumbertddftfxctype=2
 case('LRCdyn_NLF')
- stringtonumberfxctype=3
+ stringtonumbertddftfxctype=3
 case('LRCdyn')
- stringtonumberfxctype=4
+ stringtonumbertddftfxctype=4
 case('ALDA')
- stringtonumberfxctype=5
+ stringtonumbertddftfxctype=5
 case('MB1_NLF')
- stringtonumberfxctype=7
+ stringtonumbertddftfxctype=7
 case('MB1')
- stringtonumberfxctype=8
+ stringtonumbertddftfxctype=8
 case('')
- stringtonumberfxctype=0
+ stringtonumbertddftfxctype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forfxctype "
 stop 
@@ -5043,35 +5063,51 @@ end select
 end function
 
  
- integer function  stringtonumberrun(string) 
+ integer function  stringtonumbertddftdo(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('fromscratch')
- stringtonumberrun=-1
-case('skip')
- stringtonumberrun=-1
+ stringtonumbertddftdo=-1
+case('fromkernel')
+ stringtonumbertddftdo=-1
 case('')
- stringtonumberrun=0
+ stringtonumbertddftdo=0
 case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection forrun "
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
 stop 
 end select
 end function
 
  
- integer function  stringtonumberscreentype(string) 
+ integer function  stringtonumberscreeningdo(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumberscreeningdo=-1
+case('skip')
+ stringtonumberscreeningdo=-1
+case('')
+ stringtonumberscreeningdo=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberscreeningscreentype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('full')
- stringtonumberscreentype=-1
+ stringtonumberscreeningscreentype=-1
 case('diag')
- stringtonumberscreentype=-1
+ stringtonumberscreeningscreentype=-1
 case('noinvdiag')
- stringtonumberscreentype=-1
+ stringtonumberscreeningscreentype=-1
 case('longrange')
- stringtonumberscreentype=-1
+ stringtonumberscreeningscreentype=-1
 case('')
- stringtonumberscreentype=0
+ stringtonumberscreeningscreentype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forscreentype "
 stop 
@@ -5079,17 +5115,17 @@ end select
 end function
 
  
- integer function  stringtonumbersciavtype(string) 
+ integer function  stringtonumberBSEsciavtype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('spherical')
- stringtonumbersciavtype=-1
+ stringtonumberBSEsciavtype=-1
 case('screendiag')
- stringtonumbersciavtype=-1
+ stringtonumberBSEsciavtype=-1
 case('invscreendiag')
- stringtonumbersciavtype=-1
+ stringtonumberBSEsciavtype=-1
 case('')
- stringtonumbersciavtype=0
+ stringtonumberBSEsciavtype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forsciavtype "
 stop 
@@ -5097,19 +5133,19 @@ end select
 end function
 
  
- integer function  stringtonumberbsetype(string) 
+ integer function  stringtonumberBSEbsetype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('IP')
- stringtonumberbsetype=-1
+ stringtonumberBSEbsetype=-1
 case('RPA')
- stringtonumberbsetype=-1
+ stringtonumberBSEbsetype=-1
 case('singlet')
- stringtonumberbsetype=-1
+ stringtonumberBSEbsetype=-1
 case('triplet')
- stringtonumberbsetype=-1
+ stringtonumberBSEbsetype=-1
 case('')
- stringtonumberbsetype=0
+ stringtonumberBSEbsetype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forbsetype "
 stop 
@@ -5117,81 +5153,81 @@ end select
 end function
 
  
- integer function  stringtonumbertask(string) 
+ integer function  stringtonumberdoonlytask(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('xsgeneigvec')
- stringtonumbertask=301
+ stringtonumberdoonlytask=301
 case('tetcalccw')
- stringtonumbertask=310
+ stringtonumberdoonlytask=310
 case('writepmatxs')
- stringtonumbertask=320
+ stringtonumberdoonlytask=320
 case('writeemat')
- stringtonumbertask=330
+ stringtonumberdoonlytask=330
 case('df')
- stringtonumbertask=340
+ stringtonumberdoonlytask=340
 case('df2')
- stringtonumbertask=345
+ stringtonumberdoonlytask=345
 case('idf')
- stringtonumbertask=350
+ stringtonumberdoonlytask=350
 case('scrgeneigvec')
- stringtonumbertask=401
+ stringtonumberdoonlytask=401
 case('scrtetcalccw')
- stringtonumbertask=410
+ stringtonumberdoonlytask=410
 case('scrwritepmat')
- stringtonumbertask=420
+ stringtonumberdoonlytask=420
 case('screen')
- stringtonumbertask=430
+ stringtonumberdoonlytask=430
 case('scrcoulint')
- stringtonumbertask=440
+ stringtonumberdoonlytask=440
 case('exccoulint')
- stringtonumbertask=441
+ stringtonumberdoonlytask=441
 case('bse')
- stringtonumbertask=445
+ stringtonumberdoonlytask=445
 case('kernxc_bse')
- stringtonumbertask=450
+ stringtonumberdoonlytask=450
 case('writebandgapgrid')
- stringtonumbertask=23
+ stringtonumberdoonlytask=23
 case('writepmat')
- stringtonumbertask=120
+ stringtonumberdoonlytask=120
 case('dielectric')
- stringtonumbertask=121
+ stringtonumberdoonlytask=121
 case('writepmatasc')
- stringtonumbertask=321
+ stringtonumberdoonlytask=321
 case('pmatxs2orig')
- stringtonumbertask=322
+ stringtonumberdoonlytask=322
 case('writeematasc')
- stringtonumbertask=331
+ stringtonumberdoonlytask=331
 case('writepwmat')
- stringtonumbertask=335
+ stringtonumberdoonlytask=335
 case('emattest')
- stringtonumbertask=339
+ stringtonumberdoonlytask=339
 case('x0toasc')
- stringtonumbertask=341
+ stringtonumberdoonlytask=341
 case('x0tobin')
- stringtonumbertask=342
+ stringtonumberdoonlytask=342
 case('fxc_alda_check')
- stringtonumbertask=398
+ stringtonumberdoonlytask=398
 case('kernxc_bse3')
- stringtonumbertask=451
+ stringtonumberdoonlytask=451
 case('testxs')
- stringtonumbertask=499
+ stringtonumberdoonlytask=499
 case('xsestimate')
- stringtonumbertask=700
+ stringtonumberdoonlytask=700
 case('xstiming')
- stringtonumbertask=701
+ stringtonumberdoonlytask=701
 case('testmain')
- stringtonumbertask=999
+ stringtonumberdoonlytask=999
 case('portstate(1)')
- stringtonumbertask=900
+ stringtonumberdoonlytask=900
 case('portstate(2)')
- stringtonumbertask=901
+ stringtonumberdoonlytask=901
 case('portstate(-1)')
- stringtonumbertask=910
+ stringtonumberdoonlytask=910
 case('portstate(-2)')
- stringtonumbertask=911
+ stringtonumberdoonlytask=911
 case('')
- stringtonumbertask=0
+ stringtonumberdoonlytask=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection fortask "
 stop 
@@ -5199,15 +5235,15 @@ end select
 end function
 
  
- integer function  stringtonumberxstype(string) 
+ integer function  stringtonumberxsxstype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('TDDFT')
- stringtonumberxstype=-1
+ stringtonumberxsxstype=-1
 case('BSE')
- stringtonumberxstype=-1
+ stringtonumberxsxstype=-1
 case('')
- stringtonumberxstype=0
+ stringtonumberxsxstype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forxstype "
 stop 
@@ -5215,15 +5251,15 @@ end select
 end function
 
  
- integer function  stringtonumbergqmaxtype(string) 
+ integer function  stringtonumberxsgqmaxtype(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('|G+q|')
- stringtonumbergqmaxtype=-1
+ stringtonumberxsgqmaxtype=-1
 case('|G|')
- stringtonumbergqmaxtype=-1
+ stringtonumberxsgqmaxtype=-1
 case('')
- stringtonumbergqmaxtype=0
+ stringtonumberxsgqmaxtype=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forgqmaxtype "
 stop 
