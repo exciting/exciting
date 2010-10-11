@@ -203,11 +203,11 @@ Contains
 #endif
           call mpi_allgatherv(BUFFER, &
             buf_n(rank+1), &
-            mpi_int, &
+            mpi_integer, &
             ibuf, &
             buf_n, &
             buf_dspls, &
-            mpi_int, &
+            mpi_integer, &
             mpi_comm_world, &
             ierr)
 #ifdef MPI1
