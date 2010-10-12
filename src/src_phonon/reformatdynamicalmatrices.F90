@@ -23,7 +23,7 @@ use mod_constants
 !BOC
       Implicit None
 ! local variables
-      Integer :: n, iq, i, j, is, ia, ip, js, ja, jp
+      Integer :: n
 ! allocatable arrays
       Complex (8), Allocatable :: dyn (:, :)
       Complex (8), Allocatable :: dynq (:, :, :)
@@ -37,40 +37,70 @@ use mod_constants
       Allocate (dynmatq(3,3,natmmax,nspecies,natmmax,nspecies,nqpt))
 ! read in the dynamical matrices
       Call readdyn (.false.,dynq)
-! store dynamical matrices in a different way
-      Do iq = 1, nqpt
-         i = 0
-         Do is = 1, nspecies
-            Do ia = 1, natoms (is)
-               Do ip = 1, 3
-                  i = i + 1
-                  j = 0
-                  Do js = 1, nspecies
-                     Do ja = 1, natoms (js)
-                        Do jp = 1, 3
-                           j = j + 1
-                           dynmatq(ip,jp,ia,is,ja,js,iq)=dynq (i, j, iq)
-                        End Do
-                     End Do
-                  End Do
-               End Do
-! end loops over atoms and species
-            End Do
-         End Do
-! end loop over q-vectors
-      End Do
-
+! reorder dynamical matrices
+      call reorderdynmat(dynq,dynmatq)
 ! write out unsymmetrized dynamical matrices
       call writedynamicalmatrices('DYNMAT.OUT',dynmatq)
-
 ! apply the acoustic sum rule
       Call sumrule (dynq)
-
+! reorder dynamical matrices
+      call reorderdynmat(dynq,dynmatq)
+! write out unsymmetrized dynamical matrices including sumrule correction
+      call writedynamicalmatrices('DYNMAT_SUMRULE.OUT',dynmatq)
+! read in the dynamical matrices including symmetrization
+      Call readdyn (.true.,dynq)
+! reorder dynamical matrices
+      call reorderdynmat(dynq,dynmatq)
+! write out unsymmetrized dynamical matrices
+      call writedynamicalmatrices('DYNMAT_SYM.OUT',dynmatq)
+! apply the acoustic sum rule
+      Call sumrule (dynq)
+! reorder dynamical matrices
+      call reorderdynmat(dynq,dynmatq)
+! write out unsymmetrized dynamical matrices including sumrule correction
+      call writedynamicalmatrices('DYNMAT_SYM_SUMRULE.OUT',dynmatq)
       Deallocate (dyn, dynq, dynmatq)
+      Write (*, '("Info(reformatdynamicalmatrices): reformatted dynamical matrices")')
+      Write (*, '(" including symmetrization and/or application of accoustic sumrule")')
+      Write (*, '(" written to DYNMAT.OUT, DYNMAT_SYM.OUT, DYNMAT_SUMRULE.OUT and DYNMAT_SYM_SUMRULE.OUT")')
+      Write (*,*)
 End Subroutine
 !EOC
 
 
+subroutine reorderdynmat(dynq,dynmatq)
+  Use mod_atoms
+  use mod_qpoint
+  implicit none
+! arguments
+  Complex (8), intent(in) :: dynq (3*natmtot,3*natmtot,nqpt)
+  Complex (8), intent(out) :: dynmatq(3,3,natmmax,nspecies,natmmax,nspecies,nqpt)
+! local variables
+  Integer :: n, iq, i, j, is, ia, ip, js, ja, jp
+  n = 3 * natmtot
+! store dynamical matrices in a different way
+  Do iq = 1, nqpt
+     i = 0
+     Do is = 1, nspecies
+        Do ia = 1, natoms (is)
+           Do ip = 1, 3
+              i = i + 1
+              j = 0
+              Do js = 1, nspecies
+                 Do ja = 1, natoms (js)
+                    Do jp = 1, 3
+                       j = j + 1
+                       dynmatq(ip,jp,ia,is,ja,js,iq)=dynq (i, j, iq)
+                    End Do
+                 End Do
+              End Do
+           End Do
+! end loops over atoms and species
+        End Do
+     End Do
+! end loop over q-vectors
+  End Do
+end subroutine
 
 
 !BOP

@@ -105,7 +105,7 @@ use ioarray
      & :), cwsurf1k (:, :, :)
       Real (8), Allocatable :: scis12 (:, :), scis21 (:, :)
       Complex(8) :: zt1
-      Real (8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot
+      Real (8) :: brd, cpu0, cpu1, cpuread, cpuosc, cpuupd, cputot, wintv(2)
       Integer :: n, j, i1, i2, j1, j2, ik, ikq, igq, iw, wi, wf, ist1, &
      & ist2, nwdfp
       Integer :: oct1, oct2, un
@@ -242,7 +242,11 @@ use ioarray
         & cwsurf1k(nst1, nst2, nwdfp))
       End If
   ! generate complex energy grid
-      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+      wintv(1)=input%xs%dosWindow%intv(1)
+      wintv(2)=input%xs%dosWindow%intv(2)
+  ! for calculation of static screening the first frequency point should be zero
+      if (task.eq.430) wintv(1)=0.d0
+      Call genwgrid (nwdf, wintv, &
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
       wreal (:) = dble (w(wi:wf))
       If (wreal(1) .Lt. epstetra) wreal (1) = epstetra

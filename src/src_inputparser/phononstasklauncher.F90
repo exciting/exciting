@@ -17,7 +17,7 @@ Subroutine phononstasklauncher
          part = trim(adjustl(input%phonons%parts%dopartarray(i)%dopart%id))
          write(*,'("Info(phononstasklauncher): executing part Nr. ",i6," : ",a)') i, trim(part)
          Select Case (trim(part))
-         Case ('reformat_dynamical_matrices')
+         Case ('reformatdynamicalmatrices')
             task=200
             call reformatdynamicalmatrices()
          case ('writephn')
@@ -48,6 +48,7 @@ Subroutine phononstasklauncher
         if (associated(input%phonons%qpointset)) then
         	task=230
         	call writephn
+        	call reformatdynamicalmatrices
         end if
       end if
 
