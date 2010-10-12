@@ -6,6 +6,9 @@
 subroutine writephn
   use modmain
   implicit none
+! initialise universal variables
+  Call init0
+  Call init2
   call writephn_list(nphwrt,vqlwrt)
 end subroutine
 
@@ -69,9 +72,6 @@ Subroutine writephn_list(nppt,vpl)
       Complex (8), Allocatable :: dynq (:, :, :)
       Complex (8), Allocatable :: dynp (:, :)
       Complex (8), Allocatable :: dynr (:, :, :)
-! initialise universal variables
-      Call init0
-      Call init2
       n = 3 * natmtot
       Allocate (w(n))
       Allocate (ev(n, n))

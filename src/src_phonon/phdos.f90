@@ -32,11 +32,11 @@ Subroutine phdos
       Call init2
       n = 3 * natmtot
       Allocate (wp(n))
-      Allocate (w(input%properties%dos%nwdos))
-      Allocate (gw(input%properties%dos%nwdos))
-      Allocate (f(input%properties%dos%nwdos), &
-     & g(input%properties%dos%nwdos), cf(3, &
-     & input%properties%dos%nwdos))
+      Allocate (w(input%phonons%phonondos%nwdos))
+      Allocate (gw(input%phonons%phonondos%nwdos))
+      Allocate (f(input%phonons%phonondos%nwdos), &
+     & g(input%phonons%phonondos%nwdos), cf(3, &
+     & input%phonons%phonondos%nwdos))
       Allocate (dynq(n, n, nqpt))
       Allocate (dynr(n, n, ngridq(1)*ngridq(2)*ngridq(3)))
       Allocate (dynp(n, n))
@@ -59,18 +59,18 @@ Subroutine phdos
       wmin = wmin - (wmax-wmin) * 0.1d0
       wd = wmax - wmin
       If (wd .Lt. 1.d-8) wd = 1.d0
-      dw = wd / dble (input%properties%dos%nwdos)
+      dw = wd / dble (input%phonons%phonondos%nwdos)
 ! generate energy grid
-      Do iw = 1, input%properties%dos%nwdos
+      Do iw = 1, input%phonons%phonondos%nwdos
          w (iw) = dw * dble (iw-1) + wmin
       End Do
       gw (:) = 0.d0
-      Do i1 = 0, input%properties%dos%ngrdos - 1
-         v (1) = dble (i1) / dble (input%properties%dos%ngrdos)
-         Do i2 = 0, input%properties%dos%ngrdos - 1
-            v (2) = dble (i2) / dble (input%properties%dos%ngrdos)
-            Do i3 = 0, input%properties%dos%ngrdos - 1
-               v (3) = dble (i3) / dble (input%properties%dos%ngrdos)
+      Do i1 = 0, input%phonons%phonondos%ngrdos - 1
+         v (1) = dble (i1) / dble (input%phonons%phonondos%ngrdos)
+         Do i2 = 0, input%phonons%phonondos%ngrdos - 1
+            v (2) = dble (i2) / dble (input%phonons%phonondos%ngrdos)
+            Do i3 = 0, input%phonons%phonondos%ngrdos - 1
+               v (3) = dble (i3) / dble (input%phonons%phonondos%ngrdos)
 ! compute the dynamical matrix at this particular q-point
                Call dynrtoq (v, dynr, dynp)
 ! find the phonon frequencies
@@ -79,21 +79,21 @@ Subroutine phdos
                   t1 = (wp(i)-wmin) / dw + 1.d0
                   iw = Nint (t1)
                   If ((iw .Ge. 1) .And. (iw .Le. &
-                 & input%properties%dos%nwdos)) Then
+                 & input%phonons%phonondos%nwdos)) Then
                      gw (iw) = gw (iw) + 1.d0
                   End If
                End Do
             End Do
          End Do
       End Do
-      t1 = 1.d0 / (dw*dble(input%properties%dos%ngrdos)**3)
+      t1 = 1.d0 / (dw*dble(input%phonons%phonondos%ngrdos)**3)
       gw (:) = t1 * gw (:)
 ! smooth phonon DOS if required
-      If (input%properties%dos%nsmdos .Gt. 0) Call fsmooth &
-     & (input%properties%dos%nsmdos, input%properties%dos%nwdos, 1, gw)
+      If (input%phonons%phonondos%nsmdos .Gt. 0) Call fsmooth &
+     & (input%phonons%phonondos%nsmdos, input%phonons%phonondos%nwdos, 1, gw)
 ! write phonon DOS to file
       Open (50, File='PHDOS.OUT', Action='WRITE', Form='FORMATTED')
-      Do iw = 1, input%properties%dos%nwdos
+      Do iw = 1, input%phonons%phonondos%nwdos
          Write (50, '(2G18.10)') w (iw), gw (iw)
       End Do
       Close (50)
@@ -111,18 +111,18 @@ Subroutine phdos
       End Do
       Open (50, File='THERMO.OUT', Action='WRITE', Form='FORMATTED')
 ! zero point energy
-      Do iw = 1, input%properties%dos%nwdos
+      Do iw = 1, input%phonons%phonondos%nwdos
          f (iw) = gw (iw) * w (iw)
       End Do
-      Call fderiv (-1, input%properties%dos%nwdos, w, f, g, cf)
-      t1 = 0.5d0 * dble (natmtot) * g (input%properties%dos%nwdos)
+      Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
+      t1 = 0.5d0 * dble (natmtot) * g (input%phonons%phonondos%nwdos)
       Write (50,*)
       Write (50, '("Zero-point energy : ", G18.10)') t1
 ! vibrational energy
       Write (50,*)
       Write (50, '("Vibrational energy vs. temperature :")')
       Do i = 1, ntemp
-         Do iw = 1, input%properties%dos%nwdos
+         Do iw = 1, input%phonons%phonondos%nwdos
             t1 = w (iw) / (2.d0*kboltz*temp(i))
             If (t1 .Gt. 0.d0) Then
                f (iw) = gw (iw) * w (iw) * Cosh (t1) / Sinh (t1)
@@ -130,8 +130,8 @@ Subroutine phdos
                f (iw) = 0.d0
             End If
          End Do
-         Call fderiv (-1, input%properties%dos%nwdos, w, f, g, cf)
-         t1 = 0.5d0 * dble (natmtot) * g (input%properties%dos%nwdos)
+         Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
+         t1 = 0.5d0 * dble (natmtot) * g (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
          s (i) = t1
       End Do
@@ -139,7 +139,7 @@ Subroutine phdos
       Write (50,*)
       Write (50, '("Free energy vs. temperature :")')
       Do i = 1, ntemp
-         Do iw = 1, input%properties%dos%nwdos
+         Do iw = 1, input%phonons%phonondos%nwdos
             t1 = 2.d0 * Sinh (w(iw)/(2.d0*kboltz*temp(i)))
             If (t1 .Gt. 0.d0) Then
                f (iw) = gw (iw) * Log (t1)
@@ -147,9 +147,9 @@ Subroutine phdos
                f (iw) = 0.d0
             End If
          End Do
-         Call fderiv (-1, input%properties%dos%nwdos, w, f, g, cf)
+         Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
          t1 = dble (natmtot) * kboltz * temp (i) * g &
-        & (input%properties%dos%nwdos)
+        & (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
 ! compute entropy from S = (F-E)/T
          s (i) = (s(i)-t1) / temp (i)
@@ -164,7 +164,7 @@ Subroutine phdos
       Write (50,*)
       Write (50, '("Heat capacity vs. temperature :")')
       Do i = 1, ntemp
-         Do iw = 1, input%properties%dos%nwdos
+         Do iw = 1, input%phonons%phonondos%nwdos
             t1 = w (iw) / (kboltz*temp(i))
             t2 = Exp (t1) - 1.d0
             If (t2 .Ne. 0.d0) Then
@@ -173,8 +173,8 @@ Subroutine phdos
                f (iw) = 0.d0
             End If
          End Do
-         Call fderiv (-1, input%properties%dos%nwdos, w, f, g, cf)
-         t1 = dble (natmtot) * kboltz * g (input%properties%dos%nwdos)
+         Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
+         t1 = dble (natmtot) * kboltz * g (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
       End Do
       Close (50)

@@ -372,11 +372,12 @@ type phonons_type
   type(interpolate_type),pointer::interpolate
   type(parts_type),pointer::parts
 end type
-
 type phonondos_type
-logical::exists
- end type
-    type phonondispplot_type
+ integer::nwdos
+ integer::ngrdos
+ integer::nsmdos
+end type
+type phonondispplot_type
   type(plot1d_type),pointer::plot1d
 end type
 type interpolate_type
@@ -3469,6 +3470,8 @@ function getstructphonondos(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(phonondos_type),pointer::getstructphonondos
+type(Node),pointer::np
+
 
 integer::len=1,i=0
 allocate(getstructphonondos)  
@@ -3476,6 +3479,30 @@ allocate(getstructphonondos)
       write(*,*)"we are at phonondos"
 #endif
       
+nullify(np)  
+np=>getAttributeNode(thisnode,"nwdos")
+getstructphonondos%nwdos=500
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nwdos",getstructphonondos%nwdos)
+       call removeAttribute(thisnode,"nwdos")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ngrdos")
+getstructphonondos%ngrdos=100
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ngrdos",getstructphonondos%ngrdos)
+       call removeAttribute(thisnode,"ngrdos")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nsmdos")
+getstructphonondos%nsmdos=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nsmdos",getstructphonondos%nsmdos)
+       call removeAttribute(thisnode,"nsmdos")  
+endif
+
       i=0
       len=0
       call  handleunknownnodes(thisnode)
@@ -3511,7 +3538,7 @@ function getstructinterpolate(thisnode)
 implicit none
 type(Node),pointer::thisnode
 type(interpolate_type),pointer::getstructinterpolate
-		type(Node),pointer::np
+type(Node),pointer::np
 
 
 integer::len=1,i=0

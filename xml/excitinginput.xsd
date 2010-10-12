@@ -230,6 +230,24 @@ Example:  <pre>
     </xs:attribute>                                                     
     <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble"
         default="5.0d-5"> </xs:attribute>
+    <xs:attribute ex:importance="essential" ex:unit="" name="nwdos"
+        type="xs:integer" default="500">
+        <xs:annotation>
+            <xs:documentation>Number of frequency/energy points in the DOS</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute ex:importance="essential" ex:unit="" name="ngrdos"
+        type="xs:integer" default="100">
+        <xs:annotation>
+            <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos"
+        type="xs:integer" default="0">
+        <xs:annotation>
+            <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>        
     <!-- global element definitions -->
     <xs:element ex:importance="essential" ex:unit="" name="origin">
         <xs:complexType>
@@ -1889,23 +1907,14 @@ Example:  <pre>
                      </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="essential" ex:unit="" name="nwdos"
-                                        type="xs:integer" default="500">
-                                        <xs:annotation>
-                                            <xs:documentation>Number of frequency/energy points in the DOS</xs:documentation>
-                                        </xs:annotation>
+                                    <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos"
+                                        default="500">
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="essential" ex:unit="" name="ngrdos"
-                                        type="xs:integer" default="100">
-                                        <xs:annotation>
-                                            <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
-                                        </xs:annotation>
+                                    <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos"
+                                        default="100">
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos"
-                                        type="xs:integer" default="0">
-                                        <xs:annotation>
-                                            <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
-                                        </xs:annotation>
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos"
+                                        default="0">
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
                                         name="winddos" default="0.0d0 0.5d0" type="vect2d">
@@ -2205,10 +2214,20 @@ Example:  <pre>
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation>
-                   Phonon density of states.
-                 </xs:documentation>
+                                     Phonon density of states.
+                                    </xs:documentation>
                                 </xs:annotation>
-                                <xs:complexType/>
+                                <xs:complexType>
+                                    <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos"
+                                        default="500">
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos"
+                                        default="100">
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos"
+                                        default="0">
+                                    </xs:attribute>                                                              
+                                </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="phonondispplot"
                                 maxOccurs="1" minOccurs="0">
