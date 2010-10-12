@@ -23,7 +23,7 @@ call xml_NewElement(xf, "symmetries")
 call xml_AddAttribute(xf, "HermannMauguinSymbol", trim(input%structure%symmetries%HermannMauguinSymbol))
 call xml_AddAttribute(xf, "HallSymbol", trim(hall))
 call xml_AddAttribute(xf, "SchoenfliesSymbol", trim(schn))
-call xml_AddAttribute(xf, "spaceGroupNumber", trim(schn))
+call xml_AddAttribute(xf, "spaceGroupNumber", trim(num))
 call xml_NewElement(xf, "lattice")
 write(buffer, '(G18.10)')input%structure%symmetries%lattice%a
 call xml_AddAttribute(xf, "a", trim(adjustl(buffer)))
