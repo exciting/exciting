@@ -368,6 +368,7 @@ type phonons_type
   type(qpointset_type),pointer::qpointset
   type(phonondos_type),pointer::phonondos
   type(phonondispplot_type),pointer::phonondispplot
+  type(interpolate_type),pointer::interpolate
   type(parts_type),pointer::parts
 end type
 
@@ -376,6 +377,10 @@ logical::exists
  end type
     type phonondispplot_type
   type(plot1d_type),pointer::plot1d
+end type
+type interpolate_type
+ integer::ngridq(3)
+ real(8)::vqloff(3)
 end type
 type xs_type
  integer::emattype
@@ -3433,6 +3438,14 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "phonondispplot"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"interpolate")
+getstructphonons%interpolate=>null()
+Do i=0,len-1
+getstructphonons%interpolate=>getstructinterpolate(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"interpolate"),0)) ) 
+enddo
+
             len= countChildEmentsWithName(thisnode,"parts")
 getstructphonons%parts=>null()
 Do i=0,len-1
@@ -3482,6 +3495,45 @@ getstructphonondispplot%plot1d=>getstructplot1d(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot1d"),0)) ) 
 enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructinterpolate(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(interpolate_type),pointer::getstructinterpolate
+		type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructinterpolate)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at interpolate"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"ngridq")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ngridq",getstructinterpolate%ngridq)
+       call removeAttribute(thisnode,"ngridq")  
+        else
+        write(*,*)"Parser ERROR: The element 'interpolate' requires the attribute 'ngridq' to be defined."
+        write(*,*)"stopped"
+        stop
+        
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"vqloff")
+getstructinterpolate%vqloff=(/0.0d0,0.0d0,0.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"vqloff",getstructinterpolate%vqloff)
+       call removeAttribute(thisnode,"vqloff")  
+endif
 
       i=0
       len=0
