@@ -2221,6 +2221,26 @@ Example:  <pre>
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element ex:importance="expert" ex:unit="" name="interpolate"
+                                maxOccurs="1" minOccurs="0">
+                                <xs:annotation>
+                                    <xs:documentation>Interpolates the phonon frequencies on a given q-point set.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+			                        <xs:attribute ex:importance="essential" ex:unit="" name="ngridq"
+			                            type="integertriple" use="required">
+			                            <xs:annotation>
+			                                <xs:documentation>q-point grid for interpolation.</xs:documentation>
+			                            </xs:annotation>
+			                        </xs:attribute>
+			                        <xs:attribute ex:importance="expert" ex:unit="" name="vqloff" type="vect3d"
+			                            default="0.0d0 0.0d0 0.0d0">
+			                            <xs:annotation>
+			                                <xs:documentation>The q-point offset vector in lattice coordinates.</xs:documentation>
+			                            </xs:annotation>
+			                        </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0"
                                 maxOccurs="1"/>
                         </xs:all>

@@ -1,14 +1,66 @@
-!
-!
-!
+
 ! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
-!
-Subroutine writephn
+
+subroutine writephn
+  use modmain
+  implicit none
+  call writephn_list(nphwrt,vqlwrt)
+end subroutine
+
+
+subroutine phononinterpolate
+  use modinput
+  implicit none
+  call interphn(input%phonons%interpolate%ngridq, &
+    input%phonons%interpolate%vqloff,.true.,.true.)
+end subroutine
+
+
+subroutine interphn(ngridp,vploff,reducep,tfbz)
+  implicit none
+  ! arguments
+  integer, intent(in) :: ngridp(3)
+  real(8), intent(in) :: vploff(3)
+  logical, intent(in) :: reducep, tfbz
+  ! local variables
+  real(8) :: boxl(3,4)
+  Integer :: nqpti
+  Integer, Allocatable :: ivqi (:, :)
+  Integer, Allocatable :: iqmapi (:, :, :)
+  Real (8), Allocatable :: vqli (:, :)
+  Real (8), Allocatable :: vqci (:, :)
+  Real (8), Allocatable :: wqpti (:)
+  If (allocated(vqli)) deallocate (vqli)
+  Allocate (vqli(3, ngridp(1)*ngridp(2)*ngridp(3)))
+  Allocate (ivqi(3, ngridp(1)*ngridp(2)*ngridp(3)))
+  Allocate (vqci(3, ngridp(1)*ngridp(2)*ngridp(3)))
+  Allocate (wqpti(ngridp(1)*ngridp(2)*ngridp(3)))
+  Allocate (iqmapi(0:ngridp(1)-1, 0:ngridp(2)-1, 0:ngridp(3)-1))
+  boxl (:, 1) = vploff(:) / dble(ngridp(:))
+  boxl (:, 2) = boxl (:, 1)
+  boxl (:, 3) = boxl (:, 1)
+  boxl (:, 4) = boxl (:, 1)
+  boxl (1, 2) = boxl (1, 2) + 1.d0
+  boxl (2, 3) = boxl (2, 3) + 1.d0
+  boxl (3, 4) = boxl (3, 4) + 1.d0
+  ! generate q-point set for interpolation
+  Call genppts (reducep, tfbz, ngridp, boxl, &
+        & nqpti, iqmapi, ivqi, vqli, vqci, wqpti)
+  deallocate(ivqi,vqci,wqpti,iqmapi)
+  ! interpolate
+  call writephn_list(nqpti,vqli)
+end subroutine
+
+
+
+Subroutine writephn_list(nppt,vpl)
       Use modmain
       Implicit None
+! arguments
+      integer, intent(in) :: nppt
+      real(8), intent(in) :: vpl(3,nppt)
 ! local variables
       Integer :: n, iq, i, j, is, ia, ip
 ! allocatable arrays
@@ -33,11 +85,11 @@ Subroutine writephn
 ! Fourier transform the dynamical matrices to real-space
       Call dynqtor (dynq, dynr)
       Open (50, File='PHONON.OUT', Action='WRITE', Form='FORMATTED')
-      Do iq = 1, nphwrt
-         Call dynrtoq (vqlwrt(:, iq), dynr, dynp)
+      Do iq = 1, nppt
+         Call dynrtoq (vpl(:, iq), dynr, dynp)
          Call dyndiag (dynp, w, ev)
          Write (50,*)
-         Write (50, '(I6, 3G18.10, " : q-point, vqlwrt")') iq, vqlwrt &
+         Write (50, '(I6, 3G18.10, " : q-point, vpl")') iq, vpl &
         & (:, iq)
          Do j = 1, n
             Write (50,*)
