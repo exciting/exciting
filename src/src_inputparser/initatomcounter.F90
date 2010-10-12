@@ -7,6 +7,7 @@ Subroutine initatomcounters
       Use modinput
       Use mod_atoms
       nspecies=0
+      if (allocated(natoms)) deallocate(natoms)
       allocate(natoms(nspecies))
       natoms(:)=0
       if (associated(input%structure%speciesarray)) then
