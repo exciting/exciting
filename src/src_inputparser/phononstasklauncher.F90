@@ -36,20 +36,26 @@ Subroutine phononstasklauncher
       else
         task=200
         ! task 201 is only a dry-run and will not be considered here
-        If (input%phonons%do .Ne. "skip") Call phonon
+        If (input%phonons%do .Ne. "skip") then
+            Call phonon
+            call reformatdynamicalmatrices
+        end if
         if (associated(input%phonons%qpointset)) then
             task=230
             call writephn
-            call reformatdynamicalmatrices
         end if
         if (associated(input%phonons%phonondos)) then
-        	task=210
-        	call phdos
+            task=210
+            call phdos
         end if
         if (associated(input%phonons%phonondispplot)) then
-        	task=220
-        	call phdisp
+            task=220
+            call phdisp
         end if
+        if (associated(input%phonons%interpolate)) then
+            call phononinterpolate
+        end if
+
       end if
 
 End Subroutine

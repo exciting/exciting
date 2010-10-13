@@ -2209,7 +2209,7 @@ Example:  <pre>
                         </xs:annotation>
                         <xs:all>
                             <xs:element ex:importance="expert" ex:unit="" ref="qpointset"
-                                minOccurs="1" maxOccurs="1"/>
+                                minOccurs="0" maxOccurs="1"/>
                             <xs:element ex:importance="expert" ex:unit="" name="phonondos"
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
@@ -2256,6 +2256,14 @@ Example:  <pre>
 			                            default="0.0d0 0.0d0 0.0d0">
 			                            <xs:annotation>
 			                                <xs:documentation>The q-point offset vector in lattice coordinates.</xs:documentation>
+			                            </xs:annotation>
+			                        </xs:attribute>
+			                        <xs:attribute ex:importance="expert" ex:unit="" name="writeeigenvectors"
+			                            type="xs:boolean" default="false">
+			                            <xs:annotation>
+			                                <xs:documentation>Set to <pre>true</pre> if the phonon eigenvectors are to be
+			                                interpolated and output in addition to the phonon frequencies.
+			                                </xs:documentation>
 			                            </xs:annotation>
 			                        </xs:attribute>
                                 </xs:complexType>

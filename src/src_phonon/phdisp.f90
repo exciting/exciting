@@ -34,7 +34,17 @@ Subroutine phdisp
 ! Fourier transform the dynamical matrices to real-space
       Call dynqtor (dynq, dynr)
 ! generate a set of q-point vectors along a path in the Brillouin zone
-      Call connect (bvec, nvp1d, npp1d, vvlp1d, vplp1d, dvp1d, dpp1d)
+      nvp1d = size(input%phonons%phonondispplot%plot1d%path%pointarray)
+      npp1d = input%phonons%phonondispplot%plot1d%path%steps
+      If (allocated(dvp1d)) deallocate (dvp1d)
+      Allocate (dvp1d(nvp1d))
+      If (allocated(vplp1d)) deallocate (vplp1d)
+      Allocate (vplp1d(3, npp1d))
+      If (allocated(dpp1d)) deallocate (dpp1d)
+      Allocate (dpp1d(npp1d))
+      Call connect (bvec, input%phonons%phonondispplot%plot1d,nvp1d, npp1d, &
+        vplp1d, dvp1d, dpp1d)
+!      Call connect (bvec, nvp1d, npp1d, vvlp1d, vplp1d, dvp1d, dpp1d)
       wmin = 0.d0
       wmax = 0.d0
 ! compute the phonon frequencies along the path

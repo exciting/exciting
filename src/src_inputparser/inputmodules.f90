@@ -383,6 +383,7 @@ end type
 type interpolate_type
  integer::ngridq(3)
  real(8)::vqloff(3)
+ logical::writeeigenvectors
 end type
 type xs_type
  integer::emattype
@@ -3417,11 +3418,7 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"qpointset")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The phonons element must contain at least 1 qpointset element"
-        endif
-        getstructphonons%qpointset=>null()
+getstructphonons%qpointset=>null()
 Do i=0,len-1
 getstructphonons%qpointset=>getstructqpointset(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3565,6 +3562,14 @@ getstructinterpolate%vqloff=(/0.0d0,0.0d0,0.0d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"vqloff",getstructinterpolate%vqloff)
        call removeAttribute(thisnode,"vqloff")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"writeeigenvectors")
+getstructinterpolate%writeeigenvectors= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"writeeigenvectors",getstructinterpolate%writeeigenvectors)
+       call removeAttribute(thisnode,"writeeigenvectors")  
 endif
 
       i=0
