@@ -454,6 +454,20 @@ Example:  <pre>
                                                   <xs:documentation>Number of repeated cells in each direction.</xs:documentation>
                                                   </xs:annotation>
                                                 </xs:attribute>
+                                                <xs:attribute ex:importance="spacegroup" name="scale" default="1" use="optional" type="fortrandouble">
+                                                    <xs:annotation> 
+                                                        <xs:documentation>Scales all the lattice vectors by the same factor. This is useful for varying the volume.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute ex:importance="spacegroup" ex:unit=""
+                                                    name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Allows for an individual scaling of each lattice vector separately. <pre>"1 1 1"</pre> means no scaling.</xs:documentation>
+                                                        <xs:appinfo>
+                                                            <oldname>(sc1|sc2|sc3)</oldname>
+                                                        </xs:appinfo>
+                                                    </xs:annotation>
+                                                </xs:attribute>
                                             </xs:complexType>
                                         </xs:element>
                                         <xs:element ex:importance="spacegroup" ex:unit=""

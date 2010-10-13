@@ -17,14 +17,15 @@ Module inputdom
 !
 Contains
 !
-      Subroutine loadinputDOM ()
+      Subroutine loadinputDOM (filename)
+      character(*),intent(in)::filename
       integer errorcode
          config => newDOMConfig ()
          parseerror = .False.
          Call setParameter (config, "validate-if-schema", .True.)
-         doc => parseFile ("input.xml", config,iostat=errorcode)
+         doc => parseFile (filename, config,iostat=errorcode)
          if(errorcode.ne.0) then
-        	 write(*,*) "### Could not open input.xml file."
+        	 write(*,*) "### Could not open ", filename, " file."
       		 write(*,*) "### Check if file exists and if it is valid XML."
        	     stop
          endif
