@@ -82,6 +82,8 @@ type lattice_type
  real(8)::ac
  real(8)::bc
  integer::ncell(3)
+ real(8)::scale
+ real(8)::stretch(3)
 end type
 type WyckoffPositions_type
   type(wspecies_type_array),pointer::wspeciesarray(:)
@@ -1248,6 +1250,22 @@ getstructlattice%ncell=(/1,1,1/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ncell",getstructlattice%ncell)
        call removeAttribute(thisnode,"ncell")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"scale")
+getstructlattice%scale=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scale",getstructlattice%scale)
+       call removeAttribute(thisnode,"scale")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"stretch")
+getstructlattice%stretch=(/1.0d0,1.0d0,1.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"stretch",getstructlattice%stretch)
+       call removeAttribute(thisnode,"stretch")  
 endif
 
       i=0
