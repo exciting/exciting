@@ -9,6 +9,7 @@
 Subroutine phdos
       Use modmain
       Use modinput
+      Use FoX_wxml
       Implicit None
 ! local variables
 ! number of temperature values
@@ -18,6 +19,8 @@ Subroutine phdos
       Real (8) :: wmin, wmax, wd, dw
       Real (8) :: tmax, temp (ntemp), s (ntemp)
       Real (8) :: v (3), t1, t2
+      Type (xmlf_t), Save :: xf
+      Character (256) :: buffer
 ! allocatable arrays
       Real (8), Allocatable :: wp (:)
       Real (8), Allocatable :: w (:)
@@ -110,6 +113,8 @@ Subroutine phdos
          temp (i) = tmax * dble (i) / dble (ntemp)
       End Do
       Open (50, File='THERMO.OUT', Action='WRITE', Form='FORMATTED')
+      Call xml_OpenFile ("thermo.xml", xf, replace=.True., pretty_print=.True.)
+      Call xml_NewElement (xf, "thermodynamicproperties")
 ! zero point energy
       Do iw = 1, input%phonons%phonondos%nwdos
          f (iw) = gw (iw) * w (iw)
@@ -118,9 +123,26 @@ Subroutine phdos
       t1 = 0.5d0 * dble (natmtot) * g (input%phonons%phonondos%nwdos)
       Write (50,*)
       Write (50, '("Zero-point energy : ", G18.10)') t1
+      Call xml_NewElement (xf, "zeropointenergy")
+      Write (buffer, '(g18.10)') t1
+      Call xml_AddAttribute (xf, "name", "zero-point energy")
+      Call xml_AddAttribute (xf, "value", trim(adjustl(buffer)))
+      Call xml_AddAttribute (xf, "unit", "Hartree")
+      Call xml_endElement (xf, "zeropointenergy")
 ! vibrational energy
       Write (50,*)
       Write (50, '("Vibrational energy vs. temperature :")')
+      Call xml_NewElement (xf, "vibrationalenergy")
+      Call xml_NewElement (xf, "mapdef")
+      Call xml_NewElement (xf, "variable1")
+      Call xml_AddAttribute (xf, "name", "temperature")
+      Call xml_AddAttribute (xf, "unit", "Kelvin")
+      Call xml_endElement (xf, "variable1")
+      Call xml_NewElement (xf, "function1")
+      Call xml_AddAttribute (xf, "name", "vibrational energy")
+      Call xml_AddAttribute (xf, "unit", "Hartree")
+      Call xml_endElement (xf, "function1")
+      Call xml_endElement (xf, "mapdef")
       Do i = 1, ntemp
          Do iw = 1, input%phonons%phonondos%nwdos
             t1 = w (iw) / (2.d0*kboltz*temp(i))
@@ -133,11 +155,29 @@ Subroutine phdos
          Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
          t1 = 0.5d0 * dble (natmtot) * g (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
+         Call xml_NewElement (xf, "map")
+         Write (buffer, '(4g18.10)') temp(i)
+         Call xml_AddAttribute (xf, "variable1", trim(adjustl(buffer)))
+         Write (buffer, '(4g18.10)') t1
+         Call xml_AddAttribute (xf, "function1", trim(adjustl(buffer)))
+         Call xml_endElement (xf, "map")
          s (i) = t1
       End Do
+      Call xml_endElement (xf, "vibrationalenergy")
 ! free energy
       Write (50,*)
       Write (50, '("Free energy vs. temperature :")')
+      Call xml_NewElement (xf, "vibrationalfreeenergy")
+      Call xml_NewElement (xf, "mapdef")
+      Call xml_NewElement (xf, "variable1")
+      Call xml_AddAttribute (xf, "name", "temperature")
+      Call xml_AddAttribute (xf, "unit", "Kelvin")
+      Call xml_endElement (xf, "variable1")
+      Call xml_NewElement (xf, "function1")
+      Call xml_AddAttribute (xf, "name", "vibrational free energy")
+      Call xml_AddAttribute (xf, "unit", "Hartree")
+      Call xml_endElement (xf, "function1")
+      Call xml_endElement (xf, "mapdef")
       Do i = 1, ntemp
          Do iw = 1, input%phonons%phonondos%nwdos
             t1 = 2.d0 * Sinh (w(iw)/(2.d0*kboltz*temp(i)))
@@ -151,18 +191,54 @@ Subroutine phdos
          t1 = dble (natmtot) * kboltz * temp (i) * g &
         & (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
+         Call xml_NewElement (xf, "map")
+         Write (buffer, '(4g18.10)') temp(i)
+         Call xml_AddAttribute (xf, "variable1", trim(adjustl(buffer)))
+         Write (buffer, '(4g18.10)') t1
+         Call xml_AddAttribute (xf, "function1", trim(adjustl(buffer)))
+         Call xml_endElement (xf, "map")
 ! compute entropy from S = (F-E)/T
          s (i) = (s(i)-t1) / temp (i)
       End Do
+      Call xml_endElement (xf, "vibrationalfreeenergy")
 ! entropy
       Write (50,*)
       Write (50, '("Entropy vs. temperature :")')
+      Call xml_NewElement (xf, "vibrationalentropy")
+      Call xml_NewElement (xf, "mapdef")
+      Call xml_NewElement (xf, "variable1")
+      Call xml_AddAttribute (xf, "name", "temperature")
+      Call xml_AddAttribute (xf, "unit", "Kelvin")
+      Call xml_endElement (xf, "variable1")
+      Call xml_NewElement (xf, "function1")
+      Call xml_AddAttribute (xf, "name", "vibrational entropy")
+      Call xml_AddAttribute (xf, "unit", "Hartree/Kelvin")
+      Call xml_endElement (xf, "function1")
+      Call xml_endElement (xf, "mapdef")
       Do i = 1, ntemp
          Write (50, '(2G18.10)') temp (i), s (i)
+         Call xml_NewElement (xf, "map")
+         Write (buffer, '(4g18.10)') temp(i)
+         Call xml_AddAttribute (xf, "variable1", trim(adjustl(buffer)))
+         Write (buffer, '(4g18.10)') s(i)
+         Call xml_AddAttribute (xf, "function1", trim(adjustl(buffer)))
+         Call xml_endElement (xf, "map")
       End Do
+      Call xml_endElement (xf, "vibrationalentropy")
 ! heat capacity
       Write (50,*)
       Write (50, '("Heat capacity vs. temperature :")')
+      Call xml_NewElement (xf, "heatcapacity")
+      Call xml_NewElement (xf, "mapdef")
+      Call xml_NewElement (xf, "variable1")
+      Call xml_AddAttribute (xf, "name", "temperature")
+      Call xml_AddAttribute (xf, "unit", "Kelvin")
+      Call xml_endElement (xf, "variable1")
+      Call xml_NewElement (xf, "function1")
+      Call xml_AddAttribute (xf, "name", "heat capacity")
+      Call xml_AddAttribute (xf, "unit", "Hartree")
+      Call xml_endElement (xf, "function1")
+      Call xml_endElement (xf, "mapdef")
       Do i = 1, ntemp
          Do iw = 1, input%phonons%phonondos%nwdos
             t1 = w (iw) / (kboltz*temp(i))
@@ -176,8 +252,17 @@ Subroutine phdos
          Call fderiv (-1, input%phonons%phonondos%nwdos, w, f, g, cf)
          t1 = dble (natmtot) * kboltz * g (input%phonons%phonondos%nwdos)
          Write (50, '(2G18.10)') temp (i), t1
+         Call xml_NewElement (xf, "map")
+         Write (buffer, '(4g18.10)') temp(i)
+         Call xml_AddAttribute (xf, "variable1", trim(adjustl(buffer)))
+         Write (buffer, '(4g18.10)') t1
+         Call xml_AddAttribute (xf, "function1", trim(adjustl(buffer)))
+         Call xml_endElement (xf, "map")
       End Do
+      Call xml_endElement (xf, "heatcapacity")
       Close (50)
+      Call xml_endElement (xf, "thermodynamicproperties")
+      Call xml_Close (xf)
       Write (*, '(" thermodynamic properties written to THERMO.OUT")')
       Write (*,*)
       Deallocate (wp, w, gw, f, g, cf, dynq, dynr, dynp, ev)

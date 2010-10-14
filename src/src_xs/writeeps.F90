@@ -76,18 +76,18 @@ Contains
          Do iw = 1, n
             Call xml_NewElement (xf, "map")
             Write (buffer, '(4g18.10)') w (iw) * escale
-            Call xml_AddAttribute (xf, "variable1", trim(buffer))
+            Call xml_AddAttribute (xf, "variable1", trim(adjustl(buffer)))
             Write (buffer, '(4g18.10)') dble (eps(iw))
-            Call xml_AddAttribute (xf, "function1", trim(buffer))
+            Call xml_AddAttribute (xf, "function1", trim(adjustl(buffer)))
             Write (buffer, '(4g18.10)') aimag (eps(iw))
-            Call xml_AddAttribute (xf, "function2", trim(buffer))
+            Call xml_AddAttribute (xf, "function2", trim(adjustl(buffer)))
             Write (buffer, '(4g18.10)') kkeps (iw)
-            Call xml_AddAttribute (xf, "function3", trim(buffer))
+            Call xml_AddAttribute (xf, "function3", trim(adjustl(buffer)))
             Call xml_endElement (xf, "map")
          End Do
          Write (buffer, '(I1.1, ".", I1.1, ".", I3.3)') version
          Call xml_AddComment (xf, " Exciting code version : "//&
-        & trim(buffer))
+        & trim(adjustl(buffer)))
          Call xml_endElement (xf, "dielectric")
          Call xml_Close (xf)
 !
