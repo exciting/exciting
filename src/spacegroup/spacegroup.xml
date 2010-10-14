@@ -6,7 +6,7 @@
 	<structure speciespath="">
 		<symmetries HermannMauguinSymbol="Bmab">
 			<lattice a="10.0605232" b="10.0605232" c="24.972729" ab="90"
-				ac="90" bc="90" ncell="1 1 1" />
+			ac="90" bc="90" ncell="1 1 1"/>
 			<WyckoffPositions>
 				<wspecies speciesfile="La.in">
 					<wpos coord="0.0000    0.0000    0.3608 " />

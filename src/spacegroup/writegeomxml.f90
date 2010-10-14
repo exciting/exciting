@@ -57,6 +57,16 @@ end do
 call xml_endElement(xf, "WyckoffPositions")
 call xml_endElement(xf, "symmetries")
 call xml_NewElement(xf, "crystal")
+if (input%structure%symmetries%lattice%scale.ne.1) then
+	write(buffer,'(G18.10)')input%structure%symmetries%lattice%scale
+    call xml_AddAttribute(xf, "scale", trim(adjustl(buffer)))
+endif
+if (input%structure%symmetries%lattice%stretch(1).ne.1 .or.&
+input%structure%symmetries%lattice%stretch(2).ne.1 .or.&
+input%structure%symmetries%lattice%stretch(3).ne.1 ) then
+     write(buffer,'(3G18.10)')input%structure%symmetries%lattice%stretch
+     call xml_AddAttribute(xf, "stretch", trim(adjustl(buffer)))
+endif
 do i=1, 3
 call xml_newElement(xf, "basevect")
 write(buffer, '(3G18.10)') avecnew(:, i)
