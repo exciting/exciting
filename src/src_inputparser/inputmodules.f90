@@ -82,6 +82,8 @@ type lattice_type
  real(8)::ac
  real(8)::bc
  integer::ncell(3)
+ real(8)::scale
+ real(8)::stretch(3)
 end type
 type WyckoffPositions_type
   type(wspecies_type_array),pointer::wspeciesarray(:)
@@ -642,11 +644,7 @@ allocate(getstructplot1d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"path")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The plot1d element must contain at least 1 path element"
-        endif
-        getstructplot1d%path=>null()
+getstructplot1d%path=>null()
 Do i=0,len-1
 getstructplot1d%path=>getstructpath(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -692,11 +690,7 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"point")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The path element must contain at least 2 point element"
-        endif
-             
+     
 allocate(getstructpath%pointarray(len))
 Do i=0,len-1
 getstructpath%pointarray(i+1)%point=>getstructpoint(&
@@ -722,11 +716,7 @@ allocate(getstructplot2d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"parallelogram")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The plot2d element must contain at least 1 parallelogram element"
-        endif
-        getstructplot2d%parallelogram=>null()
+getstructplot2d%parallelogram=>null()
 Do i=0,len-1
 getstructplot2d%parallelogram=>getstructparallelogram(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -772,11 +762,7 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The parallelogram element must contain at least 1 origin element"
-        endif
-        getstructparallelogram%origin=>null()
+getstructparallelogram%origin=>null()
 Do i=0,len-1
 getstructparallelogram%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -784,11 +770,7 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The parallelogram element must contain at least 2  and maximum 2 point elements"
-        endif
-             
+     
 allocate(getstructparallelogram%pointarray(len))
 Do i=0,len-1
 getstructparallelogram%pointarray(i+1)%point=>getstructpoint(&
@@ -814,11 +796,7 @@ allocate(getstructplot3d)
 #endif
       
             len= countChildEmentsWithName(thisnode,"box")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The plot3d element must contain at least 1 box element"
-        endif
-        getstructplot3d%box=>null()
+getstructplot3d%box=>null()
 Do i=0,len-1
 getstructplot3d%box=>getstructbox(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -864,11 +842,7 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"origin")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The box element must contain at least 1 origin element"
-        endif
-        getstructbox%origin=>null()
+getstructbox%origin=>null()
 Do i=0,len-1
 getstructbox%origin=>getstructorigin(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -876,11 +850,7 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"point")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The box element must contain at least 3  and maximum 3 point elements"
-        endif
-             
+     
 allocate(getstructbox%pointarray(len))
 Do i=0,len-1
 getstructbox%pointarray(i+1)%point=>getstructpoint(&
@@ -949,11 +919,7 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"structure")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The input element must contain at least 1 structure element"
-        endif
-        getstructinput%structure=>null()
+getstructinput%structure=>null()
 Do i=0,len-1
 getstructinput%structure=>getstructstructure(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1104,11 +1070,7 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"crystal")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The structure element must contain at least 1 crystal element"
-        endif
-        getstructstructure%crystal=>null()
+getstructstructure%crystal=>null()
 Do i=0,len-1
 getstructstructure%crystal=>getstructcrystal(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1177,11 +1139,7 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"lattice")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The symmetries element must contain at least 1 lattice element"
-        endif
-        getstructsymmetries%lattice=>null()
+getstructsymmetries%lattice=>null()
 Do i=0,len-1
 getstructsymmetries%lattice=>getstructlattice(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -1293,6 +1251,22 @@ getstructlattice%ncell=(/1,1,1/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"ncell",getstructlattice%ncell)
        call removeAttribute(thisnode,"ncell")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"scale")
+getstructlattice%scale=1
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scale",getstructlattice%scale)
+       call removeAttribute(thisnode,"scale")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"stretch")
+getstructlattice%stretch=(/1.0d0,1.0d0,1.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"stretch",getstructlattice%stretch)
+       call removeAttribute(thisnode,"stretch")  
 endif
 
       i=0
@@ -1489,11 +1463,7 @@ if(associated(np)) then
 endif
 
             len= countChildEmentsWithName(thisnode,"atom")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The species element must contain at least 1 atom element"
-        endif
-             
+     
 allocate(getstructspecies%atomarray(len))
 Do i=0,len-1
 getstructspecies%atomarray(i+1)%atom=>getstructatom(&
@@ -3846,11 +3816,7 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"qpointset")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The xs element must contain at least 1 qpointset element"
-        endif
-        getstructxs%qpointset=>null()
+getstructxs%qpointset=>null()
 Do i=0,len-1
 getstructxs%qpointset=>getstructqpointset(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
@@ -3866,11 +3832,7 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 enddo
 
             len= countChildEmentsWithName(thisnode,"dosWindow")
-
-        if(len.eq.0) then
-        write(*,*)"Parser ERROR: The xs element must contain at least 1 dosWindow element"
-        endif
-        getstructxs%dosWindow=>null()
+getstructxs%dosWindow=>null()
 Do i=0,len-1
 getstructxs%dosWindow=>getstructdosWindow(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&

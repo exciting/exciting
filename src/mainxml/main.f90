@@ -12,7 +12,7 @@ use mod_misc
 implicit none
 call versionfromdate()
 call initMPI()
-call loadinputDOM()
+call loadinputDOM("input.xml")
 call setdefault
 input=getstructinput(inputnp)
 call ifparseerrorstop()

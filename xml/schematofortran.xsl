@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
- xmlns:str="http://exslt.org/strings">
+ xmlns:str="http://exslt.org/strings"
+ xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xsl:output method="text"/>
   <xsl:variable name="newline">
 <xsl:text>
 </xsl:text>
   </xsl:variable> 
+  <xsl:param name="tool" select="exciting"/>
   <xsl:variable name="root" select="/xs:schema/xs:annotation/xs:appinfo/root"></xsl:variable>
   <xsl:template name="xstypetofortrantype">
     <xsl:param name="type"/>
@@ -399,7 +401,9 @@ endif
             <xsl:value-of select="@name|@ref"/>
             <xsl:text>")
 </xsl:text>
-   <xsl:if test="@minOccurs>=1">
+   <xsl:if test="@minOccurs>=1 and @ex:importance='spacegroup' and $tool='spacegroup' or
+   @minOccurs>=1 and @ex:importance!='spacegroup' and $tool!='spacegroup'
+   ">
         <xsl:text>
         if(len.eq.0) then
         write(*,*)"Parser ERROR: The </xsl:text><xsl:value-of select="../../../@name"/>

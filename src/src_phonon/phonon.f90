@@ -182,7 +182,7 @@ Subroutine phonon
       Go To 10
 20 continue
 ! read in input again to reset atomic positions and lattice vectors in particular
-      call loadinputDOM()
+      call loadinputDOM("input.xml")
       call setdefault
       input=getstructinput(inputnp)
       call ifparseerrorstop()

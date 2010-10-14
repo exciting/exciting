@@ -11,7 +11,7 @@ use modinput
 implicit none
 ! read the input parameters from spacegroup.in
 
-call loadinputDOM()
+call loadinputDOM("spacegroup.xml")
 input=getstructinput(inputnp)
 call  initatomcounters()
 ! generate the lattice and atomic basis
