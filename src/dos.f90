@@ -234,7 +234,7 @@ Subroutine dos
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
          g (:, ispn) = occmax * g (:, ispn)
          Do iw = 1, input%properties%dos%nwdos
-            Write (50, '(G18.10)') w (iw), t1 * g (iw, ispn)
+            Write (50, '(2G18.10)') w (iw), t1 * g (iw, ispn)
             Call xml_NewElement (xf, "point")
             Write (buffer, '(G18.10)') w (iw)
             Call xml_AddAttribute (xf, "e", &
