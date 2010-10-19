@@ -10,6 +10,8 @@ Module inputdom
       Type (Node), Pointer :: doc, inputnp, nullnode, emptynode, dummy
       Type (DOMConfiguration), Pointer :: config
       Logical :: parseerror
+      external iargc
+      integer ::iargc
 ! Request full canonicalization
 ! ie convert CDATA sections to text sections, remove all entity references etc.
 !
