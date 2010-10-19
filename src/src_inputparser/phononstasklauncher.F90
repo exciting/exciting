@@ -38,7 +38,7 @@ Subroutine phononstasklauncher
         ! task 201 is only a dry-run and will not be considered here
         If (input%phonons%do .Ne. "skip") then
             Call phonon
-            call reformatdynamicalmatrices
+!(sag)            call reformatdynamicalmatrices
         end if
         if (associated(input%phonons%qpointset)) then
             task=230

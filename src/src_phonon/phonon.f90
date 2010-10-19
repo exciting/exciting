@@ -81,14 +81,17 @@ Subroutine phonon
 ! find a dynamical matrix to calculate
       if (rank.eq.0) then
         Call dyntask (80, iq, is, ia, ip, status)
+        finished=.false.
         if (status .eq. "finished") finished=.true.
       end if
+#ifdef MPI
       Call MPI_bcast (iq, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       Call MPI_bcast (ia, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       Call MPI_bcast (is, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       Call MPI_bcast (ip, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       Call MPI_bcast (finished, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
       Call phfext (iq, is, ia, ip, filext)
+#endif
       if (finished) goto 20
 ! phonon dry run
       If (task .Eq. 201) Go To 10
