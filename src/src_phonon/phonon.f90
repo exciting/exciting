@@ -76,8 +76,6 @@ Subroutine phonon
 !---------------------------------------!
 !     compute dynamical matrix rows     !
 !---------------------------------------!
-! clean up files from previous runs
-	  if (input%phonons%do .eq. "fromscratch") call deldynmat()
 10    Continue
       natoms (1:nspecies) = natoms0 (1:nspecies)
 ! find a dynamical matrix to calculate
