@@ -10,8 +10,6 @@ Module inputdom
       Type (Node), Pointer :: doc, inputnp, nullnode, emptynode, dummy
       Type (DOMConfiguration), Pointer :: config
       Logical :: parseerror
-      external iargc
-      integer ::iargc
 ! Request full canonicalization
 ! ie convert CDATA sections to text sections, remove all entity references etc.
 !
@@ -20,8 +18,10 @@ Module inputdom
 Contains
 !
       Subroutine loadinputDOM (deffilename)
+      implicit none
       character(*),intent(in)::deffilename
       integer errorcode
+      integer iargc
       character(512) filename
          config => newDOMConfig ()
          parseerror = .False.
