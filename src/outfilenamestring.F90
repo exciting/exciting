@@ -26,8 +26,8 @@ Character (256) Function outfilenamestring (filetag, ik)
       scrpathtmp = ''
       outfilenamestring = ''
 #ifdef MPI
-!
-      If ((task .Eq. 0) .Or. (task .Eq. 1).Or. (task .Eq. 2).Or. (task .Eq. 3)) Then
+      If ((task .Eq. 0) .Or. (task .Eq. 1).Or. (task .Eq. 2).Or. (task .Eq. 3).or. &
+        (task.eq.200)) Then
          If ((procs .Gt. 1) .And. splittfile) Then
             Write (tmp, '(I5)') firstk (procofk(ik))
             Write (tmp2, '(I5)') lastk (procofk(ik))
@@ -36,6 +36,5 @@ Character (256) Function outfilenamestring (filetag, ik)
          End If
       End If
 #endif
-      outfilenamestring = trim (scrpathtmp) // trim (filetag) // trim &
-     & (krange) // trim (filext)
+      outfilenamestring = trim (scrpathtmp) // trim (filetag) // trim(krange) // trim(filext)
 End Function outfilenamestring

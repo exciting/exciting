@@ -5,6 +5,7 @@
 
 Subroutine phonon
       Use modmain
+      use modmpi
       Use modinput
       Use inputdom
       Implicit None
@@ -16,6 +17,7 @@ Subroutine phonon
       Complex (8) zt1, zt2
       Complex (8) dyn (3, maxatoms, maxspecies)
       character(256) :: status
+      logical :: finished
 ! allocatable arrays
       Real (8), Allocatable :: veffmtp (:, :, :)
       Real (8), Allocatable :: veffirp (:)
@@ -74,13 +76,23 @@ Subroutine phonon
 !---------------------------------------!
 !     compute dynamical matrix rows     !
 !---------------------------------------!
-! clean up files from previous runs
-	  if (input%phonons%do .eq. "fromscratch") call deldynmat()
 10    Continue
       natoms (1:nspecies) = natoms0 (1:nspecies)
 ! find a dynamical matrix to calculate
-      Call dyntask (80, iq, is, ia, ip, status)
-      if (status .eq. "finished") goto 20
+      if (rank.eq.0) then
+        Call dyntask (80, iq, is, ia, ip, status)
+        finished=.false.
+        if (status .eq. "finished") finished=.true.
+      end if
+#ifdef MPI
+      Call MPI_bcast (iq, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      Call MPI_bcast (ia, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      Call MPI_bcast (is, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      Call MPI_bcast (ip, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      Call MPI_bcast (finished, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+      Call phfext (iq, is, ia, ip, filext)
+#endif
+      if (finished) goto 20
 ! phonon dry run
       If (task .Eq. 201) Go To 10
 ! check to see if mass is considered infinite
@@ -89,13 +101,13 @@ Subroutine phonon
             Do js = 1, nspecies
                Do ja = 1, natoms0 (js)
                   Do jp = 1, 3
-                     Write (80, '(2G18.10, " : is = ", I4, ", ia = ", I&
+                     if (rank.eq.0) Write (80, '(2G18.10, " : is = ", I4, ", ia = ", I&
                     &4, ", ip = ", I4)') 0.d0, 0.d0, js, ja, jp
                   End Do
                End Do
             End Do
          End Do
-         Close (80)
+         if (rank.eq.0) Close (80)
          Go To 10
       End If
       task = 200
@@ -169,16 +181,16 @@ Subroutine phonon
                b = aimag (dyn(jp, ja, js))
                If (Abs(a) .Lt. 1.d-12) a = 0.d0
                If (Abs(b) .Lt. 1.d-12) b = 0.d0
-               Write (80, '(2G18.10, " : is = ", I4, ", ia = ", I4, ", &
+               if (rank.eq.0) Write (80, '(2G18.10, " : is = ", I4, ", ia = ", I4, ", &
               &ip = ", I4)') a, b, js, ja, jp
             End Do
          End Do
       End Do
       Close (80)
 ! write the complex perturbing effective potential to file
-      Call writedveff (iq, is, ia, ip, dveffmt, dveffir)
+      if (rank.eq.0)  Call writedveff (iq, is, ia, ip, dveffmt, dveffir)
 ! delete the non-essential files
-      Call phdelete
+      if (rank.eq.0)  Call phdelete
       Go To 10
 20 continue
 ! read in input again to reset atomic positions and lattice vectors in particular

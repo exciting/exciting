@@ -371,6 +371,7 @@ type phonons_type
   type(qpointset_type),pointer::qpointset
   type(phonondos_type),pointer::phonondos
   type(phonondispplot_type),pointer::phonondispplot
+  type(reformatdynmat_type),pointer::reformatdynmat
   type(interpolate_type),pointer::interpolate
   type(parts_type),pointer::parts
 end type
@@ -382,7 +383,11 @@ end type
 type phonondispplot_type
   type(plot1d_type),pointer::plot1d
 end type
-type interpolate_type
+
+type reformatdynmat_type
+logical::exists
+ end type
+    type interpolate_type
  integer::ngridq(3)
  real(8)::vqloff(3)
  logical::writeeigenvectors
@@ -3411,6 +3416,14 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "phonondispplot"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"reformatdynmat")
+getstructphonons%reformatdynmat=>null()
+Do i=0,len-1
+getstructphonons%reformatdynmat=>getstructreformatdynmat(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"reformatdynmat"),0)) ) 
+enddo
+
             len= countChildEmentsWithName(thisnode,"interpolate")
 getstructphonons%interpolate=>null()
 Do i=0,len-1
@@ -3495,6 +3508,25 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "plot1d"),0)) ) 
 enddo
 
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructreformatdynmat(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(reformatdynmat_type),pointer::getstructreformatdynmat
+
+integer::len=1,i=0
+allocate(getstructreformatdynmat)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at reformatdynmat"
+#endif
+      getstructreformatdynmat%exists=.false.
+      if (associated(thisnode))  getstructreformatdynmat%exists=.true.
+      
       i=0
       len=0
       call  handleunknownnodes(thisnode)
