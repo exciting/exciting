@@ -2254,6 +2254,14 @@ Example:  <pre>
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element ex:importance="expert" ex:unit="" name="reformatdynmat"
+                                maxOccurs="1" minOccurs="0">
+                                <xs:annotation>
+                                    <xs:documentation>Reads in the dynamical matrix rows from the corresponding
+                                    files and outputs them in the <pre>DYNMAT*.OUT</pre> files, taking into account
+                                    symmetrization and the accoustic sumrule.</xs:documentation>
+                                </xs:annotation>
+                            </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="interpolate"
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
