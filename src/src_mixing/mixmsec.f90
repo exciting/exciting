@@ -43,7 +43,7 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
       If (iscl .Le. 2) Then
 !
          If (iscl .Ge. 2) Then
-            residual(1:n) = potential - last_outputp
+            residual(1:n) = potential - last_outputp(1:n)
             Call write_current_to_broyden_file (n, iscl, potential, &
            & residual)
          End If
@@ -57,7 +57,7 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
          Allocate (S(n, noldstepsmax), Y(n, noldstepsmax))
          Allocate (YY(noldstepsmax, noldstepsmax))
          Allocate (broydenstep(n))
-         residual(1:n) = potential - last_outputp
+         residual(1:n) = potential - last_outputp(1:n)
          SCharge = chgir
          TCharge = chgtot
          Call check_msecparameters ()
@@ -67,7 +67,6 @@ Subroutine mixmsec (iscl, potential, residualnorm, n)
         & residual)
 		!write(*,210)':PLANE:  INTERSTITIAL TOTAL ',Tplane, ' DISTAN ',Splane
      	! write(*,210)':CHARG:  CLM CHARGE   TOTAL ',TCharge,' DISTAN ',SCharge
-210      Format (A, F12.5, A, F11.7)
          Call stepbound (sreduction)
          Write (60, 4141) sreduction, qmx
          Call rescaleYS (noldsteps, n, S, Y, potential, residual)
