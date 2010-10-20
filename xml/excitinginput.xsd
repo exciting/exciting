@@ -1293,6 +1293,35 @@ Example:  <pre>
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
+
+
+
+                        <xs:attribute ex:importance="expert" ex:unit="" name="nktot"
+                            type="xs:integer" default="0">
+                            <xs:annotation>
+                                <xs:documentation>
+                 Used for the automatic determination of the k-point 
+                 mesh from the total number of
+                 <bf nospace="true">k</bf>
+                 -points. If 
+                 <pre>nktot</pre>
+                 is set, then the mesh will be determined in such 
+                 a way that the number of 
+                 <bf_ns>k</bf_ns>
+                 -points is proportional to the length of the reciprocal
+                 lattice vector in each direction and that the total
+                 number of 
+                 <bf nospace="true">k</bf>
+                 -points is less than or equal to                  
+                 <pre>nktot</pre>
+                 .
+               </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+
+
+
+
                         <xs:attribute ex:importance="essential" ex:unit="" name="reducek"
                             type="xs:boolean" default="true">
                             <xs:annotation>

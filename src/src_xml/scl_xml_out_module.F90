@@ -65,6 +65,88 @@ Contains
 !
       End Subroutine scl_xml_out_create
 
+      Subroutine structure_xmlout
+         Use mod_lattice
+         Use mod_constants
+         Implicit None
+         Integer :: is, ia, ias, i
+         Type (Node), Pointer :: structure, crystal, nbasevect, &
+        & nreziprvect, species, atom, forces, text, force
+         If (rank .Eq. 0) Then
+            structure => createElementNS (sclDoc, "", "structure")
+            dummy => appendChild (nscl, structure)
+            crystal => createElementNS (sclDoc, "", "crystal")
+            dummy => appendChild (structure, crystal)
+            Write (buffer, '(G18.10)') omega
+            Call setAttribute (crystal, "unitCellVolume", &
+           & trim(adjustl(buffer)))
+            Write (buffer, '(G18.10)') (twopi**3) / omega
+            Call setAttribute (crystal, "BrillouinZoneVolume", &
+           & trim(adjustl(buffer)))
+            Do i = 1, 3
+               nbasevect => createElementNS (sclDoc, "", "basevect")
+               dummy => appendChild (crystal, nbasevect)
+               Write (buffer, '(3G18.10)') &
+              & input%structure%crystal%basevect(:, i)
+               text => createTextNode (sclDoc, trim(adjustl(buffer)))
+               dummy => appendChild (nbasevect, text)
+            End Do
+            Do i = 1, 3
+               nreziprvect => createElementNS (sclDoc, "", "reciprvect")
+               Write (buffer, '(3G18.10)') bvec (:, i)
+               text => createTextNode (sclDoc, trim(adjustl(buffer)))
+               dummy => appendChild (nreziprvect, text)
+               dummy => appendChild (crystal, nreziprvect)
+            End Do
+            Write (buffer,'(I5)')  input%groundstate%nktot
+            Call setAttribute (crystal, "nktot", &
+            & trim(adjustl(buffer)))            
+            Write (buffer, '(3I5)')  input%groundstate%ngridk(:)
+            Call setAttribute (crystal, "ngridk", &
+            & trim(adjustl(buffer)))            
+            Do is = 1, nspecies
+               species => createElementNS (sclDoc, "", "species")
+               dummy => appendChild (structure, species)
+               Write (buffer,*) trim (input%structure%speciesarray(is)%species%chemicalSymbol)
+               Call setAttribute (species, "chemicalSymbol", &
+              & trim(adjustl(buffer)))
+               Do ia = 1, natoms (is)
+                  atom => createElementNS (sclDoc, "", "atom")
+                  dummy => appendChild (species, atom)
+                  Call setcoord (atom, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord)
+                  If (input%groundstate%tforce) Then
+                     forces => createElementNS (sclDoc, "", "forces")
+                     dummy => appendChild (atom, forces)
+                     ias = idxas (ia, is)
+                     force => createElementNS (sclDoc, "", "Hellmann-Fe&
+                    &ynman")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forcehf(:, ias))
+                     force => createElementNS (sclDoc, "", "core-correc&
+                    &tion")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forcecr(:, ias))
+                     force => createElementNS (sclDoc, "", "IBS")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forceibs(:, ias))
+                     force => createElementNS (sclDoc, "", "totalforce")
+                     dummy => appendChild (forces, force)
+                     Call setcoord (force, forcetot(:, ias))
+                     Write (buffer, '(G22.12)') Sqrt (forcetot(1, &
+                    & ias)**2+forcetot(2, ias)**2+forcetot(3, ias)**2)
+                     Call setAttribute (forces, "Magnitude", &
+                    & trim(adjustl(buffer)))
+                  End If
+               End Do
+               If (input%groundstate%tforce) Then
+                  Write (buffer, '(G22.12)') forcemax
+                  Call setAttribute (structure, "forceMax", &
+                 & trim(adjustl(buffer)))
+               End If
+            End Do
+         End If
+      End Subroutine structure_xmlout
+
       Subroutine scl_iter_xmlout ()
          Implicit None
          Integer :: is, ia, ias
@@ -232,82 +314,6 @@ Contains
             Call setAttribute (timing, "timefor", trim(adjustl(buffer)))
          End If
       End Subroutine scl_iter_xmlout
-
-      Subroutine structure_xmlout
-         Use mod_lattice
-         Use mod_constants
-         Implicit None
-         Integer :: is, ia, ias, i
-         Type (Node), Pointer :: structure, crystal, nbasevect, &
-        & nreziprvect, species, atom, forces, text, force
-         If (rank .Eq. 0) Then
-            structure => createElementNS (sclDoc, "", "structure")
-            dummy => appendChild (nscl, structure)
-            crystal => createElementNS (sclDoc, "", "crystal")
-            dummy => appendChild (structure, crystal)
-            Write (buffer, '(G18.10)') omega
-            Call setAttribute (crystal, "unitCellVolume", &
-           & trim(adjustl(buffer)))
-            Write (buffer, '(G18.10)') (twopi**3) / omega
-            Call setAttribute (crystal, "BrillouinZoneVolume", &
-           & trim(adjustl(buffer)))
-            Do i = 1, 3
-               nbasevect => createElementNS (sclDoc, "", "basevect")
-               dummy => appendChild (crystal, nbasevect)
-               Write (buffer, '(3G18.10)') &
-              & input%structure%crystal%basevect(:, i)
-               text => createTextNode (sclDoc, trim(adjustl(buffer)))
-               dummy => appendChild (nbasevect, text)
-            End Do
-            Do i = 1, 3
-               nreziprvect => createElementNS (sclDoc, "", "reciprvect")
-               Write (buffer, '(3G18.10)') bvec (:, i)
-               text => createTextNode (sclDoc, trim(adjustl(buffer)))
-               dummy => appendChild (nreziprvect, text)
-               dummy => appendChild (crystal, nreziprvect)
-            End Do
-            Do is = 1, nspecies
-               species => createElementNS (sclDoc, "", "species")
-               dummy => appendChild (structure, species)
-               Write (buffer,*) trim (input%structure%speciesarray(is)%species%chemicalSymbol)
-               Call setAttribute (species, "chemicalSymbol", &
-              & trim(adjustl(buffer)))
-               Do ia = 1, natoms (is)
-                  atom => createElementNS (sclDoc, "", "atom")
-                  dummy => appendChild (species, atom)
-                  Call setcoord (atom, input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord)
-                  If (input%groundstate%tforce) Then
-                     forces => createElementNS (sclDoc, "", "forces")
-                     dummy => appendChild (atom, forces)
-                     ias = idxas (ia, is)
-                     force => createElementNS (sclDoc, "", "Hellmann-Fe&
-                    &ynman")
-                     dummy => appendChild (forces, force)
-                     Call setcoord (force, forcehf(:, ias))
-                     force => createElementNS (sclDoc, "", "core-correc&
-                    &tion")
-                     dummy => appendChild (forces, force)
-                     Call setcoord (force, forcecr(:, ias))
-                     force => createElementNS (sclDoc, "", "IBS")
-                     dummy => appendChild (forces, force)
-                     Call setcoord (force, forceibs(:, ias))
-                     force => createElementNS (sclDoc, "", "totalforce")
-                     dummy => appendChild (forces, force)
-                     Call setcoord (force, forcetot(:, ias))
-                     Write (buffer, '(G22.12)') Sqrt (forcetot(1, &
-                    & ias)**2+forcetot(2, ias)**2+forcetot(3, ias)**2)
-                     Call setAttribute (forces, "Magnitude", &
-                    & trim(adjustl(buffer)))
-                  End If
-               End Do
-               If (input%groundstate%tforce) Then
-                  Write (buffer, '(G22.12)') forcemax
-                  Call setAttribute (structure, "forceMax", &
-                 & trim(adjustl(buffer)))
-               End If
-            End Do
-         End If
-      End Subroutine structure_xmlout
 
       Subroutine setcoord (elementnode, coord)
          Type (Node), Pointer, Intent (In) :: elementnode
