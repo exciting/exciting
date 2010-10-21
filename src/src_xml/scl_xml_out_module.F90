@@ -14,7 +14,7 @@ Module scl_xml_out_Module
       Use mod_timing
       Use mod_force
       Use mod_spin
-      Use mod_misc, Only: githash
+      Use mod_misc, Only: githash, filext
       Use modmpi, Only: rank
 !
       Use modinput
@@ -392,8 +392,9 @@ Contains
       Subroutine scl_xml_out_write ()
          If (rank .Eq. 0) Then
             Call normalizeDocument (sclDoc)
-            Call serialize (sclDoc, "info.xml")
-         End If
+            Call serialize (sclDoc, "info" // &
+              filext(1:index(filext, ".OUT", .true.)-1) // ".xml")
+          End If
       End Subroutine scl_xml_out_write
 !
 End Module scl_xml_out_Module
