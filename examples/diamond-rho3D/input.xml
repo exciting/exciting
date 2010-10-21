@@ -20,16 +20,16 @@
 			<plot3d>
 				<box grid="40 40 40">
 					<origin coord="0 0 0" />
-					<point coord="2 0 0 " />
-					<point coord="0 2 0 " />
-					<point coord="0 0 2" />
+					<point coord="1 0 0 " />
+					<point coord="0 1 0 " />
+					<point coord="0 0 1" />
 				</box>
 			</plot3d>
 			<plot2d>
 				<parallelogram grid="20 20">
 					<origin coord="0 0 0 " />
-					<point coord="2 0 0" />
-					<point coord="0 2 0" />
+					<point coord="1 0 0" />
+					<point coord="0 1 0" />
 				</parallelogram>
 			</plot2d>
 		</chargedensityplot>
