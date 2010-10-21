@@ -11,15 +11,17 @@
   </xsl:variable>
   <xsl:template match="/">
     <xsl:for-each select="/plot3d/function">
-<xsl:text> BEGIN_BLOCK_DATAGRID_3D                        
-</xsl:text><xsl:value-of select="str:replace(/plot3d/title,' ','_')"/><xsl:text>      
+<xsl:text>
+BEGIN_BLOCK_DATAGRID_3D                        
+  </xsl:text><xsl:value-of select="str:replace(/plot3d/title,' ','_')"/><xsl:text>      
    BEGIN_DATAGRID_3D_this_is_3Dgrid#1 
-</xsl:text><xsl:value-of select="/plot3d/grid/@gridticks" />
-<xsl:value-of select="$newline"/>
-<xsl:value-of select="/plot3d/grid/@origin"/>
+ </xsl:text><xsl:value-of select="/plot3d/grid/@gridticks" />
+<xsl:value-of select="$newline"/><xsl:text> </xsl:text>
+<xsl:value-of select="/plot3d/grid/@originrs"/>
     <xsl:value-of select="$newline"/>
     <xsl:for-each select="/plot3d/grid/axis">
-      <xsl:value-of select="@endpoint"/>
+     <xsl:text> </xsl:text>
+      <xsl:value-of select="@endpointrs"/>
       <xsl:value-of select="$newline"/>
     </xsl:for-each>    
     
@@ -30,8 +32,7 @@
   </xsl:for-each>
   <xsl:value-of select="$newline"/>
 </xsl:for-each>
-    <xsl:text>       
-   END_DATAGRID_3D                      
+    <xsl:text>   END_DATAGRID_3D                      
  END_BLOCK_DATAGRID_3D
     </xsl:text>
   </xsl:for-each>

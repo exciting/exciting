@@ -49,14 +49,8 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
   </xsl:variable>
   <xsl:template match="/">
     <xsl:text>
- INFO
- nunit      1    1    1
- unit   cell
- celltype   convcell
- shape   parapipedal
- END_INFO
- DIM-GROUP
-           3           1
+ CRYSTAL
+ 
  PRIMVEC
  </xsl:text>
     <!-- Convert vectors "basevect" into Angstrom, and multiply with 
@@ -133,6 +127,7 @@ math:power(str:tokenize($vectorstring)[1]*$scale,2)
       <xsl:text>  </xsl:text>
     </xsl:for-each>
     <xsl:text>
+    
    </xsl:text>
   </xsl:template>
 </xsl:stylesheet>
