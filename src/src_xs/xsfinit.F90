@@ -65,9 +65,9 @@ Subroutine xsfinit
         & trim (str2) // ' %'
       End If
       Write (unitout,*)
-      Write (unitout,'("+---------------------------+")')
-      Write (unitout,'("| EXCITING hydrogen stopped |")')
-      Write (unitout,'("+---------------------------+")')
+      Write (unitout,'("+----------------------------+")')
+      Write (unitout,'("| EXCITING deuterium stopped |")')
+      Write (unitout,'("+----------------------------+")')
       Write (unitout,*)
       Close (unitout)
 !
