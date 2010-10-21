@@ -2756,7 +2756,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"winddos")
-getstructdos%winddos=(/0.0d0,0.5d0/)
+getstructdos%winddos=(/-0.5d0,0.5d0/)
 if(associated(np)) then
        call extractDataAttribute(thisnode,"winddos",getstructdos%winddos)
        call removeAttribute(thisnode,"winddos")  

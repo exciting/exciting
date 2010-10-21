@@ -188,9 +188,9 @@ Subroutine dos
          End If
       End Do
 ! generate energy grid
-      dw = (wdos(2)-wdos(1)) / dble (input%properties%dos%nwdos)
+      dw = (input%properties%dos%winddos(2)-input%properties%dos%winddos(1)) / dble (input%properties%dos%nwdos)
       Do iw = 1, input%properties%dos%nwdos
-         w (iw) = dw * dble (iw-1) + wdos (1)
+         w (iw) = dw * dble (iw-1) + input%properties%dos%winddos (1)
       End Do
 ! number of subdivisions used for interpolation
       nsk (:) = Max &
@@ -229,7 +229,7 @@ Subroutine dos
          End Do
          Call brzint (input%properties%dos%nsmdos, &
         & input%groundstate%ngridk, nsk, ikmap, &
-        & input%properties%dos%nwdos, wdos, nstsv, nstsv, e(:, :, &
+        & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, e(:, :, &
         & ispn), f, g(:, ispn))
 ! multiply by the maximum occupancy (spin-polarised: 1, unpolarised: 2)
          g (:, ispn) = occmax * g (:, ispn)
@@ -292,7 +292,7 @@ Subroutine dos
                      End Do
                      Call brzint (input%properties%dos%nsmdos, &
                     & input%groundstate%ngridk, nsk, ikmap, &
-                    & input%properties%dos%nwdos, wdos, nstsv, nstsv, &
+                    & input%properties%dos%nwdos, input%properties%dos%winddos, nstsv, nstsv, &
                     & e(:, :, ispn), f, gp)
                      gp (:) = occmax * gp (:)
                      Call xml_NewElement (xf, "diagram")
