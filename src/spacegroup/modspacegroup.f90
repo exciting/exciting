@@ -47,7 +47,7 @@ real(8), parameter :: epslat=1.d-6
 !     atomic variables     !
 !--------------------------!
 ! maximum allowed species
-integer, parameter :: maxspecies=8
+integer, parameter :: maxspecies=1000
 ! maximum allowed atoms per species
 integer, parameter :: maxatoms=1000
 ! number of species
