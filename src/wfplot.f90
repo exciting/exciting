@@ -110,7 +110,7 @@ Subroutine wfplot (dostm)
         & rhomt, rhoir, input%properties%STM%plot2d)
          Write (*,*)
          Write (*, '("Info(wfplot):")')
-         Write (*, '(" 2D STM image written to STM2D.OUT")')
+         Write (*, '(" 2D STM image written to STM2d.xml")')
       End If
       If (associated(input%properties%wfplot%plot3d)) Then
          Call plot3d ("WF", 1, input%groundstate%lmaxvr, lmmaxvr, &

@@ -136,15 +136,15 @@ Subroutine vecplot
             rvfir (ir, 3) = dot_product (vc4(:), vc3(:))
          End Do
          If (task .Eq. 72) Then
-            Open (50, File='MAG2D.OUT', Action='WRITE', Form='FORMATTED&
+            Open (50, File='MAG2d.xml', Action='WRITE', Form='FORMATTED&
            &')
          Else If (task .Eq. 82) Then
-            Open (50, File='BXC2D.OUT', Action='WRITE', Form='FORMATTED&
+            Open (50, File='BXC2d.xml', Action='WRITE', Form='FORMATTED&
            &')
          Else If (task .Eq. 142) Then
-            Open (50, File='EF2D.OUT', Action='WRITE', Form='FORMATTED')
+            Open (50, File='EF2d.xml', Action='WRITE', Form='FORMATTED')
          Else
-            Open (50, File='MCBXC2D.OUT', Action='WRITE', Form='FORMATT&
+            Open (50, File='MCBXC2d.xml', Action='WRITE', Form='FORMATT&
            &ED')
          End If
          Call plot2d (50, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
@@ -153,28 +153,28 @@ Subroutine vecplot
          Write (*,*)
          Write (*, '("Info(vecplot):")')
          If (task .Eq. 72) Then
-            Write (*, '(" 2D magnetisation density written to MAG2D.OUT&
+            Write (*, '(" 2D magnetisation density written to MAG2d.xml&
            &")')
          Else If (task .Eq. 82) Then
             Write (*, '(" 2D exchange-correlation field written to BXC2&
            &D.OUT")')
          Else If (task .Eq. 142) Then
-            Write (*, '(" 2D electric field written to EF2D.OUT")')
+            Write (*, '(" 2D electric field written to EF2d.xml")')
          Else
-            Write (*, '(" 2D m(r) x B_xc(r) written to MCBXC2D.OUT")')
+            Write (*, '(" 2D m(r) x B_xc(r) written to MCBXC2d.xml")')
          End If
          Write (*,*)
       Case (73, 83, 143, 153)
          If (task .Eq. 73) Then
-            Open (50, File='MAG3D.OUT', Action='WRITE', Form='FORMATTED&
+            Open (50, File='MAG3d.xml', Action='WRITE', Form='FORMATTED&
            &')
          Else If (task .Eq. 83) Then
-            Open (50, File='BXC3D.OUT', Action='WRITE', Form='FORMATTED&
+            Open (50, File='BXC3d.xml', Action='WRITE', Form='FORMATTED&
            &')
          Else If (task .Eq. 143) Then
-            Open (50, File='EF3D.OUT', Action='WRITE', Form='FORMATTED')
+            Open (50, File='EF3d.xml', Action='WRITE', Form='FORMATTED')
          Else
-            Open (50, File='MCBXC3D.OUT', Action='WRITE', Form='FORMATT&
+            Open (50, File='MCBXC3d.xml', Action='WRITE', Form='FORMATT&
            &ED')
          End If
          Call plot3d (50, 3, input%groundstate%lmaxvr, lmmaxvr, rvfmt, &
@@ -183,15 +183,15 @@ Subroutine vecplot
          Write (*,*)
          Write (*, '("Info(vecplot):")')
          If (task .Eq. 73) Then
-            Write (*, '(" 3D magnetisation density written to MAG3D.OUT&
+            Write (*, '(" 3D magnetisation density written to MAG3d.xml&
            &")')
          Else If (task .Eq. 83) Then
             Write (*, '(" 3D exchange-correlation field written to BXC3&
            &D.OUT")')
          Else If (task .Eq. 143) Then
-            Write (*, '(" 3D electric field written to EF3D.OUT")')
+            Write (*, '(" 3D electric field written to EF3d.xml")')
          Else
-            Write (*, '(" 3D m(r) x B_xc(r) written to MCBXC3D.OUT")')
+            Write (*, '(" 3D m(r) x B_xc(r) written to MCBXC3d.xml")')
          End If
          Write (*,*)
       End Select

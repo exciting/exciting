@@ -82,14 +82,14 @@ Subroutine dbxcplot
 !
          Write (*, '("Info(dbxcplot):")')
          Write (*, '(" 2D divergence of exchange-correlation field writ&
-        &ten to DBXC2D.OUT")')
+        &ten to DBXC2d.xml")')
       End If
       If (associated(input%properties%gradmvecfield%plot3d)) Then
          Call plot3d ("DBXC", 1, input%groundstate%lmaxvr, lmmaxvr, &
         & rfmt, rfir, input%properties%gradmvecfield%plot3d)
          Write (*, '("Info(dbxcplot):")')
          Write (*, '(" 3D divergence of exchange-correlation field writ&
-        &ten to DBXC3D.OUT")')
+        &ten to DBXC3d.xml")')
       End If
       Write (*,*)
       Deallocate (rvfmt, rvfir, rfmt, rfir, grfmt, grfir)

@@ -50,35 +50,35 @@ Subroutine potplot
         &o VXC1D.OUT")')
          Write (*, '(" vertex location lines written to VLINES.OUT")')
       Case (42)
-         Open (50, File='VCL2D.OUT', Action='WRITE', Form='FORMATTED')
+         Open (50, File='VCL2d.xml', Action='WRITE', Form='FORMATTED')
          Call plot2d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
         & vclir)
          Close (50)
-         Open (50, File='VXC2D.OUT', Action='WRITE', Form='FORMATTED')
+         Open (50, File='VXC2d.xml', Action='WRITE', Form='FORMATTED')
          Call plot2d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
         & vxcir)
          Close (50)
          Write (*,*)
          Write (*, '("Info(potplot):")')
-         Write (*, '(" 2D Coulomb potential plot written to VCL2D.OUT")&
+         Write (*, '(" 2D Coulomb potential plot written to VCL2d.xml")&
         &')
          Write (*, '(" 2D exchange-correlation potential plot written t&
-        &o VXC2D.OUT")')
+        &o VXC2d.xml")')
       Case (43)
-         Open (50, File='VCL3D.OUT', Action='WRITE', Form='FORMATTED')
+         Open (50, File='VCL3d.xml', Action='WRITE', Form='FORMATTED')
          Call plot3d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vclmt, &
         & vclir)
          Close (50)
-         Open (50, File='VXC3D.OUT', Action='WRITE', Form='FORMATTED')
+         Open (50, File='VXC3d.xml', Action='WRITE', Form='FORMATTED')
          Call plot3d (50, 1, input%groundstate%lmaxvr, lmmaxvr, vxcmt, &
         & vxcir)
          Close (50)
          Write (*,*)
          Write (*, '("Info(potplot):")')
-         Write (*, '(" 3D Coulomb potential plot written to VCL3D.OUT")&
+         Write (*, '(" 3D Coulomb potential plot written to VCL3d.xml")&
         &')
          Write (*, '(" 3D exchange-correlation potential plot written t&
-        &o VXC3D.OUT")')
+        &o VXC3d.xml")')
       End Select
       Write (*,*)
       Return

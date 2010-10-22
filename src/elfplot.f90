@@ -182,14 +182,14 @@ Subroutine elfplot
          Call plot2d ("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot2d)
          Write (*,*)
-         Write (*, '("Info(elfplot): 2D ELF plot written to ELF2D.OUT")&
+         Write (*, '("Info(elfplot): 2D ELF plot written to ELF2d.xml")&
         &')
       End If
       If (associated(input%properties%elfplot%plot3d)) Then
          Call plot3d ("ELF", 1, input%groundstate%lmaxvr, lmmaxvr, &
         & elfmt, elfir, input%properties%elfplot%plot3d)
          Write (*,*)
-         Write (*, '("Info(elfplot): 3D ELF plot written to ELF3D.OUT")&
+         Write (*, '("Info(elfplot): 3D ELF plot written to ELF3d.xml")&
         &')
       End If
       Write (*,*)

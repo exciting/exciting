@@ -55,7 +55,7 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 !external functions
       Real(8),external::DNRM2
 
-      buffer = fname // "2D.OUT"
+      buffer = fname // "2d.xml"
       Call xml_OpenFile (fname//"2d.xml", xf, replace=.True., &
      & pretty_print=.True.)
       Call xml_NewElement (xf, "plot2d")

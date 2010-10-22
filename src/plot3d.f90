@@ -52,7 +52,7 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 ! allocatable arrays
       Real (8), Allocatable :: vpl (:, :)
       Real (8), Allocatable :: fp (:, :)
-      buffer = fname // "3D.OUT"
+      buffer = fname // "3d.xml"
       Open (fnum, File=trim(buffer), Action='WRITE', Form='FORMATTED')
 !
 !
