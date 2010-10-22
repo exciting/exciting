@@ -65,7 +65,7 @@ Subroutine idfq (iq)
   ! find limits for band combinations
       Call ematbdcmbs (input%xs%emattype)
   ! generate energy grid
-      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+      Call genwgrid (nwdf, input%xs%energywindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
   ! record length
       Inquire (IoLength=Recl) mdf1 (1)

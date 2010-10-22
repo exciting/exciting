@@ -42,6 +42,10 @@ end type
 type kstlist_type
  integer,pointer::pointstatepair(:,:)
 end type
+type energywindow_type
+ integer::points
+ real(8)::intv(2)
+end type
 type input_type
  character(1024)::xsltpath
  character(1024)::scratchpath
@@ -428,7 +432,7 @@ type xs_type
   type(transitions_type),pointer::transitions
   type(qpointset_type),pointer::qpointset
   type(tetra_type),pointer::tetra
-  type(dosWindow_type),pointer::dosWindow
+  type(energywindow_type),pointer::energywindow
   type(plan_type),pointer::plan
 end type
 type tddft_type
@@ -537,11 +541,6 @@ type(istate_type),pointer::istate
  logical::kordexc
  logical::cw1k
  integer::qweights
-end type
-type dosWindow_type
- integer::points
- real(8)::intv(2)
- integer::nsmdos
 end type
 type plan_type
   type(doonly_type_array),pointer::doonlyarray(:)
@@ -888,6 +887,41 @@ getstructkstlist%pointstatepair(:,i)=getvalueofpointstatepair(&
       removechild(thisnode,item(getElementsByTagname(thisnode,&
       "pointstatepair"),0)))
 end do
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructenergywindow(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(energywindow_type),pointer::getstructenergywindow
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructenergywindow)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at energywindow"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"points")
+getstructenergywindow%points=500
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"points",getstructenergywindow%points)
+       call removeAttribute(thisnode,"points")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"intv")
+getstructenergywindow%intv=(/-0.5d0,0.5d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"intv",getstructenergywindow%intv)
+       call removeAttribute(thisnode,"intv")  
+endif
 
       i=0
       len=0
@@ -3863,12 +3897,12 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "tetra"),0)) ) 
 enddo
 
-            len= countChildEmentsWithName(thisnode,"dosWindow")
-getstructxs%dosWindow=>null()
+            len= countChildEmentsWithName(thisnode,"energywindow")
+getstructxs%energywindow=>null()
 Do i=0,len-1
-getstructxs%dosWindow=>getstructdosWindow(&
+getstructxs%energywindow=>getstructenergywindow(&
 removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dosWindow"),0)) ) 
+"energywindow"),0)) ) 
 enddo
 
             len= countChildEmentsWithName(thisnode,"plan")
@@ -4630,49 +4664,6 @@ getstructtetra%qweights=1
 if(associated(np)) then
        call extractDataAttribute(thisnode,"qweights",getstructtetra%qweights)
        call removeAttribute(thisnode,"qweights")  
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdosWindow(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dosWindow_type),pointer::getstructdosWindow
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructdosWindow)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at dosWindow"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"points")
-getstructdosWindow%points=500
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"points",getstructdosWindow%points)
-       call removeAttribute(thisnode,"points")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"intv")
-getstructdosWindow%intv=(/-0.5d0,0.5d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"intv",getstructdosWindow%intv)
-       call removeAttribute(thisnode,"intv")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nsmdos")
-getstructdosWindow%nsmdos=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nsmdos",getstructdosWindow%nsmdos)
-       call removeAttribute(thisnode,"nsmdos")  
 endif
 
       i=0

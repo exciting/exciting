@@ -45,20 +45,20 @@ Subroutine xslinopt (iq)
   ! matrix size for local field effects
       n = ngq (iq)
       Allocate (mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), &
-     & wr(input%xs%dosWindow%points), wplot(input%xs%dosWindow%points), &
-     & mdf(input%xs%dosWindow%points), loss(input%xs%dosWindow%points), &
-     & sigma(input%xs%dosWindow%points), cf(3, &
-     & input%xs%dosWindow%points))
-      Allocate (eps1(input%xs%dosWindow%points), &
-     & eps2(input%xs%dosWindow%points))
+     & wr(input%xs%energywindow%points), wplot(input%xs%energywindow%points), &
+     & mdf(input%xs%energywindow%points), loss(input%xs%energywindow%points), &
+     & sigma(input%xs%energywindow%points), cf(3, &
+     & input%xs%energywindow%points))
+      Allocate (eps1(input%xs%energywindow%points), &
+     & eps2(input%xs%energywindow%points))
       mdf2 (:, :, :) = zzero
   ! generate energy grids
       brd = 0.d0
       If (input%xs%tddft%acont) brd = input%xs%broad
-      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+      Call genwgrid (nwdf, input%xs%energywindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
-      Call genwgrid (input%xs%dosWindow%points, &
-     & input%xs%dosWindow%intv, .False., brd, w_cmplx=wr)
+      Call genwgrid (input%xs%energywindow%points, &
+     & input%xs%energywindow%intv, .False., brd, w_cmplx=wr)
       wplot = dble (wr)
   ! record length
       Inquire (IoLength=Recl) mdf1 (1)
@@ -91,7 +91,7 @@ Subroutine xslinopt (iq)
                Close (unit1)
            ! analytic continuation
                If (input%xs%tddft%acont) Then
-                  Call pade (input%xs%dosWindow%points, wr, nwdf, w, &
+                  Call pade (input%xs%energywindow%points, wr, nwdf, w, &
                  & mdf1, mdf)
                Else
                   mdf (:) = mdf1 (:)

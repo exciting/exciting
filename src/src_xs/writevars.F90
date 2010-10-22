@@ -65,8 +65,8 @@ Contains
         & input%xs%broad, h2ev * input%xs%broad
          Write (un, '(a, 2f12.6)') '# scissor (H, eV)	  :', &
         & input%xs%scissor, h2ev * input%xs%scissor
-         Write (un, '(a, i8)') '# input%xs%dosWindow%points		   :', &
-        & input%xs%dosWindow%points
+         Write (un, '(a, i8)') '# input%xs%energywindow%points		   :', &
+        & input%xs%energywindow%points
          Write (un, '(a, i8)') '# ngq 	      :', ngq (iqmtt)
          Write (un, '(a, f12.6)') '# input%xs%gqmax		  :', &
         & input%xs%gqmax

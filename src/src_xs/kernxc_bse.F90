@@ -202,7 +202,7 @@ Subroutine kernxc_bse
       End If
 !
   ! generate energy grid
-      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+      Call genwgrid (nwdf, input%xs%energywindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
 !
   ! precalculate matrix elements

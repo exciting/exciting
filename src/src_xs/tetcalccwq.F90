@@ -80,7 +80,7 @@ Subroutine tetcalccwq (iq)
   ! scissors shift
       Where (eb .Gt. efermi) eb = eb + input%xs%scissor
   ! generate complex energy grid
-      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+      Call genwgrid (nwdf, input%xs%energywindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
       wreal (:) = dble (w(wi:wf))
       If (wreal(1) .Lt. epstetra) wreal (1) = epstetra

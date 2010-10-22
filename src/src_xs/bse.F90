@@ -277,10 +277,10 @@ Subroutine bse
   ! number of excitons to consider
       nexc = hamsiz
       Allocate (oszs(nexc), oszsa(nexc), sor(nexc), pmat(hamsiz))
-      Allocate (w(input%xs%dosWindow%points), spectr(input%xs%dosWindow%points))
-      Allocate (buf(3,3,input%xs%dosWindow%points))
-      Allocate (loss(input%xs%dosWindow%points), sigma(input%xs%dosWindow%points))
-      Call genwgrid (input%xs%dosWindow%points, input%xs%dosWindow%intv, &
+      Allocate (w(input%xs%energywindow%points), spectr(input%xs%energywindow%points))
+      Allocate (buf(3,3,input%xs%energywindow%points))
+      Allocate (loss(input%xs%energywindow%points), sigma(input%xs%energywindow%points))
+      Call genwgrid (input%xs%energywindow%points, input%xs%energywindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_real=w)
      buf(:,:,:)=zzero
       Do oct = 1, noptcmp
@@ -322,7 +322,7 @@ Subroutine bse
             End Do
          End Do
          spectr (:) = zzero
-         Do iw = 1, input%xs%dosWindow%points
+         Do iw = 1, input%xs%energywindow%points
             Do s1 = 1, nexc
            ! Lorentzian lineshape
                spectr (iw) = spectr (iw) + Abs (oszs(s1)) ** 2 * &
@@ -388,7 +388,7 @@ Subroutine bse
         & scrtype=input%xs%screening%screentype, nar= .Not. &
         & input%xs%tddft%aresdf, filnam=fnsumrules)
      ! symmetrize the macroscopic dielectric function tensor
-         Call symt2app (oct, oct, input%xs%dosWindow%points, symt2, buf, spectr)
+         Call symt2app (oct, oct, input%xs%energywindow%points, symt2, buf, spectr)
      ! generate optical functions
          Call genloss (spectr, loss)
          Call gensigma (w, spectr, optcompt, sigma)

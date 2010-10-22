@@ -200,13 +200,13 @@ Subroutine xsinit
          Call terminate
       End If
   ! if imaginary frequencies intervals are not specified
- ! if (input%xs%tddft%nwacont.eq.0) input%xs%tddft%nwacont=input%xs%dosWindow%points
- ! nwdf=input%xs%dosWindow%points
+ ! if (input%xs%tddft%nwacont.eq.0) input%xs%tddft%nwacont=input%xs%energywindow%points
+ ! nwdf=input%xs%energywindow%points
 !
       If (input%xs%tddft%acont) Then
          nwdf = input%xs%tddft%nwacont
       Else
-         nwdf = input%xs%dosWindow%points
+         nwdf = input%xs%energywindow%points
       End If
   ! get exchange-correlation kernel functional data
       Call getfxcdata (input%xs%tddft%fxctypenumber, fxcdescr, fxcspin)

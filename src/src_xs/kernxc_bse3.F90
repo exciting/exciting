@@ -76,7 +76,7 @@ Subroutine kernxc_bse3
      & isto, istu0, istu)
       Call ematbdcmbs (input%xs%emattype)
       Allocate (w(nwdf))
-      Call genwgrid (nwdf, input%xs%dosWindow%intv, &
+      Call genwgrid (nwdf, input%xs%energywindow%intv, &
      & input%xs%tddft%acont, 0.d0, w_cmplx=w)
 !
       Write (*,*) 'done.'

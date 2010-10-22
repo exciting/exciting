@@ -242,8 +242,8 @@ use ioarray
         & cwsurf1k(nst1, nst2, nwdfp))
       End If
   ! generate complex energy grid
-      wintv(1)=input%xs%dosWindow%intv(1)
-      wintv(2)=input%xs%dosWindow%intv(2)
+      wintv(1)=input%xs%energywindow%intv(1)
+      wintv(2)=input%xs%energywindow%intv(2)
   ! for calculation of static screening the first frequency point should be zero
       if (task.eq.430) wintv(1)=0.d0
       Call genwgrid (nwdf, wintv, &
