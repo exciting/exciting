@@ -7,7 +7,33 @@
 <xsl:stylesheet version="1.0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="text" encoding="UTF-8"/>
+
 <xsl:template match="/">
+    <xsl:document href="{$filename}_Re.agr" method="text">
+       <xsl:call-template name="insert">
+         <xsl:with-param name="function"><xsl:value-of select="'function1'"/></xsl:with-param>
+         <xsl:with-param name="ylabel"><xsl:text>Re \xe\f{}\sM</xsl:text></xsl:with-param>
+       </xsl:call-template>
+    </xsl:document>
+
+   <xsl:document href="{$filename}_Im.agr" method="text">
+      <xsl:call-template name="insert">
+         <xsl:with-param name="function"><xsl:value-of select="'function2'"/></xsl:with-param>
+         <xsl:with-param name="ylabel"><xsl:text>Im \xe\f{}\sM</xsl:text></xsl:with-param>
+      </xsl:call-template>
+    </xsl:document>
+
+   <xsl:document href="{$filename}_ReKK.agr" method="text">
+      <xsl:call-template name="insert">
+         <xsl:with-param name="function"><xsl:value-of select="'function3'"/></xsl:with-param>
+         <xsl:with-param name="ylabel"><xsl:text>Re\sKK\N \xe\f{}\sM</xsl:text></xsl:with-param>
+      </xsl:call-template>
+    </xsl:document>
+</xsl:template>
+
+<xsl:template name="insert">
+   <xsl:param name="function"/>
+   <xsl:param name="ylabel"/>
 
    <xsl:variable name="min_x_data">
       <xsl:for-each select="/dielectric/map">
@@ -29,22 +55,23 @@
 
    <xsl:variable name="min_y_data">
       <xsl:for-each select="/dielectric/map">
-         <xsl:sort select="@function2" data-type="number" order="ascending"/>
+         <xsl:sort select="@*[name()=$function]" data-type="number" order="ascending"/>
          <xsl:if test="position()=1">
-            <xsl:value-of select="@function2"/>
+            <xsl:value-of select="@*[name()=$function]"/>
          </xsl:if>
       </xsl:for-each>
     </xsl:variable>
 
     <xsl:variable name="max_y_data">
        <xsl:for-each select="/dielectric/map">
-          <xsl:sort select="@function2" data-type="number" order="descending"/>
+          <xsl:sort select="@*[name()=$function]" data-type="number" order="descending"/>
           <xsl:if test="position()=1">
-             <xsl:value-of select="@function2"/>
+             <xsl:value-of select="@*[name()=$function]"/>
           </xsl:if>
        </xsl:for-each>
     </xsl:variable>
 
+    <xsl:variable name="min_yaxis" select="$min_y_data - ($max_y_data - $min_y_data)*0.05"/>
     <xsl:variable name="max_yaxis" select="$max_y_data + ($max_y_data - $min_y_data)*0.05"/>
 
 <xsl:text>
@@ -236,7 +263,7 @@
 @g0 fixedpoint format general general
 @g0 fixedpoint prec 6, 6
 @with g0
-@    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>, 0,</xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>,</xsl:text><xsl:value-of select="$max_yaxis"/><xsl:text>
+@    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$min_yaxis"/><xsl:text>, </xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$max_yaxis"/><xsl:text>
 @    stack world 0, 0, 0, 0
 @    znorm 1
 @    view 0.230000, 0.150000, 1.200000, 0.850000
@@ -259,7 +286,7 @@
 @    xaxis  bar on
 @    xaxis  bar color 1
 @    xaxis  bar linestyle 1
-@    xaxis  bar linewidth 1.0
+@    xaxis  bar linewidth 2.0
 @    xaxis  label "Energy [eV]"
 @    xaxis  label layout para
 @    xaxis  label place auto
@@ -274,11 +301,11 @@
 @    xaxis  tick in
 @    xaxis  tick major size 1.000000
 @    xaxis  tick major color 1
-@    xaxis  tick major linewidth 1.0
+@    xaxis  tick major linewidth 2.0
 @    xaxis  tick major linestyle 1
 @    xaxis  tick major grid off
 @    xaxis  tick minor color 1
-@    xaxis  tick minor linewidth 1.0
+@    xaxis  tick minor linewidth 2.0
 @    xaxis  tick minor linestyle 1
 @    xaxis  tick minor grid off
 @    xaxis  tick minor size 0.500000
@@ -309,8 +336,8 @@
 @    yaxis  bar on
 @    yaxis  bar color 1
 @    yaxis  bar linestyle 1
-@    yaxis  bar linewidth 1.0
-@    yaxis  label "Im \xe\f{}\sM"
+@    yaxis  bar linewidth 2.0
+@    yaxis  label "</xsl:text><xsl:value-of select="$ylabel"/><xsl:text>"
 @    yaxis  label layout para
 @    yaxis  label place auto
 @    yaxis  label char size 1.500000
@@ -324,11 +351,11 @@
 @    yaxis  tick in
 @    yaxis  tick major size 1.000000
 @    yaxis  tick major color 1
-@    yaxis  tick major linewidth 1.0
+@    yaxis  tick major linewidth 2.0
 @    yaxis  tick major linestyle 1
 @    yaxis  tick major grid off
 @    yaxis  tick minor color 1
-@    yaxis  tick minor linewidth 1.0
+@    yaxis  tick minor linewidth 2.0
 @    yaxis  tick minor linestyle 1
 @    yaxis  tick minor grid off
 @    yaxis  tick minor size 0.500000
@@ -354,13 +381,14 @@
 @    yaxis  tick spec type none
 @    altxaxis  off
 @    altyaxis  off
+@s0 line color 2
 
 @target G0.S0
 @type xy
 </xsl:text>
    <xsl:for-each select = "/dielectric/map">
       <xsl:value-of select="@variable1"/><xsl:text> </xsl:text>
-      <xsl:value-of select="@function2"/><xsl:text>
+      <xsl:value-of select="@*[name()=$function]"/><xsl:text>
 </xsl:text>
    </xsl:for-each>
 <xsl:text>&amp;</xsl:text>
