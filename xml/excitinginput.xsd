@@ -1245,7 +1245,7 @@ Example:  <pre>
                             </xs:simpleType>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="findlinentype"
-                            default="advanced">
+                            default="simple">
                             <xs:annotation>
                                 <xs:documentation>Select method to determine the linearization energies.</xs:documentation>
                                 <xs:appinfo>
