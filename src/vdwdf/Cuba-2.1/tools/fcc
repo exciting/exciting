@@ -1,0 +1,61 @@
+#! /bin/sh
+# script to compile C programs that are linked 
+# against Fortran libraries
+# last modified 16 Jun 10 th
+
+args=""
+ldflags=""
+objs=""
+libs=""
+compileonly=""
+
+cc="${REALCC:-cc}"
+cxx="${REALCXX:-c++}"
+[ `basename $0` = f++ ] && cc="$cxx"
+
+case "$@" in
+*-m32*)	toarg='arg=`echo "$1" | sed -e "s|Linux-x86-64/|Linux/|g" -e "s|ML64|ML32|g"`' ;;
+*-m64*)	toarg='arg=`echo "$1" | sed -e "s|Linux/|Linux-x86-64/|g" -e "s|ML32|ML64|g"`' ;;
+*)	toarg='arg=$1' ;;
+esac
+
+while [ $# -gt 0 ] ; do
+  eval "$toarg"
+  case "$arg" in
+  -arch)
+	shift
+	;;
+  -st | -b32 | -b64)
+	;;
+  -[Ll]* | -Wl*)
+	ldflags="$ldflags \"$arg\""
+	;;
+  *.tm.o)
+	objs="\"$arg\" $objs"
+	;;
+  *.a | *.o | *.so)
+	objs="$objs \"$arg\""
+	;;
+  -Wno-long-double)
+	# mcc adds this on Macs & gcc 4 doesn't like it
+	;;
+  *.cc)
+	args="$args \"$arg\""
+	cc="$cxx"
+	;;
+  -c)
+	compileonly="-c"
+	;;
+  -o)
+	args="$args \"$arg\" \"$2\""
+	shift
+	;;
+  *)
+	args="$args \"$arg\""
+	;;
+  esac
+  shift
+done
+
+eval "set -x ; $cc $args ${compileonly:-$objs $ldflags $libs}"
+
