@@ -160,6 +160,7 @@ type groundstate_type
  logical::frozencore
  logical::autokpt
  real(8)::radkpt
+ integer::nktot
  logical::reducek
  logical::tfibs
  logical::tforce
@@ -1775,6 +1776,14 @@ getstructgroundstate%radkpt=40.0d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"radkpt",getstructgroundstate%radkpt)
        call removeAttribute(thisnode,"radkpt")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nktot")
+getstructgroundstate%nktot=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nktot",getstructgroundstate%nktot)
+       call removeAttribute(thisnode,"nktot")  
 endif
 
 nullify(np)  

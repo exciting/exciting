@@ -14,7 +14,8 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       <atom coord="0.0  0.0  0.0" bfcmt="0.0  0.0  0.0"></atom>
     </species>
   </structure>
-  <groundstate vkloff="0.5  0.5  0.5" ngridk="4  4  4" mixer="msec" nosource="true" ></groundstate>
+  <groundstate vkloff="0.5  0.5  0.5" ngridk="1 1 1" nktot="1000"
+  mixer="msec" nosource="true" tforce="true"></groundstate>
   <properties>
     <bandstructure character="true">
       <plot1d>

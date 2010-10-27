@@ -99,6 +99,10 @@ Subroutine gndstate
          open(69,file='PCHARGE'//trim(filext),action='WRITE',form='FORMATTED')
      ! write out general information to INFO.OUT
          Call writeinfo (60)
+!jus0
+     ! write out general information to info.xml
+         Call structure_xmlout ()
+!jus1
      ! initialise or read the charge density and potentials from file
       End If
       iscl = 0
@@ -514,7 +518,9 @@ Subroutine gndstate
             If (rank .Eq. 0) Then
        ! output forces to INFO.OUT
                   Call writeforce (60)
-                  Call structure_xmlout ()
+!jus0
+!                  Call structure_xmlout ()
+!jus1                  
               ! write maximum force magnitude to FORCEMAX.OUT
                   Write (64, '(G18.10)') forcemax
                   Call flushifc (64)
@@ -574,8 +580,10 @@ Subroutine gndstate
 30       Continue
      ! output timing information
          If (rank .Eq. 0) Then
-            If ( .Not. input%groundstate%tforce) Call structure_xmlout &
-           & ()
+!jus0
+!            If ( .Not. input%groundstate%tforce) Call structure_xmlout &
+!           & ()
+!jus1
             Write (60,*)
             Write (60, '("Timings (CPU seconds) :")')
             Write (60, '(" initialisation", T40, ": ", F12.2)') &

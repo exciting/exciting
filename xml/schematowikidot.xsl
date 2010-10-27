@@ -139,7 +139,10 @@
   <xsl:template match="bf">
     <xsl:text> **</xsl:text>
     <xsl:value-of select="normalize-space(.)" />
-    <xsl:text>** </xsl:text>
+    <xsl:text>**</xsl:text>
+    <xsl:if test="not(@nospace='true')" >
+    <xsl:text> </xsl:text>
+    </xsl:if>
   </xsl:template>
   <xsl:template match="pre-bf">
     <xsl:text> {{**</xsl:text>
@@ -175,7 +178,7 @@
     <xsl:value-of select="normalize-space(.)" />
   </xsl:template>
   <xsl:template match="xs:documentation">
-    <xsl:apply-templates select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre_ns|ns_pre|ns_pre_ns|pre-bf|pre-bf_ns|it|it_ns|p|exciting|a|list|li|attref" />
+    <xsl:apply-templates select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre_ns|ns_pre|ns_pre_ns|pre-bf|pre-bf_ns|it|it_ns|p|exciting|a|list|li|attref|bf" />
   </xsl:template>
   <xsl:template match="attref">
     <xsl:text> [#att</xsl:text>
