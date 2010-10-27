@@ -32,6 +32,4 @@ Subroutine getdocc (iq, ik, ikq, l1, u1, l2, u2, docc)
          End Do
       End Do
       Deallocate (o0, o)
-!	  Write (*,*) 'ik, ikq', ik, ikq !(wol)
-!	  Write (*,*) 'docc', docc !(wol)
 End Subroutine getdocc

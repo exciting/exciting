@@ -23,8 +23,7 @@ Subroutine scrcoulint
      & igq2, n, recl, un
       Integer :: nsc, iv (3), ivgsym (3), j1, j2, nkkp
       Integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
-      Integer :: rnst1, rnst2, rnst3, rnst4 !(wol)
-      Integer :: sta1, sto1, sta2, sto2 !(wol)
+      Integer :: sta1, sto1, sta2, sto2, rnst1, rnst2, rnst3, rnst4
       Logical :: tq0, tphf
       Real (8) :: vqr (3), vq (3), t1
       Integer :: sc (maxsymcrys), ivgsc (3, maxsymcrys)
@@ -47,7 +46,7 @@ Subroutine scrcoulint
       Call init0
       Call init1
       Call init2
-!(wol) set the range of valence and conduction states to use
+ ! set the range of valence/core and conduction states to use
       sta1 = input%xs%bse%nstlbse(1)
       sto1 = input%xs%bse%nstlbse(2)
       sta2 = input%xs%bse%nstlbse(3)
@@ -56,7 +55,6 @@ Subroutine scrcoulint
       rnst2 = sto1-sta1+1
       rnst3 = sto2-sta2+1
       rnst4 = sto2-sta2+1
-!(wol)
   ! read Fermi energy from file
       Call readfermi
   ! save variables for the Gamma q-point
@@ -79,12 +77,9 @@ Subroutine scrcoulint
   ! only for systems with a gap in energy
       If ( .Not. ksgap) Then
          Write (*,*)
-!(wol)         Write (*, '("Error(",a,"): screened Coulomb interaction works &
-!(wol)        &only for systems with KS-gap.")') trim (thisnam)
          Write (*, '("Warning(",a,"): There is no KS-gap present& 
         &")') trim (thisnam)					  
          Write (*,*)
-!(wol)         Call terminate
       End If
   ! check number of empty states
       If (input%xs%screening%nempty .Lt. input%groundstate%nempty) Then
@@ -97,15 +92,10 @@ Subroutine scrcoulint
          Call terminate
       End If
       Call ematbdcmbs (input%xs%emattype)
-!(wol)      nst12 = nst1 * nst2
-!(wol)      nst34 = nst3 * nst4
-!(wol)      nst13 = nst1 * nst3
-!(wol)      nst24 = nst2 * nst4
       nst12 = rnst1 * rnst2
       nst34 = rnst3 * rnst4
       nst13 = rnst1 * rnst3
       nst24 = rnst2 * rnst4
-      Write (*,*) 'scr nst1, nst2, nst3, nst4', nst1, nst2, nst3, nst4 !(wol)
       Call genfilname (dotext='_SCI.OUT', setfilext=.True.)
       If (rank .Eq. 0) Then
          Call writekpts
@@ -114,7 +104,6 @@ Subroutine scrcoulint
 !
   ! local arrays
       Allocate (phf(ngqmax, ngqmax))
-!(wol)      Allocate (sccli(nst1, nst3, nst2, nst4), scclid(nst1, nst3))
       Allocate (sccli(rnst1, rnst3, rnst2, rnst4), scclid(rnst1, rnst3))
       Allocate (scieffg(ngqmax, ngqmax, nqptr))
       sccli (:, :, :, :) = zzero
@@ -250,18 +239,14 @@ Subroutine scrcoulint
 !
      ! combine indices for matrix elements of plane wave
          j1 = 0
-!(wol)         Do ist2 = 1, nst2
          Do ist2 = sta1, sto1
-!(wol)            Do ist1 = 1, nst1
             Do ist1 = sta1, sto1
                j1 = j1 + 1
                emat12 (j1, :) = xiou (ist1, ist2, :)
             End Do
          End Do
          j2 = 0
-!(wol)         Do ist4 = 1, nst4
          Do ist4 = sta2, sto2
-!(wol)            Do ist3 = 1, nst3
             Do ist3 = sta2, sto2
                j2 = j2 + 1
                emat34 (j2, :) = xiuo (ist3, ist4, :)
@@ -275,15 +260,11 @@ Subroutine scrcoulint
 !
      ! map back to individual band indices
          j2 = 0
-!(wol)         Do ist4 = 1, nst4
          Do ist4 = 1, rnst4
-!(wol)            Do ist3 = 1, nst3
             Do ist3 = 1, rnst3
                j2 = j2 + 1
                j1 = 0
-!(wol)               Do ist2 = 1, nst2
                Do ist2 = 1, rnst2
-!(wol)                  Do ist1 = 1, nst1
                   Do ist1 = 1, rnst1
                      j1 = j1 + 1
                      sccli (ist1, ist3, ist2, ist4) = scclit (j1, j2)
@@ -293,19 +274,11 @@ Subroutine scrcoulint
          End Do
          If ((rank .Eq. 0) .And. (ikkp .Le. 3)) Then
         ! write to ASCII file
-!(wol)            Do ist1 = 1, nst1
             Do ist1 = 1, rnst1
-!(wol)               Do ist3 = 1, nst3
                Do ist3 = 1, rnst3
-!(wol)                  Do ist2 = 1, nst2
                   Do ist2 = 1, rnst2
-!(wol)                     Do ist4 = 1, nst4
                      Do ist4 = 1, rnst4
                         zt1 = sccli (ist1, ist3, ist2, ist4)
-!(wol)                        Write (un, '(i5,3x,3i4,2x,3i4,2x,4e18.10)') &
-!(wol)                       & ikkp, iknr, ist1, ist3, jknr, ist2, ist4, zt1, &
-!(wol)                       & Abs (zt1) ** 2, Atan2 (aimag(zt1), dble(zt1)) &
-!(wol)                       & / pi
                         Write (un, '(i5,3x,3i4,2x,3i4,2x,4e18.10)') &
                        & ikkp, iknr, ist1+sta1-1, ist3+sta2-1, jknr,& 
                        & ist2+sta1-1, ist4+sta2-1, zt1, &
@@ -318,24 +291,19 @@ Subroutine scrcoulint
          End If
      ! analyze BSE diagonal
          If (iknr .Eq. jknr) Then
-!(wol)            Do ist1 = 1, nst1
             Do ist1 = 1, rnst1
-!(wol)               Do ist3 = 1, nst3
                Do ist3 = 1, rnst3
                   zt1 = sccli (ist1, ist3, ist1, ist3)
                   scclid (ist1, ist3) = zt1
                   t1 = dble (zt1)
                   bsedt (1, rank) = Min (dble(bsedt(1, rank)), t1)
                   bsedt (2, rank) = Max (dble(bsedt(2, rank)), t1)
-!(wol)                  bsedt (3, rank) = bsedt (3, rank) + zt1 / (nst1*nst3)
                   bsedt (3, rank) = bsedt (3, rank) + zt1 / (rnst1*rnst3)
                End Do
             End Do
          End If
 !
      ! parallel write
-!(wol)         Call putbsemat ('SCCLI.OUT', sccli, ikkp, iknr, jknr, iq, iqr, &
-!(wol)        & nst1, nst3, nst2, nst4)
          Call putbsemat ('SCCLI.OUT', sccli, ikkp, iknr, jknr, iq, iqr, &
         & rnst1, rnst3, rnst2, rnst4)
 !
