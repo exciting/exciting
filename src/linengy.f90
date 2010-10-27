@@ -69,8 +69,8 @@ Subroutine linengy
                           write(*,'(" and s.c. loop ",I5)') iscl
                         end if
                      else
-                       if (trim(input%groundstate%findlinentype).eq."Fermi") &
-                        apwe(io1,l,ias)=efermi + input%groundstate%dlinenfermi
+                       if (input%groundstate%fermilinengy) &
+                         apwe(io1,l,ias)=efermi + input%groundstate%dlinengyfermi
                      End If
 10                   Continue
                   End Do
@@ -108,8 +108,8 @@ Subroutine linengy
                           write(*,'(" and s.c. loop",I5)') iscl
                         end if
                      else
-                       if (trim(input%groundstate%findlinentype).eq."Fermi") &
-                        lorbe(io1,ilo,ias)=efermi + input%groundstate%dlinenfermi
+                       if (input%groundstate%fermilinengy) &
+                         lorbe(io1,ilo,ias)=efermi + input%groundstate%dlinengyfermi
                      End If
 20                   Continue
                   End Do

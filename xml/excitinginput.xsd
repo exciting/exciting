@@ -1255,10 +1255,17 @@ Example:  <pre>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:enumeration value="simple"/>
-                                    <xs:enumeration value="Fermi"/>
                                     <xs:enumeration value="advanced"/>
                                 </xs:restriction>
                             </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="fermilinengy"
+                            type="xs:boolean" default="false">
+                            <xs:annotation>
+                                <xs:documentation>If <pre>"true"</pre> the linearization energies marked as non-varying are set
+                                to the Fermi level plus <pre>dlinengyfermi</pre>.
+                                </xs:documentation>
+                            </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="isgkmax"
                             type="xs:integer" default="-1">
@@ -1426,7 +1433,7 @@ Example:  <pre>
                                 </xs:appinfo>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="dlinenfermi"
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="dlinengyfermi"
                             type="fortrandouble" default="-0.1d0">
                             <xs:annotation>
                                 <xs:documentation>Energy difference between linearisation and Fermi energy.

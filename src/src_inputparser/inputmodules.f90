@@ -152,6 +152,7 @@ type groundstate_type
  integer::stypenumber
  character(512)::findlinentype
  integer::findlinentypenumber
+ logical::fermilinengy
  integer::isgkmax
  real(8)::gmaxvr
  integer::nempty
@@ -168,7 +169,7 @@ type groundstate_type
  real(8)::chgexs
  real(8)::deband
  real(8)::epsband
- real(8)::dlinenfermi
+ real(8)::dlinengyfermi
  real(8)::epschg
  real(8)::epsocc
  character(512)::mixer
@@ -1714,6 +1715,14 @@ endif
 getstructgroundstate%findlinentypenumber=stringtonumbergroundstatefindlinentype(getstructgroundstate%findlinentype)
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"fermilinengy")
+getstructgroundstate%fermilinengy= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"fermilinengy",getstructgroundstate%fermilinengy)
+       call removeAttribute(thisnode,"fermilinengy")  
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"isgkmax")
 getstructgroundstate%isgkmax=-1
 if(associated(np)) then
@@ -1842,11 +1851,11 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"dlinenfermi")
-getstructgroundstate%dlinenfermi=-0.1d0
+np=>getAttributeNode(thisnode,"dlinengyfermi")
+getstructgroundstate%dlinengyfermi=-0.1d0
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"dlinenfermi",getstructgroundstate%dlinenfermi)
-       call removeAttribute(thisnode,"dlinenfermi")  
+       call extractDataAttribute(thisnode,"dlinengyfermi",getstructgroundstate%dlinengyfermi)
+       call removeAttribute(thisnode,"dlinengyfermi")  
 endif
 
 nullify(np)  
@@ -5002,8 +5011,6 @@ end function
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
 case('simple')
- stringtonumbergroundstatefindlinentype=-1
-case('Fermi')
  stringtonumbergroundstatefindlinentype=-1
 case('advanced')
  stringtonumbergroundstatefindlinentype=-1
