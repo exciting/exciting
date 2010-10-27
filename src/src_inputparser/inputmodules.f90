@@ -201,6 +201,7 @@ type groundstate_type
   type(OEP_type),pointer::OEP
   type(RDMFT_type),pointer::RDMFT
   type(output_type),pointer::output
+  type(libxc_type),pointer::libxc
 end type
 type spin_type
  real(8)::momfix(3)
@@ -240,6 +241,14 @@ end type
 type output_type
  character(512)::state
  integer::statenumber
+end type
+type libxc_type
+ character(512)::exchange
+ integer::exchangenumber
+ character(512)::correlation
+ integer::correlationnumber
+ character(512)::xc
+ integer::xcnumber
 end type
 type structureoptimization_type
  real(8)::epsforce
@@ -2086,6 +2095,14 @@ removeChild(thisnode,item(getElementsByTagname(thisnode,&
 "output"),0)) ) 
 enddo
 
+            len= countChildEmentsWithName(thisnode,"libxc")
+getstructgroundstate%libxc=>null()
+Do i=0,len-1
+getstructgroundstate%libxc=>getstructlibxc(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"libxc"),0)) ) 
+enddo
+
       i=0
       len=0
       call  handleunknownnodes(thisnode)
@@ -2393,6 +2410,52 @@ if(associated(np)) then
        call removeAttribute(thisnode,"state")  
 endif
 getstructoutput%statenumber=stringtonumberoutputstate(getstructoutput%state)
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructlibxc(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(libxc_type),pointer::getstructlibxc
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructlibxc)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at libxc"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"exchange")
+getstructlibxc%exchange= "XC_GGA_X_PBE"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"exchange",getstructlibxc%exchange)
+       call removeAttribute(thisnode,"exchange")  
+endif
+getstructlibxc%exchangenumber=stringtonumberlibxcexchange(getstructlibxc%exchange)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"correlation")
+getstructlibxc%correlation= "XC_GGA_C_PBE"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"correlation",getstructlibxc%correlation)
+       call removeAttribute(thisnode,"correlation")  
+endif
+getstructlibxc%correlationnumber=stringtonumberlibxccorrelation(getstructlibxc%correlation)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"xc")
+getstructlibxc%xc= "none"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"xc",getstructlibxc%xc)
+       call removeAttribute(thisnode,"xc")  
+endif
+getstructlibxc%xcnumber=stringtonumberlibxcxc(getstructlibxc%xc)
 
       i=0
       len=0
@@ -4989,6 +5052,244 @@ case('')
  stringtonumberoutputstate=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forstate "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberlibxcexchange(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('XC_LDA_X')
+ stringtonumberlibxcexchange=1
+case('XC_LDA_X_2D')
+ stringtonumberlibxcexchange=19
+case('XC_GGA_X_PBE')
+ stringtonumberlibxcexchange=101
+case('XC_GGA_X_PBE_R')
+ stringtonumberlibxcexchange=102
+case('XC_GGA_X_B86')
+ stringtonumberlibxcexchange=103
+case('XC_GGA_X_B86_R')
+ stringtonumberlibxcexchange=104
+case('XC_GGA_X_B86_MGC')
+ stringtonumberlibxcexchange=105
+case('XC_GGA_X_B88')
+ stringtonumberlibxcexchange=106
+case('XC_GGA_X_G96')
+ stringtonumberlibxcexchange=107
+case('XC_GGA_X_PW86')
+ stringtonumberlibxcexchange=108
+case('XC_GGA_X_PW91')
+ stringtonumberlibxcexchange=109
+case('XC_GGA_X_OPTX')
+ stringtonumberlibxcexchange=110
+case('XC_GGA_X_DK87_R1')
+ stringtonumberlibxcexchange=111
+case('XC_GGA_X_DK87_R2')
+ stringtonumberlibxcexchange=112
+case('XC_GGA_X_LG93')
+ stringtonumberlibxcexchange=113
+case('XC_GGA_X_FT97_A')
+ stringtonumberlibxcexchange=114
+case('XC_GGA_X_FT97_B')
+ stringtonumberlibxcexchange=115
+case('XC_GGA_X_PBE_SOL')
+ stringtonumberlibxcexchange=116
+case('XC_GGA_X_RPBE')
+ stringtonumberlibxcexchange=117
+case('XC_GGA_X_WC')
+ stringtonumberlibxcexchange=118
+case('XC_GGA_X_mPW91')
+ stringtonumberlibxcexchange=119
+case('XC_GGA_X_AM05')
+ stringtonumberlibxcexchange=120
+case('XC_GGA_X_PBEA')
+ stringtonumberlibxcexchange=121
+case('XC_GGA_X_MPBE')
+ stringtonumberlibxcexchange=122
+case('XC_GGA_X_XPBE')
+ stringtonumberlibxcexchange=123
+case('XC_GGA_X_2D_B86_MGC')
+ stringtonumberlibxcexchange=124
+case('XC_GGA_X_BAYESIAN')
+ stringtonumberlibxcexchange=125
+case('XC_GGA_X_PBE_JSJR')
+ stringtonumberlibxcexchange=126
+case('')
+ stringtonumberlibxcexchange=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forexchange "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberlibxccorrelation(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('XC_LDA_C_WIGNER')
+ stringtonumberlibxccorrelation=2
+case('XC_LDA_C_RPA')
+ stringtonumberlibxccorrelation=3
+case('XC_LDA_C_HL')
+ stringtonumberlibxccorrelation=4
+case('XC_LDA_C_GL')
+ stringtonumberlibxccorrelation=5
+case('XC_LDA_C_XALPHA')
+ stringtonumberlibxccorrelation=6
+case('XC_LDA_C_VWN')
+ stringtonumberlibxccorrelation=7
+case('XC_LDA_C_VWN_RPA')
+ stringtonumberlibxccorrelation=8
+case('XC_LDA_C_PZ')
+ stringtonumberlibxccorrelation=9
+case('XC_LDA_C_PZ_MOD')
+ stringtonumberlibxccorrelation=10
+case('XC_LDA_C_OB_PZ')
+ stringtonumberlibxccorrelation=11
+case('XC_LDA_C_PW')
+ stringtonumberlibxccorrelation=12
+case('XC_LDA_C_PW_MOD')
+ stringtonumberlibxccorrelation=13
+case('XC_LDA_C_OB_PW')
+ stringtonumberlibxccorrelation=14
+case('XC_LDA_C_2D_AMGB')
+ stringtonumberlibxccorrelation=15
+case('XC_LDA_C_2D_PRM')
+ stringtonumberlibxccorrelation=16
+case('XC_LDA_C_vBH')
+ stringtonumberlibxccorrelation=17
+case('XC_LDA_C_1D_CSC')
+ stringtonumberlibxccorrelation=18
+case('XC_GGA_C_PBE')
+ stringtonumberlibxccorrelation=130
+case('XC_GGA_C_LYP')
+ stringtonumberlibxccorrelation=131
+case('XC_GGA_C_P86')
+ stringtonumberlibxccorrelation=132
+case('XC_GGA_C_PBE_SOL')
+ stringtonumberlibxccorrelation=133
+case('XC_GGA_C_PW91')
+ stringtonumberlibxccorrelation=134
+case('XC_GGA_C_AM05')
+ stringtonumberlibxccorrelation=135
+case('XC_GGA_C_XPBE')
+ stringtonumberlibxccorrelation=136
+case('XC_GGA_C_LM')
+ stringtonumberlibxccorrelation=137
+case('XC_GGA_C_PBE_JRGX')
+ stringtonumberlibxccorrelation=138
+case('')
+ stringtonumberlibxccorrelation=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forcorrelation "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberlibxcxc(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('none')
+ stringtonumberlibxcxc=0
+case('XC_GGA_XC_LB')
+ stringtonumberlibxcxc=160
+case('XC_GGA_XC_HCTH_93')
+ stringtonumberlibxcxc=161
+case('XC_GGA_XC_HCTH_120')
+ stringtonumberlibxcxc=162
+case('XC_GGA_XC_HCTH_147')
+ stringtonumberlibxcxc=163
+case('XC_GGA_XC_HCTH_407')
+ stringtonumberlibxcxc=164
+case('XC_GGA_XC_EDF1')
+ stringtonumberlibxcxc=165
+case('XC_GGA_XC_XLYP')
+ stringtonumberlibxcxc=166
+case('XC_GGA_XC_B97')
+ stringtonumberlibxcxc=167
+case('XC_GGA_XC_B97_1')
+ stringtonumberlibxcxc=168
+case('XC_GGA_XC_B97_2')
+ stringtonumberlibxcxc=169
+case('XC_GGA_XC_B97_D')
+ stringtonumberlibxcxc=170
+case('XC_GGA_XC_B97_K')
+ stringtonumberlibxcxc=171
+case('XC_GGA_XC_B97_3')
+ stringtonumberlibxcxc=172
+case('XC_GGA_XC_PBE1W')
+ stringtonumberlibxcxc=173
+case('XC_GGA_XC_MPWLYP1W')
+ stringtonumberlibxcxc=174
+case('XC_GGA_XC_PBELYP1W')
+ stringtonumberlibxcxc=175
+case('XC_GGA_XC_SB98_1a')
+ stringtonumberlibxcxc=176
+case('XC_GGA_XC_SB98_1b')
+ stringtonumberlibxcxc=177
+case('XC_GGA_XC_SB98_1c')
+ stringtonumberlibxcxc=178
+case('XC_GGA_XC_SB98_2a')
+ stringtonumberlibxcxc=179
+case('XC_GGA_XC_SB98_2b')
+ stringtonumberlibxcxc=180
+case('XC_GGA_XC_SB98_2c')
+ stringtonumberlibxcxc=181
+case('XC_HYB_GGA_XC_B3PW91')
+ stringtonumberlibxcxc=401
+case('XC_HYB_GGA_XC_B3LYP')
+ stringtonumberlibxcxc=402
+case('XC_HYB_GGA_XC_B3P86')
+ stringtonumberlibxcxc=403
+case('XC_HYB_GGA_XC_O3LYP')
+ stringtonumberlibxcxc=404
+case('XC_HYB_GGA_XC_mPW1K')
+ stringtonumberlibxcxc=405
+case('XC_HYB_GGA_XC_PBEH')
+ stringtonumberlibxcxc=406
+case('XC_HYB_GGA_XC_B97')
+ stringtonumberlibxcxc=407
+case('XC_HYB_GGA_XC_B97_1')
+ stringtonumberlibxcxc=408
+case('XC_HYB_GGA_XC_B97_2')
+ stringtonumberlibxcxc=410
+case('XC_HYB_GGA_XC_X3LYP')
+ stringtonumberlibxcxc=411
+case('XC_HYB_GGA_XC_B1WC')
+ stringtonumberlibxcxc=412
+case('XC_HYB_GGA_XC_B97_K')
+ stringtonumberlibxcxc=413
+case('XC_HYB_GGA_XC_B97_3')
+ stringtonumberlibxcxc=414
+case('XC_HYB_GGA_XC_mPW3PW')
+ stringtonumberlibxcxc=415
+case('XC_HYB_GGA_XC_B1LYP')
+ stringtonumberlibxcxc=416
+case('XC_HYB_GGA_XC_B1PW91')
+ stringtonumberlibxcxc=417
+case('XC_HYB_GGA_XC_mPW1PW')
+ stringtonumberlibxcxc=418
+case('XC_HYB_GGA_XC_mPW3LYP')
+ stringtonumberlibxcxc=419
+case('XC_HYB_GGA_XC_SB98_1a')
+ stringtonumberlibxcxc=420
+case('XC_HYB_GGA_XC_SB98_1b')
+ stringtonumberlibxcxc=421
+case('XC_HYB_GGA_XC_SB98_1c')
+ stringtonumberlibxcxc=422
+case('XC_HYB_GGA_XC_SB98_2a')
+ stringtonumberlibxcxc=423
+case('XC_HYB_GGA_XC_SB98_2b')
+ stringtonumberlibxcxc=424
+case('XC_HYB_GGA_XC_SB98_2c')
+ stringtonumberlibxcxc=425
+case('')
+ stringtonumberlibxcxc=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forxc "
 stop 
 end select
 end function

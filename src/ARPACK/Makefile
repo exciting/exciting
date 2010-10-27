@@ -13,7 +13,7 @@
 #  Send bug reports, comments or suggestions to arpack@caam.rice.edu
 #
 ############################################################################
-include ../../make.inc
+include ../../build/make.inc
 
 include ARmake.inc
 

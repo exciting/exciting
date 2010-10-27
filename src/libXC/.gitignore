@@ -1,0 +1,6 @@
+Makefile
+.libs/*
+*.la
+testsuite/xc-consistency
+testsuite/xc-get_data
+.lo
