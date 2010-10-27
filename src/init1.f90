@@ -33,14 +33,10 @@ Subroutine init1
       Integer :: ik, is, ia, ias, io, ilo
       Integer :: i1, i2, i3, ispn, iv (3)
       Integer :: l1, l2, l3, m1, m2, m3, lm1, lm2, lm3
-!jus0
       Integer :: n1, n2, n3
-!jus1
       Real (8) :: vl (3), vc (3), boxl (3, 4), lambda
       Real (8) :: ts0, ts1
-!jus0
       Real (8) :: blen(3), lambdab
-!jus1
 ! external functions
       Complex (8) gauntyry
       External gauntyry
@@ -140,7 +136,7 @@ Subroutine init1
 ! the total number of k-points
          If (input%groundstate%nktot.gt.0) Then
             blen(:)=sqrt(bvec(1,:)**2+bvec(2,:)**2+bvec(3,:)**2)           
-            lambdab=Real((input%groundstate%nktot/(blen(1)*blen(2)*blen(3)))**(1./3))
+            lambdab=Real((input%groundstate%nktot/(blen(1)*blen(2)*blen(3)))**(1.d0/3.d0))
             input%groundstate%ngridk (:) = Max0(1,Int &
            & (lambdab*blen(:)))
              write(*,*) "ngridk determined from nktot: ", input%groundstate%ngridk(:)
