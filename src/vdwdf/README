@@ -11,13 +11,13 @@
 #  
 #############################################################################+
 
-The code performs a calculation of the 6-dimentional integral
+The code performs a calculation of the 6-dimensional integral
 
-                    (
+                     (
            EcNL = 1/2 \ d3r d3r' n(r)phi(r,r')n(r'),
                       )
                       
-where n(r), n(r') - the electron densities at spece points r and r',
+where n(r), n(r') - the electron densities at space points r and r',
 phi(r,r') - the nonlocal interaction kernel given by expression (14) of Dion2004.
 
 Note that this is only a nonlocal part of the system total energy.
@@ -27,13 +27,13 @@ I.e.,
     E_vdW-DF2 = E_PBE - Exc_PBE + (Ex_PW86 + Ec_LDA) + EcNL    (Lee2010)
     E_VV09    = E_PBE - Exc_PBE + (Ex_HF(LCA) + Ec_LDA) + EcNL      (Vydrov2009)
 
-The part in parenthese must be calculated separately using an external DFT code.
+The part in parentheses must be calculated separately using an external DFT code.
 
 This kernel function was calculated numerically and 
 tabulated in the file "vdW-DF_Phi_read.dat" (part of the source code).
 
 The integration is performed by use the Monte-Carlo method as implemented 
-in DIVONNE program of the CUBA library for multi-dimentional integration.
+in DIVONNE program of the CUBA library for multidimensional integration.
 
 T. Hahn, CUBA - a library for multidimensional numerical integration.
 Computer Physics Communications, Volume 168, Issue 2, 1 June 2005, Pages 78-95 
@@ -60,7 +60,7 @@ Compilation procedure:
    
 2. Compiling the vdWDF program
    In the program directory one should edit make.inc file
-   (choose a fortran compiler and opptimization options) and then
+   (choose a Fortran compiler and optimization options) and then
    make
 
 --------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ Usage:
 
 --------------------------------------------------------------------------------
 
-                  Runnig the program vdWDF.x:
+                  Running the program vdWDF.x:
 
 
           ./vdWDF.x < vdWDF_input.in > vdWDF_EcNL.out
@@ -141,8 +141,8 @@ Recommendations based on my own experience:
   - The most important parameter of MC integration is the number of 
     sampling points given by "key1" parameter. One should carefully
     choose this value. On the one hand, this value should not be too
-    low because  of bad convergence. On the oter hand, this number
+    low because  of bad convergence. On the other hand, this number
     cannot be too high because evaluation time directly depends on
     it. Due to the very efficient MC method and its implementation in
     the Cuba library, the "key1" in a range of 10000 - 100000 has
-    been found suffient for the integration.
+    been found sufficient for the integration.
