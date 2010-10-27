@@ -1,9 +1,14 @@
+
+! Copyright (C) 2002-2005 J. K. Dewhurst, S. Sharma and C. Ambrosch-Draxl.
+! This file is distributed under the terms of the GNU Lesser General Public
+! License. See the file COPYING for license details.
+
 !*************************************************************************
 ! PURPOSE: Evaluate inverse matrix of size (3x3)  
-! AUTHOR:  Stephan Sagmeister
 ! DATA:    
 ! COMMENT: 
 !*************************************************************************
+
 subroutine r3minv(a,b)
 
 ! arguments
