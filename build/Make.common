@@ -114,11 +114,13 @@ lib/libxc.a:
 ../../src/src_inputparser/speciesmodules.f90:   ../../xml/species.xsd ../../xml/schematofortran.xsl
 	xsltproc  ../../xml/schematofortran.xsl  ../../xml/species.xsd > ../../src/src_inputparser/speciesmodules.f90
 	
-clean:
-	rm -f *.o *.mod
+clean:cleanlibs
+	rm -f *.o *.mod *.f90 *.F90 
 
 cleanlibs:
 	rm -f *.a
 	rm -rf lib finclude
+	cd ../../src/libXC/ && make clean
+	cd ../../src/FoX && make clean
 
 
