@@ -1,9 +1,9 @@
 include ../../build/make.inc
+include ../../build/libraries.inc
 FC = $(F90) -g  -I../../build/serial/finclude -I../../build/serial
 FFLAGS = $(F90_OPTS) $(CPP_ON_OPT)
 LD = $(FC)
-LDFLAGS = $(F90_OPTS)   -L../../build/serial/lib -lFoX_dom -lFoX_sax  -lFoX_wcml -lFoX_wxml  -lFoX_common -lFoX_fsys  -lFoX_utils 
-
+LDFLAGS = $(F90_OPTS)    -L../../build/serial -llapack -lblas ../../build/serial/fftlib.a -L../../build/serial/lib    $(INTLIBS) 
 AR = ar
 ARFLAGS = -rc
 F77=$(F77) $(F77_OPTS)
