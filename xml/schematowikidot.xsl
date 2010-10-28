@@ -2,6 +2,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:str="http://exslt.org/strings"
   xmlns:regex="http://www.exslt.org/regexp" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xsl:output method="text" />
+  <xsl:param name="index" select="'false'"></xsl:param>
   <xsl:param name="importancelevels">
   <xsl:text>essential</xsl:text>
     <xs:annotation>
@@ -15,10 +16,10 @@
   <xsl:param name="tabs" select="false"/>
   <xsl:template match="/">
     <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation" />
+    <xsl:if test="$index='true'">
     <xsl:text>
    [[collapsible show="+ Show alphabetical index" hide="- Hide alphabetical index"]]
    The @ sign indicates an attribute.
-
 
 </xsl:text>
     <xsl:for-each
@@ -57,7 +58,8 @@
     </xsl:for-each>
     <xsl:text>
 [[/collapsible]]
-</xsl:text>
+    </xsl:text>
+    </xsl:if>
     <xsl:call-template name="elementToLatex">
       <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
       <xsl:with-param name="level" select="0" />
@@ -65,7 +67,7 @@
     <xsl:text>
 + Reused Elements
     
-  The following elements can occur more than once in the input file. There for they are listed separately.
+The following elements can occur more than once in the input file. There for they are listed separately.
   </xsl:text>
     <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
       <xsl:call-template name="elementToLatex">
