@@ -1,15 +1,11 @@
-!
-!
-!
-! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
+
+! Copyright (C) 2008-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-!
+
 !BOP
 ! !ROUTINE: bse
 ! !INTERFACE:
-!
-!
 Subroutine bse
 ! !USES:
       Use modinput
@@ -87,7 +83,10 @@ Subroutine bse
 !   S. Sagmeister are part of the author's PhD-thesis.)
 !
 ! !REVISION HISTORY:
-!   Created June 2008 (Sagmeister)
+!   Created June 2008 (S. Sagmeister)
+!   Addition of explicit energy ranges for states below and above the Fermi
+!      level for the treatment of core excitations (using local orbitals).
+!      October 2010 (Weine Olovsson)
 !EOP
 !BOC
       Implicit None
@@ -130,15 +129,17 @@ Subroutine bse
       Call xssave0
   ! read Fermi energy from file
       Call readfermi
-  ! initialize the selected ranges of valence/core and conduction states
-      sta1 = input%xs%bse%nstlbse(1)
-      sto1 = input%xs%bse%nstlbse(2)
-      sta2 = input%xs%bse%nstlbse(3)
-      sto2 = input%xs%bse%nstlbse(4)
-      nsta1 = input%xs%bse%nstlbse2(1)
-      nsto1 = input%xs%bse%nstlbse2(2)
-      nsta2 = input%xs%bse%nstlbse2(3)
-      nsto2 = input%xs%bse%nstlbse2(4)
+  ! initialize the selected ranges of valence/core and conduction states (Note
+  ! that core states are always understood to be local orbitals set by the user
+  ! and actually treated as valence states)
+      sta1 = input%xs%bse%nstlbsemat(1)
+      sto1 = input%xs%bse%nstlbsemat(2)
+      sta2 = input%xs%bse%nstlbsemat(3)
+      sto2 = input%xs%bse%nstlbsemat(4)
+      nsta1 = input%xs%bse%nstlbse(1)
+      nsto1 = input%xs%bse%nstlbse(2)
+      nsta2 = input%xs%bse%nstlbse(3)
+      nsto2 = input%xs%bse%nstlbse(4)
       rnst1 = sto1-sta1+1
       rnst2 = sto1-sta1+1
       rnst3 = sto2-sta2+1
@@ -172,7 +173,7 @@ Subroutine bse
      & .Or. (nsto2 .Gt. sto2)) Then
          Write (unitout,*)
          Write (unitout, '("Error(bse): inconsistency in ranges of stat&
-        &es - nstlbse2 must be within the range of nstlbse")')
+        &es - nstlbse must be within the range of nstlbsemat")')
          Write (unitout,*)
          Call terminate
       End If
@@ -260,7 +261,8 @@ Subroutine bse
                           & bsed
                         End If
                     ! write partially occupied states in the output    
-						If (kdocc (s1) .Gt. 0 .And. kdocc (s1) .Lt. 2) Then
+						If (kdocc (s1) .Gt. input%groundstate%epsocc .And. kdocc (s1) &
+						  .Lt. 2.d0-input%groundstate%epsocc) Then
 							Write (*,*) 'kdocc s1', kdocc(s1), s1
 						End If
                     ! add exchange term
@@ -316,11 +318,11 @@ Subroutine bse
          Call genfilname (basename='EXCITON', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnexc)
+        & input%xs%bse%aresbse, filnam=fnexc)
          Call genfilname (basename='EXCITON_SORTED', tq0=.True., &
         & oc1=oct, oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnexcs)
+        & input%xs%bse%aresbse, filnam=fnexcs)
      ! read momentum matrix elements
          Allocate (pm(3, nstsv, nstsv))
          Do iknr = 1, nkptnr
@@ -343,8 +345,8 @@ Subroutine bse
                      s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      oszs (s1) = oszs (s1) + bevec (s2, s1) * pmat (s2) &
                     & * kdocc (s2) * 0.5 & 
-                    & / (evalsv(ic+istl3+nsta2-1, iknr)-evalsv(iv+nsta1-1, &
-                    & iknr))
+                    & / (evalsv(ic+istl3-1+nsta2-1, iknr)- &
+                    evalsv(iv+nsta1-1, iknr))
                   End Do
                End Do
             End Do
@@ -355,7 +357,7 @@ Subroutine bse
            ! Lorentzian lineshape
                spectr (iw) = spectr (iw) + Abs (oszs(s1)) ** 2 * &
               & (1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*input%xs%broad))             
-               If (input%xs%tddft%aresdf) spectr (iw) = spectr (iw) + &
+               If (input%xs%bse%aresbse) spectr (iw) = spectr (iw) + &
               & Abs (oszs(s1)) ** 2 * &
               & (1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*input%xs%broad))
             End Do
@@ -402,19 +404,19 @@ Subroutine bse
          Call genfilname (basename='EPSILON', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fneps)
+        & input%xs%bse%aresbse, filnam=fneps)
          Call genfilname (basename='LOSS', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnloss)
+        & input%xs%bse%aresbse, filnam=fnloss)
          Call genfilname (basename='SIGMA', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnsigma)
+        & input%xs%bse%aresbse, filnam=fnsigma)
          Call genfilname (basename='SUMRULES', tq0=.True., oc1=oct, &
         & oc2=oct, bsetype=input%xs%bse%bsetype, &
         & scrtype=input%xs%screening%screentype, nar= .Not. &
-        & input%xs%tddft%aresdf, filnam=fnsumrules)
+        & input%xs%bse%aresbse, filnam=fnsumrules)
      ! symmetrize the macroscopic dielectric function tensor
          Call symt2app (oct, oct, input%xs%energywindow%points, symt2, buf, spectr)
      ! generate optical functions
@@ -440,3 +442,4 @@ Contains
 !
 End Subroutine bse
 !EOC
+

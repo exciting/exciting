@@ -1,9 +1,13 @@
 
-! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2008-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: scrcoulint
+! !INTERFACE:
 Subroutine scrcoulint
+! !USES:
       Use modmain
       Use modinput
       Use modmpi
@@ -14,6 +18,16 @@ Subroutine scrcoulint
       Use m_writevars
       Use m_genfilname
       Use m_getunit
+! !DESCRIPTION:
+!   Calculates the direct term of the Bethe-Salpeter Hamiltonian.
+!
+! !REVISION HISTORY:
+!   Created June 2008 (S. Sagmeister)
+!   Addition of explicit energy ranges for states below and above the Fermi
+!      level for the treatment of core excitations (using local orbitals).
+!      October 2010 (Weine Olovsson)
+!EOP
+!BOC      
       Implicit None
   ! local variables
       Character (*), Parameter :: thisnam = 'scrcoulint'
@@ -47,10 +61,10 @@ Subroutine scrcoulint
       Call init1
       Call init2
  ! set the range of valence/core and conduction states to use
-      sta1 = input%xs%bse%nstlbse(1)
-      sto1 = input%xs%bse%nstlbse(2)
-      sta2 = input%xs%bse%nstlbse(3)
-      sto2 = input%xs%bse%nstlbse(4)
+      sta1 = input%xs%bse%nstlbsemat(1)
+      sto1 = input%xs%bse%nstlbsemat(2)
+      sta2 = input%xs%bse%nstlbsemat(3)
+      sto2 = input%xs%bse%nstlbsemat(4)
       rnst1 = sto1-sta1+1
       rnst2 = sto1-sta1+1
       rnst3 = sto2-sta2+1
@@ -335,3 +349,5 @@ Subroutine scrcoulint
      & finished")')
 !
 End Subroutine scrcoulint
+!EOC
+

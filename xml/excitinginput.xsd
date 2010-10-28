@@ -3679,30 +3679,28 @@ Example:  <pre>
                                             <xs:documentation>maximum number of excitons to be considered in a BSE calculation</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlbsemat"
+                                        type="integerquadrupel" default="0 0 0 0">
+                                        <xs:annotation>
+                                            <xs:appinfo>
+                                                <oldname>nbfbse,nafbse</oldname>
+                                            </xs:appinfo>
+                                            <xs:documentation>range of bands for calculating the screening and matrix elements needed for solving BSE. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the lowest eigenenergy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse"
                                         type="integerquadrupel" default="0 0 0 0">
                                         <xs:annotation>
                                             <xs:appinfo>
                                                 <oldname>nbfbse,nafbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>range of bands for calculating the screening and matrix elements needed for solving BSE. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the largest binding energy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
+                                            <xs:documentation>range of bands included for the BSE calculation. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the lowest eigenenergy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse2"
-                                        type="integerquadrupel" default="0 0 0 0">
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="aresbse"
+                                        type="xs:boolean" default="true">
                                         <xs:annotation>
-                                            <xs:appinfo>
-                                                <oldname>nbfbse,nafbse</oldname>
-                                            </xs:appinfo>
-                                            <xs:documentation>range of bands included for the BSE calculation. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the largest binding energy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
-                                        </xs:annotation>
-                                    </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlce"
-                                        type="integerpair" default="0 0">
-                                        <xs:annotation>
-                                            <xs:appinfo>
-                                                <oldname>nbfce,nafce</oldname>
-                                            </xs:appinfo>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the BSE spectrum</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="bsetype"

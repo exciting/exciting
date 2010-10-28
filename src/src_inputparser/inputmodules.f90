@@ -496,9 +496,9 @@ type BSE_type
  integer::lmaxdielt
  integer::nleblaik
  integer::nexcitmax
+ integer::nstlbsemat(4)
  integer::nstlbse(4)
- integer::nstlbse2(4)
- integer::nstlce(2)
+ logical::aresbse
  character(512)::bsetype
  integer::bsetypenumber
 end type
@@ -4377,6 +4377,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"nstlbsemat")
+getstructBSE%nstlbsemat=(/0,0,0,0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nstlbsemat",getstructBSE%nstlbsemat)
+       call removeAttribute(thisnode,"nstlbsemat")  
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"nstlbse")
 getstructBSE%nstlbse=(/0,0,0,0/)
 if(associated(np)) then
@@ -4385,19 +4393,11 @@ if(associated(np)) then
 endif
 
 nullify(np)  
-np=>getAttributeNode(thisnode,"nstlbse2")
-getstructBSE%nstlbse2=(/0,0,0,0/)
+np=>getAttributeNode(thisnode,"aresbse")
+getstructBSE%aresbse= .true.
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"nstlbse2",getstructBSE%nstlbse2)
-       call removeAttribute(thisnode,"nstlbse2")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nstlce")
-getstructBSE%nstlce=(/0,0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nstlce",getstructBSE%nstlce)
-       call removeAttribute(thisnode,"nstlce")  
+       call extractDataAttribute(thisnode,"aresbse",getstructBSE%aresbse)
+       call removeAttribute(thisnode,"aresbse")  
 endif
 
 nullify(np)  
