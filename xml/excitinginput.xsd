@@ -111,6 +111,21 @@ Example:  <pre>
             <xs:length value="3"/>
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="integerquadrupel">
+        <xs:annotation>
+            <xs:documentation>
+                Space separated list of three integers.
+                <p>
+                    Example:  <pre>
+  "1 2 3 4"
+  </pre>
+                </p>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="integerlist">
+            <xs:length value="4"/>
+        </xs:restriction>
+    </xs:simpleType>
     <xs:simpleType name="integerpair">
         <xs:annotation>
             <xs:documentation>
@@ -3134,8 +3149,8 @@ Example:  <pre>
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation>
-                                     Phonon density of states.
-                                    </xs:documentation>
+                   Phonon density of states.
+                 </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos"
@@ -3200,8 +3215,8 @@ Example:  <pre>
                             default="fromscratch">
                             <xs:annotation>
                                 <xs:appinfo>
-							                <oldname>nonreplace</oldname>
-							            </xs:appinfo>
+                                    <oldname>nonreplace</oldname>
+                                </xs:appinfo>
                                 <xs:documentation>
 							            Decides if the phonon calculation is skipped or recalculated or continued from file.
 							        </xs:documentation>
@@ -3457,8 +3472,8 @@ Example:  <pre>
                                         default="fromscratch">
                                         <xs:annotation>
                                             <xs:appinfo>
-				                                     <oldname>nonreplace</oldname>
-				                                 </xs:appinfo>
+                                                <oldname>nonreplace</oldname>
+                                            </xs:appinfo>
                                             <xs:documentation>
 				                                 Decides if the calculation of the screening is done from scratch or is to be skipped.
 				                             </xs:documentation>
@@ -3665,12 +3680,21 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse"
-                                        type="integerpair" default="0 0">
+                                        type="integerquadrupel" default="0 0 0 0">
                                         <xs:annotation>
                                             <xs:appinfo>
                                                 <oldname>nbfbse,nafbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>number of states below and above the Fermi level</xs:documentation>
+                                            <xs:documentation>range of bands for calculating the screening and matrix elements needed for solving BSE. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the largest binding energy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse2"
+                                        type="integerquadrupel" default="0 0 0 0">
+                                        <xs:annotation>
+                                            <xs:appinfo>
+                                                <oldname>nbfbse,nafbse</oldname>
+                                            </xs:appinfo>
+                                            <xs:documentation>range of bands included for the BSE calculation. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the largest binding energy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nstlce"

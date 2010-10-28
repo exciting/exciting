@@ -99,11 +99,14 @@ Subroutine bse
       Integer :: iknr, jknr, iqr, iq, iw, iv2 (3), s1, s2, hamsiz, &
      & nexc, ne
       Integer :: unexc, ist1, ist2, ist3, ist4, ikkp, oct, iv, ic, &
-     & nvdif, ncdif, optcompt(3)
+     & nvdif, ncdif, optcompt(3), ist, jst
+      Integer :: sta1, sto1, sta2, sto2, nsta1, nsto1, nsta2, nsto2, &
+     & rnst1, rnst2, rnst3, rnst4, nrnst1, nrnst2, nrnst3, nrnst4
       Real (8) :: de, egap, ts0, ts1, sumrls(3)
   ! allocatable arrays
       Integer, Allocatable :: sor (:)
-      Real (8), Allocatable :: beval (:), w (:), oszsa (:), loss(:)
+      Real (8), Allocatable :: beval (:), w (:), oszsa (:), loss(:), &
+     & docc(:,:), kdocc (:)
       Complex (8), Allocatable :: excli (:, :, :, :), sccli (:, :, :, &
      & :), ham (:, :)
       Complex (8), Allocatable :: bevec (:, :), pm (:, :, :), pmat (:), &
@@ -127,24 +130,35 @@ Subroutine bse
       Call xssave0
   ! read Fermi energy from file
       Call readfermi
-  ! initialize states below and above the Fermi energy
-      nbfbse = input%xs%bse%nstlbse(1)
-      nafbse = input%xs%bse%nstlbse(2)
-      Call initocc (nbfbse, nafbse)
+  ! initialize the selected ranges of valence/core and conduction states
+      sta1 = input%xs%bse%nstlbse(1)
+      sto1 = input%xs%bse%nstlbse(2)
+      sta2 = input%xs%bse%nstlbse(3)
+      sto2 = input%xs%bse%nstlbse(4)
+      nsta1 = input%xs%bse%nstlbse2(1)
+      nsto1 = input%xs%bse%nstlbse2(2)
+      nsta2 = input%xs%bse%nstlbse2(3)
+      nsto2 = input%xs%bse%nstlbse2(4)
+      rnst1 = sto1-sta1+1
+      rnst2 = sto1-sta1+1
+      rnst3 = sto2-sta2+1
+      rnst4 = sto2-sta2+1
+      nrnst1 = nsto1-nsta1+1
+      nrnst2 = nsto1-nsta1+1
+      nrnst3 = nsto2-nsta2+1
+      nrnst4 = nsto2-nsta2+1 
   ! use eigenvector files from screening-calculation
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
       Call findocclims (iqmt, istocc0, istocc, istunocc0, istunocc, &
      & isto0, isto, istu0, istu)
-      nvdif = nstocc0 - nbfbse
-      ncdif = nstunocc0 - nafbse
       input%xs%emattype = 2
       Call ematbdcmbs (input%xs%emattype)
       Write (unitout,*)
       Write (unitout, '("Info(bse): information on number of states:")')
       Write (unitout, '(" number of states below Fermi energy in Hamilt&
-     &onian:", i6)') nbfbse
+     &onian:", i6)') nrnst1
       Write (unitout, '(" number of states above Fermi energy in Hamilt&
-     &onian:", i6)') nafbse
+     &onian:", i6)') nrnst3
       Write (unitout, '(" ranges of states according to BSE matrix:")')
       Write (unitout, '("  range of first index and number  :", 2i6, 3x&
      &, i6)') istl1, istu1, nst1
@@ -154,18 +168,22 @@ Subroutine bse
      &, i6)') istl3, istu3, nst3
       Write (unitout, '("  range of fourth index and number :", 2i6, 3x&
      &, i6)') istl4, istu4, nst4
-      If ((nvdif .Lt. 0) .Or. (ncdif .Lt. 0)) Then
+      If ((nsta1 .Lt. sta1) .Or. (nsto1 .Gt. sto1) .Or. (nsta2 .Lt. sta2)&
+     & .Or. (nsto2 .Gt. sto2)) Then
          Write (unitout,*)
          Write (unitout, '("Error(bse): inconsistency in ranges of stat&
-        &es - check  routine for nvdif, ncdif")')
+        &es - nstlbse2 must be within the range of nstlbse")')
          Write (unitout,*)
          Call terminate
       End If
   ! size of BSE-Hamiltonian
-      hamsiz = nbfbse * nafbse * nkptnr
+      hamsiz = nrnst1 * nrnst3 * nkptnr
   ! allocate arrays for Coulomb interactons
-      Allocate (sccli(nst1, nst3, nst2, nst4))
-      Allocate (excli(nst1, nst3, nst2, nst4))
+      Allocate (sccli(rnst1, rnst3, rnst2, rnst4))
+      Allocate (excli(rnst1, rnst3, rnst2, rnst4))
+  ! allocate array for occupation number difference (future use )
+      	Allocate (docc (rnst1, rnst3))
+      	Allocate (kdocc (hamsiz))
   ! allocate BSE-Hamiltonian (large matrix, up to several GB)
       Allocate (ham(hamsiz, hamsiz))
       ham (:, :) = zzero
@@ -187,8 +205,8 @@ Subroutine bse
   ! determine gap
       egap = 1.d8
       Do iknr = 1, nkptnr
-         Do ist1 = 1 + nvdif, nst1
-            Do ist3 = 1, nst3 - ncdif
+         Do ist1 = nsta1, nsto1
+            Do ist3 = nsta2, nsto2
                egap = Min (egap, evalsv(ist3+istocc, iknr)-evalsv(ist1, &
               & iknr)+input%xs%scissor)
             End Do
@@ -197,10 +215,9 @@ Subroutine bse
       Write (unitout, '("Info(bse): gap:", g18.10)') egap
       If (egap .Lt. input%groundstate%epspot) Then
          Write (unitout,*)
-         Write (unitout, '("Error(bse): BSE needs system with gap")')
+         Write (unitout, '("Warning(bse): the system has no gap")')
          Write (unitout,*)
-         Call terminate
-      End If
+      End If	  
   ! set up BSE-Hamiltonian
       ikkp = 0
       Do iknr = 1, nkptnr
@@ -215,40 +232,50 @@ Subroutine bse
             Select Case (trim(input%xs%bse%bsetype))
             Case ('singlet', 'triplet')
            ! read screened Coulomb interaction
-               Call getbsemat ('SCCLI.OUT', ikkp, nst1, nst3, sccli)
+               Call getbsemat ('SCCLI.OUT', ikkp, rnst1, rnst3, sccli)
             End Select
         ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
             Case ('rpa', 'singlet')
-               Call getbsemat ('EXCLI.OUT', ikkp, nst1, nst3, excli)
+               Call getbsemat ('EXCLI.OUT', ikkp, rnst1, rnst3, excli)
             End Select
+        ! get occupation numbers (future use for partial occupancy) 			
+      		Call getdocc (iq, iknr, jknr, nsta1, nsto1, istl3+nsta2-1,& 
+      	   & istl3+nsto2-1, docc)
         ! set up matrix
-            Do ist1 = 1 + nvdif, nst1
-               Do ist3 = 1, nst3 - ncdif
-                  Do ist2 = 1 + nvdif, nst2
-                     Do ist4 = 1, nst4 - ncdif
-                        s1 = hamidx (ist1-nvdif, ist3, iknr, nbfbse, &
-                       & nafbse)
-                        s2 = hamidx (ist2-nvdif, ist4, jknr, nbfbse, &
-                       & nafbse)
-                    ! add diagonal term
+            Do ist1 = nsta1, nsto1
+               Do ist3 = nsta2, nsto2
+                  Do ist2 = nsta1, nsto1
+                     Do ist4 = nsta2, nsto2
+                        s1 = hamidx (ist1-nsta1+1, ist3-nsta2+1, iknr, nrnst1, &
+                       & nrnst3)
+                        s2 = hamidx (ist2-nsta1+1, ist4-nsta2+1, jknr, nrnst2, &
+                       & nrnst4)
+					    kdocc (s1) = docc (ist1-nsta1+1, ist3-nsta2+1)
+                     ! add diagonal term
                         If (s1 .Eq. s2) Then
-                           de = evalsv (ist3+istocc, iknr) - evalsv &
-                          & (ist1, iknr) + input%xs%scissor
-                           ham (s1, s2) = ham (s1, s2) + de - egap + &
+                           de = evalsv (ist3+istl3-1, iknr) - evalsv &
+                          & (ist1, iknr) + input%xs%scissor                                                                                                       
+                            ham (s1, s2) = ham (s1, s2) + de - egap + &
                           & bsed
                         End If
+                    ! write partially occupied states in the output    
+						If (kdocc (s1) .Gt. 0 .And. kdocc (s1) .Lt. 2) Then
+							Write (*,*) 'kdocc s1', kdocc(s1), s1
+						End If
                     ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('rpa', 'singlet')
-                           ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
-                          & (ist1, ist3, ist2, ist4)
+                        	ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
+                           & (ist1, ist3, ist2, ist4) * &
+                           & kdocc (s1) * 0.5
                         End Select
                     ! add correlation term
                         Select Case (trim(input%xs%bse%bsetype))
                         Case ('singlet', 'triplet')
-                           ham (s1, s2) = ham (s1, s2) - sccli (ist1, &
-                          & ist3, ist2, ist4)
+                        	ham (s1, s2) = ham (s1, s2) - sccli (ist1, &
+                           & ist3, ist2, ist4) * &
+                           & kdocc (s1)	* 0.5						
                         End Select
                      End Do
                   End Do
@@ -257,7 +284,7 @@ Subroutine bse
         ! end loop over (k,kp)-pairs
          End Do
       End Do
-      Deallocate (excli, sccli)
+      Deallocate (excli, sccli, docc)
       Write (unitout,*)
       Write (unitout, '("Info(bse): invoking Lapack routine ZHEEVX")')
       Write (unitout, '(" size of BSE-Hamiltonian	   : ", i8)') hamsiz
@@ -299,11 +326,11 @@ Subroutine bse
          Do iknr = 1, nkptnr
             Call getpmat (iknr, vkl, 1, nstsv, 1, nstsv, .True., 'PMAT_XS.OUT',&
             & pm)
-            Do ist1 = 1 + nvdif, nstsv - nstunocc0
-               Do ist2 = nstocc0 + 1, nstsv - ncdif
-                  s1 = hamidx (ist1-nvdif, ist2-nstocc0, iknr, nbfbse, &
-                 & nafbse)
-                  pmat (s1) = pm (oct, ist1, ist2)
+            Do ist1 = nsta1, nsto1
+               Do ist2 = istl3 + nsta2 - 1, istl3 + nsto2 - 1
+                  s1 = hamidx (ist1-nsta1+1, ist2-istl3-nsta2+2,&
+                 & iknr, nrnst1, nrnst3)              
+                  	pmat (s1) = pm (oct, ist1, ist2)
                End Do
             End Do
          End Do
@@ -311,11 +338,12 @@ Subroutine bse
      ! calculate oscillators for spectrum
          Do s1 = 1, nexc
             Do iknr = 1, nkptnr
-               Do iv = 1, nbfbse
-                  Do ic = 1, nafbse
-                     s2 = hamidx (iv, ic, iknr, nbfbse, nafbse)
+               Do iv = 1, nrnst1
+                  Do ic = 1, nrnst3				
+                     s2 = hamidx (iv, ic, iknr, nrnst1, nrnst3)
                      oszs (s1) = oszs (s1) + bevec (s2, s1) * pmat (s2) &
-                    & / (evalsv(ic+istocc, iknr)-evalsv(iv+nvdif, &
+                    & * kdocc (s2) * 0.5 & 
+                    & / (evalsv(ic+istl3+nsta2-1, iknr)-evalsv(iv+nsta1-1, &
                     & iknr))
                   End Do
                End Do
@@ -326,7 +354,7 @@ Subroutine bse
             Do s1 = 1, nexc
            ! Lorentzian lineshape
                spectr (iw) = spectr (iw) + Abs (oszs(s1)) ** 2 * &
-              & (1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*input%xs%broad))
+              & (1.d0/(w(iw)-(beval(s1)+egap-bsed)+zi*input%xs%broad))             
                If (input%xs%tddft%aresdf) spectr (iw) = spectr (iw) + &
               & Abs (oszs(s1)) ** 2 * &
               & (1.d0/(-w(iw)-(beval(s1)+egap-bsed)-zi*input%xs%broad))

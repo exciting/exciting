@@ -24,6 +24,7 @@ Subroutine exccoulint
       Integer :: iv (3), j1, j2
       Integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24, &
      & ikkp, nkkp
+      Integer :: sta1, sto1, sta2, sto2, rnst1, rnst2, rnst3, rnst4
       Real (8), Allocatable :: potcl (:)
       Complex (8), Allocatable :: exclit (:, :), excli (:, :, :, :)
       Complex (8), Allocatable :: emat12 (:, :), emat34 (:, :)
@@ -35,6 +36,15 @@ Subroutine exccoulint
       Call init0
       Call init1
       Call init2
+  ! set the range of valence/core and conduction states to use
+      sta1 = input%xs%bse%nstlbse(1)
+      sto1 = input%xs%bse%nstlbse(2)
+      sta2 = input%xs%bse%nstlbse(3)
+      sto2 = input%xs%bse%nstlbse(4)      
+      rnst1 = sto1-sta1+1
+      rnst2 = sto2-sta2+1
+      rnst3 = sto2-sta2+1
+      rnst4 = sto1-sta1+1
   ! read Fermi energy from file
       Call readfermi
   ! save variables for the Gamma q-point
@@ -57,10 +67,9 @@ Subroutine exccoulint
   ! only for systems with a gap in energy
       If ( .Not. ksgap) Then
          Write (*,*)
-         Write (*, '("Error(",a,"): exchange Coulomb interaction works &
-        &only for systems with KS-gap.")') trim (thisnam)
+         Write (*, '("Warning(",a,"): There is no KS-gap present&
+        &")') trim (thisnam)
          Write (*,*)
-         Call terminate
       End If
   ! check number of empty states
       If (input%xs%screening%nempty .Lt. input%groundstate%nempty) Then
@@ -73,10 +82,10 @@ Subroutine exccoulint
          Call terminate
       End If
       Call ematbdcmbs (input%xs%emattype)
-      nst12 = nst1 * nst2
-      nst34 = nst3 * nst4
-      nst13 = nst1 * nst3
-      nst24 = nst2 * nst4
+      nst12 = rnst1 * rnst2
+      nst34 = rnst3 * rnst4
+      nst13 = rnst1 * rnst3
+      nst24 = rnst2 * rnst4
       Call genfilname (dotext='_SCI.OUT', setfilext=.True.)
       If (rank .Eq. 0) Then
          Call writekpts
@@ -86,7 +95,7 @@ Subroutine exccoulint
       Call ematrad (iqmt)
       Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
       Allocate (potcl(n))
-      Allocate (excli(nst1, nst2, nst1, nst2))
+      Allocate (excli(rnst1, rnst2, rnst1, rnst2))
       Allocate (exclit(nst12, nst34))
       Allocate (emat12k(nst1, nst2, n, nkptnr))
       Allocate (emat12(nst12, n), emat34(nst34, n))
@@ -140,15 +149,15 @@ Subroutine exccoulint
 !
          Call genfilname (dotext='_SCR.OUT', setfilext=.True.)
          j1 = 0
-         Do ist2 = 1, nst2
-            Do ist1 = 1, nst1
+         Do ist2 = sta2, sto2
+            Do ist1 = sta1, sto1
                j1 = j1 + 1
                emat12 (j1, :) = emat12k (ist1, ist2, :, iknr)
             End Do
          End Do
          j2 = 0
-         Do ist4 = 1, nst2
-            Do ist3 = 1, nst1
+         Do ist4 = sta2, sto2
+            Do ist3 = sta1, sto1
                j2 = j2 + 1
                emat34 (j2, :) = emat12k (ist3, ist4, :, jknr) * potcl &
               & (:)
@@ -162,12 +171,12 @@ Subroutine exccoulint
 !
      ! map back to individual band indices
          j2 = 0
-         Do ist4 = 1, nst2
-            Do ist3 = 1, nst1
+         Do ist4 = 1, rnst2
+            Do ist3 = 1, rnst1
                j2 = j2 + 1
                j1 = 0
-               Do ist2 = 1, nst2
-                  Do ist1 = 1, nst1
+               Do ist2 = 1, rnst2
+                  Do ist1 = 1, rnst1
                      j1 = j1 + 1
                      excli (ist1, ist2, ist3, ist4) = exclit (j1, j2)
                   End Do
@@ -176,12 +185,13 @@ Subroutine exccoulint
          End Do
 !
          If ((rank .Eq. 0) .And. (ikkp .Le. 3)) Then
-            Do ist1 = 1, nst1
-               Do ist2 = 1, nst2
-                  Do ist3 = 1, nst1
-                     Do ist4 = 1, nst2
+            Do ist1 = 1, rnst1
+               Do ist2 = 1, rnst2
+                  Do ist3 = 1, rnst1
+                     Do ist4 = 1, rnst2
                         Write (un, '(i5,3x,3i4,2x,3i4,2x,4e18.10)') &
-                       & ikkp, iknr, ist1, ist2, jknr, ist3, ist4, &
+                       & ikkp, iknr, ist1+sta1-1, ist2+sta2-1, jknr,&
+                       & ist3+sta2-1, ist4+sta1-1, &
                        & excli (ist1, ist2, ist3, ist4), Abs &
                        & (excli(ist1, ist2, ist3, ist4))
                      End Do
@@ -192,7 +202,7 @@ Subroutine exccoulint
 !
      ! parallel write
          Call putbsemat ('EXCLI.OUT', excli, ikkp, iknr, jknr, iq, iqr, &
-        & nst1, nst2, nst4, nst3)
+        & rnst1, rnst2, rnst4, rnst3)
          Call genfilname (dotext='_SCI.OUT', setfilext=.True.)
 !
      ! end loop over (k,kp) pairs
