@@ -44,7 +44,7 @@ rm -rf $RPM_BUILD_ROOT
 %configure \
   CC="cc" \
   CPP="cc -E" \
-  FC="ifort" \
+  FC="gfortran" \
   FCFLAGS="-cpp -DXS -DISO -DTETRA -DLIBXC" \
   CFLAGS="-g -O2" \
   CPPFLAGS="" \

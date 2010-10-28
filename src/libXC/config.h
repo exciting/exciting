@@ -73,7 +73,7 @@
 #define HAVE_UNISTD_H 1
 
 /* compiler supports long lines */
-#define LONG_LINES 1
+/* #undef LONG_LINES */
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
