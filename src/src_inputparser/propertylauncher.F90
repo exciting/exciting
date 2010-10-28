@@ -13,6 +13,7 @@ Subroutine propertylauncher
 ! properties which depend on the ground state only
 
       If (associated(input%properties%bandstructure) .And. rank .Eq. 0) Then
+         ! tasks are: 20, 21
          task = 20
          Call bandstr
       End If
@@ -29,9 +30,11 @@ Subroutine propertylauncher
          Call wfplot (STM)
       End If
       If (associated(input%properties%LSJ) .And. rank .Eq. 0) Then
+         ! tasks are: 15,16
          Call writelsj
       End If
       If (associated(input%properties%masstensor) .And. rank .Eq. 0) Then
+         task=25
          Call effmass
       End If
       If (associated(input%properties%fermisurfaceplot) .And. rank .Eq. 0) Then

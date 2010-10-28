@@ -72,7 +72,7 @@ Subroutine writesymt2
         &from symmetry considerations")')
       Write (50, '(" with respect to Cartesian coordinates)")')
       Write (50,*)
-      Write (50, '(" Maximum number of independent components : ",i6)') 9-count(red)
+      Write (50, '(" Upper limit for number of independent components : ",i6)') 9-count(red)
       Write (50,*)
       Do iop1 = 1, 3
         write(50,'(" ( ",a,"  ",a,"  ",a," )")') dmt(iop1,:)
