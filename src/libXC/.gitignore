@@ -3,4 +3,8 @@ Makefile
 *.la
 testsuite/xc-consistency
 testsuite/xc-get_data
-.lo
+*.lo
+config.h'
+config.status'
+libtool
+src/libxc.f90'
