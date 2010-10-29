@@ -101,7 +101,7 @@ libxc.a:lib/libxc.a
 
 
 
-lib/libxc.a: .NOTPARALLEL
+lib/libxc.a: 
 	cd ../../src/libXC/ && \
 	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)"  CC=$(CC) FCCPP=$(FCCPP) &&\
 	make 
