@@ -42,10 +42,10 @@ rm -rf $RPM_BUILD_ROOT
 # cleaned in between.
 %build
 %configure \
-  CC="cc" \
-  CPP="cc -E" \
-  FC="gfortran" \
-  FCFLAGS="-cpp -DXS -DISO -DTETRA -DLIBXC" \
+  CC="/sw/bin/gcc-4" \
+  CPP="/sw/bin/gcc-4 -E" \
+  FC="g95" \
+  FCFLAGS="-cpp -DXS -DISO -DTETRA" \
   CFLAGS="-g -O2" \
   CPPFLAGS="" \
   LDFLAGS="" \
