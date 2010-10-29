@@ -1,6 +1,6 @@
 F90=xlf95
 F90_OPTS = -O3 -qstrict 
-CPP_ON_OPT = -qsuffix=cpp=f90  -WF,-DxlC,-DXS,-DISO,-DTETRA
+CPP_ON_OPT = -qsuffix=cpp=f90  -WF,-DxlC,-DXS,-DISO,-DTETRA,-DLIBXC
 F77 =xlf
 F77_OPTS = -O3 -qstrict
 LIB_ARP =libarpack.a
@@ -9,7 +9,7 @@ LIB_FFT = fftlib.a
 LIB_BZINT=libbzint.a
 AR = ar
 ARFLAGS = -rc
-
+CC=xlc
 LIBS=  $(LIB_ARP) $(LIB_LPK) $(LIB_FFT) $(LIB_BZINT)
 F90_DEBUGOPTS=-g
 F77_DEBUGOPTS=-g
@@ -28,3 +28,5 @@ SMPF77_OPTS=$(SMPF90_OPTS)
 MPISMPF90_OPTS=$(SMPF90_OPTS) -WF,-DMPI,-DMPIRHO,-DMPISEC
 MPIF90MT=mpxlf95_r
 
+BUILDMPI=true
+BUILDSMP=true
