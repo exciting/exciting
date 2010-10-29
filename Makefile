@@ -1,8 +1,9 @@
 
 
 
-
-default: build/make.inc all
+.NOTPARALLEL:
+ 
+default: build/make.inc all 
 
 all: serial mpi  smp mpiandsmp  eos spacegroup stateinfo stateconvert species
 
@@ -85,6 +86,8 @@ clean:
 	cd src/spacegroup; $(MAKE) clean
 	cd src/species; $(MAKE) clean
 	cd src/vdwdf; $(MAKE) clean
+	cd src/stateinfo; $(MAKE) clean
+	cd src/stateconvert; $(MAKE) clean
 	rm -f *.o *.mod *~ fort.* ifc* *.gcno *.exe exdg.*
 	rm -f bin/exciting?*
 	rm -f interfaces/*

@@ -1,5 +1,6 @@
 -include ../make.inc
-
+.NOTPARALLEL:
+	
 SOURCEDIRS=	../../src/  \
 	../../src/src_xs/ \
 	../../src/src_fermisurfdx/ \
@@ -98,7 +99,9 @@ leblaiklib.a::
 	
 libxc.a:lib/libxc.a
 
-lib/libxc.a:
+
+
+lib/libxc.a: .NOTPARALLEL
 	cd ../../src/libXC/ && \
 	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)"  CC=$(CC) FCCPP=$(FCCPP) &&\
 	make 
