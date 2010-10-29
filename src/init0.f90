@@ -150,7 +150,7 @@ Subroutine init0
       If ((task .Eq. 5) .Or. (task .Eq. 6) .Or. (task .Eq. 300)) &
      & input%groundstate%tevecsv = .True.
 ! get exchange-correlation functional data
-      Call getxcdata (input%groundstate%xctypenumber, xcdescr, xcspin, &
+      Call getxcdata ( xctype, xcdescr, xcspin, &
      & xcgrad)
       If ((associated(input%groundstate%spin)) .And. (xcspin .Eq. 0)) &
      & Then

@@ -111,6 +111,21 @@ Example:  <pre>
             <xs:length value="3"/>
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="integerquadrupel">
+        <xs:annotation>
+            <xs:documentation>
+                Space separated list of three integers.
+                <p>
+                    Example:  <pre>
+  "1 2 3 4"
+  </pre>
+                </p>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="integerlist">
+            <xs:length value="4"/>
+        </xs:restriction>
+    </xs:simpleType>
     <xs:simpleType name="integerpair">
         <xs:annotation>
             <xs:documentation>
@@ -175,14 +190,14 @@ Example:  <pre>
    </xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="symmorph"
-        type="xs:boolean" default="false">
+    <xs:attribute ex:importance="expert" ex:unit="" name="symmorph" type="xs:boolean"
+        default="false">
         <xs:annotation>
             <xs:documentation>
                When set to <pre>"true"</pre> only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are used anywhere in the code.
             </xs:documentation>
         </xs:annotation>
-     </xs:attribute>
+    </xs:attribute>
     <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble"
         default="0.0d0">
         <xs:annotation>
@@ -190,64 +205,58 @@ Example:  <pre>
     optics and band structure plots.</xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat"
-       type="xs:boolean" default="true">
-       <xs:annotation>
-       <xs:documentation>
+    <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat" type="xs:boolean" default="true">
+        <xs:annotation>
+            <xs:documentation>
         if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
        </xs:documentation>
-      </xs:annotation>
+        </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="intraband"
-        type="xs:boolean" default="false">
-       <xs:annotation>
-           <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
-       </xs:annotation>
+    <xs:attribute ex:importance="expert" ex:unit="" name="intraband" type="xs:boolean"
+        default="false">
+        <xs:annotation>
+            <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+        </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit=""
-    name="action" default="include">
-    <xs:annotation>
-        <xs:documentation>Select to include or exclude states</xs:documentation>
-    </xs:annotation>
-    <xs:simpleType>
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="include"/>
-            <xs:enumeration value="exclude"/>
-        </xs:restriction>
-    </xs:simpleType>
+    <xs:attribute ex:importance="expert" ex:unit="" name="action" default="include">
+        <xs:annotation>
+            <xs:documentation>Select to include or exclude states</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="include"/>
+                <xs:enumeration value="exclude"/>
+            </xs:restriction>
+        </xs:simpleType>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit=""
-    name="statestype" >
-    <xs:annotation>
-        <xs:documentation>Select for initial or final state range</xs:documentation>
-    </xs:annotation>
-    <xs:simpleType>
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="initialstates"/>
-            <xs:enumeration value="finalstates"/>
-        </xs:restriction>
-    </xs:simpleType>
-    </xs:attribute>                                                     
+    <xs:attribute ex:importance="expert" ex:unit="" name="statestype">
+        <xs:annotation>
+            <xs:documentation>Select for initial or final state range</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="initialstates"/>
+                <xs:enumeration value="finalstates"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
     <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble"
         default="5.0d-5"> </xs:attribute>
-    <xs:attribute ex:importance="essential" ex:unit="" name="nwdos"
-        type="xs:integer" default="500">
+    <xs:attribute ex:importance="essential" ex:unit="" name="nwdos" type="xs:integer" default="500">
         <xs:annotation>
             <xs:documentation>Number of frequency/energy points in the DOS</xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="essential" ex:unit="" name="ngrdos"
-        type="xs:integer" default="100">
+    <xs:attribute ex:importance="essential" ex:unit="" name="ngrdos" type="xs:integer" default="100">
         <xs:annotation>
             <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos"
-        type="xs:integer" default="0">
+    <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
         <xs:annotation>
             <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
         </xs:annotation>
-    </xs:attribute>        
+    </xs:attribute>
     <!-- global element definitions -->
     <xs:element ex:importance="essential" ex:unit="" name="origin">
         <xs:complexType>
@@ -365,21 +374,21 @@ Example:  <pre>
     </xs:element>
     <xs:element ex:importance="expert" ex:unit="" name="energywindow">
         <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" name="points"
-                type="xs:integer" default="500">
+            <xs:attribute ex:importance="expert" ex:unit="" name="points" type="xs:integer"
+                default="500">
                 <xs:annotation>
                     <xs:documentation>number of points to be sampled linearly inside the energy interval
                     including the lower limit.</xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="intv"
-                type="vect2d" default="-0.5d0 0.5d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="intv" type="vect2d"
+                default="-0.5d0 0.5d0">
                 <xs:annotation>
                     <xs:documentation>energy interval lower and upper limits.</xs:documentation>
                 </xs:annotation>
             </xs:attribute>
         </xs:complexType>
-    </xs:element>    
+    </xs:element>
     <!-- root element starts here -->
     <xs:element ex:importance="essential" ex:unit="" name="input">
         <xs:annotation>
@@ -471,19 +480,22 @@ Example:  <pre>
                                                   <xs:documentation>Number of repeated cells in each direction.</xs:documentation>
                                                   </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute ex:importance="spacegroup" name="scale" default="1" use="optional" type="fortrandouble">
-                                                    <xs:annotation> 
-                                                        <xs:documentation>Scales all the lattice vectors by the same factor. This is useful for varying the volume.</xs:documentation>
-                                                    </xs:annotation>
+                                                <xs:attribute ex:importance="spacegroup"
+                                                  name="scale" default="1" use="optional"
+                                                  type="fortrandouble">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Scales all the lattice vectors by the same factor. This is useful for varying the volume.</xs:documentation>
+                                                  </xs:annotation>
                                                 </xs:attribute>
                                                 <xs:attribute ex:importance="spacegroup" ex:unit=""
-                                                    name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
-                                                    <xs:annotation>
-                                                        <xs:documentation>Allows for an individual scaling of each lattice vector separately. <pre>"1 1 1"</pre> means no scaling.</xs:documentation>
-                                                        <xs:appinfo>
+                                                  name="stretch" type="vect3d"
+                                                  default="1.0d0 1.0d0 1.0d0 ">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Allows for an individual scaling of each lattice vector separately. <pre>"1 1 1"</pre> means no scaling.</xs:documentation>
+                                                  <xs:appinfo>
                                                             <oldname>(sc1|sc2|sc3)</oldname>
                                                         </xs:appinfo>
-                                                    </xs:annotation>
+                                                  </xs:annotation>
                                                 </xs:attribute>
                                             </xs:complexType>
                                         </xs:element>
@@ -690,10 +702,10 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute name="href" type="xs:anyURI" default="">
-                                    <xs:annotation>
-                                        
-                                 <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
-                                   </xs:annotation>
+                                        <xs:annotation>
+
+                                            <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes  </xs:documentation>
+                                        </xs:annotation>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
@@ -1106,6 +1118,866 @@ Example:  <pre>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element maxOccurs="1" minOccurs="0" name="libxc">
+                                <xs:complexType>
+                                    <xs:attribute default="XC_GGA_X_PBE" name="exchange"
+                                        use="optional">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+
+                                                <xs:enumeration value="XC_LDA_X">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  1  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Exchange                     </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_X_2D">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 19  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Exchange in 2D </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_PBE">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>101  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew, Burke &amp; Ernzerhof exchange             </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_PBE_R">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>102  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew, Burke &amp; Ernzerhof exchange (revised)   </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_B86">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>103  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Becke 86 Xalfa,beta,gamma                      </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_B86_R">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>104  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Becke 86 Xalfa,beta,gamma (reoptimized)        </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_B86_MGC">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>105  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Becke 86 Xalfa,beta,gamma (with mod. grad. correction) </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_B88">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>106  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Becke 88 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_G96">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>107  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Gill 96                                        </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_PW86">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>108  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew &amp; Wang 86 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_PW91">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>109  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew &amp; Wang 91 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_OPTX">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>110  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Handy &amp; Cohen OPTX 01                          </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_DK87_R1">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>111  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  dePristo &amp; Kress 87 (version R1)               </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_DK87_R2">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>112  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  dePristo &amp; Kress 87 (version R2)               </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_LG93">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>113  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Lacks &amp; Gordon 93 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_FT97_A">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>114  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Filatov &amp; Thiel 97 (version A) </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_FT97_B">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>115  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Filatov &amp; Thiel 97 (version B) </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_PBE_SOL">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>116  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew, Burke &amp; Ernzerhof exchange (solids)    </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_RPBE">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>117  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Hammer, Hansen &amp; Norskov (PBE-like) </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_WC">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>118  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Wu &amp;amp; Cohen </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_mPW91">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>119  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Modified form of PW91 by Adamo &amp; Barone </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_AM05">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>120  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Armiento &amp; Mattsson 05 exchange                </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_PBEA">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>121  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Madsen (PBE-like) </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_MPBE">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>122  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Adamo &amp; Barone modification to PBE             </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_XPBE">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>123  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  xPBE reparametrization by Xu &amp; Goddard         </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_2D_B86_MGC">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>124  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Becke 86 MGC for 2D systems </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_BAYESIAN">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>125  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Bayesian best fit for the enhancement factor </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_X_PBE_JSJR">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>126  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  JSJR reparametrization by Pedroza, Silva &amp; Capelle </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <!-- as MGGA is not supported
+<xs:enumeration value="XC_MGGA_X_LTA"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>201  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  Local tau approximation of Ernzerhof &amp; Scuseria </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_X_TPSS"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>202  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  Perdew, Tao, Staroverov &amp; Scuseria exchange </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_X_M06L"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>203  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  Zhao, Truhlar exchange </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_X_GVT4"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>204  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  GVT4 from Van Voorhis and Scuseria (exchange part)    </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_X_TAU_HCTH"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>205  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  tau-HCTH from Boese and Handy </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_X_BR89"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>206  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  Becke-Roussel 89  </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_X_BJ06"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>207  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  Becke &amp; Johnson correction to Becke-Roussel 89  </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_X_TB09"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>208  </oldnr>
+                            </xs:appinfo> 
+                            <xs:documentation>    Tran &amp; Blaha correction to Becke &amp; Johnson  </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                               -->
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
+                                    <xs:attribute default="XC_GGA_C_PBE" name="correlation"
+                                        use="optional">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+
+                                                <xs:enumeration value="XC_LDA_C_WIGNER">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  2  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Wigner parametrization       </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_RPA">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  3  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Random Phase Approximation   </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_HL">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  4  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Hedin &amp; Lundqvist            </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_GL">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  5  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Gunnarson &amp; Lundqvist        </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_XALPHA">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  6  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Slaters Xalpha              </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_VWN">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  7  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Vosko, Wilk, &amp; Nussair       </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_VWN_RPA">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  8  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Vosko, Wilk, &amp; Nussair (RPA) </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_PZ">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>  9  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew &amp; Zunger              </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_PZ_MOD">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 10  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew &amp; Zunger (Modified)   </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_OB_PZ">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 11  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Ortiz &amp; Ballone (PZ)         </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_PW">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 12  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew &amp; Wang                </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_PW_MOD">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 13  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew &amp; Wang (Modified)     </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_OB_PW">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 14  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Ortiz &amp; Ballone (PW)         </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_2D_AMGB">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 15  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Attacalite et al             </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_2D_PRM">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 16  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Pittalis, Rasanen &amp; Marques correlation in 2D </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_vBH">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 17  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  von Barth &amp; Hedin            </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_LDA_C_1D_CSC">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr> 18  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Casula, Sorella, and Senatore 1D correlation     </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_PBE">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>130  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew, Burke &amp; Ernzerhof correlation          </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_LYP">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>131  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Lee, Yang &amp; Parr </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_P86">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>132  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew 86 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_PBE_SOL">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>133  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew, Burke &amp; Ernzerhof correlation SOL      </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_PW91">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>134  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Perdew &amp; Wang 91 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_AM05">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>135  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Armiento &amp; Mattsson 05 correlation             </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_XPBE">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>136  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  xPBE reparametrization by Xu &amp; Goddard         </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_LM">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>137  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  Langreth and Mehl correlation          </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_C_PBE_JRGX">
+                                                  <xs:annotation>
+                                                  <xs:appinfo>
+                              <oldnr>138  </oldnr>
+                            </xs:appinfo>
+                                                  <xs:documentation>  JRGX reparametrization by Pedroza, Silva &amp; Capelle </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <!--
+<xs:enumeration value="XC_MGGA_C_TPSS"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>231  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  Perdew, Tao, Staroverov &amp; Scuseria correlation </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+<xs:enumeration value="XC_MGGA_C_VSXC"> <xs:annotation>
+                            <xs:appinfo>
+                              <oldnr>232  </oldnr>
+                            </xs:appinfo>
+                            <xs:documentation>  VSxc from Van Voorhis and Scuseria (correlation part) </xs:documentation>
+                          </xs:annotation>
+                        </xs:enumeration>
+                                  -->
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
+                                    <xs:attribute default="none" name="xc" use="optional">
+                                        <xs:annotation>
+                                            <xs:documentation> Combined functionals. If set it
+                                                overrides the exchange and the correlation
+                                                attributes. </xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="none">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr>0</oldnr></xs:appinfo>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_LB">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 160 </oldnr></xs:appinfo>
+                                                  <xs:documentation> van Leeuwen &amp; Baerends
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_HCTH_93">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 161 </oldnr></xs:appinfo>
+                                                  <xs:documentation> HCTH functional fitted to 93
+                                                  molecules </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_HCTH_120">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 162 </oldnr></xs:appinfo>
+                                                  <xs:documentation> HCTH functional fitted to 120
+                                                  molecules </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_HCTH_147">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 163 </oldnr></xs:appinfo>
+                                                  <xs:documentation> HCTH functional fitted to 147
+                                                  molecules </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_HCTH_407">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 164 </oldnr></xs:appinfo>
+                                                  <xs:documentation> HCTH functional fitted to 147
+                                                  molecules </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_EDF1">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 165 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Empirical functionals from
+                                                  Adamson, Gill, and Pople </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_XLYP">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 166 </oldnr></xs:appinfo>
+                                                  <xs:documentation> XLYP functional
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_B97">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 167 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_B97_1">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 168 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97-1 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_B97_2">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 169 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97-2 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_B97_D">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 170 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Grimme functional to be used
+                                                  with C6 vdW term </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_B97_K">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 171 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Boese-Martin for Kinetics
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_B97_3">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 172 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97-3 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_PBE1W">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 173 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Functionals fitted for water
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_MPWLYP1W">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 174 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Functionals fitted for water
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_PBELYP1W">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 175 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Functionals fitted for water
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_SB98_1a">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 176 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 1a </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_SB98_1b">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 177 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 1b </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_SB98_1c">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 178 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 1c </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_SB98_2a">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 179 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 2a </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_SB98_2b">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 180 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 2b </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_GGA_XC_SB98_2c">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 181 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 2c </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B3PW91">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 401 </oldnr></xs:appinfo>
+                                                  <xs:documentation> The original hybrid proposed by
+                                                  Becke </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B3LYP">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 402 </oldnr></xs:appinfo>
+                                                  <xs:documentation> The (in)famous B3LYP
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B3P86">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 403 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Perdew 86 hybrid similar to
+                                                  B3PW91 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_O3LYP">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 404 </oldnr></xs:appinfo>
+                                                  <xs:documentation> hybrid using the optx
+                                                  functional </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_mPW1K">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 405 </oldnr></xs:appinfo>
+                                                  <xs:documentation> mixture of mPW91 and PW91
+                                                  optimized for kinetics </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_PBEH">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 406 </oldnr></xs:appinfo>
+                                                  <xs:documentation> aka PBE0 or PBE1PBE
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B97">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 407 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B97_1">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 408 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97-1 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B97_2">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 410 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97-2 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_X3LYP">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 411 </oldnr></xs:appinfo>
+                                                  <xs:documentation> maybe the best hybrid
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B1WC">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 412 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 1-parameter mixture of WC
+                                                  and PBE </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B97_K">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 413 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Boese-Martin for Kinetics
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B97_3">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 414 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 97-3 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_mPW3PW">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 415 </oldnr></xs:appinfo>
+                                                  <xs:documentation> mixture with the mPW functional
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B1LYP">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 416 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 1-parameter mixture of
+                                                  B88 and LYP </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_B1PW91">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 417 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 1-parameter mixture of
+                                                  B88 and PW91 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_mPW1PW">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 418 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Becke 1-parameter mixture of
+                                                  mPW91 and PW91 </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_mPW3LYP">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 419 </oldnr></xs:appinfo>
+                                                  <xs:documentation> mixture of mPW and LYP
+                                                  </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_SB98_1a">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 420 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 1a </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_SB98_1b">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 421 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 1b </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_SB98_1c">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 422 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 1c </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_SB98_2a">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 423 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 2a </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_SB98_2b">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 424 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 2b </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+                                                <xs:enumeration value="XC_HYB_GGA_XC_SB98_2c">
+                                                  <xs:annotation>
+                                                  <xs:appinfo><oldnr> 425 </oldnr></xs:appinfo>
+                                                  <xs:documentation> Schmider-Becke 98
+                                                  parameterization 2c </xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:enumeration>
+
+                                            </xs:restriction>
+
+                                        </xs:simpleType>
+
+                                    </xs:attribute>
+
+                                </xs:complexType>
+                            </xs:element>
                         </xs:all>
                         <xs:attribute ex:importance="essential" ex:unit="" ref="do"
                             default="fromscratch">
@@ -1249,7 +2121,7 @@ Example:  <pre>
                             <xs:annotation>
                                 <xs:documentation>Select method to determine the linearization energies.</xs:documentation>
                                 <xs:appinfo>
-                                    <olddefault default="simple"/>
+                                    <olddefault default="advanced"/>
                                 </xs:appinfo>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1975,14 +2847,11 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos"
-                                        default="500">
-                                    </xs:attribute>
+                                        default="500"> </xs:attribute>
                                     <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos"
-                                        default="100">
-                                    </xs:attribute>
+                                        default="100"> </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos"
-                                        default="0">
-                                    </xs:attribute>
+                                        default="0"> </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
                                         name="winddos" default="-0.5d0 0.5d0" type="vect2d">
                                         <xs:annotation>
@@ -2192,12 +3061,12 @@ Example:  <pre>
                                     </xs:appinfo>
                                 </xs:annotation>
                                 <xs:complexType>
-                                <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
-                                   default="false">
-                                  <xs:annotation>
-                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
-                                  </xs:annotation>                                     
-                                  </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat"
+                                        default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="dielectric"
@@ -2219,22 +3088,21 @@ Example:  <pre>
                                     </xs:sequence>
                                     <xs:attribute ex:importance="expert" ex:unit="Hartree"
                                         ref="scissor" default="0.0d0"/>
-                                <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
-                                    default="false">
-                                   <xs:annotation>
-                                       <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
-                                   </xs:annotation>
-                                </xs:attribute>
-                                <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
-                                   type="xs:boolean" default="false">
-                                  <xs:annotation>
-                                     <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
-                                  </xs:annotation>   
-                                  </xs:attribute>
-                               </xs:complexType>
+                                    <xs:attribute ex:importance="expert" ex:unit="" ref="intraband"
+                                        default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>The intraband attribute is <pre>"true"</pre> if the intraband term is to be added to the optical matrix (q=0)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="usegdft"
+                                        type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                </xs:complexType>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="moke"
-                                minOccurs="0">
+                            <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0">
                                 <xs:complexType/>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="expiqr"
@@ -2281,19 +3149,16 @@ Example:  <pre>
                                 maxOccurs="1" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation>
-                                     Phonon density of states.
-                                    </xs:documentation>
+                   Phonon density of states.
+                 </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos"
-                                        default="500">
-                                    </xs:attribute>
+                                        default="500"> </xs:attribute>
                                     <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos"
-                                        default="100">
-                                    </xs:attribute>
+                                        default="100"> </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos"
-                                        default="0">
-                                    </xs:attribute>                                                              
+                                        default="0"> </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="phonondispplot"
@@ -2321,47 +3186,48 @@ Example:  <pre>
                                     <xs:documentation>Interpolates the phonon frequencies on a given q-point set.</xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
-			                        <xs:attribute ex:importance="essential" ex:unit="" name="ngridq"
-			                            type="integertriple" use="required">
-			                            <xs:annotation>
-			                                <xs:documentation>q-point grid for interpolation.</xs:documentation>
-			                            </xs:annotation>
-			                        </xs:attribute>
-			                        <xs:attribute ex:importance="expert" ex:unit="" name="vqloff" type="vect3d"
-			                            default="0.0d0 0.0d0 0.0d0">
-			                            <xs:annotation>
-			                                <xs:documentation>The q-point offset vector in lattice coordinates.</xs:documentation>
-			                            </xs:annotation>
-			                        </xs:attribute>
-			                        <xs:attribute ex:importance="expert" ex:unit="" name="writeeigenvectors"
-			                            type="xs:boolean" default="false">
-			                            <xs:annotation>
-			                                <xs:documentation>Set to <pre>true</pre> if the phonon eigenvectors are to be
+                                    <xs:attribute ex:importance="essential" ex:unit="" name="ngridq"
+                                        type="integertriple" use="required">
+                                        <xs:annotation>
+                                            <xs:documentation>q-point grid for interpolation.</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="vqloff"
+                                        type="vect3d" default="0.0d0 0.0d0 0.0d0">
+                                        <xs:annotation>
+                                            <xs:documentation>The q-point offset vector in lattice coordinates.</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit=""
+                                        name="writeeigenvectors" type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>Set to <pre>true</pre> if the phonon eigenvectors are to be
 			                                interpolated and output in addition to the phonon frequencies.
 			                                </xs:documentation>
-			                            </xs:annotation>
-			                        </xs:attribute>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0"
                                 maxOccurs="1"/>
                         </xs:all>
-   						   <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
-						        <xs:annotation>
-							            <xs:appinfo>
-							                <oldname>nonreplace</oldname>
-							            </xs:appinfo>
-							            <xs:documentation>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="do"
+                            default="fromscratch">
+                            <xs:annotation>
+                                <xs:appinfo>
+                                    <oldname>nonreplace</oldname>
+                                </xs:appinfo>
+                                <xs:documentation>
 							            Decides if the phonon calculation is skipped or recalculated or continued from file.
 							        </xs:documentation>
-							        </xs:annotation>
-							        <xs:simpleType>
-							            <xs:restriction base="xs:string">
-							                <xs:enumeration value="fromscratch"/>
-							                <xs:enumeration value="skip"/>
-							            </xs:restriction>
-							        </xs:simpleType>
-							   </xs:attribute>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="fromscratch"/>
+                                    <xs:enumeration value="skip"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="ngridq"
                             type="integertriple" use="required">
                             <xs:annotation>
@@ -2580,43 +3446,45 @@ Example:  <pre>
                                             </xs:restriction>
                                         </xs:simpleType>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
-                                      <xs:annotation>
-                                             <xs:appinfo>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="do"
+                                        default="fromscratch">
+                                        <xs:annotation>
+                                            <xs:appinfo>
                                                  <oldname>nonreplace</oldname>
                                              </xs:appinfo>
-                                             <xs:documentation>
+                                            <xs:documentation>
                                              Decides if the TDDFT calculation is to be resumed starting from a new xc kernel or is to be skipped.
                                          </xs:documentation>
-                                         </xs:annotation>
-                                         <xs:simpleType>
-                                             <xs:restriction base="xs:string">
-                                                 <xs:enumeration value="fromscratch"/>
-                                                 <xs:enumeration value="fromkernel"/>
-                                             </xs:restriction>
-                                         </xs:simpleType>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="fromscratch"/>
+                                                <xs:enumeration value="fromkernel"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="screening"
                                 minOccurs="0" maxOccurs="1">
                                 <xs:complexType>
-				                        <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
-				                          <xs:annotation>
-				                                 <xs:appinfo>
-				                                     <oldname>nonreplace</oldname>
-				                                 </xs:appinfo>
-				                                 <xs:documentation>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="do"
+                                        default="fromscratch">
+                                        <xs:annotation>
+                                            <xs:appinfo>
+                                                <oldname>nonreplace</oldname>
+                                            </xs:appinfo>
+                                            <xs:documentation>
 				                                 Decides if the calculation of the screening is done from scratch or is to be skipped.
 				                             </xs:documentation>
-				                             </xs:annotation>
-				                             <xs:simpleType>
-				                                 <xs:restriction base="xs:string">
-				                                     <xs:enumeration value="fromscratch"/>
-				                                     <xs:enumeration value="skip"/>
-				                                 </xs:restriction>
-				                             </xs:simpleType>
-				                        </xs:attribute>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="fromscratch"/>
+                                                <xs:enumeration value="skip"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="nosym"
                                         type="xs:boolean" default="false">
                                         <xs:annotation>
@@ -2696,7 +3564,7 @@ Example:  <pre>
                                             <xs:appinfo>
                                                 <oldname>nosymbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>set to<pre>"true"</pre> if no symmetry information should be used for BSE.</xs:documentation>                                        
+                                            <xs:documentation>set to<pre>"true"</pre> if no symmetry information should be used for BSE.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
@@ -2743,7 +3611,7 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>true if q-point set is taken from first Brillouin zone</xs:documentation>
                                         </xs:annotation>
-                                    </xs:attribute>                                        
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="sciavtype"
                                         default="spherical">
                                         <xs:annotation>
@@ -2792,7 +3660,7 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>true if effective singular part of direct term of BSE Hamiltonian is to be used</xs:documentation>
                                         </xs:annotation>
-                                    </xs:attribute>                                        
+                                    </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="lmaxdielt"
                                         type="xs:integer" default="14">
                                         <xs:annotation>
@@ -2810,22 +3678,29 @@ Example:  <pre>
                                         <xs:annotation>
                                             <xs:documentation>maximum number of excitons to be considered in a BSE calculation</xs:documentation>
                                         </xs:annotation>
-                                    </xs:attribute>                                        
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse"
-                                        type="integerpair" default="0 0">
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlbsemat"
+                                        type="integerquadrupel" default="0 0 0 0">
                                         <xs:annotation>
                                             <xs:appinfo>
                                                 <oldname>nbfbse,nafbse</oldname>
                                             </xs:appinfo>
-                                            <xs:documentation>number of states below and above the Fermi level</xs:documentation>
+                                            <xs:documentation>range of bands for calculating the screening and matrix elements needed for solving BSE. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the lowest eigenenergy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlce"
-                                        type="integerpair" default="0 0">
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse"
+                                        type="integerquadrupel" default="0 0 0 0">
                                         <xs:annotation>
                                             <xs:appinfo>
-                                                <oldname>nbfce,nafce</oldname>
+                                                <oldname>nbfbse,nafbse</oldname>
                                             </xs:appinfo>
+                                            <xs:documentation>range of bands included for the BSE calculation. The first pair of numbers correspond to the band index for local orbitals and valence states (counted from the lowest eigenenergy), the second pair correspond to the band index of the conduction states (counted from the Fermi level)</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="aresbse"
+                                        type="xs:boolean" default="true">
+                                        <xs:annotation>
+                                            <xs:documentation>Is <pre>"true"</pre> if to consider the anti-resonant part for the BSE spectrum</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" name="bsetype"
@@ -2844,8 +3719,8 @@ Example:  <pre>
                                     </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
-                            <xs:element ex:importance="expert" ex:unit="" name="transitions" minOccurs="0"
-                                maxOccurs="1">
+                            <xs:element ex:importance="expert" ex:unit="" name="transitions"
+                                minOccurs="0" maxOccurs="1">
                                 <xs:annotation>
                                     <xs:documentation>Describe transitions between Kohn-Sham states 
                                     for the calculation of the Kohn-Sham response function (and screening) here.
@@ -2853,165 +3728,165 @@ Example:  <pre>
                                     and final states can be defined.</xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
-                                   <xs:all>
-                                      <xs:element ex:importance="expert" ex:unit="" name="individual" minOccurs="0"
-                                maxOccurs="1">
-                                         <xs:annotation>
-                                             <xs:documentation>A list of individual transitions consisting of an initial state
+                                    <xs:all>
+                                        <xs:element ex:importance="expert" ex:unit=""
+                                            name="individual" minOccurs="0" maxOccurs="1">
+                                            <xs:annotation>
+                                                <xs:documentation>A list of individual transitions consisting of an initial state
                                              a final state and a k-point is given here. An empty list amounts to no transitions at all.
                                              </xs:documentation>
-                                         </xs:annotation>
-                                         <xs:complexType>
-                                         <xs:sequence>
-                                           <xs:element ex:importance="expert" ex:unit="" name="trans"
-                                               minOccurs="0" maxOccurs="unbounded">
-                                               <xs:annotation>
-                                                   <xs:documentation>
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                  <xs:element ex:importance="expert" ex:unit=""
+                                                  name="trans" minOccurs="0" maxOccurs="unbounded">
+                                                  <xs:annotation>
+                                                  <xs:documentation>
                                                    An individual transition consisting of an initial state
                                              a final state and a k-point is given here.
                                                     Values of zero correspond to the inclusion of all initial and final states and all k-points 
                                                     and can be used as "wildcards" (default). Therefore, an empty element amounts to include all
                                                     transitions.
                                                    </xs:documentation>
-                                               </xs:annotation>
-                                               <xs:complexType>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="action" use="optional" default="include">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states. If a state is included as
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="action" use="optional" default="include">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select to include or exclude states. If a state is included as
                                                          well as excluded several times the last definition (in the sequence of individual
                                                          transitions) counts.</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-points.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                    
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="initial"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Initial state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="final"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Final state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                               </xs:complexType>
-                                           </xs:element>
-                                         </xs:sequence>
-                                         </xs:complexType>
-                                      </xs:element>
-                                      <xs:element ex:importance="expert" ex:unit="" name="ranges" minOccurs="0"
-                                maxOccurs="1">
-                                         <xs:annotation>
-                                             <xs:documentation>A list of ranges of transitions (initial state as well as final state ranges)
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="kpointnumber" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-points.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="initial" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Initial state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="final" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Final state of individual transition. A value of zero (default) means to include all states.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element ex:importance="expert" ex:unit="" name="ranges"
+                                            minOccurs="0" maxOccurs="1">
+                                            <xs:annotation>
+                                                <xs:documentation>A list of ranges of transitions (initial state as well as final state ranges)
                                              and a k-point are given here. An empty list amounts to no transitions at all.</xs:documentation>
-                                         </xs:annotation>
-                                         <xs:complexType>
-                                         <xs:sequence>
-                                           <xs:element ex:importance="expert" ex:unit="" name="range"
-                                               minOccurs="0" maxOccurs="unbounded">
-                                               <xs:annotation>
-                                                   <xs:documentation>A range of transitions (for initial as well as final states)
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                  <xs:element ex:importance="expert" ex:unit=""
+                                                  name="range" minOccurs="0" maxOccurs="unbounded">
+                                                  <xs:annotation>
+                                                  <xs:documentation>A range of transitions (for initial as well as final states)
                                              is given here. A range consists of a "start" and a "stop" value as well as a k-point.
                                                     Values of zero correspond to starting at the first state and stopping at the last
                                                     state and considering all k-points. They can be used as "wildcards" (default). Therefore,
                                                     an empty element corresponds to the full initial/final state range for all k-points.
                                                    </xs:documentation>
-                                               </xs:annotation>
-                                               <xs:complexType>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="action" use="optional" default="include">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="action" use="optional" default="include">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select to include or exclude states.  If a state is included as
                                                          well as excluded several times the last definition (in the sequence of individual
                                                          transitions) counts.</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="statestype" use="required">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select for initial or final state range</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="start"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Start value (first state) for range. A value of zero (default) means to start from the first state.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="stop"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Stop value (last state) for range. A value of zero (default) means to stop at the last state (no upper limit).</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                                                                                                                                                                           
-                                               </xs:complexType>
-                                           </xs:element>
-                                         </xs:sequence>
-                                         </xs:complexType>                                        
-                                      </xs:element>
-                                      <xs:element ex:importance="expert" ex:unit="" name="lists" minOccurs="0"
-                                maxOccurs="1">
-                                         <xs:annotation>
-                                             <xs:documentation>A list of initial and final state entries to be considered for transitions.
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="statestype" use="required">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select for initial or final state range</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="kpointnumber" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="start" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Start value (first state) for range. A value of zero (default) means to start from the first state.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="stop" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Stop value (last state) for range. A value of zero (default) means to stop at the last state (no upper limit).</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element ex:importance="expert" ex:unit="" name="lists"
+                                            minOccurs="0" maxOccurs="1">
+                                            <xs:annotation>
+                                                <xs:documentation>A list of initial and final state entries to be considered for transitions.
                                              An empty list amounts to no transitions at all.</xs:documentation>
-                                         </xs:annotation>
-                                         <xs:complexType>
-                                         <xs:sequence>
-                                           <xs:element ex:importance="expert" ex:unit="" name="istate"
-                                               minOccurs="0" maxOccurs="unbounded">
-                                               <xs:annotation>
-                                                   <xs:documentation>An initial or final state and corresponding k-point                                                   
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                  <xs:element ex:importance="expert" ex:unit=""
+                                                  name="istate" minOccurs="0" maxOccurs="unbounded">
+                                                  <xs:annotation>
+                                                  <xs:documentation>An initial or final state and corresponding k-point                                                   
                                              is given here.
                                                     Values of zero correspond to considering all initial/final states for all k-points. They can be used as "wildcards" (default). Therefore,
                                                     an empty element corresponds to the full initial/final state set for all k-points.
                                                    </xs:documentation>
-                                               </xs:annotation>
-                                               <xs:complexType>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="action" use="optional" default="include">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select to include or exclude states.  If a state is included as
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="action" use="optional" default="include">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select to include or exclude states.  If a state is included as
                                                          well as excluded several times the last definition (in the sequence of individual
                                                          transitions) counts.</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit=""
-                                                     ref="statestype" use="required">
-                                                     <xs:annotation>
-                                                         <xs:documentation>Select for initial or final state list</xs:documentation>
-                                                     </xs:annotation>
-                                                   </xs:attribute>
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>                                                                                                    
-                                                   <xs:attribute ex:importance="expert" ex:unit="" name="state"
-                                                      type="xs:integer" default="0">
-                                                      <xs:annotation>
-                                                        <xs:documentation>The state to be considered. A value of zero (default) means to include all states.</xs:documentation>
-                                                      </xs:annotation>
-                                                   </xs:attribute>
-                                               </xs:complexType>
-                                           </xs:element>
-                                         </xs:sequence>
-                                         </xs:complexType>                                        
-                                      </xs:element>
-                                    </xs:all>                                      
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  ref="statestype" use="required">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Select for initial or final state list</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="kpointnumber" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>Number of k-point to consider. A value of zero (default) means to include all k-point.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  <xs:attribute ex:importance="expert" ex:unit=""
+                                                  name="state" type="xs:integer" default="0">
+                                                  <xs:annotation>
+                                                  <xs:documentation>The state to be considered. A value of zero (default) means to include all states.</xs:documentation>
+                                                  </xs:annotation>
+                                                  </xs:attribute>
+                                                  </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:all>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" ref="qpointset"
@@ -3067,8 +3942,7 @@ Example:  <pre>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" ref="energywindow"
-                                maxOccurs="1" minOccurs="1">
-                            </xs:element>
+                                maxOccurs="1" minOccurs="1"> </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="plan" minOccurs="0"
                                 maxOccurs="1">
                                 <xs:complexType>
@@ -3429,14 +4303,14 @@ Example:  <pre>
                                 <xs:documentation>Lorentzian broadening for all spectra</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="Hartree"
-                            name="epsdfde" type="fortrandouble" default="1.0d-8">
+                        <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdfde"
+                            type="fortrandouble" default="1.0d-8">
                             <xs:annotation>
                                 <xs:documentation>
                        smallest energy difference for which the square of its inverse will be considered in the Kohn-Sham response function
                      </xs:documentation>
                             </xs:annotation>
-                        </xs:attribute>                        
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="tevout"
                             type="xs:boolean" default="false">
                             <xs:annotation>
@@ -3477,33 +4351,34 @@ Example:  <pre>
                         <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo"
                             type="xs:boolean" default="false">
                             <xs:annotation>
-                               <xs:documentation>true if to append info to output file</xs:documentation>
+                                <xs:documentation>true if to append info to output file</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="dbglev"
                             type="xs:integer" default="0">
                             <xs:annotation>
-                               <xs:documentation>debugging level</xs:documentation>
+                                <xs:documentation>debugging level</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="expert" ex:unit="" name="gqmaxtype" default="|G+q|">
-                          <xs:annotation>
-                            <xs:documentation>Defines the way the gqmax cutoff is applied for the selection of the G-vectors</xs:documentation>
-                          </xs:annotation>
-                          <xs:simpleType>
-                          <xs:restriction base="xs:string">
-                            <xs:enumeration value="|G+q|">
-                              <xs:annotation>
-                                <xs:documentation>G vectors are selected such that <inlinemath>{\bf G+q}</inlinemath> lies within the <pre>gqmax</pre> cutoff</xs:documentation>
-                              </xs:annotation>
-                            </xs:enumeration>
-                            <xs:enumeration value="|G|">
-                              <xs:annotation>
-                                <xs:documentation>G vectors are selected such that <inlinemath>{\bf G}</inlinemath> lies within the <pre>gqmax</pre> cutoff</xs:documentation>
-                              </xs:annotation>
-                            </xs:enumeration>
-                            </xs:restriction>
-                          </xs:simpleType>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="gqmaxtype"
+                            default="|G+q|">
+                            <xs:annotation>
+                                <xs:documentation>Defines the way the gqmax cutoff is applied for the selection of the G-vectors</xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="|G+q|">
+                                        <xs:annotation>
+                                            <xs:documentation>G vectors are selected such that <inlinemath>{\bf G+q}</inlinemath> lies within the <pre>gqmax</pre> cutoff</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:enumeration>
+                                    <xs:enumeration value="|G|">
+                                        <xs:annotation>
+                                            <xs:documentation>G vectors are selected such that <inlinemath>{\bf G}</inlinemath> lies within the <pre>gqmax</pre> cutoff</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:enumeration>
+                                </xs:restriction>
+                            </xs:simpleType>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="gqmax"
                             type="fortrandouble" default="0.0d0">
@@ -3613,8 +4488,8 @@ Example:  <pre>
                                 <xs:documentation>number of empty states</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute ex:importance="essential" ex:unit="Hartree"
-                                        ref="scissor" default="0.0d0">
+                        <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor"
+                            default="0.0d0">
                             <xs:annotation>
                                 <xs:documentation>scissors correction</xs:documentation>
                             </xs:annotation>
@@ -3622,9 +4497,10 @@ Example:  <pre>
                     </xs:complexType>
                 </xs:element>
                 <xs:element minOccurs="0" name="keywords" type="xs:string" maxOccurs="1">
-                  <xs:annotation>
-                    <xs:documentation>The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the <exciting>exciting</exciting> program.</xs:documentation>
-                  </xs:annotation></xs:element>
+                    <xs:annotation>
+                        <xs:documentation>The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the <exciting>exciting</exciting> program.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
             </xs:all>
             <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI"
                 default="http://xml.exciting-code.org">

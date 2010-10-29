@@ -1,9 +1,13 @@
 
-! Copyright (C) 2008 S. Sagmeister and C. Ambrosch-Draxl.
+! Copyright (C) 2008-2010 S. Sagmeister and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
 
+!BOP
+! !ROUTINE: scrcoulint
+! !INTERFACE:
 Subroutine scrcoulint
+! !USES:
       Use modmain
       Use modinput
       Use modmpi
@@ -14,6 +18,16 @@ Subroutine scrcoulint
       Use m_writevars
       Use m_genfilname
       Use m_getunit
+! !DESCRIPTION:
+!   Calculates the direct term of the Bethe-Salpeter Hamiltonian.
+!
+! !REVISION HISTORY:
+!   Created June 2008 (S. Sagmeister)
+!   Addition of explicit energy ranges for states below and above the Fermi
+!      level for the treatment of core excitations (using local orbitals).
+!      October 2010 (Weine Olovsson)
+!EOP
+!BOC      
       Implicit None
   ! local variables
       Character (*), Parameter :: thisnam = 'scrcoulint'
@@ -23,6 +37,7 @@ Subroutine scrcoulint
      & igq2, n, recl, un
       Integer :: nsc, iv (3), ivgsym (3), j1, j2, nkkp
       Integer :: ist1, ist2, ist3, ist4, nst12, nst34, nst13, nst24
+      Integer :: sta1, sto1, sta2, sto2, rnst1, rnst2, rnst3, rnst4
       Logical :: tq0, tphf
       Real (8) :: vqr (3), vq (3), t1
       Integer :: sc (maxsymcrys), ivgsc (3, maxsymcrys)
@@ -45,6 +60,15 @@ Subroutine scrcoulint
       Call init0
       Call init1
       Call init2
+ ! set the range of valence/core and conduction states to use
+      sta1 = input%xs%bse%nstlbsemat(1)
+      sto1 = input%xs%bse%nstlbsemat(2)
+      sta2 = input%xs%bse%nstlbsemat(3)
+      sto2 = input%xs%bse%nstlbsemat(4)
+      rnst1 = sto1-sta1+1
+      rnst2 = sto1-sta1+1
+      rnst3 = sto2-sta2+1
+      rnst4 = sto2-sta2+1
   ! read Fermi energy from file
       Call readfermi
   ! save variables for the Gamma q-point
@@ -67,10 +91,9 @@ Subroutine scrcoulint
   ! only for systems with a gap in energy
       If ( .Not. ksgap) Then
          Write (*,*)
-         Write (*, '("Error(",a,"): screened Coulomb interaction works &
-        &only for systems with KS-gap.")') trim (thisnam)
+         Write (*, '("Warning(",a,"): There is no KS-gap present& 
+        &")') trim (thisnam)					  
          Write (*,*)
-         Call terminate
       End If
   ! check number of empty states
       If (input%xs%screening%nempty .Lt. input%groundstate%nempty) Then
@@ -83,10 +106,10 @@ Subroutine scrcoulint
          Call terminate
       End If
       Call ematbdcmbs (input%xs%emattype)
-      nst12 = nst1 * nst2
-      nst34 = nst3 * nst4
-      nst13 = nst1 * nst3
-      nst24 = nst2 * nst4
+      nst12 = rnst1 * rnst2
+      nst34 = rnst3 * rnst4
+      nst13 = rnst1 * rnst3
+      nst24 = rnst2 * rnst4
       Call genfilname (dotext='_SCI.OUT', setfilext=.True.)
       If (rank .Eq. 0) Then
          Call writekpts
@@ -95,7 +118,7 @@ Subroutine scrcoulint
 !
   ! local arrays
       Allocate (phf(ngqmax, ngqmax))
-      Allocate (sccli(nst1, nst3, nst2, nst4), scclid(nst1, nst3))
+      Allocate (sccli(rnst1, rnst3, rnst2, rnst4), scclid(rnst1, rnst3))
       Allocate (scieffg(ngqmax, ngqmax, nqptr))
       sccli (:, :, :, :) = zzero
       scieffg (:, :, :) = zzero
@@ -230,15 +253,15 @@ Subroutine scrcoulint
 !
      ! combine indices for matrix elements of plane wave
          j1 = 0
-         Do ist2 = 1, nst2
-            Do ist1 = 1, nst1
+         Do ist2 = sta1, sto1
+            Do ist1 = sta1, sto1
                j1 = j1 + 1
                emat12 (j1, :) = xiou (ist1, ist2, :)
             End Do
          End Do
          j2 = 0
-         Do ist4 = 1, nst4
-            Do ist3 = 1, nst3
+         Do ist4 = sta2, sto2
+            Do ist3 = sta2, sto2
                j2 = j2 + 1
                emat34 (j2, :) = xiuo (ist3, ist4, :)
             End Do
@@ -251,12 +274,12 @@ Subroutine scrcoulint
 !
      ! map back to individual band indices
          j2 = 0
-         Do ist4 = 1, nst4
-            Do ist3 = 1, nst3
+         Do ist4 = 1, rnst4
+            Do ist3 = 1, rnst3
                j2 = j2 + 1
                j1 = 0
-               Do ist2 = 1, nst2
-                  Do ist1 = 1, nst1
+               Do ist2 = 1, rnst2
+                  Do ist1 = 1, rnst1
                      j1 = j1 + 1
                      sccli (ist1, ist3, ist2, ist4) = scclit (j1, j2)
                   End Do
@@ -265,13 +288,14 @@ Subroutine scrcoulint
          End Do
          If ((rank .Eq. 0) .And. (ikkp .Le. 3)) Then
         ! write to ASCII file
-            Do ist1 = 1, nst1
-               Do ist3 = 1, nst3
-                  Do ist2 = 1, nst2
-                     Do ist4 = 1, nst4
+            Do ist1 = 1, rnst1
+               Do ist3 = 1, rnst3
+                  Do ist2 = 1, rnst2
+                     Do ist4 = 1, rnst4
                         zt1 = sccli (ist1, ist3, ist2, ist4)
                         Write (un, '(i5,3x,3i4,2x,3i4,2x,4e18.10)') &
-                       & ikkp, iknr, ist1, ist3, jknr, ist2, ist4, zt1, &
+                       & ikkp, iknr, ist1+sta1-1, ist3+sta2-1, jknr,& 
+                       & ist2+sta1-1, ist4+sta2-1, zt1, &
                        & Abs (zt1) ** 2, Atan2 (aimag(zt1), dble(zt1)) &
                        & / pi
                      End Do
@@ -281,21 +305,21 @@ Subroutine scrcoulint
          End If
      ! analyze BSE diagonal
          If (iknr .Eq. jknr) Then
-            Do ist1 = 1, nst1
-               Do ist3 = 1, nst3
+            Do ist1 = 1, rnst1
+               Do ist3 = 1, rnst3
                   zt1 = sccli (ist1, ist3, ist1, ist3)
                   scclid (ist1, ist3) = zt1
                   t1 = dble (zt1)
                   bsedt (1, rank) = Min (dble(bsedt(1, rank)), t1)
                   bsedt (2, rank) = Max (dble(bsedt(2, rank)), t1)
-                  bsedt (3, rank) = bsedt (3, rank) + zt1 / (nst1*nst3)
+                  bsedt (3, rank) = bsedt (3, rank) + zt1 / (rnst1*rnst3)
                End Do
             End Do
          End If
 !
      ! parallel write
          Call putbsemat ('SCCLI.OUT', sccli, ikkp, iknr, jknr, iq, iqr, &
-        & nst1, nst3, nst2, nst4)
+        & rnst1, rnst3, rnst2, rnst4)
 !
          Deallocate (igqmap, emat12, emat34)
          Deallocate (tm, tmi)
@@ -325,3 +349,5 @@ Subroutine scrcoulint
      & finished")')
 !
 End Subroutine scrcoulint
+!EOC
+

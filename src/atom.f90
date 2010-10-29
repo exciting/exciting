@@ -56,7 +56,7 @@ Subroutine atom (ptnucl, zn, nst, n, l, k, occ, xctype, xcgrad, np, nr, &
       Integer, Intent (In) :: l (nst)
       Integer, Intent (In) :: k (nst)
       Real (8), Intent (Inout) :: occ (nst)
-      Integer, Intent (In) :: xctype
+      Integer, Intent (In) :: xctype(3)
       Integer, Intent (In) :: xcgrad
       Integer, Intent (In) :: np
       Integer, Intent (In) :: nr
