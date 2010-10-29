@@ -2121,7 +2121,7 @@ Example:  <pre>
                             <xs:annotation>
                                 <xs:documentation>Select method to determine the linearization energies.</xs:documentation>
                                 <xs:appinfo>
-                                    <olddefault default="simple"/>
+                                    <olddefault default="advanced"/>
                                 </xs:appinfo>
                             </xs:annotation>
                             <xs:simpleType>
