@@ -44,7 +44,7 @@ Subroutine xslinopt (iq)
       If (tq0) nc = 3
   ! matrix size for local field effects
       n = ngq (iq)
-      Allocate (mdf1(nwdf), mdf2(3, 3, nwdf), w(nwdf), &
+      Allocate (mdf1(nwdf), mdf2(3, 3, input%xs%energywindow%points), w(nwdf), &
      & wr(input%xs%energywindow%points), wplot(input%xs%energywindow%points), &
      & mdf(input%xs%energywindow%points), loss(input%xs%energywindow%points), &
      & sigma(input%xs%energywindow%points), cf(3, &
