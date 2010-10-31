@@ -110,7 +110,7 @@ Subroutine xslinopt (iq)
             Do oct2 = octl, octu
                optcompt (:) = (/ oct1, oct2, 0 /)
            ! symmetrize the macroscopic dielectric function tensor
-               Call symt2app (oct1, oct2, nwdf, symt2, mdf2, mdf)
+               if (tq0) Call symt2app (oct1, oct2, nwdf, symt2, mdf2, mdf)
            ! file names for spectra
                Call genfilname (basename='EPSILON', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
