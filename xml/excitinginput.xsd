@@ -2221,9 +2221,6 @@ Example:  <pre>
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-
-
-
                         <xs:attribute ex:importance="expert" ex:unit="" name="nktot"
                             type="xs:integer" default="0">
                             <xs:annotation>
@@ -2246,10 +2243,6 @@ Example:  <pre>
                </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-
-
-
-
                         <xs:attribute ex:importance="essential" ex:unit="" name="reducek"
                             type="xs:boolean" default="true">
                             <xs:annotation>
@@ -4415,7 +4408,7 @@ Example:  <pre>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
-                            type="xs:boolean" default="true">
+                            type="xs:boolean" default="false">
                             <xs:annotation>
                                 <xs:appinfo>
                                     <oldname>reducekxs</oldname>
