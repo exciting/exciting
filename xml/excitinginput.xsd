@@ -4408,7 +4408,7 @@ Example:  <pre>
                                 (a mesh containing the Gamma point) are shifted by a constant vector given
                                 by <inlinemath>({\rm vkloff}_1/N_1, {\rm vkloff}_2/N_2,
                                 {\rm vkloff}_3/N_3)</inlinemath>, 
-                                where <inlinemath>(N_1,N_2,N_3)</inlinemath> is
+                                where <inlinemath> (N_1,N_2,N_3) </inlinemath> is
                                 the division of the k-point mesh.
                                 It should be selected such that
                                 all symmetries among the k-points from the regular (non-shifted)
@@ -4488,7 +4488,11 @@ Example:  <pre>
                                 <xs:appinfo>
                                     <oldname>nemptyxs</oldname>
                                 </xs:appinfo>
-                                <xs:documentation>number of empty states</xs:documentation>
+                                <xs:documentation>Number of empty states. This parameter determines
+                                the energy cutoff for the excitation spectra. For determining the number of
+                                states realted to an energy cutoff, perform one iteration of a SCF
+                                calculation, setting <pre>nempty</pre> to a higher value and check the
+                                <pre>EIGVAL.OUT</pre></xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor"
