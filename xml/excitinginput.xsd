@@ -4404,7 +4404,17 @@ Example:  <pre>
                                 <xs:appinfo>
                                     <oldname>vkloffxs</oldname>
                                 </xs:appinfo>
-                                <xs:documentation>k-point offset</xs:documentation>
+                                <xs:documentation>The k-point set offset. All k-points of a regular k-mesh
+                                (a mesh containing the Gamma point) are shifted by a constant vector given
+                                by <inlinemath>({\rm vkloff}_1/N_1, {\rm vkloff}_2/N_2,
+                                {\rm vkloff}_3/N_3)</inlinemath>, 
+                                where <inlinemath>(N_1,N_2,N_3)</inlinemath> is
+                                the division of the k-point mesh.
+                                It should be selected such that
+                                all symmetries among the k-points from the regular (non-shifted)
+                                mesh are broken. An exception is the case of optical spectra without
+                                local field effects where symmetries among k-points are explicitly
+                                taken into account.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="reducek"
