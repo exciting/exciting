@@ -127,7 +127,7 @@ Subroutine xslinopt (iq)
               & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
               & oc1=oct1, oc2=oct2, iqmt=iq, filnam=fnsigma)
-               Call genfilname (basename='SUMRULES', asc=.False., &
+               if (tq0) Call genfilname (basename='SUMRULES', asc=.False., &
               & bzsampl=bzsampl, acont=input%xs%tddft%acont, nar= .Not. &
               & input%xs%tddft%aresdf, tord=input%xs%tddft%torddf, nlf=(m == 1), &
               & fxctype=input%xs%tddft%fxctypenumber, tq0=tq0, &
@@ -140,7 +140,7 @@ Subroutine xslinopt (iq)
                Call writeeps (iq, oct1, oct2, wplot, mdf, trim(fneps))
                Call writeloss (iq, wplot, loss, trim(fnloss))
                Call writesigma (iq, wplot, sigma, trim(fnsigma))
-               Call writesumrls (iq, sumrls, trim(fnsumrules))
+               if (tq0) Call writesumrls (iq, sumrls, trim(fnsumrules))
            ! end loop over optical components
             End Do
          End Do
