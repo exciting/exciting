@@ -1,5 +1,6 @@
 -include ../make.inc
-
+.NOTPARALLEL:
+	
 SOURCEDIRS=	../../src/  \
 	../../src/src_xs/ \
 	../../src/src_fermisurfdx/ \
@@ -21,13 +22,14 @@ SOURCEDIRS=	../../src/  \
 	../../src/ \
 	
 GeneraedFiles=  ../../src/src_inputparser/inputmodules.f90 ../../src/src_inputparser/speciesmodules.f90	
+LIBXCMOD= ../../src/libXC/src/libxc.f90  ../../src/libXC/src/libxc_funcs.f90
 
 #all:bin
 
-bin::../make.inc libs $(GeneraedFiles)
+bin::../make.inc libs $(GeneraedFiles)  $(LIBXCMOD)
 	perl ../../utilities/versionstamp.pl  
 	../../utilities/mkmf -t ./template -f -m Makefile.mkmf -p exciting \
-	$(SOURCEDIRS) 	../../src/mainxml/ \
+	$(SOURCEDIRS)  $(LIBXCMOD)	../../src/mainxml/ \
 	&& $(MAKE) -f Makefile.mkmf exciting \
 	&& cp exciting ../../bin/exciting$(SUFFIX)
 	
@@ -45,7 +47,7 @@ libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)
-libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a
+libs::libbzint.a	libblas.a liblapack.a fftlib.a  libarpack.a  libmsec.a libfox leblaiklib.a libxc.a
 endif
 
 libblas.a:: 
@@ -95,6 +97,15 @@ leblaiklib.a::
 	cd ../../src/leblaiklib && make
 	cp ../../src/leblaiklib/leblaiklib.a ./
 	
+libxc.a:lib/libxc.a
+
+
+
+lib/libxc.a: 
+	cd ../../src/libXC/ && \
+	./configure FC=$(F90) FCFLAGS="$(CPP_ON_OPT)"  CC=$(CC) FCCPP=$(FCCPP) &&\
+	make 
+	cp -r ../../src/libXC/src/.libs/libxc.a ./lib/libxc.a
 #cp -f ../make.inc ../..
 #cd ../../src/ARPACK && $(MAKE) clean 
 #cp ../../src/ARPACK/libarpack.a .
@@ -106,11 +117,13 @@ leblaiklib.a::
 ../../src/src_inputparser/speciesmodules.f90:   ../../xml/species.xsd ../../xml/schematofortran.xsl
 	xsltproc  ../../xml/schematofortran.xsl  ../../xml/species.xsd > ../../src/src_inputparser/speciesmodules.f90
 	
-clean:
-	rm -f *.o *.mod
+clean:cleanlibs
+	rm -f *.o *.mod *.f90 *.F90 
 
 cleanlibs:
 	rm -f *.a
 	rm -rf lib finclude
+	cd ../../src/libXC/ && make clean
+	cd ../../src/FoX && make clean
 
 

@@ -28,7 +28,8 @@ Contains
          Call setParameter (config, "validate-if-schema", .True.)
  !get commandline argument and use as filename
       if (iargc().eq.1)then
-      CALL GETARG(1 , filename)
+          CALL GETARG(1 , filename)
+          write(*,*) "### Using specified input file: " // trim(filename)
       else
           filename=deffilename
       endif

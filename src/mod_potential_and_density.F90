@@ -13,9 +13,9 @@ Module mod_potential_and_density
 !     potential and density variables     !
 !-----------------------------------------!
 ! exchange-correlation functional type
-!replaced by inputstructureinteger::xctype
+ 	integer::xctype(3)
 ! exchange-correlation functional description
-      Character (256) :: xcdescr
+      Character (512) :: xcdescr
 ! exchange-correlation functional spin treatment
       Integer :: xcspin
 ! exchange-correlation functional density gradient treatment

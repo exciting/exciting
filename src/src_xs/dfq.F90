@@ -419,7 +419,7 @@ use ioarray
                      wouw (wi:wf) = cmplx (dble(wou(wi:wf)), &
                     & aimag(wou(wi:wf))*deou(ist1, &
                     & ist2)/(-wreal(:)-dble(scis12c(ist1, ist2))))
-                     wuow (wi:wf) = cmplx (dble(wuo(iw:wf)), &
+                     wuow (wi:wf) = cmplx (dble(wuo(wi:wf)), &
                     & aimag(wuo(wi:wf))*deuo(ist2, &
                     & ist1)/(-wreal(:)-dble(scis21c(ist2, ist1))))
                      wouh (wi:wf) = cmplx (dble(wou(wi:wf)), &

@@ -598,9 +598,9 @@ Subroutine gndstate
            & timepot + timefor
             Write (60, '(" total", T40, ": ", F12.2)') timetot
             Write (60,*)
-            Write (60, '("+----------------------------+")')
-            Write (60, '("| EXCITING deuterium stopped |")')
-            Write (60, '("+----------------------------+")')
+            Write (60, '("+-------------------------+")')
+            Write (60, '("| EXCITING helium stopped |")')
+            Write (60, '("+-------------------------+")')
  ! close the TOTENERGY.OUT file
             Close (61)
  ! close the FERMIDOS.OUT file

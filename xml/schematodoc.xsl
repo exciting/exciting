@@ -182,8 +182,10 @@
 \begin{document}
 \newcommand{\exciting}{EXC!T!`NG }
 \title{</xsl:text><xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/title"/><xsl:text>} 
-\author{exciting devteam}
-
+\author{\exciting developers team\\
+(C. Ambrosch-Draxl, Zohreh Basirat, Thomas Dengg,\\
+Christian Meisenbichler, Dmitrii Nabok, Weine Olovsson,\\
+Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 
 \maketitle \newpage \tableofcontents
 

@@ -1,10 +1,10 @@
+*.spec
 *.deb
 .git*
 src/species/species
 debian/debian/usr
 test02/runlapackmpi/startmpirun
 *.err
-Makefile.*
 testprogram?
 mpiconf.inc
 version.inc
@@ -65,4 +65,11 @@ startmpirun
 .externalToolBuilders
 results
 _current
-
+*.lo
+Makefile.blas
+Makefile.fft
+Makefile.lapack
+Makefile.libarpack
+Makefile.libbzint
+Makefile.libmsec
+Makefile.mkmf

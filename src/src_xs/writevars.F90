@@ -51,6 +51,8 @@ Contains
         & input%xs%tddft%intraband
          Write (un, '(a, l8)') '# input%xs%tddft%aresdf	     :', &
         & input%xs%tddft%aresdf
+         Write (un, '(a, l8)') '# input%xs%bse%aresbse       :', &
+        & input%xs%bse%aresbse
          Write (un, '(a, l8)') '# input%xs%tddft%aresfxc	     :', &
         & input%xs%tddft%aresfxc
          Write (un, '(a, l8)') '# input%xs%tddft%torddf	     :', &
@@ -87,7 +89,8 @@ Contains
          Write (un, '(a, i8)') '# nlomax	      :', nlomax
          Write (un, '(a, i8)') '# nst1	      :', nst1
          Write (un, '(a, i8)') '# nst2	      :', nst2
-         Write (un, '(a, 2i8)') '# nstlbse	       :', nbfbse
+         Write (un, '(a, 4i8)') '# nstlbsemat      :', input%xs%BSE%nstlbsemat
+         Write (un, '(a, 4i8)') '# nstlbse         :', input%xs%BSE%nstlbse
          Write (un, '(a, i8)') '# nstsv	      :', nstsv
          Write (un, '(a, 2f12.6)') '# evlmincut (H, eV)  :', evlmincut, &
         & h2ev * evlmincut

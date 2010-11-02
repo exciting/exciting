@@ -5,21 +5,21 @@ include ../../build/Make.common
 Makefile.test1::$(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl
 	../../utilities/mkmf   -t template -f -m Makefile.test1 -p testprogram1  \
-	$(SOURCEDIRS) ../test01/src/ \
+	$(SOURCEDIRS) $(LIBXCMOD) ../test01/src/ \
 	../src/testframework/
 
 
 Makefile.test2::$(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl
 	../../utilities/mkmf -t template -f -m Makefile.test2 -p testprogram2  \
-	$(SOURCEDIRS) ../test02/src \
+	$(SOURCEDIRS) $(LIBXCMOD) ../test02/src \
 	../src/testframework
 
 
 Makefile.test4::$(GeneraedFiles)
 	perl ../../utilities/versionstamp.pl
 	 ../../utilities/mkmf -t template -f -m Makefile.test4 -p testprogram4  \
-	$(SOURCEDIRS) ../test04/src \
+	$(SOURCEDIRS) $(LIBXCMOD) ../test04/src \
 	../src/testframework
 
 

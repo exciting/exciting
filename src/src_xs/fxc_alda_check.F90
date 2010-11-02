@@ -13,7 +13,7 @@
 Subroutine fxc_alda_check
 ! !USES:
       Use modinput
-      Use modmain, Only: lmmaxvr, ngrtot, rhoir, rhomt, vxcir, vxcmt
+      Use modmain, Only: lmmaxvr, ngrtot, rhoir, rhomt, vxcir, vxcmt,xctype
       Use modxcifc, Only: xcifc
       Use modfxcifc
 ! !DESCRIPTION:
@@ -55,7 +55,7 @@ Subroutine fxc_alda_check
         & (irh-1) / dble (nrho)
       End Do
 !
-      Call xcifc (input%groundstate%xctypenumber, n=nrho, rho=rhogr, &
+      Call xcifc (xctype, n=nrho, rho=rhogr, &
      & ex=ex, ec=ec, vx=vx, vc=vc)
       vxc (:) = vx (:) + vc (:)
 !
