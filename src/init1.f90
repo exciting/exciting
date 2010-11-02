@@ -136,7 +136,7 @@ Subroutine init1
 ! the total number of k-points
          If (input%groundstate%nktot.gt.0) Then
             blen(:)=sqrt(bvec(1,:)**2+bvec(2,:)**2+bvec(3,:)**2)           
-            lambdab=Real((input%groundstate%nktot/(blen(1)*blen(2)*blen(3)))**(1.d0/3.d0))
+            lambdab=Dble((input%groundstate%nktot/(blen(1)*blen(2)*blen(3)))**(1.d0/3.d0))
             input%groundstate%ngridk (:) = Max0(1,Int &
            & (lambdab*blen(:)+	input%structure%epslat))
              write(*,*) "ngridk determined from nktot: ", input%groundstate%ngridk(:)
