@@ -16,7 +16,7 @@ subroutine xcifc_libxc(xctype,n,rho,rhoup,rhodn,grho2,gup2,gdn2,gupdn,ex,ec, &
  vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2, &
  dcdgud)
 
-#ifdef LIBXC
+
 
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
@@ -83,6 +83,7 @@ real(8), optional, intent(out) :: dcdg2(*)
 real(8), optional, intent(out) :: dcdgu2(*)
 real(8), optional, intent(out) :: dcdgd2(*)
 real(8), optional, intent(out) :: dcdgud(*)
+#ifdef LIBXC
 ! local variables
 integer nspin,xcf,id,i,k
 real(8) r(2),v(2),sigma(3),vsigma(3)
@@ -213,7 +214,6 @@ return
 end subroutine
 
 subroutine xcdata_libxc(xctype,xcdescr,xcspin,xcgrad)
-#ifdef LIBXC
 
 implicit none
 ! arguments
@@ -221,6 +221,8 @@ integer, intent(in) :: xctype(3)
 character(512), intent(out) :: xcdescr
 integer, intent(out) :: xcspin
 integer, intent(out) :: xcgrad
+#ifdef LIBXC
+
 ! local variables
 integer xcf,id,k
 character(256) name
@@ -268,14 +270,18 @@ do k=2,3
   end if
 end do
 xcdescr=trim(xcdescr)//' (see libxc for references)'
-return
-end subroutine
-!EOC
 
+return
 #endif
+
 #ifndef LIBXC
  write(*,'("Error(xcdata_libxc): LIBXC not acivated : ",&
        &I8)')
       write(*,*)
+      stop
 #endif
+end subroutine
+!EOC
+
+
 end module
