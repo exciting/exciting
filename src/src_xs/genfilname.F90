@@ -15,7 +15,7 @@ Contains
 !
 !
       Subroutine genfilname (nodotpar, basename, etype, asc, bzsampl, &
-     & acont, nar, tord, nlf, fxctype, scrtype, bsetype, markfxcbse, &
+     & acont, nar, tord, nlf, fxctype, fxctypestr, scrtype, bsetype, markfxcbse, &
      & tq0, oc1, oc2, iq, iqmt, procs, rank, dotext, setfilext, &
      & revertfilext, appfilext, filnam, fileext)
 ! !USES:
@@ -40,7 +40,7 @@ Contains
         & tord, nlf, tq0, markfxcbse
          Logical, Optional, Intent (In) :: revertfilext, setfilext, &
         & appfilext
-         Character (*), Optional, Intent (In) :: basename, dotext, &
+         Character (*), Optional, Intent (In) :: basename, dotext, fxctypestr, &
         & scrtype, bsetype
          Character (256), Optional, Intent (Out) :: filnam, fileext
     ! local variables
@@ -136,10 +136,14 @@ Contains
                s = trim (s) // '_NLF'
             End If
          End If
-    ! xc-kernel type
+    ! xc-kernel type (numeric code)
          If (present(fxctype)) Then
             Write (s1, '("_FXC",i2.2)') fxctype
             s = trim (s) // trim (s1)
+         End If
+    ! xc-kernel type (string)
+         If (present(fxctypestr)) Then
+            s = trim (s) // '_FXC' // trim(adjustl(fxctypestr))
          End If
     ! BSE effective Hamiltonian type
          If (present(bsetype)) Then

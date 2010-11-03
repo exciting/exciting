@@ -3865,7 +3865,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"reducek")
-getstructxs%reducek= .true.
+getstructxs%reducek= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"reducek",getstructxs%reducek)
        call removeAttribute(thisnode,"reducek")  
