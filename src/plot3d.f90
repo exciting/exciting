@@ -16,6 +16,8 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Use modinput
       Use modmain
       Use FoX_wxml
+      use modmpi
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   fnum : plot file number (in,integer)
 !   nf   : number of functions (in,integer)
@@ -53,9 +55,9 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Allocatable :: vpl (:, :)
       Real (8), Allocatable :: fp (:, :)
       buffer = fname // "3d.xml"
-      Open (fnum, File=trim(buffer), Action='WRITE', Form='FORMATTED')
+ !
 !
-!
+ If (rank .Eq. 0) Then
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
          Write (*,*)
          Write (*, '("Error(plot3d): invalid number of functions : ", I&
@@ -195,6 +197,7 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Deallocate (vpl, fp)
       Call xml_Close (xf)
       Close (fnum)
+      endif
       Return
 End Subroutine
 !EOC

@@ -16,6 +16,8 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Use modinput
       Use modmain
       Use FoX_wxml
+      use modmpi
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   fname : plot file name character(len=*)
 !   nf   : number of functions (in,integer)
@@ -42,6 +44,7 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Intent (In) :: rfmt (ld, nrmtmax, natmtot, nf)
       Real (8), Intent (In) :: rfir (ngrtot, nf)
       Type (plot2d_type) :: plotdef
+
 ! local variables
       Integer :: i, ip, ip1, ip2, fnum = 50,ifunction
       Real (8) :: vl1 (3), vl2 (3), vc1 (3), vc2 (3),delta(3)
@@ -54,7 +57,7 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Allocatable :: fp (:, :)
 !external functions
       Real(8),external::DNRM2
-
+ If (rank .Eq. 0) Then
       buffer = fname // "2d.xml"
       Call xml_OpenFile (fname//"2d.xml", xf, replace=.True., &
      & pretty_print=.True.)
@@ -170,6 +173,7 @@ Subroutine plot2d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Close (fnum)
       Call xml_Close (xf)
       Deallocate (vpl, fp)
+      endif
       Return
 End Subroutine
 !EOC

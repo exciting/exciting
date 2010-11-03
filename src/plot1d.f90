@@ -15,6 +15,7 @@ Subroutine plot1d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
 ! !USES:
       Use modinput
       Use modmain
+      use modmpi
       Use FoX_wxml
 ! !INPUT/OUTPUT PARAMETERS:
 !   fnum1 : plot file name (character*)
@@ -42,6 +43,7 @@ Subroutine plot1d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Real (8), Intent (In) :: rfmt (ld, nrmtmax, natmtot, nf)
       Real (8), Intent (In) :: rfir (ngrtot, nf)
       Type (plot1d_type) :: plotdef
+
 ! local variables
       Integer :: i, ip, iv, fnum1 = 50, fnum2 = 51
       Real (8) :: fmin, fmax, t1
@@ -49,6 +51,7 @@ Subroutine plot1d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Type (xmlf_t), Save :: xf
 ! allocatable arrays
       Real (8), Allocatable :: fp (:, :)
+       If (rank .Eq. 0) Then
       If ((nf .Lt. 1) .Or. (nf .Gt. 4)) Then
          Write (*,*)
          Write (*, '("Error(plot1d): invalid number of functions : ", I&
@@ -136,6 +139,7 @@ Subroutine plot1d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Deallocate (dvp1d)
       Deallocate (vplp1d)
       Deallocate (dpp1d)
+      endif
       Return
 End Subroutine
 !EOC
