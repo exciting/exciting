@@ -28,6 +28,7 @@ Subroutine writesym2
          End Do
       End Do
       Close (50)
+#ifdef SYMMULTTABLE
       Open (50, File='SYMMULT_TABLE'//trim(filext), Action='WRITE', &
      & Form='FORMATTED')
       Write (str1,*) maxsymcrys
@@ -37,6 +38,7 @@ Subroutine writesym2
          Write (50, '('//trim(str1)//'i3.2)') sgmut (isym, :)
       End Do
       Close (50)
+#endif
   ! write out generators
       Open (50, File='SYMGENR'//trim(filext), Action='WRITE', Form='FOR&
      &MATTED')
