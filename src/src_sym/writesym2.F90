@@ -14,6 +14,7 @@ Subroutine writesym2
       Integer :: isym, jsym, igenr
       Character (32) :: str1
   ! write out multiplication table
+      Write (str1,*) maxsymcrys
       Open (50, File='SYMMULT'//trim(filext), Action='WRITE', Form='FOR&
      &MATTED')
       Write (50,*)
@@ -31,7 +32,6 @@ Subroutine writesym2
 #ifdef SYMMULTTABLE
       Open (50, File='SYMMULT_TABLE'//trim(filext), Action='WRITE', &
      & Form='FORMATTED')
-      Write (str1,*) maxsymcrys
       Write (50,*)
       Write (50, '(" (symmetry group multiplication table below)")')
       Do isym = 1, nsymcrys
