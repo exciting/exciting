@@ -4,9 +4,9 @@
 ! See the file COPYING for license details.
 
 module libxcifc
-
+#ifdef LIBXC
 use xc_f90_lib_m
-
+#endif
 contains
 
 !BOP
@@ -15,6 +15,9 @@ contains
 subroutine xcifc_libxc(xctype,n,rho,rhoup,rhodn,grho2,gup2,gdn2,gupdn,ex,ec, &
  vx,vc,vxup,vxdn,vcup,vcdn,dxdg2,dxdgu2,dxdgd2,dxdgud,dcdg2,dcdgu2,dcdgd2, &
  dcdgud)
+
+#ifdef LIBXC
+
 ! !INPUT/OUTPUT PARAMETERS:
 !   xctype : type of exchange-correlation functional (in,integer(3))
 !   n      : number of density points (in,integer)
@@ -204,9 +207,14 @@ do k=2,3
   end if
 end do
 return
+
+#endif
+
 end subroutine
 
 subroutine xcdata_libxc(xctype,xcdescr,xcspin,xcgrad)
+#ifdef LIBXC
+
 implicit none
 ! arguments
 integer, intent(in) :: xctype(3)
@@ -264,5 +272,10 @@ return
 end subroutine
 !EOC
 
+#endif
+#ifndef LIBXC
+ write(*,'("Error(xcdata_libxc): LIBXC not acivated : ",&
+       &I8)')
+      write(*,*)
+#endif
 end module
-
