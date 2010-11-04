@@ -237,7 +237,7 @@ Subroutine bse
             End Select
         ! read exchange Coulomb interaction
             Select Case (trim(input%xs%bse%bsetype))
-            Case ('rpa', 'singlet')
+            Case ('RPA', 'singlet')
                Call getbsemat ('EXCLI.OUT', ikkp, rnst1, rnst3, excli)
             End Select
         ! get occupation numbers (future use for partial occupancy) 			
@@ -267,7 +267,7 @@ Subroutine bse
 						End If
                     ! add exchange term
                         Select Case (trim(input%xs%bse%bsetype))
-                        Case ('rpa', 'singlet')
+                        Case ('RPA', 'singlet')
                         	ham (s1, s2) = ham (s1, s2) + 2.0d0 * excli &
                            & (ist1, ist3, ist2, ist4) * &
                            & kdocc (s1) * 0.5
