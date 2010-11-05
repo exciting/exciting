@@ -31,6 +31,8 @@ Subroutine propertylauncher
       End If
       If (associated(input%properties%LSJ) .And. rank .Eq. 0) Then
          ! tasks are: 15,16
+         ! set to task=15 for the moment: total LSJ
+         task=15
          Call writelsj
       End If
       If (associated(input%properties%masstensor) .And. rank .Eq. 0) Then
