@@ -96,7 +96,7 @@ clean:
 	rm -rf debian/debian/usr
 	rm -f src/leblaiklib/*.o src/leblaiklib/*.a
 
-tgz::
+tgz::doc
 	tar  --exclude-from=".gitignore" -C"../" -c -v  -f ../exciting.tar  ./exciting
 	tar   -C"../" -r -v  -f ../exciting.tar   ./exciting/.git/HEAD  ./exciting/.git/refs ./exciting/.git/packed-refs
 	gzip  -f --best ../exciting.tar 
