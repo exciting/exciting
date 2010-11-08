@@ -33,16 +33,21 @@ Other Licenses
 	
 	ARPACK
 	http://www.caam.rice.edu/software/ARPACK/RiceBSD.txt#LICENSE
+	
+	LIBXC (GPL 3.0)
+	http://www.tddft.org/programs/octopus/wiki/index.php/Libxc
 
 
-The code can be compiled  by running the setup script
+Compile
+	The code can be compiled  by running 
 	
-	perl setup.pl
+	make
 	
-	in this directory. After choosing the platform you will be asked wether you want 
-	to build a k-point parallel version using MPI and a version that uses multithreaded 
-	BLAS/LAPACK. Choose yes or no dependent on if you have the required libraries 
-	installed on your system. You can manually edit the make.inc in the build directory.
+	in this directory. The first time this will start a setup script. After choosing the
+ 	platform you will be asked wether you want to build a k-point parallel version using
+	MPI and a version that uses multithreaded BLAS/LAPACK. Choose yes or no dependent on
+	if you have the required libraries installed on your system. You can manually edit
+	the make.inc in the build directory.
 	
 	The auxiliary programs include "spacegroup" for producing crystal geometries
 	from spacegroup data, "species" for generating species files, and "eos" for
