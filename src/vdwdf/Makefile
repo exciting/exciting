@@ -32,7 +32,7 @@ cuba:
 	cd Cuba-2.1; \
 	make clean; \
 	./configure; \
-	make 
+	make  lib
 
 clean:
 	rm -f *.o *.mod *~ fort.* ifc*
