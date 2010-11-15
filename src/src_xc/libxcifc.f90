@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 T. McQueen and J. K. Dewhurst.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
-#define LIBXC
+
 module libxcifc
 #ifdef LIBXC
 use xc_f90_lib_m
