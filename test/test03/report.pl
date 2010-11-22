@@ -10,9 +10,9 @@ $writer = Test::initreport("report.xml");
 #do things to assert test
 
 open INFO, "run/INFO.OUT";
-$status     = failed;
+$status     = 'failed';
 $iterations = 0;
-$rightmixer = failed;
+$rightmixer = 'failed';
 while (<INFO>) {
 	if (m/\| EXCITING.+stopped/) {
 		$status = "passed";
@@ -21,7 +21,7 @@ while (<INFO>) {
 		$iterations = $1;
 	}
 	if (m/Using Adaptive step size linear potential mixing/) {
-		$rightmixer = passed;
+		$rightmixer = 'passed';
 	}
 }
 close INFO;
@@ -46,7 +46,7 @@ Test::writetestreport(
 );
 
 $iterationsref = 17;
-if   ( $iterations == $iterationsref ) { $status = passed; }
+if   ( $iterations == $iterationsref ) { $status = "passed"; }
 else                                   { $status = "failed"; }
 
 Test::writetestreport(
@@ -60,9 +60,9 @@ Test::writetestreport(
 );
 
 open INFO, "runmixer2/INFO.OUT";
-$status     = failed;
+$status     = "failed";
 $iterations = 0;
-$rightmixer = failed;
+$rightmixer = 'failed';
 while (<INFO>) {
 	if (m/\| EXCITING .+stopped/) {
 		$status = "passed";
@@ -71,16 +71,15 @@ while (<INFO>) {
 		$iterations = $1;
 	}
 	if (m/Using Multisecant Broyden/) {
-		$rightmixer = passed;
+		$rightmixer = 'passed';
 	}
 }
 Test::writetestreport(
 	{
-		directory => "test03/runmixer2",
-		name      => "is_it_msec",
-		description =>
-		  "used msec",
-		status => $rightmixer
+		directory   => "test03/runmixer2",
+		name        => "is_it_msec",
+		description => "used msec",
+		status      => $rightmixer
 	},
 	$writer
 );
@@ -96,7 +95,7 @@ Test::writetestreport(
 );
 
 $iterationsref = 10;
-if   ( $iterations <= $iterationsref ) { $status = passed; }
+if   ( $iterations <= $iterationsref ) { $status = 'passed'; }
 else                                   { $status = "failed"; }
 
 Test::writetestreport(
@@ -110,9 +109,9 @@ Test::writetestreport(
 );
 
 open INFO, "runmixer3/INFO.OUT";
-$status     = failed;
+$status     = 'failed';
 $iterations = 0;
-$rightmixer = failed;
+$rightmixer = 'failed';
 while (<INFO>) {
 	if (m/\| EXCITING .+stopped/) {
 		$status = "passed";
@@ -122,7 +121,7 @@ while (<INFO>) {
 	}
 
 	if (m/Using Pulay potential/) {
-		$rightmixer = passed;
+		$rightmixer = 'passed';
 	}
 }
 
@@ -147,7 +146,7 @@ Test::writetestreport(
 );
 
 $iterationsref = 10;
-if   ( $iterations <= $iterationsref ) { $status = passed; }
+if   ( $iterations <= $iterationsref ) { $status = 'passed'; }
 else                                   { $status = "failed"; }
 
 Test::writetestreport(
