@@ -43,7 +43,7 @@ tidy::
 	perl ../../utilities/scripts/prettyprint.pl $(SOURCEDIRS)
 
 ifeq ($(USE_SYS_LAPACK),true)
-libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a
+libs::libbzint.a fftlib.a  libarpack.a libmsec.a libfox leblaiklib.a libxc.a
 endif
 
 ifeq ($(USE_SYS_LAPACK),)

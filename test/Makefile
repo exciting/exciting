@@ -1,12 +1,12 @@
 include ../build/make.inc
 
-.IGNORE:test cleantests test01 test02 test03 test04 testmpi
+.IGNORE:test cleantests test01 test02 test03 test04 test05 testmpi
 
 ifeq ($(BUILDMPI),true)
-test: cleantests  test02 test03 test04 testmpi
+test: cleantests  test02 test03 test04 test05 testmpi
 	perl perl/summary.pl
 else
-test: cleantests  test02 test03 test04
+test: cleantests  test02 test03 test04 test05
 	perl perl/summary.pl
 endif	
 
@@ -30,30 +30,9 @@ test03::exciting cleantests
 	-cd test03/runmixer3 && ../../../build/debug/exciting
 	-cd test03 && perl report.pl
 
-test05::exciting cleantests
-	-cd test05/runconverge && ../../../build/debug/exciting
-	-cp test05/runconverge/STATE.OUT   test05/runrestart
-	-cd test05/runrestart && ../../../build/debug/exciting
-
-test06::exciting
-	-cd build;$(MAKE)   test06
-	-cd ./test06/run ; ../../build/testxml
-	
-testxmlin::exciting	
-	-cd ./test06/run2 ; ../../../build/debug/exciting
-	
-testxmlind::exciting
-	-cd ./test06/run2 ; gdb ../../../build/debug/exciting
-	
-testxmlAld::exciting 
-	-cd ./test06/runAl ; gdb -x debug ../../../build/debug/exciting
-	
-testspin::exciting 
-	-cd ./test06/spinpol ; gdb -x debug ../../../build/debug/exciting
-
-testrelax::exciting 
-	-cd ./test06/struct ; gdb -x debug ../../../build/debug/exciting
-
+test05::exciting  
+	-cd test05/runlibxc && ../../../build/debug/exciting
+	-cd test05 && bash assert.sh  
 
 testmpi::
 	-cd ../build/mpi/; $(MAKE) libs; $(MAKE) 

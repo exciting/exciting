@@ -101,7 +101,8 @@ libxcclean:
 
 tgz::doc libxcclean
 	tar  --exclude-from=".gitignore" -C"../" -c -v  -f ../exciting.tar  ./exciting
-	tar   -C"../" -r -v  -f ../exciting.tar   ./exciting/.git/HEAD  ./exciting/.git/refs ./exciting/.git/packed-refs
+	tar   -C"../" -r -v  -f ../exciting.tar   ./exciting/.git/HEAD  ./exciting/.git/refs ./exciting/.git/packed-refs \
+	./exciting/test/test02/reference/
 	gzip  -f --best ../exciting.tar 
 	du -h ../exciting.tar.gz 
 	

@@ -6,9 +6,11 @@ use IO::File;
 use List::Util qw[min max];
 
 sub assert_file_same_within {
-	$file1=@_[0];
-	$file2=@_[1];
-	$tol=@_[2];
+	$file1=$_[0];
+	$file2=$_[1];
+	$tol=$_[2];
+	@numbers1=[];
+	@numbers2=[];
 	@error=0;
 	open FILE1,$file1;
 	open FILE2, $file2;
@@ -28,20 +30,20 @@ sub assert_file_same_within {
 		
 	}
 	print @error;
-	$status=failed;
+	$status='failed';
 if(max( @error) <$tol)
 	{
- 	$status=passed;
+ 	$status='passed';
  	}
  	close  FILE1;
  	close  FILE2;
  	$maxerror=max(@error );
 
-%test=("status" => $status,
-	"line" => $linenr,
-	"column" => $collumn, 
-	"maxerror"=> $maxerror,
-	"averageerror"=> $averageerr
+%test=(status => $status,
+	line => $linenr,
+	column => $collumn, 
+	maxerror=> $maxerror,
+	averageerror=> $averageerr
 	);
 return %test;
 }
