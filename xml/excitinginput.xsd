@@ -2865,7 +2865,7 @@ Example:  <pre>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:all>
-                                        <xs:element ex:importance="expert" ex:unit="" ref="kstlist">
+                                        <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="0">
                                             <xs:annotation>
                                                 <xs:documentation>
                        List of

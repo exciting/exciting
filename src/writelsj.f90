@@ -123,9 +123,9 @@ Subroutine writelsj
          Write (50,*)
          Write (50, '("Expectation values are computed only over the mu&
         &ffin-tin")')
-         Do kst = 1, nkstlist
-            ik = kstlist (1, kst)
-            ist = kstlist (2, kst)
+         Do kst = 1, size(input%properties%LSJ%kstlist%pointstatepair,2)
+            ik = input%properties%LSJ%kstlist%pointstatepair(1,kst)
+            ist = input%properties%LSJ%kstlist%pointstatepair(2,kst)
             If ((ik .Le. 0) .Or. (ik .Gt. nkpt)) Then
                Write (*,*)
                Write (*, '("Error(writelsj): k-point out of range : ", &

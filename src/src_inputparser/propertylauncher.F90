@@ -30,9 +30,8 @@ Subroutine propertylauncher
          Call wfplot (STM)
       End If
       If (associated(input%properties%LSJ) .And. rank .Eq. 0) Then
-         ! tasks are: 15,16
-         ! set to task=15 for the moment: total LSJ
          task=15
+         if (associated(input%properties%LSJ%kstlist)) task=16
          Call writelsj
       End If
       If (associated(input%properties%masstensor) .And. rank .Eq. 0) Then

@@ -17,6 +17,7 @@ Subroutine readspeciesxml
       character(2048)::command
       character(256)::spfile_string
       mine0=0.d0
+      if (allocated(speziesdeflist)) deallocate(speziesdeflist)
       Allocate (speziesdeflist(nspecies))
       config => newDOMConfig ()
       parseerror = .False.

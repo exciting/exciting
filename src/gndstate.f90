@@ -630,6 +630,7 @@ Subroutine gndstate
  ! close the INFO.OUT file
          If (rank .Eq. 0) close (60)
          deallocate(rhomtref,rhoirref)
+         call rereadinput
          Return
    End Subroutine gndstate
 !EOC

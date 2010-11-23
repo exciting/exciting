@@ -7,7 +7,6 @@ Subroutine phonon
       Use modmain
       use modmpi
       Use modinput
-      Use inputdom
       Implicit None
 ! local variables
       Integer :: is, js, ia, ja, ka, jas, kas
@@ -193,12 +192,5 @@ Subroutine phonon
       if (rank.eq.0)  Call phdelete
       Go To 10
 20 continue
-! read in input again to reset atomic positions and lattice vectors in particular
-      call loadinputDOM("input.xml")
-      call setdefault
-      input=getstructinput(inputnp)
-      call ifparseerrorstop()
-      call destroyDOM()
-      call initatomcounters
-      call initlattice
+      call rereadinput
 End Subroutine

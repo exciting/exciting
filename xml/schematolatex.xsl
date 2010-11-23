@@ -32,9 +32,9 @@
   <xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/title" />
   <xsl:text>} 
 \author{\exciting developers team\\
-(C. Ambrosch-Draxl, Zohreh Basirat, Thomas Dengg,\\
-Christian Meisenbichler, Dmitrii Nabok, Weine Olovsson,\\
-Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
+(C. Ambrosch-Draxl, Zohreh Basirat, Thomas Dengg, \\
+Rostam Golesorkhtabar, Christian Meisenbichler, Dmitrii Nabok, \\
+Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 
 
 \maketitle 
