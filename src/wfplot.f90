@@ -7,11 +7,11 @@
 ! See the file COPYING for license details.
 !
 !
-Subroutine wfplot (dostm)
+Subroutine wfplot(dostm)
       Use modmain
       Use modinput
       Implicit None
-      Logical, Intent (In) :: dostm
+      Logical, Intent(in) :: dostm
 ! local variables
       Integer :: ik, ist
       Real (8) :: x, t1
@@ -38,8 +38,17 @@ Subroutine wfplot (dostm)
       Call genlofr
 ! set the occupancies
       If ( .Not. dostm) Then
-         ik = kstlist (1, 1)
-         ist = kstlist (2, 1)
+! kstlist should only contain one k-point and state for STM plot
+         if (size(input%properties%wfplot%kstlist%pointstatepair,2).ne.1) then
+           write(*,*)
+           write(*,'("Error(wfplot): /input/properties/wfplot/kstlist must contain")')
+           write(*,'(" only one pointstatepair, but ",i6," were defined")') &
+              size(input%properties%wfplot%kstlist%pointstatepair,2)
+           write(*,*)
+           stop
+         end if
+         ik = input%properties%wfplot%kstlist%pointstatepair(1, 1)
+         ist = input%properties%wfplot%kstlist%pointstatepair(2, 1)
          If ((ik .Lt. 1) .Or. (ik .Gt. nkpt)) Then
             Write (*,*)
             Write (*, '("Error(wfplot): k-point out of range : ", I8)') &
@@ -121,8 +130,9 @@ Subroutine wfplot (dostm)
         &OUT")')
       End If
       If ( .Not. dostm) Then
-         Write (*, '(" for k-point ", I6, " and state ", I6)') kstlist &
-        & (1, 1), kstlist (2, 1)
+         Write (*, '(" for k-point ", I6, " and state ", I6)') &
+           input%properties%wfplot%kstlist%pointstatepair(1, 1), &
+           input%properties%wfplot%kstlist%pointstatepair(2, 1)
       End If
       Write (*,*)
       Deallocate (evecfv, evecsv)

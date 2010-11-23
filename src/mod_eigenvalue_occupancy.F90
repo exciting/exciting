@@ -42,11 +42,5 @@ Module mod_eigenvalue_occupancy
       Real (8), Allocatable :: evalsv (:, :)
 ! tevecsv is .true. if second-variational eigenvectors are calculated
 !replaced by inputstructurelogical::tevecsv
-! maximum number of k-point and states indices in user-defined list
-      Integer, Parameter :: maxkst = 20
-! number of k-point and states indices in user-defined list
-      Integer :: nkstlist
-! user-defined list of k-point and state indices
-      Integer :: kstlist (3, maxkst)
 End Module
 !

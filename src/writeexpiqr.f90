@@ -25,11 +25,9 @@ Subroutine writeexpiqr
 ! generate the local-orbital radial functions
       Call genlofr
 ! number of k-points to write out
-      If (kstlist(1, 1) .Le. 0) Then
-         nk = nkpt
-      Else
-         nk = nkstlist
-      End If
+      nk = nkpt
+      if (associated(input%properties%expiqr%kstlist)) &
+         nk = size(input%properties%expiqr%kstlist%pointstatepair,2)
       Open (50, File='EXPIQR.OUT', Action='WRITE', Form='FORMATTED')
       Write (50,*)
       Write (50, '("q-vector (lattice coordinates) :")')
@@ -41,10 +39,10 @@ Subroutine writeexpiqr
       Write (50, '(I8," : number of k-points")') nk
       Write (50, '(I6," : number of states per k-point")') nstsv
       Do jk = 1, nk
-         If (kstlist(1, 1) .Le. 0) Then
-            ik = jk
+         If (associated(input%properties%expiqr%kstlist)) Then
+            ik = input%properties%expiqr%kstlist%pointstatepair(1, jk)
          Else
-            ik = kstlist (1, jk)
+            ik = jk
          End If
          If ((ik .Le. 0) .Or. (ik .Gt. nkpt)) Then
             Write (*,*)

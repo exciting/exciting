@@ -2779,9 +2779,9 @@ Example:  <pre>
                                     </xs:annotation>
                                     <xs:all>
                                         <xs:element ex:importance="expert" ex:unit="" ref="kstlist"
-                                            minOccurs="0">
+                                            minOccurs="1">
                                             <xs:annotation>
-                                                <xs:documentation>List of kpoints of which the wave functions should be plotted.</xs:documentation>
+                                                <xs:documentation>k-point and state index for which the wave function should be plotted.</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element ex:importance="expert" ex:unit="" ref="plot1d"
@@ -3100,7 +3100,19 @@ Example:  <pre>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="expiqr"
                                 minOccurs="0">
-                                <xs:complexType/>
+                                <xs:complexType>
+                                    <xs:annotation>
+                                        <xs:documentation>Write out matrix elements of plane wave for given list of k-points and states</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:all>
+                                        <xs:element ex:importance="expert" ex:unit="" ref="kstlist"
+                                            minOccurs="0">
+                                            <xs:annotation>
+                                                <xs:documentation>k-point list (all states are considered) for which the matrix elements are written out.</xs:documentation>
+                                            </xs:annotation>
+                                        </xs:element>
+                                    </xs:all>
+                                </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="elnes" minOccurs="0">
                                 <xs:complexType>

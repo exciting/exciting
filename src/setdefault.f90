@@ -74,8 +74,6 @@ Subroutine setdefault
       Allocate (vqlwrt(3, nphwrt))
       vqlwrt (:, :) = 0.d0
       notelns = 0
-      nkstlist = 1
-      kstlist (:, 1) = 1
       ldapu = 0
       llu (:) = - 1
       ujlu (:, :) = 0.d0

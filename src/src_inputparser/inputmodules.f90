@@ -367,11 +367,10 @@ end type
 type moke_type
 logical::exists
  end type
-    
-type expiqr_type
-logical::exists
- end type
-    type elnes_type
+    type expiqr_type
+  type(kstlist_type),pointer::kstlist
+end type
+type elnes_type
  real(8)::vecql(3)
 end type
 type eliashberg_type
@@ -3398,6 +3397,14 @@ allocate(getstructexpiqr)
       write(*,*)"we are at expiqr"
 #endif
       
+            len= countChildEmentsWithName(thisnode,"kstlist")
+getstructexpiqr%kstlist=>null()
+Do i=0,len-1
+getstructexpiqr%kstlist=>getstructkstlist(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"kstlist"),0)) ) 
+enddo
+
       i=0
       len=0
       call  handleunknownnodes(thisnode)
