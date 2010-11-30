@@ -147,25 +147,7 @@ Example:  <pre>
 </xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
-        <xs:annotation>
-            <xs:appinfo>
-                <oldname>nonreplace</oldname>
-            </xs:appinfo>
-            <xs:documentation>
-            Decides if the ground state is calculated starting from scratch, using
-            the densities from file or if it is skipped and only its associated input parameters
-            are read in. Also applies fo structural optimization run.
-        </xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:enumeration value="fromscratch"/>
-                <xs:enumeration value="fromfile"/>
-                <xs:enumeration value="skip"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:attribute>
+    
     <xs:attribute ex:importance="expert" ex:unit="" name="tfibs" type="xs:boolean" default="true">
         <xs:annotation>
             <xs:documentation>
@@ -1979,14 +1961,24 @@ Example:  <pre>
                                 </xs:complexType>
                             </xs:element>
                         </xs:all>
-                        <xs:attribute ex:importance="essential" ex:unit="" ref="do"
-                            default="fromscratch">
+                        <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
                             <xs:annotation>
                                 <xs:appinfo>
                                     <oldname>nonreplace</oldname>
                                 </xs:appinfo>
-                                <xs:documentation>Decides if the groundstate run is skipped, calculated from scratch, or continued from the file STATE.OUT.</xs:documentation>
+                                <xs:documentation>
+                                    Decides if the ground state is calculated starting from scratch, using
+                                    the densities from file or if it is skipped and only its associated input parameters
+                                    are read in. Also applies fo structural optimization run.
+                                </xs:documentation>
                             </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="fromscratch"/>
+                                    <xs:enumeration value="fromfile"/>
+                                    <xs:enumeration value="skip"/>
+                                </xs:restriction>
+                            </xs:simpleType>
                         </xs:attribute>
                         <xs:attribute ex:importance="essential" ex:unit="" name="ngridk"
                             type="integertriple" use="required">
