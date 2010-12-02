@@ -6,12 +6,12 @@
 Subroutine tasklauncher
       Use modinput
       Implicit None
-
+! Note that the order of the calls below may be important!
       If (associated(input%groundstate)) &
         call groundstatetasklauncher()
 
       If (associated(input%properties)) &
-        Call propertylauncher
+        Call propertylauncher()
 
       If (associated(input%phonons)) &
         call phononstasklauncher()
