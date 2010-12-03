@@ -141,6 +141,7 @@ type(atom_type),pointer::atom
 end type
 type groundstate_type
  character(512)::do
+ integer::donumber
  integer::ngridk(3)
  real(8)::rgkmax
  real(8)::epspot
@@ -367,11 +368,10 @@ end type
 type moke_type
 logical::exists
  end type
-    
-type expiqr_type
-logical::exists
- end type
-    type elnes_type
+    type expiqr_type
+  type(kstlist_type),pointer::kstlist
+end type
+type elnes_type
  real(8)::vecql(3)
 end type
 type eliashberg_type
@@ -1650,6 +1650,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructgroundstate%do)
        call removeAttribute(thisnode,"do")  
 endif
+getstructgroundstate%donumber=stringtonumbergroundstatedo(getstructgroundstate%do)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridk")
@@ -3402,6 +3403,14 @@ allocate(getstructexpiqr)
       write(*,*)"we are at expiqr"
 #endif
       
+            len= countChildEmentsWithName(thisnode,"kstlist")
+getstructexpiqr%kstlist=>null()
+Do i=0,len-1
+getstructexpiqr%kstlist=>getstructkstlist(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"kstlist"),0)) ) 
+enddo
+
       i=0
       len=0
       call  handleunknownnodes(thisnode)
@@ -4966,24 +4975,6 @@ type(Node),pointer::thisnode
 #endif  
    call extractDataContent(thisnode,  getvalueofqpoint)
 end function
- integer function  stringtonumberdo(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('fromscratch')
- stringtonumberdo=-1
-case('fromfile')
- stringtonumberdo=-1
-case('skip')
- stringtonumberdo=-1
-case('')
- stringtonumberdo=0
-case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
-stop 
-end select
-end function
-
- 
  integer function  stringtonumberaction(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
@@ -5303,6 +5294,24 @@ case('')
  stringtonumberlibxcxc=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forxc "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbergroundstatedo(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumbergroundstatedo=-1
+case('fromfile')
+ stringtonumbergroundstatedo=-1
+case('skip')
+ stringtonumbergroundstatedo=-1
+case('')
+ stringtonumbergroundstatedo=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
 stop 
 end select
 end function

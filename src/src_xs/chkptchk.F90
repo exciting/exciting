@@ -7,6 +7,7 @@
 !
 !
 Subroutine chkptchk
+#ifdef RESUME
       Use modxs
       Implicit None
   ! local variables
@@ -21,4 +22,5 @@ Subroutine chkptchk
          Write (*,*)
          Call terminate
       End If
+#endif
 End Subroutine chkptchk

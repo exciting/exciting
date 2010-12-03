@@ -13,6 +13,7 @@ Subroutine chkpt (ncpt, cptv, mesg)
   ! arguments
       Integer, Intent (In) :: ncpt, cptv (ncpt)
       Character (*), Intent (In) :: mesg
+#ifdef RESUME
   ! local variables
       Integer :: un
       Character (256) :: str
@@ -24,4 +25,5 @@ Subroutine chkpt (ncpt, cptv, mesg)
       Write (un, '('//trim(adjustl(str))//'i8, " : checkpoint vector")') cptv (:)
       Write (un, '(" (", a, ")")') trim (mesg)
       Close (un)
+#endif
 End Subroutine chkpt
