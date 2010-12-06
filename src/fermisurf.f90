@@ -19,9 +19,11 @@ Subroutine fermisurf
       Real (8) :: prd1, prd2
       Character (128) :: buffer
       Type (xmlf_t), Save :: xf
+      integer :: minexp
 !
   ! allocatable arrays
       Real (8), Allocatable :: evalfv (:, :)
+      Real(8),  allocatable:: prod1(:),prod2(:)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
   ! initialise universal variables
@@ -43,23 +45,21 @@ Subroutine fermisurf
   ! compute the Hamiltonian radial integrals
       Call hmlrad
   ! begin parallel loop over reduced k-points set
-  !$OMP PARALLEL DEFAULT(SHARED) &
-  !$OMP PRIVATE(evalfv,evecfv,evecsv)
-  !$OMP DO
+
       Do ik = 1, nkpt
          Allocate (evalfv(nstfv, nspnfv))
          Allocate (evecfv(nmatmax, nstfv, nspnfv))
          Allocate (evecsv(nstsv, nstsv))
-     !$OMP CRITICAL
+         allocate (prod1(nkptnr),prod2(nkptnr))
+
          Write (*, '("Info(fermisurf): ", I6, " of ", I6, " k-points")') ik, nkpt
-     !$OMP END CRITICAL
+
      ! solve the first- and second-variational secular equations
          Call seceqn (ik, evalfv, evecfv, evecsv)
          Deallocate (evalfv, evecfv, evecsv)
      ! end loop over reduced k-points set
       End Do
-  !$OMP END DO
-  !$OMP END PARALLEL
+
       Call xml_OpenFile ("fermisurface.xml", xf, replace=.True., &
      & pretty_print=.True.)
       Call xml_NewElement (xf, "fermisurface")
@@ -85,15 +85,25 @@ Subroutine fermisurf
         ! write product of eigenstates minus the Fermi energy
             Write (50, '(3I6, " : grid size")') np3d (:)
             Write (51, '(3I6, " : grid size")') np3d (:)
+            prod1=1.d0
+			prod2=1.d0
             Do ik = 1, nkptnr
 !
                jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
-               prd1 = 1.d0
-               prd2 = 1.d0
+
+               minexp=1
                Do ist = 1, nstfv
-                  prd1 = prd1 * (evalsv(ist, jk)-efermi)
-                  prd2 = prd2 * (evalsv(nstfv+ist, jk)-efermi)
+                  prod1(ik) = prd1 * (evalsv(ist, jk)-efermi)
+                  prod2(ik) = prd2 * (evalsv(nstfv+ist, jk)-efermi)
                End Do
+               if(exponent(prod1(ik))<minexp)then
+               minexp= exponent(prod1(ik))
+               endif
+                if(exponent(prod2(ik))<minexp)then
+               minexp= exponent(prod2(ik))
+               endif
+            end do
+            Do ik = 1, nkptnr
                Call xml_NewElement (xf, "point")
                Write (buffer, '(4G18.10)') vkcnr (1, ik)
                Call xml_addAttribute (xf, "x", trim(adjustl(buffer)))
@@ -101,14 +111,14 @@ Subroutine fermisurf
                Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
                Write (buffer, '(4G18.10)') vkcnr (3, ik)
                Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') prd1
+               Write (buffer, '(4G18.10)')  prod1(ik)* 10**-minexp
                Call xml_addAttribute (xf, "up", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') prd2
+               Write (buffer, '(4G18.10)')  prod2(ik)* 10**-minexp
                Call xml_addAttribute (xf, "down", &
               & trim(adjustl(buffer)))
                Call xml_endElement (xf, "point")
-               Write (50, '(4G18.10)') vkcnr (:, ik), prd1
-               Write (51, '(4G18.10)') vkcnr (:, ik), prd2
+               Write (50, '(4G18.10)') vkcnr (:, ik),  prod1(ik)
+               Write (51, '(4G18.10)') vkcnr (:, ik),  prod2(ik)
             End Do
          Else
         ! write the eigenvalues minus the Fermi energy separately
@@ -163,16 +173,23 @@ Subroutine fermisurf
      ! spin-unpolarised and non-collinear cases
          Open (50, File='FERMISURF.OUT', Action='WRITE', Form='FORMATTE&
         &D')
+
          If (task .Eq. 100) Then
         ! write product of eigenstates minus the Fermi energy
             Write (50, '(3I6, " : grid size")') np3d (:)
-!
+ 			prod1=1
+ 			minexp=1
             Do ik = 1, nkptnr
                jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
                prd1 = 1.d0
                Do ist = 1, nstsv
-                  prd1 = prd1 * (evalsv(ist, jk)-efermi)
+                  prod1(ik) = prd1 * (evalsv(ist, jk)-efermi)
                End Do
+                if(exponent(prod1(ik))<minexp)then
+               minexp= exponent(prod1(ik))
+               endif
+            end do
+            Do ik = 1, nkptnr
                Write (50, '(4G18.10)') vkcnr (:, ik), prd1
                Call xml_NewElement (xf, "point")
                Write (buffer, '(4G18.10)') vkcnr (1, ik)
@@ -181,7 +198,7 @@ Subroutine fermisurf
                Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
                Write (buffer, '(4G18.10)') vkcnr (3, ik)
                Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') prd1
+               Write (buffer, '(4G18.10)') prod1(ik) * 10**-minexp
                Call xml_addAttribute (xf, "product", &
               & trim(adjustl(buffer)))
                Call xml_endElement (xf, "point")
