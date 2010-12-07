@@ -10,8 +10,6 @@ Subroutine propertylauncher
       Use modmpi, Only: rank
       Implicit None
 
-      call rereadinput
-
 ! properties which depend on the ground state only
 
       If (associated(input%properties%bandstructure) .And. rank .Eq. 0) Then

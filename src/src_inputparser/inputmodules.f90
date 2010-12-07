@@ -141,6 +141,7 @@ type(atom_type),pointer::atom
 end type
 type groundstate_type
  character(512)::do
+ integer::donumber
  integer::ngridk(3)
  real(8)::rgkmax
  real(8)::epspot
@@ -1645,6 +1646,7 @@ if(associated(np)) then
        call extractDataAttribute(thisnode,"do",getstructgroundstate%do)
        call removeAttribute(thisnode,"do")  
 endif
+getstructgroundstate%donumber=stringtonumbergroundstatedo(getstructgroundstate%do)
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"ngridk")
@@ -4969,24 +4971,6 @@ type(Node),pointer::thisnode
 #endif  
    call extractDataContent(thisnode,  getvalueofqpoint)
 end function
- integer function  stringtonumberdo(string) 
- character(80),intent(in)::string
- select case(trim(adjustl(string)))
-case('fromscratch')
- stringtonumberdo=-1
-case('fromfile')
- stringtonumberdo=-1
-case('skip')
- stringtonumberdo=-1
-case('')
- stringtonumberdo=0
-case default
-write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
-stop 
-end select
-end function
-
- 
  integer function  stringtonumberaction(string) 
  character(80),intent(in)::string
  select case(trim(adjustl(string)))
@@ -5306,6 +5290,24 @@ case('')
  stringtonumberlibxcxc=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forxc "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumbergroundstatedo(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('fromscratch')
+ stringtonumbergroundstatedo=-1
+case('fromfile')
+ stringtonumbergroundstatedo=-1
+case('skip')
+ stringtonumbergroundstatedo=-1
+case('')
+ stringtonumbergroundstatedo=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection fordo "
 stop 
 end select
 end function
