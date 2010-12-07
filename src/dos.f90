@@ -59,6 +59,7 @@ Subroutine dos
       Complex (8), Allocatable :: apwalm (:, :, :, :, :)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
+      call rereadinput
 ! initialise universal variables
       Call init0
       Call init1
