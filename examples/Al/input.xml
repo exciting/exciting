@@ -30,5 +30,6 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       </plot1d>
     </bandstructure>
     <dos/>
+    <fermisurfaceplot/>
    </properties>
 </input>

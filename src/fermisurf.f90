@@ -50,7 +50,7 @@ Subroutine fermisurf
          Allocate (evalfv(nstfv, nspnfv))
          Allocate (evecfv(nmatmax, nstfv, nspnfv))
          Allocate (evecsv(nstsv, nstsv))
-         allocate (prod1(nkptnr),prod2(nkptnr))
+
 
          Write (*, '("Info(fermisurf): ", I6, " of ", I6, " k-points")') ik, nkpt
 
@@ -85,6 +85,7 @@ Subroutine fermisurf
         ! write product of eigenstates minus the Fermi energy
             Write (50, '(3I6, " : grid size")') np3d (:)
             Write (51, '(3I6, " : grid size")') np3d (:)
+             allocate (prod1(nkptnr),prod2(nkptnr))
             prod1=1.d0
 			prod2=1.d0
             Do ik = 1, nkptnr
@@ -93,8 +94,8 @@ Subroutine fermisurf
 
                minexp=1
                Do ist = 1, nstfv
-                  prod1(ik) = prd1 * (evalsv(ist, jk)-efermi)
-                  prod2(ik) = prd2 * (evalsv(nstfv+ist, jk)-efermi)
+                  prod1(ik) = prod1(ik) * (evalsv(ist, jk)-efermi)
+                  prod2(ik) =   prod2(ik) * (evalsv(nstfv+ist, jk)-efermi)
                End Do
                if(exponent(prod1(ik))<minexp)then
                minexp= exponent(prod1(ik))
@@ -111,15 +112,16 @@ Subroutine fermisurf
                Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
                Write (buffer, '(4G18.10)') vkcnr (3, ik)
                Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)')  prod1(ik)* 10**-minexp
+               Write (buffer, '(4G18.10)')  prod1(ik)* 10**(-minexp)
                Call xml_addAttribute (xf, "up", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)')  prod2(ik)* 10**-minexp
+               Write (buffer, '(4G18.10)')  prod2(ik)* 10**(-minexp)
                Call xml_addAttribute (xf, "down", &
               & trim(adjustl(buffer)))
                Call xml_endElement (xf, "point")
                Write (50, '(4G18.10)') vkcnr (:, ik),  prod1(ik)
                Write (51, '(4G18.10)') vkcnr (:, ik),  prod2(ik)
             End Do
+             deallocate (prod1,prod2)
          Else
         ! write the eigenvalues minus the Fermi energy separately
 
@@ -177,13 +179,14 @@ Subroutine fermisurf
          If (task .Eq. 100) Then
         ! write product of eigenstates minus the Fermi energy
             Write (50, '(3I6, " : grid size")') np3d (:)
+            allocate (prod1(nkptnr))
  			prod1=1
  			minexp=1
             Do ik = 1, nkptnr
                jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
                prd1 = 1.d0
                Do ist = 1, nstsv
-                  prod1(ik) = prd1 * (evalsv(ist, jk)-efermi)
+                  prod1(ik) = prod1(ik)* (evalsv(ist, jk)-efermi)
                End Do
                 if(exponent(prod1(ik))<minexp)then
                minexp= exponent(prod1(ik))
@@ -198,11 +201,12 @@ Subroutine fermisurf
                Call xml_addAttribute (xf, "y", trim(adjustl(buffer)))
                Write (buffer, '(4G18.10)') vkcnr (3, ik)
                Call xml_addAttribute (xf, "z", trim(adjustl(buffer)))
-               Write (buffer, '(4G18.10)') prod1(ik) * 10**-minexp
+               Write (buffer, '(4G18.10)') prod1(ik) * 10**(-minexp)
                Call xml_addAttribute (xf, "product", &
               & trim(adjustl(buffer)))
                Call xml_endElement (xf, "point")
             End Do
+             deallocate (prod1)
          Else
         ! write the eigenvalues minus the Fermi energy separately
             ist = (nstfv-input%groundstate%nempty) * nspinor
