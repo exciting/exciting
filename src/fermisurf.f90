@@ -16,14 +16,14 @@ Subroutine fermisurf
   ! local variables
       Integer :: ik, jk, ist, i
       Integer :: ist0, ist1, nst
-      Real (8) :: prd1, prd2
+
       Character (128) :: buffer
       Type (xmlf_t), Save :: xf
       integer :: minexp
 !
   ! allocatable arrays
       Real (8), Allocatable :: evalfv (:, :)
-      Real(8),  allocatable:: prod1(:),prod2(:)
+        Real (8), Allocatable :: prod1 (:),prod2(:)
       Complex (8), Allocatable :: evecfv (:, :, :)
       Complex (8), Allocatable :: evecsv (:, :)
   ! initialise universal variables
@@ -118,8 +118,8 @@ Subroutine fermisurf
                Call xml_addAttribute (xf, "down", &
               & trim(adjustl(buffer)))
                Call xml_endElement (xf, "point")
-               Write (50, '(4G18.10)') vkcnr (:, ik),  prod1(ik)
-               Write (51, '(4G18.10)') vkcnr (:, ik),  prod2(ik)
+               Write (50, '(4G18.10)') vkcnr (:, ik),  prod1(ik)* 10**(-minexp)
+               Write (51, '(4G18.10)') vkcnr (:, ik),  prod2(ik)* 10**(-minexp)
             End Do
              deallocate (prod1,prod2)
          Else
@@ -184,7 +184,7 @@ Subroutine fermisurf
  			minexp=1
             Do ik = 1, nkptnr
                jk = ikmap (ivknr(1, ik), ivknr(2, ik), ivknr(3, ik))
-               prd1 = 1.d0
+
                Do ist = 1, nstsv
                   prod1(ik) = prod1(ik)* (evalsv(ist, jk)-efermi)
                End Do
@@ -193,7 +193,7 @@ Subroutine fermisurf
                endif
             end do
             Do ik = 1, nkptnr
-               Write (50, '(4G18.10)') vkcnr (:, ik), prd1
+               Write (50, '(4G18.10)') vkcnr (:, ik), prod1(ik) * 10**(-minexp)
                Call xml_NewElement (xf, "point")
                Write (buffer, '(4G18.10)') vkcnr (1, ik)
                Call xml_addAttribute (xf, "x", trim(adjustl(buffer)))

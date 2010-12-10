@@ -17,6 +17,15 @@ Subroutine propertylauncher
          task = 20
          Call bandstr
       End If
+      If (associated(input%properties%fermisurfaceplot) .And. rank .Eq. 0) Then
+         If (input%properties%fermisurfaceplot%separate) Then
+            task = 101
+            Call fermisurf
+         Else
+            task = 100
+            Call fermisurf
+         End If
+      End If
       If (associated(input%properties%dos) .And. rank .Eq. 0) Then
          task = 10
          Call dos
@@ -38,15 +47,7 @@ Subroutine propertylauncher
          task=25
          Call effmass
       End If
-      If (associated(input%properties%fermisurfaceplot) .And. rank .Eq. 0) Then
-         If (input%properties%fermisurfaceplot%separate) Then
-            task = 101
-            Call fermisurf
-         Else
-            task = 100
-            Call fermisurf
-         End If
-      End If
+
       If (associated(input%properties%chargedensityplot) .And. rank .Eq. 0) Then
          Call rhoplot
       End If

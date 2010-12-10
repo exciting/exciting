@@ -31,5 +31,14 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     </bandstructure>
     <dos/>
     <fermisurfaceplot/>
-   </properties>
+    <chargedensityplot>
+<plot2d>
+<parallelogram grid="10 10">
+<origin coord="0 0 0"/>
+<point coord="1 0 0 "/>
+<point coord="0 1 0"/>
+</parallelogram>
+</plot2d>
+    </chargedensityplot>
+    </properties>
 </input>
