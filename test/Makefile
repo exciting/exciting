@@ -32,6 +32,7 @@ test03::exciting cleantests
 
 test05::exciting  
 	-cd test05/runlibxc && ../../../build/debug/exciting
+	-cd test05/runelectrstr && ../../../build/debug/exciting
 	-cd test05 && bash assert.sh  
 
 testmpi::
@@ -42,6 +43,10 @@ testmpi::
 cleantests::
 	-rm -f  test*/*.xml
 	-rm -f  test*/run*/*OUT
+    -rm -f  test*/run*/dos.xml
+    -rm -f  test*/run*/bandstructure.xml
+    -rm -f  test*/run*/fermisurface.xml
+    	
 
 
 

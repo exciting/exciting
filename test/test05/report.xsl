@@ -30,6 +30,48 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </description>
     <directory>test05/ </directory>
   </test>
+  <test>
+  <status>
+    <xsl:choose>
+    <xsl:when test="document('runelectrstr/dos.xml')/dos"><xsl:text>passed</xsl:text></xsl:when>
+    <xsl:otherwise><xsl:text>failed</xsl:text></xsl:otherwise>
+    </xsl:choose>
+    </status>
+    <name>  dos works  </name>
+    <description>pass if  DOS doesn't fail'
+ 
+    </description>
+    <directory>test05/runelectrstr</directory>
+  
+  </test>
+    <test>
+  <status>
+    <xsl:choose>
+    <xsl:when test="document('runelectrstr/bandstructure.xml')/bandstructure"><xsl:text>passed</xsl:text></xsl:when>
+    <xsl:otherwise><xsl:text>failed</xsl:text></xsl:otherwise>
+    </xsl:choose>
+    </status>
+    <name>  bandstructure  </name>
+    <description>pass if bandstructure doesn't fail
+ 
+    </description>
+    <directory>test05/runelectrstr</directory>
+  
+  </test>
+    <test>
+  <status>
+    <xsl:choose>
+    <xsl:when test="document('runelectrstr/fermisurface.xml')/fermisurface"><xsl:text>passed</xsl:text></xsl:when>
+    <xsl:otherwise><xsl:text>failed</xsl:text></xsl:otherwise>
+    </xsl:choose>
+    </status>
+    <name>  fermisurfaceplot works  </name>
+    <description>pass if  fermisurfaceplot doesn't fail'
+ 
+    </description>
+    <directory>test05/runelectrstr</directory>
+  
+  </test>
 </report>
 </xsl:template>
 </xsl:stylesheet> 

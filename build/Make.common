@@ -123,7 +123,7 @@ clean:cleanlibs
 cleanlibs:
 	rm -f *.a
 	rm -rf lib finclude
-	cd ../../src/libXC/ && make clean
-	cd ../../src/FoX && make clean
+	-cd ../../src/libXC/ && make clean
+	-cd ../../src/FoX && make clean
 
 
