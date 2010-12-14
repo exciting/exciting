@@ -3156,6 +3156,13 @@ Example:  <pre>
                                         default="100"> </xs:attribute>
                                     <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos"
                                         default="0"> </xs:attribute>
+                                    <xs:attribute ex:importance="expert" ex:unit="" name="ntemp"
+                                        type="xs:integer" default="10">
+                                <xs:annotation>
+                                    <xs:documentation>Number of temperatures points for the calculation of
+                                    the thermodynamical properties from the phonon density of states.</xs:documentation>
+                                </xs:annotation>                                        
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="phonondispplot"
