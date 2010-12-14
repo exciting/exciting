@@ -43,9 +43,9 @@ testmpi::
 cleantests::
 	-rm -f  test*/*.xml
 	-rm -f  test*/run*/*OUT
-    -rm -f  test*/run*/dos.xml
-    -rm -f  test*/run*/bandstructure.xml
-    -rm -f  test*/run*/fermisurface.xml
+	-rm -f  test*/run*/dos.xml
+	-rm -f  test*/run*/bandstructure.xml
+	-rm -f  test*/run*/fermisurface.xml
     	
 
 
