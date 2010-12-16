@@ -192,5 +192,4 @@ Subroutine phonon
       if (rank.eq.0)  Call phdelete
       Go To 10
 20 continue
-      call rereadinput
 End Subroutine

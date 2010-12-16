@@ -14,8 +14,10 @@ subroutine rereadinput
          input=getstructinput(inputnp)
          call ifparseerrorstop()
          call destroyDOM()
-         call initatomcounters
-         call initlattice
-         call readspeciesxml
+         call checkinput()
+         call initatomcounters()
+         call initlattice()
+         call initlibxc()
+         call initsolver()
 end subroutine
 

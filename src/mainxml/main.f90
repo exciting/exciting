@@ -13,14 +13,16 @@ implicit none
 call versionfromdate()
 call initMPI()
 call loadinputDOM("input.xml")
-call setdefault
+call setdefault()
 input=getstructinput(inputnp)
 call ifparseerrorstop()
 call destroyDOM()
 call checkinput()
 call initatomcounters()
-call initlattice
-call readspeciesxml
+call initlattice()
+call initlibxc()
+call initsolver()
+call readspeciesxml()
 call scl_xml_out_create()
 call tasklauncher()
 call scl_xml_out_close()

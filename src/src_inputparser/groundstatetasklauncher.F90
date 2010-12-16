@@ -5,26 +5,9 @@
 
 Subroutine groundstatetasklauncher
       Use modinput
-      Use modmain, Only: task,xctype
+      Use modmain, Only: task
       Use inputdom
       Implicit None
-      xctype(1)=  input%groundstate%xctypenumber
-	!    if we use libxc then
-       if(associated(input%groundstate%libxc)) then
-	       input%groundstate%xctypenumber=100
-	       xctype(1)=100
-	       input%groundstate%xctype="LibXC"
-	       xctype(2)=input%groundstate%libxc%exchangenumber
-	       xctype(3)=input%groundstate%libxc%correlationnumber
-           if (input%groundstate%libxc%xcnumber .ne. 0)then
-				xctype(2)=input%groundstate%libxc%xcnumber
-				xctype(3)=0
-		   endif
-       endif
-      If ( .Not. (associated(input%groundstate%solver))) Then
-        ! set the default values if solver element not present
-         input%groundstate%solver => getstructsolver (emptynode)
-      End If
       If (input%groundstate%do .Eq. "fromscratch") Then
          If (associated(input%structureoptimization)) Then
             task = 2
@@ -45,5 +28,4 @@ Subroutine groundstatetasklauncher
           if (input%groundstate%output%state .eq. "XML") call portstate(1)
         end if
       end if
-
 end subroutine

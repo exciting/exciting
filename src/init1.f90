@@ -139,7 +139,10 @@ Subroutine init1
             lambdab=Dble((input%groundstate%nktot/(blen(1)*blen(2)*blen(3)))**(1.d0/3.d0))
             input%groundstate%ngridk (:) = Max0(1,Int &
            & (lambdab*blen(:)+	input%structure%epslat))
-             write(*,*) "ngridk determined from nktot: ", input%groundstate%ngridk(:)
+             Write (*,*)
+             Write (*, '("Info(init1): ngridk determined from nktot: ", 3i8)') &
+           & input%groundstate%ngridk(:)
+             Write (*,*)
          End If
 ! allocate the reduced k-point set arrays
          If (allocated(ivk)) deallocate (ivk)
