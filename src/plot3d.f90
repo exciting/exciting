@@ -113,41 +113,41 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       !write x axis description
        call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
       plotdef%box%origin%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3G18.10)') tmpv
+      Write (buffer, *) tmpv
       Call xml_AddAttribute (xf, "originrs", trim(adjustl(buffer)))
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "name", "a")
-      Write (buffer, '(6G18.10)') plotdef%box%pointarray(1)%point%coord
+      Write (buffer, *) plotdef%box%pointarray(1)%point%coord
       Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-      Write (buffer, '(6G18.10)') &
+      Write (buffer, *) &
      & (plotdef%box%pointarray(1)%point%coord-plotdef%box%origin%coord) &
      & / plotdef%box%grid(1)
       Call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
       call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
       plotdef%box%pointarray(1)%point%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3G18.10)') tmpv
+      Write (buffer, *) tmpv
       Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
       Call xml_endElement (xf, "axis")
       !write y axis description
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "name", "b")
-      Write (buffer, '(6G18.10)') plotdef%box%pointarray(2)%point%coord
+      Write (buffer, *) plotdef%box%pointarray(2)%point%coord
       Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
-      Write (buffer, '(6G18.10)') &
+      Write (buffer, *) &
      & (plotdef%box%pointarray(2)%point%coord-plotdef%box%origin%coord) &
      & / plotdef%box%grid(2)
       Call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
 
       call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
       plotdef%box%pointarray(2)%point%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3G18.10)') tmpv
+      Write (buffer, *) tmpv
       Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
 !
       Call xml_endElement (xf, "axis")
             !write z axis description
       Call xml_NewElement (xf, "axis")
       Call xml_AddAttribute (xf, "name", "c")
-      Write (buffer, '(6G18.10)') plotdef%box%pointarray(3)%point%coord
+      Write (buffer, *) plotdef%box%pointarray(3)%point%coord
       Call xml_AddAttribute (xf, "endpoint", trim(adjustl(buffer)))
       Write (buffer, '(6G18.10)') &
      & (plotdef%box%pointarray(3)%point%coord-plotdef%box%origin%coord) &
@@ -155,7 +155,7 @@ Subroutine plot3d (fname, nf, lmax, ld, rfmt, rfir, plotdef)
       Call xml_AddAttribute (xf, "delta", trim(adjustl(buffer)))
        call DGEMV('N',3,3,1.d0, input%structure%crystal%basevect(1,1),3,&
       plotdef%box%pointarray(3)%point%coord,1,0.d0,tmpv(1),1)
-      Write (buffer, '(3G18.10)') tmpv
+      Write (buffer, *) tmpv
       Call xml_AddAttribute (xf, "endpointrs", trim(adjustl(buffer)))
 !
       Call xml_endElement (xf, "axis")

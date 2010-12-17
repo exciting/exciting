@@ -394,6 +394,7 @@ type phonondos_type
  integer::nwdos
  integer::ngrdos
  integer::nsmdos
+ integer::ntemp
 end type
 type phonondispplot_type
   type(plot1d_type),pointer::plot1d
@@ -3610,6 +3611,14 @@ getstructphonondos%nsmdos=0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"nsmdos",getstructphonondos%nsmdos)
        call removeAttribute(thisnode,"nsmdos")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ntemp")
+getstructphonondos%ntemp=10
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ntemp",getstructphonondos%ntemp)
+       call removeAttribute(thisnode,"ntemp")  
 endif
 
       i=0
