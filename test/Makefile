@@ -3,10 +3,10 @@ include ../build/make.inc
 .IGNORE:test cleantests test01 test02 test03 test04 test05 testmpi
 
 ifeq ($(BUILDMPI),true)
-test: cleantests  test02 test03 test04 test05 testmpi
+test: cleantests  test02 test03 test04 test05 test07 testmpi
 	perl perl/summary.pl
 else
-test: cleantests  test02 test03 test04 test05
+test: cleantests  test02 test03 test04 test05 test07
 	perl perl/summary.pl
 endif	
 
@@ -22,6 +22,7 @@ test04::
 	-cd ./test04/run ; ../../build/testprogram4
 
 exciting::
+	cd ../build/serial/ && $(MAKE) libs && $(MAKE)
 	cd ../build/debug/ && $(MAKE) libs && $(MAKE)
 
 test03::exciting cleantests
@@ -34,6 +35,11 @@ test05::exciting
 	-cd test05/runlibxc && ../../../build/debug/exciting
 	-cd test05/runelectrstr && ../../../build/debug/exciting
 	-cd test05 && bash assert.sh  
+	
+test07::exciting  
+	-cd test07/runBSE && ../../../build/serial/exciting
+	-cd test07/runtddft && ../../../build/serial/exciting
+	-cd test07 && bash assert.sh  
 
 testmpi::
 	-cd ../build/mpi/; $(MAKE) libs; $(MAKE) 
@@ -46,7 +52,7 @@ cleantests::
 	-rm -f  test*/run*/dos.xml
 	-rm -f  test*/run*/bandstructure.xml
 	-rm -f  test*/run*/fermisurface.xml
-    	
-
+	-rm -f  test*/run*/LOSS*
+	-rm -f  test*/run*/EPSILON*
 
 
