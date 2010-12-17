@@ -21,9 +21,6 @@ Subroutine writelsj
       Complex (8), Allocatable :: dmat1 (:, :, :, :, :)
       Complex (8), Allocatable :: dmat2 (:, :, :, :, :)
       Complex (8), Allocatable :: zlflm (:, :)
-! read in input again to reset the magnetic moments for proper symmetry after
-! a possible run of the groundstate
-      call rereadinput
 ! initialise universal variables
       Call init0
       Call init1

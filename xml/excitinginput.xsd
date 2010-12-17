@@ -3023,7 +3023,7 @@ Example:  <pre>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute ex:importance="essential" ex:unit=""
-                                        name="separate" type="xs:boolean"/>
+                                        name="separate" type="xs:boolean" default="false"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element ex:importance="expert" ex:unit="" name="EFG" maxOccurs="1"

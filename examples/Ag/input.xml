@@ -3,11 +3,7 @@
 
 <input xsi:noNamespaceSchemaLocation="../../xml/excitinginput.xsd"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsltpath="../../xml/">
-  <title>Ag</title>
-  
-  <!-- extract source="binary"/-->
-  <!--convert target="xml"/-->
-  
+  <title>Ag</title>  
   <structure speciespath="../../species/">
     <crystal scale="3.817">
       <basevect>1.0 1.0 0.0</basevect>
@@ -33,5 +29,6 @@
       </plot1d>
     </bandstructure>
     <dos/>
+    <fermisurfaceplot/>
   </properties>
 </input>
