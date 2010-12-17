@@ -3252,6 +3252,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"separate")
+getstructfermisurfaceplot%separate= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"separate",getstructfermisurfaceplot%separate)
        call removeAttribute(thisnode,"separate")  
