@@ -52,15 +52,6 @@ Subroutine init1
          input%groundstate%vkloff (:) = 0.d0
          input%groundstate%autokpt = .False.
       End If
-! setup the default k-point box
-      boxl (:, 1) = input%groundstate%vkloff(:) / dble &
-     & (input%groundstate%ngridk(:))
-      boxl (:, 2) = boxl (:, 1)
-      boxl (:, 3) = boxl (:, 1)
-      boxl (:, 4) = boxl (:, 1)
-      boxl (1, 2) = boxl (1, 2) + 1.d0
-      boxl (2, 3) = boxl (2, 3) + 1.d0
-      boxl (3, 4) = boxl (3, 4) + 1.d0
 ! k-point set and box for Fermi surface plots
       If ((task .Eq. 100) .Or. (task .Eq. 101)) Then
          input%groundstate%ngridk (:) = np3d (:)
@@ -144,6 +135,15 @@ Subroutine init1
            & input%groundstate%ngridk(:)
              Write (*,*)
          End If
+! setup the default k-point box
+         boxl (:, 1) = input%groundstate%vkloff(:) / dble &
+          & (input%groundstate%ngridk(:))
+         boxl (:, 2) = boxl (:, 1)
+         boxl (:, 3) = boxl (:, 1)
+         boxl (:, 4) = boxl (:, 1)
+         boxl (1, 2) = boxl (1, 2) + 1.d0
+         boxl (2, 3) = boxl (2, 3) + 1.d0
+         boxl (3, 4) = boxl (3, 4) + 1.d0
 ! allocate the reduced k-point set arrays
          If (allocated(ivk)) deallocate (ivk)
          Allocate (ivk(3, input%groundstate%ngridk(1)*&
