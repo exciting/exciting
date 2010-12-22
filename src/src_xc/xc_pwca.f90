@@ -53,7 +53,8 @@ data b1 / 7.5957d0,   14.1189d0,    10.357d0     /
 data b2 / 3.5876d0,    6.1977d0,     3.6231d0    /
 data b3 / 1.6382d0,    3.3662d0,     0.88026d0   /
 data b4 / 0.49294d0,   0.62517d0,    0.49671d0   /
-real(8) r,rs,srs,z,z4,ec0,ec1,ac,fz
+real(8) rup,rdn,r,rs,srs
+real(8) z,z4,ec0,ec1,ac,fz
 real(8) t1,t2,t3,dzf,dzec
 real(8) drec0,drec1,drac,drec
 real(8) q0(3),q1(3),q1p
@@ -64,11 +65,13 @@ if (n.le.0) then
   stop
 end if
 do i=1,n
-  if ((rhoup(i).gt.1.d-12).and.(rhodn(i).gt.1.d-12)) then
-    r=rhoup(i)+rhodn(i)
+  rup=rhoup(i); rdn=rhodn(i)
+! total density
+  r=rup+rdn
+  if ((rup.ge.0.d0).and.(rdn.ge.0.d0).and.(r.gt.1.d-12)) then
     rs=(3.d0/(4.d0*pi*r))**thrd
     srs=sqrt(rs)
-    z=(rhoup(i)-rhodn(i))/r
+    z=(rup-rdn)/r
     z4=z**4
 ! exchange energy density
     ex(i)=-(3.d0/(4.d0*pi*rs))*((9.d0*pi/4.d0)**thrd) &
