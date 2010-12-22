@@ -47,22 +47,26 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !   \end{tabular}\newline\newline
 !
 ! !REVISION HISTORY:
+!   Created Feburary 2007 (JKD)
+!   Fixed transformation error, October 2007 (JKD, Anton Kozhevnikov)
 !   Documentation added, Dec 2009 (S. Sagmeister)
+!   Fixed l.o. rotation, June 2010 (A. Kozhevnikov)
 !EOP
 !BOC
       Implicit None
   ! arguments
       Real (8), Intent (In) :: vpl (3)
-      Real (8), Intent (In) :: vgpl (3, ngkmax)
+      Real (8), Intent (In) :: vgpl(3,ngkmax,nspnfv)
       Complex (8), Intent (Out) :: evecfv (nmatmax, nstfv, nspnfv)
   ! local variables
       Logical :: exist
-      Integer :: isym, lspl, ilo, l, m, lm, koffset
-      Integer :: ik, igp, igk, ig, i, ilspl
-      Integer :: is, ia, ja, ias, jas
-      Integer :: recl, nmatmax_, nstfv_, nspnfv_
-      Real (8) :: vkl_ (3), v (3), t1
-      Real (8) :: si (3, 3), sc (3, 3)
+      integer isym,lspl,ilspl
+      integer ispn,ilo,l,lm,i,j
+      integer ik,igp,igk,ig
+      integer is,ia,ja,ias,jas
+      Integer :: recl, nmatmax_, nstfv_, nspnfv_, koffset
+      Real (8) :: vkl_ (3), v (3)
+      Real (8) :: si (3, 3), t1
       Complex (8) zt1
   ! allocatable arrays
 #ifdef XS
@@ -70,13 +74,10 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       Complex (8), Allocatable :: evecfv_ (:, :, :)
 #endif
       Complex (8), Allocatable :: evecfvt (:, :)
-      Complex (8), Allocatable :: zflm1 (:, :), zflm2 (:, :)
       Character (256) :: filetag
       Character (256), External :: outfilenamestring
   ! find the equivalent k-point number and crystal symmetry element
       Call findkpt (vpl, isym, ik)
-  ! index to spatial rotation in lattice point group
-      lspl = lsplsymc (isym)
   ! find the record length
 #ifdef XS
       Inquire (IoLength=Recl) vkl_, nmatmax_, nstfv_, nspnfv_
@@ -184,85 +185,75 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
       t1 = Abs (vpl(1)-vkl(1, ik)) + Abs (vpl(2)-vkl(2, ik)) + Abs &
      & (vpl(3)-vkl(3, ik))
       If (t1 .Lt. input%structure%epslat) Return
-      If (isspinspiral()) Then
-         Write (*,*)
-         Write (*, '("Error(getevec): code limitation - cannot rotate s&
-        &pin-spiral states")')
-         Write (*, '(" (first run one self-consistent loop with no k-po&
-        &int reduction)")')
-         Write (*,*)
-         Stop
-      End If
+      allocate(evecfvt(nmatmax,nstfv))
+      ! index to spatial rotation in lattice point group
+      lspl=lsplsymc(isym)
 ! the inverse of the spatial symmetry rotates k into p
       ilspl = isymlat (lspl)
-      si (:, :) = symlat (:, :, ilspl)
+      si(:,:)=dble(symlat(:,:,ilspl))
 !-----------------------------------------------!
 !     translate and rotate APW coefficients     !
 !-----------------------------------------------!
-      Allocate (evecfvt(nmatmax, nstfv))
-      Do igk = 1, ngk (1, ik)
-         ig = igkig (igk, 1, ik)
-         v (:) = dble (ivg(:, ig))
-         t1 = - twopi * dot_product (v(:), vtlsymc(:, isym))
-         zt1 = cmplx (Cos(t1), Sin(t1), 8)
-         evecfvt (igk, :) = zt1 * evecfv (igk, :, 1)
-      End Do
-      Do igk = 1, ngk (1, ik)
-         Call r3mtv (si, vgkl(:, igk, 1, ik), v)
-         Do igp = 1, ngk (ik, 1)
-            t1 = Abs (v(1)-vgpl(1, igp)) + Abs (v(2)-vgpl(2, igp)) + &
-           & Abs (v(3)-vgpl(3, igp))
-            If (t1 .Lt. input%structure%epslat) Then
-               evecfv (igp, :, 1) = evecfvt (igk, :)
-               Go To 10
-            End If
-         End Do
-10       Continue
-      End Do
+      do ispn=1,nspnfv
+        do igk=1,ngk(ispn,ik)
+          ig=igkig(igk,ispn,ik)
+          v(:)=dble(ivg(:,ig))
+          t1=-twopi*dot_product(v(:),vtlsymc(:,isym))
+          zt1=cmplx(cos(t1),sin(t1),8)
+          evecfvt(igk,:)=zt1*evecfv(igk,:,ispn)
+        end do
+! inverse rotation used because transformation is passive
+        do igk=1,ngk(ispn,ik)
+          call r3mtv(si,vgkl(:,igk,ispn,ik),v)
+          do igp=1,ngk(ispn,ik)
+            t1=abs(v(1)-vgpl(1,igp,ispn)) &
+              +abs(v(2)-vgpl(2,igp,ispn)) &
+              +abs(v(3)-vgpl(3,igp,ispn))
+            if (t1.lt.input%structure%epslat) then
+              evecfv(igp,:,ispn)=evecfvt(igk,:)
+              goto 10
+            end if
+          end do
+      10 continue
+        end do
+      end do
 !---------------------------------------------------------!
 !     translate and rotate local-orbital coefficients     !
 !---------------------------------------------------------!
-      If (nlotot .Le. 0) Go To 20
-      Allocate (zflm1(lolmmax, nstfv), zflm2(lolmmax, nstfv))
-! make a copy of the local-orbital coefficients
-      Do i = ngk (1, ik) + 1, nmat (1, ik)
-         evecfvt (i, :) = evecfv (i, :, 1)
-      End Do
-! spatial rotation symmetry matrix in Cartesian coordinates
-      sc (:, :) = symlatc (:, :, lspl)
+      if (nlotot.gt.0) then
 ! rotate k-point by inverse symmetry matrix
-      Call r3mtv (si, vkl(:, ik), v)
-      Do is = 1, nspecies
-         Do ia = 1, natoms (is)
-            ias = idxas (ia, is)
-    ! equivalent atom for this symmetry
-            ja = ieqatom (ia, is, isym)
-            jas = idxas (ja, is)
-    ! phase factor from translation
-            t1 = - twopi * dot_product (vkl(:, ik), input%structure%speciesarray(is)%species%atomarray(ja)%atom%coord(:))
-            zt1 = cmplx (Cos(t1), Sin(t1), 8)
-            t1 = twopi * dot_product (v(:), input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
-            zt1 = zt1 * cmplx (Cos(t1), Sin(t1), 8)
-    ! rotate local orbitals
-            Do ilo = 1, nlorb (is)
-               l = lorbl (ilo, is)
-               zflm1 (:, :) = 0.d0
-               Do m = - l, l
-                  lm = idxlm (l, m)
-                  i = ngk (1, ik) + idxlo (lm, ilo, jas)
-                  zflm1 (lm, :) = evecfvt (i, :)
-               End Do
-               Call rotzflm (sc, l, nstfv, lolmmax, zflm1, zflm2)
-               Do m = - l, l
-                  lm = idxlm (l, m)
-                  i = ngk (1, ik) + idxlo (lm, ilo, ias)
-                  evecfv (i, :, 1) = zt1 * zflm2 (lm, :)
-               End Do
-            End Do
-         End Do
-      End Do
-      Deallocate (zflm1, zflm2)
-20    Continue
+        call r3mtv(si,vkl(:,ik),v)
+! loop over the first-variational spins
+        do ispn=1,nspnfv
+! make a copy of the local-orbital coefficients
+          do i=ngk(ispn,ik)+1,nmat(ispn,ik)
+            evecfvt(i,:)=evecfv(i,:,ispn)
+          end do
+          do is=1,nspecies
+            do ia=1,natoms(is)
+              ias=idxas(ia,is)
+! equivalent atom for this symmetry
+              ja=ieqatom(ia,is,isym)
+              jas=idxas(ja,is)
+! phase factor from translation
+              t1=-twopi*dot_product(vkl(:,ik),input%structure%speciesarray(is)%species%atomarray(ja)%atom%coord(:))
+              zt1=cmplx(cos(t1),sin(t1),8)
+              t1=twopi*dot_product(v(:),input%structure%speciesarray(is)%species%atomarray(ia)%atom%coord(:))
+              zt1=zt1*cmplx(cos(t1),sin(t1),8)
+! rotate local orbitals (active transformation)
+              do ilo=1,nlorb(is)
+                l=lorbl(ilo,is)
+                lm=idxlm(l,-l)
+                i=ngk(ispn,ik)+idxlo(lm,ilo,ias)
+                j=ngk(ispn,ik)+idxlo(lm,ilo,jas)
+                call rotzflm(symlatc(:,:,lspl),l,l,nstfv,nmatmax,evecfvt(j,1), &
+                 evecfv(i,1,ispn))
+                evecfv(i:i+2*l,:,ispn)=zt1*evecfv(i:i+2*l,:,ispn)
+              end do
+            end do
+          end do
+        end do
+      end if
       Deallocate (evecfvt)
       Return
 End Subroutine getevecfv
