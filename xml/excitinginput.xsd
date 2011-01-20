@@ -3215,6 +3215,23 @@ Example:  <pre>
                             <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0"
                                 maxOccurs="1"/>
                         </xs:all>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="phonontype"
+                            default="supercell">
+                            <xs:annotation>
+                                <xs:appinfo>
+                                    <oldname>nonreplace</oldname>
+                                </xs:appinfo>
+                                <xs:documentation>
+                                 Decides which method (supercell or linear response) is used to perform the phonon calculation.
+                             </xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="supercell"/>
+                                    <xs:enumeration value="linearresponse"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="do"
                             default="fromscratch">
                             <xs:annotation>
