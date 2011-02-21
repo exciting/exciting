@@ -42,9 +42,10 @@ Contains
     ! include dynamical structure factor
     ! Dynamical structure factor; expression taken from Weissker, PRL 2006
     ! Units of dynamical structure factor are Hartree^-1
+    ! Rescaling of units if electron volts are selected
          igmt = ivgigq (ivgmt(1, iq), ivgmt(2, iq), ivgmt(3, iq), iq)
          Write (unit1, '(3g18.10)') (w(iw)*escale, loss(iw), &
-        & loss(iw)*(gqc(igmt, iq)**2/(4.d0*pi**2*chgval/omega)), iw=1, &
+        & loss(iw)/escale*(gqc(igmt, iq)**2/(4.d0*pi**2*chgval/omega)), iw=1, &
         & n)
     ! write relevant parameters to file
          Call writevars (unit1, iq, iq)
