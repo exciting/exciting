@@ -61,12 +61,12 @@ Contains
     ! check limits for states
          lerr = (l1 .Lt. 1) .Or. (l1 .Gt. nstsv) .Or. (h1 .Lt. 1) .Or. &
         & (h1 .Gt. nstsv) .Or. (l2 .Lt. 1) .Or. (l2 .Gt. nstsv) .Or. &
-        & (h2 .Lt. 1) .Or. (h2 .Gt. nstsv) .Or. (l1 .Ge. h1) .Or. (l2 &
-        & .Ge. h2)
+        & (h2 .Lt. 1) .Or. (h2 .Gt. nstsv) .Or. (l1 .Gt. h1) .Or. (l2 &
+        & .Gt. h2)
          If (present(x34)) lerr = lerr .Or. (l3 .Lt. 1) .Or. (l3 .Gt. &
         & nstsv) .Or. (h3 .Lt. 1) .Or. (h3 .Gt. nstsv) .Or. (l4 .Lt. 1) &
         & .Or. (l4 .Gt. nstsv) .Or. (h4 .Lt. 1) .Or. (h4 .Gt. nstsv) &
-        & .Or. (l3 .Ge. h3) .Or. (l4 .Ge. h4)
+        & .Or. (l3 .Gt. h3) .Or. (l4 .Gt. h4)
          err = 0
          If (lerr) Then
             Write (unitout,*)

@@ -45,7 +45,7 @@ Contains
     ! check band range
          If ((i1 .Lt. 1) .Or. (i1 .Gt. nstsv) .Or. (f1 .Lt. 1) .Or. (f1 &
         & .Gt. nstsv) .Or. (i2 .Lt. 1) .Or. (i2 .Gt. nstsv) .Or. (f2 &
-        & .Lt. 1) .Or. (f2 .Gt. nstsv) .Or. (i1 .Ge. f1) .Or. (i2 .Ge. &
+        & .Lt. 1) .Or. (f2 .Gt. nstsv) .Or. (i1 .Gt. f1) .Or. (i2 .Gt. &
         & f2)) Then
             Write (unitout,*)
             Write (unitout, '("Error(", a, "): inconsistent limits for &
