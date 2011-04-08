@@ -35,6 +35,7 @@ use mod_Gvector
 ! !REVISION HISTORY:
 !   Created October 2004 (JKD)
 !   Simplified and improved, October 2009 (JKD)
+!   Modified third order gradients, April 2011 (S. Sagmeister)
 !EOP
 !BOC
 
@@ -94,6 +95,10 @@ do i=1, 3
   call zfftifc(3, ngrid, 1, zfft2)
   g3up(:)=g3up(:)+gvup(:, i)*dble(zfft2(:))
 end do
+! round third order gradient to zero for stability with GGA routines
+where(abs(g3up).lt.1.d-8)
+  g3up=0.d0
+end where
 !------------------!
 !     rho down     !
 !------------------!
@@ -131,6 +136,10 @@ do i=1, 3
   call zfftifc(3, ngrid, 1, zfft2)
   g3dn(:)=g3dn(:)+gvdn(:, i)*dble(zfft2(:))
 end do
+! round third order gradient to zero for stability with GGA routines
+where(abs(g3dn).lt.1.d-8)
+  g3dn=0.d0
+end where
 !-------------!
 !     rho     !
 !-------------!
@@ -151,6 +160,10 @@ do i=1, 3
   call zfftifc(3, ngrid, 1, zfft2)
   g3rho(:)=g3rho(:)+(gvup(:, i)+gvdn(:, i))*dble(zfft2(:))
 end do
+! round third order gradient to zero for stability with GGA routines
+where(abs(g3rho).lt.1.d-8)
+  g3rho=0.d0
+end where
 deallocate(gvup, gvdn, zfft1, zfft2)
 return
 end subroutine

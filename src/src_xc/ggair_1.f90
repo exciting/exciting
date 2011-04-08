@@ -19,6 +19,7 @@ use mod_potential_and_density
 !
 ! !REVISION HISTORY:
 !   Created November 2009 (JKD)
+!   Modified third order gradients, April 2011 (S. Sagmeister)
 !EOP
 !BOC
 implicit none
@@ -67,6 +68,10 @@ do i=1, 3
   call zfftifc(3, ngrid, 1, zfft2)
   g3rho(:)=g3rho(:)+gvrho(:, i)*dble(zfft2(:))
 end do
+! round third order gradient to zero for stability with GGA routines
+where(abs(g3rho).lt.1.d-8)
+  g3rho=0.d0
+end where
 deallocate(gvrho, zfft1, zfft2)
 return
 end subroutine
