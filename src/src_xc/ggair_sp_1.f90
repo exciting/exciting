@@ -28,7 +28,7 @@ use mod_Gvector
 !   $\nabla\rho^{\downarrow}\cdot(\nabla|\nabla\rho^{\downarrow}|)$ for the
 !   interstitial charge density, as required by the generalised gradient
 !   approximation functionals of type 1 for spin-polarised densities. See
-!   routines {\tt potxc} and {\tt modxcifc}.
+!   routines {\tt ggair\_1} {\tt potxc} and {\tt modxcifc}.
 !
 ! !REVISION HISTORY:
 !   Created October 2004 (JKD)
