@@ -378,6 +378,8 @@ type eliashberg_type
  real(8)::mustar
 end type
 type phonons_type
+ character(512)::phonontype
+ integer::phonontypenumber
  character(512)::do
  integer::donumber
  integer::ngridq(3)
@@ -3483,6 +3485,15 @@ allocate(getstructphonons)
 #endif
       
 nullify(np)  
+np=>getAttributeNode(thisnode,"phonontype")
+getstructphonons%phonontype= "supercell"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"phonontype",getstructphonons%phonontype)
+       call removeAttribute(thisnode,"phonontype")  
+endif
+getstructphonons%phonontypenumber=stringtonumberphononsphonontype(getstructphonons%phonontype)
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"do")
 getstructphonons%do= "fromscratch"
 if(associated(np)) then
@@ -5428,6 +5439,22 @@ case('')
  stringtonumbergroundstateldapu=0
 case default
 write(*,*) "Parser ERROR: '", string,"' is not valid selection forldapu "
+stop 
+end select
+end function
+
+ 
+ integer function  stringtonumberphononsphonontype(string) 
+ character(80),intent(in)::string
+ select case(trim(adjustl(string)))
+case('supercell')
+ stringtonumberphononsphonontype=-1
+case('linearresponse')
+ stringtonumberphononsphonontype=-1
+case('')
+ stringtonumberphononsphonontype=0
+case default
+write(*,*) "Parser ERROR: '", string,"' is not valid selection forphonontype "
 stop 
 end select
 end function
