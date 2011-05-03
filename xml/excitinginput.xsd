@@ -612,7 +612,7 @@ Example:  <pre>
                                         <xs:element ex:importance="expert" ex:unit=""
                                             name="LDAplusU" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>If present defines LDA plus U parameters for species</xs:documentation>
+                                              <xs:documentation>The LADplusU element is used to specify the I,J and U parameters of a species. To switch on the LDAplusU feature one needs to set the   <attref>ldapu</attref> attribute of the groundstate element. </xs:documentation>
                                             </xs:annotation>
                                             <xs:complexType>
                                                 <xs:attribute ex:importance="expert" ex:unit=""
