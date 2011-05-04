@@ -39,7 +39,8 @@ Subroutine getevecfv (vpl, vgpl, evecfv)
 !    &  &  & (maximum over k-points) \\ \hline
 !   $N_{\rm stfv}$ & integer & 1 & number of (first-variational) states \\
 !    &  &  & (without core states) \\ \hline
-!   $N_{\rm spfv}$ & integer & 1 & first-variational spins (always equals 1)
+!   $N_{\rm spfv}$ & integer & 1 & first-variational spins \\
+!    &  &  & (2 for spin-spirals, 1 otherwise)
 !         \\ \hline
 !   $\Phi$ & complex(8) & $N_{\rm mat}\times N_{\rm stfv}\times N_{\rm spfv}$ &
 !        (first-variational) eigenvector array \\

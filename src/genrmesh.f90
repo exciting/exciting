@@ -17,10 +17,38 @@ Subroutine genrmesh
 ! !DESCRIPTION:
 !   Generates the coarse and fine radial meshes for each atomic species in the
 !   crystal. Also determines which points are in the inner part of the
-!   muffin-tin using the value of {\tt radfinr}.
+!   muffin-tin using the value of {\tt fracinr}.
+!   For species $i$ the radial mesh starts from the value $R_0=r(1)$, hits the
+!   muffin-tin surface at $R_{\rm MT}=r(N)$, and ends at the effective infinity
+!   value $R_{\infty}=r(N_{\infty})$. The number of points up to the effective
+!   infinity are determined by the number of points $N$ up to the muffin-tin
+!   radius as well as by the smallest and largest mesh point and the muffin-tin
+!   radius, and is given by
+!   $$ N_{\infty}={\rm round}
+!   \left[ \frac{(N-1)\ln(R_{\infty}/R_0)}{\ln(R_{\rm MT}/R_0)} \right] +1.
+!   $$
+!   The radial mesh points are finally defined by
+!   $$ r(j)= R_0\left(\frac{R_{\rm MT}}{R_0}\right)^\frac{j-1}{N-1},
+!   $$
+!   for $j=1,\ldots,N_\infty$. \\
+!   Note: The number of mesh points initially defined in species file is adapted
+!   to be commensurate with the coarse mesh of step size {\tt lradstep}
+!   $$ N = N^*-\mod(N^*,{\tt lradstep}),
+!   $$
+!   if $N^*$ was the number of points defined in the species file.
+!   The number of mesh points $\tilde{N} $ of the coarse mesh $\tilde{r}(j)$
+!   reads
+!   $$ \tilde{N} = \left\lfloor \frac{N-1}{\tt lradstep}\right\rfloor + 1.
+!   $$
+!   It is given by
+!   $$ \tilde{r}(j) = r([j-1]*{\tt lradstep}+1),
+!   $$
+!   for $j=1,\ldots,\tilde{N}$ and has the properties $\tilde{r}(1)=r(1)=R_0$
+!   and $\tilde{r}(\tilde{N})=r(N)=R_{\rm MT}$.
 !
 ! !REVISION HISTORY:
 !   Created September 2002 (JKD)
+!   Revised and updated documentation, April 2011 (S. Sagmeister)
 !EOP
 !BOC
       Implicit None

@@ -109,19 +109,16 @@ Contains
             End If
        ! consider symmetric gauge wrt. Coulomb potential (multiply with v^(1/2))
             If ( .Not. tq0) Then
-               m12 (:, :, 1) = m12 (:, :, 1) / gqc (1, iq) * fourpisqt
-               If (present(m34)) m34 (:, :, 1) = m34 (:, :, 1) / gqc &
-              & (1, iq) * fourpisqt
+               m12 (:, :, 1) = m12 (:, :, 1) *sptclg(1,iq)
+               If (present(m34)) m34 (:, :, 1) = m34 (:, :, 1) *sptclg(1,iq)
             End If
             If (n .Gt. 1) Then
                Forall (igq=2:n)
-                  m12 (:, :, igq) = m12 (:, :, igq) / gqc (igq, iq) * &
-                 & fourpisqt
+                  m12 (:, :, igq) = m12 (:, :, igq) *sptclg(igq,iq)
                End Forall
                If (present(m34)) Then
                   Forall (igq=2:n)
-                     m34 (:, :, igq) = m34 (:, :, igq) / gqc (igq, iq) &
-                    & * fourpisqt
+                     m34 (:, :, igq) = m34 (:, :, igq) *sptclg(igq,iq)
                   End Forall
                End If
             End If

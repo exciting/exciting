@@ -14,7 +14,8 @@ use modmain
 !   and of the last iteration according to
 !   the expression
 !   $$
-!     \Delta Q = \int_{\Omega} [\rho^{(n)}({\bf r}) - \rho^{(n-1)}({\bf r})].
+!     \Delta Q = \int_{\Omega} {\rm d}^3 r [\rho^{(n)}({\bf r}) -
+!     \rho^{(n-1)}({\bf r})].
 !   $$
 !   Based on the routine {\tt charge}.
 !

@@ -11,7 +11,7 @@ Subroutine gensymcmut (eps, maxsymcrys, nsymcrys, symlat, lsplsymc, &
 & vtlsymc, scmut, tabel, tspainvsym)
 ! !DESCRIPTION:
 !   Sets up the group multiplication table. The table is checked for consistency
-!   in a way that it is required that every elements occurrs once and only once
+!   in a way that it is required that every elements occurs once and only once
 !   in each row and column of the table. The first row and colmuns must consist
 !   of the indentity since the first symmetry element is the identity by
 !   convention.

@@ -60,9 +60,9 @@ Contains
       Subroutine rtorat (eps, n, x, k, div)
 ! !DESCRIPTION:
 !   This subroutine factorizes the real coordinates of a vector {\bf x}.
-!   The output is an integer vector {\bf k}, such that $k(i)/{\rm div}=x(i)$
-!   and
-!   $$ |x(i)-k(i)/{\rm div}| < {\rm eps} $$.
+!   The output is an integer vector {\bf k}, such that
+!   $$ |x(i)-k(i)/{\rm div}| < {\rm eps} $$
+!   for all $i=1,\ldots,n$.
 !
 ! !REVISION HISTORY:
 !   Created July 2008 by Sagmeister
@@ -326,7 +326,8 @@ Contains
 ! !DESCRIPTION:
 !   Generates an array connecting the tetrahedra of the $\mathbf{k}$-point with
 !   the ones of the  $\mathbf{k}+\mathbf{q}$-point. Interface routine
-!   referencing the {\tt libbzint} library of Ricardo Gomez-Abal.
+!   referencing the {\tt libbzint} library of Ricardo Gomez-Abal and Xinzheng
+!   Li.
 !
 ! !REVISION HISTORY:
 !   Created January 2008 (Sagmeister)
