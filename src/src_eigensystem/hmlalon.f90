@@ -12,7 +12,7 @@ Subroutine hmlalon (hamilton, is, ia, ngp, apwalm)
       Use modfvsystem
       Implicit None
 ! arguments
-      Type (hermiteanMatrix), Intent (Inout) :: hamilton
+      Type (hermitianMatrix), Intent (Inout) :: hamilton
       Integer, Intent (In) :: is
       Integer, Intent (In) :: ia
       Integer, Intent (In) :: ngp
@@ -53,7 +53,7 @@ Subroutine hmlalon (hamilton, is, ia, ngp, apwalm)
                 !k=k+1
                            zt1 = zsum * apwalm (j, io, lm3, ias)
 !
-                           Call Hermiteanmatrix_indexedupdate &
+                           Call Hermitianmatrix_indexedupdate &
                           & (hamilton, i, j, conjg(zt1))
                         End Do
 !

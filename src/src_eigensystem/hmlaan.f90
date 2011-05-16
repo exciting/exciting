@@ -37,7 +37,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
       Implicit None
 !
 ! arguments
-      Type (HermiteanMatrix), Intent (Inout) :: hamilton
+      Type (HermitianMatrix), Intent (Inout) :: hamilton
       Integer, Intent (In) :: is
       Integer, Intent (In) :: ia
       Integer, Intent (In) :: ngp
@@ -105,7 +105,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
 !#$omp end parallel
                x = conjg (apwalm(1:ngp, io1, lm1, ias))
                y = conjg (zv)
-               Call Hermiteanmatrix_rank2update (hamilton, ngp, zone, &
+               Call Hermitianmatrix_rank2update (hamilton, ngp, zone, &
               & x, y)
 !
             End Do
@@ -122,7 +122,7 @@ Subroutine hmlaan (hamilton, is, ia, ngp, apwalm)
                  & (io2, l1, ias)
                   x = conjg (apwalm(1:ngp, io1, lm1, ias))
                   y = conjg (apwalm(1:ngp, io2, lm1, ias))
-                  Call Hermiteanmatrix_rank2update (hamilton, ngp, zt1, &
+                  Call Hermitianmatrix_rank2update (hamilton, ngp, zt1, &
                  & x, y)
                End Do
             End Do

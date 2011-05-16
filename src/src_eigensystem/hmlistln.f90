@@ -39,7 +39,7 @@ Subroutine hmlistln (hamilton, ngp, igpig, vgpc)
 !BOC
       Implicit None
 ! arguments
-      Type (HermiteanMatrix), Intent (Inout) :: hamilton
+      Type (HermitianMatrix), Intent (Inout) :: hamilton
       Integer, Intent (In) :: ngp
       Integer, Intent (In) :: igpig (ngkmax)
       Real (8), Intent (In) :: vgpc (3, ngkmax)
@@ -67,7 +67,7 @@ Subroutine hmlistln (hamilton, ngp, igpig, vgpc)
                zt = veffig (ig) + t1 * cfunig (ig)
          !  h(k)=h(k)+zt
 !
-               Call Hermiteanmatrix_indexedupdate (hamilton, j, i, zt)
+               Call Hermitianmatrix_indexedupdate (hamilton, j, i, zt)
             End If
          End Do
       End Do

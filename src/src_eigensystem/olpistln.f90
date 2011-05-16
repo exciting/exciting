@@ -34,7 +34,7 @@ Subroutine olpistln (overlap, ngp, igpig)
 !BOC
       Implicit None
 ! arguments
-      Type (HermiteanMatrix), Intent (Inout) :: overlap
+      Type (HermitianMatrix), Intent (Inout) :: overlap
       Integer, Intent (In) :: ngp
       Integer, Intent (In) :: igpig (ngkmax)
 !
@@ -54,7 +54,7 @@ Subroutine olpistln (overlap, ngp, igpig)
             iv (:) = ivg (:, igpig(i)) - ivg (:, igpig(j))
             ig = ivgig (iv(1), iv(2), iv(3))
             If ((ig .Gt. 0) .And. (ig .Le. ngvec)) Then
-               Call Hermiteanmatrix_indexedupdate (overlap, j, i, &
+               Call Hermitianmatrix_indexedupdate (overlap, j, i, &
               & cfunig(ig))
             End If
          End Do

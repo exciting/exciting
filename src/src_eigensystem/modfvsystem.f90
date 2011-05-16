@@ -11,23 +11,23 @@
 Module modfvsystem
       Implicit None
 !
-      Type HermiteanMatrix
+      Type HermitianMatrix
 !
          Integer :: rank
          Logical :: packed, ludecomposed
          Integer, Pointer :: ipiv (:)
          Complex (8), Pointer :: za (:, :), zap (:)
-      End Type HermiteanMatrix
+      End Type HermitianMatrix
 !
       Type evsystem
-         Type (HermiteanMatrix) :: hamilton, overlap
+         Type (HermitianMatrix) :: hamilton, overlap
       End Type evsystem
 !
 Contains
 !
 !
       Subroutine newmatrix (self, packed, rank)
-         Type (HermiteanMatrix), Intent (Inout) :: self
+         Type (HermitianMatrix), Intent (Inout) :: self
          Logical, Intent (In) :: packed
          Integer, Intent (In) :: rank
          self%rank = rank
@@ -44,7 +44,7 @@ Contains
 !
 !
       Subroutine deletematrix (self)
-         Type (HermiteanMatrix), Intent (Inout) :: self
+         Type (HermitianMatrix), Intent (Inout) :: self
          If (self%packed .Eqv. .True.) Then
             Deallocate (self%zap)
          Else
@@ -70,8 +70,8 @@ Contains
       End Subroutine deleteystem
 !
 !
-      Subroutine Hermiteanmatrix_rank2update (self, n, alpha, x, y)
-         Type (HermiteanMatrix), Intent (Inout) :: self
+      Subroutine Hermitianmatrix_rank2update (self, n, alpha, x, y)
+         Type (HermitianMatrix), Intent (Inout) :: self
          Integer, Intent (In) :: n
          Complex (8), Intent (In) :: alpha, x (:), y (:)
 !
@@ -80,11 +80,11 @@ Contains
          Else
             Call ZHER2 ('U', n, alpha, x, 1, y, 1, self%za, self%rank)
          End If
-      End Subroutine Hermiteanmatrix_rank2update
+      End Subroutine Hermitianmatrix_rank2update
 !
 !
-      Subroutine Hermiteanmatrix_indexedupdate (self, i, j, z)
-         Type (HermiteanMatrix), Intent (Inout) :: self
+      Subroutine Hermitianmatrix_indexedupdate (self, i, j, z)
+         Type (HermitianMatrix), Intent (Inout) :: self
          Integer :: i, j
          Complex (8) :: z
          Integer :: ipx
@@ -99,12 +99,12 @@ Contains
             End If
          End If
          Return
-      End Subroutine Hermiteanmatrix_indexedupdate
+      End Subroutine Hermitianmatrix_indexedupdate
 !
 !
-      Subroutine Hermiteanmatrixvector (self, alpha, vin, beta, vout)
+      Subroutine Hermitianmatrixvector (self, alpha, vin, beta, vout)
          Implicit None
-         Type (HermiteanMatrix), Intent (Inout) :: self
+         Type (HermitianMatrix), Intent (Inout) :: self
          Complex (8), Intent (In) :: alpha, beta
          Complex (8), Intent (Inout) :: vin (:)
          Complex (8), Intent (Inout) :: vout (:)
@@ -116,25 +116,25 @@ Contains
             Call zhemv ("U", self%rank, alpha, self%za, self%rank, vin, &
            & 1, beta, vout, 1)
          End If
-      End Subroutine Hermiteanmatrixvector
+      End Subroutine Hermitianmatrixvector
 !
 !
       Function ispacked (self)
          Logical :: ispacked
-         Type (HermiteanMatrix) :: self
+         Type (HermitianMatrix) :: self
          ispacked = self%packed
       End Function ispacked
 !
 !
       Function getrank (self)
          Integer :: getrank
-         Type (HermiteanMatrix) :: self
+         Type (HermitianMatrix) :: self
          getrank = self%rank
       End Function getrank
 !
 !
-      Subroutine HermiteanmatrixLU (self)
-         Type (HermiteanMatrix) :: self
+      Subroutine HermitianmatrixLU (self)
+         Type (HermitianMatrix) :: self
          Integer :: info
          If ( .Not. self%ludecomposed) allocate (self%ipiv(self%rank))
 !
@@ -146,17 +146,17 @@ Contains
                Call ZHPTRF ('U', self%rank, self%zap, self%ipiv, info)
             End If
             If (info .Ne. 0) Then
-               Write (*,*) "error in iterativearpacksecequn  Hermiteanm&
+               Write (*,*) "error in iterativearpacksecequn  Hermitianm&
               &atrixLU ", info
                Stop
             End If
             self%ludecomposed = .True.
          End If
-      End Subroutine HermiteanmatrixLU
+      End Subroutine HermitianmatrixLU
 !
 !
-      Subroutine Hermiteanmatrixlinsolve (self, b)
-         Type (HermiteanMatrix) :: self
+      Subroutine Hermitianmatrixlinsolve (self, b)
+         Type (HermitianMatrix) :: self
          Complex (8), Intent (Inout) :: b (:)
          Integer :: info
          If (self%ludecomposed) Then
@@ -168,17 +168,17 @@ Contains
               & self%rank, info)
             End If
             If (info .Ne. 0) Then
-               Write (*,*) "error in iterativearpacksecequn Hermiteanma&
+               Write (*,*) "error in iterativearpacksecequn Hermitianma&
               &trixlinsolve ", info
                Stop
             End If
          End If
-      End Subroutine Hermiteanmatrixlinsolve
+      End Subroutine Hermitianmatrixlinsolve
 !
 !
-      Subroutine HermiteanMatrixAXPY (alpha, x, y)
+      Subroutine HermitianMatrixAXPY (alpha, x, y)
          Complex (8) :: alpha
-         Type (HermiteanMatrix) :: x, y
+         Type (HermitianMatrix) :: x, y
          Integer :: mysize
          If (ispacked(x)) Then
             mysize = (x%rank*(x%rank+1)) / 2
@@ -187,12 +187,12 @@ Contains
             mysize = x%rank * (x%rank)
             Call zaxpy (mysize, alpha, x%za, 1, y%za, 1)
          End If
-      End Subroutine HermiteanMatrixAXPY
+      End Subroutine HermitianMatrixAXPY
 !
 !
-      Subroutine HermiteanMatrixcopy (x, y)
+      Subroutine HermitianMatrixcopy (x, y)
          Complex (8) :: alpha
-         Type (HermiteanMatrix) :: x, y
+         Type (HermitianMatrix) :: x, y
          Integer :: mysize
          If (ispacked(x)) Then
             mysize = (x%rank*(x%rank+1)) / 2
@@ -201,12 +201,12 @@ Contains
             mysize = x%rank * (x%rank)
             Call zcopy (mysize, x%za, 1, y%za, 1)
          End If
-      End Subroutine HermiteanMatrixcopy
+      End Subroutine HermitianMatrixcopy
 !
 !
-      Subroutine HermiteanMatrixToFiles (self, prefix)
+      Subroutine HermitianMatrixToFiles (self, prefix)
          Implicit None
-         Type (HermiteanMatrix), Intent (In) :: self
+         Type (HermitianMatrix), Intent (In) :: self
          Character (256), Intent (In) :: prefix
          Character (256) :: filename
          If (ispacked(self)) Then
@@ -230,12 +230,12 @@ Contains
             Write (888,*) aimag (self%za)
          End If
          Close (888)
-      End Subroutine HermiteanMatrixToFiles
+      End Subroutine HermitianMatrixToFiles
 !
 !
-      Subroutine HermiteanMatrixTruncate (self, threshold)
+      Subroutine HermitianMatrixTruncate (self, threshold)
          Implicit None
-         Type (HermiteanMatrix), Intent (Inout) :: self
+         Type (HermitianMatrix), Intent (Inout) :: self
          Real (8), Intent (In) :: threshold
          Integer :: n, i, j
          n = self%rank
@@ -261,9 +261,9 @@ Contains
       End Subroutine
 !
 !
-      Subroutine HermiteanMatrixdiagonal (self, d)
+      Subroutine HermitianMatrixdiagonal (self, d)
          Implicit None
-         Type (HermiteanMatrix), Intent (In) :: self
+         Type (HermitianMatrix), Intent (In) :: self
          Complex (8), Intent (Out) :: d (self%rank)
          Integer :: i
          If (ispacked(self)) Then

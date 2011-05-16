@@ -163,9 +163,9 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
   !calculate LU decomposition to be used in the reverse communication loop
   !#######################################################################
 !
-      Call HermiteanMatrixAXPY (-sigma, system%overlap, &
+      Call HermitianMatrixAXPY (-sigma, system%overlap, &
      & system%hamilton)
-      Call HermiteanMatrixLU (system%hamilton)
+      Call HermitianMatrixLU (system%hamilton)
       Call cpu_time (cpu1)
   !################################################
   !# reverse comunication loop of arpack library: #
@@ -179,14 +179,14 @@ Subroutine iterativearpacksecequn (ik, ispn, apwalm, vgpc, evalfv, &
 !
          If (ido .Eq.-1 .Or. ido .Eq. 1) Then
 !
-            Call Hermiteanmatrixvector (system%overlap, one, vin, zero, &
+            Call Hermitianmatrixvector (system%overlap, one, vin, zero, &
            & vout)
-            Call Hermiteanmatrixlinsolve (system%hamilton, vout)
+            Call Hermitianmatrixlinsolve (system%hamilton, vout)
          Else If (ido .Eq. 1) Then
             Call zcopy (n, workd(ipntr(3)), 1, vout, 1)
-            Call Hermiteanmatrixlinsolve (system%hamilton, vout)
+            Call Hermitianmatrixlinsolve (system%hamilton, vout)
          Else If (ido .Eq. 2) Then
-            Call Hermiteanmatrixvector (system%overlap, one, vin, zero, &
+            Call Hermitianmatrixvector (system%overlap, one, vin, zero, &
            & vout)
 !
          Else
