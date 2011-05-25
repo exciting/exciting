@@ -12,7 +12,7 @@ Subroutine hmllolon (hamilton, is, ia, ngp)
       Use modfvsystem
       Implicit None
 ! arguments
-      Type (HermiteanMatrix) :: hamilton
+      Type (HermitianMatrix) :: hamilton
       Integer, Intent (In) :: is
       Integer, Intent (In) :: ia
       Integer, Intent (In) :: ngp
@@ -48,7 +48,7 @@ Subroutine hmllolon (hamilton, is, ia, ngp)
 ! calculate the matrix elements
 !
 !
-                     Call Hermiteanmatrix_indexedupdate (hamilton, j, &
+                     Call Hermitianmatrix_indexedupdate (hamilton, j, &
                     & i, zsum)
 !
                   End If

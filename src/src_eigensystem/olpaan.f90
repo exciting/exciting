@@ -12,7 +12,7 @@ Subroutine olpaan (overlap, is, ia, ngp, apwalm)
       Use modfvsystem
       Implicit None
 ! arguments
-      Type (hermiteanmatrix), Intent (Inout) :: overlap
+      Type (hermitianmatrix), Intent (Inout) :: overlap
       Integer, Intent (In) :: is
       Integer, Intent (In) :: ia
       Integer, Intent (In) :: ngp
@@ -32,7 +32,7 @@ Subroutine olpaan (overlap, is, ia, ngp, apwalm)
             Do io = 1, apword (l, is)
                x = conjg (apwalm(1:ngp, io, lm, ias))
                y = conjg (apwalm(1:ngp, io, lm, ias))
-               Call Hermiteanmatrix_rank2update (overlap, ngp, zhalf, &
+               Call Hermitianmatrix_rank2update (overlap, ngp, zhalf, &
               & x, y)
             End Do
          End Do

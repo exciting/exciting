@@ -218,7 +218,7 @@ Module diisinterfaces
             Use modfvsystem
             Use modmain, Only: zone
             Integer, Intent (In) :: n, iunconverged
-            Type (HermiteanMatrix), Intent (In) :: hamilton, overlap
+            Type (HermitianMatrix), Intent (In) :: hamilton, overlap
             Complex (8), Intent (In) :: r (n, iunconverged), &
            & eigenvector (n, iunconverged)
             Real (8), Intent (In) :: rhizvalue (iunconverged)

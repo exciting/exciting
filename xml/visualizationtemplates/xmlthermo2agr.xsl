@@ -385,7 +385,7 @@
 @    altxaxis  off
 @    altyaxis  off
 @s0 line color 2
-@s0 symbol 1
+@s0 symbol 0
 @s0 symbol color 2
 
 @target G0.S0

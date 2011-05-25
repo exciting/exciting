@@ -11,7 +11,7 @@ Subroutine olpalon (overlap, is, ia, ngp, apwalm)
       Use modfvsystem
       Implicit None
 ! arguments
-      Type (HermiteanMatrix) :: overlap
+      Type (HermitianMatrix) :: overlap
       Integer, Intent (In) :: is
       Integer, Intent (In) :: ia
       Integer, Intent (In) :: ngp
@@ -40,7 +40,7 @@ Subroutine olpalon (overlap, is, ia, ngp, apwalm)
                End Do
         !o(k)=o(k)+zsum
 !
-               Call Hermiteanmatrix_indexedupdate (overlap, j, i, zsum)
+               Call Hermitianmatrix_indexedupdate (overlap, j, i, zsum)
             End Do
 !
          End Do

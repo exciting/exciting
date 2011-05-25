@@ -11,7 +11,7 @@ Subroutine olplolon (overlap, is, ia, ngp)
       Use modfvsystem
       Implicit None
 ! arguments
-      Type (hermiteanmatrix), Intent (Inout) :: overlap
+      Type (hermitianmatrix), Intent (Inout) :: overlap
       Integer, Intent (In) :: is
       Integer, Intent (In) :: ia
       Integer, Intent (In) :: ngp
@@ -31,7 +31,7 @@ Subroutine olplolon (overlap, is, ia, ngp)
                   j = ngp + idxlo (lm, ilo2, ias)
                   If (i .Le. j) Then
                      zt = dcmplx (ololo(ilo1, ilo2, ias), 0.0)
-                     Call Hermiteanmatrix_indexedupdate (overlap, j, i, &
+                     Call Hermitianmatrix_indexedupdate (overlap, j, i, &
                     & zt)
                   End If
                End Do
