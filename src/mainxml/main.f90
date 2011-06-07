@@ -21,6 +21,7 @@ call checkinput()
 call initatomcounters()
 call initlattice()
 call initlibxc()
+call initldapu
 call initsolver()
 call readspeciesxml()
 call scl_xml_out_create()
