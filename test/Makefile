@@ -1,6 +1,5 @@
 include ../build/make.inc
 
-.IGNORE:test cleantests test01 test02 test03 test04 test05 testmpi
 
 ifeq ($(BUILDMPI),true)
 test: cleantests  test02 test03 test04 test05 test07 testmpi
