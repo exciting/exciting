@@ -3,13 +3,13 @@ include ../build/make.inc
 
 ifeq ($(BUILDMPI),true)
 test: cleantests  test02 test03 test04 test05 test07 testmpi
-	perl perl/summary.pl
 else
 test: cleantests  test02 test03 test04 test05 test07
-	perl perl/summary.pl
 endif	
 
-
+summary::
+	perl perl/summary.pl
+	
 test02::exciting
 	-cd ./test02/runlapack ;../../../build/debug/exciting
 	-cd ./test02/runarp; ../../../build/debug/exciting
