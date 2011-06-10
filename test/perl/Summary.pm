@@ -51,7 +51,12 @@ sub make_summary{
 			    }
 		    
 		}
-	 return keys %$failedtests
+	 print "Summary\n" ;
+	 print "Failed: ", keys %$failedtests;
+	 print " Passed: ", keys %$passedtests;
+	 print " Unspec: ", keys %$unspecifiedtests;
+	 print"\n";
+	 return keys %$failedtests;
     }
 
     $xml = new XML::Simple(NoAttr=>1, RootName=>'report',XMLDecl=>"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet href=\"./report.xsl\" type=\"text/xsl\"?>");
