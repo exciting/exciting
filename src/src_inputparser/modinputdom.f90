@@ -1,4 +1,3 @@
-
 ! Copyright (C) 2005-2010 C. Meisenbichler and C. Ambrosch-Draxl.
 ! This file is distributed under the terms of the GNU General Public License.
 ! See the file COPYING for license details.
@@ -10,14 +9,15 @@ Module inputdom
       Type (Node), Pointer :: doc, inputnp, nullnode, emptynode, dummy
       Type (DOMConfiguration), Pointer :: config
       Logical :: parseerror
-! Request full canonicalization
-! ie convert CDATA sections to text sections, remove all entity references etc.
-!
+! 
 !
 !
 Contains
 !
       Subroutine loadinputDOM (deffilename)
+! Loads the contents of the inputfile into the DOM and initializes some data
+! that is used by getstructinput(inputnp)
+
       implicit none
       character(*),intent(in)::deffilename
       integer errorcode
@@ -48,6 +48,9 @@ Contains
       End Subroutine
 !
       Subroutine handleunknownnodes (np)
+! This writes the error message when the getstruct... function sees an unknown (illegal) entry
+! It is called by ifparseerrorstop()
+
          Type (Node), Pointer :: np, unknownnode
          Type (NodeList), Pointer :: nl
          Type (NamedNodeMap), Pointer :: nnm
