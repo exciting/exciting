@@ -49,8 +49,7 @@ Contains
 !
       Subroutine handleunknownnodes (np)
 ! This writes the error message when the getstruct... function sees an unknown (illegal) entry
-! It is called by ifparseerrorstop()
-
+ 
          Type (Node), Pointer :: np, unknownnode
          Type (NodeList), Pointer :: nl
          Type (NamedNodeMap), Pointer :: nnm
