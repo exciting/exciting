@@ -28,8 +28,11 @@ mpiandsmp:
 	cd build/mpiandsmp; $(MAKE)
 
 test::
-	cd test/; $(MAKE) -i
-
+	cd test/; $(MAKE) 
+	
+testsum::
+	cd test/; $(MAKE) summary
+	
 doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc
 	
 excitingfuncdoc::

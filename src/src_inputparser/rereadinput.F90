@@ -18,6 +18,7 @@ subroutine rereadinput
          call initatomcounters()
          call initlattice()
          call initlibxc()
+         call initldapu
          call initsolver()
 end subroutine
 

@@ -79,7 +79,7 @@ subroutine  writexmlspecies
           do io=1,apwordx
         	call xml_NewElement (xf, "wf")
           	write(buffer,*)apwdmx(io)
-        	call xml_AddAttribute(xf, "matchingOrder", "0")!!loop
+        	call xml_AddAttribute(xf, "matchingOrder", trim(adjustl(buffer)))!!loop
         	write(buffer,'(F8.4)')boe
         	call xml_AddAttribute(xf, "trialEnergy", trim(adjustl(buffer)))
         	if(apwvex(io)) then

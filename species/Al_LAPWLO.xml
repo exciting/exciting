@@ -13,15 +13,15 @@
       <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
       <exception l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </exception>
       <exception l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </exception>
       <exception l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </exception>
     </basis>
     <lorb l="1">

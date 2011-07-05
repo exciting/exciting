@@ -8,5 +8,7 @@ use List::Util qw[min max];
 use Data::Dumper;
 
 my @allreports=Summary::collectreports();
-Summary::make_summary (@allreports);
+$error=Summary::make_summary (@allreports);
 Summary::write_history("");
+print $error,"\n";
+exit ($error);
