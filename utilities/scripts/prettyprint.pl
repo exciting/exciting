@@ -14,21 +14,11 @@ print @fileslist;
 
 foreach $file (@fileslist) {
 	$return  = -1;
-	$command = "f90ppr < $file > ./pptmp";
+	$command = "emacs -batch $file  -l $ENV{'PWD'}/../../utilities/emacs-format-file  -f emacs-format-function  ";
 	print $command , "\n";
 	$return = system $command;
 	print "return value ", $return, "\n";
-	if ( $return == 0 ) {
-		$diffcommand = "diff $file  ./pptmp ";
-		$diff        = `$diffcommand`;
-		print "diff is:", $diff, "\n";
-		if ( not( $diff eq "" ) ) {
-			$mvcommand = "mv ./pptmp $file";
-			print $mvcommand , "\n";
-			system $mvcommand;
-		}
-		else {
-			system "rm pptmp";
-		}
+	 
 	}
-}
+	
+
