@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spdb xsi:noNamespaceSchemaLocation="../../xml/species.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sp chemicalSymbol="Gd" name="gadolinium" z="-64.0000" mass="286649.2143">
-    <muffinTin rmin="0.250000E-06" radius="2.2000" rinf="42.7780" radialmeshPoints="700"/>
+    <muffinTin rmin="0.250000E-06" radius="2.2000" rinf="41.8105" radialmeshPoints="700"/>
     <atomicState n="1" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="0" kappa="1" occ="2.00000" core="true"/>
     <atomicState n="2" l="1" kappa="1" occ="2.00000" core="true"/>
@@ -28,19 +28,19 @@
       <wf matchingOrder="1" trialEnergy="0.1500" searchE="false"/>
       <exception l="0">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </exception>
       <exception l="1">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </exception>
       <exception l="2">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </exception>
       <exception l="3">
         <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
-        <wf matchingOrder="0" trialEnergy="0.1500" searchE="true"/>
+        <wf matchingOrder="1" trialEnergy="0.1500" searchE="true"/>
       </exception>
     </basis>
     <!-- Exciting code version : 0.9.224-->

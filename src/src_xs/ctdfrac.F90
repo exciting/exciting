@@ -21,7 +21,7 @@ Contains
 !   b     : b-coefficients (in,complex(0:n))
 !   f     : continued fraction result
 ! !DESCRIPTION:
-!   Straight foreward evaluation of a continued fraction with depth $n$
+!   Straight forward evaluation of a continued fraction with depth $n$
 !   $$ b_0+\cfrac{a_1}{b_1+\cfrac{a_2}
 !   {b_2+\cfrac{a_3}{\cdots+\cfrac{a_n}{b_n}}}}  $$
 !   without any checking of convergence.
