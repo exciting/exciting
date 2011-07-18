@@ -116,6 +116,9 @@ lib/libxc.a:
 
 ../../src/src_inputparser/speciesmodules.f90:   ../../xml/species.xsd ../../xml/schematofortran.xsl
 	xsltproc  ../../xml/schematofortran.xsl  ../../xml/species.xsd > ../../src/src_inputparser/speciesmodules.f90
+
+../../xml/excitinginput.xsd: 	../../xml/schema/*
+	xsltproc ../../xml/schema/schemaexpand.xsl ../../xml/schema/input.xsd > ../../xml/excitinginput.xsd
 	
 clean:cleanlibs
 	rm -f *.o *.mod *.f90 *.F90 

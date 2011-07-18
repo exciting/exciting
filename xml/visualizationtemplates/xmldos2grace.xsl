@@ -142,7 +142,7 @@
 @    xaxis  bar color 1
 @    xaxis  bar linestyle 1
 @    xaxis  bar linewidth 3.0
-@    xaxis  label "Energy (Ha)"
+@    xaxis  label "Energy [Ha]"
 @    xaxis  label layout para
 @    xaxis  label place spec
 @    xaxis  label place 0.000000, 0.110000
@@ -198,7 +198,7 @@
 @    yaxis  bar color 1
 @    yaxis  bar linestyle 1
 @    yaxis  bar linewidth 3.0
-@    yaxis  label "DOS (state/Ha)"
+@    yaxis  label "DOS [(states/Ha)/unit cell]"
 @    yaxis  label layout para
 @    yaxis  label place spec
 @    yaxis  label place 0.000000, 0.200000

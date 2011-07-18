@@ -11,10 +11,10 @@
 # @ node           = 1
 # @ tasks_per_node = 1
 # @ arguments= 
-# @ executable = /home/tde/exciting/bin/excitingdebug 
+# @ executable = PATH/TO/EXECUTABLE
 <xsl:for-each select = "//@path">
 
-# @ initialdir = /home/chm/MgO<xsl:value-of select="../path"/>
+# @ initialdir =  /PATH/TO/WORKINGDIR/<xsl:value-of select="../path"/>
 
 # @ job_name  = example_<xsl:value-of select="../@name"/>
 # @ output = $(job_name).out

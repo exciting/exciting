@@ -7,7 +7,7 @@
     http://exciting-code.org/series-expansion-template
   -->
   <xsl:output method="xml" encoding="UTF-8" indent="yes" />
- 
+  
   <xsl:template match="/">
     <xsl:element name="setup">
       <xsl:for-each select="/setup/param">
