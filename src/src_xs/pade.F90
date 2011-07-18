@@ -24,11 +24,27 @@ Contains
 ! !USES:
          Use m_ctdfrac
 ! !DESCRIPTION:
-!   Implementation of a Pade approximant using Thiele's reciprocal-difference method.
-!   This routine takes a complex function evaluated at an initial set of arguments,
-!   approximates the function with the help of Pade approximants, and evaluates (extrapolates/rotates)
-!   this approximation at a given set of arguments.
-!   Expressions taken from K. Lee and K. Chang, Phys. Rev. B 54 R8285 (1996).
+!   Implementation of a Pad\'e approximant using Thiele's reciprocal-difference method.
+!   This routine takes a complex function $(f_n=f(z_n))$
+!   evaluated at an initial set of arguments, $(z_n)$
+!   approximates the function with the help of Pad\'e approximants, and evaluates (extrapolates/rotates)
+!   this approximation at a given set of arguments $(z)$. The $N$-point Pad\'e approximant
+!   then reads
+!   $$ P_N(z)=
+!   \cfrac{a_1}
+!   {1+\cfrac{a_2(z-z_1)}{\cdots+\cfrac{a_n(z-z_{N-1})}{1+(z-z_N)g_{N+1}(z)}}}
+!   $$
+!   where
+!   $$  g_n(z)=\frac{g_{n-1}(z_{n-1})-g_{n-1}(z)}
+!                   {(z-z_{n-1})g_{n-1}(z)}, \; n \ge 2
+!   $$
+!   and
+!   $$  a_n=g_n(z_n),\; g_1(z_n)=f_n,\; n=1,\ldots,N.
+!   $$
+!   For simplicity, the expression $g_{N+1}(z)$ is set to zero in the continued
+!   fraction expression of the approximant.
+!   Expressions are taken from K. Lee and K. Chang, Phys. Rev. B 54, R8285 (1996).
+!   See also H. Vidberg and J. Serene, J. Low Temp. Phys., 29, 179 (1977).
 !
 ! !REVISION HISTORY:
 !   Created December 2006 (S. Sagmeister)
