@@ -14,7 +14,7 @@
             </xs:appinfo>
             <xs:documentation>This element is used by the spacegroup tool to generate structures and supercells</xs:documentation>
           </xs:annotation>
-          <xs:complexType>
+          <xs:complexType>  
             <xs:annotation>
               <xs:documentation>
                 The symmetries element is output from the spacegroup program the values are currently not used in the

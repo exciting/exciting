@@ -14,7 +14,7 @@
                 <xs:documentation>The phonon element must contain one or more q-point
                     elements.</xs:documentation>
             </xs:annotation>
-            <xs:all>
+            <xs:all> 
                 <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0"
                     maxOccurs="1"/>
                 <xs:element ex:importance="expert" ex:unit="" name="phonondos" maxOccurs="1"

@@ -385,7 +385,7 @@ Example:  <pre>
             </xs:appinfo>
             <xs:documentation>This element is used by the spacegroup tool to generate structures and supercells</xs:documentation>
           </xs:annotation>
-          <xs:complexType>
+          <xs:complexType>  
             <xs:annotation>
               <xs:documentation>
                 The symmetries element is output from the spacegroup program the values are currently not used in the
@@ -2609,7 +2609,7 @@ Example:  <pre>
                 <xs:documentation>The phonon element must contain one or more q-point
                     elements.</xs:documentation>
             </xs:annotation>
-            <xs:all>
+            <xs:all> 
                 <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0" maxOccurs="1"/>
                 <xs:element ex:importance="expert" ex:unit="" name="phonondos" maxOccurs="1" minOccurs="0">
                     <xs:annotation>

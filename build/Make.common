@@ -111,15 +111,17 @@ lib/libxc.a:
 #cp ../../src/ARPACK/libarpack.a .
 #cd ../../src/ARPACK && $(MAKE) clean
 
+../../xml/excitinginput.xsd: ../../xml/schema/*.xsd  ../../xml/schema/schemaexpand.xsl
+	xsltproc ../../xml/schema/schemaexpand.xsl ../../xml/schema/input.xsd > ../../xml/excitinginput.xsd
+	
+
 ../../src/src_inputparser/inputmodules.f90:   ../../xml/excitinginput.xsd ../../xml/schematofortran.xsl
 	xsltproc ../../xml/schematofortran.xsl   ../../xml/excitinginput.xsd > ../../src/src_inputparser/inputmodules.f90
 
 ../../src/src_inputparser/speciesmodules.f90:   ../../xml/species.xsd ../../xml/schematofortran.xsl
 	xsltproc  ../../xml/schematofortran.xsl  ../../xml/species.xsd > ../../src/src_inputparser/speciesmodules.f90
 
-../../xml/excitinginput.xsd: 	../../xml/schema/*
-	xsltproc ../../xml/schema/schemaexpand.xsl ../../xml/schema/input.xsd > ../../xml/excitinginput.xsd
-	
+
 clean:cleanlibs
 	rm -f *.o *.mod *.f90 *.F90 
 
