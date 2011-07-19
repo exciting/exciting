@@ -1,6 +1,11 @@
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xs:include id="common" schemaLocation="common.xsd" />
+    <xs:annotation>
+  <xs:appinfo>
+  <root>groundstate</root>
+  </xs:appinfo>
+  </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="groundstate">
     <xs:annotation>
       <xs:documentation> The groundstate element is required for any calculation. Its attributes are the parameters and methods used to calculate the

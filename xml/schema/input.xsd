@@ -1,63 +1,153 @@
-<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
-  <xs:include id="common" schemaLocation="common.xsd"/>
-  <xs:include id="structure" schemaLocation="structure.xsd"/>
-  <xs:include id="groundstate" schemaLocation="groundstate.xsd"/>
-  <xs:include id="structureoptimization" schemaLocation="structureoptimization.xsd"/>
-  <xs:include id="phonons" schemaLocation="phonons.xsd"/>
-  <xs:include id="properties" schemaLocation="properties.xsd"/>
-  <xs:include id="xs" schemaLocation="xs.xsd"/>
   <!-- root element starts here -->
-  
+  <xs:include id="structure" schemaLocation="structure.xsd" />
+  <xs:include id="groundstate" schemaLocation="groundstate.xsd" />
+  <xs:include id="structureoptimization" schemaLocation="structureoptimization.xsd" />
+  <xs:include id="phonons" schemaLocation="phonons.xsd" />
+  <xs:include id="properties" schemaLocation="properties.xsd" />
+  <xs:include id="xs" schemaLocation="xs.xsd" />
+  <xs:include id="common" schemaLocation="common.xsd" />
+  <xs:annotation>
+    <xs:documentation>
+      <p>
+        This web page lists all
+        <blue>elements</blue>
+        and
+        <green>attributes</green>
+        that can be used in the input file of an
+        <exciting>exciting</exciting>
+        calculation:
+      </p>
+      <list>
+        <li>
+          <blue>elements</blue>
+          are defined according to the
+          <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>
+          .
+          <it>Example:</it>
+          The element
+          <pre-bf>groundstate</pre-bf>
+          is used to set up a self-consistent calculation of the ground-state energy.
+        </li>
+        <li>
+          <green>attributes</green>
+          are defined according to the
+          <a href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>
+          . An attribute is always connected to an element. In
+          <exciting>exciting</exciting>
+          an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element.
+          <it>Example:</it>
+          The attribute
+          <pre-bf>xctype</pre-bf>
+          of the element
+          <pre-bf>groundstate</pre-bf>
+          defines which exchange-correlation potential is used in the self-consistent calculation.
+        </li>
+      </list>
+      <p>
+        The input file of an
+        <exciting>exciting</exciting>
+        calculation is named
+        <filenamens>input.xml</filenamens>
+        . It must be a valid XML file, and it must contain the root element
+        <pre-bf_ns>input</pre-bf_ns>
+        .
+      </p>
+      <p>
+        Unless explicitly stated otherwise,
+        <exciting>exciting</exciting>
+        uses atomic units (
+        <inlinemath>\hbar = m_{e} = e = 1</inlinemath>
+        ):
+      </p>
+      <list>
+        <li>
+          Energies are given in Hartree:
+          <p>
+            <inlinemath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\ J</inlinemath>
+          </p>
+        </li>
+        <li>
+          Lengths are given in Bohr:
+          <p>
+            <inlinemath> 1 a_{\rm Bohr}\ = 0.52917720859(36) {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36) 10^{-10} \ m</inlinemath>
+          </p>
+        </li>
+        <li>
+          Magnetic fields are given in units of
+          <p>
+            <inlinemath> 1 a.u. = \displaystyle\frac{e}{a_{\rm Bohr}^2}\ = 1717.2445320376\ Tesla. </inlinemath>
+          </p>
+        </li>
+      </list>
+      <p>
+        Note: The electron charge is positive, so that the atomic numbers
+        <inlinemath>Z</inlinemath>
+        are negative.
+      </p>
+    </xs:documentation>
+    <xs:appinfo>
+      <title>
+        \
+        <exciting>exciting</exciting>
+        input reference
+      </title>
+      <root>input</root>
+    </xs:appinfo>
+  </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="input">
     <xs:annotation>
-      <xs:documentation> The xml element <pre> input</pre> is the root element of the
-          <exciting>exciting</exciting> input file. It must contain one element
-        <pre>structure </pre> and the element <pre>groundstate </pre> . <p>
-          <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file
-            instance described here.</a>
+      <xs:documentation>
+        The xml element
+        <pre> input</pre>
+        is the root element of the
+        <exciting>exciting</exciting>
+        input file. It must contain one element
+        <pre>structure </pre>
+        and the element
+        <pre>groundstate </pre>
+        .
+        <p>
+          <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file instance described here.</a>
         </p>
       </xs:documentation>
-      <xs:appinfo> </xs:appinfo>
+      <xs:appinfo>
+      </xs:appinfo>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="title" type="xs:string" minOccurs="1"
-          maxOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="title" type="xs:string" minOccurs="1" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Title of the input file.</xs:documentation>
           </xs:annotation>
         </xs:element>
-        <xs:element ex:importance="essential" ex:unit="" ref="structure" maxOccurs="1" minOccurs="1"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="groundstate" maxOccurs="1"  minOccurs="0"/>
-        
-        <xs:element ex:importance="essential" ex:unit="" ref="structureoptimization" maxOccurs="1"        minOccurs="0"/>
-        <xs:element ex:importance="essential" ex:unit="" ref="properties" maxOccurs="1"
-          minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="phonons" maxOccurs="1" minOccurs="0"/>
-        <xs:element ex:importance="expert" ex:unit="" ref="xs" minOccurs="0" maxOccurs="1"/>
+        <xs:element ex:importance="essential" ex:unit="" ref="structure" maxOccurs="1" minOccurs="1" />
+        <xs:element ex:importance="essential" ex:unit="" ref="groundstate" maxOccurs="1" minOccurs="0" />
+        <xs:element ex:importance="essential" ex:unit="" ref="structureoptimization" maxOccurs="1" minOccurs="0" />
+        <xs:element ex:importance="essential" ex:unit="" ref="properties" maxOccurs="1" minOccurs="0" />
+        <xs:element ex:importance="expert" ex:unit="" ref="phonons" maxOccurs="1" minOccurs="0" />
+        <xs:element ex:importance="expert" ex:unit="" ref="xs" minOccurs="0" maxOccurs="1" />
         <xs:element minOccurs="0" name="keywords" type="xs:string" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> The keywords tag can contain a space separated list of keywords
-              classifying the calculation for archiving purposes. It is not used by the
-                <exciting>exciting</exciting> program. </xs:documentation>
+            <xs:documentation>
+              The keywords tag can contain a space separated list of keywords classifying the calculation for archiving purposes. It is not used by the
+              <exciting>exciting</exciting>
+              program.
+            </xs:documentation>
           </xs:annotation>
         </xs:element>
       </xs:all>
-      <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI"
-        default="http://xml.exciting-code.org">
+      <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI" default="http://xml.exciting-code.org">
         <xs:annotation>
-          <xs:appinfo> </xs:appinfo>
+          <xs:appinfo>
+          </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI"
-        use="optional">
+      <xs:attribute ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI" use="optional">
         <xs:annotation>
-          <xs:documentation> This is the path to scratch space where the eigenvector files
-            EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be written. If the local directory is accessed
-            via a network then scrpath can be set to a directory on a local disk</xs:documentation>
+          <xs:documentation> This is the path to scratch space where the eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be written. If the local
+            directory is accessed via a network then scrpath can be set to a directory on a local disk</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>

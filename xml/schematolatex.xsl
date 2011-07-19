@@ -54,7 +54,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     </xsl:text>
   <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation" />
   <xsl:call-template name="elementToLatex">
-   <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
+   <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation[last()]/xs:appinfo/root]" />
    <xsl:with-param name="level" select="0" />
   </xsl:call-template>
   <xsl:text>\section*{Reused Elements}

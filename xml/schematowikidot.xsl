@@ -61,7 +61,7 @@
     </xsl:text>
     </xsl:if>
     <xsl:call-template name="elementToLatex">
-      <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation/xs:appinfo/root]" />
+      <xsl:with-param name="myelement" select="//xs:element[@name=/xs:schema/xs:annotation[last()]/xs:appinfo/root]" />
       <xsl:with-param name="level" select="0" />
     </xsl:call-template>
     <xsl:text>
@@ -69,7 +69,7 @@
     
 The following elements can occur more than once in the input file. There for they are listed separately.
   </xsl:text>
-    <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
+    <xsl:for-each select="/*/xs:element[@name!=/xs:schema/xs:annotation[last()]/xs:appinfo/root and contains($importancelevels,@ex:importance)]">
       <xsl:call-template name="elementToLatex">
         <xsl:with-param name="myelement" select="." />
         <xsl:with-param name="level" select="0" />
@@ -288,11 +288,22 @@ This element allows for specification of the following attributes:  </xsl:text>
     [[/tabview]]
     </xsl:text>
     </xsl:if>
-    <xsl:for-each select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance)and @name]">
+    <xsl:for-each select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance)]">
+    <xsl:if test="@name">
       <xsl:call-template name="elementToLatex">
         <xsl:with-param name="myelement" select="." />
         <xsl:with-param name="level" select="$level+1" />
       </xsl:call-template>
+      </xsl:if>
+       <xsl:if test="@ref">
+         <xsl:variable name="ref" select="@ref"/>
+       <xsl:if test="not(contains('common',@ex:importance))">
+      <xsl:call-template name="elementToLatex">
+        <xsl:with-param name="myelement" select="//xs:element[@name=$ref]" />
+        <xsl:with-param name="level" select="$level+1" />
+      </xsl:call-template>
+      </xsl:if>
+      </xsl:if>
     </xsl:for-each>
   </xsl:template>
   <xsl:template name="attributetolatex">

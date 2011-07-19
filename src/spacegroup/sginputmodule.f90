@@ -46,19 +46,20 @@ type energywindow_type
  integer::points
  real(8)::intv(2)
 end type
-type input_type
- character(1024)::xsltpath
- character(1024)::scratchpath
- character(512)::title
-  type(structure_type),pointer::structure
-  type(groundstate_type),pointer::groundstate
-  type(structureoptimization_type),pointer::structureoptimization
-  type(properties_type),pointer::properties
-  type(phonons_type),pointer::phonons
-  type(xs_type),pointer::xs
- character(512)::keywords
+type qpointset_type
+ real(8),pointer::qpoint(:,:)
 end type
-type structure_type
+type parts_type
+  type(dopart_type_array),pointer::dopartarray(:)
+end type
+type dopart_type
+ character(512)::id
+end type
+
+type dopart_type_array
+type(dopart_type),pointer::dopart
+ end type
+    type structure_type
  character(1024)::speciespath
  logical::molecule
  real(8)::vacuum
@@ -256,6 +257,39 @@ type structureoptimization_type
  real(8)::tau0atm
  logical::resume
 end type
+type phonons_type
+ character(512)::phonontype
+ integer::phonontypenumber
+ character(512)::do
+ integer::donumber
+ integer::ngridq(3)
+ logical::reduceq
+ real(8)::deltaph
+  type(qpointset_type),pointer::qpointset
+  type(phonondos_type),pointer::phonondos
+  type(phonondispplot_type),pointer::phonondispplot
+  type(reformatdynmat_type),pointer::reformatdynmat
+  type(interpolate_type),pointer::interpolate
+  type(parts_type),pointer::parts
+end type
+type phonondos_type
+ integer::nwdos
+ integer::ngrdos
+ integer::nsmdos
+ integer::ntemp
+end type
+type phonondispplot_type
+  type(plot1d_type),pointer::plot1d
+end type
+
+type reformatdynmat_type
+logical::exists
+ end type
+    type interpolate_type
+ integer::ngridq(3)
+ real(8)::vqloff(3)
+ logical::writeeigenvectors
+end type
 type properties_type
   type(bandstructure_type),pointer::bandstructure
   type(STM_type),pointer::STM
@@ -376,39 +410,6 @@ type elnes_type
 end type
 type eliashberg_type
  real(8)::mustar
-end type
-type phonons_type
- character(512)::phonontype
- integer::phonontypenumber
- character(512)::do
- integer::donumber
- integer::ngridq(3)
- logical::reduceq
- real(8)::deltaph
-  type(qpointset_type),pointer::qpointset
-  type(phonondos_type),pointer::phonondos
-  type(phonondispplot_type),pointer::phonondispplot
-  type(reformatdynmat_type),pointer::reformatdynmat
-  type(interpolate_type),pointer::interpolate
-  type(parts_type),pointer::parts
-end type
-type phonondos_type
- integer::nwdos
- integer::ngrdos
- integer::nsmdos
- integer::ntemp
-end type
-type phonondispplot_type
-  type(plot1d_type),pointer::plot1d
-end type
-
-type reformatdynmat_type
-logical::exists
- end type
-    type interpolate_type
- integer::ngridq(3)
- real(8)::vqloff(3)
- logical::writeeigenvectors
 end type
 type xs_type
  integer::emattype
@@ -568,20 +569,19 @@ end type
 type doonly_type_array
 type(doonly_type),pointer::doonly
  end type
-    type qpointset_type
- real(8),pointer::qpoint(:,:)
-end type
-type parts_type
-  type(dopart_type_array),pointer::dopartarray(:)
-end type
-type dopart_type
- character(512)::id
+    type input_type
+ character(1024)::xsltpath
+ character(1024)::scratchpath
+ character(512)::title
+  type(structure_type),pointer::structure
+  type(groundstate_type),pointer::groundstate
+  type(structureoptimization_type),pointer::structureoptimization
+  type(properties_type),pointer::properties
+  type(phonons_type),pointer::phonons
+  type(xs_type),pointer::xs
+ character(512)::keywords
 end type
 
-type dopart_type_array
-type(dopart_type),pointer::dopart
- end type
-    
    type(input_type)::input
 contains
 
@@ -943,98 +943,83 @@ endif
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructinput(thisnode)
+function getstructqpointset(thisnode)
 
 implicit none
 type(Node),pointer::thisnode
-type(input_type),pointer::getstructinput
+type(qpointset_type),pointer::getstructqpointset
+
+integer::len=1,i=0
+allocate(getstructqpointset)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at qpointset"
+#endif
+      
+      len= countChildEmentsWithName (thisnode,"qpoint")           
+allocate(getstructqpointset%qpoint(3,len))
+Do i=1,len
+
+getstructqpointset%qpoint(:,i)=getvalueofqpoint(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "qpoint"),0)))
+end do
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructparts(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(parts_type),pointer::getstructparts
+
+integer::len=1,i=0
+allocate(getstructparts)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at parts"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"dopart")
+     
+allocate(getstructparts%dopartarray(len))
+Do i=0,len-1
+getstructparts%dopartarray(i+1)%dopart=>getstructdopart(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"dopart"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructdopart(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(dopart_type),pointer::getstructdopart
 type(Node),pointer::np
 
 
 integer::len=1,i=0
-allocate(getstructinput)  
+allocate(getstructdopart)  
 #ifdef INPUTDEBUG      
-      write(*,*)"we are at input"
+      write(*,*)"we are at dopart"
 #endif
       
 nullify(np)  
-np=>getAttributeNode(thisnode,"xsltpath")
-getstructinput%xsltpath= "http://xml.exciting-code.org"
+np=>getAttributeNode(thisnode,"id")
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"xsltpath",getstructinput%xsltpath)
-       call removeAttribute(thisnode,"xsltpath")  
+       call extractDataAttribute(thisnode,"id",getstructdopart%id)
+       call removeAttribute(thisnode,"id")  
+        else
+        write(*,*)"Parser ERROR: The element 'dopart' requires the attribute 'id' to be defined."
+        write(*,*)"stopped"
+        stop
+        
 endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"scratchpath")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"scratchpath",getstructinput%scratchpath)
-       call removeAttribute(thisnode,"scratchpath")  
-endif
-
-            len= countChildEmentsWithName(thisnode,"structure")
-getstructinput%structure=>null()
-Do i=0,len-1
-getstructinput%structure=>getstructstructure(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"structure"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"groundstate")
-getstructinput%groundstate=>null()
-Do i=0,len-1
-getstructinput%groundstate=>getstructgroundstate(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"groundstate"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"structureoptimization")
-getstructinput%structureoptimization=>null()
-Do i=0,len-1
-getstructinput%structureoptimization=>getstructstructureoptimization(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"structureoptimization"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"properties")
-getstructinput%properties=>null()
-Do i=0,len-1
-getstructinput%properties=>getstructproperties(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"properties"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"phonons")
-getstructinput%phonons=>null()
-Do i=0,len-1
-getstructinput%phonons=>getstructphonons(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"phonons"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"xs")
-getstructinput%xs=>null()
-Do i=0,len-1
-getstructinput%xs=>getstructxs(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"xs"),0)) ) 
-enddo
-
-      len= countChildEmentsWithName (thisnode,"title")
-Do i=1,len
-
-getstructinput%title=getvalueoftitle(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "title"),0)))
-end do
-
-      len= countChildEmentsWithName (thisnode,"keywords")
-Do i=1,len
-
-getstructinput%keywords=getvalueofkeywords(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "keywords"),0)))
-end do
 
       i=0
       len=0
@@ -2514,6 +2499,261 @@ endif
       call  handleunknownnodes(thisnode)
 end function
 
+function getstructphonons(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(phonons_type),pointer::getstructphonons
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructphonons)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at phonons"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"phonontype")
+getstructphonons%phonontype= "supercell"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"phonontype",getstructphonons%phonontype)
+       call removeAttribute(thisnode,"phonontype")  
+endif
+getstructphonons%phonontypenumber=stringtonumberphononsphonontype(getstructphonons%phonontype)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"do")
+getstructphonons%do= "fromscratch"
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"do",getstructphonons%do)
+       call removeAttribute(thisnode,"do")  
+endif
+getstructphonons%donumber=stringtonumberphononsdo(getstructphonons%do)
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ngridq")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ngridq",getstructphonons%ngridq)
+       call removeAttribute(thisnode,"ngridq")  
+        else
+        write(*,*)"Parser ERROR: The element 'phonons' requires the attribute 'ngridq' to be defined."
+        write(*,*)"stopped"
+        stop
+        
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"reduceq")
+getstructphonons%reduceq= .true.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"reduceq",getstructphonons%reduceq)
+       call removeAttribute(thisnode,"reduceq")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"deltaph")
+getstructphonons%deltaph=0.03d0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"deltaph",getstructphonons%deltaph)
+       call removeAttribute(thisnode,"deltaph")  
+endif
+
+            len= countChildEmentsWithName(thisnode,"qpointset")
+getstructphonons%qpointset=>null()
+Do i=0,len-1
+getstructphonons%qpointset=>getstructqpointset(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"qpointset"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"phonondos")
+getstructphonons%phonondos=>null()
+Do i=0,len-1
+getstructphonons%phonondos=>getstructphonondos(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"phonondos"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"phonondispplot")
+getstructphonons%phonondispplot=>null()
+Do i=0,len-1
+getstructphonons%phonondispplot=>getstructphonondispplot(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"phonondispplot"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"reformatdynmat")
+getstructphonons%reformatdynmat=>null()
+Do i=0,len-1
+getstructphonons%reformatdynmat=>getstructreformatdynmat(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"reformatdynmat"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"interpolate")
+getstructphonons%interpolate=>null()
+Do i=0,len-1
+getstructphonons%interpolate=>getstructinterpolate(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"interpolate"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"parts")
+getstructphonons%parts=>null()
+Do i=0,len-1
+getstructphonons%parts=>getstructparts(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"parts"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructphonondos(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(phonondos_type),pointer::getstructphonondos
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructphonondos)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at phonondos"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"nwdos")
+getstructphonondos%nwdos=500
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nwdos",getstructphonondos%nwdos)
+       call removeAttribute(thisnode,"nwdos")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ngrdos")
+getstructphonondos%ngrdos=100
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ngrdos",getstructphonondos%ngrdos)
+       call removeAttribute(thisnode,"ngrdos")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"nsmdos")
+getstructphonondos%nsmdos=0
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"nsmdos",getstructphonondos%nsmdos)
+       call removeAttribute(thisnode,"nsmdos")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"ntemp")
+getstructphonondos%ntemp=10
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ntemp",getstructphonondos%ntemp)
+       call removeAttribute(thisnode,"ntemp")  
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructphonondispplot(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(phonondispplot_type),pointer::getstructphonondispplot
+
+integer::len=1,i=0
+allocate(getstructphonondispplot)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at phonondispplot"
+#endif
+      
+            len= countChildEmentsWithName(thisnode,"plot1d")
+getstructphonondispplot%plot1d=>null()
+Do i=0,len-1
+getstructphonondispplot%plot1d=>getstructplot1d(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"plot1d"),0)) ) 
+enddo
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructreformatdynmat(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(reformatdynmat_type),pointer::getstructreformatdynmat
+
+integer::len=1,i=0
+allocate(getstructreformatdynmat)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at reformatdynmat"
+#endif
+      getstructreformatdynmat%exists=.false.
+      if (associated(thisnode))  getstructreformatdynmat%exists=.true.
+      
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
+function getstructinterpolate(thisnode)
+
+implicit none
+type(Node),pointer::thisnode
+type(interpolate_type),pointer::getstructinterpolate
+type(Node),pointer::np
+
+
+integer::len=1,i=0
+allocate(getstructinterpolate)  
+#ifdef INPUTDEBUG      
+      write(*,*)"we are at interpolate"
+#endif
+      
+nullify(np)  
+np=>getAttributeNode(thisnode,"ngridq")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"ngridq",getstructinterpolate%ngridq)
+       call removeAttribute(thisnode,"ngridq")  
+        else
+        write(*,*)"Parser ERROR: The element 'interpolate' requires the attribute 'ngridq' to be defined."
+        write(*,*)"stopped"
+        stop
+        
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"vqloff")
+getstructinterpolate%vqloff=(/0.0d0,0.0d0,0.0d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"vqloff",getstructinterpolate%vqloff)
+       call removeAttribute(thisnode,"vqloff")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"writeeigenvectors")
+getstructinterpolate%writeeigenvectors= .false.
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"writeeigenvectors",getstructinterpolate%writeeigenvectors)
+       call removeAttribute(thisnode,"writeeigenvectors")  
+endif
+
+      i=0
+      len=0
+      call  handleunknownnodes(thisnode)
+end function
+
 function getstructproperties(thisnode)
 
 implicit none
@@ -3467,261 +3707,6 @@ getstructeliashberg%mustar=0.15d0
 if(associated(np)) then
        call extractDataAttribute(thisnode,"mustar",getstructeliashberg%mustar)
        call removeAttribute(thisnode,"mustar")  
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructphonons(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(phonons_type),pointer::getstructphonons
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructphonons)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at phonons"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"phonontype")
-getstructphonons%phonontype= "supercell"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"phonontype",getstructphonons%phonontype)
-       call removeAttribute(thisnode,"phonontype")  
-endif
-getstructphonons%phonontypenumber=stringtonumberphononsphonontype(getstructphonons%phonontype)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"do")
-getstructphonons%do= "fromscratch"
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"do",getstructphonons%do)
-       call removeAttribute(thisnode,"do")  
-endif
-getstructphonons%donumber=stringtonumberphononsdo(getstructphonons%do)
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngridq")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngridq",getstructphonons%ngridq)
-       call removeAttribute(thisnode,"ngridq")  
-        else
-        write(*,*)"Parser ERROR: The element 'phonons' requires the attribute 'ngridq' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"reduceq")
-getstructphonons%reduceq= .true.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"reduceq",getstructphonons%reduceq)
-       call removeAttribute(thisnode,"reduceq")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"deltaph")
-getstructphonons%deltaph=0.03d0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"deltaph",getstructphonons%deltaph)
-       call removeAttribute(thisnode,"deltaph")  
-endif
-
-            len= countChildEmentsWithName(thisnode,"qpointset")
-getstructphonons%qpointset=>null()
-Do i=0,len-1
-getstructphonons%qpointset=>getstructqpointset(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"qpointset"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"phonondos")
-getstructphonons%phonondos=>null()
-Do i=0,len-1
-getstructphonons%phonondos=>getstructphonondos(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"phonondos"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"phonondispplot")
-getstructphonons%phonondispplot=>null()
-Do i=0,len-1
-getstructphonons%phonondispplot=>getstructphonondispplot(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"phonondispplot"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"reformatdynmat")
-getstructphonons%reformatdynmat=>null()
-Do i=0,len-1
-getstructphonons%reformatdynmat=>getstructreformatdynmat(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"reformatdynmat"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"interpolate")
-getstructphonons%interpolate=>null()
-Do i=0,len-1
-getstructphonons%interpolate=>getstructinterpolate(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"interpolate"),0)) ) 
-enddo
-
-            len= countChildEmentsWithName(thisnode,"parts")
-getstructphonons%parts=>null()
-Do i=0,len-1
-getstructphonons%parts=>getstructparts(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"parts"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructphonondos(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(phonondos_type),pointer::getstructphonondos
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructphonondos)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at phonondos"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"nwdos")
-getstructphonondos%nwdos=500
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nwdos",getstructphonondos%nwdos)
-       call removeAttribute(thisnode,"nwdos")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngrdos")
-getstructphonondos%ngrdos=100
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngrdos",getstructphonondos%ngrdos)
-       call removeAttribute(thisnode,"ngrdos")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"nsmdos")
-getstructphonondos%nsmdos=0
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"nsmdos",getstructphonondos%nsmdos)
-       call removeAttribute(thisnode,"nsmdos")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"ntemp")
-getstructphonondos%ntemp=10
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ntemp",getstructphonondos%ntemp)
-       call removeAttribute(thisnode,"ntemp")  
-endif
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructphonondispplot(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(phonondispplot_type),pointer::getstructphonondispplot
-
-integer::len=1,i=0
-allocate(getstructphonondispplot)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at phonondispplot"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"plot1d")
-getstructphonondispplot%plot1d=>null()
-Do i=0,len-1
-getstructphonondispplot%plot1d=>getstructplot1d(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"plot1d"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructreformatdynmat(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(reformatdynmat_type),pointer::getstructreformatdynmat
-
-integer::len=1,i=0
-allocate(getstructreformatdynmat)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at reformatdynmat"
-#endif
-      getstructreformatdynmat%exists=.false.
-      if (associated(thisnode))  getstructreformatdynmat%exists=.true.
-      
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructinterpolate(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(interpolate_type),pointer::getstructinterpolate
-type(Node),pointer::np
-
-
-integer::len=1,i=0
-allocate(getstructinterpolate)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at interpolate"
-#endif
-      
-nullify(np)  
-np=>getAttributeNode(thisnode,"ngridq")
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"ngridq",getstructinterpolate%ngridq)
-       call removeAttribute(thisnode,"ngridq")  
-        else
-        write(*,*)"Parser ERROR: The element 'interpolate' requires the attribute 'ngridq' to be defined."
-        write(*,*)"stopped"
-        stop
-        
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"vqloff")
-getstructinterpolate%vqloff=(/0.0d0,0.0d0,0.0d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"vqloff",getstructinterpolate%vqloff)
-       call removeAttribute(thisnode,"vqloff")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"writeeigenvectors")
-getstructinterpolate%writeeigenvectors= .false.
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"writeeigenvectors",getstructinterpolate%writeeigenvectors)
-       call removeAttribute(thisnode,"writeeigenvectors")  
 endif
 
       i=0
@@ -4853,83 +4838,98 @@ getstructdoonly%tasknumber=stringtonumberdoonlytask(getstructdoonly%task)
       call  handleunknownnodes(thisnode)
 end function
 
-function getstructqpointset(thisnode)
+function getstructinput(thisnode)
 
 implicit none
 type(Node),pointer::thisnode
-type(qpointset_type),pointer::getstructqpointset
-
-integer::len=1,i=0
-allocate(getstructqpointset)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at qpointset"
-#endif
-      
-      len= countChildEmentsWithName (thisnode,"qpoint")           
-allocate(getstructqpointset%qpoint(3,len))
-Do i=1,len
-
-getstructqpointset%qpoint(:,i)=getvalueofqpoint(&
-      removechild(thisnode,item(getElementsByTagname(thisnode,&
-      "qpoint"),0)))
-end do
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructparts(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(parts_type),pointer::getstructparts
-
-integer::len=1,i=0
-allocate(getstructparts)  
-#ifdef INPUTDEBUG      
-      write(*,*)"we are at parts"
-#endif
-      
-            len= countChildEmentsWithName(thisnode,"dopart")
-     
-allocate(getstructparts%dopartarray(len))
-Do i=0,len-1
-getstructparts%dopartarray(i+1)%dopart=>getstructdopart(&
-removeChild(thisnode,item(getElementsByTagname(thisnode,&
-"dopart"),0)) ) 
-enddo
-
-      i=0
-      len=0
-      call  handleunknownnodes(thisnode)
-end function
-
-function getstructdopart(thisnode)
-
-implicit none
-type(Node),pointer::thisnode
-type(dopart_type),pointer::getstructdopart
+type(input_type),pointer::getstructinput
 type(Node),pointer::np
 
 
 integer::len=1,i=0
-allocate(getstructdopart)  
+allocate(getstructinput)  
 #ifdef INPUTDEBUG      
-      write(*,*)"we are at dopart"
+      write(*,*)"we are at input"
 #endif
       
 nullify(np)  
-np=>getAttributeNode(thisnode,"id")
+np=>getAttributeNode(thisnode,"xsltpath")
+getstructinput%xsltpath= "http://xml.exciting-code.org"
 if(associated(np)) then
-       call extractDataAttribute(thisnode,"id",getstructdopart%id)
-       call removeAttribute(thisnode,"id")  
-        else
-        write(*,*)"Parser ERROR: The element 'dopart' requires the attribute 'id' to be defined."
-        write(*,*)"stopped"
-        stop
-        
+       call extractDataAttribute(thisnode,"xsltpath",getstructinput%xsltpath)
+       call removeAttribute(thisnode,"xsltpath")  
 endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"scratchpath")
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"scratchpath",getstructinput%scratchpath)
+       call removeAttribute(thisnode,"scratchpath")  
+endif
+
+            len= countChildEmentsWithName(thisnode,"structure")
+getstructinput%structure=>null()
+Do i=0,len-1
+getstructinput%structure=>getstructstructure(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"structure"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"groundstate")
+getstructinput%groundstate=>null()
+Do i=0,len-1
+getstructinput%groundstate=>getstructgroundstate(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"groundstate"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"structureoptimization")
+getstructinput%structureoptimization=>null()
+Do i=0,len-1
+getstructinput%structureoptimization=>getstructstructureoptimization(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"structureoptimization"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"properties")
+getstructinput%properties=>null()
+Do i=0,len-1
+getstructinput%properties=>getstructproperties(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"properties"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"phonons")
+getstructinput%phonons=>null()
+Do i=0,len-1
+getstructinput%phonons=>getstructphonons(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"phonons"),0)) ) 
+enddo
+
+            len= countChildEmentsWithName(thisnode,"xs")
+getstructinput%xs=>null()
+Do i=0,len-1
+getstructinput%xs=>getstructxs(&
+removeChild(thisnode,item(getElementsByTagname(thisnode,&
+"xs"),0)) ) 
+enddo
+
+      len= countChildEmentsWithName (thisnode,"title")
+Do i=1,len
+
+getstructinput%title=getvalueoftitle(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "title"),0)))
+end do
+
+      len= countChildEmentsWithName (thisnode,"keywords")
+Do i=1,len
+
+getstructinput%keywords=getvalueofkeywords(&
+      removechild(thisnode,item(getElementsByTagname(thisnode,&
+      "keywords"),0)))
+end do
 
       i=0
       len=0
@@ -4946,15 +4946,15 @@ type(Node),pointer::thisnode
 #endif  
    call extractDataContent(thisnode,  getvalueofpointstatepair)
 end function 
-function getvalueoftitle(thisnode)
+function getvalueofqpoint(thisnode)
 implicit none
 type(Node),pointer::thisnode
- character(512)::getvalueoftitle
+ real(8)::getvalueofqpoint(3)
 
 #ifdef INPUTDEBUG
-  write(*,*)"we are at title"
+  write(*,*)"we are at qpoint"
 #endif  
-   call extractDataContent(thisnode,  getvalueoftitle)
+   call extractDataContent(thisnode,  getvalueofqpoint)
 end function 
 function getvalueofbasevect(thisnode)
 implicit none
@@ -4976,6 +4976,16 @@ type(Node),pointer::thisnode
 #endif  
    call extractDataContent(thisnode,  getvalueofoptcomp)
 end function 
+function getvalueoftitle(thisnode)
+implicit none
+type(Node),pointer::thisnode
+ character(512)::getvalueoftitle
+
+#ifdef INPUTDEBUG
+  write(*,*)"we are at title"
+#endif  
+   call extractDataContent(thisnode,  getvalueoftitle)
+end function 
 function getvalueofkeywords(thisnode)
 implicit none
 type(Node),pointer::thisnode
@@ -4985,16 +4995,6 @@ type(Node),pointer::thisnode
   write(*,*)"we are at keywords"
 #endif  
    call extractDataContent(thisnode,  getvalueofkeywords)
-end function 
-function getvalueofqpoint(thisnode)
-implicit none
-type(Node),pointer::thisnode
- real(8)::getvalueofqpoint(3)
-
-#ifdef INPUTDEBUG
-  write(*,*)"we are at qpoint"
-#endif  
-   call extractDataContent(thisnode,  getvalueofqpoint)
 end function
  integer function  stringtonumberaction(string) 
  character(80),intent(in)::string
