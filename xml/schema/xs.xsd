@@ -1,7 +1,12 @@
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xs:include id="common" schemaLocation="common.xsd" />
-  
+  <xs:annotation>
+  <xs:appinfo>
+  <parent>/input</parent>
+  <root>xs</root>
+  </xs:appinfo>
+  </xs:annotation>
           <xs:element ex:importance="expert" ex:unit="" name="xs"  >
             <xs:annotation>
               <xs:documentation> If this element is present with valid configuration, the macroscopic dielectric function and related spectroscopic quantities

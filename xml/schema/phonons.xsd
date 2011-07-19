@@ -3,7 +3,11 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
     <xs:include id="common" schemaLocation="common.xsd"/>  
-    
+    <xs:annotation>
+    <xs:appinfo>
+    <parent>/input</parent>
+    <root>phonons</root>
+    </xs:appinfo></xs:annotation>
     <xs:element ex:importance="expert" ex:unit="" name="phonons"  >
         <xs:annotation>
             <xs:documentation>Phonon frequencies and eigen vectors for an arbitrary

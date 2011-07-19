@@ -29,7 +29,7 @@
 \begin{document}
 \newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
 \title{</xsl:text>
-  <xsl:value-of select="/xs:schema/xs:annotation/xs:appinfo/title" />
+  <xsl:apply-templates  select="/xs:schema/xs:annotation/xs:appinfo/title"/>
   <xsl:text>} 
 \author{\exciting developers team\\
 (C. Ambrosch-Draxl, Zohreh Basirat, Thomas Dengg, \\

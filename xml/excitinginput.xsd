@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+  <xs:annotation>
+  <xs:appinfo>
+  <root>/</root>
+  </xs:appinfo>
+  </xs:annotation>
   <xs:simpleType name="fortrandouble">
     <xs:annotation>
       <xs:documentation>
@@ -332,6 +337,12 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  <xs:annotation>
+  <xs:appinfo>
+  <parent>/input</parent>
+  <root>structure</root>
+  </xs:appinfo>
+  </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="structure">
     <xs:annotation>
       <xs:documentation>The structure element contains all structural information such as unit cell and atom positions.</xs:documentation>
@@ -2522,6 +2533,11 @@
       </xs:attribute>
     </xs:complexType>
   </xs:element>
+  <xs:annotation>
+    <xs:appinfo>
+    <parent>/input</parent>
+    <root>structureoptimization</root>
+    </xs:appinfo></xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="structureoptimization">
         <xs:annotation>
             <xs:documentation>The structure optimization element triggers if present a geometry
@@ -2564,6 +2580,11 @@
             </xs:attribute>
         </xs:complexType>
     </xs:element>
+  <xs:annotation>
+    <xs:appinfo>
+    <parent>/input</parent>
+    <root>phonons</root>
+    </xs:appinfo></xs:annotation>
   <xs:element ex:importance="expert" ex:unit="" name="phonons">
         <xs:annotation>
             <xs:documentation>Phonon frequencies and eigen vectors for an arbitrary
@@ -2698,6 +2719,12 @@
             </xs:attribute>
         </xs:complexType>
     </xs:element>
+  <xs:annotation>
+  <xs:appinfo>
+  <parent>/input</parent>
+  <root>properties</root>
+  </xs:appinfo>
+  </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="properties">
     <xs:annotation>
       <xs:documentation> Properties listed in this element can be calculated from the groundstate. It works also from a saved state from a previous run.
@@ -3050,6 +3077,12 @@
       </xs:all>
     </xs:complexType>
   </xs:element>
+  <xs:annotation>
+  <xs:appinfo>
+  <parent>/input</parent>
+  <root>xs</root>
+  </xs:appinfo>
+  </xs:annotation>
   <xs:element ex:importance="expert" ex:unit="" name="xs">
             <xs:annotation>
               <xs:documentation> If this element is present with valid configuration, the macroscopic dielectric function and related spectroscopic quantities
@@ -4339,9 +4372,8 @@
     </xs:documentation>
     <xs:appinfo>
       <title>
-        \
-        <exciting>exciting</exciting>
-        input reference
+        
+        <exciting>exciting</exciting> input reference
       </title>
       <root>input</root>
     </xs:appinfo>

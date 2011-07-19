@@ -1,6 +1,12 @@
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xs:include id="common" schemaLocation="common.xsd"/>
+  <xs:annotation>
+  <xs:appinfo>
+  <parent>/input</parent>
+  <root>structure</root>
+  </xs:appinfo>
+  </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="structure" >
     <xs:annotation>
       <xs:documentation>The structure element contains all structural information such as unit cell and atom positions.</xs:documentation>

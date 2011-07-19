@@ -1,4 +1,4 @@
-wiki/*: *.xsd
+wiki/*: *.xsd ../schematowikidot.xsl
 	xsltproc ../schematowikidot.xsl input.xsd >wiki/input;\
 	xsltproc ../schematowikidot.xsl structure.xsd >wiki/structure;\
 	xsltproc ../schematowikidot.xsl groundstate.xsd >wiki/groundstate;\

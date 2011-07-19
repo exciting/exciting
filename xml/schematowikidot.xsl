@@ -61,11 +61,25 @@
 [[/collapsible]]
     </xsl:text>
     </xsl:if>
+    <xsl:choose>
+      <xsl:when test="/xs:schema/xs:annotation[last()]/xs:appinfo/root='/'">
+        <xsl:for-each select="/*/xs:element">
+        <xsl:call-template name="elementToLatex">
+          <xsl:with-param name="myelement"
+            select="."/>
+          <xsl:with-param name="level" select="0"/>
+        </xsl:call-template>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+    
     <xsl:call-template name="elementToLatex">
       <xsl:with-param name="myelement"
         select="//xs:element[@name=/xs:schema/xs:annotation[last()]/xs:appinfo/root]"/>
       <xsl:with-param name="level" select="0"/>
     </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
     <xsl:text>
 + Reused Elements
     

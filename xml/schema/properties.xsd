@@ -1,6 +1,12 @@
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xs:include id="common" schemaLocation="common.xsd" />
+  <xs:annotation>
+  <xs:appinfo>
+  <parent>/input</parent>
+  <root>properties</root>
+  </xs:appinfo>
+  </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="properties" >
     <xs:annotation>
       <xs:documentation> Properties listed in this element can be calculated from the groundstate. It works also from a saved state from a previous run.

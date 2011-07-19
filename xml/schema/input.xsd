@@ -90,9 +90,8 @@
     </xs:documentation>
     <xs:appinfo>
       <title>
-        \
-        <exciting>exciting</exciting>
-        input reference
+        
+        <exciting>exciting</exciting> input reference
       </title>
       <root>input</root>
     </xs:appinfo>
