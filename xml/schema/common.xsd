@@ -1,4 +1,6 @@
-<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xs:simpleType name="fortrandouble">
     <xs:annotation>
@@ -91,12 +93,12 @@
     </xs:restriction>
   </xs:simpleType>
   <!-- global attribute definitions -->
-  <xs:attribute ex:importance="common experimental" ex:unit="" name="outfileprefix" type="xs:string">
+  <xs:attribute ex:importance="experimental" ex:unit="" name="outfileprefix" type="xs:string">
     <xs:annotation>
       <xs:documentation>A prefix to be prepended to the output files.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="tfibs" type="xs:boolean" default="true">
+  <xs:attribute ex:importance="expert" ex:unit="" name="tfibs" type="xs:boolean" default="true">
     <xs:annotation>
       <xs:documentation>
         If the IBS correction to the force should be calculated Because calculation of the incomplete basis set (IBS) correction to the force is fairly
@@ -108,7 +110,7 @@
       </xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="tforce" type="xs:boolean" default="false">
+  <xs:attribute ex:importance="expert" ex:unit="" name="tforce" type="xs:boolean" default="false">
     <xs:annotation>
       <xs:documentation>
         The attribute is set to
@@ -119,7 +121,7 @@
       </xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="symmorph" type="xs:boolean" default="false">
+  <xs:attribute ex:importance="expert" ex:unit="" name="symmorph" type="xs:boolean" default="false">
     <xs:annotation>
       <xs:documentation>
         When set to
@@ -128,12 +130,12 @@
       </xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="Hartree" name="scissor" type="fortrandouble" default="0.0d0">
+  <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble" default="0.0d0">
     <xs:annotation>
       <xs:documentation> This is the scissors shift applied to states above the Fermi energy. Affects DOS, optics and band structure plots.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="fastpmat" type="xs:boolean" default="true">
+  <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat" type="xs:boolean" default="true">
     <xs:annotation>
       <xs:documentation>
         if
@@ -142,7 +144,7 @@
       </xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="intraband" type="xs:boolean" default="false">
+  <xs:attribute ex:importance="expert" ex:unit="" name="intraband" type="xs:boolean" default="false">
     <xs:annotation>
       <xs:documentation>
         The intraband attribute is
@@ -151,7 +153,7 @@
       </xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="action" default="include">
+  <xs:attribute ex:importance="expert" ex:unit="" name="action" default="include">
     <xs:annotation>
       <xs:documentation>Select to include or exclude states</xs:documentation>
     </xs:annotation>
@@ -162,7 +164,7 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="statestype">
+  <xs:attribute ex:importance="expert" ex:unit="" name="statestype">
     <xs:annotation>
       <xs:documentation>Select for initial or final state range</xs:documentation>
     </xs:annotation>
@@ -173,96 +175,96 @@
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-  <xs:attribute ex:importance="common essential" ex:unit="" name="epsforce" type="fortrandouble" default="5.0d-5">
+  <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble" default="5.0d-5">
   </xs:attribute>
-  <xs:attribute ex:importance="common essential" ex:unit="" name="nwdos" type="xs:integer" default="500">
+  <xs:attribute ex:importance="essential" ex:unit="" name="nwdos" type="xs:integer" default="500">
     <xs:annotation>
       <xs:documentation>Number of frequency/energy points in the DOS</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common essential" ex:unit="" name="ngrdos" type="xs:integer" default="100">
+  <xs:attribute ex:importance="essential" ex:unit="" name="ngrdos" type="xs:integer" default="100">
     <xs:annotation>
       <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="common expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
+  <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
     <xs:annotation>
       <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <!-- global element definitions -->
-  <xs:element ex:importance="common essential" ex:unit="" name="origin">
+  <xs:element ex:importance="essential" ex:unit="" name="origin">
     <xs:complexType>
-      <xs:attribute ex:importance="common essential" ex:unit="" name="coord" type="vect3d" />
+      <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" />
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common essential" ex:unit="" name="point">
+  <xs:element ex:importance="essential" ex:unit="" name="point">
     <xs:complexType>
-      <xs:attribute ex:importance="common essential" ex:unit="" name="coord" type="vect3d" use="required" />
-      <xs:attribute ex:importance="common essential" ex:unit="" name="label" type="xs:string" default="" />
+      <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" use="required" />
+      <xs:attribute ex:importance="essential" ex:unit="" name="label" type="xs:string" default="" />
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common essential" ex:unit="" name="plot1d">
+  <xs:element ex:importance="essential" ex:unit="" name="plot1d">
     <xs:annotation>
       <xs:documentation> The element plot1d specifies sample points along a path. The coordinate space (lattice or cartesian)is chosen in the context of the
         parent.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="common essential" ex:unit="" name="path" maxOccurs="1" minOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="path" maxOccurs="1" minOccurs="1">
           <xs:complexType>
             <xs:sequence>
               <xs:annotation>
                 <xs:documentation>A path consists of at least two points and a number of divisions.</xs:documentation>
               </xs:annotation>
-              <xs:element ex:importance="common essential" ex:unit="" ref="point" minOccurs="2" maxOccurs="unbounded" />
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2" maxOccurs="unbounded" />
             </xs:sequence>
-            <xs:attribute ex:importance="common essential" ex:unit="" name="steps" type="xs:integer" use="required" />
-            <xs:attribute ex:importance="common expert" ex:unit="" ref="outfileprefix" />
+            <xs:attribute ex:importance="essential" ex:unit="" name="steps" type="xs:integer" use="required" />
+            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix" />
           </xs:complexType>
         </xs:element>
       </xs:all>
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common essential" ex:unit="" name="plot2d">
+  <xs:element ex:importance="essential" ex:unit="" name="plot2d">
     <xs:annotation>
       <xs:documentation>Defines a 2d plot domain.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="common essential" ex:unit="" name="parallelogram" maxOccurs="1" minOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="parallelogram" maxOccurs="1" minOccurs="1">
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="common essential" ex:unit="" ref="origin" minOccurs="1" maxOccurs="1" />
-              <xs:element ex:importance="common essential" ex:unit="" ref="point" minOccurs="2" maxOccurs="2" />
+              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1" maxOccurs="1" />
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2" maxOccurs="2" />
             </xs:sequence>
-            <xs:attribute ex:importance="common essential" ex:unit="" name="grid" type="integerpair" use="required" />
-            <xs:attribute ex:importance="common expert" ex:unit="" ref="outfileprefix" />
+            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integerpair" use="required" />
+            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix" />
           </xs:complexType>
         </xs:element>
       </xs:all>
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common essential" ex:unit="" name="plot3d">
+  <xs:element ex:importance="essential" ex:unit="" name="plot3d">
     <xs:annotation>
       <xs:documentation>Defines a 3d plot domain.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="common essential" ex:unit="" name="box" maxOccurs="1" minOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="box" maxOccurs="1" minOccurs="1">
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="common essential" ex:unit="" ref="origin" minOccurs="1" maxOccurs="1" />
-              <xs:element ex:importance="common essential" ex:unit="" ref="point" minOccurs="3" maxOccurs="3" />
+              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1" maxOccurs="1" />
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="3" maxOccurs="3" />
             </xs:sequence>
-            <xs:attribute ex:importance="common essential" ex:unit="" name="grid" type="integertriple" use="required" />
-            <xs:attribute ex:importance="common expert" ex:unit="" ref="outfileprefix" />
+            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integertriple" use="required" />
+            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix" />
           </xs:complexType>
         </xs:element>
       </xs:all>
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common essential" ex:unit="" name="pointstatepair" type="integerpair">
+  <xs:element ex:importance="essential" ex:unit="" name="pointstatepair" type="integerpair">
     <xs:annotation>
       <xs:documentation>
         The element
@@ -273,7 +275,7 @@
       </xs:documentation>
     </xs:annotation>
   </xs:element>
-  <xs:element ex:importance="common essential" ex:unit="" name="kstlist">
+  <xs:element ex:importance="essential" ex:unit="" name="kstlist">
     <xs:annotation>
       <xs:documentation>
         The kstlist element is used in the LSJ and wavefunction plot element This is a user-defined list of
@@ -289,28 +291,28 @@
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ex:importance="common essential" ex:unit="" ref="pointstatepair" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ex:importance="essential" ex:unit="" ref="pointstatepair" minOccurs="1" maxOccurs="unbounded" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common expert" ex:unit="" name="energywindow">
+  <xs:element ex:importance="expert" ex:unit="" name="energywindow">
     <xs:complexType>
-      <xs:attribute ex:importance="common expert" ex:unit="" name="points" type="xs:integer" default="500">
+      <xs:attribute ex:importance="expert" ex:unit="" name="points" type="xs:integer" default="500">
         <xs:annotation>
           <xs:documentation>number of points to be sampled linearly inside the energy interval including the lower limit.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="common expert" ex:unit="" name="intv" type="vect2d" default="-0.5d0 0.5d0">
+      <xs:attribute ex:importance="expert" ex:unit="" name="intv" type="vect2d" default="-0.5d0 0.5d0">
         <xs:annotation>
           <xs:documentation>energy interval lower and upper limits.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common expert" ex:unit="" name="qpointset">
+  <xs:element ex:importance="expert" ex:unit="" name="qpointset">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ex:importance="common expert" ex:unit="" name="qpoint" type="vect3d" minOccurs="1" maxOccurs="unbounded">
+        <xs:element ex:importance="expert" ex:unit="" name="qpoint" type="vect3d" minOccurs="1" maxOccurs="unbounded">
           <xs:annotation>
             <xs:documentation> a q-point is given in reciprocal space coordinates</xs:documentation>
           </xs:annotation>
@@ -318,12 +320,12 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element ex:importance="common expert" ex:unit="" name="parts">
+  <xs:element ex:importance="expert" ex:unit="" name="parts">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ex:importance="common expert" ex:unit="" name="dopart" minOccurs="0" maxOccurs="unbounded">
+        <xs:element ex:importance="expert" ex:unit="" name="dopart" minOccurs="0" maxOccurs="unbounded">
           <xs:complexType>
-            <xs:attribute ex:importance="common expert" ex:unit="" name="id" type="xs:string" use="required">
+            <xs:attribute ex:importance="expert" ex:unit="" name="id" type="xs:string" use="required">
               <xs:annotation>
                 <xs:documentation> This attribute is used to trigger lower-level tasks and is mainly used for testing, debugging, and the testing of new
                   features. Do not use it unless you know what you are doing.</xs:documentation>

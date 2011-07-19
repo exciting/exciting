@@ -9,7 +9,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 </xsl:text>
   </xsl:variable> 
   <xsl:param name="tool" select="exciting"/>
-  <xsl:variable name="root" select="/xs:schema/xs:annotation/xs:appinfo/root"></xsl:variable>
+  <xsl:variable name="root" select="/xs:schema/xs:annotation[last()]/xs:appinfo/root"></xsl:variable>
   <xsl:template name="xstypetofortrantype">
     <xsl:param name="type"/>
     <xsl:param name="varname"/>
