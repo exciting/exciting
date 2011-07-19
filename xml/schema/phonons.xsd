@@ -1,0 +1,154 @@
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
+    <xs:include id="common" schemaLocation="common.xsd"/>  
+    
+    <xs:element ex:importance="expert" ex:unit="" name="phonons"  >
+        <xs:annotation>
+            <xs:documentation>Phonon frequencies and eigen vectors for an arbitrary
+                q-point.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>The phonon element must contain one or more q-point
+                    elements.</xs:documentation>
+            </xs:annotation>
+            <xs:all> 
+                <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="0"
+                    maxOccurs="1"/>
+                <xs:element ex:importance="expert" ex:unit="" name="phonondos" maxOccurs="1"
+                    minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation> Phonon density of states.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500"> </xs:attribute>
+                        <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"> </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0"> </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="ntemp" type="xs:integer"
+                            default="10">
+                            <xs:annotation>
+                                <xs:documentation>Number of temperatures points for the calculation of the
+                                    thermodynamical properties from the phonon density of states.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="phonondispplot" maxOccurs="1"
+                    minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>Phonon dispersion plot.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ex:importance="expert" ex:unit="" ref="plot1d"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="reformatdynmat" maxOccurs="1"
+                    minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation> Reads in the dynamical matrix rows from the corresponding files
+                            and outputs them in the <pre>DYNMAT*.OUT</pre> files, taking into account
+                            symmetrization and the accoustic sumrule. </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" name="interpolate" maxOccurs="1"
+                    minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>Interpolates the phonon frequencies on a given q-point
+                            set.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:attribute ex:importance="essential" ex:unit="" name="ngridq"
+                            type="integertriple" use="required">
+                            <xs:annotation>
+                                <xs:documentation>q-point grid for interpolation.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="vqloff" type="vect3d"
+                            default="0.0d0 0.0d0 0.0d0">
+                            <xs:annotation>
+                                <xs:documentation>The q-point offset vector in lattice
+                                    coordinates.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute ex:importance="expert" ex:unit="" name="writeeigenvectors"
+                            type="xs:boolean" default="false">
+                            <xs:annotation>
+                                <xs:documentation> Set to <pre>true</pre> if the phonon eigenvectors are to be
+                                    interpolated and output in addition to the phonon frequencies.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element ex:importance="expert" ex:unit="" ref="parts" minOccurs="0" maxOccurs="1"
+                />
+            </xs:all>
+            <xs:attribute ex:importance="expert" ex:unit="" name="phonontype" default="supercell">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <oldname>nonreplace</oldname>
+                    </xs:appinfo>
+                    <xs:documentation> Decides which method (supercell or linear response) is used to
+                        perform the phonon calculation.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="supercell"/>
+                        <xs:enumeration value="linearresponse"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="do" default="fromscratch">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <oldname>nonreplace</oldname>
+                    </xs:appinfo>
+                    <xs:documentation> Decides if the phonon calculation is skipped or recalculated or
+                        continued from file.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="fromscratch"/>
+                        <xs:enumeration value="skip"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple"
+                use="required">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <oldname>ngridq</oldname>
+                    </xs:appinfo>
+                    <xs:documentation>Number of q grid points along the basis vector
+                        directions.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean"
+                default="true">
+                <xs:annotation>
+                    <xs:documentation> The attribute <pre>reduceq</pre> is set to <pre>"true"</pre> if
+                        the <inlinemath>
+                            <bf>q</bf>
+                        </inlinemath> -point set is to be reduced with the crystal symmetries.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="deltaph" type="fortrandouble"
+                default="0.03d0">
+                <xs:annotation>
+                    <xs:documentation> Phonon calculations are performed by constructing a supercell
+                        corresponding to a particular <inlinemath>{\bf q}</inlinemath> -vector and making
+                        a small periodic displacement of the atoms. The magnitude of this displacement is
+                        given by deltaph. This should not be made too large, as anharmonic terms could
+                        then become significant, neither should it be too small as this can introduce
+                        numerical error. </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

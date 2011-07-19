@@ -9,7 +9,7 @@ use scl_xml_out_Module
 use modmpi
 use mod_misc
 implicit none
-!set the version string
+! set the version string
 call versionfromdate()
 call initMPI()
 call loadinputDOM("input.xml")
