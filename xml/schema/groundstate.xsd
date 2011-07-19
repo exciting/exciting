@@ -11,7 +11,7 @@
         <xs:element ex:importance="essential" ex:unit="" name="spin" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
-              If the
+              If the 
               <pre>spin</pre>
               element is present calculation is done with spin polarization.
             </xs:documentation>

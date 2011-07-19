@@ -43,10 +43,16 @@ spacegroupdoc::
 	mv spacegroup.pdf ../../docs/spacegroup
  
 inputdoc::
+	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd ;\
 	cd docs/exciting/;\
 	xsltproc --stringparam importancelevels "essential expert" ../../xml/schematolatex.xsl ../../xml/excitinginput.xsd >excitinginput.tex;\
+	xsltproc --stringparam importancelevels "essential expert" ../../xml/schematowikidot.xsl ../../xml/excitinginput.xsd >inputref.wikidot;\
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
+
+inputdocwiki:xml/schema/*.xsd 
+	cd xml/schema; $(MAKE) 
+
 	
 stateconvertdoc::
 	cd src/stateconvert; $(MAKE) doc;\
