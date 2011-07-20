@@ -2,10 +2,13 @@
 ;;; Stan Warford
 ;;; 17 May 2006
 
+;;; Added f90-downcase-keywords, S. Sagmeister, July 20, 2011
+
 (defun emacs-format-function ()
    "Format the whole buffer."
    (f90-mode)
    (indent-region (point-min) (point-max) nil)
    (untabify (point-min) (point-max))
+   (f90-downcase-keywords)
    (save-buffer)
 )
