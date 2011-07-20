@@ -1,7 +1,9 @@
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <!-- root element starts here -->
-    <xs:include id="common" schemaLocation="common.xsd" />
+    
+  
+  <xs:include id="common" schemaLocation="common.xsd" />
   <xs:include id="structure" schemaLocation="structure.xsd" />
   <xs:include id="groundstate" schemaLocation="groundstate.xsd" />
   <xs:include id="structureoptimization" schemaLocation="structureoptimization.xsd" />
