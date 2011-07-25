@@ -15,7 +15,10 @@
 
   <xs:annotation>
     <xs:documentation>
-      <p>
+      
+      In order to perform an <exciting/> calculation an XML input file called <filename>input.xml</filename> must be provided. 
+ 
+       <p>
         This web page lists all
         <blue>elements</blue>
         and
@@ -54,10 +57,10 @@
         The input file of an
         <exciting>exciting</exciting>
         calculation is named
-        <filenamens>input.xml</filenamens>
-        . It must be a valid XML file, and it must contain the root element
-        <elementref>input</elementref>
-        .
+        <filename_ns>input.xml</filename_ns>. 
+        A simple example for an input file can be found <a href="http://exciting-code.org/input-file-format-overview">here</a>.  
+        The input file   <filename>input.xml</filename>  must be a valid XML file and it must contain the root element
+        <elementref>input</elementref>.
       </p>
       <p>
         Unless explicitly stated otherwise,
@@ -112,11 +115,10 @@
         input file. It must contain one element
         <elementref>structure</elementref>
         and the element
-       <elementref>groundstate</elementref>
-        .
-        <p>
-          <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file instance described here.</a>
-        </p>
+       <elementref>groundstate</elementref>.
+     
+        
+        
       </xs:documentation>
     </xs:annotation>
     <xs:complexType>
@@ -124,7 +126,7 @@
         <xs:element ex:importance="essential" ex:unit="" name="title" type="xs:string" minOccurs="1"
           maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>Title of the input file.</xs:documentation>
+            <xs:documentation>The title of the input file, <it_ns>e.g.</it_ns>, "Groundstate Calculation for Aluminum".  </xs:documentation>
           </xs:annotation>
         </xs:element>
         <xs:element ex:importance="essential" ex:unit="" ref="structure" maxOccurs="1" minOccurs="1"/>
@@ -146,7 +148,7 @@
           </xs:annotation>
         </xs:element>
       </xs:all>
-      <xs:attribute ex:importance="expert" ex:unit="" name="xsltpath" type="xs:anyURI"
+      <xs:attribute ex:importance="experimental" ex:unit="" name="xsltpath" type="xs:anyURI"
         default="http://xml.exciting-code.org">
         <xs:annotation>
           <xs:appinfo>
@@ -154,10 +156,10 @@
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI"
-        use="optional">
+        use="optional" default="./">
         <xs:annotation>
-          <xs:documentation> This is the path to scratch space where the eigenvector files EVECFV.OUT, EVECSV.OUT and OCCSV.OUT will be written. If the local
-            directory is accessed via a network then scrpath can be set to a directory on a local disk</xs:documentation>
+          <xs:documentation> The path to the scratch space where the eigenvector files, <filename_ns>EVECFV.OUT</filename_ns>, <filename>EVECSV.OUT</filename>, and <filename>OCCSV.OUT</filename> will be written. If the local
+            directory is accessed via a network then <attref>scratchpath</attref> can be set to a directory on a local disk. The default value is the working directory, <it_ns>i.e.</it_ns>, the directory where the program is started. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>

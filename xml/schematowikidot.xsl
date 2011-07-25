@@ -202,7 +202,7 @@ The following elements can occur more than once in the input file. There for the
   </xsl:template>
   <xsl:template match="xs:documentation">
     <xsl:apply-templates
-      select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre_ns|ns_pre|ns_pre_ns|pre-bf|pre-bf_ns|it|it_ns|p|exciting|a|list|li|attref|elementref|bf"
+      select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre_ns|ns_pre|ns_pre_ns|pre-bf|pre-bf_ns|it|it_ns|p|exciting|a|list|li|attref|elementref|bf|filename|filename_ns"
     />
   </xsl:template>
   <xsl:template match="attref">
@@ -399,33 +399,43 @@ This element allows for specification of the following attributes:  </xsl:text>
 </xsl:text>
         <xsl:for-each
           select="$contentnode/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
-          <xsl:text>  [#</xsl:text>
+          <xsl:text>  **{{##blue|[#</xsl:text>
           <xsl:value-of select="./@name|@ref"/>
           <xsl:text>   </xsl:text>
           <xsl:value-of select="./@name|@ref"/>
-          <xsl:text>]</xsl:text>
+          <xsl:text>]##}}**</xsl:text>
           <xsl:if test="@minOccurs=0">
             <xsl:choose>
               <xsl:when test="@maxOccurs='unbounded'">
-                <xsl:text> (zero or more)</xsl:text>
+                <xsl:text> (optional, unlimited)</xsl:text>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:text> (optional)</xsl:text>
+                <xsl:text> (optional, only 1 time)</xsl:text>
               </xsl:otherwise>
             </xsl:choose>
           </xsl:if>
           <xsl:if test="@minOccurs&gt;0">
-            <xsl:text> (</xsl:text>
-            <xsl:value-of select="@minOccurs"/>
-            <xsl:text> times</xsl:text>
-            <xsl:if test="@maxOccurs='unbounded'">
-              <xsl:text> or more</xsl:text>
-            </xsl:if>
+            <xsl:text> (required,</xsl:text>
+            <xsl:choose>
+             
+              <xsl:when test="@maxOccurs=@minOccurs">
+<xsl:text> exactly </xsl:text><xsl:value-of select="@maxOccurs"/> <xsl:text> times</xsl:text>                 
+              </xsl:when>
+              <xsl:when test="@maxOccurs=1">
+                <xsl:text> only 1 time</xsl:text>
+              </xsl:when>
+              <xsl:when test="@maxOccurs='unbounded'">
+              <xsl:text> at least </xsl:text> <xsl:value-of select="@minOcuurs"/> <xsl:text> times</xsl:text>
+                
+              </xsl:when>
+            </xsl:choose>
+             
             <xsl:text>) </xsl:text>
           </xsl:if>
           <xsl:text>  
 </xsl:text>
         </xsl:for-each>
+        
       </xsl:when>
       <xsl:otherwise>
         <xsl:text>[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]] no  content  
