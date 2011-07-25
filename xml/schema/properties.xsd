@@ -3,6 +3,7 @@
   <xs:include id="common" schemaLocation="common.xsd" />
   <xs:annotation>
   <xs:appinfo>
+  
   <parent>/input</parent>
   <root>properties</root>
   </xs:appinfo>

@@ -2737,6 +2737,7 @@ xs.xsd
     </xs:element>
   <xs:annotation>
   <xs:appinfo>
+  
   <parent>/input</parent>
   <root>properties</root>
   </xs:appinfo>
@@ -4326,7 +4327,7 @@ xs.xsd
           .
           <it>Example:</it>
           The element
-          <pre-bf>groundstate</pre-bf>
+          <elementref>groundstate</elementref>
           is used to set up a self-consistent calculation of the ground-state energy.
         </li>
         <li>
@@ -4338,9 +4339,9 @@ xs.xsd
           an attribute generally specifies a parameter or a set of parameters which are connected to the corresponding element.
           <it>Example:</it>
           The attribute
-          <pre-bf>xctype</pre-bf>
+          <attref>xctype</attref>
           of the element
-          <pre-bf>groundstate</pre-bf>
+          <elementref>groundstate</elementref>
           defines which exchange-correlation potential is used in the self-consistent calculation.
         </li>
       </list>
@@ -4350,7 +4351,7 @@ xs.xsd
         calculation is named
         <filenamens>input.xml</filenamens>
         . It must be a valid XML file, and it must contain the root element
-        <pre-bf_ns>input</pre-bf_ns>
+        <elementref>input</elementref>
         .
       </p>
       <p>
@@ -4364,19 +4365,19 @@ xs.xsd
         <li>
           Energies are given in Hartree:
           <p>
-            <inlinemath> 1 Ha = 2 Ry = 27.21138386(68) eV = 4.35926 10^{-18}\ J</inlinemath>
+            <inlinemath> 1\ {\rm Ha} = 2\ {\rm  Ry} = 27.21138386(68)\ {\rm eV} = 4.35926\cdot 10^{-18}\ {\rm J}</inlinemath>
           </p>
         </li>
         <li>
           Lengths are given in Bohr:
           <p>
-            <inlinemath> 1 a_{\rm Bohr}\ = 0.52917720859(36) {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36) 10^{-10} \ m</inlinemath>
+            <inlinemath> 1\ a_{\rm Bohr}\ = 0.52917720859(36)\ {\buildrel _{\circ} \over {\mathrm{A}}} \ = 0.52917720859(36) \cdot 10^{-10} \ {\rm m}</inlinemath>
           </p>
         </li>
         <li>
           Magnetic fields are given in units of
           <p>
-            <inlinemath> 1 a.u. = \displaystyle\frac{e}{a_{\rm Bohr}^2}\ = 1717.2445320376\ Tesla. </inlinemath>
+            <inlinemath> 1\ {\rm a.u.} = \displaystyle\frac{e}{a_{\rm Bohr}^2}\ = 1717.2445320376\ {\rm Tesla}. </inlinemath>
           </p>
         </li>
       </list>
@@ -4396,22 +4397,22 @@ xs.xsd
   </xs:annotation>
   <xs:element ex:importance="essential" ex:unit="" name="input">
     <xs:annotation>
+      <xs:appinfo>
+      </xs:appinfo>
       <xs:documentation>
-        The xml element
-        <pre> input</pre>
+        The XML element
+        <elementref>input</elementref>
         is the root element of the
         <exciting>exciting</exciting>
         input file. It must contain one element
-        <pre>structure </pre>
+        <elementref>structure</elementref>
         and the element
-        <pre>groundstate </pre>
+       <elementref>groundstate</elementref>
         .
         <p>
           <a href="http://exciting-code.org/input-file-format-overview">Find a minimal input file instance described here.</a>
         </p>
       </xs:documentation>
-      <xs:appinfo>
-      </xs:appinfo>
     </xs:annotation>
     <xs:complexType>
       <xs:all>

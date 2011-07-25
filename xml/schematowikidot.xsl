@@ -202,15 +202,24 @@ The following elements can occur more than once in the input file. There for the
   </xsl:template>
   <xsl:template match="xs:documentation">
     <xsl:apply-templates
-      select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre_ns|ns_pre|ns_pre_ns|pre-bf|pre-bf_ns|it|it_ns|p|exciting|a|list|li|attref|bf"
+      select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre_ns|ns_pre|ns_pre_ns|pre-bf|pre-bf_ns|it|it_ns|p|exciting|a|list|li|attref|elementref|bf"
     />
   </xsl:template>
   <xsl:template match="attref">
-    <xsl:text> [#att</xsl:text>
+    <xsl:text> **{{##green|[#att</xsl:text>
     <xsl:value-of select="."/>
     <xsl:text> </xsl:text>
     <xsl:value-of select="."/>
-    <xsl:text>]</xsl:text>
+    <xsl:text>]##}}** </xsl:text>
+  </xsl:template>
+  <xsl:template match="elementref">
+    
+    <xsl:text> **{{##blue|[#</xsl:text>
+    <xsl:value-of select="."/>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="."/>
+    <xsl:text>]##}}** </xsl:text>
+    
   </xsl:template>
   <xsl:template match="list">
     <xsl:text>
@@ -253,8 +262,8 @@ The following elements can occur more than once in the input file. There for the
     <xsl:value-of select="$myelement/@name"/>
     <xsl:text>]]
 </xsl:text>
-    <xsl:text>+ ##blue|Element:## </xsl:text>
-    <xsl:value-of select="$myelement/@name "/>
+    <xsl:text>+ Element:</xsl:text>
+   <xsl:text>##blue| </xsl:text> <xsl:value-of select="$myelement/@name "/><xsl:text>##</xsl:text>
     <xsl:text>
   
   </xsl:text>
@@ -338,8 +347,8 @@ This element allows for specification of the following attributes:  </xsl:text>
     <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
     <xsl:text>]]
   
-++ ##green|Attribute:## </xsl:text>
-    <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
+++ Attribute: </xsl:text>
+    <xsl:text> ##green|</xsl:text> <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/> <xsl:text>##</xsl:text>
     <xsl:text>  
     </xsl:text>
     <xsl:apply-templates select="$myattribute/xs:annotation/xs:documentation"/>
