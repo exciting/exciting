@@ -112,10 +112,10 @@
         <elementref>input</elementref>
         is the root element of the
         <exciting>exciting</exciting>
-        input file. It must contain one element
-        <elementref>structure</elementref>
-        and the element
-       <elementref>groundstate</elementref>.
+        input file. It must contain at least the elements  <elementref_ns>title</elementref_ns>,
+        <elementref_ns>structure</elementref_ns>,
+        and 
+       <elementref_ns>groundstate</elementref_ns>, each of them must be present only one time.
      
         
         
@@ -126,12 +126,12 @@
         <xs:element ex:importance="essential" ex:unit="" name="title" type="xs:string" minOccurs="1"
           maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>The title of the input file, <it_ns>e.g.</it_ns>, "Groundstate Calculation for Aluminum".  </xs:documentation>
+            <xs:documentation>The title of the input file, <it_ns>e.g.</it_ns>, "Ground-State Calculation for Aluminum".  </xs:documentation>
           </xs:annotation>
         </xs:element>
         <xs:element ex:importance="essential" ex:unit="" ref="structure" maxOccurs="1" minOccurs="1"/>
         <xs:element ex:importance="essential" ex:unit="" ref="groundstate" maxOccurs="1"
-          minOccurs="0"/>
+          minOccurs="1"/>
         <xs:element ex:importance="essential" ex:unit="" ref="structureoptimization" maxOccurs="1"
           minOccurs="0"/>
         <xs:element ex:importance="essential" ex:unit="" ref="properties" maxOccurs="1"
@@ -158,7 +158,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="scratchpath" type="xs:anyURI"
         use="optional" default="./">
         <xs:annotation>
-          <xs:documentation> The path to the scratch space where the eigenvector files, <filename_ns>EVECFV.OUT</filename_ns>, <filename>EVECSV.OUT</filename>, and <filename>OCCSV.OUT</filename> will be written. If the local
+          <xs:documentation> The path to the scratch space where the eigenvector related files, <filename_ns>EVECFV.OUT</filename_ns>, <filename_ns>EVECSV.OUT</filename_ns>, and <filename>OCCSV.OUT</filename> will be written. If the local
             directory is accessed via a network then <attref>scratchpath</attref> can be set to a directory on a local disk. The default value is the working directory, <it_ns>i.e.</it_ns>, the directory where the program is started. </xs:documentation>
         </xs:annotation>
       </xs:attribute>

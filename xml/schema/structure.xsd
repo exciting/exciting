@@ -1,80 +1,96 @@
-<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xs:include id="common" schemaLocation="common.xsd"/>
   <xs:annotation>
-  <xs:appinfo>
-  <parent>/input</parent>
-  <root>structure</root>
-  </xs:appinfo>
+    <xs:appinfo>
+      <parent>/input</parent>
+      <root>structure</root>
+    </xs:appinfo>
   </xs:annotation>
-  <xs:element ex:importance="essential" ex:unit="" name="structure" >
+  <xs:element ex:importance="essential" ex:unit="" name="structure">
     <xs:annotation>
-      <xs:documentation>The structure element contains all structural information such as unit cell and atom positions.</xs:documentation>
+      <xs:documentation>This element contains all structural information, such as unit-cell
+        parameters as well as type and position of each atom. The presence of the subelement
+          <elementref>species</elementref> is necessary unless one wants to perform an empty-lattice
+        calculation. The attribute <attref>speciespath</attref> must be
+        specified.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ex:importance="spacegroup" ex:unit="" name="symmetries" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="spacegroup" ex:unit="" name="symmetries" maxOccurs="1"
+          minOccurs="0">
           <xs:annotation>
             <xs:appinfo>
-              <notindocu />
+              <notindocu/>
             </xs:appinfo>
-            <xs:documentation>This element is used by the spacegroup tool to generate structures and supercells</xs:documentation>
+            <xs:documentation>This element is used by the spacegroup tool to generate structures and
+              supercells</xs:documentation>
           </xs:annotation>
-          <xs:complexType>  
+          <xs:complexType>
             <xs:annotation>
-              <xs:documentation>
-                The symmetries element is output from the spacegroup program the values are currently not used in the
-                <exciting>exciting</exciting>
-                program
+              <xs:documentation> The symmetries element is output from the spacegroup program the
+                values are currently not used in the <exciting>exciting</exciting> program
               </xs:documentation>
             </xs:annotation>
             <xs:sequence>
-              <xs:element ex:importance="spacegroup" ex:unit="" name="lattice" maxOccurs="1" minOccurs="1">
+              <xs:element ex:importance="spacegroup" ex:unit="" name="lattice" maxOccurs="1"
+                minOccurs="1">
                 <xs:annotation>
-                  <xs:documentation>The lattice element defines lattice from a,b,c, and angles.</xs:documentation>
+                  <xs:documentation>The lattice element defines lattice from a,b,c, and
+                    angles.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
-                  <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="a" type="fortrandouble" use="required">
+                  <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="a"
+                    type="fortrandouble" use="required">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldname>noreplace</oldname>
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="b" type="fortrandouble" use="required">
+                  <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="b"
+                    type="fortrandouble" use="required">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldname>noreplace</oldname>
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="c" type="fortrandouble" use="required">
+                  <xs:attribute ex:importance="spacegroup" ex:unit="Bohr" name="c"
+                    type="fortrandouble" use="required">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldname>noreplace</oldname>
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="ab" type="fortrandouble" use="required" />
-                  <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="ac" type="fortrandouble" use="required" />
-                  <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="bc" type="fortrandouble" use="required" />
-                  <xs:attribute ex:importance="spacegroup" ex:unit="" name="ncell" type="integertriple" use="optional" default="1 1 1">
+                  <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="ab"
+                    type="fortrandouble" use="required"/>
+                  <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="ac"
+                    type="fortrandouble" use="required"/>
+                  <xs:attribute ex:importance="spacegroup" ex:unit="Degree" name="bc"
+                    type="fortrandouble" use="required"/>
+                  <xs:attribute ex:importance="spacegroup" ex:unit="" name="ncell"
+                    type="integertriple" use="optional" default="1 1 1">
                     <xs:annotation>
-                      <xs:documentation>Number of repeated cells in each direction.</xs:documentation>
+                      <xs:documentation>Number of repeated cells in each
+                        direction.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="spacegroup" name="scale" default="1" use="optional" type="fortrandouble">
+                  <xs:attribute ex:importance="spacegroup" name="scale" default="1" use="optional"
+                    type="fortrandouble">
                     <xs:annotation>
-                      <xs:documentation>Scales all the lattice vectors by the same factor. This is useful for varying the volume.</xs:documentation>
+                      <xs:documentation>Scales all the lattice vectors by the same factor. This is
+                        useful for varying the volume.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="spacegroup" ex:unit="" name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
+                  <xs:attribute ex:importance="spacegroup" ex:unit="" name="stretch" type="vect3d"
+                    default="1.0d0 1.0d0 1.0d0 ">
                     <xs:annotation>
-                      <xs:documentation>
-                        Allows for an individual scaling of each lattice vector separately.
-                        <pre>"1 1 1"</pre>
-                        means no scaling.
-                      </xs:documentation>
+                      <xs:documentation> Allows for an individual scaling of each lattice vector
+                        separately. <pre>"1 1 1"</pre> means no scaling. </xs:documentation>
                       <xs:appinfo>
                         <oldname>(sc1|sc2|sc3)</oldname>
                       </xs:appinfo>
@@ -82,29 +98,35 @@
                   </xs:attribute>
                 </xs:complexType>
               </xs:element>
-              <xs:element ex:importance="spacegroup" ex:unit="" name="WyckoffPositions" maxOccurs="1" minOccurs="0">
+              <xs:element ex:importance="spacegroup" ex:unit="" name="WyckoffPositions"
+                maxOccurs="1" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element ex:importance="spacegroup" ex:unit="" name="wspecies" maxOccurs="unbounded" minOccurs="0">
+                    <xs:element ex:importance="spacegroup" ex:unit="" name="wspecies"
+                      maxOccurs="unbounded" minOccurs="0">
                       <xs:annotation>
-                        <xs:documentation />
+                        <xs:documentation/>
                       </xs:annotation>
                       <xs:complexType>
                         <xs:sequence>
-                          <xs:element ex:importance="spacegroup" ex:unit="" name="wpos" maxOccurs="unbounded" minOccurs="0">
+                          <xs:element ex:importance="spacegroup" ex:unit="" name="wpos"
+                            maxOccurs="unbounded" minOccurs="0">
                             <xs:complexType>
-                              <xs:attribute ex:importance="spacegroup" ex:unit="" name="coord" type="vect3d" />
+                              <xs:attribute ex:importance="spacegroup" ex:unit="" name="coord"
+                                type="vect3d"/>
                             </xs:complexType>
                           </xs:element>
                         </xs:sequence>
-                        <xs:attribute ex:importance="spacegroup" ex:unit="" name="speciesfile" type="xs:string" />
+                        <xs:attribute ex:importance="spacegroup" ex:unit="" name="speciesfile"
+                          type="xs:string"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-            <xs:attribute ex:importance="spacegroup" ex:unit="" name="HermannMauguinSymbol" type="xs:string" use="required">
+            <xs:attribute ex:importance="spacegroup" ex:unit="" name="HermannMauguinSymbol"
+              type="xs:string" use="required">
               <xs:annotation>
                 <xs:documentation>Herman Mauguin symbol giving the spacegroup</xs:documentation>
                 <xs:appinfo>
@@ -112,44 +134,50 @@
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="spacegroup" ex:unit="" name="HallSymbol" type="xs:string" />
-            <xs:attribute ex:importance="spacegroup" ex:unit="" name="SchoenfliesSymbol" type="xs:string" />
-            <xs:attribute ex:importance="spacegroup" ex:unit="" name="spaceGroupNumber" type="xs:string" />
+            <xs:attribute ex:importance="spacegroup" ex:unit="" name="HallSymbol" type="xs:string"/>
+            <xs:attribute ex:importance="spacegroup" ex:unit="" name="SchoenfliesSymbol"
+              type="xs:string"/>
+            <xs:attribute ex:importance="spacegroup" ex:unit="" name="spaceGroupNumber"
+              type="xs:string"/>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="essential" ex:unit="" name="crystal" minOccurs="1" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>Defines the unit cell of the crystal via the 3 basis vectors.</xs:documentation>
+            <xs:documentation>Defines the unit cell of the crystal via the 3 basis
+              vectors.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation>The unit cell is spanned by 3 base vectors that define the lattice coordinates.</xs:documentation>
+              <xs:documentation>The unit cell is spanned by 3 base vectors that define the lattice
+                coordinates.</xs:documentation>
             </xs:annotation>
             <xs:sequence>
-              <xs:element ex:importance="essential" ex:unit="Bohr" name="basevect" minOccurs="3" maxOccurs="3" type="vect3d">
+              <xs:element ex:importance="essential" ex:unit="Bohr" name="basevect" minOccurs="3"
+                maxOccurs="3" type="vect3d">
                 <xs:annotation>
-                  <xs:documentation>Defines one basis vector in Cartesian coordinates.</xs:documentation>
+                  <xs:documentation>Defines one basis vector in Cartesian
+                    coordinates.</xs:documentation>
                   <xs:appinfo>
                     <oldname>avec</oldname>
                   </xs:appinfo>
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
-            <xs:attribute ex:importance="essential" ex:unit="1" name="scale" type="fortrandouble" default="1.0d0">
+            <xs:attribute ex:importance="essential" ex:unit="1" name="scale" type="fortrandouble"
+              default="1.0d0">
               <xs:annotation>
-                <xs:documentation>Scales all the lattice vectors by the same factor. This is useful for varying the volume.</xs:documentation>
+                <xs:documentation>Scales all the lattice vectors by the same factor. This is useful
+                  for varying the volume.</xs:documentation>
                 <xs:appinfo>
                   <oldname>scale</oldname>
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" name="stretch" type="vect3d" default="1.0d0 1.0d0 1.0d0 ">
+            <xs:attribute ex:importance="essential" ex:unit="" name="stretch" type="vect3d"
+              default="1.0d0 1.0d0 1.0d0 ">
               <xs:annotation>
-                <xs:documentation>
-                  Allows for an individual scaling of each lattice vector separately.
-                  <pre>"1 1 1"</pre>
-                  means no scaling.
-                </xs:documentation>
+                <xs:documentation> Allows for an individual scaling of each lattice vector
+                  separately. <pre>"1 1 1"</pre> means no scaling. </xs:documentation>
                 <xs:appinfo>
                   <oldname>(sc1|sc2|sc3)</oldname>
                 </xs:appinfo>
@@ -157,22 +185,27 @@
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="essential" ex:unit="" name="species" minOccurs="0" maxOccurs="unbounded">
+        <xs:element ex:importance="essential" ex:unit="" name="species" minOccurs="0"
+          maxOccurs="unbounded">
           <xs:annotation>
-            <xs:documentation>Defines the atomic species, i.e. the chemical element. The atomic coordinates and, optionally, quantities relevant for magnetic
-              calculations are defined in the subelement(s) atom.</xs:documentation>
+            <xs:documentation>Defines the atomic species, i.e. the chemical element. The atomic
+              coordinates and, optionally, quantities relevant for magnetic calculations are defined
+              in the subelement(s) atom.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="essential" ex:unit="" name="atom" minOccurs="1" maxOccurs="unbounded">
+              <xs:element ex:importance="essential" ex:unit="" name="atom" minOccurs="1"
+                maxOccurs="unbounded">
                 <xs:annotation>
-                  <xs:documentation>Defines the position and other attributes of one atom in the unit cell.</xs:documentation>
+                  <xs:documentation>Defines the position and other attributes of one atom in the
+                    unit cell.</xs:documentation>
                   <xs:appinfo>
                     <oldname>noname</oldname>
                   </xs:appinfo>
                 </xs:annotation>
                 <xs:complexType>
-                  <xs:attribute ex:importance="essential" ex:unit="lattice coordinates" name="coord" type="vect3d" use="required">
+                  <xs:attribute ex:importance="essential" ex:unit="lattice coordinates" name="coord"
+                    type="vect3d" use="required">
                     <xs:annotation>
                       <xs:documentation>Position in lattice coordinates.</xs:documentation>
                       <xs:appinfo>
@@ -180,42 +213,48 @@
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="bfcmt" type="vect3d" default="0.0d0 0.0d0 0.0d0" use="optional">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="bfcmt" type="vect3d"
+                    default="0.0d0 0.0d0 0.0d0" use="optional">
                     <xs:annotation>
-                      <xs:documentation>Muffin-tin external magnetic field in Cartesian coordinates.</xs:documentation>
+                      <xs:documentation>Muffin-tin external magnetic field in Cartesian
+                        coordinates.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="mommtfix" type="vect3d" default="0.0d0 0.0d0 0.0d0" use="optional">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="mommtfix" type="vect3d"
+                    default="0.0d0 0.0d0 0.0d0" use="optional">
                     <xs:annotation>
-                      <xs:documentation>The desired muffin-tin moment for a Fixed Spin Moment (FSM) calculation.</xs:documentation>
+                      <xs:documentation>The desired muffin-tin moment for a Fixed Spin Moment (FSM)
+                        calculation.</xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
                 </xs:complexType>
               </xs:element>
               <xs:element ex:importance="expert" ex:unit="" name="LDAplusU" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation>
-                    The LADplusU element is used to specify the I,J and U parameters of a species. To switch on the LDAplusU feature one needs to set the
-                    <attref>ldapu</attref>
-                    attribute of the groundstate element.
+                  <xs:documentation> The LADplusU element is used to specify the I,J and U
+                    parameters of a species. To switch on the LDAplusU feature one needs to set the
+                      <attref>ldapu</attref> attribute of the groundstate element.
                   </xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="l" type="xs:integer" default="-1">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="l" type="xs:integer"
+                    default="-1">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldname>notaname</oldname>
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="U" type="fortrandouble" default="0.0d0">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="U" type="fortrandouble"
+                    default="0.0d0">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldname>notaname</oldname>
                       </xs:appinfo>
                     </xs:annotation>
                   </xs:attribute>
-                  <xs:attribute ex:importance="expert" ex:unit="" name="J" type="fortrandouble" default="0.0d0">
+                  <xs:attribute ex:importance="expert" ex:unit="" name="J" type="fortrandouble"
+                    default="0.0d0">
                     <xs:annotation>
                       <xs:appinfo>
                         <oldname>notaname</oldname>
@@ -225,131 +264,124 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-            <xs:attribute ex:importance="essential" ex:unit="" name="speciesfile" type="xs:anyURI" use="required">
+            <xs:attribute ex:importance="essential" ex:unit="" name="speciesfile" type="xs:anyURI"
+              use="required">
               <xs:annotation>
-                <xs:documentation>
-                  Defines the file that contains the species definition. It is looked up in the species directory specified by the species path. By default, the
-                  name of the file is
-                  <it_ns>element</it_ns>
-                  .
-                  <ns_pre_ns> xml</ns_pre_ns>
-                  , e.g.
-                  <pre_ns>Ag.xml</pre_ns>
-                  .
-                </xs:documentation>
+                <xs:documentation> Defines the file that contains the species definition. It is
+                  looked up in the species directory specified by the species path. By default, the
+                  name of the file is <it_ns>element</it_ns> . <ns_pre_ns> xml</ns_pre_ns> , e.g.
+                    <pre_ns>Ag.xml</pre_ns> . </xs:documentation>
                 <xs:appinfo>
                   <oldname>spfname</oldname>
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="chemicalSymbol" type="xs:string" use="optional" default="">
+            <xs:attribute ex:importance="expert" ex:unit="" name="chemicalSymbol" type="xs:string"
+              use="optional" default="">
               <xs:annotation>
-                <xs:documentation>
-                  Optional attribute that may be used in visualization and by converters. It is ignored by
-                  <exciting>exciting</exciting>
+                <xs:documentation> Optional attribute that may be used in visualization and by
+                  converters. It is ignored by <exciting>exciting</exciting>
                 </xs:documentation>
                 <xs:appinfo>
                   <oldname>spsymb</oldname>
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="atomicNumber" type="xs:integer" use="optional">
+            <xs:attribute ex:importance="expert" ex:unit="" name="atomicNumber" type="xs:integer"
+              use="optional">
               <xs:annotation>
-                <xs:documentation>
-                  Optional attribute that may be used in visualization and by converters. It is not used in
-                  <exciting>exciting</exciting>
+                <xs:documentation> Optional attribute that may be used in visualization and by
+                  converters. It is not used in <exciting>exciting</exciting>
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="Bohr" name="rmt" type="fortrandouble" default="-1.0d0" use="optional">
+            <xs:attribute ex:importance="expert" ex:unit="Bohr" name="rmt" type="fortrandouble"
+              default="-1.0d0" use="optional">
               <xs:annotation>
                 <xs:appinfo>
                   <oldname>noreplace&gt;</oldname>
                 </xs:appinfo>
-                <xs:documentation> Defines the muffin-tin radius; this optional parameter allows to override species file or automatic determination. The
-                  muffin-tin radius defines the region around the atomic nucleus where the wave function is expanded in terms of atomic-like functions. In
-                  contrast, the interstitial region (=region not belonging to any muffin-tin) is described by planewaves.</xs:documentation>
+                <xs:documentation> Defines the muffin-tin radius; this optional parameter allows to
+                  override species file or automatic determination. The muffin-tin radius defines
+                  the region around the atomic nucleus where the wave function is expanded in terms
+                  of atomic-like functions. In contrast, the interstitial region (=region not
+                  belonging to any muffin-tin) is described by planewaves.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute name="href" type="xs:anyURI" default="">
               <xs:annotation>
-                <xs:documentation>Defines the address/URI of a species file provided in web. If this attribute is specified, all other attributes
-                </xs:documentation>
+                <xs:documentation>Defines the address/URI of a species file provided in web. If this
+                  attribute is specified, all other attributes </xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
       </xs:sequence>
-      <xs:attribute ex:importance="essential" ex:unit="" name="speciespath" type="xs:anyURI" use="required">
+      <xs:attribute ex:importance="essential" ex:unit="" name="speciespath" type="xs:anyURI"
+        use="required">
         <xs:annotation>
-          <xs:documentation>
-            Gives the path to the directory containing the species files. It can be an HTTP URL too (needs
-            <pre>wget</pre>
-            ).
-          </xs:documentation>
+          <xs:documentation> The path to the directory containing the species files. Alternatively,
+            it can be defined as an HTTP URL, in this case the <a href="http://exciting-code.org/wget"> wget </a> utility must be installed. </xs:documentation>
           <xs:appinfo>
             <oldname>sppath</oldname>
           </xs:appinfo>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean" default="false">
+      <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean"
+        default="false">
         <xs:annotation>
-          <xs:documentation>
-            Has to be set to
-            <pre>"true"</pre>
-            if one wants to calculate an isolated molecule. If it is
-            <pre>"true"</pre>
-            , then the atomic positions,
-            <inlinemath>{\bf a}</inlinemath>
-            , are assumed to be in Cartesian coordinates. The lattice vectors are also set up automatically with the i-th lattice vector given by
-            <displaymath>{\bf A}^i=A_i\hat{\bf e}^i,</displaymath>
-            where
-            <displaymath>A_i=\max_{\alpha,\beta}\left|{\bf a}^{\alpha}_i-{\bf a}^{\beta}_i\right| +d_{\rm vac}</displaymath>
-            with
-            <inlinemath>\alpha</inlinemath>
-            and
-            <inlinemath>\beta</inlinemath>
-            labeling atoms, and
-            <inlinemath>d_{\rm vac}</inlinemath>
-            determines the size of the vacuum around the molecule. The last variable is set by the attribute
-            <pre>vacuum</pre>
-            .
+          <xs:documentation> If "<pre_ns>true</pre_ns>", a calculation for an isolated molecule is
+            performed. In this case, the atomic positions specified by the
+              <elementref>atom</elementref> subelement of the <elementref>species</elementref>
+            element must be given in cartesian coordinates. The lattice vectors are set up
+            automatically as <displaymath>{\bf A}^{(i)}=A_i\,\,\hat{\bf e}^{(i)} \qquad
+              i=1,2,3</displaymath> with <displaymath>A_i=\max_{\alpha,\beta}\left|{
+              a}^{(\alpha)}_i-{a}^{(\beta)}_i\right| +d_{\rm vac}</displaymath> where
+              <inlinemath>{a}_i^{(\alpha)} </inlinemath> is the catesian component of the atom
+            labeled by <inlinemath>\alpha</inlinemath> in the <inlinemath_ns>i</inlinemath_ns>-th
+            direction specified by the unit vector <inlinemath_ns>\hat{\bf e}^{(i)}</inlinemath_ns>.
+            Furthermore, <inlinemath>d_{\rm vac}</inlinemath> represents the size of the vacuum
+            around the molecule as defined by the attribute <attref_ns>vacuum</attref_ns>.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="Bohr" name="vacuum" type="fortrandouble" default="10.0d0">
+      <xs:attribute ex:importance="expert" ex:unit="Bohr" name="vacuum" type="fortrandouble"
+        default="10.0d0">
         <xs:annotation>
-          <xs:documentation>Determines the size of the vacuum around the molecule.</xs:documentation>
+          <xs:documentation>Determines the size of the vacuum around the molecule, see the
+              <attref>molecule</attref> attribute.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble" default="1.0d-6">
+      <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble"
+        default="1.0d-6">
         <xs:annotation>
-          <xs:documentation>Vectors with lengths less than this are considered zero.</xs:documentation>
+          <xs:documentation>This attribute defines the accuracy up to which two vectors can be
+            considered numerically identical. Vectors with lengths less than this are considered
+            zero.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="autormt" type="xs:boolean" default="false">
+      <xs:attribute ex:importance="expert" ex:unit="" name="autormt" type="xs:boolean"
+        default="false">
         <xs:annotation>
-          <xs:documentation>
-            If
-            <pre>"true"</pre>
-            automatic determination of the muffin tin radii is allowed.
-          </xs:documentation>
+          <xs:documentation> If <pre_ns>"true"</pre_ns>, the muffin-tin radius of each species is
+            automatically set according to the variables specified by the attribute
+              <attref_ns>rmtapm</attref_ns>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="primcell" type="xs:boolean" default="false">
+      <xs:attribute ex:importance="expert" ex:unit="" name="primcell" type="xs:boolean"
+        default="false">
         <xs:annotation>
-          <xs:documentation> Allows the primitive unit cell to be determined automatically from the conventional cell. This is done by searching for lattice
-            vectors among all those which connect atomic sites, and using the three shortest ones which produce a unit cell with non-zero volume.
-          </xs:documentation>
+          <xs:documentation> If "<pre_ns>true</pre_ns>", the primitive unit cell is determined
+            automatically from the conventional cell defined by the basis vectors given by the
+              <elementref>basevect</elementref> elements. The primitive unit cell is determined by
+            searching for lattice vectors among all vectors connecting atomic sites and choosing the
+            three shortest ones which produce a unit cell with non-zero volume. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="tshift" type="xs:boolean" default="true">
         <xs:annotation>
-          <xs:documentation>
-            Set to it to
-            <pre>"true"</pre>
-            if the crystal can be shifted such that the atom closest to the origin is exactly at the origin.
-          </xs:documentation>
+          <xs:documentation> Set to it to <pre>"true"</pre> if the crystal can be shifted such that
+            the atom closest to the origin is exactly at the origin. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
