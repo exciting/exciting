@@ -349,6 +349,9 @@
           This element allows for specification of the following attributes:  </xsl:text>
           
            <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
+             <xsl:sort select="@use='required'" order="descending"/>
+             <xsl:sort select="@name|@ref"/>
+            
            <xsl:call-template name="attref">
              <xsl:with-param name="att" select="@name|@ref"/>
          

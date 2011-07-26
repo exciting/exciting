@@ -149,7 +149,6 @@ type groundstate_type
  real(8)::epspot
  real(8)::epsengy
  real(8)::epsforce
- real(8)::rmtapm(2)
  real(8)::swidth
  character(512)::stype
  integer::stypenumber
@@ -1691,14 +1690,6 @@ getstructgroundstate%epsforce=5.0d-5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsforce",getstructgroundstate%epsforce)
        call removeAttribute(thisnode,"epsforce")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rmtapm")
-getstructgroundstate%rmtapm=(/0.25d0,0.95d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rmtapm",getstructgroundstate%rmtapm)
-       call removeAttribute(thisnode,"rmtapm")  
 endif
 
 nullify(np)  
