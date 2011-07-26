@@ -87,7 +87,8 @@
     <xsl:text>
 + Reused Elements
     
-The following elements can occur more than once in the input file. There for they are listed separately.
+    The following elements can occur more than once in the input file. There for they are [[[</xsl:text>
+    <xsl:value-of select="$prefix"/><xsl:text>common| listed separately]]].
   </xsl:text>
     <xsl:for-each
       select="/*/xs:element[@name!=/xs:schema/xs:annotation[last()]/xs:appinfo/root
@@ -103,7 +104,8 @@ The following elements can occur more than once in the input file. There for the
     <xsl:text>
 + Data Types
  
- The Input definition uses derived data types. These are described here.
+ The Input definition uses derived data types. These  [[[</xsl:text>
+    <xsl:value-of select="$prefix"/><xsl:text>common| are described here]]].
   </xsl:text>
     <xsl:for-each select="/*/xs:simpleType">
       <xsl:call-template name="typetoDoc">
@@ -421,16 +423,31 @@ The following elements can occur more than once in the input file. There for the
     <xsl:choose>
       <xsl:when test="$contentnode/@type">
         <xsl:text>[[cell style=" vertical-align:top;" ]] **Type:** [[/cell]] [[cell]]</xsl:text>
-        <xsl:if test="not(contains($contentnode/@type,'xs:'))">
+        <xsl:choose>
+         
+        
+        <xsl:when test="not(contains($contentnode/@type,'xs:'))">
+          <xsl:choose>
+           
+          <xsl:when test="//xs:simpleType[@name=$contentnode/@type]">
           <xsl:text>[#</xsl:text>
           <xsl:value-of select="$contentnode/@type"/>
           <xsl:text> </xsl:text>
-        </xsl:if>
+             <xsl:value-of select="$contentnode/@type"/>
+            <xsl:text>]</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>[[[</xsl:text><xsl:value-of select="$prefix"/><xsl:text>common#</xsl:text>
+            <xsl:value-of select="$contentnode/@type"/><xsl:text>|</xsl:text>  <xsl:value-of select="$contentnode/@type"/> <xsl:text>]]]</xsl:text>
+          </xsl:otherwise>
+          </xsl:choose>
+          
+        </xsl:when>
+          <xsl:otherwise>
         <xsl:value-of select="str:replace(($contentnode/@type),'xs:','')"/>
-        <xsl:if test="not(contains($contentnode/@type,'xs:'))">
-          <xsl:text>]
- </xsl:text>
-        </xsl:if>
+          </xsl:otherwise>
+          </xsl:choose>
+         
         <xsl:text>
 </xsl:text>
       </xsl:when>
