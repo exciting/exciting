@@ -33,7 +33,7 @@ test::
 testsum::
 	cd test/; $(MAKE) summary
 	
-doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc
+doc:  spacegroupdoc stateconvertdoc stateinfodoc inputdoc excitingfuncdoc Splitt_inputdoc
 	
 excitingfuncdoc::
 	$(MAKE) -f build/Make.common doc
@@ -49,6 +49,9 @@ inputdoc::
 	xsltproc --stringparam importancelevels "essential expert" ../../xml/schematowikidot.xsl ../../xml/excitinginput.xsd >inputref.wikidot;\
 	pdflatex excitinginput.tex;\
 	pdflatex excitinginput.tex
+
+Splitt_inputdoc::
+	cd xml/schema && $(MAKE)
 
 inputdocwiki:xml/schema/*.xsd 
 	cd xml/schema; $(MAKE) 

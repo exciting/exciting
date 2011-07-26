@@ -206,10 +206,17 @@ The following elements can occur more than once in the input file. There for the
     />
   </xsl:template>
   <xsl:template match="attref">
+    <xsl:call-template name="attref">
+      <xsl:with-param name="att" select="."/>
+    </xsl:call-template>
+  </xsl:template>
+  
+  <xsl:template  name="attref">
+    <xsl:param name="att"/>
     <xsl:text> [[span class="attributelink"]]**{{[#att</xsl:text>
-    <xsl:value-of select="."/>
+    <xsl:value-of select="$att"/>
     <xsl:text> </xsl:text>
-    <xsl:value-of select="."/>
+    <xsl:value-of select="$att"/>
     <xsl:text>]}}**[[/span]] </xsl:text>
   </xsl:template>
    <xsl:template match="attref_ns">
@@ -218,15 +225,29 @@ The following elements can occur more than once in the input file. There for the
     <xsl:text> </xsl:text>
     <xsl:value-of select="."/>
     <xsl:text>]}}**[[/span]]</xsl:text>
-  </xsl:template>
+   </xsl:template>
   <xsl:template match="elementref">
-    
-    <xsl:text> [[span class="elementlink"]]**{{[#</xsl:text>
-    <xsl:value-of select="."/>
-    <xsl:text> </xsl:text>
-    <xsl:value-of select="."/>
-    <xsl:text>]}}**[[/span]] </xsl:text>
-    
+    <xsl:call-template name="elementref">
+      <xsl:with-param name="elem" select="."></xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+  <xsl:template  name="elementref">
+    <xsl:param name="elem" ></xsl:param>
+    <xsl:choose>
+      <xsl:when test="//xs:element[@name=$elem]">
+        <xsl:text> [[span class="elementlink"]]**{{[#</xsl:text>
+        <xsl:value-of select="$elem"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="$elem"/>
+        <xsl:text>]}}**[[/span]] </xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+    <xsl:text> [[span class="elementlink"]]**{{[[[</xsl:text>
+        <xsl:value-of select="$elem"/>
+       <xsl:text>]]]}}**[[/span]] </xsl:text>
+   
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <xsl:template match="list">
     <xsl:text>
@@ -264,6 +285,7 @@ The following elements can occur more than once in the input file. There for the
   <xsl:template name="elementToLatex">
     <xsl:param name="myelement"/>
     <xsl:param name="level"/>
+    <xsl:if test="$myelement/@name">
     <xsl:text>
 [[# </xsl:text>
     <xsl:value-of select="$myelement/@name"/>
@@ -310,8 +332,16 @@ The following elements can occur more than once in the input file. There for the
         </xsl:when>
         <xsl:otherwise>
           <xsl:text>
-This element allows for specification of the following attributes:  </xsl:text>
+          This element allows for specification of the following attributes:  </xsl:text>
+          
+           <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
+           <xsl:call-template name="attref">
+             <xsl:with-param name="att" select="@name|@ref"/>
+         
+           </xsl:call-template>
+             </xsl:for-each>
         </xsl:otherwise>
+        
       </xsl:choose>
 
     </xsl:if>
@@ -345,6 +375,7 @@ This element allows for specification of the following attributes:  </xsl:text>
         </xsl:if>
       </xsl:if>
     </xsl:for-each>
+    </xsl:if>
   </xsl:template>
   <xsl:template name="attributetolatex">
     <xsl:param name="myattribute"/>
@@ -406,11 +437,9 @@ This element allows for specification of the following attributes:  </xsl:text>
 </xsl:text>
         <xsl:for-each
           select="$contentnode/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
-          <xsl:text>  [[span class="elementlink"]]**{{[#</xsl:text>
-          <xsl:value-of select="./@name|@ref"/>
-          <xsl:text>   </xsl:text>
-          <xsl:value-of select="./@name|@ref"/>
-          <xsl:text>]}}**[[/span]]</xsl:text>
+          <xsl:call-template name="elementref">
+            <xsl:with-param name="elem" select="@name|@ref"></xsl:with-param>
+          </xsl:call-template>
           <xsl:if test="@minOccurs=0">
            
                 <xsl:text> (optional)</xsl:text>

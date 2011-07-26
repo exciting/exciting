@@ -662,7 +662,7 @@ xs.xsd
       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="vacuum" type="fortrandouble" default="10.0d0">
         <xs:annotation>
           <xs:documentation>Determines the size of the vacuum around the molecule, see the
-              <attref>molekule</attref> attribute.</xs:documentation>
+              <attref>molecule</attref> attribute.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="epslat" type="fortrandouble" default="1.0d-6">
