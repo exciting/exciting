@@ -5,6 +5,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
   <xs:annotation>
   <xs:appinfo>
   <root>/</root>
+  <parent>.</parent>  
   </xs:appinfo>
   </xs:annotation>
   <xs:simpleType name="fortrandouble">

@@ -37,7 +37,7 @@ Subroutine autoradmt
       External r3dist
 ! initial muffin-tin radii
       Do is = 1, nspecies
-         rmt (is) = 1.d0 + input%groundstate%rmtapm(1) * Abs (spzn(is)) &
+         rmt (is) = 1.d0 + input%structure%rmtapm(1) * Abs (spzn(is)) &
         & ** (1.d0/3.d0)
       End Do
 ! determine scaling factor
@@ -68,7 +68,7 @@ Subroutine autoradmt
             End Do
          End Do
       End Do
-      s = s * input%groundstate%rmtapm(2)
+      s = s * input%structure%rmtapm(2)
 ! scale all radii
       Do is = 1, nspecies
 ! limit number of decimal digits

@@ -1,1 +1,0 @@
-This dir is for wikifiles generated from splitt schema

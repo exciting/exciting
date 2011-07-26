@@ -5,6 +5,8 @@
   xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xsl:output method="text"/>
   <xsl:param name="index" select="'false'"/>
+  <xsl:param name="prefix"/>
+  <xsl:param name="common" />
   <xsl:param name="importancelevels">
     <xsl:text>essential</xsl:text>
     <xs:annotation>
@@ -16,6 +18,7 @@
   </xsl:param>
   <xsl:param name="tabs" select="false"/>
   <xsl:template match="/">
+    <xsl:if test="not($common)">
     <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation"/>
     <xsl:if test="$index='true'">
       <xsl:text>
@@ -80,6 +83,7 @@
     </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
+      </xsl:if>
     <xsl:text>
 + Reused Elements
     
@@ -89,7 +93,7 @@ The following elements can occur more than once in the input file. There for the
       select="/*/xs:element[@name!=/xs:schema/xs:annotation[last()]/xs:appinfo/root
           and contains($importancelevels,@ex:importance)  ]">
       <xsl:variable name="name" select="@name"/>
-      <xsl:if test="count(//xs:element[@ref=$name])>1">
+      <xsl:if test="not( contains(//xs:appinfo/includes,$name)) ">
         <xsl:call-template name="elementToLatex">
           <xsl:with-param name="myelement" select="."/>
           <xsl:with-param name="level" select="0"/>
@@ -209,6 +213,7 @@ The following elements can occur more than once in the input file. There for the
     <xsl:call-template name="attref">
       <xsl:with-param name="att" select="."/>
     </xsl:call-template>
+    <xsl:text> </xsl:text>
   </xsl:template>
   
   <xsl:template  name="attref">
@@ -217,7 +222,7 @@ The following elements can occur more than once in the input file. There for the
     <xsl:value-of select="$att"/>
     <xsl:text> </xsl:text>
     <xsl:value-of select="$att"/>
-    <xsl:text>]}}**[[/span]] </xsl:text>
+    <xsl:text>]}}**[[/span]]</xsl:text>
   </xsl:template>
    <xsl:template match="attref_ns">
     <xsl:text> [[span class="attributelink"]]**{{[#att</xsl:text>
@@ -228,8 +233,9 @@ The following elements can occur more than once in the input file. There for the
    </xsl:template>
   <xsl:template match="elementref">
     <xsl:call-template name="elementref">
-      <xsl:with-param name="elem" select="."></xsl:with-param>
+      <xsl:with-param name="elem" select="."></xsl:with-param>  
     </xsl:call-template>
+    <xsl:text> </xsl:text>
   </xsl:template>
   <xsl:template  name="elementref">
     <xsl:param name="elem" ></xsl:param>
@@ -239,11 +245,17 @@ The following elements can occur more than once in the input file. There for the
         <xsl:value-of select="$elem"/>
         <xsl:text> </xsl:text>
         <xsl:value-of select="$elem"/>
-        <xsl:text>]}}**[[/span]] </xsl:text>
+        <xsl:text>]}}**[[/span]]</xsl:text>
+      </xsl:when>
+      <xsl:when test="//xs:element[*/*/xs:element[@ref=$elem] and @name!='input']">
+         <xsl:text> [[span class="elementlink"]]**{{[[[</xsl:text>
+        <xsl:value-of select="$prefix"/>common#<xsl:value-of select="$elem"/>|<xsl:value-of select="$elem"/>
+       <xsl:text>]]]}}**[[/span]] </xsl:text>
+        
       </xsl:when>
       <xsl:otherwise>
     <xsl:text> [[span class="elementlink"]]**{{[[[</xsl:text>
-        <xsl:value-of select="$elem"/>
+        <xsl:value-of select="$prefix"/><xsl:value-of select="$elem"/>|<xsl:value-of select="$elem"/>
        <xsl:text>]]]}}**[[/span]] </xsl:text>
    
       </xsl:otherwise>
@@ -339,6 +351,10 @@ The following elements can occur more than once in the input file. There for the
              <xsl:with-param name="att" select="@name|@ref"/>
          
            </xsl:call-template>
+             <xsl:if test="@use='required'">
+               <xsl:text> ##red|(required)##</xsl:text>
+             </xsl:if>
+             <xsl:if test="position()!=last()"><xsl:text>,</xsl:text></xsl:if>
              </xsl:for-each>
         </xsl:otherwise>
         
@@ -519,26 +535,44 @@ The following elements can occur more than once in the input file. There for the
     <xsl:param name="node"/>
     <xsl:variable name="name" select="$node/@name"/>
     <xsl:variable name="current_name">
-      <xsl:if test="$node/@name">
+      <xsl:for-each select="$node[last()]">
+      <xsl:if test="@name">
         <xsl:text>/</xsl:text>
         <xsl:choose>
-          <xsl:when test="name($node)='xs:attribute'">
+          <xsl:when test="ancestor-or-self::xs:element[contains(//xs:appinfo/includes,@name)]">
+            <xsl:text>[[[</xsl:text>
+            <xsl:value-of select="$prefix"/>
+            <xsl:value-of select="ancestor-or-self::xs:element[contains(//xs:appinfo/includes,@name)]/@name"/>
+            <xsl:text>#</xsl:text>
+            <xsl:value-of select="@name"/>
+            <xsl:text>|</xsl:text>
+            <xsl:if test="name(.)='xs:attribute'">@</xsl:if>
+            <xsl:value-of select="@name"/>
+            <xsl:text>]]]</xsl:text>
+          </xsl:when>
+          <xsl:when test="@name='input' and $common">
+            <xsl:text>[[[</xsl:text>
+            <xsl:value-of select="$prefix"/>
+            <xsl:text>input|input]]]</xsl:text>
+          </xsl:when>
+          <xsl:when test="name(.)='xs:attribute'">
             <xsl:text>[#att</xsl:text>
-            <xsl:value-of select="$node/@name|$node/@ref"/>
+            <xsl:value-of select="@name"/>
             <xsl:text> @</xsl:text>
-            <xsl:value-of select="$node/@name|$node/@ref"/>
+            <xsl:value-of select="@name"/>
             <xsl:text>]</xsl:text>
           </xsl:when>
           <xsl:otherwise>
             <xsl:text>[#</xsl:text>
-            <xsl:value-of select="$node/@name|$node/@ref"/>
+            <xsl:value-of select="@name"/>
             <xsl:text> </xsl:text>
-            <xsl:value-of select="$node/@name|$node/@ref"/>
+            <xsl:value-of select="@name"/>
             <xsl:text>]</xsl:text>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:if>
       <xsl:value-of select="$xpath"/>
+      </xsl:for-each>
     </xsl:variable>
     <xsl:for-each select="$node[last()]">
       <xsl:choose>
@@ -553,7 +587,7 @@ The following elements can occur more than once in the input file. There for the
         <xsl:when test="parent::node()">
           <xsl:for-each select="parent::node()">
             <xsl:call-template name="genxpath">
-              <xsl:with-param name="node" select="."/>
+              <xsl:with-param name="node" select="."/> 
               <xsl:with-param name="xpath">
                 <xsl:value-of select="$current_name"/>
               </xsl:with-param>
@@ -563,7 +597,12 @@ The following elements can occur more than once in the input file. There for the
         <xsl:when test="contains($xpath,'input')">
           <xsl:value-of select="$xpath"/>
         </xsl:when>
-       
+       <xsl:when test="not(/*/xs:element[@name='input'])">
+         <xsl:text>[[[</xsl:text><xsl:value-of select="$prefix"/><xsl:value-of select="/*/xs:annotation/xs:appinfo/parent"/>
+         <xsl:text>|</xsl:text>
+         <xsl:value-of select="/*/xs:annotation/xs:appinfo/parent"/><xsl:text>]]]</xsl:text>
+         <xsl:value-of select="$xpath"/>
+       </xsl:when>
         <xsl:otherwise>
           <xsl:text>.</xsl:text>
           <xsl:value-of select="$xpath"/>

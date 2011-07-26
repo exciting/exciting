@@ -134,7 +134,7 @@ Subroutine writeinfo (fnum)
          Write (fnum,*)
          Write (fnum, '("Automatic determination of muffin-tin radii")')
          Write (fnum, '(" parameters : ", 2G18.10)') &
-        & input%groundstate%rmtapm
+        & input%structure%rmtapm
       End If
       If (input%groundstate%frozencore) Then
          Write (fnum,*)

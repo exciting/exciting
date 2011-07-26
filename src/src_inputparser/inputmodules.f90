@@ -62,6 +62,7 @@ type(dopart_type),pointer::dopart
     type structure_type
  character(1024)::speciespath
  logical::molecule
+ real(8)::rmtapm(2)
  real(8)::vacuum
  real(8)::epslat
  logical::autormt
@@ -148,7 +149,6 @@ type groundstate_type
  real(8)::epspot
  real(8)::epsengy
  real(8)::epsforce
- real(8)::rmtapm(2)
  real(8)::swidth
  character(512)::stype
  integer::stypenumber
@@ -1061,6 +1061,14 @@ if(associated(np)) then
 endif
 
 nullify(np)  
+np=>getAttributeNode(thisnode,"rmtapm")
+getstructstructure%rmtapm=(/0.25d0,0.95d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"rmtapm",getstructstructure%rmtapm)
+       call removeAttribute(thisnode,"rmtapm")  
+endif
+
+nullify(np)  
 np=>getAttributeNode(thisnode,"vacuum")
 getstructstructure%vacuum=10.0d0
 if(associated(np)) then
@@ -1678,14 +1686,6 @@ getstructgroundstate%epsforce=5.0d-5
 if(associated(np)) then
        call extractDataAttribute(thisnode,"epsforce",getstructgroundstate%epsforce)
        call removeAttribute(thisnode,"epsforce")  
-endif
-
-nullify(np)  
-np=>getAttributeNode(thisnode,"rmtapm")
-getstructgroundstate%rmtapm=(/0.25d0,0.95d0/)
-if(associated(np)) then
-       call extractDataAttribute(thisnode,"rmtapm",getstructgroundstate%rmtapm)
-       call removeAttribute(thisnode,"rmtapm")  
 endif
 
 nullify(np)  
@@ -4858,6 +4858,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"scratchpath")
+getstructinput%scratchpath= "./"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scratchpath",getstructinput%scratchpath)
        call removeAttribute(thisnode,"scratchpath")  

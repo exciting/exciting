@@ -62,6 +62,7 @@ type(dopart_type),pointer::dopart
     type structure_type
  character(1024)::speciespath
  logical::molecule
+ real(8)::rmtapm(2)
  real(8)::vacuum
  real(8)::epslat
  logical::autormt
@@ -1058,6 +1059,14 @@ getstructstructure%molecule= .false.
 if(associated(np)) then
        call extractDataAttribute(thisnode,"molecule",getstructstructure%molecule)
        call removeAttribute(thisnode,"molecule")  
+endif
+
+nullify(np)  
+np=>getAttributeNode(thisnode,"rmtapm")
+getstructstructure%rmtapm=(/0.25d0,0.95d0/)
+if(associated(np)) then
+       call extractDataAttribute(thisnode,"rmtapm",getstructstructure%rmtapm)
+       call removeAttribute(thisnode,"rmtapm")  
 endif
 
 nullify(np)  
@@ -4862,6 +4871,7 @@ endif
 
 nullify(np)  
 np=>getAttributeNode(thisnode,"scratchpath")
+getstructinput%scratchpath= "./"
 if(associated(np)) then
        call extractDataAttribute(thisnode,"scratchpath",getstructinput%scratchpath)
        call removeAttribute(thisnode,"scratchpath")  

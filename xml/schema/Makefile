@@ -1,9 +1,16 @@
-wiki/*: *.xsd ../schematowikidot.xsl
-	xsltproc ../schematowikidot.xsl input.xsd >wiki/input;\
-	xsltproc ../schematowikidot.xsl structure.xsd >wiki/structure;\
-	xsltproc ../schematowikidot.xsl groundstate.xsd >wiki/groundstate;\
-	xsltproc ../schematowikidot.xsl phonons.xsd >wiki/phonons;\
-	xsltproc ../schematowikidot.xsl properties.xsd >wiki/properties;\
-	xsltproc ../schematowikidot.xsl structureoptimization.xsd > wiki/structureoptimization;\
-	xsltproc ../schematowikidot.xsl xs.xsd >wiki/xs;\
-	xsltproc ../schematowikidot.xsl common.xsd >wiki/common
+PREFIX=draft:
+STRPARAM=  --stringparam importancelevels "essential expert" --stringparam prefix "$(PREFIX)"
+wiki/*: *.xsd ../schematowikidot.xsl common
+	xsltproc $(STRPARAM) ../schematowikidot.xsl   input.xsd >wiki/$(PREFIX)input;\
+	xsltproc  $(STRPARAM) ../schematowikidot.xsl  structure.xsd >wiki/$(PREFIX)structure;\
+	xsltproc  $(STRPARAM) ../schematowikidot.xsl  groundstate.xsd >wiki/$(PREFIX)groundstate;\
+	xsltproc $(STRPARAM) ../schematowikidot.xsl   phonons.xsd >wiki/$(PREFIX)phonons;\
+	xsltproc $(STRPARAM) ../schematowikidot.xsl   properties.xsd >wiki/$(PREFIX)properties;\
+	xsltproc $(STRPARAM) ../schematowikidot.xsl   structureoptimization.xsd > wiki/$(PREFIX)structureoptimization;\
+	xsltproc  $(STRPARAM) ../schematowikidot.xsl  xs.xsd >wiki/$(PREFIX)xs;\
+
+common:expandedschema
+	xsltproc $(STRPARAM) --stringparam common "true"  ../schematowikidot.xsl  ../excitinginput.xsd >wiki/$(PREFIX)common
+	
+expandedschema:: 
+	cd ../../ && $(MAKE)  expandedschema

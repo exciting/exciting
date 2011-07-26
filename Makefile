@@ -42,8 +42,10 @@ spacegroupdoc::
 	cd src/spacegroup; $(MAKE) doc;\
 	mv spacegroup.pdf ../../docs/spacegroup
  
-inputdoc::
+expandedschema::
 	xsltproc xml/schema/schemaexpand.xsl xml/schema/input.xsd >xml/excitinginput.xsd ;\
+ 
+inputdoc::expandedschema
 	cd docs/exciting/;\
 	xsltproc --stringparam importancelevels "essential expert" ../../xml/schematolatex.xsl ../../xml/excitinginput.xsd >excitinginput.tex;\
 	xsltproc --stringparam importancelevels "essential expert" ../../xml/schematowikidot.xsl ../../xml/excitinginput.xsd >inputref.wikidot;\

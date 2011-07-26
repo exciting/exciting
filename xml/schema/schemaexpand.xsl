@@ -24,6 +24,15 @@ input.xsd
 </xsl:text>
                 </xsl:for-each>
             </xsl:comment>
+            <xs:annotation>
+                <xs:appinfo>
+                    <includes>
+                        <xsl:for-each select="xs:schema/xs:include">
+                    <xsl:value-of select="@schemaLocation"/> <xsl:text> </xsl:text>
+                </xsl:for-each>
+                    </includes>
+                </xs:appinfo>
+            </xs:annotation>
             <xsl:for-each select="xs:schema/xs:include">
                 <xsl:variable name="schemaLocation" select="@schemaLocation"/>
                 <xsl:copy-of select="document($schemaLocation)/*/*[name()!='xs:include']"/>

@@ -17,8 +17,14 @@ properties.xsd
 xs.xsd 
 -->
   <xs:annotation>
+    <xs:appinfo>
+      <includes>common.xsd structure.xsd groundstate.xsd structureoptimization.xsd phonons.xsd properties.xsd xs.xsd </includes>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:annotation>
   <xs:appinfo>
   <root>/</root>
+  <parent>.</parent>  
   </xs:appinfo>
   </xs:annotation>
   <xs:simpleType name="fortrandouble">
@@ -659,6 +665,20 @@ xs.xsd
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d" default="0.25d0 0.95d0">
+        <xs:annotation>
+          <xs:documentation> This attribute assigns the two parameters governing the automatic generation of the muffin-tin radii.
+            When the attribute <attref>autormt</attref> is set to <pre>"true"</pre> , the muffin-tin radii are
+            determined according to the following expression
+            <displaymath>R_i\propto
+              1+\zeta|Z_i|^{1/3},
+            </displaymath> where <inlinemath>Z_i</inlinemath> is the atomic
+            number of the <inlinemath>i</inlinemath> th species, <inlinemath>\zeta</inlinemath> is
+            stored in <attref_ns>rmtapm</attref_ns>(1). The distance between
+            the muffin-tin speheres is determined by the value of <attref_ns>rmtapm</attref_ns>(2): When <attref_ns>rmtapm</attref_ns>
+            (2)=1, the closest muffin-tin spheres will touch each other. </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Bohr" name="vacuum" type="fortrandouble" default="10.0d0">
         <xs:annotation>
           <xs:documentation>Determines the size of the vacuum around the molecule, see the
@@ -698,6 +718,7 @@ xs.xsd
   </xs:element>
   <xs:annotation>
     <xs:appinfo>
+      <parent>/input</parent>
       <root>groundstate</root>
     </xs:appinfo>
   </xs:annotation>
@@ -1910,20 +1931,7 @@ xs.xsd
             run.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="rmtapm" type="vect2d" default="0.25d0 0.95d0">
-        <xs:annotation>
-          <xs:documentation> This attribute assigns the two parameters governing the automatic generation of the muffin-tin radii.
-            When the attribute <attref>autormt</attref> is set to <pre>"true"</pre> , the muffin-tin radii are
-             determined according to the following expression
-            <displaymath>R_i\propto
-              1+\zeta|Z_i|^{1/3},
-            </displaymath> where <inlinemath>Z_i</inlinemath> is the atomic
-            number of the <inlinemath>i</inlinemath> th species, <inlinemath>\zeta</inlinemath> is
-            stored in <attref_ns>rmtapm</attref_ns>(1). The distance between
-            the muffin-tin speheres is determined by the value of <attref_ns>rmtapm</attref_ns>(2): When <attref_ns>rmtapm</attref_ns>
-            (2)=1, the closest muffin-tin spheres will touch each other. </xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
+     
       <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth" type="fortrandouble" default="0.001d0">
         <xs:annotation>
           <xs:documentation>Width of the smooth approximation to the Dirac delta function (must be
