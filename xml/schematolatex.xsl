@@ -25,6 +25,7 @@
 \bibliographystyle {plain}
 \errorstopmode
 \usepackage{hyperref}
+\usepackage{color}
 \hypersetup{colorlinks=false}
 \begin{document}
 \newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
@@ -49,7 +50,10 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\lapack}{LAPACK }
 \newcommand{\arpack}{ARPACK }
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
+\newcommand{\attref}[1]{{\tt \color{green} #1} (\ref{att#1})}
+\newcommand{\elementref}[1]{{\tt \color{blue}  #1} (\ref{#1})}
 \newpage
+\definecolor{green}{rgb}{0,0.5,0}
 \section*{About this Document}
     </xsl:text>
   <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation"/>
@@ -103,12 +107,22 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  <xsl:template match="pre">
   <xsl:text> {\tt </xsl:text>
   <xsl:value-of select="normalize-space(.)"/>
-  <xsl:text> }</xsl:text>
+  <xsl:text> } </xsl:text>
+  </xsl:template>
+  <xsl:template match="pre_ns">
+   <xsl:text> {\tt </xsl:text>
+   <xsl:value-of select="normalize-space(.)"/>
+   <xsl:text>}</xsl:text>
  </xsl:template>
  <xsl:template match="it">
   <xsl:text> {\it </xsl:text>
   <xsl:value-of select="normalize-space(.)"/>
   <xsl:text> }</xsl:text>
+ </xsl:template>
+ <xsl:template match="it_ns">
+  <xsl:text> {\it </xsl:text>
+  <xsl:value-of select="normalize-space(.)"/>
+  <xsl:text>}</xsl:text>
  </xsl:template>
  <xsl:template match="bf">
   <xsl:text> {\bf</xsl:text>
@@ -125,12 +139,29 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:apply-templates select="./*|text()"/>
  </xsl:template>
  <xsl:template match="xs:documentation">
-  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|it|p|exciting|a|list|li|attref"/>
+  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"/>
  </xsl:template>
- <xsl:template match="attref">
+ <xsl:template match="elementref">
+  <xsl:text> \elementref{</xsl:text><xsl:value-of select="."/> <xsl:text>} </xsl:text>
+ </xsl:template>
+ <xsl:template match="elementref_ns">
+  <xsl:text>  \elementref{</xsl:text><xsl:value-of select="."/> <xsl:text>}</xsl:text>
+ </xsl:template>
+ 
+ <xsl:template match="filename">
   <xsl:text> </xsl:text>
   <xsl:value-of select="."/>
+  <xsl:text> </xsl:text>
  </xsl:template>
+ <xsl:template match="filename_ns">
+  <xsl:text> </xsl:text>
+  <xsl:value-of select="."/>
+  <xsl:text></xsl:text>
+ </xsl:template>
+ <xsl:template match="attref">
+  <xsl:text> \attref{</xsl:text>
+  <xsl:value-of select="."/>
+  <xsl:text>} </xsl:text> </xsl:template>
  <xsl:template match="list">
   <xsl:text>
   \begin{itemize}
@@ -152,7 +183,7 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 
   <xsl:text> (\url{</xsl:text>
   <xsl:value-of select="@href"/>
-  <xsl:text>})</xsl:text>
+  <xsl:text>}) </xsl:text>
 
  </xsl:template>
  <xsl:template match="exciting">
@@ -164,10 +195,10 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 
   <xsl:text>\</xsl:text>
   <xsl:value-of select="str:padding(0,'sub')"/>
-  <xsl:text>section{ Element: </xsl:text>
+  <xsl:text>section{ Element: {\color{blue}</xsl:text>
   <xsl:text/>
   <xsl:value-of select="$myelement/@name "/>
-  <xsl:text>}
+  <xsl:text>}}
      \label{</xsl:text>
   <xsl:value-of select="$myelement/@name"/>
   <xsl:text>}
@@ -206,9 +237,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  <xsl:template name="attributetolatex">
   <xsl:param name="myattribute"/>
   <xsl:param name="level"/>
-  <xsl:text>\subsection{Attribute: </xsl:text>
+  <xsl:text>\subsection{Attribute: {\color{green}</xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
-  <xsl:text>}  
+  <xsl:text>}}  \label{att</xsl:text> <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/><xsl:text>}
     </xsl:text>
   <xsl:apply-templates select="$myattribute/xs:annotation/xs:documentation"/>
   <xsl:call-template name="TypeToDoc">
@@ -229,9 +260,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     <xsl:text> \bf{Type:} &amp; </xsl:text>
     <xsl:value-of select="str:replace(($contentnode/@type),'xs:','')"/>
     <xsl:if test="not(contains($contentnode/@type,'xs:'))">
-     <xsl:text> See:\ref{</xsl:text>
+     <xsl:text> (\ref{</xsl:text>
      <xsl:value-of select="$contentnode/@type"/>
-     <xsl:text>} 
+     <xsl:text>}) 
 </xsl:text>
     </xsl:if>
     <xsl:text>\\</xsl:text>
@@ -280,9 +311,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
      </xsl:if>
 
      <xsl:text>
-See: \ref{</xsl:text>
+ (\ref{</xsl:text>
      <xsl:value-of select="./@name|@ref"/>
-     <xsl:text>}</xsl:text>
+     <xsl:text>})</xsl:text>
      <xsl:text>  \\
 </xsl:text>
     </xsl:for-each>

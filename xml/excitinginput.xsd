@@ -650,7 +650,7 @@ xs.xsd
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> If "<pre_ns>true</pre_ns>", a calculation for an isolated molecule is
+          <xs:documentation> If <pre_ns>"true"</pre_ns>, a calculation for an isolated molecule is
             performed. In this case, the atomic positions specified by the
               <elementref>atom</elementref> subelement of the <elementref>species</elementref>
             element must be given in cartesian coordinates. The lattice vectors are set up
@@ -701,7 +701,7 @@ xs.xsd
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="primcell" type="xs:boolean" default="false">
         <xs:annotation>
-          <xs:documentation> If "<pre_ns>true</pre_ns>", the primitive unit cell is determined
+          <xs:documentation> If <pre_ns>"true"</pre_ns>, the primitive unit cell is determined
             automatically from the conventional cell defined by the basis vectors given by the
               <elementref>basevect</elementref> elements. The primitive unit cell is determined by
             searching for lattice vectors among all vectors connecting atomic sites and choosing the
