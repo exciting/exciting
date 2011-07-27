@@ -1,42 +1,70 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:math="http://exslt.org/math">
 <xsl:output method="text" encoding="UTF-8"/>
 
 <xsl:template match="/">
+   <xsl:if test="/thermodynamicproperties/vibrationalenergy">
+      <xsl:for-each select="/thermodynamicproperties/vibrationalenergy">
+         <xsl:document href="vibrationalenergy.agr" method="text">
+            <xsl:variable name="C"><xsl:value-of select="math:power(10,3)"/></xsl:variable>
+            <xsl:call-template name="insert">
+               <xsl:with-param name="C"><xsl:value-of select="$C"/></xsl:with-param>
+               <xsl:with-param name="y_unit"><xsl:value-of select="' [mHa]'"/></xsl:with-param>
+               <xsl:with-param name="x_unit"><xsl:value-of select="' [K]'"/></xsl:with-param>
+            </xsl:call-template>
+         </xsl:document>
+      </xsl:for-each>
+   </xsl:if>
 
-   <xsl:for-each select="/thermodynamicproperties/*[position()!=1]">
-      <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'"/>
-      <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
-      <xsl:variable name="filename"><xsl:value-of select="translate(./mapdef/function1/@name,' ','_')"/><xsl:text>.agr</xsl:text></xsl:variable>
-      <xsl:variable name="x_unit" select="translate(translate(./mapdef/variable1/@unit,'Hartree','Ha'),'Kelvin','K')"/>
-      <xsl:variable name="y_unit" select="translate(translate(./mapdef/function1/@unit,'Hartree','Ha'),'Kelvin','K')"/>
-      <xsl:variable name="xaxis_label">
-         <xsl:call-template name="caseUp">
-            <xsl:with-param name="data" select="./mapdef/variable1/@name"/>
-         </xsl:call-template>
-      </xsl:variable>
-      <xsl:variable name="yaxis_label">
-         <xsl:call-template name="caseUp">
-            <xsl:with-param name="data" select="./mapdef/function1/@name"/>
-         </xsl:call-template>
-      </xsl:variable>
+   <xsl:if test="/thermodynamicproperties/vibrationalfreeenergy">
+      <xsl:for-each select="/thermodynamicproperties/vibrationalfreeenergy">
+         <xsl:document href="vibrationalfreeenergy.agr" method="text">
+           <xsl:variable name="C"><xsl:value-of select="math:power(10,3)"/></xsl:variable>
+           <xsl:call-template name="insert">
+              <xsl:with-param name="C"><xsl:value-of select="$C"/></xsl:with-param>
+              <xsl:with-param name="y_unit"><xsl:value-of select="' [mHa]'"/></xsl:with-param>
+              <xsl:with-param name="x_unit"><xsl:value-of select="' [K]'"/></xsl:with-param>
+           </xsl:call-template>
+         </xsl:document>
+      </xsl:for-each>
+   </xsl:if>
 
-      <xsl:document href="{$filename}" method="text">
-         <xsl:call-template name="insert">
-            <xsl:with-param name="xaxis_label"><xsl:value-of select="concat($xaxis_label,' [',$x_unit,']')"/></xsl:with-param>
-            <xsl:with-param name="yaxis_label"><xsl:value-of select="concat($yaxis_label,' [',$y_unit,']')"/></xsl:with-param>         
-         </xsl:call-template>
-      </xsl:document>
-   </xsl:for-each>
+   <xsl:if test="/thermodynamicproperties/vibrationalentropy">
+      <xsl:for-each select="/thermodynamicproperties/vibrationalentropy">
+         <xsl:document href="vibrationalentropy.agr" method="text">
+            <xsl:variable name="C"><xsl:value-of select="math:power(10,6)"/></xsl:variable>
+            <xsl:call-template name="insert">
+               <xsl:with-param name="C"><xsl:value-of select="$C"/></xsl:with-param>
+               <xsl:with-param name="y_unit"><xsl:value-of select="' [\f{Symbol}m\f{}Ha/K]'"/></xsl:with-param>
+               <xsl:with-param name="x_unit"><xsl:value-of select="' [K]'"/></xsl:with-param>
+            </xsl:call-template>
+         </xsl:document>
+      </xsl:for-each>
+   </xsl:if>
 
+   <xsl:if test="/thermodynamicproperties/heatcapacity">
+      <xsl:for-each select="/thermodynamicproperties/heatcapacity">
+         <xsl:document href="heatcapacity.agr" method="text">
+            <xsl:variable name="C"><xsl:value-of select="math:power(10,6)"/></xsl:variable>
+            <xsl:call-template name="insert">
+               <xsl:with-param name="C"><xsl:value-of select="$C"/></xsl:with-param>
+               <xsl:with-param name="y_unit"><xsl:value-of select="' [\f{Symbol}m\f{}Ha/K]'"/></xsl:with-param>
+               <xsl:with-param name="x_unit"><xsl:value-of select="' [K]'"/></xsl:with-param>
+            </xsl:call-template>
+         </xsl:document>
+      </xsl:for-each>
+   </xsl:if>
 </xsl:template>
 
-
 <xsl:template name="insert">
-   <xsl:param name="xaxis_label"/>
-   <xsl:param name="yaxis_label"/>
+   <xsl:param name="C"/>
+   <xsl:param name="y_unit"/>
+   <xsl:param name="x_unit"/>
+
+   <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'"/>
+   <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
 
    <xsl:variable name="min_x_data">
       <xsl:for-each select="./map">
@@ -60,7 +88,7 @@
       <xsl:for-each select="./map">
          <xsl:sort select="@function1" data-type="number" order="ascending"/>
          <xsl:if test="position()=1">
-            <xsl:value-of select="@function1"/>
+            <xsl:value-of select="@function1 * $C"/>
          </xsl:if>
       </xsl:for-each>
     </xsl:variable>
@@ -69,7 +97,7 @@
        <xsl:for-each select="./map">
           <xsl:sort select="@function1" data-type="number" order="descending"/>
           <xsl:if test="position()=1">
-             <xsl:value-of select="@function1"/>
+             <xsl:value-of select="@function1 * $C"/>
           </xsl:if>
        </xsl:for-each>
     </xsl:variable>
@@ -187,8 +215,8 @@
 @map color 0 to (255, 255, 255), "white"
 @map color 1 to (0, 0, 0), "black"
 @map color 2 to (255, 0, 0), "red"
-@map color 3 to (0, 255, 0), "green"
-@map color 4 to (0, 0, 255), "blue"
+@map color 3 to (0, 0, 255), "blue"
+@map color 4 to (0, 255, 0), "green"
 @map color 5 to (255, 255, 0), "yellow"
 @map color 6 to (188, 143, 143), "brown"
 @map color 7 to (100, 100, 100), "grey"
@@ -203,68 +231,21 @@
 @reference date 0
 @date wrap off
 @date wrap year 1950
-@default linewidth 2.0
+@default linewidth 2.5
 @default linestyle 1
 @default color 1
 @default pattern 1
-@default font 4
+@default font 0
 @default char size 1.000000
 @default symbol size 1.000000
-@default sformat "%.12g"
+@default sformat "%.15g"
 @background color 0
 @page background fill on
-@timestamp off
-@timestamp 0.03, 0.03
-@timestamp color 1
-@timestamp rot 0
-@timestamp font 4
-@timestamp char size 1.000000
-@timestamp def "Mon Oct  4 11:02:34 2010"
-@r0 off
-@link r0 to g0
-@r0 type above
-@r0 linestyle 1
-@r0 linewidth 1.0
-@r0 color 1
-@r0 line 0, 0, 0, 0
-@r1 off
-@link r1 to g0
-@r1 type above
-@r1 linestyle 1
-@r1 linewidth 1.0
-@r1 color 1
-@r1 line 0, 0, 0, 0
-@r2 off
-@link r2 to g0
-@r2 type above
-@r2 linestyle 1
-@r2 linewidth 1.0
-@r2 color 1
-@r2 line 0, 0, 0, 0
-@r3 off
-@link r3 to g0
-@r3 type above
-@r3 linestyle 1
-@r3 linewidth 1.0
-@r3 color 1
-@r3 line 0, 0, 0, 0
-@r4 off
-@link r4 to g0
-@r4 type above
-@r4 linestyle 1
-@r4 linewidth 1.0
-@r4 color 1
-@r4 line 0, 0, 0, 0
 @g0 on
 @g0 hidden false
 @g0 type XY
 @g0 stacked false
 @g0 bar hgap 0.000000
-@g0 fixedpoint off
-@g0 fixedpoint type 0
-@g0 fixedpoint xy 0.000000, 0.000000
-@g0 fixedpoint format general general
-@g0 fixedpoint prec 6, 6
 @with g0
 @    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$min_yaxis"/><xsl:text>, </xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$max_yaxis"/><xsl:text>
 @    stack world 0, 0, 0, 0
@@ -272,7 +253,7 @@
 @    view 0.230000, 0.150000, 1.200000, 0.850000
 @    title ""
 @    title font 4
-@    title size 1.500000
+@    title size 1.800000
 @    title color 1
 @    subtitle ""
 @    subtitle font 4
@@ -289,32 +270,29 @@
 @    xaxis  bar on
 @    xaxis  bar color 1
 @    xaxis  bar linestyle 1
-@    xaxis  bar linewidth 2.0
-@    xaxis  label "</xsl:text><xsl:value-of select="$xaxis_label"/><xsl:text>"
+@    xaxis  bar linewidth 2.5
+@    xaxis  label "</xsl:text><xsl:value-of select="concat(translate(substring(./mapdef/variable1/@name,1,1),$lowercase,$uppercase),substring(./mapdef/variable1/@name,2,string-length(./mapdef/variable1/@name)))"/> <xsl:value-of select="$x_unit"/><xsl:text>"
 @    xaxis  label layout para
 @    xaxis  label place auto
-@    xaxis  label char size 1.500000
+@    xaxis  label char size 1.800000
 @    xaxis  label font 4
 @    xaxis  label color 1
 @    xaxis  label place normal
 @    xaxis  tick on
-@    xaxis  tick minor ticks 1
 @    xaxis  tick default 6
 @    xaxis  tick place rounded true
 @    xaxis  tick in
-@    xaxis  tick major size 1.000000
+@    xaxis  tick major size 0.650000
 @    xaxis  tick major color 1
-@    xaxis  tick major linewidth 2.0
+@    xaxis  tick major linewidth 2.5
 @    xaxis  tick major linestyle 1
 @    xaxis  tick major grid off
 @    xaxis  tick minor color 1
-@    xaxis  tick minor linewidth 2.0
+@    xaxis  tick minor linewidth 2.5
 @    xaxis  tick minor linestyle 1
 @    xaxis  tick minor grid off
-@    xaxis  tick minor size 0.500000
+@    xaxis  tick minor size 0.400000
 @    xaxis  ticklabel on
-@    xaxis  ticklabel format general
-@    xaxis  ticklabel prec 5
 @    xaxis  ticklabel formula ""
 @    xaxis  ticklabel append ""
 @    xaxis  ticklabel prepend ""
@@ -328,7 +306,7 @@
 @    xaxis  ticklabel start 0.000000
 @    xaxis  ticklabel stop type auto
 @    xaxis  ticklabel stop 0.000000
-@    xaxis  ticklabel char size 1.250000
+@    xaxis  ticklabel char size 1.600000
 @    xaxis  ticklabel font 4
 @    xaxis  ticklabel color 1
 @    xaxis  tick place both
@@ -339,31 +317,29 @@
 @    yaxis  bar on
 @    yaxis  bar color 1
 @    yaxis  bar linestyle 1
-@    yaxis  bar linewidth 2.0
-@    yaxis  label "</xsl:text><xsl:value-of select="$yaxis_label"/><xsl:text>"
+@    yaxis  bar linewidth 3.0
+@    yaxis  label "</xsl:text><xsl:value-of select="concat(translate(substring(./mapdef/function1/@name,1,1),$lowercase,$uppercase),substring(./mapdef/function1/@name,2,string-length(./mapdef/function1/@name)))"/> <xsl:value-of select="$y_unit"/><xsl:text>"
 @    yaxis  label layout para
 @    yaxis  label place auto
-@    yaxis  label char size 1.500000
+@    yaxis  label char size 1.800000
 @    yaxis  label font 4
 @    yaxis  label color 1
 @    yaxis  label place normal
 @    yaxis  tick on
-@    yaxis  tick minor ticks 1
 @    yaxis  tick default 6
 @    yaxis  tick place rounded true
 @    yaxis  tick in
-@    yaxis  tick major size 1.000000
+@    yaxis  tick major size 0.65000000
 @    yaxis  tick major color 1
-@    yaxis  tick major linewidth 2.0
+@    yaxis  tick major linewidth 2.5
 @    yaxis  tick major linestyle 1
 @    yaxis  tick major grid off
 @    yaxis  tick minor color 1
-@    yaxis  tick minor linewidth 2.0
+@    yaxis  tick minor linewidth 2.5
 @    yaxis  tick minor linestyle 1
 @    yaxis  tick minor grid off
-@    yaxis  tick minor size 0.500000
+@    yaxis  tick minor size 0.400000
 @    yaxis  ticklabel on
-@    yaxis  ticklabel format general
 @    yaxis  ticklabel formula ""
 @    yaxis  ticklabel append ""
 @    yaxis  ticklabel prepend ""
@@ -377,58 +353,40 @@
 @    yaxis  ticklabel start 0.000000
 @    yaxis  ticklabel stop type auto
 @    yaxis  ticklabel stop 0.000000
-@    yaxis  ticklabel char size 1.250000
+@    yaxis  ticklabel char size 1.600000
 @    yaxis  ticklabel font 4
 @    yaxis  ticklabel color 1
 @    yaxis  tick place both
 @    yaxis  tick spec type none
-@    altxaxis  off
-@    altyaxis  off
-@s0 line color 2
-@s0 symbol 0
-@s0 symbol color 2
+@    s0 line color 2
+</xsl:text>
+   <xsl:if test="count(./map) &lt;= 20">
+<xsl:text>
+@    s0 symbol 3
+@    s0 symbol size 1.000000
+@    s0 symbol color 1
+@    s0 symbol pattern 1
+@    s0 symbol fill color 1
+@    s0 symbol fill pattern 0
+@    s0 symbol linewidth 2.5
+@    s0 symbol linestyle 1
+@    s0 symbol char 65
+@    s0 symbol char font 0
+@    s0 symbol skip 0
+</xsl:text>
+   </xsl:if>
 
+<xsl:text>
 @target G0.S0
 @type xy
 </xsl:text>
    <xsl:for-each select ="./map">
       <xsl:value-of select="@variable1"/><xsl:text> </xsl:text>
-      <xsl:value-of select="@function1"/><xsl:text>
+      <xsl:value-of select="@function1 * $C"/><xsl:text>
 </xsl:text>
    </xsl:for-each>
 <xsl:text>&amp;</xsl:text>
-
 </xsl:template>
-
-<xsl:template name="caseDown">
-    <xsl:param name="data"/>
-    <xsl:if test="$data">
-       <xsl:choose>
-        <xsl:when test="starts-with($data,' ')"> 
-            <xsl:text> </xsl:text> 
-            <xsl:call-template name="caseUp">
-               <xsl:with-param name="data" select="substring($data,2)"/>
-            </xsl:call-template>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:value-of select="translate(substring($data,1,1),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
-            <xsl:call-template name="caseDown">
-               <xsl:with-param name="data" select="substring($data,2)"/>
-            </xsl:call-template>
-        </xsl:otherwise>
-       </xsl:choose>
-    </xsl:if>  
-</xsl:template>
-<xsl:template name="caseUp">
-   <xsl:param name="data"/>
-   <xsl:if test="$data">
-        <xsl:value-of select="translate(substring($data,1,1),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
-        <xsl:call-template name="caseDown"> 
-            <xsl:with-param name="data" select="substring($data,2)"/>
-        </xsl:call-template>
-   </xsl:if>
-</xsl:template>
-
 
 </xsl:stylesheet>
 

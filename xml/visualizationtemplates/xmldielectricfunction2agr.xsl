@@ -1,39 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- 
-
-! Copyright (C) 2009-2010 Stephan Sagmeister, Zohreh Basirat and Claudia Ambrosch-Draxl.
-
--->
 <xsl:stylesheet version="1.0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="text" encoding="UTF-8"/>
 
 <xsl:template match="/">
-    <xsl:document href="{$filename}_Re.agr" method="text">
-       <xsl:call-template name="insert">
+   <xsl:document href="dielectricfunction_Re.agr" method="text">
+      <xsl:call-template name="insert">
          <xsl:with-param name="function"><xsl:value-of select="'function1'"/></xsl:with-param>
-         <xsl:with-param name="ylabel"><xsl:text>Re \xe\f{}\sM</xsl:text></xsl:with-param>
+         <xsl:with-param name="yaxis"><xsl:value-of select="'Re \xe\f{}\sM'"/></xsl:with-param>
+      </xsl:call-template>
+    </xsl:document>
+
+    <xsl:document href="dielectricfunction_Im.agr" method="text">
+       <xsl:call-template name="insert">
+         <xsl:with-param name="function"><xsl:value-of select="'function2'"/></xsl:with-param>
+         <xsl:with-param name="yaxis"><xsl:value-of select="'Im \xe\f{}\sM'"/></xsl:with-param>
        </xsl:call-template>
     </xsl:document>
 
-   <xsl:document href="{$filename}_Im.agr" method="text">
+   <xsl:document href="dielectricfunction_ReKK.agr" method="text">
       <xsl:call-template name="insert">
-         <xsl:with-param name="function"><xsl:value-of select="'function2'"/></xsl:with-param>
-         <xsl:with-param name="ylabel"><xsl:text>Im \xe\f{}\sM</xsl:text></xsl:with-param>
+         <xsl:with-param name="function"><xsl:value-of select="'function1'"/></xsl:with-param>
+         <xsl:with-param name="yaxis"><xsl:value-of select="'Re \xe\f{}\sM'"/></xsl:with-param>
+         <xsl:with-param name="KK"><xsl:value-of select="'function3'"/></xsl:with-param>
       </xsl:call-template>
-    </xsl:document>
-
-   <xsl:document href="{$filename}_ReKK.agr" method="text">
-      <xsl:call-template name="insert">
-         <xsl:with-param name="function"><xsl:value-of select="'function3'"/></xsl:with-param>
-         <xsl:with-param name="ylabel"><xsl:text>Re\sKK\N \xe\f{}\sM</xsl:text></xsl:with-param>
-      </xsl:call-template>
-    </xsl:document>
+   </xsl:document>
 </xsl:template>
 
 <xsl:template name="insert">
    <xsl:param name="function"/>
-   <xsl:param name="ylabel"/>
+   <xsl:param name="yaxis"/>
+   <xsl:param name="KK"/>
 
    <xsl:variable name="min_x_data">
       <xsl:for-each select="/dielectric/map">
@@ -184,8 +181,8 @@
 @map color 0 to (255, 255, 255), "white"
 @map color 1 to (0, 0, 0), "black"
 @map color 2 to (255, 0, 0), "red"
-@map color 3 to (0, 255, 0), "green"
-@map color 4 to (0, 0, 255), "blue"
+@map color 3 to (0, 0, 255), "blue"
+@map color 4 to (0, 255, 0), "green"
 @map color 5 to (255, 255, 0), "yellow"
 @map color 6 to (188, 143, 143), "brown"
 @map color 7 to (100, 100, 100), "grey"
@@ -200,68 +197,21 @@
 @reference date 0
 @date wrap off
 @date wrap year 1950
-@default linewidth 2.0
+@default linewidth 2.5
 @default linestyle 1
 @default color 1
 @default pattern 1
-@default font 4
+@default font 0
 @default char size 1.000000
 @default symbol size 1.000000
-@default sformat "%.12g"
+@default sformat "%.15g"
 @background color 0
 @page background fill on
-@timestamp off
-@timestamp 0.03, 0.03
-@timestamp color 1
-@timestamp rot 0
-@timestamp font 4
-@timestamp char size 1.000000
-@timestamp def "Mon Oct  4 11:02:34 2010"
-@r0 off
-@link r0 to g0
-@r0 type above
-@r0 linestyle 1
-@r0 linewidth 1.0
-@r0 color 1
-@r0 line 0, 0, 0, 0
-@r1 off
-@link r1 to g0
-@r1 type above
-@r1 linestyle 1
-@r1 linewidth 1.0
-@r1 color 1
-@r1 line 0, 0, 0, 0
-@r2 off
-@link r2 to g0
-@r2 type above
-@r2 linestyle 1
-@r2 linewidth 1.0
-@r2 color 1
-@r2 line 0, 0, 0, 0
-@r3 off
-@link r3 to g0
-@r3 type above
-@r3 linestyle 1
-@r3 linewidth 1.0
-@r3 color 1
-@r3 line 0, 0, 0, 0
-@r4 off
-@link r4 to g0
-@r4 type above
-@r4 linestyle 1
-@r4 linewidth 1.0
-@r4 color 1
-@r4 line 0, 0, 0, 0
 @g0 on
 @g0 hidden false
 @g0 type XY
 @g0 stacked false
 @g0 bar hgap 0.000000
-@g0 fixedpoint off
-@g0 fixedpoint type 0
-@g0 fixedpoint xy 0.000000, 0.000000
-@g0 fixedpoint format general general
-@g0 fixedpoint prec 6, 6
 @with g0
 @    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$min_yaxis"/><xsl:text>, </xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$max_yaxis"/><xsl:text>
 @    stack world 0, 0, 0, 0
@@ -269,7 +219,7 @@
 @    view 0.230000, 0.150000, 1.200000, 0.850000
 @    title "Macroscopic dielectric function"
 @    title font 4
-@    title size 1.500000
+@    title size 1.800000
 @    title color 1
 @    subtitle ""
 @    subtitle font 4
@@ -286,32 +236,29 @@
 @    xaxis  bar on
 @    xaxis  bar color 1
 @    xaxis  bar linestyle 1
-@    xaxis  bar linewidth 2.0
+@    xaxis  bar linewidth 3.0
 @    xaxis  label "Energy [eV]"
 @    xaxis  label layout para
 @    xaxis  label place auto
-@    xaxis  label char size 1.500000
+@    xaxis  label char size 1.800000
 @    xaxis  label font 4
 @    xaxis  label color 1
 @    xaxis  label place normal
 @    xaxis  tick on
-@    xaxis  tick minor ticks 1
 @    xaxis  tick default 6
 @    xaxis  tick place rounded true
 @    xaxis  tick in
-@    xaxis  tick major size 1.000000
+@    xaxis  tick major size 0.650000
 @    xaxis  tick major color 1
-@    xaxis  tick major linewidth 2.0
+@    xaxis  tick major linewidth 2.5
 @    xaxis  tick major linestyle 1
 @    xaxis  tick major grid off
 @    xaxis  tick minor color 1
-@    xaxis  tick minor linewidth 2.0
+@    xaxis  tick minor linewidth 2.5
 @    xaxis  tick minor linestyle 1
 @    xaxis  tick minor grid off
-@    xaxis  tick minor size 0.500000
+@    xaxis  tick minor size 0.400000
 @    xaxis  ticklabel on
-@    xaxis  ticklabel format general
-@    xaxis  ticklabel prec 5
 @    xaxis  ticklabel formula ""
 @    xaxis  ticklabel append ""
 @    xaxis  ticklabel prepend ""
@@ -325,7 +272,7 @@
 @    xaxis  ticklabel start 0.000000
 @    xaxis  ticklabel stop type auto
 @    xaxis  ticklabel stop 0.000000
-@    xaxis  ticklabel char size 1.250000
+@    xaxis  ticklabel char size 1.600000
 @    xaxis  ticklabel font 4
 @    xaxis  ticklabel color 1
 @    xaxis  tick place both
@@ -336,31 +283,29 @@
 @    yaxis  bar on
 @    yaxis  bar color 1
 @    yaxis  bar linestyle 1
-@    yaxis  bar linewidth 2.0
-@    yaxis  label "</xsl:text><xsl:value-of select="$ylabel"/><xsl:text>"
+@    yaxis  bar linewidth 3.0
+@    yaxis  label "</xsl:text><xsl:value-of select="$yaxis"/><xsl:text>"
 @    yaxis  label layout para
 @    yaxis  label place auto
-@    yaxis  label char size 1.500000
+@    yaxis  label char size 1.800000
 @    yaxis  label font 4
 @    yaxis  label color 1
 @    yaxis  label place normal
 @    yaxis  tick on
-@    yaxis  tick minor ticks 1
 @    yaxis  tick default 6
 @    yaxis  tick place rounded true
 @    yaxis  tick in
-@    yaxis  tick major size 1.000000
+@    yaxis  tick major size 0.650000
 @    yaxis  tick major color 1
-@    yaxis  tick major linewidth 2.0
+@    yaxis  tick major linewidth 2.5
 @    yaxis  tick major linestyle 1
 @    yaxis  tick major grid off
 @    yaxis  tick minor color 1
-@    yaxis  tick minor linewidth 2.0
+@    yaxis  tick minor linewidth 2.5
 @    yaxis  tick minor linestyle 1
 @    yaxis  tick minor grid off
-@    yaxis  tick minor size 0.500000
+@    yaxis  tick minor size 0.400000
 @    yaxis  ticklabel on
-@    yaxis  ticklabel format general
 @    yaxis  ticklabel formula ""
 @    yaxis  ticklabel append ""
 @    yaxis  ticklabel prepend ""
@@ -374,15 +319,13 @@
 @    yaxis  ticklabel start 0.000000
 @    yaxis  ticklabel stop type auto
 @    yaxis  ticklabel stop 0.000000
-@    yaxis  ticklabel char size 1.250000
+@    yaxis  ticklabel char size 1.600000
 @    yaxis  ticklabel font 4
 @    yaxis  ticklabel color 1
 @    yaxis  tick place both
 @    yaxis  tick spec type none
-@    altxaxis  off
-@    altyaxis  off
-@s0 line color 2
-
+@    s0 line color 2
+@    s1 line color 3
 @target G0.S0
 @type xy
 </xsl:text>
@@ -392,6 +335,44 @@
 </xsl:text>
    </xsl:for-each>
 <xsl:text>&amp;</xsl:text>
+
+<xsl:if test="$KK">
+<xsl:text>
+@    legend on
+@    legend loctype view
+@    legend 0.683,0.83
+@    legend box color 1
+@    legend box pattern 1
+@    legend box linewidth 2.0
+@    legend box linestyle 1
+@    legend box fill color 0
+@    legend box fill pattern 1
+@    legend font 4
+@    legend char size 1.2500
+@    legend color 1
+@    legend length 4
+@    legend vgap 1
+@    legend hgap 1
+@    legend invert false
+@    frame type 0
+@    frame linestyle 0
+@    frame linewidth 1.0
+@    frame color 1
+@    frame pattern 1
+@    frame background color 0
+@    frame background pattern 0
+@    s0 legend "direct calculation"
+@    s1 legend "from KK tarnsform of Im \xe\f{}\sM"
+@target G0.S1
+@type xy
+</xsl:text>
+      <xsl:for-each select = "/dielectric/map">
+         <xsl:value-of select="@variable1"/><xsl:text> </xsl:text>
+         <xsl:value-of select="@*[name()=$KK]"/><xsl:text>
+</xsl:text>
+      </xsl:for-each>
+<xsl:text>&amp;</xsl:text>
+</xsl:if>
 
 </xsl:template>
 </xsl:stylesheet>

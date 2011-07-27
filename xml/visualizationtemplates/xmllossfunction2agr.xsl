@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- 
-
-! Copyright (C) 2009-2010 Stephan Sagmeister, Zohreh Basirat and Claudia Ambrosch-Draxl.
-
--->
 <xsl:stylesheet version="1.0"
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="text" encoding="UTF-8"/>
 
 <xsl:template match="/">
-   <xsl:document href="{$filename}_Loss.agr" method="text">
+   <xsl:document href="lossfunction_Loss.agr" method="text">
       <xsl:call-template name="insert">
          <xsl:with-param name="function"><xsl:value-of select="'function1'"/></xsl:with-param>
-         <xsl:with-param name="ylabel"><xsl:text>Loss</xsl:text></xsl:with-param>
+         <xsl:with-param name="y_label"><xsl:value-of select="'Loss function'"/></xsl:with-param>
+         <xsl:with-param name="x_label"><xsl:value-of select="'Energy [eV]'"/></xsl:with-param>
+         <xsl:with-param name="C"><xsl:value-of select="1"/></xsl:with-param>
       </xsl:call-template>
-    </xsl:document>
+   </xsl:document>
 
-    <xsl:document href="{$filename}_DynSfac.agr" method="text">
-       <xsl:call-template name="insert">
-         <xsl:with-param name="function"><xsl:value-of select="'function2'"/></xsl:with-param>
-         <xsl:with-param name="ylabel"><xsl:text>Dyn. struct. fact.</xsl:text></xsl:with-param>
-       </xsl:call-template>
-    </xsl:document>
+   <xsl:document href="lossfunction_DynSfac.agr" method="text">
+      <xsl:call-template name="insert">
+        <xsl:with-param name="function"><xsl:value-of select="'function2'"/></xsl:with-param>
+        <xsl:with-param name="y_label"><xsl:value-of select="'Dynamical structure factor [eV\S-1\N]'"/></xsl:with-param>
+        <xsl:with-param name="x_label"><xsl:value-of select="'Energy [eV]'"/></xsl:with-param>
+        <xsl:with-param name="C"><xsl:value-of select="1"/></xsl:with-param>
+      </xsl:call-template>
+   </xsl:document>
 </xsl:template>
 
 <xsl:template name="insert">
    <xsl:param name="function"/>
-   <xsl:param name="ylabel"/>
-
+   <xsl:param name="y_label"/>
+   <xsl:param name="x_label"/>
+   <xsl:param name="C"/>
+   
    <xsl:variable name="min_x_data">
       <xsl:for-each select="/loss/map">
          <xsl:sort select="@variable1" data-type="number" order="ascending"/>
@@ -177,8 +178,8 @@
 @map color 0 to (255, 255, 255), "white"
 @map color 1 to (0, 0, 0), "black"
 @map color 2 to (255, 0, 0), "red"
-@map color 3 to (0, 255, 0), "green"
-@map color 4 to (0, 0, 255), "blue"
+@map color 3 to (0, 0, 255), "blue"
+@map color 4 to (0, 255, 0), "green"
 @map color 5 to (255, 255, 0), "yellow"
 @map color 6 to (188, 143, 143), "brown"
 @map color 7 to (100, 100, 100), "grey"
@@ -193,76 +194,29 @@
 @reference date 0
 @date wrap off
 @date wrap year 1950
-@default linewidth 2.0
+@default linewidth 2.5
 @default linestyle 1
 @default color 1
 @default pattern 1
-@default font 4
+@default font 0
 @default char size 1.000000
 @default symbol size 1.000000
-@default sformat "%.12g"
+@default sformat "%.15g"
 @background color 0
 @page background fill on
-@timestamp off
-@timestamp 0.03, 0.03
-@timestamp color 1
-@timestamp rot 0
-@timestamp font 4
-@timestamp char size 1.000000
-@timestamp def "Mon Oct  4 11:02:34 2010"
-@r0 off
-@link r0 to g0
-@r0 type above
-@r0 linestyle 1
-@r0 linewidth 1.0
-@r0 color 1
-@r0 line 0, 0, 0, 0
-@r1 off
-@link r1 to g0
-@r1 type above
-@r1 linestyle 1
-@r1 linewidth 1.0
-@r1 color 1
-@r1 line 0, 0, 0, 0
-@r2 off
-@link r2 to g0
-@r2 type above
-@r2 linestyle 1
-@r2 linewidth 1.0
-@r2 color 1
-@r2 line 0, 0, 0, 0
-@r3 off
-@link r3 to g0
-@r3 type above
-@r3 linestyle 1
-@r3 linewidth 1.0
-@r3 color 1
-@r3 line 0, 0, 0, 0
-@r4 off
-@link r4 to g0
-@r4 type above
-@r4 linestyle 1
-@r4 linewidth 1.0
-@r4 color 1
-@r4 line 0, 0, 0, 0
 @g0 on
 @g0 hidden false
 @g0 type XY
 @g0 stacked false
 @g0 bar hgap 0.000000
-@g0 fixedpoint off
-@g0 fixedpoint type 0
-@g0 fixedpoint xy 0.000000, 0.000000
-@g0 fixedpoint format general general
-@g0 fixedpoint prec 6, 6
 @with g0
-@    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$min_yaxis"/><xsl:text>,</xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>,</xsl:text><xsl:value-of select="$max_yaxis"/><xsl:text>
+@    world </xsl:text><xsl:value-of select="$min_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$min_yaxis"/><xsl:text>, </xsl:text><xsl:value-of select="$max_x_data"/><xsl:text>, </xsl:text><xsl:value-of select="$max_yaxis"/><xsl:text>
 @    stack world 0, 0, 0, 0
 @    znorm 1
-@    view 0.230000, 0.149510, 1.191176, 0.850000
+@    view 0.230000, 0.150000, 1.200000, 0.850000
 @    title ""
 @    title font 4
-@    title size 1.500000
+@    title size 1.800000
 @    title color 1
 @    subtitle ""
 @    subtitle font 4
@@ -279,33 +233,29 @@
 @    xaxis  bar on
 @    xaxis  bar color 1
 @    xaxis  bar linestyle 1
-@    xaxis  bar linewidth 2.0
+@    xaxis  bar linewidth 3.0
 @    xaxis  label layout para
 @    xaxis  label place auto
-@    xaxis  label char size 1.500000
+@    xaxis  label char size 1.800000
 @    xaxis  label font 4
 @    xaxis  label color 1
 @    xaxis  label place normal
-@    xaxis  label "Energy [eV]"
+@    xaxis  label "</xsl:text><xsl:value-of select="$x_label"/><xsl:text>"
 @    xaxis  tick on
-@    xaxis  tick major 10
-@    xaxis  tick minor ticks 1
 @    xaxis  tick default 6
 @    xaxis  tick place rounded true
 @    xaxis  tick in
-@    xaxis  tick major size 1.000000
+@    xaxis  tick major size 0.650000
 @    xaxis  tick major color 1
-@    xaxis  tick major linewidth 2.0
+@    xaxis  tick major linewidth 2.5
 @    xaxis  tick major linestyle 1
 @    xaxis  tick major grid off
 @    xaxis  tick minor color 1
-@    xaxis  tick minor linewidth 2.0
+@    xaxis  tick minor linewidth 2.5
 @    xaxis  tick minor linestyle 1
 @    xaxis  tick minor grid off
-@    xaxis  tick minor size 0.500000
+@    xaxis  tick minor size 0.400000
 @    xaxis  ticklabel on
-@    xaxis  ticklabel format general
-@    xaxis  ticklabel prec 5
 @    xaxis  ticklabel angle 0
 @    xaxis  ticklabel skip 0
 @    xaxis  ticklabel stagger 0
@@ -316,7 +266,7 @@
 @    xaxis  ticklabel start 0.000000
 @    xaxis  ticklabel stop type auto
 @    xaxis  ticklabel stop 0.000000
-@    xaxis  ticklabel char size 1.250000
+@    xaxis  ticklabel char size 1.600000
 @    xaxis  ticklabel font 4
 @    xaxis  ticklabel color 1
 @    xaxis  tick place both
@@ -327,33 +277,29 @@
 @    yaxis  bar on
 @    yaxis  bar color 1
 @    yaxis  bar linestyle 1
-@    yaxis  bar linewidth 2.0
+@    yaxis  bar linewidth 3.0
 @    yaxis  label layout para
 @    yaxis  label place auto
-@    yaxis  label char size 1.500000
+@    yaxis  label char size 1.800000
 @    yaxis  label font 4
 @    yaxis  label color 1
 @    yaxis  label place normal
-@    yaxis  label "</xsl:text><xsl:value-of select="$ylabel"/><xsl:text>"
+@    yaxis  label "</xsl:text><xsl:value-of select="$y_label"/><xsl:text>"
 @    yaxis  tick on
-#    yaxis  tick major 0.2
-@    yaxis  tick minor ticks 1
 @    yaxis  tick default 6
 @    yaxis  tick place rounded true
 @    yaxis  tick in
-@    yaxis  tick major size 1.000000
+@    yaxis  tick major size 0.650000
 @    yaxis  tick major color 1
-@    yaxis  tick major linewidth 2.0
+@    yaxis  tick major linewidth 2.5
 @    yaxis  tick major linestyle 1
 @    yaxis  tick major grid off
 @    yaxis  tick minor color 1
-@    yaxis  tick minor linewidth 2.0
+@    yaxis  tick minor linewidth 2.5
 @    yaxis  tick minor linestyle 1
 @    yaxis  tick minor grid off
-@    yaxis  tick minor size 0.500000
+@    yaxis  tick minor size 0.400000
 @    yaxis  ticklabel on
-@    yaxis  ticklabel format general
-@    yaxis  ticklabel prec 5
 @    yaxis  ticklabel angle 0
 @    yaxis  ticklabel skip 0
 @    yaxis  ticklabel stagger 0
@@ -364,26 +310,22 @@
 @    yaxis  ticklabel start 0.000000
 @    yaxis  ticklabel stop type auto
 @    yaxis  ticklabel stop 0.000000
-@    yaxis  ticklabel char size 1.250000
+@    yaxis  ticklabel char size 1.600000
 @    yaxis  ticklabel font 4
 @    yaxis  ticklabel color 1
 @    yaxis  tick place both
 @    yaxis  tick spec type none
-@    altxaxis  off
-@    altyaxis  off
 @s0 line color 2
 
 @target G0.S0
 @type xy
 </xsl:text>
-   <xsl:for-each select = "/loss/map">
+   <xsl:for-each select="/loss/map">
       <xsl:value-of select="@variable1"/><xsl:text> </xsl:text>
-      <xsl:value-of select="@*[name()=$function]"/><xsl:text>
+      <xsl:value-of select="@*[name()=$function] * $C"/><xsl:text>
 </xsl:text>
    </xsl:for-each>
 <xsl:text>&amp;</xsl:text>
 
 </xsl:template>
 </xsl:stylesheet>
-
-
