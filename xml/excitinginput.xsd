@@ -635,7 +635,7 @@ xs.xsd
               <inlinemath>Z_i</inlinemath> is the atomic number of the <inlinemath>i</inlinemath> th
             species, <inlinemath>\zeta</inlinemath> is stored in <attref>rmtapm</attref>(1). The
             distance between the muffin-tin speheres is determined by the value of
-              <attref>rmtapm</attref>(2): When <attref>rmtapm</attref> (2)=1, the closest muffin-tin
+              <attref>rmtapm</attref>(2): When <attref>rmtapm</attref>(2)=1, the closest muffin-tin
             spheres will touch each other. </xs:documentation>
         </xs:annotation>
       </xs:attribute>

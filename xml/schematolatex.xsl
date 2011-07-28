@@ -50,8 +50,8 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\lapack}{LAPACK }
 \newcommand{\arpack}{ARPACK }
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
-\newcommand{\attref}[1]{{\tt \color{green} #1} \nolinebreak (\ref{att#1})}
-\newcommand{\elementref}[1]{{\tt \color{blue}  #1} \nolinebreak (\ref{#1})}
+\newcommand{\attref}[1]{{\tt \hyperref[att#1]{\color{green} #1}}}
+\newcommand{\elementref}[1]{{\tt  \hyperref[#1]{\color{blue}  #1}}}
 \newpage
 \definecolor{green}{rgb}{0,0.5,0}
 \section*{About this Document}
