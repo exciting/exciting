@@ -26,7 +26,7 @@
 \errorstopmode
 \usepackage{hyperref}
 \usepackage{color}
-\hypersetup{colorlinks=false}
+\hypersetup{colorlinks=true}
 \begin{document}
 \newcommand{\exciting}{ {\usefont{T1}{lmtt}{b}{n} exciting} }
 \title{</xsl:text>
@@ -356,12 +356,12 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
    </xsl:when>
   </xsl:choose>
 
-  <xsl:text>\bf{XPath:}&amp; \verb|</xsl:text>
+  <xsl:text>\bf{XPath:}&amp; {\tt</xsl:text>
   <xsl:call-template name="genxpath">
    <xsl:with-param name="node" select="$contentnode"/>
    <xsl:with-param name="xpath" select="''"/>
   </xsl:call-template>
-  <xsl:text>| \\
+  <xsl:text>} \\
   
 
 \end{tabular*}
@@ -373,11 +373,17 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:param name="node"/>
   <xsl:variable name="current_name">
    <xsl:if test="$node/@name">
-    <xsl:text>/</xsl:text>
+    <xsl:text>/\hyperref[</xsl:text>
     <xsl:if test="name($node)='xs:attribute'">
-     <xsl:text>@</xsl:text>
+     <xsl:text>att</xsl:text>
     </xsl:if>
     <xsl:value-of select="$node/@name|$node/@ref"/>
+ <xsl:text>]{</xsl:text>
+   <xsl:if test="name($node)='xs:attribute'">
+    <xsl:text>@</xsl:text>
+   </xsl:if>
+   <xsl:value-of select="$node/@name|$node/@ref"/>
+   <xsl:text>}</xsl:text>
    </xsl:if>
    <xsl:value-of select="$xpath"/>
   </xsl:variable>
