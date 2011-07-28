@@ -50,8 +50,8 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \newcommand{\lapack}{LAPACK }
 \newcommand{\arpack}{ARPACK }
 \newcommand{\subsubsubsection}[1]{\paragraph{#1} \paragraph*{} }
-\newcommand{\attref}[1]{{\tt \color{green} #1} (\ref{att#1})}
-\newcommand{\elementref}[1]{{\tt \color{blue}  #1} (\ref{#1})}
+\newcommand{\attref}[1]{{\tt \color{green} #1} \nolinebreak (\ref{att#1})}
+\newcommand{\elementref}[1]{{\tt \color{blue}  #1} \nolinebreak (\ref{#1})}
 \newpage
 \definecolor{green}{rgb}{0,0.5,0}
 \section*{About this Document}
@@ -158,11 +158,18 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:value-of select="."/>
   <xsl:text>}</xsl:text>
  </xsl:template>
+<xsl:template name="attref">
+ <xsl:param name="att"/>
+  <xsl:text>\attref{</xsl:text>
+  <xsl:value-of select="$att"/>
+  <xsl:text>}</xsl:text>
+ </xsl:template>
+
 
  <xsl:template match="attref">
-  <xsl:text>\attref{</xsl:text>
-  <xsl:value-of select="."/>
-  <xsl:text>}</xsl:text>
+ <xsl:call-template name="attref">
+  <xsl:with-param name="att" select="."/>
+ </xsl:call-template>
  </xsl:template>
  <xsl:template match="list">
   <xsl:text>
@@ -212,7 +219,25 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
    <xsl:with-param name="contentnode" select="$myelement | //xs:element[@name=$myelement/@ref]"/>
   </xsl:call-template>
   <xsl:if test="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]"> This element
-   allows for specification of the following attributes: </xsl:if>
+   <xsl:text>allows for specification of the following attributes: \begin{quotation}</xsl:text>
+   <xsl:for-each
+    select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
+    <xsl:sort select="@use='required'" order="descending"/>
+    <xsl:sort select="@name|@ref"/>
+    
+    <xsl:call-template name="attref">
+     <xsl:with-param name="att" select="@name|@ref"/>
+     
+    </xsl:call-template>
+    <xsl:if test="@use='required'">
+     <xsl:text> \nolinebreak {\color{red}(required)}</xsl:text>
+    </xsl:if>
+    <xsl:if test="position()!=last()">
+     <xsl:text>, </xsl:text>
+    </xsl:if>
+   </xsl:for-each>
+   <xsl:text>\end{quotation}</xsl:text>
+  </xsl:if>
   <xsl:for-each select="$myelement/*/xs:attribute[contains($importancelevels,@ex:importance)]">
    <xsl:sort select="@name|@ref"/>
    <xsl:call-template name="attributetolatex">
@@ -292,8 +317,8 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     <xsl:text>  </xsl:text>
     <xsl:for-each
      select="$contentnode/xs:complexType/*/xs:element[contains($importancelevels,@ex:importance)]">
-     <xsl:text> &amp; </xsl:text>
-     <xsl:value-of select="./@name|@ref"/>
+     <xsl:text> &amp; \elementref{</xsl:text>
+     <xsl:value-of select="./@name|@ref"/><xsl:text>}</xsl:text>
      <xsl:if test="@minOccurs=0">
       <xsl:choose>
        <xsl:when test="@maxOccurs='unbounded'">
@@ -316,10 +341,8 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
       <xsl:text>) </xsl:text>
      </xsl:if>
 
-     <xsl:text>
- (\ref{</xsl:text>
-     <xsl:value-of select="./@name|@ref"/>
-     <xsl:text>})</xsl:text>
+   
+      
      <xsl:text>  \\
 </xsl:text>
     </xsl:for-each>
@@ -363,7 +386,24 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
    <xsl:with-param name="xpath" select="''"/>
   </xsl:call-template>
   <xsl:text>} \\
+  </xsl:text>
+  <xsl:if test="$contentnode/@name and name(..)='xs:schema'">
+   <xsl:variable name="name" select="$contentnode/@name"/>
+   <xsl:text>\bf{Parent:}  </xsl:text>
+   <xsl:for-each
+    select="//xs:element[@ref=$name  and contains($importancelevels,@ex:importance)]">
+    <xsl:text> &amp; {\tt </xsl:text>
+    <xsl:call-template name="genxpath">
+     <xsl:with-param name="node" select="."/>
+     <xsl:with-param name="xpath" select="''"/>
+    </xsl:call-template>
+    <xsl:text> } \\
+</xsl:text>
+   </xsl:for-each>
+   
+  </xsl:if>
   
+  <xsl:text>
 
 \end{tabular*}
 \end{center}
