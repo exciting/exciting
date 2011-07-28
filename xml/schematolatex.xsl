@@ -56,9 +56,8 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
 \definecolor{green}{rgb}{0,0.5,0}
 \section*{About this Document}
     </xsl:text>
-  <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation"/>
-  \part{Input Elements}
-  <xsl:call-template name="elementToLatex">
+  <xsl:apply-templates select="/xs:schema/xs:annotation/xs:documentation"/> \part{Input Elements}
+   <xsl:call-template name="elementToLatex">
    <xsl:with-param name="myelement"
     select="//xs:element[@name=/xs:schema/xs:annotation[last()]/xs:appinfo/root]"/>
    <xsl:with-param name="level" select="0"/>
@@ -76,7 +75,6 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     </xsl:call-template>
    </xsl:if>
   </xsl:for-each>
-
   <xsl:text>\section{Data Types}
  
  The Input definition uses derived data types. These are described here.
@@ -94,43 +92,48 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:text> 
 \begin{equation}
 </xsl:text>
-  <xsl:value-of select="normalize-space(.)"/>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
   <xsl:text>
 \end{equation}
 </xsl:text>
  </xsl:template>
  <xsl:template match="inlinemath">
-  <xsl:text> $ </xsl:text>
-  <xsl:value-of select="normalize-space(.)"/>
+  <xsl:text>$ </xsl:text>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
   <xsl:text> $</xsl:text>
  </xsl:template>
  <xsl:template match="pre">
-  <xsl:text> {\tt </xsl:text>
-  <xsl:value-of select="normalize-space(.)"/>
-  <xsl:text> } </xsl:text>
-  </xsl:template>
-  <xsl:template match="pre_ns">
-   <xsl:text> {\tt </xsl:text>
-   <xsl:value-of select="normalize-space(.)"/>
-   <xsl:text>}</xsl:text>
+  <xsl:text>{\tt </xsl:text>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
+  <xsl:text>}</xsl:text>
  </xsl:template>
  <xsl:template match="it">
-  <xsl:text> {\it </xsl:text>
-  <xsl:value-of select="normalize-space(.)"/>
-  <xsl:text> }</xsl:text>
- </xsl:template>
- <xsl:template match="it_ns">
-  <xsl:text> {\it </xsl:text>
-  <xsl:value-of select="normalize-space(.)"/>
+  <xsl:text>{\it </xsl:text>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
   <xsl:text>}</xsl:text>
  </xsl:template>
  <xsl:template match="bf">
-  <xsl:text> {\bf</xsl:text>
-  <xsl:value-of select="normalize-space(.)"/>
-  <xsl:text>} </xsl:text>
+  <xsl:text>{\bf</xsl:text>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
+  <xsl:text>}</xsl:text>
  </xsl:template>
  <xsl:template match="text()">
-  <xsl:value-of select="normalize-space(.)"/>
+  <xsl:call-template name="normalizespace">
+   <xsl:with-param name="a" select="."/>
+  </xsl:call-template>
  </xsl:template>
  <xsl:template match="p">
   <xsl:text>
@@ -139,29 +142,28 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:apply-templates select="./*|text()"/>
  </xsl:template>
  <xsl:template match="xs:documentation">
-  <xsl:apply-templates select="text()|inlinemath|displaymath|pre|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"/>
+  <xsl:apply-templates
+   select="text()|inlinemath|displaymath|pre|pre_ns|it|it_ns|p|exciting|a|list|li|attref|filename|filename_ns|elementref|elementref_ns"
+  />
  </xsl:template>
  <xsl:template match="elementref">
-  <xsl:text> \elementref{</xsl:text><xsl:value-of select="."/> <xsl:text>} </xsl:text>
- </xsl:template>
- <xsl:template match="elementref_ns">
-  <xsl:text>  \elementref{</xsl:text><xsl:value-of select="."/> <xsl:text>}</xsl:text>
+  <xsl:text>\elementref{</xsl:text>
+  <xsl:value-of select="."/>
+  <xsl:text>}</xsl:text>
  </xsl:template>
  
+
  <xsl:template match="filename">
-  <xsl:text> </xsl:text>
-  <xsl:value-of select="."/>
-  <xsl:text> </xsl:text>
- </xsl:template>
- <xsl:template match="filename_ns">
-  <xsl:text> </xsl:text>
+  <xsl:text></xsl:text>
   <xsl:value-of select="."/>
   <xsl:text></xsl:text>
  </xsl:template>
+
  <xsl:template match="attref">
-  <xsl:text> \attref{</xsl:text>
+  <xsl:text>\attref{</xsl:text>
   <xsl:value-of select="."/>
-  <xsl:text>} </xsl:text> </xsl:template>
+  <xsl:text>}</xsl:text>
+ </xsl:template>
  <xsl:template match="list">
   <xsl:text>
   \begin{itemize}
@@ -181,13 +183,13 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:text> </xsl:text>
   <xsl:value-of select="."/>
 
-  <xsl:text> (\url{</xsl:text>
+  <xsl:text>(\url{</xsl:text>
   <xsl:value-of select="@href"/>
-  <xsl:text>}) </xsl:text>
+  <xsl:text>})</xsl:text>
 
  </xsl:template>
  <xsl:template match="exciting">
-  <xsl:text> \exciting{} </xsl:text>
+  <xsl:text>\exciting{}</xsl:text>
  </xsl:template>
  <xsl:template name="elementToLatex">
   <xsl:param name="myelement"/>
@@ -224,22 +226,25 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     <xsl:with-param name="level" select="$level+1"/>
    </xsl:call-template>
   </xsl:for-each>
- <xsl:for-each select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance)and @ref]">
-  <xsl:variable name="ref" select="@ref"/>
- <xsl:if test="count(//xs:element[@ref=$ref])=1">
-   <xsl:call-template name="elementToLatex">
-    <xsl:with-param name="myelement" select="//xs:element[@name=$ref]"/>
-    <xsl:with-param name="level" select="$level+1"/>
-   </xsl:call-template>
- </xsl:if> 
- </xsl:for-each>
+  <xsl:for-each
+   select="$myelement/*/*/xs:element[contains($importancelevels,@ex:importance)and @ref]">
+   <xsl:variable name="ref" select="@ref"/>
+   <xsl:if test="count(//xs:element[@ref=$ref])=1">
+    <xsl:call-template name="elementToLatex">
+     <xsl:with-param name="myelement" select="//xs:element[@name=$ref]"/>
+     <xsl:with-param name="level" select="$level+1"/>
+    </xsl:call-template>
+   </xsl:if>
+  </xsl:for-each>
  </xsl:template>
  <xsl:template name="attributetolatex">
   <xsl:param name="myattribute"/>
   <xsl:param name="level"/>
   <xsl:text>\subsection{Attribute: {\color{green}</xsl:text>
   <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
-  <xsl:text>}}  \label{att</xsl:text> <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/><xsl:text>}
+  <xsl:text>}}  \label{att</xsl:text>
+  <xsl:value-of select="$myattribute/@name |$myattribute/@ref"/>
+  <xsl:text>}
     </xsl:text>
   <xsl:apply-templates select="$myattribute/xs:annotation/xs:documentation"/>
   <xsl:call-template name="TypeToDoc">
@@ -419,5 +424,16 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:text>}
   </xsl:text>
   <xsl:apply-templates select="xs:annotation/xs:documentation"/>
+ </xsl:template>
+ <xsl:template name="normalizespace">
+  <xsl:param name="a"/>
+  <xsl:if test="substring($a,1,1)=' '">
+   <xsl:text> </xsl:text>
+  </xsl:if>
+  <xsl:value-of select="normalize-space($a)"/>
+  <xsl:if test="substring($a,string-length($a),1)=' '">
+   <xsl:text> </xsl:text>
+  </xsl:if>
+
  </xsl:template>
 </xsl:stylesheet>

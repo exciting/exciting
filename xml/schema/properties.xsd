@@ -1,39 +1,44 @@
-<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
-  <xs:include id="common" schemaLocation="common.xsd" />
+  <xs:include id="common" schemaLocation="common.xsd"/>
   <xs:annotation>
-  <xs:appinfo>
-  
-  <parent>/input</parent>
-  <root>properties</root>
-  </xs:appinfo>
+    <xs:appinfo>
+      <parent>/input</parent>
+      <root>properties</root>
+    </xs:appinfo>
   </xs:annotation>
-  <xs:element ex:importance="essential" ex:unit="" name="properties" >
+  <xs:element ex:importance="essential" ex:unit="" name="properties">
     <xs:annotation>
-      <xs:documentation> Properties listed in this element can be calculated from the groundstate. It works also from a saved state from a previous run.
-      </xs:documentation>
+      <xs:documentation> Properties listed in this element can be calculated from the groundstate.
+        It works also from a saved state from a previous run. </xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="bandstructure" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="essential" ex:unit="" name="bandstructure" maxOccurs="1"
+          minOccurs="0">
           <xs:annotation>
             <xs:documentation>If present a banstructure is calculated.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation>Create a bandstructure. Must contain plot1d element for bandstructure path.</xs:documentation>
+              <xs:documentation>Create a bandstructure. Must contain plot1d element for
+                bandstructure path.</xs:documentation>
             </xs:annotation>
             <xs:all>
-              <xs:element ex:importance="essential" ex:unit="" ref="plot1d" />
+              <xs:element ex:importance="essential" ex:unit="" ref="plot1d"/>
             </xs:all>
             <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0">
               <xs:annotation>
                 <xs:documentation>Value to shift bandgap.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="character" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" name="character" type="xs:boolean"
+              default="false">
               <xs:annotation>
-                <xs:documentation>Band structure plot which includes angular momentum characters for every atom.</xs:documentation>
+                <xs:documentation>Band structure plot which includes angular momentum characters for
+                  every atom.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -41,7 +46,7 @@
         <xs:element ex:importance="expert" ex:unit="" name="STM" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
@@ -56,74 +61,65 @@
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="1">
                 <xs:annotation>
-                  <xs:documentation>k-point and state index for which the wave function should be plotted.</xs:documentation>
+                  <xs:documentation>k-point and state index for which the wave function should be
+                    plotted.</xs:documentation>
                 </xs:annotation>
               </xs:element>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="essential" ex:unit="" name="dos" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>
-              If present a DOS calculation is started.
-              <p />
-              DOS and optics plots require integrals of the kind
-              <displaymath>g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ} f({ \bf k}) \delta(\omega_i-e({\bf k}))d{ \bf k}.</displaymath>
-              These are calculated by first interpolating the functions
-              <inlinemath>e({ \bf k})</inlinemath>
-              and
-              <inlinemath>f({ \bf k})</inlinemath>
-              with the trilinear method on a much finer mesh whose size is determined by
-              <pre>ngrdos</pre>
-              . Then the
-              <inlinemath>\omega</inlinemath>
-              -dependent histogram of the integrand is accumulated over the fine mesh. If the output function is noisy then either
-              <pre>ngrdos</pre>
-              should be increased or
-              <pre>nwdos</pre>
-              decreased. Alternatively, the output function can be artificially smoothed up to a level given by
-              <pre>nsmdos</pre>
-              . This is the number of successive 3-point averages to be applied to the function
-              <inlinemath>g</inlinemath>
-              .
-            </xs:documentation>
+            <xs:documentation> If present a DOS calculation is started. <p/> DOS and optics plots
+              require integrals of the kind
+                <displaymath>g(\omega_i)=\frac{\Omega}{(2\pi)^3}\int_{\rm BZ} f({ \bf k})
+                \delta(\omega_i-e({\bf k}))d{ \bf k}.</displaymath> These are calculated by first
+              interpolating the functions <inlinemath>e({ \bf k})</inlinemath> and <inlinemath>f({
+                \bf k})</inlinemath> with the trilinear method on a much finer mesh whose size is
+              determined by <pre>ngrdos</pre>. Then the <inlinemath>\omega</inlinemath> -dependent
+              histogram of the integrand is accumulated over the fine mesh. If the output function
+              is noisy then either <pre>ngrdos</pre> should be increased or <pre>nwdos</pre>
+              decreased. Alternatively, the output function can be artificially smoothed up to a
+              level given by <pre>nsmdos</pre>. This is the number of successive 3-point averages
+              to be applied to the function <inlinemath>g</inlinemath>. </xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" name="sqados" default="0.0d0 0.0d0 1.0d0" type="vect3d">
+            <xs:attribute ex:importance="expert" ex:unit="" name="sqados"
+              default="0.0d0 0.0d0 1.0d0" type="vect3d">
               <xs:annotation>
-                <xs:documentation> Spin-quantization axis in Cartesian coordinates used when plotting the spin-resolved DOS (z-axis by default).
+                <xs:documentation> Spin-quantization axis in Cartesian coordinates used when
+                  plotting the spin-resolved DOS (z-axis by default). </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" name="lmirep" type="xs:boolean"
+              default="false">
+              <xs:annotation>
+                <xs:documentation> When lmirep is set to <pre>"true"</pre>, the spherical harmonic
+                  basis is transformed into one in which the site symmetries are block diagonal.
+                  Band characters determined from the density matrix expressed in this basis
+                  correspond to irreducible representations, and allow the partial DOS to be
+                  resolved into physically relevant contributions, for example eg and t2g.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="lmirep" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500"> </xs:attribute>
+            <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100"> </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0"> </xs:attribute>
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="winddos"
+              default="-0.5d0 0.5d0" type="vect2d">
               <xs:annotation>
-                <xs:documentation>
-                  When lmirep is set to
-                  <pre>"true"</pre>
-                  , the spherical harmonic basis is transformed into one in which the site symmetries are block diagonal. Band characters determined from the
-                  density matrix expressed in this basis correspond to irreducible representations, and allow the partial DOS to be resolved into physically
-                  relevant contributions, for example eg and t2g.
-                </xs:documentation>
-              </xs:annotation>
-            </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" ref="nwdos" default="500">
-            </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" ref="ngrdos" default="100">
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" ref="nsmdos" default="0">
-            </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" name="winddos" default="-0.5d0 0.5d0" type="vect2d">
-              <xs:annotation>
-                <xs:documentation>Frequency/energy window for the DOS or optics plot.</xs:documentation>
+                <xs:documentation>Frequency/energy window for the DOS or optics
+                  plot.</xs:documentation>
                 <xs:appinfo>
                   <oldname>wdos</oldname>
                 </xs:appinfo>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0" />
+            <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0"
+            />
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="LSJ" maxOccurs="1" minOccurs="0">
@@ -134,11 +130,8 @@
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation>
-                    List of
-                    <inlinemath>{ \bf k}</inlinemath>
-                    -point and state pairs. Referenced by their index.
-                  </xs:documentation>
+                  <xs:documentation> List of <inlinemath>{ \bf k}</inlinemath> -point and state
+                    pairs. Referenced by their index. </xs:documentation>
                 </xs:annotation>
               </xs:element>
             </xs:all>
@@ -146,41 +139,44 @@
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="masstensor" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>
-              Compute the effective mass tensor at the
-              <bf>k</bf>
-              -point given by vklem.
-            </xs:documentation>
+            <xs:documentation> Compute the effective mass tensor at the <bf>k</bf> -point given by
+              vklem. </xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" name="deltaem" type="fortrandouble" default="0.025d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="deltaem" type="fortrandouble"
+              default="0.025d0">
               <xs:annotation>
-                <xs:documentation> The size of the k-vector displacement used when calculating numerical derivatives for the effective mass tensor.
-                </xs:documentation>
+                <xs:documentation> The size of the k-vector displacement used when calculating
+                  numerical derivatives for the effective mass tensor. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="ndspem" type="xs:integer" default="1">
+            <xs:attribute ex:importance="expert" ex:unit="" name="ndspem" type="xs:integer"
+              default="1">
               <xs:annotation>
-                <xs:documentation> The number of k-vector displacements in each direction around vklem when computing the numerical derivatives for the
-                  effective mass tensor.</xs:documentation>
+                <xs:documentation> The number of k-vector displacements in each direction around
+                  vklem when computing the numerical derivatives for the effective mass
+                  tensor.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="vklem" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="vklem" type="vect3d"
+              default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>The k-point in lattice coordinates at which to compute the effective mass tensors.</xs:documentation>
+                <xs:documentation>The k-point in lattice coordinates at which to compute the
+                  effective mass tensors.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="essential" ex:unit="" name="chargedensityplot" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="essential" ex:unit="" name="chargedensityplot" maxOccurs="1"
+          minOccurs="0">
           <xs:annotation>
             <xs:documentation>Plot the charge density</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="essential" ex:unit="" ref="plot1d" minOccurs="0" />
-              <xs:element ex:importance="essential" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="essential" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="essential" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
@@ -190,9 +186,9 @@
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
@@ -202,9 +198,9 @@
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
@@ -214,8 +210,8 @@
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
@@ -225,59 +221,68 @@
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="electricfield" minOccurs="0" maxOccurs="1">
+        <xs:element ex:importance="expert" ex:unit="" name="electricfield" minOccurs="0"
+          maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Writes the electric field to file.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="gradmvecfield" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="expert" ex:unit="" name="gradmvecfield" maxOccurs="1"
+          minOccurs="0">
           <xs:annotation>
             <xs:documentation>Plot of he gradient of the magnetic vector field.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:all>
-              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0" />
-              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0" />
+              <xs:element ex:importance="expert" ex:unit="" ref="plot1d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot2d" minOccurs="0"/>
+              <xs:element ex:importance="expert" ex:unit="" ref="plot3d" minOccurs="0"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
-        <xs:element ex:importance="essential" ex:unit="" name="fermisurfaceplot" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="essential" ex:unit="" name="fermisurfaceplot" maxOccurs="1"
+          minOccurs="0">
           <xs:annotation>
             <xs:documentation>Writes Fermi surface data to file.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
-            <xs:attribute ex:importance="essential" ex:unit="" name="nstfsp" type="xs:integer" default="6">
+            <xs:attribute ex:importance="essential" ex:unit="" name="nstfsp" type="xs:integer"
+              default="6">
               <xs:annotation>
-                <xs:documentation>Number of states to be included in the Fermi surface plot file.</xs:documentation>
+                <xs:documentation>Number of states to be included in the Fermi surface plot
+                  file.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="essential" ex:unit="" name="separate" type="xs:boolean" default="false" />
+            <xs:attribute ex:importance="essential" ex:unit="" name="separate" type="xs:boolean"
+              default="false"/>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="EFG" maxOccurs="1" minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Calculation of electric field gradient (EFG), contact charge.</xs:documentation>
+            <xs:documentation>Calculation of electric field gradient (EFG), contact
+              charge.</xs:documentation>
           </xs:annotation>
-          <xs:complexType />
+          <xs:complexType/>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="mossbauer" minOccurs="0">
-          <xs:complexType />
+          <xs:complexType/>
         </xs:element>
-        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" maxOccurs="1" minOccurs="0">
+        <xs:element ex:importance="expert" ex:unit="" name="momentummatrix" maxOccurs="1"
+          minOccurs="0">
           <xs:annotation>
-            <xs:documentation>Matrix elements of the momentum operator (legacy version, required by dielectric-element).</xs:documentation>
+            <xs:documentation>Matrix elements of the momentum operator (legacy version, required by
+              dielectric-element).</xs:documentation>
             <xs:appinfo>
               <oldname>noname</oldname>
             </xs:appinfo>
@@ -285,55 +290,60 @@
           <xs:complexType>
             <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat" default="false">
               <xs:annotation>
-                <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu,
+                  Phys. Rev. B 48, 4250 (1993)</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="dielectric" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>Linear optical response (without local field effects, legacy version).</xs:documentation>
+            <xs:documentation>Linear optical response (without local field effects, legacy
+              version).</xs:documentation>
             <xs:appinfo>
               <oldname>noname</oldname>
             </xs:appinfo>
           </xs:annotation>
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="expert" ex:unit="" name="optcomp" type="integertriple" default="1 1 1" maxOccurs="27">
+              <xs:element ex:importance="expert" ex:unit="" name="optcomp" type="integertriple"
+                default="1 1 1" maxOccurs="27">
                 <xs:annotation>
-                  <xs:documentation>The components of the first- or second-order optical tensor to be calculated.</xs:documentation>
+                  <xs:documentation>The components of the first- or second-order optical tensor to
+                    be calculated.</xs:documentation>
                 </xs:annotation>
               </xs:element>
             </xs:sequence>
-            <xs:attribute ex:importance="expert" ex:unit="Hartree" ref="scissor" default="0.0d0" />
+            <xs:attribute ex:importance="expert" ex:unit="Hartree" ref="scissor" default="0.0d0"/>
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
-                <xs:documentation>
-                  The intraband attribute is
-                  <pre>"true"</pre>
-                  if the intraband term is to be added to the optical matrix (q=0)
-                </xs:documentation>
+                <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
+                  term is to be added to the optical matrix (q=0) </xs:documentation>
               </xs:annotation>
             </xs:attribute>
-            <xs:attribute ex:importance="expert" ex:unit="" name="usegdft" type="xs:boolean" default="false">
+            <xs:attribute ex:importance="expert" ex:unit="" name="usegdft" type="xs:boolean"
+              default="false">
               <xs:annotation>
-                <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu, Phys. Rev. B 48, 4250 (1993)</xs:documentation>
+                <xs:documentation>apply generalised DFT correction of L. Fritsche and Y. M. Gu,
+                  Phys. Rev. B 48, 4250 (1993)</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="moke" minOccurs="0">
-          <xs:complexType />
+          <xs:complexType/>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="expiqr" minOccurs="0">
           <xs:complexType>
             <xs:annotation>
-              <xs:documentation>Write out matrix elements of plane wave for given list of k-points and states</xs:documentation>
+              <xs:documentation>Write out matrix elements of plane wave for given list of k-points
+                and states</xs:documentation>
             </xs:annotation>
             <xs:all>
               <xs:element ex:importance="expert" ex:unit="" ref="kstlist" minOccurs="0">
                 <xs:annotation>
-                  <xs:documentation>k-point list (all states are considered) for which the matrix elements are written out.</xs:documentation>
+                  <xs:documentation>k-point list (all states are considered) for which the matrix
+                    elements are written out.</xs:documentation>
                 </xs:annotation>
               </xs:element>
             </xs:all>
@@ -341,18 +351,22 @@
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="elnes" minOccurs="0">
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" name="vecql" type="vect3d" default="0.0d0 0.0d0 0.0d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="vecql" type="vect3d"
+              default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation>Gives the q-vector in lattice coordinates for calculating ELNES.</xs:documentation>
+                <xs:documentation>Gives the q-vector in lattice coordinates for calculating
+                  ELNES.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" name="eliashberg" minOccurs="0">
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" name="mustar" type="fortrandouble" default="0.15d0">
+            <xs:attribute ex:importance="expert" ex:unit="" name="mustar" type="fortrandouble"
+              default="0.15d0">
               <xs:annotation>
-                <xs:documentation>Coulomb pseudopotential, μ*, used in the McMillan-Allen-Dynes equation.</xs:documentation>
+                <xs:documentation>Coulomb pseudopotential, μ*, used in the McMillan-Allen-Dynes
+                  equation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>

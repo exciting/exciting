@@ -1,101 +1,84 @@
-<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd" 
-xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ex="http://xml.exciting-code.org/inputschemaextentions.xsd"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
   <xs:annotation>
-  <xs:appinfo>
-  <root>/</root>
-  <parent>.</parent>  
-  </xs:appinfo>
+    <xs:appinfo>
+      <root>/</root>
+      <parent>.</parent>
+    </xs:appinfo>
   </xs:annotation>
   <xs:simpleType name="fortrandouble">
     <xs:annotation>
-      <xs:documentation>
-        The type
-        <pre>fortrandouble</pre>
-        allows to use the letters
-        <pre>"eEdDqQ"</pre>
-        for exponent operators. This alters in what precision the number is parsed.
-      </xs:documentation>
+      <xs:documentation> The type <pre>fortrandouble</pre> allows to use the letters
+        <pre>"eEdDqQ"</pre> for exponent operators. This alters in what precision the number is
+        parsed. </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:token">
-      <xs:pattern value="\-?[0-9]*\.?[0-9]+([eEdDqQ][\-+]?[0-9]+)?" />
+      <xs:pattern value="\-?[0-9]*\.?[0-9]+([eEdDqQ][\-+]?[0-9]+)?"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="vector">
     <xs:annotation>
-      <xs:documentation>
-        A vector is a space separated list of floating point numbers.
-        <p>
-          Example:
+      <xs:documentation> A vector is a space separated list of floating point numbers. <p> Example:
           <pre> "1.3 2.3e4 3 90"</pre>
         </p>
       </xs:documentation>
     </xs:annotation>
-    <xs:list itemType="fortrandouble" />
+    <xs:list itemType="fortrandouble"/>
   </xs:simpleType>
   <xs:simpleType name="integerlist">
     <xs:annotation>
       <xs:documentation> List of space separated integers.</xs:documentation>
     </xs:annotation>
-    <xs:list itemType="xs:integer" />
+    <xs:list itemType="xs:integer"/>
   </xs:simpleType>
   <xs:simpleType name="vect3d">
     <xs:annotation>
-      <xs:documentation> Three dimensional vector as three space separated floating point numbers.</xs:documentation>
+      <xs:documentation> Three dimensional vector as three space separated floating point
+        numbers.</xs:documentation>
     </xs:annotation>
     <xs:restriction base="vector">
-      <xs:length value="3" />
+      <xs:length value="3"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="vect2d">
     <xs:annotation>
-      <xs:documentation> Three dimensional vector as three space separated floating point numbers.</xs:documentation>
+      <xs:documentation> Three dimensional vector as three space separated floating point
+        numbers.</xs:documentation>
     </xs:annotation>
     <xs:restriction base="vector">
-      <xs:length value="2" />
+      <xs:length value="2"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="integertriple">
     <xs:annotation>
-      <xs:documentation>
-        Space separated list of three integers.
-        <p>
-          Example:
-          <pre> "1 2 3" </pre>
+      <xs:documentation> Space separated list of three integers. <p> Example: <pre> "1 2 3" </pre>
         </p>
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="integerlist">
-      <xs:length value="3" />
+      <xs:length value="3"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="integerquadrupel">
     <xs:annotation>
-      <xs:documentation>
-        Space separated list of three integers.
-        <p>
-          Example:
-          <pre> "1 2 3 4" </pre>
+      <xs:documentation> Space separated list of three integers. <p> Example: <pre> "1 2 3 4" </pre>
         </p>
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="integerlist">
-      <xs:length value="4" />
+      <xs:length value="4"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="integerpair">
     <xs:annotation>
-      <xs:documentation>
-        Space separated list of two integers
-        <p>
-          Example:
-          <pre> "1 2" </pre>
+      <xs:documentation> Space separated list of two integers <p> Example: <pre> "1 2" </pre>
         </p>
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="integerlist">
-      <xs:length value="2" />
+      <xs:length value="2"/>
     </xs:restriction>
   </xs:simpleType>
   <!-- global attribute definitions -->
@@ -106,57 +89,44 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
   </xs:attribute>
   <xs:attribute ex:importance="expert" ex:unit="" name="tfibs" type="xs:boolean" default="true">
     <xs:annotation>
-      <xs:documentation>
-        If the IBS correction to the force should be calculated Because calculation of the incomplete basis set (IBS) correction to the force is fairly
-        time-consuming, it can be switched off by setting
-        <pre> tfibs </pre>
-        to
-        <pre> "false"</pre>
-        This correction can then be included only when necessary, i.e. when the atoms are close to equilibrium in a structural relaxation run.
-      </xs:documentation>
+      <xs:documentation> If the IBS correction to the force should be calculated Because calculation
+        of the incomplete basis set (IBS) correction to the force is fairly time-consuming, it can
+        be switched off by setting <pre> tfibs </pre> to <pre> "false"</pre> This correction can
+        then be included only when necessary, i.e. when the atoms are close to equilibrium in a
+        structural relaxation run. </xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute ex:importance="expert" ex:unit="" name="tforce" type="xs:boolean" default="false">
     <xs:annotation>
-      <xs:documentation>
-        The attribute is set to
-        <pre> "true"</pre>
-        if the force should be calculated at the end of the self-consistent cycle This variable is automatically set to
-        <pre> "true"</pre>
-        when performing structural optimization.
-      </xs:documentation>
+      <xs:documentation> The attribute is set to <pre> "true"</pre> if the force should be
+        calculated at the end of the self-consistent cycle This variable is automatically set to
+        <pre> "true"</pre> when performing structural optimization. </xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute ex:importance="expert" ex:unit="" name="symmorph" type="xs:boolean" default="false">
     <xs:annotation>
-      <xs:documentation>
-        When set to
-        <pre>"true"</pre>
-        only symmorphic space-group operations are to be considered, i.e. only symmetries without non-primitive translations are used anywhere in the code.
-      </xs:documentation>
+      <xs:documentation> When set to <pre>"true"</pre> only symmorphic space-group operations are to
+        be considered, i.e. only symmetries without non-primitive translations are used anywhere in
+        the code. </xs:documentation>
     </xs:annotation>
   </xs:attribute>
-  <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble" default="0.0d0">
+  <xs:attribute ex:importance="expert" ex:unit="Hartree" name="scissor" type="fortrandouble"
+    default="0.0d0">
     <xs:annotation>
-      <xs:documentation> This is the scissors shift applied to states above the Fermi energy. Affects DOS, optics and band structure plots.</xs:documentation>
+      <xs:documentation> This is the scissors shift applied to states above the Fermi energy.
+        Affects DOS, optics and band structure plots.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute ex:importance="expert" ex:unit="" name="fastpmat" type="xs:boolean" default="true">
     <xs:annotation>
-      <xs:documentation>
-        if
-        <pre>"true"</pre>
-        , a fast method to calculate APW-lo, lo-APW and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
-      </xs:documentation>
+      <xs:documentation> if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and lo-lo
+        parts of the momentum matrix elements in the muffin-tin is used. </xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute ex:importance="expert" ex:unit="" name="intraband" type="xs:boolean" default="false">
     <xs:annotation>
-      <xs:documentation>
-        The intraband attribute is
-        <pre>"true"</pre>
-        if the intraband term is to be added to the optical matrix (q=0)
-      </xs:documentation>
+      <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband term is to be
+        added to the optical matrix (q=0) </xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute ex:importance="expert" ex:unit="" name="action" default="include">
@@ -165,8 +135,8 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </xs:annotation>
     <xs:simpleType>
       <xs:restriction base="xs:string">
-        <xs:enumeration value="include" />
-        <xs:enumeration value="exclude" />
+        <xs:enumeration value="include"/>
+        <xs:enumeration value="exclude"/>
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
@@ -176,13 +146,13 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </xs:annotation>
     <xs:simpleType>
       <xs:restriction base="xs:string">
-        <xs:enumeration value="initialstates" />
-        <xs:enumeration value="finalstates" />
+        <xs:enumeration value="initialstates"/>
+        <xs:enumeration value="finalstates"/>
       </xs:restriction>
     </xs:simpleType>
   </xs:attribute>
-  <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble" default="5.0d-5">
-  </xs:attribute>
+  <xs:attribute ex:importance="essential" ex:unit="" name="epsforce" type="fortrandouble"
+    default="5.0d-5"> </xs:attribute>
   <xs:attribute ex:importance="essential" ex:unit="" name="nwdos" type="xs:integer" default="500">
     <xs:annotation>
       <xs:documentation>Number of frequency/energy points in the DOS</xs:documentation>
@@ -190,30 +160,32 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
   </xs:attribute>
   <xs:attribute ex:importance="essential" ex:unit="" name="ngrdos" type="xs:integer" default="100">
     <xs:annotation>
-      <xs:documentation>Effective k-point mesh size to be used for Brillouin zone integration.</xs:documentation>
+      <xs:documentation>Effective k-point mesh size to be used for Brillouin zone
+        integration.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <xs:attribute ex:importance="expert" ex:unit="" name="nsmdos" type="xs:integer" default="0">
     <xs:annotation>
-      <xs:documentation>Level of smoothing applied to DOS/optics output integer 0.</xs:documentation>
+      <xs:documentation>Level of smoothing applied to DOS/optics output integer
+        0.</xs:documentation>
     </xs:annotation>
   </xs:attribute>
   <!-- global element definitions -->
   <xs:element ex:importance="essential" ex:unit="" name="origin">
     <xs:complexType>
-      <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" />
+      <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d"/>
     </xs:complexType>
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="point">
     <xs:complexType>
-      <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" use="required" />
-      <xs:attribute ex:importance="essential" ex:unit="" name="label" type="xs:string" default="" />
+      <xs:attribute ex:importance="essential" ex:unit="" name="coord" type="vect3d" use="required"/>
+      <xs:attribute ex:importance="essential" ex:unit="" name="label" type="xs:string" default=""/>
     </xs:complexType>
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="plot1d">
     <xs:annotation>
-      <xs:documentation> The element plot1d specifies sample points along a path. The coordinate space (lattice or cartesian)is chosen in the context of the
-        parent.</xs:documentation>
+      <xs:documentation> The element plot1d specifies sample points along a path. The coordinate
+        space (lattice or cartesian)is chosen in the context of the parent.</xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:all>
@@ -221,12 +193,15 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
           <xs:complexType>
             <xs:sequence>
               <xs:annotation>
-                <xs:documentation>A path consists of at least two points and a number of divisions.</xs:documentation>
+                <xs:documentation>A path consists of at least two points and a number of
+                  divisions.</xs:documentation>
               </xs:annotation>
-              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2" maxOccurs="unbounded" />
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2"
+                maxOccurs="unbounded"/>
             </xs:sequence>
-            <xs:attribute ex:importance="essential" ex:unit="" name="steps" type="xs:integer" use="required" />
-            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix" />
+            <xs:attribute ex:importance="essential" ex:unit="" name="steps" type="xs:integer"
+              use="required"/>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix"/>
           </xs:complexType>
         </xs:element>
       </xs:all>
@@ -238,14 +213,18 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element ex:importance="essential" ex:unit="" name="parallelogram" maxOccurs="1" minOccurs="1">
+        <xs:element ex:importance="essential" ex:unit="" name="parallelogram" maxOccurs="1"
+          minOccurs="1">
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1" maxOccurs="1" />
-              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2" maxOccurs="2" />
+              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1"
+                maxOccurs="1"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="2"
+                maxOccurs="2"/>
             </xs:sequence>
-            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integerpair" use="required" />
-            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix" />
+            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integerpair"
+              use="required"/>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix"/>
           </xs:complexType>
         </xs:element>
       </xs:all>
@@ -260,11 +239,14 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
         <xs:element ex:importance="essential" ex:unit="" name="box" maxOccurs="1" minOccurs="1">
           <xs:complexType>
             <xs:sequence>
-              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1" maxOccurs="1" />
-              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="3" maxOccurs="3" />
+              <xs:element ex:importance="essential" ex:unit="" ref="origin" minOccurs="1"
+                maxOccurs="1"/>
+              <xs:element ex:importance="essential" ex:unit="" ref="point" minOccurs="3"
+                maxOccurs="3"/>
             </xs:sequence>
-            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integertriple" use="required" />
-            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix" />
+            <xs:attribute ex:importance="essential" ex:unit="" name="grid" type="integertriple"
+              use="required"/>
+            <xs:attribute ex:importance="expert" ex:unit="" ref="outfileprefix"/>
           </xs:complexType>
         </xs:element>
       </xs:all>
@@ -272,32 +254,22 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="pointstatepair" type="integerpair">
     <xs:annotation>
-      <xs:documentation>
-        The element
-        <pre>pointstatepair</pre>
-        defines a
-        <inlinemath>{ \bf k}</inlinemath>
-        -point and state index pair.
-      </xs:documentation>
+      <xs:documentation> The element <pre>pointstatepair</pre> defines a <inlinemath>{ \bf
+          k}</inlinemath> -point and state index pair. </xs:documentation>
     </xs:annotation>
   </xs:element>
   <xs:element ex:importance="essential" ex:unit="" name="kstlist">
     <xs:annotation>
-      <xs:documentation>
-        The kstlist element is used in the LSJ and wavefunction plot element This is a user-defined list of
-        <inlinemath>{ \bf k}</inlinemath>
-        -point and state index pairs which are those used for plotting wavefunctions and writing
-        <inlinemath>{ \bf L}</inlinemath>
-        ,
-        <inlinemath>{ \bf S}</inlinemath>
-        and
-        <inlinemath>{ \bf J}</inlinemath>
-        expectation values.
-      </xs:documentation>
+      <xs:documentation> The kstlist element is used in the LSJ and wavefunction plot element This
+        is a user-defined list of <inlinemath>{ \bf k}</inlinemath> -point and state index pairs
+        which are those used for plotting wavefunctions and writing <inlinemath>{ \bf
+          L}</inlinemath>, <inlinemath>{ \bf S}</inlinemath> and <inlinemath>{ \bf J}</inlinemath>
+        expectation values. </xs:documentation>
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ex:importance="essential" ex:unit="" ref="pointstatepair" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ex:importance="essential" ex:unit="" ref="pointstatepair" minOccurs="1"
+          maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -305,10 +277,12 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
     <xs:complexType>
       <xs:attribute ex:importance="expert" ex:unit="" name="points" type="xs:integer" default="500">
         <xs:annotation>
-          <xs:documentation>number of points to be sampled linearly inside the energy interval including the lower limit.</xs:documentation>
+          <xs:documentation>number of points to be sampled linearly inside the energy interval
+            including the lower limit.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute ex:importance="expert" ex:unit="" name="intv" type="vect2d" default="-0.5d0 0.5d0">
+      <xs:attribute ex:importance="expert" ex:unit="" name="intv" type="vect2d"
+        default="-0.5d0 0.5d0">
         <xs:annotation>
           <xs:documentation>energy interval lower and upper limits.</xs:documentation>
         </xs:annotation>
@@ -318,7 +292,8 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
   <xs:element ex:importance="expert" ex:unit="" name="qpointset">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ex:importance="expert" ex:unit="" name="qpoint" type="vect3d" minOccurs="1" maxOccurs="unbounded">
+        <xs:element ex:importance="expert" ex:unit="" name="qpoint" type="vect3d" minOccurs="1"
+          maxOccurs="unbounded">
           <xs:annotation>
             <xs:documentation> a q-point is given in reciprocal space coordinates</xs:documentation>
           </xs:annotation>
@@ -329,12 +304,15 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
   <xs:element ex:importance="expert" ex:unit="" name="parts">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ex:importance="expert" ex:unit="" name="dopart" minOccurs="0" maxOccurs="unbounded">
+        <xs:element ex:importance="expert" ex:unit="" name="dopart" minOccurs="0"
+          maxOccurs="unbounded">
           <xs:complexType>
-            <xs:attribute ex:importance="expert" ex:unit="" name="id" type="xs:string" use="required">
+            <xs:attribute ex:importance="expert" ex:unit="" name="id" type="xs:string"
+              use="required">
               <xs:annotation>
-                <xs:documentation> This attribute is used to trigger lower-level tasks and is mainly used for testing, debugging, and the testing of new
-                  features. Do not use it unless you know what you are doing.</xs:documentation>
+                <xs:documentation> This attribute is used to trigger lower-level tasks and is mainly
+                  used for testing, debugging, and the testing of new features. Do not use it unless
+                  you know what you are doing.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>

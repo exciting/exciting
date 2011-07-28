@@ -38,8 +38,8 @@
                   field applied throughout the entire unit cell and enters the second-variational
                   Hamiltonian as <displaymath>\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm
                     ext},</displaymath> where <inlinemath>g_e</inlinemath> is the electron
-                    <inlinemath>g</inlinemath>-factor (2.0023193043718). This field is normally
-                  used to break spin symmetry for spin-polarised calculations and considered to be
+                    <inlinemath>g</inlinemath>-factor (2.0023193043718). This field is normally used
+                  to break spin symmetry for spin-polarised calculations and considered to be
                   infinitesimal with no direct contribution to the total energy. In cases where the
                   magnetic field is finite (for example when computing magnetic response) the
                   external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
@@ -52,7 +52,7 @@
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean">
               <xs:annotation>
-                <xs:documentation> If <pre>spinorb</pre> is <pre>"true"</pre> , then a
+                <xs:documentation> If <pre>spinorb</pre> is <pre>"true"</pre>, then a
                     <inlinemath>\boldsymbol \sigma\cdot{ \bf L}</inlinemath> term is added to the
                   second-variational Hamiltonian. </xs:documentation>
               </xs:annotation>
@@ -77,9 +77,9 @@
                   second-variational approach, and give rise to a magnetization density of the form
                     <displaymath> {\bf m}^{ \bf q}({ \bf r})=(m_x({\bf r})\cos({ \bf q \cdot r}),
                     m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf r})), </displaymath> where
-                    <inlinemath>m_x</inlinemath> , <inlinemath>m_y</inlinemath> and
+                    <inlinemath>m_x</inlinemath>, <inlinemath>m_y</inlinemath> and
                     <inlinemath>m_z</inlinemath> are lattice periodic. See also
-                    <attref>spinprl</attref> . </xs:documentation>
+                    <attref>spinprl</attref>. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="taufsm" type="fortrandouble"
@@ -228,7 +228,7 @@
                   interative method. [Phys. Rev. Lett. 98, 196405 (2007)]. At the first iteration
                   the step length is set to tauoep(1). Dur- ing subsequent iterations, the step
                   length is scaled by tauoep(2) or tauoep(3), when the residual is increasing or
-                  decreasing, respectively. See also <attref>maxitoep</attref> . </xs:documentation>
+                  decreasing, respectively. See also <attref>maxitoep</attref>. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -1209,9 +1209,9 @@
           <xs:documentation> The parameter <pre>rgkmax</pre> implicitly determines the number of
             basis functions and is one of the crucial parameters for the accuracy of the
             calculation. It represents the product of two quantities: <inlinemath>R_{MT,\,
-              Min}</inlinemath> , the smallest of all muffin-tin radii, and <inlinemath>|{ \bf G}+{
-              \bf k}|_{max}</inlinemath> , the maximum length for the <inlinemath>{ \bf G}+{ \bf
-              k}</inlinemath> \ vectors. Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath> \
+              Min}</inlinemath>, the smallest of all muffin-tin radii, and <inlinemath>|{ \bf G}+{
+              \bf k}|_{max}</inlinemath>, the maximum length for the <inlinemath>{ \bf G}+{ \bf
+              k}</inlinemath>  vectors. Because each <inlinemath>{ \bf G}+{ \bf k}</inlinemath> 
             vector represents one basis function, <pre>rgkmax</pre> gives the number of basis
             functions used for solving the Kohn-Sham equations. Typical values of <pre>rgkmax</pre>
             are between 6 and 9. However, for systems with very short bond-lengths, significantly
@@ -1225,10 +1225,10 @@
         use="optional" default="1.0d-6">
         <xs:annotation>
           <xs:documentation> If the RMS change in the effective potential and magnetic field is
-            smaller than <pre>epspot</pre> , then the self-consistent loop is considered converged
+            smaller than <pre>epspot</pre>, then the self-consistent loop is considered converged
             and exited. For structural optimization runs this results in the forces being
             calculated, the atomic positions updated and the loop restarted. See also
-              <attref>maxscl</attref> . </xs:documentation>
+              <attref>maxscl</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsengy" type="fortrandouble"
@@ -1243,7 +1243,7 @@
             run.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-     
+
       <xs:attribute ex:importance="essential" ex:unit="Hartree" name="swidth" type="fortrandouble"
         default="0.001d0">
         <xs:annotation>
@@ -1319,7 +1319,7 @@
         default="false">
         <xs:annotation>
           <xs:documentation> If <pre>"true"</pre> the linearization energies marked as non-varying
-            are set to the Fermi level plus <pre>dlinengyfermi</pre> . </xs:documentation>
+            are set to the Fermi level plus <pre>dlinengyfermi</pre>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="isgkmax" type="xs:integer" default="-1">
@@ -1386,10 +1386,10 @@
         <xs:annotation>
           <xs:documentation> Used for the automatic determination of the k-point mesh from the total
             number of <bf nospace="true">k</bf>-points. If <pre>nktot</pre> is set, then the mesh
-            will be determined in such a way that the number of <bf>k</bf>-points is
-            proportional to the length of the reciprocal lattice vector in each direction and that
-            the total number of <bf nospace="true">k</bf>-points is less than or equal to
-            <pre>nktot</pre> . </xs:documentation>
+            will be determined in such a way that the number of <bf>k</bf>-points is proportional to
+            the length of the reciprocal lattice vector in each direction and that the total number
+            of <bf nospace="true">k</bf>-points is less than or equal to <pre>nktot</pre>.
+          </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="" name="reducek" type="xs:boolean"
@@ -1443,13 +1443,13 @@
             searching for the band energy, which is used as the APW linearization energy. This is
             done by first searching upwards in energy until the radial wavefunction at the
             muffin-tin radius is zero. This is the energy at the top of the band, denoted
-              <inlinemath>E_{\rm t}</inlinemath> . A downward search is now performed from
+              <inlinemath>E_{\rm t}</inlinemath>. A downward search is now performed from
               <inlinemath>E_{\rm t}</inlinemath> until the slope of the radial wavefunction at the
-            muffin-tin radius is zero. This energy, <inlinemath>E_{\rm b}</inlinemath> , is at the
+            muffin-tin radius is zero. This energy, <inlinemath>E_{\rm b}</inlinemath>, is at the
             bottom of the band. The band energy is taken as <inlinemath>(E_{\rm t}+E_{\rm
-              b})/2</inlinemath> . If either <inlinemath>E_{\rm t}</inlinemath> or
-              <inlinemath>E_{\rm b}</inlinemath> cannot be found then the band energy is set to the
-            default value. </xs:documentation>
+              b})/2</inlinemath>. If either <inlinemath>E_{\rm t}</inlinemath> or <inlinemath>E_{\rm
+              b}</inlinemath> cannot be found then the band energy is set to the default value.
+          </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsband" type="fortrandouble"
@@ -1559,22 +1559,22 @@
           <xs:documentation> Type of exchange-correlation functional to be used <list>
               <li> No exchange-correlation funtional ( <inlinemath>E_{\rm xc}\equiv 0</inlinemath> ) </li>
               <li> LDA, Perdew-Zunger/Ceperley-Alder, <it> Phys. Rev. B</it>
-                <bf>23</bf> , 5048 (1981) </li>
+                <bf>23</bf>, 5048 (1981) </li>
               <li> LSDA, Perdew-Wang/Ceperley-Alder, <it>Phys. Rev. B</it>
-                <bf>45</bf> , 13244 (1992) </li>
+                <bf>45</bf>, 13244 (1992) </li>
               <li> LDA, X-alpha approximation, J. C. Slater, <it>Phys. Rev.</it>
-                <bf>81</bf> , 385 (1951) </li>
+                <bf>81</bf>, 385 (1951) </li>
               <li> LSDA, von Barth-Hedin, <it>J. Phys. C</it>
-                <bf>5</bf> , 1629 (1972) </li>
+                <bf>5</bf>, 1629 (1972) </li>
               <li> GGA, Perdew-Burke-Ernzerhof, <it>Phys. Rev. Lett.</it>
-                <bf>77</bf> , 3865 (1996) </li>
+                <bf>77</bf>, 3865 (1996) </li>
               <li> GGA, Revised PBE, Zhang-Yang, <it> Phys. Rev. Lett.</it>
-                <bf>80</bf> , 890 (1998) </li>
+                <bf>80</bf>, 890 (1998) </li>
               <li> GGA, PBEsol, arXiv:0707.2088v1 (2007) </li>
               <li> GGA, Wu-Cohen exchange (WC06) with PBE correlation, <it>Phys. Rev. B</it>
-                <bf>73</bf> , 235116 (2006) </li>
+                <bf>73</bf>, 235116 (2006) </li>
               <li> GGA, Armiento-Mattsson (AM05) spin-unpolarised functional, <it> Phys. Rev. B</it>
-                <bf>72</bf> , 085108 (2005) </li>
+                <bf>72</bf>, 085108 (2005) </li>
             </list>
           </xs:documentation>
         </xs:annotation>
@@ -1717,7 +1717,7 @@
         <xs:annotation>
           <xs:documentation> Close to the nucleus, the density and potential is almost spherical and
             therefore the spherical harmonic expansion can be truncated a low angular momentum. See
-            also <attref>fracinr</attref> . </xs:documentation>
+            also <attref>fracinr</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="lmaxmat" type="xs:integer" default="5">
@@ -1746,7 +1746,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="nosource" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> When set to <pre>"true"</pre> , source fields are projected out of the
+          <xs:documentation> When set to <pre>"true"</pre>, source fields are projected out of the
             exchange-correlation magnetic field. experimental feature. </xs:documentation>
         </xs:annotation>
       </xs:attribute>

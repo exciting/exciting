@@ -5,11 +5,12 @@
     xsi:schemaLocation="http://xml.exciting-code.org/inputschemaextentions.xsd    http://xml.exciting-code.org/inputschemaextentions.xsd">
     <xs:include id="common" schemaLocation="common.xsd"/>
     <xs:annotation>
-    <xs:appinfo>
-    <parent>/input</parent>
-    <root>structureoptimization</root>
-    </xs:appinfo></xs:annotation>
-    <xs:element ex:importance="essential" ex:unit="" name="structureoptimization"  >
+        <xs:appinfo>
+            <parent>/input</parent>
+            <root>structureoptimization</root>
+        </xs:appinfo>
+    </xs:annotation>
+    <xs:element ex:importance="essential" ex:unit="" name="structureoptimization">
         <xs:annotation>
             <xs:documentation>The structure optimization element triggers if present a geometry
                 relaxation.</xs:documentation>
@@ -17,7 +18,7 @@
         <xs:complexType>
             <xs:annotation>
                 <xs:documentation> Structural optimization run. Atomic positions written to
-                    <pre_ns>geometry.xml</pre_ns> . </xs:documentation>
+                    <pre>geometry.xml</pre>. </xs:documentation>
             </xs:annotation>
             <xs:attribute ex:importance="essential" ex:unit="" ref="epsforce" default="5.0d-5">
                 <xs:annotation>
@@ -33,13 +34,13 @@
                 <xs:annotation>
                     <xs:documentation> The step size to be used for structural optimization <p/> The
                         position of atom <inlinemath>\alpha</inlinemath> is updated on step
-                        <inlinemath>m</inlinemath> of a structural optimization run using
-                        <displaymath>{\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m \left({
-                            \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),</displaymath> where
-                        <inlinemath>\tau_{\alpha}</inlinemath> is set to <pre>tau0atm</pre> for
-                        <inlinemath>m=0</inlinemath> , and incremented by the same amount if the atom is
-                        moving in the same direction between steps. If the direction changes then
-                        <inlinemath>\tau_{\alpha}</inlinemath> is reset to <pre>tau0atm</pre> .
+                            <inlinemath>m</inlinemath> of a structural optimization run using
+                            <displaymath>{\bf r}_{\alpha}^{m+1}={\bf r}_{\alpha}^m+\tau_{\alpha}^m
+                            \left({ \bf F}_{\alpha}^m+{ \bf F}_{\alpha}^{m-1}\right),</displaymath>
+                        where <inlinemath>\tau_{\alpha}</inlinemath> is set to <pre>tau0atm</pre>
+                        for <inlinemath>m=0</inlinemath>, and incremented by the same amount if the
+                        atom is moving in the same direction between steps. If the direction changes
+                        then <inlinemath>\tau_{\alpha}</inlinemath> is reset to <pre>tau0atm</pre>.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
@@ -47,12 +48,12 @@
                 default="false">
                 <xs:annotation>
                     <xs:documentation> Resumption of structural optimization run using density in
-                        <pre>STATE.OUT</pre> but with positions from <pre>input.xml</pre> .
+                        <pre>STATE.OUT</pre> but with positions from <pre>input.xml</pre>.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
         </xs:complexType>
     </xs:element>
-    
+
 
 </xs:schema>
