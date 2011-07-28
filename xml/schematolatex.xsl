@@ -474,13 +474,17 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  </xsl:template>
  <xsl:template name="normalizespace">
   <xsl:param name="a"/>
-  <xsl:if test="substring($a,1,1)=' '">
+  <xsl:if test="substring($a,1,1)=' ' or substring($a,1,1)=$newline">
    <xsl:text> </xsl:text>
   </xsl:if>
   <xsl:value-of select="normalize-space($a)"/>
-  <xsl:if test="substring($a,string-length($a),1)=' '">
+  <xsl:if test="substring($a,string-length($a),1)=' ' or substring($a,string-length($a),1)=$newline">
    <xsl:text> </xsl:text>
   </xsl:if>
 
  </xsl:template>
+ <xsl:variable name="newline">
+  <xsl:text>
+</xsl:text>
+ </xsl:variable>
 </xsl:stylesheet>
