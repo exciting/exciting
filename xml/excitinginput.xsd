@@ -269,7 +269,7 @@ xs.xsd
       <xs:documentation> The kstlist element is used in the LSJ and wavefunction plot element This
         is a user-defined list of <inlinemath>{ \bf k}</inlinemath>-point and state index pairs
         which are those used for plotting wavefunctions and writing <inlinemath>{ \bf
-          L}</inlinemath>, <inlinemath>{ \bf S}</inlinemath> and <inlinemath>{ \bf J}</inlinemath>
+          L}</inlinemath>, <inlinemath>{ \bf S}</inlinemath> and <inlinemath>{ \bf J} </inlinemath>
         expectation values. </xs:documentation>
     </xs:annotation>
     <xs:complexType>

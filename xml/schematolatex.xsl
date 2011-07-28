@@ -299,15 +299,15 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
     <xsl:text>\\</xsl:text>
    </xsl:when>
    <xsl:when test="$contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-    <xsl:text> \bf{Type:} &amp; \bf{chose from:}  \\
+    <xsl:text> \bf{Type:} &amp; \bf{choose from:}  \\
 </xsl:text>
     <xsl:for-each
      select="
  $contentnode/xs:simpleType/xs:restriction[@base='xs:string']/xs:enumeration">
-     <xsl:text> &amp; </xsl:text>
+     <xsl:text> &amp; {\tt </xsl:text>
      <xsl:value-of select="str:replace(@value, '_','\_')"/>
      <xsl:text/>
-     <xsl:text>  \\
+     <xsl:text>}  \\
 </xsl:text>
     </xsl:for-each>
     <xsl:text/>
@@ -354,9 +354,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   </xsl:choose>
   <xsl:if test="$contentnode/@default">
    <xsl:text>
- \bf{Default:} &amp; ''\verb|</xsl:text>
-   <xsl:value-of select="$contentnode/@default"/>
-   <xsl:text>|''\\
+ \bf{Default:} &amp; ''{\tt </xsl:text>
+   <xsl:value-of select="str:replace($contentnode/@default,'_','\_')"/>
+   <xsl:text>}''\\
  </xsl:text>
   </xsl:if>
   <xsl:if test="$contentnode/@use or local-name($contentnode)='attribute'">
