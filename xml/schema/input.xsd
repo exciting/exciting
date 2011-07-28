@@ -21,12 +21,12 @@
       <list>
         <li>
           <blue>elements</blue> are defined according to the <a
-            href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a>.
+            href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>.
             <it>Example:</it> The element <elementref>groundstate</elementref> is used to set up a
           self-consistent calculation of the ground-state energy. </li>
         <li>
           <green>attributes</green> are defined according to the <a
-            href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions</a> . An
+            href="http://en.wikipedia.org/wiki/XML#Key_terminology">general XML conventions </a>. An
           attribute is always connected to an element. In <exciting>exciting</exciting> an attribute
           generally specifies a parameter or a set of parameters which are connected to the
           corresponding element. <it>Example:</it> The attribute <attref>xctype</attref> of the

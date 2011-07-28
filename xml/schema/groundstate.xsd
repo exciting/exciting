@@ -79,7 +79,7 @@
                     m_y({\bf r})\sin({ \bf q \cdot r}),m_z({\bf r})), </displaymath> where
                     <inlinemath>m_x</inlinemath>, <inlinemath>m_y</inlinemath> and
                     <inlinemath>m_z</inlinemath> are lattice periodic. See also
-                    <attref>spinprl</attref>. </xs:documentation>
+                    <attref>spinsprl</attref>. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="taufsm" type="fortrandouble"

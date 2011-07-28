@@ -154,9 +154,9 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
  
 
  <xsl:template match="filename">
-  <xsl:text></xsl:text>
+  <xsl:text>{\usefont{T1}{lmtt}{b}{n}  </xsl:text>
   <xsl:value-of select="."/>
-  <xsl:text></xsl:text>
+  <xsl:text>}</xsl:text>
  </xsl:template>
 
  <xsl:template match="attref">
@@ -179,11 +179,12 @@ Weine Olovsson, Pasquale Pavone, Stephan Sagmeister, J\"urgen Spitaler)}
   <xsl:text>
 </xsl:text>
  </xsl:template>
+ 
  <xsl:template match="a">
   <xsl:text> </xsl:text>
   <xsl:value-of select="."/>
 
-  <xsl:text>(\url{</xsl:text>
+  <xsl:text> (\url{</xsl:text>
   <xsl:value-of select="@href"/>
   <xsl:text>})</xsl:text>
 

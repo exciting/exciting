@@ -23,117 +23,117 @@
             <xs:attribute ex:importance="expert" ex:unit="" ref="intraband" default="false">
               <xs:annotation>
                 <xs:documentation> The intraband attribute is <pre>"true"</pre> if the intraband
-                  term is to be added to the optical matrix (q=0) </xs:documentation>
+                  term is to be added to the optical matrix (q=0). </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="torddf" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation> Is <pre>"true"</pre> if to consider the time-ordered version of
-                  the dielectric function </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> if to consider the time-ordered version
+                  of the dielectric function. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="tordfxc" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation> Is <pre>"true"</pre> if to consider the time-ordered version of
-                  xc kernel (MBPT derived kernels only) </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> if to consider the time-ordered version
+                  of xc kernel (MBPT derived kernels only). </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="aresdf" type="xs:boolean"
               default="true">
               <xs:annotation>
-                <xs:documentation> Is <pre>"true"</pre> if to consider the anti-resonant part for
-                  the dielectric function </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> if to consider the anti-resonant part
+                  for the dielectric function. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="aresfxc" type="xs:boolean"
               default="true">
               <xs:annotation>
-                <xs:documentation> Is <pre>"true"</pre> if to consider the anti-resonant part for
-                  the MBPT derived xc-kernels </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> if to consider the anti-resonant part
+                  for the MBPT derived xc-kernels. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="Hartree" name="fxcbsesplit"
               type="fortrandouble" default="1.0d-5">
               <xs:annotation>
                 <xs:documentation>Split parameter for degeneracy in energy differences of MBPT
-                  derived xc kernels</xs:documentation>
+                  derived xc kernels. See A. Marini, Phys. Rev. Lett., 91, (2003)
+                  256402.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="acont" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation>true if analytic continuation from the imaginary axis to the real
-                  axis is to be performed</xs:documentation>
+                <xs:documentation>Set to <pre>"true"</pre> if analytic continuation from the
+                  imaginary axis to the real axis is to be performed.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nwacont" type="xs:integer"
               default="0">
               <xs:annotation>
-                <xs:documentation>number of energy intervals (on imaginary axis) for analytic
-                  continuation</xs:documentation>
+                <xs:documentation>Number of energy intervals (on imaginary axis) for analytic
+                  continuation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="lindhard" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation>
-                  <pre>"true"</pre> if Lindhard like function is calculated (trivial matrix
-                  elements) </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> if Lindhard-like function is to be
+                  calculated. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="kerndiag" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation>
-                  <pre>"true"</pre> if only diagonal part of xc-kernel is used </xs:documentation>
+                <xs:documentation> Set to <pre>"true"</pre> if only diagonal part of xc-kernel is to
+                  be used. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="lmaxalda" type="xs:integer"
               default="3">
               <xs:annotation>
-                <xs:documentation>angular momentum cutoff for Rayleigh expansion of exponential
-                  factor for ALDA-kernel</xs:documentation>
+                <xs:documentation>Angular momentum cutoff for Rayleigh expansion of exponential
+                  factor for ALDA-kernel.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="alphalrc" type="fortrandouble"
               default="0.0d0">
               <xs:annotation>
-                <xs:documentation>alpha-parameter for the static long range contribution (LRC) model
-                  xc kernel</xs:documentation>
+                <xs:documentation><inlinemath>\alpha</inlinemath>-parameter for the static long
+                  range contribution (LRC) model xc kernel.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="alphalrcdyn" type="fortrandouble"
               default="0.0d0">
               <xs:annotation>
-                <xs:documentation>alpha-parameter for the dynamical long range contribution (LRC)
-                  model xc kernel</xs:documentation>
+                <xs:documentation><inlinemath>\alpha</inlinemath>-parameter for the dynamical long
+                  range contribution (LRC) model xc kernel.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="betalrcdyn" type="fortrandouble"
               fixed="0.0d0">
               <xs:annotation>
-                <xs:documentation>beta-parameter for the dynamical long range contribution (LRC)
-                  model xc kernel</xs:documentation>
+                <xs:documentation><inlinemath>\beta</inlinemath>-parameter for the dynamical long
+                  range contribution (LRC) model xc kernel.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="mdfqtype" type="xs:integer"
               default="0">
               <xs:annotation>
-                <xs:documentation> treatment of macroscopic dielectric function for <inlinemath>{\bf
+                <xs:documentation> Treatment of macroscopic dielectric function for <inlinemath>{\bf
                     Q}</inlinemath>-point outside of Brillouin zone. A value of 0 uses the full
-                    <inlinemath>{\bf Q}</inlinemath> and and the <inlinemath>({\bf 0},{\bf
-                    0})</inlinemath> component of the microscopic dielectric matrix is used. A value
-                  of 1 invokes a decomposition <inlinemath>{\bf Q}={\bf q}+{\bf G}_{\bf
-                    q}</inlinemath> and and the <inlinemath>({\bf Q}_{\bf q},{\bf Q}_{\bf
+                    <inlinemath>{\bf Q}</inlinemath> and the <inlinemath>({\bf 0},{\bf
+                    0})</inlinemath> component of the microscopic dielectric matrix is used. A
+                  value of 1 invokes a decomposition <inlinemath>{\bf Q}={\bf q}+{\bf G}_{\bf
+                    q}</inlinemath> and the <inlinemath>({\bf Q}_{\bf q},{\bf Q}_{\bf
                     q})</inlinemath> component of the microscopic dielectric matrix is used.
                 </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="fxctype" default="RPA">
               <xs:annotation>
-                <xs:documentation>defines which xc kernel is to be used</xs:documentation>
+                <xs:documentation>Defines which xc kernel is to be used.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -236,8 +236,9 @@
                 <xs:appinfo>
                   <oldname>nosymscr</oldname>
                 </xs:appinfo>
-                <xs:documentation> nosym is <pre>"true"</pre> if no symmetry information should be
-                  used for screening </xs:documentation>
+                <xs:documentation>
+                  <attref>nosym</attref> is <pre>"true"</pre> if no symmetry information should be used
+                  for screening. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="ngridk" type="integertriple"
@@ -246,7 +247,7 @@
                 <xs:appinfo>
                   <oldname>ngridkscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point grid sizes for screening</xs:documentation>
+                <xs:documentation>k-point grid sizes for screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="reducek" type="xs:boolean"
@@ -255,8 +256,9 @@
                 <xs:appinfo>
                   <oldname>reducekscr</oldname>
                 </xs:appinfo>
-                <xs:documentation> reducek is <pre>"true"</pre> if k-points are to be reduced (with
-                  crystal symmetries) for screening. </xs:documentation>
+                <xs:documentation>
+                  <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced with crystal
+                  symmetries for screening. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d"
@@ -265,7 +267,7 @@
                 <xs:appinfo>
                   <oldname>vkloffscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point offset for screening</xs:documentation>
+                <xs:documentation>k-point offset for screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble"
@@ -274,8 +276,8 @@
                 <xs:appinfo>
                   <oldname>rgkmaxscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>smallest muffin-tin radius times gkmax for
-                  screening</xs:documentation>
+                <xs:documentation>The smallest muffin-tin radius times <pre>gkmax</pre> for
+                  screening.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer"
@@ -284,12 +286,12 @@
                 <xs:appinfo>
                   <oldname>nemptyscr</oldname>
                 </xs:appinfo>
-                <xs:documentation>number of empty states</xs:documentation>
+                <xs:documentation>Number of empty states.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="screentype" default="full">
               <xs:annotation>
-                <xs:documentation>defines which screening is used</xs:documentation>
+                <xs:documentation>Defines which type of screening is to be used.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -310,7 +312,7 @@
                 <xs:appinfo>
                   <oldname>nosymbse</oldname>
                 </xs:appinfo>
-                <xs:documentation> set to <pre>"true"</pre> if no symmetry information should be
+                <xs:documentation> Set to <pre>"true"</pre> if no symmetry information should be
                   used for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
@@ -320,8 +322,9 @@
                 <xs:appinfo>
                   <oldname>reducekbse</oldname>
                 </xs:appinfo>
-                <xs:documentation> reducek is <pre>"true"</pre> if k-points are to be reduced (with
-                  crystal symmetries) for BSE. </xs:documentation>
+                <xs:documentation>
+                  <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced with crystal
+                  symmetries for BSE. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d"
@@ -330,7 +333,7 @@
                 <xs:appinfo>
                   <oldname>vkloffbse</oldname>
                 </xs:appinfo>
-                <xs:documentation>k-point offset for BSE</xs:documentation>
+                <xs:documentation>k-point offset for BSE.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble"
@@ -339,7 +342,8 @@
                 <xs:appinfo>
                   <oldname>rgkmaxbse</oldname>
                 </xs:appinfo>
-                <xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
+                <xs:documentation>Smallest muffin-tin radius times
+                  <pre>gkmax</pre>.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="scrherm" type="xs:integer"
@@ -355,14 +359,14 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="fbzq" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation>true if q-point set is taken from first Brillouin
-                  zone</xs:documentation>
+                <xs:documentation>Set to <pre>"true"</pre> if q-point set is to be taken from the
+                  first Brillouin zone.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="sciavtype" default="spherical">
               <xs:annotation>
-                <xs:documentation> defines how the screened Coulomb interaction matrix is to be
-                  averaged (important for the singular terms) </xs:documentation>
+                <xs:documentation> Defines how the screened Coulomb interaction matrix is to be
+                  averaged (important for the singular terms). </xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -377,7 +381,7 @@
               <xs:annotation>
                 <xs:documentation>
                   <pre>"true"</pre> if the body of the screened Coulomb interaction is to be
-                  averaged (q=0) </xs:documentation>
+                  averaged (q=0). </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="sciavqhd" type="xs:boolean"
@@ -385,15 +389,15 @@
               <xs:annotation>
                 <xs:documentation>
                   <pre>"true"</pre> if the head of the screened Coulomb interaction is to be
-                  averaged (q!=0) </xs:documentation>
+                  averaged (q!=0). </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="sciavqwg" type="xs:boolean"
               default="false">
               <xs:annotation>
                 <xs:documentation>
-                  <pre>"true"</pre> if the wings of the screened Coulomb interaction is to be
-                  averaged (q!=0) </xs:documentation>
+                  <pre>"true"</pre> if the wings of the screened Coulomb interaction are to be
+                  averaged (q!=0). </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="sciavqbd" type="xs:boolean"
@@ -401,35 +405,36 @@
               <xs:annotation>
                 <xs:documentation>
                   <pre>"true"</pre> if the body of the screened Coulomb interaction is to be
-                  averaged (q!=0) </xs:documentation>
+                  averaged (q!=0). </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="bsedirsing" type="xs:boolean"
               default="false">
               <xs:annotation>
-                <xs:documentation>true if effective singular part of direct term of BSE Hamiltonian
-                  is to be used</xs:documentation>
+                <xs:documentation><pre>"true"</pre> if effective singular part of direct term of BSE
+                  Hamiltonian is to be used.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="lmaxdielt" type="xs:integer"
               default="14">
               <xs:annotation>
-                <xs:documentation>angular momentum cutoff of the spherical harmonics expansion of
-                  the dielectric matrix</xs:documentation>
+                <xs:documentation>Angular momentum cutoff of the spherical harmonics expansion of
+                  the dielectric matrix.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nleblaik" type="xs:integer"
               default="5810">
               <xs:annotation>
-                <xs:documentation>number of points used for the Lebedev-Laikov grids (must be
-                  selected according to Ref.LebLaik)</xs:documentation>
+                <xs:documentation>Number of points used for the Lebedev-Laikov grids must be
+                  selected according to V.I. Lebedev, and D.N. Laikov, Doklady Mathematics, 59
+                  (1999) 477.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nexcitmax" type="xs:integer"
               default="100">
               <xs:annotation>
-                <xs:documentation>maximum number of excitons to be considered in a BSE
-                  calculation</xs:documentation>
+                <xs:documentation>Maximum number of excitons to be considered in a BSE
+                  calculation.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nstlbsemat"
@@ -438,11 +443,11 @@
                 <xs:appinfo>
                   <oldname>nbfbse,nafbse</oldname>
                 </xs:appinfo>
-                <xs:documentation>range of bands for calculating the screening and matrix elements
-                  needed for solving BSE. The first pair of numbers correspond to the band index for
-                  local orbitals and valence states (counted from the lowest eigenenergy), the
-                  second pair correspond to the band index of the conduction states (counted from
-                  the Fermi level)</xs:documentation>
+                <xs:documentation>Range of bands for calculating the screening and matrix elements
+                  needed for solving the BSE. The first pair of numbers corresponds to the band
+                  index for local orbitals and valence states (counted from the lowest eigenenergy),
+                  the second pair corresponds to the band index of the conduction states (counted
+                  from the Fermi level).</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="nstlbse" type="integerquadrupel"
@@ -451,23 +456,23 @@
                 <xs:appinfo>
                   <oldname>nbfbse,nafbse</oldname>
                 </xs:appinfo>
-                <xs:documentation>range of bands included for the BSE calculation. The first pair of
-                  numbers correspond to the band index for local orbitals and valence states
-                  (counted from the lowest eigenenergy), the second pair correspond to the band
-                  index of the conduction states (counted from the Fermi level)</xs:documentation>
+                <xs:documentation>Range of bands included for the BSE calculation. The first pair of
+                  numbers corresponds to the band index for local orbitals and valence states
+                  (counted from the lowest eigenenergy), the second pair corresponds to the band
+                  index of the conduction states (counted from the Fermi level).</xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="aresbse" type="xs:boolean"
               default="true">
               <xs:annotation>
-                <xs:documentation> Is <pre>"true"</pre> if to consider the anti-resonant part for
-                  the BSE spectrum </xs:documentation>
+                <xs:documentation> Is set to <pre>"true"</pre> if to consider the anti-resonant part
+                  for the BSE spectrum. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="bsetype" default="singlet">
               <xs:annotation>
-                <xs:documentation>defines which parts of the BSE Hamiltonian are to be
-                  considered</xs:documentation>
+                <xs:documentation>Defines which parts of the BSE Hamiltonian are to be
+                  considered.</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:string">
@@ -483,9 +488,8 @@
         <xs:element ex:importance="expert" ex:unit="" name="transitions" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Describe transitions between Kohn-Sham states for the calculation of
-              the Kohn-Sham response function (and screening) here. Individual transitions can be
-              defined as well as a range (or a list) of initial and final states can be
-              defined.</xs:documentation>
+              the Kohn-Sham response function (and screening) here. Individual transitions as well
+              as a range (or a list) of initial and final states can be defined.</xs:documentation>
           </xs:annotation>
           <xs:complexType>
             <xs:all>
@@ -493,8 +497,8 @@
                 maxOccurs="1">
                 <xs:annotation>
                   <xs:documentation>A list of individual transitions consisting of an initial state
-                    a final state and a k-point is given here. An empty list amounts to no
-                    transitions at all.</xs:documentation>
+                    a final state and a k-point is given here. If the list is empty, no transitions
+                    are considered.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                   <xs:sequence>
@@ -519,8 +523,8 @@
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
                           type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-point to consider. A value of zero
-                              (default) means to include all k-points.</xs:documentation>
+                            <xs:documentation>Number of k-points to be considered. A value of zero
+                              (default) means to include all k-points. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="initial"
@@ -555,8 +559,8 @@
                       maxOccurs="unbounded">
                       <xs:annotation>
                         <xs:documentation>A range of transitions (for initial as well as final
-                          states) is given here. A range consists of a "start" and a "stop" value as
-                          well as a k-point. Values of zero correspond to starting at the first
+                          states) is given here. A range consists of a "start" and a "stop" values
+                          as well as a k-point. Values of zero correspond to starting at the first
                           state and stopping at the last state and considering all k-points. They
                           can be used as "wildcards" (default). Therefore, an empty element
                           corresponds to the full initial/final state range for all
@@ -575,14 +579,14 @@
                           use="required">
                           <xs:annotation>
                             <xs:documentation>Select for initial or final state
-                              range</xs:documentation>
+                              range.</xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
                           type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-point to consider. A value of zero
-                              (default) means to include all k-point.</xs:documentation>
+                            <xs:documentation>Number of k-point to be considered. A value of zero
+                              (default) means to include all k-point. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="start"
@@ -634,14 +638,14 @@
                           use="required">
                           <xs:annotation>
                             <xs:documentation>Select for initial or final state
-                              list</xs:documentation>
+                              list.</xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="kpointnumber"
                           type="xs:integer" default="0">
                           <xs:annotation>
-                            <xs:documentation>Number of k-point to consider. A value of zero
-                              (default) means to include all k-point.</xs:documentation>
+                            <xs:documentation>Number of k-point to be consider. A value of zero
+                              (default) means to include all k-point. </xs:documentation>
                           </xs:annotation>
                         </xs:attribute>
                         <xs:attribute ex:importance="expert" ex:unit="" name="state"
@@ -661,8 +665,8 @@
         </xs:element>
         <xs:element ex:importance="expert" ex:unit="" ref="qpointset" minOccurs="1" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation> finite momentum transfer <inlinemath>{ \bf G}+{ \bf q}</inlinemath>
-              vector </xs:documentation>
+            <xs:documentation> Finite momentum transfer <inlinemath>{ \bf G}+{ \bf q}</inlinemath>\
+              vector. </xs:documentation>
             <xs:appinfo>
               <oldname>vgqlmt,nqptmt</oldname>
             </xs:appinfo>
@@ -677,7 +681,7 @@
               <xs:annotation>
                 <xs:documentation>
                   <pre>"true"</pre> if tetrahedron method is used for the k-space integration in the
-                  Kohn-Sham response function </xs:documentation>
+                  Kohn-Sham response function. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="expert" ex:unit="" name="kordexc" type="xs:boolean"
@@ -702,8 +706,8 @@
                 <xs:appinfo>
                   <oldname>tetraqweights</oldname>
                 </xs:appinfo>
-                <xs:documentation>choice of weights and nodes for tetrahedron method and non-zero
-                  Q-point</xs:documentation>
+                <xs:documentation>Choice of weights and nodes for the tetrahedron method and
+                  non-zero Q-point.</xs:documentation>
               </xs:annotation>
             </xs:attribute>
           </xs:complexType>
@@ -729,8 +733,8 @@
                             <xs:appinfo>
                               <oldnr>301</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>Calculate eigenvectors, -values and
-                              occupancies</xs:documentation>
+                            <xs:documentation>Calculate eigenvectors, values and
+                              occupancies.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="tetcalccw">
@@ -739,7 +743,7 @@
                               <oldnr>310</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate frequency-dependent weights for convolutions
-                              using the linear tetrahedron method </xs:documentation>
+                              using the linear tetrahedron method. </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="writepmatxs">
@@ -747,7 +751,7 @@
                             <xs:appinfo>
                               <oldnr>320</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>Calculate momentum matrix elements</xs:documentation>
+                            <xs:documentation>Calculate momentum matrix elements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="writeemat">
@@ -756,7 +760,7 @@
                               <oldnr>330</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate q-dependent matrix
-                              elements</xs:documentation>
+                              elements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="df">
@@ -765,7 +769,7 @@
                               <oldnr>340</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate the Kohn-Sham response function checked in
-                              the code !</xs:documentation>
+                              the code.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="df2">
@@ -773,9 +777,9 @@
                             <xs:appinfo>
                               <oldnr>345</oldnr>
                             </xs:appinfo>
-                            <xs:documentation> Calculate the Kohn-Sham response function taking into
-                              account the rigid shift of the BSE diagonal. This is not a duplicate
-                              task, as the task-Nr. is referenced. checked in the code
+                            <xs:documentation>Calculate the Kohn-Sham response function taking into
+                              account the rigid shift of the BSE diagonal. ??? This is not a
+                              duplicate task, as the task-Nr. is referenced. checked in the code
                               !</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
@@ -803,9 +807,8 @@
                             <xs:appinfo>
                               <oldnr>410</oldnr>
                             </xs:appinfo>
-                            <xs:documentation> Calculate frequency-dependent weights for
-                              convolutions using the linear tetrahedron method for screening
-                            </xs:documentation>
+                            <xs:documentation>Calculate frequency-dependent weights for convolutions
+                              using the linear tetrahedron method for screening. </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="scrwritepmat">
@@ -814,7 +817,7 @@
                               <oldnr>420</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate momentum matrix elements for
-                              screening</xs:documentation>
+                              screening.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="screen">
@@ -823,7 +826,7 @@
                               <oldnr>430</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate RPA screening (ignoring scissor's
-                              shift)</xs:documentation>
+                              shift).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="scrcoulint">
@@ -832,7 +835,7 @@
                               <oldnr>440</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate direct term of BSE
-                              Hamiltonian</xs:documentation>
+                              Hamiltonian.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="exccoulint">
@@ -841,7 +844,7 @@
                               <oldnr>441</oldnr>
                             </xs:appinfo>
                             <xs:documentation>Calculate exchange term of BSE
-                              Hamiltonian</xs:documentation>
+                              Hamiltonian.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="bse">
@@ -849,7 +852,7 @@
                             <xs:appinfo>
                               <oldnr>445</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>Bethe-Salpeter equation</xs:documentation>
+                            <xs:documentation>Bethe-Salpeter equation.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="kernxc_bse">
@@ -858,7 +861,7 @@
                               <oldnr>450</oldnr>
                             </xs:appinfo>
                             <xs:documentation> Calculate frequency dependent xc-kernel drived from
-                              the Bethe-Salpeter equation in first order </xs:documentation>
+                              the Bethe-Salpeter equation in first order. </xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <!-- experimental and debugging tasks below -->
@@ -867,7 +870,7 @@
                             <xs:appinfo>
                               <oldnr>23</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>estimate bandgap from regular grid</xs:documentation>
+                            <xs:documentation>Estimate bandgap from regular grid.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="writepmat">
@@ -875,8 +878,8 @@
                             <xs:appinfo>
                               <oldnr>120</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>calculate momentum matrix elements
-                              (legacy)</xs:documentation>
+                            <xs:documentation>Calculate momentum matrix elements
+                              (legacy).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="dielectric">
@@ -884,7 +887,7 @@
                             <xs:appinfo>
                               <oldnr>121</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>linear optics (legacy)</xs:documentation>
+                            <xs:documentation>Linear optics (legacy).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="writepmatasc">
@@ -893,7 +896,7 @@
                               <oldnr>321</oldnr>
                             </xs:appinfo>
                             <xs:documentation>ASCII output of momentum matrix
-                              elements</xs:documentation>
+                              elements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="pmatxs2orig">
@@ -901,8 +904,8 @@
                             <xs:appinfo>
                               <oldnr>322</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>convert momentum matrix elements file to old
-                              format</xs:documentation>
+                            <xs:documentation>Convert momentum matrix elements file to old
+                              format.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="writeematasc">
@@ -911,7 +914,7 @@
                               <oldnr>331</oldnr>
                             </xs:appinfo>
                             <xs:documentation>ASCII output of q-dependent matrix
-                              elements</xs:documentation>
+                              elements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="writepwmat">
@@ -919,8 +922,8 @@
                             <xs:appinfo>
                               <oldnr>335</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>calculate matrix elements of the plane wave (simple
-                              version for checking)</xs:documentation>
+                            <xs:documentation>Calculate matrix elements of the plane wave (simple
+                              version for checking).</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="emattest">
@@ -928,7 +931,7 @@
                             <xs:appinfo>
                               <oldnr>339</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>check relation between matr. el. of exp. and mom.
+                            <xs:documentation>Check relation between matr. el. of exp. and mom.
                               matr. el.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
@@ -938,7 +941,7 @@
                               <oldnr>341</oldnr>
                             </xs:appinfo>
                             <xs:documentation>ASCII output of Kohn Sham response
-                              function</xs:documentation>
+                              function.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="x0tobin">
@@ -946,8 +949,8 @@
                             <xs:appinfo>
                               <oldnr>342</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>binary output of Kohn Sham response
-                              function</xs:documentation>
+                            <xs:documentation>Binary output of Kohn Sham response
+                              function.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="fxc_alda_check">
@@ -955,7 +958,7 @@
                             <xs:appinfo>
                               <oldnr>398</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>check ALDA kernel</xs:documentation>
+                            <xs:documentation>Check ALDA kernel.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="kernxc_bse3">
@@ -963,8 +966,8 @@
                             <xs:appinfo>
                               <oldnr>451</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>BSE-kernel, straight forward
-                              version</xs:documentation>
+                            <xs:documentation>BSE-kernel, straight-forward
+                              version.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="testxs">
@@ -972,7 +975,7 @@
                             <xs:appinfo>
                               <oldnr>499</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>degub routine of xs-part</xs:documentation>
+                            <xs:documentation>Debug routine of xs-part.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="xsestimate">
@@ -980,8 +983,8 @@
                             <xs:appinfo>
                               <oldnr>700</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>estimate disk-space, cpu-time and memory
-                              requirements</xs:documentation>
+                            <xs:documentation>Estimate disk-space, cpu-time and memory
+                              requirements.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="xstiming">
@@ -989,7 +992,7 @@
                             <xs:appinfo>
                               <oldnr>701</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>test timing</xs:documentation>
+                            <xs:documentation>Test timing.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <!-- debugging main part -->
@@ -998,7 +1001,7 @@
                             <xs:appinfo>
                               <oldnr>999</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>debug routine main part of code</xs:documentation>
+                            <xs:documentation>Debug routine of main part of code.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <!-- import/export tasks below -->
@@ -1007,8 +1010,8 @@
                             <xs:appinfo>
                               <oldnr>900</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>generate STATE.xml file from STATE.OUT
-                              file</xs:documentation>
+                            <xs:documentation>Generate STATE.xml file from STATE.OUT
+                              file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="portstate(2)">
@@ -1016,8 +1019,8 @@
                             <xs:appinfo>
                               <oldnr>901</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>generate STATE.OUT file from STATE.xml
-                              file</xs:documentation>
+                            <xs:documentation>Generate STATE.OUT file from STATE.xml
+                              file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="portstate(-1)">
@@ -1025,8 +1028,8 @@
                             <xs:appinfo>
                               <oldnr>910</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>display Information about STATE.OUT
-                              file</xs:documentation>
+                            <xs:documentation>Display information about STATE.OUT
+                              file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                         <xs:enumeration value="portstate(-2)">
@@ -1034,8 +1037,8 @@
                             <xs:appinfo>
                               <oldnr>911</oldnr>
                             </xs:appinfo>
-                            <xs:documentation>display Information about STATE.xml
-                              file</xs:documentation>
+                            <xs:documentation>Display information about STATE.xml
+                              file.</xs:documentation>
                           </xs:annotation>
                         </xs:enumeration>
                       </xs:restriction>
@@ -1058,27 +1061,28 @@
         <xs:annotation>
           <xs:documentation>
             <pre>"true"</pre> if also off-diagonal tensor elements for the interacting response
-            function are to be calculated </xs:documentation>
+            function are to be calculated. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapwwf" type="xs:integer"
         default="-1">
         <xs:annotation>
-          <xs:documentation>maximum angular momentum for APW functions for q-dependent matrix
-            elements</xs:documentation>
+          <xs:documentation>Maximum angular momentum for APW functions for q-dependent matrix
+            elements.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="lmaxemat" type="xs:integer" default="3">
         <xs:annotation>
-          <xs:documentation> maximum angular momentum for Rayleigh expansion of <inlinemath>{\bf
-              q}</inlinemath>-dependent plane wave factor </xs:documentation>
+          <xs:documentation> Maximum angular momentum for Rayleigh expansion of <inlinemath>{\bf
+              q}</inlinemath>-dependent plane wave factor. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="emaxdf" type="fortrandouble"
         default="1.0d10">
         <xs:annotation>
-          <xs:documentation>energy cutoff for the unoccupied states in the Kohn-Sahm response
-            function and screening</xs:documentation>
+          <xs:documentation>Energy cutoff for the unoccupied states in the Kohn-Sham response
+            function and screening. This parameter ensures a cutoff at the specified energy and is
+            defined in addition to the <attref>nempty</attref> parameter.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="broad" type="fortrandouble"
@@ -1090,20 +1094,20 @@
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="epsdfde" type="fortrandouble"
         default="1.0d-8">
         <xs:annotation>
-          <xs:documentation> smallest energy difference for which the square of its inverse will be
-            considered in the Kohn-Sham response function </xs:documentation>
+          <xs:documentation>The smallest energy difference for which the square of its inverse will
+            be considered in the Kohn-Sham response function. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="tevout" type="xs:boolean"
         default="false">
         <xs:annotation>
           <xs:documentation>
-            <pre>"true"</pre> if energy outputs are in eV </xs:documentation>
+            <pre>"true"</pre> if energy outputs are in eV. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="xstype" use="required">
         <xs:annotation>
-          <xs:documentation>Should TDDFT be used or BSE</xs:documentation>
+          <xs:documentation>Should TDDFT be used or BSE.</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -1115,57 +1119,52 @@
       <!-- Here are experimental parameters -->
       <xs:attribute ex:importance="expert" ex:unit="" ref="fastpmat" default="true">
         <xs:annotation>
-          <xs:documentation> if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and
-            lo-lo parts of the momentum matrix elements in the muffin-tin is used.
+          <xs:documentation> If set to <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW
+            and lo-lo parts of the momentum matrix elements in the muffin-tin is used.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="fastemat" type="xs:boolean"
         default="true">
         <xs:annotation>
-          <xs:documentation> if <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW and
-            lo-lo parts of the <inlinemath>{\bf q}</inlinemath>-dependent matrix elements in the
-            muffin-tin is used. </xs:documentation>
+          <xs:documentation> If set to <pre>"true"</pre>, a fast method to calculate APW-lo, lo-APW
+            and lo-lo parts of the <inlinemath>{\bf q}</inlinemath>-dependent matrix elements in
+            the muffin-tin is used. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="tappinfo" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation>true if to append info to output file</xs:documentation>
+          <xs:documentation><pre>"true"</pre> to append info to output file.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="dbglev" type="xs:integer" default="0">
         <xs:annotation>
-          <xs:documentation>debugging level</xs:documentation>
+          <xs:documentation>Debugging level. Any value <inlinemath>{ > 0 }</inlinemath>  will
+            produce additional debug output. The large the value, the more information is
+            output.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="gqmaxtype" default="|G+q|">
         <xs:annotation>
           <xs:documentation>Defines the way the gqmax cutoff is applied for the selection of the
-            G-vectors</xs:documentation>
+            G-vectors. For <inlinemath>"|G+q|"</inlinemath> G vectors are selected such that
+              <inlinemath>{\bf G+q}</inlinemath> lies within the <attref>gqmax</attref> cutoff. For
+              <inlinemath>"|G|"</inlinemath> G vectors are selected such that <inlinemath>{\bf
+              G}</inlinemath> lies within the <pre>gqmax</pre> cutoff. </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="|G+q|">
-              <xs:annotation>
-                <xs:documentation> G vectors are selected such that <inlinemath>{\bf
-                    G+q}</inlinemath> lies within the <pre>gqmax</pre> cutoff </xs:documentation>
-              </xs:annotation>
-            </xs:enumeration>
-            <xs:enumeration value="|G|">
-              <xs:annotation>
-                <xs:documentation> G vectors are selected such that <inlinemath>{\bf G}</inlinemath>
-                  lies within the <pre>gqmax</pre> cutoff </xs:documentation>
-              </xs:annotation>
-            </xs:enumeration>
+            <xs:enumeration value="|G+q|"> </xs:enumeration>
+            <xs:enumeration value="|G|"> </xs:enumeration>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="gqmax" type="fortrandouble"
         default="0.0d0">
         <xs:annotation>
-          <xs:documentation>|G+q| cutoff for Kohn-Sham response function, screening and for
-            expansion of Coulomb potential</xs:documentation>
+          <xs:documentation><inlinemath>{\bf |G+q|}</inlinemath> cutoff for Kohn-Sham response
+            function, screening and for expansion of Coulomb potential</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <!-- section of parameters from groundstate which are allowed to be different from the ones of the ground state run -->
@@ -1174,7 +1173,8 @@
           <xs:appinfo>
             <oldname>nosymxs</oldname>
           </xs:appinfo>
-          <xs:documentation> nosym is <pre>"true"</pre> if no symmetry information should be used
+          <xs:documentation>
+            <attref>nosym</attref> is <pre>"true"</pre> if no symmetry information should be used
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -1184,7 +1184,7 @@
           <xs:appinfo>
             <oldname>ngridkxs</oldname>
           </xs:appinfo>
-          <xs:documentation>k-point grid sizes</xs:documentation>
+          <xs:documentation>k-point grid sizes.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="vkloff" type="vect3d"
@@ -1209,8 +1209,9 @@
           <xs:appinfo>
             <oldname>reducekxs</oldname>
           </xs:appinfo>
-          <xs:documentation> reducek is <pre>"true"</pre> if k-points are to be reduced (with
-            crystal symmetries) </xs:documentation>
+          <xs:documentation>
+            <attref>reducek</attref> is <pre>"true"</pre> if k-points are to be reduced (with crystal
+            symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="ngridq" type="integertriple"
@@ -1219,7 +1220,7 @@
           <xs:appinfo>
             <oldname>ngridqxs</oldname>
           </xs:appinfo>
-          <xs:documentation>q-point grid sizes</xs:documentation>
+          <xs:documentation>q-point grid sizes.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="reduceq" type="xs:boolean"
@@ -1228,8 +1229,9 @@
           <xs:appinfo>
             <oldname>reduceqxs</oldname>
           </xs:appinfo>
-          <xs:documentation> reducek is <pre>"true"</pre> if q-points are to be reduced (with
-            crystal symmetries) </xs:documentation>
+          <xs:documentation>
+            <pre>reducek</pre> is <pre>"true"</pre> if q-points are to be reduced (with crystal
+            symmetries). </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="rgkmax" type="fortrandouble"
@@ -1238,7 +1240,7 @@
           <xs:appinfo>
             <oldname>rgkmaxxs</oldname>
           </xs:appinfo>
-          <xs:documentation>smallest muffin-tin radius times gkmax</xs:documentation>
+          <xs:documentation>Smallest muffin-tin radius times <pre>gkmax</pre>.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="Hartree" name="swidth" type="fortrandouble"
@@ -1248,8 +1250,8 @@
             <oldname>swidthxs</oldname>
             <olddefault default="0.01d0"/>
           </xs:appinfo>
-          <xs:documentation>width of the smooth approximation to the Dirac delta function (must be
-            greater than zero)</xs:documentation>
+          <xs:documentation>Width of the smooth approximation to the Dirac delta function (must be >
+            0).</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="lmaxapw" type="xs:integer" default="10">
@@ -1258,7 +1260,7 @@
             <oldname>lmaxapwxs</oldname>
             <olddefault default="8"/>
           </xs:appinfo>
-          <xs:documentation>angular momentum cut-off for the APW functions</xs:documentation>
+          <xs:documentation>Angular momentum cut-off for the APW functions.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="lmaxmat" type="xs:integer" default="5">
@@ -1266,8 +1268,8 @@
           <xs:appinfo>
             <oldname>lmaxmatxs</oldname>
           </xs:appinfo>
-          <xs:documentation>angular momentum cut-off for the outer-most loop in the hamiltonian and
-            overlap matrix setup</xs:documentation>
+          <xs:documentation>Angular momentum cut-off for the outer-most loop in the hamiltonian and
+            overlap matrix setup.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nempty" type="xs:integer" default="5">
@@ -1276,15 +1278,15 @@
             <oldname>nemptyxs</oldname>
           </xs:appinfo>
           <xs:documentation> Number of empty states. This parameter determines the energy cutoff for
-            the excitation spectra. For determining the number of states realted to an energy
-            cutoff, perform one iteration of a SCF calculation, setting <pre>nempty</pre> to a
-            higher value and check the <pre>EIGVAL.OUT</pre>
-          </xs:documentation>
+            the excitation spectra. For determining the number of states related to an energy
+            cutoff, perform one iteration of a SCF calculation, setting <attref>nempty</attref> to a
+            higher value and check the <pre>EIGVAL.OUT</pre>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="essential" ex:unit="Hartree" ref="scissor" default="0.0d0">
         <xs:annotation>
-          <xs:documentation>scissors correction</xs:documentation>
+          <xs:documentation>Scissors correction to correct the conduction band
+            energies.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
