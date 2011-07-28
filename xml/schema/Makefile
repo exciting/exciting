@@ -1,4 +1,4 @@
-PREFIX=draft:
+PREFIX=draft-
 STRPARAM=  --stringparam importancelevels "essential expert" --stringparam prefix "$(PREFIX)"
 wiki/*: *.xsd ../schematowikidot.xsl common
 	xsltproc $(STRPARAM) ../schematowikidot.xsl   input.xsd >wiki/$(PREFIX)input;\

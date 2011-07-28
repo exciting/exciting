@@ -269,8 +269,8 @@
               <xs:annotation>
                 <xs:documentation> Defines the file that contains the species definition. It is
                   looked up in the species directory specified by the species path. By default, the
-                  name of the file is <it_ns>element</it_ns> . <ns_pre_ns> xml</ns_pre_ns> , e.g.
-                    <pre_ns>Ag.xml</pre_ns> . </xs:documentation>
+                  name of the file is <it>element</it> . <ns_pre> xml</ns_pre> , e.g.
+                    <pre>Ag.xml</pre> . </xs:documentation>
                 <xs:appinfo>
                   <oldname>spfname</oldname>
                 </xs:appinfo>
@@ -330,7 +330,7 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="molecule" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> If <pre_ns>"true"</pre_ns>, a calculation for an isolated molecule is
+          <xs:documentation> If <pre>"true"</pre>, a calculation for an isolated molecule is
             performed. In this case, the atomic positions specified by the
               <elementref>atom</elementref> subelement of the <elementref>species</elementref>
             element must be given in cartesian coordinates. The lattice vectors are set up
@@ -338,10 +338,10 @@
               i=1,2,3</displaymath> with <displaymath>A_i=\max_{\alpha,\beta}\left|{
               a}^{(\alpha)}_i-{a}^{(\beta)}_i\right| +d_{\rm vac}</displaymath> where
               <inlinemath>{a}_i^{(\alpha)} </inlinemath> is the catesian component of the atom
-            labeled by <inlinemath>\alpha</inlinemath> in the <inlinemath_ns>i</inlinemath_ns>-th
-            direction specified by the unit vector <inlinemath_ns>\hat{\bf e}^{(i)}</inlinemath_ns>.
+            labeled by <inlinemath>\alpha</inlinemath> in the <inlinemath>i</inlinemath>-th
+            direction specified by the unit vector <inlinemath>\hat{\bf e}^{(i)}</inlinemath>.
             Furthermore, <inlinemath>d_{\rm vac}</inlinemath> represents the size of the vacuum
-            around the molecule as defined by the attribute <attref_ns>vacuum</attref_ns>.
+            around the molecule as defined by the attribute <attref>vacuum</attref>.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -355,8 +355,8 @@
               1+\zeta|Z_i|^{1/3},
             </displaymath> where <inlinemath>Z_i</inlinemath> is the atomic
             number of the <inlinemath>i</inlinemath> th species, <inlinemath>\zeta</inlinemath> is
-            stored in <attref_ns>rmtapm</attref_ns>(1). The distance between
-            the muffin-tin speheres is determined by the value of <attref_ns>rmtapm</attref_ns>(2): When <attref_ns>rmtapm</attref_ns>
+            stored in <attref>rmtapm</attref>(1). The distance between
+            the muffin-tin speheres is determined by the value of <attref>rmtapm</attref>(2): When <attref>rmtapm</attref>
             (2)=1, the closest muffin-tin spheres will touch each other. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -378,15 +378,15 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="autormt" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> If <pre_ns>"true"</pre_ns>, the muffin-tin radius of each species is
+          <xs:documentation> If <pre>"true"</pre>, the muffin-tin radius of each species is
             automatically set according to the variables specified by the attribute
-              <attref_ns>rmtapm</attref_ns>. </xs:documentation>
+              <attref>rmtapm</attref>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="primcell" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> If <pre_ns>"true"</pre_ns>, the primitive unit cell is determined
+          <xs:documentation> If <pre>"true"</pre>, the primitive unit cell is determined
             automatically from the conventional cell defined by the basis vectors given by the
               <elementref>basevect</elementref> elements. The primitive unit cell is determined by
             searching for lattice vectors among all vectors connecting atomic sites and choosing the

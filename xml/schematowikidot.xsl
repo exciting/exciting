@@ -123,127 +123,104 @@
 </xsl:text>
   </xsl:template>
   <xsl:template match="inlinemath">
-    <xsl:text> [[$ </xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text> $]] </xsl:text>
-  </xsl:template>
-  <xsl:template match="inlinemath_ns">
-    <xsl:text> [[$ </xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>[[$ </xsl:text>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
     <xsl:text> $]]</xsl:text>
-    <xsl:if test="@space">
-      <xsl:text> </xsl:text>
-    </xsl:if>
   </xsl:template>
+  
   <xsl:template match="pre">
-    <xsl:text> {{</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>}} </xsl:text>
-  </xsl:template>
-  <xsl:template match="ns_pre">
     <xsl:text>{{</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>}} </xsl:text>
-  </xsl:template>
-  <xsl:template match="pre_ns">
-    <xsl:text> {{</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
     <xsl:text>}}</xsl:text>
   </xsl:template>
-  <xsl:template match="ns_pre_ns">
-    <xsl:text>{{</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>}}</xsl:text>
-  </xsl:template>
+  
   <xsl:template match="it">
-    <xsl:text> //</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>// </xsl:text>
-  </xsl:template>
-  <xsl:template match="it_ns">
-    <xsl:text> //</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>//</xsl:text>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
     <xsl:text>//</xsl:text>
   </xsl:template>
+   
   <xsl:template match="bf">
-    <xsl:text> **</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
     <xsl:text>**</xsl:text>
-    <xsl:if test="not(@nospace='true')">
-      <xsl:text> </xsl:text>
-    </xsl:if>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
+    <xsl:text>**</xsl:text>
+     
   </xsl:template>
   <xsl:template match="pre-bf">
-    <xsl:text> {{**</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>**}} </xsl:text>
-  </xsl:template>
-  <xsl:template match="pre-bf_ns">
-    <xsl:text> {{**</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>{{**</xsl:text>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
     <xsl:text>**}}</xsl:text>
   </xsl:template>
+   
   <xsl:template match="filename">
-    <xsl:text> {{**//</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>//**}} </xsl:text>
-  </xsl:template>
-  <xsl:template match="filename_ns">
-    <xsl:text> {{**//</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:text>{{**//</xsl:text>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
     <xsl:text>//**}}</xsl:text>
   </xsl:template>
+   
   <xsl:template match="green">
-    <xsl:text> ##green|</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:text>## </xsl:text>
+    <xsl:text>##green|</xsl:text>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
+    <xsl:text>##</xsl:text>
   </xsl:template>
   <xsl:template match="blue">
     <xsl:text> ##blue|</xsl:text>
-    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
     <xsl:text>## </xsl:text>
   </xsl:template>
   <xsl:template match="text()">
-    <xsl:value-of select="normalize-space(.)"/>
+    <xsl:call-template name="normalizespace">
+<xsl:with-param name="a" select="."/>
+</xsl:call-template>
   </xsl:template>
   <xsl:template match="xs:documentation">
     <xsl:apply-templates
-      select="text()|inlinemath|inlinemath_ns|displaymath|pre|pre_ns|ns_pre|ns_pre_ns|pre-bf|pre-bf_ns|it|it_ns|p|exciting|a|list|li|attref|attref_ns|elementref|bf|filename|filename_ns"
+      select="text()|inlinemath|inlinemath|displaymath|pre|pre|ns_pre|ns_pre|pre-bf|pre-bf|it|it|p|exciting|a|list|li|attref|attref|elementref|bf|filename|filename"
     />
   </xsl:template>
   <xsl:template match="attref">
     <xsl:call-template name="attref">
       <xsl:with-param name="att" select="."/>
     </xsl:call-template>
-    <xsl:text> </xsl:text>
+  
   </xsl:template>
   
   <xsl:template  name="attref">
     <xsl:param name="att"/>
-    <xsl:text> [[span class="attributelink"]]**{{[#att</xsl:text>
+    <xsl:text>[[span class="attributelink"]]**{{[#att</xsl:text>
     <xsl:value-of select="$att"/>
     <xsl:text> </xsl:text>
     <xsl:value-of select="$att"/>
     <xsl:text>]}}**[[/span]]</xsl:text>
   </xsl:template>
-   <xsl:template match="attref_ns">
-    <xsl:text> [[span class="attributelink"]]**{{[#att</xsl:text>
-    <xsl:value-of select="."/>
-    <xsl:text> </xsl:text>
-    <xsl:value-of select="."/>
-    <xsl:text>]}}**[[/span]]</xsl:text>
-   </xsl:template>
+   
   <xsl:template match="elementref">
     <xsl:call-template name="elementref">
       <xsl:with-param name="elem" select="."></xsl:with-param>  
     </xsl:call-template>
-    <xsl:text> </xsl:text>
+    
   </xsl:template>
   <xsl:template  name="elementref">
     <xsl:param name="elem" ></xsl:param>
     <xsl:choose>
       <xsl:when test="//xs:element[@name=$elem]">
-        <xsl:text> [[span class="elementlink"]]**{{[#</xsl:text>
+        <xsl:text>[[span class="elementlink"]]**{{[#</xsl:text>
         <xsl:value-of select="$elem"/>
         <xsl:text> </xsl:text>
         <xsl:value-of select="$elem"/>
@@ -359,7 +336,7 @@
              <xsl:if test="@use='required'">
                <xsl:text> ##red|(required)##</xsl:text>
              </xsl:if>
-             <xsl:if test="position()!=last()"><xsl:text>,</xsl:text></xsl:if>
+             <xsl:if test="position()!=last()"><xsl:text>, </xsl:text></xsl:if>
              </xsl:for-each>
         </xsl:otherwise>
         
@@ -667,5 +644,16 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:for-each>
+  </xsl:template>
+  <xsl:template name="normalizespace">
+    <xsl:param name="a"/>
+    <xsl:if test="substring($a,1,1)=' '">
+      <xsl:text> </xsl:text>
+    </xsl:if>
+     <xsl:value-of select="normalize-space($a)"/>
+    <xsl:if test="substring($a,string-length($a),1)=' '">
+      <xsl:text> </xsl:text>
+    </xsl:if>
+    
   </xsl:template>
 </xsl:stylesheet>

@@ -38,16 +38,16 @@
                   field applied throughout the entire unit cell and enters the second-variational
                   Hamiltonian as <displaymath>\frac{g_e\alpha}{4}\,\vec{\sigma}\cdot{\bf B}_{\rm
                     ext},</displaymath> where <inlinemath>g_e</inlinemath> is the electron
-                    <inlinemath>g</inlinemath> -factor (2.0023193043718). This field is normally
+                    <inlinemath>g</inlinemath>-factor (2.0023193043718). This field is normally
                   used to break spin symmetry for spin-polarised calculations and considered to be
                   infinitesimal with no direct contribution to the total energy. In cases where the
                   magnetic field is finite (for example when computing magnetic response) the
-                  external <inlinemath>{ \bf B}</inlinemath> -field energy reported in
+                  external <inlinemath>{ \bf B}</inlinemath>-field energy reported in
                   <pre>INFO.OUT</pre> should be added to the total by hand. This field is applied
                   throughout the entire unit cell. To apply magnetic fields in particular
                   muffin-tins use the <pre>bfcmt</pre> vect ors in the <pre>atoms</pre> block.
                   Collinear calculations are more efficient if the field is applied in the
-                    <inlinemath>z</inlinemath> -direction. </xs:documentation>
+                    <inlinemath>z</inlinemath>-direction. </xs:documentation>
               </xs:annotation>
             </xs:attribute>
             <xs:attribute ex:importance="essential" ex:unit="" name="spinorb" type="xs:boolean">
@@ -68,7 +68,7 @@
             <xs:attribute ex:importance="expert" ex:unit="" name="vqlss" type="vect3d"
               default="0.0d0 0.0d0 0.0d0">
               <xs:annotation>
-                <xs:documentation> Is the <inlinemath>{ \bf q}</inlinemath> -vector of the
+                <xs:documentation> Is the <inlinemath>{ \bf q}</inlinemath>-vector of the
                   spin-spiral state in lattice coordinates. Spin-spirals arise from spinor states
                   assumed to be of the form <displaymath> \Psi^{ \bf q}_{ \bf k}({ \bf r})= \left(
                     \begin{array}{c} U^{{\bf q}\uparrow}_{ \bf k}({\bf r})e^{i({ \bf k+q/2})\cdot{
@@ -1339,7 +1339,7 @@
         <xs:annotation>
           <xs:documentation> Defines the number of eigenstates beyond that required for charge
             neutrality. When running metals it is not known <it>a priori</it> how many states will
-            be below the Fermi energy for each <bf>k</bf> -point. Setting <pre>nempty</pre> greater
+            be below the Fermi energy for each <bf>k</bf>-point. Setting <pre>nempty</pre> greater
             than zero allows the additional states to act as a buffer in such cases. Furthermore,
             magnetic calculations use the first-variational eigenstates as a basis for setting up
             the second-variational Hamiltonian, and thus <pre>nempty</pre> will determine the size
@@ -1370,25 +1370,25 @@
       <xs:attribute ex:importance="expert" ex:unit="" name="autokpt" type="xs:boolean"
         default="false">
         <xs:annotation>
-          <xs:documentation> Decides if the <bf>k</bf> -point set is to be determined automatically
+          <xs:documentation> Decides if the <bf>k</bf>-point set is to be determined automatically
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="radkpt" type="fortrandouble"
         default="40.0d0">
         <xs:annotation>
-          <xs:documentation> Used for the automatic determination of the <bf>k</bf> -point mesh. If
+          <xs:documentation> Used for the automatic determination of the <bf>k</bf>-point mesh. If
             <pre>autokpt</pre> is set to <pre>"true"</pre> then the mesh sizes will be determined by
-              <inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath> . </xs:documentation>
+              <inlinemath>n_i=\lambda/|{ \bf A}_i|+1</inlinemath>. </xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute ex:importance="expert" ex:unit="" name="nktot" type="xs:integer" default="0">
         <xs:annotation>
           <xs:documentation> Used for the automatic determination of the k-point mesh from the total
-            number of <bf nospace="true">k</bf> -points. If <pre>nktot</pre> is set, then the mesh
-            will be determined in such a way that the number of <bf_ns>k</bf_ns> -points is
+            number of <bf nospace="true">k</bf>-points. If <pre>nktot</pre> is set, then the mesh
+            will be determined in such a way that the number of <bf>k</bf>-points is
             proportional to the length of the reciprocal lattice vector in each direction and that
-            the total number of <bf nospace="true">k</bf> -points is less than or equal to
+            the total number of <bf nospace="true">k</bf>-points is less than or equal to
             <pre>nktot</pre> . </xs:documentation>
         </xs:annotation>
       </xs:attribute>
@@ -1396,7 +1396,7 @@
         default="true">
         <xs:annotation>
           <xs:documentation> If the attribute <pre>reducek</pre> is <pre>"true"</pre> the
-              <inlinemath> \bf{k} </inlinemath> -point set is reduced with the crystal symmetries.
+              <inlinemath> \bf{k} </inlinemath>-point set is reduced with the crystal symmetries.
           </xs:documentation>
         </xs:annotation>
       </xs:attribute>
